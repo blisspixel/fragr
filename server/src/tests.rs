@@ -5724,3 +5724,39 @@ mod map_roster {
         );
     }
 }
+#[test]
+fn round_podium_uses_score_then_callsign_for_ties() {
+    for names in [["Zulu", "Alpha", "Leader"], ["Leader", "Alpha", "Zulu"]] {
+        let mut state = crate::sim::GameState::default();
+        for (index, name) in names.into_iter().enumerate() {
+            let id = uuid::Uuid::from_u128(index as u128 + 1);
+            state.add_player(id, name.to_string(), crate::protocol::Role::Human);
+            state
+                .scores
+                .insert(id, if name == "Leader" { 5 } else { 4 });
+        }
+        state.end_round("test".into());
+        let event = state
+            .take_events()
+            .into_iter()
+            .find_map(|event| match event {
+                crate::protocol::GameEvent::RoundEnd {
+                    winner,
+                    final_scores,
+                    ..
+                } => Some((winner, final_scores)),
+                _ => None,
+            })
+            .unwrap();
+        assert_eq!(event.0.as_deref(), Some("Leader"));
+        assert_eq!(
+            event.1.iter().map(|s| s.name.as_str()).collect::<Vec<_>>(),
+            ["Leader", "Alpha", "Zulu"]
+        );
+        for score in state.scores.values_mut() {
+            *score = 5;
+        }
+        state.end_round("all tied".into());
+        assert_eq!(state.ended_mvp.as_deref(), Some("Alpha"));
+    }
+}

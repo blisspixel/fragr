@@ -105,10 +105,7 @@ pub async fn run_server(
                 let started = std::time::Instant::now();
                 let messages = session.tick_messages(TICK.as_secs_f32());
                 let elapsed = started.elapsed();
-                let bytes = messages
-                    .iter()
-                    .map(|m| serde_json::to_string(m).map(|s| s.len()).unwrap_or(0))
-                    .sum::<usize>();
+                let bytes = crate::bench::encoded_payload_bytes(messages.iter())?;
                 stats.record_tick(elapsed, bytes);
                 broadcast_to_clients(&clients, &messages).await;
                 let unicasts = session.take_unicasts();

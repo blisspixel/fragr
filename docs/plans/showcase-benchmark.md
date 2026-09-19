@@ -1,6 +1,6 @@
 # Plan: a benchmark that pushes the machine and shows off the game
 
-**Status:** spec (2026-09-19)
+**Status:** rung 1 in flight (2026-09-19); rendered showcase remains planned.
 **Branch:** `feat/showcase-bench-*` (one PR per rung)
 **Spend:** $0. Local only, no service, no telemetry.
 
@@ -8,9 +8,94 @@
 
 The benchmark that ships today is a headless, server-side simulation timer. It builds a session, seeds it, runs rule bots for a set number of ticks, and records two things per tick: how long the tick took and how many bytes the broadcast would have been. It never opens a window, never loads a scene, never presents a frame.
 
-It is good at its job. Log-linear histogram, exact count and mean, thresholds that fail a build on a single overrun, a determinism check that runs the whole thing twice, and the same statistics structure running inside the live server so a benchmark and a running server are read the same way. It should not change.
+The current check compares only final scores, omits serialization from the timed
+step, and silently treats serialization failures as zero bytes. Its histogram
+documentation also understates the percentile error. Those defects must be fixed
+before its numbers become a basis for further work.
 
-But it measures the part of fragr that has already been proven not to be the bottleneck. The scale ladder found tick time at the 256-fighter rung sitting at 2.884 ms against a 50 ms budget, 5.77 percent of it, with zero overruns in twenty-four thousand ticks, and concluded that the wall is bandwidth rather than simulation. So as a regression gate it is exactly right, and as a thing that pushes a machine it is the wrong instrument entirely. No amount of extending it server-side makes it one.
+## Current increment: trustworthy recording
+
+Branch: `feat/benchmark-trace`. Keep the existing server and client seams. Export
+versioned NDJSON containing a header, every tick's typed broadcasts and unicasts,
+final scores, and a completion record. Stream it without retaining the whole match.
+Use SHA-256 over the exact header/tick/score bytes, excluding timings and completion.
+Seeded benchmark entity identifiers must also repeat, including spawned drones;
+normal sessions retain random UUIDs. Compare complete recordings, including
+intermediate movement and effects, rather than only scores. This proves observable
+trace repeatability on the tested build, not equality of every hidden sim field.
+
+Report session and serialization distributions separately, total measured CPU
+step time, both payload classes, sample counts, and the scope excluded from timing.
+Record OS, architecture, build profile, and available parallelism. Do not infer
+network capacity, GPU performance, or cross-architecture bit identity. Invalid
+thresholds, zero-length runs, write failures, and serialization errors fail loudly.
+Existing trace files must not be overwritten. No runtime wire change is needed.
+
+Verification: exact histogram edge cases, budget boundaries, trace round-trip and
+content mutation, a repeated run that reaches drone/round events, writer failures,
+CLI validation, all repository checks, and a measured 16/64/128-fighter table.
+No paid services or telemetry. The new dependency is the stable RustCrypto `sha2`
+crate rather than a local hash implementation; its MIT/Apache licensing, portable
+backend, and stable 0.11 API were checked on 2026-09-19 against the
+[crate documentation](https://docs.rs/sha2/0.11.0/sha2/) and
+[release history](https://github.com/RustCrypto/hashes/blob/master/sha2/CHANGELOG.md).
+Timing uses monotonic [`Instant`](https://doc.rust-lang.org/std/time/struct.Instant.html).
+
+Acceptance for this increment:
+
+- [x] Same-seed runs have identical complete trace hashes; changed movement is detected.
+- [x] A trace can be parsed through the shared wire types and proves completion.
+- [x] CPU phase and payload accounting are explicit and independently tested.
+- [x] Invalid input and failed output cannot produce a passing benchmark.
+- [ ] Platform CI and the local scale measurements pass.
+
+## Recording increment evidence (2026-09-19)
+
+Local Windows 11, Ryzen 7 7840U, Rust 1.98.1 release profile. Each row is 12,000
+measured ticks plus a complete repeat, seed 42. Measurements were run serially;
+no GPU workload ran beside them. No disk trace was written during these runs.
+Source: `feat/benchmark-trace` on parent `da09dbb`; integration history identifies
+the reviewed implementation. Local JSON receipts are in `.agents/bench/`.
+
+| Fighters | Map | Session p99 ms | Encode p99 ms | Total p99 ms | Maximum ms | At/over 50 ms | Trace repeats |
+|---|---|---:|---:|---:|---:|---:|---|
+| 16 | Arena Duel | 0.019455 | 0.014335 | 0.030719 | 0.1923 | 0 | yes |
+| 64 | Directive 17 | 0.086015 | 0.032767 | 0.110591 | 0.9983 | 0 | yes |
+| 128 | Tripoint Works | 0.147455 | 0.073727 | 0.204799 | 1.5437 | 0 | yes |
+
+Phase percentiles are separate distributions and must not be added. These rows
+measure CPU session/encoding headroom, not network or GPU capacity. The historical
+table in `local-excellence.md` measured session work only and is not a direct
+before/after comparison.
+
+A separate 1,200-tick, 16-fighter recording was written and independently verified
+through the CLI: 5,527,890 bytes, SHA-256
+`9d19742bb065603e6e0ae2bb255b105f9e45486c188eaaf89950a6ac967af128`.
+Unit coverage includes a 4,000-tick recording with drone spawns and round endings,
+changed intermediate positions, altered scores, targeted payloads, reordered and
+truncated records, unsupported headers, and failed writes/flushes. CLI tests prove
+overwrite refusal and nonzero exit for an impossible timing budget.
+
+The stronger recording check exposed nondeterministic tied podium ordering.
+Scores now sort descending, then callsign ascending, and MVP uses that same list.
+Normal sessions still allocate random UUIDs. `docs/BENCHMARK.md` owns report and
+trace formats; no live network message shape changed.
+
+Local validation: 545 Rust tests pass with one ignored (544 in the full workspace
+run, then the final targeted server suite adds the header/unicast contract test).
+Unfiltered workspace line coverage was 94.28 percent before that last test-only
+addition. Warnings-denied Clippy, formatting, release builds, dependency policy,
+11 Godot harnesses, and all 6 verifier fault cases pass. The four-agent loopback
+smoke passed in 22.6 seconds with 9 frags and no spawn deaths. The OpenGL visual
+tour passed all 15 states and its current stills were inspected and published.
+Public-server load and renderer scoring remain unmeasured.
+
+The remaining sections describe the future rendered showcase, not shipped behavior.
+
+The historical scale ladder found simulation headroom at 256 fighters, but it
+did not measure real network fan-out or rendering. Bandwidth remains a capacity
+hypothesis to test, not a proven bottleneck. CPU regression gates and a rendered
+showcase answer different questions; both are needed.
 
 The client side is not thin, it is absent. Nothing in the client times a frame.
 
@@ -24,7 +109,10 @@ Two more determinism requirements sit alongside it:
 
 **Everything advances on wall time, never per frame.** The camera and the trace cursor are both functions of scene time in seconds. If either steps per frame, a fast machine walks a different path than a slow one and there is nothing to compare.
 
-**A real bug has to be fixed first.** The pawn smooths its position with a lerp scaled by delta, which is frame-rate dependent: a machine at 240 frames a second and one at 40 converge toward the same target at genuinely different rates and therefore render different positions from identical inputs. It needs exponential smoothing instead. That is a correctness fix for the shipped game, not just for the benchmark.
+**Smoothing prerequisite already shipped:** pawn interpolation uses exponential
+smoothing, with a headless frame-rate check. A replay still needs to drive its
+cursor and camera from elapsed scene time and prove consistent content at the
+same timestamp across different rendering rates.
 
 ## The flow
 

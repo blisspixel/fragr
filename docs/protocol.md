@@ -577,6 +577,7 @@ MVP is the top scorer (same selection as `winner`). `mvp` / `mvp_frags` / `host_
 - **Time limit**: Default 180 seconds (3600 ticks)
 - **End delay**: 8 seconds (160 ticks) between rounds
 - **Scoring**: Per-round kills, reset each round
+- **Tied podiums**: Score descending, then callsign ascending. MVP uses that same ordering.
 - **Persistence**: Bots remain active when humans leave
 
 ## Example Session
@@ -613,6 +614,10 @@ S→C: {"type": "event", "event": "round_start", "round_number": 2, "frag_limit"
 ```
 
 ## Future Considerations (Post-Slice 1)
+
+Offline recordings reuse these exact message types. Their versioned container,
+verification, and CPU report schema are documented in [`BENCHMARK.md`](BENCHMARK.md).
+Recording metadata is not sent on the live socket.
 
 - **Binary protocol**: Replace JSON with efficient binary (bincode, flatbuffers)
 - **Delta compression**: Send only changed fields

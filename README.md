@@ -121,15 +121,24 @@ Hosting guides: [`infra/docs/HOME-LAN.md`](infra/docs/HOME-LAN.md) for a home bo
 --bench <N>          Benchmark instead of serving: N scripted fighters, no network,
                      one JSON report on stdout, then exit
 --bench-ticks <N>    Ticks to benchmark (default 1200, which is one minute of match)
---bench-check        Run the benchmark twice and report whether the matches agreed
+--bench-check        Repeat and compare the complete recorded message stream
 --bench-assert       Exit non-zero if a threshold is crossed (what CI runs)
+--bench-trace <PATH> Export a new offline NDJSON recording; never overwrites
+--bench-verify-trace <PATH> Check a recording's integrity and completion, then exit
 ```
 
-The benchmark is the ruler: how long a tick took, how many bytes a snapshot cost, how much of the tick budget was used, and whether a seeded run reproduces itself.
+The CPU benchmark reports session time, JSON encoding time, total step time,
+broadcast/unicast bytes, and complete trace repeatability. It does not measure
+network capacity or rendering performance. Reports identify their timing scope;
+use release builds and record the commit and hardware alongside results.
 
 ```bash
-cargo run -p fragr-server --release -- --bench 64 --bench-ticks 1200 --bench-check --seed 42
+cargo run -p fragr-server --release --locked -- --bench 64 --bench-ticks 1200 --bench-check --seed 42
 ```
+
+Record with `--bench-trace .agents/match.ndjson` after creating `.agents/`, then
+verify with `cargo run -p fragr-server --release --locked -- --bench-verify-trace .agents/match.ndjson`.
+The [benchmark contract](docs/BENCHMARK.md) defines the file format and limitations.
 
 `cargo run -p fragr-server -- --help` is the source of truth if this table drifts.
 

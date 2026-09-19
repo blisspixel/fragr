@@ -21,7 +21,7 @@ The engineering ladder for scale runs through every phase: small squads first (f
 - Godot 4.7.2 client as a thin presenter: boot menu, Solo Scrap, spectator director camera, human join and leave, first-person weapon face, HUD with killfeed and Host bumpers.
 - MCP adapter with `join`, `leave`, `observe`, `act`, `speak`, `get_events`, `round_state`, plus a scripted bot. Unknown action fields are rejected. Speak is rate limited.
 - Decision-brain agent (`agents/brain`): a fighter whose stance, weapon, and danger read come from Jev (TypeSafe natively or through OpenRouter) at up to five decisions per second while a local controller plays every tick. Paid providers refuse to start without an explicit cap; every call is estimated, settled, and ledgered. Local rules play for free and CI proves that path.
-- CI on Linux: fmt, clippy with warnings denied, tests, deterministic benchmark and budget checks, the agent playtest smoke with thresholds, an unfiltered 90 percent line coverage floor, release build, cargo-deny for licences, bans, and sources, and headless Godot import, parse, and harness checks.
+- CI on Linux: fmt, clippy with warnings denied, tests, deterministic benchmark and budget checks, the agent playtest smoke with thresholds, an unfiltered 90 percent line coverage floor, release build, cargo-deny for licences, bans, and sources, and headless Godot checks. Windows and macOS also pass workspace tests and Godot checks.
 - Live tip screenshots, a one-command Solo Scrap launcher, self-host guides, and plan-only GCP Terraform.
 - Two developer-only generation pipelines with the same budget discipline as the brain agent: `tools/audiogen` (ElevenLabs, everything you hear) and `tools/spritegen` (Higgsfield, everything you look at). The first production art slice is twenty-four frames for sixty-nine cents, with weapons and enemies usable and surfaces rejected.
 - The setting has three sides: the Union/Chancellery, free humans and conscious agents with agency, and the Quiet. The Quiet's ecological recovery and mass killing leave conflicting survivor perspectives, not a narrator's declaration that it is right. `docs/lore/` owns the world and voice; bodies do not establish who has freedom or whose suffering matters.
@@ -38,7 +38,8 @@ must be checked before any new call rather than inferred from that old balance.
 ## What is next, in order (as of 2026-09-19)
 
 **Active milestone: [local excellence](plans/local-excellence.md).** The first
-increment implements saved callsigns and reticle/bob preferences, pixel menus,
+increment shipped in [v0.15.0](https://github.com/blisspixel/fragr/releases/tag/v0.15.0):
+saved callsigns and reticle/bob preferences, pixel menus,
 first-person spectator follow, three prepared viewmodels, authoritative geometry
 for late spectators, aim preservation, and reliable weapon selection. It also
 removes name-based session eviction and strengthens the client checks. The plan
@@ -46,6 +47,11 @@ records local tests, inspected OpenGL/Vulkan captures, CPU measurements, and the
 remaining gaps. Windows/macOS CI joins Linux verification. Integration and release
 history establish shipped status. This is an active full-game build-out, not a
 finished campaign or final art pass. No paid calls were made for this increment.
+
+The current [benchmark increment](plans/showcase-benchmark.md) adds complete
+recordings and explicit CPU/serialization accounting. Its contract lives in
+[`BENCHMARK.md`](BENCHMARK.md). A rendered GPU benchmark, authored world art, and
+campaign encounters remain open; headless numbers do not establish them.
 
 The phases below are the long shape. This is the remaining build order, with the reason each item sits where it does.
 
