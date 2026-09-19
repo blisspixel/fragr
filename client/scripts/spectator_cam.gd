@@ -37,7 +37,7 @@ var camera_zoom_offset = 0.0
 
 var mouse_motion = Vector2.ZERO
 
-# First-person join: eye follow on local pawn. Pitch is client-only.
+# First-person join: local aim is sent through the shared action channel.
 var fp_mode = false
 var fp_target: Node3D = null
 var fp_pitch = 0.0
@@ -47,14 +47,13 @@ var fp_pitch = 0.0
 var fp_yaw = 0.0
 var turn_accum = 0.0
 ## Eye height above the fighter's feet.
-const FP_EYE_ABOVE_FEET = 1.6
+const FP_EYE_ABOVE_FEET = MoveStep.EYE_HEIGHT
 ## The server's y for a standing fighter. Its position is a reference point,
 ## not the floor, so the eye offset from it is the difference of the two. When
 ## the fighters were put back on the floor this was missed, and the camera sat
 ## at three metres looking down on a world built for one and a half.
 const FP_SERVER_REFERENCE_Y = 1.5
 const FP_EYE_HEIGHT = FP_EYE_ABOVE_FEET - FP_SERVER_REFERENCE_Y
-const FP_FORWARD_NUDGE = 0.15
 const TURN_ACCUM_THRESHOLD = 2.5
 
 func _ready():
@@ -187,7 +186,7 @@ func _apply_stick_look(delta: float, apply_yaw_to_node: bool) -> void:
 			rotation.x = clamp(rotation.x, -PI / 2, PI / 2)
 		else:
 			fp_pitch -= pitch * stick_look_sensitivity * delta
-			fp_pitch = clamp(fp_pitch, -1.15, 1.15)
+			fp_pitch = clampf(fp_pitch, -ServerYaw.PITCH_LIMIT, ServerYaw.PITCH_LIMIT)
 
 func _free_fly(delta):
 	if mouse_motion.length() > 0:
@@ -226,8 +225,8 @@ func _follow_target():
 		if spectator_first_person:
 			_set_observed_pawn(target)
 			var yaw: float = _target_server_yaw(target)
-			global_position = target.global_position + Vector3(0, FP_EYE_HEIGHT, 0) + ServerYaw.forward(yaw) * FP_FORWARD_NUDGE
-			rotation = Vector3(0.0, ServerYaw.camera_rotation_y(yaw), 0.0)
+			global_position = target.global_position + Vector3(0, FP_EYE_HEIGHT, 0)
+			rotation = Vector3(_target_server_pitch(target), ServerYaw.camera_rotation_y(yaw), 0.0)
 			mouse_motion = Vector2.ZERO
 			return
 		_set_observed_pawn(null)
@@ -324,15 +323,15 @@ func _follow_frag_target():
 			return
 
 func _process_fp(delta):
-	# Mouse look: yaw becomes turn bits for Action; pitch stays local.
+	# Local angles are sent as absolute authoritative aim in the next action.
 	if mouse_motion.length() > 0:
 		var radians_per_count := _radians_per_count()
 		fp_yaw = wrapf(fp_yaw + mouse_motion.x * radians_per_count, 0.0, TAU)
 		fp_pitch -= mouse_motion.y * radians_per_count * (-1.0 if invert_y else 1.0)
-		fp_pitch = clamp(fp_pitch, -1.15, 1.15)
+		fp_pitch = clampf(fp_pitch, -ServerYaw.PITCH_LIMIT, ServerYaw.PITCH_LIMIT)
 		mouse_motion = Vector2.ZERO
 
-	# Right stick: same Action turn path + local pitch.
+	# Right stick changes the same local aim sent through Action.
 	_apply_stick_look(delta, false)
 
 	if not is_instance_valid(fp_target):
@@ -341,7 +340,6 @@ func _process_fp(delta):
 	var eye = fp_target.global_position + Vector3(0, FP_EYE_HEIGHT, 0)
 	# The eye looks where the client aims, not where the last snapshot said.
 	var yaw = fp_yaw
-	eye += ServerYaw.forward(yaw) * FP_FORWARD_NUDGE
 
 	if camera_shake_intensity > 0:
 		eye += Vector3(
@@ -376,6 +374,9 @@ static func cm_per_360(sensitivity: float, counts_per_inch: float) -> float:
 func consume_yaw() -> float:
 	return wrapf(fp_yaw, 0.0, TAU)
 
+func consume_pitch() -> float:
+	return clampf(fp_pitch, -ServerYaw.PITCH_LIMIT, ServerYaw.PITCH_LIMIT)
+
 
 func consume_turn_bits() -> Dictionary:
 	# Discrete turn for Action. Called each tick while human; clears accum.
@@ -409,12 +410,16 @@ func set_fp_mode(enabled: bool, target: Node3D = null) -> void:
 		# fighter's facing so the first mouse move continues from it.
 		var yaw: float = _target_server_yaw(target)
 		fp_yaw = wrapf(yaw, 0.0, TAU)
+		fp_pitch = _target_server_pitch(target)
 		position = target.global_position + Vector3(0, FP_EYE_HEIGHT, 0)
 		rotation.y = ServerYaw.camera_rotation_y(yaw)
 		rotation.x = fp_pitch
 
 static func _target_server_yaw(target: Node3D) -> float:
 	return float(target.get("target_yaw")) if "target_yaw" in target else -target.rotation.y
+
+static func _target_server_pitch(target: Node3D) -> float:
+	return clampf(float(target.get("target_pitch")), -ServerYaw.PITCH_LIMIT, ServerYaw.PITCH_LIMIT) if "target_pitch" in target else 0.0
 
 func is_observing_first_person() -> bool:
 	return not fp_mode and follow_mode and spectator_first_person and is_instance_valid(get_followed_target())

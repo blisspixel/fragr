@@ -17,6 +17,7 @@ var nameplate_enabled: bool = true
 
 var target_position: Vector3 = Vector3.ZERO
 var target_yaw: float = 0.0
+var target_pitch: float = 0.0
 const INTERP_SPEED: float = 10.0
 
 # Far-cam billboard scale: follow sits ~12m; tip overview ~36m.
@@ -203,6 +204,7 @@ func set_player_data(id: String, name: String):
 func update_state(state: Dictionary):
 	target_position = Vector3(state.x, state.y, state.z)
 	target_yaw = state.yaw
+	target_pitch = clampf(float(state.get("pitch", 0.0)), -ServerYaw.PITCH_LIMIT, ServerYaw.PITCH_LIMIT)
 	
 	var old_hp = hp
 	hp = state.hp

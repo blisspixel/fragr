@@ -811,6 +811,7 @@ pub fn patrol_action(me: &fragr_server::protocol::PlayerState, tick: u64, arena:
     let angle = offset + tick as f32 * PATROL_TURN_PER_TICK;
     Action {
         look_at: Some(LookAt {
+            y: None,
             player_id: None,
             x: Some(angle.cos() * radius),
             z: Some(angle.sin() * radius),
@@ -824,17 +825,17 @@ pub fn reflex_action(bot_id: Uuid, snapshot: &Snapshot, arena: &Arena) -> Action
     let Some(me) = snapshot.players.iter().find(|p| p.id == bot_id) else {
         return Action::default();
     };
-    let mut nearest: Option<(f32, Uuid, f32, f32)> = None;
+    let mut nearest: Option<(f32, &fragr_server::protocol::PlayerState)> = None;
     for other in &snapshot.players {
         if other.id == bot_id {
             continue;
         }
         let dist = ((other.x - me.x).powi(2) + (other.z - me.z).powi(2)).sqrt();
-        if nearest.is_none_or(|(d, _, _, _)| dist < d) {
-            nearest = Some((dist, other.id, other.x, other.z));
+        if nearest.is_none_or(|(d, _)| dist < d) {
+            nearest = Some((dist, other));
         }
     }
-    let Some((dist, target, target_x, target_z)) = nearest else {
+    let Some((dist, target)) = nearest else {
         return patrol_action(me, snapshot.tick, arena);
     };
     // Swap only when the right weapon is not already in hand, so the report
@@ -844,10 +845,11 @@ pub fn reflex_action(bot_id: Uuid, snapshot: &Snapshot, arena: &Arena) -> Action
     // Do not shoot the wall in front of the enemy. Behind cover, keep closing
     // rather than standing there: an agent that cannot see its target should
     // move to clear the corner, which is also what stops it looking stuck.
-    let clear = arena.line_of_sight((me.x, me.z), (target_x, target_z));
+    let clear = arena.fighter_visible(me, target);
     Action {
         look_at: Some(LookAt {
-            player_id: Some(target),
+            y: None,
+            player_id: Some(target.id),
             x: None,
             z: None,
         }),
@@ -977,11 +979,12 @@ pub fn planner_action(bot_id: Uuid, snapshot: &Snapshot, arena: &Arena) -> Actio
     // rather than standing still, which is the whole difference from a reflex
     // agent that only ever charges.
     let (comfortable, ideal) = preferred_band(wanted);
-    let clear = arena.line_of_sight((me.x, me.z), (enemy.x, enemy.z));
+    let clear = arena.fighter_visible(me, enemy);
     // With cover in the way the band does not matter: step out and look.
     let holding = clear && dist >= comfortable && dist <= ideal;
     Action {
         look_at: Some(LookAt {
+            y: None,
             player_id: Some(enemy.id),
             x: None,
             z: None,
@@ -1026,6 +1029,7 @@ fn walk_to(
     });
     Action {
         look_at: Some(LookAt {
+            y: None,
             x: Some(pad.x),
             z: Some(pad.z),
             player_id: None,
@@ -1065,45 +1069,27 @@ impl Default for Arena {
 }
 
 impl Arena {
-    /// Does a straight line from one point to another reach it without
-    /// crossing a solid? The same slab test the server uses to resolve a shot,
-    /// so an agent's idea of a clear line matches the one that decides hits.
-    ///
-    /// Anything lower than eye height is stepped over rather than hidden
-    /// behind, so a kerb or a stair tread is not cover and an agent does not
-    /// stand there shuffling because it thinks it cannot see out.
+    /// Ground-level eye visibility, retained for callers with horizontal points.
     pub fn line_of_sight(&self, from: (f32, f32), to: (f32, f32)) -> bool {
-        let dx = to.0 - from.0;
-        let dz = to.1 - from.1;
-        let distance = (dx * dx + dz * dz).sqrt();
-        if distance <= f32::EPSILON {
-            return true;
-        }
-        let (ux, uz) = (dx / distance, dz / distance);
-        !self.solids.iter().any(|solid| {
-            solid.top >= EYE_HEIGHT
-                && ray_hits_solid(from, (ux, uz), *solid).is_some_and(|t| t < distance)
-        })
+        fragr_server::combat::line_of_sight(
+            [from.0, EYE_HEIGHT, from.1],
+            [to.0, EYE_HEIGHT, to.1],
+            &self.solids,
+        )
     }
-}
 
-/// Distance along a unit ray at which it first enters a box, if it does.
-fn ray_hits_solid(origin: (f32, f32), dir: (f32, f32), solid: Solid) -> Option<f32> {
-    let slab = |o: f32, d: f32, lo: f32, hi: f32| -> Option<(f32, f32)> {
-        if d.abs() < 1e-8 {
-            // Parallel: either always inside this slab or never.
-            return (o >= lo && o <= hi).then_some((f32::NEG_INFINITY, f32::INFINITY));
-        }
-        let inv = 1.0 / d;
-        let a = (lo - o) * inv;
-        let b = (hi - o) * inv;
-        Some((a.min(b), a.max(b)))
-    };
-    let (tx_min, tx_max) = slab(origin.0, dir.0, solid.min_x, solid.max_x)?;
-    let (tz_min, tz_max) = slab(origin.1, dir.1, solid.min_z, solid.max_z)?;
-    let enter = tx_min.max(tz_min);
-    let exit = tx_max.min(tz_max);
-    (exit >= enter && exit >= 0.0).then(|| enter.max(0.0))
+    fn fighter_visible(
+        &self,
+        from: &fragr_server::protocol::PlayerState,
+        to: &fragr_server::protocol::PlayerState,
+    ) -> bool {
+        use fragr_server::{combat::FIGHTER_HEIGHT, sim::PLAYER_FLOOR_Y};
+        fragr_server::combat::line_of_sight(
+            [from.x, from.y - PLAYER_FLOOR_Y + EYE_HEIGHT, from.z],
+            [to.x, to.y - PLAYER_FLOOR_Y + FIGHTER_HEIGHT * 0.5, to.z],
+            &self.solids,
+        )
+    }
 }
 
 /// Ticks of no movement before an agent decides it is wedged and tries
@@ -1331,10 +1317,11 @@ mod tests {
 
     fn player(name: &str, id: Uuid, x: f32, z: f32, fired: bool) -> PlayerState {
         PlayerState {
+            pitch: 0.0,
             id,
             name: name.to_string(),
             x,
-            y: 0.0,
+            y: fragr_server::sim::PLAYER_FLOOR_Y,
             z,
             yaw: 0.0,
             hp: 100,
@@ -1736,10 +1723,11 @@ mod combat_tests {
 
     fn player(name: &str, id: Uuid, x: f32, z: f32, weapon: &str) -> PlayerState {
         PlayerState {
+            pitch: 0.0,
             id,
             name: name.to_string(),
             x,
-            y: 1.0,
+            y: fragr_server::sim::PLAYER_FLOOR_Y,
             z,
             yaw: 0.0,
             hp: 100,
@@ -2047,10 +2035,11 @@ mod planner_tests {
 
     fn player(name: &str, id: Uuid, x: f32, z: f32, hp: i32, weapon: &str) -> PlayerState {
         PlayerState {
+            pitch: 0.0,
             id,
             name: name.to_string(),
             x,
-            y: 1.0,
+            y: fragr_server::sim::PLAYER_FLOOR_Y,
             z,
             yaw: 0.0,
             hp,
@@ -2399,10 +2388,11 @@ mod line_of_sight_tests {
             jammer_dish: None,
         };
         let mk = |id: Uuid, x: f32| fragr_server::protocol::PlayerState {
+            pitch: 0.0,
             id,
             name: format!("p{x}"),
             x,
-            y: 1.0,
+            y: fragr_server::sim::PLAYER_FLOOR_Y,
             z: 0.0,
             yaw: 0.0,
             hp: 100,
@@ -2441,6 +2431,20 @@ mod line_of_sight_tests {
         let holding = planner_action(me, &snap, &clear);
         assert!(!holding.forward, "ten units is the flechette band");
         assert!(holding.left || holding.right);
+        for player in &mut snap.players {
+            player.y = fragr_server::sim::PLAYER_FLOOR_Y + 5.0;
+        }
+        assert!(
+            reflex_action(me, &snap, &blocked).fire,
+            "both fighters see over the wall"
+        );
+        assert!(planner_action(me, &snap, &blocked).fire);
+        snap.players[1].y = fragr_server::sim::PLAYER_FLOOR_Y;
+        assert!(
+            !reflex_action(me, &snap, &blocked).fire,
+            "descending aim meets the wall"
+        );
+        assert!(!planner_action(me, &snap, &blocked).fire);
     }
 }
 
@@ -2453,6 +2457,7 @@ mod unstick_tests {
             forward: true,
             fire: true,
             look_at: Some(LookAt {
+                y: None,
                 player_id: Some(Uuid::new_v4()),
                 x: None,
                 z: None,
@@ -2522,10 +2527,11 @@ mod patrol_tests {
 
     fn lone(id: Uuid) -> fragr_server::protocol::PlayerState {
         fragr_server::protocol::PlayerState {
+            pitch: 0.0,
             id,
             name: "lone".to_string(),
             x: 0.0,
-            y: 1.0,
+            y: fragr_server::sim::PLAYER_FLOOR_Y,
             z: 0.0,
             yaw: 0.0,
             hp: 100,

@@ -139,24 +139,27 @@ fi
 # them is one command rather than a thing someone remembers to do.
 if [ "${PUBLISH:-0}" = "1" ]; then
   published=0
-  while IFS='|' read -r src dest; do
-    [ -z "$src" ] && continue
-    if [ -f "$OUT_DIR/$src" ]; then
-      cp "$OUT_DIR/$src" "$ROOT/docs/screenshots/$dest"
+  shopt -s nullglob
+  while IFS='|' read -r state dest; do
+    [ -z "$state" ] && continue
+    # State names survive additions to the tour; ordinal filenames do not.
+    matches=("$OUT_DIR/"*"_${state}.png")
+    if [ "${#matches[@]}" -eq 1 ]; then
+      cp "${matches[0]}" "$ROOT/docs/screenshots/$dest" || exit 1
       published=$((published + 1))
     else
-      echo "qa_tour: cannot publish $src; it was not captured" >&2
+      echo "qa_tour: expected one capture for $state, found ${#matches[@]}" >&2
       exit 1
     fi
   done <<'SHOTS'
-05_hud_first_person.png|tour_first_person_16x9.png
-04_combat_follow.png|tour_combat_follow_16x9.png
-03_arena_overview.png|tour_arena_overview_16x9.png
-07_shot_effects_strip.png|tour_shot_strip.png
-01_boot_menu.png|tour_menu_16x9.png
-02_spectator_eyes.png|tour_spectator_16x9.png
-11_profile_menu.png|tour_profile_16x9.png
-12_settings_menu.png|tour_settings_16x9.png
+hud_first_person|tour_first_person_16x9.png
+combat_follow|tour_combat_follow_16x9.png
+arena_overview|tour_arena_overview_16x9.png
+shot_effects_strip|tour_shot_strip.png
+boot_menu|tour_menu_16x9.png
+spectator_eyes|tour_spectator_16x9.png
+profile_menu|tour_profile_16x9.png
+settings_menu|tour_settings_16x9.png
 SHOTS
   echo "qa_tour: published $published stills into docs/screenshots/"
 fi

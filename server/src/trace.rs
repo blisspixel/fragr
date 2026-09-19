@@ -356,6 +356,7 @@ mod tests {
             let mut record: TraceRecord = serde_json::from_slice(line).unwrap();
             if let TraceRecord::Tick { unicasts, tick, .. } = &mut record {
                 let ack = ServerMessage::Ack {
+                    pitch: 0.0,
                     seq: index as u32,
                     tick: *tick,
                     x: 1.0,

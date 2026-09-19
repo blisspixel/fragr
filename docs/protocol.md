@@ -6,6 +6,11 @@ WebSocket JSON protocol between clients and the authoritative server.
 **Format:** JSON text messages
 **Tick rate:** ~20 Hz (50ms per tick)
 
+Use matching client/server releases. The vertical-aim server accepts older actions
+without pitch, and current readers accept older snapshots/recordings with pitch
+defaulted to zero. Older servers can reject the new action field; this is not
+protocol negotiation or a promise that mixed releases interoperate.
+
 ## Connection Flow
 
 1. Client connects to WebSocket
@@ -65,6 +70,7 @@ Sent by `human` or `agent` roles to control their player. All fields are optiona
   "weapon_swap": "rail",
   "look_at": { "player_id": "550e8400-e29b-41d4-a716-446655440000" },
   "yaw": 1.5707963,
+  "pitch": 0.25,
   "seq": 4123
 }
 ```
@@ -85,8 +91,15 @@ World-point aim:
 - `turn_left` / `turn_right`: Rotate view left/right (incremental)
 - `fire`: Fire weapon
 - `weapon_swap`: (optional) Switch to weapon type: `"flechette"` | `"rail"` | `"scatter"`. The newest explicit choice is retained across input packets until a simulation tick consumes it once. A later packet without this field does not cancel an unconsumed choice.
-- `look_at`: (optional) Authoritative aim object. Prefer `player_id` (UUID string), or both `x` and `z` (world point). Server snaps yaw toward the target on the Action tick. Invalid/missing target is a yaw no-op.
+- `look_at`: (optional) Authoritative target aim. Prefer `player_id` (UUID string),
+  or both `x` and `z` with optional world `y`. A player target aims at the body
+  centre, 0.9 units above its feet. A world point without `y` means horizontal aim.
+  Valid target intent replaces yaw and pitch after movement. Missing targets,
+  coincident points, and nonfinite coordinates leave the current aim unchanged.
 - `yaw`: (optional) Client-owned absolute facing in radians. When present the server takes it as the fighter's yaw for this input, before movement, instead of turning at a fixed rate from the turn bits. Normalised into `[0, 2 pi)`; non-finite values are ignored and the turn bits apply as before. This is how a human client keeps the look axis off the network.
+- `pitch`: (optional) Absolute vertical aim in radians, positive upward, clamped
+  to +/-85 degrees. Missing or nonfinite values retain the last pitch, initially
+  zero. Pitch does not redirect movement. Respawn resets it to zero.
 - `seq`: (optional) Input sequence number. The server acknowledges the newest sequence it applied for this fighter in an `ack` message every tick. Clients that do not predict may omit it.
 
 **Notes:**
@@ -181,7 +194,8 @@ Unicast, once per tick, to a client whose input carried a `seq`. Carries the new
   "tick": 88210,
   "x": 12.25,
   "z": -3.5,
-  "yaw": 1.5707963
+  "yaw": 1.5707963,
+  "pitch": 0.25
 }
 ```
 
@@ -189,7 +203,9 @@ Unicast, once per tick, to a client whose input carried a `seq`. Carries the new
 - `seq`: the newest input sequence applied to this fighter
 - `tick`: the server tick that applied it
 - `x` / `z`: authoritative position after that tick
-- `yaw`: authoritative facing after that tick
+- `yaw`: authoritative horizontal facing after that tick
+- `pitch`: authoritative vertical facing after that tick, default zero when
+  reading older messages/recordings
 
 
 ### Solo Broadcast episode fields (Snapshot)
@@ -254,6 +270,7 @@ Periodic state broadcast containing all visible game entities. Sent at ~20 Hz.
       "y": 1.5,
       "z": -5.2,
       "yaw": 1.57,
+      "pitch": -0.1,
       "hp": 75,
       "just_fired": false,
       "behavior": "Aggressive",
@@ -297,6 +314,8 @@ Periodic state broadcast containing all visible game entities. Sent at ~20 Hz.
   - `name`: Display name
   - `x`, `y`, `z`: Position in world space (arena is ±25 units)
   - `yaw`: Rotation in radians (0 = +X axis, counter-clockwise)
+  - `pitch`: Vertical aim in radians, positive upward; defaults to zero in older
+    messages. Eye spectators use this same value.
   - `hp`: Health points (0-100)
   - `armor`: Scrap armor (0-100, default 0); absorbs damage before HP
   - `just_fired`: True on the tick a weapon was fired (for muzzle flash)
@@ -562,7 +581,14 @@ MVP is the top scorer (same selection as `winner`). `mvp` / `mvp_frags` / `host_
     - Dispersion: 0.20 radians (11 degrees)
     - Range: 12 units
     - Falloff: full damage to 4 units, then linearly down to 35 percent at 12
-- **Hitscan**: Instant, no projectile travel, capped by weapon range. A shot leaves the barrel at a random angle inside the weapon's dispersion cone, drawn from the simulation's seeded stream, and lands only if that line passes within a fighter's radius. Dispersion is not aim assistance: assistance is a separate constant, currently zero for every input device.
+- **Hitscan**: One unit 3D ray from the shooter's eye, 1.6 units above its feet.
+  Two seeded samples select a uniform disk perpendicular to aim, projected inside
+  the weapon's dispersion cone. The nearest finite fighter cylinder wins
+  (radius 0.5, height 1.8), subject to weapon range and earlier solid/floor hits.
+  Cover uses the same ray through volumes from ground to their authored top.
+  No automatic vertical aim or aim-assist cone is applied. Falloff uses traveled
+  3D distance to the hit surface. Combat RNG results change from the previous
+  horizontal-only model; existing recorded messages remain readable.
 - **Respawn delay**: 60 ticks (3 seconds)
 
 ### Movement

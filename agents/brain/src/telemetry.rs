@@ -347,6 +347,7 @@ pub(crate) mod fixtures {
 
     pub fn player(name: &str, id: Uuid, x: f32, z: f32, hp: i32, weapon: &str) -> PlayerState {
         PlayerState {
+            pitch: 0.0,
             id,
             name: name.to_string(),
             x,

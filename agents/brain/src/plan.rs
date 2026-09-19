@@ -223,6 +223,7 @@ pub fn micro_action(plan: &Plan, me: Uuid, snapshot: &Snapshot) -> Action {
             .min_by(|a, b| a.0.total_cmp(&b.0));
         if let Some((dist, x, z)) = pad {
             action.look_at = Some(LookAt {
+                y: None,
                 x: Some(x),
                 z: Some(z),
                 player_id: None,
@@ -236,6 +237,7 @@ pub fn micro_action(plan: &Plan, me: Uuid, snapshot: &Snapshot) -> Action {
         return action;
     };
     action.look_at = Some(LookAt {
+        y: None,
         player_id: Some(target),
         x: None,
         z: None,

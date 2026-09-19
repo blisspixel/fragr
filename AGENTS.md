@@ -50,6 +50,7 @@ If prose and code disagree, code wins; fix the prose in the same change. Keep pl
 | Concern | Home |
 |---|---|
 | Sim tick, hit detection, movement, pickups, boss, bots | `server/src/sim.rs` |
+| Shot geometry, pitch bounds, target angles | `server/src/combat.rs`; server outcome ownership stays in `sim.rs`. `ServerYaw` maps yaw/pitch to the client camera. |
 | Map definitions, collision solids, spawn layout | `server/src/maps.rs`; `MapInfo` drives `client/scripts/arena_cover.gd`. Surface materials: `arena_materials.gd`; scenery outside the playable bounds: `arena_backdrop.gd`. |
 | Movement math and facing conversion | `server/src/movement.rs`, `client/scripts/movement.gd`, `client/golden/move_vectors.json`, `client/scripts/server_yaw.gd` |
 | CPU measurements and offline traces | `server/src/bench.rs`, `trace.rs`; contract in `docs/BENCHMARK.md` |

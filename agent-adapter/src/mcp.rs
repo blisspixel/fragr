@@ -104,7 +104,7 @@ const ACT_ALLOWED_KEYS: &[&str] = &[
     "look_at",
 ];
 
-const LOOK_AT_ALLOWED_KEYS: &[&str] = &["x", "z", "player_id"];
+const LOOK_AT_ALLOWED_KEYS: &[&str] = &["x", "y", "z", "player_id"];
 
 const JOIN_ALLOWED_KEYS: &[&str] = &["name"];
 
@@ -192,8 +192,12 @@ pub fn validate_act_arguments(arguments: &Value) -> Result<Action, String> {
                     Some(val) if val.is_null() => Ok(None),
                     Some(val) => val
                         .as_f64()
-                        .map(|n| Some(n as f32))
-                        .ok_or_else(|| format!("schema error: look_at.{} must be a number", key)),
+                        .map(|n| n as f32)
+                        .filter(|n| n.is_finite())
+                        .map(Some)
+                        .ok_or_else(|| {
+                            format!("schema error: look_at.{} must be a finite f32 number", key)
+                        }),
                 }
             };
             let player_id = match look_obj.get("player_id") {
@@ -212,11 +216,12 @@ pub fn validate_act_arguments(arguments: &Value) -> Result<Action, String> {
                 }
             };
             let x = num_field("x")?;
+            let y = num_field("y")?;
             let z = num_field("z")?;
             if player_id.is_none() && (x.is_none() || z.is_none()) {
                 return Err("schema error: look_at requires player_id or both x and z".to_string());
             }
-            Some(protocol::LookAt { x, z, player_id })
+            Some(protocol::LookAt { x, y, z, player_id })
         }
     } else {
         None
@@ -234,8 +239,9 @@ pub fn validate_act_arguments(arguments: &Value) -> Result<Action, String> {
         weapon_swap,
         look_at,
         // MCP agents aim with look_at and the turn bits; they do not own a
-        // facing and do not predict, so neither field is set here.
+        // facing and do not predict, so absolute angles and seq are unset.
         yaw: None,
+        pitch: None,
         seq: None,
     })
 }
@@ -510,7 +516,7 @@ fn tools_list_result() -> Value {
             },
             {
                 "name": "act",
-                "description": "Send action to the game server. Actions are level-held (sticky) within each tick window. Set true to activate, false to deactivate. Weapon swap changes loadout. look_at aims (server applies yaw).",
+                "description": "Send action to the game server. Actions are level-held (sticky) within each tick window. Set true to activate, false to deactivate. Weapon swap changes loadout. look_at aims in three dimensions.",
                 "inputSchema": {
                     "type": "object",
                     "properties": {
@@ -525,10 +531,11 @@ fn tools_list_result() -> Value {
                         "weapon_swap": {"type": "string", "enum": ["flechette", "rail", "scatter"], "description": "Switch to weapon type"},
                         "look_at": {
                             "type": "object",
-                            "description": "Aim: server sets yaw toward player_id (preferred) or world x/z",
+                            "description": "Aim at player_id (preferred) or world x/z with optional y. Missing y aims horizontally.",
                             "properties": {
                                 "player_id": {"type": "string", "description": "Target player UUID"},
                                 "x": {"type": "number", "description": "World X target"},
+                                "y": {"type": "number", "description": "World Y target, optional"},
                                 "z": {"type": "number", "description": "World Z target"}
                             },
                             "additionalProperties": false
@@ -1115,6 +1122,18 @@ mod mcp_tests {
         let look = action.look_at.expect("look_at");
         assert_eq!(look.x, Some(1.5));
         assert_eq!(look.z, Some(-2.0));
+        assert_eq!(look.y, None);
+    }
+
+    #[test]
+    fn look_at_accepts_world_height_and_rejects_float_overflow() {
+        let args = serde_json::json!({"look_at":{"x":1.0,"y":4.5,"z":2.0}});
+        let action = validate_act_arguments(&args).unwrap();
+        assert_eq!(action.look_at.unwrap().y, Some(4.5));
+        for bad in [serde_json::json!(1e100), serde_json::json!("high")] {
+            let args = serde_json::json!({"look_at":{"x":1.0,"y":bad,"z":2.0}});
+            assert!(validate_act_arguments(&args).is_err());
+        }
     }
 
     #[test]

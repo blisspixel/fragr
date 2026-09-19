@@ -47,6 +47,13 @@ func _initialize() -> void:
 			)
 			ok = false
 
+	for yaw in [0.0, 0.7, 2.8, 5.1]:
+		for pitch in [-ServerYaw.PITCH_LIMIT, -0.5, 0.0, 0.6, ServerYaw.PITCH_LIMIT]:
+			cam.rotation = Vector3(pitch, ServerYaw.camera_rotation_y(yaw), 0.0)
+			if (-cam.transform.basis.z).distance_to(ServerYaw.aim_direction(yaw, pitch)) > TOLERANCE:
+				push_error("test_server_yaw: camera pitch disagrees with the server ray")
+				ok = false
+
 	# Yaw zero is the case everyone reasons about, so pin it explicitly.
 	if script.forward(0.0).distance_to(Vector3(1.0, 0.0, 0.0)) > TOLERANCE:
 		push_error("test_server_yaw: yaw zero must be world +X")

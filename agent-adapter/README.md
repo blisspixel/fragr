@@ -133,7 +133,11 @@ Send an action to control your agent's pawn.
 }
 ```
 
-All fields are optional. Movement and fire are booleans (default `false`). `weapon_swap` is an optional string: `"flechette"`, `"rail"`, or `"scatter"`. `look_at` is an optional object: prefer `player_id` (UUID), or both `x` and `z` for a world point. The server snaps yaw toward the target.
+All fields are optional. Movement and fire are booleans (default `false`).
+`weapon_swap` accepts `"flechette"`, `"rail"`, or `"scatter"`. For `look_at`, prefer
+`player_id` (UUID), or both `x` and `z` with optional world `y`. The server aims
+at a player's body centre in three dimensions. World x/z without y aims
+horizontally. Nonfinite/out-of-range floating-point coordinates are rejected.
 
 **Output:**
 ```json
@@ -151,8 +155,9 @@ All fields are optional. Movement and fire are booleans (default `false`). `weap
 - All `true` fields are applied together on the next server tick
 - Movement keys combine (e.g., `forward + left` = diagonal)
 - `weapon_swap` is processed immediately on the next tick
-- `look_at` is applied by the server (yaw snap) after movement/turn on the next tick
-- Server enforces weapon-specific cooldowns (Flechette: 500ms, Rail: 2.0s, Scatter: 250ms)
+- `look_at` sets yaw and pitch after movement/turn on the next tick. The target
+  must still be visible to the actual shot ray; target intent does not bypass cover.
+- Server enforces weapon-specific cooldowns (Flechette: 200 ms, Rail: 1.0 s, Scatter: 450 ms)
 - Call rate: 1-10 Hz typical for MCP agents; faster allowed but limited by server tick rate
 
 ### `speak`

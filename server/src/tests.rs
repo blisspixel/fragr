@@ -329,6 +329,7 @@ fn test_protocol_snapshot_serialization() {
     let snapshot = Snapshot {
         tick: 123,
         players: vec![PlayerState {
+            pitch: 0.0,
             id: Uuid::new_v4(),
             name: "Player1".to_string(),
             x: 10.0,
@@ -1709,9 +1710,12 @@ fn test_scatter_hits_harder_than_flechette_up_close() {
     state.tick(0.05);
 
     let damage_dealt = initial_hp - state.players[target_idx].hp;
-    // Five units out, inside the four unit full-damage band plus a little
-    // falloff, so the shot lands for more than a flechette does anywhere.
-    assert_eq!(damage_dealt, 37, "Scatter at five units should deal 37");
+    // The target centre is five units away, but the near cylinder surface
+    // is about 4.5 units away. Falloff uses the traveled ray distance.
+    assert_eq!(
+        damage_dealt, 38,
+        "Scatter reaches the near body surface first"
+    );
     assert!(
         damage_dealt > WeaponType::Flechette.damage(),
         "up close the scatter gun should hit harder than the flechette"
@@ -2523,6 +2527,7 @@ fn test_look_at_player_id_sets_yaw() {
         aimer_id,
         Action {
             look_at: Some(crate::protocol::LookAt {
+                y: None,
                 player_id: Some(target_id),
                 x: None,
                 z: None,
@@ -2561,6 +2566,7 @@ fn test_look_at_world_xz_sets_yaw() {
         aimer_id,
         Action {
             look_at: Some(crate::protocol::LookAt {
+                y: None,
                 player_id: None,
                 x: Some(-10.0),
                 z: Some(0.0),
@@ -5059,12 +5065,15 @@ fn acks_report_the_state_the_input_produced() {
             x,
             z,
             yaw,
+            pitch,
         } => {
+            assert!(pitch.is_finite());
             assert_eq!(*seq, 41);
             assert_eq!(*tick, state.tick);
             assert_eq!(*x, state.players[idx].x);
             assert_eq!(*z, state.players[idx].z);
             assert_eq!(*yaw, state.players[idx].yaw);
+            assert_eq!(*pitch, state.players[idx].pitch);
         }
         other => panic!("expected an Ack, got {other:?}"),
     }
@@ -5107,6 +5116,7 @@ fn action_wire_accepts_yaw_and_seq_and_still_accepts_neither() {
     );
     // The Ack shape agents and clients read.
     let ack = ServerMessage::Ack {
+        pitch: 0.25,
         seq: 3,
         tick: 12,
         x: 1.5,
@@ -5708,6 +5718,14 @@ mod map_roster {
                 Action {
                     fire: true,
                     yaw: Some(aim),
+                    look_at: Some(crate::protocol::LookAt {
+                        // Aim at the exposed upper body. The deck correctly
+                        // occludes a ray toward the target's lower torso.
+                        x: Some(pit.0),
+                        y: Some(crate::movement::EYE_HEIGHT),
+                        z: Some(pit.1),
+                        ..Default::default()
+                    }),
                     ..Default::default()
                 },
             );
@@ -5728,6 +5746,7 @@ mod map_roster {
 fn round_podium_uses_score_then_callsign_for_ties() {
     for names in [["Zulu", "Alpha", "Leader"], ["Leader", "Alpha", "Zulu"]] {
         let mut state = crate::sim::GameState::default();
+        state.start_round();
         for (index, name) in names.into_iter().enumerate() {
             let id = uuid::Uuid::from_u128(index as u128 + 1);
             state.add_player(id, name.to_string(), crate::protocol::Role::Human);
@@ -5758,5 +5777,238 @@ fn round_podium_uses_score_then_callsign_for_ties() {
         }
         state.end_round("all tied".into());
         assert_eq!(state.ended_mvp.as_deref(), Some("Alpha"));
+        state.events.clear();
+        state.start_round();
+        assert!(
+            state.events.iter().any(|event| matches!(event,
+                GameEvent::RoundStart { previous_winner: Some(name), .. } if name == "Alpha"
+            )),
+            "next-round identity must use the same podium ordering"
+        );
+    }
+}
+
+mod vertical_aim {
+    use super::*;
+    use crate::combat::{aim_at, PITCH_LIMIT};
+    use crate::protocol::LookAt;
+    use crate::sim::{BotBehavior, BotController, PLAYER_FLOOR_Y};
+
+    fn pair(shooter_height: f32, target_height: f32) -> (GameState, Uuid, Uuid) {
+        let mut state = GameState::new();
+        state.seed(42);
+        state.start_round();
+        let shooter = Uuid::new_v4();
+        let target = Uuid::new_v4();
+        state.add_player(shooter, "Shooter".into(), Role::Human);
+        state.add_player(target, "Target".into(), Role::Agent);
+        let (z, span) = clear_lane(10.0);
+        let x = -span * 0.5;
+        state.players[0].x = x;
+        state.players[0].z = z;
+        state.players[0].y = PLAYER_FLOOR_Y + shooter_height;
+        state.players[0].yaw = 0.0;
+        state.players[0].weapon = WeaponType::Rail;
+        state.players[1].x = x + 10.0;
+        state.players[1].z = z;
+        state.players[1].y = PLAYER_FLOOR_Y + target_height;
+        state.spawn_shields.clear();
+        (state, shooter, target)
+    }
+
+    #[test]
+    fn human_pitch_controls_hits_at_every_elevation() {
+        for (from, to) in [(0.0, 0.0), (0.0, 4.0), (4.0, 0.0)] {
+            let (base, _, _) = pair(from, to);
+            let a = &base.players[0];
+            let b = &base.players[1];
+            let (_, correct) = aim_at(
+                [a.x, from + crate::movement::EYE_HEIGHT, a.z],
+                [b.x, to + 0.9, b.z],
+            )
+            .unwrap();
+            for (pitch, should_hit) in [
+                (correct, true),
+                (correct + 0.6, false),
+                (correct - 0.6, false),
+            ] {
+                let (mut state, shooter, _) = pair(from, to);
+                state.set_action(
+                    shooter,
+                    Action {
+                        fire: true,
+                        yaw: Some(0.0),
+                        pitch: Some(pitch),
+                        ..Default::default()
+                    },
+                );
+                // Zero dt holds airborne fixtures still while resolving a real sim tick.
+                state.tick(0.0);
+                assert_eq!(
+                    state.players[1].hp < 100,
+                    should_hit,
+                    "from={from}, to={to}, pitch={pitch}"
+                );
+                assert_eq!(state.shot_results.len(), 1);
+                assert_eq!(state.shot_results[0].hit, should_hit);
+            }
+        }
+    }
+
+    #[test]
+    fn nearest_fighter_blocks_a_farther_fighter_regardless_of_roster_order() {
+        for swap in [false, true] {
+            let (mut state, shooter, far) = pair(0.0, 0.0);
+            let near = Uuid::new_v4();
+            state.add_player(near, "Near".into(), Role::Agent);
+            state.players[2].x = state.players[0].x + 5.0;
+            state.players[2].z = state.players[0].z;
+            state.players[2].y = PLAYER_FLOOR_Y;
+            state.spawn_shields.clear();
+            if swap {
+                state.players.swap(1, 2);
+            }
+            state.set_action(
+                shooter,
+                Action {
+                    fire: true,
+                    yaw: Some(0.0),
+                    pitch: Some(0.0),
+                    ..Default::default()
+                },
+            );
+            state.tick(0.0);
+            assert_eq!(state.shot_results[0].target_id, Some(near));
+            assert_eq!(state.players.iter().find(|p| p.id == far).unwrap().hp, 100);
+        }
+    }
+
+    #[test]
+    fn looking_horizontally_does_not_auto_hit_a_fighter_on_another_level() {
+        let (mut state, shooter, _) = pair(0.0, 4.0);
+        state.set_action(
+            shooter,
+            Action {
+                fire: true,
+                yaw: Some(0.0),
+                pitch: Some(0.0),
+                ..Default::default()
+            },
+        );
+        state.tick(0.0);
+        assert_eq!(state.players[1].hp, 100);
+    }
+
+    #[test]
+    fn target_actions_and_rule_bots_aim_at_height_through_the_same_contract() {
+        let (mut state, shooter, target) = pair(0.0, 4.0);
+        let bot = BotController::new(shooter, BotBehavior::Aggressive);
+        let action = bot.update(&state);
+        assert!(action.pitch.unwrap() > 0.2);
+        state.set_action(
+            shooter,
+            Action {
+                fire: true,
+                yaw: Some(3.0),
+                pitch: Some(-1.0),
+                look_at: Some(LookAt {
+                    player_id: Some(target),
+                    ..Default::default()
+                }),
+                ..Default::default()
+            },
+        );
+        state.tick(0.0);
+        assert!(state.players[1].hp < 100);
+        assert!(state.players[0].pitch > 0.2);
+        let x = state.players[1].x;
+        let z = state.players[1].z;
+        state.set_action(
+            shooter,
+            Action {
+                look_at: Some(LookAt {
+                    x: Some(x),
+                    z: Some(z),
+                    ..Default::default()
+                }),
+                ..Default::default()
+            },
+        );
+        state.tick(0.0);
+        assert_eq!(
+            state.players[0].pitch, 0.0,
+            "legacy x/z target means horizontal aim"
+        );
+    }
+
+    #[test]
+    fn pitch_is_bounded_persistent_acknowledged_and_reset_on_respawn() {
+        let (mut state, shooter, _) = pair(0.0, 0.0);
+        state.set_action(
+            shooter,
+            Action {
+                pitch: Some(10.0),
+                seq: Some(3),
+                ..Default::default()
+            },
+        );
+        state.tick(0.0);
+        assert_eq!(state.players[0].pitch, PITCH_LIMIT);
+        state.set_action(shooter, Action::default());
+        state.tick(0.0);
+        assert_eq!(state.players[0].pitch, PITCH_LIMIT);
+        state.set_action(
+            shooter,
+            Action {
+                pitch: Some(f32::NAN),
+                look_at: Some(LookAt {
+                    x: Some(f32::INFINITY),
+                    y: Some(2.0),
+                    z: Some(0.0),
+                    player_id: None,
+                }),
+                ..Default::default()
+            },
+        );
+        state.tick(0.0);
+        assert_eq!(state.players[0].pitch, PITCH_LIMIT);
+        assert!(state.players[0].yaw.is_finite());
+        assert_eq!(state.snapshot().players[0].pitch, PITCH_LIMIT);
+        assert!(
+            matches!(state.input_acks()[0].1, ServerMessage::Ack { pitch, .. } if pitch == PITCH_LIMIT)
+        );
+        state.players[0].respawn_timer = Some(1);
+        state.tick(0.0);
+        assert_eq!(state.players[0].pitch, 0.0);
+    }
+
+    #[test]
+    fn old_messages_default_pitch_and_new_messages_round_trip() {
+        let old: Action = serde_json::from_str(r#"{"fire":true,"yaw":1.0}"#).unwrap();
+        assert_eq!(old.pitch, None);
+        let old_ack: ServerMessage =
+            serde_json::from_str(r#"{"type":"ack","seq":1,"tick":2,"x":0,"z":0,"yaw":0}"#).unwrap();
+        assert!(matches!(old_ack, ServerMessage::Ack { pitch: 0.0, .. }));
+        let action = Action {
+            pitch: Some(0.4),
+            look_at: Some(LookAt {
+                x: Some(2.0),
+                y: Some(3.0),
+                z: Some(4.0),
+                player_id: None,
+            }),
+            ..Default::default()
+        };
+        let decoded: Action =
+            serde_json::from_str(&serde_json::to_string(&action).unwrap()).unwrap();
+        assert_eq!(decoded.pitch, action.pitch);
+        assert_eq!(decoded.look_at, action.look_at);
+        let (state, _, _) = pair(0.0, 0.0);
+        let mut player = serde_json::to_value(&state.snapshot().players[0]).unwrap();
+        player.as_object_mut().unwrap().remove("pitch");
+        assert_eq!(
+            serde_json::from_value::<PlayerState>(player).unwrap().pitch,
+            0.0
+        );
     }
 }

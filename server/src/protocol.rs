@@ -408,6 +408,8 @@ pub enum ServerMessage {
         x: f32,
         z: f32,
         yaw: f32,
+        #[serde(default)]
+        pitch: f32,
     },
     /// Unicast control-plane rejection (e.g. speak rate limit). Not broadcast.
     Error {
@@ -426,12 +428,14 @@ pub enum Role {
     Agent,
 }
 
-/// World-point or player-id aim target. Server applies yaw toward the target.
+/// World-point or player-id aim target. Server applies yaw and pitch.
 #[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq)]
 #[serde(deny_unknown_fields)]
 pub struct LookAt {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub x: Option<f32>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub y: Option<f32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub z: Option<f32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -474,7 +478,8 @@ pub struct Action {
     pub fire: bool,
     #[serde(default)]
     pub weapon_swap: Option<WeaponType>,
-    /// Authoritative aim: yaw snaps toward player_id (preferred) or world x/z.
+    /// Target aim takes precedence after movement: player body centre or world
+    /// x/z with optional y. Omitting y for a world point means horizontal aim.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub look_at: Option<LookAt>,
     /// Client-owned absolute facing in radians. When present the server takes
@@ -483,6 +488,10 @@ pub struct Action {
     /// Non-finite values are ignored. Agents may send it or keep the bits.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub yaw: Option<f32>,
+    /// Absolute vertical aim, positive upward, clamped to +/-85 degrees.
+    /// Missing values preserve aim. Non-finite values are ignored.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub pitch: Option<f32>,
     /// Input sequence number. The server acknowledges the newest sequence it
     /// applied so a predicting client can reconcile. Absent for clients that
     /// do not predict.
@@ -603,6 +612,8 @@ pub struct PlayerState {
     pub y: f32,
     pub z: f32,
     pub yaw: f32,
+    #[serde(default)]
+    pub pitch: f32,
     pub hp: i32,
     #[serde(default)]
     pub armor: i32,
