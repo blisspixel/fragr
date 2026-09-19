@@ -17,6 +17,7 @@ Status words: **planned**, **in flight**, **shipped** (merged to `main`, PR numb
 
 | Plan | Status | One-liner |
 |---|---|---|
+| [`local-excellence.md`](./local-excellence.md) | **in flight** | Cohesive local polish through verified instructions, reliable checks, art integration, and repeated visual and playtest review. |
 | [`solo-story-episodes.md`](./solo-story-episodes.md) | **shipped** (#106) | Solo Broadcast Episode 0 Calibration / Larak Lot face + juice bar. |
 | [`tip-stills-ep0.md`](./tip-stills-ep0.md) | **shipped** (#110) | Recapture tip stills + README Solo Broadcast face after Episode 0. |
 | [`ep0-nods-progress-fix.md`](./ep0-nods-progress-fix.md) | **shipped** (#111) | Calibration NODS credit for meatbags, jammer dish silhouette, map_name honesty. |

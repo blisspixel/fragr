@@ -16,9 +16,11 @@ const DEGREES_PER_COUNT := 0.022
 @export var stick_look_sensitivity = 2.8
 @export var stick_turn_scale = 18.0
 @export var stick_deadzone = 0.25
-@export var auto_cycle_interval = 6.0
+@export var auto_cycle_interval = 0.0
 
 var follow_mode = true
+var spectator_first_person: bool = true
+var _observed_pawn: Node3D = null
 var follow_target_index = 0
 var available_targets = []
 var auto_cycle_timer = 0.0
@@ -108,11 +110,12 @@ func _process(delta):
 
 	if follow_mode and len(available_targets) > 0:
 		auto_cycle_timer += delta
-		if auto_cycle_timer >= auto_cycle_interval:
+		if auto_cycle_interval > 0.0 and auto_cycle_timer >= auto_cycle_interval:
 			cycle_next_target()
 			auto_cycle_timer = 0.0
 		_follow_target()
 	else:
+		_set_observed_pawn(null)
 		_free_fly(delta)
 
 func _gamepad_move_active() -> bool:
@@ -190,12 +193,21 @@ func _free_fly(delta):
 
 func _follow_target():
 	if len(available_targets) == 0:
+		_set_observed_pawn(null)
 		return
 
 	follow_target_index = follow_target_index % len(available_targets)
 	var target = available_targets[follow_target_index]
 
 	if is_instance_valid(target):
+		if spectator_first_person:
+			_set_observed_pawn(target)
+			var yaw: float = _target_server_yaw(target)
+			global_position = target.global_position + Vector3(0, FP_EYE_HEIGHT, 0) + ServerYaw.forward(yaw) * FP_FORWARD_NUDGE
+			rotation = Vector3(0.0, ServerYaw.camera_rotation_y(yaw), 0.0)
+			mouse_motion = Vector2.ZERO
+			return
+		_set_observed_pawn(null)
 		var target_pos = target.global_position
 		var offset = Vector3(0, 5.5, 10.5 + camera_zoom_offset)
 
@@ -216,12 +228,17 @@ func _follow_target():
 		cycle_next_target()
 
 func toggle_follow_mode():
-	follow_mode = not follow_mode
-	auto_cycle_timer = 0.0
-	if follow_mode:
-		print("Follow cam ON (auto-cycles every 6s; F / pad cycles)")
+	# V cycles eye, chase, free. F changes the fighter without changing the view.
+	if follow_mode and spectator_first_person:
+		spectator_first_person = false
+	elif follow_mode:
+		follow_mode = false
 	else:
-		print("Free fly ON (WASD / left stick + mouse / right stick)")
+		follow_mode = true
+		spectator_first_person = true
+	_set_observed_pawn(null)
+	frag_follow_timer = 0.0
+	auto_cycle_timer = 0.0
 
 func cycle_next_target():
 	if len(available_targets) > 0:
@@ -231,15 +248,18 @@ func cycle_next_target():
 		camera_zoom_offset = -0.6
 
 func set_available_targets(targets: Array):
+	var previous: Node3D = get_followed_target()
 	# Drop freed pawns so follow cam / highlight never soft-prison on a dead instance.
 	available_targets = []
 	for t in targets:
 		if is_instance_valid(t):
 			available_targets.append(t)
 	if follow_mode and len(available_targets) > 0:
-		follow_target_index = follow_target_index % len(available_targets)
+		var previous_index: int = available_targets.find(previous)
+		follow_target_index = previous_index if previous_index >= 0 else follow_target_index % len(available_targets)
 	else:
 		follow_target_index = 0
+		_set_observed_pawn(null)
 
 func camera_punch():
 	camera_shake_intensity = 0.3
@@ -258,7 +278,7 @@ func get_followed_target():
 func lock_on_frag(killer_id: String, duration: float = 1.5):
 	if tip_pose_lock:
 		return
-	if fp_mode:
+	if fp_mode or spectator_first_person:
 		return
 	frag_follow_target_id = killer_id
 	frag_follow_timer = duration
@@ -350,6 +370,10 @@ func set_fp_mode(enabled: bool, target: Node3D = null) -> void:
 	# tip_capture pose lock: never teleport onto a soldier mid-jammer still.
 	if tip_pose_lock:
 		return
+	# Snapshot refresh must not overwrite the local aim on every network tick.
+	if fp_mode == enabled and fp_target == target:
+		return
+	_set_observed_pawn(null)
 	fp_mode = enabled
 	fp_target = target
 	if not enabled:
@@ -360,15 +384,31 @@ func set_fp_mode(enabled: bool, target: Node3D = null) -> void:
 	elif is_instance_valid(target):
 		# Snap once so join does not tween from spectator orbit, and adopt the
 		# fighter's facing so the first mouse move continues from it.
-		var yaw = target.rotation.y
+		var yaw: float = _target_server_yaw(target)
 		fp_yaw = wrapf(yaw, 0.0, TAU)
 		position = target.global_position + Vector3(0, FP_EYE_HEIGHT, 0)
-		rotation.y = yaw
+		rotation.y = ServerYaw.camera_rotation_y(yaw)
 		rotation.x = fp_pitch
+
+static func _target_server_yaw(target: Node3D) -> float:
+	return float(target.get("target_yaw")) if "target_yaw" in target else -target.rotation.y
+
+func is_observing_first_person() -> bool:
+	return not fp_mode and follow_mode and spectator_first_person and is_instance_valid(get_followed_target())
+
+func _set_observed_pawn(target: Node3D) -> void:
+	if _observed_pawn == target:
+		return
+	if is_instance_valid(_observed_pawn) and _observed_pawn.has_method("set_local_fp"):
+		_observed_pawn.set_local_fp(false)
+	_observed_pawn = target
+	if is_instance_valid(_observed_pawn) and _observed_pawn.has_method("set_local_fp"):
+		_observed_pawn.set_local_fp(true)
 
 
 ## tip_capture: latch free-fly pose at dish and re-assert every frame.
 func latch_tip_pose(xform: Transform3D) -> void:
+	_set_observed_pawn(null)
 	tip_pose_lock = true
 	tip_locked_transform = xform
 	tip_has_locked_transform = true

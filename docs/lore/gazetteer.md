@@ -25,7 +25,11 @@ The names are short on purpose and carry just enough backstory to make you wonde
 
 ## What is actually built
 
-The two arenas that exist today are Arena Duel and Compliance Yard. Larak Lot is a face painted over Arena Duel geometry and nothing else, and Compliance Yard must never be dressed as Larak Lot, because a player who learns a corner on one and loses a fight to it on the other has been lied to by the game rather than beaten by an opponent.
+The server roster is Arena Duel, Compliance Yard, Directive 17 Substation,
+Sector 9 Transit Hall, Reclamation Gulch, and Tripoint Works. These are arena
+layouts, not completed campaign levels. Larak Lot is the Episode 0 face of Arena
+Duel; other maps retain their own names. Never label different geometry as Larak
+Lot, because learned routes must agree with the name a player sees.
 
 Everything else in this file is a name waiting for a floor plan. The size ladder those floor plans are built against is in `plans/map-scale.md`.
 

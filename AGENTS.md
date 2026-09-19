@@ -17,6 +17,11 @@ Operating rules for coding agents and human contributors. Humans: start with `RE
 
 **Lane:** personal `blisspixel` / Nick only. No work accounts.
 
+**Presentation and platforms:** original retro FPS with pixel surfaces and chunky
+menus, including settings. Windows, Linux, and macOS are targets. Preserve GPU
+vendor-neutral paths; distinguish headless CI, CPU benchmarks, and inspected
+renderer/hardware evidence. Never infer massive-server or GPU support from one.
+
 ## Truth ranking
 
 1. Source, tests, manifests, lockfiles, CI, `git` history
@@ -24,20 +29,20 @@ Operating rules for coding agents and human contributors. Humans: start with `RE
 3. `docs/ARCHITECTURE.md` (decisions) and `docs/ROADMAP.md` (sequencing and status)
 4. This file for operating rules
 
-If prose and code disagree, code wins; fix the prose in the same change. Keep planned, implemented, tested, shipped, and proven distinct. A checklist box is not evidence.
+If prose and code disagree, code wins; fix the prose in the same change. Keep planned, implemented, tested, shipped, deployed, and proven distinct. A checklist box is not evidence. `AGENTS.md` is the shared instruction source; keep `CLAUDE.md` a thin pointer.
 
 ## Hard constraints (project law)
 
-- **Spend:** hard cap **$50** total. Local play and LAN are $0. Anything that bills (cloud apply, VPS, paid assets, paid model APIs) needs written approval from Nick first. Approved paid APIs: ElevenLabs, used only by developers through `tools/audiogen`; and the Jev decision model (TypeSafe native or OpenRouter) used only through `agents/brain`, which refuses to start a paid provider without an explicit `--max-spend-usd` cap, refuses a cap above the 5 dollar per-run ceiling (a constant in the code, so raising it is a reviewed change), and ledgers every call under `.agents/spend/`. Neither runs in CI or at player runtime by default. No other paid model or vision API without approval.
-- **Authority:** the Rust server is the source of truth for every game outcome. Godot never decides combat.
+- **Spend:** hard cap **$50** total. Local play and LAN are $0. Anything that bills needs written approval from Nick first. Approved developer asset services: ElevenLabs through `tools/audiogen` and Higgsfield through `tools/spritegen`, within approved existing credits. Verify quota and price before generation, pass an explicit cap, record usage, and never enable top-ups or overages. Jev (TypeSafe native or OpenRouter) runs only through `agents/brain`, with an explicit `--max-spend-usd`, a $5 per-run ceiling enforced in code, and a ledger under `.agents/spend/`. Paid calls never run in CI or at player runtime by default. Other paid services and cloud apply still need approval. A subscription is not an unlimited generation budget.
+- **Authority:** the Rust server is the source of truth for every game outcome. Godot never decides combat. Movement math in `server/src/movement.rs` has a deliberate GDScript mirror and golden vectors; change and verify both together. Mirror availability does not prove prediction is wired into live play.
 - **Agents off the hot path:** humans and agents share one discrete action channel. Rule and utility bots run at tick rate on the server. MCP is for slow operations, never aim or fire at 20 to 60 Hz.
 - **Transport:** WebSocket JSON on `0.0.0.0:6767` (clients use loopback or `FRAGR_SERVER`). UDP is a planned, measured spike (`docs/TRANSPORT.md`), not a silent rewrite.
-- **Languages:** Rust and GDScript only. No Python or other scripting languages in tooling. The procedural Python audio generator was retired once the ElevenLabs pipeline produced the effects; the committed WAVs are the fallback.
-- **Pins:** Godot 4.7.2-stable (current stable line as of 2026-09-18; 4.8 exists only as dev builds). Rust stable via rustup, edition 2021. Verify pins against primary sources before changing them; do not trust memory for versions or flags.
+- **Languages:** Rust and GDScript for new implementation and tooling; retain existing shell launch/check wrappers. The legacy `tools/gate_tip_jammer_orange.py` still serves the screenshot gate; port and verify it before removal. Do not add another scripting runtime. Committed audio is the offline fallback.
+- **Pins:** Godot 4.7.2-stable (official release and local binary checked 2026-09-19). Rust stable via rustup, edition 2021. Verify pins, supported APIs, and migration notes against primary sources before changing them; do not trust memory for versions or flags. Keep the established stack unless a concrete requirement justifies a change.
 - **Currency:** target the newest stable specification revision or crate that works as of the work date (for example MCP 2026-07-28, not the 2024-11-05 handshake it grew up on), and keep an older one only as compatibility with a stated retirement. A plan that names a version names the date it was checked.
-- **Dependencies:** minimal and intentional. Prefer std and existing crates. One logger (`tracing` + `EnvFilter`, `RUST_LOG`), one serializer (`serde_json`), one CLI parser (`clap` derive), one HTTP client (`reqwest`, audiogen and the brain agent only), one WebSocket stack (`tokio-tungstenite`). No Bevy client, no lightyear. Check `Cargo.toml` files before adding anything; `Cargo.lock` is committed and CI runs with `--locked`.
-- **Secrets:** none required for local play. Never commit credentials. `.agents/`, `.env`, and `*.key` are gitignored; keep keys there or in the environment.
-- **Attribution lock:** zero tool or model attribution anywhere. No `Co-authored-by` trailers, no "generated by" or "made with" notes, no tool badges or PR footers, no assistant names as authors in commits, PRs, docs, comments, assets, or image metadata. Commits are authored by Nick Seal `<32712898+blisspixel@users.noreply.github.com>` only. Name a product only when documenting a runtime or developer integration.
+- **Dependencies:** minimal and intentional. Prefer std and existing crates. One logger (`tracing` + `EnvFilter`, `RUST_LOG`), serializer (`serde_json`), CLI parser (`clap` derive), HTTP client (`reqwest`, developer generators and brain only), and WebSocket stack (`tokio-tungstenite`). No Bevy client, no lightyear. Inspect manifests and callers before adding a crate; assess maintenance, license, platform support, and transitive cost. Use mature implementations for security-sensitive protocols. Commit `Cargo.lock`; use `--locked` for verification.
+- **Secrets:** none required for local play. Never commit or print credentials. Use environment variables or the existing ignored `.env` integration. `.agents/` is disposable diagnostics and receipts, never credential storage; ignored does not mean secure. Do not copy existing keys into reports or scratch.
+- **Attribution lock:** the only author identity is Nick Seal `<32712898+blisspixel@users.noreply.github.com>` (`blisspixel`). No tool or model credits, coauthor trailers, generated-by notes, badges, footers, signatures, or negative attribution disclaimers in commits, PRs, releases, docs, comments, UI, assets, or metadata. Product names are allowed for actual runtime/developer integrations, never authorship. Preserve required third-party copyright, license, and NOTICE text.
 - **Prose:** no emoji. No em dashes or en dashes; use commas, periods, colons, parentheses, or hyphens in compound words.
 
 ## Canonical seams
@@ -45,6 +50,9 @@ If prose and code disagree, code wins; fix the prose in the same change. Keep pl
 | Concern | Home |
 |---|---|
 | Sim tick, hit detection, movement, pickups, boss, bots | `server/src/sim.rs` |
+| Map definitions, collision solids, spawn layout | `server/src/maps.rs`; `MapInfo` drives `client/scripts/arena_cover.gd` |
+| Movement math and facing conversion | `server/src/movement.rs`, `client/scripts/movement.gd`, `client/golden/move_vectors.json`, `client/scripts/server_yaw.gd` |
+| Determinism and performance measurement | `server/src/bench.rs` |
 | Tick loop shared by the binary and harnesses | `server/src/run.rs` (`run_server`, `ServerOptions`) |
 | Agent playtest harness and metrics | `tools/playtest` |
 | Decision-brain agent, budget gate, spend ledger | `agents/brain` (`budget`, `provider`, `bot`) |
@@ -54,15 +62,16 @@ If prose and code disagree, code wins; fix the prose in the same change. Keep pl
 | Server CLI, tracing, tick loop | `server/src/main.rs` (`--bind`, `--bots`, `--map`, `--map-rotate`) |
 | MCP request handling and tool schemas | `agent-adapter/src/mcp.rs` |
 | Adapter CLI and WebSocket session | `agent-adapter/src/main.rs` |
-| Adapter copy of wire types | `agent-adapter/src/protocol.rs` (keep in lockstep with the server until the shared `fragr-protocol` crate lands) |
 | Client networking (`FRAGR_SERVER`) | `client/scripts/net_client.gd` |
 | Client match orchestration, role, audio routing | `client/scripts/game_manager.gd` |
 | HUD, killfeed, Host bumpers | `client/scripts/hud.gd` |
 | Pawn presentation, first-person weapon face | `client/scripts/player_pawn.gd` |
 | Spectator cameras | `client/scripts/spectator_cam.gd` |
-| Boot menu and map picker (`FRAGR_MAP`, `FRAGR_SOLO`) | `client/scripts/boot_menu.gd` |
+| Boot menu, callsign, shared retro controls | `client/scripts/boot_menu.gd`, `menu_theme.gd`; maps are selected by the server |
 | Pixel assets and import presets | `client/assets/` (nearest filter, no mipmaps) |
 | Audio assets and provenance | `client/assets/audio/` plus `audiogen-manifest.json` |
+| Developer asset generation | `tools/audiogen`, `tools/spritegen`; prompts/specs and provenance stay with their pipeline |
+| Settings and diagnostics | `client/scripts/settings.gd`, `pause_menu.gd`, `console.gd`; do not invent another config store |
 | Product and stack decisions | `docs/ARCHITECTURE.md` |
 | Sequencing, status, fun bar | `docs/ROADMAP.md` |
 | Bounded work items | `docs/plans/<slug>.md`, indexed in `docs/plans/README.md` |
@@ -74,10 +83,12 @@ Before adding a second way to log, configure, serialize, retry, or talk to the s
 
 ## Tests and lints
 
-- Rust tests are inline `#[cfg(test)]` modules. The server's bulk suite is `server/src/tests.rs`; `sim.rs` and `net.rs` are covered from there. Adapter tests sit in `agent-adapter/src/{main,mcp}.rs`. Audiogen tests use a fake transport; nothing in the test suite touches the network.
+- Rust tests are inline `#[cfg(test)]` modules. The server's bulk suite is `server/src/tests.rs`; `sim.rs` and `net.rs` are covered from there. Adapter tests sit in `agent-adapter/src/{main,mcp}.rs`. Provider tests use fake transports; game integration tests use ephemeral loopback sockets. No test should call a paid or external service.
 - Lint policy is `[workspace.lints]` in the root `Cargo.toml` (`unsafe_code` forbidden, 2018 idioms, no `dbg!`, `todo!`, or `unimplemented!`). Every crate opts in. Narrow, justified `#[allow]` at the use site is acceptable; broad allows, silenced modules, or edits to the policy to make a check pass are not.
-- Coverage floor is an unfiltered 80 percent of workspace lines. Carving crates or files out of the report is forbidden. Raise coverage by testing real behavior (wire paths, adapter tools, sim rules), never by shrinking the denominator.
-- Godot may exit 0 with `SCRIPT ERROR` or `Parse Error` in its log. The log is the verifier. `client/scripts/test_far_cam_scale.gd` is a headless check harness; add more like it for client logic.
+- Coverage floor is an unfiltered **90 percent** of workspace lines, matching CI. No exclusions, removed assertions, or lower thresholds to make a change pass. Test useful behavior and failure paths, not line execution alone.
+- New GDScript uses explicit parameter/return types and typed containers where supported. Validate and narrow JSON/Variant values at boundaries; casts do not validate data. Existing warning debt is a baseline to improve in touched code, not permission to disable warnings or start an unrelated rewrite.
+- Godot can exit 0 after script/runtime errors. Require successful exit, clean error logs, and each `client/scripts/test_*.gd` harness's own PASS marker. Register new harnesses through the existing checker convention.
+- Treat network actions, provider replies, files, configuration, and model output as untrusted. Keep validation at the owning boundary, errors observable, and async lifetimes explicit. Prose does not enforce permissions, budgets, or authentication.
 
 ## Verification (run before claiming done)
 
@@ -85,19 +96,26 @@ These match `.github/workflows/ci.yml`. If CI and this list disagree, fix one in
 
 ```bash
 cargo fmt --all -- --check
-cargo clippy --workspace --all-targets -- -D warnings
-cargo test --workspace
-cargo llvm-cov --workspace --locked --fail-under-lines 80
-cargo build --workspace --release
+cargo clippy --workspace --all-targets --locked -- -D warnings
+cargo test --workspace --locked
+cargo run -p fragr-server --release --locked -- --bench 16 --bench-ticks 1200 --bench-check --bench-assert --seed 42
+cargo llvm-cov --workspace --locked --fail-under-lines 90
+cargo build --workspace --release --locked
 cargo deny check licenses bans sources   # advisories are reported, not blocking
-cargo run -p fragr-playtest -- --agents 4 --rounds 1 --frag-limit 3 --time-limit-seconds 45 --assert --report .agents/playtest/ci.json
+cargo run -p fragr-playtest --locked -- --agents 4 --rounds 1 --frag-limit 3 --time-limit-seconds 45 --assert --report .agents/playtest/ci.json
 ```
 
 Godot (the `godot` CI job runs this; locally point `GODOT_BIN` at a 4.7.2-stable binary):
 
 ```bash
 tools/godot_check.sh   # import, parse every script, run the harnesses; log lines are the verdict
+bash tools/test_godot_check.sh   # inject failed exits, errors, and missing PASS markers
 ```
+
+On Windows use Git Bash for these shell wrappers and set `GODOT_BIN`; the visual
+tour also accepts `FRAGR_GODOT`. Run focused checks during iteration, then the full
+suite before claiming completion. Report unavailable tools or baseline failures
+with evidence. Keep logs under `.agents/`; a command that never ran did not pass.
 
 Playable smoke:
 
@@ -105,9 +123,9 @@ Playable smoke:
 2. Bots fight; a frag appears in server logs within about 30 seconds.
 3. Godot spectator shows the match; J joins, L leaves; bots persist.
 4. `cd agent-adapter && cargo run -- scripted-bot --name Probe` drives a pawn through the same server.
-5. `cargo run -p fragr-brain -- play --name Brain --max-seconds 30` plays on local rules at zero cost and prints a JSON summary; with `--provider typesafe --max-spend-usd 0.05` it must refuse without a key and stop at the cap.
+5. `cargo run -p fragr-brain -- play --name Brain --max-seconds 30` plays on local rules at zero cost and prints a JSON summary. Paid-provider refusal and cap behavior belong in fake-transport tests; a local smoke must not accidentally use an available paid key.
 
-Evidence beats assertion. Screenshots must show the current build; regenerate `docs/screenshots/` with `tools/capture_tip_screenshots.sh` when UI, weapons, sprites, HUD, or arenas change, and keep `docs/screenshots/README.md` honest about what is live versus mood.
+Evidence beats assertion. Regenerate current `docs/screenshots/tour_*.png` through the tour below when UI, weapons, sprites, HUD, or arenas change. The older `tools/capture_tip_screenshots.sh` is for explicitly requested historical capture scenarios; keep its stills marked historical until rerun and inspected.
 
 ## Evidence by change type
 
@@ -122,20 +140,19 @@ Evidence beats assertion. Screenshots must show the current build; regenerate `d
 
 ## Screenshots, and when they must be refreshed
 
-**Run `tools/qa_tour.sh --publish` before every release tag, and in any PR that changes something a player sees.** The four README stills come from that run, and it takes about two minutes.
+**Run `tools/qa_tour.sh --publish` before every release tag, and in any PR that changes something a player sees.** The README stills come from that run. Serialize Windows release builds and smokes because a running executable cannot be replaced.
 
-This is a rule because stale screenshots are worse than no screenshots: they are a claim about the current build that stops being true quietly, and a reader has no way to tell. The README says the captures are live from the current build, so they have to be.
-
-It is also the cheapest bug-finding tool in the repository, and it keeps proving it. One run found a red broadcast ident that was the loudest thing on screen, a spectator legend that never stopped explaining itself, ten lines of debug text over a live match, and a black void above the arena walls that had been there for the entire project and that nobody had noticed because the tour measured HUD coverage and nothing else. None of those were visible in code review.
-
-Look at the stills afterwards. Publishing them without looking is how a black void survives a year.
+Inspect the stills afterwards, including the world, menus, and transient effects.
+HUD coverage and nonblank images do not establish visual quality or fun. A named
+tour state is not evidence unless the state actually happened. Fix the capture or
+asset source and regenerate derived output; keep screenshot captions honest.
 
 ## Research and plan before build
 
-1. **Orient** in the real repo: `README.md`, `docs/ROADMAP.md`, the relevant plan, source, tests, recent history.
+1. **Orient** in the real repo: `README.md`, `docs/VISION.md`, `docs/ROADMAP.md`, relevant architecture/plan, source, callers, tests, CI, and recent history. Check working-tree changes first. Follow symbols with language-server navigation when available, otherwise focused `rg`; any local index is derived, never authority.
 2. **Research** current primary sources for anything version-sensitive (Godot 4.7 docs, crates.io, MCP specification, GitHub Actions runners, ElevenLabs API). Never encode a pin, flag, or API from memory.
 3. **Write the plan** into `docs/plans/<slug>.md` (goal, non-goals, architecture impact, protocol or API changes, verification, spend gate, success criteria) and link it from `docs/plans/README.md`. Chat is not a plan.
-4. **Build** the smallest exceptional version. Fix root causes; never weaken the checker that caught the problem.
+4. **Build and converge:** establish the relevant baseline, implement through existing seams, verify, inspect failures, fix root causes, and repeat. Self-review the final diff for contract changes, regressions, failure paths, and evidence gaps. Use independent review for consequential changes when available. Repeated defects should improve a shared abstraction or check; never weaken the checker that caught them.
 5. **Update state** in the same PR: tests, `docs/protocol.md`, README run steps, the plan's status, `docs/ROADMAP.md`, and this file if a constraint moved.
 
 ## Workflow
@@ -143,7 +160,8 @@ Look at the stills afterwards. Publishing them without looking is how a black vo
 - One clean `main`, always green. Work on a branch, open a PR, let CI pass, squash merge. `main` requires the `test` check.
 - Conventional commit prefixes (`feat:`, `fix:`, `docs:`, `ci:`, `chore:`, `test:`). Subject under 72 characters, body explains why.
 - Tag `vMAJOR.MINOR.PATCH` and publish release notes when a merge changes what a player or host sees. Keep the release notes in the same voice as the commit body.
-- Plan docs are bounded and finish; the roadmap and plan index are the durable state that carries across sessions. Temporary scratch goes in gitignored `.agents/`; promote anything durable into docs, tests, or code.
+- Plan docs are bounded and finish; the roadmap and plan index carry state across sessions. Before a handoff, record completed work, decisions, commands/results, unresolved failures, and the next step in the active plan. Use issues only when they add coordination value. Temporary scratch goes in ignored `.agents/`; promote durable knowledge into docs, tests, or code and mark superseded plans explicitly.
+- Local reversible inspection, fixes, and tests proceed within the task. Instructions alone do not authorize publishing, spending, deleting data, or deploying. Do not commit, push, merge, tag, or release solely to refine this guidance.
 - Security, permissions, and spend are enforced by tooling (branch protection, gitignore, lints, plan-only Terraform), not by prose. If a rule keeps needing repetition, make it mechanical.
 
 ## Out of scope unless Nick asks

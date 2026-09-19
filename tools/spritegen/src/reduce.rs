@@ -9,9 +9,8 @@
 //! 1. **Trim to the alpha bounding box.** A generator centres its subject in
 //!    whatever canvas it likes. Trimming first means the downscale ratio is
 //!    decided by the sprite, not by the empty space around it.
-//! 2. **Downscale by area averaging.** Every source pixel contributes to
-//!    exactly one output pixel. Nearest-neighbour at this step would throw away
-//!    most of the render and alias the detail that was paid for.
+//! 2. **Downscale with a triangle filter.** Samples blend before quantisation;
+//!    nearest-neighbour at this step would discard detail and introduce aliasing.
 //! 3. **Quantise to the palette**, matched in CIE L\*a\*b\* rather than in RGB,
 //!    because RGB distance does not match what an eye calls "the nearest
 //!    colour" and picks visibly wrong swatches in dark and saturated regions.
@@ -236,6 +235,8 @@ pub struct Reduction {
     pub palette: Option<Palette>,
     /// Force every pixel fully opaque or fully transparent.
     pub harden_alpha: bool,
+    /// Explicit flat matte colour to remove only where connected to an edge.
+    pub matte: Option<[u8; 3]>,
 }
 
 impl Default for Reduction {
@@ -245,6 +246,7 @@ impl Default for Reduction {
             trim: true,
             palette: None,
             harden_alpha: true,
+            matte: None,
         }
     }
 }
@@ -255,13 +257,20 @@ pub fn reduce(source: &RgbaImage, settings: &Reduction) -> Result<RgbaImage, Err
         return Err(Error::Spec("target height must be above zero".into()));
     }
 
+    if source.width() == 0 || source.height() == 0 {
+        return Err(Error::Spec("image has no pixels".into()));
+    }
+    let mut working = source.clone();
+    if let Some(matte) = settings.matte {
+        remove_edge_matte(&mut working, matte);
+    }
     let working = if settings.trim {
-        match alpha_bounds(source) {
-            Some((x, y, w, h)) => source.view(x, y, w, h).to_image(),
+        match alpha_bounds(&working) {
+            Some((x, y, w, h)) => working.view(x, y, w, h).to_image(),
             None => return Err(Error::Spec("image is entirely transparent".into())),
         }
     } else {
-        source.clone()
+        working
     };
 
     let (sw, sh) = working.dimensions();
@@ -271,8 +280,7 @@ pub fn reduce(source: &RgbaImage, settings: &Reduction) -> Result<RgbaImage, Err
     let target_w = (((u64::from(sw) * u64::from(target_h)) as f64) / f64::from(sh)).round() as u32;
     let target_w = target_w.max(1);
 
-    // Area averaging. Every source pixel lands in exactly one output pixel,
-    // which is the whole reason for generating large.
+    // Filter before palette reduction; nearest-neighbour is for display upscales.
     let mut out = imageops::resize(&working, target_w, target_h, imageops::FilterType::Triangle);
 
     if let Some(palette) = &settings.palette {
@@ -295,6 +303,52 @@ pub fn reduce(source: &RgbaImage, settings: &Reduction) -> Result<RgbaImage, Err
     }
 
     Ok(out)
+}
+
+/// Remove an explicitly selected exact flat matte. Flooding from every edge
+/// preserves enclosed highlights of the same colour. This is preparation for
+/// reviewed flat-background art, not a guess about a picture's subject.
+pub fn remove_edge_matte(image: &mut RgbaImage, matte: [u8; 3]) {
+    let (width, height) = image.dimensions();
+    if width == 0 || height == 0 {
+        return;
+    }
+    let mut pending = Vec::new();
+    for x in 0..width {
+        pending.push((x, 0));
+        pending.push((x, height - 1));
+    }
+    for y in 0..height {
+        pending.push((0, y));
+        pending.push((width - 1, y));
+    }
+    // Mark on visit, including already transparent pixels, to bound work by
+    // image size rather than the number of routes through the background.
+    let mut visited = vec![false; image.pixels().len()];
+    while let Some((x, y)) = pending.pop() {
+        let index = y as usize * width as usize + x as usize;
+        if visited[index] {
+            continue;
+        }
+        visited[index] = true;
+        let pixel = image.get_pixel_mut(x, y);
+        if pixel.0[3] != 0 && pixel.0[..3] != matte {
+            continue;
+        }
+        pixel.0[3] = 0;
+        if x > 0 {
+            pending.push((x - 1, y));
+        }
+        if x + 1 < width {
+            pending.push((x + 1, y));
+        }
+        if y > 0 {
+            pending.push((x, y - 1));
+        }
+        if y + 1 < height {
+            pending.push((x, y + 1));
+        }
+    }
 }
 
 /// Load, reduce, save.
@@ -328,6 +382,49 @@ mod tests {
 
     fn solid(w: u32, h: u32, colour: [u8; 4]) -> RgbaImage {
         ImageBuffer::from_pixel(w, h, Rgba(colour))
+    }
+
+    #[test]
+    fn edge_matte_preserves_enclosed_matching_highlights() {
+        let mut image = solid(7, 7, [232, 226, 214, 255]);
+        for y in 1..6 {
+            for x in 1..6 {
+                image.put_pixel(x, y, Rgba([40, 40, 40, 255]));
+            }
+        }
+        image.put_pixel(3, 3, Rgba([232, 226, 214, 255]));
+        remove_edge_matte(&mut image, [232, 226, 214]);
+        assert_eq!(alpha_bounds(&image), Some((1, 1, 5, 5)));
+        assert_eq!(image.get_pixel(3, 3).0, [232, 226, 214, 255]);
+        assert_eq!(image.get_pixel(0, 0).0[3], 0);
+    }
+
+    #[test]
+    fn edge_matte_reaches_disconnected_edges_and_transparent_paths() {
+        let mut image = solid(5, 3, [10, 20, 30, 255]);
+        for y in 0..3 {
+            image.put_pixel(2, y, Rgba([1, 2, 3, 255]));
+        }
+        image.put_pixel(4, 0, Rgba([0, 0, 0, 0]));
+        remove_edge_matte(&mut image, [10, 20, 30]);
+        assert_eq!(alpha_bounds(&image), Some((2, 0, 1, 3)));
+        remove_edge_matte(&mut RgbaImage::new(0, 0), [0, 0, 0]);
+    }
+
+    #[test]
+    fn reduction_keys_before_trimming_and_refuses_empty_art() {
+        let settings = Reduction {
+            height: 3,
+            matte: Some([10, 20, 30]),
+            ..Reduction::default()
+        };
+        let mut source = solid(5, 5, [10, 20, 30, 255]);
+        assert!(reduce(&source, &settings).is_err());
+        source.put_pixel(2, 2, Rgba([40, 50, 60, 255]));
+        let result = reduce(&source, &settings).unwrap();
+        assert_eq!(result.dimensions(), (3, 3));
+        assert!(result.pixels().all(|p| p.0 == [40, 50, 60, 255]));
+        assert!(reduce(&RgbaImage::new(0, 0), &settings).is_err());
     }
 
     #[test]
@@ -478,6 +575,7 @@ mod tests {
                 trim: true,
                 palette: None,
                 harden_alpha: true,
+                matte: None,
             },
         )
         .unwrap();
@@ -514,6 +612,7 @@ mod tests {
                 trim: false,
                 palette: Some(palette.clone()),
                 harden_alpha: true,
+                matte: None,
             },
         )
         .unwrap();
@@ -535,6 +634,7 @@ mod tests {
                 trim: false,
                 palette: None,
                 harden_alpha: true,
+                matte: None,
             },
         )
         .unwrap();
@@ -552,6 +652,7 @@ mod tests {
                 trim: false,
                 palette: None,
                 harden_alpha: false,
+                matte: None,
             },
         )
         .unwrap();
@@ -586,6 +687,7 @@ mod tests {
                 trim: false,
                 palette: Some(palette),
                 harden_alpha: true,
+                matte: None,
             },
         )
         .unwrap();

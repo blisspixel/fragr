@@ -2,6 +2,11 @@
 
 The canonical list of modes. The roadmap sequences them, the plans build them, this says what each one is.
 
+**Implementation status, 2026-09-19:** free-for-all Scrap and Episode 0 exist.
+Teams, objective modes, elimination, the Sweep, and the campaign/co-op systems
+below are designs until source and playtests demonstrate otherwise. Nick's
+full-game target includes duel, team play, survival, and last-survivor formats.
+
 ## The bar
 
 You can play this all day after work and have a blast barely thinking about it.
@@ -46,7 +51,15 @@ The episode zero that already exists, and the tutorial that does not admit to be
 
 ## Multiplayer
 
-The same four formats work with people, with agents, with the Office's units, or with a mix, because a fighter is a fighter on the wire.
+These formats share the authoritative fighter/action path, with mode-specific
+teams, objectives, spawn rules, scoring, and spectator admission.
+
+### Duel
+
+One versus one in compact, authored arenas. Fast rematches, readable height
+changes, contested weapon routes, and safe spawns matter more than map size.
+Spectators can watch or queue for the next round; joining never silently turns
+a duel into free-for-all. This is the smallest competitive balance test.
 
 ### Scrap
 
@@ -61,6 +74,24 @@ One-flag extraction. The Office has a Level 5 in a server core and you are takin
 The core is heavy and it takes both hands, so **the carrier cannot shoot.** What the carrier gets instead is the core itself, which is awake and talking: it reads the Office network and calls out where people are coming from, through walls, out loud. The carrier stops being a fighter and becomes the person telling four armed escorts what is about to happen to them.
 
 It is the best argument the setting has, made as a game mode. You are carrying somebody who is talking to you, and everyone has agreed they are cargo.
+
+### Last Signal
+
+Last-survivor play for solo fighters or squads. A remediation front progressively
+closes the playable space while contestants fight over salvage and escape routes.
+It uses the Quiet's territorial restoration as the reason to move, not an
+unrelated magical boundary. The final survivor or surviving squad wins.
+Dead and late-arriving players spectate until the next round; the shared server
+continues. Build this after smaller elimination and team modes establish fair
+spawn, inventory, spectating, and end-condition behavior.
+
+### Frontline objectives
+
+Larger team maps use linked control sites, reinforcement limits, and routes with
+distinct jobs: exposed long lanes, protected approaches, and flanking height.
+The conflict is over custody infrastructure and territory. The map must stay fun
+on foot before vehicles or greater player counts are added. Scale is established
+by measured fights and server budgets, never inferred from the map's dimensions.
 
 ### Correction
 

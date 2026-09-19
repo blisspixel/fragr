@@ -85,11 +85,18 @@ const HOST_BUMPERS = [
 ]
 
 var weapon_textures = {}
+var viewmodel_textures: Dictionary[String, Texture2D] = {
+	"Flechette": preload("res://assets/weapons/viewmodels/wpn_flechette_0.png"),
+	"Rail": preload("res://assets/weapons/viewmodels/px_rail_issued_0.png"),
+	"Scatter": preload("res://assets/weapons/viewmodels/wpn_scatter_0.png"),
+}
 var followed_player_name = ""
 var fp_juice_enabled = false
 var fp_bob_t = 0.0
 var fp_weapon_base_pos = Vector2.ZERO
 var fp_weapon_scene_base = Vector2.ZERO
+var head_bob_enabled: bool = true
+var reticle_colour: Color = Color("e8e2d6")
 var damage_flash_timer = 0.0
 var spawn_flash_timer = 0.0
 var streak_flash_timer = 0.0
@@ -300,7 +307,7 @@ func _refresh_mode_label():
 	# well, and inside the playlist above, so the first visual QA tour
 	# photographed three copies of "ARENA DUEL" in a single frame.
 	var host_chip = ""
-	if sticky_host_line != "":
+	if sticky_host_line != "" and broadcast_chrome:
 		host_chip = "
 " + sticky_host_line
 	# A spectator needs to know how to join. A player who has joined needs the
@@ -321,7 +328,7 @@ func _refresh_mode_label():
 	if Time.get_ticks_msec() - mode_entered_ms < CONTROLS_HINT_MS:
 		if client_mode == "SPECTATING":
 			controls = "
-J join   F cycle   V free-fly   ~ console"
+J join   F fighter   V view   ~ console"
 		else:
 			controls = "
 Mouse or Ctrl fire   WASD move   Wheel weapon   L leave"
@@ -577,6 +584,8 @@ func _load_display_settings() -> void:
 	settings.load_from_disk()
 	broadcast_chrome = bool(settings.get_value("gameplay", "broadcast_chrome"))
 	debug_telemetry = bool(settings.get_value("gameplay", "debug_telemetry"))
+	head_bob_enabled = bool(settings.get_value("gameplay", "head_bob"))
+	reticle_colour = settings.reticle_colour()
 
 
 func _update_broadcast_chrome(state: String) -> void:
@@ -1084,7 +1093,7 @@ func set_followed_weapon(weapon_name: String, player_name: String = "", behavior
 	# this icon sits in. Two pictures of the same weapon, one of them in a
 	# dark box, is one too many. The icon is how a spectator knows what the
 	# fighter they are watching is holding.
-	if has_weapon and client_mode == "SPECTATING":
+	if has_weapon and client_mode == "SPECTATING" and not fp_juice_enabled:
 		weapon_icon.texture = weapon_textures[weapon_name]
 		weapon_icon.modulate = Color(1.15, 1.1, 1.05, 1)
 		weapon_icon.visible = true
@@ -1096,6 +1105,8 @@ func set_followed_weapon(weapon_name: String, player_name: String = "", behavior
 			weapon_icon_bg.visible = false
 
 func _process(delta):
+	if scoreboard:
+		scoreboard.visible = not fp_juice_enabled or Input.is_physical_key_pressed(KEY_TAB)
 	if warmup_tv_linger_timer > 0:
 		warmup_tv_linger_timer -= delta
 		if warmup_tv_linger_timer <= 0:
@@ -1156,17 +1167,32 @@ func _process(delta):
 				bob_scale = 1.0
 		var bob_y = sin(fp_bob_t) * 4.0 * bob_scale
 		var bob_x = cos(fp_bob_t * 0.5) * 2.0 * bob_scale
+		if not head_bob_enabled:
+			bob_y = 0.0
+			bob_x = 0.0
 		var kick = Vector2.ZERO
 		if fp_kick_timer > 0:
 			var k = clampf(fp_kick_timer / 0.12, 0.0, 1.0)
 			kick = fp_kick_amount * k
+		# Resolve the anchor each frame so resizing cannot strand the weapon.
+		fp_weapon_base_pos = get_viewport().get_visible_rect().size * Vector2(0.5, 1.0) - fp_weapon.size * Vector2(0.5, 1.0)
 		fp_weapon.position = fp_weapon_base_pos + Vector2(bob_x, bob_y) + kick
+		if fp_muzzle:
+			var barrel_y: float = 25.0 if current_fp_weapon == "Flechette" else 14.0
+			fp_muzzle.position = fp_weapon.position + Vector2(224.0, barrel_y * 2.0) - fp_muzzle.size * 0.5
 
 func set_fp_juice(enabled: bool) -> void:
+	if fp_juice_enabled == enabled:
+		return
 	fp_juice_enabled = enabled
+	if vitals:
+		vitals.visible = enabled
 	if crosshair:
 		crosshair.visible = enabled
 	if not enabled:
+		if fp_muzzle:
+			fp_muzzle.visible = false
+		fp_muzzle_timer = 0.0
 		if fp_weapon:
 			fp_weapon.visible = false
 		if damage_flash:
@@ -1188,28 +1214,18 @@ func set_fp_juice(enabled: bool) -> void:
 func set_fp_weapon(weapon_name: String) -> void:
 	if not fp_weapon:
 		return
-	if not fp_juice_enabled or weapon_name == "" or not weapon_textures.has(weapon_name):
+	if not fp_juice_enabled or not viewmodel_textures.has(weapon_name):
 		fp_weapon.visible = false
 		return
 	var changed = weapon_name != current_fp_weapon
 	current_fp_weapon = weapon_name
-	fp_weapon.texture = weapon_textures[weapon_name]
+	fp_weapon.texture = viewmodel_textures[weapon_name]
 	# Distinct viewmodel pose per role (bone/gunmetal, not neon).
 	# Only re-base on swap so walk bob / fire kick survive snapshot ticks.
 	if changed:
-		match weapon_name:
-			"Rail":
-				fp_weapon.modulate = Color(0.82, 0.86, 0.88, 1)
-				fp_weapon.scale = Vector2(1.15, 1.15)
-				fp_weapon_base_pos = fp_weapon_scene_base + Vector2(-20, -20)
-			"Scatter":
-				fp_weapon.modulate = Color(1.05, 0.88, 0.7, 1)
-				fp_weapon.scale = Vector2(1.25, 1.1)
-				fp_weapon_base_pos = fp_weapon_scene_base + Vector2(20, 10)
-			_:
-				fp_weapon.modulate = Color(1.08, 1.04, 0.98, 1)
-				fp_weapon.scale = Vector2(1.0, 1.0)
-				fp_weapon_base_pos = fp_weapon_scene_base
+		fp_weapon.modulate = Color.WHITE
+		fp_weapon.scale = Vector2.ONE
+		fp_weapon_base_pos = fp_weapon_scene_base
 		fp_weapon.position = fp_weapon_base_pos
 		_apply_crosshair_for_weapon(weapon_name)
 	fp_weapon.visible = true
@@ -1233,9 +1249,9 @@ func _apply_crosshair_for_weapon(weapon_name: String) -> void:
 	if not crosshair or not fp_juice_enabled:
 		return
 	# Bone grit crosshair shapes per role.
-	var bone = Color(0.91, 0.886, 0.839, 0.85)
-	var ember = Color(0.85, 0.62, 0.38, 0.8)
-	var gun = Color(0.7, 0.74, 0.76, 0.95)
+	var bone: Color = reticle_colour
+	var ember: Color = reticle_colour
+	var gun: Color = reticle_colour
 	if crosshair_hbar:
 		crosshair_hbar.visible = true
 		crosshair_hbar.color = bone
@@ -1311,8 +1327,7 @@ func show_hit_marker(damage: int = 0, weapon_name: String = "") -> void:
 		hit_marker.modulate = col
 	if damage > 0:
 		_spawn_floating_damage(damage, weapon_name)
-	# Fire kick on confirm sells the shot.
-	_fp_fire_kick(weapon_name)
+	# Shot acknowledgement already owns recoil. A hit must not kick twice.
 
 ## How close a player is to dying, which is the one thing the HUD never said.
 ## A number for the exact figure and a bar for the glance, in the corner, read
@@ -1320,7 +1335,7 @@ func show_hit_marker(damage: int = 0, weapon_name: String = "") -> void:
 func set_vitals(hp: int, armor: int) -> void:
 	if not vitals:
 		return
-	vitals.visible = client_mode != "SPECTATING"
+	vitals.visible = fp_juice_enabled
 	var hp_shown: int = maxi(hp, 0)
 	if health_value:
 		health_value.text = str(hp_shown)

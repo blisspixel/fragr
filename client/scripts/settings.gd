@@ -1,18 +1,19 @@
 extends RefCounted
 class_name FragrSettings
 
-## Every setting the game has, in one place, saved to user://settings.cfg.
-##
-## Retro shooter players tune things. The rule here is that anything a player
-## would reasonably want to change is a named key with a default, the defaults
-## are the ones a first-time player should have, and nothing is hidden in a
-## config file with no menu attached to it.
+## Canonical preferences in user://settings.cfg. Some older keys are reserved;
+## a key is usable only when a menu or console control and a runtime reader exist.
 
 const PATH: String = "user://settings.cfg"
+## Affectionate local slang. The network role remains `human` for compatibility.
+const DEFAULT_CALLSIGN: String = "Meat Proxy"
 
-## Section, key, default. The menu is built from this, so adding a setting here
-## is the only edit needed to make it appear and persist.
+## Section, key, default. Persistence is shared; menus wire supported keys explicitly.
 const DEFAULTS: Dictionary = {
+	"profile": {
+		"name": DEFAULT_CALLSIGN,
+		"reticle_colour": "bone",
+	},
 	"video": {
 		"display_mode": 2,      # 0 windowed, 1 fullscreen, 2 borderless
 		"resolution_w": 1920,
@@ -54,8 +55,10 @@ const DEFAULTS: Dictionary = {
 }
 
 var _values: Dictionary = {}
+var storage_path: String
 
-func _init() -> void:
+func _init(path: String = PATH) -> void:
+	storage_path = path
 	_values = _copy_defaults()
 
 static func _copy_defaults() -> Dictionary:
@@ -74,6 +77,11 @@ func get_value(section: String, key: String) -> Variant:
 	return null
 
 func set_value(section: String, key: String, value: Variant) -> void:
+	if section == "profile":
+		if key == "name":
+			value = clean_player_name(value)
+		elif key == "reticle_colour" and value not in ["bone", "amber", "cyan"]:
+			value = "bone"
 	if not _values.has(section):
 		_values[section] = {}
 	(_values[section] as Dictionary)[key] = value
@@ -86,20 +94,41 @@ func reset_all() -> void:
 	_values = _copy_defaults()
 
 func load_from_disk() -> void:
+	_values = _copy_defaults()
 	var cfg: ConfigFile = ConfigFile.new()
-	if cfg.load(PATH) != OK:
+	if cfg.load(storage_path) != OK:
 		return
 	for section in DEFAULTS:
 		for key in (DEFAULTS[section] as Dictionary):
 			var fallback: Variant = (DEFAULTS[section] as Dictionary)[key]
 			set_value(section, key, cfg.get_value(section, key, fallback))
 
-func save_to_disk() -> void:
+func save_to_disk() -> Error:
 	var cfg: ConfigFile = ConfigFile.new()
 	for section in _values:
 		for key in (_values[section] as Dictionary):
 			cfg.set_value(section, key, (_values[section] as Dictionary)[key])
-	cfg.save(PATH)
+	return cfg.save(storage_path)
+
+static func clean_player_name(value: Variant) -> String:
+	if not value is String:
+		return DEFAULT_CALLSIGN
+	var clean: String = ""
+	for character in value:
+		var code: int = character.unicode_at(0)
+		if code >= 32 and code != 127:
+			clean += character
+	clean = clean.strip_edges().left(24)
+	return DEFAULT_CALLSIGN if clean.is_empty() else clean
+
+func player_name() -> String:
+	return clean_player_name(get_value("profile", "name"))
+
+func reticle_colour() -> Color:
+	match get_value("profile", "reticle_colour"):
+		"amber": return Color("ffc568")
+		"cyan": return Color("8ee9df")
+		_: return Color("e8e2d6")
 
 ## Push everything at the engine. Safe to call repeatedly.
 func apply() -> void:

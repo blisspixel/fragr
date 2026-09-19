@@ -11,7 +11,8 @@ func _initialize() -> void:
 		quit(1)
 		return
 
-	var s: RefCounted = script.new()
+	var test_path: String = "user://test-settings-%d.cfg" % OS.get_process_id()
+	var s: RefCounted = script.new(test_path)
 
 	# A fresh store answers with the documented defaults.
 	if not bool(s.get_value("controls", "always_run")):
@@ -55,7 +56,7 @@ func _initialize() -> void:
 	s.set_value("controls", "sensitivity", 0.0041)
 	s.set_value("gameplay", "hud_scale", 1.25)
 	s.save_to_disk()
-	var loaded: RefCounted = script.new()
+	var loaded: RefCounted = script.new(test_path)
 	loaded.load_from_disk()
 	if absf(float(loaded.get_value("controls", "sensitivity")) - 0.0041) > 1e-6:
 		push_error("test_settings: sensitivity did not survive a save and load")
@@ -99,6 +100,33 @@ func _initialize() -> void:
 			push_error("test_settings: the draw is not deterministic for a seed")
 			ok = false
 
+	# Profile input stays bounded and cannot introduce line breaks into the HUD.
+	s.set_value("profile", "name", "  Patch\n\t  ")
+	if s.player_name() != "Patch":
+		push_error("test_settings: callsign control characters must be removed")
+		ok = false
+	s.set_value("profile", "name", "x".repeat(80))
+	if s.player_name().length() != 24:
+		push_error("test_settings: callsign must fit its display contract")
+		ok = false
+	s.set_value("profile", "name", 42)
+	if s.player_name() != "Meat Proxy":
+		push_error("test_settings: invalid saved callsign needs a safe default")
+		ok = false
+	s.set_value("profile", "reticle_colour", ["invalid"])
+	if s.get_value("profile", "reticle_colour") != "bone":
+		push_error("test_settings: invalid reticle option must use the default")
+		ok = false
+	s.set_value("profile", "name", "Signal 67")
+	s.set_value("profile", "reticle_colour", "cyan")
+	if s.save_to_disk() != OK:
+		push_error("test_settings: save must report success")
+		ok = false
+	loaded.load_from_disk()
+	if loaded.player_name() != "Signal 67" or loaded.reticle_colour() != Color("8ee9df"):
+		push_error("test_settings: profile must survive a fresh instance")
+		ok = false
+	DirAccess.remove_absolute(test_path)
 	if ok:
 		print("test_settings: PASS defaults, fallback, clamp, reset, a disk round trip, and %d tips" % int(tips.count()))
 		quit(0)

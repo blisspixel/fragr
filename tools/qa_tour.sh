@@ -25,9 +25,12 @@ SERVER_URL="${FRAGR_SERVER:-127.0.0.1:$SERVER_PORT}"
 BOTS="${FRAGR_QA_BOTS:-5}"
 
 mkdir -p "$OUT_DIR"
+# Godot changes its working directory to the project. A relative path otherwise
+# saves the images in a different directory from the wrapper's logs and publish.
+OUT_DIR="$(cd "$OUT_DIR" && pwd)"
 
 # Godot 4.7.2. FRAGR_GODOT wins; then the console binary on Windows; then PATH.
-GODOT_BIN="${FRAGR_GODOT:-}"
+GODOT_BIN="${FRAGR_GODOT:-${GODOT_BIN:-}}"
 if [ -z "$GODOT_BIN" ]; then
   for candidate in \
     "/c/GitHub/_toolchains/godot/Godot_v4.7.2-stable_win64_console.exe" \
@@ -52,9 +55,9 @@ echo "qa_tour: godot   $GODOT_BIN"
 echo "qa_tour: output  $OUT_DIR"
 
 # A server with bots, so the tour has a match to photograph.
-cargo build -p fragr-server --release >/dev/null 2>&1 || {
+cargo build -p fragr-server --release --locked >"$OUT_DIR/build.log" 2>&1 || {
   echo "qa_tour: server build failed" >&2; exit 1; }
-"$ROOT/target/release/fragr-server" --bind "0.0.0.0:$SERVER_PORT" --bots "$BOTS" >"$OUT_DIR/server.log" 2>&1 &
+"$ROOT/target/release/fragr-server" --bind "127.0.0.1:$SERVER_PORT" --bots "$BOTS" >"$OUT_DIR/server.log" 2>&1 &
 SERVER_PID=$!
 cleanup() {
   kill "$SERVER_PID" >/dev/null 2>&1
@@ -90,12 +93,16 @@ echo "qa_tour: importing assets"
   echo "qa_tour: asset import failed; see $OUT_DIR/import.log" >&2
   exit 1
 }
+if grep -qiE 'SCRIPT ERROR|Parse Error|(^|[[:space:]])ERROR:' "$OUT_DIR/import.log"; then
+  echo "qa_tour: import reported errors; see $OUT_DIR/import.log" >&2
+  exit 1
+fi
 
-RUN=("$GODOT_BIN" --path "$ROOT/client" --rendering-driver opengl3
-     --resolution 1280x720 --script res://scripts/qa_tour.gd)
+RUN=("$GODOT_BIN" --path "$ROOT/client" --rendering-driver "${FRAGR_RENDER_DRIVER:-opengl3}"
+     --windowed --resolution 1280x720 --script res://scripts/qa_tour.gd)
 
 if [ "$(uname -s)" != "Linux" ]; then
-  "${RUN[@]}"
+  "${RUN[@]}" >"$OUT_DIR/client.log" 2>&1
   STATUS=$?
 else
   command -v Xvfb >/dev/null 2>&1 || {
@@ -104,19 +111,27 @@ else
   Xvfb ":$DISPLAY_NUM" -screen 0 1280x720x24 >/dev/null 2>&1 &
   XVFB_PID=$!
   sleep 1
-  DISPLAY=":$DISPLAY_NUM" LIBGL_ALWAYS_SOFTWARE=1 GALLIUM_DRIVER=llvmpipe "${RUN[@]}"
+  DISPLAY=":$DISPLAY_NUM" LIBGL_ALWAYS_SOFTWARE=1 GALLIUM_DRIVER=llvmpipe "${RUN[@]}" >"$OUT_DIR/client.log" 2>&1
   STATUS=$?
 fi
 
-if [ "$STATUS" -ne 0 ]; then
+cat "$OUT_DIR/client.log"
+if [ "$STATUS" -ne 0 ] || grep -qiE 'SCRIPT ERROR|Parse Error|(^|[[:space:]])ERROR:' "$OUT_DIR/client.log"; then
   echo "qa_tour: the tour failed (exit $STATUS). Server log: $OUT_DIR/server.log" >&2
-  exit "$STATUS"
+  exit 1
 fi
 
 # A `latest` pointer so the critique step never has to know the stamp.
-rm -rf "$ROOT/.agents/qa/latest"
+# Remove only previous tour files, never recursively delete a computed path.
 mkdir -p "$ROOT/.agents/qa/latest"
-cp "$OUT_DIR"/*.png "$OUT_DIR"/manifest.json "$ROOT/.agents/qa/latest/" 2>/dev/null
+if [ ! -s "$OUT_DIR/contact.png" ] || [ ! -s "$OUT_DIR/manifest.json" ]; then
+  echo "qa_tour: missing capture artifacts in $OUT_DIR" >&2
+  exit 1
+fi
+if [ "$OUT_DIR" != "$ROOT/.agents/qa/latest" ]; then
+  rm -f "$ROOT/.agents/qa/latest/"*.png "$ROOT/.agents/qa/latest/manifest.json"
+  cp "$OUT_DIR"/*.png "$OUT_DIR"/manifest.json "$ROOT/.agents/qa/latest/" || exit 1
+fi
 
 # Screenshots in the README go stale the moment the HUD changes, and a stale
 # screenshot is worse than none because it claims to be the current build.
@@ -131,12 +146,17 @@ if [ "${PUBLISH:-0}" = "1" ]; then
       published=$((published + 1))
     else
       echo "qa_tour: cannot publish $src; it was not captured" >&2
+      exit 1
     fi
   done <<'SHOTS'
 05_hud_first_person.png|tour_first_person_16x9.png
 04_combat_follow.png|tour_combat_follow_16x9.png
 03_arena_overview.png|tour_arena_overview_16x9.png
 07_shot_effects_strip.png|tour_shot_strip.png
+01_boot_menu.png|tour_menu_16x9.png
+02_spectator_eyes.png|tour_spectator_16x9.png
+11_profile_menu.png|tour_profile_16x9.png
+12_settings_menu.png|tour_settings_16x9.png
 SHOTS
   echo "qa_tour: published $published stills into docs/screenshots/"
 fi

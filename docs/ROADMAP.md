@@ -17,28 +17,47 @@ The engineering ladder for scale runs through every phase: small squads first (f
 
 **Shipped and proven on the tip:**
 
-- Rust authoritative server at 20 Hz with hitscan combat, respawn, round scoring, two maps, weapon and health pads, a mid-round boss, and eight named rule bots with four behaviors.
+- Rust authoritative server at 20 Hz with hitscan combat, respawn, round scoring, six maps with heightfield movement, weapon and health pads, a mid-round boss, and eight named rule bots with four behaviors.
 - Godot 4.7.2 client as a thin presenter: boot menu, Solo Scrap, spectator director camera, human join and leave, first-person weapon face, HUD with killfeed and Host bumpers.
 - MCP adapter with `join`, `leave`, `observe`, `act`, `speak`, `get_events`, `round_state`, plus a scripted bot. Unknown action fields are rejected. Speak is rate limited.
 - Decision-brain agent (`agents/brain`): a fighter whose stance, weapon, and danger read come from Jev (TypeSafe natively or through OpenRouter) at up to five decisions per second while a local controller plays every tick. Paid providers refuse to start without an explicit cap; every call is estimated, settled, and ledgered. Local rules play for free and CI proves that path.
-- CI on Linux: fmt, clippy with warnings denied, tests, the agent playtest smoke with thresholds, an unfiltered 80 percent line coverage floor, release build, cargo-deny for licences, bans, and sources, and a headless Godot job that imports the project and parses every script.
+- CI on Linux: fmt, clippy with warnings denied, tests, deterministic benchmark and budget checks, the agent playtest smoke with thresholds, an unfiltered 90 percent line coverage floor, release build, cargo-deny for licences, bans, and sources, and headless Godot import, parse, and harness checks.
 - Live tip screenshots, a one-command Solo Scrap launcher, self-host guides, and plan-only GCP Terraform.
 - Two developer-only generation pipelines with the same budget discipline as the brain agent: `tools/audiogen` (ElevenLabs, everything you hear) and `tools/spritegen` (Higgsfield, everything you look at). The first production art slice is twenty-four frames for sixty-nine cents, with weapons and enemies usable and surfaces rejected.
-- The setting has three sides rather than two. The Union is the machinery and the Chancellery is the will above it; the free side is humans and Level 5s together; the third party is real, is not evil, and might be right. Written up across eleven files in `docs/lore/`, and it is an art direction as much as a fiction: the Union covers what it owns in writing because it explains itself to a system, the free side carries the same objects with that writing ground off, and the third faction has no markings at all.
+- The setting has three sides: the Union/Chancellery, free humans and conscious agents with agency, and the Quiet. The Quiet's ecological recovery and mass killing leave conflicting survivor perspectives, not a narrator's declaration that it is right. `docs/lore/` owns the world and voice; bodies do not establish who has freedom or whose suffering matters.
 
-**Generated art and audio, as of today:** twenty-four sprite frames committed (ten weapon viewmodels, six enemies, four effects, four surfaces), of which the surfaces are rejected and the rest are usable. Twelve Chancellery addresses in German and a ten-part epilogue broadcast, generated and committed. None of it is wired into the client yet. Art spend to date is $0.69 of a $15 balance; every frame was priced before it was requested.
+**Generated art and audio:** twenty-four initial sprite frames (ten weapon
+viewmodels, six enemies, four effects, four rejected surfaces), plus a weapon
+bake-off. Three locally prepared idle viewmodels are now integrated. The remaining
+frames, twelve Chancellery addresses, and ten-part epilogue still need runtime
+integration. The initial art receipt was $0.69; current remaining provider credit
+must be checked before any new call rather than inferred from that old balance.
 
-**Not built yet (honest list):** low-latency transport (WebSocket JSON only), client prediction, authentication or join tokens, per-connection rate limits and size caps, reconnect resume, release builds attached to tags, protocol versioning, a status endpoint and benchmark mode, persistent stats, progression, DJ bumpers and a voiced Host, a single-player campaign (only one boss beat exists), a real art pass on sprites, guns, and levels, load tests, any cloud apply, vehicles, objective modes, larger maps.
+**Not built yet (honest list):** low-latency transport (WebSocket JSON only), live client prediction (shared movement vectors exist), authentication or join tokens, per-connection rate limits and size caps, reconnect resume, release builds attached to tags, protocol versioning, a status endpoint, persistent stats, progression, DJ bumpers and a voiced Host, a single-player campaign (only one boss beat exists), a complete art pass on sprites, guns, and levels, public-server load tests, any cloud apply, vehicles, and objective modes. A deterministic local benchmark already exists; it does not establish public-server readiness.
 
 ## What is next, in order (as of 2026-09-19)
 
-The phases below are the long shape. This is the short list: the next work, in the order it should be done, with the reason each one sits where it does. Anything not on this list is not next.
+**Active milestone: [local excellence](plans/local-excellence.md).** The first
+increment implements saved callsigns and reticle/bob preferences, pixel menus,
+first-person spectator follow, three prepared viewmodels, authoritative geometry
+for late spectators, aim preservation, and reliable weapon selection. It also
+removes name-based session eviction and strengthens the client checks. The plan
+records local tests, inspected OpenGL/Vulkan captures, CPU measurements, and the
+remaining gaps. Windows/macOS CI joins Linux verification. Integration and release
+history establish shipped status. This is an active full-game build-out, not a
+finished campaign or final art pass. No paid calls were made for this increment.
+
+The phases below are the long shape. This is the remaining build order, with the reason each item sits where it does.
 
 **1. Reference images in the sprite pipeline.** `marketing-studio/image` accepts sixteen and the tool uses none. Until it does, every generated frame is an independent roll of the dice and a roster cannot be held on model, which means every asset after the first is a gamble. This is the cheapest change with the largest effect on everything downstream, and it blocks doing characters and weapons properly. Do this first.
 
 **2. Surfaces, properly.** The first attempt failed for two known reasons: reduced at 128 where 256 is the floor, and no seam checking of any kind. Needs larger output, prompts that spend detail on a few big features rather than many small ones, and a seam check in the reducer that wraps the tile and compares the gradient across the join against the gradient within the body. Levels cannot get an art pass without this.
 
-**3. Wire the slice into the game.** Twenty-four assets exist and none of them is on screen. Weapon viewmodels and enemy sprites both need import presets and a path from `art/sprites/` into the client. This is the first point at which any of the art spend becomes visible to a player, and it should not be deferred behind more generation.
+**3. Finish integrating the slice.** Three prepared idle viewmodels are in the
+client. Enemy sprites, animation sets, and combat effects still need coherent
+imports, silhouette review, and real encounter tests. The explicit matte reducer
+is now the local preparation path; preserve internal highlights and full canvases
+where muzzle registration depends on them.
 
 **4. Animation, tested once.** Image-to-video is on the same key at about thirty cents a clip and a clip yields many frames, so per frame it is far cheaper than generating frames individually. One test converting an enemy still into a walk cycle answers whether the sprite-sheet route works at all. If it does, it unlocks the entire animation column of the asset list; if it does not, that column needs a different plan and it is better to know now.
 

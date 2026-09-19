@@ -12,6 +12,8 @@ var current_weapon: String = ""
 var behavior: String = ""
 var is_highlighted: bool = false
 var is_local_fp: bool = false
+var armor: int = 0
+var nameplate_enabled: bool = true
 
 var target_position: Vector3 = Vector3.ZERO
 var target_yaw: float = 0.0
@@ -201,6 +203,7 @@ func update_state(state: Dictionary):
 	
 	var old_hp = hp
 	hp = state.hp
+	armor = int(state.get("armor", 0))
 	
 	if old_hp > hp and hp > 0:
 		show_hit_feedback()
@@ -388,8 +391,15 @@ func set_local_fp(enabled: bool) -> void:
 	if body:
 		body.visible = not enabled
 	if label:
-		label.visible = not enabled
+		label.visible = nameplate_enabled and not enabled
 	if highlight:
 		highlight.visible = false if enabled else is_highlighted
 	if weapon_sprite and enabled:
 		weapon_sprite.visible = false
+	elif weapon_sprite:
+		_update_weapon_sprite()
+
+func set_nameplate_enabled(enabled: bool) -> void:
+	nameplate_enabled = enabled
+	if label:
+		label.visible = enabled and not is_local_fp

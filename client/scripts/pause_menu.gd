@@ -1,20 +1,11 @@
 extends CanvasLayer
 class_name PauseMenu
 
-## Escape opens this. In single player it pauses the match; in multiplayer it
-## does not, because the other fighters did not agree to stop.
-##
-## That distinction is honest rather than cosmetic. The simulation lives in the
-## server process, so freezing the client would freeze what you see while the
-## world carried on without you, and you would come back dead. In a solo match
-## the client asks the server to hold, and the server obliges because it is
-## nobody else's match. In multiplayer the menu says so out loud.
+## Escape opens the match menu. The server has no pause command yet, including
+## solo sessions. Keep snapshots flowing and neutralize input in game_manager.
 
 signal resume_requested
 signal leave_requested
-signal pause_state_changed(paused: bool)
-
-var solo: bool = false
 
 var _open: bool = false
 var _panel: Panel = null
@@ -36,12 +27,14 @@ func _build() -> void:
 	add_child(veil)
 
 	var centre: CenterContainer = CenterContainer.new()
+	centre.theme = MenuTheme.build()
 	centre.anchor_right = 1.0
 	centre.anchor_bottom = 1.0
 	add_child(centre)
 
 	_panel = Panel.new()
-	_panel.custom_minimum_size = Vector2(420.0, 0.0)
+	_panel.add_theme_stylebox_override("panel", MenuTheme.panel())
+	_panel.custom_minimum_size = Vector2(700.0, 360.0)
 	centre.add_child(_panel)
 
 	_column = VBoxContainer.new()
@@ -53,7 +46,7 @@ func _build() -> void:
 	_panel.add_child(_column)
 
 	var title: Label = Label.new()
-	title.text = "Paused"
+	title.text = "MATCH MENU"
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title.add_theme_font_size_override("font_size", 40)
 	_column.add_child(title)
@@ -97,14 +90,7 @@ func open() -> void:
 		return
 	_open = true
 	visible = true
-	_note.text = (
-		"The match is held."
-		if solo
-		else "The match keeps running. Nobody else agreed to stop."
-	)
-	if solo:
-		get_tree().paused = true
-	pause_state_changed.emit(solo)
+	_note.text = "LIVE MATCH. FIND COVER FIRST."
 	Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
 	await get_tree().process_frame
 	for child in _column.get_children():
@@ -117,9 +103,6 @@ func close() -> void:
 		return
 	_open = false
 	visible = false
-	if get_tree().paused:
-		get_tree().paused = false
-	pause_state_changed.emit(false)
 	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
 	resume_requested.emit()
 

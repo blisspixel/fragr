@@ -17,7 +17,13 @@ WebSocket JSON protocol between clients and the authoritative server.
 
 **MCP agent-adapter session tools:** boot Hello-on-start remains valid. First-class tools `join` (Hello/Welcome, optional name, idempotent), `leave` (clean WebSocket disconnect; `isError` if not connected), and `round_state` (round fields from last snapshot + recent `round_start` / `round_end`) are documented in `agent-adapter/README.md`. There is no separate on-wire Leave message; leave is disconnect.
 
-**Reconnect:** re-Hello as human/agent with the same display name reclaims the prior client-mapped seat (ghost eviction + `PlayerLeft`, then fresh `Welcome` / `PlayerJoined`). Rule bots are not client-mapped and are never evicted by name. A new name after a clean leave is a new session. Late Disconnect for an already-evicted socket is a noop.
+**Names and reconnect:** display names are not identity credentials. Joining
+never evicts an existing fighter by name. The server removes control characters,
+trims names to 24 Unicode scalars, uses `Player` for an empty result, and appends
+` #2`, ` #3`, etc. on collisions, including collisions with rule bots. The final
+label appears in snapshots and events; use player UUIDs for ownership. A reconnect
+creates a new session. Only that connection's disconnect removes its fighter.
+Authenticated session resumption remains planned.
 
 ## Message Types
 
@@ -78,7 +84,7 @@ World-point aim:
 - `left` / `right`: Strafe left/right
 - `turn_left` / `turn_right`: Rotate view left/right (incremental)
 - `fire`: Fire weapon
-- `weapon_swap`: (optional) Switch to weapon type: `"flechette"` | `"rail"` | `"scatter"`
+- `weapon_swap`: (optional) Switch to weapon type: `"flechette"` | `"rail"` | `"scatter"`. The newest explicit choice is retained across input packets until a simulation tick consumes it once. A later packet without this field does not cancel an unconsumed choice.
 - `look_at`: (optional) Authoritative aim object. Prefer `player_id` (UUID string), or both `x` and `z` (world point). Server snaps yaw toward the target on the Action tick. Invalid/missing target is a yaw no-op.
 - `yaw`: (optional) Client-owned absolute facing in radians. When present the server takes it as the fighter's yaw for this input, before movement, instead of turning at a fixed rate from the turn bits. Normalised into `[0, 2 pi)`; non-finite values are ignored and the turn bits apply as before. This is how a human client keeps the look axis off the network.
 - `seq`: (optional) Input sequence number. The server acknowledges the newest sequence it applied for this fighter in an `ack` message every tick. Clients that do not predict may omit it.
@@ -139,7 +145,10 @@ Off-tick callout / taunt from a human or agent. Not sticky Action. Control-plane
 
 #### MapInfo
 
-The arena's shape: its bounds and the solids that block movement and shots. Sent once to a fighter when it joins, and again to everyone when the map changes between rounds. Never per tick, because it does not change per tick.
+The arena's shape: its bounds and the solids that block movement and shots. Sent
+to every connection on join, including spectators, and broadcast when the map
+changes between rounds. It is not repeated every tick. Clients replace legacy
+scene geometry with these solids so visible cover agrees with the server.
 
 ```json
 {

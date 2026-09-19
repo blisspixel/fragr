@@ -10,16 +10,21 @@ It is the 1993 LAN-party feeling rebuilt for 2026: a Rust authoritative server, 
 
 - **Solo Broadcast:** Episode 0 Calibration on Larak Lot. Host cold-open, objective chip (clear NODS, seize jammer, drop Auditor), same guns as MP. Default from `./tools/solo_scrap.sh` (server `--solo-broadcast`). Episode depth lives in [`docs/VISION.md`](docs/VISION.md) and [`docs/plans/solo-story-episodes.md`](docs/plans/solo-story-episodes.md).
 - **Solo Scrap:** arcade offline on loopback without the episode path (`FRAGR_SOLO_BROADCAST=0`), four named rule bots with visible tactics (Aggressive, Defensive, Flanker, Balanced).
-- **Watch or join:** spectator by default with a director camera. Join mid-match as a human, leave back to spectate. Bots keep the server alive.
+- **Watch or join:** spectator by default through a fighter's eyes, including their gun and shot feedback. F changes fighter; V cycles eyes, chase, and free camera. Join mid-match as a human, leave back to spectate. Bots keep the server alive.
 - **Contested Frequency match loop:** 10-frag or 3-minute rounds, warmup and round-end Host bumpers, killstreak callouts, a mid-round Compliance Drone boss (Auditor on Solo Broadcast).
-- **Guns and maps:** three weapon roles (Flechette, Rail, Scatter), weapon and health pads, two scrap maps (Arena Duel, Compliance Yard). Solo Broadcast faces Larak Lot on Arena Duel (map 1); Compliance Yard keeps its own name.
+- **Guns and maps:** three weapon roles (Flechette, Rail, Scatter), weapon and health pads, and six server maps with steps and raised ground. Solo Broadcast faces Larak Lot on Arena Duel (map 1). The server CLI chooses the arena; every joining player and spectator receives its geometry.
+- **Your callsign:** saved player name, reticle colour, and weapon bob options. The default human callsign is Meat Proxy. The boot menu, settings, and match overlay share pixel lettering and industrial styling.
 - **Agent door:** MCP tools `join`, `leave`, `observe`, `act`, `speak`, `get_events`, `round_state`, and a reference client (`fragr-brain`) that asks a decision model for its stance while a local controller plays every tick. An agent is one participant however it thinks; the server sees one fighter. Structured state, no vision model required.
 
 This is a playable vertical slice, not a finished game. The build order and what is still missing live in [`docs/ROADMAP.md`](docs/ROADMAP.md).
 
+Current work: [`local excellence`](docs/plans/local-excellence.md), a bounded polish loop covering reliable checks, existing art integration, arena readability, and inspected playtest evidence. This is work in progress, not a completed campaign or a public-server readiness claim.
+
 ## Screenshots
 
-Live captures from the current build, Godot 4.7.2-stable against a loopback server with bots. The first four come from the visual QA tour, which walks every player-facing state. Run `tools/qa_tour.sh --publish` after any change a player would see and they are refreshed in place. The rest are tip captures; details and their regeneration script are in [`docs/screenshots/README.md`](docs/screenshots/README.md).
+Live captures from the current build, Godot 4.7.2-stable against a loopback server with bots. The visual QA tour checks actual role transitions and weapon selections, records the observed match state, and captures menus, eyes, chase, and overview. Run `tools/qa_tour.sh --publish` to refresh them. Capture details and historical images are documented in [`docs/screenshots/README.md`](docs/screenshots/README.md).
+
+![Menu](docs/screenshots/tour_menu_16x9.png)
 
 Behind the gun: health and armour in the corner, the weapon in hand, the crosshair and nothing else in the middle.
 
@@ -37,17 +42,7 @@ Twelve consecutive frames from one trigger pull, which is the only way an effect
 
 ![Firing strip](docs/screenshots/tour_shot_strip.png)
 
-![Jammer dish in hangar](docs/screenshots/20_jammer_dish_follow_16x9.png)
-
-![Jammer dish overview](docs/screenshots/22_jammer_dish_overview_16x9.png)
-
-![Weapons and frags](docs/screenshots/09_tip_weapons_frags_16x9.png)
-
-![Human join, first person](docs/screenshots/10_tip_human_join_fp_16x9.png)
-
-![Arena overview](docs/screenshots/01_arena_overview_16x9.png)
-
-![Host flash on mid-join](docs/screenshots/08_tip_host_flash_midjoin_16x9.png)
+![Spectator through a fighter's eyes](docs/screenshots/tour_spectator_16x9.png)
 
 ## Quick start
 
@@ -63,13 +58,13 @@ That builds the server with `--solo-broadcast`, binds it to `127.0.0.1:6767` wit
 # Terminal 1: Solo Broadcast Episode 0 (Calibration / Larak Lot)
 cargo run -p fragr-server -- --bind 127.0.0.1:6767 --bots 4 --solo-broadcast
 
-# Terminal 2: open client/ in Godot 4.7.2 and press F5, then pick Solo Broadcast
-# Headless alternative: godot --path client res://scenes/main.tscn -- --solo
+# Terminal 2: open client/ in Godot 4.7.2, press F5, pick Single Player > Episode 0
+# Direct scene launch: godot --path client res://scenes/main.tscn -- --solo
 ```
 
 **Controls:** WASD to move, mouse to look, left mouse to fire, J to join, L to leave back to spectate, F to cycle the spectator camera, R next radio station, N next track, M radio on or off, Esc to release the mouse. Gamepads work too; see the controls table below.
 
-**Boot menu:** Solo Broadcast (Episode 0, default focus), Spectate Local, Join Host. The map picker selects Arena Duel or Compliance Yard and must match the server's `--map`. Solo Broadcast faces Larak Lot only on Arena Duel (map 1); Compliance Yard keeps its name. Plain Solo Scrap is `FRAGR_SOLO_BROADCAST=0` on the launcher.
+**Boot menu:** Single Player, Multiplayer, Your Callsign, Settings, Quit. The menu connects to a running server; it does not launch one. The host chooses the map and mode. Use the launcher above for Episode 0, or set `FRAGR_SOLO_BROADCAST=0` for arena practice. Escape opens the match menu; the server keeps running, including in solo sessions.
 
 ## Controls (keyboard and gamepad)
 
@@ -85,9 +80,10 @@ Keyboard and gamepad share the same action path into the server.
 | Join | J | A while spectating |
 | Leave to spectate | L | Start |
 | Spectator camera cycle | F | D-pad right |
-| Free-fly toggle | V | Back |
+| Spectator view: eyes, chase, free | V | Back |
 | Radio: next station, next track, on or off | R, N, M | D-pad up, down, left |
-| Release the mouse | Esc | |
+| Match menu | Esc | |
+| Hold to show leaders in first person | Tab | |
 
 ## Desktop exports
 

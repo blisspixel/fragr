@@ -26,6 +26,7 @@ var _clock_ms: int = 0
 var _joined: bool = false
 var _strip_for_state: String = ""
 var _probe_frames: int = 0
+var _failed: bool = false
 ## Frames between the trigger and the first strip frame. The shot is resolved by
 ## the server, so the flash arrives a round trip later, not on the next frame.
 const STRIP_LEAD_FRAMES: int = 2
@@ -43,6 +44,11 @@ func _run() -> void:
 	if tour.is_empty():
 		quit(1)
 		return
+	# A custom SceneTree can inherit the project's fullscreen mode even when
+	# the launcher requests a resolution. Set the actual window explicitly.
+	root.mode = Window.MODE_WINDOWED
+	root.size = Vector2i(int(tour["width"]), int(tour["height"]))
+	await process_frame
 
 	var states: Array = tour.get("states", [])
 	if states.is_empty():
@@ -74,8 +80,20 @@ func _run() -> void:
 		if wait_s > 0.0:
 			await create_timer(wait_s).timeout
 
-		if state.get("join", "") == "human" and not _joined:
-			await _join_as_human()
+		var menu_page: String = state.get("menu_page", "")
+		if not menu_page.is_empty():
+			get_root().get_node("BootMenu").call("_show", menu_page)
+			await process_frame
+		if state.has("join"):
+			await _change_role(state["join"] == "human")
+		if state.has("weapon"):
+			await _select_weapon(str(state["weapon"]))
+		if state.get("overlay", "") == "match_menu":
+			_game_manager().get_node("PauseMenu").call("open")
+		_pose_camera(state.get("camera", "none"))
+		await create_timer(0.75).timeout
+		await RenderingServer.frame_post_draw
+		await RenderingServer.frame_post_draw
 
 		# An effect that lasts sixty milliseconds is never in a still taken at a
 		# fixed second. A state can instead pull the trigger and keep a strip of
@@ -90,7 +108,6 @@ func _run() -> void:
 			_strip_for_state = ""
 			_probe_frames = 0
 
-		_pose_camera(state.get("camera", "none"))
 		await RenderingServer.frame_post_draw
 		await RenderingServer.frame_post_draw
 
@@ -102,6 +119,16 @@ func _run() -> void:
 			return
 
 		var file_name: String = "%02d_%s.png" % [_results.size() + 1, state_name]
+		if _looks_blank(shot) or measured.get("world_blank", false):
+			push_error("qa_tour: blank capture for " + state_name)
+			_failed = true
+		if shot.get_width() != int(tour["width"]) or shot.get_height() != int(tour["height"]):
+			push_error("qa_tour: unexpected capture size for " + state_name)
+			_failed = true
+		var observed: Dictionary = _observed_state()
+		if current_scene == "res://scenes/main.tscn" and (observed.get("fighters", 0) == 0 or observed.get("map_id", 0) == 0):
+			push_error("qa_tour: no live match for " + state_name)
+			_failed = true
 		var path: String = _out_dir.path_join(file_name)
 		var err: Error = shot.save_png(path)
 		if err != OK:
@@ -119,6 +146,7 @@ func _run() -> void:
 
 		_results.append({
 			"state": state_name,
+			"observed": observed,
 			"file": file_name,
 			"world_file": world_name,
 			"strip_file": _strip_for_state,
@@ -138,11 +166,13 @@ func _run() -> void:
 			state_name, file_name, measured.get("hud_coverage", 0.0) * 100.0,
 			str(measured.get("world_blank", false)),
 		])
+		if state.get("overlay", "") == "match_menu":
+			_game_manager().get_node("PauseMenu").call("close")
 
 	_write_manifest(tour)
 	_write_contact_sheet()
 	print("qa_tour: ", _results.size(), " states under ", _out_dir)
-	quit(0)
+	quit(1 if _failed else 0)
 
 func _load_manifest() -> Dictionary:
 	if not FileAccess.file_exists(MANIFEST_PATH):
@@ -211,9 +241,15 @@ func _capture_strip(state: Dictionary, frames: int, file_name: String) -> void:
 	var probe: Node = get_root().find_child(probe_name, true, false) if probe_name != "" else null
 	_probe_frames = 0
 	if probe_name != "" and probe == null:
-		push_warning("qa_tour: no node named " + probe_name + " to watch")
+		push_error("qa_tour: no node named " + probe_name + " to watch")
+		_failed = true
 	if trigger == "fire":
 		Input.action_press("fire")
+		# Start at an acknowledged visible flash, not a guessed round trip.
+		if probe != null:
+			var deadline: int = Time.get_ticks_msec() + 2500
+			while not bool(probe.get("visible")) and Time.get_ticks_msec() < deadline:
+				await RenderingServer.frame_post_draw
 	for _i in range(STRIP_LEAD_FRAMES):
 		await RenderingServer.frame_post_draw
 	var shots: Array[Image] = []
@@ -227,6 +263,9 @@ func _capture_strip(state: Dictionary, frames: int, file_name: String) -> void:
 			shots.append(img)
 	if trigger == "fire":
 		Input.action_release("fire")
+	if probe_name != "" and _probe_frames == 0:
+		push_error("qa_tour: shot produced no visible " + probe_name)
+		_failed = true
 	if shots.is_empty():
 		return
 	var tile_width: int = STRIP_TILE_WIDTH
@@ -258,30 +297,46 @@ func _find_hud() -> Node:
 ## Join the match as a person rather than watching it. Without this the
 ## first-person states are photographs of the spectator camera, which is the
 ## one view a player never sees.
-func _join_as_human() -> void:
+func _change_role(play: bool) -> void:
 	var gm: Node = _game_manager()
 	if gm == null:
-		push_warning("qa_tour: no GameManager; staying a spectator")
+		push_error("qa_tour: no GameManager for role transition")
+		_failed = true
 		return
-	var net: Node = gm.get_node_or_null("NetClient")
-	var hud: Node = gm.get_node_or_null("HUD")
-	if net == null or hud == null:
-		push_warning("qa_tour: no NetClient or HUD; staying a spectator")
-		return
-	if net.has_method("disconnect_from_server"):
-		net.disconnect_from_server()
-	await create_timer(0.4).timeout
-	if "is_human_player" in gm:
-		gm.set("is_human_player", true)
-	if net.has_method("connect_to_server"):
-		net.connect_to_server("human", "Human Player")
-	if hud.has_method("set_mode"):
-		hud.set_mode("PLAYING")
-	# Welcome plus the first snapshots, so the first-person latch can fire.
-	await create_timer(2.5).timeout
-	if gm.has_method("_refresh_fp_target"):
-		gm.call("_refresh_fp_target")
-	_joined = true
+	if bool(gm.get("is_human_player")) != play:
+		await gm.change_role(play)
+		await create_timer(4.5).timeout
+	var net: Node = gm.get_node("NetClient")
+	if net.get("connection_state") != WebSocketPeer.STATE_OPEN or (play and net.get("player_id") == null):
+		push_error("qa_tour: role transition did not connect")
+		_failed = true
+	_joined = play
+
+func _select_weapon(weapon: String) -> void:
+	var gm: Node = _game_manager()
+	gm.set("pending_weapon_swap", weapon.to_lower())
+	var deadline: int = Time.get_ticks_msec() + 3000
+	while str(gm.call("_local_weapon_name")) != weapon and Time.get_ticks_msec() < deadline:
+		await process_frame
+	if str(gm.call("_local_weapon_name")) != weapon:
+		push_error("qa_tour: server did not equip " + weapon)
+		_failed = true
+
+func _observed_state() -> Dictionary:
+	var gm: Node = _game_manager()
+	if gm == null:
+		return {"menu": true}
+	var snapshot: Dictionary = gm.get("latest_snapshot")
+	var cam: Node = _spectator_camera()
+	return {
+		"map_id": snapshot.get("map_id", 0),
+		"round_state": snapshot.get("round_state", "unknown"),
+		"fighters": (snapshot.get("players", []) as Array).size(),
+		"human": gm.get("is_human_player"),
+		"local_weapon": gm.call("_local_weapon_name"),
+		"eye_view": cam.get("fp_mode") or cam.call("is_observing_first_person"),
+		"following": gm.call("_followed_player_id"),
+	}
 
 func _pose_camera(mode: String) -> void:
 	if mode == "none":
@@ -289,8 +344,10 @@ func _pose_camera(mode: String) -> void:
 	var cam: Node = _spectator_camera()
 	if cam == null:
 		return
+	cam.set("frag_follow_timer", 0.0)
 	match mode:
 		"overview":
+			cam.set("spectator_first_person", false)
 			if cam is Node3D:
 				var n3: Node3D = cam
 				n3.global_position = Vector3(0, 22, 28)
@@ -300,13 +357,15 @@ func _pose_camera(mode: String) -> void:
 			if "fp_mode" in cam:
 				cam.set("fp_mode", false)
 		"follow":
+			cam.set("spectator_first_person", false)
 			if "follow_mode" in cam:
 				cam.set("follow_mode", true)
 			if "fp_mode" in cam:
 				cam.set("fp_mode", false)
 		"first_person":
-			if "fp_mode" in cam:
-				cam.set("fp_mode", true)
+			if not _joined:
+				cam.set("follow_mode", true)
+				cam.set("spectator_first_person", true)
 		_:
 			push_warning("qa_tour: unknown camera mode " + mode)
 

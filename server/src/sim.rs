@@ -811,8 +811,11 @@ impl GameState {
         self.scores.remove(&id);
     }
 
-    pub fn set_action(&mut self, id: Uuid, action: Action) {
+    pub fn set_action(&mut self, id: Uuid, mut action: Action) {
         if let Some(player) = self.players.iter_mut().find(|p| p.id == id) {
+            // Continuous input takes the newest value. A discrete weapon choice
+            // must survive later frames until the simulation consumes it.
+            action.weapon_swap = action.weapon_swap.or(player.pending_action.weapon_swap);
             player.pending_action = action;
         }
     }
@@ -975,11 +978,11 @@ impl GameState {
                 continue;
             }
 
-            let action = &player.pending_action;
-
-            if let Some(new_weapon) = action.weapon_swap {
+            if let Some(new_weapon) = player.pending_action.weapon_swap.take() {
                 player.weapon = new_weapon;
             }
+
+            let action = &player.pending_action;
 
             if let Some(seq) = action.seq {
                 player.last_input_seq = Some(seq);

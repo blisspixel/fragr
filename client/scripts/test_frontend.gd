@@ -1,0 +1,80 @@
+extends SceneTree
+
+var _failures: int = 0
+
+func _initialize() -> void:
+	call_deferred("_run")
+
+func _check(condition: bool, message: String) -> void:
+	if not condition:
+		_failures += 1
+		push_error("test_frontend: " + message)
+
+func _run() -> void:
+	var test_path: String = "user://test-profile-%d.cfg" % OS.get_process_id()
+	var menu: Control = load("res://scenes/boot_menu.tscn").instantiate()
+	menu.set("_settings", FragrSettings.new(test_path))
+	root.add_child(menu)
+	await process_frame
+	await menu._show("profile")
+	var column: VBoxContainer = menu.get("_root")
+	var callsign: LineEdit = column.get_node("Callsign")
+	callsign.text = "Patch 67"
+	var colour: OptionButton = column.get_node("ReticleColour")
+	colour.select(2)
+	colour.item_selected.emit(2)
+	var bob: CheckButton = column.get_node("WeaponBob")
+	bob.button_pressed = false
+	menu._save_profile()
+	await process_frame
+	var saved: FragrSettings = FragrSettings.new(test_path)
+	saved.load_from_disk()
+	_check(saved.player_name() == "Patch 67", "profile save must persist the chosen callsign")
+	_check(saved.reticle_colour() == Color("8ee9df"), "profile selection must persist the chosen reticle")
+	_check(not bool(saved.get_value("gameplay", "head_bob")), "profile bob switch must persist")
+	await menu._show("profile")
+	column.get_node("Callsign").text = "Discard this"
+	column.get_node("ReticleColour").item_selected.emit(0)
+	var escape: InputEventKey = InputEventKey.new()
+	escape.physical_keycode = KEY_ESCAPE
+	escape.pressed = true
+	menu._unhandled_input(escape)
+	await process_frame
+	await menu._show("profile")
+	_check(column.get_node("Callsign").text == "Patch 67", "back must discard unsaved callsign")
+	_check(column.get_node("ReticleColour").selected == 2, "back must discard unsaved colour")
+	for page in ["single", "multi", "settings", "main"]:
+		await menu._show(page)
+		_check(column.get_child_count() > 0, "page should expose controls: " + page)
+	menu.queue_free()
+	await process_frame
+	var pause_menu: PauseMenu = PauseMenu.new()
+	root.add_child(pause_menu)
+	pause_menu.open()
+	await process_frame
+	_check(pause_menu.is_open() and not paused, "match menu must keep server snapshots flowing")
+	pause_menu.close()
+	_check(not pause_menu.is_open() and not paused, "closing the menu returns to the live match")
+	pause_menu.queue_free()
+	await process_frame
+	# Exercise the real HUD independently of a network connection.
+	var match_scene: Node = load("res://scenes/main.tscn").instantiate()
+	var hud: CanvasLayer = match_scene.get_node("HUD")
+	match_scene.remove_child(hud)
+	match_scene.free()
+	root.add_child(hud)
+	hud.set_mode("SPECTATING")
+	hud.set_fp_juice(true)
+	hud.set_fp_weapon("Rail")
+	hud.set_vitals(42, 17)
+	_check(hud.get_node("Vitals").visible, "spectator eyes show the watched fighter's vitals")
+	_check(hud.get_node("Vitals/HealthValue").text == "42", "spectator health is the observed value")
+	_check(hud.get_node("Vitals/ArmorValue").text == "17", "spectator armour is the observed value")
+	hud.set_fp_juice(false)
+	_check(not hud.get_node("Vitals").visible and not hud.get_node("FpWeapon").visible, "chase view clears first-person presentation")
+	hud.queue_free()
+	await process_frame
+	DirAccess.remove_absolute(test_path)
+	if _failures == 0:
+		print("test_frontend: PASS profile save/cancel, menu pages, live match overlay")
+	quit(0 if _failures == 0 else 1)

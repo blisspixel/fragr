@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+# Fault-inject the verifier itself. No Godot install or user config needed.
+set -euo pipefail
+cd "$(dirname "$0")/.."
+mkdir -p .agents
+fake=$(mktemp "$PWD/.agents/godot-check-XXXXXX")
+trap 'rm -f "$fake"' EXIT
+cat >"$fake" <<'FAKE'
+#!/usr/bin/env bash
+case "$*" in
+  *--version*) echo '4.7.2 verifier fixture'; exit 0 ;;
+  *--import*)
+    case "$CASE" in
+      import-exit) exit 7 ;;
+      import-error) echo 'ERROR: import fixture'; exit 0 ;;
+    esac
+    exit 0 ;;
+  *--check-only*) exit 0 ;;
+esac
+name=$(basename "${!#}" .gd)
+case "$CASE" in
+  missing-pass) exit 0 ;;
+  error-and-pass) echo 'SCRIPT ERROR: fixture' ;;
+esac
+echo "$name: PASS"
+if [ "$CASE" = exit-and-pass ]; then exit 9; fi
+FAKE
+chmod +x "$fake"
+for scenario in pass import-exit import-error missing-pass error-and-pass exit-and-pass; do
+  status=0
+  CASE="$scenario" GODOT_BIN="$fake" bash tools/godot_check.sh >/dev/null 2>&1 || status=$?
+  if { [ "$scenario" = pass ] && [ "$status" -ne 0 ]; } ||
+     { [ "$scenario" != pass ] && [ "$status" -eq 0 ]; }; then
+    echo "FAIL godot verifier scenario: $scenario (exit $status)"
+    exit 1
+  fi
+  echo "ok   godot verifier scenario: $scenario"
+done

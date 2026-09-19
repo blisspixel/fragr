@@ -8,6 +8,89 @@ use crate::protocol::{
 };
 #[cfg(test)]
 use crate::session::GameSession;
+
+#[tokio::test]
+async fn late_connections_receive_authoritative_geometry_for_every_role() {
+    use futures_util::{SinkExt, StreamExt};
+    use tokio_tungstenite::{connect_async, tungstenite::Message};
+
+    let (ready_tx, ready_rx) = tokio::sync::oneshot::channel();
+    let (stop_tx, stop_rx) = tokio::sync::oneshot::channel();
+    let server = tokio::spawn(crate::run::run_server(
+        crate::run::ServerOptions {
+            bind: "127.0.0.1:0".into(),
+            bots: 0,
+            map: MapKind::ReclamationGulch,
+            ..Default::default()
+        },
+        async {
+            let _ = stop_rx.await;
+        },
+        Some(ready_tx),
+    ));
+    let address = ready_rx.await.unwrap();
+    // The first connection waits for a snapshot, so later joins cannot rely on
+    // the one-time initial map broadcast. Spectators have no player mapping.
+    let mut connections = Vec::new();
+    for (index, role) in ["human", "spectator", "spectator", "agent", "human"]
+        .iter()
+        .enumerate()
+    {
+        let (mut socket, _) = connect_async(format!("ws://{address}")).await.unwrap();
+        socket
+            .send(Message::Text(
+                serde_json::json!({
+                    "type": "hello", "role": role, "name": "MapProbe"
+                })
+                .to_string(),
+            ))
+            .await
+            .unwrap();
+        tokio::time::timeout(std::time::Duration::from_secs(3), async {
+            let mut saw_map = false;
+            loop {
+                let message = socket.next().await.unwrap().unwrap();
+                let Message::Text(text) = message else {
+                    continue;
+                };
+                let value: serde_json::Value = serde_json::from_str(&text).unwrap();
+                if value["type"] == "map_info" {
+                    assert_eq!(value["map_id"], 5);
+                    assert!(value["solids"].as_array().unwrap().len() > 1);
+                    assert!(value["half_extent"].as_f64().unwrap() > 50.0);
+                    saw_map = true;
+                }
+                if saw_map && value["type"] == "snapshot" {
+                    if index == 4 {
+                        let names: Vec<_> = value["players"]
+                            .as_array()
+                            .unwrap()
+                            .iter()
+                            .map(|player| player["name"].as_str().unwrap())
+                            .collect();
+                        assert_eq!(
+                            names.len(),
+                            3,
+                            "same-name connections must retain every fighter"
+                        );
+                        for name in ["MapProbe", "MapProbe #2", "MapProbe #3"] {
+                            assert!(names.contains(&name), "missing assigned callsign {name}");
+                        }
+                    }
+                    break;
+                }
+            }
+        })
+        .await
+        .expect("every late role must receive geometry and a snapshot");
+        connections.push(socket);
+    }
+    for mut socket in connections {
+        socket.close(None).await.unwrap();
+    }
+    stop_tx.send(()).unwrap();
+    server.await.unwrap().unwrap();
+}
 #[cfg(test)]
 use crate::sim::{
     BotBehavior, BotController, EpisodePhase, GameState, MapKind, MatchConfig, RoundState,
@@ -1492,6 +1575,45 @@ fn test_weapon_swap_action() {
     state.tick(0.05);
 
     assert_eq!(state.players[idx].weapon, WeaponType::Scatter);
+}
+
+#[test]
+fn weapon_choice_survives_input_bursts_and_is_consumed_once() {
+    use crate::protocol::WeaponType;
+    let mut state = GameState::new();
+    state.start_round();
+    let id = Uuid::new_v4();
+    state.add_player(id, "Meat Proxy".into(), Role::Human);
+    for weapon_swap in [Some(WeaponType::Rail), Some(WeaponType::Scatter), None] {
+        state.set_action(
+            id,
+            Action {
+                weapon_swap,
+                ..Default::default()
+            },
+        );
+    }
+    state.set_action(
+        id,
+        Action {
+            yaw: Some(1.2),
+            seq: Some(4),
+            ..Default::default()
+        },
+    );
+    state.tick(0.05);
+    let player = state.players.iter_mut().find(|p| p.id == id).unwrap();
+    assert_eq!(player.weapon, WeaponType::Scatter);
+    assert_eq!(player.pending_action.weapon_swap, None);
+    assert_eq!(player.last_input_seq, Some(4));
+    assert!((player.yaw - 1.2).abs() < 0.00001);
+    // A subsequent pickup must not be overwritten by a stale selection.
+    player.weapon = WeaponType::Rail;
+    state.tick(0.05);
+    assert_eq!(
+        state.players.iter().find(|p| p.id == id).unwrap().weapon,
+        WeaponType::Rail
+    );
 }
 
 #[test]

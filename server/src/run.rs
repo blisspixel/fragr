@@ -3,7 +3,7 @@
 //! `ready` channel let a caller learn the real address; `shutdown` ends the loop.
 
 use crate::net::NetServer;
-use crate::session::{broadcast_to_clients, send_unicasts_to_players, GameSession};
+use crate::session::{broadcast_to_clients, send_unicasts, GameSession};
 use crate::sim::{MapKind, MatchConfig};
 use std::future::Future;
 use std::net::SocketAddr;
@@ -112,7 +112,7 @@ pub async fn run_server(
                 stats.record_tick(elapsed, bytes);
                 broadcast_to_clients(&clients, &messages).await;
                 let unicasts = session.take_unicasts();
-                send_unicasts_to_players(&clients, &session.client_to_player, &unicasts).await;
+                send_unicasts(&clients, &session.client_to_player, &unicasts).await;
             }
 
             _ = async { status_interval.as_mut().expect("guarded").tick().await },
@@ -130,7 +130,7 @@ pub async fn run_server(
             Some(cmd) = game_rx.recv() => {
                 session.apply_command(cmd);
                 let unicasts = session.take_unicasts();
-                send_unicasts_to_players(&clients, &session.client_to_player, &unicasts).await;
+                send_unicasts(&clients, &session.client_to_player, &unicasts).await;
             }
 
             _ = &mut shutdown => {

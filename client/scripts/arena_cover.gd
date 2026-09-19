@@ -21,6 +21,7 @@ const BOUNDARY_HEIGHT: float = 8.0
 ## A solid at or under this is a step or a kerb rather than a wall, and gets
 ## the lighter surface so a player can read it as walkable at a glance.
 const LOW_TOP: float = 1.6
+const SURFACE_SHADER: Shader = preload("res://assets/shaders/arena_surface.gdshader")
 
 var _built_for: int = -1
 var _half_extent: float = 0.0
@@ -32,6 +33,7 @@ func _ready() -> void:
 ## the map actually changed, because the server resends on rotation.
 func apply_map_info(info: Dictionary) -> void:
 	var map_id: int = int(info.get("map_id", -1))
+	_hide_scene_props()
 	if map_id == _built_for:
 		return
 	_built_for = map_id
@@ -61,11 +63,7 @@ func _build_shell(half: float) -> void:
 	floor_node.name = "MapFloor"
 	floor_node.mesh = floor_mesh
 	floor_node.position = Vector3.ZERO
-	var floor_material: StandardMaterial3D = StandardMaterial3D.new()
-	floor_material.albedo_color = Color(0.22, 0.21, 0.19)
-	floor_material.roughness = 0.98
-	floor_material.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
-	floor_node.material_override = floor_material
+	floor_node.material_override = _surface(Color(0.27, 0.26, 0.24), 3.0, true)
 	add_child(floor_node)
 
 	for side in range(4):
@@ -90,8 +88,11 @@ func _build_shell(half: float) -> void:
 ## from when cover lived in the scene. They are the wrong size for every map
 ## but one, so the server-built shell replaces them.
 func _hide_scene_props() -> void:
-	var parent: Node = get_parent()
-	if parent == null:
+	var arena_root: Node = get_parent()
+	if arena_root == null:
+		return
+	var layout: Node = arena_root.get_node_or_null("Layout")
+	if layout == null:
 		return
 	for legacy_name in [
 		"Floor",
@@ -103,8 +104,9 @@ func _hide_scene_props() -> void:
 		"LowWallSouth",
 		"LowWallEast",
 		"LowWallWest",
+		"ZoneCenter", "ZoneNorthEast", "ZoneSouthWest", "ZoneNorthWest", "ZoneSouthEast",
 	]:
-		var node: Node = parent.get_node_or_null(NodePath(legacy_name))
+		var node: Node = layout.get_node_or_null(NodePath(legacy_name))
 		if node is Node3D:
 			(node as Node3D).visible = false
 
@@ -133,16 +135,16 @@ func _add_solid(solid: Dictionary) -> void:
 	node.material_override = _material(height <= LOW_TOP)
 	add_child(node)
 
-static func _boundary_material() -> StandardMaterial3D:
-	var mat: StandardMaterial3D = StandardMaterial3D.new()
-	mat.albedo_color = Color(0.4, 0.37, 0.33)
-	mat.roughness = 0.92
-	mat.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
+static func _surface(color: Color, panel: float, floor_face: bool = false) -> ShaderMaterial:
+	var mat: ShaderMaterial = ShaderMaterial.new()
+	mat.shader = SURFACE_SHADER
+	mat.set_shader_parameter("surface_color", color)
+	mat.set_shader_parameter("panel_size", panel)
+	mat.set_shader_parameter("floor_surface", floor_face)
 	return mat
 
-static func _material(low: bool) -> StandardMaterial3D:
-	var mat: StandardMaterial3D = StandardMaterial3D.new()
-	mat.albedo_color = Color(0.29, 0.25, 0.22) if low else Color(0.34, 0.30, 0.26)
-	mat.roughness = 0.95
-	mat.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
-	return mat
+static func _boundary_material() -> ShaderMaterial:
+	return _surface(Color(0.40, 0.37, 0.33), 4.0)
+
+static func _material(low: bool) -> ShaderMaterial:
+	return _surface(Color(0.44, 0.39, 0.32) if low else Color(0.38, 0.34, 0.30), 2.0)

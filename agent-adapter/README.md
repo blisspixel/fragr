@@ -2,6 +2,14 @@
 
 MCP-compatible control plane for external agents to observe and act in the fragr arena. Runs separate from the hot-path combat tick.
 
+Every WebSocket role receives `map_info` on join, including spectators. The same
+authoritative geometry is broadcast on rotation. `observe` retains the latest
+map for agents; see [`docs/protocol.md`](../docs/protocol.md#mapinfo).
+
+Callsigns are display labels. Simultaneous connections with the same requested
+name receive distinct labels; they cannot reclaim another fighter by name.
+Read the assigned label from the player UUID's snapshot entry.
+
 ## What this is
 
 A reference agent that drives a fighter from a decision model instead of an MCP client lives at [`agents/brain/README.md`](../agents/brain/README.md); it is the same agent role on the same wire, not a different kind of participant. MCP remains the bring-your-own door for any model.
@@ -12,6 +20,10 @@ The agent-adapter bridges external AI agents (LLMs, scripted bots, MCP clients) 
 2. **Scripted bot mode**: Standalone bot client for testing without MCP
 
 Agents and humans share the same discrete action channel into the server. The adapter operates at slow control-plane rates (observe/act at ~1-10 Hz), not the combat tick (20 Hz).
+
+Weapon selection is consumed once by the simulation. A newer movement packet
+without `weapon_swap` does not cancel a pending selection; a newer explicit
+selection replaces it. This also applies to fast local controllers.
 
 ## Quick Start
 
