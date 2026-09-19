@@ -26,6 +26,7 @@ var _clock_ms: int = 0
 var _joined: bool = false
 var _strip_for_state: String = ""
 var _probe_frames: int = 0
+var _strip_times_ms: Array[int] = []
 var _failed: bool = false
 ## Frames between the trigger and the first strip frame. The shot is resolved by
 ## the server, so the flash arrives a round trip later, not on the next frame.
@@ -125,6 +126,7 @@ func _run() -> void:
 		else:
 			_strip_for_state = ""
 			_probe_frames = 0
+			_strip_times_ms.clear()
 
 		await RenderingServer.frame_post_draw
 		await RenderingServer.frame_post_draw
@@ -174,6 +176,7 @@ func _run() -> void:
 			"world_file": world_name,
 			"strip_file": _strip_for_state,
 			"probe_visible_frames": _probe_frames,
+			"strip_sample_ms": _strip_times_ms.duplicate(),
 			"width": shot.get_width(),
 			"height": shot.get_height(),
 			"hud_coverage": snappedf(measured.get("hud_coverage", 0.0), 0.0001),
@@ -254,15 +257,17 @@ func _measure() -> Dictionary:
 		out["hud_coverage"] = float(differing) / float(total)
 	return out
 
-## Pull the trigger and keep every frame of what follows, tiled into one image.
+## Capture consecutive frames or timed samples through an effect's full lifetime.
 func _capture_strip(state: Dictionary, frames: int, file_name: String) -> void:
 	var trigger: String = state.get("trigger", "")
+	var interval: float = float(state.get("strip_interval_seconds", 0.0))
 	# A named node to watch while the strip runs. An effect that lasts a frame
 	# or two is easy to miss by eye and easy to believe is absent, so the tour
 	# counts the frames it was actually up instead of leaving it to the eye.
 	var probe_name: String = state.get("probe", "")
 	var probe: Node = get_root().find_child(probe_name, true, false) if probe_name != "" else null
 	_probe_frames = 0
+	_strip_times_ms.clear()
 	if probe_name != "" and probe == null:
 		push_error("qa_tour: no node named " + probe_name + " to watch")
 		_failed = true
@@ -271,23 +276,35 @@ func _capture_strip(state: Dictionary, frames: int, file_name: String) -> void:
 		# Start at an acknowledged visible flash, not a guessed round trip.
 		if probe != null:
 			var deadline: int = Time.get_ticks_msec() + 2500
-			while not bool(probe.get("visible")) and Time.get_ticks_msec() < deadline:
+			while not _probe_active(probe, state) and Time.get_ticks_msec() < deadline:
 				await RenderingServer.frame_post_draw
+		if state.get("single_shot", false):
+			Input.action_release("fire")
 	for _i in range(STRIP_LEAD_FRAMES):
 		await RenderingServer.frame_post_draw
 	var shots: Array[Image] = []
-	for _i in range(frames):
+	var start_ms: int = Time.get_ticks_msec()
+	for i in range(frames):
+		if i > 0 and interval > 0.0:
+			await create_timer(interval).timeout
 		await RenderingServer.frame_post_draw
-		if probe != null and bool(probe.get("visible")):
+		_strip_times_ms.append(Time.get_ticks_msec() - start_ms)
+		if probe != null and _probe_active(probe, state):
 			_probe_frames += 1
 		var img: Image = _grab()
 		if img != null:
 			img.convert(Image.FORMAT_RGBA8)
+			if i == 0 and img.save_png(_out_dir.path_join(file_name.trim_suffix("_strip.png") + "_shot.png")) != OK:
+				push_error("qa_tour: could not save full-size acknowledged shot")
+				_failed = true
 			shots.append(img)
 	if trigger == "fire":
 		Input.action_release("fire")
 	if probe_name != "" and _probe_frames == 0:
 		push_error("qa_tour: shot produced no visible " + probe_name)
+		_failed = true
+	if state.get("expect_expiry", false) and probe != null and _probe_active(probe, state):
+		push_error("qa_tour: effect remained active at the end of its lifetime strip")
 		_failed = true
 	if shots.is_empty():
 		return
@@ -313,6 +330,12 @@ func _capture_strip(state: Dictionary, frames: int, file_name: String) -> void:
 		])
 	else:
 		print("qa_tour: %s -> %s (%d frames)" % [state.get("name", ""), file_name, shots.size()])
+
+func _probe_active(probe: Node, state: Dictionary) -> bool:
+	if probe is ShotEffects:
+		var network: Node = _game_manager().get("net_client")
+		return probe.has_shot_from(str(network.get("player_id")), str(state.get("impact_kind", "")))
+	return bool(probe.get("visible"))
 
 func _find_hud() -> Node:
 	return get_root().find_child("HUD", true, false)

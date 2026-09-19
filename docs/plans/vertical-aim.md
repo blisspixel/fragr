@@ -1,6 +1,7 @@
 # Authoritative vertical aim
 
-Status: locally verified, awaiting integration (2026-09-19).
+Status: proven, [PR #170](https://github.com/blisspixel/fragr/pull/170),
+[v0.19.0](https://github.com/blisspixel/fragr/releases/tag/v0.19.0) (2026-09-19).
 Branch: `feat/vertical-aim`. Spend: $0.
 
 ## Problem and scope
@@ -87,6 +88,8 @@ documents the camera transform basis. Retain the pinned Godot/Rust stack.
 Windows 11, Ryzen 7 7840U, Radeon 780M, Rust 1.98.1, Godot 4.7.2-stable.
 Source: this branch on parent `1ae55df`. Integration history identifies the final
 reviewed commit. No paid calls.
+All five CI jobs passed on Linux, Windows, and macOS before squash integration
+at `e481039`.
 
 - 575 workspace tests pass; one existing vector-regeneration test is ignored.
   Unfiltered workspace line coverage is 95.17 percent. Format, warnings-denied

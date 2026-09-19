@@ -47,9 +47,10 @@ pub fn line_of_sight(origin: [f32; 3], target: [f32; 3], solids: &[Solid]) -> bo
         direction: delta.map(|v| (v / length) as f32),
     };
     !ray.floor(distance).is_some_and(|t| t < distance)
-        && !solids
-            .iter()
-            .any(|solid| ray.solid(solid, distance).is_some_and(|t| t < distance))
+        && !solids.iter().any(|solid| {
+            ray.solid(solid, distance)
+                .is_some_and(|hit| hit.distance < distance)
+        })
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -58,7 +59,17 @@ pub(crate) struct Ray {
     pub(crate) direction: [f32; 3],
 }
 
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub(crate) struct SurfaceHit {
+    pub distance: f32,
+    pub normal: [f32; 3],
+}
+
 impl Ray {
+    pub fn point(self, distance: f32) -> [f32; 3] {
+        std::array::from_fn(|i| self.origin[i] + self.direction[i] * distance)
+    }
+
     /// Uniform disk in the plane perpendicular to aim, projected into the cone.
     /// Callers supply the two seeded samples, keeping RNG ownership in the sim.
     pub fn dispersed(
@@ -83,7 +94,7 @@ impl Ray {
     }
 
     /// First intersection with a closed vertical cylinder, measured along the ray.
-    pub fn fighter(self, feet: [f32; 3], radius: f32, range: f32) -> Option<f32> {
+    pub fn fighter(self, feet: [f32; 3], radius: f32, range: f32) -> Option<SurfaceHit> {
         let ox = f64::from(self.origin[0]) - f64::from(feet[0]);
         let oz = f64::from(self.origin[2]) - f64::from(feet[2]);
         let dx = f64::from(self.direction[0]);
@@ -106,6 +117,7 @@ impl Ray {
             near = near.max((-b - root) / a);
             far = far.min((-b + root) / a);
         }
+        let side_near = near;
         clip_slab(
             self.origin[1],
             self.direction[1],
@@ -114,16 +126,33 @@ impl Ray {
             &mut near,
             &mut far,
         )?;
-        (near <= far).then_some(near as f32)
+        if near > far {
+            return None;
+        }
+        let distance = near as f32;
+        let normal = if distance == 0.0 {
+            self.direction.map(|v| -v)
+        } else if near > side_near {
+            [0.0, -self.direction[1].signum(), 0.0]
+        } else {
+            let point = self.point(distance);
+            let x = point[0] - feet[0];
+            let z = point[2] - feet[2];
+            let length = x.hypot(z);
+            [x / length, 0.0, z / length]
+        };
+        Some(SurfaceHit { distance, normal })
     }
 
     /// A map solid occupies its XZ footprint from the base floor to its top.
-    pub fn solid(self, solid: &Solid, range: f32) -> Option<f32> {
+    pub fn solid(self, solid: &Solid, range: f32) -> Option<SurfaceHit> {
         let low = [solid.min_x, 0.0, solid.min_z];
         let high = [solid.max_x, solid.top, solid.max_z];
         let mut near = 0.0_f64;
         let mut far = f64::from(range);
+        let mut normal = self.direction.map(|v| -v);
         for axis in 0..3 {
+            let previous_near = near;
             clip_slab(
                 self.origin[axis],
                 self.direction[axis],
@@ -132,8 +161,15 @@ impl Ray {
                 &mut near,
                 &mut far,
             )?;
+            if near > previous_near {
+                normal = [0.0; 3];
+                normal[axis] = -self.direction[axis].signum();
+            }
         }
-        Some(near as f32)
+        Some(SurfaceHit {
+            distance: near as f32,
+            normal,
+        })
     }
 
     pub fn floor(self, range: f32) -> Option<f32> {
@@ -176,7 +212,10 @@ mod tests {
         let feet = [10.0, 0.0, 0.0];
         assert_eq!(
             ray([0.0, 1.6, 0.0], [1.0, 0.0, 0.0]).fighter(feet, 0.5, 10.0),
-            Some(9.5)
+            Some(SurfaceHit {
+                distance: 9.5,
+                normal: [-1.0, 0.0, 0.0]
+            })
         );
         assert_eq!(
             ray([0.0, 2.0, 0.0], [1.0, 0.0, 0.0]).fighter(feet, 0.5, 20.0),
@@ -184,7 +223,10 @@ mod tests {
         );
         assert_eq!(
             ray([10.0, 3.8, 0.0], [0.0, -1.0, 0.0]).fighter(feet, 0.5, 20.0),
-            Some(2.0)
+            Some(SurfaceHit {
+                distance: 2.0,
+                normal: [0.0, 1.0, 0.0]
+            })
         );
         assert_eq!(
             ray([11.0, 3.0, 0.0], [0.0, -1.0, 0.0]).fighter(feet, 0.5, 20.0),
@@ -192,7 +234,10 @@ mod tests {
         );
         assert_eq!(
             ray([10.0, 1.0, 0.0], [1.0, 0.0, 0.0]).fighter(feet, 0.5, 20.0),
-            Some(0.0)
+            Some(SurfaceHit {
+                distance: 0.0,
+                normal: [-1.0, 0.0, 0.0]
+            })
         );
         assert_eq!(
             ray([12.0, 1.0, 0.0], [1.0, 0.0, 0.0]).fighter(feet, 0.5, 20.0),
@@ -204,7 +249,10 @@ mod tests {
         );
         assert_eq!(
             ray([0.0, 1.0, 0.0], [1.0, 0.0, 0.0]).fighter(feet, 0.5, 9.5),
-            Some(9.5),
+            Some(SurfaceHit {
+                distance: 9.5,
+                normal: [-1.0, 0.0, 0.0]
+            }),
             "the range endpoint belongs to the shot"
         );
         assert_eq!(
@@ -224,8 +272,9 @@ mod tests {
         };
         let diagonal = std::f32::consts::FRAC_1_SQRT_2;
         let shot = ray([0.0, 4.0, 0.0], [diagonal, -diagonal, 0.0]);
-        let distance = shot.solid(&solid, 20.0).unwrap();
-        assert!((distance - 2.0 / diagonal).abs() < 1e-5);
+        let hit = shot.solid(&solid, 20.0).unwrap();
+        assert!((hit.distance - 2.0 / diagonal).abs() < 1e-5);
+        assert_eq!(hit.normal, [0.0, 1.0, 0.0]);
         assert!(ray([0.0, 3.0, 0.0], [1.0, 0.0, 0.0])
             .solid(&solid, 20.0)
             .is_none());
@@ -237,12 +286,18 @@ mod tests {
             .is_none());
         assert_eq!(
             ray([1.0, 1.0, 0.0], [0.0, 1.0, 0.0]).solid(&solid, 20.0),
-            Some(0.0)
+            Some(SurfaceHit {
+                distance: 0.0,
+                normal: [0.0, -1.0, 0.0]
+            })
         );
         assert!(shot.solid(&solid, 1.0).is_none());
         assert_eq!(
             ray([0.0, 1.0, 0.0], [1.0, 1e-10, 1e-10]).solid(&solid, 20.0),
-            Some(1.0),
+            Some(SurfaceHit {
+                distance: 1.0,
+                normal: [-1.0, 0.0, 0.0]
+            }),
             "near-parallel components must not invalidate a side intersection"
         );
         assert!(ray([0.0, 3.0, 0.0], [1.0, -1e-10, 0.0])

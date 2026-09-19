@@ -124,7 +124,14 @@ The lesson is worth keeping. For weeks of measurement the accuracy number was re
 
 ## Measuring it without human testers
 
-The playtest harness already sees every shot: the server publishes a shot result per fire with hit or miss and the damage. Three additions make the weapon triangle and the time to kill measurable from agents alone, and they need no new wire data:
+The [shot-impact pass](shot-impact-feedback.md) found that the observer dropped
+shots from fighters absent after a same-tick death and inferred killing weapons
+from stale roster state. The earlier tables above are historical, not a current
+balance baseline. Shared shot evidence now supplies the weapon, 3D surface
+distance, and lethal result independent of surviving pawns. Repeat representative
+multi-seed runs before drawing fresh conclusions about the weapon triangle.
+
+Useful balance evidence includes:
 
 - Time to kill and shots to kill per victim, as a distribution with the interquartile range, by weapon.
 - Accuracy by distance bucket with an interval on each rate, so a fighter with nine shots is not compared naively with one with nine hundred.

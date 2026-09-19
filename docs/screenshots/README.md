@@ -14,12 +14,15 @@ Inspect them after every refresh. A nonblank image is not proof of good art.
 | `tour_combat_follow_16x9.png` | Optional chase view |
 | `tour_arena_overview_16x9.png` | Server geometry with industrial surfaces and scenery outside the playable boundary |
 | `tour_shot_strip.png` | Twelve frames of an acknowledged shot |
+| `tour_rail_impact_strip.png` | Single local rail impact on the floor, sampled through spark expiry |
 
 The full tour also checks rail/scatter selection, server-confirmed upward and
 downward aim, return to spectating, the
 multiplayer page, all three settings tabs, and settings inside the live match
 overlay. Captures use an isolated settings file. The local manifest records actual
-map, round, role, weapon, camera/server pitch, dimensions, and flash visibility. Intermediates live in
+map, round, role, weapon, camera/server pitch, dimensions, flash visibility, and
+strip sample times. Full-size `*_shot.png` frames preserve impact detail before
+strip reduction. Intermediates live in
 `.agents/qa/`. Set `FRAGR_RENDER_DRIVER=vulkan` to check that rendering path;
 OpenGL compatibility is the tour default. This is renderer evidence on the
 recorded host, not a GPU vendor certification or a load benchmark.
