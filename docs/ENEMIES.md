@@ -58,6 +58,8 @@ Two things were settled in the merge. The Compliance Drone stays the existing bo
 - `docs/MODES.md`: where you meet them.
 - `docs/ART-COLOR.md`: how a player tells one from another in a quarter of a second.
 - `docs/WEAPONS.md`: what you are answering them with.
-- `plans/campaign-continuance.md`: where they appear and in what order.
+- `docs/CAMPAIGN.md`: where they appear and in what order, and which rooms make each one a problem.
+- `plans/campaign-e1.md`: the first episode's roster, level by level.
+- `plans/campaign-continuance.md`: the monster row schema that implements this table.
 - `docs/ART-ASSET-LIST.md`: the frames each one needs drawn.
 - `docs/lore/continuance.md`: what a schedule correction is and why it is the worst thing in the setting.

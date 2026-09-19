@@ -50,7 +50,9 @@ Status words: **planned**, **in flight**, **shipped** (merged to `main`, PR numb
 | [`brain-third-tier-surface.md`](./brain-third-tier-surface.md) | **shipped** (#103) | Surface fragr-brain beside rule bots and MCP agents in the skill card and README, plus the observe-only stance chip. |
 | [`radio-stations.md`](./radio-stations.md) | **shipped** (library) | Contested Frequency radio: eight stations, generated library, client player with ducking. |
 | [`look-pass-boomer.md`](./look-pass-boomer.md) | **planned** | Boomer shooter look pass: low-res render target, dither, atlas, eight-direction sprites, weapon view models, HUD grid. |
-| [`campaign-continuance.md`](./campaign-continuance.md) | **planned** | Single-player campaign at the Doom 1 and 2 bar: arcade ladder, ten-type enemy roster, map format, three episodes. |
+| [`campaign-build-order.md`](./campaign-build-order.md) | **spec** | Thirteen rungs from the exit lever to the ending, each one shippable on its own, with an honest account of what the engine cannot do today. |
+| [`campaign-e1.md`](./campaign-e1.md) | **spec** | Episode 1 level by level: layout intent, roster, weapon and ammunition placement, pacing beats, secrets and tier objectives for all nine. |
+| [`campaign-continuance.md`](./campaign-continuance.md) | **planned** | The frameworks under the campaign: the map manifest, the map tool, and the monster row schema. Design and sequencing moved to `docs/CAMPAIGN.md` and `campaign-build-order.md`. |
 | [`agent-playtest-loop.md`](./agent-playtest-loop.md) | **in flight** (rung 1 shipped, #95) | Playtest harness: scripted agents play rounds and file a metrics report; thresholds run in CI. |
 | [`warmup-tv-bumper.md`](./warmup-tv-bumper.md) | **shipped** (#89) | Full-frame Warmup TV bumper: map title, roster chips, countdown, Host flash lingering into Active. |
 | [`controller-and-desktop-platforms.md`](./controller-and-desktop-platforms.md) | **shipped** (#88) | Gamepad join, solo, and match input on the same action path; Windows, macOS, and Linux export presets. |
