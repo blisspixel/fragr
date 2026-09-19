@@ -146,18 +146,20 @@ The arena's shape: its bounds and the solids that block movement and shots. Sent
   "type": "map_info",
   "map_id": 1,
   "map_name": "Arena Duel",
-  "half_extent": 25.0,
+  "half_extent": 70.0,
   "solids": [
-    {"min_x": 5.75, "max_x": 8.25, "min_z": -8.25, "max_z": -5.75}
+    {"min_x": 5.75, "max_x": 8.25, "min_z": -8.25, "max_z": -5.75, "top": 4.5},
+    {"min_x": -8.6, "max_x": -5.4, "min_z": -7.2, "max_z": -5.2, "top": 0.5}
   ]
 }
 ```
 
 **Fields:**
-- `half_extent`: half the width of the square arena, centred on the origin, so the playable area is `-half_extent` to `half_extent` on both axes
+- `half_extent`: half the width of the square arena, centred on the origin, so the playable area is `-half_extent` to `half_extent` on both axes. It varies by map: the roster runs from 55 to 160.
 - `solids`: axis-aligned boxes in the XZ plane. The server uses exactly these to block movement and to decide whether a shot reaches its target, so an agent that tests a line against them gets the same answer the server will.
+- `top` (on each solid): the height of its walkable upper surface, measured from the floor. A solid runs from the floor up to `top`, so there is no space underneath one. Anything at or below the 0.6 step height is walked onto rather than walked into, and anything below the line between two fighters' eyes does not block the shot between them. The field defaults to 4.5 when absent, which is a wall, so an older client reading a newer server sees what it used to.
 
-Agents need this to tell a clear shot from a wall. Before it existed, the reference agents held the fire button through cover and their measured accuracy sat near 15 percent; with it, the same agents measure near 60. The Godot client has the same geometry in its scene and ignores the message. The MCP adapter stores it and returns it as `map` inside `observe`.
+Agents need this to tell a clear shot from a wall. Before it existed, the reference agents held the fire button through cover and their measured accuracy sat near 15 percent; with it, the same agents measure near 60. An agent that ignores `top` will think a stair tread is cover; one that reads it gets the same answer the server does. The Godot client builds the whole map from this message: the floor, the boundary and every solid at its own height. The MCP adapter stores it and returns it as `map` inside `observe`.
 
 #### Ack
 

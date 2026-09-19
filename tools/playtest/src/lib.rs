@@ -4,7 +4,7 @@
 //! judge fun; this catches stuck agents, dead time, spawn deaths, and regressions
 //! in the numbers that make a round feel alive.
 
-use fragr_server::movement::Solid;
+use fragr_server::movement::{Solid, EYE_HEIGHT};
 use fragr_server::protocol::{
     Action, ClientMessage, GameEvent, LookAt, Role, ServerMessage, Snapshot, WeaponType,
 };
@@ -1068,6 +1068,10 @@ impl Arena {
     /// Does a straight line from one point to another reach it without
     /// crossing a solid? The same slab test the server uses to resolve a shot,
     /// so an agent's idea of a clear line matches the one that decides hits.
+    ///
+    /// Anything lower than eye height is stepped over rather than hidden
+    /// behind, so a kerb or a stair tread is not cover and an agent does not
+    /// stand there shuffling because it thinks it cannot see out.
     pub fn line_of_sight(&self, from: (f32, f32), to: (f32, f32)) -> bool {
         let dx = to.0 - from.0;
         let dz = to.1 - from.1;
@@ -1076,10 +1080,10 @@ impl Arena {
             return true;
         }
         let (ux, uz) = (dx / distance, dz / distance);
-        !self
-            .solids
-            .iter()
-            .any(|solid| ray_hits_solid(from, (ux, uz), *solid).is_some_and(|t| t < distance))
+        !self.solids.iter().any(|solid| {
+            solid.top >= EYE_HEIGHT
+                && ray_hits_solid(from, (ux, uz), *solid).is_some_and(|t| t < distance)
+        })
     }
 }
 
@@ -2313,12 +2317,7 @@ mod line_of_sight_tests {
     use super::*;
 
     fn box_at(cx: f32, cz: f32, half: f32) -> Solid {
-        Solid {
-            min_x: cx - half,
-            max_x: cx + half,
-            min_z: cz - half,
-            max_z: cz + half,
-        }
+        Solid::from_center(cx, cz, half, half)
     }
 
     #[test]

@@ -13,11 +13,12 @@ struct Args {
     #[arg(long, default_value = "4")]
     bots: usize,
 
-    /// Scrap map: 1/arena (Arena Duel) or 2/compliance-yard (Compliance Yard).
+    /// Map: 1/arena, 2/compliance-yard, 3/directive-17, 4/sector-9,
+    /// 5/reclamation-gulch, 6/tripoint-works.
     #[arg(long, default_value = "1")]
     map: String,
 
-    /// Alternate Arena Duel and Compliance Yard each round.
+    /// Move to the next map in the roster each round.
     #[arg(long, default_value_t = false)]
     map_rotate: bool,
 
@@ -69,9 +70,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     // go to stderr and only warnings survive.
     init_tracing(args.bench.is_some());
     let map = fragr_server::sim::MapKind::from_cli(&args.map).ok_or_else(|| {
+        let roster: Vec<String> = fragr_server::sim::MapKind::ALL
+            .iter()
+            .map(|m| format!("{} ({})", m.id(), m.name()))
+            .collect();
         format!(
-            "invalid --map {:?}; expected 1/arena or 2/compliance-yard",
-            args.map
+            "invalid --map {:?}; the roster is {}",
+            args.map,
+            roster.join(", ")
         )
     })?;
     if let Some(bots) = args.bench {
