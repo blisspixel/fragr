@@ -1,6 +1,7 @@
 # Player settings
 
 Status: in flight, 2026-09-19. Branch: `feat/player-settings`.
+Review: [PR #168](https://github.com/blisspixel/fragr/pull/168).
 Spend: $0. No protocol, simulation, dependency, or paid-service changes.
 
 ## Goal
