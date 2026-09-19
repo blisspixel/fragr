@@ -5817,6 +5817,147 @@ mod vertical_aim {
     }
 
     #[test]
+    fn shot_trace_describes_fighter_floor_and_clear_range() {
+        use crate::protocol::ShotImpact;
+        for pitch in [0.0, -1.2, 1.2] {
+            let (mut state, shooter, _) = pair(0.0, 0.0);
+            state.set_action(
+                shooter,
+                Action {
+                    fire: true,
+                    pitch: Some(pitch),
+                    ..Default::default()
+                },
+            );
+            state.tick(0.0);
+            let result = &state.shot_results[0];
+            let trace = result.trace.as_ref().unwrap();
+            assert_eq!(trace.weapon, WeaponType::Rail);
+            assert_eq!(trace.origin[1], crate::movement::EYE_HEIGHT);
+            let distance = trace
+                .end
+                .iter()
+                .zip(trace.origin)
+                .map(|(a, b)| (a - b).powi(2))
+                .sum::<f32>()
+                .sqrt();
+            match pitch {
+                0.0 => {
+                    assert!(matches!(trace.impact, ShotImpact::Fighter { .. }));
+                    assert!((9.5..10.0).contains(&distance));
+                    assert!(result.hit && !result.killed);
+                }
+                p if p < 0.0 => {
+                    assert_eq!(
+                        trace.impact,
+                        ShotImpact::Solid {
+                            normal: [0.0, 1.0, 0.0]
+                        }
+                    );
+                    assert!(trace.end[1].abs() < 1e-5);
+                    assert!(!result.hit);
+                }
+                _ => {
+                    assert_eq!(trace.impact, ShotImpact::Range);
+                    assert!((distance - WeaponType::Rail.range_units()).abs() < 1e-4);
+                    assert!(!result.hit);
+                }
+            }
+            let decoded: crate::protocol::ShotResult =
+                serde_json::from_str(&serde_json::to_string(result).unwrap()).unwrap();
+            assert_eq!(&decoded, result);
+        }
+        let old: crate::protocol::ShotResult = serde_json::from_value(serde_json::json!({
+            "shooter_id": Uuid::nil(), "shooter": "Old", "hit": false, "damage": 0
+        }))
+        .unwrap();
+        assert!(old.trace.is_none() && !old.killed);
+    }
+
+    #[test]
+    fn simultaneous_trade_keeps_both_lethal_shots_without_surviving_pawns() {
+        let (mut state, a, b) = pair(0.0, 0.0);
+        for player in &mut state.players {
+            player.hp = 80;
+            player.weapon = WeaponType::Rail;
+        }
+        for (shooter, victim) in [(a, b), (b, a)] {
+            state.set_action(
+                shooter,
+                Action {
+                    fire: true,
+                    look_at: Some(LookAt {
+                        player_id: Some(victim),
+                        ..Default::default()
+                    }),
+                    ..Default::default()
+                },
+            );
+        }
+        state.tick(0.0);
+        assert!(state.snapshot().players.is_empty());
+        assert_eq!(state.shot_results.len(), 2);
+        assert!(state
+            .shot_results
+            .iter()
+            .all(|shot| shot.killed && shot.hit && shot.trace.is_some()));
+        assert_eq!(state.scores[&a], 1);
+        assert_eq!(state.scores[&b], 1);
+    }
+
+    #[test]
+    fn several_committed_hits_award_only_one_death() {
+        let (mut state, a, victim) = pair(0.0, 0.0);
+        let b = Uuid::new_v4();
+        state.add_player(b, "Second".into(), Role::Agent);
+        let (z, _) = clear_lane(20.0);
+        for (player, x) in state.players.iter_mut().zip([-10.0, 0.0, 10.0]) {
+            player.x = x;
+            player.z = z;
+            player.y = PLAYER_FLOOR_Y;
+            player.weapon = WeaponType::Rail;
+        }
+        state.players[1].hp = 80;
+        state.spawn_shields.clear();
+        for shooter in [a, b] {
+            state.set_action(
+                shooter,
+                Action {
+                    fire: true,
+                    look_at: Some(LookAt {
+                        player_id: Some(victim),
+                        ..Default::default()
+                    }),
+                    ..Default::default()
+                },
+            );
+        }
+        state.tick(0.0);
+        assert_eq!(state.shot_results.len(), 2);
+        assert_eq!(
+            state.shot_results.iter().filter(|shot| shot.killed).count(),
+            1
+        );
+        assert_eq!(
+            state
+                .shot_results
+                .iter()
+                .map(|shot| shot.damage)
+                .sum::<i32>(),
+            80
+        );
+        assert_eq!(state.scores.values().sum::<u32>(), 1);
+        assert_eq!(
+            state
+                .events
+                .iter()
+                .filter(|event| matches!(event, GameEvent::Frag { .. }))
+                .count(),
+            1
+        );
+    }
+
+    #[test]
     fn human_pitch_controls_hits_at_every_elevation() {
         for (from, to) in [(0.0, 0.0), (0.0, 4.0), (4.0, 0.0)] {
             let (base, _, _) = pair(from, to);

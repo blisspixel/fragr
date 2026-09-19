@@ -353,6 +353,13 @@ pub struct AgentTrack {
     pub last_weapon: Option<String>,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+struct KillEvidence {
+    killer: String,
+    weapon: String,
+    distance: f64,
+}
+
 /// Everything the observer keeps. Snapshots are folded in as they arrive so a
 /// long run does not hold every frame in memory.
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
@@ -372,10 +379,14 @@ pub struct Observation {
     pub time_to_kill_s: Vec<f64>,
     /// Distance of every kill, for the histogram.
     pub kill_distances: Vec<f64>,
+    /// Snapshot evidence awaiting its following frag event, never a prior tick.
+    #[serde(default)]
+    pending_kills: BTreeMap<String, KillEvidence>,
 }
 
 impl Observation {
     pub fn ingest_snapshot(&mut self, snapshot: &Snapshot, bytes: usize) {
+        self.pending_kills.clear();
         self.snapshots_seen += 1;
         self.snapshot_bytes += bytes as u64;
         if self.first_tick.is_none() {
@@ -455,9 +466,42 @@ impl Observation {
             .map(|p| (p.id, (p.weapon.clone(), p.x, p.z)))
             .collect();
         for shot in &snapshot.shot_results {
-            let Some((weapon, sx, sz)) = by_id.get(&shot.shooter_id).cloned() else {
-                continue;
-            };
+            let shooter = by_id.get(&shot.shooter_id);
+            let weapon = shot
+                .trace
+                .as_ref()
+                .map(|trace| trace.weapon.name().to_string())
+                .or_else(|| shooter.map(|(weapon, _, _)| weapon.clone()))
+                .unwrap_or_else(|| "Unknown".to_string());
+            let distance = shot
+                .trace
+                .as_ref()
+                .map(|trace| {
+                    trace
+                        .origin
+                        .iter()
+                        .zip(trace.end)
+                        .map(|(a, b)| (f64::from(*a) - f64::from(b)).powi(2))
+                        .sum::<f64>()
+                        .sqrt()
+                })
+                .or_else(|| {
+                    let (_, sx, sz) = shooter?;
+                    let (_, tx, tz) = by_id.get(&shot.target_id?)?;
+                    Some(f64::from((tx - sx).hypot(tz - sz)))
+                });
+            if shot.killed {
+                if let (Some(victim), Some(distance)) = (&shot.target, distance) {
+                    self.pending_kills.insert(
+                        victim.clone(),
+                        KillEvidence {
+                            killer: shot.shooter.clone(),
+                            weapon: weapon.clone(),
+                            distance,
+                        },
+                    );
+                }
+            }
             let tally = self.weapons.entry(weapon).or_default();
             tally.shots += 1;
             if !shot.hit {
@@ -465,8 +509,7 @@ impl Observation {
             }
             tally.hits += 1;
             tally.damage += shot.damage as i64;
-            if let Some((_, tx, tz)) = shot.target_id.and_then(|id| by_id.get(&id)).cloned() {
-                let distance = ((tx - sx).powi(2) + (tz - sz).powi(2)).sqrt() as f64;
+            if let Some(distance) = distance {
                 tally.hit_distances.push(distance);
             }
         }
@@ -490,10 +533,21 @@ impl Observation {
                 }
                 let killer_track = self.tracks.get(killer);
                 let killer_pos = killer_track.and_then(|t| t.last_pos);
-                let killer_weapon = killer_track.and_then(|t| t.last_weapon.clone());
+                let evidence = self
+                    .pending_kills
+                    .remove(victim)
+                    .filter(|e| e.killer == *killer);
+                let killer_weapon = evidence
+                    .as_ref()
+                    .map(|e| e.weapon.clone())
+                    .or_else(|| killer_track.and_then(|t| t.last_weapon.clone()));
                 let victim_pos = self.tracks.get(victim).and_then(|t| t.last_pos);
-                if let (Some((kx, kz)), Some((vx, vz))) = (killer_pos, victim_pos) {
-                    let distance = ((vx - kx).powi(2) + (vz - kz).powi(2)).sqrt() as f64;
+                let distance = evidence.map(|e| e.distance).or_else(|| {
+                    let (kx, kz) = killer_pos?;
+                    let (vx, vz) = victim_pos?;
+                    Some(f64::from((vx - kx).hypot(vz - kz)))
+                });
+                if let Some(distance) = distance {
                     self.kill_distances.push(distance);
                     if let Some(weapon) = killer_weapon {
                         let tally = self.weapons.entry(weapon).or_default();
@@ -1767,6 +1821,8 @@ mod combat_tests {
 
     fn shot(shooter: Uuid, hit: bool, target: Option<Uuid>, damage: i32) -> ShotResult {
         ShotResult {
+            trace: None,
+            killed: false,
             shooter_id: shooter,
             shooter: "S".to_string(),
             hit,
@@ -1855,9 +1911,72 @@ mod combat_tests {
         );
         assert_eq!(
             obs.combat_report().shots,
-            2,
-            "a shot from someone absent is dropped, not guessed at"
+            3,
+            "legacy shots still count when the shooter is absent"
         );
+        assert_eq!(obs.combat_report().by_weapon["Unknown"].shots, 1);
+        assert_eq!(obs.combat_report().by_weapon["rail"].shots, 2);
+    }
+
+    #[test]
+    fn lethal_evidence_survives_trades_and_overrides_stale_weapons_and_positions() {
+        use fragr_server::protocol::{ShotImpact, ShotTrace};
+        let a = Uuid::new_v4();
+        let b = Uuid::new_v4();
+        for surviving in [false, true] {
+            let mut obs = Observation::default();
+            let roster = vec![
+                player("A", a, 100.0, 0.0, "Scatter"),
+                player("B", b, 200.0, 0.0, "Scatter"),
+            ];
+            obs.ingest_snapshot(&frame(1, roster.clone(), vec![]), 100);
+            let shots = [(a, b, "A", "B"), (b, a, "B", "A")].map(|(from, to, name, target)| {
+                let mut result = shot(from, true, Some(to), 80);
+                result.shooter = name.into();
+                result.target = Some(target.into());
+                result.target_hp_after = Some(0);
+                result.killed = true;
+                result.trace = Some(ShotTrace {
+                    weapon: WeaponType::Rail,
+                    origin: [0.0, 1.0, 0.0],
+                    end: [3.0, 5.0, 0.0],
+                    impact: ShotImpact::Fighter {
+                        normal: [-1.0, 0.0, 0.0],
+                    },
+                });
+                result
+            });
+            obs.ingest_snapshot(
+                &frame(
+                    2,
+                    if surviving { roster } else { vec![] },
+                    shots.clone().into(),
+                ),
+                100,
+            );
+            for result in shots {
+                obs.ingest_event(GameEvent::Hit {
+                    shooter: result.shooter.clone(),
+                    shooter_id: result.shooter_id,
+                    target: result.target.clone().unwrap(),
+                    target_id: result.target_id.unwrap(),
+                    damage: 80,
+                    target_hp_after: 0,
+                });
+                obs.ingest_event(GameEvent::Frag {
+                    killer: result.shooter,
+                    victim: result.target.unwrap(),
+                    killer_score: 1,
+                });
+            }
+            let report = obs.combat_report();
+            assert_eq!((report.shots, report.hits), (2, 2));
+            let rail = &report.by_weapon["Rail"];
+            assert_eq!((rail.shots, rail.kills), (2, 2));
+            assert_eq!((rail.hit_distance.p50, rail.kill_distance.p50), (5.0, 5.0));
+            assert_eq!(rail.time_to_kill_s.count, 2);
+            assert!(!report.by_weapon.contains_key("Scatter"));
+        }
     }
 
     #[test]

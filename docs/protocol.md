@@ -289,7 +289,14 @@ Periodic state broadcast containing all visible game entities. Sent at ~20 Hz.
       "target_id": "660e8400-e29b-41d4-a716-446655440000",
       "target": "Bot1",
       "damage": 25,
-      "target_hp_after": 75
+      "target_hp_after": 75,
+      "killed": false,
+      "trace": {
+        "weapon": "flechette",
+        "origin": [10.5, 1.6, -5.2],
+        "end": [15.0, 1.2, -5.2],
+        "impact": {"kind": "fighter", "normal": [-1.0, 0.0, 0.0]}
+      }
     }
   ],
   "mode_name": "Contested Frequency",
@@ -325,7 +332,11 @@ Periodic state broadcast containing all visible game entities. Sent at ~20 Hz.
 - `round_state`: (optional) Current round state ("Warmup", "Active", "Ended")
 - `round_time_left`: (optional) Seconds left in Active (time limit) or Warmup countdown. Omitted while Ended.
 - `frag_limit`: (optional) Frag limit for current round
-- `shot_results`: (optional, omitted when empty) Per-tick fire outcomes for observe hit-confirm. Each entry: `shooter_id`, `shooter`, `hit`, optional `target_id`/`target`/`target_hp_after`, and `damage` (0 on miss).
+- `shot_results`: (optional, omitted when empty) Every committed fire outcome on
+  this tick, including shots from fighters killed during the same tick. Entries
+  carry `shooter_id`, `shooter`, `hit`, optional `target_id`/`target`/`target_hp_after`,
+  `damage`, `killed`, and `trace`. Do not join only against surviving `players` to
+  count shots or infer their weapon.
 - `mode_name`: Contested Frequency (scrap league that denies it exists)
 - `playlist`: Arena Duel under the league lie
 - `pressure`: (optional) Live pressure beat id. `"compliance_drone"` while the Compliance Drone is alive; `"compliance"` during Continuance compliance ping slow.
@@ -339,9 +350,26 @@ Periodic state broadcast containing all visible game entities. Sent at ~20 Hz.
 - No delta compression in v1 (future optimization)
 - Round fields present when round system is active
 
+**Shot evidence:** current servers always include `trace`; old recordings omit
+it and deserialize as absent. `trace.weapon` is the firing weapon in snake case.
+`origin` and `end` are three finite world coordinates. `impact.kind` is `fighter`,
+`solid`, or `range`. Fighter/solid impacts include an outward unit `normal`;
+range exhaustion has no surface normal. The endpoint is the actual surface hit,
+or the weapon range limit for a clear miss. A ray starting inside a body/solid
+stops at its origin and uses the reverse ray direction as its presentation normal.
+
+`hit` means the ray intersected a fighter. `damage` is incoming weapon damage
+before armour absorption, including overkill; it is zero on a miss or when that
+committed ray reaches a fighter already killed earlier in the same tick.
+`killed` is true only for the shot that first takes the victim to zero HP. Older
+records default it to false. Committed shots can trade kills; later hits cannot
+award another frag for the same death. The following frag event reports the same
+killer/victim pair. Clients render this evidence without resolving another hit.
+
 #### Event
 
-Notable game occurrences sent immediately (not tied to snapshot cadence).
+Notable game occurrences, broadcast after the snapshot for the tick that consumes
+them. Connection-control unicasts may arrive between ticks.
 
 **Frag Event:**
 ```json

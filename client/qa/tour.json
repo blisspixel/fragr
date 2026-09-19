@@ -77,6 +77,21 @@
       "note": "Downward aim follows the same action, camera, and server pitch contract."
     },
     {
+      "name": "rail_impact",
+      "at_seconds": 20,
+      "camera": "first_person",
+      "weapon": "Rail",
+      "aim_pitch": -0.4,
+      "trigger": "fire",
+      "strip_frames": 12,
+      "strip_interval_seconds": 0.035,
+      "single_shot": true,
+      "expect_expiry": true,
+      "probe": "ShotEffects",
+      "impact_kind": "solid",
+      "note": "Single acknowledged local rail shot into the floor, sampled through expiry. Inspect the full-size shot and timed strip for position, sparks, trace, and decay."
+    },
+    {
       "name": "return_to_spectator",
       "at_seconds": 21,
       "camera": "first_person",

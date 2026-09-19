@@ -139,6 +139,11 @@ All fields are optional. Movement and fire are booleans (default `false`).
 at a player's body centre in three dimensions. World x/z without y aims
 horizontally. Nonfinite/out-of-range floating-point coordinates are rejected.
 
+Observed shot results include the firing weapon, 3D origin/endpoint, impact kind
+and surface normal, plus a lethal-result flag. These remain available when the
+shooter dies during that tick; do not infer shot identity from surviving pawns.
+Older recordings can omit this evidence. See `../docs/protocol.md`.
+
 **Output:**
 ```json
 {

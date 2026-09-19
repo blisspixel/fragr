@@ -213,13 +213,15 @@ not spending by this pass.
 
 Remaining presentation gaps: complete enemy animation and hit/death sets, richer
 world surfaces and landmarks, first-person animation, encounter pacing, and authored
-campaign levels. The active [vertical aim pass](vertical-aim.md) connects camera
-pitch to shots and spectator eyes. Prediction, local server ownership, and actual
+campaign levels. The [vertical aim pass](vertical-aim.md), shipped in v0.19.0,
+connects camera pitch to shots and spectator eyes. Prediction, local server ownership, and actual
 solo pause remain separate authoritative work. Character skins are not
 implemented by callsign and reticle customization.
 
-Safe asset-request recovery shipped in #169. Next: finish vertical combat, then
-continue enemy animation, authored encounters, and the replay-driven rendered
-benchmark. Keep the full-game target visible.
+Safe asset-request recovery shipped in #169. The current
+[shot-impact pass](shot-impact-feedback.md) adds authoritative world feedback and
+repairs trade accounting before further tuning. Next: enemy animation, authored
+encounters, height-aware navigation, and the replay-driven rendered benchmark.
+Keep the full-game target visible.
 The full-game goal remains active until the required campaign, co-op, modes,
 assets, maps, agent paths, and server reliability/scale have evidence.

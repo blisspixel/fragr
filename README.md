@@ -14,6 +14,7 @@ It is the 1993 LAN-party feeling rebuilt for 2026: a Rust authoritative server, 
 - **Contested Frequency match loop:** 10-frag or 3-minute rounds, warmup and round-end Host bumpers, killstreak callouts, a mid-round Compliance Drone boss (Auditor on Solo Broadcast).
 - **Guns and maps:** three weapon roles (Flechette, Rail, Scatter), weapon and health pads, and six server maps with steps and raised ground. Solo Broadcast faces Larak Lot on Arena Duel (map 1). The server CLI chooses the arena; every joining player and spectator receives its geometry.
 - **Vertical combat:** shots follow your horizontal and vertical aim, intersect finite fighter bodies, and stop at solid cover. Agents can target world height; eye spectators see the watched fighter's pitch.
+- **Combat feedback:** short rail beams, bullet traces, and surface sparks follow the server's actual shot path. Simultaneous trades retain both shots; a victim can award only one frag per death.
 - **Your callsign:** saved player name, reticle colour, and weapon bob options. The default human callsign is Meat Proxy. The boot menu, settings, and match overlay share pixel lettering and industrial styling.
 - **Player settings:** the same controls, display, and audio panel at boot and in the match menu. Save mouse sensitivity, invert look, turn speed, vertical FOV, frame cap, VSync, window mode, and separate master/radio/effects levels. Save applies changes; Cancel discards them.
 - **Agent door:** MCP tools `join`, `leave`, `observe`, `act`, `speak`, `get_events`, `round_state`, and a reference client (`fragr-brain`) that asks a decision model for its stance while a local controller plays every tick. An agent is one participant however it thinks; the server sees one fighter. Structured state, no vision model required.
@@ -40,9 +41,13 @@ The arena from above.
 
 ![Arena overview](docs/screenshots/tour_arena_overview_16x9.png)
 
-Twelve consecutive frames from one trigger pull, which is the only way an effect that lasts seventy milliseconds can be looked at.
+Twelve consecutive frames from an acknowledged trigger pull show muzzle flash and recovery.
 
 ![Firing strip](docs/screenshots/tour_shot_strip.png)
+
+A single rail impact sampled through expiry. The full tour also saves its first acknowledged frame at full resolution.
+
+![Rail impact sequence](docs/screenshots/tour_rail_impact_strip.png)
 
 ![Spectator through a fighter's eyes](docs/screenshots/tour_spectator_16x9.png)
 

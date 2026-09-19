@@ -59,8 +59,13 @@ var console: FragrConsole = null
 var pause_menu: PauseMenu = null
 var settings: FragrSettings
 var role_transition: bool = false
+var shot_effects: ShotEffects = null
+var last_shot_tick: int = -1
 
 func _ready():
+	shot_effects = ShotEffects.new()
+	shot_effects.name = "ShotEffects"
+	add_child(shot_effects)
 	if settings == null:
 		settings = FragrSettings.for_tree(get_tree())
 	settings.load_from_disk()
@@ -125,6 +130,9 @@ static func _find_world_environment(node: Node) -> WorldEnvironment:
 
 
 func _on_map_info(info: Dictionary) -> void:
+	last_shot_tick = -1
+	if shot_effects != null:
+		shot_effects.clear()
 	current_map_info = info.duplicate(true)
 	if arena_cover != null:
 		arena_cover.apply_map_info(info)
@@ -377,6 +385,9 @@ func _on_disconnected():
 	_clear_world()
 
 func _clear_world() -> void:
+	last_shot_tick = -1
+	if shot_effects != null:
+		shot_effects.clear()
 	_clear_fp_state()
 	# Drop presentation nodes so rejoin does not keep stale pawns/pads.
 	for id in players.keys():
@@ -497,7 +508,7 @@ func _on_snapshot_received(data):
 	if is_human_player:
 		_refresh_fp_target()
 		_update_local_fp_hud(data.get("players", []))
-	_process_shot_results(data.get("shot_results", []))
+	_process_shot_results(data.get("shot_results", []), int(data.get("tick", -1)))
 
 func _on_event_received(data):
 	var event_type = data.get("event", "")
@@ -886,9 +897,14 @@ func _update_local_fp_hud(player_list: Array) -> void:
 			hud.set_followed_weapon(weapon, str(pdata.get("name", "YOU")), "")
 		return
 
-func _process_shot_results(results) -> void:
+func _process_shot_results(results, tick: int) -> void:
 	if results == null or typeof(results) != TYPE_ARRAY:
 		return
+	if results.size() > ShotEffects.MAX_RESULTS or tick <= last_shot_tick:
+		return
+	last_shot_tick = tick
+	if shot_effects != null:
+		shot_effects.ingest(tick, results)
 	var my_id = str(net_client.player_id) if net_client.player_id != null else ""
 	var followed_id = "" if is_human_player else _followed_player_id()
 	for shot in results:
@@ -902,12 +918,15 @@ func _process_shot_results(results) -> void:
 		if not is_local and not is_followed:
 			continue
 		var wpn = _local_weapon_name() if is_local else _followed_weapon_name()
+		var trace: Variant = shot.get("trace")
+		if trace is Dictionary and trace.get("weapon") in ["flechette", "rail", "scatter"]:
+			wpn = str(trace["weapon"]).capitalize()
 		# Every shot you take kicks the view model and lights the barrel. This
 		# used to happen only when you missed, so landing a shot was the one
 		# case where pulling the trigger looked like nothing happened.
 		if (is_local or (is_followed and camera.is_observing_first_person())) and hud and hud.has_method("show_fire_juice"):
 			hud.show_fire_juice(wpn)
-		if hit:
+		if hit and dmg > 0:
 			if hud and hud.has_method("show_hit_marker"):
 				hud.show_hit_marker(dmg, wpn)
 

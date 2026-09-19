@@ -512,6 +512,28 @@ pub struct ShotResult {
     pub damage: i32,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub target_hp_after: Option<i32>,
+    /// Current servers include complete evidence even when the shooter dies.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub trace: Option<ShotTrace>,
+    /// True only for the shot that first takes this target to zero HP.
+    #[serde(default)]
+    pub killed: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct ShotTrace {
+    pub weapon: WeaponType,
+    pub origin: [f32; 3],
+    pub end: [f32; 3],
+    pub impact: ShotImpact,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[serde(tag = "kind", rename_all = "snake_case")]
+pub enum ShotImpact {
+    Fighter { normal: [f32; 3] },
+    Solid { normal: [f32; 3] },
+    Range,
 }
 
 /// Floor pickup pad state (weapon / health / armor; authoritative mid-map).
@@ -837,6 +859,8 @@ mod protocol_tests {
         let shooter_id = Uuid::new_v4();
         let target_id = Uuid::new_v4();
         let shot = ShotResult {
+            trace: None,
+            killed: false,
             shooter_id,
             shooter: "A".into(),
             hit: true,

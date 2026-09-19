@@ -8,8 +8,8 @@ use crate::protocol::{
     episode0_objective_chip, episode0_unlock_teaser, killstreak_host_line, mvp_host_line,
     roster_host_line, round_open_host_line, rule_bot_taunt_line, warmup_host_line, Action,
     BotTauntKind, GameEvent, PickupState, PlayerScore, PlayerState, Role, ServerMessage,
-    ShotResult, Snapshot, WeaponType, AUDITOR_NAME, BOSS_NAME, EPISODE_ID_EP0,
-    EPISODE_MAP_LARAK_LOT, EPISODE_TITLE_EP0, MODE_NAME, PLAYLIST_NAME,
+    ShotImpact, ShotResult, ShotTrace, Snapshot, WeaponType, AUDITOR_NAME, BOSS_NAME,
+    EPISODE_ID_EP0, EPISODE_MAP_LARAK_LOT, EPISODE_TITLE_EP0, MODE_NAME, PLAYLIST_NAME,
 };
 use std::collections::HashMap;
 use std::f32::consts::PI;
@@ -23,6 +23,12 @@ const MOVE_SPEED: f32 = 5.0;
 pub const PLAYER_FLOOR_Y: f32 = 1.5;
 const TURN_SPEED: f32 = 2.0;
 pub const PLAYER_RADIUS: f32 = 0.5;
+
+struct ResolvedShot {
+    target: Option<usize>,
+    distance: f32,
+    trace: ShotTrace,
+}
 const RESPAWN_DELAY_TICKS: u32 = 60;
 /// Ticks after a respawn during which a fighter cannot be hit (one second).
 pub const SPAWN_SHIELD_TICKS: u32 = 20;
@@ -1077,12 +1083,10 @@ impl GameState {
             }
         }
 
-        for (shooter_idx, maybe_hit) in hits {
-            let weapon = self.players[shooter_idx].weapon;
-            let maybe_victim_idx = maybe_hit.map(|(index, _)| index);
+        for (shooter_idx, shot) in hits {
+            let weapon = shot.trace.weapon;
             // Falloff follows the actual 3D distance traveled to the surface.
-            let damage =
-                maybe_hit.map_or(weapon.damage(), |(_, distance)| weapon.damage_at(distance));
+            let damage = weapon.damage_at(shot.distance);
             let shooter_name = self.players[shooter_idx].name.clone();
             let shooter_id = self.players[shooter_idx].id;
 
@@ -1092,16 +1096,28 @@ impl GameState {
                 shooter.just_fired = true;
             }
 
-            if let Some(victim_idx) = maybe_victim_idx {
-                let (target_id, target_name, target_hp_after, died, victim_was_boss, boss_id) = {
+            if let Some(victim_idx) = shot.target {
+                let (
+                    target_id,
+                    target_name,
+                    target_hp_after,
+                    died,
+                    victim_was_boss,
+                    boss_id,
+                    damage,
+                ) = {
                     let victim = &mut self.players[victim_idx];
                     let target_id = victim.id;
                     let target_name = victim.name.clone();
+                    // Rays commit together, including trades. A body already
+                    // killed by an earlier ray this tick cannot award another frag.
+                    let was_alive = victim.hp > 0;
+                    let damage = if was_alive { damage } else { 0 };
                     let absorbed = damage.min(victim.armor);
                     victim.armor -= absorbed;
                     victim.hp -= damage - absorbed;
                     let target_hp_after = victim.hp;
-                    let died = victim.hp <= 0;
+                    let died = was_alive && victim.hp <= 0;
                     let victim_was_boss = victim.is_boss;
                     if died {
                         // Victim streak dies with them; boss does not respawn.
@@ -1119,6 +1135,7 @@ impl GameState {
                         died,
                         victim_was_boss,
                         target_id,
+                        damage,
                     )
                 };
 
@@ -1130,15 +1147,19 @@ impl GameState {
                     target: Some(target_name.clone()),
                     damage,
                     target_hp_after: Some(target_hp_after),
+                    trace: Some(shot.trace),
+                    killed: died,
                 });
-                self.events.push(GameEvent::Hit {
-                    shooter: shooter_name.clone(),
-                    shooter_id,
-                    target: target_name.clone(),
-                    target_id,
-                    damage,
-                    target_hp_after,
-                });
+                if damage > 0 {
+                    self.events.push(GameEvent::Hit {
+                        shooter: shooter_name.clone(),
+                        shooter_id,
+                        target: target_name.clone(),
+                        target_id,
+                        damage,
+                        target_hp_after,
+                    });
+                }
 
                 if died {
                     *self.scores.entry(shooter_id).or_insert(0) += 1;
@@ -1232,6 +1253,8 @@ impl GameState {
                     target: None,
                     damage: 0,
                     target_hp_after: None,
+                    trace: Some(shot.trace),
+                    killed: false,
                 });
             }
         }
@@ -1245,7 +1268,7 @@ impl GameState {
 
     /// One seeded 3D ray for both cover and targets. No height auto-aim or
     /// forgiveness cone: the ray must intersect the finite fighter volume.
-    fn check_hitscan(&mut self, shooter_idx: usize) -> Option<(usize, f32)> {
+    fn check_hitscan(&mut self, shooter_idx: usize) -> ResolvedShot {
         let shooter = &self.players[shooter_idx];
         let origin = [
             shooter.x,
@@ -1260,8 +1283,12 @@ impl GameState {
             crate::combat::Ray::dispersed(origin, yaw, pitch, weapon.spread_radians(), samples);
         let mut closest_dist = weapon.range_units().min(HITSCAN_RANGE);
         let mut cover_distance = f32::INFINITY;
+        let mut impact = ShotImpact::Range;
         if let Some(distance) = ray.floor(closest_dist) {
             cover_distance = distance;
+            impact = ShotImpact::Solid {
+                normal: [0.0, 1.0, 0.0],
+            };
         }
         for obstacle in self.map.obstacles() {
             let solid = crate::movement::Solid {
@@ -1271,8 +1298,11 @@ impl GameState {
                 max_z: obstacle.max_z,
                 top: obstacle.top,
             };
-            if let Some(distance) = ray.solid(&solid, closest_dist) {
-                cover_distance = cover_distance.min(distance);
+            if let Some(hit) = ray.solid(&solid, closest_dist) {
+                if hit.distance < cover_distance {
+                    cover_distance = hit.distance;
+                    impact = ShotImpact::Solid { normal: hit.normal };
+                }
             }
         }
         let mut closest_idx = None;
@@ -1284,14 +1314,27 @@ impl GameState {
                 continue;
             }
             let feet = [target.x, target.y - PLAYER_FLOOR_Y, target.z];
-            if let Some(distance) = ray.fighter(feet, PLAYER_RADIUS, closest_dist) {
-                if distance < cover_distance && (closest_idx.is_none() || distance < closest_dist) {
-                    closest_dist = distance;
+            if let Some(hit) = ray.fighter(feet, PLAYER_RADIUS, closest_dist) {
+                if hit.distance < cover_distance
+                    && (closest_idx.is_none() || hit.distance < closest_dist)
+                {
+                    closest_dist = hit.distance;
                     closest_idx = Some(i);
+                    impact = ShotImpact::Fighter { normal: hit.normal };
                 }
             }
         }
-        closest_idx.map(|index| (index, closest_dist))
+        let distance = closest_dist.min(cover_distance);
+        ResolvedShot {
+            target: closest_idx,
+            distance,
+            trace: ShotTrace {
+                weapon,
+                origin,
+                end: ray.point(distance),
+                impact,
+            },
+        }
     }
     /// Ring slot farthest from every living fighter, so a respawn never lands in a fight.
     fn farthest_spawn_angle(&mut self, player_id: Uuid) -> f32 {
