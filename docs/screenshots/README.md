@@ -8,7 +8,7 @@ Inspect them after every refresh. A nonblank image is not proof of good art.
 |---|---|
 | `tour_menu_16x9.png` | Retro boot menu |
 | `tour_profile_16x9.png` | Callsign, reticle, and weapon bob |
-| `tour_settings_16x9.png` | Settings |
+| `tour_settings_16x9.png` | Saved controls, including sensitivity, inversion, turn speed, and weapon bob |
 | `tour_first_person_16x9.png` | Human first person |
 | `tour_spectator_16x9.png` | Spectator through a fighter's eyes |
 | `tour_combat_follow_16x9.png` | Optional chase view |
@@ -16,7 +16,8 @@ Inspect them after every refresh. A nonblank image is not proof of good art.
 | `tour_shot_strip.png` | Twelve frames of an acknowledged shot |
 
 The full tour also checks rail/scatter selection, return to spectating, the
-multiplayer page, and the live match overlay. Its local manifest records actual
+multiplayer page, all three settings tabs, and settings inside the live match
+overlay. Captures use an isolated settings file. The local manifest records actual
 map, round, role, weapon, dimensions, and flash visibility. Intermediates live in
 `.agents/qa/`. Set `FRAGR_RENDER_DRIVER=vulkan` to check that rendering path;
 OpenGL compatibility is the tour default. This is renderer evidence on the

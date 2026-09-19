@@ -1,8 +1,8 @@
 extends RefCounted
 class_name FragrSettings
 
-## Canonical preferences in user://settings.cfg. Some older keys are reserved;
-## a key is usable only when a menu or console control and a runtime reader exist.
+## Canonical, validated preferences. Unimplemented historical keys are ignored.
+signal changed
 
 const PATH: String = "user://settings.cfg"
 ## Affectionate local slang. The network role remains `human` for compatibility.
@@ -15,15 +15,10 @@ const DEFAULTS: Dictionary = {
 		"reticle_colour": "bone",
 	},
 	"video": {
-		"display_mode": 2,      # 0 windowed, 1 fullscreen, 2 borderless
-		"resolution_w": 1920,
-		"resolution_h": 1080,
-		"fov": 100.0,           # Retro players want this high. Goes to 130.
+		"display_mode": 2,      # 0 windowed, 2 fullscreen
+		"vertical_fov": 75.0,   # Preserves the original camera's rendered default.
 		"fps_cap": 0,           # 0 is uncapped
 		"vsync": false,
-		"pixelation": 1.0,      # 1.0 native, 0.25 is a quarter-res retro pass
-		"scanlines": false,
-		"colour_banding": false,
 	},
 	"audio": {
 		"master": 0.9,
@@ -31,19 +26,12 @@ const DEFAULTS: Dictionary = {
 		"effects": 1.0,
 	},
 	"controls": {
-		"sensitivity": 0.0022,
-		"mouse_acceleration": false,
+		"mouse_sensitivity": 1.5, # 0.022 degrees per unscaled mouse count.
 		"invert_y": false,
-		"always_run": true,
 		"turn_speed": 2.8,      # Radians per second for keyboard turning
-		"auto_aim": true,       # Vertical assist, so keyboard-only can play
 	},
 	"gameplay": {
-		"crosshair_style": 1,   # 0 dot, 1 cross, 2 dynamic
-		"crosshair_scale": 1.0,
 		"head_bob": true,
-		"hud_scale": 1.0,
-		"damage_numbers": true,
 		# The broadcast ident: the top strip, the red ON AIR box, the station
 		# badge. Off, because it is right for a let's-play capture and wrong
 		# for playing, and it was the loudest thing on screen in every
@@ -56,6 +44,20 @@ const DEFAULTS: Dictionary = {
 
 var _values: Dictionary = {}
 var storage_path: String
+
+const RANGES: Dictionary = {
+	"video/vertical_fov": Vector2(60.0, 110.0),
+	"video/fps_cap": Vector2(0.0, 1000.0),
+	"audio/master": Vector2(0.0, 1.0),
+	"audio/music": Vector2(0.0, 1.0),
+	"audio/effects": Vector2(0.0, 1.0),
+	"controls/mouse_sensitivity": Vector2(0.1, 10.0),
+	"controls/turn_speed": Vector2(0.5, 6.0),
+}
+
+## Harnesses supply an isolated path before scenes enter the tree.
+static func for_tree(tree: SceneTree) -> FragrSettings:
+	return FragrSettings.new(str(tree.get_meta("fragr_settings_path", PATH)))
 
 func _init(path: String = PATH) -> void:
 	storage_path = path
@@ -77,14 +79,45 @@ func get_value(section: String, key: String) -> Variant:
 	return null
 
 func set_value(section: String, key: String, value: Variant) -> void:
-	if section == "profile":
-		if key == "name":
-			value = clean_player_name(value)
-		elif key == "reticle_colour" and value not in ["bone", "amber", "cyan"]:
-			value = "bone"
-	if not _values.has(section):
-		_values[section] = {}
+	if not DEFAULTS.has(section) or not (DEFAULTS[section] as Dictionary).has(key):
+		return
+	var fallback: Variant = DEFAULTS[section][key]
+	var path: String = section + "/" + key
+	if path == "profile/name":
+		value = clean_player_name(value)
+	elif path == "profile/reticle_colour":
+		if not value is String or value not in ["bone", "amber", "cyan"]:
+			value = fallback
+	elif typeof(fallback) == TYPE_BOOL:
+		if not value is bool:
+			value = fallback
+	elif RANGES.has(path):
+		if (not value is int and not value is float) or not is_finite(float(value)):
+			value = fallback
+		var limits: Vector2 = RANGES[path]
+		value = clampf(float(value), limits.x, limits.y)
+		if typeof(fallback) == TYPE_INT:
+			value = int(value)
+	elif path == "video/display_mode":
+		if not value is int or value not in [0, 1, 2]:
+			value = fallback
+		elif value == 1:
+			value = 2 # Legacy exclusive request uses portable fullscreen now.
 	(_values[section] as Dictionary)[key] = value
+
+func draft() -> FragrSettings:
+	var copy: FragrSettings = FragrSettings.new(storage_path)
+	copy._values = _values.duplicate(true)
+	return copy
+
+## Keep active values unchanged on failed writes. The owner applies on changed.
+func commit(candidate: FragrSettings) -> Error:
+	var result: Error = candidate.save_to_disk()
+	if result != OK:
+		return result
+	_values = candidate._values.duplicate(true)
+	changed.emit()
+	return OK
 
 func reset_section(section: String) -> void:
 	if DEFAULTS.has(section):
@@ -108,7 +141,14 @@ func save_to_disk() -> Error:
 	for section in _values:
 		for key in (_values[section] as Dictionary):
 			cfg.set_value(section, key, (_values[section] as Dictionary)[key])
-	return cfg.save(storage_path)
+	# Write beside the destination so failed writes cannot truncate the last save.
+	var temporary: String = storage_path + ".%d.tmp" % OS.get_process_id()
+	var result: Error = cfg.save(temporary)
+	if result == OK:
+		result = DirAccess.rename_absolute(temporary, storage_path)
+	if result != OK and FileAccess.file_exists(temporary):
+		DirAccess.remove_absolute(temporary)
+	return result
 
 static func clean_player_name(value: Variant) -> String:
 	if not value is String:
@@ -136,40 +176,34 @@ func apply() -> void:
 	apply_audio()
 
 func apply_video() -> void:
+	Engine.max_fps = int(get_value("video", "fps_cap"))
+	if DisplayServer.get_name() == "headless":
+		return
 	var mode: int = int(get_value("video", "display_mode"))
 	match mode:
 		0:
 			DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
 			DisplayServer.window_set_flag(DisplayServer.WINDOW_FLAG_BORDERLESS, false)
-			DisplayServer.window_set_size(
-				Vector2i(int(get_value("video", "resolution_w")), int(get_value("video", "resolution_h")))
-			)
-		1:
-			DisplayServer.window_set_flag(DisplayServer.WINDOW_FLAG_BORDERLESS, false)
-			DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_EXCLUSIVE_FULLSCREEN)
 		_:
 			DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
 
 	DisplayServer.window_set_vsync_mode(
 		DisplayServer.VSYNC_ENABLED if bool(get_value("video", "vsync")) else DisplayServer.VSYNC_DISABLED
 	)
-	Engine.max_fps = maxi(0, int(get_value("video", "fps_cap")))
 
 func apply_audio() -> void:
 	_set_bus("Master", float(get_value("audio", "master")))
-	_set_bus("Music", float(get_value("audio", "music")))
+	_set_bus("Radio", float(get_value("audio", "music")))
 	_set_bus("Effects", float(get_value("audio", "effects")))
 
 static func _set_bus(name: String, linear: float) -> void:
 	var index: int = AudioServer.get_bus_index(name)
 	if index < 0:
-		# Only Master is guaranteed. A missing bus is not an error until the
-		# mix work lands and creates them.
-		if name != "Master":
-			return
-		index = 0
+		push_error("settings: missing audio bus " + name)
+		return
+	AudioServer.set_bus_mute(index, linear == 0.0)
 	AudioServer.set_bus_volume_db(index, linear_to_db(clampf(linear, 0.0001, 1.0)))
 
-## Vertical field of view in degrees, clamped to what the menu offers.
+## Vertical FOV, with horizontal coverage expanding on wider viewports.
 func fov() -> float:
-	return clampf(float(get_value("video", "fov")), 70.0, 130.0)
+	return float(get_value("video", "vertical_fov"))

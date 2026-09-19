@@ -56,11 +56,15 @@ var current_map_info: Dictionary = {}
 var latest_snapshot: Dictionary = {}
 var console: FragrConsole = null
 var pause_menu: PauseMenu = null
-var settings: FragrSettings = FragrSettings.new()
+var settings: FragrSettings
 var role_transition: bool = false
 
 func _ready():
+	if settings == null:
+		settings = FragrSettings.for_tree(get_tree())
 	settings.load_from_disk()
+	settings.changed.connect(_apply_preferences)
+	_apply_preferences()
 	net_client.snapshot_received.connect(_on_snapshot_received)
 	net_client.map_info_received.connect(_on_map_info)
 	net_client.event_received.connect(_on_event_received)
@@ -131,16 +135,26 @@ func _on_map_info(info: Dictionary) -> void:
 ## the scene because they are the same three things whatever the match is.
 func _setup_frontend() -> void:
 	console = FragrConsole.new()
+	console.preferences = settings
 	console.name = "FragrConsole"
 	add_child(console)
 
 	pause_menu = PauseMenu.new()
+	pause_menu.preferences = settings
 	pause_menu.name = "PauseMenu"
 	pause_menu.leave_requested.connect(_on_leave_requested)
 	add_child(pause_menu)
 
 	if is_human_player:
 		show_loading_card()
+
+func _apply_preferences() -> void:
+	settings.apply()
+	camera.apply_preferences(settings)
+	hud.apply_preferences(settings)
+
+func controls_blocked() -> bool:
+	return role_transition or (console != null and console.is_open()) or (pause_menu != null and pause_menu.is_open())
 
 ## The controls card. Shown on every join, including pressing J mid-match,
 ## because a player who joined from the booth never saw the boot one.
@@ -282,7 +296,7 @@ func _process(_delta):
 		# zero for humans and remain the path for agents and older clients.
 		if camera and camera.has_method("consume_yaw"):
 			action_state.yaw = camera.consume_yaw()
-		if (console != null and console.is_open()) or (pause_menu != null and pause_menu.is_open()):
+		if controls_blocked():
 			for key in ["forward", "back", "left", "right", "fire", "jump"]:
 				action_state[key] = false
 		action_state.turn_left = false

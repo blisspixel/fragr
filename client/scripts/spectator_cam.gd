@@ -9,6 +9,7 @@ extends Node3D
 ## was 6.6 cm per 360, about six times faster than a Counter-Strike default.
 const DEGREES_PER_COUNT := 0.022
 @export var mouse_sensitivity := 1.5
+var invert_y: bool = false
 ## Radians per second of turn at full deflection. 2.8 is about a hundred and
 ## sixty degrees a second, which is roughly Doom's walking turn, and it is the
 ## rate a keyboard gets because a key is either down or it is not. A stick gets
@@ -59,9 +60,26 @@ const TURN_ACCUM_THRESHOLD = 2.5
 func _ready():
 	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
 
-func _input(event):
+func apply_preferences(preferences: FragrSettings) -> void:
+	mouse_sensitivity = float(preferences.get_value("controls", "mouse_sensitivity"))
+	stick_look_sensitivity = float(preferences.get_value("controls", "turn_speed"))
+	invert_y = bool(preferences.get_value("controls", "invert_y"))
+	var lens: Camera3D = get_node("Camera3D")
+	lens.keep_aspect = Camera3D.KEEP_HEIGHT
+	lens.fov = preferences.fov()
+
+func _controls_blocked() -> bool:
+	var owner_node: Node = get_parent()
+	return owner_node != null and owner_node.has_method("controls_blocked") and bool(owner_node.controls_blocked())
+
+func _input(event: InputEvent) -> void:
 	if event is InputEventMouseMotion:
-		mouse_motion = event.relative
+		accept_mouse_motion(event as InputEventMouseMotion, Input.get_mouse_mode() == Input.MOUSE_MODE_CAPTURED)
+
+## Keep the display-server state at the input boundary; headless has no capture.
+func accept_mouse_motion(event: InputEventMouseMotion, captured: bool) -> void:
+	if captured and not _controls_blocked():
+		mouse_motion += event.screen_relative
 
 	# Escape belongs to the pause menu now. The mouse is released and recaptured
 	# by whatever opens over the match, so two things no longer fight for it.
@@ -69,6 +87,9 @@ func _input(event):
 func _process(delta):
 	camera_shake_intensity = lerp(camera_shake_intensity, 0.0, delta * 10.0)
 	camera_zoom_offset = lerp(camera_zoom_offset, 0.0, delta * 5.0)
+	if _controls_blocked():
+		mouse_motion = Vector2.ZERO
+		return
 
 	if tip_pose_lock:
 		mouse_motion = Vector2.ZERO
@@ -151,6 +172,8 @@ func _apply_stick_look(delta: float, apply_yaw_to_node: bool) -> void:
 		pitch -= (look_u - stick_deadzone) / (1.0 - stick_deadzone)
 	if look_d > stick_deadzone:
 		pitch += (look_d - stick_deadzone) / (1.0 - stick_deadzone)
+	if invert_y:
+		pitch = -pitch
 
 	if abs(yaw) > 0.0:
 		if apply_yaw_to_node:
@@ -170,7 +193,7 @@ func _free_fly(delta):
 	if mouse_motion.length() > 0:
 		var radians_per_count := _radians_per_count()
 		rotation.y -= mouse_motion.x * radians_per_count
-		rotation.x -= mouse_motion.y * radians_per_count
+		rotation.x -= mouse_motion.y * radians_per_count * (-1.0 if invert_y else 1.0)
 		rotation.x = clamp(rotation.x, -PI / 2, PI / 2)
 		mouse_motion = Vector2.ZERO
 
@@ -305,7 +328,7 @@ func _process_fp(delta):
 	if mouse_motion.length() > 0:
 		var radians_per_count := _radians_per_count()
 		fp_yaw = wrapf(fp_yaw + mouse_motion.x * radians_per_count, 0.0, TAU)
-		fp_pitch -= mouse_motion.y * radians_per_count
+		fp_pitch -= mouse_motion.y * radians_per_count * (-1.0 if invert_y else 1.0)
 		fp_pitch = clamp(fp_pitch, -1.15, 1.15)
 		mouse_motion = Vector2.ZERO
 

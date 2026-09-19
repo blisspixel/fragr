@@ -574,14 +574,13 @@ func reset_host_chrome():
 	_refresh_mode_label()
 
 
-## Read the two chrome switches off the saved settings.
-##
-## The HUD reads them itself rather than waiting to be told, because nothing
-## else in the client reads settings yet and a switch that exists in the file
-## but reaches nothing is worse than no switch at all.
+## Standalone previews load their own store. Live changes use the same reader.
 func _load_display_settings() -> void:
-	var settings: FragrSettings = FragrSettings.new()
+	var settings: FragrSettings = FragrSettings.for_tree(get_tree())
 	settings.load_from_disk()
+	apply_preferences(settings)
+
+func apply_preferences(settings: FragrSettings) -> void:
 	broadcast_chrome = bool(settings.get_value("gameplay", "broadcast_chrome"))
 	debug_telemetry = bool(settings.get_value("gameplay", "debug_telemetry"))
 	head_bob_enabled = bool(settings.get_value("gameplay", "head_bob"))

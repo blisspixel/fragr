@@ -20,10 +20,12 @@ ring_segments = 24
 script = ExtResource("1_player")
 
 [node name="FireSound" type="AudioStreamPlayer3D" parent="."]
+bus = &"Effects"
 volume_db = -4.0
 max_distance = 50.0
 
 [node name="HitSound" type="AudioStreamPlayer3D" parent="."]
+bus = &"Effects"
 volume_db = -2.0
 max_distance = 40.0
 

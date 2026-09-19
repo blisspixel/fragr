@@ -12,6 +12,7 @@ class_name FragrConsole
 ## boot menu where there is no match at all.
 
 signal command_run(line: String)
+var preferences: FragrSettings
 
 const MAX_LINES: int = 400
 const HISTORY_MAX: int = 64
@@ -175,10 +176,7 @@ func run(line: String) -> void:
 			_set_fullscreen(false)
 		"vsync":
 			var on: bool = rest.is_empty() or rest[0] != "0"
-			DisplayServer.window_set_vsync_mode(
-				DisplayServer.VSYNC_ENABLED if on else DisplayServer.VSYNC_DISABLED
-			)
-			echo("vsync " + ("on" if on else "off"))
+			_save_preference("video", "vsync", on)
 		"fps":
 			echo("%d fps, %.2f ms" % [
 				Engine.get_frames_per_second(),
@@ -261,19 +259,29 @@ func _report_yaw() -> void:
 	echo("server forward " + str(ServerYaw.forward(server_yaw)))
 
 func _set_sens(rest: Array[String]) -> void:
-	var cam: Node = _camera()
-	if cam == null:
-		echo("no camera")
+	if preferences == null:
+		echo("no settings store")
 		return
 	if rest.is_empty():
-		echo("sens " + str(cam.get("mouse_sensitivity")))
+		echo("sens " + str(preferences.get_value("controls", "mouse_sensitivity")))
 		return
 	var value: float = rest[0].to_float()
-	if value <= 0.0:
-		echo("sens must be greater than zero")
+	if not rest[0].is_valid_float() or not is_finite(value) or value < 0.1 or value > 10.0:
+		echo("sens must be a number from 0.1 to 10")
 		return
-	cam.set("mouse_sensitivity", value)
-	echo("sens " + str(value))
+	_save_preference("controls", "mouse_sensitivity", value)
+
+func _save_preference(section: String, key: String, value: Variant) -> void:
+	if preferences == null:
+		echo("no settings store")
+		return
+	var candidate: FragrSettings = preferences.draft()
+	candidate.set_value(section, key, value)
+	var result: Error = preferences.commit(candidate)
+	if result != OK:
+		echo("save failed (%d); active setting unchanged" % result)
+		return
+	echo(key + " " + str(preferences.get_value(section, key)))
 
 func _report_players() -> void:
 	var game: Node = _game()
@@ -291,7 +299,4 @@ func _report_players() -> void:
 			echo("  " + str((pawn as Node).name))
 
 func _set_fullscreen(on: bool) -> void:
-	DisplayServer.window_set_mode(
-		DisplayServer.WINDOW_MODE_FULLSCREEN if on else DisplayServer.WINDOW_MODE_WINDOWED
-	)
-	echo("fullscreen " + ("on" if on else "off"))
+	_save_preference("video", "display_mode", 2 if on else 0)
