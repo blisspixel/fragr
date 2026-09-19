@@ -1,5 +1,6 @@
 use clap::Parser;
 use fragr_server::run::{run_server, ServerOptions};
+use std::path::PathBuf;
 use tracing_subscriber::EnvFilter;
 
 // Eq is out because a threshold is a float; PartialEq still serves the tests.
@@ -33,11 +34,20 @@ struct Args {
     bench: Option<usize>,
 
     /// Ticks to run in benchmark mode (20 per second of match time).
-    #[arg(long, default_value_t = 1200)]
+    #[arg(long, default_value_t = 1200, value_parser = clap::value_parser!(u64).range(1..))]
     bench_ticks: u64,
 
+    /// Write a complete offline NDJSON recording to a new file. Parent directory
+    /// must exist. No overwrite, network connection, or paid provider is involved.
+    #[arg(long, requires = "bench")]
+    bench_trace: Option<PathBuf>,
+
+    /// Validate a recorded trace without opening a network connection.
+    #[arg(long, conflicts_with = "bench")]
+    bench_verify_trace: Option<PathBuf>,
+
     /// Run the benchmark twice and report whether the two matches agreed.
-    #[arg(long, default_value_t = false)]
+    #[arg(long, default_value_t = false, requires = "bench")]
     bench_check: bool,
 
     /// Seed for the simulation's random stream. The same seed gives the same
@@ -53,14 +63,25 @@ struct Args {
     /// Exit non-zero when a benchmark crosses a threshold below. This is what
     /// CI runs, so a regression is a failed build rather than a note nobody
     /// reads.
-    #[arg(long, default_value_t = false)]
+    #[arg(long, default_value_t = false, requires = "bench")]
     bench_assert: bool,
 
     /// Largest share of the tick budget the p99 tick may use before
     /// `--bench-assert` fails. One tick in a hundred over half the budget
     /// means the next change has nowhere to go.
-    #[arg(long, default_value_t = 0.5)]
+    #[arg(long, default_value_t = 0.5, value_parser = parse_budget_fraction)]
     bench_max_budget_p99: f64,
+}
+
+fn parse_budget_fraction(raw: &str) -> Result<f64, String> {
+    let value: f64 = raw
+        .parse()
+        .map_err(|_| "expected a budget fraction".to_string())?;
+    if value.is_finite() && value > 0.0 && value <= 1.0 {
+        Ok(value)
+    } else {
+        Err("budget fraction must be finite and greater than zero, at most one".to_string())
+    }
 }
 
 #[tokio::main]
@@ -69,6 +90,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     // In benchmark mode the JSON report is the only thing on stdout, so logs
     // go to stderr and only warnings survive.
     init_tracing(args.bench.is_some());
+    if let Some(path) = args.bench_verify_trace {
+        let reader = std::io::BufReader::new(std::fs::File::open(path)?);
+        let summary = fragr_server::trace::verify_trace(reader)?;
+        println!("{}", serde_json::to_string_pretty(&summary)?);
+        return Ok(());
+    }
     let map = fragr_server::sim::MapKind::from_cli(&args.map).ok_or_else(|| {
         let roster: Vec<String> = fragr_server::sim::MapKind::ALL
             .iter()
@@ -81,24 +108,42 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         )
     })?;
     if let Some(bots) = args.bench {
-        let report = if args.bench_check {
-            fragr_server::bench::run_bench_checked(bots, args.bench_ticks, map, args.seed)
-        } else {
-            fragr_server::bench::run_bench(bots, args.bench_ticks, map, args.seed)
-        };
+        let mut output = args
+            .bench_trace
+            .as_ref()
+            .map(|path| {
+                std::fs::OpenOptions::new()
+                    .write(true)
+                    .create_new(true)
+                    .open(path)
+                    .map(std::io::BufWriter::new)
+            })
+            .transpose()?;
+        let sink = output
+            .as_mut()
+            .map(|writer| writer as &mut dyn std::io::Write);
+        let mut report = fragr_server::bench::run_bench_with_trace(
+            bots,
+            args.bench_ticks,
+            map,
+            args.seed,
+            sink,
+        )?;
+        if args.bench_check {
+            report = fragr_server::bench::check_repeated(report)?;
+        }
         println!("{}", serde_json::to_string_pretty(&report)?);
         // A run that is not reproducible is a correctness failure, not a slow one.
         if report.deterministic == Some(false) {
             return Err("benchmark was not deterministic for this seed".into());
         }
         if args.bench_assert {
-            for complaint in
-                fragr_server::bench::check_thresholds(&report, args.bench_max_budget_p99)
-            {
+            let complaints =
+                fragr_server::bench::check_thresholds(&report, args.bench_max_budget_p99);
+            for complaint in &complaints {
                 eprintln!("benchmark: {complaint}");
             }
-            if !fragr_server::bench::check_thresholds(&report, args.bench_max_budget_p99).is_empty()
-            {
+            if !complaints.is_empty() {
                 return Err("benchmark crossed a threshold".into());
             }
         }
@@ -275,5 +320,39 @@ mod tests {
         assert_eq!(options.bind, args.bind);
         assert_eq!(options.bots, args.bots);
         assert!(options.match_config.is_none());
+    }
+
+    #[test]
+    fn benchmark_cli_rejects_invalid_limits_and_conflicting_operations() {
+        for fraction in ["NaN", "inf", "0", "-0.5", "1.1", "garbage"] {
+            assert!(
+                Args::try_parse_from(["fragr-server", "--bench-max-budget-p99", fraction]).is_err()
+            );
+        }
+        assert!(
+            Args::try_parse_from(["fragr-server", "--bench", "4", "--bench-ticks", "0"]).is_err()
+        );
+        assert!(Args::try_parse_from(["fragr-server", "--bench-trace", "match.ndjson"]).is_err());
+        assert!(Args::try_parse_from([
+            "fragr-server",
+            "--bench",
+            "4",
+            "--bench-verify-trace",
+            "match.ndjson"
+        ])
+        .is_err());
+        let args = Args::try_parse_from([
+            "fragr-server",
+            "--bench",
+            "16",
+            "--bench-check",
+            "--bench-assert",
+            "--bench-trace",
+            "match.ndjson",
+        ])
+        .unwrap();
+        assert_eq!(args.bench, Some(16));
+        assert!(args.bench_check && args.bench_assert);
+        assert_eq!(args.bench_trace, Some(PathBuf::from("match.ndjson")));
     }
 }

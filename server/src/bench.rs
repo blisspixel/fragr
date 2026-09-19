@@ -1,26 +1,24 @@
-//! The ruler: how long a tick took, how much a snapshot cost, and whether a
-//! seeded run reproduces itself. One JSON object describes a run, and the same
-//! object is printed by `--bench` and by the live status line, so a benchmark
-//! and a running server are read the same way.
+//! CPU measurement and seeded offline recording. Reports explicitly separate
+//! session work, JSON encoding, and total CPU step time from network/render work.
 //!
 //! Percentiles come from a log-linear histogram rather than a sorted vector, so
 //! a long run costs a fixed amount of memory and the error on a reported value
-//! is bounded by the bucket width (about 2 percent here). A mean and a standard
-//! deviation would lie about tick time, which is skewed by design: most ticks
-//! are cheap and the interesting ones are not.
+//! is bounded by the bucket width (less than 6.25 percent here). Exact extrema,
+//! counts and means accompany conservative upper-bucket percentiles.
 
 use crate::run::TICK;
 use crate::session::GameSession;
 use crate::sim::{MapKind, MatchConfig};
+use crate::trace::{Recorder, TraceRecord, TRACE_VERSION};
 use serde::{Deserialize, Serialize};
+use std::io::{self, Write};
 use std::time::{Duration, Instant};
 
-/// Buckets per power of two. Sixteen puts the worst-case error near 2 percent
-/// (half a bucket) while keeping the whole histogram inside a few kilobytes.
+/// Upper-bucket percentiles overestimate by less than 1/16 (6.25 percent).
 const SUB_BUCKETS: u32 = 16;
-/// Powers of two covered, from 1 unit up. Nanoseconds to about 18 minutes.
-const POWERS: u32 = 40;
-const BUCKETS: usize = (SUB_BUCKETS * POWERS) as usize;
+/// Cover every u64, with a distinct bucket for zero.
+const POWERS: u32 = 64;
+const BUCKETS: usize = (SUB_BUCKETS * POWERS + 1) as usize;
 
 /// A log-linear histogram of non-negative values, exact in count and bounded in
 /// relative error on every reported percentile.
@@ -55,24 +53,30 @@ impl Histogram {
             return 0;
         }
         let power = 63 - value.leading_zeros(); // floor(log2(value))
-        if power >= POWERS {
-            return BUCKETS - 1;
-        }
-        // Position inside the power of two, linearly split into SUB_BUCKETS.
+                                                // Position inside the power of two, linearly split into SUB_BUCKETS.
         let base = 1u64 << power;
-        let offset = ((value - base) * SUB_BUCKETS as u64) / base;
-        (power * SUB_BUCKETS) as usize + offset as usize
+        let offset = if power >= 4 {
+            (value - base) >> (power - 4)
+        } else {
+            (value - base) << (4 - power)
+        };
+        1 + (power * SUB_BUCKETS) as usize + offset as usize
     }
 
     /// The value at the top of a bucket, which is what a percentile reports.
     fn value_at(index: usize) -> u64 {
-        let power = index as u32 / SUB_BUCKETS;
-        let offset = index as u32 % SUB_BUCKETS;
-        if power == 0 {
-            return offset as u64;
+        if index == 0 {
+            return 0;
         }
+        let power = (index as u32 - 1) / SUB_BUCKETS;
+        let offset = (index as u32 - 1) % SUB_BUCKETS;
         let base = 1u64 << power;
-        base + (base / SUB_BUCKETS as u64) * (offset as u64 + 1)
+        if power < 4 {
+            base + (base * (offset as u64 + 1)).div_ceil(SUB_BUCKETS as u64) - 1
+        } else {
+            let width = base / SUB_BUCKETS as u64;
+            base + width * offset as u64 + (width - 1)
+        }
     }
 
     pub fn record(&mut self, value: u64) {
@@ -125,8 +129,9 @@ impl Histogram {
         self.max
     }
 
-    /// How many recorded values were at or above a threshold.
-    pub fn count_at_or_above(&self, threshold: u64) -> u64 {
+    /// Conservative upper bound: includes the whole bucket containing the
+    /// threshold. Exact budget counts are recorded separately in TickStats.
+    pub fn count_at_or_above_bucket(&self, threshold: u64) -> u64 {
         let from = Histogram::index_of(threshold);
         self.buckets[from..].iter().sum()
     }
@@ -165,11 +170,20 @@ pub struct Summary {
 #[derive(Debug, Default)]
 pub struct TickStats {
     tick_ns: Histogram,
-    snapshot_bytes: Histogram,
+    broadcast_bytes: Histogram,
     ticks: u64,
     over_budget: u64,
     over_half_budget: u64,
     started: Option<Instant>,
+    scope: TimingScope,
+}
+
+#[derive(Debug, Default, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum TimingScope {
+    #[default]
+    Session,
+    SessionAndEncoding,
 }
 
 impl TickStats {
@@ -180,18 +194,18 @@ impl TickStats {
         }
     }
 
-    /// Record one tick: how long the whole step took and how many bytes the
-    /// snapshot it produced serialised to.
-    pub fn record_tick(&mut self, elapsed: Duration, snapshot_bytes: usize) {
+    /// Record the declared timing scope and all broadcast payload bytes, before
+    /// recipient fan-out and transport framing. Unicasts are reported separately.
+    pub fn record_tick(&mut self, elapsed: Duration, broadcast_bytes: usize) {
         let ns = elapsed.as_nanos().min(u64::MAX as u128) as u64;
         self.tick_ns.record(ns);
-        self.snapshot_bytes.record(snapshot_bytes as u64);
+        self.broadcast_bytes.record(broadcast_bytes as u64);
         self.ticks += 1;
         let budget = TICK.as_nanos() as u64;
         if ns >= budget {
             self.over_budget += 1;
         }
-        if ns * 2 >= budget {
+        if ns >= budget / 2 {
             self.over_half_budget += 1;
         }
     }
@@ -208,6 +222,8 @@ impl TickStats {
     pub fn report(&self, fighters: usize, clients: usize) -> StatsReport {
         let budget_ns = TICK.as_nanos() as f64;
         StatsReport {
+            schema_version: 2,
+            timing_scope: self.scope,
             uptime_s: self
                 .started
                 .map(|t| t.elapsed().as_secs_f64())
@@ -217,7 +233,7 @@ impl TickStats {
             fighters,
             clients,
             tick_ms: self.tick_ns.summary(1e-6),
-            snapshot_bytes: self.snapshot_bytes.summary(1.0),
+            broadcast_bytes: self.broadcast_bytes.summary(1.0),
             budget_use_p50: self.tick_ns.quantile(0.50) as f64 / budget_ns,
             budget_use_p99: self.tick_ns.quantile(0.99) as f64 / budget_ns,
             ticks_over_budget: self.over_budget,
@@ -229,15 +245,17 @@ impl TickStats {
 /// What `--bench` prints and what the status line serves.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct StatsReport {
+    pub schema_version: u32,
+    pub timing_scope: TimingScope,
     pub uptime_s: f64,
     pub ticks: u64,
     pub tick_hz: f64,
     pub fighters: usize,
     pub clients: usize,
-    /// Whole-tick time in milliseconds. Phase splits come with the sim refactor.
+    /// Milliseconds for timing_scope. Never includes network IO or GPU work.
     pub tick_ms: Summary,
-    /// Serialised snapshot size in bytes, one sample per tick.
-    pub snapshot_bytes: Summary,
+    /// Encoded broadcasts, one sample per tick, before fan-out/framing.
+    pub broadcast_bytes: Summary,
     pub budget_use_p50: f64,
     pub budget_use_p99: f64,
     pub ticks_over_budget: u64,
@@ -260,39 +278,109 @@ pub struct BenchConfig {
 /// check that two seeded runs of the same shape produce the same match.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct BenchReport {
+    pub schema_version: u32,
     pub config: BenchConfig,
+    pub environment: BenchEnvironment,
     pub stats: StatsReport,
-    /// Frags by fighter name at the end of the run, the cheap fingerprint of a
-    /// match. Two runs with the same seed must agree on it.
+    pub session_ms: Summary,
+    pub encode_ms: Summary,
+    pub unicast_bytes: Summary,
+    /// SHA-256 of header/tick/score records, including LF separators.
+    pub trace_sha256: String,
+    /// Final round scores. Trace equality also covers intermediate movement,
+    /// shots, respawns, taunts, pickups, and round transitions.
     pub frags: Vec<(String, u32)>,
     /// Set when the run was repeated to check determinism.
     pub deterministic: Option<bool>,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct BenchEnvironment {
+    pub os: String,
+    pub arch: String,
+    pub profile: String,
+    pub available_parallelism: Option<usize>,
+}
+
+pub(crate) fn encoded_payload_bytes<'a>(
+    messages: impl Iterator<Item = &'a crate::protocol::ServerMessage>,
+) -> serde_json::Result<usize> {
+    messages
+        .map(serde_json::to_vec)
+        .try_fold(0, |total, encoded| encoded.map(|bytes| total + bytes.len()))
+}
+
 /// Run `ticks` ticks of a session with `bots` fighters and no network, timing
 /// every step. Deterministic for a given seed: the same seed gives the same
 /// match, which is what makes the numbers comparable between runs.
-pub fn run_bench(bots: usize, ticks: u64, map: MapKind, seed: u64) -> BenchReport {
+pub fn run_bench(bots: usize, ticks: u64, map: MapKind, seed: u64) -> io::Result<BenchReport> {
+    run_bench_with_trace(bots, ticks, map, seed, None)
+}
+
+/// Export is optional and streamed outside the timed CPU step. File ownership
+/// and overwrite policy belong to the caller; errors propagate to the CLI.
+pub fn run_bench_with_trace(
+    bots: usize,
+    ticks: u64,
+    map: MapKind,
+    seed: u64,
+    trace: Option<&mut dyn Write>,
+) -> io::Result<BenchReport> {
+    if ticks == 0 {
+        return Err(io::Error::new(
+            io::ErrorKind::InvalidInput,
+            "benchmark needs at least one tick",
+        ));
+    }
+    let config = BenchConfig {
+        bots,
+        ticks,
+        map: map.id(),
+        map_name: map.name().to_string(),
+        seed,
+        build: env!("CARGO_PKG_VERSION").to_string(),
+    };
+    let mut recorder = Recorder::new(trace);
+    recorder.record(&TraceRecord::Header {
+        version: TRACE_VERSION,
+        tick_hz: 20,
+        config: config.clone(),
+    })?;
     let mut session = GameSession::with_map(map, false);
     session.state.seed(seed);
+    session.state.use_replay_ids();
     session.state.config = MatchConfig {
         // A benchmark measures fighting, not the pauses around it.
         warmup_ticks: 1,
         ..MatchConfig::default()
     };
     session.spawn_bots(bots);
-    let mut stats = TickStats::new();
+    let mut stats = TickStats {
+        scope: TimingScope::SessionAndEncoding,
+        ..TickStats::new()
+    };
+    let mut session_ns = Histogram::new();
+    let mut encode_ns = Histogram::new();
+    let mut unicast_bytes = Histogram::new();
     let dt = TICK.as_secs_f32();
     for _ in 0..ticks {
         let started = Instant::now();
         let messages = session.tick_messages(dt);
-        let elapsed = started.elapsed();
-        let bytes = messages
-            .iter()
-            .map(|m| serde_json::to_string(m).map(|s| s.len()).unwrap_or(0))
-            .sum::<usize>();
-        stats.record_tick(elapsed, bytes);
-        session.take_unicasts();
+        let unicasts = session.take_unicasts();
+        let simulated = started.elapsed();
+        let encode_started = Instant::now();
+        let bytes = encoded_payload_bytes(messages.iter())?;
+        let targeted = encoded_payload_bytes(unicasts.iter().map(|(_, message)| message))?;
+        let encoded = encode_started.elapsed();
+        stats.record_tick(started.elapsed(), bytes);
+        session_ns.record(simulated.as_nanos().min(u64::MAX as u128) as u64);
+        encode_ns.record(encoded.as_nanos().min(u64::MAX as u128) as u64);
+        unicast_bytes.record(targeted as u64);
+        recorder.record(&TraceRecord::Tick {
+            tick: session.state.tick,
+            broadcast: messages,
+            unicasts,
+        })?;
     }
     let mut frags: Vec<(String, u32)> = session
         .state
@@ -305,30 +393,57 @@ pub fn run_bench(bots: usize, ticks: u64, map: MapKind, seed: u64) -> BenchRepor
         .collect();
     frags.sort();
     let fighters = session.state.players.len();
-    BenchReport {
-        config: BenchConfig {
-            bots,
-            ticks,
-            map: map.id(),
-            map_name: map.name().to_string(),
-            seed,
-            build: env!("CARGO_PKG_VERSION").to_string(),
+    let trace_sha256 = recorder.finish(ticks, frags.clone())?;
+    Ok(BenchReport {
+        schema_version: 2,
+        config,
+        environment: BenchEnvironment {
+            os: std::env::consts::OS.to_string(),
+            arch: std::env::consts::ARCH.to_string(),
+            profile: if cfg!(debug_assertions) {
+                "debug"
+            } else {
+                "release"
+            }
+            .to_string(),
+            available_parallelism: std::thread::available_parallelism().ok().map(usize::from),
         },
         stats: stats.report(fighters, 0),
+        session_ms: session_ns.summary(1e-6),
+        encode_ms: encode_ns.summary(1e-6),
+        unicast_bytes: unicast_bytes.summary(1.0),
+        trace_sha256,
         frags,
         deterministic: None,
-    }
+    })
 }
 
 /// Run the benchmark twice with the same seed and report whether the two
 /// matches agreed. A disagreement is a correctness bug, not a slow tick.
-pub fn run_bench_checked(bots: usize, ticks: u64, map: MapKind, seed: u64) -> BenchReport {
-    let first = run_bench(bots, ticks, map, seed);
-    let second = run_bench(bots, ticks, map, seed);
-    BenchReport {
-        deterministic: Some(first.frags == second.frags),
+pub fn run_bench_checked(
+    bots: usize,
+    ticks: u64,
+    map: MapKind,
+    seed: u64,
+) -> io::Result<BenchReport> {
+    let first = run_bench(bots, ticks, map, seed)?;
+    check_repeated(first)
+}
+
+pub fn check_repeated(first: BenchReport) -> io::Result<BenchReport> {
+    let config = &first.config;
+    let map = MapKind::ALL
+        .iter()
+        .find(|m| m.id() == config.map)
+        .copied()
+        .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidInput, "unknown benchmark map"))?;
+    let second = run_bench(config.bots, config.ticks, map, config.seed)?;
+    Ok(BenchReport {
+        deterministic: Some(
+            first.trace_sha256 == second.trace_sha256 && first.frags == second.frags,
+        ),
         ..first
-    }
+    })
 }
 
 /// What a benchmark must satisfy to pass. Returned as complaints rather than
@@ -336,6 +451,9 @@ pub fn run_bench_checked(bots: usize, ticks: u64, map: MapKind, seed: u64) -> Be
 pub fn check_thresholds(report: &BenchReport, max_budget_p99: f64) -> Vec<String> {
     let mut out = Vec::new();
     let stats = &report.stats;
+    if !max_budget_p99.is_finite() || max_budget_p99 <= 0.0 || max_budget_p99 > 1.0 {
+        out.push("budget fraction must be finite and greater than zero, at most one".to_string());
+    }
     if report.deterministic == Some(false) {
         out.push("two runs with the same seed produced different matches".to_string());
     }
@@ -378,12 +496,11 @@ mod tests {
         assert_eq!(h.min(), 1);
         assert_eq!(h.max(), 1000);
         assert!((h.mean() - 500.5).abs() < 1e-6);
-        // Every percentile within one bucket width (about 7 percent here, since
-        // a bucket near 500 spans 32 units) of the true value.
+        // Upper-bucket percentiles conservatively overestimate by under 6.25%.
         for (q, want) in [(0.5, 500.0), (0.9, 900.0), (0.99, 990.0)] {
             let got = h.quantile(q) as f64;
             assert!(
-                (got - want).abs() / want < 0.08,
+                got >= want && (got - want) / want < 0.0625,
                 "p{q}: got {got}, want about {want}"
             );
             assert!(got >= want * 0.92 && got <= h.max() as f64);
@@ -403,14 +520,14 @@ mod tests {
         h.record(u64::MAX);
         assert_eq!(h.max(), u64::MAX);
         assert_eq!(h.count(), 2);
-        // Counting above a threshold is what budget overruns use.
+        // Bucket counts are conservative; budget overruns use exact counters.
         let mut b = Histogram::new();
         for v in [1u64, 10, 100, 1000, 10_000] {
             b.record(v);
         }
-        assert_eq!(b.count_at_or_above(100), 3);
-        assert_eq!(b.count_at_or_above(0), 5);
-        assert_eq!(b.count_at_or_above(u64::MAX), 0);
+        assert_eq!(b.count_at_or_above_bucket(100), 3);
+        assert_eq!(b.count_at_or_above_bucket(0), 5);
+        assert_eq!(b.count_at_or_above_bucket(u64::MAX), 0);
     }
 
     #[test]
@@ -455,7 +572,7 @@ mod tests {
             "two budgets is 100 ms: {:?}",
             report.tick_ms
         );
-        assert!(report.snapshot_bytes.max >= 4900.0);
+        assert!(report.broadcast_bytes.max >= 4900.0);
         assert!((report.tick_hz - 20.0).abs() < 1e-9);
         let json = serde_json::to_string(&report).unwrap();
         assert!(json.contains("\"budget_use_p99\""), "{json}");
@@ -463,7 +580,7 @@ mod tests {
 
     #[test]
     fn thresholds_name_what_went_wrong() {
-        let mut report = run_bench(4, 100, MapKind::ArenaDuel, 1);
+        let mut report = run_bench(4, 100, MapKind::ArenaDuel, 1).unwrap();
         assert!(
             check_thresholds(&report, 0.5).is_empty(),
             "a healthy run has no complaints: {:?}",
@@ -497,14 +614,14 @@ mod tests {
 
     #[test]
     fn bench_runs_and_reports_a_match() {
-        let report = run_bench(4, 200, MapKind::ArenaDuel, 7);
+        let report = run_bench(4, 200, MapKind::ArenaDuel, 7).unwrap();
         assert_eq!(report.config.bots, 4);
         assert_eq!(report.config.ticks, 200);
         assert_eq!(report.config.seed, 7);
         assert_eq!(report.config.map, MapKind::ArenaDuel.id());
         assert_eq!(report.stats.ticks, 200);
         assert!(report.stats.fighters >= 4, "{:?}", report.stats);
-        assert!(report.stats.snapshot_bytes.p50 > 0.0);
+        assert!(report.stats.broadcast_bytes.p50 > 0.0);
         assert!(report.stats.tick_ms.max >= report.stats.tick_ms.p50);
         assert_eq!(report.frags.len(), report.stats.fighters);
         assert!(report.deterministic.is_none());
@@ -521,18 +638,94 @@ mod tests {
 
     #[test]
     fn a_seeded_bench_reproduces_itself_and_a_different_seed_differs() {
-        let a = run_bench_checked(4, 400, MapKind::ArenaDuel, 42);
+        let a = run_bench_checked(4, 400, MapKind::ArenaDuel, 42).unwrap();
         assert_eq!(
             a.deterministic,
             Some(true),
             "same seed, same match: {:?}",
             a.frags
         );
-        let b = run_bench(4, 400, MapKind::ArenaDuel, 42);
+        let b = run_bench(4, 400, MapKind::ArenaDuel, 42).unwrap();
         assert_eq!(a.frags, b.frags, "a third run agrees too");
-        let c = run_bench(4, 400, MapKind::ArenaDuel, 43);
-        // Different seeds should usually diverge; if they ever agree the test
-        // still passes, but the frag totals must at least be produced.
+        let c = run_bench(4, 400, MapKind::ArenaDuel, 43).unwrap();
         assert_eq!(c.frags.len(), a.frags.len());
+        assert_eq!(a.trace_sha256, b.trace_sha256);
+        assert_ne!(
+            a.trace_sha256, c.trace_sha256,
+            "different seeded movement must be visible in the trace"
+        );
+    }
+
+    #[test]
+    fn histogram_bounds_cover_small_values_and_the_full_u64_domain() {
+        let values = [
+            0,
+            1,
+            2,
+            3,
+            7,
+            15,
+            16,
+            17,
+            31,
+            32,
+            33,
+            65,
+            127,
+            1025,
+            1 << 39,
+            (1 << 40) + 1,
+            1 << 62,
+            1 << 63,
+            u64::MAX - 1,
+            u64::MAX,
+        ];
+        let mut histogram = Histogram::new();
+        for value in values {
+            histogram.record(value);
+        }
+        for (index, actual) in values.into_iter().enumerate() {
+            let q = (index as f64 + 0.5) / values.len() as f64;
+            let reported = histogram.quantile(q);
+            assert!(reported >= actual, "q={q}: {reported} below {actual}");
+            assert!(
+                (reported as u128) <= actual as u128 + actual as u128 / 16,
+                "q={q}: {reported} over error bound for {actual}"
+            );
+        }
+        for value in 0..=64 {
+            let mut one = Histogram::new();
+            one.record(value);
+            assert_eq!(one.quantile(0.5), value);
+        }
+    }
+
+    #[test]
+    fn timing_scope_phases_and_budget_boundaries_are_explicit() {
+        let mut stats = TickStats::new();
+        stats.record_tick(TICK - Duration::from_nanos(1), 0);
+        stats.record_tick(TICK, 1);
+        stats.record_tick(Duration::MAX, 2);
+        let summary = stats.report(0, 0);
+        assert_eq!(summary.ticks_over_budget, 2);
+        assert_eq!(summary.ticks_over_half_budget, 3);
+        assert_eq!(summary.timing_scope, TimingScope::Session);
+
+        let report = run_bench(4, 80, MapKind::ArenaDuel, 1).unwrap();
+        assert_eq!(report.stats.timing_scope, TimingScope::SessionAndEncoding);
+        assert_eq!(report.session_ms.count, 80);
+        assert_eq!(report.encode_ms.count, 80);
+        assert_eq!(report.unicast_bytes.count, 80);
+        assert!(report.stats.tick_ms.mean >= report.session_ms.mean + report.encode_ms.mean);
+        assert_eq!(
+            report.unicast_bytes.max, 0.0,
+            "rule bots have no input sequence acknowledgements"
+        );
+        for invalid in [f64::NAN, f64::INFINITY, -0.1, 0.0, 1.1] {
+            assert!(check_thresholds(&report, invalid)
+                .iter()
+                .any(|c| c.contains("fraction")));
+        }
+        assert!(run_bench(4, 0, MapKind::ArenaDuel, 1).is_err());
     }
 }

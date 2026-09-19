@@ -10,7 +10,8 @@ use tokio::sync::Mutex;
 use uuid::Uuid;
 
 /// Connections include spectators, which have no player identity.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "snake_case")]
 pub enum Recipient {
     Client(Uuid),
     Player(Uuid),
@@ -67,7 +68,7 @@ impl GameSession {
 
         let start_index = self.bots.len();
         for i in 0..count {
-            let bot_id = Uuid::new_v4();
+            let bot_id = self.state.new_entity_id();
             let config_index = start_index + i;
             let (bot_name, behavior) = bot_configs
                 .get(config_index % bot_configs.len())

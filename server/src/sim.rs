@@ -521,6 +521,9 @@ impl ArenaPickup {
 }
 
 pub struct GameState {
+    /// Offline recordings opt into stable entity identities. Live sessions keep
+    /// UUIDv4; identity allocation must not consume the gameplay random stream.
+    replay_id_counter: Option<u128>,
     /// Deterministic random state. Seeded from `seed()`; every draw in the sim
     /// goes through it, so a run can be reproduced and two runs compared.
     /// The generator lives here rather than in a crate so the value stream
@@ -598,6 +601,24 @@ pub struct Player {
 }
 
 impl GameState {
+    pub(crate) fn use_replay_ids(&mut self) {
+        assert!(
+            self.players.is_empty(),
+            "set replay identity policy before spawning"
+        );
+        self.replay_id_counter = Some(0);
+    }
+
+    pub(crate) fn new_entity_id(&mut self) -> Uuid {
+        match self.replay_id_counter.as_mut() {
+            Some(counter) => {
+                *counter += 1;
+                Uuid::from_u128(*counter)
+            }
+            None => Uuid::new_v4(),
+        }
+    }
+
     pub fn new() -> Self {
         Self::default()
     }
@@ -707,18 +728,6 @@ impl GameState {
         // with compliance_drone pressure and MCP gets boss_down (killer null).
         self.wipe_boss_for_round_end();
 
-        let (winner, winner_score) = self
-            .scores
-            .iter()
-            .max_by_key(|(_, &score)| score)
-            .and_then(|(id, score)| {
-                self.players
-                    .iter()
-                    .find(|p| p.id == *id)
-                    .map(|p| (p.name.clone(), *score))
-            })
-            .unzip();
-
         let mut final_scores: Vec<PlayerScore> = self
             .scores
             .iter()
@@ -733,7 +742,13 @@ impl GameState {
             })
             .collect();
 
-        final_scores.sort_by_key(|a| std::cmp::Reverse(a.score));
+        // HashMap iteration must not pick the podium or order tied scores.
+        // Alphabetical callsign order is the stable presentation tiebreak.
+        final_scores.sort_by(|a, b| b.score.cmp(&a.score).then_with(|| a.name.cmp(&b.name)));
+        let (winner, winner_score) = final_scores
+            .first()
+            .map(|score| (score.name.clone(), score.score))
+            .unzip();
 
         // MVP is top score / frags (same selection as winner).
         let mvp = winner.clone();
@@ -1766,7 +1781,7 @@ impl GameState {
         if self.round_state != RoundState::Active {
             return None;
         }
-        let id = Uuid::new_v4();
+        let id = self.new_entity_id();
         let name = AUDITOR_NAME.to_string();
         self.players.push(Player {
             id,
@@ -1968,7 +1983,7 @@ impl GameState {
         if self.round_state != RoundState::Active {
             return None;
         }
-        let id = Uuid::new_v4();
+        let id = self.new_entity_id();
         self.players.push(Player {
             id,
             name: BOSS_NAME.to_string(),
@@ -2190,6 +2205,7 @@ impl GameState {
 impl Default for GameState {
     fn default() -> Self {
         Self {
+            replay_id_counter: None,
             rng_state: 0x2545_F491_4F6C_DD1D,
             tick: 0,
             players: Vec::new(),

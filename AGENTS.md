@@ -52,7 +52,7 @@ If prose and code disagree, code wins; fix the prose in the same change. Keep pl
 | Sim tick, hit detection, movement, pickups, boss, bots | `server/src/sim.rs` |
 | Map definitions, collision solids, spawn layout | `server/src/maps.rs`; `MapInfo` drives `client/scripts/arena_cover.gd` |
 | Movement math and facing conversion | `server/src/movement.rs`, `client/scripts/movement.gd`, `client/golden/move_vectors.json`, `client/scripts/server_yaw.gd` |
-| Determinism and performance measurement | `server/src/bench.rs` |
+| CPU measurements and offline traces | `server/src/bench.rs`, `trace.rs`; contract in `docs/BENCHMARK.md` |
 | Tick loop shared by the binary and harnesses | `server/src/run.rs` (`run_server`, `ServerOptions`) |
 | Agent playtest harness and metrics | `tools/playtest` |
 | Decision-brain agent, budget gate, spend ledger | `agents/brain` (`budget`, `provider`, `bot`) |

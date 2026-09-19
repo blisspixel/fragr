@@ -386,7 +386,7 @@ pub enum ServerMessage {
         playlist: String,
     },
     /// The arena's shape: the bounds and the solids that block movement and
-    /// shots. Sent once to a fighter when it joins and again to everyone when
+    /// shots. Sent once to every role on join and again to everyone when
     /// the map changes, never per tick, because it does not change per tick.
     /// Agents need it to tell a clear shot from a wall; the Godot client has
     /// the same geometry in its scene.
