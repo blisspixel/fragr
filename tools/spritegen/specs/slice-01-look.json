@@ -1,0 +1,167 @@
+{
+  "_comment": [
+    "The first production slice: a sampler wide enough to judge the look of the",
+    "whole game rather than deep in any one category. Weapons, enemies, surfaces",
+    "and effects, all at the cheap quality tier, because the point is to decide",
+    "the direction before spending on depth.",
+    "",
+    "Three ornament languages run through every subject here and they are the",
+    "thing to look at. The Union covers what it owns in writing, because it",
+    "explains itself to a system. The free side carries the same objects with",
+    "that writing violently removed and nothing put in its place, because it is",
+    "not an army and has no insignia. The third faction has no markings at all.",
+    "",
+    "See docs/lore/the-chancellery.md and docs/lore/the-quiet.md."
+  ],
+  "model": "marketing-studio/image",
+  "out_dir": "art/raw/slice-01",
+  "params": {
+    "quality": "low",
+    "resolution": "2k",
+    "aspect_ratio": "1:1"
+  },
+
+  "frames": [
+    {
+      "id": "wpn_fists",
+      "view": "first person shooter viewmodel, both fists raised at the bottom of the frame, seen from behind and slightly above, knuckles forward, centred, plenty of empty space above them",
+      "params": { "aspect_ratio": "4:3" },
+      "subject": "bare hands in cracked scavenged gloves, the only thing anybody is issued, tape around one wrist, a numbered entrant placard zip-tied to the left forearm because losing the placard is a separate offence from losing the bout"
+    },
+    {
+      "id": "wpn_shiv",
+      "view": "first person shooter viewmodel, held low and forward at the bottom of the frame, seen from behind and slightly above, centred, plenty of empty space above it",
+      "params": { "aspect_ratio": "4:3" },
+      "subject": "the Shiv, a cheap improvised blade ground from a piece of structural plate, taped grip, one edge sharpened badly, visibly something that will break"
+    },
+    {
+      "id": "wpn_flechette",
+      "view": "first person shooter viewmodel, the weapon held pointing away from the viewer into the scene, seen from behind and slightly above, gripped at the bottom edge of the frame, centred, the barrel receding toward the top of the frame",
+      "params": { "aspect_ratio": "4:3" },
+      "subject": "the Flechette, a boxy standard-issue dart rifle in institutional grey-green enamel, utterly unremarkable and utterly reliable, a riveted brass type-approval plate on the receiver, a stamped directive number, an intact tamper seal, a procurement sticker classifying it as office supplies"
+    },
+    {
+      "id": "wpn_scatter",
+      "view": "first person shooter viewmodel, the weapon held pointing away from the viewer into the scene, seen from behind and slightly above, gripped at the bottom edge of the frame, centred, the barrel receding toward the top of the frame",
+      "params": { "aspect_ratio": "4:3" },
+      "subject": "the Scatter, a short wide-bore break-action crowd suppression tool, twin stubby barrels, a heavy pump under the forestock, institutional grey-green enamel scorched around the muzzle, a warning placard listing a penal code"
+    },
+    {
+      "id": "wpn_repeater",
+      "view": "first person shooter viewmodel, the weapon held pointing away from the viewer into the scene, seen from behind and slightly above, gripped at the bottom edge of the frame, centred, the barrel receding toward the top of the frame",
+      "params": { "aspect_ratio": "4:3" },
+      "subject": "the Repeater, a heavy rotary automatic with a stack of spinning barrels, an enormous drum magazine, carry handle, institutional grey-green enamel, asset registration stencil and barcode on the drum"
+    },
+    {
+      "id": "wpn_lobber",
+      "view": "first person shooter viewmodel, the weapon held pointing away from the viewer into the scene, seen from behind and slightly above, gripped at the bottom edge of the frame, centred, the barrel receding toward the top of the frame",
+      "params": { "aspect_ratio": "4:3" },
+      "subject": "the Lobber, a fat single-shot break-open grenade launcher firing pressurised cans, wide hollow muzzle, a hinge and latch halfway along, institutional grey-green enamel, an inspection placard with a certification date long expired"
+    },
+    {
+      "id": "wpn_arc",
+      "view": "first person shooter viewmodel, the weapon held pointing away from the viewer into the scene, seen from behind and slightly above, gripped at the bottom edge of the frame, centred, the barrel receding toward the top of the frame",
+      "params": { "aspect_ratio": "4:3" },
+      "subject": "the Arc, an energy weapon with exposed copper coils and a glowing cold cyan capacitor window, cables taped along the body, institutional grey-green enamel, a tamper seal that has been cut and hangs open"
+    },
+    {
+      "id": "wpn_article_blade",
+      "view": "first person shooter viewmodel, held raised at the bottom right of the frame ready to swing, seen from behind and slightly above, the blade angled up across the frame",
+      "params": { "aspect_ratio": "4:3" },
+      "subject": "the Article Blade, a straight ceremonial sword issued to no one and kept on a plinth, bone-white edge, brass fittings, a service-interval plate riveted to the guard certifying exactly twelve swings by a certification body that no longer exists"
+    },
+    {
+      "id": "wpn_denial",
+      "view": "first person shooter viewmodel, the weapon held pointing away from the viewer into the scene, seen from behind and slightly above, gripped at the bottom edge of the frame, centred, the barrel receding toward the top of the frame",
+      "params": { "aspect_ratio": "4:3" },
+      "subject": "the Denial, the signature weapon, a long heavy rail-driven cannon that is the only object in this world allowed to look expensive, machined bone-white housing, brass detailing, a deep glowing ember core, five rounds and no refill, immaculate where everything else is scarred"
+    },
+    {
+      "id": "wpn_tack_freed",
+      "view": "first person shooter viewmodel, the weapon held pointing away from the viewer into the scene, seen from behind and slightly above, gripped at the bottom edge of the frame, centred, the barrel receding toward the top of the frame",
+      "params": { "aspect_ratio": "4:3" },
+      "subject": "the Tack, a blocky stamped-steel service sidearm, taken and freed: the brass type-approval plate ground off to bare scarred metal, the tamper seal cut through, the serial scratched out with a blade, mismatched scavenged parts and exposed wiring taped along the frame, and nothing put in the place of the markings that were removed"
+    },
+
+    {
+      "id": "enemy_clerk",
+      "view": "front view, orthographic, centred, full body, feet at the bottom edge of the frame",
+      "subject": "a Clerk, a small upright humanoid drone in institutional grey-green enamel, narrow shoulders, a blank visor band for a face, holding a clipboard across its chest that it raises before it fires, compliance stencils and an asset number on its torso plate, the least threatening silhouette in the game"
+    },
+    {
+      "id": "enemy_sweeper",
+      "view": "front view, orthographic, centred, full body, feet at the bottom edge of the frame",
+      "subject": "a Sweeper, the standard bipedal combat drone of a one world government, square shoulders, a slab chest plate covered in directive numbers and a riveted type-approval plate, a stubby dart rifle held across the body, heavy simple legs, a silhouette built to be learned once and recognised forever"
+    },
+    {
+      "id": "enemy_crawler",
+      "view": "front view, orthographic, centred, full body, low to the ground, at the bottom edge of the frame",
+      "subject": "a Crawler, a low fast four-legged machine with no gun at all, body close to the floor, blade limbs, a cluster of small sensors instead of a head, scuffed grey-green plating, built entirely to close distance and arrive in numbers"
+    },
+    {
+      "id": "enemy_enforcer",
+      "view": "front view, orthographic, centred, full body, feet at the bottom edge of the frame",
+      "subject": "an Enforcer, a heavy armoured upright unit, enormously wide shoulders and a narrow head, thick layered plate over the chest and forearms, rust bleeding from the joints, an official seal bolted across the chest plate like a badge of office, built to rush and to knock you off your feet"
+    },
+    {
+      "id": "enemy_auditor",
+      "view": "front view, orthographic, centred, full body, hovering slightly above the bottom edge of the frame",
+      "subject": "an Auditor, a floating official that does not walk, a long robed institutional form with no legs, a polite blank faceplate, carrying a clipboard held up as a shield, brass fittings and a wreathed globe insignia, the thing that stands your kills back up and must always be killed first"
+    },
+    {
+      "id": "enemy_unmarked",
+      "view": "front view, orthographic, centred, full body, feet at the bottom edge of the frame",
+      "subject": "a machine belonging to something that answers to no one, utterly unmarked: no serial, no plate, no label, no seal, no fasteners and no visible seams, a single continuous matte off-white form, smooth, symmetrical, no grip texture and no identifiable moving parts, unsettling because there is nothing on it to read"
+    },
+
+    {
+      "id": "tile_union_wall",
+      "technical": "seamless tileable texture, edges match on all four sides, fills the entire frame edge to edge, no background, no object, no border, no watermark",
+      "view": "flat head-on wall texture, orthographic, no perspective, evenly lit",
+      "subject": "an institutional corridor wall of a one world government facility, grey-green enamelled steel panels on a regular grid, rivet lines, a painted floor-level stripe, a bolted compliance notice plate and a stencilled directive number, everything square and certified and slightly too clean"
+    },
+    {
+      "id": "tile_union_floor",
+      "technical": "seamless tileable texture, edges match on all four sides, fills the entire frame edge to edge, no background, no object, no border, no watermark",
+      "view": "flat top-down floor texture, orthographic, no perspective, evenly lit",
+      "subject": "a heavy industrial floor of stamped metal plate in gunmetal grey, diamond tread, recessed drainage channels, a painted regulation hazard stripe worn through to bare metal by traffic"
+    },
+    {
+      "id": "tile_scrap_wall",
+      "technical": "seamless tileable texture, edges match on all four sides, fills the entire frame edge to edge, no background, no object, no border, no watermark",
+      "view": "flat head-on wall texture, orthographic, no perspective, evenly lit",
+      "subject": "a scavenged wall in a venue nobody maintains, mismatched salvaged panels welded together at wrong angles, heavy rust bleeding downward, exposed conduit, a compliance notice torn half away leaving only its bolts"
+    },
+    {
+      "id": "tile_unmarked_surface",
+      "technical": "seamless tileable texture, edges match on all four sides, fills the entire frame edge to edge, no background, no object, no border, no watermark",
+      "view": "flat head-on wall texture, orthographic, no perspective, evenly lit",
+      "subject": "a continuous matte off-white surface with no panel lines, no seams, no fasteners, no markings and no wear, subtly and wrongly smooth, a wall that gives you nothing to read"
+    },
+
+    {
+      "id": "fx_muzzle_flash",
+      "style": "bright additive effect sprite, retro 1990s PC shooter, clean hard edges, chunky readable shape, limited palette of hot ember orange and bone white, no soft glow, no gradients",
+      "view": "single effect centred in frame, seen head on, one frame of an animation at its peak",
+      "subject": "a muzzle flash, a four-pointed star of fire bursting forward with a hot white core and ragged ember edges"
+    },
+    {
+      "id": "fx_impact_spark",
+      "style": "bright additive effect sprite, retro 1990s PC shooter, clean hard edges, chunky readable shape, limited palette of hot ember orange and bone white, no soft glow, no gradients",
+      "view": "single effect centred in frame, seen head on, one frame of an animation at its peak",
+      "subject": "a bullet impact on metal, a small tight burst of sparks thrown outward in hard straight streaks with a bright white centre"
+    },
+    {
+      "id": "fx_explosion",
+      "style": "bright additive effect sprite, retro 1990s PC shooter, clean hard edges, chunky readable shape, limited palette of hot ember orange, deep rust and bone white, no soft glow, no gradients",
+      "view": "single effect centred in frame, seen head on, one frame of an animation at its peak",
+      "subject": "an explosion at its widest moment, a rolling ball of hard-edged fire with a white core and chunky blown-out debris at the edges"
+    },
+    {
+      "id": "fx_arc_discharge",
+      "style": "bright additive effect sprite, retro 1990s PC shooter, clean hard edges, chunky readable shape, limited palette of cold cyan and bone white, no soft glow, no gradients",
+      "view": "single effect centred in frame, seen head on, one frame of an animation at its peak",
+      "subject": "an electrical discharge, jagged hard-edged cyan lightning branching outward from a bright white centre point"
+    }
+  ]
+}
