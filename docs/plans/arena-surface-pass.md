@@ -1,6 +1,7 @@
 # Arena surface pass
 
 Status: in flight, 2026-09-19. Branch: `feat/arena-surface-pass`.
+Review: [PR #167](https://github.com/blisspixel/fragr/pull/167).
 Part of `local-excellence.md`; visual stages continue in `look-pass-boomer.md`.
 Spend: $0, authored shaders and geometry, existing fonts and assets.
 
