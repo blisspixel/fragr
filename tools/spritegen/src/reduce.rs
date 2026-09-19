@@ -416,8 +416,7 @@ mod tests {
     #[test]
     fn the_real_project_palette_loads() {
         let text = std::fs::read_to_string(
-            std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-                .join("../../docs/palette.json"),
+            std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../docs/palette.json"),
         )
         .expect("docs/palette.json should exist");
         let palette = Palette::from_json(&text).expect("the project palette should parse");

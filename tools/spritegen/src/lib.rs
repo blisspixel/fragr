@@ -134,6 +134,14 @@ pub struct Frame {
     /// where every frame sets its own style has given up the one property that
     /// makes thousands of generated frames look like one game.
     pub style: String,
+    /// The fixed technical tail, or an override for it.
+    ///
+    /// Tiles are the reason this exists. Everything else in the game is a
+    /// sprite standing on transparency, and a tile is the opposite: it fills
+    /// the frame edge to edge and must meet itself on all four sides. Asking
+    /// for that and for a transparent background in the same breath is a
+    /// contradiction, and the model resolves contradictions by ignoring one.
+    pub technical: String,
     /// Model parameters, already merged from the spec defaults.
     pub params: Map<String, Value>,
 }
@@ -154,7 +162,7 @@ impl Frame {
         if !self.view.trim().is_empty() {
             parts.push(self.view.as_str());
         }
-        parts.push(TECHNICAL);
+        parts.push(self.technical.as_str());
         let positive = parts
             .iter()
             .map(|part| part.trim())
@@ -208,6 +216,11 @@ pub fn parse_spec(text: &str) -> Result<Spec, Error> {
         .get("style")
         .and_then(Value::as_str)
         .unwrap_or(STYLE)
+        .to_string();
+    let default_technical = root
+        .get("technical")
+        .and_then(Value::as_str)
+        .unwrap_or(TECHNICAL)
         .to_string();
 
     let raw_frames = root
@@ -263,6 +276,10 @@ pub fn parse_spec(text: &str) -> Result<Spec, Error> {
                 .get("style")
                 .and_then(Value::as_str)
                 .map_or_else(|| default_style.clone(), str::to_string),
+            technical: raw
+                .get("technical")
+                .and_then(Value::as_str)
+                .map_or_else(|| default_technical.clone(), str::to_string),
             params,
         });
     }
@@ -579,6 +596,7 @@ mod tests {
             subject: "a rusted pistol".into(),
             view: "side profile".into(),
             style: STYLE.to_string(),
+            technical: TECHNICAL.to_string(),
             params: Map::new(),
         }
     }
@@ -724,6 +742,28 @@ mod tests {
         )
         .unwrap();
         assert!(spec.frames.iter().all(|f| f.style == "run wide style"));
+    }
+
+    #[test]
+    fn the_technical_tail_can_be_overridden_for_tiles() {
+        let spec = parse_spec(
+            r#"{
+              "model": "m",
+              "out_dir": "o",
+              "frames": [
+                { "id": "sprite", "subject": "a pistol" },
+                { "id": "tile", "subject": "a floor", "technical": "seamless tileable texture, fills the frame" }
+              ]
+            }"#,
+        )
+        .unwrap();
+        assert!(spec.frames[0].prompt().contains("transparent background"));
+        let tile = spec.frames[1].prompt();
+        assert!(tile.contains("seamless tileable texture"));
+        assert!(
+            !tile.contains("transparent background"),
+            "a tile must not also ask for transparency: {tile}"
+        );
     }
 
     #[test]
