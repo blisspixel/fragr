@@ -4,6 +4,13 @@
 **Branch:** `feat/look-pass-*` (one PR per stage below)
 **Spend:** $0. Art is authored in-repo (pixel plates, palette, shaders). No paid assets.
 
+Current implementation pass: [`arena-surface-pass.md`](arena-surface-pass.md).
+Three idle weapon viewmodels and retro menus shipped in v0.15.0. The authored
+surface shader is a deliberate alternative to the proposed atlas for the current
+server-built boxes. Most stages below remain design targets, not implemented
+behavior. `tools/spritegen` is the existing asset preparation pipeline; the
+historical `tools/pixelforge` proposal below was never implemented.
+
 ## Goal
 
 Make the tip look like a modern pixel-art boomer shooter instead of a textured graybox: a low internal resolution with nearest upscaling, surfaces limited to the locked palette with ordered dithering, fighters as readable eight-direction sprites with walk, fire, pain, and death frames, weapon view models with idle, fire, and bob frames, muzzle and impact frames, a HUD laid out on a grid, and level surfaces built from a coherent tile atlas with baked lighting and trim. Reference points and the reasons behind each choice are in `docs/DESIGN-REFERENCES.md` (Dusk, Amid Evil, Prodeus, Cultic, Nightmare Reaper rows) and the palette lock in `docs/ART_STORY_BIBLE.md`.
@@ -37,7 +44,7 @@ Make the tip look like a modern pixel-art boomer shooter instead of a textured g
 ## Verification
 
 - `tools/godot_check.sh` (import, parse, harnesses) on every stage.
-- `tools/capture_tip_screenshots.sh` regenerated stills committed with each stage; `docs/screenshots/README.md` updated to describe what is live.
+- `tools/qa_tour.sh --publish` regenerated and inspected stills committed with each stage; `docs/screenshots/README.md` describes what is live.
 - A frame-time note in the PR: 60 frames per second at 1280 by 720 on the reference machine with four bots, measured with the engine's monitor.
 
 ## Success criteria

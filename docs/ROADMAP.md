@@ -48,10 +48,15 @@ remaining gaps. Windows/macOS CI joins Linux verification. Integration and relea
 history establish shipped status. This is an active full-game build-out, not a
 finished campaign or final art pass. No paid calls were made for this increment.
 
-The current [benchmark increment](plans/showcase-benchmark.md) adds complete
+The [benchmark increment](plans/showcase-benchmark.md) shipped in v0.16.0 with complete
 recordings and explicit CPU/serialization accounting. Its contract lives in
 [`BENCHMARK.md`](BENCHMARK.md). A rendered GPU benchmark, authored world art, and
 campaign encounters remain open; headless numbers do not establish them.
+
+The [arena surface pass](plans/arena-surface-pass.md) is now active: authored pixel
+materials, clearer industrial structure, scenery outside the playable boundary,
+and normal fighter scale in eye views. This preserves server-owned collision and
+does not turn the existing arena layouts into completed campaign maps.
 
 The phases below are the long shape. This is the remaining build order, with the reason each item sits where it does.
 

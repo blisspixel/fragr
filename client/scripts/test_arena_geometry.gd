@@ -38,8 +38,22 @@ func _run() -> void:
 	layout.name = "Layout"
 	arena.add_child(layout)
 	cover.apply_map_info(info)
-	if (layout.get_node("Floor") as Node3D).visible or cover.get_child_count() != 7:
+	if (layout.get_node("Floor") as Node3D).visible or cover.get_child_count() != 8:
 		push_error("test_arena_geometry: replacement revived or duplicated geometry")
+		ok = false
+	# Decorations must not create apparent cover inside the playable square.
+	var backdrop: ArenaBackdrop = cover.get_node("Backdrop")
+	for child: Node in backdrop.get_children():
+		if child is MeshInstance3D:
+			var mesh_node: MeshInstance3D = child
+			var box: AABB = mesh_node.transform * mesh_node.get_aabb()
+			if box.position.x < 100.0 and box.end.x > -100.0 and box.position.z < 100.0 and box.end.z > -100.0:
+				push_error("test_arena_geometry: scenery intrudes on playable space")
+				ok = false
+	# Rotation replaces old meshes immediately, with no overlapping frame.
+	cover.apply_map_info({"map_id": 2, "half_extent": 55.0, "solids": []})
+	if cover.get_child_count() != 6 or (cover.get_node("MapFloor").mesh as PlaneMesh).size != Vector2(110.0, 110.0):
+		push_error("test_arena_geometry: map rotation retained stale geometry")
 		ok = false
 	arena.free()
 	if ok:

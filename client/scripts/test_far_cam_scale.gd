@@ -4,6 +4,9 @@ extends SceneTree
 # Run: godot --path client --headless --script res://scripts/test_far_cam_scale.gd
 
 func _initialize() -> void:
+	call_deferred("_run")
+
+func _run() -> void:
 	var ok: bool = true
 	var pawn_script: GDScript = load("res://scripts/player_pawn.gd") as GDScript
 	if pawn_script == null:
@@ -86,6 +89,27 @@ func _initialize() -> void:
 		if ok:
 			print("ok   smoothing is frame-rate independent")
 
+	# Exercise the actual presentation path. Overview assistance must not turn
+	# distant opponents into giants above cover in human or spectator eye view.
+	var visual: Node3D = load("res://scenes/player.tscn").instantiate()
+	var camera: Camera3D = Camera3D.new()
+	root.add_child(camera)
+	camera.make_current()
+	root.add_child(visual)
+	visual.set_process(false)
+	visual.position = Vector3(0.0, 0.0, -36.0)
+	visual.broadcast_scale_enabled = false
+	visual._update_far_cam_scale()
+	if (visual.get_node("Body") as Sprite3D).scale != Vector3.ONE:
+		push_error("test_far_cam_scale: eye view enlarged a distant opponent")
+		ok = false
+	visual.broadcast_scale_enabled = true
+	visual._update_far_cam_scale()
+	if (visual.get_node("Body") as Sprite3D).scale != Vector3.ONE * 3.0:
+		push_error("test_far_cam_scale: overview assistance did not apply")
+		ok = false
+	visual.free()
+	camera.free()
 	pawn.free()
 
 	if ok:

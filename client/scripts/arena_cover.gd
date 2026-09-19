@@ -21,10 +21,10 @@ const BOUNDARY_HEIGHT: float = 8.0
 ## A solid at or under this is a step or a kerb rather than a wall, and gets
 ## the lighter surface so a player can read it as walkable at a glance.
 const LOW_TOP: float = 1.6
-const SURFACE_SHADER: Shader = preload("res://assets/shaders/arena_surface.gdshader")
 
 var _built_for: int = -1
 var _half_extent: float = 0.0
+var _materials: Array[ShaderMaterial] = []
 
 func _ready() -> void:
 	name = "ArenaCover"
@@ -38,13 +38,20 @@ func apply_map_info(info: Dictionary) -> void:
 		return
 	_built_for = map_id
 	_half_extent = float(info.get("half_extent", 50.0))
+	_materials.clear()
+	for kind: int in range(4):
+		_materials.append(ArenaMaterials.make(map_id, kind))
 	for child in get_children():
+		remove_child(child)
 		child.queue_free()
 	_build_shell(_half_extent)
 	var solids: Array = info.get("solids", [])
 	for entry in solids:
 		if typeof(entry) == TYPE_DICTIONARY:
 			_add_solid(entry as Dictionary)
+	var backdrop: ArenaBackdrop = ArenaBackdrop.new()
+	backdrop.build(map_id, _half_extent)
+	add_child(backdrop)
 	_hide_scene_props()
 
 ## Half width of the playable square the server last described, so the camera
@@ -63,7 +70,7 @@ func _build_shell(half: float) -> void:
 	floor_node.name = "MapFloor"
 	floor_node.mesh = floor_mesh
 	floor_node.position = Vector3.ZERO
-	floor_node.material_override = _surface(Color(0.27, 0.26, 0.24), 3.0, true)
+	floor_node.material_override = _materials[0]
 	add_child(floor_node)
 
 	for side in range(4):
@@ -81,7 +88,7 @@ func _build_shell(half: float) -> void:
 			node.position = Vector3(0.0, BOUNDARY_HEIGHT * 0.5, sign * half)
 		else:
 			node.position = Vector3(sign * half, BOUNDARY_HEIGHT * 0.5, 0.0)
-		node.material_override = _boundary_material()
+		node.material_override = _materials[1]
 		add_child(node)
 
 ## The scene files still carry a floor, four walls and some legacy low walls
@@ -132,19 +139,5 @@ func _add_solid(solid: Dictionary) -> void:
 	var node: MeshInstance3D = MeshInstance3D.new()
 	node.mesh = mesh
 	node.position = Vector3((min_x + max_x) * 0.5, height * 0.5, (min_z + max_z) * 0.5)
-	node.material_override = _material(height <= LOW_TOP)
+	node.material_override = _materials[3 if height <= LOW_TOP else 2]
 	add_child(node)
-
-static func _surface(color: Color, panel: float, floor_face: bool = false) -> ShaderMaterial:
-	var mat: ShaderMaterial = ShaderMaterial.new()
-	mat.shader = SURFACE_SHADER
-	mat.set_shader_parameter("surface_color", color)
-	mat.set_shader_parameter("panel_size", panel)
-	mat.set_shader_parameter("floor_surface", floor_face)
-	return mat
-
-static func _boundary_material() -> ShaderMaterial:
-	return _surface(Color(0.40, 0.37, 0.33), 4.0)
-
-static func _material(low: bool) -> ShaderMaterial:
-	return _surface(Color(0.44, 0.39, 0.32) if low else Color(0.38, 0.34, 0.30), 2.0)

@@ -17,6 +17,7 @@ Status words: **planned**, **in flight**, **shipped** (merged to `main`, PR numb
 
 | Plan | Status | One-liner |
 |---|---|---|
+| [`arena-surface-pass.md`](./arena-surface-pass.md) | **in flight** | Industrial pixel surfaces and a readable arena backdrop, preserving server collision geometry. |
 | [`local-excellence.md`](./local-excellence.md) | **in flight** | Cohesive local polish through verified instructions, reliable checks, art integration, and repeated visual and playtest review. |
 | [`solo-story-episodes.md`](./solo-story-episodes.md) | **shipped** (#106) | Solo Broadcast Episode 0 Calibration / Larak Lot face + juice bar. |
 | [`tip-stills-ep0.md`](./tip-stills-ep0.md) | **shipped** (#110) | Recapture tip stills + README Solo Broadcast face after Episode 0. |
@@ -36,7 +37,7 @@ Status words: **planned**, **in flight**, **shipped** (merged to `main`, PR numb
 | [`benchmark-and-stats.md`](./benchmark-and-stats.md) | **planned** | Benchmark mode with phase histograms and budget headroom, plus the deep analysis layer: distributions, intervals, TrueSkill, a nerd overlay, and a full export. |
 | [`massive-arenas.md`](./massive-arenas.md) | **planned** | Seeded sim, spatial grid, interest sets, delta snapshots, binary wire, tick budget, and the measured scale ladder to hundreds of fighters. |
 | [`visual-qa-tour.md`](./visual-qa-tour.md) | **rung 1 landed** | Manifest-driven tour of every player-facing state with stills, a contact sheet, and feel probes for the agent developer to critique. |
-| [`showcase-benchmark.md`](./showcase-benchmark.md) | **rung 1 in flight** | Reproducible traces and honest CPU measurements first; a rendered showcase with frame-time analysis follows. |
+| [`showcase-benchmark.md`](./showcase-benchmark.md) | **rung 1 shipped** (#166) | Reproducible traces and honest CPU measurements; a rendered showcase with frame-time analysis follows. |
 | [`weapon-economy.md`](./weapon-economy.md) | **spec** | The pickup economy does not exist: weapon swaps are free, so nobody races for anything. Four shared ammo pools, eight guns, melee, a thrown mine, and the clock-versus-loop rule that creates item timing. |
 | [`shot-feedback.md`](./shot-feedback.md) | **spec** | A hit and a miss look identical in the world. The server says where a shot ended, tracers and impacts follow, and a ninety degree yaw mismatch between server and client gets settled by a harness. |
 | [`map-roster-2026.md`](./map-roster-2026.md) | **shipped** | Six maps from 110 m to 320 m, a heightfield in the shared movement step, and a map built for the three-cornered mode. |
