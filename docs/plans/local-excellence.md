@@ -213,12 +213,13 @@ not spending by this pass.
 
 Remaining presentation gaps: complete enemy animation and hit/death sets, richer
 world surfaces and landmarks, first-person animation, encounter pacing, and authored
-campaign levels. Spectator eye view reconstructs position/yaw and weapon state;
-human pitch is still client-only. Full 3D aim, prediction, local server ownership,
-and actual solo pause need separate authoritative work. Character skins are not
+campaign levels. The active [vertical aim pass](vertical-aim.md) connects camera
+pitch to shots and spectator eyes. Prediction, local server ownership, and actual
+solo pause remain separate authoritative work. Character skins are not
 implemented by callsign and reticle customization.
 
-Next: complete safe asset-request recovery, then continue enemy animation, authored
-encounters, and the replay-driven rendered benchmark. Keep the full-game target visible.
+Safe asset-request recovery shipped in #169. Next: finish vertical combat, then
+continue enemy animation, authored encounters, and the replay-driven rendered
+benchmark. Keep the full-game target visible.
 The full-game goal remains active until the required campaign, co-op, modes,
 assets, maps, agent paths, and server reliability/scale have evidence.

@@ -36,7 +36,6 @@ var map_chip_label: Label = null
 var crosshair_hbar = null
 var crosshair_vbar = null
 var crosshair_dot = null
-var crosshair_ring = null
 ## Dark rectangles sitting behind each crosshair part. A cream crosshair over a
 ## tan floor is invisible, which is how a one pixel plus disappeared exactly
 ## where a player was aiming.
@@ -145,12 +144,10 @@ func _ready():
 	crosshair_hbar = get_node_or_null("Crosshair/HBar")
 	crosshair_vbar = get_node_or_null("Crosshair/VBar")
 	crosshair_dot = get_node_or_null("Crosshair/Dot")
-	crosshair_ring = get_node_or_null("Crosshair/RingBorder")
 	crosshair_edges = {
 		crosshair_hbar: get_node_or_null("Crosshair/HBarEdge"),
 		crosshair_vbar: get_node_or_null("Crosshair/VBarEdge"),
 		crosshair_dot: get_node_or_null("Crosshair/DotEdge"),
-		crosshair_ring: get_node_or_null("Crosshair/RingEdge"),
 	}
 	hit_marker = get_node_or_null("HitMarker")
 	damage_numbers = get_node_or_null("DamageNumbers")
@@ -1259,8 +1256,6 @@ func _apply_crosshair_for_weapon(weapon_name: String) -> void:
 		crosshair_vbar.color = bone
 	if crosshair_dot:
 		crosshair_dot.visible = false
-	if crosshair_ring:
-		crosshair_ring.visible = false
 	match weapon_name:
 		"Rail":
 			if crosshair_hbar:
@@ -1287,9 +1282,6 @@ func _apply_crosshair_for_weapon(weapon_name: String) -> void:
 				crosshair_vbar.offset_left = -1.0
 				crosshair_vbar.offset_right = 1.0
 				crosshair_vbar.color = ember
-			if crosshair_ring:
-				crosshair_ring.visible = true
-				crosshair_ring.color = Color(0.78, 0.55, 0.32, 0.22)
 		_:
 			if crosshair_hbar:
 				crosshair_hbar.offset_left = -11.0

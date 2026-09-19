@@ -1,4 +1,5 @@
 pub mod bench;
+pub mod combat;
 pub(crate) mod maps;
 pub mod movement;
 pub mod net;

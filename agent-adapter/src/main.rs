@@ -415,6 +415,7 @@ fn compute_bot_action(bot_id: uuid::Uuid, snapshot: &protocol::Snapshot) -> prot
 
     protocol::Action {
         look_at: Some(protocol::LookAt {
+            y: None,
             player_id: Some(target.id),
             x: None,
             z: None,
@@ -811,6 +812,7 @@ mod tests {
         let snapshot = protocol::Snapshot {
             tick: 100,
             players: vec![protocol::PlayerState {
+                pitch: 0.0,
                 id: uuid::Uuid::new_v4(),
                 name: "TestBot".to_string(),
                 x: 10.0,
@@ -910,6 +912,7 @@ mod tests {
             tick: 50,
             players: vec![
                 protocol::PlayerState {
+                    pitch: 0.0,
                     id: uuid::Uuid::new_v4(),
                     name: "Agent1".to_string(),
                     x: 5.0,
@@ -924,6 +927,7 @@ mod tests {
                     weapon: "Flechette".to_string(),
                 },
                 protocol::PlayerState {
+                    pitch: 0.0,
                     id: uuid::Uuid::new_v4(),
                     name: "Agent2".to_string(),
                     x: -5.0,
@@ -1225,6 +1229,7 @@ mod tests {
             tick: 1,
             players: vec![
                 protocol::PlayerState {
+                    pitch: 0.0,
                     id: bot_id,
                     name: "Bot".into(),
                     x: 0.0,
@@ -1239,6 +1244,7 @@ mod tests {
                     weapon: "Flechette".into(),
                 },
                 protocol::PlayerState {
+                    pitch: 0.0,
                     id: target_id,
                     name: "T".into(),
                     x: 5.0,

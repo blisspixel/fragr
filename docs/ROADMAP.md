@@ -62,10 +62,13 @@ The [player settings pass](plans/player-settings.md), shipped in v0.18.0, connec
 display, and audio to their runtime readers through the same retro panel at the
 front menu and in a live match. It also fixes resolution-dependent mouse input.
 
-Before further paid art, [asset request recovery](plans/asset-request-recovery.md)
-must preserve submitted jobs across interruptions and bind authenticated polling
-to the official API origin. Existing reference parameters already pass through
-the spec; preparation and consistent animation production remain separate work.
+[Asset request recovery](plans/asset-request-recovery.md) shipped in #169 with
+cross-platform failure tests. Submitted jobs survive interruptions, and
+authenticated polling is bound to the official API origin. Reference preparation
+and consistent animation production remain separate work.
+
+[Vertical aim](plans/vertical-aim.md) is the active gameplay increment: connect
+camera pitch to authoritative hits and cover, agent targets, and spectator views.
 
 The phases below are the long shape. This is the remaining build order, with the reason each item sits where it does.
 
@@ -86,7 +89,7 @@ where muzzle registration depends on them.
 
 **5. Two palette ramps that do not exist.** No institutional green for issued hardware, no off-white for the unmarked machines. Two of the three factions are currently borrowing colours from the other one, which undercuts the whole read-the-faction-by-colour design. A colour decision for `ART-COLOR.md`, not a tooling one.
 
-**6. Maps: the rest of what the roster needs.** Six maps from 110 m to 320 m now exist, verticality landed as a heightfield in the shared movement step with the golden vectors held bit identical, and the spawn validator and reachability flood fill run as tests over every map with zero spawn deaths. What is still designed rather than built, from `plans/map-roster-2026.md`: the three-cornered mode's teams, zone state and end condition; permeable floors, so there is no space under a solid; lifts, jump pads and doors; a true 3D hitscan; and agent pathing that understands height, which is the next thing worth doing because a straight-line agent can walk into a deck face with a ramp eight metres away.
+**6. Maps: the rest of what the roster needs.** Six maps from 110 m to 320 m exist, with heightfield movement, shared golden vectors, spawn validation, and reachability tests. True 3D hitscan is implemented in the active vertical-aim increment. Remaining work from `plans/map-roster-2026.md`: three-cornered teams, zones and end conditions; permeable floors; lifts, jump pads and doors; and height-aware pathfinding. A straight-line agent can still walk into a deck face with a ramp nearby.
 
 **6b. A lighting pass.** A cover block's shadowed face is very dark up close, which in first person fills most of the frame. The ambient tint is doing all the work and there is no fill. Cheap, and it is now the worst-looking thing in the game.
 

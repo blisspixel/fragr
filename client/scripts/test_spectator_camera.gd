@@ -2,6 +2,7 @@ extends SceneTree
 
 class Fighter extends Node3D:
 	var target_yaw: float = 0.0
+	var target_pitch: float = 0.0
 	var local_fp: bool = false
 	func set_local_fp(enabled: bool) -> void:
 		local_fp = enabled
@@ -28,9 +29,10 @@ func _run() -> void:
 	second.position = Vector3(-3, 1.5, -9)
 	for i in range(16):
 		first.target_yaw = TAU * float(i) / 16.0
+		first.target_pitch = -0.7 + float(i) / 15.0 * 1.4
 		camera.set_fp_mode(false)
 		camera.set_fp_mode(true, first)
-		_check((-camera.transform.basis.z).distance_to(ServerYaw.forward(first.target_yaw)) < 0.00001, "join facing must match server yaw")
+		_check((-camera.transform.basis.z).distance_to(ServerYaw.aim_direction(first.target_yaw, first.target_pitch)) < 0.00001, "join facing must match server yaw and pitch")
 		camera.fp_yaw = 2.1
 		camera.fp_pitch = 0.3
 		camera.set_fp_mode(true, first)
@@ -41,7 +43,8 @@ func _run() -> void:
 	_check(camera.is_observing_first_person(), "spectator starts at eye level")
 	_check(first.local_fp and not second.local_fp, "hide only the watched body")
 	_check(is_equal_approx(camera.position.y, 1.6), "spectator eye height is 1.6 metres")
-	_check((-camera.transform.basis.z).distance_to(ServerYaw.forward(first.target_yaw)) < 0.00001, "spectator facing uses server convention")
+	_check((-camera.transform.basis.z).distance_to(ServerYaw.aim_direction(first.target_yaw, first.target_pitch)) < 0.00001, "spectator facing uses server yaw and pitch")
+	_check(camera.position.distance_to(first.position + Vector3(0.0, 0.1, 0.0)) < 0.00001, "camera origin matches the server eye without a forward offset")
 	camera.set_available_targets([second, first])
 	_check(camera.get_followed_target() == first, "roster order must not change the watched fighter")
 	camera.cycle_next_target()

@@ -15,10 +15,11 @@ Inspect them after every refresh. A nonblank image is not proof of good art.
 | `tour_arena_overview_16x9.png` | Server geometry with industrial surfaces and scenery outside the playable boundary |
 | `tour_shot_strip.png` | Twelve frames of an acknowledged shot |
 
-The full tour also checks rail/scatter selection, return to spectating, the
+The full tour also checks rail/scatter selection, server-confirmed upward and
+downward aim, return to spectating, the
 multiplayer page, all three settings tabs, and settings inside the live match
 overlay. Captures use an isolated settings file. The local manifest records actual
-map, round, role, weapon, dimensions, and flash visibility. Intermediates live in
+map, round, role, weapon, camera/server pitch, dimensions, and flash visibility. Intermediates live in
 `.agents/qa/`. Set `FRAGR_RENDER_DRIVER=vulkan` to check that rendering path;
 OpenGL compatibility is the tour default. This is renderer evidence on the
 recorded host, not a GPU vendor certification or a load benchmark.

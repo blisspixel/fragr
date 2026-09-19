@@ -1,6 +1,7 @@
 # Asset request recovery
 
-Status: in flight, 2026-09-19. Branch: `fix/asset-request-recovery`.
+Status: proven in PR #169, 2026-09-19. All five CI jobs passed across Linux,
+Windows, and macOS. Merge: `1ae55df`.
 Spend: $0. All verification uses fake transports or local files.
 
 ## Problem
@@ -61,7 +62,7 @@ the current project toolchain is newer. Preserve the existing direct REST path.
 - [x] Corrupt receipts, changed specs, duplicate IDs, and competing writers stop.
 - [x] Legacy completed rows remain readable and cannot trigger regeneration.
 - [x] Authenticated requests cannot follow a foreign status URL or redirect.
-- [ ] CLI checks, failure-injection tests, workspace checks, and 90 percent
+- [x] CLI checks, failure-injection tests, workspace checks, and 90 percent
   unfiltered coverage pass; platform CI verifies locking and file behavior.
 - [x] Documentation explains recovery, estimated costs, reference parameters,
   remaining quota checks, and the limits of legacy receipts.
@@ -81,7 +82,7 @@ tests cover the sprite tool. Formatting, Clippy with warnings denied, release
 builds, and dependency license/source/bans checks pass. The 1,200-tick benchmark
 repeats deterministically within its budget. A four-agent real-wire smoke records
 9 frags in 22.6 seconds. All twelve Godot harnesses pass. Linux/macOS/Windows CI
-must pass before merge; local tests alone do not establish those platforms.
+passed in run `35469217631`, including platform lock and file behavior.
 
 Review boundaries: the cap covers estimates for new calls in one invocation,
 not provider billing or shared account quota. Legacy rows lack request identity.

@@ -97,6 +97,8 @@ func _run() -> void:
 			await _change_role(state["join"] == "human")
 		if state.has("weapon"):
 			await _select_weapon(str(state["weapon"]))
+		if state.has("aim_pitch"):
+			await _set_aim_pitch(float(state["aim_pitch"]))
 		if state.get("overlay", "") == "match_menu":
 			_game_manager().get_node("PauseMenu").call("open")
 		if state.get("overlay", "") == "match_settings":
@@ -145,6 +147,11 @@ func _run() -> void:
 		if current_scene == "res://scenes/main.tscn" and (observed.get("fighters", 0) == 0 or observed.get("map_id", 0) == 0):
 			push_error("qa_tour: no live match for " + state_name)
 			_failed = true
+		if state.has("aim_pitch"):
+			var expected_pitch: float = float(state["aim_pitch"])
+			if absf(float(observed.get("camera_pitch", 99.0)) - expected_pitch) > 0.001 or absf(_local_server_pitch(_game_manager()) - expected_pitch) > 0.001:
+				push_error("qa_tour: captured aim disagrees with the server for " + state_name)
+				_failed = true
 		var path: String = _out_dir.path_join(file_name)
 		var err: Error = shot.save_png(path)
 		if err != OK:
@@ -344,6 +351,7 @@ func _observed_state() -> Dictionary:
 		return {"menu": true}
 	var snapshot: Dictionary = gm.get("latest_snapshot")
 	var cam: Node = _spectator_camera()
+	var server_pitch: float = _local_server_pitch(gm)
 	return {
 		"map_id": snapshot.get("map_id", 0),
 		"round_state": snapshot.get("round_state", "unknown"),
@@ -352,7 +360,32 @@ func _observed_state() -> Dictionary:
 		"local_weapon": gm.call("_local_weapon_name"),
 		"eye_view": cam.get("fp_mode") or cam.call("is_observing_first_person"),
 		"following": gm.call("_followed_player_id"),
+		"camera_pitch": float(cam.get("rotation").x),
+		"server_pitch": server_pitch if absf(server_pitch) <= ServerYaw.PITCH_LIMIT else null,
 	}
+
+func _local_server_pitch(gm: Node) -> float:
+	var snapshot: Dictionary = gm.get("latest_snapshot")
+	var network: Node = gm.get("net_client")
+	for player in snapshot.get("players", []):
+		if str(player.get("id", "")) == str(network.get("player_id")):
+			return float(player.get("pitch", 99.0))
+	return 99.0
+
+func _set_aim_pitch(pitch: float) -> void:
+	var gm: Node = _game_manager()
+	var cam: Node = _spectator_camera()
+	if gm == null or cam == null or not bool(gm.get("is_human_player")):
+		push_error("qa_tour: pitch capture requires a joined human")
+		_failed = true
+		return
+	cam.set("fp_pitch", pitch)
+	var deadline: int = Time.get_ticks_msec() + 3000
+	while absf(_local_server_pitch(gm) - pitch) > 0.001 and Time.get_ticks_msec() < deadline:
+		await process_frame
+	if absf(_local_server_pitch(gm) - pitch) > 0.001:
+		push_error("qa_tour: pitch did not reach the authoritative snapshot")
+		_failed = true
 
 func _pose_camera(mode: String) -> void:
 	if mode == "none":

@@ -39,6 +39,7 @@ var action_state = {
 	"jump": false,
 	"weapon_swap": null,
 	"yaw": 0.0,
+	"pitch": 0.0,
 	"seq": 0
 }
 const WEAPON_CYCLE = ["flechette", "rail", "scatter"]
@@ -296,6 +297,7 @@ func _process(_delta):
 		# zero for humans and remain the path for agents and older clients.
 		if camera and camera.has_method("consume_yaw"):
 			action_state.yaw = camera.consume_yaw()
+			action_state.pitch = camera.consume_pitch()
 		if controls_blocked():
 			for key in ["forward", "back", "left", "right", "fire", "jump"]:
 				action_state[key] = false

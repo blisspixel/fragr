@@ -23,10 +23,6 @@ const MOVE_SPEED: f32 = 5.0;
 pub const PLAYER_FLOOR_Y: f32 = 1.5;
 const TURN_SPEED: f32 = 2.0;
 pub const PLAYER_RADIUS: f32 = 0.5;
-/// Extra forgiveness on aim, as radians of cone that widen with distance.
-/// Zero means a shot has to actually pass through a fighter. A gamepad may
-/// earn a small positive value later; a mouse never should.
-const AIM_ASSIST_RADIANS: f32 = 0.0;
 const RESPAWN_DELAY_TICKS: u32 = 60;
 /// Ticks after a respawn during which a fighter cannot be hit (one second).
 pub const SPAWN_SHIELD_TICKS: u32 = 20;
@@ -248,80 +244,6 @@ fn resolve_move(
         return (old_x, sz);
     }
     clamp_arena(map, old_x, old_z)
-}
-
-/// Slab ray vs AABB. Returns entry distance along unit (dx,dz) when hit ahead.
-fn ray_aabb_hit(ox: f32, oz: f32, dx: f32, dz: f32, obs: Aabb2) -> Option<f32> {
-    let (tmin_x, tmax_x) = if dx.abs() < 1e-8 {
-        if ox < obs.min_x || ox > obs.max_x {
-            return None;
-        }
-        (f32::NEG_INFINITY, f32::INFINITY)
-    } else {
-        let inv = 1.0 / dx;
-        let t1 = (obs.min_x - ox) * inv;
-        let t2 = (obs.max_x - ox) * inv;
-        (t1.min(t2), t1.max(t2))
-    };
-    let (tmin_z, tmax_z) = if dz.abs() < 1e-8 {
-        if oz < obs.min_z || oz > obs.max_z {
-            return None;
-        }
-        (f32::NEG_INFINITY, f32::INFINITY)
-    } else {
-        let inv = 1.0 / dz;
-        let t1 = (obs.min_z - oz) * inv;
-        let t2 = (obs.max_z - oz) * inv;
-        (t1.min(t2), t1.max(t2))
-    };
-    let t_enter = tmin_x.max(tmin_z);
-    let t_exit = tmax_x.min(tmax_z);
-    if t_exit < t_enter || t_exit < 0.0 {
-        None
-    } else {
-        Some(t_enter.max(0.0))
-    }
-}
-
-/// Does a solid stand between two fighters?
-///
-/// The test is still a segment in the XZ plane, but it now knows how high the
-/// shot is: the line runs from the shooter's eye to the target's, and a solid
-/// only blocks it where its top is above that line. Two fighters on the same
-/// deck shoot each other; a fighter on a deck shoots over the kerbs below it;
-/// and every solid written before the heightfield existed is a wall at 4.5,
-/// well above eye height, so every cover test that worked before still does.
-///
-/// `shooter_floor` and `target_floor` are the heights of the two fighters'
-/// feet, not their reported `y`.
-fn ray_blocked_by_cover(
-    map: MapKind,
-    ox: f32,
-    oz: f32,
-    dx: f32,
-    dz: f32,
-    max_dist: f32,
-    floors: (f32, f32),
-) -> bool {
-    let (shooter_floor, target_floor) = floors;
-    for obs in map.obstacles() {
-        if let Some(t) = ray_aabb_hit(ox, oz, dx, dz, *obs) {
-            if t >= max_dist {
-                continue;
-            }
-            let fraction = if max_dist > 1e-6 {
-                (t / max_dist).clamp(0.0, 1.0)
-            } else {
-                0.0
-            };
-            let shot_height =
-                shooter_floor + (target_floor - shooter_floor) * fraction + EYE_HEIGHT;
-            if obs.top > shot_height {
-                return true;
-            }
-        }
-    }
-    false
 }
 
 /// A point on the spawn ring that is not inside a solid, and the height of the
@@ -577,6 +499,7 @@ pub struct Player {
     pub y: f32,
     pub z: f32,
     pub yaw: f32,
+    pub pitch: f32,
     /// Vertical speed. Positive is upward, zero while standing.
     pub vy: f32,
     pub hp: i32,
@@ -660,11 +583,7 @@ impl GameState {
 
     pub fn start_round(&mut self) {
         let previous_winner = if self.round_number > 0 {
-            self.scores
-                .iter()
-                .max_by_key(|(_, &score)| score)
-                .and_then(|(id, _)| self.players.iter().find(|p| p.id == *id))
-                .map(|p| p.name.clone())
+            self.ranked_scores().first().map(|p| p.name.clone())
         } else {
             None
         };
@@ -723,11 +642,7 @@ impl GameState {
         );
     }
 
-    pub fn end_round(&mut self, reason: String) {
-        // Dismiss a live drone before podium so Ended mid-join is not soft-prisoned
-        // with compliance_drone pressure and MCP gets boss_down (killer null).
-        self.wipe_boss_for_round_end();
-
+    fn ranked_scores(&self) -> Vec<PlayerScore> {
         let mut final_scores: Vec<PlayerScore> = self
             .scores
             .iter()
@@ -745,6 +660,14 @@ impl GameState {
         // HashMap iteration must not pick the podium or order tied scores.
         // Alphabetical callsign order is the stable presentation tiebreak.
         final_scores.sort_by(|a, b| b.score.cmp(&a.score).then_with(|| a.name.cmp(&b.name)));
+        final_scores
+    }
+
+    pub fn end_round(&mut self, reason: String) {
+        // Dismiss a live drone before podium so Ended mid-join is not soft-prisoned
+        // with compliance_drone pressure and MCP gets boss_down (killer null).
+        self.wipe_boss_for_round_end();
+        let final_scores = self.ranked_scores();
         let (winner, winner_score) = final_scores
             .first()
             .map(|score| (score.name.clone(), score.score))
@@ -797,6 +720,7 @@ impl GameState {
             y: PLAYER_FLOOR_Y + floor,
             z: sz,
             yaw,
+            pitch: 0.0,
             vy: 0.0,
             hp: PLAYER_MAX_HP,
             armor: 0,
@@ -892,6 +816,7 @@ impl GameState {
                             x: p.x,
                             z: p.z,
                             yaw: p.yaw,
+                            pitch: p.pitch,
                         },
                     )
                 })
@@ -1011,6 +936,9 @@ impl GameState {
             if let Some(yaw) = client_yaw {
                 player.yaw = crate::movement::normalize_yaw(yaw);
             }
+            if let Some(pitch) = action.pitch.and_then(crate::combat::clamp_pitch) {
+                player.pitch = pitch;
+            }
 
             let mut dx = 0.0;
             let mut dz = 0.0;
@@ -1095,7 +1023,7 @@ impl GameState {
             }
         }
 
-        // Authoritative look_at: snap yaw toward player_id (preferred) or world x/z.
+        // Target intent takes precedence after movement, for every controller role.
         // Applied after movement/turn so agents can still strafe while locking aim.
         let look_intents: Vec<(Uuid, crate::protocol::LookAt)> = self
             .players
@@ -1104,29 +1032,31 @@ impl GameState {
             .filter_map(|p| p.pending_action.look_at.clone().map(|look| (p.id, look)))
             .collect();
         for (aimer_id, look) in look_intents {
-            let target_xz: Option<(f32, f32)> = if let Some(pid) = look.player_id {
+            let target_point: Option<[f32; 3]> = if let Some(pid) = look.player_id {
                 self.players
                     .iter()
                     .find(|p| p.id == pid && p.respawn_timer.is_none())
-                    .map(|p| (p.x, p.z))
+                    .map(|p| {
+                        [
+                            p.x,
+                            p.y - PLAYER_FLOOR_Y + crate::combat::FIGHTER_HEIGHT * 0.5,
+                            p.z,
+                        ]
+                    })
             } else if let (Some(x), Some(z)) = (look.x, look.z) {
-                Some((x, z))
+                self.players
+                    .iter()
+                    .find(|p| p.id == aimer_id)
+                    .map(|p| [x, look.y.unwrap_or(p.y - PLAYER_FLOOR_Y + EYE_HEIGHT), z])
             } else {
                 None
             };
-            if let Some((tx, tz)) = target_xz {
+            if let Some(target) = target_point {
                 if let Some(aimer) = self.players.iter_mut().find(|p| p.id == aimer_id) {
-                    let dx = tx - aimer.x;
-                    let dz = tz - aimer.z;
-                    if dx * dx + dz * dz > 1e-8 {
-                        let mut yaw = dz.atan2(dx);
-                        while yaw < 0.0 {
-                            yaw += 2.0 * PI;
-                        }
-                        while yaw >= 2.0 * PI {
-                            yaw -= 2.0 * PI;
-                        }
+                    let eye = [aimer.x, aimer.y - PLAYER_FLOOR_Y + EYE_HEIGHT, aimer.z];
+                    if let Some((yaw, pitch)) = crate::combat::aim_at(eye, target) {
                         aimer.yaw = yaw;
+                        aimer.pitch = pitch;
                     }
                 }
             }
@@ -1147,19 +1077,12 @@ impl GameState {
             }
         }
 
-        for (shooter_idx, maybe_victim_idx) in hits {
+        for (shooter_idx, maybe_hit) in hits {
             let weapon = self.players[shooter_idx].weapon;
-            // The scatter gun loses its bite with distance; the others do not.
-            let damage = match maybe_victim_idx {
-                Some(victim_idx) => {
-                    let shooter = &self.players[shooter_idx];
-                    let victim = &self.players[victim_idx];
-                    let dx = victim.x - shooter.x;
-                    let dz = victim.z - shooter.z;
-                    weapon.damage_at((dx * dx + dz * dz).sqrt())
-                }
-                None => weapon.damage(),
-            };
+            let maybe_victim_idx = maybe_hit.map(|(index, _)| index);
+            // Falloff follows the actual 3D distance traveled to the surface.
+            let damage =
+                maybe_hit.map_or(weapon.damage(), |(_, distance)| weapon.damage_at(distance));
             let shooter_name = self.players[shooter_idx].name.clone();
             let shooter_id = self.players[shooter_idx].id;
 
@@ -1320,82 +1243,56 @@ impl GameState {
         self.reap_dead_boss();
     }
 
-    /// Resolve one shot. The barrel points somewhere inside the weapon's
-    /// dispersion cone, chosen from the seeded stream so a run reproduces, and
-    /// the shot lands only if that line passes within a fighter's radius.
-    ///
-    /// This used to be different, and the difference mattered: a target inside
-    /// the cone was hit outright, which made "spread" a forgiveness angle
-    /// rather than dispersion. The rail's cone was 2.3 degrees of free aim,
-    /// console-grade magnetism handed to a mouse. Aim assistance now has its
-    /// own knob, `AIM_ASSIST_RADIANS`, which is zero for everyone until the
-    /// gamepad work gives it a reason to exist.
-    fn check_hitscan(&mut self, shooter_idx: usize) -> Option<usize> {
+    /// One seeded 3D ray for both cover and targets. No height auto-aim or
+    /// forgiveness cone: the ray must intersect the finite fighter volume.
+    fn check_hitscan(&mut self, shooter_idx: usize) -> Option<(usize, f32)> {
         let shooter = &self.players[shooter_idx];
-        let shooter_x = shooter.x;
-        let shooter_z = shooter.z;
-        let shooter_floor = shooter.y - PLAYER_FLOOR_Y;
-        let shooter_yaw = shooter.yaw;
+        let origin = [
+            shooter.x,
+            shooter.y - PLAYER_FLOOR_Y + EYE_HEIGHT,
+            shooter.z,
+        ];
+        let yaw = shooter.yaw;
+        let pitch = shooter.pitch;
         let weapon = shooter.weapon;
-        let spread = weapon.spread_radians();
-        let weapon_range = weapon.range_units().min(HITSCAN_RANGE);
-
-        // Where this particular shot actually went.
-        let jitter = (self.next_f32() * 2.0 - 1.0) * spread;
-        let aim = shooter_yaw + jitter;
-        let ray_dx = aim.cos();
-        let ray_dz = aim.sin();
-
-        let mut closest_dist = weapon_range;
-        let mut closest_idx = None;
-
-        for (i, target) in self.players.iter().enumerate() {
-            if i == shooter_idx || target.respawn_timer.is_some() {
-                continue;
-            }
-            if self.spawn_shields.get(&target.id).is_some_and(|t| *t > 0) {
-                continue;
-            }
-
-            let dx = target.x - shooter_x;
-            let dz = target.z - shooter_z;
-            let dist = (dx * dx + dz * dz).sqrt();
-            if dist > closest_dist {
-                continue;
-            }
-
-            // Behind the shooter is never a hit.
-            let along = dx * ray_dx + dz * ray_dz;
-            if along <= 0.0 {
-                continue;
-            }
-
-            // How far the shot passes from the fighter's centre.
-            let perp_x = dx - ray_dx * along;
-            let perp_z = dz - ray_dz * along;
-            let miss_by = (perp_x * perp_x + perp_z * perp_z).sqrt();
-            if miss_by > PLAYER_RADIUS + AIM_ASSIST_RADIANS * dist {
-                continue;
-            }
-
-            if ray_blocked_by_cover(
-                self.map,
-                shooter_x,
-                shooter_z,
-                ray_dx,
-                ray_dz,
-                dist,
-                (shooter_floor, target.y - PLAYER_FLOOR_Y),
-            ) {
-                continue;
-            }
-            closest_dist = dist;
-            closest_idx = Some(i);
+        let samples = [self.next_f32(), self.next_f32()];
+        let ray =
+            crate::combat::Ray::dispersed(origin, yaw, pitch, weapon.spread_radians(), samples);
+        let mut closest_dist = weapon.range_units().min(HITSCAN_RANGE);
+        let mut cover_distance = f32::INFINITY;
+        if let Some(distance) = ray.floor(closest_dist) {
+            cover_distance = distance;
         }
-
-        closest_idx
+        for obstacle in self.map.obstacles() {
+            let solid = crate::movement::Solid {
+                min_x: obstacle.min_x,
+                max_x: obstacle.max_x,
+                min_z: obstacle.min_z,
+                max_z: obstacle.max_z,
+                top: obstacle.top,
+            };
+            if let Some(distance) = ray.solid(&solid, closest_dist) {
+                cover_distance = cover_distance.min(distance);
+            }
+        }
+        let mut closest_idx = None;
+        for (i, target) in self.players.iter().enumerate() {
+            if i == shooter_idx
+                || target.respawn_timer.is_some()
+                || self.spawn_shields.get(&target.id).is_some_and(|t| *t > 0)
+            {
+                continue;
+            }
+            let feet = [target.x, target.y - PLAYER_FLOOR_Y, target.z];
+            if let Some(distance) = ray.fighter(feet, PLAYER_RADIUS, closest_dist) {
+                if distance < cover_distance && (closest_idx.is_none() || distance < closest_dist) {
+                    closest_dist = distance;
+                    closest_idx = Some(i);
+                }
+            }
+        }
+        closest_idx.map(|index| (index, closest_dist))
     }
-
     /// Ring slot farthest from every living fighter, so a respawn never lands in a fight.
     fn farthest_spawn_angle(&mut self, player_id: Uuid) -> f32 {
         let others: Vec<(f32, f32)> = self
@@ -1435,6 +1332,7 @@ impl GameState {
             player.vy = 0.0;
             player.z = sz;
             player.yaw = yaw;
+            player.pitch = 0.0;
             player.hp = PLAYER_MAX_HP;
             player.armor = 0;
             player.respawn_timer = None;
@@ -1480,6 +1378,7 @@ impl GameState {
                         y: p.y,
                         z: p.z,
                         yaw: p.yaw,
+                        pitch: p.pitch,
                         hp: p.hp,
                         armor: p.armor,
                         just_fired: p.just_fired,
@@ -1790,6 +1689,7 @@ impl GameState {
             y: 2.2,
             z: 0.0,
             yaw: 0.0,
+            pitch: 0.0,
             vy: 0.0,
             hp: BOSS_MAX_HP,
             armor: 50,
@@ -1991,6 +1891,7 @@ impl GameState {
             y: 2.2,
             z: 0.0,
             yaw: 0.0,
+            pitch: 0.0,
             vy: 0.0,
             hp: BOSS_MAX_HP,
             armor: 0,
@@ -2302,7 +2203,16 @@ impl BotController {
             angle_diff += 2.0 * PI;
         }
 
-        let mut action = Action::default();
+        let eye = [bot.x, bot.y - PLAYER_FLOOR_Y + EYE_HEIGHT, bot.z];
+        let target_centre = [
+            target.x,
+            target.y - PLAYER_FLOOR_Y + crate::combat::FIGHTER_HEIGHT * 0.5,
+            target.z,
+        ];
+        let mut action = Action {
+            pitch: crate::combat::aim_at(eye, target_centre).map(|(_, pitch)| pitch),
+            ..Action::default()
+        };
 
         // Seek a role pad when Flechette and a better weapon is nearby.
         // Prefer Scatter when the fight is close; Rail when it is long.

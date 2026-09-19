@@ -42,6 +42,7 @@
       "at_seconds": 15,
       "camera": "first_person",
       "weapon": "Rail",
+      "aim_pitch": 0.0,
       "note": "Server-confirmed rail selection and its distinct reticle."
     },
     {
@@ -60,6 +61,20 @@
       "camera": "first_person",
       "weapon": "Scatter",
       "note": "Server-confirmed scatter selection and reticle."
+    },
+    {
+      "name": "vertical_aim_up",
+      "at_seconds": 19,
+      "camera": "first_person",
+      "aim_pitch": 0.4,
+      "note": "Upward aim is confirmed in the authoritative snapshot before capture."
+    },
+    {
+      "name": "vertical_aim_down",
+      "at_seconds": 19,
+      "camera": "first_person",
+      "aim_pitch": -0.4,
+      "note": "Downward aim follows the same action, camera, and server pitch contract."
     },
     {
       "name": "return_to_spectator",

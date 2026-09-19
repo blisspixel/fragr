@@ -99,6 +99,8 @@ func send_action(action: Dictionary):
 	# optional on the wire; agents and older clients send neither.
 	if action.has("yaw"):
 		msg["yaw"] = float(action["yaw"])
+	if action.has("pitch"):
+		msg["pitch"] = float(action["pitch"])
 	if action.has("seq"):
 		msg["seq"] = int(action["seq"])
 	send_json(msg)

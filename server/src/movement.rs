@@ -36,7 +36,7 @@ pub const STEP_UP: f32 = 0.6;
 pub const WALL_TOP: f32 = 4.5;
 /// How far above its feet a fighter's shot line sits. A solid lower than the
 /// line between two fighters does not block the shot between them.
-pub const EYE_HEIGHT: f32 = 1.5;
+pub const EYE_HEIGHT: f32 = 1.6;
 /// Downward acceleration in units per second squared. Chosen with the jump
 /// below so a hop clears about 1.1 units and lasts a little under half a
 /// second, which is the Quake-ish arc this game's speed wants rather than the

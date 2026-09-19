@@ -17,6 +17,12 @@ class_name ServerYaw
 static func forward(yaw: float) -> Vector3:
 	return Vector3(cos(yaw), 0.0, sin(yaw))
 
+const PITCH_LIMIT: float = 85.0 * PI / 180.0
+
+## Unit shot direction, matching the authoritative server ray.
+static func aim_direction(yaw: float, pitch: float) -> Vector3:
+	return Vector3(cos(pitch) * cos(yaw), sin(pitch), cos(pitch) * sin(yaw))
+
 ## Rotation for a node whose local +X is its forward, which is where the pawn's
 ## muzzle and weapon sprites are parented.
 static func pawn_rotation_y(yaw: float) -> float:

@@ -330,6 +330,7 @@ grow_vertical = 2
 mouse_filter = 2
 
 [node name="HBarEdge" type="ColorRect" parent="HUD/Crosshair"]
+z_index = -1
 offset_left = -12.0
 offset_top = -3.0
 offset_right = 12.0
@@ -345,6 +346,7 @@ offset_bottom = 1.0
 color = Color(0.91, 0.886, 0.839, 0.85)
 
 [node name="VBarEdge" type="ColorRect" parent="HUD/Crosshair"]
+z_index = -1
 offset_left = -3.0
 offset_top = -12.0
 offset_right = 3.0
@@ -360,6 +362,7 @@ offset_bottom = 10.0
 color = Color(0.91, 0.886, 0.839, 0.85)
 
 [node name="DotEdge" type="ColorRect" parent="HUD/Crosshair"]
+z_index = -1
 offset_left = -4.0
 offset_top = -4.0
 offset_right = 4.0
@@ -373,30 +376,6 @@ offset_top = -2.0
 offset_right = 2.0
 offset_bottom = 2.0
 color = Color(0.91, 0.886, 0.839, 0.95)
-visible = false
-
-[node name="RingEdge" type="ColorRect" parent="HUD/Crosshair"]
-offset_left = -17.0
-offset_top = -17.0
-offset_right = 17.0
-offset_bottom = 17.0
-color = Color(0.03, 0.03, 0.04, 0.85)
-visible = false
-
-[node name="Ring" type="ColorRect" parent="HUD/Crosshair"]
-offset_left = -14.0
-offset_top = -14.0
-offset_right = 14.0
-offset_bottom = 14.0
-color = Color(0.91, 0.886, 0.839, 0.0)
-visible = false
-
-[node name="RingBorder" type="ColorRect" parent="HUD/Crosshair"]
-offset_left = -15.0
-offset_top = -15.0
-offset_right = 15.0
-offset_bottom = 15.0
-color = Color(0.78, 0.72, 0.62, 0.55)
 visible = false
 
 [node name="HitMarker" type="Control" parent="HUD"]

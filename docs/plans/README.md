@@ -17,7 +17,8 @@ Status words: **planned**, **in flight**, **shipped** (merged to `main`, PR numb
 
 | Plan | Status | One-liner |
 |---|---|---|
-| [`asset-request-recovery.md`](./asset-request-recovery.md) | **in flight** | Durable request recovery and authenticated-origin checks before more paid art generation. |
+| [`vertical-aim.md`](./vertical-aim.md) | **in flight** | True vertical combat, three-dimensional cover, and matching spectator eye views. |
+| [`asset-request-recovery.md`](./asset-request-recovery.md) | **proven** (#169) | Durable request recovery and authenticated-origin checks before more paid art generation. |
 | [`player-settings.md`](./player-settings.md) | **proven** (#168, v0.18.0) | Persistent controls, display, and audio through one validated retro panel in boot and match menus. |
 | [`arena-surface-pass.md`](./arena-surface-pass.md) | **proven** (#167, v0.17.0) | Industrial pixel surfaces and a readable arena backdrop, preserving server collision geometry. |
 | [`local-excellence.md`](./local-excellence.md) | **in flight** | Cohesive local polish through verified instructions, reliable checks, art integration, and repeated visual and playtest review. |

@@ -17,7 +17,7 @@ const STEP_UP: float = 0.6
 ## The top a solid gets when nobody says otherwise: higher than a jump reaches.
 const WALL_TOP: float = 4.5
 ## How far above its feet a fighter's shot line sits.
-const EYE_HEIGHT: float = 1.5
+const EYE_HEIGHT: float = 1.6
 const GRAVITY: float = 22.0
 const JUMP_SPEED: float = 7.0
 

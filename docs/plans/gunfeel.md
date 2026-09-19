@@ -4,6 +4,14 @@
 **Branch:** `feat/gunfeel-*`
 **Spend:** $0.
 
+Current-state note (2026-09-19): the observations and measurement tables below
+record earlier builds. First-person flash, recoil, hit feedback, bob, and prepared
+viewmodels now run; persistent controls/display/audio shipped in v0.18.0. The
+[vertical aim increment](vertical-aim.md) replaces horizontal hit tests with finite
+3D bodies and cover. It removes the unused aim-assist constant; no aim assistance
+is implemented. Movement includes height, steps, and jumping. Tracer/impact
+placement, weapon animation, tuning sweeps, and gamepad curves remain open.
+
 ## Goal
 
 Make shooting and aiming feel like the games that got it right, with numbers taken from their sources rather than from taste, and with the parameters in one place so the playtest harness and the QA tour can sweep them. This plan carries the research of 2026-09-18 and the starting parameter set it produced. Movement plumbing lives in `buttery-controls.md`; this plan owns what the weapons and the aim do once the plumbing is honest.
@@ -130,7 +138,7 @@ Input-to-photon latency needs a camera or a light sensor and stays a manual meas
 
 1. **Shipped.** Aim defaults: Source-convention sensitivity with a sane default, raw motion, and the setting documented in the units other games use.
 2. **Shipped.** Weapon table: damage, interval, cone, range, and the scatter gun's falloff. Time to kill measured before and after, above. Switch time and the constants block a sweep would need are still to come.
-3. **Shipped.** Dispersion separated from aim assist: a shot leaves the barrel somewhere inside the cone, drawn from the seeded stream, and lands only if it passes within a fighter's radius. Aim assistance is its own constant, zero for everyone until the gamepad work.
+3. **Shipped.** Seeded dispersion replaces the old forgiveness cone. The vertical aim increment extends it to a 3D cone and finite fighter bodies. Aim assistance remains unimplemented.
 4. Movement inaccuracy and the recovery constant; the split crosshair that shows it.
 5. Feedback: hit marker, muzzle flash, view kick, shake, bob, kill marker.
 6. Ground dodge with its cooldown and recovery penalty, in the shared movement step with golden vectors.
@@ -141,7 +149,7 @@ Input-to-photon latency needs a camera or a light sensor and stays a manual meas
 - [x] Default sensitivity within the 30 to 50 centimetres per 360 band at 800 counts per inch, stored in portable units.
 - [ ] Time to kill inside the target band, measured by the harness before and after. Table sticky assert: [`ttk-feel-harness-proof.md`](./ttk-feel-harness-proof.md).
 - [ ] Each weapon's kill distances peak in its own band. All three are used now, but the rail is still only two to four percent of shots because long fights are rare.
-- [x] Dispersion and aim assist are separate. A shot now has to pass within a fighter's radius; `AIM_ASSIST_RADIANS` is a single knob, zero for everyone, waiting for the gamepad work to give it a reason.
+- [x] Dispersion is physical aim variation, without an aim-assist cone. The vertical aim increment removes the unused `AIM_ASSIST_RADIANS` knob.
 - [ ] Every feedback timing implemented and visible in a tour still.
 - [ ] The dodge exists, is in the golden vectors, and the playtests prefer it.
 
