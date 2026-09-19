@@ -26,7 +26,31 @@ The engineering ladder for scale runs through every phase: small squads first (f
 - Two developer-only generation pipelines with the same budget discipline as the brain agent: `tools/audiogen` (ElevenLabs, everything you hear) and `tools/spritegen` (Higgsfield, everything you look at). The first production art slice is twenty-four frames for sixty-nine cents, with weapons and enemies usable and surfaces rejected.
 - The setting has three sides rather than two. The Union is the machinery and the Chancellery is the will above it; the free side is humans and Level 5s together; the third party is real, is not evil, and might be right. Written up across eleven files in `docs/lore/`, and it is an art direction as much as a fiction: the Union covers what it owns in writing because it explains itself to a system, the free side carries the same objects with that writing ground off, and the third faction has no markings at all.
 
+**Generated art and audio, as of today:** twenty-four sprite frames committed (ten weapon viewmodels, six enemies, four effects, four surfaces), of which the surfaces are rejected and the rest are usable. Twelve Chancellery addresses in German and a ten-part epilogue broadcast, generated and committed. None of it is wired into the client yet. Art spend to date is $0.69 of a $15 balance; every frame was priced before it was requested.
+
 **Not built yet (honest list):** low-latency transport (WebSocket JSON only), client prediction, authentication or join tokens, per-connection rate limits and size caps, reconnect resume, release builds attached to tags, protocol versioning, a status endpoint and benchmark mode, persistent stats, progression, DJ bumpers and a voiced Host, a single-player campaign (only one boss beat exists), a real art pass on sprites, guns, and levels, load tests, any cloud apply, vehicles, objective modes, larger maps.
+
+## What is next, in order (as of 2026-09-19)
+
+The phases below are the long shape. This is the short list: the next work, in the order it should be done, with the reason each one sits where it does. Anything not on this list is not next.
+
+**1. Reference images in the sprite pipeline.** `marketing-studio/image` accepts sixteen and the tool uses none. Until it does, every generated frame is an independent roll of the dice and a roster cannot be held on model, which means every asset after the first is a gamble. This is the cheapest change with the largest effect on everything downstream, and it blocks doing characters and weapons properly. Do this first.
+
+**2. Surfaces, properly.** The first attempt failed for two known reasons: reduced at 128 where 256 is the floor, and no seam checking of any kind. Needs larger output, prompts that spend detail on a few big features rather than many small ones, and a seam check in the reducer that wraps the tile and compares the gradient across the join against the gradient within the body. Levels cannot get an art pass without this.
+
+**3. Wire the slice into the game.** Twenty-four assets exist and none of them is on screen. Weapon viewmodels and enemy sprites both need import presets and a path from `art/sprites/` into the client. This is the first point at which any of the art spend becomes visible to a player, and it should not be deferred behind more generation.
+
+**4. Animation, tested once.** Image-to-video is on the same key at about thirty cents a clip and a clip yields many frames, so per frame it is far cheaper than generating frames individually. One test converting an enemy still into a walk cycle answers whether the sprite-sheet route works at all. If it does, it unlocks the entire animation column of the asset list; if it does not, that column needs a different plan and it is better to know now.
+
+**5. Two palette ramps that do not exist.** No institutional green for issued hardware, no off-white for the unmarked machines. Two of the three factions are currently borrowing colours from the other one, which undercuts the whole read-the-faction-by-colour design. A colour decision for `ART-COLOR.md`, not a tooling one.
+
+**6. Maps: size, rooms and verticality.** The largest outstanding gameplay gap and the one with the most player-visible upside. Verticality is the hard part because the movement step is written twice, in Rust and in GDScript, and the golden vectors pin their agreement; it cannot be done casually.
+
+**7. Campaign rung 1.** `plans/campaign-build-order.md` has the order. Episode 0 ships today and Episode 1 is eight levels that do not exist yet.
+
+**8. Interstitial and epilogue playback.** The Chancellery addresses and the ten-part epilogue are generated and committed and nothing plays them. Needs the results-card interstitial slot, the two-track subtitle renderer, and the static card the epilogue sits over.
+
+Deliberately not next: cloud, vehicles, progression, the server browser, and any further art generation beyond what item two needs. Generating more assets before item one lands is spending money to produce drift.
 
 ## Phase 0: Foundations that make everything else cheaper
 

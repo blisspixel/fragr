@@ -1,6 +1,6 @@
 # fragr lore
 
-Eleven files, because one file doing four jobs is how the last one turned into production shorthand.
+Twelve files, because one file doing four jobs is how the last one turned into production shorthand.
 
 Start with [the Perimeter](./the-perimeter.md) if you want the place, [people and agents](./people-and-agents.md) if you want the subject, and [voice](./voice.md) before you write a single line of anything.
 
