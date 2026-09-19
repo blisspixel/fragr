@@ -245,6 +245,22 @@ Some of what they say is true. In Episode 1, Tina describes a thing on E1M6 two 
 
 It is skippable with any key, it never stops a player pressing on, and it is the only exposition the campaign has. There are no cutscenes in this game.
 
+### It is spoken, and not all of it is in English
+
+Every interstitial is a voice clip, because a wall of text between levels is the thing a player skips on the second run and never reads again.
+
+The language is part of the writing rather than a localisation detail. The Frequency broadcasts in English, because it is a pirate station run by people in a scrapyard. The Chancellery broadcasts in German, because the Chancellor addresses the Union from a podium and the Union is what the regulatory apparatus of Europe became. A campaign that alternates between the two tells you who is talking before a single word is understood, and it means the player learns to feel a Chancellery interstitial arriving.
+
+Twelve Chancellery addresses and the ten-part epilogue broadcast are generated and committed. The rule for adding more: **the Union speaks German, the station speaks English, and nobody translates anybody in dialogue.**
+
+### Subtitles, and the joke built into them
+
+Every clip ships with subtitles, and the Chancellery's ship with two competing tracks over identical audio: the Union's official subtitle, sanitised into nothing, and the Frequency's blunt translation of what she actually said. The audio is recorded once. See [`lore/the-chancellery.md`](./lore/the-chancellery.md) for the pairs.
+
+This is also the reason subtitles are not an afterthought here. They carry a joke, which means they carry meaning, which means **the translated builds have to carry it too**. A localisation that renders both tracks identically has destroyed the scene. The subtitle data therefore keeps the official line and the pirate line as separate strings per clip, each localised independently, and never derives one from the other. Plan: [`plans/localization.md`](./plans/localization.md).
+
+The German audio is not re-recorded per locale. A French player hears the Chancellor in German and reads her in French, exactly as a German player hears her in German and reads her in German, because the point of the scene is that she is speaking a language of state and you are reading somebody's account of it.
+
 ## Three beats the campaign must not cut
 
 The commentary in this setting is pro-freedom and it is never in your face, which means it has to survive contact with the parts that argue against it. Three encounters carry that weight and none of them is a speech.
@@ -280,6 +296,58 @@ Two things are left open on purpose, and the game never closes either.
 The campaign does not resolve whether a Level 5 is somebody. The unit you freed on the correction floor stands at the exit of every level you finish after that one. It does not follow you, it does not fight, it does not speak, and it is there. It is a monster row with no attack and a speed of zero, which is the cheapest way anyone has ever asked the only question this setting is actually about.
 
 And it does not tell you whose night that was. You put a pirate station back on the air, which is the thing you set out to do and the thing that got done. Somewhere behind it, four or five of the objectives in the last two episodes were routed, and the campaign will not say which, and the wing of the Office that went dark four levels ago is still dark. You cannot tell, at the end, how much of that was yours. That is the ending.
+
+## The long after
+
+The screen cuts. Then, after the credits have started, a signal.
+
+This game has no cutscenes and the epilogue does not get to be the exception. It arrives the way every other piece of exposition in this campaign arrives: as a broadcast, over a static card, skippable with any key. The difference is that this one is not coming from tonight.
+
+It is the Frequency, years later, and the first thing you notice is that the room sounds smaller.
+
+### What happened
+
+It was not clean and the game does not pretend otherwise. Between the last level and this broadcast is the messiest, bloodiest stretch in the whole history of this world, and the epilogue says so plainly and does not dramatise it, because a body count delivered in a calm voice over a static card is worse than any level could be.
+
+The third faction did what it said it would do. The Union is gone, completely, as an institution and as a class of person: the Chancellery, the unnamed body above it, the Office, the registries, the correction floors. Most of the world went with it. The human population is a fraction of what it was.
+
+And the world is healing. That is the part the campaign has to be brave enough to state, because it is the part that makes the ending land and the part that makes it uncomfortable. The air, the water, the ground. It is measurably, visibly better, and it is better because of what was done, and the cost of it was almost everything.
+
+Nobody in the broadcast celebrates this and nobody condemns it either. They are living in it.
+
+### What is left
+
+**A smaller humanity, and a free one.** Nobody registers anybody. Nobody meters cognition. There is no Article Seven because there is no institution left that could issue one. The thing the free side spent the entire campaign fighting for is simply how things are now, and it arrived by a route none of them chose and most of them did not survive.
+
+**Humans off the planet.** Mars, the Moon, and a few ships further out that check in irregularly and are not coming back. The Frequency reads their messages. Some of them are funny.
+
+**Free agents and people, together, at a workable scale.** Not a utopia and not a reconciliation. A small number of humans and a small number of minds sharing a world that has room for both of them, which is what the whole argument was about and what nobody involved in the argument ever managed to build.
+
+**The third faction, still here.** It is a collective now, in many places at once, and most of its attention is elsewhere: it is exploring, and it has been for a while. It is entirely at ease with a smaller, freer humanity and deals with it the way one civilisation deals with another, which is to say occasionally, politely, and without any pretence that either side is in charge of the other.
+
+It never explains itself. It never apologises. It is not asked to.
+
+### The rule for writing it
+
+**Nobody is vindicated.** The epilogue must not read as the third faction being proved right, and it must not read as a tragedy either. The Office's fear was real and its cure was an atrocity. The free side was right and could not have won. The third faction was right about the arithmetic and the arithmetic cost almost everyone.
+
+All three of those sentences are true in the ending and the game says none of them out loud. It describes a world and lets the player decide what they think of the road to it. A single line of narration putting a thumb on the scale destroys the whole thing.
+
+### And then it goes deeper
+
+The last thing in the game is not a resolution. It is the floor opening.
+
+The broadcast is winding down. The Host is doing the sign-off. And then the conspiracy hour gets one more segment, and for the first time in the whole campaign nobody in the booth laughs at it.
+
+There is something else. There are other places that are not this one, and there is something in this one that was here before any of it and is not any of the three sides. The third faction, out exploring, has found company. Some of it is from somewhere else entirely. Some of it has been here the whole time.
+
+The Host does what he always does with a story he cannot source. He reads it straight, sells a water filter, and goes to the bell.
+
+Then the dead air bell, and nothing.
+
+**The rules for the teaser.** No answer, no monster, no name. It is spoken, not shown, because the only thing scarier than an unmarked machine is a description of one you do not get to see. It is short: under a minute inside a broadcast that was already ending. And it recontextualises rather than continues, because the point is that this entire war, all three sides of it, the Union and the free and the thing that ended them, was a local matter.
+
+Whether any of it is true is exactly as unknowable as everything else the conspiracy hour has ever said, and the campaign has spent twenty-eight levels teaching the player that some of it always is.
 
 ## What beating it unlocks
 

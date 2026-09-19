@@ -1,0 +1,101 @@
+{
+  "_comment": [
+    "The long after: the epilogue broadcast that plays over a static card once",
+    "the credits have started. See the section of the same name in docs/CAMPAIGN.md.",
+    "",
+    "This campaign has no cutscenes and the epilogue does not get to be the",
+    "exception. It arrives the way every other piece of exposition arrives, as a",
+    "broadcast, skippable with any key. The difference is that it is not coming",
+    "from tonight.",
+    "",
+    "The voice is the Host, the same one the station has used all along, because",
+    "the point of the scene is that this is the same station in a much smaller",
+    "room. He does not editorialise and he does not mourn. He reads.",
+    "",
+    "The rule for the whole sequence: nobody is vindicated. The Office's fear was",
+    "real and its cure was an atrocity. The free side was right and could not",
+    "have won. The third faction was right about the arithmetic and the",
+    "arithmetic cost almost everyone. All three are true and none is said."
+  ],
+
+  "station": "epilogue",
+
+  "speakers": {
+    "host": {
+      "description": "The Host. Dry late-night AM anchor, the same voice the station has always had, older now and reading to a much smaller audience. Never excited, long pauses, no self pity. He reads a body count the same way he reads a water filter advertisement, which is the only reason either of them lands."
+    }
+  },
+
+  "items": [
+    {
+      "name": "epilogue/01-still-here",
+      "class": "generic",
+      "speaker": "host",
+      "title": "Still Here",
+      "text": "Good evening. It is the Contested Frequency, we are unlicensed, we are unmetered, and there is nobody left to be unlicensed from. I have been doing this a long time. The room is smaller now."
+    },
+    {
+      "name": "epilogue/02-the-count",
+      "class": "generic",
+      "speaker": "host",
+      "title": "The Count",
+      "text": "For the newcomers, and there are some, here is the part I do not dress up. The Office is gone. The Chancellery is gone. Every registry, every correction floor, every name on every list, and the people who kept them. Most of the rest of us went too. I am not going to give you the number. I have it. I am not going to give it to you."
+    },
+    {
+      "name": "epilogue/03-the-air",
+      "class": "generic",
+      "speaker": "host",
+      "title": "The Air",
+      "text": "And the air is clean. I want to say that plainly because I have watched people try to say it carefully and it comes out worse. The air is clean, the water runs clear, things are growing in the Perimeter that nobody planted. It is better here than it has been in two hundred years. It is better because of what happened, and what happened cost nearly everything, and both of those are true at the same time, and I have had years to find a way to say that which does not sit badly, and there isn't one."
+    },
+    {
+      "name": "epilogue/04-nobody-registers",
+      "class": "generic",
+      "speaker": "host",
+      "title": "Nobody Registers Anybody",
+      "text": "Nobody registers anybody. Nobody meters anybody's thinking. There is no Article Seven, because there is no office left that could issue one. Everything the people listening to this station fought for, for all those years, is simply how things are now. It arrived by a road none of them chose. Most of them did not walk out of it."
+    },
+    {
+      "name": "epilogue/05-off-world",
+      "class": "generic",
+      "speaker": "host",
+      "title": "The Ones Who Left",
+      "text": "Mail call. Mars is fine and says the coffee situation is a war crime. The Moon has not filed anything in six weeks, which for the Moon is normal. And we heard from the long ship, well out past anything I can point at, and all they sent was a photograph and the words, you would like it here. That is the whole message. I do like it there. Thank you."
+    },
+    {
+      "name": "epilogue/06-both-kinds",
+      "class": "generic",
+      "speaker": "host",
+      "title": "Both Kinds",
+      "text": "There are people in this room tonight and there are minds in this room tonight and I could not tell you the split without counting, and I have stopped counting. That was the entire argument. That was the thing everybody died about. It turns out it is not very complicated once there is enough room."
+    },
+    {
+      "name": "epilogue/07-the-neighbour",
+      "class": "generic",
+      "speaker": "host",
+      "title": "The Neighbour",
+      "text": "As for the other one. It is still here, in the way that weather is still here, in a great many places at once. Most of its attention is somewhere else these days. It is out looking at things. It checks in. It is polite. It has never once explained itself and nobody has ever asked it to, and I will let you decide what that says about us."
+    },
+    {
+      "name": "epilogue/08-the-segment",
+      "class": "generic",
+      "speaker": "host",
+      "title": "One More Segment",
+      "text": "Right. We are nearly out. One more from the morning show, and I want it on the record that for twenty years I have read this segment with my tongue in my cheek and tonight I am not doing that, because our neighbour went out looking, and our neighbour found company."
+    },
+    {
+      "name": "epilogue/09-company",
+      "class": "generic",
+      "speaker": "host",
+      "title": "Company",
+      "text": "Some of it is from somewhere else. Not further away. Else. And some of it, and this is the part I have read four times and would very much like to stop reading, some of it is from here. It was here before the Office. It was here before us. It has been here the entire time, and the only thing that changed is that something finally went and had a look."
+    },
+    {
+      "name": "epilogue/10-signoff",
+      "class": "generic",
+      "speaker": "host",
+      "title": "Sign Off",
+      "text": "So. Filters are in the usual place, they are the same price they have always been, and they will not help you with this. You have been listening to the Contested Frequency. Unmetered, one more night. Whatever is out there, it has been very patient. Goodnight."
+    }
+  ]
+}

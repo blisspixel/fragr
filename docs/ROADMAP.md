@@ -13,7 +13,7 @@ Every item below is in exactly one state: **planned**, **in progress**, **shippe
 
 The engineering ladder for scale runs through every phase: small squads first (four to twelve fighters, the current bar), then full servers (thirty-two to sixty-four), then large agent-heavy arenas (hundreds of fighters where most are agents). Each rung has its own measurements and is not claimed until measured.
 
-## Where we are (2026-09-18)
+## Where we are (2026-09-19)
 
 **Shipped and proven on the tip:**
 
@@ -23,6 +23,8 @@ The engineering ladder for scale runs through every phase: small squads first (f
 - Decision-brain agent (`agents/brain`): a fighter whose stance, weapon, and danger read come from Jev (TypeSafe natively or through OpenRouter) at up to five decisions per second while a local controller plays every tick. Paid providers refuse to start without an explicit cap; every call is estimated, settled, and ledgered. Local rules play for free and CI proves that path.
 - CI on Linux: fmt, clippy with warnings denied, tests, the agent playtest smoke with thresholds, an unfiltered 80 percent line coverage floor, release build, cargo-deny for licences, bans, and sources, and a headless Godot job that imports the project and parses every script.
 - Live tip screenshots, a one-command Solo Scrap launcher, self-host guides, and plan-only GCP Terraform.
+- Two developer-only generation pipelines with the same budget discipline as the brain agent: `tools/audiogen` (ElevenLabs, everything you hear) and `tools/spritegen` (Higgsfield, everything you look at). The first production art slice is twenty-four frames for sixty-nine cents, with weapons and enemies usable and surfaces rejected.
+- The setting has three sides rather than two. The Union is the machinery and the Chancellery is the will above it; the free side is humans and Level 5s together; the third party is real, is not evil, and might be right. Written up across eleven files in `docs/lore/`, and it is an art direction as much as a fiction: the Union covers what it owns in writing because it explains itself to a system, the free side carries the same objects with that writing ground off, and the third faction has no markings at all.
 
 **Not built yet (honest list):** low-latency transport (WebSocket JSON only), client prediction, authentication or join tokens, per-connection rate limits and size caps, reconnect resume, release builds attached to tags, protocol versioning, a status endpoint and benchmark mode, persistent stats, progression, DJ bumpers and a voiced Host, a single-player campaign (only one boss beat exists), a real art pass on sprites, guns, and levels, load tests, any cloud apply, vehicles, objective modes, larger maps.
 
@@ -35,7 +37,13 @@ Status: **in progress**. Small, high-leverage, mostly tooling.
 - **One source for the wire.** Shipped: the adapter, the playtest harness, and the brain agent all read the wire types from `fragr-server`, so a protocol change is edited once and the compiler finds every reader. The adapter's hand-kept mirror is gone. Extracting a standalone `fragr-protocol` crate is optional tidying, not a correctness need.
 - **Dev audio pipeline.** `tools/audiogen` generates sound effects and music through the ElevenLabs API for developers only, writes assets plus a manifest, and never runs in CI or at player runtime. Shipped, including speech, multi-voice dialogue, credit estimates, and wave controls.
 - **Rust and GDScript only.** The procedural Python audio generator is retired; effects come from the audio pipeline and the committed files are the fallback. Shipped.
-- **Sprite and texture pipeline.** Palette lock from `palette.json`, fixed base sizes, import presets, and a documented path from source plates to atlases. Planned.
+- **Sprite and texture pipeline.** `tools/spritegen` generates art through the Higgsfield API for developers only and reduces it locally: trim to the alpha box, downscale by area averaging, quantise to `palette.json` in CIE Lab, harden the alpha. Every frame is priced through a free estimate endpoint before anything is requested and the whole run is refused if it exceeds a cap that had to be typed, with an append-only ledger so an interrupted run never pays twice. Shipped. Measured costs and the full API surface are in `plans/higgsfield-pipeline.md`.
+
+  The house style was settled by experiment rather than by taste, and the answer was counter-intuitive: **ask the generator for the stylised sprite, never for a photoreal render to be shrunk later.** Boltgun, Prodeus and Doom all pre-rendered detailed models and reduced them, but their artists controlled the contrast of that render and a prompt cannot. A photoreal prop is lit photographically, holds a narrow band of values, and turns to mud at sprite scale.
+
+  Remaining: reference images (the model accepts sixteen and nothing uses them yet, which is what will hold a roster on-model), seamless tiles with a seam check, normal maps, and import presets and atlases.
+
+- **Division of providers.** Higgsfield makes everything you look at, ElevenLabs makes everything you hear. Neither runs in CI and neither is called by the game. Shipped.
 - **Headless integration smoke.** Shipped as `tools/playtest` (#95): boots the server in-process, connects reflex agents over the real wire, runs a round, and asserts thresholds on every PR.
 
 ## Phase 1: Local excellence (offline, zero spend)
