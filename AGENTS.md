@@ -120,6 +120,16 @@ Evidence beats assertion. Screenshots must show the current build; regenerate `d
 | Performance or scale claim | A measurement table in the plan doc; no numbers in prose without it |
 | Asset generation | Manifest entry with prompt, model, format; file loads in Godot |
 
+## Screenshots, and when they must be refreshed
+
+**Run `tools/qa_tour.sh --publish` before every release tag, and in any PR that changes something a player sees.** The four README stills come from that run, and it takes about two minutes.
+
+This is a rule because stale screenshots are worse than no screenshots: they are a claim about the current build that stops being true quietly, and a reader has no way to tell. The README says the captures are live from the current build, so they have to be.
+
+It is also the cheapest bug-finding tool in the repository, and it keeps proving it. One run found a red broadcast ident that was the loudest thing on screen, a spectator legend that never stopped explaining itself, ten lines of debug text over a live match, and a black void above the arena walls that had been there for the entire project and that nobody had noticed because the tour measured HUD coverage and nothing else. None of those were visible in code review.
+
+Look at the stills afterwards. Publishing them without looking is how a black void survives a year.
+
 ## Research and plan before build
 
 1. **Orient** in the real repo: `README.md`, `docs/ROADMAP.md`, the relevant plan, source, tests, recent history.
