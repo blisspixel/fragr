@@ -59,6 +59,14 @@ var host_line_seen = false
 var client_mode = "SPECTATING"
 ## Milliseconds the control legend stays up after joining, then it gets out of the way.
 const CONTROLS_HINT_MS: int = 8000
+
+## Broadcast ident (the top strip, ON AIR, the station badge). Off by default:
+## it is right for a let's-play capture and wrong for playing. See
+## _update_broadcast_chrome.
+var broadcast_chrome: bool = false
+
+## Connection status, wall clock and head count. Debug furniture, off.
+var debug_telemetry: bool = false
 var mode_entered_ms: int = 0
 var episode_id = ""
 var episode_title = ""
@@ -116,6 +124,7 @@ var warmup_tv_secs = 0
 var warmup_tv_host_line = ""
 
 func _ready():
+	_load_display_settings()
 	_ensure_map_chip_label()
 	if vitals:
 		vitals.visible = false
@@ -232,7 +241,7 @@ func _refresh_map_chip_badge() -> void:
 	# person is playing; this used to re-show it after the chrome decided not to.
 	if chrome_strip:
 		var solo_larak = map_label.strip_edges().to_lower() == "larak lot"
-		chrome_strip.visible = not solo_larak and client_mode == "SPECTATING"
+		chrome_strip.visible = broadcast_chrome and not solo_larak and client_mode == "SPECTATING"
 
 
 func set_status(text: String):
@@ -267,14 +276,17 @@ func set_mode(mode: String):
 	_update_broadcast_chrome(round_chrome_state)
 
 ## Connection status, wall clock, and head count are for whoever is debugging
-## the client, not for someone in a firefight. The round line already carries
-## the clock and the scoreboard already carries the head count, so while a
-## player is playing these three lines are three copies of nothing.
+## the client, not for anybody looking at the game. The round line already
+## carries the clock and the scoreboard already carries the head count, so
+## these three lines are three copies of nothing wherever they appear.
+##
+## They used to be hidden only while playing, which meant a spectator opened on
+## "Status: Connected to server / Time: 16s / Fighters: 3" stacked above five
+## more chips. Watching a match is not debugging one.
 func _refresh_telemetry_lines() -> void:
-	var playing: bool = client_mode != "SPECTATING"
 	for node in [status_label, tick_label, player_count_label]:
 		if node:
-			node.visible = not playing
+			node.visible = debug_telemetry
 
 func _refresh_mode_label():
 	if not mode_label:
@@ -294,13 +306,25 @@ func _refresh_mode_label():
 	# A spectator needs to know how to join. A player who has joined needs the
 	# screen. The legend shows for a few seconds after joining and then gets out
 	# of the way; it belongs in a settings screen once there is one.
+	# Two rules here, both learned from a screenshot.
+	#
+	# It times out in every mode. The spectator legend used to be permanent
+	# while the playing one expired, so the view you sit in longest was the one
+	# that never stopped explaining itself. Eight lines of chrome in the corner
+	# of a match is not a HUD, it is a manual.
+	#
+	# And it leads with the mouse and keyboard. It used to open with "J/A" and
+	# "RT/A: Fire", which names the gamepad binding first and the mouse never,
+	# so a player on a laptop could read the whole line and still not know what
+	# fires the gun. The full scheme lives on the loading card and in settings.
 	var controls = ""
-	if client_mode == "SPECTATING":
-		controls = "
-SPECTATING (J/A: Join, F/D-pad: Cycle, V/Back: Free-fly, R/N/M or D-pad: Radio, ESC: Mouse) | Pad OK"
-	elif Time.get_ticks_msec() - mode_entered_ms < CONTROLS_HINT_MS:
-		controls = "
-" + client_mode + " (L/Start: Leave, sticks move/look, RT/A: Fire, LB/RB: Weapon, Y/T: Speak, R/N/M or D-pad: Radio) | Pad OK"
+	if Time.get_ticks_msec() - mode_entered_ms < CONTROLS_HINT_MS:
+		if client_mode == "SPECTATING":
+			controls = "
+J join   F cycle   V free-fly   ~ console"
+		else:
+			controls = "
+Mouse or Ctrl fire   WASD move   Wheel weapon   L leave"
 	# The Host line already says a drone is on deck, in its own words, directly
 	# above. Saying it again underneath is the same sentence twice.
 	var pressure_chip = ""
@@ -543,20 +567,43 @@ func reset_host_chrome():
 	_refresh_mode_label()
 
 
+## Read the two chrome switches off the saved settings.
+##
+## The HUD reads them itself rather than waiting to be told, because nothing
+## else in the client reads settings yet and a switch that exists in the file
+## but reaches nothing is worse than no switch at all.
+func _load_display_settings() -> void:
+	var settings: FragrSettings = FragrSettings.new()
+	settings.load_from_disk()
+	broadcast_chrome = bool(settings.get_value("gameplay", "broadcast_chrome"))
+	debug_telemetry = bool(settings.get_value("gameplay", "debug_telemetry"))
+
+
 func _update_broadcast_chrome(state: String) -> void:
-	# Contested Frequency / ON AIR / Hangar Candy grit. Dull, not neon.
+	# The broadcast ident is off unless somebody asks for it.
+	#
+	# It was a 72 pixel strip pinned across the top of the screen with a red ON
+	# AIR box in it, and it was the highest-contrast thing in every spectator
+	# frame the visual QA tour has ever taken. The station is a thread through
+	# the world and not the world, and a network ident does not get to be the
+	# first thing the eye lands on in a screenshot of a shooter.
+	#
+	# It is kept rather than deleted because a broadcast overlay is genuinely
+	# right for a let's-play capture, where the viewer is watching a programme.
+	# It is simply not right for playing or for the README, so it is a setting
+	# that defaults to off instead of furniture that defaults to on.
 	var warm = state == "Warmup"
 	var live = state == "Active"
 	var ended = state == "Ended"
 	# Do not re-show the Hangar Candy strip during Solo Broadcast / Larak Lot.
 	var solo_larak = map_label.strip_edges().to_lower() == "larak lot"
-	# The station is a thread through the world, not the world. Watching a
-	# broadcast is the point of the spectator view and the round bumper, so
-	# the strip lives there. A person behind a gun gets the world, and the
-	# highest-contrast thing on their screen should not be a network ident
-	# parked where the killfeed belongs.
 	var spectating = client_mode == "SPECTATING"
-	var strip_shown = chrome_strip != null and not solo_larak and spectating
+	var strip_shown = (
+		broadcast_chrome
+		and chrome_strip != null
+		and not solo_larak
+		and spectating
+	)
 	if chrome_strip:
 		chrome_strip.visible = strip_shown
 		var a = 0.92 if live else (0.88 if warm else 0.7)
@@ -566,12 +613,12 @@ func _update_broadcast_chrome(state: String) -> void:
 	# on screen twice, which the first visual QA tour caught. They are the
 	# fallback for when the strip is not up, not a second copy of it.
 	if on_air_badge:
-		on_air_badge.visible = live and not strip_shown and spectating
+		on_air_badge.visible = broadcast_chrome and live and not strip_shown and spectating
 		if on_air_badge.visible:
 			on_air_badge.modulate = Color(1, 1, 1, 0.95)
 	if contested_frequency_badge:
 		# Warm on Warmup / Host face; quieter while live so ON AIR owns the scrap.
-		contested_frequency_badge.visible = not strip_shown and spectating
+		contested_frequency_badge.visible = broadcast_chrome and not strip_shown and spectating
 		var ca = 0.95 if warm else (0.72 if live else 0.8)
 		contested_frequency_badge.modulate = Color(0.95, 0.95, 0.98, ca)
 	# Map chip is Snapshot map_name (see _refresh_map_chip_badge). Never re-show
@@ -583,6 +630,11 @@ func _update_broadcast_chrome(state: String) -> void:
 func flash_broadcast_chrome(kind: String = "host") -> void:
 	# Brief badge lift on Host / Warmup bumper without neon wash.
 	var badge = contested_frequency_badge
+	# A flash must never be a way back in for chrome that is switched off. This
+	# line used to set visible unconditionally, so a Host bumper would put the
+	# red ON AIR box back on screen no matter what the rest of the file decided.
+	if not broadcast_chrome:
+		return
 	if kind == "on_air":
 		badge = on_air_badge
 		if on_air_badge:

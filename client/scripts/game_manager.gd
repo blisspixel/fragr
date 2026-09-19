@@ -78,6 +78,8 @@ func _ready():
 	_setup_radio()
 	_setup_frontend(str(boot.get("mode", "spectate")))
 
+	_apply_arena_sky()
+
 	# Cover is built from what the server sends, never from a second copy in
 	# the scene. See arena_cover.gd for why that matters.
 	arena_cover = ArenaCover.new()
@@ -87,9 +89,37 @@ func _ready():
 	else:
 		add_child(arena_cover)
 
+## Replace whatever the arena scene shipped with the environment in
+## arena_sky.gd, so both arenas get the same sky from one place.
+##
+## It edits the existing WorldEnvironment rather than adding one. A second
+## WorldEnvironment in the same viewport is not an error in Godot, it is
+## silently ignored, which is the worst kind: the node is there, the values
+## look right, and the sky stays black.
+func _apply_arena_sky(map_name: String = "") -> void:
+	var world: WorldEnvironment = _find_world_environment(self)
+	if world == null:
+		push_warning("game_manager: no WorldEnvironment found; sky left as authored")
+		return
+	world.environment = ArenaSky.build_environment(map_name)
+
+
+static func _find_world_environment(node: Node) -> WorldEnvironment:
+	if node is WorldEnvironment:
+		return node as WorldEnvironment
+	for child in node.get_children():
+		var found: WorldEnvironment = _find_world_environment(child)
+		if found != null:
+			return found
+	return null
+
+
 func _on_map_info(info: Dictionary) -> void:
 	if arena_cover != null:
 		arena_cover.apply_map_info(info)
+	# The venue decides the sky, and the venue is only known once the server
+	# has said which one this is.
+	_apply_arena_sky(str(info.get("map_name", "")))
 
 ## The console, the pause menu and the loading card. Built here rather than in
 ## the scene because they are the same three things whatever the match is.
