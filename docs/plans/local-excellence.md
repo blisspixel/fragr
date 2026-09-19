@@ -1,6 +1,8 @@
 # Local excellence
 
 Status: **in flight**, 2026-09-19. Branch: `feat/local-polish-loop`.
+First playable increment: [PR #165](https://github.com/blisspixel/fragr/pull/165).
+The broader art/encounter pass and full-game target remain open.
 
 ## Goal
 
