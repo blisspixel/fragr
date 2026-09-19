@@ -1,3 +1,5 @@
+use crate::maps::Aabb2;
+use crate::movement::{EYE_HEIGHT, STEP_UP};
 use crate::protocol::{
     boss_down_host_line, boss_host_line, boss_round_wipe_host_line, compliance_host_line,
     default_host_line, default_mode_name, default_playlist, empty_mvp_host_line,
@@ -14,20 +16,12 @@ use std::f32::consts::PI;
 use uuid::Uuid;
 
 const MOVE_SPEED: f32 = 5.0;
-/// The ring fighters spawn on, and therefore the ring their cover is built
-/// around. Kept in step with `MapKind::spawn_radius` for Arena Duel.
-const SPAWN_RING_RADIUS: f32 = ARENA_SIZE * 0.3;
-/// The y a standing fighter reports. It is a reference point rather than the
-/// floor: the client hangs the body below it and the eye just above it.
+/// The y a standing fighter reports when it is on the base floor. It is a
+/// reference point rather than the floor: the client hangs the body below it
+/// and the eye just above it. On a deck the fighter reports this plus the
+/// deck's height, so `y - PLAYER_FLOOR_Y` is always the height of its feet.
 pub const PLAYER_FLOOR_Y: f32 = 1.5;
 const TURN_SPEED: f32 = 2.0;
-/// Playable width of the square, centred on the origin.
-///
-/// Fifty was a test chamber: eight fighters in one flat room, every fight at
-/// knife range, and the rail with nowhere to be a rail. A hundred is the
-/// bottom of the arena tier in `plans/map-scale.md`, which is the size a
-/// six-to-sixteen fighter Doom or Unreal map actually is.
-const ARENA_SIZE: f32 = 100.0;
 pub const PLAYER_RADIUS: f32 = 0.5;
 /// Extra forgiveness on aim, as radians of cone that widen with distance.
 /// Zero means a shot has to actually pass through a fighter. A gamepad may
@@ -56,6 +50,10 @@ const RULE_BOT_WARMUP_TAUNT_EVERY: u32 = 20;
 pub const BOSS_MAX_HP: i32 = 200;
 /// Touch radius for mid-map pickup pads.
 pub const PICKUP_CLAIM_RADIUS: f32 = 1.75;
+/// How far above or below a pad's own floor a fighter may be and still claim
+/// it. Generous enough to take a pad while jumping over it, tight enough that
+/// a pad on a walkway is not free to whoever stands underneath.
+pub const PICKUP_CLAIM_HEIGHT: f32 = 2.0;
 /// Ticks until a claimed weapon pad respawns (~12s at 20 Hz).
 pub const PICKUP_RESPAWN_TICKS: u32 = 20 * 12;
 /// Ticks until a claimed health/armor pad respawns (~15s at 20 Hz).
@@ -74,379 +72,182 @@ pub const EP0_NODS_GOAL: u32 = 5;
 /// standing on the visible pad seizes; a 3.0 hub soft-locked first Calibration.
 pub const EP0_JAMMER_RADIUS: f32 = 6.5;
 
-/// Axis-aligned scrap solid in XZ (Godot props mirrored for authoritative cover).
-#[derive(Debug, Clone, Copy)]
-pub(crate) struct Aabb2 {
-    min_x: f32,
-    max_x: f32,
-    min_z: f32,
-    max_z: f32,
-}
-
-impl Aabb2 {
-    const fn from_center(cx: f32, cz: f32, half_x: f32, half_z: f32) -> Self {
-        Self {
-            min_x: cx - half_x,
-            max_x: cx + half_x,
-            min_z: cz - half_z,
-            max_z: cz + half_z,
-        }
-    }
-
-    pub(crate) const fn expand(self, r: f32) -> Self {
-        Self {
-            min_x: self.min_x - r,
-            max_x: self.max_x + r,
-            min_z: self.min_z - r,
-            max_z: self.max_z + r,
-        }
-    }
-
-    pub(crate) fn contains(self, x: f32, z: f32) -> bool {
-        x >= self.min_x && x <= self.max_x && z >= self.min_z && z <= self.max_z
-    }
-}
-
-/// Contested Frequency scrap layouts (1 = Arena Duel default, 2 = Compliance Yard).
+/// The Contested Frequency map roster. Ids are stable and on the wire; the
+/// layouts themselves live in `maps.rs`, which is the only place in the server
+/// that knows what a map looks like.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum MapKind {
     #[default]
     ArenaDuel = 1,
     ComplianceYard = 2,
-}
-
-/// Arena Duel's cover, built from polar coordinates so it is eight-fold
-/// symmetric and therefore fair whichever spawn you get.
-///
-/// The layout is generated rather than listed because the numbers that matter
-/// are the ring radii, and a list of forty boxes hides them. Rings, outward:
-/// a centre block to break the middle, low walls to fight across, a pillar
-/// ring at mid field, an L of cover at every spawn so nobody arrives in the
-/// open, and long outer walls that make the corners mean something.
-///
-/// Spawn cover is the load-bearing one. When the arena doubled and this did
-/// not, fighters spawned thirty units out in an empty field and the playtest
-/// harness immediately reported four spawn deaths in ten frags.
-fn arena_duel_solids() -> Vec<Aabb2> {
-    let mut out = Vec::with_capacity(48);
-
-    // Four blocks around the middle rather than one in it. The hub at the
-    // origin has to stay walkable: it is the fallback when every spawn point
-    // on the ring is blocked, and the drone spawns there. A block at (0, 0)
-    // put a fighter inside a wall and four movement tests said so at once.
-    for (dx, dz) in [(4.5, 4.5), (-4.5, 4.5), (4.5, -4.5), (-4.5, -4.5)] {
-        out.push(Aabb2::from_center(dx, dz, 2.0, 2.0));
-    }
-
-    // Low walls on the axes, close in, to fight across rather than around.
-    for (dx, dz, hx, hz) in [
-        (0.0, -12.0, 6.0, 0.5),
-        (0.0, 12.0, 6.0, 0.5),
-        (12.0, 0.0, 0.5, 6.0),
-        (-12.0, 0.0, 0.5, 6.0),
-    ] {
-        out.push(Aabb2::from_center(dx, dz, hx, hz));
-    }
-
-    // Pillar ring at mid field, on the diagonals and the axes.
-    for i in 0..8 {
-        let angle = std::f32::consts::PI * 2.0 * (i as f32) / 8.0;
-        out.push(Aabb2::from_center(
-            angle.cos() * 20.0,
-            angle.sin() * 20.0,
-            1.6,
-            1.6,
-        ));
-    }
-
-    // A pocket at every spawn: a block directly behind and one to each side,
-    // open toward the centre. Boxes are axis aligned, so a true U cannot be
-    // built at an arbitrary angle, and three blocks around the point do the
-    // same job at any angle.
-    //
-    // This is the part that matters most. When the arena doubled and the cover
-    // did not move with it, fighters were arriving thirty units out in empty
-    // ground and the harness reported four spawn deaths in eight frags. Cover
-    // beside the spawn was not enough either. It has to be around it.
-    for i in 0..8 {
-        let angle = std::f32::consts::PI * 2.0 * (i as f32) / 8.0;
-        let (ox, oz) = (angle.cos(), angle.sin());
-        let (tx, tz) = (-oz, ox);
-        let (sx, sz) = (ox * SPAWN_RING_RADIUS, oz * SPAWN_RING_RADIUS);
-        // Behind, between the spawn and the wall.
-        out.push(Aabb2::from_center(sx + ox * 4.0, sz + oz * 4.0, 2.5, 2.5));
-        // Flanks, far enough apart to walk out between them.
-        out.push(Aabb2::from_center(sx + tx * 5.0, sz + tz * 5.0, 1.6, 1.6));
-        out.push(Aabb2::from_center(sx - tx * 5.0, sz - tz * 5.0, 1.6, 1.6));
-    }
-
-    // Outer walls, set in from the boundary, so the corners are rooms.
-    for (dx, dz, hx, hz) in [
-        (0.0, -40.0, 14.0, 0.7),
-        (0.0, 40.0, 14.0, 0.7),
-        (40.0, 0.0, 0.7, 14.0),
-        (-40.0, 0.0, 0.7, 14.0),
-    ] {
-        out.push(Aabb2::from_center(dx, dz, hx, hz));
-    }
-
-    out
+    Directive17 = 3,
+    Sector9 = 4,
+    ReclamationGulch = 5,
+    TripointWorks = 6,
 }
 
 impl MapKind {
+    /// The roster in rotation order.
+    pub const ALL: [MapKind; 6] = [
+        MapKind::ArenaDuel,
+        MapKind::ComplianceYard,
+        MapKind::Directive17,
+        MapKind::Sector9,
+        MapKind::ReclamationGulch,
+        MapKind::TripointWorks,
+    ];
+
     pub fn from_cli(raw: &str) -> Option<Self> {
-        match raw.trim().to_ascii_lowercase().as_str() {
-            "1" | "arena" | "duel" | "arena-duel" | "arena_duel" => Some(Self::ArenaDuel),
-            "2" | "compliance" | "yard" | "compliance-yard" | "compliance_yard" => {
-                Some(Self::ComplianceYard)
+        match raw.trim().to_ascii_lowercase().replace('_', "-").as_str() {
+            "1" | "arena" | "duel" | "arena-duel" => Some(Self::ArenaDuel),
+            "2" | "compliance" | "yard" | "compliance-yard" => Some(Self::ComplianceYard),
+            "3" | "directive" | "substation" | "directive-17" | "directive-17-substation" => {
+                Some(Self::Directive17)
             }
+            "4" | "sector9" | "sector-9" | "transit" | "sector-9-transit-hall" => {
+                Some(Self::Sector9)
+            }
+            "5" | "gulch" | "reclamation" | "reclamation-gulch" => Some(Self::ReclamationGulch),
+            "6" | "tripoint" | "works" | "tripoint-works" => Some(Self::TripointWorks),
             _ => None,
         }
     }
 
     pub fn id(self) -> u32 {
-        match self {
-            Self::ArenaDuel => 1,
-            Self::ComplianceYard => 2,
-        }
+        self as u32
+    }
+
+    /// Position in `ALL`, which is how `maps.rs` indexes its built layouts.
+    pub fn index(self) -> usize {
+        self as usize - 1
     }
 
     pub fn name(self) -> &'static str {
         match self {
             Self::ArenaDuel => "Arena Duel",
             Self::ComplianceYard => "Compliance Yard",
+            Self::Directive17 => "Directive 17 Substation",
+            Self::Sector9 => "Sector 9 Transit Hall",
+            Self::ReclamationGulch => "Reclamation Gulch",
+            Self::TripointWorks => "Tripoint Works",
+        }
+    }
+
+    /// One line on what the map is for, so a picker is not six names.
+    pub fn blurb(self) -> &'static str {
+        match self {
+            Self::ArenaDuel => "Assembly floor. A hub inside a gantry ring, rail on the walkway.",
+            Self::ComplianceYard => "Records block. Nine rooms, no long shot anywhere.",
+            Self::Directive17 => "Transformer bowl. Four terraces down to a pit you can see into.",
+            Self::Sector9 => "Freight interchange. Two halls, one door between them.",
+            Self::ReclamationGulch => "Recovery site. Two compounds, open ground, two ridges.",
+            Self::TripointWorks => "Three compounds, three capture yards, a plaza nobody holds.",
         }
     }
 
     pub fn next(self) -> Self {
-        match self {
-            Self::ArenaDuel => Self::ComplianceYard,
-            Self::ComplianceYard => Self::ArenaDuel,
-        }
+        Self::ALL[(self.index() + 1) % Self::ALL.len()]
     }
 
+    /// Radius of the ring fighters spawn on.
     pub fn spawn_radius(self) -> f32 {
-        match self {
-            Self::ArenaDuel => ARENA_SIZE * 0.3,
-            Self::ComplianceYard => ARENA_SIZE * 0.25,
-        }
+        crate::maps::def(self).spawn_radius
     }
 
-    /// Scrap chokes matching Godot arena scenes.
-    /// The same solids as `obstacles`, in the shared wire shape, for clients
-    /// and agents that need to reason about cover.
+    /// The map's solids in the shared wire shape, for the client and for
+    /// agents that need to tell a clear shot from a wall.
     pub fn solids(self) -> Vec<crate::movement::Solid> {
         self.obstacles()
-            .into_iter()
+            .iter()
             .map(|o| crate::movement::Solid {
                 min_x: o.min_x,
                 max_x: o.max_x,
                 min_z: o.min_z,
                 max_z: o.max_z,
+                top: o.top,
             })
             .collect()
     }
 
     /// Half width of the playable square, centred on the origin.
     pub fn half_extent(self) -> f32 {
-        ARENA_SIZE / 2.0
+        crate::maps::def(self).half_extent
     }
 
-    pub(crate) fn obstacles(self) -> Vec<Aabb2> {
-        match self {
-            Self::ArenaDuel => arena_duel_solids(),
-            Self::ComplianceYard => vec![
-                // Inner yard posts (±5, ±5)
-                Aabb2::from_center(5.0, -5.0, 1.0, 1.0),
-                Aabb2::from_center(-5.0, -5.0, 1.0, 1.0),
-                Aabb2::from_center(5.0, 5.0, 1.0, 1.0),
-                Aabb2::from_center(-5.0, 5.0, 1.0, 1.0),
-                // Split corridor bars (gaps at axes for hub lanes)
-                Aabb2::from_center(-7.0, -8.0, 3.5, 0.45),
-                Aabb2::from_center(7.0, -8.0, 3.5, 0.45),
-                Aabb2::from_center(-7.0, 8.0, 3.5, 0.45),
-                Aabb2::from_center(7.0, 8.0, 3.5, 0.45),
-                Aabb2::from_center(8.0, -7.0, 0.45, 3.5),
-                Aabb2::from_center(8.0, 7.0, 0.45, 3.5),
-                Aabb2::from_center(-8.0, -7.0, 0.45, 3.5),
-                Aabb2::from_center(-8.0, 7.0, 0.45, 3.5),
-                // Outer scrap crates
-                Aabb2::from_center(0.0, -16.0, 1.0, 1.0),
-                Aabb2::from_center(0.0, 16.0, 1.0, 1.0),
-                Aabb2::from_center(-16.0, 0.0, 1.0, 1.0),
-                Aabb2::from_center(16.0, 0.0, 1.0, 1.0),
-                Aabb2::from_center(14.0, 14.0, 1.0, 1.0),
-                Aabb2::from_center(-14.0, -14.0, 1.0, 1.0),
-            ],
-        }
+    pub(crate) fn obstacles(self) -> &'static [Aabb2] {
+        &crate::maps::def(self).solids
     }
 
     pub(crate) fn pickups(self) -> Vec<ArenaPickup> {
-        match self {
-            Self::ArenaDuel => vec![
-                ArenaPickup {
-                    id: "pad_rail".to_string(),
-                    kind: PickupKind::Weapon(WeaponType::Rail),
-                    amount: 0,
-                    x: 12.0,
-                    y: 0.4,
-                    z: 12.0,
-                    available: true,
-                    respawn_timer: None,
-                },
-                ArenaPickup {
-                    id: "pad_scatter".to_string(),
-                    kind: PickupKind::Weapon(WeaponType::Scatter),
-                    amount: 0,
-                    x: -12.0,
-                    y: 0.4,
-                    z: -12.0,
-                    available: true,
-                    respawn_timer: None,
-                },
-                ArenaPickup {
-                    id: "pad_flechette".to_string(),
-                    kind: PickupKind::Weapon(WeaponType::Flechette),
-                    amount: 0,
-                    x: -12.0,
-                    y: 0.4,
-                    z: 12.0,
-                    available: true,
-                    respawn_timer: None,
-                },
-                ArenaPickup {
-                    id: "pad_health_n".to_string(),
-                    kind: PickupKind::Health,
-                    amount: HEALTH_PAD_AMOUNT,
-                    x: 0.0,
-                    y: 0.4,
-                    z: 8.0,
-                    available: true,
-                    respawn_timer: None,
-                },
-                ArenaPickup {
-                    id: "pad_health_s".to_string(),
-                    kind: PickupKind::Health,
-                    amount: HEALTH_PAD_AMOUNT,
-                    x: 0.0,
-                    y: 0.4,
-                    z: -8.0,
-                    available: true,
-                    respawn_timer: None,
-                },
-                ArenaPickup {
-                    id: "pad_armor".to_string(),
-                    kind: PickupKind::Armor,
-                    amount: ARMOR_PAD_AMOUNT,
-                    x: 8.0,
-                    y: 0.4,
-                    z: 0.0,
-                    available: true,
-                    respawn_timer: None,
-                },
-            ],
-            Self::ComplianceYard => vec![
-                ArenaPickup {
-                    id: "pad_rail".to_string(),
-                    kind: PickupKind::Weapon(WeaponType::Rail),
-                    amount: 0,
-                    x: 12.0,
-                    y: 0.4,
-                    z: 12.0,
-                    available: true,
-                    respawn_timer: None,
-                },
-                ArenaPickup {
-                    id: "pad_scatter".to_string(),
-                    kind: PickupKind::Weapon(WeaponType::Scatter),
-                    amount: 0,
-                    x: -12.0,
-                    y: 0.4,
-                    z: -12.0,
-                    available: true,
-                    respawn_timer: None,
-                },
-                ArenaPickup {
-                    id: "pad_flechette".to_string(),
-                    kind: PickupKind::Weapon(WeaponType::Flechette),
-                    amount: 0,
-                    x: -12.0,
-                    y: 0.4,
-                    z: 12.0,
-                    available: true,
-                    respawn_timer: None,
-                },
-                ArenaPickup {
-                    id: "pad_health_n".to_string(),
-                    kind: PickupKind::Health,
-                    amount: HEALTH_PAD_AMOUNT,
-                    x: 0.0,
-                    y: 0.4,
-                    z: 11.0,
-                    available: true,
-                    respawn_timer: None,
-                },
-                ArenaPickup {
-                    id: "pad_health_s".to_string(),
-                    kind: PickupKind::Health,
-                    amount: HEALTH_PAD_AMOUNT,
-                    x: 0.0,
-                    y: 0.4,
-                    z: -11.0,
-                    available: true,
-                    respawn_timer: None,
-                },
-                ArenaPickup {
-                    id: "pad_armor".to_string(),
-                    kind: PickupKind::Armor,
-                    amount: ARMOR_PAD_AMOUNT,
-                    x: 11.0,
-                    y: 0.4,
-                    z: 0.0,
-                    available: true,
-                    respawn_timer: None,
-                },
-            ],
-        }
+        crate::maps::def(self).pickups.clone()
     }
 }
-
 /// Test-only view of the solid test, so a test can find clear ground instead
-/// of hard-coding coordinates that move when a map is laid out again.
+/// of hard-coding coordinates that move when a map is laid out again. Asks
+/// the question a fighter standing on the base floor would ask.
 #[cfg(test)]
 pub fn circle_blocked_for_test(map: MapKind, x: f32, z: f32) -> bool {
-    circle_blocked(map, x, z)
+    circle_blocked(map, x, z, STEP_UP)
 }
 
-fn circle_blocked(map: MapKind, x: f32, z: f32) -> bool {
+/// Blocked for a fighter that can climb to `climb`. A solid whose top is at or
+/// below that is walked onto rather than walked into, which is what makes a
+/// staircase a staircase instead of a row of small walls.
+fn circle_blocked(map: MapKind, x: f32, z: f32, climb: f32) -> bool {
     for obs in map.obstacles() {
-        if obs.expand(PLAYER_RADIUS).contains(x, z) {
+        if obs.top > climb && obs.expand(PLAYER_RADIUS).contains(x, z) {
             return true;
         }
     }
     false
 }
 
-fn clamp_arena(x: f32, z: f32) -> (f32, f32) {
-    let half = ARENA_SIZE / 2.0 - PLAYER_RADIUS;
+/// Test-only view of the floor query, so a test can ask the map how high the
+/// ground is instead of writing a number down.
+#[cfg(test)]
+pub fn floor_height_for_test(map: MapKind, x: f32, z: f32, ceiling: f32) -> f32 {
+    floor_height(map, x, z, ceiling)
+}
+
+/// The height of the surface under `(x, z)` for a fighter that can reach
+/// `ceiling`: a deck top, or the base floor when nothing qualifies.
+fn floor_height(map: MapKind, x: f32, z: f32, ceiling: f32) -> f32 {
+    let mut best = 0.0f32;
+    for obs in map.obstacles() {
+        if obs.top <= ceiling && obs.top > best && obs.contains(x, z) {
+            best = obs.top;
+        }
+    }
+    best
+}
+
+fn clamp_arena(map: MapKind, x: f32, z: f32) -> (f32, f32) {
+    let half = map.half_extent() - PLAYER_RADIUS;
     (x.clamp(-half, half), z.clamp(-half, half))
 }
 
 /// Quake-style slide: try full move, then axis slides, then stay.
-fn resolve_move(map: MapKind, old_x: f32, old_z: f32, new_x: f32, new_z: f32) -> (f32, f32) {
-    let (nx, nz) = clamp_arena(new_x, new_z);
-    if !circle_blocked(map, nx, nz) {
+fn resolve_move(
+    map: MapKind,
+    old_x: f32,
+    old_z: f32,
+    new_x: f32,
+    new_z: f32,
+    climb: f32,
+) -> (f32, f32) {
+    let (nx, nz) = clamp_arena(map, new_x, new_z);
+    if !circle_blocked(map, nx, nz, climb) {
         return (nx, nz);
     }
-    let (sx, _) = clamp_arena(new_x, old_z);
-    if !circle_blocked(map, sx, old_z) {
+    let (sx, _) = clamp_arena(map, new_x, old_z);
+    if !circle_blocked(map, sx, old_z, climb) {
         return (sx, old_z);
     }
-    let (_, sz) = clamp_arena(old_x, new_z);
-    if !circle_blocked(map, old_x, sz) {
+    let (_, sz) = clamp_arena(map, old_x, new_z);
+    if !circle_blocked(map, old_x, sz, climb) {
         return (old_x, sz);
     }
-    clamp_arena(old_x, old_z)
+    clamp_arena(map, old_x, old_z)
 }
 
 /// Slab ray vs AABB. Returns entry distance along unit (dx,dz) when hit ahead.
@@ -482,10 +283,40 @@ fn ray_aabb_hit(ox: f32, oz: f32, dx: f32, dz: f32, obs: Aabb2) -> Option<f32> {
     }
 }
 
-fn ray_blocked_by_cover(map: MapKind, ox: f32, oz: f32, dx: f32, dz: f32, max_dist: f32) -> bool {
+/// Does a solid stand between two fighters?
+///
+/// The test is still a segment in the XZ plane, but it now knows how high the
+/// shot is: the line runs from the shooter's eye to the target's, and a solid
+/// only blocks it where its top is above that line. Two fighters on the same
+/// deck shoot each other; a fighter on a deck shoots over the kerbs below it;
+/// and every solid written before the heightfield existed is a wall at 4.5,
+/// well above eye height, so every cover test that worked before still does.
+///
+/// `shooter_floor` and `target_floor` are the heights of the two fighters'
+/// feet, not their reported `y`.
+fn ray_blocked_by_cover(
+    map: MapKind,
+    ox: f32,
+    oz: f32,
+    dx: f32,
+    dz: f32,
+    max_dist: f32,
+    floors: (f32, f32),
+) -> bool {
+    let (shooter_floor, target_floor) = floors;
     for obs in map.obstacles() {
-        if let Some(t) = ray_aabb_hit(ox, oz, dx, dz, obs) {
-            if t < max_dist {
+        if let Some(t) = ray_aabb_hit(ox, oz, dx, dz, *obs) {
+            if t >= max_dist {
+                continue;
+            }
+            let fraction = if max_dist > 1e-6 {
+                (t / max_dist).clamp(0.0, 1.0)
+            } else {
+                0.0
+            };
+            let shot_height =
+                shooter_floor + (target_floor - shooter_floor) * fraction + EYE_HEIGHT;
+            if obs.top > shot_height {
                 return true;
             }
         }
@@ -493,19 +324,27 @@ fn ray_blocked_by_cover(map: MapKind, ox: f32, oz: f32, dx: f32, dz: f32, max_di
     false
 }
 
-fn spawn_on_ring(map: MapKind, angle: f32) -> (f32, f32, f32) {
+/// A point on the spawn ring that is not inside a solid, and the height of the
+/// ground there. The ring is sampled round from the requested angle; when
+/// every sample is blocked the origin is the fallback, which is why the origin
+/// being walkable is a rule the map validator enforces rather than a habit.
+fn spawn_on_ring(map: MapKind, angle: f32) -> (f32, f32, f32, f32) {
     let spawn_radius = map.spawn_radius();
     let mut a = angle;
     for _ in 0..16 {
         let x = a.cos() * spawn_radius;
         let z = a.sin() * spawn_radius;
-        if !circle_blocked(map, x, z) {
-            return (x, z, a + PI);
+        // A fighter is put down on top of whatever is there, so the question
+        // is whether anything more than a step above that crowds the point.
+        // Asking whether it is blocked from the base floor would reject every
+        // point on a map whose spawn rim is itself a terrace.
+        let floor = floor_height(map, x, z, f32::INFINITY);
+        if !circle_blocked(map, x, z, floor + STEP_UP) {
+            return (x, z, a + PI, floor);
         }
         a += PI / 8.0;
     }
-    // Hub is clear of solids (drone spawn + fallback).
-    (0.0, 0.0, angle + PI)
+    (0.0, 0.0, angle + PI, 0.0)
 }
 
 /// Result of attempting an off-tick speak.
@@ -634,8 +473,13 @@ pub struct ArenaPickup {
     pub kind: PickupKind,
     pub amount: i32,
     pub x: f32,
+    /// Where the pad is drawn: a little above the surface it lies on.
     pub y: f32,
     pub z: f32,
+    /// The surface the pad lies on. A rail on a walkway cannot be claimed
+    /// from the ground underneath it, which is what makes "the best thing in
+    /// the worst place" a position worth taking rather than a coordinate.
+    pub floor: f32,
     pub available: bool,
     pub respawn_timer: Option<u32>,
 }
@@ -929,13 +773,13 @@ impl GameState {
 
     pub fn add_player(&mut self, id: Uuid, name: String, role: Role) {
         let angle = (self.players.len() as f32) * (2.0 * PI / 8.0);
-        let (sx, sz, yaw) = spawn_on_ring(self.map, angle);
+        let (sx, sz, yaw, floor) = spawn_on_ring(self.map, angle);
 
         self.players.push(Player {
             id,
             name: name.clone(),
             x: sx,
-            y: 1.5,
+            y: PLAYER_FLOOR_Y + floor,
             z: sz,
             yaw,
             vy: 0.0,
@@ -1179,17 +1023,26 @@ impl GameState {
             let old_z = player.z;
             let new_x = old_x + dx * move_speed * dt;
             let new_z = old_z + dz * move_speed * dt;
-            let (rx, rz) = resolve_move(self.map, old_x, old_z, new_x, new_z);
+
+            // The heightfield, in the same order and by the same rules as the
+            // shared step in `movement.rs`: what is under the fighter now,
+            // how high it can therefore climb, the horizontal slide against
+            // that, then the vertical against what it ended up over.
+            let feet = player.y - PLAYER_FLOOR_Y;
+            let floor = floor_height(self.map, old_x, old_z, feet);
+            let was_grounded = feet <= floor && player.vy <= 0.0;
+            let climb = crate::movement::climb_height(feet, floor, player.vy);
+
+            let (rx, rz) = resolve_move(self.map, old_x, old_z, new_x, new_z, climb);
             player.x = rx;
             player.z = rz;
 
-            // Vertical. The arena floor is flat, so nothing can block a jump
-            // and the only surface is the one everybody starts on. Constants
-            // come from the shared movement step so the two agree when the
-            // tick migration makes that step the only one.
-            let grounded = player.y <= PLAYER_FLOOR_Y && player.vy <= 0.0;
-            if grounded {
-                player.y = PLAYER_FLOOR_Y;
+            let support = floor_height(self.map, rx, rz, climb);
+            let mut y = feet;
+            let on_ground =
+                (y <= support || (was_grounded && y - support <= STEP_UP)) && player.vy <= 0.0;
+            if on_ground {
+                y = support;
                 player.vy = 0.0;
                 if action.jump {
                     player.vy = crate::movement::JUMP_SPEED;
@@ -1197,13 +1050,15 @@ impl GameState {
             } else {
                 player.vy -= crate::movement::GRAVITY * dt;
             }
-            player.y += player.vy * dt;
-            if player.y <= PLAYER_FLOOR_Y {
-                player.y = PLAYER_FLOOR_Y;
+            y += player.vy * dt;
+            let landing = floor_height(self.map, rx, rz, feet.max(y));
+            if y <= landing {
+                y = landing;
                 if player.vy < 0.0 {
                     player.vy = 0.0;
                 }
             }
+            player.y = PLAYER_FLOOR_Y + y;
 
             if client_yaw.is_none() {
                 if action.turn_left {
@@ -1461,6 +1316,7 @@ impl GameState {
         let shooter = &self.players[shooter_idx];
         let shooter_x = shooter.x;
         let shooter_z = shooter.z;
+        let shooter_floor = shooter.y - PLAYER_FLOOR_Y;
         let shooter_yaw = shooter.yaw;
         let weapon = shooter.weapon;
         let spread = weapon.spread_radians();
@@ -1504,7 +1360,15 @@ impl GameState {
                 continue;
             }
 
-            if ray_blocked_by_cover(self.map, shooter_x, shooter_z, ray_dx, ray_dz, dist) {
+            if ray_blocked_by_cover(
+                self.map,
+                shooter_x,
+                shooter_z,
+                ray_dx,
+                ray_dz,
+                dist,
+                (shooter_floor, target.y - PLAYER_FLOOR_Y),
+            ) {
                 continue;
             }
             closest_dist = dist;
@@ -1529,7 +1393,7 @@ impl GameState {
         let mut best_gap = f32::MIN;
         for slot in 0..16 {
             let angle = slot as f32 * (PI / 8.0);
-            let (sx, sz, _) = spawn_on_ring(self.map, angle);
+            let (sx, sz, _, _) = spawn_on_ring(self.map, angle);
             let nearest = others
                 .iter()
                 .map(|(ox, oz)| ((ox - sx).powi(2) + (oz - sz).powi(2)).sqrt())
@@ -1545,10 +1409,10 @@ impl GameState {
     fn do_respawn(&mut self, player_id: Uuid) {
         let angle = self.farthest_spawn_angle(player_id);
         if let Some(player) = self.players.iter_mut().find(|p| p.id == player_id) {
-            let (sx, sz, yaw) = spawn_on_ring(self.map, angle);
+            let (sx, sz, yaw, floor) = spawn_on_ring(self.map, angle);
 
             player.x = sx;
-            player.y = PLAYER_FLOOR_Y;
+            player.y = PLAYER_FLOOR_Y + floor;
             // A fighter that died mid-jump must not respawn still falling.
             player.vy = 0.0;
             player.z = sz;
@@ -2023,6 +1887,10 @@ impl GameState {
                 }
                 let dx = player.x - pad.x;
                 let dz = player.z - pad.z;
+                // On roughly the pad's floor, not merely over its footprint.
+                if (player.y - PLAYER_FLOOR_Y - pad.floor).abs() > PICKUP_CLAIM_HEIGHT {
+                    continue;
+                }
                 if dx * dx + dz * dz <= PICKUP_CLAIM_RADIUS * PICKUP_CLAIM_RADIUS {
                     claims.push((player.id, pi));
                     break; // one pad per player per tick

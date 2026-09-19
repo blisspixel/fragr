@@ -10,7 +10,9 @@ extends SceneTree
 const GOLDEN_PATH := "res://golden/move_vectors.json"
 const STEP_TOLERANCE := 1e-4
 const LONG_TOLERANCE := 1e-2
-const FIELDS := ["x", "z", "vx", "vz", "yaw"]
+## Height and vertical speed are checked too, because the heightfield is the
+## part of the model a mirror is most likely to get subtly wrong.
+const FIELDS := ["x", "z", "y", "vx", "vz", "vy", "yaw"]
 
 var failures: Array = []
 
@@ -32,7 +34,7 @@ func _initialize() -> void:
 		quit(1)
 		return
 	var golden: Dictionary = parsed
-	_check(int(golden.get("version", 0)) == 1, "golden version is 1")
+	_check(int(golden.get("version", 0)) == 2, "golden version is 2")
 	_check(absf(float(golden.get("radius", 0.0)) - MoveStep.RADIUS) < 1e-9, "radius matches")
 	_check(absf(float(golden.get("top_speed", 0.0)) - MoveStep.TOP_SPEED) < 1e-9, "top speed matches")
 	_check(absf(float(golden.get("tau_accel", 0.0)) - MoveStep.TAU_ACCEL) < 1e-9, "tau_accel matches")
@@ -41,7 +43,12 @@ func _initialize() -> void:
 	_check(absf(dt - MoveStep.DT_60HZ) < 1e-7, "dt is the 60 Hz step")
 
 	var cases: Array = golden.get("cases", [])
-	_check(cases.size() >= 10, "at least ten cases, got %d" % cases.size())
+	_check(cases.size() >= 14, "at least fourteen cases, got %d" % cases.size())
+	var names: Array = []
+	for case: Dictionary in cases:
+		names.append(str(case.get("name", "?")))
+	for needed: String in ["jump_arc", "stair_climb", "stair_descend", "deck_edge_fall"]:
+		_check(names.has(needed), "the vectors cover %s" % needed)
 	var checked := 0
 	for case: Dictionary in cases:
 		checked += _run_case(case, dt)
@@ -101,3 +108,24 @@ func _test_unit_behaviour() -> void:
 	for i in range(30):
 		s = MoveStep.step(s, go, MoveStep.DT_60HZ, arena)
 	_check(absf(float(s["vx"]) - MoveStep.TOP_SPEED) < 1e-3, "reaches top speed in half a second")
+
+	# A solid with no top on the wire is a wall, which is what keeps an older
+	# server's map readable by a newer client.
+	var legacy := {"min_x": -1.0, "max_x": 1.0, "min_z": -1.0, "max_z": 1.0}
+	_check(MoveStep.solid_top(legacy) == MoveStep.WALL_TOP, "a solid with no top is a wall")
+
+	# A step is walked onto; a wall is not.
+	var stepped := {
+		"half": 25.0,
+		"solids": [
+			MoveStep.solid_from_center(4.0, 0.0, 1.0, 4.0, 0.5),
+			MoveStep.solid_from_center(10.0, 0.0, 1.0, 4.0, 2.2),
+		],
+	}
+	var w := MoveStep.make_state(0.0, 0.0, 0.0)
+	for i in range(55):
+		w = MoveStep.step(w, go, MoveStep.DT_60HZ, stepped)
+	_check(absf(float(w["y"]) - 0.5) < 1e-5, "walked up onto the step, y=%.4f" % float(w["y"]))
+	for i in range(120):
+		w = MoveStep.step(w, go, MoveStep.DT_60HZ, stepped)
+	_check(float(w["x"]) < 9.0, "stopped by the wall it cannot climb, x=%.3f" % float(w["x"]))

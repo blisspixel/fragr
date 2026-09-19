@@ -4,7 +4,7 @@ How a fragr map is built. `plans/map-scale.md` says how big; this says what goes
 
 These are not aesthetic preferences. Each rule exists because a specific great map did it and a specific bad feeling happens when you do not.
 
-## The current map fails most of these
+## The tip, before the 2026 roster
 
 Arena Duel is one flat square with concentric rings of boxes in it. It has no rooms, no height, no lanes, one kind of space, and nowhere that is worth more than anywhere else. It is a fair test chamber and it is not a level, and nothing below describes it yet. That is the gap.
 
@@ -84,6 +84,7 @@ That is a real level rather than a fair box, and it is the difference between a 
 
 ## Related
 
+- `plans/map-roster-2026.md`: the six maps built against these rules, what the heightfield does and does not do, and the map for the three-cornered mode.
 - `plans/map-scale.md`: the size ladder and the vertical axis in the movement step.
 - `docs/WEAPONS.md`: what each zone is for.
 - `docs/MODES.md`: the bar, which is that none of this is allowed to become a puzzle.

@@ -12,6 +12,12 @@ const TAU_ACCEL: float = 0.06
 const TAU_DECEL: float = 0.04
 const DT_60HZ: float = 1.0 / 60.0
 const GROUND_Y: float = 0.0
+## How far a fighter climbs or drops without leaving the ground.
+const STEP_UP: float = 0.6
+## The top a solid gets when nobody says otherwise: higher than a jump reaches.
+const WALL_TOP: float = 4.5
+## How far above its feet a fighter's shot line sits.
+const EYE_HEIGHT: float = 1.5
 const GRAVITY: float = 22.0
 const JUMP_SPEED: float = 7.0
 
@@ -24,8 +30,12 @@ static func make_input(forward: bool, back: bool, left: bool, right: bool, yaw: 
 	return {"forward": forward, "back": back, "left": left, "right": right, "jump": false, "yaw": yaw, "speed_scale": speed_scale}
 
 
-static func solid_from_center(cx: float, cz: float, half_x: float, half_z: float) -> Dictionary:
-	return {"min_x": cx - half_x, "max_x": cx + half_x, "min_z": cz - half_z, "max_z": cz + half_z}
+static func solid_from_center(cx: float, cz: float, half_x: float, half_z: float, top: float = WALL_TOP) -> Dictionary:
+	return {"min_x": cx - half_x, "max_x": cx + half_x, "min_z": cz - half_z, "max_z": cz + half_z, "top": top}
+
+
+static func solid_top(solid: Dictionary) -> float:
+	return float(solid.get("top", WALL_TOP))
 
 
 static func solid_blocks(solid: Dictionary, x: float, z: float, radius: float) -> bool:
@@ -37,11 +47,47 @@ static func solid_blocks(solid: Dictionary, x: float, z: float, radius: float) -
 	)
 
 
+## The point itself over the solid, not the circle around it: a fighter is held
+## up by what is under its feet, not by what is beside it.
+static func solid_covers(solid: Dictionary, x: float, z: float) -> bool:
+	return (
+		x >= solid["min_x"]
+		and x <= solid["max_x"]
+		and z >= solid["min_z"]
+		and z <= solid["max_z"]
+	)
+
+
 static func arena_blocked(arena: Dictionary, x: float, z: float) -> bool:
+	return arena_blocked_at(arena, x, z, GROUND_Y + STEP_UP)
+
+
+## Blocked for a fighter that can reach up to `climb`. Anything at or below
+## that height is walked onto instead of walked into.
+static func arena_blocked_at(arena: Dictionary, x: float, z: float, climb: float) -> bool:
 	for solid: Dictionary in arena["solids"]:
-		if solid_blocks(solid, x, z, RADIUS):
+		if solid_top(solid) > climb and solid_blocks(solid, x, z, RADIUS):
 			return true
 	return false
+
+
+## The highest surface at (x, z) no higher than `ceiling`, or the base floor.
+static func arena_support_height(arena: Dictionary, x: float, z: float, ceiling: float) -> float:
+	var best: float = GROUND_Y
+	for solid: Dictionary in arena["solids"]:
+		var top: float = solid_top(solid)
+		if top <= ceiling and top > best and solid_covers(solid, x, z):
+			best = top
+	return best
+
+
+## How high a fighter at `feet` with `floor` under it can climb. Standing, a
+## step above the floor; airborne, wherever the feet are, so a jump clears
+## exactly what it rises over and no more.
+static func climb_height(feet: float, floor_y: float, vy: float) -> float:
+	if feet <= floor_y and vy <= 0.0:
+		return floor_y + STEP_UP
+	return feet
 
 
 static func arena_clamp(arena: Dictionary, x: float, z: float) -> Vector2:
@@ -83,8 +129,9 @@ static func wish_dir(input: Dictionary, yaw: float) -> Vector2:
 
 
 ## Advance one fighter by dt seconds. Same order as the Rust step: yaw, wish,
-## velocity approach, integrate, clamp, axis-separated slide with the blocked
-## axis velocity zeroed.
+## velocity approach, the floor under the old position, integrate, clamp,
+## axis-separated slide with the blocked axis velocity zeroed, then the
+## vertical against the floor under the new position.
 static func step(state: Dictionary, input: Dictionary, dt: float, arena: Dictionary) -> Dictionary:
 	var yaw: float = normalize_yaw(float(input.get("yaw", 0.0)))
 	var wish: Vector2 = wish_dir(input, yaw)
@@ -104,40 +151,30 @@ static func step(state: Dictionary, input: Dictionary, dt: float, arena: Diction
 	vx = vx + (target_x - vx) * blend
 	vz = vz + (target_z - vz) * blend
 
-	# Vertical is independent of the walls: the arena is flat, so nothing can
-	# be blocked by standing on it. Mirrors movement.rs exactly.
-	var vy: float = float(state.get("vy", 0.0))
-	var y: float = float(state.get("y", GROUND_Y))
-	var on_ground: bool = y <= GROUND_Y and vy <= 0.0
-	if on_ground:
-		y = GROUND_Y
-		vy = 0.0
-		if bool(input.get("jump", false)):
-			vy = JUMP_SPEED
-	else:
-		vy -= GRAVITY * dt
-	y += vy * dt
-	if y <= GROUND_Y:
-		y = GROUND_Y
-		if vy < 0.0:
-			vy = 0.0
-
 	var old_x: float = float(state["x"])
 	var old_z: float = float(state["z"])
 	var clamped: Vector2 = arena_clamp(arena, old_x + vx * dt, old_z + vz * dt)
 	var nx: float = clamped.x
 	var nz: float = clamped.y
 
+	# What is under the fighter now, and therefore how high it can climb into
+	# the next square. Mirrors movement.rs exactly.
+	var state_y: float = float(state.get("y", GROUND_Y))
+	var state_vy: float = float(state.get("vy", 0.0))
+	var floor_y: float = arena_support_height(arena, old_x, old_z, state_y)
+	var was_grounded: bool = state_y <= floor_y and state_vy <= 0.0
+	var climb: float = climb_height(state_y, floor_y, state_vy)
+
 	var x: float
 	var z: float
-	if not arena_blocked(arena, nx, nz):
+	if not arena_blocked_at(arena, nx, nz, climb):
 		x = nx
 		z = nz
-	elif not arena_blocked(arena, nx, old_z):
+	elif not arena_blocked_at(arena, nx, old_z, climb):
 		vz = 0.0
 		x = nx
 		z = old_z
-	elif not arena_blocked(arena, old_x, nz):
+	elif not arena_blocked_at(arena, old_x, nz, climb):
 		vx = 0.0
 		x = old_x
 		z = nz
@@ -147,5 +184,26 @@ static func step(state: Dictionary, input: Dictionary, dt: float, arena: Diction
 		var stay: Vector2 = arena_clamp(arena, old_x, old_z)
 		x = stay.x
 		z = stay.y
+
+	# Vertical, against the floor under where the fighter ended up. Up to a
+	# step is snapped to, in either direction; a bigger drop is a fall.
+	var support: float = arena_support_height(arena, x, z, climb)
+	var vy: float = state_vy
+	var y: float = state_y
+	var on_ground: bool = (y <= support or (was_grounded and y - support <= STEP_UP)) and state_vy <= 0.0
+	if on_ground:
+		y = support
+		vy = 0.0
+		if bool(input.get("jump", false)):
+			vy = JUMP_SPEED
+	else:
+		vy -= GRAVITY * dt
+	y += vy * dt
+	# Swept landing: anything the fall passed through on the way down counts.
+	var landing: float = arena_support_height(arena, x, z, maxf(state_y, y))
+	if y <= landing:
+		y = landing
+		if vy < 0.0:
+			vy = 0.0
 
 	return {"x": x, "z": z, "y": y, "vx": vx, "vz": vz, "vy": vy, "yaw": yaw}

@@ -1,7 +1,8 @@
 extends Node3D
 class_name ArenaCover
 
-## Builds the arena's cover from the solids the server sends in MapInfo.
+## Builds the arena from the MapInfo the server sends: the floor, the boundary
+## walls, and every solid at the height the server says it is.
 ##
 ## The cover used to be hand-placed boxes in the scene file, duplicating a list
 ## of rectangles that the server also held. That is the same class of bug that
@@ -12,12 +13,17 @@ class_name ArenaCover
 ##
 ## Now there is one copy. The server owns the geometry, sends it once on join
 ## and again when the map changes, and this builds what it is told. What you
-## can hide behind and what actually blocks a shot cannot disagree.
+## can hide behind, what you can stand on, and what actually blocks a shot
+## cannot disagree.
 
-const WALL_HEIGHT: float = 4.5
-const LOW_THRESHOLD: float = 1.0
+## Height of the boundary wall around the playable square.
+const BOUNDARY_HEIGHT: float = 8.0
+## A solid at or under this is a step or a kerb rather than a wall, and gets
+## the lighter surface so a player can read it as walkable at a glance.
+const LOW_TOP: float = 1.6
 
 var _built_for: int = -1
+var _half_extent: float = 0.0
 
 func _ready() -> void:
 	name = "ArenaCover"
@@ -29,12 +35,78 @@ func apply_map_info(info: Dictionary) -> void:
 	if map_id == _built_for:
 		return
 	_built_for = map_id
+	_half_extent = float(info.get("half_extent", 50.0))
 	for child in get_children():
 		child.queue_free()
+	_build_shell(_half_extent)
 	var solids: Array = info.get("solids", [])
 	for entry in solids:
 		if typeof(entry) == TYPE_DICTIONARY:
 			_add_solid(entry as Dictionary)
+	_hide_scene_props()
+
+## Half width of the playable square the server last described, so the camera
+## and the far-plane work can size themselves to the map rather than to a
+## constant that was right for one of them.
+func half_extent() -> float:
+	return _half_extent
+
+## The floor and the four boundary walls, sized from the map. Without this a
+## two hundred and eighty metre map is drawn inside whatever square the scene
+## file happened to have in it.
+func _build_shell(half: float) -> void:
+	var floor_mesh: PlaneMesh = PlaneMesh.new()
+	floor_mesh.size = Vector2(half * 2.0, half * 2.0)
+	var floor_node: MeshInstance3D = MeshInstance3D.new()
+	floor_node.name = "MapFloor"
+	floor_node.mesh = floor_mesh
+	floor_node.position = Vector3.ZERO
+	var floor_material: StandardMaterial3D = StandardMaterial3D.new()
+	floor_material.albedo_color = Color(0.22, 0.21, 0.19)
+	floor_material.roughness = 0.98
+	floor_material.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
+	floor_node.material_override = floor_material
+	add_child(floor_node)
+
+	for side in range(4):
+		var along_x: bool = side < 2
+		var sign: float = -1.0 if side % 2 == 0 else 1.0
+		var mesh: BoxMesh = BoxMesh.new()
+		if along_x:
+			mesh.size = Vector3(half * 2.0, BOUNDARY_HEIGHT, 1.0)
+		else:
+			mesh.size = Vector3(1.0, BOUNDARY_HEIGHT, half * 2.0)
+		var node: MeshInstance3D = MeshInstance3D.new()
+		node.name = "MapBoundary%d" % side
+		node.mesh = mesh
+		if along_x:
+			node.position = Vector3(0.0, BOUNDARY_HEIGHT * 0.5, sign * half)
+		else:
+			node.position = Vector3(sign * half, BOUNDARY_HEIGHT * 0.5, 0.0)
+		node.material_override = _boundary_material()
+		add_child(node)
+
+## The scene files still carry a floor, four walls and some legacy low walls
+## from when cover lived in the scene. They are the wrong size for every map
+## but one, so the server-built shell replaces them.
+func _hide_scene_props() -> void:
+	var parent: Node = get_parent()
+	if parent == null:
+		return
+	for legacy_name in [
+		"Floor",
+		"WallNorth",
+		"WallSouth",
+		"WallEast",
+		"WallWest",
+		"LowWallNorth",
+		"LowWallSouth",
+		"LowWallEast",
+		"LowWallWest",
+	]:
+		var node: Node = parent.get_node_or_null(NodePath(legacy_name))
+		if node is Node3D:
+			(node as Node3D).visible = false
 
 func _add_solid(solid: Dictionary) -> void:
 	var min_x: float = float(solid.get("min_x", 0.0))
@@ -46,11 +118,11 @@ func _add_solid(solid: Dictionary) -> void:
 	if size_x <= 0.0 or size_z <= 0.0:
 		return
 
-	# A wide, thin solid is a wall you shoot over; a chunky one is a pillar you
-	# hide behind. Height follows from the footprint so the shape reads as what
-	# it does without the server having to describe it.
-	var thin: bool = minf(size_x, size_z) < LOW_THRESHOLD
-	var height: float = 1.6 if thin else WALL_HEIGHT
+	# The server says how tall it is. A solid runs from the floor to its top,
+	# so what is drawn and what a fighter stands on are the same box.
+	var height: float = float(solid.get("top", MoveStep.WALL_TOP))
+	if height <= 0.0:
+		return
 
 	var mesh: BoxMesh = BoxMesh.new()
 	mesh.size = Vector3(size_x, height, size_z)
@@ -58,12 +130,19 @@ func _add_solid(solid: Dictionary) -> void:
 	var node: MeshInstance3D = MeshInstance3D.new()
 	node.mesh = mesh
 	node.position = Vector3((min_x + max_x) * 0.5, height * 0.5, (min_z + max_z) * 0.5)
-	node.material_override = _material(thin)
+	node.material_override = _material(height <= LOW_TOP)
 	add_child(node)
 
-static func _material(thin: bool) -> StandardMaterial3D:
+static func _boundary_material() -> StandardMaterial3D:
 	var mat: StandardMaterial3D = StandardMaterial3D.new()
-	mat.albedo_color = Color(0.29, 0.25, 0.22) if thin else Color(0.34, 0.30, 0.26)
+	mat.albedo_color = Color(0.4, 0.37, 0.33)
+	mat.roughness = 0.92
+	mat.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
+	return mat
+
+static func _material(low: bool) -> StandardMaterial3D:
+	var mat: StandardMaterial3D = StandardMaterial3D.new()
+	mat.albedo_color = Color(0.29, 0.25, 0.22) if low else Color(0.34, 0.30, 0.26)
 	mat.roughness = 0.95
 	mat.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
 	return mat

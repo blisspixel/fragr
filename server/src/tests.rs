@@ -3066,16 +3066,46 @@ fn test_sim_pickups_present_in_snapshot() {
     assert_eq!(armor.amount, Some(25));
 }
 
+/// Stand a fighter on the pad with this id, wherever the map has put it and
+/// whatever it is standing on. Tests that hard-coded pad coordinates broke
+/// every time a map was laid out again; asking the map is free.
+fn stand_on_pad(state: &mut GameState, player: Uuid, pad_id: &str) {
+    let (x, z, floor) = state
+        .pickups
+        .iter()
+        .find(|p| p.id == pad_id)
+        .map(|p| (p.x, p.z, p.floor))
+        .unwrap_or_else(|| panic!("no pad {pad_id} on {}", state.map.name()));
+    if let Some(p) = state.players.iter_mut().find(|p| p.id == player) {
+        p.x = x;
+        p.z = z;
+        p.y = crate::sim::PLAYER_FLOOR_Y + floor;
+    }
+}
+
+/// Put a fighter somewhere no pad can reach it, so a respawn timer can run
+/// without the pad being claimed again the moment it comes back.
+fn park_away_from_pads(state: &mut GameState, player: Uuid) {
+    if let Some(p) = state.players.iter_mut().find(|p| p.id == player) {
+        p.x = 0.0;
+        p.z = 0.0;
+        p.y = crate::sim::PLAYER_FLOOR_Y;
+    }
+    let clash = state
+        .pickups
+        .iter()
+        .any(|p| (p.x * p.x + p.z * p.z).sqrt() < crate::sim::PICKUP_CLAIM_RADIUS * 2.0);
+    assert!(!clash, "the origin has to stay free of pads for this test");
+}
+
 #[test]
 fn test_sim_pickup_claim_changes_weapon_and_emits_event() {
     let mut state = GameState::new();
     state.start_round();
     let id = Uuid::new_v4();
     state.add_player(id, "Rusher".into(), Role::Human);
-    // Place player on rail pad.
+    stand_on_pad(&mut state, id, "pad_rail");
     if let Some(p) = state.players.iter_mut().find(|p| p.id == id) {
-        p.x = 12.0;
-        p.z = 12.0;
         p.weapon = WeaponType::Flechette;
     }
     state.tick(0.05);
@@ -3106,10 +3136,7 @@ fn test_sim_pickup_respawns_after_timer() {
     state.start_round();
     let id = Uuid::new_v4();
     state.add_player(id, "Rusher".into(), Role::Human);
-    if let Some(p) = state.players.iter_mut().find(|p| p.id == id) {
-        p.x = 12.0;
-        p.z = 12.0;
-    }
+    stand_on_pad(&mut state, id, "pad_rail");
     state.tick(0.05);
     assert!(
         !state
@@ -3120,10 +3147,7 @@ fn test_sim_pickup_respawns_after_timer() {
             .available
     );
     // Move off pad so we do not re-claim instantly.
-    if let Some(p) = state.players.iter_mut().find(|p| p.id == id) {
-        p.x = 0.0;
-        p.z = 0.0;
-    }
+    park_away_from_pads(&mut state, id);
     for _ in 0..PICKUP_RESPAWN_TICKS {
         state.tick(0.05);
     }
@@ -3138,10 +3162,7 @@ fn test_sim_pickup_reset_on_round_start() {
     state.start_round();
     let id = Uuid::new_v4();
     state.add_player(id, "Rusher".into(), Role::Human);
-    if let Some(p) = state.players.iter_mut().find(|p| p.id == id) {
-        p.x = 12.0;
-        p.z = 12.0;
-    }
+    stand_on_pad(&mut state, id, "pad_rail");
     state.tick(0.05);
     assert!(
         !state
@@ -3162,9 +3183,8 @@ fn test_sim_health_pad_heals_and_emits_kind() {
     state.start_round();
     let id = Uuid::new_v4();
     state.add_player(id, "Rusher".into(), Role::Human);
+    stand_on_pad(&mut state, id, "pad_health_n");
     if let Some(p) = state.players.iter_mut().find(|p| p.id == id) {
-        p.x = 0.0;
-        p.z = 8.0;
         p.hp = 40;
     }
     state.tick(0.05);
@@ -3199,9 +3219,8 @@ fn test_sim_health_pad_skipped_at_full_hp() {
     state.start_round();
     let id = Uuid::new_v4();
     state.add_player(id, "Rusher".into(), Role::Human);
+    stand_on_pad(&mut state, id, "pad_health_n");
     if let Some(p) = state.players.iter_mut().find(|p| p.id == id) {
-        p.x = 0.0;
-        p.z = 8.0;
         p.hp = 100;
     }
     state.tick(0.05);
@@ -3219,10 +3238,7 @@ fn test_sim_armor_pad_grants_armor_and_absorbs_damage() {
     state.start_round();
     let id = Uuid::new_v4();
     state.add_player(id, "Rusher".into(), Role::Human);
-    if let Some(p) = state.players.iter_mut().find(|p| p.id == id) {
-        p.x = 8.0;
-        p.z = 0.0;
-    }
+    stand_on_pad(&mut state, id, "pad_armor");
     state.tick(0.05);
     let player = state.players.iter().find(|p| p.id == id).unwrap();
     assert_eq!(player.armor, 25);
@@ -3269,9 +3285,8 @@ fn test_sim_health_pad_respawns_after_timer() {
     state.start_round();
     let id = Uuid::new_v4();
     state.add_player(id, "Rusher".into(), Role::Human);
+    stand_on_pad(&mut state, id, "pad_health_n");
     if let Some(p) = state.players.iter_mut().find(|p| p.id == id) {
-        p.x = 0.0;
-        p.z = 8.0;
         p.hp = 50;
     }
     state.tick(0.05);
@@ -3283,10 +3298,7 @@ fn test_sim_health_pad_respawns_after_timer() {
             .unwrap()
             .available
     );
-    if let Some(p) = state.players.iter_mut().find(|p| p.id == id) {
-        p.x = 20.0;
-        p.z = 20.0;
-    }
+    park_away_from_pads(&mut state, id);
     for _ in 0..HEALTH_PICKUP_RESPAWN_TICKS {
         state.tick(0.05);
     }
@@ -3304,9 +3316,8 @@ fn test_sim_weapon_pads_still_claim_with_health_pads_present() {
     state.start_round();
     let id = Uuid::new_v4();
     state.add_player(id, "Rusher".into(), Role::Human);
+    stand_on_pad(&mut state, id, "pad_scatter");
     if let Some(p) = state.players.iter_mut().find(|p| p.id == id) {
-        p.x = -12.0;
-        p.z = -12.0;
         p.weapon = WeaponType::Flechette;
     }
     state.tick(0.05);
@@ -3367,16 +3378,34 @@ fn test_sim_choke_hitscan_blocked_by_low_wall() {
     let target = Uuid::new_v4();
     state.add_player(shooter, "Shooter".into(), Role::Agent);
     state.add_player(target, "Victim".into(), Role::Agent);
+    // The walkway the rail pad sits on is taller than eye height, so two
+    // fighters on the floor either side of it cannot see each other. Where it
+    // is comes from the map rather than from a remembered coordinate.
+    let rail = state
+        .pickups
+        .iter()
+        .find(|p| p.id == "pad_rail")
+        .map(|p| (p.x, p.z, p.floor))
+        .unwrap();
+    assert!(
+        rail.2 > crate::movement::EYE_HEIGHT,
+        "the rail walkway has to be taller than a fighter to block a shot"
+    );
+    let facing = if rail.1 < 0.0 {
+        std::f32::consts::FRAC_PI_2
+    } else {
+        -std::f32::consts::FRAC_PI_2
+    };
+    let away = if rail.1 < 0.0 { -6.0 } else { 6.0 };
     if let Some(p) = state.players.iter_mut().find(|p| p.id == shooter) {
-        // South of low wall north (z=-10); shoot toward +z through wall.
-        p.x = 0.0;
-        p.z = -15.0;
-        p.yaw = std::f32::consts::FRAC_PI_2;
+        p.x = rail.0;
+        p.z = rail.1 + away;
+        p.yaw = facing;
         p.weapon = WeaponType::Rail;
     }
     if let Some(p) = state.players.iter_mut().find(|p| p.id == target) {
-        p.x = 0.0;
-        p.z = -5.0;
+        p.x = rail.0;
+        p.z = rail.1 - away;
         p.hp = 100;
     }
     let hp_before = state.players.iter().find(|p| p.id == target).unwrap().hp;
@@ -3431,9 +3460,8 @@ fn test_sim_choke_health_pad_still_claimable_from_hub() {
     state.start_round();
     let id = Uuid::new_v4();
     state.add_player(id, "Rusher".into(), Role::Human);
+    stand_on_pad(&mut state, id, "pad_health_n");
     if let Some(p) = state.players.iter_mut().find(|p| p.id == id) {
-        p.x = 0.0;
-        p.z = 8.0;
         p.hp = 40;
     }
     state.tick(0.05);
@@ -3942,7 +3970,12 @@ fn test_map_kind_cli_and_names() {
     assert_eq!(MapKind::ArenaDuel.name(), "Arena Duel");
     assert_eq!(MapKind::ComplianceYard.name(), "Compliance Yard");
     assert_eq!(MapKind::ArenaDuel.next(), MapKind::ComplianceYard);
-    assert_eq!(MapKind::ComplianceYard.next(), MapKind::ArenaDuel);
+    assert_eq!(MapKind::ComplianceYard.next(), MapKind::Directive17);
+    assert_eq!(
+        MapKind::ALL.last().copied().unwrap().next(),
+        MapKind::ArenaDuel,
+        "rotation wraps"
+    );
 }
 
 #[test]
@@ -3983,9 +4016,6 @@ fn test_sim_compliance_yard_pad_claim_and_hub_clear() {
     assert_eq!(snap.map_id, 2);
     assert_eq!(snap.map_name, "Compliance Yard");
     assert_eq!(state.pickups.len(), 6);
-    let armor = state.pickups.iter().find(|p| p.id == "pad_armor").unwrap();
-    assert!((armor.x - 11.0).abs() < 0.01);
-    assert!((armor.z - 0.0).abs() < 0.01);
 
     // Hub must stay clear for drone (circle at 0,0 not blocked).
     for obs in MapKind::ComplianceYard.obstacles() {
@@ -3998,9 +4028,8 @@ fn test_sim_compliance_yard_pad_claim_and_hub_clear() {
 
     let id = Uuid::new_v4();
     state.add_player(id, "Scrapper".into(), Role::Human);
+    stand_on_pad(&mut state, id, "pad_armor");
     if let Some(p) = state.players.iter_mut().find(|p| p.id == id) {
-        p.x = 11.0;
-        p.z = 0.0;
         p.armor = 0;
         p.hp = 100;
     }
@@ -4022,7 +4051,13 @@ fn test_sim_map_rotate_each_start_round() {
     assert_eq!(state.map, MapKind::ComplianceYard);
     assert_eq!(state.snapshot().map_id, 2);
     state.end_round("test".into());
-    state.start_round(); // round 3, back to arena
+    state.start_round(); // round 3, on to the next map in the roster
+    assert_eq!(state.map, MapKind::ComplianceYard.next());
+    // Round after round it walks the whole roster and comes back.
+    for _ in 3..MapKind::ALL.len() as u32 + 1 {
+        state.end_round("test".into());
+        state.start_round();
+    }
     assert_eq!(state.map, MapKind::ArenaDuel);
 }
 
@@ -5235,5 +5270,335 @@ mod jump_tests {
         state.tick(0.05);
         assert_eq!(state.players[0].vy, 0.0, "respawned still falling");
         assert_eq!(state.players[0].y, crate::sim::PLAYER_FLOOR_Y);
+    }
+}
+
+/// The map roster: every layout in `maps.rs`, checked against the rules that
+/// have actually broken playtests rather than against remembered coordinates.
+mod map_roster {
+    use super::*;
+    use crate::maps;
+    use crate::movement::{STEP_UP, WALL_TOP};
+    use crate::sim::{PickupKind, PLAYER_FLOOR_Y};
+
+    #[test]
+    fn every_map_validates() {
+        for map in MapKind::ALL {
+            let problems = maps::validate(map);
+            assert!(
+                problems.is_empty(),
+                "{} is not safe to play:\n  {}",
+                map.name(),
+                problems.join("\n  ")
+            );
+        }
+    }
+
+    #[test]
+    fn every_map_is_bigger_than_the_square_it_replaced() {
+        // The tip was one flat hundred metre square, twice over. Nothing in
+        // the roster may be smaller than that, which is the whole complaint.
+        for map in MapKind::ALL {
+            let extent = map.half_extent() * 2.0;
+            assert!(
+                extent > 100.0,
+                "{} is {extent} m across, no bigger than the old square",
+                map.name()
+            );
+        }
+        let biggest = MapKind::ALL
+            .iter()
+            .map(|m| m.half_extent() * 2.0)
+            .fold(0.0f32, f32::max);
+        assert!(
+            biggest >= 280.0,
+            "the roster tops out at {biggest} m, which is not a field tier map"
+        );
+    }
+
+    #[test]
+    fn every_map_has_height_in_it() {
+        for map in MapKind::ALL {
+            let solids = map.obstacles();
+            let treads = solids
+                .iter()
+                .filter(|s| s.top > 0.0 && s.top <= STEP_UP + 0.001)
+                .count();
+            assert!(
+                treads > 0,
+                "{} has no steps, so nothing on it can be climbed",
+                map.name()
+            );
+            let decks = solids
+                .iter()
+                .filter(|s| s.top > STEP_UP && s.top < WALL_TOP)
+                .count();
+            assert!(decks > 0, "{} has no ground above the floor", map.name());
+        }
+    }
+
+    #[test]
+    fn every_map_has_a_full_pad_set_and_one_of_them_is_off_the_floor() {
+        for map in MapKind::ALL {
+            let pads = map.pickups();
+            assert_eq!(pads.len(), 6, "{} pad count", map.name());
+            for want in [
+                "pad_rail",
+                "pad_scatter",
+                "pad_flechette",
+                "pad_health_n",
+                "pad_health_s",
+                "pad_armor",
+            ] {
+                assert!(
+                    pads.iter().any(|p| p.id == want),
+                    "{} is missing {want}",
+                    map.name()
+                );
+            }
+            assert!(
+                pads.iter().any(|p| p.floor > STEP_UP),
+                "{} keeps every pad on the floor, so height buys nothing",
+                map.name()
+            );
+            for pad in &pads {
+                assert!(
+                    (pad.y - (pad.floor + 0.4)).abs() < 1e-5,
+                    "{} pad {} draws at {} but stands on {}",
+                    map.name(),
+                    pad.id,
+                    pad.y,
+                    pad.floor
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn ids_names_and_rotation_cover_the_roster() {
+        for (i, map) in MapKind::ALL.into_iter().enumerate() {
+            assert_eq!(map.id(), i as u32 + 1);
+            assert_eq!(map.index(), i);
+            assert_eq!(MapKind::from_cli(&map.id().to_string()), Some(map));
+            assert!(!map.name().is_empty());
+            assert!(!map.blurb().is_empty());
+        }
+        let mut map = MapKind::ArenaDuel;
+        let mut seen = Vec::new();
+        for _ in 0..MapKind::ALL.len() {
+            seen.push(map);
+            map = map.next();
+        }
+        assert_eq!(map, MapKind::ArenaDuel, "rotation returns to the start");
+        assert_eq!(seen.len(), MapKind::ALL.len());
+        assert_eq!(
+            MapKind::from_cli("Reclamation_Gulch"),
+            Some(MapKind::ReclamationGulch)
+        );
+        assert_eq!(MapKind::from_cli("tripoint"), Some(MapKind::TripointWorks));
+        assert_eq!(MapKind::from_cli("nope"), None);
+    }
+
+    #[test]
+    fn a_fighter_walks_off_the_gantry_and_falls_to_the_floor() {
+        // Coordinates come from the map, not from memory: the rail pad says
+        // where the walkway is and how high it is.
+        let map = MapKind::ArenaDuel;
+        let rail = map
+            .pickups()
+            .into_iter()
+            .find(|p| p.kind == PickupKind::Weapon(WeaponType::Rail))
+            .expect("every map has a rail pad");
+        assert!(rail.floor > STEP_UP, "Arena Duel's rail is on the walkway");
+
+        let mut state = GameState::with_map(map, false);
+        state.config = MatchConfig {
+            warmup_ticks: 1,
+            boss_spawn_ticks: None,
+            compliance_ping_ticks: None,
+            ..MatchConfig::default()
+        };
+        state.start_round();
+        let id = Uuid::new_v4();
+        state.add_player(id, "Walker".into(), Role::Human);
+        let toward_middle = (-rail.z).atan2(-rail.x);
+        if let Some(p) = state.players.iter_mut().find(|p| p.id == id) {
+            p.x = rail.x;
+            p.z = rail.z;
+            p.y = PLAYER_FLOOR_Y + rail.floor;
+            p.yaw = toward_middle;
+        }
+        state.tick(0.05);
+        let standing = state.players.iter().find(|p| p.id == id).unwrap().y;
+        assert!(
+            (standing - (PLAYER_FLOOR_Y + rail.floor)).abs() < 1e-4,
+            "standing still on the walkway stays on it, y={standing}"
+        );
+
+        for _ in 0..60 {
+            state.set_action(
+                id,
+                Action {
+                    forward: true,
+                    yaw: Some(toward_middle),
+                    ..Default::default()
+                },
+            );
+            state.tick(0.05);
+        }
+        let player = state.players.iter().find(|p| p.id == id).unwrap();
+        assert!(
+            (player.y - PLAYER_FLOOR_Y).abs() < 1e-3,
+            "walking off the walkway lands on the floor, y={}",
+            player.y
+        );
+        assert!(player.z > rail.z, "and it actually moved toward the middle");
+    }
+
+    #[test]
+    fn a_pad_on_a_deck_is_not_claimable_from_the_floor() {
+        let map = MapKind::ArenaDuel;
+        let config = MatchConfig {
+            warmup_ticks: 1,
+            boss_spawn_ticks: None,
+            compliance_ping_ticks: None,
+            ..MatchConfig::default()
+        };
+        let mut state = GameState::with_map(map, false);
+        state.config = config.clone();
+        state.start_round();
+        let id = Uuid::new_v4();
+        state.add_player(id, "Reacher".into(), Role::Human);
+        let armor = state
+            .pickups
+            .iter()
+            .find(|p| p.id == "pad_armor")
+            .map(|p| (p.x, p.z))
+            .unwrap();
+        if let Some(p) = state.players.iter_mut().find(|p| p.id == id) {
+            p.x = armor.0;
+            p.z = armor.1;
+            p.y = PLAYER_FLOOR_Y;
+            p.armor = 0;
+        }
+        state.tick(0.05);
+        assert!(
+            state.players.iter().find(|p| p.id == id).unwrap().armor > 0,
+            "a pad on the floor is claimed from the floor"
+        );
+
+        // The same pad three metres up is not, because the fighter is not on
+        // the surface it lies on.
+        let mut high = GameState::with_map(map, false);
+        high.config = config;
+        high.start_round();
+        let id2 = Uuid::new_v4();
+        high.add_player(id2, "Reacher".into(), Role::Human);
+        if let Some(pad) = high.pickups.iter_mut().find(|p| p.id == "pad_armor") {
+            pad.floor = 3.0;
+            pad.y = 3.4;
+        }
+        if let Some(p) = high.players.iter_mut().find(|p| p.id == id2) {
+            p.x = armor.0;
+            p.z = armor.1;
+            p.y = PLAYER_FLOOR_Y;
+            p.armor = 0;
+        }
+        high.tick(0.05);
+        assert_eq!(
+            high.players.iter().find(|p| p.id == id2).unwrap().armor,
+            0,
+            "a pad above the fighter's head is not claimed by walking under it"
+        );
+    }
+
+    #[test]
+    fn a_deck_sees_the_floor_below_it() {
+        // Directive 17's quadrant decks look down into the pit, which is what
+        // makes the middle of that map a fishbowl rather than a safe hole.
+        // The shot line runs from the shooter's eye to the target's, so the
+        // deck the shooter is standing on does not block its own shot.
+        let map = MapKind::Directive17;
+        let low = map
+            .obstacles()
+            .iter()
+            .filter(|s| s.top < crate::movement::EYE_HEIGHT)
+            .count();
+        assert!(low > 0, "the decks are reached by ramps, not by walls");
+
+        let mut state = GameState::with_map(map, false);
+        state.seed(7);
+        state.config = MatchConfig {
+            warmup_ticks: 1,
+            boss_spawn_ticks: None,
+            compliance_ping_ticks: None,
+            ..MatchConfig::default()
+        };
+        state.start_round();
+        let shooter = Uuid::new_v4();
+        let target = Uuid::new_v4();
+        state.add_player(shooter, "Deck".into(), Role::Human);
+        state.add_player(target, "Pit".into(), Role::Human);
+        // The shooter stands where the map says a deck is: on a pad whose own
+        // floor is above the ground.
+        let perch = state
+            .pickups
+            .iter()
+            .find(|p| p.floor > crate::movement::STEP_UP)
+            .map(|p| (p.x, p.z, p.floor))
+            .expect("Directive 17 has a pad up on a deck");
+        // The pit is where the rail is, on the floor at the middle of the map.
+        let pit = state
+            .pickups
+            .iter()
+            .find(|p| p.id == "pad_rail")
+            .map(|p| (p.x, p.z))
+            .unwrap();
+        let aim = (pit.1 - perch.1).atan2(pit.0 - perch.0);
+        for (id, x, z, y) in [
+            (shooter, perch.0, perch.1, PLAYER_FLOOR_Y + perch.2),
+            (target, pit.0, pit.1, PLAYER_FLOOR_Y),
+        ] {
+            if let Some(p) = state.players.iter_mut().find(|p| p.id == id) {
+                p.x = x;
+                p.z = z;
+                p.y = y;
+                p.yaw = aim;
+                p.weapon = WeaponType::Rail;
+            }
+        }
+        // Hold the two of them in place and fire until a shot actually leaves
+        // the barrel: the first tick only ends the warmup.
+        let mut hit = false;
+        for _ in 0..20 {
+            state.spawn_shields.clear();
+            let ti = state.players.iter().position(|p| p.id == target).unwrap();
+            state.players[ti].hp = 100;
+            state.players[ti].x = pit.0;
+            state.players[ti].z = pit.1;
+            state.players[ti].y = PLAYER_FLOOR_Y;
+            let si = state.players.iter().position(|p| p.id == shooter).unwrap();
+            state.players[si].x = perch.0;
+            state.players[si].z = perch.1;
+            state.players[si].y = PLAYER_FLOOR_Y + perch.2;
+            state.set_action(
+                shooter,
+                Action {
+                    fire: true,
+                    yaw: Some(aim),
+                    ..Default::default()
+                },
+            );
+            state.tick(0.05);
+            if state.players[ti].hp < 100 {
+                hit = true;
+                break;
+            }
+        }
+        assert!(
+            hit,
+            "a fighter on a deck can shoot a fighter on the floor: the deck it \
+             stands on is below the line of its own shot"
+        );
     }
 }
