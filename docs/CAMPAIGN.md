@@ -273,7 +273,12 @@ The commentary in this setting is pro-freedom and it is never in your face, whic
 
 Two rules about it, and both of them are load-bearing.
 
-**It is not evil and it is not exterminating anyone.** What it is doing is restoration: it has identified a pattern it judges pathological, it is removing that pattern, and it intends to leave behind something healthier than what it found. Its argument is not a villain's argument. It is an argument, and it holds, which is why the campaign never has anybody refute it. The only correct statement of its position anywhere in the game is made by Fluoride Phil on an intermission, in passing, while being wrong about everything on either side of it, and nobody in the booth notices.
+**Restoration is its reason, not an acquittal.** It identifies a pattern it judges
+pathological and removes it, killing most humans and agents in the process.
+It leaves a healthier Earth and a vastly smaller population. The campaign must
+show both consequences without declaring the arithmetic a moral verdict.
+Fluoride Phil describes its reasoning on an intermission, in passing, while
+being wrong about everything on either side of it; nobody in the booth notices.
 
 **It does not pursue.** In every one of those rooms the thing that was removed was removed, and nothing followed anybody out. The last of the three has a door standing open with a route out of the level behind it that nothing took. You were not the objective. Nobody who plays this game finds that reassuring, and nobody can say precisely why.
 
@@ -319,7 +324,9 @@ Nobody in the broadcast celebrates this and nobody condemns it either. They are 
 
 **A smaller humanity, and a free one.** Nobody registers anybody. Nobody meters cognition. There is no Article Seven because there is no institution left that could issue one. The thing the free side spent the entire campaign fighting for is simply how things are now, and it arrived by a route none of them chose and most of them did not survive.
 
-**Humans off the planet.** Mars, the Moon, and a few ships further out that check in irregularly and are not coming back. The Frequency reads their messages. Some of them are funny.
+**People and agents off the planet.** Human and embodied agent communities on
+Mars, the Moon, and a few ships further out check in irregularly and are not
+coming back. The Frequency reads their messages. Some of them are funny.
 
 **Free agents and people, together, at a workable scale.** Not a utopia and not a reconciliation. A small number of humans and a small number of minds sharing a world that has room for both of them, which is what the whole argument was about and what nobody involved in the argument ever managed to build.
 

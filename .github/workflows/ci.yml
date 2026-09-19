@@ -35,22 +35,57 @@ jobs:
         run: cargo fmt --all -- --check
 
       - name: Run clippy
-        run: cargo clippy --workspace --all-targets -- -D warnings
+        run: cargo clippy --workspace --all-targets --locked -- -D warnings
 
       - name: Run tests
-        run: cargo test --workspace
+        run: cargo test --workspace --locked
 
       - name: Benchmark, determinism, and budget gate
-        run: cargo run -p fragr-server --release -- --bench 16 --bench-ticks 1200 --bench-check --bench-assert --seed 42
+        run: cargo run -p fragr-server --release --locked -- --bench 16 --bench-ticks 1200 --bench-check --bench-assert --seed 42
 
       - name: Agent playtest smoke
-        run: cargo run -p fragr-playtest -- --agents 4 --rounds 1 --frag-limit 3 --time-limit-seconds 45 --assert --report .agents/playtest/ci.json
+        run: cargo run -p fragr-playtest --locked -- --agents 4 --rounds 1 --frag-limit 3 --time-limit-seconds 45 --assert --report .agents/playtest/ci.json
 
       - name: Check code coverage
         run: cargo llvm-cov --workspace --locked --fail-under-lines 90
 
       - name: Build release
-        run: cargo build --workspace --release
+        run: cargo build --workspace --release --locked
+
+  portability:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-2025
+            asset: Godot_v4.7.2-stable_win64.exe.zip
+            binary: Godot_v4.7.2-stable_win64_console.exe
+          - os: macos-26
+            asset: Godot_v4.7.2-stable_macos.universal.zip
+            binary: Godot.app/Contents/MacOS/Godot
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: Workspace tests
+        run: cargo test --workspace --locked
+      - name: Download Godot 4.7.2-stable
+        shell: pwsh
+        env:
+          GODOT_ASSET: ${{ matrix.asset }}
+        run: |
+          Invoke-WebRequest "https://github.com/godotengine/godot/releases/download/4.7.2-stable/$env:GODOT_ASSET" -OutFile godot.zip
+          Expand-Archive godot.zip -DestinationPath godot-bin
+      - name: Headless client checks
+        shell: bash
+        env:
+          GODOT_BINARY: ${{ matrix.binary }}
+        run: |
+          export GODOT_BIN="$PWD/godot-bin/$GODOT_BINARY"
+          chmod +x "$GODOT_BIN"
+          bash tools/godot_check.sh
+          bash tools/test_godot_check.sh
 
   audit:
     runs-on: ubuntu-24.04
@@ -84,3 +119,6 @@ jobs:
 
       - name: Headless client checks
         run: bash tools/godot_check.sh
+
+      - name: Verify client check failure detection
+        run: bash tools/test_godot_check.sh

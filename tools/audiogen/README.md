@@ -26,14 +26,13 @@ Or put it in a `.env` file at the repository root. The tool reads `.env` automat
 elevenlabs=your-key
 ```
 
-Or keep it in a file under the gitignored agent scratch directory and point the tool at it:
+An existing key file outside the checkout can also be supplied explicitly:
 
 ```bash
-mkdir -p .agents && printf '%s' "your-key" > .agents/elevenlabs.key
-cargo run -p fragr-audiogen -- --api-key-file .agents/elevenlabs.key quota
+cargo run -p fragr-audiogen -- --api-key-file /path/outside/checkout/elevenlabs.key quota
 ```
 
-`.agents/`, `.env`, and `*.key` are gitignored. The tool never prints the key.
+`.env` and `*.key` are gitignored. Keep credentials out of `.agents/`, which is disposable diagnostics and receipts. The tool never prints the key.
 
 ## Commands
 

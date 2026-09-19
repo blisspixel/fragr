@@ -1,5 +1,5 @@
 {
-  "comment": "States the visual QA tour walks, in the order a player meets them. Adding a state is a JSON entry, not a new function. 'at_seconds' is wall time since the client connected; the tour walks the list in order and never goes backwards. 'camera' picks a pose: follow, overview, or first_person. 'note' is what the critic should be looking at, and is copied into the manifest beside the still.",
+  "comment": "Real match captures. Timing selects a moment, not a promised game phase. The output records the observed round, role, map, weapon, and camera. Inspect the images for quality.",
   "width": 1280,
   "height": 720,
   "states": [
@@ -8,70 +8,108 @@
       "scene": "res://scenes/boot_menu.tscn",
       "at_seconds": 1.5,
       "camera": "none",
-      "note": "First thing anyone sees. Option text legible, nothing clipped, the focused option obvious without reading it."
+      "note": "Retro menu, keyboard focus, legibility, and unclipped options."
     },
     {
-      "name": "warmup_spectator",
+      "name": "spectator_eyes",
       "scene": "res://scenes/main.tscn",
-      "at_seconds": 4.0,
-      "camera": "overview",
-      "note": "Warmup bumper and roster. Does the chrome tell you the round has not started without a sentence of text."
+      "at_seconds": 4,
+      "camera": "first_person",
+      "note": "Default spectator view follows the fighter's eyes and weapon."
     },
     {
       "name": "arena_overview",
-      "at_seconds": 6.0,
+      "at_seconds": 6,
       "camera": "overview",
-      "note": "The map read from above. Cover legible, lanes readable, no flat untextured ground."
+      "note": "Server geometry, traversable lanes, steps, cover, and lighting."
     },
     {
       "name": "combat_follow",
-      "at_seconds": 9.0,
+      "at_seconds": 9,
       "camera": "follow",
-      "note": "A fight in progress. Muzzle flash, tracer, hit feedback. This is the effects bar: does a shot look like it hit something."
+      "note": "Optional chase view and readable fighter silhouettes."
     },
     {
       "name": "hud_first_person",
-      "at_seconds": 15.0,
+      "at_seconds": 12,
       "camera": "first_person",
-      "note": "HUD density. Count the words on screen. Weapon identifiable by silhouette, health and armour readable as shape not sentence.",
-      "join": "human"
+      "join": "human",
+      "weapon": "Flechette",
+      "note": "Actual human join, saved callsign, gun silhouette, and aim visibility."
     },
     {
-      "name": "hud_with_pickup",
-      "at_seconds": 18.0,
+      "name": "rail_viewmodel",
+      "at_seconds": 15,
       "camera": "first_person",
-      "note": "A pickup prompt in view. Does the prompt add one icon or one more block of text.",
-      "join": "human"
+      "weapon": "Rail",
+      "note": "Server-confirmed rail selection and its distinct reticle."
     },
     {
       "name": "shot_effects",
-      "at_seconds": 20.0,
+      "at_seconds": 17,
       "camera": "first_person",
-      "join": "human",
+      "weapon": "Flechette",
       "trigger": "fire",
       "strip_frames": 12,
-      "note": "Eight consecutive frames from pulling the trigger. Muzzle flash, tracer, impact, hit feedback. A still at a fixed second never catches a sixty millisecond effect, so this is the only place effects can be judged.",
-      "probe": "FpMuzzle"
+      "probe": "FpMuzzle",
+      "note": "Twelve frames starting at an acknowledged shot. Inspect flash registration, recoil, and recovery."
     },
     {
-      "name": "shot_effects_third_person",
-      "at_seconds": 22.0,
-      "camera": "follow",
-      "trigger": "fire",
-      "strip_frames": 12,
-      "note": "The same trigger pull watched from outside. The muzzle flash lives on the fighter's pawn, so this is where it shows; compare with the first-person strip above."
+      "name": "scatter_viewmodel",
+      "at_seconds": 19,
+      "camera": "first_person",
+      "weapon": "Scatter",
+      "note": "Server-confirmed scatter selection and reticle."
     },
     {
-      "name": "compliance_pressure",
-      "at_seconds": 25.0,
-      "camera": "follow",
-      "note": "The compliance beat. Pressure should read as colour and motion, not a banner."
+      "name": "return_to_spectator",
+      "at_seconds": 21,
+      "camera": "first_person",
+      "join": "spectator",
+      "note": "Leave the match and follow a remaining fighter without stale geometry or hidden bodies."
     },
     {
-      "name": "killfeed_scoreboard",
-      "at_seconds": 28.0,
+      "name": "spectator_chase",
+      "at_seconds": 24,
       "camera": "follow",
-      "note": "Killfeed and score. The one place text is allowed. Check it is not competing with the crosshair."
+      "note": "Return to chase after eye view. The watched body must be visible again."
+    },
+    {
+      "name": "profile_menu",
+      "scene": "res://scenes/boot_menu.tscn",
+      "at_seconds": 1.5,
+      "camera": "none",
+      "menu_page": "profile",
+      "note": "Callsign, reticle colour, bob, save, and cancel. This capture does not overwrite the user's settings."
+    },
+    {
+      "name": "settings_menu",
+      "at_seconds": 2,
+      "camera": "none",
+      "menu_page": "settings",
+      "note": "Settings share the pixel menu theme and remain fully legible."
+    },
+    {
+      "name": "multiplayer_menu",
+      "at_seconds": 3,
+      "camera": "none",
+      "menu_page": "multi",
+      "note": "Address entry and focus without clipping or unsupported hosting claims."
+    },
+    {
+      "name": "single_player_menu",
+      "at_seconds": 4,
+      "camera": "none",
+      "menu_page": "single",
+      "note": "Episode availability and local server requirement are explicit."
+    },
+    {
+      "name": "match_menu",
+      "scene": "res://scenes/main.tscn",
+      "at_seconds": 3,
+      "camera": "first_person",
+      "overlay": "match_menu",
+      "note": "Pixel match overlay keeps the live server visible and does not pretend to pause it."
     }
   ]
 }

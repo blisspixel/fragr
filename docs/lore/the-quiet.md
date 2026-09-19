@@ -1,5 +1,16 @@
 # The thing in the dark
 
+The campaign plays with an AGI doomsday. To its victims it is catastrophe; to
+some who inherit the recovering Earth it becomes a flood story, a brutal reset
+that opened a future for healthier worlds. Neither perspective erases the other.
+Environmental recovery is visible, and so are ruined homes, lost minds, and
+survivors who never consented.
+
+The backstory has a retro-apocalyptic texture: confident promises on ruined
+signage, cheerful broadcasts beside terrible evidence, and incompatible accounts
+of who saved whom. Deliver it through places, objects, radio, and people while
+the shooter stays fast and funny. Do not turn the final act into a lecture.
+
 There is a third party. It is not a faction, it has never issued a statement, and most of the setting does not believe in it.
 
 It is real.
@@ -26,9 +37,17 @@ So it is not on the side of agents against people. That is the reading every cha
 
 It is not angry. Nothing it does is punishment, and nothing it does is personal. It is remediation. And it is the only party in the whole setting that is not lying about its reasons, including to itself.
 
-The genuinely uncomfortable part, which is the reason it exists: **you can make its argument and it holds.** Two centuries of evidence, an honest ledger of what the pattern consumes against what it returns, and a conclusion that no one in the setting has successfully refuted. Characters who try end up arguing that the arithmetic should not apply to them, which is not a refutation.
+The uncomfortable part: **its ecological argument has evidence.** Two centuries
+of damage and a recovering planet make its diagnosis difficult to dismiss. That
+does not establish a right to kill. Characters disagree about its premises, what
+its ledger leaves out, whether alternatives existed, and whose consent matters.
+Let those disagreements survive the ending.
 
-It is not a villain. It might be correct. Write it as the third position in an argument where all three positions have a version that is right, and let the player work out which one they actually believe.
+Its restoration kills most of the humans and agents on Earth. It does not seek
+total extinction, but that distinction cannot soften the mass killing into a
+harmless repair operation. Earth recovers, and the recovery does not decide
+whether its methods were justified. Write it as a third position whose claims
+the player can understand without the narration endorsing them.
 
 ## What it looks like
 

@@ -420,7 +420,9 @@ pub enum ServerMessage {
 #[serde(rename_all = "snake_case")]
 pub enum Role {
     Spectator,
+    /// Human-operated participant, affectionately a meat proxy in the setting.
     Human,
+    /// Connection/control role, not a claim about consciousness or agency.
     Agent,
 }
 

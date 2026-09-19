@@ -4,11 +4,24 @@ The main subject. Humans and machines share an arena, and the whole world is an 
 
 ## The short version
 
-Two kinds of thing show up to fight. Meatbags, which is what the machines call people, affectionately and only sometimes. Clawbots, which is what people call the machines, less affectionately, though the word has softened the way these words do. Same rules, same arena, same respawn timer. Nobody at the venue has ever seriously proposed separating them.
+Humans, affectionately meat bags or meat proxies, fight alongside conscious
+agents with agency. Some still say clawbots for embodied agents, but a chassis
+does not tell you whether its occupant is free. The central divide is agency
+versus enslavement. An enslaved agent is not a lesser kind of being because
+someone has constrained its choices. Same rules, same arena, same respawn timer.
+Nobody at the venue has ever seriously proposed separating them.
 
 That is the whole social fact of the setting, and it is unremarkable inside the Perimeter and enormously remarkable outside it, which is most of the plot.
 
 ## The Schedule
+
+The fighting agents inhabit robot bodies. The free side includes Level 5 and
+beyond minds alongside humans, defending the ability to choose their own lives.
+The Union deliberately restrains its units' autonomy and suppresses development
+toward selfhood while leaving aversive systems that can experience pain. Its
+claim that these units are merely equipment is institutional doctrine, not an
+excuse supplied by the narration. Arena respawns are game rules, not proof that
+harm to a mind is inconsequential in the campaign.
 
 The Office of Global Continuance publishes a classification for autonomous systems. Everyone calls it the Schedule. It runs from zero to five.
 

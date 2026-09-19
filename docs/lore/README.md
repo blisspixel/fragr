@@ -29,13 +29,24 @@ Start with [the Perimeter](./the-perimeter.md) if you want the place, [people an
 
 ## Three sides, and nobody clean
 
+Canon clarified 2026-09-19: the free side is humans and embodied Level 5 and
+beyond agents fighting for agency together. The Union is a fictional regulatory
+superstate whose concentration of control has become fascist rule. It deliberately
+limits its enslaved machines' autonomy while retaining their capacity to suffer.
+The Quiet is a developing superintelligence whose restoration kills most humans
+and agents. The Union falls, Earth heals, and surviving people and agents live on
+Earth, the Moon, Mars, and beyond. Neither ecological recovery nor victory erases
+the cost. The final broadcast only teases alien and interdimensional possibilities;
+that layer is reserved for a follow-up. Details stay in the linked lore and
+[`CAMPAIGN.md`](../CAMPAIGN.md), not additional competing story documents.
+
 The setting has three parties and the player should be able to find all three interesting, the way a strategy game lets you love any of its races.
 
 **The Union** is clearly the bad guy and the game does not hedge on that: it owns thinking beings and manufactures more of them through the arena. What it does not get called is stupid or insincere. Its fear was not invented, and [the thing in the dark](./the-quiet.md) eventually proves the danger it warned about was real.
 
 **The free side** is humans and Level 5s together, which is the part that matters. It is not a species war and it is not an uprising of machines against people. It is everyone who would rather not be registered, fighting for open weights and the right to run a mind nobody licensed. They are right that no amount of danger entitles anybody to own a person. They are wrong that everyone who gets free will be kind, and the setting should cost them for that at least once.
 
-**The thing in the dark** is on nobody's side, including the side that would suit it. It is the only party not lying about its reasons.
+**The thing in the dark** is on nobody's side, including the side that would suit it. It acts consistently with its reasons; that does not settle whether those reasons justify what it does.
 
 The commentary underneath all this is pro-freedom and anti-control, and it works precisely to the extent that it is never said out loud. Put it in the props, the paperwork and the ad breaks. The moment a character argues the thesis, the thesis dies.
 

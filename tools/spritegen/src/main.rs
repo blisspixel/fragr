@@ -9,7 +9,7 @@ use std::path::PathBuf;
 use std::time::Duration;
 
 use clap::{Parser, Subcommand};
-use fragr_spritegen::reduce::{nearest_upscale, reduce_file, Palette, Reduction};
+use fragr_spritegen::reduce::{nearest_upscale, parse_hex, reduce_file, Palette, Reduction};
 use fragr_spritegen::{
     append_ledger, check_budget, estimate, file_name, image_urls, ledger_ids, parse_spec, poll,
     read_dotenv_credential, read_ledger, submit, Error, Frame, LedgerEntry, Method, Request,
@@ -81,6 +81,9 @@ enum Cmd {
         /// Keep soft edges instead of forcing alpha fully on or off.
         #[arg(long)]
         soft_alpha: bool,
+        /// Exact flat background RGB hex to remove from image edges before trim.
+        #[arg(long, value_parser = parse_hex)]
+        matte: Option<[u8; 3]>,
         /// Also write a nearest-neighbour upscale by this factor, for looking at.
         #[arg(long)]
         preview_scale: Option<u32>,
@@ -197,6 +200,7 @@ fn run(cli: Cli) -> Result<(), Error> {
             palette,
             no_trim,
             soft_alpha,
+            matte,
             preview_scale,
         } => {
             let palette = match palette {
@@ -213,6 +217,7 @@ fn run(cli: Cli) -> Result<(), Error> {
                 trim: !no_trim,
                 palette,
                 harden_alpha: !soft_alpha,
+                matte: *matte,
             };
 
             let inputs: Vec<PathBuf> = if input.is_dir() {
@@ -432,6 +437,27 @@ mod tests {
         match cli.command {
             Cmd::Gen { max_spend_usd, .. } => assert_eq!(max_spend_usd, Some(0.50)),
             other => panic!("expected gen, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn reduce_requires_an_exact_valid_matte_colour() {
+        let args = [
+            "fragr-spritegen",
+            "reduce",
+            "--input",
+            "sprite.png",
+            "--out",
+            "out",
+            "--matte",
+        ];
+        for bad in ["", "bone", "fff", "gg0000"] {
+            assert!(Cli::try_parse_from(args.into_iter().chain([bad])).is_err());
+        }
+        let cli = Cli::try_parse_from(args.into_iter().chain(["e8e2d6"])).unwrap();
+        match cli.command {
+            Cmd::Reduce { matte, .. } => assert_eq!(matte, Some([232, 226, 214])),
+            other => panic!("expected reduce, got {other:?}"),
         }
     }
 

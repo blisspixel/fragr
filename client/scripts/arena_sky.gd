@@ -71,8 +71,8 @@ static func scrapyard() -> Preset:
 		Color(0.180, 0.129, 0.102),
 		Color(0.125, 0.094, 0.078),
 		0.006,
-		Color(0.42, 0.38, 0.34),  # the tint the arenas were authored against
-		0.45
+		Color(0.68, 0.65, 0.60),
+		0.8
 	)
 
 
@@ -86,8 +86,8 @@ static func compliance() -> Preset:
 		Color(0.110, 0.133, 0.125),
 		Color(0.090, 0.110, 0.106),
 		0.009,
-		Color(0.36, 0.40, 0.38),  # same value, institutional green bias
-		0.45
+		Color(0.61, 0.67, 0.64),
+		0.8
 	)
 
 

@@ -22,6 +22,19 @@ The second line is the turn, and it is delivered separately and quieter. It carr
 
 ## What it feels like
 
+**Full-game direction reaffirmed 2026-09-19:** a polished, fast, readable FPS,
+with the encounter and exploration strengths of Doom and Doom II, Unreal's arena
+combat, Halo's cooperative fights, Battlefield 1942's combined battle spaces,
+and Boltgun's modern pixel brutality as design references, never borrowed IP.
+Complete solo and co-op, multiple multiplayer modes, finished assets and authored
+maps, and measured LAN/dedicated-server reliability and scale are the target.
+The current vertical slice is a foundation and does not satisfy that target.
+
+Humans, MCP participants, and decision-model fighters remain peers on the same
+action path in every supported mode. Let's-play and spectator flows remain
+first-class. An AGI command/RTS mode is a later extension, not a reason to delay
+or weaken the core FPS, co-op, or server work.
+
 **Meet your vibe.** Chill. Play. Laugh. Live laugh frag.
 
 **Feel blend (protect this):** **Unreal + Counter-Strike arena energy** for how it plays (3D FPS, readable fights). Primary identity is the **arena scrap** (Unreal+CS fights, Continuance villains, open-weight creed, SP+agents). **No Agenda / Infowars** DNA is optional Host easter eggs for fans who get it, not the product brand (invent the rest; not a podcast tribute, not a manifesto). Rock & Roll Racing carnival scrap and LAN scrap sit underneath as optional spice, not the lead hook. Agents and humans scrap under the same rules. No Doom / id IP (Doom-weight grit OK as analogy only).

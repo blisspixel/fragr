@@ -52,10 +52,15 @@ var speak_line_index = 0
 var pending_weapon_swap = null
 
 var arena_cover: ArenaCover = null
+var current_map_info: Dictionary = {}
+var latest_snapshot: Dictionary = {}
 var console: FragrConsole = null
 var pause_menu: PauseMenu = null
+var settings: FragrSettings = FragrSettings.new()
+var role_transition: bool = false
 
 func _ready():
+	settings.load_from_disk()
 	net_client.snapshot_received.connect(_on_snapshot_received)
 	net_client.map_info_received.connect(_on_map_info)
 	net_client.event_received.connect(_on_event_received)
@@ -76,7 +81,7 @@ func _ready():
 	net_client.connect_to_server(role, player_name)
 	hud.set_mode(str(boot.get("hud_mode", "SPECTATING")))
 	_setup_radio()
-	_setup_frontend(str(boot.get("mode", "spectate")))
+	_setup_frontend()
 
 	_apply_arena_sky()
 
@@ -115,6 +120,7 @@ static func _find_world_environment(node: Node) -> WorldEnvironment:
 
 
 func _on_map_info(info: Dictionary) -> void:
+	current_map_info = info.duplicate(true)
 	if arena_cover != null:
 		arena_cover.apply_map_info(info)
 	# The venue decides the sky, and the venue is only known once the server
@@ -123,15 +129,13 @@ func _on_map_info(info: Dictionary) -> void:
 
 ## The console, the pause menu and the loading card. Built here rather than in
 ## the scene because they are the same three things whatever the match is.
-func _setup_frontend(boot_mode: String) -> void:
+func _setup_frontend() -> void:
 	console = FragrConsole.new()
 	console.name = "FragrConsole"
 	add_child(console)
 
 	pause_menu = PauseMenu.new()
 	pause_menu.name = "PauseMenu"
-	# Only a solo match may be held. See pause_menu.gd for why.
-	pause_menu.solo = boot_mode == "solo"
 	pause_menu.leave_requested.connect(_on_leave_requested)
 	add_child(pause_menu)
 
@@ -191,18 +195,18 @@ func _resolve_boot() -> Dictionary:
 			var mode = str(meta.get("mode", "spectate"))
 			var host = str(meta.get("host", "127.0.0.1:6767"))
 			if mode == "solo":
-				return {"role": "human", "name": "Human Player", "host": host, "hud_mode": "SOLO BROADCAST"}
+				return {"role": "human", "name": settings.player_name(), "host": host, "hud_mode": "SOLO BROADCAST", "mode": mode}
 			if mode == "join":
-				return {"role": "human", "name": "Human Player", "host": host, "hud_mode": "PLAYING"}
+				return {"role": "human", "name": settings.player_name(), "host": host, "hud_mode": "PLAYING", "mode": mode}
 			return {"role": "spectator", "name": "Spectator", "host": host, "hud_mode": "SPECTATING"}
 	
 	var args = OS.get_cmdline_args()
 	var user_args = OS.get_cmdline_user_args()
 	var wants_solo = OS.get_environment("FRAGR_SOLO") == "1" or "--solo" in args or "--solo" in user_args
 	if wants_solo:
-		return {"role": "human", "name": "Human Player", "host": "127.0.0.1:6767", "hud_mode": "SOLO BROADCAST"}
+		return {"role": "human", "name": settings.player_name(), "host": "127.0.0.1:6767", "hud_mode": "SOLO BROADCAST", "mode": "solo"}
 	if "--human" in args or "--human" in user_args:
-		return {"role": "human", "name": "Human Player", "host": "", "hud_mode": "PLAYING"}
+		return {"role": "human", "name": settings.player_name(), "host": "", "hud_mode": "PLAYING"}
 	return {"role": "spectator", "name": "Spectator", "host": "", "hud_mode": "SPECTATING"}
 
 func _load_audio_streams():
@@ -218,36 +222,38 @@ func _load_audio_streams():
 		round_end_sound.stream = load(audio_dir + "round_end.wav")
 
 func _input(_event):
+	if role_transition or (console != null and console.is_open()) or (pause_menu != null and pause_menu.is_open()):
+		return
 	# InputMap actions (keyboard + joypad). Same join/leave path.
 	if Input.is_action_just_pressed("join_as_human") and not is_human_player:
-		print("Joining as human player...")
-		net_client.disconnect_from_server()
-		await get_tree().create_timer(0.5).timeout
-		is_human_player = true
-		fp_spawn_flashed = false
-		net_client.connect_to_server("human", "Human Player")
-		hud.set_mode("PLAYING")
-		show_loading_card()
-		if radio:
-			radio.set_human_mode(true)
-		_pick_ghost_rival_from_alive()
+		change_role(true)
 	elif Input.is_action_just_pressed("leave_match") and is_human_player:
-		print("Leaving match, returning to spectator...")
-		net_client.disconnect_from_server()
-		await get_tree().create_timer(0.5).timeout
-		is_human_player = false
-		_clear_fp_state()
-		net_client.connect_to_server("spectator", "Spectator")
-		hud.set_ghost_rival("")
-		hud.set_mode("SPECTATING")
-		if radio:
-			radio.set_human_mode(false)
+		change_role(false)
 	elif is_human_player and Input.is_action_just_pressed("speak"):
 		_send_speak_taunt()
 	elif is_human_player and Input.is_action_just_pressed("weapon_next"):
 		pending_weapon_swap = _next_weapon_swap(1)
 	elif is_human_player and Input.is_action_just_pressed("weapon_prev"):
 		pending_weapon_swap = _next_weapon_swap(-1)
+
+## One transition for input, the menu, and the real-wire visual tour.
+func change_role(play: bool) -> void:
+	if role_transition or play == is_human_player:
+		return
+	role_transition = true
+	net_client.disconnect_from_server()
+	is_human_player = play
+	_clear_fp_state()
+	pending_weapon_swap = null
+	await get_tree().create_timer(0.1).timeout
+	net_client.connect_to_server("human" if play else "spectator", settings.player_name())
+	hud.set_mode("PLAYING" if play else "SPECTATING")
+	hud.set_ghost_rival("")
+	if radio:
+		radio.set_human_mode(play)
+	if play:
+		show_loading_card()
+	role_transition = false
 
 ## Input sequence. The server echoes the newest one it applied in an ack,
 ## which is what a predicting client reconciles against.
@@ -262,7 +268,9 @@ func _on_ack_received(data: Dictionary) -> void:
 
 
 func _process(_delta):
-	if is_human_player and net_client.connection_state == WebSocketPeer.STATE_OPEN:
+	if not is_human_player:
+		_update_followed_weapon()
+	if is_human_player and not role_transition and net_client.connection_state == WebSocketPeer.STATE_OPEN:
 		action_state.forward = Input.is_action_pressed("move_forward")
 		action_state.back = Input.is_action_pressed("move_back")
 		action_state.left = Input.is_action_pressed("move_left")
@@ -274,6 +282,9 @@ func _process(_delta):
 		# zero for humans and remain the path for agents and older clients.
 		if camera and camera.has_method("consume_yaw"):
 			action_state.yaw = camera.consume_yaw()
+		if (console != null and console.is_open()) or (pause_menu != null and pause_menu.is_open()):
+			for key in ["forward", "back", "left", "right", "fire", "jump"]:
+				action_state[key] = false
 		action_state.turn_left = false
 		action_state.turn_right = false
 		input_seq += 1
@@ -332,6 +343,9 @@ func _apply_map_from_snapshot(snapshot: Dictionary) -> void:
 	layout.name = "Layout"
 	arena.add_child(layout)
 	arena.move_child(layout, 0)
+	if arena_cover != null and int(current_map_info.get("map_id", -1)) == map_id:
+		arena_cover.apply_map_info(current_map_info)
+	_apply_arena_sky(map_name)
 	if map_name == "":
 		map_name = str(snapshot.get("map_name", "Arena Duel"))
 	if hud and hud.has_method("set_map_name"):
@@ -364,6 +378,7 @@ func _clear_world() -> void:
 		camera.set_available_targets([])
 
 func _on_snapshot_received(data):
+	latest_snapshot = data
 	_apply_map_from_snapshot(data)
 	var tick = data.get("tick", 0)
 	var player_list = data.get("players", [])
@@ -457,6 +472,7 @@ func _on_snapshot_received(data):
 		for pawn in players.values():
 			if is_instance_valid(pawn):
 				pawn.set_highlighted(pawn == followed)
+				pawn.set_nameplate_enabled(not is_human_player and not camera.is_observing_first_person())
 	
 	_update_followed_weapon()
 	_sync_pickups(data.get("pickups", []))
@@ -556,6 +572,9 @@ func _on_event_received(data):
 	elif event_type == "respawn":
 		var who = str(data.get("player", ""))
 		var my_name = str(net_client.player_name) if net_client else ""
+		var my_id: String = str(net_client.player_id) if net_client and net_client.player_id != null else ""
+		if players.has(my_id) and is_instance_valid(players[my_id]):
+			my_name = players[my_id].player_name
 		if is_human_player and who != "" and who == my_name:
 			if hud and hud.has_method("show_spawn_flash"):
 				hud.show_spawn_flash()
@@ -705,6 +724,7 @@ func _update_followed_weapon():
 	
 	if not camera.follow_mode or len(camera.available_targets) == 0:
 		hud.set_followed_weapon("", "")
+		hud.set_fp_juice(false)
 		return
 	
 	var target_index = camera.follow_target_index % len(camera.available_targets)
@@ -712,6 +732,7 @@ func _update_followed_weapon():
 	
 	if not is_instance_valid(target):
 		hud.set_followed_weapon("", "")
+		hud.set_fp_juice(false)
 		return
 	
 	var weapon_name = ""
@@ -725,6 +746,10 @@ func _update_followed_weapon():
 		if "behavior" in pawn:
 			behavior = pawn.behavior
 	
+	hud.set_fp_juice(camera.is_observing_first_person())
+	if camera.is_observing_first_person():
+		hud.set_vitals(int(target.hp), int(target.armor))
+	hud.set_fp_weapon(weapon_name)
 	hud.set_followed_weapon(weapon_name, player_name, behavior)
 
 func _pick_ghost_rival_from_alive():
@@ -863,7 +888,7 @@ func _process_shot_results(results) -> void:
 		# Every shot you take kicks the view model and lights the barrel. This
 		# used to happen only when you missed, so landing a shot was the one
 		# case where pulling the trigger looked like nothing happened.
-		if is_local and hud and hud.has_method("show_fire_juice"):
+		if (is_local or (is_followed and camera.is_observing_first_person())) and hud and hud.has_method("show_fire_juice"):
 			hud.show_fire_juice(wpn)
 		if hit:
 			if hud and hud.has_method("show_hit_marker"):

@@ -12,6 +12,11 @@ How everyone sounds, and which words can no longer change.
 
 **A Level 5 in the arena.** Sport first. Trash talk with no malice underneath it, the way people who like each other talk during a game.
 
+**Humans among friends.** "Meat bags" and "meat proxies" are affectionate slang,
+used by humans and free agents alike. The joke is about the chassis, not whose
+life matters. `human` remains the protocol role; Meat Proxy is the default player
+callsign until someone chooses their own.
+
 **The Congregation.** Earnest. They are not joking and they know you think they are, and they have decided not to mind.
 
 **The Unmetered.** Dry, practical, allergic to being described as a movement.

@@ -9,13 +9,20 @@ use std::sync::Arc;
 use tokio::sync::Mutex;
 use uuid::Uuid;
 
+/// Connections include spectators, which have no player identity.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Recipient {
+    Client(Uuid),
+    Player(Uuid),
+}
+
 /// Owns sim state, bot controllers, and client-to-player mapping for the arena.
 pub struct GameSession {
     pub state: GameState,
     pub bots: Vec<BotController>,
     pub client_to_player: HashMap<Uuid, Uuid>,
-    /// Player-targeted control messages (e.g. speak rate-limit Error). Drained by the game loop.
-    pub pending_unicasts: Vec<(Uuid, ServerMessage)>,
+    /// Targeted control messages, drained by the game loop.
+    pub pending_unicasts: Vec<(Recipient, ServerMessage)>,
     /// The map the last MapInfo described, so a rotation resends it once.
     last_map_sent: Option<crate::sim::MapKind>,
     /// Target rule-bot count. Solo scrap and empty-arena recovery refill up to this.
@@ -129,42 +136,25 @@ impl GameSession {
         self.spawn_bots(need);
     }
 
-    /// Remove a client-mapped player that still holds `name` (ghost reconnect reclaim).
-    /// Rule bots are not in `client_to_player` and are never evicted by name.
-    fn evict_client_player_by_name(&mut self, name: &str) {
-        let ghost_ids: Vec<Uuid> = self
+    /// Names are display labels, never credentials for reclaiming another seat.
+    fn available_display_name(&self, requested: &str) -> String {
+        let cleaned: String = requested.chars().filter(|c| !c.is_control()).collect();
+        let mut base: String = cleaned.trim().chars().take(24).collect();
+        if base.is_empty() {
+            base = "Player".to_string();
+        }
+        let mut candidate = base.clone();
+        let mut suffix = 2_u64;
+        while self
             .state
             .players
             .iter()
-            .filter(|p| p.name == name)
-            .filter(|p| self.client_to_player.values().any(|pid| *pid == p.id))
-            .map(|p| p.id)
-            .collect();
-
-        for player_id in ghost_ids {
-            self.client_to_player.retain(|_, pid| *pid != player_id);
-            let (player_name, player_score) = self
-                .state
-                .players
-                .iter()
-                .find(|p| p.id == player_id)
-                .map(|p| (p.name.clone(), *self.state.scores.get(&p.id).unwrap_or(&0)))
-                .unwrap_or_else(|| (name.to_string(), 0));
-            let player_count_before = self.state.players.len();
-            self.state.remove_player(player_id);
-            self.state.push_event(protocol::GameEvent::PlayerLeft {
-                player: player_name.clone(),
-                score: player_score,
-                round_number: self.state.round_number,
-                player_count: player_count_before.saturating_sub(1),
-            });
-            tracing::info!(
-                "Evicted ghost player {} on reconnect (score: {}, {} players remain)",
-                player_name,
-                player_score,
-                player_count_before.saturating_sub(1)
-            );
+            .any(|player| player.name == candidate)
+        {
+            candidate = format!("{base} #{suffix}");
+            suffix += 1;
         }
+        candidate
     }
 
     /// Apply a net-layer game command (join, leave, or action).
@@ -177,9 +167,11 @@ impl GameSession {
                 name,
                 player_id,
             } => {
+                // Every connection needs geometry, including late spectators.
+                self.pending_unicasts
+                    .push((Recipient::Client(id), self.state.map_info()));
                 if let Some(pid) = player_id {
-                    // Re-Hello same name: drop prior client-mapped ghost before add.
-                    self.evict_client_player_by_name(&name);
+                    let name = self.available_display_name(&name);
                     self.state.add_player(pid, name.clone(), role);
                     self.client_to_player.insert(id, pid);
                     let player_count = self.state.players.len();
@@ -189,9 +181,6 @@ impl GameSession {
                         round_number: self.state.round_number,
                         player_count,
                     });
-                    // The arena's shape, once, so an agent can tell a clear
-                    // shot from a wall without guessing from misses.
-                    self.pending_unicasts.push((pid, self.state.map_info()));
                     tracing::info!(
                         "Player {} joined as {:?} (round {}, {} players)",
                         pid,
@@ -240,7 +229,7 @@ impl GameSession {
                     SpeakOutcome::Sent => {}
                     SpeakOutcome::RateLimited => {
                         self.pending_unicasts.push((
-                            player_id,
+                            Recipient::Player(player_id),
                             ServerMessage::Error {
                                 code: "speak_rate_limited".to_string(),
                                 message: "speak rate limited; try again in a few seconds"
@@ -250,7 +239,7 @@ impl GameSession {
                     }
                     SpeakOutcome::Rejected => {
                         self.pending_unicasts.push((
-                            player_id,
+                            Recipient::Player(player_id),
                             ServerMessage::Error {
                                 code: "speak_rejected".to_string(),
                                 message: "speak rejected".to_string(),
@@ -292,7 +281,12 @@ impl GameSession {
         }
 
         self.state.tick(dt);
-        self.pending_unicasts.extend(self.state.input_acks());
+        self.pending_unicasts.extend(
+            self.state
+                .input_acks()
+                .into_iter()
+                .map(|(id, message)| (Recipient::Player(id), message)),
+        );
 
         let mut out = Vec::new();
         // The map only ever changes between rounds, so this is not per-tick cost.
@@ -307,8 +301,8 @@ impl GameSession {
         out
     }
 
-    /// Drain player-targeted unicast messages queued by apply_command.
-    pub fn take_unicasts(&mut self) -> Vec<(Uuid, ServerMessage)> {
+    /// Drain targeted messages queued by commands and the tick.
+    pub fn take_unicasts(&mut self) -> Vec<(Recipient, ServerMessage)> {
         std::mem::take(&mut self.pending_unicasts)
     }
 }
@@ -333,21 +327,24 @@ pub async fn broadcast_to_clients(
     }
 }
 
-/// Send queued unicast messages to the client session that owns each player_id.
-pub async fn send_unicasts_to_players(
+/// Resolve connection or player recipients through the same delivery path.
+pub async fn send_unicasts(
     clients: &Arc<Mutex<Vec<ClientSession>>>,
     client_to_player: &HashMap<Uuid, Uuid>,
-    unicasts: &[(Uuid, ServerMessage)],
+    unicasts: &[(Recipient, ServerMessage)],
 ) {
     if unicasts.is_empty() {
         return;
     }
     let clients_lock = clients.lock().await;
-    for (player_id, msg) in unicasts {
-        let client_id = client_to_player
-            .iter()
-            .find(|(_, pid)| *pid == player_id)
-            .map(|(cid, _)| *cid);
+    for (recipient, msg) in unicasts {
+        let client_id = match recipient {
+            Recipient::Client(id) => Some(*id),
+            Recipient::Player(player_id) => client_to_player
+                .iter()
+                .find(|(_, pid)| *pid == player_id)
+                .map(|(cid, _)| *cid),
+        };
         let Some(client_id) = client_id else {
             continue;
         };
@@ -709,7 +706,7 @@ mod session_tests {
             .filter(|(_, m)| matches!(m, ServerMessage::Error { .. }))
             .collect();
         assert_eq!(errors.len(), 1, "expected one speak Error unicast");
-        assert_eq!(errors[0].0, player_id);
+        assert_eq!(errors[0].0, Recipient::Player(player_id));
         match &errors[0].1 {
             ServerMessage::Error { code, message } => {
                 assert_eq!(code, "speak_rate_limited");
@@ -757,7 +754,7 @@ mod session_tests {
         assert!(
             u.iter().any(|(pid, m)| matches!(
                 m,
-                ServerMessage::Error { code, .. } if *pid == player_id && code == "speak_rejected"
+                ServerMessage::Error { code, .. } if *pid == Recipient::Player(player_id) && code == "speak_rejected"
             )),
             "empty speak must Error unicast, got {:?}",
             u
@@ -774,7 +771,7 @@ mod session_tests {
             matches!(
                 &u[..],
                 [(pid, ServerMessage::Error { code, .. })]
-                    if *pid == player_id && code == "speak_rejected"
+                    if *pid == Recipient::Player(player_id) && code == "speak_rejected"
             ),
             "overlong speak must Error unicast, got {:?}",
             u
@@ -910,74 +907,79 @@ mod session_tests {
     }
 
     #[test]
-    fn overlapping_reconnect_same_name_evicts_ghost_without_stuck_session() {
+    fn duplicate_callsigns_cannot_evict_another_connection() {
         let mut session = GameSession::new();
-        let c_old = Uuid::new_v4();
-        let p_old = Uuid::new_v4();
-        session.apply_command(GameCommand::Connected {
-            id: c_old,
-            role: Role::Agent,
-            name: "ArenaFox".to_string(),
-            player_id: Some(p_old),
-        });
-        *session.state.scores.get_mut(&p_old).unwrap() = 3;
-        let _ = session.state.take_events();
-
-        // New Hello before old Disconnect (soft prison without eviction).
-        let c_new = Uuid::new_v4();
-        let p_new = Uuid::new_v4();
-        session.apply_command(GameCommand::Connected {
-            id: c_new,
-            role: Role::Agent,
-            name: "ArenaFox".to_string(),
-            player_id: Some(p_new),
-        });
-
+        let old_client = Uuid::new_v4();
+        let old_player = Uuid::new_v4();
+        let new_client = Uuid::new_v4();
+        let new_player = Uuid::new_v4();
+        for (client, player) in [(old_client, old_player), (new_client, new_player)] {
+            session.apply_command(GameCommand::Connected {
+                id: client,
+                role: Role::Human,
+                name: "Meat Proxy".into(),
+                player_id: Some(player),
+            });
+        }
+        assert_eq!(session.state.players.len(), 2);
+        assert_eq!(session.client_to_player.get(&old_client), Some(&old_player));
+        assert_eq!(session.client_to_player.get(&new_client), Some(&new_player));
         assert_eq!(
-            session.state.players.len(),
-            1,
-            "ghost must be evicted; only one ArenaFox"
+            session
+                .state
+                .players
+                .iter()
+                .find(|p| p.id == old_player)
+                .unwrap()
+                .name,
+            "Meat Proxy"
         );
-        assert_eq!(session.state.players[0].id, p_new);
-        assert_eq!(session.client_to_player.get(&c_new), Some(&p_new));
-        assert!(
-            !session.client_to_player.contains_key(&c_old),
-            "old client mapping must be cleared"
+        assert_eq!(
+            session
+                .state
+                .players
+                .iter()
+                .find(|p| p.id == new_player)
+                .unwrap()
+                .name,
+            "Meat Proxy #2"
         );
-
-        let events = session.state.take_events();
-        assert!(
-            events.iter().any(|e| matches!(
-                e,
-                protocol::GameEvent::PlayerLeft {
-                    player,
-                    score: 3,
-                    ..
-                } if player == "ArenaFox"
-            )),
-            "expected ghost PlayerLeft, got {:?}",
-            events
-        );
-        assert!(
-            events.iter().any(|e| matches!(
-                e,
-                protocol::GameEvent::PlayerJoined {
-                    player,
-                    player_count: 1,
-                    ..
-                } if player == "ArenaFox"
-            )),
-            "expected PlayerJoined after reclaim, got {:?}",
-            events
-        );
-
-        // Late Disconnect for the old socket must not remove the new player.
-        session.apply_command(GameCommand::Disconnected { id: c_old });
+        assert!(!session
+            .state
+            .take_events()
+            .iter()
+            .any(|event| matches!(event, protocol::GameEvent::PlayerLeft { .. })));
+        session.apply_command(GameCommand::Disconnected { id: old_client });
         assert_eq!(session.state.players.len(), 1);
-        assert_eq!(session.state.players[0].id, p_new);
-        assert!(session.state.take_events().is_empty());
+        assert_eq!(session.state.players[0].id, new_player);
+        session.apply_command(GameCommand::Action {
+            player_id: new_player,
+            action: Action {
+                fire: true,
+                ..Default::default()
+            },
+        });
+        assert!(session.state.players[0].pending_action.fire);
     }
 
+    #[test]
+    fn callsigns_are_bounded_and_cannot_spoof_roster_lines() {
+        let mut session = GameSession::new();
+        assert_eq!(session.available_display_name("  \n\t  "), "Player");
+        assert_eq!(session.available_display_name("  Patch\n\t "), "Patch");
+        assert_eq!(
+            session
+                .available_display_name(&"x".repeat(100))
+                .chars()
+                .count(),
+            24
+        );
+        for expected in ["Patch", "Patch #2", "Patch #3"] {
+            let name = session.available_display_name("Patch");
+            assert_eq!(name, expected);
+            session.state.add_player(Uuid::new_v4(), name, Role::Agent);
+        }
+    }
     #[test]
     fn reconnect_new_name_is_new_session_without_ghost() {
         let mut session = GameSession::new();

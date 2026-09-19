@@ -7,36 +7,39 @@ cd "$(dirname "$0")/.."
 GODOT="${GODOT_BIN:-godot}"
 "$GODOT" --version || { echo "godot binary not found (set GODOT_BIN)"; exit 1; }
 fail=0
-import_log=$("$GODOT" --headless --path client --import 2>&1 || true)
-if echo "$import_log" | grep -qiE "SCRIPT ERROR|Parse Error"; then
-  echo "FAIL import"
-  echo "$import_log" | grep -iE "SCRIPT ERROR|Parse Error|at:" | head -10
-  fail=1
-else
-  echo "ok   import"
-fi
+
+# Godot may print an error and return zero, or fail without a script diagnostic.
+# A PASS line cannot cancel an earlier error in the same run.
+check() {
+  local label="$1" marker="$2" out status
+  shift 2
+  out=$("$GODOT" --headless --path client "$@" 2>&1)
+  status=$?
+  if [ "$status" -ne 0 ] || printf '%s\n' "$out" | grep -qiE 'SCRIPT ERROR|Parse Error|(^|[[:space:]])ERROR:'; then
+    echo "FAIL $label (exit $status)"
+    printf '%s\n' "$out" | tail -20
+    fail=1
+    return 1
+  fi
+  if [ -n "$marker" ] && ! printf '%s\n' "$out" | grep -qF "$marker"; then
+    echo "FAIL $label (missing $marker)"
+    printf '%s\n' "$out" | tail -20
+    fail=1
+    return 1
+  fi
+  echo "ok   $label"
+}
+
+# Parsing with a failed import only produces secondary missing-resource errors.
+check import "" --import || exit 1
 for script in client/scripts/*.gd; do
   name=$(basename "$script")
-  out=$("$GODOT" --headless --path client --check-only --script "res://scripts/$name" 2>&1 || true)
-  if echo "$out" | grep -qiE "SCRIPT ERROR|Parse Error"; then
-    echo "FAIL $name"
-    echo "$out" | grep -iE "SCRIPT ERROR|Parse Error|at:" | head -6
-    fail=1
-  else
-    echo "ok   $name"
-  fi
+  check "$name" "" --check-only --script "res://scripts/$name"
 done
 
-for harness in test_radio test_far_cam_scale test_move_golden test_aim_sensitivity test_jammer_dish_silhouette test_spectator_stance_chips; do
-
-  out=$("$GODOT" --headless --path client --script "res://scripts/$harness.gd" 2>&1 || true)
-  if echo "$out" | grep -q "$harness: PASS"; then
-    echo "ok   $harness harness"
-  else
-    echo "FAIL $harness harness"
-    echo "$out" | grep -viE "^Godot Engine|^\s*$" | tail -8
-    fail=1
-  fi
+for script in client/scripts/test_*.gd; do
+  harness=$(basename "$script" .gd)
+  check "$harness harness" "$harness: PASS" --script "res://scripts/$harness.gd"
 done
 
 exit $fail

@@ -30,6 +30,7 @@ func _build() -> void:
 	add_child(back)
 
 	var centre: CenterContainer = CenterContainer.new()
+	centre.theme = MenuTheme.build()
 	centre.anchor_right = 1.0
 	centre.anchor_bottom = 1.0
 	add_child(centre)
