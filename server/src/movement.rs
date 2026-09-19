@@ -22,9 +22,21 @@ pub const TAU_ACCEL: f32 = 0.06;
 pub const TAU_DECEL: f32 = 0.04;
 /// The movement step length at the 60 Hz rate the tick migration adopts.
 pub const DT_60HZ: f32 = 1.0 / 60.0;
-/// Floor height. The arena is flat, so this is the only ground there is until
-/// the map tiers bring geometry with height in it.
+/// The base floor. Solids stand on it and a fighter with nothing under it
+/// falls back to it, so it is the bottom of the heightfield rather than the
+/// only ground there is.
 pub const GROUND_Y: f32 = 0.0;
+/// How far a fighter climbs or drops without leaving the ground. Quake's step
+/// height scaled to a 1.8 metre fighter, which is what makes a staircase feel
+/// like walking rather than a sequence of small jumps.
+pub const STEP_UP: f32 = 0.6;
+/// The top a solid gets when nobody says otherwise: higher than a jump can
+/// reach, so it is a wall. Every solid written before the heightfield existed
+/// means this, which is why it is also the wire default.
+pub const WALL_TOP: f32 = 4.5;
+/// How far above its feet a fighter's shot line sits. A solid lower than the
+/// line between two fighters does not block the shot between them.
+pub const EYE_HEIGHT: f32 = 1.5;
 /// Downward acceleration in units per second squared. Chosen with the jump
 /// below so a hop clears about 1.1 units and lasts a little under half a
 /// second, which is the Quake-ish arc this game's speed wants rather than the
@@ -50,8 +62,9 @@ pub struct MoveState {
 }
 
 impl MoveState {
-    /// Whether this fighter is standing on the floor, which is the only thing
-    /// a jump is allowed to push off.
+    /// Whether this fighter is standing on the base floor. Kept for the flat
+    /// case; the step itself asks the arena what is under the fighter, which
+    /// is a deck top as often as it is the floor.
     pub fn grounded(&self) -> bool {
         self.y <= GROUND_Y && self.vy <= 0.0
     }
@@ -98,22 +111,42 @@ impl Default for MoveInput {
     }
 }
 
-/// An axis-aligned solid in the XZ plane, not yet inflated by the radius.
+/// An axis-aligned solid in the XZ plane, not yet inflated by the radius. It
+/// runs from the base floor up to `top`, so it is a box rather than a prism:
+/// there is no space underneath one, and a low one is a step rather than a
+/// wall.
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 pub struct Solid {
     pub min_x: f32,
     pub max_x: f32,
     pub min_z: f32,
     pub max_z: f32,
+    /// Height of the walkable upper surface. Defaulted rather than required so
+    /// that every solid written before the heightfield existed keeps meaning a
+    /// wall, on the wire and in the committed golden vectors alike.
+    #[serde(default = "wall_top")]
+    pub top: f32,
+}
+
+fn wall_top() -> f32 {
+    WALL_TOP
 }
 
 impl Solid {
+    /// A wall: tall enough that nothing walks or jumps onto it.
     pub fn from_center(cx: f32, cz: f32, half_x: f32, half_z: f32) -> Self {
+        Solid::from_center_top(cx, cz, half_x, half_z, WALL_TOP)
+    }
+
+    /// A solid whose upper surface is at `top`. Below `STEP_UP` it is a step,
+    /// below a jump's reach it is a ledge, above that it is a wall.
+    pub fn from_center_top(cx: f32, cz: f32, half_x: f32, half_z: f32, top: f32) -> Self {
         Solid {
             min_x: cx - half_x,
             max_x: cx + half_x,
             min_z: cz - half_z,
             max_z: cz + half_z,
+            top,
         }
     }
 
@@ -123,6 +156,13 @@ impl Solid {
             && x <= self.max_x + radius
             && z >= self.min_z - radius
             && z <= self.max_z + radius
+    }
+
+    /// True when the point itself is over this solid. Standing on a deck uses
+    /// the point rather than the inflated box, so a fighter is held up by what
+    /// is under its feet rather than by what is beside it.
+    pub fn covers(&self, x: f32, z: f32) -> bool {
+        x >= self.min_x && x <= self.max_x && z >= self.min_z && z <= self.max_z
     }
 }
 
@@ -134,13 +174,47 @@ pub struct Arena {
 }
 
 impl Arena {
+    /// Blocked for a fighter standing on the base floor. The flat-arena
+    /// question, kept because plenty of callers only ever ask it.
     pub fn blocked(&self, x: f32, z: f32) -> bool {
-        self.solids.iter().any(|s| s.blocks(x, z, RADIUS))
+        self.blocked_at(x, z, GROUND_Y + STEP_UP)
+    }
+
+    /// Blocked for a fighter that can reach up to `climb`. Anything at or
+    /// below that height is walked onto instead of walked into.
+    pub fn blocked_at(&self, x: f32, z: f32, climb: f32) -> bool {
+        self.solids
+            .iter()
+            .any(|s| s.top > climb && s.blocks(x, z, RADIUS))
+    }
+
+    /// The highest surface at `(x, z)` that is no higher than `ceiling`, or the
+    /// base floor when nothing qualifies. This is the floor the fighter is
+    /// standing on.
+    pub fn support_height(&self, x: f32, z: f32, ceiling: f32) -> f32 {
+        let mut best = GROUND_Y;
+        for s in &self.solids {
+            if s.top <= ceiling && s.top > best && s.covers(x, z) {
+                best = s.top;
+            }
+        }
+        best
     }
 
     pub fn clamp(&self, x: f32, z: f32) -> (f32, f32) {
         let limit = self.half - RADIUS;
         (x.clamp(-limit, limit), z.clamp(-limit, limit))
+    }
+}
+
+/// How high a fighter at `feet` with floor `floor` under it can climb this
+/// step. Standing, it is a step above the floor; airborne, it is wherever the
+/// feet are, so a jump clears exactly what it rises over and no more.
+pub fn climb_height(feet: f32, floor: f32, vy: f32) -> f32 {
+    if feet <= floor && vy <= 0.0 {
+        floor + STEP_UP
+    } else {
+        feet
     }
 }
 
@@ -189,8 +263,16 @@ pub fn wish_dir(input: &MoveInput, yaw: f32) -> (f32, f32) {
 }
 
 /// Advance one fighter by `dt` seconds. The order of operations is the
-/// contract the GDScript mirror keeps: yaw, wish, velocity approach, integrate,
-/// clamp, axis-separated slide with velocity zeroed on the blocked axis.
+/// contract the GDScript mirror keeps: yaw, wish, velocity approach, the floor
+/// under the old position, integrate, clamp, axis-separated slide with
+/// velocity zeroed on the blocked axis, then the vertical against the floor
+/// under the new position.
+///
+/// On flat ground with nothing low enough to stand on, every heightfield term
+/// collapses: `support` is `GROUND_Y`, the step-down allowance is implied by
+/// the grounded test that precedes it, and the arithmetic is the same to the
+/// last bit as the version that had no heightfield in it. That is what keeps
+/// the committed golden vectors valid across this change.
 pub fn step(state: MoveState, input: &MoveInput, dt: f32, arena: &Arena) -> MoveState {
     let yaw = normalize_yaw(input.yaw);
     let (wx, wz) = wish_dir(input, yaw);
@@ -217,13 +299,37 @@ pub fn step(state: MoveState, input: &MoveInput, dt: f32, arena: &Arena) -> Move
     let old_z = state.z;
     let (nx, nz) = arena.clamp(old_x + vx * dt, old_z + vz * dt);
 
-    // Vertical is independent of the walls: the arena is flat, so nothing can
-    // be blocked by standing on it. This changes when the map tiers land.
+    // What is under the fighter now, and therefore how high it can climb into
+    // the next square. A deck one step up is walked onto; anything higher is a
+    // wall until a jump puts the feet above it.
+    let floor = arena.support_height(old_x, old_z, state.y);
+    let was_grounded = state.y <= floor && state.vy <= 0.0;
+    let climb = climb_height(state.y, floor, state.vy);
+
+    let (x, z) = if !arena.blocked_at(nx, nz, climb) {
+        (nx, nz)
+    } else if !arena.blocked_at(nx, old_z, climb) {
+        vz = 0.0;
+        (nx, old_z)
+    } else if !arena.blocked_at(old_x, nz, climb) {
+        vx = 0.0;
+        (old_x, nz)
+    } else {
+        vx = 0.0;
+        vz = 0.0;
+        arena.clamp(old_x, old_z)
+    };
+
+    // Vertical, against the floor under where the fighter ended up. Stepping
+    // up to a surface within `climb` snaps to it; stepping down by up to a
+    // step snaps too, so a staircase is walked rather than fallen down; a
+    // bigger drop is a fall on the ordinary gravity curve.
+    let support = arena.support_height(x, z, climb);
     let mut vy = state.vy;
     let mut y = state.y;
-    let on_ground = state.y <= GROUND_Y && state.vy <= 0.0;
+    let on_ground = (y <= support || (was_grounded && y - support <= STEP_UP)) && state.vy <= 0.0;
     if on_ground {
-        y = GROUND_Y;
+        y = support;
         vy = 0.0;
         if input.jump {
             vy = JUMP_SPEED;
@@ -232,26 +338,16 @@ pub fn step(state: MoveState, input: &MoveInput, dt: f32, arena: &Arena) -> Move
         vy -= GRAVITY * dt;
     }
     y += vy * dt;
-    if y <= GROUND_Y {
-        y = GROUND_Y;
+    // Swept landing: anything the fall passed through on the way down counts,
+    // so a fighter that comes off a deck lands on the next one rather than
+    // through it.
+    let landing = arena.support_height(x, z, state.y.max(y));
+    if y <= landing {
+        y = landing;
         if vy < 0.0 {
             vy = 0.0;
         }
     }
-
-    let (x, z) = if !arena.blocked(nx, nz) {
-        (nx, nz)
-    } else if !arena.blocked(nx, old_z) {
-        vz = 0.0;
-        (nx, old_z)
-    } else if !arena.blocked(old_x, nz) {
-        vx = 0.0;
-        (old_x, nz)
-    } else {
-        vx = 0.0;
-        vz = 0.0;
-        arena.clamp(old_x, old_z)
-    };
 
     MoveState {
         x,
@@ -310,10 +406,14 @@ fn run_case(
 }
 
 fn at(x: f32, z: f32, yaw: f32) -> MoveState {
+    at_y(x, z, GROUND_Y, yaw)
+}
+
+fn at_y(x: f32, z: f32, y: f32, yaw: f32) -> MoveState {
     MoveState {
         x,
         z,
-        y: GROUND_Y,
+        y,
         vx: 0.0,
         vz: 0.0,
         vy: 0.0,
@@ -350,13 +450,43 @@ pub fn golden_arena() -> Arena {
     }
 }
 
+/// The reference arena for the heightfield cases: a flight of six steps
+/// climbing east from x=2 onto a deck, and a second deck with nothing leading
+/// to it, so a case can walk up, walk down, and fall off an edge.
+///
+/// It is a separate arena from `golden_arena` on purpose. Putting a step into
+/// the flat one would move the expected states of every case that already
+/// exists, and the point of the golden file is that those do not move unless
+/// the model moved.
+pub fn golden_terrace_arena() -> Arena {
+    let mut solids = Vec::new();
+    // Six 1.2 metre treads rising half a metre each, from x=2 to x=9.2.
+    for i in 0..6 {
+        let top = 0.5 * (i + 1) as f32;
+        let cx = 2.0 + 1.2 * (i as f32 + 0.5);
+        solids.push(Solid::from_center_top(cx, 0.0, 0.6, 4.0, top));
+    }
+    // The deck the stairs arrive on, level with the top tread.
+    solids.push(Solid::from_center_top(13.2, 0.0, 4.0, 4.0, 3.0));
+    // A wall on the far side of the deck, high enough to stop a fighter that
+    // is standing on it.
+    solids.push(Solid::from_center_top(17.6, 0.0, 0.4, 4.0, 6.0));
+    Arena { half: 25.0, solids }
+}
+
 /// Build the golden file from the current model.
 pub fn golden_cases(dt: f32) -> GoldenFile {
     let arena = golden_arena();
+    let terrace = golden_terrace_arena();
     let mut cases = Vec::new();
-    let mut push = |name: &str, start: MoveState, inputs: Vec<MoveInput>, stride: usize| {
-        let expected = run_case(&arena, start, &inputs, dt, stride);
-        cases.push(GoldenCase {
+    let push_in = |name: &str,
+                   arena: &Arena,
+                   start: MoveState,
+                   inputs: Vec<MoveInput>,
+                   stride: usize,
+                   out: &mut Vec<GoldenCase>| {
+        let expected = run_case(arena, start, &inputs, dt, stride);
+        out.push(GoldenCase {
             name: name.to_string(),
             arena: arena.clone(),
             start,
@@ -365,79 +495,119 @@ pub fn golden_cases(dt: f32) -> GoldenFile {
             expected,
         });
     };
+    {
+        let mut push = |name: &str, start: MoveState, inputs: Vec<MoveInput>, stride: usize| {
+            let expected = run_case(&arena, start, &inputs, dt, stride);
+            cases.push(GoldenCase {
+                name: name.to_string(),
+                arena: arena.clone(),
+                start,
+                inputs,
+                stride,
+                expected,
+            });
+        };
 
-    push(
-        "straight_run",
-        at(0.0, -5.0, 0.0),
-        hold(keys(true, false, false, false, 0.0), 40),
-        1,
-    );
-    push(
-        "diagonal_run_normalised",
-        at(-5.0, -5.0, 0.7),
-        hold(keys(true, false, false, true, 0.7), 40),
-        1,
-    );
-    let mut start_stop = hold(keys(true, false, false, false, 1.2), 30);
-    start_stop.extend(hold(keys(false, false, false, false, 1.2), 30));
-    push("start_and_stop", at(-8.0, 2.0, 1.2), start_stop, 1);
-    push(
-        "slide_along_wall_x",
-        at(-3.0, 8.0, 0.3),
-        hold(keys(true, false, false, false, 0.3), 60),
-        1,
-    );
-    push(
-        "slide_along_wall_z",
-        at(4.2, -4.0, PI / 2.0 + 0.2),
-        hold(keys(true, false, false, false, PI / 2.0 + 0.2), 60),
-        1,
-    );
-    push(
-        "corner_stop",
-        at(-14.0, -14.0, PI / 4.0),
-        hold(keys(true, false, false, false, PI / 4.0), 60),
-        1,
-    );
-    push(
-        "arena_edge_clamp",
-        at(20.0, 20.0, PI / 4.0),
-        hold(keys(true, false, false, false, PI / 4.0), 80),
-        1,
-    );
-    let mut wrap = hold(keys(true, false, false, false, -0.05), 10);
-    wrap.extend(hold(keys(true, false, false, false, 2.0 * PI + 0.05), 10));
-    wrap.extend(hold(keys(true, false, false, false, 3.0 * PI), 10));
-    push("yaw_wrap", at(0.0, 0.0, 0.0), wrap, 1);
-    let mut slow = hold(keys(true, false, false, false, 2.5), 20);
-    for input in slow.iter_mut().skip(10) {
-        input.speed_scale = 0.5;
+        push(
+            "straight_run",
+            at(0.0, -5.0, 0.0),
+            hold(keys(true, false, false, false, 0.0), 40),
+            1,
+        );
+        push(
+            "diagonal_run_normalised",
+            at(-5.0, -5.0, 0.7),
+            hold(keys(true, false, false, true, 0.7), 40),
+            1,
+        );
+        let mut start_stop = hold(keys(true, false, false, false, 1.2), 30);
+        start_stop.extend(hold(keys(false, false, false, false, 1.2), 30));
+        push("start_and_stop", at(-8.0, 2.0, 1.2), start_stop, 1);
+        push(
+            "slide_along_wall_x",
+            at(-3.0, 8.0, 0.3),
+            hold(keys(true, false, false, false, 0.3), 60),
+            1,
+        );
+        push(
+            "slide_along_wall_z",
+            at(4.2, -4.0, PI / 2.0 + 0.2),
+            hold(keys(true, false, false, false, PI / 2.0 + 0.2), 60),
+            1,
+        );
+        push(
+            "corner_stop",
+            at(-14.0, -14.0, PI / 4.0),
+            hold(keys(true, false, false, false, PI / 4.0), 60),
+            1,
+        );
+        push(
+            "arena_edge_clamp",
+            at(20.0, 20.0, PI / 4.0),
+            hold(keys(true, false, false, false, PI / 4.0), 80),
+            1,
+        );
+        let mut wrap = hold(keys(true, false, false, false, -0.05), 10);
+        wrap.extend(hold(keys(true, false, false, false, 2.0 * PI + 0.05), 10));
+        wrap.extend(hold(keys(true, false, false, false, 3.0 * PI), 10));
+        push("yaw_wrap", at(0.0, 0.0, 0.0), wrap, 1);
+        let mut slow = hold(keys(true, false, false, false, 2.5), 20);
+        for input in slow.iter_mut().skip(10) {
+            input.speed_scale = 0.5;
+        }
+        push("compliance_slow", at(5.0, -15.0, 2.5), slow, 1);
+        let mut long = Vec::with_capacity(1000);
+        for i in 0..1000usize {
+            let phase = (i / 50) % 4;
+            let yaw = 0.017 * i as f32;
+            long.push(match phase {
+                0 => keys(true, false, false, false, yaw),
+                1 => keys(true, false, true, false, yaw),
+                2 => keys(false, false, false, true, yaw),
+                _ => keys(false, true, false, false, yaw),
+            });
+        }
+        push("long_wander_1000", at(2.0, 2.0, 0.0), long, 100);
+        // One tick of jump held, then nothing, so the arc is gravity's and not the
+        // key's. Every checkpoint pins a height, which is what holds the GDScript
+        // mirror to the same curve.
+        let mut hop = Vec::with_capacity(40);
+        let mut first = keys(true, false, false, false, 0.0);
+        first.jump = true;
+        hop.push(first);
+        hop.extend(hold(keys(true, false, false, false, 0.0), 39));
+        push("jump_arc", at(0.0, 0.0, 0.0), hop, 4);
     }
-    push("compliance_slow", at(5.0, -15.0, 2.5), slow, 1);
-    let mut long = Vec::with_capacity(1000);
-    for i in 0..1000usize {
-        let phase = (i / 50) % 4;
-        let yaw = 0.017 * i as f32;
-        long.push(match phase {
-            0 => keys(true, false, false, false, yaw),
-            1 => keys(true, false, true, false, yaw),
-            2 => keys(false, false, false, true, yaw),
-            _ => keys(false, true, false, false, yaw),
-        });
-    }
-    push("long_wander_1000", at(2.0, 2.0, 0.0), long, 100);
-    // One tick of jump held, then nothing, so the arc is gravity's and not the
-    // key's. Every checkpoint pins a height, which is what holds the GDScript
-    // mirror to the same curve.
-    let mut hop = Vec::with_capacity(40);
-    let mut first = keys(true, false, false, false, 0.0);
-    first.jump = true;
-    hop.push(first);
-    hop.extend(hold(keys(true, false, false, false, 0.0), 39));
-    push("jump_arc", at(0.0, 0.0, 0.0), hop, 4);
+
+    // The heightfield cases. Each one pins `y` at every checkpoint, which is
+    // the only thing holding the GDScript mirror to the same staircase.
+    push_in(
+        "stair_climb",
+        &terrace,
+        at(0.0, 0.0, 0.0),
+        hold(keys(true, false, false, false, 0.0), 200),
+        20,
+        &mut cases,
+    );
+    push_in(
+        "stair_descend",
+        &terrace,
+        at_y(13.2, 0.0, 3.0, PI),
+        hold(keys(true, false, false, false, PI), 200),
+        20,
+        &mut cases,
+    );
+    push_in(
+        "deck_edge_fall",
+        &terrace,
+        at_y(13.2, 0.0, 3.0, PI / 2.0),
+        hold(keys(true, false, false, false, PI / 2.0), 120),
+        10,
+        &mut cases,
+    );
 
     GoldenFile {
-        version: 1,
+        version: 2,
         dt,
         radius: RADIUS,
         top_speed: TOP_SPEED,
@@ -564,6 +734,93 @@ mod tests {
         assert!(s.blocks(1.4, 0.0, RADIUS));
         assert!(!s.blocks(1.6, 0.0, RADIUS));
         assert!(s.blocks(0.0, -1.49, RADIUS));
+        assert_eq!(s.top, WALL_TOP, "a solid is a wall unless told otherwise");
+        assert!(s.covers(0.9, 0.0), "the point itself is over it");
+        assert!(
+            !s.covers(1.4, 0.0),
+            "standing beside it is not standing on it"
+        );
+    }
+
+    #[test]
+    fn a_step_is_walked_onto_and_a_wall_is_not() {
+        let arena = Arena {
+            half: 25.0,
+            solids: vec![
+                Solid::from_center_top(4.0, 0.0, 1.0, 4.0, 0.5),
+                Solid::from_center_top(10.0, 0.0, 1.0, 4.0, 2.2),
+            ],
+        };
+        let go = keys(true, false, false, false, 0.0);
+        let mut s = at(0.0, 0.0, 0.0);
+        for _ in 0..55 {
+            s = step(s, &go, DT_60HZ, &arena);
+        }
+        assert!(s.x > 4.0, "walked onto the step: {s:?}");
+        assert!((s.y - 0.5).abs() < 1e-5, "and is standing on it: {s:?}");
+        for _ in 0..120 {
+            s = step(s, &go, DT_60HZ, &arena);
+        }
+        assert!(s.x < 9.0, "stopped by the wall it cannot climb: {s:?}");
+        assert_eq!(s.vx, 0.0);
+    }
+
+    #[test]
+    fn stepping_down_snaps_but_a_drop_falls() {
+        // A half metre step down is inside STEP_UP, so it is walked off.
+        let shallow = Arena {
+            half: 25.0,
+            solids: vec![Solid::from_center_top(-2.0, 0.0, 4.0, 4.0, 0.5)],
+        };
+        let go = keys(true, false, false, false, 0.0);
+        let mut s = at_y(-2.0, 0.0, 0.5, 0.0);
+        for _ in 0..80 {
+            s = step(s, &go, DT_60HZ, &shallow);
+        }
+        assert!(s.x > 2.0, "walked off the far edge: {s:?}");
+        assert_eq!(s.y, GROUND_Y, "snapped down rather than fell: {s:?}");
+        assert_eq!(s.vy, 0.0);
+
+        // Three metres is a fall, and the fall lands on the floor.
+        let deck = Arena {
+            half: 25.0,
+            solids: vec![Solid::from_center_top(-2.0, 0.0, 4.0, 4.0, 3.0)],
+        };
+        let mut d = at_y(-2.0, 0.0, 3.0, 0.0);
+        let mut airborne = false;
+        for _ in 0..120 {
+            d = step(d, &go, DT_60HZ, &deck);
+            if d.y < 3.0 - 1e-4 && d.y > GROUND_Y {
+                airborne = true;
+            }
+        }
+        assert!(airborne, "it was in the air on the way down");
+        assert_eq!(d.y, GROUND_Y, "and it landed: {d:?}");
+    }
+
+    #[test]
+    fn climb_height_is_a_step_when_standing_and_the_feet_when_not() {
+        assert!((climb_height(0.0, 0.0, 0.0) - STEP_UP).abs() < 1e-6);
+        assert!((climb_height(2.0, 2.0, -0.1) - (2.0 + STEP_UP)).abs() < 1e-6);
+        // Airborne: exactly what the jump has cleared, so a low wall a jump
+        // does not clear still stops the fighter.
+        assert!((climb_height(0.9, 0.0, 3.0) - 0.9).abs() < 1e-6);
+        let arena = Arena {
+            half: 25.0,
+            solids: vec![Solid::from_center_top(0.0, 0.0, 2.0, 2.0, 1.6)],
+        };
+        assert!(arena.blocked_at(2.4, 0.0, 0.9), "a jump does not clear 1.6");
+        assert!(!arena.blocked_at(2.4, 0.0, 1.8), "from above it, it does");
+        assert_eq!(arena.support_height(0.0, 0.0, 1.8), 1.6);
+        assert_eq!(arena.support_height(0.0, 0.0, 1.0), GROUND_Y);
+        assert_eq!(arena.support_height(3.0, 0.0, 9.0), GROUND_Y);
+    }
+
+    #[test]
+    fn a_solid_with_no_top_on_the_wire_is_a_wall() {
+        let s: Solid =
+            serde_json::from_str(r#"{"min_x":-1,"max_x":1,"min_z":-1,"max_z":1}"#).unwrap();
+        assert_eq!(s.top, WALL_TOP);
     }
 
     #[test]
@@ -576,7 +833,7 @@ mod tests {
             )
         });
         let file: GoldenFile = serde_json::from_str(&text).expect("golden json");
-        assert_eq!(file.version, 1);
+        assert_eq!(file.version, 2);
         assert_eq!(file.dt, DT_60HZ);
         assert_eq!(
             (file.radius, file.top_speed, file.tau_accel, file.tau_decel),
@@ -592,8 +849,10 @@ mod tests {
                 for (label, a, b) in [
                     ("x", w.x, h.x),
                     ("z", w.z, h.z),
+                    ("y", w.y, h.y),
                     ("vx", w.vx, h.vx),
                     ("vz", w.vz, h.vz),
+                    ("vy", w.vy, h.vy),
                     ("yaw", w.yaw, h.yaw),
                 ] {
                     assert!(
@@ -635,6 +894,9 @@ mod tests {
             "compliance_slow",
             "long_wander_1000",
             "jump_arc",
+            "stair_climb",
+            "stair_descend",
+            "deck_edge_fall",
         ] {
             assert!(names.contains(&needed), "missing golden case {needed}");
         }
