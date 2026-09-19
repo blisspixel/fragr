@@ -10,10 +10,10 @@ Rendered showcase remains planned. Linux, Windows, and macOS CI passed.
 
 The benchmark that ships today is a headless, server-side simulation timer. It builds a session, seeds it, runs rule bots for a set number of ticks, and records two things per tick: how long the tick took and how many bytes the broadcast would have been. It never opens a window, never loads a scene, never presents a frame.
 
-The current check compares only final scores, omits serialization from the timed
-step, and silently treats serialization failures as zero bytes. Its histogram
-documentation also understates the percentile error. Those defects must be fixed
-before its numbers become a basis for further work.
+Before v0.16.0, the check compared only final scores, omitted serialization from the timed
+step, and silently treated serialization failures as zero bytes. Its histogram
+documentation also understated percentile error. The recording increment fixed
+those defects; its evidence and current contract are recorded below.
 
 ## Current increment: trustworthy recording
 
@@ -183,7 +183,8 @@ The limit worth stating before anyone tries: **the scored flow cannot run in CI.
 8. **The escalation scenes and the published table,** with at least two machines in it.
 9. **Trailer capture,** optional and never scored.
 
-Three small corrections to fold in along the way: the threshold check is called twice where once would do, the documented command line disagrees with the actual flags in two places, and the snapshot byte figure silently becomes wrong the moment interest management lands, because it counts broadcast only.
+The recording increment also removed the duplicate threshold check, corrected
+documented flags, and split broadcast/unicast byte accounting.
 
 ## Related
 

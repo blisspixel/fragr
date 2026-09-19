@@ -15,11 +15,11 @@ func _initialize() -> void:
 	var s: RefCounted = script.new(test_path)
 
 	# A fresh store answers with the documented defaults.
-	if not bool(s.get_value("controls", "always_run")):
-		push_error("test_settings: always run should default on, it is a genre staple")
+	if not is_equal_approx(float(s.get_value("controls", "mouse_sensitivity")), 1.5):
+		push_error("test_settings: default sensitivity must preserve the live camera")
 		ok = false
-	if float(s.get_value("video", "fov")) < 90.0:
-		push_error("test_settings: the default field of view is too narrow for this genre")
+	if not is_equal_approx(float(s.get_value("video", "vertical_fov")), 75.0):
+		push_error("test_settings: default vertical FOV must preserve the live camera")
 		ok = false
 
 	# An unknown key falls back rather than returning null, so a config file
@@ -27,18 +27,18 @@ func _initialize() -> void:
 	if s.get_value("video", "no_such_key") != null:
 		push_error("test_settings: an unknown key should be null, not invented")
 		ok = false
-	s.set_value("video", "fov", 120.0)
-	if absf(float(s.get_value("video", "fov")) - 120.0) > 0.001:
+	s.set_value("video", "vertical_fov", 90.0)
+	if absf(float(s.get_value("video", "vertical_fov")) - 90.0) > 0.001:
 		push_error("test_settings: a set value must read back")
 		ok = false
 
 	# The clamp exists so a hand-edited file cannot produce an unusable camera.
-	s.set_value("video", "fov", 400.0)
-	if absf(float(s.fov()) - 130.0) > 0.001:
+	s.set_value("video", "vertical_fov", 400.0)
+	if absf(float(s.fov()) - 110.0) > 0.001:
 		push_error("test_settings: fov must clamp to the top of the range")
 		ok = false
-	s.set_value("video", "fov", 5.0)
-	if absf(float(s.fov()) - 70.0) > 0.001:
+	s.set_value("video", "vertical_fov", 5.0)
+	if absf(float(s.fov()) - 60.0) > 0.001:
 		push_error("test_settings: fov must clamp to the bottom of the range")
 		ok = false
 
@@ -48,21 +48,21 @@ func _initialize() -> void:
 	if absf(float(s.get_value("audio", "master")) - 0.1) > 0.001:
 		push_error("test_settings: resetting one section must not touch another")
 		ok = false
-	if absf(float(s.get_value("video", "fov")) - 100.0) > 0.001:
+	if absf(float(s.get_value("video", "vertical_fov")) - 75.0) > 0.001:
 		push_error("test_settings: resetting a section must restore its defaults")
 		ok = false
 
 	# A round trip through disk keeps every value.
-	s.set_value("controls", "sensitivity", 0.0041)
-	s.set_value("gameplay", "hud_scale", 1.25)
+	s.set_value("controls", "mouse_sensitivity", 2.25)
+	s.set_value("gameplay", "head_bob", false)
 	s.save_to_disk()
 	var loaded: RefCounted = script.new(test_path)
 	loaded.load_from_disk()
-	if absf(float(loaded.get_value("controls", "sensitivity")) - 0.0041) > 1e-6:
+	if absf(float(loaded.get_value("controls", "mouse_sensitivity")) - 2.25) > 1e-6:
 		push_error("test_settings: sensitivity did not survive a save and load")
 		ok = false
-	if absf(float(loaded.get_value("gameplay", "hud_scale")) - 1.25) > 1e-6:
-		push_error("test_settings: hud scale did not survive a save and load")
+	if bool(loaded.get_value("gameplay", "head_bob")):
+		push_error("test_settings: weapon bob did not survive a save and load")
 		ok = false
 
 	# Every default is reachable through get_value, which is what the menu
@@ -126,6 +126,46 @@ func _initialize() -> void:
 	if loaded.player_name() != "Signal 67" or loaded.reticle_colour() != Color("8ee9df"):
 		push_error("test_settings: profile must survive a fresh instance")
 		ok = false
+	# Malformed config values never reach engine APIs through permissive casts.
+	var invalid: ConfigFile = ConfigFile.new()
+	invalid.set_value("video", "vertical_fov", "wide")
+	invalid.set_value("video", "fps_cap", INF)
+	invalid.set_value("video", "display_mode", true)
+	invalid.set_value("video", "vsync", "false")
+	invalid.set_value("controls", "mouse_sensitivity", [])
+	invalid.set_value("audio", "master", -10)
+	invalid.set_value("audio", "music", NAN)
+	invalid.set_value("controls", "sensitivity", 0.0041)
+	invalid.save(test_path)
+	loaded.load_from_disk()
+	if loaded.fov() != 75.0 or loaded.get_value("video", "fps_cap") != 0 or loaded.get_value("video", "display_mode") != 2:
+		push_error("test_settings: invalid display values must use safe defaults")
+		ok = false
+	if loaded.get_value("video", "vsync") != false or loaded.get_value("controls", "mouse_sensitivity") != 1.5:
+		push_error("test_settings: wrong types and legacy units must not be coerced")
+		ok = false
+	if loaded.get_value("audio", "master") != 0.0 or loaded.get_value("audio", "music") != 0.7:
+		push_error("test_settings: volume must be finite and bounded")
+		ok = false
+	loaded.set_value("unknown", "anything", 1)
+	if loaded.get_value("unknown", "anything") != null:
+		push_error("test_settings: unknown settings must not be persisted")
+		ok = false
+	loaded.set_value("video", "display_mode", 1)
+	if loaded.get_value("video", "display_mode") != 2:
+		push_error("test_settings: legacy exclusive mode must map to portable fullscreen")
+		ok = false
+	for path in script.RANGES:
+		var parts: PackedStringArray = str(path).split("/")
+		var limits: Vector2 = script.RANGES[path]
+		loaded.set_value(parts[0], parts[1], -10000.0)
+		if float(loaded.get_value(parts[0], parts[1])) != limits.x:
+			push_error("test_settings: missing lower bound for " + path)
+			ok = false
+		loaded.set_value(parts[0], parts[1], 10000.0)
+		if float(loaded.get_value(parts[0], parts[1])) != limits.y:
+			push_error("test_settings: missing upper bound for " + path)
+			ok = false
 	DirAccess.remove_absolute(test_path)
 	if ok:
 		print("test_settings: PASS defaults, fallback, clamp, reset, a disk round trip, and %d tips" % int(tips.count()))

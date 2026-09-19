@@ -39,6 +39,15 @@ func _run() -> void:
 	if _out_dir.is_empty():
 		_out_dir = ProjectSettings.globalize_path("res://../.agents/qa/latest")
 	DirAccess.make_dir_recursive_absolute(_out_dir)
+	# Captures must not depend on or modify the player's saved preferences.
+	var settings_path: String = _out_dir.path_join("settings.cfg")
+	set_meta("fragr_settings_path", settings_path)
+	var capture_settings: FragrSettings = FragrSettings.new(settings_path)
+	capture_settings.set_value("video", "display_mode", 0)
+	if capture_settings.save_to_disk() != OK:
+		push_error("qa_tour: could not create isolated capture settings")
+		quit(1)
+		return
 
 	var tour: Dictionary = _load_manifest()
 	if tour.is_empty():
@@ -90,6 +99,13 @@ func _run() -> void:
 			await _select_weapon(str(state["weapon"]))
 		if state.get("overlay", "") == "match_menu":
 			_game_manager().get_node("PauseMenu").call("open")
+		if state.get("overlay", "") == "match_settings":
+			var match_menu: PauseMenu = _game_manager().get_node("PauseMenu")
+			match_menu.open()
+			match_menu.show_settings()
+		if state.has("settings_tab"):
+			var settings_root: Node = get_root().get_node("BootMenu").get("_root")
+			(settings_root.get_node("SettingsPanel") as SettingsPanel).show_page(str(state["settings_tab"]))
 		_pose_camera(state.get("camera", "none"))
 		await create_timer(0.75).timeout
 		await RenderingServer.frame_post_draw
@@ -166,7 +182,7 @@ func _run() -> void:
 			state_name, file_name, measured.get("hud_coverage", 0.0) * 100.0,
 			str(measured.get("world_blank", false)),
 		])
-		if state.get("overlay", "") == "match_menu":
+		if state.get("overlay", "") in ["match_menu", "match_settings"]:
 			_game_manager().get_node("PauseMenu").call("close")
 
 	_write_manifest(tour)

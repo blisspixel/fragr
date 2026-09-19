@@ -54,7 +54,7 @@ Every number has a reason and a source or an explicit "ours to tune". Damage is 
 | Crosshair | fixed | static inner pip plus a detached outer ring showing the current cone | Valve labels its legacy dynamic crosshair "fake recoil, inaccurate feedback"; the split style separates the aim reference from the spread readout. |
 | Mouse sensitivity | 0.003 rad per count | **shipped**: Source convention, 0.022 degrees per count, default sensitivity 1.5 (34.7 cm per 360 at 800 counts per inch) | A player can paste a number from another game. The single largest aim fix available. |
 | Raw input | accumulated | raw relative motion, accumulation off, no acceleration, no smoothing | Matches the convention every competitive shooter uses. |
-| Field of view | implicit 75 vertical (about 107 horizontal at 16:9) | explicit, 90 to 120 horizontal, height-keeping so wider monitors see more, hipfire sensitivity not scaled by it | Quake 3 ships 90 horizontal at 4:3; Counter-Strike 2 ships 75 with a zoom ratio of 1. |
+| Field of view | implicit 75 vertical (about 107 horizontal at 16:9) | Player-settings pass: explicit vertical setting, 60 to 110 degrees, default 75; wider monitors gain horizontal coverage and mouse turn rate stays unchanged | Menu units must match the camera contract. |
 | Gamepad look | flat 2.2 radians per second | radial deadzone 10 percent, outer 95, exponent 2.0, 180 degrees per second cap, friction to 0.6x inside a 3 degree cone, no added magnetism | The hit cone is already magnetism, so the pad gets friction only. Deadzone and exponent are ours to tune; the platform defaults of 24 percent are unusable. |
 
 ## The triangle does not exist yet (2026-09-19)

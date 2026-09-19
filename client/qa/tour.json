@@ -90,6 +90,22 @@
       "note": "Settings share the pixel menu theme and remain fully legible."
     },
     {
+      "name": "settings_display",
+      "at_seconds": 2,
+      "camera": "none",
+      "menu_page": "settings",
+      "settings_tab": "DISPLAY",
+      "note": "Explicit vertical FOV, window mode, frame cap, and VSync."
+    },
+    {
+      "name": "settings_audio",
+      "at_seconds": 2,
+      "camera": "none",
+      "menu_page": "settings",
+      "settings_tab": "AUDIO",
+      "note": "Separate master, radio, and effects controls with Save and Cancel."
+    },
+    {
       "name": "multiplayer_menu",
       "at_seconds": 3,
       "camera": "none",
@@ -110,6 +126,13 @@
       "camera": "first_person",
       "overlay": "match_menu",
       "note": "Pixel match overlay keeps the live server visible and does not pretend to pause it."
+    },
+    {
+      "name": "match_settings",
+      "at_seconds": 4,
+      "camera": "first_person",
+      "overlay": "match_settings",
+      "note": "The same settings panel over a live match, with camera input blocked."
     }
   ]
 }

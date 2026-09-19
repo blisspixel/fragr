@@ -11,6 +11,10 @@ var _open: bool = false
 var _panel: Panel = null
 var _column: VBoxContainer = null
 var _note: Label = null
+var preferences: FragrSettings
+var _settings_panel: SettingsPanel
+var _settings_frame: PanelContainer
+var _centre: CenterContainer
 
 func _ready() -> void:
 	layer = 100
@@ -30,11 +34,12 @@ func _build() -> void:
 	centre.theme = MenuTheme.build()
 	centre.anchor_right = 1.0
 	centre.anchor_bottom = 1.0
+	_centre = centre
 	add_child(centre)
 
 	_panel = Panel.new()
 	_panel.add_theme_stylebox_override("panel", MenuTheme.panel())
-	_panel.custom_minimum_size = Vector2(700.0, 360.0)
+	_panel.custom_minimum_size = Vector2(700.0, 430.0)
 	centre.add_child(_panel)
 
 	_column = VBoxContainer.new()
@@ -58,6 +63,7 @@ func _build() -> void:
 	_column.add_child(_note)
 
 	_add_button("Resume", func() -> void: close())
+	_add_button("Settings", show_settings)
 	_add_button("Leave match", func() -> void:
 		close()
 		leave_requested.emit()
@@ -102,12 +108,48 @@ func close() -> void:
 	if not _open:
 		return
 	_open = false
+	_hide_settings()
 	visible = false
 	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
 	resume_requested.emit()
 
 func toggle() -> void:
-	if _open:
+	if is_instance_valid(_settings_panel):
+		_hide_settings()
+	elif _open:
 		close()
 	else:
 		open()
+
+func show_settings() -> void:
+	if preferences == null or is_instance_valid(_settings_panel):
+		return
+	_panel.visible = false
+	_settings_panel = SettingsPanel.new()
+	_settings_panel.name = "SettingsPanel"
+	_settings_panel.custom_minimum_size.x = 780
+	_settings_panel.preferences = preferences
+	_settings_panel.closed.connect(_hide_settings)
+	_settings_frame = PanelContainer.new()
+	var frame: StyleBoxFlat = MenuTheme.panel()
+	frame.content_margin_top = 24
+	frame.content_margin_bottom = 24
+	frame.content_margin_left = 24
+	frame.content_margin_right = 24
+	_settings_frame.add_theme_stylebox_override("panel", frame)
+	_settings_frame.add_child(_settings_panel)
+	_centre.add_child(_settings_frame)
+	_settings_panel.focus_first()
+
+func _hide_settings() -> void:
+	if is_instance_valid(_settings_panel):
+		_centre.remove_child(_settings_frame)
+		_settings_frame.queue_free()
+		_settings_panel = null
+		_settings_frame = null
+	_panel.visible = true
+	if _open:
+		for child: Node in _column.get_children():
+			if child is Button:
+				(child as Button).grab_focus()
+				break

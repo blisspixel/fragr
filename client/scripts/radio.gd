@@ -36,7 +36,7 @@ func _ready() -> void:
 	rng.randomize()
 	player = AudioStreamPlayer.new()
 	player.name = "Player"
-	player.bus = "Master"
+	player.bus = "Radio"
 	add_child(player)
 	player.finished.connect(_on_track_finished)
 	load_catalog()

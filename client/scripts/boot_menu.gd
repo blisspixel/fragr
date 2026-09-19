@@ -17,17 +17,22 @@ var _root: VBoxContainer = null
 var _status: Label = null
 var _host_edit: LineEdit = null
 var _console: FragrConsole = null
-var _settings: FragrSettings = FragrSettings.new()
+var _settings: FragrSettings
 var _name_edit: LineEdit = null
 
 func _ready() -> void:
 	Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
 	theme = MenuTheme.build()
+	if _settings == null:
+		_settings = FragrSettings.for_tree(get_tree())
 	_settings.load_from_disk()
+	_settings.changed.connect(_settings.apply)
+	_settings.apply()
 	_build_chrome()
 	_show("main")
 	_console = FragrConsole.new()
 	_console.name = "FragrConsole"
+	_console.preferences = _settings
 	add_child(_console)
 
 func _build_chrome() -> void:
@@ -127,6 +132,9 @@ func _show(page: String) -> void:
 		"profile":
 			_page_profile()
 	await get_tree().process_frame
+	if page == "settings" and _page == page:
+		(_root.get_node("SettingsPanel") as SettingsPanel).focus_first()
+		return
 	for child in _root.get_children():
 		if child is Button and not (child as Button).disabled:
 			(child as Button).grab_focus()
@@ -214,42 +222,11 @@ func _save_profile() -> void:
 	_show("main")
 
 func _page_settings() -> void:
-	_label("Display")
-	var full: CheckButton = CheckButton.new()
-	full.text = "Fullscreen"
-	full.button_pressed = DisplayServer.window_get_mode() != DisplayServer.WINDOW_MODE_WINDOWED
-	full.toggled.connect(func(on: bool) -> void:
-		DisplayServer.window_set_mode(
-			DisplayServer.WINDOW_MODE_FULLSCREEN if on else DisplayServer.WINDOW_MODE_WINDOWED
-		)
-	)
-	_root.add_child(full)
-
-	var vsync: CheckButton = CheckButton.new()
-	vsync.text = "Vertical sync"
-	vsync.button_pressed = DisplayServer.window_get_vsync_mode() != DisplayServer.VSYNC_DISABLED
-	vsync.toggled.connect(func(on: bool) -> void:
-		DisplayServer.window_set_vsync_mode(
-			DisplayServer.VSYNC_ENABLED if on else DisplayServer.VSYNC_DISABLED
-		)
-	)
-	_root.add_child(vsync)
-
-	_label("Audio")
-	var volume: HSlider = HSlider.new()
-	volume.min_value = 0.0
-	volume.max_value = 1.0
-	volume.step = 0.05
-	volume.value = db_to_linear(AudioServer.get_bus_volume_db(0))
-	volume.custom_minimum_size = Vector2(0.0, 28.0)
-	volume.value_changed.connect(func(v: float) -> void:
-		AudioServer.set_bus_volume_db(0, linear_to_db(maxf(v, 0.0001)))
-	)
-	_root.add_child(volume)
-
-	_label("Controls: WASD or arrows to move, arrows or Q and E to turn,")
-	_label("mouse or Ctrl to fire, wheel to change weapon, J to join, L to leave.")
-	_button("Back", func() -> void: _show("main"))
+	var panel: SettingsPanel = SettingsPanel.new()
+	panel.name = "SettingsPanel"
+	panel.preferences = _settings
+	panel.closed.connect(func() -> void: _show("main"))
+	_root.add_child(panel)
 
 func _host_address() -> String:
 	if _host_edit != null and not _host_edit.text.strip_edges().is_empty():

@@ -53,10 +53,14 @@ recordings and explicit CPU/serialization accounting. Its contract lives in
 [`BENCHMARK.md`](BENCHMARK.md). A rendered GPU benchmark, authored world art, and
 campaign encounters remain open; headless numbers do not establish them.
 
-The [arena surface pass](plans/arena-surface-pass.md) is now active: authored pixel
+The [arena surface pass](plans/arena-surface-pass.md) shipped in v0.17.0: authored pixel
 materials, clearer industrial structure, scenery outside the playable boundary,
 and normal fighter scale in eye views. This preserves server-owned collision and
 does not turn the existing arena layouts into completed campaign maps.
+
+The active [player settings pass](plans/player-settings.md) connects saved controls,
+display, and audio to their runtime readers through the same retro panel at the
+front menu and in a live match. It also fixes resolution-dependent mouse input.
 
 The phases below are the long shape. This is the remaining build order, with the reason each item sits where it does.
 
