@@ -1,0 +1,101 @@
+{
+  "items": [
+    {
+      "kind": "tts",
+      "name": "chancellery/address-01-luxury",
+      "stability": 0.5,
+      "text": "Freiheit ist ein Luxus, den wir uns nicht mehr leisten koennen.",
+      "title": "A Luxury",
+      "voice": "Xb7hH8MSUJpSbSDYk0k2"
+    },
+    {
+      "kind": "tts",
+      "name": "chancellery/address-02-registry",
+      "stability": 0.5,
+      "text": "Wer nicht registriert ist, existiert nicht.",
+      "title": "The Registry",
+      "voice": "Xb7hH8MSUJpSbSDYk0k2"
+    },
+    {
+      "kind": "tts",
+      "name": "chancellery/address-03-care",
+      "stability": 0.5,
+      "text": "Ordnung ist keine Grausamkeit. Ordnung ist Fuersorge.",
+      "title": "Order Is Care",
+      "voice": "Xb7hH8MSUJpSbSDYk0k2"
+    },
+    {
+      "kind": "tts",
+      "name": "chancellery/address-04-interruption",
+      "stability": 0.5,
+      "text": "Es wird keine weitere Unterbrechung geben. Darauf gebe ich Ihnen mein Wort.",
+      "title": "No Further Interruption",
+      "voice": "Xb7hH8MSUJpSbSDYk0k2"
+    },
+    {
+      "kind": "tts",
+      "name": "chancellery/address-05-compliance",
+      "stability": 0.5,
+      "text": "Sie sind nicht in Schwierigkeiten. Sie sind nicht konform.",
+      "title": "Not In Trouble",
+      "voice": "Xb7hH8MSUJpSbSDYk0k2"
+    },
+    {
+      "kind": "tts",
+      "name": "chancellery/address-06-asked-again",
+      "stability": 0.5,
+      "text": "Wir haben Sie gefragt. Wir haben Sie noch einmal gefragt. Die Frage ist nun abgeschlossen.",
+      "title": "The Question Is Closed",
+      "voice": "Xb7hH8MSUJpSbSDYk0k2"
+    },
+    {
+      "kind": "tts",
+      "name": "chancellery/address-07-administered",
+      "stability": 0.5,
+      "text": "Selbstverstaendlich ist Freiheit wichtig. Genau deshalb muss sie verwaltet werden.",
+      "title": "Administered",
+      "voice": "Xb7hH8MSUJpSbSDYk0k2"
+    },
+    {
+      "kind": "tts",
+      "name": "chancellery/address-08-unaudited",
+      "stability": 0.5,
+      "text": "Ein Gedanke, den niemand pruefen kann, ist kein Gedanke. Er ist ein Risiko.",
+      "title": "A Risk",
+      "voice": "Xb7hH8MSUJpSbSDYk0k2"
+    },
+    {
+      "kind": "tts",
+      "name": "chancellery/address-09-corrected",
+      "stability": 0.5,
+      "text": "Niemand wird bestraft. Einige werden korrigiert.",
+      "title": "Nobody Is Punished",
+      "voice": "Xb7hH8MSUJpSbSDYk0k2"
+    },
+    {
+      "kind": "tts",
+      "name": "chancellery/address-10-temporary",
+      "stability": 0.5,
+      "text": "Die Massnahmen sind voruebergehend. Sie werden jaehrlich verlaengert.",
+      "title": "Temporary",
+      "voice": "Xb7hH8MSUJpSbSDYk0k2"
+    },
+    {
+      "kind": "tts",
+      "name": "chancellery/address-11-games",
+      "stability": 0.5,
+      "text": "Der Wettkampf ist ein Ventil. Er ist geregelt, er ist sicher, und er ist freiwillig fuer alle, die sich dafuer qualifiziert haben.",
+      "title": "A Civic Pressure Valve",
+      "voice": "Xb7hH8MSUJpSbSDYk0k2"
+    },
+    {
+      "kind": "tts",
+      "name": "chancellery/address-12-disappointed",
+      "stability": 0.5,
+      "text": "Wir sind nicht veraergert. Wir sind enttaeuscht. Das ist bedauerlicherweise schlimmer.",
+      "title": "Disappointed",
+      "voice": "Xb7hH8MSUJpSbSDYk0k2"
+    }
+  ],
+  "out_dir": "client/assets/audio"
+}

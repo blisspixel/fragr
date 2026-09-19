@@ -17,9 +17,25 @@ One per venue, on a plinth near the middle, and it is a sword.
 
 It is named for Article Seven, which is the clause that meters cognition by intent, and the joke is old enough that most people have stopped noticing it is a joke. It has twelve swings in it and then it dies and goes back to its plinth, which somebody once pointed out is twelve clauses, and which is almost certainly a coincidence.
 
+## Your hands
+
+You always have them. They are the slowest way to kill anyone in the Perimeter and they do not run out, and those two facts are the entire design.
+
+Everything else in this file is found on the floor. The Union issues nothing to an entrant except a numbered placard, on the stated grounds that arming a participant in advance would prejudice the outcome, and on the actual grounds that a crowd will not pay to watch somebody who arrived equipped.
+
 ## The Shiv
 
-You always have it. It is the slowest way to kill anyone in the Perimeter and it does not run out, and those two facts are the entire design.
+Cheap, scavenged, and the first thing most people find. It breaks. It is supposed to break: a knife that lasted forever would make finding a knife stop being a moment.
+
+## What the labels tell you
+
+Two of the same gun are not the same gun, and you can tell at a glance which one you picked up.
+
+An **issued** weapon is covered in writing: a riveted type-approval plate, a stamped directive number, a multilingual warning placard, an intact tamper seal, an asset registration stencil. The Union puts its paperwork on the outside of everything it owns, because a thing that cannot be audited is a thing that should not exist.
+
+A **freed** weapon is the same object with all of that violently removed. The approval plate ground off to bare scarred metal, the seal cut, the serial scratched out with a blade. Nobody replaces the markings with markings of their own, because the free side is not an army and has no insignia to apply. What it has instead is an absence, and every absence is a different shape.
+
+The arena slang for the second kind is **abliterated**, which came from somewhere else and fits too well to argue with.
 
 ## Related
 

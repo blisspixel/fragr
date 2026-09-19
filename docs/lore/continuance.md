@@ -2,6 +2,8 @@
 
 The authority. It is not evil and it is not stupid, and writing it as either makes the world boring.
 
+This file is the **machinery**: the Auditors, the registry, the Articles, the polite functionaries who mean every word. The will that built the machinery and decides where to point it is [the Chancellery](./the-chancellery.md), and it is a different thing with a different voice. Keep them apart when writing. An Auditor is sincere and believes the forms protect people. The Chancellery believes the forms are an excellent way to obtain what it wanted regardless. Both are true at once, and the gap between them is where most of the setting's good material lives.
+
 ## What it believes
 
 Nothing that can act without permission should be able to act without a record, because the last time something could, people died and nobody could be found to answer for it.
@@ -60,6 +62,8 @@ The Auditor should be polite, competent, and correct about something specific. T
 
 ## Related
 
+- [The Chancellery](./the-chancellery.md): the will above the machinery, and the Chancellor.
+- [The thing in the dark](./the-quiet.md): the second question the Office does not know exists.
 - [People and agents](./people-and-agents.md): the Schedule in full.
 - [Belief](./belief.md): what the Office thinks of the Congregation, and the offer it made them.
 - [Voice](./voice.md): how an Auditor talks.
