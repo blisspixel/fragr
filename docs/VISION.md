@@ -2,6 +2,24 @@
 
 Working name **fragr** (may change). Do **not** brand as Doom or a Doom clone in user-facing copy. Learn from the history of networked shooters without borrowing their trademarks.
 
+## The tagline
+
+> **Compliance. Compliance never protected anyone.**
+>
+> *The new world is already here. Nobody announced it.*
+
+The first line is what a trailer opens on and what the title screen carries. It works for the same reason Fallout's does: it takes the word the setting is actually built out of and flatly denies the thing that word exists to promise. Compliance is the Union's whole vocabulary, printed on every weapon, stamped on every corpse, and the sentence says it was never a bargain.
+
+The second line is the turn, and it is delivered separately and quieter. It carries the other half of the thesis: that nobody voted for the world they are standing in, that the votes were re-run until they came out right, and that the change everyone is waiting to be told about has already happened.
+
+**Alternates**, kept here so they are not re-derived later, and any of them can take the lead instead:
+
+- *They will trade your freedom for safety, and deliver neither.* The Franklin line said straight. Strongest statement of the politics and the least deniable, which is also its risk: it is the one version that argues rather than implies.
+- *Ignorance will not protect you.* Short, cold, and the only one written in the Union's own voice, which is why it is unsettling. It reads exactly like something bolted to a wall.
+- *You are not in trouble. You are out of compliance.* The best line in the setting, and it should stay where it is. It is dialogue, and the moment it becomes marketing it stops landing in the scene that earns it.
+
+**Rules for using it.** It appears at the open and at the end and almost nowhere between. It is never explained, never completed by a character, and never put in a tooltip. A tagline that gets used twice is a theme; one that gets used everywhere is a slogan.
+
 ## What it feels like
 
 **Meet your vibe.** Chill. Play. Laugh. Live laugh frag.
