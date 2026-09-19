@@ -58,13 +58,21 @@ materials, clearer industrial structure, scenery outside the playable boundary,
 and normal fighter scale in eye views. This preserves server-owned collision and
 does not turn the existing arena layouts into completed campaign maps.
 
-The active [player settings pass](plans/player-settings.md) connects saved controls,
+The [player settings pass](plans/player-settings.md), shipped in v0.18.0, connects saved controls,
 display, and audio to their runtime readers through the same retro panel at the
 front menu and in a live match. It also fixes resolution-dependent mouse input.
 
+Before further paid art, [asset request recovery](plans/asset-request-recovery.md)
+must preserve submitted jobs across interruptions and bind authenticated polling
+to the official API origin. Existing reference parameters already pass through
+the spec; preparation and consistent animation production remain separate work.
+
 The phases below are the long shape. This is the remaining build order, with the reason each item sits where it does.
 
-**1. Reference images in the sprite pipeline.** `marketing-studio/image` accepts sixteen and the tool uses none. Until it does, every generated frame is an independent roll of the dice and a roster cannot be held on model, which means every asset after the first is a gamble. This is the cheapest change with the largest effect on everything downstream, and it blocks doing characters and weapons properly. Do this first.
+**1. Reference preparation and consistent animation.** Specs already pass
+`params.image_urls` through. Prepare reusable references with verified current
+model limits, prove one complete animated character, then expand the roster.
+Safe recovery and quota reconciliation precede paid batches.
 
 **2. Surfaces, properly.** The first attempt failed for two known reasons: reduced at 128 where 256 is the floor, and no seam checking of any kind. Needs larger output, prompts that spend detail on a few big features rather than many small ones, and a seam check in the reducer that wraps the tile and compares the gradient across the join against the gradient within the body. Levels cannot get an art pass without this.
 
@@ -97,13 +105,21 @@ Status: **in progress**. Small, high-leverage, mostly tooling.
 - **One source for the wire.** Shipped: the adapter, the playtest harness, and the brain agent all read the wire types from `fragr-server`, so a protocol change is edited once and the compiler finds every reader. The adapter's hand-kept mirror is gone. Extracting a standalone `fragr-protocol` crate is optional tidying, not a correctness need.
 - **Dev audio pipeline.** `tools/audiogen` generates sound effects and music through the ElevenLabs API for developers only, writes assets plus a manifest, and never runs in CI or at player runtime. Shipped, including speech, multi-voice dialogue, credit estimates, and wave controls.
 - **Rust and GDScript only.** The procedural Python audio generator is retired; effects come from the audio pipeline and the committed files are the fallback. Shipped, with one exception still outstanding: `tools/gate_tip_jammer_orange.py` is a Python gate called by `tools/capture_tip_screenshots.sh`, so it cannot simply be deleted. It needs porting, and until it is, the rule has a hole in it.
-- **Sprite and texture pipeline.** `tools/spritegen` generates art through the Higgsfield API for developers only and reduces it locally: trim to the alpha box, downscale by area averaging, quantise to `palette.json` in CIE Lab, harden the alpha. Every frame is priced through a free estimate endpoint before anything is requested and the whole run is refused if it exceeds a cap that had to be typed, with an append-only ledger so an interrupted run never pays twice. Shipped. Measured costs and the full API surface are in `plans/higgsfield-pipeline.md`.
+- **Sprite and texture pipeline.** `tools/spritegen` generates art through the
+  Higgsfield API for developers and reduces it locally: alpha trim, area reduction,
+  palette quantisation, and hard alpha. Explicit capped estimates precede new
+  submissions. The original completed-only ledger did not safely recover every
+  interruption; [request recovery](plans/asset-request-recovery.md) closes that gap.
+  Historical costs and current operating steps are in `plans/higgsfield-pipeline.md`.
 
   The house style was settled by experiment rather than by taste, and the answer was counter-intuitive: **ask the generator for the stylised sprite, never for a photoreal render to be shrunk later.** Boltgun, Prodeus and Doom all pre-rendered detailed models and reduced them, but their artists controlled the contrast of that render and a prompt cannot. A photoreal prop is lit photographically, holds a narrow band of values, and turns to mud at sprite scale.
 
-  Remaining: reference images (the model accepts sixteen and nothing uses them yet, which is what will hold a roster on-model), seamless tiles with a seam check, normal maps, and import presets and atlases.
+  Remaining: reference preparation and consistent animation, seamless tile checks,
+  normal maps, and production atlases/import presets.
 
-- **Division of providers.** Higgsfield makes everything you look at, ElevenLabs makes everything you hear. Neither runs in CI and neither is called by the game. Shipped.
+- **Generation providers.** Higgsfield and ElevenLabs are developer integrations.
+  Code-native surfaces/effects remain valid. Paid calls never run in CI or at
+  player runtime; offline tool tests do run in CI. Shipped.
 - **Headless integration smoke.** Shipped as `tools/playtest` (#95): boots the server in-process, connects reflex agents over the real wire, runs a round, and asserts thresholds on every PR.
 
 ## Phase 1: Local excellence (offline, zero spend)

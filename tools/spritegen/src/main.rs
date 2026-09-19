@@ -4,6 +4,7 @@
 //! a cap, and the cap is checked against the whole priced run before the first
 //! image is requested.
 
+use std::io::Read as IoRead;
 use std::io::Write as IoWrite;
 use std::path::PathBuf;
 use std::time::Duration;
@@ -11,8 +12,7 @@ use std::time::Duration;
 use clap::{Parser, Subcommand};
 use fragr_spritegen::reduce::{nearest_upscale, parse_hex, reduce_file, Palette, Reduction};
 use fragr_spritegen::{
-    append_ledger, check_budget, estimate, file_name, image_urls, ledger_ids, parse_spec, poll,
-    read_dotenv_credential, read_ledger, submit, Error, Frame, LedgerEntry, Method, Request,
+    check_budget, estimate, parse_spec, read_dotenv_credential, Error, Frame, Method, Request,
     Response, Spec, Transport,
 };
 use tracing_subscriber::EnvFilter;
@@ -33,6 +33,15 @@ struct Cli {
 
 #[derive(Subcommand, Debug)]
 enum Cmd {
+    /// Attach a dashboard-verified request ID to an uncertain local reservation.
+    Recover {
+        #[arg(long)]
+        out: PathBuf,
+        #[arg(long)]
+        frame_id: String,
+        #[arg(long)]
+        request_id: String,
+    },
     /// Price a spec and generate nothing.
     Price {
         #[arg(long)]
@@ -99,6 +108,7 @@ impl HttpTransport {
     fn new() -> Result<Self, Error> {
         reqwest::blocking::Client::builder()
             .timeout(Duration::from_secs(120))
+            .redirect(reqwest::redirect::Policy::none())
             .build()
             .map(|client| HttpTransport { client })
             .map_err(|e| Error::Transport(e.to_string()))
@@ -107,6 +117,7 @@ impl HttpTransport {
 
 impl Transport for HttpTransport {
     fn send(&self, credential: &str, request: &Request) -> Result<Response, Error> {
+        fragr_spritegen::validate_api_url(&request.url)?;
         let mut builder = match request.method {
             Method::Get => self.client.get(&request.url),
             Method::Post => self.client.post(&request.url),
@@ -121,13 +132,13 @@ impl Transport for HttpTransport {
             .send()
             .map_err(|e| Error::Transport(e.to_string()))?;
         let status = response.status().as_u16();
-        let body = response
-            .text()
-            .map_err(|e| Error::Transport(e.to_string()))?;
+        let bytes = read_bounded(response, 4 * 1024 * 1024)?;
+        let body = String::from_utf8(bytes).map_err(|e| Error::Transport(e.to_string()))?;
         Ok(Response { status, body })
     }
 
     fn download(&self, url: &str) -> Result<Vec<u8>, Error> {
+        fragr_spritegen::validate_download_url(url)?;
         let response = self
             .client
             .get(url)
@@ -139,11 +150,20 @@ impl Transport for HttpTransport {
                 body: format!("downloading {url}"),
             });
         }
-        response
-            .bytes()
-            .map(|b| b.to_vec())
-            .map_err(|e| Error::Transport(e.to_string()))
+        read_bounded(response, 32 * 1024 * 1024)
     }
+}
+
+fn read_bounded(reader: impl IoRead, limit: u32) -> Result<Vec<u8>, Error> {
+    let mut bytes = Vec::new();
+    reader
+        .take(u64::from(limit) + 1)
+        .read_to_end(&mut bytes)
+        .map_err(|e| Error::Transport(e.to_string()))?;
+    if bytes.len() > limit as usize {
+        return Err(Error::Transport(format!("response exceeds {limit} bytes")));
+    }
+    Ok(bytes)
 }
 
 fn select<'a>(spec: &'a Spec, only: &Option<String>) -> Vec<&'a Frame> {
@@ -184,6 +204,19 @@ fn run(cli: Cli) -> Result<(), Error> {
     let out_stream = &mut std::io::stdout();
 
     match &cli.command {
+        Cmd::Recover {
+            out,
+            frame_id,
+            request_id,
+        } => {
+            let mut ledger = fragr_spritegen::ledger::Ledger::open(out)?;
+            ledger.recover(frame_id, request_id)?;
+            writeln!(
+                out_stream,
+                "request attached locally; rerun gen to poll and download, without resubmitting"
+            )
+            .map_err(|e| Error::Io(e.to_string()))
+        }
         Cmd::Prompts { spec, only } => {
             let spec = load(spec)?;
             for frame in select(&spec, only) {
@@ -290,118 +323,23 @@ fn run(cli: Cli) -> Result<(), Error> {
             max_spend_usd,
             show_prompts,
         } => {
+            check_budget(0.0, *max_spend_usd)?;
             let credential = read_dotenv_credential(&cli.env_file)?;
             let spec = load(spec)?;
-            let done = ledger_ids(&read_ledger(&spec.out_dir));
             let selected = select(&spec, only);
-            let frames: Vec<&Frame> = selected
-                .into_iter()
-                .filter(|f| !done.contains(&f.id))
-                .collect();
-
-            if frames.is_empty() {
-                writeln!(
-                    out_stream,
-                    "nothing to do; the ledger already has every frame"
-                )
-                .map_err(|e| Error::Io(e.to_string()))?;
-                return Ok(());
-            }
-
             let transport = HttpTransport::new()?;
-            writeln!(out_stream, "model {}", spec.model).map_err(|e| Error::Io(e.to_string()))?;
-            let total = price_run(&transport, &credential, &spec, &frames, out_stream)?;
-            let approved = check_budget(total, *max_spend_usd)?;
-            let count = frames.len();
-            let cap = max_spend_usd.unwrap_or_default();
-            writeln!(
+            fragr_spritegen::generation::generate(
+                &transport,
+                &credential,
+                &spec,
+                &selected,
+                fragr_spritegen::generation::Options {
+                    max_spend_usd: *max_spend_usd,
+                    show_prompts: *show_prompts,
+                },
                 out_stream,
-                "\n{count} frames priced at ${approved:.4}, cap ${cap:.2}. Generating.\n"
+                &mut |delay| std::thread::sleep(delay),
             )
-            .map_err(|e| Error::Io(e.to_string()))?;
-
-            std::fs::create_dir_all(&spec.out_dir).map_err(|e| Error::Io(e.to_string()))?;
-
-            let mut spent = 0.0;
-            for frame in frames {
-                if *show_prompts {
-                    writeln!(out_stream, "  prompt: {}", frame.prompt())
-                        .map_err(|e| Error::Io(e.to_string()))?;
-                }
-                let usd = estimate(&transport, &credential, &spec.model, frame)?;
-                // The price was checked as a whole, but a provider is free to
-                // change its mind between the estimate and the submission.
-                if spent + usd > approved + 1e-9 {
-                    writeln!(
-                        out_stream,
-                        "  {:<28} stopping: would pass the approved ${approved:.4}",
-                        frame.id
-                    )
-                    .map_err(|e| Error::Io(e.to_string()))?;
-                    break;
-                }
-
-                let status_url = submit(&transport, &credential, &spec.model, frame)?;
-                let result = poll(
-                    &transport,
-                    &credential,
-                    &status_url,
-                    &mut |d| std::thread::sleep(d),
-                    120,
-                )?;
-                let status = result
-                    .get("status")
-                    .and_then(|v| v.as_str())
-                    .unwrap_or("unknown");
-                if status != "completed" {
-                    // Failed and moderated requests are not charged, so this
-                    // costs nothing and is worth saying out loud.
-                    writeln!(out_stream, "  {:<28} {status}, not charged", frame.id)
-                        .map_err(|e| Error::Io(e.to_string()))?;
-                    continue;
-                }
-
-                let urls = image_urls(&result);
-                if urls.is_empty() {
-                    writeln!(out_stream, "  {:<28} completed with no image url", frame.id)
-                        .map_err(|e| Error::Io(e.to_string()))?;
-                    continue;
-                }
-
-                let mut files = Vec::new();
-                for (index, url) in urls.iter().enumerate() {
-                    let bytes = transport.download(url)?;
-                    let name = file_name(&frame.id, index, url);
-                    std::fs::write(spec.out_dir.join(&name), &bytes)
-                        .map_err(|e| Error::Io(e.to_string()))?;
-                    files.push(name);
-                }
-
-                spent += usd;
-                append_ledger(
-                    &spec.out_dir,
-                    &LedgerEntry {
-                        id: frame.id.clone(),
-                        usd,
-                        files: files.clone(),
-                    },
-                )?;
-                writeln!(
-                    out_stream,
-                    "  {:<28} ${usd:.4}  {}",
-                    frame.id,
-                    files.join(" ")
-                )
-                .map_err(|e| Error::Io(e.to_string()))?;
-            }
-
-            writeln!(
-                out_stream,
-                "\nspent ${spent:.4} into {}",
-                spec.out_dir.display()
-            )
-            .map_err(|e| Error::Io(e.to_string()))?;
-            Ok(())
         }
     }
 }
@@ -423,6 +361,111 @@ fn main() {
 mod tests {
     use super::*;
     use clap::Parser;
+
+    #[test]
+    fn response_limits_reject_oversize_and_propagate_read_failures() {
+        assert_eq!(read_bounded(&[1, 2][..], 2).unwrap(), vec![1, 2]);
+        assert!(read_bounded(&[1, 2, 3][..], 2).is_err());
+        struct Broken;
+        impl IoRead for Broken {
+            fn read(&mut self, _: &mut [u8]) -> std::io::Result<usize> {
+                Err(std::io::Error::other("interrupted download"))
+            }
+        }
+        assert!(read_bounded(Broken, 2)
+            .unwrap_err()
+            .to_string()
+            .contains("interrupted download"));
+    }
+
+    #[test]
+    fn real_http_client_does_not_follow_redirects() {
+        let listener = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
+        let address = listener.local_addr().unwrap();
+        let server = std::thread::spawn(move || {
+            let (mut stream, _) = listener.accept().unwrap();
+            stream
+                .set_read_timeout(Some(Duration::from_secs(5)))
+                .unwrap();
+            let mut request = [0; 4096];
+            assert!(stream.read(&mut request).unwrap() > 0);
+            stream.write_all(b"HTTP/1.1 302 Found\r\nLocation: http://127.0.0.1:1/never\r\nContent-Length: 0\r\nConnection: close\r\n\r\n").unwrap();
+        });
+        let transport = HttpTransport::new().unwrap();
+        let response = transport
+            .client
+            .get(format!("http://{address}/redirect"))
+            .send()
+            .unwrap();
+        assert_eq!(response.status().as_u16(), 302);
+        server.join().unwrap();
+        assert!(transport
+            .send(
+                "unused",
+                &Request {
+                    method: Method::Get,
+                    url: format!("http://{address}/"),
+                    body: None
+                }
+            )
+            .is_err());
+        assert!(transport.download("file:///local").is_err());
+    }
+
+    #[test]
+    fn missing_cap_is_refused_before_loading_a_key_or_spec() {
+        let cli = Cli::parse_from([
+            "fragr-spritegen",
+            "--env-file",
+            "missing-env",
+            "gen",
+            "--spec",
+            "missing-spec",
+        ]);
+        assert!(matches!(run(cli), Err(Error::Budget(_))));
+    }
+
+    #[test]
+    fn recovery_command_needs_no_key_and_updates_only_a_reservation() {
+        let dir = std::env::temp_dir().join(format!("fragr-recover-cli-{}", std::process::id()));
+        std::fs::create_dir(&dir).unwrap();
+        let mut ledger = fragr_spritegen::ledger::Ledger::open(&dir).unwrap();
+        let spec = parse_spec(
+            r#"{"model":"m","out_dir":"o","frames":[{"id":"tack","subject":"pistol"}]}"#,
+        )
+        .unwrap();
+        ledger
+            .record(
+                "tack",
+                fragr_spritegen::ledger::Event::Reserved {
+                    identity: fragr_spritegen::ledger::Identity::new(&spec.model, &spec.frames[0]),
+                    estimated_usd: 0.02,
+                },
+            )
+            .unwrap();
+        drop(ledger);
+        let args = [
+            "fragr-spritegen",
+            "--env-file",
+            "missing-env",
+            "recover",
+            "--out",
+            dir.to_str().unwrap(),
+            "--frame-id",
+            "tack",
+            "--request-id",
+            "r1",
+        ];
+        run(Cli::parse_from(args)).unwrap();
+        assert!(run(Cli::parse_from(args)).is_err());
+        let ledger = fragr_spritegen::ledger::Ledger::open(&dir).unwrap();
+        assert!(matches!(
+            ledger.job("tack").unwrap().stage,
+            fragr_spritegen::ledger::Stage::Submitted { .. }
+        ));
+        drop(ledger);
+        std::fs::remove_dir_all(dir).unwrap();
+    }
 
     #[test]
     fn gen_parses_a_cap() {

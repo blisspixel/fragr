@@ -2,16 +2,23 @@
 
 How fragr makes pictures. `tools/spritegen` is the program, `docs/ART-GENERATION-SPEC.md` is the contract it executes, and this file is what was measured against the live API so the next run does not have to rediscover it.
 
-The division of labour is fixed: **Higgsfield makes everything you look at** (map textures, weapons, effects, characters), **ElevenLabs makes everything you hear** (`tools/audiogen`). Neither tool ever runs in CI and neither is called by the game.
+Higgsfield is the existing image provider; ElevenLabs is the existing audio provider.
+Code-native surfaces and effects also belong in the game. Paid calls never run in
+CI or at player runtime; the tools' offline tests do run in CI.
 
 ## What the API actually is
 
-Verified against the account, not read off a marketing page.
+Historical account observations from the initial art runs. Recheck the current
+model schema, pricing, quota, and billing terms before spending. These are not
+guarantees for every model or account. Request recovery was checked against the
+official sources linked in [asset-request-recovery.md](asset-request-recovery.md)
+on 2026-09-19.
 
 - Base is `https://api.higgsfield.ai`. Authentication is a single header, `Authorization: Key <id>:<secret>`, and `.env` holds the whole pair on one `higgsfield=` line because that is exactly the string the header wants.
 - Submission returns a `request_id` and a `status_url`. Poll it until `completed`, `failed`, `nsfw` or `canceled`, starting at two seconds and backing off to ten.
 - `POST /estimate/<model-id>` prices any request for nothing. This is the budget gate and the reason the tool can refuse a run as a whole instead of discovering the bill halfway through.
-- Requests that end `failed` or `nsfw` are **not charged**, and a queued request cancelled before it starts is refunded.
+- The provider documents refunds for some failed or cancelled requests. The local
+  ledger cannot verify a refund, so it retains the reservation until reconciled.
 - Output URLs live for at least seven days and then may vanish, so the tool downloads every frame rather than storing links.
 - Concurrency is about four in flight and exceeding it returns **HTTP 400**, not 429. There are no rate-limit headers and no `Retry-After`.
 - `image_urls` accepts up to sixteen reference images. This is the single most valuable field in the API for a game: once one weapon is approved it becomes the style board for the rest of the armoury, which is how thousands of frames stay on-model.
@@ -61,11 +68,47 @@ The corollary matters too: reduction without palette quantisation produces mush 
 
 ## How the money is kept under control
 
-Three mechanisms, because an art run is the only part of this project that can spend real money by accident.
+The same explicit approval discipline applies to image, audio, and decision-model calls.
 
 - **The whole run is priced before anything is generated.** If the total exceeds the cap, nothing is generated at all.
 - **`--max-spend-usd` is required for a live run and is itself capped** at `HARD_CAP_USD`, five dollars. A run that needs more than that should be split and approved a piece at a time.
-- **An append-only ledger** sits beside the output. Every frame is recorded the moment it lands, and a repeated run generates only what is missing. The expensive failure for this tool is paying twice for the same picture.
+- **A locked, synced request ledger** sits beside the output. A reservation is
+  written before submission, followed by the returned status URL, completed URLs,
+  and downloaded filenames. Rerunning polls an existing request and refreshes its
+  download links. It never automatically buys a replacement for that frame ID.
+
+The cap applies to estimated new submissions in that invocation, not confirmed
+billing or a shared account balance. Reconcile earlier reservations and verify
+remaining credit before a new paid batch; preserve the repository's overall $50
+approval limit. No automatic refund, overage, or account-quota assumption is made.
+
+### Interrupted requests
+
+Rerun the same `gen` command with the same spec and cap. Known request IDs resume
+without another generation POST. Completed historical rows remain readable, but
+their old format has no model/request identity. Missing recorded files must be
+restored; they do not authorize regeneration.
+
+If submission may have reached the provider but no status URL was saved, the run
+stops. Match the frame and its recorded request to the provider dashboard, then
+attach the verified request ID locally:
+
+```bash
+cargo run -p fragr-spritegen --locked -- recover --out art/raw/weapons-bakeoff --frame-id px_tack_issued --request-id VERIFIED_REQUEST_ID
+```
+
+`recover` needs no key and sends no network request. It only advances an uncertain
+reservation. Then rerun `gen`. If no matching request can be established, leave
+the reservation intact and reconcile it before explicitly approving a new frame
+ID. Do not delete receipts to make a run proceed.
+
+Older interrupted runs may have no receipt at all. Reconcile their provider
+history before reusing a spec; the new ledger cannot reconstruct unrecorded calls.
+
+Changed requests under an existing ID, corrupt or unfinished records, conflicting
+filename case, and competing writers stop the run. Preserve the ledger with the
+raw outputs and back it up. A process interruption is covered; local file syncing
+is not a guarantee against disk failure or every network-filesystem lock model.
 
 ## Using it
 
@@ -84,7 +127,9 @@ cargo run -p fragr-spritegen -- reduce --input art/raw/weapons-bakeoff --out art
   --height 180 --palette docs/palette.json --preview-scale 4
 ```
 
-`art/raw/` is gitignored because provider output is large and regenerable from the spec. Reduced sprites are small and are committed.
+`art/raw/` is gitignored because provider output is large. Keep a backup of its
+receipts and keepers; regeneration costs money and may produce different art.
+Reduced sprites and their reviewed provenance are committed.
 
 ## The palette
 
@@ -96,7 +141,10 @@ It also surfaced a real gap. The palette has ink, bone, three gunmetals, rust, b
 
 ## What is not done yet
 
-- **Reference images are not wired up.** `image_urls` is the mechanism for keeping the armoury on-model and the tool does not use it yet. This is the highest-value next change, and it needs the presigned upload flow (`POST /files/generate-upload-url`, then PUT to the returned URL).
+- **Reference preparation and consistent animation.** `params.image_urls` already
+  passes through the spec into the request and receipt. Local-file upload,
+  reference ownership/lifetime checks, and a proven multi-frame workflow remain.
+  Verify the chosen model's current field limits before preparing a batch.
 - **Normal maps.** The contract in `ART-GENERATION-SPEC.md` asks for a normal beside every albedo, derived from a depth pass. Nothing generates one.
 - **Animation.** Per-frame animation is where generated art is weakest. The image-to-video models on this same key are a real route to a sprite sheet: generate a still, animate it, extract frames. Untested.
 - **Concurrency.** The tool submits one frame at a time. The account allows about four, so a large run is currently four times slower than it needs to be.

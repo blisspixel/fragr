@@ -1,6 +1,6 @@
 # Player settings
 
-Status: in flight, 2026-09-19. Branch: `feat/player-settings`.
+Status: proven, 2026-09-19. Released in v0.18.0; all five desktop CI jobs passed.
 Review: [PR #168](https://github.com/blisspixel/fragr/pull/168).
 Spend: $0. No protocol, simulation, dependency, or paid-service changes.
 
@@ -81,7 +81,7 @@ OpenGL Compatibility and Vulkan Forward+ each passed the expanded 18-state tour
 on Windows/Radeon 780M. Contact sheets, all settings tabs, and the live-match
 panel were inspected; current screenshots were refreshed. Local receipts are
 under `.agents/qa/settings-release`, `.agents/qa/settings-vulkan`, and
-`.agents/settings-godot-verified.log`. Desktop CI remains the integration gate.
+`.agents/settings-godot-verified.log`. Linux, Windows, and macOS CI passed.
 
 No Rust source changed. The prior verified simulation/benchmark behavior is
 preserved. This does not establish rendering on other GPU vendors or complete
