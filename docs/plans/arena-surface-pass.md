@@ -55,8 +55,8 @@ renderer-specific effects are needed for the surface pass.
 - [x] World detail stays pixel-shaped and follows a consistent scale.
 - [x] Foreground geometry still exactly follows server collision bounds.
 - [x] Backdrop and landmark details improve orientation without false cover.
-- [ ] Both rendered paths, geometry checks, and visual inspection pass.
-- [ ] Art direction, roadmap, screenshots, and plan state match the implementation.
+- [x] Both rendered paths, geometry checks, and visual inspection pass.
+- [x] Art direction, roadmap, screenshots, and plan state match the implementation.
 
 ## Implementation and review
 
@@ -79,6 +79,9 @@ Godot 4.7.2 import/parse and all 11 harnesses passed locally. The first OpenGL
 inspection prompted larger boundary panels, less bright framing, and the eye-view
 scale correction. The final OpenGL tour passed all 15 states; the first-person
 capture and world views were inspected, and current screenshots were refreshed.
+The Vulkan Forward+ tour also passed all 15 states, with its first-person view
+inspected. Both runs used Windows and Radeon 780M. The final geometry harness
+also passed after the additional south/west background structures were added.
 
 Limitations: this is a reusable first surface pass, not finished level art.
 Custom props, more material families, authored interiors, enemy animation, and
