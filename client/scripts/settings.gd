@@ -43,6 +43,13 @@ const DEFAULTS: Dictionary = {
 		"head_bob": true,
 		"hud_scale": 1.0,
 		"damage_numbers": true,
+		# The broadcast ident: the top strip, the red ON AIR box, the station
+		# badge. Off, because it is right for a let's-play capture and wrong
+		# for playing, and it was the loudest thing on screen in every
+		# spectator frame the visual QA tour took.
+		"broadcast_chrome": false,
+		# Connection status, wall clock and head count. Debug furniture.
+		"debug_telemetry": false,
 	},
 }
 
