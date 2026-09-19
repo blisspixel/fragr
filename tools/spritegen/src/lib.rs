@@ -13,10 +13,9 @@
 //! refuses the run as a whole rather than discovering halfway through that it
 //! has spent more than it meant to.
 //!
-//! Every frame is recorded in an append-only ledger the moment it lands. A run
-//! that is interrupted, rate limited or cancelled can be repeated and generates
-//! only what is missing, because the expensive failure for this tool is paying
-//! twice for the same picture.
+//! Each request is reserved in a locked, synced ledger before submission. Known
+//! requests resume by polling; an uncertain submission requires reconciliation.
+//! A missing output never authorizes another paid request for the same frame.
 //!
 //! Model parameters are passed through rather than modelled. The providers
 //! behind this one endpoint disagree about what resolution means, whether a
@@ -25,11 +24,18 @@
 //! carries a `params` object, the tool adds the prompt, and the provider
 //! validates the rest.
 
+pub mod generation;
+pub mod ledger;
 pub mod reduce;
+#[cfg(test)]
+mod test_support;
+mod validation;
+pub use validation::{
+    validate_api_url, validate_download_url, validate_frame_id, validate_status_url,
+};
 
 use std::collections::BTreeSet;
 use std::fmt;
-use std::io::Write as IoWrite;
 use std::path::{Path, PathBuf};
 use std::time::Duration;
 
@@ -50,8 +56,7 @@ no specular highlights, no rim light, no ground plane, no text, no watermark, no
 
 /// The fixed negative prompt.
 ///
-/// Carried as words rather than as a field because none of the image models
-/// reachable through this endpoint accept a negative prompt. Appending it as
+/// Carried as words because negative-prompt fields vary by model. Appending
 /// avoidance language is weaker than a real negative conditioning, so the
 /// contract is enforced twice more: by the palette quantisation step and by
 /// throwing frames away.
@@ -197,6 +202,7 @@ pub fn parse_spec(text: &str) -> Result<Spec, Error> {
         .and_then(Value::as_str)
         .ok_or_else(|| Error::Spec("missing \"model\"".into()))?
         .to_string();
+    validation::validate_model_path(&model)?;
     let out_dir = root
         .get("out_dir")
         .and_then(Value::as_str)
@@ -239,17 +245,8 @@ pub fn parse_spec(text: &str) -> Result<Spec, Error> {
             .and_then(Value::as_str)
             .ok_or_else(|| Error::Spec(format!("frame {index} is missing \"id\"")))?
             .to_string();
-        if id.trim().is_empty() {
-            return Err(Error::Spec(format!("frame {index} has an empty \"id\"")));
-        }
-        // The id becomes a file name, so a stray slash would silently write
-        // outside the output directory.
-        if id.contains('/') || id.contains('\\') || id.contains("..") {
-            return Err(Error::Spec(format!(
-                "frame id \"{id}\" is not usable as a file name"
-            )));
-        }
-        if !seen.insert(id.clone()) {
+        validate_frame_id(&id)?;
+        if !seen.insert(id.to_ascii_lowercase()) {
             return Err(Error::Spec(format!("duplicate frame id \"{id}\"")));
         }
         let subject = raw
@@ -298,6 +295,7 @@ pub fn estimate(
     model: &str,
     frame: &Frame,
 ) -> Result<f64, Error> {
+    validation::validate_model_path(model)?;
     let request = Request {
         method: Method::Post,
         url: format!("{API_BASE}/estimate/{model}"),
@@ -339,6 +337,11 @@ pub fn parse_usd(value: &Value) -> Result<f64, Error> {
 
 /// The gate. Called with the whole run priced, before a single generation.
 pub fn check_budget(total_usd: f64, max_spend_usd: Option<f64>) -> Result<f64, Error> {
+    if !total_usd.is_finite() || total_usd < 0.0 {
+        return Err(Error::Budget(
+            "estimated total must be finite and nonnegative".into(),
+        ));
+    }
     let Some(cap) = max_spend_usd else {
         return Err(Error::Budget(
             "a live run needs --max-spend-usd. Nothing was generated.".into(),
@@ -409,6 +412,7 @@ pub fn submit(
     model: &str,
     frame: &Frame,
 ) -> Result<String, Error> {
+    validation::validate_model_path(model)?;
     let request = Request {
         method: Method::Post,
         url: format!("{API_BASE}/{model}"),
@@ -423,11 +427,15 @@ pub fn submit(
     }
     let value: Value = serde_json::from_str(&response.body)
         .map_err(|e| Error::Transport(format!("submit was not json: {e}")))?;
-    value
+    let status_url = value
         .get("status_url")
         .and_then(Value::as_str)
         .map(str::to_string)
-        .ok_or_else(|| Error::Transport(format!("submit had no status_url: {}", response.body)))
+        .ok_or_else(|| {
+            Error::Transport("submit had no status_url; reconcile the reserved request".into())
+        })?;
+    validate_status_url(&status_url)?;
+    Ok(status_url)
 }
 
 /// Poll to a terminal state with the backoff the docs ask for: two seconds,
@@ -439,6 +447,7 @@ pub fn poll(
     sleep: &mut dyn FnMut(Duration),
     max_attempts: u32,
 ) -> Result<Value, Error> {
+    validate_status_url(status_url)?;
     let mut delay = Duration::from_secs(2);
     for _ in 0..max_attempts {
         let response = transport.send(
@@ -473,67 +482,6 @@ pub fn poll(
     Err(Error::Transport(format!(
         "gave up polling {status_url} after {max_attempts} attempts"
     )))
-}
-
-/// One line of the ledger.
-#[derive(Debug, Clone, PartialEq)]
-pub struct LedgerEntry {
-    pub id: String,
-    pub usd: f64,
-    pub files: Vec<String>,
-}
-
-/// Ids already generated, read from the ledger beside the output.
-pub fn ledger_ids(text: &str) -> BTreeSet<String> {
-    text.lines()
-        .filter_map(|line| serde_json::from_str::<Value>(line).ok())
-        .filter_map(|v| v.get("id").and_then(Value::as_str).map(str::to_string))
-        .collect()
-}
-
-/// What the ledger says has been spent so far in this output directory.
-pub fn ledger_spent(text: &str) -> f64 {
-    text.lines()
-        .filter_map(|line| serde_json::from_str::<Value>(line).ok())
-        .filter_map(|v| v.get("usd").and_then(Value::as_f64))
-        .sum()
-}
-
-pub fn ledger_path(out_dir: &Path) -> PathBuf {
-    out_dir.join("ledger.jsonl")
-}
-
-/// Read the ledger, treating a missing file as an empty one.
-pub fn read_ledger(out_dir: &Path) -> String {
-    std::fs::read_to_string(ledger_path(out_dir)).unwrap_or_default()
-}
-
-/// Append one entry. Called the moment a frame lands, so an interrupted run
-/// never loses the record of something it has already paid for.
-pub fn append_ledger(out_dir: &Path, entry: &LedgerEntry) -> Result<(), Error> {
-    let path = ledger_path(out_dir);
-    if let Some(parent) = path.parent() {
-        std::fs::create_dir_all(parent).map_err(|e| Error::Io(e.to_string()))?;
-    }
-    let line = serde_json::json!({
-        "id": entry.id,
-        "usd": entry.usd,
-        "files": entry.files,
-    });
-    let mut file = std::fs::OpenOptions::new()
-        .create(true)
-        .append(true)
-        .open(&path)
-        .map_err(|e| Error::Io(e.to_string()))?;
-    writeln!(file, "{line}").map_err(|e| Error::Io(e.to_string()))
-}
-
-/// Frames still to do, in spec order.
-pub fn pending<'a>(spec: &'a Spec, done: &BTreeSet<String>) -> Vec<&'a Frame> {
-    spec.frames
-        .iter()
-        .filter(|frame| !done.contains(&frame.id))
-        .collect()
 }
 
 /// File name for one image of one frame.
@@ -895,10 +843,10 @@ mod tests {
     fn submit_returns_the_status_url() {
         let transport = FakeTransport::one(
             200,
-            r#"{"status":"queued","request_id":"r1","status_url":"https://api/requests/r1/status"}"#,
+            r#"{"status":"queued","request_id":"r1","status_url":"https://api.higgsfield.ai/requests/r1/status"}"#,
         );
         let url = submit(&transport, "id:secret", "m", &frame("tack")).unwrap();
-        assert_eq!(url, "https://api/requests/r1/status");
+        assert_eq!(url, "https://api.higgsfield.ai/requests/r1/status");
     }
 
     #[test]
@@ -921,7 +869,7 @@ mod tests {
         let value = poll(
             &transport,
             "id:secret",
-            "https://api/requests/r1/status",
+            "https://api.higgsfield.ai/requests/r1/status",
             &mut |d| slept.push(d),
             10,
         )
@@ -934,7 +882,14 @@ mod tests {
     fn poll_stops_on_every_terminal_status() {
         for status in TERMINAL_STATUSES {
             let transport = FakeTransport::one(200, &format!(r#"{{"status":"{status}"}}"#));
-            let value = poll(&transport, "k", "https://api/s", &mut |_| {}, 3).unwrap();
+            let value = poll(
+                &transport,
+                "k",
+                "https://api.higgsfield.ai/requests/r1/status",
+                &mut |_| {},
+                3,
+            )
+            .unwrap();
             assert_eq!(value["status"], Value::String(status.into()));
         }
     }
@@ -948,14 +903,28 @@ mod tests {
             };
             3
         ]);
-        let err = poll(&transport, "k", "https://api/s", &mut |_| {}, 3).unwrap_err();
+        let err = poll(
+            &transport,
+            "k",
+            "https://api.higgsfield.ai/requests/r1/status",
+            &mut |_| {},
+            3,
+        )
+        .unwrap_err();
         assert!(format!("{err}").contains("gave up"), "{err}");
     }
 
     #[test]
     fn poll_stops_immediately_on_bad_credentials() {
         let transport = FakeTransport::one(401, "unauthorised");
-        let err = poll(&transport, "k", "https://api/s", &mut |_| {}, 5).unwrap_err();
+        let err = poll(
+            &transport,
+            "k",
+            "https://api.higgsfield.ai/requests/r1/status",
+            &mut |_| {},
+            5,
+        )
+        .unwrap_err();
         assert!(format!("{err}").contains("401"), "{err}");
         assert_eq!(transport.seen.borrow().len(), 1, "no retry on a 401");
     }
@@ -970,77 +939,15 @@ mod tests {
             12
         ]);
         let mut slept: Vec<Duration> = Vec::new();
-        let _ = poll(&transport, "k", "https://api/s", &mut |d| slept.push(d), 12);
+        let _ = poll(
+            &transport,
+            "k",
+            "https://api.higgsfield.ai/requests/r1/status",
+            &mut |d| slept.push(d),
+            12,
+        );
         assert!(slept.iter().all(|d| *d <= Duration::from_secs(10)));
         assert_eq!(*slept.last().unwrap(), Duration::from_secs(10));
-    }
-
-    #[test]
-    fn ledger_reports_what_is_done_and_what_was_spent() {
-        let text = concat!(
-            "{\"id\":\"tack\",\"usd\":0.019,\"files\":[\"tack_0.png\"]}\n",
-            "{\"id\":\"rail\",\"usd\":0.021,\"files\":[\"rail_0.png\"]}\n"
-        );
-        let ids = ledger_ids(text);
-        assert!(ids.contains("tack") && ids.contains("rail"));
-        assert!((ledger_spent(text) - 0.040).abs() < 1e-9);
-    }
-
-    #[test]
-    fn a_torn_ledger_line_does_not_stop_the_rest_being_read() {
-        let text =
-            "{\"id\":\"tack\",\"usd\":0.01}\n{ this is not json\n{\"id\":\"rail\",\"usd\":0.01}\n";
-        assert_eq!(ledger_ids(text).len(), 2);
-    }
-
-    #[test]
-    fn pending_skips_what_the_ledger_already_has() {
-        let spec = parse_spec(
-            r#"{"model":"m","out_dir":"o","frames":[
-                 {"id":"a","subject":"x"},{"id":"b","subject":"y"},{"id":"c","subject":"z"}]}"#,
-        )
-        .unwrap();
-        let done = ledger_ids("{\"id\":\"b\",\"usd\":0.01}\n");
-        let todo: Vec<&str> = pending(&spec, &done)
-            .iter()
-            .map(|f| f.id.as_str())
-            .collect();
-        assert_eq!(todo, vec!["a", "c"]);
-    }
-
-    #[test]
-    fn ledger_round_trips_through_a_file() {
-        let dir = std::env::temp_dir().join("fragr-spritegen-ledger");
-        let _ = std::fs::remove_dir_all(&dir);
-        append_ledger(
-            &dir,
-            &LedgerEntry {
-                id: "tack".into(),
-                usd: 0.019,
-                files: vec!["tack_0.png".into()],
-            },
-        )
-        .unwrap();
-        append_ledger(
-            &dir,
-            &LedgerEntry {
-                id: "rail".into(),
-                usd: 0.021,
-                files: vec!["rail_0.png".into()],
-            },
-        )
-        .unwrap();
-        let text = read_ledger(&dir);
-        assert_eq!(ledger_ids(&text).len(), 2);
-        assert!((ledger_spent(&text) - 0.040).abs() < 1e-9);
-        let _ = std::fs::remove_dir_all(&dir);
-    }
-
-    #[test]
-    fn a_missing_ledger_reads_as_empty_rather_than_failing() {
-        let dir = std::env::temp_dir().join("fragr-spritegen-no-ledger");
-        let _ = std::fs::remove_dir_all(&dir);
-        assert!(ledger_ids(&read_ledger(&dir)).is_empty());
     }
 
     #[test]

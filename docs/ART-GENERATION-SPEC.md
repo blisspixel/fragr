@@ -4,6 +4,14 @@ The machine-facing half of the art pipeline. [`ART-ASSET-LIST.md`](./ART-ASSET-L
 
 It is written to be run by a program with an API key, not typed into a web interface.
 
+Status, 2026-09-19: this is the target art contract. The implemented local reducer
+is `fragr-spritegen reduce`: alpha trim, area reduction, optional exact edge-matte
+removal, CIE Lab palette reduction, and hard alpha. `tools/pixelforge`, automatic
+seam/animation checks, and normal generation below are proposed, not implemented.
+Existing runtime assets are an initial slice, not evidence that this entire
+contract has passed. Request recovery and operating commands live in
+[`plans/higgsfield-pipeline.md`](plans/higgsfield-pipeline.md).
+
 ## The contract every generated frame meets
 
 Repeated here because it is the whole reason the pipeline exists, and because a run that ignores it produces assets that look wrong in a way no amount of retrying fixes.
@@ -62,10 +70,15 @@ Providers differ in what these are called and whether they exist. Confirm per pr
 
 Measured against the live API. Full numbers and costs are in [`plans/higgsfield-pipeline.md`](./plans/higgsfield-pipeline.md).
 
-- **No negative prompt**, on any image model reachable through the endpoint. The list above is appended to the prompt as avoidance language, which is weaker, so the contract leans harder on quantisation and on throwing frames away.
-- **Reference images yes**, up to sixteen, through `image_urls` on `marketing-studio/image`. This is the mechanism that keeps a roster on-model and it is not wired up yet.
+- **Negative prompts vary by model.** The current tool appends avoidance language;
+  verify a model's current schema before relying on dedicated negative conditioning.
+- **Reference parameters pass through.** Put `image_urls` in `params` for a model
+  that supports it. Local upload/preparation and consistent animation production
+  remain unimplemented; verify current model limits before spending.
 - **Seamless tiling: no field for it.** Tiles need edge work or a different approach.
-- **Concurrency about four**, and exceeding it returns HTTP 400 rather than 429. Runs are resumable through the ledger.
+- **Concurrency about four** was an initial account observation, not a current
+  quota guarantee. The tool submits serially and resumes saved requests. An
+  uncertain submission stops for reconciliation instead of buying a replacement.
 
 One rule here was decided by experiment rather than by reasoning, and it overrides the instinct to copy Boltgun: **ask the generator for the stylised sprite, not for a photoreal render to be shrunk later.** A photoreal prop is lit photographically, holds a narrow band of values, and turns to mud at sprite scale. The same subject asked for as limited-palette pixel art survives the downscale intact. Boltgun renders detailed models and reduces them, but its artists control the contrast of that render and a prompt cannot.
 

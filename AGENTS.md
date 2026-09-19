@@ -70,7 +70,7 @@ If prose and code disagree, code wins; fix the prose in the same change. Keep pl
 | Boot menu, callsign, shared retro controls | `client/scripts/boot_menu.gd`, `menu_theme.gd`; maps are selected by the server |
 | Pixel assets and import presets | `client/assets/` (nearest filter, no mipmaps) |
 | Audio assets and provenance | `client/assets/audio/` plus `audiogen-manifest.json` |
-| Developer asset generation | `tools/audiogen`, `tools/spritegen`; prompts/specs and provenance stay with their pipeline |
+| Developer asset generation | `tools/audiogen`, `tools/spritegen`; sprite requests use `ledger.rs` and `generation.rs`. Preserve uncertain reservations; recovery steps live in `docs/plans/higgsfield-pipeline.md`. |
 | Settings and diagnostics | `client/scripts/settings.gd` validates and persists; `settings_panel.gd` edits drafts in boot/match menus; `console.gd` uses the same commit path. Audio routing: `client/default_bus_layout.tres`. Harnesses isolate settings through `fragr_settings_path` tree metadata. |
 | Product and stack decisions | `docs/ARCHITECTURE.md` |
 | Sequencing, status, fun bar | `docs/ROADMAP.md` |

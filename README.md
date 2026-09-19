@@ -195,6 +195,7 @@ AGENTS.md        operating rules for coding agents and contributors
 - [`docs/ROADMAP.md`](docs/ROADMAP.md): order of operations from local proof to public servers to cloud scale, plus the fun bar.
 - [`docs/DESIGN-REFERENCES.md`](docs/DESIGN-REFERENCES.md): what fragr steals from the shooters and radio systems that got it right, mapped to roadmap phases.
 - [`docs/ART_STORY_BIBLE.md`](docs/ART_STORY_BIBLE.md): look, palette, and tone.
+- [`docs/plans/higgsfield-pipeline.md`](docs/plans/higgsfield-pipeline.md): developer image generation, capped estimates, and interrupted-request recovery.
 - [`docs/LORE.md`](docs/LORE.md): optional flavor. Seasoning, never a blocker.
 - [`docs/plans/README.md`](docs/plans/README.md): index of bounded work plans and their status.
 
