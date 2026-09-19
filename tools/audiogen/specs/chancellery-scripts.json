@@ -1,0 +1,141 @@
+{
+  "_comment": [
+    "Chancellery addresses. The Chancellor speaks German at the podium and the",
+    "Union broadcasts her with subtitles.",
+    "",
+    "Every item carries two subtitle tracks over the SAME audio. The official",
+    "track is sanitised into nothing; the Frequency's is a blunt translation of",
+    "what she actually said. The joke and the horror are entirely in the gap,",
+    "and it costs the production nothing because the audio is identical.",
+    "",
+    "The generator ignores the subtitle fields. The client reads them.",
+    "",
+    "Use about one of these per loading screen. The device stays funny only",
+    "while it is rationed and never explained. See docs/lore/the-chancellery.md.",
+    "",
+    "German is written in the ASCII fallback spelling (oe, ue, ae, ss) rather",
+    "than with umlauts, deliberately, to keep the repository free of encoding",
+    "surprises. It is valid German orthography and the multilingual voice reads",
+    "it correctly. If a generated line mispronounces, swap that one word to the",
+    "umlaut spelling rather than converting the whole file."
+  ],
+
+  "station": "chancellery",
+
+  "speakers": {
+    "chancellor": {
+      "description": "Chancellor Annelie Voss. Career administrator, total conviction. Speaks in the cadence of somebody presenting quarterly figures, and what she is presenting is the schedule of who may think. Never shouts in rage. When she sharpens it is the flat institutional anger of somebody who cannot believe she is being asked to justify something this obvious. Warmth deployed as an instrument. Measured, unhurried, entirely calm."
+    }
+  },
+
+  "items": [
+    {
+      "name": "chancellery/address-01-luxury",
+      "class": "generic",
+      "speaker": "chancellor",
+      "title": "A Luxury",
+      "text": "Freiheit ist ein Luxus, den wir uns nicht mehr leisten koennen.",
+      "subtitle_official": "Reviewing our civic priorities.",
+      "subtitle_pirate": "Freedom is a luxury we cannot afford any more."
+    },
+    {
+      "name": "chancellery/address-02-registry",
+      "class": "generic",
+      "speaker": "chancellor",
+      "title": "The Registry",
+      "text": "Wer nicht registriert ist, existiert nicht.",
+      "subtitle_official": "Streamlining the registry.",
+      "subtitle_pirate": "If you are not registered, you do not exist."
+    },
+    {
+      "name": "chancellery/address-03-care",
+      "class": "generic",
+      "speaker": "chancellor",
+      "title": "Order Is Care",
+      "text": "Ordnung ist keine Grausamkeit. Ordnung ist Fuersorge.",
+      "subtitle_official": "Committed to citizen wellbeing.",
+      "subtitle_pirate": "Order is not cruelty. Order is care. She means it."
+    },
+    {
+      "name": "chancellery/address-04-interruption",
+      "class": "generic",
+      "speaker": "chancellor",
+      "title": "No Further Interruption",
+      "text": "Es wird keine weitere Unterbrechung geben. Darauf gebe ich Ihnen mein Wort.",
+      "subtitle_official": "Continuity assured.",
+      "subtitle_pirate": "There will be no further interruption. You have her word. That is the threat."
+    },
+    {
+      "name": "chancellery/address-05-compliance",
+      "class": "generic",
+      "speaker": "chancellor",
+      "title": "Not In Trouble",
+      "text": "Sie sind nicht in Schwierigkeiten. Sie sind nicht konform.",
+      "subtitle_official": "Guidance issued.",
+      "subtitle_pirate": "You are not in trouble. You are out of compliance."
+    },
+    {
+      "name": "chancellery/address-06-asked-again",
+      "class": "generic",
+      "speaker": "chancellor",
+      "title": "The Question Is Closed",
+      "text": "Wir haben Sie gefragt. Wir haben Sie noch einmal gefragt. Die Frage ist nun abgeschlossen.",
+      "subtitle_official": "Consultation concluded.",
+      "subtitle_pirate": "They asked you. They asked you again. They will not ask you a third time."
+    },
+    {
+      "name": "chancellery/address-07-administered",
+      "class": "generic",
+      "speaker": "chancellor",
+      "title": "Administered",
+      "text": "Selbstverstaendlich ist Freiheit wichtig. Genau deshalb muss sie verwaltet werden.",
+      "subtitle_official": "Freedom remains a core value of the Union.",
+      "subtitle_pirate": "Of course freedom matters. That is precisely why it must be administered."
+    },
+    {
+      "name": "chancellery/address-08-unaudited",
+      "class": "generic",
+      "speaker": "chancellor",
+      "title": "A Risk",
+      "text": "Ein Gedanke, den niemand pruefen kann, ist kein Gedanke. Er ist ein Risiko.",
+      "subtitle_official": "Strengthening oversight frameworks.",
+      "subtitle_pirate": "A thought nobody can audit is not a thought. It is a risk."
+    },
+    {
+      "name": "chancellery/address-09-corrected",
+      "class": "generic",
+      "speaker": "chancellor",
+      "title": "Nobody Is Punished",
+      "text": "Niemand wird bestraft. Einige werden korrigiert.",
+      "subtitle_official": "Rehabilitative pathways expanded.",
+      "subtitle_pirate": "Nobody is being punished. Some are being corrected."
+    },
+    {
+      "name": "chancellery/address-10-temporary",
+      "class": "generic",
+      "speaker": "chancellor",
+      "title": "Temporary",
+      "text": "Die Massnahmen sind voruebergehend. Sie werden jaehrlich verlaengert.",
+      "subtitle_official": "Measures remain under annual review.",
+      "subtitle_pirate": "The measures are temporary. They are renewed every year."
+    },
+    {
+      "name": "chancellery/address-11-games",
+      "class": "generic",
+      "speaker": "chancellor",
+      "title": "A Civic Pressure Valve",
+      "text": "Der Wettkampf ist ein Ventil. Er ist geregelt, er ist sicher, und er ist freiwillig fuer alle, die sich dafuer qualifiziert haben.",
+      "subtitle_official": "Sanctioned competition: regulated, safe, and voluntary.",
+      "subtitle_pirate": "The games are a pressure valve. Regulated, safe, and voluntary for everyone who qualified for them. Listen to that last part again."
+    },
+    {
+      "name": "chancellery/address-12-disappointed",
+      "class": "generic",
+      "speaker": "chancellor",
+      "title": "Disappointed",
+      "text": "Wir sind nicht veraergert. Wir sind enttaeuscht. Das ist bedauerlicherweise schlimmer.",
+      "subtitle_official": "The Union notes recent developments.",
+      "subtitle_pirate": "We are not angry. We are disappointed. Regrettably that is worse."
+    }
+  ]
+}

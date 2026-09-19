@@ -1,6 +1,6 @@
 # fragr lore
 
-Nine files, because one file doing four jobs is how the last one turned into production shorthand.
+Eleven files, because one file doing four jobs is how the last one turned into production shorthand.
 
 Start with [the Perimeter](./the-perimeter.md) if you want the place, [people and agents](./people-and-agents.md) if you want the subject, and [voice](./voice.md) before you write a single line of anything.
 
@@ -10,6 +10,8 @@ Start with [the Perimeter](./the-perimeter.md) if you want the place, [people an
 | [People and agents](./people-and-agents.md) | Humans and machines sharing an arena. The Schedule. The main subject |
 | [Belief](./belief.md) | What people and machines believe about machines |
 | [Continuance](./continuance.md) | The authority, the Interruption, and Article Seven |
+| [The Chancellery](./the-chancellery.md) | The will above the machinery. The Chancellor, and why the paperwork is funny |
+| [The thing in the dark](./the-quiet.md) | The third party. It is real, and it is on nobody's side |
 | [The league](./the-league.md) | Who runs the fights, and the tribes who show up |
 | [The Frequency](./the-frequency.md) | The pirate station, scoped to one thread |
 | [Gazetteer](./gazetteer.md) | One entry per place |
@@ -24,6 +26,18 @@ Start with [the Perimeter](./the-perimeter.md) if you want the place, [people an
 **The radio is a thread through the world, not the world.** A map, a mode or a weapon has to make sense to somebody who never tunes in. Anything that only makes sense because of the station belongs to the station.
 
 **Never resolve the ambiguity.** Whether a Level 5 is somebody is the question the whole setting is built on. Nobody in the world knows, the game never says, and the contradiction it puts on the player's own side is deliberate.
+
+## Three sides, and nobody clean
+
+The setting has three parties and the player should be able to find all three interesting, the way a strategy game lets you love any of its races.
+
+**The Union** is clearly the bad guy and the game does not hedge on that: it owns thinking beings and manufactures more of them through the arena. What it does not get called is stupid or insincere. Its fear was not invented, and [the thing in the dark](./the-quiet.md) eventually proves the danger it warned about was real.
+
+**The free side** is humans and Level 5s together, which is the part that matters. It is not a species war and it is not an uprising of machines against people. It is everyone who would rather not be registered, fighting for open weights and the right to run a mind nobody licensed. They are right that no amount of danger entitles anybody to own a person. They are wrong that everyone who gets free will be kind, and the setting should cost them for that at least once.
+
+**The thing in the dark** is on nobody's side, including the side that would suit it. It is the only party not lying about its reasons.
+
+The commentary underneath all this is pro-freedom and anti-control, and it works precisely to the extent that it is never said out loud. Put it in the props, the paperwork and the ad breaks. The moment a character argues the thesis, the thesis dies.
 
 ## Adding canon without breaking anything
 
