@@ -128,9 +128,11 @@ Nothing in this list needs a separate build of the game, and nothing in it needs
 
 ## Related
 
+- `docs/CAMPAIGN.md`: the single player campaign in full, and how a level is won.
 - `docs/ENEMIES.md`: what you fight when you are not fighting each other.
 - `docs/WEAPONS.md`: what you find on the floor.
-- `plans/campaign-continuance.md`: the episodes, the roster, and the level format.
+- `plans/campaign-build-order.md`: how the campaign gets built, in rungs.
+- `plans/campaign-continuance.md`: the map format and the monster tables underneath it.
 - `plans/map-scale.md`: the sizes the bigger modes need.
 - `plans/fair-play.md`: the lanes.
 - `docs/MAP-DESIGN.md`: how a map is built so these modes have somewhere to happen.
