@@ -1,6 +1,8 @@
 # Plan: a benchmark that pushes the machine and shows off the game
 
-**Status:** rung 1 in flight (2026-09-19); rendered showcase remains planned.
+**Status:** rung 1 shipped in [PR #166](https://github.com/blisspixel/fragr/pull/166),
+[v0.16.0](https://github.com/blisspixel/fragr/releases/tag/v0.16.0) (2026-09-19).
+Rendered showcase remains planned. Linux, Windows, and macOS CI passed.
 **Branch:** `feat/showcase-bench-*` (one PR per rung)
 **Spend:** $0. Local only, no service, no telemetry.
 
@@ -47,7 +49,7 @@ Acceptance for this increment:
 - [x] A trace can be parsed through the shared wire types and proves completion.
 - [x] CPU phase and payload accounting are explicit and independently tested.
 - [x] Invalid input and failed output cannot produce a passing benchmark.
-- [ ] Platform CI and the local scale measurements pass.
+- [x] Platform CI and the local scale measurements pass.
 
 ## Recording increment evidence (2026-09-19)
 

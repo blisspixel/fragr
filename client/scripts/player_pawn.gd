@@ -33,6 +33,9 @@ const NAMEPLATE_MIN_SCALE: float = 0.22
 const HIT_SCALE_BOOST: float = 1.12
 
 var _far_cam_scale: float = 1.0
+## Distant silhouettes may be enlarged for a broadcast overview, never while
+## aiming or watching through a fighter's eyes: that would misrepresent cover.
+var broadcast_scale_enabled: bool = false
 
 @onready var label: Label3D = $Label3D
 @onready var highlight: MeshInstance3D = $Highlight
@@ -372,7 +375,7 @@ func _update_far_cam_scale() -> void:
 	var dist: float = FAR_CAM_REF_DIST
 	if cam != null:
 		dist = global_position.distance_to(cam.global_position)
-	_far_cam_scale = compute_far_cam_scale(dist)
+	_far_cam_scale = compute_far_cam_scale(dist) if broadcast_scale_enabled else 1.0
 	_apply_body_scale(hit_flash_timer > 0)
 	if label:
 		label.scale = Vector3.ONE * compute_nameplate_scale(dist)

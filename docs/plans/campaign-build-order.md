@@ -14,13 +14,14 @@ That constraint sets the order more than the dependency graph does. It is why th
 
 ## What exists today, honestly
 
-Verified against the tip on 2026-09-19. This is the gap the rungs close.
+Reconciled with source on 2026-09-19 after the map roster and local polish work.
+This is the remaining gap the rungs close.
 
 | Thing the campaign needs | What is actually there |
 |---|---|
-| Levels | Two maps, both hardcoded in Rust. `MapKind` has two variants, `arena_duel_solids()` builds one by hand and the other is an inline `vec![]`. There is no map file format and nothing is loaded at runtime |
-| Level geometry | A flat floor and a list of axis-aligned boxes. `half_extent` is the same constant for both maps. The client builds the visible cover from `MapInfo.solids` as box meshes, which is honest but is not a level |
-| Height | Real. `y`, `vy`, gravity at 22.0 and a jump at 7.0 exist in `server/src/movement.rs` and are mirrored in `client/scripts/movement.gd` against committed golden vectors. What does not exist is anything to stand on: no solid has a top, there is no step-up, and the floor is one plane |
+| Levels | Six arena layouts in `server/src/maps.rs`, selected by `MapKind`. No external map file format or runtime level manifest yet |
+| Level geometry | Per-map bounds, axis-aligned solids with top heights, steps, raised decks, cover pockets, and pickup placement. The client builds the same solids from `MapInfo`. These are arena layouts, not authored campaign levels |
+| Height | Gravity, jumping, standable solid tops, and step-up live in `server/src/movement.rs`, mirrored by `client/scripts/movement.gd` and golden vectors. Full 3D authoritative aim and live client prediction remain separate work |
 | Weapons | Three: Flechette, Rail, Scatter. No ammunition, no magazines, no reload, and `Action.weapon_swap` is applied unconditionally, so the weapon pads are decoration. Health and armour pads are real and work |
 | Enemies | Five bot behaviours sharing one controller. There is no monster entity: the boss is a `Player` with `is_boss: true` and a `Compliance` behaviour. No pain state, no infighting, no wake on sight, and no line of sight in the targeting at all, only in the hit resolution |
 | Projectiles | None. Every shot in the game is hitscan. The Lobber, the Jammer and the Walker all need a projectile entity that does not exist |
@@ -38,7 +39,8 @@ Two are better than they look. Height is already simulated and already proven ac
 
 ### Rung 1: a level can be finished
 
-The exit lever, the level complete event, and the results card, on the two arenas that already exist. No new geometry, no new format, no new enemies.
+The exit lever, the level complete event, and the results card on the existing
+Episode 0 arena. No new geometry, no new format, no new enemies.
 
 - An exit entity reusing the pickup claim machinery that already works (`ArenaPickup`, `PICKUP_CLAIM_RADIUS`), with `live: bool` driven by whether the phase conditions are met, sent in the snapshot so the client can render the alcove and hum.
 - `level_complete` on the wire with time, par, kills of total, secrets of total, deaths. Secrets are zero of zero until rung 7, and saying zero of zero is more honest than hiding the row.
@@ -74,9 +76,12 @@ The manifest, the validator, `tools/mapc`, and one source of geometry for the se
 
 ### Rung 4: floors you can stand on
 
-Height is simulated but nothing has a top. This rung gives solids a floor height and a ceiling, adds step-up, and extends the golden vectors.
+The movement foundation shipped with the six-map roster: solid tops, step-up,
+and golden-vector coverage already exist. Do not implement a second heightfield.
+This rung now means using those surfaces deliberately in authored campaign maps
+and extending coverage only for new traversal requirements.
 
-- A solid gains a top height and becomes standable. Step-up is a constant, small, and tested.
+- Preserve standable top heights and the existing tested step-up rules.
 - The client's box meshes already come from the same solids, so they follow for free.
 - `plans/map-scale.md` rung 1 is partly done by the work that already shipped; what remains is this.
 

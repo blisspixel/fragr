@@ -3,8 +3,9 @@
 Status: **in flight**, 2026-09-19.
 First playable increment shipped in [PR #165](https://github.com/blisspixel/fragr/pull/165),
 released as [v0.15.0](https://github.com/blisspixel/fragr/releases/tag/v0.15.0).
-Linux, Windows, and macOS CI passed. Next bounded implementation:
-[`showcase-benchmark.md`](showcase-benchmark.md), reproducible recording and CPU accounting.
+Linux, Windows, and macOS CI passed. Reproducible recording and CPU accounting
+then shipped in [PR #166](https://github.com/blisspixel/fragr/pull/166), v0.16.0.
+Current bounded implementation: [`arena-surface-pass.md`](arena-surface-pass.md).
 The broader art/encounter pass and full-game target remain open.
 
 ## Goal
@@ -214,7 +215,7 @@ human pitch is still client-only. Full 3D aim, prediction, local server ownershi
 and actual solo pause need separate authoritative work. Character skins are not
 implemented by callsign and reticle customization.
 
-Next: complete the recording/benchmark increment, then continue authored arena art
-and encounters with a bounded playable target. Keep the full-game target visible.
+Next: complete the arena surface pass, then continue enemy animation, authored
+encounters, and the replay-driven rendered benchmark. Keep the full-game target visible.
 The full-game goal remains active until the required campaign, co-op, modes,
 assets, maps, agent paths, and server reliability/scale have evidence.

@@ -473,6 +473,7 @@ func _on_snapshot_received(data):
 			if is_instance_valid(pawn):
 				pawn.set_highlighted(pawn == followed)
 				pawn.set_nameplate_enabled(not is_human_player and not camera.is_observing_first_person())
+				pawn.broadcast_scale_enabled = not is_human_player and not camera.is_observing_first_person()
 	
 	_update_followed_weapon()
 	_sync_pickups(data.get("pickups", []))

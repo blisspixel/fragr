@@ -50,7 +50,7 @@ If prose and code disagree, code wins; fix the prose in the same change. Keep pl
 | Concern | Home |
 |---|---|
 | Sim tick, hit detection, movement, pickups, boss, bots | `server/src/sim.rs` |
-| Map definitions, collision solids, spawn layout | `server/src/maps.rs`; `MapInfo` drives `client/scripts/arena_cover.gd` |
+| Map definitions, collision solids, spawn layout | `server/src/maps.rs`; `MapInfo` drives `client/scripts/arena_cover.gd`. Surface materials: `arena_materials.gd`; scenery outside the playable bounds: `arena_backdrop.gd`. |
 | Movement math and facing conversion | `server/src/movement.rs`, `client/scripts/movement.gd`, `client/golden/move_vectors.json`, `client/scripts/server_yaw.gd` |
 | CPU measurements and offline traces | `server/src/bench.rs`, `trace.rs`; contract in `docs/BENCHMARK.md` |
 | Tick loop shared by the binary and harnesses | `server/src/run.rs` (`run_server`, `ServerOptions`) |
@@ -133,7 +133,7 @@ Evidence beats assertion. Regenerate current `docs/screenshots/tour_*.png` throu
 |---|---|
 | Sim rule, bot behavior, scoring | Deterministic test in `server/src/tests.rs`; server log line from a smoke |
 | Wire or MCP shape | Tests on both sides, `docs/protocol.md` and `agent-adapter/README.md` updated in the same PR |
-| Client presentation | Godot headless checks pass; regenerated tip screenshot |
+| Client presentation | Godot headless checks pass; regenerated and inspected tour screenshots |
 | Hosting, infra, spend | `terraform fmt` and `validate`; no apply without written approval; cost note in the doc |
 | Performance or scale claim | A measurement table in the plan doc; no numbers in prose without it |
 | Asset generation | Manifest entry with prompt, model, format; file loads in Godot |
