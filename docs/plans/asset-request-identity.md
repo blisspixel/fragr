@@ -60,3 +60,12 @@ another POST. Old ledger cases remain covered. CLI help and keyless prompt outpu
 were exercised using the release binary. Runtime/client CI gates remain required
 before merge. No paid calls were made to implement or verify this repair. The
 earlier Clerk reservation remains unresolved and must not be resubmitted.
+
+The first CI run, 35515210925, passed macOS Rust tests but rejected the local
+campaign client harness after PASS because two objects and one resource remained
+at exit. Its cause is not established; #186 tracks related exit-retention evidence.
+Eight local verbose lifecycle runs were clean. Keep the error gate and capture
+verbose, untruncated failures from the original run so future occurrences identify
+the retained objects. A seventh verifier fault case proves those details survive
+more than twenty trailing log lines. This is diagnostic improvement, not a claimed
+resource-ownership fix. Local runtime checks and the full six-map roster pass.

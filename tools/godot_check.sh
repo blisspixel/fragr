@@ -18,13 +18,13 @@ check() {
   status=$?
   if [ "$status" -ne 0 ] || printf '%s\n' "$out" | grep -qiE 'SCRIPT ERROR|Parse Error|(^|[[:space:]])ERROR:'; then
     echo "FAIL $label (exit $status)"
-    printf '%s\n' "$out" | tail -20
+    printf '%s\n' "$out"
     fail=1
     return 1
   fi
   if [ -n "$marker" ] && ! printf '%s\n' "$out" | grep -qF "$marker"; then
     echo "FAIL $label (missing $marker)"
-    printf '%s\n' "$out" | tail -20
+    printf '%s\n' "$out"
     fail=1
     return 1
   fi
@@ -40,7 +40,8 @@ done
 
 for script in client/scripts/test_*.gd; do
   harness=$(basename "$script" .gd)
-  check "$harness harness" "$harness: PASS" --script "res://scripts/$harness.gd"
+  # Exit leaks need the retained object/resource identities from this same run.
+  check "$harness harness" "$harness: PASS" --verbose --script "res://scripts/$harness.gd"
 done
 
 exit $fail
