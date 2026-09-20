@@ -6,6 +6,7 @@ const ID: String = "recall_notice"
 const DIFFICULTIES: Array[String] = ["assisted", "standard", "severe"]
 const RULES_REVISION: int = 1
 const PHASES: Array[String] = ["briefing", "find_transfer", "reach_lift", "departed"]
+const RUN_STATUSES: Array[String] = ["playing", "continue", "failed", "complete", "abandoned"]
 const INVALID: String = "The server sent invalid mission state. Connection closed."
 
 static func map_error(info: Dictionary) -> String:
@@ -47,7 +48,7 @@ static func map_error(info: Dictionary) -> String:
 static func validation_error(message: Dictionary, geometry: Dictionary, previous: Dictionary = {}) -> String:
 	var value: Variant = message.get("state")
 	if not EquipmentState.integer(message.get("tick"), EquipmentState.MAX_EXACT_INTEGER) \
-		or not value is Dictionary or value.size() != 7 or geometry.get("id") != ID or value.get("id") != ID \
+		or not value is Dictionary or value.size() != (8 if value.has("run") else 7) or geometry.get("id") != ID or value.get("id") != ID \
 		or not valid_rules(value.get("rules")) \
 		or not value.get("phase") is String or value["phase"] not in PHASES \
 		or not EquipmentState.integer(value.get("attempt"), 4294967295) or int(value["attempt"]) == 0 \
@@ -55,8 +56,11 @@ static func validation_error(message: Dictionary, geometry: Dictionary, previous
 		or not value.get("party") is Array or value["party"].size() > 4 \
 		or not value.get("prompts") is Array or value["prompts"].size() > value["party"].size():
 		return INVALID
+	if value.has("run") and not valid_run(value):
+		return INVALID
 	if not previous.is_empty() and (int(value["attempt"]) < int(previous["state"]["attempt"]) \
-		or int(message["tick"]) < int(previous["tick"]) or value["rules"] != previous["state"]["rules"]):
+		or int(message["tick"]) < int(previous["tick"]) or value["rules"] != previous["state"]["rules"] \
+		or not run_follows(value.get("run"), previous["state"].get("run"))):
 		return INVALID
 	var party: Dictionary = {}
 	var ready: bool = true
@@ -91,6 +95,31 @@ static func valid_rules(value: Variant) -> bool:
 	return value is Dictionary and value.size() == 2 \
 		and value.get("difficulty") is String and value["difficulty"] in DIFFICULTIES \
 		and EquipmentState.integer(value.get("revision"), RULES_REVISION) and value["revision"] == RULES_REVISION
+
+static func valid_run(state: Dictionary) -> bool:
+	var run: Variant = state.get("run")
+	if not run is Dictionary or run.size() != 3 or not _uuid(run.get("id")) \
+		or run["id"] == "00000000-0000-0000-0000-000000000000" \
+		or not run.get("status") is String or run["status"] not in RUN_STATUSES \
+		or not EquipmentState.integer(run.get("continues"), 3) or state["party"].size() > 1 \
+		or int(state["attempt"]) != 4 - int(run["continues"]):
+		return false
+	if (run["status"] == "complete") != (state["phase"] == "departed") \
+		or (run["status"] == "continue" and run["continues"] == 0) \
+		or (run["status"] == "failed" and run["continues"] != 0) \
+		or (run["status"] == "abandoned" and not state["party"].is_empty()) \
+		or (run["status"] != "playing" and not state["prompts"].is_empty()):
+		return false
+	if run["status"] == "failed" and state["party"].is_empty():
+		return true
+	if run["status"] in ["continue", "failed"]:
+		return state["party"].size() == 1 and state["party"][0] is Dictionary and state["party"][0].get("alive") == false
+	return true
+
+static func run_follows(current: Variant, previous: Variant) -> bool:
+	if previous == null or current == null:
+		return previous == current
+	return current["id"] == previous["id"] and current["continues"] <= previous["continues"]
 
 static func _point(value: Variant, half: float) -> bool:
 	if not value is Array or value.size() != 3:

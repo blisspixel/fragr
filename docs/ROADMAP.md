@@ -148,8 +148,9 @@ records wing into reception, stacks, bypass, sorting and dispatch with twenty
 preplaced guards and finite campaign stock. The records-wing increment in #196
 passes full rendered OpenGL/Vulkan routes with twenty named defeats and departure,
 plus deterministic encounter/sightline checks and the six-map network roster.
-This remains a development mission. Limited continues, persistence, final art and
-fresh-player acceptance remain open. The requested shared level kits, distinct
+This remains a development mission. Solo M01 now has three explicit mission-start
+continues, entry restoration and exhaustion under the [recovery plan](plans/campaign-continues.md).
+Persistence, final art and fresh-player acceptance remain open. The requested shared level kits, distinct
 enemy combinations and difficulty/achievement cosmetics have homes in
 `MAP-DESIGN.md`, `ENEMIES.md` and `plans/difficulty-and-rewards.md`.
 The current campaign contract targets a 2-3-hour successful solo run across twelve
@@ -157,7 +158,9 @@ compact missions. Death can spend a limited continue to restart the current
 mission with its starting equipment; three continues per run is the initial
 balance proposal. No mandatory duo, companion controls, revival or all-mission
 co-op. Autonomous allies and mission-specific viewpoints are design options.
-Run recovery and save behavior remain unbuilt under #195.
+Cross-mission recovery and disk saves remain unbuilt under #195. Persistent player
+profiles, campaign/multiplayer records and optional stat-based roasts are planned
+in [benchmark-and-stats.md](plans/benchmark-and-stats.md).
 
 The phases below are the long shape. This is the remaining build order, with the reason each item sits where it does.
 
@@ -273,7 +276,7 @@ Status: **in progress**. This phase decides whether the game is fun. Everything 
 7. **Authored campaign.** Build the twelve-mission rescue, coalition victory, sudden wipe and aftermath across Earth, Moon, Mars and a ship in a 2-3-hour successful run. Start with M01's skippable localized introduction, melee-to-found-weapon progression, distinct enemy problems and limited mission-start continues. Optional autonomous allies do not require companion controls or all-mission co-op. Every mission needs authored routes, secrets, character continuity, meaningful encounters and separate playtest evidence. Contract: [CAMPAIGN.md](CAMPAIGN.md). Treatment: [CAMPAIGN-MISSIONS.md](CAMPAIGN-MISSIONS.md). Detailed plans: [campaign/README.md](campaign/README.md). Implementation: [campaign-build-order.md](plans/campaign-build-order.md) and [framework requirements](plans/campaign-continuance.md). Earlier radio-led episodes are superseded. Evidence: complete runs, tested continues/exhaustion/save/rescue states, inspected presentation and fresh-player review.
 8. **Small multiplayer on a LAN.** Two to twelve humans and agents on one server, join and leave without ghosts, spectators in the same match. Evidence: a recorded two-machine session and reconnect tests.
 9. **Controller support.** Shipped in v0.8.3: gamepad join, solo, leave, fire, weapon cycle, speak, and camera on the same InputMap actions as the keyboard, plus Windows, macOS, and Linux export presets. Radio bindings on the D-pad shipped in v0.8.5. Remaining: glyph prompts.
-10. **Benchmark mode, status line, and deep statistics.** `--bench N M` runs N scripted fighters on a fixed map and seed for M ticks and prints one JSON object: tick time by phase as distributions (mean, p50, p90, p99, p99.9, max) from histograms, budget headroom and overrun counts, bytes per client per tick, and a determinism check that two seeded runs match. The live status line serves the same JSON, so a benchmark and a running server read alike, and CI fails on a regression. On top of it sits an analysis layer for people who enjoy the mathematics: time-to-kill distributions, accuracy with Wilson intervals, engagement distance histograms that demonstrate the weapon triangle rather than asserting it, map and spawn balance, TrueSkill across policies with convergence reporting, dead time and pickup contention, a nerd overlay in the client, and a versioned full export in JSON and CSV. Every figure carries its sample size; a single number is a headline, never a conclusion. Plan: `plans/benchmark-and-stats.md` (rung 1 is playtest rung 3). Evidence: a benchmark table in `docs/` updated with each release.
+10. **Player records and deep statistics.** The CPU benchmark and verified traces already ship; [BENCHMARK.md](BENCHMARK.md) defines their measured scope and commands. Build persistent local profiles, campaign run/attempt summaries and multiplayer match reports from authoritative facts, then add an optional analysis view and original localized roasts supported by those facts. Preserve denominators, rules/content versions, incomplete sessions and uncertainty; retries cannot duplicate wins or erase lifetime effort. Ratings and public rankings need a separate identity/trust contract. Plan: [benchmark-and-stats.md](plans/benchmark-and-stats.md). Evidence: exact-count tests, durable save and deduplication tests, agreement among UI/MCP/export and inspected campaign/multiplayer results.
 11. **Visual QA tour and feel probes.** A manifest-driven tour drives the client through every player-facing state (boot menu, settings, warmup, join, HUD with and without a pickup, every radio station card, every weapon firing, movement and respawn, round end, boss beat, each map, agent chips) and writes dated stills, a contact sheet, and feel numbers (same-frame aim, time to first shot, acceleration curve, stop distance, snapshot age, frame time) for the agent developer to critique and turn into plan items. Plan: `plans/visual-qa-tour.md`. Evidence: a critique filed from a tour run and findings promoted into plans.
 
 Exit bar: the fun bar below passes on a LAN session with mixed humans and agents, and a stranger can be handed the repo and reach a fight in under two minutes.

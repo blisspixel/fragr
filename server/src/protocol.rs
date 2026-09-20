@@ -14,9 +14,10 @@ pub use loadout::{
     AmmoPool, AmmoReserve, EquipmentPolicy, LoadoutState, ReloadState, SupplyClaim, WeaponAmmo,
 };
 pub use mission::{
-    CampaignDifficulty, CampaignRules, InteractionKind, InteractionPrompt, MissionGeometry,
-    MissionId, MissionMember, MissionPhase, MissionReady, MissionState, Region3, UseTarget,
-    CAMPAIGN_RULES_REVISION, MISSION_PARTY_LIMIT, USE_DISTANCE,
+    CampaignDifficulty, CampaignRules, CampaignRunState, CampaignRunStatus, InteractionKind,
+    InteractionPrompt, MissionContinue, MissionGeometry, MissionId, MissionMember, MissionPhase,
+    MissionReady, MissionState, Region3, UseTarget, CAMPAIGN_CONTINUES, CAMPAIGN_RULES_REVISION,
+    MISSION_PARTY_LIMIT, USE_DISTANCE,
 };
 
 /// Named scrap-league identity (Contested Frequency denies it exists).
@@ -398,8 +399,9 @@ pub const CAMPAIGN_GAMEPLAY_VERSION: u32 = 3;
 pub const MISSION_GAMEPLAY_VERSION: u32 = 4;
 pub const READINESS_GAMEPLAY_VERSION: u32 = 5;
 pub const DIFFICULTY_GAMEPLAY_VERSION: u32 = 6;
+pub const CONTINUES_GAMEPLAY_VERSION: u32 = 7;
 /// Highest understood gameplay contract; content requirements use their own minimum.
-pub const GAMEPLAY_VERSION: u32 = DIFFICULTY_GAMEPLAY_VERSION;
+pub const GAMEPLAY_VERSION: u32 = CONTINUES_GAMEPLAY_VERSION;
 pub fn legacy_gameplay_version() -> u32 {
     1
 }
@@ -541,6 +543,7 @@ pub enum ClientMessage {
     },
     Action(Action),
     MissionReady(MissionReady),
+    MissionContinue(MissionContinue),
     Speak(Speak),
     /// Agent-only display label echoed into Snapshot PlayerState.behavior.
     /// Never trusted for combat. Rule-bot behaviors still come from BotController.

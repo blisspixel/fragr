@@ -23,6 +23,7 @@ pub struct ServerOptions {
     pub authored: Option<crate::maps::AuthoredSource>,
     /// An explicit difficulty is valid only for a mission, never arcade or bench.
     pub difficulty: Option<crate::protocol::CampaignDifficulty>,
+    pub campaign_run: bool,
     pub map_rotate: bool,
     /// Match rules override (frag limit, timers). `None` keeps the defaults.
     pub match_config: Option<MatchConfig>,
@@ -42,6 +43,7 @@ impl Default for ServerOptions {
             map: MapKind::default(),
             authored: None,
             difficulty: None,
+            campaign_run: false,
             map_rotate: false,
             match_config: None,
             solo_broadcast: false,
@@ -62,7 +64,7 @@ pub async fn run_server(
     // Keep it off the async executor, including single-threaded local harnesses.
     let map = options.map;
     let rotate = options.map_rotate;
-    if options.difficulty.is_some() && options.authored.is_none() {
+    if (options.difficulty.is_some() || options.campaign_run) && options.authored.is_none() {
         return Err("difficulty requires an authored mission".into());
     }
     if options.authored.is_some()
@@ -88,6 +90,9 @@ pub async fn run_server(
     if let Some(difficulty) = options.difficulty {
         session.state.set_campaign_difficulty(difficulty)?;
     }
+    if options.campaign_run {
+        session.state.enable_campaign_run()?;
+    }
     if session.state.map.mission().is_some() {
         tracing::info!(rules = ?session.state.campaign_rules(), "Campaign rules selected");
     }
@@ -107,7 +112,9 @@ pub async fn run_server(
             .max()
             .unwrap_or_else(crate::protocol::legacy_geometry_version)
     };
-    let required_gameplay = if session.state.map.mission().is_some() {
+    let required_gameplay = if options.campaign_run {
+        crate::protocol::CONTINUES_GAMEPLAY_VERSION
+    } else if session.state.map.mission().is_some() {
         crate::protocol::DIFFICULTY_GAMEPLAY_VERSION
     } else if session.state.map.has_encounters() {
         crate::protocol::CAMPAIGN_GAMEPLAY_VERSION
@@ -119,13 +126,16 @@ pub async fn run_server(
             }
         }
     };
-    let net_server = NetServer::bind_with_requirements(
+    let mut net_server = NetServer::bind_with_requirements(
         &options.bind,
         game_tx.clone(),
         required_geometry,
         required_gameplay,
     )
     .await?;
+    if options.campaign_run {
+        net_server.reserve_solo_run()?;
+    }
     if let Some(tx) = ready {
         let _ = tx.send(net_server.local_addr()?);
     }

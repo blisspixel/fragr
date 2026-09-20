@@ -93,6 +93,7 @@ pub async fn serve(
         bots: 0,
         authored: Some(AuthoredSource::Mission(mission)),
         difficulty: Some(difficulty),
+        campaign_run: true,
         seed,
         status_every_s: 0,
         ..Default::default()

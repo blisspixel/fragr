@@ -496,6 +496,7 @@ func _observed_state() -> Dictionary:
 	var camera_forward: Vector3 = -cam.get("transform").basis.z
 	return {
 		"mission_rules": gm.get("net_client").get("mission").get("state", {}).get("rules", {}),
+		"mission_run": gm.get("net_client").get("mission").get("state", {}).get("run", {}),
 		"map_id": snapshot.get("map_id", 0),
 		"round_state": snapshot.get("round_state", "unknown"),
 		"fighters": (snapshot.get("players", []) as Array).size(),

@@ -92,6 +92,84 @@ async fn server_rejects_unsupported_geometry_configuration() {
 }
 
 #[tokio::test]
+async fn solo_run_admission_reserves_one_lifetime_seat_and_spectators_cannot_continue() {
+    let (tx, mut commands) = mpsc::unbounded_channel();
+    let mut server = NetServer::bind_with_requirements(
+        "127.0.0.1:0",
+        tx,
+        2,
+        crate::protocol::CONTINUES_GAMEPLAY_VERSION,
+    )
+    .await
+    .unwrap();
+    server.reserve_solo_run().unwrap();
+    let address = server.local_addr().unwrap();
+    let accept = tokio::spawn(server.accept_loop());
+    for (role, version, expected) in [
+        ("human", 6, "unsupported_gameplay"),
+        ("agent", 7, "welcome"),
+        ("human", 7, "run_seat_closed"),
+        ("agent", 7, "run_seat_closed"),
+        ("spectator", 7, "welcome"),
+    ] {
+        let (mut socket, _) = connect_async(format!("ws://{address}")).await.unwrap();
+        socket.send(Message::Text(serde_json::json!({"type":"hello", "role":role, "name":"Run reader", "geometry_version":2, "gameplay_version":version}).to_string())).await.unwrap();
+        let reply = timeout(Duration::from_secs(2), socket.next())
+            .await
+            .unwrap()
+            .unwrap()
+            .unwrap();
+        let reply: ServerMessage = serde_json::from_str(reply.to_text().unwrap()).unwrap();
+        if expected != "welcome" {
+            assert!(matches!(reply, ServerMessage::Error { code, .. } if code == expected));
+            let close = timeout(Duration::from_secs(2), socket.next())
+                .await
+                .unwrap()
+                .unwrap()
+                .unwrap();
+            assert!(matches!(close, Message::Close(Some(frame)) if frame.reason == expected));
+            let _ = socket.flush().await;
+            assert!(commands.try_recv().is_err());
+            continue;
+        }
+        let ServerMessage::Welcome { player_id, .. } = reply else {
+            panic!("expected welcome")
+        };
+        assert!(matches!(
+            timeout(Duration::from_secs(2), commands.recv())
+                .await
+                .unwrap(),
+            Some(GameCommand::Connected { .. })
+        ));
+        let request = crate::protocol::MissionContinue {
+            id: crate::protocol::MissionId::RecallNotice,
+            run_id: Uuid::new_v4(),
+            attempt: 1,
+        };
+        socket
+            .send(Message::Text(
+                serde_json::to_string(&ClientMessage::MissionContinue(request)).unwrap(),
+            ))
+            .await
+            .unwrap();
+        socket.close(None).await.unwrap();
+        if let Some(id) = player_id {
+            assert!(
+                matches!(timeout(Duration::from_secs(2), commands.recv()).await.unwrap(), Some(GameCommand::MissionContinue { player_id, request: received }) if player_id == id && received == request)
+            );
+        }
+        // The ordered disconnect proves a spectator's preceding continue was ignored.
+        assert!(matches!(
+            timeout(Duration::from_secs(2), commands.recv())
+                .await
+                .unwrap(),
+            Some(GameCommand::Disconnected { .. })
+        ));
+    }
+    accept.abort();
+}
+
+#[tokio::test]
 async fn mission_admission_bounds_participants_and_keeps_spectators_separate() {
     let (tx, mut commands) = mpsc::unbounded_channel();
     let server = NetServer::bind_with_requirements(

@@ -6,6 +6,33 @@ use uuid::Uuid;
 
 pub const MISSION_PARTY_LIMIT: usize = 4;
 pub const USE_DISTANCE: f32 = 2.5;
+pub const CAMPAIGN_CONTINUES: u8 = 3;
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum CampaignRunStatus {
+    Playing,
+    Continue,
+    Failed,
+    Complete,
+    Abandoned,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct CampaignRunState {
+    pub id: Uuid,
+    pub status: CampaignRunStatus,
+    pub continues: u8,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct MissionContinue {
+    pub id: MissionId,
+    pub run_id: Uuid,
+    pub attempt: u32,
+}
 
 /// Revision changes whenever campaign difficulty semantics change.
 pub const CAMPAIGN_RULES_REVISION: u32 = 1;
@@ -181,6 +208,8 @@ pub struct MissionReady {
 #[serde(deny_unknown_fields)]
 pub struct MissionState {
     pub id: MissionId,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub run: Option<CampaignRunState>,
     pub rules: CampaignRules,
     pub attempt: u32,
     pub phase: MissionPhase,
@@ -191,6 +220,24 @@ pub struct MissionState {
 
 impl MissionState {
     pub fn validate(&self, tick: u64) -> Result<(), &'static str> {
+        if let Some(run) = self.run {
+            if run.id.is_nil()
+                || run.continues > CAMPAIGN_CONTINUES
+                || self.party.len() > 1
+                || self.attempt != u32::from(CAMPAIGN_CONTINUES - run.continues) + 1
+                || (run.status == CampaignRunStatus::Complete)
+                    != (self.phase == MissionPhase::Departed)
+                || (run.status == CampaignRunStatus::Continue && run.continues == 0)
+                || (run.status == CampaignRunStatus::Failed && run.continues != 0)
+                || (run.status == CampaignRunStatus::Continue
+                    && (self.party.len() != 1 || self.party[0].alive))
+                || (run.status == CampaignRunStatus::Failed && self.party.iter().any(|p| p.alive))
+                || (run.status == CampaignRunStatus::Abandoned && !self.party.is_empty())
+                || (run.status != CampaignRunStatus::Playing && !self.prompts.is_empty())
+            {
+                return Err("invalid campaign run state");
+            }
+        }
         if self.rules.revision != CAMPAIGN_RULES_REVISION
             || self.attempt == 0
             || self.changed_at > tick

@@ -8,7 +8,7 @@ It is the 1993 LAN-party feeling rebuilt for 2026: a Rust authoritative server, 
 
 ## What runs today
 
-- **Recall Notice:** Single Player starts the local M01 development mission with a skippable, reader-paced opening. Enter Annex 67 to find Latch's transfer record, recover weapons, fight through intake and records, and depart by the custody lift. The party waits for its readers before combat; the menu can replay the opening offline. This is a developing mission, not the complete campaign.
+- **Recall Notice:** Single Player starts a solo M01 run with a skippable, reader-paced opening and three continues. Enter Annex 67 to find Latch's transfer record, recover weapons, fight through intake and records, and depart by the custody lift. Death offers an explicit mission-start retry with entry equipment restored. The fourth death ends the run. This is a developing mission, not the complete campaign.
 - **Solo Broadcast:** Episode 0 Calibration on Larak Lot. Host cold-open, objective chip (clear NODS, seize jammer, drop Auditor), same guns as MP. Default from `./tools/solo_scrap.sh` (server `--solo-broadcast`). This is an arena prototype. The planned twelve-mission story lives in [`docs/CAMPAIGN.md`](docs/CAMPAIGN.md); [`solo-story-episodes.md`](docs/plans/solo-story-episodes.md) records this prototype's implementation.
 - **Solo Scrap:** arcade offline on loopback without the episode path (`FRAGR_SOLO_BROADCAST=0`), four named rule bots with visible tactics (Aggressive, Defensive, Flanker, Balanced).
 - **Watch or join:** spectator by default through a fighter's eyes, including their gun and shot feedback. F changes fighter; V cycles eyes, chase, and free camera. Join mid-match as a human, leave back to spectate. Bots keep the server alive.
@@ -19,7 +19,7 @@ It is the 1993 LAN-party feeling rebuilt for 2026: a Rust authoritative server, 
 - **Fighter navigation:** rule bots, playtest fighters, and the decision brain share walking routes around cover and up stairs. Fractional treads retain footing, crossed stair entrances are repaired, and stepping off a deck keeps horizontal movement. Quick jump taps survive between frames and server ticks.
 - **Your callsign:** saved player name, reticle colour, and weapon bob options. The default human callsign is Meat Proxy. The boot menu, settings, and match overlay share pixel lettering and industrial styling.
 - **Player settings:** the same controls, display, and audio panel at boot and in the match menu. Save mouse sensitivity, invert look, turn speed, vertical FOV, frame cap, VSync, window mode, and separate master/radio/effects levels. Save applies changes; Cancel discards them.
-- **Agent door:** MCP tools `join`, `leave`, `observe`, `act`, `mission_ready`, `speak`, `get_events`, `round_state`, and a reference client (`fragr-brain`) that asks a decision model for its stance while a local controller plays every tick. An agent is one participant however it thinks; the server sees one fighter. Structured state, no vision model required.
+- **Agent door:** MCP tools `join`, `leave`, `observe`, `act`, `mission_ready`, `mission_continue`, `speak`, `get_events`, `round_state`, and a reference client (`fragr-brain`) that asks a decision model for its stance while a local controller plays every tick. An agent is one participant however it thinks; the server sees one fighter. Structured state, no vision model required.
 
 This is a playable vertical slice, not a finished game. The build order and what is still missing live in [`docs/ROADMAP.md`](docs/ROADMAP.md).
 
@@ -32,13 +32,16 @@ The current draft continues through records reception, file stacks, a service
 bypass, sorting, dispatch and transfer control. Twenty human Clerks and Sweeper
 bots occupy seven groups, with server-owned attack phases and directional poses.
 Guards are already present before entry alarms, and campaign consumables stay
-consumed until a party reset. Find Latch's transfer record at the console, open
-the custody lift and depart together. Character art, pacing, limited continues, secrets
+consumed until an attempt reset. Find Latch's transfer record at the console, open
+the custody lift and depart. Character art, pacing, persistent saves, secrets
 and the next mission remain unfinished. Choose Assisted, Standard or Severe before
 a new local campaign. This first difficulty pass changes enemy tells and recovery;
 health, damage and finite supplies stay consistent. Standard retains the original
 timing. Persistent achievements and earned cosmetic rewards remain
 [planned](docs/plans/difficulty-and-rewards.md).
+Player profiles, campaign/multiplayer records and optional factual roasts are
+[planned separately](docs/plans/benchmark-and-stats.md); current round scores are
+not persistent statistics.
 
 ## Screenshots
 
@@ -115,6 +118,7 @@ Keyboard and gamepad share the same action path into the server.
 | Fire | Left mouse | RT |
 | Jump | Space | A |
 | Reload (discovery maps) | R | X |
+| Continue after campaign death | Enter | A after releasing held inputs |
 | Weapon cycle | [ and ] | LB and RB |
 | Speak (taunt) | T | Y |
 | Join | J | A while spectating |
@@ -130,11 +134,13 @@ Flechette before the records stairs, collect finite ammunition, and reload.
 Introductory guns remain available independently to each participant. The six
 arcade maps retain their three unlimited guns. Run instructions and current
 limitations: [`server/maps/README.md`](server/maps/README.md). M01 still needs
-finished enemy presentation, encounter balancing, secrets, opening art and
-mission-start continues before it is a complete mission. The planned campaign
-targets a 2-3-hour successful run; its continue allowance and run persistence are
-not implemented. F or controller B uses an aimed
-mission control. The lift waits for everyone aboard; its result ends this prototype.
+finished enemy presentation, encounter balancing, secrets and opening art before
+it is a complete mission. The planned campaign targets a 2-3-hour successful run.
+The local prototype has three mission-start continues; leaving or closing ends
+that run. Saves, reconnect and cross-mission carry remain unbuilt. F or controller
+B uses an aimed mission control; departure ends this prototype. Dedicated
+four-seat development hosts retain shared boarding and automatic party resets;
+`--campaign-run` selects the same one-seat run rules as local Single Player.
 
 ## Desktop exports
 

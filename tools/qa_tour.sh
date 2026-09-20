@@ -66,6 +66,9 @@ fi
 if [ -n "${FRAGR_QA_DIFFICULTY:-}" ]; then
   SERVER_ARGS+=(--difficulty "$FRAGR_QA_DIFFICULTY")
 fi
+if [ "${FRAGR_QA_CAMPAIGN_RUN:-0}" = "1" ]; then
+  SERVER_ARGS+=(--campaign-run)
+fi
 if [ "${FRAGR_QA_SOLO_BROADCAST:-0}" = "1" ]; then
   SERVER_ARGS+=(--solo-broadcast)
 fi

@@ -93,6 +93,7 @@ func _run() -> void:
 	network._handle_message(JSON.stringify(legacy))
 	_expect(network.mission.is_empty() and network.mission_geometry.is_empty(), "map replacement clears old mission")
 	await _input_and_hud(network, message["state"])
+	await _continues()
 	network.free()
 	if failures == 0:
 		print("test_mission: PASS map/state boundary, late state, short use, pause ownership and localized HUD")
@@ -148,8 +149,70 @@ func _readiness(network: CaptureNetwork, info: Dictionary) -> void:
 	_expect(not network.send_mission_ready(), "spectators cannot submit readiness")
 	manager.free()
 	network.sent.clear()
+	network.disconnect_from_server()
 	network._handle_message(JSON.stringify(info))
 	network._handle_message(JSON.stringify(_message()))
+
+func _continues() -> void:
+	var message: Dictionary = _message()
+	message["state"]["prompts"] = []
+	message["state"]["party"][0]["alive"] = false
+	message["state"]["run"] = {"id": "00000000-0000-0000-0000-000000000067", "status": "continue", "continues": 3}
+	_expect(MissionState.validation_error(message, _map()["mission"]).is_empty(), "dead owner can choose a continue")
+	var failed: Dictionary = message.duplicate(true)
+	failed["state"]["attempt"] = 4
+	failed["state"]["run"]["continues"] = 0
+	failed["state"]["run"]["status"] = "failed"
+	failed["state"]["party"] = []
+	_expect(MissionState.validation_error(failed, _map()["mission"]).is_empty(), "exhaustion remains visible after owner departure")
+	for patch: Dictionary in [{"continues": 4}, {"continues": 0}, {"continues": true}, {"status": "complete"}, {"status": "failed"}, {"status": "abandoned"}, {"id": PLAYER.replace("1", "0")}, {"extra": true}]:
+		var bad: Dictionary = message.duplicate(true)
+		bad["state"]["run"].merge(patch, true)
+		_expect(not MissionState.validation_error(bad, _map()["mission"]).is_empty(), "invalid run rejected: " + str(patch))
+	var network: CaptureNetwork = CaptureNetwork.new()
+	network._handle_message(JSON.stringify(_map()))
+	network._handle_message(JSON.stringify(message))
+	network.connection_state = WebSocketPeer.STATE_OPEN
+	network.player_id = PLAYER
+	var manager: Node = load("res://scripts/game_manager.gd").new()
+	manager.net_client = network
+	manager.current_map_info = _map()
+	manager.is_human_player = true
+	_expect(manager.controls_blocked(), "death choice blocks combat")
+	var press: InputEventJoypadButton = InputEventJoypadButton.new()
+	press.button_index = JOY_BUTTON_A
+	press.pressed = true
+	Input.action_press("jump")
+	manager._arm_continue()
+	_expect(not manager._try_continue(press), "held gameplay input cannot spend a continue")
+	Input.action_release("jump")
+	manager._arm_continue()
+	_expect(manager._try_continue(press), "fresh A press submits a continue")
+	manager._arm_continue()
+	_expect(not manager._try_continue(press) and network.sent.size() == 1, "pending continue cannot spend twice")
+	_expect(network.sent[0] == {"type": "mission_continue", "id": "recall_notice", "run_id": message["state"]["run"]["id"], "attempt": 1}, "continue is tied to exact run and attempt")
+	var display: MissionHud = MissionHud.new()
+	root.add_child(display)
+	display.apply(message["state"], PLAYER)
+	await process_frame
+	_expect(display._recovery.visible and display._recovery_copy.text.contains("ENTER / A"), "player sees the localized retry choice")
+	display.apply(message["state"], "")
+	_expect(not display._recovery_copy.text.contains("ENTER / A"), "spectator cannot choose another player's continue")
+	network.player_id = null
+	_expect(not network.send_mission_continue(), "spectator cannot submit a continue")
+	var restored: Dictionary = message.duplicate(true)
+	restored["state"]["attempt"] = 2
+	restored["state"]["run"]["continues"] = 2
+	restored["state"]["run"]["status"] = "playing"
+	restored["state"]["party"][0]["alive"] = true
+	network._handle_message(JSON.stringify(restored))
+	network._handle_message(JSON.stringify(_map()))
+	network._handle_message(JSON.stringify(message))
+	_expect(network.mission.is_empty(), "map refresh cannot replenish continues")
+	display.queue_free()
+	manager.free()
+	network.free()
+	await process_frame
 
 func _input_and_hud(network: CaptureNetwork, state: Dictionary) -> void:
 	var manager: Node = load("res://scripts/game_manager.gd").new()

@@ -26,10 +26,23 @@ pub(crate) struct Encounters {
 }
 
 impl Encounters {
+    fn reset(&mut self, state: &mut GameState) {
+        state.players.retain(|p| !p.is_campaign_enemy());
+        self.enemies.clear();
+        self.groups
+            .iter_mut()
+            .for_each(|group| *group = Group::Unplaced);
+        state.pickups = state.map.pickups();
+        self.waiting_for_party = true;
+    }
     /// Called once per simulation tick, and on participant departure. Crossing
     /// a trigger repeatedly never respawns an active or completed encounter.
     pub fn update(&mut self, state: &mut GameState) {
         if !state.map.is_campaign() {
+            return;
+        }
+        state.update_campaign_run();
+        if state.campaign_run_frozen() {
             return;
         }
         let map = state.map.clone();
@@ -45,13 +58,7 @@ impl Encounters {
         if living.is_empty() {
             if !self.waiting_for_party {
                 state.reset_mission();
-                state.players.retain(|p| !p.is_campaign_enemy());
-                self.enemies.clear();
-                self.groups
-                    .iter_mut()
-                    .for_each(|group| *group = Group::Unplaced);
-                state.pickups = state.map.pickups();
-                self.waiting_for_party = true;
+                self.reset(state);
                 tracing::info!("Campaign encounters reset; waiting for a living participant");
             }
             return;
@@ -162,6 +169,11 @@ impl Encounters {
 }
 
 impl GameState {
+    pub(crate) fn reset_campaign_encounters(&mut self) {
+        let mut encounters = std::mem::take(&mut self.encounters);
+        encounters.reset(self);
+        self.encounters = encounters;
+    }
     pub(crate) fn update_encounters(&mut self) {
         if self.map.is_campaign() {
             let mut encounters = std::mem::take(&mut self.encounters);

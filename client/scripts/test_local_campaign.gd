@@ -93,9 +93,10 @@ func _run() -> void:
 	var partner: Node = load("res://scripts/net_client.gd").new()
 	root.add_child(partner)
 	partner.set_server_host(address)
-	partner.connect_to_server("agent", "Second reader")
-	if not await _until(func() -> bool: return partner.mission.get("state", {}).get("party", []).size() == 2, "human and agent share initial briefing"):
+	partner.connect_to_server("spectator", "Observer")
+	if not await _until(func() -> bool: return partner.mission.get("state", {}).get("party", []).size() == 1, "spectator observes the solo briefing without taking a seat"):
 		return
+	_expect(partner.player_id == null and current_scene.mission_hud.state["run"]["continues"] == 3, "local campaign is a solo run with three continues")
 	for page: int in range(CampaignOpening.BEATS.size()):
 		_expect(partner.mission["state"]["rules"] == current_scene.mission_hud.state["rules"], "agent and human share host difficulty")
 		await _capture("opening-%d" % (page + 1))
@@ -118,9 +119,7 @@ func _run() -> void:
 				return member["ready"]
 		return false, "server confirms first reader independently"):
 		return
-	_expect(current_scene.controls_blocked() and current_scene.mission_hud.state["phase"] == "briefing", "first reader waits for the agent")
-	await _capture("party-waiting")
-	_expect(partner.send_mission_ready(), "agent acknowledges the same current attempt")
+	_expect(not partner.send_mission_ready(), "spectator cannot hold or acknowledge a solo briefing")
 	if not await _until(func() -> bool: return not current_scene.controls_blocked() and current_scene._has_local_input_target(), "readiness enters first-person play"):
 		return
 	_expect(current_scene.mission_hud.state["phase"] == "find_transfer", "server confirms active mission")
@@ -132,9 +131,18 @@ func _run() -> void:
 	if not await _until(func() -> bool: return _playing() and not current_scene.role_transition and current_scene.net_client.role == "spectator", "role change reaches spectator"):
 		return
 	_expect(owned.process._pid == pid and owned.process.running(), "spectating retains the same child")
-	current_scene.change_role(true)
-	if not await _until(func() -> bool: return _playing() and not current_scene.role_transition and current_scene.net_client.role == "human", "player rejoins local mission"):
+	if not await _until(func() -> bool: return current_scene.mission_hud.state.get("run", {}).get("status") == "abandoned", "leaving ends this run without refilling it"):
 		return
+	var rejected: Node = load("res://scripts/net_client.gd").new()
+	root.add_child(rejected)
+	var errors: Array[String] = []
+	rejected.server_error.connect(func(message: String) -> void: errors.append(message))
+	rejected.set_server_host(address)
+	rejected.connect_to_server("agent", "Replacement")
+	if not await _until(func() -> bool: return not errors.is_empty(), "a new connection cannot reclaim the lifetime run seat"):
+		return
+	_expect(rejected.player_id == null and errors[0] == tr("RUN_SEAT_CLOSED"), "run rejection is localized and leaves no player")
+	rejected.free()
 	current_scene.pause_menu.leave_requested.emit()
 	if not await _until(func() -> bool: return _menu() and owned.state == LocalMatch.State.IDLE, "Leave match returns to menu and stops owned server"):
 		return

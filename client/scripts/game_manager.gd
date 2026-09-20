@@ -58,6 +58,10 @@ var pending_reload: bool = false
 var pending_interact: bool = false
 var interact_held: bool = false
 var mission_hud: MissionHud
+var _continue_armed: bool = false
+var _continue_attempt_sent: int = -1
+var _presented_attempt: int = 0
+var _retry_snapshot_tick: int = -1
 
 var arena_cover: ArenaCover = null
 var current_map_info: Dictionary = {}
@@ -206,13 +210,15 @@ func controls_blocked() -> bool:
 func _mission_controls_blocked() -> bool:
 	if not is_human_player:
 		return false
-	if _awaiting_map or _opening_release or is_instance_valid(opening):
+	if _awaiting_map or _opening_release or _retry_snapshot_tick >= 0 or is_instance_valid(opening):
 		return true
 	if not current_map_info.get("mission") is Dictionary:
 		return false
 	if net_client.mission.is_empty():
 		return true
 	var state: Dictionary = net_client.mission["state"]
+	if state.get("run") is Dictionary and state["run"]["status"] != "playing":
+		return true
 	if state["phase"] == "briefing":
 		return true
 	for member: Dictionary in state["party"]:
@@ -343,7 +349,32 @@ func _load_audio_streams():
 	if round_end_sound and ResourceLoader.exists(audio_dir + "round_end.wav"):
 		round_end_sound.stream = load(audio_dir + "round_end.wav")
 
+func _try_continue(event: InputEvent) -> bool:
+	if _continue_armed and is_human_player and event.is_action_pressed("ui_accept") \
+		and (pause_menu == null or not pause_menu.is_open()) \
+		and (console == null or not console.is_open()):
+		var attempt: int = int(net_client.mission.get("state", {}).get("attempt", 0))
+		if attempt != _continue_attempt_sent and net_client.send_mission_continue():
+			_continue_attempt_sent = attempt
+			_continue_armed = false
+			_opening_release = true
+			pending_jump = false
+			pending_reload = false
+			pending_interact = false
+			pending_weapon_swap = null
+			interact_held = false
+			return true
+	return false
+
+func _arm_continue() -> void:
+	if not _continue_armed and _opening_input_released() and not net_client.mission.is_empty():
+		var run: Variant = net_client.mission["state"].get("run")
+		_continue_armed = run is Dictionary and run.get("status") == "continue"
+
 func _input(_event):
+	if _try_continue(_event):
+		get_viewport().set_input_as_handled()
+		return
 	if _event.is_action_released("interact"):
 		interact_held = false
 	if controls_blocked():
@@ -402,6 +433,7 @@ func _on_ack_received(data: Dictionary) -> void:
 
 
 func _process(_delta):
+	_arm_continue()
 	if _opening_release and _opening_input_released():
 		_opening_release = false
 		_submit_mission_readiness()
@@ -434,6 +466,9 @@ func _process(_delta):
 			pending_weapon_swap = null
 		action_state.turn_left = false
 		action_state.turn_right = false
+		if _mission_controls_blocked():
+			action_state.erase("yaw")
+			action_state.erase("pitch")
 		input_seq += 1
 		action_state.seq = input_seq
 		action_state.weapon_swap = pending_weapon_swap
@@ -444,6 +479,12 @@ func _process(_delta):
 		pending_interact = false
 
 func _on_mission_received(state: Dictionary) -> void:
+	_continue_armed = false
+	if is_human_player and state.get("run") is Dictionary and state["run"]["status"] == "playing":
+		var attempt: int = int(state["attempt"])
+		if attempt > 1 and attempt != _presented_attempt:
+			_retry_snapshot_tick = int(net_client.mission["tick"])
+		_presented_attempt = attempt
 	if mission_hud != null:
 		mission_hud.apply(state, str(net_client.player_id) if is_human_player else "")
 	_submit_mission_readiness()
@@ -1068,6 +1109,13 @@ func _update_local_fp_hud(player_list: Array) -> void:
 		if local_hp_seen >= 0 and local_hp_seen <= 0 and hp > 0:
 			if hud and hud.has_method("show_spawn_flash"):
 				hud.show_spawn_flash()
+		if camera and hp > 0 and _retry_snapshot_tick >= 0 and int(latest_snapshot.get("tick", -1)) >= _retry_snapshot_tick:
+			# Mission state precedes the restored body. Adopt that body's facing
+			# before another local action can overwrite it with the death view.
+			camera.fp_yaw = float(pdata["yaw"])
+			camera.fp_pitch = float(pdata["pitch"])
+			camera.turn_accum = 0.0
+			_retry_snapshot_tick = -1
 		local_hp_seen = hp
 		# The number a player actually needs. It was never on screen.
 		if hud and hud.has_method("set_vitals"):

@@ -1209,6 +1209,14 @@ async fn agent_task(
                     .await
                     .map_err(transport)?;
                 }
+                if let Some(request) = mission_client.continuation(player_id) {
+                    sink.send(Message::Text(
+                        serde_json::to_string(&ClientMessage::MissionContinue(request))
+                            .map_err(transport)?,
+                    ))
+                    .await
+                    .map_err(transport)?;
+                }
             }
             Ok(ServerMessage::Loadout(next)) => {
                 next.validate_for(player_id, loadout.as_ref())
@@ -1315,6 +1323,7 @@ pub async fn run(config: Config) -> Result<(Report, Observation), Error> {
         ..MatchConfig::default()
     };
     let options = ServerOptions {
+        campaign_run: false,
         authored: None,
         difficulty: None,
         bind: "127.0.0.1:0".to_string(),

@@ -3,6 +3,7 @@ extends SceneTree
 class CaptureNetwork extends Node:
 	var connection_state: int = WebSocketPeer.STATE_OPEN
 	var player_id: String = "self"
+	var mission: Dictionary = {}
 	var sent: Array[Dictionary] = []
 	func send_action(action: Dictionary) -> void:
 		sent.append(action.duplicate())

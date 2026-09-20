@@ -206,10 +206,13 @@ tours. Their data is corrected, and launch now rejects invalid walking shapes
 before playing. The five-state maintenance, eight-state stair and nine-state
 facility tours pass with inspected contact sheets under
 `.agents/qa/{m01-maintenance,m01,m01-facility}-records-fixed/`.
-Limited continues, persistent saves, secrets, final art and fresh-player acceptance
-remain open. Next: complete limited-continue and supply-balance work through the
-existing server seams, then apply difficulty and earned-cosmetic rules to that
-stable retry boundary.
+At that increment, limited continues, persistent saves, secrets, final art and
+fresh-player acceptance remained open. The subsequent
+[solo recovery increment](campaign-continues.md) implements three explicit
+mission-start continues, entry restoration and exhaustion with real-client and
+complete-route evidence. Disk saves, supply balance, secrets, final art and
+fresh-player review remain. [Player records](benchmark-and-stats.md) are tracked
+in #199; earned cosmetics remain under #197.
 
 The 21-state release gallery and shot/impact strips were regenerated, inspected
 and published from `.agents/qa/m01-records-gallery`. All 27 headless Godot

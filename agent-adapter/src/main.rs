@@ -273,6 +273,19 @@ async fn apply_mcp_line(
             .await?;
     }
 
+    if let Some(request) = outcome.pending_mission_continue {
+        let s = session
+            .as_mut()
+            .ok_or_else(|| io::Error::other("continue requires a connected session"))?;
+        s.sink
+            .lock()
+            .await
+            .send(Message::Text(serde_json::to_string(
+                &ClientMessage::MissionContinue(request),
+            )?))
+            .await?;
+    }
+
     if let Some(speak) = outcome.pending_speak {
         if let Some(ref mut s) = session {
             let speak_msg = ClientMessage::Speak(speak);
@@ -371,6 +384,9 @@ async fn run_scripted_bot(
                     match serde_json::from_str::<ServerMessage>(&text)? {
                         ServerMessage::Mission { tick, state } => {
                             mission_client.observe(tick, state).map_err(io::Error::other)?;
+                            if let Some(request) = mission_client.continuation(Some(bot_id)) {
+                                ws_sink.send(Message::Text(serde_json::to_string(&ClientMessage::MissionContinue(request))?)).await?;
+                            }
                             if let Some(ready) = mission_client.readiness(Some(bot_id)) {
                                 ws_sink.send(Message::Text(
                                     serde_json::to_string(&ClientMessage::MissionReady(ready))?,

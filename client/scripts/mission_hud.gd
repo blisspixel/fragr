@@ -7,6 +7,8 @@ var player_id: String = ""
 var _card: PanelContainer
 var _copy: Label
 var _prompt: Label
+var _recovery: PanelContainer
+var _recovery_copy: Label
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -22,6 +24,14 @@ func _ready() -> void:
 	_prompt.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_prompt.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	add_child(_prompt)
+	_recovery = PanelContainer.new()
+	_recovery.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_recovery.add_theme_stylebox_override("panel", MenuTheme.panel(Color("201b19"), Color("986048")))
+	add_child(_recovery)
+	_recovery_copy = _label(24)
+	_recovery_copy.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_recovery_copy.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_recovery.add_child(_recovery_copy)
 	_refresh()
 
 func _label(font_size: int) -> Label:
@@ -53,6 +63,10 @@ func _process(_delta: float) -> void:
 	_copy.custom_minimum_size.x = width - 32.0
 	_prompt.position = Vector2(viewport.x * 0.2, viewport.y * 0.64)
 	_prompt.size = Vector2(viewport.x * 0.6, 0.0)
+	var recovery_width: float = minf(660.0, viewport.x - 48.0)
+	_recovery_copy.custom_minimum_size.x = recovery_width - 32.0
+	_recovery.size = Vector2(recovery_width, 0.0)
+	_recovery.position = (viewport - _recovery.size) * 0.5
 
 func _refresh() -> void:
 	if _copy == null:
@@ -63,6 +77,21 @@ func _refresh() -> void:
 		_prompt.text = ""
 		return
 	var lines: Array[String] = [tr("MISSION_M01_TITLE"), tr("DIFFICULTY_" + String(state["rules"]["difficulty"]).to_upper()), ""]
+	_recovery.visible = false
+	if state.get("run") is Dictionary:
+		var run: Dictionary = state["run"]
+		lines.insert(2, tr("RUN_CONTINUES").format({"count": int(run["continues"])}))
+		if run["status"] in ["continue", "failed", "abandoned"]:
+			_recovery.visible = true
+			var copy: Array[String] = [tr("RUN_FALLEN" if run["status"] == "continue" else "RUN_ENDED"), "", tr("RUN_CONTINUES").format({"count": int(run["continues"])}), ""]
+			if run["status"] == "continue":
+				copy.append(tr("RUN_RESTORE_ENTRY"))
+				copy.append(tr("RUN_CONTINUE_INPUT" if not player_id.is_empty() else "RUN_WAITING_OWNER"))
+			else:
+				copy.append(tr("RUN_FAILED" if run["status"] == "failed" else "RUN_ABANDONED"))
+			copy.append("")
+			copy.append(tr("RUN_MENU_INPUT"))
+			_recovery_copy.text = "\n".join(copy)
 	match state["phase"]:
 		"briefing":
 			lines.append(tr("STORY_M01_RECAP"))

@@ -5,7 +5,8 @@ new-run difficulty selection and shared, versioned enemy timing rules to M01.
 Persistent achievements and earned cosmetics remain planned. Local work, no paid
 services. The campaign now targets a compact solo run with limited continues;
 spending one restores the current mission's entry state. Three per run is the
-initial balance proposal. This lifecycle is not implemented yet.
+initial balance proposal. The local M01 lifecycle is now implemented in
+[campaign-continues.md](campaign-continues.md); disk saves remain unbuilt.
 
 This increment implements the independent new-run selection boundary. Changing
 a running mission, supply variants, campaign-run persistence
@@ -149,7 +150,9 @@ success and error fixtures. [GNU grep's usage guidance](https://www.gnu.org/soft
 documents this early-exit interaction (checked 2026-09-20). All ten verifier fault
 scenarios and 27 local Godot harnesses pass. CI run 35536139881 at code head
 `55405ac` passes all five jobs, including Linux Godot and Windows/macOS portability.
-The PR remains open; these results are not merge or release evidence.
+Subsequent final CI run 35537266801 passed all five jobs at `f9dee29`.
+PR #198 merged as `b572396` and released in v0.30.0. The remaining achievement
+and earned-cosmetic scope keeps #197 open.
 
 These checks establish the implementation and reachable mission, not final human
 balance. Missed shots, unfamiliar players, scarce supply margins and the new

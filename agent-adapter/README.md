@@ -13,8 +13,8 @@ and the map version in observations, and closes its MCP game session if a map
 has unsupported or invalid geometry, or the server sends malformed JSON.
 Ground-filled legacy maps remain readable.
 
-Clients declare gameplay capability 6. Discovery-only maps require 2; authored
-encounters require 3; mission sequences with shared difficulty require 6. Older clients are
+Clients declare gameplay capability 7. Discovery-only maps require 2; authored
+encounters require 3; mission sequences with shared difficulty require 6, solo runs 7. Older clients are
 rejected before admission. `observe.loadout`
 is private to this participant: selected and
 owned weapons, magazines, pooled reserves, reload completion tick, personal
@@ -40,8 +40,10 @@ and the boarding area. `act.interact: true` presses Use; release with `false`
 before another press. Range, aim, sight, gate changes and departure remain server
 decisions. The shared local controller walks to mission controls when it has no
 combat or equipment target. Map changes replace navigation even with the same ID.
-Mission parties allow four humans/agents together; spectators do not take seats.
-This is prototype progression, not finished checkpoints, saves or reconnect.
+Development mission parties allow four humans/agents together. `--campaign-run`
+instead permits one lifetime combat seat; spectators do not take seats. Leaving
+ends the solo run, and a callsign cannot reclaim it. This is prototype progression,
+not persistent saves or reconnect.
 
 After reading the current mission, call `mission_ready` with its `id` and
 `attempt`. Confirm the member's `ready` flag and active phase through `observe`;
@@ -326,6 +328,23 @@ Both fields are required. Invalid, stale, disconnected, spectator and completed
 mission requests return `isError: true`. Repeating a confirmed acknowledgment is
 idempotent. Server state changes only after the ordinary WebSocket message is
 processed. Use `observe` to confirm readiness and the shared phase before acting.
+
+### `mission_continue`
+
+In a solo run, `observe.mission.run` reports its UUID, status and remaining
+continues. Only its dead owner in `continue` status can request a mission-start
+retry using the observed mission ID, run ID and attempt:
+
+```json
+{"jsonrpc":"2.0","id":9,"method":"tools/call","params":{"name":"mission_continue","arguments":{"id":"recall_notice","run_id":"550e8400-e29b-41d4-a716-446655440000","attempt":1}}}
+```
+
+Stale, malformed, spectator and exhausted requests return `isError: true`.
+A successful tool call only queues the request. Confirm `playing`, the increased
+attempt and decreased allowance through `observe` before continuing. Retry keeps
+opening readiness and restores entry equipment; it does not preserve supplies
+collected later. The supplied scripted bot and decision controller automatically
+use remaining continues. MCP observation never spends one for you.
 
 ### `round_state`
 

@@ -456,8 +456,10 @@ async fn four_readers_share_one_start_and_spectators_cannot_acknowledge() {
     let messages = session.tick_messages(0.05);
     crate::session::broadcast_to_clients(&clients, &messages).await;
     for socket in &mut sockets {
+        // Geometry preparation is not socket delivery time, especially under
+        // coverage. Start the delivery deadline after the probe is ready.
+        let mut probe = MissionProbe::new();
         tokio::time::timeout(Duration::from_secs(2), async {
-            let mut probe = MissionProbe::new();
             while let Some(Ok(Message::Text(text))) = socket.next().await {
                 let message: ServerMessage = serde_json::from_str(&text).unwrap();
                 probe.ingest(&message);
