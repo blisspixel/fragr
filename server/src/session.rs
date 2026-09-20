@@ -462,14 +462,14 @@ impl Default for GameSession {
     }
 }
 
-/// Fan-out server messages to every connected client session.
+/// Fan-out only after a connection's initial geometry has entered its FIFO.
 pub async fn broadcast_to_clients(
     clients: &Arc<Mutex<Vec<ClientSession>>>,
     messages: &[ServerMessage],
 ) {
     for msg in messages {
         let clients_lock = clients.lock().await;
-        for client in clients_lock.iter() {
+        for client in clients_lock.iter().filter(|client| client.initialized) {
             let _ = client.tx.send(msg.clone());
         }
         drop(clients_lock);
@@ -485,7 +485,7 @@ pub async fn send_unicasts(
     if unicasts.is_empty() {
         return;
     }
-    let clients_lock = clients.lock().await;
+    let mut clients_lock = clients.lock().await;
     for (recipient, msg) in unicasts {
         let client_id = match recipient {
             Recipient::Client(id) => Some(*id),
@@ -497,8 +497,10 @@ pub async fn send_unicasts(
         let Some(client_id) = client_id else {
             continue;
         };
-        if let Some(client) = clients_lock.iter().find(|c| c.id == client_id) {
-            let _ = client.tx.send(msg.clone());
+        if let Some(client) = clients_lock.iter_mut().find(|c| c.id == client_id) {
+            if client.tx.send(msg.clone()).is_ok() && matches!(msg, ServerMessage::MapInfo { .. }) {
+                client.initialized = true;
+            }
         }
     }
 }
@@ -507,6 +509,82 @@ pub async fn send_unicasts(
 mod session_tests {
     use super::*;
     use crate::protocol::Action;
+
+    #[tokio::test]
+    async fn only_successful_initial_geometry_delivery_enables_broadcasts() {
+        let ids = [Uuid::new_v4(), Uuid::new_v4(), Uuid::new_v4()];
+        let (pending_tx, mut pending_rx) = tokio::sync::mpsc::unbounded_channel();
+        let (active_tx, mut active_rx) = tokio::sync::mpsc::unbounded_channel();
+        let (closed_tx, closed_rx) = tokio::sync::mpsc::unbounded_channel();
+        drop(closed_rx);
+        let clients = Arc::new(Mutex::new(vec![
+            ClientSession::new(ids[0], pending_tx),
+            ClientSession::new(ids[1], active_tx),
+            ClientSession::new(ids[2], closed_tx),
+        ]));
+        let session = GameSession::new();
+        let map = session.state.map_info();
+        send_unicasts(
+            &clients,
+            &HashMap::new(),
+            &[
+                (Recipient::Client(ids[1]), map.clone()),
+                (Recipient::Client(ids[2]), map.clone()),
+            ],
+        )
+        .await;
+        assert!(matches!(
+            active_rx.try_recv().unwrap(),
+            ServerMessage::MapInfo { .. }
+        ));
+        assert!(
+            !clients.lock().await[2].initialized,
+            "a failed send cannot initialize a connection"
+        );
+        let snapshot = ServerMessage::Snapshot(session.state.snapshot());
+        broadcast_to_clients(&clients, std::slice::from_ref(&snapshot)).await;
+        assert!(
+            pending_rx.try_recv().is_err(),
+            "broadcast overtook geometry"
+        );
+        assert!(matches!(
+            active_rx.try_recv().unwrap(),
+            ServerMessage::Snapshot(_)
+        ));
+        let error = ServerMessage::Error {
+            code: "test".into(),
+            message: "test".into(),
+        };
+        send_unicasts(
+            &clients,
+            &HashMap::new(),
+            &[(Recipient::Client(ids[0]), error)],
+        )
+        .await;
+        assert!(matches!(
+            pending_rx.try_recv().unwrap(),
+            ServerMessage::Error { .. }
+        ));
+        assert!(
+            !clients.lock().await[0].initialized,
+            "ordinary unicast cannot bypass initialization"
+        );
+        send_unicasts(
+            &clients,
+            &HashMap::new(),
+            &[(Recipient::Client(ids[0]), map)],
+        )
+        .await;
+        broadcast_to_clients(&clients, &[snapshot]).await;
+        assert!(matches!(
+            pending_rx.try_recv().unwrap(),
+            ServerMessage::MapInfo { .. }
+        ));
+        assert!(matches!(
+            pending_rx.try_recv().unwrap(),
+            ServerMessage::Snapshot(_)
+        ));
+    }
 
     #[test]
     fn join_agent_pushes_player_joined_event() {

@@ -237,6 +237,12 @@ to every connection on join, including spectators, and broadcast when the map
 changes between rounds. It is not repeated every tick. Clients replace legacy
 scene geometry with these solids so visible cover agrees with the server.
 
+After `welcome`, the initial `map_info` is queued before mission state or any
+broadcast snapshot/event for that connection. Connections awaiting Session
+registration do not receive broadcasts. A join before the first tick may receive
+the same map twice; message count is not a geometry revision number. Gate changes
+also send `map_info` before shared progress, even when the map ID stays the same.
+
 ```json
 {
   "type": "map_info",

@@ -17,6 +17,7 @@ Status words: **planned**, **in flight**, **implemented** (local evidence record
 
 | Plan | Status | One-liner |
 |---|---|---|
+| [`mission-wire-order.md`](./mission-wire-order.md) | **implemented** (#188) | Queue initial geometry before broadcasts; prove shared departure without depending on socket scheduling. |
 | [`opening-spawns.md`](./opening-spawns.md) | **proven** (#175, v0.21.2) | Apply covered spawn selection before the opening fight as well as during play. |
 | [`shared-body-integration.md`](./shared-body-integration.md) | **proven** (#174, v0.21.1) | One body-collision integrator for the authority and movement mirror. |
 | [`campaign-spaces.md`](./campaign-spaces.md) | **proven** (#176, v0.22.0) | Real ceilings, accessible balconies, layered routes and matching collision/rendering for M01. |
@@ -25,7 +26,7 @@ Status words: **planned**, **in flight**, **implemented** (local evidence record
 | [`m01-intake-encounter.md`](./m01-intake-encounter.md) | **in flight** ([#180](https://github.com/blisspixel/fragr/issues/180)) | Authored human Clerk and Sweeper bot fights, explicit hostility, readable attacks and inspected motion. |
 | [`m01-facility-detail.md`](./m01-facility-detail.md) | **shipped** (#182, v0.25.0) | Bounded surface details, localized signs and practical lights make the intake rooms legible. |
 | [`m01-mission-sequence.md`](./m01-mission-sequence.md) | **shipped** (#184, v0.26.0) | Physical transfer-record interaction, authoritative lift gate and shared departure state. |
-| [`local-campaign-entry.md`](./local-campaign-entry.md) | **implemented** (#185) | Start the correct local campaign server from Single Player and own its complete lifetime; integration pending. |
+| [`local-campaign-entry.md`](./local-campaign-entry.md) | **shipped** (#187, v0.27.0) | Start the correct local campaign server from Single Player and own its complete lifetime. |
 | [`gpu-bot-compute.md`](./gpu-bot-compute.md) | **planned** | Portable optional GPU perception/inference, measured against CPU queries with rendering contention and fallback. |
 | [`audio-effects-refresh.md`](./audio-effects-refresh.md) | **in flight** | Distinct weapon, movement, impact and world sounds; capped candidates and in-game mix verification. |
 | [`radio-refresh.md`](./radio-refresh.md) | **in flight** | Two fictional talk formats and world-appropriate music; staged pilots, captions and distribution review. |
