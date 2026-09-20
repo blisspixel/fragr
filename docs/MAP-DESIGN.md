@@ -46,8 +46,34 @@ in a corridor the player just cleared.
 Verticality needs decisions: drop to a flank, climb for a precision lane, cross
 an exposed gallery, shoot between floors. Stairs must be walkable without jump.
 Essential traversal must work with actual collision, jump height and headroom.
-Current heightfield geometry cannot represent stacked accessible rooms and
-ceilings merely by rendering them; extend and verify the shared contract first.
+The shared finite-solid contract supports stacked accessible rooms and ceilings.
+M01's lift gate has two validated, precomputed states. General moving lifts and
+doors remain unbuilt; a cosmetic object cannot supply their collision or logic.
+
+## Shared level kit
+
+Godot supplies rendering; Rust owns movement, combat and mission state. Authored
+JSON selects validated geometry, supplies, encounters, controls and registered
+surface/decoration kinds. Build on these seams rather than adding mission-local
+movement, enemy controllers or client-only blockers. See
+[the map contract](../server/maps/README.md) for implemented fields and limits.
+
+Reuse construction proportions, stair clearances, material scale, door language,
+signs and faction equipment within each environment kit. The
+[production kit table](CAMPAIGN-MISSIONS.md#art-and-sound-production-by-environment)
+and [color bible](ART-COLOR.md) own location identity. Reuse makes places coherent;
+room connectivity, silhouettes, combat problems and reveals make them distinct.
+There is no prefab expander or general mission scripting system yet. Add either
+only when repeated authored content demonstrates the need, with one validated
+runtime representation and an inspectable expansion.
+
+The classics are design references, not layouts to copy. A useful lesson from
+[the original Dust 2 designer's account](https://www.johnsto.co.uk/design/making-dust2/)
+is that entrances, connected routes and restrained visual cues make spaces
+readable while retaining different fighting distances. For fragr, choose one
+memorable spatial idea per mission and develop it through play. M01 uses public
+intake below an administrative balcony, then branching records circulation.
+Judge whether a player can remember the place and make decisions within it.
 
 ## Encounters with a rhythm
 

@@ -2,6 +2,13 @@
 
 What fragr steals from the shooters and radio systems that got it right, and what it refuses. Mechanics and feel only, never trademarks or assets. Researched 2026-09-18 against source code where it exists (Unreal Tournament 1999 v469 UnrealScript, ioquake3, linuxdoom), otherwise developer postmortems, official docs, and wikis. Items are mapped to `ROADMAP.md` phases. This file is a reference; sequencing lives in the roadmap and bounded work lives in `plans/`.
 
+These are reference ideas, not shipped features. Current campaign decisions in
+`CAMPAIGN.md`, spatial practice in `MAP-DESIGN.md` and the roster in `ENEMIES.md`
+override earlier arena/Host proposals below. Optional radio is a small part of
+the world, never the campaign's required delivery path. Difficulty and reward
+scope now lives in `plans/difficulty-and-rewards.md`; extra hard-mode objectives
+are a possible later challenge variant, not required campaign story.
+
 ## Arena feel and the Host
 
 | Element | Source | Why it works | fragr adaptation | Phase |
@@ -87,7 +94,7 @@ Each of these did one thing so well that people still remember the feeling. The 
 | TimeSplitters 2 | Arcade league of bite-sized challenges with medals; a map maker; bots in every mode | The arcade ladder with medals per round; community maps through the `.map` pipeline; bots in every mode by default | `plans/campaign-continuance.md` rung 1; Phase 4 community servers |
 | Quake and Quake 3 Arena | Movement as a skill (strafe, momentum, rocket jumps); item timing as the meta; one map, eight players, nothing else needed | Movement with weight and acceleration you can master; pad timers worth watching; arena purity as the default mode | `plans/buttery-controls.md`; pads already shipped |
 | Halo: Combat Evolved | The thirty seconds of fun loop: a triangle of gun, grenade, melee that answers every situation; a regenerating shield that lets you re-engage | The weapon triangle (close, mid, long) that already exists, plus a melee or shove answer to the close case; armour that the pads refill so a fight can be re-entered | `plans/gunfeel.md`; pads |
-| Half-Life | The world keeps going while you watch: scripted moments you walk into, not cutscenes | Host beats and Continuance sweeps that happen in the arena while play continues; the campaign told through the radio, never a cutscene | `LORE.md`; `plans/radio-stations.md`; `plans/campaign-continuance.md` |
+| Half-Life | Important events happen in spaces the player inhabits | Staged action and environmental evidence support recurring characters; localized text and brief skippable scenes carry necessary framing | `CAMPAIGN.md`; `plans/campaign-scenes.md` |
 | Duke Nukem 3D | An interactive world (switches, screens, toilets) and a voice with attitude | Interactive props on maps (the jammer dish, the broadcast desk); the Host as the voice with attitude | `plans/campaign-continuance.md` triggers; the Host |
 | Team Fortress 2 | Class silhouettes readable at a glance; humour that never breaks the fight | Fighter silhouettes and weapon view models identifiable at thirty metres; the comedy stays in the radio and the Host, never in the hit registration | `plans/look-pass-boomer.md`; `plans/visual-qa-tour.md` criteria |
 | Tribes | Skiing: a movement trick the designers did not plan that became the game | Leave room for one emergent movement trick (a slide or a dodge) once the movement step is shared, and keep it if the playtests love it | `plans/buttery-controls.md` |

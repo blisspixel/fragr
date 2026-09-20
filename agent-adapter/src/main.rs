@@ -1891,6 +1891,24 @@ mod tests {
             ws.send(Message::Text(serde_json::to_string(&map).unwrap()))
                 .await
                 .unwrap();
+            // Map receipt starts blocking-pool topology preparation. Confirm
+            // one action before measuring sustained traffic, so unrelated map
+            // builds cannot masquerade as action-clock starvation. The outer
+            // four-second bound still covers setup and both traffic phases.
+            ws.send(Message::Text(
+                serde_json::to_string(&ServerMessage::Snapshot(state.snapshot())).unwrap(),
+            ))
+            .await
+            .unwrap();
+            loop {
+                let Some(Ok(Message::Text(text))) = ws.next().await else {
+                    panic!("bot disconnected before geometry readiness")
+                };
+                if let ClientMessage::Action(action) = serde_json::from_str(&text).unwrap() {
+                    assert!(action.fire, "the target is visible beneath the raised slab");
+                    break;
+                }
+            }
             let mut arrivals = 0;
             let mut snapshots = tokio::time::interval(std::time::Duration::from_millis(5));
             let deadline = tokio::time::sleep(std::time::Duration::from_secs(2));

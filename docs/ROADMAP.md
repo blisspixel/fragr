@@ -126,8 +126,8 @@ the plan without a claimed fix. Checkpoints,
 full encounter population and finished art remain. This
 foundation is not a finished campaign or proven co-op balance.
 
-[M01's opening and readiness](plans/m01-opening.md) are implemented for
-#192. Five keyed text panels establish Latch's recall,
+[M01's opening and readiness](plans/m01-opening.md) shipped in #193 and
+v0.28.0, closing #192. Five keyed text panels establish Latch's recall,
 offer back/next/skip and replay, and hand off through server-owned party readiness.
 Late readers cannot pause combat or participate until ready. The MCP adapter
 exposes the same explicit acknowledgment. Finished scene illustrations, narration
@@ -137,11 +137,21 @@ and movies remain separate production work.
 Warmup joins now use the same cover selector as active joins and respawns. The
 six-map playtest exposed the gap; its thresholds remain unchanged.
 
-The recurring Tripoint failure is tracked in
-[spawn safety](plans/tripoint-spawn-safety.md), #194. A reproduced exposed-ring
-layout now has 16 cover pockets and a regression proving screened, walkable
-opening positions. Network and rendered evidence remain separate from a claim
-that the map is finished.
+The recurring Tripoint opening failure was repaired in #193 and v0.28.0,
+closing #194. The [spawn safety plan](plans/tripoint-spawn-safety.md) records
+the reproduced exposed-ring layout, 16 new cover pockets, walking regressions,
+network comparisons and inspected captures. These checks establish safer
+openings, not a finished map or a universal respawn guarantee.
+
+The [M01 completion work](plans/m01-completion.md), tracked in #195, expands the
+records wing into reception, stacks, bypass, sorting and dispatch with twenty
+preplaced guards and finite campaign stock. The records-wing increment in #196
+passes full rendered OpenGL/Vulkan routes with twenty named defeats and departure,
+plus deterministic encounter/sightline checks and the six-map network roster.
+This remains a development mission. Checkpoints, persistence, final art and
+fresh-player acceptance remain open. The requested shared level kits, distinct
+enemy combinations and difficulty/achievement cosmetics have homes in
+`MAP-DESIGN.md`, `ENEMIES.md` and `plans/difficulty-and-rewards.md`.
 
 The phases below are the long shape. This is the remaining build order, with the reason each item sits where it does.
 
@@ -297,7 +307,7 @@ Status: **planned**. Only after Phase 2 is proven, so that new content lands on 
 - **Maps that teach.** Verticality, flow loops, item control, and named callouts. Learn from the best Unreal Tournament arenas: every corridor has a reason and every fight has a second option.
 - **Bigger modes.** Team deathmatch with COD-sized squads first, then objective control on larger maps with vehicles in the spirit of Battlefield 1942 conquest, without borrowing its art. Vehicles are server-authoritative entities on the same action path. Mode twists as mutators before any of that: one-shot rail only, scatter only, one golden rail on the map, the couch-multiplayer feeling GoldenEye had, cheap to build on the existing rules.
 - **Massive agent arenas.** Hundreds of fighters where most are agents. Depends on the scale ladder: interest management, sharded arenas, and a measured tick budget. Not a marketing claim until measured.
-- **Progression and cosmetics.** Unlocks and skins (Hangar Candy) that never change combat. Local first, server-authoritative when accounts exist.
+- **Difficulty and earned cosmetics.** Shared campaign tiers and achievements unlock titles, emblems and cosmetic variants without combat advantages. Establish M01's standard balance and retry boundary, then implement the first local progression slice before extending the campaign. Server-owned outcomes, idempotent awards and honest local trust are specified in [difficulty and rewards](plans/difficulty-and-rewards.md). Accounts and competitive verification remain later work.
 - **Let's-play tooling.** Director camera that follows the story of a round, highlight reels, a stream overlay, and match replays from recorded snapshots.
 - **Community servers.** A server list, mod hooks for maps and rosters, and a documented content pipeline.
 - **Broader localization.** Basic keyed text, captions, reader-paced scenes and missing-voice fallback belong in M01. Later expand supported locales, fonts and layout with language review and a visual tour per locale. Alternate or joke locales cannot obscure essential objectives. Voice coverage follows explicit production budgets. Plan: [localization.md](plans/localization.md).

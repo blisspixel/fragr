@@ -1,8 +1,10 @@
 # Campaign framework requirements
 
-**Status:** proposed architecture, revised 2026-09-19. No external map manifest,
-campaign save format, or full enemy-entity system is implemented. This replaces
-the earlier decision-complete claim and conflicting map/episode prescriptions.
+**Status:** framework requirements, revised 2026-09-20. Validated local map files,
+finite 3D collision, authored Clerk/Sweeper encounters and M01 progression are
+implemented. Persistent campaign saves, checkpoints, remaining enemy types and
+cross-mission continuity are unbuilt. See [build order](campaign-build-order.md)
+for the current baseline; requirements below do not imply completed systems.
 
 **Goal:** support [the campaign](../CAMPAIGN.md) through the Rust authority and
 Godot presenter without parallel simulation or duplicated geometry.
@@ -16,10 +18,10 @@ with the user's authoring preference. Authoring can use text and route diagrams;
 an editor/exporter is optional. Source map data must drive collision, navigation,
 encounters, rendering geometry, and interactions, with a shared content identity.
 
-Current solids support heightfields, not arbitrary stacked rooms. Ship, archive,
-and office designs require ceilings, overlapping accessible floors, doors, and
-occlusion that the current representation cannot simply pretend to provide.
-Design those explicit 3D volumes and tests before authoring unsupported geometry.
+Current solids are finite 3D volumes, with ceilings, overlapping accessible
+floors and shared movement tests. M01 uses a validated lift gate with two
+precomputed geometry states. General moving lifts, freely controlled doors and
+other traversal features remain unbuilt; authoring must respect those limits.
 
 The minimal map contract needs stable IDs, bounds, materials, geometry, safe
 spawns, encounters, items, interactions, objective links, secrets, and exits.

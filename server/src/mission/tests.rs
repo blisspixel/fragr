@@ -332,31 +332,58 @@ fn wipe_resets_gate_and_attempt_once_and_last_leave_uses_same_path() {
 
 #[test]
 fn shared_wire_controller_walks_and_departs_as_a_mixed_party() {
-    drive_party(session());
+    drive_party(session(), 2);
 }
 
 #[test]
 fn shared_party_controller_completes_actual_m01_with_discovered_equipment() {
-    let map =
-        AuthoredMap::read(include_bytes!("../../maps/m01-recall-notice.json").as_slice()).unwrap();
-    let mut session = GameSession::with_authored_map(map);
-    session.state.seed(67);
-    drive_party(session);
+    for size in [2, 4] {
+        let map = AuthoredMap::read(include_bytes!("../../maps/m01-recall-notice.json").as_slice())
+            .unwrap();
+        let mut session = GameSession::with_authored_map(map);
+        session.state.seed(67);
+        drive_party(session, size);
+    }
 }
 
-fn drive_party(mut session: GameSession) {
-    let ids = [
-        add(&mut session.state, Role::Human),
-        add(&mut session.state, Role::Agent),
-    ];
-    let mut clients = [MissionClient::default(), MissionClient::default()];
-    let mut navigators = [
-        crate::navigation::Navigator::default(),
-        crate::navigation::Navigator::default(),
-    ];
+fn drive_party(mut session: GameSession, size: usize) {
+    let ids: Vec<_> = (0..size)
+        .map(|index| {
+            add(
+                &mut session.state,
+                if index % 2 == 0 {
+                    Role::Human
+                } else {
+                    Role::Agent
+                },
+            )
+        })
+        .collect();
+    let mut clients: Vec<_> = (0..size).map(|_| MissionClient::default()).collect();
+    let mut navigators: Vec<_> = (0..size)
+        .map(|_| crate::navigation::Navigator::default())
+        .collect();
     let mut maps_seen = 0;
-    for _ in 0..1600 {
+    // The authored twenty-guard mission is larger than the minimal gate fixture.
+    // This bounds completion, not a speedrun or difficulty acceptance claim.
+    let max_ticks = if session.state.map.has_encounters() {
+        4000
+    } else {
+        1600
+    };
+    let mut deaths = 0;
+    let mut dead = std::collections::HashSet::new();
+    for _ in 0..max_ticks {
         let messages = session.tick_messages(0.05);
+        for player in session.state.players.iter().filter(|p| ids.contains(&p.id)) {
+            if player.hp <= 0 {
+                if dead.insert(player.id) {
+                    deaths += 1;
+                }
+            } else {
+                dead.remove(&player.id);
+            }
+        }
         for message in messages {
             match message {
                 ServerMessage::MapInfo {
@@ -388,7 +415,7 @@ fn drive_party(mut session: GameSession) {
                     }
                 }
                 ServerMessage::Snapshot(snapshot) => {
-                    for index in 0..2 {
+                    for index in 0..size {
                         let id = ids[index];
                         let Some(player) = snapshot.players.iter().find(|p| p.id == id) else {
                             assert!(session
@@ -449,7 +476,13 @@ fn drive_party(mut session: GameSession) {
         session.state.snapshot().players
     );
     assert_eq!(maps_seen, 2, "one opening geometry revision");
+    eprintln!(
+        "Mission party size={size}: ticks={}, individual deaths={deaths}, attempt={}",
+        session.state.tick,
+        session.state.mission_state().unwrap().attempt
+    );
     let state = session.state.mission_state().unwrap();
+    assert_eq!(state.party.len(), size);
     assert!(state
         .party
         .iter()

@@ -16,6 +16,10 @@ issued mechanisms, a status slit and battery pack. Shared bone armor, steel,
 green and restrained red seals establish Union manufacture. Neither body type
 establishes moral status. These are not free-agent character designs.
 
+Reviewed [reference candidates](references/README.md) now give the next rig pass
+a shared human/bot design target. They are separate from the provisional baked
+atlases and do not establish finished character art.
+
 ## Bake and verify
 
 Use the pinned Godot 4.7.2 binary with a real graphics context. From repository

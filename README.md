@@ -8,7 +8,7 @@ It is the 1993 LAN-party feeling rebuilt for 2026: a Rust authoritative server, 
 
 ## What runs today
 
-- **Recall Notice:** Single Player starts the local M01 development mission with a skippable, reader-paced opening. Enter Annex 67 to find Latch's transfer record, recover weapons, fight through the intake rooms and depart by the custody lift. The party waits for its readers before combat; the menu can replay the opening offline. This is the opening mission slice, not the complete campaign.
+- **Recall Notice:** Single Player starts the local M01 development mission with a skippable, reader-paced opening. Enter Annex 67 to find Latch's transfer record, recover weapons, fight through intake and records, and depart by the custody lift. The party waits for its readers before combat; the menu can replay the opening offline. This is a developing mission, not the complete campaign.
 - **Solo Broadcast:** Episode 0 Calibration on Larak Lot. Host cold-open, objective chip (clear NODS, seize jammer, drop Auditor), same guns as MP. Default from `./tools/solo_scrap.sh` (server `--solo-broadcast`). This is an arena prototype. The planned twelve-mission story lives in [`docs/CAMPAIGN.md`](docs/CAMPAIGN.md); [`solo-story-episodes.md`](docs/plans/solo-story-episodes.md) records this prototype's implementation.
 - **Solo Scrap:** arcade offline on loopback without the episode path (`FRAGR_SOLO_BROADCAST=0`), four named rule bots with visible tactics (Aggressive, Defensive, Flanker, Balanced).
 - **Watch or join:** spectator by default through a fighter's eyes, including their gun and shot feedback. F changes fighter; V cycles eyes, chase, and free camera. Join mid-match as a human, leave back to spectate. Bots keep the server alive.
@@ -28,11 +28,14 @@ Current work: [`local excellence`](docs/plans/local-excellence.md), a bounded po
 The opening mission has an opt-in [development slice](server/maps/README.md):
 enclosed intake rooms, two stair routes, an accessible records balcony, a
 prisoner lift and fists-to-found-gun progression with finite ammo and reload.
-The current draft adds one human Clerk and two Sweeper bots with server-owned
-attack phases and directional walk, raise, recoil, pain, melee and collapse
-poses. Find Latch's transfer record at the console, open the custody lift and
-depart together. Character art and pacing are still under review; the full mission,
-checkpoints and the next mission are unfinished.
+The current draft continues through records reception, file stacks, a service
+bypass, sorting, dispatch and transfer control. Twenty human Clerks and Sweeper
+bots occupy seven groups, with server-owned attack phases and directional poses.
+Guards are already present before entry alarms, and campaign consumables stay
+consumed until a party reset. Find Latch's transfer record at the console, open
+the custody lift and depart together. Character art, pacing, checkpoints, secrets
+and the next mission remain unfinished. Difficulty tiers and cosmetic achievement
+rewards are [planned](docs/plans/difficulty-and-rewards.md).
 
 ## Screenshots
 
@@ -124,7 +127,7 @@ Flechette before the records stairs, collect finite ammunition, and reload.
 Introductory guns remain available independently to each participant. The six
 arcade maps retain their three unlimited guns. Run instructions and current
 limitations: [`server/maps/README.md`](server/maps/README.md). M01 still needs
-finished enemy presentation, further encounters, secrets, opening art and
+finished enemy presentation, encounter balancing, secrets, opening art and
 checkpoints before it is a complete mission. F or controller B uses an aimed
 mission control. The lift waits for everyone aboard; its result ends this prototype.
 

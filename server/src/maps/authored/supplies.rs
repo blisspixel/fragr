@@ -38,7 +38,10 @@ pub(super) fn build(
         .map(|supply| {
             identity(&supply.id, seen)?;
             if !standing(arena, supply.feet) {
-                return Err(invalid("supply needs supported feet and full clearance"));
+                return Err(invalid(&format!(
+                    "supply {} needs supported feet and full clearance",
+                    supply.id,
+                )));
             }
             let (kind, amount) = match supply.grant {
                 Grant::Weapon { weapon } if weapon != WeaponType::Fists => {

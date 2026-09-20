@@ -1,6 +1,8 @@
 # Tripoint spawn safety
 
-Status: implemented and locally verified, 2026-09-20. Task: [#194](https://github.com/blisspixel/fragr/issues/194).
+Status: shipped in [#193](https://github.com/blisspixel/fragr/pull/193) and
+[v0.28.0](https://github.com/blisspixel/fragr/releases/tag/v0.28.0), 2026-09-20.
+Task: [#194](https://github.com/blisspixel/fragr/issues/194).
 Spend: $0. This investigation gates the campaign-opening integration in #193.
 
 ## Evidence and outcome

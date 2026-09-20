@@ -1,9 +1,10 @@
 # Enemy roster
 
-**Status, 2026-09-19:** design proposals. Current combatants are Player entities
-with five rule-bot behaviors and prototype boss/elite paths. Calibration uses
-NODS and Auditor labels; it does not implement the roster below, resurrection,
-projectiles, authored encounter placement, or full character animation.
+**Status, 2026-09-20:** Clerk and Sweeper prototype encounters are implemented
+through shared simulation bodies, typed campaign identity and directional
+animation. Their art and full-mission tuning remain provisional. Other roles
+below, reactivation and projectiles are proposed. Calibration's NODS and Auditor
+are separate arcade prototypes, not implementations of the proposed roster.
 
 Players are defined by the weapons they find, not permanent combat classes.
 Start a fresh campaign with fists; [WEAPONS.md](WEAPONS.md) owns the pickup economy.
@@ -82,6 +83,26 @@ It does not defeat the entire Inheritance. Its apparently limitless strategic
 scale must not become unreadable or unfair moment-to-moment combat.
 
 ## Behavioral and presentation evidence
+
+Build combinations around competing decisions, not uniform firing squads or
+larger health pools. Introduce each role alone with room to learn its counter,
+then mix it with an established role. Proposed progression:
+
+| Combination | Player decision | Place in the campaign |
+|---|---|---|
+| Clerk + Sweeper | Interrupt the human's single shot or evade the bot's committed burst; use counter islands to separate their angles | M01 records and transfer rooms, implemented draft |
+| Crawler + Sweeper | Keep space from the close threat without backing into a ranged lane | M02 correction/service loop, planned |
+| Heavy + mobile security | Spend ammunition on suppression or take the exposed flank while lighter units move | M03 workshops and later industrial spaces, planned |
+| Ranged Sweeper + Jammer | Break the precision sightline while dodging clearly traveling interference shots | Lunar galleries with side routes, planned |
+| Auditor + disabled bodies | Interrupt a bounded repair channel or finish an immediate attacker | M05 custody defense, planned |
+| Absorbed bot + restoration machine | Apply the learned weapon counter while responding to newly marked work zones | M10-M12, planned |
+
+Each pairing needs routes that allow both answers, readable attack overlap and
+supplies for imperfect play. A room full of hitscan enemies does not reproduce
+Doom's projectile-dodging decisions. Build and verify traveling attacks before
+claiming that variety; never implement them as delayed invisible hitscan.
+Difficulty changes belong to the shared
+[difficulty and rewards contract](plans/difficulty-and-rewards.md).
 
 - Telegraphs have visual and sound/caption paths. Author durations in seconds.
 - Every role needs coherent facing, locomotion, attack, pain, disable/death and

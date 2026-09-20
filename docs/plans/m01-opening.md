@@ -1,6 +1,8 @@
 # Recall Notice opening and party readiness
 
-Status: implemented and locally verified, 2026-09-20. Task: [#192](https://github.com/blisspixel/fragr/issues/192).
+Status: shipped in [#193](https://github.com/blisspixel/fragr/pull/193) and
+[v0.28.0](https://github.com/blisspixel/fragr/releases/tag/v0.28.0), 2026-09-20.
+Task: [#192](https://github.com/blisspixel/fragr/issues/192).
 Depends on the local campaign entry and reliable initial map delivery already
 released in v0.27.0 and v0.27.1. The text opening is playable; integration and
 release evidence is linked from the task. Finished scene art and narration are

@@ -245,7 +245,11 @@ fn indoor_spawn_and_replaced_identity_use_one_runtime_world() {
 
 #[test]
 fn m01_routes_use_ordinary_actions_through_the_live_session() {
-    let map = AuthoredMap::read(M01.as_bytes()).unwrap();
+    // Isolate collision and route traversal here. The separate M01 walkthrough
+    // fights the complete authored population with normal finite equipment.
+    let mut document: Value = serde_json::from_str(M01).unwrap();
+    document["encounters"] = json!([]);
+    let map = decode(&document).unwrap();
     for role in [Role::Human, Role::Agent] {
         let mut session = GameSession::with_authored_map(map.clone());
         let id = Uuid::nil();
@@ -265,6 +269,16 @@ fn m01_routes_use_ordinary_actions_through_the_live_session() {
             "under_records",
             "public_stair_entry",
             "records_balcony",
+            "records_reception",
+            "file_stacks",
+            "stacks_cross_aisle",
+            "sorting_west",
+            "sorting_east",
+            "service_bypass",
+            "records_reception",
+            "service_bypass",
+            "sorting_east",
+            "dispatch",
             "transfer_control",
             "transfer_record",
             "prisoner_lift",

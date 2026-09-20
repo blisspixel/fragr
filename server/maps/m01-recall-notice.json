@@ -2,7 +2,7 @@
   "version": 1,
   "map_id": 1001,
   "name": "Recall Notice: intake prototype",
-  "half_extent": 42.0,
+  "half_extent": 48.0,
   "ground": "concrete",
   "equipment": "discovery",
   "supplies": [
@@ -11,7 +11,19 @@
     {"id":"service_flechette","feet":[-17,0,-14],"grant":{"kind":"weapon","weapon":"flechette"},"claim":"personal"},
     {"id":"bay_tacks","feet":[-4,0,-23],"grant":{"kind":"ammo","pool":"tacks","amount":24},"claim":"contested"},
     {"id":"records_darts","feet":[4,3,9],"grant":{"kind":"ammo","pool":"darts","amount":30},"claim":"contested"},
-    {"id":"service_darts","feet":[-18,3,8],"grant":{"kind":"ammo","pool":"darts","amount":30},"claim":"contested"}
+    {"id":"service_darts","feet":[-18,3,8],"grant":{"kind":"ammo","pool":"darts","amount":30},"claim":"contested"},
+    {"id":"bay_medkit","feet":[8,0,-21],"grant":{"kind":"health","amount":25},"claim":"contested"},
+    {"id":"reception_medkit","feet":[-19,3,23],"grant":{"kind":"health","amount":40},"claim":"contested"},
+    {"id":"reception_armor","feet":[-19,3,9],"grant":{"kind":"armor","amount":25},"claim":"contested"},
+    {"id":"stacks_darts","feet":[-41.5,3,17],"grant":{"kind":"ammo","pool":"darts","amount":60},"claim":"contested"},
+    {"id":"stacks_armor","feet":[-41.5,3,14.5],"grant":{"kind":"armor","amount":50},"claim":"contested"},
+    {"id":"stacks_medkit","feet":[-25.5,3,23],"grant":{"kind":"health","amount":25},"claim":"contested"},
+    {"id":"bypass_darts","feet":[-21,3,27],"grant":{"kind":"ammo","pool":"darts","amount":30},"claim":"contested"},
+    {"id":"bypass_armor","feet":[-15,3,27],"grant":{"kind":"armor","amount":25},"claim":"contested"},
+    {"id":"sorting_medkit","feet":[-41.5,3,40],"grant":{"kind":"health","amount":40},"claim":"contested"},
+    {"id":"sorting_darts","feet":[-22,3,41],"grant":{"kind":"ammo","pool":"darts","amount":60},"claim":"contested"},
+    {"id":"dispatch_medkit","feet":[-3,3,42],"grant":{"kind":"health","amount":50},"claim":"contested"},
+    {"id":"dispatch_tacks","feet":[-10.5,3,42],"grant":{"kind":"ammo","pool":"tacks","amount":36},"claim":"contested"}
   ],
   "encounters": [
     {
@@ -31,6 +43,58 @@
       "enemies":[
         {"id":"records_sweeper_west","kind":"sweeper","feet":[-2,0,9],"yaw":4.712389},
         {"id":"records_sweeper_east","kind":"sweeper","feet":[2,0,9],"yaw":4.712389}
+      ]
+    },
+    {
+      "id":"records_patrol",
+      "after":"intake_sweepers",
+      "regions":[{"min":[-21,2.9,13],"max":[-17,3.2,16]}],
+      "enemies":[
+        {"id":"reception_clerk","kind":"clerk","feet":[-15,3,22],"yaw":4.712389},
+        {"id":"reception_runner","kind":"clerk","feet":[-20,3,22],"yaw":4.712389},
+        {"id":"bypass_sentry","kind":"sweeper","feet":[-21,3,27],"yaw":4.712389}
+      ]
+    },
+    {
+      "id":"stacks_patrol",
+      "regions":[{"min":[-42.5,2.9,13],"max":[-24.5,3.2,29]}],
+      "enemies":[
+        {"id":"stacks_clerk","kind":"clerk","feet":[-32,3,16],"yaw":0},
+        {"id":"archive_clerk","kind":"clerk","feet":[-41.5,3,24],"yaw":0},
+        {"id":"stacks_sweeper","kind":"sweeper","feet":[-31.5,3,27],"yaw":4.712389},
+        {"id":"archive_sweeper","kind":"sweeper","feet":[-41.5,3,27],"yaw":4.712389}
+      ]
+    },
+    {
+      "id":"sorting_security",
+      "regions":[
+        {"min":[-40,2.9,30],"max":[-34,3.2,32]},
+        {"min":[-21,2.9,30],"max":[-15,3.2,32]},
+        {"min":[-14,2.9,34],"max":[-11,3.2,38]}
+      ],
+      "enemies":[
+        {"id":"sorting_sweeper_west","kind":"sweeper","feet":[-38,3,37],"yaw":4.712389},
+        {"id":"sorting_sweeper_east","kind":"sweeper","feet":[-18,3,37],"yaw":4.712389},
+        {"id":"dispatch_clerk_west","kind":"clerk","feet":[-31,3,41],"yaw":4.712389},
+        {"id":"dispatch_clerk_east","kind":"clerk","feet":[-22,3,40],"yaw":4.712389}
+      ]
+    },
+    {
+      "id":"dispatch_security",
+      "regions":[{"min":[-12,2.9,34],"max":[-9,3.2,38]}],
+      "enemies":[
+        {"id":"dispatch_sweeper","kind":"sweeper","feet":[-3,3,41],"yaw":3.141593},
+        {"id":"dispatch_officer","kind":"clerk","feet":[-3,3,34],"yaw":3.141593},
+        {"id":"dispatch_guard","kind":"clerk","feet":[-10.5,3,41],"yaw":4.712389}
+      ]
+    },
+    {
+      "id":"transfer_watch",
+      "regions":[{"min":[-12,2.9,25.5],"max":[-1,3.2,29]}],
+      "enemies":[
+        {"id":"transfer_clerk","kind":"clerk","feet":[-3,3,16],"yaw":1.5707964},
+        {"id":"transfer_sweeper_west","kind":"sweeper","feet":[-10.5,3,21],"yaw":1.5707964},
+        {"id":"transfer_sweeper_east","kind":"sweeper","feet":[-1,3,18],"yaw":1.5707964}
       ]
     }
   ],
@@ -78,15 +142,23 @@
     {"id":"service_step_6","min":[-19,0,0],"max":[-15,3,2],"surface":"service_steel"},
     {"id":"service_landing","min":[-22,2.4,2],"max":[-13,3,12],"surface":"service_steel"},
     {"id":"service_link","min":[-13,2.4,6],"max":[-12,3,12],"surface":"service_steel"},
-    {"id":"service_north","min":[-23,0,12],"max":[-13,8,13],"surface":"service_steel"},
+    {"id":"service_north","min":[-23,6.5,12],"max":[-13,8,13],"surface":"service_steel"},
+    {"id":"reception_entry_west","min":[-23,0,12],"max":[-21,6.5,13],"surface":"service_steel"},
+    {"id":"reception_entry_east","min":[-17,0,12],"max":[-13,6.5,13],"surface":"service_steel"},
+    {"id":"reception_threshold","min":[-21,2.4,12],"max":[-17,3,13],"surface":"records_tile"},
     {"id":"service_north_roof","min":[-23,8,6],"max":[-13,8.5,13],"surface":"service_steel"},
     {"id":"service_roof_transition","min":[-23,6,5],"max":[-13,8,6],"surface":"service_steel"},
     {"id":"office_floor","min":[-12,0,12],"max":[2,3,27],"surface":"records_tile"},
     {"id":"office_front_west","min":[-12,3,12],"max":[-5,8,13],"surface":"enamel"},
     {"id":"office_front_east","min":[-1,3,12],"max":[12,8,13],"surface":"enamel"},
     {"id":"office_front_header","min":[-5,6.5,12],"max":[-1,8,13],"surface":"enamel"},
+    {"id":"office_front_sealed","min":[-5,3,12],"max":[-1,6.5,13],"surface":"enamel"},
     {"id":"office_west","min":[-13,0,12],"max":[-12,8,28],"surface":"enamel"},
-    {"id":"office_north","min":[-13,0,27],"max":[13,8,28],"surface":"enamel"},
+    {"id":"office_north","min":[-1,0,27],"max":[13,8,28],"surface":"enamel"},
+    {"id":"office_north_west","min":[-13,0,27],"max":[-12,8,28],"surface":"enamel"},
+    {"id":"office_north_header","min":[-12,6.5,27],"max":[-1,8,28],"surface":"enamel"},
+    {"id":"office_threshold","min":[-12,2.4,27],"max":[-1,3,28],"surface":"records_tile"},
+    {"id":"transfer_entry_screen","min":[-12,3,27],"max":[-5,8,28],"surface":"enamel"},
     {"id":"office_roof","min":[-13,8,12],"max":[13,8.5,28],"surface":"concrete"},
     {"id":"transfer_console","min":[-9,3,23],"max":[-6,4.2,25],"surface":"service_steel"},
     {"id":"lift_floor","min":[2,0,18],"max":[12,3,27],"surface":"concrete"},
@@ -95,7 +167,47 @@
     {"id":"lift_divider_north","min":[2,3,24],"max":[3,8,27],"surface":"enamel"},
     {"id":"lift_door_header","min":[2,6.5,20],"max":[3,8,24],"surface":"lift_panel"},
     {"id":"lift_gate","min":[2,3,20],"max":[3,6.5,24],"surface":"lift_panel"},
-    {"id":"lift_rear_panel","min":[4,3,26],"max":[11,7,27],"surface":"lift_panel"}
+    {"id":"lift_rear_panel","min":[4,3,26],"max":[11,7,27],"surface":"lift_panel"},
+    {"id":"reception_floor","min":[-23,2.4,13],"max":[-13,3,30],"surface":"records_tile"},
+    {"id":"reception_east","min":[-13,3,13],"max":[-12,8,30],"surface":"enamel"},
+    {"id":"reception_roof","min":[-24,8,12],"max":[-13,8.5,30],"surface":"concrete"},
+    {"id":"reception_privacy_screen","min":[-22,3,15.5],"max":[-17,6.3,16.5],"surface":"enamel"},
+    {"id":"reception_counter","min":[-18,3,19],"max":[-14,4.2,20],"surface":"enamel"},
+    {"id":"stacks_entry_south","min":[-24,3,12],"max":[-23,8,16],"surface":"enamel"},
+    {"id":"stacks_entry_north","min":[-24,3,20],"max":[-23,8,30],"surface":"enamel"},
+    {"id":"stacks_entry_header","min":[-24,6.5,16],"max":[-23,8,20],"surface":"enamel"},
+    {"id":"bypass_entry_west","min":[-23,3,24],"max":[-20,8,25],"surface":"service_steel"},
+    {"id":"bypass_entry_east","min":[-16,3,24],"max":[-13,8,25],"surface":"service_steel"},
+    {"id":"bypass_entry_header","min":[-20,6,24],"max":[-16,8,25],"surface":"service_steel"},
+    {"id":"stacks_floor","min":[-43,2.4,13],"max":[-23,3,30],"surface":"records_tile"},
+    {"id":"stacks_south","min":[-44,3,12],"max":[-24,8,13],"surface":"enamel"},
+    {"id":"archive_west","min":[-44,3,12],"max":[-43,8,44],"surface":"enamel"},
+    {"id":"stacks_roof","min":[-44,8,12],"max":[-24,8.5,30],"surface":"concrete"},
+    {"id":"files_a","min":[-30,3,14],"max":[-28,6.2,21],"surface":"service_steel"},
+    {"id":"files_b","min":[-36,3,19],"max":[-34,6.2,26],"surface":"service_steel"},
+    {"id":"files_c","min":[-40,3,14],"max":[-38,6.2,21],"surface":"service_steel"},
+    {"id":"files_d","min":[-29,3,25],"max":[-25,5.5,27],"surface":"service_steel"},
+    {"id":"sorting_entry_west","min":[-44,3,29],"max":[-39,8,30],"surface":"enamel"},
+    {"id":"sorting_entry_middle","min":[-35,3,29],"max":[-20,8,30],"surface":"enamel"},
+    {"id":"sorting_entry_east","min":[-16,3,29],"max":[-13,8,30],"surface":"enamel"},
+    {"id":"sorting_entry_header","min":[-39,6.5,29],"max":[-35,8,30],"surface":"enamel"},
+    {"id":"bypass_exit_header","min":[-20,6,29],"max":[-16,8,30],"surface":"service_steel"},
+    {"id":"sorting_floor","min":[-43,2.4,30],"max":[2,3,43],"surface":"records_tile"},
+    {"id":"sorting_north","min":[-44,3,43],"max":[3,8,44],"surface":"enamel"},
+    {"id":"sorting_roof","min":[-44,8,30],"max":[3,8.5,44],"surface":"concrete"},
+    {"id":"sorting_screen_west","min":[-39,3,33],"max":[-35,5.8,34],"surface":"service_steel"},
+    {"id":"sorting_screen_east","min":[-20,3,33],"max":[-16,5.8,34],"surface":"service_steel"},
+    {"id":"sorting_table","min":[-31,3,35],"max":[-25,4.15,37],"surface":"enamel"},
+    {"id":"dispatch_cabinet","min":[-29,3,40],"max":[-24,5.8,42],"surface":"service_steel"},
+    {"id":"dispatch_divider_south","min":[-13,3,28],"max":[-12,8,34],"surface":"enamel"},
+    {"id":"dispatch_divider_north","min":[-13,3,38],"max":[-12,8,44],"surface":"enamel"},
+    {"id":"dispatch_divider_header","min":[-13,6.5,34],"max":[-12,8,38],"surface":"enamel"},
+    {"id":"dispatch_floor","min":[-12,2.4,28],"max":[2,3,30],"surface":"records_tile"},
+    {"id":"dispatch_east","min":[2,3,28],"max":[3,8,44],"surface":"enamel"},
+    {"id":"dispatch_front_roof","min":[-13,8,28],"max":[3,8.5,30],"surface":"concrete"},
+    {"id":"dispatch_desk","min":[-8,3,34],"max":[-6,4.15,40],"surface":"enamel"},
+    {"id":"dispatch_screen","min":[-10,3,30],"max":[-6,5.8,31],"surface":"service_steel"},
+    {"id":"transfer_ledger_cabinet","min":[-11,3,15],"max":[-8,5.8,18],"surface":"service_steel"}
   ],
   "decorations": [
     {"solid":"bay_front_header","face":"north","center":[0,0],"size":[5.6,2.1],"kind":"property_sign"},
@@ -113,20 +225,28 @@
     {"solid":"service_machinery","face":"east","center":[0,0],"size":[11.6,2.6],"kind":"vent"},
     {"solid":"service_south","face":"south","center":[0,0.2],"size":[4.0,1.8],"kind":"maintenance_sign"},
     {"solid":"service_roof_transition","face":"north","center":[0,0],"size":[4.0,1.5],"kind":"vent"},
-    {"solid":"service_north","face":"north","center":[0,1.4],"size":[5.0,1.8],"kind":"records_sign"},
+    {"solid":"service_north","face":"north","center":[0,0],"size":[5.0,1.2],"kind":"records_sign"},
     {"solid":"office_front_west","face":"north","center":[0,0],"size":[5.5,2.0],"kind":"transfer_sign"},
     {"solid":"office_front_east","face":"north","center":[0,0],"size":[6.0,2.0],"kind":"records_sign"},
-    {"solid":"office_north","face":"north","center":[7.5,1.8],"size":[4.5,2.4],"kind":"transfer_sign"},
+    {"solid":"office_north","face":"north","center":[0,1.8],"size":[4.5,2.4],"kind":"transfer_sign"},
     {"solid":"lift_door_header","face":"west","center":[0,0],"size":[3.8,1.3],"kind":"lift_sign"},
     {"solid":"lift_rear_panel","face":"north","center":[0,0],"size":[2.0,2.0],"kind":"union_seal"},
     {"solid":"street_canopy","face":"down","center":[0,0],"size":[4.0,0.5],"kind":"strip_light"},
     {"solid":"bay_roof","face":"down","center":[0,0],"size":[4.0,0.5],"kind":"strip_light"},
     {"solid":"hall_roof","face":"down","center":[-6,-5],"size":[4.0,0.5],"kind":"strip_light"},
-    {"solid":"hall_roof","face":"down","center":[6,7],"size":[4.0,0.5],"kind":"strip_light"},
+    {"solid":"reception_roof","face":"down","center":[0,-3],"size":[4.0,0.5],"kind":"strip_light"},
     {"solid":"service_roof","face":"down","center":[0,-6],"size":[3.0,0.5],"kind":"strip_light"},
-    {"solid":"service_north_roof","face":"down","center":[0,0],"size":[3.0,0.5],"kind":"strip_light"},
+    {"solid":"stacks_roof","face":"down","center":[0,0],"size":[3.0,0.5],"kind":"strip_light"},
     {"solid":"office_roof","face":"down","center":[-7,0],"size":[3.0,0.5],"kind":"strip_light"},
-    {"solid":"office_roof","face":"down","center":[7,2],"size":[3.0,0.5],"kind":"strip_light"}
+    {"solid":"sorting_roof","face":"down","center":[0,0],"size":[3.0,0.5],"kind":"strip_light"},
+    {"solid":"reception_counter","face":"up","center":[0,0],"size":[1.4,0.8],"kind":"terminal"},
+    {"solid":"files_a","face":"east","center":[0,0],"size":[6.6,3.0],"kind":"lockers"},
+    {"solid":"files_b","face":"west","center":[0,0],"size":[6.6,3.0],"kind":"lockers"},
+    {"solid":"files_c","face":"east","center":[0,0],"size":[6.6,3.0],"kind":"lockers"},
+    {"solid":"bypass_entry_header","face":"north","center":[0,0],"size":[3.8,1.6],"kind":"maintenance_sign"},
+    {"solid":"sorting_entry_header","face":"north","center":[0,0],"size":[3.8,1.2],"kind":"records_sign"},
+    {"solid":"dispatch_divider_header","face":"west","center":[0,0],"size":[3.8,1.2],"kind":"transfer_sign"},
+    {"solid":"dispatch_cabinet","face":"north","center":[0,0],"size":[4.6,2.4],"kind":"lockers"}
   ],
   "mission": {
     "id":"recall_notice",
@@ -157,6 +277,13 @@
     {"id":"maintenance_entry","feet":[-17,0,-18]},
     {"id":"maintenance_stair_entry","feet":[-17,0,-12]},
     {"id":"maintenance_landing","feet":[-17,3,8]},
+    {"id":"records_reception","feet":[-15.5,3,17.5]},
+    {"id":"file_stacks","feet":[-32,3,17]},
+    {"id":"stacks_cross_aisle","feet":[-37,3,24]},
+    {"id":"service_bypass","feet":[-18,3,27]},
+    {"id":"sorting_west","feet":[-37,3,31]},
+    {"id":"sorting_east","feet":[-18,3,31]},
+    {"id":"dispatch","feet":[-3,3,37]},
     {"id":"transfer_control","feet":[-3,3,20]},
     {"id":"transfer_record","feet":[-7.5,3,21.5]},
     {"id":"prisoner_lift","feet":[7,3,23]}

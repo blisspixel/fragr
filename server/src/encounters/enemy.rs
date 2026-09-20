@@ -48,6 +48,11 @@ impl EnemyController {
         }
     }
 
+    pub fn alarm(&mut self, position: [f32; 3], tick: u64) {
+        self.last_known = position;
+        self.search_until = tick.saturating_add(600);
+    }
+
     fn enter(&mut self, phase: EnemyPhase, tick: u64, duration: u64) {
         self.phase = phase;
         self.started = tick;

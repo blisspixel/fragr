@@ -1,8 +1,18 @@
 # M01 intake encounter
 
-Status: **in flight**, 2026-09-20. [Task #180](https://github.com/blisspixel/fragr/issues/180).
-Baseline: v0.24.0, `67eacf1`, all five integration checks passed. Weapon discovery
-and traversal are implemented; this work supplies the first authored fights.
+Status: foundation **shipped** in #182 and v0.25.0. Production character/motion
+and fresh-player pacing acceptance remain **in flight** in
+[task #180](https://github.com/blisspixel/fragr/issues/180), 2026-09-20.
+Current play has safe Tack discovery, one Clerk, two Sweepers and directional
+poses, with both approaches and spectator eyes inspected. Transfer/gate/departure,
+local launch and text opening followed in v0.26.0 through v0.28.0. Full mission
+completion is tracked in [M01 completion](m01-completion.md), #195.
+
+The checkpoints below preserve historical evidence, including superseded draft
+status and counts. They are not the current release state. One later Clerk
+reference submission has an uncertain $0.107 reservation; no request ID was
+preserved. #191 repaired identity persistence. Dashboard reconciliation remains
+necessary before resuming that request; do not assume a refund or repurchase it.
 
 ## Outcome
 

@@ -71,9 +71,10 @@ pub(super) fn validate(
                 || !enemy.yaw.is_finite()
                 || !(0.0..std::f32::consts::TAU).contains(&enemy.yaw)
             {
-                return Err(invalid(
-                    "enemy placement needs supported feet, full clearance and bounded yaw",
-                ));
+                return Err(invalid(&format!(
+                    "enemy {} needs supported feet, full clearance and bounded yaw",
+                    enemy.id,
+                )));
             }
         }
         earlier.insert(encounter.id.clone());
