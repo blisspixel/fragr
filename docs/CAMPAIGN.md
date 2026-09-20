@@ -3,8 +3,10 @@
 **Status, 2026-09-20:** central story and twelve-mission scope agreed with Nick.
 The act structure and [mission briefs](CAMPAIGN-MISSIONS.md) are a proposed
 treatment. No complete campaign mission is finished. M01 has a playable development
-slice with discovery, introductory enemies and a transfer/lift sequence; its full
-population, opening scene, secrets and checkpoint lifecycle remain unfinished.
+slice with discovery, introductory enemies, a transfer/lift sequence and a
+reader-paced text opening. Full population, scene art/narration, secrets and
+checkpoint lifecycle remain unfinished; [M01 completion](plans/m01-completion.md)
+tracks the next build.
 Solo Broadcast:
 Calibration is the shipped Episode 0 arena prototype, not the campaign opening.
 

@@ -5,7 +5,7 @@ Fists, Tack, Flechette, ammunition, reload and enemy phases use server
 authority. One Clerk and two Sweepers are placed, with both approaches exercised
 through normal input. Enemy artwork and animation remain provisional. A
 [reader-paced text opening and party readiness](../plans/m01-opening.md) are
-implemented for #192. Finished illustrations and
+shipped in #193 and v0.28.0. Finished illustrations and
 narration remain unbuilt. The facility pass adds keyed signs,
 locker banks, service vents and practical lights through bounded map metadata.
 The mission sequence shipped in #184 and v0.26.0, connecting the physical transfer
@@ -55,9 +55,10 @@ no graphic torture montage or long political lecture. The
 subtitles, original insignia and deliberate fascist parallels. A minor bureaucratic
 absurdity may precede the seizure; do not play the violation itself as a joke.
 
-Proposed scene ID `campaign.m01.intro` and five stable beat IDs feed localized
-text, optional voice, captions and any future movie edit. All are design IDs,
-not implemented resources. Keep essential words out of baked image/video text.
+`CampaignOpening` implements the five keyed text beats in
+`client/i18n/story.en.po`; optional voice and movie resources remain unbuilt.
+Use those same beats for future scene edits and keep essential words out of
+baked image/video text.
 An animated version uses the same character references, palette, coarse surfaces
 and silhouettes as gameplay. Replacing panels cannot change story or objectives.
 

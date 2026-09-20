@@ -17,8 +17,9 @@ Status words: **planned**, **in flight**, **implemented** (local evidence record
 
 | Plan | Status | One-liner |
 |---|---|---|
-| [`tripoint-spawn-safety.md`](./tripoint-spawn-safety.md) | **implemented** (#194) | Cover the exposed starting ring, prove all 16 routes and sightlines, and retain measured respawn limitations. |
-| [`m01-opening.md`](./m01-opening.md) | **implemented** (#192) | Reader-paced recall story, replay and authoritative initial/late party readiness; local proof recorded, release evidence linked from the task. |
+| [`m01-completion.md`](./m01-completion.md) | **in flight** (#195) | Complete the records wing, mixed-threat crest, finite supply economy and coherent retries; prove the full first mission. |
+| [`tripoint-spawn-safety.md`](./tripoint-spawn-safety.md) | **shipped** (#193, v0.28.0) | Cover the exposed starting ring, prove all 16 routes and sightlines, and retain measured respawn limitations. |
+| [`m01-opening.md`](./m01-opening.md) | **shipped** (#193, v0.28.0) | Reader-paced recall story, replay and authoritative initial/late party readiness. |
 | [`asset-request-identity.md`](./asset-request-identity.md) | **shipped** (#191) | Save accepted paid-job identity before validating polling metadata; recover without resubmitting. |
 | [`mission-wire-order.md`](./mission-wire-order.md) | **shipped** (#189, v0.27.1) | Queue initial geometry before broadcasts; prove shared departure without depending on socket scheduling. |
 | [`opening-spawns.md`](./opening-spawns.md) | **proven** (#175, v0.21.2) | Apply covered spawn selection before the opening fight as well as during play. |
