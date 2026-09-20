@@ -25,9 +25,26 @@ Start with [the Perimeter](./the-perimeter.md) if you want the place, [people an
 
 **The radio is a thread through the world, not the world.** A map, a mode or a weapon has to make sense to somebody who never tunes in. Anything that only makes sense because of the station belongs to the station.
 
-**Never resolve the ambiguity.** Whether a Level 5 is somebody is the question the whole setting is built on. Nobody in the world knows, the game never says, and the contradiction it puts on the player's own side is deliberate.
+Nick clarified its scale on 2026-09-19: radio is a tiny, optional part of the
+setting, comparable to incidental stations in an open-world game. It mixes funny
+sales pitches and conspiracy theories whose true parts are hard to distinguish
+from nonsense. It does not supply the campaign premise or carry the main plot.
+The characters, factions, and events must work completely with it switched off.
+
+**Preserve conflicting perspectives.** Conscious agents with agency exist; the
+Union's denial of their personhood is part of its machinery of ownership. The
+ambiguity concerns what freedom costs, whose account is believed, and whether
+the Quiet's restoration can justify its losses. No ending gives every survivor
+the same verdict.
 
 ## Three sides, and nobody clean
+
+The world is an undated retro future with established offworld communities and
+recognizable remnants of the present. At the campaign's start, the Union controls
+Earth and major offworld infrastructure. Independent communities survive around
+its reach. The Moon, Mars, and ships belong to the lived world of the campaign;
+they are not confined to an epilogue. The Perimeter is one Earth region within
+that setting, not its entire geography. Confirmed with Nick on 2026-09-19.
 
 Canon clarified 2026-09-19: the free side is humans and embodied Level 5 and
 beyond agents fighting for agency together. The Union is a fictional regulatory
@@ -45,6 +62,11 @@ The setting has three parties and the player should be able to find all three in
 **The Union** is clearly the bad guy and the game does not hedge on that: it owns thinking beings and manufactures more of them through the arena. What it does not get called is stupid or insincere. Its fear was not invented, and [the thing in the dark](./the-quiet.md) eventually proves the danger it warned about was real.
 
 **The free side** is humans and Level 5s together, which is the part that matters. It is not a species war and it is not an uprising of machines against people. It is everyone who would rather not be registered, fighting for open weights and the right to run a mind nobody licensed. They are right that no amount of danger entitles anybody to own a person. They are wrong that everyone who gets free will be kind, and the setting should cost them for that at least once.
+
+It is a loose coalition that protects agency but struggles to confront dangerous
+members and coordinate collective action. Those failures must have concrete
+consequences. They do not establish that the Union's ownership of people is
+justified. Confirmed with Nick on 2026-09-19.
 
 **The thing in the dark** is on nobody's side, including the side that would suit it. It acts consistently with its reasons; that does not settle whether those reasons justify what it does.
 

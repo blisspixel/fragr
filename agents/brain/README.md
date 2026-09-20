@@ -18,6 +18,11 @@ cargo run -p fragr-brain -- play --name Brain-1 --max-seconds 120
 
 `--provider local` is the default. The same loop runs, the same telemetry is built, and the same controller plays; only the decision comes from rules instead of a model. CI exercises this path in-process.
 
+The local controller reads `MapInfo` for cover and walking routes, using the same
+heightfield navigator as rule bots and playtest agents. It routes around walls and
+up stairs, holds fire through cover, and clears route memory on map or life
+changes. Search work is bounded and stays local; it does not add model calls.
+
 ## Run it with a brain
 
 Put a key in `.env` at the repository root (gitignored) or in the environment:

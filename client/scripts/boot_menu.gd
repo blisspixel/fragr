@@ -21,7 +21,7 @@ var _settings: FragrSettings
 var _name_edit: LineEdit = null
 
 func _ready() -> void:
-	Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
+	MouseCapture.release()
 	theme = MenuTheme.build()
 	if _settings == null:
 		_settings = FragrSettings.for_tree(get_tree())

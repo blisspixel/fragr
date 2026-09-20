@@ -1,0 +1,10 @@
+{
+  "comment": "Live input and acknowledged weapon selection, with close motion strips of the bottom edge. Run with zero bots and no round events.",
+  "width": 1280,
+  "height": 720,
+  "states": [
+    {"name": "flechette_walk", "scene": "res://scenes/main.tscn", "join": "human", "camera": "first_person", "weapon": "Flechette", "trigger": "walk", "strip_frames": 16, "strip_interval_seconds": 0.06, "bottom_crop": true},
+    {"name": "rail_walk", "camera": "first_person", "weapon": "Rail", "trigger": "walk", "walk_action": "move_back", "strip_frames": 16, "strip_interval_seconds": 0.06, "bottom_crop": true},
+    {"name": "scatter_walk", "camera": "first_person", "weapon": "Scatter", "trigger": "walk", "strip_frames": 16, "strip_interval_seconds": 0.06, "bottom_crop": true}
+  ]
+}

@@ -23,6 +23,14 @@ claim that these units are merely equipment is institutional doctrine, not an
 excuse supplied by the narration. Arena respawns are game rules, not proof that
 harm to a mind is inconsequential in the campaign.
 
+An embodied agent can be restored from a backup, but backups are incomplete and
+vulnerable. Restoration is never a consequence-free reset. A surviving copy may
+not contain recent memories or changes, and its existence or accessibility cannot
+be assumed. Losing a body, losing continuity, and forced correction have stakes
+even when recovery is possible. Do not use a spare chassis or a backup to erase a
+sacrifice after the fact. Confirmed with Nick on 2026-09-19; precise restoration
+procedures and their role in the rescue remain to be authored.
+
 The Office of Global Continuance publishes a classification for autonomous systems. Everyone calls it the Schedule. It runs from zero to five.
 
 | Level | Name | What it can do | What it is, legally |
@@ -86,11 +94,16 @@ The three of them together are the running joke of the Perimeter: machines that 
 
 People who believe agents are somebody also fork them, prune them, quantise them, roll them back, and delete them. The scrap league runs fights where minds die nightly and the fights are sold to advertisers.
 
-If a Level 5 is somebody, the arena is a slaughterhouse. If a Level 5 is nobody, the creed on the wall is decoration.
+Conscious agents are people in this setting. The contradiction is what others
+permit themselves to do to those people while claiming to defend their agency.
+Backups do not make every loss reversible, and consent to a bout does not imply
+consent to seizure or correction. The league's actual ownership, consent, and
+restoration practices need reconciliation with the campaign's opening.
 
 Nobody in the Perimeter has an answer. The ones who have thought about it hardest tend to change the subject fastest. A caller raises it on the radio about once a season and the Host moves to an advertisement.
 
-Leave it unresolved. It is the only part of the setting that is genuinely about the thing the player is doing.
+Keep the characters' evasions and disagreements visible. Do not turn institutional
+denial of agent personhood into uncertainty supplied by the narrator.
 
 ## Related
 

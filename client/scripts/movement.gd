@@ -14,6 +14,7 @@ const DT_60HZ: float = 1.0 / 60.0
 const GROUND_Y: float = 0.0
 ## How far a fighter climbs or drops without leaving the ground.
 const STEP_UP: float = 0.6
+const CONTACT_EPSILON: float = 0.0001
 ## The top a solid gets when nobody says otherwise: higher than a jump reaches.
 const WALL_TOP: float = 4.5
 ## How far above its feet a fighter's shot line sits.
@@ -47,6 +48,27 @@ static func solid_blocks(solid: Dictionary, x: float, z: float, radius: float) -
 	)
 
 
+## Mirror the Rust escape rule for a body overlapping a ledge during a fall.
+static func solid_blocks_motion(solid: Dictionary, from: Vector2, to: Vector2, radius: float) -> bool:
+	if not solid_blocks(solid, to.x, to.y, radius):
+		return false
+	if not solid_blocks(solid, from.x, from.y, radius):
+		return true
+	var depths: Array[float] = [
+		from.x - (float(solid["min_x"]) - radius),
+		float(solid["max_x"]) + radius - from.x,
+		from.y - (float(solid["min_z"]) - radius),
+		float(solid["max_z"]) + radius - from.y,
+	]
+	var nearest: float = minf(minf(depths[0], depths[1]), minf(depths[2], depths[3]))
+	return not (
+		(depths[0] == nearest and to.x < from.x)
+		or (depths[1] == nearest and to.x > from.x)
+		or (depths[2] == nearest and to.y < from.y)
+		or (depths[3] == nearest and to.y > from.y)
+	)
+
+
 ## The point itself over the solid, not the circle around it: a fighter is held
 ## up by what is under its feet, not by what is beside it.
 static func solid_covers(solid: Dictionary, x: float, z: float) -> bool:
@@ -71,12 +93,19 @@ static func arena_blocked_at(arena: Dictionary, x: float, z: float, climb: float
 	return false
 
 
+static func arena_blocked_motion(arena: Dictionary, from: Vector2, to: Vector2, climb: float) -> bool:
+	for solid: Dictionary in arena["solids"]:
+		if solid_top(solid) > climb and solid_blocks_motion(solid, from, to, RADIUS):
+			return true
+	return false
+
+
 ## The highest surface at (x, z) no higher than `ceiling`, or the base floor.
 static func arena_support_height(arena: Dictionary, x: float, z: float, ceiling: float) -> float:
 	var best: float = GROUND_Y
 	for solid: Dictionary in arena["solids"]:
 		var top: float = solid_top(solid)
-		if top <= ceiling and top > best and solid_covers(solid, x, z):
+		if top <= ceiling + CONTACT_EPSILON and top > best and solid_covers(solid, x, z):
 			best = top
 	return best
 
@@ -85,9 +114,13 @@ static func arena_support_height(arena: Dictionary, x: float, z: float, ceiling:
 ## step above the floor; airborne, wherever the feet are, so a jump clears
 ## exactly what it rises over and no more.
 static func climb_height(feet: float, floor_y: float, vy: float) -> float:
-	if feet <= floor_y and vy <= 0.0:
+	if grounded(feet, floor_y, vy):
 		return floor_y + STEP_UP
 	return feet
+
+
+static func grounded(feet: float, floor_y: float, vy: float) -> bool:
+	return feet <= floor_y + CONTACT_EPSILON and vy <= 0.0
 
 
 static func arena_clamp(arena: Dictionary, x: float, z: float) -> Vector2:
@@ -162,19 +195,19 @@ static func step(state: Dictionary, input: Dictionary, dt: float, arena: Diction
 	var state_y: float = float(state.get("y", GROUND_Y))
 	var state_vy: float = float(state.get("vy", 0.0))
 	var floor_y: float = arena_support_height(arena, old_x, old_z, state_y)
-	var was_grounded: bool = state_y <= floor_y and state_vy <= 0.0
+	var was_grounded: bool = grounded(state_y, floor_y, state_vy)
 	var climb: float = climb_height(state_y, floor_y, state_vy)
 
 	var x: float
 	var z: float
-	if not arena_blocked_at(arena, nx, nz, climb):
+	if not arena_blocked_motion(arena, Vector2(old_x, old_z), Vector2(nx, nz), climb):
 		x = nx
 		z = nz
-	elif not arena_blocked_at(arena, nx, old_z, climb):
+	elif not arena_blocked_motion(arena, Vector2(old_x, old_z), Vector2(nx, old_z), climb):
 		vz = 0.0
 		x = nx
 		z = old_z
-	elif not arena_blocked_at(arena, old_x, nz, climb):
+	elif not arena_blocked_motion(arena, Vector2(old_x, old_z), Vector2(old_x, nz), climb):
 		vx = 0.0
 		x = old_x
 		z = nz
@@ -190,7 +223,7 @@ static func step(state: Dictionary, input: Dictionary, dt: float, arena: Diction
 	var support: float = arena_support_height(arena, x, z, climb)
 	var vy: float = state_vy
 	var y: float = state_y
-	var on_ground: bool = (y <= support or (was_grounded and y - support <= STEP_UP)) and state_vy <= 0.0
+	var on_ground: bool = grounded(y, support, state_vy) or (was_grounded and y - support <= STEP_UP)
 	if on_ground:
 		y = support
 		vy = 0.0

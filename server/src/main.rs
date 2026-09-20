@@ -28,6 +28,10 @@ struct Args {
     #[arg(long, default_value_t = false)]
     solo_broadcast: bool,
 
+    /// Disable timed compliance slowdowns and boss spawns for arena practice.
+    #[arg(long, conflicts_with_all = ["solo_broadcast", "bench", "bench_verify_trace"])]
+    no_round_events: bool,
+
     /// Benchmark instead of serving: run this many scripted fighters with no
     /// network, print one JSON report, and exit. The ruler for every change.
     #[arg(long)]
@@ -155,7 +159,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         bots: args.bots,
         map,
         map_rotate: args.map_rotate,
-        match_config: None,
+        match_config: args
+            .no_round_events
+            .then(|| fragr_server::sim::MatchConfig {
+                boss_spawn_ticks: None,
+                compliance_ping_ticks: None,
+                ..Default::default()
+            }),
         solo_broadcast: args.solo_broadcast,
         seed: args.seed,
         status_every_s: args.status_every_s,
@@ -217,10 +227,21 @@ mod tests {
     fn args_solo_broadcast() {
         let args = Args::try_parse_from(["fragr-server", "--solo-broadcast"]).expect("solo");
         assert!(args.solo_broadcast);
+        let practice = Args::try_parse_from(["fragr-server", "--no-round-events"]).unwrap();
+        assert!(practice.no_round_events);
+        assert!(
+            Args::try_parse_from(["fragr-server", "--solo-broadcast", "--no-round-events"])
+                .is_err()
+        );
     }
 
     #[tokio::test]
     async fn run_server_ws_hello_welcome_tick_then_shutdown() {
+        // This test times the wire handshake, not cold topology construction.
+        // Prepare the same immutable roster before starting its network timers.
+        tokio::task::spawn_blocking(fragr_server::session::GameSession::new)
+            .await
+            .expect("navigation fixture");
         let (shutdown_tx, shutdown_rx) = tokio::sync::oneshot::channel::<()>();
         let (ready_tx, ready_rx) = tokio::sync::oneshot::channel::<SocketAddr>();
 

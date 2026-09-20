@@ -18,7 +18,7 @@ struct Cli {
     /// Rounds to complete before stopping.
     #[arg(long, default_value_t = 1)]
     rounds: u32,
-    /// Map: 1/arena or 2/compliance-yard.
+    /// Map ID 1 through 6, or its server map name.
     #[arg(long, default_value = "1")]
     map: String,
     /// Frag limit for each round.

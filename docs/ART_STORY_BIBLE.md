@@ -13,6 +13,12 @@ modern boomer shooters and the pace, spaces, and social fun of early arena/LAN
 shooters. Real 3D movement and camera, pixel craft on the surfaces. No copied
 characters, weapons, logos, or map layouts.
 
+Boltgun is the production-quality reference: detailed pixel fighters and guns,
+substantial pose animation, sculpted 3D spaces, strong directional lighting, and
+forceful readable effects. Sparse geometry, static character cards, and enlarged
+placeholder flashes do not meet this bar. Judge animation, weapon weight, impact,
+and environment cohesion in a played sequence, not only a selected still.
+
 The setting is serious beneath the absurdity: free humans and conscious embodied
 agents, the authoritarian Union/Chancellery and its enslaved agents, and the Quiet's
 ecological recovery through mass killing. The same catastrophe looks like doomsday
@@ -71,6 +77,15 @@ as pixel art. Accent colors identify teams, pickups, heat, or landmarks.
   an asset reads in the game. Inspect the actual imported frame at play resolution.
 - Callsigns and terms already spoken in committed audio are frozen in
   [`lore/voice.md`](lore/voice.md). Check that file before renaming them.
+
+The approved wordmark has the weight and attitude of a rock-racing title:
+angular bone lettering, worn faces, deep purple extrusion, and restrained red.
+Preserve its original shapes and matte finish. The compact identity is meatbags
+(humans), conscious agents with agency, and a looming AGI singularity. Humans
+and agents share the foreground; the presence above them suggests the larger
+change neither controls. The broadcast sign and waveform are supporting details.
+The [arrival premise](lore/belief.md#the-arrival) gives that looming presence its
+religious weight without turning the mark into a literal picture of a god.
 
 ## Production and evidence
 

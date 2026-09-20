@@ -46,6 +46,9 @@ jobs:
       - name: Agent playtest smoke
         run: cargo run -p fragr-playtest --locked -- --agents 4 --rounds 1 --frag-limit 3 --time-limit-seconds 45 --assert --report .agents/playtest/ci.json
 
+      - name: Mixed-client map roster
+        run: bash tools/playtest_roster.sh
+
       - name: Check code coverage
         run: cargo llvm-cov --workspace --locked --fail-under-lines 90
 

@@ -218,10 +218,17 @@ connects camera pitch to shots and spectator eyes. Prediction, local server owne
 solo pause remain separate authoritative work. Character skins are not
 implemented by callsign and reticle customization.
 
-Safe asset-request recovery shipped in #169. The current
-[shot-impact pass](shot-impact-feedback.md) adds authoritative world feedback and
-repairs trade accounting before further tuning. Next: enemy animation, authored
-encounters, height-aware navigation, and the replay-driven rendered benchmark.
+Safe asset-request recovery shipped in #169. The
+[shot-impact pass](shot-impact-feedback.md), shipped in #171 / v0.20.0, adds
+authoritative world feedback and repairs trade accounting. The current
+[navigation pass](height-aware-navigation.md) makes existing stairs and deck
+exits usable by local fighters and corrects weapon anchoring and crowded joins.
+Next: settle the campaign story with Nick in `../CAMPAIGN.md`, then derive and
+build its first mission. The [arena layout study](authored-compliance-yard.md)
+is deferred and does not choose the campaign opening. The current request includes
+a melee start, discovered weapons/ammunition, animated enemies, and substantial
+combat effects at the Boltgun visual bar. A compact arena by itself is insufficient.
+The replay-driven rendered benchmark remains required work.
 Keep the full-game target visible.
 The full-game goal remains active until the required campaign, co-op, modes,
 assets, maps, agent paths, and server reliability/scale have evidence.

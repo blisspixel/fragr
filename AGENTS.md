@@ -54,6 +54,7 @@ If prose and code disagree, code wins; fix the prose in the same change. Keep pl
 | Shot evidence, world feedback, combat measurement | Shared `ShotResult`/`ShotTrace` in `server/src/protocol.rs`, `client/scripts/shot_effects.gd`, and `tools/playtest`. Use the resolved shot, including dead shooters, rather than inferring weapon or impacts from live pawns. |
 | Map definitions, collision solids, spawn layout | `server/src/maps.rs`; `MapInfo` drives `client/scripts/arena_cover.gd`. Surface materials: `arena_materials.gd`; scenery outside the playable bounds: `arena_backdrop.gd`. |
 | Movement math and facing conversion | `server/src/movement.rs`, `client/scripts/movement.gd`, `client/golden/move_vectors.json`, `client/scripts/server_yaw.gd` |
+| Walking routes and controller memory | `server/src/navigation.rs`, `navigation/controller.rs`; map geometry and movement remain authoritative. Precompute roster topology before readiness, bound/stagger searches, and prove routes with shared movement and actual `GameState` players. Use `client/qa/movement.json` for rendered stair/jump checks. |
 | CPU measurements and offline traces | `server/src/bench.rs`, `trace.rs`; contract in `docs/BENCHMARK.md` |
 | Tick loop shared by the binary and harnesses | `server/src/run.rs` (`run_server`, `ServerOptions`) |
 | Agent playtest harness and metrics | `tools/playtest` |
@@ -69,6 +70,7 @@ If prose and code disagree, code wins; fix the prose in the same change. Keep pl
 | HUD, killfeed, Host bumpers | `client/scripts/hud.gd` |
 | Pawn presentation, first-person weapon face | `client/scripts/player_pawn.gd` |
 | Spectator cameras | `client/scripts/spectator_cam.gd` |
+| Desktop pointer ownership | `client/scripts/mouse_capture.gd`, owned by the match manager. Release on focus loss, close, and scene exit; automated scene trees set `fragr_automated` before loading gameplay and never capture the desktop. |
 | Boot menu, callsign, shared retro controls | `client/scripts/boot_menu.gd`, `menu_theme.gd`; maps are selected by the server |
 | Pixel assets and import presets | `client/assets/` (nearest filter, no mipmaps) |
 | Audio assets and provenance | `client/assets/audio/` plus `audiogen-manifest.json` |
@@ -105,6 +107,7 @@ cargo llvm-cov --workspace --locked --fail-under-lines 90
 cargo build --workspace --release --locked
 cargo deny check licenses bans sources   # advisories are reported, not blocking
 cargo run -p fragr-playtest --locked -- --agents 4 --rounds 1 --frag-limit 3 --time-limit-seconds 45 --assert --report .agents/playtest/ci.json
+bash tools/playtest_roster.sh   # 2/6/6/8/12/16 mixed clients across all six maps
 ```
 
 Godot (the `godot` CI job runs this; locally point `GODOT_BIN` at a 4.7.2-stable binary):
@@ -148,6 +151,11 @@ Inspect the stills afterwards, including the world, menus, and transient effects
 HUD coverage and nonblank images do not establish visual quality or fun. A named
 tour state is not evidence unless the state actually happened. Fix the capture or
 asset source and regenerate derived output; keep screenshot captions honest.
+
+Match validation to the affected roster: vary maps, seeds, enemy behaviors,
+weapons, and human/agent/spectator sessions. Inspect motion sequences for movement
+and effects. Arena Duel alone cannot prove the game; record unbuilt modes and
+untested combinations explicitly in the active plan.
 
 ## Research and plan before build
 

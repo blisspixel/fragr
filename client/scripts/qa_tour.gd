@@ -15,6 +15,7 @@ extends SceneTree
 # upward shows up without anyone having to remember what it used to look like.
 
 const MANIFEST_PATH: String = "res://qa/tour.json"
+const CameraScript = preload("res://scripts/spectator_cam.gd")
 const THUMB_WIDTH: int = 320
 const CONTACT_COLUMNS: int = 4
 const STRIP_TILE_WIDTH: int = 320
@@ -28,12 +29,25 @@ var _strip_for_state: String = ""
 var _probe_frames: int = 0
 var _strip_times_ms: Array[int] = []
 var _failed: bool = false
+var _movement_samples: Array[Dictionary] = []
 ## Frames between the trigger and the first strip frame. The shot is resolved by
 ## the server, so the flash arrives a round trip later, not on the next frame.
 const STRIP_LEAD_FRAMES: int = 2
 
 func _initialize() -> void:
+	set_meta("fragr_automated", true)
+	MouseCapture.release()
 	call_deferred("_run")
+
+func _finalize() -> void:
+	MouseCapture.release()
+
+func _process(_delta: float) -> bool:
+	if Input.mouse_mode != Input.MOUSE_MODE_VISIBLE:
+		MouseCapture.release()
+		push_error("qa_tour: automation attempted to capture the desktop pointer")
+		_failed = true
+	return false
 
 func _run() -> void:
 	_out_dir = OS.get_environment("FRAGR_QA_DIR")
@@ -100,6 +114,11 @@ func _run() -> void:
 			await _select_weapon(str(state["weapon"]))
 		if state.has("aim_pitch"):
 			await _set_aim_pitch(float(state["aim_pitch"]))
+		_movement_samples.clear()
+		if state.get("jump_probe", false):
+			await _jump_probe()
+		for point: Array in state.get("walk_to", []):
+			await _walk_to(Vector3(float(point[0]), float(point[1]), float(point[2])))
 		if state.get("overlay", "") == "match_menu":
 			_game_manager().get_node("PauseMenu").call("open")
 		if state.get("overlay", "") == "match_settings":
@@ -177,6 +196,7 @@ func _run() -> void:
 			"strip_file": _strip_for_state,
 			"probe_visible_frames": _probe_frames,
 			"strip_sample_ms": _strip_times_ms.duplicate(),
+			"movement_samples": _movement_samples.duplicate(true),
 			"width": shot.get_width(),
 			"height": shot.get_height(),
 			"hud_coverage": snappedf(measured.get("hud_coverage", 0.0), 0.0001),
@@ -198,13 +218,23 @@ func _run() -> void:
 	_write_manifest(tour)
 	_write_contact_sheet()
 	print("qa_tour: ", _results.size(), " states under ", _out_dir)
+	# Retire the live world while the rendering server can still drain resource
+	# frees. Quitting on the capture frame can strand Compatibility sky textures.
+	if self.current_scene != null:
+		self.current_scene.queue_free()
+	await process_frame
+	await RenderingServer.frame_post_draw
+	await RenderingServer.frame_post_draw
 	quit(1 if _failed else 0)
 
 func _load_manifest() -> Dictionary:
-	if not FileAccess.file_exists(MANIFEST_PATH):
-		push_error("qa_tour: no manifest at " + MANIFEST_PATH)
+	var path: String = OS.get_environment("FRAGR_QA_MANIFEST")
+	if path.is_empty():
+		path = MANIFEST_PATH
+	if not FileAccess.file_exists(path):
+		push_error("qa_tour: no manifest at " + path)
 		return {}
-	var text: String = FileAccess.get_file_as_string(MANIFEST_PATH)
+	var text: String = FileAccess.get_file_as_string(path)
 	var parsed: Variant = JSON.parse_string(text)
 	if typeof(parsed) != TYPE_DICTIONARY:
 		push_error("qa_tour: manifest is not an object")
@@ -261,6 +291,11 @@ func _measure() -> Dictionary:
 func _capture_strip(state: Dictionary, frames: int, file_name: String) -> void:
 	var trigger: String = state.get("trigger", "")
 	var interval: float = float(state.get("strip_interval_seconds", 0.0))
+	var walk_action: String = str(state.get("walk_action", "move_forward"))
+	var walk_start: Vector3 = Vector3.ZERO
+	if trigger == "walk":
+		walk_start = _local_feet()
+		Input.action_press(walk_action)
 	# A named node to watch while the strip runs. An effect that lasts a frame
 	# or two is easy to miss by eye and easy to believe is absent, so the tour
 	# counts the frames it was actually up instead of leaving it to the eye.
@@ -289,6 +324,8 @@ func _capture_strip(state: Dictionary, frames: int, file_name: String) -> void:
 			await create_timer(interval).timeout
 		await RenderingServer.frame_post_draw
 		_strip_times_ms.append(Time.get_ticks_msec() - start_ms)
+		if trigger == "walk":
+			_record_movement()
 		if probe != null and _probe_active(probe, state):
 			_probe_frames += 1
 		var img: Image = _grab()
@@ -297,7 +334,14 @@ func _capture_strip(state: Dictionary, frames: int, file_name: String) -> void:
 			if i == 0 and img.save_png(_out_dir.path_join(file_name.trim_suffix("_strip.png") + "_shot.png")) != OK:
 				push_error("qa_tour: could not save full-size acknowledged shot")
 				_failed = true
+			if state.get("bottom_crop", false):
+				img = img.get_region(Rect2i((img.get_width() - 384) / 2, img.get_height() - 256, 384, 256))
 			shots.append(img)
+	if trigger == "walk":
+		Input.action_release(walk_action)
+		if _local_feet().distance_to(walk_start) < 0.8:
+			push_error("qa_tour: weapon walk strip did not move through the server")
+			_failed = true
 	if trigger == "fire":
 		Input.action_release("fire")
 	if probe_name != "" and _probe_frames == 0:
@@ -394,6 +438,80 @@ func _local_server_pitch(gm: Node) -> float:
 		if str(player.get("id", "")) == str(network.get("player_id")):
 			return float(player.get("pitch", 99.0))
 	return 99.0
+
+func _local_feet() -> Vector3:
+	var gm: Node = _game_manager()
+	var snapshot: Dictionary = gm.get("latest_snapshot")
+	var network: Node = gm.get("net_client")
+	for player: Dictionary in snapshot.get("players", []):
+		if str(player.get("id", "")) == str(network.get("player_id")):
+			return Vector3(float(player.x), float(player.y) - CameraScript.FP_SERVER_REFERENCE_Y, float(player.z))
+	push_error("qa_tour: movement probe has no live human")
+	_failed = true
+	return Vector3(INF, INF, INF)
+
+func _record_movement() -> void:
+	var feet: Vector3 = _local_feet()
+	var camera: Node3D = _spectator_camera()
+	var hud: Node = _find_hud()
+	var weapon: TextureRect = hud.get_node("FpWeapon")
+	_movement_samples.append({"ms": Time.get_ticks_msec(), "x": feet.x,
+		"y": feet.y, "z": feet.z, "camera_y": camera.global_position.y,
+		"weapon_y": weapon.position.y, "weapon_bottom": weapon.position.y + weapon.size.y,
+		"bob_weight": float(hud.get("fp_bob_weight"))})
+
+func _jump_probe() -> void:
+	var start: Vector3 = _local_feet()
+	if not start.is_finite():
+		return
+	# Both events happen before a render frame, then travel through normal input,
+	# networking, the authoritative tick, pawn interpolation, and the eye camera.
+	var press: InputEventKey = InputEventKey.new()
+	press.physical_keycode = KEY_SPACE
+	press.pressed = true
+	Input.parse_input_event(press)
+	var release: InputEventKey = press.duplicate()
+	release.pressed = false
+	Input.parse_input_event(release)
+	var peak: float = start.y
+	var camera_start: float = (_spectator_camera() as Node3D).global_position.y
+	var camera_peak: float = camera_start
+	for sample in range(24):
+		await create_timer(0.05).timeout
+		_record_movement()
+		peak = maxf(peak, _local_feet().y)
+		camera_peak = maxf(camera_peak, (_spectator_camera() as Node3D).global_position.y)
+		if sample == 6:
+			await RenderingServer.frame_post_draw
+			if _grab().save_png(_out_dir.path_join("jump_peak.png")) != OK:
+				_failed = true
+	if peak - start.y < 0.8 or absf(_local_feet().y - start.y) > 0.03 or camera_peak - camera_start < 0.5:
+		push_error("qa_tour: short jump did not rise, move the eye camera, and land")
+		_failed = true
+	print("qa_tour: jump peak %.3f m, eye rise %.3f m" % [peak - start.y, camera_peak - camera_start])
+
+func _walk_to(goal: Vector3) -> void:
+	var deadline: int = Time.get_ticks_msec() + 15000
+	var camera: Node = _spectator_camera()
+	Input.action_release("jump")
+	Input.action_press("move_forward")
+	var arrived: bool = false
+	while Time.get_ticks_msec() < deadline:
+		var feet: Vector3 = _local_feet()
+		if not feet.is_finite():
+			break
+		if Vector2(feet.x - goal.x, feet.z - goal.z).length() < 0.3 and absf(feet.y - goal.y) < 0.03:
+			arrived = true
+			break
+		camera.set("fp_yaw", atan2(goal.z - feet.z, goal.x - feet.x))
+		camera.set("fp_pitch", 0.0)
+		_record_movement()
+		await create_timer(0.05).timeout
+	Input.action_release("move_forward")
+	await create_timer(0.15).timeout
+	if not arrived:
+		push_error("qa_tour: ordinary walk failed to reach %s, stopped at %s" % [goal, _local_feet()])
+		_failed = true
 
 func _set_aim_pitch(pitch: float) -> void:
 	var gm: Node = _game_manager()

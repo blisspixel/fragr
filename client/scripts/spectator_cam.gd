@@ -56,9 +56,6 @@ const FP_SERVER_REFERENCE_Y = 1.5
 const FP_EYE_HEIGHT = FP_EYE_ABOVE_FEET - FP_SERVER_REFERENCE_Y
 const TURN_ACCUM_THRESHOLD = 2.5
 
-func _ready():
-	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
-
 func apply_preferences(preferences: FragrSettings) -> void:
 	mouse_sensitivity = float(preferences.get_value("controls", "mouse_sensitivity"))
 	stick_look_sensitivity = float(preferences.get_value("controls", "turn_speed"))
@@ -99,11 +96,6 @@ func _process(delta):
 	var mouse_captured = Input.get_mouse_mode() == Input.MOUSE_MODE_CAPTURED
 	var pad_active = _gamepad_look_active() or _gamepad_move_active()
 
-	# Mouse-free still allows gamepad scrap / spectator control.
-	if not mouse_captured and not pad_active:
-		mouse_motion = Vector2.ZERO
-		return
-
 	if not mouse_captured:
 		mouse_motion = Vector2.ZERO
 
@@ -111,13 +103,14 @@ func _process(delta):
 		_process_fp(delta)
 		return
 
-	if Input.is_action_just_pressed("cycle_cam"):
+	var can_control: bool = mouse_captured or pad_active
+	if can_control and Input.is_action_just_pressed("cycle_cam"):
 		cycle_next_target()
 		if not follow_mode:
 			follow_mode = true
 			print("Follow cam ON (F / pad cycles targets)")
 
-	if Input.is_action_just_pressed("toggle_follow"):
+	if can_control and Input.is_action_just_pressed("toggle_follow"):
 		toggle_follow_mode()
 
 	if frag_follow_timer > 0:
@@ -136,7 +129,8 @@ func _process(delta):
 		_follow_target()
 	else:
 		_set_observed_pawn(null)
-		_free_fly(delta)
+		if can_control:
+			_free_fly(delta)
 
 func _gamepad_move_active() -> bool:
 	return (

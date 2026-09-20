@@ -52,6 +52,12 @@ pub async fn run_server(
     shutdown: impl Future<Output = ()>,
     ready: Option<tokio::sync::oneshot::Sender<SocketAddr>>,
 ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    // Complete bounded topology construction before advertising readiness.
+    // Keep it off the async executor, including single-threaded local harnesses.
+    let map = options.map;
+    let rotate = options.map_rotate;
+    let mut session =
+        tokio::task::spawn_blocking(move || GameSession::with_map(map, rotate)).await?;
     let (game_tx, mut game_rx) = mpsc::unbounded_channel();
 
     let net_server = NetServer::bind(&options.bind, game_tx.clone()).await?;
@@ -64,7 +70,6 @@ pub async fn run_server(
         net_server.accept_loop().await;
     });
 
-    let mut session = GameSession::with_map(options.map, options.map_rotate);
     session.state.seed(options.seed);
     if let Some(config) = options.match_config {
         session.state.config = config;

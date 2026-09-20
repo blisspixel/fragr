@@ -8,6 +8,14 @@ This file exists to keep the station in proportion. Contested Frequency broadcas
 
 A map, a mode or a weapon has to make sense to somebody who never tunes in. Anything that only makes sense because of the station belongs to the station.
 
+Its scope is roughly one percent of the story, a creative proportion rather than
+a runtime quota. The campaign is not about restoring this
+station, and the Host is not its central character or mandatory guide. Conspiracy
+talk, gold and vitamin sales, dubious financial advice, and value-for-value reads
+color an already existing world. Some claims are true; the presenters' confidence
+does not identify which. Essential story and objectives remain clear with the
+radio off. This supersedes the earlier campaign's radio-led premise.
+
 The station is loud where watching a broadcast is the point, which is the spectator view and the round bumper. A person behind a gun gets the world.
 
 ## The conceit
@@ -72,7 +80,9 @@ The dial shuffles. Every station picks a track at random from the ones it has no
 
 ## What the station is for, structurally
 
-It is the setting's chorus. It tells you what everyone outside the room thinks about the thing you just did, and it does that without a cutscene, a codex, or a single line of exposition delivered by a person standing still.
+It is an optional, unreliable slice of public opinion. It can react to events or
+accidentally report something true, but never speaks for everyone outside the
+room. The player's relationships and direct experience carry the main story.
 
 That is a large amount of work for one device, which is exactly why it kept expanding until it had eaten the world. The charter at the top of this file exists to stop that happening again.
 

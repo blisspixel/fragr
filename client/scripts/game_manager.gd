@@ -51,6 +51,7 @@ const SPEAK_LINES = [
 ]
 var speak_line_index = 0
 var pending_weapon_swap = null
+var pending_jump: bool = false
 
 var arena_cover: ArenaCover = null
 var current_map_info: Dictionary = {}
@@ -61,8 +62,11 @@ var settings: FragrSettings
 var role_transition: bool = false
 var shot_effects: ShotEffects = null
 var last_shot_tick: int = -1
+var mouse_capture: MouseCapture
 
 func _ready():
+	mouse_capture = MouseCapture.new()
+	add_child(mouse_capture)
 	shot_effects = ShotEffects.new()
 	shot_effects.name = "ShotEffects"
 	add_child(shot_effects)
@@ -163,7 +167,7 @@ func _apply_preferences() -> void:
 	hud.apply_preferences(settings)
 
 func controls_blocked() -> bool:
-	return role_transition or (console != null and console.is_open()) or (pause_menu != null and pause_menu.is_open())
+	return role_transition or (mouse_capture != null and not mouse_capture.gameplay_input_allowed()) or (console != null and console.is_open()) or (pause_menu != null and pause_menu.is_open())
 
 ## The controls card. Shown on every join, including pressing J mid-match,
 ## because a player who joined from the booth never saw the boot one.
@@ -245,8 +249,10 @@ func _load_audio_streams():
 		round_end_sound.stream = load(audio_dir + "round_end.wav")
 
 func _input(_event):
-	if role_transition or (console != null and console.is_open()) or (pause_menu != null and pause_menu.is_open()):
+	if controls_blocked():
 		return
+	if is_human_player and _event.is_action_pressed("jump"):
+		pending_jump = true
 	# InputMap actions (keyboard + joypad). Same join/leave path.
 	if Input.is_action_just_pressed("join_as_human") and not is_human_player:
 		change_role(true)
@@ -264,6 +270,7 @@ func change_role(play: bool) -> void:
 	if role_transition or play == is_human_player:
 		return
 	role_transition = true
+	pending_jump = false
 	net_client.disconnect_from_server()
 	is_human_player = play
 	_clear_fp_state()
@@ -291,15 +298,20 @@ func _on_ack_received(data: Dictionary) -> void:
 
 
 func _process(_delta):
+	if mouse_capture != null:
+		mouse_capture.set_gameplay(not controls_blocked())
 	if not is_human_player:
 		_update_followed_weapon()
+	if hud and camera:
+		var watched: Node = players.get(local_fp_pawn_id) if is_human_player else camera.get_followed_target()
+		hud.set_fp_walk_speed(float(watched.get("presentation_speed")) if is_instance_valid(watched) else 0.0)
 	if is_human_player and not role_transition and net_client.connection_state == WebSocketPeer.STATE_OPEN:
 		action_state.forward = Input.is_action_pressed("move_forward")
 		action_state.back = Input.is_action_pressed("move_back")
 		action_state.left = Input.is_action_pressed("move_left")
 		action_state.right = Input.is_action_pressed("move_right")
 		action_state.fire = Input.is_action_pressed("fire")
-		action_state.jump = Input.is_action_pressed("jump")
+		action_state.jump = pending_jump or Input.is_action_pressed("jump")
 		# Client-owned yaw: the server takes the absolute facing and never turns
 		# us at a fixed rate, so the look axis does not round-trip. Turn bits stay
 		# zero for humans and remain the path for agents and older clients.
@@ -316,6 +328,7 @@ func _process(_delta):
 		action_state.weapon_swap = pending_weapon_swap
 		pending_weapon_swap = null
 		net_client.send_action(action_state)
+		pending_jump = false
 
 func _current_weapon_wire() -> String:
 	var name = _local_weapon_name().to_lower()

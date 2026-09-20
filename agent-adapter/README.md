@@ -25,6 +25,11 @@ Weapon selection is consumed once by the simulation. A newer movement packet
 without `weapon_swap` does not cancel a pending selection; a newer explicit
 selection replaces it. This also applies to fast local controllers.
 
+`jump` is held input with a one-tick press latch: releasing before the next tick
+does not erase a short tap. The latch is consumed even while airborne or dead;
+holding jump cannot add upward thrust in the air. Geometry still decides which
+steps can be walked onto. See the shared action contract in `docs/protocol.md`.
+
 ## Quick Start
 
 ### MCP Server (for external agents)

@@ -2,6 +2,7 @@ pub mod bench;
 pub mod combat;
 pub(crate) mod maps;
 pub mod movement;
+pub mod navigation;
 pub mod net;
 pub mod protocol;
 pub mod run;

@@ -4,6 +4,11 @@
 **Built by:** rung 10 of [`campaign-build-order.md`](./campaign-build-order.md)
 **Spend:** $0
 
+Story review, 2026-09-19: this level sequence is an earlier design draft. Nick
+requested agreement on the campaign story before planning maps. Follow
+[`CAMPAIGN.md`](../CAMPAIGN.md#story-review-in-progress) for confirmed decisions;
+do not use this list to choose the opening before that review is complete.
+
 Nine levels, level by level. The design they answer to is [`docs/CAMPAIGN.md`](../CAMPAIGN.md); the rules they are built against are [`docs/MAP-DESIGN.md`](../MAP-DESIGN.md); the shapes in them are [`docs/ENEMIES.md`](../ENEMIES.md).
 
 ## What the episode is

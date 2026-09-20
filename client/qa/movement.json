@@ -1,0 +1,13 @@
+{
+  "comment": "Bot-free live input proof on Arena Duel. No teleport, no jump during stair walking. Run with FRAGR_QA_BOTS=0, FRAGR_QA_NO_ROUND_EVENTS=1, and FRAGR_QA_MANIFEST=res://qa/movement.json.",
+  "width": 1280,
+  "height": 720,
+  "states": [
+    {"name": "jump_input", "scene": "res://scenes/main.tscn", "at_seconds": 1, "join": "human", "camera": "first_person", "jump_probe": true, "note": "Sub-frame Space tap rises and lands through actual input, server, and camera."},
+    {"name": "stair_approach", "camera": "first_person", "walk_to": [[37, 0, 0], [37, 0, -7], [34, 0, -7]], "note": "Walk around the spawn pocket to the outer east stairs."},
+    {"name": "outer_stair_top", "camera": "first_person", "walk_to": [[19, 2.6, -7]], "note": "Walk up six fractional-height treads without jumping."},
+    {"name": "inner_stair_bottom", "camera": "first_person", "walk_to": [[19, 2.6, 7], [4, 0, 7]], "note": "Cross the gantry and walk down the inner east stairs."},
+    {"name": "inner_stair_top", "camera": "first_person", "walk_to": [[7, 0, 4], [7, 0, -4], [7, 2.6, -19]], "note": "Walk up the repaired inner north entrance and fractional treads."},
+    {"name": "ledge_exit", "camera": "first_person", "walk_to": [[-7, 2.6, -19], [-7, 0, -14]], "note": "Walk off the gantry, land, and keep moving beyond its inflated edge."}
+  ]
+}

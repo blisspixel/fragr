@@ -28,6 +28,8 @@ pub struct GameSession {
     last_map_sent: Option<crate::sim::MapKind>,
     /// Target rule-bot count. Solo scrap and empty-arena recovery refill up to this.
     pub min_bots: usize,
+    navigation_map: MapKind,
+    navigators: HashMap<Uuid, crate::navigation::Navigator>,
 }
 
 impl GameSession {
@@ -36,6 +38,7 @@ impl GameSession {
     }
 
     pub fn with_map(map: MapKind, map_rotate: bool) -> Self {
+        crate::maps::navigation(map);
         Self {
             state: GameState::with_map(map, map_rotate),
             bots: Vec::new(),
@@ -43,6 +46,8 @@ impl GameSession {
             pending_unicasts: Vec::new(),
             last_map_sent: None,
             min_bots: 0,
+            navigation_map: map,
+            navigators: HashMap::new(),
         }
     }
 
@@ -262,22 +267,50 @@ impl GameSession {
     /// Run one sim tick: bot AI, physics, then collect snapshot + event messages to broadcast.
     pub fn tick_messages(&mut self, dt: f32) -> Vec<ServerMessage> {
         self.ensure_min_bots();
+        if self.navigation_map != self.state.map {
+            self.navigation_map = self.state.map;
+            self.navigators.clear();
+        }
+        let world = crate::maps::navigation(self.state.map);
         let mut driven = std::collections::HashSet::new();
-        for bot in &self.bots {
-            let action = bot.update(&self.state);
-            self.state.set_action(bot.player_id, action);
+        let mut controllers = self.bots.clone();
+        for bot in &controllers {
             driven.insert(bot.player_id);
         }
         // Continuance boss lives on GameState.bots only (not min_bots roster).
-        let state_only: Vec<_> = self
-            .state
-            .bots
-            .iter()
-            .filter(|b| !driven.contains(&b.player_id))
-            .cloned()
-            .collect();
-        for bot in &state_only {
-            let action = bot.update(&self.state);
+        controllers.extend(
+            self.state
+                .bots
+                .iter()
+                .filter(|b| !driven.contains(&b.player_id))
+                .cloned(),
+        );
+        driven.extend(controllers.iter().map(|bot| bot.player_id));
+        self.navigators.retain(|id, _| driven.contains(id));
+        // At most four searches per tick, with rotating slots so larger rosters
+        // cannot starve their later controllers. Cached paths keep advancing.
+        let batches = controllers.len().div_ceil(4).max(1);
+        for (index, bot) in controllers.iter().enumerate() {
+            let intent = bot.intent(&self.state);
+            let action = if let (Some(goal), Some(player)) = (
+                intent.goal,
+                self.state
+                    .players
+                    .iter()
+                    .find(|player| player.id == bot.player_id),
+            ) {
+                self.navigators.entry(bot.player_id).or_default().steer(
+                    world,
+                    [player.x, player.y - crate::sim::PLAYER_FLOOR_Y, player.z],
+                    goal,
+                    intent.action,
+                    self.state.tick,
+                    index / 4 == self.state.tick as usize % batches,
+                )
+            } else {
+                self.navigators.remove(&bot.player_id);
+                intent.action
+            };
             self.state.set_action(bot.player_id, action);
         }
 

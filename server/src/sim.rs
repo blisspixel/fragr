@@ -214,13 +214,7 @@ pub fn floor_height_for_test(map: MapKind, x: f32, z: f32, ceiling: f32) -> f32 
 /// The height of the surface under `(x, z)` for a fighter that can reach
 /// `ceiling`: a deck top, or the base floor when nothing qualifies.
 fn floor_height(map: MapKind, x: f32, z: f32, ceiling: f32) -> f32 {
-    let mut best = 0.0f32;
-    for obs in map.obstacles() {
-        if obs.top <= ceiling && obs.top > best && obs.contains(x, z) {
-            best = obs.top;
-        }
-    }
-    best
+    crate::maps::support_height(map, x, z, ceiling)
 }
 
 fn clamp_arena(map: MapKind, x: f32, z: f32) -> (f32, f32) {
@@ -237,16 +231,28 @@ fn resolve_move(
     new_z: f32,
     climb: f32,
 ) -> (f32, f32) {
+    let blocked = |x, z| {
+        map.obstacles().iter().any(|obstacle| {
+            let solid = crate::movement::Solid {
+                min_x: obstacle.min_x,
+                max_x: obstacle.max_x,
+                min_z: obstacle.min_z,
+                max_z: obstacle.max_z,
+                top: obstacle.top,
+            };
+            solid.top > climb && solid.blocks_motion((old_x, old_z), (x, z), PLAYER_RADIUS)
+        })
+    };
     let (nx, nz) = clamp_arena(map, new_x, new_z);
-    if !circle_blocked(map, nx, nz, climb) {
+    if !blocked(nx, nz) {
         return (nx, nz);
     }
     let (sx, _) = clamp_arena(map, new_x, old_z);
-    if !circle_blocked(map, sx, old_z, climb) {
+    if !blocked(sx, old_z) {
         return (sx, old_z);
     }
     let (_, sz) = clamp_arena(map, old_x, new_z);
-    if !circle_blocked(map, old_x, sz, climb) {
+    if !blocked(old_x, sz) {
         return (old_x, sz);
     }
     clamp_arena(map, old_x, old_z)
@@ -512,6 +518,8 @@ pub struct Player {
     /// Scrap armor; absorbs damage before HP (0 on spawn/respawn).
     pub armor: i32,
     pub pending_action: Action,
+    /// A press survives newer released input until one simulation tick observes it.
+    jump_requested: bool,
     pub fire_cooldown: u32,
     pub respawn_timer: Option<u32>,
     pub just_fired: bool,
@@ -716,7 +724,14 @@ impl GameState {
     }
 
     pub fn add_player(&mut self, id: Uuid, name: String, role: Role) {
-        let angle = (self.players.len() as f32) * (2.0 * PI / 8.0);
+        let mut angle = (self.players.len() as f32) * (2.0 * PI / 8.0);
+        let (preferred_x, preferred_z, _, _) = spawn_on_ring(self.map, angle);
+        if self.players.iter().any(|other| {
+            other.respawn_timer.is_none()
+                && (other.x - preferred_x).hypot(other.z - preferred_z) < PLAYER_RADIUS * 2.0
+        }) {
+            angle = self.farthest_spawn_angle(id);
+        }
         let (sx, sz, yaw, floor) = spawn_on_ring(self.map, angle);
 
         self.players.push(Player {
@@ -731,6 +746,7 @@ impl GameState {
             hp: PLAYER_MAX_HP,
             armor: 0,
             pending_action: Action::default(),
+            jump_requested: false,
             fire_cooldown: 0,
             respawn_timer: None,
             just_fired: false,
@@ -761,6 +777,7 @@ impl GameState {
             // Continuous input takes the newest value. A discrete weapon choice
             // must survive later frames until the simulation consumes it.
             action.weapon_swap = action.weapon_swap.or(player.pending_action.weapon_swap);
+            player.jump_requested |= action.jump;
             player.pending_action = action;
         }
     }
@@ -911,6 +928,7 @@ impl GameState {
 
         for player in &mut self.players {
             player.just_fired = false;
+            let jump_requested = std::mem::take(&mut player.jump_requested);
 
             if player.fire_cooldown > 0 {
                 player.fire_cooldown -= 1;
@@ -982,7 +1000,7 @@ impl GameState {
             // that, then the vertical against what it ended up over.
             let feet = player.y - PLAYER_FLOOR_Y;
             let floor = floor_height(self.map, old_x, old_z, feet);
-            let was_grounded = feet <= floor && player.vy <= 0.0;
+            let was_grounded = crate::movement::grounded(feet, floor, player.vy);
             let climb = crate::movement::climb_height(feet, floor, player.vy);
 
             let (rx, rz) = resolve_move(self.map, old_x, old_z, new_x, new_z, climb);
@@ -991,12 +1009,12 @@ impl GameState {
 
             let support = floor_height(self.map, rx, rz, climb);
             let mut y = feet;
-            let on_ground =
-                (y <= support || (was_grounded && y - support <= STEP_UP)) && player.vy <= 0.0;
+            let on_ground = crate::movement::grounded(y, support, player.vy)
+                || (was_grounded && y - support <= STEP_UP);
             if on_ground {
                 y = support;
                 player.vy = 0.0;
-                if action.jump {
+                if action.jump || jump_requested {
                     player.vy = crate::movement::JUMP_SPEED;
                 }
             } else {
@@ -1336,7 +1354,8 @@ impl GameState {
             },
         }
     }
-    /// Ring slot farthest from every living fighter, so a respawn never lands in a fight.
+    /// Maximize clearance from living fighters among the authored ring slots.
+    /// This reduces crowding; it cannot guarantee safety from every sightline.
     fn farthest_spawn_angle(&mut self, player_id: Uuid) -> f32 {
         let others: Vec<(f32, f32)> = self
             .players
@@ -1349,8 +1368,8 @@ impl GameState {
         }
         let mut best_angle = 0.0;
         let mut best_gap = f32::MIN;
-        for slot in 0..16 {
-            let angle = slot as f32 * (PI / 8.0);
+        for slot in 0..64 {
+            let angle = slot as f32 * (2.0 * PI / 64.0);
             let (sx, sz, _, _) = spawn_on_ring(self.map, angle);
             let nearest = others
                 .iter()
@@ -1737,6 +1756,7 @@ impl GameState {
             hp: BOSS_MAX_HP,
             armor: 50,
             pending_action: Action::default(),
+            jump_requested: false,
             fire_cooldown: 0,
             respawn_timer: None,
             just_fired: false,
@@ -1939,6 +1959,7 @@ impl GameState {
             hp: BOSS_MAX_HP,
             armor: 0,
             pending_action: Action::default(),
+            jump_requested: false,
             fire_cooldown: 0,
             respawn_timer: None,
             just_fired: false,
@@ -2185,6 +2206,12 @@ pub struct BotController {
     pub behavior: BotBehavior,
 }
 
+#[derive(Default)]
+pub(crate) struct BotIntent {
+    pub action: Action,
+    pub goal: Option<crate::navigation::NavigationGoal>,
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum BotBehavior {
     Aggressive,
@@ -2204,12 +2231,16 @@ impl BotController {
     }
 
     pub fn update(&self, state: &GameState) -> Action {
+        self.intent(state).action
+    }
+
+    pub(crate) fn intent(&self, state: &GameState) -> BotIntent {
         let Some(bot) = state.players.iter().find(|p| p.id == self.player_id) else {
-            return Action::default();
+            return BotIntent::default();
         };
 
         if bot.respawn_timer.is_some() {
-            return Action::default();
+            return BotIntent::default();
         }
 
         let mut nearest_dist = f32::MAX;
@@ -2231,7 +2262,7 @@ impl BotController {
         }
 
         let Some(target) = nearest_target else {
-            return Action::default();
+            return BotIntent::default();
         };
 
         let dx = target.x - bot.x;
@@ -2261,7 +2292,7 @@ impl BotController {
         // Prefer Scatter when the fight is close; Rail when it is long.
         if bot.weapon == WeaponType::Flechette && self.behavior != BotBehavior::Compliance {
             let want_scatter = nearest_dist < 12.0;
-            let mut best: Option<(f32, f32, f32, WeaponType)> = None;
+            let mut best: Option<(f32, f32, f32, f32)> = None;
             for pad in &state.pickups {
                 let Some(pad_weapon) = pad.kind.weapon() else {
                     continue;
@@ -2285,11 +2316,11 @@ impl BotController {
                         None => true,
                     };
                     if take {
-                        best = Some((score, pad.x, pad.z, pad_weapon));
+                        best = Some((score, pad.x, pad.z, pad.floor));
                     }
                 }
             }
-            if let Some((_, px, pz, _)) = best {
+            if let Some((_, px, pz, floor)) = best {
                 let pdx = px - bot.x;
                 let pdz = pz - bot.z;
                 let pdist = (pdx * pdx + pdz * pdz).sqrt();
@@ -2313,7 +2344,13 @@ impl BotController {
                     if pad_diff.abs() < 0.5 && nearest_dist < 18.0 {
                         action.fire = true;
                     }
-                    return action;
+                    return BotIntent {
+                        action,
+                        goal: Some(crate::navigation::NavigationGoal {
+                            feet: [px, floor, pz],
+                            combat: false,
+                        }),
+                    };
                 }
             }
         }
@@ -2445,6 +2482,12 @@ impl BotController {
             }
         }
 
-        action
+        BotIntent {
+            action,
+            goal: Some(crate::navigation::NavigationGoal {
+                feet: [target.x, target.y - PLAYER_FLOOR_Y, target.z],
+                combat: true,
+            }),
+        }
     }
 }

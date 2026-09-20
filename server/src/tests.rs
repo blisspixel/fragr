@@ -9,6 +9,8 @@ use crate::protocol::{
 #[cfg(test)]
 use crate::session::GameSession;
 
+mod roster;
+
 #[tokio::test]
 async fn late_connections_receive_authoritative_geometry_for_every_role() {
     use futures_util::{SinkExt, StreamExt};
@@ -5307,11 +5309,59 @@ fn the_scatter_gun_falls_off_with_distance() {
 mod jump_tests {
     use super::*;
 
+    #[test]
+    fn a_human_walks_up_the_arena_stairs_without_jumping() {
+        let mut state = GameState::new();
+        let id = Uuid::new_v4();
+        state.add_player(id, "Walker".into(), Role::Human);
+        state.start_round();
+        state.players[0].x = 7.0;
+        state.players[0].z = -4.0;
+        state.players[0].y = crate::sim::PLAYER_FLOOR_Y;
+        state.set_action(
+            id,
+            Action {
+                forward: true,
+                yaw: Some(-std::f32::consts::FRAC_PI_2),
+                ..Action::default()
+            },
+        );
+        for _ in 0..60 {
+            state.tick(0.05);
+        }
+        let player = &state.players[0];
+        assert!(
+            player.z < -18.0,
+            "stopped at ({}, {}, {})",
+            player.x,
+            player.y,
+            player.z
+        );
+        assert!((player.y - crate::sim::PLAYER_FLOOR_Y - 2.6).abs() < 0.01);
+    }
+
     fn jumping() -> Action {
         Action {
             jump: true,
             ..Action::default()
         }
+    }
+
+    #[test]
+    fn a_short_jump_tap_survives_release_before_the_next_tick() {
+        let mut state = GameState::new();
+        let id = Uuid::new_v4();
+        state.add_player(id, "Tapper".into(), Role::Human);
+        state.start_round();
+        state.set_action(id, jumping());
+        state.set_action(id, Action::default());
+        state.tick(0.05);
+        assert!(state.players[0].y > crate::sim::PLAYER_FLOOR_Y);
+        for _ in 0..80 {
+            state.tick(0.05);
+        }
+        assert_eq!(state.players[0].y, crate::sim::PLAYER_FLOOR_Y);
+        assert_eq!(state.players[0].vy, 0.0, "a released tap must not repeat");
     }
 
     /// A grounded fighter leaves the floor, rises, and comes back down to it.
@@ -5584,7 +5634,12 @@ mod map_roster {
             "walking off the walkway lands on the floor, y={}",
             player.y
         );
-        assert!(player.z > rail.z, "and it actually moved toward the middle");
+        assert!(
+            (player.x - rail.x).hypot(player.z - rail.z) > 8.0,
+            "walking off a deck must continue beyond the inflated edge: ({}, {})",
+            player.x,
+            player.z
+        );
     }
 
     #[test]
