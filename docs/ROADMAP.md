@@ -137,6 +137,12 @@ and movies remain separate production work.
 Warmup joins now use the same cover selector as active joins and respawns. The
 six-map playtest exposed the gap; its thresholds remain unchanged.
 
+The recurring Tripoint failure is tracked in
+[spawn safety](plans/tripoint-spawn-safety.md), #194. A reproduced exposed-ring
+layout now has 16 cover pockets and a regression proving screened, walkable
+opening positions. Network and rendered evidence remain separate from a claim
+that the map is finished.
+
 The phases below are the long shape. This is the remaining build order, with the reason each item sits where it does.
 
 **Immediate priority: review the twelve-mission treatment, then complete M01.**

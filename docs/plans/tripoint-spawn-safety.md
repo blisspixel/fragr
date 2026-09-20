@@ -1,6 +1,6 @@
 # Tripoint spawn safety
 
-Status: in flight, 2026-09-20. Task: [#194](https://github.com/blisspixel/fragr/issues/194).
+Status: implemented and locally verified, 2026-09-20. Task: [#194](https://github.com/blisspixel/fragr/issues/194).
 Spend: $0. This investigation gates the campaign-opening integration in #193.
 
 ## Evidence and outcome
@@ -68,8 +68,35 @@ Predefined local network comparisons, 16 mixed clients on Windows:
 | Main | 67 | 81 | 6 | Pass |
 | Sorting bays | 42 | 58 | 1 | Pass |
 | Sorting bays | 67 | 71 | 2 | Pass |
+| Sorting bays, full roster repeat | 42 | 52 | 3 | Pass |
 
-No later-respawn deaths occurred in the two changed-layout samples. Their
-remaining early deaths followed movement out of the initial cover. These samples
-do not establish a universal death rate. Full verification, the six-map repeat,
-rendered inspection and integration remain before completion.
+No later-respawn deaths occurred in the first two changed-layout samples. Their
+remaining early deaths followed movement out of the initial cover. The full
+roster repeat recorded one opening death and two later-respawn deaths, retained
+in its log. These samples do not establish a universal death rate or eliminate
+the need to balance respawns during an active fight.
+
+The combined opening/placement build passes 705 workspace tests, strict Clippy,
+95.81 percent unfiltered line coverage, release build, dependency policy and all
+27 Godot harnesses. The existing eight verifier fault cases also pass. The live
+three-state Tripoint tour and shot strip were inspected; the cover matches the
+authoritative geometry, while the larger repetitive layout remains unfinished.
+
+Local release CPU measurements, Ryzen 7 7840U, Windows x86_64, seed 42, shared
+session plus encoding scope. Both full traces repeat deterministically and pass the unchanged
+tick-budget assertions:
+
+| Map | Rule bots | Ticks | p99 tick ms | Maximum tick ms |
+|---|---|---|---|---|
+| Arena Duel | 16 | 1,200 | 0.688 | 1.425 |
+| Tripoint Works | 128 | 12,000 | 8.913 | 16.574 |
+
+These are simulation measurements, not network capacity, GPU performance or
+evidence that 128 players are balanced on this map. Reports:
+`.agents/m01-tripoint-bench16.json` and `.agents/tripoint-covered-bench128.json`.
+The complete six-map repeat passed the unchanged assertions; its results are
+listed in [the opening plan](m01-opening.md). The 21-state gallery passed and
+all current stills, shot and impact strips were inspected and published. Reports
+live under `.agents/playtest/m01-tripoint-roster/`, with current gallery evidence
+under `.agents/qa/m01-tripoint-gallery/`. Integration and release evidence is
+recorded on #193 and the linked task.

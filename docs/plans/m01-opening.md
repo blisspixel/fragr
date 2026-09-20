@@ -112,9 +112,9 @@ now preserve keyboard arrows and support controller paging and text scrolling.
 
 Local evidence on 2026-09-20:
 
-- 704 Rust tests pass, including a fresh-party reset regression, with two existing
-  ignored asset generators. Strict Clippy passes. Unfiltered workspace line
-  coverage is 95.81 percent.
+- 705 Rust tests pass, including fresh-party reset and Tripoint placement
+  regressions, with two existing ignored asset generators. Strict Clippy passes.
+  Unfiltered workspace line coverage is 95.81 percent.
 - Four real human/agent sockets wait for their final reader. Spectators, stale
   attempts and old capability-4 clients cannot activate the party. Existing gate,
   movement, inventory, both M01 approaches and shared departure assertions remain.
@@ -124,8 +124,7 @@ Local evidence on 2026-09-20:
   keyboard/controller cancellation regression are fixed; all 27 harnesses then
   pass with verifier exit 0. The checker now ends with an aggregate result,
   preventing a tail of individual passes from obscuring an earlier failure.
-  An inspected
-  OpenGL/AMD 780M lifecycle run also passes with a second real agent reader,
+  An inspected OpenGL/AMD 780M lifecycle run also passes with a second real agent reader,
   waiting HUD, held dismissal, rejoin, leave, unexpected server exit and cancellation.
 - The 21-state default gallery was regenerated and inspected, including shot and
   impact strips. Opening and waiting stills live in `docs/screenshots/prototypes/`.
@@ -136,25 +135,31 @@ Local evidence on 2026-09-20:
   benchmark pass. Four network clients complete the smoke with eight frags and
   no spawn deaths. These establish neither large-server capacity nor final art.
 
-The six-map mixed reflex/planner roster passed the unchanged assertions:
+The final combined build's six-map mixed reflex/planner roster passed the
+unchanged assertions:
 
 | Map | Seed | Clients | Frags | Spawn deaths |
 |---|---|---|---|---|
-| Arena Duel | 67 | 2 | 5 | 0 |
+| Arena Duel | 67 | 2 | 6 | 0 |
 | Compliance Yard | 42 | 6 | 26 | 0 |
-| Directive 17 Substation | 19 | 6 | 24 | 1 |
-| Sector 9 Transit Hall | 42 | 8 | 34 | 0 |
-| Reclamation Gulch | 42 | 12 | 55 | 3 |
-| Tripoint Works | 42 | 16 | 51 | 7 |
+| Directive 17 Substation | 19 | 6 | 17 | 4 |
+| Sector 9 Transit Hall | 42 | 8 | 33 | 4 |
+| Reclamation Gulch | 42 | 12 | 41 | 5 |
+| Tripoint Works | 42 | 16 | 52 | 3 |
 
 These short runs prove the existing acceptance checks, not spawn safety or fun
 at every density. Retain the spawn-death evidence for the next arena balance pass.
 The first integration run, 35519428024 at `4f77f71`, failed the menu-cancel
 regression on all three platforms and the Linux Tripoint roster (10 spawn deaths
-among 51 frags). Cancellation is fixed and locally reverified; Tripoint's failure
-remains under investigation. Do not merge on an unexplained retry.
-Logs and intermediate captures are under `.agents/m01-opening-*`, with roster
-reports in `.agents/playtest/m01-opening-roster/`. Integration CI is recorded on
-the linked pull request; shipped status belongs to its release record.
+among 51 frags). All five jobs pass on the cancellation/fresh-party fix at
+`af0c2e3`, run 35520042833. Tripoint also failed on unchanged main, so that green
+sample does not close the recurring defect. The separate
+[spawn-safety repair](tripoint-spawn-safety.md), task #194, is included before
+final integration rather than relying on an unexplained retry.
+Logs and intermediate captures are under `.agents/m01-opening-*` and
+`.agents/m01-tripoint-*`; final roster reports are in
+`.agents/playtest/m01-tripoint-roster/`. Earlier failed and superseded evidence
+is retained. Integration CI is recorded on the linked pull request; shipped
+status belongs to its release record.
 No new paid generation was needed. Issue #186's intermittent
 exit retention remains open; clean local runs do not establish its cause or fix.
