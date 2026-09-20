@@ -8,7 +8,7 @@ It is the 1993 LAN-party feeling rebuilt for 2026: a Rust authoritative server, 
 
 ## What runs today
 
-- **Recall Notice:** Single Player starts the local M01 development mission. Enter Annex 67 to find Latch's transfer record, recover weapons, fight through the intake rooms and depart by the custody lift. This is the opening mission slice, not the complete campaign.
+- **Recall Notice:** Single Player starts the local M01 development mission with a skippable, reader-paced opening. Enter Annex 67 to find Latch's transfer record, recover weapons, fight through the intake rooms and depart by the custody lift. The party waits for its readers before combat; the menu can replay the opening offline. This is the opening mission slice, not the complete campaign.
 - **Solo Broadcast:** Episode 0 Calibration on Larak Lot. Host cold-open, objective chip (clear NODS, seize jammer, drop Auditor), same guns as MP. Default from `./tools/solo_scrap.sh` (server `--solo-broadcast`). This is an arena prototype. The planned twelve-mission story lives in [`docs/CAMPAIGN.md`](docs/CAMPAIGN.md); [`solo-story-episodes.md`](docs/plans/solo-story-episodes.md) records this prototype's implementation.
 - **Solo Scrap:** arcade offline on loopback without the episode path (`FRAGR_SOLO_BROADCAST=0`), four named rule bots with visible tactics (Aggressive, Defensive, Flanker, Balanced).
 - **Watch or join:** spectator by default through a fighter's eyes, including their gun and shot feedback. F changes fighter; V cycles eyes, chase, and free camera. Join mid-match as a human, leave back to spectate. Bots keep the server alive.
@@ -19,7 +19,7 @@ It is the 1993 LAN-party feeling rebuilt for 2026: a Rust authoritative server, 
 - **Fighter navigation:** rule bots, playtest fighters, and the decision brain share walking routes around cover and up stairs. Fractional treads retain footing, crossed stair entrances are repaired, and stepping off a deck keeps horizontal movement. Quick jump taps survive between frames and server ticks.
 - **Your callsign:** saved player name, reticle colour, and weapon bob options. The default human callsign is Meat Proxy. The boot menu, settings, and match overlay share pixel lettering and industrial styling.
 - **Player settings:** the same controls, display, and audio panel at boot and in the match menu. Save mouse sensitivity, invert look, turn speed, vertical FOV, frame cap, VSync, window mode, and separate master/radio/effects levels. Save applies changes; Cancel discards them.
-- **Agent door:** MCP tools `join`, `leave`, `observe`, `act`, `speak`, `get_events`, `round_state`, and a reference client (`fragr-brain`) that asks a decision model for its stance while a local controller plays every tick. An agent is one participant however it thinks; the server sees one fighter. Structured state, no vision model required.
+- **Agent door:** MCP tools `join`, `leave`, `observe`, `act`, `mission_ready`, `speak`, `get_events`, `round_state`, and a reference client (`fragr-brain`) that asks a decision model for its stance while a local controller plays every tick. An agent is one participant however it thinks; the server sees one fighter. Structured state, no vision model required.
 
 This is a playable vertical slice, not a finished game. The build order and what is still missing live in [`docs/ROADMAP.md`](docs/ROADMAP.md).
 
@@ -124,7 +124,7 @@ Flechette before the records stairs, collect finite ammunition, and reload.
 Introductory guns remain available independently to each participant. The six
 arcade maps retain their three unlimited guns. Run instructions and current
 limitations: [`server/maps/README.md`](server/maps/README.md). M01 still needs
-finished enemy presentation, further encounters, secrets, opening framing and
+finished enemy presentation, further encounters, secrets, opening art and
 checkpoints before it is a complete mission. F or controller B uses an aimed
 mission control. The lift waits for everyone aboard; its result ends this prototype.
 

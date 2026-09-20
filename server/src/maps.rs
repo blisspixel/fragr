@@ -978,6 +978,10 @@ fn tripoint_works() -> MapDef {
         ));
     }
 
+    // Sorting bays interrupt the outer ring's opening rail lanes. Their inward
+    // mouths and shoulder gaps leave a choice of routes toward the yards.
+    spawn_pockets(16, spawn, &mut s);
+
     MapDef {
         half_extent: half,
         spawn_radius: spawn,
@@ -986,7 +990,7 @@ fn tripoint_works() -> MapDef {
             weapon_pad("pad_rail", WeaponType::Rail, 0.0, -62.0, 2.0),
             weapon_pad("pad_scatter", WeaponType::Scatter, 53.7, 31.0, 2.0),
             weapon_pad("pad_flechette", WeaponType::Flechette, -53.7, 31.0, 2.0),
-            health_pad("pad_health_n", 0.0, 110.0, 0.0),
+            health_pad("pad_health_n", 0.0, 130.0, 0.0),
             health_pad("pad_health_s", 0.0, -118.0, 0.0),
             armor_pad("pad_armor", -14.0, 0.0, 0.0),
         ],

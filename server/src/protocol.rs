@@ -15,7 +15,7 @@ pub use loadout::{
 };
 pub use mission::{
     InteractionKind, InteractionPrompt, MissionGeometry, MissionId, MissionMember, MissionPhase,
-    MissionState, Region3, UseTarget, MISSION_PARTY_LIMIT, USE_DISTANCE,
+    MissionReady, MissionState, Region3, UseTarget, MISSION_PARTY_LIMIT, USE_DISTANCE,
 };
 
 /// Named scrap-league identity (Contested Frequency denies it exists).
@@ -395,8 +395,9 @@ pub const GEOMETRY_VERSION: u32 = 2;
 pub const DISCOVERY_GAMEPLAY_VERSION: u32 = 2;
 pub const CAMPAIGN_GAMEPLAY_VERSION: u32 = 3;
 pub const MISSION_GAMEPLAY_VERSION: u32 = 4;
+pub const READINESS_GAMEPLAY_VERSION: u32 = 5;
 /// Highest understood gameplay contract; content requirements use their own minimum.
-pub const GAMEPLAY_VERSION: u32 = MISSION_GAMEPLAY_VERSION;
+pub const GAMEPLAY_VERSION: u32 = READINESS_GAMEPLAY_VERSION;
 pub fn legacy_gameplay_version() -> u32 {
     1
 }
@@ -537,6 +538,7 @@ pub enum ClientMessage {
         geometry_version: u32,
     },
     Action(Action),
+    MissionReady(MissionReady),
     Speak(Speak),
     /// Agent-only display label echoed into Snapshot PlayerState.behavior.
     /// Never trusted for combat. Rule-bot behaviors still come from BotController.

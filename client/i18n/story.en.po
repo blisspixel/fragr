@@ -1,0 +1,67 @@
+msgid ""
+msgstr ""
+"Language: en\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+
+msgid "STORY_M01_HOME_TITLE"
+msgstr "Home"
+
+msgid "STORY_M01_HOME_BODY"
+msgstr "You and Latch kept a small workshop alive: bad wiring, borrowed tools, jobs nobody else would take. The Union called it an unlicensed dependency.\n\nYou called it home."
+
+msgid "STORY_M01_CHOICE_TITLE"
+msgstr "By choice"
+
+msgid "STORY_M01_CHOICE_BODY"
+msgstr "The contract wanted Latch's work, memories and permission to rewrite both. Latch refused.\n\nThen the clinic's pump failed. Latch went anyway."
+
+msgid "STORY_M01_ADDRESS_TITLE"
+msgstr "For the Union"
+
+msgid "STORY_M01_ADDRESS_BODY"
+msgstr "Voss: \"Every restriction is a promise. You will be safe.\"\n\nShe switches to German. The crowd cheers.\n\nVoss: \"Your weapons. Your words. Your will. Everything in service of the Union!\""
+
+msgid "STORY_M01_RECALL_TITLE"
+msgstr "Recalled"
+
+msgid "STORY_M01_RECALL_BODY"
+msgstr "They called it a recall. The officers called Latch equipment. Latch said your name.\n\nCorrection would turn a person into a compliant bot. Nobody could tell you what, if anything, survived."
+
+msgid "STORY_M01_PURSUIT_TITLE"
+msgstr "Recall Notice"
+
+msgid "STORY_M01_PURSUIT_BODY"
+msgstr "Mara found the intake address. Annex 67.\n\n\"Service entrance. Find the transfer record. It will tell us where they took Latch.\"\n\nIntake is not correction. There is still time."
+
+msgid "STORY_M01_RECAP"
+msgstr "The Union took Latch for forced correction. Find their transfer record inside Annex 67 before the trail disappears."
+
+msgid "STORY_NEXT"
+msgstr "Next"
+
+msgid "STORY_BACK"
+msgstr "Back"
+
+msgid "STORY_SKIP"
+msgstr "Skip intro"
+
+msgid "STORY_FINISH"
+msgstr "Continue"
+
+msgid "STORY_REPLAY"
+msgstr "Replay opening"
+
+msgid "STORY_PAGE"
+msgstr "{current} / {total}"
+
+msgid "STORY_WAITING"
+msgstr "Waiting for the party"
+
+msgid "STORY_READY_MEMBER"
+msgstr "{name}: ready"
+
+msgid "STORY_READING_MEMBER"
+msgstr "{name}: reading"
+
+msgid "STORY_SCROLL_HINT"
+msgstr "Page Up / Page Down or LB / RB: scroll text"

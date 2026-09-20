@@ -1,7 +1,8 @@
 # Preserve accepted asset request identity
 
-Status: implemented, 2026-09-20. Task: [#190](https://github.com/blisspixel/fragr/issues/190).
-Integration pending.
+Status: shipped, 2026-09-20, [#191](https://github.com/blisspixel/fragr/pull/191).
+Task [#190](https://github.com/blisspixel/fragr/issues/190) is closed. All five CI
+jobs passed in run 35516003832; merged tree `d961b64` matches the verified head.
 
 ## Failure and scope
 

@@ -2,7 +2,8 @@
 use crate::movement::Solid;
 use crate::navigation::{Navigation, NavigationGoal, Navigator};
 use crate::protocol::{
-    Action, LookAt, MapPresentation, MissionGeometry, MissionPhase, MissionState, Snapshot,
+    Action, LookAt, MapPresentation, MissionGeometry, MissionPhase, MissionReady, MissionState,
+    Snapshot,
 };
 use crate::sim::PLAYER_FLOOR_Y;
 use uuid::Uuid;
@@ -60,6 +61,36 @@ impl MissionClient {
         Ok(())
     }
 
+    /// Supplied wire controllers finish text immediately. MCP clients use an
+    /// explicit tool; observation alone must never acknowledge on their behalf.
+    pub fn readiness(&self, id: Option<Uuid>) -> Option<MissionReady> {
+        let id = id?;
+        let state = self.state.as_ref()?;
+        (state.phase != MissionPhase::Departed
+            && state
+                .party
+                .iter()
+                .any(|member| member.id == id && !member.ready))
+        .then_some(MissionReady {
+            id: state.id,
+            attempt: state.attempt,
+        })
+    }
+
+    /// Public mission facts also gate optional decision work while a party waits.
+    pub fn participating(&self, id: Uuid) -> bool {
+        self.geometry.is_none()
+            || self.state.as_ref().is_some_and(|state| {
+                matches!(
+                    state.phase,
+                    MissionPhase::FindTransfer | MissionPhase::ReachLift
+                ) && state
+                    .party
+                    .iter()
+                    .any(|member| member.id == id && member.ready)
+            })
+    }
+
     /// Equipment and combat intent retain priority. With no target, walk to the
     /// mission approach, aim at the actual panel and use only a server prompt.
     pub fn steer(
@@ -70,12 +101,12 @@ impl MissionClient {
         snapshot: &Snapshot,
         action: Action,
     ) -> Action {
+        if !self.participating(id) {
+            return Action::default();
+        }
         let (Some(geometry), Some(state)) = (&self.geometry, &self.state) else {
             return navigator.steer_snapshot(world, id, snapshot, action);
         };
-        if state.phase == MissionPhase::Departed {
-            return Action::default();
-        }
         if action.look_at.is_some() {
             self.press_down = false;
             return navigator.steer_snapshot(world, id, snapshot, action);

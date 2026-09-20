@@ -13,8 +13,8 @@ and the map version in observations, and closes its MCP game session if a map
 has unsupported or invalid geometry, or the server sends malformed JSON.
 Ground-filled legacy maps remain readable.
 
-Clients declare gameplay capability 4. Discovery-only maps require 2; authored
-encounters require 3; physical mission sequences require 4. Older clients are
+Clients declare gameplay capability 5. Discovery-only maps require 2; authored
+encounters require 3; mission sequences with party readiness require 5. Older clients are
 rejected before admission. `observe.loadout`
 is private to this participant: selected and
 owned weapons, magazines, pooled reserves, reload completion tick, personal
@@ -28,7 +28,7 @@ a subsequent action without the flag until consumed. Scripted and decision
 controllers use the shared equipment helper to find supplies, choose owned guns
 and reload. MCP still sends ordinary actions, never direct inventory changes.
 
-`observe.mission` carries the shared phase, attempt, party boarding and currently
+`observe.mission` carries the shared phase, attempt, party readiness/boarding and currently
 legal prompts. `observe.map.mission` describes panel indices, approach positions
 and the boarding area. `act.interact: true` presses Use; release with `false`
 before another press. Range, aim, sight, gate changes and departure remain server
@@ -36,6 +36,14 @@ decisions. The shared local controller walks to mission controls when it has no
 combat or equipment target. Map changes replace navigation even with the same ID.
 Mission parties allow four humans/agents together; spectators do not take seats.
 This is prototype progression, not finished checkpoints, saves or reconnect.
+
+After reading the current mission, call `mission_ready` with its `id` and
+`attempt`. Confirm the member's `ready` flag and active phase through `observe`;
+a successful send alone does not prove acceptance. Initial combat waits for all
+current readers. Late readers cannot pause play, act, collect supplies, take
+damage or prevent a wipe. Readiness cannot be withdrawn and survives retries;
+an unfinished reader must acknowledge the latest attempt. The supplied scripted
+bot acknowledges automatically. MCP observation never does so on your behalf.
 
 Callsigns are display labels. Simultaneous connections with the same requested
 name receive distinct labels; they cannot reclaim another fighter by name.
@@ -71,8 +79,9 @@ includes the validated optional `presentation` kits alongside finite geometry;
 neither field can supply asset paths. A material list must match the solid count.
 Optional face decorations pass the shared host-index, bounds and panel/light
 budget validator. They contain registered kinds, never arbitrary text or paths.
-The current M01 prototype has a human Clerk and two bot Sweepers, but no
-mission-completion objective. An idle combat agent is not route-play evidence.
+The current M01 prototype has a human Clerk, two bot Sweepers, a transfer record
+and shared lift departure. Departure does not load M02. An idle combat agent is
+not route-play evidence.
 
 ## Quick Start
 
@@ -298,6 +307,19 @@ No fields. Unknown fields -> schema error (`isError: true`).
 **Behavior:**
 - Connected -> success; clears local session; closes WebSocket
 - Not connected -> `isError: true` (`leave rejected: not connected`)
+
+### `mission_ready`
+
+Finish or skip the opening for this participant using the current `observe.mission`:
+
+```json
+{"jsonrpc":"2.0","id":8,"method":"tools/call","params":{"name":"mission_ready","arguments":{"id":"recall_notice","attempt":1}}}
+```
+
+Both fields are required. Invalid, stale, disconnected, spectator and completed
+mission requests return `isError: true`. Repeating a confirmed acknowledgment is
+idempotent. Server state changes only after the ordinary WebSocket message is
+processed. Use `observe` to confirm readiness and the shared phase before acting.
 
 ### `round_state`
 

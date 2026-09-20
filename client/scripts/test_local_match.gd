@@ -32,7 +32,7 @@ class Fixture extends LocalMatch:
 	func executable_path() -> String:
 		return path
 
-const RECORD: String = '{"version":1,"mission":"recall_notice","url":"ws://127.0.0.1:12345","gameplay_version":4}\n'
+const RECORD: String = '{"version":1,"mission":"recall_notice","url":"ws://127.0.0.1:12345","gameplay_version":5}\n'
 var failures: int = 0
 
 func _initialize() -> void:
@@ -101,7 +101,7 @@ func _run() -> void:
 		fixture._process(0)
 	var record: Dictionary = JSON.parse_string(RECORD)
 	for patch: Dictionary in [{"version":true}, {"version":1.5}, {"mission":"calibration"}, {"extra":1},
-		{"gameplay_version":3}, {"gameplay_version":4.5}, {"url":"ws://localhost:12345"}, {"url":"ws://127.0.0.1:0"},
+		{"gameplay_version":4}, {"gameplay_version":5.5}, {"url":"ws://localhost:12345"}, {"url":"ws://127.0.0.1:0"},
 		{"url":"ws://127.0.0.1:65536"}, {"url":"ws://127.0.0.1:0123"}, {"url":"ws://127.0.0.1:123/x"}, {"url":42}]:
 		var bad: Dictionary = record.duplicate()
 		bad.merge(patch, true)

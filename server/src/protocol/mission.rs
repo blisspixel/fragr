@@ -17,6 +17,7 @@ pub enum MissionId {
 #[serde(rename_all = "snake_case")]
 pub enum MissionPhase {
     #[default]
+    Briefing,
     FindTransfer,
     ReachLift,
     Departed,
@@ -123,6 +124,7 @@ impl MissionGeometry {
 pub struct MissionMember {
     pub id: Uuid,
     pub name: String,
+    pub ready: bool,
     pub alive: bool,
     pub aboard: bool,
 }
@@ -132,6 +134,13 @@ pub struct MissionMember {
 pub struct InteractionPrompt {
     pub player_id: Uuid,
     pub kind: InteractionKind,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct MissionReady {
+    pub id: MissionId,
+    pub attempt: u32,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -157,7 +166,8 @@ impl MissionState {
         let mut ids = std::collections::HashSet::new();
         for member in &self.party {
             if !ids.insert(member.id)
-                || member.aboard && !member.alive
+                || member.aboard
+                    && (!member.alive || !member.ready || self.phase == MissionPhase::Briefing)
                 || member.name.is_empty()
                 || member.name.chars().count() > 48
                 || member.name.chars().any(char::is_control)
@@ -173,14 +183,14 @@ impl MissionState {
                     prompt.kind == InteractionKind::LiftDeparture
                         && self.party.iter().all(|p| p.alive && p.aboard)
                 }
-                MissionPhase::Departed => false,
+                MissionPhase::Briefing | MissionPhase::Departed => false,
             };
             if !allowed
                 || !ids.insert(prompt.player_id)
                 || !self
                     .party
                     .iter()
-                    .any(|p| p.id == prompt.player_id && p.alive)
+                    .any(|p| p.id == prompt.player_id && p.alive && p.ready)
             {
                 return Err("invalid mission interaction prompt");
             }

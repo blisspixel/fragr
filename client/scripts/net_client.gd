@@ -1,7 +1,7 @@
 extends Node
 
-# Version 4 adds physical mission controls and shared departure state.
-const GAMEPLAY_VERSION: int = 4
+# Version 5 adds party readiness before mission participation.
+const GAMEPLAY_VERSION: int = 5
 
 signal connected_to_server
 signal disconnected_from_server
@@ -126,6 +126,18 @@ func send_action(action: Dictionary):
 	if action.has("seq"):
 		msg["seq"] = int(action["seq"])
 	send_json(msg)
+
+func send_mission_ready() -> bool:
+	if connection_state != WebSocketPeer.STATE_OPEN or player_id == null or mission.is_empty():
+		return false
+	var state: Dictionary = mission["state"]
+	if state["phase"] == "departed":
+		return false
+	for member: Dictionary in state["party"]:
+		if member["id"] == player_id and not member["ready"]:
+			send_json({"type": "mission_ready", "id": state["id"], "attempt": int(state["attempt"])})
+			return true
+	return false
 
 func send_speak(text: String) -> void:
 	var line = text.strip_edges()

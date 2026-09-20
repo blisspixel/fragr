@@ -441,6 +441,16 @@ func _change_role(play: bool) -> void:
 	if net.get("connection_state") != WebSocketPeer.STATE_OPEN or (play and net.get("player_id") == null):
 		push_error("qa_tour: role transition did not connect")
 		_failed = true
+	if play:
+		if is_instance_valid(gm.opening):
+			gm.opening.finish()
+			print("qa_tour: skipped campaign opening through the presenter")
+		var deadline: int = Time.get_ticks_msec() + 5000
+		while gm._mission_controls_blocked() and Time.get_ticks_msec() < deadline:
+			await process_frame
+		if gm._mission_controls_blocked():
+			push_error("qa_tour: server did not admit the ready participant")
+			_failed = true
 	_joined = play
 
 func _select_weapon(weapon: String) -> void:

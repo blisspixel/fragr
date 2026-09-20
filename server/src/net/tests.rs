@@ -94,21 +94,28 @@ async fn server_rejects_unsupported_geometry_configuration() {
 #[tokio::test]
 async fn mission_admission_bounds_participants_and_keeps_spectators_separate() {
     let (tx, mut commands) = mpsc::unbounded_channel();
-    let server = NetServer::bind_with_requirements("127.0.0.1:0", tx, 2, 4)
-        .await
-        .unwrap();
+    let server = NetServer::bind_with_requirements(
+        "127.0.0.1:0",
+        tx,
+        2,
+        crate::protocol::READINESS_GAMEPLAY_VERSION,
+    )
+    .await
+    .unwrap();
     let address = server.local_addr().unwrap();
     let accept = tokio::spawn(server.accept_loop());
     let mut joined = Vec::new();
     for (role, version, expected) in [
-        ("human", 3, "unsupported_gameplay"),
-        ("human", 4, "welcome"),
-        ("agent", 4, "welcome"),
-        ("human", 4, "welcome"),
-        ("agent", 4, "welcome"),
-        ("human", 4, "party_full"),
-        ("agent", 4, "party_full"),
-        ("spectator", 4, "welcome"),
+        ("human", 4, "unsupported_gameplay"),
+        ("agent", 4, "unsupported_gameplay"),
+        ("spectator", 4, "unsupported_gameplay"),
+        ("human", 5, "welcome"),
+        ("agent", 5, "welcome"),
+        ("human", 5, "welcome"),
+        ("agent", 5, "welcome"),
+        ("human", 5, "party_full"),
+        ("agent", 5, "party_full"),
+        ("spectator", 5, "welcome"),
     ] {
         let (mut socket, _) = connect_async(format!("ws://{address}")).await.unwrap();
         socket.send(Message::Text(serde_json::json!({
@@ -144,7 +151,7 @@ async fn mission_admission_bounds_participants_and_keeps_spectators_separate() {
         Some(GameCommand::Disconnected { .. })
     ));
     let (mut replacement, _) = connect_async(format!("ws://{address}")).await.unwrap();
-    replacement.send(Message::Text(serde_json::json!({"type":"hello","role":"agent","name":"Replacement","geometry_version":2,"gameplay_version":4}).to_string())).await.unwrap();
+    replacement.send(Message::Text(serde_json::json!({"type":"hello","role":"agent","name":"Replacement","geometry_version":2,"gameplay_version":5}).to_string())).await.unwrap();
     let reply = timeout(Duration::from_secs(2), replacement.next())
         .await
         .unwrap()

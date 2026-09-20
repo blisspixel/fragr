@@ -64,8 +64,9 @@ Initial handshake message. Must be sent immediately after connection.
   No player or spectator session is created on rejection. This is geometry
   compatibility, not general protocol or action-version negotiation.
 - `gameplay_version`: maximum understood gameplay contract. Current clients send
-  `4`; omission means `1`. Discovery-only maps require 2, maps with authored
-  encounters require 3, and physical mission sequences require 4.
+  `5`; omission means `1`. Discovery-only maps require 2, maps with authored
+  encounters require 3, and mission sequences now require 5 for party readiness.
+  Version 4 introduced physical mission controls but cannot enter these missions.
   Older clients of every role are rejected before `Welcome`
   with `unsupported_gameplay`. This capability is separate from geometry. The six
   full-arsenal arcade maps still accept 1.
@@ -94,16 +95,34 @@ and before the corresponding snapshot whenever shared state changes. `state` is:
 
 - `id`: `recall_notice`; `attempt`: positive retry revision; `changed_at`: tick of
   the last phase change/reset, no later than the message tick.
-- `phase`: `find_transfer`, `reach_lift`, or `departed`.
-- `party`: up to four `{id,name,alive,aboard}` members. Names are display labels.
+- `phase`: `briefing`, `find_transfer`, `reach_lift`, or `departed`.
+- `party`: up to four `{id,name,ready,alive,aboard}` members. Names are display labels.
 - `prompts`: `{player_id,kind}` for currently legal interactions. Kinds are
   `transfer_record` and `lift_departure`; these are not localized strings.
+
+Participants finish or skip their opening by sending
+`{"type":"mission_ready","id":"recall_notice","attempt":1}` using the current
+mission ID and attempt. Both fields are required; extra fields are rejected.
+The server owns readiness. Spectators, unknown participants, stale attempts and
+completed missions cannot acknowledge. Repeated acknowledgments do nothing.
+Observation alone is never acknowledgment for an MCP participant.
+
+Initial combat waits in `briefing` until every currently admitted participant is
+ready. Disconnect removes that member's wait. A late reader cannot pause active
+play: until ready, their body cannot move, use equipment, claim supplies, trigger
+encounters, attract enemies, block shots, take damage or prevent a party wipe.
+Readiness cannot be withdrawn. Queued input is cleared on first acknowledgment;
+duplicate acknowledgments cannot erase an active player's input. Ready members
+stay ready across retries; departed IDs are pruned. If no acknowledged members
+remain, reset restores the briefing for the next party. A reader finishing during a
+retry must acknowledge the new attempt. Supplied scripted controllers acknowledge
+automatically and defer combat and optional paid decisions until participation.
 
 Reading the record opens a real gate by selecting a geometry/navigation variant
 prepared before server readiness. `MapInfo` is resent even though `map_id` stays
 the same; clients must rebuild geometry and clear route caches before accepting
 the new mission state. Late players and spectators receive map and shared state.
-Departure requires all current participants alive and inside the boarding box,
+Departure requires all current participants ready, alive and inside the boarding box,
 plus an explicit use press. One participant disconnecting does not reset the
 remaining players' progress. A party wipe or the last participant leaving resets the gate, supplies
 and encounters together, once. NPCs and spectators never count as party members.
@@ -877,7 +896,7 @@ embedded at build time, binds `127.0.0.1:0`, and writes one ASCII JSON line to
 stdout after map preparation and bind:
 
 ```json
-{"version":1,"mission":"recall_notice","url":"ws://127.0.0.1:49152","gameplay_version":4}
+{"version":1,"mission":"recall_notice","url":"ws://127.0.0.1:49152","gameplay_version":5}
 ```
 
 The port is chosen by the OS. Diagnostics use stderr. The parent validates the

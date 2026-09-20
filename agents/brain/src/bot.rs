@@ -366,6 +366,13 @@ pub async fn run_bot(
                             session_error = Some(Error::Transport(format!("invalid mission: {error}")));
                             break;
                         }
+                        if let Some(ready) = mission_client.readiness(me) {
+                            let wire = serde_json::to_string(&ClientMessage::MissionReady(ready)).map_err(transport_err)?;
+                            if !send_text(&mut sink, wire).await {
+                                session_error = Some(Error::Transport("mission readiness was not accepted in time".into()));
+                                break;
+                            }
+                        }
                     }
                     Ok(ServerMessage::Loadout(next)) => {
                         let valid = next.validate_for(me, loadout.as_ref());
@@ -467,7 +474,7 @@ pub async fn run_bot(
                 let Some(snapshot) = last.as_ref() else { continue };
                 let Some(telemetry) = observe(id, snapshot, &mut hits) else { continue };
                 summary.last_state = Some(telemetry.render());
-                if !paid_enabled || !brain_worth_asking(&telemetry) {
+                if !paid_enabled || !brain_worth_asking(&telemetry) || !mission_client.participating(id) {
                     let source = if config.provider.is_paid() && !paid_enabled {
                         Source::Budget
                     } else {

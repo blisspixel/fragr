@@ -46,5 +46,11 @@ for scenario in pass debug-socket import-exit import-error missing-pass error-an
     echo "FAIL godot verifier discarded verbose failure identity"
     exit 1
   fi
+  summary=FAIL
+  if "$expected_pass"; then summary=PASS; fi
+  if ! printf '%s\n' "$output" | grep -qF "Godot checks: $summary"; then
+    echo "FAIL godot verifier scenario: $scenario (missing aggregate $summary)"
+    exit 1
+  fi
   echo "ok   godot verifier scenario: $scenario"
 done

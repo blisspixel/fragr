@@ -77,8 +77,46 @@ func _run() -> void:
 	var address: String = owned.url
 	_expect(owned.state == LocalMatch.State.RUNNING and pid > 0, "live child is owned")
 	_expect(current_scene.is_human_player and current_scene.net_client.server_url == address, "campaign joins as human at its selected endpoint")
-	if not await _until(func() -> bool: return current_scene.get_node_or_null("LoadingCard") == null, "controls card dismisses into gameplay"):
+	if not await _until(func() -> bool: return is_instance_valid(current_scene.opening), "campaign opening appears before combat"):
 		return
+	_expect(current_scene.get_node_or_null("LoadingCard") == null and current_scene.controls_blocked(), "campaign replaces timed controls card and blocks play")
+	_expect(current_scene.mission_hud.state["phase"] == "briefing", "server waits for the reader")
+	var partner: Node = load("res://scripts/net_client.gd").new()
+	root.add_child(partner)
+	partner.set_server_host(address)
+	partner.connect_to_server("agent", "Second reader")
+	if not await _until(func() -> bool: return partner.mission.get("state", {}).get("party", []).size() == 2, "human and agent share initial briefing"):
+		return
+	for page: int in range(CampaignOpening.BEATS.size()):
+		await _capture("opening-%d" % (page + 1))
+		if page < CampaignOpening.BEATS.size() - 1:
+			current_scene.opening.advance()
+	var dismiss: InputEventKey = InputEventKey.new()
+	dismiss.keycode = KEY_ESCAPE
+	dismiss.physical_keycode = KEY_ESCAPE
+	dismiss.pressed = true
+	Input.parse_input_event(dismiss)
+	await process_frame
+	_expect(not is_instance_valid(current_scene.opening) and current_scene.controls_blocked(), "dismissal stays blocked until release")
+	_expect(not current_scene.pause_menu.is_open(), "intro Escape cannot also open the match menu")
+	dismiss = dismiss.duplicate()
+	dismiss.pressed = false
+	Input.parse_input_event(dismiss)
+	if not await _until(func() -> bool:
+		for member: Dictionary in current_scene.mission_hud.state["party"]:
+			if member["id"] == current_scene.net_client.player_id:
+				return member["ready"]
+		return false, "server confirms first reader independently"):
+		return
+	_expect(current_scene.controls_blocked() and current_scene.mission_hud.state["phase"] == "briefing", "first reader waits for the agent")
+	await _capture("party-waiting")
+	_expect(partner.send_mission_ready(), "agent acknowledges the same current attempt")
+	if not await _until(func() -> bool: return not current_scene.controls_blocked() and current_scene._has_local_input_target(), "readiness enters first-person play"):
+		return
+	_expect(current_scene.mission_hud.state["phase"] == "find_transfer", "server confirms active mission")
+	_expect(not current_scene.pending_jump and not current_scene.pending_interact and not current_scene.pending_reload, "intro leaves no queued gameplay press")
+	partner.disconnect_from_server()
+	partner.free()
 	await _capture("recall-notice-entry")
 	current_scene.change_role(false)
 	if not await _until(func() -> bool: return _playing() and not current_scene.role_transition and current_scene.net_client.role == "spectator", "role change reaches spectator"):

@@ -1,14 +1,18 @@
 //! Shared mission progression. The encounter lifecycle owns party reset timing.
 use crate::maps::RuntimeMap;
 use crate::protocol::{
-    CampaignActor, InteractionKind, InteractionPrompt, MissionMember, MissionPhase, MissionState,
-    ServerMessage, UseTarget, USE_DISTANCE,
+    CampaignActor, InteractionKind, InteractionPrompt, MissionMember, MissionPhase, MissionReady,
+    MissionState, ServerMessage, UseTarget, USE_DISTANCE,
 };
 use crate::sim::{GameState, Player, PLAYER_FLOOR_Y};
+use std::collections::HashSet;
+use uuid::Uuid;
 
 mod controller;
 pub use controller::MissionClient;
 
+#[cfg(test)]
+mod readiness_tests;
 #[cfg(test)]
 mod tests;
 #[cfg(test)]
@@ -20,6 +24,7 @@ pub(crate) struct MissionRun {
     phase: MissionPhase,
     changed_at: u64,
     started: bool,
+    ready: HashSet<Uuid>,
 }
 
 impl MissionRun {
@@ -28,11 +33,24 @@ impl MissionRun {
         Some(Self {
             initial_map: map.clone(),
             attempt: 1,
-            phase: MissionPhase::FindTransfer,
+            phase: MissionPhase::Briefing,
             changed_at: 0,
             started: false,
+            ready: HashSet::new(),
         })
     }
+}
+
+/// One admission rule for movement, equipment, combat and encounter participation.
+pub(crate) fn actor_active(
+    run: Option<&MissionRun>,
+    id: Uuid,
+    actor: Option<CampaignActor>,
+) -> bool {
+    run.is_none_or(|run| {
+        run.phase != MissionPhase::Briefing
+            && (actor != Some(CampaignActor::Participant {}) || run.ready.contains(&id))
+    })
 }
 
 fn can_use(player: &Player, target: &UseTarget, map: &RuntimeMap) -> bool {
@@ -63,6 +81,51 @@ fn can_use(player: &Player, target: &UseTarget, map: &RuntimeMap) -> bool {
 }
 
 impl GameState {
+    pub fn acknowledge_mission(&mut self, player_id: Uuid, ready: MissionReady) -> bool {
+        if self.map.mission().is_none_or(|map| map.id != ready.id)
+            || !self
+                .players
+                .iter()
+                .any(|p| p.id == player_id && p.campaign == Some(CampaignActor::Participant {}))
+        {
+            return false;
+        }
+        let Some(run) = self
+            .mission
+            .as_mut()
+            .filter(|run| run.attempt == ready.attempt && run.phase != MissionPhase::Departed)
+        else {
+            return false;
+        };
+        if !run.ready.insert(player_id) {
+            return false;
+        }
+        if let Some(player) = self.players.iter_mut().find(|p| p.id == player_id) {
+            player.clear_input();
+        }
+        self.refresh_mission_readiness();
+        true
+    }
+
+    pub(crate) fn refresh_mission_readiness(&mut self) {
+        let Some(run) = self.mission.as_mut() else {
+            return;
+        };
+        let party: HashSet<_> = self
+            .players
+            .iter()
+            .filter(|p| p.campaign == Some(CampaignActor::Participant {}))
+            .map(|p| p.id)
+            .collect();
+        run.ready.retain(|id| party.contains(id));
+        if run.phase == MissionPhase::Briefing && !party.is_empty() && party.is_subset(&run.ready) {
+            run.phase = MissionPhase::FindTransfer;
+            run.changed_at = self.tick;
+            run.started = true;
+            tracing::info!(members = party.len(), "Campaign party ready");
+        }
+    }
+
     pub(crate) fn note_mission_started(&mut self) {
         if let Some(run) = self.mission.as_mut() {
             run.started = true;
@@ -74,7 +137,11 @@ impl GameState {
             return;
         };
         self.map = run.initial_map.clone();
-        run.phase = MissionPhase::FindTransfer;
+        run.phase = if run.ready.is_empty() {
+            MissionPhase::Briefing
+        } else {
+            MissionPhase::FindTransfer
+        };
         run.attempt = run.attempt.saturating_add(1);
         run.changed_at = self.tick;
         run.started = false;
@@ -94,8 +161,10 @@ impl GameState {
             .map(|p| MissionMember {
                 id: p.id,
                 name: p.name.clone(),
+                ready: run.ready.contains(&p.id),
                 alive: p.hp > 0 && p.respawn_timer.is_none(),
-                aboard: p.hp > 0
+                aboard: actor_active(Some(run), p.id, p.campaign)
+                    && p.hp > 0
                     && p.respawn_timer.is_none()
                     && geometry.boarding.contains([p.x, p.y - PLAYER_FLOOR_Y, p.z]),
             })
@@ -110,7 +179,11 @@ impl GameState {
         let prompts = control.map_or_else(Vec::new, |(target, kind)| {
             self.players
                 .iter()
-                .filter(|p| party.iter().any(|member| member.id == p.id && member.alive))
+                .filter(|p| {
+                    party
+                        .iter()
+                        .any(|member| member.id == p.id && member.alive && member.ready)
+                })
                 .filter(|p| can_use(p, target, &self.map))
                 .map(|p| InteractionPrompt {
                     player_id: p.id,
@@ -170,7 +243,7 @@ impl GameState {
                 MissionPhase::ReachLift
             }
             MissionPhase::ReachLift => MissionPhase::Departed,
-            MissionPhase::Departed => return,
+            MissionPhase::Briefing | MissionPhase::Departed => return,
         };
         if let Some(run) = self.mission.as_mut() {
             run.phase = next;

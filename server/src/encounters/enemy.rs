@@ -88,6 +88,7 @@ impl EnemyController {
         };
         let visible = |p: &&crate::protocol::PlayerState| {
             me.is_hostile_to(p)
+                && crate::mission::actor_active(state.mission.as_ref(), p.id, p.campaign)
                 && (p.x - me.x).hypot(p.z - me.z) <= 32.0
                 && line_of_sight(eye, centre(p), &state.map.arena().solids)
         };

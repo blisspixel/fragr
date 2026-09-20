@@ -29,6 +29,14 @@ impl Walkthrough {
         session.state.seed(67);
         let id = Uuid::from_u128(100);
         session.state.add_player(id, "Visitor".into(), role);
+        let mission = session.state.mission_state().unwrap();
+        session.apply_command(crate::net::GameCommand::MissionReady {
+            player_id: id,
+            ready: crate::protocol::MissionReady {
+                id: mission.id,
+                attempt: mission.attempt,
+            },
+        });
         Self {
             session,
             id,

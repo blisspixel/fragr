@@ -96,7 +96,7 @@ pub async fn run_server(
             .unwrap_or_else(crate::protocol::legacy_geometry_version)
     };
     let required_gameplay = if session.state.map.mission().is_some() {
-        crate::protocol::MISSION_GAMEPLAY_VERSION
+        crate::protocol::READINESS_GAMEPLAY_VERSION
     } else if session.state.map.has_encounters() {
         crate::protocol::CAMPAIGN_GAMEPLAY_VERSION
     } else {

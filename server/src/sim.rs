@@ -503,6 +503,12 @@ pub struct Player {
 }
 
 impl Player {
+    pub(crate) fn clear_input(&mut self) {
+        self.pending_action = Action::default();
+        self.jump_requested = false;
+        self.interaction_requested = false;
+    }
+
     pub fn is_campaign_enemy(&self) -> bool {
         self.campaign
             .is_some_and(crate::protocol::CampaignActor::is_enemy)
@@ -777,7 +783,6 @@ impl GameState {
         );
         if self.map.is_campaign() {
             player.campaign = Some(crate::protocol::CampaignActor::Participant {});
-            self.note_mission_started();
         }
         self.players.push(player);
 
@@ -820,11 +825,15 @@ impl GameState {
         }
         self.players.retain(|p| p.id != id);
         self.scores.remove(&id);
+        self.refresh_mission_readiness();
         self.update_encounters();
     }
 
     pub fn set_action(&mut self, id: Uuid, mut action: Action) {
         if let Some(player) = self.players.iter_mut().find(|p| p.id == id) {
+            if !crate::mission::actor_active(self.mission.as_ref(), player.id, player.campaign) {
+                return;
+            }
             // Continuous input takes the newest value. A discrete weapon choice
             // must survive later frames until the simulation consumes it.
             action.weapon_swap = action.weapon_swap.or(player.pending_action.weapon_swap);
@@ -997,6 +1006,9 @@ impl GameState {
         };
         for player in &mut self.players {
             player.just_fired = false;
+            if !crate::mission::actor_active(self.mission.as_ref(), player.id, player.campaign) {
+                continue;
+            }
             let jump_requested = std::mem::take(&mut player.jump_requested);
             let reload_requested = std::mem::take(&mut player.pending_action.reload);
 
@@ -1117,13 +1129,18 @@ impl GameState {
             .players
             .iter()
             .filter(|p| p.respawn_timer.is_none())
+            .filter(|p| crate::mission::actor_active(self.mission.as_ref(), p.id, p.campaign))
             .filter_map(|p| p.pending_action.look_at.clone().map(|look| (p.id, look)))
             .collect();
         for (aimer_id, look) in look_intents {
             let target_point: Option<[f32; 3]> = if let Some(pid) = look.player_id {
                 self.players
                     .iter()
-                    .find(|p| p.id == pid && p.respawn_timer.is_none())
+                    .find(|p| {
+                        p.id == pid
+                            && p.respawn_timer.is_none()
+                            && crate::mission::actor_active(self.mission.as_ref(), p.id, p.campaign)
+                    })
                     .map(|p| {
                         [
                             p.x,
@@ -1156,7 +1173,10 @@ impl GameState {
         for i in 0..self.players.len() {
             let player = &mut self.players[i];
 
-            if player.respawn_timer.is_some() || player.hp <= 0 {
+            if player.respawn_timer.is_some()
+                || player.hp <= 0
+                || !crate::mission::actor_active(self.mission.as_ref(), player.id, player.campaign)
+            {
                 continue;
             }
 
@@ -1410,6 +1430,7 @@ impl GameState {
             if i == shooter_idx
                 || target.hp <= 0
                 || target.respawn_timer.is_some()
+                || !crate::mission::actor_active(self.mission.as_ref(), target.id, target.campaign)
                 || self.spawn_shields.get(&target.id).is_some_and(|t| *t > 0)
             {
                 continue;
@@ -1990,6 +2011,7 @@ impl GameState {
                 || player.hp <= 0
                 || player.is_boss
                 || player.is_campaign_enemy()
+                || !crate::mission::actor_active(self.mission.as_ref(), player.id, player.campaign)
             {
                 continue;
             }

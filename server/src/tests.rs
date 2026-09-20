@@ -11,6 +11,7 @@ use crate::session::GameSession;
 
 mod discovery;
 mod roster;
+mod spawns;
 
 #[tokio::test]
 async fn late_connections_receive_authoritative_geometry_for_every_role() {
@@ -2221,6 +2222,7 @@ fn other_debug(cmd: &crate::net::GameCommand) -> String {
         crate::net::GameCommand::Action { .. } => "Action".into(),
         crate::net::GameCommand::Speak { .. } => "Speak".into(),
         crate::net::GameCommand::SetDisplayBehavior { .. } => "SetDisplayBehavior".into(),
+        crate::net::GameCommand::MissionReady { .. } => "MissionReady".into(),
     }
 }
 

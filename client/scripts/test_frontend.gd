@@ -32,17 +32,22 @@ func _run() -> void:
 	_check(saved.player_name() == "Patch 67", "profile save must persist the chosen callsign")
 	_check(saved.reticle_colour() == Color("8ee9df"), "profile selection must persist the chosen reticle")
 	_check(not bool(saved.get_value("gameplay", "head_bob")), "profile bob switch must persist")
-	await menu._show("profile")
-	column.get_node("Callsign").text = "Discard this"
-	column.get_node("ReticleColour").item_selected.emit(0)
 	var escape: InputEventKey = InputEventKey.new()
 	escape.physical_keycode = KEY_ESCAPE
 	escape.pressed = true
-	menu._unhandled_input(escape)
-	await process_frame
-	await menu._show("profile")
-	_check(column.get_node("Callsign").text == "Patch 67", "back must discard unsaved callsign")
-	_check(column.get_node("ReticleColour").selected == 2, "back must discard unsaved colour")
+	var pad_cancel: InputEventJoypadButton = InputEventJoypadButton.new()
+	pad_cancel.button_index = JOY_BUTTON_B
+	pad_cancel.pressed = true
+	for cancel: InputEvent in [escape, pad_cancel]:
+		await menu._show("profile")
+		column.get_node("Callsign").text = "Discard this"
+		column.get_node("ReticleColour").item_selected.emit(0)
+		menu._unhandled_input(cancel)
+		await process_frame
+		_check(menu._page == "main", "keyboard and controller cancel return to the main menu")
+		await menu._show("profile")
+		_check(column.get_node("Callsign").text == "Patch 67", "back must discard unsaved callsign")
+		_check(column.get_node("ReticleColour").selected == 2, "back must discard unsaved colour")
 	for page in ["single", "multi", "settings", "main"]:
 		await menu._show(page)
 		_check(column.get_child_count() > 0, "page should expose controls: " + page)

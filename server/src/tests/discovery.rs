@@ -19,6 +19,16 @@ fn join(session: &mut GameSession, role: Role) -> Uuid {
         name: format!("Participant {role:?}"),
         player_id: (role != Role::Spectator).then_some(id),
     });
+    if role != Role::Spectator {
+        let mission = session.state.mission_state().unwrap();
+        assert!(session.state.acknowledge_mission(
+            id,
+            crate::protocol::MissionReady {
+                id: mission.id,
+                attempt: mission.attempt,
+            }
+        ));
+    }
     id
 }
 

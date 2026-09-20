@@ -9,6 +9,14 @@ launch option. `prototypes/local-campaign-entry-20260920.png` is the actual M01
 entry after a menu-owned server starts, captured on Vulkan after the controls
 card clears. These show the development slice, not a complete campaign.
 
+`prototypes/m01-opening-20260920.png` shows the new text opening.
+`prototypes/m01-party-waiting-20260920.png` shows a real human participant ready
+while an agent is still reading. Both were captured and inspected on Windows,
+OpenGL compatibility, AMD Radeon 780M using `test_local_campaign.gd`. All five
+text panels, skip handoff and offline replay were checked. Illustrations and
+narration remain unfinished. The two older local-campaign stills above predate
+the new opening and remain historical lifecycle evidence.
+
 | File | View |
 |---|---|
 | `tour_menu_16x9.png` | Retro boot menu |

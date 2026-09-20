@@ -123,12 +123,25 @@ a real join race: broadcasts could overtake initial geometry. The fix shipped in
 Local regressions, mixed-map sessions, inspected gallery and all five pre-merge CI
 jobs pass. One intermittent gallery exit error remains recorded in
 the plan without a claimed fix. Checkpoints,
-the opening scene, full encounter population and finished art remain. This
+full encounter population and finished art remain. This
 foundation is not a finished campaign or proven co-op balance.
+
+[M01's opening and readiness](plans/m01-opening.md) are implemented for
+#192. Five keyed text panels establish Latch's recall,
+offer back/next/skip and replay, and hand off through server-owned party readiness.
+Late readers cannot pause combat or participate until ready. The MCP adapter
+exposes the same explicit acknowledgment. Finished scene illustrations, narration
+and movies remain separate production work.
 
 [Opening spawn placement](plans/opening-spawns.md) shipped in #175 and v0.21.2.
 Warmup joins now use the same cover selector as active joins and respawns. The
 six-map playtest exposed the gap; its thresholds remain unchanged.
+
+The recurring Tripoint failure is tracked in
+[spawn safety](plans/tripoint-spawn-safety.md), #194. A reproduced exposed-ring
+layout now has 16 cover pockets and a regression proving screened, walkable
+opening positions. Network and rendered evidence remain separate from a claim
+that the map is finished.
 
 The phases below are the long shape. This is the remaining build order, with the reason each item sits where it does.
 
@@ -154,8 +167,8 @@ not finished levels or proof that their reference-game comparisons were achieved
 model limits, prove one complete animated character, then expand the roster.
 Safe recovery and quota reconciliation precede paid batches.
 
-[Accepted request identity](plans/asset-request-identity.md) is implemented (#190),
-with integration pending.
+[Accepted request identity](plans/asset-request-identity.md) shipped in #191,
+with strict checks and all five CI jobs passing.
 A live reference submission exposed a gap: rejecting polling metadata discarded
 the returned request ID. Save that ID before checking the address and keep
 recovery bound to it. The existing uncertain reservation still needs dashboard
@@ -184,7 +197,8 @@ light. Those authoring decisions have not recolored the live roster.
 **7. Full campaign foundation and M01.** `plans/campaign-build-order.md` sequences
 validated map data, inventory/ammo, real enemy roles, interaction, checkpoints,
 text presentation and a complete authored opening. Calibration remains a shipped
-prototype. None of the twelve planned missions exists yet.
+prototype. M01 has a playable development slice; none of the twelve planned
+missions is complete.
 
 **8. Story presentation.** Localized framing and text/voice fallback belong in
 M01. Brief pixel-styled scenes support reunion, travel, victory, sudden rupture

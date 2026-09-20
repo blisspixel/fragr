@@ -31,6 +31,31 @@ window/vsync/vsync_mode=0
 
 [input]
 
+ui_accept={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"keycode":4194309), Object(InputEventKey,"keycode":4194310), Object(InputEventKey,"keycode":32), Object(InputEventJoypadButton,"device":-1,"button_index":0)]
+}
+ui_cancel={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"physical_keycode":4194305), Object(InputEventJoypadButton,"device":-1,"button_index":1)]
+}
+ui_left={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"keycode":4194319), Object(InputEventJoypadButton,"device":-1,"button_index":13), Object(InputEventJoypadMotion,"device":-1,"axis":0,"axis_value":-1.0)]
+}
+ui_up={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"keycode":4194320), Object(InputEventJoypadButton,"device":-1,"button_index":11), Object(InputEventJoypadMotion,"device":-1,"axis":1,"axis_value":-1.0)]
+}
+ui_right={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"keycode":4194321), Object(InputEventJoypadButton,"device":-1,"button_index":14), Object(InputEventJoypadMotion,"device":-1,"axis":0,"axis_value":1.0)]
+}
+ui_down={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"keycode":4194322), Object(InputEventJoypadButton,"device":-1,"button_index":12), Object(InputEventJoypadMotion,"device":-1,"axis":1,"axis_value":1.0)]
+}
+
 move_forward={
 "deadzone": 0.25,
 "events": [Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":0,"physical_keycode":87,"key_label":0,"unicode":119,"location":0,"echo":false,"script":null),
@@ -153,7 +178,7 @@ radio_toggle={
 }
 [internationalization]
 
-locale/translations=PackedStringArray("res://i18n/world.en.po")
+locale/translations=PackedStringArray("res://i18n/world.en.po", "res://i18n/story.en.po")
 locale/fallback="en"
 
 [rendering]

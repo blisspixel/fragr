@@ -1201,6 +1201,14 @@ async fn agent_task(
                 mission_client
                     .observe(tick, state)
                     .map_err(|error| Error::Server(error.into()))?;
+                if let Some(ready) = mission_client.readiness(player_id) {
+                    sink.send(Message::Text(
+                        serde_json::to_string(&ClientMessage::MissionReady(ready))
+                            .map_err(transport)?,
+                    ))
+                    .await
+                    .map_err(transport)?;
+                }
             }
             Ok(ServerMessage::Loadout(next)) => {
                 next.validate_for(player_id, loadout.as_ref())

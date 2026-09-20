@@ -35,6 +35,7 @@ impl Encounters {
             .players
             .iter()
             .filter(|p| p.campaign == Some(CampaignActor::Participant {}) && p.hp > 0)
+            .filter(|p| crate::mission::actor_active(state.mission.as_ref(), p.id, p.campaign))
             .map(|p| [p.x, p.y - PLAYER_FLOOR_Y, p.z])
             .collect();
         if living.is_empty() {
