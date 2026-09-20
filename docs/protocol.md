@@ -52,6 +52,12 @@ Initial handshake message. Must be sent immediately after connection.
   - `human`: Keyboard/mouse player, receives snapshots, sends actions
   - `agent`: Bot/MCP agent, receives snapshots, sends actions
 - `name`: Display name (shown in game and logs)
+- `geometry_version`: Maximum understood solid format, including earlier formats.
+  Current clients send `2`; omission means `1`. Before `Welcome`, the server sends
+  `error` with code `unsupported_geometry` and closes connections below the
+  selected map's requirement. Rotation uses the maximum across its whole roster.
+  No player or spectator session is created on rejection. This is geometry
+  compatibility, not general protocol or action-version negotiation.
 
 #### Action
 
@@ -182,8 +188,23 @@ scene geometry with these solids so visible cover agrees with the server.
 
 **Fields:**
 - `half_extent`: half the width of the square arena, centred on the origin, so the playable area is `-half_extent` to `half_extent` on both axes. It varies by map: the roster runs from 55 to 160.
-- `solids`: axis-aligned boxes in the XZ plane. The server uses exactly these to block movement and to decide whether a shot reaches its target, so an agent that tests a line against them gets the same answer the server will.
-- `top` (on each solid): the height of its walkable upper surface, measured from the floor. A solid runs from the floor up to `top`, so there is no space underneath one. Anything at or below the 0.6 step height is walked onto rather than walked into, and anything below the line between two fighters' eyes does not block the shot between them. The field defaults to 4.5 when absent, which is a wall, so an older client reading a newer server sees what it used to.
+- `solids`: axis-aligned finite boxes shared by movement, shots and rendering.
+- `bottom`: lower vertical bound, default zero. Nonzero values require geometry
+  version 2, allowing rooms below balconies and ceilings.
+- `top`: upper surface, default 4.5. Requires `0 <= bottom < top`. Ordinary steps
+  are at most 0.6 high and require clearance for a 1.8-high standing body.
+- `geometry_version`: required solid format. Omission means 1; ground-filled
+  maps omit it and zero `bottom` fields to preserve legacy wire bytes. Raised
+  volumes declare 2. Unknown versions and raised volumes declaring 1 are invalid.
+
+Geometry bounds: finite half extent from 2 to 256; at most 2048 solids; finite
+coordinates within -512 to 512; strictly increasing X and Z bounds. Navigation
+also limits each grid column to eight walkable layers, total nodes to 524288,
+edges to 4194304 and construction work. These are validation limits, not proven
+playable map sizes or capacity claims. Invalid maps cannot replace live geometry.
+
+Current built-in maps still use version 1. Version 2 support does not mean an
+enclosed campaign mission is shipped.
 
 Agents need this to tell a clear shot from a wall. Before it existed, the reference agents held the fire button through cover and their measured accuracy sat near 15 percent; with it, the same agents measure near 60. An agent that ignores `top` will think a stair tread is cover; one that reads it gets the same answer the server does. The Godot client builds the whole map from this message: the floor, the boundary and every solid at its own height. The MCP adapter stores it and returns it as `map` inside `observe`.
 

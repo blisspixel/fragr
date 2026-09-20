@@ -864,9 +864,9 @@ pub fn push_recent_event(state: &mut ToolState, event_value: Value) {
 }
 
 /// Apply an inbound server JSON text frame into tool state (snapshot / event / soft prison).
-pub fn ingest_server_text(state: &mut ToolState, text: &str) {
+pub fn ingest_server_text(state: &mut ToolState, text: &str) -> Result<(), &'static str> {
     if text.len() > 1_000_000 {
-        return;
+        return Err("server message exceeds size limit");
     }
 
     match serde_json::from_str::<protocol::ServerMessage>(text) {
@@ -882,12 +882,15 @@ pub fn ingest_server_text(state: &mut ToolState, text: &str) {
             map_name,
             half_extent,
             solids,
+            geometry_version,
         }) => {
+            fragr_server::protocol::validate_map_geometry(half_extent, &solids, geometry_version)?;
             state.map = Some(serde_json::json!({
                 "map_id": map_id,
                 "map_name": map_name,
                 "half_extent": half_extent,
                 "solids": solids,
+                "geometry_version": geometry_version,
             }));
         }
         Ok(protocol::ServerMessage::Event(event)) => {
@@ -899,22 +902,57 @@ pub fn ingest_server_text(state: &mut ToolState, text: &str) {
             state.player_id = player_id;
             state.connected = true;
         }
-        Ok(protocol::ServerMessage::Error { .. }) => {
+        Ok(protocol::ServerMessage::Error { code, .. }) => {
+            if code == "unsupported_geometry" {
+                return Err("server requires a newer geometry format");
+            }
             // Unicast speak rejection; MCP speak path already mirrors cooldown as isError.
         }
         Err(_) => {
             if let Ok(raw) = serde_json::from_str::<Value>(text) {
+                if raw.get("type").and_then(|v| v.as_str()) == Some("map_info") {
+                    return Err("invalid map geometry message");
+                }
                 if raw.get("type").and_then(|v| v.as_str()) == Some("event") {
                     push_recent_event(state, raw);
                 }
             }
         }
     }
+    Ok(())
 }
 
 #[cfg(test)]
 mod mcp_tests {
     use super::*;
+
+    #[test]
+    fn map_versions_are_validated_before_observation_is_replaced() {
+        let mut state = ToolState::default();
+        let mut map = serde_json::json!({"type":"map_info", "map_id":67, "map_name":"Balcony",
+        "half_extent":12.0, "geometry_version":2, "solids":[
+            {"min_x":-2.0,"max_x":2.0,"min_z":-2.0,"max_z":2.0,"bottom":2.4,"top":3.0}
+        ]});
+        ingest_server_text(&mut state, &map.to_string()).unwrap();
+        assert_eq!(state.map.as_ref().unwrap()["geometry_version"], 2);
+        assert_eq!(
+            state.map.as_ref().unwrap()["solids"][0]["bottom"],
+            serde_json::json!(2.4_f32)
+        );
+        let previous = state.map.clone();
+        for version in [0, 1, 3] {
+            map["geometry_version"] = version.into();
+            assert!(ingest_server_text(&mut state, &map.to_string()).is_err());
+            assert_eq!(state.map, previous);
+        }
+        assert!(ingest_server_text(&mut state, r#"{"type":"map_info","solids":"bad"}"#).is_err());
+        assert!(ingest_server_text(
+            &mut state,
+            r#"{"type":"error","code":"unsupported_geometry","message":"Update"}"#
+        )
+        .is_err());
+        assert!(ingest_server_text(&mut state, &"x".repeat(1_000_001)).is_err());
+    }
 
     fn req(method: &str, params: Option<Value>) -> McpRequest {
         McpRequest {
@@ -1065,20 +1103,21 @@ mod mcp_tests {
         ingest_server_text(
             &mut state,
             r#"{"type":"snapshot","tick":9,"players":[],"round_state":"active","round_time_left":100,"frag_limit":10}"#,
-        );
+        ).unwrap();
         assert_eq!(state.last_snapshot.as_ref().unwrap()["tick"], 9);
 
         ingest_server_text(
             &mut state,
             r#"{"type":"event","event":"player_joined","player":"X","role":"agent","round_number":1,"player_count":3}"#,
-        );
+        ).unwrap();
         assert_eq!(state.recent_events.len(), 1);
 
         // Soft prison: unknown event shape still buffers when type=event.
         ingest_server_text(
             &mut state,
             r#"{"type":"event","event":"future_thing","payload":1}"#,
-        );
+        )
+        .unwrap();
         assert_eq!(state.recent_events.len(), 2);
     }
 
@@ -1097,6 +1136,7 @@ mod mcp_tests {
         // Behavioral: Hello payload carries the resolved --name (not the default).
         let name = "ArenaFox";
         let hello = protocol::ClientMessage::Hello {
+            geometry_version: fragr_server::protocol::GEOMETRY_VERSION,
             role: protocol::Role::Agent,
             name: name.to_string(),
         };
@@ -1729,7 +1769,7 @@ mod mcp_tests {
         ingest_server_text(
             &mut state,
             r#"{"type":"welcome","player_id":"00000000-0000-0000-0000-000000000000","role":"agent","mode_name":"Contested Frequency","playlist":"Arena Duel"}"#,
-        );
+        ).unwrap();
         assert!(state.connected);
         assert!(state.player_id.is_some());
     }

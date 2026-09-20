@@ -55,8 +55,13 @@ impl Navigator {
                 combat: true,
             }
         } else if let (Some(x), Some(z)) = (aim.x, aim.z) {
+            let Some(floor) = world.coordinate_floor([x, aim.y.unwrap_or(from[1] + EYE_HEIGHT), z])
+            else {
+                self.points.clear();
+                return Action::default();
+            };
             NavigationGoal {
-                feet: [x, world.arena.support_height(x, z, f32::MAX), z],
+                feet: [x, floor, z],
                 combat: false,
             }
         } else {

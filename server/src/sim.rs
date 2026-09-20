@@ -765,6 +765,9 @@ impl GameState {
     /// The arena's shape as a message.
     pub fn map_info(&self) -> ServerMessage {
         ServerMessage::MapInfo {
+            geometry_version: crate::protocol::geometry_version(
+                &crate::maps::arena(self.map).solids,
+            ),
             map_id: self.map.id(),
             map_name: self.map.name().to_string(),
             half_extent: self.map.half_extent(),

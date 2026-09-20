@@ -78,13 +78,13 @@ fn resolve_agent_name(cli_name: Option<&str>, default: &str) -> String {
     default.to_string()
 }
 
+type McpSink = futures_util::stream::SplitSink<
+    tokio_tungstenite::WebSocketStream<tokio_tungstenite::MaybeTlsStream<tokio::net::TcpStream>>,
+    Message,
+>;
+
 struct McpWsSession {
-    sink: futures_util::stream::SplitSink<
-        tokio_tungstenite::WebSocketStream<
-            tokio_tungstenite::MaybeTlsStream<tokio::net::TcpStream>,
-        >,
-        Message,
-    >,
+    sink: std::sync::Arc<tokio::sync::Mutex<McpSink>>,
     recv_task: tokio::task::JoinHandle<()>,
 }
 
@@ -97,6 +97,7 @@ async fn mcp_connect_and_hello(
     let (mut ws_sink, mut ws_stream) = ws_stream.split();
 
     let hello = ClientMessage::Hello {
+        geometry_version: fragr_server::protocol::GEOMETRY_VERSION,
         role: Role::Agent,
         name: name.to_string(),
     };
@@ -107,7 +108,7 @@ async fn mcp_connect_and_hello(
     if let Some(Ok(Message::Text(text))) = ws_stream.next().await {
         {
             let mut state = tool_state.lock().await;
-            ingest_server_text(&mut state, &text);
+            ingest_server_text(&mut state, &text).map_err(std::io::Error::other)?;
             state.session_name = Some(name.to_string());
         }
         if let Ok(ServerMessage::Welcome { player_id: pid, .. }) = serde_json::from_str(&text) {
@@ -116,12 +117,23 @@ async fn mcp_connect_and_hello(
     }
 
     let tool_state_clone = tool_state.clone();
+    let ws_sink = std::sync::Arc::new(tokio::sync::Mutex::new(ws_sink));
+    let receive_sink = ws_sink.clone();
     let recv_task = tokio::spawn(async move {
         while let Some(msg) = ws_stream.next().await {
             match msg {
                 Ok(Message::Text(text)) => {
                     let mut state = tool_state_clone.lock().await;
-                    ingest_server_text(&mut state, &text);
+                    if let Err(error) = ingest_server_text(&mut state, &text) {
+                        tracing::warn!("Closing invalid game session: {error}");
+                        state.connected = false;
+                        state.player_id = None;
+                        state.map = None;
+                        state.last_snapshot = None;
+                        drop(state);
+                        let _ = receive_sink.lock().await.send(Message::Close(None)).await;
+                        break;
+                    }
                 }
                 Ok(Message::Close(_)) => {
                     tracing::info!("Server closed connection");
@@ -156,8 +168,8 @@ async fn mcp_leave_session(
     session: &mut Option<McpWsSession>,
     tool_state: &std::sync::Arc<tokio::sync::Mutex<ToolState>>,
 ) {
-    if let Some(mut s) = session.take() {
-        let _ = s.sink.send(Message::Close(None)).await;
+    if let Some(s) = session.take() {
+        let _ = s.sink.lock().await.send(Message::Close(None)).await;
         s.recv_task.abort();
     }
     let mut state = tool_state.lock().await;
@@ -215,8 +227,8 @@ async fn apply_mcp_line(
     if let Some(join_name) = outcome.pending_join {
         // Drop any stale socket (recv died) before Hello reconnect.
         if session.is_some() {
-            if let Some(mut s) = session.take() {
-                let _ = s.sink.send(Message::Close(None)).await;
+            if let Some(s) = session.take() {
+                let _ = s.sink.lock().await.send(Message::Close(None)).await;
                 s.recv_task.abort();
             }
         }
@@ -239,6 +251,8 @@ async fn apply_mcp_line(
         if let Some(ref mut s) = session {
             let action_msg = ClientMessage::Action(action);
             s.sink
+                .lock()
+                .await
                 .send(Message::Text(serde_json::to_string(&action_msg)?))
                 .await?;
         }
@@ -248,6 +262,8 @@ async fn apply_mcp_line(
         if let Some(ref mut s) = session {
             let speak_msg = ClientMessage::Speak(speak);
             s.sink
+                .lock()
+                .await
                 .send(Message::Text(serde_json::to_string(&speak_msg)?))
                 .await?;
         }
@@ -303,6 +319,7 @@ async fn run_scripted_bot(
     let (mut ws_sink, mut ws_stream) = ws_stream.split();
 
     let hello = ClientMessage::Hello {
+        geometry_version: fragr_server::protocol::GEOMETRY_VERSION,
         role: Role::Agent,
         name: name.clone(),
     };
@@ -430,6 +447,40 @@ fn compute_bot_action(bot_id: uuid::Uuid, snapshot: &protocol::Snapshot) -> prot
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[tokio::test]
+    async fn invalid_geometry_closes_mcp_session_and_clears_observation() {
+        for version in [0, 3] {
+            let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
+            let url = format!("ws://{}", listener.local_addr().unwrap());
+            let server = tokio::spawn(async move {
+                let (socket, _) = listener.accept().await.unwrap();
+                let mut ws = tokio_tungstenite::accept_async(socket).await.unwrap();
+                let hello = ws.next().await.unwrap().unwrap();
+                assert!(matches!(
+                    serde_json::from_str::<ClientMessage>(hello.to_text().unwrap()).unwrap(),
+                    ClientMessage::Hello {
+                        geometry_version: 2,
+                        ..
+                    }
+                ));
+                ws.send(Message::Text(serde_json::json!({"type":"welcome", "role":"agent", "player_id":uuid::Uuid::nil()}).to_string())).await.unwrap();
+                ws.send(Message::Text(serde_json::json!({"type":"map_info", "map_id":1, "map_name":"Invalid", "half_extent":12.0, "solids":[], "geometry_version":version}).to_string())).await.unwrap();
+                let closed = tokio::time::timeout(std::time::Duration::from_secs(2), ws.next())
+                    .await
+                    .unwrap();
+                assert!(matches!(closed, Some(Ok(Message::Close(_)))));
+            });
+            let state = std::sync::Arc::new(tokio::sync::Mutex::new(ToolState::default()));
+            let mut session = Some(mcp_connect_and_hello(&url, "Probe", &state).await.unwrap());
+            server.await.unwrap();
+            let observed = state.lock().await;
+            assert!(!observed.connected && observed.player_id.is_none());
+            assert!(observed.map.is_none() && observed.last_snapshot.is_none());
+            drop(observed);
+            mcp_leave_session(&mut session, &state).await;
+        }
+    }
     use futures_util::{SinkExt, StreamExt};
     use mcp::validate_act_arguments;
     use serde_json::Value;
@@ -1000,6 +1051,7 @@ mod tests {
     #[test]
     fn test_client_action_message_structure() {
         let hello = ClientMessage::Hello {
+            geometry_version: fragr_server::protocol::GEOMETRY_VERSION,
             role: protocol::Role::Agent,
             name: "TestAgent".to_string(),
         };
@@ -1169,6 +1221,7 @@ mod tests {
         std::env::remove_var("FRAGR_AGENT_NAME");
         let name = resolve_agent_name(Some("ArenaFox"), "MCP Agent");
         let hello = ClientMessage::Hello {
+            geometry_version: fragr_server::protocol::GEOMETRY_VERSION,
             role: Role::Agent,
             name: name.clone(),
         };

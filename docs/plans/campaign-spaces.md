@@ -1,7 +1,7 @@
 # Enclosed and layered campaign spaces
 
-**Status:** in progress, 2026-09-19. Finite-volume movement and shots are under
-local verification; layered routes and network compatibility remain unbuilt.
+**Status:** in progress, 2026-09-19. Finite-volume movement, layered routes and
+geometry compatibility are under local verification. No enclosed mission ships.
 **Goal:** support the intake hall, service stairs and records balcony in
 [M01](../campaign/m01-recall-notice.md) without fake ceilings or blocked space
 beneath upper floors. Spend: $0. No new dependency or renderer.
@@ -85,8 +85,41 @@ Godot harnesses pass, including the raised-mesh check and new vectors. Receipts:
 `.agents/enclosed-*.log`. This is local engineering evidence, not a built level.
 The workspace suite also passes: 606 tests and the existing ignored generator.
 
-Next: replace the one-height topology with bounded layered routes, enforce
-geometry compatibility at connection and map boundaries, validate untrusted
-client map data, and add actual-player plus rendered enclosed-space evidence.
+The next local increment adds multiple walkable layers per grid cell, preserving
+legacy primary indices and bounding layers, nodes, edges and construction work.
+Shared-movement route tests pass for underpasses, stairs to the overlapping upper
+floor, one-way drops, exact headroom and invalid surfaces. Coordinate-only goals
+use their target height or the fighter's current eye height instead of silently
+selecting a roof. Actual `GameState` traversal of raised geometry remains pending.
+
+The connection declares maximum geometry version 2; legacy omission means 1.
+The server rejects insufficient capabilities before Welcome or roster mutation,
+including the maximum requirement of a rotating roster. Ground-only maps omit
+version 1 and zero bottoms, preserving their old map bytes. Local socket tests
+cover rejected roles, supported joins and unsupported server configuration.
+Rust consumers share geometry-bound validation. The MCP session closes on a bad
+map; the Godot network validates before emission and presents a connection error.
+Eighteen Godot harnesses pass, including malformed maps, the version gate and
+geometry replacement when a server reuses a map ID. The workspace suite and
+warnings-denied Clippy pass after the new adapter socket tests. Receipts remain
+under `.agents/enclosed-wire-*` and `.agents/enclosed-map-godot.log`.
+
+Next: finish verification and review of these changes, measure legacy CPU traces
+and the mixed roster, and add actual-player plus rendered enclosed-space evidence.
+Review malformed-message handling in all controller paths before integration.
 No built-in map exposes raised slabs yet. Do not publish this intermediate
 geometry implementation until those paths agree and full verification passes.
+
+Parallel maintenance: PR #175 fixes a benchmark threshold test that accidentally
+asserted debug/coverage speed. Its next CI run exposed excessive early deaths on
+Tripoint Works. A separate worktree under `.agents/worktrees/benchmark-thresholds`
+holds a reproduced warmup-join defect and fix: warmup previously bypassed cover
+selection unless a fixed ring slot was occupied. The existing cover fixture fails
+with a warmup join at (approximately 0, 0, 92), then passes when all joins use the
+same policy. Complete that focused main-branch repair before publishing this
+geometry branch. Do not weaken the spawn-death or release benchmark gates.
+The maintenance worktree is now detached at `1d03cc8`; its branch is
+`fix/benchmark-threshold-fixtures`. Do not share a Cargo target directory between
+different worktree source states: doing so produced stale dependency metadata
+during this session. A package clean followed by a full rebuild restored the
+correct geometry API and the complete workspace suite passed.

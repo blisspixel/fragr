@@ -6,6 +6,9 @@ use tokio::sync::{mpsc, Mutex};
 use tokio_tungstenite::{accept_async, tungstenite::Message};
 use uuid::Uuid;
 
+#[cfg(test)]
+mod tests;
+
 pub type WsTx = mpsc::UnboundedSender<ServerMessage>;
 pub type WsRx = mpsc::UnboundedReceiver<ServerMessage>;
 
@@ -18,6 +21,7 @@ pub struct NetServer {
     listener: TcpListener,
     pub clients: Arc<Mutex<Vec<ClientSession>>>,
     game_tx: mpsc::UnboundedSender<GameCommand>,
+    geometry_version: u32,
 }
 
 pub enum GameCommand {
@@ -49,6 +53,20 @@ impl NetServer {
         addr: &str,
         game_tx: mpsc::UnboundedSender<GameCommand>,
     ) -> std::io::Result<Self> {
+        Self::bind_with_geometry(addr, game_tx, crate::protocol::legacy_geometry_version()).await
+    }
+
+    pub async fn bind_with_geometry(
+        addr: &str,
+        game_tx: mpsc::UnboundedSender<GameCommand>,
+        geometry_version: u32,
+    ) -> std::io::Result<Self> {
+        if !(1..=crate::protocol::GEOMETRY_VERSION).contains(&geometry_version) {
+            return Err(std::io::Error::new(
+                std::io::ErrorKind::InvalidInput,
+                "unsupported server geometry version",
+            ));
+        }
         let listener = TcpListener::bind(addr).await?;
         tracing::info!("WebSocket server listening on {}", addr);
 
@@ -56,6 +74,7 @@ impl NetServer {
             listener,
             clients: Arc::new(Mutex::new(Vec::new())),
             game_tx,
+            geometry_version,
         })
     }
 
@@ -70,9 +89,12 @@ impl NetServer {
                     tracing::debug!("New connection from {}", addr);
                     let game_tx = self.game_tx.clone();
                     let clients = self.clients.clone();
+                    let geometry_version = self.geometry_version;
 
                     tokio::spawn(async move {
-                        if let Err(e) = handle_connection(stream, game_tx, clients).await {
+                        if let Err(e) =
+                            handle_connection(stream, game_tx, clients, geometry_version).await
+                        {
                             tracing::warn!("Connection error: {}", e);
                         }
                     });
@@ -89,6 +111,7 @@ async fn handle_connection(
     stream: TcpStream,
     game_tx: mpsc::UnboundedSender<GameCommand>,
     clients: Arc<Mutex<Vec<ClientSession>>>,
+    required_geometry: u32,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let ws_stream = accept_async(stream).await?;
     let (mut ws_sink, mut ws_stream) = ws_stream.split();
@@ -101,7 +124,22 @@ async fn handle_connection(
 
     if let Some(Ok(Message::Text(text))) = ws_stream.next().await {
         match serde_json::from_str::<ClientMessage>(&text) {
-            Ok(ClientMessage::Hello { role: r, name }) => {
+            Ok(ClientMessage::Hello {
+                role: r,
+                name,
+                geometry_version,
+            }) => {
+                if geometry_version < required_geometry {
+                    let rejection = ServerMessage::Error {
+                        code: "unsupported_geometry".into(),
+                        message: format!("This server requires geometry version {required_geometry}; update your client."),
+                    };
+                    ws_sink
+                        .send(Message::Text(serde_json::to_string(&rejection)?))
+                        .await?;
+                    ws_sink.close().await?;
+                    return Ok(());
+                }
                 role = Some(r);
 
                 player_id = if r != Role::Spectator {

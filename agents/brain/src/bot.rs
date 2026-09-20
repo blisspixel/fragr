@@ -283,6 +283,7 @@ pub async fn run_bot(
         .map_err(transport_err)?;
     let (mut sink, mut stream) = ws.split();
     let hello = ClientMessage::Hello {
+        geometry_version: fragr_server::protocol::GEOMETRY_VERSION,
         role: Role::Agent,
         name: config.name.clone(),
     };
@@ -385,8 +386,12 @@ pub async fn run_bot(
                     Ok(ServerMessage::Ack { .. }) => {}
                     // Geometry belongs to the local controller, never a paid
                     // per-frame decision. Reject invalid worlds before driving.
-                    Ok(ServerMessage::MapInfo { map_name, solids, half_extent, .. }) => {
+                    Ok(ServerMessage::MapInfo { map_name, solids, half_extent, geometry_version, .. }) => {
                         tracing::debug!("map: {map_name}");
+                        if let Err(error) = fragr_server::protocol::validate_map_geometry(half_extent, &solids, geometry_version) {
+                            session_error = Some(Error::Transport(format!("invalid navigation map: {error}")));
+                            break;
+                        }
                         let arena = fragr_server::movement::Arena { half: half_extent, solids };
                         let built = tokio::task::spawn_blocking(move || {
                             fragr_server::navigation::Navigation::shared(arena)
@@ -993,6 +998,7 @@ mod tests {
         let (mut sink, mut stream) = ws.split();
         sink.send(Message::Text(
             serde_json::to_string(&ClientMessage::Hello {
+                geometry_version: fragr_server::protocol::GEOMETRY_VERSION,
                 role: Role::Spectator,
                 name: "Spec".into(),
             })

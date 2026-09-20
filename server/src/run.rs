@@ -60,7 +60,16 @@ pub async fn run_server(
         tokio::task::spawn_blocking(move || GameSession::with_map(map, rotate)).await?;
     let (game_tx, mut game_rx) = mpsc::unbounded_channel();
 
-    let net_server = NetServer::bind(&options.bind, game_tx.clone()).await?;
+    // Rotation advertises the maximum requirement before a client joins, so
+    // switching maps cannot strand a legacy client inside a misrendered slab.
+    let required_geometry = MapKind::ALL
+        .into_iter()
+        .filter(|candidate| rotate || *candidate == map)
+        .map(|candidate| crate::protocol::geometry_version(&crate::maps::arena(candidate).solids))
+        .max()
+        .unwrap_or_else(crate::protocol::legacy_geometry_version);
+    let net_server =
+        NetServer::bind_with_geometry(&options.bind, game_tx.clone(), required_geometry).await?;
     if let Some(tx) = ready {
         let _ = tx.send(net_server.local_addr()?);
     }

@@ -1164,6 +1164,7 @@ async fn agent_task(
     let (ws, _) = connect_async(&url).await.map_err(transport)?;
     let (mut sink, mut stream) = ws.split();
     let hello = ClientMessage::Hello {
+        geometry_version: fragr_server::protocol::GEOMETRY_VERSION,
         role: Role::Agent,
         name,
     };
@@ -1195,8 +1196,15 @@ async fn agent_task(
             Ok(ServerMessage::MapInfo {
                 solids,
                 half_extent,
+                geometry_version,
                 ..
             }) => {
+                fragr_server::protocol::validate_map_geometry(
+                    half_extent,
+                    &solids,
+                    geometry_version,
+                )
+                .map_err(|error| Error::Server(format!("invalid navigation map: {error}")))?;
                 let geometry = fragr_server::movement::Arena {
                     half: half_extent,
                     solids: solids.clone(),
@@ -1304,6 +1312,7 @@ pub async fn run(config: Config) -> Result<(Report, Observation), Error> {
     let (ws, _) = connect_async(&url).await.map_err(transport)?;
     let (mut sink, mut stream) = ws.split();
     let hello = ClientMessage::Hello {
+        geometry_version: fragr_server::protocol::GEOMETRY_VERSION,
         role: Role::Spectator,
         name: "Observer".to_string(),
     };
@@ -1411,7 +1420,7 @@ mod tests {
         let (_stop, stopped) = tokio::sync::watch::channel(false);
         let result = agent_task(url, "Probe".into(), Policy::Reflex, stopped).await;
         assert!(
-            matches!(result, Err(Error::Server(message)) if message.contains("navigation extent"))
+            matches!(result, Err(Error::Server(message)) if message.contains("geometry extent"))
         );
         server.await.unwrap();
     }

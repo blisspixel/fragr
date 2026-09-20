@@ -105,6 +105,7 @@ use uuid::Uuid;
 #[test]
 fn test_protocol_client_message_hello_serialization() {
     let hello = ClientMessage::Hello {
+        geometry_version: crate::protocol::GEOMETRY_VERSION,
         role: Role::Agent,
         name: "TestBot".to_string(),
     };
@@ -114,9 +115,14 @@ fn test_protocol_client_message_hello_serialization() {
 
     let deserialized: ClientMessage = serde_json::from_str(&json).unwrap();
     match deserialized {
-        ClientMessage::Hello { role, name } => {
+        ClientMessage::Hello {
+            role,
+            name,
+            geometry_version,
+        } => {
             assert_eq!(role, Role::Agent);
             assert_eq!(name, "TestBot");
+            assert_eq!(geometry_version, crate::protocol::GEOMETRY_VERSION);
         }
         _ => panic!("Expected Hello message"),
     }

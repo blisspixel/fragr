@@ -1,9 +1,11 @@
-//! Bounded walking routes over the authoritative heightfield.
+//! Bounded walking routes over the authoritative solid volumes.
 //!
 //! Graph points are feet positions. Routes are advice to a controller; only
 //! normal movement actions can move a fighter or decide collision outcomes.
 
-use crate::movement::{Arena, RADIUS, STEP_UP};
+#[cfg(test)]
+use crate::movement::MAX_SOLIDS;
+use crate::movement::{Arena, BODY_HEIGHT, CONTACT_EPSILON, MAX_HALF_EXTENT, RADIUS, STEP_UP};
 use std::cmp::Reverse;
 use std::collections::BinaryHeap;
 use std::sync::{Arc, Mutex, OnceLock, Weak};
@@ -12,8 +14,11 @@ mod controller;
 pub use controller::{NavigationGoal, Navigator};
 
 const CELL: f32 = 1.0;
-const MAX_HALF: f32 = 256.0;
-const MAX_SOLIDS: usize = 2048;
+const MAX_HALF: f32 = MAX_HALF_EXTENT;
+const MAX_LAYERS: usize = 8;
+const MAX_NODES: usize = 524_288;
+const MAX_EDGES: usize = 4_194_304;
+const MAX_BUILD_WORK: usize = 256_000_000;
 pub const SEARCH_LIMIT: usize = 16_384;
 const DIRECTIONS: [(i32, i32); 8] = [
     (1, 0),
@@ -47,8 +52,34 @@ pub struct Navigation {
     arena: Arena,
     span: i32,
     width: usize,
-    heights: Vec<f32>,
-    edges: Vec<u8>,
+    nodes: Vec<Node>,
+    edges: Vec<Edge>,
+}
+
+#[derive(Debug)]
+struct Node {
+    cell: usize,
+    height: f32,
+    next_layer: Option<usize>,
+    edges: std::ops::Range<usize>,
+}
+
+#[derive(Debug)]
+struct Edge {
+    target: usize,
+    cost: usize,
+}
+
+struct BuildBudget(usize);
+
+impl BuildBudget {
+    fn charge(&mut self, work: usize) -> Result<(), &'static str> {
+        self.0 = self
+            .0
+            .checked_sub(work)
+            .ok_or("navigation construction work limit exceeded")?;
+        Ok(())
+    }
 }
 
 impl Navigation {
@@ -76,103 +107,174 @@ impl Navigation {
     }
 
     pub fn new(arena: Arena) -> Result<Self, &'static str> {
-        if !arena.half.is_finite() || !(2.0..=MAX_HALF).contains(&arena.half) {
-            return Err("navigation extent must be finite and between 2 and 256 metres");
-        }
-        if arena.solids.len() > MAX_SOLIDS {
-            return Err("navigation solid limit exceeded");
-        }
-        for solid in &arena.solids {
-            if [
-                solid.min_x,
-                solid.max_x,
-                solid.min_z,
-                solid.max_z,
-                solid.bottom,
-                solid.top,
-            ]
-            .iter()
-            .any(|v| !v.is_finite() || v.abs() > MAX_HALF * 2.0)
-                || solid.min_x >= solid.max_x
-                || solid.min_z >= solid.max_z
-                || solid.bottom < 0.0
-                || solid.top <= solid.bottom
-            {
-                return Err("invalid navigation solid");
-            }
-        }
+        crate::movement::validate_geometry(arena.half, &arena.solids)?;
         let span = (arena.half / CELL).floor() as i32;
         let width = (span * 2) as usize;
         let count = width * width;
         if count.saturating_mul(arena.solids.len()) > 64_000_000 {
             return Err("navigation construction work limit exceeded");
         }
+        let mut budget = BuildBudget(MAX_BUILD_WORK);
         let mut navigation = Self {
             arena,
             span,
             width,
-            heights: vec![f32::NAN; count],
-            edges: vec![0; count],
+            // Keep the primary node's cell index stable on legacy maps. Lower
+            // reachable layers are linked after the primary grid allocation.
+            nodes: (0..count)
+                .map(|cell| Node {
+                    cell,
+                    height: f32::NAN,
+                    next_layer: None,
+                    edges: 0..0,
+                })
+                .collect(),
+            edges: Vec::new(),
         };
-        for index in 0..count {
-            let [x, _, z] = navigation.point(index);
-            let floor = navigation.arena.support_height(x, z, f32::MAX);
-            // Leave room for one 20 Hz movement step (0.25 m) at a waypoint.
-            // Exact ledge corners are legal points but unsafe steering targets.
-            let supported = [-0.3, 0.3].iter().all(|dx| {
-                [-0.3, 0.3]
+        for cell in 0..count {
+            let [x, _, z] = navigation.point(cell);
+            budget.charge(navigation.arena.solids.len())?;
+            let mut floors = vec![0.0];
+            floors.extend(
+                navigation
+                    .arena
+                    .solids
                     .iter()
-                    .all(|dz| navigation.arena.support_height(x + dx, z + dz, f32::MAX) >= floor)
-            });
-            if supported && !navigation.arena.blocked_at(x, z, floor + STEP_UP) {
-                navigation.heights[index] = floor;
+                    .filter(|solid| solid.covers(x, z))
+                    .map(|solid| solid.top),
+            );
+            floors.sort_by(|a, b| b.total_cmp(a));
+            floors.dedup();
+            let mut previous: Option<usize> = None;
+            let mut layers = 0;
+            for floor in floors {
+                budget.charge(navigation.arena.solids.len().saturating_mul(6))?;
+                // A lower surface inside another filled volume is not a floor.
+                if navigation
+                    .arena
+                    .solids
+                    .iter()
+                    .any(|solid| solid.bottom <= floor && solid.top > floor && solid.covers(x, z))
+                {
+                    continue;
+                }
+                // A waypoint needs support around its centre. An overhead
+                // slab cannot masquerade as support for a lower balcony edge.
+                let supported = [-0.3, 0.3].iter().all(|dx| {
+                    [-0.3, 0.3].iter().all(|dz| {
+                        floor == 0.0
+                            || navigation.arena.solids.iter().any(|solid| {
+                                solid.bottom <= floor
+                                    && solid.top >= floor
+                                    && solid.covers(x + dx, z + dz)
+                            })
+                    })
+                });
+                if !supported
+                    || navigation
+                        .arena
+                        .blocked_body_at(x, z, floor, floor + STEP_UP)
+                {
+                    continue;
+                }
+                layers += 1;
+                if layers > MAX_LAYERS
+                    || (previous.is_some() && navigation.nodes.len() >= MAX_NODES)
+                {
+                    return Err("navigation layer or node limit exceeded");
+                }
+                let index = if let Some(previous) = previous {
+                    let index = navigation.nodes.len();
+                    navigation.nodes.push(Node {
+                        cell,
+                        height: floor,
+                        next_layer: None,
+                        edges: 0..0,
+                    });
+                    navigation.nodes[previous].next_layer = Some(index);
+                    index
+                } else {
+                    navigation.nodes[cell].height = floor;
+                    cell
+                };
+                previous = Some(index);
             }
         }
         // At one-metre spacing, radius inflation makes any intervening flat
         // barrier cover at least one endpoint. Height transitions additionally
         // walk the segment to catch a taller riser before its supporting tread.
         const { assert!(CELL <= RADIUS * 2.0) };
-        for index in 0..count {
+        for index in 0..navigation.nodes.len() {
             let from = navigation.point(index);
             if !from[1].is_finite() {
                 continue;
             }
+            let first_edge = navigation.edges.len();
             for (direction, (dx, dz)) in DIRECTIONS.iter().enumerate() {
                 // A descending edge may cross one cell that cannot support a
                 // grounded body beside the ledge. Sweep to the landing beyond
                 // it; ordinary flat ground needs no redundant long edges.
                 if direction >= 4 {
-                    let middle = navigation.neighbour(index, dx / 2, dz / 2);
-                    if middle.is_some_and(|middle| navigation.heights[middle].is_finite()) {
+                    let middle = navigation.neighbour_cell(index, dx / 2, dz / 2);
+                    if middle.is_some_and(|cell| {
+                        navigation.layers(cell).any(|middle| {
+                            let height = navigation.nodes[middle].height;
+                            height.is_finite() && height <= from[1] + STEP_UP
+                        })
+                    }) {
                         continue;
                     }
                 }
-                let Some(next) = navigation.neighbour(index, *dx, *dz) else {
+                let Some(cell) = navigation.neighbour_cell(index, *dx, *dz) else {
                     continue;
                 };
-                let to = navigation.point(next);
-                if !to[1].is_finite() || (direction < 4 && to[1] > from[1] + STEP_UP) {
-                    continue;
-                }
-                if (direction < 4 && from[1] == to[1]) || navigation.walkable(from, to) {
-                    navigation.edges[index] |= 1 << direction;
+                let mut next_layer = Some(cell);
+                while let Some(next) = next_layer {
+                    next_layer = navigation.nodes[next].next_layer;
+                    let to = navigation.point(next);
+                    if !to[1].is_finite() || (direction < 4 && to[1] > from[1] + STEP_UP) {
+                        continue;
+                    }
+                    let flat = direction < 4 && from[1] == to[1];
+                    if !flat {
+                        let steps = ((dx.abs() + dz.abs()) as f32 / (RADIUS * 0.5)).ceil() as usize;
+                        budget.charge(
+                            (steps * 5 + 3).saturating_mul(navigation.arena.solids.len()),
+                        )?;
+                    }
+                    if flat || navigation.walkable(from, to) {
+                        if navigation.edges.len() >= MAX_EDGES {
+                            return Err("navigation edge limit exceeded");
+                        }
+                        navigation.edges.push(Edge {
+                            target: next,
+                            cost: (dx.abs() + dz.abs()) as usize,
+                        });
+                    }
                 }
             }
+            navigation.nodes[index].edges = first_edge..navigation.edges.len();
         }
         Ok(navigation)
     }
 
     fn point(&self, index: usize) -> [f32; 3] {
+        let node = &self.nodes[index];
         [
-            (index % self.width) as f32 * CELL - self.span as f32 * CELL + CELL * 0.5,
-            self.heights[index],
-            (index / self.width) as f32 * CELL - self.span as f32 * CELL + CELL * 0.5,
+            (node.cell % self.width) as f32 * CELL - self.span as f32 * CELL + CELL * 0.5,
+            node.height,
+            (node.cell / self.width) as f32 * CELL - self.span as f32 * CELL + CELL * 0.5,
         ]
     }
 
-    fn neighbour(&self, index: usize, dx: i32, dz: i32) -> Option<usize> {
-        let x = (index % self.width) as i32 + dx;
-        let z = (index / self.width) as i32 + dz;
+    fn layers(&self, cell: usize) -> impl Iterator<Item = usize> + '_ {
+        std::iter::successors(Some(cell), |index| self.nodes[*index].next_layer)
+    }
+
+    fn neighbour_cell(&self, index: usize, dx: i32, dz: i32) -> Option<usize> {
+        let cell = self.nodes[index].cell;
+        let x = (cell % self.width) as i32 + dx;
+        let z = (cell / self.width) as i32 + dz;
         (x >= 0 && z >= 0 && x < self.width as i32 && z < self.width as i32)
             .then(|| z as usize * self.width + x as usize)
     }
@@ -198,12 +300,11 @@ impl Navigation {
         // A fallen body can overlap a ledge's inflated edge while its feet are
         // outside the solid. Movement permits outward escape from that state;
         // an actual starting point inside a wall is still invalid.
-        if self
-            .arena
-            .solids
-            .iter()
-            .any(|solid| solid.top > floor + STEP_UP && solid.covers(from[0], from[2]))
-        {
+        if self.arena.solids.iter().any(|solid| {
+            solid.top > floor + STEP_UP
+                && solid.bottom < floor + BODY_HEIGHT - CONTACT_EPSILON
+                && solid.covers(from[0], from[2])
+        }) {
             return false;
         }
         let dx = to[0] - from[0];
@@ -229,6 +330,7 @@ impl Navigation {
                 };
                 if self.arena.solids.iter().any(|solid| {
                     solid.top > floor + STEP_UP
+                        && solid.bottom < floor + BODY_HEIGHT - CONTACT_EPSILON
                         && !(solid.blocks(previous[0], previous[2], RADIUS)
                             && !solid.blocks_motion((previous[0], previous[2]), (x, z), RADIUS))
                         && ray
@@ -238,7 +340,10 @@ impl Navigation {
                                     max_x: solid.max_x + RADIUS,
                                     min_z: solid.min_z - RADIUS,
                                     max_z: solid.max_z + RADIUS,
-                                    bottom: solid.bottom,
+                                    // Inflate downward so a horizontal ray at
+                                    // step height also sweeps the body's head.
+                                    bottom: solid.bottom
+                                        - (BODY_HEIGHT - STEP_UP - CONTACT_EPSILON),
                                     top: solid.top,
                                 },
                                 length,
@@ -268,6 +373,42 @@ impl Navigation {
         })
     }
 
+    /// Coordinate-only intent prefers the standing surface below its world
+    /// height. If that surface is filled, use the lowest clear surface above.
+    /// This preserves legacy raised pickups without targeting an overhead roof.
+    pub fn coordinate_floor(&self, point: [f32; 3]) -> Option<f32> {
+        if !self.valid_point(point) {
+            return None;
+        }
+        let [x, reference, z] = point;
+        let mut floors = vec![0.0];
+        floors.extend(
+            self.arena
+                .solids
+                .iter()
+                .filter(|solid| solid.covers(x, z))
+                .map(|solid| solid.top),
+        );
+        floors.sort_by(|a, b| {
+            (a > &reference).cmp(&(b > &reference)).then_with(|| {
+                if *a <= reference {
+                    b.total_cmp(a)
+                } else {
+                    a.total_cmp(b)
+                }
+            })
+        });
+        floors.dedup();
+        floors.into_iter().find(|floor| {
+            !self
+                .arena
+                .solids
+                .iter()
+                .any(|solid| solid.bottom <= *floor && solid.top > *floor && solid.covers(x, z))
+                && !self.arena.blocked_body_at(x, z, *floor, *floor + STEP_UP)
+        })
+    }
+
     fn anchor(&self, point: [f32; 3], starting: bool) -> Option<usize> {
         if !self.valid_point(point) {
             return None;
@@ -281,11 +422,13 @@ impl Navigation {
                 if nx < 0 || nz < 0 || nx >= self.width as i32 || nz >= self.width as i32 {
                     continue;
                 }
-                let index = nz as usize * self.width + nx as usize;
-                let candidate = self.point(index);
-                if candidate[1].is_finite() {
-                    let distance = (point[0] - candidate[0]).hypot(point[2] - candidate[2]);
-                    candidates.push((distance, index));
+                let cell = nz as usize * self.width + nx as usize;
+                for index in self.layers(cell) {
+                    let candidate = self.point(index);
+                    if candidate[1].is_finite() {
+                        let distance = (point[0] - candidate[0]).hypot(point[2] - candidate[2]);
+                        candidates.push((distance, index));
+                    }
                 }
             }
         }
@@ -311,11 +454,13 @@ impl Navigation {
             return route;
         };
         let heuristic = |index: usize| {
-            (index % self.width).abs_diff(goal % self.width)
-                + (index / self.width).abs_diff(goal / self.width)
+            let cell = self.nodes[index].cell;
+            let goal_cell = self.nodes[goal].cell;
+            (cell % self.width).abs_diff(goal_cell % self.width)
+                + (cell / self.width).abs_diff(goal_cell / self.width)
         };
-        let mut costs = vec![usize::MAX; self.heights.len()];
-        let mut parents = vec![usize::MAX; self.heights.len()];
+        let mut costs = vec![usize::MAX; self.nodes.len()];
+        let mut parents = vec![usize::MAX; self.nodes.len()];
         let mut queue = BinaryHeap::new();
         costs[start] = 0;
         queue.push(Reverse((heuristic(start), Reverse(0usize), start)));
@@ -335,14 +480,9 @@ impl Navigation {
                 break;
             }
             route.expanded += 1;
-            for (direction, (dx, dz)) in DIRECTIONS.iter().enumerate() {
-                if self.edges[index] & (1 << direction) == 0 {
-                    continue;
-                }
-                let Some(next) = self.neighbour(index, *dx, *dz) else {
-                    continue;
-                };
-                let next_cost = cost + (dx.abs() + dz.abs()) as usize;
+            for edge in &self.edges[self.nodes[index].edges.clone()] {
+                let next = edge.target;
+                let next_cost = cost + edge.cost;
                 if next_cost < costs[next] {
                     costs[next] = next_cost;
                     parents[next] = index;
@@ -377,6 +517,7 @@ impl Navigation {
 
 #[cfg(test)]
 mod tests {
+    mod enclosed;
     use super::*;
     use crate::movement::{self, MoveInput, MoveState, Solid};
 
@@ -671,7 +812,7 @@ mod tests {
             eprintln!(
                 "{}: {} nodes, {} solids, built in {:?}",
                 map.name(),
-                navigation.heights.len(),
+                navigation.nodes.len(),
                 navigation.arena.solids.len(),
                 start.elapsed()
             );

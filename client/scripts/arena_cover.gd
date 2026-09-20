@@ -22,7 +22,7 @@ const BOUNDARY_HEIGHT: float = 8.0
 ## the lighter surface so a player can read it as walkable at a glance.
 const LOW_TOP: float = 1.6
 
-var _built_for: int = -1
+var _built_info: Dictionary = {}
 var _half_extent: float = 0.0
 var _materials: Array[ShaderMaterial] = []
 
@@ -32,11 +32,15 @@ func _ready() -> void:
 ## Rebuild from a MapInfo payload. Cheap to call again; it only rebuilds when
 ## the map actually changed, because the server resends on rotation.
 func apply_map_info(info: Dictionary) -> void:
+	var problem: String = MapGeometry.validation_error(info)
+	if problem != "":
+		push_warning("arena_cover: " + problem)
+		return
 	var map_id: int = int(info.get("map_id", -1))
 	_hide_scene_props()
-	if map_id == _built_for:
+	if info == _built_info:
 		return
-	_built_for = map_id
+	_built_info = info.duplicate(true)
 	_half_extent = float(info.get("half_extent", 50.0))
 	_materials.clear()
 	for kind: int in range(4):

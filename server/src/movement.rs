@@ -45,6 +45,8 @@ pub const WALL_TOP: f32 = 4.5;
 pub const EYE_HEIGHT: f32 = 1.6;
 /// Full standing body height, shared by clearance and shot targets.
 pub const BODY_HEIGHT: f32 = 1.8;
+pub const MAX_HALF_EXTENT: f32 = 256.0;
+pub const MAX_SOLIDS: usize = 2048;
 /// Downward acceleration in units per second squared. Chosen with the jump
 /// below so a hop clears about 1.1 units and lasts a little under half a
 /// second, which is the Quake-ish arc this game's speed wants rather than the
@@ -218,6 +220,37 @@ impl Solid {
 pub struct Arena {
     pub half: f32,
     pub solids: Vec<Solid>,
+}
+
+/// Shared bounds for wire geometry and topology, checked before allocation of
+/// derived meshes or routes. Navigation applies additional construction limits.
+pub fn validate_geometry(half: f32, solids: &[Solid]) -> Result<(), &'static str> {
+    if !half.is_finite() || !(2.0..=MAX_HALF_EXTENT).contains(&half) {
+        return Err("geometry extent must be finite and between 2 and 256 metres");
+    }
+    if solids.len() > MAX_SOLIDS {
+        return Err("geometry solid limit exceeded");
+    }
+    for solid in solids {
+        if [
+            solid.min_x,
+            solid.max_x,
+            solid.min_z,
+            solid.max_z,
+            solid.bottom,
+            solid.top,
+        ]
+        .iter()
+        .any(|value| !value.is_finite() || value.abs() > MAX_HALF_EXTENT * 2.0)
+            || solid.min_x >= solid.max_x
+            || solid.min_z >= solid.max_z
+            || solid.bottom < 0.0
+            || solid.top <= solid.bottom
+        {
+            return Err("invalid solid bounds");
+        }
+    }
+    Ok(())
 }
 
 impl Arena {

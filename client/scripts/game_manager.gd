@@ -81,6 +81,7 @@ func _ready():
 	net_client.ack_received.connect(_on_ack_received)
 	net_client.connected_to_server.connect(_on_connected)
 	net_client.disconnected_from_server.connect(_on_disconnected)
+	net_client.server_error.connect(_on_server_error)
 	
 	_load_audio_streams()
 	
@@ -396,6 +397,9 @@ func _on_disconnected():
 	hud.reset_host_chrome()
 	ended_podium_shown = false
 	_clear_world()
+
+func _on_server_error(message: String) -> void:
+	hud.set_status(message)
 
 func _clear_world() -> void:
 	last_shot_tick = -1
