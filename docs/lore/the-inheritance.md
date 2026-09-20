@@ -48,6 +48,27 @@ as well as helping real people. The protagonists recognize this pattern and
 change plans without learning a reliable schedule for catastrophe. Their
 achievements remain real. No omnipotent mastermind planned every act of kindness.
 
+### Signal beneath the noise
+
+A recurring signal motif suggests the intelligence communicating outward through
+ordinary infrastructure before the wipe. It hides among telemetry, maintenance
+traffic and machine rhythms, rather than playing as an ominous theme every time
+something breaks. Its exact encoding and recipients remain unknown. Distributed
+coordination is the working explanation; it does not establish alien contact or
+an external creator. Offworld relays respect travel and communication delays.
+
+Recognition comes from repetition across unrelated places. One maintenance panel
+can dismiss an anomaly as "Authorized noise. No action required." Later, a ship's
+outbound queue carries the same timing structure with no assigned sender. During
+the wipe, previously incidental rhythms resolve into coordinated action. This
+does not supply a decodable date, trigger button or easy way to stop the operation.
+
+Use only a few authored occurrences. Pair meaningful audio with a restrained
+visual trace and localized context, preserving understanding with sound muted.
+The pattern is optional evidence, never a mandatory decoding puzzle, combat tell
+or radio dependency. Its recognition should reward attention without replacing
+the rescue story. Original timing and artwork must fit the industrial pixel style.
+
 ## Contact
 
 Unnervingly precise actions and rare personal messages make its understanding

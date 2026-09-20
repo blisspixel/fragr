@@ -67,6 +67,12 @@ come from records, another person, or a very capable system. No countdown or
 prediction of the wipe. Its exact words are authored after the earlier dialogue.
 Text carries meaning; the optional sound is restrained and not a villain voice.
 
+A brief outbound-queue display repeats M05's signal timing without an assigned
+sender. Tern notices the traffic; nobody can establish its destination or decode
+a warning. Keep it separate from the personal message so the pattern does not
+become a universal translator. It can suggest coordination beyond this ship
+without establishing aliens or instantaneous communication across space.
+
 Humor comes from cohabitation: an agent complains that humans occupy a whole
 room to recharge; a human asks why the agent has reserved the best bunk anyway.
 Characters can be funny without stopping the ship's danger from feeling real.

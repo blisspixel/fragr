@@ -32,6 +32,13 @@ Nobody can establish whether the absorbed individuals still exist.
    It does not explain the intelligence's whole plan or introduce an alien cause.
 6. Return control in an evacuation concourse with an achievable local rescue.
 
+At the transition, the earlier diagnostic rhythm becomes recognizable in nearby
+machines acting together. Show the correspondence through physical timing and
+brief display traces, not an explanatory speech or a warning before the rupture.
+Players who missed it still understand the immediate danger. This is the payoff
+to the [signal motif](../lore/the-inheritance.md#signal-beneath-the-noise), not proof
+of the absorbed bots' inner fate or of an extraterrestrial sender.
+
 ## Geometry and changing state
 
 | Zone | Before rupture | After rupture |
