@@ -1,6 +1,6 @@
 # Enclosed and layered campaign spaces
 
-**Status:** shipped in #176, 2026-09-19. Finite-volume movement, layered routes
+**Status:** shipped in #176 and v0.22.0, 2026-09-19. Finite-volume movement, layered routes
 and geometry compatibility passed all five PR CI jobs. No enclosed mission ships.
 **Goal:** support the intake hall, service stairs and records balcony in
 [M01](../campaign/m01-recall-notice.md) without fake ceilings or blocked space
@@ -142,6 +142,7 @@ roster passes with 2/6/6/8/12/16 external clients. Reports live under
 first-person view and both effect strips were inspected before publishing the
 current stills. GitHub run `35489587263` passed all five jobs before integration,
 including Linux, Windows and macOS checks.
+Post-merge run `35490174208` also passed all five jobs before release.
 
 No built-in map exposes raised slabs yet. External map data, explicit indoor
 spawns and full live M01 routes follow this foundation. The ring-spawn policy and

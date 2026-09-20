@@ -19,7 +19,7 @@ Status words: **planned**, **in flight**, **shipped** (merged to `main`, PR numb
 |---|---|---|
 | [`opening-spawns.md`](./opening-spawns.md) | **proven** (#175, v0.21.2) | Apply covered spawn selection before the opening fight as well as during play. |
 | [`shared-body-integration.md`](./shared-body-integration.md) | **proven** (#174, v0.21.1) | One body-collision integrator for the authority and movement mirror. |
-| [`campaign-spaces.md`](./campaign-spaces.md) | **proven** (#176) | Real ceilings, accessible balconies, layered routes and matching collision/rendering for M01. |
+| [`campaign-spaces.md`](./campaign-spaces.md) | **proven** (#176, v0.22.0) | Real ceilings, accessible balconies, layered routes and matching collision/rendering for M01. |
 | [`authored-campaign-maps.md`](./authored-campaign-maps.md) | **in flight** | Validated map files, explicit indoor spawns and M01's traversal blockout through the live server. |
 | [`gpu-bot-compute.md`](./gpu-bot-compute.md) | **planned** | Portable optional GPU perception/inference, measured against CPU queries with rendering contention and fallback. |
 | [`audio-effects-refresh.md`](./audio-effects-refresh.md) | **in flight** | Distinct weapon, movement, impact and world sounds; capped candidates and in-game mix verification. |

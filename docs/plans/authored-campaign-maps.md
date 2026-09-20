@@ -104,18 +104,44 @@ replacing the world. The authoring schema and run commands live in
 Local server tests walk human and agent roles through the main and alternate
 stairs, underpass, office and lift using ordinary session actions. Live socket
 tests exercise human/agent/spectator geometry and movement plus legacy rejection.
-The first ten-state OpenGL tour passes through actual input and networking.
-Initial full-size room captures were inspected; revised view headings and Vulkan
-inspection are in progress. The first views establish enclosed spaces and kit
-variation, while exposing the missing props, signage, room lighting and encounters.
+An MCP test observes the loaded map and moves through its entry. An eight-second
+smoke runs the standalone scripted client and local decision brain against each
+other in this map; both score frags, and the brain records zero paid calls.
+
+Both ten-state live tours pass and were inspected on Windows/AMD through OpenGL
+compatibility and Vulkan Forward+. Inspection found a gap above the maintenance
+wall; the solid was raised and both tours repeated. Current evidence lives in
+`.agents/qa/m01-{opengl,vulkan}-final`. The views establish enclosed spaces and
+kit variation, while exposing missing props, signage, room lighting and encounters.
+
+Workspace verification passes 629 Rust tests with 95.68 percent unfiltered line
+coverage, warnings-denied Clippy, release build and dependency checks. All 18
+Godot harnesses pass. Surface validation tests caught a typed-array lookup on an
+unvalidated Variant; the boundary now checks the type before membership. The
+checker rejected the engine error even though that harness printed PASS.
+
+CPU runs, release build on Windows, seed 42, 12,000 ticks each:
+
+| Bots / map | p99 tick ms | Maximum tick ms | Complete trace matches v0.22.0 |
+|---|---:|---:|---|
+| 16 / Arena Duel | 0.655 | 2.194 | yes |
+| 64 / Reclamation Gulch | 1.901 | 4.380 | yes |
+| 128 / Tripoint Works | 6.029 | 10.706 | yes |
+
+Reports: `.agents/bench/authored-{16,64,128}.json`. These pass the existing CPU
+budget and repeat-trace gates. They do not measure network scale, rendering or
+GPU bot compute, and do not establish a speed improvement.
 
 One workspace test reused a sprite-tool binary compiled from an earlier removed
 worktree. Its embedded manifest path pointed outside the current tree. Cleaning
 that package and rebuilding restored the palette test without changing code or
 assertions. Keep target directories isolated across worktrees.
 
-Remaining before integration: final full workspace/coverage and client checks,
-seeded CPU trace comparison, six-map mixed roster, both inspected M01 rendering
-paths, current full tour, consumer smoke and CI. Then continue with inventory,
+The full 21-state arcade/menu/effects tour also passes. Its contact sheet and
+both effect strips were inspected, and the release gallery was refreshed from
+`.agents/qa/authored-full`. This remains separate from the M01 captures.
+
+Remaining before integration: the six-map mixed roster and CI. Then continue
+with [M01 discovery](weapon-economy.md#next-bounded-increment-m01-discovery),
 encounters, interaction, objectives and checkpoints. A connected blockout still
 does not establish a fun ten-minute mission.
