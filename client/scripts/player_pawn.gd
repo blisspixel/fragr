@@ -101,6 +101,7 @@ func _ready():
 	weapon_textures["Flechette"] = load("res://assets/weapons/32/flechette.png")
 	weapon_textures["Rail"] = load("res://assets/weapons/32/rail.png")
 	weapon_textures["Scatter"] = load("res://assets/weapons/32/scatter.png")
+	weapon_textures["Tack"] = load("res://assets/weapons/32/_future/shock_pistol.png")
 	
 	cyanex_texture = load("res://assets/characters/64/cyanex_idle_strip.png")
 	kragge_texture = load("res://assets/characters/64/kragge_idle_strip.png")
@@ -115,7 +116,7 @@ func _load_audio_streams():
 	var fallback_fire = audio_dir + "fire.wav"
 	var fallback_hit = audio_dir + "hit.wav"
 	
-	for w in ["Flechette", "Rail", "Scatter"]:
+	for w in ["Tack", "Flechette", "Rail", "Scatter"]:
 		var key = w.to_lower()
 		var fire_path = audio_dir + "fire_" + key + ".wav"
 		var hit_path = audio_dir + "hit_" + key + ".wav"
@@ -246,10 +247,6 @@ func update_state(state: Dictionary):
 		else:
 			label.modulate = player_color
 	
-	if muzzle and state.get("just_fired", false):
-		var weapon = state.get("weapon", "")
-		show_muzzle_flash(weapon)
-	
 	if body and hit_flash_timer <= 0:
 		_update_body_color(false)
 
@@ -278,6 +275,12 @@ func _update_body_color(hit: bool):
 	_apply_body_scale(hit)
 
 func show_muzzle_flash(weapon: String):
+	if weapon == "Fists":
+		if muzzle:
+			muzzle.visible = false
+		if muzzle_glow:
+			muzzle_glow.light_energy = 0.0
+		return
 	if fire_sound:
 		if fire_streams.has(weapon):
 			fire_sound.stream = fire_streams[weapon]

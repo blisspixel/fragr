@@ -88,19 +88,35 @@ async fn authored_map_is_shared_by_humans_agents_and_spectators() {
     let (mut legacy, _) = connect_async(&url).await.unwrap();
     legacy
         .send(Message::Text(
-            r#"{"type":"hello","role":"human","name":"Legacy"}"#.into(),
+            r#"{"type":"hello","role":"human","name":"Legacy","gameplay_version":2}"#.into(),
         ))
         .await
         .unwrap();
     assert!(
         matches!(receive(&mut legacy).await, ServerMessage::Error { code,.. } if code == "unsupported_geometry")
     );
+    for role in ["human", "agent", "spectator"] {
+        let (mut old_rules, _) = connect_async(&url).await.unwrap();
+        old_rules
+            .send(Message::Text(
+                serde_json::json!({
+                    "type":"hello", "role":role, "name":"Old equipment", "geometry_version":2,
+                })
+                .to_string(),
+            ))
+            .await
+            .unwrap();
+        assert!(
+            matches!(receive(&mut old_rules).await, ServerMessage::Error { code, .. } if code == "unsupported_gameplay")
+        );
+    }
     let mut sockets = Vec::new();
     for role in [Role::Human, Role::Agent, Role::Spectator] {
         let (mut socket, _) = connect_async(&url).await.unwrap();
         socket
             .send(Message::Text(
                 serde_json::to_string(&ClientMessage::Hello {
+                    gameplay_version: fragr_server::protocol::GAMEPLAY_VERSION,
                     geometry_version: GEOMETRY_VERSION,
                     role,
                     name: format!("{role:?} walker"),
@@ -131,6 +147,14 @@ async fn authored_map_is_shared_by_humans_agents_and_spectators() {
             }
         }
         if id.is_some() {
+            loop {
+                if let ServerMessage::Loadout(loadout) = receive(&mut socket).await {
+                    loadout.validate_for(id, None).unwrap();
+                    assert_eq!(loadout.selected, fragr_server::protocol::WeaponType::Fists);
+                    assert_eq!(loadout.weapons.len(), 1);
+                    break;
+                }
+            }
             socket
                 .send(Message::Text(
                     serde_json::to_string(&ClientMessage::Action(fragr_server::protocol::Action {
@@ -148,9 +172,14 @@ async fn authored_map_is_shared_by_humans_agents_and_spectators() {
     let observer = sockets.last_mut().unwrap();
     let mut moved = false;
     for _ in 0..45 {
-        if let ServerMessage::Snapshot(snapshot) = receive(observer).await {
+        let message = receive(observer).await;
+        assert!(
+            !matches!(message, ServerMessage::Loadout(_)),
+            "private ammunition leaked to a spectator"
+        );
+        if let ServerMessage::Snapshot(snapshot) = message {
             assert_eq!(snapshot.map_id, 1001);
-            assert_eq!(snapshot.mode_name, "Traversal blockout");
+            assert_eq!(snapshot.mode_name, "Campaign development");
             assert!(snapshot.players.iter().all(|p| (p.y - 1.5).abs() < 0.01));
             if snapshot.players.len() == 2 && snapshot.players.iter().all(|p| p.z > -30.5) {
                 moved = true;
@@ -162,9 +191,96 @@ async fn authored_map_is_shared_by_humans_agents_and_spectators() {
         moved,
         "both roles must move through live input below the roof"
     );
+    use fragr_server::protocol::{Action, LookAt, WeaponType};
+    let human = &mut sockets[0];
+    let mut discovered = None;
+    send_action(
+        human,
+        Action {
+            forward: true,
+            look_at: Some(LookAt {
+                x: Some(0.0),
+                z: Some(-26.0),
+                ..Default::default()
+            }),
+            ..Default::default()
+        },
+    )
+    .await;
+    for _ in 0..120 {
+        if let ServerMessage::Loadout(loadout) = receive(human).await {
+            if loadout.selected == WeaponType::Tack {
+                loadout.validate().unwrap();
+                assert!(loadout.personal_claims.contains(&"bay_tack".into()));
+                discovered = Some(loadout);
+                break;
+            }
+        }
+    }
+    let loadout = discovered.expect("human discovers a personal Tack through the actual socket");
+    send_action(
+        human,
+        Action {
+            fire: true,
+            yaw: Some(0.0),
+            ..Default::default()
+        },
+    )
+    .await;
+    loop {
+        if let ServerMessage::Loadout(fired) = receive(human).await {
+            fired
+                .validate_for(Some(loadout.player_id), Some(&loadout))
+                .unwrap();
+            if fired.weapon(WeaponType::Tack).unwrap().magazine == Some(11) {
+                break;
+            }
+        }
+    }
+    send_action(
+        human,
+        Action {
+            reload: true,
+            ..Default::default()
+        },
+    )
+    .await;
+    send_action(human, Action::default()).await;
+    let mut completion = None;
+    let mut completed = false;
+    for _ in 0..80 {
+        if let ServerMessage::Loadout(update) = receive(human).await {
+            update
+                .validate_for(Some(loadout.player_id), Some(&loadout))
+                .unwrap();
+            if let Some(reload) = update.reload {
+                completion = Some(reload.complete_at);
+            } else if completion.is_some() {
+                assert_eq!(Some(update.tick), completion);
+                assert_eq!(update.weapon(WeaponType::Tack).unwrap().magazine, Some(12));
+                assert_eq!(update.reserve(fragr_server::protocol::AmmoPool::Tacks), 35);
+                completed = true;
+                break;
+            }
+        }
+    }
+    assert!(
+        completion.is_some(),
+        "short reload request survives another input frame"
+    );
+    assert!(completed, "reload completion must reach the owning socket");
     for socket in &mut sockets {
         socket.close(None).await.unwrap();
     }
     stop_tx.send(()).unwrap();
     server.await.unwrap().unwrap();
+}
+
+async fn send_action(socket: &mut Socket, action: fragr_server::protocol::Action) {
+    socket
+        .send(Message::Text(
+            serde_json::to_string(&ClientMessage::Action(action)).unwrap(),
+        ))
+        .await
+        .unwrap();
 }

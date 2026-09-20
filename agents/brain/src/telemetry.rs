@@ -365,6 +365,8 @@ pub(crate) mod fixtures {
 
     pub fn pad(kind: &str, weapon: &str, x: f32, z: f32, available: bool) -> PickupState {
         PickupState {
+            claim: fragr_server::protocol::SupplyClaim::Contested,
+            pool: None,
             id: format!("{kind}-{weapon}-{x}-{z}"),
             kind: kind.to_string(),
             weapon: weapon.to_string(),

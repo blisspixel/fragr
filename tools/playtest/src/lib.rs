@@ -980,6 +980,8 @@ pub const PLANNER_PICKUP_REACH: f32 = 18.0;
 /// The distance band a weapon wants to fight at: (comfortable, ideal).
 fn preferred_band(weapon: WeaponType) -> (f32, f32) {
     match weapon {
+        WeaponType::Fists => (0.0, 1.5),
+        WeaponType::Tack => (5.0, 12.0),
         WeaponType::Scatter => (1.5, 4.0),
         WeaponType::Flechette => (7.0, 12.0),
         WeaponType::Rail => (18.0, 28.0),
@@ -1164,6 +1166,7 @@ async fn agent_task(
     let (ws, _) = connect_async(&url).await.map_err(transport)?;
     let (mut sink, mut stream) = ws.split();
     let hello = ClientMessage::Hello {
+        gameplay_version: fragr_server::protocol::GAMEPLAY_VERSION,
         geometry_version: fragr_server::protocol::GEOMETRY_VERSION,
         role: Role::Agent,
         name,
@@ -1174,6 +1177,7 @@ async fn agent_task(
     .await
     .map_err(transport)?;
     let mut player_id: Option<Uuid> = None;
+    let mut loadout: Option<fragr_server::protocol::LoadoutState> = None;
     let mut arena = Arena::default();
     let mut navigation = None;
     let mut navigator = fragr_server::navigation::Navigator::default();
@@ -1192,6 +1196,11 @@ async fn agent_task(
             continue;
         };
         match serde_json::from_str::<ServerMessage>(&text) {
+            Ok(ServerMessage::Loadout(next)) => {
+                next.validate_for(player_id, loadout.as_ref())
+                    .map_err(|error| Error::Server(error.into()))?;
+                loadout = Some(next);
+            }
             Ok(ServerMessage::Welcome { player_id: pid, .. }) => player_id = pid,
             Ok(ServerMessage::MapInfo {
                 solids,
@@ -1234,6 +1243,12 @@ async fn agent_task(
                     continue;
                 };
                 let wanted = policy_action(policy, id, &snapshot, &arena);
+                let wanted = fragr_server::inventory::control_action(
+                    id,
+                    &snapshot,
+                    loadout.as_ref(),
+                    wanted,
+                );
                 let driven = navigation.as_ref().map_or_else(Action::default, |world| {
                     navigator.steer_snapshot(world, id, &snapshot, wanted)
                 });
@@ -1248,7 +1263,9 @@ async fn agent_task(
                     break;
                 }
             }
-            Ok(ServerMessage::Error { code, message }) if code == "unsupported_geometry" => {
+            Ok(ServerMessage::Error { code, message })
+                if code == "unsupported_geometry" || code == "unsupported_gameplay" =>
+            {
                 return Err(Error::Server(message));
             }
             Err(error) => {
@@ -1325,6 +1342,7 @@ pub async fn run(config: Config) -> Result<(Report, Observation), Error> {
     let (ws, _) = connect_async(&url).await.map_err(transport)?;
     let (mut sink, mut stream) = ws.split();
     let hello = ClientMessage::Hello {
+        gameplay_version: fragr_server::protocol::GAMEPLAY_VERSION,
         geometry_version: fragr_server::protocol::GEOMETRY_VERSION,
         role: Role::Spectator,
         name: "Observer".to_string(),
@@ -2262,6 +2280,8 @@ mod planner_tests {
 
     fn pad(kind: &str, weapon: &str, x: f32, z: f32, available: bool) -> PickupState {
         PickupState {
+            claim: fragr_server::protocol::SupplyClaim::Contested,
+            pool: None,
             id: format!("{kind}-{weapon}-{x}-{z}"),
             kind: kind.to_string(),
             weapon: weapon.to_string(),

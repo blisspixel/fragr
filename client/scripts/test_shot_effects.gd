@@ -1,6 +1,7 @@
 extends SceneTree
 
 class HudProbe extends Node:
+	var equipment_hud: EquipmentHud = EquipmentHud.new()
 	var fired: Array[String] = []
 	var hits: Array[String] = []
 	func show_fire_juice(weapon: String) -> void:
@@ -9,6 +10,13 @@ class HudProbe extends Node:
 		hits.append(weapon)
 
 var _failures: int = 0
+
+class PawnProbe extends Node:
+	var fired: Array[String] = []
+	func get_weapon_name() -> String:
+		return "Tack"
+	func show_muzzle_flash(weapon: String) -> void:
+		fired.append(weapon)
 
 func _initialize() -> void:
 	call_deferred("_run")
@@ -83,6 +91,13 @@ func _run() -> void:
 	corpse_hit["damage"] = 0
 	game._process_shot_results([corpse_hit], 6)
 	_check(hud.fired.size() == 2 and hud.hits.size() == 1, "zero-damage impacts cannot confirm another damaging hit")
+	var pawn: PawnProbe = PawnProbe.new()
+	root.add_child(pawn)
+	game.players["self"] = pawn
+	game._process_shot_results([_shot("range", "fists")], 7)
+	_check(pawn.fired == ["Fists"] and hud.fired.back() == "Fists", "a same-tick Tack pickup cannot turn a punch into gun feedback")
+	game._process_shot_results([_shot("range", "tack")], 8)
+	_check(pawn.fired == ["Fists", "Tack"] and hud.fired.back() == "Tack", "sidearm evidence reaches both first and third person")
 	game._clear_world()
 	_check(effects.active_count() == 0, "role teardown clears world effects")
 	game._process_shot_results([_shot()], 1)
@@ -90,6 +105,7 @@ func _run() -> void:
 	game._on_map_info({"map_name": "Test"})
 	_check(effects.active_count() == 0, "map replacement clears old impacts")
 	game.free()
+	hud.equipment_hud.free()
 	hud.free()
 	effects.queue_free()
 	await process_frame

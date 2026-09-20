@@ -1,6 +1,11 @@
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
+mod loadout;
+pub use loadout::{
+    AmmoPool, AmmoReserve, EquipmentPolicy, LoadoutState, ReloadState, SupplyClaim, WeaponAmmo,
+};
+
 /// Named scrap-league identity (Contested Frequency denies it exists).
 pub const MODE_NAME: &str = "Contested Frequency";
 /// Playlist label under the league lie.
@@ -266,6 +271,8 @@ pub enum WeaponType {
     Flechette,
     Rail,
     Scatter,
+    Fists,
+    Tack,
 }
 
 /// The scatter gun deals full damage inside this distance.
@@ -280,6 +287,7 @@ impl WeaponType {
     /// 0.6 to 1.2 second band in `docs/plans/gunfeel.md`.
     pub fn damage(self) -> i32 {
         match self {
+            WeaponType::Fists | WeaponType::Tack => 20,
             WeaponType::Flechette => 25,
             WeaponType::Rail => 80,
             WeaponType::Scatter => 40,
@@ -311,6 +319,8 @@ impl WeaponType {
     /// Ticks between shots at the 20 Hz tick: 0.20 s, 1.00 s, 0.45 s.
     pub fn cooldown_ticks(self) -> u32 {
         match self {
+            WeaponType::Fists => 8,
+            WeaponType::Tack => 5,
             WeaponType::Flechette => 4,
             WeaponType::Rail => 20,
             WeaponType::Scatter => 9,
@@ -322,6 +332,8 @@ impl WeaponType {
     /// assistance: a shot still has to pass within a fighter's radius to land.
     pub fn spread_radians(self) -> f32 {
         match self {
+            WeaponType::Fists => 0.0,
+            WeaponType::Tack => 0.03,
             // Mid workhorse: 2.6 degrees, forgiving in its own band.
             WeaponType::Flechette => 0.045,
             // Long precision: 0.7 degrees, near enough to a laser to reward aim.
@@ -335,6 +347,8 @@ impl WeaponType {
     /// and Rail owns long lanes (arena is ~50 across).
     pub fn range_units(self) -> f32 {
         match self {
+            WeaponType::Fists => 1.8,
+            WeaponType::Tack => 30.0,
             WeaponType::Flechette => 40.0,
             WeaponType::Rail => 60.0,
             WeaponType::Scatter => 12.0,
@@ -344,6 +358,8 @@ impl WeaponType {
     /// Preferred bot engagement band (min, max) for role play.
     pub fn preferred_range(self) -> (f32, f32) {
         match self {
+            WeaponType::Fists => (0.0, 1.5),
+            WeaponType::Tack => (5.0, 18.0),
             WeaponType::Flechette => (8.0, 28.0),
             WeaponType::Rail => (18.0, 45.0),
             WeaponType::Scatter => (2.0, 10.0),
@@ -352,6 +368,8 @@ impl WeaponType {
 
     pub fn name(self) -> &'static str {
         match self {
+            WeaponType::Fists => "Fists",
+            WeaponType::Tack => "Tack",
             WeaponType::Flechette => "Flechette",
             WeaponType::Rail => "Rail",
             WeaponType::Scatter => "Scatter",
@@ -361,6 +379,18 @@ impl WeaponType {
 
 /// Highest solid format this build understands, including earlier formats.
 pub const GEOMETRY_VERSION: u32 = 2;
+
+/// Equipment messages and Fists/Tack require gameplay version 2.
+pub const GAMEPLAY_VERSION: u32 = 2;
+pub fn legacy_gameplay_version() -> u32 {
+    1
+}
+fn is_legacy_gameplay(version: &u32) -> bool {
+    *version == 1
+}
+fn is_false(value: &bool) -> bool {
+    !value
+}
 
 pub fn legacy_geometry_version() -> u32 {
     1
@@ -473,6 +503,11 @@ pub enum ClientMessage {
     Hello {
         role: Role,
         name: String,
+        #[serde(
+            default = "legacy_gameplay_version",
+            skip_serializing_if = "is_legacy_gameplay"
+        )]
+        gameplay_version: u32,
         /// Maximum supported geometry format. Omission means ground-filled boxes.
         #[serde(
             default = "legacy_geometry_version",
@@ -519,6 +554,7 @@ pub enum ServerMessage {
         presentation: Option<MapPresentation>,
     },
     Snapshot(Snapshot),
+    Loadout(LoadoutState),
     Event(GameEvent),
     /// Unicast acknowledgement of the newest input applied to this client's
     /// fighter, with the authoritative state it produced. Sent every tick to a
@@ -597,6 +633,9 @@ pub struct Action {
     pub turn_right: bool,
     #[serde(default)]
     pub fire: bool,
+    /// Discrete reload request, consumed once by the authoritative tick.
+    #[serde(default, skip_serializing_if = "is_false")]
+    pub reload: bool,
     #[serde(default)]
     pub weapon_swap: Option<WeaponType>,
     /// Target aim takes precedence after movement: player body centre or world
@@ -660,6 +699,10 @@ pub enum ShotImpact {
 /// Floor pickup pad state (weapon / health / armor; authoritative mid-map).
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct PickupState {
+    #[serde(default, skip_serializing_if = "loadout::is_contested")]
+    pub claim: SupplyClaim,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub pool: Option<AmmoPool>,
     pub id: String,
     #[serde(default = "default_pickup_kind")]
     pub kind: String,
@@ -1150,6 +1193,8 @@ mod protocol_tests {
     #[test]
     fn pickup_state_and_event_wire_json_shape() {
         let pad = PickupState {
+            claim: SupplyClaim::Contested,
+            pool: None,
             id: "pad_rail".into(),
             kind: "weapon".into(),
             weapon: "Rail".into(),

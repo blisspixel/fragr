@@ -325,6 +325,10 @@ impl Default for MatchConfig {
 /// What a mid-map pad grants on claim.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum PickupKind {
+    Ammo {
+        pool: crate::protocol::AmmoPool,
+        rounds: u16,
+    },
     Weapon(WeaponType),
     Health,
     Armor,
@@ -333,6 +337,7 @@ pub enum PickupKind {
 impl PickupKind {
     pub fn wire_name(self) -> &'static str {
         match self {
+            PickupKind::Ammo { .. } => "ammo",
             PickupKind::Weapon(_) => "weapon",
             PickupKind::Health => "health",
             PickupKind::Armor => "armor",
@@ -350,6 +355,7 @@ impl PickupKind {
 /// Authoritative mid-map pad (weapon / health / armor; Quake chase energy).
 #[derive(Debug, Clone)]
 pub struct ArenaPickup {
+    pub claim: crate::protocol::SupplyClaim,
     pub id: String,
     pub kind: PickupKind,
     pub amount: i32,
@@ -375,8 +381,14 @@ impl ArenaPickup {
         let amount = match self.kind {
             PickupKind::Weapon(_) => None,
             PickupKind::Health | PickupKind::Armor => Some(self.amount),
+            PickupKind::Ammo { rounds, .. } => Some(i32::from(rounds)),
         };
         PickupState {
+            claim: self.claim,
+            pool: match self.kind {
+                PickupKind::Ammo { pool, .. } => Some(pool),
+                _ => None,
+            },
             id: self.id.clone(),
             kind: self.kind.wire_name().to_string(),
             weapon,
@@ -395,6 +407,7 @@ impl ArenaPickup {
 
     fn respawn_ticks(&self) -> u32 {
         match self.kind {
+            PickupKind::Ammo { .. } => 200,
             PickupKind::Weapon(_) => PICKUP_RESPAWN_TICKS,
             PickupKind::Health | PickupKind::Armor => HEALTH_PICKUP_RESPAWN_TICKS,
         }
@@ -472,6 +485,7 @@ pub struct Player {
     pub just_fired: bool,
     pub role: Role,
     pub weapon: WeaponType,
+    pub inventory: crate::inventory::Inventory,
     /// Tick of last successful speak (rate limit).
     pub last_speak_tick: Option<u64>,
     /// Continuance Compliance Drone (no respawn, distinct silhouette).
@@ -545,9 +559,10 @@ impl GameState {
     /// Traversal authoring has no arcade clock, escalation or round rotation.
     /// It is deliberately separate from the future campaign objective lifecycle.
     pub fn with_authored_map(map: std::sync::Arc<crate::maps::AuthoredMap>) -> Self {
+        let map = crate::maps::RuntimeMap::Authored(map);
         Self {
-            map: crate::maps::RuntimeMap::Authored(map),
-            pickups: Vec::new(),
+            pickups: map.pickups(),
+            map,
             round_state: RoundState::Active,
             round_number: 1,
             config: MatchConfig {
@@ -721,7 +736,12 @@ impl GameState {
             respawn_timer: None,
             just_fired: false,
             role,
-            weapon: WeaponType::default(),
+            weapon: if self.map.equipment_policy() == crate::protocol::EquipmentPolicy::Discovery {
+                WeaponType::Fists
+            } else {
+                WeaponType::default()
+            },
+            inventory: crate::inventory::Inventory::new(self.map.equipment_policy()),
             last_speak_tick: None,
             is_boss: false,
             killstreak: 0,
@@ -747,6 +767,7 @@ impl GameState {
             // Continuous input takes the newest value. A discrete weapon choice
             // must survive later frames until the simulation consumes it.
             action.weapon_swap = action.weapon_swap.or(player.pending_action.weapon_swap);
+            action.reload |= player.pending_action.reload;
             player.jump_requested |= action.jump;
             player.pending_action = action;
         }
@@ -907,6 +928,7 @@ impl GameState {
         for player in &mut self.players {
             player.just_fired = false;
             let jump_requested = std::mem::take(&mut player.jump_requested);
+            let reload_requested = std::mem::take(&mut player.pending_action.reload);
 
             if player.fire_cooldown > 0 {
                 player.fire_cooldown -= 1;
@@ -920,8 +942,15 @@ impl GameState {
                 continue;
             }
 
+            player.inventory.tick(self.tick, player.pending_action.fire);
+
             if let Some(new_weapon) = player.pending_action.weapon_swap.take() {
-                player.weapon = new_weapon;
+                if player.inventory.select(player.weapon, new_weapon) {
+                    player.weapon = new_weapon;
+                }
+            }
+            if reload_requested {
+                player.inventory.begin_reload(player.weapon, self.tick);
             }
 
             let action = &player.pending_action;
@@ -1046,13 +1075,16 @@ impl GameState {
 
         let mut hits = Vec::new();
         for i in 0..self.players.len() {
-            let player = &self.players[i];
+            let player = &mut self.players[i];
 
             if player.respawn_timer.is_some() {
                 continue;
             }
 
-            if player.pending_action.fire && player.fire_cooldown == 0 {
+            if player.pending_action.fire
+                && player.fire_cooldown == 0
+                && player.inventory.try_fire(player.weapon)
+            {
                 hits.push((i, self.check_hitscan(i, arena)));
             }
         }
@@ -1094,6 +1126,7 @@ impl GameState {
                     let died = was_alive && victim.hp <= 0;
                     let victim_was_boss = victim.is_boss;
                     if died {
+                        victim.inventory.cancel_reload();
                         // Victim streak dies with them; boss does not respawn.
                         victim.killstreak = 0;
                         if victim_was_boss {
@@ -1373,6 +1406,14 @@ impl GameState {
             player.respawn_timer = None;
             player.fire_cooldown = 0;
 
+            if self.map.equipment_policy() == crate::protocol::EquipmentPolicy::Discovery {
+                player.inventory = crate::inventory::Inventory::new(self.map.equipment_policy());
+                player.weapon = WeaponType::Fists;
+                player.pending_action = Action::default();
+                player.jump_requested = false;
+                player.just_fired = false;
+            }
+
             self.events.push(GameEvent::Respawn {
                 player: player.name.clone(),
             });
@@ -1428,7 +1469,7 @@ impl GameState {
             frag_limit: self.config.frag_limit,
             shot_results: self.shot_results.clone(),
             mode_name: if self.map.is_authored() {
-                "Traversal blockout"
+                "Campaign development"
             } else {
                 MODE_NAME
             }
@@ -1447,7 +1488,7 @@ impl GameState {
                 None
             },
             host_line: if self.map.is_authored() {
-                "Traversal blockout: encounters and objectives are not implemented.".to_string()
+                "Campaign development: encounters and objectives are not implemented.".to_string()
             } else if self.round_state == RoundState::Ended {
                 self.ended_host_line
                     .clone()
@@ -1747,6 +1788,9 @@ impl GameState {
             just_fired: false,
             role: Role::Agent,
             weapon: WeaponType::Rail,
+            inventory: crate::inventory::Inventory::new(
+                crate::protocol::EquipmentPolicy::FullArsenal,
+            ),
             last_speak_tick: None,
             is_boss: true,
             killstreak: 0,
@@ -1843,8 +1887,21 @@ impl GameState {
                 if !pad.available {
                     continue;
                 }
+                if pad.claim == crate::protocol::SupplyClaim::Personal
+                    && player.inventory.claimed(&pad.id)
+                {
+                    continue;
+                }
                 let useful = match pad.kind {
-                    PickupKind::Weapon(_) => true,
+                    PickupKind::Weapon(weapon) => {
+                        !player.inventory.owns(weapon)
+                            || player.inventory.policy()
+                                == crate::protocol::EquipmentPolicy::FullArsenal
+                            || weapon
+                                .ammo_pool()
+                                .is_some_and(|pool| player.inventory.needs_ammo(pool))
+                    }
+                    PickupKind::Ammo { pool, .. } => player.inventory.needs_ammo(pool),
                     PickupKind::Health => player.hp < PLAYER_MAX_HP,
                     PickupKind::Armor => player.armor < PLAYER_MAX_ARMOR,
                 };
@@ -1857,7 +1914,14 @@ impl GameState {
                 if (player.y - PLAYER_FLOOR_Y - pad.floor).abs() > PICKUP_CLAIM_HEIGHT {
                     continue;
                 }
-                if dx * dx + dz * dz <= PICKUP_CLAIM_RADIUS * PICKUP_CLAIM_RADIUS {
+                if dx * dx + dz * dz <= PICKUP_CLAIM_RADIUS * PICKUP_CLAIM_RADIUS
+                    && (!self.map.is_authored()
+                        || crate::combat::line_of_sight(
+                            [player.x, player.y - PLAYER_FLOOR_Y + EYE_HEIGHT, player.z],
+                            [pad.x, pad.y, pad.z],
+                            &self.map.arena().solids,
+                        ))
+                {
                     claims.push((player.id, pi));
                     break; // one pad per player per tick
                 }
@@ -1873,16 +1937,37 @@ impl GameState {
             let amount = pad.amount;
             let pickup_id = pad.id.clone();
             let respawn = pad.respawn_ticks();
-            pad.available = false;
-            pad.respawn_timer = Some(respawn);
+            if pad.claim == crate::protocol::SupplyClaim::Contested {
+                pad.available = false;
+                pad.respawn_timer = Some(respawn);
+            }
 
             let Some(player) = self.players.iter_mut().find(|p| p.id == player_id) else {
                 continue;
             };
+            if pad.claim == crate::protocol::SupplyClaim::Personal {
+                player.inventory.record_claim(pickup_id.clone());
+            }
             let (weapon_wire, amount_wire, label) = match kind {
                 PickupKind::Weapon(w) => {
-                    player.weapon = w;
+                    let discovered = !player.inventory.owns(w);
+                    player.inventory.grant_weapon(w);
+                    if discovered
+                        || player.inventory.policy()
+                            == crate::protocol::EquipmentPolicy::FullArsenal
+                    {
+                        player.inventory.cancel_reload();
+                        player.weapon = w;
+                    }
                     (w.name().to_string(), None, w.name().to_string())
+                }
+                PickupKind::Ammo { pool, rounds } => {
+                    let gained = player.inventory.grant_ammo(pool, rounds);
+                    (
+                        String::new(),
+                        Some(i32::from(gained)),
+                        format!("{pool:?} ammunition"),
+                    )
                 }
                 PickupKind::Health => {
                     let before = player.hp;
@@ -1950,6 +2035,9 @@ impl GameState {
             just_fired: false,
             role: Role::Agent,
             weapon: WeaponType::Rail,
+            inventory: crate::inventory::Inventory::new(
+                crate::protocol::EquipmentPolicy::FullArsenal,
+            ),
             last_speak_tick: None,
             is_boss: true,
             killstreak: 0,
@@ -2344,6 +2432,8 @@ impl BotController {
         let (prefer_min, prefer_max) = bot.weapon.preferred_range();
         let fire_range = bot.weapon.range_units() * 0.95;
         let aim_slack = match bot.weapon {
+            WeaponType::Fists => 0.55,
+            WeaponType::Tack => 0.40,
             WeaponType::Rail => 0.22,
             WeaponType::Scatter => 0.55,
             WeaponType::Flechette => 0.40,

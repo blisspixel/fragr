@@ -11,9 +11,9 @@ an explicit approved cap, and the existing developer pipelines.
 
 | Concern | Present behavior | Campaign gap |
 |---|---|---|
-| Maps | Six server-owned arena layouts in Rust; shared MapInfo presentation | Validated external data, authored rooms, mission links, vertical volumes and ceilings |
-| Combat | Three freely selectable hitscan weapons; authoritative 3D shots | Melee start, inventory/ammo, pickups, projectiles and new weapon roles |
-| Movement | Gravity, jump, steps and heightfield support with a GDScript mirror | Overlapping floors/ceilings and new traversal features require explicit geometry support |
+| Maps | Six arena layouts and a validated M01 document; shared finite geometry and surface presentation | Authored encounters, mission links and complete room dressing |
+| Combat | M01 fists, found Tack/Flechette, private finite inventory, reload and supplies; arcade full arsenal | Remaining arsenal, projectiles, authored encounter balance and finished sound sets |
+| Movement | Shared gravity, jump, steps, ceilings and overlapping floors with a verified GDScript mirror | New traversal features require explicit geometry support and live tests |
 | Enemies | Rule-bot behaviors using Player; elite/boss prototype | Separate authored enemy states, human/captive/elite distinctions, encounter placement and animation |
 | Episode | Calibration phases: NODS, jammer, Auditor, win/fail | Story missions, release/extraction objectives, campaign transitions |
 | Persistence | Player settings | Versioned party campaign save, checkpoints, inventory and rescue outcomes |

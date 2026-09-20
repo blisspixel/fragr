@@ -4,15 +4,16 @@
 **Branch:** `feat/economy-*` (one PR per rung)
 **Spend:** $0 for the mechanics. New view models and icons add roughly six dollars to the art estimate in `art-pipeline.md`.
 
-Current-state note (2026-09-19): this is a proposed economy, not implemented
-inventory. Historical weapon-mix and timing measurements below are not a current
-baseline. `ShotResult` already carries the resolved weapon and shot trace. The
-six shipped arcade maps still permit all three existing guns; M01 currently has
-only a traversal blockout. Its authored rooms and placements replace the generic
-pad-ring assumptions below for campaign work. Asset estimates do not authorize
-spend; verify approved remaining credits before a generation request.
+Current-state note (2026-09-19): the broader economy remains proposed.
+[`m01-weapon-discovery.md`](m01-weapon-discovery.md) owns the implemented M01
+increment: fists, found Tack/Flechette, finite ammunition, reload and individual
+introductory claims. Dry guns remain owned; carry limits, automatic discard,
+sidearm trickle and the remaining arsenal below are not implemented. Historical
+weapon-mix and timing measurements are not a current baseline. The six arcade
+maps retain their three unlimited guns. M01's authored placements replace generic
+pad-ring assumptions. Asset estimates do not authorize generation spend.
 
-## Next bounded increment: M01 discovery
+## Bounded increment: M01 discovery
 
 Implement fists, Tack and Flechette ownership and finite ammunition through one
 server loadout model before populating the hall. M01 begins with fists, supplies

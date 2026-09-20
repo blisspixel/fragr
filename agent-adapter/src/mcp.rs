@@ -38,6 +38,7 @@ pub const SPEAK_COOLDOWN_TICKS: u64 = 60;
 #[derive(Debug, Clone)]
 pub struct ToolState {
     pub last_snapshot: Option<Value>,
+    pub loadout: Option<protocol::LoadoutState>,
     pub recent_events: Vec<Value>,
     pub player_id: Option<Uuid>,
     /// Tick of last MCP speak that was accepted for send (rate-limit honesty).
@@ -58,6 +59,7 @@ impl Default for ToolState {
     fn default() -> Self {
         Self {
             last_snapshot: None,
+            loadout: None,
             recent_events: Vec::new(),
             player_id: None,
             last_speak_tick: None,
@@ -100,6 +102,7 @@ const ACT_ALLOWED_KEYS: &[&str] = &[
     "turn_left",
     "turn_right",
     "fire",
+    "reload",
     "weapon_swap",
     "look_at",
 ];
@@ -143,17 +146,20 @@ pub fn validate_act_arguments(arguments: &Value) -> Result<Action, String> {
             None
         } else {
             let s = v.as_str().ok_or_else(|| {
-                "schema error: weapon_swap must be a string (flechette|rail|scatter)".to_string()
+                "schema error: weapon_swap must be a string (fists|tack|flechette|rail|scatter)"
+                    .to_string()
             })?;
             match s {
+                "fists" => Some(protocol::WeaponType::Fists),
+                "tack" => Some(protocol::WeaponType::Tack),
                 "flechette" => Some(protocol::WeaponType::Flechette),
                 "rail" => Some(protocol::WeaponType::Rail),
                 "scatter" => Some(protocol::WeaponType::Scatter),
                 other => {
                     return Err(format!(
-                        "schema error: weapon_swap must be flechette|rail|scatter, got '{}'",
-                        other
-                    ))
+                    "schema error: weapon_swap must be fists|tack|flechette|rail|scatter, got '{}'",
+                    other
+                ))
                 }
             }
         }
@@ -235,6 +241,12 @@ pub fn validate_act_arguments(arguments: &Value) -> Result<Action, String> {
         turn_left: bool_field("turn_left"),
         turn_right: bool_field("turn_right"),
         fire: bool_field("fire"),
+        reload: match obj.get("reload") {
+            None => false,
+            Some(value) => value
+                .as_bool()
+                .ok_or("schema error: reload must be a boolean")?,
+        },
         jump: bool_field("jump"),
         weapon_swap,
         look_at,
@@ -383,6 +395,9 @@ pub fn build_observe_result(state: &ToolState) -> Value {
                 if let Some(map) = state.map.as_ref() {
                     obj.insert("map".to_string(), map.clone());
                 }
+                if let Some(loadout) = state.loadout.as_ref() {
+                    obj.insert("loadout".into(), serde_json::json!(loadout));
+                }
             }
             observation
         }
@@ -516,7 +531,7 @@ fn tools_list_result() -> Value {
             },
             {
                 "name": "act",
-                "description": "Send action to the game server. Actions are level-held (sticky) within each tick window. Set true to activate, false to deactivate. Weapon swap changes loadout. look_at aims in three dimensions.",
+                "description": "Send ordinary input. Movement and fire are held until changed. Reload and weapon_swap are consumed once; later omitted fields do not erase a pending request. Weapon selection requires ownership. look_at aims in three dimensions.",
                 "inputSchema": {
                     "type": "object",
                     "properties": {
@@ -528,7 +543,8 @@ fn tools_list_result() -> Value {
                         "turn_right": {"type": "boolean", "default": false, "description": "Turn right"},
                         "fire": {"type": "boolean", "default": false, "description": "Fire weapon"},
                         "jump": {"type": "boolean", "default": false, "description": "Jump. A grounded fighter leaves the floor; holding it does not fly"},
-                        "weapon_swap": {"type": "string", "enum": ["flechette", "rail", "scatter"], "description": "Switch to weapon type"},
+                        "weapon_swap": {"type": "string", "enum": ["fists", "tack", "flechette", "rail", "scatter"], "description": "Select an owned weapon"},
+                        "reload": {"type": "boolean", "description": "Request one reload of the selected weapon"},
                         "look_at": {
                             "type": "object",
                             "description": "Aim at player_id (preferred) or world x/z with optional y. Missing y aims horizontally.",
@@ -782,6 +798,7 @@ pub fn handle_mcp_request(request: McpRequest, state: &mut ToolState) -> HandleO
                                 state.player_id = None;
                                 state.session_name = None;
                                 state.last_snapshot = None;
+                                state.loadout = None;
                                 state.last_speak_tick = None;
                                 pending_leave = true;
                                 tool_ok_text("Left arena; disconnecting")
@@ -870,6 +887,10 @@ pub fn ingest_server_text(state: &mut ToolState, text: &str) -> Result<(), &'sta
     }
 
     match serde_json::from_str::<protocol::ServerMessage>(text) {
+        Ok(protocol::ServerMessage::Loadout(loadout)) => {
+            loadout.validate_for(state.player_id, state.loadout.as_ref())?;
+            state.loadout = Some(loadout);
+        }
         Ok(protocol::ServerMessage::Snapshot(snapshot)) => {
             if let Ok(snapshot_value) = serde_json::to_value(snapshot) {
                 state.last_snapshot = Some(snapshot_value);
@@ -902,10 +923,14 @@ pub fn ingest_server_text(state: &mut ToolState, text: &str) -> Result<(), &'sta
             }
         }
         Ok(protocol::ServerMessage::Welcome { player_id, .. }) => {
+            state.loadout = None;
             state.player_id = player_id;
             state.connected = true;
         }
         Ok(protocol::ServerMessage::Error { code, .. }) => {
+            if code == "unsupported_gameplay" {
+                return Err("server requires a newer gameplay format");
+            }
             if code == "unsupported_geometry" {
                 return Err("server requires a newer geometry format");
             }
@@ -918,6 +943,9 @@ pub fn ingest_server_text(state: &mut ToolState, text: &str) -> Result<(), &'sta
             }
             if raw.get("type").and_then(|v| v.as_str()) == Some("map_info") {
                 return Err("invalid map geometry message");
+            }
+            if raw.get("type").and_then(|v| v.as_str()) == Some("loadout") {
+                return Err("invalid loadout message");
             }
             if raw.get("type").and_then(|v| v.as_str()) == Some("event") {
                 push_recent_event(state, raw);
@@ -980,6 +1008,65 @@ mod mcp_tests {
             method: method.into(),
             params,
         }
+    }
+
+    #[test]
+    fn private_equipment_reaches_observation_and_invalid_updates_preserve_it() {
+        use fragr_server::inventory::Inventory;
+        use protocol::{EquipmentPolicy, WeaponType};
+        let id = Uuid::nil();
+        let mut state = ToolState {
+            player_id: Some(id),
+            last_snapshot: Some(serde_json::json!({"tick":10})),
+            ..Default::default()
+        };
+        let mut inventory = Inventory::new(EquipmentPolicy::Discovery);
+        inventory.grant_weapon(WeaponType::Tack);
+        inventory.try_fire(WeaponType::Tack);
+        inventory.begin_reload(WeaponType::Tack, 10);
+        let loadout = inventory.state(id, WeaponType::Tack, 10).unwrap();
+        let wire = serde_json::to_value(protocol::ServerMessage::Loadout(loadout.clone())).unwrap();
+        ingest_server_text(&mut state, &wire.to_string()).unwrap();
+        assert_eq!(build_observe_result(&state)["loadout"]["selected"], "tack");
+        assert_eq!(
+            build_observe_result(&state)["loadout"]["reload"]["complete_at"],
+            28
+        );
+        for patch in [
+            serde_json::json!({"player_id":Uuid::new_v4()}),
+            serde_json::json!({"tick":9}),
+            serde_json::json!({"weapons":[]}),
+            serde_json::json!({"reload":{"weapon":"tack","complete_at":29}}),
+            serde_json::json!({"personal_claims":["bad/path"]}),
+            serde_json::json!({"reserves":"bad"}),
+        ] {
+            let mut invalid = wire.clone();
+            invalid
+                .as_object_mut()
+                .unwrap()
+                .extend(patch.as_object().unwrap().clone());
+            assert!(ingest_server_text(&mut state, &invalid.to_string()).is_err());
+            assert_eq!(state.loadout, Some(loadout.clone()));
+        }
+        for weapon in ["fists", "tack", "flechette", "scatter", "rail"] {
+            let action =
+                validate_act_arguments(&serde_json::json!({"weapon_swap":weapon,"reload":true}))
+                    .unwrap();
+            assert_eq!(action.weapon_swap.unwrap().name().to_lowercase(), weapon);
+            assert!(action.reload);
+        }
+        for reload in [
+            serde_json::json!(1),
+            serde_json::json!("true"),
+            serde_json::json!([]),
+        ] {
+            assert!(validate_act_arguments(&serde_json::json!({"reload":reload})).is_err());
+        }
+        assert!(ingest_server_text(
+            &mut state,
+            r#"{"type":"error","code":"unsupported_gameplay","message":"Update"}"#
+        )
+        .is_err());
     }
 
     #[test]
@@ -1155,6 +1242,7 @@ mod mcp_tests {
         // Behavioral: Hello payload carries the resolved --name (not the default).
         let name = "ArenaFox";
         let hello = protocol::ClientMessage::Hello {
+            gameplay_version: fragr_server::protocol::GAMEPLAY_VERSION,
             geometry_version: fragr_server::protocol::GEOMETRY_VERSION,
             role: protocol::Role::Agent,
             name: name.to_string(),

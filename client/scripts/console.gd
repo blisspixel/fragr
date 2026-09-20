@@ -223,7 +223,7 @@ func _report_controls() -> void:
 	echo("weapon          Mouse wheel, or the bracket keys")
 	echo("join / leave    J and L")
 	echo("menu            Escape")
-	echo("radio           R station, N track, M mute")
+	echo("radio           C station, N track, M mute")
 	echo("There is no reload key yet. Reloading is specified and not built.")
 
 func _game() -> Node:

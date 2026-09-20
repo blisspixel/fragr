@@ -1,9 +1,10 @@
-# Authored traversal maps
+# Authored development maps
 
-`m01-recall-notice.json` is the opening mission's traversal blockout. Its two
-routes, stairs, balcony, office and lift run through normal server movement.
-Encounters, inventory progression, interaction, extraction and checkpoints are
-not implemented here. Do not present a successful walk as campaign completion.
+`m01-recall-notice.json` contains the opening mission's connected blockout and
+weapon discovery. Its two routes, stairs, balcony, office and lift use normal
+movement. Enter with fists, find Tack and Flechette, collect ammunition and reload.
+Encounters, interaction, extraction and checkpoints are not implemented here.
+Do not present a successful route or reload as campaign completion.
 
 From the repository root:
 
@@ -12,7 +13,7 @@ cargo run -p fragr-server --locked -- --bind 127.0.0.1:6767 --bots 0 --map-file 
 ```
 
 Connect the ordinary client, agent or spectator to the same server. This mode
-has no arcade timer, boss, pickup pads or map rotation. `--map-file` rejects arcade
+has no arcade timer, boss or map rotation. `--map-file` rejects arcade
 map selection, Episode 0, rule overrides and rule bots. It is opt-in authoring
 support, not the campaign menu's finished first mission.
 
@@ -31,6 +32,17 @@ support, not the campaign menu's finished first mission.
   Every spawn and landmark needs support, full standing clearance and a route
   from the first spawn. Names are shared across all records and must be unique
   lowercase ASCII letters, digits or underscores, at most 64 bytes.
+- `equipment`: `discovery` or `full_arsenal` (default). Discovery begins with fists
+  and requires client gameplay capability 2, independently of geometry capability.
+- `supplies`: at most 128 records, allowed only with discovery. Each has unique
+  `id`, supported and reachable `feet`, `claim` (`personal` or `contested`) and
+  a strict `grant`: `{"kind":"weapon","weapon":"tack"}`,
+  `{"kind":"ammo","pool":"darts","amount":30}`, or `health`/`armor` with
+  `amount` from 1 through 100. Ammo amounts cannot exceed pool caps in `WEAPONS.md`.
+  Fists cannot be a grant. Personal claims are only for weapons; each participant
+  can claim each once per development life. Contested ammo has one winner and a
+  ten-second respawn. An additional copy of an owned gun grants reserve without
+  forcing selection. Discovery death resets inventory and personal claims.
 
 Surface kits: `concrete`, `enamel`, `service_steel`, `records_tile`, `lift_panel`.
 They select existing offline materials, never paths, URLs or shader code. The
@@ -51,6 +63,7 @@ campaign saves have no implemented contract yet.
 cargo test -p fragr-server maps::authored --locked
 cargo test -p fragr-server --test authored_maps --locked
 FRAGR_QA_BOTS=0 FRAGR_QA_MAP_FILE="$PWD/server/maps/m01-recall-notice.json" FRAGR_QA_MANIFEST=res://qa/m01.json bash tools/qa_tour.sh .agents/qa/m01
+FRAGR_QA_BOTS=0 FRAGR_QA_MAP_FILE="$PWD/server/maps/m01-recall-notice.json" FRAGR_QA_MANIFEST=res://qa/m01-discovery.json bash tools/qa_tour.sh .agents/qa/m01-discovery
 ```
 
 The tour uses human input through a live server, never teleportation. Inspect

@@ -32,7 +32,7 @@ func _run() -> void:
 	for viewport_size: Vector2i in [Vector2i(1280, 720), Vector2i(1024, 768), Vector2i(2560, 1080)]:
 		root.size = viewport_size
 		await process_frame
-		for weapon_name: String in ["Flechette", "Rail", "Scatter"]:
+		for weapon_name: String in ["Flechette", "Rail", "Scatter", "Tack"]:
 			hud.call("set_fp_weapon", weapon_name)
 			_check_bottom(weapon, weapon_name + " swap")
 			hud.call("set_fp_walk_speed", MoveStep.TOP_SPEED)
@@ -54,6 +54,18 @@ func _run() -> void:
 				hud.call("_process", 1.0 / 60.0)
 				_check(weapon.position == resting, "bob setting must disable walking motion")
 			hud.set("head_bob_enabled", true)
+		hud.set_fp_weapon("Fists")
+		_check(not weapon.visible and hud.melee_view.visible, "fists show independently animated arms")
+		var first_arm: int = hud.melee_view.active_arm
+		hud.show_fire_juice("Fists")
+		_check(hud.melee_view.active_arm != first_arm and not hud.fp_muzzle.visible, "punch alternates arms without a gun flash")
+		for frame in range(45):
+			hud.melee_view._process(1.0 / 120.0)
+			hud._process(1.0 / 120.0)
+			for arm: TextureRect in hud.melee_view.arms:
+				_check(arm.global_position.y + arm.size.y > root.get_visible_rect().size.y + 2.0, "punch wrists remain below frame")
+		hud.show_fire_juice("Fists")
+		_check(hud.melee_view.active_arm == first_arm, "second punch uses other arm")
 	hud.call("set_fp_walk_speed", NAN)
 	_check(float(hud.get("fp_walk_speed")) == 0.0, "invalid speed cannot poison animation")
 	hud.call("set_fp_juice", false)

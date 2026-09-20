@@ -1,5 +1,6 @@
 pub mod bench;
 pub mod combat;
+pub mod inventory;
 pub mod maps;
 pub mod movement;
 pub mod navigation;

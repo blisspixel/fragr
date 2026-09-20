@@ -125,6 +125,8 @@ func _run() -> void:
 			var direction: Vector3 = Vector3(float(target[0]), float(target[1]), float(target[2])) - camera.global_position
 			camera.set("fp_yaw", atan2(direction.z, direction.x))
 			await _set_aim_pitch(atan2(direction.y, Vector2(direction.x, direction.z).length()))
+		if state.get("empty_magazine", false):
+			await _empty_magazine()
 		if state.get("overlay", "") == "match_menu":
 			_game_manager().get_node("PauseMenu").call("open")
 		if state.get("overlay", "") == "match_settings":
@@ -152,6 +154,8 @@ func _run() -> void:
 			_strip_for_state = ""
 			_probe_frames = 0
 			_strip_times_ms.clear()
+		if state.has("expect_equipment"):
+			_check_equipment(state["expect_equipment"])
 
 		await RenderingServer.frame_post_draw
 		await RenderingServer.frame_post_draw
@@ -171,6 +175,11 @@ func _run() -> void:
 			push_error("qa_tour: unexpected capture size for " + state_name)
 			_failed = true
 		var observed: Dictionary = _observed_state()
+		if state.has("expect_yaw"):
+			var expected_yaw: float = float(state["expect_yaw"])
+			if observed.get("server_yaw") == null or absf(angle_difference(float(observed["camera_yaw"]), expected_yaw)) > 0.001 or absf(angle_difference(float(observed["server_yaw"]), expected_yaw)) > 0.001:
+				push_error("qa_tour: captured facing disagrees with the authored spawn for " + state_name)
+				_failed = true
 		if current_scene == "res://scenes/main.tscn" and (observed.get("fighters", 0) == 0 or observed.get("map_id", 0) == 0):
 			push_error("qa_tour: no live match for " + state_name)
 			_failed = true
@@ -321,6 +330,20 @@ func _capture_strip(state: Dictionary, frames: int, file_name: String) -> void:
 				await RenderingServer.frame_post_draw
 		if state.get("single_shot", false):
 			Input.action_release("fire")
+	elif trigger == "reload":
+		var press: InputEventAction = InputEventAction.new()
+		press.action = &"reload"
+		press.pressed = true
+		Input.parse_input_event(press)
+		var release: InputEventAction = InputEventAction.new()
+		release.action = &"reload"
+		Input.parse_input_event(release)
+		var deadline: int = Time.get_ticks_msec() + 2000
+		while _equipment().get("reload") == null and Time.get_ticks_msec() < deadline:
+			await process_frame
+		if _equipment().get("reload") == null:
+			push_error("qa_tour: no authoritative reload after input")
+			_failed = true
 	for _i in range(STRIP_LEAD_FRAMES):
 		await RenderingServer.frame_post_draw
 	var shots: Array[Image] = []
@@ -382,6 +405,10 @@ func _capture_strip(state: Dictionary, frames: int, file_name: String) -> void:
 		print("qa_tour: %s -> %s (%d frames)" % [state.get("name", ""), file_name, shots.size()])
 
 func _probe_active(probe: Node, state: Dictionary) -> bool:
+	if probe is MeleeView:
+		return probe.visible and probe.remaining > 0.0
+	if probe is EquipmentHud:
+		return probe.visible and probe.state.get("reload") != null and EquipmentState.reload_progress(probe.state, probe.tick) < 1.0
 	if probe is ShotEffects:
 		var network: Node = _game_manager().get("net_client")
 		return probe.has_shot_from(str(network.get("player_id")), str(state.get("impact_kind", "")))
@@ -425,17 +452,66 @@ func _observed_state() -> Dictionary:
 	var snapshot: Dictionary = gm.get("latest_snapshot")
 	var cam: Node = _spectator_camera()
 	var server_pitch: float = _local_server_pitch(gm)
+	var server_yaw: float = _local_server_yaw(gm)
+	var camera_forward: Vector3 = -cam.get("transform").basis.z
 	return {
 		"map_id": snapshot.get("map_id", 0),
 		"round_state": snapshot.get("round_state", "unknown"),
 		"fighters": (snapshot.get("players", []) as Array).size(),
 		"human": gm.get("is_human_player"),
 		"local_weapon": gm.call("_local_weapon_name"),
+		"equipment": _equipment(),
 		"eye_view": cam.get("fp_mode") or cam.call("is_observing_first_person"),
 		"following": gm.call("_followed_player_id"),
 		"camera_pitch": float(cam.get("rotation").x),
+		"camera_yaw": atan2(camera_forward.z, camera_forward.x),
+		"server_yaw": server_yaw if absf(server_yaw) <= TAU else null,
 		"server_pitch": server_pitch if absf(server_pitch) <= ServerYaw.PITCH_LIMIT else null,
 	}
+
+func _equipment() -> Dictionary:
+	return _game_manager().get("net_client").get("equipment")
+
+func _empty_magazine() -> void:
+	var state: Dictionary = _equipment()
+	if state.is_empty() or state["selected"] == "fists":
+		push_error("qa_tour: cannot drain a missing gun")
+		_failed = true
+		return
+	Input.action_press("fire")
+	var deadline: int = Time.get_ticks_msec() + 15000
+	while EquipmentState.magazine(_equipment(), state["selected"]) > 0 and Time.get_ticks_msec() < deadline:
+		await process_frame
+	# Keep the trigger down long enough to observe the dry edge as well.
+	await create_timer(0.5).timeout
+	Input.action_release("fire")
+	if EquipmentState.magazine(_equipment(), state["selected"]) != 0 or int(_equipment()["dry_fire_count"]) <= int(state["dry_fire_count"]):
+		push_error("qa_tour: magazine did not empty and produce dry feedback")
+		_failed = true
+
+func _check_equipment(expected: Dictionary) -> void:
+	var state: Dictionary = _equipment()
+	if state.is_empty():
+		push_error("qa_tour: missing equipment")
+		_failed = true
+		return
+	for key: String in expected:
+		var actual: Variant = state.get(key)
+		if key == "magazine":
+			actual = EquipmentState.magazine(state, state["selected"])
+		elif key == "reserve":
+			actual = EquipmentState.reserve(state, state["selected"])
+		if actual != expected[key]:
+			push_error("qa_tour: expected %s %s, observed %s" % [key, expected[key], actual])
+			_failed = true
+
+func _local_server_yaw(gm: Node) -> float:
+	var snapshot: Dictionary = gm.get("latest_snapshot")
+	var network: Node = gm.get("net_client")
+	for player: Dictionary in snapshot.get("players", []):
+		if str(player.get("id", "")) == str(network.get("player_id")):
+			return float(player.get("yaw", 99.0))
+	return 99.0
 
 func _local_server_pitch(gm: Node) -> float:
 	var snapshot: Dictionary = gm.get("latest_snapshot")

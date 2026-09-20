@@ -2,6 +2,7 @@ extends SceneTree
 
 class CaptureNetwork extends Node:
 	var connection_state: int = WebSocketPeer.STATE_OPEN
+	var player_id: String = "self"
 	var sent: Array[Dictionary] = []
 	func send_action(action: Dictionary) -> void:
 		sent.append(action.duplicate())
@@ -21,6 +22,13 @@ func _run() -> void:
 	var network: CaptureNetwork = CaptureNetwork.new()
 	manager.set("net_client", network)
 	manager.set("is_human_player", true)
+	var pawn: Node3D = Node3D.new()
+	var camera: Node3D = load("res://scripts/spectator_cam.gd").new()
+	camera.fp_mode = true
+	camera.fp_target = pawn
+	manager.camera = camera
+	manager.players["self"] = pawn
+	manager.local_fp_pawn_id = "self"
 	var key: InputEventKey = InputEventKey.new()
 	key.physical_keycode = KEY_SPACE
 	key.pressed = true
@@ -43,6 +51,8 @@ func _run() -> void:
 	_check(network.sent.size() == 2, "role transitions must not send actions")
 	manager.free()
 	network.free()
+	camera.free()
+	pawn.free()
 	if _failures == 0:
 		print("test_jump_input: PASS short taps, release, bindings, transition guard")
 	quit(0 if _failures == 0 else 1)

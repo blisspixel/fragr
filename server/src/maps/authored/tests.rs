@@ -22,6 +22,69 @@ fn decode(value: &Value) -> io::Result<Arc<AuthoredMap>> {
 }
 
 #[test]
+fn supplies_validate_grants_claims_clearance_and_reachability() {
+    let mut doc = small();
+    doc["equipment"] = json!("discovery");
+    let supply = json!({"id":"supply","feet":[0,0,1],"claim":"contested",
+        "grant":{"kind":"ammo","pool":"darts","amount":30}});
+    doc["supplies"] = json!([supply]);
+    assert!(decode(&doc).is_ok());
+    for grant in [
+        json!({"kind":"weapon","weapon":"tack"}),
+        json!({"kind":"health","amount":25}),
+        json!({"kind":"armor","amount":50}),
+    ] {
+        let mut valid = doc.clone();
+        valid["supplies"][0]["grant"] = grant;
+        assert!(decode(&valid).is_ok());
+    }
+    let mut invalids = Vec::new();
+    for grant in [
+        json!({"kind":"weapon","weapon":"fists"}),
+        json!({"kind":"weapon","weapon":"unknown"}),
+        json!({"kind":"ammo","pool":"darts","amount":0}),
+        json!({"kind":"ammo","pool":"darts","amount":121}),
+        json!({"kind":"ammo","pool":"tacks","amount":-1}),
+        json!({"kind":"ammo","pool":"cores","amount":1.5}),
+        json!({"kind":"health","amount":101}),
+        json!({"kind":"armor","amount":0}),
+        json!({"kind":"weapon","weapon":"tack","amount":1}),
+    ] {
+        let mut bad = doc.clone();
+        bad["supplies"][0]["grant"] = grant;
+        invalids.push(bad);
+    }
+    for (key, value) in [
+        ("id", json!("ceiling")),
+        ("feet", json!([0, 1, 0])),
+        ("claim", json!("personal")),
+        ("unexpected", json!(true)),
+    ] {
+        let mut bad = doc.clone();
+        bad["supplies"][0][key] = value;
+        invalids.push(bad);
+    }
+    let mut bad = doc.clone();
+    bad["equipment"] = json!("full_arsenal");
+    invalids.push(bad);
+    let mut bad = doc.clone();
+    bad["supplies"] = json!(vec![doc["supplies"][0].clone(); 129]);
+    invalids.push(bad);
+    let mut blocked = doc.clone();
+    blocked["landmarks"][0]["feet"] = json!([0, 0, -3]);
+    blocked["solids"].as_array_mut().unwrap().push(json!({
+        "id":"divider","min":[-8,0,-1],"max":[8,3,0],"surface":"enamel"
+    }));
+    assert!(decode(&blocked)
+        .unwrap_err()
+        .to_string()
+        .contains("unreachable"));
+    for bad in invalids {
+        assert!(decode(&bad).is_err(), "accepted {bad}");
+    }
+}
+
+#[test]
 fn authoring_rejects_unknown_fields_and_invalid_placements() {
     let mut cases = Vec::new();
     for (field, value) in [
@@ -142,7 +205,7 @@ fn indoor_spawn_and_replaced_identity_use_one_runtime_world() {
     assert!(session.state.boss_id.is_none());
     let snapshot = session.state.snapshot();
     assert_eq!(snapshot.map_id, map.id);
-    assert_eq!(snapshot.mode_name, "Traversal blockout");
+    assert_eq!(snapshot.mode_name, "Campaign development");
     assert!(snapshot.frag_limit.is_none());
 }
 

@@ -6,11 +6,17 @@ and `tools/spritegen/specs/weapons-viewmodel-bakeoff.json`. No new generation ca
 
 Sources: `art/sprites/slice-01/wpn_flechette_0.png`,
 `art/sprites/slice-01/wpn_scatter_0.png`, and
-`art/sprites/weapons-paletted/px_rail_issued_0.png`.
+`art/sprites/weapons-paletted/px_rail_issued_0.png`. M01 also uses
+`art/sprites/slice-01/wpn_fists_0.png` and
+`art/sprites/weapons-paletted/px_tack_issued_0.png`, prepared with the same command.
 
 Preparation: `fragr-spritegen reduce --input <source> --out
 client/assets/weapons/viewmodels --height 180 --no-trim --matte e8e2d6`.
 The explicit matte removes only edge-connected bone pixels, preserving enclosed
 weapon highlights. Outputs are 241 by 180 RGBA PNGs, nearest filtered, no mipmaps.
 Keep the full canvas for a consistent weapon/muzzle registration. Inspect at game
-size after regeneration. These are idle faces, not completed animation sets.
+size after regeneration. The client animates recoil and reload lowering; fists
+use separately posed halves with alternating punches and anchored wrists. These
+are single poses, not completed authored animation sets. Tack's small held/pickup
+icon currently reuses the existing `32/_future/shock_pistol.png` placeholder;
+a matching side profile remains asset work.

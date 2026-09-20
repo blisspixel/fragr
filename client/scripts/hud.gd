@@ -85,6 +85,8 @@ const HOST_BUMPERS = [
 
 var weapon_textures = {}
 var viewmodel_textures: Dictionary[String, Texture2D] = {
+	"Fists": preload("res://assets/weapons/viewmodels/wpn_fists_0.png"),
+	"Tack": preload("res://assets/weapons/viewmodels/px_tack_issued_0.png"),
 	"Flechette": preload("res://assets/weapons/viewmodels/wpn_flechette_0.png"),
 	"Rail": preload("res://assets/weapons/viewmodels/px_rail_issued_0.png"),
 	"Scatter": preload("res://assets/weapons/viewmodels/wpn_scatter_0.png"),
@@ -110,6 +112,8 @@ var fp_muzzle_timer: float = 0.0
 var fp_muzzle_texture: Texture2D
 var fp_kick_amount = Vector2.ZERO
 var current_fp_weapon = ""
+var equipment_hud: EquipmentHud
+var melee_view: MeleeView
 const FP_MUZZLE_SECONDS: float = 0.07
 ## Full width of the vitals bars, so a fill can be scaled against it.
 const HEALTH_BAR_WIDTH: float = 200.0
@@ -133,6 +137,12 @@ var warmup_tv_secs = 0
 var warmup_tv_host_line = ""
 
 func _ready():
+	equipment_hud = EquipmentHud.new()
+	equipment_hud.name = "Equipment"
+	add_child(equipment_hud)
+	melee_view = MeleeView.new()
+	melee_view.name = "MeleeView"
+	add_child(melee_view)
 	_load_display_settings()
 	_ensure_map_chip_label()
 	if vitals:
@@ -144,6 +154,7 @@ func _ready():
 	weapon_textures["Flechette"] = load("res://assets/weapons/32/flechette.png")
 	weapon_textures["Rail"] = load("res://assets/weapons/32/rail.png")
 	weapon_textures["Scatter"] = load("res://assets/weapons/32/scatter.png")
+	weapon_textures["Tack"] = load("res://assets/weapons/32/_future/shock_pistol.png")
 	crosshair_hbar = get_node_or_null("Crosshair/HBar")
 	crosshair_vbar = get_node_or_null("Crosshair/VBar")
 	crosshair_dot = get_node_or_null("Crosshair/Dot")
@@ -1034,9 +1045,11 @@ func show_pickup_toast(player_name: String, weapon_name: String, kind: String = 
 		what = ("+%d HP" % amount) if amount > 0 else "MEDKIT"
 	elif kind == "armor":
 		what = ("+%d ARMOR" % amount) if amount > 0 else "ARMOR"
+	elif kind == "ammo":
+		what = "+%d AMMO" % amount
 	else:
 		what = weapon_name.to_upper() if weapon_name != "" else "PAD"
-	var line = "SCRAP PAD: %s grabbed %s" % [player_name, what]
+	var line = "%s recovered %s" % [player_name, what]
 	round_message.text = line
 	round_message.visible = true
 	if kind == "health":
@@ -1148,11 +1161,11 @@ func _process(delta):
 			# Fades and shrinks over its short life rather than blinking off.
 			var m: float = clampf(fp_muzzle_timer / FP_MUZZLE_SECONDS, 0.0, 1.0)
 			fp_muzzle.modulate.a = m
-			fp_muzzle.scale = Vector2.ONE * (0.75 + 0.35 * m)
+			fp_muzzle.scale = Vector2.ONE * (0.75 + 0.35 * m) * (0.45 if current_fp_weapon == "Tack" else 1.0)
 		if fp_muzzle_timer <= 0 and fp_muzzle:
 			fp_muzzle.visible = false
 	_update_floating_damage(delta)
-	if fp_juice_enabled and fp_weapon and fp_weapon.visible:
+	if fp_juice_enabled and fp_weapon and (fp_weapon.visible or melee_view.visible):
 		var walking: float = clampf(fp_walk_speed / MoveStep.TOP_SPEED, 0.0, 1.0)
 		fp_bob_weight = move_toward(fp_bob_weight, walking, delta * 8.0)
 		fp_bob_t += delta * 9.0 * walking
@@ -1171,10 +1184,16 @@ func _layout_fp_weapon() -> void:
 	var kick: Vector2 = fp_kick_amount * clampf(fp_kick_timer / 0.12, 0.0, 1.0)
 	var viewport_size: Vector2 = get_viewport().get_visible_rect().size
 	var base: Vector2 = (viewport_size - fp_weapon.size) * Vector2(0.5, 1.0)
-	fp_weapon.position = (base + Vector2(0.0, FP_BOTTOM_OVERLAP) + bob + kick).round()
+	var lowering: float = equipment_hud.lowering() if equipment_hud.visible else 0.0
+	fp_weapon.position = (base + Vector2(0.0, FP_BOTTOM_OVERLAP + lowering) + bob + kick).round()
+	if current_fp_weapon == "Fists":
+		melee_view.pose((base + Vector2(0.0, FP_BOTTOM_OVERLAP) + bob).round(), fp_weapon.size)
 	if fp_muzzle:
 		var barrel_y: float = 25.0 if current_fp_weapon == "Flechette" else 14.0
-		fp_muzzle.position = fp_weapon.position + Vector2(224.0, barrel_y * 2.0) - fp_muzzle.size * 0.5
+		if current_fp_weapon == "Tack":
+			barrel_y = 8.0
+		var barrel_x: float = fp_weapon.size.x * 0.5 if current_fp_weapon == "Tack" else 224.0
+		fp_muzzle.position = fp_weapon.position + Vector2(barrel_x, barrel_y * 2.0) - fp_muzzle.size * 0.5
 
 func set_fp_juice(enabled: bool) -> void:
 	if fp_juice_enabled == enabled:
@@ -1185,6 +1204,8 @@ func set_fp_juice(enabled: bool) -> void:
 	if crosshair:
 		crosshair.visible = enabled
 	if not enabled:
+		melee_view.reset()
+		equipment_hud.visible = false
 		if fp_muzzle:
 			fp_muzzle.visible = false
 		fp_muzzle_timer = 0.0
@@ -1213,17 +1234,22 @@ func set_fp_weapon(weapon_name: String) -> void:
 		return
 	if not fp_juice_enabled or not viewmodel_textures.has(weapon_name):
 		fp_weapon.visible = false
+		melee_view.reset()
 		return
 	var changed = weapon_name != current_fp_weapon
 	current_fp_weapon = weapon_name
 	fp_weapon.texture = viewmodel_textures[weapon_name]
 	# Distinct viewmodel pose per role (bone/gunmetal, not neon).
 	if changed:
+		melee_view.reset()
+		fp_muzzle_timer = 0.0
+		fp_muzzle.visible = false
 		fp_weapon.modulate = Color.WHITE
 		fp_weapon.scale = Vector2.ONE
 		_apply_crosshair_for_weapon(weapon_name)
 	_layout_fp_weapon()
-	fp_weapon.visible = true
+	fp_weapon.visible = weapon_name != "Fists"
+	melee_view.visible = weapon_name == "Fists"
 
 ## Keep every crosshair edge matching the part it sits behind: same visibility,
 ## same rectangle grown by a couple of pixels on each side.
@@ -1350,6 +1376,8 @@ func show_fire_juice(weapon_name: String = "") -> void:
 ## but in first person the pawn is not what anyone is looking at, so until now
 ## the only feedback for pulling the trigger was the sound.
 func _fp_muzzle_flash(weapon_name: String) -> void:
+	if weapon_name == "Fists":
+		return
 	if not fp_juice_enabled or not fp_muzzle or fp_muzzle_texture == null:
 		return
 	# Same colours the fighter's own flash uses, so the two read as one weapon.
@@ -1360,16 +1388,21 @@ func _fp_muzzle_flash(weapon_name: String) -> void:
 			fp_muzzle.modulate = Color(0.95, 0.55, 0.28, 1.0)
 		_:
 			fp_muzzle.modulate = Color(0.92, 0.78, 0.55, 1.0)
-	fp_muzzle.scale = Vector2.ONE * 1.1
+	fp_muzzle.scale = Vector2.ONE * (0.5 if weapon_name == "Tack" else 1.1)
 	fp_muzzle.visible = true
 	fp_muzzle_timer = FP_MUZZLE_SECONDS
 
 func _fp_fire_kick(weapon_name: String) -> void:
 	if not fp_juice_enabled:
 		return
+	if weapon_name == "Fists":
+		melee_view.punch()
+		return
 	_fp_muzzle_flash(weapon_name)
 	fp_kick_timer = 0.12
 	match weapon_name:
+		"Tack":
+			fp_kick_amount = Vector2(0, 18)
 		"Rail":
 			fp_kick_amount = Vector2(8, 22)
 			fp_kick_timer = 0.18

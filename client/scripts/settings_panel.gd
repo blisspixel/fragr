@@ -71,7 +71,7 @@ func show_page(page: String) -> void:
 			_slider("MASTER", "audio", "master", 0.0, 1.0, 0.05)
 			_slider("RADIO", "audio", "music", 0.0, 1.0, 0.05)
 			_slider("EFFECTS", "audio", "effects", 0.0, 1.0, 0.05)
-			_note.text = "R: next station. N: next track. M: radio on/off.\nChanges apply when saved. Zero volume mutes the bus."
+			_note.text = "C: next station. N: next track. M: radio on/off.\nChanges apply when saved. Zero volume mutes the bus."
 
 func focus_first() -> void:
 	(_tabs.get_child(0) as Button).grab_focus()
