@@ -86,9 +86,24 @@ Special difficulty or no-death challenges state their exact conditions up front.
 
 First candidates: complete Recall Notice (title), discover an authored secret
 (emblem), complete the campaign within its continue allowance (banner). Ship only
-against actual implemented events. Names and art need the faction/palette review. Unlock data
-must be bounded, versioned and saved atomically through the campaign/profile
-persistence seam. Local records are editable local progress, not proof of a
+against actual implemented events. Gold weapon finishes and curated custom color
+schemes are also confirmed reward directions. Proposed unlocks include a gold
+finish for a declared campaign-completion challenge and weapon color sets for
+authored exploration or weapon challenges. Exact criteria remain to be balanced;
+do not invent awards from unimplemented events or require repetitive kill farming.
+
+These finishes change appearance only: identical damage, aim, handling, magazine,
+hitboxes and muzzle/impact behavior. Preserve weapon and faction readability,
+including world pickups, and preview the finish in the retro customization menu.
+No mechanically stronger golden weapon, loot boxes or paid power. Every player
+starts with a coherent default finish. Awards need stable IDs and idempotent
+persistence before art can be advertised as earned in play.
+
+Names and art need the faction/palette review. Unlock data must be bounded,
+versioned and recoverably saved through the campaign/profile persistence seam.
+The [local record implementation](benchmark-and-stats.md) supplies validated
+facts and two-generation recovery, not an achievement ledger yet.
+Local records are editable local progress, not proof of a
 globally verified competitive achievement. Accounts and platform integrations
 are separate later work.
 

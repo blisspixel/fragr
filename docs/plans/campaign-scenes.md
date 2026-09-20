@@ -10,6 +10,12 @@ owns the opening beats. This file owns production choices and current research.
 
 ## First delivery
 
+Later ending scenes follow the revised ten-mission contract: exhausted wipe
+failure has its own credits; survival unlocks the short playable epilogue. Both
+endings establish surviving free beings, the Union's end, healing and a brief
+wider-universe tease. [Epigraph research](../lore/epigraphs.md) supplies optional
+source references, not a locked script or cleared recording batch.
+
 Skippable localized text and pixel-styled panels, with optional narration from
 the same approved script. Voss's English-to-German address uses accurate captions;
 its performance and original dialogue need language review before recording.

@@ -62,6 +62,7 @@ If prose and code disagree, code wins; fix the prose in the same change. Keep pl
 | Movement math and facing conversion | `server/src/movement.rs`: `integrate` owns body collision and gravity for live play and the accelerated `step`. Mirror in `client/scripts/movement.gd`, goldens in `client/golden/move_vectors.json`; facing in `client/scripts/server_yaw.gd`. |
 | Walking routes and controller memory | `server/src/navigation.rs`, `navigation/controller.rs`; map geometry and movement remain authoritative. Precompute roster topology before readiness, bound/stagger searches, and prove routes with shared movement and actual `GameState` players. Use `client/qa/movement.json` for rendered stair/jump checks. |
 | CPU measurements and offline traces | `server/src/bench.rs`, `trace.rs`; contract in `docs/BENCHMARK.md` |
+| Participant records and local history | `server/src/statistics.rs` counts resolved facts; `protocol/statistics.rs` owns records. Delivery requires capability 8. Client validation: `player_record.gd`; retained history: `player_records.gd`; UI: `records_panel.gd`. Continue resets attempt counts, never total effort. Automation isolates `fragr_records_path` or uses memory. Never infer effective damage from overkill-inclusive `ShotResult.damage`. |
 | Tick loop shared by the binary and harnesses | `server/src/run.rs` (`run_server`, `ServerOptions`) |
 | Local campaign process ownership | `server/src/local.rs` owns readiness and stdin lease; `maps::AuthoredSource` uses one map loader for files and bundled missions. `client/scripts/local_match.gd` owns lifecycle, `local_process.gd` owns native pipes/PID. Never kill a listener by port or process name. |
 | Agent playtest harness and metrics | `tools/playtest` |
@@ -74,7 +75,7 @@ If prose and code disagree, code wins; fix the prose in the same change. Keep pl
 | Adapter CLI and WebSocket session | `agent-adapter/src/main.rs` |
 | Client networking (`FRAGR_SERVER`) | `client/scripts/net_client.gd` |
 | Client match orchestration, role, audio routing | `client/scripts/game_manager.gd` |
-| HUD, killfeed, Host bumpers | `client/scripts/hud.gd` |
+| HUD, combat notices, Host bumpers | `client/scripts/hud.gd`; `combat_feed.gd` owns bounded corner notices. Routine events never use the aiming area; GameManager filters pickup notices by participant ID. |
 | Pawn presentation, first-person weapon face | `client/scripts/player_pawn.gd` |
 | Campaign enemy pose selection and sprites | `client/scripts/enemy_animation.gd`, `enemy_view.gd`; offline source and bake procedure in `client/art/characters/README.md`. Preserve server phase timing, resolved-shot recoil and fixed feet registration. |
 | Spectator cameras | `client/scripts/spectator_cam.gd` |

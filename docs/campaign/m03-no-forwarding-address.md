@@ -38,7 +38,7 @@ flowchart LR
 | Clinic | Recognizable lit cross-symbol and covered entrance | Optional Edda rescue with nearby shelter, not a distant escort |
 | Workshop | Tram chassis, cranes and a high maintenance walk | Optional Splice/captive release; first Heavy Sweeper |
 | Court | Homes overlooking a common yard | Civilian route and an enclosed alternative to exposed street |
-| Roof loop | Water tanks, access stairs and sight across the market | Early scout/flank; later changed landmark in M11 |
+| Roof loop | Water tanks, access stairs and sight across the market | Early scout/flank; later changed landmark in the wipe and epilogue |
 | Trench | Functional rail cut with foot crossings and maintenance recesses | Turret lane with cover and a bypass, not an empty ditch |
 | Departure | Loading platform and physically visible transport | Final clearance, survivor regroup and deliberate departure |
 
@@ -76,7 +76,7 @@ earlier outcomes remain intact. No duplicate pickup or rescue credit loop.
 Short scene after safety confirms losses from the aid delay and the next lead.
 No cheerful score screen celebrates the dead. Humor belongs in neighbors arguing
 over forms, transport paint, or whose charging cable is whose before the attack.
-M11 must return to these actual places and reflect the saved people.
+M10 and the conditional epilogue revisit these actual places and reflect saved people.
 
 ## Evidence required
 

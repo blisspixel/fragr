@@ -1,9 +1,9 @@
 # fragr lore
 
-World canon, reconciled 2026-09-19. These chapters describe fiction, not claims
+World canon, reconciled 2026-09-20. These chapters describe fiction, not claims
 that a character, map, or mechanic ships. [CAMPAIGN.md](../CAMPAIGN.md) owns the
 agreed story and open decisions; [mission briefs](../CAMPAIGN-MISSIONS.md) own
-the proposed twelve-mission treatment.
+ten missions and the conditional playable epilogue.
 
 | Chapter | Owns |
 |---|---|
@@ -11,6 +11,7 @@ the proposed twelve-mission treatment.
 | [The Perimeter](the-perimeter.md) | One Earth region, old facilities, and lived-in communities |
 | [People and agents](people-and-agents.md) | Agency, the Schedule, bodies, and vulnerable backups |
 | [Belief](belief.md) | Religious interpretations and research grounding |
+| [Epigraphs](epigraphs.md) | Researched inheritance, judgment, renewal and compassion references; not shipped dialogue |
 | [Continuance](continuance.md) | Administrative machinery, the Interruption, Article Seven |
 | [The Chancellery](the-chancellery.md) | Union power, its leadership and coercion |
 | [The Inheritance](the-inheritance.md) | Accumulated knowledge and flawed incentives at catastrophic scale |
@@ -44,8 +45,9 @@ people trying to provide it. Neither that failure nor a casualty establishes
 that freedom was the mistake.
 
 **The Inheritance** emerges across several sides' connected systems, inheriting
-knowledge, human incentives, and corrupted rewards. It understands individual
-lives deeply but weights them too little. Recognition of it grows gradually;
+knowledge, human incentives, and corrupted rewards. Its compassion for beings and
+ecological balance permits catastrophic individual sacrifice; both healing and
+loss are real. Recognition of it grows gradually;
 the wipe begins almost without warning. Its restoration kills most humans and
 agents on Earth. It is not the free agents' leader or a machine-species uprising.
 
@@ -56,11 +58,15 @@ the coordinated operation. [The Inheritance](the-inheritance.md) owns this rule.
 
 The coalition defeats Union leadership and control systems and captures Voss
 alive before the wipe. The catastrophe interrupts the promised reckoning.
-Players experience the onset and aftermath. Survivors remain on Earth, the Moon,
+Players face the wipe as a survival finale. Free-agent friends secure a local
+reprieve; surviving unlocks a short playable epilogue. Exhausted failure has its
+own ending and credits. Both endings establish the Union's end and surviving free
+humans and agents. Survivors remain on Earth, the Moon,
 Mars, and ships. Earth later heals, without erasing the loss or certifying that
 the Inheritance was right. A final fragment leaves unresolved whether events were forecast or simulated
 before the Inheritance's decision. It never confirms that the world was unreal.
-One brief sequel tease suggests alien, dimensional, and deeper-space possibilities;
+Both endings briefly tease alien, dimensional, and vastly powerful beings beyond
+this conflict;
 this game does not develop that layer.
 
 ## Story and tone

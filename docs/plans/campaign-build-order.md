@@ -1,7 +1,7 @@
 # Campaign build order
 
 **Status:** planned, revised 2026-09-20. No full campaign mission is implemented.
-**Goal:** deliver the twelve-mission story in [CAMPAIGN.md](../CAMPAIGN.md) through
+**Goal:** deliver ten missions and a conditional epilogue in [CAMPAIGN.md](../CAMPAIGN.md) through
 bounded, verifiable milestones. [Mission briefs](../CAMPAIGN-MISSIONS.md) define
 content; this plan defines dependencies.
 **Spend:** local design/code work is free. Paid asset batches use current quota,
@@ -16,7 +16,7 @@ an explicit approved cap, and the existing developer pipelines.
 | Movement | Shared gravity, jump, steps, ceilings and overlapping floors with a verified GDScript mirror | New traversal features require explicit geometry support and live tests |
 | Enemies | Rule bots, elite/boss prototype, authored human Clerk and Sweeper bot with phased attacks and directional animation | Full enemy roster, final art, encounters and balance |
 | Episode | Calibration prototype; M01 transfer/gate/departure shipped in v0.26.0 | Full story missions, rescue outcomes and campaign transitions |
-| Runs and persistence | Player settings; in-memory solo M01 run with three continues and entry restoration | Disk saves, cross-mission carry, persistent statistics and rescue outcomes |
+| Runs and persistence | Settings; in-memory solo M01 run with three continues and entry restoration; local service-record history | Campaign disk saves, cross-mission carry, achievements, rescue outcomes and epilogue unlock |
 | Co-op | Allied campaign participants, encounter wipe reset; shared mission boarding and four-seat admission shipped with live party evidence | Optional scope undecided; no mandatory duo, revival or all-mission co-op requirement |
 | Presentation | Retro front end, HUD, radio and viewmodels; localized M01 text opening and party readiness shipped in v0.28.0 | Finished scene art/narration, companion scenes, complete character/weapon/effect motion |
 
@@ -55,9 +55,12 @@ These are existing arena traversal improvements, not a completed campaign map.
 7. **Build Act III.** Martian inhabited/industrial environments, coalition
    consequences, Walker and mixed squads, then earned Union defeat on Earth.
    Show other communities' contribution without an omnipotent victory switch.
-8. **Build Act IV and the playable coda.** Sudden onset, scale-revealing scene,
-   immediate aftermath, return to a changed home, final rescues and years-later
-   healing. Reuse locations through authored structural change, not cosmetic tint.
+8. **Build the wipe finale and conditional epilogue.** Sudden onset, scale-revealing
+   scene, varied survival route and a local reprieve obtained by free-agent friends.
+   Prototype the roughly 33-minute survival target before committing the encounter
+   budget. Remaining continues allow retries; exhaustion ends with credits.
+   Survival alone unlocks short playable aftermath and years-later healing. Both
+   endings establish world consequences and briefly tease the wider universe.
 9. **Validate and refine the complete run.** Every mission and survivor path,
    continues, run exhaustion, solo/agent play, spectator transitions, localization,
    accessibility, exports, performance, and fresh-player comprehension and fun.
@@ -65,7 +68,7 @@ These are existing arena traversal improvements, not a completed campaign map.
 
 A milestone can span several small PRs. Never call it complete because a
 framework exists. Each mission needs its own implementation checklist and
-playtest receipt when work begins, linked here rather than twelve empty tickets.
+playtest receipt when work begins, linked here rather than empty tickets.
 
 ## Architecture and protocol
 
@@ -89,5 +92,8 @@ without entering the combat loop. No provider is required at player runtime.
   observations on route clarity, enemy reads, dead time and repeat-play interest.
 - Asset manifests, roadmap status and release evidence updated together.
 
-Deferred: vehicles, alien combat, dimensional traversal, the later Inheritance
-command mode, and large-scale hosting beyond separately measured milestones.
+Vehicles are deferred from M01, but planned for M08's combined-arms launch works.
+Prove a small server-owned drivable-vehicle slice before building that encounter;
+the [M08 brief](../campaign/m08-weight-of-permission.md) owns its scope.
+Alien combat, dimensional traversal, the later Inheritance command mode, and
+large-scale hosting remain beyond separately measured milestones.

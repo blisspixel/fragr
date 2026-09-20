@@ -44,23 +44,27 @@ cooperation, with real costs. People and agents on every side have flaws.
 
 The Inheritance develops across systems and incentives nobody wholly owns.
 Recognition becomes harder to deny. Its sudden wipe arrives with almost no
-warning after the coalition's real victory over the Union. The player survives
-the onset, acts in the aftermath, and later sees a healing world carrying its
-losses. The intelligence understands people and undervalues them.
+warning after the coalition's real victory over the Union. Surviving its finale
+unlocks a short playable epilogue, from immediate loss to a healing world years
+later. Free-agent friends secure a local reprieve. Its compassion for beings and
+ecological balance permits catastrophic individual sacrifice; the player must
+confront both outcomes rather than receive a simple verdict about the good side.
 
 The wipe absorbs the Union's controlled bots into the Inheritance while free
 agents remain themselves. The absorbed minds' fate cannot be established.
 Infrastructure seizure and restoration machines make the sudden takeover
 planetary. Voss has been captured alive; the catastrophe interrupts her reckoning.
 
-The agreed target is about twelve substantial missions. Their
+The agreed target is nine compact missions, a substantial wipe survival finale
+and a conditional short epilogue within a 2-3-hour successful run. Their
 [proposed treatment](CAMPAIGN-MISSIONS.md) derives places from story rather than
 adapting existing arena boxes. Localized text, optional voice and brief matching
 cutscenes support the story; radio is tiny optional background flavor.
 
 The ending leaves troubling evidence of a forecast or simulation informing the
 Inheritance's choice, without confirming that the world was unreal. A separate
-brief alien/dimensional/deeper-space hint opens the possibility of another game.
+brief alien/dimensional/deeper-space hint in either ending suggests vastly
+powerful beings beyond this conflict and opens the possibility of another game.
 Neither device cancels the current game's human and agent consequences.
 
 ## Tone

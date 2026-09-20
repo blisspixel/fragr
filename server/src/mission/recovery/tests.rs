@@ -48,6 +48,53 @@ fn die(state: &mut GameState, id: Uuid) {
 }
 
 #[test]
+fn statistics_survive_continue_while_attempt_counts_restart() {
+    let (mut state, id) = run();
+    state.set_action(
+        id,
+        Action {
+            fire: true,
+            ..Default::default()
+        },
+    );
+    state.tick(0.05);
+    let before = state.player_record(id).unwrap();
+    assert_eq!(before.total.attacks(), 1);
+    assert_eq!(before.total.alive_ticks, 1);
+    before.validate_for(Some(id), None).unwrap();
+    die(&mut state, id);
+    let death = state.player_record(id).unwrap();
+    death.validate_for(Some(id), Some(&before)).unwrap();
+    for _ in 0..100 {
+        state.tick(0.05);
+    }
+    assert_eq!(
+        state.player_record(id).unwrap().total,
+        death.total,
+        "retry choice is not active time"
+    );
+    let request = request(&state);
+    assert!(state.continue_mission(id, request));
+    let retry = state.player_record(id).unwrap();
+    retry.validate_for(Some(id), Some(&death)).unwrap();
+    assert_eq!(retry.total, before.total);
+    assert_eq!(retry.attempt, crate::protocol::CombatCounts::default());
+    state.set_action(
+        id,
+        Action {
+            fire: true,
+            ..Default::default()
+        },
+    );
+    state.tick(0.05);
+    let played = state.player_record(id).unwrap();
+    assert_eq!(played.total.attacks(), 2);
+    assert_eq!(played.attempt.attacks(), 1);
+    assert!(!state.continue_mission(id, request));
+    assert_eq!(played.total, state.player_record(id).unwrap().total);
+}
+
+#[test]
 fn three_explicit_continues_then_death_ends_the_run() {
     let (mut state, id) = run();
     for spent in 0..=3 {

@@ -1,7 +1,7 @@
 extends Node
 
-# Version 7 adds explicit solo campaign runs and mission-start continues.
-const GAMEPLAY_VERSION: int = 7
+# Version 8 understands private participant records; older servers remain playable.
+const GAMEPLAY_VERSION: int = 8
 
 signal connected_to_server
 signal disconnected_from_server
@@ -13,8 +13,10 @@ signal event_received(data)
 signal ack_received(data)
 signal loadout_received(data: Dictionary)
 signal mission_received(data: Dictionary)
+signal record_received(data: Dictionary)
 
 var equipment: Dictionary = {}
+var record: Dictionary = {}
 var mission_geometry: Dictionary = {}
 var mission: Dictionary = {}
 var _mission_previous: Dictionary = {}
@@ -52,6 +54,7 @@ func connect_to_server(p_role: String = "spectator", p_name: String = "Player"):
 	role = p_role
 	player_name = p_name
 	player_id = null
+	record.clear()
 	equipment.clear()
 	mission.clear()
 	mission_geometry.clear()
@@ -79,6 +82,7 @@ func disconnect_from_server():
 		socket.close()
 	connection_state = WebSocketPeer.STATE_CLOSED
 	player_id = null
+	record.clear()
 	equipment.clear()
 	mission.clear()
 	mission_geometry.clear()
@@ -258,6 +262,14 @@ func _handle_message(text: String):
 				return
 			equipment = data
 			loadout_received.emit(data)
+		"record":
+			var problem: String = PlayerRecord.validation_error(data, player_id, record)
+			if not problem.is_empty():
+				disconnect_from_server()
+				server_error.emit(problem)
+				return
+			record = data.duplicate(true)
+			record_received.emit(record)
 		"error":
 			if data.get("code") is String:
 				_admission_error(data["code"])

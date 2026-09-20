@@ -415,6 +415,8 @@ impl ArenaPickup {
 }
 
 pub struct GameState {
+    pub(crate) statistics_session: Uuid,
+    pub(crate) statistics_round_started: u64,
     pub(crate) encounters: crate::encounters::Encounters,
     pub(crate) mission: Option<crate::mission::MissionRun>,
     /// Offline recordings opt into stable entity identities. Live sessions keep
@@ -467,6 +469,7 @@ pub struct GameState {
 }
 
 pub struct Player {
+    pub(crate) statistics: crate::statistics::CombatLedger,
     pub campaign: Option<crate::protocol::CampaignActor>,
     pub id: Uuid,
     pub name: String,
@@ -523,6 +526,7 @@ impl Player {
     ) -> Self {
         Self {
             campaign: None,
+            statistics: Default::default(),
             id,
             name,
             role,
@@ -562,6 +566,7 @@ impl GameState {
             "set replay identity policy before spawning"
         );
         self.replay_id_counter = Some(0);
+        self.statistics_session = Uuid::nil();
     }
 
     pub(crate) fn new_entity_id(&mut self) -> Uuid {
@@ -641,6 +646,7 @@ impl GameState {
         };
 
         self.round_number += 1;
+        self.statistics_round_started = self.tick;
         self.round_state = RoundState::Active;
         self.round_ticks = 0;
         self.scores.clear();
@@ -669,6 +675,7 @@ impl GameState {
         for player in &mut self.players {
             self.scores.insert(player.id, 0);
             player.killstreak = 0;
+            player.statistics.begin(self.tick);
         }
 
         let players: Vec<String> = self.players.iter().map(|p| p.name.clone()).collect();
@@ -787,6 +794,7 @@ impl GameState {
         if self.map.is_campaign() {
             player.campaign = Some(crate::protocol::CampaignActor::Participant {});
         }
+        player.statistics.begin(self.tick);
         self.players.push(player);
 
         self.scores.entry(id).or_insert(0);
@@ -1031,6 +1039,7 @@ impl GameState {
                 continue;
             }
 
+            player.statistics.alive_tick();
             player.inventory.tick(self.tick, player.pending_action.fire);
 
             if let Some(new_weapon) = player.pending_action.weapon_swap.take() {
@@ -1183,11 +1192,14 @@ impl GameState {
                 continue;
             }
 
-            if player.pending_action.fire
-                && player.fire_cooldown == 0
-                && player.inventory.try_fire(player.weapon)
-            {
-                hits.push((i, self.check_hitscan(i, arena)));
+            if player.pending_action.fire && player.fire_cooldown == 0 {
+                let dry_before = player.inventory.dry_fire_count();
+                if player.inventory.try_fire(player.weapon) {
+                    player.statistics.attack(player.weapon);
+                    hits.push((i, self.check_hitscan(i, arena)));
+                } else if player.inventory.dry_fire_count() > dry_before {
+                    player.statistics.dry_trigger();
+                }
             }
         }
 
@@ -1217,6 +1229,8 @@ impl GameState {
                     victim_was_boss,
                     boss_id,
                     damage,
+                    hp_damage,
+                    armor_damage,
                 ) = {
                     let victim = &mut self.players[victim_idx];
                     let target_id = victim.id;
@@ -1226,10 +1240,12 @@ impl GameState {
                     let was_alive = victim.hp > 0;
                     let damage = if was_alive && hostile { damage } else { 0 };
                     let absorbed = damage.min(victim.armor);
+                    let hp_damage = (damage - absorbed).min(victim.hp.max(0)) as u64;
                     victim.armor -= absorbed;
                     victim.hp -= damage - absorbed;
                     let target_hp_after = victim.hp;
                     let died = was_alive && victim.hp <= 0;
+                    victim.statistics.hurt(hp_damage, absorbed as u64, died);
                     let victim_was_boss = victim.is_boss;
                     if died {
                         victim.inventory.cancel_reload();
@@ -1249,9 +1265,14 @@ impl GameState {
                         victim_was_boss,
                         target_id,
                         damage,
+                        hp_damage,
+                        absorbed as u64,
                     )
                 };
 
+                self.players[shooter_idx]
+                    .statistics
+                    .hit(weapon, hp_damage, armor_damage, died);
                 if damage > 0 {
                     let victim = &self.players[victim_idx];
                     let feet = [victim.x, victim.y - PLAYER_FLOOR_Y, victim.z];
@@ -1902,6 +1923,7 @@ impl GameState {
         let id = self.new_entity_id();
         let name = AUDITOR_NAME.to_string();
         self.players.push(Player {
+            statistics: Default::default(),
             campaign: None,
             id,
             name: name.clone(),
@@ -2158,6 +2180,7 @@ impl GameState {
         }
         let id = self.new_entity_id();
         self.players.push(Player {
+            statistics: Default::default(),
             campaign: None,
             id,
             name: BOSS_NAME.to_string(),
@@ -2385,6 +2408,8 @@ impl GameState {
 impl Default for GameState {
     fn default() -> Self {
         Self {
+            statistics_session: Uuid::new_v4(),
+            statistics_round_started: 0,
             encounters: crate::encounters::Encounters::default(),
             mission: None,
             replay_id_counter: None,

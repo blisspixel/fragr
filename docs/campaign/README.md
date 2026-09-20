@@ -1,6 +1,6 @@
 # Mission plans
 
-Detailed level plans for the twelve-mission campaign. M01 has a tested development
+Detailed level plans for ten campaign missions and a conditional epilogue. M01 has a tested development
 slice; no complete mission has reached the design's quality gate. The
 [campaign contract](../CAMPAIGN.md) distinguishes confirmed story
 from proposals; the [treatment](../CAMPAIGN-MISSIONS.md) gives the complete arc.
@@ -22,9 +22,11 @@ not independent redesigns of those assets.
 | M07 | Mars habitat, experience delayed cooperation | [Terms of Cooperation](m07-terms-of-cooperation.md) |
 | M08 | Mars industry, mobilize the coalition | [The Weight of Permission](m08-weight-of-permission.md) |
 | M09 | Earth command, defeat the Union | [Peace Without Interruption](m09-peace-without-interruption.md) |
-| M10 | Earth, sudden wipe and expanding comprehension | [All Systems Normal](m10-all-systems-normal.md) |
-| M11 | Changed home, rescue after the initial wipe | [What We Can Carry](m11-what-we-can-carry.md) |
-| M12 | Refuge route, survival and years-later coda | [Still Here](m12-still-here.md) |
+| M10 | Earth, sudden wipe and substantial survival finale | [All Systems Normal](m10-all-systems-normal.md) |
+| Epilogue | Survival unlocks immediate aftermath and years-later healing | [Still Here](epilogue-still-here.md) |
+
+The former [M11](m11-what-we-can-carry.md) and [M12](m12-still-here.md) briefs are
+explicitly superseded staging references, not additional missions to implement.
 
 ## Shared authoring contract
 
@@ -33,7 +35,8 @@ support discussion and later data authoring; proposed state names are not existi
 wire fields. Review the graph and encounter rhythm before grayboxing. Geometry
 uses actual server movement, collision and the supported map representation.
 
-Target 2-3 hours for a successful twelve-mission run. Per-mission budgets are
+Target 2-3 hours for a successful run, including the substantial M10 finale and
+short epilogue. The initial survival target is about 33 active minutes. Budgets are
 provisional and need fresh-player evidence. A limited continue restarts the current
 mission with its entry equipment and world state; no mid-mission death checkpoint.
 The [run contract](../CAMPAIGN.md#runs-and-continues) owns allowance and persistence

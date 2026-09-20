@@ -5,6 +5,7 @@ mod actors;
 mod decoration;
 mod loadout;
 mod mission;
+mod statistics;
 pub use actors::{hostile, CampaignActor, EnemyKind, EnemyPhase};
 pub use decoration::{
     validate_decorations, MapDecoration, MapDecorationKind, MapFace, MAX_MAP_DECORATIONS,
@@ -18,6 +19,10 @@ pub use mission::{
     InteractionPrompt, MissionContinue, MissionGeometry, MissionId, MissionMember, MissionPhase,
     MissionReady, MissionState, Region3, UseTarget, CAMPAIGN_CONTINUES, CAMPAIGN_RULES_REVISION,
     MISSION_PARTY_LIMIT, USE_DISTANCE,
+};
+pub use statistics::{
+    CombatCounts, PlayerRecord, RecordScope, RecordStatus, WeaponCounts, RECORD_TICKS_PER_SECOND,
+    RECORD_VERSION,
 };
 
 /// Named scrap-league identity (Contested Frequency denies it exists).
@@ -400,8 +405,9 @@ pub const MISSION_GAMEPLAY_VERSION: u32 = 4;
 pub const READINESS_GAMEPLAY_VERSION: u32 = 5;
 pub const DIFFICULTY_GAMEPLAY_VERSION: u32 = 6;
 pub const CONTINUES_GAMEPLAY_VERSION: u32 = 7;
+pub const RECORD_GAMEPLAY_VERSION: u32 = 8;
 /// Highest understood gameplay contract; content requirements use their own minimum.
-pub const GAMEPLAY_VERSION: u32 = CONTINUES_GAMEPLAY_VERSION;
+pub const GAMEPLAY_VERSION: u32 = RECORD_GAMEPLAY_VERSION;
 pub fn legacy_gameplay_version() -> u32 {
     1
 }
@@ -589,6 +595,7 @@ pub enum ServerMessage {
     },
     Snapshot(Snapshot),
     Loadout(LoadoutState),
+    Record(PlayerRecord),
     Event(GameEvent),
     /// Unicast acknowledgement of the newest input applied to this client's
     /// fighter, with the authoritative state it produced. Sent every tick to a

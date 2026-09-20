@@ -224,7 +224,7 @@ Safe asset-request recovery shipped in #169. The
 authoritative world feedback and repairs trade accounting. The current
 [navigation pass](height-aware-navigation.md) makes existing stairs and deck
 exits usable by local fighters and corrects weapon anchoring and crowded joins.
-Next: review the proposed twelve-mission treatment in `../CAMPAIGN-MISSIONS.md`
+Next: review the current mission treatment in `../CAMPAIGN-MISSIONS.md`
 against the agreed contract in `../CAMPAIGN.md`, then build M01 to the full bar. The [arena layout study](authored-compliance-yard.md)
 is deferred and does not choose the campaign opening. The current request includes
 a melee start, discovered weapons/ammunition, animated enemies, and substantial

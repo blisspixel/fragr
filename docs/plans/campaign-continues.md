@@ -1,8 +1,10 @@
 # Solo campaign runs and continues
 
-Status: implemented and locally verified, 2026-09-20. Bounded increment of #195.
-Integration: [PR #200](https://github.com/blisspixel/fragr/pull/200), CI and release
-pending. Local verification below is not cross-platform CI evidence.
+Status: shipped, 2026-09-20. Bounded increment of #195.
+Integration: [PR #200](https://github.com/blisspixel/fragr/pull/200), commit
+`0982e86`, [v0.31.0](https://github.com/blisspixel/fragr/releases/tag/v0.31.0).
+All five CI jobs passed on `abf3b1d`; the merged tree matches that head. This adds
+Linux, Windows and macOS headless checks to the local evidence below.
 
 ## Contract
 
@@ -144,7 +146,7 @@ No map, difficulty or art acceptance follows from a green roster.
 ## Remaining work
 
 M01 still needs final character art, secrets, supply/pacing balance and fresh-player
-review. The wider twelve-mission campaign, disk saves, reconnect and cross-mission
+review. The wider campaign, disk saves, reconnect and cross-mission
 carry are unbuilt. The new player-record/statistics scope is bounded in
 [#199](https://github.com/blisspixel/fragr/issues/199) and
 [benchmark-and-stats.md](benchmark-and-stats.md): authoritative counters first,

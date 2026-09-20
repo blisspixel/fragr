@@ -7,7 +7,7 @@ renaming; see [voice](./voice.md). They do not override current story decisions.
 
 ## Campaign principals
 
-These roles serve the twelve-mission treatment. The companion relationship and
+These roles serve the ten missions and conditional epilogue. The companion relationship and
 motivation are confirmed. Personal names and detailed arcs below are working
 choices, not recorded or shipped characters.
 

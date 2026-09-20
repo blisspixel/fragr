@@ -43,6 +43,10 @@ impl Inventory {
         self.revision
     }
 
+    pub(crate) fn dry_fire_count(&self) -> u64 {
+        self.dry_fire_count
+    }
+
     /// Restore durable entry equipment without rolling back observer counters or
     /// carrying a reload deadline and held trigger across attempts.
     pub(crate) fn restore_entry(&mut self, entry: &Self) {

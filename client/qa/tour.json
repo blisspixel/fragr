@@ -170,6 +170,16 @@
       "camera": "first_person",
       "overlay": "match_settings",
       "note": "The same settings panel over a live match, with camera input blocked."
+    },
+    {
+      "name": "service_record",
+      "scene": "res://scenes/boot_menu.tscn",
+      "at_seconds": 1,
+      "camera": "none",
+      "menu_page": "records",
+      "record_kind": "arena",
+      "expect_records": true,
+      "note": "Persisted participant observations from this tour, with incomplete sessions labelled and exact attack denominators."
     }
   ]
 }

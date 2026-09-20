@@ -68,7 +68,7 @@ not absorbed and can become targets too. Body, combat role, faction and imposed
 control are separate state: a chassis or cosmetic skin cannot decide assimilation.
 Teach the changed danger before combining these units with restoration machines.
 
-Introduced sparingly before full restoration encounters in M10-M12. Names and
+Introduced sparingly before full restoration encounters in M10. Names and
 mechanics need a combat prototype before art production.
 
 | Working role | Read and behavior | Counterplay |
@@ -95,7 +95,7 @@ then mix it with an established role. Proposed progression:
 | Heavy + mobile security | Spend ammunition on suppression or take the exposed flank while lighter units move | M03 workshops and later industrial spaces, planned |
 | Ranged Sweeper + Jammer | Break the precision sightline while dodging clearly traveling interference shots | Lunar galleries with side routes, planned |
 | Auditor + disabled bodies | Interrupt a bounded repair channel or finish an immediate attacker | M05 custody defense, planned |
-| Absorbed bot + restoration machine | Apply the learned weapon counter while responding to newly marked work zones | M10-M12, planned |
+| Absorbed bot + restoration machine | Apply the learned weapon counter while responding to newly marked work zones | M10 survival finale, planned |
 
 Each pairing needs routes that allow both answers, readable attack overlap and
 supplies for imperfect play. A room full of hitscan enemies does not reproduce

@@ -180,6 +180,7 @@ spectator_eyes|tour_spectator_16x9.png
 profile_menu|tour_profile_16x9.png
 settings_menu|tour_settings_16x9.png
 campaign_difficulty|tour_difficulty_16x9.png
+service_record|tour_records_16x9.png
 SHOTS
   echo "qa_tour: published $published stills into docs/screenshots/"
 fi

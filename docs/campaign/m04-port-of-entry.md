@@ -20,6 +20,12 @@ Dock service bay -> freight hall -> customs split -> shielded crater cut ->
 archive access. Customs has an interior maintenance bypass; the crater cut loops
 back above the freight hall for a useful overview and resupply.
 
+A short dock freight lift introduces riding machinery safely before a fight.
+Show the call control, platform and upper destination together; provide safe
+boarding and ordinary stairs on the maintenance loop. Pressure doors use nearby
+release controls and visible state changes, not pressure-balancing puzzles.
+These are planned interactions, beyond M01's current two-state lift gate.
+
 | Space | Shape and purpose | Fight or story beat |
 |---|---|---|
 | Dock bay | Thick pressure bulkhead, cargo airlock, crew facilities | Safe arrival and explanation of the next link |

@@ -1,0 +1,35 @@
+{
+  "version": 1,
+  "session_id": "00000000-0000-0000-0000-000000000001",
+  "player_id": "00000000-0000-0000-0000-000000000002",
+  "round": 1,
+  "tick": 21,
+  "entered_at": 0,
+  "round_started_at": 0,
+  "ticks_per_second": 20,
+  "map_id": 1,
+  "map_name": "Arena Duel",
+  "role": "human",
+  "scope": { "kind": "arena", "round": 1 },
+  "status": "complete",
+  "total": {
+    "alive_ticks": 21, "deaths": 0, "hp_lost": 20, "armor_lost": 0, "dry_triggers": 0,
+    "weapons": [
+      { "attacks": 0, "damaging_attacks": 0, "kills": 0, "hp_damage": 0, "armor_damage": 0 },
+      { "attacks": 0, "damaging_attacks": 0, "kills": 0, "hp_damage": 0, "armor_damage": 0 },
+      { "attacks": 0, "damaging_attacks": 0, "kills": 0, "hp_damage": 0, "armor_damage": 0 },
+      { "attacks": 0, "damaging_attacks": 0, "kills": 0, "hp_damage": 0, "armor_damage": 0 },
+      { "attacks": 2, "damaging_attacks": 2, "kills": 1, "hp_damage": 100, "armor_damage": 25 }
+    ]
+  },
+  "attempt": {
+    "alive_ticks": 21, "deaths": 0, "hp_lost": 20, "armor_lost": 0, "dry_triggers": 0,
+    "weapons": [
+      { "attacks": 0, "damaging_attacks": 0, "kills": 0, "hp_damage": 0, "armor_damage": 0 },
+      { "attacks": 0, "damaging_attacks": 0, "kills": 0, "hp_damage": 0, "armor_damage": 0 },
+      { "attacks": 0, "damaging_attacks": 0, "kills": 0, "hp_damage": 0, "armor_damage": 0 },
+      { "attacks": 0, "damaging_attacks": 0, "kills": 0, "hp_damage": 0, "armor_damage": 0 },
+      { "attacks": 2, "damaging_attacks": 2, "kills": 1, "hp_damage": 100, "armor_damage": 25 }
+    ]
+  }
+}

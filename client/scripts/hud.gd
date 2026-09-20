@@ -11,7 +11,7 @@ signal host_spoke(seconds: float)
 @onready var mode_label = $Panel/VBoxContainer/ModeLabel
 @onready var round_label = $Panel/VBoxContainer/RoundLabel
 @onready var weapon_label = $Panel/VBoxContainer/WeaponLabel
-@onready var frag_label = $FragLabel
+@onready var combat_feed: CombatFeed = $CombatFeed
 @onready var round_message = $RoundMessage
 @onready var scoreboard = $Panel/VBoxContainer/Scoreboard
 @onready var weapon_icon = $WeaponIcon
@@ -105,6 +105,7 @@ var damage_flash_timer = 0.0
 var spawn_flash_timer = 0.0
 var streak_flash_timer = 0.0
 var hit_marker_timer = 0.0
+var round_banner_remaining: float = 0.0
 var fp_kick_timer = 0.0
 ## Seconds the first-person muzzle flash stays up. Short: it is a flash, and a
 ## player sees it for the frame or two that the shot leaves the barrel.
@@ -131,7 +132,6 @@ var warmup_tv_countdown = null
 var warmup_tv_roster = null
 var warmup_tv_host = null
 var warmup_tv_active = false
-var warmup_tv_linger_timer = 0.0
 var warmup_tv_roster_names = []
 var warmup_tv_secs = 0
 var warmup_tv_host_line = ""
@@ -166,8 +166,6 @@ func _ready():
 	hit_marker = get_node_or_null("HitMarker")
 	damage_numbers = get_node_or_null("DamageNumbers")
 
-	if frag_label:
-		frag_label.text = ""
 	if round_message:
 		round_message.text = ""
 		round_message.visible = false
@@ -210,7 +208,6 @@ func _bind_warmup_tv() -> void:
 		warmup_tv_host = center.get_node_or_null("HostLine")
 	warmup_tv.visible = false
 	warmup_tv_active = false
-	warmup_tv_linger_timer = 0.0
 
 
 func _ensure_map_chip_label() -> void:
@@ -485,6 +482,7 @@ func set_episode_chrome(ep_id: String, title: String, objective: String, progres
 		show_nods_tick(progress, sticky_host_line)
 
 func show_episode_title_card(title: String, objective: String = ""):
+	round_banner_remaining = 0.0
 	if not round_message:
 		return
 	round_message.visible = true
@@ -498,6 +496,7 @@ func show_episode_title_card(title: String, objective: String = ""):
 		round_message.visible = false
 
 func show_nods_tick(progress: String, host_line: String = ""):
+	round_banner_remaining = 0.0
 	# Short Contested Frequency booth beat per NODS clear. Not speak. Not killstreak length.
 	flash_broadcast_chrome("host")
 	streak_flash_timer = 0.32
@@ -519,6 +518,7 @@ func show_nods_tick(progress: String, host_line: String = ""):
 		round_message.visible = false
 
 func show_episode_complete(host_line: String, unlock_teaser: String = ""):
+	round_banner_remaining = 0.0
 	if not round_message:
 		return
 	round_message.visible = true
@@ -532,6 +532,7 @@ func show_episode_complete(host_line: String, unlock_teaser: String = ""):
 		streak_flash.modulate = Color(1.0, 0.85, 0.3, 0.55)
 
 func show_episode_fail(host_line: String):
+	round_banner_remaining = 0.0
 	# Comedy fail splash, not a lecture.
 	if not round_message:
 		return
@@ -543,36 +544,12 @@ func show_episode_fail(host_line: String):
 		damage_flash.modulate = Color(0.6, 0.15, 0.55, 0.45)
 		damage_flash_timer = 0.8
 
-func show_frag(killer: String, victim: String, killer_color: Color = Color.WHITE, victim_color: Color = Color.WHITE):
+func show_frag(killer: String, victim: String, killer_color: Color = Color.WHITE, _victim_color: Color = Color.WHITE) -> void:
 	if not scores.has(killer):
 		scores[killer] = 0
 	scores[killer] += 1
-
 	update_scoreboard()
-
-	if frag_label:
-		var message = killer + " SCRAPPED " + victim
-
-		if randf() < 0.067:
-			var quips = [
-				killer + " took " + victim + " off the air",
-				killer + " > " + victim + " (skill issue)",
-				"so back (" + killer + " -> " + victim + ")"
-			]
-			message = quips[randi() % quips.size()]
-
-		frag_label.text = message
-		frag_label.modulate = killer_color.lightened(0.4)
-		frag_label.visible = true
-
-		var tween = create_tween()
-		tween.tween_property(frag_label, "scale", Vector2(1.3, 1.3), 0.08)
-		tween.tween_property(frag_label, "scale", Vector2(1.0, 1.0), 0.12)
-
-		await get_tree().create_timer(2.8).timeout
-		if is_instance_valid(frag_label):
-			frag_label.visible = false
-			frag_label.modulate = Color.WHITE
+	combat_feed.push(killer + " > " + victim, killer_color.lightened(0.4))
 
 func reset_host_chrome():
 	# Clear sticky Host + flash latch so a reconnect mid-round can flash once again.
@@ -679,29 +656,15 @@ func set_host_line(line: String, flash_on_first: bool = false) -> bool:
 		return true
 	return false
 
-func show_host_join(host_line: String):
-	host_spoke.emit(3.0)
-	# Mid-join Host bumper: same energy as RoundStart Host chrome, without waiting for RoundStart.
-	flash_broadcast_chrome("host")
-	if round_message:
-		var line = host_line
-		if line == "":
-			line = "HOST: CONTESTED FREQUENCY. LEAGUE DENIES EXISTENCE. ARENA DUEL IS LIVE."
-		round_message.text = line + "\n" + league_mode_name.to_upper() + " // " + league_playlist.to_upper()
-		round_message.visible = true
-		var tween = create_tween()
-		tween.tween_property(round_message, "scale", Vector2(1.2, 1.2), 0.15)
-		tween.tween_property(round_message, "scale", Vector2(1.0, 1.0), 0.2)
-		await get_tree().create_timer(2.5).timeout
-		if is_instance_valid(round_message):
-			round_message.visible = false
+func show_host_join(host_line: String) -> void:
+	combat_feed.push(host_line)
 
 func show_warmup_bumper(host_line: String, secs_left: int = 0, roster = []):
+	round_banner_remaining = 0.0
 	host_spoke.emit(3.0)
 	# Warmup / pre-round Host drama: roster + map bumper readable before RoundStart.
 	flash_broadcast_chrome("host")
 	# Unmissable full-frame Contested Frequency Warmup TV bumper.
-	warmup_tv_linger_timer = 0.0
 	_apply_warmup_tv(host_line, secs_left, roster, false)
 	# Fallback only when WarmupTv nodes are missing (headless / old scene).
 	if warmup_tv == null and round_message:
@@ -720,33 +683,8 @@ func refresh_warmup_tv(host_line: String, secs_left: int = 0, roster = []) -> vo
 		return
 	_apply_warmup_tv(host_line, secs_left, roster, true)
 
-func linger_warmup_tv_into_active(host_line: String = "", roster = []) -> void:
-	# Hold full-frame Host flash ~1s into Active so Warmup is not blink-and-miss.
-	if not warmup_tv_active and warmup_tv != null and not warmup_tv.visible:
-		# Raise briefly if RoundStart arrived before Warmup flash latch (reconnect edge).
-		_apply_warmup_tv(host_line if host_line != "" else sticky_host_line, 0, roster, false)
-	if warmup_tv_countdown:
-		warmup_tv_countdown.text = "LIVE"
-		warmup_tv_countdown.add_theme_color_override("font_color", Color(1.0, 0.78, 0.28, 1))
-	if host_line != "":
-		warmup_tv_host_line = host_line
-		if warmup_tv_host:
-			warmup_tv_host.text = host_line
-	if typeof(roster) == TYPE_ARRAY and roster.size() > 0:
-		_set_warmup_roster(roster)
-	warmup_tv_active = true
-	warmup_tv_linger_timer = 1.0
-	if warmup_tv:
-		warmup_tv.visible = true
-	# Ember grit flash on the Active handoff.
-	streak_flash_timer = 0.45
-	if streak_flash:
-		streak_flash.visible = true
-		streak_flash.modulate = Color(1.0, 0.72, 0.22, 0.45)
-
 func hide_warmup_tv() -> void:
 	warmup_tv_active = false
-	warmup_tv_linger_timer = 0.0
 	warmup_tv_secs = 0
 	warmup_tv_roster_names = []
 	warmup_tv_host_line = ""
@@ -814,151 +752,46 @@ func _set_warmup_roster(roster) -> void:
 		shown.append("+" + str(upper.size() - 5))
 	warmup_tv_roster.text = " // ".join(PackedStringArray(shown))
 
-func show_round_start(round_number: int, host_line: String = ""):
-	host_spoke.emit(3.0)
-	flash_broadcast_chrome("on_air")
-	var line = host_line
-	if line == "":
+func show_round_start(round_number: int, host_line: String = "") -> void:
+	var line: String = host_line
+	if line.is_empty():
 		line = HOST_BUMPERS[host_bumper_index % HOST_BUMPERS.size()]
 		host_bumper_index += 1
 	sticky_host_line = line
 	host_line_seen = true
 	_refresh_mode_label()
-	# Full-frame Warmup Host flash lingers ~1s into Active, then fight chrome.
-	if warmup_tv_active or (warmup_tv != null and warmup_tv.visible):
-		linger_warmup_tv_into_active(line, warmup_tv_roster_names)
-		await get_tree().create_timer(1.0).timeout
-		hide_warmup_tv()
-	if round_message:
-		round_message.text = line + "\n" + league_playlist.to_upper() + " ROUND " + str(round_number) + " - FIGHT!"
-		if ghost_rival != "":
-			round_message.text += "\nGHOST RIVAL: " + ghost_rival
-		round_message.visible = true
-		var tween = create_tween()
-		tween.tween_property(round_message, "scale", Vector2(1.3, 1.3), 0.2)
-		tween.tween_property(round_message, "scale", Vector2(1.0, 1.0), 0.2)
-		await get_tree().create_timer(3.0).timeout
-		if is_instance_valid(round_message):
-			round_message.visible = false
+	hide_warmup_tv()
+	combat_feed.push(line)
+	_show_round_banner(tr("HUD_ROUND_START").format({"round": round_number}), 1.0)
 
-func show_compliance_ping(message: String, duration_sec: float = 6.0):
-	if round_message:
-		var line = message
-		if line == "":
-			line = "HOST: CONTINUANCE COMPLIANCE PING. APPROVED LANES ONLY."
-		sticky_host_line = line
-		host_line_seen = true
-		_refresh_mode_label()
-		round_message.text = line + "\n" + league_mode_name.to_upper() + " PRESSURE"
-		round_message.visible = true
-		var tween = create_tween()
-		tween.tween_property(round_message, "scale", Vector2(1.25, 1.25), 0.15)
-		tween.tween_property(round_message, "scale", Vector2(1.0, 1.0), 0.2)
-		await get_tree().create_timer(max(duration_sec, 2.0)).timeout
-		if is_instance_valid(round_message):
-			round_message.visible = false
+func show_compliance_ping(message: String, _duration_sec: float = 6.0) -> void:
+	var line: String = message if not message.is_empty() else tr("HUD_COMPLIANCE")
+	sticky_host_line = line
+	host_line_seen = true
+	_refresh_mode_label()
+	combat_feed.push(line)
 
 
-func show_boss_spawn(message: String, name: String = "COMPLIANCE-DRONE"):
-	host_spoke.emit(3.0)
-	if round_message:
-		var line = message
-		if line == "":
-			line = "HOST: CONTINUANCE COMPLIANCE DRONE ON DECK. ARTICLE 7 ENFORCEMENT."
-		sticky_host_line = line
-		host_line_seen = true
-		pressure_id = "compliance_drone"
-		_refresh_mode_label()
-		round_message.text = line + "\nBOSS: " + name
-		round_message.visible = true
-		var tween = create_tween()
-		tween.tween_property(round_message, "scale", Vector2(1.3, 1.3), 0.15)
-		tween.tween_property(round_message, "scale", Vector2(1.0, 1.0), 0.2)
-		await get_tree().create_timer(4.0).timeout
-		if is_instance_valid(round_message):
-			round_message.visible = false
+func show_boss_spawn(message: String, name: String = "COMPLIANCE-DRONE") -> void:
+	sticky_host_line = message
+	host_line_seen = true
+	pressure_id = "compliance_drone"
+	_refresh_mode_label()
+	combat_feed.push(tr("HUD_BOSS_ARRIVED").format({"name": name}), MenuTheme.EMBER)
 
-func show_boss_down(message: String, killer: String = ""):
-	host_spoke.emit(3.0)
-	if round_message:
-		var line = message
-		if line == "":
-			line = "HOST: DRONE DOWN. CONTINUANCE DENIES THE INCIDENT. SCRAP ON."
-		sticky_host_line = line
-		host_line_seen = true
-		pressure_id = ""
-		_refresh_mode_label()
-		var killer_chip = ""
-		if killer != "":
-			killer_chip = "\nFRAG BY " + killer
-		round_message.text = line + killer_chip
-		round_message.visible = true
-		var tween = create_tween()
-		tween.tween_property(round_message, "scale", Vector2(1.25, 1.25), 0.12)
-		tween.tween_property(round_message, "scale", Vector2(1.0, 1.0), 0.18)
-		await get_tree().create_timer(3.5).timeout
-		if is_instance_valid(round_message):
-			round_message.visible = false
+func show_boss_down(message: String, killer: String = "") -> void:
+	sticky_host_line = message
+	host_line_seen = true
+	pressure_id = ""
+	_refresh_mode_label()
+	combat_feed.push(tr("HUD_BOSS_DOWN").format({"killer": killer}), MenuTheme.EMBER)
 
-func show_killstreak(player_name: String, streak: int, tier: String, message: String):
-	host_spoke.emit(2.5)
-	# Arena multi-kill Host bumper + brief ember flash (spectator and join).
-	streak_flash_timer = 0.4
-	if streak_flash:
-		streak_flash.visible = true
-		streak_flash.modulate = Color(1.0, 0.72, 0.22, 0.5)
-	var line = message
-	if line == "":
-		match tier:
-			"double":
-				line = "HOST: DOUBLE FREQUENCY. " + player_name + " DENIES THE DENIAL."
-			"triple":
-				line = "HOST: TRIPLE SCRAP. CONTINUANCE LOSES COUNT."
-			"rampage":
-				line = "HOST: FREQUENCY RAMPAGE. " + player_name + " BREAKS EVERY APPROVED LANE."
-			_:
-				line = "HOST: MULTI SCRAP. " + player_name + " IS LIVE."
-	if round_message:
-		round_message.text = line + "\nSTREAK " + str(streak) + " // " + tier.to_upper()
-		round_message.visible = true
-		var tween = create_tween()
-		tween.tween_property(round_message, "scale", Vector2(1.35, 1.35), 0.1)
-		tween.tween_property(round_message, "scale", Vector2(1.0, 1.0), 0.18)
-		await get_tree().create_timer(2.8).timeout
-		if is_instance_valid(round_message):
-			round_message.visible = false
-	if frag_label:
-		frag_label.text = tier.to_upper() + " // " + player_name
-		frag_label.modulate = Color(1.0, 0.85, 0.35)
-		frag_label.visible = true
-		var ft = create_tween()
-		ft.tween_property(frag_label, "scale", Vector2(1.4, 1.4), 0.08)
-		ft.tween_property(frag_label, "scale", Vector2(1.0, 1.0), 0.14)
-		await get_tree().create_timer(2.2).timeout
-		if is_instance_valid(frag_label):
-			frag_label.visible = false
-			frag_label.modulate = Color.WHITE
+func show_killstreak(player_name: String, streak: int, _tier: String, _message: String) -> void:
+	combat_feed.push(tr("HUD_STREAK").format({"player": player_name, "count": streak}), MenuTheme.EMBER)
 
-func show_speak(player: String, line: String):
-	# Killfeed-adjacent callout; keep string literals simple for Godot.
-	if frag_label:
-		var message = player + ": " + line
-		frag_label.text = message
-		frag_label.modulate = Color(0.85, 0.95, 1.0)
-		frag_label.visible = true
-		var tween = create_tween()
-		tween.tween_property(frag_label, "scale", Vector2(1.15, 1.15), 0.06)
-		tween.tween_property(frag_label, "scale", Vector2(1.0, 1.0), 0.1)
-		await get_tree().create_timer(2.5).timeout
-		if is_instance_valid(frag_label):
-			frag_label.visible = false
-			frag_label.modulate = Color.WHITE
-	if round_message and line != "":
-		round_message.text = "CALL: " + player + "\n" + line
-		round_message.visible = true
-		await get_tree().create_timer(2.0).timeout
-		if is_instance_valid(round_message):
-			round_message.visible = false
+func show_speak(player: String, line: String) -> void:
+	if not line.is_empty():
+		combat_feed.push(player + ": " + line)
 
 func show_round_end(mvp_name: String, reason: String, mvp_frags: int = 0, host_line: String = "", podium = []):
 	host_spoke.emit(4.0)
@@ -1014,55 +847,23 @@ func show_round_end(mvp_name: String, reason: String, mvp_frags: int = 0, host_l
 			message += "\nPODIUM: " + " | ".join(PackedStringArray(lines))
 		message += "\n" + league_mode_name.to_upper() + " // " + league_playlist.to_upper()
 
-		round_message.text = message
-		round_message.visible = true
+		_show_round_banner(message, 5.5)
 
-		var tween = create_tween()
-		tween.tween_property(round_message, "scale", Vector2(1.45, 1.45), 0.12)
-		tween.tween_property(round_message, "scale", Vector2(1.0, 1.0), 0.22)
-
-		await get_tree().create_timer(5.5).timeout
-		if is_instance_valid(round_message):
-			round_message.visible = false
-
-	if frag_label and mvp_name != "":
-		frag_label.text = "MVP // " + mvp_name + " // " + str(mvp_frags)
-		frag_label.modulate = Color(1.0, 0.88, 0.4)
-		frag_label.visible = true
-		var ft = create_tween()
-		ft.tween_property(frag_label, "scale", Vector2(1.45, 1.45), 0.1)
-		ft.tween_property(frag_label, "scale", Vector2(1.0, 1.0), 0.16)
-		await get_tree().create_timer(4.0).timeout
-		if is_instance_valid(frag_label):
-			frag_label.visible = false
-			frag_label.modulate = Color.WHITE
-
-func show_pickup_toast(player_name: String, weapon_name: String, kind: String = "weapon", amount: int = 0):
-	if not round_message:
-		return
-	var what: String
-	if kind == "health":
-		what = ("+%d HP" % amount) if amount > 0 else "MEDKIT"
-	elif kind == "armor":
-		what = ("+%d ARMOR" % amount) if amount > 0 else "ARMOR"
-	elif kind == "ammo":
-		what = "+%d AMMO" % amount
-	else:
-		what = weapon_name.to_upper() if weapon_name != "" else "PAD"
-	var line = "%s recovered %s" % [player_name, what]
-	round_message.text = line
+func _show_round_banner(text: String, seconds: float) -> void:
+	round_banner_remaining = seconds
+	round_message.text = text
+	round_message.scale = Vector2.ONE
+	round_message.modulate = Color.WHITE
 	round_message.visible = true
-	if kind == "health":
-		round_message.modulate = Color(0.72, 0.32, 0.28)
-	elif kind == "armor":
-		round_message.modulate = Color(0.55, 0.52, 0.46)
-	else:
-		round_message.modulate = Color(0.86, 0.82, 0.74)
-	var tree = get_tree()
-	if tree:
-		await tree.create_timer(1.6).timeout
-		if round_message:
-			round_message.visible = false
+
+func show_pickup_toast(player_name: String, weapon_name: String, kind: String = "weapon", amount: int = 0) -> void:
+	var what: String
+	match kind:
+		"health": what = tr("HUD_PICKUP_HEALTH").format({"amount": amount})
+		"armor": what = tr("HUD_PICKUP_ARMOR").format({"amount": amount})
+		"ammo": what = tr("HUD_PICKUP_AMMO").format({"amount": amount})
+		_: what = weapon_name.to_upper()
+	combat_feed.push(tr("HUD_PICKUP").format({"player": player_name, "item": what}))
 
 func set_followed_weapon(weapon_name: String, player_name: String = "", behavior: String = ""):
 	if not weapon_label or not weapon_icon:
@@ -1115,12 +916,12 @@ func set_followed_weapon(weapon_name: String, player_name: String = "", behavior
 			weapon_icon_bg.visible = false
 
 func _process(delta):
+	if round_banner_remaining > 0.0:
+		round_banner_remaining = maxf(0.0, round_banner_remaining - delta)
+		if round_banner_remaining == 0.0:
+			round_message.visible = false
 	if scoreboard:
 		scoreboard.visible = not fp_juice_enabled or Input.is_physical_key_pressed(KEY_TAB)
-	if warmup_tv_linger_timer > 0:
-		warmup_tv_linger_timer -= delta
-		if warmup_tv_linger_timer <= 0:
-			hide_warmup_tv()
 	if damage_flash_timer > 0:
 		damage_flash_timer -= delta
 		if damage_flash:

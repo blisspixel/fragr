@@ -132,6 +132,7 @@ async fn mcp_connect_and_hello(
                         state.map = None;
                         state.mission = Default::default();
                         state.last_snapshot = None;
+                        state.record = None;
                         drop(state);
                         let _ = receive_sink.lock().await.send(Message::Close(None)).await;
                         break;
@@ -179,6 +180,7 @@ async fn mcp_leave_session(
     state.player_id = None;
     state.session_name = None;
     state.last_snapshot = None;
+    state.record = None;
     state.last_speak_tick = None;
 }
 

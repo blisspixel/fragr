@@ -989,7 +989,7 @@ fn test_net_client_session_structure() {
     let id = Uuid::new_v4();
     let (tx, _rx) = mpsc::unbounded_channel();
 
-    let session = ClientSession::new(id, tx);
+    let session = ClientSession::new(id, tx, crate::protocol::GAMEPLAY_VERSION);
 
     assert_eq!(session.id, id);
     assert!(!session.initialized);

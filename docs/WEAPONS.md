@@ -14,8 +14,8 @@ Pool caps are 220 Tacks, 120 Darts and 100 Cores. A new weapon grants a full
 magazine and three magazines of reserve, except Rail grants two. Scatter loads
 one shot using four Darts. Switching cancels a pending reload without losing
 rounds. Dry fire does not discard a weapon or switch automatically. M01 death
-currently resets inventory and personal introductory claims at the entry;
-mission-entry restoration, limited continues and cross-mission persistence are not implemented.
+offers an explicit mission-start continue with entry equipment restored. Three
+continues are implemented for the local run; cross-mission persistence remains unbuilt.
 
 Balance numbers live here and nowhere else. `plans/gunfeel.md` explains how they were arrived at, `plans/weapon-economy.md` explains the ammunition and the pickup economy, and `docs/lore/guns.md` is what they get called on the radio.
 
@@ -65,6 +65,23 @@ Three melee tiers, six guns and a sidearm, a thrown mine and a signature weapon.
 Reserve carried, in magazines: sidearm three, flechette three, scatter three, rail two, repeater two, lobber four charges, arc two. A full pickup is a fight and a half.
 
 Reload times are all under two seconds and most are close to one, because the measured time to kill is under a second and a half and a reload has to be a decision rather than a nap. The rail and the lobber are slow on purpose: they are the weapons where the moment after the shot is the interesting part. Tacks for the sidearm and the repeater, Darts for the flechette and the scatter, Cores for the rail and the arc, Cans for the lobber. The tin, the blade and the signature weapon carry their own counts and sit outside the pools entirely.
+
+## Placed explosives
+
+The proximity tin remains planned. Add a remote-detonated charge as its proposed
+paired gadget: throw or place it, move away, then trigger a deliberate ambush.
+Use one shared placed-explosive implementation with explicit trigger behavior,
+rather than separate damage systems. Final carry limits, damage, blast radius
+and availability need prototype evidence; the table does not define remote-charge
+balance. Both are game devices with readable silhouettes and arming feedback.
+
+Teach placement in a safe setting, then give enemies routes that reward a trap.
+Later encounters can use an obvious demolition target with a nearby usable charge,
+never a hidden bomb hunt or a finicky wiring puzzle. Multiplayer needs visible
+counterplay, bounded active devices and explicit owner/death/round cleanup rules.
+Server authority covers placement, arming, detonation, cover-blocked splash and
+damage. Cosmetics cannot hide the device or its tell. Projectiles and explosives
+are unbuilt and follow the existing inventory and combat seams.
 
 ## Weapons are consumable
 

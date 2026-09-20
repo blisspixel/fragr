@@ -69,6 +69,8 @@ var latest_snapshot: Dictionary = {}
 var console: FragrConsole = null
 var pause_menu: PauseMenu = null
 var settings: FragrSettings
+var records: PlayerRecords
+var _record_save_warning: bool = false
 var role_transition: bool = false
 var shot_effects: ShotEffects = null
 var last_shot_tick: int = -1
@@ -92,10 +94,12 @@ func _ready():
 	if settings == null:
 		settings = FragrSettings.for_tree(get_tree())
 	settings.load_from_disk()
+	records = PlayerRecords.for_tree(get_tree())
 	settings.changed.connect(_apply_preferences)
 	_apply_preferences()
 	net_client.snapshot_received.connect(_on_snapshot_received)
 	net_client.loadout_received.connect(_on_loadout_received)
+	net_client.record_received.connect(_on_record_received)
 	net_client.mission_received.connect(_on_mission_received)
 	net_client.map_info_received.connect(_on_map_info)
 	net_client.event_received.connect(_on_event_received)
@@ -277,8 +281,18 @@ func _on_local_failure(key: String) -> void:
 	_on_leave_requested.call_deferred()
 
 func _exit_tree() -> void:
+	if records != null:
+		_report_record_save(records.save())
 	if is_instance_valid(local_match):
 		local_match.stop()
+
+func _on_record_received(data: Dictionary) -> void:
+	_report_record_save(records.accept(data, "local" if local_match != null else "external"))
+
+func _report_record_save(result: Error) -> void:
+	if result != OK and not _record_save_warning:
+		_record_save_warning = true
+		push_warning("Service record could not be saved: " + error_string(result))
 
 func _unhandled_input(event: InputEvent) -> void:
 	if console != null and console.is_open():
@@ -754,9 +768,6 @@ func _on_event_received(data):
 		
 		hud.show_frag(killer_name, victim_name, killer_color, victim_color)
 		
-		if camera:
-			camera.camera_punch()
-		
 		for pawn in players.values():
 			if is_instance_valid(pawn) and pawn.player_name == killer_name:
 				pawn.show_winner_glow()
@@ -829,6 +840,8 @@ func _on_event_received(data):
 				hud.show_spawn_flash()
 			fp_spawn_flashed = true
 	elif event_type == "pickup":
+		if not _shows_participant_notice(str(data.get("player_id", ""))):
+			return
 		var who = str(data.get("player", "?"))
 		var kind = str(data.get("kind", "weapon"))
 		var weapon = str(data.get("weapon", ""))
@@ -841,8 +854,6 @@ func _on_event_received(data):
 		var message = str(data.get("message", ""))
 		if hud and hud.has_method("show_killstreak"):
 			hud.show_killstreak(who, streak, tier, message)
-		if camera:
-			camera.camera_punch()
 		if frag_sound and frag_sound.stream:
 			frag_sound.play()
 	elif event_type == "speak":
@@ -859,6 +870,12 @@ func _on_event_received(data):
 			hud.show_round_end(mvp_name, str(data.get("reason", "")), mvp_frags, host_line, podium)
 		if round_end_sound and round_end_sound.stream:
 			round_end_sound.play()
+
+func _shows_participant_notice(subject_id: String) -> bool:
+	if subject_id.is_empty():
+		return false
+	var watched_id: String = str(net_client.player_id) if is_human_player else _followed_player_id()
+	return subject_id == watched_id
 
 
 

@@ -325,6 +325,7 @@ pub async fn run_bot(
     let mut my_name = config.name.clone();
     let mut last: Option<Snapshot> = None;
     let mut loadout: Option<fragr_server::protocol::LoadoutState> = None;
+    let mut record: Option<fragr_server::protocol::PlayerRecord> = None;
     let mut navigation = None;
     let mut navigator = fragr_server::navigation::Navigator::default();
     let mut mission_client = fragr_server::mission::MissionClient::default();
@@ -415,6 +416,14 @@ pub async fn run_bot(
                     }
                     // The brain does not predict, so an ack is nothing to act on.
                     Ok(ServerMessage::Ack { .. }) => {}
+                    // Records are an observation surface, never combat input.
+                    Ok(ServerMessage::Record(next)) => {
+                        if let Err(error) = next.validate_for(me, record.as_ref()) {
+                            session_error = Some(Error::Transport(format!("invalid participant record: {error}")));
+                            break;
+                        }
+                        record = Some(next);
+                    }
                     // Geometry belongs to the local controller, never a paid
                     // per-frame decision. Reject invalid worlds before driving.
                     Ok(ServerMessage::MapInfo { map_name, solids, half_extent, geometry_version, presentation, mission, .. }) => {

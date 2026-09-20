@@ -26,6 +26,20 @@ pub struct CampaignRunState {
     pub continues: u8,
 }
 
+impl CampaignRunState {
+    pub fn validate_attempt(&self, attempt: u32) -> Result<(), &'static str> {
+        if self.id.is_nil()
+            || self.continues > CAMPAIGN_CONTINUES
+            || attempt != u32::from(CAMPAIGN_CONTINUES - self.continues) + 1
+            || (self.status == CampaignRunStatus::Continue && self.continues == 0)
+            || (self.status == CampaignRunStatus::Failed && self.continues != 0)
+        {
+            return Err("invalid campaign run identity or allowance");
+        }
+        Ok(())
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct MissionContinue {
@@ -221,14 +235,10 @@ pub struct MissionState {
 impl MissionState {
     pub fn validate(&self, tick: u64) -> Result<(), &'static str> {
         if let Some(run) = self.run {
-            if run.id.is_nil()
-                || run.continues > CAMPAIGN_CONTINUES
-                || self.party.len() > 1
-                || self.attempt != u32::from(CAMPAIGN_CONTINUES - run.continues) + 1
+            run.validate_attempt(self.attempt)?;
+            if self.party.len() > 1
                 || (run.status == CampaignRunStatus::Complete)
                     != (self.phase == MissionPhase::Departed)
-                || (run.status == CampaignRunStatus::Continue && run.continues == 0)
-                || (run.status == CampaignRunStatus::Failed && run.continues != 0)
                 || (run.status == CampaignRunStatus::Continue
                     && (self.party.len() != 1 || self.party[0].alive))
                 || (run.status == CampaignRunStatus::Failed && self.party.iter().any(|p| p.alive))

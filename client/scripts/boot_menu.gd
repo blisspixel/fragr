@@ -22,6 +22,8 @@ var _name_edit: LineEdit = null
 var _local_match: LocalMatch
 var _launch_pending: bool = false
 var _opening: CampaignOpening
+var _title: Label
+var _tagline: Label
 
 func _ready() -> void:
 	MouseCapture.release()
@@ -59,6 +61,7 @@ func _build_chrome() -> void:
 	centre.add_child(column)
 
 	var title: Label = Label.new()
+	_title = title
 	title.text = "FRAGR"
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title.add_theme_font_override("font", MENU_FONT)
@@ -71,6 +74,7 @@ func _build_chrome() -> void:
 	title.add_theme_color_override("font_outline_color", Color("080b0b"))
 	column.add_child(title)
 	var tagline: Label = Label.new()
+	_tagline = tagline
 	tagline.text = "CONTESTED FREQUENCY  //  PORT 6767"
 	tagline.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	tagline.add_theme_font_size_override("font_size", 18)
@@ -127,6 +131,8 @@ func _label(text: String) -> void:
 
 func _show(page: String) -> void:
 	_page = page
+	_title.add_theme_font_size_override("font_size", 60 if page == "records" else 154)
+	_tagline.visible = page != "records"
 	_clear()
 	_status.text = tr(_local_match.error_key) if not _local_match.error_key.is_empty() else "ARROWS + ENTER   /   ESC BACK\nFreedom is not a licensed feature."
 	match page:
@@ -142,6 +148,13 @@ func _show(page: String) -> void:
 			_page_settings()
 		"profile":
 			_page_profile()
+		"records":
+			var panel: RecordsPanel = RecordsPanel.new()
+			panel.name = "ServiceRecord"
+			panel.records = PlayerRecords.for_tree(get_tree())
+			panel.preferences = _settings
+			_root.add_child(panel)
+			_button(tr("RECORD_BACK"), func() -> void: _show("main"))
 		"launch":
 			_page_launch()
 	await get_tree().process_frame
@@ -149,6 +162,9 @@ func _show(page: String) -> void:
 		return
 	if page == "settings" and _page == page:
 		(_root.get_node("SettingsPanel") as SettingsPanel).focus_first()
+		return
+	if page == "records":
+		(_root.get_node("ServiceRecord") as RecordsPanel).focus_first()
 		return
 	for child in _root.get_children():
 		if child is Button and not (child as Button).disabled:
@@ -159,6 +175,7 @@ func _page_main() -> void:
 	_button("Single Player", func() -> void: _show("single"))
 	_button("Multiplayer", func() -> void: _show("multi"))
 	_button("Your callsign", func() -> void: _show("profile"))
+	_button(tr("RECORD_TITLE"), func() -> void: _show("records"))
 	_button("Settings", func() -> void: _show("settings"))
 	_button("Quit", func() -> void: get_tree().quit())
 

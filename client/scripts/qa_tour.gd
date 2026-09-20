@@ -58,6 +58,7 @@ func _run() -> void:
 	if _out_dir.is_empty():
 		_out_dir = ProjectSettings.globalize_path("res://../.agents/qa/latest")
 	DirAccess.make_dir_recursive_absolute(_out_dir)
+	set_meta("fragr_records_path", _out_dir.path_join("service-record"))
 	# Captures must not depend on or modify the player's saved preferences.
 	var settings_path: String = _out_dir.path_join("settings.cfg")
 	set_meta("fragr_settings_path", settings_path)
@@ -113,10 +114,23 @@ func _run() -> void:
 		if not menu_page.is_empty():
 			get_root().get_node("BootMenu").call("_show", menu_page)
 			await process_frame
+			if menu_page == "records":
+				var panel: RecordsPanel = get_root().get_node("BootMenu").get("_root").get_node("ServiceRecord")
+				panel._select_kind(str(state.get("record_kind", "mission")))
+				if state.get("expect_records", false) and panel.records.entries.is_empty():
+					push_error("qa_tour: service record has no actual match observation")
+					_failed = true
 		if state.has("join"):
 			await _change_role(state["join"] == "human")
 			if _joined:
 				_combat_probe.begin(_game_manager())
+		if state.has("record_status"):
+			var deadline: int = Time.get_ticks_msec() + 200000
+			while _game_manager().net_client.record.get("status") != state["record_status"] and Time.get_ticks_msec() < deadline:
+				await create_timer(0.05).timeout
+			if _game_manager().net_client.record.get("status") != state["record_status"]:
+				push_error("qa_tour: participant never reached requested record status")
+				_failed = true
 		if state.has("weapon"):
 			await _select_weapon(str(state["weapon"]))
 		if state.has("aim_pitch"):
@@ -189,7 +203,7 @@ func _run() -> void:
 		if shot.get_width() != int(tour["width"]) or shot.get_height() != int(tour["height"]):
 			push_error("qa_tour: unexpected capture size for " + state_name)
 			_failed = true
-		var observed: Dictionary = _observed_state()
+		var observed: Dictionary = _observed_state().duplicate(true)
 		if state.has("expect_yaw"):
 			var expected_yaw: float = float(state["expect_yaw"])
 			if observed.get("server_yaw") == null or absf(angle_difference(float(observed["camera_yaw"]), expected_yaw)) > 0.001 or absf(angle_difference(float(observed["server_yaw"]), expected_yaw)) > 0.001:
@@ -252,14 +266,20 @@ func _run() -> void:
 	_write_manifest(tour)
 	_write_contact_sheet()
 	print("qa_tour: ", _results.size(), " states under ", _out_dir)
+	await _retire_scene()
+	quit(1 if _failed else 0)
+
+func _retire_scene() -> void:
 	# Retire the live world while the rendering server can still drain resource
-	# frees. Quitting on the capture frame can strand Compatibility sky textures.
+	# frees. Quitting on the capture frame can leave textures pending retirement.
 	if self.current_scene != null:
 		self.current_scene.queue_free()
 	await process_frame
-	await RenderingServer.frame_post_draw
-	await RenderingServer.frame_post_draw
-	quit(1 if _failed else 0)
+	if DisplayServer.get_name() != "headless":
+		await RenderingServer.frame_post_draw
+		await RenderingServer.frame_post_draw
+	else:
+		await process_frame
 
 static func valid_walks(states: Variant) -> bool:
 	if not states is Array or states.is_empty():
@@ -488,6 +508,10 @@ func _select_weapon(weapon: String) -> void:
 func _observed_state() -> Dictionary:
 	var gm: Node = _game_manager()
 	if gm == null:
+		var menu: Node = get_root().get_node_or_null("BootMenu")
+		if menu != null and menu.get("_page") == "records":
+			var panel: RecordsPanel = menu.get("_root").get_node("ServiceRecord")
+			return {"menu": true, "record_kind": panel.get("_kind"), "records": panel.records.entries}
 		return {"menu": true}
 	var snapshot: Dictionary = gm.get("latest_snapshot")
 	var cam: Node = _spectator_camera()
@@ -495,6 +519,7 @@ func _observed_state() -> Dictionary:
 	var server_yaw: float = _local_server_yaw(gm)
 	var camera_forward: Vector3 = -cam.get("transform").basis.z
 	return {
+		"participant_record": gm.get("net_client").get("record"),
 		"mission_rules": gm.get("net_client").get("mission").get("state", {}).get("rules", {}),
 		"mission_run": gm.get("net_client").get("mission").get("state", {}).get("run", {}),
 		"map_id": snapshot.get("map_id", 0),

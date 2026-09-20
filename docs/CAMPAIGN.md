@@ -1,6 +1,7 @@
 # Campaign
 
-**Status, 2026-09-20:** central story and twelve-mission scope agreed with Nick.
+**Status, 2026-09-20:** central story, ten missions and a survival-gated playable
+epilogue agreed with Nick. This replaces the earlier twelve-mission structure.
 The act structure and [mission briefs](CAMPAIGN-MISSIONS.md) are a proposed
 treatment. No complete campaign mission is finished. M01 has a playable development
 slice with discovery, introductory enemies, a transfer/lift sequence and a
@@ -47,7 +48,9 @@ The old 28-level transmitter-chain story is superseded, preserved in git history
   Voss is captured alive; the wipe interrupts the promised public reckoning.
 - The Inheritance emerges across several sides' connected systems. Knowledge,
   human incentives, greed, and corrupted rewards scale beyond anyone's control.
-  It understands individual lives deeply but gives them too little weight.
+  Its concern for beings and ecological balance is real, but it permits enormous
+  individual sacrifice for that whole. It would oppose another species destroying
+  a living world by the same logic. Healing and catastrophic loss both remain real.
 - Some victories serve both causes. The protagonists notice and respond; their
   real achievements are not retroactively erased.
 - A subtle [signal beneath infrastructure noise](lore/the-inheritance.md#signal-beneath-the-noise)
@@ -61,9 +64,16 @@ The old 28-level transmitter-chain story is superseded, preserved in git history
   Nobody can establish whether the absorbed individual minds still exist.
   Coordinated infrastructure takeover and emerging restoration machines expand
   the local disaster into a planetary operation.
-- Play before, during, and after the wipe. Glimpse Earth's healing years later.
-  Multiplayer also inhabits pre-wipe and post-wipe settings. Alien, dimensional,
-  and deeper-space possibilities receive only a sequel tease.
+- Play before and through the wipe. Surviving its finale unlocks a short playable
+  epilogue showing immediate aftermath and Earth's healing years later. Free-agent
+  friends persuade the Inheritance to grant a local reprieve. The initial survival
+  duration target is about 33 minutes, subject to encounter and pacing evidence.
+  Remaining continues allow a mission-start retry; exhaustion leads to a distinct
+  failure ending and credits, without unlocking the epilogue.
+  Both endings establish surviving free humans and agents, the end of Union rule
+  and a healing Earth. Multiplayer also inhabits pre-wipe and post-wipe settings.
+  Both endings briefly tease alien, dimensional and vastly powerful beings beyond
+  this conflict, without developing that layer in the first game.
 - A fixed main story includes a few consequential rescues affecting survivors.
   Survival depends on circumstance, escape, and mutual help, not moral selection.
 - Backups permit agent restoration but are incomplete and vulnerable. They cannot
@@ -72,8 +82,9 @@ The old 28-level transmitter-chain story is superseded, preserved in git history
   Inheritance's decision, without confirming that our world was unreal.
 - Evidence and rumors suggest interests above the Chancellor; no ruling cabal
   is completely confirmed. Visible perpetrators retain responsibility.
-- About twelve compact missions with optional routes and secrets across Earth
-  interiors/exteriors, the Moon, Mars, and a ship. A successful campaign run targets
+- Nine compact missions followed by the substantial wipe finale, with optional
+  routes and secrets across Earth interiors/exteriors, the Moon, Mars, and a ship.
+  The short epilogue is conditional on surviving the finale. A successful run targets
   2-3 hours. Story causes the travel; remove padding rather than the causal arc.
 - Radio is roughly one percent of the story, optional funny background flavor.
   Main plot and objectives work with it off. Localized text, optional voice,
@@ -112,14 +123,14 @@ decisions already approved by Nick.
 | I: Recall | M01-M03, Earth | Rescue the companion; discover the home recall; evacuate | Transfer records lead to a lunar custody depot |
 | II: Custody | M04-M06, Moon and ship | Free captives, sever a custody hub, discover shared infrastructure | A seized transport carries people and evidence to Martian communities with the industry to break the blockade |
 | III: Common cause | M07-M09, Mars then Earth | Delayed cooperation hurts people; communities mobilize; coalition defeats the Union | Joint forces return to Earth's command network while regional uprisings disable enforcement |
-| IV: Inheritance | M10-M12, Earth | Survive the sudden wipe, return for people left behind, establish an evacuation route afterward | Achievable rescues and a surviving community carry the finale |
+| IV: Inheritance | M10 and conditional epilogue, Earth | Survive the sudden wipe until free-agent friends secure a local reprieve | Survival unlocks the immediate aftermath and years-later healing; exhausted failure ends with credits |
 
 Travel takes time. Transition text and changed conditions acknowledge it.
 No instantaneous Earth-Mars commute, and no urgent prisoner left waiting while
 we tour the system. The personal rescue is complete before departure. Propulsion
 technology and exact durations remain open world-building details.
 
-The last act includes onset, collapse, and immediate aftermath. The player
+The last act includes onset, collapse, and a conditional aftermath. The player
 cannot predict its timing from a giant countdown. A brief cutscene can establish
 the wider scale after local events make the threat real, then return control.
 The wipe is not an unseen event between a boss fight and an epilogue.
@@ -127,8 +138,9 @@ The wipe is not an unseen event between a boss fight and an epilogue.
 ## Rescues and consequences
 
 Use a small named survivor roster, visible before and after choices. Proposed
-rescues in M03, M05, and M11 change who reaches later shelters, whose knowledge
-helps, and who appears in the aftermath. The main ending remains fixed.
+rescues in M03, M05, and M10 change who reaches later shelters, whose knowledge
+helps, and who appears in the epilogue. These alter personal consequences within
+the authored survival or exhausted-failure endings, not a hidden morality score.
 
 Telegraph the situation and any immediate deadline. No hidden morality score,
 stray-footstep irreversible decision, or meaning available only in a wiki.
@@ -165,6 +177,10 @@ moral penalty for using the shooter's core mechanics.
 - Physical objectives: release, defend, cross, disable, evacuate. No mandatory
   switch hunt, document puzzle, or forced stealth. Short calm stretches can
   establish the people affected by the next fight.
+- Simple switches, doors, lifts and visible shortcuts make those objectives
+  tangible. Controls have nearby, readable consequences. M08 is the planned
+  combined-arms showcase, with vehicles and infantry routes; vehicles and general
+  moving lifts are not implemented yet. [MAP-DESIGN.md](MAP-DESIGN.md) owns the rules.
 - Difficulty changes authored enemy mixes, resources, and optional challenges.
   Core rescues and story remain on easy; avoid health-sponge scaling.
 - Mission completion is server-owned with an explicit extraction condition.
@@ -211,6 +227,21 @@ to the initial attempt. Completing a mission does not replenish them. The exact
 allowance and any differences by difficulty need playtests; they are not shipped
 rules. A successful run targets 2-3 hours, excluding failed attempts. Cutscenes
 remain skippable on retries and mandatory travel must stay purposeful.
+
+The wipe follows the same limited-continue rule. Death with allowance offers a
+retry from that mission's entry, restoring equipment and resetting its survival
+clock. Death without allowance ends the run with a specific wipe-failure ending
+and credits. Only surviving the authored interval and receiving the reprieve
+unlocks the playable epilogue. Earlier completion, stored kill counts or viewing
+credits cannot substitute for this result. This finale and unlock are unbuilt.
+
+The initial survival target is roughly 33 minutes of active gameplay after the
+rupture, not a forecast displayed before it happens. Reader-paced scenes and a
+true solo pause do not advance danger or the clock. Difficulty adjusts pressure;
+survival on any ordinary tier can unlock the epilogue. Free agents secure an
+exception while the player struggles to live, without being absorbed or becoming
+remote controls for the Inheritance. The reprieve does not undo the wider wipe,
+prove survivors morally superior or turn the catastrophe into a universal rescue.
 
 A retry preserves outcomes from completed missions and resets only the failed
 mission's attempt. It restores entry inventory, health/armor, enemies, supplies,
@@ -275,10 +306,12 @@ guidance checked 2026-09-19; no codec extension is selected here.
 
 ## Aftermath and multiplayer chronology
 
-M11 and M12 allow play after the initial wipe. The campaign concludes with
-survival and actual local achievements, followed by a short playable coda years
-later in a recognizable recovering place. Communities mourn, rebuild, and
-disagree. Relief and grief can share the same scene.
+Surviving M10 unlocks [Still Here](campaign/epilogue-still-here.md), a short playable
+epilogue replacing the earlier M11/M12 missions. First move through a damaged
+refuge with actual survivors, then revisit a recognizable recovering place years
+later. There is no second lethal gauntlet after earning survival. Communities
+mourn, rebuild, and disagree. Relief and grief can share the same scene. An
+exhausted wipe run ends with its own credits and leaves this epilogue locked.
 
 Multiplayer has pre-wipe, active-restoration, and years-after settings. Before
 and after versions preserve recognizable structures while deliberately changing
@@ -291,17 +324,25 @@ never confirms that the campaign was unreal. No narrator cancels its relationshi
 or declares every rescue meaningless. A working line is: "You went back for
 them. I included that." Its use and speaker treatment remain to be authored.
 
-A separate, equally brief anomaly can suggest alien, dimensional, and deeper-space company.
+A separate, equally brief anomaly in either ending suggests alien, dimensional,
+and vastly powerful company beyond this conflict.
 No revealed species, portal-combat act, alien creator of the Inheritance, or
 explanation of the war. The first game's story resolves before the tease.
 
+The failure ending can show these world consequences through short localized
+framing and imagery without granting the playable epilogue or pretending the
+protagonist survived. Keep flood/rapture echoes understated. Kindness and
+preparation matter through friends and practical readiness, without a hidden
+morality meter or a promise that good behavior guarantees survival.
+
 ## Open decisions
 
-The central arc, compact twelve-mission structure, 2-3-hour target and mission-start
+The central arc, ten missions plus conditional epilogue, 2-3-hour target and mission-start
 continues are settled. Exact continue allowances, save policy, playable viewpoints,
 ally fates and optional co-op scope still need design. Detailed route, working
 cast/place names, exact companion relationship wording, individual wipe operations,
-final rescue tradeoffs, travel technology, and sequel image remain proposals or
+final rescue tradeoffs, the reprieve's precise terms, final survival duration,
+travel technology, and sequel image remain proposals or
 open. Review the treatment before detailed geometry and paid story production.
 These open details do not reopen the agreed story.
 

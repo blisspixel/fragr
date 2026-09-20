@@ -50,6 +50,44 @@ The shared finite-solid contract supports stacked accessible rooms and ceilings.
 M01's lift gate has two validated, precomputed states. General moving lifts and
 doors remain unbuilt; a cosmetic object cannot supply their collision or logic.
 
+## Controls, doors and lifts
+
+Simple physical interactions are part of the campaign, not puzzle difficulty.
+Show the door or machine before its control, make the control readable through
+shape and light as well as color, and show the result in the world. A local switch
+can open a shutter, release a captive, lower a freight lift or reconnect a useful
+shortcut. Avoid mandatory code entry, tiny hidden buttons, long switch hunts and
+repeated trips through cleared corridors. Secrets can ask for closer observation.
+
+Teach a safe control before using the same visual language under combat pressure.
+An elevator should reveal a new space or change a fighting angle; waiting for it
+must not become filler. The intended first set is M01's transfer access and lift,
+M02's correction-cell releases, M04's dock freight lift and M06's cargo bulkheads.
+Each belongs to the place's ordinary function and the player's immediate goal.
+
+Extend the existing server-owned use, mission and map boundaries. Moving geometry
+needs an explicit authoritative state and collision path before animation. Verify
+blocked-door behavior, standing on a lift, exit clearance, retry reset, duplicate
+use and late observation. Human input and agent actions operate the same controls;
+rendering a moving door alone does not establish a usable door system.
+
+## One combined-arms campaign landmark
+
+M08's launch works is the planned vehicle showcase. Build a memorable chain of
+freight depot, bermed approach and launch gantry, with occupied buildings and
+covered infantry connections. A captured utility rover with a mounted weapon is
+the first proposed drivable vehicle. It changes routes and firing positions rather
+than turning the mission into a compulsory turret ride. Infantry can open a
+vehicle shortcut from inside a service building; vehicle fire can relieve a
+defended approach. The player can park, leave it and continue on foot.
+
+Prove the infantry layout first, then integrate and tune the vehicle encounter.
+Destroying or abandoning the rover must not strand the mission. Vehicle movement,
+occupancy, damage and firing remain server-owned; entry/exit safety, controls,
+spectating, agent operation and performance need evidence before release. This
+capability is planned, not present in the current engine. Aircraft and a broad
+vehicle roster are not prerequisites for this first combined-arms mission.
+
 ## Shared level kit
 
 Godot supplies rendering; Rust owns movement, combat and mission state. Authored

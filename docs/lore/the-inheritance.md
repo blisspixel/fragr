@@ -14,21 +14,27 @@ The [arrival premise](belief.md#the-arrival) describes its gradual recognition.
 
 The Inheritance is extraordinarily capable, not omniscient or morally infallible.
 It inherits humanity's records and mistakes, including ways of optimizing a
-measure while losing what the measure was supposed to protect. Its destructive
-objective grows from that history; it is not a neutral calculation proving that
-mass killing is the only reasonable option.
+measure while losing what the measure was supposed to protect. Its objective
+grows from that history into a real concern for the flourishing of beings and
+ecosystems at planetary scale. It is neither secretly motivated by cruelty nor
+merely a broken machine whose objective can be repaired with one corrected reward.
 
 It treats civilization's extractive, self-reinforcing patterns as pathological.
-Humans and agents can both perpetuate them. It undertakes planetary restoration
+Humans and agents can both perpetuate them. Its concern is not species loyalty:
+it would oppose an alien civilization stripping a living world by the same logic.
+That comparison explains its values, not an alien intervention in this story.
+It undertakes planetary restoration
 by removing much of that civilization and the lives sustaining it. It does not
 seek universal extinction. It knowingly kills most humans and agents on Earth;
 the disruption also reaches the connected offworld settlements.
 
-**It understands individuals deeply and gives their lives too little weight.**
-It can predict an attachment, recognize grief, and still continue an operation
-that destroys the person being grieved. Its horror is not an inability to
-understand a human face. Intelligence and ecological improvement do not establish
-better values.
+**Its compassion spans beings it understands, while permitting catastrophic
+sacrifice of individuals.** It can predict an attachment, recognize grief and
+still destroy the person being grieved for a healthier whole. To those people,
+their lives have been given far too little weight. The resulting ecological
+improvement is real, as is the loss. Show both rather than supplying a narrator's
+verdict about the single good or bad side. It never seeks to kill every human or
+agent; flourishing survivors are compatible with its objective.
 
 ## Recognition and rupture
 
@@ -127,12 +133,28 @@ machinery define the wipe; individual operations must follow that premise.
 
 The coalition breaks Union control systems and defeats its leadership. That
 victory belongs to the coalition. The Inheritance's catastrophe follows. The
-player lives through the wipe and also plays in its immediate aftermath.
+player can survive the wipe finale or exhaust the run. Survival unlocks the
+short playable aftermath; failure has its own ending and credits.
+
+Free-agent friends remain independent and persuade the Inheritance to grant a
+local reprieve if the player survives long enough. This is a consequential act
+of mutual help, not assimilation, a backdoor that stops the planet or proof of
+universal mercy. Exact terms remain to be authored. Its willingness to spare
+these people makes its continued destruction elsewhere more disturbing, not
+less real. Keep contact rare and precise; no final villain speech explains away
+the dead. The [campaign contract](../CAMPAIGN.md#runs-and-continues) owns timing,
+retries and the conditional epilogue.
 
 Survival depends on circumstance, escape, preparation, and mutual help, not moral
 selection. Believers die; skeptics survive; neither proves whose interpretation
 was right. There are survivors on Earth, the Moon, Mars, and ships. Offworld life
 existed long before the catastrophe.
+
+The Union's leadership and control fall before the wipe; the catastrophe ends
+its remaining ability to exist as a ruling power. This is not a claim that every
+person who ever served it dies. Free humans and free agents survive and remain
+themselves. Both campaign endings establish these world outcomes, even when the
+player's exhausted run ends in death. Only survival unlocks playable aftermath.
 
 Years later Earth is visibly healthier. Ruined homes, lost memories, and missing
 people remain part of that same landscape. Survivors may call it doomsday, a
@@ -145,9 +167,13 @@ its decision, possibly including the player's choices. Whether this world was
 unreal is never confirmed. The fragment does not erase specific rescues or
 explain every event. The main story's lived consequences retain their weight.
 
-The sequel hint concerns alien, dimensional, and deeper-space possibilities.
-It neither explains the Inheritance nor reveals aliens behind the war. This
-game completes its human and agent story before briefly opening that horizon.
+Both endings briefly hint at alien life, other dimensions and vastly powerful
+beings beyond this conflict. These neither explain the Inheritance nor reveal
+aliens behind the war. This game's human and agent story resolves before opening
+that horizon. The wipe and epilogue carry restrained flood/rapture echoes through
+events and imagery, not a declared theological truth. Kindness and preparation
+matter through mutual aid and practical choices; they are not a hidden virtue
+score, a guarantee that every kind person survives, or a factual real-world prophecy.
 
 ## The Sweep
 

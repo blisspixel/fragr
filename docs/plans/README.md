@@ -17,6 +17,7 @@ Status words: **planned**, **in flight**, **implemented** (local evidence record
 
 | Plan | Status | One-liner |
 |---|---|---|
+| [`combat-notification-polish.md`](./combat-notification-polish.md) | **implemented** | Three independently expiring corner notices, participant-only pickups and clear aiming; inspected live arena and campaign captures. |
 | [`m01-completion.md`](./m01-completion.md) | **in flight** (#195) | Complete the records wing, mixed-threat crest, finite supply economy and coherent retries; prove the full first mission. |
 | [`difficulty-and-rewards.md`](./difficulty-and-rewards.md) | **in flight** (#197) | New-run campaign difficulty first; persistent achievements and cosmetic rewards follow the save/retry contract. |
 | [`tripoint-spawn-safety.md`](./tripoint-spawn-safety.md) | **shipped** (#193, v0.28.0) | Cover the exposed starting ring, prove all 16 routes and sightlines, and retain measured respawn limitations. |
@@ -37,7 +38,7 @@ Status words: **planned**, **in flight**, **implemented** (local evidence record
 | [`radio-refresh.md`](./radio-refresh.md) | **in flight** | Two fictional talk formats and world-appropriate music; staged pilots, captions and distribution review. |
 | [`campaign-scenes.md`](./campaign-scenes.md) | **planned** | Skippable localized opening and short pixel-style scenes; matched reference shots before video spend. |
 | [`inheritance-benchmark.md`](./inheritance-benchmark.md) | **later** | Research-grade agent strategy/wipe simulation; controlled budgets, held-out tasks, replay and validated capability claims. |
-| [`campaign-story-alignment.md`](./campaign-story-alignment.md) | **shipped** (#173) | World canon, twelve-mission treatment, sudden wipe/aftermath and production plan. Design only. |
+| [`campaign-story-alignment.md`](./campaign-story-alignment.md) | **shipped** (#173) | Original world alignment and treatment. Current ten-mission/epilogue contract supersedes that structure; design only. |
 | [`authored-compliance-yard.md`](./authored-compliance-yard.md) | **deferred** | Multiplayer spatial study; the campaign opening now has its own M01 brief. |
 | [`height-aware-navigation.md`](./height-aware-navigation.md) | **proven** (#172, v0.21.0) | Shared routes, stair/jump and ledge recovery, covered spawns, weapon anchoring and pointer lifecycle. |
 | [`shot-impact-feedback.md`](./shot-impact-feedback.md) | **proven** (#171, v0.20.0) | Authoritative world impacts and rail traces, with complete combat accounting. |
@@ -61,7 +62,7 @@ Status words: **planned**, **in flight**, **implemented** (local evidence record
 | [`art-pipeline.md`](./art-pipeline.md) | **planned** | Sprites, weapons, icons, and tiles through two pixel-art-native services plus a Rust post-processor and touch-up; provenance recorded; spend gated. |
 | [`fair-play.md`](./fair-play.md) | **planned** | Anti-cheat that keeps it fun: validated inputs, lanes for humans and agents, a behaviour profiler, replays as evidence, no kernel drivers. |
 | [`localization.md`](./localization.md) | **planned** | Keys for every string, the basics plus regional, community-signed, and lore locales, fonts and layout, a tour per locale. |
-| [`benchmark-and-stats.md`](./benchmark-and-stats.md) | **stats planned (#199); CPU benchmark shipped** | Local profiles, campaign/match records, optional factual roasts and deeper analysis built on authoritative counts. |
+| [`benchmark-and-stats.md`](./benchmark-and-stats.md) | **implemented (#199); CPU benchmark shipped** | Authoritative counts, retained campaign/arena/practice records, retro service-record menu, JSON export and optional factual quips. |
 | [`massive-arenas.md`](./massive-arenas.md) | **planned** | Seeded sim, spatial grid, interest sets, delta snapshots, binary wire, tick budget, and the measured scale ladder to hundreds of fighters. |
 | [`visual-qa-tour.md`](./visual-qa-tour.md) | **rung 1 landed** | Manifest-driven tour of every player-facing state with stills, a contact sheet, and feel probes for the agent developer to critique. |
 | [`showcase-benchmark.md`](./showcase-benchmark.md) | **rung 1 shipped** (#166) | Reproducible traces and honest CPU measurements; a rendered showcase with frame-time analysis follows. |
@@ -80,10 +81,10 @@ Status words: **planned**, **in flight**, **implemented** (local evidence record
 | [`brain-third-tier-surface.md`](./brain-third-tier-surface.md) | **shipped** (#103) | Surface fragr-brain beside rule bots and MCP agents in the skill card and README, plus the observe-only stance chip. |
 | [`radio-stations.md`](./radio-stations.md) | **shipped** (library) | Contested Frequency radio: eight stations, generated library, client player with ducking. |
 | [`look-pass-boomer.md`](./look-pass-boomer.md) | **planned** | Boomer shooter look pass: low-res render target, dither, atlas, eight-direction sprites, weapon view models, HUD grid. |
-| [`campaign-build-order.md`](./campaign-build-order.md) | **planned** | Prove the compact twelve-mission campaign, starting with M01 and limited mission-start continues. |
+| [`campaign-build-order.md`](./campaign-build-order.md) | **planned** | Prove ten missions and the survival-gated epilogue, starting with M01 and limited mission-start continues. |
 | [`campaign-e1.md`](./campaign-e1.md) | **superseded** | Earlier radio-led nine-level episode; current mission treatment lives in `../CAMPAIGN-MISSIONS.md`. |
 | [`campaign-continuance.md`](./campaign-continuance.md) | **planned** | Validated map data, authoritative mission/enemy state, saves and localized presentation; no editor dependency selected yet. |
-| [`campaign-continues.md`](./campaign-continues.md) | **implemented (#200)** | Explicit solo M01 run, three mission-start continues, authoritative retry and exhaustion; broader mission work stays on #195. |
+| [`campaign-continues.md`](./campaign-continues.md) | **shipped (#200, v0.31.0)** | Explicit solo M01 run, three mission-start continues, authoritative retry and exhaustion; broader mission work stays on #195. |
 | [`agent-playtest-loop.md`](./agent-playtest-loop.md) | **in flight** (rung 1 shipped, #95) | Playtest harness: scripted agents play rounds and file a metrics report; thresholds run in CI. |
 | [`warmup-tv-bumper.md`](./warmup-tv-bumper.md) | **shipped** (#89) | Full-frame Warmup TV bumper: map title, roster chips, countdown, Host flash lingering into Active. |
 | [`controller-and-desktop-platforms.md`](./controller-and-desktop-platforms.md) | **shipped** (#88) | Gamepad join, solo, and match input on the same action path; Windows, macOS, and Linux export presets. |

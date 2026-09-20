@@ -32,6 +32,7 @@ pub struct GameSession {
     navigation_map: crate::maps::RuntimeMap,
     navigators: HashMap<Uuid, crate::navigation::Navigator>,
     sent_loadouts: HashMap<Uuid, (crate::protocol::WeaponType, u64)>,
+    sent_records: HashMap<Uuid, protocol::PlayerRecord>,
 }
 
 impl GameSession {
@@ -60,6 +61,7 @@ impl GameSession {
             min_bots: 0,
             navigators: HashMap::new(),
             sent_loadouts: HashMap::new(),
+            sent_records: HashMap::new(),
         }
     }
 
@@ -429,6 +431,7 @@ impl GameSession {
         }
 
         self.state.tick(dt);
+        self.send_records();
         if self.state.map.equipment_policy() == protocol::EquipmentPolicy::Discovery {
             let connected: std::collections::HashSet<Uuid> =
                 self.client_to_player.values().copied().collect();
@@ -491,6 +494,29 @@ impl GameSession {
     pub fn take_unicasts(&mut self) -> Vec<(Recipient, ServerMessage)> {
         std::mem::take(&mut self.pending_unicasts)
     }
+
+    fn send_records(&mut self) {
+        let mut ids: Vec<Uuid> = self.client_to_player.values().copied().collect();
+        ids.sort_unstable();
+        self.sent_records
+            .retain(|id, _| self.client_to_player.values().any(|p| p == id));
+        for id in &ids {
+            let Some(record) = self.state.player_record(*id) else {
+                continue;
+            };
+            let send = self.sent_records.get(id).is_none_or(|old| {
+                old.round != record.round
+                    || old.status != record.status
+                    || old.scope != record.scope
+                    || (!record.status.terminal() && record.tick.saturating_sub(old.tick) >= 20)
+            });
+            if send {
+                self.sent_records.insert(*id, record.clone());
+                self.pending_unicasts
+                    .push((Recipient::Player(*id), ServerMessage::Record(record)));
+            }
+        }
+    }
 }
 
 impl Default for GameSession {
@@ -535,6 +561,11 @@ pub async fn send_unicasts(
             continue;
         };
         if let Some(client) = clients_lock.iter_mut().find(|c| c.id == client_id) {
+            if matches!(msg, ServerMessage::Record(_))
+                && client.gameplay_version < protocol::RECORD_GAMEPLAY_VERSION
+            {
+                continue;
+            }
             if client.tx.send(msg.clone()).is_ok() && matches!(msg, ServerMessage::MapInfo { .. }) {
                 client.initialized = true;
             }
@@ -555,9 +586,9 @@ mod session_tests {
         let (closed_tx, closed_rx) = tokio::sync::mpsc::unbounded_channel();
         drop(closed_rx);
         let clients = Arc::new(Mutex::new(vec![
-            ClientSession::new(ids[0], pending_tx),
-            ClientSession::new(ids[1], active_tx),
-            ClientSession::new(ids[2], closed_tx),
+            ClientSession::new(ids[0], pending_tx, protocol::GAMEPLAY_VERSION),
+            ClientSession::new(ids[1], active_tx, protocol::GAMEPLAY_VERSION),
+            ClientSession::new(ids[2], closed_tx, protocol::GAMEPLAY_VERSION),
         ]));
         let session = GameSession::new();
         let map = session.state.map_info();
