@@ -5,6 +5,9 @@ MCP-compatible control plane for external agents to observe and act in the fragr
 Every WebSocket role receives `map_info` on join, including spectators. The same
 authoritative geometry is broadcast on rotation. `observe` retains the latest
 map for agents; see [`docs/protocol.md`](../docs/protocol.md#mapinfo).
+The server queues initial geometry before broadcasting mission state or snapshots
+to that connection. Repeated initial map messages are valid; derive the world
+from their contents, not their count.
 The adapter declares geometry version 2, retains finite `bottom`/`top` bounds
 and the map version in observations, and closes its MCP game session if a map
 has unsupported or invalid geometry, or the server sends malformed JSON.

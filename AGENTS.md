@@ -66,7 +66,7 @@ If prose and code disagree, code wins; fix the prose in the same change. Keep pl
 | Decision-brain agent, budget gate, spend ledger | `agents/brain` (`budget`, `provider`, `bot`) |
 | Session glue, rosters, `min_bots`, broadcast | `server/src/session.rs` |
 | Wire types and Host line generators | `server/src/protocol.rs`, documented in `docs/protocol.md`. The adapter, the playtest harness, and the brain agent all read these types from `fragr-server`; there is no second copy to keep in step. |
-| WebSocket accept and per-client plumbing | `server/src/net.rs` |
+| WebSocket accept and per-client plumbing | `server/src/net.rs`. `ClientSession` stays outside broadcast delivery until `send_unicasts` queues its initial MapInfo; preserve this ordering for every role. |
 | Server CLI, tracing, tick loop | `server/src/main.rs` (`--bind`, `--bots`, `--map`, `--map-rotate`) |
 | MCP request handling and tool schemas | `agent-adapter/src/mcp.rs` |
 | Adapter CLI and WebSocket session | `agent-adapter/src/main.rs` |

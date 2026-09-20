@@ -63,7 +63,8 @@ async fn late_connections_receive_authoritative_geometry_for_every_role() {
                     assert!(value["half_extent"].as_f64().unwrap() > 50.0);
                     saw_map = true;
                 }
-                if saw_map && value["type"] == "snapshot" {
+                if value["type"] == "snapshot" {
+                    assert!(saw_map, "snapshot overtook this connection's geometry");
                     if index == 4 {
                         let names: Vec<_> = value["players"]
                             .as_array()
@@ -987,9 +988,10 @@ fn test_net_client_session_structure() {
     let id = Uuid::new_v4();
     let (tx, _rx) = mpsc::unbounded_channel();
 
-    let session = ClientSession { id, tx };
+    let session = ClientSession::new(id, tx);
 
     assert_eq!(session.id, id);
+    assert!(!session.initialized);
 }
 
 #[test]
@@ -2316,13 +2318,26 @@ async fn test_net_ws_action_forwarded_for_agent() {
         .await
         .unwrap()
         .unwrap();
-    let player_id = match connected {
+    let mut session = GameSession::new();
+    let player_id = match &connected {
         GameCommand::Connected {
             player_id: Some(pid),
             ..
-        } => pid,
-        other => panic!("{}", other_debug(&other)),
+        } => *pid,
+        other => panic!("{}", other_debug(other)),
     };
+    session.apply_command(connected);
+    let unicasts = session.take_unicasts();
+    crate::session::send_unicasts(&clients, &session.client_to_player, &unicasts).await;
+    let map = tokio::time::timeout(std::time::Duration::from_secs(2), stream.next())
+        .await
+        .unwrap()
+        .unwrap()
+        .unwrap();
+    assert!(matches!(
+        serde_json::from_str::<ServerMessage>(map.to_text().unwrap()).unwrap(),
+        ServerMessage::MapInfo { .. }
+    ));
 
     sink.send(Message::Text(
         r#"{"type":"action","forward":true,"fire":true}"#.into(),
@@ -2457,6 +2472,9 @@ async fn test_session_plus_net_join_leave_round_broadcast_path() {
         .unwrap()
         .unwrap();
     session.apply_command(cmd);
+
+    let unicasts = session.take_unicasts();
+    crate::session::send_unicasts(&clients, &session.client_to_player, &unicasts).await;
 
     let joined = session.state.take_events();
     assert!(joined.iter().any(|e| matches!(

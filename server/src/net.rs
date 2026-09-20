@@ -15,6 +15,18 @@ pub type WsRx = mpsc::UnboundedReceiver<ServerMessage>;
 pub struct ClientSession {
     pub id: Uuid,
     pub tx: WsTx,
+    /// Broadcasts must follow the initial targeted geometry in this queue.
+    pub(crate) initialized: bool,
+}
+
+impl ClientSession {
+    pub fn new(id: Uuid, tx: WsTx) -> Self {
+        Self {
+            id,
+            tx,
+            initialized: false,
+        }
+    }
 }
 
 pub struct NetServer {
@@ -227,10 +239,7 @@ async fn handle_connection(
                     .await?;
 
                 let mut clients_lock = clients.lock().await;
-                clients_lock.push(ClientSession {
-                    id: client_id,
-                    tx: tx.clone(),
-                });
+                clients_lock.push(ClientSession::new(client_id, tx.clone()));
                 drop(clients_lock);
 
                 game_tx.send(GameCommand::Connected {

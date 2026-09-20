@@ -1,8 +1,9 @@
 # Local campaign entry
 
-Status: implemented, 2026-09-20. Integration: [#187](https://github.com/blisspixel/fragr/pull/187), task [#185](https://github.com/blisspixel/fragr/issues/185).
+Status: shipped, 2026-09-20, [v0.27.0](https://github.com/blisspixel/fragr/releases/tag/v0.27.0). Integration: [#187](https://github.com/blisspixel/fragr/pull/187), task [#185](https://github.com/blisspixel/fragr/issues/185), closed.
 The M01 mission sequence shipped in #184 and v0.26.0. Local launch implementation
-and verification are recorded below; #187 tracks remote CI and integration.
+and verification are recorded below. All five pre-merge CI jobs passed on the
+merged tree, including the real launcher lifecycle on all three target platforms.
 
 ## Player outcome
 
@@ -105,7 +106,7 @@ separate bounded tasks. Successful launch does not establish a complete mission.
   `.agents/qa/local-entry*/`.
 - Package discovery is defined, but export templates are unavailable locally.
   There is no packaged-release claim. CI now builds the server for real client
-  lifecycle tests on Windows, macOS and Linux; those remote results are pending.
+  lifecycle tests on Windows, macOS and Linux; all three passed before merge.
 
 Release build, verifier fault injection and dependency license/bans/source checks
 pass. The deterministic CPU benchmark retains the v0.26.0 trace:
@@ -136,7 +137,8 @@ receipt remains under `.agents/qa/local-entry-release/`; no fix is claimed.
 Investigation: [#186](https://github.com/blisspixel/fragr/issues/186). Retain verbose
 leak details if it recurs. Error filtering and thresholds remain unchanged.
 
-Remaining integration gates: CI and release. No paid APIs were called.
+The source release and inspected menu/entry captures are published. No paid APIs
+were called. Desktop packages remain unbuilt.
 
 The first Linux client CI run caught an invalid crash-test assumption. Godot's
 Unix `OS.kill` waits for the child itself, leaving its process-status cache stale.
@@ -144,5 +146,10 @@ The [pinned engine source](https://github.com/godotengine/godot/blob/4.7.2-stabl
 was checked on 2026-09-20. The Unix test now sends SIGKILL from an external `kill`
 process so the actual owner performs the wait, as for a crash. The process owner
 also retires its PID after observing exit; repeated cleanup cannot touch a reused
-PID. The real crash assertion and clean-log gate remain intact. Remote results
-on the corrected revision are required before merge.
+PID. The real crash assertion and clean-log gate remain intact. Remote checks
+passed on the corrected revision before merge.
+
+The post-merge Linux run subsequently exposed a mission wire test's assumption
+that map message count equals geometry revision count. Windows/macOS and all
+client lifecycle jobs passed. [Mission wire ordering](mission-wire-order.md)
+tracks the repair; this does not change the release's unfinished-campaign scope.

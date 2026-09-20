@@ -113,11 +113,16 @@ physical transfer-record use, a real lift gate, four-participant admission and
 shared deliberate departure. M01 tests exercise both routes through combat and
 departure. Local rendered, live party and six-map multiplayer checks pass;
 two- and four-participant live runs pass, and #183 is closed.
-[Direct local campaign entry](plans/local-campaign-entry.md) is implemented locally in #185:
+[Direct local campaign entry](plans/local-campaign-entry.md) shipped in #187 and v0.27.0:
 Recall Notice starts an owned loopback server from Single Player, with cancellation,
-clear failures and cleanup on leave. Local lifecycle, broader regression checks
-and final gallery pass; remote CI and integration remain pending. One intermittent
-gallery exit error remains recorded in the plan without a claimed fix. Checkpoints,
+clear failures and cleanup on leave. Local checks, inspected gallery and all five
+pre-merge CI jobs passed. Post-merge Linux exposed a scheduling assumption in the
+mission wire test. Its stronger [repair](plans/mission-wire-order.md) then caught
+a real join race: broadcasts could overtake initial geometry. The implemented
+fix gates broadcasts until each connection's initial map is queued; local
+regressions, mixed-map sessions and inspected gallery pass, with integration
+pending. One intermittent gallery exit error remains recorded in
+the plan without a claimed fix. Checkpoints,
 the opening scene, full encounter population and finished art remain. This
 foundation is not a finished campaign or proven co-op balance.
 
