@@ -43,6 +43,18 @@ impl Inventory {
         self.revision
     }
 
+    /// Restore durable entry equipment without rolling back observer counters or
+    /// carrying a reload deadline and held trigger across attempts.
+    pub(crate) fn restore_entry(&mut self, entry: &Self) {
+        self.policy = entry.policy;
+        self.magazines = entry.magazines;
+        self.reserves = entry.reserves;
+        self.claims.clone_from(&entry.claims);
+        self.reload = None;
+        self.dry_latched = false;
+        self.revision += 1;
+    }
+
     pub fn owns(&self, weapon: WeaponType) -> bool {
         match self.policy {
             EquipmentPolicy::FullArsenal => WeaponType::ARCADE.contains(&weapon),

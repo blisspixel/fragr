@@ -6,6 +6,41 @@ use tokio::sync::{mpsc, Mutex, Semaphore};
 use tokio_tungstenite::{accept_async, tungstenite::Message};
 use uuid::Uuid;
 
+type ServerSocket = tokio_tungstenite::WebSocketStream<TcpStream>;
+
+/// Complete the close handshake before dropping TCP, so a client polling less
+/// often than the server can still read its admission error. Bound silent peers.
+async fn reject_connection(
+    mut sink: futures_util::stream::SplitSink<ServerSocket, Message>,
+    mut stream: futures_util::stream::SplitStream<ServerSocket>,
+    rejection: ServerMessage,
+) -> Result<(), Box<dyn std::error::Error>> {
+    let reason = match &rejection {
+        ServerMessage::Error { code, .. } => code.clone(),
+        _ => return Err("admission rejection must be an error".into()),
+    };
+    sink.send(Message::Text(serde_json::to_string(&rejection)?))
+        .await?;
+    // Some clients retire queued text when a close arrives in the same poll.
+    // The stable code also survives in the protocol's bounded close reason.
+    sink.send(Message::Close(Some(
+        tokio_tungstenite::tungstenite::protocol::CloseFrame {
+            code: tokio_tungstenite::tungstenite::protocol::frame::coding::CloseCode::Policy,
+            reason: reason.into(),
+        },
+    )))
+    .await?;
+    let _ = tokio::time::timeout(std::time::Duration::from_secs(2), async {
+        while let Some(Ok(message)) = stream.next().await {
+            if message.is_close() {
+                break;
+            }
+        }
+    })
+    .await;
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests;
 
@@ -36,6 +71,7 @@ pub struct NetServer {
     geometry_version: u32,
     gameplay_version: u32,
     party_slots: Option<Arc<Semaphore>>,
+    solo_run: bool,
 }
 
 pub enum GameCommand {
@@ -55,6 +91,10 @@ pub enum GameCommand {
     MissionReady {
         player_id: Uuid,
         ready: crate::protocol::MissionReady,
+    },
+    MissionContinue {
+        player_id: Uuid,
+        request: crate::protocol::MissionContinue,
     },
     Speak {
         player_id: Uuid,
@@ -109,6 +149,7 @@ impl NetServer {
             game_tx,
             geometry_version,
             gameplay_version,
+            solo_run: false,
             party_slots: (gameplay_version >= crate::protocol::MISSION_GAMEPLAY_VERSION)
                 .then(|| Arc::new(Semaphore::new(crate::protocol::MISSION_PARTY_LIMIT))),
         })
@@ -116,6 +157,19 @@ impl NetServer {
 
     pub fn local_addr(&self) -> std::io::Result<std::net::SocketAddr> {
         self.listener.local_addr()
+    }
+
+    /// Only a completed admission consumes the run's lifetime combat seat.
+    pub(crate) fn reserve_solo_run(&mut self) -> std::io::Result<()> {
+        if self.gameplay_version < crate::protocol::CONTINUES_GAMEPLAY_VERSION {
+            return Err(std::io::Error::new(
+                std::io::ErrorKind::InvalidInput,
+                "solo run requires continue capability",
+            ));
+        }
+        self.solo_run = true;
+        self.party_slots = Some(Arc::new(Semaphore::new(1)));
+        Ok(())
     }
 
     pub async fn accept_loop(self) {
@@ -128,6 +182,7 @@ impl NetServer {
                     let geometry_version = self.geometry_version;
                     let gameplay_version = self.gameplay_version;
                     let party_slots = self.party_slots.clone();
+                    let solo_run = self.solo_run;
 
                     tokio::spawn(async move {
                         if let Err(e) = handle_connection(
@@ -137,6 +192,7 @@ impl NetServer {
                             geometry_version,
                             gameplay_version,
                             party_slots,
+                            solo_run,
                         )
                         .await
                         {
@@ -159,6 +215,7 @@ async fn handle_connection(
     required_geometry: u32,
     required_gameplay: u32,
     party_slots: Option<Arc<Semaphore>>,
+    solo_run: bool,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let ws_stream = accept_async(stream).await?;
     let (mut ws_sink, mut ws_stream) = ws_stream.split();
@@ -168,9 +225,9 @@ async fn handle_connection(
 
     let role;
     let player_id;
-    // The seat stays reserved through welcome, registration and disconnect.
-    // RAII also returns it after any failed handshake/send.
-    let _party_seat;
+    // RAII returns seats after failed admission and development-party disconnect.
+    // Solo admission consumes its permit for the server lifetime below.
+    let mut _party_seat;
 
     if let Some(Ok(Message::Text(text))) = ws_stream.next().await {
         match serde_json::from_str::<ClientMessage>(&text) {
@@ -185,22 +242,14 @@ async fn handle_connection(
                         code: "unsupported_gameplay".into(),
                         message: format!("This server requires gameplay version {required_gameplay}; update your client."),
                     };
-                    ws_sink
-                        .send(Message::Text(serde_json::to_string(&rejection)?))
-                        .await?;
-                    ws_sink.close().await?;
-                    return Ok(());
+                    return reject_connection(ws_sink, ws_stream, rejection).await;
                 }
                 if geometry_version < required_geometry {
                     let rejection = ServerMessage::Error {
                         code: "unsupported_geometry".into(),
                         message: format!("This server requires geometry version {required_geometry}; update your client."),
                     };
-                    ws_sink
-                        .send(Message::Text(serde_json::to_string(&rejection)?))
-                        .await?;
-                    ws_sink.close().await?;
-                    return Ok(());
+                    return reject_connection(ws_sink, ws_stream, rejection).await;
                 }
                 _party_seat = if r != Role::Spectator {
                     match party_slots {
@@ -208,14 +257,14 @@ async fn handle_connection(
                             Ok(seat) => Some(seat),
                             Err(_) => {
                                 let rejection = ServerMessage::Error {
-                                    code: "party_full".into(),
-                                    message: "This mission supports four participants; join as a spectator or wait for a seat.".into(),
+                                    code: if solo_run { "run_seat_closed" } else { "party_full" }.into(),
+                                    message: if solo_run {
+                                        "This run already has an owner. Join as a spectator or start a new run."
+                                    } else {
+                                        "This mission supports four participants; join as a spectator or wait for a seat."
+                                    }.into(),
                                 };
-                                ws_sink
-                                    .send(Message::Text(serde_json::to_string(&rejection)?))
-                                    .await?;
-                                ws_sink.close().await?;
-                                return Ok(());
+                                return reject_connection(ws_sink, ws_stream, rejection).await;
                             }
                         },
                         None => None,
@@ -252,6 +301,11 @@ async fn handle_connection(
                     name,
                     player_id,
                 })?;
+                if solo_run {
+                    if let Some(seat) = _party_seat.take() {
+                        seat.forget();
+                    }
+                }
 
                 tracing::info!(
                     "Client {:?} connected as {:?} (player_id: {:?})",
@@ -300,6 +354,12 @@ async fn handle_connection(
                             if let Some(player_id) = player_id {
                                 let _ =
                                     game_tx.send(GameCommand::MissionReady { player_id, ready });
+                            }
+                        }
+                        Ok(ClientMessage::MissionContinue(request)) => {
+                            if let Some(player_id) = player_id {
+                                let _ = game_tx
+                                    .send(GameCommand::MissionContinue { player_id, request });
                             }
                         }
                         Ok(ClientMessage::Speak(speak)) => {

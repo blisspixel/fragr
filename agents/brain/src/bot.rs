@@ -373,6 +373,13 @@ pub async fn run_bot(
                                 break;
                             }
                         }
+                        if let Some(request) = mission_client.continuation(me) {
+                            let wire = serde_json::to_string(&ClientMessage::MissionContinue(request)).map_err(transport_err)?;
+                            if !send_text(&mut sink, wire).await {
+                                session_error = Some(Error::Transport("mission continue was not accepted in time".into()));
+                                break;
+                            }
+                        }
                     }
                     Ok(ServerMessage::Loadout(next)) => {
                         let valid = next.validate_for(me, loadout.as_ref());
@@ -637,6 +644,7 @@ mod tests {
         let (shutdown_tx, shutdown_rx) = tokio::sync::oneshot::channel::<()>();
         let (ready_tx, ready_rx) = tokio::sync::oneshot::channel();
         let options = ServerOptions {
+            campaign_run: false,
             difficulty: None,
             authored: None,
             bind: "127.0.0.1:0".to_string(),

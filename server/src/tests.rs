@@ -2223,6 +2223,7 @@ fn other_debug(cmd: &crate::net::GameCommand) -> String {
         crate::net::GameCommand::Speak { .. } => "Speak".into(),
         crate::net::GameCommand::SetDisplayBehavior { .. } => "SetDisplayBehavior".into(),
         crate::net::GameCommand::MissionReady { .. } => "MissionReady".into(),
+        crate::net::GameCommand::MissionContinue { .. } => "MissionContinue".into(),
     }
 }
 

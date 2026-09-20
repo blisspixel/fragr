@@ -64,17 +64,27 @@ Initial handshake message. Must be sent immediately after connection.
   No player or spectator session is created on rejection. This is geometry
   compatibility, not general protocol or action-version negotiation.
 - `gameplay_version`: maximum understood gameplay contract. Current clients send
-  `6`; omission means `1`. Discovery-only maps require 2, maps with authored
+  `7`; omission means `1`. Discovery-only maps require 2, maps with authored
   encounters require 3, and mission sequences require 6 for shared difficulty.
   Versions 4 and 5 introduced physical controls and party readiness respectively;
-  they cannot enter current missions. Use matching campaign server/client builds.
+  they cannot enter current missions. Solo runs require 7 for explicit continues.
+  Use matching campaign server/client builds.
   Older clients of every role are rejected before `Welcome`
   with `unsupported_gameplay`. This capability is separate from geometry. The six
   full-arsenal arcade maps still accept 1.
 
-Mission servers admit at most four participants, sharing slots across human and
+Admission rejection also places its stable error code in a WebSocket policy-close
+reason. Clients may receive the final text and close in one poll; use that reason
+if the text has already been retired. The server bounds the close handshake at
+two seconds and never admits rejected connections.
+
+Development mission servers admit at most four participants, sharing slots across human and
 agent roles. Spectators do not take slots. A full party rejects additional
 participants with `party_full` before `Welcome`; disconnect returns the seat.
+Local campaign and `--campaign-run` hosts reserve one lifetime combat seat instead.
+After its first successful admission, additional fighters receive `run_seat_closed`,
+including after the owner disconnects. Spectators remain admissible. Callsigns
+cannot reclaim the owner. A failed handshake before admission does not consume it.
 
 ### Mission sequence
 
@@ -105,6 +115,13 @@ and before the corresponding snapshot whenever shared state changes. `state` is:
 - `party`: up to four `{id,name,ready,alive,aboard}` members. Names are display labels.
 - `prompts`: `{player_id,kind}` for currently legal interactions. Kinds are
   `transfer_record` and `lift_departure`; these are not localized strings.
+- `run`: present only in solo mode: `{id,status,continues}`. `id` is a nonnil UUID;
+  `status` is `playing`, `continue`, `failed`, `complete` or `abandoned`. Allowance
+  starts at 3 and only decreases. The current M01 attempt equals `4 - continues`.
+  State has at most one party member. Waiting requires its dead owner; failed
+  retains a dead owner until they leave, then an empty party.
+  abandonment has no member, and completion requires `departed`. Nonplaying states
+  contain no use prompts. Run identity and rules survive geometry changes.
 
 Participants finish or skip their opening by sending
 `{"type":"mission_ready","id":"recall_notice","attempt":1}` using the current
@@ -130,13 +147,42 @@ the same; clients must rebuild geometry and clear route caches before accepting
 the new mission state. Late players and spectators receive map and shared state.
 Departure requires all current participants ready, alive and inside the boarding box,
 plus an explicit use press. One participant disconnecting does not reset the
-remaining players' progress. A party wipe or the last participant leaving resets the gate, supplies
+remaining players' progress. In development party mode, a wipe or the last participant leaving resets the gate, supplies
 and encounters together, once. NPCs and spectators never count as party members.
 
 The current `departed` state freezes the prototype simulation and shows a result;
-it does not load M02. Entry respawn, no persistent/reconnect identity, and no
-checkpoint or revive remain explicit limitations. Leaving the party empty allows
-a new attempt. Text is client-localized; no voice or radio is required.
+it does not load M02. Development party mode retains entry respawn and allows a
+new party after everyone leaves. Neither mode has persistent/reconnect identity,
+disk saves or mid-mission checkpoints. Text is localized; voice/radio is optional.
+
+#### Solo run recovery
+
+Death freezes outcomes and sets `continue` when allowance remains, otherwise
+`failed`. A fatal frame cannot also depart. Only the dead owner may send:
+
+```json
+{"type":"mission_continue","id":"recall_notice","run_id":"550e8400-e29b-41d4-a716-446655440000","attempt":1}
+```
+
+All three fields are required; unknown fields are rejected. Spectators cannot
+forward this command. The server validates ownership, run/mission/attempt identity
+and waiting state before consuming one continue. A duplicate, stale or invalid
+command changes nothing and returns `continue_rejected`. Confirm acceptance in
+the next mission state, never from the send result alone.
+
+Retry restores mission-entry position, facing, health, armor, selected weapon,
+magazines, reserves and personal claims; later pickups are discarded. Original
+geometry, supplies, enemies and objectives return together. Reloads, motion and
+queued actions are cleared; input sequence, inventory revision and simulation
+tick never rewind. The owner remains ready, so the opening does not replay.
+Leaving an unfinished solo run sets `abandoned`; its seat cannot be reused.
+Completion and exhaustion retain their outcomes after departure. Starting again requires a new
+server/run. No save or reconnection promise is implied by this in-memory state.
+
+MCP exposes an explicit `mission_continue` tool. Supplied scripted/playtest/brain
+controllers retry automatically within the same allowance. Human UI waits for
+held controls to release and a fresh Enter/controller A press. Shared readers
+reject changed run identity or increasing allowance across same-map updates.
 
 #### Action
 
@@ -594,9 +640,10 @@ attempt. Dormant groups remain idle until an entry region activates them;
 activation retains each actor's ID and can depend on an earlier group's defeat.
 Attacking a dormant guard wakes that group at the struck guard's location,
 without revealing an unseen attacker's position. A later entry alarm dispatches
-that group once to the entered threshold. Last departure or total party death clears the encounters;
-the existing entry respawn permits retry. Individual death while an ally survives
-does not reset active groups. Checkpoints, saves and revives remain unbuilt;
+that group once to the entered threshold. In development party mode, last departure
+or total party death clears encounters and entry respawn permits retry. Individual
+death while an ally survives does not reset groups. Solo mode retains the defeated
+state until an accepted continue resets the entire attempt. Saves remain unbuilt;
 the mission contract above owns shared lift departure.
 
 #### Event
@@ -912,7 +959,7 @@ is echoed below. Bootstrap version 2 requires that field; it is separate from
 the on-wire campaign rules revision. No parent command changes it during a run.
 
 ```json
-{"version":2,"mission":"recall_notice","difficulty":"standard","url":"ws://127.0.0.1:49152","gameplay_version":6}
+{"version":2,"mission":"recall_notice","difficulty":"standard","url":"ws://127.0.0.1:49152","gameplay_version":7}
 ```
 
 The port is chosen by the OS. Diagnostics use stderr. The parent validates the

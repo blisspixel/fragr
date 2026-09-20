@@ -202,6 +202,16 @@ impl GameSession {
                 if let Some(pid) = player_id {
                     let name = self.available_display_name(&name);
                     self.state.add_player(pid, name.clone(), role);
+                    if !self.state.players.iter().any(|player| player.id == pid) {
+                        self.pending_unicasts.push((
+                            Recipient::Client(id),
+                            ServerMessage::Error {
+                                code: "run_seat_closed".into(),
+                                message: "The campaign run already has an owner.".into(),
+                            },
+                        ));
+                        return;
+                    }
                     self.client_to_player.insert(id, pid);
                     let player_count = self
                         .state
@@ -268,6 +278,18 @@ impl GameSession {
 
             GameCommand::MissionReady { player_id, ready } => {
                 self.state.acknowledge_mission(player_id, ready);
+            }
+            GameCommand::MissionContinue { player_id, request } => {
+                if !self.state.continue_mission(player_id, request) {
+                    self.pending_unicasts.push((
+                        Recipient::Player(player_id),
+                        ServerMessage::Error {
+                            code: "continue_rejected".into(),
+                            message: "Continue is unavailable or refers to a previous attempt."
+                                .into(),
+                        },
+                    ));
+                }
             }
 
             GameCommand::Speak { player_id, text } => {

@@ -764,6 +764,9 @@ impl GameState {
     }
 
     pub fn add_player(&mut self, id: Uuid, name: String, role: Role) {
+        if !self.admit_campaign_owner(id) {
+            return;
+        }
         let mut angle = (self.players.len() as f32) * (2.0 * PI / 8.0);
         // Warmup is placement for the opening fight. It needs the same cover
         // and clearance policy as a live join, even before weapons activate.
@@ -985,7 +988,7 @@ impl GameState {
         }
 
         self.update_encounters();
-        if self.mission_departed() {
+        if self.mission_departed() || self.campaign_run_frozen() {
             for player in &mut self.players {
                 player.just_fired = false;
             }
@@ -1383,6 +1386,7 @@ impl GameState {
             }
         }
 
+        self.update_campaign_run();
         self.advance_mission();
         for id in respawn_ids {
             self.do_respawn(id);

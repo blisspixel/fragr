@@ -16,6 +16,14 @@ From the repository root:
 cargo run -p fragr-server --locked -- --bind 127.0.0.1:6767 --bots 0 --map-file server/maps/m01-recall-notice.json
 ```
 
+Add `--campaign-run` for a solo human or agent with three explicit mission-start
+continues and a lifetime owner seat. The local Single Player menu uses this mode.
+Without it, the command above retains four-seat development party behavior.
+Solo death waits for a continue, the fourth death ends the run, and leaving cannot
+refill or reclaim it. Spectators can watch either mode. Retry restores original
+entry equipment, geometry, guards, supplies and objectives together. Disk saves,
+reconnect and cross-mission carry remain unbuilt.
+
 Connect the ordinary client, agent or spectator to the same server. This mode
 has no arcade timer, boss or map rotation. `--map-file` rejects arcade
 map selection, Episode 0, rule overrides and rule bots. It is opt-in authoring
@@ -26,7 +34,7 @@ choose the mission's shared pressure before admission. Omission keeps Standard.
 The first profiles adjust Clerk/Sweeper windup and recovery, not health, damage,
 supplies or story. Local Single Player offers the same choices. Difficulty is
 fixed for that server lifetime; restart for another choice. Use matching client
-and server builds with gameplay capability 6. Arcade and benchmark runs reject
+and server builds with gameplay capability 7 (6 suffices for development parties). Arcade and benchmark runs reject
 the option. Final multi-tier encounter and resource balance remains unfinished.
 
 ## Document version 1
@@ -56,7 +64,8 @@ the option. Final multi-tier encounter and resource balance remains unfinished.
   Campaign stock (maps with encounters or a mission) stays consumed until the
   authoritative party reset; arcade practice retains timed pickup respawns.
   An additional copy of an owned gun grants reserve without
-  forcing selection. Discovery death resets inventory and personal claims.
+  forcing selection. Development respawn resets inventory and personal claims;
+  solo retry restores the captured mission-entry inventory and claims instead.
 - `encounters`: optional, discovery only. At most 32 groups, 64 enemies and 64
   entry regions in total. Each group has a unique `id`, nonempty `regions` and
   `enemies`, and optional `after` naming an earlier group. Each region is an
@@ -65,7 +74,8 @@ the option. Final multi-tier encounter and resource balance remains unfinished.
   reachable `feet`, and bounded `yaw`, just like a spawn. Unknown fields are
   rejected. No scripts or arbitrary behavior expressions. These maps require
   gameplay capability 3. See [actor semantics](../../docs/protocol.md#campaign-actor-identity).
-- `mission`: optional, discovery only, requires capability 5, including party readiness. The registered
+- `mission`: optional, discovery only, requires capability 6 for shared difficulty
+  and party readiness, or 7 when the host selects solo run rules. The registered
   `id` is `recall_notice`. `record` and `departure` each contain `panel` (the same
   authored decoration shape) and `approach` feet coordinates. The panel kinds
   must be `terminal` and `lift_control`, hosted on stationary solids. These panels

@@ -16,6 +16,8 @@ pub struct MissionClient {
     last_tick: Option<u64>,
     press_down: bool,
     rules: Option<CampaignRules>,
+    run: Option<crate::protocol::CampaignRunState>,
+    observed: bool,
 }
 
 impl MissionClient {
@@ -47,6 +49,9 @@ impl MissionClient {
                 .is_some_and(|old| old.id == mission.id)
             {
                 next.rules = self.rules;
+                next.run = self.run;
+                next.observed = self.observed;
+                next.last_tick = self.last_tick;
             }
         }
         *self = next;
@@ -57,6 +62,12 @@ impl MissionClient {
         state.validate(tick)?;
         if self.geometry.as_ref().is_none_or(|map| map.id != state.id)
             || self.rules.is_some_and(|rules| rules != state.rules)
+            || (self.observed
+                && match (self.run, state.run) {
+                    (None, None) => false,
+                    (Some(old), Some(new)) => old.id != new.id || new.continues > old.continues,
+                    _ => true,
+                })
             || self.last_tick.is_some_and(|last| tick < last)
             || self
                 .state
@@ -67,6 +78,8 @@ impl MissionClient {
         }
         self.last_tick = Some(tick);
         self.rules = Some(state.rules);
+        self.run = state.run;
+        self.observed = true;
         self.state = Some(state);
         Ok(())
     }
@@ -91,14 +104,34 @@ impl MissionClient {
     pub fn participating(&self, id: Uuid) -> bool {
         self.geometry.is_none()
             || self.state.as_ref().is_some_and(|state| {
-                matches!(
-                    state.phase,
-                    MissionPhase::FindTransfer | MissionPhase::ReachLift
-                ) && state
-                    .party
-                    .iter()
-                    .any(|member| member.id == id && member.ready)
+                state
+                    .run
+                    .is_none_or(|run| run.status == crate::protocol::CampaignRunStatus::Playing)
+                    && matches!(
+                        state.phase,
+                        MissionPhase::FindTransfer | MissionPhase::ReachLift
+                    )
+                    && state
+                        .party
+                        .iter()
+                        .any(|member| member.id == id && member.ready)
             })
+    }
+
+    pub fn continuation(&self, id: Option<Uuid>) -> Option<crate::protocol::MissionContinue> {
+        let id = id?;
+        let state = self.state.as_ref()?;
+        let run = state.run?;
+        (run.status == crate::protocol::CampaignRunStatus::Continue
+            && state
+                .party
+                .iter()
+                .any(|member| member.id == id && !member.alive))
+        .then_some(crate::protocol::MissionContinue {
+            id: state.id,
+            run_id: run.id,
+            attempt: state.attempt,
+        })
     }
 
     /// Equipment and combat intent retain priority. With no target, walk to the

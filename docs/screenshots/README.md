@@ -17,10 +17,18 @@ text panels, skip handoff and offline replay were checked. Illustrations and
 narration remain unfinished. The two older local-campaign stills above predate
 the new opening and remain historical lifecycle evidence.
 
+`prototypes/m01-continue-20260920.png` and `m01-exhausted-20260920.png` show
+the current solo death choice and exhausted run on Windows, OpenGL compatibility,
+AMD Radeon 780M. The real local-launch recovery harness walks into Clerk fire,
+spends three continues through ordinary input, checks restored fists/position/facing,
+then proves the fourth death ends the run. All seven death/retry frames were
+captured; the two result states above were inspected and retained. The older
+party-waiting still describes the dedicated development host, not local solo rules.
+
 `prototypes/m01-records-20260920.png` is the inspected 14-state expanded records
 route, captured on Windows, OpenGL compatibility, AMD Radeon 780M. The run
 confirms twenty named guards and mission departure through ordinary inputs.
-The rooms and characters remain development art, with final pacing, checkpoint
+The rooms and characters remain development art, with final pacing, persistence
 and fresh-player acceptance outstanding. Source manifest: `client/qa/m01-records.json`.
 
 | File | View |

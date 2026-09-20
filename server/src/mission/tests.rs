@@ -332,7 +332,7 @@ fn wipe_resets_gate_and_attempt_once_and_last_leave_uses_same_path() {
 
 #[test]
 fn shared_wire_controller_walks_and_departs_as_a_mixed_party() {
-    drive_party(session(), 2);
+    drive_party(session(), 2, false);
 }
 
 #[test]
@@ -348,11 +348,21 @@ fn shared_party_controller_completes_actual_m01_with_discovered_equipment() {
         let mut session = GameSession::with_authored_map(map);
         session.state.set_campaign_difficulty(difficulty).unwrap();
         session.state.seed(67);
-        drive_party(session, size);
+        drive_party(session, size, false);
     }
 }
 
-fn drive_party(mut session: GameSession, size: usize) {
+#[test]
+fn solo_controller_finishes_actual_m01_with_combat_and_open_gate_retries() {
+    let map =
+        AuthoredMap::read(include_bytes!("../../maps/m01-recall-notice.json").as_slice()).unwrap();
+    let mut session = GameSession::with_authored_map(map);
+    session.state.enable_campaign_run().unwrap();
+    session.state.seed(67);
+    drive_party(session, 1, true);
+}
+
+fn drive_party(mut session: GameSession, size: usize, retry_after_record: bool) {
     let ids: Vec<_> = (0..size)
         .map(|index| {
             add(
@@ -373,11 +383,16 @@ fn drive_party(mut session: GameSession, size: usize) {
     // The authored twenty-guard mission is larger than the minimal gate fixture.
     // This bounds completion, not a speedrun or difficulty acceptance claim.
     let max_ticks = if session.state.map.has_encounters() {
-        4000
+        if retry_after_record {
+            8000
+        } else {
+            4000
+        }
     } else {
         1600
     };
     let mut deaths = 0;
+    let mut forced_death = false;
     let mut dead = std::collections::HashSet::new();
     for _ in 0..max_ticks {
         let messages = session.tick_messages(0.05);
@@ -419,6 +434,17 @@ fn drive_party(mut session: GameSession, size: usize) {
                     for client in &mut clients {
                         client.observe(tick, state.clone()).unwrap();
                     }
+                    if let Some(request) = clients[0].continuation(Some(ids[0])) {
+                        assert!(session.state.continue_mission(ids[0], request));
+                        assert_eq!(
+                            session.state.players[0].weapon,
+                            crate::protocol::WeaponType::Fists
+                        );
+                        assert_eq!(
+                            session.state.mission_state().unwrap().phase,
+                            MissionPhase::FindTransfer
+                        );
+                    }
                 }
                 ServerMessage::Snapshot(snapshot) => {
                     for index in 0..size {
@@ -431,14 +457,31 @@ fn drive_party(mut session: GameSession, size: usize) {
                                 .any(|p| p.id == id && p.respawn_timer.is_some()));
                             continue;
                         };
+                        let visible = |target: &crate::protocol::PlayerState| {
+                            crate::combat::line_of_sight(
+                                [
+                                    player.x,
+                                    player.y - PLAYER_FLOOR_Y + crate::movement::EYE_HEIGHT,
+                                    player.z,
+                                ],
+                                [
+                                    target.x,
+                                    target.y - PLAYER_FLOOR_Y + crate::combat::FIGHTER_HEIGHT * 0.5,
+                                    target.z,
+                                ],
+                                &session.state.map.arena().solids,
+                            )
+                        };
                         let target = snapshot
                             .players
                             .iter()
                             .filter(|p| player.is_hostile_to(p))
                             .min_by(|a, b| {
-                                (a.x - player.x)
-                                    .hypot(a.z - player.z)
-                                    .total_cmp(&(b.x - player.x).hypot(b.z - player.z))
+                                (!visible(a)).cmp(&(!visible(b))).then_with(|| {
+                                    (a.x - player.x)
+                                        .hypot(a.z - player.z)
+                                        .total_cmp(&(b.x - player.x).hypot(b.z - player.z))
+                                })
                             });
                         let intent = target.map_or_else(Action::default, |target| Action {
                             look_at: Some(LookAt {
@@ -446,7 +489,15 @@ fn drive_party(mut session: GameSession, size: usize) {
                                 ..Default::default()
                             }),
                             fire: true,
+                            weapon_swap: retry_after_record
+                                .then_some(crate::protocol::WeaponType::Flechette),
                             forward: (target.x - player.x).hypot(target.z - player.z) > 10.,
+                            // Sidestep visible fights instead of standing still
+                            // while several guards fire at the solo probe.
+                            left: retry_after_record && visible(target) && snapshot.tick % 40 < 20,
+                            right: retry_after_record
+                                && visible(target)
+                                && snapshot.tick % 40 >= 20,
                             ..Action::default()
                         });
                         let body = session.state.players.iter().find(|p| p.id == id).unwrap();
@@ -471,6 +522,21 @@ fn drive_party(mut session: GameSession, size: usize) {
                 _ => {}
             }
         }
+        if retry_after_record
+            && !forced_death
+            && session.state.mission_state().unwrap().phase == MissionPhase::ReachLift
+        {
+            // Inject only the fatal outcome. Both complete routes, weapon discovery,
+            // combat, panel use and the retry request use the shared live controllers.
+            session
+                .state
+                .players
+                .iter_mut()
+                .find(|p| p.id == ids[0])
+                .unwrap()
+                .hp = 0;
+            forced_death = true;
+        }
         if session.state.mission_departed() {
             break;
         }
@@ -481,7 +547,18 @@ fn drive_party(mut session: GameSession, size: usize) {
         session.state.mission_state(),
         session.state.snapshot().players
     );
-    assert_eq!(maps_seen, 2, "one opening geometry revision");
+    assert_eq!(maps_seen, if retry_after_record { 4 } else { 2 });
+    if retry_after_record {
+        assert!(forced_death);
+        let state = session.state.mission_state().unwrap();
+        // This seeded controller also dies once in combat. Both failed attempts
+        // must remain charged when it eventually completes the mission.
+        assert_eq!(deaths, 2, "{state:?}");
+        assert_eq!(state.attempt, 3);
+        let run = state.run.unwrap();
+        assert_eq!(run.continues, 1);
+        assert_eq!(run.status, crate::protocol::CampaignRunStatus::Complete);
+    }
     eprintln!(
         "Mission party size={size}: ticks={}, individual deaths={deaths}, attempt={}",
         session.state.tick,

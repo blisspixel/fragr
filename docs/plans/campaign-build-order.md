@@ -16,7 +16,7 @@ an explicit approved cap, and the existing developer pipelines.
 | Movement | Shared gravity, jump, steps, ceilings and overlapping floors with a verified GDScript mirror | New traversal features require explicit geometry support and live tests |
 | Enemies | Rule bots, elite/boss prototype, authored human Clerk and Sweeper bot with phased attacks and directional animation | Full enemy roster, final art, encounters and balance |
 | Episode | Calibration prototype; M01 transfer/gate/departure shipped in v0.26.0 | Full story missions, rescue outcomes and campaign transitions |
-| Persistence | Player settings | Versioned campaign run, limited continues, entry inventory and rescue outcomes |
+| Runs and persistence | Player settings; in-memory solo M01 run with three continues and entry restoration | Disk saves, cross-mission carry, persistent statistics and rescue outcomes |
 | Co-op | Allied campaign participants, encounter wipe reset; shared mission boarding and four-seat admission shipped with live party evidence | Optional scope undecided; no mandatory duo, revival or all-mission co-op requirement |
 | Presentation | Retro front end, HUD, radio and viewmodels; localized M01 text opening and party readiness shipped in v0.28.0 | Finished scene art/narration, companion scenes, complete character/weapon/effect motion |
 

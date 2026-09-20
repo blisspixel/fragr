@@ -2,8 +2,9 @@
 
 **Status:** framework requirements, revised 2026-09-20. Validated local map files,
 finite 3D collision, authored Clerk/Sweeper encounters and M01 progression are
-implemented. Persistent campaign saves, limited continues, remaining enemy types and
-cross-mission continuity are unbuilt. See [build order](campaign-build-order.md)
+implemented. Solo M01 has an in-memory run with three explicit continues and entry
+restoration. Persistent saves, remaining enemy types and cross-mission continuity
+are unbuilt. See [build order](campaign-build-order.md)
 for the current baseline; requirements below do not imply completed systems.
 
 **Goal:** support [the campaign](../CAMPAIGN.md) through the Rust authority and

@@ -10,6 +10,7 @@ use std::collections::HashSet;
 use uuid::Uuid;
 
 mod controller;
+mod recovery;
 pub use controller::MissionClient;
 
 #[cfg(test)]
@@ -23,6 +24,7 @@ mod tests;
 mod wire_tests;
 
 pub(crate) struct MissionRun {
+    solo: Option<recovery::SoloRun>,
     rules: CampaignRules,
     initial_map: RuntimeMap,
     attempt: u32,
@@ -36,6 +38,7 @@ impl MissionRun {
     pub fn new(map: &RuntimeMap) -> Option<Self> {
         map.mission()?;
         Some(Self {
+            solo: None,
             rules: CampaignRules::default(),
             initial_map: map.clone(),
             attempt: 1,
@@ -54,7 +57,8 @@ pub(crate) fn actor_active(
     actor: Option<CampaignActor>,
 ) -> bool {
     run.is_none_or(|run| {
-        run.phase != MissionPhase::Briefing
+        run.solo.as_ref().is_none_or(|solo| solo.playing())
+            && run.phase != MissionPhase::Briefing
             && (actor != Some(CampaignActor::Participant {}) || run.ready.contains(&id))
     })
 }
@@ -130,6 +134,9 @@ impl GameState {
         }
         if let Some(player) = self.players.iter_mut().find(|p| p.id == player_id) {
             player.clear_input();
+            if let Some(solo) = run.solo.as_mut() {
+                solo.capture_entry(player, *self.scores.get(&player_id).unwrap_or(&0));
+            }
         }
         self.refresh_mission_readiness();
         true
@@ -172,7 +179,9 @@ impl GameState {
         };
         run.attempt = run.attempt.saturating_add(1);
         run.changed_at = self.tick;
-        run.started = false;
+        // An accepted solo retry is already a live attempt, even if the owner
+        // dies again before the encounter controller gets its next tick.
+        run.started = run.solo.is_some();
         for player in &mut self.players {
             player.interaction_requested = false;
         }
@@ -191,13 +200,15 @@ impl GameState {
                 name: p.name.clone(),
                 ready: run.ready.contains(&p.id),
                 alive: p.hp > 0 && p.respawn_timer.is_none(),
-                aboard: actor_active(Some(run), p.id, p.campaign)
+                aboard: run.phase != MissionPhase::Briefing
+                    && run.ready.contains(&p.id)
                     && p.hp > 0
                     && p.respawn_timer.is_none()
                     && geometry.boarding.contains([p.x, p.y - PLAYER_FLOOR_Y, p.z]),
             })
             .collect();
         let control = match run.phase {
+            _ if self.campaign_run_frozen() => None,
             MissionPhase::FindTransfer => Some((&geometry.record, InteractionKind::TransferRecord)),
             MissionPhase::ReachLift if !party.is_empty() && party.iter().all(|p| p.aboard) => {
                 Some((&geometry.departure, InteractionKind::LiftDeparture))
@@ -221,6 +232,7 @@ impl GameState {
         });
         Some(MissionState {
             id: geometry.id,
+            run: run.solo.as_ref().map(|solo| solo.state),
             rules: run.rules,
             attempt: run.attempt,
             phase: run.phase,
@@ -277,6 +289,11 @@ impl GameState {
         if let Some(run) = self.mission.as_mut() {
             run.phase = next;
             run.changed_at = self.tick;
+            if next == MissionPhase::Departed {
+                if let Some(solo) = run.solo.as_mut() {
+                    solo.state.status = crate::protocol::CampaignRunStatus::Complete;
+                }
+            }
             tracing::info!(attempt = run.attempt, phase = ?next, "Mission progressed");
         }
     }

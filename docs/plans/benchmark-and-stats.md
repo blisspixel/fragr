@@ -1,95 +1,126 @@
-# Plan: benchmark mode and deep statistics
+# Player records, statistics and commentary
 
-**Status:** planned (2026-09-18)
-**Branch:** `feat/bench-*` and `feat/stats-*`
-**Spend:** $0. Everything here is local computation over data the server already has.
+Status: planned player-facing increment, [#199](https://github.com/blisspixel/fragr/issues/199),
+updated 2026-09-20. CPU benchmark and
+trace recording already shipped in #166; their implemented contract lives in
+[BENCHMARK.md](../BENCHMARK.md). This plan supersedes its earlier benchmark wish
+list. Spend: $0, local computation and offline localized copy.
 
-## Goal
+## Product contract
 
-Two audiences, one pipeline. The benchmark answers "did this change make the game slower or heavier", in numbers that gate CI. The statistics layer answers "what actually happened in that match", at a depth a person who enjoys the mathematics can dig into: distributions rather than averages, intervals rather than point estimates, and enough raw data exported that someone can do their own analysis without asking us for it.
+Give players a persistent service record, a campaign run history and multiplayer
+match reports. Keep the default result screen short, chunky and readable; an
+optional analysis view supplies the mathematics. The tone can roast a meat proxy
+or an agent for what actually happened, with a separate commentary toggle. This
+is part of the game's personality, not a claim to assess someone's intelligence.
 
-The rule that keeps both honest: a single number is a headline, never a conclusion. Every figure that matters ships with its spread, its sample size, and, where a claim is being made, an interval.
+| Surface | Planned facts |
+|---|---|
+| Local profile | Completed/failed/abandoned runs, matches, time played, kills, deaths, weapon counts and earned titles/cosmetics. Separate campaign and multiplayer totals. |
+| Campaign run | Mission and difficulty, rules revision, attempts, continues spent, active time, deaths, damage, weapon use, objective completion and authored rescues/secrets when those systems exist. Show total effort separately from the successful attempt. |
+| Multiplayer match | Map, mode, roster/control roles, result, frags/deaths, damage, shots, hits, streaks and objective contributions when the mode implements them. Show partial participation and disconnects. |
+| Analysis | Per-weapon counts, rates with denominators, time distributions, comparable run history and a versioned local export. Performance diagnostics retain their own timing scope. |
 
-## Non-goals
+A profile is a local record, not an authenticated public ranking. A callsign is a
+display label, never identity. Human/agent control, body and faction are distinct.
+Custom server results need an explicit trust label; no new account or matchmaking
+service is required for this increment. No background telemetry or paid runtime
+commentator.
 
-- Telemetry that leaves the machine. Everything is local files and a local endpoint; a public server may expose aggregate status only, and player names in exports are opt-in.
-- A dashboard product. The export format is the deliverable; charts are whatever the reader likes.
-- Replacing human judgement about fun. The numbers find regressions and imbalance; people still decide what feels good.
+## Current evidence and canonical seams
 
-## Part one: benchmark mode
+- `server/src/bench.rs` measures offline CPU session/encoding work and payload
+  counts. `trace.rs` records and verifies seeded observations. These do not measure
+  rendered frame time, socket delivery or authenticated player history.
+- `tools/playtest` aggregates match evidence for engineering checks. Its report
+  is not a persistent player profile or an authoritative reward ledger.
+- `sim.rs` resolves shots, deaths, pickups and outcomes; `inventory.rs` owns
+  ammunition and dry triggers. `mission/` owns run identity and retries. Collect
+  facts at these decisions, not by guessing from HUD text or callsigns.
+- `protocol.rs` and its child modules own shared wire types. The client validates
+  external state at a single boundary before displaying or persisting it.
+- `settings.gd` remains preferences only. Profile data needs a separate versioned
+  document with atomic replacement, corruption handling and an isolated test path.
 
-`fragr-server --bench N M` runs N scripted fighters on a fixed map and seed for M ticks with no network clients, then prints one JSON object and exits. The same JSON is what the status line serves while a real server runs, so a benchmark and a live server are read the same way.
+## Implementation sequence
 
-Measured per tick, reported as distributions:
+1. **Authoritative summaries.** Add a small shared counter/summary seam. Define
+   one accepted-shot trial, actual HP/armor damage, kill credit and active tick
+   duration. Assign session/match/run/attempt identity before counting. Test
+   simultaneous trades, environmental deaths, duplicate observations, leave and
+   retry. Reuse the same facts in human UI, MCP observations and exports.
+2. **Campaign result and local history.** Persist terminal records once per run
+   ID, retaining best completed attempt separately from all attempts. Repeated
+   delivery cannot award another completion. A continue resets mission state,
+   never lifetime effort. Leaving/crashing is not a win; incomplete observations
+   remain explicitly incomplete. Wire schema and local save versions evolve
+   independently. Saves do not silently refill continues.
+3. **Multiplayer reports and profile.** Give rounds stable IDs, retain disconnected
+   participants in the report and mark participation windows. Ratios derive from
+   summed numerators/denominators, not averaged match percentages. Add a retro
+   profile/results menu and a local export. Earned cosmetic rules belong in
+   [difficulty-and-rewards.md](difficulty-and-rewards.md).
+4. **Optional commentary and deeper analysis.** Select original localized lines
+   from verified facts and rotate them without interrupting combat or story.
+   Further statistical estimates need a declared question, sampling unit and
+   uncertainty model. Ratings and public leaderboards stay deferred until their
+   identity, trust and game-mode contracts exist.
 
-- **Tick time**: the wall clock the whole tick took, split into phases (input apply, movement, combat resolve, bots, pickups and rounds, interest sets, snapshot encode). Each phase reports count, mean, standard deviation, p50, p90, p99, p99.9, max, and the tick index of the max. Percentiles come from a logarithmic histogram (an HDR histogram), not a sorted vector, so a long run costs constant memory and the numbers are exact to a stated precision.
-- **Budget headroom**: tick time as a fraction of the tick period, and the count of ticks over 50, 80, and 100 percent of budget. An overrun count of zero is the pass; the p99 fraction is the headline.
-- **Bytes**: snapshot bytes per client per tick (mean and p99), total bytes out per second, and the same after delta encoding and interest management land, so the effect of each is a before and after in the same units.
-- **Allocation and cache proxies**: allocations per tick if a counting allocator is enabled in the bench build, and the number of entities touched per phase, which is the portable stand-in for cache behaviour.
-- **Determinism check**: the run is seeded, so the bench asserts that two runs with the same seed produce identical frag counts and final positions. A failure here is a correctness bug, not a performance one.
+Before each rung, bound its wire changes, persistence migration and acceptance
+in this plan. Do not implement an analytics platform ahead of useful records.
 
-CI runs a small configuration on every pull request and fails on a pass-threshold breach; the full ladder (16, 64, 128, 256 fighters, from `massive-arenas.md`) runs locally and lands as a table in that plan.
+## Count definitions and statistical discipline
 
-## Part two: match statistics
+- Keep attempts, encounters and matches distinguishable. Campaign kills across
+  failed attempts are effort, not unique mission enemies defeated. A mission
+  completion and a campaign completion are different outcomes.
+- Accuracy means accepted damaging shots divided by accepted shots, with the
+  exact numerator and denominator visible. Dry pulls are separate. Multi-pellet
+  or piercing weapons must define shot and target counts separately before use.
+  Zero trials means unavailable, never 0 percent or NaN.
+- Record actual effective damage, with armor and HP separated if both are shown.
+  Overkill is not effective damage. A trade preserves both resolved shots and
+  credits one death once. Do not infer weapon from a later inventory snapshot.
+- Active play ticks exclude intro, death choice and terminal waiting. Wall-clock
+  session duration is a different measurement. Speed records carry map/content,
+  difficulty and rules versions; incompatible routes are not one leaderboard.
+- Descriptive distributions carry units, count and percentile method. Raw counts
+  do not need artificial confidence intervals. For inference, state the model:
+  shots in one engagement are correlated, and repeated seeds are not independent
+  new players. Wilson intervals suit a declared binomial model, not every ratio.
+- Prefer paired seeds/configurations and repeated match-level samples for balance
+  comparisons. Show effect sizes and uncertainty; p-values are not probabilities
+  that a balance claim is true. No arbitrary sample-size cutoff makes an estimate
+  reliable, and weapon selection confounds kill share. Numbers guide review;
+  they cannot mechanically establish fun or declare every map disparity a bug.
 
-The playtest harness already computes frags, gaps, spawn deaths, and weapon usage. This turns that into a real analysis layer, computed from the event stream and the snapshot stream, over one match or many.
+Primary statistical reference checked 2026-09-20:
+[NIST guidance on proportion intervals](https://www.itl.nist.gov/div898/handbook/prc/section2/prc241.htm).
+Research the relevant primary method again when implementing an estimator.
 
-**Combat**
+## Roasts that belong in this world
 
-- Time to kill: the distribution of elapsed time from first damage to death per victim, by weapon and by attacker type (human, rule bot, agent). Reported as a histogram with median and interquartile range, because time to kill is skewed and a mean lies.
-- Damage per engagement, shots fired per kill, and accuracy by range bucket, each with a Wilson interval on the hit rate so a fighter with nine shots is not compared naively against one with nine hundred.
-- Engagement distance histogram, which is the honest test of whether the three weapons occupy different ranges. The weapon triangle is working when each weapon's kill distribution peaks in its own band and the overlaps are small; the report prints each weapon's median kill distance and the overlap coefficient between pairs.
-- Time to first shot and reaction time from target visible to first hit, which is also the machine and human separation the fair-play profiler uses.
-- Killstreak and revenge structure: how often a death is avenged within thirty seconds, which is the "is this a fight or a farm" measure.
+Examples are proposed copy, not implemented triggers:
 
-**Balance and skill**
+- On an observed dry trigger: "Your ammunition request is pending review."
+- After a completed melee-only attempt: "Zero ammunition. An accounting triumph."
+- On the final remaining continue: "One appeal remains. Try surviving the hearing."
 
-- Per-weapon kill share against usage share, with a chi-square test for whether the difference is more than noise at the sample size in hand. A weapon that is picked twice as often but kills at the same rate is fine; a weapon that kills at twice the rate per engagement is not.
-- Map balance: spawn to first contact time by spawn point, kill heat by cell on the same grid the sim uses, and pad control share. A spawn that dies ten percent more often than the mean is a map bug.
-- Skill rating across policies and players: TrueSkill, which carries an uncertainty per rating, rather than a bare Elo number, so a new fighter's rating comes with an honest error bar. Paired-round design and sample-size arithmetic for a given effect size live in `decision-brain.md` and are reused here.
-- Rating convergence: how many rounds until the interval on a rating is smaller than the gap being tested. This is what stops us claiming a policy is better after nine rounds.
+Each line has a specific fact predicate, localization key and repetition limit.
+Narrative copy can be subjective; the supporting numbers cannot be invented.
+Keep identity, sensitive traits and unseen player motives out of it. Let players
+mute commentary independently. No radio dependency and no synthetic voice that
+blocks play. Roast both free beings and the bureaucracy without replacing the
+campaign's serious character moments.
 
-**Flow and feel**
+## Acceptance
 
-- Dead time: the fraction of a round with no damage anywhere, and the longest such gap.
-- Time between deaths per fighter, and the fraction of a round spent respawning.
-- Pickup contention: how often two fighters reach a pad within two seconds, which is the measure of whether the map's item timing creates fights.
-- Correction magnitude and snapshot age from the client, once prediction lands, as the objective half of "does it feel smooth".
-
-**Nerd mode surface**
-
-- A client overlay (a settings toggle, off by default) showing frame time, tick time, snapshot age, correction error, ping, bytes per second, and the current match's running statistics, in a monospace corner panel. Everything on it comes from the same JSON as the export, so there is no second source of truth.
-- An export: `--report-full` writes one JSON per match with the event stream, per-fighter series, and every distribution as a histogram, plus a CSV of the event stream for anyone who prefers a spreadsheet. Schema versioned, documented, and stable.
-- A results card that stays simple for everyone else. Depth is opt-in.
-
-## Method notes, so the numbers mean something
-
-- Percentiles from histograms with a stated precision, never from means and standard deviations of a skewed quantity.
-- Proportions with Wilson intervals; differences between proportions with a two-proportion test and the sample size stated.
-- Distributions compared with a two-sample test appropriate to the shape, not by eyeballing means.
-- Every reported number carries its sample size. A statistic computed from fewer than thirty observations is printed with a marker that says so.
-- Seeded runs and paired designs wherever two things are being compared, so variance from spawns and item timing cancels instead of drowning the effect.
-- The bench prints the seed, the build, the map, the tick rate, and the configuration in the same object, so a number can always be traced to the run that produced it.
-
-## Verification
-
-- Unit tests on every statistic against canned event streams with known answers, including the interval arithmetic.
-- A determinism test: same seed, same numbers, twice.
-- A regression test: an artificially slowed tick phase makes the benchmark fail its threshold.
-- The export schema documented in `docs/protocol.md` and validated by a test.
-
-## Rungs
-
-1. Phase timing and the histogram plumbing; `--bench N M`; the status line JSON; CI threshold on tick time and bytes. This is playtest rung 3.
-2. Combat statistics (time to kill, accuracy with intervals, engagement distance) in the playtest report.
-3. Balance and map statistics; TrueSkill across policies with convergence reporting.
-4. Nerd overlay in the client and the full export with its schema.
-5. The scale ladder table from `massive-arenas.md` produced by the bench.
-
-## Success criteria
-
-- [ ] `--bench` prints phase percentiles, budget headroom, and bytes, and CI fails on a regression.
-- [ ] Two seeded runs are identical.
-- [ ] Every proportion in the report carries an interval and a sample size.
-- [ ] The weapon triangle is demonstrated by the engagement distance histogram, not asserted.
-- [ ] The nerd overlay and the full export read from the same JSON.
+- Known event sequences yield exact counts, including retry, trade, exhaustion,
+  incomplete match, leave and repeated terminal delivery.
+- Save round trips, malformed/unsupported files, interrupted writes and migration
+  failures preserve recoverable data and never grant duplicate rewards.
+- UI, agent observation and export agree on the same record and denominator.
+- Inspect rendered profiles/results and commentary in campaign and multiplayer;
+  exercise more than one map, controller role and outcome.
+- Full repository checks pass. Persistent stats, achievements and commentary stay
+  labelled planned until these surfaces exist and have evidence.

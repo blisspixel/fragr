@@ -81,6 +81,7 @@ pub struct HandleOutcome {
     pub response: McpResponse,
     pub pending_action: Option<Action>,
     pub pending_mission_ready: Option<protocol::MissionReady>,
+    pub pending_mission_continue: Option<protocol::MissionContinue>,
     pub pending_speak: Option<Speak>,
     pub pending_join: Option<String>,
     pub pending_leave: bool,
@@ -91,6 +92,7 @@ fn empty_outcome(response: McpResponse) -> HandleOutcome {
         response,
         pending_action: None,
         pending_mission_ready: None,
+        pending_mission_continue: None,
         pending_speak: None,
         pending_join: None,
         pending_leave: false,
@@ -662,6 +664,20 @@ fn tools_list_result() -> Value {
                 }
             },
             {
+                "name": "mission_continue",
+                "description": "Spend one remaining continue in an explicit solo run. Restarts the current mission with entry equipment. Read id, run.id and attempt from observe. Only the dead run owner can continue; observe confirms acceptance.",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "id": {"type": "string", "enum": ["recall_notice"]},
+                        "run_id": {"type": "string", "format": "uuid"},
+                        "attempt": {"type": "integer", "minimum": 1, "maximum": u32::MAX}
+                    },
+                    "required": ["id", "run_id", "attempt"],
+                    "additionalProperties": false
+                }
+            },
+            {
                 "name": "round_state",
                 "description": "Current round summary (state, number, time left, frag limit, mode_name, host_line, pressure) from last snapshot plus recent round_start/round_end. Prefer this over scraping observe.",
                 "inputSchema": {
@@ -748,11 +764,28 @@ pub fn handle_mcp_request(request: McpRequest, state: &mut ToolState) -> HandleO
 
             let mut pending_action = None;
             let mut pending_mission_ready = None;
+            let mut pending_mission_continue = None;
             let mut pending_speak = None;
             let mut pending_join = None;
             let mut pending_leave = false;
             let result = match tool_name {
                 "observe" => build_observe_result(state),
+
+                "mission_continue" => {
+                    let arguments = request
+                        .params
+                        .as_ref()
+                        .and_then(|p| p.get("arguments"))
+                        .cloned()
+                        .unwrap_or(Value::Null);
+                    match serde_json::from_value::<protocol::MissionContinue>(arguments) {
+                        Ok(request) if state.connected && state.mission.continuation(state.player_id) == Some(request) => {
+                            pending_mission_continue = Some(request);
+                            tool_ok_text("Continue submitted; observe to confirm server acceptance")
+                        }
+                        _ => tool_error_result("Continue requires the current run id and attempt for its dead participant; observe first"),
+                    }
+                }
 
                 "mission_ready" => {
                     let arguments = request
@@ -931,6 +964,7 @@ pub fn handle_mcp_request(request: McpRequest, state: &mut ToolState) -> HandleO
                 },
                 pending_action,
                 pending_mission_ready,
+                pending_mission_continue,
                 pending_speak,
                 pending_join,
                 pending_leave,
@@ -1056,6 +1090,95 @@ pub fn ingest_server_text(state: &mut ToolState, text: &str) -> Result<(), &'sta
 #[cfg(test)]
 mod mcp_tests {
     use super::*;
+
+    #[test]
+    fn continue_tool_requires_current_dead_owner_and_server_confirmation() {
+        let map = fragr_server::maps::AuthoredSource::Mission(protocol::MissionId::RecallNotice)
+            .load()
+            .unwrap();
+        let mut sim = fragr_server::sim::GameState::with_authored_map(map);
+        sim.enable_campaign_run().unwrap();
+        let id = Uuid::new_v4();
+        sim.add_player(id, "Runner".into(), protocol::Role::Agent);
+        sim.acknowledge_mission(
+            id,
+            protocol::MissionReady {
+                id: protocol::MissionId::RecallNotice,
+                attempt: 1,
+            },
+        );
+        let mut state = ToolState {
+            player_id: Some(id),
+            connected: true,
+            ..Default::default()
+        };
+        ingest_server_text(&mut state, &serde_json::to_string(&sim.map_info()).unwrap()).unwrap();
+        sim.players[0].hp = 0;
+        sim.tick(0.05);
+        ingest_server_text(
+            &mut state,
+            &serde_json::to_string(&sim.mission_message().unwrap()).unwrap(),
+        )
+        .unwrap();
+        let args = serde_json::to_value(state.mission.continuation(Some(id)).unwrap()).unwrap();
+        let call = |args| McpRequest {
+            jsonrpc: "2.0".into(),
+            id: Some(1.into()),
+            method: "tools/call".into(),
+            params: Some(serde_json::json!({"name":"mission_continue", "arguments":args})),
+        };
+        for patch in [
+            serde_json::json!({"attempt":2}),
+            serde_json::json!({"run_id":Uuid::nil()}),
+            serde_json::json!({"extra":true}),
+        ] {
+            let mut invalid = args.clone();
+            for (key, value) in patch.as_object().unwrap() {
+                invalid[key] = value.clone();
+            }
+            let result = handle_mcp_request(call(invalid), &mut state);
+            assert!(result.pending_mission_continue.is_none());
+            assert_eq!(result.response.result.unwrap()["isError"], true);
+        }
+        for (connected, player_id) in [
+            (false, Some(id)),
+            (true, None),
+            (true, Some(Uuid::new_v4())),
+        ] {
+            let mut denied = state.clone();
+            denied.connected = connected;
+            denied.player_id = player_id;
+            assert!(handle_mcp_request(call(args.clone()), &mut denied)
+                .pending_mission_continue
+                .is_none());
+        }
+        let request = handle_mcp_request(call(args.clone()), &mut state)
+            .pending_mission_continue
+            .unwrap();
+        assert_eq!(
+            state.mission.state.as_ref().unwrap().run.unwrap().continues,
+            3
+        );
+        assert!(sim.continue_mission(id, request));
+        assert!(!sim.continue_mission(id, request));
+        ingest_server_text(
+            &mut state,
+            &serde_json::to_string(&protocol::ServerMessage::Snapshot(sim.snapshot())).unwrap(),
+        )
+        .unwrap();
+        ingest_server_text(
+            &mut state,
+            &serde_json::to_string(&sim.mission_message().unwrap()).unwrap(),
+        )
+        .unwrap();
+        assert_eq!(
+            build_observe_result(&state)["mission"]["run"]["continues"],
+            2
+        );
+        assert!(handle_mcp_request(call(args), &mut state)
+            .pending_mission_continue
+            .is_none());
+    }
 
     #[test]
     fn mission_observe_and_use_share_the_server_contract() {

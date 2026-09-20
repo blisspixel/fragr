@@ -32,7 +32,7 @@ class Fixture extends LocalMatch:
 	func executable_path() -> String:
 		return path
 
-const RECORD: String = '{"version":2,"mission":"recall_notice","difficulty":"standard","url":"ws://127.0.0.1:12345","gameplay_version":6}\n'
+const RECORD: String = '{"version":2,"mission":"recall_notice","difficulty":"standard","url":"ws://127.0.0.1:12345","gameplay_version":7}\n'
 var failures: int = 0
 
 func _initialize() -> void:

@@ -34,6 +34,10 @@ struct Args {
     #[arg(long, value_enum, requires = "campaign_source", conflicts_with_all = ["bench", "bench_verify_trace", "solo_broadcast", "map_rotate", "no_round_events"])]
     difficulty: Option<fragr_server::protocol::CampaignDifficulty>,
 
+    /// One combatant, three mission-start continues. Leaving ends this run.
+    #[arg(long, requires = "campaign_source")]
+    campaign_run: bool,
+
     /// Move to the next map in the roster each round.
     #[arg(long, default_value_t = false)]
     map_rotate: bool,
@@ -185,6 +189,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         map,
         authored: args.map_file.map(fragr_server::maps::AuthoredSource::File),
         difficulty: args.difficulty,
+        campaign_run: args.campaign_run,
         map_rotate: args.map_rotate,
         match_config: args
             .no_round_events
@@ -312,6 +317,7 @@ mod tests {
         let server = tokio::spawn(async move {
             run_server(
                 ServerOptions {
+                    campaign_run: false,
                     authored: None,
                     difficulty: None,
                     bind: "127.0.0.1:0".to_string(),
