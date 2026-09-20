@@ -1,8 +1,8 @@
 # Local campaign entry
 
-Status: implemented locally, 2026-09-20, [#185](https://github.com/blisspixel/fragr/issues/185).
+Status: implemented, 2026-09-20. Integration: [#187](https://github.com/blisspixel/fragr/pull/187), task [#185](https://github.com/blisspixel/fragr/issues/185).
 The M01 mission sequence shipped in #184 and v0.26.0. Local launch implementation
-and verification are recorded below; remote CI and integration remain pending.
+and verification are recorded below; #187 tracks remote CI and integration.
 
 ## Player outcome
 
@@ -137,3 +137,12 @@ Investigation: [#186](https://github.com/blisspixel/fragr/issues/186). Retain ve
 leak details if it recurs. Error filtering and thresholds remain unchanged.
 
 Remaining integration gates: CI and release. No paid APIs were called.
+
+The first Linux client CI run caught an invalid crash-test assumption. Godot's
+Unix `OS.kill` waits for the child itself, leaving its process-status cache stale.
+The [pinned engine source](https://github.com/godotengine/godot/blob/4.7.2-stable/drivers/unix/os_unix.cpp)
+was checked on 2026-09-20. The Unix test now sends SIGKILL from an external `kill`
+process so the actual owner performs the wait, as for a crash. The process owner
+also retires its PID after observing exit; repeated cleanup cannot touch a reused
+PID. The real crash assertion and clean-log gate remain intact. Remote results
+on the corrected revision are required before merge.

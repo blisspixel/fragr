@@ -38,6 +38,13 @@ func _playing() -> bool:
 func _menu() -> bool:
 	return current_scene != null and current_scene.has_method("_start_campaign")
 
+func _crash(pid: int) -> bool:
+	if OS.get_name() == "Windows":
+		return OS.kill(pid) == OK
+	# Godot's Unix kill also waits for the child. An external signal leaves the
+	# exit to the actual owner, as a crash would, instead of stealing its wait.
+	return OS.execute("/bin/kill", PackedStringArray(["-KILL", str(pid)])) == 0
+
 func _capture(filename: String) -> void:
 	if captures.is_empty() or DisplayServer.get_name() == "headless":
 		return
@@ -91,7 +98,7 @@ func _run() -> void:
 	if not await _until(_playing, "second launch reaches M01"):
 		return
 	pid = owned.process._pid
-	_expect(OS.kill(pid) == OK, "simulate unexpected owned child exit")
+	_expect(_crash(pid), "simulate unexpected owned child exit")
 	if not await _until(func() -> bool: return _menu() and owned.state in [LocalMatch.State.IDLE, LocalMatch.State.FAILED], "unexpected exit returns to menu"):
 		return
 	_expect(owned.error_key == "LOCAL_SERVER_STOPPED", "failure remains visible after scene change")
@@ -117,6 +124,7 @@ func _run() -> void:
 		leased.dispose()
 		return
 	leased.dispose()
+	_expect(not leased.running(), "an observed exit remains retired during repeated cleanup")
 	unrelated.stop()
 	current_scene.queue_free()
 	await process_frame

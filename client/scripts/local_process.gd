@@ -40,7 +40,13 @@ func diagnostics() -> String:
 	return "\n".join(_error_lines)
 
 func running() -> bool:
-	return _pid > 0 and OS.is_process_running(_pid)
+	if _pid <= 0:
+		return false
+	if OS.is_process_running(_pid):
+		return true
+	# Retire observed exits. Cleanup must never query or kill a reused PID.
+	_pid = -1
+	return false
 
 func request_stop() -> void:
 	if _stdio != null and _stdio.is_open():
