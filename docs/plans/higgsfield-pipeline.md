@@ -137,7 +137,12 @@ Reduced sprites and their reviewed provenance are committed.
 
 Quantising the bake-off against the real palette is a visible improvement over quantising it against an invented one: the gunmetal ramp carries the weapon body and the rust accents get to do all the work, which is the rule of grey in `ART-COLOR.md` behaving exactly as advertised.
 
-It also surfaced a real gap. The palette has ink, bone, three gunmetals, rust, blood, two embers, two cyans, two magentas and the on-air red. It has **no institutional green**, which is the colour the Continuance's issued hardware wants to be, and no off-white for the unmarked machines of the thing in the dark. Those are two faction ramps the palette does not yet carry. Adding them is a colour decision rather than a tooling one, so it belongs in `ART-COLOR.md` and to whoever owns the look, not to this tool quietly appending swatches.
+That run exposed missing faction colors in the palette at the time. The current
+`docs/palette.json` includes institutional green and the vegetation greens;
+`ART-COLOR.md` assigns Union bone/green/steel and Inheritance bone/ink. Use those
+canonical swatches for new work. The older rust-heavy enemy candidates do not
+establish the approved character look, and the old Clerk candidate depicts a bot
+rather than the human role now specified in `ENEMIES.md`.
 
 ## What is not done yet
 

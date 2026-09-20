@@ -64,9 +64,10 @@ Initial handshake message. Must be sent immediately after connection.
   No player or spectator session is created on rejection. This is geometry
   compatibility, not general protocol or action-version negotiation.
 - `gameplay_version`: maximum understood gameplay contract. Current clients send
-  `2`; omission means `1`. Discovery maps require 2 and reject older clients of
-  every role before `Welcome` with `unsupported_gameplay`. This capability is
-  separate from geometry. The six full-arsenal arcade maps still accept 1.
+  `3`; omission means `1`. Discovery-only maps require 2, and maps with authored
+  encounters require 3. Older clients of every role are rejected before `Welcome`
+  with `unsupported_gameplay`. This capability is separate from geometry. The six
+  full-arsenal arcade maps still accept 1.
 
 #### Action
 
@@ -219,6 +220,19 @@ scene geometry with these solids so visible cover agrees with the server.
   `lift_panel`. Unknown IDs and mismatched cardinality are rejected. Materials
   cannot load arbitrary paths or change collision. A presenter predating this
   optional field may retain its default appearance without changing geometry.
+  Optional `decorations` describes at most 128 cosmetic panels, including at most
+  eight `strip_light` fixtures. Each strict object has `solid` (zero-based solid
+  index), `face`, `center` (two finite metres from the face centre), `size` (two
+  finite dimensions from 0.125 to 16 metres) and a registered `kind`. The entire
+  rectangle must fit its host face. Faces are `west`, `east`, `down`, `up`,
+  `north` (-Z) and `south` (+Z). Face right/up axes are respectively
+  (+Z,+Y), (-Z,+Y), (+X,+Z), (+X,-Z), (-X,+Y), (+X,+Y).
+  Kinds are `property_sign`, `intake_sign`, `records_sign`, `maintenance_sign`,
+  `transfer_sign`, `lift_sign`, `complaint_notice`, `union_seal`, `lockers`,
+  `vent`, `terminal` and `strip_light`. Text keys and assets belong to the client;
+  map data cannot provide scripts, arbitrary text, paths or URLs. These thin
+  panels cannot create collision or interactions. Old payloads omit the array;
+  older presenters can ignore it without changing geometry or gameplay versions.
 
 Geometry bounds: finite half extent from 2 to 256; at most 2048 solids; finite
 coordinates within -512 to 512; strictly increasing X and Z bounds. Navigation
@@ -458,6 +472,49 @@ committed ray reaches a fighter already killed earlier in the same tick.
 records default it to false. Committed shots can trade kills; later hits cannot
 award another frag for the same death. The following frag event reports the same
 killer/victim pair. Clients render this evidence without resolving another hit.
+
+#### Campaign actor identity
+
+On encounter maps, each entry in `Snapshot.players` includes `campaign`:
+
+```json
+{"side":"participant"}
+```
+
+```json
+{"side":"union","kind":"clerk","phase":"windup","phase_started":10,"phase_ends":22}
+```
+
+`Role` describes the connection's controller, not faction or fictional anatomy.
+Human and external-agent participants are allies. Union `kind` is `clerk` (human
+security) or `sweeper` (bot). Names are labels, never a targeting rule. Current
+campaign identity describes these introductory encounters; it does not implement
+Inheritance takeover, companions or the complete co-op lifecycle.
+
+Phases are `idle`, `moving`, `windup`, `firing`, `recovery`, `hit` and `dead`.
+Their start/end are authoritative simulation ticks at 20 Hz. Idle and moving
+have no fixed duration (`phase_ends == phase_started`); other phases may be
+interrupted by hits, lost sight or death. A firing animation never causes damage.
+Resolved `shot_results` still supply the actual weapon, ray and outcome.
+
+Campaign participants cannot damage one another. Allies intercept rays with
+`hit: true`, `damage: 0` and `killed: false`; zero damage must not show a hit-confirm
+or wound. Union allies follow the same rule. Dead enemies remain in snapshots for
+40 ticks with nonpositive HP and phase `dead`, then disappear. They cannot move,
+fire, collect supplies or intercept shots, and never use arcade respawn. Exclude
+Union actors from participant counts, scoreboards and spectator-player selection.
+Campaign kills do not emit arcade frags, streaks or Host taunts.
+
+Shared Rust readers use `PlayerState::is_hostile_to`; legacy entries omit
+`campaign` and retain free-for-all behavior. Mixing a legacy and campaign identity
+does not imply hostility. Controllers must exclude nonpositive-HP targets. The
+client validates identities and phase bounds before publishing a snapshot.
+
+Encounter groups activate once from participant positions and can depend on an
+earlier group's defeat. Last departure or total party death clears the encounters;
+the existing entry respawn permits retry. Individual death while an ally survives
+does not reset active groups. Checkpoints, saves, revives and extraction remain
+separate contracts.
 
 #### Event
 

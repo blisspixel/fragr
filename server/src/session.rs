@@ -190,7 +190,12 @@ impl GameSession {
                     let name = self.available_display_name(&name);
                     self.state.add_player(pid, name.clone(), role);
                     self.client_to_player.insert(id, pid);
-                    let player_count = self.state.players.len();
+                    let player_count = self
+                        .state
+                        .players
+                        .iter()
+                        .filter(|p| !p.is_campaign_enemy())
+                        .count();
                     self.state.push_event(protocol::GameEvent::PlayerJoined {
                         player: name.clone(),
                         role: format!("{:?}", role).to_lowercase(),
@@ -218,7 +223,12 @@ impl GameSession {
                         .find(|p| p.id == player_id)
                         .map(|p| (p.name.clone(), *self.state.scores.get(&p.id).unwrap_or(&0)))
                         .unwrap_or_else(|| ("Unknown".to_string(), 0));
-                    let player_count_before = self.state.players.len();
+                    let player_count_before = self
+                        .state
+                        .players
+                        .iter()
+                        .filter(|p| !p.is_campaign_enemy())
+                        .count();
                     self.state.remove_player(player_id);
                     self.state.push_event(protocol::GameEvent::PlayerLeft {
                         player: player_name.clone(),
@@ -297,10 +307,12 @@ impl GameSession {
                 .cloned(),
         );
         driven.extend(controllers.iter().map(|bot| bot.player_id));
+        let enemies = self.state.enemy_intents();
+        driven.extend(enemies.iter().map(|(id, _)| *id));
         self.navigators.retain(|id, _| driven.contains(id));
         // At most four searches per tick, with rotating slots so larger rosters
         // cannot starve their later controllers. Cached paths keep advancing.
-        let batches = controllers.len().div_ceil(4).max(1);
+        let batches = (controllers.len() + enemies.len()).div_ceil(4).max(1);
         let discovery = (map.equipment_policy() == protocol::EquipmentPolicy::Discovery)
             .then(|| self.state.snapshot());
         for (index, bot) in controllers.iter().enumerate() {
@@ -352,6 +364,26 @@ impl GameSession {
                 intent.action
             };
             self.state.set_action(bot.player_id, action);
+        }
+
+        for (index, (id, intent)) in enemies.into_iter().enumerate() {
+            let action = if let (Some(goal), Some(player)) = (
+                intent.goal,
+                self.state.players.iter().find(|p| p.id == id && p.hp > 0),
+            ) {
+                self.navigators.entry(id).or_default().steer(
+                    world,
+                    [player.x, player.y - crate::sim::PLAYER_FLOOR_Y, player.z],
+                    goal,
+                    intent.action,
+                    self.state.tick,
+                    (controllers.len() + index) / 4 == self.state.tick as usize % batches,
+                )
+            } else {
+                self.navigators.remove(&id);
+                intent.action
+            };
+            self.state.set_action(id, action);
         }
 
         self.state.tick(dt);

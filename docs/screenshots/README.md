@@ -41,9 +41,18 @@ movement check, not a combat playtest. Do not use `--publish` with this manifest
 
 M01's separate ten-state traversal tour uses `res://qa/m01.json` and a validated
 local map file. Commands and scope are in [`server/maps/README.md`](../../server/maps/README.md).
-It walks both stairs and the balcony underpass through live input. The blockout
-has no authored enemies, pickups or objectives and does not replace the release
-gallery or prove a finished mission.
+It walks both stairs and the balcony underpass through live input, now clearing
+the draft opening encounter along the way. `m01-discovery.json` checks ammunition
+and reload; `m01-encounters.json` and `m01-maintenance.json` capture the two combat
+approaches. The main tour now observes both enemy types firing before fighting
+back and records their actual sprite frames with the server phases. Enemy artwork
+remains under review and objectives are unbuilt. These
+runs do not replace the release gallery or prove a finished mission.
+
+`m01-facility.json` adds twelve walking/combat views of intake signs, locker banks,
+the transfer desk, lift and maintenance route. Check glyphs, panel placement,
+lighting and enemy contrast with both rendering paths. Localized text must fit
+the panel; the complaint notice targets bureaucracy, not captive suffering.
 
 Use `res://qa/weapons.json` with the same zero-bot practice settings for close
 walking strips of every viewmodel. Their base must remain below the screen

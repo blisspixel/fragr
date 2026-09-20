@@ -202,7 +202,7 @@ pub fn micro_action(plan: &Plan, me: Uuid, snapshot: &Snapshot) -> Action {
     let fire_range = weapon_swap.unwrap_or(held).range_units();
     let mut nearest: Option<(f32, Uuid, f32, f32)> = None;
     for other in &snapshot.players {
-        if other.id == me || other.hp <= 0 {
+        if !mine.is_hostile_to(other) {
             continue;
         }
         let dist = ((other.x - mine.x).powi(2) + (other.z - mine.z).powi(2)).sqrt();
@@ -273,6 +273,37 @@ mod tests {
     fn telemetry_for(snapshot: &Snapshot, me: Uuid) -> Telemetry {
         let mut hits = RecentHits::default();
         observe(me, snapshot, &mut hits).unwrap()
+    }
+
+    #[test]
+    fn campaign_plans_and_micro_control_ignore_allies_and_dead_guards() {
+        use fragr_server::protocol::{CampaignActor, EnemyKind, EnemyPhase};
+        let me = Uuid::from_u128(1);
+        let ally = Uuid::from_u128(2);
+        let foe = Uuid::from_u128(3);
+        let mut mine = player("me", me, 0.0, 0.0, 100, "tack");
+        mine.campaign = Some(CampaignActor::Participant {});
+        let mut partner = player("partner", ally, 1.0, 0.0, 100, "tack");
+        partner.campaign = mine.campaign;
+        let mut guard = player("clerk", foe, 8.0, 0.0, 60, "tack");
+        guard.campaign = Some(CampaignActor::Union {
+            kind: EnemyKind::Clerk,
+            phase: EnemyPhase::Idle,
+            phase_started: 0,
+            phase_ends: 0,
+        });
+        let mut snap = snapshot(1, vec![mine, partner, guard], vec![]);
+        let telemetry = telemetry_for(&snap, me);
+        assert_eq!(telemetry.enemy.as_ref().unwrap().id, foe);
+        let plan = fallback_plan(&telemetry, Source::Local);
+        assert_eq!(
+            micro_action(&plan, me, &snap).look_at.unwrap().player_id,
+            Some(foe)
+        );
+        snap.players[2].hp = 0;
+        assert!(telemetry_for(&snap, me).enemy.is_none());
+        let action = micro_action(&plan, me, &snap);
+        assert!(!action.fire && action.look_at.is_none());
     }
 
     #[test]

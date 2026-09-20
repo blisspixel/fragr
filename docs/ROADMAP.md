@@ -13,7 +13,7 @@ Every item below is in exactly one state: **planned**, **in progress**, **shippe
 
 The engineering ladder for scale runs through every phase: small squads first (four to twelve fighters, the current bar), then full servers (thirty-two to sixty-four), then large agent-heavy arenas (hundreds of fighters where most are agents). Each rung has its own measurements and is not claimed until measured.
 
-## Where we are (2026-09-19)
+## Where we are (2026-09-20)
 
 **Shipped and proven on the tip:**
 
@@ -36,7 +36,7 @@ must be checked before any new call rather than inferred from that old balance.
 
 **Not built yet (honest list):** low-latency transport (WebSocket JSON only), live client prediction (shared movement vectors exist), authentication or join tokens, per-connection rate limits and size caps, reconnect resume, release builds attached to tags, protocol versioning, a status endpoint, persistent stats, progression, DJ bumpers and a voiced Host, a single-player campaign (only one boss beat exists), a complete art pass on sprites, guns, and levels, public-server load tests, any cloud apply, vehicles, and objective modes. A deterministic local benchmark already exists; it does not establish public-server readiness.
 
-## What is next, in order (as of 2026-09-19)
+## What is next, in order (as of 2026-09-20)
 
 **Active milestone: [local excellence](plans/local-excellence.md).** The first
 increment shipped in [v0.15.0](https://github.com/blisspixel/fragr/releases/tag/v0.15.0):
@@ -96,9 +96,19 @@ navigation maps. [Enclosed campaign geometry](plans/campaign-spaces.md) shipped 
 now brings M01's connected blockout, indoor spawns and institutional surface kits
 through the live server. [M01 discovery](plans/m01-weapon-discovery.md) now adds
 fists, recovered Tack/Flechette, finite ammunition, reload and individual supply
-claims. Encounters and the mission lifecycle remain unbuilt. Next is the first
-authored intake encounter, including Union silhouettes and animation, followed
-by interaction and checkpoint state. Do not mistake the foundation for a finished
+claims. The [intake encounter](plans/m01-intake-encounter.md) is in flight:
+bounded authoring, allied participants and Clerk/Sweeper server phases have local
+tests, including live wire admission. The draft M01 now places a guarded
+confiscation threshold and two bots approaching from below records. Both routes
+have finite-equipment combat tests and rendered client runs. Original directional
+human/bot sprites now follow walking, attack, pain, melee and death state, with
+source and bake verification. OpenGL main-hall and Vulkan maintenance captures
+are inspected; a second spectator client follows the live human run. Finished
+character/encounter presentation and fresh-player pacing review remain pending.
+The [facility detail pass](plans/m01-facility-detail.md) adds bounded face panels,
+keyed world signs, issued lockers, service vents and practical lights to this
+prototype. These identify the rooms without adding client-only collision.
+Interaction and checkpoint state follow. This foundation is not a finished
 campaign or proven co-op balance.
 
 [Opening spawn placement](plans/opening-spawns.md) shipped in #175 and v0.21.2.

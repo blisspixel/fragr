@@ -119,6 +119,11 @@ func _run() -> void:
 			await _jump_probe()
 		for point: Array in state.get("walk_to", []):
 			await _walk_to(Vector3(float(point[0]), float(point[1]), float(point[2])))
+		var combat: Dictionary = {}
+		if state.has("combat"):
+			combat = await QaCombat.new().run(self, _game_manager(), state["combat"], _out_dir.path_join(state_name))
+			if not combat.get("passed", false):
+				_failed = true
 		if state.has("look_at"):
 			var target: Array = state["look_at"]
 			var camera: Node3D = _spectator_camera()
@@ -212,6 +217,7 @@ func _run() -> void:
 			"probe_visible_frames": _probe_frames,
 			"strip_sample_ms": _strip_times_ms.duplicate(),
 			"movement_samples": _movement_samples.duplicate(true),
+			"combat": combat,
 			"width": shot.get_width(),
 			"height": shot.get_height(),
 			"hud_coverage": snappedf(measured.get("hud_coverage", 0.0), 0.0001),

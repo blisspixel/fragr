@@ -1,8 +1,13 @@
 # M01: Recall Notice
 
-**Status:** connected blockout and weapon discovery implemented and locally verified.
-Fists, Tack, Flechette, ammunition and reload use server authority. Story scenes,
-encounters and mission state remain unbuilt. Earth before the wipe. Full first-run target 10-15 minutes,
+**Status:** connected blockout and weapon discovery shipped; introductory combat
+is in draft. Fists, Tack, Flechette, ammunition, reload and enemy phases use server
+authority. One Clerk and two Sweepers are placed, with both approaches exercised
+through normal input. Enemy artwork and animation remain provisional. Story
+scenes and mission state remain unbuilt. The draft facility pass adds keyed signs,
+locker banks, service vents and practical lights through bounded map metadata.
+Terminals remain static dressing until authoritative interaction is implemented.
+Earth before the wipe. Full first-run target 10-15 minutes,
 to be measured. [Treatment](../CAMPAIGN-MISSIONS.md#m01-recall-notice).
 
 The current [map document](../../server/maps/m01-recall-notice.json) connects A-G
@@ -13,7 +18,7 @@ and remaining checks are tracked in [authored maps](../plans/authored-campaign-m
 
 ## Story and cast
 
-The player arrives at the intake annex holding the embodied companion. The
+The player reaches the intake annex that processed their companion's seizure. The
 relationship already exists. An opening panel and brief seizure image establish
 who was taken and why we came. Mara provides a service-access lead through text
 and optional voice, not a remote running commentary. Latch is visible only in
@@ -74,9 +79,9 @@ flowchart LR
 | Space | Purpose and construction | Encounter and evidence |
 |---|---|---|
 | A | Narrow frontage with a canopy, queue rails and a visible facility number | Safe entry, recall notice, one strong destination landmark |
-| B | Seized-property bay with workbenches, lockers and a partially open shutter | Find Tack and ammo before the first guarded threshold; see personal belongings treated as stock |
-| C | Double-height public intake, counters forming islands rather than maze walls | Lone Clerk demonstrates aim tell; later a pair of Sweepers pressures two routes |
-| D | Records balcony overlooking the hall and the lift's identifying light | Flechette discovery; crossfire teaches cover and vertical aim |
+| B | Seized-property bay with workbenches, lockers and an inspection partition | Find Tack safely; a lone Clerk guards the threshold before the route split; personal belongings are treated as stock |
+| C | Double-height public intake, counters forming islands rather than maze walls | Two Sweepers arrive around the records screen; retreat and approach selection matter |
+| D | Records balcony overlooking the hall and the lift's identifying light | Flechette is available before the climb; later crossfire teaches cover and vertical aim |
 | E | Low service passage with machinery and an ordinary walking stair | Optional flank reaches the balcony without a ladder or crouch requirement |
 | F | Compact transfer-control office with glass toward the lift | Short crest against mixed Clerks/Sweepers; locate the companion's destination |
 | G | Clearly marked prisoner lift, wide enough for the party | Explicit extraction after control access; no new mandatory fight |
@@ -88,7 +93,8 @@ reach the first interior. Reserve views between B, D and G to teach orientation.
 ## Encounter and equipment plan
 
 1. Safe fists-to-Tack discovery, then one Clerk with generous cover and recovery.
-2. Two Sweepers introduced from a visible doorway, with a retreat to B.
+2. Two Sweepers introduced through a visible approach around service partitions,
+   with a retreat to B or an upper view from the maintenance flank.
 3. Find Flechette before reaching the mezzanine fight; learn firing cadence there.
 4. Transfer-control crest combines the established threats across two angles.
 5. Open the lift route, recover resources, and confirm departure.
@@ -133,4 +139,6 @@ Late joins occur in a secured space and receive current objective context.
 Prove both routes with actual movement, both rendered stairs, terminal concurrency,
 skip/retry, muted voice/radio, pickup contention, spectator eye view, and at least
 one fresh-player run. The player should explain the rescue and find G without a
-developer pointing it out. No playtest evidence exists yet.
+developer pointing it out. Automated movement and introductory combat evidence
+live in [the encounter plan](../plans/m01-intake-encounter.md); no complete-mission
+or fresh-player proof exists yet.

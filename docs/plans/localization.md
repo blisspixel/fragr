@@ -1,7 +1,8 @@
 # Plan: localization
 
-**Status:** planned, revised 2026-09-19. Basic campaign text/captions arrive with
-M01; broader locale rollout remains later.
+**Status:** initial world-sign catalog in progress, revised 2026-09-20. M01 uses
+keyed English signs with measured text fitting. Campaign captions, menu migration,
+locale selection and reviewed additional languages remain planned.
 **Branch:** `feat/l10n-*`
 **Spend:** $0 for text. Voiced lines in other languages would go through the approved audio pipeline within the monthly credits.
 
@@ -22,7 +23,12 @@ requires Nick to revise the repository's attribution policy, since these are liv
   campaign events carry stable story/objective IDs and parameters, localized by
   the presenter. Agent clients consume typed state rather than parsing translated
   sentences. Never add a second English-string matching path for campaign state.
-- **Files.** Godot CSV translations under `client/i18n/`, one column per locale, imported as `Translation` resources. Locale codes follow Godot's list (`en`, `es`, `ja`, `de`, `fr`, `pt_BR`, `zh_CN`, `ko`, `fr_CA`, `en_AU`, `haw`, `nv`, `eo`, `tok`). Joke locales use private-use tags (`x-pirate`, `x-leet`, `x-continuance`, `x-deadair`) so they never collide with a real one.
+- **Files.** Native gettext PO catalogs under `client/i18n/`, registered in
+  `project.godot`, with English fallback. Source-readable PO avoids CSV's
+  first-import dependency on a missing generated translation binary. M01 starts
+  with `world.en.po`; generated binaries remain ignored. Verify locale support
+  in the pinned engine before adding a language or joke locale. Planned custom
+  tags are not a claim that Godot accepts them.
 - **Fonts.** The pixel font must cover every glyph a locale needs. Latin and Cyrillic from the current font; Japanese, Chinese, and Korean from a permissively licensed pixel CJK font added as a fallback in the theme; Hawaiian needs the okina and macron vowels (Latin Extended); Navajo needs ogonek and slashed l plus tone marks (Latin Extended and combining marks), which the HUD font must actually render, checked by the tour.
 - **Layout.** German and Finnish strings run about a third longer than English; the HUD grid reserves width or abbreviates by key (`hud.armor.short`). Number and time formats go through locale-aware helpers, not string concatenation.
 - **Lore locales.** Continuance officialese is English rewritten as bureaucracy ("Health" becomes "Continuance Index"); Dead Air replaces random glyphs with static blocks and is meant for one match of fun; both are written in-house and are part of the joke, not translation work.

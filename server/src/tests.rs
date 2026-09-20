@@ -341,6 +341,7 @@ fn test_protocol_snapshot_serialization() {
     let snapshot = Snapshot {
         tick: 123,
         players: vec![PlayerState {
+            campaign: None,
             pitch: 0.0,
             id: Uuid::new_v4(),
             name: "Player1".to_string(),
@@ -6309,3 +6310,5 @@ mod vertical_aim {
         );
     }
 }
+mod encounters;
+mod m01;

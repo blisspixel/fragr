@@ -19,7 +19,7 @@ struct Args {
     #[arg(long, default_value = "1")]
     map: String,
 
-    /// Load a local authored traversal blockout. Requires --bots 0.
+    /// Load a local authored campaign development map. Requires --bots 0.
     #[arg(long, conflicts_with_all = ["map", "map_rotate", "solo_broadcast", "bench", "bench_verify_trace", "no_round_events"])]
     map_file: Option<PathBuf>,
 

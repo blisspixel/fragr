@@ -64,12 +64,26 @@ pub fn control_action(
     let nearest = snapshot
         .players
         .iter()
-        .filter(|p| p.id != id && p.hp > 0)
+        .filter(|p| me.is_hostile_to(p))
         .min_by(|a, b| {
             (a.x - me.x)
                 .hypot(a.z - me.z)
                 .total_cmp(&(b.x - me.x).hypot(b.z - me.z))
         });
+    if action
+        .look_at
+        .as_ref()
+        .and_then(|aim| aim.player_id)
+        .is_some_and(|target| {
+            !snapshot
+                .players
+                .iter()
+                .any(|player| player.id == target && me.is_hostile_to(player))
+        })
+    {
+        action.look_at = None;
+        action.fire = false;
+    }
     let held = loadout.selected;
     let selected = action
         .weapon_swap

@@ -21,7 +21,9 @@ Status words: **planned**, **in flight**, **implemented** (local evidence record
 | [`shared-body-integration.md`](./shared-body-integration.md) | **proven** (#174, v0.21.1) | One body-collision integrator for the authority and movement mirror. |
 | [`campaign-spaces.md`](./campaign-spaces.md) | **proven** (#176, v0.22.0) | Real ceilings, accessible balconies, layered routes and matching collision/rendering for M01. |
 | [`authored-campaign-maps.md`](./authored-campaign-maps.md) | **proven** (#177, v0.23.0) | Validated map files, explicit indoor spawns and M01's traversal blockout through the live server. |
-| [`m01-weapon-discovery.md`](./m01-weapon-discovery.md) | **implemented** ([#178](https://github.com/blisspixel/fragr/issues/178), verification recorded) | Fists-to-Tack/Flechette discovery, finite ammunition, reload and compatible human/agent presentation. |
+| [`m01-weapon-discovery.md`](./m01-weapon-discovery.md) | **proven** (#179, #181, v0.24.0) | Fists-to-Tack/Flechette discovery, finite ammunition, reload and compatible human/agent presentation. |
+| [`m01-intake-encounter.md`](./m01-intake-encounter.md) | **in flight** ([#180](https://github.com/blisspixel/fragr/issues/180)) | Authored human Clerk and Sweeper bot fights, explicit hostility, readable attacks and inspected motion. |
+| [`m01-facility-detail.md`](./m01-facility-detail.md) | **in flight** (#180) | Bounded surface details, localized signs and practical lights make the intake rooms legible. |
 | [`gpu-bot-compute.md`](./gpu-bot-compute.md) | **planned** | Portable optional GPU perception/inference, measured against CPU queries with rendering contention and fallback. |
 | [`audio-effects-refresh.md`](./audio-effects-refresh.md) | **in flight** | Distinct weapon, movement, impact and world sounds; capped candidates and in-game mix verification. |
 | [`radio-refresh.md`](./radio-refresh.md) | **in flight** | Two fictional talk formats and world-appropriate music; staged pilots, captions and distribution review. |

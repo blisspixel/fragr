@@ -97,9 +97,15 @@ pub async fn run_server(
             .max()
             .unwrap_or_else(crate::protocol::legacy_geometry_version)
     };
-    let required_gameplay = match session.state.map.equipment_policy() {
-        crate::protocol::EquipmentPolicy::FullArsenal => 1,
-        crate::protocol::EquipmentPolicy::Discovery => crate::protocol::GAMEPLAY_VERSION,
+    let required_gameplay = if session.state.map.has_encounters() {
+        crate::protocol::CAMPAIGN_GAMEPLAY_VERSION
+    } else {
+        match session.state.map.equipment_policy() {
+            crate::protocol::EquipmentPolicy::FullArsenal => 1,
+            crate::protocol::EquipmentPolicy::Discovery => {
+                crate::protocol::DISCOVERY_GAMEPLAY_VERSION
+            }
+        }
     };
     let net_server = NetServer::bind_with_requirements(
         &options.bind,

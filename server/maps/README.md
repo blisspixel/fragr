@@ -1,9 +1,12 @@
 # Authored development maps
 
 `m01-recall-notice.json` contains the opening mission's connected blockout and
-weapon discovery. Its two routes, stairs, balcony, office and lift use normal
-movement. Enter with fists, find Tack and Flechette, collect ammunition and reload.
-Encounters, interaction, extraction and checkpoints are not implemented here.
+weapon discovery and a draft introductory encounter. Its two routes, stairs,
+balcony, office and lift use normal movement. Enter with fists, find Tack and
+Flechette, collect ammunition and reload.
+One Clerk and two Sweepers use authoritative attack, hit and death states.
+Enemy artwork and animation remain provisional. Interaction, extraction and
+checkpoints are not implemented here.
 Do not present a successful route or reload as campaign completion.
 
 From the repository root:
@@ -43,11 +46,42 @@ support, not the campaign menu's finished first mission.
   can claim each once per development life. Contested ammo has one winner and a
   ten-second respawn. An additional copy of an owned gun grants reserve without
   forcing selection. Discovery death resets inventory and personal claims.
+- `encounters`: optional, discovery only. At most 32 groups, 64 enemies and 64
+  entry regions in total. Each group has a unique `id`, nonempty `regions` and
+  `enemies`, and optional `after` naming an earlier group. Each region is an
+  inclusive feet-position box with finite ordered `min`/`max` bounds inside the
+  map. Each enemy has a unique `id`, `kind` (`clerk` or `sweeper`), supported and
+  reachable `feet`, and bounded `yaw`, just like a spawn. Unknown fields are
+  rejected. No scripts or arbitrary behavior expressions. These maps require
+  gameplay capability 3. See [actor semantics](../../docs/protocol.md#campaign-actor-identity).
+
+M01's Clerk enters around the inspection partition after safe weapon discovery.
+The two Sweepers activate after that fight when a participant enters the intake
+hall or reaches the upper flank. The records screen and deck conceal their
+initial positions. Initial dispatch follows a fixed alarm location for up to
+30 seconds; after seeing someone, pursuit remembers their last visible position
+for five seconds. Hidden movement never updates that location. These are initial
+tuning values. Animation and encounter review continue in
+[the active plan](../../docs/plans/m01-intake-encounter.md).
 
 Surface kits: `concrete`, `enamel`, `service_steel`, `records_tile`, `lift_panel`.
 They select existing offline materials, never paths, URLs or shader code. The
 wire presentation array preserves exactly the solid order. It affects appearance,
 not geometry version or collision. Older presenters may use their default kit.
+
+Optional `decorations` attaches thin cosmetic panels to solid faces. For example:
+
+```json
+{"solid":"bay_front_header","face":"north","center":[0,0],"size":[5.6,2.1],"kind":"property_sign"}
+```
+
+The authoring `solid` is a stable ID, resolved to a validated wire index. The
+shared [wire contract](../../docs/protocol.md#mapinfo) defines six face axes,
+registered kinds, finite dimensions, host bounds, 128-panel and eight-light limits.
+Panels do not add blocking geometry or interactive terminals. Add a solid for
+anything that should stop movement or shots. The client supplies original pixel
+panels and keyed English text from `client/i18n/world.en.po`; no text, scripts or
+resource paths can be embedded in the map.
 
 Files are limited to 1 MiB before parsing. Unknown fields and unsupported versions
 are errors. Geometry and navigation budgets are checked before the server binds.
@@ -64,10 +98,17 @@ cargo test -p fragr-server maps::authored --locked
 cargo test -p fragr-server --test authored_maps --locked
 FRAGR_QA_BOTS=0 FRAGR_QA_MAP_FILE="$PWD/server/maps/m01-recall-notice.json" FRAGR_QA_MANIFEST=res://qa/m01.json bash tools/qa_tour.sh .agents/qa/m01
 FRAGR_QA_BOTS=0 FRAGR_QA_MAP_FILE="$PWD/server/maps/m01-recall-notice.json" FRAGR_QA_MANIFEST=res://qa/m01-discovery.json bash tools/qa_tour.sh .agents/qa/m01-discovery
+FRAGR_QA_BOTS=0 FRAGR_QA_MAP_FILE="$PWD/server/maps/m01-recall-notice.json" FRAGR_QA_MANIFEST=res://qa/m01-encounters.json bash tools/qa_tour.sh .agents/qa/m01-encounters
+FRAGR_QA_BOTS=0 FRAGR_QA_MAP_FILE="$PWD/server/maps/m01-recall-notice.json" FRAGR_QA_MANIFEST=res://qa/m01-maintenance.json bash tools/qa_tour.sh .agents/qa/m01-maintenance
+FRAGR_QA_BOTS=0 FRAGR_QA_MAP_FILE="$PWD/server/maps/m01-recall-notice.json" FRAGR_QA_MANIFEST=res://qa/m01-facility.json bash tools/qa_tour.sh .agents/qa/m01-facility
 ```
 
 The tour uses human input through a live server, never teleportation. Inspect
-all rooms and movement samples. Set `FRAGR_RENDER_DRIVER=vulkan` for the second
-renderer. Do not use `--publish` with this specialized manifest. The full release
+all rooms, movement samples and combat sheets. The encounter tour deliberately
+observes one Clerk shot before returning fire. The combat driver filters allies,
+dead bodies and occluded targets, and fails if the participant dies. Its perfect
+aim is a regression tool, not evidence of human difficulty. Set
+`FRAGR_RENDER_DRIVER=vulkan` for the second renderer. Do not use `--publish` with
+these specialized manifests. The full release
 tour remains a separate check. Story and room purposes belong to
 [`docs/campaign/m01-recall-notice.md`](../../docs/campaign/m01-recall-notice.md).

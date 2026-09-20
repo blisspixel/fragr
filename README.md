@@ -27,7 +27,10 @@ Current work: [`local excellence`](docs/plans/local-excellence.md), a bounded po
 The opening mission has an opt-in [development slice](server/maps/README.md):
 enclosed intake rooms, two stair routes, an accessible records balcony, a
 prisoner lift and fists-to-found-gun progression with finite ammo and reload.
-It has no authored encounters or mission objectives yet.
+The current draft adds one human Clerk and two Sweeper bots with server-owned
+attack phases and directional walk, raise, recoil, pain, melee and collapse
+poses. Character art is still under review; mission objectives, checkpoints and
+extraction are unbuilt.
 
 ## Screenshots
 
@@ -105,7 +108,8 @@ Flechette before the records stairs, collect finite ammunition, and reload.
 Introductory guns remain available independently to each participant. The six
 arcade maps retain their three unlimited guns. Run instructions and current
 limitations: [`server/maps/README.md`](server/maps/README.md). M01 still needs
-encounters, objectives, checkpoints and extraction before it is a complete mission.
+finished enemy presentation, further encounters, objectives, checkpoints and
+extraction before it is a complete mission.
 
 ## Desktop exports
 

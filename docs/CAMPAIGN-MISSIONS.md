@@ -69,7 +69,8 @@ breaks make this a facility rather than cover on a flat outdoor square.
 **Fights and discovery.** Start with fists; a conspicuous confiscated Tack and
 ammo are within a short safe reach. Teach a human Clerk's aim tell, then a pair
 of captive Sweepers in a room with retreat space. The first Flechette arrives
-before the hall fight. Show the correction transport leaving without claiming
+before the mezzanine fight, with an earlier copy on the maintenance flank.
+Show the correction transport leaving without claiming
 we already missed the rescue. Finish by reaching its destination through the lift.
 
 **Optional and presentation.** One supply secret teaches a readable wall seam;

@@ -886,7 +886,7 @@ pub fn reflex_action(bot_id: Uuid, snapshot: &Snapshot, arena: &Arena) -> Action
     };
     let mut nearest: Option<(f32, &fragr_server::protocol::PlayerState)> = None;
     for other in &snapshot.players {
-        if other.id == bot_id {
+        if !me.is_hostile_to(other) {
             continue;
         }
         let dist = ((other.x - me.x).powi(2) + (other.z - me.z).powi(2)).sqrt();
@@ -1000,7 +1000,7 @@ pub fn planner_action(bot_id: Uuid, snapshot: &Snapshot, arena: &Arena) -> Actio
 
     let mut nearest: Option<(f32, &fragr_server::protocol::PlayerState)> = None;
     for other in &snapshot.players {
-        if other.id == bot_id || other.hp <= 0 {
+        if !me.is_hostile_to(other) {
             continue;
         }
         let dist = distance_to(other.x, other.z);
@@ -1209,11 +1209,8 @@ async fn agent_task(
                 presentation,
                 ..
             }) => {
-                fragr_server::protocol::validate_map_presentation(
-                    presentation.as_ref(),
-                    solids.len(),
-                )
-                .map_err(|error| Error::Server(format!("invalid map presentation: {error}")))?;
+                fragr_server::protocol::validate_map_presentation(presentation.as_ref(), &solids)
+                    .map_err(|error| Error::Server(format!("invalid map presentation: {error}")))?;
                 fragr_server::protocol::validate_map_geometry(
                     half_extent,
                     &solids,
@@ -1442,12 +1439,18 @@ mod tests {
         solid["solids"][0]["bottom"] = serde_json::json!("ceiling");
         let mut surfaces = valid.clone();
         surfaces["presentation"] = serde_json::json!({"ground":"concrete","solids":[]});
+        let mut details = valid.clone();
+        details["presentation"] = serde_json::json!({"ground":"concrete",
+            "solids":vec!["enamel"; valid["solids"].as_array().unwrap().len()],
+            "decorations":[{"solid":9999,"face":"north","center":[0,0],
+                "size":[1,1],"kind":"terminal"}]});
         let rejected = serde_json::json!({"type": "error", "code": "unsupported_geometry", "message": "geometry version rejected"});
         for (bad, expected) in [
             (extent.to_string(), "geometry extent"),
             (version.to_string(), "invalid server message"),
             (solid.to_string(), "invalid server message"),
             (surfaces.to_string(), "invalid map presentation"),
+            (details.to_string(), "invalid map presentation"),
             ("{broken".to_string(), "invalid server message"),
             (rejected.to_string(), "geometry version rejected"),
         ] {
@@ -1479,6 +1482,7 @@ mod tests {
 
     fn player(name: &str, id: Uuid, x: f32, z: f32, fired: bool) -> PlayerState {
         PlayerState {
+            campaign: None,
             pitch: 0.0,
             id,
             name: name.to_string(),
@@ -1885,6 +1889,7 @@ mod combat_tests {
 
     fn player(name: &str, id: Uuid, x: f32, z: f32, weapon: &str) -> PlayerState {
         PlayerState {
+            campaign: None,
             pitch: 0.0,
             id,
             name: name.to_string(),
@@ -2260,8 +2265,41 @@ mod planner_tests {
     use super::*;
     use fragr_server::protocol::{PickupState, PlayerState};
 
+    #[test]
+    fn both_playtest_policies_target_union_actors_instead_of_nearby_allies() {
+        use fragr_server::protocol::{CampaignActor, EnemyKind, EnemyPhase};
+        let me = Uuid::from_u128(1);
+        let ally = Uuid::from_u128(2);
+        let foe = Uuid::from_u128(3);
+        let mut mine = player("me", me, 0.0, 0.0, 100, "Tack");
+        mine.campaign = Some(CampaignActor::Participant {});
+        let mut partner = player("partner", ally, 1.0, 0.0, 100, "Tack");
+        partner.campaign = mine.campaign;
+        let mut guard = player("clerk", foe, 8.0, 0.0, 60, "Tack");
+        guard.campaign = Some(CampaignActor::Union {
+            kind: EnemyKind::Clerk,
+            phase: EnemyPhase::Idle,
+            phase_started: 0,
+            phase_ends: 0,
+        });
+        let mut snapshot = scene(1, vec![mine, partner, guard], vec![]);
+        let arena = Arena::default();
+        for policy in [reflex_action, planner_action] {
+            assert_eq!(
+                policy(me, &snapshot, &arena).look_at.unwrap().player_id,
+                Some(foe)
+            );
+        }
+        snapshot.players[2].hp = 0;
+        for policy in [reflex_action, planner_action] {
+            let action = policy(me, &snapshot, &arena);
+            assert!(!action.fire && action.look_at.is_none_or(|aim| aim.player_id.is_none()));
+        }
+    }
+
     fn player(name: &str, id: Uuid, x: f32, z: f32, hp: i32, weapon: &str) -> PlayerState {
         PlayerState {
+            campaign: None,
             pitch: 0.0,
             id,
             name: name.to_string(),
@@ -2617,6 +2655,7 @@ mod line_of_sight_tests {
             jammer_dish: None,
         };
         let mk = |id: Uuid, x: f32| fragr_server::protocol::PlayerState {
+            campaign: None,
             pitch: 0.0,
             id,
             name: format!("p{x}"),
@@ -2683,6 +2722,7 @@ mod patrol_tests {
 
     fn lone(id: Uuid) -> fragr_server::protocol::PlayerState {
         fragr_server::protocol::PlayerState {
+            campaign: None,
             pitch: 0.0,
             id,
             name: "lone".to_string(),

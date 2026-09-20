@@ -1,0 +1,12 @@
+{
+  "comment": "Alternate M01 route, normal human input and finite equipment. Introductory combat only; enemy artwork remains provisional.",
+  "width": 1280,
+  "height": 720,
+  "states": [
+    {"name":"safe_tack","scene":"res://scenes/main.tscn","join":"human","camera":"first_person","walk_to":[[0,0,-34],[0,0,-26]],"expect_equipment":{"selected":"tack","magazine":12,"reserve":36}},
+    {"name":"first_clerk","camera":"first_person","walk_to":[[0,0,-21]],"combat":{"kind":"clerk","defeat":1}},
+    {"name":"maintenance_supply","camera":"first_person","walk_to":[[0,0,-18],[-17,0,-18],[-17,0,-14]],"expect_equipment":{"selected":"flechette","magazine":30,"reserve":90},"note":"Take the maintenance weapon before climbing; the hall's bots are still dormant."},
+    {"name":"balcony_flank","camera":"first_person","walk_to":[[-17,3,8],[-8,3,9]],"combat":{"kind":"sweeper","defeat":2},"note":"Move out from the service landing to overlook the hall. Bots use their actual stair route, with no knowledge of hidden player movement."},
+    {"name":"transfer_office","camera":"first_person","walk_to":[[-3,3,8],[-3,3,20]],"look_at":[-7,4.2,24],"note":"Both approaches lead to the transfer office; its objectives remain unbuilt."}
+  ]
+}

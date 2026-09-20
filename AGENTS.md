@@ -50,10 +50,12 @@ If prose and code disagree, code wins; fix the prose in the same change. Keep pl
 | Concern | Home |
 |---|---|
 | Sim tick, hit detection, movement, pickups, boss, bots | `server/src/sim.rs` |
+| Authored encounter lifecycle and enemy intent | `server/src/encounters.rs`, `encounters/enemy.rs`; strict definitions in `maps/authored/encounters.rs`. Reuse sim bodies and Session's navigation budget. `protocol/actors.rs` owns campaign identity and hostility; control role and callsign never imply faction. Client boundary: `actor_state.gd`. |
 | Weapon ownership, magazines, reserves, reload and supply claims | `server/src/inventory.rs`; private wire contract in `protocol/loadout.rs`; shared agent equipment decisions in `inventory/controller.rs`. Authored discovery and legacy full-arsenal maps share combat resolution. Client validation: `equipment_state.gd`; local UI: `equipment_hud.gd`. |
 | Shot geometry, pitch bounds, target angles | `server/src/combat.rs`; server outcome ownership stays in `sim.rs`. `ServerYaw` maps yaw/pitch to the client camera. |
 | Shot evidence, world feedback, combat measurement | Shared `ShotResult`/`ShotTrace` in `server/src/protocol.rs`, `client/scripts/shot_effects.gd`, and `tools/playtest`. Use the resolved shot, including dead shooters, rather than inferring weapon or impacts from live pawns. |
 | Map definitions, collision solids, spawn layout | `server/src/maps.rs` and `maps/runtime.rs` own one runtime map for all callers. Strict local authoring: `maps/authored.rs`, data/schema in `server/maps/`. `MapInfo` drives `client/scripts/arena_cover.gd`; registered surfaces live in `arena_materials.gd`. Scenery outside playable bounds: `arena_backdrop.gd`. |
+| Surface detail and world signs | `protocol/decoration.rs` validates host faces and panel/light budgets; `map_decoration.gd` mirrors the boundary. `arena_decoration.gd` renders registered panels, `world_sign.gd` fits keyed text from `client/i18n/*.po`. Blocking props belong in authoritative solids, never cosmetic panels. |
 | Movement math and facing conversion | `server/src/movement.rs`: `integrate` owns body collision and gravity for live play and the accelerated `step`. Mirror in `client/scripts/movement.gd`, goldens in `client/golden/move_vectors.json`; facing in `client/scripts/server_yaw.gd`. |
 | Walking routes and controller memory | `server/src/navigation.rs`, `navigation/controller.rs`; map geometry and movement remain authoritative. Precompute roster topology before readiness, bound/stagger searches, and prove routes with shared movement and actual `GameState` players. Use `client/qa/movement.json` for rendered stair/jump checks. |
 | CPU measurements and offline traces | `server/src/bench.rs`, `trace.rs`; contract in `docs/BENCHMARK.md` |
@@ -70,6 +72,7 @@ If prose and code disagree, code wins; fix the prose in the same change. Keep pl
 | Client match orchestration, role, audio routing | `client/scripts/game_manager.gd` |
 | HUD, killfeed, Host bumpers | `client/scripts/hud.gd` |
 | Pawn presentation, first-person weapon face | `client/scripts/player_pawn.gd` |
+| Campaign enemy pose selection and sprites | `client/scripts/enemy_animation.gd`, `enemy_view.gd`; offline source and bake procedure in `client/art/characters/README.md`. Preserve server phase timing, resolved-shot recoil and fixed feet registration. |
 | Spectator cameras | `client/scripts/spectator_cam.gd` |
 | Desktop pointer ownership | `client/scripts/mouse_capture.gd`, owned by the match manager. Release on focus loss, close, and scene exit; automated scene trees set `fragr_automated` before loading gameplay and never capture the desktop. |
 | Boot menu, callsign, shared retro controls | `client/scripts/boot_menu.gd`, `menu_theme.gd`; maps are selected by the server |

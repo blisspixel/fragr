@@ -14,6 +14,10 @@ var is_highlighted: bool = false
 var is_local_fp: bool = false
 var armor: int = 0
 var nameplate_enabled: bool = true
+var is_campaign_enemy: bool = false
+var campaign_actor: Dictionary = {}
+var _has_authoritative_state: bool = false
+var enemy_view: EnemyView = null
 
 var target_position: Vector3 = Vector3.ZERO
 var presentation_speed: float = 0.0
@@ -166,8 +170,14 @@ func _process(delta):
 		if hit_flash_timer <= 0 and body:
 			_update_body_color(false)
 	
-	idle_anim_timer += delta * 4.0
-	if body:
+	if enemy_view != null and body:
+		enemy_view.advance(delta, travel)
+		var camera: Camera3D = get_viewport().get_camera_3d()
+		var to_camera: Vector3 = camera.global_position - global_position if camera else ServerYaw.forward(target_yaw)
+		enemy_view.render(body, -rotation.y, to_camera)
+	else:
+		idle_anim_timer += delta * 4.0
+	if body and enemy_view == null:
 		var frame = int(idle_anim_timer) % 4
 		body.frame = frame
 
@@ -208,7 +218,16 @@ func set_player_data(id: String, name: String):
 	# not been set yet.
 	target_yaw = 0.0
 
-func update_state(state: Dictionary):
+func update_state(state: Dictionary, snapshot_tick: int = 0):
+	is_campaign_enemy = not ActorState.is_participant(state)
+	campaign_actor = state["campaign"] if is_campaign_enemy else {}
+	if is_campaign_enemy:
+		if enemy_view == null:
+			enemy_view = EnemyView.new()
+			muzzle.position = Vector3(0.88, 0.52, -0.14)
+			muzzle.pixel_size = 0.005
+		enemy_view.update(state, snapshot_tick, body)
+		weapon_sprite.visible = false
 	target_position = Vector3(state.x, state.y, state.z)
 	target_yaw = state.yaw
 	target_pitch = clampf(float(state.get("pitch", 0.0)), -ServerYaw.PITCH_LIMIT, ServerYaw.PITCH_LIMIT)
@@ -217,8 +236,9 @@ func update_state(state: Dictionary):
 	hp = state.hp
 	armor = int(state.get("armor", 0))
 	
-	if old_hp > hp and hp > 0:
+	if _has_authoritative_state and old_hp > hp and hp > 0:
 		show_hit_feedback()
+	_has_authoritative_state = true
 	
 	var weapon_name = state.get("weapon", "")
 	if weapon_name != current_weapon:
@@ -253,6 +273,9 @@ func update_state(state: Dictionary):
 func _update_weapon_sprite():
 	if not weapon_sprite:
 		return
+	if is_campaign_enemy:
+		weapon_sprite.visible = false
+		return
 	
 	if current_weapon == "" or not weapon_textures.has(current_weapon):
 		weapon_sprite.visible = false
@@ -269,12 +292,16 @@ func _update_body_color(hit: bool):
 	
 	if hit:
 		body.modulate = Color(1.55, 0.35, 0.28)
+	elif is_campaign_enemy:
+		body.modulate = Color.WHITE
 	else:
 		# Near-white multiply so Cyanex/Kragge pixel art reads; brand on label.
 		body.modulate = Color(1.0, 1.0, 1.0).lerp(player_color, 0.18)
 	_apply_body_scale(hit)
 
 func show_muzzle_flash(weapon: String):
+	if enemy_view != null:
+		enemy_view.shot()
 	if weapon == "Fists":
 		if muzzle:
 			muzzle.visible = false
@@ -393,6 +420,10 @@ func _update_far_cam_scale() -> void:
 
 func _apply_body_scale(hit: bool) -> void:
 	if not body:
+		return
+	if is_campaign_enemy:
+		# Fixed feet registration and silhouette size preserve the cover contract.
+		body.scale = Vector3.ONE
 		return
 	var mult: float = _far_cam_scale
 	if hit:

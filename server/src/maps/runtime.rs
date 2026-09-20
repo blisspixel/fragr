@@ -29,6 +29,17 @@ impl PartialEq<MapKind> for RuntimeMap {
 }
 
 impl RuntimeMap {
+    pub(crate) fn encounters(&self) -> &[super::authored::encounters::EncounterDefinition] {
+        match self {
+            Self::BuiltIn(_) => &[],
+            Self::Authored(map) => &map.encounters,
+        }
+    }
+
+    pub fn has_encounters(&self) -> bool {
+        !self.encounters().is_empty()
+    }
+
     pub fn equipment_policy(&self) -> crate::protocol::EquipmentPolicy {
         match self {
             Self::BuiltIn(_) => crate::protocol::EquipmentPolicy::FullArsenal,

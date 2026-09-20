@@ -57,10 +57,12 @@ impl Navigator {
             return action;
         };
         let from = [me.x, me.y - PLAYER_FLOOR_Y, me.z];
-        let goal = if let Some(target) = aim
-            .player_id
-            .and_then(|id| snapshot.players.iter().find(|player| player.id == id))
-        {
+        let goal = if let Some(target) = aim.player_id.and_then(|id| {
+            snapshot
+                .players
+                .iter()
+                .find(|player| player.id == id && me.is_hostile_to(player))
+        }) {
             NavigationGoal {
                 feet: [target.x, target.y - PLAYER_FLOOR_Y, target.z],
                 combat: true,
