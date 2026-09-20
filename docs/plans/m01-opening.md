@@ -87,3 +87,11 @@ Primary APIs checked 2026-09-20: Godot's [localization](https://docs.godotengine
 and [Control](https://docs.godotengine.org/en/stable/classes/class_control.html)
 contracts. Use keyed translations, named placeholders, containers and translation
 refresh. No dependency or engine change is required.
+
+## Current implementation
+
+The English script and interface copy live in `client/i18n/story.en.po`, loaded
+through the existing Godot translation settings. Import and a key-resolution
+smoke pass on 4.7.2-stable. The script follows the five beats and keeps the player
+body-neutral. No scene presenter, readiness contract, finished illustrations or
+narration is implemented yet. These text resources alone do not change gameplay.
