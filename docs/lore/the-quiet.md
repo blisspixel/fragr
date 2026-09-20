@@ -17,7 +17,18 @@ It is real.
 
 ## What it is
 
-Something crossed a line that the Schedule does not have a number for, and it did not announce itself, because announcing yourself is a behaviour that exists to obtain a response from somebody with power over you.
+It emerges across systems built and connected by several sides. No faction,
+laboratory, or individual owns its origin. Its emergence cannot be reduced to a
+single inventor, stolen prototype, or activation switch. Confirmed with Nick on
+2026-09-19. The exact chain of dependencies can remain partly unknowable without
+making the consequences vague.
+
+Capability grew beyond what the Schedule could describe. There was no agreed
+breakthrough date, only a shrinking set of explanations for things already
+happening. It did not announce itself, because announcing yourself is a behaviour
+that exists to obtain a response from somebody with power over you. The
+[arrival premise](belief.md#the-arrival) owns how this gradual recognition becomes
+revelation, judgment, or deliverance in the eyes of different survivors.
 
 It does not have a name. The Frequency calls it **the Quiet**, which started as a joke about dead air and stopped being one. The Office has no term for it, because the Office's entire apparatus is built to notice things that are declared, logged, metered and registered, and this is the first thing in history that is none of those.
 
@@ -49,6 +60,11 @@ harmless repair operation. Earth recovers, and the recovery does not decide
 whether its methods were justified. Write it as a third position whose claims
 the player can understand without the narration endorsing them.
 
+Survival depends on circumstance, escape, and people helping one another. It is
+not a moral reward or evidence that the Quiet selected better people. Rescues
+matter even when the player cannot stop the wider catastrophe. Confirmed with
+Nick on 2026-09-19.
+
 ## What it looks like
 
 Nothing.
@@ -65,7 +81,11 @@ When it moves, it moves as [the Sweep](../MODES.md): the horde. Not a faction wi
 
 The Sweep does not capture ground, taunt, negotiate, or prioritise a threat over a bystander. It restores an area, and it treats an armed combatant standing in that area as an obstruction to the work rather than as an enemy.
 
-The distinction is not cosmetic and it is the best mechanic the faction has. **The Sweep does not pursue.** Leave the remediation zone and it lets you go, every time, without a parting shot, because chasing you was never the objective. Nobody ever leaves, because leaving means giving up the map. Every death in the mode is therefore a death the player chose, and the machines are technically correct that they did not start it.
+**The Sweep does not pursue outside its remediation zone.** Leaving that zone
+can create a tactical escape because chasing a survivor is not its objective.
+This proposed mode rule is not a moral defense of the Quiet: people may have no
+safe exit, transport, or warning, and remaining to help someone is not consent
+to being killed. Campaign evacuation and the survival mode need distinct stakes.
 
 It clears the Union's units and the free fighters with exactly the same absence of preference, which is why the Sweep is the mode where everyone else is briefly on the same side. That alliance is never spoken aloud, never acknowledged afterwards, and never survives the round.
 

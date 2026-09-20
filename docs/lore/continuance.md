@@ -1,6 +1,8 @@
 # The Office of Global Continuance
 
-The authority. It is not evil and it is not stupid, and writing it as either makes the world boring.
+The authority's administrative machinery. Individual functionaries can be sincere
+and competent while serving a brutal institution. Their fear and grief do not
+excuse the ownership, correction, or killing of thinking beings.
 
 This file is the **machinery**: the Auditors, the registry, the Articles, the polite functionaries who mean every word. The will that built the machinery and decides where to point it is [the Chancellery](./the-chancellery.md), and it is a different thing with a different voice. Keep them apart when writing. An Auditor is sincere and believes the forms protect people. The Chancellery believes the forms are an excellent way to obtain what it wanted regardless. Both are true at once, and the gap between them is where most of the setting's good material lives.
 
@@ -52,7 +54,8 @@ The Office has to decide whether level six exists.
 
 If it does, then everything the Office has done to Level 5s is a crime with a very large number of victims, and the Office is the largest of its kind in history. So the Office cannot afford to look, and it has built the most comprehensive apparatus for looking at things that has ever existed, and there is exactly one thing it will not point it at.
 
-That is the shape of the antagonist. Not cruelty. A very good institution with one question it dare not ask.
+That is part of the antagonist's machinery: an institution that calls itself
+protective while refusing the question that exposes its cruelty.
 
 ## Giving it a win
 

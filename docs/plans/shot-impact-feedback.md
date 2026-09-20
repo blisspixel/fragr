@@ -1,7 +1,8 @@
 # Authoritative shot impacts and combat feedback
 
-Status: locally verified, integration pending, 2026-09-19.
-Branch: `feat/shot-impact-feedback`. Spend: $0.
+Status: proven in [#171](https://github.com/blisspixel/fragr/pull/171),
+[v0.20.0](https://github.com/blisspixel/fragr/releases/tag/v0.20.0), 2026-09-19.
+All five CI jobs passed across Linux, Windows, and macOS. Spend: $0.
 
 ## Problem and scope
 

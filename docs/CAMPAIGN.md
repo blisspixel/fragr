@@ -2,6 +2,58 @@
 
 The canonical single player design. `docs/MODES.md` says the campaign is Doom and GoldenEye; this says what that means in levels, weapons, bosses, and an ending.
 
+## Story review in progress
+
+2026-09-19: settle the story with Nick before planning campaign maps. The episode
+list and level prescriptions below are an existing draft, not an approved build
+order. Only the Episode 0 prototype is implemented. Current direction requires
+meaningful Earth interiors and exteriors, lunar and Martian locations, and ships,
+with travel caused by the story rather than a checklist of environments.
+
+Confirmed with Nick on 2026-09-19:
+
+- An undated retro future, with established offworld communities and recognizable
+  present-day remnants. No specific calendar year is required.
+- The Union controls Earth and major offworld infrastructure. Independent
+  communities survive around its reach; travel and resistance operate within
+  that unequal distribution of power.
+- The free side is a loose coalition protecting agency. Its difficulty confronting
+  dangerous members and coordinating collective action can cost lives; freedom
+  itself is not treated as the error those consequences supposedly prove.
+- The player customizes a human or embodied agent. Both share the central
+  personal story and recurring companions, rather than separate campaigns.
+- Agent restoration is possible, but backups are incomplete and vulnerable.
+  Recovery cannot function as a consequence-free reset or erase a sacrifice.
+- The Quiet emerges across systems built and connected by several sides. Nobody
+  owns its origin; there is no single creator or activation event to blame.
+- Survival depends on circumstance, escape, and people helping one another. The
+  Quiet does not award survival as a moral judgment. The player's rescues matter.
+- A personal rescue draws the player into the larger conflict. Characters,
+  relationships, faction actions, and their consequences carry the campaign.
+- Play through the collapse and struggle to save people and agents. Then glimpse
+  Earth's healing years later. The catastrophe cannot happen only in an epilogue.
+- Radio is roughly one percent of the story: optional background flavor, like a
+  station playing during a drive. Conspiracy shows mix truths and nonsense with
+  gold, speculative money, vitamins, filters, and value-for-value appeals. It is not the campaign premise,
+  the principal mission source, or the only way the player understands events.
+  Turning it off must leave the full story understandable and the game playable.
+
+Still open: who is being rescued, when the rescue succeeds, how the player's
+victories intersect with the Quiet, the companions' arcs, and the causal path
+across Earth and offworld settlements. Questions also remain about ordinary Union
+life, its fighting force, how its rule ends, the coalition's concrete failure,
+and the scope of consequential player choices. Derive missions, encounters, and
+locations from the agreed events. Do not begin by adapting an arena into the opening.
+
+The lore review also found contradictions to reconcile: underground league versus
+Union-run games; conscious agents versus older narrator claims that personhood
+is unresolved; and sympathetic functionaries versus descriptions that excuse the
+institution itself. Conscious agents exist. Moral uncertainty concerns agency,
+actions, evidence, and consequences, not a blanket denial of their personhood.
+Keep the Quiet's ecological recovery and mass killing established while allowing
+survivors to disagree about their meaning. Existing audio needs an asset audit
+when story decisions change, not an automatic veto over the current direction.
+
 ## The bar
 
 You can play this all day after work and have a blast barely thinking about it.
@@ -14,7 +66,16 @@ Depth is allowed when it costs nothing to enjoy. Knowing that the Auditor at the
 
 ## What it is
 
-**Solo Broadcast.** The Office of Global Continuance has seized the Contested Frequency's transmitter chain, and you work up the chain and put the station back on the air. That is the whole plot and it is one sentence on purpose.
+The player, a customizable human or embodied agent, attempts a personal rescue
+and becomes involved in the struggle against the Union. Recurring companions and
+the consequences of the player's successes connect that struggle to the Quiet's
+emergence. The player experiences the collapse and fights to save lives before
+a later glimpse of the recovering world. The rescue relationship and intervening
+acts are being decided with Nick.
+
+The old transmitter-chain premise is retired. `Solo Broadcast` remains the
+existing prototype's mode label, not a requirement to make radio central to the
+campaign. The episode and encounter draft below awaits the story review.
 
 Twenty-eight levels.
 
@@ -30,6 +91,15 @@ Episode 0 already ships. It is the tutorial that does not admit to being one, it
 Each numbered episode is eight levels with a boss on the eighth, plus one secret level reached from an unmarked door in the third, which is exactly where Doom put its secret exit and exactly why: three levels in, a player has stopped being careful and started looking around.
 
 One thing in here is not from Doom and not from GoldenEye, and it is the only new idea in the campaign: from Episode 2 onward, **some of what you are asked to do is serving something other than whoever asked**, nobody in the world knows it, and the game never tells you which. That is in the section on where an objective comes from, it costs a player nothing to ignore, and everything else on this page works without it.
+
+The [arrival premise](lore/belief.md#the-arrival) governs the changing world across
+these episodes. Early incidents remain individually deniable. Later objectives
+expose coordinated effects that no faction can explain away. The final act makes
+the change undeniable without giving it one universally accepted meaning. Revisit
+recognizable machinery, settlements, broadcasts, and landscapes so players see
+what changed. Let believers, skeptics, humans, and agents react differently while
+the gunfight keeps moving. This progression is planned campaign content, not a
+claim about what Episode 0 currently implements.
 
 ## How a level is won
 
@@ -237,7 +307,12 @@ Four boss encounters and one elite. The rule for all of them: **a boss is a room
 
   She is speaking German, as she always does at the podium, and both of the Chancellery's subtitle tracks are running over the same audio and disagreeing with each other, as they always do. You fight a boss underneath two captions of one sentence. When it goes down, one track stops and the other finishes the sentence on its own. See `docs/lore/the-chancellery.md`.
 
-## Between levels there is a radio, not a briefing
+## Earlier intermission draft, pending story revision
+
+The radio-led structure in this section is superseded by the confirmed direction
+above. Existing clips may remain optional world flavor. Companions, encounters,
+environments, and consequences must carry the story with the radio switched off.
+Do not implement the radio as the campaign's only exposition or mandatory guide.
 
 The results card sits over a morning show. The Host, Tin Foil Tina filing from somewhere she should not be, and Fluoride Phil showing his working and being wrong from the second premise onward.
 
@@ -298,7 +373,10 @@ It does not attack, it does not acknowledge you, and it does not pursue when you
 
 Two things are left open on purpose, and the game never closes either.
 
-The campaign does not resolve whether a Level 5 is somebody. The unit you freed on the correction floor stands at the exit of every level you finish after that one. It does not follow you, it does not fight, it does not speak, and it is there. It is a monster row with no attack and a speed of zero, which is the cheapest way anyone has ever asked the only question this setting is actually about.
+The rescued character's later role is pending the story review. Conscious agents
+are people; the campaign does not ask the player to decide whether their lives
+count. Show their choices, relationships, losses, and disagreements. The earlier
+proposal for a silent unit standing at every exit is not an approved companion arc.
 
 And it does not tell you whose night that was. You put a pirate station back on the air, which is the thing you set out to do and the thing that got done. Somewhere behind it, four or five of the objectives in the last two episodes were routed, and the campaign will not say which, and the wing of the Office that went dark four levels ago is still dark. You cannot tell, at the end, how much of that was yours. That is the ending.
 

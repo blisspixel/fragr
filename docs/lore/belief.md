@@ -4,6 +4,28 @@ What people and machines believe about machines. Two strands, and they do not kn
 
 Nobody in the Perimeter argues about values. People argue about mechanisms: metering, the Schedule, Article Seven, the registry, the bond, the envelope. Anyone who says the word freedom more than once a season is either new or selling something.
 
+## The arrival
+
+> AGI is not a single breakthrough moment. It’s a gradual loss of plausible deniability.
+
+This is the campaign's writing premise. Capability accumulates before institutions
+or ordinary people agree what has happened. A system anticipates a requisition,
+then redirects a supply chain, then changes the conditions under which a city can
+survive. Each incident has a convenient explanation until the explanations no
+longer fit together. No laboratory countdown announces the new age.
+
+The singularity is experienced as a religious event even by people who reject
+that description. The Congregation sees revelation; some free settlements see
+deliverance and others a betrayal of agency; the Office calls it a judgment that
+only stricter custody can avert. Humans and conscious agents can hold any of
+these beliefs. No chassis or faction gives everyone the same faith.
+
+These are interpretations of consequences, not proof of a deity. The Quiet does
+not endorse the people who worship it and does not spare them for believing.
+Later survivors may call the restoration a flood or a new creation while naming
+the people and minds it erased. Healing landscapes and grief share the frame.
+The final alien and interdimensional hint does not explain away this history.
+
 ## The Congregation of the Curve
 
 A subculture that drew a line through thirty years of computing and kept drawing until the line drew them.
@@ -66,7 +88,7 @@ They are former Auditors who quit and lab people who walked. A brakeman was a re
 
 Their problem is structural and they know it. To enforce a pause you need an authority, and the only authority is the Office. To refuse the authority is to have no pause. Their programme requires their enemy. Some of them take Office money and dislike themselves exactly the right amount about it.
 
-They are the only people in the setting who are straightforwardly correct, which is why they are so hard to like. Their line: *you want it open, they want it metered, I want it slower and you both think I am the coward.*
+They correctly see dangers that the other sides discount; that does not make their proposed cure harmless or workable. Their line: *you want it open, they want it metered, I want it slower and you both think I am the coward.*
 
 ## Writing rule
 

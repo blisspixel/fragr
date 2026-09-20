@@ -97,7 +97,7 @@ func open() -> void:
 	_open = true
 	visible = true
 	_note.text = "LIVE MATCH. FIND COVER FIRST."
-	Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
+	MouseCapture.release()
 	await get_tree().process_frame
 	for child in _column.get_children():
 		if child is Button:
@@ -110,7 +110,6 @@ func close() -> void:
 	_open = false
 	_hide_settings()
 	visible = false
-	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
 	resume_requested.emit()
 
 func toggle() -> void:

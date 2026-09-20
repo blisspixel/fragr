@@ -4,7 +4,16 @@ How a fragr map is built. `plans/map-scale.md` says how big; this says what goes
 
 These are not aesthetic preferences. Each rule exists because a specific great map did it and a specific bad feeling happens when you do not.
 
-## The tip, before the 2026 roster
+## Current review, 2026-09-19
+
+The six layouts now have stairs and routes, but the rendered roster audit still
+shows oversized open floors, repetitive cover, and weak landmarks. They are not
+finished levels. The next implementation is
+[`authored Compliance Yard`](plans/authored-compliance-yard.md): connected spaces
+designed at player scale, then validated through movement and combat. The rules
+below are design goals; tests and measurements prove only their explicit claims.
+
+## Historical baseline, before the 2026 roster
 
 Arena Duel is one flat square with concentric rings of boxes in it. It has no rooms, no height, no lanes, one kind of space, and nowhere that is worth more than anywhere else. It is a fair test chamber and it is not a level, and nothing below describes it yet. That is the gap.
 

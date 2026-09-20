@@ -57,7 +57,14 @@ echo "qa_tour: output  $OUT_DIR"
 # A server with bots, so the tour has a match to photograph.
 cargo build -p fragr-server --release --locked >"$OUT_DIR/build.log" 2>&1 || {
   echo "qa_tour: server build failed" >&2; exit 1; }
-"$ROOT/target/release/fragr-server" --bind "127.0.0.1:$SERVER_PORT" --bots "$BOTS" >"$OUT_DIR/server.log" 2>&1 &
+SERVER_ARGS=(--bind "127.0.0.1:$SERVER_PORT" --bots "$BOTS" --map "${FRAGR_QA_MAP:-1}")
+if [ "${FRAGR_QA_SOLO_BROADCAST:-0}" = "1" ]; then
+  SERVER_ARGS+=(--solo-broadcast)
+fi
+if [ "${FRAGR_QA_NO_ROUND_EVENTS:-0}" = "1" ]; then
+  SERVER_ARGS+=(--no-round-events)
+fi
+"$ROOT/target/release/fragr-server" "${SERVER_ARGS[@]}" >"$OUT_DIR/server.log" 2>&1 &
 SERVER_PID=$!
 cleanup() {
   kill "$SERVER_PID" >/dev/null 2>&1

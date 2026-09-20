@@ -10,7 +10,7 @@ use crate::provider::{decide, decision_request, Provider, Transport};
 use crate::telemetry::{observe, RecentHits, Telemetry};
 use crate::Error;
 use fragr_server::protocol::{
-    ClientMessage, GameEvent, Role, ServerMessage, SetDisplayBehavior, Snapshot,
+    Action, ClientMessage, GameEvent, Role, ServerMessage, SetDisplayBehavior, Snapshot,
 };
 use futures_util::{SinkExt, StreamExt};
 use serde::Serialize;
@@ -322,6 +322,8 @@ pub async fn run_bot(
     let mut me: Option<Uuid> = None;
     let mut my_name = config.name.clone();
     let mut last: Option<Snapshot> = None;
+    let mut navigation = None;
+    let mut navigator = fragr_server::navigation::Navigator::default();
     let mut hits = RecentHits::default();
     let mut paid_enabled = config.provider.is_paid();
     let questions = Arc::new(tactical_questions());
@@ -341,6 +343,7 @@ pub async fn run_bot(
         .and_then(|s| tokio::time::Instant::now().checked_add(Duration::from_secs(s)));
     let mut inflight: Option<InFlight> = None;
     let mut consecutive_malformed = 0u32;
+    let mut session_error = None;
 
     loop {
         if stop.load(Ordering::Relaxed) {
@@ -380,11 +383,23 @@ pub async fn run_bot(
                     }
                     // The brain does not predict, so an ack is nothing to act on.
                     Ok(ServerMessage::Ack { .. }) => {}
-                    // The arena's shape. The brain reasons in range buckets
-                    // rather than geometry today, so it notes the map and does
-                    // nothing with it; cover-aware questions are a later rung.
-                    Ok(ServerMessage::MapInfo { map_name, .. }) => {
+                    // Geometry belongs to the local controller, never a paid
+                    // per-frame decision. Reject invalid worlds before driving.
+                    Ok(ServerMessage::MapInfo { map_name, solids, half_extent, .. }) => {
                         tracing::debug!("map: {map_name}");
+                        let arena = fragr_server::movement::Arena { half: half_extent, solids };
+                        let built = tokio::task::spawn_blocking(move || {
+                            fragr_server::navigation::Navigation::shared(arena)
+                        }).await.map_err(|_| "navigation worker failed").and_then(|result| result);
+                        match built {
+                            Ok(world) => navigation = Some(world),
+                            Err(error) => {
+                                tracing::warn!("invalid navigation map: {error}");
+                                session_error = Some(Error::Transport(format!("invalid navigation map: {error}")));
+                                break;
+                            }
+                        }
+                        navigator.clear();
                     }
                     Ok(ServerMessage::Error { code, message }) => {
                         tracing::warn!("server rejected: {code}: {message}");
@@ -397,6 +412,9 @@ pub async fn run_bot(
             _ = micro.tick() => {
                 if let (Some(id), Some(snapshot)) = (me, last.as_ref()) {
                     let action = micro_action(&plan, id, snapshot);
+                    let action = navigation.as_ref().map_or_else(Action::default, |world| {
+                        navigator.steer_snapshot(world, id, snapshot, action)
+                    });
                     let text = serde_json::to_string(&ClientMessage::Action(action))
                         .map_err(transport_err)?;
                     if !send_text(&mut sink, text).await {
@@ -546,7 +564,11 @@ pub async fn run_bot(
         summary.total_usd = guard.total_usd();
     }
     summary.last_plan = Some(plan);
-    Ok(summary)
+    if let Some(error) = session_error {
+        Err(error)
+    } else {
+        Ok(summary)
+    }
 }
 
 #[cfg(test)]
@@ -615,6 +637,47 @@ mod tests {
             },
             Pricing::default(),
         )))
+    }
+
+    #[tokio::test]
+    async fn invalid_map_stops_before_actions_or_paid_decisions() {
+        let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let url = format!("ws://{}", listener.local_addr().unwrap());
+        let server = tokio::spawn(async move {
+            let (socket, _) = listener.accept().await.unwrap();
+            let mut ws = tokio_tungstenite::accept_async(socket).await.unwrap();
+            for _ in 0..2 {
+                ws.next().await.unwrap().unwrap(); // Hello and initial stance.
+            }
+            let mut map = fragr_server::sim::GameState::new().map_info();
+            if let ServerMessage::MapInfo { half_extent, .. } = &mut map {
+                *half_extent = f32::MAX;
+            }
+            ws.send(Message::Text(serde_json::to_string(&map).unwrap()))
+                .await
+                .unwrap();
+            while let Some(Ok(message)) = ws.next().await {
+                if let Message::Text(text) = message {
+                    assert!(!matches!(
+                        serde_json::from_str::<ClientMessage>(&text),
+                        Ok(ClientMessage::Action(_))
+                    ));
+                }
+            }
+        });
+        let transport = Arc::new(FakeTransport::ok(push_answers()));
+        let result = run_bot(
+            config(&url, Provider::OpenRouter, 2),
+            transport.clone(),
+            budget(1.0),
+            Arc::new(AtomicBool::new(false)),
+        )
+        .await;
+        assert!(
+            matches!(result, Err(Error::Transport(message)) if message.contains("invalid navigation map"))
+        );
+        assert_eq!(transport.calls(), 0);
+        server.await.unwrap();
     }
 
     #[tokio::test]

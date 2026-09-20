@@ -92,8 +92,11 @@ var viewmodel_textures: Dictionary[String, Texture2D] = {
 var followed_player_name = ""
 var fp_juice_enabled = false
 var fp_bob_t = 0.0
-var fp_weapon_base_pos = Vector2.ZERO
-var fp_weapon_scene_base = Vector2.ZERO
+var fp_walk_speed: float = 0.0
+var fp_bob_weight: float = 0.0
+# The bottom of each full-canvas sprite is cut off. It must stay below the
+# viewport, including the largest upward bob (5.4 pixels) and pixel rounding.
+const FP_BOTTOM_OVERLAP: float = 12.0
 var head_bob_enabled: bool = true
 var reticle_colour: Color = Color("e8e2d6")
 var damage_flash_timer = 0.0
@@ -178,8 +181,6 @@ func _ready():
 		streak_flash.modulate.a = 0.0
 	if fp_weapon:
 		fp_weapon.visible = false
-		fp_weapon_base_pos = fp_weapon.position
-		fp_weapon_scene_base = fp_weapon.position
 	_update_broadcast_chrome("Warmup")
 	_bind_warmup_tv()
 
@@ -1152,30 +1153,28 @@ func _process(delta):
 			fp_muzzle.visible = false
 	_update_floating_damage(delta)
 	if fp_juice_enabled and fp_weapon and fp_weapon.visible:
-		fp_bob_t += delta * 9.0
-		var bob_scale = 1.0
-		match current_fp_weapon:
-			"Rail":
-				bob_scale = 0.55
-			"Scatter":
-				bob_scale = 1.35
-			_:
-				bob_scale = 1.0
-		var bob_y = sin(fp_bob_t) * 4.0 * bob_scale
-		var bob_x = cos(fp_bob_t * 0.5) * 2.0 * bob_scale
-		if not head_bob_enabled:
-			bob_y = 0.0
-			bob_x = 0.0
-		var kick = Vector2.ZERO
-		if fp_kick_timer > 0:
-			var k = clampf(fp_kick_timer / 0.12, 0.0, 1.0)
-			kick = fp_kick_amount * k
-		# Resolve the anchor each frame so resizing cannot strand the weapon.
-		fp_weapon_base_pos = get_viewport().get_visible_rect().size * Vector2(0.5, 1.0) - fp_weapon.size * Vector2(0.5, 1.0)
-		fp_weapon.position = fp_weapon_base_pos + Vector2(bob_x, bob_y) + kick
-		if fp_muzzle:
-			var barrel_y: float = 25.0 if current_fp_weapon == "Flechette" else 14.0
-			fp_muzzle.position = fp_weapon.position + Vector2(224.0, barrel_y * 2.0) - fp_muzzle.size * 0.5
+		var walking: float = clampf(fp_walk_speed / MoveStep.TOP_SPEED, 0.0, 1.0)
+		fp_bob_weight = move_toward(fp_bob_weight, walking, delta * 8.0)
+		fp_bob_t += delta * 9.0 * walking
+		_layout_fp_weapon()
+
+func set_fp_walk_speed(speed: float) -> void:
+	fp_walk_speed = maxf(speed, 0.0) if is_finite(speed) else 0.0
+
+func _layout_fp_weapon() -> void:
+	var bob_scale: float = 1.0
+	match current_fp_weapon:
+		"Rail": bob_scale = 0.55
+		"Scatter": bob_scale = 1.35
+	var weight: float = fp_bob_weight if head_bob_enabled else 0.0
+	var bob: Vector2 = Vector2(cos(fp_bob_t * 0.5) * 2.0, sin(fp_bob_t) * 4.0) * bob_scale * weight
+	var kick: Vector2 = fp_kick_amount * clampf(fp_kick_timer / 0.12, 0.0, 1.0)
+	var viewport_size: Vector2 = get_viewport().get_visible_rect().size
+	var base: Vector2 = (viewport_size - fp_weapon.size) * Vector2(0.5, 1.0)
+	fp_weapon.position = (base + Vector2(0.0, FP_BOTTOM_OVERLAP) + bob + kick).round()
+	if fp_muzzle:
+		var barrel_y: float = 25.0 if current_fp_weapon == "Flechette" else 14.0
+		fp_muzzle.position = fp_weapon.position + Vector2(224.0, barrel_y * 2.0) - fp_muzzle.size * 0.5
 
 func set_fp_juice(enabled: bool) -> void:
 	if fp_juice_enabled == enabled:
@@ -1204,6 +1203,8 @@ func set_fp_juice(enabled: bool) -> void:
 		hit_marker_timer = 0.0
 		fp_kick_timer = 0.0
 		fp_bob_t = 0.0
+		fp_walk_speed = 0.0
+		fp_bob_weight = 0.0
 		current_fp_weapon = ""
 		_clear_floating_damage()
 
@@ -1217,13 +1218,11 @@ func set_fp_weapon(weapon_name: String) -> void:
 	current_fp_weapon = weapon_name
 	fp_weapon.texture = viewmodel_textures[weapon_name]
 	# Distinct viewmodel pose per role (bone/gunmetal, not neon).
-	# Only re-base on swap so walk bob / fire kick survive snapshot ticks.
 	if changed:
 		fp_weapon.modulate = Color.WHITE
 		fp_weapon.scale = Vector2.ONE
-		fp_weapon_base_pos = fp_weapon_scene_base
-		fp_weapon.position = fp_weapon_base_pos
 		_apply_crosshair_for_weapon(weapon_name)
+	_layout_fp_weapon()
 	fp_weapon.visible = true
 
 ## Keep every crosshair edge matching the part it sits behind: same visibility,

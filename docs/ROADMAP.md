@@ -68,11 +68,31 @@ authenticated polling is bound to the official API origin. Reference preparation
 and consistent animation production remain separate work.
 
 [Vertical aim](plans/vertical-aim.md) shipped in v0.19.0, connecting camera pitch
-to authoritative hits and cover, agent targets, and spectator views. The active
-[shot-impact increment](plans/shot-impact-feedback.md) adds world feedback and
-repairs combat accounting when fighters trade kills in one tick.
+to authoritative hits and cover, agent targets, and spectator views.
+[Shot impacts](plans/shot-impact-feedback.md), shipped in v0.20.0, add world
+feedback and repair combat accounting when fighters trade kills in one tick.
+The [navigation pass](plans/height-aware-navigation.md) is locally verified:
+shared routes, reliable jump taps, repaired stair entrances and grounding, ledge
+exits, anchored moving weapons, and occupied spawn avoidance. Actual server
+traversal and mixed-role session checks cover all six maps; separate first-person
+tours inspect movement and weapons. The expanded network matrix caught crowded
+join failures and now runs in CI. Integration is pending.
 
 The phases below are the long shape. This is the remaining build order, with the reason each item sits where it does.
+
+**Immediate priority: settle the campaign story, then build its first mission.**
+Review the complete lore with Nick and resolve protagonist, motivation, act
+structure, offworld travel, and the played ending in [`CAMPAIGN.md`](CAMPAIGN.md).
+Derive maps from the agreed story. The
+[authored layout brief](plans/authored-compliance-yard.md) captures the spatial bar.
+The all-map rendered audit confirms oversized open spaces and weak landmarks.
+The inspection-complex study is deferred and does not dictate the campaign
+opening. Build distinct spaces, alternate routes, deliberate elevation, protected
+spawns, and purposeful items. Integrate a melee start, discovered weapons and ammo,
+animated enemies, and finished combat effects into the first single-player level;
+an arena revision alone is insufficient. Boltgun is the visual production bar.
+The existing six layouts are playable foundations,
+not finished levels or proof that their reference-game comparisons were achieved.
 
 **1. Reference preparation and consistent animation.** Specs already pass
 `params.image_urls` through. Prepare reusable references with verified current
@@ -91,7 +111,7 @@ where muzzle registration depends on them.
 
 **5. Two palette ramps that do not exist.** No institutional green for issued hardware, no off-white for the unmarked machines. Two of the three factions are currently borrowing colours from the other one, which undercuts the whole read-the-faction-by-colour design. A colour decision for `ART-COLOR.md`, not a tooling one.
 
-**6. Maps: the rest of what the roster needs.** Six maps from 110 m to 320 m exist, with heightfield movement, shared golden vectors, spawn validation, and reachability tests. True 3D hitscan shipped in v0.19.0. Remaining work from `plans/map-roster-2026.md`: three-cornered teams, zones and end conditions; permeable floors; lifts, jump pads and doors; and height-aware pathfinding. A straight-line agent can still walk into a deck face with a ramp nearby.
+**6. Maps: the rest of what the roster needs.** Six maps from 110 m to 320 m exist, with heightfield movement, shared golden vectors, spawn validation, and reachability tests. True 3D hitscan shipped in v0.19.0. The current [navigation pass](plans/height-aware-navigation.md) adds shared walking routes and repairs the collision trap at deck exits. Remaining work from `plans/map-roster-2026.md`: three-cornered teams, zones and end conditions; permeable floors; lifts, jump pads and doors; and authored encounters.
 
 **6b. A lighting pass.** A cover block's shadowed face is very dark up close, which in first person fills most of the frame. The ambient tint is doing all the work and there is no fill. Cheap, and it is now the worst-looking thing in the game.
 

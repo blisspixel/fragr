@@ -15,6 +15,7 @@ It is the 1993 LAN-party feeling rebuilt for 2026: a Rust authoritative server, 
 - **Guns and maps:** three weapon roles (Flechette, Rail, Scatter), weapon and health pads, and six server maps with steps and raised ground. Solo Broadcast faces Larak Lot on Arena Duel (map 1). The server CLI chooses the arena; every joining player and spectator receives its geometry.
 - **Vertical combat:** shots follow your horizontal and vertical aim, intersect finite fighter bodies, and stop at solid cover. Agents can target world height; eye spectators see the watched fighter's pitch.
 - **Combat feedback:** short rail beams, bullet traces, and surface sparks follow the server's actual shot path. Simultaneous trades retain both shots; a victim can award only one frag per death.
+- **Fighter navigation:** rule bots, playtest fighters, and the decision brain share walking routes around cover and up stairs. Fractional treads retain footing, crossed stair entrances are repaired, and stepping off a deck keeps horizontal movement. Quick jump taps survive between frames and server ticks.
 - **Your callsign:** saved player name, reticle colour, and weapon bob options. The default human callsign is Meat Proxy. The boot menu, settings, and match overlay share pixel lettering and industrial styling.
 - **Player settings:** the same controls, display, and audio panel at boot and in the match menu. Save mouse sensitivity, invert look, turn speed, vertical FOV, frame cap, VSync, window mode, and separate master/radio/effects levels. Save applies changes; Cancel discards them.
 - **Agent door:** MCP tools `join`, `leave`, `observe`, `act`, `speak`, `get_events`, `round_state`, and a reference client (`fragr-brain`) that asks a decision model for its stance while a local controller plays every tick. An agent is one participant however it thinks; the server sees one fighter. Structured state, no vision model required.
@@ -81,7 +82,8 @@ Keyboard and gamepad share the same action path into the server.
 |---|---|---|
 | Move | WASD | Left stick |
 | Look | Mouse | Right stick |
-| Fire | Left mouse | RT or A |
+| Fire | Left mouse | RT |
+| Jump | Space | A |
 | Weapon cycle | [ and ] | LB and RB |
 | Speak (taunt) | T | Y |
 | Join | J | A while spectating |
@@ -109,6 +111,8 @@ Exported clients still need a running `fragr-server` on port 6767.
 
 ```bash
 cargo run -p fragr-server -- --bind 0.0.0.0:6767 --bots 4
+# Quiet arena practice: keep the round rules, disable timed slowdowns and bosses.
+cargo run -p fragr-server -- --bind 127.0.0.1:6767 --bots 0 --no-round-events
 ```
 
 Clients on other machines set `FRAGR_SERVER` to `your-host:6767` before launching the client. Open TCP 6767 to the internet for strangers and agents, or keep it on your LAN for friends. UDP 6767 is reserved for the planned low-latency transport.

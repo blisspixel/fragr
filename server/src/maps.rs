@@ -27,6 +27,25 @@ use crate::sim::{ArenaPickup, MapKind, PickupKind, ARMOR_PAD_AMOUNT, HEALTH_PAD_
 use std::f32::consts::PI;
 use std::sync::OnceLock;
 
+/// Build the bounded roster once at session startup, including rotation maps.
+/// A round change must not put topology construction into the measured tick.
+pub(crate) fn navigation(kind: MapKind) -> &'static crate::navigation::Navigation {
+    static NAVIGATION: OnceLock<Vec<std::sync::Arc<crate::navigation::Navigation>>> =
+        OnceLock::new();
+    &NAVIGATION.get_or_init(|| {
+        MapKind::ALL
+            .into_iter()
+            .map(|map| {
+                crate::navigation::Navigation::shared(crate::movement::Arena {
+                    half: map.half_extent(),
+                    solids: map.solids(),
+                })
+                .expect("the tested map roster must satisfy navigation bounds")
+            })
+            .collect()
+    })[kind.index()]
+}
+
 /// Axis-aligned scrap solid in XZ, standing on the floor and reaching up to
 /// `top`. There is no space underneath one: the collision model is a
 /// heightfield, so a solid is a box rather than a prism.
@@ -316,13 +335,14 @@ fn arena_duel() -> MapDef {
     ] {
         s.push(Aabb2::from_center_top(cx, cz, hx, hz, gantry_top));
     }
-    // One flight up from the hub and one from the field per segment, so no
-    // stretch of gantry is a dead end.
+    // One flight up from the hub and one from the field per segment. Inner
+    // approaches form a pinwheel: crossing perpendicular flights makes their
+    // taller side faces block an otherwise ordinary walk up the first tread.
     let run = stair_length(0.0, gantry_top);
     for (sx, sz, dx, dz) in [
-        (-7.0, -17.2 + run, 0.0, -1.0),
+        (7.0, -17.2 + run, 0.0, -1.0),
         (7.0, -20.8 - run, 0.0, 1.0),
-        (7.0, 17.2 - run, 0.0, 1.0),
+        (-7.0, 17.2 - run, 0.0, 1.0),
         (-7.0, 20.8 + run, 0.0, -1.0),
         (17.2 - run, 7.0, 1.0, 0.0),
         (20.8 + run, -7.0, -1.0, 0.0),
@@ -1047,11 +1067,10 @@ pub(crate) fn blocked_at(kind: MapKind, x: f32, z: f32, climb: f32) -> bool {
 }
 
 /// The surface under `(x, z)` for a fighter that can reach `ceiling`.
-#[cfg(test)]
 pub(crate) fn support_height(kind: MapKind, x: f32, z: f32, ceiling: f32) -> f32 {
     let mut best = 0.0f32;
     for o in &def(kind).solids {
-        if o.top <= ceiling && o.top > best && o.contains(x, z) {
+        if o.top <= ceiling + crate::movement::CONTACT_EPSILON && o.top > best && o.contains(x, z) {
             best = o.top;
         }
     }

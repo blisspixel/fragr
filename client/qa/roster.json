@@ -1,0 +1,10 @@
+{
+  "comment": "Map-independent live combat inspection. Select the host map through FRAGR_QA_MAP; this capture never substitutes geometry or enemies.",
+  "width": 1280,
+  "height": 720,
+  "states": [
+    {"name": "roster_overview", "scene": "res://scenes/main.tscn", "at_seconds": 4, "camera": "overview", "note": "Authoritative map geometry and live server roster."},
+    {"name": "roster_eyes", "at_seconds": 7, "camera": "first_person", "note": "Observed fighter perspective in real combat."},
+    {"name": "roster_human", "at_seconds": 10, "join": "human", "camera": "first_person", "weapon": "Rail", "trigger": "fire", "probe": "FpMuzzle", "strip_frames": 12, "note": "A human shares the match, selects Rail, and receives shot acknowledgement."}
+  ]
+}

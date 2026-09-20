@@ -21,7 +21,11 @@ First playable slice: **Episode 0 face** (title card, Host cold open, objective 
 | Win condition (season) | Unmetered one more night. Continuance regrows. Rematch is the point. |
 | Not | Bots-in-DM, full 13-episode campaign, cutscenes, GCP apply, look_at reopen, Doom IP. |
 
-## Campaign spine (plan of record; Ep0 ships only)
+## Historical campaign spine (Ep0 ships only)
+
+The current story review and confirmed direction live in
+[`CAMPAIGN.md`](../CAMPAIGN.md#story-review-in-progress). The list below records
+the earlier Episode 0 scope; it no longer controls campaign sequencing.
 
 1. **Ep0 Calibration** (this PR) cold-open on **Larak Lot**
 2. Area Kitchen

@@ -24,6 +24,8 @@ Read this before the rest of the file.
   floor they claim to be on, everything walkable from the origin.
 - The Godot client builds the floor, the boundary and every solid at its own
   height from `MapInfo`, so a 320 m map is no longer drawn in a 100 m box.
+- True 3D hitscan shipped later in v0.19.0, replacing the original horizontal
+  segment with a finite ray against fighter bodies and cover.
 
 **Designed here, not built:**
 
@@ -35,14 +37,14 @@ Read this before the rest of the file.
   through, anything you can walk under. The collision model is a heightfield,
   so a solid runs from the floor to its top and has no space beneath it.
 - **Lifts, jump pads, doors.**
-- **A 3D hitscan test.** Shots are still a segment in XZ with a height rule
-  layered on, not a ray in three dimensions.
 - **Agent pathing for height.** The playtest's reflex agent walks in a
   straight line at its target. On Directive 17 that means it sometimes stands
   against a three metre deck face with a ramp eight metres to its left; the
   run still produces fifteen frags a minute with no spawn deaths, but the
   harness reports it as stuck. That is an agent limitation rather than a map
-  one, and it is the next thing worth doing.
+  one. The active [navigation pass](height-aware-navigation.md) owns that work.
+  Its actual-movement tests also found a collision defect at deck exits; simple
+  map connectivity had not detected it.
 
 ## The problem, in the words that were used
 

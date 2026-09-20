@@ -30,6 +30,9 @@ pub const GROUND_Y: f32 = 0.0;
 /// height scaled to a 1.8 metre fighter, which is what makes a staircase feel
 /// like walking rather than a sequence of small jumps.
 pub const STEP_UP: f32 = 0.6;
+/// Contact tolerance, 0.1 mm, for feet reconstructed from a reference-height
+/// snapshot. Exact comparisons can lose a fractional-height stair surface.
+pub const CONTACT_EPSILON: f32 = 0.0001;
 /// The top a solid gets when nobody says otherwise: higher than a jump can
 /// reach, so it is a wall. Every solid written before the heightfield existed
 /// means this, which is why it is also the wire default.
@@ -158,6 +161,29 @@ impl Solid {
             && z <= self.max_z + radius
     }
 
+    /// A fall may lower the feet while the body still overlaps a ledge's
+    /// inflated footprint. Permit escape through its nearest face, never deeper
+    /// penetration, so leaving a deck cannot trap the fighter against its side.
+    pub fn blocks_motion(&self, from: (f32, f32), to: (f32, f32), radius: f32) -> bool {
+        if !self.blocks(to.0, to.1, radius) {
+            return false;
+        }
+        if !self.blocks(from.0, from.1, radius) {
+            return true;
+        }
+        let depths = [
+            from.0 - (self.min_x - radius),
+            self.max_x + radius - from.0,
+            from.1 - (self.min_z - radius),
+            self.max_z + radius - from.1,
+        ];
+        let nearest = depths.into_iter().fold(f32::INFINITY, f32::min);
+        !((depths[0] == nearest && to.0 < from.0)
+            || (depths[1] == nearest && to.0 > from.0)
+            || (depths[2] == nearest && to.1 < from.1)
+            || (depths[3] == nearest && to.1 > from.1))
+    }
+
     /// True when the point itself is over this solid. Standing on a deck uses
     /// the point rather than the inflated box, so a fighter is held up by what
     /// is under its feet rather than by what is beside it.
@@ -188,13 +214,19 @@ impl Arena {
             .any(|s| s.top > climb && s.blocks(x, z, RADIUS))
     }
 
+    pub fn blocked_motion(&self, from: (f32, f32), to: (f32, f32), climb: f32) -> bool {
+        self.solids
+            .iter()
+            .any(|solid| solid.top > climb && solid.blocks_motion(from, to, RADIUS))
+    }
+
     /// The highest surface at `(x, z)` that is no higher than `ceiling`, or the
     /// base floor when nothing qualifies. This is the floor the fighter is
     /// standing on.
     pub fn support_height(&self, x: f32, z: f32, ceiling: f32) -> f32 {
         let mut best = GROUND_Y;
         for s in &self.solids {
-            if s.top <= ceiling && s.top > best && s.covers(x, z) {
+            if s.top <= ceiling + CONTACT_EPSILON && s.top > best && s.covers(x, z) {
                 best = s.top;
             }
         }
@@ -211,11 +243,15 @@ impl Arena {
 /// step. Standing, it is a step above the floor; airborne, it is wherever the
 /// feet are, so a jump clears exactly what it rises over and no more.
 pub fn climb_height(feet: f32, floor: f32, vy: f32) -> f32 {
-    if feet <= floor && vy <= 0.0 {
+    if grounded(feet, floor, vy) {
         floor + STEP_UP
     } else {
         feet
     }
+}
+
+pub fn grounded(feet: f32, floor: f32, vy: f32) -> bool {
+    feet <= floor + CONTACT_EPSILON && vy <= 0.0
 }
 
 /// Wrap any finite yaw into `[0, 2 pi)`. Non-finite yaw becomes 0.
@@ -303,15 +339,15 @@ pub fn step(state: MoveState, input: &MoveInput, dt: f32, arena: &Arena) -> Move
     // the next square. A deck one step up is walked onto; anything higher is a
     // wall until a jump puts the feet above it.
     let floor = arena.support_height(old_x, old_z, state.y);
-    let was_grounded = state.y <= floor && state.vy <= 0.0;
+    let was_grounded = grounded(state.y, floor, state.vy);
     let climb = climb_height(state.y, floor, state.vy);
 
-    let (x, z) = if !arena.blocked_at(nx, nz, climb) {
+    let (x, z) = if !arena.blocked_motion((old_x, old_z), (nx, nz), climb) {
         (nx, nz)
-    } else if !arena.blocked_at(nx, old_z, climb) {
+    } else if !arena.blocked_motion((old_x, old_z), (nx, old_z), climb) {
         vz = 0.0;
         (nx, old_z)
-    } else if !arena.blocked_at(old_x, nz, climb) {
+    } else if !arena.blocked_motion((old_x, old_z), (old_x, nz), climb) {
         vx = 0.0;
         (old_x, nz)
     } else {
@@ -327,7 +363,7 @@ pub fn step(state: MoveState, input: &MoveInput, dt: f32, arena: &Arena) -> Move
     let support = arena.support_height(x, z, climb);
     let mut vy = state.vy;
     let mut y = state.y;
-    let on_ground = (y <= support || (was_grounded && y - support <= STEP_UP)) && state.vy <= 0.0;
+    let on_ground = grounded(y, support, state.vy) || (was_grounded && y - support <= STEP_UP);
     if on_ground {
         y = support;
         vy = 0.0;
@@ -605,6 +641,45 @@ pub fn golden_cases(dt: f32) -> GoldenFile {
         10,
         &mut cases,
     );
+    let ledge = Arena {
+        half: 12.0,
+        solids: vec![Solid::from_center_top(0.0, 0.0, 2.0, 2.0, 2.0)],
+    };
+    let fractional = Arena {
+        half: 12.0,
+        solids: vec![
+            Solid::from_center_top(2.0, 0.0, 2.0, 2.0, 2.6 / 6.0),
+            Solid::from_center_top(6.0, 0.0, 2.0, 2.0, 2.6 / 3.0),
+        ],
+    };
+    for (name, error) in [
+        ("stair_fractional_above", 0.00001),
+        ("stair_fractional_below", -0.00001),
+    ] {
+        push_in(
+            name,
+            &fractional,
+            at_y(2.0, 0.0, 2.6 / 6.0 + error, 0.0),
+            hold(keys(true, false, false, false, 0.0), 60),
+            10,
+            &mut cases,
+        );
+    }
+    for (name, yaw) in [
+        ("ledge_escape_east", 0.0),
+        ("ledge_escape_south", PI / 2.0),
+        ("ledge_escape_west", PI),
+        ("ledge_escape_north", PI * 1.5),
+    ] {
+        push_in(
+            name,
+            &ledge,
+            at_y(0.0, 0.0, 2.0, yaw),
+            hold(keys(true, false, false, false, yaw), 90),
+            10,
+            &mut cases,
+        );
+    }
 
     GoldenFile {
         version: 2,
@@ -796,10 +871,43 @@ mod tests {
         }
         assert!(airborne, "it was in the air on the way down");
         assert_eq!(d.y, GROUND_Y, "and it landed: {d:?}");
+        assert!(
+            d.x > 6.0,
+            "leaving the ledge must not pin horizontal motion: {d:?}"
+        );
+    }
+
+    #[test]
+    fn overlapping_body_can_only_escape_toward_a_nearest_face() {
+        let solid = Solid::from_center(0.0, 0.0, 2.0, 2.0);
+        for (from, outward, inward) in [
+            ((2.2, 0.0), (2.4, 0.0), (2.0, 0.0)),
+            ((-2.2, 0.0), (-2.4, 0.0), (-2.0, 0.0)),
+            ((0.0, 2.2), (0.0, 2.4), (0.0, 2.0)),
+            ((0.0, -2.2), (0.0, -2.4), (0.0, -2.0)),
+        ] {
+            assert!(!solid.blocks_motion(from, outward, RADIUS));
+            assert!(solid.blocks_motion(from, inward, RADIUS));
+            assert!(solid.blocks_motion(from, from, RADIUS));
+        }
+        assert!(solid.blocks_motion((2.2, 0.0), (2.2, 0.2), RADIUS));
+        assert!(solid.blocks_motion((3.0, 0.0), (2.4, 0.0), RADIUS));
+        assert!(!solid.blocks_motion((2.2, 0.0), (3.0, 0.0), RADIUS));
+        assert!(!solid.blocks_motion((2.2, 2.2), (2.3, 2.3), RADIUS));
     }
 
     #[test]
     fn climb_height_is_a_step_when_standing_and_the_feet_when_not() {
+        let floor = 2.6 / 6.0;
+        assert_eq!(
+            climb_height(floor + CONTACT_EPSILON * 0.5, floor, 0.0),
+            floor + STEP_UP
+        );
+        assert!(!grounded(floor + CONTACT_EPSILON * 2.0, floor, 0.0));
+        assert!(
+            !grounded(floor, floor, 0.1),
+            "ascending motion is never grounded"
+        );
         assert!((climb_height(0.0, 0.0, 0.0) - STEP_UP).abs() < 1e-6);
         assert!((climb_height(2.0, 2.0, -0.1) - (2.0 + STEP_UP)).abs() < 1e-6);
         // Airborne: exactly what the jump has cleared, so a low wall a jump

@@ -86,7 +86,7 @@ func _build() -> void:
 static func _controls_text() -> String:
 	return (
 		"W A S D or arrows to move        Arrows or Q and E to turn\n"
-		+ "Mouse or Ctrl to fire        Wheel to change weapon\n"
+		+ "Mouse or Ctrl to fire        Space to jump        Wheel to change weapon\n"
 		+ "J to join        L to leave        Escape for the menu        Tilde for the console"
 	)
 

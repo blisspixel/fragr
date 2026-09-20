@@ -16,6 +16,7 @@ var armor: int = 0
 var nameplate_enabled: bool = true
 
 var target_position: Vector3 = Vector3.ZERO
+var presentation_speed: float = 0.0
 var target_yaw: float = 0.0
 var target_pitch: float = 0.0
 const INTERP_SPEED: float = 10.0
@@ -147,7 +148,12 @@ static func smoothing(speed: float, delta: float) -> float:
 
 func _process(delta):
 	var t: float = smoothing(INTERP_SPEED, delta)
+	var previous: Vector3 = position
 	position = position.lerp(target_position, t)
+	var travel: float = Vector2(position.x - previous.x, position.z - previous.z).length()
+	# Motion feedback follows the rendered fighter, including observed agents.
+	# Discontinuities and dead bodies are not walking strides.
+	presentation_speed = travel / delta if delta > 0.0 and travel < 2.0 and hp > 0 else 0.0
 	# The pawn's muzzle and weapon sprites hang off its local +X, so that is
 	# what has to point where the server is sending it.
 	rotation.y = lerp_angle(rotation.y, ServerYaw.pawn_rotation_y(target_yaw), t)

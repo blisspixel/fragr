@@ -6,6 +6,11 @@
 
 The design is `docs/CAMPAIGN.md`. The frameworks are `docs/plans/campaign-continuance.md`. This is the order the work happens in, what each rung is allowed to depend on, and how you know a rung is done.
 
+Story review, 2026-09-19: campaign map selection and this sequence are pending
+the story decisions in [`CAMPAIGN.md`](../CAMPAIGN.md#story-review-in-progress).
+The implementation gap inventory remains useful; the prior episode list does
+not authorize building levels before the story is agreed with Nick.
+
 ## The rule this plan is built on
 
 **Every rung ships on its own and a player can feel it.** No rung is a refactor that lands with nothing to show, because a refactor with nothing to show is how a campaign stays eighteen months away forever.

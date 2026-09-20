@@ -14,8 +14,6 @@ use futures_util::{SinkExt, StreamExt};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use std::fmt;
-use std::sync::atomic::{AtomicBool, Ordering};
-use std::sync::Arc;
 use std::time::Duration;
 use tokio_tungstenite::{connect_async, tungstenite::Message};
 use uuid::Uuid;
@@ -1146,31 +1144,6 @@ impl Arena {
     }
 }
 
-/// Ticks of no movement before an agent decides it is wedged and tries
-/// something else. Half a second: long enough not to fire on a pause at a
-/// pad, short enough that a corner never becomes a five second stand.
-pub const WEDGED_TICKS: u64 = 10;
-
-/// Rewrite an action for a fighter that has stopped moving while trying to.
-/// Walking into a pillar looks exactly like standing still, and a policy that
-/// only knows this tick cannot tell the difference, so the agent keeps its own
-/// count and cycles through directions until one frees it.
-pub fn unstick(action: Action, stuck_ticks: u64) -> Action {
-    if stuck_ticks < WEDGED_TICKS {
-        return action;
-    }
-    // A new direction every half second: forward, left, back, right.
-    let phase = ((stuck_ticks - WEDGED_TICKS) / WEDGED_TICKS) % 4;
-    Action {
-        forward: phase == 0,
-        left: phase == 1,
-        back: phase == 2,
-        right: phase == 3,
-        // Keep aiming and keep the trigger discipline the policy chose.
-        ..action
-    }
-}
-
 fn transport<E: fmt::Display>(err: E) -> Error {
     Error::Transport(err.to_string())
 }
@@ -1179,7 +1152,7 @@ async fn agent_task(
     url: String,
     name: String,
     policy: Policy,
-    stop: Arc<AtomicBool>,
+    mut stop: tokio::sync::watch::Receiver<bool>,
 ) -> Result<(), Error> {
     let (ws, _) = connect_async(&url).await.map_err(transport)?;
     let (mut sink, mut stream) = ws.split();
@@ -1194,13 +1167,19 @@ async fn agent_task(
     .map_err(transport)?;
     let mut player_id: Option<Uuid> = None;
     let mut arena = Arena::default();
-    // The agent's own memory of whether it is actually getting anywhere.
-    let mut last_pos: Option<(f32, f32)> = None;
-    let mut stuck_ticks = 0u64;
-    while let Some(msg) = stream.next().await {
-        if stop.load(Ordering::Relaxed) {
+    let mut navigation = None;
+    let mut navigator = fragr_server::navigation::Navigator::default();
+    loop {
+        if *stop.borrow() {
             break;
         }
+        let msg = tokio::select! {
+            _ = stop.changed() => break,
+            message = stream.next() => match message {
+                Some(message) => message,
+                None => break,
+            },
+        };
         let Ok(Message::Text(text)) = msg else {
             continue;
         };
@@ -1211,6 +1190,19 @@ async fn agent_task(
                 half_extent,
                 ..
             }) => {
+                let geometry = fragr_server::movement::Arena {
+                    half: half_extent,
+                    solids: solids.clone(),
+                };
+                navigation = Some(
+                    tokio::task::spawn_blocking(move || {
+                        fragr_server::navigation::Navigation::shared(geometry)
+                    })
+                    .await
+                    .map_err(|error| Error::Server(format!("navigation worker failed: {error}")))?
+                    .map_err(|error| Error::Server(error.to_string()))?,
+                );
+                navigator.clear();
                 arena = Arena {
                     solids,
                     half_extent,
@@ -1221,21 +1213,10 @@ async fn agent_task(
                     continue;
                 };
                 let wanted = policy_action(policy, id, &snapshot, &arena);
-                // Count ticks where the fighter meant to move and did not.
-                if let Some(me) = snapshot.players.iter().find(|p| p.id == id) {
-                    let pos = (me.x, me.z);
-                    let moving = wanted.forward || wanted.back || wanted.left || wanted.right;
-                    let travelled = last_pos
-                        .map(|(lx, lz)| ((pos.0 - lx).powi(2) + (pos.1 - lz).powi(2)).sqrt())
-                        .unwrap_or(f32::MAX);
-                    stuck_ticks = if moving && travelled < 0.02 {
-                        stuck_ticks + 1
-                    } else {
-                        0
-                    };
-                    last_pos = Some(pos);
-                }
-                let action = ClientMessage::Action(unstick(wanted, stuck_ticks));
+                let driven = navigation.as_ref().map_or_else(Action::default, |world| {
+                    navigator.steer_snapshot(world, id, &snapshot, wanted)
+                });
+                let action = ClientMessage::Action(driven);
                 if sink
                     .send(Message::Text(
                         serde_json::to_string(&action).map_err(transport)?,
@@ -1294,7 +1275,7 @@ pub async fn run(config: Config) -> Result<(Report, Observation), Error> {
         .map_err(|_| Error::Server("server exited before binding".to_string()))?;
     let url = format!("ws://{addr}");
 
-    let stop = Arc::new(AtomicBool::new(false));
+    let (stop, stopped) = tokio::sync::watch::channel(false);
     let mut agents = Vec::with_capacity(config.agents);
     let tiers = if config.tiers.is_empty() {
         vec![Policy::Reflex]
@@ -1309,7 +1290,7 @@ pub async fn run(config: Config) -> Result<(Report, Observation), Error> {
             // agents were which without a second lookup.
             format!("{}-{}", policy.name(), i + 1),
             policy,
-            stop.clone(),
+            stopped.clone(),
         )));
     }
 
@@ -1352,12 +1333,22 @@ pub async fn run(config: Config) -> Result<(Report, Observation), Error> {
     };
     let _ = tokio::time::timeout(deadline, watch).await;
 
-    stop.store(true, Ordering::Relaxed);
+    let _ = stop.send(true);
     let _ = sink.close().await;
     let _ = shutdown_tx.send(());
     let _ = tokio::time::timeout(Duration::from_secs(5), server).await;
+    let mut agent_error = None;
     for agent in agents {
-        let _ = tokio::time::timeout(Duration::from_secs(2), agent).await;
+        let error = match tokio::time::timeout(Duration::from_secs(2), agent).await {
+            Ok(Ok(Ok(()))) => None,
+            Ok(Ok(Err(error))) => Some(error),
+            Ok(Err(error)) => Some(Error::Server(format!("agent task failed: {error}"))),
+            Err(_) => Some(Error::Timeout("agent shutdown")),
+        };
+        agent_error = agent_error.or(error);
+    }
+    if let Some(error) = agent_error {
+        return Err(error);
     }
     let _ = TICK;
     let report = compute_report(&observation, config.agents);
@@ -1368,6 +1359,55 @@ pub async fn run(config: Config) -> Result<(Report, Observation), Error> {
 mod tests {
     use super::*;
     use fragr_server::protocol::PlayerState;
+
+    #[tokio::test]
+    async fn stopping_a_quiet_agent_does_not_wait_for_another_snapshot() {
+        let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let url = format!("ws://{}", listener.local_addr().unwrap());
+        let (joined, ready) = tokio::sync::oneshot::channel();
+        let server = tokio::spawn(async move {
+            let (socket, _) = listener.accept().await.unwrap();
+            let mut ws = tokio_tungstenite::accept_async(socket).await.unwrap();
+            ws.next().await.unwrap().unwrap();
+            joined.send(()).unwrap();
+            assert!(matches!(ws.next().await, Some(Ok(Message::Close(_)))));
+        });
+        let (stop, stopped) = tokio::sync::watch::channel(false);
+        let agent = tokio::spawn(agent_task(url, "Probe".into(), Policy::Reflex, stopped));
+        ready.await.unwrap();
+        stop.send(true).unwrap();
+        tokio::time::timeout(Duration::from_secs(1), agent)
+            .await
+            .unwrap()
+            .unwrap()
+            .unwrap();
+        server.await.unwrap();
+    }
+
+    #[tokio::test]
+    async fn invalid_map_is_an_agent_failure_not_a_partial_world() {
+        let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let url = format!("ws://{}", listener.local_addr().unwrap());
+        let server = tokio::spawn(async move {
+            let (socket, _) = listener.accept().await.unwrap();
+            let mut ws = tokio_tungstenite::accept_async(socket).await.unwrap();
+            ws.next().await.unwrap().unwrap();
+            let mut map = fragr_server::sim::GameState::new().map_info();
+            if let ServerMessage::MapInfo { half_extent, .. } = &mut map {
+                *half_extent = f32::MAX;
+            }
+            ws.send(Message::Text(serde_json::to_string(&map).unwrap()))
+                .await
+                .unwrap();
+            let _ = ws.next().await;
+        });
+        let (_stop, stopped) = tokio::sync::watch::channel(false);
+        let result = agent_task(url, "Probe".into(), Policy::Reflex, stopped).await;
+        assert!(
+            matches!(result, Err(Error::Server(message)) if message.contains("navigation extent"))
+        );
+        server.await.unwrap();
+    }
 
     fn player(name: &str, id: Uuid, x: f32, z: f32, fired: bool) -> PlayerState {
         PlayerState {
@@ -2564,79 +2604,6 @@ mod line_of_sight_tests {
             "descending aim meets the wall"
         );
         assert!(!planner_action(me, &snap, &blocked).fire);
-    }
-}
-
-#[cfg(test)]
-mod unstick_tests {
-    use super::*;
-
-    fn wanting_forward() -> Action {
-        Action {
-            forward: true,
-            fire: true,
-            look_at: Some(LookAt {
-                y: None,
-                player_id: Some(Uuid::new_v4()),
-                x: None,
-                z: None,
-            }),
-            ..Action::default()
-        }
-    }
-
-    #[test]
-    fn an_agent_that_is_getting_somewhere_is_left_alone() {
-        let wanted = wanting_forward();
-        for ticks in 0..WEDGED_TICKS {
-            let action = unstick(wanted.clone(), ticks);
-            assert!(action.forward, "still trying forward at {ticks}");
-            assert!(!action.left && !action.right && !action.back);
-        }
-    }
-
-    #[test]
-    fn a_wedged_agent_cycles_through_directions() {
-        let wanted = wanting_forward();
-        let directions: Vec<(bool, bool, bool, bool)> = (0..4)
-            .map(|phase| {
-                let a = unstick(wanted.clone(), WEDGED_TICKS + phase * WEDGED_TICKS);
-                (a.forward, a.left, a.back, a.right)
-            })
-            .collect();
-        assert_eq!(
-            directions,
-            vec![
-                (true, false, false, false),
-                (false, true, false, false),
-                (false, false, true, false),
-                (false, false, false, true),
-            ],
-            "forward, left, back, right, half a second each"
-        );
-        // And it comes back round rather than giving up.
-        let a = unstick(wanted.clone(), WEDGED_TICKS + 4 * WEDGED_TICKS);
-        assert!(a.forward);
-    }
-
-    #[test]
-    fn unsticking_keeps_the_aim_and_the_trigger_discipline() {
-        let wanted = wanting_forward();
-        let freed = unstick(wanted.clone(), WEDGED_TICKS + WEDGED_TICKS);
-        assert_eq!(
-            freed.look_at.as_ref().unwrap().player_id,
-            wanted.look_at.as_ref().unwrap().player_id,
-            "it keeps looking where the policy aimed"
-        );
-        assert!(freed.fire, "and keeps shooting if the policy said to");
-        let holding = Action {
-            fire: false,
-            ..wanting_forward()
-        };
-        assert!(
-            !unstick(holding, WEDGED_TICKS * 3).fire,
-            "and holds fire if the policy said to"
-        );
     }
 }
 

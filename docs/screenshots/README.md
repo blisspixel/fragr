@@ -27,6 +27,26 @@ strip reduction. Intermediates live in
 OpenGL compatibility is the tour default. This is renderer evidence on the
 recorded host, not a GPU vendor certification or a load benchmark.
 
+For a separate live movement check, run:
+
+```bash
+FRAGR_QA_BOTS=0 FRAGR_QA_NO_ROUND_EVENTS=1 FRAGR_QA_MANIFEST=res://qa/movement.json tools/qa_tour.sh .agents/qa/movement
+```
+
+It sends a sub-frame Space tap and walks ordinary inputs up/down the Arena Duel
+stairs and off a ledge. The manifest records server feet and camera height;
+`jump_peak.png` captures the actual hop. Timed round events are explicitly disabled
+so a boss cannot kill the test player halfway through the route. This is a
+movement check, not a combat playtest. Do not use `--publish` with this manifest.
+
+Use `res://qa/weapons.json` with the same zero-bot practice settings for close
+walking strips of every viewmodel. Their base must remain below the screen
+through the whole stride. Use `FRAGR_QA_MAP=2` through `6` with
+`FRAGR_QA_MANIFEST=res://qa/roster.json` for alternate-map overview, fighter eyes,
+and a human joining/firing in live bot combat. `FRAGR_QA_SOLO_BROADCAST=1` selects
+Episode 0; do not combine it with quiet practice. These alternate manifests do
+not publish the README gallery. Record actual states and inspect the captures.
+
 The current arena pass uses authored pixel-grid materials and industrial scenery.
 First-person views retain normal fighter scale; optional broadcast views keep
 their distant silhouette boost. These are current playable visuals, not evidence

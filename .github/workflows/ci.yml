@@ -46,6 +46,22 @@ jobs:
       - name: Agent playtest smoke
         run: cargo run -p fragr-playtest --locked -- --agents 4 --rounds 1 --frag-limit 3 --time-limit-seconds 45 --assert --report .agents/playtest/ci.json
 
+      - name: Mixed-client map roster
+        run: bash tools/playtest_roster.sh
+
+      - name: Preserve playtest evidence
+        if: always()
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: playtest-reports
+          path: |
+            .agents/playtest/ci.json
+            .agents/playtest/roster/*.json
+            .agents/playtest/roster/*.log
+          include-hidden-files: true
+          retention-days: 7
+          if-no-files-found: warn
+
       - name: Check code coverage
         run: cargo llvm-cov --workspace --locked --fail-under-lines 90
 

@@ -90,6 +90,10 @@ World-point aim:
 - `left` / `right`: Strafe left/right
 - `turn_left` / `turn_right`: Rotate view left/right (incremental)
 - `fire`: Fire weapon
+- `jump`: Jump while grounded. The held value remains active until released;
+  a press followed by release before the next tick is retained for that tick.
+  The retained press is consumed once, including while airborne or dead, so it
+  cannot create delayed jumps. Holding jump does not add thrust in the air.
 - `weapon_swap`: (optional) Switch to weapon type: `"flechette"` | `"rail"` | `"scatter"`. The newest explicit choice is retained across input packets until a simulation tick consumes it once. A later packet without this field does not cancel an unconsumed choice.
 - `look_at`: (optional) Authoritative target aim. Prefer `player_id` (UUID string),
   or both `x` and `z` with optional world `y`. A player target aims at the body
@@ -103,8 +107,8 @@ World-point aim:
 - `seq`: (optional) Input sequence number. The server acknowledges the newest sequence it applied for this fighter in an `ack` message every tick. Clients that do not predict may omit it.
 
 **Notes:**
-- Actions are **level-held (sticky)** within each server tick window, not edge-triggered
-- Each Action message overwrites the previous pending action state
+- Continuous action fields use the latest held value. Weapon selection and a
+  jump press survive intervening packets until one tick consumes them.
 - All `true` fields are applied together on the next server tick
 - Movement keys combine (e.g., forward + left = diagonal)
 - `look_at` is applied after movement/turn so agents can strafe while locking aim

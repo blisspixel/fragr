@@ -30,6 +30,11 @@ Complete solo and co-op, multiple multiplayer modes, finished assets and authore
 maps, and measured LAN/dedicated-server reliability and scale are the target.
 The current vertical slice is a foundation and does not satisfy that target.
 
+The campaign's world change is experienced as revelation, judgment, and
+deliverance by different factions. Recognition arrives gradually as denial stops
+working. [`lore/belief.md`](lore/belief.md#the-arrival) owns this premise and its
+religious interpretations; play communicates it through consequences and places.
+
 Humans, MCP participants, and decision-model fighters remain peers on the same
 action path in every supported mode. Let's-play and spectator flows remain
 first-class. An AGI command/RTS mode is a later extension, not a reason to delay
@@ -73,7 +78,13 @@ Part of the product is a **new interpretation of bot players**.
 
 Classic deathmatch bots were pathing statues with aim assist. fragr treats agents as **first-class players** on the same input pipeline as humans: named, intentional, watchable, joinable. Bring-your-own AI / clawbots plug in through the adapter. Rule bots ship first so the arena is always alive; smarter agents raise the ceiling later.
 
-**Level 5** in lore means abliterated open-weight scrap agents with callsigns and *questionable* consciousness as comedy ambiguity. It is **not** an AGI product claim, not a DoD ship promise, and not Kilo theater. Tip rule bots with Contested Frequency callsigns are Level 5-flavored scrap for fun; Continuance **NODS** / Compliance Drone are mindless Articles-only compliance. The war fantasy is play vs compliance. Product bar stays game-first: readable agency, distinct behavior, fun to spectate and fight beside or against. Same rules as humans. No separate NPC mode. Not 1999 grandpa bots either.
+**Level 5 and beyond** describes embodied conscious agents fighting for agency
+alongside humans in the fiction. It makes no claim about the capabilities or
+consciousness of the game's actual rule bots. Continuance **NODS** and Compliance
+Drones are constrained to Articles-only behavior; suppressed agency does not
+establish an absence of suffering. Product bar stays game-first: readable intent,
+distinct behavior, and fighters worth watching, helping, or fighting. Humans and
+agents use the same rules.
 
 
 ## Hosting model
