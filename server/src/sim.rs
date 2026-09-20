@@ -672,12 +672,13 @@ impl GameState {
 
     pub fn add_player(&mut self, id: Uuid, name: String, role: Role) {
         let mut angle = (self.players.len() as f32) * (2.0 * PI / 8.0);
-        let (preferred_x, preferred_z, _, _) = spawn_on_ring(self.map, angle);
-        if self.players.iter().any(|other| {
-            other.respawn_timer.is_none()
-                && (self.round_state == RoundState::Active
-                    || (other.x - preferred_x).hypot(other.z - preferred_z) < PLAYER_RADIUS * 2.0)
-        }) {
+        // Warmup is placement for the opening fight. It needs the same cover
+        // and clearance policy as a live join, even before weapons activate.
+        if self
+            .players
+            .iter()
+            .any(|other| other.respawn_timer.is_none())
+        {
             angle = self.select_spawn_angle(id);
         }
         let (sx, sz, yaw, floor) = spawn_on_ring(self.map, angle);

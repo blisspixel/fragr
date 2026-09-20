@@ -743,6 +743,13 @@ pub fn compute_report(obs: &Observation, agents: usize) -> Report {
                 victim_report.deaths += 1;
                 if let Some(spawned) = last_spawn.get(victim) {
                     if timed.tick.saturating_sub(*spawned) <= SPAWN_DEATH_WINDOW_TICKS {
+                        tracing::warn!(
+                            spawn_tick = spawned,
+                            death_tick = timed.tick,
+                            killer,
+                            victim,
+                            "spawn death evidence"
+                        );
                         victim_report.spawn_deaths += 1;
                         spawn_deaths += 1;
                     }
