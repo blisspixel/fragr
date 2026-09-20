@@ -1,14 +1,14 @@
 # Enclosed and layered campaign spaces
 
-**Status:** in progress, 2026-09-19. Finite-volume movement, layered routes and
-geometry compatibility are under local verification. No enclosed mission ships.
+**Status:** locally verified, 2026-09-19. Finite-volume movement, layered routes
+and geometry compatibility are ready for integration. No enclosed mission ships.
 **Goal:** support the intake hall, service stairs and records balcony in
 [M01](../campaign/m01-recall-notice.md) without fake ceilings or blocked space
 beneath upper floors. Spend: $0. No new dependency or renderer.
 
-## Current constraint
+## Original constraint
 
-The shipped `movement::Solid` stores an XZ footprint and `top`; every solid fills the volume
+Before this change, `movement::Solid` stored an XZ footprint and `top`; every solid filled the volume
 from ground to that top. `combat::Ray::solid` uses the same ground assumption.
 `navigation::Navigation` stores one height per grid cell, and `arena_cover.gd`
 renders the corresponding ground-filled boxes. This is coherent for the existing
@@ -93,19 +93,22 @@ before replacement. Invalid or unreadable maps stop controllers and close client
 sessions instead of allowing stale-world navigation. Existing legacy map bytes
 and supported sessions remain compatible.
 
-Local verification passes 620 Rust tests, warnings-denied Clippy and 18 Godot
-harnesses. Unfiltered workspace coverage after the malformed-JSON fix reports
-95.66 percent of lines. Review then found a remaining scripted-adapter path:
+Local verification passes 622 Rust tests, warnings-denied Clippy and 18 Godot
+harnesses. Unfiltered workspace coverage reports 95.63 percent of lines.
+Review found a remaining scripted-adapter path:
 it ignored maps, unwrapped a rejected Welcome, and restarted its action timer
 whenever a snapshot arrived. It now validates geometry, uses the shared navigator
 and keeps an independent action clock. Two added socket tests pass for rejection,
 raised geometry, continuous incoming traffic and malformed replacement. Final
-workspace verification after this controller fix remains pending.
+workspace coverage/tests, release build and dependency policy checks pass after
+this controller fix. A 25-second loopback smoke on Compliance Yard produced two
+scripted-agent frags and one death against four local bots.
 
 The active-frame fixture renders 250 recorded frames in OpenGL compatibility
-and Vulkan Forward+ on Windows with an AMD Radeon 780M. Fifteen samples from
-each path, including the underpass, ordinary stairs, upper exit, head contact and
-underside shot, were inspected. Captures: `.agents/qa/enclosed-{opengl,vulkan}`.
+and Vulkan Forward+ on Windows with an AMD Radeon 780M. Thirty samples per path
+cover the underpass, ordinary stairs, upper exit, head contact and underside shot.
+Contact sheets and full-size critical views were inspected, including the exact
+head-contact apex at frame 220. Captures: `.agents/qa/enclosed-{opengl,vulkan}`.
 This is a replay of authoritative active-frame output, not a live network test,
 finished level, frame-rate benchmark or cross-vendor certification. The room
 exposes repetitive materials that need authored variation in M01.
@@ -133,8 +136,11 @@ CPU comparison after the active-frame extraction, seed 42, 12,000 ticks:
 | 128 / Tripoint Works | 4.063 | 6.576 | yes |
 
 Reports: `.agents/bench/enclosed-{16,64,128}.json`. Each run also passes its own
-repeat-trace determinism and performance gate. The six-map network roster, full
-verification, inspected current tour and CI remain before integration.
+repeat-trace determinism and performance gate. The six-map mixed-client network
+roster passes with 2/6/6/8/12/16 external clients. Reports live under
+`.agents/playtest/enclosed/`. The 21-state tour passes, and its contact sheet,
+first-person view and both effect strips were inspected before publishing the
+current stills. CI remains before integration.
 
 No built-in map exposes raised slabs yet. External map data, explicit indoor
 spawns and full live M01 routes follow this foundation. The ring-spawn policy and

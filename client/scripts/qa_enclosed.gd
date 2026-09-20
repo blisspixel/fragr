@@ -113,7 +113,8 @@ func _run() -> void:
 			return
 		var last_in_phase: bool = index + 1 == frames.size() or frames[index + 1]["phase"] != phase
 		var stride: int = 2 if phase == "head_contact" else 30
-		if phase_index % stride == 0 or last_in_phase or not frame["shots"].is_empty():
+		var head_strike: bool = phase == "head_contact" and phase_index < 3
+		if head_strike or phase_index % stride == 0 or last_in_phase or not frame["shots"].is_empty():
 			var picture: Image = root.get_texture().get_image()
 			var name: String = "%04d_%s.png" % [index, phase]
 			if picture == null or picture.save_png(_out.path_join(name)) != OK:
