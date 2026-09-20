@@ -66,6 +66,12 @@ tour passes, with the contact sheet inspected and nine stills refreshed at
 `.agents/qa/navigation-ci-fix/`. Earlier renderer and native-pointer evidence
 below predates this navigation/spawn follow-up; no client code changed here.
 
+Four additional wire runs on the final executable also pass: Directive 17 seeds
+19/7 (27/23 frags, 0/1 spawn deaths) and Reclamation Gulch seeds 42/67 (42/55
+frags, 4/4 spawn deaths). The four-client CI smoke passes with eight frags and no
+spawn deaths. Receipts: `.agents/playtest/navigation-ci-repeat-*.json` and
+`navigation-ci-smoke.json`. All failures and assertion thresholds are retained.
+
 ## Problem and scope
 
 Map reachability tests prove that routes exist, but controllers do not follow

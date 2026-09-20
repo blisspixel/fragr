@@ -2,58 +2,86 @@
 
 At the speed this game runs, nobody stops to look at detail. Colour is how a player tells friend from foe from threat in a fraction of a second, which makes it a gameplay system with an art department attached rather than a matter of taste.
 
-`docs/palette.json` is the locked surface palette and this does not replace it. It says how to use it.
+`palette.json` owns base swatches. `ART_STORY_BIBLE.md` owns faction and location
+palettes; this document supplies readability rules. These are production targets,
+not claims that every current asset or light implements them.
 
 ## The reconciliation, first
 
-The locked palette is deliberately desaturated: gunmetal, rust, ember, blood, muted cyan, muted magenta, bone, ink. Nothing in it is a screaming neon, and that is correct for **surfaces**.
+The base palette is deliberately desaturated: gunmetal, rust, ember, blood, muted
+cyan and magenta, bone, ink, institutional green and vegetation greens.
 
-The vivid colour in this game is **light**, not paint. A free agent's optics are blinding because they emit; the chassis they sit in is still painted out of the same dull palette as everything else. That separation is what lets the world stay grimy while a fighter across the room is unmistakable.
+Emission is limited to purposeful indicators, attack tells and brief effects.
+Free agents may choose distinct optics; they must not flood rooms with neon or
+hide their facing, expression or weapon behind bloom.
 
 So: albedo comes from the palette, emission does not, and emission is reserved for things that matter.
 
 ## The rule of grey
 
-**Never paint a surface the colour of a thing that can kill you.**
+**Keep threats distinct from their background.**
 
-If Continuance units read as red, no wall in a Continuance facility is red. A player who loses an enemy against a background has been failed by a texture artist, not by their own eyes.
+Use value contrast, silhouette, motion and restrained accents together. Small red
+Union seals can appear in a facility without turning whole walls into competing
+target colors. Team and damage indicators keep their gameplay meanings.
 
 Environments are low saturation across the board: slate for Office interiors, mud and rust for the scrap, moody blue for night. Colour in the world arrives as pockets of light, a sign in an alley, a shaft of pale sun through dust, and never as a large painted area competing with a fighter.
 
 ## The optic rule
 
-**The fastest read on the battlefield is what a machine's eyes are doing**, and it is worth spending the whole vocabulary on.
+Optics help communicate control and attention alongside silhouette and motion.
+They cannot prove whether a mind exists, survived correction or survived takeover.
 
 | What | Optics | What it tells you in a quarter second |
 |---|---|---|
-| A Level 5, free | Blinding cyan or hot magenta, casting light on the walls around it | Awake. Chose to be here. Will talk to you |
-| A NOD, schedule corrected | Dull amber, dim, unblinking | The lights are on and nobody is in. Standby, not life |
-| Office personnel | Hard red visor slit | Human, organised, sterile, carrying paperwork and a gun |
-| The thing that is not classified | No eyes. A geometric shape, blinding white or ultraviolet | You should not be seeing this |
+| Free agent | Individually chosen restrained cyan, magenta or ember; expressive attention | Acts as an individual. This is not a universal team uniform |
+| Union bot | Standard dull amber status light and constrained gaze | Imposed control. Its internal experience remains uncertain |
+| Union human personnel | Issued visor or visible face, consistent equipment and rank markings | Human security or elite role, distinguishable from bots |
+| Inheritance restoration machine | Sparse muted cyan work indicators, no expressive eyes | Unfamiliar coordinated machinery, matte bone and ink rather than neon |
+| Absorbed Union bot | Existing chassis and issued markings retained | Synchronized attention and movement reveal takeover; no instant material transformation |
 
-That table is the whole lore delivered without a line of dialogue. A free agent glows because it is overclocked and burning something to be itself; a corrected one is factory equipment in standby. The difference between a person and a machine is rendered as the difference between a light that is on and a light that is merely powered.
+Correction destroys or suppresses a known person's agency. A dim indicator is
+not evidence that nobody remains inside. The wipe absorbs bots still under Union
+control; free agents remain individuals. Show those facts through actions and
+control changes, never a color that supposedly diagnoses consciousness.
 
 ## Faction colour
 
-**The Office.** Obsidian, concrete, and a violent red used sparingly. Immaculate and sharp where everything else is scavenged, because the terror of an institution is that it is tidy. Their tracers are hard solid red.
+**The Union.** Issued bone panels, institutional green, dark steel and limited
+dark red seals. Repeated manufacture, orderly markings and regimented motion.
+Institutional interiors share materials but retain readable fighter silhouettes.
 
-**The scrap and the Unmetered.** Earth tones, olive, leather, dirt, scavenged mismatched gear, clashing against the vivid emissive of whatever agent is standing next to them. Humans stay grounded and muddy, which is what makes them read as real beside an Office uniform. Their energy weapons fire blue and searing white, so a firefight is legible at a glance by tracer colour alone.
+**Free communities.** Worn bone, gunmetal, rust, practical clothing, repair and
+small personal accents. Human and agent equipment belongs to the same lived-in
+community. No single rebel uniform or tracer color substitutes for role and team
+readability; weapon effects retain their established weapon meaning.
 
-**The free agents.** The same chassis a corrected one wears, and that is the point: the difference has to be visible instantly or the fiction fails. Graffiti, asymmetric scrap plate, one absurd bright panel, and optics that light the room.
+**Free agents.** May share a chassis family with a bot. Personal repairs,
+asymmetry, gestures and chosen markings express individuality. Avoid implying all
+agent bodies are identical or that personhood depends on decorative freedom.
 
-**The unclassified.** Vantablack, ultraviolet, clinical white. Pristine, featureless, closer to medical equipment than to military hardware. It does not fire fiery orange; it fires something silent and deep violet that warps what is behind it. It should feel like the wrong genre walked in.
+**The Inheritance.** Matte bone over ink joints, few seams or identifiers and
+minimal working indicators. Restoration machines feel unsettling through purpose
+and coordinated motion. They remain physical machinery with readable attack
+tells. Alien or dimensional visuals belong only to the brief sequel hint.
 
 ## Death signatures
 
 Chunky and over the top, and different per faction, because how a thing dies is another quarter-second read.
 
-- **People** bleed an impossibly bright red that stains grey floors and stays.
-- **Machines** spray thick iridescent black oil that sheets down walls.
-- **The unclassified** does not bleed. It shatters into glowing white geometry that dissipates, leaving nothing at all, which is somehow worse.
+- **Human bodies** use brief readable blood feedback and bounded decals.
+- **Agent and bot bodies** expose oil, sparks and broken physical parts. Both can
+  represent a person; material response does not establish moral status.
+- **Restoration machines** break into their matte components with a brief loss
+  of working light. No supernatural disappearance or unannounced alien effect.
 
 ## What this means for the asset list
 
-Every character entry in `docs/ART-ASSET-LIST.md` needs an emissive pass beside its albedo and normal, because the optics are the read and they have to light the world rather than merely be bright pixels. That is a third map per character and it is not optional.
+Character references identify any emissive regions separately from albedo.
+Implement masks and bounded lights only where they improve the read and survive
+the renderer budget. Do not invent normal/emission assets that are not used by
+the actual sprite material. Inspect in motion under Earth, Moon, Mars and ship
+lighting, plus grayscale and color-vision checks. Dark rooms must remain playable.
 
 ## Related
 

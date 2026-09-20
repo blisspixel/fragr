@@ -54,6 +54,12 @@ recordings and explicit CPU/serialization accounting. Its contract lives in
 [`BENCHMARK.md`](BENCHMARK.md). A rendered GPU benchmark, authored world art, and
 campaign encounters remain open; headless numbers do not establish them.
 
+The [GPU bot evaluation](plans/gpu-bot-compute.md) investigates portable Rust
+compute for batched perception and optional local inference. Profile and measure
+total latency, transfer cost and contention with rendering before adoption.
+CPU-only hosting remains supported. This is planned work, separate from the
+rendered benchmark and from remote decision-model calls.
+
 The [arena surface pass](plans/arena-surface-pass.md) shipped in v0.17.0: authored pixel
 materials, clearer industrial structure, scenery outside the playable boundary,
 and normal fighter scale in eye views. This preserves server-owned collision and
@@ -78,8 +84,9 @@ exits, anchored moving weapons, and occupied spawn avoidance. Actual server
 traversal and mixed-role session checks cover all six maps; separate first-person
 tours inspect movement and weapons. The expanded network matrix caught crowded
 join failures and now runs in CI. The first GitHub run additionally found a map-3
-planner stall and map-5 spawn-death failure despite the local pass. Integration
-and release remain pending root-cause fixes; do not report all checks green.
+planner stall and map-5 spawn-death failure despite the local pass. Deterministic
+regressions now reproduce both failures; route recovery and cover-aware spawns
+pass local verification. Integration and release await the new CI run.
 
 The phases below are the long shape. This is the remaining build order, with the reason each item sits where it does.
 
@@ -116,7 +123,10 @@ where muzzle registration depends on them.
 **4. Animation, tested once.** Verify current image-to-video availability, price, quota and clip suitability
 before a capped trial; old per-clip estimates are not a current spending quote. One test converting an enemy still into a walk cycle answers whether the sprite-sheet route works at all. If it does, it unlocks the entire animation column of the asset list; if it does not, that column needs a different plan and it is better to know now.
 
-**5. Two palette ramps that do not exist.** No institutional green for issued hardware, no off-white for the unmarked machines. Two of the three factions are currently borrowing colours from the other one, which undercuts the whole read-the-faction-by-colour design. A colour decision for `ART-COLOR.md`, not a tooling one.
+**5. Apply the faction and location palette.** `ART_STORY_BIBLE.md` and
+`palette.json` now define institutional green, bone restoration machines and
+vegetation ramps. Build and inspect consistent asset sets under each location's
+light. Those authoring decisions have not recolored the live roster.
 
 **6. Maps: the rest of what the roster needs.** Six maps from 110 m to 320 m exist, with heightfield movement, shared golden vectors, spawn validation, and reachability tests. True 3D hitscan shipped in v0.19.0. The current [navigation pass](plans/height-aware-navigation.md) adds shared walking routes and repairs the collision trap at deck exits. Remaining work from `plans/map-roster-2026.md`: three-cornered teams, zones and end conditions; permeable floors; lifts, jump pads and doors; and authored encounters.
 

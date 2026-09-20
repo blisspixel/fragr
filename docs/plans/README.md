@@ -17,6 +17,7 @@ Status words: **planned**, **in flight**, **shipped** (merged to `main`, PR numb
 
 | Plan | Status | One-liner |
 |---|---|---|
+| [`gpu-bot-compute.md`](./gpu-bot-compute.md) | **planned** | Portable optional GPU perception/inference, measured against CPU queries with rendering contention and fallback. |
 | [`audio-effects-refresh.md`](./audio-effects-refresh.md) | **in flight** | Distinct weapon, movement, impact and world sounds; capped candidates and in-game mix verification. |
 | [`radio-refresh.md`](./radio-refresh.md) | **in flight** | Two fictional talk formats and world-appropriate music; staged pilots, captions and distribution review. |
 | [`campaign-scenes.md`](./campaign-scenes.md) | **planned** | Skippable localized opening and short pixel-style scenes; matched reference shots before video spend. |

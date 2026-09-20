@@ -45,6 +45,10 @@ Fast simulation and intelligent decisions are different measurements.
 
 ## Trustworthy evaluation
 
+Optional GPU simulation or policy inference follows the
+[portable compute evaluation](gpu-bot-compute.md). Report backend, model and
+hardware budgets; faster execution does not establish stronger capabilities.
+
 Version scenarios, rules, agents, tools and scoring. Record deterministic seeds,
 events, actions, information available at each decision, and environment/build
 identity so results can be replayed and audited. Protect held-out material from

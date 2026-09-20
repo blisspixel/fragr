@@ -2,10 +2,10 @@
 
 **Working name:** fragr 
 **Owner GitHub:** blisspixel (Nick Seal) - personal only; stay out of work accounts 
-**Spend:** $0 assumed for this draft and for Slice 1. Hard cap $50 total if/when Chief/Nick approve spend. 
+**Spend:** $0 assumed for this draft and for Slice 1. Hard cap $50 total with Nick's approval before spending.
 **Status:** Living decision record. Sections 1 to 6 describe Slice 1 as it was designed (September 2026) and are kept as history; the decision log at the end is current and `ROADMAP.md` carries sequencing.
 
-> **Buildy cut (2026-09-17):** Rust remains Slice 1 authority (not Godot HLMP listen-server). Adopt fun DoD from research: spectator-default, same-match join/leave, target >=4 rule bots, killfeed + follow/free cam, MCP off the combat tick (control plane only), local $0 then public self-host under $50 with spend ACK (Tailscale private/dev smoke only). WS JSON for this slice; UDP/renet is the next net spike. Full research: held by Buildy; QUALITY HOLD/THROW applied.
+> **Slice 1 decision (2026-09-17):** Rust remains authoritative. The local bar is spectator-default, same-match join/leave, at least four rule bots, killfeed and follow/free cameras, with MCP off the combat tick. Local play costs $0; public hosting requires approval within the $50 cap. Tailscale is for private development smoke tests. WebSocket JSON is the initial transport; UDP remains a measured follow-up.
 
 
 ---

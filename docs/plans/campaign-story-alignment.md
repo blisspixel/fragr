@@ -92,7 +92,13 @@ pass. The refined logo was visually inspected and retains the bone wordmark and
 signal while removing the broadcast badge. PNG metadata cleanup preserved image
 data. No campaign playtest or completed character animation is claimed.
 
-Navigation PR #172 is a separate unfinished integration. CI run 35478232410 failed
-its mixed-client roster: map 3 had a 19-second planner stall and map 5 exceeded the
-spawn-death bound. Windows/macOS portability, Godot, and audit jobs passed.
-Preserve these findings and fix their causes before merging or releasing that PR.
+The final consistency pass also updates `ART-COLOR.md`: optics signal control
+and attention, not proof that a corrected body is empty. Its faction materials
+now match the art bible, including restrained Inheritance indicators and the
+unchanged bodies of absorbed Union bots. Palette loading and 356 relative link
+destinations across 62 changed Markdown files pass; the new compute plan's local
+links were checked separately. These checks do not replace semantic review.
+
+Navigation PR #172 is a separate integration. Its first CI run failed map-3
+stalls and map-5 spawn deaths; deterministic regressions and fixes now pass the
+local matrix and four additional targeted runs. The new CI run is pending.
