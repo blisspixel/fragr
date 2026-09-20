@@ -25,7 +25,7 @@ Status words: **planned**, **in flight**, **shipped** (merged to `main`, PR numb
 | [`inheritance-benchmark.md`](./inheritance-benchmark.md) | **later** | Research-grade agent strategy/wipe simulation; controlled budgets, held-out tasks, replay and validated capability claims. |
 | [`campaign-story-alignment.md`](./campaign-story-alignment.md) | **in flight** | Reconcile world canon, research, twelve-mission treatment, sudden wipe/aftermath and production plan. |
 | [`authored-compliance-yard.md`](./authored-compliance-yard.md) | **deferred** | Arena spatial study. Settle the campaign story with Nick before selecting or planning its opening map. |
-| [`height-aware-navigation.md`](./height-aware-navigation.md) | **in flight** | Shared bounded routes around cover and up stairs, proven by real controller movement. |
+| [`height-aware-navigation.md`](./height-aware-navigation.md) | **proven** (#172, v0.21.0) | Shared routes, stair/jump and ledge recovery, covered spawns, weapon anchoring and pointer lifecycle. |
 | [`shot-impact-feedback.md`](./shot-impact-feedback.md) | **proven** (#171, v0.20.0) | Authoritative world impacts and rail traces, with complete combat accounting. |
 | [`vertical-aim.md`](./vertical-aim.md) | **proven** (#170, v0.19.0) | True vertical combat, three-dimensional cover, and matching spectator eye views. |
 | [`asset-request-recovery.md`](./asset-request-recovery.md) | **proven** (#169) | Durable request recovery and authenticated-origin checks before more paid art generation. |

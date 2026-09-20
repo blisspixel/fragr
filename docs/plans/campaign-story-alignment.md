@@ -99,6 +99,6 @@ unchanged bodies of absorbed Union bots. Palette loading and 356 relative link
 destinations across 62 changed Markdown files pass; the new compute plan's local
 links were checked separately. These checks do not replace semantic review.
 
-Navigation PR #172 is a separate integration. Its first CI run failed map-3
-stalls and map-5 spawn deaths; deterministic regressions and fixes now pass the
-local matrix and four additional targeted runs. The new CI run is pending.
+Navigation PR #172 shipped separately in v0.21.0 after all CI jobs passed. Its
+first CI run failed map-3 stalls and map-5 spawn deaths; deterministic regressions
+and fixes pass the local and Linux matrices plus four targeted local repeats.

@@ -78,15 +78,15 @@ and consistent animation production remain separate work.
 to authoritative hits and cover, agent targets, and spectator views.
 [Shot impacts](plans/shot-impact-feedback.md), shipped in v0.20.0, add world
 feedback and repair combat accounting when fighters trade kills in one tick.
-The [navigation pass](plans/height-aware-navigation.md) is locally verified:
+The [navigation pass](plans/height-aware-navigation.md) shipped in v0.21.0:
 shared routes, reliable jump taps, repaired stair entrances and grounding, ledge
 exits, anchored moving weapons, and occupied spawn avoidance. Actual server
 traversal and mixed-role session checks cover all six maps; separate first-person
 tours inspect movement and weapons. The expanded network matrix caught crowded
 join failures and now runs in CI. The first GitHub run additionally found a map-3
 planner stall and map-5 spawn-death failure despite the local pass. Deterministic
-regressions now reproduce both failures; route recovery and cover-aware spawns
-pass local verification. Integration and release await the new CI run.
+regressions reproduce both failures; route recovery and cover-aware spawns pass
+local verification and the final Linux matrix. Every CI job passed before merge.
 
 The phases below are the long shape. This is the remaining build order, with the reason each item sits where it does.
 

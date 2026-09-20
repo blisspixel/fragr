@@ -20,9 +20,9 @@ an explicit approved cap, and the existing developer pipelines.
 | Co-op | Multiple fighters can connect | Teams, revive/wipe, mission joins, shared objective state, save ownership and reconnect |
 | Presentation | Retro front end, current HUD, radio and idle viewmodels | Localized framing, companion scenes, complete character/weapon/effect motion |
 
-Navigation PR #172 now includes regressions and fixes for the first GitHub
-run's map-3 stall and map-5 spawn-death failures. Local checks pass; integration
-awaits the new CI run. This plan does not call the milestone shipped yet.
+Navigation PR #172 shipped in v0.21.0 after local verification and green CI,
+including fixes for the first run's map-3 stall and map-5 spawn-death failures.
+These are existing arena traversal improvements, not a completed campaign map.
 
 ## Milestones
 

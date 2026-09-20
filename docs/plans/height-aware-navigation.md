@@ -1,9 +1,16 @@
 # Height-aware fighter navigation
 
-Status: implemented and locally verified, 2026-09-19. GitHub integration pending.
+Status: shipped and proven in #172 and v0.21.0, 2026-09-19.
 Branch: `feat/height-aware-navigation`. Spend: $0.
 
 ## Integration follow-up
+
+Merged as `c8e52ba` after [CI run 35483531954](https://github.com/blisspixel/fragr/actions/runs/35483531954)
+passed every Linux, Windows, macOS, Godot and audit job. The retained Linux map
+matrix records 6/32/26/28/47/71 frags and 1/2/1/1/3/6 spawn deaths for maps 1-6;
+the longest stationary interval is 0.40 seconds. The reports are retained locally
+under `.agents/playtest/ci-35483531954/`. The history below records the failures
+that led to the final fixes.
 
 CI run 35478232410 failed the six-map wire matrix: Directive 17 seed 19 had a
 planner stationary for 19 seconds at (17.7, 44.3); Reclamation Gulch seed 42 had
