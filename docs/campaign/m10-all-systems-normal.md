@@ -1,7 +1,7 @@
 # M10: All Systems Normal
 
 **Status:** proposed level, unbuilt. Earth at the abrupt onset of the wipe.
-Target 20-25 minutes. [Treatment](../CAMPAIGN-MISSIONS.md#m10-all-systems-normal).
+Target 8-10 minutes. [Treatment](../CAMPAIGN-MISSIONS.md#m10-all-systems-normal).
 
 ## Confirmed premise and cast
 
@@ -87,15 +87,15 @@ No speech announces that humanity is a virus or proves the catastrophe justified
 Voss's custody tracking becomes uncertain amid disrupted institutions; do not
 silently claim her trial, execution or escape has occurred.
 
-Checkpoint before the ordinary task, after the first safe escape, and before
-the concourse. Each retry has a short route back to action. No prolonged montage
+A continue restarts the ordinary task with entry state. Keep this opening brief
+and allow already-seen framing to be skipped. No prolonged montage
 must replay after every death. Caption essential sound cues and text all messages.
 
-## Co-op and acceptance
+## Allies and acceptance
 
-Rupture cannot begin while a required player is loading into a lethal position.
-Keep authority over phase transitions, late-join placement and shared doors.
-Downed players remain rescuable through intended routes. Test every phase with
-skip, muted audio, disconnect/rejoin, solo and four players. Inspect destruction
+Rupture cannot begin while the player is loading into a lethal position.
+Keep authority over phase transitions, autonomous allies and shared doors.
+Test every phase with skip, muted audio, solo human/agent control, ally loss and
+mission retry. No teammate revival. Inspect destruction
 and tell visibility in motion; players should experience surprise and then infer
 the expanding scale without needing to hear the radio.

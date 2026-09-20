@@ -14,7 +14,6 @@ choices, not recorded or shipped characters.
 | Role | Working name | Desire, friction, and arc |
 |---|---|---|
 | Player | Chosen callsign | Human or agent from the same community. Rescue a longtime friend/partner, protect home, then save people through the wipe. |
-| Resistance partner (`resistance_partner`) | Unnamed | A distinct recurring ally joins the default party before Latch's rescue. Supports the human/free-agent duo without replacing Latch or the player's reason to fight. Final identity, body variants and personal arc remain design work. |
 | Companion | Latch | Embodied agent, freed early. Wants to free other captives even at personal risk; practical, dry, capable of disagreement, and also wants to live. Shares responsibility without abandoning that conviction. |
 | Coalition organizer | Mara Venn | Human logistics worker who can request help but cannot command independent communities. Delays cost people; later coordinates real joint action and evacuation. |
 | Defecting functionary | Auditor Renn | Human who initially rationalizes custody. Competence earns limited trust; helping captives does not erase responsibility. Proposed introduction on the Moon. |
@@ -24,12 +23,12 @@ choices, not recorded or shipped characters.
 The companion is not replaced by the Host. Add a small survivor cast from the
 clinic, workshops, and custody depot. Each rescue needs a later action or a
 recognizable absence. Avoid disposable mission givers at every destination.
-NPC pathing, gestures, combat participation, and downed states remain unbuilt.
-The default duo, solo option and controller handoff follow
+NPC pathing, gestures and autonomous combat participation remain unbuilt.
+Playable viewpoints and optional allied appearances follow
 [the campaign contract](../CAMPAIGN.md#solo-co-op-agents-and-watching).
-A person, local controller or external agent changing seats cannot change an
-established character's identity or create another copy. Latch's rescue does not
-automatically add an extra combatant beyond the selected party configuration.
+There is no mandatory opening partner, companion seat handoff or revive system.
+An ally's death removes them for the mission attempt; later appearances must
+respect explicit story outcomes. A continue replays gameplay, not resurrection.
 
 ### Recurring survivor roles
 

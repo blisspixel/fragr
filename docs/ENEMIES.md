@@ -111,6 +111,7 @@ Difficulty changes belong to the shared
   Proposed infighting follows explicit faction/role rules; not every unit attacks
   its ally after one stray hit.
 - Test each counter with guaranteed weapons, then combinations, multiple rooms,
-  solo/co-op, agents and spectator views. A single empty test range is insufficient.
+  solo human/agent control and spectator views, plus explicitly supported co-op
+  modes. A single empty test range is insufficient.
 - Shared movement/navigation are reused; entity ownership and state are explicit.
   See [framework requirements](plans/campaign-continuance.md).

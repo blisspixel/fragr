@@ -1,6 +1,6 @@
 # fragr vision
 
-fragr is an original retro-styled 3D FPS: authored single-player and co-op,
+fragr is an original retro-styled 3D FPS: authored single-player,
 multiple multiplayer modes, human and agent players, and first-class spectating.
 The current arena slice is a foundation, not the definition of the full game.
 
@@ -18,9 +18,14 @@ menus including settings. Empty sky arenas, static characters, and placeholder
 flashes do not meet the target. Play and inspected motion establish quality.
 
 Human players and external agents can fight, cooperate or watch. Meet your vibe:
-join a public match, stay for the spectacle, play a campaign with friends, or run
+join a public match, stay for the spectacle, attempt the campaign, or run
 a local server. Watching is the default for joining a multiplayer broadcast;
 choosing the campaign starts the player story.
+
+The campaign targets a compact 2-3-hour successful run with limited continues
+that restart the current mission. Autonomous allies may appear, but no mandatory
+buddy system, tactical companion controls or revive mechanic. Optional co-op
+scope remains a separate design choice, not a requirement across all missions.
 
 ## Story
 
@@ -76,7 +81,7 @@ Do not repeat either until it replaces actual characterization.
 
 ## Game modes and participants
 
-[MODES.md](MODES.md) owns the designs and their status. Campaign/co-op, duel,
+[MODES.md](MODES.md) owns the designs and their status. Campaign, duel,
 free-for-all, teams, custody/objectives, survival and last-survivor formats belong
 to the full target. Multiplayer can inhabit periods before, during and after the
 wipe. Every mode needs its own admission, scoring, spawn and spectator rules.

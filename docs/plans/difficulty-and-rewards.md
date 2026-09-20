@@ -3,11 +3,12 @@
 Status: in flight, 2026-09-20. Task #197. The first increment implements explicit
 new-run difficulty selection and shared, versioned enemy timing rules to M01.
 Persistent achievements and earned cosmetics remain planned. Local work, no paid
-services. Agreed co-op rule: teammates revive downed participants; a full-party
-wipe restores the shared checkpoint. This lifecycle is not implemented yet.
+services. The campaign now targets a compact solo run with limited continues;
+spending one restores the current mission's entry state. Three per run is the
+initial balance proposal. This lifecycle is not implemented yet.
 
 This increment implements the independent new-run selection boundary. Changing
-a running mission, supply variants, checkpoint persistence
+a running mission, supply variants, campaign-run persistence
 and rewards follow the retry contract and broader balance evidence. Standard must
 retain the released timing. This first pass is not final difficulty balance.
 
@@ -60,13 +61,12 @@ rules per participant. Human and agent participants use the same tier. Extra
 objectives may become explicit challenge variants later; essential rescue and
 ending content cannot require the hardest setting.
 
-The agreed default human/free-agent duo, optional solo play and custom co-op
-rosters follow [the campaign contract](../CAMPAIGN.md#solo-co-op-agents-and-watching).
-Scale authored pressure by active combatants, not controller type. A local
-companion, second person or external agent occupying the same seat counts once.
-Controller handoff must preserve inventory, downed state and the selected tier.
-No hidden adaptation to an inferred skill score. Companion behavior and party-size
-variants remain unbuilt and require separate balance evidence.
+The [campaign contract](../CAMPAIGN.md#runs-and-continues) replaces the earlier
+default duo, revival and checkpoint plan. No tactical companion controls or
+mandatory co-op across all missions. Balance solo pressure first; autonomous allies
+must not consume required supplies or finish the player's introductory fights.
+Any later co-op variant needs separate scope and evidence. Human and software
+control use the same rules, with no hidden adaptation to an inferred skill score.
 
 ## Authority and persistence
 
@@ -77,15 +77,15 @@ versioned save/content contract. Benchmark runs pin their complete rules and
 seed independently of personal settings or unlocks.
 
 Achievements consume authoritative events with stable mission, attempt, subject
-and achievement IDs. Repeated snapshots, reconnects, checkpoint loads and replay
+and achievement IDs. Repeated snapshots, reconnects, mission restarts and replay
 must not issue duplicate rewards. Separate participant achievements from shared
 party outcomes and define eligibility before adding each achievement. Accessibility
 options, subtitles, input device and body choice never invalidate ordinary awards.
 Special difficulty or no-death challenges state their exact conditions up front.
 
 First candidates: complete Recall Notice (title), discover an authored secret
-(emblem), complete a mission with a co-op party (banner). Ship only against actual
-implemented events. Names and art need the faction/palette review. Unlock data
+(emblem), complete the campaign within its continue allowance (banner). Ship only
+against actual implemented events. Names and art need the faction/palette review. Unlock data
 must be bounded, versioned and saved atomically through the campaign/profile
 persistence seam. Local records are editable local progress, not proof of a
 globally verified competitive achievement. Accounts and platform integrations
@@ -94,8 +94,9 @@ are separate later work.
 ## Completion evidence
 
 - [x] Typed profiles, validated selection and shared human/agent wire state.
-- [ ] M01 solo and one-to-four-player balance evidence on all tiers, including
-  misses, deaths, drop-in/out and scarce supplies. No softlock without secrets.
+- [ ] M01 solo balance evidence on all tiers, including misses, deaths, continues
+  and scarce supplies. No softlock without secrets. Preserve existing mixed-client
+  regressions without requiring full co-op authoring for every future mission.
 - [ ] Idempotent awards and retry/reconnect/save corruption regressions.
 - [ ] Retro selector and reward/customization screens inspected in motion;
   localization, keyboard/controller and settings cancellation verified.
@@ -145,11 +146,13 @@ log. Local reproduction confirms the false negative; a large successful log also
 reproduces a false failure in the actual verifier. The repair feeds captured logs
 directly to the matcher, retains exit/error/PASS requirements, and adds large-output
 success and error fixtures. [GNU grep's usage guidance](https://www.gnu.org/software/grep/manual/html_node/Usage.html)
-documents this early-exit interaction (checked 2026-09-20). Verification and final
-integration evidence belong on #198 before release.
+documents this early-exit interaction (checked 2026-09-20). All ten verifier fault
+scenarios and 27 local Godot harnesses pass. CI run 35536139881 at code head
+`55405ac` passes all five jobs, including Linux Godot and Windows/macOS portability.
+The PR remains open; these results are not merge or release evidence.
 
-These checks establish the implementation and reachable mission, not human
-balance or final co-op difficulty. Missed shots, unfamiliar players, scarce supply
-margins and one-to-four-player balance still need dedicated acceptance. No
-achievement, persistence, reward, checkpoint or final-art claim follows from this
-increment. Integration and remaining work stay on #197.
+These checks establish the implementation and reachable mission, not final human
+balance. Missed shots, unfamiliar players, scarce supply margins and the new
+limited-continue run need dedicated acceptance. Any future co-op variant requires
+its own evidence. No achievement, persistence, reward, run-recovery or final-art
+claim follows from this increment. Integration and remaining work stay on #197.

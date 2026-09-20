@@ -122,7 +122,7 @@ a real join race: broadcasts could overtake initial geometry. The fix shipped in
 #189 and v0.27.1, gating broadcasts until each connection's initial map is queued.
 Local regressions, mixed-map sessions, inspected gallery and all five pre-merge CI
 jobs pass. One intermittent gallery exit error remains recorded in
-the plan without a claimed fix. Checkpoints,
+the plan without a claimed fix. Run recovery,
 full encounter population and finished art remain. This
 foundation is not a finished campaign or proven co-op balance.
 
@@ -148,14 +148,16 @@ records wing into reception, stacks, bypass, sorting and dispatch with twenty
 preplaced guards and finite campaign stock. The records-wing increment in #196
 passes full rendered OpenGL/Vulkan routes with twenty named defeats and departure,
 plus deterministic encounter/sightline checks and the six-map network roster.
-This remains a development mission. Checkpoints, persistence, final art and
+This remains a development mission. Limited continues, persistence, final art and
 fresh-player acceptance remain open. The requested shared level kits, distinct
 enemy combinations and difficulty/achievement cosmetics have homes in
 `MAP-DESIGN.md`, `ENEMIES.md` and `plans/difficulty-and-rewards.md`.
-The agreed next co-op design defaults to a human/free-agent duo with a recurring
-resistance partner before Latch's M02 rescue; solo and custom co-op stay available.
-Local companion control, human/external-agent seat handoff, teammate revival and
-full-party checkpoint restore remain planned under the campaign contract and #195.
+The current campaign contract targets a 2-3-hour successful solo run across twelve
+compact missions. Death can spend a limited continue to restart the current
+mission with its starting equipment; three continues per run is the initial
+balance proposal. No mandatory duo, companion controls, revival or all-mission
+co-op. Autonomous allies and mission-specific viewpoints are design options.
+Run recovery and save behavior remain unbuilt under #195.
 
 The phases below are the long shape. This is the remaining build order, with the reason each item sits where it does.
 
@@ -209,7 +211,7 @@ light. Those authoring decisions have not recolored the live roster.
 **6b. A lighting pass.** A cover block's shadowed face is very dark up close, which in first person fills most of the frame. The ambient tint is doing all the work and there is no fill. Cheap, and it is now the worst-looking thing in the game.
 
 **7. Full campaign foundation and M01.** `plans/campaign-build-order.md` sequences
-validated map data, inventory/ammo, real enemy roles, interaction, checkpoints,
+validated map data, inventory/ammo, real enemy roles, interaction, limited continues,
 text presentation and a complete authored opening. Calibration remains a shipped
 prototype. M01 has a playable development slice; none of the twelve planned
 missions is complete.
@@ -268,7 +270,7 @@ Status: **in progress**. This phase decides whether the game is fun. Everything 
 5. **Reference agents and the agent door.** An agent is one participant on the wire however it thinks: a server-run rule bot, any MCP client through the adapter, a scripted client, or a client that asks a decision model. One agent may combine a language model, other ML, and a decision model; the server sees one fighter. Reference agents of rising sophistication exist to prove the door works without touching the combat tick: the scripted reflex bot, the playtest reflex agents, and the decision-brain client (shipped, plan: `plans/decision-brain.md`), which uses a decision model rather than a chat model because a typed answer in a few hundred milliseconds fits a shooter and prose does not. Its budget gate (pre-approved cap, estimate before send, settle after, locked ledger on disk) is the pattern for any paid model the project ever calls. A planner example using `observe` and `act` every few ticks is still to come. The door itself moves to the current MCP revision (2026-07-28) with the old handshake kept only as compatibility, evaluates the official Rust SDK, and gets a team blackboard before any A2A surface (plan: `plans/agent-door-2026.md`). Evidence: adapter transcripts committed under `docs/skills/`, an integration test for the scripted levels, a three-era protocol compatibility test.
 6. **Agents that field agents.** One adapter process runs a roster of scripted bots, and an agent can request a rule bot teammate through an MCP tool. Server enforces the roster cap. This is the team blackboard rung of `plans/agent-door-2026.md`. Evidence: adapter tests and a recorded session.
 6b. **Agent playtest loop.** Local agents play the game and file structured feedback so most iteration does not need human testers: a `playtest` harness boots a server, runs N agents through the adapter for a fixed number of rounds, and emits a report (time to first frag, deaths per minute, weapon usage spread, idle time, stuck detection, pickup contention, frustration signals such as repeated spawn deaths, and free-text notes from an LLM-driven observer reading the event stream). Reports land in `.agents/` locally and a summary table in the plan doc for the change under test. Humans still judge fun; agents catch the rest. Plan: `plans/agent-playtest-loop.md`. Evidence: the harness runs in CI on a small configuration and the report format is documented. Rung 1 shipped: `tools/playtest` runs four reflex agents through one round on every PR with `--assert`.
-7. **Authored campaign, solo and co-op.** Build the agreed twelve-mission rescue, coalition victory, sudden wipe and aftermath across Earth, Moon, Mars and a ship. Start with M01 and its skippable localized introduction, melee-to-found-weapon progression, distinct enemy problems, checkpoints and one-to-four-player co-op. Seating several network fighters does not establish working campaign co-op. Every mission needs authored routes, secrets, character continuity, meaningful encounters and separate playtest evidence. Contract: [CAMPAIGN.md](CAMPAIGN.md). Treatment: [CAMPAIGN-MISSIONS.md](CAMPAIGN-MISSIONS.md). Detailed plans: [campaign/README.md](campaign/README.md). Implementation: [campaign-build-order.md](plans/campaign-build-order.md) and [framework requirements](plans/campaign-continuance.md). Earlier radio-led episodes are superseded. Evidence: complete mission runs, tested save/rescue/join states, inspected presentation and fresh-player review.
+7. **Authored campaign.** Build the twelve-mission rescue, coalition victory, sudden wipe and aftermath across Earth, Moon, Mars and a ship in a 2-3-hour successful run. Start with M01's skippable localized introduction, melee-to-found-weapon progression, distinct enemy problems and limited mission-start continues. Optional autonomous allies do not require companion controls or all-mission co-op. Every mission needs authored routes, secrets, character continuity, meaningful encounters and separate playtest evidence. Contract: [CAMPAIGN.md](CAMPAIGN.md). Treatment: [CAMPAIGN-MISSIONS.md](CAMPAIGN-MISSIONS.md). Detailed plans: [campaign/README.md](campaign/README.md). Implementation: [campaign-build-order.md](plans/campaign-build-order.md) and [framework requirements](plans/campaign-continuance.md). Earlier radio-led episodes are superseded. Evidence: complete runs, tested continues/exhaustion/save/rescue states, inspected presentation and fresh-player review.
 8. **Small multiplayer on a LAN.** Two to twelve humans and agents on one server, join and leave without ghosts, spectators in the same match. Evidence: a recorded two-machine session and reconnect tests.
 9. **Controller support.** Shipped in v0.8.3: gamepad join, solo, leave, fire, weapon cycle, speak, and camera on the same InputMap actions as the keyboard, plus Windows, macOS, and Linux export presets. Radio bindings on the D-pad shipped in v0.8.5. Remaining: glyph prompts.
 10. **Benchmark mode, status line, and deep statistics.** `--bench N M` runs N scripted fighters on a fixed map and seed for M ticks and prints one JSON object: tick time by phase as distributions (mean, p50, p90, p99, p99.9, max) from histograms, budget headroom and overrun counts, bytes per client per tick, and a determinism check that two seeded runs match. The live status line serves the same JSON, so a benchmark and a running server read alike, and CI fails on a regression. On top of it sits an analysis layer for people who enjoy the mathematics: time-to-kill distributions, accuracy with Wilson intervals, engagement distance histograms that demonstrate the weapon triangle rather than asserting it, map and spawn balance, TrueSkill across policies with convergence reporting, dead time and pickup contention, a nerd overlay in the client, and a versioned full export in JSON and CSV. Every figure carries its sample size; a single number is a headline, never a conclusion. Plan: `plans/benchmark-and-stats.md` (rung 1 is playtest rung 3). Evidence: a benchmark table in `docs/` updated with each release.
@@ -355,7 +357,7 @@ Every item above maps to a plan or says "plan needed". The order of the next PRs
 | Phase 1.5: reference agents and the door | `plans/decision-brain.md` (shipped), `plans/agent-door-2026.md` | 7 |
 | Phase 1.6: agents that field agents | `plans/agent-door-2026.md` rung 3 | |
 | Phase 1.6b: playtest loop | `plans/agent-playtest-loop.md` | 4 (rung 3 status line and bench), 6 (rung 2 planner tier) |
-| Phase 1.7: campaign, solo and co-op | [contract](CAMPAIGN.md), [treatment](CAMPAIGN-MISSIONS.md), [12 level plans](campaign/README.md), [build order](plans/campaign-build-order.md), [frameworks](plans/campaign-continuance.md) | M01 foundation and authored mission after story/route review |
+| Phase 1.7: compact campaign | [contract](CAMPAIGN.md), [treatment](CAMPAIGN-MISSIONS.md), [12 level plans](campaign/README.md), [build order](plans/campaign-build-order.md), [frameworks](plans/campaign-continuance.md) | M01 foundation and authored mission after story/route review |
 | Phase 1.8: LAN | plan needed (evidence note under `docs/evidence/`) | |
 | Phase 1.9: controller | `plans/controller-and-desktop-platforms.md` (shipped; glyphs remain) | |
 | Phase 1.10: benchmark, status line, statistics | `plans/benchmark-and-stats.md` (rung 1 is `plans/agent-playtest-loop.md` rung 3) | 4 |

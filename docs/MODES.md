@@ -29,9 +29,12 @@ This is not a rejection of depth. Item timing is deep and takes no thought to en
 
 ### Campaign
 
-About twelve substantial missions across Earth, Moon, Mars and a ship, with
+About twelve compact missions across Earth, Moon, Mars and a ship, with
 rescue, resistance, a real victory over the Union, the sudden wipe and playable
-aftermath. [CAMPAIGN.md](CAMPAIGN.md) owns the story and solo/co-op contract;
+aftermath. A successful run targets 2-3 hours. Limited continues restart the
+current mission with its starting equipment; three per run is the initial balance
+proposal. Autonomous allies do not imply companion controls or revives, and
+all-mission co-op is not required. [CAMPAIGN.md](CAMPAIGN.md) owns this contract;
 [mission briefs](CAMPAIGN-MISSIONS.md) own the proposed sequence. Weapon discovery,
 enemy combinations, keys, secrets and alternate routes support that story.
 

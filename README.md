@@ -2,7 +2,7 @@
 
 ![fragr wordmark](docs/fragr-logo-refined.png)
 
-fragr is a retro-styled 3D FPS built toward a full campaign, co-op, and multiplayer where agents and humans share the same gameplay rules. Start the Recall Notice development mission from Single Player, or run an arena server with four named bots. Watch an arena match, press J to jump in, press L to step back out. Play locally, or host a server so friends, strangers, and their agents can play or watch together.
+fragr is a retro-styled 3D FPS built toward an authored campaign and multiplayer where agents and humans share the same gameplay rules. Start the Recall Notice development mission from Single Player, or run an arena server with four named bots. Watch an arena match, press J to jump in, press L to step back out. Play locally, or host a server so friends, strangers, and their agents can play or watch together.
 
 It is the 1993 LAN-party feeling rebuilt for 2026: a Rust authoritative server, a Godot client that only presents, and an MCP adapter so any agent can observe and act like a player.
 
@@ -33,7 +33,7 @@ bypass, sorting, dispatch and transfer control. Twenty human Clerks and Sweeper
 bots occupy seven groups, with server-owned attack phases and directional poses.
 Guards are already present before entry alarms, and campaign consumables stay
 consumed until a party reset. Find Latch's transfer record at the console, open
-the custody lift and depart together. Character art, pacing, checkpoints, secrets
+the custody lift and depart together. Character art, pacing, limited continues, secrets
 and the next mission remain unfinished. Choose Assisted, Standard or Severe before
 a new local campaign. This first difficulty pass changes enemy tells and recovery;
 health, damage and finite supplies stay consistent. Standard retains the original
@@ -131,7 +131,9 @@ Introductory guns remain available independently to each participant. The six
 arcade maps retain their three unlimited guns. Run instructions and current
 limitations: [`server/maps/README.md`](server/maps/README.md). M01 still needs
 finished enemy presentation, encounter balancing, secrets, opening art and
-checkpoints before it is a complete mission. F or controller B uses an aimed
+mission-start continues before it is a complete mission. The planned campaign
+targets a 2-3-hour successful run; its continue allowance and run persistence are
+not implemented. F or controller B uses an aimed
 mission control. The lift waits for everyone aboard; its result ends this prototype.
 
 ## Desktop exports

@@ -1,6 +1,6 @@
 # Campaign build order
 
-**Status:** planned, revised 2026-09-19. No full campaign mission is implemented.
+**Status:** planned, revised 2026-09-20. No full campaign mission is implemented.
 **Goal:** deliver the twelve-mission story in [CAMPAIGN.md](../CAMPAIGN.md) through
 bounded, verifiable milestones. [Mission briefs](../CAMPAIGN-MISSIONS.md) define
 content; this plan defines dependencies.
@@ -16,8 +16,8 @@ an explicit approved cap, and the existing developer pipelines.
 | Movement | Shared gravity, jump, steps, ceilings and overlapping floors with a verified GDScript mirror | New traversal features require explicit geometry support and live tests |
 | Enemies | Rule bots, elite/boss prototype, authored human Clerk and Sweeper bot with phased attacks and directional animation | Full enemy roster, final art, encounters and balance |
 | Episode | Calibration prototype; M01 transfer/gate/departure shipped in v0.26.0 | Full story missions, rescue outcomes and campaign transitions |
-| Persistence | Player settings | Versioned party campaign save, checkpoints, inventory and rescue outcomes |
-| Co-op | Allied campaign participants, encounter wipe reset; shared mission boarding and four-seat admission shipped with live party evidence | Revive, checkpoints, save ownership, reconnect and proven party balance |
+| Persistence | Player settings | Versioned campaign run, limited continues, entry inventory and rescue outcomes |
+| Co-op | Allied campaign participants, encounter wipe reset; shared mission boarding and four-seat admission shipped with live party evidence | Optional scope undecided; no mandatory duo, revival or all-mission co-op requirement |
 | Presentation | Retro front end, HUD, radio and viewmodels; localized M01 text opening and party readiness shipped in v0.28.0 | Finished scene art/narration, companion scenes, complete character/weapon/effect motion |
 
 Navigation PR #172 shipped in v0.21.0 after local verification and green CI,
@@ -32,7 +32,7 @@ These are existing arena traversal improvements, not a completed campaign map.
    character/weapon style sample rather than generating disconnected stills.
 2. **Build the first campaign-sized gameplay foundation.** Add validated map
    data, required geometry support, melee/sidearm/ammo, two readable enemy types,
-   physical interaction, extraction, and a minimal checkpoint through existing
+   physical interaction, extraction, and mission-start continues through existing
    server seams. Separate PRs can build these bounded systems with small fixtures;
    fixtures are not shipped campaign levels. The first geometry increment is
    [enclosed and layered spaces](campaign-spaces.md), required by M01's balcony.
@@ -40,12 +40,11 @@ These are existing arena traversal improvements, not a completed campaign map.
    through the normal server with validated data and explicit indoor spawns.
 3. **Complete M01 as the quality target.** Full room sequence, flanks, secrets,
    discovery economy, animation, impact and room audio, localized opening,
-   extraction, retry, and results. Build the default human/free-agent duo with a
-   distinct recurring resistance partner, free local control and explicit seat
-   handoff; retain solo and custom co-op. Inspect the whole route. No paid scene needed
-   to prove it. One to four humans/agents and eye-view spectators must work.
+   extraction, limited continues, and results. Target an 8-10-minute mission
+   within a 2-3-hour successful campaign run. Inspect the whole route. No paid
+   scene needed to prove it. Human/agent control and eye-view spectators must work.
 4. **Build M02 and the early rescue.** Add companion state, release objectives,
-   Jammer behavior, rescue-aware checkpoint data, reunion and optional text/voice.
+   Jammer behavior, rescue-aware mission retry, reunion and optional text/voice.
    Prove joins and retries cannot duplicate or erase people.
 5. **Build M03 and finish Act I.** Home district, mixed fights, evacuation,
    persistent optional rescues, and the lunar transition. Run M01-M03 end to end
@@ -60,7 +59,7 @@ These are existing arena traversal improvements, not a completed campaign map.
    immediate aftermath, return to a changed home, final rescues and years-later
    healing. Reuse locations through authored structural change, not cosmetic tint.
 9. **Validate and refine the complete run.** Every mission and survivor path,
-   checkpoint recovery, solo/co-op/agent play, spectator transitions, localization,
+   continues, run exhaustion, solo/agent play, spectator transitions, localization,
    accessibility, exports, performance, and fresh-player comprehension and fun.
    Revise pacing and assets where evidence fails. Finish the brief sequel tease.
 
@@ -79,8 +78,9 @@ without entering the combat loop. No provider is required at player runtime.
 ## Evidence per mission
 
 - Deterministic success/failure and malformed-data tests at owning boundaries.
-- One-player and four-player completion; mixed humans/agents; drop-in/out;
-  spectator follow; wipe/retry/save; relevant rescue-state combinations.
+- Solo completion with human and agent control; spectator follow; mission retries,
+  exhausted runs, saves and relevant rescue states. Co-op evidence is required
+  only for missions or modes explicitly selected for that capability.
 - Rendered motion through every principal route, stairs, doors, pickup and fight.
   Inspect OpenGL/Vulkan paths and record actual hardware, not inferred support.
 - Text-only, muted radio, missing optional voice, skipped scenes, long translated

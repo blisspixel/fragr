@@ -4,7 +4,7 @@ Operating rules for coding agents and human contributors. Humans: start with `RE
 
 ## What this is
 
-**fragr** (working name) is an agentic-first **3D** FPS with retro pixel surfaces, targeting an authored campaign, co-op and multiplayer. Current play supports local bot matches and a campaign prototype; the full campaign and co-op are planned. Watch-or-join multiplayer shares one match among humans, agents and spectators. Not branded as Doom or id. Monorepo:
+**fragr** (working name) is an agentic-first **3D** FPS with retro pixel surfaces, targeting a compact authored campaign and multiplayer. Current play supports local bot matches and a campaign prototype. The campaign targets 2-3 hours with limited mission-start continues; no mandatory buddy, revival or all-mission co-op. `docs/CAMPAIGN.md` owns the current contract. Watch-or-join multiplayer shares one match among humans, agents and spectators. Not branded as Doom or id. Monorepo:
 
 - `server/` - Rust authoritative game server (tokio, WebSocket JSON, 20 Hz tick). Owns positions, damage, HP, frags, spawns, scoring, rule bots, rounds, maps.
 - `client/` - Godot **4.7.2-stable**, GDScript only. Thin presenter: render, audio, HUD, spectator cameras, input. Never sim authority.

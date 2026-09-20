@@ -1,6 +1,6 @@
 # M02: Persons Unknown
 
-**Status:** proposed, unbuilt. Earth before the wipe. Target 15-20 minutes.
+**Status:** proposed, unbuilt. Earth before the wipe. Target 10-12 minutes.
 [Treatment](../CAMPAIGN-MISSIONS.md#m02-persons-unknown).
 
 ## Story and cast
@@ -11,9 +11,8 @@ helps release another captive and discovers Low Water on the wider recall list.
 They argue for helping others and participate in escape. They are neither a
 silent trophy nor a fragile escort whose mistakes constantly fail the mission.
 
-The resistance partner introduced in M01 is a different recurring character.
-Latch's reunion preserves that continuity; it does not silently replace the
-partner or duplicate a combat seat. Solo and custom co-op tell the same rescue.
+Latch acts autonomously after release. Their reunion does not introduce a
+controllable companion, a required second player or a revive system.
 
 Mara receives the warning at departure. An Auditor oversees the facility through
 screens or an inaccessible gallery; this does not require a boss fight yet.
@@ -28,7 +27,7 @@ to the floor and opens back to the gallery after release.
 |---|---|---|
 | Gallery | Windows show the ward and processing machinery below | Player sees a destination and evidence of coercion before fighting |
 | Service stair | Enclosed switchback, clear landings, no jump requirement | Introduce Crawler sounds/captions, then a small visible pack |
-| Antechamber | Workroom with cover and a view into the ward | Find Scatter before the close encounter; checkpoint |
+| Antechamber | Workroom with cover and a view into the ward | Find Scatter before the close encounter; recovery supplies |
 | Ward | Release console beside a clearly connected restraint bay | Fight guards, stop the correction process, free Latch |
 | Processing floor | Two usable levels with broad stairs and machinery islands | Latch opens a local path; mixed threats pressure escape |
 | Service loop | Optional release bays and supplies | Free other captives; stage them safely after combat |
@@ -51,16 +50,16 @@ is possible with guaranteed guns. Do not introduce the entire enemy roster.
 Secrets: an armor locker reachable from the gallery loop; a Shiv/replenishment
 cache behind a clearly altered service panel. Neither changes the core rescue.
 
-## State and checkpoints
+## State and retries
 
 `ward_reached` -> `correction_stopped` -> `companion_released` ->
 `loading_gate_open` -> `party_departed`. Latch's release is an authoritative
 one-time transition. Optional prisoner groups have distinct released/evacuated
 states; opening a bay does not automatically claim a safe evacuation.
 
-Checkpoint before the ward and after the reunion in secured space. Retry restores
-the correct actor and restraint state. No timer runs through a cutscene, pause,
-loading screen or disconnected party. Any visible correction countdown begins
+Spending a continue returns to mission entry, including Latch's original restraint
+state and the player's starting equipment. No timer runs through a cutscene, pause
+or loading screen. Any visible correction countdown begins
 only where the player can act and supports a fair retry.
 
 ## Scene, voice and art
@@ -75,10 +74,9 @@ locomotion and gestures, Crawler set and Jammer projectiles. Captive suffering
 is purposeful context, not prolonged spectacle. Institutional announcements can
 be absurd while the reunion stays sincere.
 
-## Co-op and acceptance
+## Allies and acceptance
 
 Latch follows a secured-route state machine, keeps passage clear, and appears
-once regardless of party size. A solo player can operate every gate. Disconnecting
-the releasing player cannot interrupt the rescue forever. Prove simultaneous
-release attempts, all checkpoint phases, blocked NPC paths, optional captives,
-muted audio, and a full four-player retreat. Rescue must be understood as success.
+once. A solo player can operate every gate. Prove idempotent release, mission-start
+retry before and after rescue, blocked NPC paths, optional captives, muted audio
+and the complete solo retreat. Rescue must be understood as success.

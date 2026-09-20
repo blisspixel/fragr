@@ -1,7 +1,7 @@
 # M06: Common Carrier
 
 **Status:** proposed, unbuilt. Interplanetary ship before the wipe. Target
-15-25 minutes. [Treatment](../CAMPAIGN-MISSIONS.md#m06-common-carrier).
+8-12 minutes. [Treatment](../CAMPAIGN-MISSIONS.md#m06-common-carrier).
 
 ## Story and cast
 
@@ -49,14 +49,14 @@ Secrets: a surplus locker with ammo; a service overlook offering a risky flank;
 a private crew cubby with armor and a minor character detail. No secret contains
 the only evidence needed to understand the unusual message.
 
-## State and checkpoints
+## State and retries
 
 `boarding_detected` -> `forward_deck_clear` -> `service_route_open` ->
 `aft_boarding_stopped` -> `ship_secured`. Optional `cargo_supplies_preserved` can
 change dressing and a later resupply, never gate a main objective.
 
-Checkpoint before boarding, after service access, then after the crest. Snapshot
-door occupancy and passenger locations safely. A missed rescue has an authored
+A continue restarts before boarding with entry equipment and the passenger roster
+from completed missions. A missed earlier rescue has an authored
 fallback task: the player performs repair or triage access instead of receiving
 Splice's or Edda's help. Never silently substitute a copy of that character.
 
@@ -77,9 +77,9 @@ Humor comes from cohabitation: an agent complains that humans occupy a whole
 room to recharge; a human asks why the agent has reserved the best bunk anyway.
 Characters can be funny without stopping the ship's danger from feeling real.
 
-## Co-op and evidence
+## Allies and evidence
 
-Test fire-door occupancy, simultaneous controls, downed/carrying players, late
-joins on each deck, NPC staging, blocked stairs, checkpoint rollback and all
+Test fire-door occupancy, repeated controls, carried items, autonomous allies,
+NPC staging, blocked stairs, mission-start retry and all
 survivor combinations. A spectator following eyes must not see duplicate Latches
 or hear contradictory survivor dialogue. Verify whole-ship orientation in motion.

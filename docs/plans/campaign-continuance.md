@@ -2,7 +2,7 @@
 
 **Status:** framework requirements, revised 2026-09-20. Validated local map files,
 finite 3D collision, authored Clerk/Sweeper encounters and M01 progression are
-implemented. Persistent campaign saves, checkpoints, remaining enemy types and
+implemented. Persistent campaign saves, limited continues, remaining enemy types and
 cross-mission continuity are unbuilt. See [build order](campaign-build-order.md)
 for the current baseline; requirements below do not imply completed systems.
 
@@ -25,7 +25,7 @@ other traversal features remain unbuilt; authoring must respect those limits.
 
 The minimal map contract needs stable IDs, bounds, materials, geometry, safe
 spawns, encounters, items, interactions, objective links, secrets, and exits.
-Campaign metadata links mission IDs, checkpoints, rescue state, and text keys.
+Campaign metadata links mission IDs, entry state, rescue state, and text keys.
 Separate static content from mutable session state; do not serialize a live game
 by overwriting its map source.
 
@@ -51,9 +51,9 @@ An enemy's legal status and faction are distinct from its body and gameplay role
 Represent imposed Union control separately from consciousness or chassis. At the
 wipe every still-controlled bot changes to the Inheritance's collective while
 free agents remain independent. Transition once on the authority, synchronize
-late joiners, and test freed/captive/controlled states through checkpoint reload.
+observers, and test freed/captive/controlled states through mission retry.
 Neither runtime labels nor save diagnostics may settle the unknown fate of minds
-after correction or absorption. A restored checkpoint restores gameplay state;
+after correction or absorption. A mission retry restores gameplay state;
 it is not an in-world cure for correction.
 
 Use shared movement, combat and navigation where appropriate. Do not make every
@@ -61,22 +61,25 @@ monster a network player solely to reuse a scoreboard. Preserve current boss
 behavior until its replacement has tests and a deliberate migration.
 
 Encounter data chooses roster, placement, difficulty, and physical triggers.
-Projectiles, line of sight, doors, friendly teams and revival need real
+Projectiles, line of sight, doors and autonomous allies need real
 simulation paths and deterministic tests. A table containing a monster name is
 not an implemented monster.
 
 ## Campaign state and saves
 
-A server-owned party run records content version/hash, mission and checkpoint,
-difficulty, player identities/body selections, inventory, shared keys, objective
-states, companion state, and survivor outcomes. Save schemas are versioned.
+A server-owned run records content version/hash, mission, remaining continues,
+difficulty, playable character, mission-entry equipment/world state and outcomes
+from completed missions. Define whether saves preserve current progress or resume
+at mission entry; neither policy may replenish continues. Save schemas are versioned.
 Write atomically; validate before loading; preserve the prior valid save after
 failure. Define content mismatch and migration behavior before releases.
 
-Separate checkpoint rollback from permanent narrative outcomes. Mission replay
-cannot silently overwrite the main run. A disconnected carrier cannot delete
-a required object. Drop-ins and revived players receive safe inventory and
-placement rules; they cannot duplicate pickups or farm rescue rewards.
+Spending a continue restores the failed mission's entry state and consumes the
+allowance once. Preserve completed-mission outcomes, cancel transient input and
+reload state, and keep observation revisions monotonic. With no allowance left,
+death ends the run. Mission replay cannot silently overwrite the main run or farm
+duplicate awards. No mid-mission death checkpoints, revival or companion seats.
+Optional co-op needs a separate contract; keep current mixed-client behavior intact.
 
 ## Story presentation
 
@@ -85,7 +88,7 @@ state. Godot resolves localization and optional voice/scene resources through
 existing settings and audio routing. Keep presentation acknowledgements separate
 from mission success. Late participants receive current state and a recap.
 
-Basic text, captions, skips and checkpoint-safe scene replay belong in the first
+Basic text, captions, skips and retry-safe scene replay belong in the first
 mission. Use the existing localization plan and native Godot translation tools;
 do not build a second bespoke translation system for cutscenes.
 

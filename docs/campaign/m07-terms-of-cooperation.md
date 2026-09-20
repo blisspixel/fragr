@@ -1,6 +1,6 @@
 # M07: Terms of Cooperation
 
-**Status:** proposed, unbuilt. Mars before the wipe. Target 20-25 minutes.
+**Status:** proposed, unbuilt. Mars before the wipe. Target 10-14 minutes.
 [Treatment](../CAMPAIGN-MISSIONS.md#m07-terms-of-cooperation).
 
 ## Story and character work
@@ -52,9 +52,9 @@ Required state: `shelter_route_secured`, `utility_access_restored`,
 local rescue; broader losses caused by delay remain authored facts, not falsely
 reported as an optional-objective failure.
 
-Checkpoint before the greenhouse and before the court crest. Help by surviving
-characters changes tasks or staging but not their ability to die twice across
-loads. Avoid a commander agreeing simply because an arbitrary kill counter fills.
+A continue restarts at habitat arrival with prior outcomes intact. Help by
+surviving characters changes tasks or staging; a retry cannot duplicate them.
+Avoid a commander agreeing simply because an arbitrary kill counter fills.
 Make the change visible in arriving vehicles, people and unlocked supplies.
 
 ## Evidence and tone
@@ -68,10 +68,10 @@ have six competing declarations of independence attached to the same crate.
 The punchline is not that independence was inherently foolish or victims deserved
 to be abandoned. People act to improve what failed.
 
-## Co-op and validation
+## Allies and validation
 
 No simultaneous pressure-system interaction is mandatory. Test every previous
-rescue state, alternative repair/triage task, arrival trigger, party retry and
-drop-out during a utility interaction. Inspect the habitat at walking height,
+rescue state, alternative repair/triage task, arrival trigger, mission retry and
+interrupted utility interaction. Inspect the habitat at walking height,
 including safe spaces and background life. Players should understand both why
 Mars matters and why help arrived late.

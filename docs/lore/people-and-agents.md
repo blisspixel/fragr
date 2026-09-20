@@ -34,7 +34,7 @@ authority can delay action and cooperation until people are lost.
 
 Show these beliefs through ordinary choices: a shared repair bench, a refused
 order that is respected, openly traded tools and people defending a neighbor
-against recall. The default campaign duo makes that mutual recognition personal.
+against recall. Human/agent friendships make that mutual recognition personal.
 Their principles do not require identical opinions, flawless allies or speeches
 over every fight.
 

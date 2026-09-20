@@ -1,6 +1,6 @@
 # M04: Port of Entry
 
-**Status:** proposed, unbuilt. Moon before the wipe. Target 15-20 minutes.
+**Status:** proposed, unbuilt. Moon before the wipe. Target 8-12 minutes.
 [Treatment](../CAMPAIGN-MISSIONS.md#m04-port-of-entry).
 
 ## Story and cast
@@ -47,7 +47,7 @@ cannot lock captives away permanently.
 ## State and scenes
 
 `port_entered` -> `archive_access_secured` -> `depot_entered`.
-Optional `transfer_shortcut_open`. Checkpoints at dock and after customs.
+Optional `transfer_shortcut_open`. A continue restarts at the dock with entry state.
 Body choice does not exempt agents from environmental limits while humans die;
 equipment and shared rules determine exposure protection.
 
@@ -55,10 +55,9 @@ Opening uses a short arrival panel or restrained in-engine view, with text
 establishing location and elapsed time. No lore lecture on lunar colonization.
 Humor: a port declaration requires reporting how much Earth dust one imported.
 
-## Co-op and acceptance
+## Allies and acceptance
 
-Airlocks have capacity for the party and safe occupancy rules; no player can
-cycle one into a lethal state while teammates load. Downed players and required
+Airlocks have safe occupancy rules for the player and autonomous allies. Required
 items cannot be sealed out. Test both approach routes, rail-free completion,
-late joins, pressure transitions, checkpoint restart and spectator view changes.
+ally occupancy, pressure transitions, mission-start retry and spectator view changes.
 Verify that the archive entrance and the port's inhabited purpose are readable.

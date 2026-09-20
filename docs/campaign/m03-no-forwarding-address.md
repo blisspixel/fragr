@@ -1,6 +1,6 @@
 # M03: No Forwarding Address
 
-**Status:** proposed, unbuilt. Earth before the wipe. Target 20-25 minutes.
+**Status:** proposed, unbuilt. Earth before the wipe. Target 10-14 minutes.
 [Treatment](../CAMPAIGN-MISSIONS.md#m03-no-forwarding-address).
 
 ## People and dramatic purpose
@@ -56,7 +56,7 @@ Avoid an invisible global timer that makes exploration the wrong decision.
 
 Secrets offer armor on the roof, reserve ammo behind the tram service bay, and
 a supply shortcut back to the market. Supplies remain enough for required fights
-if both optional branches are skipped. Co-op threat mix pressures different
+if both optional branches are skipped. The threat mix pressures different
 approaches, not just a larger HP pool in the same doorway.
 
 ## Rescue and authoritative state
@@ -64,12 +64,12 @@ approaches, not just a larger HP pool in the same doorway.
 Required: open departure route and board. Optional flags: `medic_evacuated`,
 `technician_evacuated`, with released versus evacuated actors kept distinct.
 Both are achievable. Departure shows who is aboard and who remains reachable.
-A party-leader confirmation commits the mission outcome; no incidental trigger
+A player confirmation commits the mission outcome; no incidental trigger
 quietly decides that someone was abandoned.
 
-Checkpoint on arrival, after departure access is secured, and before final
-boarding if the design supports further rescues. Saving/restoring must preserve
-branch access and survivors. No infinite duplicate pickup or rescue credit loop.
+A continue restarts arrival, with entry equipment and prior-mission survivors.
+Rescues attempted in this mission reset with its routes and pickups; completed
+earlier outcomes remain intact. No duplicate pickup or rescue credit loop.
 
 ## Presentation and continuity
 
@@ -80,8 +80,8 @@ M11 must return to these actual places and reflect the saved people.
 
 ## Evidence required
 
-Run all four Edda/Splice outcome combinations, including both rescued; solo and
-four combatants; late join at each checkpoint; departure cancellation; teammate
-disconnect; return to an unfinished branch; and full first-person path inspection.
+Run all four Edda/Splice outcome combinations, including both rescued; mission
+retry; departure cancellation; ally loss; return to an unfinished branch; and
+full first-person path inspection with human and agent control.
 A fresh player must identify home as more than a battlefield and understand why
 the coalition's failure is delayed help, not proof that every free person is cruel.

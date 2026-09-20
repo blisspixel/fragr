@@ -1,6 +1,6 @@
 # M09: Peace Without Interruption
 
-**Status:** proposed level, unbuilt. Earth before the wipe. Target 20-30 minutes.
+**Status:** proposed level, unbuilt. Earth before the wipe. Target 12-16 minutes.
 **Confirmed ending:** Voss is captured alive; the wipe later interrupts the
 promised reckoning. [Treatment](../CAMPAIGN-MISSIONS.md#m09-peace-without-interruption).
 
@@ -64,9 +64,9 @@ optional texture; the main plot never requires proving a master conspiracy.
 M10 transition. Mission success requires earned control, not merely entering a
 cutscene trigger while defenders still fight.
 
-Checkpoint at foothold, before core and after capture. Save inventory, prisoners,
-allied state and the completed capture. Cutscene skip or reconnect cannot leave
-Voss simultaneously captive and giving orders. The party leaves through the
+A continue restarts the foothold with mission-entry equipment, prisoners and
+allied state. Capture is committed when the mission completes; skip or retry
+cannot leave Voss simultaneously captive and giving orders. Survivors leave through the
 liberated hall rather than teleporting directly to an apocalypse image.
 
 ## Scene, humor and consequence

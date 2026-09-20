@@ -1,6 +1,6 @@
 # M08: The Weight of Permission
 
-**Status:** proposed, unbuilt. Mars before the wipe. Target 20-25 minutes.
+**Status:** proposed, unbuilt. Mars before the wipe. Target 12-16 minutes.
 [Treatment](../CAMPAIGN-MISSIONS.md#m08-the-weight-of-permission).
 
 ## Story and cast
@@ -62,18 +62,18 @@ for a depleted inventory. Never make the last secret necessary to afford the bos
 factory. The local systems remain operable after disconnect or failed interaction.
 Completion shows allied crews working voluntarily and transports becoming usable.
 
-Checkpoint before machine-hall commitment and before the Walker. Boss reset
-restores supporting units and resources consistently. Measure repeated failures
+A continue restarts the mission, including the Walker, supporting units and
+entry resources. Keep the approach compact. Measure repeated failures
 for causes such as unreadable cues or empty ammo, not just player damage totals.
 
-## Presentation and co-op
+## Presentation and allies
 
 Forge light, dust, heat distortion kept behind readable silhouettes, and red-rock
 industrial architecture. Tern can make a dry joke about liberation arriving with
 an unpaid repair invoice. A concise departure panel acknowledges preparation and
 elapsed travel before the coalition's return to Earth.
 
-Co-op roles emerge from flanks and local tasks, not class restrictions. Test boss
-target changes, downed players, four-player clearance, solo counters, late joins,
-checkpoint/reset and worker states. Record frame times during the actual largest
+Allied workers and fighters act autonomously; no tactical controls are required.
+Test boss target changes, ally loss, solo counters, mission restart and worker
+states. Record frame times during the actual largest
 fight on named hardware; a quiet static view is not the performance evidence.

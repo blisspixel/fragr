@@ -1,7 +1,7 @@
 # M11: What We Can Carry
 
 **Status:** proposed level, unbuilt. Earth after the initial wipe, with restoration
-still active. Target 20-25 minutes. [Treatment](../CAMPAIGN-MISSIONS.md#m11-what-we-can-carry).
+still active. Target 10-14 minutes. [Treatment](../CAMPAIGN-MISSIONS.md#m11-what-we-can-carry).
 
 ## Story and people
 
@@ -59,10 +59,10 @@ Departure confirmation shows known reachable people and what leaving means.
 Preserve uncertainty about unobserved missing people rather than labeling them
 dead merely because a Boolean was absent.
 
-Checkpoints at return staging, after opening the service loop, and before final
-withdrawal. Saves preserve rescue groups and route changes. Reopening a door
-cannot respawn an already-departed person. Party wipe restores a checkpoint,
-not a moral score or a new version of the entire world's history.
+A continue restarts return staging, restoring entry resources and prior-mission
+outcomes. Local rescues and route changes reset for this attempt. Reopening a door
+within an attempt cannot respawn an already-departed person. Retrying does not
+rewrite completed history or establish a moral score.
 
 ## Art, dialogue and humor
 
@@ -74,6 +74,6 @@ with a rushed departure is specific to someone the player can see and help.
 ## Acceptance
 
 Run the full prior-rescue matrix, alternative paths, blocked NPC recovery,
-departure/cancel, disconnect with a carried archive, checkpoint rollback and
-four-player escape. Fresh players should recognize home, understand each rescue,
+departure/cancel, saving with a carried archive, mission restart and solo escape
+with autonomous allies. Fresh players should recognize home, understand each rescue,
 and have meaningful actions after the wipe. Do not call a tinted M03 map complete.
