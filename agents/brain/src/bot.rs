@@ -408,8 +408,15 @@ pub async fn run_bot(
                     }
                     Ok(ServerMessage::Error { code, message }) => {
                         tracing::warn!("server rejected: {code}: {message}");
+                        if code == "unsupported_geometry" {
+                            session_error = Some(Error::Transport(message));
+                            break;
+                        }
                     }
-                    Err(_) => {}
+                    Err(error) => {
+                        session_error = Some(Error::Transport(format!("invalid server message: {error}")));
+                        break;
+                    }
                 },
                 Some(Ok(Message::Close(_))) | Some(Err(_)) | None => break,
                 Some(Ok(_)) => {}
@@ -646,6 +653,26 @@ mod tests {
 
     #[tokio::test]
     async fn invalid_map_stops_before_actions_or_paid_decisions() {
+        let valid = serde_json::to_value(fragr_server::sim::GameState::new().map_info()).unwrap();
+        let mut extent = valid.clone();
+        extent["half_extent"] = serde_json::json!(f32::MAX);
+        let mut version = valid.clone();
+        version["geometry_version"] = serde_json::json!("2");
+        let mut solid = valid.clone();
+        solid["solids"][0]["bottom"] = serde_json::json!("ceiling");
+        let rejected = serde_json::json!({"type": "error", "code": "unsupported_geometry", "message": "geometry version rejected"});
+        for (bad, expected) in [
+            (extent.to_string(), "invalid navigation map"),
+            (version.to_string(), "invalid server message"),
+            (solid.to_string(), "invalid server message"),
+            ("{broken".to_string(), "invalid server message"),
+            (rejected.to_string(), "geometry version rejected"),
+        ] {
+            assert_bad_map_stops(valid.to_string(), bad, expected).await;
+        }
+    }
+
+    async fn assert_bad_map_stops(valid: String, bad: String, expected: &str) {
         let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
         let url = format!("ws://{}", listener.local_addr().unwrap());
         let server = tokio::spawn(async move {
@@ -654,13 +681,8 @@ mod tests {
             for _ in 0..2 {
                 ws.next().await.unwrap().unwrap(); // Hello and initial stance.
             }
-            let mut map = fragr_server::sim::GameState::new().map_info();
-            if let ServerMessage::MapInfo { half_extent, .. } = &mut map {
-                *half_extent = f32::MAX;
-            }
-            ws.send(Message::Text(serde_json::to_string(&map).unwrap()))
-                .await
-                .unwrap();
+            ws.send(Message::Text(valid)).await.unwrap();
+            ws.send(Message::Text(bad)).await.unwrap();
             while let Some(Ok(message)) = ws.next().await {
                 if let Message::Text(text) = message {
                     assert!(!matches!(
@@ -678,9 +700,7 @@ mod tests {
             Arc::new(AtomicBool::new(false)),
         )
         .await;
-        assert!(
-            matches!(result, Err(Error::Transport(message)) if message.contains("invalid navigation map"))
-        );
+        assert!(matches!(result, Err(Error::Transport(message)) if message.contains(expected)));
         assert_eq!(transport.calls(), 0);
         server.await.unwrap();
     }

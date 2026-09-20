@@ -1242,6 +1242,12 @@ async fn agent_task(
                     break;
                 }
             }
+            Ok(ServerMessage::Error { code, message }) if code == "unsupported_geometry" => {
+                return Err(Error::Server(message));
+            }
+            Err(error) => {
+                return Err(Error::Server(format!("invalid server message: {error}")));
+            }
             _ => {}
         }
     }
@@ -1402,26 +1408,44 @@ mod tests {
 
     #[tokio::test]
     async fn invalid_map_is_an_agent_failure_not_a_partial_world() {
+        let valid = serde_json::to_value(fragr_server::sim::GameState::new().map_info()).unwrap();
+        let mut extent = valid.clone();
+        extent["half_extent"] = serde_json::json!(f32::MAX);
+        let mut version = valid.clone();
+        version["geometry_version"] = serde_json::json!(2.5);
+        let mut solid = valid.clone();
+        solid["solids"][0]["bottom"] = serde_json::json!("ceiling");
+        let rejected = serde_json::json!({"type": "error", "code": "unsupported_geometry", "message": "geometry version rejected"});
+        for (bad, expected) in [
+            (extent.to_string(), "geometry extent"),
+            (version.to_string(), "invalid server message"),
+            (solid.to_string(), "invalid server message"),
+            ("{broken".to_string(), "invalid server message"),
+            (rejected.to_string(), "geometry version rejected"),
+        ] {
+            assert_bad_map_fails(valid.to_string(), bad, expected).await;
+        }
+    }
+
+    async fn assert_bad_map_fails(valid: String, bad: String, expected: &str) {
         let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
         let url = format!("ws://{}", listener.local_addr().unwrap());
         let server = tokio::spawn(async move {
             let (socket, _) = listener.accept().await.unwrap();
             let mut ws = tokio_tungstenite::accept_async(socket).await.unwrap();
             ws.next().await.unwrap().unwrap();
-            let mut map = fragr_server::sim::GameState::new().map_info();
-            if let ServerMessage::MapInfo { half_extent, .. } = &mut map {
-                *half_extent = f32::MAX;
-            }
-            ws.send(Message::Text(serde_json::to_string(&map).unwrap()))
-                .await
-                .unwrap();
+            ws.send(Message::Text(valid)).await.unwrap();
+            ws.send(Message::Text(bad)).await.unwrap();
             let _ = ws.next().await;
         });
         let (_stop, stopped) = tokio::sync::watch::channel(false);
-        let result = agent_task(url, "Probe".into(), Policy::Reflex, stopped).await;
-        assert!(
-            matches!(result, Err(Error::Server(message)) if message.contains("geometry extent"))
-        );
+        let result = tokio::time::timeout(
+            Duration::from_secs(5),
+            agent_task(url, "Probe".into(), Policy::Reflex, stopped),
+        )
+        .await
+        .expect("invalid map must stop the controller");
+        assert!(matches!(result, Err(Error::Server(message)) if message.contains(expected)));
         server.await.unwrap();
     }
 

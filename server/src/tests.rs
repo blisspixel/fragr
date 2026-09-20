@@ -4157,11 +4157,7 @@ fn test_sim_compliance_yard_pad_claim_and_hub_clear() {
 
     // Hub must stay clear for drone (circle at 0,0 not blocked).
     for obs in MapKind::ComplianceYard.obstacles() {
-        assert!(
-            !obs.expand(0.5).contains(0.0, 0.0),
-            "hub blocked by {:?}",
-            obs
-        );
+        assert!(!obs.blocks(0.0, 0.0, 0.5), "hub blocked by {:?}", obs);
     }
 
     let id = Uuid::new_v4();

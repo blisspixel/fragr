@@ -71,55 +71,77 @@ full M01 mission are outside this geometry increment.
 
 ## Working implementation
 
-Branch: `feat/enclosed-campaign-spaces`, based on the shared-body change. Local
-code adds a default-zero `bottom`, omitted when zero so legacy wire bytes stay
-unchanged. Movement tests cover underpasses, upper-floor support and landing,
-head strikes, thin ceilings, slab edges, airborne side contact and stair headroom.
-Shots use the exact lower bound and face normals; the presenter draws finite
-height and center. Standing body height is shared by movement and shot targets.
+Branch: `feat/enclosed-campaign-spaces`, following #174 and the #175 spawn repair.
+The authored map definitions now use `movement::Solid` directly. A default-zero
+`bottom` is omitted on the wire, preserving legacy bytes. Movement, shots,
+rendering and bounded navigation use the same finite volumes and body height.
+Nine added Rust/GDScript golden cases cover these volumes; the twenty legacy
+cases remain unchanged in every field.
 
-Nine new golden cases exercise this geometry through Rust and GDScript. The
-twenty legacy cases compare unchanged in every field against the parent file.
-Focused Rust movement tests, warnings-denied workspace Clippy, and all seventeen
-Godot harnesses pass, including the raised-mesh check and new vectors. Receipts:
-`.agents/enclosed-*.log`. This is local engineering evidence, not a built level.
-The workspace suite also passes: 606 tests and the existing ignored generator.
+Layered topology preserves legacy primary indices and bounds layers, nodes,
+edges and construction work. Routes cover underpasses, stairs to the overlapping
+upper floor, one-way drops and exact headroom. Coordinate-only goals respect
+target height instead of silently selecting a ceiling. Tests also drive actual
+`GameState` players through its production active-frame core: ordinary actions
+walk both levels, queued jumps hit the underside, and shot damage respects the
+slab. These fixture tests do not claim a complete network campaign mission.
 
-The next local increment adds multiple walkable layers per grid cell, preserving
-legacy primary indices and bounding layers, nodes, edges and construction work.
-Shared-movement route tests pass for underpasses, stairs to the overlapping upper
-floor, one-way drops, exact headroom and invalid surfaces. Coordinate-only goals
-use their target height or the fighter's current eye height instead of silently
-selecting a roof. Actual `GameState` traversal of raised geometry remains pending.
+Connections declare maximum geometry version 2; legacy omission means 1. The
+server rejects insufficient capabilities before Welcome or roster mutation,
+including a rotating roster's maximum requirement. All map consumers validate
+before replacement. Invalid or unreadable maps stop controllers and close client
+sessions instead of allowing stale-world navigation. Existing legacy map bytes
+and supported sessions remain compatible.
 
-The connection declares maximum geometry version 2; legacy omission means 1.
-The server rejects insufficient capabilities before Welcome or roster mutation,
-including the maximum requirement of a rotating roster. Ground-only maps omit
-version 1 and zero bottoms, preserving their old map bytes. Local socket tests
-cover rejected roles, supported joins and unsupported server configuration.
-Rust consumers share geometry-bound validation. The MCP session closes on a bad
-map; the Godot network validates before emission and presents a connection error.
-Eighteen Godot harnesses pass, including malformed maps, the version gate and
-geometry replacement when a server reuses a map ID. The workspace suite and
-warnings-denied Clippy pass after the new adapter socket tests. Receipts remain
-under `.agents/enclosed-wire-*` and `.agents/enclosed-map-godot.log`.
+Local verification passes 620 Rust tests, warnings-denied Clippy and 18 Godot
+harnesses. Unfiltered workspace coverage after the malformed-JSON fix reports
+95.66 percent of lines. Review then found a remaining scripted-adapter path:
+it ignored maps, unwrapped a rejected Welcome, and restarted its action timer
+whenever a snapshot arrived. It now validates geometry, uses the shared navigator
+and keeps an independent action clock. Two added socket tests pass for rejection,
+raised geometry, continuous incoming traffic and malformed replacement. Final
+workspace verification after this controller fix remains pending.
 
-Next: finish verification and review of these changes, measure legacy CPU traces
-and the mixed roster, and add actual-player plus rendered enclosed-space evidence.
-Review malformed-message handling in all controller paths before integration.
-No built-in map exposes raised slabs yet. Do not publish this intermediate
-geometry implementation until those paths agree and full verification passes.
+The active-frame fixture renders 250 recorded frames in OpenGL compatibility
+and Vulkan Forward+ on Windows with an AMD Radeon 780M. Fifteen samples from
+each path, including the underpass, ordinary stairs, upper exit, head contact and
+underside shot, were inspected. Captures: `.agents/qa/enclosed-{opengl,vulkan}`.
+This is a replay of authoritative active-frame output, not a live network test,
+finished level, frame-rate benchmark or cross-vendor certification. The room
+exposes repetitive materials that need authored variation in M01.
 
-Parallel maintenance: PR #175 fixes a benchmark threshold test that accidentally
-asserted debug/coverage speed. Its next CI run exposed excessive early deaths on
-Tripoint Works. A separate worktree under `.agents/worktrees/benchmark-thresholds`
-holds a reproduced warmup-join defect and fix: warmup previously bypassed cover
-selection unless a fixed ring slot was occupied. The existing cover fixture fails
-with a warmup join at (approximately 0, 0, 92), then passes when all joins use the
-same policy. Complete that focused main-branch repair before publishing this
-geometry branch. Do not weaken the spawn-death or release benchmark gates.
-The maintenance worktree is now detached at `1d03cc8`; its branch is
-`fix/benchmark-threshold-fixtures`. Do not share a Cargo target directory between
-different worktree source states: doing so produced stale dependency metadata
-during this session. A package clean followed by a full rebuild restored the
-correct geometry API and the complete workspace suite passed.
+Reproduce the capture with a real framebuffer after importing the client:
+
+```bash
+cargo test -p fragr-server export_enclosed_capture --locked -- --ignored
+FRAGR_QA_DIR="$PWD/.agents/qa/enclosed-opengl" "$GODOT_BIN" --path client --rendering-driver opengl3 --windowed --resolution 1280x720 --script res://scripts/qa_enclosed.gd
+```
+
+Use `--rendering-driver vulkan` and a separate output directory for the second
+path. Require a clean log and inspect the stills; Godot can return success after
+an image operation fails. The capture normalizes image formats before montage
+composition, since the two rendering paths return different formats. API checked
+against the [Godot RenderingServer reference](https://docs.godotengine.org/en/stable/classes/class_renderingserver.html)
+on 2026-09-19 and the installed binary.
+
+CPU comparison after the active-frame extraction, seed 42, 12,000 ticks:
+
+| Bots / map | p99 tick ms | Maximum tick ms | Full trace matches #175 |
+|---|---:|---:|---|
+| 16 / Arena Duel | 0.655 | 2.059 | yes |
+| 64 / Reclamation Gulch | 1.507 | 3.453 | yes |
+| 128 / Tripoint Works | 4.063 | 6.576 | yes |
+
+Reports: `.agents/bench/enclosed-{16,64,128}.json`. Each run also passes its own
+repeat-trace determinism and performance gate. The six-map network roster, full
+verification, inspected current tour and CI remain before integration.
+
+No built-in map exposes raised slabs yet. External map data, explicit indoor
+spawns and full live M01 routes follow this foundation. The ring-spawn policy and
+legacy roster flood fill are not suitable campaign authoring contracts. Keep
+those limitations visible rather than labeling a fixture as a completed level.
+
+Build continuity: use separate Cargo target directories for worktrees with
+different source states. Sharing one produced stale dependency metadata; a
+package clean and full rebuild restored the correct API. Temporary receipts
+live in `.agents/`; source, tests and this plan own the durable state.

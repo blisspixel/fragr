@@ -202,6 +202,10 @@ coordinates within -512 to 512; strictly increasing X and Z bounds. Navigation
 also limits each grid column to eight walkable layers, total nodes to 524288,
 edges to 4194304 and construction work. These are validation limits, not proven
 playable map sizes or capacity claims. Invalid maps cannot replace live geometry.
+Clients disconnect on malformed JSON or invalid map geometry rather than
+continuing against a previous world. The decision brain and playtest controllers
+also stop on messages that fail the shared server-message schema. The MCP adapter
+retains its existing forward-compatible handling of unknown event objects.
 
 Current built-in maps still use version 1. Version 2 support does not mean an
 enclosed campaign mission is shipped.

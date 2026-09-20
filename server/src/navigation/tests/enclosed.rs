@@ -1,20 +1,7 @@
 use super::{arena, assert_walks};
-use crate::movement::{Arena, Solid};
+use crate::enclosed_fixture::balcony;
+use crate::movement::Solid;
 use crate::navigation::{Navigation, RouteStatus, MAX_LAYERS, SEARCH_LIMIT};
-
-fn balcony() -> Arena {
-    let mut solids = vec![Solid::from_center_volume(4.0, 0.0, 3.0, 3.0, 2.4, 3.0)];
-    for i in 0..6 {
-        solids.push(Solid::from_center_top(
-            4.0,
-            -14.0 + i as f32 * 2.0,
-            2.0,
-            1.0,
-            (i + 1) as f32 * 0.5,
-        ));
-    }
-    Arena { half: 18.0, solids }
-}
 
 #[test]
 fn coordinate_targets_select_the_intended_floor_without_climbing_the_ceiling() {

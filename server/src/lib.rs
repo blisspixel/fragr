@@ -11,4 +11,6 @@ pub mod sim;
 pub mod trace;
 
 #[cfg(test)]
+mod enclosed_fixture;
+#[cfg(test)]
 mod tests;

@@ -19,7 +19,7 @@
 //! reachability flood fill in `tests.rs` assert both for every map in the
 //! roster, so a layout mistake fails a test rather than a round.
 
-use crate::movement::WALL_TOP;
+use crate::movement::{Solid, WALL_TOP};
 #[cfg(test)]
 use crate::movement::{RADIUS, STEP_UP};
 use crate::protocol::WeaponType;
@@ -36,18 +36,7 @@ pub(crate) fn arena(kind: MapKind) -> &'static crate::movement::Arena {
         let layout = def(kind);
         crate::movement::Arena {
             half: layout.half_extent,
-            solids: layout
-                .solids
-                .iter()
-                .map(|solid| crate::movement::Solid {
-                    min_x: solid.min_x,
-                    max_x: solid.max_x,
-                    min_z: solid.min_z,
-                    max_z: solid.max_z,
-                    bottom: 0.0,
-                    top: solid.top,
-                })
-                .collect(),
+            solids: layout.solids.clone(),
         }
     })
 }
@@ -116,65 +105,13 @@ mod navigation_cache_tests {
     }
 }
 
-/// Axis-aligned scrap solid in XZ, standing on the floor and reaching up to
-/// `top`. There is no space underneath one: the collision model is a
-/// heightfield, so a solid is a box rather than a prism.
-#[derive(Debug, Clone, Copy)]
-pub(crate) struct Aabb2 {
-    pub(crate) min_x: f32,
-    pub(crate) max_x: f32,
-    pub(crate) min_z: f32,
-    pub(crate) max_z: f32,
-    /// Walkable upper surface, measured from the floor.
-    pub(crate) top: f32,
-}
-
-impl Aabb2 {
-    /// A wall: too tall to climb or jump onto.
-    pub(crate) const fn from_center(cx: f32, cz: f32, half_x: f32, half_z: f32) -> Self {
-        Self::from_center_top(cx, cz, half_x, half_z, WALL_TOP)
-    }
-
-    pub(crate) const fn from_center_top(
-        cx: f32,
-        cz: f32,
-        half_x: f32,
-        half_z: f32,
-        top: f32,
-    ) -> Self {
-        Self {
-            min_x: cx - half_x,
-            max_x: cx + half_x,
-            min_z: cz - half_z,
-            max_z: cz + half_z,
-            top,
-        }
-    }
-
-    #[cfg(test)]
-    pub(crate) const fn expand(self, r: f32) -> Self {
-        Self {
-            min_x: self.min_x - r,
-            max_x: self.max_x + r,
-            min_z: self.min_z - r,
-            max_z: self.max_z + r,
-            top: self.top,
-        }
-    }
-
-    #[cfg(test)]
-    pub(crate) fn contains(self, x: f32, z: f32) -> bool {
-        x >= self.min_x && x <= self.max_x && z >= self.min_z && z <= self.max_z
-    }
-}
-
 /// Everything the simulation needs to run one map.
 pub(crate) struct MapDef {
     /// Half width of the playable square, centred on the origin.
     pub(crate) half_extent: f32,
     /// Radius of the ring fighters spawn on.
     pub(crate) spawn_radius: f32,
-    pub(crate) solids: Vec<Aabb2>,
+    pub(crate) solids: Vec<Solid>,
     pub(crate) pickups: Vec<ArenaPickup>,
 }
 
@@ -204,7 +141,7 @@ fn treads(from: f32, to: f32) -> usize {
 /// must be one of the four axis directions. The first tread's near edge is at
 /// the start point and the last tread's far edge is `stair_length` away, at
 /// `to`, which is where the deck it serves has to begin.
-fn stair_run(x: f32, z: f32, dx: f32, dz: f32, half_across: f32, from: f32, to: f32) -> Vec<Aabb2> {
+fn stair_run(x: f32, z: f32, dx: f32, dz: f32, half_across: f32, from: f32, to: f32) -> Vec<Solid> {
     let n = treads(from, to);
     let rise = (to - from) / n as f32;
     let (hx, hz) = if dx != 0.0 {
@@ -215,7 +152,7 @@ fn stair_run(x: f32, z: f32, dx: f32, dz: f32, half_across: f32, from: f32, to: 
     (0..n)
         .map(|i| {
             let along = TREAD * (i as f32 + 0.5);
-            Aabb2::from_center_top(
+            Solid::from_center_top(
                 x + dx * along,
                 z + dz * along,
                 hx,
@@ -252,7 +189,7 @@ fn wall_with_doors(
     half_thick: f32,
     top: f32,
     doors: Doors<'_>,
-) -> Vec<Aabb2> {
+) -> Vec<Solid> {
     let (from, to) = span;
     let mut cuts: Vec<(f32, f32)> = doors
         .at
@@ -274,12 +211,12 @@ fn wall_with_doors(
     out
 }
 
-fn segment(along: Along, line: f32, a: f32, b: f32, half_thick: f32, top: f32) -> Aabb2 {
+fn segment(along: Along, line: f32, a: f32, b: f32, half_thick: f32, top: f32) -> Solid {
     let mid = (a + b) * 0.5;
     let half = (b - a) * 0.5;
     match along {
-        Along::X => Aabb2::from_center_top(mid, line, half, half_thick, top),
-        Along::Z => Aabb2::from_center_top(line, mid, half_thick, half, top),
+        Along::X => Solid::from_center_top(mid, line, half, half_thick, top),
+        Along::Z => Solid::from_center_top(line, mid, half_thick, half, top),
     }
 }
 
@@ -300,15 +237,15 @@ enum Side {
 /// and the harness reported four spawn deaths in eight frags. The blocks are
 /// set back far enough that the spawn point itself stays clear with a
 /// fighter's radius to spare, which is the thing `validate` checks.
-fn spawn_pockets(count: usize, radius: f32, out: &mut Vec<Aabb2>) {
+fn spawn_pockets(count: usize, radius: f32, out: &mut Vec<Solid>) {
     for i in 0..count {
         let angle = PI * 2.0 * (i as f32) / count as f32;
         let (ox, oz) = (angle.cos(), angle.sin());
         let (tx, tz) = (-oz, ox);
         let (sx, sz) = (ox * radius, oz * radius);
-        out.push(Aabb2::from_center(sx + ox * 5.5, sz + oz * 5.5, 2.5, 2.5));
-        out.push(Aabb2::from_center(sx + tx * 6.0, sz + tz * 6.0, 1.8, 1.8));
-        out.push(Aabb2::from_center(sx - tx * 6.0, sz - tz * 6.0, 1.8, 1.8));
+        out.push(Solid::from_center(sx + ox * 5.5, sz + oz * 5.5, 2.5, 2.5));
+        out.push(Solid::from_center(sx + tx * 6.0, sz + tz * 6.0, 1.8, 1.8));
+        out.push(Solid::from_center(sx - tx * 6.0, sz - tz * 6.0, 1.8, 1.8));
     }
 }
 
@@ -323,8 +260,8 @@ fn deck_with_stairs(
     top: f32,
     stair_half: f32,
     sides: &[Side],
-) -> Vec<Aabb2> {
-    let mut out = vec![Aabb2::from_center_top(cx, cz, half_x, half_z, top)];
+) -> Vec<Solid> {
+    let mut out = vec![Solid::from_center_top(cx, cz, half_x, half_z, top)];
     for side in sides {
         let run = stair_length(0.0, top);
         let (x, z, dx, dz) = match side {
@@ -405,7 +342,7 @@ fn arena_duel() -> MapDef {
         (19.0, 0.0, 1.8, 13.0),
         (-19.0, 0.0, 1.8, 13.0),
     ] {
-        s.push(Aabb2::from_center_top(cx, cz, hx, hz, gantry_top));
+        s.push(Solid::from_center_top(cx, cz, hx, hz, gantry_top));
     }
     // One flight up from the hub and one from the field per segment. Inner
     // approaches form a pinwheel: crossing perpendicular flights makes their
@@ -427,7 +364,7 @@ fn arena_duel() -> MapDef {
     // Pillar ring at mid field, between the gantry and the spawn rim.
     for i in 0..8 {
         let angle = PI * 2.0 * (i as f32) / 8.0;
-        s.push(Aabb2::from_center(
+        s.push(Solid::from_center(
             angle.cos() * 31.0,
             angle.sin() * 31.0,
             2.0,
@@ -444,10 +381,10 @@ fn arena_duel() -> MapDef {
         (56.0, 0.0, 0.8, 18.0),
         (-56.0, 0.0, 0.8, 18.0),
     ] {
-        s.push(Aabb2::from_center(cx, cz, hx, hz));
+        s.push(Solid::from_center(cx, cz, hx, hz));
     }
     for (cx, cz) in [(50.0, 50.0), (-50.0, 50.0), (50.0, -50.0), (-50.0, -50.0)] {
-        s.push(Aabb2::from_center(cx, cz, 2.5, 2.5));
+        s.push(Solid::from_center(cx, cz, 2.5, 2.5));
     }
 
     MapDef {
@@ -499,7 +436,7 @@ fn compliance_yard() -> MapDef {
 
     // The inspection gantry in the north room, with a flight at each end.
     let gantry_top = 2.8;
-    s.push(Aabb2::from_center_top(0.0, -30.0, 8.0, 2.5, gantry_top));
+    s.push(Solid::from_center_top(0.0, -30.0, 8.0, 2.5, gantry_top));
     let run = stair_length(0.0, gantry_top);
     for x in [-6.0f32, 6.0] {
         s.extend(stair_run(x, -27.5 + run, 0.0, -1.0, 1.5, 0.0, gantry_top));
@@ -510,14 +447,14 @@ fn compliance_yard() -> MapDef {
     for cx in [-24.0f32, 24.0] {
         let top = 1.4;
         let run = stair_length(0.0, top);
-        s.push(Aabb2::from_center_top(cx, 24.0, 4.0, 4.0, top));
+        s.push(Solid::from_center_top(cx, 24.0, 4.0, 4.0, top));
         s.extend(stair_run(cx - 4.0 - run, 24.0, 1.0, 0.0, 1.5, 0.0, top));
         s.extend(stair_run(cx + 4.0 + run, 24.0, -1.0, 0.0, 1.5, 0.0, top));
     }
 
     // Filing stacks in the middle room, off the origin and off the doors.
     for (cx, cz) in [(-6.5, -6.5), (6.5, -6.5), (-6.5, 6.5), (6.5, 6.5)] {
-        s.push(Aabb2::from_center(cx, cz, 1.6, 1.6));
+        s.push(Solid::from_center(cx, cz, 1.6, 1.6));
     }
 
     // Pallets in the perimeter corridor, placed off the spawn ring rather than
@@ -534,7 +471,7 @@ fn compliance_yard() -> MapDef {
         (20.0, -46.0),
         (-20.0, -46.0),
     ] {
-        s.push(Aabb2::from_center(cx, cz, 2.0, 2.0));
+        s.push(Solid::from_center(cx, cz, 2.0, 2.0));
     }
 
     MapDef {
@@ -577,7 +514,7 @@ fn directive_17() -> MapDef {
     let run = stair_length(0.0, deck_top);
     for (sx, sz) in [(1.0f32, 1.0f32), (1.0, -1.0), (-1.0, 1.0), (-1.0, -1.0)] {
         let (cx, cz) = (sx * 40.0, sz * 40.0);
-        s.push(Aabb2::from_center_top(cx, cz, 20.0, 20.0, deck_top));
+        s.push(Solid::from_center_top(cx, cz, 20.0, 20.0, deck_top));
         // Three flights up each inner face rather than one. With a single
         // flight per face an agent walking at a target across the pit meets
         // three metres of deck wall and has no way to know the stairs are
@@ -607,14 +544,14 @@ fn directive_17() -> MapDef {
     // Service cover: on the decks, which is the map's tight ground, and in
     // the corridors, which are its long ones.
     for (sx, sz) in [(1.0f32, 1.0f32), (1.0, -1.0), (-1.0, 1.0), (-1.0, -1.0)] {
-        s.push(Aabb2::from_center_top(
+        s.push(Solid::from_center_top(
             sx * 52.0,
             sz * 52.0,
             5.0,
             5.0,
             deck_top + 3.5,
         ));
-        s.push(Aabb2::from_center_top(
+        s.push(Solid::from_center_top(
             sx * 30.0,
             sz * 58.0,
             3.0,
@@ -623,7 +560,7 @@ fn directive_17() -> MapDef {
         ));
     }
     for (cx, cz) in [(38.0f32, 0.0f32), (-38.0, 0.0), (0.0, 38.0), (0.0, -38.0)] {
-        s.push(Aabb2::from_center(cx, cz, 3.0, 3.0));
+        s.push(Solid::from_center(cx, cz, 3.0, 3.0));
     }
 
     MapDef {
@@ -718,11 +655,11 @@ fn sector_9() -> MapDef {
         (-66.0, 20.0),
         (-44.0, -62.0),
     ] {
-        s.push(Aabb2::from_center(cx, cz, 4.0, 4.0));
+        s.push(Solid::from_center(cx, cz, 4.0, 4.0));
     }
     // Mid, with the hub itself left open.
     for (cx, cz) in [(-12.0, -12.0), (12.0, -12.0), (-12.0, 12.0), (12.0, 12.0)] {
-        s.push(Aabb2::from_center(cx, cz, 2.5, 2.5));
+        s.push(Solid::from_center(cx, cz, 2.5, 2.5));
     }
 
     MapDef {
@@ -798,7 +735,7 @@ fn reclamation_gulch() -> MapDef {
         let top = 3.0;
         let run = stair_length(0.0, top);
         let deck_z = cz + 15.0 * sign;
-        s.push(Aabb2::from_center_top(0.0, deck_z, 26.0, 3.0, top));
+        s.push(Solid::from_center_top(0.0, deck_z, 26.0, 3.0, top));
         for x in [-16.0f32, 16.0] {
             s.extend(stair_run(
                 x,
@@ -829,7 +766,7 @@ fn reclamation_gulch() -> MapDef {
         let cx = 62.0 * sign;
         let top = 2.0;
         let run = stair_length(0.0, top);
-        s.push(Aabb2::from_center_top(cx, 0.0, 7.0, 62.0, top));
+        s.push(Solid::from_center_top(cx, 0.0, 7.0, 62.0, top));
         for z in [-40.0f32, 0.0, 40.0] {
             s.extend(stair_run(
                 cx - (7.0 + run) * sign,
@@ -865,7 +802,7 @@ fn reclamation_gulch() -> MapDef {
         (-96.0, 0.0),
         (96.0, 0.0),
     ] {
-        s.push(Aabb2::from_center(cx, cz, 3.5, 3.5));
+        s.push(Solid::from_center(cx, cz, 3.5, 3.5));
     }
 
     MapDef {
@@ -956,7 +893,7 @@ fn tripoint_works() -> MapDef {
             0 => {
                 for dx in [-10.0f32, 10.0] {
                     for dz in [2.0f32, 14.0] {
-                        s.push(Aabb2::from_center(bx + dx, bz + dz, 3.0, 2.0));
+                        s.push(Solid::from_center(bx + dx, bz + dz, 3.0, 2.0));
                     }
                 }
             }
@@ -970,11 +907,11 @@ fn tripoint_works() -> MapDef {
                     (14.0, 13.0, 1.6, 4.4),
                     (0.0, -2.0, 2.8, 1.5),
                 ] {
-                    s.push(Aabb2::from_center(bx + dx, bz + dz, hx, hz));
+                    s.push(Solid::from_center(bx + dx, bz + dz, hx, hz));
                 }
             }
             // The Inheritance: one drum, no seams, no smaller parts.
-            _ => s.push(Aabb2::from_center(bx, bz + 8.0, 9.0, 9.0)),
+            _ => s.push(Solid::from_center(bx, bz + 8.0, 9.0, 9.0)),
         }
     }
 
@@ -994,7 +931,7 @@ fn tripoint_works() -> MapDef {
             &[Side::North, Side::East, Side::West],
         ));
         for (dx, dz) in [(-17.0, -17.0), (17.0, -17.0), (-17.0, 17.0), (17.0, 17.0)] {
-            s.push(Aabb2::from_center(zx + dx, zz + dz, 3.0, 3.0));
+            s.push(Solid::from_center(zx + dx, zz + dz, 3.0, 3.0));
         }
     }
 
@@ -1132,10 +1069,7 @@ pub(crate) fn can_stand(kind: MapKind, x: f32, z: f32) -> bool {
 /// Blocked for a fighter that can climb to `climb`.
 #[cfg(test)]
 pub(crate) fn blocked_at(kind: MapKind, x: f32, z: f32, climb: f32) -> bool {
-    def(kind)
-        .solids
-        .iter()
-        .any(|o| o.top > climb && o.expand(RADIUS).contains(x, z))
+    arena(kind).blocked_at(x, z, climb)
 }
 
 /// The surface under `(x, z)` for a fighter that can reach `ceiling`.

@@ -909,13 +909,15 @@ pub fn ingest_server_text(state: &mut ToolState, text: &str) -> Result<(), &'sta
             // Unicast speak rejection; MCP speak path already mirrors cooldown as isError.
         }
         Err(_) => {
-            if let Ok(raw) = serde_json::from_str::<Value>(text) {
-                if raw.get("type").and_then(|v| v.as_str()) == Some("map_info") {
-                    return Err("invalid map geometry message");
-                }
-                if raw.get("type").and_then(|v| v.as_str()) == Some("event") {
-                    push_recent_event(state, raw);
-                }
+            let raw = serde_json::from_str::<Value>(text).map_err(|_| "invalid server JSON")?;
+            if !raw.is_object() {
+                return Err("invalid server message object");
+            }
+            if raw.get("type").and_then(|v| v.as_str()) == Some("map_info") {
+                return Err("invalid map geometry message");
+            }
+            if raw.get("type").and_then(|v| v.as_str()) == Some("event") {
+                push_recent_event(state, raw);
             }
         }
     }
@@ -952,6 +954,10 @@ mod mcp_tests {
         )
         .is_err());
         assert!(ingest_server_text(&mut state, &"x".repeat(1_000_001)).is_err());
+        for malformed in ["{broken", "[]", "null"] {
+            assert!(ingest_server_text(&mut state, malformed).is_err());
+            assert_eq!(state.map, previous);
+        }
     }
 
     fn req(method: &str, params: Option<Value>) -> McpRequest {

@@ -7,8 +7,9 @@ Linux, Windows, and macOS CI passed. Reproducible recording and CPU accounting
 then shipped in [PR #166](https://github.com/blisspixel/fragr/pull/166), v0.16.0.
 The arena surface pass shipped in PR #167, v0.17.0, with all desktop CI green.
 Player settings shipped in PR #168, v0.18.0, with all desktop CI green.
-Current bounded implementation: [`asset-request-recovery.md`](asset-request-recovery.md),
-a prerequisite before spending more credit on coherent character and weapon sets.
+Current bounded implementation: [`campaign-spaces.md`](campaign-spaces.md),
+the geometry foundation for M01's interiors and overlapping floors. Asset request
+recovery shipped in #169; further paid batches still require quota/cap checks.
 The broader art/encounter pass and full-game target remain open.
 
 ## Goal

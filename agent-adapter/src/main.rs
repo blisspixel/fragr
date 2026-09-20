@@ -327,32 +327,55 @@ async fn run_scripted_bot(
         .send(Message::Text(serde_json::to_string(&hello)?))
         .await?;
 
-    let mut player_id = None;
-    if let Some(Ok(Message::Text(text))) = ws_stream.next().await {
-        if let Ok(ServerMessage::Welcome { player_id: pid, .. }) = serde_json::from_str(&text) {
-            player_id = pid;
-            tracing::info!("Bot connected, player_id: {:?}", player_id);
-        }
-    }
-
-    let bot_id = player_id.unwrap();
+    let Some(Ok(Message::Text(text))) = ws_stream.next().await else {
+        return Err(io::Error::other("server closed before Welcome").into());
+    };
+    let bot_id = match serde_json::from_str::<ServerMessage>(&text)? {
+        ServerMessage::Welcome {
+            player_id: Some(id),
+            role: Role::Agent,
+            ..
+        } => id,
+        ServerMessage::Error { message, .. } => return Err(io::Error::other(message).into()),
+        _ => return Err(io::Error::other("server did not assign an agent fighter").into()),
+    };
+    tracing::info!("Bot connected, player_id: {bot_id}");
     let mut last_snapshot: Option<protocol::Snapshot> = None;
+    let mut navigation = None;
+    let mut navigator = fragr_server::navigation::Navigator::default();
+    let mut action_tick = tokio::time::interval(std::time::Duration::from_millis(50));
+    action_tick.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Skip);
 
     loop {
         tokio::select! {
             msg = ws_stream.next() => {
                 if let Some(Ok(Message::Text(text))) = msg {
-                    if let Ok(ServerMessage::Snapshot(snapshot)) = serde_json::from_str(&text) {
-                        last_snapshot = Some(snapshot);
+                    match serde_json::from_str::<ServerMessage>(&text)? {
+                        ServerMessage::Snapshot(snapshot) => last_snapshot = Some(snapshot),
+                        ServerMessage::MapInfo { half_extent, solids, geometry_version, .. } => {
+                            protocol::validate_map_geometry(half_extent, &solids, geometry_version)
+                                .map_err(io::Error::other)?;
+                            let arena = fragr_server::movement::Arena { half: half_extent, solids };
+                            navigation = Some(tokio::task::spawn_blocking(move || {
+                                fragr_server::navigation::Navigation::shared(arena)
+                            }).await?.map_err(io::Error::other)?);
+                            navigator.clear();
+                            last_snapshot = None;
+                        }
+                        ServerMessage::Error { code, message } if code == "unsupported_geometry" => {
+                            return Err(io::Error::other(message).into());
+                        }
+                        _ => {}
                     }
                 } else {
                     break;
                 }
             }
 
-            _ = tokio::time::sleep(tokio::time::Duration::from_millis(50)) => {
-                if let Some(ref snapshot) = last_snapshot {
-                    let action = compute_bot_action(bot_id, snapshot);
+            _ = action_tick.tick() => {
+                if let (Some(snapshot), Some(world)) = (last_snapshot.as_ref(), navigation.as_ref()) {
+                    let wanted = compute_bot_action(bot_id, snapshot);
+                    let action = navigator.steer_snapshot(world, bot_id, snapshot, wanted);
                     let action_msg = ClientMessage::Action(action);
 
                     if ws_sink.send(Message::Text(serde_json::to_string(&action_msg)?)).await.is_err() {
@@ -1622,6 +1645,116 @@ mod tests {
         }
         mcp_leave_session(&mut session, &tool_state).await;
         let _ = tokio::time::timeout(std::time::Duration::from_secs(2), peer).await;
+    }
+
+    #[tokio::test]
+    async fn scripted_bot_rejects_missing_identity_and_unsupported_geometry() {
+        for reply in [
+            r#"{"type":"welcome","player_id":null,"role":"agent"}"#,
+            r#"{"type":"error","code":"unsupported_geometry","message":"Update"}"#,
+            r#"{"type":"map_info","solids":"bad"}"#,
+        ] {
+            let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
+            let url = format!("ws://{}", listener.local_addr().unwrap());
+            let peer = tokio::spawn(async move {
+                let (stream, _) = listener.accept().await.unwrap();
+                let mut ws = tokio_tungstenite::accept_async(stream).await.unwrap();
+                ws.next().await.unwrap().unwrap();
+                ws.send(Message::Text(reply.into())).await.unwrap();
+                let _ = ws.next().await;
+            });
+            let result = tokio::time::timeout(
+                std::time::Duration::from_secs(2),
+                run_scripted_bot(url, "Rejected".into()),
+            )
+            .await
+            .unwrap();
+            assert!(result.is_err());
+            peer.await.unwrap();
+        }
+    }
+
+    #[tokio::test]
+    async fn scripted_bot_uses_raised_geometry_under_continuous_snapshots() {
+        let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let url = format!("ws://{}", listener.local_addr().unwrap());
+        let peer = tokio::spawn(async move {
+            let (stream, _) = listener.accept().await.unwrap();
+            let mut ws = tokio_tungstenite::accept_async(stream).await.unwrap();
+            ws.next().await.unwrap().unwrap();
+            let mut state = fragr_server::sim::GameState::new();
+            let bot = uuid::Uuid::from_u128(67);
+            let target = uuid::Uuid::from_u128(68);
+            state.add_player(bot, "Probe".into(), Role::Agent);
+            state.add_player(target, "Target".into(), Role::Human);
+            for (index, player) in state.players.iter_mut().enumerate() {
+                player.x = if index == 0 { 0.0 } else { 4.0 };
+                player.y = fragr_server::sim::PLAYER_FLOOR_Y;
+                player.z = 0.0;
+            }
+            let welcome = ServerMessage::Welcome {
+                player_id: Some(bot),
+                role: Role::Agent,
+                mode_name: protocol::default_mode_name(),
+                playlist: protocol::default_playlist(),
+            };
+            ws.send(Message::Text(serde_json::to_string(&welcome).unwrap()))
+                .await
+                .unwrap();
+            let map = ServerMessage::MapInfo {
+                map_id: 1,
+                map_name: "Raised fixture".into(),
+                half_extent: 12.0,
+                geometry_version: 2,
+                solids: vec![fragr_server::movement::Solid::from_center_volume(
+                    2.0, 0.0, 3.0, 3.0, 2.4, 3.0,
+                )],
+            };
+            ws.send(Message::Text(serde_json::to_string(&map).unwrap()))
+                .await
+                .unwrap();
+            let mut arrivals = 0;
+            let mut snapshots = tokio::time::interval(std::time::Duration::from_millis(5));
+            let deadline = tokio::time::sleep(std::time::Duration::from_secs(2));
+            tokio::pin!(deadline);
+            while arrivals < 3 {
+                tokio::select! {
+                    _ = &mut deadline => panic!("snapshot traffic starved the action clock"),
+                    _ = snapshots.tick() => {
+                        state.tick += 1;
+                        ws.send(Message::Text(serde_json::to_string(&ServerMessage::Snapshot(state.snapshot())).unwrap())).await.unwrap();
+                    }
+                    message = ws.next() => {
+                        let Some(Ok(Message::Text(text))) = message else { panic!("bot disconnected before playing") };
+                        if let ClientMessage::Action(action) = serde_json::from_str(&text).unwrap() {
+                            assert!(action.fire, "the target is visible beneath the raised slab");
+                            arrivals += 1;
+                        }
+                    }
+                }
+            }
+            ws.send(Message::Text(
+                r#"{"type":"map_info","geometry_version":"bad"}"#.into(),
+            ))
+            .await
+            .unwrap();
+            while let Some(Ok(message)) = ws.next().await {
+                if matches!(message, Message::Close(_)) {
+                    break;
+                }
+            }
+        });
+        let result = tokio::time::timeout(
+            std::time::Duration::from_secs(4),
+            run_scripted_bot(url, "Probe".into()),
+        )
+        .await
+        .unwrap();
+        assert!(
+            result.is_err(),
+            "malformed replacement must stop the controller"
+        );
+        peer.await.unwrap();
     }
 
     #[tokio::test]

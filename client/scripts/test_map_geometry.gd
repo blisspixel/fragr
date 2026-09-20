@@ -55,6 +55,12 @@ func _run() -> void:
 	_expect(not net.is_processing(), "rejected map left network processing active")
 	net._handle_message('{"type":"error","code":"unsupported_geometry"}')
 	_expect(rejected == 2, "server compatibility rejection not visible")
+	for malformed: String in ['{"type":"map_info",', '[]', 'null']:
+		var before: int = rejected
+		net.set_process(true)
+		net._handle_message(malformed)
+		_expect(rejected == before + 1 and received == 1, "malformed message retained a usable stale map")
+		_expect(not net.is_processing(), "malformed message left network processing active")
 	net.free()
 	if failures == 0:
 		print("test_map_geometry: PASS finite volumes, bounds, versions, network rejection")

@@ -142,11 +142,14 @@ func _handle_message(text: String):
 	var json = JSON.new()
 	var error = json.parse(text)
 	if error != OK:
-		push_error("Failed to parse JSON: " + text)
+		disconnect_from_server()
+		server_error.emit("The server sent an unreadable message. Connection closed.")
 		return
 	
 	var data = json.data
 	if not data is Dictionary:
+		disconnect_from_server()
+		server_error.emit("The server sent an invalid message. Connection closed.")
 		return
 	
 	var msg_type = data.get("type", "")
