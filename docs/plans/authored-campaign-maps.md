@@ -1,6 +1,8 @@
 # Authored campaign map data
 
-**Status:** in local verification, 2026-09-19. Follows [finite-volume geometry](campaign-spaces.md), shipped in #176.
+**Status:** implemented and locally verified, 2026-09-19. Integration record:
+[#177](https://github.com/blisspixel/fragr/pull/177). Follows
+[finite-volume geometry](campaign-spaces.md), shipped in #176.
 **Goal:** load and play M01's intake annex from validated local JSON through the
 normal server, human client, agents and spectators. Spend: $0.
 
@@ -114,6 +116,14 @@ wall; the solid was raised and both tours repeated. Current evidence lives in
 `.agents/qa/m01-{opengl,vulkan}-final`. The views establish enclosed spaces and
 kit variation, while exposing missing props, signage, room lighting and encounters.
 
+The OpenGL manifest's authoritative movement samples measure 119.1 metres and
+24.64 seconds through the first lift visit, including the underpass inspection
+detour. The full two-route tour measures 262.3 metres and 53.76 seconds inside
+movement probes. These exclude capture waits and contain no combat, interaction
+or exploration decisions. They are not first-play times. The proposed 10-15
+minute mission remains unproven; build encounters and discovery before deciding
+whether the route needs more rooms, and avoid padding it with walking.
+
 Workspace verification passes 629 Rust tests with 95.68 percent unfiltered line
 coverage, warnings-denied Clippy, release build and dependency checks. All 18
 Godot harnesses pass. Surface validation tests caught a typed-array lookup on an
@@ -141,7 +151,11 @@ The full 21-state arcade/menu/effects tour also passes. Its contact sheet and
 both effect strips were inspected, and the release gallery was refreshed from
 `.agents/qa/authored-full`. This remains separate from the M01 captures.
 
-Remaining before integration: the six-map mixed roster and CI. Then continue
-with [M01 discovery](weapon-economy.md#next-bounded-increment-m01-discovery),
+The six-map mixed-client roster passes its unchanged assertions with
+2/6/6/8/12/16 clients. Reports are in `.agents/playtest/authored/`; CI repeats this
+gate before integration. The largest run recorded 79 frags and eight early
+spawn deaths, which passes the current statistical gate but is not proof that
+spawn balance is finished. GitHub checks on #177 own cross-platform integration
+evidence. Continue with [M01 discovery](weapon-economy.md#next-bounded-increment-m01-discovery),
 encounters, interaction, objectives and checkpoints. A connected blockout still
 does not establish a fun ten-minute mission.

@@ -1,6 +1,6 @@
 # M01: Recall Notice
 
-**Status:** traversal blockout in local verification. Story, encounters and mission
+**Status:** traversal blockout implemented and locally verified. Story, encounters and mission
 state remain unbuilt. Earth before the wipe. Full first-run target 10-15 minutes,
 to be measured. [Treatment](../CAMPAIGN-MISSIONS.md#m01-recall-notice).
 
