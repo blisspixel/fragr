@@ -4,6 +4,14 @@
 **Branch:** `feat/wire-*` and `feat/scale-*` (one PR per rung)
 **Spend:** $0 until the scale ladder needs a machine bigger than a laptop; that is Phase 3 and needs approval.
 
+**Baseline correction, 2026-09-19:** the original analysis below predates the
+current seeded simulation, complete-trace determinism checks and 3D combat.
+Its traffic estimates are design estimates, not current measurements. Re-profile
+the present source before implementing its grid or wire proposals. Current
+measurement semantics live in [BENCHMARK.md](../BENCHMARK.md); optional bot GPU
+work follows [gpu-bot-compute.md](gpu-bot-compute.md). Neither replaces interest
+management or proves public-server capacity.
+
 ## Goal
 
 The roadmap promises small squads today, full servers of thirty-two to sixty-four next, and arenas of hundreds where most fighters are agents. Today every tick serialises the whole world as JSON and sends it to every client, hit tests are all-pairs, and the RNG is unseeded. This plan is the design that gets from here to there without a rewrite, in rungs that are each measured before the next is claimed. It is written to be decision-complete: the numbers, formats, and algorithms are chosen here so implementation is mechanical.

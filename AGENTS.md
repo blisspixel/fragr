@@ -4,7 +4,7 @@ Operating rules for coding agents and human contributors. Humans: start with `RE
 
 ## What this is
 
-**fragr** (working name) is an agentic-first **3D** arena FPS with retro pixel surfaces. Solo boot-and-scrap against local bots, and watch-or-join multiplayer where humans, agents, and spectators share one match, are both first-class. Not branded as Doom or id. Monorepo:
+**fragr** (working name) is an agentic-first **3D** FPS with retro pixel surfaces, targeting an authored campaign, co-op and multiplayer. Current play supports local bot matches and a campaign prototype; the full campaign and co-op are planned. Watch-or-join multiplayer shares one match among humans, agents and spectators. Not branded as Doom or id. Monorepo:
 
 - `server/` - Rust authoritative game server (tokio, WebSocket JSON, 20 Hz tick). Owns positions, damage, HP, frags, spawns, scoring, rule bots, rounds, maps.
 - `client/` - Godot **4.7.2-stable**, GDScript only. Thin presenter: render, audio, HUD, spectator cameras, input. Never sim authority.
@@ -80,7 +80,7 @@ If prose and code disagree, code wins; fix the prose in the same change. Keep pl
 | Sequencing, status, fun bar | `docs/ROADMAP.md` |
 | Bounded work items | `docs/plans/<slug>.md`, indexed in `docs/plans/README.md` |
 | Look, palette, tone | `docs/ART_STORY_BIBLE.md`, `docs/palette.json` |
-| World, factions, characters, voice | `docs/lore/`, indexed in `docs/lore/README.md`. Check the frozen-string list in `docs/lore/voice.md` before renaming anything: about 500 MB of generated audio has the old words in it |
+| World and story | `docs/lore/README.md` indexes canon; `docs/CAMPAIGN.md` owns agreed story and open decisions; `docs/CAMPAIGN-MISSIONS.md` owns proposed mission briefs. Derive maps from story. Check recorded strings in `docs/lore/voice.md` before asset migrations; old audio does not override current intent. |
 | Hosting and cloud | `infra/README.md`, `infra/docs/`, `infra/terraform/` |
 
 Before adding a second way to log, configure, serialize, retry, or talk to the server, search the tree and reuse the seam above. Env vars in use: `FRAGR_SERVER`, `FRAGR_SOLO`, `FRAGR_MAP`, `FRAGR_AGENT_NAME`, `FRAGR_TIP_CAPTURE_DIR`, `RUST_LOG`, `ELEVENLABS_API_KEY`, plus the `FRAGR_BIND`, `FRAGR_BOTS`, `FRAGR_MAP_ROTATE`, and `GODOT_BIN` knobs read by `tools/solo_scrap.sh`.

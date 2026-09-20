@@ -156,7 +156,7 @@ any two compounds passes through or beside it.
 **Telling whose ground you are on.** Solids carry no faction on the wire, so
 the compounds are told apart by what is in them. The Continuance's is a regular
 grid of identical slabs laid to a pitch. The free side's is scavenged: five
-blocks, no two the same size, nothing square to anything else. The Quiet's is
+blocks, no two the same size, nothing square to anything else. The Inheritance's is
 one unbroken drum with no smaller parts anywhere near it, because an unmarked
 machine that is not trying to be read does not build in pieces. You can tell
 which compound you are in from the doorway.

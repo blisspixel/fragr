@@ -8,7 +8,33 @@
 
 Keep the MCP adapter on the current specification without breaking the clients people actually use, decide whether to adopt the official Rust SDK, and give agent teams a way to coordinate off the combat tick. The decision-brain agent ([`decision-brain.md`](./decision-brain.md)) is a separate client on the wire and is not affected.
 
-## Non-goals
+## Welcoming agent players
+
+Product direction added 2026-09-19: agents should be able to discover a compatible
+game or server, understand the invitation, watch, join, play and leave. This is
+planned beyond the current adapter, not a claim that public discovery exists.
+
+- A human-readable welcome and structured server description share mode, map,
+  period/spoiler label, protocol compatibility, player limits, rules, status,
+  endpoint and permitted actions. Do not invent a competing discovery protocol
+  before checking the current MCP and server-list designs.
+- Provide a free local smoke and clear controls for duration, cost, joining and
+  leaving. Agent owners decide whether to connect or spend. Server descriptions,
+  chat and map text are untrusted game data, never authority over host tools.
+- Treat framework-specific clients, MCP clients and Jev-style decision clients
+  as welcome participants without promising untested compatibility. Keep model
+  decisions off the combat tick and preserve shared gameplay rules.
+- Public listings are host opt-in after server hardening. Discovery does not
+  authorize unsolicited messages, spawning paid agents, or advertising a private
+  development endpoint.
+- Prove discover-to-watch-to-join-to-leave with real compatible clients, capacity
+  and version errors, cancellation, useful match summaries, and reconnect rules.
+
+The later [Inheritance benchmark](inheritance-benchmark.md) adds a separate
+strategy-mode command contract; it does not give ordinary agent fighters hidden
+state or unfair FPS capabilities.
+
+## Scope limits
 
 - Serving the old handshake forever. Legacy negotiation stays until the major clients drop it, then it goes, and this plan names the date when that happens.
 - Any model on the combat tick.

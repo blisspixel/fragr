@@ -1,6 +1,28 @@
 # Gazetteer
 
-One entry per place. Every venue carries a myth name that the players use and an engineering name the level designers use, and player-facing copy only ever shows the myth name.
+One entry per place. Distinguish proposed locations, arena myths, and actual
+shipped geometry. A nickname does not establish that its described map exists.
+
+## Campaign geography
+
+The [mission treatment](../CAMPAIGN-MISSIONS.md) owns the proposed route. These
+locations are working concepts, not approved geometry or completed assets.
+
+| Place | Role and character |
+|---|---|
+| Perimeter intake/correction complex | Earth civic frontage concealing custody machinery; M01-M02 |
+| Home district, working name Low Water | Mixed homes, clinic, repair market, tram trench; M03 and changed return in M11 |
+| Lunar port and custody archive | Established infrastructure under Union control, pressure galleries and captive workshops; M04-M05 |
+| Common Carrier | Working name for the commandeered transport, with passengers, cargo, repair and command decks; M06 |
+| Martian habitat and launch works | Communities around controlled lifelines, greenhouse and industrial spaces; M07-M08 |
+| Forever Office | Earth seat of visible command, defeated through a larger coalition action; M09 |
+| Recovery district and waterfront refuge | Earth during the sudden wipe and afterward; M10-M12 and later coda |
+
+Earth-Moon-Mars travel takes time. The cast visits lived-in societies, not new
+colonies or empty skyboxes. The coda and aftermath multiplayer revisit familiar
+places years later; those variants need new routes and evidence of change.
+
+## Arena myths
 
 The names are short on purpose and carry just enough backstory to make you wonder.
 
@@ -31,7 +53,9 @@ layouts, not completed campaign levels. Larak Lot is the Episode 0 face of Arena
 Duel; other maps retain their own names. Never label different geometry as Larak
 Lot, because learned routes must agree with the name a player sees.
 
-Everything else in this file is a name waiting for a floor plan. The size ladder those floor plans are built against is in `plans/map-scale.md`.
+The other arena myths and campaign locations await floor plans. The arena size
+ladder is in [map-scale](../plans/map-scale.md); campaign scale follows its story
+and encounter needs rather than a square arena's dimensions.
 
 ## Related
 

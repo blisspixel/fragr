@@ -38,7 +38,7 @@ impl GameSession {
     }
 
     pub fn with_map(map: MapKind, map_rotate: bool) -> Self {
-        crate::maps::navigation(map);
+        crate::maps::prepare_navigation(map, map_rotate);
         Self {
             state: GameState::with_map(map, map_rotate),
             bots: Vec::new(),

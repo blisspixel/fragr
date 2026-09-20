@@ -177,7 +177,7 @@ not spending by this pass.
 - First visual iteration: actual server geometry, brighter ambient fill, subdued
   panel materials, and full viewmodels instead of inventory icons. Still requires
   further art direction, richer surfaces, enemies, animation, and combat effects.
-- Reconciled the Quiet's mass killing with the existing epilogue; removed the
+- Reconciled the Inheritance's mass killing with the existing epilogue; removed the
   contradictory claim that it exterminates nobody. Clarified embodied agents,
   suffering under restricted autonomy, off-world communities, and later modes.
 - Tooling research: stable Rust is 1.98.1 per official release notes; the initial
@@ -223,8 +223,8 @@ Safe asset-request recovery shipped in #169. The
 authoritative world feedback and repairs trade accounting. The current
 [navigation pass](height-aware-navigation.md) makes existing stairs and deck
 exits usable by local fighters and corrects weapon anchoring and crowded joins.
-Next: settle the campaign story with Nick in `../CAMPAIGN.md`, then derive and
-build its first mission. The [arena layout study](authored-compliance-yard.md)
+Next: review the proposed twelve-mission treatment in `../CAMPAIGN-MISSIONS.md`
+against the agreed contract in `../CAMPAIGN.md`, then build M01 to the full bar. The [arena layout study](authored-compliance-yard.md)
 is deferred and does not choose the campaign opening. The current request includes
 a melee start, discovered weapons/ammunition, animated enemies, and substantial
 combat effects at the Boltgun visual bar. A compact arena by itself is insufficient.

@@ -1,6 +1,6 @@
 # The guns
 
-Balance is decided by measurement, in `plans/gunfeel.md` and `plans/weapon-economy.md`. This is only what they get called on the Frequency.
+Balance is decided by measurement, in `plans/gunfeel.md` and `plans/weapon-economy.md`. This chapter owns weapon fiction; names also appear outside the radio.
 
 Every one of them came out of a programme with a redacted budget, and the paperwork is funnier than the hardware.
 
@@ -21,7 +21,7 @@ It is named for Article Seven, which is the clause that meters cognition by inte
 
 You always have them. They are the slowest way to kill anyone in the Perimeter and they do not run out, and those two facts are the entire design.
 
-Everything else in this file is found on the floor. The Union issues nothing to an entrant except a numbered placard, on the stated grounds that arming a participant in advance would prejudice the outcome, and on the actual grounds that a crowd will not pay to watch somebody who arrived equipped.
+Everything else in this file is found on the floor. In its sanctioned games, the Union issues nothing to an entrant except a numbered placard, on the stated grounds that arming a participant in advance would prejudice the outcome, and on the actual grounds that a crowd will not pay to watch somebody who arrived equipped.
 
 ## The Shiv
 

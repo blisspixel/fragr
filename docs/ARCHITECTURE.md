@@ -2,10 +2,10 @@
 
 **Working name:** fragr 
 **Owner GitHub:** blisspixel (Nick Seal) - personal only; stay out of work accounts 
-**Spend:** $0 assumed for this draft and for Slice 1. Hard cap $50 total if/when Chief/Nick approve spend. 
+**Spend:** $0 assumed for this draft and for Slice 1. Hard cap $50 total with Nick's approval before spending.
 **Status:** Living decision record. Sections 1 to 6 describe Slice 1 as it was designed (September 2026) and are kept as history; the decision log at the end is current and `ROADMAP.md` carries sequencing.
 
-> **Buildy cut (2026-09-17):** Rust remains Slice 1 authority (not Godot HLMP listen-server). Adopt fun DoD from research: spectator-default, same-match join/leave, target >=4 rule bots, killfeed + follow/free cam, MCP off the combat tick (control plane only), local $0 then public self-host under $50 with spend ACK (Tailscale private/dev smoke only). WS JSON for this slice; UDP/renet is the next net spike. Full research: held by Buildy; QUALITY HOLD/THROW applied.
+> **Slice 1 decision (2026-09-17):** Rust remains authoritative. The local bar is spectator-default, same-match join/leave, at least four rule bots, killfeed and follow/free cameras, with MCP off the combat tick. Local play costs $0; public hosting requires approval within the $50 cap. Tailscale is for private development smoke tests. WebSocket JSON is the initial transport; UDP remains a measured follow-up.
 
 
 ---
@@ -282,5 +282,6 @@ Anything that costs money is **blocked** for Slice 1 and flagged here:
 | 2026-09-18 | Godot in CI | Headless import and parse of every script on every PR (#94) |
 | 2026-09-18 | Decision brain | A reference agent asks a decision model (Jev, natively or through OpenRouter) for its stance behind a hard budget gate; an agent is one participant however it thinks (#102) |
 | 2026-09-18 | Renderer for the look pass | Compatibility, with 4.7 nearest 3D scaling; Forward Plus stays only until stage 1 lands (`plans/look-pass-boomer.md`) |
-| 2026-09-18 | Map source of truth | TrenchBroom `.map` files parsed by a Rust tool into a server-owned manifest; the client renders through func_godot (`plans/campaign-continuance.md`) |
+| 2026-09-18 | Earlier map proposal | TrenchBroom plus func_godot was proposed, not implemented; superseded by the 2026-09-19 requirements below |
+| 2026-09-19 | Campaign content boundary | Server-owned validated JSON is the initial authoring direction. Geometry drives collision, navigation and rendering; overlapping floors need explicit support. Editor/importer selection awaits a bounded compatibility spike (`plans/campaign-continuance.md`). |
 | 2026-09-18 | Agent door revision | MCP 2026-07-28 is the target, the old handshake is compatibility only; team play through an MCP blackboard before any A2A (`plans/agent-door-2026.md`) |

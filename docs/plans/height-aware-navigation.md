@@ -1,9 +1,31 @@
 # Height-aware fighter navigation
 
-Status: implemented and locally verified, 2026-09-19. GitHub integration pending.
+Status: shipped and proven in #172 and v0.21.0, 2026-09-19.
 Branch: `feat/height-aware-navigation`. Spend: $0.
 
 ## Integration follow-up
+
+The design follow-up's CI run 35484092919 exposed a cold-start failure under
+coverage: four brain tests exceeded their unchanged five-second readiness limit.
+A fixed Arena Duel session was building all six maps, including unrelated large
+topologies. Navigation now caches maps independently; fixed sessions prepare
+only their map, while rotating sessions still prepare the roster before ready.
+Isolated-cache tests enforce both preparation contracts and cache reuse. This
+changes startup work, not routes, tick rules or test deadlines.
+Local verification passes: 596 workspace tests (one existing ignored generator),
+Clippy with warnings denied, release builds, and unfiltered line coverage of
+95.50 percent. The 12,000-tick, seed-42 Arena Duel trace remains
+`fd6ec849cb20375b267f523588200f4568ca6358513375b7d8ce09db28be508c`.
+Receipts: `.agents/navigation-startup-*.log` and
+`.agents/bench/navigation-startup-16.json`. The next CI run must verify cold
+Linux coverage startup; a local pass is not a replacement for that failure.
+
+Merged as `c8e52ba` after [CI run 35483531954](https://github.com/blisspixel/fragr/actions/runs/35483531954)
+passed every Linux, Windows, macOS, Godot and audit job. The retained Linux map
+matrix records 6/32/26/28/47/71 frags and 1/2/1/1/3/6 spawn deaths for maps 1-6;
+the longest stationary interval is 0.40 seconds. The reports are retained locally
+under `.agents/playtest/ci-35483531954/`. The history below records the failures
+that led to the final fixes.
 
 CI run 35478232410 failed the six-map wire matrix: Directive 17 seed 19 had a
 planner stationary for 19 seconds at (17.7, 44.3); Reclamation Gulch seed 42 had
@@ -65,6 +87,12 @@ Receipts: `.agents/bench/navigation-ci-fix-*.json`. The current 21-state OpenGL
 tour passes, with the contact sheet inspected and nine stills refreshed at
 `.agents/qa/navigation-ci-fix/`. Earlier renderer and native-pointer evidence
 below predates this navigation/spawn follow-up; no client code changed here.
+
+Four additional wire runs on the final executable also pass: Directive 17 seeds
+19/7 (27/23 frags, 0/1 spawn deaths) and Reclamation Gulch seeds 42/67 (42/55
+frags, 4/4 spawn deaths). The four-client CI smoke passes with eight frags and no
+spawn deaths. Receipts: `.agents/playtest/navigation-ci-repeat-*.json` and
+`navigation-ci-smoke.json`. All failures and assertion thresholds are retained.
 
 ## Problem and scope
 

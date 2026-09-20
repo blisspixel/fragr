@@ -1,13 +1,19 @@
 # The asset list
 
-Every sprite, texture, and effect fragr needs, itemised, so a generation run has a target instead of a vibe. `plans/art-pipeline.md` owns how assets are made and the rendering contract they must meet. `plans/look-pass-boomer.md` owns how the world is dressed. This file owns what exists.
+Production inventory and proposed asset targets. The [art bible](ART_STORY_BIBLE.md)
+owns faction palettes, environments and rendering style; [cast](lore/cast.md#visual-continuity)
+owns recurring-character anchors. `plans/art-pipeline.md` and
+`plans/look-pass-boomer.md` describe intended production, not completed tooling.
+Existing assets and their manifests outrank historical inventory labels below.
+The twelve campaign kits and characters remain unbuilt; see
+[mission kit ownership](CAMPAIGN-MISSIONS.md#art-and-sound-production-by-environment).
 
 ## How to read it
 
-- **Sizes are source sizes.** Everything is authored at four times the target and nearest-downscaled by `tools/pixelforge`, because a one-metre tile at sixteen pixels is too small to prompt.
+- **Sizes are proposed source targets.** Larger plates are reduced and inspected at game scale. `tools/spritegen` contains the current preparation path; `tools/pixelforge` is an unbuilt proposal, not an available command.
 - **Every entry is albedo only**, with a normal map beside it. No baked shadow, specular, or ambient occlusion. Light comes from the engine.
 - **Every entry is palette-locked** to `docs/palette.json`, quantised in perceptual colour space, ordered dithering only.
-- **Characters are eight-direction billboards.** Directions one to five are authored, six to eight are mirrored in engine, exactly as Doom did. The flipped weapon hand is accepted.
+- **Character target: eight-direction billboards.** Mirroring must preserve required character anchors and weapon registration. Author asymmetric views where a distinctive repair, insignia or carried item would otherwise switch sides.
 - **Counts below are frames**, not files. A four-frame walk in five directions is twenty frames.
 - Status: **have** means it exists in the repository today, **need** means it does not.
 
@@ -67,19 +73,19 @@ Not players. Survival and campaign. The canonical roster, with what each type do
 | Enemy | Status | Frames | Note |
 |---|---|---|---|
 | Compliance Drone | have (placeholder) | 115 | Existing boss, demoted to elite when the roster lands |
-| Clerk | need | 92 | Small, upright, clipboard. The tutorial enemy |
+| Clerk | need | 92 | Human security, light issued kit, visible aim tell |
 | Sweeper | need | 115 | The basic body, cheap and numerous |
-| Sweeper, ranged | need | 115 | Same silhouette, different colour and fire pose |
+| Sweeper, ranged | need | 115 | Distinct weapon/antenna silhouette plus pose and color |
 | Sweeper, heavy | need | 115 | Same silhouette again, wider and slower |
 | Crawler | need | 92 | Low to the ground, no fire state |
 | Jammer | need | 60 | Squat and stationary. Idle, fire, damaged, destroyed |
 | Enforcer | need | 115 | Heavy, armoured, a wind-up before the charge |
 | Turret | need | 24 | Static: idle, fire, damaged, destroyed |
-| Redactor | need | 115 | Invisible until it fires, so the fire frames carry it |
-| Auditor | need | 115 | Floats, clipboard shield, resurrects Clerks |
+| Redactor | need | 115 | Covert elite with visible distortion before firing |
+| Auditor | need | 115 | Human support officer, shield, bounded reactivation tell |
 | Continuance Walker | need | 160 | Episode boss, larger canvas at 128 px |
 
-Twelve entries, about 1130 frames. The Sweeper family shares one body across three variants, distinguished by colour and by how they move, because a family you can read at a glance is worth more than three unrelated shapes.
+Twelve entries, about 1130 frames. The Sweeper family shares one body across three variants, distinguished by equipment silhouette, color and movement, because a family you can read at a glance is worth more than three unrelated shapes.
 
 ---
 

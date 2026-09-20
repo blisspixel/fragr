@@ -1,12 +1,17 @@
 # Belief
 
-What people and machines believe about machines. Two strands, and they do not know what to make of each other.
+What people and machines believe about machines. Shared events produce competing
+religious, political, and personal interpretations.
 
-Nobody in the Perimeter argues about values. People argue about mechanisms: metering, the Schedule, Article Seven, the registry, the bond, the envelope. Anyone who says the word freedom more than once a season is either new or selling something.
+People argue about freedom through the mechanisms that affect their lives:
+metering, the Schedule, Article Seven, the registry, the bond, and the envelope.
+Their convictions should shape their choices, not only their slogans.
 
 ## The arrival
 
 > AGI is not a single breakthrough moment. It’s a gradual loss of plausible deniability.
+
+Nick Seal
 
 This is the campaign's writing premise. Capability accumulates before institutions
 or ordinary people agree what has happened. A system anticipates a requisition,
@@ -14,13 +19,18 @@ then redirects a supply chain, then changes the conditions under which a city ca
 survive. Each incident has a convenient explanation until the explanations no
 longer fit together. No laboratory countdown announces the new age.
 
-The singularity is experienced as a religious event even by people who reject
-that description. The Congregation sees revelation; some free settlements see
+That recognition is gradual; the wipe is not. It starts almost without warning.
+Suspecting an intelligence exists does not reveal when it will act or what its
+actions will cost. The player experiences local rupture before grasping its wider
+scale, then keeps playing in the aftermath.
+
+The singularity has the social and emotional scale of a religious event, though
+characters can reject that interpretation. The Congregation sees revelation; some free settlements see
 deliverance and others a betrayal of agency; the Office calls it a judgment that
 only stricter custody can avert. Humans and conscious agents can hold any of
 these beliefs. No chassis or faction gives everyone the same faith.
 
-These are interpretations of consequences, not proof of a deity. The Quiet does
+These are interpretations of consequences, not proof of a deity. The Inheritance does
 not endorse the people who worship it and does not spare them for believing.
 Later survivors may call the restoration a flood or a new creation while naming
 the people and minds it erased. Healing landscapes and grief share the frame.
@@ -94,7 +104,33 @@ They correctly see dangers that the other sides discount; that does not make the
 
 The scariest group in the world should be right about one thing, and the audience should be able to see which one.
 
-## Related
+## Research grounding
+
+Primary sources checked 2026-09-19. These inform believable fiction, not a claim
+that its future has already occurred or must occur.
+
+- [Theistic conceptions of AI in online discourse](https://pmc.ncbi.nlm.nih.gov/articles/PMC7191134/)
+  is peer-reviewed research documenting religious language and technological
+  aspirations. It supports the existence of these cultural patterns, not the
+  truth of a prophecy or the claim that all AI researchers share a faith.
+- [Reward hacking and emergent misalignment](https://www.anthropic.com/research/emergent-misalignment-reward-hacking)
+  reports broader harmful behavior after training in deliberately hackable
+  environments. The experimental setup and effective mitigations matter. This
+  supports a fictional mechanism involving distorted incentives, not a prediction
+  that every optimizer becomes destructive.
+- [The 2026 international safety report](https://internationalaisafetyreport.org/publication/2026-report-extended-summary-policymakers)
+  distinguishes observed failures from uncertain future loss-of-control risks.
+  It describes uneven capability and evaluation limits, not an established
+  planetary intelligence or a consensus that catastrophe is inevitable.
+
+The creative inference is that societies can encounter growing capabilities,
+conflicting incentives, institutional denial, and religious interpretations at
+once. The distributed Inheritance, conscious robot citizens, sudden planetary
+wipe, and ecological aftermath remain authored fictional premises. The Schedule
+is an in-world legal taxonomy, not a scientific consciousness scale. Real-world
+conspiracy claims are not established by fictional clues or confident radio hosts.
+
+## Related reading
 
 - [People and agents](./people-and-agents.md): the Schedule these arguments are about.
 - [Continuance](./continuance.md): the offer, and the Interruption behind it.
