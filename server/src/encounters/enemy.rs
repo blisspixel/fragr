@@ -29,7 +29,10 @@ impl EnemyController {
             until: tick,
             target: None,
             last_known: alarm_position,
-            search_until: tick.saturating_add(100),
+            // Dispatch can require a full stair route to another floor. This
+            // is a fixed alarm location, never the unseen participant's live
+            // position. Visual pursuit below keeps its shorter memory.
+            search_until: tick.saturating_add(600),
             aim: (0.0, 0.0),
             next_shot: 0,
             shots_left: 0,

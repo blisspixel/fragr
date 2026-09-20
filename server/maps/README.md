@@ -1,9 +1,12 @@
 # Authored development maps
 
 `m01-recall-notice.json` contains the opening mission's connected blockout and
-weapon discovery. Its two routes, stairs, balcony, office and lift use normal
-movement. Enter with fists, find Tack and Flechette, collect ammunition and reload.
-Encounters, interaction, extraction and checkpoints are not implemented here.
+weapon discovery and a draft introductory encounter. Its two routes, stairs,
+balcony, office and lift use normal movement. Enter with fists, find Tack and
+Flechette, collect ammunition and reload.
+One Clerk and two Sweepers use authoritative attack, hit and death states.
+Enemy artwork and animation remain provisional. Interaction, extraction and
+checkpoints are not implemented here.
 Do not present a successful route or reload as campaign completion.
 
 From the repository root:
@@ -52,9 +55,14 @@ support, not the campaign menu's finished first mission.
   rejected. No scripts or arbitrary behavior expressions. These maps require
   gameplay capability 3. See [actor semantics](../../docs/protocol.md#campaign-actor-identity).
 
-The loader and server support encounter definitions. The committed M01 map still
-contains traversal and equipment only while its encounter placement, animation
-and live-play proof are in progress in [the active plan](../../docs/plans/m01-intake-encounter.md).
+M01's Clerk enters around the inspection partition after safe weapon discovery.
+The two Sweepers activate after that fight when a participant enters the intake
+hall or reaches the upper flank. The records screen and deck conceal their
+initial positions. Initial dispatch follows a fixed alarm location for up to
+30 seconds; after seeing someone, pursuit remembers their last visible position
+for five seconds. Hidden movement never updates that location. These are initial
+tuning values. Animation and encounter review continue in
+[the active plan](../../docs/plans/m01-intake-encounter.md).
 
 Surface kits: `concrete`, `enamel`, `service_steel`, `records_tile`, `lift_panel`.
 They select existing offline materials, never paths, URLs or shader code. The
@@ -76,10 +84,16 @@ cargo test -p fragr-server maps::authored --locked
 cargo test -p fragr-server --test authored_maps --locked
 FRAGR_QA_BOTS=0 FRAGR_QA_MAP_FILE="$PWD/server/maps/m01-recall-notice.json" FRAGR_QA_MANIFEST=res://qa/m01.json bash tools/qa_tour.sh .agents/qa/m01
 FRAGR_QA_BOTS=0 FRAGR_QA_MAP_FILE="$PWD/server/maps/m01-recall-notice.json" FRAGR_QA_MANIFEST=res://qa/m01-discovery.json bash tools/qa_tour.sh .agents/qa/m01-discovery
+FRAGR_QA_BOTS=0 FRAGR_QA_MAP_FILE="$PWD/server/maps/m01-recall-notice.json" FRAGR_QA_MANIFEST=res://qa/m01-encounters.json bash tools/qa_tour.sh .agents/qa/m01-encounters
+FRAGR_QA_BOTS=0 FRAGR_QA_MAP_FILE="$PWD/server/maps/m01-recall-notice.json" FRAGR_QA_MANIFEST=res://qa/m01-maintenance.json bash tools/qa_tour.sh .agents/qa/m01-maintenance
 ```
 
 The tour uses human input through a live server, never teleportation. Inspect
-all rooms and movement samples. Set `FRAGR_RENDER_DRIVER=vulkan` for the second
-renderer. Do not use `--publish` with this specialized manifest. The full release
+all rooms, movement samples and combat sheets. The encounter tour deliberately
+observes one Clerk shot before returning fire. The combat driver filters allies,
+dead bodies and occluded targets, and fails if the participant dies. Its perfect
+aim is a regression tool, not evidence of human difficulty. Set
+`FRAGR_RENDER_DRIVER=vulkan` for the second renderer. Do not use `--publish` with
+these specialized manifests. The full release
 tour remains a separate check. Story and room purposes belong to
 [`docs/campaign/m01-recall-notice.md`](../../docs/campaign/m01-recall-notice.md).

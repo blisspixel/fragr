@@ -1,7 +1,7 @@
 {
   "version": 1,
   "map_id": 1001,
-  "name": "Recall Notice: traversal blockout",
+  "name": "Recall Notice: intake prototype",
   "half_extent": 42.0,
   "ground": "concrete",
   "equipment": "discovery",
@@ -12,6 +12,27 @@
     {"id":"bay_tacks","feet":[-4,0,-23],"grant":{"kind":"ammo","pool":"tacks","amount":24},"claim":"contested"},
     {"id":"records_darts","feet":[4,3,9],"grant":{"kind":"ammo","pool":"darts","amount":30},"claim":"contested"},
     {"id":"service_darts","feet":[-18,3,8],"grant":{"kind":"ammo","pool":"darts","amount":30},"claim":"contested"}
+  ],
+  "encounters": [
+    {
+      "id":"intake_clerk",
+      "regions":[
+        {"min":[-11,0,-24],"max":[11,2,-20]}
+      ],
+      "enemies":[{"id":"intake_security","kind":"clerk","feet":[-8,0,-17],"yaw":4.712389}]
+    },
+    {
+      "id":"intake_sweepers",
+      "after":"intake_clerk",
+      "regions":[
+        {"min":[-3,0,-12],"max":[3,2,-7]},
+        {"min":[-20,2.9,6],"max":[12,3.2,12]}
+      ],
+      "enemies":[
+        {"id":"records_sweeper_west","kind":"sweeper","feet":[-2,0,9],"yaw":4.712389},
+        {"id":"records_sweeper_east","kind":"sweeper","feet":[2,0,9],"yaw":4.712389}
+      ]
+    }
   ],
   "solids": [
     {"id":"street_south","min":[-12,0,-39],"max":[12,6,-38],"surface":"concrete"},
@@ -28,6 +49,7 @@
     {"id":"bay_roof","min":[-13,6,-28],"max":[13,6.5,-12],"surface":"concrete"},
     {"id":"seized_bench","min":[-10,0,-26],"max":[-6,1,-23],"surface":"service_steel"},
     {"id":"property_lockers","min":[10,0,-25],"max":[11,2.5,-16],"surface":"service_steel"},
+    {"id":"inspection_partition","min":[-6,0,-24],"max":[-5,3,-19],"surface":"enamel"},
     {"id":"hall_entry_west","min":[-12,0,-13],"max":[-3,8,-12],"surface":"enamel"},
     {"id":"hall_entry_east","min":[3,0,-13],"max":[12,8,-12],"surface":"enamel"},
     {"id":"hall_entry_header","min":[-3,4,-13],"max":[3,8,-12],"surface":"enamel"},
@@ -37,6 +59,7 @@
     {"id":"intake_counter_west","min":[-5,0,-5],"max":[-1,1.15,-3],"surface":"enamel"},
     {"id":"intake_counter_east","min":[1,0,-1],"max":[4,1.15,1],"surface":"enamel"},
     {"id":"records_deck","min":[-12,2.4,6],"max":[12,3,12],"surface":"records_tile"},
+    {"id":"records_screen","min":[-4,0,6],"max":[4,2.4,7],"surface":"service_steel"},
     {"id":"public_step_1","min":[6,0,-6],"max":[10,0.5,-4],"surface":"concrete"},
     {"id":"public_step_2","min":[6,0,-4],"max":[10,1,-2],"surface":"concrete"},
     {"id":"public_step_3","min":[6,0,-2],"max":[10,1.5,0],"surface":"concrete"},

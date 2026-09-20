@@ -115,6 +115,24 @@ fn shared_controller_uses_owned_ammunition_and_recovers_from_empty_weapons() {
     let enemy = close.players.iter_mut().find(|p| p.id == opponent).unwrap();
     enemy.x = me.x + 1.4;
     enemy.z = me.z;
+    let ally_action = control_action(id, &close, Some(&dry), Action::default());
+    assert!(
+        !ally_action.fire,
+        "another participant is not a melee target"
+    );
+    // M01 now has campaign allegiance. Test ammunition exhaustion against an
+    // actual opposing identity, not the cooperating participant above.
+    close
+        .players
+        .iter_mut()
+        .find(|p| p.id == opponent)
+        .unwrap()
+        .campaign = Some(crate::protocol::CampaignActor::Union {
+        kind: crate::protocol::EnemyKind::Clerk,
+        phase: crate::protocol::EnemyPhase::Idle,
+        phase_started: close.tick,
+        phase_ends: close.tick,
+    });
     let action = control_action(id, &close, Some(&dry), Action::default());
     assert!(action.fire && action.forward && !action.back);
     close.players.iter_mut().find(|p| p.id == id).unwrap().hp = 0;

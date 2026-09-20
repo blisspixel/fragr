@@ -169,12 +169,10 @@ All three complete trace hashes match v0.24.0. These measure CPU session and
 encoding, not network capacity or GPU performance. Reports are
 `.agents/bench/encounters-{16,64,128}.json`.
 
-Remaining: author and playtest the actual M01 placements and visible arrival
-routes, produce and inspect consistent character animation, verify the encounter
-through player and spectator eyes on both renderers, and publish encounter
-evidence before integration. The committed
-M01 JSON still contains traversal and equipment only; no finished enemy art or
-mission is implied by the new schema.
+The placement checkpoint below follows this authority-only verification.
+Remaining release gates include consistent character animation, full player and
+spectator presentation and fresh-player pacing evidence.
+No finished enemy art or mission is implied by the schema or automated wins.
 
 The original Clerk and Sweeper images were inspected: the Clerk is a robot and
 both use the older rust-heavy look. New reference candidates are specified in
@@ -201,3 +199,74 @@ The 21-state OpenGL regression tour was published and its contact sheet and both
 motion strips inspected, including menus, player/spectator eyes and effects.
 It shows the existing arcade presentation, not new campaign enemy art. Capture:
 `.agents/qa/encounter-foundation/`. Dependency license, ban and source checks pass.
+
+## M01 placement checkpoint, 2026-09-20
+
+Draft PR [#182](https://github.com/blisspixel/fragr/pull/182) now includes the actual
+opening population and two sightline changes: an inspection partition in
+confiscation and a screen below records. The Clerk enters around the partition
+after safe Tack discovery, before the route splits. The Sweepers activate after
+the Clerk's defeat at the hall threshold or upper service route. Their starting
+positions are hidden by the screen or deck on the tested approaches.
+
+Early versions exposed two spatial mistakes: the central bay triggered the bots
+before the player chose the service route, and a five-second initial search
+could expire before a stair approach. Activation now waits for the hall or upper
+flank. Initial dispatch follows its fixed alarm position for at most 30 seconds;
+visual pursuit still remembers only five seconds of last-seen position. Neither
+uses hidden player movement. The longer route to a stationary service landing
+is exercised separately from the rendered route, which advances to the overlook.
+
+`server/src/tests/m01.rs` drives the real session with ordinary navigation, aim,
+finite supplies and reload, for human and agent roles. It verifies safe first
+weapon acquisition, hidden initial placements, all three defeats, both stair
+approaches, access to the transfer office/lift and no arcade score. Seed 67:
+
+| Approach | Elapsed simulation seconds | Final HP | Shots | First visible threat, seconds |
+|---|---:|---:|---:|---:|
+| Main hall | 24.65 | 80 | 17 | 3.35 |
+| Service landing, including waiting for approach | 40.45 | 100 | 22 | 4.15 |
+
+Both control roles produce the same measurements. These use perfect target aim
+and omit reading/exploration; they do not establish first-run pacing, difficulty,
+mission length or fun. The full 10-15 minute M01 target is still unbuilt.
+
+The rendered tour now has a focused `QaCombat` driver. It uses the normal input
+path, validated snapshots and Godot's native AABB segment intersection to avoid
+firing through walls. It excludes allies and corpses, reloads real magazines,
+latches participant death across respawn, deduplicates snapshot evidence, and
+records motion plus newly observed phases. Its headless regression checks these
+failure cases. [AABB documentation](https://docs.godotengine.org/en/stable/classes/class_aabb.html)
+was verified on 2026-09-20; this is a QA helper, not a second combat authority.
+
+Local verification: 663 workspace tests pass, two existing tests remain ignored,
+strict workspace Clippy passes, and unfiltered line coverage is 95.70 percent.
+Twenty-one Godot harnesses pass. The main approach passed OpenGL and Vulkan on
+Windows with the AMD Radeon 780M; the service route also passed both renderers.
+The ten-state traversal and twelve-state ammunition tours passed OpenGL.
+Main captures deliberately allow one Clerk shot, reducing HP
+from 100 to 80 before returning fire. The final OpenGL sheet captures Clerk
+windup, firing, recovery, hit and dead states. The bots' motion, hit and death
+states are captured; their burst timing is separately covered by server tests.
+No NVIDIA or macOS rendered combat claim follows from these runs.
+
+Inspected captures: `.agents/qa/m01-encounters-gl-final/`,
+`.agents/qa/m01-encounters-vk/`, `.agents/qa/m01-maintenance-gl-fixed/`,
+`.agents/qa/m01-maintenance-vk/`, `.agents/qa/m01-routes-encounters/` and
+`.agents/qa/m01-discovery-encounters/`. The first capture attempt failed because
+the sheet and source images had different formats; explicit conversion fixed
+the capture, and the failed run is not counted as passing evidence.
+
+Final self-review removed a duplicate body-height constant from the QA driver;
+it now uses the golden-tested `MoveStep` contract. Its focused harness and main
+OpenGL run passed again at `.agents/qa/m01-encounters-reviewed/`, including all
+five Clerk attack/hit/death phases. The workspace release build passed. The
+21-state general tour was republished and its contact sheet and effect strips
+inspected at `.agents/qa/m01-placement-regression/`.
+
+The images expose the remaining art defect clearly: the two archetypes share
+placeholder bodies, attack phases have no distinct poses, and dead bodies remain
+upright for their bounded lifetime. These are release blockers. Produce the
+reviewed human/bot references and animation set, including melee fallback and
+death, then repeat both approaches and spectator eyes. Do not publish these
+placeholders as finished character art. No credits were spent in this increment.

@@ -88,7 +88,9 @@ async fn authored_map_is_shared_by_humans_agents_and_spectators() {
     let (mut legacy, _) = connect_async(&url).await.unwrap();
     legacy
         .send(Message::Text(
-            r#"{"type":"hello","role":"human","name":"Legacy","gameplay_version":2}"#.into(),
+            serde_json::json!({"type":"hello", "role":"human", "name":"Legacy geometry",
+                "gameplay_version":fragr_server::protocol::GAMEPLAY_VERSION})
+            .to_string(),
         ))
         .await
         .unwrap();

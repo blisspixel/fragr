@@ -187,7 +187,7 @@ disposable. Benchmark commands use `--bench N --bench-ticks 12000 --map M --seed
 
 ### Remaining work
 
-M01 still has no authored enemies, objectives, extraction, checkpoints or opening
+At this release, M01 had no authored enemies, objectives, extraction, checkpoints or opening
 scene. The room kit is a readable blockout, not finished environmental art.
 Tack's small world icon is an existing placeholder; fists and guns animate single
 poses rather than a finished frame set. Dedicated Tack, melee, reload and dry
