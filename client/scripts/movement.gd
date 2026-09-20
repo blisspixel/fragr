@@ -183,6 +183,19 @@ static func step(state: Dictionary, input: Dictionary, dt: float, arena: Diction
 	var blend: float = minf(dt / tau, 1.0)
 	vx = vx + (target_x - vx) * blend
 	vz = vz + (target_z - vz) * blend
+	var moving: Dictionary = state.duplicate()
+	moving["vx"] = vx
+	moving["vz"] = vz
+	moving["yaw"] = yaw
+	return integrate(moving, bool(input.get("jump", false)), dt, arena)
+
+
+## Resolve chosen velocity, jumping and gravity through the same path as the
+## live server. Acceleration is a caller decision, not a collision rule.
+static func integrate(state: Dictionary, jump: bool, dt: float, arena: Dictionary) -> Dictionary:
+	var vx: float = float(state["vx"])
+	var vz: float = float(state["vz"])
+	var yaw: float = float(state["yaw"])
 
 	var old_x: float = float(state["x"])
 	var old_z: float = float(state["z"])
@@ -227,7 +240,7 @@ static func step(state: Dictionary, input: Dictionary, dt: float, arena: Diction
 	if on_ground:
 		y = support
 		vy = 0.0
-		if bool(input.get("jump", false)):
+		if jump:
 			vy = JUMP_SPEED
 	else:
 		vy -= GRAVITY * dt

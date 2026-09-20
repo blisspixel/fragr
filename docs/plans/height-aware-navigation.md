@@ -17,8 +17,8 @@ Clippy with warnings denied, release builds, and unfiltered line coverage of
 95.50 percent. The 12,000-tick, seed-42 Arena Duel trace remains
 `fd6ec849cb20375b267f523588200f4568ca6358513375b7d8ce09db28be508c`.
 Receipts: `.agents/navigation-startup-*.log` and
-`.agents/bench/navigation-startup-16.json`. The next CI run must verify cold
-Linux coverage startup; a local pass is not a replacement for that failure.
+`.agents/bench/navigation-startup-16.json`. CI run 35484659116 passes every job,
+including cold Linux coverage startup; #173 integrates this follow-up.
 
 Merged as `c8e52ba` after [CI run 35483531954](https://github.com/blisspixel/fragr/actions/runs/35483531954)
 passed every Linux, Windows, macOS, Godot and audit job. The retained Linux map

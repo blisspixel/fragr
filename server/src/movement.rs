@@ -1,7 +1,7 @@
-//! The shared movement step: the one function that both the server and the
-//! predicting client run, written here in Rust and mirrored line for line in
-//! `client/scripts/movement.gd`. Pure data in, pure data out, no engine calls,
-//! no randomness, so the same inputs give the same states on both sides.
+//! Shared body integration and an acceleration-based input step, mirrored in
+//! `client/scripts/movement.gd`. The live server calls `integrate` with immediate
+//! horizontal velocity. The mirror and goldens do not imply live prediction.
+//! Pure data in, pure data out, with no engine calls or randomness.
 //!
 //! Agreement is proven by golden vectors in `client/golden/move_vectors.json`:
 //! this module generates them, the test below asserts this module reproduces
@@ -328,8 +328,25 @@ pub fn step(state: MoveState, input: &MoveInput, dt: f32, arena: &Arena) -> Move
         TAU_DECEL
     };
     let blend = (dt / tau).min(1.0);
-    let mut vx = state.vx + (target_x - state.vx) * blend;
-    let mut vz = state.vz + (target_z - state.vz) * blend;
+    integrate(
+        MoveState {
+            vx: state.vx + (target_x - state.vx) * blend,
+            vz: state.vz + (target_z - state.vz) * blend,
+            yaw,
+            ..state
+        },
+        input.jump,
+        dt,
+        arena,
+    )
+}
+
+/// Resolve an already chosen velocity against the map, then apply jumping and
+/// gravity. The live server supplies immediate horizontal velocity; `step`
+/// supplies accelerated velocity. Both use this collision and grounding path.
+pub fn integrate(state: MoveState, jump: bool, dt: f32, arena: &Arena) -> MoveState {
+    let mut vx = state.vx;
+    let mut vz = state.vz;
 
     let old_x = state.x;
     let old_z = state.z;
@@ -367,7 +384,7 @@ pub fn step(state: MoveState, input: &MoveInput, dt: f32, arena: &Arena) -> Move
     if on_ground {
         y = support;
         vy = 0.0;
-        if input.jump {
+        if jump {
             vy = JUMP_SPEED;
         }
     } else {
@@ -392,7 +409,7 @@ pub fn step(state: MoveState, input: &MoveInput, dt: f32, arena: &Arena) -> Move
         vx,
         vz,
         vy,
-        yaw,
+        yaw: state.yaw,
     }
 }
 

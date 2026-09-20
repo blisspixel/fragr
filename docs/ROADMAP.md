@@ -88,6 +88,11 @@ planner stall and map-5 spawn-death failure despite the local pass. Deterministi
 regressions reproduce both failures; route recovery and cover-aware spawns pass
 local verification and the final Linux matrix. Every CI job passed before merge.
 
+[Shared body integration](plans/shared-body-integration.md) is being verified:
+live movement and the accelerated shared step now use one collision/gravity
+path, preserving existing match traces. This is the prerequisite for real
+ceilings and overlapping floors in the opening campaign mission.
+
 The phases below are the long shape. This is the remaining build order, with the reason each item sits where it does.
 
 **Immediate priority: review the twelve-mission treatment, then complete M01.**

@@ -17,14 +17,15 @@ Status words: **planned**, **in flight**, **shipped** (merged to `main`, PR numb
 
 | Plan | Status | One-liner |
 |---|---|---|
+| [`shared-body-integration.md`](./shared-body-integration.md) | **in flight** | One body-collision integrator for the authority and movement mirror before adding campaign ceilings. |
 | [`campaign-spaces.md`](./campaign-spaces.md) | **planned** | Real ceilings, accessible balconies, layered routes and matching collision/rendering for M01. |
 | [`gpu-bot-compute.md`](./gpu-bot-compute.md) | **planned** | Portable optional GPU perception/inference, measured against CPU queries with rendering contention and fallback. |
 | [`audio-effects-refresh.md`](./audio-effects-refresh.md) | **in flight** | Distinct weapon, movement, impact and world sounds; capped candidates and in-game mix verification. |
 | [`radio-refresh.md`](./radio-refresh.md) | **in flight** | Two fictional talk formats and world-appropriate music; staged pilots, captions and distribution review. |
 | [`campaign-scenes.md`](./campaign-scenes.md) | **planned** | Skippable localized opening and short pixel-style scenes; matched reference shots before video spend. |
 | [`inheritance-benchmark.md`](./inheritance-benchmark.md) | **later** | Research-grade agent strategy/wipe simulation; controlled budgets, held-out tasks, replay and validated capability claims. |
-| [`campaign-story-alignment.md`](./campaign-story-alignment.md) | **in flight** | Reconcile world canon, research, twelve-mission treatment, sudden wipe/aftermath and production plan. |
-| [`authored-compliance-yard.md`](./authored-compliance-yard.md) | **deferred** | Arena spatial study. Settle the campaign story with Nick before selecting or planning its opening map. |
+| [`campaign-story-alignment.md`](./campaign-story-alignment.md) | **shipped** (#173) | World canon, twelve-mission treatment, sudden wipe/aftermath and production plan. Design only. |
+| [`authored-compliance-yard.md`](./authored-compliance-yard.md) | **deferred** | Multiplayer spatial study; the campaign opening now has its own M01 brief. |
 | [`height-aware-navigation.md`](./height-aware-navigation.md) | **proven** (#172, v0.21.0) | Shared routes, stair/jump and ledge recovery, covered spawns, weapon anchoring and pointer lifecycle. |
 | [`shot-impact-feedback.md`](./shot-impact-feedback.md) | **proven** (#171, v0.20.0) | Authoritative world impacts and rail traces, with complete combat accounting. |
 | [`vertical-aim.md`](./vertical-aim.md) | **proven** (#170, v0.19.0) | True vertical combat, three-dimensional cover, and matching spectator eye views. |

@@ -1,6 +1,6 @@
 # Campaign story alignment
 
-**Status:** in flight, 2026-09-19. Documentation and design, not playable content.
+**Status:** shipped in #173, 2026-09-19. Documentation and design, not playable content.
 **Goal:** reconcile the world with Nick's decisions, then specify a complete
 12-mission campaign whose spaces follow the story.
 **Spend:** the documentation itself requires none. A separate logo refinement and

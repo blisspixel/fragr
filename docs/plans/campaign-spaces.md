@@ -8,7 +8,7 @@ beneath upper floors. Spend: $0. No new dependency or renderer.
 ## Current constraint
 
 `movement::Solid` stores an XZ footprint and `top`; every solid fills the volume
-from ground to that top. `combat::Ray3::solid` uses the same ground assumption.
+from ground to that top. `combat::Ray::solid` uses the same ground assumption.
 `navigation::Navigation` stores one height per grid cell, and `arena_cover.gd`
 renders the corresponding ground-filled boxes. This is coherent for the existing
 roster but cannot represent an accessible room beneath a balcony or ceiling.
@@ -18,6 +18,9 @@ and presentation all support them. The existing six-map behavior and ledge escap
 regressions remain the compatibility baseline.
 
 ## Bounded implementation
+
+First complete [shared body integration](shared-body-integration.md), removing
+the duplicate live-server movement solver while preserving its current controls.
 
 1. Extend the shared solid to an explicit lower and upper vertical bound, keeping
    a missing lower bound equivalent to today's ground-filled volume. Establish

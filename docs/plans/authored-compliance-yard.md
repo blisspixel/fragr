@@ -3,10 +3,11 @@
 Status: deferred, 2026-09-19. Spatial study, not the campaign opening.
 Spend: $0. Owner of current priorities: `../ROADMAP.md`.
 
-Nick requested story planning before campaign map planning. Review all lore and
-resolve the story questions in `../CAMPAIGN.md` with him first. The room list
-below is a possible arena study only; it does not select the campaign's opening
-location, protagonist, mission, or route. Revisit it after the story is settled.
+Nick requested story planning before campaign map planning. That review now
+defines the arc in [CAMPAIGN.md](../CAMPAIGN.md) and the opening in
+[M01: Recall Notice](../campaign/m01-recall-notice.md). The room list below remains
+a possible multiplayer study. It does not select the campaign's opening,
+protagonist or route, and stays deferred behind M01's gameplay foundation.
 
 ## Finding and goal
 

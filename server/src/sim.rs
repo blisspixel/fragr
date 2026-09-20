@@ -1,3 +1,4 @@
+#[cfg(test)]
 use crate::maps::Aabb2;
 use crate::movement::{EYE_HEIGHT, STEP_UP};
 use crate::protocol::{
@@ -15,14 +16,14 @@ use std::collections::HashMap;
 use std::f32::consts::PI;
 use uuid::Uuid;
 
-const MOVE_SPEED: f32 = 5.0;
+const MOVE_SPEED: f32 = crate::movement::TOP_SPEED;
 /// The y a standing fighter reports when it is on the base floor. It is a
 /// reference point rather than the floor: the client hangs the body below it
 /// and the eye just above it. On a deck the fighter reports this plus the
 /// deck's height, so `y - PLAYER_FLOOR_Y` is always the height of its feet.
 pub const PLAYER_FLOOR_Y: f32 = 1.5;
 const TURN_SPEED: f32 = 2.0;
-pub const PLAYER_RADIUS: f32 = 0.5;
+pub const PLAYER_RADIUS: f32 = crate::movement::RADIUS;
 
 struct ResolvedShot {
     target: Option<usize>,
@@ -159,16 +160,7 @@ impl MapKind {
     /// The map's solids in the shared wire shape, for the client and for
     /// agents that need to tell a clear shot from a wall.
     pub fn solids(self) -> Vec<crate::movement::Solid> {
-        self.obstacles()
-            .iter()
-            .map(|o| crate::movement::Solid {
-                min_x: o.min_x,
-                max_x: o.max_x,
-                min_z: o.min_z,
-                max_z: o.max_z,
-                top: o.top,
-            })
-            .collect()
+        crate::maps::arena(self).solids.clone()
     }
 
     /// Half width of the playable square, centred on the origin.
@@ -176,6 +168,7 @@ impl MapKind {
         crate::maps::def(self).half_extent
     }
 
+    #[cfg(test)]
     pub(crate) fn obstacles(self) -> &'static [Aabb2] {
         &crate::maps::def(self).solids
     }
@@ -196,12 +189,7 @@ pub fn circle_blocked_for_test(map: MapKind, x: f32, z: f32) -> bool {
 /// below that is walked onto rather than walked into, which is what makes a
 /// staircase a staircase instead of a row of small walls.
 fn circle_blocked(map: MapKind, x: f32, z: f32, climb: f32) -> bool {
-    for obs in map.obstacles() {
-        if obs.top > climb && obs.expand(PLAYER_RADIUS).contains(x, z) {
-            return true;
-        }
-    }
-    false
+    crate::maps::arena(map).blocked_at(x, z, climb)
 }
 
 /// Test-only view of the floor query, so a test can ask the map how high the
@@ -215,47 +203,6 @@ pub fn floor_height_for_test(map: MapKind, x: f32, z: f32, ceiling: f32) -> f32 
 /// `ceiling`: a deck top, or the base floor when nothing qualifies.
 fn floor_height(map: MapKind, x: f32, z: f32, ceiling: f32) -> f32 {
     crate::maps::support_height(map, x, z, ceiling)
-}
-
-fn clamp_arena(map: MapKind, x: f32, z: f32) -> (f32, f32) {
-    let half = map.half_extent() - PLAYER_RADIUS;
-    (x.clamp(-half, half), z.clamp(-half, half))
-}
-
-/// Quake-style slide: try full move, then axis slides, then stay.
-fn resolve_move(
-    map: MapKind,
-    old_x: f32,
-    old_z: f32,
-    new_x: f32,
-    new_z: f32,
-    climb: f32,
-) -> (f32, f32) {
-    let blocked = |x, z| {
-        map.obstacles().iter().any(|obstacle| {
-            let solid = crate::movement::Solid {
-                min_x: obstacle.min_x,
-                max_x: obstacle.max_x,
-                min_z: obstacle.min_z,
-                max_z: obstacle.max_z,
-                top: obstacle.top,
-            };
-            solid.top > climb && solid.blocks_motion((old_x, old_z), (x, z), PLAYER_RADIUS)
-        })
-    };
-    let (nx, nz) = clamp_arena(map, new_x, new_z);
-    if !blocked(nx, nz) {
-        return (nx, nz);
-    }
-    let (sx, _) = clamp_arena(map, new_x, old_z);
-    if !blocked(sx, old_z) {
-        return (sx, old_z);
-    }
-    let (_, sz) = clamp_arena(map, old_x, new_z);
-    if !blocked(old_x, sz) {
-        return (old_x, sz);
-    }
-    clamp_arena(map, old_x, old_z)
 }
 
 /// A point on the spawn ring that is not inside a solid, and the height of the
@@ -926,6 +873,7 @@ impl GameState {
         } else {
             MOVE_SPEED
         };
+        let arena = crate::maps::arena(self.map);
 
         for player in &mut self.players {
             player.just_fired = false;
@@ -990,46 +938,24 @@ impl GameState {
                 dz /= len;
             }
 
-            let old_x = player.x;
-            let old_z = player.z;
-            let new_x = old_x + dx * move_speed * dt;
-            let new_z = old_z + dz * move_speed * dt;
-
-            // The heightfield, in the same order and by the same rules as the
-            // shared step in `movement.rs`: what is under the fighter now,
-            // how high it can therefore climb, the horizontal slide against
-            // that, then the vertical against what it ended up over.
-            let feet = player.y - PLAYER_FLOOR_Y;
-            let floor = floor_height(self.map, old_x, old_z, feet);
-            let was_grounded = crate::movement::grounded(feet, floor, player.vy);
-            let climb = crate::movement::climb_height(feet, floor, player.vy);
-
-            let (rx, rz) = resolve_move(self.map, old_x, old_z, new_x, new_z, climb);
-            player.x = rx;
-            player.z = rz;
-
-            let support = floor_height(self.map, rx, rz, climb);
-            let mut y = feet;
-            let on_ground = crate::movement::grounded(y, support, player.vy)
-                || (was_grounded && y - support <= STEP_UP);
-            if on_ground {
-                y = support;
-                player.vy = 0.0;
-                if action.jump || jump_requested {
-                    player.vy = crate::movement::JUMP_SPEED;
-                }
-            } else {
-                player.vy -= crate::movement::GRAVITY * dt;
-            }
-            y += player.vy * dt;
-            let landing = floor_height(self.map, rx, rz, feet.max(y));
-            if y <= landing {
-                y = landing;
-                if player.vy < 0.0 {
-                    player.vy = 0.0;
-                }
-            }
-            player.y = PLAYER_FLOOR_Y + y;
+            let moved = crate::movement::integrate(
+                crate::movement::MoveState {
+                    x: player.x,
+                    z: player.z,
+                    y: player.y - PLAYER_FLOOR_Y,
+                    vx: dx * move_speed,
+                    vz: dz * move_speed,
+                    vy: player.vy,
+                    yaw: player.yaw,
+                },
+                action.jump || jump_requested,
+                dt,
+                arena,
+            );
+            player.x = moved.x;
+            player.z = moved.z;
+            player.y = PLAYER_FLOOR_Y + moved.y;
+            player.vy = moved.vy;
 
             if client_yaw.is_none() {
                 if action.turn_left {
@@ -1309,15 +1235,8 @@ impl GameState {
                 normal: [0.0, 1.0, 0.0],
             };
         }
-        for obstacle in self.map.obstacles() {
-            let solid = crate::movement::Solid {
-                min_x: obstacle.min_x,
-                max_x: obstacle.max_x,
-                min_z: obstacle.min_z,
-                max_z: obstacle.max_z,
-                top: obstacle.top,
-            };
-            if let Some(hit) = ray.solid(&solid, closest_dist) {
+        for solid in &crate::maps::arena(self.map).solids {
+            if let Some(hit) = ray.solid(solid, closest_dist) {
                 if hit.distance < cover_distance {
                     cover_distance = hit.distance;
                     impact = ShotImpact::Solid { normal: hit.normal };
