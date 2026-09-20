@@ -1546,19 +1546,31 @@ mod tests {
                 .await
                 .unwrap(),
         );
-        tokio::time::timeout(std::time::Duration::from_secs(3), async {
+        // Welcome and MapInfo can precede a queued snapshot without our pawn.
+        // Roster position is not identity, and a snapshot alone is not readiness.
+        let own_player = |state: &ToolState| -> Option<protocol::PlayerState> {
+            let snapshot: protocol::Snapshot =
+                serde_json::from_value(state.last_snapshot.clone()?).expect("valid snapshot");
+            snapshot
+                .players
+                .into_iter()
+                .find(|player| Some(player.id) == state.player_id)
+        };
+        let initial = tokio::time::timeout(std::time::Duration::from_secs(3), async {
             loop {
                 {
                     let state = state.lock().await;
-                    if state.map.is_some() && state.last_snapshot.is_some() {
-                        break;
+                    if state.map.is_some() {
+                        if let Some(player) = own_player(&state) {
+                            break player;
+                        }
                     }
                 }
                 tokio::task::yield_now().await;
             }
         })
         .await
-        .unwrap();
+        .expect("MCP snapshot must contain the welcomed player");
         let mut output = Vec::new();
         for (name, arguments) in [
             ("observe", serde_json::json!({})),
@@ -1586,18 +1598,21 @@ mod tests {
             loop {
                 {
                     let state = state.lock().await;
-                    let snapshot = state.last_snapshot.as_ref().unwrap();
-                    if snapshot["players"][0]["z"].as_f64().unwrap() > -33.0 {
-                        assert_eq!(snapshot["map_id"], 1001);
-                        assert_eq!(snapshot["players"][0]["y"], 1.5);
-                        break;
+                    if let Some(player) = own_player(&state) {
+                        // Every authored spawn must actually move; a fixed world
+                        // threshold could already be satisfied by a later slot.
+                        if player.z > initial.z + 2.0 {
+                            assert_eq!(state.last_snapshot.as_ref().unwrap()["map_id"], 1001);
+                            assert_eq!(player.y, 1.5);
+                            break;
+                        }
                     }
                 }
                 tokio::time::sleep(std::time::Duration::from_millis(10)).await;
             }
         })
         .await
-        .unwrap();
+        .expect("MCP action must advance the welcomed player by two metres");
         mcp_leave_session(&mut session, &state).await;
         stop_tx.send(()).unwrap();
         server.await.unwrap().unwrap();

@@ -110,7 +110,7 @@ Implementation and local verification are complete for the bounded discovery
 loop. GitHub integration checks and release records establish shipped status.
 
 - Rust: 641 tests pass, two existing ignored tests; strict Clippy and formatting
-  pass. Unfiltered workspace line coverage is 95.61 percent. Workspace release
+  pass. Unfiltered workspace line coverage is 95.62 percent. Workspace release
   build and dependency license, ban and source checks pass.
 - Godot: all scripts parse and 19 headless harnesses pass. The checker itself
   rejects failed exits, logged errors and missing PASS markers. New checks cover
@@ -142,6 +142,14 @@ loop. GitHub integration checks and release records establish shipped status.
   aim on later snapshots. OpenGL and Vulkan discovery tours now assert and show
   the intended facing toward confiscation. Reload and short-jump input fixtures
   establish the same bound-session precondition; their original assertions remain.
+- Integration follow-up, 2026-09-20: [merged Windows run](https://github.com/blisspixel/fragr/actions/runs/35496071339)
+  exposed an older MCP traversal test indexing player zero in a valid pre-join
+  empty snapshot. The corrected test waits for the welcomed UUID, preserves
+  map/floor assertions, and requires two metres of actual travel from its observed
+  start rather than a world threshold another spawn could already satisfy.
+  Workspace tests, strict Clippy, formatting and 32 repeated live traversal runs
+  pass locally. This changes test synchronization, not runtime behavior. Release
+  remains gated on successful integration checks for the correction.
 
 ### Arcade regression and CPU evidence
 
