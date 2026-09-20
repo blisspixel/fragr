@@ -1,10 +1,10 @@
 # M01 transfer record and departure
 
-Status: **implemented and locally verified**, 2026-09-20,
+Status: **shipped**, 2026-09-20, #184 and v0.26.0; closes
 [#183](https://github.com/blisspixel/fragr/issues/183).
 Builds on the intake encounter in #180/#182, released as v0.25.0. The transfer
-desk, gate and departure pass local checks. Hosted CI, integration and release
-remain. The full M01 remains unfinished.
+desk, gate and departure pass local checks and all five hosted checks on Linux,
+Windows and macOS. The full M01 remains unfinished.
 
 ## Player outcome
 
@@ -178,7 +178,12 @@ headless checks do not substitute for rendered hardware review.
 
 Self-review checked authority, lifecycle ownership, boundary validation, physical
 panel alignment, input release, agent resupply, lore and documentation status.
-Open work before integration: hosted CI and release recording.
+Integration: PR #184, commit `229ccf3db90c7232e0aaf3e049ffab7b878a9010`,
+[v0.26.0](https://github.com/blisspixel/fragr/releases/tag/v0.26.0).
+An additional four-agent live run reached the record at tick 780 and departure
+at tick 863, observed by a Godot spectator with all four alive and aboard.
+Two scripted and two local decision clients used no paid calls. Receipts:
+`.agents/mission-four-server.err` and `.agents/mission-four-observer.log`.
 Full art, office encounter, secrets, opening scene,
 checkpoints, revive, reconnect, M02 transition and fresh-player fun review remain
 outside this sequence increment.

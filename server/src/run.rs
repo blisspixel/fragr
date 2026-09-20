@@ -19,8 +19,8 @@ pub struct ServerOptions {
     pub bind: String,
     pub bots: usize,
     pub map: MapKind,
-    /// Validated local traversal blockout, mutually exclusive with arcade rules.
-    pub map_file: Option<std::path::PathBuf>,
+    /// Authored file or bundled mission, mutually exclusive with arcade rules.
+    pub authored: Option<crate::maps::AuthoredSource>,
     pub map_rotate: bool,
     /// Match rules override (frag limit, timers). `None` keeps the defaults.
     pub match_config: Option<MatchConfig>,
@@ -38,7 +38,7 @@ impl Default for ServerOptions {
             bind: "0.0.0.0:6767".to_string(),
             bots: 4,
             map: MapKind::default(),
-            map_file: None,
+            authored: None,
             map_rotate: false,
             match_config: None,
             solo_broadcast: false,
@@ -59,7 +59,7 @@ pub async fn run_server(
     // Keep it off the async executor, including single-threaded local harnesses.
     let map = options.map;
     let rotate = options.map_rotate;
-    if options.map_file.is_some()
+    if options.authored.is_some()
         && (rotate
             || options.solo_broadcast
             || options.bots > 0
@@ -71,12 +71,10 @@ pub async fn run_server(
                 .into(),
         );
     }
-    let path = options.map_file.clone();
+    let authored = options.authored.clone();
     let mut session = tokio::task::spawn_blocking(move || -> std::io::Result<GameSession> {
-        match path {
-            Some(path) => Ok(GameSession::with_authored_map(
-                crate::maps::AuthoredMap::load(&path)?,
-            )),
+        match authored {
+            Some(source) => Ok(GameSession::with_authored_map(source.load()?)),
             None => Ok(GameSession::with_map(map, rotate)),
         }
     })
@@ -85,7 +83,7 @@ pub async fn run_server(
 
     // Rotation advertises the maximum requirement before a client joins, so
     // switching maps cannot strand a legacy client inside a misrendered slab.
-    let required_geometry = if options.map_file.is_some() {
+    let required_geometry = if options.authored.is_some() {
         crate::protocol::geometry_version(&session.state.map.arena().solids)
     } else {
         MapKind::ALL

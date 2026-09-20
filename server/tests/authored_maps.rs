@@ -28,7 +28,7 @@ async fn invalid_authoring_configuration_fails_before_readiness() {
     let base = ServerOptions {
         bind: "127.0.0.1:0".into(),
         bots: 0,
-        map_file: Some(map_path()),
+        authored: Some(fragr_server::maps::AuthoredSource::File(map_path())),
         ..Default::default()
     };
     let mut cases = vec![
@@ -54,7 +54,9 @@ async fn invalid_authoring_configuration_fails_before_readiness() {
         },
     ];
     cases.push(ServerOptions {
-        map_file: Some(map_path().with_extension("missing")),
+        authored: Some(fragr_server::maps::AuthoredSource::File(
+            map_path().with_extension("missing"),
+        )),
         ..base
     });
     for options in cases {
@@ -76,7 +78,7 @@ async fn authored_map_is_shared_by_humans_agents_and_spectators() {
         ServerOptions {
             bind: "127.0.0.1:0".into(),
             bots: 0,
-            map_file: Some(map_path()),
+            authored: Some(fragr_server::maps::AuthoredSource::File(map_path())),
             ..Default::default()
         },
         async {

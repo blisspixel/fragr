@@ -2,12 +2,13 @@
 
 ![fragr wordmark](docs/fragr-logo-refined.png)
 
-fragr is a retro-styled 3D FPS built toward a full campaign, co-op, and multiplayer where agents and humans share the same gameplay rules. The current playable slice has local arena combat and a short objective prototype. Boot it and four named bots are already scrapping. Watch the match, press J to jump in, press L to step back out. Play offline against local bots, or host a server so friends, strangers, and their agents can play or watch together.
+fragr is a retro-styled 3D FPS built toward a full campaign, co-op, and multiplayer where agents and humans share the same gameplay rules. Start the Recall Notice development mission from Single Player, or run an arena server with four named bots. Watch an arena match, press J to jump in, press L to step back out. Play locally, or host a server so friends, strangers, and their agents can play or watch together.
 
 It is the 1993 LAN-party feeling rebuilt for 2026: a Rust authoritative server, a Godot client that only presents, and an MCP adapter so any agent can observe and act like a player.
 
 ## What runs today
 
+- **Recall Notice:** Single Player starts the local M01 development mission. Enter Annex 67 to find Latch's transfer record, recover weapons, fight through the intake rooms and depart by the custody lift. This is the opening mission slice, not the complete campaign.
 - **Solo Broadcast:** Episode 0 Calibration on Larak Lot. Host cold-open, objective chip (clear NODS, seize jammer, drop Auditor), same guns as MP. Default from `./tools/solo_scrap.sh` (server `--solo-broadcast`). This is an arena prototype. The planned twelve-mission story lives in [`docs/CAMPAIGN.md`](docs/CAMPAIGN.md); [`solo-story-episodes.md`](docs/plans/solo-story-episodes.md) records this prototype's implementation.
 - **Solo Scrap:** arcade offline on loopback without the episode path (`FRAGR_SOLO_BROADCAST=0`), four named rule bots with visible tactics (Aggressive, Defensive, Flanker, Balanced).
 - **Watch or join:** spectator by default through a fighter's eyes, including their gun and shot feedback. F changes fighter; V cycles eyes, chase, and free camera. Join mid-match as a human, leave back to spectate. Bots keep the server alive.
@@ -65,6 +66,20 @@ A single rail impact sampled through expiry. The full tour also saves its first 
 
 Requirements: Rust stable and Godot 4.7.2-stable. No accounts, no cloud, no spend.
 
+For the campaign development mission:
+
+```bash
+cargo build -p fragr-server --release --locked
+godot --path client
+```
+
+Choose **Single Player > Recall Notice**. The client owns a server on an available
+loopback port and stops it when you leave the match or close the game. It uses the
+M01 map embedded in that server build. Rebuild after changing the map or server.
+Opening `client/` in Godot and pressing F5 uses the same menu.
+
+For the separate arcade prototype:
+
 ```bash
 ./tools/solo_scrap.sh
 ```
@@ -75,13 +90,13 @@ That builds the server with `--solo-broadcast`, binds it to `127.0.0.1:6767` wit
 # Terminal 1: Solo Broadcast Episode 0 (Calibration / Larak Lot)
 cargo run -p fragr-server -- --bind 127.0.0.1:6767 --bots 4 --solo-broadcast
 
-# Terminal 2: open client/ in Godot 4.7.2, press F5, pick Single Player > Episode 0
+# Terminal 2: open client/ in Godot 4.7.2, press F5, pick Single Player > Calibration challenge
 # Direct scene launch: godot --path client res://scenes/main.tscn -- --solo
 ```
 
 **Controls:** WASD to move, mouse to look, left mouse to fire, J to join, L to leave back to spectate, F to cycle the spectator camera, C next radio station, N next track, M radio on or off, Esc to release the mouse. Gamepads work too; see the controls table below.
 
-**Boot menu:** Single Player, Multiplayer, Your Callsign, Settings, Quit. The menu connects to a running server; it does not launch one. The host chooses the map and mode. Use the launcher above for Episode 0, or set `FRAGR_SOLO_BROADCAST=0` for arena practice. Escape opens the match menu; the server keeps running, including in solo sessions.
+**Boot menu:** Single Player, Multiplayer, Your Callsign, Settings, Quit. Recall Notice starts its own local server. Arcade practice and multiplayer connect to an existing server whose host chooses the map and rules. Use the arcade launcher above for Calibration, or set `FRAGR_SOLO_BROADCAST=0` for arena practice. Escape opens the match menu; gameplay continues behind the menu. Leaving a local campaign stops its owned server. Leaving an external server does not stop the host.
 
 ## Controls (keyboard and gamepad)
 
@@ -124,7 +139,13 @@ godot --headless --path client --export-release "macOS" ../builds/macos/fragr.zi
 godot --headless --path client --export-release "Linux/X11" ../builds/linux/fragr.x86_64
 ```
 
-Exported clients still need a running `fragr-server` on port 6767.
+These presets export the client only. The local campaign launcher looks for a
+matching `fragr-server` executable beside the game executable (`.exe` on Windows,
+inside `Contents/MacOS` for a macOS app). Checkout runs also search
+`target/release`, then `target/debug`. Package assembly, macOS helper signing and
+downloadable desktop releases remain unverified; the presets alone do not create
+a complete installation. Multiplayer and arcade practice use a separately hosted
+server, normally on port 6767.
 
 ## Host a server
 
@@ -146,6 +167,8 @@ Hosting guides: [`infra/docs/HOME-LAN.md`](infra/docs/HOME-LAN.md) for a home bo
 --map <ID>           1 or arena = Arena Duel (default), 2 or compliance-yard = Compliance Yard
 --map-rotate         Alternate maps between rounds
 --map-file <PATH>    Authored development map; requires --bots 0, no arcade overrides
+--local-mission <ID> Desktop-owned recall_notice; loopback port 0, JSON readiness,
+                    stdin lease. The menu supplies this; dedicated hosts use --map-file.
 --solo-broadcast     Solo Broadcast Episode 0 (Calibration; Larak Lot face on map 1)
 --seed <N>           Simulation seed; the same seed gives the same match (default 1)
 --status-every-s <N> Log a status report this often (default 60, 0 to disable)

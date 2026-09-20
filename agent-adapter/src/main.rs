@@ -1571,10 +1571,10 @@ mod tests {
             fragr_server::run::ServerOptions {
                 bind: "127.0.0.1:0".into(),
                 bots: 0,
-                map_file: Some(
+                authored: Some(fragr_server::maps::AuthoredSource::File(
                     std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
                         .join("../server/maps/m01-recall-notice.json"),
-                ),
+                )),
                 ..Default::default()
             },
             async {

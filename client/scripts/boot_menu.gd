@@ -19,9 +19,15 @@ var _host_edit: LineEdit = null
 var _console: FragrConsole = null
 var _settings: FragrSettings
 var _name_edit: LineEdit = null
+var _local_match: LocalMatch
+var _launch_pending: bool = false
 
 func _ready() -> void:
 	MouseCapture.release()
+	_local_match = LocalMatch.for_tree(get_tree())
+	_local_match.stop()
+	_local_match.mission_ready.connect(_on_local_ready)
+	_local_match.state_changed.connect(_on_local_state_changed)
 	theme = MenuTheme.build()
 	if _settings == null:
 		_settings = FragrSettings.for_tree(get_tree())
@@ -76,6 +82,7 @@ func _build_chrome() -> void:
 
 	_status = Label.new()
 	_status.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_status.add_theme_font_size_override("font_size", 18)
 	_status.add_theme_color_override("font_color", Color(0.6, 0.62, 0.64))
 	_status.text = "ARROWS + ENTER   /   ESC BACK\nFreedom is not a licensed feature."
@@ -120,6 +127,7 @@ func _label(text: String) -> void:
 func _show(page: String) -> void:
 	_page = page
 	_clear()
+	_status.text = tr(_local_match.error_key) if not _local_match.error_key.is_empty() else "ARROWS + ENTER   /   ESC BACK\nFreedom is not a licensed feature."
 	match page:
 		"main":
 			_page_main()
@@ -131,7 +139,11 @@ func _show(page: String) -> void:
 			_page_settings()
 		"profile":
 			_page_profile()
+		"launch":
+			_page_launch()
 	await get_tree().process_frame
+	if _page != page:
+		return
 	if page == "settings" and _page == page:
 		(_root.get_node("SettingsPanel") as SettingsPanel).focus_first()
 		return
@@ -148,16 +160,50 @@ func _page_main() -> void:
 	_button("Quit", func() -> void: get_tree().quit())
 
 func _page_single() -> void:
-	_label("Campaign")
-	_button("Episode 0: Calibration", func() -> void: _launch("solo", LOOPBACK))
-	var later: Button = _button("Episode 1: Larak Lot", func() -> void: pass)
-	later.disabled = true
-	later.tooltip_text = "Not built yet"
-	_label("Practice")
+	_label(tr("MENU_CAMPAIGN"))
+	var mission: Button = _button(tr("MISSION_M01_TITLE"), _start_campaign)
+	mission.name = "RecallNotice"
+	mission.disabled = _local_match.state not in [LocalMatch.State.IDLE, LocalMatch.State.FAILED]
+	_label(tr("MENU_M01_DESCRIPTION"))
+	_label(tr("MENU_PRACTICE"))
+	_button("Calibration challenge", func() -> void: _launch("solo", LOOPBACK))
 	_button("Arena against bots", func() -> void: _launch("join", LOOPBACK))
 	_button("Watch the bots", func() -> void: _launch("spectate", LOOPBACK))
-	_label("Connects to a running local server on port 6767.")
+	_label(tr("MENU_PRACTICE_SERVER"))
 	_button("Back", func() -> void: _show("main"))
+
+func _start_campaign() -> void:
+	if _launch_pending:
+		return
+	_launch_pending = true
+	_show("launch")
+	_local_match.start_mission()
+	_on_local_state_changed()
+
+func _page_launch() -> void:
+	_label(tr("MISSION_M01_TITLE"))
+	_label(tr("LOCAL_SERVER_STOPPING") if _local_match.state == LocalMatch.State.STOPPING else tr("LOCAL_SERVER_STARTING"))
+	_button(tr("MENU_CANCEL"), _cancel_campaign)
+
+func _cancel_campaign() -> void:
+	_launch_pending = false
+	_local_match.stop()
+	_show("single")
+
+func _on_local_state_changed() -> void:
+	if _launch_pending:
+		if _local_match.state in [LocalMatch.State.IDLE, LocalMatch.State.FAILED]:
+			_launch_pending = false
+			_show("single")
+		elif _local_match.state != LocalMatch.State.RUNNING:
+			_show("launch")
+	elif _page == "single":
+		_show("single")
+
+func _on_local_ready(address: String) -> void:
+	if _launch_pending:
+		_launch_pending = false
+		_launch("campaign", address)
 
 func _page_multi() -> void:
 	_label("A server is a program you run. Anyone can host one.")
@@ -239,7 +285,10 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not (event as InputEventKey).echo:
 		if (event as InputEventKey).physical_keycode == KEY_ESCAPE and _page != "main":
 			_settings.load_from_disk()
-			_show("main")
+			if _launch_pending:
+				_cancel_campaign()
+			else:
+				_show("main")
 			get_viewport().set_input_as_handled()
 
 func _launch(mode: String, host: String) -> void:
@@ -250,6 +299,9 @@ func _launch(mode: String, host: String) -> void:
 	get_tree().set_meta("fragr_boot", boot)
 	var err: Error = get_tree().change_scene_to_file(ARENA_SCENE)
 	if err != OK:
+		get_tree().remove_meta("fragr_boot")
+		if mode == "campaign":
+			_local_match.stop()
 		push_error("boot_menu: failed to load arena scene: " + str(err))
 		if _status != null:
 			_status.text = "Failed to load arena (" + str(err) + ")"

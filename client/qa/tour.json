@@ -147,7 +147,7 @@
       "at_seconds": 4,
       "camera": "none",
       "menu_page": "single",
-      "note": "Episode availability and local server requirement are explicit."
+      "note": "Recall Notice starts a local mission; arcade practice requires an existing server."
     },
     {
       "name": "match_menu",

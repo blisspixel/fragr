@@ -4,6 +4,11 @@ The `tour_*.png` files are the current local build captured by
 `tools/qa_tour.sh --publish` with Godot 4.7.2-stable and a loopback server.
 Inspect them after every refresh. A nonblank image is not proof of good art.
 
+`prototypes/local-campaign-menu-20260920.png` shows the inspected Recall Notice
+launch option. `prototypes/local-campaign-entry-20260920.png` is the actual M01
+entry after a menu-owned server starts, captured on Vulkan after the controls
+card clears. These show the development slice, not a complete campaign.
+
 | File | View |
 |---|---|
 | `tour_menu_16x9.png` | Retro boot menu |

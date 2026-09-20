@@ -112,7 +112,7 @@ async fn live_mixed_party_and_late_spectator_observe_the_same_gate_and_departure
         crate::run::ServerOptions {
             bind: "127.0.0.1:0".into(),
             bots: 0,
-            map_file: Some(fixture.0.clone()),
+            authored: Some(crate::maps::AuthoredSource::File(fixture.0.clone())),
             ..Default::default()
         },
         async {

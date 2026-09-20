@@ -50,7 +50,7 @@ async fn encounter_capability_and_identity_reach_every_role_over_the_wire() {
         ServerOptions {
             bind: "127.0.0.1:0".into(),
             bots: 0,
-            map_file: Some(file.0.clone()),
+            authored: Some(fragr_server::maps::AuthoredSource::File(file.0.clone())),
             ..Default::default()
         },
         async {
