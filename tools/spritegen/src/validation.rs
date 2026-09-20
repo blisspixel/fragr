@@ -32,6 +32,18 @@ pub fn validate_api_url(raw: &str) -> Result<Url, Error> {
     Ok(url)
 }
 
+pub(crate) fn validate_request_id(id: &str) -> Result<(), Error> {
+    if id.is_empty()
+        || id.len() > 128
+        || !id
+            .bytes()
+            .all(|c| c.is_ascii_alphanumeric() || matches!(c, b'-' | b'_'))
+    {
+        return Err(Error::Transport("invalid API request ID".into()));
+    }
+    Ok(())
+}
+
 pub fn validate_status_url(raw: &str) -> Result<Url, Error> {
     let url = validate_api_url(raw)?;
     let parts: Vec<&str> = url.path().split('/').collect();
@@ -39,16 +51,18 @@ pub fn validate_status_url(raw: &str) -> Result<Url, Error> {
         || !parts[0].is_empty()
         || parts[1] != "requests"
         || parts[3] != "status"
-        || parts[2].is_empty()
-        || parts[2].len() > 128
-        || !parts[2]
-            .bytes()
-            .all(|c| c.is_ascii_alphanumeric() || c == b'-' || c == b'_')
+        || validate_request_id(parts[2]).is_err()
         || url.query().is_some()
     {
         return Err(Error::Transport("invalid API request-status path".into()));
     }
     Ok(url)
+}
+
+pub(crate) fn status_request_id(raw: &str) -> Result<String, Error> {
+    let url = validate_status_url(raw)?;
+    // The validated path is exactly /requests/<id>/status.
+    Ok(url.path().split('/').nth(2).unwrap_or_default().to_owned())
 }
 
 pub fn validate_download_url(raw: &str) -> Result<Url, Error> {

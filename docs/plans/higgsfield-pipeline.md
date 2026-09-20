@@ -73,7 +73,7 @@ The same explicit approval discipline applies to image, audio, and decision-mode
 - **The whole run is priced before anything is generated.** If the total exceeds the cap, nothing is generated at all.
 - **`--max-spend-usd` is required for a live run and is itself capped** at `HARD_CAP_USD`, five dollars. A run that needs more than that should be split and approved a piece at a time.
 - **A locked, synced request ledger** sits beside the output. A reservation is
-  written before submission, followed by the returned status URL, completed URLs,
+  written before submission, followed by the accepted request ID, validated status URL, completed URLs,
   and downloaded filenames. Rerunning polls an existing request and refreshes its
   download links. It never automatically buys a replacement for that frame ID.
 
@@ -84,23 +84,33 @@ approval limit. No automatic refund, overage, or account-quota assumption is mad
 
 ### Interrupted requests
 
-Rerun the same `gen` command with the same spec and cap. Known request IDs resume
-without another generation POST. Completed historical rows remain readable, but
+Rerun the same `gen` command with the same spec and cap. Requests with validated
+polling metadata resume without another generation POST. Completed historical rows remain readable, but
 their old format has no model/request identity. Missing recorded files must be
 restored; they do not authorize regeneration.
 
-If submission may have reached the provider but no status URL was saved, the run
-stops. Match the frame and its recorded request to the provider dashboard, then
-attach the verified request ID locally:
+If submission may have reached the provider but no usable status URL was saved,
+the run stops. A valid accepted ID is saved before polling metadata is checked.
+Match the frame and its recorded request to the provider dashboard, then attach
+the verified request ID locally:
 
 ```bash
 cargo run -p fragr-spritegen --locked -- recover --out art/raw/weapons-bakeoff --frame-id px_tack_issued --request-id VERIFIED_REQUEST_ID
 ```
 
-`recover` needs no key and sends no network request. It only advances an uncertain
-reservation. Then rerun `gen`. If no matching request can be established, leave
+`recover` needs no key and sends no network request. It advances a Reserved or
+Accepted receipt to Submitted using the documented official status endpoint. An
+Accepted ID cannot be replaced with a different one. Use `--only FRAME_ID` to
+select the recovered frame when rerunning `gen`; this is a substring filter, so
+check its selected frames with `prompts` first. If no matching request can be established, leave
 the reservation intact and reconcile it before explicitly approving a new frame
 ID. Do not delete receipts to make a run proceed.
+
+Polling rejects replies whose request ID differs from the saved status URL.
+Malformed or missing IDs remain uncertain; no automatic POST retry is allowed.
+The [identity repair](asset-request-identity.md) records the contract checked on
+2026-09-20. Older tool versions cannot read Accepted events; do not downgrade a
+generator against an active ledger.
 
 Older interrupted runs may have no receipt at all. Reconcile their provider
 history before reusing a spec; the new ledger cannot reconstruct unrecorded calls.

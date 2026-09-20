@@ -4,6 +4,11 @@ Status: proven in PR #169, 2026-09-19. All five CI jobs passed across Linux,
 Windows, and macOS. Merge: `1ae55df`.
 Spend: $0. All verification uses fake transports or local files.
 
+Follow-up, 2026-09-20: a live response exposed an additional gap before the
+Submitted event. [Accepted request identity](asset-request-identity.md) preserves
+the returned ID even when polling metadata is rejected. This earlier milestone
+prevented duplicate submission but could still lose that recovery handle.
+
 ## Problem
 
 The sprite generator records a frame only after downloading its output. An

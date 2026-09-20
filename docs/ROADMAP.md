@@ -118,10 +118,10 @@ Recall Notice starts an owned loopback server from Single Player, with cancellat
 clear failures and cleanup on leave. Local checks, inspected gallery and all five
 pre-merge CI jobs passed. Post-merge Linux exposed a scheduling assumption in the
 mission wire test. Its stronger [repair](plans/mission-wire-order.md) then caught
-a real join race: broadcasts could overtake initial geometry. The implemented
-fix gates broadcasts until each connection's initial map is queued; local
-regressions, mixed-map sessions and inspected gallery pass, with integration
-pending. One intermittent gallery exit error remains recorded in
+a real join race: broadcasts could overtake initial geometry. The fix shipped in
+#189 and v0.27.1, gating broadcasts until each connection's initial map is queued.
+Local regressions, mixed-map sessions, inspected gallery and all five pre-merge CI
+jobs pass. One intermittent gallery exit error remains recorded in
 the plan without a claimed fix. Checkpoints,
 the opening scene, full encounter population and finished art remain. This
 foundation is not a finished campaign or proven co-op balance.
@@ -153,6 +153,13 @@ not finished levels or proof that their reference-game comparisons were achieved
 `params.image_urls` through. Prepare reusable references with verified current
 model limits, prove one complete animated character, then expand the roster.
 Safe recovery and quota reconciliation precede paid batches.
+
+[Accepted request identity](plans/asset-request-identity.md) is implemented (#190),
+with integration pending.
+A live reference submission exposed a gap: rejecting polling metadata discarded
+the returned request ID. Save that ID before checking the address and keep
+recovery bound to it. The existing uncertain reservation still needs dashboard
+reconciliation; do not buy a replacement to work around it.
 
 **2. Surfaces, properly.** The first attempt failed for two known reasons: reduced at 128 where 256 is the floor, and no seam checking of any kind. Needs larger output, prompts that spend detail on a few big features rather than many small ones, and a seam check in the reducer that wraps the tile and compares the gradient across the join against the gradient within the body. Levels cannot get an art pass without this.
 

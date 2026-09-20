@@ -56,6 +56,8 @@ pub fn generate(
                 }
                 Stage::Reserved => return Err(Error::Budget(format!(
                     "asset {} has an uncertain submission; verify its request ID in the dashboard and use recover", frame.id))),
+                Stage::Accepted { request_id } => return Err(Error::Budget(format!(
+                    "asset {} has accepted request {request_id} without validated polling metadata; verify this ID and use recover", frame.id))),
                 Stage::Stopped { status } => return Err(Error::Budget(format!(
                     "asset {} ended as {status}; reconcile billing before authorizing a new frame ID", frame.id))),
                 Stage::Submitted { .. } | Stage::Completed { .. } => {}
@@ -102,7 +104,17 @@ pub fn generate(
                 },
             )?;
             reserved = projected;
-            let status_url = submit(transport, credential, &spec.model, frame)?;
+            let submission = submit(transport, credential, &spec.model, frame)?;
+            ledger.record(&frame.id, Event::Accepted {
+                request_id: submission.request_id().to_owned(),
+            }).map_err(|error| Error::Io(format!(
+                "accepted request {} could not be saved: {error}; reconcile the reservation before retrying",
+                submission.request_id()
+            )))?;
+            let status_url = submission.polling_url().map_err(|error| Error::Transport(format!(
+                "accepted request {} saved; polling metadata rejected: {error}; verify this ID and use recover",
+                submission.request_id()
+            )))?.to_owned();
             ledger.record(&frame.id, Event::Submitted { status_url })?;
         }
         let status_url = match ledger.job(&frame.id).map(|job| &job.stage) {
@@ -253,13 +265,13 @@ mod tests {
         })
     }
     fn completed() -> Result<Response, Error> {
-        reply(json!({"status":"completed","images":[{"url": IMAGE}]}))
+        reply(json!({"request_id":"r1","status":"completed","images":[{"url": IMAGE}]}))
     }
     fn first_run(result: Result<Response, Error>) -> Vec<Result<Response, Error>> {
         vec![
             reply(json!({"usd":"0.02"})),
             reply(json!({"usd":"0.02"})),
-            reply(json!({"status_url":STATUS})),
+            reply(json!({"request_id":"r1","status_url":STATUS})),
             result,
         ]
     }
@@ -333,7 +345,7 @@ mod tests {
             let spec = spec(&dir);
             let result = match failure {
                 "poll" => Err(Error::Transport("offline".into())),
-                "no_urls" => reply(json!({"status":"completed"})),
+                "no_urls" => reply(json!({"request_id":"r1","status":"completed"})),
                 _ => completed(),
             };
             let downloads = match failure {
@@ -370,7 +382,7 @@ mod tests {
         let spec = spec(&dir);
         let result = || {
             reply(
-                json!({"status":"completed","images":[{"url":IMAGE},{"url":"https://cdn.example/b.png"}]}),
+                json!({"request_id":"r1","status":"completed","images":[{"url":IMAGE},{"url":"https://cdn.example/b.png"}]}),
             )
         };
         let first = Fake::new(
@@ -391,7 +403,11 @@ mod tests {
         for status in ["failed", "nsfw", "canceled"] {
             let dir = TestDir::new();
             let spec = spec(&dir);
-            let first = Fake::new(&dir, first_run(reply(json!({"status":status}))), vec![]);
+            let first = Fake::new(
+                &dir,
+                first_run(reply(json!({"request_id":"r1","status":status}))),
+                vec![],
+            );
             assert!(run(&first, &spec).is_err());
             assert_eq!(
                 stage(&dir),
@@ -513,6 +529,131 @@ mod tests {
     }
 
     #[test]
+    fn accepted_identity_survives_rejected_metadata_and_recovers_without_resubmission() {
+        for metadata in [
+            json!({"request_id":"r1","status_url":"https://evil.example/requests/r1/status?token=secret"}),
+            json!({"request_id":"r1","status_url":"https://api.higgsfield.ai/requests/r2/status"}),
+            json!({"request_id":"r1"}),
+            json!({"request_id":"r1","status_url":42}),
+        ] {
+            let dir = TestDir::new();
+            let spec = spec(&dir);
+            let first = Fake::new(
+                &dir,
+                vec![
+                    reply(json!({"usd":0.02})),
+                    reply(json!({"usd":0.02})),
+                    reply(metadata),
+                ],
+                vec![],
+            );
+            let error = run(&first, &spec).unwrap_err().to_string();
+            assert!(error.contains("accepted request r1 saved"), "{error}");
+            assert_eq!(
+                stage(&dir),
+                Stage::Accepted {
+                    request_id: "r1".into()
+                }
+            );
+            assert_eq!(first.calls.borrow().len(), 3);
+            assert!(first
+                .calls
+                .borrow()
+                .iter()
+                .all(|r| r.url.starts_with(crate::API_BASE)));
+            let receipt = std::fs::read_to_string(dir.0.join("ledger.jsonl")).unwrap();
+            assert!(!receipt.contains("status_url"));
+            assert!(!receipt.contains("secret"));
+            assert!(!error.contains("secret"));
+
+            let retry = Fake::new(&dir, vec![], vec![]);
+            assert!(matches!(run(&retry, &spec), Err(Error::Budget(_))));
+            assert!(retry.calls.borrow().is_empty());
+            let mut ledger = Ledger::open(&dir.0).unwrap();
+            assert!(ledger.recover("tack", "r2").is_err());
+            drop(ledger);
+            assert_eq!(
+                std::fs::read_to_string(dir.0.join("ledger.jsonl")).unwrap(),
+                receipt
+            );
+            let mut ledger = Ledger::open(&dir.0).unwrap();
+            ledger.recover("tack", "r1").unwrap();
+            drop(ledger);
+            let resumed = Fake::new(&dir, vec![completed()], vec![Ok(vec![1, 2, 3])]);
+            run(&resumed, &spec).unwrap();
+            resumed.assert_only_resume();
+            assert_eq!(resumed.calls.borrow().len(), 1);
+            assert_eq!(
+                std::fs::read(dir.0.join("tack_0.png")).unwrap(),
+                vec![1, 2, 3]
+            );
+        }
+    }
+
+    #[test]
+    fn malformed_or_ambiguous_identity_preserves_uncertainty() {
+        for body in [
+            r#"{"request_id":"../escape"}"#,
+            r#"{"request_id":""}"#,
+            r#"{"request_id":false}"#,
+            r#"{"request_id":"r1","request_id":"r2"}"#,
+            r#"{"request_id":"r1""#,
+        ] {
+            let dir = TestDir::new();
+            let spec = spec(&dir);
+            let first = Fake::new(
+                &dir,
+                vec![
+                    reply(json!({"usd":0.02})),
+                    reply(json!({"usd":0.02})),
+                    Ok(Response {
+                        status: 201,
+                        body: body.into(),
+                    }),
+                ],
+                vec![],
+            );
+            assert!(run(&first, &spec).is_err());
+            assert_eq!(stage(&dir), Stage::Reserved);
+            let retry = Fake::new(&dir, vec![], vec![]);
+            assert!(run(&retry, &spec).is_err());
+            assert!(retry.calls.borrow().is_empty());
+        }
+    }
+
+    #[test]
+    fn status_identity_must_match_before_media_is_downloaded() {
+        for body in [
+            r#"{"request_id":"r2","status":"completed","images":[{"url":"https://cdn.example/wrong.png"}]}"#,
+            r#"{"status":"completed"}"#,
+            r#"{"request_id":"r2","request_id":"r1","status":"completed"}"#,
+            r#"{"request_id":"r1","status":"failed","status":"completed"}"#,
+        ] {
+            let dir = TestDir::new();
+            let spec = spec(&dir);
+            let fake = Fake::new(
+                &dir,
+                first_run(Ok(Response {
+                    status: 200,
+                    body: body.into(),
+                })),
+                vec![],
+            );
+            assert!(run(&fake, &spec).is_err());
+            assert_eq!(
+                stage(&dir),
+                Stage::Submitted {
+                    status_url: STATUS.into()
+                }
+            );
+            assert!(fake.media.borrow().is_empty());
+            let resumed = Fake::new(&dir, vec![completed()], vec![Ok(vec![7])]);
+            run(&resumed, &spec).unwrap();
+            resumed.assert_only_resume();
+        }
+    }
+
+    #[test]
     fn price_increase_after_one_submission_cannot_consume_unapproved_budget() {
         let dir = TestDir::new();
         let mut spec = spec(&dir);
@@ -525,7 +666,7 @@ mod tests {
                 reply(json!({"usd":0.02})),
                 reply(json!({"usd":0.02})),
                 reply(json!({"usd":0.02})),
-                reply(json!({"status_url":STATUS})),
+                reply(json!({"request_id":"r1","status_url":STATUS})),
                 completed(),
                 reply(json!({"usd":0.03})),
             ],

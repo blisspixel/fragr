@@ -405,13 +405,50 @@ pub fn image_urls(value: &Value) -> Vec<String> {
     out
 }
 
-/// Submit one frame and return its status URL.
+/// Acceptance identity is saved before untrusted polling metadata is inspected.
+#[derive(Debug)]
+pub struct Submission {
+    request_id: String,
+    status_url: Option<String>,
+}
+
+#[derive(serde::Deserialize)]
+struct RequestIdentity {
+    request_id: String,
+}
+
+#[derive(serde::Deserialize)]
+struct PollingMetadata {
+    #[serde(default)]
+    status_url: Option<String>,
+}
+
+impl Submission {
+    pub fn request_id(&self) -> &str {
+        &self.request_id
+    }
+
+    pub fn polling_url(&self) -> Result<&str, Error> {
+        let url = self
+            .status_url
+            .as_deref()
+            .ok_or_else(|| Error::Transport("submit had no usable status_url".into()))?;
+        if validation::status_request_id(url)? != self.request_id {
+            return Err(Error::Transport(
+                "submit status URL identifies a different request".into(),
+            ));
+        }
+        Ok(url)
+    }
+}
+
+/// Submit once. The caller must persist the ID before calling polling_url.
 pub fn submit(
     transport: &dyn Transport,
     credential: &str,
     model: &str,
     frame: &Frame,
-) -> Result<String, Error> {
+) -> Result<Submission, Error> {
     validation::validate_model_path(model)?;
     let request = Request {
         method: Method::Post,
@@ -425,17 +462,28 @@ pub fn submit(
             body: response.body,
         });
     }
-    let value: Value = serde_json::from_str(&response.body)
-        .map_err(|e| Error::Transport(format!("submit was not json: {e}")))?;
-    let status_url = value
-        .get("status_url")
-        .and_then(Value::as_str)
-        .map(str::to_string)
-        .ok_or_else(|| {
-            Error::Transport("submit had no status_url; reconcile the reserved request".into())
-        })?;
-    validate_status_url(&status_url)?;
-    Ok(status_url)
+    let identity: RequestIdentity = serde_json::from_str(&response.body).map_err(|_| {
+        Error::Transport(
+            "submit lacked an unambiguous request identity; reconcile the reservation".into(),
+        )
+    })?;
+    validation::validate_request_id(&identity.request_id)?;
+    // Invalid or duplicated metadata cannot discard an otherwise valid ID.
+    let status_url = serde_json::from_str::<PollingMetadata>(&response.body)
+        .ok()
+        .and_then(|metadata| metadata.status_url);
+    Ok(Submission {
+        request_id: identity.request_id,
+        status_url,
+    })
+}
+
+#[derive(serde::Deserialize, serde::Serialize)]
+struct RequestStatus {
+    request_id: String,
+    status: String,
+    #[serde(flatten)]
+    output: Map<String, Value>,
 }
 
 /// Poll to a terminal state with the backoff the docs ask for: two seconds,
@@ -447,7 +495,7 @@ pub fn poll(
     sleep: &mut dyn FnMut(Duration),
     max_attempts: u32,
 ) -> Result<Value, Error> {
-    validate_status_url(status_url)?;
+    let request_id = validation::status_request_id(status_url)?;
     let mut delay = Duration::from_secs(2);
     for _ in 0..max_attempts {
         let response = transport.send(
@@ -460,11 +508,19 @@ pub fn poll(
         )?;
         match response.status {
             200 => {
-                let value: Value = serde_json::from_str(&response.body)
-                    .map_err(|e| Error::Transport(format!("status was not json: {e}")))?;
-                let status = value.get("status").and_then(Value::as_str).unwrap_or("");
-                if TERMINAL_STATUSES.contains(&status) {
-                    return Ok(value);
+                let result: RequestStatus = serde_json::from_str(&response.body).map_err(|_| {
+                    Error::Transport(
+                        "status lacked an unambiguous request identity or state".into(),
+                    )
+                })?;
+                if result.request_id != request_id {
+                    return Err(Error::Transport(
+                        "status identifies a different request".into(),
+                    ));
+                }
+                if TERMINAL_STATUSES.contains(&result.status.as_str()) {
+                    return serde_json::to_value(result)
+                        .map_err(|e| Error::Transport(e.to_string()));
                 }
             }
             // Credentials and identity are not going to improve by waiting.
@@ -840,13 +896,28 @@ mod tests {
     }
 
     #[test]
-    fn submit_returns_the_status_url() {
+    fn submit_returns_identity_before_validating_polling_metadata() {
         let transport = FakeTransport::one(
             200,
             r#"{"status":"queued","request_id":"r1","status_url":"https://api.higgsfield.ai/requests/r1/status"}"#,
         );
-        let url = submit(&transport, "id:secret", "m", &frame("tack")).unwrap();
-        assert_eq!(url, "https://api.higgsfield.ai/requests/r1/status");
+        let result = submit(&transport, "id:secret", "m", &frame("tack")).unwrap();
+        assert_eq!(result.request_id(), "r1");
+        assert_eq!(
+            result.polling_url().unwrap(),
+            "https://api.higgsfield.ai/requests/r1/status"
+        );
+    }
+
+    #[test]
+    fn duplicated_polling_metadata_retains_the_unambiguous_id() {
+        let transport = FakeTransport::one(
+            201,
+            r#"{"request_id":"r1","status_url":"https://evil.example/requests/r1/status","status_url":"https://api.higgsfield.ai/requests/r1/status"}"#,
+        );
+        let result = submit(&transport, "test", "m", &frame("tack")).unwrap();
+        assert_eq!(result.request_id(), "r1");
+        assert!(result.polling_url().is_err());
     }
 
     #[test]
@@ -854,15 +925,15 @@ mod tests {
         let transport = FakeTransport::new(vec![
             Response {
                 status: 200,
-                body: r#"{"status":"queued"}"#.into(),
+                body: r#"{"request_id":"r1","status":"queued"}"#.into(),
             },
             Response {
                 status: 200,
-                body: r#"{"status":"processing"}"#.into(),
+                body: r#"{"request_id":"r1","status":"processing"}"#.into(),
             },
             Response {
                 status: 200,
-                body: r#"{"status":"completed","images":[{"url":"https://cdn/a.png"}]}"#.into(),
+                body: r#"{"request_id":"r1","status":"completed","images":[{"url":"https://cdn/a.png"}]}"#.into(),
             },
         ]);
         let mut slept: Vec<Duration> = Vec::new();
@@ -881,7 +952,10 @@ mod tests {
     #[test]
     fn poll_stops_on_every_terminal_status() {
         for status in TERMINAL_STATUSES {
-            let transport = FakeTransport::one(200, &format!(r#"{{"status":"{status}"}}"#));
+            let transport = FakeTransport::one(
+                200,
+                &format!(r#"{{"request_id":"r1","status":"{status}"}}"#),
+            );
             let value = poll(
                 &transport,
                 "k",
@@ -899,7 +973,7 @@ mod tests {
         let transport = FakeTransport::new(vec![
             Response {
                 status: 200,
-                body: r#"{"status":"queued"}"#.into(),
+                body: r#"{"request_id":"r1","status":"queued"}"#.into(),
             };
             3
         ]);
@@ -934,7 +1008,7 @@ mod tests {
         let transport = FakeTransport::new(vec![
             Response {
                 status: 200,
-                body: r#"{"status":"queued"}"#.into(),
+                body: r#"{"request_id":"r1","status":"queued"}"#.into(),
             };
             12
         ]);

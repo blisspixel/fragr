@@ -1,6 +1,7 @@
 # Mission wire ordering verification
 
-Status: implemented, 2026-09-20. Task: [#188](https://github.com/blisspixel/fragr/issues/188). Integration pending.
+Status: shipped, 2026-09-20, [#189](https://github.com/blisspixel/fragr/pull/189),
+v0.27.1. Task [#188](https://github.com/blisspixel/fragr/issues/188) is closed.
 
 ## Failure and scope
 
@@ -55,8 +56,10 @@ two existing ignored generators and 95.80 percent unfiltered line coverage.
 Receipts: `.agents/mission-wire-*.log`. All 26 Godot harnesses and all six verifier
 fault-injection scenarios pass. The 21-state gallery was republished and inspected,
 including the contact sheet, shot strips and full-size rail impact. The prior
-intermittent exit warning did not recur; #186 remains open. Hosted CI and
-integration are pending. No thresholds or runtime dependency versions changed.
+intermittent exit warning did not recur; #186 remains open. All five pre-merge
+CI jobs passed in run 35513809015; the merged tree matches that verified head.
+All five main-branch integration jobs passed in run 35514384360.
+No thresholds or runtime dependency versions changed.
 
 The four-client smoke passes: 33.4 seconds, nine frags, zero spawn deaths. All six
 mixed-client roster cases pass the existing assertions. Their spawn-death counts
