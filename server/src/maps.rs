@@ -27,6 +27,30 @@ use crate::sim::{ArenaPickup, MapKind, PickupKind, ARMOR_PAD_AMOUNT, HEALTH_PAD_
 use std::f32::consts::PI;
 use std::sync::OnceLock;
 
+/// Immutable collision geometry shared by live movement, navigation and the
+/// wire map. Conversion from the authoring layout happens once per map.
+pub(crate) fn arena(kind: MapKind) -> &'static crate::movement::Arena {
+    static ARENAS: [OnceLock<crate::movement::Arena>; MapKind::ALL.len()] =
+        [const { OnceLock::new() }; MapKind::ALL.len()];
+    ARENAS[kind.index()].get_or_init(|| {
+        let layout = def(kind);
+        crate::movement::Arena {
+            half: layout.half_extent,
+            solids: layout
+                .solids
+                .iter()
+                .map(|solid| crate::movement::Solid {
+                    min_x: solid.min_x,
+                    max_x: solid.max_x,
+                    min_z: solid.min_z,
+                    max_z: solid.max_z,
+                    top: solid.top,
+                })
+                .collect(),
+        }
+    })
+}
+
 struct NavigationCache {
     maps: [OnceLock<std::sync::Arc<crate::navigation::Navigation>>; MapKind::ALL.len()],
 }
@@ -40,11 +64,8 @@ impl NavigationCache {
 
     fn get(&self, kind: MapKind) -> &crate::navigation::Navigation {
         self.maps[kind.index()].get_or_init(|| {
-            crate::navigation::Navigation::shared(crate::movement::Arena {
-                half: kind.half_extent(),
-                solids: kind.solids(),
-            })
-            .expect("the tested map roster must satisfy navigation bounds")
+            crate::navigation::Navigation::shared(arena(kind).clone())
+                .expect("the tested map roster must satisfy navigation bounds")
         })
     }
 
@@ -129,6 +150,7 @@ impl Aabb2 {
         }
     }
 
+    #[cfg(test)]
     pub(crate) const fn expand(self, r: f32) -> Self {
         Self {
             min_x: self.min_x - r,
@@ -139,6 +161,7 @@ impl Aabb2 {
         }
     }
 
+    #[cfg(test)]
     pub(crate) fn contains(self, x: f32, z: f32) -> bool {
         x >= self.min_x && x <= self.max_x && z >= self.min_z && z <= self.max_z
     }
@@ -1116,13 +1139,7 @@ pub(crate) fn blocked_at(kind: MapKind, x: f32, z: f32, climb: f32) -> bool {
 
 /// The surface under `(x, z)` for a fighter that can reach `ceiling`.
 pub(crate) fn support_height(kind: MapKind, x: f32, z: f32, ceiling: f32) -> f32 {
-    let mut best = 0.0f32;
-    for o in &def(kind).solids {
-        if o.top <= ceiling + crate::movement::CONTACT_EPSILON && o.top > best && o.contains(x, z) {
-            best = o.top;
-        }
-    }
-    best
+    arena(kind).support_height(x, z, ceiling)
 }
 
 /// A two and a half dimensional flood fill from the origin, stepping up and
