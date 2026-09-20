@@ -694,7 +694,7 @@ fn per_minute(count: u64, ticks: u64) -> f64 {
     count as f64 / (seconds(ticks) / 60.0)
 }
 
-/// Fold an observation into the report. Pure, so canned observations test it.
+/// Fold an observation deterministically; logs preserve early-death tick evidence.
 pub fn compute_report(obs: &Observation, agents: usize) -> Report {
     let first = obs.first_tick.unwrap_or(0);
     let ticks = obs.last_tick.saturating_sub(first).max(1);

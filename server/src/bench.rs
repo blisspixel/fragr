@@ -587,6 +587,7 @@ mod tests {
         for _ in 0..100 {
             stats.record_tick(TICK / 10, 1000);
         }
+        report.config.ticks = stats.ticks();
         report.stats = stats.report(4, 0);
         assert!(
             check_thresholds(&report, 0.5).is_empty(),

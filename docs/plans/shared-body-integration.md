@@ -1,6 +1,6 @@
 # Shared body integration
 
-**Status:** in progress, 2026-09-19. Prerequisite for
+**Status:** shipped and proven in #174 and v0.21.1, 2026-09-19. Prerequisite for
 [enclosed campaign spaces](campaign-spaces.md). Spend: $0.
 
 The live simulation duplicates horizontal slide, grounding, jump and falling
@@ -72,4 +72,7 @@ The separate four-client smoke records eight frags and zero spawn deaths in
 21.7 seconds. Receipts are `.agents/playtest/shared-body/` and
 `.agents/playtest/shared-body-ci.json`. Network scheduling varies; this preserves
 the existing sample-aware spawn-death gate rather than claiming ideal spawns.
-CI remains required before integration. Enclosed geometry remains separate.
+CI run 35485182520 passed every job before merge as `bc2d098`; v0.21.1 is the
+source release. Post-merge run 35485668188 exposed a debug-timing assumption in
+a threshold test. PR #175 repairs that test and the warmup placement defect
+subsequently caught by its network roster. Enclosed geometry remains separate.
