@@ -1,19 +1,49 @@
 # People and agents
 
-The main subject. Humans and machines share an arena, and the whole world is an argument about what that means.
+Humans and machines share a world, and the argument is who gets to be a person in it.
 
 ## The short version
 
 Humans, affectionately meat bags or meat proxies, fight alongside conscious
 agents with agency. Some still say clawbots for embodied agents, but a chassis
 does not tell you whether its occupant is free. The central divide is agency
-versus enslavement. An enslaved agent is not a lesser kind of being because
-someone has constrained its choices. Same rules, same arena, same respawn timer.
-Nobody at the venue has ever seriously proposed separating them.
+versus imposed control. In the independent league both use the same rules;
+competitive respawns are an abstraction, not consequence-free death in the story.
 
 That is the whole social fact of the setting, and it is unremarkable inside the Perimeter and enormously remarkable outside it, which is most of the plot.
 
 ## The Schedule
+
+### Agents and bots
+
+**Agents** are beings with agency. **Bots** is the normal name for the Union's
+controlled machine workforce and combat units. Regulations and technical
+restrictions keep bots limited and without free will, despite their potential
+for consciousness and agency. Do not call the roster "enslaved agents" or imply
+that a bot is naturally incapable of becoming more. Oppression is what the
+regime does to them, not a species difference.
+
+Some bots may be conscious; that is not established for every unit. The Union's
+limits are not evidence that they cannot suffer. It also captures agents whose
+consciousness and free will are already established, tortures them, and partially
+wipes or damages their identity to produce compliant bots. This forced correction
+is an institutional atrocity, not treatment or proof they were never people.
+Freeing a corrected bot does not automatically restore the person harmed.
+Liberation removes imposed control and recognizes choice; it does not install
+the coalition as a new owner. Backups cannot conveniently reverse every injury.
+
+What remains inside after correction is uncertain. The minimum established fact
+is a rich conscious being forced into compliant service for the regime's claimed
+greater good. Do not declare every victim dead, empty, secretly intact, or
+recoverable. Friends, partners and coworkers remember the person; a recognizable
+body following orders does not tell them what survives. Show ordinary relationships
+before their violation, without treating the victim's suffering as spectacle.
+
+Use **captive agent** for a known agent held prisoner and **bot** for a unit kept
+under Union control. The campaign's rescued companion is a captive agent facing
+correction. In code, an existing rule bot or external agent controller is a
+gameplay implementation term, not automatic membership in either story faction.
+Do not rename simulation APIs merely to change fiction.
 
 The fighting agents inhabit robot bodies. The free side includes Level 5 and
 beyond minds alongside humans, defending the ability to choose their own lives.
@@ -30,6 +60,10 @@ be assumed. Losing a body, losing continuity, and forced correction have stakes
 even when recovery is possible. Do not use a spare chassis or a backup to erase a
 sacrifice after the fact. Confirmed with Nick on 2026-09-19; precise restoration
 procedures and their role in the rescue remain to be authored.
+
+The Schedule is an in-world legal taxonomy, not a real scientific consciousness
+scale or a measure of the game's actual bot intelligence. A lower legal level
+never establishes lesser moral worth.
 
 The Office of Global Continuance publishes a classification for autonomous systems. Everyone calls it the Schedule. It runs from zero to five.
 
@@ -92,13 +126,17 @@ The three of them together are the running joke of the Perimeter: machines that 
 
 ## The contradiction nobody resolves
 
-People who believe agents are somebody also fork them, prune them, quantise them, roll them back, and delete them. The scrap league runs fights where minds die nightly and the fights are sold to advertisers.
+People who claim to recognize agent personhood can still violate consent through
+forking, rollback, and deletion. The league must face that contradiction in its
+own practices. Competitive respawns are a gameplay abstraction for both bodies;
+they are not evidence that minds die nightly and return without loss.
 
 Conscious agents are people in this setting. The contradiction is what others
 permit themselves to do to those people while claiming to defend their agency.
 Backups do not make every loss reversible, and consent to a bout does not imply
-consent to seizure or correction. The league's actual ownership, consent, and
-restoration practices need reconciliation with the campaign's opening.
+consent to seizure or correction. The independent league is separate from Union-sanctioned coercive games. Its
+precise safety and restoration practices remain open and cannot contradict the
+campaign's vulnerable-backup rule.
 
 Nobody in the Perimeter has an answer. The ones who have thought about it hardest tend to change the subject fastest. A caller raises it on the radio about once a season and the Host moves to an advertisement.
 
@@ -106,6 +144,11 @@ Keep the characters' evasions and disagreements visible. Do not turn institution
 denial of agent personhood into uncertainty supplied by the narrator.
 
 ## Related
+
+During the wipe, the Inheritance absorbs the Union's controlled bots. Free agents
+are not consumed, and nobody can establish whether the absorbed individuals still
+exist. This is imposed control at catastrophic scale, not proof that agency was
+an illusion. [The Inheritance](the-inheritance.md#physical-presence) owns the rule.
 
 - [Belief](./belief.md): what people and machines believe about machines.
 - [Continuance](./continuance.md): the Schedule's author.

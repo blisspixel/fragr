@@ -108,4 +108,10 @@ Sound effects and music cost credits per second of audio. Music is only enabled 
 
 ## Licensing of the output
 
-Generated files are your assets under the ElevenLabs terms for your plan. Paid plans allow commercial use for a project like this; a studio-scale commercial release has extra terms. Keep the manifest so the provenance of every file is clear. The procedural CC0 files produced by the older generator are unaffected.
+Output use depends on the service, model and plan terms. A paid subscription does
+not by itself establish unrestricted distribution or an Apache-2.0 grant for music.
+The [music model terms](https://elevenlabs.io/eleven-music-model-specific-terms)
+restrict music-library distribution and define separate commercial game rights.
+See [the refresh plan](../../docs/plans/radio-refresh.md) before publishing new
+music. Keep request manifests and the applicable distribution basis. Existing
+third-party notices and procedural CC0 assets are unaffected.

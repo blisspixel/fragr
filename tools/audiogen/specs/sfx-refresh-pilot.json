@@ -1,0 +1,293 @@
+{
+  "out_dir": ".agents/audio-refresh/sfx",
+  "items": [
+    {
+      "kind": "sfx",
+      "name": "pilot/fire_flechette",
+      "prompt": "One needle-carbine shot. Very fast hard metallic snap with a little pneumatic kick and a tiny receiver clack. Distinct dry transient, low bass, very short decay. One shot only, not a burst. Isolated game sound effect, dry close sound, silence around the event, no music, no background ambience, no reverb.",
+      "seconds": 0.6,
+      "influence": 0.65,
+      "format": "pcm_44100",
+      "title": "fire flechette"
+    },
+    {
+      "kind": "sfx",
+      "name": "pilot/fire_scatter",
+      "prompt": "One heavy compact shotgun blast. Huge tight chesty punch, coarse gritty crack, short falling debris tail. No pump action in this clip, no explosion rumble. Isolated game sound effect, dry close sound, silence around the event, no music, no background ambience, no reverb.",
+      "seconds": 1,
+      "influence": 0.65,
+      "format": "pcm_44100",
+      "title": "fire scatter"
+    },
+    {
+      "kind": "sfx",
+      "name": "pilot/fire_rail",
+      "prompt": "One industrial rail rifle discharge. Extremely sharp electrical whip crack over a hard steel piston slam, brief cold ringing resonance falling away. Physical dangerous machinery, no charging intro or laser chirping. Isolated game sound effect, dry close sound, silence around the event, no music, no background ambience, no reverb.",
+      "seconds": 1.2,
+      "influence": 0.65,
+      "format": "pcm_44100",
+      "title": "fire rail"
+    },
+    {
+      "kind": "sfx",
+      "name": "pilot/fire_sidearm",
+      "prompt": "One compact high caliber mechanical pistol shot, abrupt midrange crack and tight low punch, tiny bolt click after the report. Dry close microphone, one shot. Isolated game sound effect, dry close sound, silence around the event, no music, no background ambience, no reverb.",
+      "seconds": 0.7,
+      "influence": 0.65,
+      "format": "pcm_44100",
+      "title": "fire sidearm"
+    },
+    {
+      "kind": "sfx",
+      "name": "pilot/melee_swing",
+      "prompt": "One fast heavy gloved fist swinging past a close microphone, short cloth and air whip, small sleeve movement, no impact, no voice. Isolated game sound effect, dry close sound, silence around the event, no music, no background ambience, no reverb.",
+      "seconds": 0.6,
+      "influence": 0.65,
+      "format": "pcm_44100",
+      "title": "melee swing"
+    },
+    {
+      "kind": "sfx",
+      "name": "pilot/melee_hit_body",
+      "prompt": "One heavy gloved fist striking a padded torso, blunt dense thud and short clothing snap, no voice, no gore, no metallic ring. Isolated game sound effect, dry close sound, silence around the event, no music, no background ambience, no reverb.",
+      "seconds": 0.6,
+      "influence": 0.65,
+      "format": "pcm_44100",
+      "title": "melee hit body"
+    },
+    {
+      "kind": "sfx",
+      "name": "pilot/melee_hit_bot",
+      "prompt": "One heavy fist striking dented robot armor, compact hollow steel thunk with one small loose internal rattle, no voice. Isolated game sound effect, dry close sound, silence around the event, no music, no background ambience, no reverb.",
+      "seconds": 0.6,
+      "influence": 0.65,
+      "format": "pcm_44100",
+      "title": "melee hit bot"
+    },
+    {
+      "kind": "sfx",
+      "name": "pilot/weapon_draw",
+      "prompt": "One heavy compact weapon pulled free of a worn canvas sling and brought firmly into hands, fabric scrape and decisive mechanical clack, no firing. Isolated game sound effect, dry close sound, silence around the event, no music, no background ambience, no reverb.",
+      "seconds": 0.8,
+      "influence": 0.65,
+      "format": "pcm_44100",
+      "title": "weapon draw"
+    },
+    {
+      "kind": "sfx",
+      "name": "pilot/weapon_empty",
+      "prompt": "One failed trigger pull on an empty mechanical weapon, clear small dry spring click and receiver tick, absolutely no shot. Isolated game sound effect, dry close sound, silence around the event, no music, no background ambience, no reverb.",
+      "seconds": 0.5,
+      "influence": 0.65,
+      "format": "pcm_44100",
+      "title": "weapon empty"
+    },
+    {
+      "kind": "sfx",
+      "name": "pilot/scatter_cycle",
+      "prompt": "One forceful pump shotgun rack, two sharp metal slides with a hollow locking clack, precise close foley, no gunshot. Isolated game sound effect, dry close sound, silence around the event, no music, no background ambience, no reverb.",
+      "seconds": 0.7,
+      "influence": 0.65,
+      "format": "pcm_44100",
+      "title": "scatter cycle"
+    },
+    {
+      "kind": "sfx",
+      "name": "pilot/magazine_seat",
+      "prompt": "One heavy magazine pushed into a weapon until it locks, short metal slide and hard click, mechanical foley, no firing. Isolated game sound effect, dry close sound, silence around the event, no music, no background ambience, no reverb.",
+      "seconds": 0.7,
+      "influence": 0.65,
+      "format": "pcm_44100",
+      "title": "magazine seat"
+    },
+    {
+      "kind": "sfx",
+      "name": "pilot/rail_cycle",
+      "prompt": "One heavy electrical rifle cooling after discharge, short dry contactor clack and descending gritty coil whine, compact mechanical character, no shot. Isolated game sound effect, dry close sound, silence around the event, no music, no background ambience, no reverb.",
+      "seconds": 0.9,
+      "influence": 0.65,
+      "format": "pcm_44100",
+      "title": "rail cycle"
+    },
+    {
+      "kind": "sfx",
+      "name": "pilot/impact_concrete",
+      "prompt": "One bullet striking rough concrete, crisp stone crack and brief small dry grit debris falling, no gunshot or ricochet ring. Isolated game sound effect, dry close sound, silence around the event, no music, no background ambience, no reverb.",
+      "seconds": 0.6,
+      "influence": 0.65,
+      "format": "pcm_44100",
+      "title": "impact concrete"
+    },
+    {
+      "kind": "sfx",
+      "name": "pilot/impact_steel",
+      "prompt": "One bullet hitting thick steel plate, short sharp clang with a tiny chipped-metal ping, tightly damped heavy material, no gunshot. Isolated game sound effect, dry close sound, silence around the event, no music, no background ambience, no reverb.",
+      "seconds": 0.6,
+      "influence": 0.65,
+      "format": "pcm_44100",
+      "title": "impact steel"
+    },
+    {
+      "kind": "sfx",
+      "name": "pilot/impact_armor",
+      "prompt": "One heavy projectile hitting layered body armor, blunt thick crack, compressed fabric and broken ceramic grit, no voice or gunshot. Isolated game sound effect, dry close sound, silence around the event, no music, no background ambience, no reverb.",
+      "seconds": 0.6,
+      "influence": 0.65,
+      "format": "pcm_44100",
+      "title": "impact armor"
+    },
+    {
+      "kind": "sfx",
+      "name": "pilot/impact_bot",
+      "prompt": "One projectile penetrating industrial robot plating, sharp sheet metal crunch and tiny electrical spit followed by a short loose part rattle, no voice. Isolated game sound effect, dry close sound, silence around the event, no music, no background ambience, no reverb.",
+      "seconds": 0.7,
+      "influence": 0.65,
+      "format": "pcm_44100",
+      "title": "impact bot"
+    },
+    {
+      "kind": "sfx",
+      "name": "pilot/step_concrete_a",
+      "prompt": "One heavy boot footstep onto dusty concrete, compact heel thud then gritty sole contact, no walking sequence, no voice. Isolated game sound effect, dry close sound, silence around the event, no music, no background ambience, no reverb.",
+      "seconds": 0.5,
+      "influence": 0.65,
+      "format": "pcm_44100",
+      "title": "step concrete a"
+    },
+    {
+      "kind": "sfx",
+      "name": "pilot/step_concrete_b",
+      "prompt": "One heavy boot footstep onto dusty concrete, slightly rough scuff before the compact sole thump, no walking sequence, no voice. Isolated game sound effect, dry close sound, silence around the event, no music, no background ambience, no reverb.",
+      "seconds": 0.5,
+      "influence": 0.65,
+      "format": "pcm_44100",
+      "title": "step concrete b"
+    },
+    {
+      "kind": "sfx",
+      "name": "pilot/step_grate_a",
+      "prompt": "One heavy boot footstep on solid industrial steel grating, short metallic clonk with a dry sole thud, no prolonged ringing or walking sequence. Isolated game sound effect, dry close sound, silence around the event, no music, no background ambience, no reverb.",
+      "seconds": 0.5,
+      "influence": 0.65,
+      "format": "pcm_44100",
+      "title": "step grate a"
+    },
+    {
+      "kind": "sfx",
+      "name": "pilot/step_grate_b",
+      "prompt": "One heavy boot footstep on industrial steel grating, gritty sole scuff into a damped hollow metal knock, no walking sequence. Isolated game sound effect, dry close sound, silence around the event, no music, no background ambience, no reverb.",
+      "seconds": 0.5,
+      "influence": 0.65,
+      "format": "pcm_44100",
+      "title": "step grate b"
+    },
+    {
+      "kind": "sfx",
+      "name": "pilot/step_regolith",
+      "prompt": "One pressure-suit boot pressing into coarse dry volcanic sand, close crunchy granular contact and dull weighty sole thud. Contact-microphone perspective, no atmosphere or wind. Isolated game sound effect, dry close sound, silence around the event, no music, no background ambience, no reverb.",
+      "seconds": 0.6,
+      "influence": 0.65,
+      "format": "pcm_44100",
+      "title": "step regolith"
+    },
+    {
+      "kind": "sfx",
+      "name": "pilot/landing_light",
+      "prompt": "One person landing from a small hop on concrete, a single compact double-foot thud with clothing rustle, no grunt or footsteps after. Isolated game sound effect, dry close sound, silence around the event, no music, no background ambience, no reverb.",
+      "seconds": 0.7,
+      "influence": 0.65,
+      "format": "pcm_44100",
+      "title": "landing light"
+    },
+    {
+      "kind": "sfx",
+      "name": "pilot/landing_heavy",
+      "prompt": "One heavy armored body landing on a metal platform, weighty double-foot slam and short equipment rattle, no voice, no debris explosion. Isolated game sound effect, dry close sound, silence around the event, no music, no background ambience, no reverb.",
+      "seconds": 0.9,
+      "influence": 0.65,
+      "format": "pcm_44100",
+      "title": "landing heavy"
+    },
+    {
+      "kind": "sfx",
+      "name": "pilot/pickup_ammo",
+      "prompt": "One compact ammunition box grabbed and snapped shut, short dense shell rattle and crisp latch clack, satisfying tactile pickup, no musical notes. Isolated game sound effect, dry close sound, silence around the event, no music, no background ambience, no reverb.",
+      "seconds": 0.6,
+      "influence": 0.65,
+      "format": "pcm_44100",
+      "title": "pickup ammo"
+    },
+    {
+      "kind": "sfx",
+      "name": "pilot/pickup_health",
+      "prompt": "One field medical injector priming, neat cap click followed by a tiny pneumatic hiss and firm snap, clean immediate feedback, no voice or musical fanfare. Isolated game sound effect, dry close sound, silence around the event, no music, no background ambience, no reverb.",
+      "seconds": 0.7,
+      "influence": 0.65,
+      "format": "pcm_44100",
+      "title": "pickup health"
+    },
+    {
+      "kind": "sfx",
+      "name": "pilot/pickup_armor",
+      "prompt": "One heavy armor plate sliding into a carrier pocket and locking, close fabric rasp followed by a decisive flat metallic thunk, no voice. Isolated game sound effect, dry close sound, silence around the event, no music, no background ambience, no reverb.",
+      "seconds": 0.7,
+      "influence": 0.65,
+      "format": "pcm_44100",
+      "title": "pickup armor"
+    },
+    {
+      "kind": "sfx",
+      "name": "pilot/door_unlock",
+      "prompt": "One industrial security door unlocking, chunky electromechanical relay click followed by two heavy bolts sliding back, short and readable, no voices or alarm. Isolated game sound effect, dry close sound, silence around the event, no music, no background ambience, no reverb.",
+      "seconds": 0.8,
+      "influence": 0.65,
+      "format": "pcm_44100",
+      "title": "door unlock"
+    },
+    {
+      "kind": "sfx",
+      "name": "pilot/door_open",
+      "prompt": "One heavy powered metal security door sliding fully open, immediate motor engage then coarse smooth rail motion ending in a soft heavy stop. Complete action within clip, no voices. Isolated game sound effect, dry close sound, silence around the event, no music, no background ambience, no reverb.",
+      "seconds": 2.4,
+      "influence": 0.65,
+      "format": "pcm_44100",
+      "title": "door open"
+    },
+    {
+      "kind": "sfx",
+      "name": "pilot/door_close",
+      "prompt": "One heavy powered metal security door sliding shut, coarse electric motor and rail motion ending in a firm steel latch slam. Complete action within clip, no voices. Isolated game sound effect, dry close sound, silence around the event, no music, no background ambience, no reverb.",
+      "seconds": 2.4,
+      "influence": 0.65,
+      "format": "pcm_44100",
+      "title": "door close"
+    },
+    {
+      "kind": "sfx",
+      "name": "pilot/terminal_accept",
+      "prompt": "A battered industrial terminal accepting a command, one warm short low electronic blip and physical relay tick, restrained retro computer feedback, no melody. Isolated game sound effect, dry close sound, silence around the event, no music, no background ambience, no reverb.",
+      "seconds": 0.6,
+      "influence": 0.65,
+      "format": "pcm_44100",
+      "title": "terminal accept"
+    },
+    {
+      "kind": "sfx",
+      "name": "pilot/terminal_denied",
+      "prompt": "A battered industrial terminal refusing a command, two clipped low harsh electronic pulses, brief and distinct, no voice, no musical flourish. Isolated game sound effect, dry close sound, silence around the event, no music, no background ambience, no reverb.",
+      "seconds": 0.6,
+      "influence": 0.65,
+      "format": "pcm_44100",
+      "title": "terminal denied"
+    },
+    {
+      "kind": "sfx",
+      "name": "pilot/bot_warning",
+      "prompt": "One industrial security robot attack warning, short ascending strained servo tone interrupted by a forceful locking mechanism clack. Distinct physical machine cue, no speech, no siren bed. Isolated game sound effect, dry close sound, silence around the event, no music, no background ambience, no reverb.",
+      "seconds": 1.1,
+      "influence": 0.65,
+      "format": "pcm_44100",
+      "title": "bot warning"
+    }
+  ]
+}

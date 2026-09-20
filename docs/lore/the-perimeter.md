@@ -1,10 +1,13 @@
 # The Perimeter
 
-The setting. Where the fights happen and why the lights are still on.
+The Perimeter is one Earth region in an undated retro future. It contains homes,
+workshops, civic buildings, and coercive institutions as well as old ranges.
+Established lunar, Martian, and shipboard communities exist beyond it. The Union
+controls major infrastructure but cannot erase every independent settlement.
 
 ## The place
 
-The arenas are leftover black-budget training ranges that do not officially exist. They were built during the height of Cold War paranoia and abandoned when the programs went darker or the funding dried up. The facilities stayed operational, power still on, automated systems still running, because nobody wanted the paperwork trail of shutting down something that was never supposed to be built in the first place. It is easier to keep paying a power bill on a site with no name than to explain to anyone why the bill exists.
+Many league arenas are leftover black-budget training ranges that do not officially exist. They were built during the height of Cold War paranoia and abandoned when the programs went darker or the funding dried up. The facilities stayed operational, power still on, automated systems still running, because nobody wanted the paperwork trail of shutting down something that was never supposed to be built in the first place. It is easier to keep paying a power bill on a site with no name than to explain to anyone why the bill exists.
 
 The ranges sit inside a boundary that everyone calls the Perimeter. Nobody can tell you where it begins. It is not fenced, or not fenced everywhere, and the maps that show it disagree with each other about which side of the line a given town is on. What people mean when they say the Perimeter is the region where the old programs left their furniture behind: a parking structure with five levels and a ramp that goes one level further down than the sign admits, a pipe running east to west that used to carry something, an office building where the lights follow you and the elevators still answer.
 

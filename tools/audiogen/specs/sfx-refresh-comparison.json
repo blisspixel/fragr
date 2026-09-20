@@ -1,0 +1,41 @@
+{
+  "out_dir": ".agents/audio-refresh/sfx-comparison",
+  "items": [
+    {
+      "kind": "sfx",
+      "name": "pilot/terminal_denied",
+      "title": "Terminal denied, comparison",
+      "seconds": 1.5,
+      "influence": 0.3,
+      "format": "mp3_44100_192",
+      "prompt": "Two short low electronic error beeps from an old computer terminal. Clear soft square-wave tones with a little gritty texture. Isolated sound, short quiet tail. No speech, no music."
+    },
+    {
+      "kind": "sfx",
+      "name": "pilot/melee_hit_body",
+      "title": "Body impact, comparison",
+      "seconds": 1.5,
+      "influence": 0.3,
+      "format": "mp3_44100_192",
+      "prompt": "A single heavy gloved punch landing on a padded body. Deep solid thud and a little clothing snap. Close dry foley, quiet after the hit. No voices, no music."
+    },
+    {
+      "kind": "sfx",
+      "name": "pilot/impact_steel",
+      "title": "Steel impact, comparison",
+      "seconds": 1.5,
+      "influence": 0.3,
+      "format": "mp3_44100_192",
+      "prompt": "A single bullet impact on a thick steel plate. Loud sharp metallic clang that quickly dies away, small bright ricochet tick. Close dry sound. No firing sound, no music."
+    },
+    {
+      "kind": "sfx",
+      "name": "pilot/fire_scatter",
+      "title": "Scatter shot, comparison",
+      "seconds": 1.5,
+      "influence": 0.3,
+      "format": "mp3_44100_192",
+      "prompt": "One powerful shotgun blast with a hard initial crack, deep tight punch and short gritty decay. Dry close perspective, quiet after the blast. No reloading, no music."
+    }
+  ]
+}

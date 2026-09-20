@@ -69,7 +69,7 @@ authored space actually requires them. No paid art is needed to establish flow.
 Use large, readable original landmarks and local pixel materials. Room signage,
 palette changes, structural silhouettes, and props should explain the place.
 Avoid implementation/debug labels in the player interface. Keep frozen voiced
-names and the Union/free-agent/Quiet canon intact.
+names and the Union/free-agent/Inheritance canon intact.
 
 ## Evidence and acceptance
 

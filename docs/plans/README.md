@@ -17,6 +17,11 @@ Status words: **planned**, **in flight**, **shipped** (merged to `main`, PR numb
 
 | Plan | Status | One-liner |
 |---|---|---|
+| [`audio-effects-refresh.md`](./audio-effects-refresh.md) | **in flight** | Distinct weapon, movement, impact and world sounds; capped candidates and in-game mix verification. |
+| [`radio-refresh.md`](./radio-refresh.md) | **in flight** | Two fictional talk formats and world-appropriate music; staged pilots, captions and distribution review. |
+| [`campaign-scenes.md`](./campaign-scenes.md) | **planned** | Skippable localized opening and short pixel-style scenes; matched reference shots before video spend. |
+| [`inheritance-benchmark.md`](./inheritance-benchmark.md) | **later** | Research-grade agent strategy/wipe simulation; controlled budgets, held-out tasks, replay and validated capability claims. |
+| [`campaign-story-alignment.md`](./campaign-story-alignment.md) | **in flight** | Reconcile world canon, research, twelve-mission treatment, sudden wipe/aftermath and production plan. |
 | [`authored-compliance-yard.md`](./authored-compliance-yard.md) | **deferred** | Arena spatial study. Settle the campaign story with Nick before selecting or planning its opening map. |
 | [`height-aware-navigation.md`](./height-aware-navigation.md) | **in flight** | Shared bounded routes around cover and up stairs, proven by real controller movement. |
 | [`shot-impact-feedback.md`](./shot-impact-feedback.md) | **proven** (#171, v0.20.0) | Authoritative world impacts and rail traces, with complete combat accounting. |
@@ -59,9 +64,9 @@ Status words: **planned**, **in flight**, **shipped** (merged to `main`, PR numb
 | [`brain-third-tier-surface.md`](./brain-third-tier-surface.md) | **shipped** (#103) | Surface fragr-brain beside rule bots and MCP agents in the skill card and README, plus the observe-only stance chip. |
 | [`radio-stations.md`](./radio-stations.md) | **shipped** (library) | Contested Frequency radio: eight stations, generated library, client player with ducking. |
 | [`look-pass-boomer.md`](./look-pass-boomer.md) | **planned** | Boomer shooter look pass: low-res render target, dither, atlas, eight-direction sprites, weapon view models, HUD grid. |
-| [`campaign-build-order.md`](./campaign-build-order.md) | **spec** | Thirteen rungs from the exit lever to the ending, each one shippable on its own, with an honest account of what the engine cannot do today. |
-| [`campaign-e1.md`](./campaign-e1.md) | **spec** | Episode 1 level by level: layout intent, roster, weapon and ammunition placement, pacing beats, secrets and tier objectives for all nine. |
-| [`campaign-continuance.md`](./campaign-continuance.md) | **planned** | The frameworks under the campaign: the map manifest, the map tool, and the monster row schema. Design and sequencing moved to `docs/CAMPAIGN.md` and `campaign-build-order.md`. |
+| [`campaign-build-order.md`](./campaign-build-order.md) | **planned** | Implement and prove the twelve-mission campaign, starting with a complete M01 and co-op foundations. |
+| [`campaign-e1.md`](./campaign-e1.md) | **superseded** | Earlier radio-led nine-level episode; current mission treatment lives in `../CAMPAIGN-MISSIONS.md`. |
+| [`campaign-continuance.md`](./campaign-continuance.md) | **planned** | Validated map data, authoritative mission/enemy state, saves and localized presentation; no editor dependency selected yet. |
 | [`agent-playtest-loop.md`](./agent-playtest-loop.md) | **in flight** (rung 1 shipped, #95) | Playtest harness: scripted agents play rounds and file a metrics report; thresholds run in CI. |
 | [`warmup-tv-bumper.md`](./warmup-tv-bumper.md) | **shipped** (#89) | Full-frame Warmup TV bumper: map title, roster chips, countdown, Host flash lingering into Active. |
 | [`controller-and-desktop-platforms.md`](./controller-and-desktop-platforms.md) | **shipped** (#88) | Gamepad join, solo, and match input on the same action path; Windows, macOS, and Linux export presets. |

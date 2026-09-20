@@ -1,5 +1,9 @@
 # Plan: Solo Broadcast campaign (Episode 0 face)
 
+Historical shipped prototype. Its product lock and future episode list below
+record that release only. The current full-game story, twelve-mission plan, and
+scene policy are in [CAMPAIGN.md](../CAMPAIGN.md). This is not the opening mission.
+
 **Repo:** https://github.com/blisspixel/fragr
 **Branch:** `feat/solo-broadcast-ep0`
 **Spend:** $0. Loopback. No GCP apply, no ElevenLabs, no look_at reopen, no Doom IP.
@@ -24,7 +28,7 @@ First playable slice: **Episode 0 face** (title card, Host cold open, objective 
 ## Historical campaign spine (Ep0 ships only)
 
 The current story review and confirmed direction live in
-[`CAMPAIGN.md`](../CAMPAIGN.md#story-review-in-progress). The list below records
+[`CAMPAIGN.md`](../CAMPAIGN.md#confirmed-direction). The list below records
 the earlier Episode 0 scope; it no longer controls campaign sequencing.
 
 1. **Ep0 Calibration** (this PR) cold-open on **Larak Lot**

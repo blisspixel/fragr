@@ -4,6 +4,10 @@
 **Branch:** `feat/radio-stations`
 **Spend:** ElevenLabs credits from Nick's monthly plan, developer-side only. No runtime API calls. No other spend.
 
+**Historical production record.** Editorial direction is superseded by
+[radio-refresh.md](radio-refresh.md). Existing files do not establish current
+canon, finished listening quality, or permission to redistribute a music library.
+
 ## Goal
 
 An in-game radio with eight stations: seven music stations of at least twenty tracks each (two to six minutes, mostly with lyrics that live in the lore) and one spoken news station of lore bulletins. Station switching in the HUD, ducking under Host callouts and combat, and a shuffle that does not repeat. Assets are generated with `tools/audiogen`, committed with provenance, and loaded by the Godot client from the manifest.
@@ -45,7 +49,9 @@ Every prompt states genre, mood, instrumentation, tempo and key, and production 
 - Files: `client/assets/audio/radio/<station>/<NN>-<slug>.mp3` at `mp3_44100_128`. Sung IDs and stings as `.mp3`, spoken bulletins as `.mp3`.
 - Provenance: `client/assets/audio/audiogen-manifest.json` (prompt, model, format, length, title, generation time) written by the tool. That is the sidecar metadata.
 - Specs: `tools/audiogen/specs/radio-<station>.json`, one per station, twenty items each with `title`, `length_range_ms` of `[120000, 360000]`, and `instrumental` on about a quarter of the tracks (Lock In may run half).
-- Licensing: assets ship under the repository's Apache 2.0 license with the manifest as the record of how they were made. Prompts never name real artists.
+- Licensing: the earlier blanket Apache-2.0 assumption was not established by the
+  manifest. Current distribution terms need review under `radio-refresh.md` before
+  replacement music is published. Preserve existing legal notices and history.
 
 ## Budget and waves
 

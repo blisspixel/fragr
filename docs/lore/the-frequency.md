@@ -1,93 +1,109 @@
 # Contested Frequency
 
-The pirate station. One thread through the world, not the world.
+Optional radio in an inhabited world, roughly one percent of the story. The
+campaign, rescues and revelation of the Inheritance work with the radio off.
+Existing music and bulletin assets are a library, not evidence that the new show
+formats below are implemented or that every old lyric matches current canon.
 
-## The charter
+## The station and the league Host
 
-This file exists to keep the station in proportion. Contested Frequency broadcasts out of a scrap league and reaches maybe a third of the Perimeter on a good night. The setting is the places the signal reaches and the people in them, and most of what happens in fragr happens to people who have the radio on in the background, if they have it on at all.
+Contested Frequency reaches part of the Perimeter and carries several voices.
+The league Host calls matches, sells time and keeps the broadcast running.
+Smooth, strange and energetic when calling a fight, he has no mandate to speak
+for every free community. His commercial habits do not define every program.
 
-A map, a mode or a weapon has to make sense to somebody who never tunes in. Anything that only makes sense because of the station belongs to the station.
+An unlicensed station survives around the Union's reach. That circumstance links
+it to free communities without turning every presenter into a resistance leader.
+The Host is not the campaign companion, quest dispatcher or final narrator.
 
-Its scope is roughly one percent of the story, a creative proportion rather than
-a runtime quota. The campaign is not about restoring this
-station, and the Host is not its central character or mandatory guide. Conspiracy
-talk, gold and vitamin sales, dubious financial advice, and value-for-value reads
-color an already existing world. Some claims are true; the presenters' confidence
-does not identify which. Essential story and objectives remain clear with the
-radio off. This supersedes the earlier campaign's radio-led premise.
+## Two distinct talk shows
 
-The station is loud where watching a broadcast is the point, which is the spectator view and the round bumper. A person behind a gun gets the world.
+Working show names, with local pilots under review and neither format shipped. Both discuss conspiracies and
+occasionally get consequential things right. Their certainty never tells the
+listener which claims deserve belief. They can disagree with each other and
+be right or wrong for different reasons.
 
-## The conceit
+| Show | Format and funding | Comic rhythm and blind spot |
+|---|---|---|
+| Emergency Inventory | One alarmist presenter, paid reads and product sales: gold, vitamins, water filters and preparedness goods | An urgent revelation becomes a sales pitch without losing intensity. Commercial motives coexist with real discoveries; not every warning is invented to sell something |
+| Second Reading | Two conversational presenters, listener-supported value for value; money, useful work, research, parts and creative contributions | Replay a public statement, argue over its wording, spot a real contradiction, then overinterpret it. Dry disagreement, listener notes and support acknowledgments; no disguised supplement advertisement |
 
-A live black-budget scrap channel that is not on the air. Every frag funds tonight's emergency while the Host sells gold, filters and fear between rounds.
+The first may be the Host's off-match program; casting is still a proposal.
+The second needs two original personalities: one eager to connect evidence,
+one skeptical of that connection but overconfident about their own explanation.
+They share affection and sometimes change their minds. Neither is an infallible
+analyst or a copy of a real broadcaster. Original voices, names and phrases.
 
-Lore arrives where you feel it fast: radio bleed, killfeed glitches, fake advertisements between rounds, map names that sound like redacted documents. If a new player picks up the mood in thirty seconds of audio and naming, it stays. If it needs a wiki page, it gets cut.
+Value for value can include money. The distinction is voluntary listener support
+versus paid advertisements and merchandise, not money versus no money. Keep each
+show's funding model clear. Station-wide scheduling does not merge their reads.
 
-## The Host
+## Truth, uncertainty and examples
 
-Never named, never seen, a voice between rounds. Smooth and strange, like someone reading crop reports at three in the morning on a station you did not know your radio could pick up. He calls the action with the energy of a numbers-station operator who got comfortable with the gig.
+Both programs ride the line of punishable speech. Presenters hedge, quote an
+official source instead of making an accusation, change a word after a pause,
+or joke about what a legal reviewer would call the subject. Imprisonment and
+seizure are credible consequences, not an excuse for endless exposition about
+censorship. Their sympathies appear to favor free beings, but neither program
+is a confirmed coalition mouthpiece or a transparent account of its own motives.
 
-He has no position. The Frequency does not take a side; it sells advertising time to both. His only loyalty is to staying on the air, and the joke of the setting is that this makes him accidentally the most principled person in it.
+Whispers about a growing intelligence sit beside alien and interdimensional
+theories. Some reports contain real observations, others are wild speculation,
+and the explanation attached to a real fact can still be wrong. Early rumors
+do not establish aliens or dimensional beings as active participants in this
+game. The ending's brief anomaly can make an old segment newly unsettling.
 
-He is not alone in the building, whatever the older copy says. There is a field correspondent and there is a science desk, and both of them phone in, and both of them are wrong in their own specific direction.
+**Whether the Inheritance manipulates either show is never established.**
+An anonymous tip, an oddly timed interruption or repeated wording can admit
+several causes. No confession, decoded file, mission objective or authoritative
+caption later declares the hosts puppets or certifies their independence.
+Their ordinary commercial and personal motives remain sufficient explanations
+for some behavior; not every coincidence belongs to a master plan.
 
-## The furniture
+Roughly half-right is a tone, not a numeric truth quota. A host can accurately
+identify a supply diversion while confidently assigning it the wrong cause.
+Use the authored world and actual timeline to decide what a segment can know.
+No host predicts the wipe's date or reveals the fate of corrected or absorbed
+minds. Alien speculation remains speculation before the brief sequel hint.
 
-**The Dead Air Bell.** Between rounds there is a moment of perfect silence, no gunfire, no footsteps, just the hum of the network. Then one low tone, like a bell recorded underwater. Some say it is a sample from an old emergency test that got looped into the broadcast. Some say it is tinnitus. Either way, when you hear it the next round is about to start.
+Draft examples, not recorded dialogue:
 
-**Numbers-station spawn weather.** A voice reads conditions that are not weather in a cadence that is unmistakably weather.
+- Commercial show: "They renamed the confiscation budget 'personal resilience'.
+  I have the invoice. Speaking of resilience: six filters for the price of five."
+- Listener-supported show: "They said voluntary." "Play the next sentence."
+  "Failure to volunteer suspends housing." "That's doing a lot of work for one word."
+- Support read: "You sent a replacement fan and the missing page of the budget.
+  Both have improved the airflow in here. If this was useful, send useful back."
+- Cautious exchange: "Are we allowed to say that?" "I'm reading the approved
+  minutes." "Then read them less suspiciously."
 
-**Fake advertisements.** Gold, water filters, fish oil, a vacuum, a mesh kit, a spring. The reads are sincere. That is what makes them work.
+Both shows may discuss gold, bitcoin or dubious theories. Only the commercial
+show turns that subject into a paid sales read. Absurd claims can sit beside
+accurate observations; the game does not certify real-world conspiracies.
 
-**Signal Bleed.** The map glitches and the station is blamed. It is run by a machine, which does not help the rumour.
+## Existing broadcast furniture
 
-**Eight stations.** The dial is real and the listener can turn it. Lock-in, rock, dance, hip-hop, chill, country, world, and news. One of them ducks for nothing, which tells you which one people actually fight to.
+The Dead Air Bell, numbers-station spawn weather, fake product reads and music
+stations remain part of the existing library. The eight current categories are
+lock-in, rock, dance, hip-hop, chill, country, world and news. New talk programs
+need a deliberate slot and script/asset audit, not an invented ninth shipped
+station. Important objectives never depend on listening through a playlist.
 
-## Whose signal it is
+The station may comment on the war but is never the only evidence of it. Radio
+quietens around essential dialogue and the opening address. Show cards and
+captions identify speakers; listeners can mute or skip without losing the story.
 
-The Host has no position and sells time to both sides. That is true and it stays true.
+## Production references
 
-It is also beside the point, because the station is **unlicensed**, and under [the Union](./the-chancellery.md) an unlicensed transmitter is not a regulatory matter but an existence one. There is no version of the Frequency that the Chancellery tolerates. So the station is the free side's signal by circumstance rather than by manifesto: the only people who do not want it shut down are the people who are also not registered.
-
-This is the honest way to make the radio pro-freedom without a single speech about freedom. The Host never argues for liberty. He argues for staying on the air, and in this world those turn out to be the same argument.
-
-## Value for value
-
-The station does not have advertisers in the sense of contracts. It has **value for value**: the Host tells you what the night cost, and whoever thinks it was worth something sends something. Scrap, parts, ammunition, a favour, occasionally money.
-
-The read for this is sincere and slightly wounded, and it runs directly into an advertisement for gold, which is the joke. Nobody on the station sees a contradiction between passing the hat and selling you a precious-metals hedge in the same breath, and neither does the audience.
-
-## The news hour, and the conspiracy hour
-
-The news station is half news and half merchandise, and the merchandise is the good part: bullion, water filters, iodine, a nine-week supply of something. The hosts believe every word of the reads. They are not cynical, which is what makes them funny.
-
-There are several of them and they do not agree with each other. Two hosts from opposite ends of an argument nobody outside the Perimeter is having, both loud, both certain, both selling the same supplements in the same break. The disagreement is real and completely unresolvable, and the game never picks a winner.
-
-Then there is the morning conspiracy hour, which is the important one. **Some of what it says is true.** The Union really is doing several of the things the hour claims. The hour also claims things that are wild, and it presents both in exactly the same register with exactly the same confidence.
-
-The station cannot tell you which is which, because it does not know. Neither does the player. This is the only honest way to seed [the thing in the dark](./the-quiet.md): the truth about it is on the radio every morning, filed between a genuine atrocity and a story about the water.
-
-## The other subtitle track
-
-When the Chancellor addresses the Union, the Frequency rebroadcasts the audio with its own subtitles. The official track is sanitised to nothing; the Frequency's is a blunt translation of what she actually said.
-
-The station considers this a public service. It is also the single funniest thing it does, and it costs the production nothing, because the audio is identical either way. See [the Chancellery](./the-chancellery.md) for how the device works and how often to use it.
-
-## The music
-
-The dial shuffles. Every station picks a track at random from the ones it has not played recently, so nobody hears the same running order twice and nobody hears a station work through its library front to back. A player who is in the arena all day should never be able to predict what comes next.
-
-## What the station is for, structurally
-
-It is an optional, unreliable slice of public opinion. It can react to events or
-accidentally report something true, but never speaks for everyone outside the
-room. The player's relationships and direct experience carry the main story.
-
-That is a large amount of work for one device, which is exactly why it kept expanding until it had eaten the world. The charter at the top of this file exists to stop that happening again.
+Checked 2026-09-19: the [listener-supported show's own account](https://www.noagendashow.net/about)
+describes voluntary monetary and non-monetary contributions; a
+[commercial broadcaster's storefront](https://thealexjonesstore.com/collections/supplements-v2)
+shows the merchandise/supplement model. These inform fictional formats, not
+endorsement of their claims, copied scripts, voice impersonation or in-game names.
 
 ## Related
 
-- [The league](./the-league.md): what the station is broadcasting.
-- [Voice](./voice.md): how the Host talks, and what he never says.
-- [The Perimeter](./the-perimeter.md): how far the signal reaches.
+- [The league](the-league.md): the bouts the Host calls.
+- [Voice](voice.md): original registers and asset migration constraints.
+- [Cast](cast.md): recurring people, including the small radio ensemble.
+- [The Perimeter](the-perimeter.md): part of the world the signal reaches.

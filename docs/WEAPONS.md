@@ -1,14 +1,21 @@
 # The weapons
 
-The canonical list. Eleven things you can hold, what each is for, where you get it, and every sound it makes.
+The canonical proposed arsenal, pickup economy, and sound roles. Only Flechette,
+Rail and Scatter currently exist as freely selectable hitscan weapons. Ammo,
+melee, inventory, reload and projectile systems below are planned.
 
 Balance numbers live here and nowhere else. `plans/gunfeel.md` explains how they were arrived at, `plans/weapon-economy.md` explains the ammunition and the pickup economy, and `docs/lore/guns.md` is what they get called on the radio.
 
 ## What you start with
 
-**Your fists.** That is the entire loadout, on every spawn, for everyone, in every mode.
+**Your fists.** A fresh campaign and ordinary pickup-based matches begin with
+melee only. Explicit full-arsenal modes such as Open Weights are labeled exceptions.
+A normal campaign checkpoint retry restores its saved inventory; crossing a
+mission boundary is not another fresh spawn.
 
-Everything else in this file is found on the floor, kept until you die, and lost when you do. Doom starts you with fists and a pistol; fragr keeps the fists and puts the pistol on the ground, which is further than Doom goes and is the point.
+Everything else is acquired through play. Competitive respawns reset inventory;
+the proposed normal campaign carries it between connected missions and restores
+checkpoint inventory on retry. Doom starts you with fists and a pistol; fragr keeps the fists and puts the pistol on the ground, which is further than Doom goes and is the point.
 
 This only works because of a rule that belongs to the maps rather than to the weapons: **there is a sidearm within about two seconds of every spawn point.** You begin each life with nothing and you end that with a decision, not a death sentence. The pistol stops being something you have and becomes the first thing you do, every time, which is a ritual rather than an inventory.
 

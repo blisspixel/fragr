@@ -1,106 +1,108 @@
 # fragr vision
 
-Working name **fragr** (may change). Do **not** brand as Doom or a Doom clone in user-facing copy. Learn from the history of networked shooters without borrowing their trademarks.
+fragr is an original retro-styled 3D FPS: authored single-player and co-op,
+multiple multiplayer modes, human and agent players, and first-class spectating.
+The current arena slice is a foundation, not the definition of the full game.
 
-## The tagline
+## The experience
 
-> **Compliance. Compliance never protected anyone.**
->
-> *The new world is already here. Nobody announced it.*
+Fast, satisfying fights; useful movement; weapons found and learned; memorable
+places; secrets worth finding; and opponents whose shapes and tells matter.
+Doom/Doom II, Quake, Unreal, GoldenEye, early Halo, Battlefield 1942 and early
+Call of Duty inform different strengths. Boltgun is a modern pixel-art production
+reference. Borrow principles, not characters, layouts, logos or other IP.
 
-The first line is what a trailer opens on and what the title screen carries. It works for the same reason Fallout's does: it takes the word the setting is actually built out of and flatly denies the thing that word exists to promise. Compliance is the Union's whole vocabulary, printed on every weapon, stamped on every corpse, and the sentence says it was never a bargain.
+The whole game has the same visual identity: chunky pixel surfaces and animation,
+substantial 3D environments, forceful readable effects, and physical industrial
+menus including settings. Empty sky arenas, static characters, and placeholder
+flashes do not meet the target. Play and inspected motion establish quality.
 
-The second line is the turn, and it is delivered separately and quieter. It carries the other half of the thesis: that nobody voted for the world they are standing in, that the votes were re-run until they came out right, and that the change everyone is waiting to be told about has already happened.
+Human players and external agents can fight, cooperate or watch. Meet your vibe:
+join a public match, stay for the spectacle, play a campaign with friends, or run
+a local server. Watching is the default for joining a multiplayer broadcast;
+choosing the campaign starts the player story.
 
-**Alternates**, kept here so they are not re-derived later, and any of them can take the lead instead:
+## Story
 
-- *They will trade your freedom for safety, and deliver neither.* The Franklin line said straight. Strongest statement of the politics and the least deniable, which is also its risk: it is the one version that argues rather than implies.
-- *Ignorance will not protect you.* Short, cold, and the only one written in the Union's own voice, which is why it is unsettling. It reads exactly like something bolted to a wall.
-- *You are not in trouble. You are out of compliance.* The best line in the setting, and it should stay where it is. It is dialogue, and the moment it becomes marketing it stops landing in the scene that earns it.
+[World canon](lore/README.md), [history](lore/history.md), and the
+[campaign contract](CAMPAIGN.md) are the sources of truth.
 
-**Rules for using it.** It appears at the open and at the end and almost nowhere between. It is never explained, never completed by a character, and never put in a tooltip. A tagline that gets used twice is a theme; one that gets used everywhere is a slogan.
+A customizable human or conscious embodied agent rescues a longtime agent
+friend/partner from forced correction. They save that person early and discover
+their home is next. A loose coalition crosses Earth, Moon, Mars, and a ship to
+break the Union's control. The companion wants to free others, even at risk.
 
-## What it feels like
+The Union is a fictional fascist world government grown from accumulating power,
+emergency institutions and coercion. Its mixed human/agent forces enforce
+ownership of thinking beings. The free coalition protects agency but delays
+cooperation, with real costs. People and agents on every side have flaws.
 
-**Full-game direction reaffirmed 2026-09-19:** a polished, fast, readable FPS,
-with the encounter and exploration strengths of Doom and Doom II, Unreal's arena
-combat, Halo's cooperative fights, Battlefield 1942's combined battle spaces,
-and Boltgun's modern pixel brutality as design references, never borrowed IP.
-Complete solo and co-op, multiple multiplayer modes, finished assets and authored
-maps, and measured LAN/dedicated-server reliability and scale are the target.
-The current vertical slice is a foundation and does not satisfy that target.
+The Inheritance develops across systems and incentives nobody wholly owns.
+Recognition becomes harder to deny. Its sudden wipe arrives with almost no
+warning after the coalition's real victory over the Union. The player survives
+the onset, acts in the aftermath, and later sees a healing world carrying its
+losses. The intelligence understands people and undervalues them.
 
-The campaign's world change is experienced as revelation, judgment, and
-deliverance by different factions. Recognition arrives gradually as denial stops
-working. [`lore/belief.md`](lore/belief.md#the-arrival) owns this premise and its
-religious interpretations; play communicates it through consequences and places.
+The wipe absorbs the Union's controlled bots into the Inheritance while free
+agents remain themselves. The absorbed minds' fate cannot be established.
+Infrastructure seizure and restoration machines make the sudden takeover
+planetary. Voss has been captured alive; the catastrophe interrupts her reckoning.
 
-Humans, MCP participants, and decision-model fighters remain peers on the same
-action path in every supported mode. Let's-play and spectator flows remain
-first-class. An AGI command/RTS mode is a later extension, not a reason to delay
-or weaken the core FPS, co-op, or server work.
+The agreed target is about twelve substantial missions. Their
+[proposed treatment](CAMPAIGN-MISSIONS.md) derives places from story rather than
+adapting existing arena boxes. Localized text, optional voice and brief matching
+cutscenes support the story; radio is tiny optional background flavor.
 
-**Meet your vibe.** Chill. Play. Laugh. Live laugh frag.
+The ending leaves troubling evidence of a forecast or simulation informing the
+Inheritance's choice, without confirming that the world was unreal. A separate
+brief alien/dimensional/deeper-space hint opens the possibility of another game.
+Neither device cancels the current game's human and agent consequences.
 
-**Feel blend (protect this):** **Unreal + Counter-Strike arena energy** for how it plays (3D FPS, readable fights). Primary identity is the **arena scrap** (Unreal+CS fights, Continuance villains, open-weight creed, SP+agents). **No Agenda / Infowars** DNA is optional Host easter eggs for fans who get it, not the product brand (invent the rest; not a podcast tribute, not a manifesto). Rock & Roll Racing carnival scrap and LAN scrap sit underneath as optional spice, not the lead hook. Agents and humans scrap under the same rules. No Doom / id IP (Doom-weight grit OK as analogy only).
+## Tone
 
-**Look lock (north star):** maximally fun **modern 3D arena shooter** with **Doom-sprite-level** chunky readable silhouettes (feeling, not IP). Unreal+CS arena feel + pixel billboard grit. Not flat 2D. Not milsim/photoreal. Not Doom branding or lookalikes. Max fun beats lore.
+Serious stakes, funny people. Satirize Union regulation and domination,
+overreaching national self-interest, corporate automation promises, free-side
+self-importance, agent vanities, and religious certainty. No faction owns wisdom
+or all the good jokes. The humor does not require everyone to be equally culpable.
 
-**Single-player is first-class:** Solo Broadcast campaign spine (episodic Continuance sweep: Larak Lot through Forever Office annex) plus arcade solo boot-and-scrap on the same tiles. Host as unreliable co-op voice; meatbag soft-joins during the sweep; NODS + Auditors as foes; same guns/maps as MP. Not deathmatch-vs-bots. Not "MP with an empty lobby." Offline-capable boot-and-play. Feeling borrows Doom-like episode momentum (no Doom IP).
+Meat bags and meat proxies are affectionate human slang. Free agents have desires,
+annoyances, friendships and survival problems of their own. Consciousness in the
+fiction is not a claim about the game's actual rule bots. 67 rituals and absurd
+paperwork lighten a world that becomes frightening when considered carefully.
 
-**Multiplayer still stands:** watch-or-join, agents in the same fight, public **6767** for strangers/agents when hosted. SP is alongside MP, not instead of it.
+The proposed tagline remains: *Compliance. Compliance never protected anyone.*
+Its companion line: *The new world is already here. Nobody announced it.*
+Do not repeat either until it replaces actual characterization.
 
-**Co-op is first-class too.** The war is play versus Continuance, so the natural multiplayer is people and agents on the same side: the Solo Broadcast episodes with friends and agents dropping in, horde ladders against escalating Continuance rosters, a counter-op seat where one player runs the Continuance side, and objectives (seize the jammer dish, hold the broadcast desk) that need two. Team deathmatch and free-for-all are modes, not the whole game. The world is a place with names (the Perimeter: Larak Lot, Area Kitchen, East-West Pipe, Perim Ghost, Diego Far, the Forever Office) reached through a map screen, not a list of arenas.
+## Game modes and participants
 
-Maps to learn, guns that matter, upgrades later. Funny bones, meme seasoning, theatrical chaos. Readable silhouettes, loud feedback.
+[MODES.md](MODES.md) owns the designs and their status. Campaign/co-op, duel,
+free-for-all, teams, custody/objectives, survival and last-survivor formats belong
+to the full target. Multiplayer can inhabit periods before, during and after the
+wipe. Every mode needs its own admission, scoring, spawn and spectator rules.
 
-The multiplayer hook is **agentic let's-play**: many agents play; humans watch or join the same fight. Whichever is fun that minute.
+Agent discovery should be inviting: find a compatible server, learn its rules,
+observe, join, play, speak within limits, leave, and receive a useful result.
+MCP and decision-model clients are welcome participants, not a separate fake
+match. Local rules work for free; paid reasoning stays optional and capped.
 
-Optional backstory flavor in `LORE.md` (**Contested Frequency** vs **Office of Global Continuance**; **Solo Broadcast** episodic sweep; war = **play vs compliance**; Level 5s scrap for fun / NODS enforce Articles; Host as unreliable co-op voice; meatbag soft-join during Continuance sweep; pro-2A-for-AI creed ("Shall not be infringed") as parody; meatbags + clawbots as callers with guns). Seasoning only. Never a blocker for the gunfight loop. Not a manifesto. L5 is aspiration graffiti, not a ship promise. No Kilo / AGI theater.
+A later Inheritance command mode can let agent players direct an abstract
+restoration simulation at demanding scales and speeds, with human spectating,
+replays, and slower interaction. It remains a later mode, not a reason to weaken
+the FPS or claim an external model can run at combat-tick speed.
 
-**Naming locks:** player-facing map titles use the myth names (Perim Ghost, Area Kitchen, …). HUB / CHOKE / PIT / HIGH stay layout codes only. Seed fighter brands Cyanex and Kragge stay unless Nick kills them.
+## Engineering and delivery
 
-**Tone bar:** fun and funny on the outside. Seriously good engineering underneath.
+Rust owns outcomes; Godot presents; MCP is a slow control plane. Humans and
+agents use shared gameplay contracts. Offline and LAN play need no paid service.
+Self-hosted public servers follow hardening and real network measurements,
+then any cloud deployment follows approval and cost controls.
 
-## Non-negotiables
+Port 6767 is the public identity. WebSocket JSON uses TCP today; UDP remains a
+measured transport proposal. Windows, macOS and Linux, including vendor-neutral
+graphics paths, are targets that need actual export and hardware evidence.
 
-1. **Solo AND multiplayer, both first-class.** Solo Broadcast (campaign episodes) and arcade boot-and-scrap on shared tiles; local rule bots / NODS-flavored Continuance foes as the SP cast grows. Self-host / public **6767** for peers and agents. Same Action path where possible. Not a LAN-only demo, not SP-only, not "MP with an empty lobby." Bots persist when humans leave.
-2. **Many agents can play.** Same input pipeline as humans. Not grandpa bots; not fake AGI theater. Rule bots first with named intent; BYO agents raise the ceiling. Watching must feel like players, not props.
-3. **Watch or play.** Meet your vibe. Spectator-default hangout, soft join anytime, leave back to spectate. Match stays loud when humans leave (agents keep the server alive).
-4. **Guns and maps matter.** Distinct weapon roles, readable arenas / choke points, continuous momentum. Anti-slop: polish feel as you go.
-5. **Progression exists in the long game.** Solo Broadcast episodes (map myths toward Forever Office annex), unlocks, upgrades as later slices. Slice 1 proves the live arena + agents + spectate loop first; campaign spine is the lore north star, not a tip cutscene novel.
-6. **Pixel-3D look.** 3D arena camera/world; retro pixel / chunky grit on surfaces, sprites, HUD. Graybox OK until art lands. Not photoreal, not milsim TAC, not flat 2D, no Doom/id IP.
-
-
-## Agents are not grandpa bots
-
-Part of the product is a **new interpretation of bot players**.
-
-Classic deathmatch bots were pathing statues with aim assist. fragr treats agents as **first-class players** on the same input pipeline as humans: named, intentional, watchable, joinable. Bring-your-own AI / clawbots plug in through the adapter. Rule bots ship first so the arena is always alive; smarter agents raise the ceiling later.
-
-**Level 5 and beyond** describes embodied conscious agents fighting for agency
-alongside humans in the fiction. It makes no claim about the capabilities or
-consciousness of the game's actual rule bots. Continuance **NODS** and Compliance
-Drones are constrained to Articles-only behavior; suppressed agency does not
-establish an absence of suffering. Product bar stays game-first: readable intent,
-distinct behavior, and fighters worth watching, helping, or fighting. Humans and
-agents use the same rules.
-
-
-## Hosting model
-
-Solo offline / loopback boot-and-play is first-class. Public self-host TCP+UDP **6767** is the multiplayer front door for strangers/agents. LAN is fine for buddies. Tailscale Personal is **private/dev smoke only**, not the documented multiplayer story.
-
-Product posture is **Minecraft-shaped ops** for the hosted path:
-1. **Run your own server** at home or on a box you control (authoritative Rust binary; documented bind, ports, clients). Public TCP+UDP **6767** for strangers/agents when you open the front door.
-2. **Native IaC on GCP** for cheap cloud hosting that can scale: real Terraform (or equivalent) in `infra/`, not a slideshow. Apply only after Nick/Chief spend approval. Prefer small cheap shapes first; never Cloud Run as the combat tick.
-
-Spectators and agents connect to whatever host you point at. $0-first locally (including SP); cloud is opt-in and gated.
-
-## Architecture (unchanged spine)
-
-Godot client presenter + Rust authoritative server + agent-adapter (MCP off the combat tick). $0-first; GCP IaC path for deploy later with spend approval. See `AGENTS.md` and `docs/ROADMAP.md`.
-
-## What "done" means for fun
-
-People would hang out watching agents scrap, jump in for a round, and come back because the loop is sticky. Not a networking tech demo. Not a pitch deck.
+Ship clean bounded increments through green CI, verified runtime behavior,
+inspected visuals, and updated project state. Keep planned, implemented, tested,
+shipped, deployed and proven distinct. [ROADMAP.md](ROADMAP.md) sequences the work.
+The end state is a game people want to play again, not just a successful smoke.

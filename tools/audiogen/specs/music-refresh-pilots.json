@@ -1,0 +1,23 @@
+{
+  "out_dir": ".agents/audio-refresh/music",
+  "items": [
+    {
+      "kind": "music",
+      "name": "pilot/rock-last-bus-home",
+      "title": "Last Bus Home",
+      "length_ms": 120000,
+      "model": "music_v2_5",
+      "instrumental": false,
+      "prompt": "Original complete two-minute gritty garage rock song with dry punchy live drums, muscular bass, ragged but tuneful male singing and thick fuzzy guitar riffs, 138 BPM, a memorable singalong chorus and a proper ending. Warm analog radio sound, not cinematic trailer music. Everyday night-shift workers taking the last bus home in a worn industrial city, defiant and funny, affectionate rather than hopeless. No references to video games, shooting, frags, respawns, radio hosts or known artists. Use these original lyrics, repeating the chorus as needed: [Verse 1] Punch out late, boots full of rain / The gate says smile, so I do it again / They fixed the clock but the roof still leaks / I got a brand new title and the same old week. [Chorus] Save me a seat on the last bus home / Leave that light in the kitchen on / We got enough for another day / And a little left to give away. [Verse 2] My friend in steel paid half my fare / Said I do not breathe but I need some air / We laughed so hard that we missed our stop / Walked two miles past the welfare shop. [Bridge] You can count my hours / You can count my pay / You cannot count what I give away. [Final chorus] Save me a seat on the last bus home / Leave that light in the kitchen on / We got enough for another day / And a little left to give away."
+    },
+    {
+      "kind": "music",
+      "name": "pilot/lockin-night-freight",
+      "title": "Night Freight",
+      "length_ms": 120000,
+      "model": "music_v2_5",
+      "instrumental": true,
+      "prompt": "Original complete two-minute instrumental track for a late-night industrial rock and electronic radio station. Tight driving breakbeat at 132 BPM, warm distorted electric bass riff, dusty drum-machine accents, sparse descending analog synth motif and short gritty guitar answers. Confident forward motion and a little mischief, not apocalyptic or mournful. Introduce the groove immediately, develop a contrasting middle section and return to the main riff with a decisive natural ending. Clear punchy bass and drums with space in the midrange so gameplay sounds remain intelligible. No vocals, spoken words, sirens, gunshots, notification sounds or cinematic impacts. Characterful physical instruments and tape warmth, not glossy festival dance or ambient wallpaper."
+    }
+  ]
+}

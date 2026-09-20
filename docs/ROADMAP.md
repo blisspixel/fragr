@@ -23,14 +23,15 @@ The engineering ladder for scale runs through every phase: small squads first (f
 - Decision-brain agent (`agents/brain`): a fighter whose stance, weapon, and danger read come from Jev (TypeSafe natively or through OpenRouter) at up to five decisions per second while a local controller plays every tick. Paid providers refuse to start without an explicit cap; every call is estimated, settled, and ledgered. Local rules play for free and CI proves that path.
 - CI on Linux: fmt, clippy with warnings denied, tests, deterministic benchmark and budget checks, the agent playtest smoke with thresholds, an unfiltered 90 percent line coverage floor, release build, cargo-deny for licences, bans, and sources, and headless Godot checks. Windows and macOS also pass workspace tests and Godot checks.
 - Live tip screenshots, a one-command Solo Scrap launcher, self-host guides, and plan-only GCP Terraform.
-- Two developer-only generation pipelines with the same budget discipline as the brain agent: `tools/audiogen` (ElevenLabs, everything you hear) and `tools/spritegen` (Higgsfield, everything you look at). The first production art slice is twenty-four frames for sixty-nine cents, with weapons and enemies usable and surfaces rejected.
-- The setting has three sides: the Union/Chancellery, free humans and conscious agents with agency, and the Quiet. The Quiet's ecological recovery and mass killing leave conflicting survivor perspectives, not a narrator's declaration that it is right. `docs/lore/` owns the world and voice; bodies do not establish who has freedom or whose suffering matters.
+- Two developer-only generation pipelines: `tools/audiogen` for audio and `tools/spritegen` for art. Audio uses per-run estimate caps and requires quota reconciliation; art has durable request reservations. Neither replaces asset review. The first art slice produced twenty-four frames for sixty-nine cents, with surfaces rejected.
+- The setting has three sides: the Union/Chancellery, free humans and conscious agents with agency, and the Inheritance. The Inheritance's ecological recovery and mass killing leave conflicting survivor perspectives, not a narrator's declaration that it is right. `docs/lore/` owns the world and voice; bodies do not establish who has freedom or whose suffering matters.
 
 **Generated art and audio:** twenty-four initial sprite frames (ten weapon
 viewmodels, six enemies, four effects, four rejected surfaces), plus a weapon
 bake-off. Three locally prepared idle viewmodels are now integrated. The remaining
-frames, twelve Chancellery addresses, and ten-part epilogue still need runtime
-integration. The initial art receipt was $0.69; current remaining provider credit
+frames need integration. Twelve Chancellery addresses and a ten-part epilogue
+exist as assets, but require a story and language audit before selection. The old
+radio-only ending cannot be integrated as the new campaign's actual ending. The initial art receipt was $0.69; current remaining provider credit
 must be checked before any new call rather than inferred from that old balance.
 
 **Not built yet (honest list):** low-latency transport (WebSocket JSON only), live client prediction (shared movement vectors exist), authentication or join tokens, per-connection rate limits and size caps, reconnect resume, release builds attached to tags, protocol versioning, a status endpoint, persistent stats, progression, DJ bumpers and a voiced Host, a single-player campaign (only one boss beat exists), a complete art pass on sprites, guns, and levels, public-server load tests, any cloud apply, vehicles, and objective modes. A deterministic local benchmark already exists; it does not establish public-server readiness.
@@ -76,14 +77,19 @@ shared routes, reliable jump taps, repaired stair entrances and grounding, ledge
 exits, anchored moving weapons, and occupied spawn avoidance. Actual server
 traversal and mixed-role session checks cover all six maps; separate first-person
 tours inspect movement and weapons. The expanded network matrix caught crowded
-join failures and now runs in CI. Integration is pending.
+join failures and now runs in CI. The first GitHub run additionally found a map-3
+planner stall and map-5 spawn-death failure despite the local pass. Integration
+and release remain pending root-cause fixes; do not report all checks green.
 
 The phases below are the long shape. This is the remaining build order, with the reason each item sits where it does.
 
-**Immediate priority: settle the campaign story, then build its first mission.**
-Review the complete lore with Nick and resolve protagonist, motivation, act
-structure, offworld travel, and the played ending in [`CAMPAIGN.md`](CAMPAIGN.md).
-Derive maps from the agreed story. The
+**Immediate priority: review the twelve-mission treatment, then complete M01.**
+The agreed rescue-led story, sudden wipe, played aftermath and ambiguous final
+fragment live in [`CAMPAIGN.md`](CAMPAIGN.md). The detailed proposed route and
+spatial briefs live in [`CAMPAIGN-MISSIONS.md`](CAMPAIGN-MISSIONS.md), with [one detailed plan per level](campaign/README.md). Core story
+choices are settled; names, exact historical transitions, individual wipe operations,
+and individual rescue tradeoffs remain identified proposals. Derive geometry
+from the mission's purpose, not the current arena layout. The
 [authored layout brief](plans/authored-compliance-yard.md) captures the spatial bar.
 The all-map rendered audit confirms oversized open spaces and weak landmarks.
 The inspection-complex study is deferred and does not dictate the campaign
@@ -107,7 +113,8 @@ imports, silhouette review, and real encounter tests. The explicit matte reducer
 is now the local preparation path; preserve internal highlights and full canvases
 where muzzle registration depends on them.
 
-**4. Animation, tested once.** Image-to-video is on the same key at about thirty cents a clip and a clip yields many frames, so per frame it is far cheaper than generating frames individually. One test converting an enemy still into a walk cycle answers whether the sprite-sheet route works at all. If it does, it unlocks the entire animation column of the asset list; if it does not, that column needs a different plan and it is better to know now.
+**4. Animation, tested once.** Verify current image-to-video availability, price, quota and clip suitability
+before a capped trial; old per-clip estimates are not a current spending quote. One test converting an enemy still into a walk cycle answers whether the sprite-sheet route works at all. If it does, it unlocks the entire animation column of the asset list; if it does not, that column needs a different plan and it is better to know now.
 
 **5. Two palette ramps that do not exist.** No institutional green for issued hardware, no off-white for the unmarked machines. Two of the three factions are currently borrowing colours from the other one, which undercuts the whole read-the-faction-by-colour design. A colour decision for `ART-COLOR.md`, not a tooling one.
 
@@ -115,9 +122,16 @@ where muzzle registration depends on them.
 
 **6b. A lighting pass.** A cover block's shadowed face is very dark up close, which in first person fills most of the frame. The ambient tint is doing all the work and there is no fill. Cheap, and it is now the worst-looking thing in the game.
 
-**7. Campaign rung 1.** `plans/campaign-build-order.md` has the order. Episode 0 ships today and Episode 1 is eight levels that do not exist yet.
+**7. Full campaign foundation and M01.** `plans/campaign-build-order.md` sequences
+validated map data, inventory/ammo, real enemy roles, interaction, checkpoints,
+text presentation and a complete authored opening. Calibration remains a shipped
+prototype. None of the twelve planned missions exists yet.
 
-**8. Interstitial and epilogue playback.** The Chancellery addresses and the ten-part epilogue are generated and committed and nothing plays them. Needs the results-card interstitial slot, the two-track subtitle renderer, and the static card the epilogue sits over.
+**8. Story presentation.** Localized framing and text/voice fallback belong in
+M01. Brief pixel-styled scenes support reunion, travel, victory, sudden rupture
+and aftermath. Inspect subtitles separately from diegetic propaganda. Audit old
+recordings before reuse; voice and paid video are not prerequisites for proving
+the first mission.
 
 Deliberately not next: cloud, vehicles, progression, the server browser, and any further art generation beyond what item two needs. Generating more assets before item one lands is spending money to produce drift.
 
@@ -147,18 +161,27 @@ Status: **in progress**. Small, high-leverage, mostly tooling.
   player runtime; offline tool tests do run in CI. Shipped.
 - **Headless integration smoke.** Shipped as `tools/playtest` (#95): boots the server in-process, connects reflex agents over the real wire, runs a round, and asserts thresholds on every PR.
 
-## Phase 1: Local excellence (offline, zero spend)
+## Phase 1: Local excellence (offline play, approved asset production)
 
 Status: **in progress**. This phase decides whether the game is fun. Everything here is validated on one machine against bots, in single player, and through the agent adapter.
 
 1. **Movement and gunfeel.** Parameters and the two defects the research found (a default mouse sensitivity about six times Counter-Strike's, now fixed, and weapon "spread" that is deterministic aim forgiveness rather than dispersion) are in `plans/gunfeel.md`; the netcode plumbing is in `plans/buttery-controls.md`. Original brief: Acceleration and friction that reward strafing, air control, a jump, weapon switch timing, recoil kick, hit reactions on the target, and screen feedback on the shooter. Evidence: a playtest checklist in `plans/` with numbers, tip screenshots, and a short recorded clip.
 2. **Boomer shooter look pass.** Render the world at a low internal resolution and upscale with nearest filtering, limit surfaces to the locked palette with dithering, rebuild fighter sprites with eight facing directions and walk, fire, pain, and death frames, rebuild weapon view models with idle, fire, and bob frames, add muzzle flash and impact frames, and lay the HUD out on a grid so nothing overlaps. Level surfaces get a coherent tile atlas with baked lighting and trim. Plan: `plans/look-pass-boomer.md`. Evidence: regenerated tip screenshots and an updated art bible.
-3. **Sound and music.** Shipped (#97, #99, #100): the effect set from the audio pipeline and the Contested Frequency radio, eight stations with twenty tracks each plus forty news bulletins, station cards, and ducking under the Host. Remaining: DJ bumpers and ads, the Dead Air mute, footsteps and pain by surface, and the Host voice. The brief as written: a full effect set (per weapon fire, impact by surface, footsteps, pickup, pain, death, respawn, round stingers) produced with the dev audio pipeline, then the **Contested Frequency radio**: in-game stations (rock, EDM, chill, hip hop, country, world, a "lock in" station of pure frag music, and a spoken news station that is lore bulletins), at least twenty tracks per station, two to six minutes each, mostly with lyrics that live in the lore (conspiracy radio, self-deprecating boomer-shooter humor, agents taking over, nods to Hermes, Pi, and the clawdbots). Station switching in the HUD, ducking under Host callouts. Plan first in `plans/radio-stations.md`, then generate in waves within the monthly credit budget. Host voice lines come after text Host lines are final. Evidence: assets committed with a manifest, wired in the client, heard in a smoke run.
+3. **Sound and music.** The initial library shipped (#97, #99, #100): seven music
+   stations with twenty tracks each, forty talk clips, three news beds/stings,
+   basic effects and station switching/ducking. This is not a finished sound pass.
+   [Radio refresh](plans/radio-refresh.md) replaces the old arena-heavy editorial
+   direction with two distinct optional talk formats and music from an inhabited
+   world. [Effects refresh](plans/audio-effects-refresh.md) covers weapon identity,
+   movement, surfaces, pickups, machines and mix. Local candidates now exist;
+   waveform checks have already rejected a malformed cue. Listening, captions,
+   music distribution rights and in-game acceptance precede promotion. No runtime
+   paid API, quota overage, or claim that generation alone proves quality.
 4. **Bots that read as players.** Cover use, pickup seeking, target selection with memory, difficulty tiers, and behavior chips that stay truthful. Personalities you pick per match in the spirit of Perfect Dark's simulants, and hit reactions on the sprites so a fight reads like GoldenEye's did (`DESIGN-REFERENCES.md`, foundational classics). Evidence: deterministic sim tests per behavior plus a recorded spectate.
 5. **Reference agents and the agent door.** An agent is one participant on the wire however it thinks: a server-run rule bot, any MCP client through the adapter, a scripted client, or a client that asks a decision model. One agent may combine a language model, other ML, and a decision model; the server sees one fighter. Reference agents of rising sophistication exist to prove the door works without touching the combat tick: the scripted reflex bot, the playtest reflex agents, and the decision-brain client (shipped, plan: `plans/decision-brain.md`), which uses a decision model rather than a chat model because a typed answer in a few hundred milliseconds fits a shooter and prose does not. Its budget gate (pre-approved cap, estimate before send, settle after, locked ledger on disk) is the pattern for any paid model the project ever calls. A planner example using `observe` and `act` every few ticks is still to come. The door itself moves to the current MCP revision (2026-07-28) with the old handshake kept only as compatibility, evaluates the official Rust SDK, and gets a team blackboard before any A2A surface (plan: `plans/agent-door-2026.md`). Evidence: adapter transcripts committed under `docs/skills/`, an integration test for the scripted levels, a three-era protocol compatibility test.
 6. **Agents that field agents.** One adapter process runs a roster of scripted bots, and an agent can request a rule bot teammate through an MCP tool. Server enforces the roster cap. This is the team blackboard rung of `plans/agent-door-2026.md`. Evidence: adapter tests and a recorded session.
 6b. **Agent playtest loop.** Local agents play the game and file structured feedback so most iteration does not need human testers: a `playtest` harness boots a server, runs N agents through the adapter for a fixed number of rounds, and emits a report (time to first frag, deaths per minute, weapon usage spread, idle time, stuck detection, pickup contention, frustration signals such as repeated spawn deaths, and free-text notes from an LLM-driven observer reading the event stream). Reports land in `.agents/` locally and a summary table in the plan doc for the change under test. Humans still judge fun; agents catch the rest. Plan: `plans/agent-playtest-loop.md`. Evidence: the harness runs in CI on a small configuration and the report format is documented. Rung 1 shipped: `tools/playtest` runs four reflex agents through one round on every PR with `--assert`.
-7. **Campaign, solo and co-op.** The bar is Doom 1 and Doom 2, rebuilt in this lore and playable with friends and agents on the same side: three episodes of eight to nine hand-built maps each, a Continuance enemy roster of at least ten distinct types where each one is a different problem (drones, enforcers, turrets, jammers, a compliance walker), keys and secrets, an episode boss, a weapon ladder that grows across the run, difficulty tiers, and continue-from-last-map. Server-authoritative monsters run on the same tick as bots so agents can play the campaign too. Starts with an arcade ladder (rounds with escalating rosters and boss beats, a results card, local best scores) and a Survival sweep (endless rounds you cannot win, only outlast, the round you fell on is the score, points that open the map and buy guns, revives) as the first playable rung, co-op from the start because the server already seats several fighters. Co-op through the episodes, a counter-op seat for one player on the Continuance side, and a world map screen of the Perimeter follow as rungs. Design: [`CAMPAIGN.md`](./CAMPAIGN.md). Order of work: `plans/campaign-build-order.md`. First episode: `plans/campaign-e1.md`. Frameworks: `plans/campaign-continuance.md`. Evidence: a full episode run in a recorded smoke, results persisted locally, map-by-map plan docs.
+7. **Authored campaign, solo and co-op.** Build the agreed twelve-mission rescue, coalition victory, sudden wipe and aftermath across Earth, Moon, Mars and a ship. Start with M01 and its skippable localized introduction, melee-to-found-weapon progression, distinct enemy problems, checkpoints and one-to-four-player co-op. Seating several network fighters does not establish working campaign co-op. Every mission needs authored routes, secrets, character continuity, meaningful encounters and separate playtest evidence. Contract: [CAMPAIGN.md](CAMPAIGN.md). Treatment: [CAMPAIGN-MISSIONS.md](CAMPAIGN-MISSIONS.md). Detailed plans: [campaign/README.md](campaign/README.md). Implementation: [campaign-build-order.md](plans/campaign-build-order.md) and [framework requirements](plans/campaign-continuance.md). Earlier radio-led episodes are superseded. Evidence: complete mission runs, tested save/rescue/join states, inspected presentation and fresh-player review.
 8. **Small multiplayer on a LAN.** Two to twelve humans and agents on one server, join and leave without ghosts, spectators in the same match. Evidence: a recorded two-machine session and reconnect tests.
 9. **Controller support.** Shipped in v0.8.3: gamepad join, solo, leave, fire, weapon cycle, speak, and camera on the same InputMap actions as the keyboard, plus Windows, macOS, and Linux export presets. Radio bindings on the D-pad shipped in v0.8.5. Remaining: glyph prompts.
 10. **Benchmark mode, status line, and deep statistics.** `--bench N M` runs N scripted fighters on a fixed map and seed for M ticks and prints one JSON object: tick time by phase as distributions (mean, p50, p90, p99, p99.9, max) from histograms, budget headroom and overrun counts, bytes per client per tick, and a determinism check that two seeded runs match. The live status line serves the same JSON, so a benchmark and a running server read alike, and CI fails on a regression. On top of it sits an analysis layer for people who enjoy the mathematics: time-to-kill distributions, accuracy with Wilson intervals, engagement distance histograms that demonstrate the weapon triangle rather than asserting it, map and spawn balance, TrueSkill across policies with convergence reporting, dead time and pickup contention, a nerd overlay in the client, and a versioned full export in JSON and CSV. Every figure carries its sample size; a single number is a headline, never a conclusion. Plan: `plans/benchmark-and-stats.md` (rung 1 is playtest rung 3). Evidence: a benchmark table in `docs/` updated with each release.
@@ -197,14 +220,16 @@ Status: **planned**. Nothing applies until spend is approved in writing. Hard ca
 
 Status: **planned**. Only after Phase 2 is proven, so that new content lands on a stable base.
 
-- **Co-op and the world.** Episodes with drop-in friends and agents, horde ladders, the Survival sweep with a best-round leaderboard, counter-op, two-player objectives (seize the dish, hold the desk), and a world map screen of the Perimeter that remembers what was cleared. PvP modes sit beside these, never above them.
+- **Additional co-op formats.** Extend the campaign foundations established in Phase 1 with horde ladders, Survival and optional counter-op. Team-only scenarios may use paired objectives when explicitly labeled; required campaign gates always work solo. Multiplayer settings revisit the world before, during and after the wipe with authored route and population changes.
 - **Maps that teach.** Verticality, flow loops, item control, and named callouts. Learn from the best Unreal Tournament arenas: every corridor has a reason and every fight has a second option.
 - **Bigger modes.** Team deathmatch with COD-sized squads first, then objective control on larger maps with vehicles in the spirit of Battlefield 1942 conquest, without borrowing its art. Vehicles are server-authoritative entities on the same action path. Mode twists as mutators before any of that: one-shot rail only, scatter only, one golden rail on the map, the couch-multiplayer feeling GoldenEye had, cheap to build on the existing rules.
 - **Massive agent arenas.** Hundreds of fighters where most are agents. Depends on the scale ladder: interest management, sharded arenas, and a measured tick budget. Not a marketing claim until measured.
 - **Progression and cosmetics.** Unlocks and skins (Hangar Candy) that never change combat. Local first, server-authoritative when accounts exist.
 - **Let's-play tooling.** Director camera that follows the story of a round, highlight reels, a stream overlay, and match replays from recorded snapshots.
 - **Community servers.** A server list, mod hooks for maps and rosters, and a documented content pipeline.
-- **Localization.** Keys for every player-facing string, the basics (English, Spanish, Japanese, German, French, Portuguese, Chinese, Korean), regional flavours (Canadian French, Australian English), languages that deserve care and community sign-off (Hawaiian, Navajo), and constructed or joke locales that fit the lore (Continuance officialese, Dead Air static, Esperanto, Toki Pona, pirate, leet). Captions for the Host and the news station; audio stays English until a voice pass is approved. Plan: `plans/localization.md`.
+- **Broader localization.** Basic keyed text, captions, reader-paced scenes and missing-voice fallback belong in M01. Later expand supported locales, fonts and layout with language review and a visual tour per locale. Alternate or joke locales cannot obscure essential objectives. Voice coverage follows explicit production budgets. Plan: [localization.md](plans/localization.md).
+- **Inheritance command and capability research, later.** An agent-oriented strategy mode with human spectating, replay and slower interaction, followed by a research-grade benchmark if its tasks, scoring, held-out evaluation and budget controls can be validated. Deep mathematical work belongs here after the FPS foundations. No claim that one game proves AGI. Plan: [inheritance-benchmark.md](plans/inheritance-benchmark.md).
+- **Agent discovery and onboarding.** Let compatible frameworks discover documented servers, watch and join through the same rules. Never turn invitations into unsolicited outbound messages or paid autonomous activity. Plan: [agent-door-2026.md](plans/agent-door-2026.md).
 - **Steam release, later.** fragr is an open-source passion project first. A Steam build only makes sense after the exposed server is proven and the campaign exists; it would add store presence and friends-list joining, not change the game. No store spend before then.
 
 ## The fun bar
@@ -243,7 +268,7 @@ Every item above maps to a plan or says "plan needed". The order of the next PRs
 | Phase 1.5: reference agents and the door | `plans/decision-brain.md` (shipped), `plans/agent-door-2026.md` | 7 |
 | Phase 1.6: agents that field agents | `plans/agent-door-2026.md` rung 3 | |
 | Phase 1.6b: playtest loop | `plans/agent-playtest-loop.md` | 4 (rung 3 status line and bench), 6 (rung 2 planner tier) |
-| Phase 1.7: campaign, solo and co-op | `docs/CAMPAIGN.md` (design), `plans/campaign-build-order.md` (order), `plans/campaign-e1.md` (first episode), `plans/campaign-continuance.md` (frameworks) | build-order rung 1 (the exit lever and the results card) after 6 |
+| Phase 1.7: campaign, solo and co-op | [contract](CAMPAIGN.md), [treatment](CAMPAIGN-MISSIONS.md), [12 level plans](campaign/README.md), [build order](plans/campaign-build-order.md), [frameworks](plans/campaign-continuance.md) | M01 foundation and authored mission after story/route review |
 | Phase 1.8: LAN | plan needed (evidence note under `docs/evidence/`) | |
 | Phase 1.9: controller | `plans/controller-and-desktop-platforms.md` (shipped; glyphs remain) | |
 | Phase 1.10: benchmark, status line, statistics | `plans/benchmark-and-stats.md` (rung 1 is `plans/agent-playtest-loop.md` rung 3) | 4 |

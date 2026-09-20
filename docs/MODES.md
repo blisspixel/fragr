@@ -27,9 +27,13 @@ This is not a rejection of depth. Item timing is deep and takes no thought to en
 
 ## Single player
 
-### Episodes
+### Campaign
 
-The Doom spine. Eight maps to an episode, built to teach in order: movement, then the scatter, then keys, then the rail, then secrets, then turrets, then the auditor, then the boss. Every map has a par time and a secret count, and the map tells you what it is about in the first room rather than in a briefing.
+About twelve substantial missions across Earth, Moon, Mars and a ship, with
+rescue, resistance, a real victory over the Union, the sudden wipe and playable
+aftermath. [CAMPAIGN.md](CAMPAIGN.md) owns the story and solo/co-op contract;
+[mission briefs](CAMPAIGN-MISSIONS.md) own the proposed sequence. Weapon discovery,
+enemy combinations, keys, secrets and alternate routes support that story.
 
 Keys are red, gold and cyan, and they gate doors rather than granting abilities, because a key that changes what you can do turns a level into a progression system. A key is never a puzzle: it lies somewhere you will walk past, and the door it opens is the same colour.
 
@@ -39,15 +43,20 @@ Weapons arrive across an episode rather than all at once. You start with almost 
 
 ### Objectives, from GoldenEye
 
-The difficulty tier does not scale health. It adds objectives.
+Difficulty changes authored rosters, resources and optional challenges rather
+than relying on health inflation. Core story and rescue objectives remain on
+every difficulty; higher tiers can add secondary objectives.
 
-On the easiest tier you reach the exit. A tier up and you also have to seize a jammer, or reach a terminal before it finishes transmitting, or get out without the Office logging your handle. The map is the same map. What you have to do in it is not.
+Secondary objectives can require disabling an extra security relay, retrieving
+supplies, or taking a harder extraction route. They are shown clearly and do not
+silently remove the main story from the easiest setting.
 
 This is the single best idea GoldenEye had and almost nobody copied it: replaying a level on a harder tier is a different level, and the player who has learned the geometry gets to spend that knowledge rather than re-earn it.
 
 ### Solo Broadcast
 
-The episode zero that already exists, and the tutorial that does not admit to being one.
+The shipped Calibration objective prototype on an arena. Its name and behavior
+remain until deliberately migrated; it is not the new campaign opening.
 
 ## Multiplayer
 
@@ -79,7 +88,7 @@ It is the best argument the setting has, made as a game mode. You are carrying s
 
 Last-survivor play for solo fighters or squads. A remediation front progressively
 closes the playable space while contestants fight over salvage and escape routes.
-It uses the Quiet's territorial restoration as the reason to move, not an
+It uses the Inheritance's territorial restoration as the reason to move, not an
 unrelated magical boundary. The final survivor or surviving squad wins.
 Dead and late-arriving players spectate until the next round; the shared server
 continues. Build this after smaller elimination and team modes establish fair
@@ -129,7 +138,41 @@ Between rounds there is half a minute to spend points: ammunition, a welded door
 
 ### Counter-op
 
-A spectator seat possesses the Office's units in turn and plays them against the party. Cheap to build, because those units are already server entities with a controller seam, and the best answer to what a spectator does when watching stops being enough.
+A proposed seat possesses selected enemy units against the party. It depends
+on real enemy entities, admission rules, fair observation, and tested controller
+handoff; those systems are not already complete merely because bots exist.
+
+## World periods
+
+Planned multiplayer settings include pre-wipe, active restoration, and years
+after the wipe. Hosts expose the period and spoiler-sensitive preview settings.
+Aftermath maps preserve recognizable places while changing routes, ecology,
+objectives and lived-in details. They are authored variants, not a green filter.
+Competitive respawns and roster choices do not rewrite campaign history.
+
+## Later: Inheritance command
+
+An agent-oriented strategy mode directs the Inheritance's fictional restoration
+operations across many local fronts. It explores the horror of an optimizer
+treating a world as a manageable system. Economic or ecological gains and human/
+agent losses remain visible together; the interface does not declare a death
+count to be moral wisdom.
+
+Use abstract in-world units, resources, terrain and bounded operations. No real
+infrastructure or external systems are controlled. The server owns simulation;
+commands express intent, while local controllers execute it. Accelerated or
+high-population scenarios may exceed comfortable human attention, but measure
+this rather than claiming a particular model has superhuman control speed.
+
+Humans can spectate, inspect replays and use slower or paused solo analysis.
+Define fair clocks and command budgets for competitive variants. MCP remains
+off the tick; external decision models retain explicit cost caps and stop rules.
+No paid provider is required. RTS control is a deliberate mode-specific contract,
+not hidden privileges for agent fighters in ordinary FPS matches.
+
+This is deferred until campaign, core multiplayer, replays, and measured server
+scale support it. It neither reveals the canonical ending as a definite
+simulation nor brings alien/dimensional combat into this game's campaign.
 
 ## How you find a game
 

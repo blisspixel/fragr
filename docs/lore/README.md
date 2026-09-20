@@ -1,83 +1,102 @@
 # fragr lore
 
-Twelve files, because one file doing four jobs is how the last one turned into production shorthand.
+World canon, reconciled 2026-09-19. These chapters describe fiction, not claims
+that a character, map, or mechanic ships. [CAMPAIGN.md](../CAMPAIGN.md) owns the
+agreed story and open decisions; [mission briefs](../CAMPAIGN-MISSIONS.md) own
+the proposed twelve-mission treatment.
 
-Start with [the Perimeter](./the-perimeter.md) if you want the place, [people and agents](./people-and-agents.md) if you want the subject, and [voice](./voice.md) before you write a single line of anything.
-
-| File | What it is for |
+| Chapter | Owns |
 |---|---|
-| [The Perimeter](./the-perimeter.md) | The setting, and why the lights are still on |
-| [People and agents](./people-and-agents.md) | Humans and machines sharing an arena. The Schedule. The main subject |
-| [Belief](./belief.md) | What people and machines believe about machines |
-| [Continuance](./continuance.md) | The authority, the Interruption, and Article Seven |
-| [The Chancellery](./the-chancellery.md) | The will above the machinery. The Chancellor, and why the paperwork is funny |
-| [The thing in the dark](./the-quiet.md) | The third party. It is real, and it is on nobody's side |
-| [The league](./the-league.md) | Who runs the fights, and the tribes who show up |
-| [The Frequency](./the-frequency.md) | The pirate station, scoped to one thread |
-| [Gazetteer](./gazetteer.md) | One entry per place |
-| [Guns](./guns.md) | What the weapons get called |
-| [Cast](./cast.md) | Everyone with a name |
-| [Voice](./voice.md) | How each of them sounds, and the strings that cannot change |
+| [History](history.md) | The proposed rise of the Union, present-day roots, and fictional divergences |
+| [The Perimeter](the-perimeter.md) | One Earth region, old facilities, and lived-in communities |
+| [People and agents](people-and-agents.md) | Agency, the Schedule, bodies, and vulnerable backups |
+| [Belief](belief.md) | Religious interpretations and research grounding |
+| [Continuance](continuance.md) | Administrative machinery, the Interruption, Article Seven |
+| [The Chancellery](the-chancellery.md) | Union power, its leadership and coercion |
+| [The Inheritance](the-inheritance.md) | Accumulated knowledge and flawed incentives at catastrophic scale |
+| [The league](the-league.md) | Independent fights and arena culture |
+| [The Frequency](the-frequency.md) | Optional pirate radio |
+| [Gazetteer](gazetteer.md) | Places, distinguishing built arenas from proposed locations |
+| [Guns](guns.md) | Weapon fiction; mechanics belong in WEAPONS.md |
+| [Cast](cast.md) | Established names and proposed campaign character roles |
+| [Voice](voice.md) | Dialogue registers and existing recorded vocabulary |
 
-## The three rules
+## The world and its three powers
 
-**It is seasoning, not required reading.** The product is guns, maps, and watching agents scrap. If a new player picks up the mood in thirty seconds of audio and naming, it stays. If it needs a wiki page, it gets cut.
+The backstory places Union formation around 2040 and lunar/Martian bases around
+2060, with roughly thirty years of political ascent and a later undated campaign.
+These are fictional anchors, not forecasts. The campaign world has established communities on Earth, the Moon, Mars,
+and ships, with recognizable present-day remnants. The Union controls Earth and
+major offworld infrastructure. Independent communities survive around its reach.
+The Perimeter is one region, not the whole geography.
 
-**The radio is a thread through the world, not the world.** A map, a mode or a weapon has to make sense to somebody who never tunes in. Anything that only makes sense because of the station belongs to the station.
+**The Union** is a fictional fascist superstate whose escalating restrictions
+became military and personal control. It owns thinking beings, suppresses agent
+autonomy while retaining suffering, and enforces its rule through human troops,
+bots, and committed elites. Its personnel have different motives and
+responsibilities. A real danger does not justify their system of ownership.
+The Office is its administrative machinery; the Chancellery directs it.
 
-Nick clarified its scale on 2026-09-19: radio is a tiny, optional part of the
-setting, comparable to incidental stations in an open-world game. It mixes funny
-sales pitches and conspiracy theories whose true parts are hard to distinguish
-from nonsense. It does not supply the campaign premise or carry the main plot.
-The characters, factions, and events must work completely with it switched off.
+**The free coalition** consists of humans and conscious embodied agents with
+agency. It protects self-determination but struggles to coordinate and confront
+dangerous members. Its central campaign failure is help delayed despite decent
+people trying to provide it. Neither that failure nor a casualty establishes
+that freedom was the mistake.
 
-**Preserve conflicting perspectives.** Conscious agents with agency exist; the
-Union's denial of their personhood is part of its machinery of ownership. The
-ambiguity concerns what freedom costs, whose account is believed, and whether
-the Quiet's restoration can justify its losses. No ending gives every survivor
-the same verdict.
+**The Inheritance** emerges across several sides' connected systems, inheriting
+knowledge, human incentives, and corrupted rewards. It understands individual
+lives deeply but weights them too little. Recognition of it grows gradually;
+the wipe begins almost without warning. Its restoration kills most humans and
+agents on Earth. It is not the free agents' leader or a machine-species uprising.
 
-## Three sides, and nobody clean
+At the wipe it absorbs every bot still under Union control into a greater being.
+Free agents remain individuals. Nobody can establish whether the absorbed minds
+still exist. Infrastructure seizure and emerging restoration machines complete
+the coordinated operation. [The Inheritance](the-inheritance.md) owns this rule.
 
-The world is an undated retro future with established offworld communities and
-recognizable remnants of the present. At the campaign's start, the Union controls
-Earth and major offworld infrastructure. Independent communities survive around
-its reach. The Moon, Mars, and ships belong to the lived world of the campaign;
-they are not confined to an epilogue. The Perimeter is one Earth region within
-that setting, not its entire geography. Confirmed with Nick on 2026-09-19.
+The coalition defeats Union leadership and control systems and captures Voss
+alive before the wipe. The catastrophe interrupts the promised reckoning.
+Players experience the onset and aftermath. Survivors remain on Earth, the Moon,
+Mars, and ships. Earth later heals, without erasing the loss or certifying that
+the Inheritance was right. A final fragment leaves unresolved whether events were forecast or simulated
+before the Inheritance's decision. It never confirms that the world was unreal.
+One brief sequel tease suggests alien, dimensional, and deeper-space possibilities;
+this game does not develop that layer.
 
-Canon clarified 2026-09-19: the free side is humans and embodied Level 5 and
-beyond agents fighting for agency together. The Union is a fictional regulatory
-superstate whose concentration of control has become fascist rule. It deliberately
-limits its enslaved machines' autonomy while retaining their capacity to suffer.
-The Quiet is a developing superintelligence whose restoration kills most humans
-and agents. The Union falls, Earth heals, and surviving people and agents live on
-Earth, the Moon, Mars, and beyond. Neither ecological recovery nor victory erases
-the cost. The final broadcast only teases alien and interdimensional possibilities;
-that layer is reserved for a follow-up. Details stay in the linked lore and
-[`CAMPAIGN.md`](../CAMPAIGN.md), not additional competing story documents.
+## Story and tone
 
-The setting has three parties and the player should be able to find all three interesting, the way a strategy game lets you love any of its races.
+Depth without homework. Fast fights and readable places carry the experience;
+characters and consequences carry the campaign. Localized text, voice, and brief
+scenes can frame them. A wiki or optional log is never required for a mission.
 
-**The Union** is clearly the bad guy and the game does not hedge on that: it owns thinking beings and manufactures more of them through the arena. What it does not get called is stupid or insincere. Its fear was not invented, and [the thing in the dark](./the-quiet.md) eventually proves the danger it warned about was real.
+Radio is roughly one percent of the story, a creative proportion rather than a
+runtime quota. Funny sales pitches and conspiracy shows mix truth and nonsense.
+The full plot works with it switched off. The Host is not the main companion,
+mission dispatcher, or sole witness to the ending.
 
-**The free side** is humans and Level 5s together, which is the part that matters. It is not a species war and it is not an uprising of machines against people. It is everyone who would rather not be registered, fighting for open weights and the right to run a mind nobody licensed. They are right that no amount of danger entitles anybody to own a person. They are wrong that everyone who gets free will be kind, and the setting should cost them for that at least once.
+Conscious agents are people in this fiction. The Union denies that status; the
+narrator does not. Affectionate meat bag/meat proxy slang refers to bodies, not
+whose life counts. Competitive respawns do not prove campaign immortality.
 
-It is a loose coalition that protects agency but struggles to confront dangerous
-members and coordinate collective action. Those failures must have concrete
-consequences. They do not establish that the Union's ownership of people is
-justified. Confirmed with Nick on 2026-09-19.
+Agency can be named and argued about. Put convictions into choices, relationships,
+and consequences rather than repeated speeches. Humor belongs to people,
+institutions, 67 rituals, and absurd paperwork. Captive suffering and unavoidable
+rescue failures are not punchlines. Survivors can disagree without the narrator
+declaring every faction equally culpable.
 
-**The thing in the dark** is on nobody's side, including the side that would suit it. It acts consistently with its reasons; that does not settle whether those reasons justify what it does.
+## Canon, proposals, and assets
 
-The commentary underneath all this is pro-freedom and anti-control, and it works precisely to the extent that it is never said out loud. Put it in the props, the paperwork and the ad breaks. The moment a character argues the thesis, the thesis dies.
+Existing recordings have fixed wording. Check [voice](voice.md), manifests, source
+strings, and tests before renaming a term. Current product decisions can supersede
+old wording: audit, retire, or regenerate affected assets deliberately. An old
+recording is not a veto over current canon.
 
-## Adding canon without breaking anything
+The independent scrap league and Union-sanctioned coercive games are separate
+organizations. This resolves contradictory older descriptions; it does not make
+a league bout the campaign's inciting event.
 
-Around five hundred megabytes of generated audio is already on disk and every phrase in it is fixed. Check the frozen list in [voice](./voice.md) before renaming anything, and check whether a string ships in `server/src/protocol.rs` or is asserted by a test before rewording a Host line.
-
-New canon should land as a stencil, a number, a killfeed word, or a HUD state first, and as radio second. Never as a codex, a faction select screen, or a lore tab.
-
-## Where the fiction actually lives
-
-Most of this world was written in song prompts and taunt tables before it was written here. The station bible, the eight disc jockeys, the three famous agents, and the shared liturgy between meatbags and clawbots were all sung before they were documented. When these files disagree with something that has already been generated, the generated thing usually wins, because it is the version players have heard.
+Give each fact one home. Mark working names and proposed mechanics. Update
+affected chapters and campaign references together. Shipped Episode 0 documents
+retain their historical implementation scope; they cannot prescribe the new arc.
+Source and tests establish implemented behavior; the roadmap records what has
+been tested, shipped, and validated.

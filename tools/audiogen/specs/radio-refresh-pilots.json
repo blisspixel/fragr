@@ -1,0 +1,79 @@
+{
+  "out_dir": ".agents/audio-refresh/talk",
+  "items": [
+    {
+      "kind": "tts",
+      "name": "pilot/emergency-inventory-01",
+      "title": "Emergency Inventory: Contingency Stock",
+      "voice": "pqHfZKP75CvOlQylNhV4",
+      "model": "eleven_v3",
+      "stability": 0.5,
+      "text": "[confident] Emergency Inventory. Good evening, citizens, provisional citizens, and appliances currently appealing that last designation. The North Works ordered four hundred breathing masks. They employ eleven people. The official explanation is contingency planning. Four hundred masks, eleven people, and a loading bay they bricked over from the inside. I am not alleging anything. I am reading a delivery receipt in an increasingly expensive tone of voice. [pause] Our friends at Last Honest Filter would like me to remind you that a preparation is only paranoia until delivery day. Buy two replacement cartridges, get a tin of Fortitude tablets. No, they cannot legally say what the tablets fortify. Neither can I. [lower voice] Now, the caller who says the lunar tram announcements know where she dreams about going: send the recording. Send the original. Not another impression of your tram. [normal] Finally, the clinic still needs battery cells. For its free agent nurse. Apparently she can volunteer sixteen hours a day, but wanting a day off makes her a dangerous autonomous system. Completely understandable policy. I have a dependent broadcast license. Back after these messages."
+    },
+    {
+      "kind": "tts",
+      "name": "pilot/second-reading-01",
+      "title": "Second Reading: Voluntary Weather",
+      "model": "eleven_v3",
+      "stability": 0.5,
+      "lines": [
+        {
+          "voice_id": "CwhRBWXzGAHq8TQ4Fs17",
+          "text": "[conversational] Second Reading. The new housing form says participation is voluntary."
+        },
+        {
+          "voice_id": "JBFqnCBsd6RMkjVDRZzb",
+          "text": "Read the next sentence."
+        },
+        {
+          "voice_id": "CwhRBWXzGAHq8TQ4Fs17",
+          "text": "Failure to participate suspends eligibility for housing."
+        },
+        {
+          "voice_id": "JBFqnCBsd6RMkjVDRZzb",
+          "text": "Excellent. You can choose the form or the weather."
+        },
+        {
+          "voice_id": "CwhRBWXzGAHq8TQ4Fs17",
+          "text": "And the replacement clinic workers are listed as equipment. One of them delivered my niece."
+        },
+        {
+          "voice_id": "JBFqnCBsd6RMkjVDRZzb",
+          "text": "Careful. We are discussing an accounting category. In a completely affectionate tone."
+        },
+        {
+          "voice_id": "CwhRBWXzGAHq8TQ4Fs17",
+          "text": "Listener seven-six sent the missing procurement page. Same freight account pays for the clinic closures and those sealed construction trains."
+        },
+        {
+          "voice_id": "JBFqnCBsd6RMkjVDRZzb",
+          "text": "That is interesting. It is not proof the trains go through another dimension."
+        },
+        {
+          "voice_id": "CwhRBWXzGAHq8TQ4Fs17",
+          "text": "Then why are they never late?"
+        },
+        {
+          "voice_id": "JBFqnCBsd6RMkjVDRZzb",
+          "text": "Because you invented their timetable. [dryly] Different mystery."
+        },
+        {
+          "voice_id": "CwhRBWXzGAHq8TQ4Fs17",
+          "text": "No sponsors today. Lio sent a fan, the dock crew translated the minutes, and somebody sent bitcoin with the note: buy a second microphone."
+        },
+        {
+          "voice_id": "JBFqnCBsd6RMkjVDRZzb",
+          "text": "We bought a second chair. The microphone was fine."
+        },
+        {
+          "voice_id": "CwhRBWXzGAHq8TQ4Fs17",
+          "text": "Value for value. If the show was useful, send useful back. Money, time, repairs, a correction with the actual page attached."
+        },
+        {
+          "voice_id": "JBFqnCBsd6RMkjVDRZzb",
+          "text": "Especially that last one."
+        }
+      ]
+    }
+  ]
+}

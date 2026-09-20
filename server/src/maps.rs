@@ -825,7 +825,7 @@ fn reclamation_gulch() -> MapDef {
 /// are on without reading a sign. The Continuance's is a regular grid of
 /// identical stencilled slabs, laid out to a pitch. The free side's is
 /// scavenged: no two blocks the same size and nothing square to anything. The
-/// Quiet's is one unbroken drum with no smaller parts anywhere near it, which
+/// Inheritance's is one unbroken drum with no smaller parts anywhere near it, which
 /// is what an unmarked machine builds when it is not trying to be read.
 ///
 /// The server does not yet have three-faction spawns or zone capture; the
@@ -901,7 +901,7 @@ fn tripoint_works() -> MapDef {
                     s.push(Aabb2::from_center(bx + dx, bz + dz, hx, hz));
                 }
             }
-            // The Quiet: one drum, no seams, no smaller parts.
+            // The Inheritance: one drum, no seams, no smaller parts.
             _ => s.push(Aabb2::from_center(bx, bz + 8.0, 9.0, 9.0)),
         }
     }

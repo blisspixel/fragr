@@ -1,6 +1,8 @@
 # The scrap league
 
-Who actually runs the fights. The station broadcasts the league; the league is not the station.
+Independent arena culture. The station broadcasts some fights but does not own
+the league. Union-sanctioned coercive games are a separate institution; do not
+use their labor pipeline to explain every multiplayer match.
 
 ## What it is
 
@@ -32,7 +34,9 @@ These are how people look, not what they believe. A Night Watch player can be a 
 
 ## The Sweep
 
-The league's other format, and the one people get quiet about.
+A proposed survival format drawing on the Inheritance's restoration. It can be
+staged as a contest, or played as a scenario during or after the wipe. Competitive
+round resets do not make the actual catastrophe harmless.
 
 A sweep does not have a winner. Things come, and they keep coming, and the arithmetic of how many come is not in your favour and was never meant to be. You do not win a sweep. You last in one, and the number you last is the thing people remember, and the thing people are actually competing over is how long.
 

@@ -1,100 +1,133 @@
-# Map design
+# Level design
 
-How a fragr map is built. `plans/map-scale.md` says how big; this says what goes in it.
+A full FPS needs authored campaign places and purpose-built multiplayer maps.
+Current arena layouts are useful foundations, not the spatial or visual bar.
+[Campaign missions](CAMPAIGN-MISSIONS.md) own narrative purpose and sequence;
+[MODES.md](MODES.md) owns multiplayer objectives and chronology.
 
-These are not aesthetic preferences. Each rule exists because a specific great map did it and a specific bad feeling happens when you do not.
+## Start with purpose
 
-## Current review, 2026-09-19
+Before geometry, write the place's ordinary function, the player's immediate
+goal, what changed here, the encounter progression, and why its exit leads to
+the next mission. Sketch a route graph and height section. Name the landmarks.
+Do not start with a giant rectangle and distribute cover until it looks occupied.
 
-The six layouts now have stairs and routes, but the rendered roster audit still
-shows oversized open floors, repetitive cover, and weak landmarks. They are not
-finished levels. The next implementation is
-[`authored Compliance Yard`](plans/authored-compliance-yard.md): connected spaces
-designed at player scale, then validated through movement and combat. The rules
-below are design goals; tests and measurements prove only their explicit claims.
+The current six arenas still have oversized open spaces, repetitive cover and
+weak landmarks. The [Compliance Yard study](plans/authored-compliance-yard.md)
+is deferred spatial research, not the campaign opening. The first campaign
+graybox follows M01's intake-facility story.
 
-## Historical baseline, before the 2026 roster
+## Rooms, routes, and readable height
 
-Arena Duel is one flat square with concentric rings of boxes in it. It has no rooms, no height, no lanes, one kind of space, and nowhere that is worth more than anywhere else. It is a fair test chamber and it is not a level, and nothing below describes it yet. That is the gap.
+Build meaningful rooms, courtyards, service passages, exterior cuts and overlooks.
+Their proportions follow movement speed, enemy reach and useful weapon distances,
+measured in the game. Use ceilings, facades, bends, topography, and depth to make
+places substantial. An outdoor level still has boundaries and a reason to exist.
 
-## 1. No dead ends
+Main combat spaces usually offer a loop or more than one viable escape. Exits
+should create different tactical options, not adjacent doors into the same kill
+lane. Small dead-end secrets and brief controlled chokepoints can work; they
+need a reward, a deliberate encounter, and a way back. No universal two-door
+quota replaces playing the room.
 
-**Every room, corridor and space has at least two exits. Three is better.**
+Preview destinations through windows or overlooks, then reveal how to reach them.
+Loops reconnect at memorable landmarks and open useful shortcuts. A return
+route changes through objectives, enemies or access, not arbitrary respawning
+in a corridor the player just cleared.
 
-This is Facility's rule, from GoldenEye. Almost no room in that map had one way out, so being chased was the start of a plan rather than the end of one: through a door, left, down a vent, and back around behind the person chasing you.
+Verticality needs decisions: drop to a flank, climb for a precision lane, cross
+an exposed gallery, shoot between floors. Stairs must be walkable without jump.
+Essential traversal must work with actual collision, jump height and headroom.
+Current heightfield geometry cannot represent stacked accessible rooms and
+ceilings merely by rendering them; extend and verify the shared contract first.
 
-At the speeds this game runs, a dead end kills momentum and feels terrible, and it turns a fight into a corner someone dies in. A map is a racetrack with branching lanes that feed back into each other, not a tree.
+## Encounters with a rhythm
 
-**Check:** trace every enclosed space. Two exits minimum, and the exits go somewhere different.
+Each mission introduces or recombines a readable problem, builds intensity,
+offers a memorable crest, and provides recovery. Vary that structure across
+missions. A short calm inhabited area can establish stakes; persistent empty
+walking is not atmosphere. Avoid a mandatory enemy within an arbitrary number
+of seconds in every scene.
 
-## 2. The best thing sits in the worst place
+Teach one enemy tell in a forgiving setting, then combine roles. Crossfire,
+flank pressure, priority support units, melee threats and scarce safe angles
+create variety without inflated HP. Leave space to react to the tell.
 
-**The strongest item is in the most exposed position on the map, visible from several vantage points, with no cover on it.**
+Mix tight, medium, long and elevated fights across the campaign. Every mission
+does not need every weapon to be equally good. It must remain completable with
+its guaranteed inventory and supplies. Test the worst valid carried loadout,
+not only a developer with every gun.
 
-This is the Longest Yard's rule. The railgun and the heavy armour sat on precarious, open platforms, so taking them meant announcing yourself to the entire server while helpless in the air.
+Items create choices. A valuable multiplayer pickup can expose its taker;
+campaign supplies can also sit in believable stores or reward exploration.
+Putting every best item on an uncovered central plinth becomes another formula.
 
-It makes a weapon spawn into bait. Nobody has to be told to fight over the middle; they fight over it because that is where the thing they want is, and wanting it is a decision with a price.
+## Secrets and objectives
 
-fragr already does this once and should keep doing it: the signature weapon sits at the centre of the arena where there is no cover at all.
+A secret has a clue readable through geometry, material, lighting, sound with
+caption support, or a relationship between spaces. Test whether attentive players
+can infer it; do not require pixel hunting, random wall pressing or a wiki.
 
-**Check:** the map's best item is visible from at least three places you could be shot from.
+Essential keys and controls identify their door or machinery through shape,
+label and color together. Show the effect. Short objective text supports what
+the world shows; it does not compensate for an incomprehensible layout.
 
-## 3. Both sides arrive at the same time
+Rescue objectives identify who needs help, the escape conditions, and any actual
+deadline. Optional exploration cannot silently trigger an irreversible loss.
+No required action needs two players or uninterrupted voice playback.
 
-**Measure the geometry so that two fighters holding forward from opposite spawns meet at a chokepoint after four or five seconds.**
+## Different jobs for different modes
 
-Counter-Strike's maps are tuned this way, and it is why a player can pre-fire a corner on timing alone. Predictable rollouts are not a limitation, they are the rhythm that makes a map feel competitive rather than random.
+| Use | Design requirement |
+|---|---|
+| Campaign | Place and route follow story; encounters escalate; exploration and local consequences persist |
+| Co-op | Space for the target party, supplies and readable flanks; reconnect/drop-out cannot strand shared goals |
+| Duel | Compact loops, item timing, useful height, protected spawns and fast rematches |
+| Team/objective | Comparable useful approaches, defendable but breakable positions, coordinated flanks |
+| Large battles | Connected local fights and clear destinations, not larger empty distances; foot play first |
+| Survival | Repositioning and evolving pressure with readable recovery; no indefinitely dominant doorway |
+| Aftermath variant | Recognizable original place, changed routes and ecology, distinct objectives and honest chronology |
 
-At five metres a second, a five second rollout is twenty-five metres of travel each, so the spawns want to be about fifty metres apart along the fastest route, with the chokepoint in the middle of it.
+Competitive rollouts are timed in both directions with current movement, not
+assumed from an imported game's dimensions. Spawn checks include clearance,
+enemy visibility, immediate access to equipment and escape, crowding, and actual
+spawn deaths. One reachability assertion does not prove a spawn is fair.
 
-**Check:** walk it. Both directions. Time it.
+Campaign locations can inspire multiplayer spaces, but removing the NPCs does not
+automatically produce a good competitive map. Author and test their routes,
+pickup clocks, spawn sets, objectives and player counts separately.
 
-## 4. Three kinds of space, one map
+## Art and performance
 
-**Every map has tight, open and vertical ground, and each one makes a different weapon the right answer.**
+Give every location a material family, light sources, ordinary-life props,
+landmarks, and soundscape. Distinguish lunar pressure infrastructure from Mars
+habitats and Earth civic buildings. Repeated modules should create believable
+construction, not endless identical cubes.
 
-Blood Gulch is the clearest version: long shots across the open middle, mid-range fights along the rocky flanks, and shotgun range inside the bases. Every weapon had somewhere it was king.
+Use original pixel surfaces, consistent texel scale, sculpted silhouettes and
+directional light at the Boltgun production bar. Inspect enemies against their
+actual backgrounds, effects while moving, and darkness from player height.
+Sky and scenery establish geography while enclosed foreground spaces carry play.
 
-For fragr that means:
+Bound geometry, entities and effects against measured CPU/GPU budgets. Compare
+renderer paths and record the machine. A CPU benchmark cannot prove an art-heavy
+scene renders well, and one GPU does not prove every desktop target.
 
-- **Tight.** Corridors, corners, doorways. The scatter's ground, and the only place melee is a plan rather than a mistake.
-- **Open.** A courtyard or a long hall with sightlines that justify the rail existing.
-- **Vertical.** Catwalks, shafts, multiple levels. Where the lobber's splash and a jump matter.
+## Author, play, revise
 
-If the whole map is corridors the rail is decoration. If it is all open ground the scatter is. A player should migrate toward the ground that suits what they are carrying, and that migration is most of the interest in a map.
+1. Review the narrative or mode brief and route/height sketches.
+2. Build validated data and a collision-correct graybox. Prove stairs, headroom,
+   exits, doors, and required reachability with actual movement.
+3. Place guaranteed equipment and encounters. Run solo and relevant mixed-client
+   sessions with varied seeds, skill, inventory and population.
+4. Observe route confusion, stalls, empty travel, dominant positions and spawn
+   deaths. Fix causes, then repeat affected runs without weakening assertions.
+5. Add complete art, animation and audio; inspect full first-person and spectator
+   motion. Preserve gameplay clarity when dressing the space.
+6. Ask fresh players to navigate and describe what happened. Record observations
+   separately from mechanical results. Neither proves the other.
+7. Publish current screenshots and honest receipts through the existing QA tour
+   when implementation changes player-visible content.
 
-**Check:** name the three zones. If you cannot, it is one zone.
-
-## 5. Floors are permeable
-
-**Elevation is not just stairs. Put holes in it.**
-
-Grates you can shoot through from below, balconies to drop off, shafts to fall down, ledges reachable with a jump. If someone is holding a doorway, the answer should be going over or under it rather than walking into it.
-
-Verticality used this way is a flanking system rather than decoration, and it is the single largest thing Arena Duel is missing now that a jump exists.
-
-**Check:** can you get from the lower floor to the upper one somewhere other than the stairs?
-
-## 6. Big maps need a focus
-
-**The larger the map, the more deliberately it has to push people together.**
-
-Wake Island is a horseshoe, so whatever route you take, the fastest way anywhere crosses the middle, and everyone converges without being told to.
-
-This matters most at the district and field tiers in `plans/map-scale.md`, where the failure mode is not unfairness, it is emptiness. A hundred metre map with nothing pulling toward a centre is a walking simulator with guns.
-
-**Check:** where does the fastest route between any two points go? If the answer is not "through somewhere interesting", move something.
-
-## What this means for the next map
-
-The one to build is arena tier, eighty to a hundred and twenty metres, and it needs, in this order: height, so rule five and the jump exist at all; three named zones, so rule four is satisfied; a loop structure with no dead ends; a measured five second rollout; and the signature weapon somewhere that costs you to stand.
-
-That is a real level rather than a fair box, and it is the difference between a game that measures well and a game somebody wants to play again after work.
-
-## Related
-
-- `plans/map-roster-2026.md`: the six maps built against these rules, what the heightfield does and does not do, and the map for the three-cornered mode.
-- `plans/map-scale.md`: the size ladder and the vertical axis in the movement step.
-- `docs/WEAPONS.md`: what each zone is for.
-- `docs/MODES.md`: the bar, which is that none of this is allowed to become a puzzle.
-- `docs/DESIGN-REFERENCES.md`: the wider table of what was taken from where.
+Maps as JSON are a practical authoring path, not a substitute for this loop.
+Navigation, geometry, encounter and visual evidence all matter.
