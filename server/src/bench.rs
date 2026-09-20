@@ -580,7 +580,14 @@ mod tests {
 
     #[test]
     fn thresholds_name_what_went_wrong() {
-        let mut report = run_bench(4, 100, MapKind::ArenaDuel, 1).unwrap();
+        // Threshold semantics must not depend on debug instrumentation or host
+        // scheduling. CI measures real performance in its release benchmark.
+        let mut report = run_bench(4, 1, MapKind::ArenaDuel, 1).unwrap();
+        let mut stats = TickStats::new();
+        for _ in 0..100 {
+            stats.record_tick(TICK / 10, 1000);
+        }
+        report.stats = stats.report(4, 0);
         assert!(
             check_thresholds(&report, 0.5).is_empty(),
             "a healthy run has no complaints: {:?}",
@@ -608,6 +615,10 @@ mod tests {
             check_thresholds(&report, 0.8).is_empty(),
             "a looser bar passes"
         );
+        report.stats.budget_use_p99 = 0.5;
+        assert!(check_thresholds(&report, 0.5).is_empty());
+        report.stats.budget_use_p99 = 0.500_001;
+        assert!(check_thresholds(&report, 0.5)[0].contains("p99 tick"));
         report.stats.ticks = 0;
         assert!(check_thresholds(&report, 0.8)[0].contains("no ticks"));
     }

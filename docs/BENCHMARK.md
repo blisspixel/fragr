@@ -26,6 +26,11 @@ above `--bench-max-budget-p99` of that budget (default 0.5). Invalid fractions a
 zero tick counts are errors. A debug build is identified in the report and should
 not be compared to release measurements.
 
+Threshold unit tests feed known durations through `TickStats` so boundary and
+failure-message checks remain deterministic under coverage instrumentation.
+Actual speed remains enforced by CI's separate release benchmark and its
+unchanged budget gate. A synthetic sample is never performance evidence.
+
 ## Report version 2
 
 `config` carries bots, ticks, map identity, seed, and crate version. `environment`
