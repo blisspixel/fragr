@@ -21,6 +21,7 @@ name=$(basename "${!#}" .gd)
 case "$CASE" in
   missing-pass) exit 0 ;;
   error-and-pass) echo 'SCRIPT ERROR: fixture' ;;
+  debug-socket) echo 'Socket error: 10054.' ;;
   verbose-failure)
     case "$*" in *--verbose*) echo 'retained-object-identity-fixture' ;; esac
     echo 'ERROR: exit resource fixture'
@@ -31,11 +32,13 @@ echo "$name: PASS"
 if [ "$CASE" = exit-and-pass ]; then exit 9; fi
 FAKE
 chmod +x "$fake"
-for scenario in pass import-exit import-error missing-pass error-and-pass exit-and-pass verbose-failure; do
+for scenario in pass debug-socket import-exit import-error missing-pass error-and-pass exit-and-pass verbose-failure; do
   status=0
   output=$(CASE="$scenario" GODOT_BIN="$fake" bash tools/godot_check.sh 2>&1) || status=$?
-  if { [ "$scenario" = pass ] && [ "$status" -ne 0 ]; } ||
-     { [ "$scenario" != pass ] && [ "$status" -eq 0 ]; }; then
+  expected_pass=false
+  if [ "$scenario" = pass ] || [ "$scenario" = debug-socket ]; then expected_pass=true; fi
+  if { "$expected_pass" && [ "$status" -ne 0 ]; } ||
+     { ! "$expected_pass" && [ "$status" -eq 0 ]; }; then
     echo "FAIL godot verifier scenario: $scenario (exit $status)"
     exit 1
   fi

@@ -68,4 +68,15 @@ Eight local verbose lifecycle runs were clean. Keep the error gate and capture
 verbose, untruncated failures from the original run so future occurrences identify
 the retained objects. A seventh verifier fault case proves those details survive
 more than twenty trailing log lines. This is diagnostic improvement, not a claimed
-resource-ownership fix. Local runtime checks and the full six-map roster pass.
+resource-ownership fix. The earlier local non-verbose checks and six-map roster pass.
+
+The first full verbose check exposed a separate classifier error: the deliberate
+child crash prints `Socket error: 10054.` as verbose output. Godot's actual
+[severity labels](https://github.com/godotengine/godot/blob/4.7.2-stable/core/io/logger.h)
+are uppercase, whereas the [socket diagnostic](https://github.com/godotengine/godot/blob/4.7.2-stable/drivers/unix/net_socket_unix.cpp)
+uses `print_verbose`. Sources checked 2026-09-20. Match real severity casing;
+retain failure on engine/script/parse errors, nonzero exits and missing PASS.
+An eighth fixture exercises this debug diagnostic alongside the error cases.
+The corrected verbose checker passes all 26 local harnesses and all eight verifier
+scenarios. No engine error, resource-retention error or required PASS check was
+disabled. The original macOS retention failure remains open under #186.

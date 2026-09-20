@@ -16,7 +16,9 @@ check() {
   shift 2
   out=$("$GODOT" --headless --path client "$@" 2>&1)
   status=$?
-  if [ "$status" -ne 0 ] || printf '%s\n' "$out" | grep -qiE 'SCRIPT ERROR|Parse Error|(^|[[:space:]])ERROR:'; then
+  # Engine severity labels are uppercase. Verbose socket diagnostics also say
+  # "error", including the intentional child crash in test_local_campaign.
+  if [ "$status" -ne 0 ] || printf '%s\n' "$out" | grep -qE 'SCRIPT ERROR|Parse Error|(^|[[:space:]])ERROR:'; then
     echo "FAIL $label (exit $status)"
     printf '%s\n' "$out"
     fail=1
