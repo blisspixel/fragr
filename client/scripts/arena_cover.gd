@@ -61,6 +61,7 @@ func apply_map_info(info: Dictionary) -> void:
 		if not presentation.is_empty():
 			material = authored_materials[presentation["solids"][index]]
 		_add_solid(solids[index], material)
+	ArenaDecoration.build(self, solids, presentation.get("decorations", []))
 	var backdrop: ArenaBackdrop = ArenaBackdrop.new()
 	backdrop.build(map_id, _half_extent)
 	add_child(backdrop)

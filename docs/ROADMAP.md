@@ -105,6 +105,9 @@ human/bot sprites now follow walking, attack, pain, melee and death state, with
 source and bake verification. OpenGL main-hall and Vulkan maintenance captures
 are inspected; a second spectator client follows the live human run. Finished
 character/encounter presentation and fresh-player pacing review remain pending.
+The [facility detail pass](plans/m01-facility-detail.md) adds bounded face panels,
+keyed world signs, issued lockers, service vents and practical lights to this
+prototype. These identify the rooms without adding client-only collision.
 Interaction and checkpoint state follow. This foundation is not a finished
 campaign or proven co-op balance.
 

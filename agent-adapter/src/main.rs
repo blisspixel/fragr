@@ -360,7 +360,7 @@ async fn run_scripted_bot(
                         }
                         ServerMessage::Snapshot(snapshot) => last_snapshot = Some(snapshot),
                         ServerMessage::MapInfo { half_extent, solids, geometry_version, presentation, .. } => {
-                            protocol::validate_map_presentation(presentation.as_ref(), solids.len())?;
+                            protocol::validate_map_presentation(presentation.as_ref(), &solids)?;
                             protocol::validate_map_geometry(half_extent, &solids, geometry_version)
                                 .map_err(io::Error::other)?;
                             let arena = fragr_server::movement::Arena { half: half_extent, solids };

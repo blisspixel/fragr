@@ -220,6 +220,19 @@ scene geometry with these solids so visible cover agrees with the server.
   `lift_panel`. Unknown IDs and mismatched cardinality are rejected. Materials
   cannot load arbitrary paths or change collision. A presenter predating this
   optional field may retain its default appearance without changing geometry.
+  Optional `decorations` describes at most 128 cosmetic panels, including at most
+  eight `strip_light` fixtures. Each strict object has `solid` (zero-based solid
+  index), `face`, `center` (two finite metres from the face centre), `size` (two
+  finite dimensions from 0.125 to 16 metres) and a registered `kind`. The entire
+  rectangle must fit its host face. Faces are `west`, `east`, `down`, `up`,
+  `north` (-Z) and `south` (+Z). Face right/up axes are respectively
+  (+Z,+Y), (-Z,+Y), (+X,+Z), (+X,-Z), (-X,+Y), (+X,+Y).
+  Kinds are `property_sign`, `intake_sign`, `records_sign`, `maintenance_sign`,
+  `transfer_sign`, `lift_sign`, `complaint_notice`, `union_seal`, `lockers`,
+  `vent`, `terminal` and `strip_light`. Text keys and assets belong to the client;
+  map data cannot provide scripts, arbitrary text, paths or URLs. These thin
+  panels cannot create collision or interactions. Old payloads omit the array;
+  older presenters can ignore it without changing geometry or gameplay versions.
 
 Geometry bounds: finite half extent from 2 to 256; at most 2048 solids; finite
 coordinates within -512 to 512; strictly increasing X and Z bounds. Navigation

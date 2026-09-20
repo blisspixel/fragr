@@ -1209,11 +1209,8 @@ async fn agent_task(
                 presentation,
                 ..
             }) => {
-                fragr_server::protocol::validate_map_presentation(
-                    presentation.as_ref(),
-                    solids.len(),
-                )
-                .map_err(|error| Error::Server(format!("invalid map presentation: {error}")))?;
+                fragr_server::protocol::validate_map_presentation(presentation.as_ref(), &solids)
+                    .map_err(|error| Error::Server(format!("invalid map presentation: {error}")))?;
                 fragr_server::protocol::validate_map_geometry(
                     half_extent,
                     &solids,
@@ -1442,12 +1439,18 @@ mod tests {
         solid["solids"][0]["bottom"] = serde_json::json!("ceiling");
         let mut surfaces = valid.clone();
         surfaces["presentation"] = serde_json::json!({"ground":"concrete","solids":[]});
+        let mut details = valid.clone();
+        details["presentation"] = serde_json::json!({"ground":"concrete",
+            "solids":vec!["enamel"; valid["solids"].as_array().unwrap().len()],
+            "decorations":[{"solid":9999,"face":"north","center":[0,0],
+                "size":[1,1],"kind":"terminal"}]});
         let rejected = serde_json::json!({"type": "error", "code": "unsupported_geometry", "message": "geometry version rejected"});
         for (bad, expected) in [
             (extent.to_string(), "geometry extent"),
             (version.to_string(), "invalid server message"),
             (solid.to_string(), "invalid server message"),
             (surfaces.to_string(), "invalid map presentation"),
+            (details.to_string(), "invalid map presentation"),
             ("{broken".to_string(), "invalid server message"),
             (rejected.to_string(), "geometry version rejected"),
         ] {

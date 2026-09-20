@@ -43,6 +43,9 @@ static func validation_error(info: Dictionary) -> String:
 		for surface: Variant in surfaces:
 			if not _surface(surface):
 				return "Unknown map surface kit."
+		var detail_problem: String = MapDecoration.validation_error(presentation.get("decorations", []), solids)
+		if detail_problem != "":
+			return detail_problem
 	return ""
 
 static func _number(value: Variant) -> bool:

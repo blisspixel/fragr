@@ -907,7 +907,7 @@ pub fn ingest_server_text(state: &mut ToolState, text: &str) -> Result<(), &'sta
             presentation,
         }) => {
             fragr_server::protocol::validate_map_geometry(half_extent, &solids, geometry_version)?;
-            protocol::validate_map_presentation(presentation.as_ref(), solids.len())?;
+            protocol::validate_map_presentation(presentation.as_ref(), &solids)?;
             state.map = Some(serde_json::json!({
                 "map_id": map_id,
                 "map_name": map_name,
@@ -978,7 +978,28 @@ mod mcp_tests {
             state.map.as_ref().unwrap()["presentation"]["solids"][0],
             "enamel"
         );
+        let panel = serde_json::json!({"solid":0,"face":"north","center":[0.0,0.0],
+            "size":[1.0,0.5],"kind":"property_sign"});
+        map["presentation"]["decorations"] = serde_json::json!([panel]);
+        ingest_server_text(&mut state, &map.to_string()).unwrap();
+        assert_eq!(
+            state.map.as_ref().unwrap()["presentation"]["decorations"][0],
+            panel
+        );
         let previous = state.map.clone();
+        for change in [
+            serde_json::json!({"solid":1}),
+            serde_json::json!({"size":[1,1]}),
+            serde_json::json!({"kind":"res://untrusted"}),
+        ] {
+            let mut invalid = map.clone();
+            invalid["presentation"]["decorations"][0]
+                .as_object_mut()
+                .unwrap()
+                .extend(change.as_object().unwrap().clone());
+            assert!(ingest_server_text(&mut state, &invalid.to_string()).is_err());
+            assert_eq!(state.map, previous);
+        }
         let mut invalid = map.clone();
         invalid["presentation"]["solids"] = serde_json::json!([]);
         assert!(ingest_server_text(&mut state, &invalid.to_string()).is_err());

@@ -2,7 +2,7 @@
 
 use crate::movement::{Arena, Solid, BODY_HEIGHT, CONTACT_EPSILON, RADIUS};
 use crate::navigation::Navigation;
-use crate::protocol::{MapPresentation, MapSurface};
+use crate::protocol::{MapDecoration, MapPresentation, MapSurface};
 use serde::Deserialize;
 use std::collections::HashSet;
 use std::io::{self, Read};
@@ -37,6 +37,8 @@ pub struct AuthoredMap {
 #[derive(Debug, Deserialize)]
 #[serde(deny_unknown_fields)]
 struct Document {
+    #[serde(default)]
+    decorations: Vec<MapDecoration<String>>,
     #[serde(default)]
     encounters: Vec<encounters::EncounterDefinition>,
     #[serde(default)]
@@ -151,14 +153,17 @@ impl AuthoredMap {
             || doc.landmarks.is_empty()
             || doc.landmarks.len() > MAX_PLACEMENTS
             || doc.supplies.len() > MAX_PLACEMENTS
+            || doc.decorations.len() > crate::protocol::MAX_MAP_DECORATIONS
         {
             return Err(invalid("map requires bounded solids, spawns and landmarks"));
         }
         let mut seen = HashSet::new();
         let mut solids = Vec::with_capacity(doc.solids.len());
         let mut surfaces = Vec::with_capacity(doc.solids.len());
+        let mut solid_ids = std::collections::HashMap::with_capacity(doc.solids.len());
         for volume in doc.solids {
             identity(&volume.id, &mut seen)?;
+            solid_ids.insert(volume.id, solids.len());
             surfaces.push(volume.surface);
             solids.push(Solid {
                 min_x: volume.min[0],
@@ -170,6 +175,18 @@ impl AuthoredMap {
             });
         }
         crate::movement::validate_geometry(doc.half_extent, &solids).map_err(invalid)?;
+        let decorations = doc
+            .decorations
+            .into_iter()
+            .map(|detail| {
+                let index = solid_ids
+                    .get(&detail.solid)
+                    .copied()
+                    .ok_or_else(|| invalid("map decoration references an unknown solid"))?;
+                Ok(detail.with_solid(index))
+            })
+            .collect::<io::Result<Vec<_>>>()?;
+        crate::protocol::validate_decorations(&decorations, &solids).map_err(invalid)?;
         let arena = Arena {
             half: doc.half_extent,
             solids,
@@ -229,6 +246,7 @@ impl AuthoredMap {
             presentation: MapPresentation {
                 ground: doc.ground,
                 solids: surfaces,
+                decorations,
             },
             landmarks: doc.landmarks,
         }))

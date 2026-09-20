@@ -49,6 +49,11 @@ back and records their actual sprite frames with the server phases. Enemy artwor
 remains under review and objectives are unbuilt. These
 runs do not replace the release gallery or prove a finished mission.
 
+`m01-facility.json` adds twelve walking/combat views of intake signs, locker banks,
+the transfer desk, lift and maintenance route. Check glyphs, panel placement,
+lighting and enemy contrast with both rendering paths. Localized text must fit
+the panel; the complaint notice targets bureaucracy, not captive suffering.
+
 Use `res://qa/weapons.json` with the same zero-bot practice settings for close
 walking strips of every viewmodel. Their base must remain below the screen
 through the whole stride. Use `FRAGR_QA_MAP=2` through `6` with

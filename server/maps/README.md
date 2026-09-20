@@ -69,6 +69,20 @@ They select existing offline materials, never paths, URLs or shader code. The
 wire presentation array preserves exactly the solid order. It affects appearance,
 not geometry version or collision. Older presenters may use their default kit.
 
+Optional `decorations` attaches thin cosmetic panels to solid faces. For example:
+
+```json
+{"solid":"bay_front_header","face":"north","center":[0,0],"size":[5.6,2.1],"kind":"property_sign"}
+```
+
+The authoring `solid` is a stable ID, resolved to a validated wire index. The
+shared [wire contract](../../docs/protocol.md#mapinfo) defines six face axes,
+registered kinds, finite dimensions, host bounds, 128-panel and eight-light limits.
+Panels do not add blocking geometry or interactive terminals. Add a solid for
+anything that should stop movement or shots. The client supplies original pixel
+panels and keyed English text from `client/i18n/world.en.po`; no text, scripts or
+resource paths can be embedded in the map.
+
 Files are limited to 1 MiB before parsing. Unknown fields and unsupported versions
 are errors. Geometry and navigation budgets are checked before the server binds.
 Errors report the reason or parser location without printing file contents.
@@ -86,6 +100,7 @@ FRAGR_QA_BOTS=0 FRAGR_QA_MAP_FILE="$PWD/server/maps/m01-recall-notice.json" FRAG
 FRAGR_QA_BOTS=0 FRAGR_QA_MAP_FILE="$PWD/server/maps/m01-recall-notice.json" FRAGR_QA_MANIFEST=res://qa/m01-discovery.json bash tools/qa_tour.sh .agents/qa/m01-discovery
 FRAGR_QA_BOTS=0 FRAGR_QA_MAP_FILE="$PWD/server/maps/m01-recall-notice.json" FRAGR_QA_MANIFEST=res://qa/m01-encounters.json bash tools/qa_tour.sh .agents/qa/m01-encounters
 FRAGR_QA_BOTS=0 FRAGR_QA_MAP_FILE="$PWD/server/maps/m01-recall-notice.json" FRAGR_QA_MANIFEST=res://qa/m01-maintenance.json bash tools/qa_tour.sh .agents/qa/m01-maintenance
+FRAGR_QA_BOTS=0 FRAGR_QA_MAP_FILE="$PWD/server/maps/m01-recall-notice.json" FRAGR_QA_MANIFEST=res://qa/m01-facility.json bash tools/qa_tour.sh .agents/qa/m01-facility
 ```
 
 The tour uses human input through a live server, never teleportation. Inspect

@@ -22,6 +22,39 @@ pub(super) fn decode(value: &Value) -> io::Result<Arc<AuthoredMap>> {
 }
 
 #[test]
+fn decorations_resolve_solid_ids_and_reach_the_wire() {
+    let mut doc = small();
+    let detail = json!({"solid":"ceiling", "face":"down", "center":[0,0],
+        "size":[4,0.25], "kind":"strip_light"});
+    doc["decorations"] = json!([detail]);
+    let map = decode(&doc).unwrap();
+    assert_eq!(map.presentation.decorations[0].solid, 0);
+    let session = GameSession::with_authored_map(map);
+    let wire = serde_json::to_value(session.state.map_info()).unwrap();
+    assert_eq!(wire["geometry_version"], 2);
+    assert_eq!(wire["presentation"]["decorations"][0]["solid"], 0);
+    assert_eq!(
+        wire["presentation"]["decorations"][0]["kind"],
+        "strip_light"
+    );
+    for (field, bad) in [
+        ("solid", json!("missing")),
+        ("size", json!([17, 1])),
+        ("center", json!([20, 0])),
+        ("kind", json!("unknown")),
+        ("extra", json!(true)),
+    ] {
+        let mut malformed = doc.clone();
+        malformed["decorations"][0][field] = bad;
+        assert!(decode(&malformed).is_err());
+    }
+    doc["decorations"] = json!(vec![detail.clone(); crate::protocol::MAX_MAP_LIGHTS + 1]);
+    assert!(decode(&doc).is_err());
+    doc["decorations"] = json!(vec![detail; crate::protocol::MAX_MAP_DECORATIONS + 1]);
+    assert!(decode(&doc).is_err());
+}
+
+#[test]
 fn supplies_validate_grants_claims_clearance_and_reachability() {
     let mut doc = small();
     doc["equipment"] = json!("discovery");
@@ -134,8 +167,9 @@ fn authoring_rejects_unknown_fields_and_invalid_placements() {
         Some(&crate::protocol::MapPresentation {
             ground: crate::protocol::MapSurface::Concrete,
             solids: Vec::new(),
+            decorations: Vec::new(),
         }),
-        1
+        &[crate::movement::Solid::from_center(0.0, 0.0, 1.0, 1.0)]
     )
     .is_err());
 }

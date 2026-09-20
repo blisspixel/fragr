@@ -4,7 +4,10 @@
 is in draft. Fists, Tack, Flechette, ammunition, reload and enemy phases use server
 authority. One Clerk and two Sweepers are placed, with both approaches exercised
 through normal input. Enemy artwork and animation remain provisional. Story
-scenes and mission state remain unbuilt. Earth before the wipe. Full first-run target 10-15 minutes,
+scenes and mission state remain unbuilt. The draft facility pass adds keyed signs,
+locker banks, service vents and practical lights through bounded map metadata.
+Terminals remain static dressing until authoritative interaction is implemented.
+Earth before the wipe. Full first-run target 10-15 minutes,
 to be measured. [Treatment](../CAMPAIGN-MISSIONS.md#m01-recall-notice).
 
 The current [map document](../../server/maps/m01-recall-notice.json) connects A-G

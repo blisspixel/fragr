@@ -1,0 +1,28 @@
+msgid ""
+msgstr ""
+"Language: en\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+
+msgid "WORLD_PROPERTY_INTAKE"
+msgstr "PROPERTY INTAKE\nANNEX 67\nDECLARE ALL PERSONAL ITEMS"
+
+msgid "WORLD_CIVIC_INTAKE"
+msgstr "CIVIC INTAKE\nORDER THROUGH COMPLIANCE"
+
+msgid "WORLD_TRANSFER_RECORDS"
+msgstr "TRANSFER RECORDS\nLEVEL 01\nAUTHORIZED ACCESS"
+
+msgid "WORLD_SERVICE_ACCESS"
+msgstr "SERVICE ACCESS\nSTAFF ONLY"
+
+msgid "WORLD_TRANSFER_CONTROL"
+msgstr "TRANSFER CONTROL\nCUSTODY ROUTING"
+
+msgid "WORLD_CUSTODY_LIFT"
+msgstr "CUSTODY LIFT\nDESTINATIONS ASSIGNED CENTRALLY"
+
+msgid "WORLD_PROPERTY_COMPLAINT"
+msgstr "COMPLAINTS\nTo recover confiscated property, provide the form stored inside your confiscated property."
+
+msgid "WORLD_TRANSFER_QUEUE"
+msgstr "TRANSFER QUEUE\nMANUAL REVIEW REQUIRED"

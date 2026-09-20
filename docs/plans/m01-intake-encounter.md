@@ -338,3 +338,16 @@ were checked against official documentation on 2026-09-20. No paid requests were
 made. The draft remains open for character motion/art critique, environmental
 detail and first-run encounter pacing before integration. Full mission objectives,
 extraction, saves and co-op lifecycle remain separate bounded work.
+
+## Facility detail increment, 2026-09-20
+
+The [facility pass](m01-facility-detail.md) gives the prototype's rooms registered
+signs, lockers, vents, original Union markers and practical lights. It preserves
+all collision and encounter placements. Both rendered routes were reviewed in
+OpenGL and Vulkan after correcting the new shader's color-space handling.
+Keyed English world text fits its panels and loads from a clean checkout.
+The plan records 667 Rust tests, 95.72 percent coverage, 23 Godot harnesses,
+the six-map mixed-client regression and refreshed general gallery. These replace
+the older local verification counts for the current branch. Hosted checks still
+need to run on this increment. The previous directional-character commit passed
+all five jobs in run 35503324104.
