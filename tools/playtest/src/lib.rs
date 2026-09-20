@@ -694,7 +694,7 @@ fn per_minute(count: u64, ticks: u64) -> f64 {
     count as f64 / (seconds(ticks) / 60.0)
 }
 
-/// Fold an observation into the report. Pure, so canned observations test it.
+/// Fold an observation deterministically; logs preserve early-death tick evidence.
 pub fn compute_report(obs: &Observation, agents: usize) -> Report {
     let first = obs.first_tick.unwrap_or(0);
     let ticks = obs.last_tick.saturating_sub(first).max(1);
@@ -743,6 +743,13 @@ pub fn compute_report(obs: &Observation, agents: usize) -> Report {
                 victim_report.deaths += 1;
                 if let Some(spawned) = last_spawn.get(victim) {
                     if timed.tick.saturating_sub(*spawned) <= SPAWN_DEATH_WINDOW_TICKS {
+                        tracing::warn!(
+                            spawn_tick = spawned,
+                            death_tick = timed.tick,
+                            killer,
+                            victim,
+                            "spawn death evidence"
+                        );
                         victim_report.spawn_deaths += 1;
                         spawn_deaths += 1;
                     }

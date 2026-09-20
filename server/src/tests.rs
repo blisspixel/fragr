@@ -4466,7 +4466,7 @@ fn test_sim_spawn_shield_blocks_damage_for_one_second() {
 }
 
 #[test]
-fn test_sim_respawn_and_active_join_prefer_cover_to_an_exposed_ring_gap() {
+fn test_sim_respawn_and_all_joins_prefer_cover_to_an_exposed_ring_gap() {
     use crate::combat::{line_of_sight, FIGHTER_HEIGHT};
     use crate::movement::EYE_HEIGHT;
     use crate::sim::PLAYER_FLOOR_Y;
@@ -4486,7 +4486,7 @@ fn test_sim_respawn_and_active_join_prefer_cover_to_an_exposed_ring_gap() {
         (46.76, 75.74),
     ];
     for (sx, sz) in [(1.0, 1.0), (-1.0, 1.0), (1.0, -1.0), (-1.0, -1.0)] {
-        for respawning in [true, false] {
+        for (respawning, warmup) in [(true, false), (false, false), (false, true)] {
             let mut state = GameState::with_map(MapKind::ReclamationGulch, false);
             state.config.boss_spawn_ticks = None;
             state.config.compliance_ping_ticks = None;
@@ -4523,6 +4523,9 @@ fn test_sim_respawn_and_active_join_prefer_cover_to_an_exposed_ring_gap() {
                 "fixture has a covered alternative"
             );
             state.start_round();
+            if warmup {
+                state.round_state = RoundState::Warmup;
+            }
             if respawning {
                 state.players[0].respawn_timer = Some(1);
                 state.tick(0.05);

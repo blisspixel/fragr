@@ -88,10 +88,15 @@ planner stall and map-5 spawn-death failure despite the local pass. Deterministi
 regressions reproduce both failures; route recovery and cover-aware spawns pass
 local verification and the final Linux matrix. Every CI job passed before merge.
 
-[Shared body integration](plans/shared-body-integration.md) is being verified:
-live movement and the accelerated shared step now use one collision/gravity
-path, preserving existing match traces. This is the prerequisite for real
-ceilings and overlapping floors in the opening campaign mission.
+[Shared body integration](plans/shared-body-integration.md) shipped in v0.21.1:
+live movement and the accelerated shared step use one collision/gravity path,
+preserving existing match traces. Fixed-map startup also avoids preparing unused
+navigation maps. [Enclosed campaign geometry](plans/campaign-spaces.md) is now in
+progress for the opening mission's ceilings and overlapping floors.
+
+[Opening spawn placement](plans/opening-spawns.md) is under verification in #175.
+Warmup joins now use the same cover selector as active joins and respawns. The
+six-map playtest exposed the gap; its thresholds remain unchanged.
 
 The phases below are the long shape. This is the remaining build order, with the reason each item sits where it does.
 
