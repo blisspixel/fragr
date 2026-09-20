@@ -39,6 +39,7 @@ pub const SPEAK_COOLDOWN_TICKS: u64 = 60;
 pub struct ToolState {
     pub last_snapshot: Option<Value>,
     pub loadout: Option<protocol::LoadoutState>,
+    pub mission: fragr_server::mission::MissionClient,
     pub recent_events: Vec<Value>,
     pub player_id: Option<Uuid>,
     /// Tick of last MCP speak that was accepted for send (rate-limit honesty).
@@ -60,6 +61,7 @@ impl Default for ToolState {
         Self {
             last_snapshot: None,
             loadout: None,
+            mission: Default::default(),
             recent_events: Vec::new(),
             player_id: None,
             last_speak_tick: None,
@@ -103,6 +105,7 @@ const ACT_ALLOWED_KEYS: &[&str] = &[
     "turn_right",
     "fire",
     "reload",
+    "interact",
     "weapon_swap",
     "look_at",
 ];
@@ -248,6 +251,12 @@ pub fn validate_act_arguments(arguments: &Value) -> Result<Action, String> {
                 .ok_or("schema error: reload must be a boolean")?,
         },
         jump: bool_field("jump"),
+        interact: match obj.get("interact") {
+            None => false,
+            Some(value) => value
+                .as_bool()
+                .ok_or("schema error: interact must be a boolean")?,
+        },
         weapon_swap,
         look_at,
         // MCP agents aim with look_at and the turn bits; they do not own a
@@ -398,6 +407,9 @@ pub fn build_observe_result(state: &ToolState) -> Value {
                 if let Some(loadout) = state.loadout.as_ref() {
                     obj.insert("loadout".into(), serde_json::json!(loadout));
                 }
+                if let Some(mission) = state.mission.state.as_ref() {
+                    obj.insert("mission".into(), serde_json::json!(mission));
+                }
             }
             observation
         }
@@ -545,6 +557,7 @@ fn tools_list_result() -> Value {
                         "jump": {"type": "boolean", "default": false, "description": "Jump. A grounded fighter leaves the floor; holding it does not fly"},
                         "weapon_swap": {"type": "string", "enum": ["fists", "tack", "flechette", "rail", "scatter"], "description": "Select an owned weapon"},
                         "reload": {"type": "boolean", "description": "Request one reload of the selected weapon"},
+                        "interact": {"type": "boolean", "description": "Press to use an aimed mission panel when observe supplies your prompt. Release before another press."},
                         "look_at": {
                             "type": "object",
                             "description": "Aim at player_id (preferred) or world x/z with optional y. Missing y aims horizontally.",
@@ -887,6 +900,12 @@ pub fn ingest_server_text(state: &mut ToolState, text: &str) -> Result<(), &'sta
     }
 
     match serde_json::from_str::<protocol::ServerMessage>(text) {
+        Ok(protocol::ServerMessage::Mission {
+            tick,
+            state: mission,
+        }) => {
+            state.mission.observe(tick, mission)?;
+        }
         Ok(protocol::ServerMessage::Loadout(loadout)) => {
             loadout.validate_for(state.player_id, state.loadout.as_ref())?;
             state.loadout = Some(loadout);
@@ -905,9 +924,16 @@ pub fn ingest_server_text(state: &mut ToolState, text: &str) -> Result<(), &'sta
             solids,
             geometry_version,
             presentation,
+            mission,
         }) => {
             fragr_server::protocol::validate_map_geometry(half_extent, &solids, geometry_version)?;
             protocol::validate_map_presentation(presentation.as_ref(), &solids)?;
+            state.mission.replace_map(
+                mission.as_ref(),
+                half_extent,
+                &solids,
+                presentation.as_ref(),
+            )?;
             state.map = Some(serde_json::json!({
                 "map_id": map_id,
                 "map_name": map_name,
@@ -915,6 +941,7 @@ pub fn ingest_server_text(state: &mut ToolState, text: &str) -> Result<(), &'sta
                 "solids": solids,
                 "geometry_version": geometry_version,
                 "presentation": presentation,
+                "mission": mission,
             }));
         }
         Ok(protocol::ServerMessage::Event(event)) => {
@@ -924,10 +951,14 @@ pub fn ingest_server_text(state: &mut ToolState, text: &str) -> Result<(), &'sta
         }
         Ok(protocol::ServerMessage::Welcome { player_id, .. }) => {
             state.loadout = None;
+            state.mission = Default::default();
             state.player_id = player_id;
             state.connected = true;
         }
         Ok(protocol::ServerMessage::Error { code, .. }) => {
+            if code == "party_full" {
+                return Err("mission party is full");
+            }
             if code == "unsupported_gameplay" {
                 return Err("server requires a newer gameplay format");
             }
@@ -947,6 +978,9 @@ pub fn ingest_server_text(state: &mut ToolState, text: &str) -> Result<(), &'sta
             if raw.get("type").and_then(|v| v.as_str()) == Some("loadout") {
                 return Err("invalid loadout message");
             }
+            if raw.get("type").and_then(|v| v.as_str()) == Some("mission") {
+                return Err("invalid mission message");
+            }
             if raw.get("type").and_then(|v| v.as_str()) == Some("event") {
                 push_recent_event(state, raw);
             }
@@ -958,6 +992,63 @@ pub fn ingest_server_text(state: &mut ToolState, text: &str) -> Result<(), &'sta
 #[cfg(test)]
 mod mcp_tests {
     use super::*;
+
+    #[test]
+    fn mission_observe_and_use_share_the_server_contract() {
+        let map = fragr_server::maps::AuthoredMap::load(
+            &std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+                .join("../server/maps/m01-recall-notice.json"),
+        )
+        .unwrap();
+        let mut sim = fragr_server::sim::GameState::with_authored_map(map);
+        let id = Uuid::from_u128(1);
+        sim.add_player(id, "Partner".into(), protocol::Role::Agent);
+        let mut state = ToolState {
+            player_id: Some(id),
+            ..Default::default()
+        };
+        ingest_server_text(&mut state, &serde_json::to_string(&sim.map_info()).unwrap()).unwrap();
+        ingest_server_text(
+            &mut state,
+            &serde_json::to_string(&sim.mission_message().unwrap()).unwrap(),
+        )
+        .unwrap();
+        ingest_server_text(
+            &mut state,
+            &serde_json::to_string(&protocol::ServerMessage::Snapshot(sim.snapshot())).unwrap(),
+        )
+        .unwrap();
+        let observed = build_observe_result(&state);
+        assert_eq!(observed["mission"]["phase"], "find_transfer");
+        assert_eq!(observed["mission"]["party"][0]["id"], id.to_string());
+        assert_eq!(observed["map"]["mission"]["id"], "recall_notice");
+        assert!(
+            validate_act_arguments(&serde_json::json!({"interact":true}))
+                .unwrap()
+                .interact
+        );
+        assert!(
+            !validate_act_arguments(&serde_json::json!({"interact":false}))
+                .unwrap()
+                .interact
+        );
+        for value in [
+            serde_json::json!("true"),
+            serde_json::json!(1),
+            serde_json::Value::Null,
+        ] {
+            assert!(validate_act_arguments(&serde_json::json!({"interact":value})).is_err());
+        }
+        assert!(ingest_server_text(&mut state, r#"{"type":"mission","state":[]}"#).is_err());
+        let legacy = fragr_server::sim::GameState::new().map_info();
+        ingest_server_text(&mut state, &serde_json::to_string(&legacy).unwrap()).unwrap();
+        assert!(state.mission.state.is_none());
+        assert!(ingest_server_text(
+            &mut state,
+            &serde_json::to_string(&sim.mission_message().unwrap()).unwrap()
+        )
+        .is_err());
+    }
 
     #[test]
     fn map_versions_are_validated_before_observation_is_replaced() {

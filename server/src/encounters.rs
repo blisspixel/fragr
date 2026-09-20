@@ -25,7 +25,7 @@ impl Encounters {
     /// Called once per simulation tick, and on participant departure. Crossing
     /// a trigger repeatedly never respawns an active or completed encounter.
     pub fn update(&mut self, state: &mut GameState) {
-        if !state.map.has_encounters() {
+        if !state.map.is_campaign() {
             return;
         }
         let map = state.map.clone();
@@ -39,6 +39,7 @@ impl Encounters {
             .collect();
         if living.is_empty() {
             if !self.waiting_for_party {
+                state.reset_mission();
                 state.players.retain(|p| !p.is_campaign_enemy());
                 self.enemies.clear();
                 self.groups
@@ -51,6 +52,7 @@ impl Encounters {
             return;
         }
         self.waiting_for_party = false;
+        state.note_mission_started();
         for (index, definition) in definitions.iter().enumerate() {
             if let Group::Active(ids) = &self.groups[index] {
                 if ids
@@ -114,7 +116,7 @@ impl Encounters {
 
 impl GameState {
     pub(crate) fn update_encounters(&mut self) {
-        if self.map.has_encounters() {
+        if self.map.is_campaign() {
             let mut encounters = std::mem::take(&mut self.encounters);
             encounters.update(self);
             self.encounters = encounters;

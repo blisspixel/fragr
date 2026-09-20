@@ -34,7 +34,7 @@ exist as assets, but require a story and language audit before selection. The ol
 radio-only ending cannot be integrated as the new campaign's actual ending. The initial art receipt was $0.69; current remaining provider credit
 must be checked before any new call rather than inferred from that old balance.
 
-**Not built yet (honest list):** low-latency transport (WebSocket JSON only), live client prediction (shared movement vectors exist), authentication or join tokens, per-connection rate limits and size caps, reconnect resume, release builds attached to tags, protocol versioning, a status endpoint, persistent stats, progression, DJ bumpers and a voiced Host, a single-player campaign (only one boss beat exists), a complete art pass on sprites, guns, and levels, public-server load tests, any cloud apply, vehicles, and objective modes. A deterministic local benchmark already exists; it does not establish public-server readiness.
+**Not built yet (honest list):** low-latency transport (WebSocket JSON only), live client prediction (shared movement vectors exist), authentication or join tokens, per-connection rate limits and size caps, reconnect resume, packaged release downloads, a complete protocol migration policy (geometry/gameplay admission capabilities exist), a status endpoint, persistent stats, progression, DJ bumpers and a voiced Host, a finished single-player campaign or full co-op lifecycle, a complete art pass on sprites, guns, and levels, public-server load tests, any cloud apply, vehicles, and multiplayer objective modes. M01 has a developing discovery/combat/mission slice; Episode 0 remains a separate arena prototype. A deterministic local benchmark already exists; it does not establish public-server readiness.
 
 ## What is next, in order (as of 2026-09-20)
 
@@ -52,7 +52,7 @@ finished campaign or final art pass. No paid calls were made for this increment.
 The [benchmark increment](plans/showcase-benchmark.md) shipped in v0.16.0 with complete
 recordings and explicit CPU/serialization accounting. Its contract lives in
 [`BENCHMARK.md`](BENCHMARK.md). A rendered GPU benchmark, authored world art, and
-campaign encounters remain open; headless numbers do not establish them.
+finished campaign encounters remain open; headless numbers do not establish them.
 
 The [GPU bot evaluation](plans/gpu-bot-compute.md) investigates portable Rust
 compute for batched perception and optional local inference. Profile and measure
@@ -96,7 +96,7 @@ navigation maps. [Enclosed campaign geometry](plans/campaign-spaces.md) shipped 
 now brings M01's connected blockout, indoor spawns and institutional surface kits
 through the live server. [M01 discovery](plans/m01-weapon-discovery.md) now adds
 fists, recovered Tack/Flechette, finite ammunition, reload and individual supply
-claims. The [intake encounter](plans/m01-intake-encounter.md) is in flight:
+claims. The [intake encounter](plans/m01-intake-encounter.md) shipped its prototype in #182:
 bounded authoring, allied participants and Clerk/Sweeper server phases have local
 tests, including live wire admission. The draft M01 now places a guarded
 confiscation threshold and two bots approaching from below records. Both routes
@@ -108,8 +108,13 @@ character/encounter presentation and fresh-player pacing review remain pending.
 The [facility detail pass](plans/m01-facility-detail.md) adds bounded face panels,
 keyed world signs, issued lockers, service vents and practical lights to this
 prototype. These identify the rooms without adding client-only collision.
-Interaction and checkpoint state follow. This foundation is not a finished
-campaign or proven co-op balance.
+The [mission sequence](plans/m01-mission-sequence.md) is locally implemented:
+physical transfer-record use, a real lift gate, four-participant admission and
+shared deliberate departure. M01 tests exercise both routes through combat and
+departure. Local rendered, live party and six-map multiplayer checks pass;
+hosted integration is tracked in #183. Checkpoints,
+the opening scene, full encounter population and finished art remain. This
+foundation is not a finished campaign or proven co-op balance.
 
 [Opening spawn placement](plans/opening-spawns.md) shipped in #175 and v0.21.2.
 Warmup joins now use the same cover selector as active joins and respawns. The

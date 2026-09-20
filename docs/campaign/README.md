@@ -1,7 +1,8 @@
 # Mission plans
 
-Detailed proposed level plans for the twelve-mission campaign. None is built or
-playtested. The [campaign contract](../CAMPAIGN.md) distinguishes confirmed story
+Detailed level plans for the twelve-mission campaign. M01 has a tested development
+slice; no complete mission has reached the design's quality gate. The
+[campaign contract](../CAMPAIGN.md) distinguishes confirmed story
 from proposals; the [treatment](../CAMPAIGN-MISSIONS.md) gives the complete arc.
 This directory owns room sequence, cast staging, encounter beats and mission
 state proposals. Working names are defined in [cast](../lore/cast.md).

@@ -416,6 +416,7 @@ impl ArenaPickup {
 
 pub struct GameState {
     pub(crate) encounters: crate::encounters::Encounters,
+    pub(crate) mission: Option<crate::mission::MissionRun>,
     /// Offline recordings opt into stable entity identities. Live sessions keep
     /// UUIDv4; identity allocation must not consume the gameplay random stream.
     replay_id_counter: Option<u128>,
@@ -482,6 +483,7 @@ pub struct Player {
     pub pending_action: Action,
     /// A press survives newer released input until one simulation tick observes it.
     jump_requested: bool,
+    pub(crate) interaction_requested: bool,
     pub fire_cooldown: u32,
     pub respawn_timer: Option<u32>,
     pub just_fired: bool,
@@ -528,6 +530,7 @@ impl Player {
             armor: 0,
             pending_action: Action::default(),
             jump_requested: false,
+            interaction_requested: false,
             fire_cooldown: 0,
             respawn_timer: None,
             just_fired: false,
@@ -604,11 +607,11 @@ impl GameState {
         }
     }
 
-    /// Traversal authoring has no arcade clock, escalation or round rotation.
-    /// It is deliberately separate from the future campaign objective lifecycle.
+    /// Authored missions and traversal have no arcade clock or escalation.
     pub fn with_authored_map(map: std::sync::Arc<crate::maps::AuthoredMap>) -> Self {
         let map = crate::maps::RuntimeMap::Authored(map);
         Self {
+            mission: crate::mission::MissionRun::new(&map),
             pickups: map.pickups(),
             map,
             round_state: RoundState::Active,
@@ -772,8 +775,9 @@ impl GameState {
             self.map.spawn(angle),
             self.map.equipment_policy(),
         );
-        if self.map.has_encounters() {
+        if self.map.is_campaign() {
             player.campaign = Some(crate::protocol::CampaignActor::Participant {});
+            self.note_mission_started();
         }
         self.players.push(player);
 
@@ -826,6 +830,7 @@ impl GameState {
             action.weapon_swap = action.weapon_swap.or(player.pending_action.weapon_swap);
             action.reload |= player.pending_action.reload;
             player.jump_requested |= action.jump;
+            player.interaction_requested |= action.interact && !player.pending_action.interact;
             player.pending_action = action;
         }
     }
@@ -866,6 +871,7 @@ impl GameState {
         ServerMessage::MapInfo {
             geometry_version: crate::protocol::geometry_version(&self.map.arena().solids),
             presentation: self.map.presentation(),
+            mission: self.map.mission().cloned(),
             map_id: self.map.id(),
             map_name: self.map.name().to_string(),
             half_extent: self.map.half_extent(),
@@ -969,6 +975,13 @@ impl GameState {
             }
         }
 
+        self.update_encounters();
+        if self.mission_departed() {
+            for player in &mut self.players {
+                player.just_fired = false;
+            }
+            return;
+        }
         let map = self.map.clone();
         self.tick_active(dt, map.arena());
     }
@@ -976,7 +989,6 @@ impl GameState {
     /// Resolve the active frame against one immutable world. Movement and shots
     /// must consume the same volumes, including their lower vertical bounds.
     fn tick_active(&mut self, dt: f32, arena: &crate::movement::Arena) {
-        self.update_encounters();
         let mut respawn_ids = Vec::new();
         let move_speed = if self.compliance_ticks_left > 0 {
             MOVE_SPEED * 0.5
@@ -1349,6 +1361,7 @@ impl GameState {
             }
         }
 
+        self.advance_mission();
         for id in respawn_ids {
             self.do_respawn(id);
         }
@@ -1572,7 +1585,9 @@ impl GameState {
             } else {
                 None
             },
-            host_line: if self.map.is_authored() {
+            host_line: if self.map.mission().is_some() {
+                String::new()
+            } else if self.map.is_authored() {
                 if self.map.has_encounters() {
                     "Campaign development: introductory encounters; objectives and extraction remain in progress."
                 } else {
@@ -1874,6 +1889,7 @@ impl GameState {
             pending_action: Action::default(),
             jump_requested: false,
             fire_cooldown: 0,
+            interaction_requested: false,
             respawn_timer: None,
             just_fired: false,
             role: Role::Agent,
@@ -2126,6 +2142,7 @@ impl GameState {
             pending_action: Action::default(),
             jump_requested: false,
             fire_cooldown: 0,
+            interaction_requested: false,
             respawn_timer: None,
             just_fired: false,
             role: Role::Agent,
@@ -2339,6 +2356,7 @@ impl Default for GameState {
     fn default() -> Self {
         Self {
             encounters: crate::encounters::Encounters::default(),
+            mission: None,
             replay_id_counter: None,
             rng_state: 0x2545_F491_4F6C_DD1D,
             tick: 0,

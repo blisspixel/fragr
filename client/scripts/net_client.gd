@@ -1,7 +1,7 @@
 extends Node
 
-# Version 2 adds equipment; version 3 adds campaign allegiance and enemy phases.
-const GAMEPLAY_VERSION: int = 3
+# Version 4 adds physical mission controls and shared departure state.
+const GAMEPLAY_VERSION: int = 4
 
 signal connected_to_server
 signal disconnected_from_server
@@ -12,8 +12,11 @@ signal event_received(data)
 ## Per-tick acknowledgement of the newest input the server applied to us.
 signal ack_received(data)
 signal loadout_received(data: Dictionary)
+signal mission_received(data: Dictionary)
 
 var equipment: Dictionary = {}
+var mission_geometry: Dictionary = {}
+var mission: Dictionary = {}
 
 var socket = WebSocketPeer.new()
 var connection_state = WebSocketPeer.STATE_CLOSED
@@ -49,6 +52,8 @@ func connect_to_server(p_role: String = "spectator", p_name: String = "Player"):
 	player_name = p_name
 	player_id = null
 	equipment.clear()
+	mission.clear()
+	mission_geometry.clear()
 
 	# Godot WebSocketPeer is not reliably reusable after close. Always start fresh
 	# so J/L join-leave-reconnect cannot soft-prison on a dead peer.
@@ -73,6 +78,8 @@ func disconnect_from_server():
 	connection_state = WebSocketPeer.STATE_CLOSED
 	player_id = null
 	equipment.clear()
+	mission.clear()
+	mission_geometry.clear()
 	set_process(false)
 	disconnected_from_server.emit()
 
@@ -106,6 +113,8 @@ func send_action(action: Dictionary):
 	var swap = action.get("weapon_swap", null)
 	if action.get("reload", false):
 		msg["reload"] = true
+	if action.get("interact", false):
+		msg["interact"] = true
 	if swap != null and str(swap) != "":
 		msg["weapon_swap"] = str(swap)
 	# Client-owned facing and the input number the server acknowledges. Both are
@@ -142,6 +151,8 @@ func _process(_delta):
 		elif state == WebSocketPeer.STATE_CLOSED:
 			player_id = null
 			equipment.clear()
+			mission.clear()
+			mission_geometry.clear()
 			print("Disconnected from server")
 			set_process(false)
 			disconnected_from_server.emit()
@@ -170,16 +181,31 @@ func _handle_message(text: String):
 	match msg_type:
 		"welcome":
 			equipment.clear()
+			mission.clear()
+			mission_geometry.clear()
 			player_id = data.get("player_id")
 			print("Welcome received! Role: ", data.get("role"), " Player ID: ", player_id, " Mode: ", data.get("mode_name", "Contested Frequency"), "/", data.get("playlist", "Arena Duel"))
 		
 		"map_info":
 			var problem: String = MapGeometry.validation_error(data)
+			if problem.is_empty():
+				problem = MissionState.map_error(data)
 			if problem != "":
 				disconnect_from_server()
 				server_error.emit(problem)
 				return
+			mission.clear()
+			mission_geometry = data["mission"] if data.get("mission") is Dictionary else {}
 			map_info_received.emit(data)
+			mission_received.emit({})
+		"mission":
+			var problem: String = MissionState.validation_error(data, mission_geometry, mission)
+			if not problem.is_empty():
+				disconnect_from_server()
+				server_error.emit(problem)
+				return
+			mission = data
+			mission_received.emit(data["state"])
 		"loadout":
 			var problem: String = EquipmentState.validation_error(data, player_id, equipment)
 			if not problem.is_empty():
@@ -189,6 +215,9 @@ func _handle_message(text: String):
 			equipment = data
 			loadout_received.emit(data)
 		"error":
+			if data.get("code") == "party_full":
+				disconnect_from_server()
+				server_error.emit(tr("MISSION_PARTY_FULL"))
 			if data.get("code") in ["unsupported_geometry", "unsupported_gameplay"]:
 				disconnect_from_server()
 				server_error.emit("This server needs a newer client. Update to join.")

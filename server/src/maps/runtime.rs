@@ -29,6 +29,27 @@ impl PartialEq<MapKind> for RuntimeMap {
 }
 
 impl RuntimeMap {
+    pub fn mission(&self) -> Option<&crate::protocol::MissionGeometry> {
+        match self {
+            Self::BuiltIn(_) => None,
+            Self::Authored(map) => map.mission.as_ref(),
+        }
+    }
+
+    pub fn opened_route(&self) -> Option<Self> {
+        match self {
+            Self::BuiltIn(_) => None,
+            Self::Authored(map) => map
+                .opened_route
+                .as_ref()
+                .map(|opened| Self::Authored(opened.clone())),
+        }
+    }
+
+    pub fn is_campaign(&self) -> bool {
+        self.has_encounters() || self.mission().is_some()
+    }
+
     pub(crate) fn encounters(&self) -> &[super::authored::encounters::EncounterDefinition] {
         match self {
             Self::BuiltIn(_) => &[],
@@ -84,9 +105,13 @@ impl RuntimeMap {
     }
 
     pub fn presentation(&self) -> Option<crate::protocol::MapPresentation> {
+        self.presentation_ref().cloned()
+    }
+
+    pub fn presentation_ref(&self) -> Option<&crate::protocol::MapPresentation> {
         match self {
             Self::BuiltIn(_) => None,
-            Self::Authored(map) => Some(map.presentation.clone()),
+            Self::Authored(map) => Some(&map.presentation),
         }
     }
 

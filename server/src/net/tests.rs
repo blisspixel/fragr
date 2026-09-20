@@ -90,3 +90,76 @@ async fn server_rejects_unsupported_geometry_configuration() {
         assert!(matches!(result, Err(error) if error.kind() == std::io::ErrorKind::InvalidInput));
     }
 }
+
+#[tokio::test]
+async fn mission_admission_bounds_participants_and_keeps_spectators_separate() {
+    let (tx, mut commands) = mpsc::unbounded_channel();
+    let server = NetServer::bind_with_requirements("127.0.0.1:0", tx, 2, 4)
+        .await
+        .unwrap();
+    let address = server.local_addr().unwrap();
+    let accept = tokio::spawn(server.accept_loop());
+    let mut joined = Vec::new();
+    for (role, version, expected) in [
+        ("human", 3, "unsupported_gameplay"),
+        ("human", 4, "welcome"),
+        ("agent", 4, "welcome"),
+        ("human", 4, "welcome"),
+        ("agent", 4, "welcome"),
+        ("human", 4, "party_full"),
+        ("agent", 4, "party_full"),
+        ("spectator", 4, "welcome"),
+    ] {
+        let (mut socket, _) = connect_async(format!("ws://{address}")).await.unwrap();
+        socket.send(Message::Text(serde_json::json!({
+            "type":"hello","role":role,"name":"Visitor","geometry_version":2,"gameplay_version":version
+        }).to_string())).await.unwrap();
+        let reply = timeout(Duration::from_secs(2), socket.next())
+            .await
+            .unwrap()
+            .unwrap()
+            .unwrap();
+        let reply: ServerMessage = serde_json::from_str(reply.to_text().unwrap()).unwrap();
+        if expected == "welcome" {
+            assert!(matches!(reply, ServerMessage::Welcome { .. }));
+            assert!(matches!(
+                timeout(Duration::from_secs(2), commands.recv())
+                    .await
+                    .unwrap(),
+                Some(GameCommand::Connected { .. })
+            ));
+            joined.push(socket);
+        } else {
+            assert!(matches!(reply, ServerMessage::Error { code, .. } if code == expected));
+            assert!(commands.try_recv().is_err());
+        }
+    }
+    assert_eq!(joined.len(), 5);
+    let mut departed = joined.remove(0);
+    departed.close(None).await.unwrap();
+    assert!(matches!(
+        timeout(Duration::from_secs(2), commands.recv())
+            .await
+            .unwrap(),
+        Some(GameCommand::Disconnected { .. })
+    ));
+    let (mut replacement, _) = connect_async(format!("ws://{address}")).await.unwrap();
+    replacement.send(Message::Text(serde_json::json!({"type":"hello","role":"agent","name":"Replacement","geometry_version":2,"gameplay_version":4}).to_string())).await.unwrap();
+    let reply = timeout(Duration::from_secs(2), replacement.next())
+        .await
+        .unwrap()
+        .unwrap()
+        .unwrap();
+    assert!(matches!(
+        serde_json::from_str::<ServerMessage>(reply.to_text().unwrap()).unwrap(),
+        ServerMessage::Welcome {
+            player_id: Some(_),
+            ..
+        }
+    ));
+    for mut socket in joined {
+        socket.close(None).await.unwrap();
+    }
+    replacement.close(None).await.unwrap();
+    accept.abort();
+}

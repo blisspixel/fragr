@@ -5,9 +5,9 @@ weapon discovery and a draft introductory encounter. Its two routes, stairs,
 balcony, office and lift use normal movement. Enter with fists, find Tack and
 Flechette, collect ammunition and reload.
 One Clerk and two Sweepers use authoritative attack, hit and death states.
-Enemy artwork and animation remain provisional. Interaction, extraction and
-checkpoints are not implemented here.
-Do not present a successful route or reload as campaign completion.
+Enemy artwork and animation remain provisional. The physical transfer record
+opens the custody lift; the party can then depart together. This ends the current
+prototype, not a finished M01 or the rescue. Checkpoints and M02 are not built.
 
 From the repository root:
 
@@ -54,6 +54,18 @@ support, not the campaign menu's finished first mission.
   reachable `feet`, and bounded `yaw`, just like a spawn. Unknown fields are
   rejected. No scripts or arbitrary behavior expressions. These maps require
   gameplay capability 3. See [actor semantics](../../docs/protocol.md#campaign-actor-identity).
+- `mission`: optional, discovery only, requires capability 4. The registered
+  `id` is `recall_notice`. `record` and `departure` each contain `panel` (the same
+  authored decoration shape) and `approach` feet coordinates. The panel kinds
+  must be `terminal` and `lift_control`, hosted on stationary solids. These panels
+  are appended to the shared presentation; do not duplicate them in `decorations`.
+  `gate` names one `solid` and a finite vertical `lift` from 0.125 through 16 metres.
+  `boarding` is an ordered inclusive `min`/`max` box containing the departure
+  approach. Both approaches must stand, see and reach their panels in both gate
+  states. Record access must remain open; departure must be unreachable until the
+  gate opens. Spawns remain accessible with it closed; other landmarks, supplies
+  and enemy placements may be reachable after opening. Both immutable worlds and
+  their navigation are validated before binding. No navigation is rebuilt on tick.
 
 M01's Clerk enters around the inspection partition after safe weapon discovery.
 The two Sweepers activate after that fight when a participant enters the intake
@@ -78,7 +90,8 @@ Optional `decorations` attaches thin cosmetic panels to solid faces. For example
 The authoring `solid` is a stable ID, resolved to a validated wire index. The
 shared [wire contract](../../docs/protocol.md#mapinfo) defines six face axes,
 registered kinds, finite dimensions, host bounds, 128-panel and eight-light limits.
-Panels do not add blocking geometry or interactive terminals. Add a solid for
+Decorations alone do not add blocking geometry or interactive terminals. Mission
+controls explicitly attach authority to their registered panels. Add a solid for
 anything that should stop movement or shots. The client supplies original pixel
 panels and keyed English text from `client/i18n/world.en.po`; no text, scripts or
 resource paths can be embedded in the map.

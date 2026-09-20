@@ -2,7 +2,7 @@ use crate::protocol::{ClientMessage, Role, ServerMessage};
 use futures_util::{SinkExt, StreamExt};
 use std::sync::Arc;
 use tokio::net::{TcpListener, TcpStream};
-use tokio::sync::{mpsc, Mutex};
+use tokio::sync::{mpsc, Mutex, Semaphore};
 use tokio_tungstenite::{accept_async, tungstenite::Message};
 use uuid::Uuid;
 
@@ -23,6 +23,7 @@ pub struct NetServer {
     game_tx: mpsc::UnboundedSender<GameCommand>,
     geometry_version: u32,
     gameplay_version: u32,
+    party_slots: Option<Arc<Semaphore>>,
 }
 
 pub enum GameCommand {
@@ -92,6 +93,8 @@ impl NetServer {
             game_tx,
             geometry_version,
             gameplay_version,
+            party_slots: (gameplay_version >= crate::protocol::MISSION_GAMEPLAY_VERSION)
+                .then(|| Arc::new(Semaphore::new(crate::protocol::MISSION_PARTY_LIMIT))),
         })
     }
 
@@ -108,6 +111,7 @@ impl NetServer {
                     let clients = self.clients.clone();
                     let geometry_version = self.geometry_version;
                     let gameplay_version = self.gameplay_version;
+                    let party_slots = self.party_slots.clone();
 
                     tokio::spawn(async move {
                         if let Err(e) = handle_connection(
@@ -116,6 +120,7 @@ impl NetServer {
                             clients,
                             geometry_version,
                             gameplay_version,
+                            party_slots,
                         )
                         .await
                         {
@@ -137,6 +142,7 @@ async fn handle_connection(
     clients: Arc<Mutex<Vec<ClientSession>>>,
     required_geometry: u32,
     required_gameplay: u32,
+    party_slots: Option<Arc<Semaphore>>,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let ws_stream = accept_async(stream).await?;
     let (mut ws_sink, mut ws_stream) = ws_stream.split();
@@ -146,6 +152,9 @@ async fn handle_connection(
 
     let role;
     let player_id;
+    // The seat stays reserved through welcome, registration and disconnect.
+    // RAII also returns it after any failed handshake/send.
+    let _party_seat;
 
     if let Some(Ok(Message::Text(text))) = ws_stream.next().await {
         match serde_json::from_str::<ClientMessage>(&text) {
@@ -177,6 +186,27 @@ async fn handle_connection(
                     ws_sink.close().await?;
                     return Ok(());
                 }
+                _party_seat = if r != Role::Spectator {
+                    match party_slots {
+                        Some(slots) => match slots.try_acquire_owned() {
+                            Ok(seat) => Some(seat),
+                            Err(_) => {
+                                let rejection = ServerMessage::Error {
+                                    code: "party_full".into(),
+                                    message: "This mission supports four participants; join as a spectator or wait for a seat.".into(),
+                                };
+                                ws_sink
+                                    .send(Message::Text(serde_json::to_string(&rejection)?))
+                                    .await?;
+                                ws_sink.close().await?;
+                                return Ok(());
+                            }
+                        },
+                        None => None,
+                    }
+                } else {
+                    None
+                };
                 role = Some(r);
 
                 player_id = if r != Role::Spectator {

@@ -132,6 +132,8 @@ func _run() -> void:
 			await _set_aim_pitch(atan2(direction.y, Vector2(direction.x, direction.z).length()))
 		if state.get("empty_magazine", false):
 			await _empty_magazine()
+		if state.has("interact"):
+			await _use_mission_control(str(state["interact"]))
 		if state.get("overlay", "") == "match_menu":
 			_game_manager().get_node("PauseMenu").call("open")
 		if state.get("overlay", "") == "match_settings":
@@ -537,6 +539,35 @@ func _local_feet() -> Vector3:
 	push_error("qa_tour: movement probe has no live human")
 	_failed = true
 	return Vector3(INF, INF, INF)
+
+func _use_mission_control(expected_phase: String) -> void:
+	var network: Node = _game_manager().get("net_client")
+	var deadline: int = Time.get_ticks_msec() + 2000
+	while Time.get_ticks_msec() < deadline:
+		var mission: Dictionary = network.get("mission")
+		var prompts: Array = mission.get("state", {}).get("prompts", [])
+		var available: bool = false
+		for prompt: Dictionary in prompts:
+			available = available or str(prompt["player_id"]) == str(network.get("player_id"))
+		if available:
+			break
+		await create_timer(0.05).timeout
+	var press: InputEventKey = InputEventKey.new()
+	press.physical_keycode = KEY_F
+	press.pressed = true
+	Input.parse_input_event(press)
+	var release: InputEventKey = press.duplicate()
+	release.pressed = false
+	Input.parse_input_event(release)
+	deadline = Time.get_ticks_msec() + 2000
+	while Time.get_ticks_msec() < deadline:
+		var mission: Dictionary = network.get("mission")
+		if mission.get("state", {}).get("phase") == expected_phase:
+			print("qa_tour: mission reached ", expected_phase)
+			return
+		await create_timer(0.05).timeout
+	push_error("qa_tour: physical use did not reach " + expected_phase)
+	_failed = true
 
 func _record_movement() -> void:
 	var feet: Vector3 = _local_feet()

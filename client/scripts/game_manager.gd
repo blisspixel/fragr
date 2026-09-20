@@ -38,6 +38,7 @@ var action_state = {
 	"fire": false,
 	"jump": false,
 	"reload": false,
+	"interact": false,
 	"weapon_swap": null,
 	"yaw": 0.0,
 	"pitch": 0.0,
@@ -54,6 +55,9 @@ var speak_line_index = 0
 var pending_weapon_swap = null
 var pending_jump: bool = false
 var pending_reload: bool = false
+var pending_interact: bool = false
+var interact_held: bool = false
+var mission_hud: MissionHud
 
 var arena_cover: ArenaCover = null
 var current_map_info: Dictionary = {}
@@ -67,6 +71,8 @@ var last_shot_tick: int = -1
 var mouse_capture: MouseCapture
 
 func _ready():
+	mission_hud = MissionHud.new()
+	hud.add_child(mission_hud)
 	mouse_capture = MouseCapture.new()
 	add_child(mouse_capture)
 	shot_effects = ShotEffects.new()
@@ -79,6 +85,7 @@ func _ready():
 	_apply_preferences()
 	net_client.snapshot_received.connect(_on_snapshot_received)
 	net_client.loadout_received.connect(_on_loadout_received)
+	net_client.mission_received.connect(_on_mission_received)
 	net_client.map_info_received.connect(_on_map_info)
 	net_client.event_received.connect(_on_event_received)
 	net_client.ack_received.connect(_on_ack_received)
@@ -171,7 +178,7 @@ func _apply_preferences() -> void:
 	hud.apply_preferences(settings)
 
 func controls_blocked() -> bool:
-	return role_transition or (mouse_capture != null and not mouse_capture.gameplay_input_allowed()) or (console != null and console.is_open()) or (pause_menu != null and pause_menu.is_open())
+	return role_transition or (mission_hud != null and mission_hud.state.get("phase") == "departed") or (mouse_capture != null and not mouse_capture.gameplay_input_allowed()) or (console != null and console.is_open()) or (pause_menu != null and pause_menu.is_open())
 
 ## The controls card. Shown on every join, including pressing J mid-match,
 ## because a player who joined from the booth never saw the boot one.
@@ -253,12 +260,17 @@ func _load_audio_streams():
 		round_end_sound.stream = load(audio_dir + "round_end.wav")
 
 func _input(_event):
+	if _event.is_action_released("interact"):
+		interact_held = false
 	if controls_blocked():
 		return
 	if is_human_player and _event.is_action_pressed("jump"):
 		pending_jump = true
 	if is_human_player and _event.is_action_pressed("reload"):
 		pending_reload = true
+	if is_human_player and _event.is_action_pressed("interact"):
+		pending_interact = true
+		interact_held = true
 	# InputMap actions (keyboard + joypad). Same join/leave path.
 	if Input.is_action_just_pressed("join_as_human") and not is_human_player:
 		change_role(true)
@@ -278,6 +290,8 @@ func change_role(play: bool) -> void:
 	role_transition = true
 	pending_jump = false
 	pending_reload = false
+	pending_interact = false
+	interact_held = false
 	net_client.disconnect_from_server()
 	is_human_player = play
 	_clear_fp_state()
@@ -320,6 +334,7 @@ func _process(_delta):
 		action_state.fire = Input.is_action_pressed("fire")
 		action_state.jump = pending_jump or Input.is_action_pressed("jump")
 		action_state.reload = pending_reload
+		action_state.interact = pending_interact or interact_held
 		# Client-owned yaw: the server takes the absolute facing and never turns
 		# us at a fixed rate, so the look axis does not round-trip. Turn bits stay
 		# zero for humans and remain the path for agents and older clients.
@@ -327,7 +342,8 @@ func _process(_delta):
 			action_state.yaw = camera.consume_yaw()
 			action_state.pitch = camera.consume_pitch()
 		if controls_blocked():
-			for key in ["forward", "back", "left", "right", "fire", "jump", "reload"]:
+			interact_held = false
+			for key in ["forward", "back", "left", "right", "fire", "jump", "reload", "interact"]:
 				action_state[key] = false
 			pending_weapon_swap = null
 		action_state.turn_left = false
@@ -339,6 +355,11 @@ func _process(_delta):
 		net_client.send_action(action_state)
 		pending_jump = false
 		pending_reload = false
+		pending_interact = false
+
+func _on_mission_received(state: Dictionary) -> void:
+	if mission_hud != null:
+		mission_hud.apply(state, str(net_client.player_id) if is_human_player else "")
 
 func _has_local_input_target() -> bool:
 	# An open socket precedes the first snapshot. Sending the default camera aim
@@ -426,6 +447,10 @@ func _on_server_error(message: String) -> void:
 func _clear_world() -> void:
 	pending_jump = false
 	pending_reload = false
+	pending_interact = false
+	interact_held = false
+	if mission_hud != null:
+		mission_hud.apply({}, "")
 	pending_weapon_swap = null
 	latest_snapshot.clear()
 	hud.equipment_hud.apply({})
@@ -512,6 +537,7 @@ func _on_snapshot_received(data):
 	hud.set_player_count(participant_list.size())
 	hud.sync_scores_from_players(participant_list)
 	hud.set_round_info(round_state, round_time_left, frag_limit)
+	hud.round_label.visible = not current_map_info.has("mission") or current_map_info["mission"] == null
 	_maybe_rehydrate_ended_mvp(data, round_state)
 	_maybe_assign_ghost_rival(participant_list)
 	

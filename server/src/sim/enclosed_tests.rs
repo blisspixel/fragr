@@ -216,6 +216,7 @@ fn export_enclosed_capture() {
         "dt": 0.05,
         "map": ServerMessage::MapInfo {
             presentation: None,
+            mission: None,
             map_id: 1,
             map_name: "Enclosed geometry fixture".into(),
             half_extent: arena.half,
