@@ -44,7 +44,9 @@ local map file. Commands and scope are in [`server/maps/README.md`](../../server
 It walks both stairs and the balcony underpass through live input, now clearing
 the draft opening encounter along the way. `m01-discovery.json` checks ammunition
 and reload; `m01-encounters.json` and `m01-maintenance.json` capture the two combat
-approaches. Enemy artwork remains provisional and objectives are unbuilt. These
+approaches. The main tour now observes both enemy types firing before fighting
+back and records their actual sprite frames with the server phases. Enemy artwork
+remains under review and objectives are unbuilt. These
 runs do not replace the release gallery or prove a finished mission.
 
 Use `res://qa/weapons.json` with the same zero-bot practice settings for close

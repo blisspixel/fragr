@@ -27,9 +27,10 @@ Current work: [`local excellence`](docs/plans/local-excellence.md), a bounded po
 The opening mission has an opt-in [development slice](server/maps/README.md):
 enclosed intake rooms, two stair routes, an accessible records balcony, a
 prisoner lift and fists-to-found-gun progression with finite ammo and reload.
-The current draft adds one Clerk and two Sweepers with server-owned attack
-phases. Enemy artwork and animation remain provisional; mission objectives,
-checkpoints and extraction are still unbuilt.
+The current draft adds one human Clerk and two Sweeper bots with server-owned
+attack phases and directional walk, raise, recoil, pain, melee and collapse
+poses. Character art is still under review; mission objectives, checkpoints and
+extraction are unbuilt.
 
 ## Screenshots
 

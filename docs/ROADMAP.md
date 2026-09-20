@@ -100,8 +100,11 @@ claims. The [intake encounter](plans/m01-intake-encounter.md) is in flight:
 bounded authoring, allied participants and Clerk/Sweeper server phases have local
 tests, including live wire admission. The draft M01 now places a guarded
 confiscation threshold and two bots approaching from below records. Both routes
-have finite-equipment combat tests and rendered client runs. Character animation,
-finished encounter presentation and fresh-player pacing review remain pending.
+have finite-equipment combat tests and rendered client runs. Original directional
+human/bot sprites now follow walking, attack, pain, melee and death state, with
+source and bake verification. OpenGL main-hall and Vulkan maintenance captures
+are inspected; a second spectator client follows the live human run. Finished
+character/encounter presentation and fresh-player pacing review remain pending.
 Interaction and checkpoint state follow. This foundation is not a finished
 campaign or proven co-op balance.
 

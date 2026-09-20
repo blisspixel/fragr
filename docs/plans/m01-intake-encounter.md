@@ -270,3 +270,71 @@ upright for their bounded lifetime. These are release blockers. Produce the
 reviewed human/bot references and animation set, including melee fallback and
 death, then repeat both approaches and spectator eyes. Do not publish these
 placeholders as finished character art. No credits were spent in this increment.
+
+## Directional character increment, 2026-09-20
+
+The first local model study was rejected for toy-like block limbs and helmet.
+The revised human has shaped cloth, a visible face, open helmet and issued armor;
+the bot has covered mechanical limbs, a status slit and battery pack. Both retain
+the Union palette. Original joint poses now supply eight directions of movement,
+weapon raise, recoil, recovery, pain, collapse and exhausted melee. This improves
+the placeholder bodies; it does not establish finished character production.
+
+Source and reproducible bake instructions live in
+[`client/art/characters/README.md`](../../client/art/characters/README.md).
+`enemy_animation.gd` owns the shared layout and presentation selection;
+`enemy_view.gd` binds validated state through the existing pawn. Gait follows
+distance, resolved shots start recoil, stale windup never predicts a shot, and
+late corpses remain down. Enemy bodies retain fixed feet registration and scale,
+including hit feedback and broadcast cameras. Spawn facing now uses `ServerYaw`
+immediately instead of starting in the wrong convention.
+
+The offline baker rejects empty/clipped tiles and records source/output hashes.
+The client harness checks every tile, pose progression, actual corpse pixels,
+direction conventions, repeated snapshots, teleport exclusion, the live pawn's
+render selection and stale bakes. Source files are excluded from player exports.
+Recovery is a lowering/regrip pose: the wire does not distinguish a reload, so
+there is no invented client reload state.
+
+| Asset property | Per archetype | Both archetypes |
+|---|---:|---:|
+| Poses times directions | 54 times 8 | 864 tiles |
+| Atlas pixels | 2880 by 3840 | 22,118,400 |
+| RGBA8 base texture allocation, calculated | 42.1875 MiB | 84.375 MiB |
+
+Textures load lazily and are shared across pawns. This allocation is not a GPU
+performance measurement. Assess loading and texture budgets before expanding the
+cast; a small PNG is not a small uncompressed texture.
+
+Rendered evidence on Windows/AMD Radeon 780M:
+
+| Run | Renderer | Evidence |
+|---|---|---|
+| Main intake | OpenGL | Clerk tell and shot, Sweeper movement and burst, hits and collapse; three enemies defeated with finite Tack ammunition |
+| Maintenance flank | Vulkan | Human and bot bodies, Flechette combat and bots traversing to the upper floor; three enemies defeated |
+| Separate spectator socket | OpenGL | Fourteen inspected-state captures following the human participant's actual ID through intake; no local pawn and no enemy selected as the watched player |
+
+Captures: `.agents/qa/m01-animated-bursts/`,
+`.agents/qa/m01-animated-maintenance-vk/`, `.agents/qa/m01-observer/` and its
+simultaneous driver `.agents/qa/m01-observer-driver/`. The main run observes four
+Sweeper shots before the pair falls; ending HP is 80. The maintenance run ends
+at 100 HP. These are controlled, accurately aiming runs, not fresh-player balance
+or fun evidence. The initial wrongly selected tour manifest failed and is not
+counted as evidence.
+
+All 22 Godot harnesses pass, including the new atlas/pawn regression. The prior
+663 Rust tests and 95.70 percent coverage baseline are unchanged by this client
+increment. The placement commit's five hosted checks passed before this work.
+No NVIDIA, macOS rendered combat, full co-op or agent-eye capture claim follows.
+The 21-state general tour was republished at
+`.agents/qa/m01-animation-regression/`; its contact sheet and both effect strips
+were inspected. The separate observer's contact sheet and close combat stills
+were inspected as well. Source changes need a fresh hosted CI run before merge.
+
+`SubViewport`, `Camera3D`, `SurfaceTool`, `SpriteBase3D`,
+[Sprite3D](https://docs.godotengine.org/en/stable/classes/class_sprite3d.html) and
+[FileAccess](https://docs.godotengine.org/en/stable/classes/class_fileaccess.html)
+were checked against official documentation on 2026-09-20. No paid requests were
+made. The draft remains open for character motion/art critique, environmental
+detail and first-run encounter pacing before integration. Full mission objectives,
+extraction, saves and co-op lifecycle remain separate bounded work.

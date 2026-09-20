@@ -71,6 +71,7 @@ If prose and code disagree, code wins; fix the prose in the same change. Keep pl
 | Client match orchestration, role, audio routing | `client/scripts/game_manager.gd` |
 | HUD, killfeed, Host bumpers | `client/scripts/hud.gd` |
 | Pawn presentation, first-person weapon face | `client/scripts/player_pawn.gd` |
+| Campaign enemy pose selection and sprites | `client/scripts/enemy_animation.gd`, `enemy_view.gd`; offline source and bake procedure in `client/art/characters/README.md`. Preserve server phase timing, resolved-shot recoil and fixed feet registration. |
 | Spectator cameras | `client/scripts/spectator_cam.gd` |
 | Desktop pointer ownership | `client/scripts/mouse_capture.gd`, owned by the match manager. Release on focus loss, close, and scene exit; automated scene trees set `fragr_automated` before loading gameplay and never capture the desktop. |
 | Boot menu, callsign, shared retro controls | `client/scripts/boot_menu.gd`, `menu_theme.gd`; maps are selected by the server |

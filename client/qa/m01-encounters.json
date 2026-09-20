@@ -1,11 +1,11 @@
 {
-  "comment": "Live M01 introductory fights. Uses normal human movement, aim, trigger and reload. Placeholder enemy art is not approved presentation.",
+  "comment": "Live M01 introductory fights. Uses normal human movement, aim, trigger and reload. Observe both enemy attack tells before returning fire.",
   "width": 1280,
   "height": 720,
   "states": [
     {"name":"safe_tack","scene":"res://scenes/main.tscn","join":"human","camera":"first_person","walk_to":[[0,0,-34],[0,0,-26]],"expect_equipment":{"selected":"tack","magazine":12,"reserve":36},"note":"Safe confiscated weapon before any threat."},
     {"name":"first_clerk","camera":"first_person","walk_to":[[0,0,-21]],"combat":{"kind":"clerk","defeat":1,"observe_first_shot":true},"note":"Guard approaches around the inspection partition. Deliberately observe one shot before returning fire; record real damage."},
-    {"name":"sweeper_arrival","camera":"first_person","walk_to":[[0,0,-10]],"combat":{"kind":"sweeper","defeat":2},"note":"Bots emerge around the records screen; finite Tack ammunition and manual reload."},
+    {"name":"sweeper_arrival","camera":"first_person","walk_to":[[0,0,-10]],"combat":{"kind":"sweeper","defeat":2,"observe_first_shot":true},"note":"Bots emerge around the records screen. Observe their attack, then fight with finite Tack ammunition and manual reload."},
     {"name":"hall_upgrade","camera":"first_person","walk_to":[[6,0,-10],[6,0,-9]],"expect_equipment":{"selected":"flechette","magazine":30,"reserve":90},"note":"Recover the next weapon before taking the public stairs."},
     {"name":"cleared_balcony","camera":"first_person","walk_to":[[8,0,-8],[8,3,9]],"look_at":[0,1.6,-7],"note":"The occupied hall is now cleared. This is only the opening encounter."}
   ]

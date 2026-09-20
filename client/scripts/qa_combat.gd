@@ -144,7 +144,13 @@ func run(tree: SceneTree, manager: Node, spec: Dictionary, output: String) -> Di
 			frame.resize(320, 180, Image.INTERPOLATE_BILINEAR)
 			frame.convert(Image.FORMAT_RGB8)
 			frames.append(frame)
-			samples.append({"ms": Time.get_ticks_msec(), "tick": snapshot["tick"], "target": target.duplicate(true), "hp": me.get("hp", 0)})
+			var sample: Dictionary = {"ms": Time.get_ticks_msec(), "tick": snapshot["tick"], "target": target.duplicate(true), "hp": me.get("hp", 0)}
+			var pawn: Node = manager.get("players").get(last_target_id)
+			if is_instance_valid(pawn):
+				var body: Sprite3D = pawn.get_node("Body")
+				sample["body_frame"] = body.frame
+				sample["body_scale"] = body.scale.x
+			samples.append(sample)
 	Input.action_release("fire")
 	network.snapshot_received.disconnect(_observe)
 	var saved: bool = false

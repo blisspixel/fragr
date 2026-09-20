@@ -1,0 +1,102 @@
+{
+	"clips": [
+		{
+			"action": "idle",
+			"count": 1,
+			"unarmed": false
+		},
+		{
+			"action": "walk",
+			"count": 8,
+			"unarmed": false
+		},
+		{
+			"action": "raise",
+			"count": 4,
+			"unarmed": false
+		},
+		{
+			"action": "fire",
+			"count": 2,
+			"unarmed": false
+		},
+		{
+			"action": "recover",
+			"count": 3,
+			"unarmed": false
+		},
+		{
+			"action": "hit",
+			"count": 2,
+			"unarmed": false
+		},
+		{
+			"action": "death",
+			"count": 7,
+			"unarmed": false
+		},
+		{
+			"action": "idle",
+			"count": 1,
+			"unarmed": true
+		},
+		{
+			"action": "walk",
+			"count": 8,
+			"unarmed": true
+		},
+		{
+			"action": "raise",
+			"count": 4,
+			"unarmed": true
+		},
+		{
+			"action": "fire",
+			"count": 2,
+			"unarmed": true
+		},
+		{
+			"action": "recover",
+			"count": 3,
+			"unarmed": true
+		},
+		{
+			"action": "hit",
+			"count": 2,
+			"unarmed": true
+		},
+		{
+			"action": "death",
+			"count": 7,
+			"unarmed": true
+		}
+	],
+	"columns": 18,
+	"directions": 8,
+	"engine": "4.7.2-stable (official)",
+	"entries": [
+		{
+			"brief": "Visible human face, open helmet, institutional green cloth, issued bone armor and restrained red seal.",
+			"file": "clerk.png",
+			"model": "articulated human security rig",
+			"sha256": "6bdb3401a6ab7ed7f383ee4b9d6566137a6e2b810f54a409cb29d30e066e4296"
+		},
+		{
+			"brief": "Covered mechanical chassis, dark status slit, battery pack, issued bone armor and restrained red seal.",
+			"file": "sweeper.png",
+			"model": "articulated issued bot rig",
+			"sha256": "8666d4b3c745247b129f6efd13eb05c912c563c2084835b0a6f49238389fb73f"
+		}
+	],
+	"format": "RGBA8 PNG, nearest sampling, no mipmaps",
+	"poses": 54,
+	"rows": 24,
+	"schema": 1,
+	"sources": {
+		"res://art/characters/bake.gd": "01d085cae4261fc57d4c2d7f70286174ddf409f43f9f26d52b4eacab998fa2f2",
+		"res://art/characters/geometry.gd": "c407f1de22485a1131fb83acd486ad56e6de00685acc7e1f328a24d8c02f0176",
+		"res://art/characters/rig.gd": "2db33c8c04a5e13d4bca389656d54aa1802de642b90badbbde06ae903cb57dd4",
+		"res://scripts/enemy_animation.gd": "dc90d9d84edd76aede6926890d1b7e504faf380c987193dc28ffbb8b250c426d"
+	},
+	"tile_pixels": 160
+}

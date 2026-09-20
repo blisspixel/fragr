@@ -530,12 +530,12 @@ func _on_snapshot_received(data):
 				continue
 			arena.add_child(pawn)
 			pawn.position = Vector3(player_data.x, player_data.y, player_data.z)
-			pawn.rotation.y = player_data.yaw
+			pawn.rotation.y = ServerYaw.pawn_rotation_y(float(player_data.yaw))
 			pawn.set_player_data(id, player_data.name)
 			players[id] = pawn
 		
 		if players.has(id):
-			players[id].update_state(player_data)
+			players[id].update_state(player_data, int(tick))
 	
 	for id in players.keys():
 		if not current_ids.has(id):
