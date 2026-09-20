@@ -20,7 +20,7 @@ The full tour also checks rail/scatter selection, server-confirmed upward and
 downward aim, return to spectating, the
 multiplayer page, all three settings tabs, and settings inside the live match
 overlay. Captures use an isolated settings file. The local manifest records actual
-map, round, role, weapon, camera/server pitch, dimensions, flash visibility, and
+map, round, role, weapon, camera/server yaw and pitch, dimensions, flash visibility, and
 strip sample times. Full-size `*_shot.png` frames preserve impact detail before
 strip reduction. Intermediates live in
 `.agents/qa/`. Set `FRAGR_RENDER_DRIVER=vulkan` to check that rendering path;

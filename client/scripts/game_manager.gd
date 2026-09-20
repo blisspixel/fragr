@@ -312,7 +312,7 @@ func _process(_delta):
 	if hud and camera:
 		var watched: Node = players.get(local_fp_pawn_id) if is_human_player else camera.get_followed_target()
 		hud.set_fp_walk_speed(float(watched.get("presentation_speed")) if is_instance_valid(watched) else 0.0)
-	if is_human_player and not role_transition and net_client.connection_state == WebSocketPeer.STATE_OPEN:
+	if is_human_player and not role_transition and net_client.connection_state == WebSocketPeer.STATE_OPEN and _has_local_input_target():
 		action_state.forward = Input.is_action_pressed("move_forward")
 		action_state.back = Input.is_action_pressed("move_back")
 		action_state.left = Input.is_action_pressed("move_left")
@@ -339,6 +339,14 @@ func _process(_delta):
 		net_client.send_action(action_state)
 		pending_jump = false
 		pending_reload = false
+
+func _has_local_input_target() -> bool:
+	# An open socket precedes the first snapshot. Sending the default camera aim
+	# in that interval overwrites the authored spawn facing before we adopt it.
+	if net_client.player_id == null or local_fp_pawn_id != str(net_client.player_id):
+		return false
+	var pawn: Node = players.get(local_fp_pawn_id)
+	return is_instance_valid(pawn) and is_instance_valid(camera) and camera.fp_mode and camera.fp_target == pawn
 
 func _current_weapon_wire() -> String:
 	if not net_client.equipment.is_empty():

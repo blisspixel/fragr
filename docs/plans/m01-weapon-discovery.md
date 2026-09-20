@@ -135,6 +135,13 @@ loop. GitHub integration checks and release records establish shipped status.
   the resolved shot, never the newly selected gun. The final 21-state OpenGL
   release tour and ten-state Vulkan discovery tour pass after that correction;
   both contact sheets and transient weapon strips were inspected.
+- Final entry-view inspection found a client join race: an open socket allowed
+  default aim to overwrite the authored spawn before the first snapshot. Input
+  now waits for the current session's camera target. The regression failed before
+  the fix and passes afterwards, including reconnect and preservation of local
+  aim on later snapshots. OpenGL and Vulkan discovery tours now assert and show
+  the intended facing toward confiscation. Reload and short-jump input fixtures
+  establish the same bound-session precondition; their original assertions remain.
 
 ### Arcade regression and CPU evidence
 

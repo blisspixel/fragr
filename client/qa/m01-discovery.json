@@ -3,7 +3,7 @@
   "width": 1280,
   "height": 720,
   "states": [
-    {"name":"disarmed_entry","scene":"res://scenes/main.tscn","join":"human","camera":"first_person","expect_equipment":{"selected":"fists","reload":null},"note":"Arrive disarmed beneath the annex canopy."},
+    {"name":"disarmed_entry","scene":"res://scenes/main.tscn","join":"human","camera":"first_person","expect_yaw":1.5707964,"expect_equipment":{"selected":"fists","reload":null},"note":"Arrive disarmed beneath the annex canopy, facing confiscation."},
     {"name":"alternating_punches","camera":"first_person","trigger":"fire","probe":"MeleeView","strip_frames":10,"strip_interval_seconds":0.07,"expect_equipment":{"selected":"fists"},"note":"Alternating arms, no muzzle flash or tracer."},
     {"name":"confiscated_tack","camera":"first_person","walk_to":[[0,0,-34],[0,0,-26]],"expect_equipment":{"selected":"tack","magazine":12,"reserve":36},"note":"First recovered weapon, individually claimable by each participant."},
     {"name":"tack_recoil","camera":"first_person","look_at":[6,1.6,-26],"trigger":"fire","single_shot":true,"probe":"FpMuzzle","strip_frames":6,"strip_interval_seconds":0.03,"expect_equipment":{"selected":"tack","magazine":11,"reserve":36},"note":"One acknowledged Tack shot and recovery."},

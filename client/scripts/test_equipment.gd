@@ -55,6 +55,14 @@ func _run() -> void:
 	var manager: Node = load("res://scripts/game_manager.gd").new()
 	manager.net_client = network
 	manager.is_human_player = true
+	network.player_id = "self"
+	var pawn: Node3D = Node3D.new()
+	var camera: Node3D = load("res://scripts/spectator_cam.gd").new()
+	camera.fp_mode = true
+	camera.fp_target = pawn
+	manager.camera = camera
+	manager.players["self"] = pawn
+	manager.local_fp_pawn_id = "self"
 	var key: InputEventKey = InputEventKey.new()
 	key.physical_keycode = KEY_R
 	key.pressed = true
@@ -74,6 +82,8 @@ func _run() -> void:
 	key.pressed = true
 	_check(key.is_action_pressed("radio_next_station") and not key.is_action_pressed("reload"), "C retains radio access")
 	manager.free()
+	camera.free()
+	pawn.free()
 	network.free()
 	var display: EquipmentHud = EquipmentHud.new()
 	root.add_child(display)
