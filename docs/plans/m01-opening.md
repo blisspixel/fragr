@@ -112,12 +112,19 @@ now preserve keyboard arrows and support controller paging and text scrolling.
 
 Local evidence on 2026-09-20:
 
-- 703 Rust tests pass with two existing ignored asset generators; strict Clippy
-  passes. Unfiltered workspace line coverage is 95.79 percent.
+- 704 Rust tests pass, including a fresh-party reset regression, with two existing
+  ignored asset generators. Strict Clippy passes. Unfiltered workspace line
+  coverage is 95.81 percent.
 - Four real human/agent sockets wait for their final reader. Spectators, stale
   attempts and old capability-4 clients cannot activate the party. Existing gate,
   movement, inventory, both M01 approaches and shared departure assertions remain.
-- All 27 Godot harnesses and eight verifier fault scenarios pass. An inspected
+- Eight verifier fault scenarios pass. The initial 27-harness run failed profile
+  cancellation because the new cancel binding omitted physical Escape; the local
+  summary missed that log failure before Linux CI caught it. The binding and
+  keyboard/controller cancellation regression are fixed; all 27 harnesses then
+  pass with verifier exit 0. The checker now ends with an aggregate result,
+  preventing a tail of individual passes from obscuring an earlier failure.
+  An inspected
   OpenGL/AMD 780M lifecycle run also passes with a second real agent reader,
   waiting HUD, held dismissal, rejoin, leave, unexpected server exit and cancellation.
 - The 21-state default gallery was regenerated and inspected, including shot and
@@ -142,6 +149,10 @@ The six-map mixed reflex/planner roster passed the unchanged assertions:
 
 These short runs prove the existing acceptance checks, not spawn safety or fun
 at every density. Retain the spawn-death evidence for the next arena balance pass.
+The first integration run, 35519428024 at `4f77f71`, failed the menu-cancel
+regression on all three platforms and the Linux Tripoint roster (10 spawn deaths
+among 51 frags). Cancellation is fixed and locally reverified; Tripoint's failure
+remains under investigation. Do not merge on an unexplained retry.
 Logs and intermediate captures are under `.agents/m01-opening-*`, with roster
 reports in `.agents/playtest/m01-opening-roster/`. Integration CI is recorded on
 the linked pull request; shipped status belongs to its release record.

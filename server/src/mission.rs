@@ -137,7 +137,11 @@ impl GameState {
             return;
         };
         self.map = run.initial_map.clone();
-        run.phase = MissionPhase::FindTransfer;
+        run.phase = if run.ready.is_empty() {
+            MissionPhase::Briefing
+        } else {
+            MissionPhase::FindTransfer
+        };
         run.attempt = run.attempt.saturating_add(1);
         run.changed_at = self.tick;
         run.started = false;

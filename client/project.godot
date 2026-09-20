@@ -37,7 +37,7 @@ ui_accept={
 }
 ui_cancel={
 "deadzone": 0.5,
-"events": [Object(InputEventKey,"keycode":4194305), Object(InputEventJoypadButton,"device":-1,"button_index":1)]
+"events": [Object(InputEventKey,"physical_keycode":4194305), Object(InputEventJoypadButton,"device":-1,"button_index":1)]
 }
 ui_left={
 "deadzone": 0.5,

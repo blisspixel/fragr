@@ -106,6 +106,33 @@ fn an_unread_departure_removes_the_initial_wait() {
 }
 
 #[test]
+fn a_fresh_party_waits_again_after_the_previous_party_leaves() {
+    let mut state = state();
+    let previous = join(&mut state);
+    assert!(ready(&mut state, previous));
+    state.tick(0.05);
+    state.remove_player(previous);
+    let restarted = state.mission_state().unwrap();
+    assert_eq!(restarted.attempt, 2);
+    assert_eq!(restarted.phase, MissionPhase::Briefing);
+    assert!(restarted.party.is_empty());
+
+    let first = join(&mut state);
+    let second = join(&mut state);
+    assert!(ready(&mut state, first));
+    state.tick(0.05);
+    assert_eq!(state.mission_state().unwrap().phase, MissionPhase::Briefing);
+    assert_eq!(state.mission_state().unwrap().attempt, 2);
+    assert!(ready(&mut state, second));
+    state.tick(0.05);
+    assert_eq!(
+        state.mission_state().unwrap().phase,
+        MissionPhase::FindTransfer
+    );
+    assert_eq!(state.mission_state().unwrap().attempt, 2);
+}
+
+#[test]
 fn late_readers_cannot_pause_or_keep_a_defeated_party_alive() {
     let mut state = state();
     let active = join(&mut state);

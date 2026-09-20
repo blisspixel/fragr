@@ -34,7 +34,7 @@ check() {
 }
 
 # Parsing with a failed import only produces secondary missing-resource errors.
-check import "" --import || exit 1
+check import "" --import || { echo "Godot checks: FAIL (import)"; exit 1; }
 for script in client/scripts/*.gd; do
   name=$(basename "$script")
   check "$name" "" --check-only --script "res://scripts/$name"
@@ -46,4 +46,9 @@ for script in client/scripts/test_*.gd; do
   check "$harness harness" "$harness: PASS" --verbose --script "res://scripts/$harness.gd"
 done
 
+if [ "$fail" -ne 0 ]; then
+  echo "Godot checks: FAIL (see diagnostics above)"
+else
+  echo "Godot checks: PASS"
+fi
 exit $fail

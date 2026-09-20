@@ -113,7 +113,8 @@ play: until ready, their body cannot move, use equipment, claim supplies, trigge
 encounters, attract enemies, block shots, take damage or prevent a party wipe.
 Readiness cannot be withdrawn. Queued input is cleared on first acknowledgment;
 duplicate acknowledgments cannot erase an active player's input. Ready members
-stay ready across retries; departed IDs are pruned. A reader finishing during a
+stay ready across retries; departed IDs are pruned. If no acknowledged members
+remain, reset restores the briefing for the next party. A reader finishing during a
 retry must acknowledge the new attempt. Supplied scripted controllers acknowledge
 automatically and defer combat and optional paid decisions until participation.
 
