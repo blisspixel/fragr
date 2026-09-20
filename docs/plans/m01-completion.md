@@ -76,9 +76,13 @@ cannot replace the planned supply economy. Preserve arcade pad respawns. Keep
 scarcity, pickup visibility and claims server-owned. Guarantee enough supply for
 the main route plus misses, then measure contention with four participants.
 
+The agreed co-op rule is teammate revival, with a full-party wipe restoring the
+shared checkpoint. Solo death uses the same retry path. This replaces individual
+timed campaign respawns; arcade respawns keep their existing behavior.
+
 A secured records checkpoint must restore coherent party, inventory, pickup,
 encounter and objective state on a wipe. Preserve readiness and do not replay
-the opening. Individual death, late arrival, departure and an empty server need
+the opening. Revive timing, late arrival, departure and an empty server need
 explicit rules. A pending reader cannot save a dead party from rollback. Keep
 the existing encounter lifecycle as the owner of reset timing.
 

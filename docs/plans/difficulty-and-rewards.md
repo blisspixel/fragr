@@ -3,10 +3,11 @@
 Status: in flight, 2026-09-20. Task #197. The first increment implements explicit
 new-run difficulty selection and shared, versioned enemy timing rules to M01.
 Persistent achievements and earned cosmetics remain planned. Local work, no paid
-services. Co-op death policy is still an open product decision.
+services. Agreed co-op rule: teammates revive downed participants; a full-party
+wipe restores the shared checkpoint. This lifecycle is not implemented yet.
 
-Implement the independent new-run selection boundary now, without assuming that
-death policy. Changing a running mission, supply variants, checkpoint persistence
+This increment implements the independent new-run selection boundary. Changing
+a running mission, supply variants, checkpoint persistence
 and rewards follow the retry contract and broader balance evidence. Standard must
 retain the released timing. This first pass is not final difficulty balance.
 

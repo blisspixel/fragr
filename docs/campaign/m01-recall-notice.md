@@ -142,7 +142,8 @@ route; reading a whole log is optional. Completion occurs once on server-confirm
 departure. Objective text: "Find the transfer record", then "Reach the lift".
 
 Planned checkpoints: entry and after securing D, before the crest. Save the discovered
-route, inventory, pickup and enemy states. A death before the first checkpoint
+route, inventory, pickup and enemy states. Teammates can revive downed participants;
+a full-party wipe or solo death restores the checkpoint. Retrying from entry
 repeats a short lesson, not a long cinematic. The terminal remains operable if
 another player disconnects mid-interaction.
 

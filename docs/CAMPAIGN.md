@@ -170,6 +170,10 @@ This target is independent of larger competitive-server capacity. No required
 objective needs two simultaneous operators.
 
 The party shares one authoritative mission, keys, rescue outcomes, and checkpoint.
+Agreed death rule: teammates can revive a downed participant. A full-party wipe
+restarts the party at the shared checkpoint; solo death follows the same retry
+path. Human and agent participants follow identical rules. These are intended
+rules, not a claim that the current respawn implementation provides them.
 Drop-ins enter safely; drop-outs never strand an item or required interaction.
 Companion roles persist at every party size without obstructing doors or adding
 four copies of the same character. Down/revive, party wipe, reconnect, and
