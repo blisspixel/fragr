@@ -18,7 +18,7 @@ Status words: **planned**, **in flight**, **implemented** (local evidence record
 | Plan | Status | One-liner |
 |---|---|---|
 | [`m01-opening.md`](./m01-opening.md) | **in flight** (#192) | Reader-paced recall story, replay and authoritative initial/late party readiness. |
-| [`asset-request-identity.md`](./asset-request-identity.md) | **implemented** (#190) | Save accepted paid-job identity before validating polling metadata; recover without resubmitting. |
+| [`asset-request-identity.md`](./asset-request-identity.md) | **shipped** (#191) | Save accepted paid-job identity before validating polling metadata; recover without resubmitting. |
 | [`mission-wire-order.md`](./mission-wire-order.md) | **shipped** (#189, v0.27.1) | Queue initial geometry before broadcasts; prove shared departure without depending on socket scheduling. |
 | [`opening-spawns.md`](./opening-spawns.md) | **proven** (#175, v0.21.2) | Apply covered spawn selection before the opening fight as well as during play. |
 | [`shared-body-integration.md`](./shared-body-integration.md) | **proven** (#174, v0.21.1) | One body-collision integrator for the authority and movement mirror. |

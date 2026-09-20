@@ -154,8 +154,8 @@ not finished levels or proof that their reference-game comparisons were achieved
 model limits, prove one complete animated character, then expand the roster.
 Safe recovery and quota reconciliation precede paid batches.
 
-[Accepted request identity](plans/asset-request-identity.md) is implemented (#190),
-with integration pending.
+[Accepted request identity](plans/asset-request-identity.md) shipped in #191,
+with strict checks and all five CI jobs passing.
 A live reference submission exposed a gap: rejecting polling metadata discarded
 the returned request ID. Save that ID before checking the address and keep
 recovery bound to it. The existing uncertain reservation still needs dashboard
