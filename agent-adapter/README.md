@@ -34,6 +34,12 @@ does not erase a short tap. The latch is consumed even while airborne or dead;
 holding jump cannot add upward thrust in the air. Geometry still decides which
 steps can be walked onto. See the shared action contract in `docs/protocol.md`.
 
+Authored traversal maps use the same connection and action tools. `observe.map`
+includes the validated optional `presentation` kits alongside finite geometry;
+neither field can supply asset paths. A material list must match the solid count.
+The current M01 blockout has no enemies or mission-completion objective, so an
+idle combat agent is not evidence that its route has been played.
+
 ## Quick Start
 
 ### MCP Server (for external agents)

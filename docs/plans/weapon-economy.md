@@ -4,6 +4,30 @@
 **Branch:** `feat/economy-*` (one PR per rung)
 **Spend:** $0 for the mechanics. New view models and icons add roughly six dollars to the art estimate in `art-pipeline.md`.
 
+Current-state note (2026-09-19): this is a proposed economy, not implemented
+inventory. Historical weapon-mix and timing measurements below are not a current
+baseline. `ShotResult` already carries the resolved weapon and shot trace. The
+six shipped arcade maps still permit all three existing guns; M01 currently has
+only a traversal blockout. Its authored rooms and placements replace the generic
+pad-ring assumptions below for campaign work. Asset estimates do not authorize
+spend; verify approved remaining credits before a generation request.
+
+## Next bounded increment: M01 discovery
+
+Implement fists, Tack and Flechette ownership and finite ammunition through one
+server loadout model before populating the hall. M01 begins with fists, supplies
+Tack in B and Flechette before the balcony fight. Preserve the existing arcade
+behavior under an explicit full-arsenal policy until that roster and its agents
+are migrated together. Both policies use the same shot and damage resolver.
+
+The discovery increment must include private loadout updates, owned-weapon
+selection, dry-fire/reload rules, pickup placement and per-participant introductory
+supply. Define retry and late-join ownership before implementing checkpoint
+serialization. Update MCP, the decision brain, rule controllers and playtest
+agents alongside the player HUD. Prove that two players cannot duplicate a
+contested pickup, consume ammo on a rejected shot or strand a late arrival without
+a sidearm. Measure the existing arcade baseline before changing its economy.
+
 ## The thing we found first
 
 The weapon pads are decoration.

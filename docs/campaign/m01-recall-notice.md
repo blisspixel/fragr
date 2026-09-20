@@ -1,7 +1,14 @@
 # M01: Recall Notice
 
-**Status:** proposed, unbuilt. Earth before the wipe. First-run target 10-15
-minutes, to be measured. [Treatment](../CAMPAIGN-MISSIONS.md#m01-recall-notice).
+**Status:** traversal blockout implemented and locally verified. Story, encounters and mission
+state remain unbuilt. Earth before the wipe. Full first-run target 10-15 minutes,
+to be measured. [Treatment](../CAMPAIGN-MISSIONS.md#m01-recall-notice).
+
+The current [map document](../../server/maps/m01-recall-notice.json) connects A-G
+with both walking stairs, the balcony underpass and explicit indoor spawns.
+Normal-session tests traverse both approaches; the ten-state live client tour
+uses `client/qa/m01.json`. This verifies access, not pacing or fun. Implementation
+and remaining checks are tracked in [authored maps](../plans/authored-campaign-maps.md).
 
 ## Story and cast
 

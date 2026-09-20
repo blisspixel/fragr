@@ -209,7 +209,7 @@ fn floor_height(map: MapKind, x: f32, z: f32, ceiling: f32) -> f32 {
 /// ground there. The ring is sampled round from the requested angle; when
 /// every sample is blocked the origin is the fallback, which is why the origin
 /// being walkable is a rule the map validator enforces rather than a habit.
-fn spawn_on_ring(map: MapKind, angle: f32) -> (f32, f32, f32, f32) {
+pub(crate) fn spawn_on_ring(map: MapKind, angle: f32) -> (f32, f32, f32, f32) {
     let spawn_radius = map.spawn_radius();
     let mut a = angle;
     for _ in 0..16 {
@@ -442,7 +442,7 @@ pub struct GameState {
     /// Dialed-in rule-bot callsigns for Warmup / RoundStart Host drama.
     pub roster_names: Vec<String>,
     /// Active Contested Frequency scrap layout.
-    pub map: MapKind,
+    pub map: crate::maps::RuntimeMap,
     /// When true, alternate map each start_round.
     pub map_rotate: bool,
     /// Fighters that just respawned and their remaining shield ticks.
@@ -535,10 +535,29 @@ impl GameState {
 
     pub fn with_map(map: MapKind, map_rotate: bool) -> Self {
         Self {
-            map,
+            map: crate::maps::RuntimeMap::BuiltIn(map),
             map_rotate,
             pickups: map.pickups(),
             ..Self::default()
+        }
+    }
+
+    /// Traversal authoring has no arcade clock, escalation or round rotation.
+    /// It is deliberately separate from the future campaign objective lifecycle.
+    pub fn with_authored_map(map: std::sync::Arc<crate::maps::AuthoredMap>) -> Self {
+        Self {
+            map: crate::maps::RuntimeMap::Authored(map),
+            pickups: Vec::new(),
+            round_state: RoundState::Active,
+            round_number: 1,
+            config: MatchConfig {
+                frag_limit: None,
+                time_limit_ticks: None,
+                boss_spawn_ticks: None,
+                compliance_ping_ticks: None,
+                ..Default::default()
+            },
+            ..Default::default()
         }
     }
 
@@ -565,7 +584,9 @@ impl GameState {
             self.relabel_rule_bots_as_nods();
         }
         if self.map_rotate && self.round_number > 1 {
-            self.map = self.map.next();
+            if let crate::maps::RuntimeMap::BuiltIn(kind) = &self.map {
+                self.map = crate::maps::RuntimeMap::BuiltIn(kind.next());
+            }
             tracing::info!("Map rotate -> {} ({})", self.map.name(), self.map.id());
         }
         self.reset_pickups();
@@ -681,7 +702,7 @@ impl GameState {
         {
             angle = self.select_spawn_angle(id);
         }
-        let (sx, sz, yaw, floor) = spawn_on_ring(self.map, angle);
+        let (sx, sz, yaw, floor) = self.map.spawn(angle);
 
         self.players.push(Player {
             id,
@@ -765,9 +786,8 @@ impl GameState {
     /// The arena's shape as a message.
     pub fn map_info(&self) -> ServerMessage {
         ServerMessage::MapInfo {
-            geometry_version: crate::protocol::geometry_version(
-                &crate::maps::arena(self.map).solids,
-            ),
+            geometry_version: crate::protocol::geometry_version(&self.map.arena().solids),
+            presentation: self.map.presentation(),
             map_id: self.map.id(),
             map_name: self.map.name().to_string(),
             half_extent: self.map.half_extent(),
@@ -871,7 +891,8 @@ impl GameState {
             }
         }
 
-        self.tick_active(dt, crate::maps::arena(self.map));
+        let map = self.map.clone();
+        self.tick_active(dt, map.arena());
     }
 
     /// Resolve the active frame against one immutable world. Movement and shots
@@ -1301,9 +1322,10 @@ impl GameState {
         let mut best_angle = 0.0;
         let mut best: Option<(bool, usize, f32)> = None;
         let solids = self.map.solids();
-        for slot in 0..64 {
-            let angle = slot as f32 * (2.0 * PI / 64.0);
-            let (sx, sz, _, floor) = spawn_on_ring(self.map, angle);
+        let slots = self.map.spawn_slots();
+        for slot in 0..slots {
+            let angle = slot as f32 * (2.0 * PI / slots as f32);
+            let (sx, sz, _, floor) = self.map.spawn(angle);
             let nearest = others
                 .iter()
                 .map(|eye| (eye[0] - sx).hypot(eye[2] - sz))
@@ -1337,7 +1359,7 @@ impl GameState {
     fn do_respawn(&mut self, player_id: Uuid) {
         let angle = self.select_spawn_angle(player_id);
         if let Some(player) = self.players.iter_mut().find(|p| p.id == player_id) {
-            let (sx, sz, yaw, floor) = spawn_on_ring(self.map, angle);
+            let (sx, sz, yaw, floor) = self.map.spawn(angle);
 
             player.x = sx;
             player.y = PLAYER_FLOOR_Y + floor;
@@ -1405,8 +1427,18 @@ impl GameState {
             round_time_left,
             frag_limit: self.config.frag_limit,
             shot_results: self.shot_results.clone(),
-            mode_name: MODE_NAME.to_string(),
-            playlist: PLAYLIST_NAME.to_string(),
+            mode_name: if self.map.is_authored() {
+                "Traversal blockout"
+            } else {
+                MODE_NAME
+            }
+            .to_string(),
+            playlist: if self.map.is_authored() {
+                "Campaign development"
+            } else {
+                PLAYLIST_NAME
+            }
+            .to_string(),
             pressure: if self.boss_id.is_some() {
                 Some("compliance_drone".to_string())
             } else if self.compliance_ticks_left > 0 {
@@ -1414,7 +1446,9 @@ impl GameState {
             } else {
                 None
             },
-            host_line: if self.round_state == RoundState::Ended {
+            host_line: if self.map.is_authored() {
+                "Traversal blockout: encounters and objectives are not implemented.".to_string()
+            } else if self.round_state == RoundState::Ended {
                 self.ended_host_line
                     .clone()
                     .unwrap_or_else(default_host_line)
@@ -2143,7 +2177,7 @@ impl Default for GameState {
             ended_mvp_frags: None,
             roster_host_line: None,
             roster_names: Vec::new(),
-            map: MapKind::ArenaDuel,
+            map: crate::maps::RuntimeMap::BuiltIn(MapKind::ArenaDuel),
             map_rotate: false,
             spawn_shields: HashMap::new(),
             solo_broadcast: SoloBroadcastEp0::default(),

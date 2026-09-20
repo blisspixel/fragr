@@ -66,6 +66,20 @@ func _run() -> void:
 	if not deck.position.is_equal_approx(Vector3(0.0, 3.7, 0.0)) or cover.get_child_count() != 7:
 		push_error("test_arena_geometry: reused map identity retained stale geometry")
 		ok = false
+	var surfaced: Dictionary = {"map_id": 1001, "half_extent": 20.0, "presentation": {"ground": "concrete", "solids": ["enamel"]}, "solids": [
+		{"min_x": -2.0, "max_x": 2.0, "min_z": -3.0, "max_z": 3.0, "top": 4.0},
+	]}
+	cover.apply_map_info(surfaced)
+	var wall: MeshInstance3D = cover.get_child(5)
+	if wall.material_override.get_shader_parameter("surface_style") != 2 or cover.get_node("MapFloor").material_override.get_shader_parameter("surface_style") != 1:
+		push_error("test_arena_geometry: authored kits did not reach the matching surfaces")
+		ok = false
+	surfaced["presentation"]["solids"] = ["lift_panel"]
+	cover.apply_map_info(surfaced)
+	wall = cover.get_child(5)
+	if wall.material_override.get_shader_parameter("surface_style") != 5:
+		push_error("test_arena_geometry: reused identity retained stale materials")
+		ok = false
 	cover.apply_map_info({"map_id": 2, "half_extent": 55.0, "solids": []})
 	if cover.get_child_count() != 6 or (cover.get_node("MapFloor").mesh as PlaneMesh).size != Vector2(110.0, 110.0):
 		push_error("test_arena_geometry: map rotation retained stale geometry")

@@ -45,14 +45,22 @@ func apply_map_info(info: Dictionary) -> void:
 	_materials.clear()
 	for kind: int in range(4):
 		_materials.append(ArenaMaterials.make(map_id, kind))
+	var presentation: Dictionary = info.get("presentation") if info.get("presentation") is Dictionary else {}
+	var authored_materials: Dictionary[String, ShaderMaterial] = {}
+	if not presentation.is_empty():
+		for surface: String in MapGeometry.SURFACES:
+			authored_materials[surface] = ArenaMaterials.authored(surface)
+		_materials[0] = authored_materials[presentation["ground"]]
 	for child in get_children():
 		remove_child(child)
 		child.queue_free()
 	_build_shell(_half_extent)
 	var solids: Array = info.get("solids", [])
-	for entry in solids:
-		if typeof(entry) == TYPE_DICTIONARY:
-			_add_solid(entry as Dictionary)
+	for index: int in range(solids.size()):
+		var material: ShaderMaterial = null
+		if not presentation.is_empty():
+			material = authored_materials[presentation["solids"][index]]
+		_add_solid(solids[index], material)
 	var backdrop: ArenaBackdrop = ArenaBackdrop.new()
 	backdrop.build(map_id, _half_extent)
 	add_child(backdrop)
@@ -121,7 +129,7 @@ func _hide_scene_props() -> void:
 		if node is Node3D:
 			(node as Node3D).visible = false
 
-func _add_solid(solid: Dictionary) -> void:
+func _add_solid(solid: Dictionary, material: ShaderMaterial = null) -> void:
 	var min_x: float = float(solid.get("min_x", 0.0))
 	var max_x: float = float(solid.get("max_x", 0.0))
 	var min_z: float = float(solid.get("min_z", 0.0))
@@ -145,5 +153,5 @@ func _add_solid(solid: Dictionary) -> void:
 	var node: MeshInstance3D = MeshInstance3D.new()
 	node.mesh = mesh
 	node.position = Vector3((min_x + max_x) * 0.5, bottom + height * 0.5, (min_z + max_z) * 0.5)
-	node.material_override = _materials[3 if top <= LOW_TOP else 2]
+	node.material_override = material if material != null else _materials[3 if top <= LOW_TOP else 2]
 	add_child(node)

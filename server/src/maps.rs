@@ -27,6 +27,11 @@ use crate::sim::{ArenaPickup, MapKind, PickupKind, ARMOR_PAD_AMOUNT, HEALTH_PAD_
 use std::f32::consts::PI;
 use std::sync::OnceLock;
 
+mod authored;
+mod runtime;
+pub use authored::AuthoredMap;
+pub use runtime::RuntimeMap;
+
 /// Immutable collision geometry shared by live movement, navigation and the
 /// wire map. Conversion from the authoring layout happens once per map.
 pub(crate) fn arena(kind: MapKind) -> &'static crate::movement::Arena {

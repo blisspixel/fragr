@@ -91,8 +91,10 @@ local verification and the final Linux matrix. Every CI job passed before merge.
 [Shared body integration](plans/shared-body-integration.md) shipped in v0.21.1:
 live movement and the accelerated shared step use one collision/gravity path,
 preserving existing match traces. Fixed-map startup also avoids preparing unused
-navigation maps. [Enclosed campaign geometry](plans/campaign-spaces.md) is now in
-progress for the opening mission's ceilings and overlapping floors.
+navigation maps. [Enclosed campaign geometry](plans/campaign-spaces.md) shipped in
+#176 for real ceilings and overlapping floors. [Authored maps](plans/authored-campaign-maps.md)
+now brings M01's connected blockout, indoor spawns and institutional surface kits
+through the live server. Encounters and the mission lifecycle remain unbuilt.
 
 [Opening spawn placement](plans/opening-spawns.md) shipped in #175 and v0.21.2.
 Warmup joins now use the same cover selector as active joins and respawns. The

@@ -19,6 +19,10 @@ struct Args {
     #[arg(long, default_value = "1")]
     map: String,
 
+    /// Load a local authored traversal blockout. Requires --bots 0.
+    #[arg(long, conflicts_with_all = ["map", "map_rotate", "solo_broadcast", "bench", "bench_verify_trace", "no_round_events"])]
+    map_file: Option<PathBuf>,
+
     /// Move to the next map in the roster each round.
     #[arg(long, default_value_t = false)]
     map_rotate: bool,
@@ -158,6 +162,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         bind: args.bind,
         bots: args.bots,
         map,
+        map_file: args.map_file,
         map_rotate: args.map_rotate,
         match_config: args
             .no_round_events
@@ -248,6 +253,7 @@ mod tests {
         let server = tokio::spawn(async move {
             run_server(
                 ServerOptions {
+                    map_file: None,
                     bind: "127.0.0.1:0".to_string(),
                     bots: 1,
                     map: fragr_server::sim::MapKind::ArenaDuel,

@@ -215,6 +215,7 @@ fn export_enclosed_capture() {
         "kind": "active_frame_fixture",
         "dt": 0.05,
         "map": ServerMessage::MapInfo {
+            presentation: None,
             map_id: 1,
             map_name: "Enclosed geometry fixture".into(),
             half_extent: arena.half,

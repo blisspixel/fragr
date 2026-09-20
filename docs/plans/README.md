@@ -19,8 +19,8 @@ Status words: **planned**, **in flight**, **shipped** (merged to `main`, PR numb
 |---|---|---|
 | [`opening-spawns.md`](./opening-spawns.md) | **proven** (#175, v0.21.2) | Apply covered spawn selection before the opening fight as well as during play. |
 | [`shared-body-integration.md`](./shared-body-integration.md) | **proven** (#174, v0.21.1) | One body-collision integrator for the authority and movement mirror. |
-| [`campaign-spaces.md`](./campaign-spaces.md) | **in flight** | Real ceilings, accessible balconies, layered routes and matching collision/rendering for M01. |
-| [`authored-campaign-maps.md`](./authored-campaign-maps.md) | **planned** | Validated map files, explicit indoor spawns and M01's complete traversal blockout through the live server. |
+| [`campaign-spaces.md`](./campaign-spaces.md) | **proven** (#176, v0.22.0) | Real ceilings, accessible balconies, layered routes and matching collision/rendering for M01. |
+| [`authored-campaign-maps.md`](./authored-campaign-maps.md) | **locally verified** ([#177](https://github.com/blisspixel/fragr/pull/177)) | Validated map files, explicit indoor spawns and M01's traversal blockout through the live server. |
 | [`gpu-bot-compute.md`](./gpu-bot-compute.md) | **planned** | Portable optional GPU perception/inference, measured against CPU queries with rendering contention and fallback. |
 | [`audio-effects-refresh.md`](./audio-effects-refresh.md) | **in flight** | Distinct weapon, movement, impact and world sounds; capped candidates and in-game mix verification. |
 | [`radio-refresh.md`](./radio-refresh.md) | **in flight** | Two fictional talk formats and world-appropriate music; staged pilots, captions and distribution review. |

@@ -27,3 +27,15 @@ static func make(map_id: int, kind: int) -> ShaderMaterial:
 	material.set_shader_parameter("surface_kind", kind)
 	material.set_shader_parameter("panel_size", 3.0 if kind == 0 else (4.0 if kind == 1 else 2.0))
 	return material
+
+static func authored(surface: String) -> ShaderMaterial:
+	var material: ShaderMaterial = ShaderMaterial.new()
+	material.shader = SURFACE
+	var index: int = MapGeometry.SURFACES.find(surface)
+	var bases: Array[Color] = [Color("787468"), Color("c5c1a6"), Color("64675f"), Color("82917f"), Color("343e40")]
+	var accents: Array[Color] = [Color("686954"), Color("52664d"), Color("b9843e"), Color("354d42"), Color("7eaaa0")]
+	material.set_shader_parameter("surface_style", index + 1)
+	material.set_shader_parameter("surface_color", bases[index])
+	material.set_shader_parameter("accent_color", accents[index])
+	material.set_shader_parameter("panel_size", 2.0)
+	return material

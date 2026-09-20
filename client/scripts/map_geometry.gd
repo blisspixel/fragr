@@ -5,6 +5,7 @@ class_name MapGeometry
 const VERSION: int = 2
 const MAX_HALF: float = 256.0
 const MAX_SOLIDS: int = 2048
+const SURFACES: Array[String] = ["concrete", "enamel", "service_steel", "records_tile", "lift_panel"]
 
 static func validation_error(info: Dictionary) -> String:
 	var version: Variant = info.get("geometry_version", 1)
@@ -32,10 +33,23 @@ static func validation_error(info: Dictionary) -> String:
 			return "Invalid map solid bounds."
 		if version < 2 and bounds[4] != 0.0:
 			return "Raised solids require map geometry version 2."
+	var presentation: Variant = info.get("presentation")
+	if presentation != null:
+		if not presentation is Dictionary or not _surface(presentation.get("ground")):
+			return "Invalid map surface kit."
+		var surfaces: Variant = presentation.get("solids")
+		if not surfaces is Array or surfaces.size() != solids.size():
+			return "Map surfaces do not match the geometry."
+		for surface: Variant in surfaces:
+			if not _surface(surface):
+				return "Unknown map surface kit."
 	return ""
 
 static func _number(value: Variant) -> bool:
 	return (value is int or value is float) and is_finite(float(value))
+
+static func _surface(value: Variant) -> bool:
+	return value is String and value in SURFACES
 
 static func _integer(value: Variant, low: int, high: int) -> bool:
 	return _number(value) and value >= low and value <= high and float(value) == floorf(float(value))

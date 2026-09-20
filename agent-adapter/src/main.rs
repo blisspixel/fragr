@@ -352,7 +352,8 @@ async fn run_scripted_bot(
                 if let Some(Ok(Message::Text(text))) = msg {
                     match serde_json::from_str::<ServerMessage>(&text)? {
                         ServerMessage::Snapshot(snapshot) => last_snapshot = Some(snapshot),
-                        ServerMessage::MapInfo { half_extent, solids, geometry_version, .. } => {
+                        ServerMessage::MapInfo { half_extent, solids, geometry_version, presentation, .. } => {
+                            protocol::validate_map_presentation(presentation.as_ref(), solids.len())?;
                             protocol::validate_map_geometry(half_extent, &solids, geometry_version)
                                 .map_err(io::Error::other)?;
                             let arena = fragr_server::movement::Arena { half: half_extent, solids };
@@ -1510,6 +1511,89 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn mcp_observes_and_walks_the_loaded_campaign_blockout() {
+        let (ready_tx, ready_rx) = tokio::sync::oneshot::channel();
+        let (stop_tx, stop_rx) = tokio::sync::oneshot::channel();
+        let server = tokio::spawn(fragr_server::run::run_server(
+            fragr_server::run::ServerOptions {
+                bind: "127.0.0.1:0".into(),
+                bots: 0,
+                map_file: Some(
+                    std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+                        .join("../server/maps/m01-recall-notice.json"),
+                ),
+                ..Default::default()
+            },
+            async {
+                let _ = stop_rx.await;
+            },
+            Some(ready_tx),
+        ));
+        let url = format!("ws://{}", ready_rx.await.unwrap());
+        let state = std::sync::Arc::new(tokio::sync::Mutex::new(ToolState::default()));
+        let mut session = Some(
+            mcp_connect_and_hello(&url, "Route Walker", &state)
+                .await
+                .unwrap(),
+        );
+        tokio::time::timeout(std::time::Duration::from_secs(3), async {
+            loop {
+                {
+                    let state = state.lock().await;
+                    if state.map.is_some() && state.last_snapshot.is_some() {
+                        break;
+                    }
+                }
+                tokio::task::yield_now().await;
+            }
+        })
+        .await
+        .unwrap();
+        let mut output = Vec::new();
+        for (name, arguments) in [
+            ("observe", serde_json::json!({})),
+            (
+                "act",
+                serde_json::json!({"forward":true,"look_at":{"x":-2,"y":1.6,"z":-20}}),
+            ),
+        ] {
+            apply_mcp_line(
+                &serde_json::json!({"jsonrpc":"2.0","id":1,"method":"tools/call",
+                "params":{"name":name,"arguments":arguments}})
+                .to_string(),
+                &url,
+                &mut session,
+                &state,
+                &mut output,
+            )
+            .await
+            .unwrap();
+        }
+        let text = String::from_utf8(output).unwrap();
+        assert!(text.contains("Recall Notice"));
+        assert!(text.contains("records_tile"));
+        tokio::time::timeout(std::time::Duration::from_secs(3), async {
+            loop {
+                {
+                    let state = state.lock().await;
+                    let snapshot = state.last_snapshot.as_ref().unwrap();
+                    if snapshot["players"][0]["z"].as_f64().unwrap() > -33.0 {
+                        assert_eq!(snapshot["map_id"], 1001);
+                        assert_eq!(snapshot["players"][0]["y"], 1.5);
+                        break;
+                    }
+                }
+                tokio::time::sleep(std::time::Duration::from_millis(10)).await;
+            }
+        })
+        .await
+        .unwrap();
+        mcp_leave_session(&mut session, &state).await;
+        stop_tx.send(()).unwrap();
+        server.await.unwrap().unwrap();
+    }
+
+    #[tokio::test]
     async fn apply_mcp_line_malformed_and_oversized() {
         let tool_state = std::sync::Arc::new(tokio::sync::Mutex::new(ToolState::default()));
         let mut session = None;
@@ -1702,6 +1786,7 @@ mod tests {
                 .await
                 .unwrap();
             let map = ServerMessage::MapInfo {
+                presentation: None,
                 map_id: 1,
                 map_name: "Raised fixture".into(),
                 half_extent: 12.0,

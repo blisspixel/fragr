@@ -21,6 +21,16 @@ func _run() -> void:
 	raised["solids"][0]["bottom"] = 2.4
 	raised["solids"][0]["top"] = 3.0
 	_expect(MapGeometry.validation_error(raised) == "", "raised volume rejected")
+	var surfaced: Dictionary = raised.duplicate(true)
+	surfaced["presentation"] = {"ground": "concrete", "solids": ["enamel"]}
+	_expect(MapGeometry.validation_error(surfaced) == "", "registered surfaces rejected")
+	for bad_surface: Variant in ["res://untrusted.gd", {}, {"ground": "concrete", "solids": []}, {"ground": "concrete", "solids": ["unregistered"]}]:
+		surfaced["presentation"] = bad_surface
+		_expect(MapGeometry.validation_error(surfaced) != "", "invalid surfaces accepted")
+	for invalid: Variant in [null, true, 3, {}, []]:
+		for where: String in ["ground", "solid"]:
+			surfaced["presentation"] = {"ground": invalid if where == "ground" else "concrete", "solids": [invalid if where == "solid" else "enamel"]}
+			_expect(MapGeometry.validation_error(surfaced) != "", "untyped surface accepted")
 	for field: String in ["map_id", "half_extent", "geometry_version", "solids"]:
 		for value: Variant in [null, "2", true, NAN, INF, -1.0]:
 			var bad: Dictionary = raised.duplicate(true)

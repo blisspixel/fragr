@@ -1,6 +1,8 @@
 # Authored campaign map data
 
-**Status:** planned, 2026-09-19. Follows [finite-volume geometry](campaign-spaces.md).
+**Status:** implemented and locally verified, 2026-09-19. Integration record:
+[#177](https://github.com/blisspixel/fragr/pull/177). Follows
+[finite-volume geometry](campaign-spaces.md), shipped in #176.
 **Goal:** load and play M01's intake annex from validated local JSON through the
 normal server, human client, agents and spectators. Spend: $0.
 
@@ -80,3 +82,80 @@ combining `flatten` with `deny_unknown_fields`. Use named nested fields for stri
 authoring records and a deliberate boundary into canonical solids. Keep wire
 compatibility separate from stricter authoring input; test both rather than
 changing a shared deserializer's acceptance accidentally.
+
+## Implementation and current evidence
+
+`server/maps/m01-recall-notice.json` defines 58 finite volumes, four indoor entry
+spawns and eleven route landmarks. One `RuntimeMap` handle supplies both built-in
+and authored geometry to simulation, spawns, controllers and `MapInfo`. Arcade
+cache and ring order are preserved. The strict 1 MiB authoring boundary rejects
+unknown fields, unsafe placements and unreachable destinations before binding.
+
+`--map-file` is opt-in traversal authoring with `--bots 0`. It rejects arcade
+rotation, Episode 0 and rule overrides. There is no timer, boss or arena pickup
+layout in this mode. Snapshot text identifies the blockout. Existing weapon
+selection remains available for geometry inspection; campaign inventory is not
+implemented. No menu entry claims that M01 is finished.
+
+Registered concrete, enamel, service steel, records tile and lift panels travel
+through the optional `MapInfo.presentation` field. Legacy maps omit it. Clients
+validate identifiers and exact correspondence with collision solids before
+replacing the world. The authoring schema and run commands live in
+[`server/maps/README.md`](../../server/maps/README.md).
+
+Local server tests walk human and agent roles through the main and alternate
+stairs, underpass, office and lift using ordinary session actions. Live socket
+tests exercise human/agent/spectator geometry and movement plus legacy rejection.
+An MCP test observes the loaded map and moves through its entry. An eight-second
+smoke runs the standalone scripted client and local decision brain against each
+other in this map; both score frags, and the brain records zero paid calls.
+
+Both ten-state live tours pass and were inspected on Windows/AMD through OpenGL
+compatibility and Vulkan Forward+. Inspection found a gap above the maintenance
+wall; the solid was raised and both tours repeated. Current evidence lives in
+`.agents/qa/m01-{opengl,vulkan}-final`. The views establish enclosed spaces and
+kit variation, while exposing missing props, signage, room lighting and encounters.
+
+The OpenGL manifest's authoritative movement samples measure 119.1 metres and
+24.64 seconds through the first lift visit, including the underpass inspection
+detour. The full two-route tour measures 262.3 metres and 53.76 seconds inside
+movement probes. These exclude capture waits and contain no combat, interaction
+or exploration decisions. They are not first-play times. The proposed 10-15
+minute mission remains unproven; build encounters and discovery before deciding
+whether the route needs more rooms, and avoid padding it with walking.
+
+Workspace verification passes 629 Rust tests with 95.68 percent unfiltered line
+coverage, warnings-denied Clippy, release build and dependency checks. All 18
+Godot harnesses pass. Surface validation tests caught a typed-array lookup on an
+unvalidated Variant; the boundary now checks the type before membership. The
+checker rejected the engine error even though that harness printed PASS.
+
+CPU runs, release build on Windows, seed 42, 12,000 ticks each:
+
+| Bots / map | p99 tick ms | Maximum tick ms | Complete trace matches v0.22.0 |
+|---|---:|---:|---|
+| 16 / Arena Duel | 0.655 | 2.194 | yes |
+| 64 / Reclamation Gulch | 1.901 | 4.380 | yes |
+| 128 / Tripoint Works | 6.029 | 10.706 | yes |
+
+Reports: `.agents/bench/authored-{16,64,128}.json`. These pass the existing CPU
+budget and repeat-trace gates. They do not measure network scale, rendering or
+GPU bot compute, and do not establish a speed improvement.
+
+One workspace test reused a sprite-tool binary compiled from an earlier removed
+worktree. Its embedded manifest path pointed outside the current tree. Cleaning
+that package and rebuilding restored the palette test without changing code or
+assertions. Keep target directories isolated across worktrees.
+
+The full 21-state arcade/menu/effects tour also passes. Its contact sheet and
+both effect strips were inspected, and the release gallery was refreshed from
+`.agents/qa/authored-full`. This remains separate from the M01 captures.
+
+The six-map mixed-client roster passes its unchanged assertions with
+2/6/6/8/12/16 clients. Reports are in `.agents/playtest/authored/`; CI repeats this
+gate before integration. The largest run recorded 79 frags and eight early
+spawn deaths, which passes the current statistical gate but is not proof that
+spawn balance is finished. GitHub checks on #177 own cross-platform integration
+evidence. Continue with [M01 discovery](weapon-economy.md#next-bounded-increment-m01-discovery),
+encounters, interaction, objectives and checkpoints. A connected blockout still
+does not establish a fun ten-minute mission.
