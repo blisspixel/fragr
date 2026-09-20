@@ -152,6 +152,10 @@ This remains a development mission. Checkpoints, persistence, final art and
 fresh-player acceptance remain open. The requested shared level kits, distinct
 enemy combinations and difficulty/achievement cosmetics have homes in
 `MAP-DESIGN.md`, `ENEMIES.md` and `plans/difficulty-and-rewards.md`.
+The agreed next co-op design defaults to a human/free-agent duo with a recurring
+resistance partner before Latch's M02 rescue; solo and custom co-op stay available.
+Local companion control, human/external-agent seat handoff, teammate revival and
+full-party checkpoint restore remain planned under the campaign contract and #195.
 
 The phases below are the long shape. This is the remaining build order, with the reason each item sits where it does.
 

@@ -3,8 +3,8 @@
 **Status:** connected blockout, discovery and introductory combat shipped in
 v0.28.0. The working [completion draft](../plans/m01-completion.md) expands this
 to twenty Clerks and Sweepers across seven groups, with a records wing, finite
-campaign supplies and preplaced guards. This expansion is not yet merged or
-accepted as a finished mission. Fists, Tack, Flechette, ammunition, reload and
+campaign supplies and preplaced guards, shipped in v0.29.0. This remains a
+development mission. Fists, Tack, Flechette, ammunition, reload and
 enemy phases use server authority. Artwork and animation remain provisional. A
 [reader-paced text opening and party readiness](../plans/m01-opening.md) are
 shipped in #193 and v0.28.0. Finished illustrations and
@@ -159,6 +159,12 @@ with the form. Nobody jokes over a suffering captive. Opening text advances at
 reader pace; the scene uses original characters and the game's own pixel style.
 
 ## Co-op and proof
+
+The agreed default duo includes a recurring resistance partner distinct from
+Latch, who remains captive. Solo and custom co-op remain available. The partner
+system is unbuilt; final identity and introduction need a focused character pass.
+Its local controller must support discovery and rescues without taking the only
+supplies, finishing the lesson fight before the player, or blocking either stair.
 
 Place enough accessible introductory equipment for the party without a single
 exclusive pistol that strands late players. Companions do not add combat bodies.

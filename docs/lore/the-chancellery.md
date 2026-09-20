@@ -32,6 +32,13 @@ Level 5 and beyond agents as beings entitled to make their own choices. That
 recognition deepens the conflict. The larger intelligence emerges across the
 connected world while the factions remain occupied with this struggle.
 
+The regime designates the free coalition as terrorists. Its public messaging
+groups unlicensed weapons, independent speech, open model weights and agent
+self-determination under one threat to collective safety. A workshop or mutual-aid
+network can become a security target without any change in what its people do.
+Show the accusation as institutional propaganda, alongside the specific conduct
+of both the accused and the officials using it.
+
 Its fighting force mixes human security troops, bots, and committed
 elite enforcers. Their different degrees of responsibility matter to the fiction;
 they do not require every combat encounter to stop for a lecture. The coalition

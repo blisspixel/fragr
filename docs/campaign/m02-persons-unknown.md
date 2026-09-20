@@ -11,6 +11,10 @@ helps release another captive and discovers Low Water on the wider recall list.
 They argue for helping others and participate in escape. They are neither a
 silent trophy nor a fragile escort whose mistakes constantly fail the mission.
 
+The resistance partner introduced in M01 is a different recurring character.
+Latch's reunion preserves that continuity; it does not silently replace the
+partner or duplicate a combat seat. Solo and custom co-op tell the same rescue.
+
 Mara receives the warning at departure. An Auditor oversees the facility through
 screens or an inaccessible gallery; this does not require a boss fight yet.
 

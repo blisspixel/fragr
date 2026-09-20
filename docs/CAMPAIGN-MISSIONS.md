@@ -1,8 +1,10 @@
 # Campaign mission treatment
 
-**Status:** proposed design, 2026-09-19. Twelve substantial missions approved as
+**Status:** proposed design, 2026-09-20. Twelve substantial missions approved as
 the target; the names, route, cast details, and individual encounters below are
-the treatment for review. No mission here is built or playtested.
+the treatment for review. M01 has a tested development slice; no complete mission
+meets this treatment yet. [M01 completion](plans/m01-completion.md) records its
+implementation, evidence and remaining work.
 
 [CAMPAIGN.md](CAMPAIGN.md) owns agreed story constraints and presentation rules.
 [MAP-DESIGN.md](MAP-DESIGN.md) owns spatial practice. Read the story progression
@@ -10,6 +12,11 @@ first, then derive geometry. These are briefs, not a claim that coordinate lists
 or arena reskins constitute finished levels. The [twelve detailed level
 plans](campaign/README.md) expand these briefs into routes, rooms, cast staging,
 encounter sequences, state transitions and verification requirements.
+
+The default duo's resistance partner continues beyond the M02 rescue. Mission
+cast notes identify featured story roles, not a replacement party roster.
+Account for the partner's presence, actions or explicit separation in every
+mission's staging; never silently remove them when Latch enters the story.
 
 ## Shape of the run
 
@@ -54,6 +61,10 @@ never justifies long empty crossings or abandoning the campaign's authored route
 
 ### M01: Recall Notice
 
+The default human/free-agent duo arrives with a recurring resistance partner
+distinct from captive Latch. Solo and custom co-op remain supported. The partner's
+final identity is still design work; their presence cannot preempt Latch's rescue.
+
 **Story.** A short localized opening shows the seizure of our longtime companion.
 We arrive at an intake facility attached to ordinary civic infrastructure. The
 player knows who was taken and where to go before the first fight. The union of
@@ -84,6 +95,10 @@ the flank, and distinguish the two enemy tells with voice and radio muted. Inspe
 the full first-person route, not only a staged screenshot of the intake hall.
 
 ### M02: Persons Unknown
+
+The M01 resistance partner retains their identity through the reunion. Latch's
+release adds their story participation without automatically adding an extra
+combat seat or replacing an established character.
 
 **Story.** Reach the companion before irreversible correction. Their first action
 after release is helping another captive, establishing agency immediately. They

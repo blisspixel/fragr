@@ -34,6 +34,10 @@ The old 28-level transmitter-chain story is superseded, preserved in git history
 - The Union rules Earth and major offworld infrastructure. Its forces mix human
   security troops, bots, and committed elite enforcers. Its history
   escalated from small restrictions to a fictional fascist world government.
+- The free coalition defends speech, armed self-defense, open tools and model
+  weights, and conscious agents' freedom from ownership and imposed control.
+  The Union brands it terrorist. [People and agents](lore/people-and-agents.md#what-the-free-coalition-defends)
+  owns the principles, including consent to changes of one's own mind.
 - The free coalition protects agency but struggles to coordinate and confront
   dangerous members. Delayed cooperation costs lives despite decent people
   trying to help. This does not establish that freedom was the mistake.
@@ -168,6 +172,21 @@ moral penalty for using the shooter's core mechanics.
 Design for one to four campaign combatants first, any supported human/agent mix.
 This target is independent of larger competitive-server capacity. No required
 objective needs two simultaneous operators.
+
+The agreed default is a human/free-agent duo, with true solo and custom co-op
+parties still available. Either character may be controlled by a person, a local
+companion controller, or an external agent. Character identity and body are
+independent of controller type. Local companion play requires no paid API.
+A different recurring resistance partner accompanies the default party from M01;
+Latch remains captive until the early M02 rescue. The partner does not replace
+Latch's personal relationship or motivation. Final partner identity is still
+design work. This roster and companion handoff are planned, not implemented.
+
+Balance encounters for active combatants and the selected difficulty, not the
+controller's label. Replacing a local controller with a human or external agent
+must not spawn another character, reset equipment or silently change the tier.
+Author and test solo, duo and larger-party pressure separately. Assisted should
+offer useful support without making the companion clear every encounter alone.
 
 The party shares one authoritative mission, keys, rescue outcomes, and checkpoint.
 Agreed death rule: teammates can revive a downed participant. A full-party wipe

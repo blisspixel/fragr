@@ -60,6 +60,14 @@ rules per participant. Human and agent participants use the same tier. Extra
 objectives may become explicit challenge variants later; essential rescue and
 ending content cannot require the hardest setting.
 
+The agreed default human/free-agent duo, optional solo play and custom co-op
+rosters follow [the campaign contract](../CAMPAIGN.md#solo-co-op-agents-and-watching).
+Scale authored pressure by active combatants, not controller type. A local
+companion, second person or external agent occupying the same seat counts once.
+Controller handoff must preserve inventory, downed state and the selected tier.
+No hidden adaptation to an inferred skill score. Companion behavior and party-size
+variants remain unbuilt and require separate balance evidence.
+
 ## Authority and persistence
 
 Rust owns a typed difficulty profile and its application to encounters, supplies
@@ -129,6 +137,16 @@ an integer literal failed despite the correct Severe/revision 1 payload. The
 fixture now checks both validated fields directly; validation still rejects
 fractional, boolean and unknown revisions. No runtime check was relaxed. The
 full corrected run is `.agents/difficulty-godot-final.log`.
+
+Integration exposed a separate verifier fault on macOS: an early `grep -q` match
+could close a pipe before `printf` finished, making `pipefail` invert a valid
+match. The same pattern in the runtime-log checker could miss an error in a long
+log. Local reproduction confirms the false negative; a large successful log also
+reproduces a false failure in the actual verifier. The repair feeds captured logs
+directly to the matcher, retains exit/error/PASS requirements, and adds large-output
+success and error fixtures. [GNU grep's usage guidance](https://www.gnu.org/software/grep/manual/html_node/Usage.html)
+documents this early-exit interaction (checked 2026-09-20). Verification and final
+integration evidence belong on #198 before release.
 
 These checks establish the implementation and reachable mission, not human
 balance or final co-op difficulty. Missed shots, unfamiliar players, scarce supply

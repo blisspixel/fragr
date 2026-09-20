@@ -18,13 +18,14 @@ check() {
   status=$?
   # Engine severity labels are uppercase. Verbose socket diagnostics also say
   # "error", including the intentional child crash in test_local_campaign.
-  if [ "$status" -ne 0 ] || printf '%s\n' "$out" | grep -qE 'SCRIPT ERROR|Parse Error|(^|[[:space:]])ERROR:'; then
+  # Direct input avoids SIGPIPE from early matches under pipefail.
+  if [ "$status" -ne 0 ] || grep -qE 'SCRIPT ERROR|Parse Error|(^|[[:space:]])ERROR:' <<<"$out"; then
     echo "FAIL $label (exit $status)"
     printf '%s\n' "$out"
     fail=1
     return 1
   fi
-  if [ -n "$marker" ] && ! printf '%s\n' "$out" | grep -qF "$marker"; then
+  if [ -n "$marker" ] && ! grep -qF "$marker" <<<"$out"; then
     echo "FAIL $label (missing $marker)"
     printf '%s\n' "$out"
     fail=1

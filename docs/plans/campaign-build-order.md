@@ -40,7 +40,9 @@ These are existing arena traversal improvements, not a completed campaign map.
    through the normal server with validated data and explicit indoor spawns.
 3. **Complete M01 as the quality target.** Full room sequence, flanks, secrets,
    discovery economy, animation, impact and room audio, localized opening,
-   extraction, retry, and results. Inspect the whole route. No paid scene needed
+   extraction, retry, and results. Build the default human/free-agent duo with a
+   distinct recurring resistance partner, free local control and explicit seat
+   handoff; retain solo and custom co-op. Inspect the whole route. No paid scene needed
    to prove it. One to four humans/agents and eye-view spectators must work.
 4. **Build M02 and the early rescue.** Add companion state, release objectives,
    Jammer behavior, rescue-aware checkpoint data, reunion and optional text/voice.
