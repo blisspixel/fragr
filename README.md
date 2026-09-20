@@ -24,6 +24,10 @@ This is a playable vertical slice, not a finished game. The build order and what
 
 Current work: [`local excellence`](docs/plans/local-excellence.md), a bounded polish loop covering reliable checks, existing art integration, arena readability, and inspected playtest evidence. The [campaign treatment](docs/CAMPAIGN-MISSIONS.md) plans a personal rescue, offworld resistance, the Union's defeat, a sudden planetary wipe, and its aftermath. This is planned content, not a completed campaign or public-server readiness claim.
 
+The opening mission now has an opt-in [traversal blockout](server/maps/README.md):
+enclosed intake rooms, two stair routes, an accessible records balcony and a
+prisoner lift. It has no authored encounters or mission objectives yet.
+
 ## Screenshots
 
 Live captures from the current build, Godot 4.7.2-stable against a loopback server with bots. The visual QA tour checks actual role transitions and weapon selections, records the observed match state, and captures menus, eyes, chase, and overview. Run `tools/qa_tour.sh --publish` to refresh them. Capture details and historical images are documented in [`docs/screenshots/README.md`](docs/screenshots/README.md).
@@ -126,6 +130,7 @@ Hosting guides: [`infra/docs/HOME-LAN.md`](infra/docs/HOME-LAN.md) for a home bo
 --bots <N>           Rule bots to spawn and keep stocked (default 4)
 --map <ID>           1 or arena = Arena Duel (default), 2 or compliance-yard = Compliance Yard
 --map-rotate         Alternate maps between rounds
+--map-file <PATH>    Validated traversal blockout; requires --bots 0, no arcade overrides
 --solo-broadcast     Solo Broadcast Episode 0 (Calibration; Larak Lot face on map 1)
 --seed <N>           Simulation seed; the same seed gives the same match (default 1)
 --status-every-s <N> Log a status report this often (default 60, 0 to disable)

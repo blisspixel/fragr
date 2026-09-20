@@ -1,6 +1,6 @@
 # Authored campaign map data
 
-**Status:** planned, 2026-09-19. Follows [finite-volume geometry](campaign-spaces.md).
+**Status:** in local verification, 2026-09-19. Follows [finite-volume geometry](campaign-spaces.md), shipped in #176.
 **Goal:** load and play M01's intake annex from validated local JSON through the
 normal server, human client, agents and spectators. Spend: $0.
 
@@ -80,3 +80,42 @@ combining `flatten` with `deny_unknown_fields`. Use named nested fields for stri
 authoring records and a deliberate boundary into canonical solids. Keep wire
 compatibility separate from stricter authoring input; test both rather than
 changing a shared deserializer's acceptance accidentally.
+
+## Implementation and current evidence
+
+`server/maps/m01-recall-notice.json` defines 58 finite volumes, four indoor entry
+spawns and eleven route landmarks. One `RuntimeMap` handle supplies both built-in
+and authored geometry to simulation, spawns, controllers and `MapInfo`. Arcade
+cache and ring order are preserved. The strict 1 MiB authoring boundary rejects
+unknown fields, unsafe placements and unreachable destinations before binding.
+
+`--map-file` is opt-in traversal authoring with `--bots 0`. It rejects arcade
+rotation, Episode 0 and rule overrides. There is no timer, boss or arena pickup
+layout in this mode. Snapshot text identifies the blockout. Existing weapon
+selection remains available for geometry inspection; campaign inventory is not
+implemented. No menu entry claims that M01 is finished.
+
+Registered concrete, enamel, service steel, records tile and lift panels travel
+through the optional `MapInfo.presentation` field. Legacy maps omit it. Clients
+validate identifiers and exact correspondence with collision solids before
+replacing the world. The authoring schema and run commands live in
+[`server/maps/README.md`](../../server/maps/README.md).
+
+Local server tests walk human and agent roles through the main and alternate
+stairs, underpass, office and lift using ordinary session actions. Live socket
+tests exercise human/agent/spectator geometry and movement plus legacy rejection.
+The first ten-state OpenGL tour passes through actual input and networking.
+Initial full-size room captures were inspected; revised view headings and Vulkan
+inspection are in progress. The first views establish enclosed spaces and kit
+variation, while exposing the missing props, signage, room lighting and encounters.
+
+One workspace test reused a sprite-tool binary compiled from an earlier removed
+worktree. Its embedded manifest path pointed outside the current tree. Cleaning
+that package and rebuilding restored the palette test without changing code or
+assertions. Keep target directories isolated across worktrees.
+
+Remaining before integration: final full workspace/coverage and client checks,
+seeded CPU trace comparison, six-map mixed roster, both inspected M01 rendering
+paths, current full tour, consumer smoke and CI. Then continue with inventory,
+encounters, interaction, objectives and checkpoints. A connected blockout still
+does not establish a fun ten-minute mission.

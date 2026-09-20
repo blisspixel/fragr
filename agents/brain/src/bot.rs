@@ -386,7 +386,11 @@ pub async fn run_bot(
                     Ok(ServerMessage::Ack { .. }) => {}
                     // Geometry belongs to the local controller, never a paid
                     // per-frame decision. Reject invalid worlds before driving.
-                    Ok(ServerMessage::MapInfo { map_name, solids, half_extent, geometry_version, .. }) => {
+                    Ok(ServerMessage::MapInfo { map_name, solids, half_extent, geometry_version, presentation, .. }) => {
+                        if let Err(error) = fragr_server::protocol::validate_map_presentation(presentation.as_ref(), solids.len()) {
+                            session_error = Some(Error::Transport(format!("invalid map presentation: {error}")));
+                            break;
+                        }
                         tracing::debug!("map: {map_name}");
                         if let Err(error) = fragr_server::protocol::validate_map_geometry(half_extent, &solids, geometry_version) {
                             session_error = Some(Error::Transport(format!("invalid navigation map: {error}")));
@@ -596,6 +600,7 @@ mod tests {
         let (shutdown_tx, shutdown_rx) = tokio::sync::oneshot::channel::<()>();
         let (ready_tx, ready_rx) = tokio::sync::oneshot::channel();
         let options = ServerOptions {
+            map_file: None,
             bind: "127.0.0.1:0".to_string(),
             bots,
             map: MapKind::default(),
@@ -660,11 +665,14 @@ mod tests {
         version["geometry_version"] = serde_json::json!("2");
         let mut solid = valid.clone();
         solid["solids"][0]["bottom"] = serde_json::json!("ceiling");
+        let mut surfaces = valid.clone();
+        surfaces["presentation"] = serde_json::json!({"ground":"concrete","solids":[]});
         let rejected = serde_json::json!({"type": "error", "code": "unsupported_geometry", "message": "geometry version rejected"});
         for (bad, expected) in [
             (extent.to_string(), "invalid navigation map"),
             (version.to_string(), "invalid server message"),
             (solid.to_string(), "invalid server message"),
+            (surfaces.to_string(), "invalid map presentation"),
             ("{broken".to_string(), "invalid server message"),
             (rejected.to_string(), "geometry version rejected"),
         ] {

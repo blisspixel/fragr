@@ -119,6 +119,12 @@ func _run() -> void:
 			await _jump_probe()
 		for point: Array in state.get("walk_to", []):
 			await _walk_to(Vector3(float(point[0]), float(point[1]), float(point[2])))
+		if state.has("look_at"):
+			var target: Array = state["look_at"]
+			var camera: Node3D = _spectator_camera()
+			var direction: Vector3 = Vector3(float(target[0]), float(target[1]), float(target[2])) - camera.global_position
+			camera.set("fp_yaw", atan2(direction.z, direction.x))
+			await _set_aim_pitch(atan2(direction.y, Vector2(direction.x, direction.z).length()))
 		if state.get("overlay", "") == "match_menu":
 			_game_manager().get_node("PauseMenu").call("open")
 		if state.get("overlay", "") == "match_settings":

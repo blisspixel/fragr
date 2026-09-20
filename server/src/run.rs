@@ -19,6 +19,8 @@ pub struct ServerOptions {
     pub bind: String,
     pub bots: usize,
     pub map: MapKind,
+    /// Validated local traversal blockout, mutually exclusive with arcade rules.
+    pub map_file: Option<std::path::PathBuf>,
     pub map_rotate: bool,
     /// Match rules override (frag limit, timers). `None` keeps the defaults.
     pub match_config: Option<MatchConfig>,
@@ -36,6 +38,7 @@ impl Default for ServerOptions {
             bind: "0.0.0.0:6767".to_string(),
             bots: 4,
             map: MapKind::default(),
+            map_file: None,
             map_rotate: false,
             match_config: None,
             solo_broadcast: false,
@@ -56,18 +59,44 @@ pub async fn run_server(
     // Keep it off the async executor, including single-threaded local harnesses.
     let map = options.map;
     let rotate = options.map_rotate;
-    let mut session =
-        tokio::task::spawn_blocking(move || GameSession::with_map(map, rotate)).await?;
+    if options.map_file.is_some()
+        && (rotate
+            || options.solo_broadcast
+            || options.bots > 0
+            || options.match_config.is_some()
+            || map != MapKind::default())
+    {
+        return Err(
+            "authored traversal requires --bots 0 and no arcade map, rotation or rule overrides"
+                .into(),
+        );
+    }
+    let path = options.map_file.clone();
+    let mut session = tokio::task::spawn_blocking(move || -> std::io::Result<GameSession> {
+        match path {
+            Some(path) => Ok(GameSession::with_authored_map(
+                crate::maps::AuthoredMap::load(&path)?,
+            )),
+            None => Ok(GameSession::with_map(map, rotate)),
+        }
+    })
+    .await??;
     let (game_tx, mut game_rx) = mpsc::unbounded_channel();
 
     // Rotation advertises the maximum requirement before a client joins, so
     // switching maps cannot strand a legacy client inside a misrendered slab.
-    let required_geometry = MapKind::ALL
-        .into_iter()
-        .filter(|candidate| rotate || *candidate == map)
-        .map(|candidate| crate::protocol::geometry_version(&crate::maps::arena(candidate).solids))
-        .max()
-        .unwrap_or_else(crate::protocol::legacy_geometry_version);
+    let required_geometry = if options.map_file.is_some() {
+        crate::protocol::geometry_version(&session.state.map.arena().solids)
+    } else {
+        MapKind::ALL
+            .into_iter()
+            .filter(|candidate| rotate || *candidate == map)
+            .map(|candidate| {
+                crate::protocol::geometry_version(&crate::maps::arena(candidate).solids)
+            })
+            .max()
+            .unwrap_or_else(crate::protocol::legacy_geometry_version)
+    };
     let net_server =
         NetServer::bind_with_geometry(&options.bind, game_tx.clone(), required_geometry).await?;
     if let Some(tx) = ready {
@@ -90,8 +119,8 @@ pub async fn run_server(
     }
     tracing::info!(
         "Map: {} (id {}){}",
-        options.map.name(),
-        options.map.id(),
+        session.state.map.name(),
+        session.state.map.id(),
         if options.map_rotate {
             ", rotate each round"
         } else {

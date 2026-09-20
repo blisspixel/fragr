@@ -5,6 +5,7 @@ uniform vec4 surface_color : source_color = vec4(0.32, 0.34, 0.35, 1.0);
 uniform vec4 accent_color : source_color = vec4(0.48, 0.23, 0.13, 1.0);
 uniform float panel_size = 2.0;
 uniform int surface_kind = 1; // 0 floor, 1 wall, 2 cover, 3 walkable step
+uniform int surface_style = 0; // 0 arcade, 1 concrete, 2 enamel, 3 service, 4 records, 5 lift
 varying vec3 world_position;
 varying vec3 world_normal;
 
@@ -37,7 +38,30 @@ void fragment() {
 	vec3 color = surface_color.rgb * (0.83 + floor(variation * 4.0) * 0.07);
 	color *= 0.93 + floor(grit * 3.0) * 0.035;
 
-	if (surface_kind == 0) {
+	if (surface_style > 0) {
+		// Restrained institutional surfaces separate public rooms from machinery.
+		float joint = 1.0 - step(0.018, min(edge.x, edge.y));
+		color *= 1.0 - joint * 0.32;
+		if (surface_style == 1) {
+			color *= 0.94 + floor(wear * 3.0) * 0.025;
+		} else if (surface_style == 2) {
+			float band = step(0.85, world_position.y) * step(world_position.y, 1.7);
+			color = mix(color, accent_color.rgb, band * (1.0 - step(0.5, n.y)));
+		} else if (surface_style == 3) {
+			float rib = 1.0 - step(0.08, min(cell.x, 1.0 - cell.x));
+			color *= 1.0 - rib * 0.38;
+			float plate = box_mask(cell, vec2(0.1, 0.35), vec2(0.9, 0.48));
+			color = mix(color, accent_color.rgb, plate * 0.65);
+		} else if (surface_style == 4) {
+			vec2 tile = fract(face * 2.0);
+			float grout = 1.0 - step(0.06, min(tile.x, tile.y));
+			color = mix(color, accent_color.rgb * 0.65, grout);
+		} else {
+			float marker = box_mask(cell, vec2(0.25, 0.15), vec2(0.75, 0.25));
+			color = mix(color, accent_color.rgb, marker);
+			EMISSION = accent_color.rgb * marker * 0.25;
+		}
+	} else if (surface_kind == 0) {
 		// Concrete slabs, inset drainage strips, and worn lane paint.
 		float joint = 1.0 - step(0.018, min(edge.x, edge.y));
 		color *= 1.0 - joint * 0.40;

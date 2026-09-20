@@ -196,6 +196,12 @@ scene geometry with these solids so visible cover agrees with the server.
 - `geometry_version`: required solid format. Omission means 1; ground-filled
   maps omit it and zero `bottom` fields to preserve legacy wire bytes. Raised
   volumes declare 2. Unknown versions and raised volumes declaring 1 are invalid.
+- `presentation`: optional registered material mapping, omitted on legacy maps.
+  Contains `ground` and `solids`, with exactly one entry per collision solid in
+  the same order. IDs are `concrete`, `enamel`, `service_steel`, `records_tile` and
+  `lift_panel`. Unknown IDs and mismatched cardinality are rejected. Materials
+  cannot load arbitrary paths or change collision. A presenter predating this
+  optional field may retain its default appearance without changing geometry.
 
 Geometry bounds: finite half extent from 2 to 256; at most 2048 solids; finite
 coordinates within -512 to 512; strictly increasing X and Z bounds. Navigation
@@ -207,8 +213,9 @@ continuing against a previous world. The decision brain and playtest controllers
 also stop on messages that fail the shared server-message schema. The MCP adapter
 retains its existing forward-compatible handling of unknown event objects.
 
-Current built-in maps still use version 1. Version 2 support does not mean an
-enclosed campaign mission is shipped.
+Current built-in arcade maps still use version 1. The opt-in M01 traversal map
+uses version 2 and registered surfaces. It is a blockout, not a finished mission.
+Authoring format and startup limits live in [`server/maps/README.md`](../server/maps/README.md).
 
 Agents need this to tell a clear shot from a wall. Before it existed, the reference agents held the fire button through cover and their measured accuracy sat near 15 percent; with it, the same agents measure near 60. An agent that ignores `top` will think a stair tread is cover; one that reads it gets the same answer the server does. The Godot client builds the whole map from this message: the floor, the boundary and every solid at its own height. The MCP adapter stores it and returns it as `map` inside `observe`.
 

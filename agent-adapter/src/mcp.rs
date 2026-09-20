@@ -883,14 +883,17 @@ pub fn ingest_server_text(state: &mut ToolState, text: &str) -> Result<(), &'sta
             half_extent,
             solids,
             geometry_version,
+            presentation,
         }) => {
             fragr_server::protocol::validate_map_geometry(half_extent, &solids, geometry_version)?;
+            protocol::validate_map_presentation(presentation.as_ref(), solids.len())?;
             state.map = Some(serde_json::json!({
                 "map_id": map_id,
                 "map_name": map_name,
                 "half_extent": half_extent,
                 "solids": solids,
                 "geometry_version": geometry_version,
+                "presentation": presentation,
             }));
         }
         Ok(protocol::ServerMessage::Event(event)) => {
@@ -941,7 +944,17 @@ mod mcp_tests {
             state.map.as_ref().unwrap()["solids"][0]["bottom"],
             serde_json::json!(2.4_f32)
         );
+        map["presentation"] = serde_json::json!({"ground":"concrete","solids":["enamel"]});
+        ingest_server_text(&mut state, &map.to_string()).unwrap();
+        assert_eq!(
+            state.map.as_ref().unwrap()["presentation"]["solids"][0],
+            "enamel"
+        );
         let previous = state.map.clone();
+        let mut invalid = map.clone();
+        invalid["presentation"]["solids"] = serde_json::json!([]);
+        assert!(ingest_server_text(&mut state, &invalid.to_string()).is_err());
+        assert_eq!(state.map, previous);
         for version in [0, 1, 3] {
             map["geometry_version"] = version.into();
             assert!(ingest_server_text(&mut state, &map.to_string()).is_err());

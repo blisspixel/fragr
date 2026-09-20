@@ -25,10 +25,10 @@ pub struct GameSession {
     /// Targeted control messages, drained by the game loop.
     pub pending_unicasts: Vec<(Recipient, ServerMessage)>,
     /// The map the last MapInfo described, so a rotation resends it once.
-    last_map_sent: Option<crate::sim::MapKind>,
+    last_map_sent: Option<crate::maps::RuntimeMap>,
     /// Target rule-bot count. Solo scrap and empty-arena recovery refill up to this.
     pub min_bots: usize,
-    navigation_map: MapKind,
+    navigation_map: crate::maps::RuntimeMap,
     navigators: HashMap<Uuid, crate::navigation::Navigator>,
 }
 
@@ -39,14 +39,22 @@ impl GameSession {
 
     pub fn with_map(map: MapKind, map_rotate: bool) -> Self {
         crate::maps::prepare_navigation(map, map_rotate);
+        Self::with_state(GameState::with_map(map, map_rotate))
+    }
+
+    pub fn with_authored_map(map: Arc<crate::maps::AuthoredMap>) -> Self {
+        Self::with_state(GameState::with_authored_map(map))
+    }
+
+    fn with_state(state: GameState) -> Self {
         Self {
-            state: GameState::with_map(map, map_rotate),
+            navigation_map: state.map.clone(),
+            state,
             bots: Vec::new(),
             client_to_player: HashMap::new(),
             pending_unicasts: Vec::new(),
             last_map_sent: None,
             min_bots: 0,
-            navigation_map: map,
             navigators: HashMap::new(),
         }
     }
@@ -268,10 +276,11 @@ impl GameSession {
     pub fn tick_messages(&mut self, dt: f32) -> Vec<ServerMessage> {
         self.ensure_min_bots();
         if self.navigation_map != self.state.map {
-            self.navigation_map = self.state.map;
+            self.navigation_map = self.state.map.clone();
             self.navigators.clear();
         }
-        let world = crate::maps::navigation(self.state.map);
+        let map = self.state.map.clone();
+        let world = map.navigation();
         let mut driven = std::collections::HashSet::new();
         let mut controllers = self.bots.clone();
         for bot in &controllers {
@@ -324,8 +333,8 @@ impl GameSession {
 
         let mut out = Vec::new();
         // The map only ever changes between rounds, so this is not per-tick cost.
-        if self.last_map_sent != Some(self.state.map) {
-            self.last_map_sent = Some(self.state.map);
+        if self.last_map_sent.as_ref() != Some(&self.state.map) {
+            self.last_map_sent = Some(self.state.map.clone());
             out.push(self.state.map_info());
         }
         out.push(ServerMessage::Snapshot(self.state.snapshot()));

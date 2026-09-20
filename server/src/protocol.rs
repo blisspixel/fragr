@@ -389,6 +389,34 @@ pub fn validate_map_geometry(
     crate::movement::validate_geometry(half, solids)
 }
 
+/// Registered offline surface kits. Content cannot supply shader or asset paths.
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum MapSurface {
+    Concrete,
+    Enamel,
+    ServiceSteel,
+    RecordsTile,
+    LiftPanel,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct MapPresentation {
+    pub ground: MapSurface,
+    /// One registered kit for each collision solid, in exactly the same order.
+    pub solids: Vec<MapSurface>,
+}
+
+pub fn validate_map_presentation(
+    presentation: Option<&MapPresentation>,
+    solid_count: usize,
+) -> Result<(), &'static str> {
+    if presentation.is_some_and(|p| p.solids.len() != solid_count) {
+        return Err("map surfaces do not match the geometry");
+    }
+    Ok(())
+}
+
 #[cfg(test)]
 mod geometry_tests {
     use super::*;
@@ -424,6 +452,7 @@ mod geometry_tests {
         }
         assert!(validate_map_geometry(f32::NAN, &raised, 2).is_err());
         let message = ServerMessage::MapInfo {
+            presentation: None,
             map_id: 67,
             map_name: "Enclosed fixture".into(),
             half_extent: 12.0,
@@ -486,6 +515,8 @@ pub enum ServerMessage {
             skip_serializing_if = "is_legacy_geometry"
         )]
         geometry_version: u32,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        presentation: Option<MapPresentation>,
     },
     Snapshot(Snapshot),
     Event(GameEvent),
