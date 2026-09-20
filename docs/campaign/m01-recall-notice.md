@@ -6,8 +6,8 @@ authority. One Clerk and two Sweepers are placed, with both approaches exercised
 through normal input. Enemy artwork and animation remain provisional. Story
 scenes remain unbuilt. The facility pass adds keyed signs,
 locker banks, service vents and practical lights through bounded map metadata.
-The local mission-sequence change connects the physical transfer record to a
-real lift gate and shared departure. Rendered and party tests pass locally;
+The mission sequence shipped in #184 and v0.26.0, connecting the physical transfer
+record to a real lift gate and shared departure. Rendered and party tests pass;
 the result ends the prototype without loading unbuilt M02.
 Earth before the wipe. Full first-run target 10-15 minutes,
 to be measured. [Treatment](../CAMPAIGN-MISSIONS.md#m01-recall-notice).

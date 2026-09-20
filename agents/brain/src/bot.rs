@@ -630,7 +630,7 @@ mod tests {
         let (shutdown_tx, shutdown_rx) = tokio::sync::oneshot::channel::<()>();
         let (ready_tx, ready_rx) = tokio::sync::oneshot::channel();
         let options = ServerOptions {
-            map_file: None,
+            authored: None,
             bind: "127.0.0.1:0".to_string(),
             bots,
             map: MapKind::default(),

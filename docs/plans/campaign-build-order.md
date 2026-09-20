@@ -15,9 +15,9 @@ an explicit approved cap, and the existing developer pipelines.
 | Combat | M01 fists, found Tack/Flechette, private finite inventory, reload and supplies; arcade full arsenal | Remaining arsenal, projectiles, authored encounter balance and finished sound sets |
 | Movement | Shared gravity, jump, steps, ceilings and overlapping floors with a verified GDScript mirror | New traversal features require explicit geometry support and live tests |
 | Enemies | Rule bots, elite/boss prototype, authored human Clerk and Sweeper bot with phased attacks and directional animation | Full enemy roster, final art, encounters and balance |
-| Episode | Calibration prototype; M01 transfer/gate/departure locally implemented and verified | Full story missions, rescue outcomes and campaign transitions |
+| Episode | Calibration prototype; M01 transfer/gate/departure shipped in v0.26.0 | Full story missions, rescue outcomes and campaign transitions |
 | Persistence | Player settings | Versioned party campaign save, checkpoints, inventory and rescue outcomes |
-| Co-op | Allied campaign participants, encounter wipe reset; shared mission boarding and four-seat admission verified locally | Revive, checkpoints, save ownership, reconnect and proven party balance |
+| Co-op | Allied campaign participants, encounter wipe reset; shared mission boarding and four-seat admission shipped with live party evidence | Revive, checkpoints, save ownership, reconnect and proven party balance |
 | Presentation | Retro front end, current HUD, radio and idle viewmodels | Localized framing, companion scenes, complete character/weapon/effect motion |
 
 Navigation PR #172 shipped in v0.21.0 after local verification and green CI,

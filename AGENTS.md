@@ -61,6 +61,7 @@ If prose and code disagree, code wins; fix the prose in the same change. Keep pl
 | Walking routes and controller memory | `server/src/navigation.rs`, `navigation/controller.rs`; map geometry and movement remain authoritative. Precompute roster topology before readiness, bound/stagger searches, and prove routes with shared movement and actual `GameState` players. Use `client/qa/movement.json` for rendered stair/jump checks. |
 | CPU measurements and offline traces | `server/src/bench.rs`, `trace.rs`; contract in `docs/BENCHMARK.md` |
 | Tick loop shared by the binary and harnesses | `server/src/run.rs` (`run_server`, `ServerOptions`) |
+| Local campaign process ownership | `server/src/local.rs` owns readiness and stdin lease; `maps::AuthoredSource` uses one map loader for files and bundled missions. `client/scripts/local_match.gd` owns lifecycle, `local_process.gd` owns native pipes/PID. Never kill a listener by port or process name. |
 | Agent playtest harness and metrics | `tools/playtest` |
 | Decision-brain agent, budget gate, spend ledger | `agents/brain` (`budget`, `provider`, `bot`) |
 | Session glue, rosters, `min_bots`, broadcast | `server/src/session.rs` |
@@ -118,6 +119,7 @@ bash tools/playtest_roster.sh   # 2/6/6/8/12/16 mixed clients across all six map
 Godot (the `godot` CI job runs this; locally point `GODOT_BIN` at a 4.7.2-stable binary):
 
 ```bash
+cargo build -p fragr-server --release --locked  # required by the real local-launch harness
 tools/godot_check.sh   # import, parse every script, run the harnesses; log lines are the verdict
 bash tools/test_godot_check.sh   # inject failed exits, errors, and missing PASS markers
 ```

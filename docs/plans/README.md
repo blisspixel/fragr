@@ -24,7 +24,8 @@ Status words: **planned**, **in flight**, **implemented** (local evidence record
 | [`m01-weapon-discovery.md`](./m01-weapon-discovery.md) | **proven** (#179, #181, v0.24.0) | Fists-to-Tack/Flechette discovery, finite ammunition, reload and compatible human/agent presentation. |
 | [`m01-intake-encounter.md`](./m01-intake-encounter.md) | **in flight** ([#180](https://github.com/blisspixel/fragr/issues/180)) | Authored human Clerk and Sweeper bot fights, explicit hostility, readable attacks and inspected motion. |
 | [`m01-facility-detail.md`](./m01-facility-detail.md) | **shipped** (#182, v0.25.0) | Bounded surface details, localized signs and practical lights make the intake rooms legible. |
-| [`m01-mission-sequence.md`](./m01-mission-sequence.md) | **implemented** (#183) | Physical transfer-record interaction, authoritative lift gate and shared departure state. |
+| [`m01-mission-sequence.md`](./m01-mission-sequence.md) | **shipped** (#184, v0.26.0) | Physical transfer-record interaction, authoritative lift gate and shared departure state. |
+| [`local-campaign-entry.md`](./local-campaign-entry.md) | **implemented** (#185) | Start the correct local campaign server from Single Player and own its complete lifetime; integration pending. |
 | [`gpu-bot-compute.md`](./gpu-bot-compute.md) | **planned** | Portable optional GPU perception/inference, measured against CPU queries with rendering contention and fallback. |
 | [`audio-effects-refresh.md`](./audio-effects-refresh.md) | **in flight** | Distinct weapon, movement, impact and world sounds; capped candidates and in-game mix verification. |
 | [`radio-refresh.md`](./radio-refresh.md) | **in flight** | Two fictional talk formats and world-appropriate music; staged pilots, captions and distribution review. |

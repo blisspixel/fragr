@@ -33,6 +33,24 @@ mod runtime;
 pub use authored::AuthoredMap;
 pub use runtime::RuntimeMap;
 
+/// One authored-map loader for editable files and registered bundled missions.
+#[derive(Debug, Clone)]
+pub enum AuthoredSource {
+    File(std::path::PathBuf),
+    Mission(crate::protocol::MissionId),
+}
+
+impl AuthoredSource {
+    pub fn load(&self) -> std::io::Result<std::sync::Arc<AuthoredMap>> {
+        match self {
+            Self::File(path) => AuthoredMap::load(path),
+            Self::Mission(crate::protocol::MissionId::RecallNotice) => {
+                AuthoredMap::read(include_bytes!("../maps/m01-recall-notice.json").as_slice())
+            }
+        }
+    }
+}
+
 /// Immutable collision geometry shared by live movement, navigation and the
 /// wire map. Conversion from the authoring layout happens once per map.
 pub(crate) fn arena(kind: MapKind) -> &'static crate::movement::Arena {

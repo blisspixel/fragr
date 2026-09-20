@@ -69,6 +69,8 @@ var role_transition: bool = false
 var shot_effects: ShotEffects = null
 var last_shot_tick: int = -1
 var mouse_capture: MouseCapture
+var local_match: LocalMatch
+var _leaving: bool = false
 
 func _ready():
 	mission_hud = MissionHud.new()
@@ -96,6 +98,12 @@ func _ready():
 	_load_audio_streams()
 	
 	var boot = _resolve_boot()
+	if boot.get("mode") == "campaign":
+		local_match = LocalMatch.for_tree(get_tree())
+		if local_match.state != LocalMatch.State.RUNNING or local_match.url != boot.get("host"):
+			_on_local_failure("LOCAL_SERVER_STOPPED")
+			return
+		local_match.failed.connect(_on_local_failure)
 	var role = str(boot.get("role", "spectator"))
 	var player_name = str(boot.get("name", "Spectator"))
 	is_human_player = role == "human"
@@ -145,6 +153,10 @@ static func _find_world_environment(node: Node) -> WorldEnvironment:
 
 
 func _on_map_info(info: Dictionary) -> void:
+	var mission: Variant = info.get("mission")
+	if local_match != null and (not mission is Dictionary or mission.get("id") != MissionState.ID):
+		_on_local_failure("LOCAL_SERVER_INVALID_READY")
+		return
 	last_shot_tick = -1
 	if shot_effects != null:
 		shot_effects.clear()
@@ -190,7 +202,25 @@ func show_loading_card() -> void:
 	add_child(card)
 
 func _on_leave_requested() -> void:
+	if _leaving:
+		return
+	_leaving = true
+	net_client.disconnect_from_server()
+	if local_match != null:
+		local_match.stop()
+	if get_tree().has_meta("fragr_boot"):
+		get_tree().remove_meta("fragr_boot")
 	get_tree().change_scene_to_file("res://scenes/boot_menu.tscn")
+
+func _on_local_failure(key: String) -> void:
+	if _leaving:
+		return
+	local_match.error_key = key
+	_on_leave_requested.call_deferred()
+
+func _exit_tree() -> void:
+	if is_instance_valid(local_match):
+		local_match.stop()
 
 func _unhandled_input(event: InputEvent) -> void:
 	if console != null and console.is_open():
@@ -232,6 +262,8 @@ func _resolve_boot() -> Dictionary:
 		if typeof(meta) == TYPE_DICTIONARY:
 			var mode = str(meta.get("mode", "spectate"))
 			var host = str(meta.get("host", "127.0.0.1:6767"))
+			if mode == "campaign":
+				return {"role": "human", "name": settings.player_name(), "host": host, "hud_mode": "CAMPAIGN", "mode": mode}
 			if mode == "solo":
 				return {"role": "human", "name": settings.player_name(), "host": host, "hud_mode": "SOLO BROADCAST", "mode": mode}
 			if mode == "join":
@@ -298,7 +330,7 @@ func change_role(play: bool) -> void:
 	pending_weapon_swap = null
 	await get_tree().create_timer(0.1).timeout
 	net_client.connect_to_server("human" if play else "spectator", settings.player_name())
-	hud.set_mode("PLAYING" if play else "SPECTATING")
+	hud.set_mode(("CAMPAIGN" if local_match != null else "PLAYING") if play else "SPECTATING")
 	hud.set_ghost_rival("")
 	if radio:
 		radio.set_human_mode(play)
@@ -440,6 +472,8 @@ func _on_disconnected():
 	hud.reset_host_chrome()
 	ended_podium_shown = false
 	_clear_world()
+	if local_match != null and not role_transition and not _leaving:
+		_on_local_failure("LOCAL_SERVER_STOPPED")
 
 func _on_server_error(message: String) -> void:
 	hud.set_status(message)

@@ -2,6 +2,7 @@
 # Headless Godot checks for the client: import the project, parse every script,
 # run the harnesses. Godot can exit 0 with errors in its log, so the log lines
 # are the verdict. Set GODOT_BIN to a 4.7.2-stable binary, or have `godot` on PATH.
+# Build fragr-server --release --locked first; local campaign checks spawn it.
 set -uo pipefail
 cd "$(dirname "$0")/.."
 GODOT="${GODOT_BIN:-godot}"

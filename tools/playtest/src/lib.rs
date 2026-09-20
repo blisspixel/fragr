@@ -1307,7 +1307,7 @@ pub async fn run(config: Config) -> Result<(Report, Observation), Error> {
         ..MatchConfig::default()
     };
     let options = ServerOptions {
-        map_file: None,
+        authored: None,
         bind: "127.0.0.1:0".to_string(),
         bots: 0,
         map: config.map,

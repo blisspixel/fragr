@@ -23,6 +23,11 @@ struct Args {
     #[arg(long, conflicts_with_all = ["map", "map_rotate", "solo_broadcast", "bench", "bench_verify_trace", "no_round_events"])]
     map_file: Option<PathBuf>,
 
+    /// Run the bundled mission for a desktop parent. Readiness is JSON on stdout;
+    /// stdin shutdown or EOF ends this loopback-only child.
+    #[arg(long, value_parser = ["recall_notice"], conflicts_with_all = ["bind", "bots", "map", "map_file", "map_rotate", "solo_broadcast", "no_round_events", "bench", "bench_verify_trace", "status_every_s"])]
+    local_mission: Option<String>,
+
     /// Move to the next map in the roster each round.
     #[arg(long, default_value_t = false)]
     map_rotate: bool,
@@ -98,6 +103,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     // In benchmark mode the JSON report is the only thing on stdout, so logs
     // go to stderr and only warnings survive.
     init_tracing(args.bench.is_some());
+    if args.local_mission.is_some() {
+        return fragr_server::local::serve(
+            fragr_server::protocol::MissionId::RecallNotice,
+            args.seed,
+            std::io::stdin(),
+            std::io::stdout(),
+        )
+        .await;
+    }
     if let Some(path) = args.bench_verify_trace {
         let reader = std::io::BufReader::new(std::fs::File::open(path)?);
         let summary = fragr_server::trace::verify_trace(reader)?;
@@ -162,7 +176,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         bind: args.bind,
         bots: args.bots,
         map,
-        map_file: args.map_file,
+        authored: args.map_file.map(fragr_server::maps::AuthoredSource::File),
         map_rotate: args.map_rotate,
         match_config: args
             .no_round_events
@@ -253,7 +267,7 @@ mod tests {
         let server = tokio::spawn(async move {
             run_server(
                 ServerOptions {
-                    map_file: None,
+                    authored: None,
                     bind: "127.0.0.1:0".to_string(),
                     bots: 1,
                     map: fragr_server::sim::MapKind::ArenaDuel,

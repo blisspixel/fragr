@@ -44,11 +44,6 @@ if [ ! -x "$SERVER_BIN" ]; then
   exit 1
 fi
 
-# Free stale listener on loopback solo port if we own it.
-if command -v fuser >/dev/null 2>&1; then
-  fuser -k "${BIND##*:}/tcp" >/dev/null 2>&1 || true
-fi
-
 MAP_ARGS=(--map "$MAP")
 if [ "$MAP_ROTATE" = "1" ] || [ "$MAP_ROTATE" = "true" ]; then
   MAP_ARGS+=(--map-rotate)

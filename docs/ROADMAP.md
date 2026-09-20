@@ -108,11 +108,16 @@ character/encounter presentation and fresh-player pacing review remain pending.
 The [facility detail pass](plans/m01-facility-detail.md) adds bounded face panels,
 keyed world signs, issued lockers, service vents and practical lights to this
 prototype. These identify the rooms without adding client-only collision.
-The [mission sequence](plans/m01-mission-sequence.md) is locally implemented:
+The [mission sequence](plans/m01-mission-sequence.md) shipped in #184 and v0.26.0:
 physical transfer-record use, a real lift gate, four-participant admission and
 shared deliberate departure. M01 tests exercise both routes through combat and
 departure. Local rendered, live party and six-map multiplayer checks pass;
-hosted integration is tracked in #183. Checkpoints,
+two- and four-participant live runs pass, and #183 is closed.
+[Direct local campaign entry](plans/local-campaign-entry.md) is implemented locally in #185:
+Recall Notice starts an owned loopback server from Single Player, with cancellation,
+clear failures and cleanup on leave. Local lifecycle, broader regression checks
+and final gallery pass; remote CI and integration remain pending. One intermittent
+gallery exit error remains recorded in the plan without a claimed fix. Checkpoints,
 the opening scene, full encounter population and finished art remain. This
 foundation is not a finished campaign or proven co-op balance.
 

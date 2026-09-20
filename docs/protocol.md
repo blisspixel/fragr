@@ -863,6 +863,26 @@ S→C: {"type": "event", "event": "round_end", "winner": "MyBot", "reason": "Fra
 S→C: {"type": "event", "event": "round_start", "round_number": 2, "frag_limit": 10, "time_limit": 180}
 ```
 
+## Desktop process bootstrap
+
+`fragr-server --local-mission recall_notice` is a child-process contract, separate
+from WebSocket messages. It loads the registered map from the committed JSON
+embedded at build time, binds `127.0.0.1:0`, and writes one ASCII JSON line to
+stdout after map preparation and bind:
+
+```json
+{"version":1,"mission":"recall_notice","url":"ws://127.0.0.1:49152","gameplay_version":4}
+```
+
+The port is chosen by the OS. Diagnostics use stderr. The parent validates the
+exact version, mission, gameplay capability and loopback endpoint before using
+the normal Hello path. Readiness is capped at 4096 bytes and 15 seconds. Stdin EOF
+or `{"type":"shutdown"}` followed by a newline stops the child; invalid or overlong
+control records also stop it with an error. Control records are capped at 256 bytes.
+This lease applies only to explicit local-child mode. Dedicated hosts retain
+their independent lifetime. The client gives shutdown three seconds, then
+disposes only the PID it created. No process-name or port-based cleanup is used.
+
 ## Future Considerations (Post-Slice 1)
 
 Offline recordings reuse these exact message types. Their versioned container,
