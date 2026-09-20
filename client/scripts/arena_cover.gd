@@ -127,9 +127,11 @@ func _add_solid(solid: Dictionary) -> void:
 	if size_x <= 0.0 or size_z <= 0.0:
 		return
 
-	# The server says how tall it is. A solid runs from the floor to its top,
-	# so what is drawn and what a fighter stands on are the same box.
-	var height: float = float(solid.get("top", MoveStep.WALL_TOP))
+	# Draw the same finite volume used for collision and shots, including space
+	# beneath raised floors. Legacy boxes have a bottom at ground level.
+	var bottom: float = float(solid.get("bottom", MoveStep.GROUND_Y))
+	var top: float = float(solid.get("top", MoveStep.WALL_TOP))
+	var height: float = top - bottom
 	if height <= 0.0:
 		return
 
@@ -138,6 +140,6 @@ func _add_solid(solid: Dictionary) -> void:
 
 	var node: MeshInstance3D = MeshInstance3D.new()
 	node.mesh = mesh
-	node.position = Vector3((min_x + max_x) * 0.5, height * 0.5, (min_z + max_z) * 0.5)
-	node.material_override = _materials[3 if height <= LOW_TOP else 2]
+	node.position = Vector3((min_x + max_x) * 0.5, bottom + height * 0.5, (min_z + max_z) * 0.5)
+	node.material_override = _materials[3 if top <= LOW_TOP else 2]
 	add_child(node)

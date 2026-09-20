@@ -25,6 +25,12 @@ An outer service stair links the assembly hall and galleries; opened routes
 shorten the return. The old public facade and hidden enforcement apparatus share
 recognizable architecture.
 
+The transit approach shows a broader coalition battle across connected civic
+positions, with sheltered street routes and accessible buildings. It then
+contracts into the assembly hall and command interiors. Keep that change in
+scale legible: the street assault earns entry, and the indoor route brings the
+player personally to Voss. Do not stretch the approach into an empty parade ground.
+
 | Zone | Fight and route | Character/evidence function |
 |---|---|---|
 | Transit approach | Allied foothold with two attacks on the entrance | Establish this is a coalition operation |

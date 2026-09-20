@@ -49,6 +49,8 @@ func _initialize() -> void:
 		names.append(str(case.get("name", "?")))
 	for needed: String in ["jump_arc", "stair_climb", "stair_descend", "deck_edge_fall", "stair_fractional_above", "stair_fractional_below", "ledge_escape_east", "ledge_escape_south", "ledge_escape_west", "ledge_escape_north"]:
 		_check(names.has(needed), "the vectors cover %s" % needed)
+	for needed: String in ["balcony_underpass", "balcony_exit_east", "balcony_exit_south", "balcony_exit_west", "balcony_exit_north", "ceiling_head_strike", "ceiling_edge_contact", "ceiling_step_blocked", "ceiling_step_clear"]:
+		_check(names.has(needed), "the vectors cover %s" % needed)
 	var checked := 0
 	for case: Dictionary in cases:
 		checked += _run_case(case, dt)

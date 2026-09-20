@@ -12,6 +12,9 @@
 use serde::{Deserialize, Serialize};
 use std::f32::consts::PI;
 
+#[cfg(test)]
+mod enclosed_tests;
+
 /// Fighter collision radius in units.
 pub const RADIUS: f32 = 0.5;
 /// Ground top speed in units per second.
@@ -40,6 +43,8 @@ pub const WALL_TOP: f32 = 4.5;
 /// How far above its feet a fighter's shot line sits. A solid lower than the
 /// line between two fighters does not block the shot between them.
 pub const EYE_HEIGHT: f32 = 1.6;
+/// Full standing body height, shared by clearance and shot targets.
+pub const BODY_HEIGHT: f32 = 1.8;
 /// Downward acceleration in units per second squared. Chosen with the jump
 /// below so a hop clears about 1.1 units and lasts a little under half a
 /// second, which is the Quake-ish arc this game's speed wants rather than the
@@ -114,16 +119,16 @@ impl Default for MoveInput {
     }
 }
 
-/// An axis-aligned solid in the XZ plane, not yet inflated by the radius. It
-/// runs from the base floor up to `top`, so it is a box rather than a prism:
-/// there is no space underneath one, and a low one is a step rather than a
-/// wall.
+/// An axis-aligned solid with an XZ footprint and explicit vertical bounds.
+/// An omitted bottom preserves legacy ground-filled walls and steps.
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 pub struct Solid {
     pub min_x: f32,
     pub max_x: f32,
     pub min_z: f32,
     pub max_z: f32,
+    #[serde(default, skip_serializing_if = "is_ground")]
+    pub bottom: f32,
     /// Height of the walkable upper surface. Defaulted rather than required so
     /// that every solid written before the heightfield existed keeps meaning a
     /// wall, on the wire and in the committed golden vectors alike.
@@ -135,6 +140,10 @@ fn wall_top() -> f32 {
     WALL_TOP
 }
 
+fn is_ground(height: &f32) -> bool {
+    *height == GROUND_Y
+}
+
 impl Solid {
     /// A wall: tall enough that nothing walks or jumps onto it.
     pub fn from_center(cx: f32, cz: f32, half_x: f32, half_z: f32) -> Self {
@@ -144,11 +153,23 @@ impl Solid {
     /// A solid whose upper surface is at `top`. Below `STEP_UP` it is a step,
     /// below a jump's reach it is a ledge, above that it is a wall.
     pub fn from_center_top(cx: f32, cz: f32, half_x: f32, half_z: f32, top: f32) -> Self {
+        Self::from_center_volume(cx, cz, half_x, half_z, GROUND_Y, top)
+    }
+
+    pub fn from_center_volume(
+        cx: f32,
+        cz: f32,
+        half_x: f32,
+        half_z: f32,
+        bottom: f32,
+        top: f32,
+    ) -> Self {
         Solid {
             min_x: cx - half_x,
             max_x: cx + half_x,
             min_z: cz - half_z,
             max_z: cz + half_z,
+            bottom,
             top,
         }
     }
@@ -206,18 +227,64 @@ impl Arena {
         self.blocked_at(x, z, GROUND_Y + STEP_UP)
     }
 
-    /// Blocked for a fighter that can reach up to `climb`. Anything at or
-    /// below that height is walked onto instead of walked into.
+    /// Grounded clearance, with feet one step below `climb`. Airborne callers
+    /// supply their actual foot height through `blocked_body_at`.
     pub fn blocked_at(&self, x: f32, z: f32, climb: f32) -> bool {
-        self.solids
-            .iter()
-            .any(|s| s.top > climb && s.blocks(x, z, RADIUS))
+        self.blocked_body_at(x, z, climb - STEP_UP, climb)
     }
 
+    pub fn blocked_body_at(&self, x: f32, z: f32, feet: f32, climb: f32) -> bool {
+        self.solids.iter().any(|s| {
+            s.top > climb
+                && s.bottom < feet + BODY_HEIGHT - CONTACT_EPSILON
+                && s.blocks(x, z, RADIUS)
+        })
+    }
+
+    /// Grounded route probe; live movement supplies its actual foot height.
     pub fn blocked_motion(&self, from: (f32, f32), to: (f32, f32), climb: f32) -> bool {
+        self.blocked_body_motion(from, to, climb - STEP_UP, climb, true)
+    }
+
+    /// Check headroom at the height the body would reach after an automatic
+    /// step. A step beneath a low ceiling must fail before changing position.
+    pub fn blocked_body_motion(
+        &self,
+        from: (f32, f32),
+        to: (f32, f32),
+        feet: f32,
+        climb: f32,
+        was_grounded: bool,
+    ) -> bool {
+        let support = self.support_height(to.0, to.1, climb);
+        let next_feet = if was_grounded && feet - support <= STEP_UP {
+            support
+        } else {
+            feet
+        };
+        self.solids.iter().any(|solid| {
+            solid.top > climb
+                && solid.bottom < next_feet + BODY_HEIGHT - CONTACT_EPSILON
+                && if solid.bottom >= feet + BODY_HEIGHT - CONTACT_EPSILON {
+                    // The old body was below this slab. Horizontal overlap is
+                    // not permission to step upward through its underside.
+                    solid.blocks(to.0, to.1, RADIUS)
+                } else {
+                    solid.blocks_motion(from, to, RADIUS)
+                }
+        })
+    }
+
+    /// Lowest underside above the current head, including radius overlap at an
+    /// edge. Swept upward motion stops here even if one tick crosses the slab.
+    pub fn ceiling_height(&self, x: f32, z: f32, feet: f32) -> f32 {
         self.solids
             .iter()
-            .any(|solid| solid.top > climb && solid.blocks_motion(from, to, RADIUS))
+            .filter(|solid| {
+                solid.bottom >= feet + BODY_HEIGHT - CONTACT_EPSILON && solid.blocks(x, z, RADIUS)
+            })
+            .map(|solid| solid.bottom)
+            .fold(f32::INFINITY, f32::min)
     }
 
     /// The highest surface at `(x, z)` that is no higher than `ceiling`, or the
@@ -359,12 +426,14 @@ pub fn integrate(state: MoveState, jump: bool, dt: f32, arena: &Arena) -> MoveSt
     let was_grounded = grounded(state.y, floor, state.vy);
     let climb = climb_height(state.y, floor, state.vy);
 
-    let (x, z) = if !arena.blocked_motion((old_x, old_z), (nx, nz), climb) {
+    let blocked =
+        |x, z| arena.blocked_body_motion((old_x, old_z), (x, z), state.y, climb, was_grounded);
+    let (x, z) = if !blocked(nx, nz) {
         (nx, nz)
-    } else if !arena.blocked_motion((old_x, old_z), (nx, old_z), climb) {
+    } else if !blocked(nx, old_z) {
         vz = 0.0;
         (nx, old_z)
-    } else if !arena.blocked_motion((old_x, old_z), (old_x, nz), climb) {
+    } else if !blocked(old_x, nz) {
         vx = 0.0;
         (old_x, nz)
     } else {
@@ -390,7 +459,12 @@ pub fn integrate(state: MoveState, jump: bool, dt: f32, arena: &Arena) -> MoveSt
     } else {
         vy -= GRAVITY * dt;
     }
+    let ceiling = arena.ceiling_height(x, z, y);
     y += vy * dt;
+    if vy > 0.0 && y + BODY_HEIGHT > ceiling {
+        y = ceiling - BODY_HEIGHT;
+        vy = 0.0;
+    }
     // Swept landing: anything the fall passed through on the way down counts,
     // so a fighter that comes off a deck lands on the next one rather than
     // through it.
@@ -694,6 +768,60 @@ pub fn golden_cases(dt: f32) -> GoldenFile {
             at_y(0.0, 0.0, 2.0, yaw),
             hold(keys(true, false, false, false, yaw), 90),
             10,
+            &mut cases,
+        );
+    }
+
+    let balcony = Arena {
+        half: 12.0,
+        solids: vec![Solid::from_center_volume(0.0, 0.0, 2.0, 2.0, 2.4, 3.0)],
+    };
+    push_in(
+        "balcony_underpass",
+        &balcony,
+        at(-4.0, 0.0, 0.0),
+        hold(keys(true, false, false, false, 0.0), 120),
+        1,
+        &mut cases,
+    );
+    for (name, yaw) in [
+        ("balcony_exit_east", 0.0),
+        ("balcony_exit_south", PI / 2.0),
+        ("balcony_exit_west", PI),
+        ("balcony_exit_north", PI * 1.5),
+    ] {
+        push_in(
+            name,
+            &balcony,
+            at_y(0.0, 0.0, 3.0, yaw),
+            hold(keys(true, false, false, false, yaw), 90),
+            1,
+            &mut cases,
+        );
+    }
+    let ceiling = Arena {
+        half: 12.0,
+        solids: vec![Solid::from_center_volume(0.0, 0.0, 2.0, 2.0, 2.1, 3.0)],
+    };
+    for (name, x) in [("ceiling_head_strike", 0.0), ("ceiling_edge_contact", 2.4)] {
+        let mut hop = hold(MoveInput::default(), 60);
+        hop[0].jump = true;
+        push_in(name, &ceiling, at(x, 0.0, 0.0), hop, 1, &mut cases);
+    }
+    for (name, bottom) in [("ceiling_step_blocked", 2.2), ("ceiling_step_clear", 2.3)] {
+        let stair = Arena {
+            half: 12.0,
+            solids: vec![
+                Solid::from_center_volume(0.0, 0.0, 2.0, 2.0, bottom, 3.0),
+                Solid::from_center_top(1.0, 0.0, 1.0, 1.0, 0.5),
+            ],
+        };
+        push_in(
+            name,
+            &stair,
+            at(-0.25, 0.0, 0.0),
+            hold(keys(true, false, false, false, 0.0), 40),
+            1,
             &mut cases,
         );
     }
@@ -1022,6 +1150,15 @@ mod tests {
             "stair_climb",
             "stair_descend",
             "deck_edge_fall",
+            "balcony_underpass",
+            "balcony_exit_east",
+            "balcony_exit_south",
+            "balcony_exit_west",
+            "balcony_exit_north",
+            "ceiling_head_strike",
+            "ceiling_edge_contact",
+            "ceiling_step_blocked",
+            "ceiling_step_clear",
         ] {
             assert!(names.contains(&needed), "missing golden case {needed}");
         }

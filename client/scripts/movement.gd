@@ -19,6 +19,7 @@ const CONTACT_EPSILON: float = 0.0001
 const WALL_TOP: float = 4.5
 ## How far above its feet a fighter's shot line sits.
 const EYE_HEIGHT: float = 1.6
+const BODY_HEIGHT: float = 1.8
 const GRAVITY: float = 22.0
 const JUMP_SPEED: float = 7.0
 
@@ -37,6 +38,10 @@ static func solid_from_center(cx: float, cz: float, half_x: float, half_z: float
 
 static func solid_top(solid: Dictionary) -> float:
 	return float(solid.get("top", WALL_TOP))
+
+
+static func solid_bottom(solid: Dictionary) -> float:
+	return float(solid.get("bottom", GROUND_Y))
 
 
 static func solid_blocks(solid: Dictionary, x: float, z: float, radius: float) -> bool:
@@ -84,20 +89,45 @@ static func arena_blocked(arena: Dictionary, x: float, z: float) -> bool:
 	return arena_blocked_at(arena, x, z, GROUND_Y + STEP_UP)
 
 
-## Blocked for a fighter that can reach up to `climb`. Anything at or below
-## that height is walked onto instead of walked into.
+## Grounded clearance, with feet one step below climb. Airborne callers supply
+## the actual foot height through arena_blocked_body_at.
 static func arena_blocked_at(arena: Dictionary, x: float, z: float, climb: float) -> bool:
+	return arena_blocked_body_at(arena, x, z, climb - STEP_UP, climb)
+
+
+static func arena_blocked_body_at(arena: Dictionary, x: float, z: float, feet: float, climb: float) -> bool:
 	for solid: Dictionary in arena["solids"]:
-		if solid_top(solid) > climb and solid_blocks(solid, x, z, RADIUS):
+		if solid_top(solid) > climb and solid_bottom(solid) < feet + BODY_HEIGHT - CONTACT_EPSILON and solid_blocks(solid, x, z, RADIUS):
 			return true
 	return false
 
 
 static func arena_blocked_motion(arena: Dictionary, from: Vector2, to: Vector2, climb: float) -> bool:
+	return arena_blocked_body_motion(arena, from, to, climb - STEP_UP, climb, true)
+
+
+static func arena_blocked_body_motion(arena: Dictionary, from: Vector2, to: Vector2, feet: float, climb: float, was_grounded: bool) -> bool:
+	var support: float = arena_support_height(arena, to.x, to.y, climb)
+	var next_feet: float = support if was_grounded and feet - support <= STEP_UP else feet
 	for solid: Dictionary in arena["solids"]:
-		if solid_top(solid) > climb and solid_blocks_motion(solid, from, to, RADIUS):
+		if solid_top(solid) <= climb or solid_bottom(solid) >= next_feet + BODY_HEIGHT - CONTACT_EPSILON:
+			continue
+		if solid_bottom(solid) >= feet + BODY_HEIGHT - CONTACT_EPSILON:
+			# Stepping into a slab is not recovery from an existing overlap.
+			if solid_blocks(solid, to.x, to.y, RADIUS):
+				return true
+		elif solid_blocks_motion(solid, from, to, RADIUS):
 			return true
 	return false
+
+
+static func arena_ceiling_height(arena: Dictionary, x: float, z: float, feet: float) -> float:
+	var ceiling: float = INF
+	for solid: Dictionary in arena["solids"]:
+		var bottom: float = solid_bottom(solid)
+		if bottom >= feet + BODY_HEIGHT - CONTACT_EPSILON and solid_blocks(solid, x, z, RADIUS):
+			ceiling = minf(ceiling, bottom)
+	return ceiling
 
 
 ## The highest surface at (x, z) no higher than `ceiling`, or the base floor.
@@ -213,14 +243,14 @@ static func integrate(state: Dictionary, jump: bool, dt: float, arena: Dictionar
 
 	var x: float
 	var z: float
-	if not arena_blocked_motion(arena, Vector2(old_x, old_z), Vector2(nx, nz), climb):
+	if not arena_blocked_body_motion(arena, Vector2(old_x, old_z), Vector2(nx, nz), state_y, climb, was_grounded):
 		x = nx
 		z = nz
-	elif not arena_blocked_motion(arena, Vector2(old_x, old_z), Vector2(nx, old_z), climb):
+	elif not arena_blocked_body_motion(arena, Vector2(old_x, old_z), Vector2(nx, old_z), state_y, climb, was_grounded):
 		vz = 0.0
 		x = nx
 		z = old_z
-	elif not arena_blocked_motion(arena, Vector2(old_x, old_z), Vector2(old_x, nz), climb):
+	elif not arena_blocked_body_motion(arena, Vector2(old_x, old_z), Vector2(old_x, nz), state_y, climb, was_grounded):
 		vx = 0.0
 		x = old_x
 		z = nz
@@ -244,7 +274,11 @@ static func integrate(state: Dictionary, jump: bool, dt: float, arena: Dictionar
 			vy = JUMP_SPEED
 	else:
 		vy -= GRAVITY * dt
+	var ceiling: float = arena_ceiling_height(arena, x, z, y)
 	y += vy * dt
+	if vy > 0.0 and y + BODY_HEIGHT > ceiling:
+		y = ceiling - BODY_HEIGHT
+		vy = 0.0
 	# Swept landing: anything the fall passed through on the way down counts.
 	var landing: float = arena_support_height(arena, x, z, maxf(state_y, y))
 	if y <= landing:

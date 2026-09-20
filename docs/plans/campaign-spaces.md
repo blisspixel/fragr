@@ -1,13 +1,14 @@
 # Enclosed and layered campaign spaces
 
-**Status:** scoped for implementation, 2026-09-19. No new geometry is implemented.
+**Status:** in progress, 2026-09-19. Finite-volume movement and shots are under
+local verification; layered routes and network compatibility remain unbuilt.
 **Goal:** support the intake hall, service stairs and records balcony in
 [M01](../campaign/m01-recall-notice.md) without fake ceilings or blocked space
 beneath upper floors. Spend: $0. No new dependency or renderer.
 
 ## Current constraint
 
-`movement::Solid` stores an XZ footprint and `top`; every solid fills the volume
+The shipped `movement::Solid` stores an XZ footprint and `top`; every solid fills the volume
 from ground to that top. `combat::Ray::solid` uses the same ground assumption.
 `navigation::Navigation` stores one height per grid cell, and `arena_cover.gd`
 renders the corresponding ground-filled boxes. This is coherent for the existing
@@ -21,6 +22,7 @@ regressions remain the compatibility baseline.
 
 First complete [shared body integration](shared-body-integration.md), removing
 the duplicate live-server movement solver while preserving its current controls.
+This prerequisite shipped in #174 and v0.21.1.
 
 1. Extend the shared solid to an explicit lower and upper vertical bound, keeping
    a missing lower bound equivalent to today's ground-filled volume. Establish
@@ -66,3 +68,25 @@ full M01 mission are outside this geometry increment.
 - Full verification, six-map mixed roster, CPU measurements, shared protocol
   documentation and current screenshots before integration. Then update
   [campaign build order](campaign-build-order.md) with the implemented contract.
+
+## Working implementation
+
+Branch: `feat/enclosed-campaign-spaces`, based on the shared-body change. Local
+code adds a default-zero `bottom`, omitted when zero so legacy wire bytes stay
+unchanged. Movement tests cover underpasses, upper-floor support and landing,
+head strikes, thin ceilings, slab edges, airborne side contact and stair headroom.
+Shots use the exact lower bound and face normals; the presenter draws finite
+height and center. Standing body height is shared by movement and shot targets.
+
+Nine new golden cases exercise this geometry through Rust and GDScript. The
+twenty legacy cases compare unchanged in every field against the parent file.
+Focused Rust movement tests, warnings-denied workspace Clippy, and all seventeen
+Godot harnesses pass, including the raised-mesh check and new vectors. Receipts:
+`.agents/enclosed-*.log`. This is local engineering evidence, not a built level.
+The workspace suite also passes: 606 tests and the existing ignored generator.
+
+Next: replace the one-height topology with bounded layered routes, enforce
+geometry compatibility at connection and map boundaries, validate untrusted
+client map data, and add actual-player plus rendered enclosed-space evidence.
+No built-in map exposes raised slabs yet. Do not publish this intermediate
+geometry implementation until those paths agree and full verification passes.

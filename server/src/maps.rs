@@ -44,6 +44,7 @@ pub(crate) fn arena(kind: MapKind) -> &'static crate::movement::Arena {
                     max_x: solid.max_x,
                     min_z: solid.min_z,
                     max_z: solid.max_z,
+                    bottom: 0.0,
                     top: solid.top,
                 })
                 .collect(),

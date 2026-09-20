@@ -88,13 +88,15 @@ impl Navigation {
                 solid.max_x,
                 solid.min_z,
                 solid.max_z,
+                solid.bottom,
                 solid.top,
             ]
             .iter()
             .any(|v| !v.is_finite() || v.abs() > MAX_HALF * 2.0)
                 || solid.min_x >= solid.max_x
                 || solid.min_z >= solid.max_z
-                || solid.top <= 0.0
+                || solid.bottom < 0.0
+                || solid.top <= solid.bottom
             {
                 return Err("invalid navigation solid");
             }
@@ -236,6 +238,7 @@ impl Navigation {
                                     max_x: solid.max_x + RADIUS,
                                     min_z: solid.min_z - RADIUS,
                                     max_z: solid.max_z + RADIUS,
+                                    bottom: solid.bottom,
                                     top: solid.top,
                                 },
                                 length,

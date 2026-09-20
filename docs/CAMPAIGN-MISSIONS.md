@@ -19,6 +19,22 @@ M09/M12 potentially 20-30. These are authoring targets to revise after playtests
 not measured durations or a promised total runtime. Faster replay routes, secrets,
 and optional rescues add depth without padding the main route.
 
+Enclosure and scale are deliberate parts of the progression. M01, M02, M05 and
+M06 are predominantly indoor missions, with the room networks, service routes,
+stairs and secrets central to the early retro-FPS references. M04 is mostly
+enclosed lunar infrastructure with a controlled exterior passage. M03 and M07
+mix inhabitable interiors with compact streets and courts. Broader battlefield
+encounters arrive in M08's launch works and M09's civic approach, before returning
+to interior objectives. M10-M12 alternate buildings, damaged streets and outdoor
+infrastructure according to rescue and evacuation needs. Later does not mean
+every subsequent mission becomes larger or outdoors.
+
+The larger encounters take their cues from Battlefield 1942's connected combat
+positions and flanking opportunities. Design buildings, terrain, local objectives,
+sheltered routes and resupply before choosing the outer bounds. Foot combat must
+be complete and fun; vehicles remain a separate later capability. Exterior scope
+never justifies long empty crossings or abandoning the campaign's authored route.
+
 | ID | Working title | Place and period | Dramatic job | Spatial identity |
 |---|---|---|---|---|
 | M01 | Recall Notice | Earth, before wipe | Enter the system that took our companion | Civilian frontage to service passages and intake |
