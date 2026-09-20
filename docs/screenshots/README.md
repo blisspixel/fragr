@@ -28,6 +28,7 @@ and fresh-player acceptance outstanding. Source manifest: `client/qa/m01-records
 | `tour_menu_16x9.png` | Retro boot menu |
 | `tour_profile_16x9.png` | Callsign, reticle, and weapon bob |
 | `tour_settings_16x9.png` | Saved controls, including sensitivity, inversion, turn speed, and weapon bob |
+| `tour_difficulty_16x9.png` | New-run Assisted, Standard and Severe choices |
 | `tour_first_person_16x9.png` | Human first person |
 | `tour_spectator_16x9.png` | Spectator through a fighter's eyes |
 | `tour_combat_follow_16x9.png` | Optional chase view |

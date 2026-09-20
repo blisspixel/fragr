@@ -63,6 +63,9 @@ if [ -n "${FRAGR_QA_MAP_FILE:-}" ]; then
 else
   SERVER_ARGS+=(--map "${FRAGR_QA_MAP:-1}")
 fi
+if [ -n "${FRAGR_QA_DIFFICULTY:-}" ]; then
+  SERVER_ARGS+=(--difficulty "$FRAGR_QA_DIFFICULTY")
+fi
 if [ "${FRAGR_QA_SOLO_BROADCAST:-0}" = "1" ]; then
   SERVER_ARGS+=(--solo-broadcast)
 fi
@@ -173,6 +176,7 @@ boot_menu|tour_menu_16x9.png
 spectator_eyes|tour_spectator_16x9.png
 profile_menu|tour_profile_16x9.png
 settings_menu|tour_settings_16x9.png
+campaign_difficulty|tour_difficulty_16x9.png
 SHOTS
   echo "qa_tour: published $published stills into docs/screenshots/"
 fi

@@ -21,6 +21,8 @@ pub struct ServerOptions {
     pub map: MapKind,
     /// Authored file or bundled mission, mutually exclusive with arcade rules.
     pub authored: Option<crate::maps::AuthoredSource>,
+    /// An explicit difficulty is valid only for a mission, never arcade or bench.
+    pub difficulty: Option<crate::protocol::CampaignDifficulty>,
     pub map_rotate: bool,
     /// Match rules override (frag limit, timers). `None` keeps the defaults.
     pub match_config: Option<MatchConfig>,
@@ -39,6 +41,7 @@ impl Default for ServerOptions {
             bots: 4,
             map: MapKind::default(),
             authored: None,
+            difficulty: None,
             map_rotate: false,
             match_config: None,
             solo_broadcast: false,
@@ -59,6 +62,9 @@ pub async fn run_server(
     // Keep it off the async executor, including single-threaded local harnesses.
     let map = options.map;
     let rotate = options.map_rotate;
+    if options.difficulty.is_some() && options.authored.is_none() {
+        return Err("difficulty requires an authored mission".into());
+    }
     if options.authored.is_some()
         && (rotate
             || options.solo_broadcast
@@ -79,6 +85,12 @@ pub async fn run_server(
         }
     })
     .await??;
+    if let Some(difficulty) = options.difficulty {
+        session.state.set_campaign_difficulty(difficulty)?;
+    }
+    if session.state.map.mission().is_some() {
+        tracing::info!(rules = ?session.state.campaign_rules(), "Campaign rules selected");
+    }
     let (game_tx, mut game_rx) = mpsc::unbounded_channel();
 
     // Rotation advertises the maximum requirement before a client joins, so
@@ -96,7 +108,7 @@ pub async fn run_server(
             .unwrap_or_else(crate::protocol::legacy_geometry_version)
     };
     let required_gameplay = if session.state.map.mission().is_some() {
-        crate::protocol::READINESS_GAMEPLAY_VERSION
+        crate::protocol::DIFFICULTY_GAMEPLAY_VERSION
     } else if session.state.map.has_encounters() {
         crate::protocol::CAMPAIGN_GAMEPLAY_VERSION
     } else {

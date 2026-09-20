@@ -3,8 +3,8 @@
 **Status:** connected blockout, discovery and introductory combat shipped in
 v0.28.0. The working [completion draft](../plans/m01-completion.md) expands this
 to twenty Clerks and Sweepers across seven groups, with a records wing, finite
-campaign supplies and preplaced guards. This expansion is not yet merged or
-accepted as a finished mission. Fists, Tack, Flechette, ammunition, reload and
+campaign supplies and preplaced guards, shipped in v0.29.0. This remains a
+development mission. Fists, Tack, Flechette, ammunition, reload and
 enemy phases use server authority. Artwork and animation remain provisional. A
 [reader-paced text opening and party readiness](../plans/m01-opening.md) are
 shipped in #193 and v0.28.0. Finished illustrations and
@@ -13,7 +13,7 @@ locker banks, service vents and practical lights through bounded map metadata.
 The mission sequence shipped in #184 and v0.26.0, connecting the physical transfer
 record to a real lift gate and shared departure. Rendered and party tests pass;
 the result ends the prototype without loading unbuilt M02.
-Earth before the wipe. Full first-run target 10-15 minutes,
+Earth before the wipe. Full first-run target 8-10 minutes,
 to be measured. [Treatment](../CAMPAIGN-MISSIONS.md#m01-recall-notice).
 
 The current [map document](../../server/maps/m01-recall-notice.json) connects the
@@ -66,9 +66,9 @@ An animated version uses the same character references, palette, coarse surfaces
 and silhouettes as gameplay. Replacing panels cannot change story or objectives.
 
 Skip enters the same safe initial state with the objective visible. Replay lives
-in the campaign menu; a checkpoint retry never forces the introduction again.
-In co-op, one player skipping does not dismiss another's text or start combat for
-them. Readiness follows the campaign's shared transition rule. Verify keyboard,
+in the campaign menu; spending a continue never forces the introduction again.
+In the existing multiplayer development host, one player skipping does not dismiss
+another's text or start combat for them. Preserve its shared readiness rule. Verify keyboard,
 controller, mute, missing narration, text expansion and reconnect before release.
 
 ## Spaces and route
@@ -123,8 +123,8 @@ reach the first interior. Reserve views between B, D and G to teach orientation.
 6. Recover the transfer record, open the lift route, and confirm departure.
 
 Do not add Crawler, cloaking, explosives or a boss here. Normal draft population
-is roughly 20-30 hostiles over the route, revised from actual pacing. Additional
-co-op threats use flanks rather than multiplying health. Supply budgets must
+is roughly 20-30 hostiles over the route, revised from actual pacing. Difficulty
+uses roles and readable pressure rather than multiplying health. Supply budgets must
 cover the guaranteed route plus reasonable misses, independent of secrets.
 
 Planned secrets: a changed wall panel reveals a Shiv; a maintenance overlook
@@ -141,10 +141,12 @@ The terminal interaction supplies the destination and opens a physical
 route; reading a whole log is optional. Completion occurs once on server-confirmed
 departure. Objective text: "Find the transfer record", then "Reach the lift".
 
-Planned checkpoints: entry and after securing D, before the crest. Save the discovered
-route, inventory, pickup and enemy states. A death before the first checkpoint
-repeats a short lesson, not a long cinematic. The terminal remains operable if
-another player disconnects mid-interaction.
+Planned solo recovery: death offers a continue to restart the mission with its
+entry equipment, enemies, pickups and objective state. Death with no continues
+remaining ends the run.
+No records checkpoint or teammate revival. Retrying repeats a short lesson,
+not a long cinematic. Preserve the existing development host's interaction and
+disconnect regressions while implementing the solo-run contract explicitly.
 
 ## Presentation and characters
 
@@ -157,11 +159,15 @@ Humor: a complaint form requires the serial number of the property confiscated
 with the form. Nobody jokes over a suffering captive. Opening text advances at
 reader pace; the scene uses original characters and the game's own pixel style.
 
-## Co-op and proof
+## Allies and proof
 
-Place enough accessible introductory equipment for the party without a single
-exclusive pistol that strands late players. Companions do not add combat bodies.
-Late joins occur in a secured space and receive current objective context.
+No mandatory resistance partner or controllable companion. Latch remains captive.
+Any optional allied appearance must preserve discovery, leave required supplies
+and lesson fights to the player, and keep both stairs usable.
+
+Preserve the existing development host's per-participant introductory equipment,
+safe admission and objective context. This tested multiplayer slice does not
+require a companion system or full-campaign co-op.
 
 Prove both routes with actual movement, both rendered stairs, terminal concurrency,
 skip/retry, muted voice/radio, pickup contention, spectator eye view, and at least

@@ -8,7 +8,7 @@ class FakeProcess extends LocalProcess:
 	var output: PackedByteArray = PackedByteArray()
 	var allowed: bool = true
 	func start(_executable: String, arguments: PackedStringArray) -> bool:
-		assert(arguments == PackedStringArray(["--local-mission", "recall_notice"]))
+		assert(arguments == PackedStringArray(["--local-mission", "recall_notice", "--difficulty", "standard"]))
 		starts += 1
 		alive = allowed
 		return allowed
@@ -32,7 +32,7 @@ class Fixture extends LocalMatch:
 	func executable_path() -> String:
 		return path
 
-const RECORD: String = '{"version":1,"mission":"recall_notice","url":"ws://127.0.0.1:12345","gameplay_version":5}\n'
+const RECORD: String = '{"version":2,"mission":"recall_notice","difficulty":"standard","url":"ws://127.0.0.1:12345","gameplay_version":6}\n'
 var failures: int = 0
 
 func _initialize() -> void:
@@ -100,6 +100,16 @@ func _run() -> void:
 		child.alive = false
 		fixture._process(0)
 	var record: Dictionary = JSON.parse_string(RECORD)
+	for difficulty: String in MissionState.DIFFICULTIES:
+		var chosen: Dictionary = record.duplicate()
+		chosen["difficulty"] = difficulty
+		_expect(not LocalMatch.readiness_url(JSON.stringify(chosen).to_ascii_buffer(), difficulty).is_empty(), "chosen difficulty is acknowledged")
+		_expect(LocalMatch.readiness_url(JSON.stringify(chosen).to_ascii_buffer(), "invalid").is_empty(), "invalid selection fails closed")
+	var wrong_tier: Dictionary = record.duplicate()
+	wrong_tier["difficulty"] = "severe"
+	_expect(LocalMatch.readiness_url(JSON.stringify(wrong_tier).to_ascii_buffer()).is_empty(), "child cannot silently select another tier")
+	var starts: int = child.starts
+	_expect(not fixture.start_mission("invalid") and child.starts == starts, "invalid tier cannot start a child")
 	for patch: Dictionary in [{"version":true}, {"version":1.5}, {"mission":"calibration"}, {"extra":1},
 		{"gameplay_version":4}, {"gameplay_version":5.5}, {"url":"ws://localhost:12345"}, {"url":"ws://127.0.0.1:0"},
 		{"url":"ws://127.0.0.1:65536"}, {"url":"ws://127.0.0.1:0123"}, {"url":"ws://127.0.0.1:123/x"}, {"url":42}]:

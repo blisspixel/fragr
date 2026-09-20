@@ -70,6 +70,13 @@ func _run() -> void:
 	var mission: Button = current_scene._root.get_node("RecallNotice") as Button
 	_expect(not mission.disabled, "Recall Notice is selectable")
 	mission.pressed.emit()
+	await process_frame
+	await process_frame
+	_expect(current_scene._page == "difficulty" and LocalMatch.for_tree(self).state == LocalMatch.State.IDLE, "mission choice opens difficulty without launching")
+	_expect(root.gui_get_focus_owner().name == "Difficulty_standard", "original pressure is the initial keyboard choice")
+	await _capture("difficulty")
+	var severe: Button = current_scene._root.get_node("Difficulty_severe") as Button
+	severe.pressed.emit()
 	if not await _until(_playing, "menu enters authoritative M01"):
 		return
 	var owned: LocalMatch = LocalMatch.for_tree(self)
@@ -81,6 +88,8 @@ func _run() -> void:
 		return
 	_expect(current_scene.get_node_or_null("LoadingCard") == null and current_scene.controls_blocked(), "campaign replaces timed controls card and blocks play")
 	_expect(current_scene.mission_hud.state["phase"] == "briefing", "server waits for the reader")
+	var rules: Dictionary = current_scene.mission_hud.state["rules"]
+	_expect(rules["difficulty"] == "severe" and rules["revision"] == 1, "menu selection reaches authoritative mission rules: " + str(rules))
 	var partner: Node = load("res://scripts/net_client.gd").new()
 	root.add_child(partner)
 	partner.set_server_host(address)
@@ -88,6 +97,7 @@ func _run() -> void:
 	if not await _until(func() -> bool: return partner.mission.get("state", {}).get("party", []).size() == 2, "human and agent share initial briefing"):
 		return
 	for page: int in range(CampaignOpening.BEATS.size()):
+		_expect(partner.mission["state"]["rules"] == current_scene.mission_hud.state["rules"], "agent and human share host difficulty")
 		await _capture("opening-%d" % (page + 1))
 		if page < CampaignOpening.BEATS.size() - 1:
 			current_scene.opening.advance()
@@ -132,9 +142,10 @@ func _run() -> void:
 	_expect(unrelated.is_listening(), "leaving preserves unrelated listeners")
 	_expect(Input.mouse_mode == Input.MOUSE_MODE_VISIBLE, "menu releases desktop pointer")
 	await _capture("returned-menu")
-	current_scene._start_campaign()
+	current_scene._start_campaign("assisted")
 	if not await _until(_playing, "second launch reaches M01"):
 		return
+	_expect(current_scene.mission_hud.state["rules"]["difficulty"] == "assisted", "a new server can select another tier")
 	pid = owned.process._pid
 	_expect(_crash(pid), "simulate unexpected owned child exit")
 	if not await _until(func() -> bool: return _menu() and owned.state in [LocalMatch.State.IDLE, LocalMatch.State.FAILED], "unexpected exit returns to menu"):

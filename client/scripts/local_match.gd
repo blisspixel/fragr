@@ -18,6 +18,7 @@ var process: LocalProcess = LocalProcess.new()
 var _pending: PackedByteArray = PackedByteArray()
 var _deadline: int = 0
 var _failure_pending: bool = false
+var _difficulty: String = "standard"
 
 static func for_tree(tree: SceneTree) -> LocalMatch:
 	var existing: LocalMatch = tree.root.get_node_or_null("LocalMatch") as LocalMatch
@@ -39,9 +40,13 @@ func executable_path() -> String:
 			return path
 	return ""
 
-func start_mission() -> bool:
+func start_mission(difficulty: String = "standard") -> bool:
 	if state not in [State.IDLE, State.FAILED]:
 		return false
+	if difficulty not in MissionState.DIFFICULTIES:
+		_fail("LOCAL_SERVER_INVALID_DIFFICULTY")
+		return false
+	_difficulty = difficulty
 	process.dispose()
 	url = ""
 	error_key = ""
@@ -51,7 +56,7 @@ func start_mission() -> bool:
 	if executable.is_empty():
 		_fail("LOCAL_SERVER_MISSING")
 		return false
-	if not process.start(executable, PackedStringArray(["--local-mission", MissionState.ID])):
+	if not process.start(executable, PackedStringArray(["--local-mission", MissionState.ID, "--difficulty", difficulty])):
 		_fail("LOCAL_SERVER_START_FAILED")
 		return false
 	_deadline = Time.get_ticks_msec() + START_TIMEOUT_MS
@@ -92,7 +97,7 @@ func _process(_delta: float) -> void:
 			return
 		var newline: int = _pending.find(10)
 		if newline >= 0:
-			var address: String = readiness_url(_pending.slice(0, newline))
+			var address: String = readiness_url(_pending.slice(0, newline), _difficulty)
 			if address.is_empty() or newline != _pending.size() - 1:
 				_fail("LOCAL_SERVER_INVALID_READY")
 				return
@@ -106,7 +111,7 @@ func _process(_delta: float) -> void:
 	elif not process.read_output().is_empty():
 		_fail("LOCAL_SERVER_INVALID_READY")
 
-static func readiness_url(bytes: PackedByteArray) -> String:
+static func readiness_url(bytes: PackedByteArray, difficulty: String = "standard") -> String:
 	# This bootstrap contract contains only fixed ASCII identifiers and IPv4.
 	for byte: int in bytes:
 		if byte < 32 or byte > 126:
@@ -115,8 +120,9 @@ static func readiness_url(bytes: PackedByteArray) -> String:
 	if parser.parse(bytes.get_string_from_ascii()) != OK:
 		return ""
 	var data: Variant = parser.data
-	if not data is Dictionary or data.size() != 4 \
-		or not EquipmentState.integer(data.get("version"), 1) or data["version"] != 1 \
+	if difficulty not in MissionState.DIFFICULTIES or not data is Dictionary or data.size() != 5 \
+		or not EquipmentState.integer(data.get("version"), 2) or data["version"] != 2 \
+		or not data.get("difficulty") is String or data["difficulty"] != difficulty \
 		or not data.get("mission") is String or data["mission"] != MissionState.ID \
 		or not EquipmentState.integer(data.get("gameplay_version"), GAMEPLAY_VERSION) or data["gameplay_version"] != GAMEPLAY_VERSION \
 		or not data.get("url") is String:

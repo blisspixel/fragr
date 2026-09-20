@@ -20,13 +20,19 @@ struct Args {
     map: String,
 
     /// Load a local authored campaign development map. Requires --bots 0.
+    #[arg(group = "campaign_source")]
     #[arg(long, conflicts_with_all = ["map", "map_rotate", "solo_broadcast", "bench", "bench_verify_trace", "no_round_events"])]
     map_file: Option<PathBuf>,
 
     /// Run the bundled mission for a desktop parent. Readiness is JSON on stdout;
     /// stdin shutdown or EOF ends this loopback-only child.
+    #[arg(group = "campaign_source")]
     #[arg(long, value_parser = ["recall_notice"], conflicts_with_all = ["bind", "bots", "map", "map_file", "map_rotate", "solo_broadcast", "no_round_events", "bench", "bench_verify_trace", "status_every_s"])]
     local_mission: Option<String>,
+
+    /// Shared campaign pressure. Fixed for this run; does not change arcade rules.
+    #[arg(long, value_enum, requires = "campaign_source", conflicts_with_all = ["bench", "bench_verify_trace", "solo_broadcast", "map_rotate", "no_round_events"])]
+    difficulty: Option<fragr_server::protocol::CampaignDifficulty>,
 
     /// Move to the next map in the roster each round.
     #[arg(long, default_value_t = false)]
@@ -107,6 +113,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         return fragr_server::local::serve(
             fragr_server::protocol::MissionId::RecallNotice,
             args.seed,
+            args.difficulty.unwrap_or_default(),
             std::io::stdin(),
             std::io::stdout(),
         )
@@ -177,6 +184,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         bots: args.bots,
         map,
         authored: args.map_file.map(fragr_server::maps::AuthoredSource::File),
+        difficulty: args.difficulty,
         map_rotate: args.map_rotate,
         match_config: args
             .no_round_events
@@ -213,6 +221,43 @@ mod tests {
     use std::net::SocketAddr;
     use std::time::Duration;
     use tokio_tungstenite::{connect_async, tungstenite::Message};
+
+    #[test]
+    fn difficulty_is_explicit_campaign_only_configuration() {
+        for tier in ["assisted", "standard", "severe"] {
+            assert!(Args::try_parse_from([
+                "fragr-server",
+                "--local-mission",
+                "recall_notice",
+                "--difficulty",
+                tier
+            ])
+            .is_ok());
+            assert!(Args::try_parse_from([
+                "fragr-server",
+                "--map-file",
+                "mission.json",
+                "--bots",
+                "0",
+                "--difficulty",
+                tier
+            ])
+            .is_ok());
+            assert!(Args::try_parse_from(["fragr-server", "--difficulty", tier]).is_err());
+            assert!(
+                Args::try_parse_from(["fragr-server", "--bench", "16", "--difficulty", tier])
+                    .is_err()
+            );
+        }
+        assert!(Args::try_parse_from([
+            "fragr-server",
+            "--local-mission",
+            "recall_notice",
+            "--difficulty",
+            "adaptive"
+        ])
+        .is_err());
+    }
 
     #[test]
     fn args_default_bind_and_bots() {
@@ -268,6 +313,7 @@ mod tests {
             run_server(
                 ServerOptions {
                     authored: None,
+                    difficulty: None,
                     bind: "127.0.0.1:0".to_string(),
                     bots: 1,
                     map: fragr_server::sim::MapKind::ArenaDuel,

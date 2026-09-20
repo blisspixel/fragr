@@ -15,7 +15,7 @@ magazine and three magazines of reserve, except Rail grants two. Scatter loads
 one shot using four Darts. Switching cancels a pending reload without losing
 rounds. Dry fire does not discard a weapon or switch automatically. M01 death
 currently resets inventory and personal introductory claims at the entry;
-checkpoint restore and cross-mission persistence are not implemented.
+mission-entry restoration, limited continues and cross-mission persistence are not implemented.
 
 Balance numbers live here and nowhere else. `plans/gunfeel.md` explains how they were arrived at, `plans/weapon-economy.md` explains the ammunition and the pickup economy, and `docs/lore/guns.md` is what they get called on the radio.
 
@@ -23,16 +23,21 @@ Balance numbers live here and nowhere else. `plans/gunfeel.md` explains how they
 
 **Your fists.** A fresh campaign and ordinary pickup-based matches begin with
 melee only. Explicit full-arsenal modes such as Open Weights are labeled exceptions.
-A normal campaign checkpoint retry restores its saved inventory; crossing a
+A campaign continue restores the current mission's starting inventory; crossing a
 mission boundary is not another fresh spawn.
 
 Everything else is acquired through play. Competitive respawns reset inventory;
 the proposed normal campaign carries it between connected missions and restores
-checkpoint inventory on retry. Doom starts you with fists and a pistol; fragr keeps the fists and puts the pistol on the ground, which is further than Doom goes and is the point.
+mission-entry inventory on retry. Doom starts you with fists and a pistol; fragr keeps the fists and puts the pistol on the ground, which is further than Doom goes and is the point.
 
-This only works because of a rule that belongs to the maps rather than to the weapons: **there is a sidearm within about two seconds of every spawn point.** You begin each life with nothing and you end that with a decision, not a death sentence. The pistol stops being something you have and becomes the first thing you do, every time, which is a ritual rather than an inventory.
+Every authored melee-start location needs a safely reachable sidearm close by.
+The first campaign pickup is an action and a discovery, not a death sentence.
+Later missions and continues retain their entry equipment; they do not repeat
+the fists-only start unless that mission or challenge explicitly calls for it.
 
-What it buys is a window. Every life has a few seconds in it where you are holding nothing but your hands, and that means a punch kill is possible and it means anyone who catches you in that window has earned something. It is also the only way the melee ladder means anything: if you always had a knife, finding a knife would not be a moment.
+The opening gives bare hands a short, deliberate role before the arsenal grows.
+Finding a knife can then be a real upgrade. Do not strip recovered guns after
+every campaign death merely to repeat that introduction.
 
 Nobody is a class. There are no loadouts and no roles: if you are sniping it is because you walked to where the rail was. The enemies are the opposite, and deliberately so. A Continuance unit has one shape, one behaviour and one attack, and it never varies, so you learn a silhouette once and know it forever. That roster is [`docs/ENEMIES.md`](./ENEMIES.md).
 

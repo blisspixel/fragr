@@ -495,6 +495,7 @@ func _observed_state() -> Dictionary:
 	var server_yaw: float = _local_server_yaw(gm)
 	var camera_forward: Vector3 = -cam.get("transform").basis.z
 	return {
+		"mission_rules": gm.get("net_client").get("mission").get("state", {}).get("rules", {}),
 		"map_id": snapshot.get("map_id", 0),
 		"round_state": snapshot.get("round_state", "unknown"),
 		"fighters": (snapshot.get("players", []) as Array).size(),

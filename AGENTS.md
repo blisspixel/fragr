@@ -4,7 +4,7 @@ Operating rules for coding agents and human contributors. Humans: start with `RE
 
 ## What this is
 
-**fragr** (working name) is an agentic-first **3D** FPS with retro pixel surfaces, targeting an authored campaign, co-op and multiplayer. Current play supports local bot matches and a campaign prototype; the full campaign and co-op are planned. Watch-or-join multiplayer shares one match among humans, agents and spectators. Not branded as Doom or id. Monorepo:
+**fragr** (working name) is an agentic-first **3D** FPS with retro pixel surfaces, targeting a compact authored campaign and multiplayer. Current play supports local bot matches and a campaign prototype. The campaign targets 2-3 hours with limited mission-start continues; no mandatory buddy, revival or all-mission co-op. `docs/CAMPAIGN.md` owns the current contract. Watch-or-join multiplayer shares one match among humans, agents and spectators. Not branded as Doom or id. Monorepo:
 
 - `server/` - Rust authoritative game server (tokio, WebSocket JSON, 20 Hz tick). Owns positions, damage, HP, frags, spawns, scoring, rule bots, rounds, maps.
 - `client/` - Godot **4.7.2-stable**, GDScript only. Thin presenter: render, audio, HUD, spectator cameras, input. Never sim authority.
@@ -50,8 +50,8 @@ If prose and code disagree, code wins; fix the prose in the same change. Keep pl
 | Concern | Home |
 |---|---|
 | Sim tick, hit detection, movement, pickups, boss, bots | `server/src/sim.rs` |
-| Authored encounter lifecycle and enemy intent | `server/src/encounters.rs`, `encounters/enemy.rs`; strict definitions in `maps/authored/encounters.rs`. Reuse sim bodies and Session's navigation budget. `protocol/actors.rs` owns campaign identity and hostility; control role and callsign never imply faction. Client boundary: `actor_state.gd`. |
-| Mission readiness, use, gates and shared departure | `server/src/mission.rs`, `protocol/mission.rs`, `maps/authored/mission.rs`. Use `actor_active` for participation; the encounter lifecycle owns party reset. Precompute gate worlds before server readiness; resend MapInfo before mission state. Shared wire control: `mission/controller.rs`; client validation/UI: `mission_state.gd`, `mission_hud.gd`. |
+| Authored encounter lifecycle and enemy intent | `server/src/encounters.rs`, `encounters/enemy.rs`; strict definitions in `maps/authored/encounters.rs`. Reuse sim bodies and Session's navigation budget. Difficulty timing changes require a new `CAMPAIGN_RULES_REVISION` and matching client validation. `protocol/actors.rs` owns campaign identity and hostility; control role and callsign never imply faction. Client boundary: `actor_state.gd`. |
+| Mission readiness, difficulty, use, gates and shared departure | `server/src/mission.rs`, `protocol/mission.rs`, `maps/authored/mission.rs`. Use `actor_active` for participation; the encounter lifecycle owns party reset. Precompute gate worlds before server readiness; resend MapInfo before mission state. Shared wire control: `mission/controller.rs`; client validation/UI: `mission_state.gd`, `mission_hud.gd`. |
 | Campaign opening and replay | `client/scripts/campaign_opening.gd`, keyed copy in `client/i18n/story.en.po`. GameManager owns the readiness handoff; replay has no network callback. Dismissal must consume input and wait for release before acknowledging. |
 | Weapon ownership, magazines, reserves, reload and supply claims | `server/src/inventory.rs`; private wire contract in `protocol/loadout.rs`; shared agent equipment decisions in `inventory/controller.rs`. Authored discovery and legacy full-arsenal maps share combat resolution. Client validation: `equipment_state.gd`; local UI: `equipment_hud.gd`. |
 | Shot geometry, pitch bounds, target angles | `server/src/combat.rs`; server outcome ownership stays in `sim.rs`. `ServerYaw` maps yaw/pitch to the client camera. |

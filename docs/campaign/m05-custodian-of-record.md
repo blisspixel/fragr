@@ -1,6 +1,6 @@
 # M05: Custodian of Record
 
-**Status:** proposed, unbuilt. Moon before the wipe. Target 20-25 minutes.
+**Status:** proposed, unbuilt. Moon before the wipe. Target 10-14 minutes.
 [Treatment](../CAMPAIGN-MISSIONS.md#m05-custodian-of-record).
 
 ## Story and people
@@ -67,8 +67,8 @@ Track `custody_released`, `transfer_evidence`, `custodian_joined`, and optional
 known incompleteness. Do not label it a guaranteed living person until restoration
 has occurred. Local captives have release and evacuation states separately.
 
-Checkpoint before upper gallery and after the defense encounter. Replaying the
-release must not duplicate people, memories, inventory or story events. If the
+A continue returns to mission entry. Replaying release must not duplicate people,
+memories, inventory or story events. If the
 M04 shortcut is absent, the ordinary evacuation remains achievable.
 
 ## Staging and tone
@@ -78,10 +78,10 @@ individual repairs and possessions. Renn's face/stance shows discomfort without
 asking the player to forgive them. Latch can mock a form asking a captive whether
 their recall inconvenienced the service. Keep the captives themselves sincere.
 
-## Co-op and proof
+## Allies and proof
 
-Controls can be operated by one player; additional players cover independent
-approaches. Rescued actors stage outside active crossfire after routes clear.
+Controls work for one player. Rescued actors stage outside active crossfire after
+routes clear; no tactical companion commands are required.
 Test both M04 shortcut states, Orrin recovered/missed, reactivation limits,
-pickup scarcity, simultaneous releases, disconnect while carrying the archive,
-scene skips and all checkpoint transitions. Inspect all overlapping floors.
+pickup scarcity, repeated releases, save with the archive, scene skips and
+mission-start retry. Inspect all overlapping floors.

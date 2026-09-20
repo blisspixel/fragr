@@ -1,8 +1,10 @@
 # Campaign mission treatment
 
-**Status:** proposed design, 2026-09-19. Twelve substantial missions approved as
+**Status:** proposed design, 2026-09-20. Twelve compact missions approved as
 the target; the names, route, cast details, and individual encounters below are
-the treatment for review. No mission here is built or playtested.
+the treatment for review. M01 has a tested development slice; no complete mission
+meets this treatment yet. [M01 completion](plans/m01-completion.md) records its
+implementation, evidence and remaining work.
 
 [CAMPAIGN.md](CAMPAIGN.md) owns agreed story constraints and presentation rules.
 [MAP-DESIGN.md](MAP-DESIGN.md) owns spatial practice. Read the story progression
@@ -11,13 +13,25 @@ or arena reskins constitute finished levels. The [twelve detailed level
 plans](campaign/README.md) expand these briefs into routes, rooms, cast staging,
 encounter sequences, state transitions and verification requirements.
 
+Mission cast notes identify story roles and autonomous allies, not compulsory
+co-op seats. Playable viewpoint assignments remain design work. No mandatory
+resistance partner or companion-control system is required before Latch's rescue.
+The [run contract](CAMPAIGN.md#runs-and-continues) owns mission-start retries.
+
 ## Shape of the run
 
-Target a varied first run rather than a fixed quota of identical rooms. Most
-missions initially aim for 15-25 minutes of active play, M01 nearer 10-15 and
-M09/M12 potentially 20-30. These are authoring targets to revise after playtests,
-not measured durations or a promised total runtime. Faster replay routes, secrets,
-and optional rescues add depth without padding the main route.
+Target a varied successful run of 2-3 hours. Compact missions generally budget
+8-16 minutes, with brief transitions and a short coda. The detailed briefs hold
+provisional budgets, not measured durations. A continue restarts the current
+mission; shorten mandatory travel and repeated exposition to make another attempt
+worth playing. Faster routes, secrets and optional rescues add depth without padding.
+
+The current mission budgets total 118-160 minutes of active play. Brief framing,
+travel transitions and the coda must fit the overall 2-3-hour target. These shorter
+budgets require editing routes and encounter sequences, not simply changing a
+number: cut repeated fights, empty connectors and mandatory backtracking before
+speeding movement or rushing dialogue. Time complete successful routes with fresh
+players, including their navigation and rescue decisions, before claiming the target.
 
 Enclosure and scale are deliberate parts of the progression. M01, M02, M05 and
 M06 are predominantly indoor missions, with the room networks, service routes,
@@ -54,6 +68,9 @@ never justifies long empty crossings or abandoning the campaign's authored route
 
 ### M01: Recall Notice
 
+One playable character pursues captive Latch. Autonomous ally appearances are
+optional staging, not a required buddy system or a replacement for the rescue.
+
 **Story.** A short localized opening shows the seizure of our longtime companion.
 We arrive at an intake facility attached to ordinary civic infrastructure. The
 player knows who was taken and where to go before the first fight. The union of
@@ -76,14 +93,17 @@ we already missed the rescue. Finish by reaching its destination through the lif
 **Optional and presentation.** One supply secret teaches a readable wall seam;
 another gives a short upper approach. A personal possession establishes the
 relationship without a voice log hunt. Proposed text: "They called it a recall.
-You know who they took." In co-op everyone enters together with reachable supplies;
-no player can remove the only introductory weapon and strand the others.
+You know who they took." Required weapons and supplies support the solo route;
+an optional ally cannot take the only introductory weapon.
 
 **Review gate.** A fresh player can explain the rescue, find the exit, discover
 the flank, and distinguish the two enemy tells with voice and radio muted. Inspect
 the full first-person route, not only a staged screenshot of the intake hall.
 
 ### M02: Persons Unknown
+
+Latch's release adds story participation and autonomous help without turning
+them into a controllable companion or requiring two playable characters.
 
 **Story.** Reach the companion before irreversible correction. Their first action
 after release is helping another captive, establishing agency immediately. They
@@ -104,11 +124,11 @@ safe enough to register, then the companion helps open the loading route.
 **Optional and consequence.** Release another group on a visible side loop.
 No captive dies solely to make a gag or punish the player's kindness. A future
 Auditor is seen overseeing operations, not falsely presented as the prototype
-boss's already-implemented resurrection behavior. Checkpoint before the rescue;
-retry cannot duplicate a companion or lose the release state.
+boss's already-implemented resurrection behavior. A continue restarts mission
+entry; replaying rescue cannot duplicate a person or retain a stale release state.
 
-**Review gate.** Rescue completion is unambiguous; solo and four-player routes
-never require an NPC to squeeze through a combat doorway on a timer. Companion
+**Review gate.** Rescue completion is unambiguous; the solo route
+never requires an NPC to squeeze through a combat doorway on a timer. Companion
 actions and text demonstrate a person with intentions, not an inventory object.
 
 ### M03: No Forwarding Address
@@ -215,8 +235,8 @@ passengers. Choices made on Earth and the Moon appear as actual people aboard.
 A short jump in travel time follows a completed fight; no instant interplanetary
 journey is implied. The ship's identity continues into later evacuation planning.
 
-**Review gate.** Test doors, joins, and checkpoint reload across all decks. No
-mandatory breach can suffocate a disconnected player or permanently strand a key.
+**Review gate.** Test doors, autonomous allies and mission retry across all decks.
+No mandatory breach can trap the player or permanently strand a key.
 
 ## Act III: Common cause
 
@@ -401,7 +421,7 @@ alien life and other dimensions may matter next. No encounter, species reveal,
 portal level, explanatory monologue, or claim that aliens caused this war.
 Its exact form remains open. End on the completed human/agent story first.
 
-**Review gate.** Verify finale completion, checkpoint retries, every survivor
+**Review gate.** Verify finale completion, mission retries, run exhaustion, every survivor
 combination, and the coda with voice absent and scenes skipped. Survival has
 observable beneficiaries; healing and grief remain visible together.
 
@@ -434,8 +454,9 @@ generation receipts, and asset revisions must stay linked through production.
 
 1. Read M01 through M12 without radio or optional logs. Every destination follows
    from a motive, discovery, or consequence in the previous mission.
-2. Walk the same story as human, agent, solo, full co-op, and spectator. Body and
-   participant count cannot remove the core relationship or create impossible gates.
+2. Walk the story under human and agent control, with authored viewpoints and
+   spectator observation. Required gates work solo; optional allies cannot make
+   them impossible. Validate any separately approved co-op variant on its own terms.
 3. Map the weapon and enemy teaching sequence; add no expensive roster member
    that lacks a distinct gameplay problem and enough encounters to justify it.
 4. Inspect route diagrams before geometry, grayboxes before art, full motion

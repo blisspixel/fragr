@@ -1,7 +1,9 @@
 use crate::combat::{aim_at, line_of_sight, FIGHTER_HEIGHT};
 use crate::movement::EYE_HEIGHT;
 use crate::navigation::NavigationGoal;
-use crate::protocol::{Action, CampaignActor, EnemyKind, EnemyPhase, Snapshot, WeaponType};
+use crate::protocol::{
+    Action, CampaignActor, CampaignDifficulty, EnemyKind, EnemyPhase, Snapshot, WeaponType,
+};
 use crate::sim::{BotIntent, GameState, PLAYER_FLOOR_Y};
 use uuid::Uuid;
 
@@ -20,6 +22,17 @@ pub(super) struct EnemyController {
 }
 
 impl EnemyController {
+    fn attack_timing(&self, difficulty: CampaignDifficulty) -> (u64, u64) {
+        match (self.kind, difficulty) {
+            (EnemyKind::Clerk, CampaignDifficulty::Assisted) => (20, 30),
+            (EnemyKind::Clerk, CampaignDifficulty::Standard) => (12, 20),
+            (EnemyKind::Clerk, CampaignDifficulty::Severe) => (10, 16),
+            (EnemyKind::Sweeper, CampaignDifficulty::Assisted) => (22, 38),
+            (EnemyKind::Sweeper, CampaignDifficulty::Standard) => (14, 26),
+            (EnemyKind::Sweeper, CampaignDifficulty::Severe) => (12, 20),
+        }
+    }
+
     pub fn new(id: Uuid, kind: EnemyKind, alarm_position: [f32; 3], tick: u64) -> Self {
         Self {
             id,
@@ -86,6 +99,7 @@ impl EnemyController {
             return BotIntent::default();
         };
         let tick = state.tick.saturating_add(1);
+        let (windup, recovery) = self.attack_timing(state.campaign_rules().difficulty);
         let feet = [me.x, me.y - PLAYER_FLOOR_Y, me.z];
         let eye = [me.x, feet[1] + EYE_HEIGHT, me.z];
         let centre = |p: &crate::protocol::PlayerState| {
@@ -183,15 +197,7 @@ impl EnemyController {
                 self.shots_left -= 1;
                 self.next_shot = tick.saturating_add(u64::from(body.weapon.cooldown_ticks()));
             } else if self.phase == EnemyPhase::Firing && self.shots_left == 0 {
-                self.enter(
-                    EnemyPhase::Recovery,
-                    tick,
-                    if self.kind == EnemyKind::Clerk {
-                        20
-                    } else {
-                        26
-                    },
-                );
+                self.enter(EnemyPhase::Recovery, tick, recovery);
             }
             return BotIntent { action, goal: None };
         }
@@ -200,15 +206,7 @@ impl EnemyController {
             if distance <= body.weapon.range_units().min(24.0) {
                 if let Some(aim) = aim_at(eye, centre(target)) {
                     self.aim = aim;
-                    self.enter(
-                        EnemyPhase::Windup,
-                        tick,
-                        if self.kind == EnemyKind::Clerk {
-                            12
-                        } else {
-                            14
-                        },
-                    );
+                    self.enter(EnemyPhase::Windup, tick, windup);
                     action.yaw = Some(aim.0);
                     action.pitch = Some(aim.1);
                     return BotIntent { action, goal: None };

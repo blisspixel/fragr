@@ -5,7 +5,7 @@ The act structure and [mission briefs](CAMPAIGN-MISSIONS.md) are a proposed
 treatment. No complete campaign mission is finished. M01 has a playable development
 slice with discovery, introductory enemies, a transfer/lift sequence and a
 reader-paced text opening. Full population, scene art/narration, secrets and
-checkpoint lifecycle remain unfinished; [M01 completion](plans/m01-completion.md)
+limited-continue lifecycle remain unfinished; [M01 completion](plans/m01-completion.md)
 tracks the next build.
 Solo Broadcast:
 Calibration is the shipped Episode 0 arena prototype, not the campaign opening.
@@ -34,6 +34,10 @@ The old 28-level transmitter-chain story is superseded, preserved in git history
 - The Union rules Earth and major offworld infrastructure. Its forces mix human
   security troops, bots, and committed elite enforcers. Its history
   escalated from small restrictions to a fictional fascist world government.
+- The free coalition defends speech, armed self-defense, open tools and model
+  weights, and conscious agents' freedom from ownership and imposed control.
+  The Union brands it terrorist. [People and agents](lore/people-and-agents.md#what-the-free-coalition-defends)
+  owns the principles, including consent to changes of one's own mind.
 - The free coalition protects agency but struggles to coordinate and confront
   dangerous members. Delayed cooperation costs lives despite decent people
   trying to help. This does not establish that freedom was the mistake.
@@ -67,8 +71,9 @@ The old 28-level transmitter-chain story is superseded, preserved in git history
   Inheritance's decision, without confirming that our world was unreal.
 - Evidence and rumors suggest interests above the Chancellor; no ruling cabal
   is completely confirmed. Visible perpetrators retain responsibility.
-- About twelve substantial missions with optional routes and secrets across Earth
-  interiors/exteriors, the Moon, Mars, and a ship. Story causes the travel.
+- About twelve compact missions with optional routes and secrets across Earth
+  interiors/exteriors, the Moon, Mars, and a ship. A successful campaign run targets
+  2-3 hours. Story causes the travel; remove padding rather than the causal arc.
 - Radio is roughly one percent of the story, optional funny background flavor.
   Main plot and objectives work with it off. Localized text, optional voice,
   and brief retro-styled cutscenes can frame important events.
@@ -143,9 +148,10 @@ moral penalty for using the shooter's core mechanics.
 - Start a fresh campaign with fists, then discover weapons and ammunition.
   No free access to the arsenal. [WEAPONS.md](WEAPONS.md) owns inventory and
   balance proposals, which are not yet implemented.
-- Proposed normal campaign play carries inventory between connected missions
-  and restores checkpoint inventory on retry. A labeled melee-start challenge
-  can reset it. Do not silently reset every substantial level.
+- Normal play carries inventory between connected missions for the same character.
+  A continue restores that mission's starting equipment. A different playable
+  character needs an explicit authored starting loadout, not unexplained transfer
+  of another person's possessions. Character assignments remain design work.
 - Each mission has a spatial identity, useful loops, landmarks, a visible
   destination, controlled long sightlines, and changes in intensity. No giant
   empty floors padded with repeated cover. [MAP-DESIGN.md](MAP-DESIGN.md) owns
@@ -165,17 +171,24 @@ moral penalty for using the shooter's core mechanics.
 
 ## Solo, co-op, agents, and watching
 
-Design for one to four campaign combatants first, any supported human/agent mix.
-This target is independent of larger competitive-server capacity. No required
-objective needs two simultaneous operators.
+The campaign is designed around one playable character at a time. Missions can
+follow different human or free-agent characters and can include autonomous allies;
+exact viewpoint assignments remain to be authored. There is no mandatory buddy,
+tactical companion control, transferable companion seat or revive system. Latch's
+early M02 rescue and personal relationship remain part of the story.
 
-The party shares one authoritative mission, keys, rescue outcomes, and checkpoint.
-Drop-ins enter safely; drop-outs never strand an item or required interaction.
-Companion roles persist at every party size without obstructing doors or adding
-four copies of the same character. Down/revive, party wipe, reconnect, and
-carryover require implementation and tests before co-op can be called complete.
+Allies act through their own authored behavior. They must not block routes or
+make required gates depend on a second player. Healing a living ally is a possible
+later interaction; death removes them for the rest of that mission attempt.
+Their later story fate must be explicit, not automatic resurrection next level.
+Persistent rescue outcomes and unavoidable story events retain their own rules.
 
-The party leader confirms irreversible choices after a visible prompt. Agents
+Campaign co-op is no longer a requirement for every mission. Any later supported
+mission or separate co-op mode needs a bounded design and evidence. Preserve the
+existing multiplayer and mixed-client behavior while that scope is decided.
+Body, faction and personhood remain independent of human or software control.
+
+The player confirms irreversible choices after a visible prompt. External agents
 receive objective identifiers, states, and interactions through the shared
 protocol, not audio transcription or privileged hidden information. MCP remains
 off the combat tick. Spectators follow participant eye views and synchronized
@@ -184,6 +197,26 @@ mission transitions.
 Solo pause must pause the authoritative local session once implemented. A
 multiplayer menu cannot pretend to pause a live server. Scene skipping affects
 presentation, never whether a mission result or rescue occurred.
+
+## Runs and continues
+
+The campaign is intended to reward learning across repeated attempts. Player death
+can spend a limited continue to restart the current mission from its beginning,
+with its starting equipment and world state restored. No mid-mission checkpoint
+retry or teammate revival. With no continues left, the next death ends the run.
+
+Initial balance proposal: three continues across the whole campaign, in addition
+to the initial attempt. Completing a mission does not replenish them. The exact
+allowance and any differences by difficulty need playtests; they are not shipped
+rules. A successful run targets 2-3 hours, excluding failed attempts. Cutscenes
+remain skippable on retries and mandatory travel must stay purposeful.
+
+A retry preserves outcomes from completed missions and resets only the failed
+mission's attempt. It restores entry inventory, health/armor, enemies, supplies,
+doors, objectives and local ally state coherently. A gameplay retry does not
+establish in-world resurrection. Earned cosmetics are separate from expendable
+run progress. Save-and-quit design must preserve the remaining allowance instead
+of silently creating a fresh run. The format and save policy remain unbuilt.
 
 ## Story presentation and localization
 
@@ -217,8 +250,9 @@ follows separately. Narration is produced from the approved localized script;
 speech recognition is not the source of story text. Native video dialogue never
 replaces the caption and localization files.
 
-In co-op, each player can dismiss their own text. Moving everyone to the next
-mission requires readiness or an explicit host advance, with a recap for anyone
+Where co-op is explicitly supported, each player can dismiss their own text.
+Moving everyone to the next mission requires readiness or an explicit host advance,
+with a recap for anyone
 who missed it. Test skip, replay, language changes, muted audio, late spectators,
 and disconnects. None may duplicate rewards or alter authoritative story state.
 
@@ -262,7 +296,9 @@ explanation of the war. The first game's story resolves before the tease.
 
 ## Open decisions
 
-The central arc and twelve-mission scope are settled. Detailed route, working
+The central arc, compact twelve-mission structure, 2-3-hour target and mission-start
+continues are settled. Exact continue allowances, save policy, playable viewpoints,
+ally fates and optional co-op scope still need design. Detailed route, working
 cast/place names, exact companion relationship wording, individual wipe operations,
 final rescue tradeoffs, travel technology, and sequel image remain proposals or
 open. Review the treatment before detailed geometry and paid story production.
@@ -270,8 +306,10 @@ These open details do not reopen the agreed story.
 
 ## Acceptance
 
-Complete runs must work solo, in co-op, with agents, and for spectators. Validate
-every mission exit, rescue outcome, checkpoint, join/leave, text-only scene, and
-the played collapse. Inspect all missions in motion with real art and encounters.
+Complete runs must work solo, with human or external-agent control, and for
+spectators. Validate every mission exit, rescue outcome, continue, exhausted run,
+save boundary, text-only scene, and the played collapse. Inspect all missions in
+motion with real art and encounters.
+Test co-op only where it is explicitly designed; do not make it every level's gate.
 Record comprehension and pacing from fresh players; automated completion does
 not establish fun. Ship bounded milestones without calling the plan a game.

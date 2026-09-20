@@ -158,7 +158,7 @@ async fn broadcast_cannot_overtake_join_geometry_for_any_role() {
         "127.0.0.1:0",
         commands_tx,
         2,
-        crate::protocol::READINESS_GAMEPLAY_VERSION,
+        crate::protocol::DIFFICULTY_GAMEPLAY_VERSION,
     )
     .await
     .unwrap();
@@ -420,7 +420,7 @@ async fn four_readers_share_one_start_and_spectators_cannot_acknowledge() {
         "127.0.0.1:0",
         commands_tx,
         2,
-        crate::protocol::READINESS_GAMEPLAY_VERSION,
+        crate::protocol::DIFFICULTY_GAMEPLAY_VERSION,
     )
     .await
     .unwrap();

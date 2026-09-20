@@ -13,14 +13,20 @@ and the map version in observations, and closes its MCP game session if a map
 has unsupported or invalid geometry, or the server sends malformed JSON.
 Ground-filled legacy maps remain readable.
 
-Clients declare gameplay capability 5. Discovery-only maps require 2; authored
-encounters require 3; mission sequences with party readiness require 5. Older clients are
+Clients declare gameplay capability 6. Discovery-only maps require 2; authored
+encounters require 3; mission sequences with shared difficulty require 6. Older clients are
 rejected before admission. `observe.loadout`
 is private to this participant: selected and
 owned weapons, magazines, pooled reserves, reload completion tick, personal
 supply claims and dry-trigger count. Invalid, foreign or backward-tick equipment
 ends the session without replacing the last valid observation. Spectators receive
 no private inventory. Arcade servers omit this object.
+
+`observe.mission.rules` reports the host's fixed difficulty (`assisted`, `standard`
+or `severe`) and tuning `revision` (currently 1). Humans, agents and spectators
+share these rules. Unknown revisions or changing rules fail validation, including
+across a same-mission geometry update. Difficulty does not alter MCP budgets or
+agent control frequency. Use matching builds when connecting to campaign servers.
 
 `act` accepts `fists`, `tack`, `flechette`, `scatter` and `rail` for `weapon_swap`;
 the server rejects unowned choices. `reload: true` requests one reload and survives

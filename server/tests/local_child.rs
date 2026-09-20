@@ -40,7 +40,7 @@ fn spawn() -> (OwnedChild, Ready) {
         .expect("child readiness deadline");
     result.unwrap();
     let ready: Ready = serde_json::from_str(&line).expect("typed child readiness");
-    assert_eq!(ready.version, 1);
+    assert_eq!(ready.version, 2);
     assert_eq!(ready.mission, MissionId::RecallNotice);
     assert_eq!(
         ready.gameplay_version,

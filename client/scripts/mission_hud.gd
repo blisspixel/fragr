@@ -62,7 +62,7 @@ func _refresh() -> void:
 		_copy.text = ""
 		_prompt.text = ""
 		return
-	var lines: Array[String] = [tr("MISSION_M01_TITLE"), ""]
+	var lines: Array[String] = [tr("MISSION_M01_TITLE"), tr("DIFFICULTY_" + String(state["rules"]["difficulty"]).to_upper()), ""]
 	match state["phase"]:
 		"briefing":
 			lines.append(tr("STORY_M01_RECAP"))

@@ -17,7 +17,7 @@ lives as property supplies the environmental story. Suffering is not the joke.
 Keep the approved introduction and safe Tack lesson. The current rooms support
 the introduction, but the empty records/transfer half cannot carry the mission.
 Build inhabited rooms and purposeful encounters, not a larger open arena.
-The 10-15 minute and 20-30 enemy estimates are pacing hypotheses, not quotas.
+The revised 8-10 minute and 20-30 enemy estimates are pacing hypotheses, not quotas.
 
 ## Room and encounter staging
 
@@ -74,24 +74,33 @@ Found introductory guns remain available to every participant. Shared campaign
 consumables must be finite within a run; unlimited waiting beside an ammo pad
 cannot replace the planned supply economy. Preserve arcade pad respawns. Keep
 scarcity, pickup visibility and claims server-owned. Guarantee enough supply for
-the main route plus misses, then measure contention with four participants.
+the main route plus misses. Preserve existing mixed-client supply regressions;
+four-player campaign authoring is no longer a requirement for every level.
 
-A secured records checkpoint must restore coherent party, inventory, pickup,
-encounter and objective state on a wipe. Preserve readiness and do not replay
-the opening. Individual death, late arrival, departure and an empty server need
-explicit rules. A pending reader cannot save a dead party from rollback. Keep
-the existing encounter lifecycle as the owner of reset timing.
+Replace timed solo campaign respawns with a limited-continue run. Death offers a
+mission-start retry while allowance remains; death without allowance ends the run. Three
+continues across the campaign is the initial balance proposal. Restore entry
+equipment, health/armor, pickups, enemies, objectives and gates coherently, without
+replaying the opening. No records checkpoint, teammate revival or buddy system.
+Arcade respawns and existing multiplayer regressions remain unchanged.
+
+Use one authoritative retry owner, integrating the existing encounter lifecycle.
+Consume a continue exactly once; reject duplicate or stale retry requests. A
+mission restart cannot duplicate rewards or erase earlier mission outcomes.
+Define the explicit solo-run boundary before changing the current four-seat
+development host, rather than silently changing its wire behavior.
 
 Persistent saves require a versioned bounded format, content identity, validation,
-atomic replacement and an explicit identity/reconnect contract. Do not serialize
-arbitrary live state or claim persistence from an in-memory checkpoint. Define
+atomic replacement and an explicit run identity. Save remaining continues without
+refilling them on reload. Do not serialize arbitrary live state or claim
+persistence from an in-memory mission-entry snapshot. Define
 this boundary before implementation; no player-supplied filesystem paths.
 
 ## Architecture
 
 `server/maps/m01-recall-notice.json` remains canonical. Reuse authored-map
 validation, `encounters.rs`, `mission.rs`, `inventory.rs`, shared movement,
-navigation and combat. Keep new checkpoint concerns in a focused module when
+navigation and combat. Keep new run/continue concerns in a focused module when
 needed. No parallel map loader, pathfinder, inventory or client authority.
 Use existing typed wire state for compatible changes; revise capability and both
 consumer boundaries deliberately if a new contract is necessary.
@@ -105,8 +114,9 @@ current price and quota before any approved batch; no overages or top-ups.
 
 - [ ] Complete room sequence, both routes, optional rewards and a mixed crest.
 - [ ] Measured guaranteed-route supplies, misses, contention and recovery.
-- [ ] Coherent checkpoint/retry and explicit persistent-save status.
-- [ ] Solo and four-participant runs, mixed humans/agents, MCP and spectator eyes.
+- [ ] Mission-start retry, exactly-once continue use, run exhaustion and explicit save status.
+- [ ] Solo runs with human/agent control, MCP and spectator eyes; retain existing
+  mixed-client regressions without claiming a complete co-op campaign.
 - [ ] Deterministic loader, activation, sightline, movement and lifecycle checks.
 - [ ] Inspected full-route motion, enemy tells/deaths and effects on available
   OpenGL/Vulkan paths, with hardware and platform limits recorded.
@@ -196,8 +206,8 @@ tours. Their data is corrected, and launch now rejects invalid walking shapes
 before playing. The five-state maintenance, eight-state stair and nine-state
 facility tours pass with inspected contact sheets under
 `.agents/qa/{m01-maintenance,m01,m01-facility}-records-fixed/`.
-Checkpoints, persistent saves, secrets, final art and fresh-player acceptance
-remain open. Next: complete checkpoint and supply-balance work through the
+Limited continues, persistent saves, secrets, final art and fresh-player acceptance
+remain open. Next: complete limited-continue and supply-balance work through the
 existing server seams, then apply difficulty and earned-cosmetic rules to that
 stable retry boundary.
 
@@ -253,8 +263,10 @@ rendering still derive from the same authored solids. The loader caught unusable
 clearances during iteration; those were widened, not exempted from validation.
 Shared kit practice and distinct enemy combinations are recorded in
 `../MAP-DESIGN.md` and `../ENEMIES.md`. Requested difficulty tiers and achievement
-cosmetics are bounded in [difficulty and rewards](difficulty-and-rewards.md),
-explicitly planned rather than implemented.
+cosmetics are bounded in [difficulty and rewards](difficulty-and-rewards.md).
+That follow-up implements new-run timing profiles first; persistence and earned
+rewards remain planned. The records-wing evidence above predates that increment
+and uses the original Standard timing.
 
 Reviewed [character references](../../client/art/characters/references/README.md)
 are saved with hashes and receipts. The Clerk dashboard preview was recovered

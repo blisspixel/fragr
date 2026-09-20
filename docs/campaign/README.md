@@ -33,24 +33,26 @@ support discussion and later data authoring; proposed state names are not existi
 wire fields. Review the graph and encounter rhythm before grayboxing. Geometry
 uses actual server movement, collision and the supported map representation.
 
-Normal campaign saves carry inventory and survivor outcomes. Checkpoints snapshot
-the authoritative party state. A retry returns to that snapshot, including people,
-doors, pickups and interactions. Replay cannot overwrite the main run silently.
-Melee-start replay is a labeled challenge, not a surprise reset between missions.
+Target 2-3 hours for a successful twelve-mission run. Per-mission budgets are
+provisional and need fresh-player evidence. A limited continue restarts the current
+mission with its entry equipment and world state; no mid-mission death checkpoint.
+The [run contract](../CAMPAIGN.md#runs-and-continues) owns allowance and persistence
+rules. Replay cannot overwrite the main run silently.
 
-One to four combatants share objectives and keys. Required gates work solo.
-Companions do not body-block, teleport visibly through sealed doors, or create
-four copies on four-player runs. People move after routes are secured; avoid
-fragile walking-escort chores. Irreversible departures require an explicit party
-leader confirmation with remaining rescue opportunities visible.
+Build each mission around one playable character. Viewpoints may differ across
+missions; exact assignments remain to be authored. Optional autonomous allies do
+not imply companion controls, revives or mandatory co-op. Allies must not block
+routes or required controls; death removes them for the mission attempt. People
+move after routes are secured; avoid fragile walking-escort chores. Irreversible
+departures require player confirmation with remaining rescue opportunities visible.
 
 Use stable actor/story IDs, localized objective and caption keys, optional audio,
 and world-visible consequences. Scene skipping never executes game logic twice.
 Muted radio and absent voice preserve every essential fact. Recordings, diagrams,
 and procedural brief generation do not establish that a mission is fun.
 
-Every final brief needs: one-player and four-player playthroughs; relevant rescue
-states; join/leave/retry/save tests; agent-observable objectives; spectator eye
+Every final brief needs: solo human/agent playthroughs; relevant rescue and ally
+states; continue/exhaustion/save tests; agent-observable objectives; spectator eye
 views; actual first-person motion in both renderer paths; fresh-player navigation
 and comprehension observations. Store receipts when earned, not placeholder PASS.
 
@@ -58,7 +60,7 @@ and comprehension observations. Store receipts when earned, not placeholder PASS
 
 1. Story/cast/route review, including unresolved consequential choices.
 2. Collision-correct graybox, playable objectives, exits and encounter pacing.
-3. Complete weapon/enemy behaviors, inventory, checkpoint and co-op cases.
+3. Complete weapon/enemy behaviors, inventory, mission retry and ally cases.
 4. Full art, animation, effects, sound and localized scene integration.
 5. Mechanical checks, inspected play, fresh-player review, revisions and release.
 

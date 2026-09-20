@@ -1,7 +1,7 @@
 # M12: Still Here
 
 **Status:** proposed level, unbuilt. Earth after the initial wipe; years-later
-playable coda. Target 20-30 minutes plus a short coda.
+playable coda. Target 12-16 minutes plus a short coda.
 [Treatment](../CAMPAIGN-MISSIONS.md#m12-still-here).
 
 ## Story and cast
@@ -30,7 +30,7 @@ and overhead sightlines. The player previews the refuge landmark early.
 | Protected crossing | A visible connection with safe staging at each end | Cover successive movements after threats are cleared |
 | Refuge approach | Defendable occupied ground and a recognizable endpoint | Final withdrawal and visible survivors reaching safety |
 
-Finale tasks can overlap for co-op but are sequentially possible alone. Civilians
+Finale tasks are paced for one playable character. Civilians
 move between secured stages rather than requiring a long fragile escort. The
 mission ends when the authored crossing and withdrawal succeed, not when an
 endless wave happens to stop spawning.
@@ -50,7 +50,7 @@ Secrets are an optional supply room and an elevated alternate firing position.
 Do not hide surviving characters, the main ending, or a required boss solution
 behind a secret wall. Avoid a completionist sweep through cleared map space.
 
-## State and checkpoints
+## State and retries
 
 `foothold_secured` -> `local_operation_disabled` -> `crossing_available` ->
 `survivors_crossed` -> `party_withdrawn` -> `campaign_complete`.
@@ -58,9 +58,10 @@ Track each survivor's arrival through authoritative state. Simultaneous crossing
 events cannot double count them. Preserve the final snapshot for coda selection
 and a separate replay slot, not destructive overwrite on mission replay.
 
-Checkpoint before the machinery crest and before the crossing. A party wipe
-restores the same rescue opportunities and resources. A disconnected participant
-does not permanently block the campaign's final transition or lose their record.
+A continue restarts at mission entry, including the same prior survivors,
+rescue opportunities and entry equipment. Make the compact route worth replaying.
+Exhaustion can end the run here too; final success must remain earned. After
+completion, the quiet coda does not introduce another lethal encounter.
 
 ## Playable coda and two short uncertainties
 

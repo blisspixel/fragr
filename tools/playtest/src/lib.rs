@@ -1316,6 +1316,7 @@ pub async fn run(config: Config) -> Result<(Report, Observation), Error> {
     };
     let options = ServerOptions {
         authored: None,
+        difficulty: None,
         bind: "127.0.0.1:0".to_string(),
         bots: 0,
         map: config.map,

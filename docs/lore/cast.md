@@ -23,7 +23,12 @@ choices, not recorded or shipped characters.
 The companion is not replaced by the Host. Add a small survivor cast from the
 clinic, workshops, and custody depot. Each rescue needs a later action or a
 recognizable absence. Avoid disposable mission givers at every destination.
-NPC pathing, gestures, combat participation, and downed states remain unbuilt.
+NPC pathing, gestures and autonomous combat participation remain unbuilt.
+Playable viewpoints and optional allied appearances follow
+[the campaign contract](../CAMPAIGN.md#solo-co-op-agents-and-watching).
+There is no mandatory opening partner, companion seat handoff or revive system.
+An ally's death removes them for the mission attempt; later appearances must
+respect explicit story outcomes. A continue replays gameplay, not resurrection.
 
 ### Recurring survivor roles
 

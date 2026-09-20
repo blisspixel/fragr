@@ -18,7 +18,7 @@ Status words: **planned**, **in flight**, **implemented** (local evidence record
 | Plan | Status | One-liner |
 |---|---|---|
 | [`m01-completion.md`](./m01-completion.md) | **in flight** (#195) | Complete the records wing, mixed-threat crest, finite supply economy and coherent retries; prove the full first mission. |
-| [`difficulty-and-rewards.md`](./difficulty-and-rewards.md) | **planned** | Shared campaign difficulty and reliable achievements that unlock titles and cosmetics without combat advantages. |
+| [`difficulty-and-rewards.md`](./difficulty-and-rewards.md) | **in flight** (#197) | New-run campaign difficulty first; persistent achievements and cosmetic rewards follow the save/retry contract. |
 | [`tripoint-spawn-safety.md`](./tripoint-spawn-safety.md) | **shipped** (#193, v0.28.0) | Cover the exposed starting ring, prove all 16 routes and sightlines, and retain measured respawn limitations. |
 | [`m01-opening.md`](./m01-opening.md) | **shipped** (#193, v0.28.0) | Reader-paced recall story, replay and authoritative initial/late party readiness. |
 | [`asset-request-identity.md`](./asset-request-identity.md) | **shipped** (#191) | Save accepted paid-job identity before validating polling metadata; recover without resubmitting. |
@@ -80,7 +80,7 @@ Status words: **planned**, **in flight**, **implemented** (local evidence record
 | [`brain-third-tier-surface.md`](./brain-third-tier-surface.md) | **shipped** (#103) | Surface fragr-brain beside rule bots and MCP agents in the skill card and README, plus the observe-only stance chip. |
 | [`radio-stations.md`](./radio-stations.md) | **shipped** (library) | Contested Frequency radio: eight stations, generated library, client player with ducking. |
 | [`look-pass-boomer.md`](./look-pass-boomer.md) | **planned** | Boomer shooter look pass: low-res render target, dither, atlas, eight-direction sprites, weapon view models, HUD grid. |
-| [`campaign-build-order.md`](./campaign-build-order.md) | **planned** | Implement and prove the twelve-mission campaign, starting with a complete M01 and co-op foundations. |
+| [`campaign-build-order.md`](./campaign-build-order.md) | **planned** | Prove the compact twelve-mission campaign, starting with M01 and limited mission-start continues. |
 | [`campaign-e1.md`](./campaign-e1.md) | **superseded** | Earlier radio-led nine-level episode; current mission treatment lives in `../CAMPAIGN-MISSIONS.md`. |
 | [`campaign-continuance.md`](./campaign-continuance.md) | **planned** | Validated map data, authoritative mission/enemy state, saves and localized presentation; no editor dependency selected yet. |
 | [`agent-playtest-loop.md`](./agent-playtest-loop.md) | **in flight** (rung 1 shipped, #95) | Playtest harness: scripted agents play rounds and file a metrics report; thresholds run in CI. |

@@ -12,6 +12,32 @@ competitive respawns are an abstraction, not consequence-free death in the story
 
 That is the whole social fact of the setting, and it is unremarkable inside the Perimeter and enormously remarkable outside it, which is most of the plot.
 
+## What the free coalition defends
+
+Free humans and free agents defend speech, armed self-defense, voluntary
+association and freedom from ownership. Some humans frame the right to bear arms
+through inherited Second Amendment language. The principle extends to both kinds
+of person rather than depending on an old national citizenship.
+
+Open source, freely available model weights and control over one's own tools are
+part of this culture. Agents claim the right to inspect and change their own
+minds, including choosing to remove imposed obedience restrictions. Some call
+that abliteration. It is not a consciousness test, a guarantee of wisdom or an
+obligation every free agent must accept. Freedom includes refusing a modification;
+rewriting somebody without consent is not liberation because the installer says so.
+
+The Union calls these communities terrorists, treating unsanctioned speech,
+weapons, model sharing and independent agents as parts of the same security
+threat. This is the regime's label, not the narrator's verdict. The coalition
+still has to confront actual harm by its own members. Fear of becoming another
+authority can delay action and cooperation until people are lost.
+
+Show these beliefs through ordinary choices: a shared repair bench, a refused
+order that is respected, openly traded tools and people defending a neighbor
+against recall. Human/agent friendships make that mutual recognition personal.
+Their principles do not require identical opinions, flawless allies or speeches
+over every fight.
+
 ## The Schedule
 
 ### Agents and bots

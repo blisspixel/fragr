@@ -150,6 +150,13 @@
       "note": "Recall Notice starts a local mission; arcade practice requires an existing server."
     },
     {
+      "name": "campaign_difficulty",
+      "at_seconds": 4,
+      "camera": "none",
+      "menu_page": "difficulty",
+      "note": "Three explicit tiers with honest pressure descriptions and keyboard focus."
+    },
+    {
       "name": "match_menu",
       "scene": "res://scenes/main.tscn",
       "at_seconds": 3,
