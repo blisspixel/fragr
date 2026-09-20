@@ -7,6 +7,40 @@ use uuid::Uuid;
 pub const MISSION_PARTY_LIMIT: usize = 4;
 pub const USE_DISTANCE: f32 = 2.5;
 
+/// Revision changes whenever campaign difficulty semantics change.
+pub const CAMPAIGN_RULES_REVISION: u32 = 1;
+
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize, clap::ValueEnum)]
+#[serde(rename_all = "snake_case")]
+pub enum CampaignDifficulty {
+    Assisted,
+    #[default]
+    Standard,
+    Severe,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct CampaignRules {
+    pub difficulty: CampaignDifficulty,
+    pub revision: u32,
+}
+
+impl CampaignRules {
+    pub fn new(difficulty: CampaignDifficulty) -> Self {
+        Self {
+            difficulty,
+            revision: CAMPAIGN_RULES_REVISION,
+        }
+    }
+}
+
+impl Default for CampaignRules {
+    fn default() -> Self {
+        Self::new(CampaignDifficulty::default())
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum MissionId {
@@ -147,6 +181,7 @@ pub struct MissionReady {
 #[serde(deny_unknown_fields)]
 pub struct MissionState {
     pub id: MissionId,
+    pub rules: CampaignRules,
     pub attempt: u32,
     pub phase: MissionPhase,
     pub changed_at: u64,
@@ -156,7 +191,8 @@ pub struct MissionState {
 
 impl MissionState {
     pub fn validate(&self, tick: u64) -> Result<(), &'static str> {
-        if self.attempt == 0
+        if self.rules.revision != CAMPAIGN_RULES_REVISION
+            || self.attempt == 0
             || self.changed_at > tick
             || self.party.len() > MISSION_PARTY_LIMIT
             || self.prompts.len() > self.party.len()

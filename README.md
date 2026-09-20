@@ -34,8 +34,11 @@ bots occupy seven groups, with server-owned attack phases and directional poses.
 Guards are already present before entry alarms, and campaign consumables stay
 consumed until a party reset. Find Latch's transfer record at the console, open
 the custody lift and depart together. Character art, pacing, checkpoints, secrets
-and the next mission remain unfinished. Difficulty tiers and cosmetic achievement
-rewards are [planned](docs/plans/difficulty-and-rewards.md).
+and the next mission remain unfinished. Choose Assisted, Standard or Severe before
+a new local campaign. This first difficulty pass changes enemy tells and recovery;
+health, damage and finite supplies stay consistent. Standard retains the original
+timing. Persistent achievements and earned cosmetic rewards remain
+[planned](docs/plans/difficulty-and-rewards.md).
 
 ## Screenshots
 
@@ -76,7 +79,7 @@ cargo build -p fragr-server --release --locked
 godot --path client
 ```
 
-Choose **Single Player > Recall Notice**. The client owns a server on an available
+Choose **Single Player > Recall Notice**, then a difficulty. The client owns a server on an available
 loopback port and stops it when you leave the match or close the game. It uses the
 M01 map embedded in that server build. Rebuild after changing the map or server.
 Opening `client/` in Godot and pressing F5 uses the same menu.

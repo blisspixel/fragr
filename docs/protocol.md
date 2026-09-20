@@ -64,9 +64,10 @@ Initial handshake message. Must be sent immediately after connection.
   No player or spectator session is created on rejection. This is geometry
   compatibility, not general protocol or action-version negotiation.
 - `gameplay_version`: maximum understood gameplay contract. Current clients send
-  `5`; omission means `1`. Discovery-only maps require 2, maps with authored
-  encounters require 3, and mission sequences now require 5 for party readiness.
-  Version 4 introduced physical mission controls but cannot enter these missions.
+  `6`; omission means `1`. Discovery-only maps require 2, maps with authored
+  encounters require 3, and mission sequences require 6 for shared difficulty.
+  Versions 4 and 5 introduced physical controls and party readiness respectively;
+  they cannot enter current missions. Use matching campaign server/client builds.
   Older clients of every role are rejected before `Welcome`
   with `unsupported_gameplay`. This capability is separate from geometry. The six
   full-arsenal arcade maps still accept 1.
@@ -96,6 +97,11 @@ and before the corresponding snapshot whenever shared state changes. `state` is:
 - `id`: `recall_notice`; `attempt`: positive retry revision; `changed_at`: tick of
   the last phase change/reset, no later than the message tick.
 - `phase`: `briefing`, `find_transfer`, `reach_lift`, or `departed`.
+- `rules`: required `{difficulty,revision}`. Difficulty is `assisted`, `standard`
+  or `severe`; revision is exactly `1`. Unknown fields/revisions are invalid.
+  The host chooses once before admission. Geometry changes, death, retries and
+  joining participants preserve these rules. Clients cannot change them through
+  actions or readiness; agent observations contain the same rules as human UI.
 - `party`: up to four `{id,name,ready,alive,aboard}` members. Names are display labels.
 - `prompts`: `{player_id,kind}` for currently legal interactions. Kinds are
   `transfer_record` and `lift_departure`; these are not localized strings.
@@ -901,12 +907,16 @@ from WebSocket messages. It loads the registered map from the committed JSON
 embedded at build time, binds `127.0.0.1:0`, and writes one ASCII JSON line to
 stdout after map preparation and bind:
 
+The optional `--difficulty assisted|standard|severe` defaults to `standard` and
+is echoed below. Bootstrap version 2 requires that field; it is separate from
+the on-wire campaign rules revision. No parent command changes it during a run.
+
 ```json
-{"version":1,"mission":"recall_notice","url":"ws://127.0.0.1:49152","gameplay_version":5}
+{"version":2,"mission":"recall_notice","difficulty":"standard","url":"ws://127.0.0.1:49152","gameplay_version":6}
 ```
 
 The port is chosen by the OS. Diagnostics use stderr. The parent validates the
-exact version, mission, gameplay capability and loopback endpoint before using
+exact version, mission, requested difficulty, gameplay capability and loopback endpoint before using
 the normal Hello path. Readiness is capped at 4096 bytes and 15 seconds. Stdin EOF
 or `{"type":"shutdown"}` followed by a newline stops the child; invalid or overlong
 control records also stop it with an error. Control records are capped at 256 bytes.

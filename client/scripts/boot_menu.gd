@@ -134,6 +134,8 @@ func _show(page: String) -> void:
 			_page_main()
 		"single":
 			_page_single()
+		"difficulty":
+			_page_difficulty()
 		"multi":
 			_page_multi()
 		"settings":
@@ -162,7 +164,7 @@ func _page_main() -> void:
 
 func _page_single() -> void:
 	_label(tr("MENU_CAMPAIGN"))
-	var mission: Button = _button(tr("MISSION_M01_TITLE"), _start_campaign)
+	var mission: Button = _button(tr("MISSION_M01_TITLE"), func() -> void: _show("difficulty"))
 	mission.name = "RecallNotice"
 	mission.disabled = _local_match.state not in [LocalMatch.State.IDLE, LocalMatch.State.FAILED]
 	_label(tr("MENU_M01_DESCRIPTION"))
@@ -186,12 +188,21 @@ func _finish_replay() -> void:
 	_opening = null
 	_show("single")
 
-func _start_campaign() -> void:
+func _page_difficulty() -> void:
+	_label(tr("MISSION_M01_TITLE"))
+	_label(tr("DIFFICULTY_CHOOSE"))
+	for difficulty: String in ["standard", "assisted", "severe"]:
+		var choice: Button = _button(tr("DIFFICULTY_" + difficulty.to_upper()), _start_campaign.bind(difficulty))
+		choice.name = "Difficulty_" + difficulty
+		_label(tr("DIFFICULTY_" + difficulty.to_upper() + "_DESCRIPTION"))
+	_button(tr("MENU_BACK"), func() -> void: _show("single"))
+
+func _start_campaign(difficulty: String = "standard") -> void:
 	if _launch_pending:
 		return
 	_launch_pending = true
 	_show("launch")
-	_local_match.start_mission()
+	_local_match.start_mission(difficulty)
 	_on_local_state_changed()
 
 func _page_launch() -> void:
@@ -301,7 +312,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		if _launch_pending:
 			_cancel_campaign()
 		else:
-			_show("main")
+			_show("single" if _page == "difficulty" else "main")
 		get_viewport().set_input_as_handled()
 
 func _launch(mode: String, host: String) -> void:

@@ -337,10 +337,16 @@ fn shared_wire_controller_walks_and_departs_as_a_mixed_party() {
 
 #[test]
 fn shared_party_controller_completes_actual_m01_with_discovered_equipment() {
-    for size in [2, 4] {
+    for (size, difficulty) in [
+        (2, CampaignDifficulty::Standard),
+        (4, CampaignDifficulty::Standard),
+        (2, CampaignDifficulty::Assisted),
+        (2, CampaignDifficulty::Severe),
+    ] {
         let map = AuthoredMap::read(include_bytes!("../../maps/m01-recall-notice.json").as_slice())
             .unwrap();
         let mut session = GameSession::with_authored_map(map);
+        session.state.set_campaign_difficulty(difficulty).unwrap();
         session.state.seed(67);
         drive_party(session, size);
     }

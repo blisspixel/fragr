@@ -253,8 +253,10 @@ rendering still derive from the same authored solids. The loader caught unusable
 clearances during iteration; those were widened, not exempted from validation.
 Shared kit practice and distinct enemy combinations are recorded in
 `../MAP-DESIGN.md` and `../ENEMIES.md`. Requested difficulty tiers and achievement
-cosmetics are bounded in [difficulty and rewards](difficulty-and-rewards.md),
-explicitly planned rather than implemented.
+cosmetics are bounded in [difficulty and rewards](difficulty-and-rewards.md).
+That follow-up implements new-run timing profiles first; persistence and earned
+rewards remain planned. The records-wing evidence above predates that increment
+and uses the original Standard timing.
 
 Reviewed [character references](../../client/art/characters/references/README.md)
 are saved with hashes and receipts. The Clerk dashboard preview was recovered

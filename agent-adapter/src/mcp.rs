@@ -1065,6 +1065,8 @@ mod mcp_tests {
         )
         .unwrap();
         let mut sim = fragr_server::sim::GameState::with_authored_map(map);
+        sim.set_campaign_difficulty(fragr_server::protocol::CampaignDifficulty::Assisted)
+            .unwrap();
         let id = Uuid::from_u128(1);
         sim.add_player(id, "Partner".into(), protocol::Role::Agent);
         let mut state = ToolState {
@@ -1085,6 +1087,10 @@ mod mcp_tests {
         .unwrap();
         let observed = build_observe_result(&state);
         assert_eq!(observed["mission"]["phase"], "briefing");
+        assert_eq!(
+            observed["mission"]["rules"],
+            serde_json::json!({"difficulty":"assisted","revision":1})
+        );
         assert_eq!(observed["mission"]["party"][0]["ready"], false);
         assert_eq!(observed["mission"]["party"][0]["id"], id.to_string());
         assert_eq!(observed["map"]["mission"]["id"], "recall_notice");

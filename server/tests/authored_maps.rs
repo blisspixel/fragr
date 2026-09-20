@@ -33,6 +33,11 @@ async fn invalid_authoring_configuration_fails_before_readiness() {
     };
     let mut cases = vec![
         ServerOptions {
+            authored: None,
+            difficulty: Some(fragr_server::protocol::CampaignDifficulty::Severe),
+            ..base.clone()
+        },
+        ServerOptions {
             bots: 1,
             ..base.clone()
         },
@@ -79,6 +84,7 @@ async fn authored_map_is_shared_by_humans_agents_and_spectators() {
             bind: "127.0.0.1:0".into(),
             bots: 0,
             authored: Some(fragr_server::maps::AuthoredSource::File(map_path())),
+            difficulty: Some(fragr_server::protocol::CampaignDifficulty::Severe),
             ..Default::default()
         },
         async {
@@ -104,7 +110,7 @@ async fn authored_map_is_shared_by_humans_agents_and_spectators() {
         old_rules
             .send(Message::Text(
                 serde_json::json!({
-                    "type":"hello", "role":role, "name":"Old equipment", "geometry_version":2,
+                    "type":"hello", "role":role, "name":"Old equipment", "geometry_version":2, "gameplay_version":5,
                 })
                 .to_string(),
             ))
@@ -150,6 +156,19 @@ async fn authored_map_is_shared_by_humans_agents_and_spectators() {
                 break;
             }
         }
+        if id.is_none() {
+            loop {
+                if let ServerMessage::Mission { state, .. } = receive(&mut socket).await {
+                    assert_eq!(
+                        state.rules,
+                        fragr_server::protocol::CampaignRules::new(
+                            fragr_server::protocol::CampaignDifficulty::Severe
+                        )
+                    );
+                    break;
+                }
+            }
+        }
         if id.is_some() {
             let state = tokio::time::timeout(Duration::from_secs(3), async {
                 let mut mission = None;
@@ -162,7 +181,15 @@ async fn authored_map_is_shared_by_humans_agents_and_spectators() {
                             assert_eq!(loadout.weapons.len(), 1);
                             has_loadout = true;
                         }
-                        ServerMessage::Mission { state, .. } => mission = Some(state),
+                        ServerMessage::Mission { state, .. } => {
+                            assert_eq!(
+                                state.rules,
+                                fragr_server::protocol::CampaignRules::new(
+                                    fragr_server::protocol::CampaignDifficulty::Severe
+                                )
+                            );
+                            mission = Some(state);
+                        }
                         _ => {}
                     }
                     if has_loadout {

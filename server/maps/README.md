@@ -21,6 +21,14 @@ has no arcade timer, boss or map rotation. `--map-file` rejects arcade
 map selection, Episode 0, rule overrides and rule bots. It is opt-in authoring
 support, not the campaign menu's finished first mission.
 
+Add `--difficulty assisted`, `--difficulty standard` or `--difficulty severe` to
+choose the mission's shared pressure before admission. Omission keeps Standard.
+The first profiles adjust Clerk/Sweeper windup and recovery, not health, damage,
+supplies or story. Local Single Player offers the same choices. Difficulty is
+fixed for that server lifetime; restart for another choice. Use matching client
+and server builds with gameplay capability 6. Arcade and benchmark runs reject
+the option. Final multi-tier encounter and resource balance remains unfinished.
+
 ## Document version 1
 
 - `version`: exactly `1`; `map_id`: a stable integer at least `1000`, reserving

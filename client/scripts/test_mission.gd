@@ -27,7 +27,7 @@ func _map() -> Dictionary:
 			"departure": {"decoration": 1, "approach": [3, 0, 3]}, "boarding": {"min": [-6, 0, 1.5], "max": [6, 0.5, 7]}}}
 
 func _message() -> Dictionary:
-	return {"type": "mission", "tick": 10, "state": {"id": "recall_notice", "attempt": 1, "phase": "find_transfer", "changed_at": 0,
+	return {"type": "mission", "tick": 10, "state": {"id": "recall_notice", "rules": {"difficulty": "standard", "revision": 1}, "attempt": 1, "phase": "find_transfer", "changed_at": 0,
 		"party": [{"id": PLAYER, "name": "Visitor", "ready": true, "alive": true, "aboard": false}],
 		"prompts": [{"player_id": PLAYER, "kind": "transfer_record"}]}}
 
@@ -48,6 +48,26 @@ func _run() -> void:
 		_expect(not MissionState.map_error(bad).is_empty(), "invalid mission geometry rejected: " + str(patch))
 	var message: Dictionary = _message()
 	_expect(MissionState.validation_error(message, info["mission"]).is_empty(), "valid prompt accepted")
+	for rules: Variant in [null, {}, {"difficulty": "severe"}, {"difficulty": "standard", "revision": 2},
+		{"difficulty": "invented", "revision": 1}, {"difficulty": "assisted", "revision": true},
+		{"difficulty": "standard", "revision": 1, "adaptive": true}]:
+		var bad: Dictionary = message.duplicate(true)
+		bad["state"]["rules"] = rules
+		_expect(not MissionState.validation_error(bad, info["mission"]).is_empty(), "invalid shared rules rejected")
+	for difficulty: String in MissionState.DIFFICULTIES:
+		var choice: Dictionary = message.duplicate(true)
+		choice["state"]["rules"]["difficulty"] = difficulty
+		_expect(MissionState.validation_error(choice, info["mission"]).is_empty(), "valid difficulty: " + difficulty)
+	var changed: Dictionary = message.duplicate(true)
+	changed["state"]["rules"]["difficulty"] = "severe"
+	_expect(not MissionState.validation_error(changed, info["mission"], message).is_empty(), "midrun rules cannot change")
+	var rules_network: CaptureNetwork = CaptureNetwork.new()
+	rules_network._handle_message(JSON.stringify(info))
+	rules_network._handle_message(JSON.stringify(message))
+	rules_network._handle_message(JSON.stringify(info))
+	rules_network._handle_message(JSON.stringify(changed))
+	_expect(rules_network.mission.is_empty(), "geometry refresh cannot bypass fixed rules")
+	rules_network.free()
 	for patch: Dictionary in [{"attempt": 0}, {"attempt": 1.5}, {"changed_at": 11}, {"phase": "invented"},
 		{"party": [null]}, {"party": [{"id": PLAYER, "name": "bad\nname", "ready": true, "alive": true, "aboard": false}]},
 		{"party": [{"id": PLAYER, "name": "Visitor", "ready": true, "alive": false, "aboard": true}]},

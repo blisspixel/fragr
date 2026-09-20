@@ -1,6 +1,6 @@
 //! Desktop child readiness and ownership. Gameplay still uses the normal wire.
 use crate::maps::AuthoredSource;
-use crate::protocol::{MissionId, GAMEPLAY_VERSION};
+use crate::protocol::{CampaignDifficulty, MissionId, GAMEPLAY_VERSION};
 use crate::run::{run_server, ServerOptions};
 use serde::{Deserialize, Serialize};
 use std::io::{self, BufRead, BufReader, Read, Write};
@@ -14,20 +14,26 @@ const MAX_CONTROL_BYTES: u64 = 256;
 pub struct Ready {
     pub version: u32,
     pub mission: MissionId,
+    pub difficulty: CampaignDifficulty,
     pub url: String,
     pub gameplay_version: u32,
 }
 
 impl Ready {
-    fn new(mission: MissionId, address: SocketAddr) -> io::Result<Self> {
+    fn new(
+        mission: MissionId,
+        difficulty: CampaignDifficulty,
+        address: SocketAddr,
+    ) -> io::Result<Self> {
         if address.ip() != Ipv4Addr::LOCALHOST || address.port() == 0 {
             return Err(io::Error::other(
                 "local child readiness requires IPv4 loopback",
             ));
         }
         Ok(Self {
-            version: 1,
+            version: 2,
             mission,
+            difficulty,
             url: format!("ws://{address}"),
             gameplay_version: GAMEPLAY_VERSION,
         })
@@ -70,6 +76,7 @@ fn read_lease(input: impl Read) -> io::Result<()> {
 pub async fn serve(
     mission: MissionId,
     seed: u64,
+    difficulty: CampaignDifficulty,
     input: impl Read + Send + 'static,
     output: impl Write,
 ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
@@ -85,6 +92,7 @@ pub async fn serve(
         bind: "127.0.0.1:0".into(),
         bots: 0,
         authored: Some(AuthoredSource::Mission(mission)),
+        difficulty: Some(difficulty),
         seed,
         status_every_s: 0,
         ..Default::default()
@@ -102,7 +110,7 @@ pub async fn serve(
         owner = &mut owner_rx => { owner??; return Ok(()); },
         ready = &mut ready_rx => ready?,
     };
-    Ready::new(mission, address)?.write(output)?;
+    Ready::new(mission, difficulty, address)?.write(output)?;
     tokio::select! {
         result = &mut server => result,
         owner = &mut owner_rx => {
@@ -140,9 +148,19 @@ mod tests {
     #[test]
     fn readiness_is_one_typed_loopback_record() {
         for address in ["0.0.0.0:6767", "[::1]:6767", "127.0.0.1:0"] {
-            assert!(Ready::new(MissionId::RecallNotice, address.parse().unwrap()).is_err());
+            assert!(Ready::new(
+                MissionId::RecallNotice,
+                CampaignDifficulty::Standard,
+                address.parse().unwrap()
+            )
+            .is_err());
         }
-        let ready = Ready::new(MissionId::RecallNotice, "127.0.0.1:6767".parse().unwrap()).unwrap();
+        let ready = Ready::new(
+            MissionId::RecallNotice,
+            CampaignDifficulty::Standard,
+            "127.0.0.1:6767".parse().unwrap(),
+        )
+        .unwrap();
         let mut bytes = Vec::new();
         ready.write(&mut bytes).unwrap();
         assert_eq!(bytes.iter().filter(|c| **c == b'\n').count(), 1);

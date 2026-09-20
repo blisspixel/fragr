@@ -3,6 +3,8 @@ extends RefCounted
 
 ## Mirror of protocol/mission.rs. Validation grants no local mission authority.
 const ID: String = "recall_notice"
+const DIFFICULTIES: Array[String] = ["assisted", "standard", "severe"]
+const RULES_REVISION: int = 1
 const PHASES: Array[String] = ["briefing", "find_transfer", "reach_lift", "departed"]
 const INVALID: String = "The server sent invalid mission state. Connection closed."
 
@@ -45,7 +47,8 @@ static func map_error(info: Dictionary) -> String:
 static func validation_error(message: Dictionary, geometry: Dictionary, previous: Dictionary = {}) -> String:
 	var value: Variant = message.get("state")
 	if not EquipmentState.integer(message.get("tick"), EquipmentState.MAX_EXACT_INTEGER) \
-		or not value is Dictionary or value.size() != 6 or geometry.get("id") != ID or value.get("id") != ID \
+		or not value is Dictionary or value.size() != 7 or geometry.get("id") != ID or value.get("id") != ID \
+		or not valid_rules(value.get("rules")) \
 		or not value.get("phase") is String or value["phase"] not in PHASES \
 		or not EquipmentState.integer(value.get("attempt"), 4294967295) or int(value["attempt"]) == 0 \
 		or not EquipmentState.integer(value.get("changed_at"), int(message["tick"])) \
@@ -53,7 +56,7 @@ static func validation_error(message: Dictionary, geometry: Dictionary, previous
 		or not value.get("prompts") is Array or value["prompts"].size() > value["party"].size():
 		return INVALID
 	if not previous.is_empty() and (int(value["attempt"]) < int(previous["state"]["attempt"]) \
-		or int(message["tick"]) < int(previous["tick"])):
+		or int(message["tick"]) < int(previous["tick"]) or value["rules"] != previous["state"]["rules"]):
 		return INVALID
 	var party: Dictionary = {}
 	var ready: bool = true
@@ -83,6 +86,11 @@ static func validation_error(message: Dictionary, geometry: Dictionary, previous
 			return INVALID
 		prompted.append(prompt["player_id"])
 	return ""
+
+static func valid_rules(value: Variant) -> bool:
+	return value is Dictionary and value.size() == 2 \
+		and value.get("difficulty") is String and value["difficulty"] in DIFFICULTIES \
+		and EquipmentState.integer(value.get("revision"), RULES_REVISION) and value["revision"] == RULES_REVISION
 
 static func _point(value: Variant, half: float) -> bool:
 	if not value is Array or value.size() != 3:

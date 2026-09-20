@@ -14,8 +14,9 @@ pub use loadout::{
     AmmoPool, AmmoReserve, EquipmentPolicy, LoadoutState, ReloadState, SupplyClaim, WeaponAmmo,
 };
 pub use mission::{
-    InteractionKind, InteractionPrompt, MissionGeometry, MissionId, MissionMember, MissionPhase,
-    MissionReady, MissionState, Region3, UseTarget, MISSION_PARTY_LIMIT, USE_DISTANCE,
+    CampaignDifficulty, CampaignRules, InteractionKind, InteractionPrompt, MissionGeometry,
+    MissionId, MissionMember, MissionPhase, MissionReady, MissionState, Region3, UseTarget,
+    CAMPAIGN_RULES_REVISION, MISSION_PARTY_LIMIT, USE_DISTANCE,
 };
 
 /// Named scrap-league identity (Contested Frequency denies it exists).
@@ -396,8 +397,9 @@ pub const DISCOVERY_GAMEPLAY_VERSION: u32 = 2;
 pub const CAMPAIGN_GAMEPLAY_VERSION: u32 = 3;
 pub const MISSION_GAMEPLAY_VERSION: u32 = 4;
 pub const READINESS_GAMEPLAY_VERSION: u32 = 5;
+pub const DIFFICULTY_GAMEPLAY_VERSION: u32 = 6;
 /// Highest understood gameplay contract; content requirements use their own minimum.
-pub const GAMEPLAY_VERSION: u32 = READINESS_GAMEPLAY_VERSION;
+pub const GAMEPLAY_VERSION: u32 = DIFFICULTY_GAMEPLAY_VERSION;
 pub fn legacy_gameplay_version() -> u32 {
     1
 }

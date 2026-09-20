@@ -65,3 +65,30 @@ msgstr "{name}: reading"
 
 msgid "STORY_SCROLL_HINT"
 msgstr "Page Up / Page Down or LB / RB: scroll text"
+
+msgid "DIFFICULTY_CHOOSE"
+msgstr "Choose your pressure"
+
+msgid "DIFFICULTY_ASSISTED"
+msgstr "Assisted"
+
+msgid "DIFFICULTY_STANDARD"
+msgstr "Standard"
+
+msgid "DIFFICULTY_SEVERE"
+msgstr "Severe"
+
+msgid "DIFFICULTY_ASSISTED_DESCRIPTION"
+msgstr "More time to dodge. Longer openings to fight back."
+
+msgid "DIFFICULTY_STANDARD_DESCRIPTION"
+msgstr "The original pressure. Read the tells. Keep moving."
+
+msgid "DIFFICULTY_SEVERE_DESCRIPTION"
+msgstr "Faster attacks. Shorter openings. Every tell still matters."
+
+msgid "LOCAL_SERVER_INVALID_DIFFICULTY"
+msgstr "That difficulty is unavailable. Choose a listed setting."
+
+msgid "MENU_BACK"
+msgstr "Back"

@@ -2,8 +2,8 @@
 use crate::movement::Solid;
 use crate::navigation::{Navigation, NavigationGoal, Navigator};
 use crate::protocol::{
-    Action, LookAt, MapPresentation, MissionGeometry, MissionPhase, MissionReady, MissionState,
-    Snapshot,
+    Action, CampaignRules, LookAt, MapPresentation, MissionGeometry, MissionPhase, MissionReady,
+    MissionState, Snapshot,
 };
 use crate::sim::PLAYER_FLOOR_Y;
 use uuid::Uuid;
@@ -15,6 +15,7 @@ pub struct MissionClient {
     pub state: Option<MissionState>,
     last_tick: Option<u64>,
     press_down: bool,
+    rules: Option<CampaignRules>,
 }
 
 impl MissionClient {
@@ -40,6 +41,13 @@ impl MissionClient {
                     .ok_or("missing lift panel")?,
             ];
             next.geometry = Some(mission.clone());
+            if self
+                .geometry
+                .as_ref()
+                .is_some_and(|old| old.id == mission.id)
+            {
+                next.rules = self.rules;
+            }
         }
         *self = next;
         Ok(())
@@ -48,6 +56,7 @@ impl MissionClient {
     pub fn observe(&mut self, tick: u64, state: MissionState) -> Result<(), &'static str> {
         state.validate(tick)?;
         if self.geometry.as_ref().is_none_or(|map| map.id != state.id)
+            || self.rules.is_some_and(|rules| rules != state.rules)
             || self.last_tick.is_some_and(|last| tick < last)
             || self
                 .state
@@ -57,6 +66,7 @@ impl MissionClient {
             return Err("mission state does not match the current map or revision");
         }
         self.last_tick = Some(tick);
+        self.rules = Some(state.rules);
         self.state = Some(state);
         Ok(())
     }

@@ -1,7 +1,7 @@
 extends Node
 
-# Version 5 adds party readiness before mission participation.
-const GAMEPLAY_VERSION: int = 5
+# Version 6 adds explicit, shared campaign difficulty rules.
+const GAMEPLAY_VERSION: int = 6
 
 signal connected_to_server
 signal disconnected_from_server
@@ -17,6 +17,7 @@ signal mission_received(data: Dictionary)
 var equipment: Dictionary = {}
 var mission_geometry: Dictionary = {}
 var mission: Dictionary = {}
+var _mission_rules: Dictionary = {}
 
 var socket = WebSocketPeer.new()
 var connection_state = WebSocketPeer.STATE_CLOSED
@@ -54,6 +55,7 @@ func connect_to_server(p_role: String = "spectator", p_name: String = "Player"):
 	equipment.clear()
 	mission.clear()
 	mission_geometry.clear()
+	_mission_rules.clear()
 
 	# Godot WebSocketPeer is not reliably reusable after close. Always start fresh
 	# so J/L join-leave-reconnect cannot soft-prison on a dead peer.
@@ -80,6 +82,7 @@ func disconnect_from_server():
 	equipment.clear()
 	mission.clear()
 	mission_geometry.clear()
+	_mission_rules.clear()
 	set_process(false)
 	disconnected_from_server.emit()
 
@@ -165,6 +168,7 @@ func _process(_delta):
 			equipment.clear()
 			mission.clear()
 			mission_geometry.clear()
+			_mission_rules.clear()
 			print("Disconnected from server")
 			set_process(false)
 			disconnected_from_server.emit()
@@ -195,6 +199,7 @@ func _handle_message(text: String):
 			equipment.clear()
 			mission.clear()
 			mission_geometry.clear()
+			_mission_rules.clear()
 			player_id = data.get("player_id")
 			print("Welcome received! Role: ", data.get("role"), " Player ID: ", player_id, " Mode: ", data.get("mode_name", "Contested Frequency"), "/", data.get("playlist", "Arena Duel"))
 		
@@ -206,17 +211,22 @@ func _handle_message(text: String):
 				disconnect_from_server()
 				server_error.emit(problem)
 				return
+			if not data.get("mission") is Dictionary or data["mission"].get("id") != mission_geometry.get("id"):
+				_mission_rules.clear()
 			mission.clear()
 			mission_geometry = data["mission"] if data.get("mission") is Dictionary else {}
 			map_info_received.emit(data)
 			mission_received.emit({})
 		"mission":
 			var problem: String = MissionState.validation_error(data, mission_geometry, mission)
+			if problem.is_empty() and not _mission_rules.is_empty() and data["state"]["rules"] != _mission_rules:
+				problem = MissionState.INVALID
 			if not problem.is_empty():
 				disconnect_from_server()
 				server_error.emit(problem)
 				return
 			mission = data
+			_mission_rules = data["state"]["rules"].duplicate()
 			mission_received.emit(data["state"])
 		"loadout":
 			var problem: String = EquipmentState.validation_error(data, player_id, equipment)

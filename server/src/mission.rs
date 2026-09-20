@@ -1,8 +1,9 @@
 //! Shared mission progression. The encounter lifecycle owns party reset timing.
 use crate::maps::RuntimeMap;
 use crate::protocol::{
-    CampaignActor, InteractionKind, InteractionPrompt, MissionMember, MissionPhase, MissionReady,
-    MissionState, ServerMessage, UseTarget, USE_DISTANCE,
+    CampaignActor, CampaignDifficulty, CampaignRules, InteractionKind, InteractionPrompt,
+    MissionMember, MissionPhase, MissionReady, MissionState, ServerMessage, UseTarget,
+    USE_DISTANCE,
 };
 use crate::sim::{GameState, Player, PLAYER_FLOOR_Y};
 use std::collections::HashSet;
@@ -12,6 +13,9 @@ mod controller;
 pub use controller::MissionClient;
 
 #[cfg(test)]
+mod difficulty_tests;
+
+#[cfg(test)]
 mod readiness_tests;
 #[cfg(test)]
 mod tests;
@@ -19,6 +23,7 @@ mod tests;
 mod wire_tests;
 
 pub(crate) struct MissionRun {
+    rules: CampaignRules,
     initial_map: RuntimeMap,
     attempt: u32,
     phase: MissionPhase,
@@ -31,6 +36,7 @@ impl MissionRun {
     pub fn new(map: &RuntimeMap) -> Option<Self> {
         map.mission()?;
         Some(Self {
+            rules: CampaignRules::default(),
             initial_map: map.clone(),
             attempt: 1,
             phase: MissionPhase::Briefing,
@@ -81,6 +87,28 @@ fn can_use(player: &Player, target: &UseTarget, map: &RuntimeMap) -> bool {
 }
 
 impl GameState {
+    /// Host configuration is accepted only before any participant or tick exists.
+    pub fn set_campaign_difficulty(
+        &mut self,
+        difficulty: CampaignDifficulty,
+    ) -> Result<(), &'static str> {
+        if self.tick != 0 || !self.players.is_empty() {
+            return Err("campaign difficulty must be selected before the session starts");
+        }
+        let run = self
+            .mission
+            .as_mut()
+            .ok_or("difficulty requires an authored mission")?;
+        run.rules = CampaignRules::new(difficulty);
+        Ok(())
+    }
+
+    pub fn campaign_rules(&self) -> CampaignRules {
+        self.mission
+            .as_ref()
+            .map_or_else(CampaignRules::default, |run| run.rules)
+    }
+
     pub fn acknowledge_mission(&mut self, player_id: Uuid, ready: MissionReady) -> bool {
         if self.map.mission().is_none_or(|map| map.id != ready.id)
             || !self
@@ -193,6 +221,7 @@ impl GameState {
         });
         Some(MissionState {
             id: geometry.id,
+            rules: run.rules,
             attempt: run.attempt,
             phase: run.phase,
             changed_at: run.changed_at,
