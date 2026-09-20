@@ -50,6 +50,7 @@ If prose and code disagree, code wins; fix the prose in the same change. Keep pl
 | Concern | Home |
 |---|---|
 | Sim tick, hit detection, movement, pickups, boss, bots | `server/src/sim.rs` |
+| Authored encounter lifecycle and enemy intent | `server/src/encounters.rs`, `encounters/enemy.rs`; strict definitions in `maps/authored/encounters.rs`. Reuse sim bodies and Session's navigation budget. `protocol/actors.rs` owns campaign identity and hostility; control role and callsign never imply faction. Client boundary: `actor_state.gd`. |
 | Weapon ownership, magazines, reserves, reload and supply claims | `server/src/inventory.rs`; private wire contract in `protocol/loadout.rs`; shared agent equipment decisions in `inventory/controller.rs`. Authored discovery and legacy full-arsenal maps share combat resolution. Client validation: `equipment_state.gd`; local UI: `equipment_hud.gd`. |
 | Shot geometry, pitch bounds, target angles | `server/src/combat.rs`; server outcome ownership stays in `sim.rs`. `ServerYaw` maps yaw/pitch to the client camera. |
 | Shot evidence, world feedback, combat measurement | Shared `ShotResult`/`ShotTrace` in `server/src/protocol.rs`, `client/scripts/shot_effects.gd`, and `tools/playtest`. Use the resolved shot, including dead shooters, rather than inferring weapon or impacts from live pawns. |

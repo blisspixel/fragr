@@ -43,6 +43,18 @@ support, not the campaign menu's finished first mission.
   can claim each once per development life. Contested ammo has one winner and a
   ten-second respawn. An additional copy of an owned gun grants reserve without
   forcing selection. Discovery death resets inventory and personal claims.
+- `encounters`: optional, discovery only. At most 32 groups, 64 enemies and 64
+  entry regions in total. Each group has a unique `id`, nonempty `regions` and
+  `enemies`, and optional `after` naming an earlier group. Each region is an
+  inclusive feet-position box with finite ordered `min`/`max` bounds inside the
+  map. Each enemy has a unique `id`, `kind` (`clerk` or `sweeper`), supported and
+  reachable `feet`, and bounded `yaw`, just like a spawn. Unknown fields are
+  rejected. No scripts or arbitrary behavior expressions. These maps require
+  gameplay capability 3. See [actor semantics](../../docs/protocol.md#campaign-actor-identity).
+
+The loader and server support encounter definitions. The committed M01 map still
+contains traversal and equipment only while its encounter placement, animation
+and live-play proof are in progress in [the active plan](../../docs/plans/m01-intake-encounter.md).
 
 Surface kits: `concrete`, `enamel`, `service_steel`, `records_tile`, `lift_panel`.
 They select existing offline materials, never paths, URLs or shader code. The

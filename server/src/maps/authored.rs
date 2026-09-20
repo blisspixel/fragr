@@ -9,11 +9,14 @@ use std::io::{self, Read};
 use std::path::Path;
 use std::sync::Arc;
 
+pub(crate) mod encounters;
 mod supplies;
 
 const MAX_BYTES: u64 = 1_048_576;
 const MAX_PLACEMENTS: usize = 128;
 
+#[cfg(test)]
+mod encounters_tests;
 #[cfg(test)]
 mod tests;
 
@@ -27,12 +30,15 @@ pub struct AuthoredMap {
     pub(super) presentation: MapPresentation,
     pub(super) equipment: crate::protocol::EquipmentPolicy,
     pub(super) supplies: Vec<crate::sim::ArenaPickup>,
+    pub(super) encounters: Vec<encounters::EncounterDefinition>,
     landmarks: Vec<Landmark>,
 }
 
 #[derive(Debug, Deserialize)]
 #[serde(deny_unknown_fields)]
 struct Document {
+    #[serde(default)]
+    encounters: Vec<encounters::EncounterDefinition>,
     #[serde(default)]
     supplies: Vec<supplies::Definition>,
     #[serde(default)]
@@ -187,27 +193,32 @@ impl AuthoredMap {
                 ));
             }
         }
-        let navigation = Navigation::shared(arena.clone()).map_err(invalid)?;
         let start = doc.spawns[0].feet;
         let supplies = supplies::build(doc.supplies, doc.equipment, &arena, &mut seen)?;
+        encounters::validate(&doc.encounters, doc.equipment, &arena, &mut seen)?;
+        let navigation = Navigation::shared(arena.clone()).map_err(invalid)?;
         for destination in doc
             .spawns
             .iter()
             .map(|p| p.feet)
             .chain(doc.landmarks.iter().map(|p| p.feet))
             .chain(supplies.iter().map(|p| [p.x, p.floor, p.z]))
+            .chain(
+                doc.encounters
+                    .iter()
+                    .flat_map(|e| e.enemies.iter().map(|p| p.feet)),
+            )
         {
             if navigation
                 .route(start, destination, crate::navigation::SEARCH_LIMIT)
                 .status
                 != crate::navigation::RouteStatus::Complete
             {
-                return Err(invalid(
-                    "map spawn or landmark is unreachable from the entry",
-                ));
+                return Err(invalid("map placement is unreachable from the entry"));
             }
         }
         Ok(Arc::new(Self {
+            encounters: doc.encounters,
             supplies,
             equipment: doc.equipment,
             id: doc.map_id,

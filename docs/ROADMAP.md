@@ -96,9 +96,11 @@ navigation maps. [Enclosed campaign geometry](plans/campaign-spaces.md) shipped 
 now brings M01's connected blockout, indoor spawns and institutional surface kits
 through the live server. [M01 discovery](plans/m01-weapon-discovery.md) now adds
 fists, recovered Tack/Flechette, finite ammunition, reload and individual supply
-claims. Encounters and the mission lifecycle remain unbuilt. Next is the first
-authored intake encounter, including Union silhouettes and animation, followed
-by interaction and checkpoint state. Do not mistake the foundation for a finished
+claims. The [intake encounter](plans/m01-intake-encounter.md) is in flight:
+bounded authoring, allied participants and Clerk/Sweeper server phases have local
+tests, including live wire admission. M01 placement, character animation and
+inspected combat pacing remain pending; the committed level still has no enemies.
+Interaction and checkpoint state follow. This foundation is not a finished
 campaign or proven co-op balance.
 
 [Opening spawn placement](plans/opening-spawns.md) shipped in #175 and v0.21.2.

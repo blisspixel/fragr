@@ -28,6 +28,7 @@ use std::f32::consts::PI;
 use std::sync::OnceLock;
 
 mod authored;
+pub(crate) use authored::encounters::EnemyPlacement;
 mod runtime;
 pub use authored::AuthoredMap;
 pub use runtime::RuntimeMap;

@@ -10,8 +10,9 @@ and the map version in observations, and closes its MCP game session if a map
 has unsupported or invalid geometry, or the server sends malformed JSON.
 Ground-filled legacy maps remain readable.
 
-Clients also declare gameplay capability 2. Discovery maps reject older clients
-before admission. `observe.loadout` is private to this participant: selected and
+Clients declare gameplay capability 3. Discovery-only maps require 2; authored
+encounters require 3 and reject older clients before admission. `observe.loadout`
+is private to this participant: selected and
 owned weapons, magazines, pooled reserves, reload completion tick, personal
 supply claims and dry-trigger count. Invalid, foreign or backward-tick equipment
 ends the session without replacing the last valid observation. Spectators receive
@@ -396,3 +397,14 @@ Example `test_input.jsonl`:
 {"jsonrpc":"2.0","id":6,"method":"tools/call","params":{"name":"leave","arguments":{}}}
 {"jsonrpc":"2.0","id":7,"method":"tools/call","params":{"name":"join","arguments":{"name":"ArenaFox"}}}
 ```
+
+## Campaign observations
+
+Authored encounter maps require gameplay capability 3, which the adapter sends.
+`observe` preserves each actor's typed `campaign` identity and attack phase.
+`side: participant` includes human and external-agent allies; `side: union`
+identifies Clerk humans and Sweeper bots. Never infer hostility from a callsign,
+body appearance or connection role. The scripted controller uses the shared
+hostility predicate and excludes dead actors. MCP clients should follow the same
+rule; dead enemies remain briefly for presentation. Zero-damage friendly
+interceptions are not wounds. See [the wire contract](../docs/protocol.md#campaign-actor-identity).

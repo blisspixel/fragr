@@ -2,7 +2,6 @@ class_name EquipmentState
 extends RefCounted
 
 ## Private server inventory. These limits validate presentation, never award ammo.
-const VERSION: int = 2
 const WEAPONS: Array[String] = ["fists", "tack", "flechette", "scatter", "rail"]
 const MAGAZINES: Dictionary = {"fists": 0, "tack": 12, "flechette": 30, "scatter": 6, "rail": 4}
 const POOLS: Dictionary = {"tack": "tacks", "flechette": "darts", "scatter": "darts", "rail": "cores"}

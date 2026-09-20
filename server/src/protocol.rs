@@ -1,7 +1,9 @@
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
+mod actors;
 mod loadout;
+pub use actors::{hostile, CampaignActor, EnemyKind, EnemyPhase};
 pub use loadout::{
     AmmoPool, AmmoReserve, EquipmentPolicy, LoadoutState, ReloadState, SupplyClaim, WeaponAmmo,
 };
@@ -380,8 +382,10 @@ impl WeaponType {
 /// Highest solid format this build understands, including earlier formats.
 pub const GEOMETRY_VERSION: u32 = 2;
 
-/// Equipment messages and Fists/Tack require gameplay version 2.
-pub const GAMEPLAY_VERSION: u32 = 2;
+pub const DISCOVERY_GAMEPLAY_VERSION: u32 = 2;
+pub const CAMPAIGN_GAMEPLAY_VERSION: u32 = 3;
+/// Highest understood gameplay contract; content requirements use their own minimum.
+pub const GAMEPLAY_VERSION: u32 = CAMPAIGN_GAMEPLAY_VERSION;
 pub fn legacy_gameplay_version() -> u32 {
     1
 }
@@ -792,6 +796,8 @@ pub struct Snapshot {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PlayerState {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub campaign: Option<CampaignActor>,
     pub id: Uuid,
     pub name: String,
     pub x: f32,

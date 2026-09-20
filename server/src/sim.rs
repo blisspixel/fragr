@@ -415,6 +415,7 @@ impl ArenaPickup {
 }
 
 pub struct GameState {
+    pub(crate) encounters: crate::encounters::Encounters,
     /// Offline recordings opt into stable entity identities. Live sessions keep
     /// UUIDv4; identity allocation must not consume the gameplay random stream.
     replay_id_counter: Option<u128>,
@@ -465,6 +466,7 @@ pub struct GameState {
 }
 
 pub struct Player {
+    pub campaign: Option<crate::protocol::CampaignActor>,
     pub id: Uuid,
     pub name: String,
     pub x: f32,
@@ -496,6 +498,52 @@ pub struct Player {
     pub display_behavior: Option<String>,
     /// Newest input sequence applied to this fighter, echoed in the Ack.
     pub last_input_seq: Option<u32>,
+}
+
+impl Player {
+    pub fn is_campaign_enemy(&self) -> bool {
+        self.campaign
+            .is_some_and(crate::protocol::CampaignActor::is_enemy)
+    }
+
+    fn at_spawn(
+        id: Uuid,
+        name: String,
+        role: Role,
+        (x, z, yaw, floor): (f32, f32, f32, f32),
+        policy: crate::protocol::EquipmentPolicy,
+    ) -> Self {
+        Self {
+            campaign: None,
+            id,
+            name,
+            role,
+            x,
+            z,
+            yaw,
+            y: PLAYER_FLOOR_Y + floor,
+            pitch: 0.0,
+            vy: 0.0,
+            hp: PLAYER_MAX_HP,
+            armor: 0,
+            pending_action: Action::default(),
+            jump_requested: false,
+            fire_cooldown: 0,
+            respawn_timer: None,
+            just_fired: false,
+            weapon: if policy == crate::protocol::EquipmentPolicy::Discovery {
+                WeaponType::Fists
+            } else {
+                WeaponType::default()
+            },
+            inventory: crate::inventory::Inventory::new(policy),
+            last_speak_tick: None,
+            is_boss: false,
+            killstreak: 0,
+            display_behavior: None,
+            last_input_seq: None,
+        }
+    }
 }
 
 impl GameState {
@@ -717,39 +765,47 @@ impl GameState {
         {
             angle = self.select_spawn_angle(id);
         }
-        let (sx, sz, yaw, floor) = self.map.spawn(angle);
-
-        self.players.push(Player {
+        let mut player = Player::at_spawn(
             id,
-            name: name.clone(),
-            x: sx,
-            y: PLAYER_FLOOR_Y + floor,
-            z: sz,
-            yaw,
-            pitch: 0.0,
-            vy: 0.0,
-            hp: PLAYER_MAX_HP,
-            armor: 0,
-            pending_action: Action::default(),
-            jump_requested: false,
-            fire_cooldown: 0,
-            respawn_timer: None,
-            just_fired: false,
+            name,
             role,
-            weapon: if self.map.equipment_policy() == crate::protocol::EquipmentPolicy::Discovery {
-                WeaponType::Fists
-            } else {
-                WeaponType::default()
-            },
-            inventory: crate::inventory::Inventory::new(self.map.equipment_policy()),
-            last_speak_tick: None,
-            is_boss: false,
-            killstreak: 0,
-            display_behavior: None,
-            last_input_seq: None,
-        });
+            self.map.spawn(angle),
+            self.map.equipment_policy(),
+        );
+        if self.map.has_encounters() {
+            player.campaign = Some(crate::protocol::CampaignActor::Participant {});
+        }
+        self.players.push(player);
 
         self.scores.entry(id).or_insert(0);
+    }
+
+    pub(crate) fn spawn_campaign_enemy(&mut self, placement: &crate::maps::EnemyPlacement) -> Uuid {
+        use crate::protocol::{CampaignActor, EnemyKind, EnemyPhase, EquipmentPolicy};
+        let id = self.new_entity_id();
+        let [x, floor, z] = placement.feet;
+        let mut player = Player::at_spawn(
+            id,
+            placement.id.clone(),
+            Role::Agent,
+            (x, z, placement.yaw, floor),
+            EquipmentPolicy::Discovery,
+        );
+        let (hp, weapon) = match placement.kind {
+            EnemyKind::Clerk => (60, WeaponType::Tack),
+            EnemyKind::Sweeper => (80, WeaponType::Flechette),
+        };
+        player.hp = hp;
+        player.weapon = weapon;
+        player.inventory.grant_weapon(weapon);
+        player.campaign = Some(CampaignActor::Union {
+            kind: placement.kind,
+            phase: EnemyPhase::Idle,
+            phase_started: self.tick,
+            phase_ends: self.tick,
+        });
+        self.players.push(player);
+        id
     }
 
     pub fn remove_player(&mut self, id: Uuid) {
@@ -760,6 +816,7 @@ impl GameState {
         }
         self.players.retain(|p| p.id != id);
         self.scores.remove(&id);
+        self.update_encounters();
     }
 
     pub fn set_action(&mut self, id: Uuid, mut action: Action) {
@@ -919,6 +976,7 @@ impl GameState {
     /// Resolve the active frame against one immutable world. Movement and shots
     /// must consume the same volumes, including their lower vertical bounds.
     fn tick_active(&mut self, dt: f32, arena: &crate::movement::Arena) {
+        self.update_encounters();
         let mut respawn_ids = Vec::new();
         let move_speed = if self.compliance_ticks_left > 0 {
             MOVE_SPEED * 0.5
@@ -939,6 +997,10 @@ impl GameState {
                 if *timer == 0 {
                     respawn_ids.push(player.id);
                 }
+                continue;
+            }
+
+            if player.hp <= 0 {
                 continue;
             }
 
@@ -996,6 +1058,11 @@ impl GameState {
                 dz /= len;
             }
 
+            let move_speed = if player.is_campaign_enemy() {
+                move_speed * 0.5
+            } else {
+                move_speed
+            };
             let moved = crate::movement::integrate(
                 crate::movement::MoveState {
                     x: player.x,
@@ -1077,7 +1144,7 @@ impl GameState {
         for i in 0..self.players.len() {
             let player = &mut self.players[i];
 
-            if player.respawn_timer.is_some() {
+            if player.respawn_timer.is_some() || player.hp <= 0 {
                 continue;
             }
 
@@ -1103,6 +1170,10 @@ impl GameState {
             }
 
             if let Some(victim_idx) = shot.target {
+                let hostile = crate::protocol::hostile(
+                    self.players[shooter_idx].campaign,
+                    self.players[victim_idx].campaign,
+                );
                 let (
                     target_id,
                     target_name,
@@ -1118,7 +1189,7 @@ impl GameState {
                     // Rays commit together, including trades. A body already
                     // killed by an earlier ray this tick cannot award another frag.
                     let was_alive = victim.hp > 0;
-                    let damage = if was_alive { damage } else { 0 };
+                    let damage = if was_alive && hostile { damage } else { 0 };
                     let absorbed = damage.min(victim.armor);
                     victim.armor -= absorbed;
                     victim.hp -= damage - absorbed;
@@ -1129,7 +1200,7 @@ impl GameState {
                         victim.inventory.cancel_reload();
                         // Victim streak dies with them; boss does not respawn.
                         victim.killstreak = 0;
-                        if victim_was_boss {
+                        if victim_was_boss || victim.is_campaign_enemy() {
                             victim.respawn_timer = None;
                         } else {
                             victim.respawn_timer = Some(RESPAWN_DELAY_TICKS);
@@ -1145,6 +1216,12 @@ impl GameState {
                         damage,
                     )
                 };
+
+                if damage > 0 {
+                    if let Some(identity) = self.encounters.hit(target_id, self.tick, died) {
+                        self.players[victim_idx].campaign = Some(identity);
+                    }
+                }
 
                 self.shot_results.push(ShotResult {
                     shooter_id,
@@ -1169,6 +1246,12 @@ impl GameState {
                 }
 
                 if died {
+                    // Campaign casualties have no arcade streaks, taunts or
+                    // participant scores. ShotResult remains the kill evidence.
+                    if self.players[shooter_idx].campaign.is_some() {
+                        tracing::info!(shooter = %shooter_name, target = %target_name, "Campaign combatant down");
+                        continue;
+                    }
                     *self.scores.entry(shooter_id).or_insert(0) += 1;
                     let killer_score = self.scores[&shooter_id];
 
@@ -1312,6 +1395,7 @@ impl GameState {
         let mut closest_idx = None;
         for (i, target) in self.players.iter().enumerate() {
             if i == shooter_idx
+                || target.hp <= 0
                 || target.respawn_timer.is_some()
                 || self.spawn_shields.get(&target.id).is_some_and(|t| *t > 0)
             {
@@ -1448,6 +1532,7 @@ impl GameState {
                         .or_else(|| p.display_behavior.clone());
 
                     PlayerState {
+                        campaign: p.campaign,
                         id: p.id,
                         name: p.name.clone(),
                         x: p.x,
@@ -1488,7 +1573,11 @@ impl GameState {
                 None
             },
             host_line: if self.map.is_authored() {
-                "Campaign development: encounters and objectives are not implemented.".to_string()
+                if self.map.has_encounters() {
+                    "Campaign development: introductory encounters; objectives and extraction remain in progress."
+                } else {
+                    "Campaign development: encounters and objectives are not implemented."
+                }.to_string()
             } else if self.round_state == RoundState::Ended {
                 self.ended_host_line
                     .clone()
@@ -1771,6 +1860,7 @@ impl GameState {
         let id = self.new_entity_id();
         let name = AUDITOR_NAME.to_string();
         self.players.push(Player {
+            campaign: None,
             id,
             name: name.clone(),
             x: 0.0,
@@ -1880,7 +1970,11 @@ impl GameState {
         // Collect claims (player_id, pad index) without holding dual borrows.
         let mut claims: Vec<(Uuid, usize)> = Vec::new();
         for player in &self.players {
-            if player.respawn_timer.is_some() || player.is_boss {
+            if player.respawn_timer.is_some()
+                || player.hp <= 0
+                || player.is_boss
+                || player.is_campaign_enemy()
+            {
                 continue;
             }
             for (pi, pad) in self.pickups.iter().enumerate() {
@@ -2018,6 +2112,7 @@ impl GameState {
         }
         let id = self.new_entity_id();
         self.players.push(Player {
+            campaign: None,
             id,
             name: BOSS_NAME.to_string(),
             x: 0.0,
@@ -2243,6 +2338,7 @@ impl GameState {
 impl Default for GameState {
     fn default() -> Self {
         Self {
+            encounters: crate::encounters::Encounters::default(),
             replay_id_counter: None,
             rng_state: 0x2545_F491_4F6C_DD1D,
             tick: 0,
@@ -2320,7 +2416,11 @@ impl BotController {
         let mut nearest_target: Option<&Player> = None;
 
         for target in &state.players {
-            if target.id == self.player_id || target.respawn_timer.is_some() {
+            if target.id == self.player_id
+                || target.respawn_timer.is_some()
+                || target.hp <= 0
+                || !crate::protocol::hostile(bot.campaign, target.campaign)
+            {
                 continue;
             }
 

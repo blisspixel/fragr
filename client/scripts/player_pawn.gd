@@ -14,6 +14,9 @@ var is_highlighted: bool = false
 var is_local_fp: bool = false
 var armor: int = 0
 var nameplate_enabled: bool = true
+var is_campaign_enemy: bool = false
+var campaign_actor: Dictionary = {}
+var _has_authoritative_state: bool = false
 
 var target_position: Vector3 = Vector3.ZERO
 var presentation_speed: float = 0.0
@@ -209,6 +212,8 @@ func set_player_data(id: String, name: String):
 	target_yaw = 0.0
 
 func update_state(state: Dictionary):
+	is_campaign_enemy = not ActorState.is_participant(state)
+	campaign_actor = state["campaign"] if is_campaign_enemy else {}
 	target_position = Vector3(state.x, state.y, state.z)
 	target_yaw = state.yaw
 	target_pitch = clampf(float(state.get("pitch", 0.0)), -ServerYaw.PITCH_LIMIT, ServerYaw.PITCH_LIMIT)
@@ -217,8 +222,9 @@ func update_state(state: Dictionary):
 	hp = state.hp
 	armor = int(state.get("armor", 0))
 	
-	if old_hp > hp and hp > 0:
+	if _has_authoritative_state and old_hp > hp and hp > 0:
 		show_hit_feedback()
+	_has_authoritative_state = true
 	
 	var weapon_name = state.get("weapon", "")
 	if weapon_name != current_weapon:

@@ -444,7 +444,7 @@ fn compute_bot_action(bot_id: uuid::Uuid, snapshot: &protocol::Snapshot) -> prot
     let mut nearest_target = None;
 
     for target in &snapshot.players {
-        if target.id == bot_id {
+        if !bot.is_hostile_to(target) {
             continue;
         }
 
@@ -479,6 +479,40 @@ fn compute_bot_action(bot_id: uuid::Uuid, snapshot: &protocol::Snapshot) -> prot
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn scripted_control_and_mcp_observation_preserve_campaign_identity() {
+        let me = uuid::Uuid::from_u128(1);
+        let ally = uuid::Uuid::from_u128(2);
+        let foe = uuid::Uuid::from_u128(3);
+        let actor = |id, x, campaign| {
+            serde_json::json!({
+                "id":id, "name":"Visitor", "x":x, "y":1.5, "z":0,
+                "yaw":0, "hp":60, "just_fired":false, "score":0,
+                "weapon":"Tack", "campaign":campaign
+            })
+        };
+        let allied = serde_json::json!({"side":"participant"});
+        let mut snapshot: protocol::Snapshot = serde_json::from_value(serde_json::json!({
+            "tick":1, "players":[actor(me, 0, allied.clone()), actor(ally, 1, allied),
+                actor(foe, 8, serde_json::json!({"side":"union", "kind":"clerk", "phase":"windup", "phase_started":1, "phase_ends":13}))]
+        })).unwrap();
+        assert_eq!(
+            compute_bot_action(me, &snapshot).look_at.unwrap().player_id,
+            Some(foe)
+        );
+        let state = mcp::ToolState {
+            player_id: Some(me),
+            last_snapshot: Some(serde_json::to_value(&snapshot).unwrap()),
+            ..Default::default()
+        };
+        let observation = mcp::build_observe_result(&state);
+        assert_eq!(observation["players"][2]["campaign"]["kind"], "clerk");
+        assert_eq!(observation["players"][2]["campaign"]["phase_ends"], 13);
+        snapshot.players[2].hp = 0;
+        let action = compute_bot_action(me, &snapshot);
+        assert!(!action.fire && action.look_at.is_none());
+    }
 
     #[tokio::test]
     async fn invalid_geometry_closes_mcp_session_and_clears_observation() {
@@ -895,6 +929,7 @@ mod tests {
         let snapshot = protocol::Snapshot {
             tick: 100,
             players: vec![protocol::PlayerState {
+                campaign: None,
                 pitch: 0.0,
                 id: uuid::Uuid::new_v4(),
                 name: "TestBot".to_string(),
@@ -995,6 +1030,7 @@ mod tests {
             tick: 50,
             players: vec![
                 protocol::PlayerState {
+                    campaign: None,
                     pitch: 0.0,
                     id: uuid::Uuid::new_v4(),
                     name: "Agent1".to_string(),
@@ -1010,6 +1046,7 @@ mod tests {
                     weapon: "Flechette".to_string(),
                 },
                 protocol::PlayerState {
+                    campaign: None,
                     pitch: 0.0,
                     id: uuid::Uuid::new_v4(),
                     name: "Agent2".to_string(),
@@ -1316,6 +1353,7 @@ mod tests {
             tick: 1,
             players: vec![
                 protocol::PlayerState {
+                    campaign: None,
                     pitch: 0.0,
                     id: bot_id,
                     name: "Bot".into(),
@@ -1331,6 +1369,7 @@ mod tests {
                     weapon: "Flechette".into(),
                 },
                 protocol::PlayerState {
+                    campaign: None,
                     pitch: 0.0,
                     id: target_id,
                     name: "T".into(),

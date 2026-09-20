@@ -8,7 +8,7 @@ use uuid::Uuid;
 
 const M01: &str = include_str!("../../../maps/m01-recall-notice.json");
 
-fn small() -> Value {
+pub(super) fn small() -> Value {
     json!({
         "version":1,"map_id":1000,"name":"Authored fixture","half_extent":8,"ground":"concrete",
         "solids":[{"id":"ceiling","min":[-8,3,-8],"max":[8,4,8],"surface":"enamel"}],
@@ -17,7 +17,7 @@ fn small() -> Value {
     })
 }
 
-fn decode(value: &Value) -> io::Result<Arc<AuthoredMap>> {
+pub(super) fn decode(value: &Value) -> io::Result<Arc<AuthoredMap>> {
     AuthoredMap::read(serde_json::to_vec(value).unwrap().as_slice())
 }
 

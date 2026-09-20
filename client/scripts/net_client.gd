@@ -1,5 +1,8 @@
 extends Node
 
+# Version 2 adds equipment; version 3 adds campaign allegiance and enemy phases.
+const GAMEPLAY_VERSION: int = 3
+
 signal connected_to_server
 signal disconnected_from_server
 signal server_error(message: String)
@@ -79,7 +82,7 @@ func send_hello():
 		"role": role,
 		"name": player_name,
 		"geometry_version": MapGeometry.VERSION,
-		"gameplay_version": EquipmentState.VERSION
+		"gameplay_version": GAMEPLAY_VERSION
 	}
 	send_json(hello)
 
@@ -191,6 +194,11 @@ func _handle_message(text: String):
 				server_error.emit("This server needs a newer client. Update to join.")
 
 		"snapshot":
+			var problem: String = ActorState.validation_error(data)
+			if not problem.is_empty():
+				disconnect_from_server()
+				server_error.emit(problem)
+				return
 			snapshot_received.emit(data)
 		
 		"ack":

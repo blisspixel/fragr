@@ -158,7 +158,7 @@ pub fn observe(me: Uuid, snapshot: &Snapshot, hits: &mut RecentHits) -> Option<T
     let mut top_rival_score = 0;
     let mut fighters = 0;
     for other in &snapshot.players {
-        if other.id != me {
+        if other.id != me && fragr_server::protocol::hostile(mine.campaign, other.campaign) {
             // A respawning leader is still the leader.
             top_rival_score = top_rival_score.max(other.score);
         }
@@ -166,7 +166,7 @@ pub fn observe(me: Uuid, snapshot: &Snapshot, hits: &mut RecentHits) -> Option<T
             continue;
         }
         fighters += 1;
-        if other.id == me {
+        if !mine.is_hostile_to(other) {
             continue;
         }
         let dist = dist2d(mine.x, mine.z, other.x, other.z);
@@ -347,6 +347,7 @@ pub(crate) mod fixtures {
 
     pub fn player(name: &str, id: Uuid, x: f32, z: f32, hp: i32, weapon: &str) -> PlayerState {
         PlayerState {
+            campaign: None,
             pitch: 0.0,
             id,
             name: name.to_string(),

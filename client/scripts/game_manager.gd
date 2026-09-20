@@ -463,6 +463,7 @@ func _on_snapshot_received(data):
 	_apply_map_from_snapshot(data)
 	var tick = data.get("tick", 0)
 	var player_list = data.get("players", [])
+	var participant_list: Array[Dictionary] = ActorState.participants(player_list)
 	var round_state = data.get("round_state", "")
 	var round_time_left = data.get("round_time_left", 0)
 	var frag_limit = data.get("frag_limit", 0)
@@ -481,7 +482,7 @@ func _on_snapshot_received(data):
 		hud.set_pressure(str(pressure))
 	# Sticky Host chrome always. Flash once on Warmup / Active / Ended join so
 	# pre-round Contested Frequency drama is readable (RoundStart still fights).
-	var roster = _warmup_roster_callsigns(player_list)
+	var roster = _warmup_roster_callsigns(participant_list)
 	if host_line != "":
 		var flash = round_state == "Warmup" or round_state == "Active" or round_state == "Ended"
 		var did_flash = hud.set_host_line(host_line, false)
@@ -508,11 +509,11 @@ func _on_snapshot_received(data):
 	if hud.has_method("set_episode_chrome"):
 		hud.set_episode_chrome(ep_id, ep_title, ep_obj, ep_prog, ep_phase)
 	hud.set_tick(tick)
-	hud.set_player_count(len(player_list))
-	hud.sync_scores_from_players(player_list)
+	hud.set_player_count(participant_list.size())
+	hud.sync_scores_from_players(participant_list)
 	hud.set_round_info(round_state, round_time_left, frag_limit)
 	_maybe_rehydrate_ended_mvp(data, round_state)
-	_maybe_assign_ghost_rival(player_list)
+	_maybe_assign_ghost_rival(participant_list)
 	
 	var current_ids = {}
 	
@@ -544,7 +545,7 @@ func _on_snapshot_received(data):
 	
 	var targets = []
 	for pawn in players.values():
-		if is_instance_valid(pawn):
+		if is_instance_valid(pawn) and not pawn.is_campaign_enemy:
 			targets.append(pawn)
 	if camera:
 		camera.set_available_targets(targets)

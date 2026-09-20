@@ -1,0 +1,28 @@
+{
+  "_comment": [
+    "Reference candidates only. Do not generate until the prepaid API balance is verified.",
+    "Price this exact spec first and use an explicit cap. No automatic top-ups.",
+    "Select and inspect a consistent human Clerk and bot Sweeper before buying animation variants.",
+    "The old enemy_clerk_0 robot is not a human reference. These candidates are not runtime assets."
+  ],
+  "model": "marketing-studio/image",
+  "out_dir": "art/raw/m01-enemy-references",
+  "style": "retro pixel art character reference for an original 1990s-inspired first person shooter, chunky readable silhouette, crisp stepped edges, limited desaturated palette: bone white armor, institutional grey-green fabric or enamel, dark steel joints, tiny dark red square seals, flat even illumination, matte albedo colors, no gradients",
+  "view": "front view, orthographic, one full body character centered with equal space at both sides, entire head and boots visible, feet aligned on one horizontal baseline, neutral balanced stance, weapon held low so the chest and face remain readable",
+  "params": {
+    "quality": "medium",
+    "resolution": "2k",
+    "aspect_ratio": "1:1",
+    "enhance_prompt": false
+  },
+  "frames": [
+    {
+      "id": "clerk_human_reference",
+      "subject": "a human Union intake security officer called a Clerk, recognizable living adult face with eyes nose mouth and exposed neck under a simple bone-colored open-face service helmet, ordinary human proportions, institutional grey-green uniform trousers and sleeves under a light bone chest plate, dark steel gloves and practical boots, a small dark red rectangular administrative seal on one shoulder, carrying a compact blocky service pistol in the right hand held beside the waist and pointed down, visibly a person in issued kit, not a robot, no robotic limbs, no gas mask, no face screen, no glowing eyes, no real-world political emblems"
+    },
+    {
+      "id": "sweeper_bot_reference",
+      "subject": "a Union security bot called a Sweeper, clearly mechanical humanoid with broad bone shoulder plates and a narrower angular steel waist, institutional grey-green enamel chest, exposed dark steel elbows and knees, a compact angular head with one small dull amber horizontal status indicator, no human face or skin, squared industrial feet, both mechanical hands carrying a compact boxy automatic rifle lowered across the abdomen, one small dark red rectangular administrative seal on the chest, standardized maintained manufacture, purposeful work machinery, no skull face, no neon, no real-world political emblems"
+    }
+  ]
+}

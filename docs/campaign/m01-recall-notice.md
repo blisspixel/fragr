@@ -13,7 +13,7 @@ and remaining checks are tracked in [authored maps](../plans/authored-campaign-m
 
 ## Story and cast
 
-The player arrives at the intake annex holding the embodied companion. The
+The player reaches the intake annex that processed their companion's seizure. The
 relationship already exists. An opening panel and brief seizure image establish
 who was taken and why we came. Mara provides a service-access lead through text
 and optional voice, not a remote running commentary. Latch is visible only in
