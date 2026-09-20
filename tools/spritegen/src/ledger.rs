@@ -8,7 +8,7 @@ use std::path::Path;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-use crate::{validate_frame_id, validate_status_url, Error, Frame, HARD_CAP_USD};
+use crate::{validate_frame_id, Error, Frame, HARD_CAP_USD};
 
 const VERSION: u32 = 1;
 const MAX_LEDGER_BYTES: u64 = 64 * 1024 * 1024;
@@ -32,6 +32,9 @@ impl Identity {
 #[derive(Debug, Clone, PartialEq)]
 pub enum Stage {
     Reserved,
+    Accepted {
+        request_id: String,
+    },
     Submitted {
         status_url: String,
     },
@@ -61,6 +64,9 @@ pub enum Event {
     Reserved {
         identity: Identity,
         estimated_usd: f64,
+    },
+    Accepted {
+        request_id: String,
     },
     Submitted {
         status_url: String,
@@ -151,16 +157,7 @@ impl Ledger {
 
     /// Attach a dashboard-verified request to an uncertain reservation, locally.
     pub fn recover(&mut self, id: &str, request_id: &str) -> Result<(), Error> {
-        if request_id.is_empty()
-            || request_id.len() > 128
-            || !request_id
-                .bytes()
-                .all(|c| c.is_ascii_alphanumeric() || c == b'-' || c == b'_')
-        {
-            return Err(Error::Spec(
-                "request ID must contain only letters, numbers, - or _".into(),
-            ));
-        }
+        crate::validation::validate_request_id(request_id)?;
         self.record(
             id,
             Event::Submitted {
@@ -247,8 +244,21 @@ fn transition(id: &str, previous: Option<&Job>, event: &Event) -> Result<Job, Er
         .cloned()
         .ok_or_else(|| Error::Io(format!("asset {id} has no reservation")))?;
     next.stage = match (&next.stage, event) {
-        (Stage::Reserved, Event::Submitted { status_url }) => {
-            validate_status_url(status_url)?;
+        (Stage::Reserved, Event::Accepted { request_id }) => {
+            crate::validation::validate_request_id(request_id)?;
+            Stage::Accepted {
+                request_id: request_id.clone(),
+            }
+        }
+        (Stage::Reserved | Stage::Accepted { .. }, Event::Submitted { status_url }) => {
+            let returned_id = crate::validation::status_request_id(status_url)?;
+            if let Stage::Accepted { request_id } = &next.stage {
+                if *request_id != returned_id {
+                    return Err(Error::Io(
+                        "recovery cannot replace an accepted request ID".into(),
+                    ));
+                }
+            }
             Stage::Submitted {
                 status_url: status_url.clone(),
             }
@@ -380,6 +390,52 @@ mod tests {
         let ledger = Ledger::open(&dir.0).unwrap();
         assert_eq!(ledger.job("tack"), Some(&expected));
         assert_eq!(expected.estimated_usd, 0.02);
+    }
+
+    #[test]
+    fn accepted_identity_survives_reopen_and_cannot_be_replaced() {
+        let dir = TestDir::new();
+        let mut ledger = Ledger::open(&dir.0).unwrap();
+        let accepted = Event::Accepted {
+            request_id: "r1".into(),
+        };
+        assert!(ledger.record("tack", accepted.clone()).is_err());
+        ledger.record("tack", reservation()).unwrap();
+        for id in ["", "../r1", &"a".repeat(129)] {
+            assert!(ledger
+                .record(
+                    "tack",
+                    Event::Accepted {
+                        request_id: id.into()
+                    }
+                )
+                .is_err());
+        }
+        ledger.record("tack", accepted.clone()).unwrap();
+        drop(ledger);
+        let mut ledger = Ledger::open(&dir.0).unwrap();
+        assert_eq!(
+            ledger.job("tack").unwrap().stage,
+            Stage::Accepted {
+                request_id: "r1".into()
+            }
+        );
+        assert!(ledger.record("tack", accepted).is_err());
+        assert!(ledger.record("tack", reservation()).is_err());
+        assert!(ledger
+            .record("tack", Event::Completed { urls: vec![] })
+            .is_err());
+        assert!(ledger.recover("tack", "r2").is_err());
+        ledger.recover("tack", "r1").unwrap();
+        drop(ledger);
+        let ledger = Ledger::open(&dir.0).unwrap();
+        assert_eq!(
+            ledger.job("tack").unwrap().stage,
+            Stage::Submitted {
+                status_url: format!("{}/requests/r1/status", crate::API_BASE)
+            }
+        );
+        assert_eq!(ledger.job("tack").unwrap().estimated_usd, 0.02);
     }
 
     #[test]

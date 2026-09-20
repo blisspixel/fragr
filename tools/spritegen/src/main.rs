@@ -33,7 +33,7 @@ struct Cli {
 
 #[derive(Subcommand, Debug)]
 enum Cmd {
-    /// Attach a dashboard-verified request ID to an uncertain local reservation.
+    /// Attach a verified status endpoint to a reserved or accepted local request.
     Recover {
         #[arg(long)]
         out: PathBuf,
