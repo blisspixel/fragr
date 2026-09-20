@@ -1,7 +1,8 @@
 # Solo campaign runs and continues
 
-Status: implemented and locally verified, 2026-09-20. Bounded increment of #195;
-integration and release follow verification below.
+Status: implemented and locally verified, 2026-09-20. Bounded increment of #195.
+Integration: [PR #200](https://github.com/blisspixel/fragr/pull/200), CI and release
+pending. Local verification below is not cross-platform CI evidence.
 
 ## Contract
 

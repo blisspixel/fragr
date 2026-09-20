@@ -83,7 +83,7 @@ Status words: **planned**, **in flight**, **implemented** (local evidence record
 | [`campaign-build-order.md`](./campaign-build-order.md) | **planned** | Prove the compact twelve-mission campaign, starting with M01 and limited mission-start continues. |
 | [`campaign-e1.md`](./campaign-e1.md) | **superseded** | Earlier radio-led nine-level episode; current mission treatment lives in `../CAMPAIGN-MISSIONS.md`. |
 | [`campaign-continuance.md`](./campaign-continuance.md) | **planned** | Validated map data, authoritative mission/enemy state, saves and localized presentation; no editor dependency selected yet. |
-| [`campaign-continues.md`](./campaign-continues.md) | **implemented** | Explicit solo M01 run, three mission-start continues, authoritative retry and exhaustion; integration tracked by #195. |
+| [`campaign-continues.md`](./campaign-continues.md) | **implemented (#200)** | Explicit solo M01 run, three mission-start continues, authoritative retry and exhaustion; broader mission work stays on #195. |
 | [`agent-playtest-loop.md`](./agent-playtest-loop.md) | **in flight** (rung 1 shipped, #95) | Playtest harness: scripted agents play rounds and file a metrics report; thresholds run in CI. |
 | [`warmup-tv-bumper.md`](./warmup-tv-bumper.md) | **shipped** (#89) | Full-frame Warmup TV bumper: map title, roster chips, countdown, Host flash lingering into Active. |
 | [`controller-and-desktop-platforms.md`](./controller-and-desktop-platforms.md) | **shipped** (#88) | Gamepad join, solo, and match input on the same action path; Windows, macOS, and Linux export presets. |
