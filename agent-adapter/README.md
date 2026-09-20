@@ -27,6 +27,11 @@ Callsigns are display labels. Simultaneous connections with the same requested
 name receive distinct labels; they cannot reclaim another fighter by name.
 Read the assigned label from the player UUID's snapshot entry.
 
+A successful `join` confirms the connection. An initial `observe` can still show
+a snapshot from before the fighter joined. Wait for `map` data and the
+`self_player_id` entry in `players` before deriving movement or aim from that observation;
+the first roster entry is not necessarily yours.
+
 ## What this is
 
 A reference agent that drives a fighter from a decision model instead of an MCP client lives at [`agents/brain/README.md`](../agents/brain/README.md); it is the same agent role on the same wire, not a different kind of participant. MCP remains the bring-your-own door for any model.

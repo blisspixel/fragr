@@ -20,6 +20,11 @@ protocol negotiation or a promise that mixed releases interoperate.
 5. Clients (human/agent roles) can send `Action` messages
 6. Server may send `Event` messages for notable occurrences
 
+`Welcome` assigns the session identity; it does not guarantee that the first
+snapshot already contains that fighter. A queued snapshot can predate the join.
+Wait for validated map data and a snapshot containing the welcomed `player_id`
+before initializing position or aim. Match by UUID, never roster index or name.
+
 **MCP agent-adapter session tools:** boot Hello-on-start remains valid. First-class tools `join` (Hello/Welcome, optional name, idempotent), `leave` (clean WebSocket disconnect; `isError` if not connected), and `round_state` (round fields from last snapshot + recent `round_start` / `round_end`) are documented in `agent-adapter/README.md`. There is no separate on-wire Leave message; leave is disconnect.
 
 **Names and reconnect:** display names are not identity credentials. Joining
