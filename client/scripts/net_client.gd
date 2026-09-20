@@ -2,6 +2,7 @@ extends Node
 
 signal connected_to_server
 signal disconnected_from_server
+signal server_error(message: String)
 signal map_info_received(info: Dictionary)
 signal snapshot_received(data)
 signal event_received(data)
@@ -71,7 +72,8 @@ func send_hello():
 	var hello = {
 		"type": "hello",
 		"role": role,
-		"name": player_name
+		"name": player_name,
+		"geometry_version": MapGeometry.VERSION
 	}
 	send_json(hello)
 
@@ -140,11 +142,14 @@ func _handle_message(text: String):
 	var json = JSON.new()
 	var error = json.parse(text)
 	if error != OK:
-		push_error("Failed to parse JSON: " + text)
+		disconnect_from_server()
+		server_error.emit("The server sent an unreadable message. Connection closed.")
 		return
 	
 	var data = json.data
 	if not data is Dictionary:
+		disconnect_from_server()
+		server_error.emit("The server sent an invalid message. Connection closed.")
 		return
 	
 	var msg_type = data.get("type", "")
@@ -155,7 +160,16 @@ func _handle_message(text: String):
 			print("Welcome received! Role: ", data.get("role"), " Player ID: ", player_id, " Mode: ", data.get("mode_name", "Contested Frequency"), "/", data.get("playlist", "Arena Duel"))
 		
 		"map_info":
+			var problem: String = MapGeometry.validation_error(data)
+			if problem != "":
+				disconnect_from_server()
+				server_error.emit(problem)
+				return
 			map_info_received.emit(data)
+		"error":
+			if data.get("code") == "unsupported_geometry":
+				disconnect_from_server()
+				server_error.emit("This server needs a newer client. Update to join.")
 
 		"snapshot":
 			snapshot_received.emit(data)

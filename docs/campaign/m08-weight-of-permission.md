@@ -33,6 +33,12 @@ worker release area. The launch objective is visible through industrial windows.
 No environment hazard requires jumping through a tiny timing window to finish.
 Hazards have a visible cycle and bypass. Platforms have real support and headroom.
 
+The launch works is a deliberate increase in battlefield scale after the earlier
+indoor missions. Freight buildings, gantry supports and terrain divide local
+positions; service interiors provide flanks and recovery. The player can read
+the next useful destination from each position. Prove the entire encounter on
+foot before considering vehicles or increasing the distance between fights.
+
 ## Weapons and boss
 
 The Article Blade appears as a risky close-range opportunity before an encounter

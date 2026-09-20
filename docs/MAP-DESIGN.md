@@ -24,6 +24,14 @@ Their proportions follow movement speed, enemy reach and useful weapon distances
 measured in the game. Use ceilings, facades, bends, topography, and depth to make
 places substantial. An outdoor level still has boundaries and a reason to exist.
 
+The campaign has substantial indoor missions, not outdoor arenas with occasional
+doorways. Early facilities, archives and the ship emphasize connected interiors
+in the spirit of Doom and GoldenEye. Selected later battles broaden toward
+Battlefield 1942-style positions and flanks, while keeping useful buildings and
+covered routes. The [mission treatment](CAMPAIGN-MISSIONS.md#shape-of-the-run)
+owns that sequence. A large fight is several meaningful spaces connected by play,
+not one uninterrupted field enlarged to suggest scale.
+
 Main combat spaces usually offer a loop or more than one viable escape. Exits
 should create different tactical options, not adjacent doors into the same kill
 lane. Small dead-end secrets and brief controlled chokepoints can work; they

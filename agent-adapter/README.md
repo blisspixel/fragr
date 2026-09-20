@@ -5,6 +5,10 @@ MCP-compatible control plane for external agents to observe and act in the fragr
 Every WebSocket role receives `map_info` on join, including spectators. The same
 authoritative geometry is broadcast on rotation. `observe` retains the latest
 map for agents; see [`docs/protocol.md`](../docs/protocol.md#mapinfo).
+The adapter declares geometry version 2, retains finite `bottom`/`top` bounds
+and the map version in observations, and closes its MCP game session if a map
+has unsupported or invalid geometry, or the server sends malformed JSON.
+Ground-filled legacy maps remain readable.
 
 Callsigns are display labels. Simultaneous connections with the same requested
 name receive distinct labels; they cannot reclaim another fighter by name.
@@ -50,7 +54,11 @@ cd agent-adapter
 cargo run -- scripted-bot --server ws://127.0.0.1:6767 --name MyBot
 ```
 
-Connects as an agent role, observes snapshots, aims with `look_at.player_id`, shoots at ~20 Hz, and occasionally speaks a Contested Frequency taunt.
+Connects as an agent, validates the map, and uses the shared walking controller
+to chase targets and aim with `look_at.player_id`. Its independent 20 Hz action
+clock is not postponed by incoming snapshots; weapon cooldowns remain server
+owned. It occasionally speaks a Contested Frequency taunt. A rejected handshake
+or malformed replacement map ends the session with an error.
 
 ## MCP Tools
 

@@ -105,6 +105,7 @@ use uuid::Uuid;
 #[test]
 fn test_protocol_client_message_hello_serialization() {
     let hello = ClientMessage::Hello {
+        geometry_version: crate::protocol::GEOMETRY_VERSION,
         role: Role::Agent,
         name: "TestBot".to_string(),
     };
@@ -114,9 +115,14 @@ fn test_protocol_client_message_hello_serialization() {
 
     let deserialized: ClientMessage = serde_json::from_str(&json).unwrap();
     match deserialized {
-        ClientMessage::Hello { role, name } => {
+        ClientMessage::Hello {
+            role,
+            name,
+            geometry_version,
+        } => {
             assert_eq!(role, Role::Agent);
             assert_eq!(name, "TestBot");
+            assert_eq!(geometry_version, crate::protocol::GEOMETRY_VERSION);
         }
         _ => panic!("Expected Hello message"),
     }
@@ -4151,11 +4157,7 @@ fn test_sim_compliance_yard_pad_claim_and_hub_clear() {
 
     // Hub must stay clear for drone (circle at 0,0 not blocked).
     for obs in MapKind::ComplianceYard.obstacles() {
-        assert!(
-            !obs.expand(0.5).contains(0.0, 0.0),
-            "hub blocked by {:?}",
-            obs
-        );
+        assert!(!obs.blocks(0.0, 0.0, 0.5), "hub blocked by {:?}", obs);
     }
 
     let id = Uuid::new_v4();

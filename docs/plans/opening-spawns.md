@@ -1,6 +1,6 @@
 # Covered opening spawns
 
-**Status:** in progress, 2026-09-19, PR #175. Spend: $0.
+**Status:** shipped and proven, 2026-09-19, PR #175 and v0.21.2. Spend: $0.
 
 ## Defect and bounded fix
 
@@ -70,7 +70,10 @@ not network capacity or client frame-rate claims:
 | 128 / Tripoint Works | 3.932 | 7.423 | yes |
 
 Reports: `.agents/bench/opening-spawns-{16,64,128}.json`. The release workspace
-build and all 17 Godot harnesses pass. Final CI remains required before merge.
+build and all 17 Godot harnesses pass. CI run 35488056552 passed all five jobs,
+including the Linux mixed-client roster and Windows/macOS checks. Merged as
+`703bc89`; v0.21.2 is a source release.
+Main's post-merge CI run 35488562108 also passed every job.
 
 Separate lifecycle follow-up: `start_round` resets scores and pickups but does not
 reset player vitals, pending combat input or positions when rotating maps. Prove

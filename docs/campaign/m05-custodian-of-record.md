@@ -16,6 +16,12 @@ records establish fragility now; later restoration will not restore everything.
 No character knows the Inheritance's origin. An unrequested cargo reroute helps
 the escape, initially explainable as a local error or another person's assistance.
 
+Proposed signal beat: the freight diagnostics briefly repeat a timing pattern
+beneath ordinary traffic. A maintenance notice reads "Authorized noise. No action
+required." The joke targets institutional certainty. No character identifies an
+intelligence here; the [signal contract](../lore/the-inheritance.md#signal-beneath-the-noise)
+keeps this incidental, visible with sound muted, and separate from optional radio.
+
 ## Room graph
 
 Entry checkpoint -> circular records hall -> two custody galleries -> control

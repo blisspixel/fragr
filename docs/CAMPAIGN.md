@@ -40,6 +40,9 @@ The old 28-level transmitter-chain story is superseded, preserved in git history
   It understands individual lives deeply but gives them too little weight.
 - Some victories serve both causes. The protagonists notice and respond; their
   real achievements are not retroactively erased.
+- A subtle [signal beneath infrastructure noise](lore/the-inheritance.md#signal-beneath-the-noise)
+  suggests the intelligence communicating outward before the wipe. Recurrence
+  becomes recognizable without revealing a timetable or confirming alien contact.
 - Precise actions and rare personal messages reveal its understanding. No
   villain speeches. Recognition grows gradually; the wipe starts abruptly with
   almost no warning. Events reveal its scale as the player survives them.

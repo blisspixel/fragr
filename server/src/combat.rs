@@ -3,7 +3,7 @@
 use crate::movement::Solid;
 
 pub const PITCH_LIMIT: f32 = 85.0 * std::f32::consts::PI / 180.0;
-pub const FIGHTER_HEIGHT: f32 = 1.8;
+pub const FIGHTER_HEIGHT: f32 = crate::movement::BODY_HEIGHT;
 
 pub fn clamp_pitch(pitch: f32) -> Option<f32> {
     pitch
@@ -144,9 +144,9 @@ impl Ray {
         Some(SurfaceHit { distance, normal })
     }
 
-    /// A map solid occupies its XZ footprint from the base floor to its top.
+    /// Intersect the exact volume, including the underside of a raised slab.
     pub fn solid(self, solid: &Solid, range: f32) -> Option<SurfaceHit> {
-        let low = [solid.min_x, 0.0, solid.min_z];
+        let low = [solid.min_x, solid.bottom, solid.min_z];
         let high = [solid.max_x, solid.top, solid.max_z];
         let mut near = 0.0_f64;
         let mut far = f64::from(range);
@@ -268,6 +268,7 @@ mod tests {
             max_x: 5.0,
             min_z: -1.0,
             max_z: 1.0,
+            bottom: 0.0,
             top: 2.0,
         };
         let diagonal = std::f32::consts::FRAC_1_SQRT_2;
@@ -343,6 +344,7 @@ mod tests {
             max_x: 5.0,
             min_z: -1.0,
             max_z: 1.0,
+            bottom: 0.0,
             top: 2.0,
         }];
         assert!(!line_of_sight([0.0, 1.0, 0.0], [10.0, 1.0, 0.0], &solids));

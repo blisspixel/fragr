@@ -359,12 +359,97 @@ impl WeaponType {
     }
 }
 
+/// Highest solid format this build understands, including earlier formats.
+pub const GEOMETRY_VERSION: u32 = 2;
+
+pub fn legacy_geometry_version() -> u32 {
+    1
+}
+
+fn is_legacy_geometry(version: &u32) -> bool {
+    *version == legacy_geometry_version()
+}
+
+pub fn geometry_version(solids: &[crate::movement::Solid]) -> u32 {
+    if solids.iter().any(|solid| solid.bottom != 0.0) {
+        GEOMETRY_VERSION
+    } else {
+        legacy_geometry_version()
+    }
+}
+
+pub fn validate_map_geometry(
+    half: f32,
+    solids: &[crate::movement::Solid],
+    version: u32,
+) -> Result<(), &'static str> {
+    if !(1..=GEOMETRY_VERSION).contains(&version) || version < geometry_version(solids) {
+        return Err("unsupported or inconsistent geometry version");
+    }
+    crate::movement::validate_geometry(half, solids)
+}
+
+#[cfg(test)]
+mod geometry_tests {
+    use super::*;
+    use crate::movement::Solid;
+
+    #[test]
+    fn legacy_wire_defaults_and_raised_volume_requirements_are_explicit() {
+        let hello: ClientMessage =
+            serde_json::from_str(r#"{"type":"hello","role":"human","name":"Probe"}"#).unwrap();
+        assert!(matches!(
+            hello,
+            ClientMessage::Hello {
+                geometry_version: 1,
+                ..
+            }
+        ));
+        let legacy = crate::sim::GameState::new().map_info();
+        let value = serde_json::to_value(&legacy).unwrap();
+        assert!(value.get("geometry_version").is_none());
+        assert!(value["solids"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .all(|solid| solid.get("bottom").is_none()));
+        let ground = [Solid::from_center(0.0, 0.0, 2.0, 2.0)];
+        let raised = [Solid::from_center_volume(0.0, 0.0, 2.0, 2.0, 2.4, 3.0)];
+        assert_eq!(geometry_version(&ground), 1);
+        assert_eq!(geometry_version(&raised), 2);
+        assert!(validate_map_geometry(12.0, &ground, 1).is_ok());
+        assert!(validate_map_geometry(12.0, &raised, 2).is_ok());
+        for version in [0, 1, 3] {
+            assert!(validate_map_geometry(12.0, &raised, version).is_err());
+        }
+        assert!(validate_map_geometry(f32::NAN, &raised, 2).is_err());
+        let message = ServerMessage::MapInfo {
+            map_id: 67,
+            map_name: "Enclosed fixture".into(),
+            half_extent: 12.0,
+            solids: raised.to_vec(),
+            geometry_version: 2,
+        };
+        let json = serde_json::to_string(&message).unwrap();
+        assert!(
+            matches!(serde_json::from_str::<ServerMessage>(&json).unwrap(),
+            ServerMessage::MapInfo { geometry_version: 2, solids, .. } if solids == raised)
+        );
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum ClientMessage {
     Hello {
         role: Role,
         name: String,
+        /// Maximum supported geometry format. Omission means ground-filled boxes.
+        #[serde(
+            default = "legacy_geometry_version",
+            skip_serializing_if = "is_legacy_geometry"
+        )]
+        geometry_version: u32,
     },
     Action(Action),
     Speak(Speak),
@@ -396,6 +481,11 @@ pub enum ServerMessage {
         /// Half width of the square arena, centred on the origin.
         half_extent: f32,
         solids: Vec<crate::movement::Solid>,
+        #[serde(
+            default = "legacy_geometry_version",
+            skip_serializing_if = "is_legacy_geometry"
+        )]
+        geometry_version: u32,
     },
     Snapshot(Snapshot),
     Event(GameEvent),

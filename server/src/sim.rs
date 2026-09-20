@@ -1,5 +1,5 @@
 #[cfg(test)]
-use crate::maps::Aabb2;
+mod enclosed_tests;
 use crate::movement::{EYE_HEIGHT, STEP_UP};
 use crate::protocol::{
     boss_down_host_line, boss_host_line, boss_round_wipe_host_line, compliance_host_line,
@@ -169,7 +169,7 @@ impl MapKind {
     }
 
     #[cfg(test)]
-    pub(crate) fn obstacles(self) -> &'static [Aabb2] {
+    pub(crate) fn obstacles(self) -> &'static [crate::movement::Solid] {
         &crate::maps::def(self).solids
     }
 
@@ -765,6 +765,9 @@ impl GameState {
     /// The arena's shape as a message.
     pub fn map_info(&self) -> ServerMessage {
         ServerMessage::MapInfo {
+            geometry_version: crate::protocol::geometry_version(
+                &crate::maps::arena(self.map).solids,
+            ),
             map_id: self.map.id(),
             map_name: self.map.name().to_string(),
             half_extent: self.map.half_extent(),
@@ -868,14 +871,18 @@ impl GameState {
             }
         }
 
+        self.tick_active(dt, crate::maps::arena(self.map));
+    }
+
+    /// Resolve the active frame against one immutable world. Movement and shots
+    /// must consume the same volumes, including their lower vertical bounds.
+    fn tick_active(&mut self, dt: f32, arena: &crate::movement::Arena) {
         let mut respawn_ids = Vec::new();
         let move_speed = if self.compliance_ticks_left > 0 {
             MOVE_SPEED * 0.5
         } else {
             MOVE_SPEED
         };
-        let arena = crate::maps::arena(self.map);
-
         for player in &mut self.players {
             player.just_fired = false;
             let jump_requested = std::mem::take(&mut player.jump_requested);
@@ -1025,7 +1032,7 @@ impl GameState {
             }
 
             if player.pending_action.fire && player.fire_cooldown == 0 {
-                hits.push((i, self.check_hitscan(i)));
+                hits.push((i, self.check_hitscan(i, arena)));
             }
         }
 
@@ -1214,7 +1221,11 @@ impl GameState {
 
     /// One seeded 3D ray for both cover and targets. No height auto-aim or
     /// forgiveness cone: the ray must intersect the finite fighter volume.
-    fn check_hitscan(&mut self, shooter_idx: usize) -> ResolvedShot {
+    fn check_hitscan(
+        &mut self,
+        shooter_idx: usize,
+        arena: &crate::movement::Arena,
+    ) -> ResolvedShot {
         let shooter = &self.players[shooter_idx];
         let origin = [
             shooter.x,
@@ -1236,7 +1247,7 @@ impl GameState {
                 normal: [0.0, 1.0, 0.0],
             };
         }
-        for solid in &crate::maps::arena(self.map).solids {
+        for solid in &arena.solids {
             if let Some(hit) = ray.solid(solid, closest_dist) {
                 if hit.distance < cover_distance {
                     cover_distance = hit.distance;

@@ -94,7 +94,7 @@ preserving existing match traces. Fixed-map startup also avoids preparing unused
 navigation maps. [Enclosed campaign geometry](plans/campaign-spaces.md) is now in
 progress for the opening mission's ceilings and overlapping floors.
 
-[Opening spawn placement](plans/opening-spawns.md) is under verification in #175.
+[Opening spawn placement](plans/opening-spawns.md) shipped in #175 and v0.21.2.
 Warmup joins now use the same cover selector as active joins and respawns. The
 six-map playtest exposed the gap; its thresholds remain unchanged.
 

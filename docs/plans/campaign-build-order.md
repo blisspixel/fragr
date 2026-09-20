@@ -36,6 +36,8 @@ These are existing arena traversal improvements, not a completed campaign map.
    server seams. Separate PRs can build these bounded systems with small fixtures;
    fixtures are not shipped campaign levels. The first geometry increment is
    [enclosed and layered spaces](campaign-spaces.md), required by M01's balcony.
+   [Authored campaign maps](authored-campaign-maps.md) then brings M01's route
+   through the normal server with validated data and explicit indoor spawns.
 3. **Complete M01 as the quality target.** Full room sequence, flanks, secrets,
    discovery economy, animation, impact and room audio, localized opening,
    extraction, retry, and results. Inspect the whole route. No paid scene needed

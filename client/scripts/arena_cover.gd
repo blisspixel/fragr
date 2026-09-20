@@ -22,7 +22,7 @@ const BOUNDARY_HEIGHT: float = 8.0
 ## the lighter surface so a player can read it as walkable at a glance.
 const LOW_TOP: float = 1.6
 
-var _built_for: int = -1
+var _built_info: Dictionary = {}
 var _half_extent: float = 0.0
 var _materials: Array[ShaderMaterial] = []
 
@@ -32,11 +32,15 @@ func _ready() -> void:
 ## Rebuild from a MapInfo payload. Cheap to call again; it only rebuilds when
 ## the map actually changed, because the server resends on rotation.
 func apply_map_info(info: Dictionary) -> void:
+	var problem: String = MapGeometry.validation_error(info)
+	if problem != "":
+		push_warning("arena_cover: " + problem)
+		return
 	var map_id: int = int(info.get("map_id", -1))
 	_hide_scene_props()
-	if map_id == _built_for:
+	if info == _built_info:
 		return
-	_built_for = map_id
+	_built_info = info.duplicate(true)
 	_half_extent = float(info.get("half_extent", 50.0))
 	_materials.clear()
 	for kind: int in range(4):
@@ -127,9 +131,11 @@ func _add_solid(solid: Dictionary) -> void:
 	if size_x <= 0.0 or size_z <= 0.0:
 		return
 
-	# The server says how tall it is. A solid runs from the floor to its top,
-	# so what is drawn and what a fighter stands on are the same box.
-	var height: float = float(solid.get("top", MoveStep.WALL_TOP))
+	# Draw the same finite volume used for collision and shots, including space
+	# beneath raised floors. Legacy boxes have a bottom at ground level.
+	var bottom: float = float(solid.get("bottom", MoveStep.GROUND_Y))
+	var top: float = float(solid.get("top", MoveStep.WALL_TOP))
+	var height: float = top - bottom
 	if height <= 0.0:
 		return
 
@@ -138,6 +144,6 @@ func _add_solid(solid: Dictionary) -> void:
 
 	var node: MeshInstance3D = MeshInstance3D.new()
 	node.mesh = mesh
-	node.position = Vector3((min_x + max_x) * 0.5, height * 0.5, (min_z + max_z) * 0.5)
-	node.material_override = _materials[3 if height <= LOW_TOP else 2]
+	node.position = Vector3((min_x + max_x) * 0.5, bottom + height * 0.5, (min_z + max_z) * 0.5)
+	node.material_override = _materials[3 if top <= LOW_TOP else 2]
 	add_child(node)
