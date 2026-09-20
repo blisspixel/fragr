@@ -58,6 +58,10 @@ Initial handshake message. Must be sent immediately after connection.
   selected map's requirement. Rotation uses the maximum across its whole roster.
   No player or spectator session is created on rejection. This is geometry
   compatibility, not general protocol or action-version negotiation.
+- `gameplay_version`: maximum understood gameplay contract. Current clients send
+  `2`; omission means `1`. Discovery maps require 2 and reject older clients of
+  every role before `Welcome` with `unsupported_gameplay`. This capability is
+  separate from geometry. The six full-arsenal arcade maps still accept 1.
 
 #### Action
 
@@ -100,7 +104,15 @@ World-point aim:
   a press followed by release before the next tick is retained for that tick.
   The retained press is consumed once, including while airborne or dead, so it
   cannot create delayed jumps. Holding jump does not add thrust in the air.
-- `weapon_swap`: (optional) Switch to weapon type: `"flechette"` | `"rail"` | `"scatter"`. The newest explicit choice is retained across input packets until a simulation tick consumes it once. A later packet without this field does not cancel an unconsumed choice.
+- `weapon_swap`: (optional) `"fists"` | `"tack"` | `"flechette"` | `"rail"` | `"scatter"`.
+  The newest explicit choice survives later packets until one tick consumes it.
+  Discovery rejects unowned choices; full-arsenal maps permit their three guns.
+  Switching cancels an unfinished reload without consuming reserve.
+- `reload`: optional boolean, default false and omitted when false. A true request
+  is latched across newer input until one tick consumes it. Dead fighters cannot
+  reload. Full magazines, insufficient reserve and an existing reload reject it.
+  Completion happens before that tick's input, allowing a shot on the completion
+  tick. Dry or reloading weapons create no shot result, cooldown or RNG draw.
 - `look_at`: (optional) Authoritative target aim. Prefer `player_id` (UUID string),
   or both `x` and `z` with optional world `y`. A player target aims at the body
   centre, 0.9 units above its feet. A world point without `y` means horizontal aim.
@@ -218,6 +230,46 @@ uses version 2 and registered surfaces. It is a blockout, not a finished mission
 Authoring format and startup limits live in [`server/maps/README.md`](../server/maps/README.md).
 
 Agents need this to tell a clear shot from a wall. Before it existed, the reference agents held the fire button through cover and their measured accuracy sat near 15 percent; with it, the same agents measure near 60. An agent that ignores `top` will think a stair tread is cover; one that reads it gets the same answer the server does. The Godot client builds the whole map from this message: the floor, the boundary and every solid at its own height. The MCP adapter stores it and returns it as `map` inside `observe`.
+
+#### Loadout
+
+Discovery maps send `type: "loadout"` only to the owning human or agent when its
+equipment changes, including an initial state. It is never broadcast and never
+sent to spectators. Full-arsenal maps send no loadout. Selection remains public
+in `Snapshot.players[].weapon`; ammunition does not.
+
+```json
+{
+  "type": "loadout",
+  "player_id": "550e8400-e29b-41d4-a716-446655440000",
+  "tick": 100,
+  "selected": "tack",
+  "weapons": [{"weapon":"fists","magazine":null},{"weapon":"tack","magazine":0}],
+  "reserves": [{"pool":"tacks","rounds":36},{"pool":"darts","rounds":0},{"pool":"cores","rounds":0}],
+  "reload": {"weapon":"tack","complete_at":118},
+  "personal_claims": ["bay_tack"],
+  "dry_fire_count": 1
+}
+```
+
+`weapons` lists owned weapons exactly once, including fists. Fists alone have a
+null magazine; gun magazines are loaded shots. `reserves` contains all three
+unique pools. `reload` is null or the selected gun and its completion tick.
+`personal_claims` hides introductory supplies only for their claimant. IDs follow
+the authored map contract. `dry_fire_count` advances once per held empty trigger,
+resets with a development life, and drives feedback without generating shots.
+Clients validate ownership, unique entries, bounded counts, reload consistency
+and nondecreasing ticks before replacing their observation. Limits and timings
+come from `protocol/loadout.rs`; the Godot boundary mirrors them.
+
+Pickup entries additionally support `kind: "ammo"`, `pool` (`tacks`, `darts`,
+`cores`) and a round `amount`. `claim` defaults to `contested` and is omitted in
+legacy snapshots. A `personal` weapon supply stays publicly available while each
+participant claims it independently once per development life. Contested ammo
+has one authoritative winner, reports the actual received amount in the pickup
+event, and returns after 200 ticks. Claims require proximity and, on authored
+maps, unobstructed sight. Current development death resets inventory and claims;
+reconnect creates a new participant, not a restored checkpoint.
 
 #### Ack
 

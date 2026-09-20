@@ -94,7 +94,12 @@ preserving existing match traces. Fixed-map startup also avoids preparing unused
 navigation maps. [Enclosed campaign geometry](plans/campaign-spaces.md) shipped in
 #176 for real ceilings and overlapping floors. [Authored maps](plans/authored-campaign-maps.md)
 now brings M01's connected blockout, indoor spawns and institutional surface kits
-through the live server. Encounters and the mission lifecycle remain unbuilt.
+through the live server. [M01 discovery](plans/m01-weapon-discovery.md) now adds
+fists, recovered Tack/Flechette, finite ammunition, reload and individual supply
+claims. Encounters and the mission lifecycle remain unbuilt. Next is the first
+authored intake encounter, including Union silhouettes and animation, followed
+by interaction and checkpoint state. Do not mistake the foundation for a finished
+campaign or proven co-op balance.
 
 [Opening spawn placement](plans/opening-spawns.md) shipped in #175 and v0.21.2.
 Warmup joins now use the same cover selector as active joins and respawns. The

@@ -10,6 +10,19 @@ and the map version in observations, and closes its MCP game session if a map
 has unsupported or invalid geometry, or the server sends malformed JSON.
 Ground-filled legacy maps remain readable.
 
+Clients also declare gameplay capability 2. Discovery maps reject older clients
+before admission. `observe.loadout` is private to this participant: selected and
+owned weapons, magazines, pooled reserves, reload completion tick, personal
+supply claims and dry-trigger count. Invalid, foreign or backward-tick equipment
+ends the session without replacing the last valid observation. Spectators receive
+no private inventory. Arcade servers omit this object.
+
+`act` accepts `fists`, `tack`, `flechette`, `scatter` and `rail` for `weapon_swap`;
+the server rejects unowned choices. `reload: true` requests one reload and survives
+a subsequent action without the flag until consumed. Scripted and decision
+controllers use the shared equipment helper to find supplies, choose owned guns
+and reload. MCP still sends ordinary actions, never direct inventory changes.
+
 Callsigns are display labels. Simultaneous connections with the same requested
 name receive distinct labels; they cannot reclaim another fighter by name.
 Read the assigned label from the player UUID's snapshot entry.
@@ -153,7 +166,8 @@ Send an action to control your agent's pawn.
 ```
 
 All fields are optional. Movement and fire are booleans (default `false`).
-`weapon_swap` accepts `"flechette"`, `"rail"`, or `"scatter"`. For `look_at`, prefer
+`weapon_swap` accepts `"fists"`, `"tack"`, `"flechette"`, `"rail"`, or `"scatter"`.
+`reload` is a boolean discrete request. For `look_at`, prefer
 `player_id` (UUID), or both `x` and `z` with optional world `y`. The server aims
 at a player's body centre in three dimensions. World x/z without y aims
 horizontally. Nonfinite/out-of-range floating-point coordinates are rejected.

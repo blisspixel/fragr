@@ -97,8 +97,17 @@ pub async fn run_server(
             .max()
             .unwrap_or_else(crate::protocol::legacy_geometry_version)
     };
-    let net_server =
-        NetServer::bind_with_geometry(&options.bind, game_tx.clone(), required_geometry).await?;
+    let required_gameplay = match session.state.map.equipment_policy() {
+        crate::protocol::EquipmentPolicy::FullArsenal => 1,
+        crate::protocol::EquipmentPolicy::Discovery => crate::protocol::GAMEPLAY_VERSION,
+    };
+    let net_server = NetServer::bind_with_requirements(
+        &options.bind,
+        game_tx.clone(),
+        required_geometry,
+        required_gameplay,
+    )
+    .await?;
     if let Some(tx) = ready {
         let _ = tx.send(net_server.local_addr()?);
     }

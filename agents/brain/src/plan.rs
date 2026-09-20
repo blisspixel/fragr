@@ -120,6 +120,8 @@ impl Default for Plan {
 /// Parse a wire weapon name (`flechette`, `Rail`, ...).
 pub fn parse_weapon(name: &str) -> Option<WeaponType> {
     match name.to_ascii_lowercase().as_str() {
+        "fists" => Some(WeaponType::Fists),
+        "tack" => Some(WeaponType::Tack),
         "flechette" => Some(WeaponType::Flechette),
         "rail" => Some(WeaponType::Rail),
         "scatter" => Some(WeaponType::Scatter),
@@ -129,6 +131,8 @@ pub fn parse_weapon(name: &str) -> Option<WeaponType> {
 
 pub fn weapon_name(weapon: WeaponType) -> &'static str {
     match weapon {
+        WeaponType::Fists => "fists",
+        WeaponType::Tack => "tack",
         WeaponType::Flechette => "flechette",
         WeaponType::Rail => "rail",
         WeaponType::Scatter => "scatter",

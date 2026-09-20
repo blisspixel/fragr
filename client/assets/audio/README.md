@@ -25,4 +25,12 @@ The first effect set was synthesised procedurally and dedicated to the public do
 
 Loading paths: `client/scripts/player_pawn.gd` (per-weapon fire and hit), `client/scripts/game_manager.gd` (frag and round cues), `client/scripts/radio.gd` (radio tracks, discovered through the manifest, never by directory listing). Import presets: keep WAV as samples, MP3 as streams, loop flags off unless the manifest marks a file as looping.
 
-Radio controls in the match: R next station, N next track, M radio on or off (D-pad up, down, left on a gamepad). Every switch shows a station card (badge, name, tagline) above the track toast. The radio ducks under Host lines and sits lower while you play; LOCK IN never ducks for combat.
+Radio controls in the match: C next station, N next track, M radio on or off
+(D-pad up, down, left on a gamepad). R and gamepad X reload on discovery maps.
+Every switch shows a station card above the track toast. Radio ducks under Host
+lines and sits lower while playing; LOCK IN never ducks for combat.
+
+M01 currently uses the existing fallback shot/hit for Tack. Dedicated Tack,
+melee, reload and dry-trigger candidates remain unapproved under
+[`audio-effects-refresh.md`](../../../docs/plans/audio-effects-refresh.md).
+Visual weapon feedback is implemented; dedicated audio is not yet polished.

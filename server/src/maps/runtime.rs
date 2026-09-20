@@ -29,6 +29,13 @@ impl PartialEq<MapKind> for RuntimeMap {
 }
 
 impl RuntimeMap {
+    pub fn equipment_policy(&self) -> crate::protocol::EquipmentPolicy {
+        match self {
+            Self::BuiltIn(_) => crate::protocol::EquipmentPolicy::FullArsenal,
+            Self::Authored(map) => map.equipment,
+        }
+    }
+
     pub fn id(&self) -> u32 {
         match self {
             Self::BuiltIn(kind) => kind.id(),
@@ -79,7 +86,7 @@ impl RuntimeMap {
     pub(crate) fn pickups(&self) -> Vec<ArenaPickup> {
         match self {
             Self::BuiltIn(kind) => kind.pickups(),
-            Self::Authored(_) => Vec::new(),
+            Self::Authored(map) => map.supplies.clone(),
         }
     }
 

@@ -1,0 +1,440 @@
+use crate::maps::AuthoredMap;
+use crate::net::GameCommand;
+use crate::protocol::{Action, AmmoPool, LoadoutState, Role, ServerMessage, WeaponType};
+use crate::session::{GameSession, Recipient};
+use crate::sim::{GameState, PLAYER_FLOOR_Y};
+use uuid::Uuid;
+
+fn mission() -> GameSession {
+    GameSession::with_authored_map(
+        AuthoredMap::read(include_bytes!("../../maps/m01-recall-notice.json").as_slice()).unwrap(),
+    )
+}
+
+fn join(session: &mut GameSession, role: Role) -> Uuid {
+    let id = Uuid::new_v4();
+    session.apply_command(GameCommand::Connected {
+        id,
+        role,
+        name: format!("Participant {role:?}"),
+        player_id: (role != Role::Spectator).then_some(id),
+    });
+    id
+}
+
+fn move_to(session: &mut GameSession, id: Uuid, feet: [f32; 3]) {
+    let player = session
+        .state
+        .players
+        .iter_mut()
+        .find(|p| p.id == id)
+        .unwrap();
+    [player.x, player.y, player.z] = [feet[0], feet[1] + PLAYER_FLOOR_Y, feet[2]];
+    player.pending_action = Action::default();
+}
+
+fn equipment(session: &GameSession, id: Uuid) -> LoadoutState {
+    let player = session.state.players.iter().find(|p| p.id == id).unwrap();
+    let loadout = player
+        .inventory
+        .state(id, player.weapon, session.state.tick)
+        .unwrap();
+    loadout.validate().unwrap();
+    loadout
+}
+
+#[test]
+fn shared_controller_uses_owned_ammunition_and_recovers_from_empty_weapons() {
+    use crate::inventory::control_action;
+    let mut session = mission();
+    let id = join(&mut session, Role::Agent);
+    let opponent = join(&mut session, Role::Human);
+    move_to(&mut session, opponent, [0.0, 0.0, -34.0]);
+    let player = session
+        .state
+        .players
+        .iter_mut()
+        .find(|p| p.id == id)
+        .unwrap();
+    player.inventory.grant_weapon(WeaponType::Tack);
+    player.weapon = WeaponType::Tack;
+    for _ in 0..12 {
+        assert!(player.inventory.try_fire(WeaponType::Tack));
+    }
+    let snapshot = session.state.snapshot();
+    let loadout = equipment(&session, id);
+    let intent = Action {
+        weapon_swap: Some(WeaponType::Rail),
+        fire: true,
+        ..Default::default()
+    };
+    let action = control_action(id, &snapshot, Some(&loadout), intent.clone());
+    assert!(action.reload);
+    assert!(!action.fire);
+    assert!(
+        action.weapon_swap.is_none(),
+        "unowned requests cannot bypass discovery"
+    );
+    let unchanged = control_action(id, &snapshot, None, intent.clone());
+    assert_eq!(
+        serde_json::to_value(unchanged).unwrap(),
+        serde_json::to_value(intent).unwrap()
+    );
+    let mut dry = loadout.clone();
+    for reserve in &mut dry.reserves {
+        reserve.rounds = 0;
+    }
+    let action = control_action(id, &snapshot, Some(&dry), Action::default());
+    assert_eq!(action.weapon_swap, Some(WeaponType::Fists));
+    assert!(!action.reload && !action.fire);
+    assert!(
+        action.forward && action.look_at.as_ref().unwrap().player_id.is_none(),
+        "seek a supply instead of firing an empty gun"
+    );
+    let mut reloading = loadout.clone();
+    reloading.reload = Some(crate::protocol::ReloadState {
+        weapon: WeaponType::Tack,
+        complete_at: reloading.tick + 18,
+    });
+    let action = control_action(
+        id,
+        &snapshot,
+        Some(&reloading),
+        Action {
+            fire: true,
+            ..Default::default()
+        },
+    );
+    assert!(
+        !action.reload && !action.fire,
+        "do not repeat reload or shoot during it"
+    );
+    let mut close = snapshot.clone();
+    close.pickups.clear();
+    let me = close.players.iter().find(|p| p.id == id).unwrap().clone();
+    let enemy = close.players.iter_mut().find(|p| p.id == opponent).unwrap();
+    enemy.x = me.x + 1.4;
+    enemy.z = me.z;
+    let action = control_action(id, &close, Some(&dry), Action::default());
+    assert!(action.fire && action.forward && !action.back);
+    close.players.iter_mut().find(|p| p.id == id).unwrap().hp = 0;
+    let action = control_action(
+        id,
+        &close,
+        Some(&dry),
+        Action {
+            fire: true,
+            ..Default::default()
+        },
+    );
+    assert!(!action.fire && !action.forward);
+}
+
+#[test]
+fn personal_discovery_equips_each_participant_including_late_arrivals() {
+    let mut session = mission();
+    let a = join(&mut session, Role::Human);
+    let b = join(&mut session, Role::Agent);
+    join(&mut session, Role::Spectator);
+    assert_eq!(equipment(&session, a).selected, WeaponType::Fists);
+    session.state.set_action(
+        a,
+        Action {
+            weapon_swap: Some(WeaponType::Rail),
+            ..Default::default()
+        },
+    );
+    session.tick_messages(0.05);
+    assert_eq!(equipment(&session, a).selected, WeaponType::Fists);
+    for id in [a, b] {
+        move_to(&mut session, id, [0.0, 0.0, -26.0]);
+    }
+    let public = session.tick_messages(0.05);
+    assert!(!public
+        .iter()
+        .any(|message| matches!(message, ServerMessage::Loadout(_))));
+    for id in [a, b] {
+        let loadout = equipment(&session, id);
+        assert_eq!(loadout.selected, WeaponType::Tack);
+        assert_eq!(loadout.weapon(WeaponType::Tack).unwrap().magazine, Some(12));
+        assert_eq!(loadout.reserve(AmmoPool::Tacks), 36);
+        assert_eq!(loadout.personal_claims, ["bay_tack"]);
+    }
+    assert!(
+        session
+            .state
+            .pickups
+            .iter()
+            .find(|pad| pad.id == "bay_tack")
+            .unwrap()
+            .available
+    );
+    let private = session.take_unicasts();
+    assert!(private
+        .iter()
+        .filter_map(|(recipient, message)| match message {
+            ServerMessage::Loadout(loadout) => Some((*recipient, loadout)),
+            _ => None,
+        })
+        .all(|(recipient, loadout)| recipient == Recipient::Player(loadout.player_id)));
+    session.tick_messages(0.05);
+    assert_eq!(equipment(&session, a).reserve(AmmoPool::Tacks), 36);
+    assert!(!session
+        .take_unicasts()
+        .iter()
+        .any(|(_, message)| matches!(message, ServerMessage::Loadout(_))));
+    let late = join(&mut session, Role::Human);
+    move_to(&mut session, late, [0.0, 0.0, -26.0]);
+    session.tick_messages(0.05);
+    assert_eq!(equipment(&session, late).selected, WeaponType::Tack);
+}
+
+#[test]
+fn contested_ammo_has_one_winner_and_repeat_weapon_discovery_does_not_re_equip() {
+    let mut session = mission();
+    let a = join(&mut session, Role::Human);
+    let b = join(&mut session, Role::Agent);
+    for id in [a, b] {
+        move_to(&mut session, id, [0.0, 0.0, -26.0]);
+    }
+    session.tick_messages(0.05);
+    for id in [a, b] {
+        move_to(&mut session, id, [-4.0, 0.0, -23.0]);
+    }
+    session.tick_messages(0.05);
+    let grants = [
+        equipment(&session, a).reserve(AmmoPool::Tacks),
+        equipment(&session, b).reserve(AmmoPool::Tacks),
+    ];
+    assert_eq!(grants.iter().sum::<u16>(), 96);
+    assert!(grants.contains(&60) && grants.contains(&36));
+    for id in [a, b] {
+        move_to(&mut session, id, [6.0, 0.0, -9.0]);
+    }
+    session.tick_messages(0.05);
+    assert_eq!(equipment(&session, a).selected, WeaponType::Flechette);
+    session.state.set_action(
+        a,
+        Action {
+            weapon_swap: Some(WeaponType::Tack),
+            ..Default::default()
+        },
+    );
+    session.tick_messages(0.05);
+    assert_eq!(equipment(&session, a).selected, WeaponType::Tack);
+    move_to(&mut session, a, [-17.0, 0.0, -14.0]);
+    session.tick_messages(0.05);
+    assert_eq!(equipment(&session, a).selected, WeaponType::Tack);
+    assert_eq!(equipment(&session, a).reserve(AmmoPool::Darts), 120);
+    assert!(equipment(&session, a)
+        .personal_claims
+        .contains(&"service_flechette".into()));
+}
+
+#[test]
+fn shots_cooldown_reload_and_death_obey_one_simulation_order() {
+    let mut session = mission();
+    let a = join(&mut session, Role::Human);
+    move_to(&mut session, a, [0.0, 0.0, -26.0]);
+    session.tick_messages(0.05);
+    session.state.set_action(
+        a,
+        Action {
+            fire: true,
+            yaw: Some(0.0),
+            ..Default::default()
+        },
+    );
+    session.tick_messages(0.05);
+    assert_eq!(session.state.shot_results.len(), 1);
+    assert!(!session.state.shot_results[0].hit);
+    assert_eq!(
+        equipment(&session, a)
+            .weapon(WeaponType::Tack)
+            .unwrap()
+            .magazine,
+        Some(11)
+    );
+    let rng = session.state.rng_state;
+    for _ in 0..4 {
+        session.tick_messages(0.05);
+        assert!(session.state.shot_results.is_empty());
+    }
+    assert_eq!(session.state.rng_state, rng);
+    assert_eq!(
+        equipment(&session, a)
+            .weapon(WeaponType::Tack)
+            .unwrap()
+            .magazine,
+        Some(11)
+    );
+    session.state.set_action(
+        a,
+        Action {
+            reload: true,
+            fire: true,
+            ..Default::default()
+        },
+    );
+    // A newer released packet cannot erase the discrete request.
+    session.state.set_action(
+        a,
+        Action {
+            fire: true,
+            ..Default::default()
+        },
+    );
+    session.tick_messages(0.05);
+    let completes = equipment(&session, a).reload.unwrap().complete_at;
+    while session.state.tick + 1 < completes {
+        session.tick_messages(0.05);
+        assert!(session.state.shot_results.is_empty());
+    }
+    assert_eq!(session.state.rng_state, rng);
+    session.tick_messages(0.05);
+    assert_eq!(session.state.shot_results.len(), 1);
+    assert_eq!(
+        equipment(&session, a)
+            .weapon(WeaponType::Tack)
+            .unwrap()
+            .magazine,
+        Some(11)
+    );
+    assert_eq!(equipment(&session, a).reserve(AmmoPool::Tacks), 35);
+    session.state.set_action(
+        a,
+        Action {
+            fire: true,
+            ..Default::default()
+        },
+    );
+    for _ in 0..60 {
+        session.tick_messages(0.05);
+    }
+    assert_eq!(
+        equipment(&session, a)
+            .weapon(WeaponType::Tack)
+            .unwrap()
+            .magazine,
+        Some(0)
+    );
+    let rng = session.state.rng_state;
+    session.tick_messages(0.05);
+    assert!(session.state.shot_results.is_empty());
+    assert_eq!(session.state.rng_state, rng);
+    assert_eq!(session.state.players[0].fire_cooldown, 0);
+    assert_eq!(equipment(&session, a).dry_fire_count, 1);
+
+    session.state.players[0].hp = 0;
+    session.state.players[0].respawn_timer = Some(1);
+    session.state.set_action(
+        a,
+        Action {
+            fire: true,
+            reload: true,
+            weapon_swap: Some(WeaponType::Tack),
+            ..Default::default()
+        },
+    );
+    session.tick_messages(0.05);
+    let reset = equipment(&session, a);
+    assert_eq!(reset.selected, WeaponType::Fists);
+    assert!(reset.personal_claims.is_empty());
+    assert!(reset.weapon(WeaponType::Tack).is_none());
+    assert!(session.state.shot_results.is_empty());
+    move_to(&mut session, a, [0.0, 0.0, -26.0]);
+    session.tick_messages(0.05);
+    assert_eq!(equipment(&session, a).selected, WeaponType::Tack);
+}
+
+fn dividing_wall(wall: bool, supply: bool) -> GameState {
+    let solids = if wall {
+        serde_json::json!([
+            {"id":"wall","min":[1,0,-1],"max":[1.3,3,1],"surface":"enamel"}
+        ])
+    } else {
+        serde_json::json!([])
+    };
+    let supplies = if supply {
+        serde_json::json!([
+            {"id":"tack","feet":[2,0,0],"grant":{"kind":"weapon","weapon":"tack"},"claim":"personal"}
+        ])
+    } else {
+        serde_json::json!([])
+    };
+    let json = serde_json::json!({
+        "version":1,"map_id":1003,"name":"Discovery fixture","half_extent":8,"ground":"concrete",
+        "equipment":"discovery","solids":solids,"supplies":supplies,
+        "spawns":[{"id":"entry","feet":[0,0,0],"yaw":0}],
+        "landmarks":[{"id":"far","feet":[2,0,0]}]
+    });
+    GameState::with_authored_map(
+        AuthoredMap::read(serde_json::to_vec(&json).unwrap().as_slice()).unwrap(),
+    )
+}
+
+#[test]
+fn fists_have_short_reach_and_cover_blocks_both_punches_and_supply_claims() {
+    for (wall, distance, hit) in [(false, 1.6, true), (false, 2.4, false), (true, 1.8, false)] {
+        let mut state = dividing_wall(wall, false);
+        let a = Uuid::new_v4();
+        let b = Uuid::new_v4();
+        state.add_player(a, "Puncher".into(), Role::Human);
+        state.add_player(b, "Target".into(), Role::Agent);
+        state.players[0].x = 0.4;
+        state.players[0].z = 0.0;
+        state.players[1].x = 0.4 + distance;
+        state.players[1].z = 0.0;
+        state.set_action(
+            a,
+            Action {
+                fire: true,
+                yaw: Some(0.0),
+                ..Default::default()
+            },
+        );
+        state.tick(0.05);
+        assert_eq!(state.shot_results.len(), 1);
+        assert_eq!(state.shot_results[0].hit, hit);
+        assert_eq!(state.players[1].hp, if hit { 80 } else { 100 });
+        assert_eq!(
+            state.shot_results[0].trace.as_ref().unwrap().weapon,
+            WeaponType::Fists
+        );
+    }
+    let mut state = dividing_wall(true, true);
+    state.add_player(Uuid::new_v4(), "Collector".into(), Role::Human);
+    state.players[0].x = 0.4;
+    state.tick(0.05);
+    assert_eq!(state.players[0].weapon, WeaponType::Fists);
+    state.players[0].x = 2.0;
+    state.tick(0.05);
+    assert_eq!(state.players[0].weapon, WeaponType::Tack);
+}
+
+#[test]
+fn local_rule_controller_uses_the_authored_supply_route_and_fires_owned_weapons() {
+    let mut session = mission();
+    session.spawn_bots(2);
+    let mut shots = 0;
+    for _ in 0..600 {
+        session.tick_messages(0.05);
+        for shot in &session.state.shot_results {
+            let shooter = session
+                .state
+                .players
+                .iter()
+                .find(|p| p.id == shot.shooter_id)
+                .unwrap();
+            let weapon = shot.trace.as_ref().unwrap().weapon;
+            assert!(shooter.inventory.owns(weapon));
+            if weapon == WeaponType::Tack {
+                shots += 1;
+            }
+        }
+    }
+    assert!(
+        shots >= 12,
+        "controllers must acquire and use the sidearm, got {shots}"
+    );
+}

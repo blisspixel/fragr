@@ -74,6 +74,13 @@ comparison removed the denial cue's large offset but produced very quiet body,
 steel and denial sounds. Reassess prompts and audition level-matched candidates;
 the comparison does not establish a general MP3-versus-PCM quality advantage.
 
+M01 integration check, 2026-09-19: the staged sidearm reports DC offset -0.157,
+peak 0 dBFS and 474 peak samples; the swing reaches full scale with 143 peak
+samples. These are additional reasons to keep those candidates out of the live
+mix until reviewed. Tack currently uses the existing generic shot. Fists, reload
+and dry trigger have visual feedback but dedicated sound remains open. No new
+generation or credit use was needed for the M01 mechanics and viewmodels.
+
 Measurements and original manifests remain in `.agents/audio-refresh/`. No
 candidate is promoted yet. Next: inspect attacks/tails and sound identity, prepare
 mono spatial variants with recorded gain/trim decisions, and prove the mix in

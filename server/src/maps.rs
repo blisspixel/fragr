@@ -282,6 +282,7 @@ fn deck_with_stairs(
 
 fn weapon_pad(id: &str, weapon: WeaponType, x: f32, z: f32, floor: f32) -> ArenaPickup {
     ArenaPickup {
+        claim: crate::protocol::SupplyClaim::Contested,
         id: id.to_string(),
         kind: PickupKind::Weapon(weapon),
         amount: 0,
@@ -296,6 +297,7 @@ fn weapon_pad(id: &str, weapon: WeaponType, x: f32, z: f32, floor: f32) -> Arena
 
 fn health_pad(id: &str, x: f32, z: f32, floor: f32) -> ArenaPickup {
     ArenaPickup {
+        claim: crate::protocol::SupplyClaim::Contested,
         id: id.to_string(),
         kind: PickupKind::Health,
         amount: HEALTH_PAD_AMOUNT,
@@ -310,6 +312,7 @@ fn health_pad(id: &str, x: f32, z: f32, floor: f32) -> ArenaPickup {
 
 fn armor_pad(id: &str, x: f32, z: f32, floor: f32) -> ArenaPickup {
     ArenaPickup {
+        claim: crate::protocol::SupplyClaim::Contested,
         id: id.to_string(),
         kind: PickupKind::Armor,
         amount: ARMOR_PAD_AMOUNT,

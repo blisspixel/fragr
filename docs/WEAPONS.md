@@ -1,8 +1,21 @@
 # The weapons
 
-The canonical proposed arsenal, pickup economy, and sound roles. Only Flechette,
-Rail and Scatter currently exist as freely selectable hitscan weapons. Ammo,
-melee, inventory, reload and projectile systems below are planned.
+The canonical arsenal direction, pickup economy and sound roles. Current M01
+implements fists, found Tack and Flechette, owned selection, finite magazines,
+pooled reserves and reload. The same inventory supports Scatter and Rail, tested
+through server fixtures but not placed in M01. Six arcade maps retain their
+explicit full-arsenal policy with unlimited Flechette, Rail and Scatter.
+The remaining arsenal, projectiles, carry limits, broken weapons and sidearm
+trickle below are proposals. Implementation and evidence:
+[`plans/m01-weapon-discovery.md`](plans/m01-weapon-discovery.md).
+
+Current fists reach 1.8 metres. Tack reaches 30 metres with 0.03-radian spread.
+Pool caps are 220 Tacks, 120 Darts and 100 Cores. A new weapon grants a full
+magazine and three magazines of reserve, except Rail grants two. Scatter loads
+one shot using four Darts. Switching cancels a pending reload without losing
+rounds. Dry fire does not discard a weapon or switch automatically. M01 death
+currently resets inventory and personal introductory claims at the entry;
+checkpoint restore and cross-mission persistence are not implemented.
 
 Balance numbers live here and nowhere else. `plans/gunfeel.md` explains how they were arrived at, `plans/weapon-economy.md` explains the ammunition and the pickup economy, and `docs/lore/guns.md` is what they get called on the radio.
 

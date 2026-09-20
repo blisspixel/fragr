@@ -1,7 +1,8 @@
 # M01: Recall Notice
 
-**Status:** traversal blockout implemented and locally verified. Story, encounters and mission
-state remain unbuilt. Earth before the wipe. Full first-run target 10-15 minutes,
+**Status:** connected blockout and weapon discovery implemented and locally verified.
+Fists, Tack, Flechette, ammunition and reload use server authority. Story scenes,
+encounters and mission state remain unbuilt. Earth before the wipe. Full first-run target 10-15 minutes,
 to be measured. [Treatment](../CAMPAIGN-MISSIONS.md#m01-recall-notice).
 
 The current [map document](../../server/maps/m01-recall-notice.json) connects A-G

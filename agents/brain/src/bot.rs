@@ -283,6 +283,7 @@ pub async fn run_bot(
         .map_err(transport_err)?;
     let (mut sink, mut stream) = ws.split();
     let hello = ClientMessage::Hello {
+        gameplay_version: fragr_server::protocol::GAMEPLAY_VERSION,
         geometry_version: fragr_server::protocol::GEOMETRY_VERSION,
         role: Role::Agent,
         name: config.name.clone(),
@@ -323,6 +324,7 @@ pub async fn run_bot(
     let mut me: Option<Uuid> = None;
     let mut my_name = config.name.clone();
     let mut last: Option<Snapshot> = None;
+    let mut loadout: Option<fragr_server::protocol::LoadoutState> = None;
     let mut navigation = None;
     let mut navigator = fragr_server::navigation::Navigator::default();
     let mut hits = RecentHits::default();
@@ -358,6 +360,14 @@ pub async fn run_bot(
         tokio::select! {
             msg = stream.next() => match msg {
                 Some(Ok(Message::Text(text))) => match serde_json::from_str::<ServerMessage>(&text) {
+                    Ok(ServerMessage::Loadout(next)) => {
+                        let valid = next.validate_for(me, loadout.as_ref());
+                        if let Err(error) = valid {
+                            session_error = Some(Error::Transport(format!("invalid loadout: {error}")));
+                            break;
+                        }
+                        loadout = Some(next);
+                    }
                     Ok(ServerMessage::Welcome { player_id, .. }) => me = player_id,
                     Ok(ServerMessage::Snapshot(snapshot)) => {
                         summary.snapshots += 1;
@@ -412,7 +422,7 @@ pub async fn run_bot(
                     }
                     Ok(ServerMessage::Error { code, message }) => {
                         tracing::warn!("server rejected: {code}: {message}");
-                        if code == "unsupported_geometry" {
+                        if code == "unsupported_geometry" || code == "unsupported_gameplay" {
                             session_error = Some(Error::Transport(message));
                             break;
                         }
@@ -428,6 +438,7 @@ pub async fn run_bot(
             _ = micro.tick() => {
                 if let (Some(id), Some(snapshot)) = (me, last.as_ref()) {
                     let action = micro_action(&plan, id, snapshot);
+                    let action = fragr_server::inventory::control_action(id, snapshot, loadout.as_ref(), action);
                     let action = navigation.as_ref().map_or_else(Action::default, |world| {
                         navigator.steer_snapshot(world, id, snapshot, action)
                     });
@@ -470,7 +481,14 @@ pub async fn run_bot(
                     {
                         let mut with_memory = telemetry.clone();
                         with_memory.recent = memory.clone();
-                        with_memory.state_object()
+                        let mut state = with_memory.state_object();
+                        if let Some(equipment) = loadout.as_ref() {
+                            state["equipment"] = serde_json::json!({
+                                "selected": equipment.selected, "weapons": equipment.weapons,
+                                "reserves": equipment.reserves, "reload": equipment.reload,
+                            });
+                        }
+                        state
                     },
                     fallback_plan(&telemetry, Source::Failure),
                     config.gate,
@@ -1026,6 +1044,7 @@ mod tests {
         let (mut sink, mut stream) = ws.split();
         sink.send(Message::Text(
             serde_json::to_string(&ClientMessage::Hello {
+                gameplay_version: fragr_server::protocol::GAMEPLAY_VERSION,
                 geometry_version: fragr_server::protocol::GEOMETRY_VERSION,
                 role: Role::Spectator,
                 name: "Spec".into(),

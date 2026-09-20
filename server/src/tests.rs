@@ -9,6 +9,7 @@ use crate::protocol::{
 #[cfg(test)]
 use crate::session::GameSession;
 
+mod discovery;
 mod roster;
 
 #[tokio::test]
@@ -105,6 +106,7 @@ use uuid::Uuid;
 #[test]
 fn test_protocol_client_message_hello_serialization() {
     let hello = ClientMessage::Hello {
+        gameplay_version: crate::protocol::GAMEPLAY_VERSION,
         geometry_version: crate::protocol::GEOMETRY_VERSION,
         role: Role::Agent,
         name: "TestBot".to_string(),
@@ -119,7 +121,9 @@ fn test_protocol_client_message_hello_serialization() {
             role,
             name,
             geometry_version,
+            gameplay_version,
         } => {
+            assert_eq!(gameplay_version, crate::protocol::GAMEPLAY_VERSION);
             assert_eq!(role, Role::Agent);
             assert_eq!(name, "TestBot");
             assert_eq!(geometry_version, crate::protocol::GEOMETRY_VERSION);

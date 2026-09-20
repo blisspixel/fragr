@@ -24,9 +24,10 @@ This is a playable vertical slice, not a finished game. The build order and what
 
 Current work: [`local excellence`](docs/plans/local-excellence.md), a bounded polish loop covering reliable checks, existing art integration, arena readability, and inspected playtest evidence. The [campaign treatment](docs/CAMPAIGN-MISSIONS.md) plans a personal rescue, offworld resistance, the Union's defeat, a sudden planetary wipe, and its aftermath. This is planned content, not a completed campaign or public-server readiness claim.
 
-The opening mission now has an opt-in [traversal blockout](server/maps/README.md):
-enclosed intake rooms, two stair routes, an accessible records balcony and a
-prisoner lift. It has no authored encounters or mission objectives yet.
+The opening mission has an opt-in [development slice](server/maps/README.md):
+enclosed intake rooms, two stair routes, an accessible records balcony, a
+prisoner lift and fists-to-found-gun progression with finite ammo and reload.
+It has no authored encounters or mission objectives yet.
 
 ## Screenshots
 
@@ -74,7 +75,7 @@ cargo run -p fragr-server -- --bind 127.0.0.1:6767 --bots 4 --solo-broadcast
 # Direct scene launch: godot --path client res://scenes/main.tscn -- --solo
 ```
 
-**Controls:** WASD to move, mouse to look, left mouse to fire, J to join, L to leave back to spectate, F to cycle the spectator camera, R next radio station, N next track, M radio on or off, Esc to release the mouse. Gamepads work too; see the controls table below.
+**Controls:** WASD to move, mouse to look, left mouse to fire, J to join, L to leave back to spectate, F to cycle the spectator camera, C next radio station, N next track, M radio on or off, Esc to release the mouse. Gamepads work too; see the controls table below.
 
 **Boot menu:** Single Player, Multiplayer, Your Callsign, Settings, Quit. The menu connects to a running server; it does not launch one. The host chooses the map and mode. Use the launcher above for Episode 0, or set `FRAGR_SOLO_BROADCAST=0` for arena practice. Escape opens the match menu; the server keeps running, including in solo sessions.
 
@@ -88,15 +89,23 @@ Keyboard and gamepad share the same action path into the server.
 | Look | Mouse | Right stick |
 | Fire | Left mouse | RT |
 | Jump | Space | A |
+| Reload (discovery maps) | R | X |
 | Weapon cycle | [ and ] | LB and RB |
 | Speak (taunt) | T | Y |
 | Join | J | A while spectating |
 | Leave to spectate | L | Start |
 | Spectator camera cycle | F | D-pad right |
 | Spectator view: eyes, chase, free | V | Back |
-| Radio: next station, next track, on or off | R, N, M | D-pad up, down, left |
+| Radio: next station, next track, on or off | C, N, M | D-pad up, down, left |
 | Match menu | Esc | |
 | Hold to show leaders in first person | Tab | |
+
+M01's development slice now starts with fists. Recover Tack in confiscation and
+Flechette before the records stairs, collect finite ammunition, and reload.
+Introductory guns remain available independently to each participant. The six
+arcade maps retain their three unlimited guns. Run instructions and current
+limitations: [`server/maps/README.md`](server/maps/README.md). M01 still needs
+encounters, objectives, checkpoints and extraction before it is a complete mission.
 
 ## Desktop exports
 
@@ -130,7 +139,7 @@ Hosting guides: [`infra/docs/HOME-LAN.md`](infra/docs/HOME-LAN.md) for a home bo
 --bots <N>           Rule bots to spawn and keep stocked (default 4)
 --map <ID>           1 or arena = Arena Duel (default), 2 or compliance-yard = Compliance Yard
 --map-rotate         Alternate maps between rounds
---map-file <PATH>    Validated traversal blockout; requires --bots 0, no arcade overrides
+--map-file <PATH>    Authored development map; requires --bots 0, no arcade overrides
 --solo-broadcast     Solo Broadcast Episode 0 (Calibration; Larak Lot face on map 1)
 --seed <N>           Simulation seed; the same seed gives the same match (default 1)
 --status-every-s <N> Log a status report this often (default 60, 0 to disable)

@@ -9,6 +9,8 @@ use std::io::{self, Read};
 use std::path::Path;
 use std::sync::Arc;
 
+mod supplies;
+
 const MAX_BYTES: u64 = 1_048_576;
 const MAX_PLACEMENTS: usize = 128;
 
@@ -23,12 +25,18 @@ pub struct AuthoredMap {
     pub(super) navigation: Arc<Navigation>,
     pub(super) spawns: Vec<Placement>,
     pub(super) presentation: MapPresentation,
+    pub(super) equipment: crate::protocol::EquipmentPolicy,
+    pub(super) supplies: Vec<crate::sim::ArenaPickup>,
     landmarks: Vec<Landmark>,
 }
 
 #[derive(Debug, Deserialize)]
 #[serde(deny_unknown_fields)]
 struct Document {
+    #[serde(default)]
+    supplies: Vec<supplies::Definition>,
+    #[serde(default)]
+    equipment: crate::protocol::EquipmentPolicy,
     version: u32,
     map_id: u32,
     name: String,
@@ -136,6 +144,7 @@ impl AuthoredMap {
             || doc.spawns.len() > MAX_PLACEMENTS
             || doc.landmarks.is_empty()
             || doc.landmarks.len() > MAX_PLACEMENTS
+            || doc.supplies.len() > MAX_PLACEMENTS
         {
             return Err(invalid("map requires bounded solids, spawns and landmarks"));
         }
@@ -180,11 +189,13 @@ impl AuthoredMap {
         }
         let navigation = Navigation::shared(arena.clone()).map_err(invalid)?;
         let start = doc.spawns[0].feet;
+        let supplies = supplies::build(doc.supplies, doc.equipment, &arena, &mut seen)?;
         for destination in doc
             .spawns
             .iter()
             .map(|p| p.feet)
             .chain(doc.landmarks.iter().map(|p| p.feet))
+            .chain(supplies.iter().map(|p| [p.x, p.floor, p.z]))
         {
             if navigation
                 .route(start, destination, crate::navigation::SEARCH_LIMIT)
@@ -197,6 +208,8 @@ impl AuthoredMap {
             }
         }
         Ok(Arc::new(Self {
+            supplies,
+            equipment: doc.equipment,
             id: doc.map_id,
             name: doc.name,
             arena,

@@ -65,7 +65,7 @@ static func _parse(value: Variant) -> Effect:
 		return null
 	var weapon: String = trace["weapon"]
 	var impact: Dictionary = trace["impact"]
-	if weapon not in ["flechette", "rail", "scatter"] or not impact.get("kind") is String:
+	if weapon not in ["fists", "tack", "flechette", "rail", "scatter"] or not impact.get("kind") is String:
 		return null
 	var kind: String = impact["kind"]
 	if kind not in ["fighter", "solid", "range"]:
@@ -73,6 +73,8 @@ static func _parse(value: Variant) -> Effect:
 	var origin: Vector3 = _vector(trace.get("origin"))
 	var end: Vector3 = _vector(trace.get("end"))
 	if not origin.is_finite() or not end.is_finite() or origin.distance_to(end) > MAX_TRACE_LENGTH:
+		return null
+	if weapon == "fists" and (kind == "range" or origin.distance_to(end) > 1.81):
 		return null
 	if kind == "range" and origin.distance_to(end) <= 0.05:
 		return null
@@ -128,6 +130,9 @@ func _rebuild() -> void:
 	_mesh.surface_end()
 
 func _draw_effect(effect: Effect) -> void:
+	if effect.weapon == "fists":
+		_draw_melee_impact(effect)
+		return
 	var rail: bool = effect.weapon == "rail"
 	var tint: Color = Color("b4e0e8") if rail else Color("f5b568")
 	var beam_time: float = 0.14 if rail else 0.065
@@ -151,6 +156,16 @@ func _draw_effect(effect: Effect) -> void:
 		var velocity: Vector3 = (tangent * cos(angle) + bitangent * sin(angle)) * 1.8 + normal * 1.3
 		var position: Vector3 = centre + velocity * effect.age + Vector3.DOWN * 3.0 * effect.age * effect.age
 		_segment(position, position + velocity.normalized() * size * 1.8, maxf(size * 0.22, 0.002), tint)
+
+func _draw_melee_impact(effect: Effect) -> void:
+	var tangent: Vector3 = effect.normal.cross(Vector3.UP if absf(effect.normal.y) < 0.9 else Vector3.RIGHT).normalized()
+	var up: Vector3 = effect.normal.cross(tangent)
+	var size: float = 0.035 * (1.0 - effect.age / LIFETIME)
+	for index in range(3):
+		var centre: Vector3 = effect.end + effect.normal * (0.03 + effect.age * 0.25) \
+			+ tangent * (index - 1) * effect.age * 0.5 + up * effect.age * 0.2
+		_quad(centre - tangent * size - up * size, centre + tangent * size - up * size,
+			centre + tangent * size + up * size, centre - tangent * size + up * size, Color("807361"))
 
 func _segment(start: Vector3, end: Vector3, width: float, colour: Color) -> void:
 	var direction: Vector3 = (end - start).normalized()

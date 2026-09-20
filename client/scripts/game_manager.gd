@@ -37,6 +37,7 @@ var action_state = {
 	"turn_right": false,
 	"fire": false,
 	"jump": false,
+	"reload": false,
 	"weapon_swap": null,
 	"yaw": 0.0,
 	"pitch": 0.0,
@@ -52,6 +53,7 @@ const SPEAK_LINES = [
 var speak_line_index = 0
 var pending_weapon_swap = null
 var pending_jump: bool = false
+var pending_reload: bool = false
 
 var arena_cover: ArenaCover = null
 var current_map_info: Dictionary = {}
@@ -76,6 +78,7 @@ func _ready():
 	settings.changed.connect(_apply_preferences)
 	_apply_preferences()
 	net_client.snapshot_received.connect(_on_snapshot_received)
+	net_client.loadout_received.connect(_on_loadout_received)
 	net_client.map_info_received.connect(_on_map_info)
 	net_client.event_received.connect(_on_event_received)
 	net_client.ack_received.connect(_on_ack_received)
@@ -254,6 +257,8 @@ func _input(_event):
 		return
 	if is_human_player and _event.is_action_pressed("jump"):
 		pending_jump = true
+	if is_human_player and _event.is_action_pressed("reload"):
+		pending_reload = true
 	# InputMap actions (keyboard + joypad). Same join/leave path.
 	if Input.is_action_just_pressed("join_as_human") and not is_human_player:
 		change_role(true)
@@ -272,6 +277,7 @@ func change_role(play: bool) -> void:
 		return
 	role_transition = true
 	pending_jump = false
+	pending_reload = false
 	net_client.disconnect_from_server()
 	is_human_player = play
 	_clear_fp_state()
@@ -313,6 +319,7 @@ func _process(_delta):
 		action_state.right = Input.is_action_pressed("move_right")
 		action_state.fire = Input.is_action_pressed("fire")
 		action_state.jump = pending_jump or Input.is_action_pressed("jump")
+		action_state.reload = pending_reload
 		# Client-owned yaw: the server takes the absolute facing and never turns
 		# us at a fixed rate, so the look axis does not round-trip. Turn bits stay
 		# zero for humans and remain the path for agents and older clients.
@@ -320,8 +327,9 @@ func _process(_delta):
 			action_state.yaw = camera.consume_yaw()
 			action_state.pitch = camera.consume_pitch()
 		if controls_blocked():
-			for key in ["forward", "back", "left", "right", "fire", "jump"]:
+			for key in ["forward", "back", "left", "right", "fire", "jump", "reload"]:
 				action_state[key] = false
+			pending_weapon_swap = null
 		action_state.turn_left = false
 		action_state.turn_right = false
 		input_seq += 1
@@ -330,14 +338,20 @@ func _process(_delta):
 		pending_weapon_swap = null
 		net_client.send_action(action_state)
 		pending_jump = false
+		pending_reload = false
 
 func _current_weapon_wire() -> String:
+	if not net_client.equipment.is_empty():
+		return str(net_client.equipment["selected"])
 	var name = _local_weapon_name().to_lower()
 	if name in WEAPON_CYCLE:
 		return name
 	return "flechette"
 
 func _next_weapon_swap(step: int):
+	if not net_client.equipment.is_empty():
+		var current: String = str(pending_weapon_swap) if pending_weapon_swap != null else _current_weapon_wire()
+		return EquipmentState.cycle(net_client.equipment, current, step)
 	var cur = _current_weapon_wire()
 	var idx = WEAPON_CYCLE.find(cur)
 	if idx < 0:
@@ -402,6 +416,11 @@ func _on_server_error(message: String) -> void:
 	hud.set_status(message)
 
 func _clear_world() -> void:
+	pending_jump = false
+	pending_reload = false
+	pending_weapon_swap = null
+	latest_snapshot.clear()
+	hud.equipment_hud.apply({})
 	last_shot_tick = -1
 	if shot_effects != null:
 		shot_effects.clear()
@@ -420,6 +439,16 @@ func _clear_world() -> void:
 	jammer_dish_node = null
 	if camera:
 		camera.set_available_targets([])
+
+func _on_loadout_received(data: Dictionary) -> void:
+	hud.equipment_hud.apply(data)
+	_sync_pickups(latest_snapshot.get("pickups", []))
+	_refresh_equipment_visibility()
+
+func _refresh_equipment_visibility() -> void:
+	var pawn: Node = players.get(net_client.player_id)
+	hud.equipment_hud.visible = is_human_player and not net_client.equipment.is_empty() \
+		and is_instance_valid(pawn) and pawn.hp > 0 and hud.fp_juice_enabled
 
 func _on_snapshot_received(data):
 	latest_snapshot = data
@@ -526,6 +555,8 @@ func _on_snapshot_received(data):
 		_refresh_fp_target()
 		_update_local_fp_hud(data.get("players", []))
 	_process_shot_results(data.get("shot_results", []), int(data.get("tick", -1)))
+	hud.equipment_hud.tick = int(data.get("tick", 0))
+	_refresh_equipment_visibility()
 
 func _on_event_received(data):
 	var event_type = data.get("event", "")
@@ -695,6 +726,8 @@ func _sync_pickups(pickup_list):
 		var amount = int(pad.get("amount", 0))
 		var pos = Vector3(float(pad.get("x", 0.0)), float(pad.get("y", 0.4)), float(pad.get("z", 0.0)))
 		var is_up = bool(pad.get("available", true))
+		if pad.get("claim") == "personal" and pid in net_client.equipment.get("personal_claims", []):
+			is_up = false
 		if not pickups.has(pid):
 			if pickup_scene == null or not is_instance_valid(arena):
 				continue
@@ -703,7 +736,7 @@ func _sync_pickups(pickup_list):
 				push_warning("game_manager: pickup instantiate returned null for " + pid)
 				continue
 			arena.add_child(node)
-			node.setup(pid, weapon, pos, kind, amount)
+			node.setup(pid, weapon, pos, kind, amount, str(pad.get("pool", "")))
 			pickups[pid] = node
 		if pickups.has(pid):
 			pickups[pid].position = pos
@@ -932,12 +965,16 @@ func _process_shot_results(results, tick: int) -> void:
 		var dmg = int(shot.get("damage", 0))
 		var is_local = is_human_player and my_id != "" and shooter_id == my_id
 		var is_followed = (not is_human_player) and followed_id != "" and shooter_id == followed_id
+		var shooter: Node = players.get(shooter_id)
+		var wpn: String = shooter.get_weapon_name() if is_instance_valid(shooter) else ""
+		var trace: Variant = shot.get("trace")
+		if trace is Dictionary and trace.get("weapon") is String and trace["weapon"] in EquipmentState.WEAPONS:
+			wpn = str(trace["weapon"]).capitalize()
+		# A pickup can change held equipment after the shot resolves in this tick.
+		if is_instance_valid(shooter):
+			shooter.show_muzzle_flash(wpn)
 		if not is_local and not is_followed:
 			continue
-		var wpn = _local_weapon_name() if is_local else _followed_weapon_name()
-		var trace: Variant = shot.get("trace")
-		if trace is Dictionary and trace.get("weapon") in ["flechette", "rail", "scatter"]:
-			wpn = str(trace["weapon"]).capitalize()
 		# Every shot you take kicks the view model and lights the barrel. This
 		# used to happen only when you missed, so landing a shot was the one
 		# case where pulling the trigger looked like nothing happened.

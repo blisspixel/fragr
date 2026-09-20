@@ -37,6 +37,17 @@ impl Navigator {
         snapshot: &Snapshot,
         action: Action,
     ) -> Action {
+        self.steer_snapshot_with_budget(world, id, snapshot, action, true)
+    }
+
+    pub fn steer_snapshot_with_budget(
+        &mut self,
+        world: &Navigation,
+        id: Uuid,
+        snapshot: &Snapshot,
+        action: Action,
+        allow_search: bool,
+    ) -> Action {
         let Some(me) = snapshot.players.iter().find(|player| player.id == id) else {
             self.clear();
             return action;
@@ -67,7 +78,7 @@ impl Navigator {
         } else {
             return action;
         };
-        self.steer(world, from, goal, action, snapshot.tick, true)
+        self.steer(world, from, goal, action, snapshot.tick, allow_search)
     }
 
     pub fn steer(

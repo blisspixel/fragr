@@ -4,6 +4,15 @@
   "name": "Recall Notice: traversal blockout",
   "half_extent": 42.0,
   "ground": "concrete",
+  "equipment": "discovery",
+  "supplies": [
+    {"id":"bay_tack","feet":[0,0,-26],"grant":{"kind":"weapon","weapon":"tack"},"claim":"personal"},
+    {"id":"hall_flechette","feet":[6,0,-9],"grant":{"kind":"weapon","weapon":"flechette"},"claim":"personal"},
+    {"id":"service_flechette","feet":[-17,0,-14],"grant":{"kind":"weapon","weapon":"flechette"},"claim":"personal"},
+    {"id":"bay_tacks","feet":[-4,0,-23],"grant":{"kind":"ammo","pool":"tacks","amount":24},"claim":"contested"},
+    {"id":"records_darts","feet":[4,3,9],"grant":{"kind":"ammo","pool":"darts","amount":30},"claim":"contested"},
+    {"id":"service_darts","feet":[-18,3,8],"grant":{"kind":"ammo","pool":"darts","amount":30},"claim":"contested"}
+  ],
   "solids": [
     {"id":"street_south","min":[-12,0,-39],"max":[12,6,-38],"surface":"concrete"},
     {"id":"street_west","min":[-13,0,-39],"max":[-12,6,-28],"surface":"concrete"},

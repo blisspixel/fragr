@@ -7,6 +7,7 @@ var pickup_id: String = ""
 var weapon_name: String = ""
 var pickup_kind: String = "weapon"
 var amount: int = 0
+var ammo_pool: String = ""
 var available: bool = true
 
 @onready var label: Label3D = $Label3D
@@ -15,6 +16,8 @@ var available: bool = true
 
 const COLORS = {
 	"Flechette": Color(0.86, 0.82, 0.74),  # bone-white
+	"Tack": Color(0.74, 0.63, 0.46),
+	"ammo": Color(0.66, 0.60, 0.41),
 	"Rail": Color(0.42, 0.46, 0.50),       # gunmetal
 	"Scatter": Color(0.72, 0.38, 0.22),    # ember
 	"health": Color(0.62, 0.22, 0.20),     # dried blood
@@ -27,13 +30,15 @@ func _ready():
 	weapon_textures["Flechette"] = load("res://assets/weapons/32/flechette.png")
 	weapon_textures["Rail"] = load("res://assets/weapons/32/rail.png")
 	weapon_textures["Scatter"] = load("res://assets/weapons/32/scatter.png")
+	weapon_textures["Tack"] = load("res://assets/weapons/32/_future/shock_pistol.png")
 	_apply_look()
 
-func setup(id: String, weapon: String, pos: Vector3, kind: String = "weapon", pad_amount: int = 0) -> void:
+func setup(id: String, weapon: String, pos: Vector3, kind: String = "weapon", pad_amount: int = 0, pool: String = "") -> void:
 	pickup_id = id
 	weapon_name = weapon
 	pickup_kind = kind if kind != "" else "weapon"
 	amount = pad_amount
+	ammo_pool = pool
 	position = pos
 	_apply_look()
 
@@ -43,6 +48,8 @@ func set_available(is_available: bool) -> void:
 	_apply_look()
 
 func _label_text() -> String:
+	if pickup_kind == "ammo":
+		return "+%d %s" % [amount, ammo_pool.to_upper()]
 	if pickup_kind == "health":
 		return "MEDKIT" if amount <= 0 else ("+%d HP" % amount)
 	if pickup_kind == "armor":
@@ -52,6 +59,8 @@ func _label_text() -> String:
 	return "PAD"
 
 func _tint() -> Color:
+	if pickup_kind == "ammo":
+		return COLORS["ammo"]
 	if pickup_kind == "health":
 		return COLORS["health"]
 	if pickup_kind == "armor":

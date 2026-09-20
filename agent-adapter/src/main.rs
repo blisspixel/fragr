@@ -97,6 +97,7 @@ async fn mcp_connect_and_hello(
     let (mut ws_sink, mut ws_stream) = ws_stream.split();
 
     let hello = ClientMessage::Hello {
+        gameplay_version: fragr_server::protocol::GAMEPLAY_VERSION,
         geometry_version: fragr_server::protocol::GEOMETRY_VERSION,
         role: Role::Agent,
         name: name.to_string(),
@@ -319,6 +320,7 @@ async fn run_scripted_bot(
     let (mut ws_sink, mut ws_stream) = ws_stream.split();
 
     let hello = ClientMessage::Hello {
+        gameplay_version: fragr_server::protocol::GAMEPLAY_VERSION,
         geometry_version: fragr_server::protocol::GEOMETRY_VERSION,
         role: Role::Agent,
         name: name.clone(),
@@ -341,6 +343,7 @@ async fn run_scripted_bot(
     };
     tracing::info!("Bot connected, player_id: {bot_id}");
     let mut last_snapshot: Option<protocol::Snapshot> = None;
+    let mut loadout: Option<protocol::LoadoutState> = None;
     let mut navigation = None;
     let mut navigator = fragr_server::navigation::Navigator::default();
     let mut action_tick = tokio::time::interval(std::time::Duration::from_millis(50));
@@ -351,6 +354,10 @@ async fn run_scripted_bot(
             msg = ws_stream.next() => {
                 if let Some(Ok(Message::Text(text))) = msg {
                     match serde_json::from_str::<ServerMessage>(&text)? {
+                        ServerMessage::Loadout(next) => {
+                            next.validate_for(Some(bot_id), loadout.as_ref()).map_err(io::Error::other)?;
+                            loadout = Some(next);
+                        }
                         ServerMessage::Snapshot(snapshot) => last_snapshot = Some(snapshot),
                         ServerMessage::MapInfo { half_extent, solids, geometry_version, presentation, .. } => {
                             protocol::validate_map_presentation(presentation.as_ref(), solids.len())?;
@@ -363,7 +370,7 @@ async fn run_scripted_bot(
                             navigator.clear();
                             last_snapshot = None;
                         }
-                        ServerMessage::Error { code, message } if code == "unsupported_geometry" => {
+                        ServerMessage::Error { code, message } if code == "unsupported_geometry" || code == "unsupported_gameplay" => {
                             return Err(io::Error::other(message).into());
                         }
                         _ => {}
@@ -376,6 +383,7 @@ async fn run_scripted_bot(
             _ = action_tick.tick() => {
                 if let (Some(snapshot), Some(world)) = (last_snapshot.as_ref(), navigation.as_ref()) {
                     let wanted = compute_bot_action(bot_id, snapshot);
+                    let wanted = fragr_server::inventory::control_action(bot_id, snapshot, loadout.as_ref(), wanted);
                     let action = navigator.steer_snapshot(world, bot_id, snapshot, wanted);
                     let action_msg = ClientMessage::Action(action);
 
@@ -1075,6 +1083,7 @@ mod tests {
     #[test]
     fn test_client_action_message_structure() {
         let hello = ClientMessage::Hello {
+            gameplay_version: fragr_server::protocol::GAMEPLAY_VERSION,
             geometry_version: fragr_server::protocol::GEOMETRY_VERSION,
             role: protocol::Role::Agent,
             name: "TestAgent".to_string(),
@@ -1245,6 +1254,7 @@ mod tests {
         std::env::remove_var("FRAGR_AGENT_NAME");
         let name = resolve_agent_name(Some("ArenaFox"), "MCP Agent");
         let hello = ClientMessage::Hello {
+            gameplay_version: fragr_server::protocol::GAMEPLAY_VERSION,
             geometry_version: fragr_server::protocol::GEOMETRY_VERSION,
             role: Role::Agent,
             name: name.clone(),

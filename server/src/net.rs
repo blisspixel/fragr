@@ -22,6 +22,7 @@ pub struct NetServer {
     pub clients: Arc<Mutex<Vec<ClientSession>>>,
     game_tx: mpsc::UnboundedSender<GameCommand>,
     geometry_version: u32,
+    gameplay_version: u32,
 }
 
 pub enum GameCommand {
@@ -61,6 +62,21 @@ impl NetServer {
         game_tx: mpsc::UnboundedSender<GameCommand>,
         geometry_version: u32,
     ) -> std::io::Result<Self> {
+        Self::bind_with_requirements(addr, game_tx, geometry_version, 1).await
+    }
+
+    pub async fn bind_with_requirements(
+        addr: &str,
+        game_tx: mpsc::UnboundedSender<GameCommand>,
+        geometry_version: u32,
+        gameplay_version: u32,
+    ) -> std::io::Result<Self> {
+        if !(1..=crate::protocol::GAMEPLAY_VERSION).contains(&gameplay_version) {
+            return Err(std::io::Error::new(
+                std::io::ErrorKind::InvalidInput,
+                "unsupported server gameplay version",
+            ));
+        }
         if !(1..=crate::protocol::GEOMETRY_VERSION).contains(&geometry_version) {
             return Err(std::io::Error::new(
                 std::io::ErrorKind::InvalidInput,
@@ -75,6 +91,7 @@ impl NetServer {
             clients: Arc::new(Mutex::new(Vec::new())),
             game_tx,
             geometry_version,
+            gameplay_version,
         })
     }
 
@@ -90,10 +107,17 @@ impl NetServer {
                     let game_tx = self.game_tx.clone();
                     let clients = self.clients.clone();
                     let geometry_version = self.geometry_version;
+                    let gameplay_version = self.gameplay_version;
 
                     tokio::spawn(async move {
-                        if let Err(e) =
-                            handle_connection(stream, game_tx, clients, geometry_version).await
+                        if let Err(e) = handle_connection(
+                            stream,
+                            game_tx,
+                            clients,
+                            geometry_version,
+                            gameplay_version,
+                        )
+                        .await
                         {
                             tracing::warn!("Connection error: {}", e);
                         }
@@ -112,6 +136,7 @@ async fn handle_connection(
     game_tx: mpsc::UnboundedSender<GameCommand>,
     clients: Arc<Mutex<Vec<ClientSession>>>,
     required_geometry: u32,
+    required_gameplay: u32,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let ws_stream = accept_async(stream).await?;
     let (mut ws_sink, mut ws_stream) = ws_stream.split();
@@ -128,7 +153,19 @@ async fn handle_connection(
                 role: r,
                 name,
                 geometry_version,
+                gameplay_version,
             }) => {
+                if gameplay_version < required_gameplay {
+                    let rejection = ServerMessage::Error {
+                        code: "unsupported_gameplay".into(),
+                        message: format!("This server requires gameplay version {required_gameplay}; update your client."),
+                    };
+                    ws_sink
+                        .send(Message::Text(serde_json::to_string(&rejection)?))
+                        .await?;
+                    ws_sink.close().await?;
+                    return Ok(());
+                }
                 if geometry_version < required_geometry {
                     let rejection = ServerMessage::Error {
                         code: "unsupported_geometry".into(),

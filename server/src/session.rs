@@ -30,6 +30,7 @@ pub struct GameSession {
     pub min_bots: usize,
     navigation_map: crate::maps::RuntimeMap,
     navigators: HashMap<Uuid, crate::navigation::Navigator>,
+    sent_loadouts: HashMap<Uuid, (crate::protocol::WeaponType, u64)>,
 }
 
 impl GameSession {
@@ -56,6 +57,7 @@ impl GameSession {
             last_map_sent: None,
             min_bots: 0,
             navigators: HashMap::new(),
+            sent_loadouts: HashMap::new(),
         }
     }
 
@@ -299,9 +301,38 @@ impl GameSession {
         // At most four searches per tick, with rotating slots so larger rosters
         // cannot starve their later controllers. Cached paths keep advancing.
         let batches = controllers.len().div_ceil(4).max(1);
+        let discovery = (map.equipment_policy() == protocol::EquipmentPolicy::Discovery)
+            .then(|| self.state.snapshot());
         for (index, bot) in controllers.iter().enumerate() {
             let intent = bot.intent(&self.state);
-            let action = if let (Some(goal), Some(player)) = (
+            let action = if let Some(snapshot) = discovery.as_ref() {
+                let loadout = self
+                    .state
+                    .players
+                    .iter()
+                    .find(|player| player.id == bot.player_id)
+                    .and_then(|player| {
+                        player
+                            .inventory
+                            .state(player.id, player.weapon, self.state.tick)
+                    });
+                let wanted = crate::inventory::control_action(
+                    bot.player_id,
+                    snapshot,
+                    loadout.as_ref(),
+                    intent.action,
+                );
+                self.navigators
+                    .entry(bot.player_id)
+                    .or_default()
+                    .steer_snapshot_with_budget(
+                        world,
+                        bot.player_id,
+                        snapshot,
+                        wanted,
+                        index / 4 == self.state.tick as usize % batches,
+                    )
+            } else if let (Some(goal), Some(player)) = (
                 intent.goal,
                 self.state
                     .players
@@ -324,6 +355,32 @@ impl GameSession {
         }
 
         self.state.tick(dt);
+        if self.state.map.equipment_policy() == protocol::EquipmentPolicy::Discovery {
+            let connected: std::collections::HashSet<Uuid> =
+                self.client_to_player.values().copied().collect();
+            self.sent_loadouts.retain(|id, _| connected.contains(id));
+            for player in &self.state.players {
+                if !connected.contains(&player.id) {
+                    continue;
+                }
+                let revision = (player.weapon, player.inventory.revision());
+                if self.sent_loadouts.get(&player.id) != Some(&revision) {
+                    self.sent_loadouts.insert(player.id, revision);
+                    if let Some(loadout) =
+                        player
+                            .inventory
+                            .state(player.id, player.weapon, self.state.tick)
+                    {
+                        self.pending_unicasts.push((
+                            Recipient::Player(player.id),
+                            ServerMessage::Loadout(loadout),
+                        ));
+                    }
+                }
+            }
+        } else {
+            self.sent_loadouts.clear();
+        }
         self.pending_unicasts.extend(
             self.state
                 .input_acks()
