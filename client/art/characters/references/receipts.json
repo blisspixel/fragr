@@ -1,0 +1,32 @@
+{
+  "version": 1,
+  "reviewed_on": "2026-09-20",
+  "model": "marketing-studio/image",
+  "spec": "tools/spritegen/specs/m01-enemy-references.json",
+  "status": "reference candidates, not runtime sprites",
+  "files": [
+    {
+      "file": "clerk-preview.webp",
+      "frame_id": "clerk_human_reference",
+      "sha256": "c247000c620e6f83352f3e3b1c4e9b984e079e1d1831fb81408dc0db906e4e71",
+      "dashboard_job_id": "0219f7ff-5cae-45de-b86f-e87c771bf000",
+      "api_request_id": null,
+      "estimated_usd": 0.107,
+      "dashboard_charged_usd": 0.092406,
+      "format": "1920x1920 opaque WebP dashboard preview, baked checkerboard",
+      "recovery": "Existing completed job matched to saved prompt; preview downloaded without another generation. Original output and polling identity remain unavailable."
+    },
+    {
+      "file": "sweeper.png",
+      "frame_id": "sweeper_bot_reference",
+      "sha256": "63ec58e91f4c07ac1fdddd55cd19134f2b6c0ef3ac2c89c94c8c2f8ea850805f",
+      "dashboard_job_id": "b7b0da5f-4d15-4397-ac90-11892856360c",
+      "api_request_id": "610a4981-59e1-4200-9296-d6b0bc6d5bf4",
+      "estimated_usd": 0.107,
+      "run_cap_usd": 0.11,
+      "dashboard_charged_usd": 0.092363,
+      "format": "2048x2048 RGB PNG, baked checkerboard",
+      "recovery": "Accepted request ID preserved, polling endpoint recovered, original downloaded without another generation."
+    }
+  ]
+}

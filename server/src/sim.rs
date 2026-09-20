@@ -1250,7 +1250,9 @@ impl GameState {
                 };
 
                 if damage > 0 {
-                    if let Some(identity) = self.encounters.hit(target_id, self.tick, died) {
+                    let victim = &self.players[victim_idx];
+                    let feet = [victim.x, victim.y - PLAYER_FLOOR_Y, victim.z];
+                    if let Some(identity) = self.encounters.hit(target_id, feet, self.tick, died) {
                         self.players[victim_idx].campaign = Some(identity);
                     }
                 }
@@ -2068,10 +2070,12 @@ impl GameState {
             let kind = pad.kind;
             let amount = pad.amount;
             let pickup_id = pad.id.clone();
-            let respawn = pad.respawn_ticks();
+            // Campaign stock is consumed until the authoritative party reset.
+            // Arcade pads retain their timed circulation around the map.
+            let respawn = (!self.map.is_campaign()).then(|| pad.respawn_ticks());
             if pad.claim == crate::protocol::SupplyClaim::Contested {
                 pad.available = false;
-                pad.respawn_timer = Some(respawn);
+                pad.respawn_timer = respawn;
             }
 
             let Some(player) = self.players.iter_mut().find(|p| p.id == player_id) else {

@@ -211,8 +211,30 @@ async fn authored_map_is_shared_by_humans_agents_and_spectators() {
         if let ServerMessage::Snapshot(snapshot) = message {
             assert_eq!(snapshot.map_id, 1001);
             assert_eq!(snapshot.mode_name, "Campaign development");
-            assert!(snapshot.players.iter().all(|p| (p.y - 1.5).abs() < 0.01));
-            if snapshot.players.len() == 2 && snapshot.players.iter().all(|p| p.z > -30.5) {
+            let participants: Vec<_> = snapshot
+                .players
+                .iter()
+                .filter(|p| p.is_participant())
+                .collect();
+            assert!(participants.iter().all(|p| (p.y - 1.5).abs() < 0.01));
+            if participants.len() == 2 && participants.iter().all(|p| p.z > -30.5) {
+                let guards: Vec<_> = snapshot
+                    .players
+                    .iter()
+                    .filter(|p| !p.is_participant())
+                    .collect();
+                assert_eq!(
+                    guards.len(),
+                    20,
+                    "spectator receives the prepared M01 roster"
+                );
+                assert!(guards.iter().all(|p| matches!(
+                    p.campaign,
+                    Some(fragr_server::protocol::CampaignActor::Union {
+                        phase: fragr_server::protocol::EnemyPhase::Idle,
+                        ..
+                    })
+                )));
                 moved = true;
                 break;
             }

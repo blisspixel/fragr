@@ -1,9 +1,11 @@
 # M01: Recall Notice
 
-**Status:** connected blockout, discovery and introductory combat shipped.
-Fists, Tack, Flechette, ammunition, reload and enemy phases use server
-authority. One Clerk and two Sweepers are placed, with both approaches exercised
-through normal input. Enemy artwork and animation remain provisional. A
+**Status:** connected blockout, discovery and introductory combat shipped in
+v0.28.0. The working [completion draft](../plans/m01-completion.md) expands this
+to twenty Clerks and Sweepers across seven groups, with a records wing, finite
+campaign supplies and preplaced guards. This expansion is not yet merged or
+accepted as a finished mission. Fists, Tack, Flechette, ammunition, reload and
+enemy phases use server authority. Artwork and animation remain provisional. A
 [reader-paced text opening and party readiness](../plans/m01-opening.md) are
 shipped in #193 and v0.28.0. Finished illustrations and
 narration remain unbuilt. The facility pass adds keyed signs,
@@ -14,12 +16,13 @@ the result ends the prototype without loading unbuilt M02.
 Earth before the wipe. Full first-run target 10-15 minutes,
 to be measured. [Treatment](../CAMPAIGN-MISSIONS.md#m01-recall-notice).
 
-The current [map document](../../server/maps/m01-recall-notice.json) connects A-G
-with both walking stairs, the balcony underpass and explicit indoor spawns.
-Normal-session tests traverse both approaches; the live traversal tour uses
-`client/qa/m01.json`. The sixteen-state `m01-facility.json` also verifies controls
-and prototype departure. Neither establishes fresh-player pacing or fun. Implementation
-and remaining checks are tracked in [authored maps](../plans/authored-campaign-maps.md).
+The current [map document](../../server/maps/m01-recall-notice.json) connects the
+route below with both walking stairs, the balcony underpass and indoor spawns.
+Normal-session tests traverse both approaches. `client/qa/m01.json` covers intake
+and stairs; `m01-facility.json` inspects the opening's details. The fourteen-state
+`m01-records.json` exercises the full draft and record/lift controls. It tracks
+named guards across rooms, including early defeats, and fails on player death.
+Passing automation does not establish fresh-player pacing or fun.
 
 ## Story and cast
 
@@ -78,7 +81,13 @@ flowchart LR
   B --> E[Maintenance flank]
   E --> D
   D --> C
-  D --> F[Transfer control]
+  D --> R[Records reception]
+  R --> S[File stacks]
+  R --> P[Service bypass]
+  S --> T[Sorting]
+  P --> T
+  T --> H[Dispatch]
+  H --> F[Transfer control]
   F --> G[Prisoner lift]
 ```
 
@@ -89,6 +98,11 @@ flowchart LR
 | C | Double-height public intake, counters forming islands rather than maze walls | Two Sweepers arrive around the records screen; retreat and approach selection matter |
 | D | Records balcony overlooking the hall and the lift's identifying light | Flechette is available before the climb; later crossfire teaches cover and vertical aim |
 | E | Low service passage with machinery and an ordinary walking stair | Optional flank reaches the balcony without a ladder or crouch requirement |
+| R | Records reception with a low counter and issued storage | Two Clerks and a Sweeper combine previously taught attacks; two onward routes |
+| S | File islands, short aisles and cross-connections | Four guards; optional armor and ammo reward taking the longer route |
+| P | Service bypass along reception | Shorter approach with fewer stack supplies; reconnects at sorting's east entry |
+| T | Sorting floor with screens, worktable and dispatch cabinets | Four mixed guards; cover breaks lanes and supports movement between entries |
+| H | Dispatch office with two sides around a desk | Three guards; a legible final threshold and a resupply opportunity |
 | F | Compact transfer-control office with glass toward the lift | Short crest against mixed Clerks/Sweepers; locate the companion's destination |
 | G | Clearly marked prisoner lift, wide enough for the party | Explicit extraction after control access; no new mandatory fight |
 
@@ -101,17 +115,22 @@ reach the first interior. Reserve views between B, D and G to teach orientation.
 1. Safe fists-to-Tack discovery, then one Clerk with generous cover and recovery.
 2. Two Sweepers introduced through a visible approach around service partitions,
    with a retreat to B or an upper view from the maintenance flank.
-3. Find Flechette before reaching the mezzanine fight; learn firing cadence there.
-4. Transfer-control crest combines the established threats across two angles.
-5. Open the lift route, recover resources, and confirm departure.
+3. Find Flechette before the mezzanine. Reception combines both taught enemies.
+4. Choose stacks for supplies and additional combat, or take the service bypass.
+   Both enter the same sorting room from useful different angles.
+5. Move around sorting's screens and into dispatch; three transfer guards supply
+   the final crest. Guards already exist and may react before room entry if hit.
+6. Recover the transfer record, open the lift route, and confirm departure.
 
 Do not add Crawler, cloaking, explosives or a boss here. Normal draft population
 is roughly 20-30 hostiles over the route, revised from actual pacing. Additional
 co-op threats use flanks rather than multiplying health. Supply budgets must
 cover the guaranteed route plus reasonable misses, independent of secrets.
 
-Secrets: a changed wall panel reveals a Shiv; a maintenance overlook contains
-armor and a second approach to F. Neither contains essential story evidence.
+Planned secrets: a changed wall panel reveals a Shiv; a maintenance overlook
+contains an optional reward. Neither contains essential story evidence. Shiv and
+secret triggers are unbuilt. The current alternate routes and visible supplies
+are not counted as implemented secrets.
 
 ## Objectives and state
 

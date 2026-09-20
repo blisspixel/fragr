@@ -355,9 +355,11 @@ come from `protocol/loadout.rs`; the Godot boundary mirrors them.
 Pickup entries additionally support `kind: "ammo"`, `pool` (`tacks`, `darts`,
 `cores`) and a round `amount`. `claim` defaults to `contested` and is omitted in
 legacy snapshots. A `personal` weapon supply stays publicly available while each
-participant claims it independently once per development life. Contested ammo
-has one authoritative winner, reports the actual received amount in the pickup
-event, and returns after 200 ticks. Claims require proximity and, on authored
+participant claims it independently once per development life. Contested stock
+has one authoritative winner and reports the actual received amount in the pickup
+event. On campaign maps, claimed stock stays unavailable with no `respawn_in`
+until the authoritative party reset. Outside campaign play, ammo returns after
+200 ticks and other arcade pads retain their existing timers. Claims require proximity and, on authored
 maps, unobstructed sight. Current development death resets inventory and claims;
 reconnect creates a new participant, not a restored checkpoint.
 
@@ -581,11 +583,15 @@ Shared Rust readers use `PlayerState::is_hostile_to`; legacy entries omit
 does not imply hostility. Controllers must exclude nonpositive-HP targets. The
 client validates identities and phase bounds before publishing a snapshot.
 
-Encounter groups activate once from participant positions and can depend on an
-earlier group's defeat. Last departure or total party death clears the encounters;
+The bounded enemy roster is placed when the first active participant starts the
+attempt. Dormant groups remain idle until an entry region activates them;
+activation retains each actor's ID and can depend on an earlier group's defeat.
+Attacking a dormant guard wakes that group at the struck guard's location,
+without revealing an unseen attacker's position. A later entry alarm dispatches
+that group once to the entered threshold. Last departure or total party death clears the encounters;
 the existing entry respawn permits retry. Individual death while an ally survives
-does not reset active groups. Checkpoints, saves, revives and extraction remain
-separate contracts.
+does not reset active groups. Checkpoints, saves and revives remain unbuilt;
+the mission contract above owns shared lift departure.
 
 #### Event
 

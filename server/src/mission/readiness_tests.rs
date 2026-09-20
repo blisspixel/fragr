@@ -238,8 +238,24 @@ fn a_pending_reader_cannot_trigger_loot_or_become_an_enemy_target() {
     }
     assert_eq!(
         session.state.players.len(),
-        2,
-        "a reader cannot activate the encounter"
+        3,
+        "guards are placed before their entry alarm"
+    );
+    assert!(session
+        .state
+        .players
+        .iter()
+        .filter(|p| p.is_campaign_enemy())
+        .all(|p| matches!(
+            p.campaign,
+            Some(crate::protocol::CampaignActor::Union {
+                phase: crate::protocol::EnemyPhase::Idle,
+                ..
+            })
+        )));
+    assert!(
+        session.state.shot_results.is_empty(),
+        "a reader cannot wake the guard"
     );
     assert!(session.state.pickups[0].available);
     assert_eq!(session.state.players[reader_index].hp, 50);

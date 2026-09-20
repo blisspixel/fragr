@@ -260,6 +260,121 @@ fn contested_ammo_has_one_winner_and_repeat_weapon_discovery_does_not_re_equip()
 }
 
 #[test]
+fn campaign_consumables_do_not_regenerate_and_party_retry_restores_them() {
+    use crate::sim::PickupKind;
+    for kind in [
+        PickupKind::Ammo {
+            pool: AmmoPool::Tacks,
+            rounds: 24,
+        },
+        PickupKind::Health,
+        PickupKind::Armor,
+    ] {
+        let mut session = mission();
+        let a = join(&mut session, Role::Human);
+        let b = join(&mut session, Role::Agent);
+        let pad = session
+            .state
+            .pickups
+            .iter_mut()
+            .find(|p| p.id == "bay_tacks")
+            .unwrap();
+        pad.kind = kind;
+        pad.amount = 25;
+        pad.x = 0.0;
+        pad.z = -35.0;
+        for id in [a, b] {
+            move_to(&mut session, id, [0.0, 0.0, -35.0]);
+        }
+        for player in &mut session.state.players {
+            player.hp = 50;
+        }
+        session.tick_messages(0.05);
+        let claimed = session
+            .state
+            .pickups
+            .iter()
+            .find(|p| p.id == "bay_tacks")
+            .unwrap();
+        assert!(!claimed.available);
+        assert_eq!(claimed.respawn_timer, None, "campaign stock is finite");
+        assert_eq!(
+            session
+                .state
+                .snapshot()
+                .pickups
+                .iter()
+                .find(|p| p.id == "bay_tacks")
+                .unwrap()
+                .respawn_in,
+            None
+        );
+        for _ in 0..601 {
+            session.tick_messages(0.05);
+        }
+        assert!(
+            !session
+                .state
+                .pickups
+                .iter()
+                .find(|p| p.id == "bay_tacks")
+                .unwrap()
+                .available
+        );
+        match kind {
+            PickupKind::Ammo { .. } => assert_eq!(
+                equipment(&session, a).reserve(AmmoPool::Tacks)
+                    + equipment(&session, b).reserve(AmmoPool::Tacks),
+                24
+            ),
+            PickupKind::Health => {
+                assert_eq!(
+                    session
+                        .state
+                        .players
+                        .iter()
+                        .filter(|p| [a, b].contains(&p.id))
+                        .map(|p| p.hp)
+                        .sum::<i32>(),
+                    125
+                )
+            }
+            PickupKind::Armor => assert_eq!(
+                session
+                    .state
+                    .players
+                    .iter()
+                    .filter(|p| [a, b].contains(&p.id))
+                    .map(|p| p.armor)
+                    .sum::<i32>(),
+                25
+            ),
+            PickupKind::Weapon(_) => unreachable!("only consumables are exercised"),
+        }
+        for player in session
+            .state
+            .players
+            .iter_mut()
+            .filter(|p| [a, b].contains(&p.id))
+        {
+            player.hp = 0;
+            player.respawn_timer = Some(60);
+        }
+        session.tick_messages(0.05);
+        assert!(
+            session
+                .state
+                .pickups
+                .iter()
+                .find(|p| p.id == "bay_tacks")
+                .unwrap()
+                .available
+        );
+        assert_eq!(session.state.mission_state().unwrap().attempt, 2);
+    }
+}
+
+#[test]
 fn shots_cooldown_reload_and_death_obey_one_simulation_order() {
     let mut session = mission();
     let a = join(&mut session, Role::Human);

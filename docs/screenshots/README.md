@@ -17,6 +17,12 @@ text panels, skip handoff and offline replay were checked. Illustrations and
 narration remain unfinished. The two older local-campaign stills above predate
 the new opening and remain historical lifecycle evidence.
 
+`prototypes/m01-records-20260920.png` is the inspected 14-state expanded records
+route, captured on Windows, OpenGL compatibility, AMD Radeon 780M. The run
+confirms twenty named guards and mission departure through ordinary inputs.
+The rooms and characters remain development art, with final pacing, checkpoint
+and fresh-player acceptance outstanding. Source manifest: `client/qa/m01-records.json`.
+
 | File | View |
 |---|---|
 | `tour_menu_16x9.png` | Retro boot menu |
@@ -52,7 +58,7 @@ stairs and off a ledge. The manifest records server feet and camera height;
 so a boss cannot kill the test player halfway through the route. This is a
 movement check, not a combat playtest. Do not use `--publish` with this manifest.
 
-M01's separate eleven-state traversal tour uses `res://qa/m01.json` and a validated
+M01's focused intake/stair traversal tour uses `res://qa/m01.json` and a validated
 local map file. Commands and scope are in [`server/maps/README.md`](../../server/maps/README.md).
 It walks both stairs and the balcony underpass through live input, now clearing
 the draft opening encounter along the way. `m01-discovery.json` checks ammunition
@@ -63,9 +69,13 @@ remains under review. The transfer record, gate and shared departure now use
 server-confirmed state; the complete mission remains unfinished. These
 runs do not replace the release gallery or prove a finished mission.
 
-`m01-facility.json` adds sixteen walking/combat/control views of intake signs,
-locker banks, the transfer desk, lift and maintenance route. Its short F presses
-must actually advance mission state before capturing the opened gate and result.
+`m01-facility.json` adds focused walking/combat views of intake signs,
+locker banks and the maintenance route. `m01-records.json` covers the expanded
+records wing, sorting, dispatch and transfer controls in fourteen states. Its
+ordinary input driver can fight during travel and search authored room routes;
+named guard deaths remain evidence after corpse cleanup. A respawn cannot hide
+a failed run. Short F presses must actually advance mission state before
+capturing the opened gate and result.
 Check glyphs, panel placement,
 lighting and enemy contrast with both rendering paths. Localized text must fit
 the panel; the complaint notice targets bureaucracy, not captive suffering.

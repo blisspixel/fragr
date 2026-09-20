@@ -30,6 +30,9 @@ var _probe_frames: int = 0
 var _strip_times_ms: Array[int] = []
 var _failed: bool = false
 var _movement_samples: Array[Dictionary] = []
+var _walk_results: Array[Dictionary] = []
+var _combat_probe: QaCombat = QaCombat.new()
+var _combat_travel: bool = false
 ## Frames between the trigger and the first strip frame. The shot is resolved by
 ## the server, so the flash arrives a round trip later, not on the next frame.
 const STRIP_LEAD_FRAMES: int = 2
@@ -40,6 +43,7 @@ func _initialize() -> void:
 	call_deferred("_run")
 
 func _finalize() -> void:
+	_combat_probe.finish()
 	MouseCapture.release()
 
 func _process(_delta: float) -> bool:
@@ -68,6 +72,7 @@ func _run() -> void:
 	if tour.is_empty():
 		quit(1)
 		return
+	_combat_travel = tour.get("combat_travel", false)
 	# A custom SceneTree can inherit the project's fullscreen mode even when
 	# the launcher requests a resolution. Set the actual window explicitly.
 	root.mode = Window.MODE_WINDOWED
@@ -110,18 +115,21 @@ func _run() -> void:
 			await process_frame
 		if state.has("join"):
 			await _change_role(state["join"] == "human")
+			if _joined:
+				_combat_probe.begin(_game_manager())
 		if state.has("weapon"):
 			await _select_weapon(str(state["weapon"]))
 		if state.has("aim_pitch"):
 			await _set_aim_pitch(float(state["aim_pitch"]))
 		_movement_samples.clear()
+		_walk_results.clear()
 		if state.get("jump_probe", false):
 			await _jump_probe()
 		for point: Array in state.get("walk_to", []):
 			await _walk_to(Vector3(float(point[0]), float(point[1]), float(point[2])))
 		var combat: Dictionary = {}
 		if state.has("combat"):
-			combat = await QaCombat.new().run(self, _game_manager(), state["combat"], _out_dir.path_join(state_name))
+			combat = await _combat_probe.run(self, _game_manager(), state["combat"], _out_dir.path_join(state_name))
 			if not combat.get("passed", false):
 				_failed = true
 		if state.has("look_at"):
@@ -219,6 +227,7 @@ func _run() -> void:
 			"probe_visible_frames": _probe_frames,
 			"strip_sample_ms": _strip_times_ms.duplicate(),
 			"movement_samples": _movement_samples.duplicate(true),
+			"walks": _walk_results.duplicate(true),
 			"combat": combat,
 			"width": shot.get_width(),
 			"height": shot.get_height(),
@@ -237,6 +246,8 @@ func _run() -> void:
 		])
 		if state.get("overlay", "") in ["match_menu", "match_settings"]:
 			_game_manager().get_node("PauseMenu").call("close")
+		if _failed and _combat_travel:
+			break
 
 	_write_manifest(tour)
 	_write_contact_sheet()
@@ -620,26 +631,40 @@ func _jump_probe() -> void:
 	print("qa_tour: jump peak %.3f m, eye rise %.3f m" % [peak - start.y, camera_peak - camera_start])
 
 func _walk_to(goal: Vector3) -> void:
-	var deadline: int = Time.get_ticks_msec() + 15000
+	# Keep the original movement bound. Opt-in combat uses a separate bounded
+	# allowance, because the controller intentionally stops walking to fight.
+	var walking_ms: int = 0
+	var fighting_ms: int = 0
 	var camera: Node = _spectator_camera()
 	Input.action_release("jump")
 	Input.action_press("move_forward")
 	var arrived: bool = false
-	while Time.get_ticks_msec() < deadline:
+	var anchor: Vector2 = Vector2(_local_feet().x, _local_feet().z)
+	while walking_ms < 15000 and fighting_ms < 25000:
+		var step_started: int = Time.get_ticks_msec()
 		var feet: Vector3 = _local_feet()
-		if not feet.is_finite():
+		if not feet.is_finite() or (_combat_travel and _combat_probe.participant_died):
 			break
 		if Vector2(feet.x - goal.x, feet.z - goal.z).length() < 0.3 and absf(feet.y - goal.y) < 0.03:
 			arrived = true
 			break
+		if _combat_travel and _combat_probe.travel(_game_manager(), anchor):
+			_record_movement()
+			await create_timer(0.05).timeout
+			fighting_ms += Time.get_ticks_msec() - step_started
+			continue
+		anchor = Vector2(feet.x, feet.z)
+		Input.action_press("move_forward")
 		camera.set("fp_yaw", atan2(goal.z - feet.z, goal.x - feet.x))
 		camera.set("fp_pitch", 0.0)
 		_record_movement()
 		await create_timer(0.05).timeout
-	Input.action_release("move_forward")
+		walking_ms += Time.get_ticks_msec() - step_started
+	QaCombat.release_inputs()
+	_walk_results.append({"goal": [goal.x, goal.y, goal.z], "arrived": arrived, "walking_ms": walking_ms, "fighting_ms": fighting_ms})
 	await create_timer(0.15).timeout
 	if not arrived:
-		push_error("qa_tour: ordinary walk failed to reach %s, stopped at %s" % [goal, _local_feet()])
+		push_error("qa_tour: ordinary walk failed to reach %s, stopped at %s (walking %d ms, fighting %d ms)" % [goal, _local_feet(), walking_ms, fighting_ms])
 		_failed = true
 
 func _set_aim_pitch(pitch: float) -> void:

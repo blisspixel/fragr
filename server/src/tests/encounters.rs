@@ -106,9 +106,31 @@ fn shoot(session: &mut GameSession, shooter: Uuid, target: Uuid) {
 fn authored_enemies_activate_once_clear_in_order_and_never_respawn() {
     let (mut session, id) = session();
     advance(&mut session, 20);
-    assert_eq!(session.state.players.len(), 1);
+    assert_eq!(session.state.players.len(), 4);
+    assert_eq!(session.state.players[0].hp, 100);
+    assert!(session.state.shot_results.is_empty());
+    let prepared: Vec<_> = session
+        .state
+        .players
+        .iter()
+        .filter(|p| p.is_campaign_enemy())
+        .map(|p| p.id)
+        .collect();
+    for &enemy in &prepared {
+        assert_eq!(phase(&session, enemy), EnemyPhase::Idle);
+    }
     let clerk = enter(&mut session, id);
-    assert_eq!(session.state.players.len(), 2);
+    assert_eq!(session.state.players.len(), 4);
+    assert_eq!(
+        session
+            .state
+            .players
+            .iter()
+            .filter(|p| p.is_campaign_enemy())
+            .map(|p| p.id)
+            .collect::<Vec<_>>(),
+        prepared
+    );
     assert_eq!(session.state.scores.len(), 1);
     for _ in 0..3 {
         shoot(&mut session, id, clerk);
@@ -155,6 +177,137 @@ fn authored_enemies_activate_once_clear_in_order_and_never_respawn() {
             .count(),
         1
     );
+}
+
+#[test]
+fn shooting_a_dormant_group_wakes_existing_guards_without_waiting_for_its_dependency() {
+    let (mut session, id) = session();
+    advance(&mut session, 1);
+    let guards: Vec<_> = session
+        .state
+        .players
+        .iter()
+        .filter(|p| p.is_campaign_enemy())
+        .map(|p| p.id)
+        .collect();
+    assert_eq!(guards.len(), 3);
+    shoot(&mut session, id, guards[1]);
+    assert_eq!(phase(&session, guards[1]), EnemyPhase::Hit);
+    assert_eq!(phase(&session, guards[0]), EnemyPhase::Idle);
+    advance(&mut session, 6);
+    assert_eq!(phase(&session, guards[1]), EnemyPhase::Windup);
+    assert_eq!(phase(&session, guards[2]), EnemyPhase::Windup);
+    assert_eq!(phase(&session, guards[0]), EnemyPhase::Idle);
+    assert_eq!(
+        session
+            .state
+            .players
+            .iter()
+            .filter(|p| p.is_campaign_enemy())
+            .map(|p| p.id)
+            .collect::<Vec<_>>(),
+        guards
+    );
+}
+
+#[test]
+fn hidden_peers_investigate_a_hit_then_dispatch_once_on_room_entry() {
+    let doc = json!({
+        "version":1,"map_id":1000,"name":"Hidden alarm fixture","half_extent":16,
+        "ground":"concrete","equipment":"discovery",
+        "solids":[{"id":"divider","min":[-1,0,-8],"max":[1,3,8],"surface":"enamel"}],
+        "spawns":[{"id":"entry","feet":[-6,0,-6],"yaw":1.5707964}],
+        "landmarks":[{"id":"exit","feet":[0,0,12]}],
+        "encounters":[{
+            "id":"prior","regions":[{"min":[-14,0,-14],"max":[-12,2,-12]}],
+            "enemies":[{"id":"clerk","kind":"clerk","feet":[0,0,-10],"yaw":0}]
+        },{
+            "id":"room","after":"prior","regions":[{"min":[-8,0,0],"max":[-4,2,2]}],
+            "enemies":[
+                {"id":"sentry","kind":"sweeper","feet":[-6,0,6],"yaw":4.712389},
+                {"id":"hidden","kind":"sweeper","feet":[6,0,6],"yaw":4.712389}
+            ]
+        }]
+    });
+    let map = AuthoredMap::read(serde_json::to_vec(&doc).unwrap().as_slice()).unwrap();
+    let mut session = GameSession::with_authored_map(map);
+    let id = Uuid::from_u128(100);
+    session.state.add_player(id, "Visitor".into(), Role::Human);
+    advance(&mut session, 1);
+    let guards: Vec<_> = session
+        .state
+        .players
+        .iter()
+        .filter(|p| p.is_campaign_enemy())
+        .map(|p| p.id)
+        .collect();
+    assert_eq!(guards.len(), 3);
+    assert!(session.state.enemy_intents().is_empty());
+
+    // Kill the sentry outside both entry regions. The surviving peer cannot
+    // see the attacker across the divider, but must investigate the hit.
+    session
+        .state
+        .players
+        .iter_mut()
+        .find(|p| p.id == guards[1])
+        .unwrap()
+        .hp = 20;
+    shoot(&mut session, id, guards[1]);
+    assert_eq!(phase(&session, guards[1]), EnemyPhase::Dead);
+    let investigation = session
+        .state
+        .enemy_intents()
+        .into_iter()
+        .find(|(enemy, _)| *enemy == guards[2])
+        .unwrap()
+        .1;
+    assert_eq!(investigation.goal.unwrap().feet, [-6.0, 0.0, 6.0]);
+    assert_eq!(phase(&session, guards[2]), EnemyPhase::Moving);
+    assert_eq!(phase(&session, guards[0]), EnemyPhase::Idle);
+
+    // The entry alarm dispatches this already active group even though its
+    // ordinary dependency is incomplete. It must not track an unseen player.
+    let player = session
+        .state
+        .players
+        .iter_mut()
+        .find(|p| p.id == id)
+        .unwrap();
+    player.x = -6.0;
+    player.z = 1.0;
+    session.state.update_encounters();
+    let dispatched = session
+        .state
+        .enemy_intents()
+        .into_iter()
+        .find(|(enemy, _)| *enemy == guards[2])
+        .unwrap()
+        .1;
+    assert_eq!(dispatched.goal.unwrap().feet, [-6.0, 0.0, 1.0]);
+    session
+        .state
+        .players
+        .iter_mut()
+        .find(|p| p.id == id)
+        .unwrap()
+        .x = -7.0;
+    session.state.update_encounters();
+    let repeated = session
+        .state
+        .enemy_intents()
+        .into_iter()
+        .find(|(enemy, _)| *enemy == guards[2])
+        .unwrap()
+        .1;
+    assert_eq!(repeated.goal.unwrap().feet, [-6.0, 0.0, 1.0]);
+    assert_eq!(session.state.players.len(), 4);
+    assert_eq!(phase(&session, guards[0]), EnemyPhase::Idle);
+    assert!(session
+        .state
+        .shot_results
+        .iter()
+        .all(|shot| shot.shooter_id == id));
 }
 
 #[test]

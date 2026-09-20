@@ -16,6 +16,7 @@ struct Walkthrough {
     seen: BTreeSet<Uuid>,
     spawned: BTreeSet<Uuid>,
     defeated: BTreeSet<Uuid>,
+    intake: BTreeSet<Uuid>,
     shots: usize,
     first_threat: Option<u64>,
     first_shot: Option<u64>,
@@ -44,6 +45,7 @@ impl Walkthrough {
             seen: BTreeSet::new(),
             spawned: BTreeSet::new(),
             defeated: BTreeSet::new(),
+            intake: BTreeSet::new(),
             shots: 0,
             first_threat: None,
             first_shot: None,
@@ -52,7 +54,25 @@ impl Walkthrough {
 
     fn step(&mut self, destination: [f32; 3]) {
         let snapshot = self.session.state.snapshot();
-        let me = snapshot.players.iter().find(|p| p.id == self.id).unwrap();
+        let me = snapshot
+            .players
+            .iter()
+            .find(|p| p.id == self.id)
+            .unwrap_or_else(|| {
+                let body = self
+                    .session
+                    .state
+                    .players
+                    .iter()
+                    .find(|p| p.id == self.id)
+                    .unwrap();
+                panic!(
+                    "participant died before {destination:?} at {:?} after {} defeats and {} shots",
+                    [body.x, body.y, body.z],
+                    self.defeated.len(),
+                    self.shots
+                );
+            });
         assert!(me.hp > 0, "opening route killed the participant");
         let feet = [me.x, me.y - PLAYER_FLOOR_Y, me.z];
         let eye = [me.x, feet[1] + EYE_HEIGHT, me.z];
@@ -68,10 +88,22 @@ impl Walkthrough {
                     )
             })
             .collect();
+        for actor in &snapshot.players {
+            if matches!(
+                actor.name.as_str(),
+                "intake_security" | "records_sweeper_west" | "records_sweeper_east"
+            ) {
+                self.intake.insert(actor.id);
+            }
+        }
         for target in &visible {
             self.seen.insert(target.id);
         }
-        let target = visible.first();
+        let target = visible.iter().min_by(|a, b| {
+            (a.x - me.x)
+                .hypot(a.z - me.z)
+                .total_cmp(&(b.x - me.x).hypot(b.z - me.z))
+        });
         let action = if let Some(target) = target {
             self.first_threat.get_or_insert(snapshot.tick);
             let player = &self.session.state.players[0];
@@ -81,6 +113,17 @@ impl Walkthrough {
                 .unwrap();
             let dry = loadout.weapon(player.weapon).unwrap().magazine == Some(0);
             Action {
+                // React to a visible committed tell with ordinary strafing.
+                // This is an accurate-aim moving run, not first-player balance.
+                left: visible.iter().any(|enemy| {
+                    matches!(
+                        enemy.campaign,
+                        Some(CampaignActor::Union {
+                            phase: EnemyPhase::Windup | EnemyPhase::Firing,
+                            ..
+                        })
+                    )
+                }),
                 look_at: Some(LookAt {
                     player_id: Some(target.id),
                     ..Default::default()
@@ -209,6 +252,58 @@ impl Walkthrough {
 }
 
 #[test]
+fn later_guards_are_screened_from_the_previous_encounter_approach() {
+    let run = Walkthrough::new(Role::Human);
+    for (feet, groups) in [
+        (
+            [8.0, 3.0, 9.0],
+            vec![
+                "records_patrol",
+                "stacks_patrol",
+                "sorting_security",
+                "dispatch_security",
+                "transfer_watch",
+            ],
+        ),
+        (
+            [-17.0, 3.0, 8.0],
+            vec![
+                "records_patrol",
+                "stacks_patrol",
+                "sorting_security",
+                "dispatch_security",
+                "transfer_watch",
+            ],
+        ),
+        ([-11.0, 3.0, 36.0], vec!["transfer_watch"]),
+    ] {
+        let eye = [feet[0], feet[1] + EYE_HEIGHT, feet[2]];
+        for encounter in run
+            .session
+            .state
+            .map
+            .encounters()
+            .iter()
+            .filter(|group| groups.contains(&group.id.as_str()))
+        {
+            for enemy in &encounter.enemies {
+                for height in [0.2, FIGHTER_HEIGHT * 0.5, FIGHTER_HEIGHT] {
+                    assert!(
+                        !line_of_sight(
+                            eye,
+                            [enemy.feet[0], enemy.feet[1] + height, enemy.feet[2]],
+                            &run.session.state.map.arena().solids
+                        ),
+                        "{} visible before its approach from {feet:?}",
+                        enemy.id
+                    );
+                }
+            }
+        }
+    }
+}
+
+#[test]
 fn m01_main_and_maintenance_approaches_clear_with_discovered_equipment() {
     for role in [Role::Human, Role::Agent] {
         for maintenance in [false, true] {
@@ -229,7 +324,7 @@ fn m01_main_and_maintenance_approaches_clear_with_discovered_equipment() {
             } else {
                 run.walk([0.0, 0.0, -10.0]);
                 for _ in 0..400 {
-                    if run.defeated.len() == 3 {
+                    if run.intake.len() == 3 && run.intake.is_subset(&run.defeated) {
                         break;
                     }
                     run.step([0.0, 0.0, -10.0]);
@@ -239,27 +334,62 @@ fn m01_main_and_maintenance_approaches_clear_with_discovered_equipment() {
                 run.walk([8.0, 3.0, 9.0]);
             }
             for _ in 0..400 {
-                if run.defeated.len() == 3 {
+                if run.intake.len() == 3 && run.intake.is_subset(&run.defeated) {
                     break;
                 }
                 let p = &run.session.state.players[0];
                 run.step([p.x, p.y - PLAYER_FLOOR_Y, p.z]);
             }
             assert_eq!(
-                run.defeated.len(),
+                run.intake.intersection(&run.defeated).count(),
                 3,
                 "{role:?}, maintenance={maintenance}; {:?}",
                 run.session.state.snapshot().players
             );
-            assert_eq!(run.seen.len(), 3, "every enemy was seen before defeat");
+            assert!(
+                run.intake.is_subset(&run.seen),
+                "every intake guard was seen before defeat"
+            );
             assert_eq!(run.session.state.players[0].weapon, WeaponType::Flechette);
+            run.walk([-19.0, 3.0, 9.0]);
+            run.walk([-15.5, 3.0, 17.5]);
+            run.walk([-19.0, 3.0, 23.0]);
+            if maintenance {
+                for point in [[-21.0, 3.0, 27.0], [-15.0, 3.0, 27.0], [-18.0, 3.0, 31.0]] {
+                    run.walk(point);
+                }
+            } else {
+                for point in [
+                    [-25.0, 3.0, 18.0],
+                    [-25.5, 3.0, 23.0],
+                    [-32.0, 3.0, 17.0],
+                    [-41.5, 3.0, 17.0],
+                    [-41.5, 3.0, 14.5],
+                    [-37.0, 3.0, 27.0],
+                    [-37.0, 3.0, 31.0],
+                ] {
+                    run.walk(point);
+                }
+            }
+            for point in [
+                [-28.0, 3.0, 32.0],
+                [-41.5, 3.0, 40.0],
+                [-22.0, 3.0, 41.0],
+                [-11.0, 3.0, 36.0],
+                [-3.0, 3.0, 42.0],
+                [-10.5, 3.0, 42.0],
+                [-3.0, 3.0, 29.0],
+            ] {
+                run.walk(point);
+            }
             run.walk([-3.0, 3.0, 20.0]);
             run.use_control(true);
             run.walk([7.0, 3.0, 23.0]);
             run.use_control(false);
+            assert!(run.defeated.len() >= if maintenance { 16 } else { 20 });
             assert_eq!(run.session.state.scores[&run.id], 0);
-            eprintln!("M01 {role:?} maintenance={maintenance}: ticks={}, hp={}, shots={}, first_threat={:?}, first_shot={:?}",
-                run.session.state.tick, run.session.state.players[0].hp, run.shots, run.first_threat, run.first_shot);
+            eprintln!("M01 {role:?} maintenance={maintenance}: ticks={}, hp={}, defeats={}, shots={}, first_threat={:?}, first_shot={:?}",
+                run.session.state.tick, run.session.state.players[0].hp, run.defeated.len(), run.shots, run.first_threat, run.first_shot);
         }
     }
 }

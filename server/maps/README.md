@@ -1,10 +1,11 @@
 # Authored development maps
 
 `m01-recall-notice.json` contains the opening mission's connected blockout and
-weapon discovery and a draft introductory encounter. Its two routes, stairs,
-balcony, office and lift use normal movement. Enter with fists, find Tack and
-Flechette, collect ammunition and reload.
-One Clerk and two Sweepers use authoritative attack, hit and death states.
+weapon discovery and a draft twenty-guard population. Intake and maintenance
+stairs converge at records reception; file stacks and a service bypass lead to
+sorting, dispatch, transfer control and the custody lift. Enter with fists, find
+Tack and Flechette, collect finite campaign supplies and reload. Clerks and
+Sweepers share authoritative attack, hit and death states.
 Enemy artwork and animation remain provisional. The physical transfer record
 opens the custody lift; the party can then depart together. This ends the current
 prototype, not a finished M01 or the rescue. Checkpoints and M02 are not built.
@@ -43,8 +44,10 @@ support, not the campaign menu's finished first mission.
   `{"kind":"ammo","pool":"darts","amount":30}`, or `health`/`armor` with
   `amount` from 1 through 100. Ammo amounts cannot exceed pool caps in `WEAPONS.md`.
   Fists cannot be a grant. Personal claims are only for weapons; each participant
-  can claim each once per development life. Contested ammo has one winner and a
-  ten-second respawn. An additional copy of an owned gun grants reserve without
+  can claim each once per development life. Contested supplies have one winner.
+  Campaign stock (maps with encounters or a mission) stays consumed until the
+  authoritative party reset; arcade practice retains timed pickup respawns.
+  An additional copy of an owned gun grants reserve without
   forcing selection. Discovery death resets inventory and personal claims.
 - `encounters`: optional, discovery only. At most 32 groups, 64 enemies and 64
   entry regions in total. Each group has a unique `id`, nonempty `regions` and
@@ -67,14 +70,18 @@ support, not the campaign menu's finished first mission.
   and enemy placements may be reachable after opening. Both immutable worlds and
   their navigation are validated before binding. No navigation is rebuilt on tick.
 
-M01's Clerk enters around the inspection partition after safe weapon discovery.
+The bounded roster is placed when the party first becomes active. Entry regions
+wake existing guards, so crossing a threshold cannot materialize an actor in view.
+Hitting a dormant guard wakes its group independently of entry dependencies.
+M01's Clerk advances around the inspection partition after safe weapon discovery.
 The two Sweepers activate after that fight when a participant enters the intake
 hall or reaches the upper flank. The records screen and deck conceal their
 initial positions. Initial dispatch follows a fixed alarm location for up to
 30 seconds; after seeing someone, pursuit remembers their last visible position
 for five seconds. Hidden movement never updates that location. These are initial
-tuning values. Animation and encounter review continue in
-[the active plan](../../docs/plans/m01-intake-encounter.md).
+tuning values. Complete-mission verification continues in
+[the active plan](../../docs/plans/m01-completion.md); final character acceptance
+remains tracked in [the encounter plan](../../docs/plans/m01-intake-encounter.md).
 
 Surface kits: `concrete`, `enamel`, `service_steel`, `records_tile`, `lift_panel`.
 They select existing offline materials, never paths, URLs or shader code. The
@@ -98,7 +105,8 @@ resource paths can be embedded in the map.
 
 Files are limited to 1 MiB before parsing. Unknown fields and unsupported versions
 are errors. Geometry and navigation budgets are checked before the server binds.
-Errors report the reason or parser location without printing file contents.
+Errors report the reason or parser location. Placement diagnostics identify the
+already-validated public record ID, never dump document contents or source paths.
 
 The source path is never sent to clients. `MapInfo` supplies the validated geometry
 and materials. Reloading a map means restarting the host; live content reload and
@@ -114,14 +122,22 @@ FRAGR_QA_BOTS=0 FRAGR_QA_MAP_FILE="$PWD/server/maps/m01-recall-notice.json" FRAG
 FRAGR_QA_BOTS=0 FRAGR_QA_MAP_FILE="$PWD/server/maps/m01-recall-notice.json" FRAGR_QA_MANIFEST=res://qa/m01-encounters.json bash tools/qa_tour.sh .agents/qa/m01-encounters
 FRAGR_QA_BOTS=0 FRAGR_QA_MAP_FILE="$PWD/server/maps/m01-recall-notice.json" FRAGR_QA_MANIFEST=res://qa/m01-maintenance.json bash tools/qa_tour.sh .agents/qa/m01-maintenance
 FRAGR_QA_BOTS=0 FRAGR_QA_MAP_FILE="$PWD/server/maps/m01-recall-notice.json" FRAGR_QA_MANIFEST=res://qa/m01-facility.json bash tools/qa_tour.sh .agents/qa/m01-facility
+FRAGR_QA_BOTS=0 FRAGR_QA_MAP_FILE="$PWD/server/maps/m01-recall-notice.json" FRAGR_QA_MANIFEST=res://qa/m01-records.json bash tools/qa_tour.sh .agents/qa/m01-records
 ```
 
 The tour uses human input through a live server, never teleportation. Inspect
 all rooms, movement samples and combat sheets. The encounter tour deliberately
 observes one Clerk shot before returning fire. The combat driver filters allies,
-dead bodies and occluded targets, and fails if the participant dies. Its perfect
-aim is a regression tool, not evidence of human difficulty. Set
+dead bodies and occluded targets, and fails if the participant dies. It can
+defend against nearby threats during travel in the opt-in full mission tour. That tour records
+named guard deaths across rooms, so an early defeat cannot replace another guard
+or disappear from evidence with corpse cleanup. Accurate aim is a regression
+tool, not evidence of human difficulty. Set
 `FRAGR_RENDER_DRIVER=vulkan` for the second renderer. Do not use `--publish` with
 these specialized manifests. The full release
 tour remains a separate check. Story and room purposes belong to
 [`docs/campaign/m01-recall-notice.md`](../../docs/campaign/m01-recall-notice.md).
+
+Inspected expanded-route capture, still development art:
+
+![Recall Notice records route](../../docs/screenshots/prototypes/m01-records-20260920.png)

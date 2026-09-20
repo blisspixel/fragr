@@ -9,15 +9,19 @@ use enemy::EnemyController;
 #[derive(Default)]
 enum Group {
     #[default]
-    Dormant,
-    Active(Vec<Uuid>),
+    Unplaced,
+    Dormant(Vec<Uuid>),
+    Active {
+        ids: Vec<Uuid>,
+        dispatched: bool,
+    },
     Complete,
 }
 
 #[derive(Default)]
 pub(crate) struct Encounters {
     groups: Vec<Group>,
-    enemies: Vec<EnemyController>,
+    enemies: Vec<(usize, EnemyController)>,
     waiting_for_party: bool,
 }
 
@@ -45,7 +49,7 @@ impl Encounters {
                 self.enemies.clear();
                 self.groups
                     .iter_mut()
-                    .for_each(|group| *group = Group::Dormant);
+                    .for_each(|group| *group = Group::Unplaced);
                 state.pickups = state.map.pickups();
                 self.waiting_for_party = true;
                 tracing::info!("Campaign encounters reset; waiting for a living participant");
@@ -55,7 +59,19 @@ impl Encounters {
         self.waiting_for_party = false;
         state.note_mission_started();
         for (index, definition) in definitions.iter().enumerate() {
-            if let Group::Active(ids) = &self.groups[index] {
+            if matches!(self.groups[index], Group::Unplaced) {
+                let mut ids = Vec::with_capacity(definition.enemies.len());
+                for placement in &definition.enemies {
+                    let id = state.spawn_campaign_enemy(placement);
+                    ids.push(id);
+                    self.enemies.push((
+                        index,
+                        EnemyController::new(id, placement.kind, placement.feet, state.tick),
+                    ));
+                }
+                self.groups[index] = Group::Dormant(ids);
+            }
+            if let Group::Active { ids, .. } = &self.groups[index] {
                 if ids
                     .iter()
                     .all(|id| !state.players.iter().any(|p| p.id == *id && p.hp > 0))
@@ -64,7 +80,13 @@ impl Encounters {
                     tracing::info!(encounter = %definition.id, "Campaign encounter cleared");
                 }
             }
-            let ready = matches!(self.groups[index], Group::Dormant)
+            let ready = matches!(
+                self.groups[index],
+                Group::Active {
+                    dispatched: false,
+                    ..
+                }
+            ) || matches!(self.groups[index], Group::Dormant(_))
                 && definition.after.as_ref().is_none_or(|id| {
                     definitions
                         .iter()
@@ -78,27 +100,39 @@ impl Encounters {
                     .any(|region| region.contains(feet))
             });
             if let Some(&feet) = entered.filter(|_| ready) {
-                let mut ids = Vec::with_capacity(definition.enemies.len());
-                for placement in &definition.enemies {
-                    let id = state.spawn_campaign_enemy(placement);
-                    ids.push(id);
-                    self.enemies
-                        .push(EnemyController::new(id, placement.kind, feet, state.tick));
-                }
-                tracing::info!(encounter = %definition.id, enemies = ids.len(), "Campaign encounter activated");
-                self.groups[index] = Group::Active(ids);
+                self.activate(index, feet, state.tick, true);
+                tracing::info!(encounter = %definition.id, "Campaign encounter activated");
             }
         }
         state.players.retain(|player| !matches!(player.campaign,
             Some(CampaignActor::Union { phase: EnemyPhase::Dead, phase_ends, .. }) if state.tick >= phase_ends));
         self.enemies
-            .retain(|enemy| state.players.iter().any(|p| p.id == enemy.id));
+            .retain(|(_, enemy)| state.players.iter().any(|p| p.id == enemy.id));
+    }
+
+    fn activate(&mut self, group: usize, alarm: [f32; 3], tick: u64, dispatch: bool) {
+        match &mut self.groups[group] {
+            Group::Dormant(ids) => {
+                self.groups[group] = Group::Active {
+                    ids: std::mem::take(ids),
+                    dispatched: dispatch,
+                }
+            }
+            Group::Active { dispatched, .. } if dispatch && !*dispatched => *dispatched = true,
+            _ => return,
+        }
+        for (_, enemy) in self.enemies.iter_mut().filter(|(index, _)| *index == group) {
+            enemy.alarm(alarm, tick);
+        }
     }
 
     pub fn intents(&mut self, state: &mut GameState) -> Vec<(Uuid, BotIntent)> {
         let snapshot = state.snapshot();
         let mut actions = Vec::with_capacity(self.enemies.len());
-        for enemy in &mut self.enemies {
+        for (group, enemy) in &mut self.enemies {
+            if !matches!(self.groups[*group], Group::Active { .. }) {
+                continue;
+            }
             let intent = enemy.intent(state, &snapshot);
             if let Some(player) = state.players.iter_mut().find(|p| p.id == enemy.id) {
                 player.campaign = Some(enemy.identity());
@@ -108,8 +142,20 @@ impl Encounters {
         actions
     }
 
-    pub fn hit(&mut self, id: Uuid, tick: u64, died: bool) -> Option<CampaignActor> {
-        let enemy = self.enemies.iter_mut().find(|enemy| enemy.id == id)?;
+    pub fn hit(
+        &mut self,
+        id: Uuid,
+        feet: [f32; 3],
+        tick: u64,
+        died: bool,
+    ) -> Option<CampaignActor> {
+        let index = self.enemies.iter().position(|(_, enemy)| enemy.id == id)?;
+        let group = self.enemies[index].0;
+        // A struck sentry alerts its own group without learning an unseen
+        // attacker's position. Peers investigate the struck guard's location;
+        // a later entry alarm can dispatch them once to that known threshold.
+        self.activate(group, feet, tick, false);
+        let enemy = &mut self.enemies[index].1;
         enemy.hit(tick, died);
         Some(enemy.identity())
     }

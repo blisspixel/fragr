@@ -62,6 +62,14 @@ compare rooms in the rendered route, including distant enemy contrast.
 
 ## Equipment and retry
 
+Encounter bodies must exist before players enter their sightlines. Prepare the
+bounded authored roster when the first active party starts; entry regions wake
+the existing guards rather than materializing new bodies. Preserve normal
+dependency sequencing, but a directly attacked group must respond even if its
+entry alarm has not fired. Dormant actors keep ordinary damage and corpse rules.
+Prove stable identity, input inactivity before activation, attack response and
+party reset, including split parties entering different routes.
+
 Found introductory guns remain available to every participant. Shared campaign
 consumables must be finite within a run; unlimited waiting beside an ammo pad
 cannot replace the planned supply economy. Preserve arcade pad respawns. Keep
@@ -109,3 +117,86 @@ current price and quota before any approved batch; no overages or top-ups.
 
 Green checks cannot establish fun, final art or a complete campaign. Record
 failed runs and fixes, update the evidence here, and leave unfinished gates open.
+
+## Local implementation checkpoint, 2026-09-20
+
+The working draft expands the records wing with reception, stacks, bypass,
+sorting and dispatch. Seven groups contain twenty guards. Campaign consumables
+stay consumed until party reset; arcade supplies retain their timers. Enemy
+bodies are prepared before entry, and hit/region alarms retain their identities.
+This is unmerged work on `feat/m01-completion`, not a finished mission.
+
+Normal-input simulation clears both routes for human and agent control. Current
+screened-layout results use ordinary movement and accurately aimed shots, with
+normal spread and finite supplies:
+
+| Control and route | Ticks at 20 Hz | Shots | Guards defeated | Final HP |
+|---|---:|---:|---:|---:|
+| Human, public stairs/stacks | 1923 | 125 | 20 | 100 |
+| Agent, public stairs/stacks | 1923 | 125 | 20 | 100 |
+| Human, maintenance/bypass | 2041 | 157 | 20 | 100 |
+| Agent, maintenance/bypass | 2041 | 157 | 20 | 100 |
+
+Evidence: `.agents/m01-screened-sim.log`. This is not fresh-player duration or
+difficulty acceptance. Earlier two- and four-participant objective runs
+reach the shared lift, with three and four individual deaths respectively in
+the recorded run. Supply contention and recovery still need tuning. The expanded
+mission completion bound is separate from the small gate fixture's bound.
+
+Strict Clippy passes locally. A regression now proves that a struck sentry's
+hidden peers investigate the hit location and receive one later entry dispatch
+without learning an unseen player's live position. Sightline tests screen future
+guards from both stair approaches and transfer guards from dispatch. The full
+workspace rerun caught an overbroad intake-count assertion, now replaced with
+specific intake identities, and a two-second readiness-wire timeout. The latter
+passes alone and in the subsequent complete workspace run without changes.
+That run passes 709 tests with two existing ignored stress cases
+(`.agents/m01-completion-workspace-tests-4.log`). Formatting and dependency
+license/source/ban checks also pass. Coverage remains outstanding.
+Rendered attempts in `.agents/qa/m01-records-populated*` failed on furniture
+waypoints, then on an attack-before-entry alarm that left guards waiting and
+caused later deaths. These are failed evidence, not accepted captures. The alarm
+fix now has a hidden-peer regression; subsequent rendered failures also exposed
+cross-room kill accounting, unanswered attacks during scripted travel and the
+driver's inability to aim at an exposed body above a low counter. Failed evidence
+is retained in `.agents/qa/m01-records-{alarm,named,travel,screened}`. Later
+`exposed` and `nearby` runs stayed alive but exposed a controller timing error:
+intentional stationary fighting consumed the walking deadline. Opt-in travel
+now has separate 15-second movement and 25-second combat limits per waypoint,
+records both durations, and ignores distant targets until they are approached.
+Required named guards, movement arrival and no-death assertions remain intact.
+
+The subsequent `.agents/qa/m01-records-bounded` OpenGL run passes all 14 states,
+confirms all twenty named guards, recovers the transfer record and completes
+departure without a participant death. Both walking and combat time remain
+recorded per waypoint. The contact sheet and full reception/stacks stills were
+inspected on Windows, AMD Radeon 780M. Connected interiors and cover are visible;
+repetitive surface treatment, provisional characters and weak room-specific
+visual identity remain art work. This accurate controller run is not human
+difficulty or final pacing acceptance.
+
+The visual combat helper tracks named deaths across rooms and corpse cleanup,
+detects omitted respawning participants, fights during opt-in travel and can aim
+at exposed parts of the real body without firing through solid cover. Failed
+full-route states end the run after saving evidence. The records tour covers the expanded route;
+older intake/stair/facility manifests have focused scopes and need rerunning.
+Checkpoints, persistent saves, secrets, final art and fresh-player acceptance
+remain open. Next: finish the rendered route and full verification, then
+complete checkpoint and supply-balance work through the existing server seams.
+
+The map uses a reception privacy partition and a narrower transfer entry to
+separate later threats from earlier approaches. All collision, navigation and
+rendering still derive from the same authored solids. The loader caught unusable
+clearances during iteration; those were widened, not exempted from validation.
+Shared kit practice and distinct enemy combinations are recorded in
+`../MAP-DESIGN.md` and `../ENEMIES.md`. Requested difficulty tiers and achievement
+cosmetics are bounded in [difficulty and rewards](difficulty-and-rewards.md),
+explicitly planned rather than implemented.
+
+Reviewed [character references](../../client/art/characters/references/README.md)
+are saved with hashes and receipts. The Clerk dashboard preview was recovered
+without resubmission; its original and API polling identity remain unavailable.
+The separate Sweeper original was recovered using its saved request ID. Dashboard
+charges total $0.184769, against two $0.107 estimates; billing showed $14.51
+remaining with top-up off. Both backgrounds are opaque checkerboards. These are
+reference candidates, not production sprites. Godot loaded both successfully.

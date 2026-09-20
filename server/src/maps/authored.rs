@@ -247,15 +247,19 @@ impl AuthoredMap {
                 return Err(invalid("map spawn is unreachable from the entry"));
             }
         }
-        for destination in doc
+        for (id, destination) in doc
             .landmarks
             .iter()
-            .map(|p| p.feet)
-            .chain(supplies.iter().map(|p| [p.x, p.floor, p.z]))
+            .map(|p| (p.id.as_str(), p.feet))
+            .chain(
+                supplies
+                    .iter()
+                    .map(|p| (p.id.as_str(), [p.x, p.floor, p.z])),
+            )
             .chain(
                 doc.encounters
                     .iter()
-                    .flat_map(|e| e.enemies.iter().map(|p| p.feet)),
+                    .flat_map(|e| e.enemies.iter().map(|p| (p.id.as_str(), p.feet))),
             )
         {
             if navigation
@@ -269,7 +273,9 @@ impl AuthoredMap {
                         == crate::navigation::RouteStatus::Complete
                 })
             {
-                return Err(invalid("map placement is unreachable from the entry"));
+                return Err(invalid(&format!(
+                    "map placement {id} is unreachable from the entry",
+                )));
             }
         }
         let mut map = Self {
