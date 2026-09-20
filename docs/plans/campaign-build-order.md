@@ -34,7 +34,8 @@ awaits the new CI run. This plan does not call the milestone shipped yet.
    data, required geometry support, melee/sidearm/ammo, two readable enemy types,
    physical interaction, extraction, and a minimal checkpoint through existing
    server seams. Separate PRs can build these bounded systems with small fixtures;
-   fixtures are not shipped campaign levels.
+   fixtures are not shipped campaign levels. The first geometry increment is
+   [enclosed and layered spaces](campaign-spaces.md), required by M01's balcony.
 3. **Complete M01 as the quality target.** Full room sequence, flanks, secrets,
    discovery economy, animation, impact and room audio, localized opening,
    extraction, retry, and results. Inspect the whole route. No paid scene needed
