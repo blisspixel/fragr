@@ -62,3 +62,6 @@ msgstr "{name}: ready"
 
 msgid "STORY_READING_MEMBER"
 msgstr "{name}: reading"
+
+msgid "STORY_SCROLL_HINT"
+msgstr "Page Up / Page Down or LB / RB: scroll text"

@@ -3,8 +3,10 @@
 **Status:** connected blockout, discovery and introductory combat shipped.
 Fists, Tack, Flechette, ammunition, reload and enemy phases use server
 authority. One Clerk and two Sweepers are placed, with both approaches exercised
-through normal input. Enemy artwork and animation remain provisional. Story
-scenes remain unbuilt. The facility pass adds keyed signs,
+through normal input. Enemy artwork and animation remain provisional. A
+[reader-paced text opening and party readiness](../plans/m01-opening.md) are
+implemented for #192. Finished illustrations and
+narration remain unbuilt. The facility pass adds keyed signs,
 locker banks, service vents and practical lights through bounded map metadata.
 The mission sequence shipped in #184 and v0.26.0, connecting the physical transfer
 record to a real lift gate and shared departure. Rendered and party tests pass;
@@ -112,8 +114,9 @@ armor and a second approach to F. Neither contains essential story evidence.
 
 ## Objectives and state
 
-Current server sequence: `find_transfer` -> `reach_lift` -> `departed`.
-The planned opening frames entry without adding another mandatory interaction.
+Current server sequence: `briefing` -> `find_transfer` -> `reach_lift` -> `departed`.
+Each reader finishes or skips the opening before participating. Initial combat
+waits for the party; late readers cannot pause active play.
 The terminal interaction supplies the destination and opens a physical
 route; reading a whole log is optional. Completion occurs once on server-confirmed
 departure. Objective text: "Find the transfer record", then "Reach the lift".

@@ -106,6 +106,17 @@ impl GameSession {
         if self.bots.len() > self.min_bots {
             self.min_bots = self.bots.len();
         }
+        if let Some(mission) = self.state.mission_state() {
+            for bot in &self.bots[start_index..] {
+                self.state.acknowledge_mission(
+                    bot.player_id,
+                    protocol::MissionReady {
+                        id: mission.id,
+                        attempt: mission.attempt,
+                    },
+                );
+            }
+        }
         self.refresh_roster_host_line();
     }
 
@@ -253,6 +264,10 @@ impl GameSession {
 
             GameCommand::Action { player_id, action } => {
                 self.state.set_action(player_id, action);
+            }
+
+            GameCommand::MissionReady { player_id, ready } => {
+                self.state.acknowledge_mission(player_id, ready);
             }
 
             GameCommand::Speak { player_id, text } => {

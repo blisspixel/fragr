@@ -42,7 +42,10 @@ fn spawn() -> (OwnedChild, Ready) {
     let ready: Ready = serde_json::from_str(&line).expect("typed child readiness");
     assert_eq!(ready.version, 1);
     assert_eq!(ready.mission, MissionId::RecallNotice);
-    assert_eq!(ready.gameplay_version, 4);
+    assert_eq!(
+        ready.gameplay_version,
+        fragr_server::protocol::GAMEPLAY_VERSION
+    );
     assert!(ready.url.starts_with("ws://127.0.0.1:"));
     (child, ready)
 }
@@ -70,7 +73,7 @@ async fn bundled_mission_serves_the_normal_wire_and_stops_on_explicit_shutdown()
                 role: Role::Spectator,
                 name: "Local observer".into(),
                 geometry_version: 2,
-                gameplay_version: 4,
+                gameplay_version: fragr_server::protocol::GAMEPLAY_VERSION,
             })
             .unwrap(),
         ))

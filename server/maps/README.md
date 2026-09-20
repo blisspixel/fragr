@@ -54,7 +54,7 @@ support, not the campaign menu's finished first mission.
   reachable `feet`, and bounded `yaw`, just like a spawn. Unknown fields are
   rejected. No scripts or arbitrary behavior expressions. These maps require
   gameplay capability 3. See [actor semantics](../../docs/protocol.md#campaign-actor-identity).
-- `mission`: optional, discovery only, requires capability 4. The registered
+- `mission`: optional, discovery only, requires capability 5, including party readiness. The registered
   `id` is `recall_notice`. `record` and `departure` each contain `panel` (the same
   authored decoration shape) and `approach` feet coordinates. The panel kinds
   must be `terminal` and `lift_control`, hosted on stationary solids. These panels

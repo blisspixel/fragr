@@ -1,7 +1,9 @@
 # Campaign scene production
 
 **Status:** researched direction, 2026-09-19; storyboard and generation comparison
-planned. No campaign movie or narrator asset is implemented. The
+planned. M01's localized text presenter and server readiness are implemented
+for [#192](m01-opening.md). No campaign movie or
+narrator asset is implemented. The
 [campaign contract](../CAMPAIGN.md#story-presentation-and-localization) owns
 presentation behavior; [M01](../campaign/m01-recall-notice.md#opening-storyboard)
 owns the opening beats. This file owns production choices and current research.

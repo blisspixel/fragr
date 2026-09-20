@@ -1,4 +1,4 @@
-//! MCP request dispatch for observe / act / get_events / speak / join / leave / round_state
+//! MCP request dispatch for observation, controls, party readiness and session tools.
 //! (and initialize / tools/list).
 //! Kept free of stdin/WebSocket I/O so behavioral unit tests can cover the real tool paths.
 
@@ -80,6 +80,7 @@ impl Default for ToolState {
 pub struct HandleOutcome {
     pub response: McpResponse,
     pub pending_action: Option<Action>,
+    pub pending_mission_ready: Option<protocol::MissionReady>,
     pub pending_speak: Option<Speak>,
     pub pending_join: Option<String>,
     pub pending_leave: bool,
@@ -89,6 +90,7 @@ fn empty_outcome(response: McpResponse) -> HandleOutcome {
     HandleOutcome {
         response,
         pending_action: None,
+        pending_mission_ready: None,
         pending_speak: None,
         pending_join: None,
         pending_leave: false,
@@ -113,6 +115,34 @@ const ACT_ALLOWED_KEYS: &[&str] = &[
 const LOOK_AT_ALLOWED_KEYS: &[&str] = &["x", "y", "z", "player_id"];
 
 const JOIN_ALLOWED_KEYS: &[&str] = &["name"];
+
+fn validate_mission_ready(
+    arguments: Value,
+    state: &ToolState,
+) -> Result<Option<protocol::MissionReady>, String> {
+    let ready: protocol::MissionReady = serde_json::from_value(arguments)
+        .map_err(|error| format!("schema error: invalid mission readiness: {error}"))?;
+    let mission = state
+        .mission
+        .state
+        .as_ref()
+        .ok_or("No current mission; observe first")?;
+    if !state.connected || state.player_id.is_none() {
+        return Err("Mission readiness requires a connected participant".into());
+    }
+    if ready.id != mission.id
+        || ready.attempt != mission.attempt
+        || mission.phase == protocol::MissionPhase::Departed
+    {
+        return Err("Mission readiness does not match the active attempt; observe again".into());
+    }
+    let member = mission
+        .party
+        .iter()
+        .find(|member| Some(member.id) == state.player_id)
+        .ok_or("Not a member of this mission party")?;
+    Ok((!member.ready).then_some(ready))
+}
 
 /// Validate MCP `act` arguments. Empty/missing args are OK (all defaults).
 /// Unknown keys and bad weapon_swap values are schema errors (do not coerce).
@@ -619,6 +649,19 @@ fn tools_list_result() -> Value {
                 }
             },
             {
+                "name": "mission_ready",
+                "description": "Finish or skip the campaign briefing for this participant. Read the mission id and attempt from observe first. Readiness cannot be withdrawn; initial combat waits for the party, late arrivals do not pause it. Observe confirms server acceptance.",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "id": {"type": "string", "enum": ["recall_notice"]},
+                        "attempt": {"type": "integer", "minimum": 1, "maximum": u32::MAX}
+                    },
+                    "required": ["id", "attempt"],
+                    "additionalProperties": false
+                }
+            },
+            {
                 "name": "round_state",
                 "description": "Current round summary (state, number, time left, frag limit, mode_name, host_line, pressure) from last snapshot plus recent round_start/round_end. Prefer this over scraping observe.",
                 "inputSchema": {
@@ -704,11 +747,31 @@ pub fn handle_mcp_request(request: McpRequest, state: &mut ToolState) -> HandleO
                 .unwrap_or("");
 
             let mut pending_action = None;
+            let mut pending_mission_ready = None;
             let mut pending_speak = None;
             let mut pending_join = None;
             let mut pending_leave = false;
             let result = match tool_name {
                 "observe" => build_observe_result(state),
+
+                "mission_ready" => {
+                    let arguments = request
+                        .params
+                        .as_ref()
+                        .and_then(|params| params.get("arguments"))
+                        .cloned()
+                        .unwrap_or(Value::Null);
+                    match validate_mission_ready(arguments, state) {
+                        Ok(Some(ready)) => {
+                            pending_mission_ready = Some(ready);
+                            tool_ok_text(
+                                "Readiness submitted; observe to confirm server acceptance",
+                            )
+                        }
+                        Ok(None) => tool_ok_text("Already ready for this mission attempt"),
+                        Err(error) => tool_error_result(&error),
+                    }
+                }
 
                 "act" => {
                     let arguments = request
@@ -867,6 +930,7 @@ pub fn handle_mcp_request(request: McpRequest, state: &mut ToolState) -> HandleO
                     error: None,
                 },
                 pending_action,
+                pending_mission_ready,
                 pending_speak,
                 pending_join,
                 pending_leave,
@@ -1005,6 +1069,7 @@ mod mcp_tests {
         sim.add_player(id, "Partner".into(), protocol::Role::Agent);
         let mut state = ToolState {
             player_id: Some(id),
+            connected: true,
             ..Default::default()
         };
         ingest_server_text(&mut state, &serde_json::to_string(&sim.map_info()).unwrap()).unwrap();
@@ -1019,9 +1084,60 @@ mod mcp_tests {
         )
         .unwrap();
         let observed = build_observe_result(&state);
-        assert_eq!(observed["mission"]["phase"], "find_transfer");
+        assert_eq!(observed["mission"]["phase"], "briefing");
+        assert_eq!(observed["mission"]["party"][0]["ready"], false);
         assert_eq!(observed["mission"]["party"][0]["id"], id.to_string());
         assert_eq!(observed["map"]["mission"]["id"], "recall_notice");
+        let request = |arguments| McpRequest {
+            jsonrpc: "2.0".into(),
+            id: Some(serde_json::json!(1)),
+            method: "tools/call".into(),
+            params: Some(serde_json::json!({"name":"mission_ready","arguments":arguments})),
+        };
+        let arguments = serde_json::json!({"id":"recall_notice","attempt":1});
+        for invalid in [
+            Value::Null,
+            serde_json::json!({}),
+            serde_json::json!({"id":"unknown","attempt":1}),
+            serde_json::json!({"id":"recall_notice","attempt":0}),
+            serde_json::json!({"id":"recall_notice","attempt":2}),
+            serde_json::json!({"id":"recall_notice","attempt":"1"}),
+            serde_json::json!({"id":"recall_notice","attempt":1,"ready":false}),
+        ] {
+            let result = handle_mcp_request(request(invalid), &mut state);
+            assert!(result.pending_mission_ready.is_none());
+            assert_eq!(result.response.result.unwrap()["isError"], true);
+        }
+        for (connected, player) in [
+            (false, Some(id)),
+            (true, None),
+            (true, Some(Uuid::new_v4())),
+        ] {
+            let mut rejected = state.clone();
+            rejected.connected = connected;
+            rejected.player_id = player;
+            let result = handle_mcp_request(request(arguments.clone()), &mut rejected);
+            assert!(result.pending_mission_ready.is_none());
+            assert_eq!(result.response.result.unwrap()["isError"], true);
+        }
+        let outcome = handle_mcp_request(request(arguments.clone()), &mut state);
+        assert!(
+            !state.mission.state.as_ref().unwrap().party[0].ready,
+            "sending is not acceptance"
+        );
+        assert!(sim.acknowledge_mission(id, outcome.pending_mission_ready.unwrap()));
+        ingest_server_text(
+            &mut state,
+            &serde_json::to_string(&sim.mission_message().unwrap()).unwrap(),
+        )
+        .unwrap();
+        assert_eq!(
+            build_observe_result(&state)["mission"]["phase"],
+            "find_transfer"
+        );
+        let repeat = handle_mcp_request(request(arguments), &mut state);
+        assert!(repeat.pending_mission_ready.is_none());
+        assert_ne!(repeat.response.result.unwrap()["isError"], true);
         assert!(
             validate_act_arguments(&serde_json::json!({"interact":true}))
                 .unwrap()

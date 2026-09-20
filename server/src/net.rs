@@ -52,6 +52,10 @@ pub enum GameCommand {
         player_id: Uuid,
         action: crate::protocol::Action,
     },
+    MissionReady {
+        player_id: Uuid,
+        ready: crate::protocol::MissionReady,
+    },
     Speak {
         player_id: Uuid,
         text: String,
@@ -290,6 +294,12 @@ async fn handle_connection(
                                     player_id: pid,
                                     action,
                                 });
+                            }
+                        }
+                        Ok(ClientMessage::MissionReady(ready)) => {
+                            if let Some(player_id) = player_id {
+                                let _ =
+                                    game_tx.send(GameCommand::MissionReady { player_id, ready });
                             }
                         }
                         Ok(ClientMessage::Speak(speak)) => {

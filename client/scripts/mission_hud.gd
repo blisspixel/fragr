@@ -64,7 +64,14 @@ func _refresh() -> void:
 		return
 	var lines: Array[String] = [tr("MISSION_M01_TITLE"), ""]
 	match state["phase"]:
-		"find_transfer": lines.append(tr("MISSION_FIND_RECORD"))
+		"briefing":
+			lines.append(tr("STORY_M01_RECAP"))
+			lines.append(tr("STORY_WAITING"))
+			for member: Dictionary in state["party"]:
+				lines.append(tr("STORY_READY_MEMBER" if member["ready"] else "STORY_READING_MEMBER").format({"name": member["name"]}))
+		"find_transfer":
+			lines.append(tr("STORY_M01_RECAP"))
+			lines.append(tr("MISSION_FIND_RECORD"))
 		"reach_lift":
 			lines.append(tr("MISSION_REACH_LIFT"))
 			lines.append(tr("MISSION_TRANSFER_RECORD"))

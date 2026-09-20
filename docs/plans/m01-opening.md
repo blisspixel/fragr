@@ -1,8 +1,10 @@
 # Recall Notice opening and party readiness
 
-Status: in flight, 2026-09-20. Task: [#192](https://github.com/blisspixel/fragr/issues/192).
+Status: implemented and locally verified, 2026-09-20. Task: [#192](https://github.com/blisspixel/fragr/issues/192).
 Depends on the local campaign entry and reliable initial map delivery already
-released in v0.27.0 and v0.27.1. No opening is playable yet.
+released in v0.27.0 and v0.27.1. The text opening is playable; integration and
+release evidence is linked from the task. Finished scene art and narration are
+not part of this implementation claim.
 
 ## Outcome and story
 
@@ -90,8 +92,58 @@ refresh. No dependency or engine change is required.
 
 ## Current implementation
 
-The English script and interface copy live in `client/i18n/story.en.po`, loaded
-through the existing Godot translation settings. Import and a key-resolution
-smoke pass on 4.7.2-stable. The script follows the five beats and keeps the player
-body-neutral. No scene presenter, readiness contract, finished illustrations or
-narration is implemented yet. These text resources alone do not change gameplay.
+The English script and interface copy live in `client/i18n/story.en.po`.
+`CampaignOpening` presents all five beats with keyboard/controller buttons,
+scrollable expanded text and offline replay. The first visual pass left excessive
+empty space; inspected revision uses a centred, bounded reading panel and larger
+body copy. No finished illustration, voice or movie is claimed.
+
+Gameplay capability 5 adds `mission_ready` and each party member's `ready` flag.
+One server participation predicate covers input, equipment, pickups, hit tests,
+enemy targeting and encounter activation/reset. Readiness survives retries and
+cannot be withdrawn. Shared wire controllers acknowledge automatically; MCP has
+an explicit tool. Paid decisions wait for active participation.
+
+GameManager blocks input until valid mission state, local completion, dismissal
+release and server acceptance. The old timed card is omitted for missions. A
+queued state without our party identity does not consume the acknowledgment slot.
+Controller tests exposed missing menu accept/cancel bindings; explicit bindings
+now preserve keyboard arrows and support controller paging and text scrolling.
+
+Local evidence on 2026-09-20:
+
+- 703 Rust tests pass with two existing ignored asset generators; strict Clippy
+  passes. Unfiltered workspace line coverage is 95.79 percent.
+- Four real human/agent sockets wait for their final reader. Spectators, stale
+  attempts and old capability-4 clients cannot activate the party. Existing gate,
+  movement, inventory, both M01 approaches and shared departure assertions remain.
+- All 27 Godot harnesses and eight verifier fault scenarios pass. An inspected
+  OpenGL/AMD 780M lifecycle run also passes with a second real agent reader,
+  waiting HUD, held dismissal, rejoin, leave, unexpected server exit and cancellation.
+- The 21-state default gallery was regenerated and inspected, including shot and
+  impact strips. Opening and waiting stills live in `docs/screenshots/prototypes/`.
+- The 16-state rendered M01 tour passes and was inspected: pickups, fights, both
+  stair routes, record use, gate opening and prototype departure. It explicitly
+  skips the opening through the same presenter and waits for server admission.
+- Release build, dependency policy and the 16-bot, 1,200-tick deterministic CPU
+  benchmark pass. Four network clients complete the smoke with eight frags and
+  no spawn deaths. These establish neither large-server capacity nor final art.
+
+The six-map mixed reflex/planner roster passed the unchanged assertions:
+
+| Map | Seed | Clients | Frags | Spawn deaths |
+|---|---|---|---|---|
+| Arena Duel | 67 | 2 | 5 | 0 |
+| Compliance Yard | 42 | 6 | 26 | 0 |
+| Directive 17 Substation | 19 | 6 | 24 | 1 |
+| Sector 9 Transit Hall | 42 | 8 | 34 | 0 |
+| Reclamation Gulch | 42 | 12 | 55 | 3 |
+| Tripoint Works | 42 | 16 | 51 | 7 |
+
+These short runs prove the existing acceptance checks, not spawn safety or fun
+at every density. Retain the spawn-death evidence for the next arena balance pass.
+Logs and intermediate captures are under `.agents/m01-opening-*`, with roster
+reports in `.agents/playtest/m01-opening-roster/`. Integration CI is recorded on
+the linked pull request; shipped status belongs to its release record.
+No new paid generation was needed. Issue #186's intermittent
+exit retention remains open; clean local runs do not establish its cause or fix.

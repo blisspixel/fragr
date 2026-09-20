@@ -18,7 +18,7 @@ an explicit approved cap, and the existing developer pipelines.
 | Episode | Calibration prototype; M01 transfer/gate/departure shipped in v0.26.0 | Full story missions, rescue outcomes and campaign transitions |
 | Persistence | Player settings | Versioned party campaign save, checkpoints, inventory and rescue outcomes |
 | Co-op | Allied campaign participants, encounter wipe reset; shared mission boarding and four-seat admission shipped with live party evidence | Revive, checkpoints, save ownership, reconnect and proven party balance |
-| Presentation | Retro front end, current HUD, radio and idle viewmodels | Localized framing, companion scenes, complete character/weapon/effect motion |
+| Presentation | Retro front end, HUD, radio and viewmodels; localized M01 text opening implemented in #192 | Finished scene art/narration, companion scenes, complete character/weapon/effect motion |
 
 Navigation PR #172 shipped in v0.21.0 after local verification and green CI,
 including fixes for the first run's map-3 stall and map-5 spawn-death failures.

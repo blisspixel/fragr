@@ -71,6 +71,11 @@ var last_shot_tick: int = -1
 var mouse_capture: MouseCapture
 var local_match: LocalMatch
 var _leaving: bool = false
+var opening: CampaignOpening
+var _opening_finished: bool = false
+var _opening_release: bool = false
+var _readiness_attempt_sent: int = 0
+var _awaiting_map: bool = false
 
 func _ready():
 	mission_hud = MissionHud.new()
@@ -111,6 +116,7 @@ func _ready():
 	if boot.has("host") and str(boot["host"]) != "":
 		net_client.set_server_host(str(boot["host"]))
 	
+	_awaiting_map = true
 	net_client.connect_to_server(role, player_name)
 	hud.set_mode(str(boot.get("hud_mode", "SPECTATING")))
 	_setup_radio()
@@ -161,6 +167,14 @@ func _on_map_info(info: Dictionary) -> void:
 	if shot_effects != null:
 		shot_effects.clear()
 	current_map_info = info.duplicate(true)
+	_awaiting_map = false
+	if mission is Dictionary:
+		if is_human_player and not _opening_finished and not is_instance_valid(opening):
+			opening = CampaignOpening.new()
+			opening.completed.connect(_on_opening_completed)
+			add_child(opening)
+	elif is_human_player:
+		show_loading_card()
 	if arena_cover != null:
 		arena_cover.apply_map_info(info)
 	# The venue decides the sky, and the venue is only known once the server
@@ -181,16 +195,54 @@ func _setup_frontend() -> void:
 	pause_menu.leave_requested.connect(_on_leave_requested)
 	add_child(pause_menu)
 
-	if is_human_player:
-		show_loading_card()
-
 func _apply_preferences() -> void:
 	settings.apply()
 	camera.apply_preferences(settings)
 	hud.apply_preferences(settings)
 
 func controls_blocked() -> bool:
-	return role_transition or (mission_hud != null and mission_hud.state.get("phase") == "departed") or (mouse_capture != null and not mouse_capture.gameplay_input_allowed()) or (console != null and console.is_open()) or (pause_menu != null and pause_menu.is_open())
+	return role_transition or _mission_controls_blocked() or (mission_hud != null and mission_hud.state.get("phase") == "departed") or (mouse_capture != null and not mouse_capture.gameplay_input_allowed()) or (console != null and console.is_open()) or (pause_menu != null and pause_menu.is_open())
+
+func _mission_controls_blocked() -> bool:
+	if not is_human_player:
+		return false
+	if _awaiting_map or _opening_release or is_instance_valid(opening):
+		return true
+	if not current_map_info.get("mission") is Dictionary:
+		return false
+	if net_client.mission.is_empty():
+		return true
+	var state: Dictionary = net_client.mission["state"]
+	if state["phase"] == "briefing":
+		return true
+	for member: Dictionary in state["party"]:
+		if member["id"] == net_client.player_id:
+			return not member["ready"]
+	return true
+
+func _on_opening_completed() -> void:
+	_opening_finished = true
+	_opening_release = true
+	opening.queue_free()
+	opening = null
+	pending_jump = false
+	pending_reload = false
+	pending_interact = false
+	interact_held = false
+	pending_weapon_swap = null
+
+func _opening_input_released() -> bool:
+	for action: String in ["ui_accept", "ui_cancel", "fire", "jump", "reload", "interact", "move_forward", "move_back", "move_left", "move_right"]:
+		if Input.is_action_pressed(action):
+			return false
+	return true
+
+func _submit_mission_readiness() -> void:
+	if not is_human_player or not _opening_finished or _opening_release or net_client.mission.is_empty():
+		return
+	var attempt: int = int(net_client.mission["state"]["attempt"])
+	if attempt != _readiness_attempt_sent and net_client.send_mission_ready():
+		_readiness_attempt_sent = attempt
 
 ## The controls card. Shown on every join, including pressing J mid-match,
 ## because a player who joined from the booth never saw the boot one.
@@ -334,8 +386,7 @@ func change_role(play: bool) -> void:
 	hud.set_ghost_rival("")
 	if radio:
 		radio.set_human_mode(play)
-	if play:
-		show_loading_card()
+	_awaiting_map = true
 	role_transition = false
 
 ## Input sequence. The server echoes the newest one it applied in an ack,
@@ -351,6 +402,9 @@ func _on_ack_received(data: Dictionary) -> void:
 
 
 func _process(_delta):
+	if _opening_release and _opening_input_released():
+		_opening_release = false
+		_submit_mission_readiness()
 	if mouse_capture != null:
 		mouse_capture.set_gameplay(not controls_blocked())
 	if not is_human_player:
@@ -392,6 +446,7 @@ func _process(_delta):
 func _on_mission_received(state: Dictionary) -> void:
 	if mission_hud != null:
 		mission_hud.apply(state, str(net_client.player_id) if is_human_player else "")
+	_submit_mission_readiness()
 
 func _has_local_input_target() -> bool:
 	# An open socket precedes the first snapshot. Sending the default camera aim
@@ -479,6 +534,14 @@ func _on_server_error(message: String) -> void:
 	hud.set_status(message)
 
 func _clear_world() -> void:
+	if is_instance_valid(opening):
+		opening.queue_free()
+	opening = null
+	_opening_finished = false
+	_opening_release = false
+	_readiness_attempt_sent = 0
+	_awaiting_map = true
+	current_map_info.clear()
 	pending_jump = false
 	pending_reload = false
 	pending_interact = false

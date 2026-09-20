@@ -260,6 +260,19 @@ async fn apply_mcp_line(
         }
     }
 
+    if let Some(ready) = outcome.pending_mission_ready {
+        let s = session
+            .as_mut()
+            .ok_or_else(|| io::Error::other("mission readiness requires a connected session"))?;
+        s.sink
+            .lock()
+            .await
+            .send(Message::Text(serde_json::to_string(
+                &ClientMessage::MissionReady(ready),
+            )?))
+            .await?;
+    }
+
     if let Some(speak) = outcome.pending_speak {
         if let Some(ref mut s) = session {
             let speak_msg = ClientMessage::Speak(speak);
@@ -356,7 +369,14 @@ async fn run_scripted_bot(
             msg = ws_stream.next() => {
                 if let Some(Ok(Message::Text(text))) = msg {
                     match serde_json::from_str::<ServerMessage>(&text)? {
-                        ServerMessage::Mission { tick, state } => mission_client.observe(tick, state).map_err(io::Error::other)?,
+                        ServerMessage::Mission { tick, state } => {
+                            mission_client.observe(tick, state).map_err(io::Error::other)?;
+                            if let Some(ready) = mission_client.readiness(Some(bot_id)) {
+                                ws_sink.send(Message::Text(
+                                    serde_json::to_string(&ClientMessage::MissionReady(ready))?,
+                                )).await?;
+                            }
+                        }
                         ServerMessage::Loadout(next) => {
                             next.validate_for(Some(bot_id), loadout.as_ref()).map_err(io::Error::other)?;
                             loadout = Some(next);
@@ -1603,7 +1623,7 @@ mod tests {
             loop {
                 {
                     let state = state.lock().await;
-                    if state.map.is_some() {
+                    if state.map.is_some() && state.mission.state.is_some() {
                         if let Some(player) = own_player(&state) {
                             break player;
                         }
@@ -1617,6 +1637,10 @@ mod tests {
         let mut output = Vec::new();
         for (name, arguments) in [
             ("observe", serde_json::json!({})),
+            (
+                "mission_ready",
+                serde_json::json!({"id":"recall_notice","attempt":1}),
+            ),
             (
                 "act",
                 serde_json::json!({"forward":true,"look_at":{"x":-2,"y":1.6,"z":-20}}),

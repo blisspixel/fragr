@@ -41,6 +41,14 @@ fn session() -> GameSession {
 fn add(state: &mut GameState, role: Role) -> Uuid {
     let id = Uuid::new_v4();
     state.add_player(id, format!("Player {}", state.players.len()), role);
+    let mission = state.mission_state().unwrap();
+    assert!(state.acknowledge_mission(
+        id,
+        MissionReady {
+            id: mission.id,
+            attempt: mission.attempt
+        }
+    ));
     id
 }
 

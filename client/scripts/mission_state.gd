@@ -3,7 +3,7 @@ extends RefCounted
 
 ## Mirror of protocol/mission.rs. Validation grants no local mission authority.
 const ID: String = "recall_notice"
-const PHASES: Array[String] = ["find_transfer", "reach_lift", "departed"]
+const PHASES: Array[String] = ["briefing", "find_transfer", "reach_lift", "departed"]
 const INVALID: String = "The server sent invalid mission state. Connection closed."
 
 static func map_error(info: Dictionary) -> String:
@@ -58,11 +58,11 @@ static func validation_error(message: Dictionary, geometry: Dictionary, previous
 	var party: Dictionary = {}
 	var ready: bool = true
 	for member: Variant in value["party"]:
-		if not member is Dictionary or member.size() != 4 or not _uuid(member.get("id")) \
+		if not member is Dictionary or member.size() != 5 or not _uuid(member.get("id")) \
 			or party.has(member["id"]) or not member.get("name") is String \
 			or member["name"].is_empty() or member["name"].length() > 48 \
-			or not member.get("alive") is bool or not member.get("aboard") is bool \
-			or (member["aboard"] and not member["alive"]):
+			or not member.get("ready") is bool or not member.get("alive") is bool or not member.get("aboard") is bool \
+			or (member["aboard"] and (not member["alive"] or not member["ready"] or value["phase"] == "briefing")):
 			return INVALID
 		for character: String in member["name"]:
 			var code: int = character.unicode_at(0)
@@ -74,11 +74,12 @@ static func validation_error(message: Dictionary, geometry: Dictionary, previous
 	for prompt: Variant in value["prompts"]:
 		if not prompt is Dictionary or prompt.size() != 2 or not _uuid(prompt.get("player_id")) \
 			or not party.has(prompt["player_id"]) or not party[prompt["player_id"]]["alive"] \
+			or not party[prompt["player_id"]]["ready"] \
 			or prompt["player_id"] in prompted:
 			return INVALID
 		if (value["phase"] == "find_transfer" and prompt.get("kind") != "transfer_record") \
 			or (value["phase"] == "reach_lift" and (prompt.get("kind") != "lift_departure" or not ready)) \
-			or value["phase"] == "departed":
+			or value["phase"] in ["briefing", "departed"]:
 			return INVALID
 		prompted.append(prompt["player_id"])
 	return ""

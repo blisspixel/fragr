@@ -63,7 +63,10 @@ impl MissionProbe {
             }
             ServerMessage::Mission { tick, state } => {
                 assert_eq!(state.attempt, 1, "unexpected party reset");
-                let expected = usize::from(state.phase != MissionPhase::FindTransfer);
+                let expected = usize::from(!matches!(
+                    state.phase,
+                    MissionPhase::Briefing | MissionPhase::FindTransfer
+                ));
                 assert_eq!(
                     self.revisions.last(),
                     Some(&expected),
@@ -117,10 +120,7 @@ fn joining_on_either_side_of_first_tick_preserves_mission_geometry_order() {
             probe.ingest(message);
         }
         assert_eq!(probe.revisions, [0]);
-        assert_eq!(
-            probe.observer.state.unwrap().phase,
-            MissionPhase::FindTransfer
-        );
+        assert_eq!(probe.observer.state.unwrap().phase, MissionPhase::Briefing);
     }
 }
 
@@ -142,7 +142,7 @@ async fn connect(
                 role,
                 name: format!("{role:?}"),
                 geometry_version: 2,
-                gameplay_version: 4,
+                gameplay_version: crate::protocol::GAMEPLAY_VERSION,
             })
             .unwrap(),
         ))
@@ -154,9 +154,14 @@ async fn connect(
 #[tokio::test]
 async fn broadcast_cannot_overtake_join_geometry_for_any_role() {
     let (commands_tx, mut commands_rx) = tokio::sync::mpsc::unbounded_channel();
-    let net = crate::net::NetServer::bind_with_requirements("127.0.0.1:0", commands_tx, 2, 4)
-        .await
-        .unwrap();
+    let net = crate::net::NetServer::bind_with_requirements(
+        "127.0.0.1:0",
+        commands_tx,
+        2,
+        crate::protocol::READINESS_GAMEPLAY_VERSION,
+    )
+    .await
+    .unwrap();
     let url = format!("ws://{}", net.local_addr().unwrap());
     let clients = net.clients.clone();
     let accept = tokio::spawn(net.accept_loop());
@@ -262,6 +267,14 @@ async fn drive(
                 navigator.clear();
             }
             ServerMessage::Mission { state, .. } => {
+                if let Some(ready) = probe.observer.readiness(id) {
+                    socket
+                        .send(Message::Text(
+                            serde_json::to_string(&ClientMessage::MissionReady(ready)).unwrap(),
+                        ))
+                        .await
+                        .unwrap();
+                }
                 let phase = state.phase;
                 if phase == MissionPhase::ReachLift && !reported_record {
                     reached.send(()).unwrap();
@@ -396,4 +409,128 @@ async fn live_mixed_party_and_late_spectator_observe_the_same_gate_and_departure
     stop_tx.send(()).unwrap();
     server.await.unwrap().unwrap();
     eprintln!("Mission wire: human + agent walked, read, boarded and departed; late spectator saw open geometry before shared progress");
+}
+
+#[tokio::test]
+async fn four_readers_share_one_start_and_spectators_cannot_acknowledge() {
+    use crate::net::GameCommand;
+    use crate::protocol::MissionReady;
+    let (commands_tx, mut commands_rx) = tokio::sync::mpsc::unbounded_channel();
+    let net = crate::net::NetServer::bind_with_requirements(
+        "127.0.0.1:0",
+        commands_tx,
+        2,
+        crate::protocol::READINESS_GAMEPLAY_VERSION,
+    )
+    .await
+    .unwrap();
+    let url = format!("ws://{}", net.local_addr().unwrap());
+    let clients = net.clients.clone();
+    let accept = tokio::spawn(net.accept_loop());
+    let map = crate::maps::AuthoredMap::read(
+        serde_json::to_vec(&super::tests::definition())
+            .unwrap()
+            .as_slice(),
+    )
+    .unwrap();
+    let mut session = crate::session::GameSession::with_authored_map(map);
+    let mut sockets = Vec::new();
+    for role in [
+        Role::Human,
+        Role::Agent,
+        Role::Human,
+        Role::Agent,
+        Role::Spectator,
+    ] {
+        let socket = connect(&url, role).await;
+        let command = tokio::time::timeout(Duration::from_secs(2), commands_rx.recv())
+            .await
+            .unwrap()
+            .unwrap();
+        assert!(matches!(command, GameCommand::Connected { .. }));
+        session.apply_command(command);
+        sockets.push(socket);
+    }
+    let unicasts = session.take_unicasts();
+    crate::session::send_unicasts(&clients, &session.client_to_player, &unicasts).await;
+    let messages = session.tick_messages(0.05);
+    crate::session::broadcast_to_clients(&clients, &messages).await;
+    for socket in &mut sockets {
+        tokio::time::timeout(Duration::from_secs(2), async {
+            let mut probe = MissionProbe::new();
+            while let Some(Ok(Message::Text(text))) = socket.next().await {
+                let message: ServerMessage = serde_json::from_str(&text).unwrap();
+                probe.ingest(&message);
+                if let ServerMessage::Mission { state, .. } = message {
+                    if state.party.len() == 4 {
+                        assert_eq!(state.phase, MissionPhase::Briefing);
+                        assert!(state.party.iter().all(|member| !member.ready));
+                        return;
+                    }
+                }
+            }
+            panic!("connection ended before the shared party");
+        })
+        .await
+        .unwrap();
+    }
+    let state = session.state.mission_state().unwrap();
+    let acknowledgement = MissionReady {
+        id: state.id,
+        attempt: state.attempt,
+    };
+    let wire = serde_json::to_string(&ClientMessage::MissionReady(acknowledgement)).unwrap();
+    for (index, socket) in sockets.iter_mut().take(3).enumerate() {
+        socket.send(Message::Text(wire.clone())).await.unwrap();
+        let command = tokio::time::timeout(Duration::from_secs(2), commands_rx.recv())
+            .await
+            .unwrap()
+            .unwrap();
+        assert!(matches!(command, GameCommand::MissionReady { .. }));
+        session.apply_command(command);
+        session.tick_messages(0.05);
+        let state = session.state.mission_state().unwrap();
+        assert_eq!(state.phase, MissionPhase::Briefing);
+        assert_eq!(
+            state.party.iter().filter(|member| member.ready).count(),
+            index + 1
+        );
+    }
+    sockets[4].send(Message::Text(wire.clone())).await.unwrap();
+    let mut invalid = acknowledgement;
+    invalid.attempt += 1;
+    sockets[3]
+        .send(Message::Text(
+            serde_json::to_string(&ClientMessage::MissionReady(invalid)).unwrap(),
+        ))
+        .await
+        .unwrap();
+    // The next queued command is the participant's stale attempt, never the
+    // spectator's otherwise valid message. Both must leave combat paused.
+    let command = tokio::time::timeout(Duration::from_secs(2), commands_rx.recv())
+        .await
+        .unwrap()
+        .unwrap();
+    assert!(matches!(command, GameCommand::MissionReady { ready, .. } if ready == invalid));
+    session.apply_command(command);
+    assert_eq!(
+        session.state.mission_state().unwrap().phase,
+        MissionPhase::Briefing
+    );
+    sockets[3].send(Message::Text(wire)).await.unwrap();
+    let command = tokio::time::timeout(Duration::from_secs(2), commands_rx.recv())
+        .await
+        .unwrap()
+        .unwrap();
+    assert!(matches!(command, GameCommand::MissionReady { ready, .. } if ready == acknowledgement));
+    session.apply_command(command);
+    let state = session.state.mission_state().unwrap();
+    assert_eq!(state.phase, MissionPhase::FindTransfer);
+    assert_eq!(state.party.len(), 4);
+    assert!(state.party.iter().all(|member| member.ready));
+    for mut socket in sockets {
+        socket.close(None).await.unwrap();
+    }
+    accept.abort();
+    eprintln!("Mission readiness wire: four human/agent readers, partial readiness, stale attempt and spectator exclusion passed");
 }

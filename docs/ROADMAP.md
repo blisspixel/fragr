@@ -123,8 +123,15 @@ a real join race: broadcasts could overtake initial geometry. The fix shipped in
 Local regressions, mixed-map sessions, inspected gallery and all five pre-merge CI
 jobs pass. One intermittent gallery exit error remains recorded in
 the plan without a claimed fix. Checkpoints,
-the opening scene, full encounter population and finished art remain. This
+full encounter population and finished art remain. This
 foundation is not a finished campaign or proven co-op balance.
+
+[M01's opening and readiness](plans/m01-opening.md) are implemented for
+#192. Five keyed text panels establish Latch's recall,
+offer back/next/skip and replay, and hand off through server-owned party readiness.
+Late readers cannot pause combat or participate until ready. The MCP adapter
+exposes the same explicit acknowledgment. Finished scene illustrations, narration
+and movies remain separate production work.
 
 [Opening spawn placement](plans/opening-spawns.md) shipped in #175 and v0.21.2.
 Warmup joins now use the same cover selector as active joins and respawns. The
@@ -184,7 +191,8 @@ light. Those authoring decisions have not recolored the live roster.
 **7. Full campaign foundation and M01.** `plans/campaign-build-order.md` sequences
 validated map data, inventory/ammo, real enemy roles, interaction, checkpoints,
 text presentation and a complete authored opening. Calibration remains a shipped
-prototype. None of the twelve planned missions exists yet.
+prototype. M01 has a playable development slice; none of the twelve planned
+missions is complete.
 
 **8. Story presentation.** Localized framing and text/voice fallback belong in
 M01. Brief pixel-styled scenes support reunion, travel, victory, sudden rupture

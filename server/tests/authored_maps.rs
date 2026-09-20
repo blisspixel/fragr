@@ -151,14 +151,41 @@ async fn authored_map_is_shared_by_humans_agents_and_spectators() {
             }
         }
         if id.is_some() {
-            loop {
-                if let ServerMessage::Loadout(loadout) = receive(&mut socket).await {
-                    loadout.validate_for(id, None).unwrap();
-                    assert_eq!(loadout.selected, fragr_server::protocol::WeaponType::Fists);
-                    assert_eq!(loadout.weapons.len(), 1);
-                    break;
+            let state = tokio::time::timeout(Duration::from_secs(3), async {
+                let mut mission = None;
+                let mut has_loadout = false;
+                loop {
+                    match receive(&mut socket).await {
+                        ServerMessage::Loadout(loadout) => {
+                            loadout.validate_for(id, None).unwrap();
+                            assert_eq!(loadout.selected, fragr_server::protocol::WeaponType::Fists);
+                            assert_eq!(loadout.weapons.len(), 1);
+                            has_loadout = true;
+                        }
+                        ServerMessage::Mission { state, .. } => mission = Some(state),
+                        _ => {}
+                    }
+                    if has_loadout {
+                        if let Some(state) = mission {
+                            break state;
+                        }
+                    }
                 }
-            }
+            })
+            .await
+            .expect("initial equipment and mission deadline");
+            socket
+                .send(Message::Text(
+                    serde_json::to_string(&ClientMessage::MissionReady(
+                        fragr_server::protocol::MissionReady {
+                            id: state.id,
+                            attempt: state.attempt,
+                        },
+                    ))
+                    .unwrap(),
+                ))
+                .await
+                .unwrap();
             socket
                 .send(Message::Text(
                     serde_json::to_string(&ClientMessage::Action(fragr_server::protocol::Action {

@@ -21,6 +21,7 @@ var _settings: FragrSettings
 var _name_edit: LineEdit = null
 var _local_match: LocalMatch
 var _launch_pending: bool = false
+var _opening: CampaignOpening
 
 func _ready() -> void:
 	MouseCapture.release()
@@ -165,12 +166,25 @@ func _page_single() -> void:
 	mission.name = "RecallNotice"
 	mission.disabled = _local_match.state not in [LocalMatch.State.IDLE, LocalMatch.State.FAILED]
 	_label(tr("MENU_M01_DESCRIPTION"))
+	_button(tr("STORY_REPLAY"), _replay_opening)
 	_label(tr("MENU_PRACTICE"))
 	_button("Calibration challenge", func() -> void: _launch("solo", LOOPBACK))
 	_button("Arena against bots", func() -> void: _launch("join", LOOPBACK))
 	_button("Watch the bots", func() -> void: _launch("spectate", LOOPBACK))
 	_label(tr("MENU_PRACTICE_SERVER"))
 	_button("Back", func() -> void: _show("main"))
+
+func _replay_opening() -> void:
+	if is_instance_valid(_opening):
+		return
+	_opening = CampaignOpening.new()
+	_opening.completed.connect(_finish_replay)
+	add_child(_opening)
+
+func _finish_replay() -> void:
+	_opening.queue_free()
+	_opening = null
+	_show("single")
 
 func _start_campaign() -> void:
 	if _launch_pending:
@@ -282,14 +296,13 @@ func _host_address() -> String:
 func _unhandled_input(event: InputEvent) -> void:
 	if _console != null and _console.is_open():
 		return
-	if event is InputEventKey and event.pressed and not (event as InputEventKey).echo:
-		if (event as InputEventKey).physical_keycode == KEY_ESCAPE and _page != "main":
-			_settings.load_from_disk()
-			if _launch_pending:
-				_cancel_campaign()
-			else:
-				_show("main")
-			get_viewport().set_input_as_handled()
+	if event.is_action_pressed("ui_cancel") and not event.is_echo() and _page != "main":
+		_settings.load_from_disk()
+		if _launch_pending:
+			_cancel_campaign()
+		else:
+			_show("main")
+		get_viewport().set_input_as_handled()
 
 func _launch(mode: String, host: String) -> void:
 	var boot: Dictionary = {

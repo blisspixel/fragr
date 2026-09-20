@@ -28,7 +28,7 @@ func _map() -> Dictionary:
 
 func _message() -> Dictionary:
 	return {"type": "mission", "tick": 10, "state": {"id": "recall_notice", "attempt": 1, "phase": "find_transfer", "changed_at": 0,
-		"party": [{"id": PLAYER, "name": "Visitor", "alive": true, "aboard": false}],
+		"party": [{"id": PLAYER, "name": "Visitor", "ready": true, "alive": true, "aboard": false}],
 		"prompts": [{"player_id": PLAYER, "kind": "transfer_record"}]}}
 
 func _run() -> void:
@@ -49,8 +49,8 @@ func _run() -> void:
 	var message: Dictionary = _message()
 	_expect(MissionState.validation_error(message, info["mission"]).is_empty(), "valid prompt accepted")
 	for patch: Dictionary in [{"attempt": 0}, {"attempt": 1.5}, {"changed_at": 11}, {"phase": "invented"},
-		{"party": [null]}, {"party": [{"id": PLAYER, "name": "bad\nname", "alive": true, "aboard": false}]},
-		{"party": [{"id": PLAYER, "name": "Visitor", "alive": false, "aboard": true}]},
+		{"party": [null]}, {"party": [{"id": PLAYER, "name": "bad\nname", "ready": true, "alive": true, "aboard": false}]},
+		{"party": [{"id": PLAYER, "name": "Visitor", "ready": true, "alive": false, "aboard": true}]},
 		{"prompts": [{"player_id": PLAYER, "kind": "lift_departure"}]}, {"phase": "departed"}]:
 		var bad: Dictionary = message.duplicate(true)
 		bad["state"].merge(patch, true)
@@ -58,6 +58,7 @@ func _run() -> void:
 	var network: CaptureNetwork = CaptureNetwork.new()
 	network._handle_message(JSON.stringify(info))
 	network._handle_message(JSON.stringify(message))
+	_readiness(network, info)
 	_expect(network.mission.get("state", {}).get("phase") == "find_transfer" \
 		and network.mission.get("state", {}).get("prompts", []).size() == 1,
 		"network retains validated late mission state: " + str(network.mission))
@@ -76,6 +77,59 @@ func _run() -> void:
 	if failures == 0:
 		print("test_mission: PASS map/state boundary, late state, short use, pause ownership and localized HUD")
 	quit(0 if failures == 0 else 1)
+
+func _readiness(network: CaptureNetwork, info: Dictionary) -> void:
+	var message: Dictionary = _message()
+	message["state"]["phase"] = "briefing"
+	message["state"]["party"][0]["ready"] = false
+	message["state"]["prompts"] = []
+	_expect(MissionState.validation_error(message, info["mission"]).is_empty(), "briefing permits unread members")
+	for patch: Dictionary in [{"ready": "yes"}, {"aboard": true}]:
+		var invalid: Dictionary = message.duplicate(true)
+		invalid["state"]["party"][0].merge(patch, true)
+		_expect(not MissionState.validation_error(invalid, info["mission"]).is_empty(), "readiness and boarding are strict")
+	var forbidden: Dictionary = _message()
+	forbidden["state"]["party"][0]["ready"] = false
+	_expect(not MissionState.validation_error(forbidden, info["mission"]).is_empty(), "unread member cannot have a use prompt")
+	network._handle_message(JSON.stringify(message))
+	network.connection_state = WebSocketPeer.STATE_OPEN
+	network.player_id = PLAYER
+	var manager: Node = load("res://scripts/game_manager.gd").new()
+	manager.net_client = network
+	manager.is_human_player = true
+	manager.current_map_info = info
+	manager._opening_finished = true
+	manager._opening_release = true
+	_expect(manager.controls_blocked(), "finishing locally does not unlock combat")
+	manager._submit_mission_readiness()
+	_expect(network.sent.is_empty(), "held dismissal waits for release")
+	manager._opening_release = false
+	# A queued pre-admission state must not consume the attempt's send slot.
+	network.mission["state"]["party"] = []
+	manager._submit_mission_readiness()
+	_expect(manager._readiness_attempt_sent == 0, "missing own member cannot acknowledge")
+	network._handle_message(JSON.stringify(message))
+	manager._submit_mission_readiness()
+	_expect(network.sent == [{"type": "mission_ready", "id": "recall_notice", "attempt": 1}], "exact mission attempt is acknowledged")
+	manager._submit_mission_readiness()
+	_expect(network.sent.size() == 1, "waiting does not spam readiness")
+	message["state"]["party"][0]["ready"] = true
+	network._handle_message(JSON.stringify(message))
+	_expect(manager.controls_blocked(), "one ready member still waits for the shared phase")
+	message["state"]["phase"] = "find_transfer"
+	network._handle_message(JSON.stringify(message))
+	_expect(not manager.controls_blocked(), "server activation releases gameplay")
+	message["state"]["attempt"] = 2
+	message["state"]["party"][0]["ready"] = false
+	network._handle_message(JSON.stringify(message))
+	manager._submit_mission_readiness()
+	_expect(network.sent.back()["attempt"] == 2, "reader completion follows a party retry")
+	network.player_id = null
+	_expect(not network.send_mission_ready(), "spectators cannot submit readiness")
+	manager.free()
+	network.sent.clear()
+	network._handle_message(JSON.stringify(info))
+	network._handle_message(JSON.stringify(_message()))
 
 func _input_and_hud(network: CaptureNetwork, state: Dictionary) -> void:
 	var manager: Node = load("res://scripts/game_manager.gd").new()

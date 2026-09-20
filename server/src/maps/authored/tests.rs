@@ -250,6 +250,14 @@ fn m01_routes_use_ordinary_actions_through_the_live_session() {
         let mut session = GameSession::with_authored_map(map.clone());
         let id = Uuid::nil();
         session.state.add_player(id, "Walker".into(), role);
+        let mission = session.state.mission_state().unwrap();
+        assert!(session.state.acknowledge_mission(
+            id,
+            crate::protocol::MissionReady {
+                id: mission.id,
+                attempt: mission.attempt,
+            }
+        ));
         let mut navigator = Navigator::default();
         for name in [
             "confiscation_bay",
