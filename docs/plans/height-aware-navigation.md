@@ -5,6 +5,21 @@ Branch: `feat/height-aware-navigation`. Spend: $0.
 
 ## Integration follow-up
 
+The design follow-up's CI run 35484092919 exposed a cold-start failure under
+coverage: four brain tests exceeded their unchanged five-second readiness limit.
+A fixed Arena Duel session was building all six maps, including unrelated large
+topologies. Navigation now caches maps independently; fixed sessions prepare
+only their map, while rotating sessions still prepare the roster before ready.
+Isolated-cache tests enforce both preparation contracts and cache reuse. This
+changes startup work, not routes, tick rules or test deadlines.
+Local verification passes: 596 workspace tests (one existing ignored generator),
+Clippy with warnings denied, release builds, and unfiltered line coverage of
+95.50 percent. The 12,000-tick, seed-42 Arena Duel trace remains
+`fd6ec849cb20375b267f523588200f4568ca6358513375b7d8ce09db28be508c`.
+Receipts: `.agents/navigation-startup-*.log` and
+`.agents/bench/navigation-startup-16.json`. The next CI run must verify cold
+Linux coverage startup; a local pass is not a replacement for that failure.
+
 Merged as `c8e52ba` after [CI run 35483531954](https://github.com/blisspixel/fragr/actions/runs/35483531954)
 passed every Linux, Windows, macOS, Godot and audit job. The retained Linux map
 matrix records 6/32/26/28/47/71 frags and 1/2/1/1/3/6 spawn deaths for maps 1-6;

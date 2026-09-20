@@ -27,23 +27,71 @@ use crate::sim::{ArenaPickup, MapKind, PickupKind, ARMOR_PAD_AMOUNT, HEALTH_PAD_
 use std::f32::consts::PI;
 use std::sync::OnceLock;
 
-/// Build the bounded roster once at session startup, including rotation maps.
-/// A round change must not put topology construction into the measured tick.
-pub(crate) fn navigation(kind: MapKind) -> &'static crate::navigation::Navigation {
-    static NAVIGATION: OnceLock<Vec<std::sync::Arc<crate::navigation::Navigation>>> =
-        OnceLock::new();
-    &NAVIGATION.get_or_init(|| {
-        MapKind::ALL
-            .into_iter()
-            .map(|map| {
-                crate::navigation::Navigation::shared(crate::movement::Arena {
-                    half: map.half_extent(),
-                    solids: map.solids(),
-                })
-                .expect("the tested map roster must satisfy navigation bounds")
+struct NavigationCache {
+    maps: [OnceLock<std::sync::Arc<crate::navigation::Navigation>>; MapKind::ALL.len()],
+}
+
+impl NavigationCache {
+    const fn new() -> Self {
+        Self {
+            maps: [const { OnceLock::new() }; MapKind::ALL.len()],
+        }
+    }
+
+    fn get(&self, kind: MapKind) -> &crate::navigation::Navigation {
+        self.maps[kind.index()].get_or_init(|| {
+            crate::navigation::Navigation::shared(crate::movement::Arena {
+                half: kind.half_extent(),
+                solids: kind.solids(),
             })
-            .collect()
-    })[kind.index()]
+            .expect("the tested map roster must satisfy navigation bounds")
+        })
+    }
+
+    fn prepare(&self, kind: MapKind, rotate: bool) {
+        if rotate {
+            for map in MapKind::ALL {
+                self.get(map);
+            }
+        } else {
+            self.get(kind);
+        }
+    }
+}
+
+static NAVIGATION: NavigationCache = NavigationCache::new();
+
+pub(crate) fn navigation(kind: MapKind) -> &'static crate::navigation::Navigation {
+    NAVIGATION.get(kind)
+}
+
+/// Prepare only playable maps before readiness. A fixed-map session must not
+/// wait for unrelated large maps, and rotation must not build during a tick.
+pub(crate) fn prepare_navigation(kind: MapKind, rotate: bool) {
+    NAVIGATION.prepare(kind, rotate);
+}
+
+#[cfg(test)]
+mod navigation_cache_tests {
+    use super::*;
+
+    #[test]
+    fn fixed_session_prepares_only_its_map_and_reuses_it() {
+        let cache = NavigationCache::new();
+        let chosen = MapKind::ArenaDuel;
+        cache.prepare(chosen, false);
+        for map in MapKind::ALL {
+            assert_eq!(cache.maps[map.index()].get().is_some(), map == chosen);
+        }
+        assert!(std::ptr::eq(cache.get(chosen), cache.get(chosen)));
+    }
+
+    #[test]
+    fn rotation_prepares_every_map_before_play() {
+        let cache = NavigationCache::new();
+        cache.prepare(MapKind::ComplianceYard, true);
+        assert!(cache.maps.iter().all(|map| map.get().is_some()));
+    }
 }
 
 /// Axis-aligned scrap solid in XZ, standing on the floor and reaching up to
