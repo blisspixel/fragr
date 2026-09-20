@@ -728,9 +728,10 @@ impl GameState {
         let (preferred_x, preferred_z, _, _) = spawn_on_ring(self.map, angle);
         if self.players.iter().any(|other| {
             other.respawn_timer.is_none()
-                && (other.x - preferred_x).hypot(other.z - preferred_z) < PLAYER_RADIUS * 2.0
+                && (self.round_state == RoundState::Active
+                    || (other.x - preferred_x).hypot(other.z - preferred_z) < PLAYER_RADIUS * 2.0)
         }) {
-            angle = self.farthest_spawn_angle(id);
+            angle = self.select_spawn_angle(id);
         }
         let (sx, sz, yaw, floor) = spawn_on_ring(self.map, angle);
 
@@ -1354,29 +1355,48 @@ impl GameState {
             },
         }
     }
-    /// Maximize clearance from living fighters among the authored ring slots.
-    /// This reduces crowding; it cannot guarantee safety from every sightline.
-    fn farthest_spawn_angle(&mut self, player_id: Uuid) -> f32 {
-        let others: Vec<(f32, f32)> = self
+    /// Prefer unoccupied slots, then fewer exposed firing lanes, then clearance.
+    /// Cover matters even when the widest gap is inside another fighter's range.
+    fn select_spawn_angle(&mut self, player_id: Uuid) -> f32 {
+        let others: Vec<[f32; 3]> = self
             .players
             .iter()
             .filter(|p| p.id != player_id && p.respawn_timer.is_none())
-            .map(|p| (p.x, p.z))
+            .map(|p| [p.x, p.y - PLAYER_FLOOR_Y + EYE_HEIGHT, p.z])
             .collect();
         if others.is_empty() {
             return self.next_f32() * 2.0 * PI;
         }
         let mut best_angle = 0.0;
-        let mut best_gap = f32::MIN;
+        let mut best: Option<(bool, usize, f32)> = None;
+        let solids = self.map.solids();
         for slot in 0..64 {
             let angle = slot as f32 * (2.0 * PI / 64.0);
-            let (sx, sz, _, _) = spawn_on_ring(self.map, angle);
+            let (sx, sz, _, floor) = spawn_on_ring(self.map, angle);
             let nearest = others
                 .iter()
-                .map(|(ox, oz)| ((ox - sx).powi(2) + (oz - sz).powi(2)).sqrt())
+                .map(|eye| (eye[0] - sx).hypot(eye[2] - sz))
                 .fold(f32::MAX, f32::min);
-            if nearest > best_gap {
-                best_gap = nearest;
+            let clear = nearest >= PLAYER_RADIUS * 2.0;
+            let exposed = others
+                .iter()
+                .filter(|&&eye| {
+                    // The server's hitscan cap bounds relevant lanes even if the
+                    // opponent swaps weapons immediately after this spawn.
+                    (eye[0] - sx).hypot(eye[2] - sz) <= HITSCAN_RANGE
+                        && [crate::combat::FIGHTER_HEIGHT * 0.5, EYE_HEIGHT]
+                            .into_iter()
+                            .any(|height| {
+                                crate::combat::line_of_sight(eye, [sx, floor + height, sz], &solids)
+                            })
+                })
+                .count();
+            if best.is_none_or(|(was_clear, threats, gap)| {
+                (clear && !was_clear)
+                    || (clear == was_clear
+                        && (exposed < threats || (exposed == threats && nearest > gap)))
+            }) {
+                best = Some((clear, exposed, nearest));
                 best_angle = angle;
             }
         }
@@ -1384,7 +1404,7 @@ impl GameState {
     }
 
     fn do_respawn(&mut self, player_id: Uuid) {
-        let angle = self.farthest_spawn_angle(player_id);
+        let angle = self.select_spawn_angle(player_id);
         if let Some(player) = self.players.iter_mut().find(|p| p.id == player_id) {
             let (sx, sz, yaw, floor) = spawn_on_ring(self.map, angle);
 

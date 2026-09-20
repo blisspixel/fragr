@@ -3,6 +3,69 @@
 Status: implemented and locally verified, 2026-09-19. GitHub integration pending.
 Branch: `feat/height-aware-navigation`. Spend: $0.
 
+## Integration follow-up
+
+CI run 35478232410 failed the six-map wire matrix: Directive 17 seed 19 had a
+planner stationary for 19 seconds at (17.7, 44.3); Reclamation Gulch seed 42 had
+seven spawn deaths among 33 frags. Local passes did not establish reliability.
+Reproduce the geometry and spawn conditions deterministically, retain the
+existing thresholds, then repeat both cases and the complete matrix. Investigate
+navigation recovery at the edge of a descended stair and exposure at otherwise
+well-separated spawn positions. Do not conceal either problem with invulnerability
+changes, weaker sampling, or another blind CI retry.
+
+The local repeat also failed: map 3 stalled for 25.1 seconds at (44.3, 13.8),
+and map 5 recorded six spawn deaths in 26 frags. Deterministic regressions now
+cover both stair coordinates in all four quadrants through shared movement and
+actual server players, plus a captured Gulch roster where an exposed widest gap
+lost to an available covered compound. Navigation reuses movement's outward
+escape rule but still rejects a start inside a solid. Spawns rank occupancy,
+exposed chest/eye sightlines within the server hitscan cap, then clearance;
+active-match joins use that same selector. Shield and frustration limits stay.
+
+CI did not retain failed playtest JSON. Add narrowly scoped report/log artifacts
+on failure as well as success, with seven-day retention. The official
+[upload action](https://github.com/actions/upload-artifact) release v7.0.1 and its
+hidden-file handling were checked 2026-09-19; only named playtest outputs are
+included, never the rest of `.agents/`.
+
+The corrected local matrix passes all six maps with unchanged assertions. The
+longest stationary interval is 0.55 seconds. Receipts are in
+`.agents/playtest/roster-ci-fix/`; results still include spawn deaths and do not
+establish balanced play at arbitrary populations:
+
+| Map / seed | Clients | Duration s | Frags | Spawn deaths | Longest stall s |
+|---|---:|---:|---:|---:|---:|
+| Arena Duel / 67 | 2 | 61.90 | 5 | 1 | 0.45 |
+| Compliance Yard / 42 | 6 | 53.60 | 32 | 0 | 0.40 |
+| Directive 17 / 19 | 6 | 49.35 | 22 | 0 | 0.10 |
+| Sector 9 / 42 | 8 | 48.65 | 34 | 2 | 0.40 |
+| Reclamation Gulch / 42 | 12 | 49.35 | 47 | 7 | 0.55 |
+| Tripoint Works / 42 | 16 | 45.75 | 72 | 4 | 0.40 |
+
+After the fixes, 594 workspace tests pass, with the existing ignored generator.
+Formatting, warnings-denied Clippy, release builds, dependency license/bans/source
+checks, all seventeen Godot harnesses, and the verifier's failure-injection cases
+pass. Unfiltered workspace line coverage remains 95.47 percent. Two weapon-test
+fixtures now set their intended ground height explicitly instead of inheriting
+the height of a changing spawn position; their combat assertions are unchanged.
+
+The new spawn selector adds measured CPU cost. The same host, seed, release
+profile and 12,000-tick cases as the earlier table below now produce:
+
+| Bots | Map | Session p99 ms | Encode p99 ms | Total p99 ms | Total max ms |
+|---:|---|---:|---:|---:|---:|
+| 16 | Arena Duel | 0.622591 | 0.014847 | 0.622591 | 2.1070 |
+| 64 | Reclamation Gulch | 1.572863 | 0.038911 | 1.638399 | 3.4568 |
+| 128 | Tripoint Works | 4.718591 | 0.110591 | 4.718591 | 9.2505 |
+
+Every complete-trace repeat matches; no measured step exceeds 50 ms. These are
+serial offline samples, not network-capacity or stable performance comparisons.
+Receipts: `.agents/bench/navigation-ci-fix-*.json`. The current 21-state OpenGL
+tour passes, with the contact sheet inspected and nine stills refreshed at
+`.agents/qa/navigation-ci-fix/`. Earlier renderer and native-pointer evidence
+below predates this navigation/spawn follow-up; no client code changed here.
+
 ## Problem and scope
 
 Map reachability tests prove that routes exist, but controllers do not follow

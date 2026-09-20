@@ -193,15 +193,29 @@ impl Navigation {
         if (from[1] - floor).abs() > 0.1 {
             return false;
         }
+        // A fallen body can overlap a ledge's inflated edge while its feet are
+        // outside the solid. Movement permits outward escape from that state;
+        // an actual starting point inside a wall is still invalid.
+        if self
+            .arena
+            .solids
+            .iter()
+            .any(|solid| solid.top > floor + STEP_UP && solid.covers(from[0], from[2]))
+        {
+            return false;
+        }
         let dx = to[0] - from[0];
         let dz = to[2] - from[2];
         let steps = (dx.hypot(dz) / (RADIUS * 0.5)).ceil().max(1.0) as usize;
         let mut previous = from;
-        for step in 0..=steps {
+        for step in 1..=steps {
             let fraction = step as f32 / steps as f32;
             let x = from[0] + dx * fraction;
             let z = from[2] + dz * fraction;
-            if self.arena.blocked_at(x, z, floor + STEP_UP) {
+            if self
+                .arena
+                .blocked_motion((previous[0], previous[2]), (x, z), floor + STEP_UP)
+            {
                 return false;
             }
             let delta = [x - previous[0], 0.0, z - previous[2]];
@@ -213,6 +227,8 @@ impl Navigation {
                 };
                 if self.arena.solids.iter().any(|solid| {
                     solid.top > floor + STEP_UP
+                        && !(solid.blocks(previous[0], previous[2], RADIUS)
+                            && !solid.blocks_motion((previous[0], previous[2]), (x, z), RADIUS))
                         && ray
                             .solid(
                                 &crate::movement::Solid {
@@ -239,7 +255,7 @@ impl Navigation {
             }
             previous = [x, floor, z];
         }
-        (floor - to[1]).abs() <= 0.1
+        (floor - to[1]).abs() <= 0.1 && !self.arena.blocked_at(to[0], to[2], floor + STEP_UP)
     }
 
     pub fn floor_below(&self, point: [f32; 3]) -> Option<f32> {
@@ -521,6 +537,31 @@ mod tests {
         assert_eq!(route, navigation.route(from, to, SEARCH_LIMIT));
         assert_walks(&navigation, from, to);
         assert_walks(&navigation, to, from);
+    }
+
+    #[test]
+    fn route_recovers_after_falling_off_a_stair_side() {
+        let map = crate::sim::MapKind::Directive17;
+        let navigation = Navigation::new(Arena {
+            half: map.half_extent(),
+            solids: map.solids(),
+        })
+        .unwrap();
+        for (x, z) in [(17.7, 44.3), (44.3, 13.8)] {
+            for (sx, sz) in [(1.0, 1.0), (-1.0, 1.0), (1.0, -1.0), (-1.0, -1.0)] {
+                let from = [x * sx, 0.0, z * sz];
+                let to = [40.0 * sx, 3.0, 40.0 * sz];
+                assert_walks(&navigation, from, to);
+                assert_server_walks(map, &navigation, from, to);
+            }
+        }
+        assert_eq!(
+            navigation
+                .route([40.0, 0.0, 40.0], [0.0; 3], SEARCH_LIMIT)
+                .status,
+            RouteStatus::InvalidPoint,
+            "escape from an inflated edge does not permit routes through a solid"
+        );
     }
 
     #[test]

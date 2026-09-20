@@ -1694,8 +1694,10 @@ fn test_scatter_hits_harder_than_flechette_up_close() {
         .unwrap();
 
     state.players[target_idx].x = 5.0;
+    state.players[target_idx].y = crate::sim::PLAYER_FLOOR_Y;
     state.players[target_idx].z = 0.0;
     state.players[shooter_idx].x = 0.0;
+    state.players[shooter_idx].y = crate::sim::PLAYER_FLOOR_Y;
     state.players[shooter_idx].z = 0.0;
     state.players[shooter_idx].yaw = 0.0;
     state.players[shooter_idx].weapon = WeaponType::Scatter;
@@ -4464,6 +4466,94 @@ fn test_sim_spawn_shield_blocks_damage_for_one_second() {
 }
 
 #[test]
+fn test_sim_respawn_and_active_join_prefer_cover_to_an_exposed_ring_gap() {
+    use crate::combat::{line_of_sight, FIGHTER_HEIGHT};
+    use crate::movement::EYE_HEIGHT;
+    use crate::sim::PLAYER_FLOOR_Y;
+
+    // Living positions from a failing twelve-client Gulch session. The widest
+    // ring gap is in a rail lane; the northern compound has an unexposed slot.
+    let positions = [
+        (76.50, 20.84),
+        (51.50, -80.74),
+        (-0.75, 67.62),
+        (-72.56, -47.28),
+        (0.73, -90.50),
+        (-43.47, -81.87),
+        (-71.21, 22.68),
+        (76.52, -25.03),
+        (-43.48, 80.87),
+        (46.76, 75.74),
+    ];
+    for (sx, sz) in [(1.0, 1.0), (-1.0, 1.0), (1.0, -1.0), (-1.0, -1.0)] {
+        for respawning in [true, false] {
+            let mut state = GameState::with_map(MapKind::ReclamationGulch, false);
+            state.config.boss_spawn_ticks = None;
+            state.config.compliance_ping_ticks = None;
+            let victim = Uuid::from_u128(1);
+            state.add_player(victim, "Respawning".into(), Role::Human);
+            for index in 0..positions.len() {
+                state.add_player(
+                    Uuid::from_u128(index as u128 + 2),
+                    format!("Threat {index}"),
+                    Role::Agent,
+                );
+            }
+            for (player, &(x, z)) in state.players[1..].iter_mut().zip(&positions) {
+                player.x = x * sx;
+                player.z = z * sz;
+                player.y = PLAYER_FLOOR_Y;
+            }
+            let solids = state.map.solids();
+            let exposed = |state: &GameState, feet: [f32; 3]| {
+                state
+                    .players
+                    .iter()
+                    .filter(|enemy| enemy.id != victim)
+                    .any(|enemy| {
+                        let origin = [enemy.x, enemy.y - PLAYER_FLOOR_Y + EYE_HEIGHT, enemy.z];
+                        let target = [feet[0], feet[1] + FIGHTER_HEIGHT * 0.5, feet[2]];
+                        let distance = (origin[0] - target[0]).hypot(origin[2] - target[2]);
+                        distance <= WeaponType::Rail.range_units()
+                            && line_of_sight(origin, target, &solids)
+                    })
+            };
+            assert!(
+                !exposed(&state, [17.948314 * sx, 0.0, 90.23225 * sz]),
+                "fixture has a covered alternative"
+            );
+            state.start_round();
+            if respawning {
+                state.players[0].respawn_timer = Some(1);
+                state.tick(0.05);
+            } else {
+                state.remove_player(victim);
+                state.add_player(victim, "Joining".into(), Role::Human);
+            }
+            let player = state
+                .players
+                .iter()
+                .find(|player| player.id == victim)
+                .unwrap();
+            let feet = [player.x, player.y - PLAYER_FLOOR_Y, player.z];
+            assert!(!exposed(&state, feet), "respawn exposed at {feet:?}");
+            assert!(
+                state
+                    .players
+                    .iter()
+                    .filter(|other| other.id != victim)
+                    .all(|other| {
+                        (player.x - other.x).hypot(player.z - other.z)
+                            >= crate::sim::PLAYER_RADIUS * 2.0
+                    }),
+                "cover never permits overlapping a living fighter"
+            );
+            assert_eq!(state.spawn_shields.contains_key(&victim), respawning);
+        }
+    }
+}
+
+#[test]
 fn solo_broadcast_ep0_win_path() {
     let mut session = GameSession::new();
     session.spawn_bots(4);
@@ -5189,10 +5279,12 @@ fn dispersion_is_dispersion_not_free_aim() {
         let ti = state.players.iter().position(|p| p.id == target).unwrap();
         let (lane_z, span) = clear_lane(20.0);
         state.players[si].x = -span / 2.0;
+        state.players[si].y = crate::sim::PLAYER_FLOOR_Y;
         state.players[si].z = lane_z;
         state.players[si].yaw = 0.0;
         state.players[si].weapon = WeaponType::Rail;
         state.players[ti].x = span / 2.0;
+        state.players[ti].y = crate::sim::PLAYER_FLOOR_Y;
         state.players[ti].z = lane_z + offset;
         (state, shooter, ti)
     };
