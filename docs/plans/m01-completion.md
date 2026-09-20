@@ -155,7 +155,8 @@ passes alone and in the subsequent complete workspace run without changes.
 That run passes 709 tests with two existing ignored stress cases
 (`.agents/m01-completion-workspace-tests-4.log`). Formatting and dependency
 license/source/ban checks also pass. Unfiltered workspace line coverage is
-95.82 percent against the unchanged 90 percent floor; release compilation passes.
+95.80 percent on the final local run against the unchanged 90 percent floor;
+release compilation passes.
 Rendered attempts in `.agents/qa/m01-records-populated*` failed on furniture
 waypoints, then on an attack-before-entry alarm that left guards waiting and
 caused later deaths. These are failed evidence, not accepted captures. The alarm
@@ -227,6 +228,24 @@ CPU benchmark, Ryzen 7 7840U, Windows x86_64 release, session plus JSON encoding
 
 Report: `.agents/m01-completion-bench16.json`. The unchanged budget assertions
 pass. This CPU sample does not measure network capacity or rendering performance.
+
+The first integration revision passed all five jobs. The later waypoint-check
+revision exposed a coverage-only adapter timing failure, retained in
+`.agents/m01-records-ci-failure.log`: its continuous-snapshot fixture started the
+two-second cadence deadline before the controller had prepared navigation.
+Preparation uses a blocking worker and a shared construction cache, so concurrent
+map loads could consume that window. The fixture now confirms an initial valid
+action, then requires three more actions under the same 200 Hz snapshot stream
+and two-second deadline. Its existing four-second overall bound and malformed
+replacement rejection remain. This distinguishes setup from action starvation;
+it does not establish a faster topology builder. Final integration is tracked
+on #196.
+
+The corrected fixture passes the full workspace coverage run. A deliberate
+temporary mutation resetting the action timer on every snapshot fails with the
+expected starvation assertion. The original source was restored byte-for-byte
+and passes again. Receipts: `.agents/adapter-action-clock-{mutation,restored}.log`
+and `.agents/m01-completion-coverage-final.log`. No deadline or threshold changed.
 
 The map uses a reception privacy partition and a narrower transfer entry to
 separate later threats from earlier approaches. All collision, navigation and

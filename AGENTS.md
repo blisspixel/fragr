@@ -95,6 +95,7 @@ Before adding a second way to log, configure, serialize, retry, or talk to the s
 ## Tests and lints
 
 - Rust tests are inline `#[cfg(test)]` modules. The server's bulk suite is `server/src/tests.rs`; `sim.rs` and `net.rs` are covered from there. Adapter tests sit in `agent-adapter/src/{main,mcp}.rs`. Provider tests use fake transports; game integration tests use ephemeral loopback sockets. No test should call a paid or external service.
+- Live cadence tests synchronize on actual readiness before flooding traffic. Bound setup separately from action timing; topology preparation under coverage must not be mistaken for a stalled controller.
 - Lint policy is `[workspace.lints]` in the root `Cargo.toml` (`unsafe_code` forbidden, 2018 idioms, no `dbg!`, `todo!`, or `unimplemented!`). Every crate opts in. Narrow, justified `#[allow]` at the use site is acceptable; broad allows, silenced modules, or edits to the policy to make a check pass are not.
 - Coverage floor is an unfiltered **90 percent** of workspace lines, matching CI. No exclusions, removed assertions, or lower thresholds to make a change pass. Test useful behavior and failure paths, not line execution alone.
 - New GDScript uses explicit parameter/return types and typed containers where supported. Validate and narrow JSON/Variant values at boundaries; casts do not validate data. Existing warning debt is a baseline to improve in touched code, not permission to disable warnings or start an unrelated rewrite.
