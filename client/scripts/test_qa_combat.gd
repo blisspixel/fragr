@@ -1,11 +1,20 @@
 extends SceneTree
 
+const TOUR = preload("res://scripts/qa_tour.gd")
+
 var _failures: int = 0
 
 func _initialize() -> void:
-	_check(QaCombat.valid_search_route([[1, 2.0, 3]]), "finite route accepted")
-	for invalid: Variant in [null, {}, [[1, 2]], [[1, INF, 3]], [[1, "2", 3]]]:
-		_check(not QaCombat.valid_search_route(invalid), "invalid route rejected")
+	_check(QaCombat.valid_waypoints([[1, 2.0, 3]]), "finite route accepted")
+	for invalid: Variant in [null, {}, [1, 2, 3], [[1, 2]], [[1, INF, 3]], [[1, "2", 3]]]:
+		_check(not QaCombat.valid_waypoints(invalid), "invalid route rejected")
+	for invalid: Variant in [null, [], [1], [{"walk_to": [1, 2, 3]}]]:
+		_check(not TOUR.valid_walks(invalid), "invalid manifest walking shape rejected before play")
+	for filename: String in DirAccess.get_files_at("res://qa"):
+		if filename.get_extension() != "json":
+			continue
+		var manifest: Variant = JSON.parse_string(FileAccess.get_file_as_string("res://qa/" + filename))
+		_check(manifest is Dictionary and TOUR.valid_walks(manifest.get("states")), filename + " has valid walking routes")
 	var me: Dictionary = {"id":"player", "hp":100, "x":0.0, "y":1.5, "z":0.0, "campaign":{"side":"participant"}}
 	var friend: Dictionary = me.duplicate(true)
 	friend["id"] = "friend"

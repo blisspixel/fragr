@@ -8,7 +8,7 @@
     {"name":"intake_hall","camera":"first_person","walk_to":[[0,0,-10]],"combat":{"kind":"sweeper","defeat":2},"note":"The public hall opens after the narrow entry; bots arrive from below records."},
     {"name":"below_records","camera":"first_person","walk_to":[[0,0,4],[5,0,4],[5,0,9],[0,0,9]],"look_at":[-5,1.6,5],"note":"The records screen breaks sight without sealing the underpass."},
     {"name":"public_stairs","camera":"first_person","walk_to":[[5,0,9],[5,0,3],[5,0,-8],[8,0,-8],[8,3,9]],"look_at":[-4,1.6,-7],"note":"Ordinary six-tread walking ascent, no jump."},
-    {"name":"maintenance_landing","camera":"first_person","walk_to":[-17,3,9],"look_at":[-17,1.6,-12],"note":"Second balcony approach returns through service space."},
+    {"name":"maintenance_landing","camera":"first_person","walk_to":[[-17,3,9]],"look_at":[-17,1.6,-12],"note":"Second balcony approach returns through service space."},
     {"name":"service_descent","camera":"first_person","walk_to":[[-17,0,-12],[-17,0,-18]],"note":"Walk down the alternate stairs and face the property bay."},
     {"name":"service_ascent","camera":"first_person","walk_to":[[0,0,-18],[-17,0,-18],[-17,0,-12],[-17,3,9],[0,3,9]],"note":"Return by the service flank and emerge over the intake hall."}
   ]

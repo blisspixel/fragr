@@ -124,7 +124,9 @@ The working draft expands the records wing with reception, stacks, bypass,
 sorting and dispatch. Seven groups contain twenty guards. Campaign consumables
 stay consumed until party reset; arcade supplies retain their timers. Enemy
 bodies are prepared before entry, and hit/region alarms retain their identities.
-This is unmerged work on `feat/m01-completion`, not a finished mission.
+The records-wing increment is implemented in
+[#196](https://github.com/blisspixel/fragr/pull/196), which tracks integration and
+release evidence. The complete-mission task remains open.
 
 Normal-input simulation clears both routes for human and agent control. Current
 screened-layout results use ordinary movement and accurately aimed shots, with
@@ -152,7 +154,8 @@ specific intake identities, and a two-second readiness-wire timeout. The latter
 passes alone and in the subsequent complete workspace run without changes.
 That run passes 709 tests with two existing ignored stress cases
 (`.agents/m01-completion-workspace-tests-4.log`). Formatting and dependency
-license/source/ban checks also pass. Coverage remains outstanding.
+license/source/ban checks also pass. Unfiltered workspace line coverage is
+95.82 percent against the unchanged 90 percent floor; release compilation passes.
 Rendered attempts in `.agents/qa/m01-records-populated*` failed on furniture
 waypoints, then on an attack-before-entry alarm that left guards waiting and
 caused later deaths. These are failed evidence, not accepted captures. The alarm
@@ -175,14 +178,55 @@ repetitive surface treatment, provisional characters and weak room-specific
 visual identity remain art work. This accurate controller run is not human
 difficulty or final pacing acceptance.
 
+The Vulkan run (`.agents/qa/m01-records-vulkan`) also passes all fourteen states,
+twenty guards and departure without death. Its contact sheet was inspected on
+the same AMD host. The five-state attack-tell tour deliberately observes both
+enemy types firing before returning fire; its motion sheets show the Clerk's
+shot, bot bursts, hit reactions and collapses. These are renderer checks on one
+Windows GPU, not certification of other vendors or platforms.
+
 The visual combat helper tracks named deaths across rooms and corpse cleanup,
 detects omitted respawning participants, fights during opt-in travel and can aim
 at exposed parts of the real body without firing through solid cover. Failed
-full-route states end the run after saving evidence. The records tour covers the expanded route;
-older intake/stair/facility manifests have focused scopes and need rerunning.
+full-route states end the run after saving evidence. The records tour covers the
+expanded route. A malformed single waypoint stopped the maintenance tour;
+checking every bundled manifest caught the same defect in two other focused
+tours. Their data is corrected, and launch now rejects invalid walking shapes
+before playing. The five-state maintenance, eight-state stair and nine-state
+facility tours pass with inspected contact sheets under
+`.agents/qa/{m01-maintenance,m01,m01-facility}-records-fixed/`.
 Checkpoints, persistent saves, secrets, final art and fresh-player acceptance
-remain open. Next: finish the rendered route and full verification, then
-complete checkpoint and supply-balance work through the existing server seams.
+remain open. Next: complete checkpoint and supply-balance work through the
+existing server seams, then apply difficulty and earned-cosmetic rules to that
+stable retry boundary.
+
+The 21-state release gallery and shot/impact strips were regenerated, inspected
+and published from `.agents/qa/m01-records-gallery`. All 27 headless Godot
+harnesses and eight verifier fault scenarios pass. The four-agent smoke passes
+with seven frags and no spawn deaths. The six-map roster also passes unchanged
+assertions, mixing reflex and planner agents with a spectator. Rust wire tests
+separately exercise human and agent roles in shared campaign sessions.
+
+| Arena map | Seed | Fighters | Frags | Spawn deaths |
+|---|---:|---:|---:|---:|
+| 1 | 67 | 2 | 6 | 0 |
+| 2 | 42 | 6 | 28 | 0 |
+| 3 | 19 | 6 | 21 | 3 |
+| 4 | 42 | 8 | 39 | 3 |
+| 5 | 42 | 12 | 35 | 2 |
+| 6 | 42 | 16 | 55 | 3 |
+
+Reports: `.agents/playtest/m01-completion-roster/`. Passing thresholds does not
+erase the remaining spawn deaths or establish finished arena balance.
+
+CPU benchmark, Ryzen 7 7840U, Windows x86_64 release, session plus JSON encoding:
+
+| Map | Rule bots | Ticks | Seed | p99 tick ms | Maximum tick ms | Repeated trace |
+|---|---:|---:|---:|---:|---:|---|
+| Arena Duel | 16 | 1,200 | 42 | 0.623 | 1.143 | Identical |
+
+Report: `.agents/m01-completion-bench16.json`. The unchanged budget assertions
+pass. This CPU sample does not measure network capacity or rendering performance.
 
 The map uses a reception privacy partition and a narrower transfer entry to
 separate later threats from earlier approaches. All collision, navigation and

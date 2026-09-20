@@ -9,7 +9,7 @@
     {"name":"intake_fight","camera":"first_person","walk_to":[[0,0,-10]],"combat":{"kind":"sweeper","defeat":2},"look_at":[2,3,6],"note":"Enemy contrast and movement remain readable beneath the hall lights."},
     {"name":"public_records","camera":"first_person","walk_to":[[5,0,-8],[8,0,-8]],"look_at":[12,4.5,-1],"note":"Records signage identifies the public stair route."},
     {"name":"records_balcony","camera":"first_person","walk_to":[[8,3,9]],"look_at":[-7,5.5,12],"note":"Ordinary stair ascent ends facing the transfer-control marker."},
-    {"name":"maintenance_landing","camera":"first_person","walk_to":[-17,3,9],"look_at":[-18,5.4,12],"note":"Service route reconnects to the records level."},
+    {"name":"maintenance_landing","camera":"first_person","walk_to":[[-17,3,9]],"look_at":[-18,5.4,12],"note":"Service route reconnects to the records level."},
     {"name":"service_machinery","camera":"first_person","walk_to":[[-17,0,-12],[-17,0,-18]],"look_at":[-20,1.4,-13],"note":"Vents and work light distinguish the alternate route."},
     {"name":"service_return","camera":"first_person","walk_to":[[-17,0,-12],[-17,3,9],[0,3,9]],"look_at":[0,4,-12],"note":"Return by maintenance and inspect the lit hall from above."}
   ]

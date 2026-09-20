@@ -48,7 +48,7 @@ func confirmed(required: Array) -> Dictionary[String, int]:
 			result[name] = confirmed_deaths[name]
 	return result
 
-static func valid_search_route(value: Variant) -> bool:
+static func valid_waypoints(value: Variant) -> bool:
 	if not value is Array or value.size() > 32:
 		return false
 	for point: Variant in value:
@@ -185,7 +185,7 @@ func run(tree: SceneTree, manager: Node, spec: Dictionary, output: String) -> Di
 	begin(manager)
 	_kind = str(spec.get("kind", ""))
 	var expected: int = int(spec.get("defeat", 0))
-	if not valid_search_route(spec.get("search_route", [])):
+	if not valid_waypoints(spec.get("search_route", [])):
 		push_error("qa_combat: invalid search route")
 		return {"passed": false}
 	var required: Array = spec.get("required", [])

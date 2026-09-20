@@ -143,11 +143,12 @@ the reproduced exposed-ring layout, 16 new cover pockets, walking regressions,
 network comparisons and inspected captures. These checks establish safer
 openings, not a finished map or a universal respawn guarantee.
 
-The [M01 completion draft](plans/m01-completion.md), tracked in #195, expands the
+The [M01 completion work](plans/m01-completion.md), tracked in #195, expands the
 records wing into reception, stacks, bypass, sorting and dispatch with twenty
-preplaced guards and finite campaign stock. Named encounter and sightline tests
-cover the expansion; rendered failures are still driving revisions. This is
-unmerged work, not a finished mission. Checkpoints, persistence, final art and
+preplaced guards and finite campaign stock. The records-wing increment in #196
+passes full rendered OpenGL/Vulkan routes with twenty named defeats and departure,
+plus deterministic encounter/sightline checks and the six-map network roster.
+This remains a development mission. Checkpoints, persistence, final art and
 fresh-player acceptance remain open. The requested shared level kits, distinct
 enemy combinations and difficulty/achievement cosmetics have homes in
 `MAP-DESIGN.md`, `ENEMIES.md` and `plans/difficulty-and-rewards.md`.

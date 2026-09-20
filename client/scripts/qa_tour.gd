@@ -261,6 +261,14 @@ func _run() -> void:
 	await RenderingServer.frame_post_draw
 	quit(1 if _failed else 0)
 
+static func valid_walks(states: Variant) -> bool:
+	if not states is Array or states.is_empty():
+		return false
+	for state: Variant in states:
+		if not state is Dictionary or not QaCombat.valid_waypoints(state.get("walk_to", [])):
+			return false
+	return true
+
 func _load_manifest() -> Dictionary:
 	var path: String = OS.get_environment("FRAGR_QA_MANIFEST")
 	if path.is_empty():
@@ -272,6 +280,9 @@ func _load_manifest() -> Dictionary:
 	var parsed: Variant = JSON.parse_string(text)
 	if typeof(parsed) != TYPE_DICTIONARY:
 		push_error("qa_tour: manifest is not an object")
+		return {}
+	if not valid_walks(parsed.get("states")):
+		push_error("qa_tour: states require finite lists of XYZ walking waypoints")
 		return {}
 	return parsed
 
