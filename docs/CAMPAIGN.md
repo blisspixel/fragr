@@ -1,8 +1,11 @@
 # Campaign
 
-**Status, 2026-09-19:** central story and twelve-mission scope agreed with Nick.
+**Status, 2026-09-20:** central story and twelve-mission scope agreed with Nick.
 The act structure and [mission briefs](CAMPAIGN-MISSIONS.md) are a proposed
-treatment. None of the twelve missions is implemented. Solo Broadcast:
+treatment. No complete campaign mission is finished. M01 has a playable development
+slice with discovery, introductory enemies and a transfer/lift sequence; its full
+population, opening scene, secrets and checkpoint lifecycle remain unfinished.
+Solo Broadcast:
 Calibration is the shipped Episode 0 arena prototype, not the campaign opening.
 
 This file owns the campaign contract. [World canon](lore/README.md) owns the

@@ -1,6 +1,7 @@
 //! Data-only encounter authoring, validated before navigation or server startup.
 use super::{identity, invalid, standing};
 use crate::movement::Arena;
+pub(crate) use crate::protocol::Region3 as EntryRegion;
 use crate::protocol::{EnemyKind, EquipmentPolicy};
 use serde::Deserialize;
 use std::collections::HashSet;
@@ -14,19 +15,6 @@ pub(crate) struct EncounterDefinition {
     pub after: Option<String>,
     pub regions: Vec<EntryRegion>,
     pub enemies: Vec<EnemyPlacement>,
-}
-
-#[derive(Debug, Clone, Deserialize)]
-#[serde(deny_unknown_fields)]
-pub(crate) struct EntryRegion {
-    pub min: [f32; 3],
-    pub max: [f32; 3],
-}
-
-impl EntryRegion {
-    pub fn contains(&self, feet: [f32; 3]) -> bool {
-        (0..3).all(|axis| feet[axis] >= self.min[axis] && feet[axis] <= self.max[axis])
-    }
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -71,19 +59,7 @@ pub(super) fn validate(
             ));
         }
         for region in &encounter.regions {
-            let lower = [-arena.half, 0.0, -arena.half];
-            let upper = [
-                arena.half,
-                crate::movement::MAX_HALF_EXTENT * 2.0,
-                arena.half,
-            ];
-            if !(0..3).all(|axis| {
-                region.min[axis].is_finite()
-                    && region.max[axis].is_finite()
-                    && region.min[axis] < region.max[axis]
-                    && region.min[axis] >= lower[axis]
-                    && region.max[axis] <= upper[axis]
-            }) {
+            if !region.valid(arena.half) {
                 return Err(invalid(
                     "encounter regions need finite ordered bounds within the map",
                 ));

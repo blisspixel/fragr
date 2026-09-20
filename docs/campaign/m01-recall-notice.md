@@ -1,19 +1,22 @@
 # M01: Recall Notice
 
-**Status:** connected blockout and weapon discovery shipped; introductory combat
-is in draft. Fists, Tack, Flechette, ammunition, reload and enemy phases use server
+**Status:** connected blockout, discovery and introductory combat shipped.
+Fists, Tack, Flechette, ammunition, reload and enemy phases use server
 authority. One Clerk and two Sweepers are placed, with both approaches exercised
 through normal input. Enemy artwork and animation remain provisional. Story
-scenes and mission state remain unbuilt. The draft facility pass adds keyed signs,
+scenes remain unbuilt. The facility pass adds keyed signs,
 locker banks, service vents and practical lights through bounded map metadata.
-Terminals remain static dressing until authoritative interaction is implemented.
+The local mission-sequence change connects the physical transfer record to a
+real lift gate and shared departure. Rendered and party tests pass locally;
+the result ends the prototype without loading unbuilt M02.
 Earth before the wipe. Full first-run target 10-15 minutes,
 to be measured. [Treatment](../CAMPAIGN-MISSIONS.md#m01-recall-notice).
 
 The current [map document](../../server/maps/m01-recall-notice.json) connects A-G
 with both walking stairs, the balcony underpass and explicit indoor spawns.
-Normal-session tests traverse both approaches; the ten-state live client tour
-uses `client/qa/m01.json`. This verifies access, not pacing or fun. Implementation
+Normal-session tests traverse both approaches; the live traversal tour uses
+`client/qa/m01.json`. The sixteen-state `m01-facility.json` also verifies controls
+and prototype departure. Neither establishes fresh-player pacing or fun. Implementation
 and remaining checks are tracked in [authored maps](../plans/authored-campaign-maps.md).
 
 ## Story and cast
@@ -109,12 +112,13 @@ armor and a second approach to F. Neither contains essential story evidence.
 
 ## Objectives and state
 
-Proposed sequence: `enter_intake` -> `locate_transfer` -> `lift_available` ->
-`departed`. The terminal interaction supplies the destination and opens a physical
+Current server sequence: `find_transfer` -> `reach_lift` -> `departed`.
+The planned opening frames entry without adding another mandatory interaction.
+The terminal interaction supplies the destination and opens a physical
 route; reading a whole log is optional. Completion occurs once on server-confirmed
 departure. Objective text: "Find the transfer record", then "Reach the lift".
 
-Checkpoint at entry and after securing D, before the crest. Save the discovered
+Planned checkpoints: entry and after securing D, before the crest. Save the discovered
 route, inventory, pickup and enemy states. A death before the first checkpoint
 repeats a short lesson, not a long cinematic. The terminal remains operable if
 another player disconnects mid-interaction.

@@ -1,7 +1,10 @@
 # M01 facility detail
 
-Status: **in flight**, 2026-09-20, within [task #180](https://github.com/blisspixel/fragr/issues/180).
-The intake geometry and encounters exist, but anonymous slabs do not communicate
+Status: **shipped**, 2026-09-20, #182 and v0.25.0, within
+[task #180](https://github.com/blisspixel/fragr/issues/180). The scoped detail pass
+has local visual/verification evidence and green integration CI. Final environment
+art and fresh-player pacing remain open in the parent task.
+The initial intake geometry and encounters existed, but anonymous slabs did not communicate
 the confiscation, records and transfer spaces in the mission brief.
 
 ## Outcome

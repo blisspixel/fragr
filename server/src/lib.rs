@@ -3,6 +3,7 @@ pub mod combat;
 mod encounters;
 pub mod inventory;
 pub mod maps;
+pub mod mission;
 pub mod movement;
 pub mod navigation;
 pub mod net;

@@ -130,6 +130,7 @@ async fn mcp_connect_and_hello(
                         state.connected = false;
                         state.player_id = None;
                         state.map = None;
+                        state.mission = Default::default();
                         state.last_snapshot = None;
                         drop(state);
                         let _ = receive_sink.lock().await.send(Message::Close(None)).await;
@@ -346,6 +347,7 @@ async fn run_scripted_bot(
     let mut loadout: Option<protocol::LoadoutState> = None;
     let mut navigation = None;
     let mut navigator = fragr_server::navigation::Navigator::default();
+    let mut mission_client = fragr_server::mission::MissionClient::default();
     let mut action_tick = tokio::time::interval(std::time::Duration::from_millis(50));
     action_tick.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Skip);
 
@@ -354,13 +356,15 @@ async fn run_scripted_bot(
             msg = ws_stream.next() => {
                 if let Some(Ok(Message::Text(text))) = msg {
                     match serde_json::from_str::<ServerMessage>(&text)? {
+                        ServerMessage::Mission { tick, state } => mission_client.observe(tick, state).map_err(io::Error::other)?,
                         ServerMessage::Loadout(next) => {
                             next.validate_for(Some(bot_id), loadout.as_ref()).map_err(io::Error::other)?;
                             loadout = Some(next);
                         }
                         ServerMessage::Snapshot(snapshot) => last_snapshot = Some(snapshot),
-                        ServerMessage::MapInfo { half_extent, solids, geometry_version, presentation, .. } => {
+                        ServerMessage::MapInfo { half_extent, solids, geometry_version, presentation, mission, .. } => {
                             protocol::validate_map_presentation(presentation.as_ref(), &solids)?;
+                            mission_client.replace_map(mission.as_ref(), half_extent, &solids, presentation.as_ref()).map_err(io::Error::other)?;
                             protocol::validate_map_geometry(half_extent, &solids, geometry_version)
                                 .map_err(io::Error::other)?;
                             let arena = fragr_server::movement::Arena { half: half_extent, solids };
@@ -383,8 +387,8 @@ async fn run_scripted_bot(
             _ = action_tick.tick() => {
                 if let (Some(snapshot), Some(world)) = (last_snapshot.as_ref(), navigation.as_ref()) {
                     let wanted = compute_bot_action(bot_id, snapshot);
-                    let wanted = fragr_server::inventory::control_action(bot_id, snapshot, loadout.as_ref(), wanted);
-                    let action = navigator.steer_snapshot(world, bot_id, snapshot, wanted);
+                    let wanted = fragr_server::inventory::control_action_with_objective(bot_id, snapshot, loadout.as_ref(), wanted, mission_client.state.is_some());
+                    let action = mission_client.steer(&mut navigator, world, bot_id, snapshot, wanted);
                     let action_msg = ClientMessage::Action(action);
 
                     if ws_sink.send(Message::Text(serde_json::to_string(&action_msg)?)).await.is_err() {
@@ -1850,6 +1854,7 @@ mod tests {
                 .await
                 .unwrap();
             let map = ServerMessage::MapInfo {
+                mission: None,
                 presentation: None,
                 map_id: 1,
                 map_name: "Raised fixture".into(),

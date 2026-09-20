@@ -327,6 +327,7 @@ pub async fn run_bot(
     let mut loadout: Option<fragr_server::protocol::LoadoutState> = None;
     let mut navigation = None;
     let mut navigator = fragr_server::navigation::Navigator::default();
+    let mut mission_client = fragr_server::mission::MissionClient::default();
     let mut hits = RecentHits::default();
     let mut paid_enabled = config.provider.is_paid();
     let questions = Arc::new(tactical_questions());
@@ -360,6 +361,12 @@ pub async fn run_bot(
         tokio::select! {
             msg = stream.next() => match msg {
                 Some(Ok(Message::Text(text))) => match serde_json::from_str::<ServerMessage>(&text) {
+                    Ok(ServerMessage::Mission { tick, state }) => {
+                        if let Err(error) = mission_client.observe(tick, state) {
+                            session_error = Some(Error::Transport(format!("invalid mission: {error}")));
+                            break;
+                        }
+                    }
                     Ok(ServerMessage::Loadout(next)) => {
                         let valid = next.validate_for(me, loadout.as_ref());
                         if let Err(error) = valid {
@@ -396,12 +403,16 @@ pub async fn run_bot(
                     Ok(ServerMessage::Ack { .. }) => {}
                     // Geometry belongs to the local controller, never a paid
                     // per-frame decision. Reject invalid worlds before driving.
-                    Ok(ServerMessage::MapInfo { map_name, solids, half_extent, geometry_version, presentation, .. }) => {
+                    Ok(ServerMessage::MapInfo { map_name, solids, half_extent, geometry_version, presentation, mission, .. }) => {
                         if let Err(error) = fragr_server::protocol::validate_map_presentation(presentation.as_ref(), &solids) {
                             session_error = Some(Error::Transport(format!("invalid map presentation: {error}")));
                             break;
                         }
                         tracing::debug!("map: {map_name}");
+                        if let Err(error) = mission_client.replace_map(mission.as_ref(), half_extent, &solids, presentation.as_ref()) {
+                            session_error = Some(Error::Transport(format!("invalid mission map: {error}")));
+                            break;
+                        }
                         if let Err(error) = fragr_server::protocol::validate_map_geometry(half_extent, &solids, geometry_version) {
                             session_error = Some(Error::Transport(format!("invalid navigation map: {error}")));
                             break;
@@ -419,10 +430,11 @@ pub async fn run_bot(
                             }
                         }
                         navigator.clear();
+                        last = None;
                     }
                     Ok(ServerMessage::Error { code, message }) => {
                         tracing::warn!("server rejected: {code}: {message}");
-                        if code == "unsupported_geometry" || code == "unsupported_gameplay" {
+                        if code == "unsupported_geometry" || code == "unsupported_gameplay" || code == "party_full" {
                             session_error = Some(Error::Transport(message));
                             break;
                         }
@@ -438,9 +450,9 @@ pub async fn run_bot(
             _ = micro.tick() => {
                 if let (Some(id), Some(snapshot)) = (me, last.as_ref()) {
                     let action = micro_action(&plan, id, snapshot);
-                    let action = fragr_server::inventory::control_action(id, snapshot, loadout.as_ref(), action);
+                    let action = fragr_server::inventory::control_action_with_objective(id, snapshot, loadout.as_ref(), action, mission_client.state.is_some());
                     let action = navigation.as_ref().map_or_else(Action::default, |world| {
-                        navigator.steer_snapshot(world, id, snapshot, action)
+                        mission_client.steer(&mut navigator, world, id, snapshot, action)
                     });
                     let text = serde_json::to_string(&ClientMessage::Action(action))
                         .map_err(transport_err)?;

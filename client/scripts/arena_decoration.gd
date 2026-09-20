@@ -9,6 +9,7 @@ const SIGN_KEYS: Dictionary[String, String] = {
 	"records_sign": "WORLD_TRANSFER_RECORDS", "maintenance_sign": "WORLD_SERVICE_ACCESS",
 	"transfer_sign": "WORLD_TRANSFER_CONTROL", "lift_sign": "WORLD_CUSTODY_LIFT",
 	"complaint_notice": "WORLD_PROPERTY_COMPLAINT", "terminal": "WORLD_TRANSFER_QUEUE",
+	"lift_control": "WORLD_LIFT_CONTROL",
 }
 
 ## Cosmetic planes only. The host solid remains the sole collision authority.
@@ -52,7 +53,7 @@ static func _style(kind: String) -> int:
 	match kind:
 		"lockers": return 1
 		"vent": return 2
-		"terminal": return 3
+		"terminal", "lift_control": return 3
 		"strip_light": return 4
 		"union_seal": return 5
 		"complaint_notice": return 6

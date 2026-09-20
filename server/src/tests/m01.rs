@@ -152,6 +152,52 @@ impl Walkthrough {
             self.defeated.len()
         );
     }
+
+    fn use_control(&mut self, record: bool) {
+        let map = self.session.state.map.clone();
+        let geometry = map.mission().unwrap();
+        let target = if record {
+            &geometry.record
+        } else {
+            &geometry.departure
+        };
+        self.walk(target.approach);
+        // Finish the approach precisely enough for arm's-reach interaction.
+        for _ in 0..20 {
+            let p = &self.session.state.players[0];
+            if (p.x - target.approach[0]).hypot(p.z - target.approach[2]) < 0.3 {
+                break;
+            }
+            self.step(target.approach);
+        }
+        let point = target
+            .point(map.presentation_ref().unwrap(), &map.arena().solids)
+            .unwrap();
+        self.session.state.set_action(
+            self.id,
+            Action {
+                interact: true,
+                look_at: Some(LookAt {
+                    x: Some(point[0]),
+                    y: Some(point[1]),
+                    z: Some(point[2]),
+                    player_id: None,
+                }),
+                ..Action::default()
+            },
+        );
+        self.session.tick_messages(0.05);
+        self.session.state.set_action(self.id, Action::default());
+        assert_eq!(
+            self.session.state.mission_state().unwrap().phase,
+            if record {
+                crate::protocol::MissionPhase::ReachLift
+            } else {
+                crate::protocol::MissionPhase::Departed
+            }
+        );
+        self.navigator.clear();
+    }
 }
 
 #[test]
@@ -200,7 +246,9 @@ fn m01_main_and_maintenance_approaches_clear_with_discovered_equipment() {
             assert_eq!(run.seen.len(), 3, "every enemy was seen before defeat");
             assert_eq!(run.session.state.players[0].weapon, WeaponType::Flechette);
             run.walk([-3.0, 3.0, 20.0]);
+            run.use_control(true);
             run.walk([7.0, 3.0, 23.0]);
+            run.use_control(false);
             assert_eq!(run.session.state.scores[&run.id], 0);
             eprintln!("M01 {role:?} maintenance={maintenance}: ticks={}, hp={}, shots={}, first_threat={:?}, first_shot={:?}",
                 run.session.state.tick, run.session.state.players[0].hp, run.shots, run.first_threat, run.first_shot);

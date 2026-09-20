@@ -1,5 +1,5 @@
 {
-  "comment": "M01 surface, sign and lighting review through authoritative walking and combat. Uses server/maps/m01-recall-notice.json with zero arcade bots. No teleport or mission-completion claim.",
+  "comment": "M01 facility and mission sequence through authoritative walking, combat and physical input. Uses server/maps/m01-recall-notice.json with zero arcade bots. Completion applies to the current prototype only.",
   "width": 1280,
   "height": 720,
   "states": [
@@ -9,11 +9,15 @@
     {"name":"intake_fight","camera":"first_person","walk_to":[[0,0,-10]],"combat":{"kind":"sweeper","defeat":2},"look_at":[2,3,6],"note":"Enemy contrast and movement remain readable beneath the hall lights."},
     {"name":"public_records","camera":"first_person","walk_to":[[5,0,-8],[8,0,-8]],"look_at":[12,4.5,-1],"note":"Records signage identifies the public stair route."},
     {"name":"records_balcony","camera":"first_person","walk_to":[[8,3,9]],"look_at":[-7,5.5,12],"note":"Ordinary stair ascent ends facing the transfer-control marker."},
-    {"name":"transfer_desk","camera":"first_person","walk_to":[[-3,3,9],[-3,3,20],[-7,3,21]],"look_at":[-7.5,4.2,24],"note":"Static queue display is environmental dressing, not an implemented objective."},
+    {"name":"closed_lift","camera":"first_person","walk_to":[[-3,3,9],[-3,3,20],[-1,3,22]],"look_at":[2.1,4.6,22],"note":"The closed lift is a server solid before record discovery."},
+    {"name":"transfer_desk","camera":"first_person","walk_to":[[-3,3,9],[-3,3,20],[-7.5,3,21.5]],"look_at":[-7.5,3.6,22.988],"note":"Physical transfer record prompt must match the visible console."},
+    {"name":"record_recovered","camera":"first_person","look_at":[-7.5,3.6,22.988],"interact":"reach_lift","note":"Short F press discovers Latch's destination and opens the actual lift gate."},
     {"name":"lift_entry","camera":"first_person","walk_to":[[-3,3,21],[-1,3,22]],"look_at":[2,7.2,22],"note":"The custody lift is distinct from records and intake."},
     {"name":"custody_lift","camera":"first_person","walk_to":[[7,3,22]],"look_at":[7.5,5,26],"note":"Original issued emblem and practical light in the enclosed lift."},
     {"name":"maintenance_landing","camera":"first_person","walk_to":[[-3,3,22],[-3,3,9],[-17,3,9]],"look_at":[-18,5.4,12],"note":"Service route reconnects to the records level."},
     {"name":"service_machinery","camera":"first_person","walk_to":[[-17,0,-12],[-17,0,-18]],"look_at":[-20,1.4,-13],"note":"Vents and work light distinguish the alternate route."},
-    {"name":"service_return","camera":"first_person","walk_to":[[-17,0,-12],[-17,3,9],[0,3,9]],"look_at":[0,4,-12],"note":"Return by maintenance and inspect the lit hall from above."}
+    {"name":"service_return","camera":"first_person","walk_to":[[-17,0,-12],[-17,3,9],[0,3,9]],"look_at":[0,4,-12],"note":"Return by maintenance and inspect the lit hall from above."},
+    {"name":"departure_prompt","camera":"first_person","walk_to":[[-3,3,9],[-3,3,22],[7,3,22],[9.5,3,24.5]],"look_at":[9.5,4.4,25.988],"note":"Everyone aboard enables the physical departure control."},
+    {"name":"prototype_departure","camera":"first_person","look_at":[9.5,4.4,25.988],"interact":"departed","note":"The server confirms prototype completion. M02 is not pretended to exist."}
   ]
 }

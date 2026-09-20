@@ -26,3 +26,33 @@ msgstr "COMPLAINTS\nTo recover confiscated property, provide the form stored ins
 
 msgid "WORLD_TRANSFER_QUEUE"
 msgstr "TRANSFER QUEUE\nMANUAL REVIEW REQUIRED"
+
+msgid "WORLD_LIFT_CONTROL"
+msgstr "CUSTODY ROUTE\nCONFIRM DEPARTURE"
+
+msgid "MISSION_M01_TITLE"
+msgstr "RECALL NOTICE"
+
+msgid "MISSION_FIND_RECORD"
+msgstr "Find Latch's transfer record.\nRecords mezzanine, level 01."
+
+msgid "MISSION_REACH_LIFT"
+msgstr "Reach the custody lift."
+
+msgid "MISSION_TRANSFER_RECORD"
+msgstr "LATCH: transferred to the correction ward.\nCorrection pending. Custody route unlocked."
+
+msgid "MISSION_WAITING_FOR"
+msgstr "Awaiting boarding: {names}"
+
+msgid "MISSION_USE_RECORD"
+msgstr "F / B: READ TRANSFER RECORD"
+
+msgid "MISSION_USE_LIFT"
+msgstr "F / B: DEPART TO CORRECTION WARD"
+
+msgid "MISSION_DEPARTED"
+msgstr "TRANSFER ROUTE SECURED\nDestination: correction ward.\n\nPrototype complete. The rescue continues in the next mission, still in development.\nESC: open the match menu to leave."
+
+msgid "MISSION_PARTY_FULL"
+msgstr "The four-player mission party is full. Join as a spectator or wait for a seat."

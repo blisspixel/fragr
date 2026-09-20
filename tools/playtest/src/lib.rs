@@ -1181,6 +1181,7 @@ async fn agent_task(
     let mut arena = Arena::default();
     let mut navigation = None;
     let mut navigator = fragr_server::navigation::Navigator::default();
+    let mut mission_client = fragr_server::mission::MissionClient::default();
     loop {
         if *stop.borrow() {
             break;
@@ -1196,6 +1197,11 @@ async fn agent_task(
             continue;
         };
         match serde_json::from_str::<ServerMessage>(&text) {
+            Ok(ServerMessage::Mission { tick, state }) => {
+                mission_client
+                    .observe(tick, state)
+                    .map_err(|error| Error::Server(error.into()))?;
+            }
             Ok(ServerMessage::Loadout(next)) => {
                 next.validate_for(player_id, loadout.as_ref())
                     .map_err(|error| Error::Server(error.into()))?;
@@ -1207,10 +1213,19 @@ async fn agent_task(
                 half_extent,
                 geometry_version,
                 presentation,
+                mission,
                 ..
             }) => {
                 fragr_server::protocol::validate_map_presentation(presentation.as_ref(), &solids)
                     .map_err(|error| Error::Server(format!("invalid map presentation: {error}")))?;
+                mission_client
+                    .replace_map(
+                        mission.as_ref(),
+                        half_extent,
+                        &solids,
+                        presentation.as_ref(),
+                    )
+                    .map_err(|error| Error::Server(format!("invalid mission map: {error}")))?;
                 fragr_server::protocol::validate_map_geometry(
                     half_extent,
                     &solids,
@@ -1240,14 +1255,15 @@ async fn agent_task(
                     continue;
                 };
                 let wanted = policy_action(policy, id, &snapshot, &arena);
-                let wanted = fragr_server::inventory::control_action(
+                let wanted = fragr_server::inventory::control_action_with_objective(
                     id,
                     &snapshot,
                     loadout.as_ref(),
                     wanted,
+                    mission_client.state.is_some(),
                 );
                 let driven = navigation.as_ref().map_or_else(Action::default, |world| {
-                    navigator.steer_snapshot(world, id, &snapshot, wanted)
+                    mission_client.steer(&mut navigator, world, id, &snapshot, wanted)
                 });
                 let action = ClientMessage::Action(driven);
                 if sink
@@ -1261,7 +1277,9 @@ async fn agent_task(
                 }
             }
             Ok(ServerMessage::Error { code, message })
-                if code == "unsupported_geometry" || code == "unsupported_gameplay" =>
+                if code == "unsupported_geometry"
+                    || code == "unsupported_gameplay"
+                    || code == "party_full" =>
             {
                 return Err(Error::Server(message));
             }

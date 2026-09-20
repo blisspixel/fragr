@@ -258,6 +258,7 @@ fn m01_routes_use_ordinary_actions_through_the_live_session() {
             "public_stair_entry",
             "records_balcony",
             "transfer_control",
+            "transfer_record",
             "prisoner_lift",
             "transfer_control",
             "maintenance_landing",
@@ -274,14 +275,15 @@ fn m01_routes_use_ordinary_actions_through_the_live_session() {
             for _ in 0..1200 {
                 let player = &session.state.players[0];
                 let feet = [player.x, player.y - PLAYER_FLOOR_Y, player.z];
-                if (feet[0] - destination[0]).hypot(feet[2] - destination[2]) < 0.75
+                let tolerance = if name == "transfer_record" { 0.4 } else { 0.75 };
+                if (feet[0] - destination[0]).hypot(feet[2] - destination[2]) < tolerance
                     && (feet[1] - destination[1]).abs() < 0.1
                 {
                     arrived = true;
                     break;
                 }
                 let action = navigator.steer(
-                    &map.navigation,
+                    session.state.map.navigation(),
                     feet,
                     NavigationGoal {
                         feet: destination,
@@ -299,7 +301,7 @@ fn m01_routes_use_ordinary_actions_through_the_live_session() {
                 // before the feet centre reaches its tread. The body axis must
                 // never cross a filled volume, including an overhead slab.
                 assert!(
-                    !map.arena.solids.iter().any(|solid| {
+                    !session.state.map.arena().solids.iter().any(|solid| {
                         solid.covers(player.x, player.z)
                             && solid.top > feet + CONTACT_EPSILON
                             && solid.bottom < feet + BODY_HEIGHT - CONTACT_EPSILON
@@ -309,6 +311,35 @@ fn m01_routes_use_ordinary_actions_through_the_live_session() {
                 );
             }
             assert!(arrived, "{role:?} could not reach {name}");
+            if name == "transfer_record" {
+                let geometry = session.state.map.mission().unwrap();
+                let point = geometry
+                    .record
+                    .point(
+                        session.state.map.presentation_ref().unwrap(),
+                        &session.state.map.arena().solids,
+                    )
+                    .unwrap();
+                session.state.set_action(
+                    id,
+                    Action {
+                        interact: true,
+                        look_at: Some(crate::protocol::LookAt {
+                            x: Some(point[0]),
+                            y: Some(point[1]),
+                            z: Some(point[2]),
+                            player_id: None,
+                        }),
+                        ..Action::default()
+                    },
+                );
+                session.tick_messages(0.05);
+                assert_eq!(
+                    session.state.mission_state().unwrap().phase,
+                    crate::protocol::MissionPhase::ReachLift
+                );
+                navigator.clear();
+            }
         }
     }
 }

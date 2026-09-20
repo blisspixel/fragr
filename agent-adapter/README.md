@@ -10,8 +10,9 @@ and the map version in observations, and closes its MCP game session if a map
 has unsupported or invalid geometry, or the server sends malformed JSON.
 Ground-filled legacy maps remain readable.
 
-Clients declare gameplay capability 3. Discovery-only maps require 2; authored
-encounters require 3 and reject older clients before admission. `observe.loadout`
+Clients declare gameplay capability 4. Discovery-only maps require 2; authored
+encounters require 3; physical mission sequences require 4. Older clients are
+rejected before admission. `observe.loadout`
 is private to this participant: selected and
 owned weapons, magazines, pooled reserves, reload completion tick, personal
 supply claims and dry-trigger count. Invalid, foreign or backward-tick equipment
@@ -23,6 +24,15 @@ the server rejects unowned choices. `reload: true` requests one reload and survi
 a subsequent action without the flag until consumed. Scripted and decision
 controllers use the shared equipment helper to find supplies, choose owned guns
 and reload. MCP still sends ordinary actions, never direct inventory changes.
+
+`observe.mission` carries the shared phase, attempt, party boarding and currently
+legal prompts. `observe.map.mission` describes panel indices, approach positions
+and the boarding area. `act.interact: true` presses Use; release with `false`
+before another press. Range, aim, sight, gate changes and departure remain server
+decisions. The shared local controller walks to mission controls when it has no
+combat or equipment target. Map changes replace navigation even with the same ID.
+Mission parties allow four humans/agents together; spectators do not take seats.
+This is prototype progression, not finished checkpoints, saves or reconnect.
 
 Callsigns are display labels. Simultaneous connections with the same requested
 name receive distinct labels; they cannot reclaim another fighter by name.

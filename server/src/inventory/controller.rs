@@ -49,7 +49,19 @@ pub fn control_action(
     id: Uuid,
     snapshot: &Snapshot,
     loadout: Option<&LoadoutState>,
+    action: Action,
+) -> Action {
+    control_action_with_objective(id, snapshot, loadout, action, false)
+}
+
+/// An active objective takes priority over optional resupply while a ranged
+/// weapon is usable. Running dry still routes to supply through the same rules.
+pub fn control_action_with_objective(
+    id: Uuid,
+    snapshot: &Snapshot,
+    loadout: Option<&LoadoutState>,
     mut action: Action,
+    has_objective: bool,
 ) -> Action {
     let Some(loadout) = loadout else {
         return action;
@@ -110,7 +122,7 @@ pub fn control_action(
         action.fire = false;
     }
 
-    if selected == WeaponType::Fists || nearest.is_none() {
+    if selected == WeaponType::Fists || (nearest.is_none() && !has_objective) {
         let supply = snapshot
             .pickups
             .iter()

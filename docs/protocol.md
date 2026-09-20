@@ -64,14 +64,60 @@ Initial handshake message. Must be sent immediately after connection.
   No player or spectator session is created on rejection. This is geometry
   compatibility, not general protocol or action-version negotiation.
 - `gameplay_version`: maximum understood gameplay contract. Current clients send
-  `3`; omission means `1`. Discovery-only maps require 2, and maps with authored
-  encounters require 3. Older clients of every role are rejected before `Welcome`
+  `4`; omission means `1`. Discovery-only maps require 2, maps with authored
+  encounters require 3, and physical mission sequences require 4.
+  Older clients of every role are rejected before `Welcome`
   with `unsupported_gameplay`. This capability is separate from geometry. The six
   full-arsenal arcade maps still accept 1.
 
+Mission servers admit at most four participants, sharing slots across human and
+agent roles. Spectators do not take slots. A full party rejects additional
+participants with `party_full` before `Welcome`; disconnect returns the seat.
+
+### Mission sequence
+
+Mission maps include optional `mission` metadata in `MapInfo`: registered `id`
+(`recall_notice`), `record` and `departure` targets, and a `boarding` feet-position
+box with finite `min`/`max`. Each target has a `decoration` index into the validated
+presentation and a supported `approach: [x,y,z]`. The actual use point is the
+centre of that visible panel, including its face offset. The record uses
+`terminal`; departure uses `lift_control`. Targets never contain scripts or text.
+
+`Action.interact` is an optional boolean, false by default. Its rising edge is
+latched through newer released input until the simulation consumes it. A held
+button does not activate another target. A living participant must aim within
+18 degrees of the panel, within 2.5 metres from their eye, with unobstructed sight.
+The server selects the legal target; clients cannot submit an interaction ID.
+
+The authority sends `{"type":"mission","tick":42,"state":{...}}` after map data
+and before the corresponding snapshot whenever shared state changes. `state` is:
+
+- `id`: `recall_notice`; `attempt`: positive retry revision; `changed_at`: tick of
+  the last phase change/reset, no later than the message tick.
+- `phase`: `find_transfer`, `reach_lift`, or `departed`.
+- `party`: up to four `{id,name,alive,aboard}` members. Names are display labels.
+- `prompts`: `{player_id,kind}` for currently legal interactions. Kinds are
+  `transfer_record` and `lift_departure`; these are not localized strings.
+
+Reading the record opens a real gate by selecting a geometry/navigation variant
+prepared before server readiness. `MapInfo` is resent even though `map_id` stays
+the same; clients must rebuild geometry and clear route caches before accepting
+the new mission state. Late players and spectators receive map and shared state.
+Departure requires all current participants alive and inside the boarding box,
+plus an explicit use press. One participant disconnecting does not reset the
+remaining players' progress. A party wipe or the last participant leaving resets the gate, supplies
+and encounters together, once. NPCs and spectators never count as party members.
+
+The current `departed` state freezes the prototype simulation and shows a result;
+it does not load M02. Entry respawn, no persistent/reconnect identity, and no
+checkpoint or revive remain explicit limitations. Leaving the party empty allows
+a new attempt. Text is client-localized; no voice or radio is required.
+
 #### Action
 
-Sent by `human` or `agent` roles to control their player. All fields are optional booleans defaulting to `false`.
+Sent by `human` or `agent` roles to control their player. Movement, firing, jump,
+reload and interaction flags are optional booleans defaulting to `false`.
+Optional aim, sequence and weapon fields use the types described below.
 
 ```json
 {
@@ -229,7 +275,7 @@ scene geometry with these solids so visible cover agrees with the server.
   (+Z,+Y), (-Z,+Y), (+X,+Z), (+X,-Z), (-X,+Y), (+X,+Y).
   Kinds are `property_sign`, `intake_sign`, `records_sign`, `maintenance_sign`,
   `transfer_sign`, `lift_sign`, `complaint_notice`, `union_seal`, `lockers`,
-  `vent`, `terminal` and `strip_light`. Text keys and assets belong to the client;
+  `vent`, `terminal`, `lift_control` and `strip_light`. Text keys and assets belong to the client;
   map data cannot provide scripts, arbitrary text, paths or URLs. These thin
   panels cannot create collision or interactions. Old payloads omit the array;
   older presenters can ignore it without changing geometry or gameplay versions.

@@ -26,6 +26,7 @@ pub struct GameSession {
     pub pending_unicasts: Vec<(Recipient, ServerMessage)>,
     /// The map the last MapInfo described, so a rotation resends it once.
     last_map_sent: Option<crate::maps::RuntimeMap>,
+    last_mission_sent: Option<protocol::MissionState>,
     /// Target rule-bot count. Solo scrap and empty-arena recovery refill up to this.
     pub min_bots: usize,
     navigation_map: crate::maps::RuntimeMap,
@@ -55,6 +56,7 @@ impl GameSession {
             client_to_player: HashMap::new(),
             pending_unicasts: Vec::new(),
             last_map_sent: None,
+            last_mission_sent: None,
             min_bots: 0,
             navigators: HashMap::new(),
             sent_loadouts: HashMap::new(),
@@ -211,6 +213,9 @@ impl GameSession {
                     );
                 } else {
                     tracing::info!("Spectator {} joined", name);
+                }
+                if let Some(message) = self.state.mission_message() {
+                    self.pending_unicasts.push((Recipient::Client(id), message));
                 }
             }
 
@@ -421,10 +426,22 @@ impl GameSession {
         );
 
         let mut out = Vec::new();
-        // The map only ever changes between rounds, so this is not per-tick cost.
+        // A mission gate also swaps immutable geometry. Send it before mission
+        // state and snapshots so every controller observes the same world.
         if self.last_map_sent.as_ref() != Some(&self.state.map) {
             self.last_map_sent = Some(self.state.map.clone());
+            self.last_mission_sent = None;
             out.push(self.state.map_info());
+        }
+        let mission = self.state.mission_state();
+        if self.last_mission_sent != mission {
+            if let Some(state) = mission.as_ref() {
+                out.push(ServerMessage::Mission {
+                    tick: self.state.tick,
+                    state: state.clone(),
+                });
+            }
+            self.last_mission_sent = mission;
         }
         out.push(ServerMessage::Snapshot(self.state.snapshot()));
         for event in self.state.take_events() {

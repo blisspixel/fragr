@@ -11,13 +11,13 @@ an explicit approved cap, and the existing developer pipelines.
 
 | Concern | Present behavior | Campaign gap |
 |---|---|---|
-| Maps | Six arena layouts and a validated M01 document; shared finite geometry and surface presentation | Authored encounters, mission links and complete room dressing |
+| Maps | Six arena layouts and a validated M01 document; shared finite geometry, keyed signs and bounded details | Complete mission layouts, room kits and transitions |
 | Combat | M01 fists, found Tack/Flechette, private finite inventory, reload and supplies; arcade full arsenal | Remaining arsenal, projectiles, authored encounter balance and finished sound sets |
 | Movement | Shared gravity, jump, steps, ceilings and overlapping floors with a verified GDScript mirror | New traversal features require explicit geometry support and live tests |
-| Enemies | Rule-bot behaviors using Player; elite/boss prototype | Separate authored enemy states, human/captive/elite distinctions, encounter placement and animation |
-| Episode | Calibration phases: NODS, jammer, Auditor, win/fail | Story missions, release/extraction objectives, campaign transitions |
+| Enemies | Rule bots, elite/boss prototype, authored human Clerk and Sweeper bot with phased attacks and directional animation | Full enemy roster, final art, encounters and balance |
+| Episode | Calibration prototype; M01 transfer/gate/departure locally implemented and verified | Full story missions, rescue outcomes and campaign transitions |
 | Persistence | Player settings | Versioned party campaign save, checkpoints, inventory and rescue outcomes |
-| Co-op | Multiple fighters can connect | Teams, revive/wipe, mission joins, shared objective state, save ownership and reconnect |
+| Co-op | Allied campaign participants, encounter wipe reset; shared mission boarding and four-seat admission verified locally | Revive, checkpoints, save ownership, reconnect and proven party balance |
 | Presentation | Retro front end, current HUD, radio and idle viewmodels | Localized framing, companion scenes, complete character/weapon/effect motion |
 
 Navigation PR #172 shipped in v0.21.0 after local verification and green CI,

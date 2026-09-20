@@ -4,6 +4,7 @@ use uuid::Uuid;
 mod actors;
 mod decoration;
 mod loadout;
+mod mission;
 pub use actors::{hostile, CampaignActor, EnemyKind, EnemyPhase};
 pub use decoration::{
     validate_decorations, MapDecoration, MapDecorationKind, MapFace, MAX_MAP_DECORATIONS,
@@ -11,6 +12,10 @@ pub use decoration::{
 };
 pub use loadout::{
     AmmoPool, AmmoReserve, EquipmentPolicy, LoadoutState, ReloadState, SupplyClaim, WeaponAmmo,
+};
+pub use mission::{
+    InteractionKind, InteractionPrompt, MissionGeometry, MissionId, MissionMember, MissionPhase,
+    MissionState, Region3, UseTarget, MISSION_PARTY_LIMIT, USE_DISTANCE,
 };
 
 /// Named scrap-league identity (Contested Frequency denies it exists).
@@ -389,8 +394,9 @@ pub const GEOMETRY_VERSION: u32 = 2;
 
 pub const DISCOVERY_GAMEPLAY_VERSION: u32 = 2;
 pub const CAMPAIGN_GAMEPLAY_VERSION: u32 = 3;
+pub const MISSION_GAMEPLAY_VERSION: u32 = 4;
 /// Highest understood gameplay contract; content requirements use their own minimum.
-pub const GAMEPLAY_VERSION: u32 = CAMPAIGN_GAMEPLAY_VERSION;
+pub const GAMEPLAY_VERSION: u32 = MISSION_GAMEPLAY_VERSION;
 pub fn legacy_gameplay_version() -> u32 {
     1
 }
@@ -497,6 +503,7 @@ mod geometry_tests {
         assert!(validate_map_geometry(f32::NAN, &raised, 2).is_err());
         let message = ServerMessage::MapInfo {
             presentation: None,
+            mission: None,
             map_id: 67,
             map_name: "Enclosed fixture".into(),
             half_extent: 12.0,
@@ -566,6 +573,12 @@ pub enum ServerMessage {
         geometry_version: u32,
         #[serde(default, skip_serializing_if = "Option::is_none")]
         presentation: Option<MapPresentation>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        mission: Option<MissionGeometry>,
+    },
+    Mission {
+        tick: u64,
+        state: MissionState,
     },
     Snapshot(Snapshot),
     Loadout(LoadoutState),
@@ -650,6 +663,9 @@ pub struct Action {
     /// Discrete reload request, consumed once by the authoritative tick.
     #[serde(default, skip_serializing_if = "is_false")]
     pub reload: bool,
+    /// Rising-edge use request. Release before pressing a second time.
+    #[serde(default, skip_serializing_if = "is_false")]
+    pub interact: bool,
     #[serde(default)]
     pub weapon_swap: Option<WeaponType>,
     /// Target aim takes precedence after movement: player body centre or world

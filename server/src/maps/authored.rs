@@ -10,6 +10,7 @@ use std::path::Path;
 use std::sync::Arc;
 
 pub(crate) mod encounters;
+mod mission;
 mod supplies;
 
 const MAX_BYTES: u64 = 1_048_576;
@@ -20,8 +21,10 @@ mod encounters_tests;
 #[cfg(test)]
 mod tests;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct AuthoredMap {
+    pub(super) mission: Option<crate::protocol::MissionGeometry>,
+    pub(super) opened_route: Option<Arc<Self>>,
     pub(super) id: u32,
     pub(super) name: String,
     pub(super) arena: Arena,
@@ -37,6 +40,8 @@ pub struct AuthoredMap {
 #[derive(Debug, Deserialize)]
 #[serde(deny_unknown_fields)]
 struct Document {
+    #[serde(default)]
+    mission: Option<mission::Definition>,
     #[serde(default)]
     decorations: Vec<MapDecoration<String>>,
     #[serde(default)]
@@ -64,7 +69,7 @@ struct Volume {
     surface: MapSurface,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub(super) struct Placement {
     id: String,
@@ -72,7 +77,7 @@ pub(super) struct Placement {
     pub yaw: f32,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 #[serde(deny_unknown_fields)]
 struct Landmark {
     id: String,
@@ -191,6 +196,18 @@ impl AuthoredMap {
             half: doc.half_extent,
             solids,
         };
+        let mut presentation = MapPresentation {
+            ground: doc.ground,
+            solids: surfaces,
+            decorations,
+        };
+        if doc.mission.is_some() && doc.equipment != crate::protocol::EquipmentPolicy::Discovery {
+            return Err(invalid("missions require discovered equipment"));
+        }
+        let mission = doc
+            .mission
+            .map(|definition| definition.prepare(&arena, &solid_ids, &mut presentation))
+            .transpose()?;
         for spawn in &doc.spawns {
             identity(&spawn.id, &mut seen)?;
             if !standing(&arena, spawn.feet)
@@ -214,11 +231,26 @@ impl AuthoredMap {
         let supplies = supplies::build(doc.supplies, doc.equipment, &arena, &mut seen)?;
         encounters::validate(&doc.encounters, doc.equipment, &arena, &mut seen)?;
         let navigation = Navigation::shared(arena.clone()).map_err(invalid)?;
+        let opened_navigation = mission
+            .as_ref()
+            .map(|m| Navigation::shared(m.opened.clone()).map_err(invalid))
+            .transpose()?;
+        if let (Some(mission), Some(opened)) = (&mission, &opened_navigation) {
+            mission.validate_routes(start, &navigation, opened)?;
+        }
+        for spawn in &doc.spawns {
+            if navigation
+                .route(start, spawn.feet, crate::navigation::SEARCH_LIMIT)
+                .status
+                != crate::navigation::RouteStatus::Complete
+            {
+                return Err(invalid("map spawn is unreachable from the entry"));
+            }
+        }
         for destination in doc
-            .spawns
+            .landmarks
             .iter()
             .map(|p| p.feet)
-            .chain(doc.landmarks.iter().map(|p| p.feet))
             .chain(supplies.iter().map(|p| [p.x, p.floor, p.z]))
             .chain(
                 doc.encounters
@@ -230,11 +262,19 @@ impl AuthoredMap {
                 .route(start, destination, crate::navigation::SEARCH_LIMIT)
                 .status
                 != crate::navigation::RouteStatus::Complete
+                && !opened_navigation.as_ref().is_some_and(|opened| {
+                    opened
+                        .route(start, destination, crate::navigation::SEARCH_LIMIT)
+                        .status
+                        == crate::navigation::RouteStatus::Complete
+                })
             {
                 return Err(invalid("map placement is unreachable from the entry"));
             }
         }
-        Ok(Arc::new(Self {
+        let mut map = Self {
+            mission: mission.as_ref().map(|m| m.geometry.clone()),
+            opened_route: None,
             encounters: doc.encounters,
             supplies,
             equipment: doc.equipment,
@@ -243,13 +283,16 @@ impl AuthoredMap {
             arena,
             navigation,
             spawns: doc.spawns,
-            presentation: MapPresentation {
-                ground: doc.ground,
-                solids: surfaces,
-                decorations,
-            },
+            presentation,
             landmarks: doc.landmarks,
-        }))
+        };
+        if let (Some(mission), Some(navigation)) = (mission, opened_navigation) {
+            let mut opened = map.clone();
+            opened.arena = mission.opened;
+            opened.navigation = navigation;
+            map.opened_route = Some(Arc::new(opened));
+        }
+        Ok(Arc::new(map))
     }
 
     pub fn landmark(&self, id: &str) -> Option<[f32; 3]> {

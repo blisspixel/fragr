@@ -1,0 +1,12 @@
+{
+  "host":{"min_x":1,"max_x":7,"bottom":2,"top":10,"min_z":3,"max_z":15},
+  "center":[0.25,0.5],
+  "points":[
+    {"face":"west","point":[0.988,6.5,9.25]},
+    {"face":"east","point":[7.012,6.5,8.75]},
+    {"face":"down","point":[4.25,1.988,9.5]},
+    {"face":"up","point":[4.25,10.012,8.5]},
+    {"face":"north","point":[3.75,6.5,2.988]},
+    {"face":"south","point":[4.25,6.5,15.012]}
+  ]
+}

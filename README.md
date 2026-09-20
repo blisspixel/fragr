@@ -29,8 +29,9 @@ enclosed intake rooms, two stair routes, an accessible records balcony, a
 prisoner lift and fists-to-found-gun progression with finite ammo and reload.
 The current draft adds one human Clerk and two Sweeper bots with server-owned
 attack phases and directional walk, raise, recoil, pain, melee and collapse
-poses. Character art is still under review; mission objectives, checkpoints and
-extraction are unbuilt.
+poses. Find Latch's transfer record at the console, open the custody lift and
+depart together. Character art and pacing are still under review; the full mission,
+checkpoints and the next mission are unfinished.
 
 ## Screenshots
 
@@ -108,8 +109,9 @@ Flechette before the records stairs, collect finite ammunition, and reload.
 Introductory guns remain available independently to each participant. The six
 arcade maps retain their three unlimited guns. Run instructions and current
 limitations: [`server/maps/README.md`](server/maps/README.md). M01 still needs
-finished enemy presentation, further encounters, objectives, checkpoints and
-extraction before it is a complete mission.
+finished enemy presentation, further encounters, secrets, opening framing and
+checkpoints before it is a complete mission. F or controller B uses an aimed
+mission control. The lift waits for everyone aboard; its result ends this prototype.
 
 ## Desktop exports
 

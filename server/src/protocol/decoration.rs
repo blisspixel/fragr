@@ -44,6 +44,7 @@ pub enum MapDecorationKind {
     Vent,
     Terminal,
     StripLight,
+    LiftControl,
 }
 
 /// Authoring names a solid; the validated wire form uses its index. The same
@@ -60,6 +61,25 @@ pub struct MapDecoration<S = usize> {
 }
 
 impl<S> MapDecoration<S> {
+    /// Point just outside the host face, matching MapDecoration.placement in Godot.
+    pub fn point(&self, host: &Solid) -> [f32; 3] {
+        let [u, v] = self.center;
+        let center = [
+            (host.min_x + host.max_x) * 0.5,
+            (host.bottom + host.top) * 0.5,
+            (host.min_z + host.max_z) * 0.5,
+        ];
+        const OFFSET: f32 = 0.012;
+        match self.face {
+            MapFace::West => [host.min_x - OFFSET, center[1] + v, center[2] + u],
+            MapFace::East => [host.max_x + OFFSET, center[1] + v, center[2] - u],
+            MapFace::Down => [center[0] + u, host.bottom - OFFSET, center[2] + v],
+            MapFace::Up => [center[0] + u, host.top + OFFSET, center[2] - v],
+            MapFace::North => [center[0] - u, center[1] + v, host.min_z - OFFSET],
+            MapFace::South => [center[0] + u, center[1] + v, host.max_z + OFFSET],
+        }
+    }
+
     pub fn with_solid<T>(self, solid: T) -> MapDecoration<T> {
         MapDecoration {
             solid,
