@@ -516,7 +516,7 @@ impl Navigation {
 }
 
 #[cfg(test)]
-mod tests {
+pub(crate) mod tests {
     mod enclosed;
     use super::*;
     use crate::movement::{self, MoveInput, MoveState, Solid};
@@ -615,7 +615,7 @@ mod tests {
         assert!((state.y - to[1]).abs() < 0.1);
     }
 
-    fn assert_server_walks(
+    pub(crate) fn assert_server_walks(
         map: crate::sim::MapKind,
         navigation: &Navigation,
         from: [f32; 3],

@@ -17,6 +17,7 @@ Status words: **planned**, **in flight**, **implemented** (local evidence record
 
 | Plan | Status | One-liner |
 |---|---|---|
+| [`tripoint-spawn-safety.md`](./tripoint-spawn-safety.md) | **in flight** (#194) | Investigate recurring early deaths under the unchanged 16-client gate; prove the spatial or lifecycle fix. |
 | [`m01-opening.md`](./m01-opening.md) | **implemented** (#192) | Reader-paced recall story, replay and authoritative initial/late party readiness; local proof recorded, release evidence linked from the task. |
 | [`asset-request-identity.md`](./asset-request-identity.md) | **shipped** (#191) | Save accepted paid-job identity before validating polling metadata; recover without resubmitting. |
 | [`mission-wire-order.md`](./mission-wire-order.md) | **shipped** (#189, v0.27.1) | Queue initial geometry before broadcasts; prove shared departure without depending on socket scheduling. |

@@ -11,6 +11,7 @@ use crate::session::GameSession;
 
 mod discovery;
 mod roster;
+mod spawns;
 
 #[tokio::test]
 async fn late_connections_receive_authoritative_geometry_for_every_role() {
