@@ -23,7 +23,7 @@ const DEFAULTS: Dictionary = {
 	"audio": {
 		"master": 0.9,
 		"music": 0.7,
-		"effects": 1.0,
+		"effects": 0.5,
 	},
 	"controls": {
 		"mouse_sensitivity": 1.5, # 0.022 degrees per unscaled mouse count.

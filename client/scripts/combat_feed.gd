@@ -11,10 +11,25 @@ class Entry:
 		label = value
 
 var _entries: Array[Entry] = []
+var _campaign: bool = false
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_theme_constant_override("separation", 4)
+
+func set_campaign(active: bool) -> void:
+	_campaign = active
+	anchor_left = 0.0 if active else 1.0
+	anchor_right = anchor_left
+	anchor_top = 1.0 if active else 0.0
+	anchor_bottom = anchor_top
+	offset_left = 16.0 if active else -496.0
+	offset_right = 496.0 if active else -16.0
+	offset_top = -320.0 if active else 20.0
+	offset_bottom = -160.0 if active else 170.0
+	alignment = BoxContainer.ALIGNMENT_END if active else BoxContainer.ALIGNMENT_BEGIN
+	for entry: Entry in _entries:
+		entry.label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT if active else HORIZONTAL_ALIGNMENT_RIGHT
 
 func push(text: String, colour: Color = MenuTheme.BONE) -> void:
 	var line: String = text.replace("\n", " ").replace("\r", " ").replace("\t", " ").strip_edges()
@@ -30,7 +45,7 @@ func push(text: String, colour: Color = MenuTheme.BONE) -> void:
 	label.add_theme_color_override("font_color", colour)
 	label.add_theme_color_override("font_outline_color", MenuTheme.INK)
 	label.add_theme_constant_override("outline_size", 3)
-	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT if _campaign else HORIZONTAL_ALIGNMENT_RIGHT
 	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	label.max_lines_visible = 2
 	label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS

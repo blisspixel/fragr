@@ -69,6 +69,12 @@ The [player settings pass](plans/player-settings.md), shipped in v0.18.0, connec
 display, and audio to their runtime readers through the same retro panel at the
 front menu and in a live match. It also fixes resolution-dependent mouse input.
 
+The [default mix and splash correction](plans/audio-startup-polish.md) is
+implemented in #201: quieter default effects, more present playing radio, saved
+choices preserved and the refined logo replacing the stale ON AIR startup image.
+Resolution selection and graphics presets are the next requested settings work;
+portable renderer enhancements must preserve readable pixel surfaces.
+
 [Asset request recovery](plans/asset-request-recovery.md) shipped in #169 with
 cross-platform failure tests. Submitted jobs survive interruptions, and
 authenticated polling is bound to the official API origin. Reference preparation

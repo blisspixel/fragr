@@ -73,6 +73,26 @@ func _run() -> void:
 	_check(not hud.round_message.visible, "routine combat events never occupy the centre")
 	_check(not hud.streak_flash.visible and camera.punches == 0, "other people's events do not flash or shake the view")
 	_check(hud.combat_feed.get_child_count() == 3, "all event routes share the same bound")
+	var mission: MissionHud = MissionHud.new()
+	hud.add_child(mission)
+	mission.apply({"rules": {"difficulty": "standard"}, "phase": "find_transfer", "prompts": [], "party": [], "run": {"continues": 3, "status": "playing"}}, "self")
+	hud.combat_feed.set_campaign(true)
+	hud.combat_feed.set_process(false)
+	for index: int in range(3):
+		hud.combat_feed.push("Resistance dispatch %d: the transfer record is in Annex 67. Keep the exit clear." % index)
+	await process_frame
+	await process_frame
+	mission.visible = true
+	mission._process(0.0)
+	_check(not hud.combat_feed.get_global_rect().intersects(mission._card.get_global_rect()), "campaign notices never overlap the objective panel")
+	_check(not hud.combat_feed.get_global_rect().intersects(hud.vitals.get_global_rect()), "campaign feed reserves the actual health display below")
+	_check(hud.combat_feed.get_child(0).horizontal_alignment == HORIZONTAL_ALIGNMENT_LEFT, "existing entries follow campaign layout")
+	var capture_path: String = OS.get_environment("FRAGR_FEED_CAPTURE_PATH")
+	if not capture_path.is_empty() and DisplayServer.get_name() != "headless":
+		await RenderingServer.frame_post_draw
+		_check(root.get_texture().get_image().save_png(capture_path) == OK, "save campaign feed layout fixture")
+	hud.combat_feed.set_campaign(false)
+	_check(hud.combat_feed.anchor_right == 1.0 and hud.combat_feed.anchor_top == 0.0, "leaving a mission restores the arena corner")
 	hud.show_round_start(2, "Round open")
 	_check(hud.round_message.visible, "round starts retain a brief announcement")
 	hud._process(0.8)

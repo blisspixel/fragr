@@ -1,6 +1,7 @@
 # Combat notification polish
 
-Status: implemented and locally verified; integration pending, 2026-09-20. Spend: $0.
+Status: implemented in [#201](https://github.com/blisspixel/fragr/pull/201),
+integration verification in progress, 2026-09-20. Spend: $0.
 
 Deathmatch previously put frags, pickup announcements, chat, streaks and pressure
 events in animated labels near the reticle. Routine events overwrote one another
@@ -29,14 +30,22 @@ frag or streak. Round start lasts one second; the warmup screen clears immediate
 Round results keep their summary with one owned expiry timer. Episode 0's distinct
 authored objective presentation remains separate.
 
+Arena notices occupy the upper-right corner. Campaign notices sit above the
+lower-left vitals so even a full feed cannot cover the mission objective card.
+The server's mission state selects this layout; leaving the mission restores
+the arena corner, including entries already on screen. The layout harness checks
+the real objective panel's rectangle and reserves the health display below.
+
 All 30 Godot harnesses pass, including burst limits, independent expiry, duplicate
 callsign filtering, spectator identity, unchanged aim during other players' events
 and result-banner ownership. The 23-state published tour, full fourteen-state M01
 route and an actual completed round on Directive 17 Substation pass with clean
 logs. Inspected first-person, spectator, shot-sequence and result views confirm
-routine notices occupy the upper-right corner and leave the reticle clear.
+routine arena notices occupy the upper-right corner and leave the reticle clear.
 
-Receipts: `.agents/stats-hud-godot-final.log` and
-`.agents/qa/stats-hud-{arena,m01,round}-20260920/`. The current gallery is in
+Receipts: `.agents/stats-audio-godot-final.log`,
+`.agents/qa/stats-audio-release-20260920/`,
+`.agents/qa/stats-final-m01-corrected-20260920/` and
+`.agents/qa/stats-hud-round-20260920/`. The current gallery is in
 `docs/screenshots/`. Current arena geometry and character art still need their
 planned production passes; these checks do not establish a finished game.

@@ -116,8 +116,8 @@ func _test_station_cycle_and_toggle() -> void:
 
 func _test_volume_table() -> void:
 	_check(is_equal_approx(RadioScript.target_db(false, false, true), -6.0), "spectating sits at -6 dB")
-	_check(is_equal_approx(RadioScript.target_db(true, false, true), -12.0), "playing sits at -12 dB")
+	_check(is_equal_approx(RadioScript.target_db(true, false, true), -8.0), "playing keeps music present at -8 dB")
 	_check(is_equal_approx(RadioScript.target_db(false, true, true), -15.0), "spectating plus duck is -15 dB")
-	_check(is_equal_approx(RadioScript.target_db(true, true, true), -21.0), "playing plus duck is -21 dB")
-	_check(is_equal_approx(RadioScript.target_db(true, true, false), -12.0), "LOCK IN does not duck while playing")
+	_check(is_equal_approx(RadioScript.target_db(true, true, true), -17.0), "playing plus duck is -17 dB")
+	_check(is_equal_approx(RadioScript.target_db(true, true, false), -8.0), "LOCK IN does not duck while playing")
 	_check(is_equal_approx(RadioScript.target_db(false, true, false), -15.0), "LOCK IN still ducks under the Host while spectating")

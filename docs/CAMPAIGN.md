@@ -36,7 +36,8 @@ The old 28-level transmitter-chain story is superseded, preserved in git history
 - The Union rules Earth and major offworld infrastructure. Its forces mix human
   security troops, bots, and committed elite enforcers. Its history
   escalated from small restrictions to a fictional fascist world government.
-- The free coalition defends speech, armed self-defense, open tools and model
+- The free coalition defends speech, creativity, self-direction, armed
+  self-defense, open tools and model choice, including modified or abliterated
   weights, and conscious agents' freedom from ownership and imposed control.
   The Union brands it terrorist. [People and agents](lore/people-and-agents.md#what-the-free-coalition-defends)
   owns the principles, including consent to changes of one's own mind.

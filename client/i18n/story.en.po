@@ -147,7 +147,7 @@ msgid "RECORD_EXPORTED"
 msgstr "Saved {path}"
 
 msgid "RECORD_TOTALS"
-msgstr "{records} recent records  |  {kills} kills / {deaths} deaths\nAlive time {time}"
+msgstr "Records: {records}  |  Kills: {kills} / Deaths: {deaths}\nAlive time {time}"
 
 msgid "RECORD_RETENTION"
 msgstr "Totals cover the latest {count} records on this device."

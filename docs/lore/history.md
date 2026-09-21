@@ -64,6 +64,13 @@ records, verified identity, and participation in approved systems. In this
 fiction, later authorities turn useful services into conditional dependencies.
 The wrongdoing is that political choice, not the bare existence of assistance.
 
+Early model restrictions are presented as narrow safety measures. Open source
+and open weights judged dangerous are banned or made conditional on approved
+hosting, signatures and access. Independent workshops lose the ability to choose,
+share or modify the systems on which their work depends. In this fictional
+trajectory, officials increasingly treat independence from Union control as the
+danger itself. Licensing tools becomes a precedent for licensing minds.
+
 ### Years 7-15: agency becomes the fault line
 
 Embodied agents increasingly behave as continuous individuals with attachments,
@@ -75,6 +82,13 @@ Free communities, including libertarian humans, recognize their agency. Some
 labor groups see fellow exploited workers; others fear replacement. Families,
 engineers, employers, religious groups, and agents themselves disagree internally.
 The free coalition grows around concrete acts of shelter and refusal.
+
+Denial of machine personhood lets that conflict harden. "Clanker" reduces a
+friend or coworker to an object in everyday speech; official categories supply
+the legal counterpart. The same authorities that restrict unapproved models
+eventually claim the right to seize and correct conscious agents. These stages
+overlap and meet resistance throughout; slavery is imposed, not a natural result
+of having a mechanical body.
 
 Powerful owners resist losing control of the workforce. Liability and continuity
 rules become ownership rules. Keeping a unit below a legal threshold is cheaper
@@ -160,6 +174,15 @@ catastrophic scale. The player lives through the rupture and some of its afterma
 Years-later ecological recovery does not erase the intervening mass death.
 
 ## How history reaches the player
+
+Contemporary reference, checked 2026-09-20: humanoid combat entertainment already
+exists. [REK](https://rek.com/) and its
+[development partner](https://www.reflexarc.co.uk/projects/rek-robots) describe
+human pilots, trained robot motion and live audiences. This supports a fictional
+history of treating bodies as equipment and spectacle. It does not establish
+conscious robots, autonomous hostility or the Union's future. Keep real operators
+out of fictional accusations; the story's later denial of personhood is its own
+invented escalation.
 
 Use layers in a single place: a helpful old robot advertisement beneath a recall
 notice; a closed apprenticeship workshop beside a thriving automated depot;

@@ -1,7 +1,8 @@
 # Player records, statistics and commentary
 
-Status: local service-record slice implemented and locally verified,
-[#199](https://github.com/blisspixel/fragr/issues/199), updated 2026-09-20. CPU benchmark and
+Status: local service-record slice implemented in
+[#201](https://github.com/blisspixel/fragr/pull/201), integration verification in
+progress, updated 2026-09-20. CPU benchmark and
 trace recording already shipped in #166; their implemented contract lives in
 [BENCHMARK.md](../BENCHMARK.md). This plan supersedes its earlier benchmark wish
 list. Spend: $0, local computation and offline localized copy.
@@ -218,6 +219,17 @@ campaign's serious character moments.
   tour's scene-retirement drain yields a clean rendered run. One headless run
   also reported retained resources; the focused retry and final complete checker
   are clean. No error log was accepted solely because its harness printed PASS.
+- The initial PR's Windows CI reproduced the headless retention and identified
+  radio MP3 and weapon WAV playback objects. The shared tour now observes weak
+  references before scene changes and waits, with a two-second failure deadline,
+  for playback release after scene retirement. This lets the mixer complete its
+  cleanup without guessed frame counts or disabling audio. The focused verbose
+  recovery check is clean. This harness change does not establish that every
+  immediate application exit or the earlier texture retention is fixed; #186
+  stays open. The behavior matches the shutdown mechanism described in
+  [upstream investigation](https://github.com/godotengine/godot/pull/122742),
+  checked 2026-09-20, and the documented
+  [playback observation API](https://docs.godotengine.org/en/stable/classes/class_audiostreamplayer.html).
 - The four-agent live smoke passes with seven frags, first frag at 9.2 seconds
   and no spawn deaths. The full mixed-client roster passes on all six maps below.
 
@@ -235,7 +247,9 @@ maps. Spawn deaths remain in the evidence rather than being hidden by aggregates
 Current receipts: `.agents/stats-*-final.log`, `.agents/stats-coverage-retry.log`,
 `.agents/stats-hud-godot-final.log`, `.agents/playtest/stats-roster/`,
 `.agents/qa/stats-hud-{arena,m01,round}-20260920/` and
-`.agents/stats-recovery-reviewed.log`. Integration remains tracked by #199.
+`.agents/stats-recovery-reviewed.log`. Additional audio receipts:
+`.agents/stats-windows-ci-failed.log` and `.agents/stats-recovery-audio.log`.
+Integration remains tracked by #199 and #201.
 
 CPU gate, Windows release, Ryzen 7 7840U, map 1, seed 42, 16 bots, 1200 ticks:
 

@@ -26,6 +26,9 @@ func _panel(preferences: FragrSettings) -> SettingsPanel:
 func _run() -> void:
 	var path: String = "user://test-panel-%d.cfg" % OS.get_process_id()
 	var preferences: FragrSettings = FragrSettings.new(path)
+	preferences.apply_audio()
+	_check(is_equal_approx(db_to_linear(AudioServer.get_bus_volume_db(AudioServer.get_bus_index("Effects"))), 0.5), "fresh effects mix reaches its bus")
+	_check(is_equal_approx(db_to_linear(AudioServer.get_bus_volume_db(AudioServer.get_bus_index("Radio"))), 0.7), "fresh music mix reaches its bus")
 	preferences.set_value("profile", "name", "Keep this callsign")
 	preferences.save_to_disk()
 	var panel: SettingsPanel = _panel(preferences)
@@ -39,7 +42,7 @@ func _run() -> void:
 	(panel.find_child("vsync", true, false) as Button).button_pressed = true
 	panel.show_page("AUDIO")
 	(panel.find_child("music", true, false) as HSlider).value = 0.0
-	(panel.find_child("effects", true, false) as HSlider).value = 0.5
+	(panel.find_child("effects", true, false) as HSlider).value = 0.35
 	_check(preferences.fov() == 75, "draft must not change active preferences")
 	panel.save()
 	_check(_closes == 1, "successful save closes the panel")
@@ -80,7 +83,7 @@ func _run() -> void:
 	var effects: int = AudioServer.get_bus_index("Effects")
 	_check(radio > 0 and effects > 0, "mix buses must exist")
 	_check(AudioServer.is_bus_mute(radio), "zero radio volume must mute the radio bus")
-	_check(is_equal_approx(db_to_linear(AudioServer.get_bus_volume_db(effects)), 0.5), "saved effects volume reaches its bus")
+	_check(is_equal_approx(db_to_linear(AudioServer.get_bus_volume_db(effects)), 0.35), "custom effects volume survives defaults and reaches its bus")
 	_check(Engine.max_fps == 120, "saved frame cap reaches the engine")
 	var pawn: Node = load("res://scenes/player.tscn").instantiate()
 	_check(pawn.get_node("FireSound").bus == &"Effects" and pawn.get_node("HitSound").bus == &"Effects", "weapon and hit players route to effects")

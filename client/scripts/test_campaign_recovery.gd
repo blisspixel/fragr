@@ -50,6 +50,7 @@ func _run() -> void:
 			await _exercise_run()
 	QaCombat.release_inputs()
 	if not _failed:
+		_track_scene_audio()
 		_game_manager()._on_leave_requested()
 		await process_frame
 		await process_frame

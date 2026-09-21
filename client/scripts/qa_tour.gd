@@ -33,6 +33,7 @@ var _movement_samples: Array[Dictionary] = []
 var _walk_results: Array[Dictionary] = []
 var _combat_probe: QaCombat = QaCombat.new()
 var _combat_travel: bool = false
+var _retiring_audio: Array[WeakRef] = []
 ## Frames between the trigger and the first strip frame. The shot is resolved by
 ## the server, so the flash arrives a round trip later, not on the next frame.
 const STRIP_LEAD_FRAMES: int = 2
@@ -98,6 +99,7 @@ func _run() -> void:
 
 		var scene: String = state.get("scene", "")
 		if not scene.is_empty() and scene != current_scene:
+			_track_scene_audio()
 			change_scene_to_file(scene)
 			current_scene = scene
 			# Let the scene build and the shaders warm. Judging a game by its
@@ -273,6 +275,7 @@ func _retire_scene() -> void:
 	# Retire the live world while the rendering server can still drain resource
 	# frees. Quitting on the capture frame can leave textures pending retirement.
 	if self.current_scene != null:
+		_track_scene_audio()
 		self.current_scene.queue_free()
 	await process_frame
 	if DisplayServer.get_name() != "headless":
@@ -280,6 +283,26 @@ func _retire_scene() -> void:
 		await RenderingServer.frame_post_draw
 	else:
 		await process_frame
+	# Audio retirement runs on mixer time, not rendering or process frames.
+	# Observe release instead of guessing how many frames make shutdown safe.
+	var deadline: int = Time.get_ticks_msec() + 2000
+	while not _retiring_audio.is_empty() and Time.get_ticks_msec() < deadline:
+		for index: int in range(_retiring_audio.size() - 1, -1, -1):
+			if _retiring_audio[index].get_ref() == null:
+				_retiring_audio.remove_at(index)
+		if not _retiring_audio.is_empty():
+			await create_timer(0.01).timeout
+	if not _retiring_audio.is_empty():
+		push_error("qa_tour: %d audio playbacks remain after scene retirement" % _retiring_audio.size())
+		_failed = true
+
+func _track_scene_audio() -> void:
+	if self.current_scene == null:
+		return
+	for node: Node in self.current_scene.find_children("*", "", true, false):
+		if node is AudioStreamPlayer or node is AudioStreamPlayer2D or node is AudioStreamPlayer3D:
+			if node.has_stream_playback():
+				_retiring_audio.append(weakref(node.get_stream_playback()))
 
 static func valid_walks(states: Variant) -> bool:
 	if not states is Array or states.is_empty():

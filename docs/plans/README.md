@@ -17,6 +17,7 @@ Status words: **planned**, **in flight**, **implemented** (local evidence record
 
 | Plan | Status | One-liner |
 |---|---|---|
+| [`audio-startup-polish.md`](./audio-startup-polish.md) | **implemented** (#201) | Balanced default effects and music, preserved saved choices, approved logo in the engine splash. |
 | [`combat-notification-polish.md`](./combat-notification-polish.md) | **implemented** | Three independently expiring corner notices, participant-only pickups and clear aiming; inspected live arena and campaign captures. |
 | [`m01-completion.md`](./m01-completion.md) | **in flight** (#195) | Complete the records wing, mixed-threat crest, finite supply economy and coherent retries; prove the full first mission. |
 | [`difficulty-and-rewards.md`](./difficulty-and-rewards.md) | **in flight** (#197) | New-run campaign difficulty first; persistent achievements and cosmetic rewards follow the save/retry contract. |

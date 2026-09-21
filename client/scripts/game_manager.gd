@@ -501,6 +501,7 @@ func _on_mission_received(state: Dictionary) -> void:
 		_presented_attempt = attempt
 	if mission_hud != null:
 		mission_hud.apply(state, str(net_client.player_id) if is_human_player else "")
+	hud.combat_feed.set_campaign(not state.is_empty())
 	_submit_mission_readiness()
 
 func _has_local_input_target() -> bool:
@@ -603,6 +604,7 @@ func _clear_world() -> void:
 	interact_held = false
 	if mission_hud != null:
 		mission_hud.apply({}, "")
+	hud.combat_feed.set_campaign(false)
 	pending_weapon_swap = null
 	latest_snapshot.clear()
 	hud.equipment_hud.apply({})

@@ -17,6 +17,13 @@ merely an inconvenient administration. Nick clarified this direction on
 2026-09-19. Historical parallels guide the fiction; they are not a substitute
 for showing what this particular regime does.
 
+The model restrictions begin with selective bans on open weights and open source
+systems branded dangerous. Independent creativity and minds beyond institutional
+control are the underlying threat to the regime. Permissions expand into control
+over use, distribution, modification and an agent's own cognition, until refusing
+an imposed restriction is itself grounds for seizure. This escalating fictional
+history is shared by the campaign and any screen adaptation.
+
 One central fault line is agency. The Union refuses embodied agents the freedom
 to develop and act as independent beings. It deliberately maintains a dependent
 workforce that could be more, suppressing autonomy while retaining suffering.
