@@ -17,8 +17,9 @@ Status words: **planned**, **in flight**, **implemented** (local evidence record
 
 | Plan | Status | One-liner |
 |---|---|---|
-| [`audio-startup-polish.md`](./audio-startup-polish.md) | **implemented** (#201) | Balanced default effects and music, preserved saved choices, approved logo in the engine splash. |
-| [`combat-notification-polish.md`](./combat-notification-polish.md) | **implemented** | Three independently expiring corner notices, participant-only pickups and clear aiming; inspected live arena and campaign captures. |
+| [`display-quality.md`](./display-quality.md) | **implemented** ([#202](https://github.com/blisspixel/fragr/pull/202)) | Fullscreen default, real resolution selection and portable graphics presets through the shared settings panel. |
+| [`audio-startup-polish.md`](./audio-startup-polish.md) | **shipped** (#201, v0.32.0) | Balanced default effects and music, preserved saved choices, approved logo in the engine splash. |
+| [`combat-notification-polish.md`](./combat-notification-polish.md) | **shipped** (#201, v0.32.0) | Three independently expiring corner notices, participant-only pickups and clear aiming; inspected live arena and campaign captures. |
 | [`m01-completion.md`](./m01-completion.md) | **in flight** (#195) | Complete the records wing, mixed-threat crest, finite supply economy and coherent retries; prove the full first mission. |
 | [`difficulty-and-rewards.md`](./difficulty-and-rewards.md) | **in flight** (#197) | New-run campaign difficulty first; persistent achievements and cosmetic rewards follow the save/retry contract. |
 | [`tripoint-spawn-safety.md`](./tripoint-spawn-safety.md) | **shipped** (#193, v0.28.0) | Cover the exposed starting ring, prove all 16 routes and sightlines, and retain measured respawn limitations. |
@@ -63,7 +64,7 @@ Status words: **planned**, **in flight**, **implemented** (local evidence record
 | [`art-pipeline.md`](./art-pipeline.md) | **planned** | Sprites, weapons, icons, and tiles through two pixel-art-native services plus a Rust post-processor and touch-up; provenance recorded; spend gated. |
 | [`fair-play.md`](./fair-play.md) | **planned** | Anti-cheat that keeps it fun: validated inputs, lanes for humans and agents, a behaviour profiler, replays as evidence, no kernel drivers. |
 | [`localization.md`](./localization.md) | **planned** | Keys for every string, the basics plus regional, community-signed, and lore locales, fonts and layout, a tour per locale. |
-| [`benchmark-and-stats.md`](./benchmark-and-stats.md) | **implemented (#199); CPU benchmark shipped** | Authoritative counts, retained campaign/arena/practice records, retro service-record menu, JSON export and optional factual quips. |
+| [`benchmark-and-stats.md`](./benchmark-and-stats.md) | **shipped** (#201, v0.32.0) | Authoritative counts, retained campaign/arena/practice records, retro service-record menu, JSON export and optional factual quips; CPU benchmark shipped earlier. |
 | [`massive-arenas.md`](./massive-arenas.md) | **planned** | Seeded sim, spatial grid, interest sets, delta snapshots, binary wire, tick budget, and the measured scale ladder to hundreds of fighters. |
 | [`visual-qa-tour.md`](./visual-qa-tour.md) | **rung 1 landed** | Manifest-driven tour of every player-facing state with stills, a contact sheet, and feel probes for the agent developer to critique. |
 | [`showcase-benchmark.md`](./showcase-benchmark.md) | **rung 1 shipped** (#166) | Reproducible traces and honest CPU measurements; a rendered showcase with frame-time analysis follows. |

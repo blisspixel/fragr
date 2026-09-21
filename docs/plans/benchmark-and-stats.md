@@ -1,8 +1,8 @@
 # Player records, statistics and commentary
 
-Status: local service-record slice implemented in
-[#201](https://github.com/blisspixel/fragr/pull/201), integration verification in
-progress, updated 2026-09-20. CPU benchmark and
+Status: local service-record slice shipped in
+[#201](https://github.com/blisspixel/fragr/pull/201), v0.32.0, with all five CI jobs
+green, updated 2026-09-20. CPU benchmark and
 trace recording already shipped in #166; their implemented contract lives in
 [BENCHMARK.md](../BENCHMARK.md). This plan supersedes its earlier benchmark wish
 list. Spend: $0, local computation and offline localized copy.
@@ -249,7 +249,7 @@ Current receipts: `.agents/stats-*-final.log`, `.agents/stats-coverage-retry.log
 `.agents/qa/stats-hud-{arena,m01,round}-20260920/` and
 `.agents/stats-recovery-reviewed.log`. Additional audio receipts:
 `.agents/stats-windows-ci-failed.log` and `.agents/stats-recovery-audio.log`.
-Integration remains tracked by #199 and #201.
+Integration completed in #201; #199 is closed.
 
 CPU gate, Windows release, Ryzen 7 7840U, map 1, seed 42, 16 bots, 1200 ticks:
 

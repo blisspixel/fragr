@@ -1,6 +1,6 @@
 # Default mix and startup artwork
 
-Status: implemented in #201, 2026-09-20. Spend: $0.
+Status: shipped in #201, v0.32.0, 2026-09-20. Spend: $0.
 
 Gunfire overpowers the radio at default settings. Effects start at full gain,
 while the music preference and playing-state attenuation compound. The engine

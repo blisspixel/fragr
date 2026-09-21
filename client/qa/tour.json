@@ -125,7 +125,15 @@
       "camera": "none",
       "menu_page": "settings",
       "settings_tab": "DISPLAY",
-      "note": "Explicit vertical FOV, window mode, frame cap, and VSync."
+      "note": "Explicit resolution, vertical FOV, window mode, frame cap, and VSync."
+    },
+    {
+      "name": "settings_graphics",
+      "at_seconds": 2,
+      "camera": "none",
+      "menu_page": "settings",
+      "settings_tab": "GRAPHICS",
+      "note": "Quality and supported upscaling choices, clear renderer fallback, pixel menu styling."
     },
     {
       "name": "settings_audio",

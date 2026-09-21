@@ -79,6 +79,7 @@ func _run() -> void:
 	_check(effects.active_count() == 0, "oversized result batches are rejected")
 	# The real match route must retain the weapon even with no surviving pawn.
 	var game: Node = load("res://scenes/main.tscn").instantiate()
+	game.settings = FragrSettings.new()
 	var hud: HudProbe = HudProbe.new()
 	game.hud = hud
 	game.net_client = game.get_node("NetClient")

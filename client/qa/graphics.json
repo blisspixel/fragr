@@ -1,0 +1,13 @@
+{
+  "comment": "Fixed 1920x1080 capture window; actual quality and world-buffer settings change through the production helper. Display transitions are checked separately.",
+  "width": 1920,
+  "height": 1080,
+  "states": [
+    {"name":"performance","scene":"res://scenes/main.tscn","at_seconds":4,"camera":"overview","graphics":{"quality":0,"upscaling":0,"resolution_height":0},"note":"Native resolution, no MSAA, smaller shadow maps."},
+    {"name":"balanced","camera":"overview","graphics":{"quality":1,"upscaling":0,"resolution_height":0},"note":"Native resolution, 2x MSAA, normal shadows."},
+    {"name":"high","camera":"overview","graphics":{"quality":2,"upscaling":0,"resolution_height":0},"note":"Native resolution, 4x MSAA and supported contact shading."},
+    {"name":"fsr1_720","camera":"overview","graphics":{"quality":2,"upscaling":1,"resolution_height":720},"note":"Actual 720-line world buffer; standard fallback on unsupported renderers."},
+    {"name":"fsr2_720","camera":"first_person","graphics":{"quality":2,"upscaling":2,"resolution_height":720},"strip_frames":12,"strip_interval_seconds":0.05,"note":"Inspect sprite edges in the motion strip; FSR2 replaces MSAA on Forward+."},
+    {"name":"high_restored","camera":"first_person","graphics":{"quality":2,"upscaling":0,"resolution_height":0},"note":"Native detail restored without restarting the match."}
+  ]
+}

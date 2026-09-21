@@ -167,6 +167,8 @@ func _run() -> void:
 		if state.has("settings_tab"):
 			var settings_root: Node = get_root().get_node("BootMenu").get("_root")
 			(settings_root.get_node("SettingsPanel") as SettingsPanel).show_page(str(state["settings_tab"]))
+		if state.has("graphics"):
+			_apply_graphics_capture(state["graphics"])
 		_pose_camera(state.get("camera", "none"))
 		await create_timer(0.75).timeout
 		await RenderingServer.frame_post_draw
@@ -206,6 +208,9 @@ func _run() -> void:
 			push_error("qa_tour: unexpected capture size for " + state_name)
 			_failed = true
 		var observed: Dictionary = _observed_state().duplicate(true)
+		observed["render_scale"] = root.scaling_3d_scale
+		observed["upscaling"] = root.scaling_3d_mode
+		observed["msaa"] = root.msaa_3d
 		if state.has("expect_yaw"):
 			var expected_yaw: float = float(state["expect_yaw"])
 			if observed.get("server_yaw") == null or absf(angle_difference(float(observed["camera_yaw"]), expected_yaw)) > 0.001 or absf(angle_difference(float(observed["server_yaw"]), expected_yaw)) > 0.001:
@@ -312,6 +317,30 @@ static func valid_walks(states: Variant) -> bool:
 			return false
 	return true
 
+func _apply_graphics_capture(options: Variant) -> void:
+	var manager: Node = _game_manager()
+	if manager == null or not options is Dictionary:
+		push_error("qa_tour: graphics capture needs a live match and an options object")
+		_failed = true
+		return
+	var preferences: FragrSettings = manager.get("settings")
+	var draft: FragrSettings = preferences.draft()
+	for key: Variant in options:
+		if key not in ["quality", "upscaling", "resolution_height"] or not (options[key] is int or options[key] is float) or not is_finite(float(options[key])) or float(options[key]) != floorf(float(options[key])):
+			push_error("qa_tour: invalid graphics capture option")
+			_failed = true
+			return
+		draft.set_value("video", key, int(options[key]))
+		if draft.get_value("video", key) != int(options[key]):
+			push_error("qa_tour: unsupported graphics capture value")
+			_failed = true
+			return
+	for key: String in options:
+		preferences.set_value("video", key, draft.get_value("video", key))
+	# Keep the capture window fixed while exercising the production world-buffer
+	# and quality path. Display-mode transitions have their own real-window check.
+	manager.call("_apply_render_preferences")
+
 func _load_manifest() -> Dictionary:
 	var path: String = OS.get_environment("FRAGR_QA_MANIFEST")
 	if path.is_empty():
@@ -381,6 +410,7 @@ func _capture_strip(state: Dictionary, frames: int, file_name: String) -> void:
 	var interval: float = float(state.get("strip_interval_seconds", 0.0))
 	var walk_action: String = str(state.get("walk_action", "move_forward"))
 	var walk_start: Vector3 = Vector3.ZERO
+	var walk_inputs: Array[Dictionary] = []
 	if trigger == "walk":
 		walk_start = _local_feet()
 		Input.action_press(walk_action)
@@ -428,6 +458,8 @@ func _capture_strip(state: Dictionary, frames: int, file_name: String) -> void:
 		_strip_times_ms.append(Time.get_ticks_msec() - start_ms)
 		if trigger == "walk":
 			_record_movement()
+			var manager: Node = _game_manager()
+			walk_inputs.append({"pressed": Input.is_action_pressed(walk_action), "blocked": manager.controls_blocked(), "action": manager.action_state.duplicate(true), "ack": manager.last_ack.duplicate(true)})
 		if probe != null and _probe_active(probe, state):
 			_probe_frames += 1
 		var img: Image = _grab()
@@ -442,7 +474,7 @@ func _capture_strip(state: Dictionary, frames: int, file_name: String) -> void:
 	if trigger == "walk":
 		Input.action_release(walk_action)
 		if _local_feet().distance_to(walk_start) < 0.8:
-			push_error("qa_tour: weapon walk strip did not move through the server")
+			push_error("qa_tour: weapon walk strip did not move through the server: " + JSON.stringify(walk_inputs))
 			_failed = true
 	if trigger == "fire":
 		Input.action_release("fire")
@@ -800,6 +832,8 @@ func _write_manifest(tour: Dictionary) -> void:
 	var out: Dictionary = {
 		"captured_utc": Time.get_datetime_string_from_system(true),
 		"godot": Engine.get_version_info().get("string", ""),
+		"renderer": RenderingServer.get_current_rendering_method(),
+		"device": RenderingServer.get_video_adapter_name(),
 		"width": tour.get("width", 0),
 		"height": tour.get("height", 0),
 		"states": _results,
