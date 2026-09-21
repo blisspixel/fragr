@@ -1,6 +1,7 @@
 # Display resolution and portable graphics quality
 
-Status: implemented locally, integration pending, 2026-09-20. Spend: $0.
+Status: implemented, integration tracked in
+[#202](https://github.com/blisspixel/fragr/pull/202), 2026-09-20. Spend: $0.
 
 Fullscreen is already the saved and project default. Extend the shared retro
 settings panel with real resolution and quality choices, keeping the server
@@ -76,6 +77,7 @@ limitations. Cross-platform compilation is not proof of every GPU combination.
   settings validation, save/cancel, scene replacement and local server lifecycle.
   The check caught a detached shot-effects fixture without preferences; initialize
   that fixture and apply environment quality separately from viewport settings.
+  All ten `tools/test_godot_check.sh` fault-detection scenarios also pass.
 - `test_render_quality.gd` passes with a real OpenGL and Vulkan window on Windows,
   AMD Radeon 780M. It checks fullscreen/windowed transitions, usable-screen bounds,
   live world scaling and pointer release. No saved player preferences are changed.

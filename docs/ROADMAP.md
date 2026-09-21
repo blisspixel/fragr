@@ -73,8 +73,9 @@ The [default mix and splash correction](plans/audio-startup-polish.md) is
 shipped in #201, v0.32.0: quieter default effects, more present playing radio, saved
 choices preserved and the refined logo replacing the stale ON AIR startup image.
 The [display-quality pass](plans/display-quality.md) adds resolution selection and
-portable graphics presets. It is in progress; rendered hardware evidence and CI
-gate integration. Pixel surfaces and readable authored lighting remain the style.
+portable graphics presets, implemented in #202 with inspected Windows/AMD Vulkan
+and OpenGL evidence. Cross-platform CI gates integration. Pixel surfaces and
+readable authored lighting remain the style.
 
 [Asset request recovery](plans/asset-request-recovery.md) shipped in #169 with
 cross-platform failure tests. Submitted jobs survive interruptions, and

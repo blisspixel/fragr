@@ -17,7 +17,7 @@ Status words: **planned**, **in flight**, **implemented** (local evidence record
 
 | Plan | Status | One-liner |
 |---|---|---|
-| [`display-quality.md`](./display-quality.md) | **in flight** | Fullscreen default, real resolution selection and portable graphics presets through the shared settings panel. |
+| [`display-quality.md`](./display-quality.md) | **implemented** ([#202](https://github.com/blisspixel/fragr/pull/202)) | Fullscreen default, real resolution selection and portable graphics presets through the shared settings panel. |
 | [`audio-startup-polish.md`](./audio-startup-polish.md) | **shipped** (#201, v0.32.0) | Balanced default effects and music, preserved saved choices, approved logo in the engine splash. |
 | [`combat-notification-polish.md`](./combat-notification-polish.md) | **shipped** (#201, v0.32.0) | Three independently expiring corner notices, participant-only pickups and clear aiming; inspected live arena and campaign captures. |
 | [`m01-completion.md`](./m01-completion.md) | **in flight** (#195) | Complete the records wing, mixed-threat crest, finite supply economy and coherent retries; prove the full first mission. |
