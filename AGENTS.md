@@ -85,6 +85,7 @@ If prose and code disagree, code wins; fix the prose in the same change. Keep pl
 | Audio assets and provenance | `client/assets/audio/` plus `audiogen-manifest.json` |
 | Developer asset generation | `tools/audiogen`, `tools/spritegen`; sprite requests use `ledger.rs` and `generation.rs`. Preserve uncertain reservations; recovery steps live in `docs/plans/higgsfield-pipeline.md`. |
 | Settings and diagnostics | `client/scripts/settings.gd` validates and persists; `settings_panel.gd` edits drafts in boot/match menus; `console.gd` uses the same commit path. Audio routing: `client/default_bus_layout.tres`. Harnesses isolate settings through `fragr_settings_path` tree metadata. |
+| Graphics preferences | `client/scripts/render_quality.gd` owns resolution math, renderer capabilities and quality application. Reapply after map environment replacement and viewport resize. Preserve authored ambient light and nearest material filtering; renderer support does not prove hardware performance. |
 | Product and stack decisions | `docs/ARCHITECTURE.md` |
 | Sequencing, status, fun bar | `docs/ROADMAP.md` |
 | Bounded work items | `docs/plans/<slug>.md`, indexed in `docs/plans/README.md` |

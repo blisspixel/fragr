@@ -96,6 +96,7 @@ func _ready():
 	settings.load_from_disk()
 	records = PlayerRecords.for_tree(get_tree())
 	settings.changed.connect(_apply_preferences)
+	get_viewport().size_changed.connect(_apply_render_preferences)
 	_apply_preferences()
 	net_client.snapshot_received.connect(_on_snapshot_received)
 	net_client.loadout_received.connect(_on_loadout_received)
@@ -154,6 +155,7 @@ func _apply_arena_sky(map_name: String = "") -> void:
 		push_warning("game_manager: no WorldEnvironment found; sky left as authored")
 		return
 	world.environment = ArenaSky.build_environment(map_name)
+	RenderQuality.apply_environment(world.environment, settings)
 
 
 static func _find_world_environment(node: Node) -> WorldEnvironment:
@@ -207,6 +209,11 @@ func _apply_preferences() -> void:
 	settings.apply()
 	camera.apply_preferences(settings)
 	hud.apply_preferences(settings)
+	_apply_render_preferences()
+
+func _apply_render_preferences() -> void:
+	var world: WorldEnvironment = _find_world_environment(self)
+	RenderQuality.apply(get_viewport(), settings, world.environment if world != null else null)
 
 func controls_blocked() -> bool:
 	return role_transition or _mission_controls_blocked() or (mission_hud != null and mission_hud.state.get("phase") == "departed") or (mouse_capture != null and not mouse_capture.gameplay_input_allowed()) or (console != null and console.is_open()) or (pause_menu != null and pause_menu.is_open())

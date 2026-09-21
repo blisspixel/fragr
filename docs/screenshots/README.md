@@ -47,7 +47,7 @@ and fresh-player acceptance outstanding. Source manifest: `client/qa/m01-records
 
 The full tour also checks rail/scatter selection, server-confirmed upward and
 downward aim, return to spectating, the
-multiplayer page, all three settings tabs, and settings inside the live match
+multiplayer page, all four settings tabs, and settings inside the live match
 overlay and the service record. Captures use isolated settings and history files. The local manifest records actual
 map, round, role, weapon, camera/server yaw and pitch, dimensions, flash visibility, and
 strip sample times. Observations are copied at capture time so a later disconnect
@@ -56,6 +56,13 @@ strip reduction. Intermediates live in
 `.agents/qa/`. Set `FRAGR_RENDER_DRIVER=vulkan` to check that rendering path;
 OpenGL compatibility is the tour default. This is renderer evidence on the
 recorded host, not a GPU vendor certification or a load benchmark.
+
+`FRAGR_QA_MANIFEST=res://qa/graphics.json FRAGR_RENDER_DRIVER=vulkan tools/qa_tour.sh .agents/qa/graphics`
+compares actual resolution, quality and upscaling states at a fixed 1920x1080
+window size. Repeat with `FRAGR_RENDER_DRIVER=opengl3` to inspect fallback.
+The receipt records the active renderer, device, world scale, reconstruction and
+MSAA state. Fullscreen/windowed transitions belong to `test_render_quality.gd`;
+this capture deliberately keeps its window dimensions fixed.
 
 `FRAGR_QA_MAP=3 FRAGR_QA_MANIFEST=res://qa/records.json tools/qa_tour.sh .agents/qa/records`
 waits for an actual arena completion before opening its saved record. Its idle

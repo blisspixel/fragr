@@ -40,6 +40,14 @@ func _run() -> void:
 	cap.select(4)
 	cap.item_selected.emit(4)
 	(panel.find_child("vsync", true, false) as Button).button_pressed = true
+	var resolution: OptionButton = panel.find_child("resolution_height", true, false) as OptionButton
+	resolution.select(1)
+	resolution.item_selected.emit(1)
+	panel.show_page("GRAPHICS")
+	var quality: OptionButton = panel.find_child("quality", true, false) as OptionButton
+	quality.select(2)
+	quality.item_selected.emit(2)
+	_check((panel.find_child("upscaling", true, false) as OptionButton).disabled == not RenderQuality.supports_fsr(RenderingServer.get_current_rendering_method()), "upscaling control reflects the active renderer")
 	panel.show_page("AUDIO")
 	(panel.find_child("music", true, false) as HSlider).value = 0.0
 	(panel.find_child("effects", true, false) as HSlider).value = 0.35
@@ -52,12 +60,16 @@ func _run() -> void:
 	_check(loaded.get_value("video", "vsync") == true, "VSync survives a fresh store")
 	_check(loaded.get_value("controls", "mouse_sensitivity") == 2.25 and loaded.get_value("controls", "invert_y") == true, "control settings survive a fresh store")
 	_check(loaded.player_name() == "Keep this callsign", "settings save preserves the profile")
+	_check(loaded.get_value("video", "quality") == 2 and loaded.get_value("video", "resolution_height") == 720, "menu resolution and quality choices survive a fresh store")
 	panel.free()
 	panel = _panel(preferences)
 	(panel.find_child("mouse_sensitivity", true, false) as HSlider).value = 7.0
+	panel.show_page("GRAPHICS")
+	(panel.find_child("quality", true, false) as OptionButton).item_selected.emit(0)
 	panel.cancel()
 	loaded.load_from_disk()
 	_check(preferences.get_value("controls", "mouse_sensitivity") == 2.25 and loaded.get_value("controls", "mouse_sensitivity") == 2.25, "Cancel preserves both active and saved preferences")
+	_check(loaded.get_value("video", "quality") == 2, "Cancel preserves saved graphics choices")
 	panel.free()
 
 	var bad: FragrSettings = FragrSettings.new("user://missing-directory-%d/settings.cfg" % OS.get_process_id())

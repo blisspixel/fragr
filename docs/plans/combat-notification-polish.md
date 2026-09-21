@@ -1,7 +1,7 @@
 # Combat notification polish
 
-Status: implemented in [#201](https://github.com/blisspixel/fragr/pull/201),
-integration verification in progress, 2026-09-20. Spend: $0.
+Status: shipped in [#201](https://github.com/blisspixel/fragr/pull/201),
+v0.32.0, 2026-09-20. All five desktop CI jobs passed. Spend: $0.
 
 Deathmatch previously put frags, pickup announcements, chat, streaks and pressure
 events in animated labels near the reticle. Routine events overwrote one another

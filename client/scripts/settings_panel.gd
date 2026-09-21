@@ -19,7 +19,7 @@ func _ready() -> void:
 	_tabs = HBoxContainer.new()
 	_tabs.add_theme_constant_override("separation", 8)
 	add_child(_tabs)
-	for page: String in ["CONTROLS", "DISPLAY", "AUDIO"]:
+	for page: String in ["CONTROLS", "DISPLAY", "GRAPHICS", "AUDIO"]:
 		var button: Button = Button.new()
 		button.text = page
 		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -62,11 +62,23 @@ func show_page(page: String) -> void:
 			_toggle("WEAPON BOB", "gameplay", "head_bob")
 			_note.text = "Mouse: 0.022 degrees per count at 1.0.\nTurn speed controls keyboard and stick look."
 		"DISPLAY":
-			_option("WINDOW", "video", "display_mode", ["WINDOWED", "FULLSCREEN"], [0, 2])
+			var window_mode: OptionButton = _option("WINDOW", "video", "display_mode", ["WINDOWED", "FULLSCREEN"], [0, 2])
+			window_mode.item_selected.connect(func(_index: int) -> void: show_page.call_deferred("DISPLAY"))
+			_resolution()
 			_slider("VERTICAL FOV", "video", "vertical_fov", 60.0, 110.0, 1.0)
 			_frame_cap()
 			_toggle("VERTICAL SYNC", "video", "vsync")
-			_note.text = "Frame cap 0 is unlimited. VSync depends on your display driver.\nWider screens preserve vertical FOV."
+			_update_display_note()
+		"GRAPHICS":
+			_option("QUALITY", "video", "quality", ["PERFORMANCE", "BALANCED", "HIGH"], [0, 1, 2])
+			_option("UPSCALING", "video", "upscaling", ["STANDARD", "FSR 1", "FSR 2"], [0, 1, 2])
+			var renderer: String = RenderingServer.get_current_rendering_method()
+			if not RenderQuality.supports_fsr(renderer):
+				var upscaling: OptionButton = _rows.find_child("upscaling", true, false) as OptionButton
+				upscaling.disabled = true
+				_note.text = "Standard scaling active. FSR needs the Forward+ renderer.\nSaved FSR choices are kept. High adds supported contact shading."
+			else:
+				_note.text = "High: smoother edges and contact shading. Pixel textures stay sharp.\nFSR reconstructs lower resolutions. FSR 2 may soften moving sprites."
 		"AUDIO":
 			_slider("MASTER", "audio", "master", 0.0, 1.0, 0.05)
 			_slider("RADIO", "audio", "music", 0.0, 1.0, 0.05)
@@ -129,7 +141,7 @@ func _toggle(title: String, section: String, key: String) -> void:
 	)
 	row.add_child(control)
 
-func _option(title: String, section: String, key: String, labels: Array[String], values: Array[int]) -> void:
+func _option(title: String, section: String, key: String, labels: Array[String], values: Array[int]) -> OptionButton:
 	var row: HBoxContainer = _row(title)
 	var control: OptionButton = OptionButton.new()
 	control.name = key
@@ -139,6 +151,36 @@ func _option(title: String, section: String, key: String, labels: Array[String],
 	control.select(maxi(0, values.find(int(_draft.get_value(section, key)))))
 	control.item_selected.connect(func(index: int) -> void: _draft.set_value(section, key, values[index]))
 	row.add_child(control)
+	return control
+
+func _resolution() -> void:
+	var fullscreen: bool = int(_draft.get_value("video", "display_mode")) == 2
+	var aspect: Vector2i = Vector2i(16, 9)
+	if fullscreen and DisplayServer.get_name() != "headless":
+		aspect = DisplayServer.screen_get_size(DisplayServer.window_get_current_screen())
+	var labels: Array[String] = []
+	for height: int in RenderQuality.RESOLUTION_HEIGHTS:
+		if height == 0:
+			labels.append("NATIVE" if fullscreen else "AUTOMATIC")
+		else:
+			labels.append("%d x %d" % [roundi(float(height) * aspect.x / maxi(1, aspect.y)), height])
+	var control: OptionButton = _option("RESOLUTION", "video", "resolution_height", labels, RenderQuality.RESOLUTION_HEIGHTS)
+	control.item_selected.connect(func(_index: int) -> void: _update_display_note())
+
+func _update_display_note() -> void:
+	var height: int = int(_draft.get_value("video", "resolution_height"))
+	var fullscreen: bool = int(_draft.get_value("video", "display_mode")) == 2
+	var output: Vector2i = Vector2i(1920, 1080)
+	if DisplayServer.get_name() != "headless":
+		var screen: int = DisplayServer.window_get_current_screen()
+		output = DisplayServer.screen_get_size(screen) if fullscreen else DisplayServer.screen_get_usable_rect(screen).size
+	var world: Vector2i = RenderQuality.render_size(height, output) if fullscreen else RenderQuality.window_size(height, output)
+	if not fullscreen and height == 0 and DisplayServer.get_name() != "headless" and DisplayServer.window_get_mode() == DisplayServer.WINDOW_MODE_WINDOWED:
+		world = DisplayServer.window_get_size()
+	if fullscreen:
+		_note.text = "Fullscreen uses desktop output. Menus stay sharp.\nEffective world: %d x %d. Resolution preserves screen shape." % [world.x, world.y]
+	else:
+		_note.text = "Window: %d x %d, bounded to your display.\nAutomatic preserves manual resizing. VSync depends on your driver." % [world.x, world.y]
 
 func _frame_cap() -> void:
 	var caps: Array[int] = [0, 30, 60, 90, 120, 144, 165, 240, 360]

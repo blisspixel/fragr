@@ -35,14 +35,22 @@ func _ready() -> void:
 	if _settings == null:
 		_settings = FragrSettings.for_tree(get_tree())
 	_settings.load_from_disk()
-	_settings.changed.connect(_settings.apply)
-	_settings.apply()
+	_settings.changed.connect(_apply_preferences)
+	get_viewport().size_changed.connect(_apply_render_preferences)
+	_apply_preferences()
 	_build_chrome()
 	_show("main")
 	_console = FragrConsole.new()
 	_console.name = "FragrConsole"
 	_console.preferences = _settings
 	add_child(_console)
+
+func _apply_preferences() -> void:
+	_settings.apply()
+	_apply_render_preferences()
+
+func _apply_render_preferences() -> void:
+	RenderQuality.apply(get_viewport(), _settings)
 
 func _build_chrome() -> void:
 	var back: MenuBackdrop = MenuBackdrop.new()

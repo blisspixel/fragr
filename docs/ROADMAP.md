@@ -70,10 +70,11 @@ display, and audio to their runtime readers through the same retro panel at the
 front menu and in a live match. It also fixes resolution-dependent mouse input.
 
 The [default mix and splash correction](plans/audio-startup-polish.md) is
-implemented in #201: quieter default effects, more present playing radio, saved
+shipped in #201, v0.32.0: quieter default effects, more present playing radio, saved
 choices preserved and the refined logo replacing the stale ON AIR startup image.
-Resolution selection and graphics presets are the next requested settings work;
-portable renderer enhancements must preserve readable pixel surfaces.
+The [display-quality pass](plans/display-quality.md) adds resolution selection and
+portable graphics presets. It is in progress; rendered hardware evidence and CI
+gate integration. Pixel surfaces and readable authored lighting remain the style.
 
 [Asset request recovery](plans/asset-request-recovery.md) shipped in #169 with
 cross-platform failure tests. Submitted jobs survive interruptions, and

@@ -19,6 +19,9 @@ const DEFAULTS: Dictionary = {
 		"vertical_fov": 75.0,   # Preserves the original camera's rendered default.
 		"fps_cap": 0,           # 0 is uncapped
 		"vsync": false,
+		"resolution_height": 0, # Native fullscreen; automatic size when windowed.
+		"quality": 1,           # Performance, Balanced, High.
+		"upscaling": 0,         # Standard, FSR1, FSR2; renderer gates capability.
 	},
 	"audio": {
 		"master": 0.9,
@@ -104,6 +107,12 @@ func set_value(section: String, key: String, value: Variant) -> void:
 			value = fallback
 		elif value == 1:
 			value = 2 # Legacy exclusive request uses portable fullscreen now.
+	elif path == "video/resolution_height":
+		if not value is int or value not in RenderQuality.RESOLUTION_HEIGHTS:
+			value = fallback
+	elif path in ["video/quality", "video/upscaling"]:
+		if not value is int or value not in [0, 1, 2]:
+			value = fallback
 	(_values[section] as Dictionary)[key] = value
 
 func draft() -> FragrSettings:
@@ -183,8 +192,15 @@ func apply_video() -> void:
 	var mode: int = int(get_value("video", "display_mode"))
 	match mode:
 		0:
+			var was_windowed: bool = DisplayServer.window_get_mode() == DisplayServer.WINDOW_MODE_WINDOWED
 			DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
 			DisplayServer.window_set_flag(DisplayServer.WINDOW_FLAG_BORDERLESS, false)
+			var height: int = int(get_value("video", "resolution_height"))
+			if height > 0 or not was_windowed:
+				var usable: Rect2i = DisplayServer.screen_get_usable_rect(DisplayServer.window_get_current_screen())
+				var size: Vector2i = RenderQuality.window_size(height, usable.size)
+				DisplayServer.window_set_size(size)
+				DisplayServer.window_set_position(usable.position + (usable.size - size) / 2)
 		_:
 			DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
 
