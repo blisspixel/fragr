@@ -551,12 +551,14 @@ fn drive_party(mut session: GameSession, size: usize, retry_after_record: bool) 
     if retry_after_record {
         assert!(forced_death);
         let state = session.state.mission_state().unwrap();
-        // This seeded controller also dies once in combat. Both failed attempts
-        // must remain charged when it eventually completes the mission.
-        assert_eq!(deaths, 2, "{state:?}");
-        assert_eq!(state.attempt, 3);
+        // One death is injected at the lift. The other two are combat deaths.
+        // The file-stack sweeper is no longer shot from the records approach,
+        // so this seeded controller spends that extra life and finishes on its
+        // last continue. Every death stays charged.
+        assert_eq!(deaths, 3, "{state:?}");
+        assert_eq!(state.attempt, 4);
         let run = state.run.unwrap();
-        assert_eq!(run.continues, 1);
+        assert_eq!(run.continues, 0);
         assert_eq!(run.status, crate::protocol::CampaignRunStatus::Complete);
     }
     eprintln!(
