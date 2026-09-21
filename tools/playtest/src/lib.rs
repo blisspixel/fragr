@@ -980,6 +980,7 @@ pub const PLANNER_PICKUP_REACH: f32 = 18.0;
 /// The distance band a weapon wants to fight at: (comfortable, ideal).
 fn preferred_band(weapon: WeaponType) -> (f32, f32) {
     match weapon {
+        WeaponType::Shiv => weapon.preferred_range(),
         WeaponType::Fists => (0.0, 1.5),
         WeaponType::Tack => (5.0, 12.0),
         WeaponType::Scatter => (1.5, 4.0),

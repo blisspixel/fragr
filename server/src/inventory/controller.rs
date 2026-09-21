@@ -101,7 +101,7 @@ pub fn control_action_with_objective(
         .weapon_swap
         .filter(|weapon| usable(loadout, *weapon))
         .or_else(|| usable(loadout, held).then_some(held))
-        .filter(|weapon| *weapon != WeaponType::Fists)
+        .filter(|weapon| weapon.ammo_pool().is_some())
         .or_else(|| {
             [
                 WeaponType::Flechette,
@@ -112,7 +112,13 @@ pub fn control_action_with_objective(
             .into_iter()
             .find(|weapon| usable(loadout, *weapon))
         })
-        .unwrap_or(WeaponType::Fists);
+        .unwrap_or_else(|| {
+            if usable(loadout, WeaponType::Shiv) {
+                WeaponType::Shiv
+            } else {
+                WeaponType::Fists
+            }
+        });
     action.weapon_swap = (selected != held).then_some(selected);
     let dry = loadout
         .weapon(selected)
@@ -122,7 +128,7 @@ pub fn control_action_with_objective(
         action.fire = false;
     }
 
-    if selected == WeaponType::Fists || (nearest.is_none() && !has_objective) {
+    if selected.ammo_pool().is_none() || (nearest.is_none() && !has_objective) {
         let supply = snapshot
             .pickups
             .iter()
@@ -158,8 +164,13 @@ pub fn control_action_with_objective(
             action.fire = !dry && loadout.reload.is_none();
         }
         action.fire &= distance <= selected.range_units();
-        if selected == WeaponType::Fists {
-            action.forward = distance > 1.3;
+        if selected.ammo_pool().is_none() {
+            let reach = if selected == WeaponType::Fists {
+                1.3
+            } else {
+                selected.preferred_range().1
+            };
+            action.forward = distance > reach;
             action.back = false;
             action.fire = distance <= selected.range_units();
             action.look_at = Some(LookAt {

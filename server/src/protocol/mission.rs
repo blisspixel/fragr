@@ -103,6 +103,7 @@ pub enum MissionPhase {
 pub enum InteractionKind {
     TransferRecord,
     LiftDeparture,
+    ServiceCache,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -151,6 +152,8 @@ impl UseTarget {
 #[serde(deny_unknown_fields)]
 pub struct MissionGeometry {
     pub id: MissionId,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub secret: Option<UseTarget>,
     pub record: UseTarget,
     pub departure: UseTarget,
     pub boarding: Region3,
@@ -171,7 +174,13 @@ impl MissionGeometry {
         for (target, kind) in [
             (&self.record, MapDecorationKind::Terminal),
             (&self.departure, MapDecorationKind::LiftControl),
-        ] {
+        ]
+        .into_iter()
+        .chain(
+            self.secret
+                .iter()
+                .map(|target| (target, MapDecorationKind::Vent)),
+        ) {
             let panel = presentation
                 .decorations
                 .get(target.decoration)
@@ -186,6 +195,12 @@ impl MissionGeometry {
             {
                 return Err("invalid mission approach");
             }
+        }
+        if self.secret.as_ref().is_some_and(|secret| {
+            secret.decoration == self.record.decoration
+                || secret.decoration == self.departure.decoration
+        }) {
+            return Err("duplicate cache control");
         }
         if !self.boarding.contains(self.departure.approach) {
             return Err("departure control must be inside the boarding area");
@@ -222,6 +237,8 @@ pub struct MissionReady {
 #[serde(deny_unknown_fields)]
 pub struct MissionState {
     pub id: MissionId,
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub secret_found: bool,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub run: Option<CampaignRunState>,
     pub rules: CampaignRules,
@@ -270,13 +287,21 @@ impl MissionState {
         }
         ids.clear();
         for prompt in &self.prompts {
-            let allowed = match self.phase {
-                MissionPhase::FindTransfer => prompt.kind == InteractionKind::TransferRecord,
-                MissionPhase::ReachLift => {
-                    prompt.kind == InteractionKind::LiftDeparture
-                        && self.party.iter().all(|p| p.alive && p.aboard)
+            let allowed = if prompt.kind == InteractionKind::ServiceCache {
+                !self.secret_found
+                    && matches!(
+                        self.phase,
+                        MissionPhase::FindTransfer | MissionPhase::ReachLift
+                    )
+            } else {
+                match self.phase {
+                    MissionPhase::FindTransfer => prompt.kind == InteractionKind::TransferRecord,
+                    MissionPhase::ReachLift => {
+                        prompt.kind == InteractionKind::LiftDeparture
+                            && self.party.iter().all(|p| p.alive && p.aboard)
+                    }
+                    MissionPhase::Briefing | MissionPhase::Departed => false,
                 }
-                MissionPhase::Briefing | MissionPhase::Departed => false,
             };
             if !allowed
                 || !ids.insert(prompt.player_id)

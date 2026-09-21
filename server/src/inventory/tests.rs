@@ -1,5 +1,32 @@
 use super::*;
 
+#[test]
+fn shiv_requires_discovery_and_never_consumes_ammunition() {
+    let mut inventory = Inventory::new(EquipmentPolicy::Discovery);
+    assert!(!inventory.owns(WeaponType::Shiv));
+    assert!(!inventory.try_fire(WeaponType::Shiv));
+    assert!(inventory.grant_weapon(WeaponType::Shiv));
+    let revision = inventory.revision();
+    assert!(!inventory.grant_weapon(WeaponType::Shiv));
+    assert_eq!(inventory.revision(), revision);
+    assert!(inventory.select(WeaponType::Fists, WeaponType::Shiv));
+    let before = view(&inventory, WeaponType::Shiv, 1);
+    assert_eq!(before.weapon(WeaponType::Shiv).unwrap().magazine, None);
+    for _ in 0..100 {
+        assert!(inventory.try_fire(WeaponType::Shiv));
+        assert!(!inventory.begin_reload(WeaponType::Shiv, 1));
+    }
+    assert_eq!(view(&inventory, WeaponType::Shiv, 1), before);
+    let mut invalid = before;
+    invalid
+        .weapons
+        .iter_mut()
+        .find(|held| held.weapon == WeaponType::Shiv)
+        .unwrap()
+        .magazine = Some(0);
+    assert!(invalid.validate().is_err());
+}
+
 fn view(inventory: &Inventory, selected: WeaponType, tick: u64) -> LoadoutState {
     let state = inventory.state(Uuid::nil(), selected, tick).unwrap();
     state.validate().unwrap();
@@ -31,7 +58,7 @@ fn full_arsenal_retains_its_three_unlimited_guns_without_private_state() {
 fn finite_magazines_reload_on_the_exact_tick_without_creating_rounds() {
     for weapon in WeaponType::ALL
         .into_iter()
-        .filter(|weapon| *weapon != WeaponType::Fists)
+        .filter(|weapon| weapon.ammo_pool().is_some())
     {
         let mut inventory = Inventory::new(EquipmentPolicy::Discovery);
         assert!(!inventory.owns(weapon));

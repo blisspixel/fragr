@@ -46,6 +46,24 @@ impl RuntimeMap {
         }
     }
 
+    pub fn opened_secret(&self) -> Option<Self> {
+        match self {
+            Self::BuiltIn(_) => None,
+            Self::Authored(map) => map
+                .opened_secret
+                .as_ref()
+                .map(|opened| Self::Authored(opened.clone())),
+        }
+    }
+
+    pub fn requires_secret_gameplay(&self) -> bool {
+        self.mission()
+            .is_some_and(|mission| mission.secret.is_some())
+            || self.pickups().iter().any(|pickup| {
+                pickup.kind == crate::sim::PickupKind::Weapon(crate::protocol::WeaponType::Shiv)
+            })
+    }
+
     pub fn is_campaign(&self) -> bool {
         self.has_encounters() || self.mission().is_some()
     }

@@ -1,7 +1,9 @@
 # Display resolution and portable graphics quality
 
-Status: implemented, integration tracked in
+Status: shipped in v0.33.0 through
 [#202](https://github.com/blisspixel/fragr/pull/202), 2026-09-20. Spend: $0.
+Merged `47507db` matches the tested source tree. Post-merge
+[CI](https://github.com/blisspixel/fragr/actions/runs/35550793314) passed.
 
 Fullscreen is already the saved and project default. Extend the shared retro
 settings panel with real resolution and quality choices, keeping the server

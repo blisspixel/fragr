@@ -2,6 +2,14 @@
 
 WebSocket JSON protocol between clients and the authoritative server.
 
+Draft branch note: [M01 cache and Shiv](plans/m01-secret-shiv.md) stages gameplay
+capability 9, optional `MissionGeometry.secret`, `MissionState.secret_found`,
+`service_cache` interactions and the appended `shiv` weapon. Retained weapon
+counts accept five legacy slots or six current slots, omitting an unused sixth
+slot on serialization. Client validation, presentation and agent tool schemas
+are not integrated yet. This contract is unshipped and must not be treated as a
+working mixed-client feature.
+
 **Transport:** WebSocket JSON. The server binds `0.0.0.0:6767` by default; clients default to loopback (configurable).
 **Format:** JSON text messages
 **Tick rate:** ~20 Hz (50ms per tick)

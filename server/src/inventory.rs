@@ -13,7 +13,7 @@ pub use controller::{control_action, control_action_with_objective};
 #[derive(Debug, Clone)]
 pub struct Inventory {
     policy: EquipmentPolicy,
-    magazines: [Option<u16>; 5],
+    magazines: [Option<u16>; WeaponType::ALL.len()],
     reserves: [u16; 3],
     reload: Option<ReloadState>,
     claims: BTreeSet<String>,
@@ -26,7 +26,7 @@ impl Inventory {
     pub fn new(policy: EquipmentPolicy) -> Self {
         Self {
             policy,
-            magazines: [None; 5],
+            magazines: [None; WeaponType::ALL.len()],
             reserves: [0; 3],
             reload: None,
             claims: BTreeSet::new(),
@@ -100,7 +100,12 @@ impl Inventory {
             return self.owns(weapon);
         }
         let Some(pool) = weapon.ammo_pool() else {
-            return false;
+            if weapon == WeaponType::Fists || self.owns(weapon) {
+                return false;
+            }
+            self.magazines[weapon.index()] = Some(0);
+            self.revision += 1;
+            return true;
         };
         let acquired = self.magazines[weapon.index()].is_none();
         if acquired {
@@ -182,7 +187,7 @@ impl Inventory {
         if !self.owns(selected) || self.reload.is_some() {
             return false;
         }
-        if self.policy == EquipmentPolicy::FullArsenal || selected == WeaponType::Fists {
+        if self.policy == EquipmentPolicy::FullArsenal || selected.ammo_pool().is_none() {
             return true;
         }
         if let Some(rounds) = self.magazines[selected.index()]
@@ -215,7 +220,7 @@ impl Inventory {
                 .filter(|&weapon| self.owns(weapon))
                 .map(|weapon| WeaponAmmo {
                     weapon,
-                    magazine: self.magazines[weapon.index()],
+                    magazine: weapon.ammo_pool().and(self.magazines[weapon.index()]),
                 })
                 .collect(),
             reserves: AmmoPool::ALL

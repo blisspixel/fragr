@@ -7,6 +7,48 @@ pub const RECORD_VERSION: u32 = 1;
 pub const RECORD_TICKS_PER_SECOND: u32 = 20;
 const MAX_EXACT_JSON_INTEGER: u64 = (1_u64 << 53) - 1;
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn retained_weapon_counts_preserve_legacy_indices_and_new_melee_effort() {
+        let mut counts = CombatCounts {
+            alive_ticks: 10,
+            ..Default::default()
+        };
+        counts.weapons[WeaponType::Rail.index()].attacks = 2;
+        let legacy = serde_json::to_value(&counts).unwrap();
+        assert_eq!(legacy["weapons"].as_array().unwrap().len(), 5);
+        assert_eq!(
+            serde_json::from_value::<CombatCounts>(legacy.clone()).unwrap(),
+            counts
+        );
+        counts.weapons[WeaponType::Shiv.index()].attacks = 3;
+        counts.validate().unwrap();
+        let current = serde_json::to_value(&counts).unwrap();
+        assert_eq!(current["weapons"].as_array().unwrap().len(), 6);
+        assert_eq!(
+            current["weapons"][WeaponType::Rail.index()],
+            legacy["weapons"][WeaponType::Rail.index()]
+        );
+        assert_eq!(
+            serde_json::from_value::<CombatCounts>(current.clone()).unwrap(),
+            counts
+        );
+        for length in [0, 4, 7] {
+            let mut malformed = current.clone();
+            let slots = malformed["weapons"].as_array_mut().unwrap();
+            let slot = slots[0].clone();
+            slots.resize(length, slot);
+            assert!(serde_json::from_value::<CombatCounts>(malformed).is_err());
+        }
+        let mut malformed = current;
+        malformed["weapons"][5]["unexpected"] = true.into();
+        assert!(serde_json::from_value::<CombatCounts>(malformed).is_err());
+    }
+}
+
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct WeaponCounts {
@@ -27,7 +69,54 @@ pub struct CombatCounts {
     pub armor_lost: u64,
     pub dry_triggers: u64,
     /// Indexed by WeaponType::index(), in WeaponType::ALL order.
-    pub weapons: [WeaponCounts; 5],
+    #[serde(with = "weapon_counts")]
+    pub weapons: [WeaponCounts; WeaponType::ALL.len()],
+}
+
+/// Preserve the five original slots on old arcade records. The sixth slot is
+/// appended only when used; deserializing history never changes an old index.
+mod weapon_counts {
+    use super::*;
+    use serde::de::{Error, SeqAccess, Visitor};
+
+    pub fn serialize<S: serde::Serializer>(
+        counts: &[WeaponCounts; WeaponType::ALL.len()],
+        serializer: S,
+    ) -> Result<S::Ok, S::Error> {
+        let length = if counts[WeaponType::Shiv.index()] == WeaponCounts::default() {
+            5
+        } else {
+            WeaponType::ALL.len()
+        };
+        counts[..length].serialize(serializer)
+    }
+
+    pub fn deserialize<'de, D: serde::Deserializer<'de>>(
+        deserializer: D,
+    ) -> Result<[WeaponCounts; WeaponType::ALL.len()], D::Error> {
+        struct Counts;
+        impl<'de> Visitor<'de> for Counts {
+            type Value = [WeaponCounts; WeaponType::ALL.len()];
+            fn expecting(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                f.write_str("five legacy or six current weapon counters")
+            }
+            fn visit_seq<A: SeqAccess<'de>>(self, mut seq: A) -> Result<Self::Value, A::Error> {
+                let mut counts = [WeaponCounts::default(); WeaponType::ALL.len()];
+                for (index, count) in counts.iter_mut().enumerate() {
+                    match seq.next_element()? {
+                        Some(value) => *count = value,
+                        None if index == 5 => return Ok(counts),
+                        None => return Err(A::Error::invalid_length(index, &self)),
+                    }
+                }
+                if seq.next_element::<serde::de::IgnoredAny>()?.is_some() {
+                    return Err(A::Error::invalid_length(7, &self));
+                }
+                Ok(counts)
+            }
+        }
+        deserializer.deserialize_seq(Counts)
+    }
 }
 
 impl CombatCounts {

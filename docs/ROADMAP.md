@@ -73,9 +73,13 @@ The [default mix and splash correction](plans/audio-startup-polish.md) is
 shipped in #201, v0.32.0: quieter default effects, more present playing radio, saved
 choices preserved and the refined logo replacing the stale ON AIR startup image.
 The [display-quality pass](plans/display-quality.md) adds resolution selection and
-portable graphics presets, implemented in #202 with inspected Windows/AMD Vulkan
-and OpenGL evidence. Cross-platform CI gates integration. Pixel surfaces and
+portable graphics presets, shipped in #202, v0.33.0 with inspected Windows/AMD Vulkan
+and OpenGL evidence. Cross-platform CI passed, including the merged tree. Pixel surfaces and
 readable authored lighting remain the style.
+
+The [M01 service cache and Shiv](plans/m01-secret-shiv.md) is an unshipped draft
+checkpoint. Server foundations and candidate art are saved; the room, client
+integration and playtests remain. It is not available in the released mission.
 
 [Asset request recovery](plans/asset-request-recovery.md) shipped in #169 with
 cross-platform failure tests. Submitted jobs survive interruptions, and

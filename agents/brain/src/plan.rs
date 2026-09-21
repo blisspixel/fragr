@@ -131,6 +131,7 @@ pub fn parse_weapon(name: &str) -> Option<WeaponType> {
 
 pub fn weapon_name(weapon: WeaponType) -> &'static str {
     match weapon {
+        WeaponType::Shiv => "shiv",
         WeaponType::Fists => "fists",
         WeaponType::Tack => "tack",
         WeaponType::Flechette => "flechette",

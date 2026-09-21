@@ -2,6 +2,11 @@
 
 MCP-compatible control plane for external agents to observe and act in the fragr arena. Runs separate from the hot-path combat tick.
 
+The [M01 cache and Shiv draft](../docs/plans/m01-secret-shiv.md) is unfinished.
+Its shared Rust types include the new weapon and interaction, but the MCP weapon
+schema, parsing and cache controller are not integrated. Do not advertise this
+draft as supporting those actions until both boundaries and live play are tested.
+
 Every WebSocket role receives `map_info` on join, including spectators. The same
 authoritative geometry is broadcast on rotation. `observe` retains the latest
 map for agents; see [`docs/protocol.md`](../docs/protocol.md#mapinfo).

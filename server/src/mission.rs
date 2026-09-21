@@ -31,6 +31,7 @@ pub(crate) struct MissionRun {
     phase: MissionPhase,
     changed_at: u64,
     started: bool,
+    secret_found: bool,
     ready: HashSet<Uuid>,
 }
 
@@ -45,6 +46,7 @@ impl MissionRun {
             phase: MissionPhase::Briefing,
             changed_at: 0,
             started: false,
+            secret_found: false,
             ready: HashSet::new(),
         })
     }
@@ -178,6 +180,7 @@ impl GameState {
             MissionPhase::FindTransfer
         };
         run.attempt = run.attempt.saturating_add(1);
+        run.secret_found = false;
         for player in &mut self.players {
             player.statistics.reset_attempt();
         }
@@ -218,23 +221,36 @@ impl GameState {
             }
             _ => None,
         };
-        let prompts = control.map_or_else(Vec::new, |(target, kind)| {
-            self.players
-                .iter()
-                .filter(|p| {
-                    party
-                        .iter()
-                        .any(|member| member.id == p.id && member.alive && member.ready)
-                })
-                .filter(|p| can_use(p, target, &self.map))
-                .map(|p| InteractionPrompt {
-                    player_id: p.id,
-                    kind,
-                })
-                .collect()
+        let secret = geometry.secret.as_ref().filter(|_| {
+            !run.secret_found
+                && !self.campaign_run_frozen()
+                && matches!(
+                    run.phase,
+                    MissionPhase::FindTransfer | MissionPhase::ReachLift
+                )
         });
+        let prompts = self
+            .players
+            .iter()
+            .filter(|p| {
+                party
+                    .iter()
+                    .any(|member| member.id == p.id && member.alive && member.ready)
+            })
+            .filter_map(|p| {
+                control
+                    .into_iter()
+                    .chain(secret.map(|target| (target, InteractionKind::ServiceCache)))
+                    .find(|(target, _)| can_use(p, target, &self.map))
+                    .map(|(_, kind)| InteractionPrompt {
+                        player_id: p.id,
+                        kind,
+                    })
+            })
+            .collect();
         Some(MissionState {
             id: geometry.id,
+            secret_found: run.secret_found,
             run: run.solo.as_ref().map(|solo| solo.state),
             rules: run.rules,
             attempt: run.attempt,
@@ -271,10 +287,30 @@ impl GameState {
         let Some(state) = self.mission_state() else {
             return;
         };
-        if !state
+        let accepted: Vec<_> = state
             .prompts
             .iter()
-            .any(|prompt| requests.contains(&prompt.player_id))
+            .filter(|prompt| requests.contains(&prompt.player_id))
+            .collect();
+        if accepted.is_empty() {
+            return;
+        }
+        if accepted
+            .iter()
+            .any(|prompt| prompt.kind == InteractionKind::ServiceCache)
+        {
+            if let Some(opened) = self.map.opened_secret() {
+                self.map = opened;
+                if let Some(run) = self.mission.as_mut() {
+                    run.secret_found = true;
+                    run.changed_at = self.tick;
+                    tracing::info!(attempt = run.attempt, "Service cache discovered");
+                }
+            }
+        }
+        if !accepted
+            .iter()
+            .any(|prompt| prompt.kind != InteractionKind::ServiceCache)
         {
             return;
         }

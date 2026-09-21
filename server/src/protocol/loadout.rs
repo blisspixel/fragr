@@ -51,12 +51,13 @@ impl AmmoPool {
 }
 
 impl WeaponType {
-    pub const ALL: [Self; 5] = [
+    pub const ALL: [Self; 6] = [
         Self::Fists,
         Self::Tack,
         Self::Flechette,
         Self::Scatter,
         Self::Rail,
+        Self::Shiv,
     ];
     pub const ARCADE: [Self; 3] = [Self::Flechette, Self::Rail, Self::Scatter];
 
@@ -67,12 +68,13 @@ impl WeaponType {
             Self::Flechette => 2,
             Self::Scatter => 3,
             Self::Rail => 4,
+            Self::Shiv => 5,
         }
     }
 
     pub const fn magazine_size(self) -> u16 {
         match self {
-            Self::Fists => 0,
+            Self::Fists | Self::Shiv => 0,
             Self::Tack => 12,
             Self::Flechette => 30,
             Self::Scatter => 6,
@@ -82,7 +84,7 @@ impl WeaponType {
 
     pub const fn ammo_pool(self) -> Option<AmmoPool> {
         match self {
-            Self::Fists => None,
+            Self::Fists | Self::Shiv => None,
             Self::Tack => Some(AmmoPool::Tacks),
             Self::Flechette | Self::Scatter => Some(AmmoPool::Darts),
             Self::Rail => Some(AmmoPool::Cores),
@@ -92,7 +94,7 @@ impl WeaponType {
     /// Pool rounds needed to load one shot. Scatter uses four darts per shell.
     pub const fn ammo_cost(self) -> u16 {
         match self {
-            Self::Fists => 0,
+            Self::Fists | Self::Shiv => 0,
             Self::Scatter => 4,
             _ => 1,
         }
@@ -100,7 +102,7 @@ impl WeaponType {
 
     pub const fn reload_ticks(self) -> u64 {
         match self {
-            Self::Fists => 0,
+            Self::Fists | Self::Shiv => 0,
             Self::Tack => 18,
             Self::Flechette => 22,
             Self::Scatter => 26,
@@ -170,13 +172,13 @@ impl LoadoutState {
         {
             return Err("invalid loadout size");
         }
-        let mut weapons = [false; 5];
+        let mut weapons = [false; WeaponType::ALL.len()];
         for held in &self.weapons {
             if std::mem::replace(&mut weapons[held.weapon.index()], true)
                 || match held.magazine {
-                    None => held.weapon != WeaponType::Fists,
+                    None => held.weapon.ammo_pool().is_some(),
                     Some(rounds) => {
-                        held.weapon == WeaponType::Fists || rounds > held.weapon.magazine_size()
+                        held.weapon.ammo_pool().is_none() || rounds > held.weapon.magazine_size()
                     }
                 }
             {
@@ -196,7 +198,7 @@ impl LoadoutState {
         }
         if self.reload.as_ref().is_some_and(|reload| {
             reload.weapon != self.selected
-                || reload.weapon == WeaponType::Fists
+                || reload.weapon.ammo_pool().is_none()
                 || reload.complete_at <= self.tick
                 || reload.complete_at - self.tick > reload.weapon.reload_ticks()
                 || self.weapon(reload.weapon).and_then(|held| held.magazine)

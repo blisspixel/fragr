@@ -1,4 +1,4 @@
-//! A bounded mission route has two prevalidated geometry states, never tick-time baking.
+//! Exit and optional cache gates have at most four prevalidated geometry states.
 use super::{invalid, standing};
 use crate::movement::{Arena, EYE_HEIGHT};
 use crate::navigation::{Navigation, RouteStatus, SEARCH_LIMIT};
@@ -18,6 +18,8 @@ pub(super) struct Definition {
     departure: Control,
     gate: Gate,
     boarding: Region3,
+    #[serde(default)]
+    secret: Option<Secret>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -34,9 +36,40 @@ struct Gate {
     lift: f32,
 }
 
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct Secret {
+    control: Control,
+    gate: Gate,
+    inside: [f32; 3],
+}
+
+pub(super) struct SecretWorlds {
+    pub closed_exit: Arena,
+    pub open_exit: Arena,
+    inside: [f32; 3],
+}
+
 pub(super) struct Prepared {
     pub geometry: MissionGeometry,
     pub opened: Arena,
+    pub secret: Option<SecretWorlds>,
+}
+
+impl Gate {
+    fn prepare(&self, arena: &Arena, ids: &HashMap<String, usize>) -> io::Result<(usize, Arena)> {
+        let index = *ids
+            .get(&self.solid)
+            .ok_or_else(|| invalid("mission gate references an unknown solid"))?;
+        if !self.lift.is_finite() || !(0.125..=16.0).contains(&self.lift) {
+            return Err(invalid("mission gate lift must be finite and bounded"));
+        }
+        let mut opened = arena.clone();
+        opened.solids[index].bottom += self.lift;
+        opened.solids[index].top += self.lift;
+        crate::movement::validate_geometry(opened.half, &opened.solids).map_err(invalid)?;
+        Ok((index, opened))
+    }
 }
 
 impl Definition {
@@ -46,25 +79,42 @@ impl Definition {
         solid_ids: &HashMap<String, usize>,
         presentation: &mut MapPresentation,
     ) -> io::Result<Prepared> {
-        let gate = *solid_ids
-            .get(&self.gate.solid)
-            .ok_or_else(|| invalid("mission gate references an unknown solid"))?;
-        if !self.gate.lift.is_finite() || !(0.125..=16.0).contains(&self.gate.lift) {
-            return Err(invalid("mission gate lift must be finite and bounded"));
-        }
-        let mut opened = arena.clone();
-        opened.solids[gate].bottom += self.gate.lift;
-        opened.solids[gate].top += self.gate.lift;
-        crate::movement::validate_geometry(opened.half, &opened.solids).map_err(invalid)?;
+        let (gate, opened) = self.gate.prepare(arena, solid_ids)?;
+        let (secret, secret_control, secret_gate) = if let Some(secret) = self.secret {
+            let (index, closed_exit) = secret.gate.prepare(arena, solid_ids)?;
+            if index == gate {
+                return Err(invalid("exit and cache gates must be distinct"));
+            }
+            let (_, open_exit) = secret.gate.prepare(&opened, solid_ids)?;
+            if !standing(&closed_exit, secret.inside) || !standing(&open_exit, secret.inside) {
+                return Err(invalid(
+                    "cache destination needs supported standing clearance",
+                ));
+            }
+            (
+                Some(SecretWorlds {
+                    closed_exit,
+                    open_exit,
+                    inside: secret.inside,
+                }),
+                Some(secret.control),
+                Some(index),
+            )
+        } else {
+            (None, None, None)
+        };
         let mut targets = Vec::new();
         for (control, expected) in [
             (self.record, MapDecorationKind::Terminal),
             (self.departure, MapDecorationKind::LiftControl),
-        ] {
+        ]
+        .into_iter()
+        .chain(secret_control.map(|control| (control, MapDecorationKind::Vent)))
+        {
             let host = *solid_ids
                 .get(&control.panel.solid)
                 .ok_or_else(|| invalid("mission control references an unknown solid"))?;
-            if host == gate || control.panel.kind != expected {
+            if host == gate || Some(host) == secret_gate || control.panel.kind != expected {
                 return Err(invalid(
                     "mission controls need static hosts and matching panel kinds",
                 ));
@@ -77,21 +127,29 @@ impl Definition {
                 .decorations
                 .push(control.panel.with_solid(host));
         }
-        crate::protocol::validate_map_presentation(Some(presentation), &arena.solids)
-            .map_err(invalid)?;
-        crate::protocol::validate_map_presentation(Some(presentation), &opened.solids)
-            .map_err(invalid)?;
         let geometry = MissionGeometry {
             id: self.id,
             record: targets.remove(0),
             departure: targets.remove(0),
+            secret: targets.pop(),
             boarding: self.boarding,
         };
-        geometry
-            .validate(arena.half, &arena.solids, Some(presentation))
-            .map_err(invalid)?;
-        for target in [&geometry.record, &geometry.departure] {
-            for world in [arena, &opened] {
+        let worlds: Vec<_> = [arena, &opened]
+            .into_iter()
+            .chain(secret.iter().flat_map(|s| [&s.closed_exit, &s.open_exit]))
+            .collect();
+        for world in &worlds {
+            crate::protocol::validate_map_presentation(Some(presentation), &world.solids)
+                .map_err(invalid)?;
+            geometry
+                .validate(world.half, &world.solids, Some(presentation))
+                .map_err(invalid)?;
+        }
+        for target in [&geometry.record, &geometry.departure]
+            .into_iter()
+            .chain(geometry.secret.iter())
+        {
+            for world in &worlds {
                 if !standing(world, target.approach) {
                     return Err(invalid(
                         "mission approach needs standing clearance in both gate states",
@@ -113,11 +171,50 @@ impl Definition {
                 }
             }
         }
-        Ok(Prepared { geometry, opened })
+        Ok(Prepared {
+            geometry,
+            opened,
+            secret,
+        })
     }
 }
 
 impl Prepared {
+    pub fn validate_secret_routes(
+        &self,
+        start: [f32; 3],
+        closed: &Navigation,
+        opened: &Navigation,
+        cache_closed_exit: &Navigation,
+        cache_open_exit: &Navigation,
+    ) -> io::Result<()> {
+        self.validate_routes(start, cache_closed_exit, cache_open_exit)?;
+        let secret = self
+            .secret
+            .as_ref()
+            .ok_or_else(|| invalid("missing cache worlds"))?;
+        let control = self
+            .geometry
+            .secret
+            .as_ref()
+            .ok_or_else(|| invalid("missing cache control"))?;
+        for nav in [closed, opened] {
+            if nav.route(start, control.approach, SEARCH_LIMIT).status != RouteStatus::Complete
+                || nav.route(start, secret.inside, SEARCH_LIMIT).status == RouteStatus::Complete
+            {
+                return Err(invalid(
+                    "cache control must be reachable but its reward must be gated",
+                ));
+            }
+        }
+        for nav in [cache_closed_exit, cache_open_exit] {
+            if nav.route(start, secret.inside, SEARCH_LIMIT).status != RouteStatus::Complete {
+                return Err(invalid("opened cache must be reachable"));
+            }
+        }
+        Ok(())
+    }
+
     pub fn validate_routes(
         &self,
         start: [f32; 3],

@@ -292,6 +292,7 @@ pub enum WeaponType {
     Scatter,
     Fists,
     Tack,
+    Shiv,
 }
 
 /// The scatter gun deals full damage inside this distance.
@@ -307,6 +308,7 @@ impl WeaponType {
     pub fn damage(self) -> i32 {
         match self {
             WeaponType::Fists | WeaponType::Tack => 20,
+            WeaponType::Shiv => 40,
             WeaponType::Flechette => 25,
             WeaponType::Rail => 80,
             WeaponType::Scatter => 40,
@@ -339,6 +341,7 @@ impl WeaponType {
     pub fn cooldown_ticks(self) -> u32 {
         match self {
             WeaponType::Fists => 8,
+            WeaponType::Shiv => 6,
             WeaponType::Tack => 5,
             WeaponType::Flechette => 4,
             WeaponType::Rail => 20,
@@ -351,7 +354,7 @@ impl WeaponType {
     /// assistance: a shot still has to pass within a fighter's radius to land.
     pub fn spread_radians(self) -> f32 {
         match self {
-            WeaponType::Fists => 0.0,
+            WeaponType::Fists | WeaponType::Shiv => 0.0,
             WeaponType::Tack => 0.03,
             // Mid workhorse: 2.6 degrees, forgiving in its own band.
             WeaponType::Flechette => 0.045,
@@ -367,6 +370,7 @@ impl WeaponType {
     pub fn range_units(self) -> f32 {
         match self {
             WeaponType::Fists => 1.8,
+            WeaponType::Shiv => 2.2,
             WeaponType::Tack => 30.0,
             WeaponType::Flechette => 40.0,
             WeaponType::Rail => 60.0,
@@ -378,6 +382,7 @@ impl WeaponType {
     pub fn preferred_range(self) -> (f32, f32) {
         match self {
             WeaponType::Fists => (0.0, 1.5),
+            WeaponType::Shiv => (0.0, 1.9),
             WeaponType::Tack => (5.0, 18.0),
             WeaponType::Flechette => (8.0, 28.0),
             WeaponType::Rail => (18.0, 45.0),
@@ -388,6 +393,7 @@ impl WeaponType {
     pub fn name(self) -> &'static str {
         match self {
             WeaponType::Fists => "Fists",
+            WeaponType::Shiv => "Shiv",
             WeaponType::Tack => "Tack",
             WeaponType::Flechette => "Flechette",
             WeaponType::Rail => "Rail",
@@ -406,8 +412,9 @@ pub const READINESS_GAMEPLAY_VERSION: u32 = 5;
 pub const DIFFICULTY_GAMEPLAY_VERSION: u32 = 6;
 pub const CONTINUES_GAMEPLAY_VERSION: u32 = 7;
 pub const RECORD_GAMEPLAY_VERSION: u32 = 8;
+pub const SECRET_GAMEPLAY_VERSION: u32 = 9;
 /// Highest understood gameplay contract; content requirements use their own minimum.
-pub const GAMEPLAY_VERSION: u32 = RECORD_GAMEPLAY_VERSION;
+pub const GAMEPLAY_VERSION: u32 = SECRET_GAMEPLAY_VERSION;
 pub fn legacy_gameplay_version() -> u32 {
     1
 }

@@ -25,6 +25,7 @@ mod tests;
 pub struct AuthoredMap {
     pub(super) mission: Option<crate::protocol::MissionGeometry>,
     pub(super) opened_route: Option<Arc<Self>>,
+    pub(super) opened_secret: Option<Arc<Self>>,
     pub(super) id: u32,
     pub(super) name: String,
     pub(super) arena: Arena,
@@ -238,6 +239,21 @@ impl AuthoredMap {
         if let (Some(mission), Some(opened)) = (&mission, &opened_navigation) {
             mission.validate_routes(start, &navigation, opened)?;
         }
+        let secret_navigation = mission
+            .as_ref()
+            .and_then(|m| m.secret.as_ref())
+            .map(|worlds| -> io::Result<_> {
+                Ok((
+                    Navigation::shared(worlds.closed_exit.clone()).map_err(invalid)?,
+                    Navigation::shared(worlds.open_exit.clone()).map_err(invalid)?,
+                ))
+            })
+            .transpose()?;
+        if let (Some(mission), Some(opened), Some((cache_closed, cache_open))) =
+            (&mission, &opened_navigation, &secret_navigation)
+        {
+            mission.validate_secret_routes(start, &navigation, opened, cache_closed, cache_open)?;
+        }
         for spawn in &doc.spawns {
             if navigation
                 .route(start, spawn.feet, crate::navigation::SEARCH_LIMIT)
@@ -272,6 +288,13 @@ impl AuthoredMap {
                         .status
                         == crate::navigation::RouteStatus::Complete
                 })
+                && !secret_navigation.as_ref().is_some_and(|(closed, opened)| {
+                    [closed, opened].iter().any(|nav| {
+                        nav.route(start, destination, crate::navigation::SEARCH_LIMIT)
+                            .status
+                            == crate::navigation::RouteStatus::Complete
+                    })
+                })
             {
                 return Err(invalid(&format!(
                     "map placement {id} is unreachable from the entry",
@@ -281,6 +304,7 @@ impl AuthoredMap {
         let mut map = Self {
             mission: mission.as_ref().map(|m| m.geometry.clone()),
             opened_route: None,
+            opened_secret: None,
             encounters: doc.encounters,
             supplies,
             equipment: doc.equipment,
@@ -296,6 +320,20 @@ impl AuthoredMap {
             let mut opened = map.clone();
             opened.arena = mission.opened;
             opened.navigation = navigation;
+            if let (Some(worlds), Some((closed_nav, open_nav))) =
+                (mission.secret, secret_navigation)
+            {
+                let mut both_open = opened.clone();
+                both_open.arena = worlds.open_exit;
+                both_open.navigation = open_nav;
+                let both_open = Arc::new(both_open);
+                let mut secret_open = map.clone();
+                secret_open.arena = worlds.closed_exit;
+                secret_open.navigation = closed_nav;
+                secret_open.opened_route = Some(both_open.clone());
+                map.opened_secret = Some(Arc::new(secret_open));
+                opened.opened_secret = Some(both_open);
+            }
             map.opened_route = Some(Arc::new(opened));
         }
         Ok(Arc::new(map))

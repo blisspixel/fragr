@@ -2605,7 +2605,7 @@ impl BotController {
         let (prefer_min, prefer_max) = bot.weapon.preferred_range();
         let fire_range = bot.weapon.range_units() * 0.95;
         let aim_slack = match bot.weapon {
-            WeaponType::Fists => 0.55,
+            WeaponType::Fists | WeaponType::Shiv => 0.55,
             WeaponType::Tack => 0.40,
             WeaponType::Rail => 0.22,
             WeaponType::Scatter => 0.55,
