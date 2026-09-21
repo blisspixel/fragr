@@ -96,17 +96,21 @@ static func valid_rules(value: Variant) -> bool:
 		and value.get("difficulty") is String and value["difficulty"] in DIFFICULTIES \
 		and EquipmentState.integer(value.get("revision"), RULES_REVISION) and value["revision"] == RULES_REVISION
 
-static func valid_run(state: Dictionary) -> bool:
-	var run: Variant = state.get("run")
+static func valid_run_identity(run: Variant, attempt: Variant) -> bool:
 	if not run is Dictionary or run.size() != 3 or not _uuid(run.get("id")) \
 		or run["id"] == "00000000-0000-0000-0000-000000000000" \
 		or not run.get("status") is String or run["status"] not in RUN_STATUSES \
-		or not EquipmentState.integer(run.get("continues"), 3) or state["party"].size() > 1 \
-		or int(state["attempt"]) != 4 - int(run["continues"]):
+		or not EquipmentState.integer(run.get("continues"), 3) \
+		or not EquipmentState.integer(attempt, 4) or int(attempt) != 4 - int(run["continues"]):
+		return false
+	return not ((run["status"] == "continue" and run["continues"] == 0) \
+		or (run["status"] == "failed" and run["continues"] != 0))
+
+static func valid_run(state: Dictionary) -> bool:
+	var run: Variant = state.get("run")
+	if not valid_run_identity(run, state.get("attempt")) or state["party"].size() > 1:
 		return false
 	if (run["status"] == "complete") != (state["phase"] == "departed") \
-		or (run["status"] == "continue" and run["continues"] == 0) \
-		or (run["status"] == "failed" and run["continues"] != 0) \
 		or (run["status"] == "abandoned" and not state["party"].is_empty()) \
 		or (run["status"] != "playing" and not state["prompts"].is_empty()):
 		return false

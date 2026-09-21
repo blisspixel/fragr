@@ -121,3 +121,111 @@ msgstr "ESC: MATCH MENU"
 
 msgid "RUN_SEAT_CLOSED"
 msgstr "This run already has an owner. Watch as a spectator or start a new run."
+
+msgid "RECORD_TITLE"
+msgstr "Service record"
+
+msgid "RECORD_BACK"
+msgstr "Back"
+
+msgid "RECORD_TAB_MISSION"
+msgstr "Campaign"
+
+msgid "RECORD_TAB_ARENA"
+msgstr "Arena"
+
+msgid "RECORD_TAB_PRACTICE"
+msgstr "Practice"
+
+msgid "RECORD_COMMENTARY"
+msgstr "Statistical disrespect"
+
+msgid "RECORD_EXPORT"
+msgstr "Export JSON"
+
+msgid "RECORD_EXPORTED"
+msgstr "Saved {path}"
+
+msgid "RECORD_TOTALS"
+msgstr "Records: {records}  |  Kills: {kills} / Deaths: {deaths}\nAlive time {time}"
+
+msgid "RECORD_RETENTION"
+msgstr "Totals cover the latest {count} records on this device."
+
+msgid "RECORD_SAVE_ERROR"
+msgstr "Records could not be saved or loaded. Existing files are preserved."
+
+msgid "RECORD_EMPTY"
+msgstr "No records yet. Go make a statistically questionable decision."
+
+msgid "RECORD_ORIGIN_LOCAL"
+msgstr "LOCAL CAMPAIGN"
+
+msgid "RECORD_ORIGIN_EXTERNAL"
+msgstr "SERVER RECORD"
+
+msgid "RECORD_MISSION"
+msgstr "{difficulty}  |  Attempt {attempt}"
+
+msgid "RECORD_COMBAT"
+msgstr "Total effort: {kills} kills / {deaths} deaths  |  Alive {time}"
+
+msgid "RECORD_DAMAGE"
+msgstr "Dealt: {hp} HP + {armor} armor  |  Lost: {lost} HP"
+
+msgid "RECORD_WEAPON"
+msgstr "{weapon}: {hits}/{attacks} attacks connected ({percent}%)"
+
+msgid "RECORD_NO_ATTACKS"
+msgstr "Accuracy unavailable: no attacks recorded."
+
+msgid "RECORD_LATE_JOIN"
+msgstr "Joined during this round."
+
+msgid "RECORD_ATTEMPT"
+msgstr "Latest attempt: {kills} kills  |  Alive {time}"
+
+msgid "RECORD_INCOMPLETE"
+msgstr "Incomplete observation"
+
+msgid "RECORD_STATUS_COMPLETE"
+msgstr "Finished"
+
+msgid "RECORD_STATUS_FAILED"
+msgstr "Failed"
+
+msgid "RECORD_STATUS_ABANDONED"
+msgstr "Abandoned"
+
+msgid "RECORD_QUIP_DRY"
+msgstr "Your ammunition request is pending review."
+
+msgid "RECORD_QUIP_MELEE"
+msgstr "Zero ammunition. An accounting triumph."
+
+msgid "HUD_ROUND_START"
+msgstr "ROUND {round} - FIGHT"
+
+msgid "HUD_COMPLIANCE"
+msgstr "Compliance pressure active."
+
+msgid "HUD_BOSS_ARRIVED"
+msgstr "{name} on deck."
+
+msgid "HUD_BOSS_DOWN"
+msgstr "Drone down. {killer}"
+
+msgid "HUD_STREAK"
+msgstr "{player}: {count} kill streak"
+
+msgid "HUD_PICKUP"
+msgstr "{player}: {item}"
+
+msgid "HUD_PICKUP_HEALTH"
+msgstr "+{amount} HP"
+
+msgid "HUD_PICKUP_ARMOR"
+msgstr "+{amount} ARMOR"
+
+msgid "HUD_PICKUP_AMMO"
+msgstr "+{amount} AMMO"

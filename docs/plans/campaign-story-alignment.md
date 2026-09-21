@@ -1,6 +1,9 @@
 # Campaign story alignment
 
 **Status:** shipped in #173, 2026-09-19. Documentation and design, not playable content.
+The original twelve-mission structure below is historical. The current contract
+uses ten missions and a short survival-gated epilogue, revised 2026-09-20 in
+[CAMPAIGN.md](../CAMPAIGN.md); the earlier M11/M12 briefs are superseded.
 **Goal:** reconcile the world with Nick's decisions, then specify a complete
 12-mission campaign whose spaces follow the story.
 **Spend:** the documentation itself requires none. A separate logo refinement and

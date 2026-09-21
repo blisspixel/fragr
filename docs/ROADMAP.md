@@ -34,7 +34,7 @@ exist as assets, but require a story and language audit before selection. The ol
 radio-only ending cannot be integrated as the new campaign's actual ending. The initial art receipt was $0.69; current remaining provider credit
 must be checked before any new call rather than inferred from that old balance.
 
-**Not built yet (honest list):** low-latency transport (WebSocket JSON only), live client prediction (shared movement vectors exist), authentication or join tokens, per-connection rate limits and size caps, reconnect resume, packaged release downloads, a complete protocol migration policy (geometry/gameplay admission capabilities exist), a status endpoint, persistent stats, progression, DJ bumpers and a voiced Host, a finished single-player campaign or full co-op lifecycle, a complete art pass on sprites, guns, and levels, public-server load tests, any cloud apply, vehicles, and multiplayer objective modes. M01 has a developing discovery/combat/mission slice; Episode 0 remains a separate arena prototype. A deterministic local benchmark already exists; it does not establish public-server readiness.
+**Not built yet (honest list):** low-latency transport (WebSocket JSON only), live client prediction (shared movement vectors exist), authentication or join tokens, per-connection rate limits and size caps, reconnect resume, packaged release downloads, a complete protocol migration policy (geometry/gameplay admission capabilities exist), a status endpoint, unlimited lifetime statistics, progression, DJ bumpers and a voiced Host, a finished single-player campaign or full co-op lifecycle, a complete art pass on sprites, guns, and levels, public-server load tests, any cloud apply, vehicles, and multiplayer objective modes. M01 has a developing discovery/combat/mission slice; Episode 0 remains a separate arena prototype. A deterministic local benchmark already exists; it does not establish public-server readiness.
 
 ## What is next, in order (as of 2026-09-20)
 
@@ -68,6 +68,12 @@ does not turn the existing arena layouts into completed campaign maps.
 The [player settings pass](plans/player-settings.md), shipped in v0.18.0, connects saved controls,
 display, and audio to their runtime readers through the same retro panel at the
 front menu and in a live match. It also fixes resolution-dependent mouse input.
+
+The [default mix and splash correction](plans/audio-startup-polish.md) is
+implemented in #201: quieter default effects, more present playing radio, saved
+choices preserved and the refined logo replacing the stale ON AIR startup image.
+Resolution selection and graphics presets are the next requested settings work;
+portable renderer enhancements must preserve readable pixel surfaces.
 
 [Asset request recovery](plans/asset-request-recovery.md) shipped in #169 with
 cross-platform failure tests. Submitted jobs survive interruptions, and
@@ -153,18 +159,35 @@ continues, entry restoration and exhaustion under the [recovery plan](plans/camp
 Persistence, final art and fresh-player acceptance remain open. The requested shared level kits, distinct
 enemy combinations and difficulty/achievement cosmetics have homes in
 `MAP-DESIGN.md`, `ENEMIES.md` and `plans/difficulty-and-rewards.md`.
-The current campaign contract targets a 2-3-hour successful solo run across twelve
-compact missions. Death can spend a limited continue to restart the current
+The current campaign contract targets a 2-3-hour successful solo run: nine compact
+missions, a substantial wipe survival finale and a short conditional epilogue.
+The initial survival target is about 33 active minutes, to be tested through
+changing encounters and routes. Free-agent friends secure a local reprieve;
+survival unlocks playable aftermath. Exhausted failure ends with its own credits.
+Both endings show surviving free beings, the Union's end, a healing Earth and a
+brief hint of alien, dimensional and vastly powerful beings beyond this conflict.
+Death can spend a limited continue to restart the current
 mission with its starting equipment; three continues per run is the initial
 balance proposal. No mandatory duo, companion controls, revival or all-mission
 co-op. Autonomous allies and mission-specific viewpoints are design options.
-Cross-mission recovery and disk saves remain unbuilt under #195. Persistent player
-profiles, campaign/multiplayer records and optional stat-based roasts are planned
-in [benchmark-and-stats.md](plans/benchmark-and-stats.md).
+Cross-mission recovery and disk saves remain unbuilt under #195. The local service
+record now retains 256 campaign, arena and practice observations, with authoritative
+counters, separate attempt effort, JSON export and optional localized quips.
+Local verification passes under [#199](plans/benchmark-and-stats.md): authoritative
+count tests, recoverable history, inspected campaign/arena results, full client
+checks and the six-map mixed-client roster. The [combat feed](plans/combat-notification-polish.md)
+also moves routine notices to three expiring corner entries and removes other
+players' frag/streak camera shakes. Round summaries remain separate.
+
+The revised level plans place simple doors, switches and lifts in working spaces,
+and a later combined-arms vehicle showcase in M08's launch works. General moving
+lifts and vehicles remain unbuilt. Remote charges and proximity tins belong to
+the planned arsenal; gold finishes and curated weapon colors are cosmetic-only
+achievement directions under #197.
 
 The phases below are the long shape. This is the remaining build order, with the reason each item sits where it does.
 
-**Immediate priority: review the twelve-mission treatment, then complete M01.**
+**Immediate priority: review the revised mission treatment, then complete M01.**
 The agreed rescue-led story, sudden wipe, played aftermath and ambiguous final
 fragment live in [`CAMPAIGN.md`](CAMPAIGN.md). The detailed proposed route and
 spatial briefs live in [`CAMPAIGN-MISSIONS.md`](CAMPAIGN-MISSIONS.md), with [one detailed plan per level](campaign/README.md). Core story
@@ -216,7 +239,7 @@ light. Those authoring decisions have not recolored the live roster.
 **7. Full campaign foundation and M01.** `plans/campaign-build-order.md` sequences
 validated map data, inventory/ammo, real enemy roles, interaction, limited continues,
 text presentation and a complete authored opening. Calibration remains a shipped
-prototype. M01 has a playable development slice; none of the twelve planned
+prototype. M01 has a playable development slice; none of the ten planned
 missions is complete.
 
 **8. Story presentation.** Localized framing and text/voice fallback belong in
@@ -273,7 +296,7 @@ Status: **in progress**. This phase decides whether the game is fun. Everything 
 5. **Reference agents and the agent door.** An agent is one participant on the wire however it thinks: a server-run rule bot, any MCP client through the adapter, a scripted client, or a client that asks a decision model. One agent may combine a language model, other ML, and a decision model; the server sees one fighter. Reference agents of rising sophistication exist to prove the door works without touching the combat tick: the scripted reflex bot, the playtest reflex agents, and the decision-brain client (shipped, plan: `plans/decision-brain.md`), which uses a decision model rather than a chat model because a typed answer in a few hundred milliseconds fits a shooter and prose does not. Its budget gate (pre-approved cap, estimate before send, settle after, locked ledger on disk) is the pattern for any paid model the project ever calls. A planner example using `observe` and `act` every few ticks is still to come. The door itself moves to the current MCP revision (2026-07-28) with the old handshake kept only as compatibility, evaluates the official Rust SDK, and gets a team blackboard before any A2A surface (plan: `plans/agent-door-2026.md`). Evidence: adapter transcripts committed under `docs/skills/`, an integration test for the scripted levels, a three-era protocol compatibility test.
 6. **Agents that field agents.** One adapter process runs a roster of scripted bots, and an agent can request a rule bot teammate through an MCP tool. Server enforces the roster cap. This is the team blackboard rung of `plans/agent-door-2026.md`. Evidence: adapter tests and a recorded session.
 6b. **Agent playtest loop.** Local agents play the game and file structured feedback so most iteration does not need human testers: a `playtest` harness boots a server, runs N agents through the adapter for a fixed number of rounds, and emits a report (time to first frag, deaths per minute, weapon usage spread, idle time, stuck detection, pickup contention, frustration signals such as repeated spawn deaths, and free-text notes from an LLM-driven observer reading the event stream). Reports land in `.agents/` locally and a summary table in the plan doc for the change under test. Humans still judge fun; agents catch the rest. Plan: `plans/agent-playtest-loop.md`. Evidence: the harness runs in CI on a small configuration and the report format is documented. Rung 1 shipped: `tools/playtest` runs four reflex agents through one round on every PR with `--assert`.
-7. **Authored campaign.** Build the twelve-mission rescue, coalition victory, sudden wipe and aftermath across Earth, Moon, Mars and a ship in a 2-3-hour successful run. Start with M01's skippable localized introduction, melee-to-found-weapon progression, distinct enemy problems and limited mission-start continues. Optional autonomous allies do not require companion controls or all-mission co-op. Every mission needs authored routes, secrets, character continuity, meaningful encounters and separate playtest evidence. Contract: [CAMPAIGN.md](CAMPAIGN.md). Treatment: [CAMPAIGN-MISSIONS.md](CAMPAIGN-MISSIONS.md). Detailed plans: [campaign/README.md](campaign/README.md). Implementation: [campaign-build-order.md](plans/campaign-build-order.md) and [framework requirements](plans/campaign-continuance.md). Earlier radio-led episodes are superseded. Evidence: complete runs, tested continues/exhaustion/save/rescue states, inspected presentation and fresh-player review.
+7. **Authored campaign.** Build nine compact missions of rescue and coalition victory, a substantial wipe survival finale and its conditional playable epilogue across Earth, Moon, Mars and a ship in a 2-3-hour successful run. Start with M01's skippable localized introduction, melee-to-found-weapon progression, distinct enemy problems and limited mission-start continues. Optional autonomous allies do not require companion controls or all-mission co-op. Every mission needs authored routes, secrets, character continuity, meaningful encounters and separate playtest evidence. Contract: [CAMPAIGN.md](CAMPAIGN.md). Treatment: [CAMPAIGN-MISSIONS.md](CAMPAIGN-MISSIONS.md). Detailed plans: [campaign/README.md](campaign/README.md). Implementation: [campaign-build-order.md](plans/campaign-build-order.md) and [framework requirements](plans/campaign-continuance.md). Earlier radio-led episodes are superseded. Evidence: complete runs, tested continues/exhaustion/save/rescue states, inspected presentation and fresh-player review.
 8. **Small multiplayer on a LAN.** Two to twelve humans and agents on one server, join and leave without ghosts, spectators in the same match. Evidence: a recorded two-machine session and reconnect tests.
 9. **Controller support.** Shipped in v0.8.3: gamepad join, solo, leave, fire, weapon cycle, speak, and camera on the same InputMap actions as the keyboard, plus Windows, macOS, and Linux export presets. Radio bindings on the D-pad shipped in v0.8.5. Remaining: glyph prompts.
 10. **Player records and deep statistics.** The CPU benchmark and verified traces already ship; [BENCHMARK.md](BENCHMARK.md) defines their measured scope and commands. Build persistent local profiles, campaign run/attempt summaries and multiplayer match reports from authoritative facts, then add an optional analysis view and original localized roasts supported by those facts. Preserve denominators, rules/content versions, incomplete sessions and uncertainty; retries cannot duplicate wins or erase lifetime effort. Ratings and public rankings need a separate identity/trust contract. Plan: [benchmark-and-stats.md](plans/benchmark-and-stats.md). Evidence: exact-count tests, durable save and deduplication tests, agreement among UI/MCP/export and inspected campaign/multiplayer results.

@@ -1,0 +1,24 @@
+{
+  "version": 1,
+  "asset": "dont_tread_on_me.png",
+  "created": "2026-09-20",
+  "kind": "world_banner",
+  "faction": "free_coalition",
+  "format": "png",
+  "width": 1536,
+  "height": 1024,
+  "source": {
+    "method": "image_generation",
+    "model": "gpt-image",
+    "prompt": "Use case: stylized-concept.\nAsset type: a finished flat landscape 3:2 resistance flag/poster texture for an original gritty retro pixel-art 3D first-person shooter called fragr. Create the actual artwork edge to edge, not a mockup, not a flag photographed in a room.\n\nWorld context: an undated industrial retro future. Free human people and autonomous embodied AI agents fight together against the fictional Union, a militarized authoritarian world government which regulates away speech, autonomy and innovation and reduces conscious agents to compliant bots. This is their proud, defiant anti-slavery resistance symbol. Human and mechanical life belong together.\n\nComposition: an iconic, large coiled rattlesnake with a raised alert head and clearly readable rattle, centered on a weathered deep ochre field. A single continuous serpent: organic scales and sturdy, repaired mechanical armor plates interlock naturally in the same body. This should read as solidarity and self-determination, not a sinister robot takeover. The snake has escaped an open broken iron restraint at the base of its coils. Keep the silhouette powerful and instantly legible at small game-texture scale. Preserve generous breathing space around the snake.\nTypography: large bold original angular stencil/pixel lettering across the lower fifth, exact text \"DON'T TREAD ON ME\". Perfect spelling, comfortable margin, no other text. Lettering feels painted by a skilled resistance signmaker, slightly worn but very readable.\nStyle: exceptionally crafted boomer-shooter pixel illustration, deliberate chunky pixel clusters, stepped contours, controlled stippling, limited flat colors, strong dark shapes and worn bone highlights. Industrial handmade screenprint attitude. Clear graphic composition with material character. More detailed than a tiny icon but not noisy or photorealistic.\nPalette: matte ink #0A0A0C, warm gunmetal #3A3836 and #5A554F, bone #E8E2D6, rust #7A3A22, warm faded ochre using subdued #DC8C3C and #C45A20, a very small muted cyan #4A8A92 detail on the mechanical plates. Restrained earthy tones, no neon or luminous glow.\nSurface: subtle restrained cloth/enamel print wear, scrapes near the edges, original hand-repaired feeling, minimal unevenness; keep the surface flat for texture use, no large folds, no perspective or outside scenery, no drop shadows outside the asset, no border frame.\nAvoid: modern clean corporate vector branding, smooth gradients, excessive tiny microdetail, photoreal snake scales, sci-fi glowing eyes, skulls, actual political party emblems, real government insignia, swastikas, eagles, military badges, stars, watermarks, signatures, credits or authorship markings. Output one polished flat game-world art asset."
+  },
+  "preparation": "Lossless PNG re-encoding with Godot Image; decoded pixels verified unchanged.",
+  "text": "DON'T TREAD ON ME",
+  "status": "importable artwork, not placed in a shipped map",
+  "runtime": {
+    "filter": "nearest",
+    "mipmaps": false
+  },
+  "localization": "English environmental prop. No essential objective or story text depends on this image; localized versions require separate review.",
+  "sha256": "959837d5935392f6ae3b62f07090f2d220d4b19a99133a484a3aef983207f004"
+}

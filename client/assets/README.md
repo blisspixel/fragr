@@ -29,8 +29,18 @@ When adding new assets, ensure import settings match existing .import files.
 - `muzzle_flash.png` `rail_beam_tip.png`
 
 ## ui
+- `boot_splash.png` is the approved `docs/fragr-logo-refined.png`, baked with
+  `godot --headless --path client --script ../tools/bake_boot_splash.gd` from the
+  repo root. The bake preserves decoded pixels. Engine startup uses aspect-fit
+  scaling and nearest filtering; regenerate from the source when branding changes.
 - `on_air.png` `contested_frequency.png` `hangar_candy.png` `chrome-strip.png` - full plates
 - `on_air_badge.png` `contested_frequency_badge.png` `hangar_candy_badge.png` `chrome_strip_hud.png` - HUD crops (nearest)
 - Contested Frequency / Hangar Candy / ON AIR broadcast grit. Dull, not neon.
+
+## factions/free_coalition
+
+- [Rattlesnake banner](factions/free_coalition/README.md): 1536 by 1024 source,
+  inspected and imported; not placed in a current map. Its manifest records the
+  prompt and preparation. Small decals require a reviewed size-specific bake.
 
 Boomer-arena. No Doom IP.

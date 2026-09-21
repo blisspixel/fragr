@@ -1,8 +1,9 @@
 # M12: Still Here
 
-**Status:** proposed level, unbuilt. Earth after the initial wipe; years-later
-playable coda. Target 12-16 minutes plus a short coda.
-[Treatment](../CAMPAIGN-MISSIONS.md#m12-still-here).
+**Status:** superseded design, 2026-09-20. Not an active mission or implementation
+target. M10 now owns the survival finale; the short conditional
+[Still Here epilogue](epilogue-still-here.md) replaces both aftermath missions.
+The following earlier brief is retained only as refuge and ending staging material.
 
 ## Story and cast
 

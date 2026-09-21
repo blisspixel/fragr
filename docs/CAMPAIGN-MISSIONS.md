@@ -1,7 +1,8 @@
 # Campaign mission treatment
 
-**Status:** proposed design, 2026-09-20. Twelve compact missions approved as
-the target; the names, route, cast details, and individual encounters below are
+**Status:** revised design, 2026-09-20. Ten missions and a short survival-gated
+epilogue are the approved structure, replacing twelve missions. Names, routes,
+cast details, and individual encounters below are
 the treatment for review. M01 has a tested development slice; no complete mission
 meets this treatment yet. [M01 completion](plans/m01-completion.md) records its
 implementation, evidence and remaining work.
@@ -9,7 +10,7 @@ implementation, evidence and remaining work.
 [CAMPAIGN.md](CAMPAIGN.md) owns agreed story constraints and presentation rules.
 [MAP-DESIGN.md](MAP-DESIGN.md) owns spatial practice. Read the story progression
 first, then derive geometry. These are briefs, not a claim that coordinate lists
-or arena reskins constitute finished levels. The [twelve detailed level
+or arena reskins constitute finished levels. The [detailed level
 plans](campaign/README.md) expand these briefs into routes, rooms, cast staging,
 encounter sequences, state transitions and verification requirements.
 
@@ -21,14 +22,16 @@ The [run contract](CAMPAIGN.md#runs-and-continues) owns mission-start retries.
 ## Shape of the run
 
 Target a varied successful run of 2-3 hours. Compact missions generally budget
-8-16 minutes, with brief transitions and a short coda. The detailed briefs hold
+8-16 minutes, followed by M10's substantial wipe survival test and a conditional
+short epilogue. The detailed briefs hold
 provisional budgets, not measured durations. A continue restarts the current
 mission; shorten mandatory travel and repeated exposition to make another attempt
 worth playing. Faster routes, secrets and optional rescues add depth without padding.
 
-The current mission budgets total 118-160 minutes of active play. Brief framing,
-travel transitions and the coda must fit the overall 2-3-hour target. These shorter
-budgets require editing routes and encounter sequences, not simply changing a
+M01-M09 currently budget 88-120 minutes. The initial M10 survival target is about
+33 active minutes after a brief ordinary-life opening; the conditional epilogue
+targets 5-8 minutes. Framing and travel must fit the overall 2-3-hour target.
+These provisional budgets require editing routes and encounter sequences, not changing a
 number: cut repeated fights, empty connectors and mandatory backtracking before
 speeding movement or rushing dialogue. Time complete successful routes with fresh
 players, including their navigation and rescue decisions, before claiming the target.
@@ -39,14 +42,16 @@ stairs and secrets central to the early retro-FPS references. M04 is mostly
 enclosed lunar infrastructure with a controlled exterior passage. M03 and M07
 mix inhabitable interiors with compact streets and courts. Broader battlefield
 encounters arrive in M08's launch works and M09's civic approach, before returning
-to interior objectives. M10-M12 alternate buildings, damaged streets and outdoor
-infrastructure according to rescue and evacuation needs. Later does not mean
+to interior objectives. M10 alternates buildings, damaged streets and outdoor
+infrastructure during sustained survival. The epilogue revisits a compact refuge.
+Later does not mean
 every subsequent mission becomes larger or outdoors.
 
 The larger encounters take their cues from Battlefield 1942's connected combat
 positions and flanking opportunities. Design buildings, terrain, local objectives,
-sheltered routes and resupply before choosing the outer bounds. Foot combat must
-be complete and fun; vehicles remain a separate later capability. Exterior scope
+sheltered routes and resupply before choosing the outer bounds. M08 is the planned
+vehicle showcase, with a first proposed armed utility rover and infantry flanks.
+Foot combat must work before vehicle integration; vehicles remain unbuilt. Exterior scope
 never justifies long empty crossings or abandoning the campaign's authored route.
 
 | ID | Working title | Place and period | Dramatic job | Spatial identity |
@@ -60,9 +65,8 @@ never justifies long empty crossings or abandoning the campaign's authored route
 | M07 | Terms of Cooperation | Mars, before wipe | Show the cost of allies delaying help | Habitat streets, greenhouse trenches, pressure halls |
 | M08 | The Weight of Permission | Mars, before wipe | Win the means to break the blockade | Foundry, freight galleries, launch works |
 | M09 | Peace Without Interruption | Earth, before wipe | Defeat Union leadership with the coalition | Occupied civic district and the Forever Office |
-| M10 | All Systems Normal | Earth, onset of wipe | Experience local rupture, then grasp its scale | Ordinary recovery route breaking into an evacuation loop |
-| M11 | What We Can Carry | Earth, immediate aftermath | Return for people and memories left behind | M03 district transformed by damage and absence |
-| M12 | Still Here | Earth, immediate aftermath | Get survivors to a viable refuge | Flood-control works, freight pier, refuge approaches |
+| M10 | All Systems Normal | Earth, wipe | Survive until free-agent friends secure a reprieve | Recovery square, evacuation interiors, changed streets and refuge approaches |
+| Epilogue | Still Here | Earth, aftermath and years later | Experience the cost and healing after surviving M10 | Compact damaged refuge and its recognizable recovered form |
 
 ## Act I: Recall
 
@@ -155,7 +159,7 @@ Their later contributions and absences are persistent. Fixed losses caused by
 delayed cooperation must not be disguised as failures of an optional objective.
 
 **Review gate.** Test every rescue combination and departure confirmation. A
-player remembers at least two places and people for the return in M11. The trip
+player remembers at least two places and people for M10 and the epilogue. The trip
 to the Moon follows the custody evidence and available transport, not tourism.
 
 ## Act II: Custody
@@ -278,7 +282,10 @@ without sabotaging the people relying on it.
 **Route.** Foundry service loop -> machine hall -> freight galleries -> exterior
 launch works bounded by gantries and berms. Moving industrial hazards have fixed
 telegraphs and bypasses, not random instant deaths. Catwalk crossings overlook
-ground routes the player used earlier.
+ground routes the player used earlier. A short freight lift changes height before
+the launch works. The outdoor crest links a depot, bermed approach and launch
+gantry with a usable rover circuit and sheltered infantry connections. A local
+shutter control opens a vehicle shortcut; it is not a distant switch hunt.
 
 **Fights and discovery.** Combine the established roster. The Continuance Walker
 uses a broad combat space with enclosed flanks, accessible resupply, and exposed
@@ -332,7 +339,8 @@ machines start treating occupied space as work. The wider wipe has begun with
 almost no warning, and nobody in the scene understands its scale at first.
 
 **Route.** Populated transit square -> disrupted clinic route -> maintenance
-escape -> overhead view of the district -> evacuation concourse. The player
+escape -> overhead view of the district -> evacuation concourse -> changed Low
+Water streets -> waterworks and refuge approach. The player
 experiences failures at street level before seeing their extent. Retain clear
 flanks and safe pauses despite dramatic destruction; authored effects may not
 erase collision or kill players without a readable opportunity to react.
@@ -353,89 +361,61 @@ not a technical explanation or secret villain. Return control in the concourse.
 One direct message precisely acknowledges whom the player is trying to save
 and states a local closure as if that knowledge changes nothing.
 
+**Survival finale.** Target about 33 active minutes after the rupture, with
+changing encounters, movement, rescues and recovery. Free-agent friends work
+independently to persuade the Inheritance to spare this local group. Surviving
+until their intervention succeeds unlocks the short epilogue. Death can spend a
+remaining continue to retry the whole mission; exhausted failure has its own
+ending and credits. The [M10 plan](campaign/m10-all-systems-normal.md) owns the
+phase proposal. Do not pad the duration with endless waves or waiting.
+
 **Review gate.** Radio off, players first experience surprise and then understand
 the local escape. Text-only and skipped-scene versions retain the stakes. Avoid
 an extended helpless camera ride as the main experience of catastrophe.
 
-### M11: What We Can Carry
+### Epilogue: Still Here
 
-**Story.** After the initial mass wipe, we return to the M03 community for people
-still alive and stranded. Absence, damage, and ongoing operations communicate
-what happened; it is not suddenly a lush forest. The companion will not abandon
-captive agents, and also acknowledges wanting to survive. Hope is a practical
-rescue plan, not a claim that everything can be undone.
+**Unlock and story.** Survive M10's initial target of about 33 active minutes.
+Free-agent friends persuade the Inheritance to grant a local reprieve without
+being absorbed into it. Remaining continues permit a mission-start retry;
+exhaustion leads to a distinct failure ending and credits. Failure does not
+unlock this epilogue. The exact duration and reprieve terms need playtesting and
+authored dialogue. Survival is mutual help and circumstance, not moral selection.
 
-**Route.** Re-enter from the former departure end. The clinic, workshops, market,
-and habitation court are recognizable but their connections have changed.
-Debris and severed walkways produce new routes; a repaired service loop connects
-rescue sites. Prior knowledge helps without making the entire map a reverse run.
+**Immediate aftermath.** Move through a small damaged refuge, meet actual
+survivors and look back toward recognizable Low Water landmarks. Earlier rescues
+change who is present and what they can contribute. The catastrophe remains real;
+there is no spare copy of every lost person and no extra lethal gauntlet.
 
-**Fights and consequence.** Remediation units work through defined sectors;
-isolated Union remnants can remain dangerous without restoring the regime.
-Fight for access and withdrawal, not a percentage extermination objective.
-Rescue outcomes from M03 and M05 alter who can be found and who can help. The
-precise final tradeoff is open: do not author an unavoidable choice between
-humans and agents as though species determines worth.
+**Years later.** A short localized transition leads into a walk through the same
+place as water, soil and life recover. Homes, memorials and absences coexist.
+The initial epilogue target is 5-8 minutes total, subject to review. It replaces
+the former M11 and M12 rather than adding another hour after the survival test.
 
-**Optional and presentation.** Personal objects have meaning because the player
-saw their owners earlier. Carrying a recoverable mind is not carrying a complete
-backup of the community. Show a clear departure confirmation and remaining
-opportunities; the escape does not secretly punish someone for exploring a secret.
+**Final doubt and sequel tease.** After the local story resolves, a brief fragment
+suggests a forecast or simulation may have informed the Inheritance's decision.
+Never confirm that the world was unreal. Both endings establish surviving free
+beings, the Union's end and a healing Earth. A brief deep-space anomaly in either
+ending can hint at aliens, other dimensions and vastly powerful beings without
+revealing species or explaining the war. Only survival grants playable aftermath.
+The [detailed epilogue plan](campaign/epilogue-still-here.md) owns staging.
 
-**Review gate.** Test every supported survivor state against mission completion.
-The familiar place must be recognizable in motion, with a different combat rhythm
-and landmarks. No radio obituary substitutes for finding survivors ourselves.
-
-### M12: Still Here
-
-**Story.** Help the remaining community reach a viable refuge through damaged
-waterfront infrastructure. There are functioning societies and ships beyond this
-place, but no promise that fleeing automatically makes anyone safe. Allies who
-survived earlier missions do useful work while the player fights. The ending
-achieves survival without solving the Inheritance or undoing the loss.
-
-**Route.** Flood-control machinery -> freight-pier loop -> embarkation/transport
-works -> protected refuge approach. Alternate levels and enclosed service rooms
-allow retreats and rescues. The largest final fight has multiple useful tasks and
-end conditions; it is not an endless wave pretending to be an ending.
-
-**Fights and resolution.** Sever local remediation equipment, protect a crossing,
-then withdraw as people move through. A large machine is a destructible local
-obstacle with telegraphed attacks, not the intelligence's single vulnerable core.
-Useful actions continue for the whole party. The surviving cast's actions and
-absences reflect the saved state. No surprise copy resurrects everybody.
-
-**Playable coda.** Years later, briefly walk a recognizable recovered location.
-Water, soil, and living things have improved; people and agents have built lives
-among losses. Meet surviving characters or evidence of their work. The player
-can look and move instead of only hearing a summary. The same place seeds a
-later multiplayer aftermath setting.
-
-**Final doubt.** A brief fragment suggests that a forecast or simulation of these
-choices may have preceded the Inheritance's decision. Do not confirm that the
-world was unreal or invalidate the survivors the player just encountered. Keep
-this separate from the alien hint; neither needs a long explanatory scene.
-
-**Sequel tease.** One short anomaly from deeper-space observation suggests that
-alien life and other dimensions may matter next. No encounter, species reveal,
-portal level, explanatory monologue, or claim that aliens caused this war.
-Its exact form remains open. End on the completed human/agent story first.
-
-**Review gate.** Verify finale completion, mission retries, run exhaustion, every survivor
-combination, and the coda with voice absent and scenes skipped. Survival has
-observable beneficiaries; healing and grief remain visible together.
+**Review gate.** Test retries, exhausted failure, survival at the threshold,
+duplicate completion, unlock persistence and every relevant survivor state.
+Inspect both endings with voice absent and scenes skipped. Time the full finale
+and epilogue with fresh players; timer tests do not establish enjoyable pacing.
 
 ## Art and sound production by environment
 
 | Kit | Missions | Required identity and motion |
 |---|---|---|
 | Civic intake/correction | M01, M02, M09 | Public frontage, seals, custody machinery; doors, restraints, release states, institutional light |
-| Lived-in Earth district | M03, M10, M11, coda | Homes and repair work; civilian activity, damage variants, evacuation, later regrowth |
+| Lived-in Earth district | M03, M10, epilogue | Homes and repair work; civilian activity, damage variants, evacuation, later regrowth |
 | Lunar port/archive | M04, M05 | Pressure boundaries, dust, shielded galleries; dock machinery, captive movement, release states |
 | Transport interior | M06, later scenes | Credible decks, bunks, cargo and repairs; boarding, door transitions, recurring passengers |
 | Martian habitat/industry | M07, M08 | Red rock, inhabited pressure spaces, greenhouse and foundry; workers, fans, hazard tells, Walker |
-| Waterfront/refuge | M12, coda | Waterworks, freight, improvised shelter; readable water edges, transport, repaired spaces |
-| Inheritance overlays | M10-M12, aftermath MP | Matte unmarked machines, deliberate removal and repair; full attack/pain/death sets, restrained effects |
+| Waterfront/refuge | M10, epilogue | Waterworks, freight, improvised shelter; readable water edges, transport, repaired spaces |
+| Inheritance overlays | M10, aftermath MP | Matte unmarked machines, deliberate removal and repair; full attack/pain/death sets, restrained effects |
 
 Every enemy needs coherent facing, locomotion, attack, pain, death/disable, and
 relevant reactivation frames. Every weapon needs registered first-person poses
@@ -452,7 +432,7 @@ generation receipts, and asset revisions must stay linked through production.
 
 ## Whole-campaign design review
 
-1. Read M01 through M12 without radio or optional logs. Every destination follows
+1. Read M01 through M10 and the epilogue without radio or optional logs. Every destination follows
    from a motive, discovery, or consequence in the previous mission.
 2. Walk the story under human and agent control, with authored viewpoints and
    spectator observation. Required gates work solo; optional allies cannot make
@@ -462,4 +442,4 @@ generation receipts, and asset revisions must stay linked through production.
 4. Inspect route diagrams before geometry, grayboxes before art, full motion
    before polished stills, and fresh-player observations before declaring fun.
 5. Verify that gradual recognition does not become advance warning of the wipe;
-   play continues in its aftermath and the sequel tease stays brief.
+   survival unlocks playable aftermath and the sequel tease stays brief.

@@ -64,6 +64,16 @@ the first roster entry is not necessarily yours.
 
 ## What this is
 
+`observe.record` is the latest private, server-authoritative participant record
+for a capability-8 connection. It has its own tick and version, session/player
+UUIDs, round and entry ticks, map, role, scope, status and `total`/`attempt` counts.
+It arrives at most once per second during ordinary play, with immediate attempt
+and outcome updates. Repeated observations are the same cumulative record, not
+new awards. See [the record contract](../docs/protocol.md#participant-records).
+The adapter validates it before observation; it does not persist a profile or
+send commentary to other players. Disconnected observations do not prove an
+outcome. Old servers can omit records.
+
 A reference agent that drives a fighter from a decision model instead of an MCP client lives at [`agents/brain/README.md`](../agents/brain/README.md); it is the same agent role on the same wire, not a different kind of participant. MCP remains the bring-your-own door for any model.
 
 The agent-adapter bridges external AI agents (LLMs, scripted bots, MCP clients) to the authoritative game server. It provides:

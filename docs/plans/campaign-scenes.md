@@ -10,6 +10,12 @@ owns the opening beats. This file owns production choices and current research.
 
 ## First delivery
 
+Later ending scenes follow the revised ten-mission contract: exhausted wipe
+failure has its own credits; survival unlocks the short playable epilogue. Both
+endings establish surviving free beings, the Union's end, healing and a brief
+wider-universe tease. [Epigraph research](../lore/epigraphs.md) supplies optional
+source references, not a locked script or cleared recording batch.
+
 Skippable localized text and pixel-styled panels, with optional narration from
 the same approved script. Voss's English-to-German address uses accurate captions;
 its performance and original dialogue need language review before recording.
@@ -19,6 +25,35 @@ Later movies replace the same compositions without changing authoritative state.
 Use the art bible's faction/environment rules and cast reference sheets for every
 frame. Keep text, narrator audio and captions separate from picture so locales
 do not require regenerating the art. Prefer body-neutral views of the custom player.
+
+## Shared screen canon
+
+A short film and in-game cutscenes use the same
+[world canon](../lore/README.md), [campaign sequence](../CAMPAIGN.md),
+[cast references](../lore/cast.md#visual-continuity) and
+[art bible](../ART_STORY_BIBLE.md). Film work is a possible presentation of this
+world, not a second timeline or an opportunity to silently replace a character.
+Record a scene's era, location, participants, story knowledge and consequences
+before generation. A pre-wipe scene cannot depict absorbed bot behavior or
+years-later regrowth.
+
+The Union's escalation from model restrictions to compulsory cognition controls
+and ownership follows [history](../lore/history.md). Free humans and free agents
+share the resistance; "clanker" expresses denial of personhood. The rattlesnake
+[banner](../../client/assets/factions/free_coalition/README.md) can identify one
+community without making every independent settlement visually identical.
+Neither player body nor mechanical clothing changes establish faction by itself.
+
+Use the game's chunky pixel surfaces, silhouettes, practical light, restrained
+palette and readable motion in film as well as gameplay. Approve reference frames
+beside current game assets before paid motion tests. Keep approved references,
+shot prompts and asset identities together; re-use character proportions and
+wardrobe across shots. A filter over photoreal footage is not this art direction.
+Review complete motion for character drift and shimmering pixel clusters.
+
+No short-film script or production batch is approved by this continuity guidance.
+The existing asset-credit caps, request ledger and localized text contract remain
+in force. Film footage alone does not establish a playable or integrated scene.
 
 ## Video shortlist as of September 19, 2026
 

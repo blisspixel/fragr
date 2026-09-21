@@ -12,6 +12,7 @@ pub mod protocol;
 pub mod run;
 pub mod session;
 pub mod sim;
+mod statistics;
 pub mod trace;
 
 #[cfg(test)]

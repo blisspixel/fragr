@@ -64,10 +64,12 @@ Initial handshake message. Must be sent immediately after connection.
   No player or spectator session is created on rejection. This is geometry
   compatibility, not general protocol or action-version negotiation.
 - `gameplay_version`: maximum understood gameplay contract. Current clients send
-  `7`; omission means `1`. Discovery-only maps require 2, maps with authored
+  `8`; omission means `1`. Discovery-only maps require 2, maps with authored
   encounters require 3, and mission sequences require 6 for shared difficulty.
   Versions 4 and 5 introduced physical controls and party readiness respectively;
   they cannot enter current missions. Solo runs require 7 for explicit continues.
+  Version 8 adds private participant records. Record delivery is gated by the
+  client's advertised capability; earlier clients keep their existing messages.
   Use matching campaign server/client builds.
   Older clients of every role are rejected before `Welcome`
   with `unsupported_gameplay`. This capability is separate from geometry. The six
@@ -959,7 +961,7 @@ is echoed below. Bootstrap version 2 requires that field; it is separate from
 the on-wire campaign rules revision. No parent command changes it during a run.
 
 ```json
-{"version":2,"mission":"recall_notice","difficulty":"standard","url":"ws://127.0.0.1:49152","gameplay_version":7}
+{"version":2,"mission":"recall_notice","difficulty":"standard","url":"ws://127.0.0.1:49152","gameplay_version":8}
 ```
 
 The port is chosen by the OS. Diagnostics use stderr. The parent validates the
@@ -982,3 +984,53 @@ Recording metadata is not sent on the live socket.
 - **Interest management**: Filter snapshots by visibility/distance
 - **UDP option**: Low-latency channels for actions (alongside WS for reliability)
 - **Prediction**: Client-side movement prediction for smoother human play
+
+## Participant records
+
+A `record` message is private to the participant and sent only to clients that
+advertise gameplay capability 8 or later. Spectators receive no private record.
+Ordinary updates are bounded to once per 20 ticks; a new round, mission attempt
+or status change sends immediately. The record's tick can precede the latest
+snapshot. No record is delivered during initial arena warmup or to someone who
+joins after a round has already ended without participating.
+
+The version-1 record includes `session_id`, `player_id`, `round`, `tick`,
+`entered_at`, `round_started_at`, `ticks_per_second` (20), `map_id`, `map_name`,
+`role`, `scope`, `status`, `total` and `attempt`. Its identity is the session UUID,
+player UUID and round number, never a callsign. `entered_at` is the admission tick
+or the latest round start for an existing participant. A late arena join has
+`entered_at > round_started_at`. Mission attempts share one record identity.
+The [shared format fixture](../client/golden/player_record.json) is read by Rust,
+MCP and client tests.
+
+Scopes are `arena` or `practice` with `round`, or `mission` with `mission`,
+`attempt`, `rules` and nullable `run` (the existing solo run contract). Calibration
+and non-mission authored test maps are practice. Status is `active`, `continue`,
+`complete`, `failed` or `abandoned`. A completed arena record means the round
+finished, not that this participant won. A completed M01 record means the mission
+finished, not that the unbuilt campaign finished. A missing final update must be
+shown as incomplete; transport loss is not evidence of failure or victory.
+
+Each count set contains `alive_ticks`, `deaths`, `hp_lost`, `armor_lost`,
+`dry_triggers` and five `weapons` entries in fists, Tack, flechette, scatter, rail
+order. Weapon counts are `attacks`, `damaging_attacks`, `kills`, `hp_damage` and
+`armor_damage`. The current weapons each resolve one ray per accepted attack.
+Fists count as attacks. A damaging attack removes positive HP or armor from a
+hostile living target. Protected/friendly bodies, scenery, range misses and a
+body killed by an earlier committed ray do not count as damaging attacks.
+Effective damage excludes overkill. Simultaneous trades keep both attacks, and
+one shot receives each death credit. Dry triggers are latched empty-magazine
+pulls, separate from accepted attacks; cooldown and reload denials are neither.
+
+Living active ticks exclude intro/readiness, dead respawn waiting, continue
+choice and terminal waiting. The lethal frame counts. This is not wall-clock
+session duration. A continue resets `attempt` but retains `total`; new arena
+rounds reset both. Administrative removal is not a combat death. Counts are
+nonnegative exact JSON integers; totals, identity and participation clocks cannot
+regress within a record. Terminal results cannot be rewritten by later updates.
+
+The desktop service record stores the latest 256 observations by record identity,
+with local-process versus external-server provenance. Its own format version is
+separate from wire capabilities. Local files and external hosts are not an
+authenticated public ranking or achievement authority. No background telemetry
+or paid runtime generation is involved.

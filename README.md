@@ -9,13 +9,14 @@ It is the 1993 LAN-party feeling rebuilt for 2026: a Rust authoritative server, 
 ## What runs today
 
 - **Recall Notice:** Single Player starts a solo M01 run with a skippable, reader-paced opening and three continues. Enter Annex 67 to find Latch's transfer record, recover weapons, fight through intake and records, and depart by the custody lift. Death offers an explicit mission-start retry with entry equipment restored. The fourth death ends the run. This is a developing mission, not the complete campaign.
-- **Solo Broadcast:** Episode 0 Calibration on Larak Lot. Host cold-open, objective chip (clear NODS, seize jammer, drop Auditor), same guns as MP. Default from `./tools/solo_scrap.sh` (server `--solo-broadcast`). This is an arena prototype. The planned twelve-mission story lives in [`docs/CAMPAIGN.md`](docs/CAMPAIGN.md); [`solo-story-episodes.md`](docs/plans/solo-story-episodes.md) records this prototype's implementation.
+- **Solo Broadcast:** Episode 0 Calibration on Larak Lot. Host cold-open, objective chip (clear NODS, seize jammer, drop Auditor), same guns as MP. Default from `./tools/solo_scrap.sh` (server `--solo-broadcast`). This is an arena prototype. The planned ten-mission story and conditional epilogue live in [`docs/CAMPAIGN.md`](docs/CAMPAIGN.md); [`solo-story-episodes.md`](docs/plans/solo-story-episodes.md) records this prototype's implementation.
 - **Solo Scrap:** arcade offline on loopback without the episode path (`FRAGR_SOLO_BROADCAST=0`), four named rule bots with visible tactics (Aggressive, Defensive, Flanker, Balanced).
 - **Watch or join:** spectator by default through a fighter's eyes, including their gun and shot feedback. F changes fighter; V cycles eyes, chase, and free camera. Join mid-match as a human, leave back to spectate. Bots keep the server alive.
 - **Contested Frequency match loop:** 10-frag or 3-minute rounds, warmup and round-end Host bumpers, killstreak callouts, a mid-round Compliance Drone boss (Auditor on Solo Broadcast).
 - **Guns and maps:** three weapon roles (Flechette, Rail, Scatter), weapon and health pads, and six server maps with steps and raised ground. Solo Broadcast faces Larak Lot on Arena Duel (map 1). The server CLI chooses the arena; every joining player and spectator receives its geometry.
 - **Vertical combat:** shots follow your horizontal and vertical aim, intersect finite fighter bodies, and stop at solid cover. Agents can target world height; eye spectators see the watched fighter's pitch.
 - **Combat feedback:** short rail beams, bullet traces, and surface sparks follow the server's actual shot path. Simultaneous trades retain both shots; a victim can award only one frag per death.
+- **Quiet combat HUD:** frags, chatter, streaks and drone alerts share a three-line corner feed. Pickup notices follow your fighter or the one you watch. Routine events do not bounce across the reticle or shake your camera.
 - **Fighter navigation:** rule bots, playtest fighters, and the decision brain share walking routes around cover and up stairs. Fractional treads retain footing, crossed stair entrances are repaired, and stepping off a deck keeps horizontal movement. Quick jump taps survive between frames and server ticks.
 - **Your callsign:** saved player name, reticle colour, and weapon bob options. The default human callsign is Meat Proxy. The boot menu, settings, and match overlay share pixel lettering and industrial styling.
 - **Player settings:** the same controls, display, and audio panel at boot and in the match menu. Save mouse sensitivity, invert look, turn speed, vertical FOV, frame cap, VSync, window mode, and separate master/radio/effects levels. Save applies changes; Cancel discards them.
@@ -39,15 +40,23 @@ a new local campaign. This first difficulty pass changes enemy tells and recover
 health, damage and finite supplies stay consistent. Standard retains the original
 timing. Persistent achievements and earned cosmetic rewards remain
 [planned](docs/plans/difficulty-and-rewards.md).
-Player profiles, campaign/multiplayer records and optional factual roasts are
-[planned separately](docs/plans/benchmark-and-stats.md); current round scores are
-not persistent statistics.
+**Service record** in the main menu keeps the latest 256 campaign, arena and
+practice records on this device. Inspect kills, deaths, effective damage, time
+alive and per-weapon hit counts, with mission attempts separated from total
+effort. Export the records as JSON or toggle the optional statistical disrespect.
+Incomplete observations stay incomplete. These are local records, not public
+rankings or campaign saves. Broader statistics work is tracked in the
+[record plan](docs/plans/benchmark-and-stats.md).
 
 ## Screenshots
 
 Live captures from the current build, Godot 4.7.2-stable against a loopback server with bots. The visual QA tour checks actual role transitions and weapon selections, records the observed match state, and captures menus, eyes, chase, and overview. Run `tools/qa_tour.sh --publish` to refresh them. Capture details and historical images are documented in [`docs/screenshots/README.md`](docs/screenshots/README.md).
 
 ![Menu](docs/screenshots/tour_menu_16x9.png)
+
+Retained match observations, with exact counts and an optional commentary toggle.
+
+![Service record](docs/screenshots/tour_records_16x9.png)
 
 Behind the gun: health and armour in the corner, the weapon in hand, the crosshair and nothing else in the middle.
 
@@ -105,7 +114,7 @@ cargo run -p fragr-server -- --bind 127.0.0.1:6767 --bots 4 --solo-broadcast
 
 **Controls:** WASD to move, mouse to look, left mouse to fire, J to join, L to leave back to spectate, F to cycle the spectator camera, C next radio station, N next track, M radio on or off, Esc to release the mouse. Gamepads work too; see the controls table below.
 
-**Boot menu:** Single Player, Multiplayer, Your Callsign, Settings, Quit. Recall Notice starts its own local server. Arcade practice and multiplayer connect to an existing server whose host chooses the map and rules. Use the arcade launcher above for Calibration, or set `FRAGR_SOLO_BROADCAST=0` for arena practice. Escape opens the match menu; gameplay continues behind the menu. Leaving a local campaign stops its owned server. Leaving an external server does not stop the host.
+**Boot menu:** Single Player, Multiplayer, Your Callsign, Service Record, Settings, Quit. Recall Notice starts its own local server. Arcade practice and multiplayer connect to an existing server whose host chooses the map and rules. Use the arcade launcher above for Calibration, or set `FRAGR_SOLO_BROADCAST=0` for arena practice. Escape opens the match menu; gameplay continues behind the menu. Leaving a local campaign stops its owned server. Leaving an external server does not stop the host.
 
 ## Controls (keyboard and gamepad)
 

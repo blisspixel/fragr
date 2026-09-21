@@ -35,6 +35,7 @@ and fresh-player acceptance outstanding. Source manifest: `client/qa/m01-records
 |---|---|
 | `tour_menu_16x9.png` | Retro boot menu |
 | `tour_profile_16x9.png` | Callsign, reticle, and weapon bob |
+| `tour_records_16x9.png` | Persisted arena observation, exact attack denominator and incomplete-session status |
 | `tour_settings_16x9.png` | Saved controls, including sensitivity, inversion, turn speed, and weapon bob |
 | `tour_difficulty_16x9.png` | New-run Assisted, Standard and Severe choices |
 | `tour_first_person_16x9.png` | Human first person |
@@ -47,13 +48,20 @@ and fresh-player acceptance outstanding. Source manifest: `client/qa/m01-records
 The full tour also checks rail/scatter selection, server-confirmed upward and
 downward aim, return to spectating, the
 multiplayer page, all three settings tabs, and settings inside the live match
-overlay. Captures use an isolated settings file. The local manifest records actual
+overlay and the service record. Captures use isolated settings and history files. The local manifest records actual
 map, round, role, weapon, camera/server yaw and pitch, dimensions, flash visibility, and
-strip sample times. Full-size `*_shot.png` frames preserve impact detail before
+strip sample times. Observations are copied at capture time so a later disconnect
+cannot clear earlier evidence. Full-size `*_shot.png` frames preserve impact detail before
 strip reduction. Intermediates live in
 `.agents/qa/`. Set `FRAGR_RENDER_DRIVER=vulkan` to check that rendering path;
 OpenGL compatibility is the tour default. This is renderer evidence on the
 recorded host, not a GPU vendor certification or a load benchmark.
+
+`FRAGR_QA_MAP=3 FRAGR_QA_MANIFEST=res://qa/records.json tools/qa_tour.sh .agents/qa/records`
+waits for an actual arena completion before opening its saved record. Its idle
+human participant is not a win or skill benchmark. Compare the captured server
+record with the persisted entry; the campaign recovery harness checks four
+deaths and three continues as one failed run.
 
 For a separate live movement check, run:
 

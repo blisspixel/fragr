@@ -11,12 +11,12 @@ locations are working concepts, not approved geometry or completed assets.
 | Place | Role and character |
 |---|---|
 | Perimeter intake/correction complex | Earth civic frontage concealing custody machinery; M01-M02 |
-| Home district, working name Low Water | Mixed homes, clinic, repair market, tram trench; M03 and changed return in M11 |
+| Home district, working name Low Water | Mixed homes, clinic, repair market, tram trench; M03 and changed return in M10/epilogue |
 | Lunar port and custody archive | Established infrastructure under Union control, pressure galleries and captive workshops; M04-M05 |
 | Common Carrier | Working name for the commandeered transport, with passengers, cargo, repair and command decks; M06 |
 | Martian habitat and launch works | Communities around controlled lifelines, greenhouse and industrial spaces; M07-M08 |
 | Forever Office | Earth seat of visible command, defeated through a larger coalition action; M09 |
-| Recovery district and waterfront refuge | Earth during the sudden wipe and afterward; M10-M12 and later coda |
+| Recovery district and waterfront refuge | Earth during the sudden wipe and afterward; M10 and conditional epilogue |
 
 Earth-Moon-Mars travel takes time. The cast visits lived-in societies, not new
 colonies or empty skyboxes. The coda and aftermath multiplayer revisit familiar

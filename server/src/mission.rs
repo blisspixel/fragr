@@ -178,6 +178,9 @@ impl GameState {
             MissionPhase::FindTransfer
         };
         run.attempt = run.attempt.saturating_add(1);
+        for player in &mut self.players {
+            player.statistics.reset_attempt();
+        }
         run.changed_at = self.tick;
         // An accepted solo retry is already a live attempt, even if the owner
         // dies again before the encounter controller gets its next tick.

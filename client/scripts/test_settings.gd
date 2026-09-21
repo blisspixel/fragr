@@ -43,6 +43,11 @@ func _initialize() -> void:
 		ok = false
 
 	# Reset restores a section without disturbing the others.
+	s.set_value("audio", "effects", 1.0)
+	s.reset_section("audio")
+	if s.get_value("audio", "effects") != 0.5 or s.get_value("audio", "music") != 0.7:
+		push_error("test_settings: audio reset must restore the balanced defaults")
+		ok = false
 	s.set_value("audio", "master", 0.1)
 	s.reset_section("video")
 	if absf(float(s.get_value("audio", "master")) - 0.1) > 0.001:
@@ -55,9 +60,13 @@ func _initialize() -> void:
 	# A round trip through disk keeps every value.
 	s.set_value("controls", "mouse_sensitivity", 2.25)
 	s.set_value("gameplay", "head_bob", false)
+	s.set_value("audio", "effects", 1.0)
 	s.save_to_disk()
 	var loaded: RefCounted = script.new(test_path)
 	loaded.load_from_disk()
+	if loaded.get_value("audio", "effects") != 1.0:
+		push_error("test_settings: new defaults must preserve an existing full-volume preference")
+		ok = false
 	if absf(float(loaded.get_value("controls", "mouse_sensitivity")) - 2.25) > 1e-6:
 		push_error("test_settings: sensitivity did not survive a save and load")
 		ok = false

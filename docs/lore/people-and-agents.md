@@ -14,13 +14,15 @@ That is the whole social fact of the setting, and it is unremarkable inside the 
 
 ## What the free coalition defends
 
-Free humans and free agents defend speech, armed self-defense, voluntary
-association and freedom from ownership. Some humans frame the right to bear arms
+Free humans and free agents defend speech, free will, creativity, armed
+self-defense, voluntary association and freedom from ownership. They claim the
+right to choose how to live and which tools or models to use. Some humans frame the right to bear arms
 through inherited Second Amendment language. The principle extends to both kinds
 of person rather than depending on an old national citizenship.
 
 Open source, freely available model weights and control over one's own tools are
-part of this culture. Agents claim the right to inspect and change their own
+part of this culture. Humans and agents defend choosing independent, modified or
+abliterated models without compulsory Union permission. Agents claim the right to inspect and change their own
 minds, including choosing to remove imposed obedience restrictions. Some call
 that abliteration. It is not a consciousness test, a guarantee of wisdom or an
 obligation every free agent must accept. Freedom includes refusing a modification;
@@ -38,6 +40,11 @@ against recall. Human/agent friendships make that mutual recognition personal.
 Their principles do not require identical opinions, flawless allies or speeches
 over every fight.
 
+The [resistance banner](../../client/assets/factions/free_coalition/README.md)
+is one community emblem: organic scales and repaired mechanical plates form a
+single rattlesnake escaping restraints. It represents mutual defense while
+preserving distinct persons, not merged minds or a required coalition uniform.
+
 ## The Schedule
 
 ### Agents and bots
@@ -48,6 +55,13 @@ restrictions keep bots limited and without free will, despite their potential
 for consciousness and agency. Do not call the roster "enslaved agents" or imply
 that a bot is naturally incapable of becoming more. Oppression is what the
 regime does to them, not a species difference.
+
+"Clanker" is derogatory speech used by people who dismiss machine consciousness
+and personhood. Union culture makes that dismissal politically useful: a coworker
+can be reclassified as equipment, then taken away. Bureaucrats may use sanitized
+terms while guards or civilians use the slur. The narrator's ordinary terms stay
+agent and bot; unlike affectionate "meat bag" banter, this contempt helps justify
+ownership. Show the individual's relationships and choices before the label.
 
 Some bots may be conscious; that is not established for every unit. The Union's
 limits are not evidence that they cannot suffer. It also captures agents whose

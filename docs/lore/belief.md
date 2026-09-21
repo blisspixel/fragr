@@ -106,6 +106,12 @@ The scariest group in the world should be right about one thing, and the audienc
 
 ## Research grounding
 
+[Epigraph candidates](epigraphs.md) collect verified passages from several
+traditions, with original-language excerpts, contextual limits and proposed
+placements. Their resonance does not make the Inheritance a confirmed deity or
+turn survival into a religious reward. Both endings retain ordinary survivors,
+loss, healing and the wider-universe tease.
+
 Primary sources checked 2026-09-19. These inform believable fiction, not a claim
 that its future has already occurred or must occur.
 

@@ -23,7 +23,7 @@ const DEFAULTS: Dictionary = {
 	"audio": {
 		"master": 0.9,
 		"music": 0.7,
-		"effects": 1.0,
+		"effects": 0.5,
 	},
 	"controls": {
 		"mouse_sensitivity": 1.5, # 0.022 degrees per unscaled mouse count.
@@ -31,6 +31,7 @@ const DEFAULTS: Dictionary = {
 		"turn_speed": 2.8,      # Radians per second for keyboard turning
 	},
 	"gameplay": {
+		"stat_commentary": true,
 		"head_bob": true,
 		# The broadcast ident: the top strip, the red ON AIR box, the station
 		# badge. Off, because it is right for a let's-play capture and wrong

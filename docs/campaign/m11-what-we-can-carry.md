@@ -1,7 +1,9 @@
 # M11: What We Can Carry
 
-**Status:** proposed level, unbuilt. Earth after the initial wipe, with restoration
-still active. Target 10-14 minutes. [Treatment](../CAMPAIGN-MISSIONS.md#m11-what-we-can-carry).
+**Status:** superseded design, 2026-09-20. Not an active mission or implementation
+target. M10 now owns the wipe survival finale; the shorter conditional
+[Still Here epilogue](epilogue-still-here.md) replaces both aftermath missions.
+The following earlier brief is retained only as material for changed-home staging.
 
 ## Story and people
 

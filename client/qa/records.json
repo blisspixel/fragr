@@ -1,0 +1,9 @@
+{
+  "comment": "Observe an actual multiplayer round ending, then inspect its persisted participant record. Idle participation is not a win or combat-skill measurement.",
+  "width": 1280,
+  "height": 720,
+  "states": [
+    {"name":"round_finished","scene":"res://scenes/main.tscn","join":"human","camera":"first_person","record_status":"complete"},
+    {"name":"finished_record","scene":"res://scenes/boot_menu.tscn","camera":"none","menu_page":"records","record_kind":"arena","expect_records":true}
+  ]
+}

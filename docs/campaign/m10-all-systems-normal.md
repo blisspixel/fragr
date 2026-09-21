@@ -1,7 +1,9 @@
 # M10: All Systems Normal
 
-**Status:** proposed level, unbuilt. Earth at the abrupt onset of the wipe.
-Target 8-10 minutes. [Treatment](../CAMPAIGN-MISSIONS.md#m10-all-systems-normal).
+**Status:** agreed survival-finale direction; detailed encounters proposed and
+unbuilt, revised 2026-09-20. Earth at the abrupt onset of the wipe. Initial target:
+about 33 active survival minutes after a short ordinary-life opening.
+[Treatment](../CAMPAIGN-MISSIONS.md#m10-all-systems-normal).
 
 ## Confirmed premise and cast
 
@@ -32,6 +34,12 @@ Nobody can establish whether the absorbed individuals still exist.
    It does not explain the intelligence's whole plan or introduce an alien cause.
 6. Return control in an evacuation concourse with an achievable local rescue.
 
+These are the opening beats of the survival mission, not its entire duration.
+Continue through changed streets and flood-control works toward a refuge while
+free-agent friends try to obtain an exception from the Inheritance. They remain
+independent and act without a companion-command interface. Their success does
+not undo the wipe or establish that all survivors were selected for virtue.
+
 At the transition, the earlier diagnostic rhythm becomes recognizable in nearby
 machines acting together. Show the correspondence through physical timing and
 brief display traces, not an explanatory speech or a warning before the rupture.
@@ -53,6 +61,36 @@ Destruction is authored state, not random particles hiding unchanged collision.
 No visual collapse seals every route or kills a player without actionable warning.
 Map identity persists as it changes. No ordinary building becomes a forest here.
 
+## Survival progression
+
+The clock begins at the actual rupture. The first proposed 33-minute structure
+below is a pacing hypothesis, not evidence of fun or final balance. Keep changes
+in location, enemy problems, resources and urgency throughout it. Do not stretch
+an eight-minute map into thirty-three minutes of waves or locked-door waiting.
+
+| Active minutes | Place and changing problem | Player activity |
+|---|---|---|
+| 0-4 | Recovery square and clinic access fail | Escape familiar bots, recover supplies, help reachable people |
+| 4-10 | Service passages and overlook reveal the scale | Open a local shutter, use a short lift, learn a restoration unit's tell |
+| 10-17 | Evacuation concourse and adjoining buildings | Secure a crossing, alternate fighting and short sheltered regrouping |
+| 17-25 | Changed Low Water streets and waterworks | Reconnect refuge access through interiors and flanks; rescue opportunities have readable consequences |
+| 25-33 | Freight pier and refuge approach | Survive converging pressure while independent friends complete their intervention |
+
+The reprieve halts the immediate attack at the end of the survival interval.
+It is not a last-second extra boss, hidden kill quota or surprise lethal cutscene.
+Local machinery remains destructible throughout; there is no single AGI core to
+shoot. A quiet repair room, movement choice or short rescue can vary the tempo
+without stopping the active survival clock. Reader-paced presentation and a real
+solo pause stop simulation and timing together. A menu on a live multiplayer
+host cannot grant an individual pause.
+
+Pressure should be severe but readable and achievable on the selected difficulty.
+Assisted keeps an achievable survival path and unlocks the same epilogue; Severe
+can offer its own declared challenge. Prove valid low-resource entry, recovery
+supplies and alternative routes. No hidden adaptive targeting, untelegraphed
+instant deaths or dependence on a secret weapon. Test shelter exploits through
+actual play and encounter geometry, without inventing arbitrary anti-idle damage.
+
 ## Combat and resources
 
 First show absorbed Union bots using familiar attacks with changed targeting and
@@ -73,7 +111,9 @@ and short rescues only where the player has time to understand the opportunity.
 ## Narrative and authoritative state
 
 `recovery_task` -> `local_rupture` -> `first_escape` -> `scale_revealed` ->
-`concourse_rescue` -> `shelter_reached`. Scene completion is presentation state;
+`concourse_rescue` -> `refuge_approach` -> `reprieve_granted` -> `survived`.
+Death offers `continue` while allowance remains, otherwise `failed` with credits.
+These are proposed state names, not shipped protocol fields. Scene completion is presentation state;
 authoritative survivors and routes are not determined by whether someone watched.
 
 The server applies the collective takeover once and persists it across saves,
@@ -87,9 +127,14 @@ No speech announces that humanity is a virus or proves the catastrophe justified
 Voss's custody tracking becomes uncertain amid disrupted institutions; do not
 silently claim her trial, execution or escape has occurred.
 
-A continue restarts the ordinary task with entry state. Keep this opening brief
-and allow already-seen framing to be skipped. No prolonged montage
-must replay after every death. Caption essential sound cues and text all messages.
+A continue restarts the mission with entry equipment, prior mission outcomes,
+local world state and survival timer restored. Keep the ordinary task brief and
+allow already-seen framing to be skipped. No prolonged montage must replay after
+every death. With no allowance left, the death leads to the wipe-failure ending
+and credits. It does not unlock the [playable epilogue](epilogue-still-here.md).
+Only the authoritative survival/reprieve result does so. Friends' intervention
+is authored story, not a paid model call or a semantic persuasion score at runtime.
+Caption essential sound cues and text all messages.
 
 ## Allies and acceptance
 
@@ -99,3 +144,9 @@ Test every phase with skip, muted audio, solo human/agent control, ally loss and
 mission retry. No teammate revival. Inspect destruction
 and tell visibility in motion; players should experience surprise and then infer
 the expanding scale without needing to hear the radio.
+
+Prove the entire survival interval, every phase, pauses/skips, death near the
+threshold, spent continues, exhaustion and idempotent epilogue unlock. A short
+accelerated harness can verify timing, but cannot establish that thirty-three
+minutes is enjoyable. Record real-duration human play, multiple valid loadouts,
+all difficulty tiers and agent runs before settling the final duration.

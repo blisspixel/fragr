@@ -36,8 +36,28 @@ Hazards have a visible cycle and bypass. Platforms have real support and headroo
 The launch works is a deliberate increase in battlefield scale after the earlier
 indoor missions. Freight buildings, gantry supports and terrain divide local
 positions; service interiors provide flanks and recovery. The player can read
-the next useful destination from each position. Prove the entire encounter on
-foot before considering vehicles or increasing the distance between fights.
+the next useful destination from each position. Prove the infantry route before
+integrating the planned drivable vehicle. Do not enlarge gaps simply to justify it.
+
+## Vehicle showcase and physical controls
+
+This is the first proposed combined-arms campaign landmark. A captured armed
+utility rover connects the freight depot, bermed launch approach and main gantry.
+Its mounted weapon helps break an exposed defense, while service interiors and
+trenches let infantry flank that same position. Entering a control house opens
+a freight shutter and a useful rover shortcut. The Walker remains defeatable if
+the rover is lost; scarce vehicle ammunition cannot become a mandatory key.
+
+Before the exterior, a freight lift gives a short view across machinery and
+deposits the player at the gallery. Its call switch and destination are visible
+together. Ordinary stairs preserve the maintenance loop. There is no lever order,
+long timed wait or requirement to move an uncontrolled ally onto a platform.
+
+Vehicle and moving-lift systems are unbuilt. Prototype server authority, safe
+occupancy and dismounts, collision, aim, damage, spectator views and agent actions
+before authoring a fleet. Then playtest rover and infantry approaches, vehicle
+loss, mission retry and mixed threats. The goal is a compact battle with distinct
+positions and choices, not an empty map crossed at driving speed.
 
 ## Weapons and boss
 

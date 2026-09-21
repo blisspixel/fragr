@@ -34,6 +34,11 @@ Boarding alters routes through visibly closing fire doors. Affected doors always
 have a safe release or bypass. Nothing silently changes the ship into a different
 floor plan between scenes.
 
+Use local cargo-bulkhead controls to reopen a flank and a freight lift to connect
+decks around the familiar shaft. Show the effect from the control where practical.
+The player chooses a useful route, not a sequence of obscure switches. Existing
+stairs remain usable, and bulkheads cannot seal a required person or supply away.
+
 ## Combat and weapon plan
 
 Introduce Repeater in a cargo locker before the largest boarding wave. Human

@@ -1,7 +1,7 @@
 # Plan: Solo Broadcast campaign (Episode 0 face)
 
 Historical shipped prototype. Its product lock and future episode list below
-record that release only. The current full-game story, twelve-mission plan, and
+record that release only. The current full-game story, mission plan, and
 scene policy are in [CAMPAIGN.md](../CAMPAIGN.md). This is not the opening mission.
 
 **Repo:** https://github.com/blisspixel/fragr

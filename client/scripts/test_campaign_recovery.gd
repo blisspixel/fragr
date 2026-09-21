@@ -32,6 +32,8 @@ func _run() -> void:
 	if not _captures.is_empty():
 		DirAccess.make_dir_recursive_absolute(_captures)
 	var settings_path: String = "user://test-campaign-recovery-%d.cfg" % OS.get_process_id()
+	var records_path: String = "user://test-campaign-records-%d" % OS.get_process_id()
+	set_meta("fragr_records_path", records_path)
 	set_meta("fragr_settings_path", settings_path)
 	var preferences: FragrSettings = FragrSettings.new(settings_path)
 	preferences.set_value("video", "display_mode", 0)
@@ -47,15 +49,29 @@ func _run() -> void:
 		if await _until(func() -> bool: return _state().get("phase") == "find_transfer" and not _game_manager().controls_blocked(), "reader enters live run"):
 			await _exercise_run()
 	QaCombat.release_inputs()
+	if not _failed:
+		_track_scene_audio()
+		_game_manager()._on_leave_requested()
+		await process_frame
+		await process_frame
+		var saved: PlayerRecords = PlayerRecords.new(records_path)
+		_expect(saved.entries.size() == 1, "four attempts persist as one run record")
+		if saved.entries.size() == 1:
+			var record: Dictionary = saved.entries[0]["record"]
+			_expect(record["status"] == "failed" and int(record["total"]["deaths"]) == 4, "saved record retains exhausted outcome and all deaths")
+			_expect(int(record["attempt"]["deaths"]) == 1 and int(record["scope"]["attempt"]) == 4, "last attempt remains distinct from run effort")
+		current_scene._show("records")
+		await process_frame
+		await _capture("service-record-failed")
 	var owner: LocalMatch = LocalMatch.for_tree(self)
 	owner.stop()
 	await _until(func() -> bool: return owner.state == LocalMatch.State.IDLE, "owned child shuts down")
-	if current_scene != null:
-		current_scene.queue_free()
-	await process_frame
-	await process_frame
-	await create_timer(0.1).timeout
+	await _retire_scene()
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(settings_path))
+	for slot: int in range(2):
+		var record_file: String = "%s.%d.json" % [records_path, slot]
+		if FileAccess.file_exists(record_file):
+			DirAccess.remove_absolute(record_file)
 	if not _failed:
 		print("test_campaign_recovery: PASS real M01 death, three input-driven retries, entry restore and exhaustion")
 	quit(1 if _failed else 0)
@@ -73,6 +89,10 @@ func _exercise_run() -> void:
 		if not await _until(func() -> bool: return _state().get("run", {}).get("status") in ["continue", "failed"], "Clerk defeats the exposed player"):
 			return
 		_expect(_game_manager().controls_blocked(), "death blocks gameplay")
+		if not await _until(func() -> bool: return _game_manager().net_client.record.get("status") in ["continue", "failed"], "authoritative record follows death"):
+			return
+		var record: Dictionary = _game_manager().net_client.record
+		_expect(int(record["total"]["deaths"]) == spent + 1 and int(record["attempt"]["deaths"]) == 1, "death counts include prior attempts exactly once")
 		await _capture("death-%d" % spent)
 		if spent == 3:
 			_expect(_state()["run"]["status"] == "failed", "fourth death ends the run")

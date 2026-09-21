@@ -47,6 +47,12 @@ inspection lanes, serial numbers, and controlled institutional color. The Inheri
 leaves unsettling order and regrowth among evidence of human and agent loss.
 These are visual tendencies, not a replacement for the detailed faction canon.
 
+The free communities' [rattlesnake banner](../client/assets/factions/free_coalition/README.md)
+is available as inspected flat artwork. Organic scales, repaired mechanical plates
+and broken restraints express shared freedom for humans and agents. It is one
+resistance emblem, not a uniform every free community must adopt. No shipped map
+placement is claimed. Its warm worn field is an intentional banner accent.
+
 ## Palette and type
 
 [`palette.json`](palette.json) owns the exact base swatches. Lighting can shade

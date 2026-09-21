@@ -29,9 +29,11 @@ This is not a rejection of depth. Item timing is deep and takes no thought to en
 
 ### Campaign
 
-About twelve compact missions across Earth, Moon, Mars and a ship, with
-rescue, resistance, a real victory over the Union, the sudden wipe and playable
-aftermath. A successful run targets 2-3 hours. Limited continues restart the
+Nine compact missions across Earth, Moon, Mars and a ship lead through rescue,
+resistance and Union defeat into a substantial tenth mission: surviving the wipe.
+The initial survival target is about 33 active minutes; survival unlocks a short
+playable epilogue. Exhausted failure receives its own ending and credits. A
+successful run targets 2-3 hours. Limited continues restart the
 current mission with its starting equipment; three per run is the initial balance
 proposal. Autonomous allies do not imply companion controls or revives, and
 all-mission co-op is not required. [CAMPAIGN.md](CAMPAIGN.md) owns this contract;

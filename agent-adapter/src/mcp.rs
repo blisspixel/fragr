@@ -39,6 +39,7 @@ pub const SPEAK_COOLDOWN_TICKS: u64 = 60;
 pub struct ToolState {
     pub last_snapshot: Option<Value>,
     pub loadout: Option<protocol::LoadoutState>,
+    pub record: Option<protocol::PlayerRecord>,
     pub mission: fragr_server::mission::MissionClient,
     pub recent_events: Vec<Value>,
     pub player_id: Option<Uuid>,
@@ -61,6 +62,7 @@ impl Default for ToolState {
         Self {
             last_snapshot: None,
             loadout: None,
+            record: None,
             mission: Default::default(),
             recent_events: Vec::new(),
             player_id: None,
@@ -438,6 +440,9 @@ pub fn build_observe_result(state: &ToolState) -> Value {
                 }
                 if let Some(loadout) = state.loadout.as_ref() {
                     obj.insert("loadout".into(), serde_json::json!(loadout));
+                }
+                if let Some(record) = state.record.as_ref() {
+                    obj.insert("record".into(), serde_json::json!(record));
                 }
                 if let Some(mission) = state.mission.state.as_ref() {
                     obj.insert("mission".into(), serde_json::json!(mission));
@@ -908,6 +913,7 @@ pub fn handle_mcp_request(request: McpRequest, state: &mut ToolState) -> HandleO
                                 state.session_name = None;
                                 state.last_snapshot = None;
                                 state.loadout = None;
+                                state.record = None;
                                 state.last_speak_tick = None;
                                 pending_leave = true;
                                 tool_ok_text("Left arena; disconnecting")
@@ -1008,6 +1014,10 @@ pub fn ingest_server_text(state: &mut ToolState, text: &str) -> Result<(), &'sta
             loadout.validate_for(state.player_id, state.loadout.as_ref())?;
             state.loadout = Some(loadout);
         }
+        Ok(protocol::ServerMessage::Record(record)) => {
+            record.validate_for(state.player_id, state.record.as_ref())?;
+            state.record = Some(record);
+        }
         Ok(protocol::ServerMessage::Snapshot(snapshot)) => {
             if let Ok(snapshot_value) = serde_json::to_value(snapshot) {
                 state.last_snapshot = Some(snapshot_value);
@@ -1049,6 +1059,7 @@ pub fn ingest_server_text(state: &mut ToolState, text: &str) -> Result<(), &'sta
         }
         Ok(protocol::ServerMessage::Welcome { player_id, .. }) => {
             state.loadout = None;
+            state.record = None;
             state.mission = Default::default();
             state.player_id = player_id;
             state.connected = true;
@@ -1076,6 +1087,9 @@ pub fn ingest_server_text(state: &mut ToolState, text: &str) -> Result<(), &'sta
             if raw.get("type").and_then(|v| v.as_str()) == Some("loadout") {
                 return Err("invalid loadout message");
             }
+            if raw.get("type").and_then(|v| v.as_str()) == Some("record") {
+                return Err("invalid record message");
+            }
             if raw.get("type").and_then(|v| v.as_str()) == Some("mission") {
                 return Err("invalid mission message");
             }
@@ -1090,6 +1104,45 @@ pub fn ingest_server_text(state: &mut ToolState, text: &str) -> Result<(), &'sta
 #[cfg(test)]
 mod mcp_tests {
     use super::*;
+
+    #[test]
+    fn participant_record_is_validated_and_shared_with_observe() {
+        let record: protocol::PlayerRecord =
+            serde_json::from_str(include_str!("../../client/golden/player_record.json")).unwrap();
+        let mut state = ToolState {
+            player_id: Some(record.player_id),
+            connected: true,
+            last_snapshot: Some(serde_json::json!({"tick": record.tick, "players": []})),
+            ..Default::default()
+        };
+        let message =
+            serde_json::to_string(&protocol::ServerMessage::Record(record.clone())).unwrap();
+        ingest_server_text(&mut state, &message).unwrap();
+        ingest_server_text(&mut state, &message).unwrap();
+        assert_eq!(
+            build_observe_result(&state)["record"],
+            serde_json::to_value(&record).unwrap()
+        );
+        let mut invalid = record.clone();
+        invalid.total.weapons[0].kills = 10;
+        assert!(ingest_server_text(
+            &mut state,
+            &serde_json::to_string(&protocol::ServerMessage::Record(invalid)).unwrap()
+        )
+        .is_err());
+        assert_eq!(state.record, Some(record));
+        assert!(ingest_server_text(&mut state, r#"{"type":"record","version":99}"#).is_err());
+        ingest_server_text(
+            &mut state,
+            r#"{"type":"welcome","role":"spectator","player_id":null}"#,
+        )
+        .unwrap();
+        assert!(state.record.is_none());
+        assert!(
+            ingest_server_text(&mut state, &message).is_err(),
+            "spectators cannot receive participant records"
+        );
+    }
 
     #[test]
     fn continue_tool_requires_current_dead_owner_and_server_confirmation() {

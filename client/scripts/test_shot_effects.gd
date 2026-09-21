@@ -2,6 +2,7 @@ extends SceneTree
 
 class HudProbe extends Node:
 	var equipment_hud: EquipmentHud = EquipmentHud.new()
+	var combat_feed: CombatFeed = CombatFeed.new()
 	var fired: Array[String] = []
 	var hits: Array[String] = []
 	func show_fire_juice(weapon: String) -> void:
@@ -106,6 +107,7 @@ func _run() -> void:
 	_check(effects.active_count() == 0, "map replacement clears old impacts")
 	game.free()
 	hud.equipment_hud.free()
+	hud.combat_feed.free()
 	hud.free()
 	effects.queue_free()
 	await process_frame

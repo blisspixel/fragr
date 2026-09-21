@@ -33,6 +33,11 @@ used by humans and free agents alike. The joke is about the chassis, not whose
 life matters. `human` remains the protocol role; Meat Proxy is the default player
 callsign until someone chooses their own.
 
+**People denying agent personhood.** "Clanker" is a derogatory term that dismisses
+a conscious being as hardware. A Union guard can use it casually while official
+copy says equipment, safety or correction. Let the contrast reveal normalized
+cruelty. It is not the neutral roster name or automatic comic banter between friends.
+
 **The Congregation.** Earnest. They are not joking and they know you think they are, and they have decided not to mind.
 
 **The Unmetered.** Dry, practical, allergic to being described as a movement.
