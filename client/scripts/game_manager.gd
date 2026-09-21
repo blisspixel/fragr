@@ -130,6 +130,8 @@ func _ready():
 	hud.set_mode(str(boot.get("hud_mode", "SPECTATING")))
 	_setup_radio()
 	_setup_frontend()
+	if pause_menu != null and str(boot.get("mode", "")) == "campaign":
+		pause_menu.local_campaign = true
 
 	_apply_arena_sky()
 

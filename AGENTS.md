@@ -8,12 +8,12 @@ Operating rules for coding agents and human contributors. Humans: start with `RE
 
 - `server/` - Rust authoritative game server (tokio, WebSocket JSON, 20 Hz tick). Owns positions, damage, HP, frags, spawns, scoring, rule bots, rounds, maps.
 - `client/` - Godot **4.7.2-stable**, GDScript only. Thin presenter: render, audio, HUD, spectator cameras, input. Never sim authority.
-- `agent-adapter/` - MCP server over stdio (`observe`, `act`, `speak`, `join`, `leave`, `round_state`, `get_events`). Slow control plane, never the combat tick.
+- `agent-adapter/` - MCP server over stdio (`observe`, `act`, `get_events`, `speak`, `join`, `leave`, `mission_ready`, `mission_continue`, `round_state`). Slow control plane, never the combat tick. Campaign readiness and continues use those tools; do not add a second campaign door.
 - `agents/` - example agents on the same wire: `brain/` fields a fighter whose intent comes from a decision model (TypeSafe Jev natively or through OpenRouter) at a few decisions per second while a local controller plays every tick, behind a hard spend cap. Runs on local rules for free.
 - `tools/` - `solo_scrap.sh`, screenshot capture, `godot_check.sh` (headless client checks), `audiogen/` (developer-only ElevenLabs sound and music generation, Rust), and `playtest/` (the agent playtest harness that runs in CI).
 - `docs/` - vision, roadmap, architecture, protocol, art bible, plans. `infra/` - GCP Terraform plus self-host guides, plan-only until spend approval.
 
-**Product spine:** meet your vibe. Watch by default, join anytime, leave anytime. Fun and funny outside, serious engineering underneath. Full intent: `docs/VISION.md`. Sequencing: `docs/ROADMAP.md`.
+**Product spine:** meet your vibe. Watch by default, join anytime, leave anytime. Fun and funny outside, serious engineering underneath. Full intent: `docs/VISION.md`. The only active sequence is the "Full build order" section of `docs/ROADMAP.md`. Older next-PR cells and retired art queues in that file are history. When the next rung changes, edit that section. Do not add a second list.
 
 **Lane:** personal `blisspixel` / Nick only. No work accounts.
 
@@ -29,7 +29,7 @@ renderer/hardware evidence. Never infer massive-server or GPU support from one.
 3. `docs/ARCHITECTURE.md` (decisions) and `docs/ROADMAP.md` (sequencing and status)
 4. This file for operating rules
 
-If prose and code disagree, code wins; fix the prose in the same change. Keep planned, implemented, tested, shipped, deployed, and proven distinct. A checklist box is not evidence. `AGENTS.md` is the shared instruction source; keep `CLAUDE.md` a thin pointer.
+If prose and code disagree, code wins; fix the prose in the same change. Keep planned, implemented, tested, shipped, deployed, and proven distinct. Plan files use the status words in `docs/plans/README.md`. A checklist box is not evidence, and a development mission stays in flight until its own acceptance gate is met. `AGENTS.md` is the shared instruction source; keep `CLAUDE.md` a thin pointer.
 
 ## Hard constraints (project law)
 
@@ -38,9 +38,9 @@ If prose and code disagree, code wins; fix the prose in the same change. Keep pl
 - **Agents off the hot path:** humans and agents share one discrete action channel. Rule and utility bots run at tick rate on the server. MCP is for slow operations, never aim or fire at 20 to 60 Hz.
 - **Transport:** WebSocket JSON on `0.0.0.0:6767` (clients use loopback or `FRAGR_SERVER`). UDP is a planned, measured spike (`docs/TRANSPORT.md`), not a silent rewrite.
 - **Languages:** Rust and GDScript for new implementation and tooling; retain existing shell launch/check wrappers. The legacy `tools/gate_tip_jammer_orange.py` still serves the screenshot gate; port and verify it before removal. Do not add another scripting runtime. Committed audio is the offline fallback.
-- **Pins:** Godot 4.7.2-stable (official release and local binary checked 2026-09-19). Rust stable via rustup, edition 2021. Verify pins, supported APIs, and migration notes against primary sources before changing them; do not trust memory for versions or flags. Keep the established stack unless a concrete requirement justifies a change.
+- **Pins:** Godot 4.7.2-stable. The official archive and the local binary were checked 2026-09-21: 4.7.2 is the current stable patch, and 4.8 is still a development build. Rust stable via rustup, edition 2021. Verify pins, supported APIs, and migration notes against primary sources before changing them; do not trust memory for versions or flags. Keep the established stack unless a concrete requirement justifies a change.
 - **Currency:** target the newest stable specification revision or crate that works as of the work date (for example MCP 2026-07-28, not the 2024-11-05 handshake it grew up on), and keep an older one only as compatibility with a stated retirement. A plan that names a version names the date it was checked.
-- **Dependencies:** minimal and intentional. Prefer std and existing crates. One logger (`tracing` + `EnvFilter`, `RUST_LOG`), serializer (`serde_json`), CLI parser (`clap` derive), HTTP client (`reqwest`, developer generators and brain only), and WebSocket stack (`tokio-tungstenite`). No Bevy client, no lightyear. Inspect manifests and callers before adding a crate; assess maintenance, license, platform support, and transitive cost. Use mature implementations for security-sensitive protocols. Commit `Cargo.lock`; use `--locked` for verification.
+- **Dependencies:** minimal and intentional. Prefer std and existing crates. One logger (`tracing` + `EnvFilter`, `RUST_LOG`), serializer (`serde_json`), CLI parser (`clap` derive), HTTP client (`reqwest`, developer asset tools and brain only), and WebSocket stack (`tokio-tungstenite`). No Bevy client, no lightyear. Inspect manifests and callers before adding a crate; assess maintenance, license, platform support, and transitive cost. Use mature implementations for security-sensitive protocols. Commit `Cargo.lock`; use `--locked` for verification.
 - **Secrets:** none required for local play. Never commit or print credentials. Use environment variables or the existing ignored `.env` integration. `.agents/` is disposable diagnostics and receipts, never credential storage; ignored does not mean secure. Do not copy existing keys into reports or scratch.
 - **Attribution lock:** the only author identity is Nick Seal `<32712898+blisspixel@users.noreply.github.com>` (`blisspixel`). No tool or model credits, coauthor trailers, generated-by notes, badges, footers, signatures, or negative attribution disclaimers in commits, PRs, releases, docs, comments, UI, assets, or metadata. Product names are allowed for actual runtime/developer integrations, never authorship. Preserve required third-party copyright, license, and NOTICE text.
 - **Prose:** no emoji. No em dashes or en dashes; use commas, periods, colons, parentheses, or hyphens in compound words.
@@ -60,7 +60,7 @@ If prose and code disagree, code wins; fix the prose in the same change. Keep pl
 | Map definitions, collision solids, spawn layout | `server/src/maps.rs` and `maps/runtime.rs` own one runtime map for all callers. Strict local authoring: `maps/authored.rs`, data/schema in `server/maps/`. `MapInfo` drives `client/scripts/arena_cover.gd`; registered surfaces live in `arena_materials.gd`. Scenery outside playable bounds: `arena_backdrop.gd`. |
 | Surface detail and world signs | `protocol/decoration.rs` validates host faces and panel/light budgets; `map_decoration.gd` mirrors the boundary. `arena_decoration.gd` renders registered panels, `world_sign.gd` fits keyed text from `client/i18n/*.po`. Blocking props belong in authoritative solids, never cosmetic panels. |
 | Movement math and facing conversion | `server/src/movement.rs`: `integrate` owns body collision and gravity for live play and the accelerated `step`. Mirror in `client/scripts/movement.gd`, goldens in `client/golden/move_vectors.json`; facing in `client/scripts/server_yaw.gd`. |
-| Walking routes and controller memory | `server/src/navigation.rs`, `navigation/controller.rs`; map geometry and movement remain authoritative. Precompute roster topology before readiness, bound/stagger searches, and prove routes with shared movement and actual `GameState` players. Use `client/qa/movement.json` for rendered stair/jump checks. |
+| Walking routes and controller memory | `server/src/navigation.rs`, `navigation/controller.rs`; map geometry and movement remain authoritative. Precompute roster topology before readiness, bound/stagger searches, and prove routes with shared movement and actual `GameState` players. A new solid is unfinished if authored reachability then rejects a supply, landmark, or enemy that route still needs. Use `client/qa/movement.json` for rendered stair/jump checks. |
 | CPU measurements and offline traces | `server/src/bench.rs`, `trace.rs`; contract in `docs/BENCHMARK.md` |
 | Participant records and local history | `server/src/statistics.rs` counts resolved facts; `protocol/statistics.rs` owns records. Delivery requires capability 8. Client validation: `player_record.gd`; retained history: `player_records.gd`; UI: `records_panel.gd`. Continue resets attempt counts, never total effort. Automation isolates `fragr_records_path` or uses memory. Never infer effective damage from overkill-inclusive `ShotResult.damage`. |
 | Tick loop shared by the binary and harnesses | `server/src/run.rs` (`run_server`, `ServerOptions`) |
@@ -84,13 +84,14 @@ If prose and code disagree, code wins; fix the prose in the same change. Keep pl
 | Pixel assets and import presets | `client/assets/` (nearest filter, no mipmaps) |
 | Audio assets and provenance | `client/assets/audio/` plus `audiogen-manifest.json` |
 | Developer asset generation | `tools/audiogen`, `tools/spritegen`; sprite requests use `ledger.rs` and `generation.rs`. Preserve uncertain reservations; recovery steps live in `docs/plans/higgsfield-pipeline.md`. |
+| Developer audio review | `tools/music-review`: MP3 listening, local language detection/transcription, loopback text analysis, quoted lore evidence, reversible quarantine and station refinement. Paid classification reuses `agents/brain`; replacement generation reuses `tools/audiogen`. Never run these at player runtime. |
 | Settings and diagnostics | `client/scripts/settings.gd` validates and persists; `settings_panel.gd` edits drafts in boot/match menus; `console.gd` uses the same commit path. Audio routing: `client/default_bus_layout.tres`. Harnesses isolate settings through `fragr_settings_path` tree metadata. |
-| Graphics preferences | `client/scripts/render_quality.gd` owns resolution math, renderer capabilities and quality application. Reapply after map environment replacement and viewport resize. Preserve authored ambient light and nearest material filtering; renderer support does not prove hardware performance. |
+| Graphics preferences | `client/scripts/render_quality.gd` owns resolution math, renderer capabilities and quality application. Reapply after map environment replacement and viewport resize. Preserve authored ambient light and nearest material filtering; renderer support does not prove hardware performance. `arena_sky.gd` sends an unknown map name to the scrapyard preset. An interior needs an explicit venue match. |
 | Product and stack decisions | `docs/ARCHITECTURE.md` |
 | Sequencing, status, fun bar | `docs/ROADMAP.md` |
 | Bounded work items | `docs/plans/<slug>.md`, indexed in `docs/plans/README.md` |
 | Look, palette, tone | `docs/ART_STORY_BIBLE.md`, `docs/palette.json` |
-| World and story | `docs/lore/README.md` indexes canon; `docs/CAMPAIGN.md` owns agreed story and open decisions; `docs/CAMPAIGN-MISSIONS.md` owns proposed mission briefs. Derive maps from story. Check recorded strings in `docs/lore/voice.md` before asset migrations; old audio does not override current intent. |
+| World and story | `docs/lore/README.md` indexes canon; `docs/CAMPAIGN.md` owns agreed story and open decisions; `docs/CAMPAIGN-MISSIONS.md` owns proposed mission briefs. Derive maps from story. `docs/lore/voice.md` owns current registers; `docs/audio-production/legacy-assets.md` tracks old recorded vocabulary outside canon. Check source, manifests and migration records before replacing assets. Old audio does not override current intent. |
 | Hosting and cloud | `infra/README.md`, `infra/docs/`, `infra/terraform/` |
 
 Before adding a second way to log, configure, serialize, retry, or talk to the server, search the tree and reuse the seam above. Env vars in use: `FRAGR_SERVER`, `FRAGR_SOLO`, `FRAGR_MAP`, `FRAGR_AGENT_NAME`, `FRAGR_TIP_CAPTURE_DIR`, `RUST_LOG`, `ELEVENLABS_API_KEY`, plus the `FRAGR_BIND`, `FRAGR_BOTS`, `FRAGR_MAP_ROTATE`, and `GODOT_BIN` knobs read by `tools/solo_scrap.sh`.
@@ -149,6 +150,7 @@ Evidence beats assertion. Regenerate current `docs/screenshots/tour_*.png` throu
 | Change | Minimum evidence |
 |---|---|
 | Sim rule, bot behavior, scoring | Deterministic test in `server/src/tests.rs`; server log line from a smoke |
+| Campaign route or encounter | Seeded tick test of the rule and its failure path. An accurate-aim clear is authoring evidence. It is not the fresh-player gate, a difficulty acceptance, or a finished mission. Record that review in the active plan. |
 | Wire or MCP shape | Tests on both sides, `docs/protocol.md` and `agent-adapter/README.md` updated in the same PR |
 | Client presentation | Godot headless checks pass; regenerated and inspected tour screenshots |
 | Hosting, infra, spend | `terraform fmt` and `validate`; no apply without written approval; cost note in the doc |

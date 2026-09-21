@@ -2,7 +2,7 @@
 
 **Status:** connected blockout, discovery and introductory combat shipped in
 v0.28.0. The working [completion draft](../plans/m01-completion.md) expands this
-to twenty Clerks and Sweepers across seven groups, with a records wing, finite
+to twenty Clerks and Sweepers across eight groups, with a records wing, finite
 campaign supplies and preplaced guards, shipped in v0.29.0. This remains a
 development mission. Fists, Tack, Flechette, ammunition, reload and
 enemy phases use server authority. Artwork and animation remain provisional. A

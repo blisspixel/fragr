@@ -160,8 +160,8 @@ moral penalty for using the shooter's core mechanics.
 ## Combat and level contract
 
 - Start a fresh campaign with fists, then discover weapons and ammunition.
-  No free access to the arsenal. [WEAPONS.md](WEAPONS.md) owns inventory and
-  balance proposals, which are not yet implemented.
+  No free access to the arsenal. [WEAPONS.md](WEAPONS.md) distinguishes the
+  implemented M01 inventory from the remaining arsenal and balance proposals.
 - Normal play carries inventory between connected missions for the same character.
   A continue restores that mission's starting equipment. A different playable
   character needs an explicit authored starting loadout, not unexplained transfer

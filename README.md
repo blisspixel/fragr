@@ -31,7 +31,7 @@ enclosed intake rooms, two stair routes, an accessible records balcony, a
 prisoner lift and fists-to-found-gun progression with finite ammo and reload.
 The current draft continues through records reception, file stacks, a service
 bypass, sorting, dispatch and transfer control. Twenty human Clerks and Sweeper
-bots occupy seven groups, with server-owned attack phases and directional poses.
+bots occupy eight groups, with server-owned attack phases and directional poses.
 Guards are already present before entry alarms, and campaign consumables stay
 consumed until an attempt reset. Find Latch's transfer record at the console, open
 the custody lift and depart. Character art, pacing, persistent saves, secrets
