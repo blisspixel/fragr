@@ -62,6 +62,10 @@ Recall Notice, the development mission. Intake with a Sweeper in the hall, the r
 
 ![Dispatch](docs/screenshots/m01_dispatch_16x9.png)
 
+Multiplayer in the app. One host, then the live line: map, arena or mission, fighters, and connections. Watch and Join stay on this page.
+
+![Multiplayer](docs/screenshots/tour_multiplayer_16x9.png)
+
 The arena tour: boot menu, service record, first person, follow camera, overview, shot strips, and a spectator view.
 
 ![Menu](docs/screenshots/tour_menu_16x9.png)

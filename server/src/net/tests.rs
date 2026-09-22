@@ -133,7 +133,8 @@ async fn status_get_reports_the_match_without_taking_a_slot() {
     let mut server = NetServer::bind("127.0.0.1:0", tx).await.unwrap();
     server.tighten_admission(1, 8, Duration::from_secs(2), Duration::from_secs(2));
     let status = std::sync::Arc::new(tokio::sync::RwLock::new(crate::protocol::LiveStatus {
-        schema_version: 1,
+        schema_version: 2,
+        kind: "arena".into(),
         map: "Arena Duel".into(),
         round: 3,
         tick: 40,

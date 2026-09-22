@@ -16,6 +16,10 @@ var _page: String = "main"
 var _root: VBoxContainer = null
 var _status: Label = null
 var _host_edit: LineEdit = null
+var _match_line: Label = null
+var _watch_button: Button = null
+var _join_button: Button = null
+var _probe: HTTPRequest = null
 var _console: FragrConsole = null
 var _settings: FragrSettings
 var _name_edit: LineEdit = null
@@ -128,7 +132,7 @@ func _button(text: String, handler: Callable) -> Button:
 	_root.add_child(b)
 	return b
 
-func _label(text: String) -> void:
+func _label(text: String) -> Label:
 	var l: Label = Label.new()
 	l.text = text
 	l.add_theme_font_size_override("font_size", 20)
@@ -136,8 +140,11 @@ func _label(text: String) -> void:
 	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	l.add_theme_color_override("font_color", Color(0.55, 0.7, 0.72))
 	_root.add_child(l)
+	return l
 
 func _show(page: String) -> void:
+	if _probe != null:
+		_probe.cancel_request()
 	_page = page
 	_title.add_theme_font_size_override("font_size", 60 if page == "records" else 154)
 	_tagline.visible = page != "records"
@@ -257,21 +264,82 @@ func _on_local_ready(address: String) -> void:
 
 func _page_multi() -> void:
 	_label("A server is a program you run. Anyone can host one.")
-	_button("Join local server", func() -> void: _launch("join", LOOPBACK))
-	_label("Join by address")
+	_label("Host")
 	_host_edit = LineEdit.new()
+	_host_edit.name = "HostAddress"
 	_host_edit.text = OS.get_environment("FRAGR_SERVER")
 	if _host_edit.text.is_empty():
 		_host_edit.text = LOOPBACK
 	_host_edit.custom_minimum_size = Vector2(0.0, 36.0)
 	_root.add_child(_host_edit)
-	_button("Connect", func() -> void: _launch("join", _host_address()))
-	_button("Connect as spectator", func() -> void: _launch("spectate", _host_address()))
-	var browser: Button = _button("Server list", func() -> void: pass)
-	browser.disabled = true
-	browser.tooltip_text = "Not built yet. Run your own and share the address."
-	_label("The host chooses the arena and rules.")
+	_button("Check host", _probe_host)
+	_button("Use local server", func() -> void:
+		_host_edit.text = LOOPBACK
+		_probe_host()
+	)
+	_match_line = _label("Checking the host.")
+	_match_line.name = "MatchLine"
+	_watch_button = _button("Watch", func() -> void: _launch("spectate", _host_address()))
+	_join_button = _button("Join", func() -> void: _launch("join", _host_address()))
+	_watch_button.name = "Watch"
+	_join_button.name = "Join"
+	_watch_button.disabled = true
+	_join_button.disabled = true
+	_label("The host chooses the arena and rules. You watch in this app, then join.")
 	_button("Back", func() -> void: _show("main"))
+	_probe_host()
+
+func _probe_host() -> void:
+	if _watch_button != null:
+		_watch_button.disabled = true
+	if _join_button != null:
+		_join_button.disabled = true
+	if _match_line != null:
+		_match_line.text = "Checking the host."
+	if _probe == null:
+		_probe = HTTPRequest.new()
+		_probe.name = "StatusProbe"
+		_probe.timeout = 2.0
+		_probe.body_size_limit = 4096
+		add_child(_probe)
+		_probe.request_completed.connect(_on_status_completed)
+	_probe.cancel_request()
+	var err: Error = _probe.request("http://%s/status" % _host_address())
+	if err != OK and _match_line != null:
+		_match_line.text = "This host did not answer."
+
+func _on_status_completed(result: int, code: int, _headers: PackedStringArray, body: PackedByteArray) -> void:
+	if _page != "multi":
+		return
+	if result != HTTPRequest.RESULT_SUCCESS or code != 200:
+		_apply_status(null)
+		return
+	_apply_status(JSON.parse_string(body.get_string_from_utf8()))
+
+## A readable schema 2 match line enables Watch and Join. Anything else does not.
+func _apply_status(parsed: Variant) -> void:
+	if _match_line == null or _watch_button == null or _join_button == null:
+		return
+	_watch_button.disabled = true
+	_join_button.disabled = true
+	if typeof(parsed) != TYPE_DICTIONARY:
+		_match_line.text = "This host did not answer."
+		return
+	var data: Dictionary = parsed
+	if int(data.get("schema_version", 0)) != 2:
+		_match_line.text = "This host did not return a match line."
+		return
+	var kind: String = str(data.get("kind", ""))
+	var map_name: String = str(data.get("map", ""))
+	var fighters: int = int(data.get("fighters", -1))
+	var connections: int = int(data.get("connections", -1))
+	if (kind != "arena" and kind != "campaign") or map_name.is_empty() or fighters < 0 or connections < 0:
+		_match_line.text = "This host did not say whether this is an arena or a mission."
+		return
+	var kind_line: String = "Mission" if kind == "campaign" else "Arena"
+	_match_line.text = "%s. %s. %d fighters. %d connections." % [map_name, kind_line, fighters, connections]
+	_watch_button.disabled = false
+	_join_button.disabled = false
 
 func _page_profile() -> void:
 	_label("CALLSIGN")

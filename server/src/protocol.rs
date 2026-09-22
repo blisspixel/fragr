@@ -58,6 +58,8 @@ pub fn default_map_name() -> String {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct LiveStatus {
     pub schema_version: u32,
+    /// `arena` or `campaign`. A missing kind is not an arena.
+    pub kind: String,
     pub map: String,
     pub round: u32,
     pub tick: u64,
@@ -71,7 +73,8 @@ pub struct LiveStatus {
 impl Default for LiveStatus {
     fn default() -> Self {
         Self {
-            schema_version: 1,
+            schema_version: 2,
+            kind: "arena".into(),
             map: default_map_name(),
             round: 1,
             tick: 0,

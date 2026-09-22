@@ -100,11 +100,11 @@ mode. Further inbound text, including actions, is limited to a burst of
 connected. Join tickets and reconnect are separate later work.
 
 `GET /status` on the game port, before any WebSocket upgrade, returns a JSON
-`LiveStatus` (`schema_version` 1): map name, round, tick, fighters, humans,
-agents, bots, and connections. It does not list callsigns or addresses, and it
-does not take a connection slot. It is a host probe for a server list or a
-process check. Watching and playing happen in the Godot app. The timing
-percentiles stay on the server log.
+`LiveStatus` (`schema_version` 2): `kind` (`arena` or `campaign`), map name,
+round, tick, fighters, humans, agents, bots, and connections. A missing `kind`
+is not an arena. It does not list callsigns or addresses, and it does not take
+a connection slot. It is a host probe. Watching and playing happen in the Godot
+app. The timing percentiles stay on the server log.
 
 ### Mission sequence
 

@@ -50,6 +50,7 @@ and fresh-player acceptance outstanding. Source manifest: `client/qa/m01-records
 | `m01_balcony_16x9.png` | Records balcony, opening toward the custody lift |
 | `m01_stacks_16x9.png` | File stacks, dark steel walls, green tile floor |
 | `m01_dispatch_16x9.png` | Dispatch after the fight, dark floor, bone walls |
+| `tour_multiplayer_16x9.png` | App multiplayer page after GET /status. One host, not a web list. |
 | `tour_menu_16x9.png` | Retro boot menu |
 | `tour_profile_16x9.png` | Callsign, reticle, and weapon bob |
 | `tour_records_16x9.png` | Persisted arena observation, exact attack denominator and incomplete-session status |
