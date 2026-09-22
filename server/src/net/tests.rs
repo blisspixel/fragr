@@ -82,6 +82,168 @@ async fn raised_geometry_rejects_legacy_roles_before_welcome_or_join() {
     accept.abort();
 }
 
+async fn welcome_spectator(
+    address: std::net::SocketAddr,
+) -> tokio_tungstenite::WebSocketStream<tokio_tungstenite::MaybeTlsStream<tokio::net::TcpStream>> {
+    let (mut socket, _) = connect_async(format!("ws://{address}")).await.unwrap();
+    socket
+        .send(Message::Text(
+            r#"{"type":"hello","role":"spectator","name":"Cap"}"#.to_string(),
+        ))
+        .await
+        .unwrap();
+    let reply = timeout(Duration::from_secs(2), socket.next())
+        .await
+        .unwrap()
+        .unwrap()
+        .unwrap();
+    assert!(matches!(
+        serde_json::from_str::<ServerMessage>(reply.to_text().unwrap()).unwrap(),
+        ServerMessage::Welcome {
+            player_id: None,
+            ..
+        }
+    ));
+    socket
+}
+
+fn admission_code(message: Message) -> String {
+    let ServerMessage::Error { code, .. } =
+        serde_json::from_str(message.to_text().unwrap()).unwrap()
+    else {
+        panic!("expected an admission error");
+    };
+    code
+}
+
+#[tokio::test]
+async fn connection_caps_reject_without_admitting_the_game() {
+    let (tx, mut commands) = mpsc::unbounded_channel();
+    let mut server = NetServer::bind("127.0.0.1:0", tx).await.unwrap();
+    server.tighten_admission(1, 8, Duration::from_secs(2), Duration::from_secs(2));
+    let address = server.local_addr().unwrap();
+    let accept = tokio::spawn(server.accept_loop());
+    let held = welcome_spectator(address).await;
+    assert!(matches!(
+        timeout(Duration::from_secs(2), commands.recv())
+            .await
+            .unwrap(),
+        Some(GameCommand::Connected { .. })
+    ));
+
+    let (mut extra, _) = connect_async(format!("ws://{address}")).await.unwrap();
+    extra
+        .send(Message::Text(
+            r#"{"type":"hello","role":"spectator","name":"Extra"}"#.to_string(),
+        ))
+        .await
+        .unwrap();
+    let reply = timeout(Duration::from_secs(2), extra.next())
+        .await
+        .unwrap()
+        .unwrap()
+        .unwrap();
+    assert_eq!(admission_code(reply), "connection_limit");
+    assert!(commands.try_recv().is_err());
+
+    drop(held);
+    assert!(matches!(
+        timeout(Duration::from_secs(2), commands.recv())
+            .await
+            .unwrap(),
+        Some(GameCommand::Disconnected { .. })
+    ));
+    let _again = welcome_spectator(address).await;
+    accept.abort();
+}
+
+#[tokio::test]
+async fn one_address_cannot_hold_every_connection_slot() {
+    let (tx, mut commands) = mpsc::unbounded_channel();
+    let mut server = NetServer::bind("127.0.0.1:0", tx).await.unwrap();
+    server.tighten_admission(8, 2, Duration::from_secs(2), Duration::from_secs(2));
+    let address = server.local_addr().unwrap();
+    let accept = tokio::spawn(server.accept_loop());
+    let first = welcome_spectator(address).await;
+    let second = welcome_spectator(address).await;
+    for _ in 0..2 {
+        assert!(matches!(
+            timeout(Duration::from_secs(2), commands.recv())
+                .await
+                .unwrap(),
+            Some(GameCommand::Connected { .. })
+        ));
+    }
+    let (mut extra, _) = connect_async(format!("ws://{address}")).await.unwrap();
+    extra
+        .send(Message::Text(
+            r#"{"type":"hello","role":"spectator","name":"Extra"}"#.to_string(),
+        ))
+        .await
+        .unwrap();
+    let reply = timeout(Duration::from_secs(2), extra.next())
+        .await
+        .unwrap()
+        .unwrap()
+        .unwrap();
+    assert_eq!(admission_code(reply), "address_limit");
+    assert!(commands.try_recv().is_err());
+    drop((first, second));
+    accept.abort();
+}
+
+#[tokio::test]
+async fn oversized_text_closes_without_blocking_the_next_client() {
+    let (tx, mut commands) = mpsc::unbounded_channel();
+    let server = NetServer::bind("127.0.0.1:0", tx).await.unwrap();
+    let address = server.local_addr().unwrap();
+    let accept = tokio::spawn(server.accept_loop());
+    let (mut socket, _) = connect_async(format!("ws://{address}")).await.unwrap();
+    let huge = format!(
+        r#"{{"type":"hello","role":"spectator","name":"{}"}}"#,
+        "n".repeat(70_000)
+    );
+    socket.send(Message::Text(huge)).await.unwrap();
+    let reply = timeout(Duration::from_secs(2), socket.next())
+        .await
+        .unwrap();
+    assert!(
+        matches!(reply, Some(Err(_)) | Some(Ok(Message::Close(_))) | None),
+        "an oversized frame must not become a session: {reply:?}"
+    );
+    assert!(commands.try_recv().is_err());
+    let _next = welcome_spectator(address).await;
+    accept.abort();
+}
+
+#[tokio::test]
+async fn stalled_handshake_and_hello_release_their_slot() {
+    let (tx, mut commands) = mpsc::unbounded_channel();
+    let mut server = NetServer::bind("127.0.0.1:0", tx).await.unwrap();
+    server.tighten_admission(1, 8, Duration::from_millis(200), Duration::from_millis(200));
+    let address = server.local_addr().unwrap();
+    let accept = tokio::spawn(server.accept_loop());
+
+    let stalled = tokio::net::TcpStream::connect(address).await.unwrap();
+    tokio::time::sleep(Duration::from_millis(400)).await;
+    drop(stalled);
+    let held = welcome_spectator(address).await;
+    assert!(matches!(
+        timeout(Duration::from_secs(2), commands.recv())
+            .await
+            .unwrap(),
+        Some(GameCommand::Connected { .. })
+    ));
+    drop(held);
+    let _ = timeout(Duration::from_secs(2), commands.recv()).await;
+
+    let (socket, _) = connect_async(format!("ws://{address}")).await.unwrap();
+    tokio::time::sleep(Duration::from_millis(400)).await;
+    drop(socket);
+    let _after = welcome_spectator(address).await;
+    accept.abort();
+}
+
 #[tokio::test]
 async fn server_rejects_unsupported_geometry_configuration() {
     for version in [0, crate::protocol::GEOMETRY_VERSION + 1] {

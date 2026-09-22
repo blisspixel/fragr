@@ -1,12 +1,113 @@
 use crate::protocol::{ClientMessage, Role, ServerMessage};
 use futures_util::{SinkExt, StreamExt};
+use std::collections::HashMap;
+use std::net::IpAddr;
 use std::sync::Arc;
+use std::time::Duration;
 use tokio::net::{TcpListener, TcpStream};
 use tokio::sync::{mpsc, Mutex, Semaphore};
-use tokio_tungstenite::{accept_async, tungstenite::Message};
+use tokio_tungstenite::tungstenite::protocol::WebSocketConfig;
+use tokio_tungstenite::{accept_async_with_config, tungstenite::Message};
 use uuid::Uuid;
 
 type ServerSocket = tokio_tungstenite::WebSocketStream<TcpStream>;
+
+/// One text frame is a hello, an action, or a short spoken line. 64 KiB is
+/// far above that and far below the crate default of 64 MiB.
+const MAX_MESSAGE_BYTES: usize = 64 * 1024;
+const MAX_FRAME_BYTES: usize = 64 * 1024;
+/// Must stay above tungstenite's 128 KiB write buffer. A full buffer drops the
+/// slow reader instead of storing the match in memory.
+const MAX_WRITE_BUFFER_BYTES: usize = 512 * 1024;
+const HANDSHAKE_TIMEOUT: Duration = Duration::from_secs(5);
+const HELLO_TIMEOUT: Duration = Duration::from_secs(5);
+const MAX_CONNECTIONS: usize = 64;
+const MAX_CONNECTIONS_PER_IP: usize = 16;
+
+fn websocket_limits() -> WebSocketConfig {
+    #[allow(deprecated)]
+    WebSocketConfig {
+        max_message_size: Some(MAX_MESSAGE_BYTES),
+        max_frame_size: Some(MAX_FRAME_BYTES),
+        max_write_buffer_size: MAX_WRITE_BUFFER_BYTES,
+        ..WebSocketConfig::default()
+    }
+}
+
+struct Admission {
+    global: Arc<Semaphore>,
+    per_ip: std::sync::Arc<std::sync::Mutex<HashMap<IpAddr, usize>>>,
+    max_per_ip: usize,
+    handshake_timeout: Duration,
+    hello_timeout: Duration,
+}
+
+struct AdmissionPermit {
+    ip: IpAddr,
+    per_ip: std::sync::Arc<std::sync::Mutex<HashMap<IpAddr, usize>>>,
+    _global: tokio::sync::OwnedSemaphorePermit,
+}
+
+impl Drop for AdmissionPermit {
+    fn drop(&mut self) {
+        let mut counts = self
+            .per_ip
+            .lock()
+            .unwrap_or_else(|poison| poison.into_inner());
+        if let Some(count) = counts.get_mut(&self.ip) {
+            *count = count.saturating_sub(1);
+            if *count == 0 {
+                counts.remove(&self.ip);
+            }
+        }
+    }
+}
+
+impl Admission {
+    fn standard() -> Self {
+        Self::new(
+            MAX_CONNECTIONS,
+            MAX_CONNECTIONS_PER_IP,
+            HANDSHAKE_TIMEOUT,
+            HELLO_TIMEOUT,
+        )
+    }
+
+    fn new(
+        max_connections: usize,
+        max_per_ip: usize,
+        handshake_timeout: Duration,
+        hello_timeout: Duration,
+    ) -> Self {
+        Self {
+            global: Arc::new(Semaphore::new(max_connections.max(1))),
+            per_ip: std::sync::Arc::new(std::sync::Mutex::new(HashMap::new())),
+            max_per_ip: max_per_ip.max(1),
+            handshake_timeout,
+            hello_timeout,
+        }
+    }
+
+    fn try_admit(self: &std::sync::Arc<Self>, ip: IpAddr) -> Result<AdmissionPermit, &'static str> {
+        let global = Arc::clone(&self.global)
+            .try_acquire_owned()
+            .map_err(|_| "connection_limit")?;
+        let mut counts = self
+            .per_ip
+            .lock()
+            .unwrap_or_else(|poison| poison.into_inner());
+        let count = counts.entry(ip).or_insert(0);
+        if *count >= self.max_per_ip {
+            return Err("address_limit");
+        }
+        *count += 1;
+        Ok(AdmissionPermit {
+            ip,
+            per_ip: std::sync::Arc::clone(&self.per_ip),
+            _global: global,
+        })
+    }
+}
 
 /// Complete the close handshake before dropping TCP, so a client polling less
 /// often than the server can still read its admission error. Bound silent peers.
@@ -74,6 +175,7 @@ pub struct NetServer {
     gameplay_version: u32,
     party_slots: Option<Arc<Semaphore>>,
     solo_run: bool,
+    admission: Arc<Admission>,
 }
 
 pub enum GameCommand {
@@ -154,7 +256,25 @@ impl NetServer {
             solo_run: false,
             party_slots: (gameplay_version >= crate::protocol::MISSION_GAMEPLAY_VERSION)
                 .then(|| Arc::new(Semaphore::new(crate::protocol::MISSION_PARTY_LIMIT))),
+            admission: Arc::new(Admission::standard()),
         })
+    }
+
+    /// Shrink the public caps for a test. Call it before `accept_loop`.
+    #[cfg(test)]
+    pub(crate) fn tighten_admission(
+        &mut self,
+        max_connections: usize,
+        max_per_ip: usize,
+        handshake_timeout: Duration,
+        hello_timeout: Duration,
+    ) {
+        self.admission = Arc::new(Admission::new(
+            max_connections,
+            max_per_ip,
+            handshake_timeout,
+            hello_timeout,
+        ));
     }
 
     pub fn local_addr(&self) -> std::io::Result<std::net::SocketAddr> {
@@ -185,21 +305,36 @@ impl NetServer {
                     let gameplay_version = self.gameplay_version;
                     let party_slots = self.party_slots.clone();
                     let solo_run = self.solo_run;
+                    let admission = Arc::clone(&self.admission);
+                    let handshake_timeout = admission.handshake_timeout;
+                    let hello_timeout = admission.hello_timeout;
 
                     tokio::spawn(async move {
+                        let permit = match admission.try_admit(addr.ip()) {
+                            Ok(permit) => permit,
+                            Err(code) => {
+                                let _ = reject_before_hello(stream, code, handshake_timeout).await;
+                                return;
+                            }
+                        };
                         if let Err(e) = handle_connection(
                             stream,
                             game_tx,
                             clients,
-                            geometry_version,
-                            gameplay_version,
-                            party_slots,
-                            solo_run,
+                            HelloPolicy {
+                                required_geometry: geometry_version,
+                                required_gameplay: gameplay_version,
+                                party_slots,
+                                solo_run,
+                                handshake_timeout,
+                                hello_timeout,
+                            },
                         )
                         .await
                         {
                             tracing::warn!("Connection error: {}", e);
                         }
+                        drop(permit);
                     });
                 }
                 Err(e) => {
@@ -210,16 +345,57 @@ impl NetServer {
     }
 }
 
-async fn handle_connection(
-    stream: TcpStream,
-    game_tx: mpsc::UnboundedSender<GameCommand>,
-    clients: Arc<Mutex<Vec<ClientSession>>>,
+async fn reject_before_hello(stream: TcpStream, code: &str, handshake_timeout: Duration) {
+    let accepted = tokio::time::timeout(
+        handshake_timeout,
+        accept_async_with_config(stream, Some(websocket_limits())),
+    )
+    .await;
+    let Ok(Ok(ws)) = accepted else {
+        return;
+    };
+    let (sink, stream) = ws.split();
+    let message = if code == "address_limit" {
+        "Too many connections from this address."
+    } else {
+        "This server is not taking more connections."
+    };
+    let _ = reject_connection(
+        sink,
+        stream,
+        ServerMessage::Error {
+            code: code.into(),
+            message: message.into(),
+        },
+    )
+    .await;
+}
+
+struct HelloPolicy {
     required_geometry: u32,
     required_gameplay: u32,
     party_slots: Option<Arc<Semaphore>>,
     solo_run: bool,
+    handshake_timeout: Duration,
+    hello_timeout: Duration,
+}
+
+async fn handle_connection(
+    stream: TcpStream,
+    game_tx: mpsc::UnboundedSender<GameCommand>,
+    clients: Arc<Mutex<Vec<ClientSession>>>,
+    policy: HelloPolicy,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    let ws_stream = accept_async(stream).await?;
+    let ws_stream = match tokio::time::timeout(
+        policy.handshake_timeout,
+        accept_async_with_config(stream, Some(websocket_limits())),
+    )
+    .await
+    {
+        Ok(Ok(stream)) => stream,
+        Ok(Err(error)) => return Err(error.into()),
+        Err(_) => return Ok(()),
+    };
     let (mut ws_sink, mut ws_stream) = ws_stream.split();
 
     let (tx, mut rx): (WsTx, WsRx) = mpsc::unbounded_channel();
@@ -231,7 +407,11 @@ async fn handle_connection(
     // Solo admission consumes its permit for the server lifetime below.
     let mut _party_seat;
 
-    if let Some(Ok(Message::Text(text))) = ws_stream.next().await {
+    let first = match tokio::time::timeout(policy.hello_timeout, ws_stream.next()).await {
+        Ok(message) => message,
+        Err(_) => return Ok(()),
+    };
+    if let Some(Ok(Message::Text(text))) = first {
         match serde_json::from_str::<ClientMessage>(&text) {
             Ok(ClientMessage::Hello {
                 role: r,
@@ -239,28 +419,34 @@ async fn handle_connection(
                 geometry_version,
                 gameplay_version,
             }) => {
-                if gameplay_version < required_gameplay {
+                if gameplay_version < policy.required_gameplay {
                     let rejection = ServerMessage::Error {
                         code: "unsupported_gameplay".into(),
-                        message: format!("This server requires gameplay version {required_gameplay}; update your client."),
+                        message: format!(
+                            "This server requires gameplay version {}; update your client.",
+                            policy.required_gameplay
+                        ),
                     };
                     return reject_connection(ws_sink, ws_stream, rejection).await;
                 }
-                if geometry_version < required_geometry {
+                if geometry_version < policy.required_geometry {
                     let rejection = ServerMessage::Error {
                         code: "unsupported_geometry".into(),
-                        message: format!("This server requires geometry version {required_geometry}; update your client."),
+                        message: format!(
+                            "This server requires geometry version {}; update your client.",
+                            policy.required_geometry
+                        ),
                     };
                     return reject_connection(ws_sink, ws_stream, rejection).await;
                 }
                 _party_seat = if r != Role::Spectator {
-                    match party_slots {
+                    match policy.party_slots {
                         Some(slots) => match slots.try_acquire_owned() {
                             Ok(seat) => Some(seat),
                             Err(_) => {
                                 let rejection = ServerMessage::Error {
-                                    code: if solo_run { "run_seat_closed" } else { "party_full" }.into(),
-                                    message: if solo_run {
+                                    code: if policy.solo_run { "run_seat_closed" } else { "party_full" }.into(),
+                                    message: if policy.solo_run {
                                         "This run already has an owner. Join as a spectator or start a new run."
                                     } else {
                                         "This mission supports four participants; join as a spectator or wait for a seat."
@@ -303,7 +489,7 @@ async fn handle_connection(
                     name,
                     player_id,
                 })?;
-                if solo_run {
+                if policy.solo_run {
                     if let Some(seat) = _party_seat.take() {
                         seat.forget();
                     }
