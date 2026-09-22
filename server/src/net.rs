@@ -213,6 +213,7 @@ pub struct NetServer {
     admission: Arc<Admission>,
     status: Arc<tokio::sync::RwLock<crate::protocol::LiveStatus>>,
     join_secret: Option<std::sync::Arc<crate::join_ticket::JoinSecret>>,
+    resume: std::sync::Arc<crate::resume::ResumeTable>,
 }
 
 pub enum GameCommand {
@@ -244,6 +245,18 @@ pub enum GameCommand {
     SetDisplayBehavior {
         player_id: Uuid,
         behavior: String,
+    },
+    /// The socket died. The pawn stays until grace or an explicit leave.
+    Detached {
+        id: Uuid,
+    },
+    /// Bind an existing parked pawn. The session answers on `reply`.
+    Resume {
+        client_id: Uuid,
+        player_id: Uuid,
+        nonce: u64,
+        role: Role,
+        reply: tokio::sync::oneshot::Sender<Option<crate::resume::ResumeAccept>>,
     },
 }
 
@@ -298,7 +311,12 @@ impl NetServer {
                 crate::protocol::LiveStatus::default(),
             )),
             join_secret: None,
+            resume: std::sync::Arc::new(crate::resume::ResumeTable::new()),
         })
+    }
+
+    pub(crate) fn share_resume(&mut self, resume: std::sync::Arc<crate::resume::ResumeTable>) {
+        self.resume = resume;
     }
 
     pub(crate) fn set_join_secret(
@@ -363,6 +381,7 @@ impl NetServer {
                     let handshake_timeout = admission.handshake_timeout;
                     let hello_timeout = admission.hello_timeout;
                     let join_secret = self.join_secret.clone();
+                    let resume_table = std::sync::Arc::clone(&self.resume);
 
                     tokio::spawn(async move {
                         if serve_status_if_requested(&mut stream, &status).await {
@@ -387,6 +406,7 @@ impl NetServer {
                                 handshake_timeout,
                                 hello_timeout,
                                 join_secret,
+                                resume: resume_table,
                             },
                         )
                         .await
@@ -517,6 +537,7 @@ struct HelloPolicy {
     handshake_timeout: Duration,
     hello_timeout: Duration,
     join_secret: Option<std::sync::Arc<crate::join_ticket::JoinSecret>>,
+    resume: std::sync::Arc<crate::resume::ResumeTable>,
 }
 
 async fn handle_connection(
@@ -544,7 +565,10 @@ async fn handle_connection(
     let player_id;
     // RAII returns seats after failed admission and development-party disconnect.
     // Solo admission consumes its permit for the server lifetime below.
+    // A resume request parks the seat instead of returning it on a drop.
     let mut _party_seat;
+    let mut keep_pawn = false;
+    let mut left = false;
 
     let first = match tokio::time::timeout(policy.hello_timeout, ws_stream.next()).await {
         Ok(message) => message,
@@ -558,6 +582,7 @@ async fn handle_connection(
                 geometry_version,
                 gameplay_version,
                 ticket,
+                resume,
             }) => {
                 if !crate::join_ticket::admit(
                     policy.join_secret.as_deref(),
@@ -591,12 +616,93 @@ async fn handle_connection(
                     };
                     return reject_connection(ws_sink, ws_stream, rejection).await;
                 }
-                _party_seat = if r != Role::Spectator {
-                    match policy.party_slots {
-                        Some(slots) => match slots.try_acquire_owned() {
-                            Ok(seat) => Some(seat),
-                            Err(_) => {
-                                let rejection = ServerMessage::Error {
+                let mut resumed: Option<crate::resume::ResumeAccept> = None;
+                if r != Role::Spectator {
+                    if let Some(token) = resume.as_deref().filter(|token| !token.is_empty()) {
+                        let Some((claimed_id, claimed_role, nonce)) = policy.resume.open(token)
+                        else {
+                            return reject_connection(
+                                ws_sink,
+                                ws_stream,
+                                ServerMessage::Error {
+                                    code: "resume_rejected".into(),
+                                    message: "The previous pawn is gone.".into(),
+                                },
+                            )
+                            .await;
+                        };
+                        if claimed_role != r {
+                            return reject_connection(
+                                ws_sink,
+                                ws_stream,
+                                ServerMessage::Error {
+                                    code: "resume_rejected".into(),
+                                    message: "The previous pawn is gone.".into(),
+                                },
+                            )
+                            .await;
+                        }
+                        let (reply_tx, reply_rx) = tokio::sync::oneshot::channel();
+                        clients.lock().await.push(ClientSession::new(
+                            client_id,
+                            tx.clone(),
+                            gameplay_version,
+                        ));
+                        if game_tx
+                            .send(GameCommand::Resume {
+                                client_id,
+                                player_id: claimed_id,
+                                nonce,
+                                role: r,
+                                reply: reply_tx,
+                            })
+                            .is_err()
+                        {
+                            clients.lock().await.retain(|client| client.id != client_id);
+                            return Ok(());
+                        }
+                        resumed = tokio::time::timeout(std::time::Duration::from_secs(2), reply_rx)
+                            .await
+                            .ok()
+                            .and_then(Result::ok)
+                            .flatten();
+                        if resumed.is_none() {
+                            clients.lock().await.retain(|client| client.id != client_id);
+                            return reject_connection(
+                                ws_sink,
+                                ws_stream,
+                                ServerMessage::Error {
+                                    code: "resume_rejected".into(),
+                                    message: "The previous pawn is gone.".into(),
+                                },
+                            )
+                            .await;
+                        }
+                    }
+                }
+                if let Some(accepted) = resumed {
+                    player_id = Some(accepted.player_id);
+                    _party_seat = accepted.seat;
+                    role = Some(r);
+                    keep_pawn = true;
+                    let welcome = ServerMessage::Welcome {
+                        player_id,
+                        role: r,
+                        mode_name: crate::protocol::default_mode_name(),
+                        playlist: crate::protocol::default_playlist(),
+                        resume: Some(accepted.token),
+                    };
+                    ws_sink
+                        .send(Message::Text(serde_json::to_string(&welcome)?))
+                        .await?;
+                    tracing::info!("Client {:?} resumed {:?}", client_id, player_id);
+                } else {
+                    _party_seat = if r != Role::Spectator {
+                        match policy.party_slots {
+                            Some(slots) => match slots.try_acquire_owned() {
+                                Ok(seat) => Some(seat),
+                                Err(_) => {
+                                    let rejection = ServerMessage::Error {
                                     code: if policy.solo_run { "run_seat_closed" } else { "party_full" }.into(),
                                     message: if policy.solo_run {
                                         "This run already has an owner. Join as a spectator or start a new run."
@@ -604,55 +710,63 @@ async fn handle_connection(
                                         "This mission supports four participants; join as a spectator or wait for a seat."
                                     }.into(),
                                 };
-                                return reject_connection(ws_sink, ws_stream, rejection).await;
-                            }
-                        },
-                        None => None,
+                                    return reject_connection(ws_sink, ws_stream, rejection).await;
+                                }
+                            },
+                            None => None,
+                        }
+                    } else {
+                        None
+                    };
+                    role = Some(r);
+
+                    player_id = if r != Role::Spectator {
+                        Some(Uuid::new_v4())
+                    } else {
+                        None
+                    };
+                    let issued = if r != Role::Spectator && resume.is_some() {
+                        keep_pawn = true;
+                        player_id.map(|id| policy.resume.arm(id, r))
+                    } else {
+                        None
+                    };
+
+                    let welcome = ServerMessage::Welcome {
+                        player_id,
+                        role: r,
+                        mode_name: crate::protocol::default_mode_name(),
+                        playlist: crate::protocol::default_playlist(),
+                        resume: issued,
+                    };
+
+                    ws_sink
+                        .send(Message::Text(serde_json::to_string(&welcome)?))
+                        .await?;
+
+                    let mut clients_lock = clients.lock().await;
+                    clients_lock.push(ClientSession::new(client_id, tx.clone(), gameplay_version));
+                    drop(clients_lock);
+
+                    game_tx.send(GameCommand::Connected {
+                        id: client_id,
+                        role: r,
+                        name,
+                        player_id,
+                    })?;
+                    if policy.solo_run {
+                        if let Some(seat) = _party_seat.take() {
+                            seat.forget();
+                        }
                     }
-                } else {
-                    None
-                };
-                role = Some(r);
 
-                player_id = if r != Role::Spectator {
-                    Some(Uuid::new_v4())
-                } else {
-                    None
-                };
-
-                let welcome = ServerMessage::Welcome {
-                    player_id,
-                    role: r,
-                    mode_name: crate::protocol::default_mode_name(),
-                    playlist: crate::protocol::default_playlist(),
-                };
-
-                ws_sink
-                    .send(Message::Text(serde_json::to_string(&welcome)?))
-                    .await?;
-
-                let mut clients_lock = clients.lock().await;
-                clients_lock.push(ClientSession::new(client_id, tx.clone(), gameplay_version));
-                drop(clients_lock);
-
-                game_tx.send(GameCommand::Connected {
-                    id: client_id,
-                    role: r,
-                    name,
-                    player_id,
-                })?;
-                if policy.solo_run {
-                    if let Some(seat) = _party_seat.take() {
-                        seat.forget();
-                    }
+                    tracing::info!(
+                        "Client {:?} connected as {:?} (player_id: {:?})",
+                        client_id,
+                        r,
+                        player_id
+                    );
                 }
-
-                tracing::info!(
-                    "Client {:?} connected as {:?} (player_id: {:?})",
-                    client_id,
-                    r,
-                    player_id
-                );
             }
             _ => {
                 tracing::warn!("Invalid hello message");
@@ -682,6 +796,13 @@ async fn handle_connection(
         match msg {
             Ok(Message::Text(text)) => {
                 if !inbound.allow() {
+                    continue;
+                }
+                if matches!(
+                    serde_json::from_str::<ClientMessage>(&text),
+                    Ok(ClientMessage::Leave)
+                ) {
+                    left = true;
                     continue;
                 }
                 if role != Role::Spectator {
@@ -734,7 +855,19 @@ async fn handle_connection(
 
     send_task.abort();
 
-    game_tx.send(GameCommand::Disconnected { id: client_id })?;
+    if let Some(pid) = player_id {
+        if keep_pawn && !left {
+            policy
+                .resume
+                .park(pid, _party_seat.take(), policy.resume.tick());
+            let _ = game_tx.send(GameCommand::Detached { id: client_id });
+        } else {
+            policy.resume.forget(pid);
+            let _ = game_tx.send(GameCommand::Disconnected { id: client_id });
+        }
+    } else {
+        let _ = game_tx.send(GameCommand::Disconnected { id: client_id });
+    }
 
     let mut clients_lock = clients.lock().await;
     clients_lock.retain(|c| c.id != client_id);

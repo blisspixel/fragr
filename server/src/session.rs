@@ -3,6 +3,7 @@
 
 use crate::net::{ClientSession, GameCommand};
 use crate::protocol::{self, Role, ServerMessage};
+use crate::resume::ResumeTable;
 use crate::sim::{BotController, GameState, MapKind, SpeakOutcome};
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -33,6 +34,7 @@ pub struct GameSession {
     navigators: HashMap<Uuid, crate::navigation::Navigator>,
     sent_loadouts: HashMap<Uuid, (crate::protocol::WeaponType, u64)>,
     sent_records: HashMap<Uuid, protocol::PlayerRecord>,
+    pub resume: Arc<ResumeTable>,
 }
 
 impl GameSession {
@@ -62,6 +64,7 @@ impl GameSession {
             navigators: HashMap::new(),
             sent_loadouts: HashMap::new(),
             sent_records: HashMap::new(),
+            resume: Arc::new(ResumeTable::new()),
         }
     }
 
@@ -188,6 +191,81 @@ impl GameSession {
         candidate
     }
 
+    fn remove_pawn(&mut self, player_id: Uuid) {
+        let (player_name, player_score) = self
+            .state
+            .players
+            .iter()
+            .find(|p| p.id == player_id)
+            .map(|p| (p.name.clone(), *self.state.scores.get(&p.id).unwrap_or(&0)))
+            .unwrap_or_else(|| ("Unknown".to_string(), 0));
+        let player_count_before = self
+            .state
+            .players
+            .iter()
+            .filter(|p| !p.is_campaign_enemy())
+            .count();
+        self.state.remove_player(player_id);
+        self.state.push_event(protocol::GameEvent::PlayerLeft {
+            player: player_name.clone(),
+            score: player_score,
+            round_number: self.state.round_number,
+            player_count: player_count_before.saturating_sub(1),
+        });
+        tracing::info!(
+            "Player {} left (score: {}, round {}, {} players remain)",
+            player_name,
+            player_score,
+            self.state.round_number,
+            player_count_before.saturating_sub(1)
+        );
+    }
+
+    /// Grace ended. A client that already rebound this pawn is left alone.
+    pub fn drop_expired_pawn(&mut self, player_id: Uuid) {
+        if self.client_to_player.values().any(|id| *id == player_id) {
+            return;
+        }
+        if self
+            .state
+            .players
+            .iter()
+            .any(|player| player.id == player_id)
+        {
+            self.remove_pawn(player_id);
+        }
+    }
+
+    fn resume_pawn(
+        &mut self,
+        client_id: Uuid,
+        player_id: Uuid,
+        nonce: u64,
+        role: Role,
+    ) -> Option<crate::resume::ResumeAccept> {
+        let player = self
+            .state
+            .players
+            .iter()
+            .find(|player| player.id == player_id)?;
+        if player.role != role || player.is_campaign_enemy() {
+            return None;
+        }
+        let accepted = self.resume.claim(player_id, nonce, role)?;
+        self.client_to_player.retain(|_, id| *id != player_id);
+        self.client_to_player.insert(client_id, player_id);
+        if let Some(player) = self.state.players.iter_mut().find(|p| p.id == player_id) {
+            player.clear_input();
+        }
+        self.pending_unicasts
+            .push((Recipient::Client(client_id), self.state.map_info()));
+        if let Some(message) = self.state.mission_message() {
+            self.pending_unicasts
+                .push((Recipient::Client(client_id), message));
+        }
+        Some(accepted)
+    }
+
     /// Apply a net-layer game command (join, leave, or action).
     /// Join/leave push PlayerJoined / PlayerLeft events onto the sim event queue.
     pub fn apply_command(&mut self, cmd: GameCommand) {
@@ -244,34 +322,25 @@ impl GameSession {
 
             GameCommand::Disconnected { id } => {
                 if let Some(player_id) = self.client_to_player.remove(&id) {
-                    let (player_name, player_score) = self
-                        .state
-                        .players
-                        .iter()
-                        .find(|p| p.id == player_id)
-                        .map(|p| (p.name.clone(), *self.state.scores.get(&p.id).unwrap_or(&0)))
-                        .unwrap_or_else(|| ("Unknown".to_string(), 0));
-                    let player_count_before = self
-                        .state
-                        .players
-                        .iter()
-                        .filter(|p| !p.is_campaign_enemy())
-                        .count();
-                    self.state.remove_player(player_id);
-                    self.state.push_event(protocol::GameEvent::PlayerLeft {
-                        player: player_name.clone(),
-                        score: player_score,
-                        round_number: self.state.round_number,
-                        player_count: player_count_before.saturating_sub(1),
-                    });
-                    tracing::info!(
-                        "Player {} left (score: {}, round {}, {} players remain)",
-                        player_name,
-                        player_score,
-                        self.state.round_number,
-                        player_count_before.saturating_sub(1)
-                    );
+                    self.remove_pawn(player_id);
                 }
+            }
+            GameCommand::Detached { id } => {
+                if let Some(player_id) = self.client_to_player.remove(&id) {
+                    if let Some(player) = self.state.players.iter_mut().find(|p| p.id == player_id)
+                    {
+                        player.clear_input();
+                    }
+                }
+            }
+            GameCommand::Resume {
+                client_id,
+                player_id,
+                nonce,
+                role,
+                reply,
+            } => {
+                let _ = reply.send(self.resume_pawn(client_id, player_id, nonce, role));
             }
 
             GameCommand::Action { player_id, action } => {

@@ -69,6 +69,7 @@ async fn encounter_capability_and_identity_reach_every_role_over_the_wire() {
                 gameplay_version: 2,
 
                 ticket: None,
+                resume: None,
             })
             .unwrap(),
         ))
@@ -90,6 +91,7 @@ async fn encounter_capability_and_identity_reach_every_role_over_the_wire() {
                     gameplay_version: fragr_server::protocol::GAMEPLAY_VERSION,
 
                     ticket: None,
+                    resume: None,
                 })
                 .unwrap(),
             ))

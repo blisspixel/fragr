@@ -139,6 +139,8 @@ pub async fn run_server(
     )
     .await?;
     net_server.share_status(std::sync::Arc::clone(&live));
+    net_server.share_resume(std::sync::Arc::clone(&session.resume));
+    session.resume.note_tick(session.state.tick);
     if let Some(secret) = options.join_secret.clone() {
         net_server.set_join_secret(secret);
     }
@@ -192,7 +194,12 @@ pub async fn run_server(
         tokio::select! {
             _ = tick_interval.tick() => {
                 let started = std::time::Instant::now();
+                let expired = session.resume.expire(session.state.tick);
+                for player_id in expired {
+                    session.drop_expired_pawn(player_id);
+                }
                 let messages = session.tick_messages(TICK.as_secs_f32());
+                session.resume.note_tick(session.state.tick);
                 let elapsed = started.elapsed();
                 let bytes = crate::bench::encoded_payload_bytes(messages.iter())?;
                 stats.record_tick(elapsed, bytes);

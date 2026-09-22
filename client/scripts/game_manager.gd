@@ -106,6 +106,7 @@ func _ready():
 	net_client.event_received.connect(_on_event_received)
 	net_client.ack_received.connect(_on_ack_received)
 	net_client.connected_to_server.connect(_on_connected)
+	net_client.session_resumed.connect(_on_session_resumed)
 	net_client.disconnected_from_server.connect(_on_disconnected)
 	net_client.server_error.connect(_on_server_error)
 	
@@ -276,7 +277,7 @@ func _on_leave_requested() -> void:
 	if _leaving:
 		return
 	_leaving = true
-	net_client.disconnect_from_server()
+	net_client.leave_match()
 	if local_match != null:
 		local_match.stop()
 	if get_tree().has_meta("fragr_boot"):
@@ -430,7 +431,7 @@ func change_role(play: bool) -> void:
 	pending_reload = false
 	pending_interact = false
 	interact_held = false
-	net_client.disconnect_from_server()
+	net_client.leave_match()
 	is_human_player = play
 	_clear_fp_state()
 	pending_weapon_swap = null
@@ -586,6 +587,9 @@ func _apply_map_from_snapshot(snapshot: Dictionary) -> void:
 
 func _on_connected():
 	hud.set_status("Connected to server")
+
+func _on_session_resumed() -> void:
+	hud.set_status("Reconnected.")
 
 func _on_disconnected():
 	hud.set_status("Disconnected")

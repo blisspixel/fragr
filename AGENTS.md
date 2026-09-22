@@ -71,6 +71,7 @@ If prose and code disagree, code wins; fix the prose in the same change. Keep pl
 | Wire types and Host line generators | `server/src/protocol.rs`, documented in `docs/protocol.md`. The adapter, the playtest harness, and the brain agent all read these types from `fragr-server`; there is no second copy to keep in step. |
 | WebSocket accept and per-client plumbing | `server/src/net.rs`. `ClientSession` stays outside broadcast delivery until `send_unicasts` queues its initial MapInfo; preserve this ordering for every role. |
 | Join tickets | `server/src/join_ticket.rs`. The dedicated and local processes read `FRAGR_JOIN_SECRET`. Tests, the playtest harness, and `run_server` do not. Pass a secret in as an argument, or leave hello open. Spectators are not ticketed. A bad ticket must not take a seat. |
+| Pawn resume | `server/src/resume.rs`. A hello that asks receives a process-local token. A drop parks the pawn for 200 ticks and clears input. `leave` removes it now. Do not rewind ticks, input sequence, or inventory. Do not evict by callsign. |
 | Server CLI, tracing, tick loop | `server/src/main.rs` (`--bind`, `--bots`, `--map`, `--map-rotate`) |
 | MCP request handling and tool schemas | `agent-adapter/src/mcp.rs` |
 | Adapter CLI and WebSocket session | `agent-adapter/src/main.rs` |

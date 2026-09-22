@@ -112,7 +112,7 @@ cargo run -- mcp --server ws://127.0.0.1:6767 --name ArenaFox
 ```
 
 Connect via MCP client (stdio) and use the tools below.
-Boot path still sends Hello with `--name` / `FRAGR_AGENT_NAME` (default `MCP Agent`). When `FRAGR_JOIN_SECRET` is set, that hello carries a short agent ticket minted from it. An unset secret sends no ticket. First-class `join` / `leave` / `round_state` tools are also available (idempotent join; leave disconnects cleanly).
+Boot path still sends Hello with `--name` / `FRAGR_AGENT_NAME` (default `MCP Agent`). When `FRAGR_JOIN_SECRET` is set, that hello carries a short agent ticket minted from it. An unset secret sends no ticket. First-class `join` / `leave` / `round_state` tools are also available (idempotent join; leave sends `{"type":"leave"}` and then closes the socket).
 
 ### Scripted Bot (standalone test)
 

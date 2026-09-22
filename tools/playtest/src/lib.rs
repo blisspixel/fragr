@@ -1171,6 +1171,7 @@ async fn agent_task(
         role: Role::Agent,
         name,
         ticket: fragr_server::join_ticket::ticket_for(Role::Agent),
+        resume: None,
     };
     sink.send(Message::Text(
         serde_json::to_string(&hello).map_err(transport)?,
@@ -1382,6 +1383,7 @@ pub async fn run(config: Config) -> Result<(Report, Observation), Error> {
         role: Role::Spectator,
         name: "Observer".to_string(),
         ticket: None,
+        resume: None,
     };
     sink.send(Message::Text(
         serde_json::to_string(&hello).map_err(transport)?,

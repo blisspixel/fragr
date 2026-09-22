@@ -1658,6 +1658,7 @@ mod mcp_tests {
             name: name.to_string(),
 
             ticket: None,
+            resume: None,
         };
         let json = serde_json::to_string(&hello).unwrap();
         assert!(json.contains("ArenaFox"));

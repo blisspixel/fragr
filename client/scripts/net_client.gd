@@ -35,6 +35,11 @@ func _init():
 var role = "spectator"
 var player_name = "Spectator"
 var player_id = null
+var _resume_token: String = ""
+var _leaving: bool = false
+var _resume_used: bool = false
+
+signal session_resumed
 
 func _ready():
 	set_process(false)
@@ -54,6 +59,8 @@ func connect_to_server(p_role: String = "spectator", p_name: String = "Player"):
 	role = p_role
 	player_name = p_name
 	player_id = null
+	_leaving = false
+	_resume_used = false
 	record.clear()
 	equipment.clear()
 	mission.clear()
@@ -77,7 +84,15 @@ func connect_to_server(p_role: String = "spectator", p_name: String = "Player"):
 	print("Connecting to ", server_url, " as ", role)
 	return true
 
+func leave_match() -> void:
+	_leaving = true
+	_resume_token = ""
+	if connection_state == WebSocketPeer.STATE_OPEN:
+		send_json({"type": "leave"})
+	disconnect_from_server()
+
 func disconnect_from_server():
+	_leaving = true
 	if connection_state != WebSocketPeer.STATE_CLOSED:
 		socket.close()
 	connection_state = WebSocketPeer.STATE_CLOSED
@@ -107,6 +122,18 @@ func join_ticket(for_role: String, secret: String, exp: int) -> String:
 		return ""
 	return "v1.%d.%s.%s" % [exp, for_role, mac.hex_encode()]
 
+func _try_resume() -> bool:
+	if _leaving or _resume_used or _resume_token == "" or (role != "human" and role != "agent"):
+		return false
+	_resume_used = true
+	socket = WebSocketPeer.new()
+	var err := socket.connect_to_url(server_url)
+	if err != OK:
+		return false
+	connection_state = socket.get_ready_state()
+	set_process(true)
+	return true
+
 func send_hello():
 	var hello = {
 		"type": "hello",
@@ -118,6 +145,8 @@ func send_hello():
 	var ticket := join_ticket(role, OS.get_environment("FRAGR_JOIN_SECRET"), int(Time.get_unix_time_from_system()) + 60)
 	if ticket != "":
 		hello["ticket"] = ticket
+	if role == "human" or role == "agent":
+		hello["resume"] = _resume_token
 	send_json(hello)
 
 func send_action(action: Dictionary):
@@ -199,6 +228,8 @@ func _process(_delta):
 			print("Connected to server!")
 			send_hello()
 			connected_to_server.emit()
+			if _resume_used:
+				session_resumed.emit()
 	
 	# A rejection and close frame may arrive in the same poll. Drain the final
 	# messages before retiring the session so the useful error is not discarded.
@@ -210,6 +241,8 @@ func _process(_delta):
 			return
 	if state == WebSocketPeer.STATE_CLOSED:
 		if _admission_error(socket.get_close_reason()):
+			return
+		if _try_resume():
 			return
 		print("Disconnected from server")
 		disconnect_from_server()
@@ -223,6 +256,7 @@ func _admission_error(code: String) -> bool:
 		"connection_limit": message = "This server is not taking more connections."
 		"address_limit": message = "Too many connections from this address."
 		"join_rejected": message = "This server refused the join."
+		"resume_rejected": message = "The previous pawn is gone."
 	if message.is_empty():
 		return false
 	disconnect_from_server()
@@ -247,6 +281,9 @@ func _handle_message(text: String):
 	
 	match msg_type:
 		"welcome":
+			if data.get("resume") is String and str(data["resume"]) != "":
+				_resume_token = str(data["resume"])
+			_resume_used = false
 			equipment.clear()
 			mission.clear()
 			mission_geometry.clear()
