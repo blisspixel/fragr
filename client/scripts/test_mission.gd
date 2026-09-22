@@ -253,7 +253,8 @@ func _input_and_hud(network: CaptureNetwork, state: Dictionary) -> void:
 	root.add_child(display)
 	display.apply(state, PLAYER)
 	await process_frame
-	_expect(display.visible and display._prompt.text.contains("READ") and display._copy.text.contains("Latch"), "local objective and physical prompt are readable")
+	_expect(display.visible and display._card.visible and display._prompt.text.contains("READ") and display._copy.text.contains("Latch"), "local objective and physical prompt are readable")
+	_expect(not display._copy.text.contains("forced correction"), "play does not keep the introduction paragraph on the card")
 	display.apply(state, "")
 	_expect(display._prompt.text.is_empty(), "spectators see state without another player's use prompt")
 	var arrival: Dictionary = state.duplicate(true)
@@ -270,6 +271,15 @@ func _input_and_hud(network: CaptureNetwork, state: Dictionary) -> void:
 	_expect(display._copy.text.contains("GEFANGENENTRANSPORT"), "runtime locale refreshes existing state")
 	TranslationServer.set_locale("en")
 	TranslationServer.remove_translation(translated)
+	display._process(MissionHud.STAGE_SECONDS)
+	_expect(not display._card.visible and display._prompt.text.is_empty(), "the objective card sets the stage and then leaves the view")
+	var briefing: Dictionary = state.duplicate(true)
+	briefing["phase"] = "briefing"
+	briefing["prompts"] = []
+	briefing["party"][0]["ready"] = false
+	display.apply(briefing, PLAYER)
+	display._process(MissionHud.STAGE_SECONDS)
+	_expect(display._card.visible and display._copy.text.contains("Annex 67"), "the introduction stays until the mission starts")
 	var departed: Dictionary = state.duplicate(true)
 	departed["phase"] = "departed"
 	departed["prompts"] = []
