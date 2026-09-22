@@ -38,7 +38,7 @@ Status words: **planned**, **in flight**, **implemented** (local evidence record
 | [`gpu-bot-compute.md`](./gpu-bot-compute.md) | **planned** | Portable optional GPU perception/inference, measured against CPU queries with rendering contention and fallback. |
 | [`audio-effects-refresh.md`](./audio-effects-refresh.md) | **in flight** | Distinct weapon, movement, impact and world sounds; capped candidates and in-game mix verification. |
 | [`radio-refresh.md`](./radio-refresh.md) | **in flight** | Two fictional talk formats and world-appropriate music; staged pilots, captions and distribution review. |
-| [`campaign-scenes.md`](./campaign-scenes.md) | **planned** | Skippable localized opening and short pixel-style scenes; matched reference shots before video spend. |
+| [`campaign-scenes.md`](./campaign-scenes.md) | **planned** | Between-mission pixel text first. Spoken clips after the page is frozen. Seedance video waits until the playable campaign is built. |
 | [`inheritance-benchmark.md`](./inheritance-benchmark.md) | **later** | Research-grade agent strategy/wipe simulation; controlled budgets, held-out tasks, replay and validated capability claims. |
 | [`campaign-story-alignment.md`](./campaign-story-alignment.md) | **shipped** (#173) | Original world alignment and treatment. Current ten-mission/epilogue contract supersedes that structure; design only. |
 | [`authored-compliance-yard.md`](./authored-compliance-yard.md) | **deferred** | Multiplayer spatial study; the campaign opening now has its own M01 brief. |

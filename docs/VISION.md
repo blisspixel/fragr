@@ -58,8 +58,9 @@ planetary. Voss has been captured alive; the catastrophe interrupts her reckonin
 The agreed target is nine compact missions, a substantial wipe survival finale
 and a conditional short epilogue within a 2-3-hour successful run. Their
 [proposed treatment](CAMPAIGN-MISSIONS.md) derives places from story rather than
-adapting existing arena boxes. Localized text, optional voice and brief matching
-cutscenes support the story; radio is tiny optional background flavor.
+adapting existing arena boxes. Between missions, localized pixel text frames
+the story. Optional voice can read that page later. Matching cutscenes wait
+until the playable campaign is built. Radio is tiny optional background flavor.
 
 The ending leaves troubling evidence of a forecast or simulation informing the
 Inheritance's choice, without confirming that the world was unreal. A separate

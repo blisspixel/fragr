@@ -1,12 +1,20 @@
 # Campaign scene production
 
-**Status:** researched direction, 2026-09-19; storyboard and generation comparison
-planned. M01's localized text presenter and server readiness are implemented
-for [#192](m01-opening.md). No campaign movie or
+**Status:** text first, 2026-09-22. M01's localized text presenter and server
+readiness are implemented for [#192](m01-opening.md). No campaign movie or
 narrator asset is implemented. The
 [campaign contract](../CAMPAIGN.md#story-presentation-and-localization) owns
 presentation behavior; [M01](../campaign/m01-recall-notice.md#opening-storyboard)
 owns the opening beats. This file owns production choices and current research.
+
+**Spend gate, Nick, 2026-09-22:** between missions, the frame is a full-screen
+pixel text page in the Doom II intermission shape: heavy type, a few lines,
+reader-paced, skippable. Optional spoken clips for those same pages can be
+made later with `tools/audiogen` once the wording is frozen. Higgsfield video,
+including Seedance 2.5 reference-to-video and any consistent-character
+cutscene, waits until the playable campaign is built. Missions, characters,
+and sentences are still moving. A video spent now would be thrown away.
+The comparison below is research, not permission to submit.
 
 ## First delivery
 
@@ -85,8 +93,10 @@ Compare the same intended action and framing across the two primary candidates.
 The second shot tests ensemble consistency without generating the whole wipe.
 No finished art exists for these shots yet; do not spend on vague placeholders.
 
-Proposed comparison ceiling: $3 aggregate, within the verified remaining approved
-Higgsfield allowance. This is a cap, not a price estimate or a new allowance.
+The comparison ceiling written on 2026-09-19 was $3 aggregate, inside the
+approved Higgsfield allowance, and it is not an open authorization. Do not
+submit it while the campaign is still being built. When that gate opens, the
+cap is still not a price estimate or a new allowance.
 Reserve outstanding request costs; stop if the exact quote cannot fit. No automatic
 top-up, speculative retry after a timeout, or new model purchase. Retain request
 receipts and resume polling existing jobs before submitting replacements.
