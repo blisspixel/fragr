@@ -23,10 +23,7 @@ The engineering ladder for scale runs through every phase: small squads first (f
 - Decision-brain agent (`agents/brain`): a fighter whose stance, weapon, and danger read come from Jev (TypeSafe natively or through OpenRouter) at up to five decisions per second while a local controller plays every tick. Paid providers refuse to start without an explicit cap; every call is estimated, settled, and ledgered. Local rules play for free and CI proves that path.
 - CI on Linux: fmt, clippy with warnings denied, tests, deterministic benchmark and budget checks, the agent playtest smoke with thresholds, an unfiltered 90 percent line coverage floor, release build, cargo-deny for licences, bans, and sources, and headless Godot checks. Windows and macOS also pass workspace tests and Godot checks.
 - Live tip screenshots, a one-command Solo Scrap launcher, self-host guides, and plan-only GCP Terraform.
-- v0.34.0: Recall Notice's bypass is its own fight, the records deck can see the custody lift, departure names the correction ward, and leaving an owned Single Player run says the run is abandoned. The watch and the join are the Godot app.
-- v0.35.0: incoming frames stop at 64 KiB, a stalled handshake or hello releases its slot, one address cannot hold every connection, and inbound text stops after a burst of 64 and 256 per second. A quiet spectator stays connected.
-- Join tickets: `FRAGR_JOIN_SECRET` makes a hosted server refuse a human or agent hello that lacks a short HMAC ticket. Spectators can still watch. No secret keeps local and LAN hello open.
-- Pawn resume: a human or agent that asks keeps the same pawn for ten seconds after a dropped socket. An explicit leave removes it immediately. A hello that does not ask still removes the pawn on close.
+- v0.34.0 through v0.42.0 are recorded in [the changelog](../CHANGELOG.md). In short: Recall Notice's routes and exit, connection caps, `GET /status`, the live host line in the app, join tickets, a ten-second pawn resume, the mission card leaving after it sets the stage, player-facing gun names, and weapon cycling. The README shows four stills.
 - Two developer-only generation pipelines: `tools/audiogen` for audio and `tools/spritegen` for art. Audio uses per-run estimate caps and requires quota reconciliation; art has durable request reservations. Neither replaces asset review. The first art slice produced twenty-four frames for sixty-nine cents, with surfaces rejected.
 - The setting has three sides: the Union/Chancellery, free humans and conscious agents with agency, and the Inheritance. The Inheritance's ecological recovery and mass killing leave conflicting survivor perspectives, not a narrator's declaration that it is right. `docs/lore/` owns the world and voice; bodies do not establish who has freedom or whose suffering matters.
 
@@ -42,6 +39,8 @@ must be checked before any new call rather than inferred from that old balance.
 **Not built yet (honest list):** low-latency transport (WebSocket JSON only), live client prediction (shared movement vectors exist), packaged release downloads, a complete protocol migration policy (geometry and gameplay admission exist), kick-on-repeat and ban lists, unlimited lifetime statistics, progression, DJ bumpers and a voiced Host, a finished single-player campaign or full co-op lifecycle, a game icon (the project icon and the Windows taskbar are still the Godot mark, including `client/icon.svg`), a complete art pass, public-server load tests, any cloud apply, vehicles, and multiplayer objective modes. `GET /status` on the game port is a host probe in the current line of work, not an in-app server browser and not a web client. M01 has a developing discovery/combat/mission slice; Episode 0 remains a separate arena prototype. A deterministic local benchmark already exists; it does not establish public-server readiness. Frame caps, connection caps, and the inbound message budget shipped in v0.35.0.
 
 ## What is next, in order (as of 2026-09-20)
+
+The current sequence is the [full build order](#full-build-order-2026-09-22) below. This section records increments that already shipped. It is not the queue.
 
 **Active milestone: [local excellence](plans/local-excellence.md).** The first
 increment shipped in [v0.15.0](https://github.com/blisspixel/fragr/releases/tag/v0.15.0):
@@ -188,13 +187,15 @@ players' frag/streak camera shakes. Round summaries remain separate.
 
 The revised level plans place simple doors, switches and lifts in working spaces,
 and a later combined-arms vehicle showcase in M08's launch works. General moving
-lifts and vehicles remain unbuilt. Remote charges and proximity tins belong to
-the planned arsenal; gold finishes and curated weapon colors are cosmetic-only
-achievement directions under #197.
+lifts and vehicles remain unbuilt. The sniper rifle, grenade, proximity mine,
+remote mine, and rocket launcher are campaign finds in
+[the readable arsenal](plans/readable-arsenal.md) and are not implemented. Gold
+finishes and curated weapon colors are cosmetic-only achievement directions
+under #197.
 
 The phases below are the long shape. The sequence that follows is the build order. Each rung is there because the rung before it is what makes the next one true. A green harness is not a finished mission. A scripted clear is not a fresh player.
 
-## Full build order (2026-09-21)
+## Full build order (2026-09-22)
 
 **Active goal:** build the agreed game through a proven 1.0. That is Recall Notice as the quality bar, then each later mission on systems the whole campaign reuses, then local prediction before the first long Rail lane, then the wipe and its conditional epilogue, then a LAN proof, then an exposed server. Cloud apply, matchmaking, and conquest-scale vehicles stay behind that server. The story spine in [`CAMPAIGN.md`](CAMPAIGN.md) is settled. Names, rescue tradeoffs, wipe operations, and the reprieve's exact terms stay proposals until the gate that needs them. Mission briefs live in [`CAMPAIGN-MISSIONS.md`](CAMPAIGN-MISSIONS.md) and [one plan per level](campaign/README.md). Geometry comes from the mission, not from an arena layout. The six current layouts stay playable foundations. Boltgun remains the visual bar for a played sequence, not a reason to generate the roster before the first two enemies read.
 
@@ -202,7 +203,7 @@ The numbered list that used to sit here is historical. It put the campaign found
 
 Story between missions is a full-screen pixel text page, the same family as the M01 opening. Optional spoken clips for those pages come through `tools/audiogen` only after the wording is frozen. Higgsfield video, including Seedance 2.5 character cutscenes, waits until the playable campaign is built. A movie spent while the missions are still moving would be thrown away. [`plans/campaign-scenes.md`](plans/campaign-scenes.md) holds that gate.
 
-Admission is moving beside these mission rungs. Frame caps, per-address caps, the inbound budget, `GET /status`, the app match line, and join tickets are on main. A client that asks keeps its pawn for ten seconds after a dropped socket. Input stops, the body can still be shot, and an explicit leave removes it now. Next on that seam is a measured spectator fan-out before any higher connection cap. Those rungs do not close the M01 quality gate. The next mission rung is still two readable enemies.
+Admission sits beside the mission rungs and does not close the M01 quality gate. v0.35.0 through v0.39.0 shipped frame caps, per-address caps, the inbound budget, `GET /status`, the app match line, join tickets, and a ten-second pawn resume. v0.40.0 lets the mission card leave after the introduction. v0.41.0 is the player-facing gun names. v0.42.0 is weapon cycling and four README stills. Next on the server seam is a measured spectator fan-out before any higher connection cap. The next mission rung is still two readable enemies. Rungs 1 and 2, the routes and the building explaining itself, are done.
 
 **1. Make M01's two routes a real choice, and prove a sloppy clear.** This is first because the records wing, the lift, and the three continues already exist. The bypass is its own encounter: reception's region does not wake it, and its ammo is not standing on the sentry. Both seeded routes still depart. A seeded bypass clear also departs after one Flechette magazine is fired into the bypass ceiling, without claiming the file-stack supplies, and without walking the west side of sorting. The east route now leaves all four file-stack guards alive. `files_a_return` closes the shot from the records approach, around (-18, 10.7), through the stacks doorway. The reception counter screen, the bypass lip, and a narrow stacks screen keep sorting and the bypass from being cleared early, without moving `stacks_sweeper` and without sealing `stacks_cross_aisle`. Seed 67, human control, `east_bypass_departs_with_all_stack_guards_alive`: 1639 ticks, 80 hp, 0 armor, 16 defeats, 101 shots. This seeded sightline debt is closed. Secrets, a new weapon, and disk saves do not belong in this rung. The next rung is the building explaining itself.
 
@@ -218,7 +219,7 @@ Admission is moving beside these mission rungs. Frame caps, per-address caps, th
 
 **7. M03, then the controls the Rail lane needs.** M03 adds the district, the Heavy Sweeper, and the Turret, and no new gun. Both named rescues have to persist. Disk save and the outcome record are part of calling Act I a release. Then buttery stages 2 through 6, still on WebSocket: movement constants in seconds, prediction and reconciliation of the local body only, interpolation of everyone else, bounded hitscan lag compensation, and gamepad curves. M04 is the first deliberate long Rail shot, which is the first place a late snapshot spoils the fight. Do not stop M01 to migrate the clock.
 
-**8. One new capability per later mission.** M04 teaches the existing Rail and keeps a bypass that ordinary guns can finish. M05 introduces proximity tins and the Lobber on one placed-device seam, plus the Auditor. M06 teaches the Repeater and doors that close during play, always with a bypass. M07 teaches the Arc against readable armor. M08 finishes its infantry route before adding one rover the mission can afford to lose. M09 spends scarce Denial charges and captures Voss alive. M10 prototypes the survival route before its encounter budget is locked, then the conditional epilogue. Sniper, hand grenades, and remote mines have no teaching mission. They wait until after this run, and any later splash or trap reuses the M05 seam.
+**8. One new capability per later mission.** M03 finds the grenade on the ordinary route and adds no new mandatory gun. M04 teaches the Railgun in customs and finds the Sniper Rifle on the crater cut. M05 introduces proximity mines. M06 finds remote mines after that lesson, and doors that close during play always have a bypass. M08 finds the rocket launcher before the exterior crest, and finishes its infantry route before adding one rover the mission can afford to lose. None of those five weapons is implemented. Splash and traps share one server-owned projectile and placed-device seam when they are built. M07, M09, and M10 stay as proposed in the mission briefs. M10 prototypes the survival route before its encounter budget is locked, then the conditional epilogue.
 
 **9. Promote audio and replace provisional art only after acceptance.** M01 ships on the committed library. Candidate shows and replacement effects stay out of the game until a listening pass, a canon check, and an in-game mix. Generating the rest of the roster before the first two enemies read is how the art drifts. Published stills of this work stay labeled as the development mission until rung 5 passes.
 
@@ -300,18 +301,18 @@ Status: **in progress**. This phase decides whether the game is fun. Everything 
 
 Exit bar: the fun bar below passes on a LAN session with mixed humans and agents, and a stranger can be handed the repo and reach a fight in under two minutes.
 
-The next weapon work is the gun the next mission teaches. Scatter is already in the sim and belongs in M02. A sniper, hand grenades, and remote mines are recorded in [readable-arsenal.md](plans/readable-arsenal.md) and have no teaching mission, so they wait until the campaign run exists. Display names can change without adding a gun.
+The next weapon work is the gun the next mission teaches, not another rename. The shotgun is already in the sim and belongs in M02. The sniper rifle, grenade, proximity mine, remote mine, and rocket launcher are locked to later missions in [readable-arsenal.md](plans/readable-arsenal.md) and are not implemented. v0.41.0 shipped the display names. v0.42.0 shipped the wheel and the number keys.
 
 ## Phase 2: Exposed server (public, still cheap)
 
-Status: **planned**. The server becomes something you would open to the internet.
+Status: **in progress** on the first rungs. The exit bar, a public week, is not met. The server is not something to open to the internet yet.
 
-1. **Hardening.** Join tokens or a server password, per-connection message rate and size caps, idle timeouts, player and spectator caps, name validation, structured audit logs for join, leave, and rejects. Plan with settings and crates: `plans/public-server-hardening.md`. Evidence: tests for every reject path and a fuzz run over the wire parser.
+1. **Hardening.** v0.35.0 shipped frame caps, connection caps, and the inbound budget. v0.38.0 shipped HMAC join tickets when a host sets `FRAGR_JOIN_SECRET`. Idle kick, ban lists, and a structured audit log are still open. Plan: `plans/public-server-hardening.md`. Evidence: tests for every reject path and a fuzz run over the wire parser.
 2. **Protocol versioning.** `protocol_version` in `Hello` and clear rejection on mismatch (the MCP revision move lives in Phase 1 under the agent door). Evidence: compatibility tests.
 3. **Transport spike.** Measure WebSocket latency under load, then prototype the UDP path described in [`TRANSPORT.md`](./TRANSPORT.md). Keep WebSocket for spectators and agents. Decide with numbers; the pass thresholds are in `plans/buttery-controls.md`. Evidence: a benchmark table in a plan doc.
 4. **Snapshot efficiency.** Delta snapshots, interest management by distance, and a binary encoding option once the JSON path is measured. Evidence: bytes per tick per client before and after.
-5. **Reconnect and resume.** A session token that reattaches a dropped human or agent to its pawn within a grace window. Evidence: tests plus a recorded kill-and-reconnect.
-6. **Status probe, then a server list.** `GET /status` on the game port is the host probe: map, round, and counts of humans, agents, bots, and connections. It is not a web client. Watching and joining stay in the Godot app. A server list inside that app, and the benchmark percentiles on the same response, are still open (`plans/public-server-hardening.md`).
+5. **Reconnect and resume.** v0.39.0 keeps a pawn that asked for ten seconds. The body can still be shot. An explicit leave removes it now. A longer session, TLS, and idle ping drops remain open. Evidence: tests plus a recorded kill-and-reconnect.
+6. **Status probe, then a server list.** v0.36.0 shipped `GET /status` on the game port. v0.37.0 shows that line in the app before Watch or Join. It is not a web client. A server list inside the app, and the benchmark percentiles on the same response, are still open (`plans/public-server-hardening.md`).
 7. **Desktop exports.** Presets for Windows, macOS, and Linux shipped (#88). Remaining: built on tags in CI and attached to releases. Evidence: a release with binaries that boot to Solo Scrap.
 8. **Observability.** Tick time histogram, per-client bandwidth, crash-free uptime, and a health check. Evidence: metrics visible in logs during a load test.
 9. **Prove it with strangers.** Home box or cheap VPS with port 6767 open, at least one session with people and agents who are not the maintainer. Evidence: a recorded session and a hosting guide updated from what actually went wrong.

@@ -1,7 +1,7 @@
 # Recall Notice: complete mission
 
-Status: in flight, 2026-09-21. [Task #195](https://github.com/blisspixel/fragr/issues/195).
-The active slice is the [full build order](../ROADMAP.md#full-build-order-2026-09-21). The bypass is now `bypass_watch`, reception does not contain its entry region, and `bypass_darts` is not on the sentry. Both seeded routes still depart. A seeded bypass clear spends one Flechette magazine into the ceiling and still departs without claiming `stacks_darts`, `stacks_armor`, or `stacks_medkit`. The east route leaves all four file-stack guards alive. The records deck can see the lift sign through the old office-front opening and cannot see the transfer guards from a standing eye. Secrets, disk saves, final art, and the fresh-player review stay open. The rest of the building-explains-itself rung is still open: room materials, departure copy, the leave warning, and inspected route stills.
+Status: in flight, 2026-09-22. [Task #195](https://github.com/blisspixel/fragr/issues/195).
+The active slice is the [full build order](../ROADMAP.md#full-build-order-2026-09-22). Routes, the balcony view of the lift, departure copy, the leave warning, and the published room stills shipped through v0.40.0. The objective card leaves after the introduction. The bypass is its own fight. The east route leaves all four file-stack guards alive. Secrets, disk saves, final art, and the fresh-player review stay open. The next rung is two readable enemies.
 Baseline: v0.28.0, `e845236`. Its tree matches the final revision of #193, with all
 five integration jobs passing. The three-enemy prototype is not a full mission.
 Spend: local work first; the uncertain Clerk reference reservation remains held.
