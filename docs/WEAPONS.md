@@ -1,5 +1,13 @@
 # The weapons
 
+Player-facing names, as of 2026-09-22: Fists, Pistol, Rifle, Shotgun, Railgun.
+The corner and the pickup read those words. Wire ids stay `fists`, `tack`,
+`flechette`, `scatter`, and `rail`. Ammo pads read Bullets, Shells, and Cells.
+Rifle and Shotgun still share the shells reserve. A distinct sniper, grenades,
+and mines remain planned in
+[the readable arsenal](plans/readable-arsenal.md). The mechanics below still
+use the wire names.
+
 The canonical arsenal direction, pickup economy and sound roles. Current M01
 implements fists, found Tack and Flechette, owned selection, finite magazines,
 pooled reserves and reload. The same inventory supports Scatter and Rail, tested

@@ -31,6 +31,7 @@ Status words: **planned**, **in flight**, **implemented** (local evidence record
 | [`campaign-spaces.md`](./campaign-spaces.md) | **proven** (#176, v0.22.0) | Real ceilings, accessible balconies, layered routes and matching collision/rendering for M01. |
 | [`authored-campaign-maps.md`](./authored-campaign-maps.md) | **proven** (#177, v0.23.0) | Validated map files, explicit indoor spawns and M01's traversal blockout through the live server. |
 | [`m01-weapon-discovery.md`](./m01-weapon-discovery.md) | **proven** (#179, #181, v0.24.0) | Fists-to-Tack/Flechette discovery, finite ammunition, reload and compatible human/agent presentation. |
+| [`readable-arsenal.md`](./readable-arsenal.md) | **in flight** | Player-facing Pistol, Rifle, Shotgun, and Railgun. Pads read Bullets, Shells, and Cells. Sniper, grenades, and mines remain unbuilt. |
 | [`m01-intake-encounter.md`](./m01-intake-encounter.md) | **in flight** ([#180](https://github.com/blisspixel/fragr/issues/180)) | Authored human Clerk and Sweeper bot fights, explicit hostility, readable attacks and inspected motion. |
 | [`m01-facility-detail.md`](./m01-facility-detail.md) | **shipped** (#182, v0.25.0) | Bounded surface details, localized signs and practical lights make the intake rooms legible. |
 | [`m01-mission-sequence.md`](./m01-mission-sequence.md) | **shipped** (#184, v0.26.0) | Physical transfer-record interaction, authoritative lift gate and shared departure state. |

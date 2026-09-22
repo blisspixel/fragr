@@ -127,7 +127,7 @@ func _show_record(index: int) -> void:
 		if int(counts["attacks"]) == 0:
 			continue
 		lines.append(tr("RECORD_WEAPON").format({
-			"weapon": String(EquipmentState.WEAPONS[weapon]).to_upper(), "hits": int(counts["damaging_attacks"]),
+			"weapon": EquipmentState.display_name(String(EquipmentState.WEAPONS[weapon])).to_upper(), "hits": int(counts["damaging_attacks"]),
 			"attacks": int(counts["attacks"]), "percent": "%.1f" % (100.0 * float(counts["damaging_attacks"]) / float(counts["attacks"])),
 		}))
 	if PlayerRecord.sum_weapon(total, "attacks") == 0:

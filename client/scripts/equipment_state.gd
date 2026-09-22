@@ -7,7 +7,15 @@ const MAGAZINES: Dictionary = {"fists": 0, "tack": 12, "flechette": 30, "scatter
 const POOLS: Dictionary = {"tack": "tacks", "flechette": "darts", "scatter": "darts", "rail": "cores"}
 const CAPACITIES: Dictionary = {"tacks": 220, "darts": 120, "cores": 100}
 const RELOAD_TICKS: Dictionary = {"tack": 18, "flechette": 22, "scatter": 26, "rail": 28}
+const DISPLAY_NAMES: Dictionary = {"fists": "Fists", "tack": "Pistol", "flechette": "Rifle", "scatter": "Shotgun", "rail": "Railgun"}
+const POOL_NAMES: Dictionary = {"tacks": "Bullets", "darts": "Shells", "cores": "Cells"}
 const MAX_EXACT_INTEGER: int = 9007199254740991
+
+static func display_name(weapon: String) -> String:
+	return str(DISPLAY_NAMES.get(weapon.to_lower(), weapon))
+
+static func pool_name(pool: String) -> String:
+	return str(POOL_NAMES.get(pool.to_lower(), pool))
 
 static func integer(value: Variant, maximum: int) -> bool:
 	return (value is int or value is float) and is_finite(float(value)) \

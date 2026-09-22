@@ -4,7 +4,7 @@
 weapon discovery and a draft twenty-guard population. Intake and maintenance
 stairs converge at records reception; file stacks and a service bypass lead to
 sorting, dispatch, transfer control and the custody lift. Enter with fists, find
-Tack and Flechette, collect finite campaign supplies and reload. Clerks and
+the pistol and the rifle, collect finite campaign supplies and reload. Clerks and
 Sweepers share authoritative attack, hit and death states.
 Enemy artwork and animation remain provisional. The physical transfer record
 opens the custody lift; the party can then depart together. This ends the current
