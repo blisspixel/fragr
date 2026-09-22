@@ -217,6 +217,64 @@ async fn oversized_text_closes_without_blocking_the_next_client() {
 }
 
 #[tokio::test]
+async fn action_flood_is_dropped_before_the_tick_queue() {
+    let (tx, mut commands) = mpsc::unbounded_channel();
+    let server = NetServer::bind("127.0.0.1:0", tx).await.unwrap();
+    let address = server.local_addr().unwrap();
+    let accept = tokio::spawn(server.accept_loop());
+    let (mut socket, _) = connect_async(format!("ws://{address}")).await.unwrap();
+    socket
+        .send(Message::Text(
+            r#"{"type":"hello","role":"human","name":"Flood"}"#.to_string(),
+        ))
+        .await
+        .unwrap();
+    let reply = timeout(Duration::from_secs(2), socket.next())
+        .await
+        .unwrap()
+        .unwrap()
+        .unwrap();
+    assert!(matches!(
+        serde_json::from_str::<ServerMessage>(reply.to_text().unwrap()).unwrap(),
+        ServerMessage::Welcome {
+            player_id: Some(_),
+            ..
+        }
+    ));
+    assert!(matches!(
+        timeout(Duration::from_secs(2), commands.recv())
+            .await
+            .unwrap(),
+        Some(GameCommand::Connected { .. })
+    ));
+    for _ in 0..200 {
+        socket
+            .send(Message::Text(
+                r#"{"type":"action","forward":true}"#.to_string(),
+            ))
+            .await
+            .unwrap();
+    }
+    let mut actions = 0;
+    while timeout(Duration::from_millis(50), commands.recv())
+        .await
+        .ok()
+        .and_then(|message| message)
+        .is_some_and(|command| {
+            if matches!(command, GameCommand::Action { .. }) {
+                actions += 1;
+            }
+            true
+        })
+    {}
+    assert!(
+        (1..80).contains(&actions),
+        "flood reached the tick queue: {actions}"
+    );
+    accept.abort();
+}
+
+#[tokio::test]
 async fn stalled_handshake_and_hello_release_their_slot() {
     let (tx, mut commands) = mpsc::unbounded_channel();
     let mut server = NetServer::bind("127.0.0.1:0", tx).await.unwrap();

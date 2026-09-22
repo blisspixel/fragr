@@ -95,8 +95,9 @@ hello each have five seconds. The process holds at most 64 connections, and
 `address_limit` and closes. A stalled handshake or a client that never says
 hello releases its slot. A quiet spectator is not dropped for silence: after
 hello, snapshots are the server's traffic, and an idle kick would end watch
-mode. Per-message action rate limits, join tickets, and reconnect are separate
-later work.
+mode. Further inbound text, including actions, is limited to a burst of
+64 and 256 per second. Extra messages are dropped and the player stays
+connected. Join tickets and reconnect are separate later work.
 
 ### Mission sequence
 

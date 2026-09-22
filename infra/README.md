@@ -22,7 +22,7 @@ Until Nick explicitly accepts a paid PoC:
 2. **Ephemeral external IP** (no orphan reserved static IPv4). **Cost honesty:** ESTIMATE ~$3.65/mo for sustained use (Free Tier IP is 1 hour/month crumb, not always-free at $0.005/h). **Public TCP+UDP 6767** is the stranger/agent join path (no VPN). Tailscale Personal is optional private/dev only; do not close public 6767 for the shipped Minecraft-shaped story.
 3. **Tight firewall:** game port(s) + **SSH via IAP only** (no world SSH).
 4. **HTTP agent-adapter (optional):** Cloud Run with **`min_instances=0`** + invoker IAM; private path to VM admin API. **Not** the raw game socket.
-5. **Never** put authoritative tick on Cloud Run/Functions as a free UDP front door (no inbound UDP). Slice 1 is WebSocket today; still prefer **GCE for long-lived authority**.
+5. **Never** put authoritative tick on Cloud Run/Functions as a free UDP front door (no inbound UDP). Slice 1 is WebSocket today; still prefer **GCE for long-lived authority**. The same rule covers a later central service: the sim is a long-lived process you can also run yourself. Serverless is for a status page, join tickets, and a server list. It is not a stand-in for the 20 Hz server. Watchers are the scale. The fight stays a bounded mix of humans and agents.
 
 ## Identity and secrets (required before modules)
 

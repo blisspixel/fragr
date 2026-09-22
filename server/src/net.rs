@@ -23,6 +23,37 @@ const HANDSHAKE_TIMEOUT: Duration = Duration::from_secs(5);
 const HELLO_TIMEOUT: Duration = Duration::from_secs(5);
 const MAX_CONNECTIONS: usize = 64;
 const MAX_CONNECTIONS_PER_IP: usize = 16;
+/// A displayed frame can send one action. 256 per second covers a fast
+/// monitor. A tighter flood is dropped before it reaches the tick queue.
+const INBOUND_PER_SEC: f32 = 256.0;
+const INBOUND_BURST: f32 = 64.0;
+
+struct InboundBudget {
+    tokens: f32,
+    updated: std::time::Instant,
+}
+
+impl InboundBudget {
+    fn new() -> Self {
+        Self {
+            tokens: INBOUND_BURST,
+            updated: std::time::Instant::now(),
+        }
+    }
+
+    fn allow(&mut self) -> bool {
+        let now = std::time::Instant::now();
+        let elapsed = now.saturating_duration_since(self.updated).as_secs_f32();
+        self.updated = now;
+        self.tokens = (self.tokens + elapsed * INBOUND_PER_SEC).min(INBOUND_BURST);
+        if self.tokens >= 1.0 {
+            self.tokens -= 1.0;
+            true
+        } else {
+            false
+        }
+    }
+}
 
 fn websocket_limits() -> WebSocketConfig {
     #[allow(deprecated)]
@@ -513,6 +544,7 @@ async fn handle_connection(
 
     let role = role.unwrap();
 
+    let mut inbound = InboundBudget::new();
     let send_task = tokio::spawn(async move {
         while let Some(msg) = rx.recv().await {
             let Ok(json) = serde_json::to_string(&msg) else {
@@ -528,6 +560,9 @@ async fn handle_connection(
     while let Some(msg) = ws_stream.next().await {
         match msg {
             Ok(Message::Text(text)) => {
+                if !inbound.allow() {
+                    continue;
+                }
                 if role != Role::Spectator {
                     match serde_json::from_str::<ClientMessage>(&text) {
                         Ok(ClientMessage::Action(action)) => {
