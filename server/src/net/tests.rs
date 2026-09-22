@@ -158,7 +158,7 @@ async fn status_get_reports_the_match_without_taking_a_slot() {
         .unwrap();
     let text = String::from_utf8_lossy(&buf[..n]);
     assert!(text.starts_with("HTTP/1.1 200"), "{text}");
-    assert!(text.contains("Access-Control-Allow-Origin: *"));
+    assert!(!text.contains("Access-Control-Allow-Origin"));
     let body = text.split("\r\n\r\n").nth(1).unwrap();
     let live: crate::protocol::LiveStatus = serde_json::from_str(body).unwrap();
     assert_eq!(live.map, "Arena Duel");

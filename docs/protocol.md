@@ -102,8 +102,9 @@ connected. Join tickets and reconnect are separate later work.
 `GET /status` on the game port, before any WebSocket upgrade, returns a JSON
 `LiveStatus` (`schema_version` 1): map name, round, tick, fighters, humans,
 agents, bots, and connections. It does not list callsigns or addresses, and it
-does not take a connection slot. A browser may read it (`Access-Control-Allow-Origin: *`).
-The timing percentiles stay on the server log.
+does not take a connection slot. It is a host probe for a server list or a
+process check. Watching and playing happen in the Godot app. The timing
+percentiles stay on the server log.
 
 ### Mission sequence
 
