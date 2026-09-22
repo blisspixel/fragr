@@ -91,13 +91,31 @@ static func compliance() -> Preset:
 	)
 
 
+## An enclosed Union interior. Ceilings stop the outdoor key from reaching a
+## face turned toward the player, so this ambient is the fill. It stays light
+## enough that a wall at arm's length still shows its material.
+static func facility() -> Preset:
+	return Preset.new(
+		Color(0.063, 0.075, 0.086),
+		Color(0.145, 0.184, 0.176),
+		Color(0.110, 0.133, 0.125),
+		Color(0.145, 0.160, 0.150),
+		0.012,
+		Color(0.72, 0.74, 0.70),
+		1.05
+	)
+
+
 ## Pick the venue's sky by map name.
 ##
 ## Matched loosely on the name the server sends, because MapInfo carries a
 ## display name rather than an identifier, and an unknown venue gets the
-## scrapyard rather than nothing.
+## scrapyard rather than nothing. Recall Notice is an interior, so it does not
+## inherit the outdoor scrap fill.
 static func preset_for(map_name: String) -> Preset:
 	var key: String = map_name.strip_edges().to_lower()
+	if key.contains("recall"):
+		return facility()
 	if key.contains("compliance") or key.contains("yard"):
 		return compliance()
 	return scrapyard()

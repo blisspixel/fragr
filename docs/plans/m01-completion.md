@@ -1,6 +1,7 @@
 # Recall Notice: complete mission
 
-Status: in flight, 2026-09-20. [Task #195](https://github.com/blisspixel/fragr/issues/195).
+Status: in flight, 2026-09-21. [Task #195](https://github.com/blisspixel/fragr/issues/195).
+The active slice is the [full build order](../ROADMAP.md#full-build-order-2026-09-21). The bypass is now `bypass_watch`, reception does not contain its entry region, and `bypass_darts` is not on the sentry. Both seeded routes still depart. A seeded bypass clear spends one Flechette magazine into the ceiling and still departs without claiming `stacks_darts`, `stacks_armor`, or `stacks_medkit`. The east route leaves all four file-stack guards alive. The records deck can see the lift sign through the old office-front opening and cannot see the transfer guards from a standing eye. Secrets, disk saves, final art, and the fresh-player review stay open. The rest of the building-explains-itself rung is still open: room materials, departure copy, the leave warning, and inspected route stills.
 Baseline: v0.28.0, `e845236`. Its tree matches the final revision of #193, with all
 five integration jobs passing. The three-enemy prototype is not a full mission.
 Spend: local work first; the uncertain Clerk reference reservation remains held.
@@ -278,3 +279,107 @@ The separate Sweeper original was recovered using its saved request ID. Dashboar
 charges total $0.184769, against two $0.107 estimates; billing showed $14.51
 remaining with top-up off. Both backgrounds are opaque checkerboards. These are
 reference candidates, not production sprites. Godot loaded both successfully.
+
+## Bypass miss budget, 2026-09-21
+
+`bypass_clear_still_departs_after_wasted_rounds_without_stack_supplies` takes the
+maintenance approach, fires one Flechette magazine (30 rounds) into the bypass
+ceiling, and still departs. Every wasted round is a solid impact from inside
+`bypass_watch`. `stacks_darts`, `stacks_armor`, and `stacks_medkit` stay
+available. Seed 67, human control. The test stays east of the file stacks. After the sightline screens below,
+the same command measured:
+
+| Ticks | HP | Armor | Defeats | Shots | Wasted | Darts magazine | Darts reserve |
+|---:|---:|---:|---:|---:|---:|---:|---:|
+| 1698 | 100 | 10 | 16 | 116 | 30 | 8 | 90 |
+
+Command: `cargo test -p fragr-server --locked bypass_clear_still_departs_after_wasted_rounds_without_stack_supplies`.
+`cargo fmt -p fragr-server` and `cargo clippy -p fragr-server --locked --all-targets -- -D warnings`
+pass. This is a seeded miss budget, not a fresh-player gate or a finished
+mission. The earlier 2090-tick, 20-defeat count walked the west side of
+sorting and is not this route.
+
+## East sightline, 2026-09-21
+
+`east_bypass_departs_with_all_stack_guards_alive` takes the maintenance
+approach, stays east of the file stacks, departs, and never sees or kills
+`stacks_clerk`, `archive_clerk`, `stacks_sweeper`, or `archive_sweeper`.
+`stacks_darts`, `stacks_armor`, and `stacks_medkit` stay available. Seed 67,
+human control.
+
+| Ticks | HP | Armor | Defeats | Shots |
+|---:|---:|---:|---:|---:|
+| 1639 | 80 | 0 | 16 | 101 |
+
+The records approach around (-18.5, 10.7) was shooting `stacks_sweeper`
+through the stacks doorway. `files_a_return` closes that lane and leaves the
+cross-aisle at z=23.5 walkable. Closing only that lane made the same approach
+die at the reception threshold after eight defeats, because the walker no
+longer paused there and instead cleared sorting through the open bypass.
+`reception_counter_screen` blocks that threshold gallery. `bypass_north_screen`
+hides `dispatch_clerk_east` from the bypass mouth so the ceiling-waste stand
+is not flanked. `stacks_north_screen` hides `archive_sweeper` from east
+sorting. A wider stacks screen, out to x=-37.1, made `stacks_cross_aisle`
+unreachable and was not kept. Moving `stacks_sweeper` onto the nearby cabinet
+remains rejected for the same eight-defeat death.
+
+`m01_main_and_maintenance_approaches_clear_with_discovered_equipment` and
+`later_guards_are_screened_from_the_previous_encounter_approach` still pass.
+The maintenance route that also walks west sorting still defeats the stack
+guards. That is not the east proof. This is a seeded sightline, not a
+fresh-player gate or a finished mission. Tour stills were not regenerated.
+
+## Balcony sightline, 2026-09-21
+
+`office_front_sill` replaces the full seal in the opening between the records
+deck and transfer control. The sill runs from y=3 to y=5. The header still
+starts at y=6.5, which leaves the view the level plan reserved. The solid stays
+inside the old seal, so it does not add a new walking obstacle.
+
+`records_balcony_sees_the_lift_sign_but_not_the_transfer_guards` loads the
+authored map. Feet (-4, 3, 9) stand on the records deck and see the lift sign.
+The route from `records_balcony` to that stand stays on the deck. The route
+onward to `records_reception` does not enter the transfer office. A half-metre
+grid of standing deck positions has no line of sight to `transfer_clerk`,
+`transfer_sweeper_west`, or `transfer_sweeper_east` at 0.2, half height, or
+full height.
+
+The three kept route proofs pass on this geometry.
+`east_bypass_departs_with_all_stack_guards_alive` matches the east sightline
+above: 1639 ticks, 80 hp, 0 armor, 16 defeats, 101 shots. Both
+discovered-equipment approaches still depart, and agent control matches human
+control:
+
+| Approach | Ticks | HP | Defeats | Shots |
+|---|---:|---:|---:|---:|
+| Public stairs | 1765 | 100 | 19 | 92 |
+| Maintenance | 1833 | 100 | 20 | 117 |
+
+`m01_routes_use_ordinary_actions_through_the_live_session` also passes. Commands:
+`cargo test -p fragr-server --locked --lib records_balcony_sees_the_lift_sign_but_not_the_transfer_guards`,
+then the same runner for `m01_routes_use_ordinary_actions_through_the_live_session`,
+`east_bypass_departs_with_all_stack_guards_alive`, and
+`m01_main_and_maintenance_approaches_clear_with_discovered_equipment`. This is a
+seeded sightline, not a fresh-player gate or a finished mission. Route stills
+were not regenerated.
+
+## Honest end of run, 2026-09-21
+
+`MISSION_DEPARTED` states the correction ward and that this mission ends
+here. It does not say the prototype is complete or that the next mission is
+in development. The boot menu still carries the development-mission label.
+`PauseMenu.local_campaign` is set only when `GameManager` boots in campaign
+mode. That menu says leaving abandons the run and does not refill continues.
+Every other match keeps the live-match note.
+
+`test_mission.gd` and `test_frontend.gd` passed headless on Godot 4.7.2.
+Room materials and inspected balcony stills remain open on this rung.
+
+## Registered room floors, 2026-09-21
+
+Reception stays bone enamel over green records tile. The file-stack walls
+are service steel on that same tile. Sorting stands on concrete. Dispatch
+stands on service steel. The lift face stays the lift panel. No solid moved.
+`recall_notice_rooms_do_not_share_one_floor` passes with the route and
+reachability tests. Inspected stills are still required before calling the
+rooms visually accepted.

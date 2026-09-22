@@ -11,6 +11,8 @@ var _open: bool = false
 var _panel: Panel = null
 var _column: VBoxContainer = null
 var _note: Label = null
+## True only for the owned local campaign. Arena and joined servers keep the live-match note.
+var local_campaign: bool = false
 var preferences: FragrSettings
 var _settings_panel: SettingsPanel
 var _settings_frame: PanelContainer
@@ -58,6 +60,8 @@ func _build() -> void:
 
 	_note = Label.new()
 	_note.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_note.custom_minimum_size = Vector2(640.0, 0.0)
 	_note.add_theme_font_size_override("font_size", 14)
 	_note.add_theme_color_override("font_color", Color(0.82, 0.55, 0.28))
 	_column.add_child(_note)
@@ -91,12 +95,31 @@ func _add_button(text: String, handler: Callable) -> void:
 func is_open() -> bool:
 	return _open
 
+## The owned Single Player process, or an explicit test flag. A joined server
+## and an arena match leave local_match empty.
+func _local_campaign_run() -> bool:
+	if local_campaign:
+		return true
+	var node: Node = get_parent()
+	while node != null:
+		if node.get("local_match") != null:
+			return true
+		node = node.get_parent()
+	return false
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_TRANSLATION_CHANGED and _open and _note != null:
+		_refresh_note()
+
+func _refresh_note() -> void:
+	_note.text = tr("MENU_LEAVE_ABANDONS_RUN" if _local_campaign_run() else "MENU_LIVE_MATCH")
+
 func open() -> void:
 	if _open:
 		return
 	_open = true
 	visible = true
-	_note.text = "LIVE MATCH. FIND COVER FIRST."
+	_refresh_note()
 	MouseCapture.release()
 	await get_tree().process_frame
 	for child in _column.get_children():

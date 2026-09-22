@@ -29,9 +29,10 @@ The engineering ladder for scale runs through every phase: small squads first (f
 **Generated art and audio:** twenty-four initial sprite frames (ten weapon
 viewmodels, six enemies, four effects, four rejected surfaces), plus a weapon
 bake-off. Three locally prepared idle viewmodels are now integrated. The remaining
-frames need integration. Twelve Chancellery addresses and a ten-part epilogue
-exist as assets, but require a story and language audit before selection. The old
-radio-only ending cannot be integrated as the new campaign's actual ending. The initial art receipt was $0.69; current remaining provider credit
+frames need integration. Twelve Chancellery addresses remain under story and
+language review. The old ten-part epilogue and 43 news/PSA/ad clips have been
+quarantined by the [audio cleanup](plans/music-review.md), with verified backups.
+The old radio-only ending cannot be integrated as the new campaign's actual ending. The initial art receipt was $0.69; current remaining provider credit
 must be checked before any new call rather than inferred from that old balance.
 
 **Not built yet (honest list):** low-latency transport (WebSocket JSON only), live client prediction (shared movement vectors exist), authentication or join tokens, per-connection rate limits and size caps, reconnect resume, packaged release downloads, a complete protocol migration policy (geometry/gameplay admission capabilities exist), a status endpoint, unlimited lifetime statistics, progression, DJ bumpers and a voiced Host, a finished single-player campaign or full co-op lifecycle, a complete art pass on sprites, guns, and levels, public-server load tests, any cloud apply, vehicles, and multiplayer objective modes. M01 has a developing discovery/combat/mission slice; Episode 0 remains a separate arena prototype. A deterministic local benchmark already exists; it does not establish public-server readiness.
@@ -187,70 +188,35 @@ lifts and vehicles remain unbuilt. Remote charges and proximity tins belong to
 the planned arsenal; gold finishes and curated weapon colors are cosmetic-only
 achievement directions under #197.
 
-The phases below are the long shape. This is the remaining build order, with the reason each item sits where it does.
+The phases below are the long shape. The sequence that follows is the build order. Each rung is there because the rung before it is what makes the next one true. A green harness is not a finished mission. A scripted clear is not a fresh player.
 
-**Immediate priority: review the revised mission treatment, then complete M01.**
-The agreed rescue-led story, sudden wipe, played aftermath and ambiguous final
-fragment live in [`CAMPAIGN.md`](CAMPAIGN.md). The detailed proposed route and
-spatial briefs live in [`CAMPAIGN-MISSIONS.md`](CAMPAIGN-MISSIONS.md), with [one detailed plan per level](campaign/README.md). Core story
-choices are settled; names, exact historical transitions, individual wipe operations,
-and individual rescue tradeoffs remain identified proposals. Derive geometry
-from the mission's purpose, not the current arena layout. The
-[authored layout brief](plans/authored-compliance-yard.md) captures the spatial bar.
-The all-map rendered audit confirms oversized open spaces and weak landmarks.
-The inspection-complex study is deferred and does not dictate the campaign
-opening. Build distinct spaces, alternate routes, deliberate elevation, protected
-spawns, and purposeful items. Integrate a melee start, discovered weapons and ammo,
-animated enemies, and finished combat effects into the first single-player level;
-an arena revision alone is insufficient. Boltgun is the visual production bar.
-The existing six layouts are playable foundations,
-not finished levels or proof that their reference-game comparisons were achieved.
+## Full build order (2026-09-21)
 
-**1. Reference preparation and consistent animation.** Specs already pass
-`params.image_urls` through. Prepare reusable references with verified current
-model limits, prove one complete animated character, then expand the roster.
-Safe recovery and quota reconciliation precede paid batches.
+**Active goal:** build the agreed game through a proven 1.0. That is Recall Notice as the quality bar, then each later mission on systems the whole campaign reuses, then local prediction before the first long Rail lane, then the wipe and its conditional epilogue, then a LAN proof, then an exposed server. Cloud apply, matchmaking, and conquest-scale vehicles stay behind that server. The story spine in [`CAMPAIGN.md`](CAMPAIGN.md) is settled. Names, rescue tradeoffs, wipe operations, and the reprieve's exact terms stay proposals until the gate that needs them. Mission briefs live in [`CAMPAIGN-MISSIONS.md`](CAMPAIGN-MISSIONS.md) and [one plan per level](campaign/README.md). Geometry comes from the mission, not from an arena layout. The six current layouts stay playable foundations. Boltgun remains the visual bar for a played sequence, not a reason to generate the roster before the first two enemies read.
 
-[Accepted request identity](plans/asset-request-identity.md) shipped in #191,
-with strict checks and all five CI jobs passing.
-A live reference submission exposed a gap: rejecting polling metadata discarded
-the returned request ID. Save that ID before checking the address and keep
-recovery bound to it. The existing uncertain reservation still needs dashboard
-reconciliation; do not buy a replacement to work around it.
+The numbered list that used to sit here is historical. It put the campaign foundation seventh, behind a generation pipeline M01 does not need, and it still treated gunfeel rung 2 as next after that work had shipped. Spend restraint stays: no paid batch to paper over the uncertain art reservation, no cloud, and no server browser.
 
-**2. Surfaces, properly.** The first attempt failed for two known reasons: reduced at 128 where 256 is the floor, and no seam checking of any kind. Needs larger output, prompts that spend detail on a few big features rather than many small ones, and a seam check in the reducer that wraps the tile and compares the gradient across the join against the gradient within the body. Levels cannot get an art pass without this.
+**1. Make M01's two routes a real choice, and prove a sloppy clear.** This is first because the records wing, the lift, and the three continues already exist. The bypass is its own encounter: reception's region does not wake it, and its ammo is not standing on the sentry. Both seeded routes still depart. A seeded bypass clear also departs after one Flechette magazine is fired into the bypass ceiling, without claiming the file-stack supplies, and without walking the west side of sorting. The east route now leaves all four file-stack guards alive. `files_a_return` closes the shot from the records approach, around (-18, 10.7), through the stacks doorway. The reception counter screen, the bypass lip, and a narrow stacks screen keep sorting and the bypass from being cleared early, without moving `stacks_sweeper` and without sealing `stacks_cross_aisle`. Seed 67, human control, `east_bypass_departs_with_all_stack_guards_alive`: 1639 ticks, 80 hp, 0 armor, 16 defeats, 101 shots. This seeded sightline debt is closed. Secrets, a new weapon, and disk saves do not belong in this rung. The next rung is the building explaining itself.
 
-**3. Finish integrating the slice.** Three prepared idle viewmodels are in the
-client. Enemy sprites, animation sets, and combat effects still need coherent
-imports, silhouette review, and real encounter tests. The explicit matte reducer
-is now the local preparation path; preserve internal highlights and full canvases
-where muzzle registration depends on them.
+**2. Let the building explain itself.** The records deck now shows the custody lift before the records wing. The reserved opening (x=-5 to -1, z=12 to 13) is no longer filled: `office_front_sealed` is `office_front_sill`, y=3 to y=5, and the header still starts at y=6.5. `records_balcony_sees_the_lift_sign_but_not_the_transfer_guards` stands at (-4, 3, 9), on that deck between the public stair and reception, and sees the lift sign. A half-metre sweep of standing deck positions does not see `transfer_clerk`, `transfer_sweeper_west`, or `transfer_sweeper_east` at 0.2, half height, or full height. The walk from `records_balcony` to that stand stays on the deck, and the walk on to reception does not enter the transfer office. `m01_routes_use_ordinary_actions_through_the_live_session` passes. Seed 67, human control, `east_bypass_departs_with_all_stack_guards_alive` is unchanged: 1639 ticks, 80 hp, 0 armor, 16 defeats, 101 shots. `m01_main_and_maintenance_approaches_clear_with_discovered_equipment` still departs for human and agent control. Public stairs: 1765 ticks, 100 hp, 19 defeats, 92 shots. Maintenance: 1833 ticks, 100 hp, 20 defeats, 117 shots. `MISSION_DEPARTED` now states the correction ward and that this mission ends here. It no longer calls the result a prototype. The match menu says leaving abandons the run, and that continues are not refilled, only when the boot mode is the owned local campaign. Arena and joined matches keep "LIVE MATCH. FIND COVER FIRST." `test_mission.gd` and `test_frontend.gd` passed headless on Godot 4.7.2. Reception stays bone enamel on green records tile. The file stacks keep that tile and use service-steel walls. Sorting stands on concrete. Dispatch stands on service steel. The lift face stays the lift panel. These are registered surfaces only. Inspected stills are still required before calling the rooms visually distinct, and the balcony window still has no rendered still.
 
-**4. Animation, tested once.** Verify current image-to-video availability, price, quota and clip suitability
-before a capped trial; old per-clip estimates are not a current spending quote. One test converting an enemy still into a walk cycle answers whether the sprite-sheet route works at all. If it does, it unlocks the entire animation column of the asset list; if it does not, that column needs a different plan and it is better to know now.
+**3. Two readable enemies, before any new paid art.** Recall Notice already uses the facility fill in `arena_sky.gd`, checked by `client/scripts/test_arena_sky.gd`. An unknown map name still falls through to the scrapyard. Clerk and Sweeper already have a full local pose set, and at combat distance they still share one outline. Rebake those two rigs unshaded until a grayscale attack-tell sheet separates them. The one paid generation worth doing after those stills exist is a single albedo Sweeper sheet locked to that silhouette. Tile batches stay forbidden until a local seam check exists. The uncertain Clerk reservation is not replaced by a second purchase. M01 can be proven without a paid scene.
 
-**5. Apply the faction and location palette.** `ART_STORY_BIBLE.md` and
-`palette.json` now define institutional green, bone restoration machines and
-vegetation ramps. Build and inspect consistent asset sets under each location's
-light. Those authoring decisions have not recolored the live roster.
+**4. Optional secrets the route does not need.** After the miss budget passes: one obvious alcove and one maintenance overlook. Neither holds the objective, the ward name, or a required gun. The level plan's Shiv is that alcove, on the existing supply seam, once a pool-less melee grant exists. A moving wall panel waits on the door seam. Finding either secret is not part of the clear in rung 1.
 
-**6. Maps: the rest of what the roster needs.** Six maps from 110 m to 320 m exist, with heightfield movement, shared golden vectors, spawn validation, and reachability tests. True 3D hitscan shipped in v0.19.0. The current [navigation pass](plans/height-aware-navigation.md) adds shared walking routes and repairs the collision trap at deck exits. Remaining work from `plans/map-roster-2026.md`: three-cornered teams, zones and end conditions; permeable floors; lifts, jump pads and doors; and authored encounters.
+**5. Fresh-player gate, then M01 is the quality bar.** One unsteered session, radio and voice muted. The player can say who was taken, find the flank, tell the two enemies apart, and reach the lift. Record their words, the deaths, and where they stalled in [`plans/m01-completion.md`](plans/m01-completion.md). If they needed a hint, the gate stays open. Perfect-aim clears, named-guard tours, and the arena roster do not fill this in. Aim stays the shipped mouse-frame look. Prediction, projectiles, a sniper, grenades, mines, and vehicles are not this gate.
 
-**6b. A lighting pass.** A cover block's shadowed face is very dark up close, which in first person fills most of the frame. The ambient tint is doing all the work and there is no fill. Cheap, and it is now the worst-looking thing in the game.
+**6. Run document, then the M02 seams, then M02.** Before any ward geometry, the server owns one versioned run file beside `server/src/mission/recovery.rs`. It stores the run id, the starting allowance, the remaining continues, difficulty, content identity, the current mission, and that mission's entry loadout. It does not store ticks, input sequence, live enemies, or open gates. A load resumes the mission entry and does not spend a continue. A completed M01 freezes an exit loadout and does not mean the campaign is over. Service records stay a separate history and never refill a run. Then widen the seams M02 needs, with M01 kept as the regression fixture: objectives as data, more than one precomputed gate, an actor who can be restrained or free, and one server-owned projectile. Then build M02. Place the Scatter that already exists. The Jammer is the first visible projectile. Latch is freed once and is not a second player.
 
-**7. Full campaign foundation and M01.** `plans/campaign-build-order.md` sequences
-validated map data, inventory/ammo, real enemy roles, interaction, limited continues,
-text presentation and a complete authored opening. Calibration remains a shipped
-prototype. M01 has a playable development slice; none of the ten planned
-missions is complete.
+**7. M03, then the controls the Rail lane needs.** M03 adds the district, the Heavy Sweeper, and the Turret, and no new gun. Both named rescues have to persist. Disk save and the outcome record are part of calling Act I a release. Then buttery stages 2 through 6, still on WebSocket: movement constants in seconds, prediction and reconciliation of the local body only, interpolation of everyone else, bounded hitscan lag compensation, and gamepad curves. M04 is the first deliberate long Rail shot, which is the first place a late snapshot spoils the fight. Do not stop M01 to migrate the clock.
 
-**8. Story presentation.** Localized framing and text/voice fallback belong in
-M01. Brief pixel-styled scenes support reunion, travel, victory, sudden rupture
-and aftermath. Inspect subtitles separately from diegetic propaganda. Audit old
-recordings before reuse; voice and paid video are not prerequisites for proving
-the first mission.
+**8. One new capability per later mission.** M04 teaches the existing Rail and keeps a bypass that ordinary guns can finish. M05 introduces proximity tins and the Lobber on one placed-device seam, plus the Auditor. M06 teaches the Repeater and doors that close during play, always with a bypass. M07 teaches the Arc against readable armor. M08 finishes its infantry route before adding one rover the mission can afford to lose. M09 spends scarce Denial charges and captures Voss alive. M10 prototypes the survival route before its encounter budget is locked, then the conditional epilogue. Sniper, hand grenades, and remote mines have no teaching mission. They wait until after this run, and any later splash or trap reuses the M05 seam.
 
-Deliberately not next: cloud, vehicles, progression, the server browser, and any further art generation beyond what item two needs. Generating more assets before item one lands is spending money to produce drift.
+**9. Promote audio and replace provisional art only after acceptance.** M01 ships on the committed library. Candidate shows and replacement effects stay out of the game until a listening pass, a canon check, and an in-game mix. Generating the rest of the roster before the first two enemies read is how the art drifts. Published stills of this work stay labeled as the development mission until rung 5 passes.
+
+**10. LAN, then the exposed server, then 1.0.** A two-machine session on the predicted sim, with humans, rule bots, and an agent. Then join control, rate and size caps, protocol rejection, reconnect, a status endpoint, and desktop binaries that boot to a fight. Measure WebSocket under that load before any UDP spike. The exposed-server exit is a public week. Version 1.0 is the full agreed run, the measured control numbers, no placeholder art, the fun bar on a recorded multiplayer session, a soak, and those binaries. The Host bumper, the podium, and a killfeed beat every thirty seconds are the multiplayer exit. They are not requirements inside M01, which ends at a lift. Cloud apply stays plan-only until that public week is real.
+
+Held until the rung that names them: alien combat, the Inheritance strategy mode, campaign co-op as a requirement, arena sidearm trickle, and a vehicle roster. One M08 rover is rung 8. A conquest mode is Phase 4.
 
 ## Phase 0: Foundations that make everything else cheaper
 
@@ -284,11 +250,31 @@ Status: **in progress**. This phase decides whether the game is fun. Everything 
 
 1. **Movement and gunfeel.** Parameters and the two defects the research found (a default mouse sensitivity about six times Counter-Strike's, now fixed, and weapon "spread" that is deterministic aim forgiveness rather than dispersion) are in `plans/gunfeel.md`; the netcode plumbing is in `plans/buttery-controls.md`. Original brief: Acceleration and friction that reward strafing, air control, a jump, weapon switch timing, recoil kick, hit reactions on the target, and screen feedback on the shooter. Evidence: a playtest checklist in `plans/` with numbers, tip screenshots, and a short recorded clip.
 2. **Boomer shooter look pass.** Render the world at a low internal resolution and upscale with nearest filtering, limit surfaces to the locked palette with dithering, rebuild fighter sprites with eight facing directions and walk, fire, pain, and death frames, rebuild weapon view models with idle, fire, and bob frames, add muzzle flash and impact frames, and lay the HUD out on a grid so nothing overlaps. Level surfaces get a coherent tile atlas with baked lighting and trim. Plan: `plans/look-pass-boomer.md`. Evidence: regenerated tip screenshots and an updated art bible.
-3. **Sound and music.** The initial library shipped (#97, #99, #100): seven music
+3. **Sound and music.** The [developer review loop](plans/music-review.md) is
+   implemented and verified locally: standalone Rust listening, local transcription, current-canon
+   evidence checks, capped Jev classification, reversible culls and station
+   replacement batches, followed by human listening. The
+   [editorial contract](audio-editorial.md) retires the old news/PSA/ad and
+   epilogue recordings for rewrites, and calls for four original long-form radio
+   formats. A serial, checkpointed library pass is in flight. False passes exposed
+   obsolete arena lore and a missing editorial gate. All fifteen lore chapters
+   have been reviewed, superseded claims removed and asset history separated.
+   Factual and editorial gates must both pass. Forty-seven multilingual/contextual
+   probes and explicit pass/rejection/unknown counts support validation; unknowns
+   never count as approvals. The
+   [production sources](audio-production/README.md) contain four full programs,
+   sixteen supporting pieces and separate survival/failure ending scenes.
+   Rust production now compiles ordered dialogue, retains paid response receipts,
+   assembles measured complete shows and compares actual speech with the script.
+   Four complete local show candidates now measure 8:47, 9:45, 9:25 and 10:34;
+   sixteen supporting recordings also exist. All twenty have local transcripts,
+   passing script comparisons and draft captions, including an explicitly aligned
+   timing repair. Current-canon acceptance and human listening remain gates.
+   The initial library shipped (#97, #99, #100): seven music
    stations with twenty tracks each, forty talk clips, three news beds/stings,
    basic effects and station switching/ducking. This is not a finished sound pass.
    [Radio refresh](plans/radio-refresh.md) replaces the old arena-heavy editorial
-   direction with two distinct optional talk formats and music from an inhabited
+   direction with four sustained optional talk formats and music from an inhabited
    world. [Effects refresh](plans/audio-effects-refresh.md) covers weapon identity,
    movement, surfaces, pickups, machines and mix. Local candidates now exist;
    waveform checks have already rejected a malformed cue. Listening, captions,
@@ -305,6 +291,8 @@ Status: **in progress**. This phase decides whether the game is fun. Everything 
 11. **Visual QA tour and feel probes.** A manifest-driven tour drives the client through every player-facing state (boot menu, settings, warmup, join, HUD with and without a pickup, every radio station card, every weapon firing, movement and respawn, round end, boss beat, each map, agent chips) and writes dated stills, a contact sheet, and feel numbers (same-frame aim, time to first shot, acceleration curve, stop distance, snapshot age, frame time) for the agent developer to critique and turn into plan items. Plan: `plans/visual-qa-tour.md`. Evidence: a critique filed from a tour run and findings promoted into plans.
 
 Exit bar: the fun bar below passes on a LAN session with mixed humans and agents, and a stranger can be handed the repo and reach a fight in under two minutes.
+
+The next weapon work is the gun the next mission teaches. Scatter is already in the sim and belongs in M02. A sniper, hand grenades, and remote mines are recorded in [readable-arsenal.md](plans/readable-arsenal.md) and have no teaching mission, so they wait until the campaign run exists. Display names can change without adding a gun.
 
 ## Phase 2: Exposed server (public, still cheap)
 
@@ -378,14 +366,14 @@ Every item above maps to a plan or says "plan needed". The order of the next PRs
 | Item | Plan | Next PR order |
 |---|---|---|
 | Phase 0: one protocol crate | **done**: the adapter, the playtest harness, and the brain all read the wire types from `fragr-server`; extracting a separate crate is optional cosmetics | |
-| Phase 1.1: movement and gunfeel | `plans/gunfeel.md` (weapons and aim), `plans/buttery-controls.md` (netcode plumbing) | gunfeel rung 2 (weapon table) next; buttery stage 2 after 4 |
+| Phase 1.1: movement and gunfeel | `plans/gunfeel.md` (weapons and aim), `plans/buttery-controls.md` (netcode plumbing) | rungs 1-3 and buttery stage 1 shipped; stages 2-6 after Act I, before M04 |
 | Phase 1.2: look pass | `plans/look-pass-boomer.md`, assets from `plans/art-pipeline.md` | 8 (stage 1); art rung 1 (the Rust tool) any time, paid rungs after written approval |
 | Phase 1.3: sound and music | `plans/radio-stations.md` (shipped; bumpers and Host voice remain) | |
 | Phase 1.4: bots that read as players | plan needed | after campaign rung 2 |
 | Phase 1.5: reference agents and the door | `plans/decision-brain.md` (shipped), `plans/agent-door-2026.md` | 7 |
 | Phase 1.6: agents that field agents | `plans/agent-door-2026.md` rung 3 | |
 | Phase 1.6b: playtest loop | `plans/agent-playtest-loop.md` | 4 (rung 3 status line and bench), 6 (rung 2 planner tier) |
-| Phase 1.7: compact campaign | [contract](CAMPAIGN.md), [treatment](CAMPAIGN-MISSIONS.md), [12 level plans](campaign/README.md), [build order](plans/campaign-build-order.md), [frameworks](plans/campaign-continuance.md) | M01 foundation and authored mission after story/route review |
+| Phase 1.7: compact campaign | [contract](CAMPAIGN.md), [treatment](CAMPAIGN-MISSIONS.md), [12 level plans](campaign/README.md), [build order](plans/campaign-build-order.md), [frameworks](plans/campaign-continuance.md) | full build order: finish M01, then one mission at a time |
 | Phase 1.8: LAN | plan needed (evidence note under `docs/evidence/`) | |
 | Phase 1.9: controller | `plans/controller-and-desktop-platforms.md` (shipped; glyphs remain) | |
 | Phase 1.10: benchmark, status line, statistics | `plans/benchmark-and-stats.md` (rung 1 is `plans/agent-playtest-loop.md` rung 3) | 4 |
@@ -401,7 +389,7 @@ Every item above maps to a plan or says "plan needed". The order of the next PRs
 | Phase 3: cloud | `plans/terraform-zero-cost-gcp.md` (plan only until approved) | |
 | Phase 4 | plans written when each item is next | |
 
-The first PR in that order is this docs sync itself.
+The next-PR column above is not a queue. The full build order is the sequence.
 
 ## How work moves
 
@@ -417,6 +405,6 @@ The first PR in that order is this docs sync itself.
 Version 1.0 is a promise, not a milestone count. Until every line below is proven, releases stay at 0.x no matter how much has shipped.
 
 - **Controls feel buttery.** First-person movement and aim with client-side prediction and server reconciliation, interpolation on every other fighter, no rubber-banding on a LAN or a good connection, input latency under fifty milliseconds on a LAN, sixty frames per second at 1080p on a modest machine with a full server. Mouse and gamepad both tuned. All of it measured by the benchmark mode and printed in the release notes. The design, the staged PRs, and the pass numbers are in `plans/buttery-controls.md`.
-- **Validated everywhere it claims to run.** A two-machine LAN session, a public server that stays up for a week with strangers on it, agents playing as rule bots, through the adapter, and as the decision-brain client, the single-player campaign complete through episode one, and desktop exports for Windows, macOS, and Linux that boot to Solo Scrap on a clean machine.
+- **Validated everywhere it claims to run.** A two-machine LAN session, a public server that stays up for a week with strangers on it, agents playing as rule bots, through the adapter, and as the decision-brain client, the single-player campaign complete through the wipe finale and its conditional epilogue, and desktop exports for Windows, macOS, and Linux that boot to Solo Scrap on a clean machine.
 - **Extremely polished.** No placeholder art anywhere: every weapon, fighter, map surface, and HUD element final; the radio, effects, and Host voice complete; onboarding to a fight in under a minute with no docs; a twenty-four hour soak with no crash, proven by the status JSON at start and end in the release notes; the fun bar passing on a recorded session; boot to first snapshot under ten seconds as measured by the playtest report; docs and hosting guides current.
 - **Hardened and honest.** The exposed-server phase complete (join tokens, rate and size caps, protocol versioning, reconnect resume, status endpoint, fair-play lanes and the profiler), the playtest harness thresholds tightened to the shipped feel, no known bugs that lose a round, and a changelog that matches the releases.

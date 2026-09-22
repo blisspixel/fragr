@@ -270,6 +270,12 @@ func _input_and_hud(network: CaptureNetwork, state: Dictionary) -> void:
 	_expect(display._copy.text.contains("GEFANGENENTRANSPORT"), "runtime locale refreshes existing state")
 	TranslationServer.set_locale("en")
 	TranslationServer.remove_translation(translated)
+	var departed: Dictionary = state.duplicate(true)
+	departed["phase"] = "departed"
+	departed["prompts"] = []
+	display.apply(departed, PLAYER)
+	_expect(display._copy.text.contains("correction ward") and display._copy.text.contains("This mission ends here"), "departure states the ward result")
+	_expect(not display._copy.text.contains("Prototype") and not display._copy.text.contains("in development"), "departure does not call the mission unfinished")
 	display.apply({}, "")
 	_expect(not display.visible, "disconnect clears mission UI")
 	display.free()

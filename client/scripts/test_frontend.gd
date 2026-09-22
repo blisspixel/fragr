@@ -58,6 +58,13 @@ func _run() -> void:
 	pause_menu.open()
 	await process_frame
 	_check(pause_menu.is_open() and not paused, "match menu must keep server snapshots flowing")
+	_check(pause_menu._note.text == tr("MENU_LIVE_MATCH"), "arena menu does not say leaving abandons a campaign run")
+	pause_menu.close()
+	pause_menu.local_campaign = true
+	pause_menu.open()
+	await process_frame
+	_check(pause_menu.is_open() and pause_menu._note.text == tr("MENU_LEAVE_ABANDONS_RUN"), "local campaign menu says leaving abandons the run")
+	_check(not pause_menu._note.text.contains("Prototype"), "campaign leave note is not a prototype disclaimer")
 	pause_menu.close()
 	_check(not pause_menu.is_open() and not paused, "closing the menu returns to the live match")
 	pause_menu.queue_free()

@@ -1,6 +1,6 @@
 # Campaign build order
 
-**Status:** planned, revised 2026-09-20. No full campaign mission is implemented.
+**Status:** planned, revised 2026-09-21. No full campaign mission is accepted. The sequence is the [full build order](../ROADMAP.md#full-build-order-2026-09-21): finish M01's route and fresh-player gate, persist the run, then one mission at a time.
 **Goal:** deliver ten missions and a conditional epilogue in [CAMPAIGN.md](../CAMPAIGN.md) through
 bounded, verifiable milestones. [Mission briefs](../CAMPAIGN-MISSIONS.md) define
 content; this plan defines dependencies.
