@@ -20,7 +20,7 @@ Status words: **planned**, **in flight**, **implemented** (local evidence record
 | [`display-quality.md`](./display-quality.md) | **implemented** ([#202](https://github.com/blisspixel/fragr/pull/202)) | Fullscreen default, real resolution selection and portable graphics presets through the shared settings panel. |
 | [`audio-startup-polish.md`](./audio-startup-polish.md) | **shipped** (#201, v0.32.0) | Balanced default effects and music, preserved saved choices, approved logo in the engine splash. |
 | [`combat-notification-polish.md`](./combat-notification-polish.md) | **shipped** (#201, v0.32.0) | Three independently expiring corner notices, participant-only pickups and clear aiming; inspected live arena and campaign captures. |
-| [`m01-completion.md`](./m01-completion.md) | **in flight** (#195) | Recall Notice quality bar: east route, balcony lift view, departure copy, local leave warning, and distinct registered floors are in. Secrets, saves, fresh-player review, and inspected stills remain. |
+| [`m01-completion.md`](./m01-completion.md) | **in flight** (#195) | Recall Notice quality bar: routes, balcony, departure, leave warning, and registered floors shipped in v0.34.0. A local room tour was inspected and not published. Secrets, saves, and a fresh-player review remain. |
 | [`difficulty-and-rewards.md`](./difficulty-and-rewards.md) | **in flight** (#197) | New-run campaign difficulty first; persistent achievements and cosmetic rewards follow the save/retry contract. |
 | [`tripoint-spawn-safety.md`](./tripoint-spawn-safety.md) | **shipped** (#193, v0.28.0) | Cover the exposed starting ring, prove all 16 routes and sightlines, and retain measured respawn limitations. |
 | [`m01-opening.md`](./m01-opening.md) | **shipped** (#193, v0.28.0) | Reader-paced recall story, replay and authoritative initial/late party readiness. |
@@ -77,7 +77,7 @@ Status words: **planned**, **in flight**, **implemented** (local evidence record
 | [`gunfeel.md`](./gunfeel.md) | **in flight** (aim defaults shipped) | What the weapons and the aim do: the parameter set from the classics, dispersion separated from aim assist, feedback timings, the dodge. |
 | [`ttk-feel-harness-proof.md`](./ttk-feel-harness-proof.md) | **in flight** | Sticky flechette/rail/scatter TTK asserted from playtest `--assert` (#124 proof). |
 | [`buttery-controls.md`](./buttery-controls.md) | **planned** | Client-owned yaw, prediction and reconciliation, timeline interpolation, 60 Hz sim, lag compensation, gamepad curves, transport spike, all with pass numbers. |
-| [`public-server-hardening.md`](./public-server-hardening.md) | **planned** | Frame caps, accept limits, HMAC join tickets, name rules, Caddy TLS, status endpoint and benchmark mode. |
+| [`public-server-hardening.md`](./public-server-hardening.md) | **in flight** | v0.35.0 shipped frame caps, connection caps, and the inbound budget. `GET /status` is the host probe. Tickets, reconnect, and TLS remain. |
 | [`agent-door-2026.md`](./agent-door-2026.md) | **planned** | MCP 2026-07-28 compliance with legacy clients kept, the rmcp decision, a team blackboard before A2A. |
 | [`decision-brain.md`](./decision-brain.md) | **shipped** (#102) | Decision-brain agent: Jev (TypeSafe or OpenRouter) sets intent a few times a second, local controller plays every tick, hard spend cap with a ledger. |
 | [`brain-third-tier-surface.md`](./brain-third-tier-surface.md) | **shipped** (#103) | Surface fragr-brain beside rule bots and MCP agents in the skill card and README, plus the observe-only stance chip. |

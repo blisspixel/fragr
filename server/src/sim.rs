@@ -1779,6 +1779,32 @@ impl GameState {
         self.set_roster_host_line_from_names(&names);
     }
 
+    /// Directory line. Bots are the server's own fighters. Agents joined.
+    pub fn live_status(&self, connections: usize) -> crate::protocol::LiveStatus {
+        let mut humans = 0;
+        let mut agents = 0;
+        let mut bots = 0;
+        for player in &self.players {
+            match player.role {
+                Role::Human => humans += 1,
+                Role::Agent if self.is_rule_bot(player.id) => bots += 1,
+                Role::Agent => agents += 1,
+                Role::Spectator => {}
+            }
+        }
+        crate::protocol::LiveStatus {
+            schema_version: 1,
+            map: self.display_map_name(),
+            round: self.round_number,
+            tick: self.tick,
+            fighters: humans + agents + bots,
+            humans,
+            agents,
+            bots,
+            connections,
+        }
+    }
+
     fn display_map_name(&self) -> String {
         // Episode 0 face "Larak Lot" only when geometry is Arena Duel (map 1).
         // Compliance Yard (map 2) must not lie as Larak Lot.
@@ -2737,5 +2763,27 @@ impl BotController {
                 combat: true,
             }),
         }
+    }
+}
+
+#[cfg(test)]
+mod live_status_tests {
+    use super::GameState;
+    use crate::protocol::Role;
+    use uuid::Uuid;
+
+    #[test]
+    fn live_status_counts_joined_agents_apart_from_humans() {
+        let mut state = GameState::new();
+        state.add_player(Uuid::new_v4(), "Ada".into(), Role::Human);
+        state.add_player(Uuid::new_v4(), "Probe".into(), Role::Agent);
+        let live = state.live_status(3);
+        assert_eq!(live.schema_version, 1);
+        assert_eq!(live.humans, 1);
+        assert_eq!(live.agents, 1);
+        assert_eq!(live.bots, 0);
+        assert_eq!(live.fighters, 2);
+        assert_eq!(live.connections, 3);
+        assert_eq!(live.map, "Arena Duel");
     }
 }

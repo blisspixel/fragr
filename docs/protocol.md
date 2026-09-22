@@ -91,13 +91,20 @@ cannot reclaim the owner. A failed handshake before admission does not consume i
 Each connection is also bounded before that seat exists. Incoming text is capped
 at 64 KiB per frame and per message. The WebSocket handshake and the first
 hello each have five seconds. The process holds at most 64 connections, and
-16 from one address. Past either cap the server sends `connection_limit` or
+32 from one address. Past either cap the server sends `connection_limit` or
 `address_limit` and closes. A stalled handshake or a client that never says
 hello releases its slot. A quiet spectator is not dropped for silence: after
 hello, snapshots are the server's traffic, and an idle kick would end watch
 mode. Further inbound text, including actions, is limited to a burst of
 64 and 256 per second. Extra messages are dropped and the player stays
 connected. Join tickets and reconnect are separate later work.
+
+`GET /status` on the game port, before any WebSocket upgrade, returns a JSON
+`LiveStatus` (`schema_version` 1): map name, round, tick, fighters, humans,
+agents, bots, and connections. It does not list callsigns or addresses, and it
+does not take a connection slot. It is a host probe for a server list or a
+process check. Watching and playing happen in the Godot app. The timing
+percentiles stay on the server log.
 
 ### Mission sequence
 

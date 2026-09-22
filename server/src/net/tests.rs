@@ -1,4 +1,5 @@
 use super::*;
+use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::time::{timeout, Duration};
 use tokio_tungstenite::connect_async;
 
@@ -116,6 +117,60 @@ fn admission_code(message: Message) -> String {
     code
 }
 
+#[test]
+fn status_request_requires_the_exact_path() {
+    assert!(is_status_request(b"GET /status HTTP/1.1"));
+    assert!(is_status_request(b"GET /status?watch=1"));
+    assert!(!is_status_request(b"GET /status-evil HTTP/1.1"));
+    assert!(!is_status_request(b"POST /status HTTP/1.1"));
+    assert_eq!(classify_opening(b"GET"), None);
+    assert_eq!(classify_opening(b"GET /foo bar"), Some(false));
+}
+
+#[tokio::test]
+async fn status_get_reports_the_match_without_taking_a_slot() {
+    let (tx, mut commands) = mpsc::unbounded_channel();
+    let mut server = NetServer::bind("127.0.0.1:0", tx).await.unwrap();
+    server.tighten_admission(1, 8, Duration::from_secs(2), Duration::from_secs(2));
+    let status = std::sync::Arc::new(tokio::sync::RwLock::new(crate::protocol::LiveStatus {
+        schema_version: 1,
+        map: "Arena Duel".into(),
+        round: 3,
+        tick: 40,
+        fighters: 4,
+        humans: 1,
+        agents: 1,
+        bots: 2,
+        connections: 2,
+    }));
+    server.share_status(std::sync::Arc::clone(&status));
+    let address = server.local_addr().unwrap();
+    let accept = tokio::spawn(server.accept_loop());
+
+    let mut tcp = tokio::net::TcpStream::connect(address).await.unwrap();
+    tcp.write_all(b"GET /status HTTP/1.1\r\nHost: localhost\r\n\r\n")
+        .await
+        .unwrap();
+    let mut buf = vec![0u8; 2048];
+    let n = timeout(Duration::from_secs(2), tcp.read(&mut buf))
+        .await
+        .unwrap()
+        .unwrap();
+    let text = String::from_utf8_lossy(&buf[..n]);
+    assert!(text.starts_with("HTTP/1.1 200"), "{text}");
+    assert!(!text.contains("Access-Control-Allow-Origin"));
+    let body = text.split("\r\n\r\n").nth(1).unwrap();
+    let live: crate::protocol::LiveStatus = serde_json::from_str(body).unwrap();
+    assert_eq!(live.map, "Arena Duel");
+    assert_eq!(live.round, 3);
+    assert_eq!(live.fighters, 4);
+    assert_eq!(live.bots, 2);
+    assert!(commands.try_recv().is_err());
+
+    let _held = welcome_spectator(address).await;
+    accept.abort();
+}
+
 #[tokio::test]
 async fn connection_caps_reject_without_admitting_the_game() {
     let (tx, mut commands) = mpsc::unbounded_channel();
@@ -154,6 +209,42 @@ async fn connection_caps_reject_without_admitting_the_game() {
         Some(GameCommand::Disconnected { .. })
     ));
     let _again = welcome_spectator(address).await;
+    accept.abort();
+}
+
+#[tokio::test]
+async fn loopback_roster_of_sixteen_agents_plus_an_observer_fits() {
+    let (tx, mut commands) = mpsc::unbounded_channel();
+    let mut server = NetServer::bind("127.0.0.1:0", tx).await.unwrap();
+    server.tighten_admission(24, 17, Duration::from_secs(2), Duration::from_secs(2));
+    let address = server.local_addr().unwrap();
+    let accept = tokio::spawn(server.accept_loop());
+    let mut held = Vec::new();
+    for _ in 0..17 {
+        held.push(welcome_spectator(address).await);
+    }
+    for _ in 0..17 {
+        assert!(matches!(
+            timeout(Duration::from_secs(2), commands.recv())
+                .await
+                .unwrap(),
+            Some(GameCommand::Connected { .. })
+        ));
+    }
+    let (mut extra, _) = connect_async(format!("ws://{address}")).await.unwrap();
+    extra
+        .send(Message::Text(
+            r#"{"type":"hello","role":"spectator","name":"Extra"}"#.to_string(),
+        ))
+        .await
+        .unwrap();
+    let reply = timeout(Duration::from_secs(2), extra.next())
+        .await
+        .unwrap()
+        .unwrap()
+        .unwrap();
+    assert_eq!(admission_code(reply), "address_limit");
+    drop(held);
     accept.abort();
 }
 

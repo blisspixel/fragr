@@ -24,7 +24,7 @@ It is the 1993 LAN-party feeling rebuilt for 2026: a Rust authoritative server, 
 
 This is a playable vertical slice, not a finished game. The build order and what is still missing live in [`docs/ROADMAP.md`](docs/ROADMAP.md).
 
-Current work: [`local excellence`](docs/plans/local-excellence.md), a bounded polish loop covering reliable checks, existing art integration, arena readability, and inspected playtest evidence. The [campaign treatment](docs/CAMPAIGN-MISSIONS.md) plans a personal rescue, offworld resistance, the Union's defeat, a sudden planetary wipe, and its aftermath. This is planned content, not a completed campaign or public-server readiness claim.
+Current work is the [full build order](docs/ROADMAP.md): finish Recall Notice, then one mission at a time, while the server grows a watcher audience around one authoritative fight. v0.34.0 is the records-route and departure release. v0.35.0 caps frames, connections, and inbound text. Watching and joining stay in this app. `GET /status` on the game port is a host probe, not a web client. The Windows taskbar icon is still the Godot mark. The [campaign treatment](docs/CAMPAIGN-MISSIONS.md) plans a personal rescue, offworld resistance, the Union's defeat, a sudden planetary wipe, and its aftermath. This is planned content, not a completed campaign or public-server readiness claim.
 
 The opening mission has an opt-in [development slice](server/maps/README.md):
 enclosed intake rooms, two stair routes, an accessible records balcony, a
