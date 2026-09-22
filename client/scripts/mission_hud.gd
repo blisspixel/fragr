@@ -1,9 +1,13 @@
 class_name MissionHud
 extends Control
 
-## A shared objective and physical-use prompt, never a local completion timer.
+## The objective card introduces a beat, then leaves. Use prompts and the
+## fallen-run choice stay for as long as they are true.
+const STAGE_SECONDS: float = 8.0
 var state: Dictionary = {}
 var player_id: String = ""
+var _stage_phase: String = ""
+var _stage_left: float = 0.0
 var _card: PanelContainer
 var _copy: Label
 var _prompt: Label
@@ -45,6 +49,10 @@ func _label(font_size: int) -> Label:
 	return label
 
 func apply(value: Dictionary, owner_id: String) -> void:
+	var phase := "" if value.is_empty() else str(value.get("phase", ""))
+	if phase != _stage_phase:
+		_stage_phase = phase
+		_stage_left = STAGE_SECONDS
 	state = value
 	player_id = owner_id
 	_refresh()
@@ -53,7 +61,11 @@ func _notification(what: int) -> void:
 	if what == NOTIFICATION_TRANSLATION_CHANGED:
 		_refresh()
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
+	if _stage_left > 0.0:
+		_stage_left = maxf(0.0, _stage_left - delta)
+		if _card != null:
+			_card.visible = _stage_card_visible()
 	if not visible:
 		return
 	var viewport: Vector2 = get_viewport_rect().size
@@ -75,6 +87,7 @@ func _refresh() -> void:
 	if not visible:
 		_copy.text = ""
 		_prompt.text = ""
+		_card.visible = false
 		return
 	var lines: Array[String] = [tr("MISSION_M01_TITLE"), tr("DIFFICULTY_" + String(state["rules"]["difficulty"]).to_upper()), ""]
 	_recovery.visible = false
@@ -99,7 +112,6 @@ func _refresh() -> void:
 			for member: Dictionary in state["party"]:
 				lines.append(tr("STORY_READY_MEMBER" if member["ready"] else "STORY_READING_MEMBER").format({"name": member["name"]}))
 		"find_transfer":
-			lines.append(tr("STORY_M01_RECAP"))
 			lines.append(tr("MISSION_FIND_RECORD"))
 		"reach_lift":
 			lines.append(tr("MISSION_REACH_LIFT"))
@@ -113,8 +125,17 @@ func _refresh() -> void:
 		"departed":
 			lines.append(tr("MISSION_DEPARTED"))
 	_copy.text = "\n".join(lines)
+	_card.visible = _stage_card_visible()
 	_prompt.text = ""
 	for prompt: Dictionary in state["prompts"]:
 		if prompt["player_id"] == player_id:
 			_prompt.text = tr("MISSION_USE_RECORD" if prompt["kind"] == "transfer_record" else "MISSION_USE_LIFT")
 	_prompt.visible = not _prompt.text.is_empty()
+
+func _stage_card_visible() -> bool:
+	var phase := str(state.get("phase", ""))
+	if phase == "briefing" or phase == "departed":
+		return true
+	if phase == "find_transfer" or phase == "reach_lift":
+		return _stage_left > 0.0
+	return false

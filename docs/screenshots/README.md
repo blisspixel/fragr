@@ -10,12 +10,13 @@ show that surface, in the same change. The Windows taskbar icon is still the
 Godot mark and is not one of these frames.
 
 `m01_intake_16x9.png`, `m01_balcony_16x9.png`, `m01_stacks_16x9.png`, and
-`m01_dispatch_16x9.png` were captured 2026-09-21 on Windows from the completed
-13-state room tour and inspected 2026-09-22. Intake shows a Sweeper in the
-hall with the Tack in hand. The balcony shows the reserved opening toward the
-custody lift. The stacks are dark steel on green tile. Dispatch is bone walls
-on a dark floor after the fight. Sorting and dispatch still share the bone
-wall. These are the development mission, not a finished art pass.
+`m01_dispatch_16x9.png` were captured 2026-09-22 on Windows from the completed
+13-state room tour and inspected the same day. The objective card introduces
+the beat and is gone by these rooms. Intake is the counter hall with the Tack
+in hand. The balcony shows the reserved opening toward the custody lift. The
+stacks are dark steel on green tile. Dispatch is bone walls on a dark floor
+after the fight. Sorting and dispatch still share the bone wall. These are
+the development mission, not a finished art pass.
 
 `prototypes/local-campaign-menu-20260920.png` shows the inspected Recall Notice
 launch option. `prototypes/local-campaign-entry-20260920.png` is the actual M01
@@ -46,11 +47,11 @@ and fresh-player acceptance outstanding. Source manifest: `client/qa/m01-records
 
 | File | View |
 |---|---|
-| `m01_intake_16x9.png` | Recall Notice intake, Sweeper in the hall, Tack in hand |
+| `m01_intake_16x9.png` | Recall Notice intake, Tack in hand, objective card already gone |
 | `m01_balcony_16x9.png` | Records balcony, opening toward the custody lift |
 | `m01_stacks_16x9.png` | File stacks, dark steel walls, green tile floor |
 | `m01_dispatch_16x9.png` | Dispatch after the fight, dark floor, bone walls |
-| `tour_multiplayer_16x9.png` | App multiplayer page after GET /status. One host, not a web list. |
+| `tour_multiplayer_16x9.png` | App multiplayer page after GET /status. Host example is 127.0.0.1:6767. |
 | `tour_menu_16x9.png` | Retro boot menu |
 | `tour_profile_16x9.png` | Callsign, reticle, and weapon bob |
 | `tour_records_16x9.png` | Persisted arena observation, exact attack denominator and incomplete-session status |
