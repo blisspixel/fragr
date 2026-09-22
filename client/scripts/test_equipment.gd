@@ -91,6 +91,14 @@ func _run() -> void:
 	display.visible = true
 	display._process(0.0)
 	_check(display.counts.text == "00 / 36" and display.caption.text.contains("RELOAD"), "empty magazine tells the player how to reload")
+	_check(EquipmentState.display_name("flechette") == "Rifle" and EquipmentState.display_name("Flechette") == "Rifle" and EquipmentState.display_name("tack") == "Pistol" and EquipmentState.display_name("scatter") == "Shotgun" and EquipmentState.display_name("rail") == "Railgun", "guns use familiar names")
+	_check(EquipmentState.pool_name("darts") == "Shells" and EquipmentState.pool_name("tacks") == "Bullets" and EquipmentState.pool_name("cores") == "Cells", "ammo uses familiar names")
+	var rifle: Dictionary = state.duplicate(true)
+	rifle["selected"] = "flechette"
+	rifle["weapons"].append({"weapon": "flechette", "magazine": 30})
+	display.apply(rifle)
+	display._process(0.0)
+	_check(display.caption.text == "RIFLE", "the held dart gun reads as a rifle")
 	display.apply(reload)
 	display.tick = 29
 	display._process(0.0)

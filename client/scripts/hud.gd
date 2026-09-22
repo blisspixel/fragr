@@ -862,7 +862,7 @@ func show_pickup_toast(player_name: String, weapon_name: String, kind: String = 
 		"health": what = tr("HUD_PICKUP_HEALTH").format({"amount": amount})
 		"armor": what = tr("HUD_PICKUP_ARMOR").format({"amount": amount})
 		"ammo": what = tr("HUD_PICKUP_AMMO").format({"amount": amount})
-		_: what = weapon_name.to_upper()
+		_: what = EquipmentState.display_name(weapon_name).to_upper()
 	combat_feed.push(tr("HUD_PICKUP").format({"player": player_name, "item": what}))
 
 func set_followed_weapon(weapon_name: String, player_name: String = "", behavior: String = ""):
@@ -874,13 +874,7 @@ func set_followed_weapon(weapon_name: String, player_name: String = "", behavior
 	var weapon_desc = ""
 	var has_weapon = weapon_name != "" and weapon_textures.has(weapon_name)
 	if has_weapon:
-		match weapon_name:
-			"Flechette":
-				weapon_desc = "FLECHETTE (mid)"
-			"Rail":
-				weapon_desc = "RAIL (long)"
-			"Scatter":
-				weapon_desc = "SCATTER (close)"
+		weapon_desc = EquipmentState.display_name(weapon_name).to_upper()
 
 	# Stance stays loud even when the followed pawn has no known weapon yet.
 	if player_name == "" and not has_weapon:

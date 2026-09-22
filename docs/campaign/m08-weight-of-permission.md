@@ -63,7 +63,9 @@ positions and choices, not an empty map crossed at driving speed.
 
 The Article Blade appears as a risky close-range opportunity before an encounter
 that suits it. It is optional against the Walker. Guaranteed ordinary weapons,
-Lobber/Arc supplies and movement suffice. Do not make a melee pickup bait into
+a Rocket Launcher with a short supply of rockets before the exterior crest,
+and movement suffice. Splash stops at cover. The walker stays defeatable if
+those rockets are already spent. Do not make a melee pickup bait into
 an unavoidable instant-death stomp.
 
 Walker phases: telegraphed area attack, relocation, exposed recovery and supporting

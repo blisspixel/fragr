@@ -63,7 +63,7 @@ func _refresh() -> void:
 	var rounds: int = EquipmentState.magazine(state, weapon)
 	var reserve: int = EquipmentState.reserve(state, weapon)
 	counts.text = "" if weapon == "fists" else "%02d / %02d" % [rounds, reserve]
-	caption.text = weapon.to_upper()
+	caption.text = EquipmentState.display_name(weapon).to_upper()
 	bar.visible = state["reload"] != null
 	if bar.visible:
 		caption.text = "RELOADING"

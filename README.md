@@ -13,7 +13,7 @@ It is the 1993 LAN-party feeling rebuilt for 2026: a Rust authoritative server, 
 - **Solo Scrap:** arcade offline on loopback without the episode path (`FRAGR_SOLO_BROADCAST=0`), four named rule bots with visible tactics (Aggressive, Defensive, Flanker, Balanced).
 - **Watch or join:** spectator by default through a fighter's eyes, including their gun and shot feedback. F changes fighter; V cycles eyes, chase, and free camera. Join mid-match as a human, leave back to spectate. Bots keep the server alive.
 - **Contested Frequency match loop:** 10-frag or 3-minute rounds, warmup and round-end Host bumpers, killstreak callouts, a mid-round Compliance Drone boss (Auditor on Solo Broadcast).
-- **Guns and maps:** three weapon roles (Flechette, Rail, Scatter), weapon and health pads, and six server maps with steps and raised ground. Solo Broadcast faces Larak Lot on Arena Duel (map 1). The server CLI chooses the arena; every joining player and spectator receives its geometry.
+- **Guns and maps:** Pistol, Rifle, Shotgun, and Railgun, plus weapon and health pads. Ammo pads read Bullets, Shells, and Cells. Rifle and Shotgun share the shells reserve. Six server maps have steps and raised ground. Solo Broadcast faces Larak Lot on Arena Duel (map 1). The server CLI chooses the arena; every joining player and spectator receives its geometry.
 - **Vertical combat:** shots follow your horizontal and vertical aim, intersect finite fighter bodies, and stop at solid cover. Agents can target world height; eye spectators see the watched fighter's pitch.
 - **Combat feedback:** short rail beams, bullet traces, and surface sparks follow the server's actual shot path. Simultaneous trades retain both shots; a victim can award only one frag per death.
 - **Quiet combat HUD:** frags, chatter, streaks and drone alerts share a three-line corner feed. Pickup notices follow your fighter or the one you watch. Routine events do not bounce across the reticle or shake your camera.
@@ -154,10 +154,11 @@ Keyboard and gamepad share the same action path into the server.
 | Match menu | Esc | |
 | Hold to show leaders in first person | Tab | |
 
-M01's development slice now starts with fists. Recover Tack in confiscation and
-Flechette before the records stairs, collect finite ammunition, and reload.
-Introductory guns remain available independently to each participant. The six
-arcade maps retain their three unlimited guns. Run instructions and current
+M01's development slice now starts with fists. Recover the pistol in
+confiscation and the rifle before the records stairs, collect finite
+ammunition, and reload. Introductory guns remain available independently to
+each participant. The six arcade maps retain unlimited Rifle, Shotgun, and
+Railgun. Run instructions and current
 limitations: [`server/maps/README.md`](server/maps/README.md). M01 still needs
 finished enemy presentation, encounter balancing, secrets and opening art before
 it is a complete mission. The planned campaign targets a 2-3-hour successful run.

@@ -49,13 +49,13 @@ func set_available(is_available: bool) -> void:
 
 func _label_text() -> String:
 	if pickup_kind == "ammo":
-		return "+%d %s" % [amount, ammo_pool.to_upper()]
+		return "+%d %s" % [amount, EquipmentState.pool_name(ammo_pool).to_upper()]
 	if pickup_kind == "health":
 		return "MEDKIT" if amount <= 0 else ("+%d HP" % amount)
 	if pickup_kind == "armor":
 		return "ARMOR" if amount <= 0 else ("+%d ARM" % amount)
 	if weapon_name != "":
-		return weapon_name.to_upper()
+		return EquipmentState.display_name(weapon_name).to_upper()
 	return "PAD"
 
 func _tint() -> Color:
