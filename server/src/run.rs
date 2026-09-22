@@ -126,6 +126,7 @@ pub async fn run_server(
             }
         }
     };
+    let live = std::sync::Arc::new(tokio::sync::RwLock::new(session.state.live_status(0)));
     let mut net_server = NetServer::bind_with_requirements(
         &options.bind,
         game_tx.clone(),
@@ -133,6 +134,7 @@ pub async fn run_server(
         required_gameplay,
     )
     .await?;
+    net_server.share_status(std::sync::Arc::clone(&live));
     if options.campaign_run {
         net_server.reserve_solo_run()?;
     }
@@ -188,6 +190,12 @@ pub async fn run_server(
                 let bytes = crate::bench::encoded_payload_bytes(messages.iter())?;
                 stats.record_tick(elapsed, bytes);
                 broadcast_to_clients(&clients, &messages).await;
+                {
+                    let connections = clients.lock().await.len();
+                    if let Ok(mut slot) = live.try_write() {
+                        *slot = session.state.live_status(connections);
+                    }
+                }
                 let unicasts = session.take_unicasts();
                 send_unicasts(&clients, &session.client_to_player, &unicasts).await;
             }

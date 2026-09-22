@@ -99,6 +99,12 @@ mode. Further inbound text, including actions, is limited to a burst of
 64 and 256 per second. Extra messages are dropped and the player stays
 connected. Join tickets and reconnect are separate later work.
 
+`GET /status` on the game port, before any WebSocket upgrade, returns a JSON
+`LiveStatus` (`schema_version` 1): map name, round, tick, fighters, humans,
+agents, bots, and connections. It does not list callsigns or addresses, and it
+does not take a connection slot. A browser may read it (`Access-Control-Allow-Origin: *`).
+The timing percentiles stay on the server log.
+
 ### Mission sequence
 
 Mission maps include optional `mission` metadata in `MapInfo`: registered `id`

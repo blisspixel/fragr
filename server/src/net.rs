@@ -4,6 +4,7 @@ use std::collections::HashMap;
 use std::net::IpAddr;
 use std::sync::Arc;
 use std::time::Duration;
+use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::{TcpListener, TcpStream};
 use tokio::sync::{mpsc, Mutex, Semaphore};
 use tokio_tungstenite::tungstenite::protocol::WebSocketConfig;
@@ -207,6 +208,7 @@ pub struct NetServer {
     party_slots: Option<Arc<Semaphore>>,
     solo_run: bool,
     admission: Arc<Admission>,
+    status: Arc<tokio::sync::RwLock<crate::protocol::LiveStatus>>,
 }
 
 pub enum GameCommand {
@@ -288,7 +290,15 @@ impl NetServer {
             party_slots: (gameplay_version >= crate::protocol::MISSION_GAMEPLAY_VERSION)
                 .then(|| Arc::new(Semaphore::new(crate::protocol::MISSION_PARTY_LIMIT))),
             admission: Arc::new(Admission::standard()),
+            status: Arc::new(tokio::sync::RwLock::new(
+                crate::protocol::LiveStatus::default(),
+            )),
         })
+    }
+
+    /// Share the match line the tick loop refreshes. `GET /status` reads it.
+    pub fn share_status(&mut self, status: Arc<tokio::sync::RwLock<crate::protocol::LiveStatus>>) {
+        self.status = status;
     }
 
     /// Shrink the public caps for a test. Call it before `accept_loop`.
@@ -328,7 +338,7 @@ impl NetServer {
     pub async fn accept_loop(self) {
         loop {
             match self.listener.accept().await {
-                Ok((stream, addr)) => {
+                Ok((mut stream, addr)) => {
                     tracing::debug!("New connection from {}", addr);
                     let game_tx = self.game_tx.clone();
                     let clients = self.clients.clone();
@@ -337,10 +347,14 @@ impl NetServer {
                     let party_slots = self.party_slots.clone();
                     let solo_run = self.solo_run;
                     let admission = Arc::clone(&self.admission);
+                    let status = Arc::clone(&self.status);
                     let handshake_timeout = admission.handshake_timeout;
                     let hello_timeout = admission.hello_timeout;
 
                     tokio::spawn(async move {
+                        if serve_status_if_requested(&mut stream, &status).await {
+                            return;
+                        }
                         let permit = match admission.try_admit(addr.ip()) {
                             Ok(permit) => permit,
                             Err(code) => {
@@ -374,6 +388,85 @@ impl NetServer {
             }
         }
     }
+}
+
+fn is_status_request(buf: &[u8]) -> bool {
+    const PREFIX: &[u8] = b"GET /status";
+    if !buf.starts_with(PREFIX) {
+        return false;
+    }
+    matches!(buf.get(PREFIX.len()), Some(b' ' | b'?' | b'\r' | b'\n'))
+}
+
+/// `Some(true)` once the bytes are a status GET. `Some(false)` once they are
+/// anything else. `None` while the first line is still too short to tell.
+fn classify_opening(buf: &[u8]) -> Option<bool> {
+    if buf.len() < 4 {
+        return None;
+    }
+    if !buf.starts_with(b"GET ") {
+        return Some(false);
+    }
+    if buf.len() < b"GET /status".len() {
+        return None;
+    }
+    Some(is_status_request(buf))
+}
+
+async fn serve_status_if_requested(
+    stream: &mut TcpStream,
+    status: &tokio::sync::RwLock<crate::protocol::LiveStatus>,
+) -> bool {
+    let mut buf = [0u8; 24];
+    let mut seen = 0usize;
+    let deadline = tokio::time::Instant::now() + Duration::from_millis(300);
+    let mut status_get = false;
+    while tokio::time::Instant::now() < deadline {
+        match tokio::time::timeout(Duration::from_millis(50), stream.peek(&mut buf)).await {
+            Ok(Ok(n)) if n > seen => {
+                seen = n;
+                match classify_opening(&buf[..seen]) {
+                    Some(true) => {
+                        status_get = true;
+                        break;
+                    }
+                    Some(false) => return false,
+                    None => tokio::time::sleep(Duration::from_millis(10)).await,
+                }
+            }
+            Ok(Ok(_)) => tokio::time::sleep(Duration::from_millis(10)).await,
+            _ => break,
+        }
+    }
+    if !status_get {
+        return false;
+    }
+    let mut header = Vec::with_capacity(256);
+    let mut tmp = [0u8; 256];
+    let read_deadline = tokio::time::Instant::now() + Duration::from_secs(1);
+    while tokio::time::Instant::now() < read_deadline && header.len() < 2048 {
+        let n = match tokio::time::timeout(Duration::from_millis(200), stream.read(&mut tmp)).await
+        {
+            Ok(Ok(0)) | Err(_) => break,
+            Ok(Ok(n)) => n,
+            Ok(Err(_)) => break,
+        };
+        header.extend_from_slice(&tmp[..n]);
+        if header.windows(4).any(|window| window == b"\r\n\r\n") {
+            break;
+        }
+    }
+    let body = match status.try_read() {
+        Ok(live) => serde_json::to_string(&*live).unwrap_or_else(|_| "{}".into()),
+        Err(_) => "{\"schema_version\":1}".into(),
+    };
+    let response = format!(
+        "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: {}\r\nConnection: close\r\nCache-Control: no-store\r\nAccess-Control-Allow-Origin: *\r\n\r\n{body}",
+        body.len()
+    );
+    let _ = stream.write_all(response.as_bytes()).await;
+    let _ = stream.shutdown().await;
+    true
 }
 
 async fn reject_before_hello(stream: TcpStream, code: &str, handshake_timeout: Duration) {

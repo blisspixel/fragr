@@ -2,9 +2,10 @@
 
 **Status:** rung 1 in progress, 2026-09-21. Frame and message caps, handshake and
 hello deadlines, global plus per-address connection caps, and an inbound
-message budget (burst 64, 256 per second) are implemented on the 0.24
-WebSocket config with no new crate. Idle ping drops, tickets, and the status
-endpoint remain later rungs. A quiet spectator
+message budget (burst 64, 256 per second), and `GET /status` on the game port
+are implemented on the 0.24 WebSocket stack with no new crate. `GET /status`
+is the directory line (map, round, fighter and watcher counts). Timing
+percentiles stay on the log. Idle ping drops and tickets remain later rungs. A quiet spectator
 is not an idle connection.
 **Branch:** `feat/hardening-*` (one PR per rung)
 **Spend:** $0 for everything here. A VM for the stranger test needs written approval and sits under the cap.

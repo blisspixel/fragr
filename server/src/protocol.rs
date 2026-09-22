@@ -53,6 +53,37 @@ pub fn default_map_name() -> String {
     MAP_NAME_ARENA_DUEL.to_string()
 }
 
+/// Public match line for a directory, an overlay, or a server list.
+/// Counts and the map name only. No addresses, callsigns, or seeds.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct LiveStatus {
+    pub schema_version: u32,
+    pub map: String,
+    pub round: u32,
+    pub tick: u64,
+    pub fighters: usize,
+    pub humans: usize,
+    pub agents: usize,
+    pub bots: usize,
+    pub connections: usize,
+}
+
+impl Default for LiveStatus {
+    fn default() -> Self {
+        Self {
+            schema_version: 1,
+            map: default_map_name(),
+            round: 1,
+            tick: 0,
+            fighters: 0,
+            humans: 0,
+            agents: 0,
+            bots: 0,
+            connections: 0,
+        }
+    }
+}
+
 /// Host line while Continuance compliance pressure is live.
 pub fn compliance_host_line() -> String {
     "HOST: CONTINUANCE COMPLIANCE PING. APPROVED LANES ONLY.".to_string()
