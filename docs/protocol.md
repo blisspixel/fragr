@@ -91,7 +91,7 @@ cannot reclaim the owner. A failed handshake before admission does not consume i
 Each connection is also bounded before that seat exists. Incoming text is capped
 at 64 KiB per frame and per message. The WebSocket handshake and the first
 hello each have five seconds. The process holds at most 64 connections, and
-16 from one address. Past either cap the server sends `connection_limit` or
+32 from one address. Past either cap the server sends `connection_limit` or
 `address_limit` and closes. A stalled handshake or a client that never says
 hello releases its slot. A quiet spectator is not dropped for silence: after
 hello, snapshots are the server's traffic, and an idle kick would end watch

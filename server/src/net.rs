@@ -23,7 +23,10 @@ const MAX_WRITE_BUFFER_BYTES: usize = 512 * 1024;
 const HANDSHAKE_TIMEOUT: Duration = Duration::from_secs(5);
 const HELLO_TIMEOUT: Duration = Duration::from_secs(5);
 const MAX_CONNECTIONS: usize = 64;
-const MAX_CONNECTIONS_PER_IP: usize = 16;
+/// Sixteen agents plus the playtest observer share 127.0.0.1. A household
+/// or a LAN behind one address needs that same headroom. The global cap
+/// still stops one address from holding every slot.
+const MAX_CONNECTIONS_PER_IP: usize = 32;
 /// A displayed frame can send one action. 256 per second covers a fast
 /// monitor. A tighter flood is dropped before it reaches the tick queue.
 const INBOUND_PER_SEC: f32 = 256.0;

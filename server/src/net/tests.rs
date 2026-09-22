@@ -213,6 +213,42 @@ async fn connection_caps_reject_without_admitting_the_game() {
 }
 
 #[tokio::test]
+async fn loopback_roster_of_sixteen_agents_plus_an_observer_fits() {
+    let (tx, mut commands) = mpsc::unbounded_channel();
+    let mut server = NetServer::bind("127.0.0.1:0", tx).await.unwrap();
+    server.tighten_admission(24, 17, Duration::from_secs(2), Duration::from_secs(2));
+    let address = server.local_addr().unwrap();
+    let accept = tokio::spawn(server.accept_loop());
+    let mut held = Vec::new();
+    for _ in 0..17 {
+        held.push(welcome_spectator(address).await);
+    }
+    for _ in 0..17 {
+        assert!(matches!(
+            timeout(Duration::from_secs(2), commands.recv())
+                .await
+                .unwrap(),
+            Some(GameCommand::Connected { .. })
+        ));
+    }
+    let (mut extra, _) = connect_async(format!("ws://{address}")).await.unwrap();
+    extra
+        .send(Message::Text(
+            r#"{"type":"hello","role":"spectator","name":"Extra"}"#.to_string(),
+        ))
+        .await
+        .unwrap();
+    let reply = timeout(Duration::from_secs(2), extra.next())
+        .await
+        .unwrap()
+        .unwrap()
+        .unwrap();
+    assert_eq!(admission_code(reply), "address_limit");
+    drop(held);
+    accept.abort();
+}
+
+#[tokio::test]
 async fn one_address_cannot_hold_every_connection_slot() {
     let (tx, mut commands) = mpsc::unbounded_channel();
     let mut server = NetServer::bind("127.0.0.1:0", tx).await.unwrap();
