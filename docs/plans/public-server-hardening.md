@@ -1,11 +1,13 @@
 # Plan: public server hardening
 
-**Status:** in flight, 2026-09-22. Frame and message caps, handshake and
-hello deadlines, global plus per-address connection caps, an inbound message
-budget (burst 64, 256 per second), `GET /status`, and HMAC join tickets are
-implemented on the 0.24 WebSocket stack with no new crate. Timing percentiles
-stay on the log. Idle ping drops and TLS remain later rungs. A drop can resume the same pawn for ten seconds. A
-quiet spectator is not an idle connection.
+**Status:** in flight, 2026-09-22. v0.35.0 shipped frame and message caps,
+handshake and hello deadlines, global plus per-address connection caps, and
+an inbound budget (burst 64, 256 per second). v0.36.0 shipped `GET /status`.
+v0.37.0 shows that line in the app. v0.38.0 shipped HMAC join tickets. v0.39.0
+keeps a dropped pawn for ten seconds. A quiet spectator is not an idle
+connection. Next is a measured spectator fan-out before any higher connection
+cap. Idle ping drops and TLS remain later. Timing percentiles stay on the log.
+No new crate.
 **Branch:** `feat/hardening-*` (one PR per rung)
 **Spend:** $0 for everything here. A VM for the stranger test needs written approval and sits under the cap.
 

@@ -6,6 +6,8 @@ fragr is a retro-styled 3D FPS built toward an authored campaign and multiplayer
 
 It is the 1993 LAN-party feeling rebuilt for 2026: a Rust authoritative server, a Godot client that only presents, and an MCP adapter so any agent can observe and act like a player.
 
+The current release is [v0.42.0](https://github.com/blisspixel/fragr/releases/tag/v0.42.0). Shipped tags are listed in [CHANGELOG.md](CHANGELOG.md). What is still open is [docs/ROADMAP.md](docs/ROADMAP.md).
+
 ## What runs today
 
 - **Recall Notice:** Single Player starts a solo M01 run with a skippable, reader-paced opening and three continues. Enter Annex 67 to find Latch's transfer record, recover weapons, fight through intake and records, and depart by the custody lift. Death offers an explicit mission-start retry with entry equipment restored. The fourth death ends the run. This is a developing mission, not the complete campaign.

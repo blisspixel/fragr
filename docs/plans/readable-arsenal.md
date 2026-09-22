@@ -1,9 +1,11 @@
 # Readable arsenal and explosives
 
-Status: names in the HUD, 2026-09-22. Pistol, Rifle, Shotgun, and Railgun are
-what the player reads. Wire ids for those five weapons are unchanged. The
-sniper rifle, rocket launcher, grenade, proximity mine, and remote mine are
-locked as campaign finds. None of them is implemented.
+Status: names and cycling shipped, 2026-09-22. v0.41.0 reads Pistol, Rifle,
+Shotgun, and Railgun, and ammo pads read Bullets, Shells, and Cells. v0.42.0
+walks those guns with the wheel, the bracket keys, and 1 through 5. Wire ids
+for the five current weapons are unchanged. The sniper rifle, rocket launcher,
+grenade, proximity mine, and remote mine are locked as campaign finds. None of
+them is implemented.
 
 ## Goal
 
