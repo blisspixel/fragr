@@ -4,6 +4,13 @@ Shipped tags, newest first. A line here is on `main`. Planned work stays in
 [docs/ROADMAP.md](docs/ROADMAP.md). Older tags are on the
 [releases page](https://github.com/blisspixel/fragr/releases).
 
+## v0.43.0 (2026-09-22)
+
+The Clerk and the Sweeper no longer share one outline. The Sweeper is the wide
+bot with the level rifle. The Clerk is the narrower human, and aiming clears
+the pistol past the shoulder. The atlases are unshaded local rigs. No new
+paid sheet was generated.
+
 ## v0.42.0 (2026-09-22)
 
 The mouse wheel, the bracket keys, and 1 through 5 walk the guns you are

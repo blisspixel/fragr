@@ -130,6 +130,65 @@ func _check_atlases() -> void:
 		var step_a: Image = _tile(atlas, EnemyAnimation.pose_frame("walk", false, 0))
 		var step_b: Image = _tile(atlas, EnemyAnimation.pose_frame("walk", false, 0.5))
 		_check(step_a.get_data() != step_b.get_data(), kind + " has distinct gait poses")
+	_check_readable_pair()
+
+func _check_readable_pair() -> void:
+	var clerk: Image = _atlas("clerk")
+	var sweeper: Image = _atlas("sweeper")
+	var clerk_idle: Dictionary = _occupancy(_tile(clerk, EnemyAnimation.pose_frame("idle", false, 0.0)))
+	var sweeper_idle: Dictionary = _occupancy(_tile(sweeper, EnemyAnimation.pose_frame("idle", false, 0.0)))
+	var clerk_raise: Dictionary = _occupancy(_tile(clerk, EnemyAnimation.pose_frame("raise", false, 1.0)))
+	var sweeper_raise: Dictionary = _occupancy(_tile(sweeper, EnemyAnimation.pose_frame("raise", false, 1.0)))
+	_check(sweeper_idle["width"] >= int(clerk_idle["width"]) + 10, "the sweeper is wider than the clerk at rest")
+	_check(_difference(clerk_idle, sweeper_idle) >= 0.22, "resting outlines do not share one shape")
+	_check(_difference(clerk_raise, sweeper_raise) >= 0.22, "attack poses do not share one shape")
+	_check(int(clerk_raise["width"]) >= int(clerk_idle["width"]) + 6, "the clerk's aim clears the shoulder")
+	_check(absi(int(sweeper_raise["width"]) - int(sweeper_idle["width"])) <= 2, "the sweeper's rifle stays inside the shoulders")
+	_check(int(sweeper_raise["width"]) >= int(clerk_raise["width"]) + 8, "the sweeper stays broader while firing")
+
+func _atlas(kind: String) -> Image:
+	var image: Image = Image.new()
+	var path: String = ProjectSettings.globalize_path("res://assets/characters/union/%s.png" % kind)
+	if image.load(path) != OK:
+		_check(false, "could not read " + kind + " atlas")
+	return image
+
+func _occupancy(tile: Image) -> Dictionary:
+	var count: int = EnemyAnimation.TILE * EnemyAnimation.TILE
+	var mask: PackedByteArray = PackedByteArray()
+	mask.resize(count)
+	var min_x: int = EnemyAnimation.TILE
+	var min_y: int = EnemyAnimation.TILE
+	var max_x: int = 0
+	var max_y: int = 0
+	var filled: int = 0
+	for y: int in range(EnemyAnimation.TILE):
+		for x: int in range(EnemyAnimation.TILE):
+			if tile.get_pixel(x, y).a <= 0.2:
+				continue
+			mask[y * EnemyAnimation.TILE + x] = 1
+			filled += 1
+			min_x = mini(min_x, x)
+			min_y = mini(min_y, y)
+			max_x = maxi(max_x, x)
+			max_y = maxi(max_y, y)
+	return {"mask": mask, "filled": filled, "width": max_x - min_x, "top": min_y}
+
+func _difference(left: Dictionary, right: Dictionary) -> float:
+	var either: int = 0
+	var both: int = 0
+	var a: PackedByteArray = left["mask"]
+	var b: PackedByteArray = right["mask"]
+	for index: int in range(a.size()):
+		var on_a: bool = a[index] == 1
+		var on_b: bool = b[index] == 1
+		if on_a or on_b:
+			either += 1
+		if on_a and on_b:
+			both += 1
+	if either == 0:
+		return 0.0
+	return 1.0 - float(both) / float(either)
 
 func _tile(atlas: Image, frame: int) -> Image:
 	var at: Vector2i = Vector2i(frame % EnemyAnimation.COLUMNS,

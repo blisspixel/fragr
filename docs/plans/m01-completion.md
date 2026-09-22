@@ -1,7 +1,7 @@
 # Recall Notice: complete mission
 
 Status: in flight, 2026-09-22. [Task #195](https://github.com/blisspixel/fragr/issues/195).
-The active slice is the [full build order](../ROADMAP.md#full-build-order-2026-09-22). Routes, the balcony view of the lift, departure copy, the leave warning, and the published room stills shipped through v0.40.0. The objective card leaves after the introduction. The bypass is its own fight. The east route leaves all four file-stack guards alive. Secrets, disk saves, final art, and the fresh-player review stay open. The next rung is two readable enemies.
+The active slice is the [full build order](../ROADMAP.md#full-build-order-2026-09-22). Routes, the balcony view of the lift, departure copy, the leave warning, and the published room stills shipped through v0.40.0. The objective card leaves after the introduction. The bypass is its own fight. The east route leaves all four file-stack guards alive. The Clerk and Sweeper silhouettes now separate in the local unshaded atlases. Secrets, disk saves, final art, and the fresh-player review stay open. The next rung is an optional secret, then that review.
 Baseline: v0.28.0, `e845236`. Its tree matches the final revision of #193, with all
 five integration jobs passing. The three-enemy prototype is not a full mission.
 Spend: local work first; the uncertain Clerk reference reservation remains held.

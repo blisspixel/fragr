@@ -79,13 +79,13 @@
 			"brief": "Visible human face, open helmet, institutional green cloth, issued bone armor and restrained red seal.",
 			"file": "clerk.png",
 			"model": "articulated human security rig",
-			"sha256": "6bdb3401a6ab7ed7f383ee4b9d6566137a6e2b810f54a409cb29d30e066e4296"
+			"sha256": "34ac40c7c2655ea4d0770596b076f5711a7dd4c78e64ced3b534b8b203b6d9e1"
 		},
 		{
 			"brief": "Covered mechanical chassis, dark status slit, battery pack, issued bone armor and restrained red seal.",
 			"file": "sweeper.png",
 			"model": "articulated issued bot rig",
-			"sha256": "8666d4b3c745247b129f6efd13eb05c912c563c2084835b0a6f49238389fb73f"
+			"sha256": "6ebd9f12dc70fb389394aa1369f1b3e9455be0921d7625a9c71bde1d1c2671f5"
 		}
 	],
 	"format": "RGBA8 PNG, nearest sampling, no mipmaps",
@@ -93,9 +93,9 @@
 	"rows": 24,
 	"schema": 1,
 	"sources": {
-		"res://art/characters/bake.gd": "01d085cae4261fc57d4c2d7f70286174ddf409f43f9f26d52b4eacab998fa2f2",
-		"res://art/characters/geometry.gd": "c407f1de22485a1131fb83acd486ad56e6de00685acc7e1f328a24d8c02f0176",
-		"res://art/characters/rig.gd": "2db33c8c04a5e13d4bca389656d54aa1802de642b90badbbde06ae903cb57dd4",
+		"res://art/characters/bake.gd": "bbec113b53735a9c51570deb133577b15d7eceefb9a251b0ec9830d15f7a0723",
+		"res://art/characters/geometry.gd": "c79597bb048cbecd853fdda77a53028374e96facdbe279300258c8ed8ac82386",
+		"res://art/characters/rig.gd": "1c1d62e25aa8a8a45c6974d2433c6eb1a6caed9b8683057a263594e4693a3916",
 		"res://scripts/enemy_animation.gd": "dc90d9d84edd76aede6926890d1b7e504faf380c987193dc28ffbb8b250c426d"
 	},
 	"tile_pixels": 160
