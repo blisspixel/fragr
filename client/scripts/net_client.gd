@@ -200,6 +200,8 @@ func _admission_error(code: String) -> bool:
 		"run_seat_closed": message = tr("RUN_SEAT_CLOSED")
 		"party_full": message = tr("MISSION_PARTY_FULL")
 		"unsupported_geometry", "unsupported_gameplay": message = "This server needs a newer client. Update to join."
+		"connection_limit": message = "This server is not taking more connections."
+		"address_limit": message = "Too many connections from this address."
 	if message.is_empty():
 		return false
 	disconnect_from_server()
