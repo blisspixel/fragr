@@ -114,7 +114,7 @@ fn role_name(role: Role) -> Result<&'static str, &'static str> {
     }
 }
 
-fn hmac_sha256(key: &[u8], data: &[u8]) -> [u8; 32] {
+pub(crate) fn hmac_sha256(key: &[u8], data: &[u8]) -> [u8; 32] {
     const BLOCK: usize = 64;
     let mut key_block = [0u8; BLOCK];
     if key.len() > BLOCK {
@@ -139,7 +139,7 @@ fn hmac_sha256(key: &[u8], data: &[u8]) -> [u8; 32] {
     outer.finalize().into()
 }
 
-fn mac_equal(left: &[u8], right: &[u8]) -> bool {
+pub(crate) fn mac_equal(left: &[u8], right: &[u8]) -> bool {
     if left.len() != right.len() {
         return false;
     }
@@ -150,7 +150,7 @@ fn mac_equal(left: &[u8], right: &[u8]) -> bool {
     diff == 0
 }
 
-fn hex_encode(bytes: &[u8]) -> String {
+pub(crate) fn hex_encode(bytes: &[u8]) -> String {
     const HEX: &[u8; 16] = b"0123456789abcdef";
     let mut out = String::with_capacity(bytes.len() * 2);
     for byte in bytes {
@@ -160,7 +160,7 @@ fn hex_encode(bytes: &[u8]) -> String {
     out
 }
 
-fn hex_decode(text: &str) -> Result<Vec<u8>, ()> {
+pub(crate) fn hex_decode(text: &str) -> Result<Vec<u8>, ()> {
     if !text.len().is_multiple_of(2) {
         return Err(());
     }

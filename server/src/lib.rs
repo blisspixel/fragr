@@ -10,6 +10,7 @@ pub mod movement;
 pub mod navigation;
 pub mod net;
 pub mod protocol;
+pub mod resume;
 pub mod run;
 pub mod session;
 pub mod sim;

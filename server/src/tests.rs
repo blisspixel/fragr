@@ -113,6 +113,7 @@ fn test_protocol_client_message_hello_serialization() {
         role: Role::Agent,
         name: "TestBot".to_string(),
         ticket: None,
+        resume: None,
     };
     let json = serde_json::to_string(&hello).unwrap();
     assert!(json.contains(r#""type":"hello""#));
@@ -127,6 +128,7 @@ fn test_protocol_client_message_hello_serialization() {
             geometry_version,
             gameplay_version,
             ticket: None,
+            resume: None,
         } => {
             assert_eq!(gameplay_version, crate::protocol::GAMEPLAY_VERSION);
             assert_eq!(role, Role::Agent);
@@ -159,6 +161,7 @@ fn test_protocol_server_message_welcome() {
         role: Role::Human,
         mode_name: default_mode_name(),
         playlist: default_playlist(),
+        resume: None,
     };
     let json = serde_json::to_string(&welcome).unwrap();
     assert!(json.contains(r#""type":"welcome""#));
@@ -169,6 +172,7 @@ fn test_protocol_server_message_welcome() {
         role: Role::Spectator,
         mode_name: default_mode_name(),
         playlist: default_playlist(),
+        resume: None,
     };
     let json = serde_json::to_string(&welcome_spectator).unwrap();
     assert!(json.contains(r#""player_id":null"#));
@@ -2185,6 +2189,7 @@ async fn test_net_ws_agent_hello_welcome_and_connected_command() {
             role: Role::Agent,
             mode_name,
             playlist,
+            resume: _,
         } => {
             assert_eq!(mode_name, default_mode_name());
             assert_eq!(playlist, default_playlist());
@@ -2227,6 +2232,8 @@ fn other_debug(cmd: &crate::net::GameCommand) -> String {
         crate::net::GameCommand::SetDisplayBehavior { .. } => "SetDisplayBehavior".into(),
         crate::net::GameCommand::MissionReady { .. } => "MissionReady".into(),
         crate::net::GameCommand::MissionContinue { .. } => "MissionContinue".into(),
+        crate::net::GameCommand::Detached { .. } => "Detached".into(),
+        crate::net::GameCommand::Resume { .. } => "Resume".into(),
     }
 }
 
@@ -2269,6 +2276,7 @@ async fn test_net_ws_spectator_hello_no_player_id() {
             role: Role::Spectator,
             mode_name,
             playlist,
+            resume: _,
         } => {
             assert_eq!(mode_name, default_mode_name());
             assert_eq!(playlist, default_playlist());
@@ -2905,6 +2913,7 @@ fn test_welcome_includes_mode_identity() {
         role: Role::Spectator,
         mode_name: default_mode_name(),
         playlist: default_playlist(),
+        resume: None,
     };
     let json = serde_json::to_value(&welcome).unwrap();
     assert_eq!(json["mode_name"], "Contested Frequency");

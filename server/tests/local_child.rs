@@ -76,6 +76,7 @@ async fn bundled_mission_serves_the_normal_wire_and_stops_on_explicit_shutdown()
                 gameplay_version: fragr_server::protocol::GAMEPLAY_VERSION,
 
                 ticket: None,
+                resume: None,
             })
             .unwrap(),
         ))

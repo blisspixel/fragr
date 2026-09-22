@@ -132,6 +132,7 @@ async fn authored_map_is_shared_by_humans_agents_and_spectators() {
                     name: format!("{role:?} walker"),
 
                     ticket: None,
+                    resume: None,
                 })
                 .unwrap(),
             ))

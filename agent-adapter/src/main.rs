@@ -102,6 +102,7 @@ async fn mcp_connect_and_hello(
         role: Role::Agent,
         name: name.to_string(),
         ticket: fragr_server::join_ticket::ticket_for(Role::Agent),
+        resume: None,
     };
     ws_sink
         .send(Message::Text(serde_json::to_string(&hello)?))
@@ -173,6 +174,12 @@ async fn mcp_leave_session(
     tool_state: &std::sync::Arc<tokio::sync::Mutex<ToolState>>,
 ) {
     if let Some(s) = session.take() {
+        let _ = s
+            .sink
+            .lock()
+            .await
+            .send(Message::Text(r#"{"type":"leave"}"#.to_string()))
+            .await;
         let _ = s.sink.lock().await.send(Message::Close(None)).await;
         s.recv_task.abort();
     }
@@ -355,6 +362,7 @@ async fn run_scripted_bot(
         role: Role::Agent,
         name: name.clone(),
         ticket: fragr_server::join_ticket::ticket_for(Role::Agent),
+        resume: None,
     };
     ws_sink
         .send(Message::Text(serde_json::to_string(&hello)?))
@@ -572,6 +580,7 @@ mod tests {
                     ClientMessage::Hello {
                         geometry_version: 2,
                         ticket: None,
+                        resume: None,
                         ..
                     }
                 ));
@@ -1171,6 +1180,7 @@ mod tests {
             name: "TestAgent".to_string(),
 
             ticket: None,
+            resume: None,
         };
         let json = serde_json::to_string(&hello).unwrap();
         assert!(json.contains(r#""type":"hello""#));
@@ -1344,6 +1354,7 @@ mod tests {
             name: name.clone(),
 
             ticket: None,
+            resume: None,
         };
         let json = serde_json::to_string(&hello).unwrap();
         assert!(json.contains("ArenaFox"), "json={}", json);
@@ -1898,6 +1909,7 @@ mod tests {
                 role: Role::Agent,
                 mode_name: protocol::default_mode_name(),
                 playlist: protocol::default_playlist(),
+                resume: None,
             };
             ws.send(Message::Text(serde_json::to_string(&welcome).unwrap()))
                 .await

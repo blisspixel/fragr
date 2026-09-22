@@ -288,6 +288,7 @@ pub async fn run_bot(
         role: Role::Agent,
         name: config.name.clone(),
         ticket: fragr_server::join_ticket::ticket_for(Role::Agent),
+        resume: None,
     };
     if !send_text(
         &mut sink,
@@ -1095,6 +1096,7 @@ mod tests {
                 name: "Spec".into(),
 
                 ticket: None,
+                resume: None,
             })
             .unwrap(),
         ))

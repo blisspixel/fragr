@@ -4,7 +4,7 @@
 hello deadlines, global plus per-address connection caps, an inbound message
 budget (burst 64, 256 per second), `GET /status`, and HMAC join tickets are
 implemented on the 0.24 WebSocket stack with no new crate. Timing percentiles
-stay on the log. Idle ping drops, reconnect, and TLS remain later rungs. A
+stay on the log. Idle ping drops and TLS remain later rungs. A drop can resume the same pawn for ten seconds. A
 quiet spectator is not an idle connection.
 **Branch:** `feat/hardening-*` (one PR per rung)
 **Spend:** $0 for everything here. A VM for the stranger test needs written approval and sits under the cap.

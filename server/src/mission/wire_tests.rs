@@ -145,6 +145,7 @@ async fn connect(
                 gameplay_version: crate::protocol::GAMEPLAY_VERSION,
 
                 ticket: None,
+                resume: None,
             })
             .unwrap(),
         ))

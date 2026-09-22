@@ -31,6 +31,7 @@ async fn join(url: &str, role: Role, name: &str) -> (Socket, Option<Uuid>) {
                 name: name.into(),
 
                 ticket: None,
+                resume: None,
             })
             .unwrap(),
         ))

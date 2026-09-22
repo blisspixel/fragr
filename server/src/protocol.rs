@@ -526,6 +526,7 @@ mod geometry_tests {
             ClientMessage::Hello {
                 geometry_version: 1,
                 ticket: None,
+                resume: None,
                 ..
             }
         ));
@@ -584,7 +585,13 @@ pub enum ClientMessage {
         /// Present only when the server was started with a join secret.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         ticket: Option<String>,
+        /// Empty asks for a resume token. A token rebinds a parked pawn.
+        /// Absent means a drop removes the pawn, which is what older clients do.
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        resume: Option<String>,
     },
+    /// Explicit leave. A later socket close removes the pawn now.
+    Leave,
     Action(Action),
     MissionReady(MissionReady),
     MissionContinue(MissionContinue),
@@ -605,6 +612,9 @@ pub enum ServerMessage {
         mode_name: String,
         #[serde(default = "default_playlist")]
         playlist: String,
+        /// Set for a human or agent that asked to keep the pawn across a drop.
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        resume: Option<String>,
     },
     /// The arena's shape: the bounds and the solids that block movement and
     /// shots. Sent once to every role on join and again to everyone when

@@ -27,13 +27,16 @@ before initializing position or aim. Match by UUID, never roster index or name.
 
 **MCP agent-adapter session tools:** boot Hello-on-start remains valid. First-class tools `join` (Hello/Welcome, optional name, idempotent), `leave` (clean WebSocket disconnect; `isError` if not connected), and `round_state` (round fields from last snapshot + recent `round_start` / `round_end`) are documented in `agent-adapter/README.md`. There is no separate on-wire Leave message; leave is disconnect.
 
-**Names and reconnect:** display names are not identity credentials. Joining
+**Names and resume:** display names are not identity credentials. Joining
 never evicts an existing fighter by name. The server removes control characters,
 trims names to 24 Unicode scalars, uses `Player` for an empty result, and appends
 ` #2`, ` #3`, etc. on collisions, including collisions with rule bots. The final
-label appears in snapshots and events; use player UUIDs for ownership. A reconnect
-creates a new session. Only that connection's disconnect removes its fighter.
-Authenticated session resumption remains planned.
+label appears in snapshots and events; use player UUIDs for ownership. A client
+that sends `resume` keeps that same pawn across a dropped socket for 200 ticks
+(ten seconds). Input stops while the socket is gone. The body can still be shot.
+`leave` removes it immediately. A hello without `resume` still removes the pawn
+on close, which is what older clients do. The resume token is not a join ticket
+and does not rewind ticks, input sequence, or inventory.
 
 ## Message Types
 
@@ -64,7 +67,11 @@ Initial handshake message. Must be sent immediately after connection.
   accepts an expiry from 15 seconds ago through 75 seconds ahead. A spectator
   hello is not ticketed. A bad ticket is `join_rejected` before a seat is taken.
   The same ticket can be presented again until it expires. It does not name the
-  player and it does not resume a dropped pawn.
+  player and it does not by itself resume a dropped pawn.
+- `resume`: optional. Absent means a dropped socket removes the pawn. An empty
+  string asks for a resume token on `Welcome`. A token rebinds the parked pawn
+  and the server answers with a new token. A bad or expired token is
+  `resume_rejected` and does not create a second pawn. Spectators omit it.
 - `geometry_version`: Maximum understood solid format, including earlier formats.
   Current clients send `2`; omission means `1`. Before `Welcome`, the server sends
   `error` with code `unsupported_geometry` and closes connections below the
@@ -105,8 +112,10 @@ hello releases its slot. A quiet spectator is not dropped for silence: after
 hello, snapshots are the server's traffic, and an idle kick would end watch
 mode. Further inbound text, including actions, is limited to a burst of
 64 and 256 per second. Extra messages are dropped and the player stays
-connected. A dropped human or agent still opens a new session. Reconnect that
-keeps the same pawn is later work.
+connected. A client that asked for resume keeps its pawn for ten seconds
+after a drop. `{"type":"leave"}` removes that pawn immediately. The grace
+does not rewind the simulation. When it ends, the leave is the same as a
+disconnect: a solo run whose owner is gone becomes abandoned.
 
 `GET /status` on the game port, before any WebSocket upgrade, returns a JSON
 `LiveStatus` (`schema_version` 2): `kind` (`arena` or `campaign`), map name,
@@ -181,8 +190,8 @@ and encounters together, once. NPCs and spectators never count as party members.
 
 The current `departed` state freezes the prototype simulation and shows a result;
 it does not load M02. Development party mode retains entry respawn and allows a
-new party after everyone leaves. Neither mode has persistent/reconnect identity,
-disk saves or mid-mission checkpoints. Text is localized; voice/radio is optional.
+new party after everyone leaves. Neither mode has disk saves or mid-mission
+checkpoints. A dropped socket can rebind the same pawn for ten seconds. Text is localized; voice/radio is optional.
 
 #### Solo run recovery
 
@@ -205,8 +214,10 @@ geometry, supplies, enemies and objectives return together. Reloads, motion and
 queued actions are cleared; input sequence, inventory revision and simulation
 tick never rewind. The owner remains ready, so the opening does not replay.
 Leaving an unfinished solo run sets `abandoned`; its seat cannot be reused.
+A dropped socket can rebind that same owner for ten seconds, and the run stays
+in progress while the pawn is parked. When the grace ends, the run is abandoned.
 Completion and exhaustion retain their outcomes after departure. Starting again requires a new
-server/run. No save or reconnection promise is implied by this in-memory state.
+server/run. No disk save is implied by this in-memory state.
 
 MCP exposes an explicit `mission_continue` tool. Supplied scripted/playtest/brain
 controllers retry automatically within the same allowance. Human UI waits for
@@ -441,8 +452,8 @@ has one authoritative winner and reports the actual received amount in the picku
 event. On campaign maps, claimed stock stays unavailable with no `respawn_in`
 until the authoritative party reset. Outside campaign play, ammo returns after
 200 ticks and other arcade pads retain their existing timers. Claims require proximity and, on authored
-maps, unobstructed sight. Current development death resets inventory and claims;
-reconnect creates a new participant, not a restored checkpoint.
+maps, unobstructed sight. Current development death resets inventory and claims.
+A resumed pawn keeps the claims it still holds. A new hello does not restore a pawn that already left.
 
 #### Ack
 
