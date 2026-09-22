@@ -161,7 +161,7 @@ Evidence beats assertion. Regenerate current `docs/screenshots/tour_*.png` throu
 
 ## Screenshots, and when they must be refreshed
 
-**Run `tools/qa_tour.sh --publish` before every release tag, and in any PR that changes something a player sees.** The README stills come from that run. Serialize Windows release builds and smokes because a running executable cannot be replaced.
+**Run `tools/qa_tour.sh --publish` before every release tag, and in any PR that changes something a player sees.** That archives the tour under `docs/screenshots/`. The README embeds four stills only: the boot menu, Recall Notice intake, the multiplayer page, and one watched match. Replace one of those four when that surface changes. Do not put the rest of the tour back in the README. Serialize Windows release builds and smokes because a running executable cannot be replaced.
 
 Inspect the stills afterwards, including the world, menus, and transient effects.
 HUD coverage and nonblank images do not establish visual quality or fun. A named

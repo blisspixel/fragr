@@ -151,10 +151,8 @@ if [ "$OUT_DIR" != "$ROOT/.agents/qa/latest" ]; then
   cp "$OUT_DIR"/*.png "$OUT_DIR"/manifest.json "$ROOT/.agents/qa/latest/" || exit 1
 fi
 
-# Screenshots in the README go stale the moment the HUD changes, and a stale
-# screenshot is worse than none because it claims to be the current build.
-# `--publish` copies the approved subset into docs/screenshots/ so refreshing
-# them is one command rather than a thing someone remembers to do.
+# `--publish` copies the approved tour into docs/screenshots/. The README
+# embeds four of those files. Do not add the rest back to the README.
 if [ "${PUBLISH:-0}" = "1" ]; then
   published=0
   shopt -s nullglob
