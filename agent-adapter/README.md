@@ -112,7 +112,7 @@ cargo run -- mcp --server ws://127.0.0.1:6767 --name ArenaFox
 ```
 
 Connect via MCP client (stdio) and use the tools below.
-Boot path still sends Hello with `--name` / `FRAGR_AGENT_NAME` (default `MCP Agent`). First-class `join` / `leave` / `round_state` tools are also available (idempotent join; leave disconnects cleanly).
+Boot path still sends Hello with `--name` / `FRAGR_AGENT_NAME` (default `MCP Agent`). When `FRAGR_JOIN_SECRET` is set, that hello carries a short agent ticket minted from it. An unset secret sends no ticket. First-class `join` / `leave` / `round_state` tools are also available (idempotent join; leave disconnects cleanly).
 
 ### Scripted Bot (standalone test)
 
@@ -417,7 +417,7 @@ The adapter speaks the same WebSocket JSON protocol as the Godot client and huma
 
 **Connection flow:**
 1. Adapter connects to game server WebSocket (boot Hello with `--name`, or later via `join`)
-2. Sends `Hello` with `role=agent` and name
+2. Sends `Hello` with `role=agent`, name, and a ticket when `FRAGR_JOIN_SECRET` is set
 3. Receives `Welcome` with assigned `player_id`
 4. Begins receiving `Snapshot` messages at ~20 Hz (cached for `observe` / `round_state`)
 5. MCP client calls `act` / `speak`; adapter forwards on the open socket

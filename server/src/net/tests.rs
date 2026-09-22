@@ -560,3 +560,202 @@ async fn mission_admission_bounds_participants_and_keeps_spectators_separate() {
     replacement.close(None).await.unwrap();
     accept.abort();
 }
+
+#[tokio::test]
+async fn join_secret_rejects_before_the_solo_seat_and_leaves_watchers_open() {
+    let secret = Arc::new(
+        crate::join_ticket::JoinSecret::from_env_value("0123456789abcdef")
+            .unwrap()
+            .unwrap(),
+    );
+    let (tx, mut commands) = mpsc::unbounded_channel();
+    let mut server =
+        NetServer::bind_with_requirements("127.0.0.1:0", tx, 2, crate::protocol::GAMEPLAY_VERSION)
+            .await
+            .unwrap();
+    server.reserve_solo_run().unwrap();
+    server.set_join_secret(Arc::clone(&secret));
+    let address = server.local_addr().unwrap();
+    let accept = tokio::spawn(server.accept_loop());
+    let now = crate::join_ticket::unix_now();
+    let human = crate::join_ticket::mint(&secret, Role::Human, now + 60).unwrap();
+    let rejected = [
+        None,
+        Some("nope".to_string()),
+        Some(crate::join_ticket::mint(&secret, Role::Agent, now + 60).unwrap()),
+        Some(crate::join_ticket::mint(&secret, Role::Human, now.saturating_sub(30)).unwrap()),
+        Some(crate::join_ticket::mint(&secret, Role::Human, now.saturating_add(120)).unwrap()),
+    ];
+    for ticket in rejected {
+        let (mut socket, _) = connect_async(format!("ws://{address}")).await.unwrap();
+        let mut hello = serde_json::json!({
+            "type": "hello",
+            "role": "human",
+            "name": "Locked",
+            "geometry_version": 2,
+            "gameplay_version": crate::protocol::GAMEPLAY_VERSION,
+        });
+        if let Some(ticket) = ticket {
+            hello["ticket"] = serde_json::Value::String(ticket);
+        }
+        socket.send(Message::Text(hello.to_string())).await.unwrap();
+        let reply = timeout(Duration::from_secs(2), socket.next())
+            .await
+            .unwrap()
+            .unwrap()
+            .unwrap();
+        assert_eq!(admission_code(reply), "join_rejected");
+        let close = timeout(Duration::from_secs(2), socket.next())
+            .await
+            .unwrap()
+            .unwrap()
+            .unwrap();
+        assert!(matches!(close, Message::Close(Some(frame)) if frame.reason == "join_rejected"));
+        assert!(commands.try_recv().is_err());
+    }
+
+    let (mut spectator, _) = connect_async(format!("ws://{address}")).await.unwrap();
+    spectator
+        .send(Message::Text(
+            serde_json::json!({
+                "type": "hello",
+                "role": "spectator",
+                "name": "Watch",
+                "geometry_version": 2,
+                "gameplay_version": crate::protocol::GAMEPLAY_VERSION,
+                "ticket": "not-a-ticket",
+            })
+            .to_string(),
+        ))
+        .await
+        .unwrap();
+    let reply = timeout(Duration::from_secs(2), spectator.next())
+        .await
+        .unwrap()
+        .unwrap()
+        .unwrap();
+    assert!(matches!(
+        serde_json::from_str::<ServerMessage>(reply.to_text().unwrap()).unwrap(),
+        ServerMessage::Welcome {
+            player_id: None,
+            ..
+        }
+    ));
+    assert!(matches!(
+        timeout(Duration::from_secs(2), commands.recv())
+            .await
+            .unwrap(),
+        Some(GameCommand::Connected {
+            role: Role::Spectator,
+            ..
+        })
+    ));
+
+    let (mut owner, _) = connect_async(format!("ws://{address}")).await.unwrap();
+    owner
+        .send(Message::Text(
+            serde_json::json!({
+                "type": "hello",
+                "role": "human",
+                "name": "Owner",
+                "geometry_version": 2,
+                "gameplay_version": crate::protocol::GAMEPLAY_VERSION,
+                "ticket": human,
+            })
+            .to_string(),
+        ))
+        .await
+        .unwrap();
+    let reply = timeout(Duration::from_secs(2), owner.next())
+        .await
+        .unwrap()
+        .unwrap()
+        .unwrap();
+    assert!(matches!(
+        serde_json::from_str::<ServerMessage>(reply.to_text().unwrap()).unwrap(),
+        ServerMessage::Welcome {
+            player_id: Some(_),
+            ..
+        }
+    ));
+    assert!(matches!(
+        timeout(Duration::from_secs(2), commands.recv())
+            .await
+            .unwrap(),
+        Some(GameCommand::Connected {
+            role: Role::Human,
+            ..
+        })
+    ));
+
+    let again = crate::join_ticket::mint(&secret, Role::Human, crate::join_ticket::unix_now() + 60)
+        .unwrap();
+    let (mut second, _) = connect_async(format!("ws://{address}")).await.unwrap();
+    second
+        .send(Message::Text(
+            serde_json::json!({
+                "type": "hello",
+                "role": "human",
+                "name": "Second",
+                "geometry_version": 2,
+                "gameplay_version": crate::protocol::GAMEPLAY_VERSION,
+                "ticket": again,
+            })
+            .to_string(),
+        ))
+        .await
+        .unwrap();
+    let reply = timeout(Duration::from_secs(2), second.next())
+        .await
+        .unwrap()
+        .unwrap()
+        .unwrap();
+    assert_eq!(admission_code(reply), "run_seat_closed");
+    assert!(commands.try_recv().is_err());
+    accept.abort();
+}
+
+#[tokio::test]
+async fn an_open_server_ignores_a_presented_ticket() {
+    let (tx, mut commands) = mpsc::unbounded_channel();
+    let server =
+        NetServer::bind_with_requirements("127.0.0.1:0", tx, 2, crate::protocol::GAMEPLAY_VERSION)
+            .await
+            .unwrap();
+    let address = server.local_addr().unwrap();
+    let accept = tokio::spawn(server.accept_loop());
+    let (mut socket, _) = connect_async(format!("ws://{address}")).await.unwrap();
+    socket
+        .send(Message::Text(
+            serde_json::json!({
+                "type": "hello",
+                "role": "human",
+                "name": "Open",
+                "geometry_version": 2,
+                "gameplay_version": crate::protocol::GAMEPLAY_VERSION,
+                "ticket": "garbage",
+            })
+            .to_string(),
+        ))
+        .await
+        .unwrap();
+    let reply = timeout(Duration::from_secs(2), socket.next())
+        .await
+        .unwrap()
+        .unwrap()
+        .unwrap();
+    assert!(matches!(
+        serde_json::from_str::<ServerMessage>(reply.to_text().unwrap()).unwrap(),
+        ServerMessage::Welcome {
+            player_id: Some(_),
+            ..
+        }
+    ));
+    assert!(matches!(
+        timeout(Duration::from_secs(2), commands.recv())
+            .await
+            .unwrap(),
+        Some(GameCommand::Connected { .. })
+    ));
+    accept.abort();
+}

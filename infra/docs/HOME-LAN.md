@@ -39,9 +39,9 @@ CGNAT / double-NAT: if your ISP will not forward, use a cheap VPS instead (CHEAP
 ## Security bar (home)
 
 - Game port open; admin/SSH closed to the internet.
-- No secrets in the server command line; no cloud env required for Slice 1.
-- Keep the host patched; treat public 6767 as an untrusted front door (rate limits / join caps land in later slices).
-- Agent-adapter stays off the combat tick (separate process; MCP over HTTP or local). Never put authority on scale-to-zero.
+- No secrets on the server command line. Optional `FRAGR_JOIN_SECRET` (16 to 256 bytes) makes a human or agent present a short ticket. Spectators can still watch. Leave it unset for an open LAN. An empty value is unset. The wrong length refuses to bind. The host and the player need clocks within about 15 seconds.
+- Incoming frames stop at 64 KiB. One address can hold 32 connections, and the process holds 64. Extra text after hello is dropped after a burst of 64 and 256 per second. A quiet spectator stays connected.
+- Agent-adapter stays off the combat tick (separate process). Never put authority on scale-to-zero.
 
 ## Cost
 

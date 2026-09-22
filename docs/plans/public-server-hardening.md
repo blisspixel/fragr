@@ -1,12 +1,11 @@
 # Plan: public server hardening
 
-**Status:** rung 1 in progress, 2026-09-21. Frame and message caps, handshake and
-hello deadlines, global plus per-address connection caps, and an inbound
-message budget (burst 64, 256 per second), and `GET /status` on the game port
-are implemented on the 0.24 WebSocket stack with no new crate. `GET /status`
-is the directory line (map, round, fighter and watcher counts). Timing
-percentiles stay on the log. Idle ping drops and tickets remain later rungs. A quiet spectator
-is not an idle connection.
+**Status:** in flight, 2026-09-22. Frame and message caps, handshake and
+hello deadlines, global plus per-address connection caps, an inbound message
+budget (burst 64, 256 per second), `GET /status`, and HMAC join tickets are
+implemented on the 0.24 WebSocket stack with no new crate. Timing percentiles
+stay on the log. Idle ping drops, reconnect, and TLS remain later rungs. A
+quiet spectator is not an idle connection.
 **Branch:** `feat/hardening-*` (one PR per rung)
 **Spend:** $0 for everything here. A VM for the stranger test needs written approval and sits under the cap.
 
@@ -24,7 +23,7 @@ Phase 2 of [`../ROADMAP.md`](../ROADMAP.md): a server you can open to the intern
 
 1. **Frame and buffer caps.** `tokio-tungstenite` takes a `WebSocketConfig` through `accept_async_with_config`. Defaults are 64 MiB per message and 16 MiB per frame with an unlimited write buffer. Set `max_message_size` to 64 KiB, `max_frame_size` to 64 KiB, and `max_write_buffer_size` between 256 KiB and 1 MiB; a full write buffer surfaces as an error, which is the cue to drop a slow reader. The pinned 0.24 exposes plain fields; the current 0.30 makes the struct non-exhaustive with builder setters and adds a read buffer size, so the upgrade is its own PR.
 2. **Accept hardening.** Wrap the handshake in a five second `tokio::time::timeout` (slow-loris); cap connections per IP with a `DashMap` and total connections with a `tokio::sync::Semaphore`; rate-limit accepts per IP with `governor` (a keyed limiter with a `DashMap` store, `retain_recent` on a timer to bound memory); ping and drop connections idle beyond a set number of seconds. Tower middleware does not fit a raw accept loop; the hand-rolled token bucket is the fallback.
-3. **Join tickets.** An HMAC-SHA256 ticket, `base64url(json).base64url(mac)`, carrying arena, name, role, nonce, and a sixty second expiry, compared in constant time (`hmac`, `sha2`, `subtle`). The ticket travels in the first frame after the upgrade. A separate rejoin token serves reconnect. Origin checked on upgrade.
+3. **Join tickets.** HMAC-SHA256 with the existing `sha2` crate. No new crypto crate. The ticket is `v1.<unix exp>.<human|agent>.<64 lowercase hex>`, over `fragr-join-v1`, the expiry, and the role. It does not carry the callsign. The server accepts an expiry from 15 seconds ago through 75 seconds ahead and compares the mac with xor. `FRAGR_JOIN_SECRET` is 16 to 256 bytes, read by the dedicated and local processes, never by `run_server` itself and never from clap or `settings.cfg`. No secret leaves hello open and ignores any ticket. Spectators are never ticketed. A bad ticket is `join_rejected` before a party or solo seat is taken. The same ticket can be replayed until it expires. TLS is what closes that window. A separate rejoin token is the reconnect rung, not this one.
 4. **Names and roles.** Three to sixteen characters, NFKC normalised, allowlist letters, digits, underscore, and hyphen; reserved names such as server and admin; duplicates get a suffix. Admin is gated on a token, never on a name, since without an auth server anyone can take any name.
 5. **Speak and action limits.** Speak keeps the shipped 60-tick cooldown from `docs/protocol.md` (mirrored in the adapter); this plan adds kick-on-repeat and an action-rate cap per session; junk dropped silently. A ban list file with id, IP, reason, and expiry, plus an allowlist, in the style of Veloren's `banlist.ron`.
 6. **TLS.** Terminate at Caddy: `reverse_proxy localhost:6767` upgrades WebSockets automatically, `stream_close_delay 5m` survives reloads, certificates by DNS-01 (no open port, works behind NAT, DuckDNS or a DNS plugin) for a home box or HTTP-01 on a VM. The client connects with `connect_to_url("wss://play.example", TLSOptions.client())` by name, never by IP. No in-process rustls; issuance and reload would be extra code for no gain.
@@ -47,7 +46,7 @@ Plaintext on port 6767 stays the LAN path and the documented public path, as the
 
 1. Frame and buffer caps, handshake timeout, idle timeout, per-IP and global caps. Tests. New crates: none (`DashMap` only if the per-IP map outgrows a mutexed `HashMap`).
 2. Accept rate limiting and kick-on-repeat with `governor`; ban and allow lists. New crate: `governor`.
-3. Join tickets and rejoin tokens; protocol version in `Hello`. New crates: `hmac`, `sha2`, `subtle`.
+3. Join tickets. No new crate (`sha2` is already a server dependency). Rejoin tokens stay with reconnect. Gameplay and geometry versions already reject an old hello. A single `protocol_version` field is not this rung.
 4. Status over HTTP on the game port and the Godot status message. New crate: `hdrhistogram`.
 5. Caddy guide and the wss client path; the stranger session.
 
@@ -55,6 +54,7 @@ Plaintext on port 6767 stays the LAN path and the documented public path, as the
 
 - [ ] Rung 1 shipped with reject-path tests.
 - [ ] Rate limits and lists shipped.
-- [ ] Tickets and protocol version shipped.
+- [x] Join tickets shipped: bad, expired, wrong-role, and missing tickets are `join_rejected` before a seat is taken. Watchers stay open. An unset secret ignores a ticket.
+- [ ] Reconnect tokens. Gameplay and geometry versions already reject an old hello.
 - [ ] Status and benchmark mode shipped and documented.
 - [ ] A recorded stranger session behind TLS.

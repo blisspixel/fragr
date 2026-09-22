@@ -212,6 +212,7 @@ pub struct NetServer {
     solo_run: bool,
     admission: Arc<Admission>,
     status: Arc<tokio::sync::RwLock<crate::protocol::LiveStatus>>,
+    join_secret: Option<std::sync::Arc<crate::join_ticket::JoinSecret>>,
 }
 
 pub enum GameCommand {
@@ -296,7 +297,15 @@ impl NetServer {
             status: Arc::new(tokio::sync::RwLock::new(
                 crate::protocol::LiveStatus::default(),
             )),
+            join_secret: None,
         })
+    }
+
+    pub(crate) fn set_join_secret(
+        &mut self,
+        secret: std::sync::Arc<crate::join_ticket::JoinSecret>,
+    ) {
+        self.join_secret = Some(secret);
     }
 
     /// Share the match line the tick loop refreshes. `GET /status` reads it.
@@ -353,6 +362,7 @@ impl NetServer {
                     let status = Arc::clone(&self.status);
                     let handshake_timeout = admission.handshake_timeout;
                     let hello_timeout = admission.hello_timeout;
+                    let join_secret = self.join_secret.clone();
 
                     tokio::spawn(async move {
                         if serve_status_if_requested(&mut stream, &status).await {
@@ -376,6 +386,7 @@ impl NetServer {
                                 solo_run,
                                 handshake_timeout,
                                 hello_timeout,
+                                join_secret,
                             },
                         )
                         .await
@@ -505,6 +516,7 @@ struct HelloPolicy {
     solo_run: bool,
     handshake_timeout: Duration,
     hello_timeout: Duration,
+    join_secret: Option<std::sync::Arc<crate::join_ticket::JoinSecret>>,
 }
 
 async fn handle_connection(
@@ -545,7 +557,20 @@ async fn handle_connection(
                 name,
                 geometry_version,
                 gameplay_version,
+                ticket,
             }) => {
+                if !crate::join_ticket::admit(
+                    policy.join_secret.as_deref(),
+                    r,
+                    ticket.as_deref(),
+                    crate::join_ticket::unix_now(),
+                ) {
+                    let rejection = ServerMessage::Error {
+                        code: "join_rejected".into(),
+                        message: "This server refused the join.".into(),
+                    };
+                    return reject_connection(ws_sink, ws_stream, rejection).await;
+                }
                 if gameplay_version < policy.required_gameplay {
                     let rejection = ServerMessage::Error {
                         code: "unsupported_gameplay".into(),

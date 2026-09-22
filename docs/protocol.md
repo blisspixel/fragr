@@ -57,6 +57,14 @@ Initial handshake message. Must be sent immediately after connection.
   - `human`: Keyboard/mouse player, receives snapshots, sends actions
   - `agent`: Bot/MCP agent, receives snapshots, sends actions
 - `name`: Display name (shown in game and logs)
+- `ticket`: optional. Absent when the server has no join secret. When
+  `FRAGR_JOIN_SECRET` is set, a `human` or `agent` hello must carry
+  `v1.<unix exp>.<human|agent>.<64 lowercase hex>`. The hex is HMAC-SHA256 over
+  `fragr-join-v1`, the expiry, and the role, using that secret. The server
+  accepts an expiry from 15 seconds ago through 75 seconds ahead. A spectator
+  hello is not ticketed. A bad ticket is `join_rejected` before a seat is taken.
+  The same ticket can be presented again until it expires. It does not name the
+  player and it does not resume a dropped pawn.
 - `geometry_version`: Maximum understood solid format, including earlier formats.
   Current clients send `2`; omission means `1`. Before `Welcome`, the server sends
   `error` with code `unsupported_geometry` and closes connections below the
@@ -97,7 +105,8 @@ hello releases its slot. A quiet spectator is not dropped for silence: after
 hello, snapshots are the server's traffic, and an idle kick would end watch
 mode. Further inbound text, including actions, is limited to a burst of
 64 and 256 per second. Extra messages are dropped and the player stays
-connected. Join tickets and reconnect are separate later work.
+connected. A dropped human or agent still opens a new session. Reconnect that
+keeps the same pawn is later work.
 
 `GET /status` on the game port, before any WebSocket upgrade, returns a JSON
 `LiveStatus` (`schema_version` 2): `kind` (`arena` or `campaign`), map name,

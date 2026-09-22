@@ -143,6 +143,8 @@ async fn connect(
                 name: format!("{role:?}"),
                 geometry_version: 2,
                 gameplay_version: crate::protocol::GAMEPLAY_VERSION,
+
+                ticket: None,
             })
             .unwrap(),
         ))

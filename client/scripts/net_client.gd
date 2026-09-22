@@ -90,6 +90,23 @@ func disconnect_from_server():
 	set_process(false)
 	disconnected_from_server.emit()
 
+func join_ticket(for_role: String, secret: String, exp: int) -> String:
+	if for_role != "human" and for_role != "agent":
+		return ""
+	var key := secret.strip_edges().to_utf8_buffer()
+	if key.size() < 16 or key.size() > 256:
+		return ""
+	var payload := "fragr-join-v1\n%d\n%s" % [exp, for_role]
+	var ctx := HMACContext.new()
+	if ctx.start(HashingContext.HASH_SHA256, key) != OK:
+		return ""
+	if ctx.update(payload.to_utf8_buffer()) != OK:
+		return ""
+	var mac := ctx.finish()
+	if mac.is_empty():
+		return ""
+	return "v1.%d.%s.%s" % [exp, for_role, mac.hex_encode()]
+
 func send_hello():
 	var hello = {
 		"type": "hello",
@@ -98,6 +115,9 @@ func send_hello():
 		"geometry_version": MapGeometry.VERSION,
 		"gameplay_version": GAMEPLAY_VERSION
 	}
+	var ticket := join_ticket(role, OS.get_environment("FRAGR_JOIN_SECRET"), int(Time.get_unix_time_from_system()) + 60)
+	if ticket != "":
+		hello["ticket"] = ticket
 	send_json(hello)
 
 func send_action(action: Dictionary):
@@ -202,6 +222,7 @@ func _admission_error(code: String) -> bool:
 		"unsupported_geometry", "unsupported_gameplay": message = "This server needs a newer client. Update to join."
 		"connection_limit": message = "This server is not taking more connections."
 		"address_limit": message = "Too many connections from this address."
+		"join_rejected": message = "This server refused the join."
 	if message.is_empty():
 		return false
 	disconnect_from_server()

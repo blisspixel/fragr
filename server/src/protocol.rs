@@ -525,6 +525,7 @@ mod geometry_tests {
             hello,
             ClientMessage::Hello {
                 geometry_version: 1,
+                ticket: None,
                 ..
             }
         ));
@@ -580,6 +581,9 @@ pub enum ClientMessage {
             skip_serializing_if = "is_legacy_geometry"
         )]
         geometry_version: u32,
+        /// Present only when the server was started with a join secret.
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        ticket: Option<String>,
     },
     Action(Action),
     MissionReady(MissionReady),

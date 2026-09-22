@@ -101,6 +101,7 @@ async fn mcp_connect_and_hello(
         geometry_version: fragr_server::protocol::GEOMETRY_VERSION,
         role: Role::Agent,
         name: name.to_string(),
+        ticket: fragr_server::join_ticket::ticket_for(Role::Agent),
     };
     ws_sink
         .send(Message::Text(serde_json::to_string(&hello)?))
@@ -353,6 +354,7 @@ async fn run_scripted_bot(
         geometry_version: fragr_server::protocol::GEOMETRY_VERSION,
         role: Role::Agent,
         name: name.clone(),
+        ticket: fragr_server::join_ticket::ticket_for(Role::Agent),
     };
     ws_sink
         .send(Message::Text(serde_json::to_string(&hello)?))
@@ -569,6 +571,7 @@ mod tests {
                     serde_json::from_str::<ClientMessage>(hello.to_text().unwrap()).unwrap(),
                     ClientMessage::Hello {
                         geometry_version: 2,
+                        ticket: None,
                         ..
                     }
                 ));
@@ -1166,6 +1169,8 @@ mod tests {
             geometry_version: fragr_server::protocol::GEOMETRY_VERSION,
             role: protocol::Role::Agent,
             name: "TestAgent".to_string(),
+
+            ticket: None,
         };
         let json = serde_json::to_string(&hello).unwrap();
         assert!(json.contains(r#""type":"hello""#));
@@ -1337,6 +1342,8 @@ mod tests {
             geometry_version: fragr_server::protocol::GEOMETRY_VERSION,
             role: Role::Agent,
             name: name.clone(),
+
+            ticket: None,
         };
         let json = serde_json::to_string(&hello).unwrap();
         assert!(json.contains("ArenaFox"), "json={}", json);

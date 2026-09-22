@@ -96,6 +96,9 @@ pub async fn serve(
         campaign_run: true,
         seed,
         status_every_s: 0,
+        join_secret: crate::join_ticket::JoinSecret::from_process_env()
+            .map_err(std::io::Error::other)?
+            .map(std::sync::Arc::new),
         ..Default::default()
     };
     let server = run_server(

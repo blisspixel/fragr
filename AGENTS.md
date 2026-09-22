@@ -70,6 +70,7 @@ If prose and code disagree, code wins; fix the prose in the same change. Keep pl
 | Session glue, rosters, `min_bots`, broadcast | `server/src/session.rs` |
 | Wire types and Host line generators | `server/src/protocol.rs`, documented in `docs/protocol.md`. The adapter, the playtest harness, and the brain agent all read these types from `fragr-server`; there is no second copy to keep in step. |
 | WebSocket accept and per-client plumbing | `server/src/net.rs`. `ClientSession` stays outside broadcast delivery until `send_unicasts` queues its initial MapInfo; preserve this ordering for every role. |
+| Join tickets | `server/src/join_ticket.rs`. The dedicated and local processes read `FRAGR_JOIN_SECRET`. Tests, the playtest harness, and `run_server` do not. Pass a secret in as an argument, or leave hello open. Spectators are not ticketed. A bad ticket must not take a seat. |
 | Server CLI, tracing, tick loop | `server/src/main.rs` (`--bind`, `--bots`, `--map`, `--map-rotate`) |
 | MCP request handling and tool schemas | `agent-adapter/src/mcp.rs` |
 | Adapter CLI and WebSocket session | `agent-adapter/src/main.rs` |
@@ -94,7 +95,7 @@ If prose and code disagree, code wins; fix the prose in the same change. Keep pl
 | World and story | `docs/lore/README.md` indexes canon; `docs/CAMPAIGN.md` owns agreed story and open decisions; `docs/CAMPAIGN-MISSIONS.md` owns proposed mission briefs. Derive maps from story. `docs/lore/voice.md` owns current registers; `docs/audio-production/legacy-assets.md` tracks old recorded vocabulary outside canon. Check source, manifests and migration records before replacing assets. Old audio does not override current intent. |
 | Hosting and cloud | `infra/README.md`, `infra/docs/`, `infra/terraform/` |
 
-Before adding a second way to log, configure, serialize, retry, or talk to the server, search the tree and reuse the seam above. Env vars in use: `FRAGR_SERVER`, `FRAGR_SOLO`, `FRAGR_MAP`, `FRAGR_AGENT_NAME`, `FRAGR_TIP_CAPTURE_DIR`, `RUST_LOG`, `ELEVENLABS_API_KEY`, plus the `FRAGR_BIND`, `FRAGR_BOTS`, `FRAGR_MAP_ROTATE`, and `GODOT_BIN` knobs read by `tools/solo_scrap.sh`.
+Before adding a second way to log, configure, serialize, retry, or talk to the server, search the tree and reuse the seam above. Env vars in use: `FRAGR_SERVER`, `FRAGR_SOLO`, `FRAGR_MAP`, `FRAGR_AGENT_NAME`, `FRAGR_JOIN_SECRET`, `FRAGR_TIP_CAPTURE_DIR`, `RUST_LOG`, `ELEVENLABS_API_KEY`, plus the `FRAGR_BIND`, `FRAGR_BOTS`, `FRAGR_MAP_ROTATE`, and `GODOT_BIN` knobs read by `tools/solo_scrap.sh`.
 
 ## Tests and lints
 
