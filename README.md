@@ -144,7 +144,7 @@ Keyboard and gamepad share the same action path into the server.
 | Jump | Space | A |
 | Reload (discovery maps) | R | X |
 | Continue after campaign death | Enter | A after releasing held inputs |
-| Weapon cycle | [ and ] | LB and RB |
+| Weapons | Mouse wheel, [ and ], or 1 through 5 | LB and RB |
 | Speak (taunt) | T | Y |
 | Join | J | A while spectating |
 | Leave to spectate | L | Start |
@@ -153,6 +153,10 @@ Keyboard and gamepad share the same action path into the server.
 | Radio: next station, next track, on or off | C, N, M | D-pad up, down, left |
 | Match menu | Esc | |
 | Hold to show leaders in first person | Tab | |
+
+1 is fists, 2 is the pistol, 3 is the shotgun, 4 is the rifle, and 5 is the
+railgun. The wheel and the bracket keys walk that order and skip a gun you are
+not carrying. Arcade maps carry the shotgun, the rifle, and the railgun.
 
 M01's development slice now starts with fists. Recover the pistol in
 confiscation and the rifle before the records stairs, collect finite
