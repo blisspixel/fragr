@@ -67,6 +67,8 @@ async fn encounter_capability_and_identity_reach_every_role_over_the_wire() {
                 name: "Old client".into(),
                 geometry_version: 2,
                 gameplay_version: 2,
+
+                ticket: None,
             })
             .unwrap(),
         ))
@@ -86,6 +88,8 @@ async fn encounter_capability_and_identity_reach_every_role_over_the_wire() {
                     name: format!("{role:?}"),
                     geometry_version: 2,
                     gameplay_version: fragr_server::protocol::GAMEPLAY_VERSION,
+
+                    ticket: None,
                 })
                 .unwrap(),
             ))

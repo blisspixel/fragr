@@ -1656,6 +1656,8 @@ mod mcp_tests {
             geometry_version: fragr_server::protocol::GEOMETRY_VERSION,
             role: protocol::Role::Agent,
             name: name.to_string(),
+
+            ticket: None,
         };
         let json = serde_json::to_string(&hello).unwrap();
         assert!(json.contains("ArenaFox"));

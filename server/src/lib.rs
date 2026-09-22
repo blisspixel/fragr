@@ -2,6 +2,7 @@ pub mod bench;
 pub mod combat;
 mod encounters;
 pub mod inventory;
+pub mod join_ticket;
 pub mod local;
 pub mod maps;
 pub mod mission;

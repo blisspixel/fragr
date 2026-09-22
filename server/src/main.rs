@@ -183,6 +183,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         return Ok(());
     }
 
+    let join_secret = match fragr_server::join_ticket::JoinSecret::from_process_env() {
+        Ok(secret) => secret.map(std::sync::Arc::new),
+        Err(error) => {
+            eprintln!("{error}");
+            std::process::exit(1);
+        }
+    };
     let options = ServerOptions {
         bind: args.bind,
         bots: args.bots,
@@ -201,6 +208,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         solo_broadcast: args.solo_broadcast,
         seed: args.seed,
         status_every_s: args.status_every_s,
+        join_secret,
     };
     run_server(options, std::future::pending::<()>(), None).await
 }
@@ -328,6 +336,7 @@ mod tests {
                     solo_broadcast: false,
                     seed: 1,
                     status_every_s: 0,
+                    join_secret: None,
                 },
                 async move {
                     let _ = shutdown_rx.await;

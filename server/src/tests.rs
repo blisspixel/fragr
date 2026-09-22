@@ -112,10 +112,12 @@ fn test_protocol_client_message_hello_serialization() {
         geometry_version: crate::protocol::GEOMETRY_VERSION,
         role: Role::Agent,
         name: "TestBot".to_string(),
+        ticket: None,
     };
     let json = serde_json::to_string(&hello).unwrap();
     assert!(json.contains(r#""type":"hello""#));
     assert!(json.contains(r#""role":"agent""#));
+    assert!(!json.contains("ticket"));
 
     let deserialized: ClientMessage = serde_json::from_str(&json).unwrap();
     match deserialized {
@@ -124,6 +126,7 @@ fn test_protocol_client_message_hello_serialization() {
             name,
             geometry_version,
             gameplay_version,
+            ticket: None,
         } => {
             assert_eq!(gameplay_version, crate::protocol::GAMEPLAY_VERSION);
             assert_eq!(role, Role::Agent);

@@ -287,6 +287,7 @@ pub async fn run_bot(
         geometry_version: fragr_server::protocol::GEOMETRY_VERSION,
         role: Role::Agent,
         name: config.name.clone(),
+        ticket: fragr_server::join_ticket::ticket_for(Role::Agent),
     };
     if !send_text(
         &mut sink,
@@ -669,6 +670,7 @@ mod tests {
             }),
             seed: 1,
             status_every_s: 0,
+            join_secret: None,
         };
         tokio::spawn(async move {
             let _ = run_server(
@@ -1091,6 +1093,8 @@ mod tests {
                 geometry_version: fragr_server::protocol::GEOMETRY_VERSION,
                 role: Role::Spectator,
                 name: "Spec".into(),
+
+                ticket: None,
             })
             .unwrap(),
         ))

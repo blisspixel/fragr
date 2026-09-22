@@ -31,6 +31,9 @@ pub struct ServerOptions {
     pub seed: u64,
     /// Seconds between status reports in the log; zero turns them off.
     pub status_every_s: u64,
+    /// Set only by the dedicated or local process after reading the environment.
+    /// Tests and the playtest harness leave this empty so hello stays open.
+    pub join_secret: Option<std::sync::Arc<crate::join_ticket::JoinSecret>>,
     /// Contested Frequency Solo Broadcast Episode 0 (Calibration / Larak Lot).
     pub solo_broadcast: bool,
 }
@@ -49,6 +52,7 @@ impl Default for ServerOptions {
             solo_broadcast: false,
             seed: 1,
             status_every_s: 60,
+            join_secret: None,
         }
     }
 }
@@ -135,6 +139,9 @@ pub async fn run_server(
     )
     .await?;
     net_server.share_status(std::sync::Arc::clone(&live));
+    if let Some(secret) = options.join_secret.clone() {
+        net_server.set_join_secret(secret);
+    }
     if options.campaign_run {
         net_server.reserve_solo_run()?;
     }

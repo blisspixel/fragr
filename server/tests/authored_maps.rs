@@ -130,6 +130,8 @@ async fn authored_map_is_shared_by_humans_agents_and_spectators() {
                     geometry_version: GEOMETRY_VERSION,
                     role,
                     name: format!("{role:?} walker"),
+
+                    ticket: None,
                 })
                 .unwrap(),
             ))

@@ -29,6 +29,8 @@ async fn join(url: &str, role: Role, name: &str) -> (Socket, Option<Uuid>) {
                 geometry_version: crate::protocol::GEOMETRY_VERSION,
                 role,
                 name: name.into(),
+
+                ticket: None,
             })
             .unwrap(),
         ))
