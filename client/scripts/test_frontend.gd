@@ -51,6 +51,17 @@ func _run() -> void:
 	for page in ["single", "multi", "settings", "main"]:
 		await menu._show(page)
 		_check(column.get_child_count() > 0, "page should expose controls: " + page)
+	await menu._show("multi")
+	menu._apply_status({"schema_version": 2, "kind": "arena", "map": "Arena Duel", "fighters": 4, "connections": 2})
+	_check(menu._match_line.text == "Arena Duel. Arena. 4 fighters. 2 connections.", "a live arena enables the match line")
+	_check(not menu._watch_button.disabled and not menu._join_button.disabled, "watch and join stay in the app after a match line")
+	menu._apply_status({"schema_version": 2, "kind": "campaign", "map": "Recall Notice: intake prototype", "fighters": 1, "connections": 1})
+	_check(menu._match_line.text.begins_with("Recall Notice: intake prototype. Mission."), "a mission host is named as a mission")
+	menu._apply_status({"schema_version": 1, "map": "Arena Duel", "fighters": 1, "connections": 1})
+	_check(menu._watch_button.disabled and menu._join_button.disabled, "schema 1 does not open watch or join")
+	menu._apply_status(null)
+	_check(menu._match_line.text == "This host did not answer.", "a missing host stays on the menu")
+	await menu._show("main")
 	menu.queue_free()
 	await process_frame
 	var pause_menu: PauseMenu = PauseMenu.new()

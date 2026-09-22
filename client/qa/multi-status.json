@@ -1,0 +1,15 @@
+{
+  "comment": "Multiplayer page after GET /status. The frame is evidence only if the match line names the map.",
+  "width": 1280,
+  "height": 720,
+  "states": [
+    {
+      "name": "multiplayer_status",
+      "scene": "res://scenes/boot_menu.tscn",
+      "at_seconds": 4,
+      "camera": "none",
+      "menu_page": "multi",
+      "note": "One host in the app, with the live map line. Not a web list."
+    }
+  ]
+}

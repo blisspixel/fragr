@@ -1793,7 +1793,13 @@ impl GameState {
             }
         }
         crate::protocol::LiveStatus {
-            schema_version: 1,
+            schema_version: 2,
+            kind: if self.map.is_campaign() {
+                "campaign"
+            } else {
+                "arena"
+            }
+            .to_string(),
             map: self.display_map_name(),
             round: self.round_number,
             tick: self.tick,
@@ -2778,7 +2784,8 @@ mod live_status_tests {
         state.add_player(Uuid::new_v4(), "Ada".into(), Role::Human);
         state.add_player(Uuid::new_v4(), "Probe".into(), Role::Agent);
         let live = state.live_status(3);
-        assert_eq!(live.schema_version, 1);
+        assert_eq!(live.schema_version, 2);
+        assert_eq!(live.kind, "arena");
         assert_eq!(live.humans, 1);
         assert_eq!(live.agents, 1);
         assert_eq!(live.bots, 0);
