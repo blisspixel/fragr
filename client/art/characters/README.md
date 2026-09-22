@@ -11,10 +11,13 @@ that the next bake will replace. The source directory is excluded from exports.
 The bake writes a manifest with source/output hashes. The headless harness rejects
 stale outputs after source or layout changes; a rebake updates the receipt.
 
-The human has an open helmet, visible face and green cloth. The bot has covered
-issued mechanisms, a status slit and battery pack. Shared bone armor, steel,
-green and restrained red seals establish Union manufacture. Neither body type
-establishes moral status. These are not free-agent character designs.
+The human has an open helmet, visible face, green cloth and a pistol that
+clears the shoulder when it aims. The bot has wide pauldrons, a box head, a
+status slit, a battery pack and a rifle that stays inside those shoulders.
+Materials are unshaded so distance reads the shape, not a lighting gradient.
+Shared bone armor, steel, green and restrained red seals establish Union
+manufacture. Neither body type establishes moral status. These are not
+free-agent character designs.
 
 Reviewed [reference candidates](references/README.md) now give the next rig pass
 a shared human/bot design target. They are separate from the provisional baked

@@ -12,6 +12,7 @@ var materials: Dictionary[Color, StandardMaterial3D] = {}
 func material(color: Color) -> StandardMaterial3D:
 	if not materials.has(color):
 		var mat: StandardMaterial3D = StandardMaterial3D.new()
+		mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 		mat.albedo_color = color
 		mat.roughness = 1.0
 		mat.metallic_specular = 0.0
@@ -132,12 +133,19 @@ func gun(root: Node3D, at: Vector3, bot: bool, raise: float) -> void:
 	var weapon: Node3D = Node3D.new()
 	root.add_child(weapon)
 	weapon.position = at
-	weapon.rotation_degrees.x = lerpf(60.0 if not bot else 18.0,0.0,raise)
-	part(weapon,Vector3(0,0,0.09),Vector3(0.10,0.11,0.34 if bot else 0.27),STEEL)
-	part(weapon,Vector3(0,0.052,0.08),Vector3(0.086,0.04,0.27 if bot else 0.22),BONE.darkened(0.12))
-	part(weapon,Vector3(0,-0.06,-0.025),Vector3(0.07,0.16,0.08),INK,Vector3(-15,0,0))
-	part(weapon,Vector3(0,0.015,0.29 if bot else 0.24),Vector3(0.068,0.068,0.15 if bot else 0.10),INK)
-	part(weapon,Vector3(0,0.073,0.18),Vector3(0.021,0.025,0.035),STEEL)
+	# The pistol hangs, then points out past the shoulder. The rifle stays a horizontal bar.
+	weapon.rotation_degrees.x = lerpf(72.0 if not bot else 6.0, 0.0, raise)
+	if not bot:
+		weapon.rotation_degrees.y = lerpf(0.0, 78.0, raise)
+	if bot:
+		part(weapon,Vector3(0,0.02,0.12),Vector3(0.12,0.10,0.40),STEEL)
+		part(weapon,Vector3(0,0.07,0.08),Vector3(0.09,0.045,0.26),BONE.darkened(0.12))
+		part(weapon,Vector3(0,-0.04,-0.02),Vector3(0.08,0.12,0.10),INK)
+		part(weapon,Vector3(0,0.02,0.32),Vector3(0.07,0.07,0.12),INK)
+	else:
+		part(weapon,Vector3(0,0,0.05),Vector3(0.07,0.09,0.16),STEEL)
+		part(weapon,Vector3(0,-0.07,-0.02),Vector3(0.055,0.14,0.06),INK,Vector3(-12,0,0))
+		part(weapon,Vector3(0,0.02,0.14),Vector3(0.045,0.045,0.08),INK)
 	if bot:
 		part(weapon,Vector3(0,-0.12,0.1),Vector3(0.074,0.20,0.13),STEEL,Vector3(-8,0,0))
 		part(weapon,Vector3(0,0,-0.19),Vector3(0.095,0.10,0.17),GREEN)

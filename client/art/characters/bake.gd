@@ -63,7 +63,7 @@ func bake() -> void:
 					var rect: Rect2i = capture.get_used_rect()
 					if rect.size == Vector2i.ZERO or rect.position.x == 0 or rect.position.y == 0 \
 						or rect.end.x >= EnemyAnimation.TILE or rect.end.y >= EnemyAnimation.TILE:
-						push_error("character_bake: empty or clipped %s %s %d/%d" % [kind, clip["action"], direction, index])
+						push_error("character_bake: empty or clipped %s %s %d/%d rect %s" % [kind, clip["action"], direction, index, rect])
 						quit(1)
 						return
 					var frame: int = direction * EnemyAnimation.poses() + pose

@@ -7,7 +7,7 @@ func torso(root: Node3D, bot: bool) -> void:
 	part(root,Vector3(0,hip,0),Vector3(0.34,0.22,0.25),cloth)
 	part(root,Vector3(0,hip+0.13,0),Vector3(0.38,0.07,0.29),INK)
 	part(root,Vector3(0,hip+0.13,0.155),Vector3(0.075,0.062,0.035),BONE)
-	oval(root,Vector3(0,chest,0),Vector3(0.48 if not bot else 0.52,0.43,0.32),cloth)
+	oval(root,Vector3(0,chest,0),Vector3(0.40 if not bot else 0.66,0.43,0.30 if not bot else 0.38),cloth)
 	# Segmented breastplate and shoulder seams leave the uniform readable.
 	for side: float in [-1.0,1.0]:
 		part(root,Vector3(side*0.109,chest+0.035,0.17),Vector3(0.20,0.27,0.075),BONE,Vector3(0,side*8,side*-3))
@@ -35,7 +35,7 @@ func torso(root: Node3D, bot: bool) -> void:
 		helmet(root)
 	else:
 		part(root,Vector3(0,1.465,0),Vector3(0.10,0.10,0.12),STEEL)
-		part(root,Vector3(0,1.63,-0.018),Vector3(0.275,0.25,0.23),BONE)
+		part(root,Vector3(0,1.64,-0.01),Vector3(0.38,0.32,0.30),BONE)
 		part(root,Vector3(0,1.652,0.111),Vector3(0.22,0.074,0.025),INK)
 		part(root,Vector3(0,1.652,0.127),Vector3(0.14,0.022,0.009),Color("b38847"))
 		part(root,Vector3(0,1.54,0.095),Vector3(0.165,0.045,0.06),STEEL)
@@ -95,7 +95,8 @@ func arm(root: Node3D, bot: bool, side: float, elbow: Vector3, hand: Vector3) ->
 		sleeve(root,shoulder,elbow,0.18,0.20,cloth)
 		sleeve(root,elbow,hand,0.162,0.18,cloth)
 	joint(root,elbow,0.073,STEEL)
-	part(root,shoulder+Vector3(side*0.016,0.012,0),Vector3(0.19 if not bot else 0.27,0.14 if not bot else 0.22,0.27),BONE,Vector3(0,0,side*-14))
+	var pauldron: Vector3 = Vector3(0.16, 0.11, 0.20) if not bot else Vector3(0.38, 0.16, 0.30)
+	part(root,shoulder+Vector3(side*(0.02 if not bot else 0.10),0.04,0),pauldron,BONE,Vector3(0,0,side*-14))
 	var guard: MeshInstance3D = part(root,(elbow+hand)*0.5,Vector3(0.14,0.18,0.05),BONE)
 	guard.quaternion = Quaternion(Vector3.UP,(elbow-hand).normalized())
 	guard.position += guard.basis.z*0.074
@@ -135,17 +136,19 @@ func build_pose(bot: bool, action: String, progress: float, unarmed: bool = fals
 		knee = knee.lerp(Vector3(side*0.21,0.15,0.04),collapse)
 		ankle = ankle.lerp(Vector3(side*0.22,0.124,-0.32-side*0.09),collapse)
 		leg(model,bot,side,hip+Vector3(side*0.13,-0.035,0),knee,ankle)
-		var elbow: Vector3 = Vector3(side*0.34,1.10,0.02)
-		var hand: Vector3 = Vector3(side*0.32,0.88,0.09)
-		if side>0:
-			elbow = elbow.lerp(Vector3(0.34,1.21,0.24),raised)
-			hand = hand.lerp(Vector3(0.14,1.34,0.51),raised)
-		else:
-			elbow = elbow.lerp(Vector3(-0.30,1.15,0.27),raised)
-			hand = hand.lerp(Vector3(0.015,1.31,0.43),raised)
+		var elbow: Vector3 = Vector3(side*0.32,1.08,0.02)
+		var hand: Vector3 = Vector3(side*0.28,0.86,0.08)
 		if bot:
-			elbow = elbow.lerp(Vector3(side*0.34,1.07,0.26),0.65*(1.0-raised))
-			hand = hand.lerp(Vector3(side*0.10,1.12,0.42),0.85*(1.0-raised))
+			# Wide brace and a level rifle. The firing pose stays low and broad.
+			elbow = Vector3(side*0.48,1.02,0.12).lerp(Vector3(side*0.44,1.08,0.28),raised)
+			hand = Vector3(side*0.20,0.98,0.34).lerp(Vector3(side*0.12,1.04,0.56),raised)
+		elif side>0:
+			# The pistol clears the shoulder, a spike the box-headed bot does not grow.
+			elbow = elbow.lerp(Vector3(0.36,1.18,0.04),raised)
+			hand = hand.lerp(Vector3(0.42,1.36,0.08),raised)
+		else:
+			elbow = elbow.lerp(Vector3(-0.18,1.16,0.10),raised)
+			hand = hand.lerp(Vector3(-0.04,1.28,0.14),raised)
 		if walk:
 			elbow.z -= stride*(0.045 if bot else 0.12)
 			hand.z -= stride*(0.065 if bot else 0.18)
@@ -163,8 +166,12 @@ func build_pose(bot: bool, action: String, progress: float, unarmed: bool = fals
 			hand += Vector3(0,recoil*0.055,-recoil*0.055)
 			hand.x += side*pain*0.1
 		if collapse>0.0:
-			elbow = elbow.lerp(Vector3(side*0.36,1.12,0.17),collapse)
-			hand = hand.lerp(Vector3(side*0.46,1.15,0.27),collapse)
+			if bot:
+				elbow = elbow.lerp(Vector3(side*0.24,0.92,0.06),collapse)
+				hand = hand.lerp(Vector3(side*0.28,0.78,0.08),collapse)
+			else:
+				elbow = elbow.lerp(Vector3(side*0.36,1.12,0.17),collapse)
+				hand = hand.lerp(Vector3(side*0.46,1.15,0.27),collapse)
 		arm(upper,bot,side,elbow,hand)
 		if side>0 and not unarmed:
 			gun(upper,hand+Vector3(0,0.055,0.045),bot,raised)

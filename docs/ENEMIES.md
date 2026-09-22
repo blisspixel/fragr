@@ -1,10 +1,13 @@
 # Enemy roster
 
-**Status, 2026-09-20:** Clerk and Sweeper prototype encounters are implemented
+**Status, 2026-09-22:** Clerk and Sweeper prototype encounters are implemented
 through shared simulation bodies, typed campaign identity and directional
-animation. Their art and full-mission tuning remain provisional. Other roles
-below, reactivation and projectiles are proposed. Calibration's NODS and Auditor
-are separate arcade prototypes, not implementations of the proposed roster.
+animation. Their unshaded atlases no longer share one outline: the Sweeper is
+the wide bot with the level rifle, and the Clerk is the narrower human whose
+aim clears the shoulder. Full-mission tuning and a fresh-player review remain
+open. Other roles below, reactivation and projectiles are proposed.
+Calibration's NODS and Auditor are separate arcade prototypes, not
+implementations of the proposed roster.
 
 Players are defined by the weapons they find, not permanent combat classes.
 Start a fresh campaign with fists; [WEAPONS.md](WEAPONS.md) owns the pickup economy.
