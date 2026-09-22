@@ -9,6 +9,9 @@ const CAPACITIES: Dictionary = {"tacks": 220, "darts": 120, "cores": 100}
 const RELOAD_TICKS: Dictionary = {"tack": 18, "flechette": 22, "scatter": 26, "rail": 28}
 const DISPLAY_NAMES: Dictionary = {"fists": "Fists", "tack": "Pistol", "flechette": "Rifle", "scatter": "Shotgun", "rail": "Railgun"}
 const POOL_NAMES: Dictionary = {"tacks": "Bullets", "darts": "Shells", "cores": "Cells"}
+## Doom's ladder for the guns that exist: fists, pistol, shotgun, rifle, railgun.
+const SLOTS: Array[String] = ["fists", "tack", "scatter", "flechette", "rail"]
+const ARCADE: Array[String] = ["scatter", "flechette", "rail"]
 const MAX_EXACT_INTEGER: int = 9007199254740991
 
 static func display_name(weapon: String) -> String:
@@ -94,11 +97,41 @@ static func reserve(state: Dictionary, weapon: String) -> int:
 			return int(entry["rounds"])
 	return 0
 
+static func carried_names(state: Dictionary) -> Array[String]:
+	var names: Array[String] = []
+	for entry: Dictionary in state.get("weapons", []):
+		names.append(str(entry.get("weapon", "")).to_lower())
+	return names
+
+static func owned_in_order(carried: Array) -> Array[String]:
+	var have: Dictionary = {}
+	for weapon in carried:
+		have[str(weapon).to_lower()] = true
+	var order: Array[String] = []
+	for slot in SLOTS:
+		if have.has(slot):
+			order.append(slot)
+	return order
+
+static func cycle_owned(carried: Array, current: String, step: int) -> String:
+	var order: Array[String] = owned_in_order(carried)
+	if order.is_empty():
+		return current.to_lower()
+	var index: int = order.find(current.to_lower())
+	if index < 0:
+		index = -1 if step > 0 else 0
+	return order[posmod(index + step, order.size())]
+
 static func cycle(state: Dictionary, current: String, step: int) -> String:
-	var owned: Array[String] = []
-	for entry: Dictionary in state["weapons"]:
-		owned.append(entry["weapon"])
-	return owned[posmod(maxi(0, owned.find(current)) + step, owned.size())]
+	return cycle_owned(carried_names(state), current, step)
+
+static func slot_if_owned(carried: Array, slot: int) -> String:
+	if slot < 1 or slot > SLOTS.size():
+		return ""
+	var weapon: String = SLOTS[slot - 1]
+	if not owned_in_order(carried).has(weapon):
+		return ""
+	return weapon
 
 static func reload_progress(state: Dictionary, tick: int) -> float:
 	var reload: Variant = state.get("reload")

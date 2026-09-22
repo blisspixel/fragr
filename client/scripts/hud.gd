@@ -337,7 +337,7 @@ func _refresh_mode_label():
 J join   F fighter   V view   ~ console"
 		else:
 			controls = "
-Mouse or Ctrl fire   WASD move   Wheel weapon   L leave"
+Mouse or Ctrl fire   WASD move   Wheel or 1-5 weapon   L leave"
 	# The Host line already says a drone is on deck, in its own words, directly
 	# above. Saying it again underneath is the same sentence twice.
 	var pressure_chip = ""

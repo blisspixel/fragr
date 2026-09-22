@@ -27,6 +27,10 @@ func _run() -> void:
 	_check(not EquipmentState.validation_error(state, "other").is_empty(), "another participant's ammunition is rejected")
 	_check(not EquipmentState.validation_error(state, null).is_empty(), "spectators cannot receive private ammunition")
 	_check(EquipmentState.cycle(state, "tack", 1) == "fists" and EquipmentState.cycle(state, "fists", -1) == "tack", "cycling wraps only owned weapons")
+	var ladder: Dictionary = state.duplicate(true)
+	ladder["weapons"] = [{"weapon": "fists", "magazine": null}, {"weapon": "tack", "magazine": 12}, {"weapon": "flechette", "magazine": 30}, {"weapon": "scatter", "magazine": 6}, {"weapon": "rail", "magazine": 4}]
+	_check(EquipmentState.cycle(ladder, "tack", 1) == "scatter" and EquipmentState.cycle(ladder, "scatter", 1) == "flechette" and EquipmentState.cycle(ladder, "flechette", 1) == "rail" and EquipmentState.cycle(ladder, "rail", 1) == "fists", "the wheel walks fists, pistol, shotgun, rifle, railgun")
+	_check(EquipmentState.slot_if_owned(EquipmentState.carried_names(state), 2) == "tack" and EquipmentState.slot_if_owned(EquipmentState.carried_names(state), 3) == "" and EquipmentState.slot_if_owned(EquipmentState.carried_names(ladder), 4) == "flechette", "number keys select a carried gun and ignore the rest")
 	for patch: Dictionary in [{"tick": -1}, {"tick": 1.5}, {"tick": NAN}, {"tick": "20"}, {"selected": "rail"},
 		{"weapons": []}, {"weapons": [{"weapon": []}]}, {"weapons": [{"weapon": "fists", "magazine": 1}]},
 		{"reserves": []}, {"reserves": [{"pool": []}, {}, {}]}, {"personal_claims": ["../bay"]},
@@ -81,6 +85,32 @@ func _run() -> void:
 	key.physical_keycode = KEY_C
 	key.pressed = true
 	_check(key.is_action_pressed("radio_next_station") and not key.is_action_pressed("reload"), "C retains radio access")
+	network.equipment = state.duplicate(true)
+	var wheel: InputEventMouseButton = InputEventMouseButton.new()
+	wheel.button_index = MOUSE_BUTTON_WHEEL_UP
+	wheel.pressed = true
+	_check(wheel.is_action_pressed("weapon_next") and not wheel.is_action_pressed("fire"), "wheel up is the next gun")
+	manager._input(wheel)
+	_check(manager.pending_weapon_swap == "fists", "one notch leaves the pistol for the fists")
+	manager._input(wheel)
+	_check(manager.pending_weapon_swap == "tack", "the next notch continues from the gun already chosen")
+	var pistol_key: InputEventKey = InputEventKey.new()
+	pistol_key.physical_keycode = KEY_2
+	pistol_key.pressed = true
+	_check(pistol_key.is_action_pressed("weapon_2"), "2 is the pistol")
+	manager.pending_weapon_swap = null
+	network.equipment["selected"] = "fists"
+	manager._input(pistol_key)
+	_check(manager.pending_weapon_swap == "tack", "2 selects the carried pistol")
+	var shotgun_key: InputEventKey = InputEventKey.new()
+	shotgun_key.physical_keycode = KEY_3
+	shotgun_key.pressed = true
+	manager.pending_weapon_swap = null
+	manager._input(shotgun_key)
+	_check(manager.pending_weapon_swap == null, "3 does nothing until the shotgun is carried")
+	network.equipment = {}
+	manager.pending_weapon_swap = null
+	_check(manager._next_weapon_swap(1) == "rail" and manager._next_weapon_swap(-1) == "scatter", "arcade wheel walks shotgun, rifle, and railgun")
 	manager.free()
 	camera.free()
 	pawn.free()

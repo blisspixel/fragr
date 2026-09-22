@@ -44,7 +44,7 @@ var action_state = {
 	"pitch": 0.0,
 	"seq": 0
 }
-const WEAPON_CYCLE = ["flechette", "rail", "scatter"]
+
 const SPEAK_LINES = [
 	"scrap on",
 	"contested frequency",
@@ -417,10 +417,12 @@ func _input(_event):
 		change_role(false)
 	elif is_human_player and Input.is_action_just_pressed("speak"):
 		_send_speak_taunt()
-	elif is_human_player and Input.is_action_just_pressed("weapon_next"):
-		pending_weapon_swap = _next_weapon_swap(1)
-	elif is_human_player and Input.is_action_just_pressed("weapon_prev"):
-		pending_weapon_swap = _next_weapon_swap(-1)
+	elif is_human_player and _event.is_action_pressed("weapon_next"):
+		_choose_weapon(_next_weapon_swap(1))
+	elif is_human_player and _event.is_action_pressed("weapon_prev"):
+		_choose_weapon(_next_weapon_swap(-1))
+	elif is_human_player:
+		_choose_weapon(_slot_from_event(_event))
 
 ## One transition for input, the menu, and the real-wire visual tour.
 func change_role(play: bool) -> void:
@@ -522,24 +524,42 @@ func _has_local_input_target() -> bool:
 	var pawn: Node = players.get(local_fp_pawn_id)
 	return is_instance_valid(pawn) and is_instance_valid(camera) and camera.fp_mode and camera.fp_target == pawn
 
+func _carried_weapons() -> Array[String]:
+	var carried: Array[String] = []
+	if net_client != null and not net_client.equipment.is_empty():
+		for entry: Variant in net_client.equipment["weapons"]:
+			if entry is Dictionary:
+				carried.append(str(entry.get("weapon", "")).to_lower())
+		return carried
+	for weapon in EquipmentState.ARCADE:
+		carried.append(weapon)
+	return carried
+
 func _current_weapon_wire() -> String:
-	if not net_client.equipment.is_empty():
-		return str(net_client.equipment["selected"])
-	var name = _local_weapon_name().to_lower()
-	if name in WEAPON_CYCLE:
+	if net_client != null and not net_client.equipment.is_empty():
+		return str(net_client.equipment["selected"]).to_lower()
+	var name: String = _local_weapon_name().to_lower()
+	if name in EquipmentState.SLOTS:
 		return name
 	return "flechette"
 
-func _next_weapon_swap(step: int):
-	if not net_client.equipment.is_empty():
-		var current: String = str(pending_weapon_swap) if pending_weapon_swap != null else _current_weapon_wire()
-		return EquipmentState.cycle(net_client.equipment, current, step)
-	var cur = _current_weapon_wire()
-	var idx = WEAPON_CYCLE.find(cur)
-	if idx < 0:
-		idx = 0
-	var n = WEAPON_CYCLE.size()
-	return WEAPON_CYCLE[(idx + step) % n]
+func _next_weapon_swap(step: int) -> String:
+	var current: String = str(pending_weapon_swap) if pending_weapon_swap != null else _current_weapon_wire()
+	return EquipmentState.cycle_owned(_carried_weapons(), current, step)
+
+func _slot_from_event(event: InputEvent) -> String:
+	for slot in range(1, EquipmentState.SLOTS.size() + 1):
+		if event.is_action_pressed("weapon_%d" % slot):
+			return EquipmentState.slot_if_owned(_carried_weapons(), slot)
+	return ""
+
+func _choose_weapon(weapon: String) -> void:
+	if weapon == "":
+		return
+	var current: String = str(pending_weapon_swap) if pending_weapon_swap != null else _current_weapon_wire()
+	if weapon == current:
+		return
+	pending_weapon_swap = weapon
 
 func _send_speak_taunt() -> void:
 	if not net_client or not net_client.has_method("send_speak"):

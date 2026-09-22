@@ -220,7 +220,7 @@ func _report_controls() -> void:
 	echo("turn            Left and Right arrows, or Q and E, or the mouse")
 	echo("jump            Space")
 	echo("fire            Left mouse button, or Ctrl")
-	echo("weapon          Mouse wheel, or the bracket keys")
+	echo("weapon          Mouse wheel, bracket keys, or 1 through 5")
 	echo("join / leave    J and L")
 	echo("menu            Escape")
 	echo("radio           C station, N track, M mute")

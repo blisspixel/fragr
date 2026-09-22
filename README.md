@@ -50,51 +50,23 @@ rankings or campaign saves. Broader statistics work is tracked in the
 
 ## Screenshots
 
-Live captures from the current build, Godot 4.7.2-stable against a loopback server. When a change is something a player sees, refresh the stills that show it and update this section in the same change. Run `tools/qa_tour.sh --publish` for the arena tour. Recall Notice frames come from `client/qa/m01-rooms.json`. Details are in [`docs/screenshots/README.md`](docs/screenshots/README.md).
+Four stills from the current build, Godot 4.7.2-stable against a loopback server. The boot menu, Recall Notice, the multiplayer page, and one watched match. When one of those surfaces changes, replace that still in the same change. The wider tour stays in [`docs/screenshots/`](docs/screenshots/README.md) and does not come back here.
 
-Recall Notice, the development mission. Intake with a Sweeper in the hall, the records balcony looking through to the custody lift, the file stacks, and dispatch after the fight. These are the current rooms, not a finished art pass.
-
-![Recall Notice intake](docs/screenshots/m01_intake_16x9.png)
-
-![Records balcony](docs/screenshots/m01_balcony_16x9.png)
-
-![File stacks](docs/screenshots/m01_stacks_16x9.png)
-
-![Dispatch](docs/screenshots/m01_dispatch_16x9.png)
-
-Multiplayer in the app. One host, then the live line: map, arena or mission, fighters, and connections. Watch and Join stay on this page.
-
-![Multiplayer](docs/screenshots/tour_multiplayer_16x9.png)
-
-The arena tour: boot menu, service record, first person, follow camera, overview, shot strips, and a spectator view.
+The boot menu. Single Player is the campaign. Multiplayer is a host you run.
 
 ![Menu](docs/screenshots/tour_menu_16x9.png)
 
-Retained match observations, with exact counts and an optional commentary toggle.
+Recall Notice, the development mission. Intake, pistol in hand, counters and lockers. The objective card has already left. This is the current room, not a finished art pass.
 
-![Service record](docs/screenshots/tour_records_16x9.png)
+![Single player](docs/screenshots/m01_intake_16x9.png)
 
-Behind the gun: health and armour in the corner, the weapon in hand, the crosshair and nothing else in the middle.
+One host in this app. The example is 127.0.0.1:6767. Watch and Join stay on this page.
 
-![First person](docs/screenshots/tour_first_person_16x9.png)
+![Multiplayer](docs/screenshots/tour_multiplayer_16x9.png)
 
-A fight from the follow camera.
+A watched Arena Duel, through the fighter's eyes. The rifle is the gun they are holding.
 
-![Combat](docs/screenshots/tour_combat_follow_16x9.png)
-
-The arena from above.
-
-![Arena overview](docs/screenshots/tour_arena_overview_16x9.png)
-
-Twelve consecutive frames from an acknowledged trigger pull show muzzle flash and recovery.
-
-![Firing strip](docs/screenshots/tour_shot_strip.png)
-
-A single rail impact sampled through expiry. The full tour also saves its first acknowledged frame at full resolution.
-
-![Rail impact sequence](docs/screenshots/tour_rail_impact_strip.png)
-
-![Spectator through a fighter's eyes](docs/screenshots/tour_spectator_16x9.png)
+![Match](docs/screenshots/tour_spectator_16x9.png)
 
 ## Quick start
 
@@ -144,7 +116,7 @@ Keyboard and gamepad share the same action path into the server.
 | Jump | Space | A |
 | Reload (discovery maps) | R | X |
 | Continue after campaign death | Enter | A after releasing held inputs |
-| Weapon cycle | [ and ] | LB and RB |
+| Weapons | Mouse wheel, [ and ], or 1 through 5 | LB and RB |
 | Speak (taunt) | T | Y |
 | Join | J | A while spectating |
 | Leave to spectate | L | Start |
@@ -153,6 +125,10 @@ Keyboard and gamepad share the same action path into the server.
 | Radio: next station, next track, on or off | C, N, M | D-pad up, down, left |
 | Match menu | Esc | |
 | Hold to show leaders in first person | Tab | |
+
+1 is fists, 2 is the pistol, 3 is the shotgun, 4 is the rifle, and 5 is the
+railgun. The wheel and the bracket keys walk that order and skip a gun you are
+not carrying. Arcade maps carry the shotgun, the rifle, and the railgun.
 
 M01's development slice now starts with fists. Recover the pistol in
 confiscation and the rifle before the records stairs, collect finite
