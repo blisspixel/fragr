@@ -1,8 +1,21 @@
 # Screenshots
 
-The `tour_*.png` files are the current local build captured by
+The `tour_*.png` files are the arena tour captured by
 `tools/qa_tour.sh --publish` with Godot 4.7.2-stable and a loopback server.
-Inspect them after every refresh. A nonblank image is not proof of good art.
+The `m01_*.png` files are Recall Notice gameplay from
+`FRAGR_QA_BOTS=0 FRAGR_QA_MAP_FILE=server/maps/m01-recall-notice.json FRAGR_QA_MANIFEST=res://qa/m01-rooms.json tools/qa_tour.sh`.
+Inspect every frame before it is named in the README. A nonblank image is not
+proof of good art. A player-visible change refreshes the README stills that
+show that surface, in the same change. The Windows taskbar icon is still the
+Godot mark and is not one of these frames.
+
+`m01_intake_16x9.png`, `m01_balcony_16x9.png`, `m01_stacks_16x9.png`, and
+`m01_dispatch_16x9.png` were captured 2026-09-21 on Windows from the completed
+13-state room tour and inspected 2026-09-22. Intake shows a Sweeper in the
+hall with the Tack in hand. The balcony shows the reserved opening toward the
+custody lift. The stacks are dark steel on green tile. Dispatch is bone walls
+on a dark floor after the fight. Sorting and dispatch still share the bone
+wall. These are the development mission, not a finished art pass.
 
 `prototypes/local-campaign-menu-20260920.png` shows the inspected Recall Notice
 launch option. `prototypes/local-campaign-entry-20260920.png` is the actual M01
@@ -33,6 +46,10 @@ and fresh-player acceptance outstanding. Source manifest: `client/qa/m01-records
 
 | File | View |
 |---|---|
+| `m01_intake_16x9.png` | Recall Notice intake, Sweeper in the hall, Tack in hand |
+| `m01_balcony_16x9.png` | Records balcony, opening toward the custody lift |
+| `m01_stacks_16x9.png` | File stacks, dark steel walls, green tile floor |
+| `m01_dispatch_16x9.png` | Dispatch after the fight, dark floor, bone walls |
 | `tour_menu_16x9.png` | Retro boot menu |
 | `tour_profile_16x9.png` | Callsign, reticle, and weapon bob |
 | `tour_records_16x9.png` | Persisted arena observation, exact attack denominator and incomplete-session status |

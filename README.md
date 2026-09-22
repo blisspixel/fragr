@@ -50,7 +50,19 @@ rankings or campaign saves. Broader statistics work is tracked in the
 
 ## Screenshots
 
-Live captures from the current build, Godot 4.7.2-stable against a loopback server with bots. The visual QA tour checks actual role transitions and weapon selections, records the observed match state, and captures menus, eyes, chase, and overview. Run `tools/qa_tour.sh --publish` to refresh them. Capture details and historical images are documented in [`docs/screenshots/README.md`](docs/screenshots/README.md).
+Live captures from the current build, Godot 4.7.2-stable against a loopback server. When a change is something a player sees, refresh the stills that show it and update this section in the same change. Run `tools/qa_tour.sh --publish` for the arena tour. Recall Notice frames come from `client/qa/m01-rooms.json`. Details are in [`docs/screenshots/README.md`](docs/screenshots/README.md).
+
+Recall Notice, the development mission. Intake with a Sweeper in the hall, the records balcony looking through to the custody lift, the file stacks, and dispatch after the fight. These are the current rooms, not a finished art pass.
+
+![Recall Notice intake](docs/screenshots/m01_intake_16x9.png)
+
+![Records balcony](docs/screenshots/m01_balcony_16x9.png)
+
+![File stacks](docs/screenshots/m01_stacks_16x9.png)
+
+![Dispatch](docs/screenshots/m01_dispatch_16x9.png)
+
+The arena tour: boot menu, service record, first person, follow camera, overview, shot strips, and a spectator view.
 
 ![Menu](docs/screenshots/tour_menu_16x9.png)
 
