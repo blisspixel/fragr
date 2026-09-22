@@ -88,8 +88,9 @@ The old 28-level transmitter-chain story is superseded, preserved in git history
   The short epilogue is conditional on surviving the finale. A successful run targets
   2-3 hours. Story causes the travel; remove padding rather than the causal arc.
 - Radio is roughly one percent of the story, optional funny background flavor.
-  Main plot and objectives work with it off. Localized text, optional voice,
-  and brief retro-styled cutscenes can frame important events.
+  Main plot and objectives work with it off. Between missions, a full-screen
+  pixel text page frames the story. Optional voice can read that same page
+  later. Retro cutscene movies wait until the playable campaign is built.
 
 ## The player story
 
@@ -269,10 +270,20 @@ photoreal insert that redesigns a character. Proposed scene slots: opening recal
 early reunion, offworld transitions, Union fall, the first undeniable restoration,
 and aftermath. Gameplay performs the rescues and survives the wipe.
 
-Framing cards give place, time transition, immediate stake, and objective in a
-few readable lines. Text waits for the reader. Voice and animation never force
-an early advance. Subtitles have speaker labels, contrast, scalable text, and
-relevant sound captions. Important notices remain in the current objective view.
+Between missions, the frame is a full-screen pixel text page: place, the time
+that passed, the immediate stake, and the next objective, in a few readable
+lines. It uses the same reader-paced presenter as the opening. Text waits for
+the reader. The in-level objective card introduces a beat and then leaves the
+view. It is not the page between missions. Voice, when it exists, reads the
+approved page and never forces an early advance. A missing clip leaves the
+text complete. Subtitles have speaker labels, contrast, scalable text, and
+relevant sound captions.
+
+Spoken clips use `tools/audiogen` only after that page's wording is frozen,
+with an explicit cap and a recorded receipt. Retro movies, including a
+Higgsfield Seedance 2.5 pass with consistent character sheets, are a later
+skin on the same pages. They are not authorized while missions and sentences
+are still changing. No essential sentence is baked into a picture or a clip.
 
 Use stable story/line IDs, localization keys and parameters, separate subtitle
 timing, optional voice references, and per-locale text. Never bake essential text
