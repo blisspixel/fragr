@@ -3,10 +3,13 @@
 Player-facing names, as of 2026-09-22: Fists, Pistol, Rifle, Shotgun, Railgun.
 The corner and the pickup read those words. Wire ids stay `fists`, `tack`,
 `flechette`, `scatter`, and `rail`. Ammo pads read Bullets, Shells, and Cells.
-Rifle and Shotgun still share the shells reserve. A distinct sniper, grenades,
-and mines remain planned in
-[the readable arsenal](plans/readable-arsenal.md). The mechanics below still
-use the wire names.
+Rifle and Shotgun still share the shells reserve. A Sniper Rifle, Rocket
+Launcher, Grenade, Proximity Mine, and Remote Mine are earned on later
+missions. They are not in M01, not in the arcade arsenal, and not implemented.
+The order and the rules are
+[the readable arsenal](plans/readable-arsenal.md). Lobber and proximity tin in
+the proposal table below are that rocket launcher and that proximity mine, not
+extra weapons. The mechanics below still use the wire names.
 
 The canonical arsenal direction, pickup economy and sound roles. Current M01
 implements fists, found Tack and Flechette, owned selection, finite magazines,

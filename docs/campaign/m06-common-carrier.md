@@ -41,7 +41,10 @@ stairs remain usable, and bulkheads cannot seal a required person or supply away
 
 ## Combat and weapon plan
 
-Introduce Repeater in a cargo locker before the largest boarding wave. Human
+Introduce Repeater in a cargo locker before the largest boarding wave. Remote
+mines are in a later locker on the same deck. They stick and wait for a
+detonator, which is a separate action from firing. Proximity mines were the
+M05 lesson and are not re-taught here. Human
 troops establish a front while Crawlers use service passages. One Redactor teaches
 distortion and commitment before the multi-angle fight. It is never entirely
 undetectable until an unavoidable hit.

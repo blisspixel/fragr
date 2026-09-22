@@ -46,8 +46,10 @@ channel is visible and interruptible; it repairs disabled units under a hard
 limit, not genuinely resurrected people. Human elites guard it from distinct
 positions while Sweepers pressure the lower loop.
 
-Introduce proximity tins before a converging-route fight. Place Lobber and Cans
-before the control-floor crest. A Rail or secret weapon is never required.
+Introduce proximity mines before a converging-route fight: they stick, arm
+with a visible tell, and detonate when a body comes close. The rocket launcher
+waits for M08, where there is room for splash. A Rail or secret weapon is
+never required.
 Breakable machinery is visibly different from invulnerable walls and provides
 safe attack windows. Avoid needing hits on tiny switches while taking fire.
 
