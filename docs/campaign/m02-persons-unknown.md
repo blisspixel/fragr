@@ -77,6 +77,8 @@ be absurd while the reunion stays sincere.
 ## Allies and acceptance
 
 Latch follows a secured-route state machine, keeps passage clear, and appears
-once. A solo player can operate every gate. Prove idempotent release, mission-start
-retry before and after rescue, blocked NPC paths, optional captives, muted audio
-and the complete solo retreat. Rescue must be understood as success.
+once. Ordinary combat cannot kill them or fail the rescue after release. Their
+later survival is an authored story outcome. A solo player can operate every
+gate. Prove idempotent release, mission-start retry before and after rescue,
+blocked NPC paths, optional captives, muted audio and the complete solo
+retreat. Rescue must be understood as success.

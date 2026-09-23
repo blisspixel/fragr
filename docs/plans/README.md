@@ -18,6 +18,7 @@ Status words: **planned**, **in flight**, **implemented** (local evidence record
 | Plan | Status | One-liner |
 |---|---|---|
 | [`radio-scene-retirement.md`](./radio-scene-retirement.md) | **proven** ([#231](https://github.com/blisspixel/fragr/pull/231), v0.45.0) | Radio decoder retirement across rapid saved-run restarts, with Linux, Windows and macOS checks. |
+| [`m02-objective-gates.md`](./m02-objective-gates.md) | **in flight** | Authored objectives and precomputed gate worlds for the first M02 graybox, with M01 save compatibility. |
 | [`campaign-run-file.md`](./campaign-run-file.md) | **proven** ([#229](https://github.com/blisspixel/fragr/pull/229), v0.45.0) | Versioned local solo run persistence, exact continue restoration and retained M01 exit equipment. |
 | [`jev-m01-validation.md`](./jev-m01-validation.md) | **proven** ([#228](https://github.com/blisspixel/fragr/pull/228)) | Capped Jev M01 Standard and Severe trials with authoritative receipts and actual spend evidence. |
 | [`m01-opening-weapon-input.md`](./m01-opening-weapon-input.md) | **shipped** ([#226](https://github.com/blisspixel/fragr/pull/226)) | Same-session MapInfo, phase-card timing, and key 1 through a live owned M01 server are covered. |
