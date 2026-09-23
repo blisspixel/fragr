@@ -273,6 +273,12 @@ func _input_and_hud(network: CaptureNetwork, state: Dictionary) -> void:
 	TranslationServer.remove_translation(translated)
 	display._process(MissionHud.STAGE_SECONDS)
 	_expect(not display._card.visible and display._prompt.text.is_empty(), "the objective card sets the stage and then leaves the view")
+	display.apply(arrival, PLAYER)
+	_expect(not display._card.visible, "repeated mission state cannot reopen an expired objective card")
+	display.apply(state, PLAYER)
+	_expect(display._card.visible, "a different mission phase introduces its own brief objective card")
+	display._process(MissionHud.STAGE_SECONDS)
+	_expect(not display._card.visible, "that objective card also expires")
 	var briefing: Dictionary = state.duplicate(true)
 	briefing["phase"] = "briefing"
 	briefing["prompts"] = []

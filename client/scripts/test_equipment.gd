@@ -108,6 +108,18 @@ func _run() -> void:
 	manager.pending_weapon_swap = null
 	manager._input(shotgun_key)
 	_check(manager.pending_weapon_swap == null, "3 does nothing until the shotgun is carried")
+	var fists_key: InputEventKey = InputEventKey.new()
+	fists_key.physical_keycode = KEY_1
+	fists_key.keycode = KEY_1
+	fists_key.pressed = true
+	network.equipment["selected"] = "tack"
+	_check(fists_key.is_action_pressed("weapon_1"), "1 maps to fists")
+	manager._input(fists_key)
+	_check(manager.pending_weapon_swap == "fists", "1 selects fists from the carried pistol")
+	manager._process(0.001)
+	_check(network.sent.back().get("weapon_swap") == "fists", "1 reaches the server action as fists")
+	manager._process(0.001)
+	_check(not network.sent.back().has("weapon_swap"), "the discrete fists choice is transmitted once")
 	network.equipment = {}
 	manager.pending_weapon_swap = null
 	_check(manager._next_weapon_swap(1) == "rail" and manager._next_weapon_swap(-1) == "scatter", "arcade wheel walks shotgun, rifle, and railgun")
