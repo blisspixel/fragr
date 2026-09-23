@@ -2,6 +2,7 @@
 use crate::protocol::{
     AmmoPool, AmmoReserve, EquipmentPolicy, LoadoutState, ReloadState, WeaponAmmo, WeaponType,
 };
+use serde::{Deserialize, Serialize};
 use std::collections::BTreeSet;
 use uuid::Uuid;
 
@@ -11,6 +12,32 @@ mod tests;
 pub use controller::{
     control_action, control_action_with_objective, control_action_with_target_filter,
 };
+
+/// Mission-entry equipment without participant identity, tick or transient reload.
+#[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+pub(crate) struct SavedEquipment {
+    pub selected: WeaponType,
+    pub weapons: Vec<WeaponAmmo>,
+    pub reserves: Vec<AmmoReserve>,
+    pub personal_claims: Vec<String>,
+}
+
+impl SavedEquipment {
+    pub fn validate(&self) -> Result<(), &'static str> {
+        LoadoutState {
+            player_id: Uuid::nil(),
+            tick: 0,
+            selected: self.selected,
+            weapons: self.weapons.clone(),
+            reserves: self.reserves.clone(),
+            reload: None,
+            personal_claims: self.personal_claims.clone(),
+            dry_fire_count: 0,
+        }
+        .validate()
+    }
+}
 
 #[derive(Debug, Clone)]
 pub struct Inventory {
@@ -25,6 +52,41 @@ pub struct Inventory {
 }
 
 impl Inventory {
+    pub(crate) fn saved_equipment(&self, selected: WeaponType) -> Option<SavedEquipment> {
+        let state = self.state(Uuid::nil(), selected, 0)?;
+        let saved = SavedEquipment {
+            selected,
+            weapons: state.weapons,
+            reserves: state.reserves,
+            personal_claims: state.personal_claims,
+        };
+        saved.validate().ok()?;
+        Some(saved)
+    }
+
+    pub(crate) fn restore_saved_equipment(
+        &mut self,
+        saved: &SavedEquipment,
+    ) -> Result<(), &'static str> {
+        if self.policy != EquipmentPolicy::Discovery {
+            return Err("saved equipment requires discovery policy");
+        }
+        saved.validate()?;
+        self.magazines = [None; 5];
+        for held in &saved.weapons {
+            self.magazines[held.weapon.index()] = held.magazine;
+        }
+        self.reserves = [0; 3];
+        for reserve in &saved.reserves {
+            self.reserves[reserve.pool.index()] = reserve.rounds;
+        }
+        self.claims = saved.personal_claims.iter().cloned().collect();
+        self.reload = None;
+        self.dry_latched = false;
+        self.revision += 1;
+        Ok(())
+    }
+
     pub fn new(policy: EquipmentPolicy) -> Self {
         Self {
             policy,

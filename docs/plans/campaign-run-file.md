@@ -49,6 +49,11 @@ not a replayable M01 entry or a completed campaign.
   exit-to-menu from explicit abandonment. A completed M01 save stays retained
   while M02 is unbuilt, with a clear player-facing status. Starting a new run
   must not silently overwrite the prior one; keep a recoverable prior file.
+- The campaign contract allows a human or free-agent protagonist. Current M01
+  does not yet expose that body choice. Do not infer it from the network's
+  human/agent control role or hard-code a fictional body in the save. Add the
+  chosen playable identity when that player choice is implemented, with an
+  explicit schema migration for older runs.
 
 This increment does not add an M02 map, a mid-mission checkpoint, cloud sync,
 accounts, co-op saves, a new scripting runtime, or a player-selected save path.
@@ -109,3 +114,23 @@ that the save exists. Rust's [`rename`](https://doc.rust-lang.org/std/fs/fn.rena
 and [`create_new`](https://doc.rust-lang.org/std/fs/struct.OpenOptions.html#method.create_new)
 contracts were checked on 2026-09-23. Replacement and durability behavior
 need Windows, macOS and Linux checks rather than an assumption from one host.
+
+## In-flight checkpoint, 2026-09-23
+
+The authored loader now preserves the exact source-byte SHA-256 through the
+opened route. The new run document validates its version, run identity, M01
+content, difficulty revision, continue allowance, step and durable equipment.
+The store bounds reads, holds one writer lock, writes to a unique same-folder
+temporary file and preserves the prior document on a fault before rename.
+`cargo test -p fragr-server --locked mission::run_file` passes four focused
+tests. These types are not connected to the local child yet, so the current
+branch has expected dead-code warnings and is not release-ready.
+
+Next, connect the local child to the same map/content validator used for
+preview, hydrate the owner on admission, and persist death, Continue and
+departure before their network messages. A resumed pending-death run needs a
+dead owner pawn plus its entry equipment and unchanged allowance. Exit to menu
+must disconnect without the `leave` abandonment command; explicit abandonment
+gets a separate action. New Run needs a recoverable prior save. Run real
+stop/restart, duplicate-writer, failure-injection, Godot and platform checks
+before calling the run durable.
