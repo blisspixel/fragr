@@ -57,8 +57,9 @@ carried equipment before action and final reporting.
 
 A later independent review found two decision-specific gaps. A remote
 `fall_back_heal` reply could send a healthy fighter toward any health pad;
-campaign control now permits that detour only below 40 HP, within the existing
-12-unit near-pad band, and along a directly walkable route. A test takes a
+remote decisions now permit that detour only below 40 HP, within the existing
+12-unit near-pad band, and along a directly walkable route. Local fallback
+keeps its established recovery behavior. A test takes a
 healthy model heal reply through actual M01 mission steering and confirms it
 still walks toward the record. The model state now names the same nearest
 engageable guard the controller can fight, rather than a hidden nearer guard;
@@ -76,6 +77,7 @@ Standard seed 67 after the correction. Other seeds still need repeating.
 | Severe | 42 | 150 s | Playing, attempt 4, no continues | Three deaths in sorting and stacks; still returning through the mission when the timer ended. This is not a clear or a terminal failure. |
 | Standard | 1 | 150 s | Playing, attempt 3, one continue | First-person watch run; two server-recorded deaths, 33 kills, and no departure at the timer. The generated agent name affects its local decision stream. |
 | Standard | 67 | 120 s | Complete, attempt 1, three continues | Corrected action path with fixed name CampaignProbe: 14 kills, no deaths; transfer and lift both progressed before the time limit. |
+| Standard | 67 | 120 s | Complete, attempt 2, two continues | Remote-only health guard and aligned model target, fixed name CampaignProbe: 30 kills, one combat death, then departure. |
 
 The Severe run exposed an observability defect: campaign deaths did not emit
 arena frag events, so the original JSON `deaths` count stayed at zero. The
@@ -113,8 +115,14 @@ A final 25-second seed-67 watch verified eight frames and $0 spend; its Pistol
 holder no longer reported the unowned Railgun in `last_plan`. That short run
 ended during `find_transfer` as expected from its timer. The longer corrected
 run above supplies the completion evidence. CI and integration remain.
-The two later decision corrections passed focused tests and need the full
-checks and a repeat live run before this PR merges.
+The two later decision corrections passed focused tests. An initial repeat
+of Standard seed 67 after applying the health constraint to local rules spent
+three continues and remained in `find_transfer` at 120 seconds. That is a
+regression from the earlier clear. The constraint is now limited to remote
+model choices while local recovery retains its prior range. A second corrected
+seed-67 watch completed in attempt 2 with one death and $0 spend, showing that
+the route progresses again but survival is sensitive to decision details.
+Other seeds, full checks, and CI still need repeating before integration.
 
 ## Spend and later trial
 

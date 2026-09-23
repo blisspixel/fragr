@@ -613,10 +613,7 @@ pub async fn run_bot(
             _ = macro_tick.tick(), if inflight.is_none() => {
                 let Some(id) = me else { continue };
                 let Some(snapshot) = last.as_ref() else { continue };
-                let Some(mut telemetry) = observe(id, snapshot, &mut hits) else { continue };
-                if let (Some(_), Some(world)) = (mission_client.state.as_ref(), navigation.as_ref()) {
-                    align_campaign_enemy(&mut telemetry, id, snapshot, world);
-                }
+                let Some(telemetry) = observe(id, snapshot, &mut hits) else { continue };
                 summary.last_state = Some(telemetry.render());
                 if !paid_enabled || !brain_worth_asking(&telemetry) || !mission_client.participating(id) {
                     let source = if config.provider.is_paid() && !paid_enabled {
@@ -654,6 +651,9 @@ pub async fn run_bot(
                     {
                         let mut with_memory = telemetry.clone();
                         with_memory.recent = memory.clone();
+                        if let (Some(_), Some(world)) = (mission_client.state.as_ref(), navigation.as_ref()) {
+                            align_campaign_enemy(&mut with_memory, id, snapshot, world);
+                        }
                         let enemy_visible = mission_client.state.as_ref().map(|_| true);
                         decision_state(&with_memory, mission_client.state.as_ref(), loadout.as_ref(), enemy_visible)
                     },

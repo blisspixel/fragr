@@ -215,6 +215,9 @@ pub fn campaign_micro_action(
         snapshot,
         |mine, other| campaign_enemy_engageable(world, mine, other),
         |mine, pad| {
+            if plan.source != Source::Remote {
+                return true;
+            }
             if mine.hp >= LOW_HP || (pad.x - mine.x).hypot(pad.z - mine.z) > NEAR_PAD_UNITS {
                 return false;
             }
@@ -476,6 +479,7 @@ mod tests {
         let me = Uuid::from_u128(1);
         let plan = Plan {
             stance: Stance::FallBackHeal,
+            source: Source::Remote,
             ..Plan::default()
         };
         let clear = Navigation::new(Arena {
@@ -508,6 +512,17 @@ mod tests {
         assert!(campaign_micro_action(&plan, me, &snap, &clear)
             .look_at
             .is_none());
+        let local = Plan {
+            source: Source::Local,
+            ..plan
+        };
+        assert_eq!(
+            campaign_micro_action(&local, me, &snap, &clear)
+                .look_at
+                .unwrap()
+                .x,
+            Some(18.0)
+        );
     }
 
     #[test]
@@ -554,6 +569,7 @@ mod tests {
         snap.pickups = vec![pad("health", "", mine.x, mine.z, true)];
         let plan = Plan {
             stance: Stance::FallBackHeal,
+            source: Source::Remote,
             ..Plan::default()
         };
         let action = campaign_micro_action(&plan, me, &snap, state.map.navigation());
