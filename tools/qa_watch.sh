@@ -146,6 +146,7 @@ fi
 "$ROOT/target/release/fragr-brain" --provider local play \
   --server "ws://127.0.0.1:$PORT" --name "$NAME" \
   --max-seconds "$WATCH_SECONDS" \
+  --timeline-path "$OUT/timeline.json" \
   >"$OUT/brain.log" 2>&1 &
 BRAIN_PID=$!
 

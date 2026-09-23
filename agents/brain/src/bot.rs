@@ -14,6 +14,7 @@ use crate::plan::{
 };
 use crate::provider::{decide, decision_request, Provider, Transport};
 use crate::telemetry::{observe, EnemyView, RecentHits, Telemetry};
+use crate::timeline::Timeline;
 use crate::Error;
 use fragr_server::protocol::{
     Action, CampaignDifficulty, CampaignRunStatus, ClientMessage, GameEvent, MissionId,
@@ -23,6 +24,7 @@ use futures_util::{SinkExt, StreamExt};
 use serde::Serialize;
 use serde_json::Value;
 use std::collections::BTreeMap;
+use std::path::PathBuf;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
@@ -47,6 +49,8 @@ pub const SEND_TIMEOUT: Duration = Duration::from_secs(2);
 /// How long to wait for an in-flight decision after the loop ends, so its
 /// charge lands in the ledger before the summary is read.
 pub const DRAIN_TIMEOUT: Duration = Duration::from_secs(5);
+/// Bound the wait for the final participant record after a terminal mission.
+pub const TERMINAL_RECORD_TIMEOUT: Duration = Duration::from_secs(2);
 
 /// The decision interval after `level` consecutive retryable failures.
 pub fn backoff_interval(base: Duration, level: u32) -> Duration {
@@ -110,6 +114,8 @@ pub struct BotConfig {
     pub gate: Gate,
     /// Leave the match after this long; `None` plays until the socket closes.
     pub max_seconds: Option<u64>,
+    /// Optional local diagnostic file for bounded campaign observations.
+    pub timeline_path: Option<PathBuf>,
 }
 
 /// What one run did, printed as JSON when it ends.
@@ -139,6 +145,9 @@ pub struct BotSummary {
     pub deaths: u32,
     /// Most recent validated mission state received from the authoritative server.
     pub mission: Option<MissionReceipt>,
+    /// Whether a terminal campaign receipt includes its matching final record.
+    /// `None` means this run did not observe a terminal campaign outcome.
+    pub terminal_record_complete: Option<bool>,
     pub run_usd: f64,
     pub total_usd: f64,
     pub last_plan: Option<Plan>,
@@ -172,6 +181,83 @@ impl From<&MissionState> for MissionReceipt {
 fn set_record_counts(summary: &mut BotSummary, total: &fragr_server::protocol::CombatCounts) {
     summary.kills = Some(total.kills());
     summary.deaths = total.deaths.min(u64::from(u32::MAX)) as u32;
+}
+
+fn terminal_mission(state: &MissionState) -> bool {
+    state.run.is_some_and(|run| {
+        matches!(
+            run.status,
+            CampaignRunStatus::Complete | CampaignRunStatus::Failed
+        )
+    })
+}
+
+fn terminal_record_matches(
+    state: &MissionState,
+    record: &fragr_server::protocol::PlayerRecord,
+) -> bool {
+    use fragr_server::protocol::{RecordScope, RecordStatus};
+    let expected = match state.run.map(|run| run.status) {
+        Some(CampaignRunStatus::Complete) => RecordStatus::Complete,
+        Some(CampaignRunStatus::Failed) => RecordStatus::Failed,
+        _ => return false,
+    };
+    record.tick >= state.changed_at
+        && record.status == expected
+        && matches!(
+            &record.scope,
+            RecordScope::Mission { mission, attempt, rules, run }
+                if *mission == state.id
+                    && *attempt == state.attempt
+                    && *rules == state.rules
+                    && *run == state.run
+        )
+}
+
+async fn drain_terminal_record<S>(
+    stream: &mut S,
+    id: Option<Uuid>,
+    state: &MissionState,
+    record: &mut Option<fragr_server::protocol::PlayerRecord>,
+    summary: &mut BotSummary,
+) -> Result<bool, Error>
+where
+    S: futures_util::Stream<Item = Result<Message, tokio_tungstenite::tungstenite::Error>> + Unpin,
+{
+    if record
+        .as_ref()
+        .is_some_and(|current| terminal_record_matches(state, current))
+    {
+        return Ok(true);
+    }
+    let wait = async {
+        while let Some(message) = stream.next().await {
+            match message {
+                Ok(Message::Text(text)) => {
+                    let incoming: ServerMessage = serde_json::from_str(&text).map_err(|error| {
+                        Error::Transport(format!("invalid server message: {error}"))
+                    })?;
+                    if let ServerMessage::Record(next) = incoming {
+                        next.validate_for(id, record.as_ref()).map_err(|error| {
+                            Error::Transport(format!("invalid participant record: {error}"))
+                        })?;
+                        set_record_counts(summary, &next.total);
+                        let complete = terminal_record_matches(state, &next);
+                        *record = Some(next);
+                        if complete {
+                            return Ok(true);
+                        }
+                    }
+                }
+                Ok(Message::Close(_)) | Err(_) => return Ok(false),
+                Ok(_) => {}
+            }
+        }
+        Ok(false)
+    };
+    tokio::time::timeout(TERMINAL_RECORD_TIMEOUT, wait)
+        .await
+        .unwrap_or(Ok(false))
 }
 
 fn decision_state(
@@ -438,6 +524,8 @@ pub async fn run_bot(
     let mut navigation = None;
     let mut navigator = fragr_server::navigation::Navigator::default();
     let mut mission_client = fragr_server::mission::MissionClient::default();
+    let mut mission_geometry = None;
+    let mut timeline = config.timeline_path.as_ref().map(|_| Timeline::default());
     let mut hits = RecentHits::default();
     let mut paid_enabled = config.provider.is_paid();
     let arena_questions = Arc::new(tactical_questions());
@@ -458,6 +546,7 @@ pub async fn run_bot(
     let mut inflight: Option<InFlight> = None;
     let mut consecutive_malformed = 0u32;
     let mut session_error = None;
+    let mut terminal_state = None;
 
     loop {
         if stop.load(Ordering::Relaxed) {
@@ -477,6 +566,13 @@ pub async fn run_bot(
                             break;
                         }
                         summary.mission = mission_client.state.as_ref().map(MissionReceipt::from);
+                        if let (Some(trace), Some(state)) = (timeline.as_mut(), mission_client.state.as_ref()) {
+                            trace.mission(tick, state);
+                        }
+                        if let Some(state) = mission_client.state.as_ref().filter(|state| terminal_mission(state)) {
+                            terminal_state = Some(state.clone());
+                            break;
+                        }
                         if let Some(ready) = mission_client.readiness(me) {
                             let wire = serde_json::to_string(&ClientMessage::MissionReady(ready)).map_err(transport_err)?;
                             if !send_text(&mut sink, wire).await {
@@ -517,6 +613,9 @@ pub async fn run_bot(
                         let tick = last.as_ref().map(|s| s.tick).unwrap_or(0);
                         if let Some(id) = me {
                             hits.ingest(id, tick, &event);
+                            if let (Some(trace), Some(state)) = (timeline.as_mut(), mission_client.state.as_ref()) {
+                                trace.event(tick, state, id, &event);
+                            }
                         }
                         if let GameEvent::Frag { killer, victim, .. } = &event {
                             if *killer == my_name {
@@ -550,6 +649,7 @@ pub async fn run_bot(
                             session_error = Some(Error::Transport(format!("invalid mission map: {error}")));
                             break;
                         }
+                        mission_geometry = mission.clone();
                         if let Err(error) = fragr_server::protocol::validate_map_geometry(half_extent, &solids, geometry_version) {
                             session_error = Some(Error::Transport(format!("invalid navigation map: {error}")));
                             break;
@@ -599,13 +699,17 @@ pub async fn run_bot(
                     } else {
                         fragr_server::inventory::control_action_with_objective(id, snapshot, loadout.as_ref(), action, false)
                     };
+                    let intent = action.clone();
                     let action = navigation.as_ref().map_or_else(Action::default, |world| {
                         mission_client.steer(&mut navigator, world, id, snapshot, action)
                     });
-                    let text = serde_json::to_string(&ClientMessage::Action(action))
+                    let text = serde_json::to_string(&ClientMessage::Action(action.clone()))
                         .map_err(transport_err)?;
                     if !send_text(&mut sink, text).await {
                         break;
+                    }
+                    if let (Some(trace), Some(state)) = (timeline.as_mut(), mission_client.state.as_ref()) {
+                        trace.sample(id, snapshot, state, mission_geometry.as_ref(), loadout.as_ref(), &plan, &intent, &action);
                     }
                     summary.actions_sent += 1;
                 }
@@ -753,6 +857,15 @@ pub async fn run_bot(
             },
         }
     }
+    if let Some(state) = terminal_state.as_ref() {
+        match drain_terminal_record(&mut stream, me, state, &mut record, &mut summary).await {
+            Ok(complete) => summary.terminal_record_complete = Some(complete),
+            Err(error) => {
+                summary.terminal_record_complete = Some(false);
+                session_error = Some(error);
+            }
+        }
+    }
     let _ = sink.close().await;
     // Let an in-flight decision finish so its charge is in the ledger before
     // the totals are read; a panic or a hang is bounded, not fatal.
@@ -766,6 +879,9 @@ pub async fn run_bot(
     }
     constrain_campaign_equipment(&mut plan, mission_client.state.is_some(), loadout.as_ref());
     summary.last_plan = Some(plan);
+    if let (Some(trace), Some(path)) = (timeline.as_ref(), config.timeline_path.as_ref()) {
+        trace.write(path, me)?;
+    }
     if let Some(error) = session_error {
         Err(error)
     } else {
@@ -782,7 +898,8 @@ mod tests {
     use crate::telemetry::fixtures::{player, snapshot};
     use fragr_server::protocol::{
         AmmoPool, AmmoReserve, CampaignRules, CampaignRunState, CombatCounts, LoadoutState,
-        MissionMember, WeaponAmmo, WeaponType,
+        MissionMember, PlayerRecord, RecordScope, RecordStatus, WeaponAmmo, WeaponType,
+        RECORD_TICKS_PER_SECOND, RECORD_VERSION,
     };
     use fragr_server::run::{run_server, ServerOptions};
     use fragr_server::sim::{MapKind, MatchConfig};
@@ -799,6 +916,175 @@ mod tests {
         assert_eq!(summary.deaths, 3);
         assert_eq!(summary.kills, Some(7));
         assert_eq!(summary.frags, 0);
+    }
+
+    #[test]
+    fn terminal_campaign_state_stops_only_after_success_or_exhaustion() {
+        let id = Uuid::from_u128(1);
+        let mut state = MissionState {
+            id: MissionId::RecallNotice,
+            run: Some(CampaignRunState {
+                id: Uuid::from_u128(2),
+                status: CampaignRunStatus::Playing,
+                continues: 1,
+            }),
+            rules: CampaignRules::new(CampaignDifficulty::Standard),
+            attempt: 3,
+            phase: MissionPhase::FindTransfer,
+            changed_at: 1,
+            party: vec![MissionMember {
+                id,
+                name: "Brain".into(),
+                ready: true,
+                alive: true,
+                aboard: false,
+            }],
+            prompts: vec![],
+        };
+        state.validate(1).unwrap();
+        assert!(!terminal_mission(&state));
+        state.run.as_mut().unwrap().status = CampaignRunStatus::Continue;
+        state.party[0].alive = false;
+        state.validate(1).unwrap();
+        assert!(
+            !terminal_mission(&state),
+            "the participant still has a retry"
+        );
+        state.run.as_mut().unwrap().status = CampaignRunStatus::Failed;
+        state.run.as_mut().unwrap().continues = 0;
+        state.attempt = 4;
+        state.validate(1).unwrap();
+        assert!(terminal_mission(&state));
+        state.run.as_mut().unwrap().status = CampaignRunStatus::Complete;
+        state.phase = MissionPhase::Departed;
+        state.party[0].alive = true;
+        state.validate(1).unwrap();
+        assert!(terminal_mission(&state));
+    }
+
+    fn completed_mission_and_record() -> (MissionState, PlayerRecord) {
+        let id = Uuid::from_u128(1);
+        let run = CampaignRunState {
+            id: Uuid::from_u128(2),
+            status: CampaignRunStatus::Complete,
+            continues: 3,
+        };
+        let state = MissionState {
+            id: MissionId::RecallNotice,
+            run: Some(run),
+            rules: CampaignRules::new(CampaignDifficulty::Standard),
+            attempt: 1,
+            phase: MissionPhase::Departed,
+            changed_at: 15,
+            party: vec![MissionMember {
+                id,
+                name: "Brain".into(),
+                ready: true,
+                alive: true,
+                aboard: true,
+            }],
+            prompts: vec![],
+        };
+        state.validate(20).unwrap();
+        let mut total = CombatCounts {
+            alive_ticks: 10,
+            ..CombatCounts::default()
+        };
+        total.weapons[WeaponType::Tack.index()].attacks = 1;
+        total.weapons[WeaponType::Tack.index()].damaging_attacks = 1;
+        total.weapons[WeaponType::Tack.index()].kills = 1;
+        let record = PlayerRecord {
+            version: RECORD_VERSION,
+            session_id: Uuid::from_u128(3),
+            player_id: id,
+            round: 1,
+            tick: 20,
+            entered_at: 0,
+            round_started_at: 0,
+            ticks_per_second: RECORD_TICKS_PER_SECOND,
+            map_id: 7,
+            map_name: "Recall Notice".into(),
+            role: Role::Agent,
+            scope: RecordScope::Mission {
+                mission: state.id,
+                attempt: state.attempt,
+                rules: state.rules,
+                run: state.run,
+            },
+            status: RecordStatus::Complete,
+            total: total.clone(),
+            attempt: total,
+        };
+        record.validate_for(Some(id), None).unwrap();
+        (state, record)
+    }
+
+    #[tokio::test]
+    async fn delayed_terminal_record_wins_over_stale_record_and_old_grace() {
+        let (state, final_record) = completed_mission_and_record();
+        let mut stale = final_record.clone();
+        stale.tick = 10;
+        stale.status = RecordStatus::Active;
+        stale.total.weapons[WeaponType::Tack.index()].kills = 0;
+        stale.total.weapons[WeaponType::Tack.index()].damaging_attacks = 0;
+        stale.total.weapons[WeaponType::Tack.index()].attacks = 0;
+        stale.attempt = stale.total.clone();
+        if let RecordScope::Mission { run, .. } = &mut stale.scope {
+            run.as_mut().unwrap().status = CampaignRunStatus::Playing;
+        }
+        stale.validate_for(Some(stale.player_id), None).unwrap();
+        assert!(!terminal_record_matches(&state, &stale));
+        assert!(terminal_record_matches(&state, &final_record));
+        let stale_wire = serde_json::to_string(&ServerMessage::Record(stale)).unwrap();
+        let final_wire = serde_json::to_string(&ServerMessage::Record(final_record)).unwrap();
+        let mut stream = Box::pin(futures_util::stream::unfold(0, move |step| {
+            let stale_wire = stale_wire.clone();
+            let final_wire = final_wire.clone();
+            async move {
+                match step {
+                    0 => Some((Ok(Message::Text(stale_wire)), 1)),
+                    1 => {
+                        tokio::time::sleep(Duration::from_millis(650)).await;
+                        Some((Ok(Message::Text(final_wire)), 2))
+                    }
+                    _ => None,
+                }
+            }
+        }));
+        let mut summary = BotSummary::default();
+        let mut received = None;
+        let started = tokio::time::Instant::now();
+        let complete = drain_terminal_record(
+            &mut stream,
+            Some(state.party[0].id),
+            &state,
+            &mut received,
+            &mut summary,
+        )
+        .await
+        .unwrap();
+        assert!(complete);
+        assert!(started.elapsed() >= Duration::from_millis(650));
+        assert_eq!(summary.kills, Some(1));
+    }
+
+    #[tokio::test]
+    async fn missing_terminal_record_times_out_incomplete() {
+        let (state, _) = completed_mission_and_record();
+        let mut stream = futures_util::stream::pending();
+        let mut summary = BotSummary::default();
+        let mut received = None;
+        let complete = drain_terminal_record(
+            &mut stream,
+            Some(state.party[0].id),
+            &state,
+            &mut received,
+            &mut summary,
+        )
+        .await
+        .unwrap();
+        assert!(!complete);
+        assert_eq!(summary.kills, None);
     }
 
     #[test]
@@ -973,6 +1259,7 @@ mod tests {
             decision_hz: 5.0,
             gate: Gate::default(),
             max_seconds: Some(seconds),
+            timeline_path: None,
         }
     }
 
