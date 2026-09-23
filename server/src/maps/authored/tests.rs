@@ -22,6 +22,16 @@ pub(super) fn decode(value: &Value) -> io::Result<Arc<AuthoredMap>> {
 }
 
 #[test]
+fn authored_content_identity_survives_gate_state_and_changes_with_source() {
+    let map = AuthoredMap::read(M01.as_bytes()).unwrap();
+    let closed = crate::maps::RuntimeMap::Authored(map.clone());
+    let opened = closed.opened_route().unwrap();
+    assert_eq!(closed.content_sha256(), opened.content_sha256());
+    let edited = AuthoredMap::read(format!("{M01}\n").as_bytes()).unwrap();
+    assert_ne!(map.content_sha256, edited.content_sha256);
+}
+
+#[test]
 fn decorations_resolve_solid_ids_and_reach_the_wire() {
     let mut doc = small();
     let detail = json!({"solid":"ceiling", "face":"down", "center":[0,0],
