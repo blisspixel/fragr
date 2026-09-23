@@ -67,15 +67,23 @@ pub(crate) struct Prepared {
 }
 
 #[derive(Debug, Clone)]
-struct PreparedObjective {
-    id: String,
-    feet: [f32; 3],
-    required_mask: u8,
-    control: Option<UseTarget>,
-    arrival: Option<Region3>,
+pub(crate) struct PreparedObjective {
+    pub(crate) id: String,
+    pub(crate) feet: [f32; 3],
+    pub(crate) required_mask: u8,
+    pub(crate) control: Option<UseTarget>,
+    pub(crate) arrival: Option<Region3>,
 }
 
 impl Prepared {
+    pub(crate) fn objective(&self, index: usize) -> Option<&PreparedObjective> {
+        self.objectives.get(index)
+    }
+
+    pub(crate) fn len(&self) -> usize {
+        self.objectives.len()
+    }
+
     pub(crate) fn world(&self, mask: u8) -> Option<(&Arena, &Arc<Navigation>)> {
         self.worlds
             .iter()
@@ -258,9 +266,11 @@ impl Definition {
         }
         if objectives
             .last()
-            .is_none_or(|last| last.id != "party_departed")
+            .is_none_or(|last| last.id != "party_departed" || last.arrival.is_none())
         {
-            return Err(invalid("M02 final objective must be party_departed"));
+            return Err(invalid(
+                "M02 final objective must be a party_departed arrival",
+            ));
         }
         for (_, _, after) in &gates {
             if !objectives.iter().any(|objective| &objective.id == after)

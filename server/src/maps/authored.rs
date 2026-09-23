@@ -11,7 +11,7 @@ use std::path::Path;
 use std::sync::Arc;
 
 pub(crate) mod encounters;
-mod m02;
+pub(crate) mod m02;
 mod mission;
 mod supplies;
 

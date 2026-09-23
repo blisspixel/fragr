@@ -90,16 +90,26 @@ first-person inspection are the gate for this increment.
 The first preparatory slice adds strict objective and gate authoring for map
 1002, validates a linear prerequisite chain and bounded gate worlds before
 readiness, and keeps the exact M01 content hash under test. It exposes a
-prepared collision and navigation world selector but does not yet advance
-objectives, publish mission wire state, or make M02 playable. A review found
+prepared collision and navigation world selector without publishing M02 mission
+wire state or making M02 playable. A review found
 that arrival regions could span a closed barrier and an M02-only graybox could
 be mistaken for an arena; both cases now have regression checks. The next
-slice is the server-owned objective transition and its wire contract, followed
-by a real M02 graybox and first-person route evidence.
+slice is the M02 wire contract, followed by a real M02 graybox and first-person
+route evidence.
 
-The live slice must carry each complete arrival region and use target into
-mission authority, check arrival every tick, and consume one legal use at most
-once. It must publish M02 objective progress without changing M01's serialized
-shape. Current local run files validate M01 only; a development-party M02
-graybox can prove the mission loop, but durable cross-mission solo carry needs
-an explicit run-file revision and its own tests before it is called shipped.
+The server transition slice now carries complete arrival regions and use targets
+into mission authority. It checks arrival each tick, consumes invalid presses,
+advances one objective at most per tick, selects a prepared gate world, and
+restores the first objective and closed world on retry. Focused deterministic
+tests use a synthetic three-objective map and direct internal readiness. They
+cover early, unready, dead and mis-aimed interaction attempts, duplicate use,
+and the gate transition. A two-participant test verifies that departure waits
+until every current participant is ready, alive and inside the exit region,
+matching M01's shared exit rule. The workspace Rust tests and clippy passed
+locally before this follow-up; focused M02 tests and fmt/clippy were rerun after it.
+This does not prove a playable M02 route or a wire observation. M02 network
+readiness, objective state and prompts are still absent, so the graybox remains
+unplayable through a normal client. The next slice must publish progress without
+changing M01's serialized shape. Current local run files validate M01 only;
+durable cross-mission solo carry needs an explicit run-file revision and its
+own tests before it is called shipped.

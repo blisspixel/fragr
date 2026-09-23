@@ -10,6 +10,7 @@ use std::collections::HashSet;
 use uuid::Uuid;
 
 mod controller;
+mod m02;
 mod recovery;
 pub(crate) mod run_file;
 pub use controller::MissionClient;
@@ -25,6 +26,7 @@ mod tests;
 mod wire_tests;
 
 pub(crate) struct MissionRun {
+    m02: Option<m02::M02Progress>,
     solo: Option<recovery::SoloRun>,
     rules: CampaignRules,
     initial_map: RuntimeMap,
@@ -37,8 +39,11 @@ pub(crate) struct MissionRun {
 
 impl MissionRun {
     pub fn new(map: &RuntimeMap) -> Option<Self> {
-        map.mission()?;
+        if map.mission().is_none() && map.m02_objectives().is_none() {
+            return None;
+        }
         Some(Self {
+            m02: map.m02_objectives().map(|_| m02::M02Progress::default()),
             solo: None,
             rules: CampaignRules::default(),
             initial_map: map.clone(),
@@ -173,6 +178,9 @@ impl GameState {
             return;
         };
         self.map = run.initial_map.clone();
+        if let Some(m02) = run.m02.as_mut() {
+            *m02 = m02::M02Progress::default();
+        }
         run.phase = if run.ready.is_empty() {
             MissionPhase::Briefing
         } else {
@@ -260,6 +268,10 @@ impl GameState {
     }
 
     pub(crate) fn advance_mission(&mut self) {
+        if self.mission.as_ref().is_some_and(|run| run.m02.is_some()) {
+            self.advance_m02();
+            return;
+        }
         // Consume even failed presses, including dead players and the wrong aim.
         let requests: Vec<_> = self
             .players

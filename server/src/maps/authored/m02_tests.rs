@@ -81,6 +81,12 @@ fn m02_rejects_bad_prerequisites_gate_triggers_and_budget() {
     bad["m02"]["objectives"][2]["id"] = json!("ward_reached");
     assert!(read(&bad).is_err());
     let mut bad = fixture();
+    bad["m02"]["objectives"][2]["action"] = bad["m02"]["objectives"][1]["action"].clone();
+    assert!(read(&bad)
+        .unwrap_err()
+        .to_string()
+        .contains("party_departed arrival"));
+    let mut bad = fixture();
     bad["m02"]["gates"][0]["after"] = json!("unknown");
     assert!(read(&bad).unwrap_err().to_string().contains("trigger"));
     let mut bad = fixture();

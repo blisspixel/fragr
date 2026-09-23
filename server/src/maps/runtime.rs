@@ -29,6 +29,13 @@ impl PartialEq<MapKind> for RuntimeMap {
 }
 
 impl RuntimeMap {
+    pub(crate) fn m02_objectives(&self) -> Option<&super::authored::m02::Prepared> {
+        match self {
+            Self::BuiltIn(_) => None,
+            Self::Authored(map) => map.m02.as_deref(),
+        }
+    }
+
     /// Identity of the exact authored bytes used to build this runtime map.
     /// An opened route retains the same identity as its closed source.
     pub fn content_sha256(&self) -> Option<[u8; 32]> {
