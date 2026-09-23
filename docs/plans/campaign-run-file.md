@@ -134,3 +134,9 @@ must disconnect without the `leave` abandonment command; explicit abandonment
 gets a separate action. New Run needs a recoverable prior save. Run real
 stop/restart, duplicate-writer, failure-injection, Godot and platform checks
 before calling the run durable.
+
+The next local checkpoint projects a server run to the versioned document and
+rehydrates a saved pending Continue before participant admission. A focused
+test proves an agent-controlled owner returns dead with the same run ID and
+allowance, then spends the continue exactly once. This remains an internal
+state round-trip only; the local child has no disk integration yet.

@@ -11,7 +11,7 @@ use uuid::Uuid;
 
 mod controller;
 mod recovery;
-mod run_file;
+pub(crate) mod run_file;
 pub use controller::MissionClient;
 
 #[cfg(test)]

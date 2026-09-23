@@ -34,7 +34,7 @@ const RESPAWN_DELAY_TICKS: u32 = 60;
 /// Ticks after a respawn during which a fighter cannot be hit (one second).
 pub const SPAWN_SHIELD_TICKS: u32 = 20;
 const HITSCAN_RANGE: f32 = 100.0;
-const PLAYER_MAX_HP: i32 = 100;
+pub(crate) const PLAYER_MAX_HP: i32 = 100;
 /// Max Unicode scalars in a speak/taunt line (after trim).
 pub const SPEAK_MAX_CHARS: usize = 80;
 /// Min ticks between successful speaks for one player (~3s at 20 Hz).
@@ -794,6 +794,8 @@ impl GameState {
         if self.map.is_campaign() {
             player.campaign = Some(crate::protocol::CampaignActor::Participant {});
         }
+        self.restore_campaign_owner(&mut player)
+            .expect("validated campaign owner equipment must restore");
         player.statistics.begin(self.tick);
         self.players.push(player);
 

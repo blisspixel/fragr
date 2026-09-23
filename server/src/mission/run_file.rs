@@ -1,26 +1,53 @@
 //! Versioned solo-run document. Disk transport is local-only and separate.
-use crate::inventory::SavedEquipment;
-use crate::protocol::{CampaignRules, MissionId, CAMPAIGN_CONTINUES, CAMPAIGN_RULES_REVISION};
-use crate::sim::PLAYER_MAX_ARMOR;
+use crate::inventory::{Inventory, SavedEquipment};
+use crate::protocol::{
+    CampaignRules, CampaignRunStatus, EquipmentPolicy, MissionId, WeaponType, CAMPAIGN_CONTINUES,
+    CAMPAIGN_RULES_REVISION,
+};
+use crate::sim::{GameState, Player, PLAYER_MAX_ARMOR, PLAYER_MAX_HP};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-mod store;
+pub(crate) mod store;
 
 pub(super) const RUN_FILE_VERSION: u32 = 1;
 const NEXT_MISSION: &str = "persons_unknown";
 
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
-pub(super) struct SavedEntry {
+pub(crate) struct SavedEntry {
     pub hp: i32,
     pub armor: i32,
     pub equipment: SavedEquipment,
 }
 
 impl SavedEntry {
+    pub fn initial() -> Self {
+        Self {
+            hp: PLAYER_MAX_HP,
+            armor: 0,
+            equipment: Inventory::new(EquipmentPolicy::Discovery)
+                .saved_equipment(WeaponType::Fists)
+                .expect("initial discovery equipment is valid"),
+        }
+    }
+
+    pub fn from_player(player: &Player) -> Result<Self, &'static str> {
+        let entry = Self {
+            hp: player.hp,
+            armor: player.armor,
+            equipment: player
+                .inventory
+                .saved_equipment(player.weapon)
+                .ok_or("player equipment cannot be saved")?,
+        };
+        entry.validate()?;
+        Ok(entry)
+    }
+
     fn validate(&self) -> Result<(), &'static str> {
-        if !(1..=100).contains(&self.hp) || !(0..=PLAYER_MAX_ARMOR).contains(&self.armor) {
+        if !(1..=PLAYER_MAX_HP).contains(&self.hp) || !(0..=PLAYER_MAX_ARMOR).contains(&self.armor)
+        {
             return Err("invalid campaign entry health or armor");
         }
         self.equipment.validate()
@@ -29,7 +56,7 @@ impl SavedEntry {
 
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
 #[serde(tag = "kind", rename_all = "snake_case", deny_unknown_fields)]
-pub(super) enum SavedStep {
+pub(crate) enum SavedStep {
     MissionEntry {
         mission: MissionId,
         entry: SavedEntry,
@@ -51,7 +78,7 @@ pub(super) enum SavedStep {
 
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
-pub(super) struct RunDocument {
+pub(crate) struct RunDocument {
     pub version: u32,
     pub id: Uuid,
     pub starting_continues: u8,
@@ -62,6 +89,21 @@ pub(super) struct RunDocument {
 }
 
 impl RunDocument {
+    pub fn new(id: Uuid, rules: CampaignRules, content_sha256: [u8; 32]) -> Self {
+        Self {
+            version: RUN_FILE_VERSION,
+            id,
+            starting_continues: CAMPAIGN_CONTINUES,
+            remaining_continues: CAMPAIGN_CONTINUES,
+            rules,
+            content_sha256,
+            step: SavedStep::MissionEntry {
+                mission: MissionId::RecallNotice,
+                entry: SavedEntry::initial(),
+            },
+        }
+    }
+
     pub fn validate(&self, content_sha256: [u8; 32]) -> Result<(), &'static str> {
         if self.version != RUN_FILE_VERSION
             || self.id.is_nil()
@@ -111,11 +153,73 @@ impl RunDocument {
     }
 }
 
+impl GameState {
+    pub(crate) fn campaign_run_document(&self) -> Result<Option<RunDocument>, &'static str> {
+        let Some(run) = self.mission.as_ref() else {
+            return Ok(None);
+        };
+        let Some(solo) = run.solo.as_ref() else {
+            return Ok(None);
+        };
+        let content_sha256 = self
+            .map
+            .content_sha256()
+            .ok_or("campaign run requires authored content")?;
+        let entry = solo.saved_entry().unwrap_or_else(SavedEntry::initial);
+        let mission = self
+            .map
+            .mission()
+            .ok_or("campaign run requires mission geometry")?
+            .id;
+        let step = match solo.state.status {
+            CampaignRunStatus::Playing => SavedStep::MissionEntry { mission, entry },
+            CampaignRunStatus::Continue => SavedStep::PendingContinue { mission, entry },
+            CampaignRunStatus::Failed => SavedStep::Failed { mission, entry },
+            CampaignRunStatus::Complete => {
+                let owner = solo.owner().ok_or("completed run has no owner")?;
+                let player = self
+                    .players
+                    .iter()
+                    .find(|p| p.id == owner)
+                    .ok_or("completed run owner is missing")?;
+                SavedStep::AwaitingMission {
+                    completed_mission: mission,
+                    next_mission: NEXT_MISSION.into(),
+                    exit: SavedEntry::from_player(player)?,
+                }
+            }
+            CampaignRunStatus::Abandoned => return Ok(None),
+        };
+        let document = RunDocument {
+            version: RUN_FILE_VERSION,
+            id: solo.state.id,
+            starting_continues: CAMPAIGN_CONTINUES,
+            remaining_continues: solo.state.continues,
+            rules: run.rules,
+            content_sha256,
+            step,
+        };
+        document.validate(content_sha256)?;
+        Ok(Some(document))
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::inventory::Inventory;
-    use crate::protocol::{CampaignDifficulty, EquipmentPolicy, WeaponType};
+    use crate::maps::AuthoredMap;
+    use crate::protocol::{CampaignDifficulty, EquipmentPolicy, MissionContinue, Role, WeaponType};
+
+    fn state_with_map() -> GameState {
+        let map = AuthoredMap::read(
+            serde_json::to_vec(&super::super::tests::definition())
+                .unwrap()
+                .as_slice(),
+        )
+        .unwrap();
+        GameState::with_authored_map(map)
+    }
 
     fn document() -> RunDocument {
         let inventory = Inventory::new(EquipmentPolicy::Discovery);
@@ -187,5 +291,45 @@ mod tests {
         let mut value = serde_json::to_value(&saved).unwrap();
         value["unexpected"] = true.into();
         assert!(serde_json::from_value::<RunDocument>(value).is_err());
+    }
+
+    #[test]
+    fn resumed_pending_continue_restores_dead_owner_then_spends_once() {
+        let mut state = state_with_map();
+        let hash = state.map.content_sha256().unwrap();
+        let mut document = RunDocument::new(
+            Uuid::new_v4(),
+            CampaignRules::new(CampaignDifficulty::Severe),
+            hash,
+        );
+        document.remaining_continues = 1;
+        document.step = SavedStep::PendingContinue {
+            mission: MissionId::RecallNotice,
+            entry: SavedEntry::initial(),
+        };
+        state.load_campaign_run(&document).unwrap();
+        let owner = Uuid::new_v4();
+        state.add_player(owner, "Free agent".into(), Role::Agent);
+        let mission = state.mission_state().unwrap();
+        mission.validate(state.tick).unwrap();
+        assert_eq!(mission.attempt, 3);
+        assert_eq!(mission.run.unwrap().status, CampaignRunStatus::Continue);
+        assert!(!mission.party[0].alive);
+        assert_eq!(
+            state.campaign_run_document().unwrap(),
+            Some(document.clone())
+        );
+        let request = MissionContinue {
+            id: MissionId::RecallNotice,
+            run_id: document.id,
+            attempt: 3,
+        };
+        assert!(state.continue_mission(owner, request));
+        assert!(!state.continue_mission(owner, request));
+        let resumed = state.campaign_run_document().unwrap().unwrap();
+        assert_eq!(resumed.id, document.id);
+        assert_eq!(resumed.remaining_continues, 0);
+        assert_eq!(resumed.attempt(), 4);
+        assert!(matches!(resumed.step, SavedStep::MissionEntry { .. }));
     }
 }
