@@ -4,6 +4,14 @@ Shipped tags, newest first. A line here is on `main`. Planned work stays in
 [docs/ROADMAP.md](docs/ROADMAP.md). Older tags are on the
 [releases page](https://github.com/blisspixel/fragr/releases).
 
+## v0.43.1 (2026-09-22)
+
+The spectator camera keeps following its fighter while a match menu blocks
+controls. A local first-person agent watch captures rendered frames with the
+same server-assigned participant ID as its action receipt. Paid Jev requests
+reserve budget before sending, so retries and uncertain responses cannot
+silently spend the same allowance twice.
+
 ## v0.43.0 (2026-09-22)
 
 The Clerk and the Sweeper no longer share one outline. The Sweeper is the wide
