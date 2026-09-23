@@ -5,7 +5,8 @@
 //! (`choice`, `noul`, `score`) plus `confidence` and `probabilities`.
 
 use crate::budget::Pricing;
-use crate::plan::{parse_weapon, Plan, Source, Stance};
+use crate::plan::{parse_weapon, weapon_name, Plan, Source, Stance};
+use fragr_server::protocol::WeaponType;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::collections::BTreeMap;
@@ -156,6 +157,61 @@ pub fn tactical_questions() -> BTreeMap<String, Question> {
                 "Taking damage or an enemy close, with health to spare.".to_string(),
                 "Low health with an enemy in range.".to_string(),
                 "Low health, taking damage, enemy close, no health pad near.".to_string(),
+            ],
+        },
+    );
+    questions
+}
+
+/// Campaign questions use only weapons the server says this participant owns.
+/// Mission progression and finite retries belong in the state, not in an
+/// arena-deathmatch instruction that would reward reckless respawns.
+pub fn campaign_questions(owned: &[WeaponType]) -> BTreeMap<String, Question> {
+    let mut questions = BTreeMap::new();
+    questions.insert(
+        Q_STANCE.to_string(),
+        Question::Choice {
+            instructions: "Authored mission. Choose the stance for the next second. Survive and reach the current objective; only an immediate visible threat should interrupt the route.".to_string(),
+            criteria: BTreeMap::from([
+                ("push_enemy".to_string(), "Engage a visible guard blocking the route when health and ammunition allow it.".to_string()),
+                ("fall_back_heal".to_string(), "Break off toward reachable health when hurt. Do not abandon a safe objective for a distant pad.".to_string()),
+                ("hold_angle".to_string(), "Use cover against a visible guard's attack. With no visible threat, the local controller advances the objective.".to_string()),
+                ("kite_distance".to_string(), "Back away from a close visible guard while firing a suitable carried gun.".to_string()),
+            ]),
+        },
+    );
+    let mut weapons = BTreeMap::new();
+    for weapon in owned {
+        let description = match weapon {
+            WeaponType::Fists => "No ammunition. Last resort against a close guard.",
+            WeaponType::Tack => {
+                "Pistol for deliberate short and mid-range shots with finite bullets."
+            }
+            WeaponType::Flechette => "Rifle for sustained mid-range fire with finite darts.",
+            WeaponType::Scatter => "Shotgun for a close guard, with finite shells.",
+            WeaponType::Rail => {
+                "One heavy slow shot for a distant exposed guard, with finite cells."
+            }
+        };
+        weapons.insert(weapon_name(*weapon).to_string(), description.to_string());
+    }
+    questions.insert(
+        Q_WEAPON.to_string(),
+        Question::Choice {
+            instructions: "Choose only a carried weapon for the next second. The server owns ammunition and reloads.".to_string(),
+            criteria: weapons,
+        },
+    );
+    questions.insert(
+        Q_DANGER.to_string(),
+        Question::Score {
+            instructions: "How close is this participant to dying before the next objective? A solo run has limited continues when shown in state.".to_string(),
+            criteria: vec![
+                "Healthy, no visible guard close and no recent damage.".to_string(),
+                "Healthy, a visible guard at range but no recent damage.".to_string(),
+                "Taking damage or a guard close, with health to spare.".to_string(),
+                "Low health with an attacking guard in range.".to_string(),
+                "Low health, taking damage, with no reachable health nearby.".to_string(),
             ],
         },
     );
@@ -335,6 +391,16 @@ pub fn plan_from_answers(
     plan
 }
 
+/// A trusted reply still has to choose one of the choices actually offered.
+pub fn constrain_plan_weapon(plan: &mut Plan, questions: &BTreeMap<String, Question>) {
+    let Some(weapon) = plan.weapon else { return };
+    let allowed = matches!(questions.get(Q_WEAPON), Some(Question::Choice { criteria, .. })
+        if criteria.contains_key(weapon_name(weapon)));
+    if !allowed {
+        plan.weapon = None;
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -401,6 +467,43 @@ mod tests {
             .is_none());
         let back: Question = serde_json::from_value(json).unwrap();
         assert_eq!(back, noul);
+    }
+
+    #[test]
+    fn campaign_questions_only_offer_carried_weapons_and_finite_stakes() {
+        let questions = campaign_questions(&[WeaponType::Fists, WeaponType::Tack]);
+        let json = serde_json::to_value(&questions).unwrap();
+        let choices = json[Q_WEAPON]["criteria"].as_object().unwrap();
+        assert_eq!(choices.len(), 2);
+        assert!(choices.contains_key("fists"));
+        assert!(choices.contains_key("tack"));
+        assert!(!choices.contains_key("rail"));
+        assert!(json[Q_STANCE]["instructions"]
+            .as_str()
+            .unwrap()
+            .contains("objective"));
+        assert!(json[Q_DANGER]["instructions"]
+            .as_str()
+            .unwrap()
+            .contains("limited continues"));
+        assert!(!serde_json::to_string(&questions)
+            .unwrap()
+            .contains("respawn"));
+    }
+
+    #[test]
+    fn unoffered_campaign_weapon_is_removed_from_reported_plan() {
+        let questions = campaign_questions(&[WeaponType::Fists, WeaponType::Tack]);
+        let mut answers = BTreeMap::new();
+        answers.insert(Q_WEAPON.to_string(), choice("rail", 0.99));
+        let mut plan = plan_from_answers(&answers, &Gate::default(), &local(), 0.0);
+        assert_eq!(plan.weapon, Some(WeaponType::Rail));
+        constrain_plan_weapon(&mut plan, &questions);
+        assert_eq!(plan.weapon, None);
+        answers.insert(Q_WEAPON.to_string(), choice("tack", 0.99));
+        let mut carried = plan_from_answers(&answers, &Gate::default(), &local(), 0.0);
+        constrain_plan_weapon(&mut carried, &questions);
+        assert_eq!(carried.weapon, Some(WeaponType::Tack));
     }
 
     #[test]

@@ -4,13 +4,20 @@
 //! flight; a slow answer is simply late, not queued.
 
 use crate::budget::Budget;
-use crate::decision::{plan_from_answers, tactical_questions, Gate, Question};
-use crate::plan::{fallback_plan, micro_action, Plan, Source, Stance};
+use crate::decision::{
+    campaign_questions, constrain_plan_weapon, plan_from_answers, tactical_questions, Gate,
+    Question,
+};
+use crate::plan::{
+    campaign_enemy_engageable, campaign_micro_action, campaign_target, fallback_plan, micro_action,
+    Plan, Source, Stance,
+};
 use crate::provider::{decide, decision_request, Provider, Transport};
-use crate::telemetry::{observe, RecentHits, Telemetry};
+use crate::telemetry::{observe, EnemyView, RecentHits, Telemetry};
 use crate::Error;
 use fragr_server::protocol::{
-    Action, ClientMessage, GameEvent, Role, ServerMessage, SetDisplayBehavior, Snapshot,
+    Action, CampaignDifficulty, CampaignRunStatus, ClientMessage, GameEvent, MissionId,
+    MissionPhase, MissionState, Role, ServerMessage, SetDisplayBehavior, Snapshot,
 };
 use futures_util::{SinkExt, StreamExt};
 use serde::Serialize;
@@ -127,12 +134,75 @@ pub struct BotSummary {
     /// Why the brain was switched off, if it was.
     pub brain_disabled: Option<String>,
     pub frags: u32,
+    /// Kills counted by the authoritative participant record, including missions.
+    pub kills: Option<u64>,
     pub deaths: u32,
+    /// Most recent validated mission state received from the authoritative server.
+    pub mission: Option<MissionReceipt>,
     pub run_usd: f64,
     pub total_usd: f64,
     pub last_plan: Option<Plan>,
     pub last_state: Option<String>,
     pub decision_latency: LatencyStats,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+pub struct MissionReceipt {
+    pub id: MissionId,
+    pub difficulty: CampaignDifficulty,
+    pub phase: MissionPhase,
+    pub status: Option<CampaignRunStatus>,
+    pub attempt: u32,
+    pub continues: Option<u8>,
+}
+
+impl From<&MissionState> for MissionReceipt {
+    fn from(state: &MissionState) -> Self {
+        Self {
+            id: state.id,
+            difficulty: state.rules.difficulty,
+            phase: state.phase,
+            status: state.run.map(|run| run.status),
+            attempt: state.attempt,
+            continues: state.run.map(|run| run.continues),
+        }
+    }
+}
+
+fn set_record_counts(summary: &mut BotSummary, total: &fragr_server::protocol::CombatCounts) {
+    summary.kills = Some(total.kills());
+    summary.deaths = total.deaths.min(u64::from(u32::MAX)) as u32;
+}
+
+fn decision_state(
+    telemetry: &Telemetry,
+    mission: Option<&MissionState>,
+    loadout: Option<&fragr_server::protocol::LoadoutState>,
+    enemy_visible: Option<bool>,
+) -> Value {
+    let mut state = telemetry.state_object();
+    if let Some(mission) = mission {
+        state["mission"] = serde_json::to_value(MissionReceipt::from(mission))
+            .expect("mission receipt is serializable");
+        if state["enemy"]["present"] == true {
+            state["enemy"]["visible"] = serde_json::json!(enemy_visible.unwrap_or(false));
+        }
+        state["self"]
+            .as_object_mut()
+            .expect("telemetry self is an object")
+            .remove("score");
+        state
+            .as_object_mut()
+            .expect("telemetry state is an object")
+            .remove("clock");
+    }
+    if let Some(equipment) = loadout {
+        state["equipment"] = serde_json::json!({
+            "selected": equipment.selected, "weapons": equipment.weapons,
+            "reserves": equipment.reserves, "reload": equipment.reload,
+        });
+    }
+    state
 }
 
 enum Outcome {
@@ -252,7 +322,12 @@ fn spawn_decision(
         let started = std::time::Instant::now();
         let result = decision_request(provider, &model, &api_key, &state, &questions)
             .and_then(|request| decide(transport.as_ref(), &budget, provider, &model, &request))
-            .map(|decision| plan_from_answers(&decision.response.answers, &gate, &fallback, roll));
+            .map(|decision| {
+                let mut plan =
+                    plan_from_answers(&decision.response.answers, &gate, &fallback, roll);
+                constrain_plan_weapon(&mut plan, &questions);
+                plan
+            });
         let outcome = match result {
             Ok(plan) => Outcome::Decided(plan),
             Err(err @ Error::Budget(_)) => Outcome::Refused(
@@ -266,6 +341,36 @@ fn spawn_decision(
         };
         let _ = tx.send((outcome, started.elapsed().as_millis() as u64));
     })
+}
+
+fn constrain_campaign_equipment(
+    plan: &mut Plan,
+    mission: bool,
+    loadout: Option<&fragr_server::protocol::LoadoutState>,
+) {
+    if mission {
+        plan.weapon = plan
+            .weapon
+            .filter(|weapon| loadout.is_some_and(|equipment| equipment.weapon(*weapon).is_some()));
+    }
+}
+
+fn align_campaign_enemy(
+    telemetry: &mut Telemetry,
+    id: Uuid,
+    snapshot: &Snapshot,
+    world: &fragr_server::navigation::Navigation,
+) {
+    let mine = snapshot.players.iter().find(|player| player.id == id);
+    telemetry.enemy = mine.and_then(|mine| {
+        campaign_target(id, snapshot, world).map(|other| EnemyView {
+            id: other.id,
+            name: other.name.clone(),
+            dist: (other.x - mine.x).hypot(other.z - mine.z),
+            hp: other.hp,
+            weapon: other.weapon.to_ascii_lowercase(),
+        })
+    });
 }
 
 /// Join the server as an agent and play until the socket closes, `stop` is
@@ -335,7 +440,7 @@ pub async fn run_bot(
     let mut mission_client = fragr_server::mission::MissionClient::default();
     let mut hits = RecentHits::default();
     let mut paid_enabled = config.provider.is_paid();
-    let questions = Arc::new(tactical_questions());
+    let arena_questions = Arc::new(tactical_questions());
     let hz = if config.decision_hz.is_finite() {
         config.decision_hz.clamp(MIN_DECISION_HZ, MAX_DECISION_HZ)
     } else {
@@ -371,6 +476,7 @@ pub async fn run_bot(
                             session_error = Some(Error::Transport(format!("invalid mission: {error}")));
                             break;
                         }
+                        summary.mission = mission_client.state.as_ref().map(MissionReceipt::from);
                         if let Some(ready) = mission_client.readiness(me) {
                             let wire = serde_json::to_string(&ClientMessage::MissionReady(ready)).map_err(transport_err)?;
                             if !send_text(&mut sink, wire).await {
@@ -416,7 +522,7 @@ pub async fn run_bot(
                             if *killer == my_name {
                                 summary.frags += 1;
                             }
-                            if *victim == my_name {
+                            if record.is_none() && *victim == my_name {
                                 summary.deaths += 1;
                             }
                         }
@@ -429,6 +535,7 @@ pub async fn run_bot(
                             session_error = Some(Error::Transport(format!("invalid participant record: {error}")));
                             break;
                         }
+                        set_record_counts(&mut summary, &next.total);
                         record = Some(next);
                     }
                     // Geometry belongs to the local controller, never a paid
@@ -461,6 +568,9 @@ pub async fn run_bot(
                         }
                         navigator.clear();
                         last = None;
+                        if mission.is_none() {
+                            summary.mission = None;
+                        }
                     }
                     Ok(ServerMessage::Error { code, message }) => {
                         tracing::warn!("server rejected: {code}: {message}");
@@ -479,8 +589,16 @@ pub async fn run_bot(
             },
             _ = micro.tick() => {
                 if let (Some(id), Some(snapshot)) = (me, last.as_ref()) {
-                    let action = micro_action(&plan, id, snapshot);
-                    let action = fragr_server::inventory::control_action_with_objective(id, snapshot, loadout.as_ref(), action, mission_client.state.is_some());
+                    constrain_campaign_equipment(&mut plan, mission_client.state.is_some(), loadout.as_ref());
+                    let action = match (mission_client.state.as_ref(), navigation.as_ref()) {
+                        (Some(_), Some(world)) => campaign_micro_action(&plan, id, snapshot, world),
+                        _ => micro_action(&plan, id, snapshot),
+                    };
+                    let action = if let (Some(_), Some(world)) = (mission_client.state.as_ref(), navigation.as_ref()) {
+                        fragr_server::inventory::control_action_with_target_filter(id, snapshot, loadout.as_ref(), action, true, |mine, other| campaign_enemy_engageable(world, mine, other))
+                    } else {
+                        fragr_server::inventory::control_action_with_objective(id, snapshot, loadout.as_ref(), action, false)
+                    };
                     let action = navigation.as_ref().map_or_else(Action::default, |world| {
                         mission_client.steer(&mut navigator, world, id, snapshot, action)
                     });
@@ -512,25 +630,32 @@ pub async fn run_bot(
                     }
                     continue;
                 }
+                let questions = if mission_client.state.is_some() {
+                    let Some(equipment) = loadout.as_ref() else {
+                        plan = fallback_plan(&telemetry, Source::Local);
+                        summary.decisions_local += 1;
+                        continue;
+                    };
+                    Arc::new(campaign_questions(&equipment.weapons.iter().map(|held| held.weapon).collect::<Vec<_>>()))
+                } else {
+                    arena_questions.clone()
+                };
                 let (tx, rx) = oneshot::channel();
                 let handle = spawn_decision(
                     transport.clone(),
                     budget.clone(),
-                    questions.clone(),
+                    questions,
                     config.provider,
                     config.model.clone(),
                     config.api_key.clone().unwrap_or_default(),
                     {
                         let mut with_memory = telemetry.clone();
                         with_memory.recent = memory.clone();
-                        let mut state = with_memory.state_object();
-                        if let Some(equipment) = loadout.as_ref() {
-                            state["equipment"] = serde_json::json!({
-                                "selected": equipment.selected, "weapons": equipment.weapons,
-                                "reserves": equipment.reserves, "reload": equipment.reload,
-                            });
+                        if let (Some(_), Some(world)) = (mission_client.state.as_ref(), navigation.as_ref()) {
+                            align_campaign_enemy(&mut with_memory, id, snapshot, world);
                         }
-                        state
+                        let enemy_visible = mission_client.state.as_ref().map(|_| true);
+                        decision_state(&with_memory, mission_client.state.as_ref(), loadout.as_ref(), enemy_visible)
                     },
                     fallback_plan(&telemetry, Source::Failure),
                     config.gate,
@@ -639,6 +764,7 @@ pub async fn run_bot(
         summary.run_usd = guard.run_usd();
         summary.total_usd = guard.total_usd();
     }
+    constrain_campaign_equipment(&mut plan, mission_client.state.is_some(), loadout.as_ref());
     summary.last_plan = Some(plan);
     if let Some(error) = session_error {
         Err(error)
@@ -653,8 +779,150 @@ mod tests {
     use crate::budget::{Caps, Pricing, Refusal};
     use crate::provider::fakes::{push_answers, FakeTransport};
     use crate::provider::HttpResponse;
+    use crate::telemetry::fixtures::{player, snapshot};
+    use fragr_server::protocol::{
+        AmmoPool, AmmoReserve, CampaignRules, CampaignRunState, CombatCounts, LoadoutState,
+        MissionMember, WeaponAmmo, WeaponType,
+    };
     use fragr_server::run::{run_server, ServerOptions};
     use fragr_server::sim::{MapKind, MatchConfig};
+
+    #[test]
+    fn authoritative_record_counts_campaign_deaths_without_frag_events() {
+        let mut summary = BotSummary::default();
+        let mut total = CombatCounts {
+            deaths: 3,
+            ..CombatCounts::default()
+        };
+        total.weapons[WeaponType::Tack.index()].kills = 7;
+        set_record_counts(&mut summary, &total);
+        assert_eq!(summary.deaths, 3);
+        assert_eq!(summary.kills, Some(7));
+        assert_eq!(summary.frags, 0);
+    }
+
+    #[test]
+    fn campaign_decision_state_carries_validated_stakes_and_equipment() {
+        let id = Uuid::from_u128(1);
+        let state = MissionState {
+            id: MissionId::RecallNotice,
+            run: Some(CampaignRunState {
+                id: Uuid::from_u128(2),
+                status: CampaignRunStatus::Playing,
+                continues: 3,
+            }),
+            rules: CampaignRules::new(CampaignDifficulty::Severe),
+            attempt: 1,
+            phase: MissionPhase::FindTransfer,
+            changed_at: 1,
+            party: vec![MissionMember {
+                id,
+                name: "Brain".into(),
+                ready: true,
+                alive: true,
+                aboard: false,
+            }],
+            prompts: vec![],
+        };
+        state.validate(1).unwrap();
+        let loadout = LoadoutState {
+            player_id: id,
+            tick: 1,
+            selected: WeaponType::Tack,
+            weapons: vec![
+                WeaponAmmo {
+                    weapon: WeaponType::Fists,
+                    magazine: None,
+                },
+                WeaponAmmo {
+                    weapon: WeaponType::Tack,
+                    magazine: Some(6),
+                },
+            ],
+            reserves: AmmoPool::ALL
+                .into_iter()
+                .map(|pool| AmmoReserve { pool, rounds: 0 })
+                .collect(),
+            reload: None,
+            personal_claims: vec![],
+            dry_fire_count: 0,
+        };
+        loadout.validate_for(Some(id), None).unwrap();
+        let mut proposed = Plan {
+            weapon: Some(WeaponType::Rail),
+            ..Plan::default()
+        };
+        constrain_campaign_equipment(&mut proposed, true, Some(&loadout));
+        assert_eq!(proposed.weapon, None);
+        proposed.weapon = Some(WeaponType::Tack);
+        constrain_campaign_equipment(&mut proposed, true, Some(&loadout));
+        assert_eq!(proposed.weapon, Some(WeaponType::Tack));
+        let snap = snapshot(
+            1,
+            vec![
+                player("Brain", id, 0.0, 0.0, 100, "tack"),
+                player("Guard", Uuid::from_u128(3), 8.0, 0.0, 60, "tack"),
+            ],
+            vec![],
+        );
+        let telemetry = observe(id, &snap, &mut RecentHits::default()).unwrap();
+        let result = decision_state(&telemetry, Some(&state), Some(&loadout), Some(false));
+        assert_eq!(result["mission"]["phase"], "find_transfer");
+        assert_eq!(result["mission"]["difficulty"], "severe");
+        assert_eq!(result["mission"]["status"], "playing");
+        assert_eq!(result["mission"]["attempt"], 1);
+        assert_eq!(result["mission"]["continues"], 3);
+        assert_eq!(result["equipment"]["weapons"].as_array().unwrap().len(), 2);
+        assert_eq!(result["enemy"]["visible"], false);
+        assert!(result["self"].get("score").is_none());
+        assert!(result.get("clock").is_none());
+        let arena = decision_state(&telemetry, None, None, None);
+        assert!(arena.get("mission").is_none());
+        assert!(arena.get("clock").is_some());
+    }
+
+    #[test]
+    fn campaign_decision_enemy_matches_the_exposed_combat_target() {
+        use fragr_server::movement::{Arena, Solid};
+        use fragr_server::navigation::Navigation;
+        use fragr_server::protocol::{CampaignActor, EnemyKind, EnemyPhase};
+        let id = Uuid::from_u128(1);
+        let mut mine = player("Brain", id, 0.0, 0.0, 100, "tack");
+        mine.campaign = Some(CampaignActor::Participant {});
+        let union = Some(CampaignActor::Union {
+            kind: EnemyKind::Clerk,
+            phase: EnemyPhase::Idle,
+            phase_started: 0,
+            phase_ends: 0,
+        });
+        let mut hidden = player("Hidden", Uuid::from_u128(2), 10.0, 0.0, 60, "tack");
+        hidden.campaign = union;
+        let mut exposed = player("Exposed", Uuid::from_u128(3), 8.0, 8.0, 60, "flechette");
+        exposed.campaign = union;
+        let snap = snapshot(1, vec![mine, hidden, exposed], vec![]);
+        let world = Navigation::new(Arena {
+            half: 24.0,
+            solids: vec![Solid::from_center(5.0, 0.0, 0.5, 3.0)],
+        })
+        .unwrap();
+        let mut telemetry = observe(id, &snap, &mut RecentHits::default()).unwrap();
+        assert_eq!(telemetry.enemy.as_ref().unwrap().name, "Hidden");
+        align_campaign_enemy(&mut telemetry, id, &snap, &world);
+        assert_eq!(telemetry.enemy.as_ref().unwrap().name, "Exposed");
+        let mission = MissionState {
+            id: MissionId::RecallNotice,
+            run: None,
+            rules: CampaignRules::default(),
+            attempt: 1,
+            phase: MissionPhase::FindTransfer,
+            changed_at: 1,
+            party: vec![],
+            prompts: vec![],
+        };
+        let state = decision_state(&telemetry, Some(&mission), None, Some(true));
+        assert_eq!(state["enemy"]["weapon"], "flechette");
+        assert_eq!(state["enemy"]["visible"], true);
+    }
 
     async fn boot_server(bots: usize) -> (String, tokio::sync::oneshot::Sender<()>) {
         let (shutdown_tx, shutdown_rx) = tokio::sync::oneshot::channel::<()>();
@@ -928,6 +1196,10 @@ mod tests {
         assert_eq!(transport.calls(), 0, "local never touches the transport");
         assert_eq!(summary.run_usd, 0.0);
         assert_eq!(summary.provider, "local");
+        assert!(
+            summary.kills.is_some(),
+            "live server sends a participant record"
+        );
         assert!(
             summary.player_id.is_some(),
             "admitted brain has an identity"

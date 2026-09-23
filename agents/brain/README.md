@@ -18,6 +18,18 @@ cargo run -p fragr-brain -- play --name Brain-1 --max-seconds 120
 
 `--provider local` is the default. The same loop runs, the same telemetry is built, and the same controller plays; only the decision comes from rules instead of a model. CI exercises this path in-process.
 
+For a free Recall Notice attempt, start the authored server with `--bots 0`,
+`--campaign-run`, and a difficulty, then point `play --server` at it. For example:
+
+```bash
+cargo run -p fragr-server -- --bind 127.0.0.1:6767 --bots 0 --map-file server/maps/m01-recall-notice.json --campaign-run --difficulty standard
+cargo run -p fragr-brain -- --provider local --no-ledger play --server ws://127.0.0.1:6767 --name CampaignProbe --max-seconds 150
+```
+
+Run those commands in separate terminals. The JSON receipt's `mission` field is
+the latest validated server phase, run status, attempt, difficulty, and remaining
+continues. An elapsed timer or kill count does not mean the mission was cleared.
+
 The local controller reads `MapInfo` for cover and walking routes, using the same
 heightfield navigator as rule bots and playtest agents. It routes around walls and
 up stairs, holds fire through cover, and clears route memory on map or life
@@ -29,7 +41,9 @@ one free-rule brain pawn and a passive Godot spectator, then saves eight eye
 frames and a paired UUID/tick/brain receipt under `.agents/watch/`. Set
 `FRAGR_WATCH_SECONDS=180` for a longer M01 attempt. The wrapper uses no provider
 key and stops only the processes it started. A short capture proves the live
-view, not a mission clear.
+view, not a mission clear. Set `FRAGR_WATCH_SEED` and `FRAGR_WATCH_NAME` for
+repeatable route comparisons; the verified receipt includes the mission state,
+kills, and deaths after the run.
 
 ## Run it with a brain
 
@@ -78,11 +92,20 @@ The state is a small object of words, not numbers. TypeSafe's guidance for Jev i
 
 Range is close (under 10 units), mid (to 30), or far, matching the weapon ranges in the questions. A pad is near inside 12 units. The clock is ending_soon at 30 seconds. The human-readable four-line form still appears in logs and in the run summary.
 
-The questions are fixed so estimates stay honest, and written the way TypeSafe recommends: short and atomic, each choice option saying what it is for and what belongs to a neighbour, each score level describing a situation rather than a degree.
+Arena questions are fixed so estimates stay honest, and written the way TypeSafe recommends: short and atomic, each choice option saying what it is for and what belongs to a neighbour, each score level describing a situation rather than a degree.
 
 - `stance`, a choice: `push_enemy`, `fall_back_heal`, `hold_angle`, `kite_distance`.
 - `weapon`, a choice: `scatter`, `flechette`, `rail`.
 - `danger`, a score over five situations from healthy and unbothered to low health under fire with no pad near. The bot takes the most likely level, never the interpolated expectation, because TypeSafe documents the score's numerical calibration as weak.
+
+In a campaign mission, the question set describes finite continues and the
+current objective. Its weapon options come from the server-validated carried
+loadout, including fists and the pistol when carried. The state includes mission
+phase, difficulty, attempt, remaining continues, equipment, and whether the
+nearest guard is in view. Arena score and round clock are omitted. A hidden
+guard does not take over the local controller's objective route; a visible guard
+can still trigger combat. No paid request is sent before a valid mission loadout
+arrives.
 
 **Gating.** A choice is trusted when its top option leads the runner-up by at least `--margin-floor` (default 0.2), or when the provider's own `confidence` statistic reaches `--confidence-floor` (default 0.65). The margin is the primary test: on a four-way stance question the winning option often sits near 0.6 with a clear lead, and TypeSafe's own worked example calls a 0.60 versus 0.38 split "clear enough to act on" while reporting a confidence of 0.39. Rejected answers leave the stance to local rules for that cycle and count as `decisions_low_confidence` in the summary.
 
@@ -99,7 +122,7 @@ cargo run -p fragr-brain -- --provider openrouter --max-spend-usd 0.01 ask --sta
 
 ## What it reports
 
-`play` prints a JSON summary when it leaves: snapshots seen, actions sent, decisions by source (remote, low confidence, failed, local, budget refusals), backoffs, decision round-trip statistics, frags, deaths, dollars this run, dollars in the ledger, the last plan, and the last state string. The summary is for your eyes; keep it out of public write-ups.
+`play` prints a JSON summary when it leaves: snapshots seen, actions sent, decisions by source (remote, low confidence, failed, local, budget refusals), backoffs, decision round-trip statistics, arena frags, server-recorded kills and deaths, the latest server-validated mission receipt when present, dollars this run, dollars in the ledger, the last plan, and the last state string. The summary is for your eyes; keep it out of public write-ups.
 
 ## Known limits
 

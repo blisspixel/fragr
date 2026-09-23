@@ -760,3 +760,69 @@ fn supplied_agents_advance_the_mission_instead_of_filling_every_reserve() {
         "dry ranged weapons still need supply"
     );
 }
+
+#[test]
+fn target_filter_preserves_mission_route_through_inventory_and_steering() {
+    use crate::inventory::control_action_with_target_filter;
+    use crate::protocol::{CampaignActor, EnemyKind, EnemyPhase, WeaponType};
+    let mut session = session();
+    let id = add(&mut session.state, Role::Agent);
+    session.tick_messages(0.05);
+    let state = &mut session.state;
+    let body = &mut state.players[0];
+    body.inventory.grant_weapon(WeaponType::Tack);
+    body.weapon = WeaponType::Tack;
+    let loadout = body.inventory.state(id, body.weapon, state.tick).unwrap();
+    let mut snapshot = state.snapshot();
+    let target = Uuid::new_v4();
+    let mut guard = snapshot.players[0].clone();
+    guard.id = target;
+    guard.campaign = Some(CampaignActor::Union {
+        kind: EnemyKind::Clerk,
+        phase: EnemyPhase::Idle,
+        phase_started: 0,
+        phase_ends: 0,
+    });
+    guard.x = 4.0;
+    snapshot.players.push(guard);
+    let mut client = MissionClient::default();
+    client
+        .replace_map(
+            state.map.mission(),
+            state.map.arena().half,
+            &state.map.arena().solids,
+            state.map.presentation_ref(),
+        )
+        .unwrap();
+    client
+        .observe(state.tick, state.mission_state().unwrap())
+        .unwrap();
+    let hidden = control_action_with_target_filter(
+        id,
+        &snapshot,
+        Some(&loadout),
+        Action::default(),
+        true,
+        |_, _| false,
+    );
+    assert!(hidden.look_at.is_none());
+    let route = client.steer(
+        &mut crate::navigation::Navigator::default(),
+        state.map.navigation(),
+        id,
+        &snapshot,
+        hidden,
+    );
+    assert!(route.look_at.is_none());
+    assert!(route.yaw.is_some());
+    assert!(route.forward || route.back || route.left || route.right);
+    let exposed = control_action_with_target_filter(
+        id,
+        &snapshot,
+        Some(&loadout),
+        Action::default(),
+        true,
+        |_, _| true,
+    );
+    assert_eq!(exposed.look_at.unwrap().player_id, Some(target));
+}

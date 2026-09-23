@@ -185,11 +185,32 @@ func _verify_receipt(brain_path: String) -> void:
 	var provider_value: Variant = brain.get("provider")
 	var spend_value: Variant = brain.get("run_usd")
 	var actions_value: Variant = brain.get("actions_sent")
+	var kills_value: Variant = brain.get("kills")
+	var deaths_value: Variant = brain.get("deaths")
+	var mission_value: Variant = brain.get("mission")
 	if not passed_value is bool or not id_value is String \
 		or not brain_id_value is String or not provider_value is String \
 		or not (spend_value is float or spend_value is int) \
-		or not (actions_value is float or actions_value is int):
+		or not (actions_value is float or actions_value is int) \
+		or not (kills_value is float or kills_value is int) \
+		or not (deaths_value is float or deaths_value is int) \
+		or not mission_value is Dictionary:
 		_fail("watch or brain receipt has wrong field types")
+		quit(1)
+		return
+	var mission: Dictionary = mission_value
+	var attempt_value: Variant = mission.get("attempt")
+	var continues_value: Variant = mission.get("continues")
+	if mission.get("id") != "recall_notice" \
+		or mission.get("difficulty") not in ["assisted", "standard", "severe"] \
+		or mission.get("phase") not in ["briefing", "find_transfer", "reach_lift", "departed"] \
+		or mission.get("status") not in ["playing", "continue", "failed", "complete", "abandoned"] \
+		or not (attempt_value is float or attempt_value is int) \
+		or not (continues_value is float or continues_value is int) \
+		or float(attempt_value) < 1.0 or float(attempt_value) != floorf(float(attempt_value)) \
+		or float(continues_value) < 0.0 or float(continues_value) > 3.0 \
+		or float(continues_value) != floorf(float(continues_value)):
+		_fail("watch mission receipt has invalid campaign facts")
 		quit(1)
 		return
 	var id: String = id_value
@@ -198,7 +219,9 @@ func _verify_receipt(brain_path: String) -> void:
 		or provider_value != "local" \
 		or is_nan(float(spend_value)) or is_inf(float(spend_value)) \
 		or float(spend_value) != 0.0 \
-		or float(actions_value) <= 0.0 or float(actions_value) != floorf(float(actions_value)):
+		or float(actions_value) <= 0.0 or float(actions_value) != floorf(float(actions_value)) \
+		or float(kills_value) < 0.0 or float(kills_value) != floorf(float(kills_value)) \
+		or float(deaths_value) < 0.0 or float(deaths_value) != floorf(float(deaths_value)):
 		_fail("watch and free brain receipts do not describe one valid participant")
 		quit(1)
 		return
@@ -229,7 +252,16 @@ func _verify_receipt(brain_path: String) -> void:
 			"first_tick": int(frames[0]["tick"]),
 			"last_tick": last_tick,
 			"brain_actions": int(brain["actions_sent"]),
-			"brain_end_reason": str(brain.get("end_reason", "")),
+			"mission": {
+				"id": mission["id"],
+				"difficulty": mission["difficulty"],
+				"phase": mission["phase"],
+				"status": mission["status"],
+				"attempt": int(attempt_value),
+				"continues": int(continues_value),
+			},
+			"kills": int(kills_value),
+			"deaths": int(deaths_value),
 			"run_usd": 0.0,
 		}
 		var output: FileAccess = FileAccess.open(_out_dir.path_join("verified.json"), FileAccess.WRITE)

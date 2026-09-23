@@ -3,8 +3,10 @@
 //! turns the plan into a wire action on every tick from the latest snapshot,
 //! so aim, spacing, and fire never wait on the network.
 
-use crate::telemetry::Telemetry;
+use crate::telemetry::{Telemetry, NEAR_PAD_UNITS};
+use fragr_server::navigation::Navigation;
 use fragr_server::protocol::{Action, LookAt, Snapshot, WeaponType};
+use fragr_server::sim::PLAYER_FLOOR_Y;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
@@ -14,6 +16,8 @@ pub const CLOSE_RANGE: f32 = 3.0;
 pub const KITE_RANGE: f32 = 8.0;
 /// Push when the enemy is inside this distance; hold beyond it.
 pub const PUSH_RANGE: f32 = 25.0;
+/// Only a nearby exposed guard interrupts authored campaign traversal.
+pub const CAMPAIGN_ENGAGE_RANGE: f32 = 20.0;
 /// Head for health below this HP when a pad is available.
 pub const LOW_HP: i32 = 40;
 /// Prefer scatter inside this distance.
@@ -194,6 +198,86 @@ fn strafe(tick: u64) -> (bool, bool) {
 
 /// Every tick: turn the plan into a wire action from the latest snapshot.
 pub fn micro_action(plan: &Plan, me: Uuid, snapshot: &Snapshot) -> Action {
+    micro_action_with_visibility(plan, me, snapshot, |_, _| true, |_, _| true)
+}
+
+/// Campaign combat only takes over the mission route for a guard in view.
+/// Visibility is an observation; the server still resolves every shot.
+pub fn campaign_micro_action(
+    plan: &Plan,
+    me: Uuid,
+    snapshot: &Snapshot,
+    world: &Navigation,
+) -> Action {
+    micro_action_with_visibility(
+        plan,
+        me,
+        snapshot,
+        |mine, other| campaign_enemy_engageable(world, mine, other),
+        |mine, pad| {
+            if plan.source != Source::Remote {
+                return true;
+            }
+            if mine.hp >= LOW_HP || (pad.x - mine.x).hypot(pad.z - mine.z) > NEAR_PAD_UNITS {
+                return false;
+            }
+            world.walkable(
+                [mine.x, mine.y - PLAYER_FLOOR_Y, mine.z],
+                [pad.x, pad.y, pad.z],
+            )
+        },
+    )
+}
+
+/// The same immediate target is used for campaign control and decision state.
+pub fn campaign_target<'a>(
+    me: Uuid,
+    snapshot: &'a Snapshot,
+    world: &Navigation,
+) -> Option<&'a fragr_server::protocol::PlayerState> {
+    let mine = snapshot.players.iter().find(|player| player.id == me)?;
+    snapshot
+        .players
+        .iter()
+        .filter(|other| mine.is_hostile_to(other) && campaign_enemy_engageable(world, mine, other))
+        .min_by(|a, b| {
+            (a.x - mine.x)
+                .hypot(a.z - mine.z)
+                .total_cmp(&(b.x - mine.x).hypot(b.z - mine.z))
+        })
+}
+
+pub fn campaign_enemy_engageable(
+    world: &Navigation,
+    mine: &fragr_server::protocol::PlayerState,
+    other: &fragr_server::protocol::PlayerState,
+) -> bool {
+    if (other.x - mine.x).hypot(other.z - mine.z) > CAMPAIGN_ENGAGE_RANGE {
+        return false;
+    }
+    let eye = [
+        mine.x,
+        mine.y - PLAYER_FLOOR_Y + fragr_server::movement::EYE_HEIGHT,
+        mine.z,
+    ];
+    let center = [
+        other.x,
+        other.y - PLAYER_FLOOR_Y + fragr_server::combat::FIGHTER_HEIGHT * 0.5,
+        other.z,
+    ];
+    world.line_of_sight(eye, center)
+}
+
+fn micro_action_with_visibility(
+    plan: &Plan,
+    me: Uuid,
+    snapshot: &Snapshot,
+    visible: impl Fn(&fragr_server::protocol::PlayerState, &fragr_server::protocol::PlayerState) -> bool,
+    heal_pad: impl Fn(
+        &fragr_server::protocol::PlayerState,
+        &fragr_server::protocol::PickupState,
+    ) -> bool,
+) -> Action {
     let Some(mine) = snapshot.players.iter().find(|p| p.id == me) else {
         return Action::default();
     };
@@ -202,7 +286,7 @@ pub fn micro_action(plan: &Plan, me: Uuid, snapshot: &Snapshot) -> Action {
     let fire_range = weapon_swap.unwrap_or(held).range_units();
     let mut nearest: Option<(f32, Uuid, f32, f32)> = None;
     for other in &snapshot.players {
-        if !mine.is_hostile_to(other) {
+        if !mine.is_hostile_to(other) || !visible(mine, other) {
             continue;
         }
         let dist = ((other.x - mine.x).powi(2) + (other.z - mine.z).powi(2)).sqrt();
@@ -219,7 +303,7 @@ pub fn micro_action(plan: &Plan, me: Uuid, snapshot: &Snapshot) -> Action {
         let pad = snapshot
             .pickups
             .iter()
-            .filter(|p| p.available && p.kind == "health")
+            .filter(|p| p.available && p.kind == "health" && heal_pad(mine, p))
             .map(|p| {
                 let dist = ((p.x - mine.x).powi(2) + (p.z - mine.z).powi(2)).sqrt();
                 (dist, p.x, p.z)
@@ -269,6 +353,7 @@ mod tests {
     use super::*;
     use crate::telemetry::fixtures::{pad, player, snapshot};
     use crate::telemetry::{observe, RecentHits};
+    use fragr_server::movement::{Arena, Solid};
 
     fn telemetry_for(snapshot: &Snapshot, me: Uuid) -> Telemetry {
         let mut hits = RecentHits::default();
@@ -304,6 +389,200 @@ mod tests {
         assert!(telemetry_for(&snap, me).enemy.is_none());
         let action = micro_action(&plan, me, &snap);
         assert!(!action.fire && action.look_at.is_none());
+    }
+
+    #[test]
+    fn hidden_guard_does_not_block_mission_but_visible_guard_does() {
+        use fragr_server::protocol::{
+            AmmoPool, AmmoReserve, CampaignActor, EnemyKind, EnemyPhase, LoadoutState, WeaponAmmo,
+        };
+        let me = Uuid::from_u128(1);
+        let hidden = Uuid::from_u128(2);
+        let visible = Uuid::from_u128(3);
+        let mut mine = player("me", me, 0.0, 0.0, 100, "tack");
+        mine.campaign = Some(CampaignActor::Participant {});
+        let mut guard = player("hidden", hidden, 10.0, 0.0, 60, "tack");
+        guard.campaign = Some(CampaignActor::Union {
+            kind: EnemyKind::Clerk,
+            phase: EnemyPhase::Idle,
+            phase_started: 0,
+            phase_ends: 0,
+        });
+        let world = Navigation::new(Arena {
+            half: 24.0,
+            solids: vec![Solid::from_center(5.0, 0.0, 0.5, 3.0)],
+        })
+        .unwrap();
+        let plan = Plan {
+            stance: Stance::PushEnemy,
+            ..Plan::default()
+        };
+        let mut snap = snapshot(1, vec![mine, guard.clone()], vec![]);
+        let blocked = campaign_micro_action(&plan, me, &snap, &world);
+        assert!(blocked.look_at.is_none() && !blocked.fire);
+        let loadout = LoadoutState {
+            player_id: me,
+            tick: 1,
+            selected: WeaponType::Tack,
+            weapons: vec![
+                WeaponAmmo {
+                    weapon: WeaponType::Fists,
+                    magazine: None,
+                },
+                WeaponAmmo {
+                    weapon: WeaponType::Tack,
+                    magazine: Some(6),
+                },
+            ],
+            reserves: AmmoPool::ALL
+                .into_iter()
+                .map(|pool| AmmoReserve { pool, rounds: 0 })
+                .collect(),
+            reload: None,
+            personal_claims: vec![],
+            dry_fire_count: 0,
+        };
+        let through_inventory = |snap: &Snapshot| {
+            fragr_server::inventory::control_action_with_target_filter(
+                me,
+                snap,
+                Some(&loadout),
+                campaign_micro_action(&plan, me, snap, &world),
+                true,
+                |mine, other| campaign_enemy_engageable(&world, mine, other),
+            )
+        };
+        assert!(through_inventory(&snap).look_at.is_none());
+        assert!(campaign_target(me, &snap, &world).is_none());
+        assert_eq!(
+            micro_action(&plan, me, &snap).look_at.unwrap().player_id,
+            Some(hidden)
+        );
+        guard.id = visible;
+        guard.z = 8.0;
+        snap.players.push(guard);
+        let action = campaign_micro_action(&plan, me, &snap, &world);
+        assert_eq!(action.look_at.unwrap().player_id, Some(visible));
+        assert!(action.fire);
+        assert_eq!(
+            through_inventory(&snap).look_at.unwrap().player_id,
+            Some(visible)
+        );
+        assert_eq!(campaign_target(me, &snap, &world).unwrap().id, visible);
+        snap.players[2].x = 24.0;
+        snap.players[2].z = 20.0;
+        assert!(through_inventory(&snap).look_at.is_none());
+    }
+
+    #[test]
+    fn campaign_health_detour_requires_injury_nearby_pad_and_clear_walk() {
+        let me = Uuid::from_u128(1);
+        let plan = Plan {
+            stance: Stance::FallBackHeal,
+            source: Source::Remote,
+            ..Plan::default()
+        };
+        let clear = Navigation::new(Arena {
+            half: 24.0,
+            solids: vec![],
+        })
+        .unwrap();
+        let blocked = Navigation::new(Arena {
+            half: 24.0,
+            solids: vec![Solid::from_center(2.0, 0.0, 0.5, 2.0)],
+        })
+        .unwrap();
+        let mut snap = snapshot(
+            1,
+            vec![player("me", me, 0.0, 0.0, 100, "tack")],
+            vec![pad("health", "", 4.0, 0.0, true)],
+        );
+        snap.players[0].y = PLAYER_FLOOR_Y;
+        assert!(campaign_micro_action(&plan, me, &snap, &clear)
+            .look_at
+            .is_none());
+        snap.players[0].hp = 20;
+        assert!(campaign_micro_action(&plan, me, &snap, &blocked)
+            .look_at
+            .is_none());
+        let near = campaign_micro_action(&plan, me, &snap, &clear);
+        assert_eq!(near.look_at.unwrap().x, Some(4.0));
+        assert!(near.forward);
+        snap.pickups[0].x = 18.0;
+        assert!(campaign_micro_action(&plan, me, &snap, &clear)
+            .look_at
+            .is_none());
+        let local = Plan {
+            source: Source::Local,
+            ..plan
+        };
+        assert_eq!(
+            campaign_micro_action(&local, me, &snap, &clear)
+                .look_at
+                .unwrap()
+                .x,
+            Some(18.0)
+        );
+    }
+
+    #[test]
+    fn healthy_campaign_heal_reply_still_walks_toward_the_record() {
+        use fragr_server::maps::AuthoredMap;
+        use fragr_server::mission::MissionClient;
+        use fragr_server::navigation::Navigator;
+        use fragr_server::protocol::{MissionReady, Role};
+        use fragr_server::session::GameSession;
+        let map = AuthoredMap::read(
+            include_bytes!("../../../server/maps/m01-recall-notice.json").as_slice(),
+        )
+        .unwrap();
+        let mut session = GameSession::with_authored_map(map);
+        let me = Uuid::from_u128(1);
+        session
+            .state
+            .add_player(me, "Brain".to_string(), Role::Agent);
+        let first = session.state.mission_state().unwrap();
+        assert!(session.state.acknowledge_mission(
+            me,
+            MissionReady {
+                id: first.id,
+                attempt: first.attempt,
+            }
+        ));
+        session.tick_messages(0.05);
+        let state = &session.state;
+        let mut client = MissionClient::default();
+        client
+            .replace_map(
+                state.map.mission(),
+                state.map.arena().half,
+                &state.map.arena().solids,
+                state.map.presentation_ref(),
+            )
+            .unwrap();
+        client
+            .observe(state.tick, state.mission_state().unwrap())
+            .unwrap();
+        let mut snap = state.snapshot();
+        snap.players.retain(|player| player.id == me);
+        let mine = &snap.players[0];
+        snap.pickups = vec![pad("health", "", mine.x, mine.z, true)];
+        let plan = Plan {
+            stance: Stance::FallBackHeal,
+            source: Source::Remote,
+            ..Plan::default()
+        };
+        let action = campaign_micro_action(&plan, me, &snap, state.map.navigation());
+        assert!(action.look_at.is_none());
+        let routed = client.steer(
+            &mut Navigator::default(),
+            state.map.navigation(),
+            me,
+            &snap,
+            action,
+        );
+        assert!(routed.forward || routed.back || routed.left || routed.right);
+        assert!(routed.yaw.is_some());
     }
 
     #[test]
