@@ -13,7 +13,7 @@ Every item below is in exactly one state: **planned**, **in progress**, **shippe
 
 The engineering ladder for scale runs through every phase: small squads first (four to twelve fighters, the current bar), then full servers (thirty-two to sixty-four), then large agent-heavy arenas (hundreds of fighters where most are agents). Each rung has its own measurements and is not claimed until measured.
 
-## Where we are (2026-09-22)
+## Where we are (2026-09-23)
 
 **Shipped and proven on the tip:**
 
@@ -23,7 +23,7 @@ The engineering ladder for scale runs through every phase: small squads first (f
 - Decision-brain agent (`agents/brain`): a fighter whose stance, weapon, and danger read come from Jev (TypeSafe natively or through OpenRouter) at up to five decisions per second while a local controller plays every tick. Paid providers refuse to start without an explicit cap; every call is estimated, settled, and ledgered. Local rules play for free and CI proves that path.
 - CI on Linux: fmt, clippy with warnings denied, tests, deterministic benchmark and budget checks, the agent playtest smoke with thresholds, an unfiltered 90 percent line coverage floor, release build, cargo-deny for licences, bans, and sources, and headless Godot checks. Windows and macOS also pass workspace tests and Godot checks.
 - Live tip screenshots, a one-command Solo Scrap launcher, self-host guides, and plan-only GCP Terraform.
-- v0.34.0 through v0.42.0 are recorded in [the changelog](../CHANGELOG.md). In short: Recall Notice's routes and exit, connection caps, `GET /status`, the live host line in the app, join tickets, a ten-second pawn resume, the mission card leaving after it sets the stage, player-facing gun names, and weapon cycling. The README shows four stills.
+- v0.34.0 through v0.44.1 are recorded in [the changelog](../CHANGELOG.md). In short: Recall Notice's routes, exit, and optional supplies; connection and frame caps; `GET /status`; join tickets; pawn resume; player-facing gun names and cycling; campaign-aware agent control; and bounded spectator delivery. The README stills show current play.
 - Two developer-only generation pipelines: `tools/audiogen` for audio and `tools/spritegen` for art. Audio uses per-run estimate caps and requires quota reconciliation; art has durable request reservations. Neither replaces asset review. The first art slice produced twenty-four frames for sixty-nine cents, with surfaces rejected.
 - The setting has three sides: the Union/Chancellery, free humans and conscious agents with agency, and the Inheritance. The Inheritance's ecological recovery and mass killing leave conflicting survivor perspectives, not a narrator's declaration that it is right. `docs/lore/` owns the world and voice; bodies do not establish who has freedom or whose suffering matters.
 
@@ -38,7 +38,7 @@ must be checked before any new call rather than inferred from that old balance.
 
 **Not built yet (honest list):** low-latency transport (WebSocket JSON only), live client prediction (shared movement vectors exist), packaged release downloads, a complete protocol migration policy (geometry and gameplay admission exist), kick-on-repeat and ban lists, unlimited lifetime statistics, progression, DJ bumpers and a voiced Host, a finished single-player campaign or full co-op lifecycle, a game icon (the project icon and the Windows taskbar are still the Godot mark, including `client/icon.svg`), a complete art pass, public-server load tests, any cloud apply, vehicles, and multiplayer objective modes. `GET /status` on the game port is a host probe in the current line of work, not an in-app server browser and not a web client. M01 has a developing discovery/combat/mission slice; Episode 0 remains a separate arena prototype. A deterministic local benchmark already exists; it does not establish public-server readiness. Frame caps, connection caps, and the inbound message budget shipped in v0.35.0.
 
-## What is next, in order (as of 2026-09-20)
+## What is next, in order (as of 2026-09-23)
 
 The current sequence is the [full build order](#full-build-order-2026-09-22) below. This section records increments that already shipped. It is not the queue.
 

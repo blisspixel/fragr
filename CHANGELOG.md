@@ -4,6 +4,22 @@ Shipped tags, newest first. A line here is on `main`. Planned work stays in
 [docs/ROADMAP.md](docs/ROADMAP.md). Older tags are on the
 [releases page](https://github.com/blisspixel/fragr/releases).
 
+## v0.44.1 (2026-09-23)
+
+A spectator that stops reading can no longer grow an unlimited server send
+queue. Each connection has a bounded outbound queue; a full queue or stalled
+socket drops that connection through the usual cleanup. A fighter that asked
+for resume keeps its existing ten-second recovery window. The current 32 per
+address and 64 global connection caps remain. A twelve-roster local test,
+including 16 fighters with 16 spectators, had no snapshot gaps or watcher
+disconnects; it does not establish Internet capacity.
+
+The reference agent now asks campaign-specific questions, follows the mission
+objective when no visible fight needs attention, limits decisions to carried
+weapons, and reports the server's mission outcome and continues. A watched free
+rules run cleared Standard seed 67 on its second attempt. Other seeds still
+need campaign tuning. The README tour stills were refreshed and inspected.
+
 ## v0.44.0 (2026-09-22)
 
 Recall Notice has two optional walking detours: a medkit in the confiscation

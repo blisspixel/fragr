@@ -17,7 +17,7 @@ Status words: **planned**, **in flight**, **implemented** (local evidence record
 
 | Plan | Status | One-liner |
 |---|---|---|
-| [`bounded-spectator-fanout.md`](./bounded-spectator-fanout.md) | **implemented** | Bounded slow watcher delivery with a twelve-roster local load matrix; remote-network and TLS evidence remains. |
+| [`bounded-spectator-fanout.md`](./bounded-spectator-fanout.md) | **shipped** ([#224](https://github.com/blisspixel/fragr/pull/224), v0.44.1) | Bounded slow watcher delivery with a twelve-roster local load matrix; remote-network and TLS evidence remains. |
 | [`m01-optional-supply-detours.md`](./m01-optional-supply-detours.md) | **shipped** (v0.44.0) | Two reachable optional supply spaces in Recall Notice, with claim and continue checks. |
 | [`jev-campaign-decisions.md`](./jev-campaign-decisions.md) | **shipped** ([#223](https://github.com/blisspixel/fragr/pull/223)) | Align brain questions, equipment, objectives and terminal receipts with the authored campaign before paid Jev tests. |
 | [`agent-first-person-watch.md`](./agent-first-person-watch.md) | **shipped** ([#219](https://github.com/blisspixel/fragr/pull/219), v0.43.1) | Render and verify one live agent's first-person view against its server identity and free-rule receipt. |
