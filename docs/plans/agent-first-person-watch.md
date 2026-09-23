@@ -1,7 +1,7 @@
 # Agent first-person watch
 
 Status: **implemented** ([#219](https://github.com/blisspixel/fragr/pull/219)).
-Local validation is recorded below; merge and CI are pending.
+Local validation is recorded below. The merge and main CI passed.
 
 ## Goal
 
