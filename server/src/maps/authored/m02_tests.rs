@@ -36,6 +36,14 @@ fn read(doc: &Value) -> io::Result<Arc<AuthoredMap>> {
 fn m02_worlds_are_prepared_and_the_closed_gate_blocks_departure() {
     let map = read(&fixture()).unwrap();
     let closed = crate::maps::RuntimeMap::Authored(map.clone());
+    let wire = crate::sim::GameState::with_authored_map(map).map_info();
+    assert!(matches!(
+        wire,
+        crate::protocol::ServerMessage::MapInfo {
+            m02_objectives: Some(3),
+            ..
+        }
+    ));
     let initial_hash = closed.content_sha256();
     let opened = closed.prepared_gate_world(1).unwrap();
     assert_eq!(initial_hash, opened.content_sha256());

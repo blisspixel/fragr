@@ -47,6 +47,10 @@ impl AuthoredSource {
             Self::Mission(crate::protocol::MissionId::RecallNotice) => {
                 AuthoredMap::read(include_bytes!("../maps/m01-recall-notice.json").as_slice())
             }
+            Self::Mission(crate::protocol::MissionId::PersonsUnknown) => Err(std::io::Error::new(
+                std::io::ErrorKind::NotFound,
+                "M02 bundled map is not authored yet",
+            )),
         }
     }
 }

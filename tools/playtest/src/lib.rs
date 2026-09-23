@@ -1230,6 +1230,8 @@ async fn agent_task(
             }
             Ok(ServerMessage::Welcome { player_id: pid, .. }) => player_id = pid,
             Ok(ServerMessage::MapInfo {
+                map_id,
+                m02_objectives,
                 solids,
                 half_extent,
                 geometry_version,
@@ -1240,7 +1242,9 @@ async fn agent_task(
                 fragr_server::protocol::validate_map_presentation(presentation.as_ref(), &solids)
                     .map_err(|error| Error::Server(format!("invalid map presentation: {error}")))?;
                 mission_client
-                    .replace_map(
+                    .replace_map_with_id(
+                        map_id,
+                        m02_objectives,
                         mission.as_ref(),
                         half_extent,
                         &solids,

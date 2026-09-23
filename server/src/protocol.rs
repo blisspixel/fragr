@@ -16,8 +16,9 @@ pub use loadout::{
 };
 pub use mission::{
     CampaignDifficulty, CampaignRules, CampaignRunState, CampaignRunStatus, InteractionKind,
-    InteractionPrompt, MissionContinue, MissionGeometry, MissionId, MissionMember, MissionPhase,
-    MissionReady, MissionState, Region3, UseTarget, CAMPAIGN_CONTINUES, CAMPAIGN_RULES_REVISION,
+    InteractionPrompt, M02ObjectiveState, MissionContinue, MissionGeometry, MissionId,
+    MissionMember, MissionObjective, MissionObjectiveAction, MissionPhase, MissionReady,
+    MissionState, Region3, UseTarget, CAMPAIGN_CONTINUES, CAMPAIGN_RULES_REVISION,
     MISSION_PARTY_LIMIT, USE_DISTANCE,
 };
 pub use statistics::{
@@ -440,8 +441,9 @@ pub const READINESS_GAMEPLAY_VERSION: u32 = 5;
 pub const DIFFICULTY_GAMEPLAY_VERSION: u32 = 6;
 pub const CONTINUES_GAMEPLAY_VERSION: u32 = 7;
 pub const RECORD_GAMEPLAY_VERSION: u32 = 8;
+pub const M02_GAMEPLAY_VERSION: u32 = 9;
 /// Highest understood gameplay contract; content requirements use their own minimum.
-pub const GAMEPLAY_VERSION: u32 = RECORD_GAMEPLAY_VERSION;
+pub const GAMEPLAY_VERSION: u32 = M02_GAMEPLAY_VERSION;
 pub fn legacy_gameplay_version() -> u32 {
     1
 }
@@ -551,6 +553,7 @@ mod geometry_tests {
         let message = ServerMessage::MapInfo {
             presentation: None,
             mission: None,
+            m02_objectives: None,
             map_id: 67,
             map_name: "Enclosed fixture".into(),
             half_extent: 12.0,
@@ -636,6 +639,9 @@ pub enum ServerMessage {
         presentation: Option<MapPresentation>,
         #[serde(default, skip_serializing_if = "Option::is_none")]
         mission: Option<MissionGeometry>,
+        /// Present only for M02 maps. The count binds mission state to this map.
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        m02_objectives: Option<u8>,
     },
     Mission {
         tick: u64,

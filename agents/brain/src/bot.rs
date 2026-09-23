@@ -639,13 +639,13 @@ pub async fn run_bot(
                     }
                     // Geometry belongs to the local controller, never a paid
                     // per-frame decision. Reject invalid worlds before driving.
-                    Ok(ServerMessage::MapInfo { map_name, solids, half_extent, geometry_version, presentation, mission, .. }) => {
+                    Ok(ServerMessage::MapInfo { map_id, m02_objectives, map_name, solids, half_extent, geometry_version, presentation, mission, .. }) => {
                         if let Err(error) = fragr_server::protocol::validate_map_presentation(presentation.as_ref(), &solids) {
                             session_error = Some(Error::Transport(format!("invalid map presentation: {error}")));
                             break;
                         }
                         tracing::debug!("map: {map_name}");
-                        if let Err(error) = mission_client.replace_map(mission.as_ref(), half_extent, &solids, presentation.as_ref()) {
+                        if let Err(error) = mission_client.replace_map_with_id(map_id, m02_objectives, mission.as_ref(), half_extent, &solids, presentation.as_ref()) {
                             session_error = Some(Error::Transport(format!("invalid mission map: {error}")));
                             break;
                         }
@@ -940,6 +940,7 @@ mod tests {
                 aboard: false,
             }],
             prompts: vec![],
+            m02: None,
         };
         state.validate(1).unwrap();
         assert!(!terminal_mission(&state));
@@ -984,6 +985,7 @@ mod tests {
                 aboard: true,
             }],
             prompts: vec![],
+            m02: None,
         };
         state.validate(20).unwrap();
         let mut total = CombatCounts {
@@ -1109,6 +1111,7 @@ mod tests {
                 aboard: false,
             }],
             prompts: vec![],
+            m02: None,
         };
         state.validate(1).unwrap();
         let loadout = LoadoutState {
@@ -1204,6 +1207,7 @@ mod tests {
             changed_at: 1,
             party: vec![],
             prompts: vec![],
+            m02: None,
         };
         let state = decision_state(&telemetry, Some(&mission), None, Some(true));
         assert_eq!(state["enemy"]["weapon"], "flechette");

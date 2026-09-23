@@ -93,9 +93,9 @@ readiness, and keeps the exact M01 content hash under test. It exposes a
 prepared collision and navigation world selector without publishing M02 mission
 wire state or making M02 playable. A review found
 that arrival regions could span a closed barrier and an M02-only graybox could
-be mistaken for an arena; both cases now have regression checks. The next
-slice is the M02 wire contract, followed by a real M02 graybox and first-person
-route evidence.
+be mistaken for an arena; both cases now have regression checks. MapInfo now
+carries an optional M02 objective count, so readers do not classify a legacy
+encounter-only map by numeric ID.
 
 The server transition slice now carries complete arrival regions and use targets
 into mission authority. It checks arrival each tick, consumes invalid presses,
@@ -107,9 +107,26 @@ and the gate transition. A two-participant test verifies that departure waits
 until every current participant is ready, alive and inside the exit region,
 matching M01's shared exit rule. The workspace Rust tests and clippy passed
 locally before this follow-up; focused M02 tests and fmt/clippy were rerun after it.
-This does not prove a playable M02 route or a wire observation. M02 network
-readiness, objective state and prompts are still absent, so the graybox remains
-unplayable through a normal client. The next slice must publish progress without
-changing M01's serialized shape. Current local run files validate M01 only;
-durable cross-mission solo carry needs an explicit run-file revision and its
-own tests before it is called shipped.
+This does not prove a playable M02 route. The next Rust wire slice now publishes
+objective progress, gate mask, current arrival or use target, party state and
+per-participant legal prompts through an optional M02 mission field. The existing
+mission_ready command accepts M02. Admission requires gameplay capability 9 for
+M02 and keeps M01's version 8 path. Shared Rust controllers and the MCP adapter
+validate targets against MapInfo; the adapter observation and readiness have a
+synthetic fixture regression. M01 serializes without the new field. These are
+server and Rust-reader checks, not normal Godot play or first-person route
+evidence. The Godot mission boundary, HUD, map presentation, a bundled M02
+graybox, full route proof and screenshot tour remain pending. Current local run
+files validate M01 only; durable cross-mission solo carry needs an explicit
+run-file revision and its own tests before it is called shipped.
+
+Wire-slice checks: `cargo fmt --all -- --check`,
+`cargo clippy --workspace --all-targets --locked -- -D warnings`, and
+`cargo test --workspace --locked` passed locally. The focused M02 adapter test,
+M02 server tests and explicit M01 capability 8 admission test passed. No Godot
+check, tour, rendered route or playable M02 acceptance was run for this Rust-only
+slice.
+After the map marker correction, workspace fmt, clippy and tests passed again.
+An encounter-only map with ID 1002 admitted capability 3 clients and omitted
+the marker, while the M02 fixture emitted its count and rejected unmarked
+objective state in the adapter.

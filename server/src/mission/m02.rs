@@ -1,5 +1,6 @@
-//! Server-owned M02 progression. No M02 wire command is exposed in this slice.
+//! Server-owned M02 progression and objective observations.
 use super::*;
+use crate::protocol::{M02ObjectiveState, MissionObjective, MissionObjectiveAction};
 
 #[derive(Default)]
 pub(super) struct M02Progress {
@@ -8,8 +9,7 @@ pub(super) struct M02Progress {
 }
 
 impl GameState {
-    /// Internal readiness seam for the later M02 protocol. It cannot be called
-    /// through the current M01-only network command.
+    /// The existing mission_ready command enters here only for M02.
     pub fn acknowledge_m02(&mut self, player_id: Uuid, attempt: u32) -> bool {
         let Some(run) = self.mission.as_mut().filter(|run| {
             run.m02.is_some() && run.attempt == attempt && run.phase != MissionPhase::Departed
@@ -31,6 +31,95 @@ impl GameState {
         }
         self.refresh_mission_readiness();
         true
+    }
+
+    pub(super) fn m02_mission_state(&self) -> Option<MissionState> {
+        let run = self.mission.as_ref()?;
+        let progress = run.m02.as_ref()?;
+        let prepared = run.initial_map.m02_objectives()?;
+        let current = prepared.objective(progress.index).and_then(|step| {
+            Some(MissionObjective {
+                id: step.id.clone(),
+                action: if let Some(region) = &step.arrival {
+                    MissionObjectiveAction::Arrival {
+                        region: region.clone(),
+                        feet: step.feet,
+                    }
+                } else {
+                    MissionObjectiveAction::Use {
+                        target: step.control.clone()?,
+                    }
+                },
+            })
+        });
+        let completed = (0..progress.index)
+            .filter_map(|index| prepared.objective(index).map(|step| step.id.clone()))
+            .collect();
+        let exit = prepared
+            .objective(prepared.len().checked_sub(1)?)?
+            .arrival
+            .as_ref()?;
+        let party: Vec<_> = self
+            .players
+            .iter()
+            .filter(|player| player.campaign == Some(CampaignActor::Participant {}))
+            .map(|player| {
+                let ready = run.ready.contains(&player.id);
+                let alive = player.hp > 0 && player.respawn_timer.is_none();
+                MissionMember {
+                    id: player.id,
+                    name: player.name.clone(),
+                    ready,
+                    alive,
+                    aboard: run.phase != MissionPhase::Briefing
+                        && ready
+                        && alive
+                        && exit.contains([player.x, player.y - PLAYER_FLOOR_Y, player.z]),
+                }
+            })
+            .collect();
+        let prompts = if run.phase == MissionPhase::InProgress {
+            current
+                .as_ref()
+                .and_then(|objective| match &objective.action {
+                    MissionObjectiveAction::Use { target } => Some(
+                        self.players
+                            .iter()
+                            .filter(|player| {
+                                player.campaign == Some(CampaignActor::Participant {})
+                                    && player.hp > 0
+                                    && player.respawn_timer.is_none()
+                                    && run.ready.contains(&player.id)
+                                    && can_use(player, target, &self.map)
+                            })
+                            .map(|player| InteractionPrompt {
+                                player_id: player.id,
+                                kind: InteractionKind::ObjectiveUse,
+                            })
+                            .collect(),
+                    ),
+                    MissionObjectiveAction::Arrival { .. } => None,
+                })
+                .unwrap_or_default()
+        } else {
+            Vec::new()
+        };
+        Some(MissionState {
+            id: MissionId::PersonsUnknown,
+            run: None,
+            rules: run.rules,
+            attempt: run.attempt,
+            phase: run.phase,
+            changed_at: run.changed_at,
+            party,
+            prompts,
+            m02: Some(M02ObjectiveState {
+                completed,
+                total: u8::try_from(prepared.len()).ok()?,
+                gate_mask: progress.gate_mask,
+                current,
+            }),
+        })
     }
 
     pub(super) fn advance_m02(&mut self) {
