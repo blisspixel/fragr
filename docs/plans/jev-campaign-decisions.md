@@ -122,7 +122,11 @@ regression from the earlier clear. The constraint is now limited to remote
 model choices while local recovery retains its prior range. A second corrected
 seed-67 watch completed in attempt 2 with one death and $0 spend, showing that
 the route progresses again but survival is sensitive to decision details.
-Other seeds, full checks, and CI still need repeating before integration.
+Other seeds remain for later mission tuning. On the final code, workspace fmt,
+clippy, tests, and unfiltered coverage at 94.69 percent passed. The earlier
+Godot, release benchmark, release build, cargo-deny, and mixed-roster results
+still apply; those paths did not change after their checks. CI remains the
+integration gate.
 
 ## Spend and later trial
 
