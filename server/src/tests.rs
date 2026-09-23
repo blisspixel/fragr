@@ -994,7 +994,7 @@ fn test_net_client_session_structure() {
     use tokio::sync::mpsc;
 
     let id = Uuid::new_v4();
-    let (tx, _rx) = mpsc::unbounded_channel();
+    let (tx, _rx) = mpsc::channel(2);
 
     let session = ClientSession::new(id, tx, crate::protocol::GAMEPLAY_VERSION);
 

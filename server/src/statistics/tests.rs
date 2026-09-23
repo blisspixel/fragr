@@ -369,8 +369,8 @@ async fn record_delivery_respects_advertised_client_capability() {
     let (mut state, a, b) = arena();
     state.tick(0.05);
     let record = state.player_record(a).unwrap();
-    let (legacy_tx, mut legacy_rx) = mpsc::unbounded_channel();
-    let (current_tx, mut current_rx) = mpsc::unbounded_channel();
+    let (legacy_tx, mut legacy_rx) = mpsc::channel(4);
+    let (current_tx, mut current_rx) = mpsc::channel(4);
     let clients = Arc::new(Mutex::new(vec![
         crate::net::ClientSession::new(a, legacy_tx, crate::protocol::CONTINUES_GAMEPLAY_VERSION),
         crate::net::ClientSession::new(b, current_tx, crate::protocol::GAMEPLAY_VERSION),

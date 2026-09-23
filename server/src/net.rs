@@ -6,12 +6,35 @@ use std::sync::Arc;
 use std::time::Duration;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::{TcpListener, TcpStream};
-use tokio::sync::{mpsc, Mutex, Semaphore};
+use tokio::sync::{mpsc, watch, Mutex, Semaphore};
 use tokio_tungstenite::tungstenite::protocol::WebSocketConfig;
 use tokio_tungstenite::{accept_async_with_config, tungstenite::Message};
 use uuid::Uuid;
 
 type ServerSocket = tokio_tungstenite::WebSocketStream<TcpStream>;
+
+async fn run_outbound_writer<S>(
+    mut sink: S,
+    mut rx: WsRx,
+    shutdown: watch::Sender<bool>,
+    send_timeout: Duration,
+) where
+    S: futures_util::Sink<Message> + Unpin,
+{
+    while let Some(msg) = rx.recv().await {
+        let Ok(json) = serde_json::to_string(&msg) else {
+            tracing::warn!("Failed to serialize outbound server message; dropping client send");
+            break;
+        };
+        if !matches!(
+            tokio::time::timeout(send_timeout, sink.send(Message::Text(json))).await,
+            Ok(Ok(()))
+        ) {
+            break;
+        }
+    }
+    shutdown.send_replace(true);
+}
 
 /// One text frame is a hello, an action, or a short spoken line. 64 KiB is
 /// far above that and far below the crate default of 64 MiB.
@@ -27,6 +50,8 @@ const MAX_CONNECTIONS: usize = 64;
 /// or a LAN behind one address needs that same headroom. The global cap
 /// still stops one address from holding every slot.
 const MAX_CONNECTIONS_PER_IP: usize = 32;
+pub const OUTBOUND_QUEUE_CAPACITY: usize = 64;
+const OUTBOUND_SEND_TIMEOUT: Duration = Duration::from_secs(2);
 /// A displayed frame can send one action. 256 per second covers a fast
 /// monitor. A tighter flood is dropped before it reaches the tick queue.
 const INBOUND_PER_SEC: f32 = 256.0;
@@ -180,8 +205,8 @@ async fn reject_connection(
 #[cfg(test)]
 mod tests;
 
-pub type WsTx = mpsc::UnboundedSender<ServerMessage>;
-pub type WsRx = mpsc::UnboundedReceiver<ServerMessage>;
+pub type WsTx = mpsc::Sender<ServerMessage>;
+pub type WsRx = mpsc::Receiver<ServerMessage>;
 
 pub struct ClientSession {
     pub id: Uuid,
@@ -189,16 +214,40 @@ pub struct ClientSession {
     pub(crate) gameplay_version: u32,
     /// Broadcasts must follow the initial targeted geometry in this queue.
     pub(crate) initialized: bool,
+    shutdown: watch::Sender<bool>,
 }
 
 impl ClientSession {
     pub fn new(id: Uuid, tx: WsTx, gameplay_version: u32) -> Self {
+        let (shutdown, _) = watch::channel(false);
+        Self::with_shutdown(id, tx, gameplay_version, shutdown)
+    }
+
+    fn with_shutdown(
+        id: Uuid,
+        tx: WsTx,
+        gameplay_version: u32,
+        shutdown: watch::Sender<bool>,
+    ) -> Self {
         Self {
             id,
             tx,
             gameplay_version,
             initialized: false,
+            shutdown,
         }
+    }
+
+    pub(crate) fn request_close(&self) {
+        self.shutdown.send_replace(true);
+    }
+
+    pub(crate) fn queue_depth(&self) -> usize {
+        self.tx.max_capacity().saturating_sub(self.tx.capacity())
+    }
+
+    pub(crate) fn is_closing(&self) -> bool {
+        *self.shutdown.borrow()
     }
 }
 
@@ -558,7 +607,8 @@ async fn handle_connection(
     };
     let (mut ws_sink, mut ws_stream) = ws_stream.split();
 
-    let (tx, mut rx): (WsTx, WsRx) = mpsc::unbounded_channel();
+    let (tx, rx): (WsTx, WsRx) = mpsc::channel(OUTBOUND_QUEUE_CAPACITY);
+    let (shutdown_tx, mut shutdown_rx) = watch::channel(false);
     let client_id = Uuid::new_v4();
 
     let role;
@@ -643,10 +693,11 @@ async fn handle_connection(
                             .await;
                         }
                         let (reply_tx, reply_rx) = tokio::sync::oneshot::channel();
-                        clients.lock().await.push(ClientSession::new(
+                        clients.lock().await.push(ClientSession::with_shutdown(
                             client_id,
                             tx.clone(),
                             gameplay_version,
+                            shutdown_tx.clone(),
                         ));
                         if game_tx
                             .send(GameCommand::Resume {
@@ -745,7 +796,12 @@ async fn handle_connection(
                         .await?;
 
                     let mut clients_lock = clients.lock().await;
-                    clients_lock.push(ClientSession::new(client_id, tx.clone(), gameplay_version));
+                    clients_lock.push(ClientSession::with_shutdown(
+                        client_id,
+                        tx.clone(),
+                        gameplay_version,
+                        shutdown_tx.clone(),
+                    ));
                     drop(clients_lock);
 
                     game_tx.send(GameCommand::Connected {
@@ -780,19 +836,26 @@ async fn handle_connection(
     let role = role.unwrap();
 
     let mut inbound = InboundBudget::new();
-    let send_task = tokio::spawn(async move {
-        while let Some(msg) = rx.recv().await {
-            let Ok(json) = serde_json::to_string(&msg) else {
-                tracing::warn!("Failed to serialize outbound server message; dropping client send");
-                break;
-            };
-            if ws_sink.send(Message::Text(json)).await.is_err() {
-                break;
-            }
-        }
-    });
+    let send_task = tokio::spawn(run_outbound_writer(
+        ws_sink,
+        rx,
+        shutdown_tx,
+        OUTBOUND_SEND_TIMEOUT,
+    ));
 
-    while let Some(msg) = ws_stream.next().await {
+    loop {
+        let msg = tokio::select! {
+            msg = ws_stream.next() => msg,
+            changed = shutdown_rx.changed() => {
+                if changed.is_err() || *shutdown_rx.borrow_and_update() {
+                    break;
+                }
+                continue;
+            }
+        };
+        let Some(msg) = msg else {
+            break;
+        };
         match msg {
             Ok(Message::Text(text)) => {
                 if !inbound.allow() {

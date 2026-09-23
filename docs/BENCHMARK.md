@@ -63,6 +63,26 @@ it does not claim a whole-network tick duration. Unicast bytes in a rule-bot-onl
 run are normally zero because these bots do not send numbered input acknowledgements.
 Recording still affects caches and wall-clock load, so compare like configurations.
 
+## Local spectator fan-out
+
+The playtest harness has a separate live WebSocket matrix for 4 or 16 fighters
+and 1, 8, or 16 spectators on Arena Duel and Tripoint Works, all at seed 42:
+
+```bash
+cargo run -p fragr-playtest --release --locked -- --fanout-matrix --fanout-seconds 10 --report .agents/fanout/matrix.json
+```
+
+Each row starts a fresh server and records sample counts. `session_ms` measures
+authoritative tick construction. `fanout_enqueue_ms` measures queueing cloned
+messages for connected clients, including targeted sends in that tick. It does
+not include the socket writer's JSON serialization, transport framing, network
+latency, or rendering. Queue high water and overflow counts describe the
+bounded outbound FIFOs. Watcher snapshot intervals, missed tick numbers, and
+relative arrival spread describe the local receiving side. Watcher text payload
+bytes exclude WebSocket and TCP framing. Read the report
+with its source revision and host details before comparing results. Loopback
+numbers do not establish public-server capacity.
+
 ## Trace version 1
 
 Create the output directory first. `--bench-trace PATH` requires `--bench`, opens

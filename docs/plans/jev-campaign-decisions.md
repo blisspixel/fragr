@@ -1,6 +1,6 @@
 # Campaign-aware decision brain
 
-Status: **implemented**. Local evidence below; integration review remains.
+Status: **shipped** ([#223](https://github.com/blisspixel/fragr/pull/223)). Local evidence below; broader campaign tuning remains.
 
 ## Goal
 
