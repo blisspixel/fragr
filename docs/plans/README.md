@@ -17,13 +17,13 @@ Status words: **planned**, **in flight**, **implemented** (local evidence record
 
 | Plan | Status | One-liner |
 |---|---|---|
-| [`m01-optional-supply-detours.md`](./m01-optional-supply-detours.md) | **implemented** | Two reachable optional supply spaces in Recall Notice, with claim and continue checks. |
+| [`m01-optional-supply-detours.md`](./m01-optional-supply-detours.md) | **shipped** (v0.44.0) | Two reachable optional supply spaces in Recall Notice, with claim and continue checks. |
 | [`agent-first-person-watch.md`](./agent-first-person-watch.md) | **implemented** ([#219](https://github.com/blisspixel/fragr/pull/219)) | Render and verify one live agent's first-person view against its server identity and free-rule receipt. |
 | [`jev-budget-reservations.md`](./jev-budget-reservations.md) | **shipped** ([#218](https://github.com/blisspixel/fragr/pull/218)) | Durable pre-send Jev receipts and one shared paid request at a time, with recovery and no-ledger refusal. |
 | [`display-quality.md`](./display-quality.md) | **implemented** ([#202](https://github.com/blisspixel/fragr/pull/202)) | Fullscreen default, real resolution selection and portable graphics presets through the shared settings panel. |
 | [`audio-startup-polish.md`](./audio-startup-polish.md) | **shipped** (#201, v0.32.0) | Balanced default effects and music, preserved saved choices, approved logo in the engine splash. |
 | [`combat-notification-polish.md`](./combat-notification-polish.md) | **shipped** (#201, v0.32.0) | Three independently expiring corner notices, participant-only pickups and clear aiming; inspected live arena and campaign captures. |
-| [`m01-completion.md`](./m01-completion.md) | **in flight** (#195) | Routes through v0.40.0. Silhouettes separated in v0.43.0. Live check 2026-09-22 confirmed the wheel, the pistol label, and a clerk on screen. The intro card returned later in that run, and key 1 did not leave the pistol. Static supply detours are in review; automated mission checks continue, with human acceptance near 1.0. |
+| [`m01-completion.md`](./m01-completion.md) | **in flight** (#195) | Routes through v0.40.0. Silhouettes separated in v0.43.0. Live check 2026-09-22 confirmed the wheel, the pistol label, and a clerk on screen. The intro card returned later in that run, and key 1 did not leave the pistol. Static supply detours shipped in v0.44.0; automated mission checks continue, with human acceptance near 1.0. |
 | [`difficulty-and-rewards.md`](./difficulty-and-rewards.md) | **in flight** (#197) | New-run campaign difficulty first; persistent achievements and cosmetic rewards follow the save/retry contract. |
 | [`tripoint-spawn-safety.md`](./tripoint-spawn-safety.md) | **shipped** (#193, v0.28.0) | Cover the exposed starting ring, prove all 16 routes and sightlines, and retain measured respawn limitations. |
 | [`m01-opening.md`](./m01-opening.md) | **shipped** (#193, v0.28.0) | Reader-paced recall story, replay and authoritative initial/late party readiness. |
