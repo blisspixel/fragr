@@ -265,6 +265,8 @@ fn m01_routes_use_ordinary_actions_through_the_live_session() {
         let mut navigator = Navigator::default();
         for name in [
             "confiscation_bay",
+            "confiscation_alcove",
+            "confiscation_bay",
             "intake_hall",
             "under_records",
             "public_stair_entry",
@@ -283,6 +285,8 @@ fn m01_routes_use_ordinary_actions_through_the_live_session() {
             "transfer_record",
             "prisoner_lift",
             "transfer_control",
+            "maintenance_landing",
+            "maintenance_overlook",
             "maintenance_landing",
             "maintenance_stair_entry",
             "maintenance_entry",
