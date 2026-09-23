@@ -38,6 +38,12 @@ func _playing() -> bool:
 func _menu() -> bool:
 	return current_scene != null and current_scene.has_method("_start_campaign")
 
+func _local_pawn() -> Dictionary:
+	for player: Dictionary in current_scene.latest_snapshot.get("players", []):
+		if player.get("id") == current_scene.net_client.player_id:
+			return player
+	return {}
+
 func _crash(pid: int) -> bool:
 	if OS.get_name() == "Windows":
 		return OS.kill(pid) == OK
@@ -124,6 +130,33 @@ func _run() -> void:
 		return
 	_expect(current_scene.mission_hud.state["phase"] == "find_transfer", "server confirms active mission")
 	_expect(not current_scene.pending_jump and not current_scene.pending_interact and not current_scene.pending_reload, "intro leaves no queued gameplay press")
+	var first_map: Dictionary = current_scene.current_map_info.duplicate(true)
+	current_scene._on_map_info(first_map)
+	_expect(not is_instance_valid(current_scene.opening) and current_scene._opening_finished, "a repeated mission map does not replay the story")
+	var side: String = "move_left" if float(_local_pawn().get("x", 0.0)) < 0.0 else "move_right"
+	Input.action_press(side)
+	var centered: bool = await _until(func() -> bool: return absf(float(_local_pawn().get("x", 99.0))) < 0.6, "player centers on the pistol route")
+	Input.action_release(side)
+	if not centered:
+		return
+	Input.action_press("move_forward")
+	var found_pistol: bool = await _until(func() -> bool: return current_scene.net_client.equipment.get("selected") == "tack", "walking from entry claims the pistol on the live server")
+	Input.action_release("move_forward")
+	if not found_pistol:
+		return
+	var fists_key: InputEventKey = InputEventKey.new()
+	fists_key.keycode = KEY_1
+	fists_key.physical_keycode = KEY_1
+	fists_key.pressed = true
+	Input.parse_input_event(fists_key)
+	await process_frame
+	fists_key = fists_key.duplicate()
+	fists_key.pressed = false
+	Input.parse_input_event(fists_key)
+	if not await _until(func() -> bool: return current_scene.net_client.equipment.get("selected") == "fists", "key 1 selects fists in the authoritative M01 loadout"):
+		return
+	if not await _until(func() -> bool: return _local_pawn().get("weapon") == "Fists", "public snapshot agrees with private fists selection"):
+		return
 	partner.disconnect_from_server()
 	partner.free()
 	await _capture("recall-notice-entry")
