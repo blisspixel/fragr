@@ -1038,6 +1038,10 @@ the on-wire campaign rules revision. No parent command changes it during a run.
 {"version":2,"mission":"recall_notice","difficulty":"standard","url":"ws://127.0.0.1:49152","gameplay_version":8}
 ```
 
+The readiness record names the selected mission's client contract, rather than
+the highest version understood by the server. M01 stays at 8 when the server
+also understands M02 version 9. The local launcher checks this value exactly.
+
 The port is chosen by the OS. Diagnostics use stderr. The parent validates the
 exact version, mission, requested difficulty, gameplay capability and loopback endpoint before using
 the normal Hello path. Readiness is capped at 4096 bytes and 15 seconds. Stdin EOF

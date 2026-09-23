@@ -120,12 +120,18 @@ graybox, full route proof and screenshot tour remain pending. Current local run
 files validate M01 only; durable cross-mission solo carry needs an explicit
 run-file revision and its own tests before it is called shipped.
 
+The first PR CI run exposed a local-launch contract regression: the M01 child
+advertised the server's new maximum capability 9 while the M01 Godot launcher
+requires its exact capability 8. Readiness now reports the selected mission's
+contract. The Rust bootstrap regression and the real Windows Godot local-campaign,
+recovery and saved-restart harnesses pass with that correction.
+
 Wire-slice checks: `cargo fmt --all -- --check`,
 `cargo clippy --workspace --all-targets --locked -- -D warnings`, and
 `cargo test --workspace --locked` passed locally. The focused M02 adapter test,
-M02 server tests and explicit M01 capability 8 admission test passed. No Godot
-check, tour, rendered route or playable M02 acceptance was run for this Rust-only
-slice.
+M02 server tests and explicit M01 capability 8 admission test passed. The full
+Godot headless checker passed locally after the bootstrap correction. No M02
+tour, rendered route or playable M02 acceptance was run for this Rust-only slice.
 After the map marker correction, workspace fmt, clippy and tests passed again.
 An encounter-only map with ID 1002 admitted capability 3 clients and omitted
 the marker, while the M02 fixture emitted its count and rejected unmarked
