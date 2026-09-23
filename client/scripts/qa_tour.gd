@@ -143,6 +143,10 @@ func _run() -> void:
 			await _jump_probe()
 		for point: Array in state.get("walk_to", []):
 			await _walk_to(Vector3(float(point[0]), float(point[1]), float(point[2])))
+			if _failed:
+				await _retire_scene()
+				quit(1)
+				return
 		var combat: Dictionary = {}
 		if state.has("combat"):
 			combat = await _combat_probe.run(self, _game_manager(), state["combat"], _out_dir.path_join(state_name))

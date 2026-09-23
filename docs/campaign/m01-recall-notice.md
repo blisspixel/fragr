@@ -24,6 +24,11 @@ and stairs; `m01-facility.json` inspects the opening's details. The fourteen-sta
 named guards across rooms, including early defeats, and fails on player death.
 Passing automation does not establish fresh-player pacing or fun.
 
+The [optional supply detours](../plans/m01-optional-supply-detours.md) place a
+medkit beside the confiscation lockers and armor at a maintenance overlook.
+Both are walking returns to the existing route. Neither is a required secret,
+weapon, or mission objective.
+
 ## Story and cast
 
 The player reaches the intake annex that processed their companion's seizure. The
@@ -127,10 +132,10 @@ is roughly 20-30 hostiles over the route, revised from actual pacing. Difficulty
 uses roles and readable pressure rather than multiplying health. Supply budgets must
 cover the guaranteed route plus reasonable misses, independent of secrets.
 
-Planned secrets: a changed wall panel reveals a Shiv; a maintenance overlook
-contains an optional reward. Neither contains essential story evidence. Shiv and
-secret triggers are unbuilt. The current alternate routes and visible supplies
-are not counted as implemented secrets.
+The confiscation alcove and maintenance overlook have optional supplies. They
+are static walking detours, not counted secrets, and contain no essential story
+evidence. A Shiv in the alcove and a changed wall panel remain planned; the
+weapon grant and moving secret trigger are unbuilt.
 
 ## Objectives and state
 

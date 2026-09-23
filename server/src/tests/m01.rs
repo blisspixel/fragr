@@ -27,10 +27,17 @@ struct Walkthrough {
 
 impl Walkthrough {
     fn new(role: Role) -> Self {
+        Self::configured(role, false)
+    }
+
+    fn configured(role: Role, solo_run: bool) -> Self {
         let map = AuthoredMap::read(include_bytes!("../../maps/m01-recall-notice.json").as_slice())
             .unwrap();
         let mut session = GameSession::with_authored_map(map);
         session.state.seed(67);
+        if solo_run {
+            session.state.enable_campaign_run().unwrap();
+        }
         let id = Uuid::from_u128(100);
         session.state.add_player(id, "Visitor".into(), role);
         let mission = session.state.mission_state().unwrap();
@@ -52,6 +59,21 @@ impl Walkthrough {
             shots: 0,
             first_threat: None,
             first_shot: None,
+        }
+    }
+
+    fn assert_optional_caches_unclaimed(&self) {
+        for id in ["bay_medkit", "overlook_armor"] {
+            assert!(
+                self.session
+                    .state
+                    .pickups
+                    .iter()
+                    .find(|pad| pad.id == id)
+                    .unwrap()
+                    .available,
+                "ordinary route claimed optional cache {id}"
+            );
         }
     }
 
@@ -389,6 +411,149 @@ impl Walkthrough {
 }
 
 #[test]
+fn m01_optional_caches_are_walking_detours_in_both_lift_states() {
+    let authored =
+        AuthoredMap::read(include_bytes!("../../maps/m01-recall-notice.json").as_slice()).unwrap();
+    let pairs = [
+        ("confiscation_bay", "confiscation_alcove", "bay_medkit"),
+        (
+            "maintenance_landing",
+            "maintenance_overlook",
+            "overlook_armor",
+        ),
+    ];
+    let session = GameSession::with_authored_map(authored.clone());
+    for (approach, landmark, reward) in pairs {
+        let start = authored.landmark(approach).unwrap();
+        let cache = authored.landmark(landmark).unwrap();
+        assert!(
+            (cache[0] - start[0]).hypot(cache[2] - start[2])
+                > crate::sim::PICKUP_CLAIM_RADIUS + RADIUS,
+            "{reward} can be claimed without leaving the ordinary approach"
+        );
+        for map in [
+            session.state.map.clone(),
+            session.state.map.opened_route().unwrap(),
+        ] {
+            for (from, to) in [(start, cache), (cache, start)] {
+                let route = map.navigation().route(from, to, SEARCH_LIMIT);
+                assert_eq!(route.status, RouteStatus::Complete, "{landmark}: {route:?}");
+                assert!(
+                    route.points.iter().all(|point| {
+                        (point[1] - cache[1]).abs() <= CONTACT_EPSILON && point[2] < 12.0
+                    }),
+                    "{landmark} detour leaves its original floor or enters records"
+                );
+            }
+            let pad = map.pickups().into_iter().find(|p| p.id == reward).unwrap();
+            assert_eq!([pad.x, pad.floor, pad.z], cache);
+            assert_eq!(pad.amount, 25);
+        }
+    }
+    let cache = authored.landmark("maintenance_overlook").unwrap();
+    let eye = [cache[0], cache[1] + EYE_HEIGHT, cache[2]];
+    assert!(
+        line_of_sight(eye, [-17.0, 2.7, -1.0], &session.state.map.arena().solids),
+        "maintenance overlook must show the service stair below"
+    );
+}
+
+#[test]
+fn m01_optional_caches_are_consumed_once_and_restore_on_continue() {
+    let mut run = Walkthrough::configured(Role::Human, true);
+    run.walk([0.0, 0.0, -26.0]);
+    run.walk([0.0, 0.0, -21.0]);
+    for _ in 0..400 {
+        if run
+            .session
+            .state
+            .players
+            .iter()
+            .all(|p| p.name != "intake_security" || p.hp <= 0)
+        {
+            break;
+        }
+        run.step([0.0, 0.0, -21.0]);
+    }
+    // Stage a useful health claim after the taught fight. Travel and collection
+    // still go through the normal controller, collision and pickup rules.
+    run.session.state.players[0].hp = 50;
+    run.walk([9.0, 0.0, -21.0]);
+    assert_eq!(run.session.state.players[0].hp, 75);
+    run.walk([0.0, 0.0, -21.0]);
+    run.session.state.players[0].hp = 50;
+    run.walk([9.0, 0.0, -21.0]);
+    assert_eq!(run.session.state.players[0].hp, 50);
+    for point in [
+        [0.0, 0.0, -21.0],
+        [-8.0, 0.0, -18.0],
+        [-17.0, 0.0, -18.0],
+        [-17.0, 0.0, -14.0],
+        [-17.0, 3.0, 8.0],
+    ] {
+        run.walk(point);
+    }
+    for _ in 0..400 {
+        if run.intake.len() == 3 && run.intake.is_subset(&run.defeated) {
+            break;
+        }
+        run.step([-17.0, 3.0, 8.0]);
+    }
+    assert!(run.intake.len() == 3 && run.intake.is_subset(&run.defeated));
+    run.session.state.players[0].armor = 0;
+    for point in [[-18.5, 3.0, 4.0], [-20.5, 3.0, 3.8]] {
+        run.walk(point);
+    }
+    assert_eq!(run.session.state.players[0].armor, 25);
+    run.walk([-17.0, 3.0, 8.0]);
+    run.session.state.players[0].armor = 0;
+    for point in [[-18.5, 3.0, 4.0], [-20.5, 3.0, 3.8]] {
+        run.walk(point);
+    }
+    run.session.state.set_action(run.id, Action::default());
+    for _ in 0..=crate::sim::HEALTH_PICKUP_RESPAWN_TICKS {
+        run.session.tick_messages(0.05);
+    }
+    assert_eq!(run.session.state.players[0].armor, 0);
+    for id in ["bay_medkit", "overlook_armor"] {
+        let pad = run
+            .session
+            .state
+            .pickups
+            .iter()
+            .find(|p| p.id == id)
+            .unwrap();
+        assert!(!pad.available);
+        assert!(pad.respawn_timer.is_none());
+    }
+    let before = run.session.state.mission_state().unwrap();
+    run.session.state.players[0].hp = 0;
+    run.session.tick_messages(0.05);
+    assert!(run.session.state.continue_mission(
+        run.id,
+        crate::protocol::MissionContinue {
+            id: before.id,
+            run_id: before.run.unwrap().id,
+            attempt: before.attempt,
+        },
+    ));
+    run.assert_optional_caches_unclaimed();
+    assert_eq!(run.session.state.players[0].hp, 100);
+    assert_eq!(run.session.state.players[0].armor, 0);
+    assert_eq!(run.session.state.players[0].weapon, WeaponType::Fists);
+    assert_eq!(
+        run.session
+            .state
+            .mission_state()
+            .unwrap()
+            .run
+            .unwrap()
+            .continues,
+        2
+    );
+}
+
+#[test]
 fn later_guards_are_screened_from_the_previous_encounter_approach() {
     let run = Walkthrough::new(Role::Human);
     for (feet, groups) in [
@@ -525,6 +690,7 @@ fn m01_main_and_maintenance_approaches_clear_with_discovered_equipment() {
             run.use_control(true);
             run.walk([7.0, 3.0, 23.0]);
             run.use_control(false);
+            run.assert_optional_caches_unclaimed();
             assert!(run.defeated.len() >= if maintenance { 16 } else { 19 });
             assert_eq!(run.session.state.scores[&run.id], 0);
             eprintln!("M01 {role:?} maintenance={maintenance}: ticks={}, hp={}, defeats={}, shots={}, first_threat={:?}, first_shot={:?}",
@@ -641,6 +807,7 @@ fn east_bypass_departs_with_all_stack_guards_alive() {
     run.use_control(true);
     run.walk([7.0, 3.0, 23.0]);
     run.use_control(false);
+    run.assert_optional_caches_unclaimed();
     assert!(guards_alive(&run), "a stack guard died on the east bypass");
     for (id, _) in &stack_guards {
         let guard = run
@@ -800,6 +967,7 @@ fn bypass_clear_still_departs_after_wasted_rounds_without_stack_supplies() {
     run.walk([7.0, 3.0, 23.0]);
     run.use_control(false);
     assert!(run.defeated.len() >= 16);
+    run.assert_optional_caches_unclaimed();
     assert!(run
         .session
         .state
