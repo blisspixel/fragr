@@ -18,6 +18,8 @@ use std::time::Duration;
 use tokio_tungstenite::{connect_async, tungstenite::Message};
 use uuid::Uuid;
 
+pub mod fanout;
+
 /// Ticks per second of the authoritative loop.
 pub const TICKS_PER_SECOND: f64 = 20.0;
 /// A death this soon after a spawn counts as a spawn death.
@@ -1162,6 +1164,7 @@ async fn agent_task(
     name: String,
     policy: Policy,
     mut stop: tokio::sync::watch::Receiver<bool>,
+    mut ready: Option<tokio::sync::oneshot::Sender<()>>,
 ) -> Result<(), Error> {
     let (ws, _) = connect_async(&url).await.map_err(transport)?;
     let (mut sink, mut stream) = ws.split();
@@ -1266,6 +1269,11 @@ async fn agent_task(
                 arena = Arena {
                     solids,
                     half_extent,
+                };
+                if player_id.is_some() {
+                    if let Some(sender) = ready.take() {
+                        let _ = sender.send(());
+                    }
                 }
             }
             Ok(ServerMessage::Snapshot(snapshot)) => {
@@ -1372,6 +1380,7 @@ pub async fn run(config: Config) -> Result<(Report, Observation), Error> {
             format!("{}-{}", policy.name(), i + 1),
             policy,
             stopped.clone(),
+            None,
         )));
     }
 
@@ -1458,7 +1467,13 @@ mod tests {
             assert!(matches!(ws.next().await, Some(Ok(Message::Close(_)))));
         });
         let (stop, stopped) = tokio::sync::watch::channel(false);
-        let agent = tokio::spawn(agent_task(url, "Probe".into(), Policy::Reflex, stopped));
+        let agent = tokio::spawn(agent_task(
+            url,
+            "Probe".into(),
+            Policy::Reflex,
+            stopped,
+            None,
+        ));
         ready.await.unwrap();
         stop.send(true).unwrap();
         tokio::time::timeout(Duration::from_secs(1), agent)
@@ -1513,7 +1528,7 @@ mod tests {
         let (_stop, stopped) = tokio::sync::watch::channel(false);
         let result = tokio::time::timeout(
             Duration::from_secs(5),
-            agent_task(url, "Probe".into(), Policy::Reflex, stopped),
+            agent_task(url, "Probe".into(), Policy::Reflex, stopped, None),
         )
         .await
         .expect("invalid map must stop the controller");

@@ -595,17 +595,50 @@ impl Default for GameSession {
 }
 
 /// Fan-out only after a connection's initial geometry has entered its FIFO.
+#[derive(Debug, Default, Clone, Copy)]
+pub struct DeliveryStats {
+    pub queued_messages: u64,
+    pub queue_high_water: usize,
+    pub queue_overflows: u64,
+}
+
+fn queue_for_client(
+    client: &mut ClientSession,
+    msg: &ServerMessage,
+    stats: &mut DeliveryStats,
+) -> bool {
+    if client.is_closing() {
+        return false;
+    }
+    match client.tx.try_send(msg.clone()) {
+        Ok(()) => {
+            stats.queued_messages += 1;
+            stats.queue_high_water = stats.queue_high_water.max(client.queue_depth());
+            true
+        }
+        Err(error) => {
+            if matches!(error, tokio::sync::mpsc::error::TrySendError::Full(_)) {
+                stats.queue_overflows += 1;
+                tracing::warn!(client = %client.id, "outbound queue full; disconnecting slow client");
+            }
+            client.request_close();
+            false
+        }
+    }
+}
+
 pub async fn broadcast_to_clients(
     clients: &Arc<Mutex<Vec<ClientSession>>>,
     messages: &[ServerMessage],
-) {
+) -> DeliveryStats {
+    let mut stats = DeliveryStats::default();
+    let mut clients_lock = clients.lock().await;
     for msg in messages {
-        let clients_lock = clients.lock().await;
-        for client in clients_lock.iter().filter(|client| client.initialized) {
-            let _ = client.tx.send(msg.clone());
+        for client in clients_lock.iter_mut().filter(|client| client.initialized) {
+            queue_for_client(client, msg, &mut stats);
         }
-        drop(clients_lock);
     }
+    stats
 }
 
 /// Resolve connection or player recipients through the same delivery path.
@@ -613,9 +646,10 @@ pub async fn send_unicasts(
     clients: &Arc<Mutex<Vec<ClientSession>>>,
     client_to_player: &HashMap<Uuid, Uuid>,
     unicasts: &[(Recipient, ServerMessage)],
-) {
+) -> DeliveryStats {
+    let mut stats = DeliveryStats::default();
     if unicasts.is_empty() {
-        return;
+        return stats;
     }
     let mut clients_lock = clients.lock().await;
     for (recipient, msg) in unicasts {
@@ -635,11 +669,14 @@ pub async fn send_unicasts(
             {
                 continue;
             }
-            if client.tx.send(msg.clone()).is_ok() && matches!(msg, ServerMessage::MapInfo { .. }) {
+            if queue_for_client(client, msg, &mut stats)
+                && matches!(msg, ServerMessage::MapInfo { .. })
+            {
                 client.initialized = true;
             }
         }
     }
+    stats
 }
 
 #[cfg(test)]
@@ -650,9 +687,9 @@ mod session_tests {
     #[tokio::test]
     async fn only_successful_initial_geometry_delivery_enables_broadcasts() {
         let ids = [Uuid::new_v4(), Uuid::new_v4(), Uuid::new_v4()];
-        let (pending_tx, mut pending_rx) = tokio::sync::mpsc::unbounded_channel();
-        let (active_tx, mut active_rx) = tokio::sync::mpsc::unbounded_channel();
-        let (closed_tx, closed_rx) = tokio::sync::mpsc::unbounded_channel();
+        let (pending_tx, mut pending_rx) = tokio::sync::mpsc::channel(2);
+        let (active_tx, mut active_rx) = tokio::sync::mpsc::channel(2);
+        let (closed_tx, closed_rx) = tokio::sync::mpsc::channel(2);
         drop(closed_rx);
         let clients = Arc::new(Mutex::new(vec![
             ClientSession::new(ids[0], pending_tx, protocol::GAMEPLAY_VERSION),
@@ -721,6 +758,103 @@ mod session_tests {
             pending_rx.try_recv().unwrap(),
             ServerMessage::Snapshot(_)
         ));
+    }
+
+    #[tokio::test]
+    async fn full_initial_queue_closes_only_that_client_and_keeps_healthy_order() {
+        let slow_id = Uuid::new_v4();
+        let healthy_id = Uuid::new_v4();
+        let (slow_tx, mut slow_rx) = tokio::sync::mpsc::channel(1);
+        let (healthy_tx, mut healthy_rx) = tokio::sync::mpsc::channel(4);
+        let clients = Arc::new(Mutex::new(vec![
+            ClientSession::new(slow_id, slow_tx, protocol::GAMEPLAY_VERSION),
+            ClientSession::new(healthy_id, healthy_tx, protocol::GAMEPLAY_VERSION),
+        ]));
+        let session = GameSession::new();
+        let map = session.state.map_info();
+        let filler = ServerMessage::Error {
+            code: "queued".into(),
+            message: "queued".into(),
+        };
+        let first = send_unicasts(
+            &clients,
+            &HashMap::new(),
+            &[(Recipient::Client(slow_id), filler)],
+        )
+        .await;
+        assert_eq!(first.queue_high_water, 1);
+        let delivery = send_unicasts(
+            &clients,
+            &HashMap::new(),
+            &[
+                (Recipient::Client(slow_id), map.clone()),
+                (Recipient::Client(healthy_id), map),
+            ],
+        )
+        .await;
+        assert_eq!(delivery.queue_overflows, 1);
+        let snapshot = ServerMessage::Snapshot(session.state.snapshot());
+        let sent = broadcast_to_clients(&clients, &[snapshot]).await;
+        assert_eq!(sent.queued_messages, 1);
+        let clients = clients.lock().await;
+        assert!(!clients[0].initialized);
+        assert!(clients[0].is_closing());
+        assert!(clients[1].initialized);
+        assert!(matches!(
+            slow_rx.try_recv().unwrap(),
+            ServerMessage::Error { .. }
+        ));
+        assert!(slow_rx.try_recv().is_err());
+        assert!(matches!(
+            healthy_rx.try_recv().unwrap(),
+            ServerMessage::MapInfo { .. }
+        ));
+        assert!(matches!(
+            healthy_rx.try_recv().unwrap(),
+            ServerMessage::Snapshot(_)
+        ));
+    }
+
+    #[tokio::test]
+    async fn active_slow_watcher_overflow_is_counted_once() {
+        let slow_id = Uuid::new_v4();
+        let healthy_id = Uuid::new_v4();
+        let (slow_tx, _slow_rx) = tokio::sync::mpsc::channel(1);
+        let (healthy_tx, mut healthy_rx) = tokio::sync::mpsc::channel(4);
+        let clients = Arc::new(Mutex::new(vec![
+            ClientSession::new(slow_id, slow_tx, protocol::GAMEPLAY_VERSION),
+            ClientSession::new(healthy_id, healthy_tx, protocol::GAMEPLAY_VERSION),
+        ]));
+        let session = GameSession::new();
+        let map = session.state.map_info();
+        let initial = send_unicasts(
+            &clients,
+            &HashMap::new(),
+            &[
+                (Recipient::Client(slow_id), map.clone()),
+                (Recipient::Client(healthy_id), map),
+            ],
+        )
+        .await;
+        assert_eq!(initial.queued_messages, 2);
+        let snapshot = ServerMessage::Snapshot(session.state.snapshot());
+        let first = broadcast_to_clients(&clients, std::slice::from_ref(&snapshot)).await;
+        let second = broadcast_to_clients(&clients, &[snapshot]).await;
+        assert_eq!(first.queue_overflows, 1);
+        assert_eq!(first.queued_messages, 1);
+        assert_eq!(second.queue_overflows, 0);
+        assert_eq!(second.queued_messages, 1);
+        assert!(clients.lock().await[0].is_closing());
+        assert!(matches!(
+            healthy_rx.try_recv().unwrap(),
+            ServerMessage::MapInfo { .. }
+        ));
+        for _ in 0..2 {
+            assert!(matches!(
+                healthy_rx.try_recv().unwrap(),
+                ServerMessage::Snapshot(_)
+            ));
+        }
     }
 
     #[test]

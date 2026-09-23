@@ -3,6 +3,61 @@ use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::time::{timeout, Duration};
 use tokio_tungstenite::connect_async;
 
+struct StalledSink;
+
+impl futures_util::Sink<Message> for StalledSink {
+    type Error = std::io::Error;
+
+    fn poll_ready(
+        self: std::pin::Pin<&mut Self>,
+        _: &mut std::task::Context<'_>,
+    ) -> std::task::Poll<Result<(), Self::Error>> {
+        std::task::Poll::Pending
+    }
+
+    fn start_send(self: std::pin::Pin<&mut Self>, _: Message) -> Result<(), Self::Error> {
+        unreachable!("a stalled sink never accepts a frame")
+    }
+
+    fn poll_flush(
+        self: std::pin::Pin<&mut Self>,
+        _: &mut std::task::Context<'_>,
+    ) -> std::task::Poll<Result<(), Self::Error>> {
+        std::task::Poll::Pending
+    }
+
+    fn poll_close(
+        self: std::pin::Pin<&mut Self>,
+        _: &mut std::task::Context<'_>,
+    ) -> std::task::Poll<Result<(), Self::Error>> {
+        std::task::Poll::Pending
+    }
+}
+
+#[tokio::test]
+async fn stalled_writer_times_out_and_wakes_connection_cleanup() {
+    let (tx, rx) = mpsc::channel(1);
+    let (shutdown, mut changed) = tokio::sync::watch::channel(false);
+    tx.send(ServerMessage::Error {
+        code: "queued".into(),
+        message: "queued".into(),
+    })
+    .await
+    .unwrap();
+    let writer = tokio::spawn(run_outbound_writer(
+        StalledSink,
+        rx,
+        shutdown,
+        Duration::from_millis(20),
+    ));
+    timeout(Duration::from_secs(1), changed.changed())
+        .await
+        .unwrap()
+        .unwrap();
+    assert!(*changed.borrow_and_update());
+    writer.await.unwrap();
+}
+
 #[tokio::test]
 async fn raised_geometry_rejects_legacy_roles_before_welcome_or_join() {
     let (tx, mut commands) = mpsc::unbounded_channel();
@@ -757,5 +812,118 @@ async fn an_open_server_ignores_a_presented_ticket() {
             .unwrap(),
         Some(GameCommand::Connected { .. })
     ));
+    accept.abort();
+}
+
+#[tokio::test]
+async fn server_close_signal_releases_idle_spectator_without_stalling_peers() {
+    let (tx, mut commands) = mpsc::unbounded_channel();
+    let mut server = NetServer::bind("127.0.0.1:0", tx).await.unwrap();
+    server.tighten_admission(3, 3, Duration::from_secs(2), Duration::from_secs(2));
+    let address = server.local_addr().unwrap();
+    let clients = server.clients.clone();
+    let accept = tokio::spawn(server.accept_loop());
+    let _slow = welcome_spectator(address).await;
+    let mut healthy = welcome_spectator(address).await;
+    let (mut fighter, _) = connect_async(format!("ws://{address}")).await.unwrap();
+    fighter
+        .send(Message::Text(
+            r#"{"type":"hello","role":"human","name":"Fighter","resume":""}"#.to_string(),
+        ))
+        .await
+        .unwrap();
+    let welcome = timeout(Duration::from_secs(2), fighter.next())
+        .await
+        .unwrap()
+        .unwrap()
+        .unwrap();
+    assert!(matches!(
+        serde_json::from_str::<ServerMessage>(welcome.to_text().unwrap()).unwrap(),
+        ServerMessage::Welcome {
+            player_id: Some(_),
+            resume: Some(_),
+            ..
+        }
+    ));
+    let mut ids = Vec::new();
+    for _ in 0..3 {
+        let command = timeout(Duration::from_secs(2), commands.recv())
+            .await
+            .unwrap()
+            .unwrap();
+        let GameCommand::Connected { id, .. } = command else {
+            panic!("expected connection");
+        };
+        ids.push(id);
+    }
+    assert_eq!(clients.lock().await.len(), 3);
+    clients.lock().await[0].request_close();
+    let disconnected = timeout(Duration::from_secs(2), commands.recv())
+        .await
+        .unwrap()
+        .unwrap();
+    assert!(matches!(disconnected, GameCommand::Disconnected { id } if id == ids[0]));
+    assert_eq!(clients.lock().await.len(), 2);
+    let _replacement = welcome_spectator(address).await;
+    assert!(matches!(
+        timeout(Duration::from_secs(2), commands.recv())
+            .await
+            .unwrap(),
+        Some(GameCommand::Connected {
+            role: Role::Spectator,
+            ..
+        })
+    ));
+
+    let session = crate::session::GameSession::new();
+    let map = session.state.map_info();
+    crate::session::send_unicasts(
+        &clients,
+        &std::collections::HashMap::new(),
+        &[
+            (crate::session::Recipient::Client(ids[1]), map.clone()),
+            (crate::session::Recipient::Client(ids[2]), map),
+        ],
+    )
+    .await;
+    crate::session::broadcast_to_clients(
+        &clients,
+        &[ServerMessage::Snapshot(session.state.snapshot())],
+    )
+    .await;
+    for socket in [&mut healthy, &mut fighter] {
+        let map = timeout(Duration::from_secs(2), socket.next())
+            .await
+            .unwrap()
+            .unwrap()
+            .unwrap();
+        assert!(matches!(
+            serde_json::from_str::<ServerMessage>(map.to_text().unwrap()).unwrap(),
+            ServerMessage::MapInfo { .. }
+        ));
+        let snapshot = timeout(Duration::from_secs(2), socket.next())
+            .await
+            .unwrap()
+            .unwrap()
+            .unwrap();
+        assert!(matches!(
+            serde_json::from_str::<ServerMessage>(snapshot.to_text().unwrap()).unwrap(),
+            ServerMessage::Snapshot(_)
+        ));
+    }
+    let fighter_id = ids[2];
+    clients
+        .lock()
+        .await
+        .iter()
+        .find(|client| client.id == fighter_id)
+        .unwrap()
+        .request_close();
+    let detached = timeout(Duration::from_secs(2), commands.recv())
+        .await
+        .unwrap()
+        .unwrap();
+    assert!(matches!(detached, GameCommand::Detached { id } if id == fighter_id));
+    assert_eq!(clients.lock().await.len(), 2);
     accept.abort();
 }

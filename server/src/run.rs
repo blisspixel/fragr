@@ -3,12 +3,50 @@
 //! `ready` channel let a caller learn the real address; `shutdown` ends the loop.
 
 use crate::net::NetServer;
-use crate::session::{broadcast_to_clients, send_unicasts, GameSession};
+use crate::session::{broadcast_to_clients, send_unicasts, DeliveryStats, GameSession};
 use crate::sim::{MapKind, MatchConfig};
 use std::future::Future;
 use std::net::SocketAddr;
 use std::time::Duration;
 use tokio::sync::mpsc;
+
+/// Optional in-process measurements for a local delivery test. The production
+/// tick does not lock or retain these histograms unless a harness requests it.
+#[derive(Debug, Default)]
+pub struct RunMetrics {
+    session_ns: crate::bench::Histogram,
+    fanout_ns: crate::bench::Histogram,
+    pub queued_messages: u64,
+    pub queue_high_water: usize,
+    pub queue_overflows: u64,
+}
+
+#[derive(Debug, serde::Serialize)]
+pub struct RunMetricsReport {
+    pub session_ms: crate::bench::Summary,
+    pub fanout_enqueue_ms: crate::bench::Summary,
+    pub queued_messages: u64,
+    pub queue_high_water: usize,
+    pub queue_overflows: u64,
+}
+
+impl RunMetrics {
+    pub fn report(&self) -> RunMetricsReport {
+        RunMetricsReport {
+            session_ms: self.session_ns.summary(1e-6),
+            fanout_enqueue_ms: self.fanout_ns.summary(1e-6),
+            queued_messages: self.queued_messages,
+            queue_high_water: self.queue_high_water,
+            queue_overflows: self.queue_overflows,
+        }
+    }
+
+    fn record_delivery(&mut self, delivery: DeliveryStats) {
+        self.queued_messages += delivery.queued_messages;
+        self.queue_high_water = self.queue_high_water.max(delivery.queue_high_water);
+        self.queue_overflows += delivery.queue_overflows;
+    }
+}
 
 /// Fixed simulation step: 20 Hz.
 pub const TICK: Duration = Duration::from_millis(50);
@@ -63,6 +101,24 @@ pub async fn run_server(
     options: ServerOptions,
     shutdown: impl Future<Output = ()>,
     ready: Option<tokio::sync::oneshot::Sender<SocketAddr>>,
+) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    run_server_impl(options, shutdown, ready, None).await
+}
+
+pub async fn run_server_with_metrics(
+    options: ServerOptions,
+    shutdown: impl Future<Output = ()>,
+    ready: Option<tokio::sync::oneshot::Sender<SocketAddr>>,
+    metrics: std::sync::Arc<std::sync::Mutex<RunMetrics>>,
+) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    run_server_impl(options, shutdown, ready, Some(metrics)).await
+}
+
+async fn run_server_impl(
+    options: ServerOptions,
+    shutdown: impl Future<Output = ()>,
+    ready: Option<tokio::sync::oneshot::Sender<SocketAddr>>,
+    metrics: Option<std::sync::Arc<std::sync::Mutex<RunMetrics>>>,
 ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     // Complete bounded topology construction before advertising readiness.
     // Keep it off the async executor, including single-threaded local harnesses.
@@ -203,7 +259,9 @@ pub async fn run_server(
                 let elapsed = started.elapsed();
                 let bytes = crate::bench::encoded_payload_bytes(messages.iter())?;
                 stats.record_tick(elapsed, bytes);
-                broadcast_to_clients(&clients, &messages).await;
+                let fanout_started = std::time::Instant::now();
+                let delivery = broadcast_to_clients(&clients, &messages).await;
+                let broadcast_elapsed = fanout_started.elapsed();
                 {
                     let connections = clients.lock().await.len();
                     if let Ok(mut slot) = live.try_write() {
@@ -211,7 +269,16 @@ pub async fn run_server(
                     }
                 }
                 let unicasts = session.take_unicasts();
-                send_unicasts(&clients, &session.client_to_player, &unicasts).await;
+                let unicast_started = std::time::Instant::now();
+                let unicast_delivery = send_unicasts(&clients, &session.client_to_player, &unicasts).await;
+                let fanout_elapsed = broadcast_elapsed.saturating_add(unicast_started.elapsed());
+                if let Some(metrics) = &metrics {
+                    let mut metrics = metrics.lock().unwrap_or_else(|poison| poison.into_inner());
+                    metrics.session_ns.record(elapsed.as_nanos().min(u64::MAX as u128) as u64);
+                    metrics.fanout_ns.record(fanout_elapsed.as_nanos().min(u64::MAX as u128) as u64);
+                    metrics.record_delivery(delivery);
+                    metrics.record_delivery(unicast_delivery);
+                }
             }
 
             _ = async { status_interval.as_mut().expect("guarded").tick().await },
@@ -229,7 +296,10 @@ pub async fn run_server(
             Some(cmd) = game_rx.recv() => {
                 session.apply_command(cmd);
                 let unicasts = session.take_unicasts();
-                send_unicasts(&clients, &session.client_to_player, &unicasts).await;
+                let delivery = send_unicasts(&clients, &session.client_to_player, &unicasts).await;
+                if let Some(metrics) = &metrics {
+                    metrics.lock().unwrap_or_else(|poison| poison.into_inner()).record_delivery(delivery);
+                }
             }
 
             _ = &mut shutdown => {
