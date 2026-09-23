@@ -53,6 +53,25 @@ impl RunStore {
         self.save_before_replace(document, |_| Ok(()))
     }
 
+    /// Explicit New Run keeps the previous bytes recoverable under the same
+    /// writer lock, including a document this version cannot decode.
+    pub fn start_new(&self, document: &RunDocument) -> io::Result<Option<PathBuf>> {
+        document.validate(self.content_sha256).map_err(invalid)?;
+        let prior = self.directory.join(RUN_NAME);
+        let archived = if prior.try_exists()? {
+            let archive = self
+                .directory
+                .join(format!("run.prior-{}.json", Uuid::new_v4().simple()));
+            fs::rename(&prior, &archive)?;
+            sync_directory(&self.directory)?;
+            Some(archive)
+        } else {
+            None
+        };
+        self.save(document)?;
+        Ok(archived)
+    }
+
     fn save_before_replace(
         &self,
         document: &RunDocument,
@@ -181,6 +200,19 @@ mod tests {
         )
         .unwrap();
         assert_eq!(store.load().unwrap_err().kind(), io::ErrorKind::InvalidData);
+        drop(store);
+        fs::remove_dir_all(directory).unwrap();
+    }
+
+    #[test]
+    fn explicit_new_run_archives_even_an_incompatible_prior() {
+        let directory = temp_dir();
+        let store = RunStore::open(&directory, [7; 32]).unwrap();
+        fs::write(directory.join(RUN_NAME), b"older unsupported bytes").unwrap();
+        let created = document();
+        let archive = store.start_new(&created).unwrap().unwrap();
+        assert_eq!(fs::read(&archive).unwrap(), b"older unsupported bytes");
+        assert_eq!(store.load().unwrap(), Some(created));
         drop(store);
         fs::remove_dir_all(directory).unwrap();
     }

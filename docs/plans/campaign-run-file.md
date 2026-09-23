@@ -140,3 +140,5 @@ rehydrates a saved pending Continue before participant admission. A focused
 test proves an agent-controlled owner returns dead with the same run ID and
 allowance, then spends the continue exactly once. This remains an internal
 state round-trip only; the local child has no disk integration yet.
+The store also retains unsupported prior bytes under a unique archived name
+when an explicit New Run starts; a focused test reads that archive back.
