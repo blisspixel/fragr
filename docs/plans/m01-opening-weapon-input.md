@@ -1,6 +1,7 @@
 # M01 opening and weapon input regression
 
-Status: **implemented** (local evidence, 2026-09-23)
+Status: **shipped** in [#226](https://github.com/blisspixel/fragr/pull/226)
+(local evidence, 2026-09-23).
 
 ## Goal
 

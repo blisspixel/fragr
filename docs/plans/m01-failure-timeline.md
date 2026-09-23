@@ -1,6 +1,7 @@
 # M01 failure timeline
 
-Status: **implemented**. Local evidence below; integration review remains.
+Status: **shipped** in [#227](https://github.com/blisspixel/fragr/pull/227).
+Local evidence and remaining limits follow.
 
 ## Goal
 
