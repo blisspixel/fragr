@@ -48,6 +48,14 @@ func _ready() -> void:
 	call_deferred("announce_station")
 
 
+func _exit_tree() -> void:
+	# Release an active decoder before the scene retires. The mixer can outlive
+	# the node for a frame, especially when a saved run returns to the menu.
+	if is_instance_valid(player):
+		player.stop()
+		player.stream = null
+
+
 ## Build the station list. Texts can be injected for headless tests.
 func load_catalog(stations_text: String = "", manifest_text: String = "") -> void:
 	var stations_data: Variant = _parse_json(stations_text if stations_text != "" else _read_text(STATIONS_PATH))

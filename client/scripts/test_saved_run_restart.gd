@@ -69,6 +69,7 @@ func _run() -> void:
 		quit(1)
 		return
 	QaCombat.release_inputs()
+	_track_scene_audio()
 	_game_manager()._on_leave_requested()
 	await _until_saved(func() -> bool: return current_scene != null and current_scene.has_method("_start_campaign_resume") and LocalMatch.for_tree(self).state == LocalMatch.State.IDLE, "final child stops")
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(settings_path))
@@ -79,6 +80,7 @@ func _run() -> void:
 	quit(1 if _failed else 0)
 
 func _restart_saved(run_id: String, status: String, attempt: int, continues: int, pending: bool) -> bool:
+	_track_scene_audio()
 	_game_manager()._on_leave_requested()
 	if not await _until_saved(func() -> bool: return current_scene != null and current_scene.has_method("_start_campaign_resume") and LocalMatch.for_tree(self).state == LocalMatch.State.IDLE, "owned child stops before restart"):
 		return false
