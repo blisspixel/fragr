@@ -4,6 +4,24 @@ Shipped tags, newest first. A line here is on `main`. Planned work stays in
 [docs/ROADMAP.md](docs/ROADMAP.md). Older tags are on the
 [releases page](https://github.com/blisspixel/fragr/releases).
 
+## v0.45.0 (2026-09-23)
+
+Single Player now keeps its M01 run after Exit to Menu or closing the game.
+Continue Run restores the same identity, difficulty, mission-entry equipment,
+and remaining continues. A pending Continue remains pending after restart;
+spending it saves the lower allowance before play resumes. Start New Run
+archives the previous save after confirmation. An explicit Leave ends the run.
+
+M01 departure freezes the live exit equipment and retains the completed run
+as M02 pending, even after its owner disconnects. Invalid or incompatible
+bytes stay recoverable. Saves are local mission-entry saves, not mid-mission
+checkpoints. The 24-state visual tour, real child restart tests, a free local
+M01 clear, and Linux, Windows, and macOS CI passed. M02 is still unbuilt.
+
+Rapid campaign restarts now retire radio playback cleanly before Godot exits.
+The restart and radio checks cover the decoder lifetime on all three client
+CI platforms.
+
 ## v0.44.1 (2026-09-23)
 
 A spectator that stops reading can no longer grow an unlimited server send

@@ -217,7 +217,9 @@ Leaving an unfinished solo run sets `abandoned`; its seat cannot be reused.
 A dropped socket can rebind that same owner for ten seconds, and the run stays
 in progress while the pawn is parked. When the grace ends, the run is abandoned.
 Completion and exhaustion retain their outcomes after departure. Starting again requires a new
-server/run. No disk save is implied by this in-memory state.
+server/run. A wire run status alone does not imply a disk save. The owned local
+child persists only when launched with `--run-mode new|resume` as described
+under Desktop process bootstrap.
 
 MCP exposes an explicit `mission_continue` tool. Supplied scripted/playtest/brain
 controllers retry automatically within the same allowance. Human UI waits for
