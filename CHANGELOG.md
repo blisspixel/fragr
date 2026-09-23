@@ -4,6 +4,13 @@ Shipped tags, newest first. A line here is on `main`. Planned work stays in
 [docs/ROADMAP.md](docs/ROADMAP.md). Older tags are on the
 [releases page](https://github.com/blisspixel/fragr/releases).
 
+## v0.44.0 (2026-09-22)
+
+Recall Notice has two optional walking detours: a medkit in the confiscation
+locker recess and armor on the maintenance overlook. Neither is needed to
+reach the lift. The first-person exploration tour verifies both routes, and
+the capture stops if a walking leg fails. The pickup meshes remain provisional.
+
 ## v0.43.1 (2026-09-22)
 
 The spectator camera keeps following its fighter while a match menu blocks

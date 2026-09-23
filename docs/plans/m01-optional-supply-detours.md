@@ -1,6 +1,6 @@
 # M01 optional supply detours
 
-Status: **implemented**. Local checks passed; PR integration is pending.
+Status: **shipped** in v0.44.0. The broader M01 quality gate remains open.
 
 ## Goal
 
@@ -52,7 +52,9 @@ reviewable PR with honest screenshots.
 - A deliberately unreachable QA waypoint exited nonzero at the walk failure,
   before saving a state frame or manifest. This verifies the capture abort path.
 - The Godot checker self-tests passed, including injected error, missing PASS,
-  and failed-exit cases. The branch is ready for CI review.
+  and failed-exit cases.
+- [PR #221](https://github.com/blisspixel/fragr/pull/221) passed audit, Godot,
+  Windows, macOS, and workspace test CI, then merged to `main`.
 
 The pickup meshes are provisional blocks. Scripted navigation proves access,
 not whether a new player notices either detour, enjoys its timing, or finds the
