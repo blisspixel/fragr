@@ -24,9 +24,12 @@ var spectator_first_person: bool = true
 var _observed_pawn: Node3D = null
 var follow_target_index = 0
 var available_targets = []
+var _all_targets: Array = []
 var auto_cycle_timer = 0.0
 var frag_follow_timer = 0.0
 var frag_follow_target_id = ""
+## Developer watch mode follows one admitted participant through roster changes.
+var pinned_player_id: String = ""
 # tip_capture: freeze follow / frag yank while posing at dish origin.
 # Held transform is re-applied every frame so set_fp_mode / other yanks cannot stick.
 var tip_pose_lock = false
@@ -85,6 +88,9 @@ func _process(delta):
 	camera_zoom_offset = lerp(camera_zoom_offset, 0.0, delta * 5.0)
 	if _controls_blocked():
 		mouse_motion = Vector2.ZERO
+		# A chat draft blocks input, but the watched fight keeps moving.
+		if not fp_mode and follow_mode and not tip_pose_lock:
+			_follow_target()
 		return
 
 	if tip_pose_lock:
@@ -103,7 +109,7 @@ func _process(delta):
 		_process_fp(delta)
 		return
 
-	var can_control: bool = mouse_captured or pad_active
+	var can_control: bool = pinned_player_id.is_empty() and (mouse_captured or pad_active)
 	if can_control and Input.is_action_just_pressed("cycle_cam"):
 		cycle_next_target()
 		if not follow_mode:
@@ -244,6 +250,8 @@ func _follow_target():
 		cycle_next_target()
 
 func toggle_follow_mode():
+	if not pinned_player_id.is_empty():
+		return
 	# V cycles eye, chase, free. F changes the fighter without changing the view.
 	if follow_mode and spectator_first_person:
 		spectator_first_person = false
@@ -257,18 +265,34 @@ func toggle_follow_mode():
 	auto_cycle_timer = 0.0
 
 func cycle_next_target():
+	if not pinned_player_id.is_empty():
+		return
 	if len(available_targets) > 0:
 		follow_target_index = (follow_target_index + 1) % len(available_targets)
 		auto_cycle_timer = 0.0
 		camera_shake_intensity = 0.12
 		camera_zoom_offset = -0.6
 
+func pin_player(player_id: String) -> void:
+	pinned_player_id = player_id.strip_edges()
+	if not pinned_player_id.is_empty():
+		set_fp_mode(false)
+		follow_mode = true
+		spectator_first_person = true
+		frag_follow_timer = 0.0
+		frag_follow_target_id = ""
+	set_available_targets(_all_targets)
+
 func set_available_targets(targets: Array):
 	var previous: Node3D = get_followed_target()
 	# Drop freed pawns so follow cam / highlight never soft-prison on a dead instance.
+	_all_targets = []
 	available_targets = []
 	for t in targets:
-		if is_instance_valid(t):
+		if not is_instance_valid(t):
+			continue
+		_all_targets.append(t)
+		if pinned_player_id.is_empty() or str(t.get("player_id")) == pinned_player_id:
 			available_targets.append(t)
 	if follow_mode and len(available_targets) > 0:
 		var previous_index: int = available_targets.find(previous)
@@ -292,7 +316,7 @@ func get_followed_target():
 	return null
 
 func lock_on_frag(killer_id: String, duration: float = 1.5):
-	if tip_pose_lock:
+	if tip_pose_lock or not pinned_player_id.is_empty():
 		return
 	if fp_mode or spectator_first_person:
 		return
@@ -385,6 +409,8 @@ func consume_turn_bits() -> Dictionary:
 	return {"turn_left": left, "turn_right": right}
 
 func set_fp_mode(enabled: bool, target: Node3D = null) -> void:
+	if enabled and not pinned_player_id.is_empty():
+		return
 	# tip_capture pose lock: never teleport onto a soldier mid-jammer still.
 	if tip_pose_lock:
 		return

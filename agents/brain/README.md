@@ -23,6 +23,14 @@ heightfield navigator as rule bots and playtest agents. It routes around walls a
 up stairs, holds fire through cover, and clears route memory on map or life
 changes. Search work is bounded and stays local; it does not add model calls.
 
+For a rendered first-person developer watch, run `bash tools/qa_watch.sh` from
+the repository root (Git Bash on Windows). It starts an owned local M01 server,
+one free-rule brain pawn and a passive Godot spectator, then saves eight eye
+frames and a paired UUID/tick/brain receipt under `.agents/watch/`. Set
+`FRAGR_WATCH_SECONDS=180` for a longer M01 attempt. The wrapper uses no provider
+key and stops only the processes it started. A short capture proves the live
+view, not a mission clear.
+
 ## Run it with a brain
 
 Put a key in `.env` at the repository root (gitignored) or in the environment:

@@ -109,6 +109,8 @@ pub struct BotConfig {
 #[derive(Debug, Clone, Default, PartialEq, Serialize)]
 pub struct BotSummary {
     pub name: String,
+    /// Server-assigned participant identity, absent if admission never completed.
+    pub player_id: Option<Uuid>,
     pub provider: String,
     pub model: String,
     pub snapshots: u64,
@@ -392,7 +394,10 @@ pub async fn run_bot(
                         }
                         loadout = Some(next);
                     }
-                    Ok(ServerMessage::Welcome { player_id, .. }) => me = player_id,
+                    Ok(ServerMessage::Welcome { player_id, .. }) => {
+                        me = player_id;
+                        summary.player_id = player_id;
+                    }
                     Ok(ServerMessage::Snapshot(snapshot)) => {
                         summary.snapshots += 1;
                         if let Some(id) = me {
@@ -923,6 +928,10 @@ mod tests {
         assert_eq!(transport.calls(), 0, "local never touches the transport");
         assert_eq!(summary.run_usd, 0.0);
         assert_eq!(summary.provider, "local");
+        assert!(
+            summary.player_id.is_some(),
+            "admitted brain has an identity"
+        );
         assert_eq!(summary.last_plan.as_ref().unwrap().source, Source::Local);
         assert!(summary.last_state.as_ref().unwrap().starts_with("SELF hp="));
         let _ = shutdown.send(());
