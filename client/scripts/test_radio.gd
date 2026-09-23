@@ -18,6 +18,7 @@ func _initialize() -> void:
 	_test_pick_next_no_repeat()
 	_test_station_cycle_and_toggle()
 	_test_volume_table()
+	await _test_playback_retirement()
 	if failures.is_empty():
 		print("test_radio: PASS")
 		quit(0)
@@ -121,3 +122,26 @@ func _test_volume_table() -> void:
 	_check(is_equal_approx(RadioScript.target_db(true, true, true), -17.0), "playing plus duck is -17 dB")
 	_check(is_equal_approx(RadioScript.target_db(true, true, false), -8.0), "LOCK IN does not duck while playing")
 	_check(is_equal_approx(RadioScript.target_db(false, true, false), -15.0), "LOCK IN still ducks under the Host while spectating")
+
+
+func _test_playback_retirement() -> void:
+	for iteration: int in 3:
+		var radio: Node = RadioScript.new()
+		root.add_child(radio)
+		await process_frame
+		var player: AudioStreamPlayer = radio.player
+		_check(player != null and player.stream is AudioStreamMP3, "radio %d starts an MP3" % iteration)
+		_check(player != null and player.has_stream_playback(), "radio %d starts playback" % iteration)
+		if player == null or not player.has_stream_playback():
+			root.remove_child(radio)
+			radio.free()
+			return
+		var playback: WeakRef = weakref(player.get_stream_playback())
+		root.remove_child(radio)
+		_check(not player.playing, "scene exit stops radio %d" % iteration)
+		_check(player.stream == null, "scene exit drops radio %d stream" % iteration)
+		radio.free()
+		var deadline: int = Time.get_ticks_msec() + 2000
+		while playback.get_ref() != null and Time.get_ticks_msec() < deadline:
+			await create_timer(0.01).timeout
+		_check(playback.get_ref() == null, "radio %d decoder retires" % iteration)

@@ -17,6 +17,7 @@ Status words: **planned**, **in flight**, **implemented** (local evidence record
 
 | Plan | Status | One-liner |
 |---|---|---|
+| [`radio-scene-retirement.md`](./radio-scene-retirement.md) | **implemented** | Stop the radio decoder on scene exit and cover rapid saved-run restarts on Linux; CI confirmation is pending. |
 | [`campaign-run-file.md`](./campaign-run-file.md) | **in flight** | Versioned solo run persistence with atomic writes and exact continue restoration. |
 | [`jev-m01-validation.md`](./jev-m01-validation.md) | **proven** ([#228](https://github.com/blisspixel/fragr/pull/228)) | Capped Jev M01 Standard and Severe trials with authoritative receipts and actual spend evidence. |
 | [`m01-opening-weapon-input.md`](./m01-opening-weapon-input.md) | **shipped** ([#226](https://github.com/blisspixel/fragr/pull/226)) | Same-session MapInfo, phase-card timing, and key 1 through a live owned M01 server are covered. |
