@@ -1,6 +1,6 @@
 # Radio scene retirement
 
-**Status:** implemented locally, 2026-09-23. Linux CI confirmation is pending.
+**Status:** proven, 2026-09-23 ([#231](https://github.com/blisspixel/fragr/pull/231), v0.45.0).
 This repairs the Linux Godot check on the
 main run for the local campaign save. The saved-run restart harness passed its
 gameplay assertions but Godot reported an MP3 playback and stream still in use
@@ -40,3 +40,6 @@ passed without exit errors after tracking each outgoing scene's playback. The
 full `tools/godot_check.sh` run passed, including all script checks and
 harnesses. Radio teardown alone had reproduced the leak in the full checker;
 the transition tracking and retirement wait closed that failure.
+
+[CI run 35862073777](https://github.com/blisspixel/fragr/actions/runs/35862073777)
+passed audit, Rust tests and checks, and Linux, Windows and macOS Godot jobs.

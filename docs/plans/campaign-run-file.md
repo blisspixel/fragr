@@ -1,10 +1,10 @@
 # Durable solo campaign run
 
-**Status:** in flight, 2026-09-23. This is the run-document rung of the
+**Status:** proven, 2026-09-23 ([#229](https://github.com/blisspixel/fragr/pull/229), v0.45.0).
+This is the run-document rung of the
 [full build order](../ROADMAP.md#full-build-order-2026-09-22). M01 previously
-owned only a process-local run and three mission-start continues. This branch
-adds the local disk document and resume flow; integration and cross-platform
-CI are pending.
+owned only a process-local run and three mission-start continues. The owned
+local child now stores and resumes it through a validated disk document.
 
 ## Goal
 
@@ -177,6 +177,8 @@ fragr-server --local-mission recall_notice --run-mode resume
 
 The run file is a mission-entry save, not a mid-level checkpoint. Participant
 service-record history remains separate and does not accumulate across process
-restarts. This work remains in flight until CI is recorded. Windows is the
-local durability platform; Linux and macOS need CI checks and a
-platform-specific durability review.
+restarts. [CI run 35858675403](https://github.com/blisspixel/fragr/actions/runs/35858675403)
+passed the Rust, Godot, audit, Windows and macOS jobs. The Windows local tour
+and release build passed. The file is tested for process restarts and
+sync-fault reporting; a sudden power-loss durability experiment and M02
+cross-mission load remain future work.
