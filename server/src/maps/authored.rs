@@ -4,6 +4,7 @@ use crate::movement::{Arena, Solid, BODY_HEIGHT, CONTACT_EPSILON, RADIUS};
 use crate::navigation::Navigation;
 use crate::protocol::{MapDecoration, MapPresentation, MapSurface};
 use serde::Deserialize;
+use sha2::{Digest, Sha256};
 use std::collections::HashSet;
 use std::io::{self, Read};
 use std::path::Path;
@@ -23,6 +24,7 @@ mod tests;
 
 #[derive(Debug, Clone)]
 pub struct AuthoredMap {
+    pub(super) content_sha256: [u8; 32],
     pub(super) mission: Option<crate::protocol::MissionGeometry>,
     pub(super) opened_route: Option<Arc<Self>>,
     pub(super) id: u32,
@@ -132,6 +134,7 @@ impl AuthoredMap {
         if bytes.len() as u64 > MAX_BYTES {
             return Err(invalid("map file exceeds the 1 MiB limit"));
         }
+        let content_sha256 = Sha256::digest(&bytes).into();
         // Parser errors can include untrusted field values. Report location,
         // not the file's contents, in host diagnostics.
         let doc: Document = serde_json::from_slice(&bytes).map_err(|error| {
@@ -279,6 +282,7 @@ impl AuthoredMap {
             }
         }
         let mut map = Self {
+            content_sha256,
             mission: mission.as_ref().map(|m| m.geometry.clone()),
             opened_route: None,
             encounters: doc.encounters,

@@ -1,13 +1,95 @@
 //! Desktop child readiness and ownership. Gameplay still uses the normal wire.
-use crate::maps::AuthoredSource;
+use crate::maps::{AuthoredSource, RuntimeMap};
+use crate::mission::run_file::store::{RunProbe, RunStore};
+use crate::mission::run_file::SavedStep;
 use crate::protocol::{CampaignDifficulty, MissionId, GAMEPLAY_VERSION};
-use crate::run::{run_server, ServerOptions};
+use crate::run::{run_local_server, run_server, LocalRunConfig, ServerOptions};
 use serde::{Deserialize, Serialize};
 use std::io::{self, BufRead, BufReader, Read, Write};
 use std::net::{Ipv4Addr, SocketAddr};
+use std::path::PathBuf;
 use tokio::sync::oneshot;
 
 const MAX_CONTROL_BYTES: u64 = 256;
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, clap::ValueEnum)]
+pub enum LocalRunMode {
+    New,
+    Resume,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(tag = "status", rename_all = "snake_case")]
+pub enum RunPreview {
+    Missing,
+    Ready {
+        difficulty: CampaignDifficulty,
+        attempt: u32,
+        continues: u8,
+        pending_continue: bool,
+    },
+    Failed,
+    Abandoned,
+    AwaitingMission,
+    Incompatible,
+    Corrupt,
+}
+
+pub fn preview_run(mission: MissionId) -> io::Result<RunPreview> {
+    let map = RuntimeMap::Authored(AuthoredSource::Mission(mission).load()?);
+    let hash = map
+        .content_sha256()
+        .ok_or_else(|| io::Error::other("campaign content identity is unavailable"))?;
+    match RunStore::inspect(&run_directory()?, hash)? {
+        RunProbe::Missing => Ok(RunPreview::Missing),
+        RunProbe::Incompatible => Ok(RunPreview::Incompatible),
+        RunProbe::Corrupt => Ok(RunPreview::Corrupt),
+        RunProbe::Compatible(document) => match &document.step {
+            SavedStep::MissionEntry { .. } | SavedStep::PendingContinue { .. } => {
+                Ok(RunPreview::Ready {
+                    difficulty: document.rules.difficulty,
+                    attempt: document.attempt(),
+                    continues: document.remaining_continues,
+                    pending_continue: matches!(&document.step, SavedStep::PendingContinue { .. }),
+                })
+            }
+            SavedStep::Failed { .. } => Ok(RunPreview::Failed),
+            SavedStep::Abandoned { .. } => Ok(RunPreview::Abandoned),
+            SavedStep::AwaitingMission { .. } => Ok(RunPreview::AwaitingMission),
+        },
+    }
+}
+
+fn run_directory() -> io::Result<PathBuf> {
+    if let Some(override_path) = std::env::var_os("FRAGR_RUN_DIR") {
+        let path = PathBuf::from(override_path);
+        if path.is_absolute() {
+            return Ok(path);
+        }
+        return Err(io::Error::other("FRAGR_RUN_DIR must be absolute"));
+    }
+    #[cfg(target_os = "windows")]
+    let base = std::env::var_os("LOCALAPPDATA").map(PathBuf::from);
+    #[cfg(target_os = "macos")]
+    let base = std::env::var_os("HOME")
+        .map(PathBuf::from)
+        .map(|home| home.join("Library").join("Application Support"));
+    #[cfg(all(unix, not(target_os = "macos")))]
+    let base = std::env::var_os("XDG_DATA_HOME")
+        .filter(|value| !value.is_empty())
+        .map(PathBuf::from)
+        .filter(|path| path.is_absolute())
+        .or_else(|| {
+            std::env::var_os("HOME")
+                .map(PathBuf::from)
+                .map(|home| home.join(".local/share"))
+        });
+    let base = base.ok_or_else(|| io::Error::other("user data directory is unavailable"))?;
+    if !base.is_absolute() {
+        return Err(io::Error::other("user data directory must be absolute"));
+    }
+    Ok(base.join("fragr").join("runs"))
+}
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
@@ -80,6 +162,17 @@ pub async fn serve(
     input: impl Read + Send + 'static,
     output: impl Write,
 ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    serve_with_mode(mission, seed, difficulty, None, input, output).await
+}
+
+pub async fn serve_with_mode(
+    mission: MissionId,
+    seed: u64,
+    difficulty: CampaignDifficulty,
+    run_mode: Option<LocalRunMode>,
+    input: impl Read + Send + 'static,
+    output: impl Write,
+) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let (owner_tx, mut owner_rx) = oneshot::channel();
     std::thread::Builder::new()
         .name("local-parent".into())
@@ -101,20 +194,45 @@ pub async fn serve(
             .map(std::sync::Arc::new),
         ..Default::default()
     };
-    let server = run_server(
-        options,
-        async {
-            let _ = stop_rx.await;
-        },
-        Some(ready_tx),
-    );
+    let (difficulty_tx, difficulty_rx) = oneshot::channel();
+    let server = async {
+        if let Some(mode) = run_mode {
+            run_local_server(
+                options,
+                async {
+                    let _ = stop_rx.await;
+                },
+                ready_tx,
+                LocalRunConfig {
+                    directory: run_directory()?,
+                    resume: matches!(mode, LocalRunMode::Resume),
+                    difficulty_ready: difficulty_tx,
+                },
+            )
+            .await
+        } else {
+            run_server(
+                options,
+                async {
+                    let _ = stop_rx.await;
+                },
+                Some(ready_tx),
+            )
+            .await
+        }
+    };
     tokio::pin!(server);
     let address = tokio::select! {
         result = &mut server => return result,
         owner = &mut owner_rx => { owner??; return Ok(()); },
         ready = &mut ready_rx => ready?,
     };
-    Ready::new(mission, difficulty, address)?.write(output)?;
+    let selected_difficulty = if run_mode.is_some() {
+        difficulty_rx.await?
+    } else {
+        difficulty
+    };
+    Ready::new(mission, selected_difficulty, address)?.write(output)?;
     tokio::select! {
         result = &mut server => result,
         owner = &mut owner_rx => {

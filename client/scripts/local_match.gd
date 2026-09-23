@@ -4,6 +4,7 @@ extends Node
 signal mission_ready(address: String)
 signal failed(message_key: String)
 signal state_changed
+signal run_preview_changed
 
 enum State { IDLE, STARTING, RUNNING, STOPPING, FAILED }
 const START_TIMEOUT_MS: int = 15000
@@ -15,10 +16,16 @@ var state: State = State.IDLE
 var url: String = ""
 var error_key: String = ""
 var process: LocalProcess = LocalProcess.new()
+var run_preview: Dictionary = {}
+var _preview_process: LocalProcess = LocalProcess.new()
+var _preview_pending: PackedByteArray = PackedByteArray()
+var _preview_active: bool = false
+var _preview_deadline: int = 0
 var _pending: PackedByteArray = PackedByteArray()
 var _deadline: int = 0
 var _failure_pending: bool = false
 var _difficulty: String = "standard"
+var _run_mode: String = "new"
 
 static func for_tree(tree: SceneTree) -> LocalMatch:
 	var existing: LocalMatch = tree.root.get_node_or_null("LocalMatch") as LocalMatch
@@ -40,13 +47,35 @@ func executable_path() -> String:
 			return path
 	return ""
 
-func start_mission(difficulty: String = "standard") -> bool:
+func refresh_run_preview() -> void:
+	if _preview_active:
+		return
+	var executable: String = executable_path()
+	if executable.is_empty():
+		run_preview = {"status": "unavailable"}
+		run_preview_changed.emit()
+		return
+	_preview_process.dispose()
+	_preview_pending.clear()
+	run_preview = {"status": "loading"}
+	if not _preview_process.start(executable, PackedStringArray(["--local-run-preview"])):
+		run_preview = {"status": "unavailable"}
+		run_preview_changed.emit()
+		return
+	_preview_active = true
+	_preview_deadline = Time.get_ticks_msec() + START_TIMEOUT_MS
+	run_preview_changed.emit()
+
+func start_mission(difficulty: String = "standard", run_mode: String = "new") -> bool:
 	if state not in [State.IDLE, State.FAILED]:
 		return false
-	if difficulty not in MissionState.DIFFICULTIES:
+	if difficulty not in MissionState.DIFFICULTIES or run_mode not in ["new", "resume"]:
 		_fail("LOCAL_SERVER_INVALID_DIFFICULTY")
 		return false
+	_preview_process.dispose()
+	_preview_active = false
 	_difficulty = difficulty
+	_run_mode = run_mode
 	process.dispose()
 	url = ""
 	error_key = ""
@@ -56,7 +85,7 @@ func start_mission(difficulty: String = "standard") -> bool:
 	if executable.is_empty():
 		_fail("LOCAL_SERVER_MISSING")
 		return false
-	if not process.start(executable, PackedStringArray(["--local-mission", MissionState.ID, "--difficulty", difficulty])):
+	if not process.start(executable, PackedStringArray(["--local-mission", MissionState.ID, "--run-mode", run_mode, "--difficulty", difficulty])):
 		_fail("LOCAL_SERVER_START_FAILED")
 		return false
 	_deadline = Time.get_ticks_msec() + START_TIMEOUT_MS
@@ -65,6 +94,9 @@ func start_mission(difficulty: String = "standard") -> bool:
 	return true
 
 func stop() -> void:
+	_preview_process.dispose()
+	_preview_active = false
+	run_preview.clear()
 	if state in [State.IDLE, State.FAILED]:
 		process.dispose()
 		state = State.IDLE
@@ -78,6 +110,7 @@ func stop() -> void:
 	state_changed.emit()
 
 func _process(_delta: float) -> void:
+	_poll_run_preview()
 	if state in [State.IDLE, State.FAILED]:
 		return
 	process.drain_errors()
@@ -88,7 +121,10 @@ func _process(_delta: float) -> void:
 			state_changed.emit()
 		return
 	if not process.running():
-		_fail("LOCAL_SERVER_STOPPED")
+		if state == State.STARTING:
+			_fail("LOCAL_RUN_OPEN_FAILED" if _run_mode == "resume" else "LOCAL_RUN_CREATE_FAILED")
+		else:
+			_fail("LOCAL_SERVER_STOPPED")
 		return
 	if state == State.STARTING:
 		_pending.append_array(process.read_output())
@@ -110,6 +146,51 @@ func _process(_delta: float) -> void:
 			_fail("LOCAL_SERVER_TIMEOUT")
 	elif not process.read_output().is_empty():
 		_fail("LOCAL_SERVER_INVALID_READY")
+
+func _poll_run_preview() -> void:
+	if not _preview_active:
+		return
+	_preview_process.drain_errors()
+	_preview_pending.append_array(_preview_process.read_output())
+	if _preview_pending.size() > MAX_READY_BYTES:
+		_finish_run_preview({"status": "unavailable"})
+		return
+	var newline: int = _preview_pending.find(10)
+	if newline >= 0:
+		var parsed: Dictionary = parse_run_preview(_preview_pending.slice(0, newline))
+		if newline != _preview_pending.size() - 1 or parsed.is_empty():
+			parsed = {"status": "unavailable"}
+		_finish_run_preview(parsed)
+	elif not _preview_process.running() or Time.get_ticks_msec() >= _preview_deadline:
+		_finish_run_preview({"status": "unavailable"})
+
+func _finish_run_preview(value: Dictionary) -> void:
+	_preview_active = false
+	_preview_process.dispose()
+	_preview_pending.clear()
+	run_preview = value
+	run_preview_changed.emit()
+
+static func parse_run_preview(bytes: PackedByteArray) -> Dictionary:
+	for byte: int in bytes:
+		if byte < 32 or byte > 126:
+			return {}
+	var parser: JSON = JSON.new()
+	if parser.parse(bytes.get_string_from_ascii()) != OK or not parser.data is Dictionary:
+		return {}
+	var data: Dictionary = parser.data
+	if not data.get("status") is String:
+		return {}
+	var status: String = data["status"]
+	if status in ["missing", "failed", "abandoned", "awaiting_mission", "incompatible", "corrupt"]:
+		return data if data.size() == 1 else {}
+	if status != "ready" or data.size() != 5 \
+		or not data.get("difficulty") is String or data["difficulty"] not in MissionState.DIFFICULTIES \
+		or not EquipmentState.integer(data.get("continues"), 3) \
+		or not EquipmentState.integer(data.get("attempt"), 4) or int(data["attempt"]) != 4 - int(data["continues"]) \
+		or not data.get("pending_continue") is bool or (data["pending_continue"] and int(data["continues"]) == 0):
+		return {}
+	return data
 
 static func readiness_url(bytes: PackedByteArray, difficulty: String = "standard") -> String:
 	# This bootstrap contract contains only fixed ASCII identifiers and IPv4.
@@ -153,5 +234,6 @@ func _fail(key: String) -> void:
 	failed.emit(key)
 
 func _exit_tree() -> void:
+	_preview_process.dispose()
 	process.request_stop()
 	process.dispose()

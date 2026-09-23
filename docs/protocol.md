@@ -683,8 +683,9 @@ without revealing an unseen attacker's position. A later entry alarm dispatches
 that group once to the entered threshold. In development party mode, last departure
 or total party death clears encounters and entry respawn permits retry. Individual
 death while an ally survives does not reset groups. Solo mode retains the defeated
-state until an accepted continue resets the entire attempt. Saves remain unbuilt;
-the mission contract above owns shared lift departure.
+state until an accepted continue resets the entire attempt. Local solo runs now
+persist mission-entry state as described under Desktop process bootstrap; the
+mission contract above owns shared lift departure.
 
 #### Event
 
@@ -994,8 +995,20 @@ from WebSocket messages. It loads the registered map from the committed JSON
 embedded at build time, binds `127.0.0.1:0`, and writes one ASCII JSON line to
 stdout after map preparation and bind:
 
-The optional `--difficulty assisted|standard|severe` defaults to `standard` and
-is echoed below. Bootstrap version 2 requires that field; it is separate from
+The desktop menu supplies `--run-mode new|resume`. New archives prior run
+bytes under a unique name and saves the initial run before readiness. Resume
+locks and validates the versioned run against the exact authored content bytes
+and campaign rules before readiness. A second child cannot own the same file.
+Omitting `--run-mode` retains the ephemeral development behavior. The
+read-only `--local-run-preview` prints one bounded JSON status line for the
+menu: `missing`, `ready` (difficulty, attempt, continues,
+pending_continue), `failed`, `abandoned`, `awaiting_mission`, `incompatible`, or
+`corrupt`.
+The menu treats preview as advisory; launch validates again under the lock.
+
+The optional `--difficulty assisted|standard|severe` defaults to `standard` on
+a new run. A resume uses the saved difficulty and echoes it below. Bootstrap
+version 2 requires that field; it is separate from
 the on-wire campaign rules revision. No parent command changes it during a run.
 
 ```json

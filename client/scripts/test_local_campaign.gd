@@ -3,17 +3,31 @@ extends SceneTree
 var failures: int = 0
 var settings_path: String
 var captures: String
+var run_directory: String
 
 func _initialize() -> void:
 	set_meta("fragr_automated", true)
 	settings_path = "user://local-campaign-%d.cfg" % OS.get_process_id()
 	set_meta("fragr_settings_path", settings_path)
+	run_directory = ProjectSettings.globalize_path("user://local-run-%d" % OS.get_process_id())
+	OS.set_environment("FRAGR_RUN_DIR", run_directory)
 	captures = OS.get_environment("FRAGR_LOCAL_QA_DIR")
 	call_deferred("_run")
 
 func _finalize() -> void:
 	MouseCapture.release()
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(settings_path))
+	var saved: DirAccess = DirAccess.open(run_directory)
+	if saved != null:
+		saved.list_dir_begin()
+		var name: String = saved.get_next()
+		while not name.is_empty():
+			if not saved.current_is_dir():
+				DirAccess.remove_absolute(run_directory.path_join(name))
+			name = saved.get_next()
+		saved.list_dir_end()
+		DirAccess.remove_absolute(run_directory)
+	OS.unset_environment("FRAGR_RUN_DIR")
 
 func _expect(value: bool, message: String) -> void:
 	if not value:
@@ -71,6 +85,8 @@ func _run() -> void:
 	await process_frame
 	await process_frame
 	current_scene._show("single")
+	if not await _until(func() -> bool: return LocalMatch.for_tree(self).run_preview.get("status") == "missing", "isolated campaign run starts without a save"):
+		return
 	await process_frame
 	await _capture("single-player")
 	var mission: Button = current_scene._root.get_node("RecallNotice") as Button
@@ -160,12 +176,10 @@ func _run() -> void:
 	partner.disconnect_from_server()
 	partner.free()
 	await _capture("recall-notice-entry")
+	var original_run_id: String = str(current_scene.mission_hud.state["run"]["id"])
 	current_scene.change_role(false)
-	if not await _until(func() -> bool: return _playing() and not current_scene.role_transition and current_scene.net_client.role == "spectator", "role change reaches spectator"):
-		return
-	_expect(owned.process._pid == pid and owned.process.running(), "spectating retains the same child")
-	if not await _until(func() -> bool: return current_scene.mission_hud.state.get("run", {}).get("status") == "abandoned", "leaving ends this run without refilling it"):
-		return
+	await process_frame
+	_expect(current_scene.is_human_player and current_scene.net_client.role == "human", "solo owner cannot switch role inside the same run")
 	var rejected: Node = load("res://scripts/net_client.gd").new()
 	root.add_child(rejected)
 	var errors: Array[String] = []
@@ -177,12 +191,26 @@ func _run() -> void:
 	_expect(rejected.player_id == null and errors[0] == tr("RUN_SEAT_CLOSED"), "run rejection is localized and leaves no player")
 	rejected.free()
 	current_scene.pause_menu.leave_requested.emit()
-	if not await _until(func() -> bool: return _menu() and owned.state == LocalMatch.State.IDLE, "Leave match returns to menu and stops owned server"):
+	if not await _until(func() -> bool: return _menu() and owned.state == LocalMatch.State.IDLE, "Exit to menu stops the owned server"):
 		return
-	_expect(not OS.is_process_running(pid), "owned child exits on leave")
+	_expect(not OS.is_process_running(pid), "owned child exits on menu return")
 	_expect(unrelated.is_listening(), "leaving preserves unrelated listeners")
 	_expect(Input.mouse_mode == Input.MOUSE_MODE_VISIBLE, "menu releases desktop pointer")
 	await _capture("returned-menu")
+	current_scene._show("single")
+	if not await _until(func() -> bool: return owned.run_preview.get("status") == "ready", "menu previews the saved run"):
+		return
+	_expect(owned.run_preview["difficulty"] == "severe" and int(owned.run_preview["continues"]) == 3, "menu retains difficulty and allowance")
+	current_scene._start_campaign_resume()
+	if not await _until(_playing, "Continue Run reopens M01"):
+		return
+	_expect(str(current_scene.mission_hud.state["run"]["id"]) == original_run_id, "resume preserves the run ID")
+	_expect(not is_instance_valid(current_scene.opening), "resume does not replay the opening")
+	if not await _until(func() -> bool: return current_scene.mission_hud.state.get("phase") == "find_transfer", "resumed briefing acknowledges once"):
+		return
+	current_scene.pause_menu.leave_requested.emit()
+	if not await _until(func() -> bool: return _menu() and owned.state == LocalMatch.State.IDLE, "resumed run returns to menu"):
+		return
 	current_scene._start_campaign("assisted")
 	if not await _until(_playing, "second launch reaches M01"):
 		return

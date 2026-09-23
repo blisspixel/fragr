@@ -28,6 +28,13 @@ mkdir -p "$OUT_DIR"
 # Godot changes its working directory to the project. A relative path otherwise
 # saves the images in a different directory from the wrapper's logs and publish.
 OUT_DIR="$(cd "$OUT_DIR" && pwd)"
+# The boot menu previews the local campaign run. Give this tour its own
+# absolute save directory so captures never depend on a player's real run.
+if command -v cygpath >/dev/null 2>&1; then
+  export FRAGR_RUN_DIR="$(cygpath -w "$OUT_DIR/run")"
+else
+  export FRAGR_RUN_DIR="$OUT_DIR/run"
+fi
 
 # Godot 4.7.2. FRAGR_GODOT wins; then the console binary on Windows; then PATH.
 GODOT_BIN="${FRAGR_GODOT:-${GODOT_BIN:-}}"

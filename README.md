@@ -10,7 +10,7 @@ The current release is [v0.44.1](https://github.com/blisspixel/fragr/releases/ta
 
 ## What runs today
 
-- **Recall Notice:** Single Player starts a solo M01 run with a skippable, reader-paced opening and three continues. Enter Annex 67 to find Latch's transfer record, recover weapons, fight through intake and records, and depart by the custody lift. Death offers an explicit mission-start retry with entry equipment restored. The fourth death ends the run. This is a developing mission, not the complete campaign.
+- **Recall Notice:** Single Player starts a solo M01 run with a skippable, reader-paced opening and three continues. Enter Annex 67 to find Latch's transfer record, recover weapons, fight through intake and records, and depart by the custody lift. Death offers an explicit mission-start retry with entry equipment restored. Exit to Menu saves the run at mission entry, including a pending continue; Continue Run reopens it. The fourth death ends the run. This is a developing mission, not the complete campaign.
 - **Solo Broadcast:** Episode 0 Calibration on Larak Lot. Host cold-open, objective chip (clear NODS, seize jammer, drop Auditor), same guns as MP. Default from `./tools/solo_scrap.sh` (server `--solo-broadcast`). This is an arena prototype. The planned ten-mission story and conditional epilogue live in [`docs/CAMPAIGN.md`](docs/CAMPAIGN.md); [`solo-story-episodes.md`](docs/plans/solo-story-episodes.md) records this prototype's implementation.
 - **Solo Scrap:** arcade offline on loopback without the episode path (`FRAGR_SOLO_BROADCAST=0`), four named rule bots with visible tactics (Aggressive, Defensive, Flanker, Balanced).
 - **Watch or join:** spectator by default through a fighter's eyes, including their gun and shot feedback. F changes fighter; V cycles eyes, chase, and free camera. Join mid-match as a human, leave back to spectate. Bots keep the server alive.
@@ -81,9 +81,20 @@ cargo build -p fragr-server --release --locked
 godot --path client
 ```
 
-Choose **Single Player > Recall Notice**, then a difficulty. The client owns a server on an available
-loopback port and stops it when you leave the match or close the game. It uses the
-M01 map embedded in that server build. Rebuild after changing the map or server.
+Choose **Single Player > Recall Notice**, then a difficulty. On later visits,
+**Continue Run** reopens a compatible save at the current mission entry.
+**Start New Run** archives the prior file after confirmation. The client owns a
+server on an available loopback port and stops it when you exit to menu or
+close the game; the run remains saved. An explicit Leave command abandons the
+run. It uses the M01 map embedded in that
+server build. Rebuild after changing the map or server. A changed M01 map
+requires a new run; the old file is retained until you choose to archive it.
+Archived runs have names like `run.prior-<id>.json` beside `run.json` in
+`%LOCALAPPDATA%/fragr/runs` on Windows, `~/Library/Application Support/fragr/runs`
+on macOS, or `$XDG_DATA_HOME/fragr/runs` (default `~/.local/share/fragr/runs`)
+on Linux. The menu opens the current `run.json` only. To recover an archive,
+close the game, retain a copy of the current file, and copy the archive back
+as `run.json`; it still must match the installed M01 content and rules.
 Opening `client/` in Godot and pressing F5 uses the same menu.
 
 For the separate arcade prototype:
@@ -104,7 +115,7 @@ cargo run -p fragr-server -- --bind 127.0.0.1:6767 --bots 4 --solo-broadcast
 
 **Controls:** WASD to move, mouse to look, left mouse to fire, J to join, L to leave back to spectate, F to cycle the spectator camera, C next radio station, N next track, M radio on or off, Esc to release the mouse. Gamepads work too; see the controls table below.
 
-**Boot menu:** Single Player, Multiplayer, Your Callsign, Service Record, Settings, Quit. Recall Notice starts its own local server. Arcade practice and multiplayer connect to an existing server whose host chooses the map and rules. Use the arcade launcher above for Calibration, or set `FRAGR_SOLO_BROADCAST=0` for arena practice. Escape opens the match menu; gameplay continues behind the menu. Leaving a local campaign stops its owned server. Leaving an external server does not stop the host.
+**Boot menu:** Single Player, Multiplayer, Your Callsign, Service Record, Settings, Quit. Recall Notice starts its own local server. Arcade practice and multiplayer connect to an existing server whose host chooses the map and rules. Use the arcade launcher above for Calibration, or set `FRAGR_SOLO_BROADCAST=0` for arena practice. Escape opens the match menu; gameplay continues behind the menu. Exit to Menu stops the owned local server and retains the run. Leaving an external server does not stop the host.
 
 ## Controls (keyboard and gamepad)
 
@@ -140,8 +151,12 @@ Railgun. Run instructions and current
 limitations: [`server/maps/README.md`](server/maps/README.md). M01 still needs
 finished enemy presentation, encounter balancing, secrets and opening art before
 it is a complete mission. The planned campaign targets a 2-3-hour successful run.
-The local prototype has three mission-start continues; leaving or closing ends
-that run. Saves, reconnect and cross-mission carry remain unbuilt. F or controller
+The local prototype has three mission-start continues. A versioned local run
+file now retains the run ID, difficulty, remaining continues and entry gear
+across restarts, including a pending death decision. It resumes at mission
+entry, not at the mid-mission position. M01 departure remains recorded with
+M02 pending; M02 gameplay, cross-mission carry and full campaign progression
+remain unbuilt. F or controller
 B uses an aimed mission control; departure ends this prototype. Dedicated
 four-seat development hosts retain shared boarding and automatic party resets;
 `--campaign-run` selects the same one-seat run rules as local Single Player.
@@ -189,6 +204,9 @@ Hosting guides: [`infra/docs/HOME-LAN.md`](infra/docs/HOME-LAN.md) for a home bo
 --map-file <PATH>    Authored development map; requires --bots 0, no arcade overrides
 --local-mission <ID> Desktop-owned recall_notice; loopback port 0, JSON readiness,
                     stdin lease. The menu supplies this; dedicated hosts use --map-file.
+--run-mode <MODE>   new archives a prior local run; resume validates and loads it.
+                    Requires --local-mission; omit for an ephemeral development run.
+--local-run-preview Read-only compatibility summary for the Single Player menu.
 --solo-broadcast     Solo Broadcast Episode 0 (Calibration; Larak Lot face on map 1)
 --seed <N>           Simulation seed; the same seed gives the same match (default 1)
 --status-every-s <N> Log a status report this often (default 60, 0 to disable)

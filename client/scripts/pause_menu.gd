@@ -11,6 +11,7 @@ var _open: bool = false
 var _panel: Panel = null
 var _column: VBoxContainer = null
 var _note: Label = null
+var _leave_button: Button = null
 ## True only for the owned local campaign. Arena and joined servers keep the live-match note.
 var local_campaign: bool = false
 var preferences: FragrSettings
@@ -68,7 +69,7 @@ func _build() -> void:
 
 	_add_button("Resume", func() -> void: close())
 	_add_button("Settings", show_settings)
-	_add_button("Leave match", func() -> void:
+	_leave_button = _add_button("Leave match", func() -> void:
 		close()
 		leave_requested.emit()
 	)
@@ -85,12 +86,13 @@ func _build() -> void:
 	spacer.custom_minimum_size = Vector2(0.0, 16.0)
 	_column.add_child(spacer)
 
-func _add_button(text: String, handler: Callable) -> void:
+func _add_button(text: String, handler: Callable) -> Button:
 	var b: Button = Button.new()
 	b.text = text
 	b.custom_minimum_size = Vector2(0.0, 42.0)
 	b.pressed.connect(handler)
 	_column.add_child(b)
+	return b
 
 func is_open() -> bool:
 	return _open
@@ -112,7 +114,8 @@ func _notification(what: int) -> void:
 		_refresh_note()
 
 func _refresh_note() -> void:
-	_note.text = tr("MENU_LEAVE_ABANDONS_RUN" if _local_campaign_run() else "MENU_LIVE_MATCH")
+	_note.text = tr("MENU_EXIT_SAVES_RUN" if _local_campaign_run() else "MENU_LIVE_MATCH")
+	_leave_button.text = tr("RUN_EXIT_MENU") if _local_campaign_run() else "Leave match"
 
 func open() -> void:
 	if _open:

@@ -8,7 +8,7 @@ class FakeProcess extends LocalProcess:
 	var output: PackedByteArray = PackedByteArray()
 	var allowed: bool = true
 	func start(_executable: String, arguments: PackedStringArray) -> bool:
-		assert(arguments == PackedStringArray(["--local-mission", "recall_notice", "--difficulty", "standard"]))
+		assert(arguments == PackedStringArray(["--local-mission", "recall_notice", "--run-mode", "new", "--difficulty", "standard"]))
 		starts += 1
 		alive = allowed
 		return allowed
@@ -110,6 +110,15 @@ func _run() -> void:
 	_expect(LocalMatch.readiness_url(JSON.stringify(wrong_tier).to_ascii_buffer()).is_empty(), "child cannot silently select another tier")
 	var starts: int = child.starts
 	_expect(not fixture.start_mission("invalid") and child.starts == starts, "invalid tier cannot start a child")
+	_expect(not fixture.start_mission("standard", "invalid") and child.starts == starts, "invalid run mode cannot start a child")
+	var ready_preview: Dictionary = {"status": "ready", "difficulty": "severe", "attempt": 3, "continues": 1, "pending_continue": true}
+	var parsed_preview: Dictionary = LocalMatch.parse_run_preview(JSON.stringify(ready_preview).to_ascii_buffer())
+	_expect(parsed_preview.size() == 5 and parsed_preview.get("status") == "ready" and int(parsed_preview.get("attempt", 0)) == 3 and parsed_preview.get("pending_continue") == true, "bounded preview accepts a valid pending run")
+	for patch: Dictionary in [{"attempt": 2}, {"continues": 0}, {"difficulty": "other"}, {"extra": 1}, {"pending_continue": 1}]:
+		var bad_preview: Dictionary = ready_preview.duplicate()
+		bad_preview.merge(patch, true)
+		_expect(LocalMatch.parse_run_preview(JSON.stringify(bad_preview).to_ascii_buffer()).is_empty(), "preview rejects inconsistent state: " + str(patch))
+	_expect(LocalMatch.parse_run_preview('{"status":"corrupt"}'.to_ascii_buffer()).get("status") == "corrupt", "preview distinguishes corrupt save")
 	for patch: Dictionary in [{"version":true}, {"version":1.5}, {"mission":"calibration"}, {"extra":1},
 		{"gameplay_version":4}, {"gameplay_version":5.5}, {"url":"ws://localhost:12345"}, {"url":"ws://127.0.0.1:0"},
 		{"url":"ws://127.0.0.1:65536"}, {"url":"ws://127.0.0.1:0123"}, {"url":"ws://127.0.0.1:123/x"}, {"url":42}]:

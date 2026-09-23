@@ -1,6 +1,7 @@
 # Capped Jev campaign validation
 
-**Status:** implemented, 2026-09-23. This is an automated M01 review increment
+**Status:** proven in [#228](https://github.com/blisspixel/fragr/pull/228),
+2026-09-23. This is an automated M01 review increment
 under the [full build order](../ROADMAP.md#full-build-order-2026-09-22).
 The [campaign-aware brain](jev-campaign-decisions.md) and the
 [bounded failure timeline](m01-failure-timeline.md) are already merged.

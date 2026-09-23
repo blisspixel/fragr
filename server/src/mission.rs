@@ -11,6 +11,7 @@ use uuid::Uuid;
 
 mod controller;
 mod recovery;
+pub(crate) mod run_file;
 pub use controller::MissionClient;
 
 #[cfg(test)]
@@ -289,11 +290,36 @@ impl GameState {
             MissionPhase::ReachLift => MissionPhase::Departed,
             MissionPhase::Briefing | MissionPhase::Departed => return,
         };
+        let exit = if next == MissionPhase::Departed && state.run.is_some() {
+            let Some(owner) = self
+                .mission
+                .as_ref()
+                .and_then(|run| run.solo.as_ref())
+                .and_then(recovery::SoloRun::owner)
+            else {
+                return;
+            };
+            let Some(player) = self.players.iter().find(|player| player.id == owner) else {
+                return;
+            };
+            match run_file::SavedEntry::from_player(player) {
+                Ok(exit) => Some(exit),
+                Err(reason) => {
+                    tracing::error!(reason, "Campaign exit equipment could not be saved");
+                    return;
+                }
+            }
+        } else {
+            None
+        };
         if let Some(run) = self.mission.as_mut() {
             run.phase = next;
             run.changed_at = self.tick;
             if next == MissionPhase::Departed {
                 if let Some(solo) = run.solo.as_mut() {
+                    if let Some(exit) = exit {
+                        solo.capture_exit(exit);
+                    }
                     solo.state.status = crate::protocol::CampaignRunStatus::Complete;
                 }
             }

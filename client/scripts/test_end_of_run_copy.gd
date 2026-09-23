@@ -77,24 +77,24 @@ func _run() -> void:
 	root.add_child(campaign)
 	var campaign_menu: PauseMenu = _open_menu(campaign)
 	await process_frame
-	var warning: String = tr("MENU_LEAVE_ABANDONS_RUN")
-	_check(campaign_menu._note.text == warning, "local campaign note warns that leaving abandons the run")
-	_check("abandons this run" in campaign_menu._note.text and "does not refill continues" in campaign_menu._note.text, "local campaign note says leaving abandons this run and does not refill continues")
+	var warning: String = tr("MENU_EXIT_SAVES_RUN")
+	_check(campaign_menu._note.text == warning, "local campaign note says exit preserves the run")
+	_check("pending continue" in campaign_menu._note.text, "local campaign note preserves a pending continue")
 	_check("LIVE MATCH" not in campaign_menu._note.text, "local campaign note is not the arena sentence")
 
 	var translated: Translation = Translation.new()
 	translated.locale = "de"
-	translated.add_message("MENU_LEAVE_ABANDONS_RUN", "Verlassen gibt diesen Lauf auf und fuellt keine Versuche nach.")
+	translated.add_message("MENU_EXIT_SAVES_RUN", "Verlassen speichert diesen Lauf.")
 	translated.add_message("MISSION_DEPARTED", "ZIEL: Korrekturstation")
 	TranslationServer.add_translation(translated)
 	TranslationServer.set_locale("de")
 	await process_frame
-	_check(campaign_menu._note.text == "Verlassen gibt diesen Lauf auf und fuellt keine Versuche nach.", "campaign note follows the catalog")
+	_check(campaign_menu._note.text == "Verlassen speichert diesen Lauf.", "campaign note follows the catalog")
 	_check(tr("MISSION_DEPARTED") == "ZIEL: Korrekturstation", "departure follows the catalog")
 	TranslationServer.set_locale("en")
 	TranslationServer.remove_translation(translated)
 	await process_frame
-	_check(campaign_menu._note.text == tr("MENU_LEAVE_ABANDONS_RUN"), "campaign note returns to English")
+	_check(campaign_menu._note.text == tr("MENU_EXIT_SAVES_RUN"), "campaign note returns to English")
 	_check("correction ward" in tr("MISSION_DEPARTED"), "departure returns to the correction ward")
 
 	campaign_menu.free()

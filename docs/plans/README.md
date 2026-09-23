@@ -17,7 +17,8 @@ Status words: **planned**, **in flight**, **implemented** (local evidence record
 
 | Plan | Status | One-liner |
 |---|---|---|
-| [`jev-m01-validation.md`](./jev-m01-validation.md) | **implemented** | Capped Jev M01 Standard and Severe trials with authoritative receipts and actual spend evidence. |
+| [`campaign-run-file.md`](./campaign-run-file.md) | **in flight** | Versioned solo run persistence with atomic writes and exact continue restoration. |
+| [`jev-m01-validation.md`](./jev-m01-validation.md) | **proven** ([#228](https://github.com/blisspixel/fragr/pull/228)) | Capped Jev M01 Standard and Severe trials with authoritative receipts and actual spend evidence. |
 | [`m01-opening-weapon-input.md`](./m01-opening-weapon-input.md) | **shipped** ([#226](https://github.com/blisspixel/fragr/pull/226)) | Same-session MapInfo, phase-card timing, and key 1 through a live owned M01 server are covered. |
 | [`bounded-spectator-fanout.md`](./bounded-spectator-fanout.md) | **shipped** ([#224](https://github.com/blisspixel/fragr/pull/224), v0.44.1) | Bounded slow watcher delivery with a twelve-roster local load matrix; remote-network and TLS evidence remains. |
 | [`m01-failure-timeline.md`](./m01-failure-timeline.md) | **shipped** ([#227](https://github.com/blisspixel/fragr/pull/227)) | Bounded free-run M01 trace, seeded failure diagnosis and a tested terminal-record correction. |

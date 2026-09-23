@@ -25,6 +25,7 @@ var _settings: FragrSettings
 var _name_edit: LineEdit = null
 var _local_match: LocalMatch
 var _launch_pending: bool = false
+var _campaign_run_mode: String = "new"
 var _opening: CampaignOpening
 var _title: Label
 var _tagline: Label
@@ -35,6 +36,7 @@ func _ready() -> void:
 	_local_match.stop()
 	_local_match.mission_ready.connect(_on_local_ready)
 	_local_match.state_changed.connect(_on_local_state_changed)
+	_local_match.run_preview_changed.connect(_on_run_preview_changed)
 	theme = MenuTheme.build()
 	if _settings == null:
 		_settings = FragrSettings.for_tree(get_tree())
@@ -157,6 +159,8 @@ func _show(page: String) -> void:
 			_page_single()
 		"difficulty":
 			_page_difficulty()
+		"new_confirm":
+			_page_new_confirm()
 		"multi":
 			_page_multi()
 		"settings":
@@ -196,9 +200,40 @@ func _page_main() -> void:
 
 func _page_single() -> void:
 	_label(tr("MENU_CAMPAIGN"))
-	var mission: Button = _button(tr("MISSION_M01_TITLE"), func() -> void: _show("difficulty"))
-	mission.name = "RecallNotice"
-	mission.disabled = _local_match.state not in [LocalMatch.State.IDLE, LocalMatch.State.FAILED]
+	if _local_match.run_preview.is_empty():
+		_local_match.refresh_run_preview.call_deferred()
+	var status: String = str(_local_match.run_preview.get("status", "loading"))
+	var can_start: bool = _local_match.state in [LocalMatch.State.IDLE, LocalMatch.State.FAILED]
+	match status:
+		"ready":
+			var mission: Button = _button(tr("RUN_CONTINUE"), _start_campaign_resume)
+			mission.name = "RecallNotice"
+			mission.disabled = not can_start
+			_label(tr("RUN_SAVED_DETAIL").format({"attempt": _local_match.run_preview["attempt"], "continues": _local_match.run_preview["continues"], "difficulty": _local_match.run_preview["difficulty"]}))
+			_button(tr("RUN_NEW"), func() -> void: _show("new_confirm")).disabled = not can_start
+		"missing":
+			var mission: Button = _button(tr("MISSION_M01_TITLE"), func() -> void: _show("difficulty"))
+			mission.name = "RecallNotice"
+			mission.disabled = not can_start
+		"awaiting_mission":
+			_label(tr("RUN_M02_PENDING"))
+			_button(tr("RUN_NEW"), func() -> void: _show("new_confirm")).disabled = not can_start
+		"failed":
+			_label(tr("RUN_FAILED"))
+			_button(tr("RUN_NEW"), func() -> void: _show("new_confirm")).disabled = not can_start
+		"abandoned":
+			_label(tr("RUN_ABANDONED"))
+			_button(tr("RUN_NEW"), func() -> void: _show("new_confirm")).disabled = not can_start
+		"incompatible", "corrupt":
+			_label(tr("RUN_UNREADABLE"))
+			_button(tr("RUN_NEW"), func() -> void: _show("new_confirm")).disabled = not can_start
+		_:
+			_label(tr("RUN_CHECKING" if status == "loading" else "RUN_PREVIEW_UNAVAILABLE"))
+			if status == "unavailable":
+				_button(tr("RUN_RETRY_PREVIEW"), func() -> void:
+					_local_match.run_preview.clear()
+					_show("single")
+				)
 	_label(tr("MENU_M01_DESCRIPTION"))
 	_button(tr("STORY_REPLAY"), _replay_opening)
 	_label(tr("MENU_PRACTICE"))
@@ -207,6 +242,15 @@ func _page_single() -> void:
 	_button("Watch the bots", func() -> void: _launch("spectate", LOOPBACK))
 	_label(tr("MENU_PRACTICE_SERVER"))
 	_button("Back", func() -> void: _show("main"))
+
+func _on_run_preview_changed() -> void:
+	if _page == "single" and not _launch_pending:
+		_show("single")
+
+func _page_new_confirm() -> void:
+	_label(tr("RUN_NEW_CONFIRM"))
+	_button(tr("RUN_ARCHIVE_START"), func() -> void: _show("difficulty"))
+	_button(tr("MENU_BACK"), func() -> void: _show("single"))
 
 func _replay_opening() -> void:
 	if is_instance_valid(_opening):
@@ -233,8 +277,19 @@ func _start_campaign(difficulty: String = "standard") -> void:
 	if _launch_pending:
 		return
 	_launch_pending = true
+	_campaign_run_mode = "new"
 	_show("launch")
-	_local_match.start_mission(difficulty)
+	_local_match.start_mission(difficulty, "new")
+	_on_local_state_changed()
+
+func _start_campaign_resume() -> void:
+	if _launch_pending or _local_match.run_preview.get("status") != "ready":
+		return
+	var difficulty: String = str(_local_match.run_preview["difficulty"])
+	_launch_pending = true
+	_campaign_run_mode = "resume"
+	_show("launch")
+	_local_match.start_mission(difficulty, "resume")
 	_on_local_state_changed()
 
 func _page_launch() -> void:
@@ -260,7 +315,7 @@ func _on_local_state_changed() -> void:
 func _on_local_ready(address: String) -> void:
 	if _launch_pending:
 		_launch_pending = false
-		_launch("campaign", address)
+		_launch("campaign", address, _campaign_run_mode)
 
 func _page_multi() -> void:
 	_label("A server is a program you run. Anyone can host one.")
@@ -405,14 +460,16 @@ func _unhandled_input(event: InputEvent) -> void:
 		if _launch_pending:
 			_cancel_campaign()
 		else:
-			_show("single" if _page == "difficulty" else "main")
+			_show("single" if _page in ["difficulty", "new_confirm"] else "main")
 		get_viewport().set_input_as_handled()
 
-func _launch(mode: String, host: String) -> void:
+func _launch(mode: String, host: String, run_mode: String = "") -> void:
 	var boot: Dictionary = {
 		"mode": mode,
 		"host": host,
 	}
+	if mode == "campaign":
+		boot["run_mode"] = run_mode
 	get_tree().set_meta("fragr_boot", boot)
 	var err: Error = get_tree().change_scene_to_file(ARENA_SCENE)
 	if err != OK:

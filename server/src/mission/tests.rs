@@ -578,6 +578,7 @@ fn drive_party(mut session: GameSession, size: usize, retry_after_record: bool) 
         .iter()
         .map(|p| [p.x, p.y, p.z])
         .collect();
+    let solo_owner = retry_after_record.then_some(ids[0]);
     for id in ids {
         session.state.set_action(
             id,
@@ -599,6 +600,19 @@ fn drive_party(mut session: GameSession, size: usize, retry_after_record: bool) 
             .collect::<Vec<_>>()
     );
     assert!(session.state.shot_results.is_empty());
+    if let Some(owner) = solo_owner {
+        let completed = session.state.campaign_run_document().unwrap().unwrap();
+        assert!(matches!(
+            &completed.step,
+            super::run_file::SavedStep::AwaitingMission { .. }
+        ));
+        session.state.remove_player(owner);
+        session.tick_messages(0.05);
+        assert_eq!(
+            session.state.campaign_run_document().unwrap(),
+            Some(completed)
+        );
+    }
 }
 
 #[test]

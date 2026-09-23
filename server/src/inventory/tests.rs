@@ -7,6 +7,35 @@ fn view(inventory: &Inventory, selected: WeaponType, tick: u64) -> LoadoutState 
 }
 
 #[test]
+fn saved_equipment_restores_only_durable_discovery_state() {
+    let mut inventory = Inventory::new(EquipmentPolicy::Discovery);
+    assert!(inventory.grant_weapon(WeaponType::Tack));
+    assert!(inventory.try_fire(WeaponType::Tack));
+    inventory.record_claim("entry_supply".into());
+    assert!(inventory.begin_reload(WeaponType::Tack, 5));
+    let saved = inventory.saved_equipment(WeaponType::Tack).unwrap();
+    assert!(saved.validate().is_ok());
+    assert_eq!(saved.weapons.len(), 2);
+    let mut restored = Inventory::new(EquipmentPolicy::Discovery);
+    restored.restore_saved_equipment(&saved).unwrap();
+    let state = view(&restored, saved.selected, 100);
+    assert_eq!(state.weapons, saved.weapons);
+    assert_eq!(state.reserves, saved.reserves);
+    assert_eq!(state.personal_claims, saved.personal_claims);
+    assert!(state.reload.is_none());
+    assert_eq!(state.dry_fire_count, 0);
+    assert_eq!(restored.revision(), 1);
+    let mut invalid = saved.clone();
+    invalid.weapons.push(invalid.weapons[1].clone());
+    assert!(invalid.validate().is_err());
+    assert!(restored.restore_saved_equipment(&invalid).is_err());
+    assert_eq!(view(&restored, saved.selected, 100).weapons, saved.weapons);
+    assert!(Inventory::new(EquipmentPolicy::FullArsenal)
+        .restore_saved_equipment(&saved)
+        .is_err());
+}
+
+#[test]
 fn full_arsenal_retains_its_three_unlimited_guns_without_private_state() {
     let mut inventory = Inventory::new(EquipmentPolicy::FullArsenal);
     for weapon in WeaponType::ALL {
