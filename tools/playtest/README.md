@@ -9,7 +9,23 @@ sizes. These measurements support playtesting; they do not establish fun alone.
 ```bash
 cargo run -p fragr-playtest --locked -- --agents 4 --rounds 1 --frag-limit 3 --time-limit-seconds 45 --assert --report .agents/playtest/run.json
 bash tools/playtest_roster.sh
+cargo run -p fragr-playtest --locked -- --fanout-matrix --fanout-seconds 10 --report .agents/fanout/matrix.json
 ```
+
+The optional fanout matrix starts a fresh seed 42 server for each of twelve
+local rosters: 4 or 16 active socket fighters and 1, 8, or 16 spectators on
+Arena Duel and Tripoint Works. Each spectator consumes the live WebSocket
+stream. The largest roster uses all 32 connections allowed from one loopback
+address. The report records authoritative session and fanout enqueue timing samples,
+outbound queue high water and overflows, watcher text payload bytes per second,
+snapshot gaps, disconnects, and snapshot arrival spread among watchers for the
+same tick. Payload bytes include all received text messages during the sample,
+but exclude WebSocket framing and TCP overhead. Arrival spread is a relative
+local delivery measure, not absolute server-to-client latency.
+`--fanout-seconds` selects 2 to 120 measured seconds per row; 10 is the
+default. Reports use schema 1. Keep the JSON and record the
+host and revision when comparing results. This local matrix does not establish
+Internet latency or public-server capacity.
 
 `--assert` exits non-zero when a frustration threshold is crossed: no round completed, an agent stuck (no movement and no fire during an active round) for more than five seconds, spawn deaths above ten percent of frags, or fewer than one frag per minute with four or more agents. It also fails when the sticky flechette, rail, or scatter clean-hit time to kill leaves the 0.5 to 1.2 second band (the #124 table). CI runs exactly that command on every PR. Reports land under the gitignored `.agents/` directory; put the summary table for a change under test into that change's plan doc.
 

@@ -12,6 +12,12 @@ use tracing_subscriber::EnvFilter;
     about = "Scripted agents play fragr rounds in-process and file a metrics report."
 )]
 struct Cli {
+    /// Run the local fighter and spectator delivery matrix instead of a round.
+    #[arg(long)]
+    fanout_matrix: bool,
+    /// Seconds measured in each of the twelve fanout matrix rows.
+    #[arg(long, default_value_t = 10)]
+    fanout_seconds: u64,
     /// Number of scripted agents.
     #[arg(long, default_value_t = 4)]
     agents: usize,
@@ -70,6 +76,40 @@ async fn main() {
         .with_writer(std::io::stderr)
         .init();
     let cli = Cli::parse();
+    if cli.fanout_matrix {
+        let report = match fragr_playtest::fanout::matrix(cli.fanout_seconds).await {
+            Ok(report) => report,
+            Err(error) => {
+                eprintln!("error: {error}");
+                std::process::exit(2);
+            }
+        };
+        if let Some(parent) = cli.report.parent() {
+            if let Err(error) = std::fs::create_dir_all(parent) {
+                eprintln!("error: cannot create {}: {error}", parent.display());
+                std::process::exit(2);
+            }
+        }
+        let json = serde_json::to_string_pretty(&report).expect("fanout report serializes");
+        if let Err(error) = std::fs::write(&cli.report, format!("{json}\n")) {
+            eprintln!("error: cannot write {}: {error}", cli.report.display());
+            std::process::exit(2);
+        }
+        for row in &report.rows {
+            println!(
+                "{}: {} fighters, {} spectators, {} frames, {:.0} text KiB/s, {} missing ticks, {} disconnects",
+                row.map,
+                row.fighters,
+                row.spectators,
+                row.watcher_snapshots,
+                row.watcher_text_bytes_per_second / 1024.0,
+                row.missing_snapshot_ticks,
+                row.watcher_disconnects
+            );
+        }
+        println!("report: {}", cli.report.display());
+        return;
+    }
     let config = match config_from(&cli) {
         Ok(config) => config,
         Err(err) => {
@@ -144,6 +184,8 @@ mod tests {
         assert_eq!(config.max_ticks, 2400);
         assert_eq!(config.map, fragr_server::sim::MapKind::ArenaDuel);
         assert!(!cli.assert);
+        assert!(!cli.fanout_matrix);
+        assert_eq!(cli.fanout_seconds, 10);
     }
 
     #[test]

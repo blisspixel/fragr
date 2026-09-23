@@ -79,3 +79,42 @@ Local baseline at `7f9070d` on Windows: `cargo test -p fragr-server --locked
 --quiet` passed 394 server library tests (two ignored) plus integration tests.
 This establishes behavior before the queue change; it is not a fan-out load
 measurement.
+
+## Local fanout measurement
+
+The release-build matrix completed 2026-09-23 on Windows 11 Pro, AMD Ryzen 7
+7840U (16 logical processors), loopback WebSocket JSON, seed 42, ten measured
+seconds per row. The branch candidate was based on `810bea7`; the measured
+release executable SHA-256 was
+`2227d05b4d2f93d85bfa176ee4849bd1a62e473218d5e923e5217fc3fd081cd2`.
+The command was `cargo run -p fragr-playtest --release --locked
+-- --fanout-matrix --fanout-seconds 10 --report
+.agents/fanout/matrix-final.json`. Each row starts a new match after all
+fighters and watchers receive their initial geometry. The server timing sink is
+reset at that point and read before shutdown; a tick at either edge can straddle
+the window. Server timings measure authoritative session work and queue
+enqueue/cloning separately. Text KiB/s counts received text payloads during
+the window, without WebSocket or TCP framing. Age is each snapshot's arrival
+behind the earliest watcher that received the same tick. A single watcher has
+zero relative age by definition.
+
+| Map | Fighters | Watchers | Server ticks | Session ms p50/p99 | Enqueue ms p50/p99 | Queue peak | Watch frames | Text KiB/s | Age p99 ms / missing ticks / drops |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| Arena Duel | 4 | 1 | 200 | 0.04 / 0.07 | 0.03 / 0.06 | 5 | 200 | 32 | 0.00 / 0 / 0 |
+| Arena Duel | 4 | 8 | 199 | 0.04 / 0.07 | 0.06 / 0.12 | 5 | 1,592 | 256 | 0.19 / 0 / 0 |
+| Arena Duel | 4 | 16 | 199 | 0.04 / 0.12 | 0.09 / 0.29 | 5 | 3,184 | 512 | 0.24 / 0 / 0 |
+| Arena Duel | 16 | 1 | 200 | 0.06 / 1.11 | 0.09 / 0.24 | 17 | 200 | 63 | 0.00 / 0 / 0 |
+| Arena Duel | 16 | 8 | 200 | 0.06 / 1.11 | 0.13 / 0.34 | 17 | 1,600 | 505 | 0.36 / 0 / 0 |
+| Arena Duel | 16 | 16 | 199 | 0.06 / 1.25 | 0.16 / 0.66 | 17 | 3,184 | 1,008 | 1.01 / 0 / 0 |
+| Tripoint Works | 4 | 1 | 199 | 0.04 / 0.09 | 0.04 / 0.07 | 5 | 199 | 32 | 0.00 / 0 / 0 |
+| Tripoint Works | 4 | 8 | 199 | 0.04 / 0.07 | 0.06 / 0.10 | 5 | 1,592 | 254 | 0.16 / 0 / 0 |
+| Tripoint Works | 4 | 16 | 199 | 0.04 / 0.07 | 0.09 / 0.33 | 5 | 3,184 | 509 | 0.23 / 0 / 0 |
+| Tripoint Works | 16 | 1 | 200 | 0.07 / 0.98 | 0.10 / 0.29 | 17 | 200 | 68 | 0.00 / 0 / 0 |
+| Tripoint Works | 16 | 8 | 200 | 0.07 / 1.24 | 0.13 / 0.31 | 17 | 1,600 | 547 | 1.13 / 0 / 0 |
+| Tripoint Works | 16 | 16 | 200 | 0.07 / 1.11 | 0.17 / 0.34 | 17 | 3,200 | 1,095 | 0.84 / 0 / 0 |
+
+Queue overflow count was zero in every row. This matrix confirms healthy local
+delivery and bounded queue use for the measured rosters. It does not test a
+stalled reader or establish capacity over a real network. The focused server
+tests exercise overflow and writer cleanup; wider hardware and network
+measurements are required before changing connection caps.
