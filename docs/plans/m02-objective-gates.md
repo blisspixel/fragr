@@ -123,8 +123,9 @@ run-file revision and its own tests before it is called shipped.
 The first PR CI run exposed a local-launch contract regression: the M01 child
 advertised the server's new maximum capability 9 while the M01 Godot launcher
 requires its exact capability 8. Readiness now reports the selected mission's
-contract. The Rust bootstrap regression and the real Windows Godot local-campaign,
-recovery and saved-restart harnesses pass with that correction.
+contract. The Rust bootstrap and local-child integration tests, plus the real
+Windows Godot local-campaign, recovery and saved-restart harnesses, pass with
+that correction.
 
 Wire-slice checks: `cargo fmt --all -- --check`,
 `cargo clippy --workspace --all-targets --locked -- -D warnings`, and
