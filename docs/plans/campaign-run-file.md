@@ -144,3 +144,24 @@ The store also retains unsupported prior bytes under a unique archived name
 when an explicit New Run starts; a focused test reads that archive back.
 Preview now shares the bounded document reader and validator with locked load;
 launch must still validate again under the lock because a preview can be stale.
+
+The local child now accepts explicit `--run-mode new|resume`. New Run archives
+any prior bytes and saves its initial document before readiness. Resume opens
+the same authored map, locks and validates the file, restores its saved
+difficulty and run identity, then advertises readiness. The read-only
+`--local-run-preview` classifies missing, ready, failed, M02 pending,
+incompatible and corrupt documents. It does not delete any of them. The tick
+and command loop persists a changed run before delivering their
+messages; an I/O error exits the child without publishing that transition.
+Native storage uses Local AppData on Windows, Application Support on macOS and XDG
+data home on Linux, with an absolute `FRAGR_RUN_DIR` override for isolated
+tests. Those locations follow the [Microsoft known folder guidance](https://learn.microsoft.com/en-us/windows/win32/shell/knownfolderid),
+[Apple file placement guidance](https://developer.apple.com/library/archive/documentation/MacOSX/Conceptual/BPFileSystem/Articles/WhereToPutFiles.html)
+and [XDG base directory specification](https://specifications.freedesktop.org/basedir/0.8/),
+checked 2026-09-23.
+
+Focused Rust checks now include a real child stop/restart with the same run ID
+and difficulty, a concurrent second child refused by the lock, and read-only
+preview of corrupt and incompatible bytes. `cargo clippy -p fragr-server
+--all-targets --locked -- -D warnings` passes. The client menu still starts
+the old ephemeral mode, so this backend is not yet a delivered save feature.

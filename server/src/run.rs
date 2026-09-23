@@ -2,11 +2,15 @@
 //! in-process harnesses such as the playtest tool. Binding on port 0 and the
 //! `ready` channel let a caller learn the real address; `shutdown` ends the loop.
 
+use crate::mission::run_file::store::RunStore;
+use crate::mission::run_file::RunDocument;
 use crate::net::NetServer;
+use crate::protocol::CampaignDifficulty;
 use crate::session::{broadcast_to_clients, send_unicasts, DeliveryStats, GameSession};
 use crate::sim::{MapKind, MatchConfig};
 use std::future::Future;
 use std::net::SocketAddr;
+use std::path::PathBuf;
 use std::time::Duration;
 use tokio::sync::mpsc;
 
@@ -50,6 +54,12 @@ impl RunMetrics {
 
 /// Fixed simulation step: 20 Hz.
 pub const TICK: Duration = Duration::from_millis(50);
+
+pub(crate) struct LocalRunConfig {
+    pub directory: PathBuf,
+    pub resume: bool,
+    pub difficulty_ready: tokio::sync::oneshot::Sender<CampaignDifficulty>,
+}
 
 /// Everything the loop needs besides the shutdown signal.
 #[derive(Debug, Clone)]
@@ -102,7 +112,16 @@ pub async fn run_server(
     shutdown: impl Future<Output = ()>,
     ready: Option<tokio::sync::oneshot::Sender<SocketAddr>>,
 ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    run_server_impl(options, shutdown, ready, None).await
+    run_server_impl(options, shutdown, ready, None, None).await
+}
+
+pub(crate) async fn run_local_server(
+    options: ServerOptions,
+    shutdown: impl Future<Output = ()>,
+    ready: tokio::sync::oneshot::Sender<SocketAddr>,
+    local_run: LocalRunConfig,
+) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    run_server_impl(options, shutdown, Some(ready), None, Some(local_run)).await
 }
 
 pub async fn run_server_with_metrics(
@@ -111,7 +130,7 @@ pub async fn run_server_with_metrics(
     ready: Option<tokio::sync::oneshot::Sender<SocketAddr>>,
     metrics: std::sync::Arc<std::sync::Mutex<RunMetrics>>,
 ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    run_server_impl(options, shutdown, ready, Some(metrics)).await
+    run_server_impl(options, shutdown, ready, Some(metrics), None).await
 }
 
 async fn run_server_impl(
@@ -119,6 +138,7 @@ async fn run_server_impl(
     shutdown: impl Future<Output = ()>,
     ready: Option<tokio::sync::oneshot::Sender<SocketAddr>>,
     metrics: Option<std::sync::Arc<std::sync::Mutex<RunMetrics>>>,
+    local_run: Option<LocalRunConfig>,
 ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     // Complete bounded topology construction before advertising readiness.
     // Keep it off the async executor, including single-threaded local harnesses.
@@ -147,11 +167,55 @@ async fn run_server_impl(
         }
     })
     .await??;
-    if let Some(difficulty) = options.difficulty {
-        session.state.set_campaign_difficulty(difficulty)?;
-    }
-    if options.campaign_run {
-        session.state.enable_campaign_run()?;
+    let mut run_store: Option<RunStore> = None;
+    let mut last_run_document: Option<RunDocument> = None;
+    if let Some(local_run) = local_run {
+        if !options.campaign_run
+            || !matches!(
+                options.authored,
+                Some(crate::maps::AuthoredSource::Mission(_))
+            )
+        {
+            return Err("durable local run requires a bundled campaign mission".into());
+        }
+        let content_sha256 = session
+            .state
+            .map
+            .content_sha256()
+            .ok_or("durable local run requires authored content")?;
+        let store = RunStore::open(&local_run.directory, content_sha256)?;
+        if local_run.resume {
+            let saved = store.load()?.ok_or("no saved campaign run to resume")?;
+            session.state.load_campaign_run(&saved)?;
+            last_run_document = Some(saved);
+        } else {
+            session
+                .state
+                .set_campaign_difficulty(options.difficulty.unwrap_or_default())?;
+            session.state.enable_campaign_run()?;
+            let mission = session
+                .state
+                .mission_state()
+                .ok_or("campaign mission is missing")?;
+            let initial = RunDocument::new(
+                mission.run.ok_or("campaign run is missing")?.id,
+                mission.rules,
+                content_sha256,
+            );
+            store.start_new(&initial)?;
+            last_run_document = Some(initial);
+        }
+        let _ = local_run
+            .difficulty_ready
+            .send(session.state.campaign_rules().difficulty);
+        run_store = Some(store);
+    } else {
+        if let Some(difficulty) = options.difficulty {
+            session.state.set_campaign_difficulty(difficulty)?;
+        }
+        if options.campaign_run {
+            session.state.enable_campaign_run()?;
+        }
     }
     if session.state.map.mission().is_some() {
         tracing::info!(rules = ?session.state.campaign_rules(), "Campaign rules selected");
@@ -255,6 +319,7 @@ async fn run_server_impl(
                     session.drop_expired_pawn(player_id);
                 }
                 let messages = session.tick_messages(TICK.as_secs_f32());
+                persist_local_run(&session.state, run_store.as_ref(), &mut last_run_document)?;
                 session.resume.note_tick(session.state.tick);
                 let elapsed = started.elapsed();
                 let bytes = crate::bench::encoded_payload_bytes(messages.iter())?;
@@ -295,6 +360,7 @@ async fn run_server_impl(
 
             Some(cmd) = game_rx.recv() => {
                 session.apply_command(cmd);
+                persist_local_run(&session.state, run_store.as_ref(), &mut last_run_document)?;
                 let unicasts = session.take_unicasts();
                 let delivery = send_unicasts(&clients, &session.client_to_player, &unicasts).await;
                 if let Some(metrics) = &metrics {
@@ -309,5 +375,21 @@ async fn run_server_impl(
         }
     }
 
+    Ok(())
+}
+
+fn persist_local_run(
+    state: &crate::sim::GameState,
+    store: Option<&RunStore>,
+    previous: &mut Option<RunDocument>,
+) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    let Some(store) = store else { return Ok(()) };
+    let Some(document) = state.campaign_run_document()? else {
+        return Ok(());
+    };
+    if previous.as_ref() != Some(&document) {
+        store.save(&document)?;
+        *previous = Some(document);
+    }
     Ok(())
 }

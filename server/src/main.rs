@@ -30,6 +30,14 @@ struct Args {
     #[arg(long, value_parser = ["recall_notice"], conflicts_with_all = ["bind", "bots", "map", "map_file", "map_rotate", "solo_broadcast", "no_round_events", "bench", "bench_verify_trace", "status_every_s"])]
     local_mission: Option<String>,
 
+    /// Persist an owned desktop campaign run. Omit for ephemeral development runs.
+    #[arg(long, value_enum, requires = "local_mission")]
+    run_mode: Option<fragr_server::local::LocalRunMode>,
+
+    /// Read-only compatibility summary for the local campaign menu.
+    #[arg(long, conflicts_with_all = ["local_mission", "map_file", "map", "bots", "bind", "campaign_run", "difficulty", "bench", "bench_verify_trace"])]
+    local_run_preview: bool,
+
     /// Shared campaign pressure. Fixed for this run; does not change arcade rules.
     #[arg(long, value_enum, requires = "campaign_source", conflicts_with_all = ["bench", "bench_verify_trace", "solo_broadcast", "map_rotate", "no_round_events"])]
     difficulty: Option<fragr_server::protocol::CampaignDifficulty>,
@@ -112,12 +120,19 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let args = Args::parse();
     // In benchmark mode the JSON report is the only thing on stdout, so logs
     // go to stderr and only warnings survive.
-    init_tracing(args.bench.is_some());
+    init_tracing(args.bench.is_some() || args.local_run_preview);
+    if args.local_run_preview {
+        let preview =
+            fragr_server::local::preview_run(fragr_server::protocol::MissionId::RecallNotice)?;
+        println!("{}", serde_json::to_string(&preview)?);
+        return Ok(());
+    }
     if args.local_mission.is_some() {
-        return fragr_server::local::serve(
+        return fragr_server::local::serve_with_mode(
             fragr_server::protocol::MissionId::RecallNotice,
             args.seed,
             args.difficulty.unwrap_or_default(),
+            args.run_mode,
             std::io::stdin(),
             std::io::stdout(),
         )

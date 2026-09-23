@@ -15,6 +15,13 @@ pub(crate) struct RunStore {
     _lock: File,
 }
 
+pub(crate) enum RunProbe {
+    Missing,
+    Compatible(RunDocument),
+    Incompatible,
+    Corrupt,
+}
+
 impl RunStore {
     /// Only the local child opens a writable run. Tests supply an isolated dir.
     pub fn open(directory: &Path, content_sha256: [u8; 32]) -> io::Result<Self> {
@@ -23,6 +30,7 @@ impl RunStore {
             .read(true)
             .write(true)
             .create(true)
+            .truncate(false)
             .open(directory.join(LOCK_NAME))?;
         lock.try_lock()?;
         Ok(Self {
@@ -39,20 +47,33 @@ impl RunStore {
     /// A menu may inspect an unlocked snapshot. Launch always reopens under
     /// the writer lock and validates again before advertising readiness.
     pub fn preview(directory: &Path, content_sha256: [u8; 32]) -> io::Result<Option<RunDocument>> {
+        match Self::inspect(directory, content_sha256)? {
+            RunProbe::Missing => Ok(None),
+            RunProbe::Compatible(document) => Ok(Some(document)),
+            RunProbe::Incompatible => Err(invalid("incompatible campaign run document")),
+            RunProbe::Corrupt => Err(invalid("invalid campaign run document")),
+        }
+    }
+
+    pub fn inspect(directory: &Path, content_sha256: [u8; 32]) -> io::Result<RunProbe> {
         let file = match File::open(directory.join(RUN_NAME)) {
             Ok(file) => file,
-            Err(error) if error.kind() == io::ErrorKind::NotFound => return Ok(None),
+            Err(error) if error.kind() == io::ErrorKind::NotFound => return Ok(RunProbe::Missing),
             Err(error) => return Err(error),
         };
         let mut bytes = Vec::new();
         file.take(MAX_RUN_BYTES + 1).read_to_end(&mut bytes)?;
         if bytes.len() as u64 > MAX_RUN_BYTES {
-            return Err(invalid("campaign run document exceeds the size limit"));
+            return Ok(RunProbe::Corrupt);
         }
-        let document: RunDocument =
-            serde_json::from_slice(&bytes).map_err(|_| invalid("invalid campaign run document"))?;
-        document.validate(content_sha256).map_err(invalid)?;
-        Ok(Some(document))
+        let document: RunDocument = match serde_json::from_slice(&bytes) {
+            Ok(document) => document,
+            Err(_) => return Ok(RunProbe::Corrupt),
+        };
+        if document.validate(content_sha256).is_err() {
+            return Ok(RunProbe::Incompatible);
+        }
+        Ok(RunProbe::Compatible(document))
     }
 
     pub fn save(&self, document: &RunDocument) -> io::Result<()> {
