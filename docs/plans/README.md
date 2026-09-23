@@ -17,7 +17,7 @@ Status words: **planned**, **in flight**, **implemented** (local evidence record
 
 | Plan | Status | One-liner |
 |---|---|---|
-| [`agent-first-person-watch.md`](./agent-first-person-watch.md) | **implemented** | Render and verify one live agent's first-person view against its server identity and free-rule receipt. |
+| [`agent-first-person-watch.md`](./agent-first-person-watch.md) | **implemented** ([#219](https://github.com/blisspixel/fragr/pull/219)) | Render and verify one live agent's first-person view against its server identity and free-rule receipt. |
 | [`jev-budget-reservations.md`](./jev-budget-reservations.md) | **shipped** ([#218](https://github.com/blisspixel/fragr/pull/218)) | Durable pre-send Jev receipts and one shared paid request at a time, with recovery and no-ledger refusal. |
 | [`display-quality.md`](./display-quality.md) | **implemented** ([#202](https://github.com/blisspixel/fragr/pull/202)) | Fullscreen default, real resolution selection and portable graphics presets through the shared settings panel. |
 | [`audio-startup-polish.md`](./audio-startup-polish.md) | **shipped** (#201, v0.32.0) | Balanced default effects and music, preserved saved choices, approved logo in the engine splash. |
