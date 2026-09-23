@@ -9,11 +9,11 @@ use crate::decision::{
     Question,
 };
 use crate::plan::{
-    campaign_enemy_engageable, campaign_micro_action, fallback_plan, micro_action, Plan, Source,
-    Stance,
+    campaign_enemy_engageable, campaign_micro_action, campaign_target, fallback_plan, micro_action,
+    Plan, Source, Stance,
 };
 use crate::provider::{decide, decision_request, Provider, Transport};
-use crate::telemetry::{observe, RecentHits, Telemetry};
+use crate::telemetry::{observe, EnemyView, RecentHits, Telemetry};
 use crate::Error;
 use fragr_server::protocol::{
     Action, CampaignDifficulty, CampaignRunStatus, ClientMessage, GameEvent, MissionId,
@@ -355,6 +355,24 @@ fn constrain_campaign_equipment(
     }
 }
 
+fn align_campaign_enemy(
+    telemetry: &mut Telemetry,
+    id: Uuid,
+    snapshot: &Snapshot,
+    world: &fragr_server::navigation::Navigation,
+) {
+    let mine = snapshot.players.iter().find(|player| player.id == id);
+    telemetry.enemy = mine.and_then(|mine| {
+        campaign_target(id, snapshot, world).map(|other| EnemyView {
+            id: other.id,
+            name: other.name.clone(),
+            dist: (other.x - mine.x).hypot(other.z - mine.z),
+            hp: other.hp,
+            weapon: other.weapon.to_ascii_lowercase(),
+        })
+    });
+}
+
 /// Join the server as an agent and play until the socket closes, `stop` is
 /// set, or `max_seconds` passes. Never returns early on brain trouble.
 pub async fn run_bot(
@@ -595,7 +613,10 @@ pub async fn run_bot(
             _ = macro_tick.tick(), if inflight.is_none() => {
                 let Some(id) = me else { continue };
                 let Some(snapshot) = last.as_ref() else { continue };
-                let Some(telemetry) = observe(id, snapshot, &mut hits) else { continue };
+                let Some(mut telemetry) = observe(id, snapshot, &mut hits) else { continue };
+                if let (Some(_), Some(world)) = (mission_client.state.as_ref(), navigation.as_ref()) {
+                    align_campaign_enemy(&mut telemetry, id, snapshot, world);
+                }
                 summary.last_state = Some(telemetry.render());
                 if !paid_enabled || !brain_worth_asking(&telemetry) || !mission_client.participating(id) {
                     let source = if config.provider.is_paid() && !paid_enabled {
@@ -633,16 +654,7 @@ pub async fn run_bot(
                     {
                         let mut with_memory = telemetry.clone();
                         with_memory.recent = memory.clone();
-                        let enemy_visible = if mission_client.state.is_some() {
-                            telemetry.enemy.as_ref().and_then(|enemy| {
-                                let mine = snapshot.players.iter().find(|player| player.id == id)?;
-                                let other = snapshot.players.iter().find(|player| player.id == enemy.id)?;
-                                let world = navigation.as_ref()?;
-                                Some(campaign_enemy_engageable(world, mine, other))
-                            })
-                        } else {
-                            None
-                        };
+                        let enemy_visible = mission_client.state.as_ref().map(|_| true);
                         decision_state(&with_memory, mission_client.state.as_ref(), loadout.as_ref(), enemy_visible)
                     },
                     fallback_plan(&telemetry, Source::Failure),
@@ -867,6 +879,49 @@ mod tests {
         let arena = decision_state(&telemetry, None, None, None);
         assert!(arena.get("mission").is_none());
         assert!(arena.get("clock").is_some());
+    }
+
+    #[test]
+    fn campaign_decision_enemy_matches_the_exposed_combat_target() {
+        use fragr_server::movement::{Arena, Solid};
+        use fragr_server::navigation::Navigation;
+        use fragr_server::protocol::{CampaignActor, EnemyKind, EnemyPhase};
+        let id = Uuid::from_u128(1);
+        let mut mine = player("Brain", id, 0.0, 0.0, 100, "tack");
+        mine.campaign = Some(CampaignActor::Participant {});
+        let union = Some(CampaignActor::Union {
+            kind: EnemyKind::Clerk,
+            phase: EnemyPhase::Idle,
+            phase_started: 0,
+            phase_ends: 0,
+        });
+        let mut hidden = player("Hidden", Uuid::from_u128(2), 10.0, 0.0, 60, "tack");
+        hidden.campaign = union;
+        let mut exposed = player("Exposed", Uuid::from_u128(3), 8.0, 8.0, 60, "flechette");
+        exposed.campaign = union;
+        let snap = snapshot(1, vec![mine, hidden, exposed], vec![]);
+        let world = Navigation::new(Arena {
+            half: 24.0,
+            solids: vec![Solid::from_center(5.0, 0.0, 0.5, 3.0)],
+        })
+        .unwrap();
+        let mut telemetry = observe(id, &snap, &mut RecentHits::default()).unwrap();
+        assert_eq!(telemetry.enemy.as_ref().unwrap().name, "Hidden");
+        align_campaign_enemy(&mut telemetry, id, &snap, &world);
+        assert_eq!(telemetry.enemy.as_ref().unwrap().name, "Exposed");
+        let mission = MissionState {
+            id: MissionId::RecallNotice,
+            run: None,
+            rules: CampaignRules::default(),
+            attempt: 1,
+            phase: MissionPhase::FindTransfer,
+            changed_at: 1,
+            party: vec![],
+            prompts: vec![],
+        };
+        let state = decision_state(&telemetry, Some(&mission), None, Some(true));
+        assert_eq!(state["enemy"]["weapon"], "flechette");
+        assert_eq!(state["enemy"]["visible"], true);
     }
 
     async fn boot_server(bots: usize) -> (String, tokio::sync::oneshot::Sender<()>) {

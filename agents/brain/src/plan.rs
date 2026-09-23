@@ -3,7 +3,7 @@
 //! turns the plan into a wire action on every tick from the latest snapshot,
 //! so aim, spacing, and fire never wait on the network.
 
-use crate::telemetry::Telemetry;
+use crate::telemetry::{Telemetry, NEAR_PAD_UNITS};
 use fragr_server::navigation::Navigation;
 use fragr_server::protocol::{Action, LookAt, Snapshot, WeaponType};
 use fragr_server::sim::PLAYER_FLOOR_Y;
@@ -198,7 +198,7 @@ fn strafe(tick: u64) -> (bool, bool) {
 
 /// Every tick: turn the plan into a wire action from the latest snapshot.
 pub fn micro_action(plan: &Plan, me: Uuid, snapshot: &Snapshot) -> Action {
-    micro_action_with_visibility(plan, me, snapshot, |_, _| true)
+    micro_action_with_visibility(plan, me, snapshot, |_, _| true, |_, _| true)
 }
 
 /// Campaign combat only takes over the mission route for a guard in view.
@@ -209,9 +209,39 @@ pub fn campaign_micro_action(
     snapshot: &Snapshot,
     world: &Navigation,
 ) -> Action {
-    micro_action_with_visibility(plan, me, snapshot, |mine, other| {
-        campaign_enemy_engageable(world, mine, other)
-    })
+    micro_action_with_visibility(
+        plan,
+        me,
+        snapshot,
+        |mine, other| campaign_enemy_engageable(world, mine, other),
+        |mine, pad| {
+            if mine.hp >= LOW_HP || (pad.x - mine.x).hypot(pad.z - mine.z) > NEAR_PAD_UNITS {
+                return false;
+            }
+            world.walkable(
+                [mine.x, mine.y - PLAYER_FLOOR_Y, mine.z],
+                [pad.x, pad.y, pad.z],
+            )
+        },
+    )
+}
+
+/// The same immediate target is used for campaign control and decision state.
+pub fn campaign_target<'a>(
+    me: Uuid,
+    snapshot: &'a Snapshot,
+    world: &Navigation,
+) -> Option<&'a fragr_server::protocol::PlayerState> {
+    let mine = snapshot.players.iter().find(|player| player.id == me)?;
+    snapshot
+        .players
+        .iter()
+        .filter(|other| mine.is_hostile_to(other) && campaign_enemy_engageable(world, mine, other))
+        .min_by(|a, b| {
+            (a.x - mine.x)
+                .hypot(a.z - mine.z)
+                .total_cmp(&(b.x - mine.x).hypot(b.z - mine.z))
+        })
 }
 
 pub fn campaign_enemy_engageable(
@@ -240,6 +270,10 @@ fn micro_action_with_visibility(
     me: Uuid,
     snapshot: &Snapshot,
     visible: impl Fn(&fragr_server::protocol::PlayerState, &fragr_server::protocol::PlayerState) -> bool,
+    heal_pad: impl Fn(
+        &fragr_server::protocol::PlayerState,
+        &fragr_server::protocol::PickupState,
+    ) -> bool,
 ) -> Action {
     let Some(mine) = snapshot.players.iter().find(|p| p.id == me) else {
         return Action::default();
@@ -266,7 +300,7 @@ fn micro_action_with_visibility(
         let pad = snapshot
             .pickups
             .iter()
-            .filter(|p| p.available && p.kind == "health")
+            .filter(|p| p.available && p.kind == "health" && heal_pad(mine, p))
             .map(|p| {
                 let dist = ((p.x - mine.x).powi(2) + (p.z - mine.z).powi(2)).sqrt();
                 (dist, p.x, p.z)
@@ -416,6 +450,7 @@ mod tests {
             )
         };
         assert!(through_inventory(&snap).look_at.is_none());
+        assert!(campaign_target(me, &snap, &world).is_none());
         assert_eq!(
             micro_action(&plan, me, &snap).look_at.unwrap().player_id,
             Some(hidden)
@@ -430,9 +465,108 @@ mod tests {
             through_inventory(&snap).look_at.unwrap().player_id,
             Some(visible)
         );
+        assert_eq!(campaign_target(me, &snap, &world).unwrap().id, visible);
         snap.players[2].x = 24.0;
         snap.players[2].z = 20.0;
         assert!(through_inventory(&snap).look_at.is_none());
+    }
+
+    #[test]
+    fn campaign_health_detour_requires_injury_nearby_pad_and_clear_walk() {
+        let me = Uuid::from_u128(1);
+        let plan = Plan {
+            stance: Stance::FallBackHeal,
+            ..Plan::default()
+        };
+        let clear = Navigation::new(Arena {
+            half: 24.0,
+            solids: vec![],
+        })
+        .unwrap();
+        let blocked = Navigation::new(Arena {
+            half: 24.0,
+            solids: vec![Solid::from_center(2.0, 0.0, 0.5, 2.0)],
+        })
+        .unwrap();
+        let mut snap = snapshot(
+            1,
+            vec![player("me", me, 0.0, 0.0, 100, "tack")],
+            vec![pad("health", "", 4.0, 0.0, true)],
+        );
+        snap.players[0].y = PLAYER_FLOOR_Y;
+        assert!(campaign_micro_action(&plan, me, &snap, &clear)
+            .look_at
+            .is_none());
+        snap.players[0].hp = 20;
+        assert!(campaign_micro_action(&plan, me, &snap, &blocked)
+            .look_at
+            .is_none());
+        let near = campaign_micro_action(&plan, me, &snap, &clear);
+        assert_eq!(near.look_at.unwrap().x, Some(4.0));
+        assert!(near.forward);
+        snap.pickups[0].x = 18.0;
+        assert!(campaign_micro_action(&plan, me, &snap, &clear)
+            .look_at
+            .is_none());
+    }
+
+    #[test]
+    fn healthy_campaign_heal_reply_still_walks_toward_the_record() {
+        use fragr_server::maps::AuthoredMap;
+        use fragr_server::mission::MissionClient;
+        use fragr_server::navigation::Navigator;
+        use fragr_server::protocol::{MissionReady, Role};
+        use fragr_server::session::GameSession;
+        let map = AuthoredMap::read(
+            include_bytes!("../../../server/maps/m01-recall-notice.json").as_slice(),
+        )
+        .unwrap();
+        let mut session = GameSession::with_authored_map(map);
+        let me = Uuid::from_u128(1);
+        session
+            .state
+            .add_player(me, "Brain".to_string(), Role::Agent);
+        let first = session.state.mission_state().unwrap();
+        assert!(session.state.acknowledge_mission(
+            me,
+            MissionReady {
+                id: first.id,
+                attempt: first.attempt,
+            }
+        ));
+        session.tick_messages(0.05);
+        let state = &session.state;
+        let mut client = MissionClient::default();
+        client
+            .replace_map(
+                state.map.mission(),
+                state.map.arena().half,
+                &state.map.arena().solids,
+                state.map.presentation_ref(),
+            )
+            .unwrap();
+        client
+            .observe(state.tick, state.mission_state().unwrap())
+            .unwrap();
+        let mut snap = state.snapshot();
+        snap.players.retain(|player| player.id == me);
+        let mine = &snap.players[0];
+        snap.pickups = vec![pad("health", "", mine.x, mine.z, true)];
+        let plan = Plan {
+            stance: Stance::FallBackHeal,
+            ..Plan::default()
+        };
+        let action = campaign_micro_action(&plan, me, &snap, state.map.navigation());
+        assert!(action.look_at.is_none());
+        let routed = client.steer(
+            &mut Navigator::default(),
+            state.map.navigation(),
+            me,
+            &snap,
+            action,
+        );
+        assert!(routed.forward || routed.back || routed.left || routed.right);
+        assert!(routed.yaw.is_some());
     }
 
     #[test]

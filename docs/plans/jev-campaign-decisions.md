@@ -55,6 +55,15 @@ status, phase, and difficulty values, and the reported plan rejects weapons
 absent from the offered choices. Local fallback plans are also constrained to
 carried equipment before action and final reporting.
 
+A later independent review found two decision-specific gaps. A remote
+`fall_back_heal` reply could send a healthy fighter toward any health pad;
+campaign control now permits that detour only below 40 HP, within the existing
+12-unit near-pad band, and along a directly walkable route. A test takes a
+healthy model heal reply through actual M01 mission steering and confirms it
+still walks toward the record. The model state now names the same nearest
+engageable guard the controller can fight, rather than a hidden nearer guard;
+a test covers hidden and exposed guards together.
+
 The first four free-rule runs below preceded the target-filter correction.
 They used the authored M01 file, a solo campaign run, and the same 20 Hz
 server. No provider call or ledger charge occurred. The final row repeats
@@ -104,6 +113,8 @@ A final 25-second seed-67 watch verified eight frames and $0 spend; its Pistol
 holder no longer reported the unowned Railgun in `last_plan`. That short run
 ended during `find_transfer` as expected from its timer. The longer corrected
 run above supplies the completion evidence. CI and integration remain.
+The two later decision corrections passed focused tests and need the full
+checks and a repeat live run before this PR merges.
 
 ## Spend and later trial
 
