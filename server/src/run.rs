@@ -236,7 +236,9 @@ async fn run_server_impl(
             .max()
             .unwrap_or_else(crate::protocol::legacy_geometry_version)
     };
-    let required_gameplay = if options.campaign_run {
+    let required_gameplay = if session.state.map.m02_objectives().is_some() {
+        crate::protocol::M02_GAMEPLAY_VERSION
+    } else if options.campaign_run {
         crate::protocol::CONTINUES_GAMEPLAY_VERSION
     } else if session.state.map.mission().is_some() {
         crate::protocol::DIFFICULTY_GAMEPLAY_VERSION

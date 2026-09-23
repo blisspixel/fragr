@@ -78,13 +78,15 @@ Initial handshake message. Must be sent immediately after connection.
   selected map's requirement. Rotation uses the maximum across its whole roster.
   No player or spectator session is created on rejection. This is geometry
   compatibility, not general protocol or action-version negotiation.
-- `gameplay_version`: maximum understood gameplay contract. Current clients send
-  `8`; omission means `1`. Discovery-only maps require 2, maps with authored
+- `gameplay_version`: maximum understood gameplay contract. Updated Rust readers send
+  `9`; omission means `1`. Discovery-only maps require 2, maps with authored
   encounters require 3, and mission sequences require 6 for shared difficulty.
   Versions 4 and 5 introduced physical controls and party readiness respectively;
   they cannot enter current missions. Solo runs require 7 for explicit continues.
   Version 8 adds private participant records. Record delivery is gated by the
   client's advertised capability; earlier clients keep their existing messages.
+  M02 requires 9 for objective and gate state, including spectators. M01 still
+  admits version 8 readers under its existing solo or party requirement.
   Use matching campaign server/client builds.
   Older clients of every role are rejected before `Welcome`
   with `unsupported_gameplay`. This capability is separate from geometry. The six
@@ -142,9 +144,11 @@ The server selects the legal target; clients cannot submit an interaction ID.
 The authority sends `{"type":"mission","tick":42,"state":{...}}` after map data
 and before the corresponding snapshot whenever shared state changes. `state` is:
 
-- `id`: `recall_notice`; `attempt`: positive retry revision; `changed_at`: tick of
+- `id`: `recall_notice` for M01, `persons_unknown` for the M02 preparatory
+  graybox; `attempt`: positive retry revision; `changed_at`: tick of
   the last phase change/reset, no later than the message tick.
-- `phase`: `briefing`, `find_transfer`, `reach_lift`, or `departed`.
+- `phase`: M01 uses `briefing`, `find_transfer`, `reach_lift`, or `departed`.
+  M02 uses `briefing`, `in_progress`, or `departed`.
 - `rules`: required `{difficulty,revision}`. Difficulty is `assisted`, `standard`
   or `severe`; revision is exactly `1`. Unknown fields/revisions are invalid.
   The host chooses once before admission. Geometry changes, death, retries and
@@ -152,7 +156,8 @@ and before the corresponding snapshot whenever shared state changes. `state` is:
   actions or readiness; agent observations contain the same rules as human UI.
 - `party`: up to four `{id,name,ready,alive,aboard}` members. Names are display labels.
 - `prompts`: `{player_id,kind}` for currently legal interactions. Kinds are
-  `transfer_record` and `lift_departure`; these are not localized strings.
+  `transfer_record` and `lift_departure` for M01, or `objective_use` for an M02
+  use objective. These are not localized strings.
 - `run`: present only in solo mode: `{id,status,continues}`. `id` is a nonnil UUID;
   `status` is `playing`, `continue`, `failed`, `complete` or `abandoned`. Allowance
   starts at 3 and only decreases. The current M01 attempt equals `4 - continues`.
@@ -160,6 +165,18 @@ and before the corresponding snapshot whenever shared state changes. `state` is:
   retains a dead owner until they leave, then an empty party.
   abandonment has no member, and completion requires `departed`. Nonplaying states
   contain no use prompts. Run identity and rules survive geometry changes.
+- `m02`: present only for `persons_unknown`, absent from the M01 JSON. It has
+  `completed` (ordered stable objective IDs), `total` (1 to 8), `gate_mask`
+  (three low bits for prepared gate variants), and `current`. The current
+  objective is null or omitted only after departure. An arrival objective has
+  `{"id":"ward_reached","action":{"kind":"arrival","region":{"min":[x,y,z],"max":[x,y,z]},"feet":[x,y,z]}}`.
+  A physical-use objective has
+  `{"id":"correction_stopped","action":{"kind":"use","target":{"decoration":0,"approach":[x,y,z]}}}`.
+  Arrival uses the participant's feet inside the region. Use targets name a
+  registered `map_info.presentation.decorations` panel and a reachable approach.
+  The server validates range, aim, sight and party eligibility. Each gate change
+  sends a new `map_info` before the changed mission state. The M02 preparatory
+  graybox has no bundled client route or durable solo run yet.
 
 Participants finish or skip their opening by sending
 `{"type":"mission_ready","id":"recall_notice","attempt":1}` using the current
@@ -398,6 +415,10 @@ also send `map_info` before shared progress, even when the map ID stays the same
   map data cannot provide scripts, arbitrary text, paths or URLs. These thin
   panels cannot create collision or interactions. Old payloads omit the array;
   older presenters can ignore it without changing geometry or gameplay versions.
+- `m02_objectives`: optional objective count (1 to 8), present only on an M02
+  map. It identifies the M02 contract independently of `map_id` and must match
+  the subsequent `mission.state.m02.total`. Legacy maps omit it, including
+  encounter-only maps whose numeric ID happens to be 1002.
 
 Geometry bounds: finite half extent from 2 to 256; at most 2048 solids; finite
 coordinates within -512 to 512; strictly increasing X and Z bounds. Navigation
@@ -1016,6 +1037,10 @@ the on-wire campaign rules revision. No parent command changes it during a run.
 ```json
 {"version":2,"mission":"recall_notice","difficulty":"standard","url":"ws://127.0.0.1:49152","gameplay_version":8}
 ```
+
+The readiness record names the selected mission's client contract, rather than
+the highest version understood by the server. M01 stays at 8 when the server
+also understands M02 version 9. The local launcher checks this value exactly.
 
 The port is chosen by the OS. Diagnostics use stderr. The parent validates the
 exact version, mission, requested difficulty, gameplay capability and loopback endpoint before using

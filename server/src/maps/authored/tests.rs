@@ -24,6 +24,14 @@ pub(super) fn decode(value: &Value) -> io::Result<Arc<AuthoredMap>> {
 #[test]
 fn authored_content_identity_survives_gate_state_and_changes_with_source() {
     let map = AuthoredMap::read(M01.as_bytes()).unwrap();
+    assert_eq!(
+        map.content_sha256
+            .iter()
+            .map(|byte| format!("{byte:02X}"))
+            .collect::<Vec<_>>()
+            .join(""),
+        "F1B454EFDF5601A6C65927BA3FE46EFAF3A489FB719A46050F35C0386FBEFCE1"
+    );
     let closed = crate::maps::RuntimeMap::Authored(map.clone());
     let opened = closed.opened_route().unwrap();
     assert_eq!(closed.content_sha256(), opened.content_sha256());

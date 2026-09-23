@@ -45,7 +45,7 @@ fn spawn() -> (OwnedChild, Ready) {
     assert_eq!(ready.mission, MissionId::RecallNotice);
     assert_eq!(
         ready.gameplay_version,
-        fragr_server::protocol::GAMEPLAY_VERSION
+        fragr_server::protocol::RECORD_GAMEPLAY_VERSION
     );
     assert!(ready.url.starts_with("ws://127.0.0.1:"));
     (child, ready)

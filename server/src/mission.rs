@@ -2,7 +2,7 @@
 use crate::maps::RuntimeMap;
 use crate::protocol::{
     CampaignActor, CampaignDifficulty, CampaignRules, InteractionKind, InteractionPrompt,
-    MissionMember, MissionPhase, MissionReady, MissionState, ServerMessage, UseTarget,
+    MissionId, MissionMember, MissionPhase, MissionReady, MissionState, ServerMessage, UseTarget,
     USE_DISTANCE,
 };
 use crate::sim::{GameState, Player, PLAYER_FLOOR_Y};
@@ -10,6 +10,7 @@ use std::collections::HashSet;
 use uuid::Uuid;
 
 mod controller;
+mod m02;
 mod recovery;
 pub(crate) mod run_file;
 pub use controller::MissionClient;
@@ -25,6 +26,7 @@ mod tests;
 mod wire_tests;
 
 pub(crate) struct MissionRun {
+    m02: Option<m02::M02Progress>,
     solo: Option<recovery::SoloRun>,
     rules: CampaignRules,
     initial_map: RuntimeMap,
@@ -37,8 +39,11 @@ pub(crate) struct MissionRun {
 
 impl MissionRun {
     pub fn new(map: &RuntimeMap) -> Option<Self> {
-        map.mission()?;
+        if map.mission().is_none() && map.m02_objectives().is_none() {
+            return None;
+        }
         Some(Self {
+            m02: map.m02_objectives().map(|_| m02::M02Progress::default()),
             solo: None,
             rules: CampaignRules::default(),
             initial_map: map.clone(),
@@ -115,6 +120,9 @@ impl GameState {
     }
 
     pub fn acknowledge_mission(&mut self, player_id: Uuid, ready: MissionReady) -> bool {
+        if ready.id == MissionId::PersonsUnknown {
+            return self.acknowledge_m02(player_id, ready.attempt);
+        }
         if self.map.mission().is_none_or(|map| map.id != ready.id)
             || !self
                 .players
@@ -155,7 +163,11 @@ impl GameState {
             .collect();
         run.ready.retain(|id| party.contains(id));
         if run.phase == MissionPhase::Briefing && !party.is_empty() && party.is_subset(&run.ready) {
-            run.phase = MissionPhase::FindTransfer;
+            run.phase = if run.m02.is_some() {
+                MissionPhase::InProgress
+            } else {
+                MissionPhase::FindTransfer
+            };
             run.changed_at = self.tick;
             run.started = true;
             tracing::info!(members = party.len(), "Campaign party ready");
@@ -173,10 +185,17 @@ impl GameState {
             return;
         };
         self.map = run.initial_map.clone();
+        if let Some(m02) = run.m02.as_mut() {
+            *m02 = m02::M02Progress::default();
+        }
         run.phase = if run.ready.is_empty() {
             MissionPhase::Briefing
         } else {
-            MissionPhase::FindTransfer
+            if run.m02.is_some() {
+                MissionPhase::InProgress
+            } else {
+                MissionPhase::FindTransfer
+            }
         };
         run.attempt = run.attempt.saturating_add(1);
         for player in &mut self.players {
@@ -194,6 +213,9 @@ impl GameState {
 
     pub fn mission_state(&self) -> Option<MissionState> {
         let run = self.mission.as_ref()?;
+        if run.m02.is_some() {
+            return self.m02_mission_state();
+        }
         let geometry = self.map.mission()?;
         let party: Vec<_> = self
             .players
@@ -243,6 +265,7 @@ impl GameState {
             changed_at: run.changed_at,
             party,
             prompts,
+            m02: None,
         })
     }
 
@@ -260,6 +283,10 @@ impl GameState {
     }
 
     pub(crate) fn advance_mission(&mut self) {
+        if self.mission.as_ref().is_some_and(|run| run.m02.is_some()) {
+            self.advance_m02();
+            return;
+        }
         // Consume even failed presses, including dead players and the wrong aim.
         let requests: Vec<_> = self
             .players
@@ -288,7 +315,7 @@ impl GameState {
                 MissionPhase::ReachLift
             }
             MissionPhase::ReachLift => MissionPhase::Departed,
-            MissionPhase::Briefing | MissionPhase::Departed => return,
+            MissionPhase::Briefing | MissionPhase::InProgress | MissionPhase::Departed => return,
         };
         let exit = if next == MissionPhase::Departed && state.run.is_some() {
             let Some(owner) = self

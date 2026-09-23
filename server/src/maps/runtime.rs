@@ -29,6 +29,13 @@ impl PartialEq<MapKind> for RuntimeMap {
 }
 
 impl RuntimeMap {
+    pub(crate) fn m02_objectives(&self) -> Option<&super::authored::m02::Prepared> {
+        match self {
+            Self::BuiltIn(_) => None,
+            Self::Authored(map) => map.m02.as_deref(),
+        }
+    }
+
     /// Identity of the exact authored bytes used to build this runtime map.
     /// An opened route retains the same identity as its closed source.
     pub fn content_sha256(&self) -> Option<[u8; 32]> {
@@ -55,8 +62,25 @@ impl RuntimeMap {
         }
     }
 
+    /// Select one of the M02 worlds built and route-checked at map load time.
+    /// No geometry or navigation is constructed on a live transition.
+    pub fn prepared_gate_world(&self, mask: u8) -> Option<Self> {
+        match self {
+            Self::BuiltIn(_) => None,
+            Self::Authored(map) => {
+                let (arena, navigation) = map.m02.as_ref()?.world(mask)?;
+                let mut selected = map.as_ref().clone();
+                selected.arena = arena.clone();
+                selected.navigation = navigation.clone();
+                Some(Self::Authored(Arc::new(selected)))
+            }
+        }
+    }
+
     pub fn is_campaign(&self) -> bool {
-        self.has_encounters() || self.mission().is_some()
+        self.has_encounters()
+            || self.mission().is_some()
+            || matches!(self, Self::Authored(map) if map.m02.is_some())
     }
 
     pub(crate) fn encounters(&self) -> &[super::authored::encounters::EncounterDefinition] {

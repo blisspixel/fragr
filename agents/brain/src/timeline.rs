@@ -145,10 +145,22 @@ impl Timeline {
             return;
         };
         self.sampled_tick = Some((state.attempt, snapshot.tick));
-        let goal = geometry.map(|map| match state.phase {
-            MissionPhase::FindTransfer | MissionPhase::Briefing => map.record.approach,
-            MissionPhase::ReachLift | MissionPhase::Departed => map.departure.approach,
-        });
+        let goal = state
+            .m02
+            .as_ref()
+            .and_then(|m02| m02.current.as_ref())
+            .map(|step| match &step.action {
+                fragr_server::protocol::MissionObjectiveAction::Arrival { feet, .. } => *feet,
+                fragr_server::protocol::MissionObjectiveAction::Use { target } => target.approach,
+            })
+            .or_else(|| {
+                geometry.map(|map| match state.phase {
+                    MissionPhase::FindTransfer
+                    | MissionPhase::Briefing
+                    | MissionPhase::InProgress => map.record.approach,
+                    MissionPhase::ReachLift | MissionPhase::Departed => map.departure.approach,
+                })
+            });
         let objective_distance = goal.map(|goal| {
             ((me.x - goal[0]).powi(2)
                 + (me.y - fragr_server::sim::PLAYER_FLOOR_Y - goal[1]).powi(2)
@@ -217,6 +229,7 @@ mod tests {
             changed_at: 0,
             party: vec![],
             prompts: vec![],
+            m02: None,
         }
     }
 

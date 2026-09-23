@@ -13,8 +13,9 @@ and the map version in observations, and closes its MCP game session if a map
 has unsupported or invalid geometry, or the server sends malformed JSON.
 Ground-filled legacy maps remain readable.
 
-Clients declare gameplay capability 7. Discovery-only maps require 2; authored
-encounters require 3; mission sequences with shared difficulty require 6, solo runs 7. Older clients are
+The adapter declares gameplay capability 9. Discovery-only maps require 2; authored
+encounters require 3; M01 mission parties require 6 and solo runs 7. M02 requires
+9 for all roles. Older clients are
 rejected before admission. `observe.loadout`
 is private to this participant: selected and
 owned weapons, magazines, pooled reserves, reload completion tick, personal
@@ -40,6 +41,14 @@ and the boarding area. `act.interact: true` presses Use; release with `false`
 before another press. Range, aim, sight, gate changes and departure remain server
 decisions. The shared local controller walks to mission controls when it has no
 combat or equipment target. Map changes replace navigation even with the same ID.
+For the M02 preparatory graybox, `observe.mission.m02` carries completed IDs,
+objective count, prepared gate mask and the current arrival region or physical
+use target. The target's decoration index refers to `observe.map.presentation`.
+`observe.map.m02_objectives` is present only for M02 and matches the mission's
+objective count; numeric map IDs alone do not identify a mission.
+The adapter rejects targets that do not match the current map. `mission_ready`
+accepts `persons_unknown` with the observed attempt; `objective_use` prompts
+are issued per eligible participant. The graybox is not yet a normal Godot route.
 Development mission parties allow four humans/agents together. `--campaign-run`
 instead permits one lifetime combat seat; spectators do not take seats. Leaving
 ends the solo run, and a callsign cannot reclaim it. This is prototype progression,

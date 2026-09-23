@@ -11,6 +11,7 @@ use std::path::Path;
 use std::sync::Arc;
 
 pub(crate) mod encounters;
+pub(crate) mod m02;
 mod mission;
 mod supplies;
 
@@ -20,6 +21,8 @@ const MAX_PLACEMENTS: usize = 128;
 #[cfg(test)]
 mod encounters_tests;
 #[cfg(test)]
+mod m02_tests;
+#[cfg(test)]
 mod tests;
 
 #[derive(Debug, Clone)]
@@ -27,6 +30,7 @@ pub struct AuthoredMap {
     pub(super) content_sha256: [u8; 32],
     pub(super) mission: Option<crate::protocol::MissionGeometry>,
     pub(super) opened_route: Option<Arc<Self>>,
+    pub(super) m02: Option<Arc<m02::Prepared>>,
     pub(super) id: u32,
     pub(super) name: String,
     pub(super) arena: Arena,
@@ -44,6 +48,8 @@ pub struct AuthoredMap {
 struct Document {
     #[serde(default)]
     mission: Option<mission::Definition>,
+    #[serde(default)]
+    m02: Option<m02::Definition>,
     #[serde(default)]
     decorations: Vec<MapDecoration<String>>,
     #[serde(default)]
@@ -207,6 +213,15 @@ impl AuthoredMap {
         if doc.mission.is_some() && doc.equipment != crate::protocol::EquipmentPolicy::Discovery {
             return Err(invalid("missions require discovered equipment"));
         }
+        if doc.m02.is_some()
+            && (doc.mission.is_some()
+                || doc.map_id != 1002
+                || doc.equipment != crate::protocol::EquipmentPolicy::Discovery)
+        {
+            return Err(invalid(
+                "M02 objectives require map 1002, discovery equipment and no M01 mission",
+            ));
+        }
         let mission = doc
             .mission
             .map(|definition| definition.prepare(&arena, &solid_ids, &mut presentation))
@@ -231,6 +246,13 @@ impl AuthoredMap {
             }
         }
         let start = doc.spawns[0].feet;
+        let m02 = doc
+            .m02
+            .map(|definition| {
+                definition.prepare(&arena, &solid_ids, &mut presentation, start, &mut seen)
+            })
+            .transpose()?
+            .map(Arc::new);
         let supplies = supplies::build(doc.supplies, doc.equipment, &arena, &mut seen)?;
         encounters::validate(&doc.encounters, doc.equipment, &arena, &mut seen)?;
         let navigation = Navigation::shared(arena.clone()).map_err(invalid)?;
@@ -275,6 +297,13 @@ impl AuthoredMap {
                         .status
                         == crate::navigation::RouteStatus::Complete
                 })
+                && !m02.as_ref().is_some_and(|prepared| {
+                    prepared.navigations().any(|nav| {
+                        nav.route(start, destination, crate::navigation::SEARCH_LIMIT)
+                            .status
+                            == crate::navigation::RouteStatus::Complete
+                    })
+                })
             {
                 return Err(invalid(&format!(
                     "map placement {id} is unreachable from the entry",
@@ -285,6 +314,7 @@ impl AuthoredMap {
             content_sha256,
             mission: mission.as_ref().map(|m| m.geometry.clone()),
             opened_route: None,
+            m02,
             encounters: doc.encounters,
             supplies,
             equipment: doc.equipment,

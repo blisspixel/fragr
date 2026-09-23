@@ -661,7 +661,7 @@ fn tools_list_result() -> Value {
                 "inputSchema": {
                     "type": "object",
                     "properties": {
-                        "id": {"type": "string", "enum": ["recall_notice"]},
+                        "id": {"type": "string", "enum": ["recall_notice", "persons_unknown"]},
                         "attempt": {"type": "integer", "minimum": 1, "maximum": u32::MAX}
                     },
                     "required": ["id", "attempt"],
@@ -1027,6 +1027,7 @@ pub fn ingest_server_text(state: &mut ToolState, text: &str) -> Result<(), &'sta
         Ok(protocol::ServerMessage::Ack { .. }) => {}
         Ok(protocol::ServerMessage::MapInfo {
             map_id,
+            m02_objectives,
             map_name,
             half_extent,
             solids,
@@ -1036,13 +1037,15 @@ pub fn ingest_server_text(state: &mut ToolState, text: &str) -> Result<(), &'sta
         }) => {
             fragr_server::protocol::validate_map_geometry(half_extent, &solids, geometry_version)?;
             protocol::validate_map_presentation(presentation.as_ref(), &solids)?;
-            state.mission.replace_map(
+            state.mission.replace_map_with_id(
+                map_id,
+                m02_objectives,
                 mission.as_ref(),
                 half_extent,
                 &solids,
                 presentation.as_ref(),
             )?;
-            state.map = Some(serde_json::json!({
+            let mut map = serde_json::json!({
                 "map_id": map_id,
                 "map_name": map_name,
                 "half_extent": half_extent,
@@ -1050,7 +1053,11 @@ pub fn ingest_server_text(state: &mut ToolState, text: &str) -> Result<(), &'sta
                 "geometry_version": geometry_version,
                 "presentation": presentation,
                 "mission": mission,
-            }));
+            });
+            if let Some(count) = m02_objectives {
+                map["m02_objectives"] = serde_json::json!(count);
+            }
+            state.map = Some(map);
         }
         Ok(protocol::ServerMessage::Event(event)) => {
             if let Ok(event_value) = serde_json::to_value(event) {
@@ -1104,6 +1111,87 @@ pub fn ingest_server_text(state: &mut ToolState, text: &str) -> Result<(), &'sta
 #[cfg(test)]
 mod mcp_tests {
     use super::*;
+
+    #[test]
+    fn m02_observation_readiness_and_panel_validation_share_the_server_contract() {
+        let map = fragr_server::maps::AuthoredMap::load(
+            &std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+                .join("../server/maps/test/m02-wire-fixture.json"),
+        )
+        .unwrap();
+        let mut sim = fragr_server::sim::GameState::with_authored_map(map);
+        let id = Uuid::from_u128(91);
+        sim.add_player(id, "Free agent".into(), protocol::Role::Agent);
+        let mut state = ToolState {
+            player_id: Some(id),
+            connected: true,
+            last_snapshot: Some(serde_json::json!({"tick": 0, "players": []})),
+            ..Default::default()
+        };
+        let map_text = serde_json::to_string(&sim.map_info()).unwrap();
+        assert_eq!(
+            serde_json::from_str::<Value>(&map_text).unwrap()["m02_objectives"],
+            3
+        );
+        let mut legacy_map: Value = serde_json::from_str(&map_text).unwrap();
+        legacy_map.as_object_mut().unwrap().remove("m02_objectives");
+        let mut unmarked = ToolState::default();
+        ingest_server_text(&mut unmarked, &legacy_map.to_string()).unwrap();
+        assert!(ingest_server_text(
+            &mut unmarked,
+            &serde_json::to_string(&sim.mission_message().unwrap()).unwrap()
+        )
+        .is_err());
+        ingest_server_text(&mut state, &map_text).unwrap();
+        ingest_server_text(
+            &mut state,
+            &serde_json::to_string(&sim.mission_message().unwrap()).unwrap(),
+        )
+        .unwrap();
+        assert_eq!(
+            build_observe_result(&state)["mission"]["m02"]["current"]["id"],
+            "ward_reached"
+        );
+        assert_eq!(build_observe_result(&state)["mission"]["phase"], "briefing");
+        let request = || McpRequest {
+            jsonrpc: "2.0".into(),
+            id: Some(serde_json::json!(91)),
+            method: "tools/call".into(),
+            params: Some(
+                serde_json::json!({"name":"mission_ready","arguments":{"id":"persons_unknown","attempt":1}}),
+            ),
+        };
+        let outcome = handle_mcp_request(request(), &mut state);
+        assert_eq!(
+            outcome.pending_mission_ready.unwrap().id,
+            protocol::MissionId::PersonsUnknown
+        );
+        assert!(sim.acknowledge_mission(id, outcome.pending_mission_ready.unwrap()));
+        sim.tick(0.05);
+        ingest_server_text(
+            &mut state,
+            &serde_json::to_string(&sim.mission_message().unwrap()).unwrap(),
+        )
+        .unwrap();
+        let observed = build_observe_result(&state);
+        assert_eq!(observed["mission"]["phase"], "in_progress");
+        assert_eq!(observed["mission"]["m02"]["completed"][0], "ward_reached");
+        assert_eq!(
+            observed["mission"]["m02"]["current"]["id"],
+            "correction_stopped"
+        );
+        assert!(handle_mcp_request(request(), &mut state)
+            .pending_mission_ready
+            .is_none());
+        let mut bad = serde_json::to_value(sim.mission_message().unwrap()).unwrap();
+        bad["state"]["m02"]["current"]["action"]["target"]["decoration"] = serde_json::json!(2);
+        assert!(ingest_server_text(&mut state, &bad.to_string()).is_err());
+        assert_eq!(
+            build_observe_result(&state)["mission"]["m02"]["current"]["action"]["target"]
+                ["decoration"],
+            0
+        );
+    }
 
     #[test]
     fn participant_record_is_validated_and_shared_with_observe() {

@@ -894,6 +894,10 @@ impl GameState {
             geometry_version: crate::protocol::geometry_version(&self.map.arena().solids),
             presentation: self.map.presentation(),
             mission: self.map.mission().cloned(),
+            m02_objectives: self
+                .map
+                .m02_objectives()
+                .and_then(|objectives| u8::try_from(objectives.len()).ok()),
             map_id: self.map.id(),
             map_name: self.map.name().to_string(),
             half_extent: self.map.half_extent(),

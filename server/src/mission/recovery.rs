@@ -82,6 +82,9 @@ impl GameState {
         if self.tick != 0 || !self.players.is_empty() {
             return Err("campaign run must be configured before admission");
         }
+        if self.mission.as_ref().is_some_and(|run| run.m02.is_some()) {
+            return Err("durable campaign runs require M01 mission geometry");
+        }
         let mission = self
             .mission
             .as_mut()

@@ -197,10 +197,12 @@ tactical companion control, transferable companion seat or revive system. Latch'
 early M02 rescue and personal relationship remain part of the story.
 
 Allies act through their own authored behavior. They must not block routes or
-make required gates depend on a second player. Healing a living ally is a possible
-later interaction; death removes them for the rest of that mission attempt.
-Their later story fate must be explicit, not automatic resurrection next level.
-Persistent rescue outcomes and unavoidable story events retain their own rules.
+make required gates depend on a second player. Ordinary combat allies may be
+removed for the rest of an attempt when defeated. Rescued story characters,
+including Latch, survive or die only through authored story outcomes, not
+ordinary combat damage. Their path and presence must not turn a rescue into an
+escort failure. Persistent rescue outcomes and unavoidable story events retain
+their own rules.
 
 Campaign co-op is no longer a requirement for every mission. Any later supported
 mission or separate co-op mode needs a bounded design and evidence. Preserve the

@@ -6,7 +6,7 @@ fragr is a retro-styled 3D FPS built toward an authored campaign and multiplayer
 
 It is the 1993 LAN-party feeling rebuilt for 2026: a Rust authoritative server, a Godot client that only presents, and an MCP adapter so any agent can observe and act like a player.
 
-The current release is [v0.44.1](https://github.com/blisspixel/fragr/releases/tag/v0.44.1). Shipped tags are listed in [CHANGELOG.md](CHANGELOG.md). What is still open is [docs/ROADMAP.md](docs/ROADMAP.md).
+The current release is [v0.45.0](https://github.com/blisspixel/fragr/releases/tag/v0.45.0). Shipped tags are listed in [CHANGELOG.md](CHANGELOG.md). What is still open is [docs/ROADMAP.md](docs/ROADMAP.md).
 
 ## What runs today
 
@@ -26,7 +26,9 @@ The current release is [v0.44.1](https://github.com/blisspixel/fragr/releases/ta
 
 This is a playable vertical slice, not a finished game. The build order and what is still missing live in [`docs/ROADMAP.md`](docs/ROADMAP.md).
 
-Current work is the [full build order](docs/ROADMAP.md): finish Recall Notice, then one mission at a time, while the server grows a watcher audience around one authoritative fight. v0.44.1 bounds each spectator's outbound queue and makes the reference agent follow campaign objectives. Watching and joining stay in this app. `GET /status` on the game port is a host probe, not a web client. The Windows taskbar icon is still the Godot mark. The [campaign treatment](docs/CAMPAIGN-MISSIONS.md) plans a personal rescue, offworld resistance, the Union's defeat, a sudden planetary wipe, and its aftermath. This is planned content, not a completed campaign or public-server readiness claim.
+The [full build order](docs/ROADMAP.md) now moves from the durable M01 run into M02. Its server foundation can validate objectives, enforce gate transitions and publish them to Rust agents. The Godot client and a playable M02 map are still pending. Watching and joining stay in this app. `GET /status` on the game port is a host probe, not a web client. The Windows taskbar icon is still the Godot mark. The [campaign treatment](docs/CAMPAIGN-MISSIONS.md) plans a personal rescue, offworld resistance, the Union's defeat, a sudden planetary wipe, and its aftermath. This is planned content, not a completed campaign or public-server readiness claim.
+
+The next playable step is to present M02 objectives and controls in Godot, author the ward route, then prove that a solo player and an agent can reach the same exit through actual movement. That comes before more enemies or weapons because server rules alone cannot make the rescue understandable or playable. Latch's release, the visible Jammer projectile and M01-to-M02 save carry follow that route proof. In parallel, multiplayer work continues on server hardening, modes, maps, first-person watching and measured scale. Automated and agent-controlled runs are the current acceptance evidence; an unsteered human M01 session remains near the 1.0 gate.
 
 The opening mission has an opt-in [development slice](server/maps/README.md):
 enclosed intake rooms, two stair routes, an accessible records balcony, a
@@ -36,8 +38,8 @@ bypass, sorting, dispatch and transfer control. Twenty human Clerks and Sweeper
 bots occupy eight groups, with server-owned attack phases and directional poses.
 Guards are already present before entry alarms, and campaign consumables stay
 consumed until an attempt reset. Find Latch's transfer record at the console, open
-the custody lift and depart. Character art, pacing, persistent saves, secrets
-and the next mission remain unfinished. Choose Assisted, Standard or Severe before
+the custody lift and depart. Character art, pacing, the Shiv secret and the
+next mission remain unfinished. Choose Assisted, Standard or Severe before
 a new local campaign. This first difficulty pass changes enemy tells and recovery;
 health, damage and finite supplies stay consistent. Standard retains the original
 timing. Persistent achievements and earned cosmetic rewards remain
