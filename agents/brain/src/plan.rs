@@ -16,6 +16,8 @@ pub const CLOSE_RANGE: f32 = 3.0;
 pub const KITE_RANGE: f32 = 8.0;
 /// Push when the enemy is inside this distance; hold beyond it.
 pub const PUSH_RANGE: f32 = 25.0;
+/// Only a nearby exposed guard interrupts authored campaign traversal.
+pub const CAMPAIGN_ENGAGE_RANGE: f32 = 20.0;
 /// Head for health below this HP when a pad is available.
 pub const LOW_HP: i32 = 40;
 /// Prefer scatter inside this distance.
@@ -208,15 +210,18 @@ pub fn campaign_micro_action(
     world: &Navigation,
 ) -> Action {
     micro_action_with_visibility(plan, me, snapshot, |mine, other| {
-        campaign_enemy_visible(world, mine, other)
+        campaign_enemy_engageable(world, mine, other)
     })
 }
 
-pub fn campaign_enemy_visible(
+pub fn campaign_enemy_engageable(
     world: &Navigation,
     mine: &fragr_server::protocol::PlayerState,
     other: &fragr_server::protocol::PlayerState,
 ) -> bool {
+    if (other.x - mine.x).hypot(other.z - mine.z) > CAMPAIGN_ENGAGE_RANGE {
+        return false;
+    }
     let eye = [
         mine.x,
         mine.y - PLAYER_FLOOR_Y + fragr_server::movement::EYE_HEIGHT,
@@ -351,7 +356,9 @@ mod tests {
 
     #[test]
     fn hidden_guard_does_not_block_mission_but_visible_guard_does() {
-        use fragr_server::protocol::{CampaignActor, EnemyKind, EnemyPhase};
+        use fragr_server::protocol::{
+            AmmoPool, AmmoReserve, CampaignActor, EnemyKind, EnemyPhase, LoadoutState, WeaponAmmo,
+        };
         let me = Uuid::from_u128(1);
         let hidden = Uuid::from_u128(2);
         let visible = Uuid::from_u128(3);
@@ -376,6 +383,39 @@ mod tests {
         let mut snap = snapshot(1, vec![mine, guard.clone()], vec![]);
         let blocked = campaign_micro_action(&plan, me, &snap, &world);
         assert!(blocked.look_at.is_none() && !blocked.fire);
+        let loadout = LoadoutState {
+            player_id: me,
+            tick: 1,
+            selected: WeaponType::Tack,
+            weapons: vec![
+                WeaponAmmo {
+                    weapon: WeaponType::Fists,
+                    magazine: None,
+                },
+                WeaponAmmo {
+                    weapon: WeaponType::Tack,
+                    magazine: Some(6),
+                },
+            ],
+            reserves: AmmoPool::ALL
+                .into_iter()
+                .map(|pool| AmmoReserve { pool, rounds: 0 })
+                .collect(),
+            reload: None,
+            personal_claims: vec![],
+            dry_fire_count: 0,
+        };
+        let through_inventory = |snap: &Snapshot| {
+            fragr_server::inventory::control_action_with_target_filter(
+                me,
+                snap,
+                Some(&loadout),
+                campaign_micro_action(&plan, me, snap, &world),
+                true,
+                |mine, other| campaign_enemy_engageable(&world, mine, other),
+            )
+        };
+        assert!(through_inventory(&snap).look_at.is_none());
         assert_eq!(
             micro_action(&plan, me, &snap).look_at.unwrap().player_id,
             Some(hidden)
@@ -386,6 +426,13 @@ mod tests {
         let action = campaign_micro_action(&plan, me, &snap, &world);
         assert_eq!(action.look_at.unwrap().player_id, Some(visible));
         assert!(action.fire);
+        assert_eq!(
+            through_inventory(&snap).look_at.unwrap().player_id,
+            Some(visible)
+        );
+        snap.players[2].x = 24.0;
+        snap.players[2].z = 20.0;
+        assert!(through_inventory(&snap).look_at.is_none());
     }
 
     #[test]

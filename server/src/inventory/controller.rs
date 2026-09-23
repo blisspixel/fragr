@@ -60,8 +60,21 @@ pub fn control_action_with_objective(
     id: Uuid,
     snapshot: &Snapshot,
     loadout: Option<&LoadoutState>,
+    action: Action,
+    has_objective: bool,
+) -> Action {
+    control_action_with_target_filter(id, snapshot, loadout, action, has_objective, |_, _| true)
+}
+
+/// Restrict combat interruptions to targets the caller can actually engage.
+/// Arena callers retain the legacy unrestricted target policy.
+pub fn control_action_with_target_filter(
+    id: Uuid,
+    snapshot: &Snapshot,
+    loadout: Option<&LoadoutState>,
     mut action: Action,
     has_objective: bool,
+    engageable: impl Fn(&crate::protocol::PlayerState, &crate::protocol::PlayerState) -> bool,
 ) -> Action {
     let Some(loadout) = loadout else {
         return action;
@@ -76,7 +89,7 @@ pub fn control_action_with_objective(
     let nearest = snapshot
         .players
         .iter()
-        .filter(|p| me.is_hostile_to(p))
+        .filter(|p| me.is_hostile_to(p) && engageable(me, p))
         .min_by(|a, b| {
             (a.x - me.x)
                 .hypot(a.z - me.z)
@@ -87,10 +100,9 @@ pub fn control_action_with_objective(
         .as_ref()
         .and_then(|aim| aim.player_id)
         .is_some_and(|target| {
-            !snapshot
-                .players
-                .iter()
-                .any(|player| player.id == target && me.is_hostile_to(player))
+            !snapshot.players.iter().any(|player| {
+                player.id == target && me.is_hostile_to(player) && engageable(me, player)
+            })
         })
     {
         action.look_at = None;

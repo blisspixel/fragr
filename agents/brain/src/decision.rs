@@ -391,6 +391,16 @@ pub fn plan_from_answers(
     plan
 }
 
+/// A trusted reply still has to choose one of the choices actually offered.
+pub fn constrain_plan_weapon(plan: &mut Plan, questions: &BTreeMap<String, Question>) {
+    let Some(weapon) = plan.weapon else { return };
+    let allowed = matches!(questions.get(Q_WEAPON), Some(Question::Choice { criteria, .. })
+        if criteria.contains_key(weapon_name(weapon)));
+    if !allowed {
+        plan.weapon = None;
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -479,6 +489,21 @@ mod tests {
         assert!(!serde_json::to_string(&questions)
             .unwrap()
             .contains("respawn"));
+    }
+
+    #[test]
+    fn unoffered_campaign_weapon_is_removed_from_reported_plan() {
+        let questions = campaign_questions(&[WeaponType::Fists, WeaponType::Tack]);
+        let mut answers = BTreeMap::new();
+        answers.insert(Q_WEAPON.to_string(), choice("rail", 0.99));
+        let mut plan = plan_from_answers(&answers, &Gate::default(), &local(), 0.0);
+        assert_eq!(plan.weapon, Some(WeaponType::Rail));
+        constrain_plan_weapon(&mut plan, &questions);
+        assert_eq!(plan.weapon, None);
+        answers.insert(Q_WEAPON.to_string(), choice("tack", 0.99));
+        let mut carried = plan_from_answers(&answers, &Gate::default(), &local(), 0.0);
+        constrain_plan_weapon(&mut carried, &questions);
+        assert_eq!(carried.weapon, Some(WeaponType::Tack));
     }
 
     #[test]

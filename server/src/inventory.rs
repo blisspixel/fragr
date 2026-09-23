@@ -8,7 +8,9 @@ use uuid::Uuid;
 mod controller;
 #[cfg(test)]
 mod tests;
-pub use controller::{control_action, control_action_with_objective};
+pub use controller::{
+    control_action, control_action_with_objective, control_action_with_target_filter,
+};
 
 #[derive(Debug, Clone)]
 pub struct Inventory {

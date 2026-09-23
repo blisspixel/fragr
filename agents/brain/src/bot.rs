@@ -4,9 +4,12 @@
 //! flight; a slow answer is simply late, not queued.
 
 use crate::budget::Budget;
-use crate::decision::{campaign_questions, plan_from_answers, tactical_questions, Gate, Question};
+use crate::decision::{
+    campaign_questions, constrain_plan_weapon, plan_from_answers, tactical_questions, Gate,
+    Question,
+};
 use crate::plan::{
-    campaign_enemy_visible, campaign_micro_action, fallback_plan, micro_action, Plan, Source,
+    campaign_enemy_engageable, campaign_micro_action, fallback_plan, micro_action, Plan, Source,
     Stance,
 };
 use crate::provider::{decide, decision_request, Provider, Transport};
@@ -319,7 +322,12 @@ fn spawn_decision(
         let started = std::time::Instant::now();
         let result = decision_request(provider, &model, &api_key, &state, &questions)
             .and_then(|request| decide(transport.as_ref(), &budget, provider, &model, &request))
-            .map(|decision| plan_from_answers(&decision.response.answers, &gate, &fallback, roll));
+            .map(|decision| {
+                let mut plan =
+                    plan_from_answers(&decision.response.answers, &gate, &fallback, roll);
+                constrain_plan_weapon(&mut plan, &questions);
+                plan
+            });
         let outcome = match result {
             Ok(plan) => Outcome::Decided(plan),
             Err(err @ Error::Budget(_)) => Outcome::Refused(
@@ -333,6 +341,18 @@ fn spawn_decision(
         };
         let _ = tx.send((outcome, started.elapsed().as_millis() as u64));
     })
+}
+
+fn constrain_campaign_equipment(
+    plan: &mut Plan,
+    mission: bool,
+    loadout: Option<&fragr_server::protocol::LoadoutState>,
+) {
+    if mission {
+        plan.weapon = plan
+            .weapon
+            .filter(|weapon| loadout.is_some_and(|equipment| equipment.weapon(*weapon).is_some()));
+    }
 }
 
 /// Join the server as an agent and play until the socket closes, `stop` is
@@ -551,11 +571,16 @@ pub async fn run_bot(
             },
             _ = micro.tick() => {
                 if let (Some(id), Some(snapshot)) = (me, last.as_ref()) {
+                    constrain_campaign_equipment(&mut plan, mission_client.state.is_some(), loadout.as_ref());
                     let action = match (mission_client.state.as_ref(), navigation.as_ref()) {
                         (Some(_), Some(world)) => campaign_micro_action(&plan, id, snapshot, world),
                         _ => micro_action(&plan, id, snapshot),
                     };
-                    let action = fragr_server::inventory::control_action_with_objective(id, snapshot, loadout.as_ref(), action, mission_client.state.is_some());
+                    let action = if let (Some(_), Some(world)) = (mission_client.state.as_ref(), navigation.as_ref()) {
+                        fragr_server::inventory::control_action_with_target_filter(id, snapshot, loadout.as_ref(), action, true, |mine, other| campaign_enemy_engageable(world, mine, other))
+                    } else {
+                        fragr_server::inventory::control_action_with_objective(id, snapshot, loadout.as_ref(), action, false)
+                    };
                     let action = navigation.as_ref().map_or_else(Action::default, |world| {
                         mission_client.steer(&mut navigator, world, id, snapshot, action)
                     });
@@ -613,7 +638,7 @@ pub async fn run_bot(
                                 let mine = snapshot.players.iter().find(|player| player.id == id)?;
                                 let other = snapshot.players.iter().find(|player| player.id == enemy.id)?;
                                 let world = navigation.as_ref()?;
-                                Some(campaign_enemy_visible(world, mine, other))
+                                Some(campaign_enemy_engageable(world, mine, other))
                             })
                         } else {
                             None
@@ -727,6 +752,7 @@ pub async fn run_bot(
         summary.run_usd = guard.run_usd();
         summary.total_usd = guard.total_usd();
     }
+    constrain_campaign_equipment(&mut plan, mission_client.state.is_some(), loadout.as_ref());
     summary.last_plan = Some(plan);
     if let Some(error) = session_error {
         Err(error)
@@ -810,6 +836,15 @@ mod tests {
             dry_fire_count: 0,
         };
         loadout.validate_for(Some(id), None).unwrap();
+        let mut proposed = Plan {
+            weapon: Some(WeaponType::Rail),
+            ..Plan::default()
+        };
+        constrain_campaign_equipment(&mut proposed, true, Some(&loadout));
+        assert_eq!(proposed.weapon, None);
+        proposed.weapon = Some(WeaponType::Tack);
+        constrain_campaign_equipment(&mut proposed, true, Some(&loadout));
+        assert_eq!(proposed.weapon, Some(WeaponType::Tack));
         let snap = snapshot(
             1,
             vec![

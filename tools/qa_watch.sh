@@ -11,6 +11,7 @@ mkdir -p "$OUT" || exit 1
 OUT="$(cd "$OUT" && pwd)"
 PORT="${FRAGR_WATCH_PORT:-6768}"
 WATCH_SECONDS="${FRAGR_WATCH_SECONDS:-45}"
+WATCH_SEED="${FRAGR_WATCH_SEED:-1}"
 if ! [[ "$PORT" =~ ^(0|[1-9][0-9]*)$ ]] || (( PORT < 1 || PORT > 65535 )); then
   echo "qa_watch: FRAGR_WATCH_PORT must be 1 through 65535" >&2
   exit 1
@@ -19,7 +20,15 @@ if ! [[ "$WATCH_SECONDS" =~ ^(0|[1-9][0-9]*)$ ]] || (( WATCH_SECONDS < 1 || WATC
   echo "qa_watch: FRAGR_WATCH_SECONDS must be 1 through 3600" >&2
   exit 1
 fi
-NAME="WatchAgent-$$"
+if ! [[ "$WATCH_SEED" =~ ^(0|[1-9][0-9]*)$ ]] || (( ${#WATCH_SEED} > 20 )); then
+  echo "qa_watch: FRAGR_WATCH_SEED must be a nonnegative u64" >&2
+  exit 1
+fi
+NAME="${FRAGR_WATCH_NAME:-WatchAgent-$$}"
+if ! [[ "$NAME" =~ ^[A-Za-z0-9_-]{1,32}$ ]]; then
+  echo "qa_watch: FRAGR_WATCH_NAME must be 1 to 32 letters, numbers, _ or -" >&2
+  exit 1
+fi
 SERVER_PID=""
 BRAIN_PID=""
 GODOT_PID=""
@@ -70,7 +79,7 @@ fi
 
 "$ROOT/target/release/fragr-server" --bind "127.0.0.1:$PORT" --bots 0 \
   --map-file server/maps/m01-recall-notice.json --campaign-run \
-  --difficulty "${FRAGR_WATCH_DIFFICULTY:-standard}" --status-every-s 0 \
+  --difficulty "${FRAGR_WATCH_DIFFICULTY:-standard}" --seed "$WATCH_SEED" --status-every-s 0 \
   >"$OUT/server.log" 2>&1 &
 SERVER_PID=$!
 UP=0

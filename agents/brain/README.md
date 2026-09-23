@@ -41,7 +41,9 @@ one free-rule brain pawn and a passive Godot spectator, then saves eight eye
 frames and a paired UUID/tick/brain receipt under `.agents/watch/`. Set
 `FRAGR_WATCH_SECONDS=180` for a longer M01 attempt. The wrapper uses no provider
 key and stops only the processes it started. A short capture proves the live
-view, not a mission clear.
+view, not a mission clear. Set `FRAGR_WATCH_SEED` and `FRAGR_WATCH_NAME` for
+repeatable route comparisons; the verified receipt includes the mission state,
+kills, and deaths after the run.
 
 ## Run it with a brain
 

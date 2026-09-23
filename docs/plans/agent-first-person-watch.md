@@ -1,6 +1,6 @@
 # Agent first-person watch
 
-Status: **implemented** ([#219](https://github.com/blisspixel/fragr/pull/219)).
+Status: **shipped** ([#219](https://github.com/blisspixel/fragr/pull/219), v0.43.1).
 Local validation is recorded below. The merge and main CI passed.
 
 ## Goal
