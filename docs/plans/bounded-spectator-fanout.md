@@ -1,6 +1,6 @@
 # Bounded spectator delivery
 
-Status: **implemented**. Local checks and rendered inspection passed; PR CI remains.
+Status: **shipped** ([#224](https://github.com/blisspixel/fragr/pull/224), v0.44.1). Local checks, PR CI, and rendered inspection passed.
 
 ## Goal
 

@@ -6,7 +6,7 @@ fragr is a retro-styled 3D FPS built toward an authored campaign and multiplayer
 
 It is the 1993 LAN-party feeling rebuilt for 2026: a Rust authoritative server, a Godot client that only presents, and an MCP adapter so any agent can observe and act like a player.
 
-The current release is [v0.44.0](https://github.com/blisspixel/fragr/releases/tag/v0.44.0). Shipped tags are listed in [CHANGELOG.md](CHANGELOG.md). What is still open is [docs/ROADMAP.md](docs/ROADMAP.md).
+The current release is [v0.44.1](https://github.com/blisspixel/fragr/releases/tag/v0.44.1). Shipped tags are listed in [CHANGELOG.md](CHANGELOG.md). What is still open is [docs/ROADMAP.md](docs/ROADMAP.md).
 
 ## What runs today
 
@@ -26,7 +26,7 @@ The current release is [v0.44.0](https://github.com/blisspixel/fragr/releases/ta
 
 This is a playable vertical slice, not a finished game. The build order and what is still missing live in [`docs/ROADMAP.md`](docs/ROADMAP.md).
 
-Current work is the [full build order](docs/ROADMAP.md): finish Recall Notice, then one mission at a time, while the server grows a watcher audience around one authoritative fight. v0.34.0 is the records-route and departure release. v0.35.0 caps frames, connections, and inbound text. Watching and joining stay in this app. `GET /status` on the game port is a host probe, not a web client. The Windows taskbar icon is still the Godot mark. The [campaign treatment](docs/CAMPAIGN-MISSIONS.md) plans a personal rescue, offworld resistance, the Union's defeat, a sudden planetary wipe, and its aftermath. This is planned content, not a completed campaign or public-server readiness claim.
+Current work is the [full build order](docs/ROADMAP.md): finish Recall Notice, then one mission at a time, while the server grows a watcher audience around one authoritative fight. v0.44.1 bounds each spectator's outbound queue and makes the reference agent follow campaign objectives. Watching and joining stay in this app. `GET /status` on the game port is a host probe, not a web client. The Windows taskbar icon is still the Godot mark. The [campaign treatment](docs/CAMPAIGN-MISSIONS.md) plans a personal rescue, offworld resistance, the Union's defeat, a sudden planetary wipe, and its aftermath. This is planned content, not a completed campaign or public-server readiness claim.
 
 The opening mission has an opt-in [development slice](server/maps/README.md):
 enclosed intake rooms, two stair routes, an accessible records balcony, a
