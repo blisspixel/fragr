@@ -142,3 +142,5 @@ allowance, then spends the continue exactly once. This remains an internal
 state round-trip only; the local child has no disk integration yet.
 The store also retains unsupported prior bytes under a unique archived name
 when an explicit New Run starts; a focused test reads that archive back.
+Preview now shares the bounded document reader and validator with locked load;
+launch must still validate again under the lock because a preview can be stale.

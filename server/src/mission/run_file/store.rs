@@ -33,7 +33,13 @@ impl RunStore {
     }
 
     pub fn load(&self) -> io::Result<Option<RunDocument>> {
-        let file = match File::open(self.directory.join(RUN_NAME)) {
+        Self::preview(&self.directory, self.content_sha256)
+    }
+
+    /// A menu may inspect an unlocked snapshot. Launch always reopens under
+    /// the writer lock and validates again before advertising readiness.
+    pub fn preview(directory: &Path, content_sha256: [u8; 32]) -> io::Result<Option<RunDocument>> {
+        let file = match File::open(directory.join(RUN_NAME)) {
             Ok(file) => file,
             Err(error) if error.kind() == io::ErrorKind::NotFound => return Ok(None),
             Err(error) => return Err(error),
@@ -45,7 +51,7 @@ impl RunStore {
         }
         let document: RunDocument =
             serde_json::from_slice(&bytes).map_err(|_| invalid("invalid campaign run document"))?;
-        document.validate(self.content_sha256).map_err(invalid)?;
+        document.validate(content_sha256).map_err(invalid)?;
         Ok(Some(document))
     }
 
@@ -213,6 +219,10 @@ mod tests {
         let archive = store.start_new(&created).unwrap().unwrap();
         assert_eq!(fs::read(&archive).unwrap(), b"older unsupported bytes");
         assert_eq!(store.load().unwrap(), Some(created));
+        assert_eq!(
+            RunStore::preview(&directory, [7; 32]).unwrap(),
+            store.load().unwrap()
+        );
         drop(store);
         fs::remove_dir_all(directory).unwrap();
     }
