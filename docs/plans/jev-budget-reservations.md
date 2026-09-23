@@ -1,6 +1,6 @@
 # Jev paid-call reservations
 
-Status: implemented ([#218](https://github.com/blisspixel/fragr/pull/218)), 2026-09-22. This is a developer tooling prerequisite for
+Status: shipped ([#218](https://github.com/blisspixel/fragr/pull/218)), 2026-09-22. This is a developer tooling prerequisite for
 bounded Jev playtests, not a player-facing feature.
 
 ## Goal

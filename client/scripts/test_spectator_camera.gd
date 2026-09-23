@@ -1,11 +1,16 @@
 extends SceneTree
 
 class Fighter extends Node3D:
+	var player_id: String = ""
 	var target_yaw: float = 0.0
 	var target_pitch: float = 0.0
 	var local_fp: bool = false
 	func set_local_fp(enabled: bool) -> void:
 		local_fp = enabled
+
+class InputBlocker extends Node3D:
+	func controls_blocked() -> bool:
+		return true
 
 var _failures: int = 0
 
@@ -21,10 +26,13 @@ func _run() -> void:
 	var camera: Node3D = load("res://scripts/spectator_cam.gd").new()
 	var first: Fighter = Fighter.new()
 	var second: Fighter = Fighter.new()
+	first.player_id = "first"
+	second.player_id = "second"
 	root.add_child(first)
 	root.add_child(second)
 	root.add_child(camera)
 	camera.set_process(false)
+	_check(camera.follow_mode and camera.spectator_first_person, "new spectators default to followed eyes")
 	first.position = Vector3(4, 1.5, 7)
 	second.position = Vector3(-3, 1.5, -9)
 	for i in range(16):
@@ -60,7 +68,34 @@ func _run() -> void:
 	_check(camera.is_observing_first_person(), "view cycle returns to eyes")
 	camera.set_available_targets([])
 	_check(not second.local_fp and not camera.is_observing_first_person(), "empty roster clears hidden bodies")
+	camera.set_available_targets([first, second])
+	camera.auto_cycle_interval = 3.0
+	camera.pin_player("second")
+	_check(camera.get_followed_target() == second and camera.available_targets.size() == 1, "watch pin selects exact identity")
+	camera.cycle_next_target()
+	camera.toggle_follow_mode()
+	_check(camera.get_followed_target() == second and camera.spectator_first_person, "watch pin ignores camera controls")
+	camera._follow_target()
+	camera.set_available_targets([first])
+	_check(camera.get_followed_target() == null and not second.local_fp, "missing pin never switches fighter")
+	var replacement: Fighter = Fighter.new()
+	replacement.player_id = "second"
+	root.add_child(replacement)
+	camera.set_available_targets([first, replacement])
+	_check(camera.get_followed_target() == replacement, "watch pin reacquires same identity")
+	camera.pin_player("")
+	_check(camera.available_targets.size() == 2, "clearing pin restores roster")
+	_check(camera.auto_cycle_interval == 3.0, "clearing pin retains normal camera cycle setting")
+	var blocker: InputBlocker = InputBlocker.new()
+	root.add_child(blocker)
+	camera.reparent(blocker)
+	camera.pin_player("second")
+	replacement.position = Vector3(8, 1.5, 12)
+	camera._process(0.05)
+	_check(camera.global_position.distance_to(replacement.global_position + Vector3(0.0, 0.1, 0.0)) < 0.00001, "blocked chat input keeps first-person follow live")
+	replacement.queue_free()
 	camera.queue_free()
+	blocker.queue_free()
 	first.queue_free()
 	second.queue_free()
 	await process_frame
