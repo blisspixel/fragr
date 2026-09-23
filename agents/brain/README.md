@@ -29,6 +29,12 @@ cargo run -p fragr-brain -- --provider local --no-ledger play --server ws://127.
 Run those commands in separate terminals. The JSON receipt's `mission` field is
 the latest validated server phase, run status, attempt, difficulty, and remaining
 continues. An elapsed timer or kill count does not mean the mission was cleared.
+For a terminal mission, `terminal_record_complete` says whether the final
+participant record arrived. `false` means kill and death totals may be stale.
+Add `--timeline-path .agents/watch/m01-trace.json` to save bounded per-attempt
+position, objective distance, health, ammo, target, raw incoming hit damage,
+and pickup evidence.
+The server wire has no room name, so exact position is the location evidence.
 
 The local controller reads `MapInfo` for cover and walking routes, using the same
 heightfield navigator as rule bots and playtest agents. It routes around walls and
@@ -41,9 +47,11 @@ one free-rule brain pawn and a passive Godot spectator, then saves eight eye
 frames and a paired UUID/tick/brain receipt under `.agents/watch/`. Set
 `FRAGR_WATCH_SECONDS=180` for a longer M01 attempt. The wrapper uses no provider
 key and stops only the processes it started. A short capture proves the live
-view, not a mission clear. Set `FRAGR_WATCH_SEED` and `FRAGR_WATCH_NAME` for
-repeatable route comparisons; the verified receipt includes the mission state,
+view, not a mission clear. Set `FRAGR_WATCH_SEED` and `FRAGR_WATCH_NAME` to fix
+those inputs when comparing routes; live scheduling can still change the result.
+The verified receipt includes the mission state,
 kills, and deaths after the run.
+The watch also saves `timeline.json` beside the verified receipt.
 
 ## Run it with a brain
 

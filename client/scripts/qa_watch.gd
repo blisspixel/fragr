@@ -187,6 +187,7 @@ func _verify_receipt(brain_path: String) -> void:
 	var actions_value: Variant = brain.get("actions_sent")
 	var kills_value: Variant = brain.get("kills")
 	var deaths_value: Variant = brain.get("deaths")
+	var terminal_record_value: Variant = brain.get("terminal_record_complete")
 	var mission_value: Variant = brain.get("mission")
 	if not passed_value is bool or not id_value is String \
 		or not brain_id_value is String or not provider_value is String \
@@ -211,6 +212,18 @@ func _verify_receipt(brain_path: String) -> void:
 		or float(continues_value) < 0.0 or float(continues_value) > 3.0 \
 		or float(continues_value) != floorf(float(continues_value)):
 		_fail("watch mission receipt has invalid campaign facts")
+		quit(1)
+		return
+	if terminal_record_value != null and not terminal_record_value is bool:
+		_fail("brain terminal record flag has wrong type")
+		quit(1)
+		return
+	if mission.get("status") in ["complete", "failed"] and terminal_record_value != true:
+		_fail("terminal mission receipt lacks its final participant record")
+		quit(1)
+		return
+	if mission.get("status") not in ["complete", "failed"] and terminal_record_value != null:
+		_fail("nonterminal mission receipt has a final record flag")
 		quit(1)
 		return
 	var id: String = id_value
@@ -262,6 +275,7 @@ func _verify_receipt(brain_path: String) -> void:
 			},
 			"kills": int(kills_value),
 			"deaths": int(deaths_value),
+			"terminal_record_complete": terminal_record_value,
 			"run_usd": 0.0,
 		}
 		var output: FileAccess = FileAccess.open(_out_dir.path_join("verified.json"), FileAccess.WRITE)

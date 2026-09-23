@@ -94,6 +94,9 @@ enum Command {
         /// Leave after this many seconds.
         #[arg(long)]
         max_seconds: Option<u64>,
+        /// Save a bounded campaign trace for local diagnosis.
+        #[arg(long)]
+        timeline_path: Option<PathBuf>,
     },
     /// Send one decision for a state string and print the answers.
     Ask {
@@ -186,6 +189,7 @@ fn run(cli: Cli, transport: Arc<dyn Transport>, out: &mut dyn std::io::Write) ->
             margin_floor,
             confidence_floor,
             max_seconds,
+            timeline_path,
         } => {
             let mut budget = budget_from(&cli.common, provider)?;
             if provider.is_paid() {
@@ -223,6 +227,7 @@ fn run(cli: Cli, transport: Arc<dyn Transport>, out: &mut dyn std::io::Write) ->
                     margin_floor,
                 },
                 max_seconds,
+                timeline_path,
             };
             let budget = Arc::new(Mutex::new(budget));
             let runtime = tokio::runtime::Runtime::new()
@@ -445,11 +450,16 @@ mod tests {
             "X",
             "--max-seconds",
             "5",
+            "--timeline-path",
+            ".agents/watch/test-timeline.json",
             "--margin-floor",
             "0.3",
         ]);
         assert!(
             matches!(cli.command, Command::Play { ref server, ref name, max_seconds: Some(5), .. } if server == "ws://h:1" && name.as_deref() == Some("X"))
+        );
+        assert!(
+            matches!(cli.command, Command::Play { timeline_path: Some(ref path), .. } if path == &PathBuf::from(".agents/watch/test-timeline.json"))
         );
         assert!(
             matches!(cli.command, Command::Play { margin_floor, .. } if (margin_floor - 0.3).abs() < 1e-9)

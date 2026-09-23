@@ -19,6 +19,7 @@ pub mod dotenv;
 pub mod plan;
 pub mod provider;
 pub mod telemetry;
+pub mod timeline;
 
 use std::fmt;
 
