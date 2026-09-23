@@ -10,6 +10,7 @@ use std::fs;
 use std::io::Write;
 use std::path::{Path, PathBuf};
 use std::time::{SystemTime, UNIX_EPOCH};
+use uuid::Uuid;
 
 /// Jev list price on 2026-09-18 (TypeSafe native and OpenRouter alike):
 /// 0.042 dollars per million input tokens, output tokens free.
@@ -69,8 +70,24 @@ pub struct Charge {
     pub output_tokens: Option<u64>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub request_id: Option<String>,
+    /// Local durable reservation, written before the request was sent.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub reservation_id: Option<Uuid>,
+    /// Provider billing evidence was complete before the pending file cleared.
+    #[serde(default)]
+    pub settled: bool,
     /// False when the call failed after it was sent; it may still have billed.
     pub ok: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct PendingRequest {
+    id: Uuid,
+    unix: u64,
+    provider: String,
+    model: String,
+    estimated_usd: f64,
 }
 
 impl Charge {
@@ -169,7 +186,10 @@ impl Ledger {
             .append(true)
             .open(path)?;
         file.lock()?;
-        let written = file.write_all(line.as_bytes()).and_then(|()| file.flush());
+        let written = file
+            .write_all(line.as_bytes())
+            .and_then(|()| file.flush())
+            .and_then(|()| file.sync_data());
         let _ = file.unlock();
         written?;
         Ok(())
@@ -292,6 +312,8 @@ pub enum Refusal {
     Invalid(String),
     /// The ledger on disk could not be read to enforce the total cap.
     LedgerUnreadable(String),
+    /// An earlier request may have billed and has no durable settlement yet.
+    Pending(String),
 }
 
 impl fmt::Display for Refusal {
@@ -322,6 +344,7 @@ impl fmt::Display for Refusal {
             }
             Refusal::Invalid(what) => write!(f, "refusing to spend: {what} is not a finite non-negative number"),
             Refusal::LedgerUnreadable(err) => write!(f, "refusing to spend: ledger unreadable: {err}"),
+            Refusal::Pending(path) => write!(f, "refusing to spend: unresolved paid request at {path}; reconcile provider usage before retrying"),
         }
     }
 }
@@ -338,6 +361,7 @@ pub struct Budget {
     prior_usd: f64,
     run_usd: f64,
     run_calls: u64,
+    pending: Option<PendingRequest>,
 }
 
 impl Budget {
@@ -351,6 +375,7 @@ impl Budget {
             prior_usd: 0.0,
             run_usd: 0.0,
             run_calls: 0,
+            pending: None,
         }
     }
 
@@ -366,6 +391,7 @@ impl Budget {
             prior_usd,
             run_usd: 0.0,
             run_calls: 0,
+            pending: None,
         })
     }
 
@@ -375,6 +401,14 @@ impl Budget {
 
     pub fn ledger_path(&self) -> Option<&Path> {
         self.ledger_path.as_deref()
+    }
+
+    /// A receipt still on disk, either in flight or awaiting reconciliation.
+    pub fn pending_receipt(&self) -> Option<PathBuf> {
+        self.ledger_path
+            .as_ref()
+            .map(|path| pending_path(path))
+            .filter(|path| path.exists())
     }
 
     /// Dollars the ledger held before this run started.
@@ -445,10 +479,119 @@ impl Budget {
         Ok(())
     }
 
+    /// Reserve one paid call durably before sending it. The exclusive pending
+    /// file serializes paid requests across processes sharing this ledger.
+    pub fn reserve_request(
+        &mut self,
+        estimate_usd: f64,
+        provider: &str,
+        model: &str,
+    ) -> Result<(), Error> {
+        if self.pending.is_some() {
+            return Err(Error::Budget(Refusal::Pending("this process".into())));
+        }
+        let Some(ledger_path) = &self.ledger_path else {
+            self.check(estimate_usd)?;
+            return Ok(());
+        };
+        let path = pending_path(ledger_path);
+        ensure_parent(&path)?;
+        let _lock = lock_pending(ledger_path)?;
+        // Recover only a reservation whose matching charge was synced already.
+        // A partial or unsettled reservation remains blocking.
+        if path.exists() {
+            if fs::metadata(&path)?.len() > 4096 {
+                return Err(Error::Malformed("pending paid request is oversized".into()));
+            }
+            let pending: PendingRequest = serde_json::from_slice(&fs::read(&path)?)
+                .map_err(|err| Error::Malformed(format!("pending paid request: {err}")))?;
+            let ledger = Ledger::load(ledger_path)?;
+            if ledger.charges.iter().any(|charge| {
+                charge.settled
+                    && charge.reservation_id == Some(pending.id)
+                    && charge.provider == pending.provider
+                    && charge.model == pending.model
+                    && charge.estimated_usd == pending.estimated_usd
+            }) {
+                fs::remove_file(&path)?;
+            } else {
+                return Err(Error::Budget(Refusal::Pending(path.display().to_string())));
+            }
+        }
+        let mut file = fs::OpenOptions::new()
+            .write(true)
+            .create_new(true)
+            .open(&path)
+            .map_err(|err| {
+                if err.kind() == std::io::ErrorKind::AlreadyExists {
+                    Error::Budget(Refusal::Pending(path.display().to_string()))
+                } else {
+                    Error::Io(err)
+                }
+            })?;
+        if let Err(err) = self.check(estimate_usd) {
+            drop(file);
+            let _ = fs::remove_file(&path);
+            return Err(Error::Budget(err));
+        }
+        let pending = PendingRequest {
+            id: Uuid::new_v4(),
+            unix: now_unix(),
+            provider: provider.to_string(),
+            model: model.to_string(),
+            estimated_usd: estimate_usd,
+        };
+        let encoded = serde_json::to_vec(&pending)
+            .map_err(|err| Error::Malformed(format!("pending paid request: {err}")))?;
+        file.write_all(&encoded)?;
+        file.sync_all()?;
+        self.pending = Some(pending);
+        Ok(())
+    }
+
+    /// Record the call before allowing another. An uncertain response keeps
+    /// the pending receipt, even after its estimated charge is recorded.
+    pub fn finish_request(&mut self, charge: &mut Charge, settled: bool) -> Result<(), Error> {
+        let _lock = self.ledger_path.as_deref().map(lock_pending).transpose()?;
+        if let Some(pending) = self.pending.as_ref() {
+            charge.reservation_id = Some(pending.id);
+        }
+        charge.settled = settled;
+        self.record(charge.clone())?;
+        if settled {
+            if let Some(path) = self.ledger_path.as_ref().map(|path| pending_path(path)) {
+                fs::remove_file(path)?;
+            }
+            self.pending = None;
+        }
+        Ok(())
+    }
+
     /// Count a call that was sent, whether or not it succeeded, and append it
     /// to the ledger. The in-memory totals move first so the run cap holds even
     /// when the disk write fails.
     pub fn record(&mut self, charge: Charge) -> Result<(), Error> {
+        // A durable developer response can be replayed after a crash. Its
+        // provider request ID identifies the original bill, not another call.
+        if let Some(id) = charge.request_id.as_deref().filter(|id| !id.is_empty()) {
+            if let Some(path) = &self.ledger_path {
+                self.ledger = Ledger::load(path)?;
+            }
+            if let Some(prior) = self.ledger.charges.iter().find(|prior| {
+                prior.provider == charge.provider && prior.request_id.as_deref() == Some(id)
+            }) {
+                if prior.billed_usd() != charge.billed_usd()
+                    || prior.ok != charge.ok
+                    || prior.reservation_id != charge.reservation_id
+                    || prior.settled != charge.settled
+                {
+                    return Err(Error::Malformed(
+                        "Replayed request has inconsistent billing evidence".into(),
+                    ));
+                }
+                return Ok(());
+            }
+        }
         self.run_usd += charge.billed_usd();
         self.run_calls += 1;
         let appended = match &self.ledger_path {
@@ -458,6 +601,33 @@ impl Budget {
         self.ledger.charges.push(charge);
         appended
     }
+}
+
+fn pending_path(ledger_path: &Path) -> PathBuf {
+    let name = ledger_path
+        .file_name()
+        .unwrap_or_default()
+        .to_string_lossy();
+    ledger_path.with_file_name(format!("{name}.pending"))
+}
+
+fn lock_pending(ledger_path: &Path) -> Result<fs::File, Error> {
+    let path = ledger_path.with_file_name(format!(
+        "{}.pending.lock",
+        ledger_path
+            .file_name()
+            .unwrap_or_default()
+            .to_string_lossy()
+    ));
+    ensure_parent(&path)?;
+    let file = fs::OpenOptions::new()
+        .read(true)
+        .write(true)
+        .create(true)
+        .truncate(false)
+        .open(path)?;
+    file.lock()?;
+    Ok(file)
 }
 
 pub fn now_unix() -> u64 {
@@ -481,6 +651,8 @@ mod tests {
             input_tokens: Some(100),
             output_tokens: Some(0),
             request_id: None,
+            reservation_id: None,
+            settled: false,
             ok: true,
         }
     }
@@ -508,6 +680,105 @@ mod tests {
     fn charge_bills_actual_over_estimate() {
         assert_eq!(charge(0.5, None).billed_usd(), 0.5);
         assert_eq!(charge(0.5, Some(0.1)).billed_usd(), 0.1);
+    }
+
+    #[test]
+    fn replayed_provider_receipt_is_accounted_once_across_restarts() {
+        let path = temp_path("receipt-replay");
+        let _ = fs::remove_file(&path);
+        let caps = Caps {
+            run_usd: 1.0,
+            ..Caps::default()
+        };
+        let mut original = charge(0.1, Some(0.03));
+        original.request_id = Some("provider-response-1".into());
+        let mut first = Budget::with_ledger(caps, Pricing::default(), &path).unwrap();
+        first.record(original.clone()).unwrap();
+        let mut resumed = Budget::with_ledger(caps, Pricing::default(), &path).unwrap();
+        resumed.record(original.clone()).unwrap();
+        assert_eq!(resumed.run_usd(), 0.0);
+        assert_eq!(Ledger::load(&path).unwrap().charges.len(), 1);
+        original.actual_usd = Some(0.04);
+        assert!(resumed.record(original).is_err());
+        fs::remove_file(path).unwrap();
+    }
+
+    #[test]
+    fn paid_reservation_is_durable_and_blocks_another_process() {
+        let path = temp_path("pending-request");
+        let pending = pending_path(&path);
+        let _ = fs::remove_file(&path);
+        let _ = fs::remove_file(&pending);
+        let caps = Caps {
+            run_usd: 1.0,
+            total_usd: Some(1.0),
+            ..Caps::default()
+        };
+        let mut first = Budget::with_ledger(caps, Pricing::default(), &path).unwrap();
+        first.reserve_request(0.1, "openrouter", "jev").unwrap();
+        assert!(
+            pending.exists(),
+            "reservation must precede the network call"
+        );
+        let mut other = Budget::with_ledger(caps, Pricing::default(), &path).unwrap();
+        assert!(matches!(
+            other.reserve_request(0.1, "openrouter", "jev"),
+            Err(Error::Budget(Refusal::Pending(_)))
+        ));
+        drop(first);
+        let mut restarted = Budget::with_ledger(caps, Pricing::default(), &path).unwrap();
+        assert!(matches!(
+            restarted.reserve_request(0.1, "openrouter", "jev"),
+            Err(Error::Budget(Refusal::Pending(_)))
+        ));
+        let _ = fs::remove_file(&pending);
+        let _ = fs::remove_file(&path);
+    }
+
+    #[test]
+    fn settled_reservation_counts_once_and_recovers_a_leftover_file() {
+        let path = temp_path("settled-request");
+        let pending_path = pending_path(&path);
+        let _ = fs::remove_file(&path);
+        let _ = fs::remove_file(&pending_path);
+        let caps = Caps {
+            run_usd: 1.0,
+            total_usd: Some(0.15),
+            ..Caps::default()
+        };
+        let mut first = Budget::with_ledger(caps, Pricing::default(), &path).unwrap();
+        first.reserve_request(0.1, "openrouter", "jev").unwrap();
+        let reservation_bytes = fs::read(&pending_path).unwrap();
+        let mut settled = charge(0.1, Some(0.06));
+        settled.provider = "openrouter".into();
+        settled.model = "jev".into();
+        first.finish_request(&mut settled, true).unwrap();
+        assert_eq!(first.run_calls(), 1);
+        assert_eq!(Ledger::load(&path).unwrap().calls(), 1);
+        assert_eq!(
+            Ledger::load(&path).unwrap().charges[0].reservation_id,
+            settled.reservation_id
+        );
+        assert!(!pending_path.exists());
+        // A crash after the synced ledger append but before pending cleanup is
+        // recoverable without charging the completed request twice.
+        fs::write(&pending_path, reservation_bytes).unwrap();
+        let mut restarted = Budget::with_ledger(caps, Pricing::default(), &path).unwrap();
+        restarted
+            .reserve_request(0.08, "openrouter", "jev")
+            .unwrap();
+        assert_eq!(Ledger::load(&path).unwrap().calls(), 1);
+        let mut second = charge(0.08, Some(0.08));
+        second.provider = "openrouter".into();
+        second.model = "jev".into();
+        restarted.finish_request(&mut second, true).unwrap();
+        let mut capped = Budget::with_ledger(caps, Pricing::default(), &path).unwrap();
+        assert!(matches!(
+            capped.reserve_request(0.02, "openrouter", "jev"),
+            Err(Error::Budget(Refusal::TotalCap { .. }))
+        ));
+        assert!(!pending_path.exists());
+        fs::remove_file(&path).unwrap();
     }
 
     #[test]

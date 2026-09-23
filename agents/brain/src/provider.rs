@@ -378,10 +378,15 @@ pub fn decide(
     model: &str,
     request: &HttpRequest,
 ) -> Result<Decision, Error> {
+    if provider.is_paid() && lock(budget).ledger_path().is_none() {
+        return Err(Error::InvalidArgument(
+            "paid decisions require a durable ledger".into(),
+        ));
+    }
     let (estimate, pricing) = {
         let mut guard = lock(budget);
         let estimate = estimate_cost(request, &guard.pricing);
-        guard.check(estimate)?;
+        guard.reserve_request(estimate, provider.name(), model)?;
         (estimate, guard.pricing)
     };
     let outcome = transport
@@ -396,6 +401,8 @@ pub fn decide(
         input_tokens: None,
         output_tokens: None,
         request_id: None,
+        reservation_id: None,
+        settled: false,
         ok: false,
     };
     if let Ok(response) = &outcome {
@@ -407,7 +414,18 @@ pub fn decide(
         charge.output_tokens = response.usage.as_ref().map(|u| u.output_tokens);
         charge.request_id = response.id.clone();
     }
-    lock(budget).record(charge.clone())?;
+    // Any failure may have billed. A successful decision without provider
+    // billing evidence is also unresolved, even though its plan is usable.
+    let settled = match &outcome {
+        Ok(response) => response.usage.as_ref().is_some_and(|usage| {
+            provider != Provider::OpenRouter
+                || usage
+                    .cost
+                    .is_some_and(|cost| cost.is_finite() && cost >= 0.0)
+        }),
+        Err(_) => false,
+    };
+    lock(budget).finish_request(&mut charge, settled)?;
     Ok(Decision {
         response: outcome?,
         charge,
@@ -480,6 +498,13 @@ mod tests {
     use super::*;
     use crate::budget::Caps;
     use crate::decision::tactical_questions;
+    use uuid::Uuid;
+
+    fn test_budget(caps: Caps) -> Budget {
+        let path =
+            std::env::temp_dir().join(format!("fragr-brain-provider-{}.jsonl", Uuid::new_v4()));
+        Budget::with_ledger(caps, Pricing::default(), &path).unwrap()
+    }
 
     #[test]
     fn provider_table() {
@@ -736,7 +761,7 @@ mod tests {
             total_usd: None,
             run_calls: None,
         };
-        let budget = Mutex::new(Budget::new(caps, Pricing::default()));
+        let budget = Mutex::new(test_budget(caps));
         let decision = decide(
             &transport,
             &budget,
@@ -759,7 +784,7 @@ mod tests {
         let sent = transport.last_request.lock().unwrap().clone().unwrap();
         assert_eq!(sent.url, TYPESAFE_ENDPOINT);
 
-        let no_cap = Mutex::new(Budget::new(Caps::default(), Pricing::default()));
+        let no_cap = Mutex::new(test_budget(Caps::default()));
         let refused = decide(
             &transport,
             &no_cap,
@@ -795,10 +820,104 @@ mod tests {
         assert_eq!(last.actual_usd, None);
 
         let offline = FakeTransport::new(vec![Err(Error::Transport("refused".into()))]);
-        let budget2 = Mutex::new(Budget::new(caps, Pricing::default()));
+        let budget2 = Mutex::new(test_budget(caps));
         let err = decide(&offline, &budget2, Provider::OpenRouter, "m", &request).unwrap_err();
         assert!(matches!(err, Error::Transport(_)));
         assert_eq!(budget2.lock().unwrap().run_calls(), 1);
+    }
+
+    #[test]
+    fn uncertain_paid_replies_keep_the_receipt_across_restart() {
+        let question = tactical_questions();
+        let request = decision_request(
+            Provider::OpenRouter,
+            "typesafe/jev-1.13",
+            "test-key",
+            &json!("STATE"),
+            &question,
+        )
+        .unwrap();
+        let mut missing_usage = push_answers();
+        missing_usage.as_object_mut().unwrap().remove("usage");
+        let cases = vec![
+            Err(Error::Transport("timeout".into())),
+            Ok(HttpResponse {
+                status: 429,
+                body: b"rate limited".to_vec(),
+            }),
+            Ok(HttpResponse {
+                status: 503,
+                body: b"unavailable".to_vec(),
+            }),
+            Ok(HttpResponse {
+                status: 200,
+                body: b"not json".to_vec(),
+            }),
+            Ok(HttpResponse {
+                status: 200,
+                body: missing_usage.to_string().into_bytes(),
+            }),
+            Ok(HttpResponse {
+                status: 200,
+                body: push_answers().to_string().into_bytes(),
+            }),
+        ];
+        let caps = Caps {
+            run_usd: 1.0,
+            total_usd: Some(1.0),
+            run_calls: None,
+        };
+        for response in cases {
+            let budget = Mutex::new(test_budget(caps));
+            let transport = FakeTransport::new(vec![response]);
+            let first = decide(
+                &transport,
+                &budget,
+                Provider::OpenRouter,
+                "typesafe/jev-1.13",
+                &request,
+            );
+            assert!(!matches!(first, Err(Error::Budget(_))));
+            let guard = budget.lock().unwrap();
+            let path = guard.ledger_path().unwrap().to_path_buf();
+            let pending = guard
+                .pending_receipt()
+                .expect("uncertain response retains reservation");
+            assert!(!guard.ledger().charges[0].settled);
+            drop(guard);
+            let restarted =
+                Mutex::new(Budget::with_ledger(caps, Pricing::default(), &path).unwrap());
+            assert!(matches!(
+                decide(
+                    &transport,
+                    &restarted,
+                    Provider::OpenRouter,
+                    "typesafe/jev-1.13",
+                    &request
+                ),
+                Err(Error::Budget(crate::budget::Refusal::Pending(_)))
+            ));
+            assert_eq!(
+                transport.calls(),
+                1,
+                "restart cannot resubmit an uncertain request"
+            );
+            std::fs::remove_file(&pending).unwrap();
+            std::fs::remove_file(&path).unwrap();
+        }
+        let without_ledger = Mutex::new(Budget::new(caps, Pricing::default()));
+        let transport = FakeTransport::ok(push_answers());
+        assert!(matches!(
+            decide(
+                &transport,
+                &without_ledger,
+                Provider::OpenRouter,
+                "typesafe/jev-1.13",
+                &request
+            ),
+            Err(Error::InvalidArgument(_))
+        ));
+        assert_eq!(transport.calls(), 0);
     }
 
     #[test]
