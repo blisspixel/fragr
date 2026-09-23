@@ -69,6 +69,10 @@ pub(crate) enum SavedStep {
         mission: MissionId,
         entry: SavedEntry,
     },
+    Abandoned {
+        mission: MissionId,
+        entry: SavedEntry,
+    },
     AwaitingMission {
         completed_mission: MissionId,
         next_mission: String,
@@ -128,6 +132,7 @@ impl RunDocument {
                 }
                 self.validate_mission(*mission, entry)
             }
+            SavedStep::Abandoned { mission, entry } => self.validate_mission(*mission, entry),
             SavedStep::AwaitingMission {
                 completed_mission,
                 next_mission,
@@ -188,7 +193,7 @@ impl GameState {
                     exit: SavedEntry::from_player(player)?,
                 }
             }
-            CampaignRunStatus::Abandoned => return Ok(None),
+            CampaignRunStatus::Abandoned => SavedStep::Abandoned { mission, entry },
         };
         let document = RunDocument {
             version: RUN_FILE_VERSION,
@@ -269,6 +274,14 @@ mod tests {
         pending.validate([5; 32]).unwrap();
         pending.remaining_continues = 1;
         assert!(pending.validate([5; 32]).is_err());
+
+        let mut abandoned = document();
+        abandoned.step = SavedStep::Abandoned {
+            mission: MissionId::RecallNotice,
+            entry: SavedEntry::initial(),
+        };
+        abandoned.validate([5; 32]).unwrap();
+        assert_eq!(abandoned.remaining_continues, CAMPAIGN_CONTINUES);
     }
 
     #[test]
@@ -331,5 +344,58 @@ mod tests {
         assert_eq!(resumed.remaining_continues, 0);
         assert_eq!(resumed.attempt(), 4);
         assert!(matches!(resumed.step, SavedStep::MissionEntry { .. }));
+    }
+
+    #[test]
+    fn completed_m01_projects_live_exit_equipment_instead_of_entry() {
+        let mut state = state_with_map();
+        let hash = state.map.content_sha256().unwrap();
+        let initial = RunDocument::new(Uuid::new_v4(), CampaignRules::default(), hash);
+        state.load_campaign_run(&initial).unwrap();
+        let owner = Uuid::new_v4();
+        state.add_player(owner, "Run owner".into(), Role::Human);
+        state.acknowledge_mission(
+            owner,
+            crate::protocol::MissionReady {
+                id: MissionId::RecallNotice,
+                attempt: 1,
+            },
+        );
+        let player = state.players.iter_mut().find(|p| p.id == owner).unwrap();
+        player.inventory.grant_weapon(WeaponType::Tack);
+        player.inventory.try_fire(WeaponType::Tack);
+        player.weapon = WeaponType::Tack;
+        player.hp = 54;
+        player.armor = 12;
+        let run = state.mission.as_mut().unwrap();
+        run.phase = crate::protocol::MissionPhase::Departed;
+        run.solo.as_mut().unwrap().state.status = CampaignRunStatus::Complete;
+        let completed = state.campaign_run_document().unwrap().unwrap();
+        completed.validate(hash).unwrap();
+        match &completed.step {
+            SavedStep::AwaitingMission {
+                completed_mission,
+                next_mission,
+                exit,
+            } => {
+                assert_eq!(*completed_mission, MissionId::RecallNotice);
+                assert_eq!(next_mission, NEXT_MISSION);
+                assert_eq!((exit.hp, exit.armor), (54, 12));
+                assert_eq!(exit.equipment.selected, WeaponType::Tack);
+                assert_eq!(exit.equipment.weapons.len(), 2);
+            }
+            _ => panic!("completed run did not retain its live exit"),
+        }
+        let directory =
+            std::env::temp_dir().join(format!("fragr-completed-run-{}", Uuid::new_v4()));
+        let store = store::RunStore::open(&directory, hash).unwrap();
+        store.save(&completed).unwrap();
+        assert!(matches!(
+            store::RunStore::inspect(&directory, hash).unwrap(),
+            store::RunProbe::Compatible(document) if document == completed
+        ));
+        assert!(state_with_map().load_campaign_run(&completed).is_err());
+        drop(store);
+        std::fs::remove_dir_all(directory).unwrap();
     }
 }

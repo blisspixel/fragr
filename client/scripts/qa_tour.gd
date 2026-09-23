@@ -116,6 +116,15 @@ func _run() -> void:
 		if not menu_page.is_empty():
 			get_root().get_node("BootMenu").call("_show", menu_page)
 			await process_frame
+			if menu_page == "single":
+				var preview_deadline: int = Time.get_ticks_msec() + 10000
+				var preview: Dictionary = LocalMatch.for_tree(self).run_preview
+				while str(preview.get("status", "loading")) == "loading" and Time.get_ticks_msec() < preview_deadline:
+					await create_timer(0.05).timeout
+					preview = LocalMatch.for_tree(self).run_preview
+				if str(preview.get("status", "")) != "missing":
+					push_error("qa_tour: isolated Single Player preview did not reach missing-run state")
+					_failed = true
 			if menu_page == "records":
 				var panel: RecordsPanel = get_root().get_node("BootMenu").get("_root").get_node("ServiceRecord")
 				panel._select_kind(str(state.get("record_kind", "mission")))

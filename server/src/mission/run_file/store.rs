@@ -83,6 +83,14 @@ impl RunStore {
     /// Explicit New Run keeps the previous bytes recoverable under the same
     /// writer lock, including a document this version cannot decode.
     pub fn start_new(&self, document: &RunDocument) -> io::Result<Option<PathBuf>> {
+        self.start_new_with_sync(document, sync_directory)
+    }
+
+    fn start_new_with_sync(
+        &self,
+        document: &RunDocument,
+        sync: impl Fn(&Path) -> io::Result<()>,
+    ) -> io::Result<Option<PathBuf>> {
         document.validate(self.content_sha256).map_err(invalid)?;
         let prior = self.directory.join(RUN_NAME);
         let archived = if prior.try_exists()? {
@@ -90,7 +98,17 @@ impl RunStore {
                 .directory
                 .join(format!("run.prior-{}.json", Uuid::new_v4().simple()));
             fs::rename(&prior, &archive)?;
-            sync_directory(&self.directory)?;
+            if let Err(error) = sync(&self.directory) {
+                let moved = archive.try_exists()? && !prior.try_exists()?;
+                return Err(io::Error::new(
+                    error.kind(),
+                    if moved {
+                        format!("prior campaign run is archived; directory durability is uncertain: {error}")
+                    } else {
+                        format!("prior campaign run archive location is uncertain: {error}")
+                    },
+                ));
+            }
             Some(archive)
         } else {
             None
@@ -104,6 +122,15 @@ impl RunStore {
         document: &RunDocument,
         before_replace: impl FnOnce(&Path) -> io::Result<()>,
     ) -> io::Result<()> {
+        self.save_with_sync(document, before_replace, sync_directory)
+    }
+
+    fn save_with_sync(
+        &self,
+        document: &RunDocument,
+        before_replace: impl FnOnce(&Path) -> io::Result<()>,
+        sync: impl Fn(&Path) -> io::Result<()>,
+    ) -> io::Result<()> {
         document.validate(self.content_sha256).map_err(invalid)?;
         let bytes = serde_json::to_vec(document)
             .map_err(|_| invalid("campaign run document could not be encoded"))?;
@@ -113,6 +140,7 @@ impl RunStore {
         let temporary = self
             .directory
             .join(format!("run.{}.tmp", Uuid::new_v4().simple()));
+        let mut replaced = false;
         let result = (|| {
             let mut file = OpenOptions::new()
                 .write(true)
@@ -123,14 +151,31 @@ impl RunStore {
             drop(file);
             before_replace(&temporary)?;
             fs::rename(&temporary, self.directory.join(RUN_NAME))?;
-            sync_directory(&self.directory)
+            replaced = true;
+            sync(&self.directory)
         })();
-        if result.is_err() {
-            // A failed rename leaves only this unique temporary file. After
-            // rename, the path no longer exists and the new run may be live.
+        if let Err(error) = result {
+            if replaced {
+                let mut current = Vec::new();
+                let matches_new = File::open(self.directory.join(RUN_NAME))
+                    .and_then(|file| file.take(MAX_RUN_BYTES + 1).read_to_end(&mut current))
+                    .is_ok_and(|_| current == bytes);
+                return Err(io::Error::new(
+                    error.kind(),
+                    if matches_new {
+                        format!(
+                            "new campaign run is live; directory durability is uncertain: {error}"
+                        )
+                    } else {
+                        format!("campaign run replacement location is uncertain: {error}")
+                    },
+                ));
+            }
+            // A failed pre-rename write leaves only this unique temporary file.
             let _ = fs::remove_file(&temporary);
+            return Err(error);
         }
-        result
+        Ok(())
     }
 }
 
@@ -244,6 +289,59 @@ mod tests {
             RunStore::preview(&directory, [7; 32]).unwrap(),
             store.load().unwrap()
         );
+        drop(store);
+        fs::remove_dir_all(directory).unwrap();
+    }
+
+    #[test]
+    fn post_rename_sync_failure_reports_the_live_save_as_uncertain() {
+        let directory = temp_dir();
+        let store = RunStore::open(&directory, [7; 32]).unwrap();
+        let original = document();
+        store.save(&original).unwrap();
+        let mut updated = original.clone();
+        updated.remaining_continues = 1;
+        let error = store
+            .save_with_sync(
+                &updated,
+                |_| Ok(()),
+                |_| Err(io::Error::other("injected sync failure")),
+            )
+            .unwrap_err();
+        assert!(error.to_string().contains("new campaign run is live"));
+        assert_eq!(store.load().unwrap(), Some(updated));
+        drop(store);
+        fs::remove_dir_all(directory).unwrap();
+    }
+
+    #[test]
+    fn archive_sync_failure_keeps_prior_bytes_recoverable() {
+        let directory = temp_dir();
+        let store = RunStore::open(&directory, [7; 32]).unwrap();
+        let original = document();
+        store.save(&original).unwrap();
+        let error = store
+            .start_new_with_sync(&document(), |_| {
+                Err(io::Error::other("injected sync failure"))
+            })
+            .unwrap_err();
+        assert!(error.to_string().contains("prior campaign run is archived"));
+        let archives: Vec<_> = fs::read_dir(&directory)
+            .unwrap()
+            .filter_map(Result::ok)
+            .filter(|entry| {
+                entry
+                    .file_name()
+                    .to_string_lossy()
+                    .starts_with("run.prior-")
+            })
+            .collect();
+        assert_eq!(archives.len(), 1);
+        assert_eq!(
+            fs::read(archives[0].path()).unwrap(),
+            serde_json::to_vec(&original).unwrap()
+        );
+        assert!(store.load().unwrap().is_none());
         drop(store);
         fs::remove_dir_all(directory).unwrap();
     }

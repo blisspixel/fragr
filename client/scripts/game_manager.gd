@@ -115,6 +115,7 @@ func _ready():
 	var boot = _resolve_boot()
 	if boot.get("mode") == "campaign":
 		local_match = LocalMatch.for_tree(get_tree())
+		_opening_finished = boot.get("run_mode") == "resume"
 		if local_match.state != LocalMatch.State.RUNNING or local_match.url != boot.get("host"):
 			_on_local_failure("LOCAL_SERVER_STOPPED")
 			return
@@ -277,7 +278,10 @@ func _on_leave_requested() -> void:
 	if _leaving:
 		return
 	_leaving = true
-	net_client.leave_match()
+	if local_match != null:
+		net_client.disconnect_from_server()
+	else:
+		net_client.leave_match()
 	if local_match != null:
 		local_match.stop()
 	if get_tree().has_meta("fragr_boot"):
@@ -345,7 +349,8 @@ func _resolve_boot() -> Dictionary:
 			var mode = str(meta.get("mode", "spectate"))
 			var host = str(meta.get("host", "127.0.0.1:6767"))
 			if mode == "campaign":
-				return {"role": "human", "name": settings.player_name(), "host": host, "hud_mode": "CAMPAIGN", "mode": mode}
+				var run_mode: String = str(meta.get("run_mode", "new"))
+				return {"role": "human", "name": settings.player_name(), "host": host, "hud_mode": "CAMPAIGN", "mode": mode, "run_mode": run_mode if run_mode in ["new", "resume"] else "new"}
 			if mode == "solo":
 				return {"role": "human", "name": settings.player_name(), "host": host, "hud_mode": "SOLO BROADCAST", "mode": mode}
 			if mode == "join":
@@ -426,7 +431,7 @@ func _input(_event):
 
 ## One transition for input, the menu, and the real-wire visual tour.
 func change_role(play: bool) -> void:
-	if role_transition or play == is_human_player:
+	if local_match != null or role_transition or play == is_human_player:
 		return
 	role_transition = true
 	pending_jump = false

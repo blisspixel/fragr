@@ -29,6 +29,7 @@ pub enum RunPreview {
         pending_continue: bool,
     },
     Failed,
+    Abandoned,
     AwaitingMission,
     Incompatible,
     Corrupt,
@@ -53,6 +54,7 @@ pub fn preview_run(mission: MissionId) -> io::Result<RunPreview> {
                 })
             }
             SavedStep::Failed { .. } => Ok(RunPreview::Failed),
+            SavedStep::Abandoned { .. } => Ok(RunPreview::Abandoned),
             SavedStep::AwaitingMission { .. } => Ok(RunPreview::AwaitingMission),
         },
     }

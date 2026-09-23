@@ -105,7 +105,9 @@ impl GameState {
         let (status, entry) = match &document.step {
             SavedStep::MissionEntry { entry, .. } => (CampaignRunStatus::Playing, entry),
             SavedStep::PendingContinue { entry, .. } => (CampaignRunStatus::Continue, entry),
-            SavedStep::Failed { .. } | SavedStep::AwaitingMission { .. } => {
+            SavedStep::Failed { .. }
+            | SavedStep::Abandoned { .. }
+            | SavedStep::AwaitingMission { .. } => {
                 return Err("saved campaign run is not playable")
             }
         };

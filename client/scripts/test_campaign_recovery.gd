@@ -33,6 +33,8 @@ func _run() -> void:
 		DirAccess.make_dir_recursive_absolute(_captures)
 	var settings_path: String = "user://test-campaign-recovery-%d.cfg" % OS.get_process_id()
 	var records_path: String = "user://test-campaign-records-%d" % OS.get_process_id()
+	var run_directory: String = ProjectSettings.globalize_path("user://test-campaign-run-%d" % OS.get_process_id())
+	OS.set_environment("FRAGR_RUN_DIR", run_directory)
 	set_meta("fragr_records_path", records_path)
 	set_meta("fragr_settings_path", settings_path)
 	var preferences: FragrSettings = FragrSettings.new(settings_path)
@@ -72,6 +74,17 @@ func _run() -> void:
 		var record_file: String = "%s.%d.json" % [records_path, slot]
 		if FileAccess.file_exists(record_file):
 			DirAccess.remove_absolute(record_file)
+	var run_files: DirAccess = DirAccess.open(run_directory)
+	if run_files != null:
+		run_files.list_dir_begin()
+		var name: String = run_files.get_next()
+		while not name.is_empty():
+			if not run_files.current_is_dir():
+				DirAccess.remove_absolute(run_directory.path_join(name))
+			name = run_files.get_next()
+		run_files.list_dir_end()
+		DirAccess.remove_absolute(run_directory)
+	OS.unset_environment("FRAGR_RUN_DIR")
 	if not _failed:
 		print("test_campaign_recovery: PASS real M01 death, three input-driven retries, entry restore and exhaustion")
 	quit(1 if _failed else 0)

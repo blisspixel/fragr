@@ -274,6 +274,64 @@ async fn persistent_local_child_restarts_same_run_and_keeps_saved_difficulty() {
 }
 
 #[tokio::test]
+async fn explicit_leave_durably_abandons_a_local_run() {
+    let directory =
+        std::env::temp_dir().join(format!("fragr-run-abandon-{}", uuid::Uuid::new_v4()));
+    let (mut child, ready) = spawn_persistent(&directory, "new", None);
+    let (mut socket, _) = connect_async(&ready.url).await.unwrap();
+    socket
+        .send(Message::Text(
+            serde_json::to_string(&ClientMessage::Hello {
+                role: Role::Human,
+                name: "Run owner".into(),
+                geometry_version: 2,
+                gameplay_version: fragr_server::protocol::GAMEPLAY_VERSION,
+                ticket: None,
+                resume: None,
+            })
+            .unwrap(),
+        ))
+        .await
+        .unwrap();
+    tokio::time::timeout(Duration::from_secs(3), async {
+        while let Some(Ok(Message::Text(text))) = socket.next().await {
+            if let ServerMessage::Mission { state, .. } =
+                serde_json::from_str::<ServerMessage>(&text).unwrap()
+            {
+                if state.party.len() == 1 {
+                    return;
+                }
+            }
+        }
+        panic!("owner did not enter the local run");
+    })
+    .await
+    .unwrap();
+    socket
+        .send(Message::Text(
+            serde_json::to_string(&ClientMessage::Leave).unwrap(),
+        ))
+        .await
+        .unwrap();
+    socket.close(None).await.unwrap();
+    let deadline = Instant::now() + Duration::from_secs(3);
+    while preview(&directory)["status"] != "abandoned" {
+        assert!(Instant::now() < deadline, "abandonment was not persisted");
+        tokio::time::sleep(Duration::from_millis(25)).await;
+    }
+    child
+        .0
+        .stdin
+        .as_mut()
+        .unwrap()
+        .write_all(b"{\"type\":\"shutdown\"}\n")
+        .unwrap();
+    exited(&mut child, &ready, true);
+    assert_eq!(preview(&directory)["status"], "abandoned");
+    std::fs::remove_dir_all(directory).unwrap();
+}
+
+#[tokio::test]
 async fn second_local_child_cannot_take_an_active_run() {
     let directory = std::env::temp_dir().join(format!("fragr-run-lock-{}", uuid::Uuid::new_v4()));
     let (mut first, ready) = spawn_persistent(&directory, "new", None);

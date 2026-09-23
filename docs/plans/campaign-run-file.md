@@ -1,9 +1,10 @@
 # Durable solo campaign run
 
 **Status:** in flight, 2026-09-23. This is the run-document rung of the
-[full build order](../ROADMAP.md#full-build-order-2026-09-22). M01 currently
-owns a process-local run and three mission-start continues. Exiting the local
-server abandons it; no disk run exists yet.
+[full build order](../ROADMAP.md#full-build-order-2026-09-22). M01 previously
+owned only a process-local run and three mission-start continues. This branch
+adds the local disk document and resume flow; integration and cross-platform
+CI are pending.
 
 ## Goal
 
@@ -115,53 +116,36 @@ and [`create_new`](https://doc.rust-lang.org/std/fs/struct.OpenOptions.html#meth
 contracts were checked on 2026-09-23. Replacement and durability behavior
 need Windows, macOS and Linux checks rather than an assumption from one host.
 
-## In-flight checkpoint, 2026-09-23
+## Implementation evidence, 2026-09-23
 
-The authored loader now preserves the exact source-byte SHA-256 through the
-opened route. The new run document validates its version, run identity, M01
-content, difficulty revision, continue allowance, step and durable equipment.
-The store bounds reads, holds one writer lock, writes to a unique same-folder
-temporary file and preserves the prior document on a fault before rename.
-`cargo test -p fragr-server --locked mission::run_file` passes four focused
-tests. These types are not connected to the local child yet, so the current
-branch has expected dead-code warnings and is not release-ready.
+The server now hashes the exact bundled M01 content bytes and validates one
+versioned run document. It records run identity, rules, allowance, the M01 entry
+equipment and one of these steps: mission entry, pending Continue, failed,
+abandoned, or M01 complete with M02 pending. Resume rejects a terminal step.
+The disk store bounds reads, holds a writer lock, archives old bytes on an
+explicit new start, and replaces a same-folder temporary file after syncing it.
+A post-rename sync failure inspects the live path and reports uncertain
+durability. A pre-rename fault leaves the previous valid document in place.
 
-Next, connect the local child to the same map/content validator used for
-preview, hydrate the owner on admission, and persist death, Continue and
-departure before their network messages. A resumed pending-death run needs a
-dead owner pawn plus its entry equipment and unchanged allowance. Exit to menu
-must disconnect without the `leave` abandonment command; explicit abandonment
-gets a separate action. New Run needs a recoverable prior save. Run real
-stop/restart, duplicate-writer, failure-injection, Godot and platform checks
-before calling the run durable.
+The local child saves before readiness and before delivering changed game state.
+The menu previews through the Rust validator and exposes Continue Run only for
+a compatible playable save. Exit to Menu disconnects and stops the owned child
+without sending Leave; a wire Leave durably marks the run abandoned. A failed
+run and an M01-complete run remain visible but are not offered as Continue Run.
+The opening is skipped on resume. Tests isolate `FRAGR_RUN_DIR` so they cannot
+read or change the player's normal save.
 
-The next local checkpoint projects a server run to the versioned document and
-rehydrates a saved pending Continue before participant admission. A focused
-test proves an agent-controlled owner returns dead with the same run ID and
-allowance, then spends the continue exactly once. This remains an internal
-state round-trip only; the local child has no disk integration yet.
-The store also retains unsupported prior bytes under a unique archived name
-when an explicit New Run starts; a focused test reads that archive back.
-Preview now shares the bounded document reader and validator with locked load;
-launch must still validate again under the lock because a preview can be stale.
+Evidence on this branch: focused run-document and store tests (9 passed), real
+child tests (8 passed, including restart, lock refusal, invalid previews and
+explicit Leave), a Godot headless suite with the real M01 death, pending-Continue
+restart and spent-Continue restart harness, and an inspected 24-state visual
+tour published through `tools/qa_tour.sh --publish`. The full workspace gates
+and PR CI are still required before integration.
 
-The local child now accepts explicit `--run-mode new|resume`. New Run archives
-any prior bytes and saves its initial document before readiness. Resume opens
-the same authored map, locks and validates the file, restores its saved
-difficulty and run identity, then advertises readiness. The read-only
-`--local-run-preview` classifies missing, ready, failed, M02 pending,
-incompatible and corrupt documents. It does not delete any of them. The tick
-and command loop persists a changed run before delivering their
-messages; an I/O error exits the child without publishing that transition.
-Native storage uses Local AppData on Windows, Application Support on macOS and XDG
-data home on Linux, with an absolute `FRAGR_RUN_DIR` override for isolated
-tests. Those locations follow the [Microsoft known folder guidance](https://learn.microsoft.com/en-us/windows/win32/shell/knownfolderid),
-[Apple file placement guidance](https://developer.apple.com/library/archive/documentation/MacOSX/Conceptual/BPFileSystem/Articles/WhereToPutFiles.html)
-and [XDG base directory specification](https://specifications.freedesktop.org/basedir/0.8/),
-checked 2026-09-23.
-
-Focused Rust checks now include a real child stop/restart with the same run ID
-and difficulty, a concurrent second child refused by the lock, and read-only
-preview of corrupt and incompatible bytes. `cargo clippy -p fragr-server
---all-targets --locked -- -D warnings` passes. The client menu still starts
-the old ephemeral mode, so this backend is not yet a delivered save feature.
+The run file is a mission-entry save, not a mid-level checkpoint. Participant
+service-record history remains separate and does not accumulate across process
+restarts. The M01-complete document and exact exit equipment have a focused
+server test, but no full real-process departure/restart acceptance yet. This
+work remains in flight until the full checks, independent review, and CI are
+recorded. Windows is the local durability platform; Linux and macOS need CI
+checks and a platform-specific durability review.
