@@ -53,7 +53,7 @@ struct Common {
     /// Ledger of every paid call; totals carry across runs.
     #[arg(long, default_value = ".agents/spend/brain.jsonl", global = true)]
     ledger: PathBuf,
-    /// Keep the ledger in memory only.
+    /// Keep the ledger in memory for free play, key checks or dry runs only.
     #[arg(long, global = true)]
     no_ledger: bool,
     /// Dollars per million input tokens used for estimates and settlement.
@@ -206,6 +206,11 @@ fn run(cli: Cli, transport: Arc<dyn Transport>, out: &mut dyn std::io::Write) ->
             if provider.is_paid() && api_key.is_none() {
                 return Err(Error::MissingApiKey(provider.key_names().join(", ")));
             }
+            if provider.is_paid() && cli.common.no_ledger {
+                return Err(Error::InvalidArgument(
+                    "paid play requires a durable ledger; remove --no-ledger".into(),
+                ));
+            }
             let config = BotConfig {
                 server_url: server,
                 name: resolve_name(name.as_deref(), "Brain"),
@@ -267,6 +272,11 @@ fn run(cli: Cli, transport: Arc<dyn Transport>, out: &mut dyn std::io::Write) ->
                 )?;
                 return Ok(());
             }
+            if cli.common.no_ledger {
+                return Err(Error::InvalidArgument(
+                    "paid ask requires a durable ledger; remove --no-ledger".into(),
+                ));
+            }
             let budget = Mutex::new(budget);
             let decision = decide(transport.as_ref(), &budget, provider, &model, &request)?;
             let guard = budget.lock().unwrap_or_else(|p| p.into_inner());
@@ -289,6 +299,7 @@ fn run(cli: Cli, transport: Arc<dyn Transport>, out: &mut dyn std::io::Write) ->
             let ledger = budget.ledger();
             let shown = serde_json::json!({
                 "ledger": budget.ledger_path().map(|p| p.display().to_string()),
+                "pending_request": budget.pending_receipt().map(|p| p.display().to_string()),
                 "calls": ledger.calls(),
                 "total_usd": ledger.total_usd(),
                 "run_cap_usd": budget.caps.run_usd,
@@ -420,7 +431,7 @@ mod tests {
                 "danger": {"type": "score", "score": 1.0},
                 "extra": {"type": "noul", "noul": 0.2}
             },
-            "usage": {"input_tokens": 100, "output_tokens": 0}
+            "usage": {"input_tokens": 100, "output_tokens": 0, "cost": 0.0000042}
         })
     }
 
@@ -543,6 +554,23 @@ mod tests {
         ]);
         let err = run(cli, scripted(200, answers()), &mut out).unwrap_err();
         assert!(matches!(err, Error::MissingApiKey(_)), "{err}");
+        std::fs::write(&blank_key, "sk_test\n").unwrap();
+        let cli = parse(&[
+            "--provider",
+            "typesafe",
+            "--no-ledger",
+            "--max-spend-usd",
+            "1",
+            "--env-file",
+            env_file.to_str().unwrap(),
+            "--api-key-file",
+            blank_key.to_str().unwrap(),
+            "play",
+            "--max-seconds",
+            "1",
+        ]);
+        let err = run(cli, scripted(200, answers()), &mut out).unwrap_err();
+        assert!(matches!(err, Error::InvalidArgument(_)), "{err}");
         let _ = std::fs::remove_file(env_file);
         let _ = std::fs::remove_file(blank_key);
     }
@@ -633,11 +661,14 @@ mod tests {
     fn ask_sends_under_a_cap_and_reports_the_charge() {
         let env_file = temp("key2.env");
         std::fs::write(&env_file, "OPENROUTER_API_KEY=sk_or\n").unwrap();
+        let ledger = temp("ask-ledger.jsonl");
+        let _ = std::fs::remove_file(&ledger);
         let transport = scripted(200, answers());
         let cli = parse(&[
             "--provider",
             "openrouter",
-            "--no-ledger",
+            "--ledger",
+            ledger.to_str().unwrap(),
             "--max-spend-usd",
             "0.01",
             "--env-file",
@@ -657,7 +688,8 @@ mod tests {
         let cli = parse(&[
             "--provider",
             "openrouter",
-            "--no-ledger",
+            "--ledger",
+            ledger.to_str().unwrap(),
             "--env-file",
             env_file.to_str().unwrap(),
             "ask",
@@ -675,7 +707,8 @@ mod tests {
         let cli = parse(&[
             "--provider",
             "openrouter",
-            "--no-ledger",
+            "--ledger",
+            ledger.to_str().unwrap(),
             "--max-spend-usd",
             "1",
             "--env-file",
@@ -686,7 +719,25 @@ mod tests {
         ]);
         let err = run(cli, failing, &mut Vec::new()).unwrap_err();
         assert!(err.to_string().contains("slow down"));
+        let no_ledger = parse(&[
+            "--provider",
+            "openrouter",
+            "--no-ledger",
+            "--max-spend-usd",
+            "1",
+            "--env-file",
+            env_file.to_str().unwrap(),
+            "ask",
+            "--state",
+            "s",
+        ]);
+        assert!(matches!(
+            run(no_ledger, transport.clone(), &mut Vec::new()),
+            Err(Error::InvalidArgument(_))
+        ));
+        assert_eq!(transport.calls.load(Ordering::SeqCst), 1);
         let _ = std::fs::remove_file(env_file);
+        let _ = std::fs::remove_file(ledger);
     }
 
     #[test]

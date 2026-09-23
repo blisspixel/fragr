@@ -704,14 +704,19 @@ mod tests {
     }
 
     fn budget(run_usd: f64) -> Arc<Mutex<Budget>> {
-        Arc::new(Mutex::new(Budget::new(
-            Caps {
-                run_usd,
-                total_usd: None,
-                run_calls: None,
-            },
-            Pricing::default(),
-        )))
+        let path = std::env::temp_dir().join(format!("fragr-brain-bot-{}.jsonl", Uuid::new_v4()));
+        Arc::new(Mutex::new(
+            Budget::with_ledger(
+                Caps {
+                    run_usd,
+                    total_usd: None,
+                    run_calls: None,
+                },
+                Pricing::default(),
+                &path,
+            )
+            .unwrap(),
+        ))
     }
 
     #[tokio::test]
@@ -806,7 +811,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn unreadable_answers_switch_the_brain_off_after_three() {
+    async fn unreadable_answer_blocks_further_paid_calls() {
         let (url, shutdown) = boot_server(1).await;
         let transport = Arc::new(FakeTransport::new(vec![Ok(HttpResponse {
             status: 200,
@@ -820,12 +825,10 @@ mod tests {
         )
         .await
         .expect("bot runs");
-        assert_eq!(
-            transport.calls(),
-            MAX_CONSECUTIVE_MALFORMED as usize,
-            "{summary:?}"
-        );
-        assert_eq!(summary.fatal_failures, 1);
+        assert_eq!(transport.calls(), 1, "{summary:?}");
+        assert_eq!(summary.decisions_failed, 1);
+        assert_eq!(summary.budget_refusals, 1);
+        assert_eq!(summary.fatal_failures, 0);
         assert!(summary.brain_disabled.is_some());
         let _ = shutdown.send(());
     }
@@ -995,19 +998,17 @@ mod tests {
         )
         .await
         .expect("bot runs");
-        assert!(summary.decisions_failed >= 2, "{summary:?}");
+        assert_eq!(summary.decisions_failed, 1, "{summary:?}");
         assert_eq!(summary.decisions_remote, 0);
-        assert_eq!(summary.last_plan.as_ref().unwrap().source, Source::Failure);
+        assert_eq!(summary.last_plan.as_ref().unwrap().source, Source::Budget);
         assert!(
             summary.backoffs >= 1,
             "a 503 slows the cadence: {summary:?}"
         );
-        assert!(
-            summary.decisions_failed <= 4,
-            "backoff never fires at once: {summary:?}"
-        );
+        assert_eq!(summary.budget_refusals, 1);
+        assert_eq!(transport.calls(), 1);
         assert_eq!(summary.fatal_failures, 0);
-        assert!(summary.brain_disabled.is_none());
+        assert!(summary.brain_disabled.is_some());
         assert!(
             summary.run_usd > 0.0,
             "sent calls are charged at the estimate"
