@@ -122,6 +122,8 @@ The server now hashes the exact bundled M01 content bytes and validates one
 versioned run document. It records run identity, rules, allowance, the M01 entry
 equipment and one of these steps: mission entry, pending Continue, failed,
 abandoned, or M01 complete with M02 pending. Resume rejects a terminal step.
+The authoritative departure transition freezes exit equipment before the owner
+can leave, so later disconnects cannot invalidate the completed document.
 The disk store bounds reads, holds a writer lock, archives old bytes on an
 explicit new start, and replaces a same-folder temporary file after syncing it.
 A post-rename sync failure inspects the live path and reports uncertain
@@ -139,13 +141,42 @@ Evidence on this branch: focused run-document and store tests (9 passed), real
 child tests (8 passed, including restart, lock refusal, invalid previews and
 explicit Leave), a Godot headless suite with the real M01 death, pending-Continue
 restart and spent-Continue restart harness, and an inspected 24-state visual
-tour published through `tools/qa_tour.sh --publish`. The full workspace gates
-and PR CI are still required before integration.
+tour published through `tools/qa_tour.sh --publish`. The unfiltered workspace
+line coverage was 93.46 percent. The six-map mixed roster, four-agent playtest,
+deterministic benchmark, dependency policy check, and serialized release build
+passed locally. PR CI is still required before integration.
+
+A free local-rules agent cleared M01 on Standard seed 67 in one attempt through
+an owned local child. The child wrote an `awaiting_mission` document with three
+continues, 40 HP, Tack selected, its live magazine and reserves, and the bay
+claim. A fresh `--local-run-preview` reported `awaiting_mission`; a separate
+owned child with `--run-mode resume` exited without readiness because this M01
+step is terminal. The receipt and isolated run file are under ignored
+`.agents/departure-7213984ec6d648d3adacedd5d944c678/`. M02 is unbuilt, so
+this does not prove a cross-mission load yet.
+
+That probe also exposed a completed-owner disconnect error. Departure now
+freezes exit equipment before the owner can leave. A second free local-rules
+probe cleared Standard seed 67 after one spent continue and then exited its
+agent. The owned child stayed alive, accepted its parent shutdown, and exited
+0 with an empty error stream. Its file and a new preview both reported
+`awaiting_mission` with two continues and the live 80 HP exit. The route test
+also proves a subsequent tick after owner removal keeps the same completed
+document. This receipt is under ignored
+`.agents/departure-recheck-93260f88fd884025bcb1f4c94ccf8b74/`.
+
+The probe used the release binaries with an isolated `FRAGR_RUN_DIR` and an
+open parent stdin lease:
+
+```text
+fragr-server --local-mission recall_notice --run-mode new --difficulty standard --seed 67
+fragr-brain --provider local --no-ledger play --server <ready.url> --name FreeRunProbe --max-seconds 240
+fragr-server --local-run-preview
+fragr-server --local-mission recall_notice --run-mode resume
+```
 
 The run file is a mission-entry save, not a mid-level checkpoint. Participant
 service-record history remains separate and does not accumulate across process
-restarts. The M01-complete document and exact exit equipment have a focused
-server test, but no full real-process departure/restart acceptance yet. This
-work remains in flight until the full checks, independent review, and CI are
-recorded. Windows is the local durability platform; Linux and macOS need CI
-checks and a platform-specific durability review.
+restarts. This work remains in flight until CI is recorded. Windows is the
+local durability platform; Linux and macOS need CI checks and a
+platform-specific durability review.

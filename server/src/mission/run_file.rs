@@ -180,19 +180,14 @@ impl GameState {
             CampaignRunStatus::Playing => SavedStep::MissionEntry { mission, entry },
             CampaignRunStatus::Continue => SavedStep::PendingContinue { mission, entry },
             CampaignRunStatus::Failed => SavedStep::Failed { mission, entry },
-            CampaignRunStatus::Complete => {
-                let owner = solo.owner().ok_or("completed run has no owner")?;
-                let player = self
-                    .players
-                    .iter()
-                    .find(|p| p.id == owner)
-                    .ok_or("completed run owner is missing")?;
-                SavedStep::AwaitingMission {
-                    completed_mission: mission,
-                    next_mission: NEXT_MISSION.into(),
-                    exit: SavedEntry::from_player(player)?,
-                }
-            }
+            CampaignRunStatus::Complete => SavedStep::AwaitingMission {
+                completed_mission: mission,
+                next_mission: NEXT_MISSION.into(),
+                exit: solo
+                    .saved_exit()
+                    .ok_or("completed run has no saved exit")?
+                    .clone(),
+            },
             CampaignRunStatus::Abandoned => SavedStep::Abandoned { mission, entry },
         };
         let document = RunDocument {
@@ -367,9 +362,12 @@ mod tests {
         player.weapon = WeaponType::Tack;
         player.hp = 54;
         player.armor = 12;
+        let saved_exit = SavedEntry::from_player(player).unwrap();
         let run = state.mission.as_mut().unwrap();
         run.phase = crate::protocol::MissionPhase::Departed;
-        run.solo.as_mut().unwrap().state.status = CampaignRunStatus::Complete;
+        let solo = run.solo.as_mut().unwrap();
+        solo.capture_exit(saved_exit);
+        solo.state.status = CampaignRunStatus::Complete;
         let completed = state.campaign_run_document().unwrap().unwrap();
         completed.validate(hash).unwrap();
         match &completed.step {
@@ -395,6 +393,8 @@ mod tests {
             store::RunProbe::Compatible(document) if document == completed
         ));
         assert!(state_with_map().load_campaign_run(&completed).is_err());
+        state.remove_player(owner);
+        assert_eq!(state.campaign_run_document().unwrap(), Some(completed));
         drop(store);
         std::fs::remove_dir_all(directory).unwrap();
     }

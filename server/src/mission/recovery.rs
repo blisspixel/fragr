@@ -14,6 +14,7 @@ pub(super) struct SoloRun {
     owner: Option<Uuid>,
     entry: Option<Entry>,
     saved_entry: Option<SavedEntry>,
+    exit: Option<SavedEntry>,
 }
 
 struct Entry {
@@ -44,6 +45,14 @@ impl SoloRun {
                 Some(saved)
             })
             .or_else(|| self.saved_entry.clone())
+    }
+
+    pub fn saved_exit(&self) -> Option<&SavedEntry> {
+        self.exit.as_ref()
+    }
+
+    pub fn capture_exit(&mut self, exit: SavedEntry) {
+        self.exit = Some(exit);
     }
 
     pub fn playing(&self) -> bool {
@@ -89,6 +98,7 @@ impl GameState {
             owner: None,
             entry: None,
             saved_entry: None,
+            exit: None,
         });
         Ok(())
     }
