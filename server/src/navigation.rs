@@ -83,6 +83,11 @@ impl BuildBudget {
 }
 
 impl Navigation {
+    /// Whether a fighter can see a point through this navigation world's solids.
+    pub fn line_of_sight(&self, origin: [f32; 3], target: [f32; 3]) -> bool {
+        crate::combat::line_of_sight(origin, target, &self.arena.solids)
+    }
+
     /// Reuse identical immutable geometry across local sessions/controllers.
     /// Weak entries retain no unused maps; the index itself is capped. Serialize
     /// construction so simultaneous joins cannot multiply topology work.

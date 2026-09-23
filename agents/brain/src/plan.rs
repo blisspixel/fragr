@@ -4,7 +4,9 @@
 //! so aim, spacing, and fire never wait on the network.
 
 use crate::telemetry::Telemetry;
+use fragr_server::navigation::Navigation;
 use fragr_server::protocol::{Action, LookAt, Snapshot, WeaponType};
+use fragr_server::sim::PLAYER_FLOOR_Y;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
@@ -194,6 +196,46 @@ fn strafe(tick: u64) -> (bool, bool) {
 
 /// Every tick: turn the plan into a wire action from the latest snapshot.
 pub fn micro_action(plan: &Plan, me: Uuid, snapshot: &Snapshot) -> Action {
+    micro_action_with_visibility(plan, me, snapshot, |_, _| true)
+}
+
+/// Campaign combat only takes over the mission route for a guard in view.
+/// Visibility is an observation; the server still resolves every shot.
+pub fn campaign_micro_action(
+    plan: &Plan,
+    me: Uuid,
+    snapshot: &Snapshot,
+    world: &Navigation,
+) -> Action {
+    micro_action_with_visibility(plan, me, snapshot, |mine, other| {
+        campaign_enemy_visible(world, mine, other)
+    })
+}
+
+pub fn campaign_enemy_visible(
+    world: &Navigation,
+    mine: &fragr_server::protocol::PlayerState,
+    other: &fragr_server::protocol::PlayerState,
+) -> bool {
+    let eye = [
+        mine.x,
+        mine.y - PLAYER_FLOOR_Y + fragr_server::movement::EYE_HEIGHT,
+        mine.z,
+    ];
+    let center = [
+        other.x,
+        other.y - PLAYER_FLOOR_Y + fragr_server::combat::FIGHTER_HEIGHT * 0.5,
+        other.z,
+    ];
+    world.line_of_sight(eye, center)
+}
+
+fn micro_action_with_visibility(
+    plan: &Plan,
+    me: Uuid,
+    snapshot: &Snapshot,
+    visible: impl Fn(&fragr_server::protocol::PlayerState, &fragr_server::protocol::PlayerState) -> bool,
+) -> Action {
     let Some(mine) = snapshot.players.iter().find(|p| p.id == me) else {
         return Action::default();
     };
@@ -202,7 +244,7 @@ pub fn micro_action(plan: &Plan, me: Uuid, snapshot: &Snapshot) -> Action {
     let fire_range = weapon_swap.unwrap_or(held).range_units();
     let mut nearest: Option<(f32, Uuid, f32, f32)> = None;
     for other in &snapshot.players {
-        if !mine.is_hostile_to(other) {
+        if !mine.is_hostile_to(other) || !visible(mine, other) {
             continue;
         }
         let dist = ((other.x - mine.x).powi(2) + (other.z - mine.z).powi(2)).sqrt();
@@ -269,6 +311,7 @@ mod tests {
     use super::*;
     use crate::telemetry::fixtures::{pad, player, snapshot};
     use crate::telemetry::{observe, RecentHits};
+    use fragr_server::movement::{Arena, Solid};
 
     fn telemetry_for(snapshot: &Snapshot, me: Uuid) -> Telemetry {
         let mut hits = RecentHits::default();
@@ -304,6 +347,45 @@ mod tests {
         assert!(telemetry_for(&snap, me).enemy.is_none());
         let action = micro_action(&plan, me, &snap);
         assert!(!action.fire && action.look_at.is_none());
+    }
+
+    #[test]
+    fn hidden_guard_does_not_block_mission_but_visible_guard_does() {
+        use fragr_server::protocol::{CampaignActor, EnemyKind, EnemyPhase};
+        let me = Uuid::from_u128(1);
+        let hidden = Uuid::from_u128(2);
+        let visible = Uuid::from_u128(3);
+        let mut mine = player("me", me, 0.0, 0.0, 100, "tack");
+        mine.campaign = Some(CampaignActor::Participant {});
+        let mut guard = player("hidden", hidden, 10.0, 0.0, 60, "tack");
+        guard.campaign = Some(CampaignActor::Union {
+            kind: EnemyKind::Clerk,
+            phase: EnemyPhase::Idle,
+            phase_started: 0,
+            phase_ends: 0,
+        });
+        let world = Navigation::new(Arena {
+            half: 24.0,
+            solids: vec![Solid::from_center(5.0, 0.0, 0.5, 3.0)],
+        })
+        .unwrap();
+        let plan = Plan {
+            stance: Stance::PushEnemy,
+            ..Plan::default()
+        };
+        let mut snap = snapshot(1, vec![mine, guard.clone()], vec![]);
+        let blocked = campaign_micro_action(&plan, me, &snap, &world);
+        assert!(blocked.look_at.is_none() && !blocked.fire);
+        assert_eq!(
+            micro_action(&plan, me, &snap).look_at.unwrap().player_id,
+            Some(hidden)
+        );
+        guard.id = visible;
+        guard.z = 8.0;
+        snap.players.push(guard);
+        let action = campaign_micro_action(&plan, me, &snap, &world);
+        assert_eq!(action.look_at.unwrap().player_id, Some(visible));
+        assert!(action.fire);
     }
 
     #[test]
