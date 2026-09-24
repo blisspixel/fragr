@@ -23,7 +23,7 @@ relationship beat rather than becoming a magic technical solution.
 |---|---|---|
 | Pressure arrival hall | Transit into a working settlement, visible inhabited branches | Brief context, supplies and an understandable emergency |
 | Market street | Low buildings and enclosed cross-passages | Human/Sweeper patrols; two tactical approaches |
-| Greenhouse trench | Food production with crossing bridges and service recesses | First Arc/armored-threat lesson with safe flank |
+| Greenhouse trench | Food production with crossing bridges and service recesses | First Arc lesson against the armored Assessor drone, with safe flank |
 | Pumping court | Water/air infrastructure, not a decorative courtyard | Main defensive crest, meaningful cover and retreat |
 | Residential shelter | Safe interior reached after adjacent threats are cleared | People move on their own once the court is clear; no escort |
 | Utility galleries | Loop behind the court and market | Alternate route, optional supplies and worker rescue |
@@ -39,7 +39,8 @@ Arrival disruption -> market skirmish -> greenhouse flank -> pumping-court crest
 -> clear the shelter approach -> rendezvous with the help that finally arrives.
 Mix human security, captive Sweepers and one or two established elite roles.
 Introduce Arc with guaranteed Cores and a visible armor counter. No new enemy
-subsystem is needed merely because the planet changed.
+subsystem is needed merely because the planet changed; the Assessor is a heavier
+variant of the M03 drone ([ENEMIES](../ENEMIES.md#union-drones)).
 
 Secrets: a greenhouse service shelf with armor, a supply cache behind a damaged
 maintenance hatch, and an overlook into the court. Players without secret guns

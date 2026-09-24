@@ -25,7 +25,7 @@ to the floor and the gallery.
 
 | Zone | Physical job | Play and character beat |
 |---|---|---|
-| Gallery | Windows show the ward and processing machinery below | Player sees a destination and evidence of coercion before fighting |
+| Gallery | Windows show the ward and processing machinery below | Player sees a destination and evidence of coercion before fighting; a Notary drone photographs captives beyond the glass, out of reach |
 | Service stair | Enclosed switchback, clear landings, no jump requirement | Introduce Crawler sounds/captions, then a small visible pack |
 | Antechamber | Workroom with cover and a view into the ward | Find Scatter before the close encounter; recovery supplies |
 | Ward | Open ward around the restraint frame | Set-piece fight; the correction stops when the guards fall; free Latch |

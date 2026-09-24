@@ -5,7 +5,8 @@ through shared simulation bodies, typed campaign identity and directional
 animation. Their unshaded atlases no longer share one outline: the Sweeper is
 the wide bot with the level rifle, and the Clerk is the narrower human whose
 aim clears the shoulder. Full-mission tuning and a fresh-player review remain
-open. Other roles below, reactivation and projectiles are proposed.
+open. Other roles below, including the flying drones added 2026-09-24,
+reactivation and projectiles are proposed.
 Calibration's NODS and Auditor are separate arcade prototypes, not
 implementations of the proposed roster.
 
@@ -40,6 +41,8 @@ fragments. Neither needs constant banter.
 | Turret | Fixed equipment, no assumed personhood | Visible tracking/sweep before a strong shot | Cover, flank, precision damage |
 | Redactor | Committed covert elite | Distortion and movement tell before an ambush | Observe, force movement, deny an approach |
 | Auditor | Human command/support officer with shield hardware | Channels limited reactivation of disabled units | Break channel, flank shield, prioritize support |
+| Notary | Flying patrol drone, Office equipment, no assumed personhood | Red optic flares wide with a shutter click, then a short committed burst | Strafe through the flash, shoot it during the flash, punish the drift |
+| Assessor | Heavy armored drone, Office equipment, no assumed personhood | Launcher unfolds and two red optics count down, then a slow splash volley | Dodge the canisters, hit the rear vents in recovery, Arc or splash |
 
 A Jammer is a priority target, not a circuit puzzle. Main objectives must remain
 readable without audio. Variants differ by
@@ -57,6 +60,88 @@ attack phases, recoveries and traversable cover. It is not another label for an
 already-complete enemy. M05's custody-defense encounter and M09's command defense
 can combine ordinary units and machinery instead of demanding a unique boss
 species for every milestone.
+
+## Union drones
+
+The Union watches before it arrives. Its drones are the Office's eyes over
+streets, wards and habitats, and every one of them files what it sees: the
+tell before a Notary fires is it taking your photograph. Both drones are
+equipment with a narrow onboard controller under network supervision, like
+the Turret. They carry no assumed personhood, so the fiction adds no cost to
+shooting them down. Proposed, unbuilt; the
+[flying drones plan](plans/flying-drones.md) owns the implementation.
+
+**Notary, the patrol drone.** Roughly torso-sized: a black box body under two
+ducted fans, about 1.3 m across the ducts, with one red optic and a red
+Office seal. It is never a speck; at any engagement distance it reads at least
+as large as a Clerk's torso. It hovers from head height to about two storeys,
+drifts on a patrol line with a dim red optic and a fan hum audible about
+20 m away. On sight the optic flares brighter and wider for the whole windup,
+a shutter click plays (captioned), then it fires a three-round burst along the
+aim it committed at the start of the flash. It then drifts and dims through a
+recovery window. Proposed: 50 HP (a Sweeper is 80), light damage per round,
+slower than a running player. A hit during the flash interrupts the shot, as
+it does for the ground roles today. The tell changes brightness, size and
+sound, never color alone. When killed the fans cut, it tumbles and
+crashes where its shadow was; the wreck does no damage and blocks nothing.
+
+**Assessor, the heavy drone.** About twice the Notary's span, black, four fans, an
+armored belly and front, a gimbal launcher and exposed rear vents. It holds a
+higher band (about 3 to 7 m) and needs a tall hall or open sky. Its tell is the
+launcher unfolding while two red optics count down with a rising chirp; then it
+lobs a volley of three slow, visible canisters that burst on impact. After the
+volley its vents open and glow through a long recovery. Proposed: about three
+Sweepers of HP; plates halve bullet damage from the front and below, vents take
+full damage, and the Arc and splash ignore the plates. Its falling wreck damages
+Union units it lands on and never participants, so dropping it on a squad is a
+reward, not a trap. It needs the shared server projectile seam; it never fires
+delayed invisible hitscan.
+
+**Vertical space without frustration.**
+
+- Each drone stays inside an authored hover volume that ordinary weapons can
+  reach from standing positions. The map validator rejects perches no weapon can
+  hit and volumes that leave the playable bounds or clip a ceiling.
+- A drone keeps its horizontal distance to its target at least equal to its
+  height above them, so it is never directly overhead and never forces a steep
+  look. It never retreats out of range to wait, and never heals.
+- It fires only with line of sight both ways, from its optic to the target's eye.
+  The hum and a floor shadow announce it before it is in view; it never spawns
+  behind the player.
+- On Standard, at most two Notaries or one Assessor are active in a room.
+  Difficulty tiers change windup, recovery and room caps, never HP.
+
+**Splash and hitscan.** Hitscan hits a drone's body volume at its hover height,
+not a floor capsule, so the Tack, Flechette and Scatter all work and the Rail
+kills a Notary in one shot. Splash measures from the burst to the nearest point
+of that volume and stops at cover, the same rule as on the ground. A thrown
+grenade or Lobber can that bursts beside a drone hits it; one under it at head
+height does too. Rockets hit on contact. Drones are the first enemies where the
+Scatter's vertical spread and a grenade's airburst matter, which is depth, not
+a new rule.
+
+**Introductions.** M02 shows one Notary behind the observation gallery's glass,
+photographing captives, out of reach and out of combat. M03's Union sweep brings
+the first fight: Notaries over the roof loop and the tram trench with Sweepers
+below, in place of the Turret, which first appears in M04. The Assessor is M07's
+armored threat over the greenhouse trench, the enemy that the Arc lesson
+answers, so Mars adds a variant of an existing subsystem rather than a new one.
+From M08 on they mix with established roles. In M10 the Inheritance can seize
+surviving Notaries as infrastructure; same tells, changed targets.
+
+**What the existing Compliance Drone gives.** Less than its name suggests. It is
+an arena prototype: an ordinary player body with an `is_boss` flag, spawned once
+per round at 2.2 m and then walked under normal gravity by the arena
+`BotBehavior::Compliance` orbit, with 200 HP, a Rail, spawn and down events,
+Host lines and a 1.35 times billboard. It does not fly. The reusable base is the
+campaign encounter seam: `EnemyController` phases (Idle, Moving, Windup, Firing,
+Recovery, Hit, Dead), aim committed at the start of the tell, hit interrupts,
+the difficulty timing table, `CampaignActor` identity and hostility,
+`combat::line_of_sight` against solids, alarm memory, encounter reset on a
+continue, true vertical aim, and directional sprites in `enemy_animation.gd`.
+Hover integration, air routing, a raised hit volume, the fall and crash, and
+the Assessor's projectiles are new. The arena prototype keeps its behavior
+until a deliberate migration.
 
 ## Proposed Inheritance roles
 
@@ -96,6 +181,8 @@ then mix it with an established role. Proposed progression:
 | Clerk + Sweeper | Interrupt the human's single shot or evade the bot's committed burst; use counter islands to separate their angles | M01 records and transfer rooms, implemented draft |
 | Crawler + Sweeper | Keep space from the close threat without backing into a ranged lane | M02 correction/service loop, planned |
 | Heavy + mobile security | Spend ammunition on suppression or take the exposed flank while lighter units move | M03 workshops and later industrial spaces, planned |
+| Notary + Sweeper | Look up to break the flash or keep pressure on the ground burst; take the roof to meet the drone level | M03 roof loop and tram trench, planned |
+| Assessor + human security | Leave the canister splash while the squad pushes, or spend Arc charge on the vents | M07 greenhouse trench, planned |
 | Ranged Sweeper + Jammer | Break the precision sightline while dodging clearly traveling interference shots | Lunar galleries with side routes, planned |
 | Auditor + disabled bodies | Interrupt a bounded repair channel or finish an immediate attacker | M05 custody defense, planned |
 | Absorbed bot + restoration machine | Apply the learned weapon counter while responding to newly marked work zones | M10 survival finale, planned |

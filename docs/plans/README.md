@@ -22,6 +22,8 @@ Status words: **planned**, **in flight**, **implemented** (local evidence record
 | [`desktop-release.md`](./desktop-release.md) | **in flight** | Tagged Windows, Linux and macOS zips with the bundled server, a packaged install check, and an original game icon. |
 | [`radio-scene-retirement.md`](./radio-scene-retirement.md) | **proven** ([#231](https://github.com/blisspixel/fragr/pull/231), v0.45.0) | Radio decoder retirement across rapid saved-run restarts, with Linux, Windows and macOS checks. |
 | [`m02-objective-gates.md`](./m02-objective-gates.md) | **in flight** | Authored objectives and precomputed gate worlds for the first M02 graybox, with M01 save compatibility. |
+| [`flying-drones.md`](./flying-drones.md) | **planned** | Notary patrol drone for M03 and armored Assessor for M07 on the encounter seam: hover, air routing, committed tells, crashes. |
+| [`vehicles.md`](./vehicles.md) | **planned** | Jeep, motorcycle and jetpack, each built only when its mission (M08, M09, M10) is next; multiplayer vehicle map in Phase 4. |
 | [`campaign-run-file.md`](./campaign-run-file.md) | **proven** ([#229](https://github.com/blisspixel/fragr/pull/229), v0.45.0) | Versioned local solo run persistence, exact continue restoration and retained M01 exit equipment. |
 | [`jev-m01-validation.md`](./jev-m01-validation.md) | **proven** ([#228](https://github.com/blisspixel/fragr/pull/228)) | Capped Jev M01 Standard and Severe trials with authoritative receipts and actual spend evidence. |
 | [`m01-opening-weapon-input.md`](./m01-opening-weapon-input.md) | **shipped** ([#226](https://github.com/blisspixel/fragr/pull/226)) | Same-session MapInfo, phase-card timing, and key 1 through a live owned M01 server are covered. |

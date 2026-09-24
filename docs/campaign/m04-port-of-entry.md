@@ -43,7 +43,7 @@ and Scatter retain roles along cargo and service routes. The Sniper Rifle is
 found on the crater cut, after that Rail lesson, with a few shots to learn a
 slower scoped hit. Customs can be cleared without it. Enforcer commitment
 and recovery are visible; the first charge never starts offscreen beside a spawn.
-Turrets protect positions the player can flank, not every long sightline.
+The Turret is introduced here. Turrets protect positions the player can flank, not every long sightline.
 
 Secrets: pressure-maintenance cache and an upper cargo overlook with armor. The
 optional service-branch fight marks a prisoner route that helps in M05; missing
