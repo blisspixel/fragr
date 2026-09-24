@@ -7,6 +7,11 @@ func _run() -> void:
 	var recall: ArenaSky.Preset = ArenaSky.preset_for("Recall Notice: intake prototype")
 	var scrap: ArenaSky.Preset = ArenaSky.preset_for("Arena Duel")
 	var yard: ArenaSky.Preset = ArenaSky.preset_for("Compliance Yard")
+	var ward: ArenaSky.Preset = ArenaSky.preset_for("Persons Unknown: ward graybox")
+	if ward.ambient_color != recall.ambient_color:
+		push_error("test_arena_sky: the M02 ward fell through to an outdoor fill")
+		quit(1)
+		return
 	if recall.ambient_color == scrap.ambient_color or recall.ambient_energy <= scrap.ambient_energy:
 		push_error("test_arena_sky: Recall Notice still uses the scrapyard fill")
 		quit(1)
@@ -19,5 +24,5 @@ func _run() -> void:
 		push_error("test_arena_sky: interior fill is still too dim to read a near wall")
 		quit(1)
 		return
-	print("test_arena_sky: PASS recall uses facility fill and arenas keep their venues")
+	print("test_arena_sky: PASS recall and the M02 ward use facility fill and arenas keep their venues")
 	quit(0)

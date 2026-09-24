@@ -1,6 +1,6 @@
 # M02: Persons Unknown
 
-**Status:** traversal graybox only (`server/maps/m02-persons-unknown.json`); story, Latch, the Jammer and encounters are unbuilt. Earth before the wipe. Target 10-12 minutes.
+**Status:** development graybox (`server/maps/m02-persons-unknown.json`): an open route with three Clerk and Sweeper fights and two arrival objectives. Story, Latch as an actor, the Jammer and Crawlers are unbuilt. Earth before the wipe. Target 10-12 minutes.
 [Treatment](../CAMPAIGN-MISSIONS.md#m02-persons-unknown).
 
 ## Story and cast
@@ -55,8 +55,9 @@ cache behind a clearly altered service panel. Neither changes the core rescue.
 (dock arrival). Latch's release is an authoritative one-time transition.
 Optional prisoner groups have distinct released/evacuated states.
 
-The #234 graybox's two shutters, each with its switch beside it, fit the
-three-door cap. Objective lines: "Reach the ward", "Free Latch", "Get out".
+The current graybox has no switches or gates and two objectives. It advances
+`companion_released` by arriving at the restraint frame ("Find Latch") until
+an objective can complete on a won fight, then "Get out" on the dock.
 
 Mastery hooks, planned, not built: a par time on the result, the maintenance
 loop as the runner's line, and best clear time in the service record.

@@ -237,3 +237,18 @@ fn m02_rejects_unlinked_or_distant_openers_and_loose_signals() {
     far["m02"]["objectives"][1]["action"]["approach"] = json!([0, 0, -5.5]);
     assert!(read(&far).is_ok());
 }
+
+#[test]
+fn m02_allows_one_required_switch_at_most() {
+    let mut doc = fixture();
+    let second = json!({"id":"second_switch","after":"correction_stopped","action":{"kind":"use",
+        "panel":{"solid":"ceiling","face":"down","center":[1,-3],"size":[0.5,0.5],"kind":"terminal"},
+        "approach":[1,0,-3]}});
+    let objectives = doc["m02"]["objectives"].as_array_mut().unwrap();
+    objectives.insert(2, second);
+    objectives[3]["after"] = json!("second_switch");
+    assert!(read(&doc)
+        .unwrap_err()
+        .to_string()
+        .contains("at most one required use switch"));
+}

@@ -174,9 +174,12 @@ static func _find_world_environment(node: Node) -> WorldEnvironment:
 
 func _on_map_info(info: Dictionary) -> void:
 	var mission: Variant = info.get("mission")
-	if local_match != null and (not mission is Dictionary or mission.get("id") != MissionState.ID):
-		_on_local_failure("LOCAL_SERVER_INVALID_READY")
-		return
+	var m02: bool = info.get("m02_objectives") != null
+	if local_match != null:
+		var expected_m02: bool = local_match.mission == MissionState.M02_ID
+		if m02 != expected_m02 or (not m02 and (not mission is Dictionary or mission.get("id") != MissionState.ID)):
+			_on_local_failure("LOCAL_SERVER_INVALID_READY")
+			return
 	last_shot_tick = -1
 	if shot_effects != null:
 		shot_effects.clear()
@@ -187,8 +190,13 @@ func _on_map_info(info: Dictionary) -> void:
 			opening = CampaignOpening.new()
 			opening.completed.connect(_on_opening_completed)
 			add_child(opening)
+	elif m02:
+		# The graybox has no story page yet. Readiness follows the first state.
+		_opening_finished = true
 	elif is_human_player:
 		show_loading_card()
+	if pause_menu != null:
+		pause_menu.development_mission = m02
 	if arena_cover != null:
 		arena_cover.apply_map_info(info)
 	# The venue decides the sky, and the venue is only known once the server
@@ -227,7 +235,7 @@ func _mission_controls_blocked() -> bool:
 		return false
 	if _awaiting_map or _opening_release or _retry_snapshot_tick >= 0 or is_instance_valid(opening):
 		return true
-	if not current_map_info.get("mission") is Dictionary:
+	if not _mission_map():
 		return false
 	if net_client.mission.is_empty():
 		return true
@@ -240,6 +248,10 @@ func _mission_controls_blocked() -> bool:
 		if member["id"] == net_client.player_id:
 			return not member["ready"]
 	return true
+
+## Mission maps carry M01 geometry or the M02 objective marker.
+func _mission_map() -> bool:
+	return current_map_info.get("mission") is Dictionary or current_map_info.get("m02_objectives") != null
 
 func _on_opening_completed() -> void:
 	_opening_finished = true
@@ -476,38 +488,53 @@ func _process(_delta):
 		var watched: Node = players.get(local_fp_pawn_id) if is_human_player else camera.get_followed_target()
 		hud.set_fp_walk_speed(float(watched.get("presentation_speed")) if is_instance_valid(watched) else 0.0)
 	if is_human_player and not role_transition and net_client.connection_state == WebSocketPeer.STATE_OPEN and _has_local_input_target():
-		action_state.forward = Input.is_action_pressed("move_forward")
-		action_state.back = Input.is_action_pressed("move_back")
-		action_state.left = Input.is_action_pressed("move_left")
-		action_state.right = Input.is_action_pressed("move_right")
-		action_state.fire = Input.is_action_pressed("fire")
-		action_state.jump = pending_jump or Input.is_action_pressed("jump")
-		action_state.reload = pending_reload
-		action_state.interact = pending_interact or interact_held
-		# Client-owned yaw: the server takes the absolute facing and never turns
-		# us at a fixed rate, so the look axis does not round-trip. Turn bits stay
-		# zero for humans and remain the path for agents and older clients.
-		if camera and camera.has_method("consume_yaw"):
-			action_state.yaw = camera.consume_yaw()
-			action_state.pitch = camera.consume_pitch()
-		if controls_blocked():
-			interact_held = false
-			for key in ["forward", "back", "left", "right", "fire", "jump", "reload", "interact"]:
-				action_state[key] = false
-			pending_weapon_swap = null
-		action_state.turn_left = false
-		action_state.turn_right = false
-		if _mission_controls_blocked():
-			action_state.erase("yaw")
-			action_state.erase("pitch")
-		input_seq += 1
-		action_state.seq = input_seq
-		action_state.weapon_swap = pending_weapon_swap
+		_send_local_action(Time.get_ticks_usec())
+
+## One action message per displayed frame flooded the server at high frame
+## rates: a 500 fps client sent twice the 256 per second inbound budget, so
+## about half its messages were dropped, and a one-frame Use or jump tap rode
+## exactly one of them. Sends are paced below the budget instead, and discrete
+## presses stay latched until a message actually carries them.
+const ACTION_SEND_INTERVAL_USEC: int = 1000000 / 120
+var _last_action_usec: int = -ACTION_SEND_INTERVAL_USEC
+
+func _send_local_action(now_usec: int) -> bool:
+	if now_usec - _last_action_usec < ACTION_SEND_INTERVAL_USEC:
+		return false
+	_last_action_usec = now_usec
+	action_state.forward = Input.is_action_pressed("move_forward")
+	action_state.back = Input.is_action_pressed("move_back")
+	action_state.left = Input.is_action_pressed("move_left")
+	action_state.right = Input.is_action_pressed("move_right")
+	action_state.fire = Input.is_action_pressed("fire")
+	action_state.jump = pending_jump or Input.is_action_pressed("jump")
+	action_state.reload = pending_reload
+	action_state.interact = pending_interact or interact_held
+	# Client-owned yaw: the server takes the absolute facing and never turns
+	# us at a fixed rate, so the look axis does not round-trip. Turn bits stay
+	# zero for humans and remain the path for agents and older clients.
+	if camera and camera.has_method("consume_yaw"):
+		action_state.yaw = camera.consume_yaw()
+		action_state.pitch = camera.consume_pitch()
+	if controls_blocked():
+		interact_held = false
+		for key in ["forward", "back", "left", "right", "fire", "jump", "reload", "interact"]:
+			action_state[key] = false
 		pending_weapon_swap = null
-		net_client.send_action(action_state)
-		pending_jump = false
-		pending_reload = false
-		pending_interact = false
+	action_state.turn_left = false
+	action_state.turn_right = false
+	if _mission_controls_blocked():
+		action_state.erase("yaw")
+		action_state.erase("pitch")
+	input_seq += 1
+	action_state.seq = input_seq
+	action_state.weapon_swap = pending_weapon_swap
+	pending_weapon_swap = null
+	net_client.send_action(action_state)
+	pending_jump = false
+	pending_reload = false
+	pending_interact = false
+	return true
 
 func _on_mission_received(state: Dictionary) -> void:
 	_continue_armed = false
@@ -729,7 +756,7 @@ func _on_snapshot_received(data):
 	hud.set_player_count(participant_list.size())
 	hud.sync_scores_from_players(participant_list)
 	hud.set_round_info(round_state, round_time_left, frag_limit)
-	hud.round_label.visible = not current_map_info.has("mission") or current_map_info["mission"] == null
+	hud.round_label.visible = not _mission_map()
 	_maybe_rehydrate_ended_mvp(data, round_state)
 	_maybe_assign_ghost_rival(participant_list)
 	

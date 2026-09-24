@@ -10,8 +10,9 @@ enum State { IDLE, STARTING, RUNNING, STOPPING, FAILED }
 const START_TIMEOUT_MS: int = 15000
 const STOP_TIMEOUT_MS: int = 3000
 const MAX_READY_BYTES: int = 4096
-const GAMEPLAY_VERSION: int = preload("res://scripts/net_client.gd").GAMEPLAY_VERSION
 const PENDING_META: StringName = &"fragr_local_match_pending"
+## Each bundled mission child names its own exact client contract.
+const MISSION_GAMEPLAY: Dictionary[String, int] = {"recall_notice": 8, "persons_unknown": 9}
 
 var state: State = State.IDLE
 var url: String = ""
@@ -27,6 +28,8 @@ var _deadline: int = 0
 var _failure_pending: bool = false
 var _difficulty: String = "standard"
 var _run_mode: String = "new"
+## The bundled mission of the running or starting child.
+var mission: String = MissionState.ID
 
 static func for_tree(tree: SceneTree) -> LocalMatch:
 	var existing: LocalMatch = tree.root.get_node_or_null("LocalMatch") as LocalMatch
@@ -73,16 +76,20 @@ func refresh_run_preview() -> void:
 	_preview_deadline = Time.get_ticks_msec() + START_TIMEOUT_MS
 	run_preview_changed.emit()
 
-func start_mission(difficulty: String = "standard", run_mode: String = "new") -> bool:
+func start_mission(difficulty: String = "standard", run_mode: String = "new", mission_id: String = MissionState.ID) -> bool:
 	if state not in [State.IDLE, State.FAILED]:
 		return false
-	if difficulty not in MissionState.DIFFICULTIES or run_mode not in ["new", "resume"]:
+	# M02 is a development child without a durable run, so it takes no run mode.
+	var development: bool = mission_id == MissionState.M02_ID
+	if difficulty not in MissionState.DIFFICULTIES or not MISSION_GAMEPLAY.has(mission_id) \
+		or (development and not run_mode.is_empty()) or (not development and run_mode not in ["new", "resume"]):
 		_fail("LOCAL_SERVER_INVALID_DIFFICULTY")
 		return false
 	_preview_process.dispose()
 	_preview_active = false
 	_difficulty = difficulty
 	_run_mode = run_mode
+	mission = mission_id
 	process.dispose()
 	url = ""
 	error_key = ""
@@ -92,7 +99,11 @@ func start_mission(difficulty: String = "standard", run_mode: String = "new") ->
 	if executable.is_empty():
 		_fail("LOCAL_SERVER_MISSING")
 		return false
-	if not process.start(executable, PackedStringArray(["--local-mission", MissionState.ID, "--run-mode", run_mode, "--difficulty", difficulty])):
+	var arguments: PackedStringArray = PackedStringArray(["--local-mission", mission_id])
+	if not development:
+		arguments.append_array(PackedStringArray(["--run-mode", run_mode]))
+	arguments.append_array(PackedStringArray(["--difficulty", difficulty]))
+	if not process.start(executable, arguments):
 		_fail("LOCAL_SERVER_START_FAILED")
 		return false
 	_deadline = Time.get_ticks_msec() + START_TIMEOUT_MS
@@ -129,7 +140,10 @@ func _process(_delta: float) -> void:
 		return
 	if not process.running():
 		if state == State.STARTING:
-			_fail("LOCAL_RUN_OPEN_FAILED" if _run_mode == "resume" else "LOCAL_RUN_CREATE_FAILED")
+			if _run_mode.is_empty():
+				_fail("LOCAL_SERVER_START_FAILED")
+			else:
+				_fail("LOCAL_RUN_OPEN_FAILED" if _run_mode == "resume" else "LOCAL_RUN_CREATE_FAILED")
 		else:
 			_fail("LOCAL_SERVER_STOPPED")
 		return
@@ -140,7 +154,7 @@ func _process(_delta: float) -> void:
 			return
 		var newline: int = _pending.find(10)
 		if newline >= 0:
-			var address: String = readiness_url(_pending.slice(0, newline), _difficulty)
+			var address: String = readiness_url(_pending.slice(0, newline), _difficulty, mission)
 			if address.is_empty() or newline != _pending.size() - 1:
 				_fail("LOCAL_SERVER_INVALID_READY")
 				return
@@ -199,7 +213,7 @@ static func parse_run_preview(bytes: PackedByteArray) -> Dictionary:
 		return {}
 	return data
 
-static func readiness_url(bytes: PackedByteArray, difficulty: String = "standard") -> String:
+static func readiness_url(bytes: PackedByteArray, difficulty: String = "standard", mission_id: String = MissionState.ID) -> String:
 	# This bootstrap contract contains only fixed ASCII identifiers and IPv4.
 	for byte: int in bytes:
 		if byte < 32 or byte > 126:
@@ -208,11 +222,13 @@ static func readiness_url(bytes: PackedByteArray, difficulty: String = "standard
 	if parser.parse(bytes.get_string_from_ascii()) != OK:
 		return ""
 	var data: Variant = parser.data
-	if difficulty not in MissionState.DIFFICULTIES or not data is Dictionary or data.size() != 5 \
+	if difficulty not in MissionState.DIFFICULTIES or not MISSION_GAMEPLAY.has(mission_id) \
+		or not data is Dictionary or data.size() != 5 \
 		or not EquipmentState.integer(data.get("version"), 2) or data["version"] != 2 \
 		or not data.get("difficulty") is String or data["difficulty"] != difficulty \
-		or not data.get("mission") is String or data["mission"] != MissionState.ID \
-		or not EquipmentState.integer(data.get("gameplay_version"), GAMEPLAY_VERSION) or data["gameplay_version"] != GAMEPLAY_VERSION \
+		or not data.get("mission") is String or data["mission"] != mission_id \
+		or not EquipmentState.integer(data.get("gameplay_version"), 4294967295) \
+		or int(data["gameplay_version"]) != MISSION_GAMEPLAY[mission_id] \
 		or not data.get("url") is String:
 		return ""
 	var address: String = data["url"]

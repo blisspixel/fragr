@@ -6,7 +6,8 @@ const MAX_DETAILS: int = 128
 const MAX_LIGHTS: int = 8
 const KINDS: Array[String] = ["property_sign", "intake_sign", "records_sign",
 	"maintenance_sign", "transfer_sign", "lift_sign", "complaint_notice",
-	"union_seal", "lockers", "vent", "terminal", "lift_control", "strip_light"]
+	"union_seal", "lockers", "vent", "terminal", "lift_control", "strip_light",
+	"gate_locked", "gate_open"]
 const FACES: Array[String] = ["west", "east", "down", "up", "north", "south"]
 const OFFSET: float = 0.012
 

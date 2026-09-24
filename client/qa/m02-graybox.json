@@ -1,0 +1,16 @@
+{
+  "comment": "Persons Unknown ward graybox fight stills. A live human walks the bundled development map with ordinary input, picks up the Tack and the Scatter, and fights three rooms of Clerks and Sweepers with accurate aim. There are no switches or gates; two arrivals advance the objectives. Accurate aim is capture evidence, not a difficulty review. Latch is an arrival stand-in. This is not playable M02.",
+  "width": 1280,
+  "height": 720,
+  "combat_travel": false,
+  "states": [
+    {"name":"gallery_window","scene":"res://scenes/main.tscn","join":"human","camera":"first_person","look_at":[2,0.8,-15],"note":"Spawn on the observation gallery, looking down through the slot window at the ward guards."},
+    {"name":"landing_tack","camera":"first_person","walk_to":[[-7,3,-32],[-14,0,-32],[-17,0,-32],[-17,0,-28]],"look_at":[-17,1.4,-22],"note":"Tack and tacks at the foot of the service stair."},
+    {"name":"antechamber_scatter","camera":"first_person","walk_to":[[-17,0,-22],[-17,0,-14],[-14,0,-14]],"look_at":[-9.5,1.8,-15],"note":"Scatter and shells in the antechamber, with the ward visible through the slot."},
+    {"name":"ward_fight","camera":"first_person","weapon":"Tack","walk_to":[[-11.5,0,-15],[-11.5,0,-18.5],[-7.5,0,-18.5]],"combat":{"kind":"union","evade_tells":true,"required":["ward_clerk","ward_sweeper","machine_clerk"],"search_route":[[-4,0,-18.5],[2,0,-18],[2,0,-10]]},"look_at":[4,1.2,-12],"note":"The ward after its fight. The tour fights with the Tack because the Scatter only reaches 12 metres and the ward is wider."},
+    {"name":"find_latch","camera":"first_person","walk_to":[[3,0,-17],[5,0,-11],[7,0,-11]],"look_at":[9,1.2,-11],"note":"Arrival at the restraint frame, the stand-in for finding Latch."},
+    {"name":"floor_fight","camera":"first_person","walk_to":[[-4,0,-10],[-4,0,-5]],"combat":{"kind":"union","evade_tells":true,"required":["floor_officer","floor_sweeper","press_clerk","conveyor_sweeper"],"search_route":[[-4,0,-2],[2,0,-4],[10,0,-4],[6,0,4],[3,0,9],[-5,0,9]]},"look_at":[0,1.2,8],"note":"The processing floor after its fight."},
+    {"name":"dock_fight","camera":"first_person","walk_to":[[0,0,8],[0,0,11]],"combat":{"kind":"union","evade_tells":true,"required":["dock_sweeper","dock_clerk"],"search_route":[[0,0,13],[0,0,16]]},"look_at":[0,1.2,22],"note":"The loading dock after its fight."},
+    {"name":"departed","camera":"first_person","walk_to":[[0,0,16],[0,0,19.3]],"note":"Onto the dock: GET OUT is complete and the graybox departs."}
+  ]
+}

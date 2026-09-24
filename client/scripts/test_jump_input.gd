@@ -41,8 +41,11 @@ func _run() -> void:
 	manager.call("_input", key)
 	key.pressed = false
 	manager.call("_input", key)
+	# Pacing is covered by test_input_pacing; each call here is a due send.
+	manager.set("_last_action_usec", -1000000000)
 	manager.call("_process", 1.0 / 240.0)
 	_check(network.sent.size() == 1 and network.sent[0].jump, "press and release in one render frame must send a jump")
+	manager.set("_last_action_usec", -1000000000)
 	manager.call("_process", 1.0 / 240.0)
 	_check(not network.sent[1].jump, "released press must be consumed once")
 	key.pressed = true

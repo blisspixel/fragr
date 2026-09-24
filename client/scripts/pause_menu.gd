@@ -14,6 +14,8 @@ var _note: Label = null
 var _leave_button: Button = null
 ## True only for the owned local campaign. Arena and joined servers keep the live-match note.
 var local_campaign: bool = false
+## A development mission keeps no run, so leaving never promises a save.
+var development_mission: bool = false
 var preferences: FragrSettings
 var _settings_panel: SettingsPanel
 var _settings_frame: PanelContainer
@@ -114,7 +116,10 @@ func _notification(what: int) -> void:
 		_refresh_note()
 
 func _refresh_note() -> void:
-	_note.text = tr("MENU_EXIT_SAVES_RUN" if _local_campaign_run() else "MENU_LIVE_MATCH")
+	if development_mission:
+		_note.text = tr("MENU_EXIT_DEVELOPMENT")
+	else:
+		_note.text = tr("MENU_EXIT_SAVES_RUN" if _local_campaign_run() else "MENU_LIVE_MATCH")
 	_leave_button.text = tr("RUN_EXIT_MENU") if _local_campaign_run() else "Leave match"
 
 func open() -> void:

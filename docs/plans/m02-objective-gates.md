@@ -41,10 +41,10 @@ stay compatible with its exact committed content bytes.
 This increment does not implement Latch as an actor, the Jammer pulse, Crawler
 combat, a finished M02 encounter budget, M02 save migration, co-op, new
 transport, or cloud hosting. Those use the foundation after it is validated.
-M02's final sequence remains `ward_reached`, `correction_stopped`,
-`companion_released`, `loading_gate_open`, `party_departed`; this increment may
-stub the later actor and projectile gates in the graybox, but must label them
-unbuilt rather than call the mission playable.
+The graybox's sequence is `companion_released` ("Find Latch") then
+`party_departed` ("Get out"), both by arrival, with no gates (revised
+2026-09-24, see the last progress section). Latch and the Jammer stay unbuilt
+and are labeled so; the graybox is not called the finished mission.
 
 ## Build order
 
@@ -138,34 +138,30 @@ An encounter-only map with ID 1002 admitted capability 3 clients and omitted
 the marker, while the M02 fixture emitted its count and rejected unmarked
 objective state in the adapter.
 
-## Rule: readable controls, few puzzles
+## Rule: fights first, few doors, readable without English
 
 Recorded 2026-09-24 at Nick's request, and in `docs/MAP-DESIGN.md` for later
-missions.
+missions. It replaced an earlier readable-controls rule the same day.
 
-- **Few puzzles, fun first.** A control is a Doom switch hit in stride that
-  opens a door the player can already see or that stands right beside it, one
-  step at a time. No chains, combination or order puzzles, switch hunts or long
-  backtracking. Prefer an arrival or a combat-cleared gate over another switch.
-  M02 authoring rejects a gate whose opener stands more than eight metres away.
-- **Readable without English.** All labels, prompts, objective lines and signs
-  are keys in `client/i18n/*.po`; map JSON carries registered kinds, never
-  English; a missing key fails a harness rather than showing the raw key.
-- **The picture explains the control.** Each control has a state read (red
-  lamp and closed shutter pictogram while locked, green lamp and raised shutter
-  arrow once open), a visible link to what it operates (the same lamp on the
-  switch or arrival point and on the gate), a pictogram of its function, and a
-  world change when used (the shutter rises and stays visible, both lamps flip,
-  a sound plays). Agents read the same facts from legal prompts.
-- **Evidence.** Before and after stills of every control, inspected, with a
-  written account of what a player sees with the text hidden.
+- **A boomer shooter, not a door simulator.** Progress is fighting through
+  rooms. Objectives advance by arrival, two or three short verb lines per
+  level ("Find Latch", "Get out"). A level has at most three doors and at most
+  one simple switch, beside the door it opens with the door in view. No
+  puzzle chains, order puzzles, switch hunts or long backtracking. Authoring
+  rejects a second required use switch and an opener more than eight metres
+  from its gate.
+- **Readable without English.** Labels, prompts, objective lines and signs are
+  keys in `client/i18n/*.po`; map JSON carries registered kinds, never
+  English; a missing key fails a harness rather than showing the raw key. A
+  door or switch that does exist must read from the picture.
 
-M01's transfer record console and lift control predate this rule. They have a
-terminal panel, a lift panel and a rising lift gate, but no locked and open
-lamp pair, and the record console stands away from the lift it opens. That is a
-follow-up for M01's own plan, not part of this M02 slice.
+M01's transfer record console and lift control predate this rule; whether M01
+keeps them is a follow-up for M01's own plan.
 
 ## Progress, 2026-09-24: bundled graybox and server route proof
+
+*Superseded by the fights revision below; kept as the record of what was
+built and measured at the time.*
 
 `server/maps/m02-persons-unknown.json` is the bundled map 1002 behind
 `AuthoredSource::Mission(PersonsUnknown)`. It lays out the observation gallery
@@ -175,8 +171,8 @@ broad stair and machinery islands, and the loading dock. The authored chain is
 `ward_reached` (arrival at the ward door), `correction_stopped` (a switch beside
 the bay shutter), `companion_released` (arrival at the restraint frame inside
 the bay), `loading_gate_open` (a switch beside the loading gate) and
-`party_departed` (dock arrival). Two switches remain, each right beside the
-door it raises; the restraint arrival raises the bay's back shutter onto the
+`party_departed` (dock arrival). As merged in #234 it had two switches, each
+beside the door it raised (both removed later the same day); the restraint arrival raises the bay's back shutter onto the
 processing floor. Each gate rises three metres and stays visible overhead. Two
 `gate_locked` lamps per gate, one on the shutter and one on its opener, become
 `gate_open` in every prepared world where that gate is raised. The foundation
@@ -215,3 +211,147 @@ objectives, no run in mission state, and refusal of `--run-mode`.
 This is authoring evidence for a traversal graybox, not playable M02. The
 Godot mission boundary, HUD line, lamp and gate presentation, a local menu entry
 and first-person captures are the next slice.
+
+## Progress, 2026-09-24: Godot boundary, readable controls and stills
+
+*Superseded by the fights revision below; kept as the record of what was
+built and measured at the time.*
+
+The Godot client now advertises gameplay capability 9. `mission_state.gd`
+validates the optional `m02_objectives` marker and the strict `m02` mission
+field (objective IDs, count, gate mask, current arrival region or use target on
+a registered console panel, `objective_use` prompts, no run) and rejects
+rewound progress within an attempt, including across a gate MapInfo resend.
+`player_record.gd` accepts M02 mission records without a run. The M01 path and
+its launcher contract (capability 8) are unchanged.
+
+Presentation is keyed and quiet. `mission_hud.gd` shows at most one M02 line:
+the use prompt while it is legal, otherwise the objective for eight seconds after
+it changes, and one persistent line at departure. Every line is a catalog key;
+a missing key logs an error and shows nothing, and `world_sign.gd` does the same
+for world copy, so a harness fails instead of a player reading a raw key. The
+lamp panels draw a red lamp over a closed slatted shutter, or a green lamp over
+a raised shutter and up arrow, so shape and colour both carry the state.
+`objective_beacon.gd` pulses an amber lamp on the console that is the current
+use target. `gate_feedback.gd` plays a short code-built shutter clank at each
+solid a validated M02 MapInfo raised. The console copy reads WARD CONTROL and
+LOADING CONTROL from keys. Single Player has a development entry,
+"Persons Unknown: ward graybox", which starts the M02 child with no run mode and
+no story page; the match menu says leaving keeps no progress.
+
+What a player sees with all text hidden (`.agents/qa/m02-graybox/*_world.png`,
+first-person, local tour of 2026-09-24, not published):
+
+1. Gallery: a slot window over the ward; the bay shutter is visible below.
+2. Ward door: ahead, a dark shutter with a red lamp and closed-shutter
+   pictogram, and beside it a low console with a pulsing amber lamp under a
+   matching red lamp on the wall.
+3. After the switch: the shutter hangs raised over an open doorway, and both
+   lamps show green with an up arrow. Through the doorway the next shutter
+   already shows a red lamp.
+4. In the bay: the back shutter and the restraint frame share red lamps.
+   Walking up to the frame raises the back shutter; both lamps turn green and
+   the processing floor is visible through it.
+5. Processing floor: across the floor, the loading gate and the switch beside
+   it both show red lamps, the switch pulsing amber.
+6. After the loading switch: the gate hangs raised and both lamps are green;
+   the dock is beyond.
+
+Each step asks for one door the player can already see. The HUD stills show a
+single objective or prompt line. Limits: the gallery view shows the shutter but
+its lamps are too small to read at that distance; the terminal faces are plain
+dark screens when copy is hidden, so the function pictogram lives on the lamp
+above each switch; the clank was verified by a harness, not by listening; and
+the shutter jumps up on the MapInfo resend instead of animating.
+
+Checks: `test_m02_mission.gd` (marker and state boundary, late and rewound
+state, gate MapInfo refresh, one-line HUD, beacon placement, lamp styles, every
+world and HUD key present, moved-solid detection and a positioned clank),
+`test_m02_local.gd` (the Single Player entry starts the real M02 child, the human
+becomes ready without a story page, every objective line fits one card line, the
+match menu note, no run file), `test_local_match.gd` (per-mission readiness
+contract and arguments), `test_player_records.gd`, `test_arena_sky.gd` (the ward
+uses the facility fill) and the M02 tour `client/qa/m02-graybox.json`
+(16 states, before and after both switches and the restraint arrival, departure).
+The tour holds Use for 0.15 s: a press and release in the same frame travels in
+one action message, which the server's inbound rate limit can drop at high
+frame rates. A person's press spans many frames.
+
+M02 is still not playable as a mission: Latch, the Jammer, encounters, the
+maintenance loop, optional captives, secrets, the story page, M01 to M02 carry
+and human acceptance remain.
+
+## Progress, 2026-09-24: fights, not doors
+
+Nick asked three times for fewer mechanics: "stop making puzzles and so many
+doors... this is a boomer shooter, not a door simulator." The switch, shutter,
+lamp and gate work above was dropped from the graybox.
+
+**Route.** The map has no switches and no gates, so one world is prepared.
+Gallery (a slot window over the ward's guards), service stair (Tack, bullets),
+antechamber (Scatter, shells, medkit), then straight into the correction ward.
+The ward's north wall has an offset opening to the processing floor, placed so
+the floor crew is not visible from the ward; a Sweeper waits beside it. The
+floor has a mezzanine (armor), press islands and a conveyor, then a wide
+opening onto the loading dock. Supplies use the existing supply seam only.
+
+| Objective | Advances by | HUD line |
+|---|---|---|
+| `companion_released` | arriving at the restraint frame in the ward (Latch stand-in, unbuilt) | FIND LATCH |
+| `party_departed` | arriving on the loading dock | GET OUT |
+
+Encounters, all existing Clerks and Sweepers: `ward_guards` (2 Clerks, 1
+Sweeper, woken at the ward door), `floor_crew` (2 Clerks, 2 Sweepers, woken at
+the floor opening, after the ward), `dock_watch` (1 Clerk, 1 Sweeper, woken at
+the dock opening, after the floor). Nine enemies in all.
+
+**Server proof** (`server/src/mission/m02/route_tests.rs`, seed 67). The
+walker reads only wire messages, fights the nearest visible hostile within 24
+metres, passes that through the shared equipment controller
+(`control_action_with_objective`) and routes with `MissionClient`. A solo human
+and a solo agent each defeat all nine and depart after 1014 ticks (about 51
+seconds), at 80 hp, 50 shots fired, 19 enemy shots. One MapInfo is sent: no
+world change. A wipe after "Find Latch" restores attempt 2 at the first
+objective with all nine enemies back and every supply available, and the same
+agent then clears again. This is accurate-aim authoring evidence, not a
+difficulty acceptance.
+
+**Tour** (`client/qa/m02-graybox.json`, 8 states, local 2026-09-24, exit 0,
+stills under `.agents/qa/m02-fights/`, not published). A live human picks up
+the Tack and Scatter and fights each room through ordinary input: the ward
+(3 defeated, 28 shots), the floor (4 defeated, 15 shots, 7 enemy shots) and the
+dock (2 defeated, 10 shots, 5 enemy shots), then departs with GET OUT on the
+HUD. Inspected stills show a Clerk firing a tracer across the ward beside the
+correction machine, a Sweeper winding up at the foot of the mezzanine stair,
+and the dock pair behind crates. The tour fights with the Tack because the
+Scatter only reaches 12 metres and the ward is wider; with the Scatter selected,
+the ward fight stalled at range. Earlier layouts let dormant guards be seen
+through long doorway lines, which stalled the tour's travel combat; the offset
+opening and the relocated floor guards fixed that. One of four runs failed
+only on the engine's intermittent OpenGL texture leak at exit
+([#186](https://github.com/blisspixel/fragr/issues/186)).
+
+**Client.** One keyed HUD line (the objective for eight seconds after it
+changes, or a use prompt if a map ever has one), strict M02 wire validation,
+the Single Player development entry and the match menu note stay. The
+current-switch beacon, gate clank, shutter animation and lamp glow were removed.
+The `gate_locked` and `gate_open` kinds stay registered and drawn, unused by
+this map.
+
+**The lost Use tap was a real client bug** and matters for M01's record
+console. Instrumented tour runs (debug lines not committed; summaries under
+`.agents/press-evidence/`) showed the client rendering at 434 to 509 fps and
+sending one action per frame. The server's inbound budget (256 per second,
+burst 64) dropped 7639 to 8530 messages per run, about half. A press and
+release inside one frame rides exactly one message, so it had roughly even
+odds of being dropped; the client latch never collapsed it, and the server
+accepted every tap that arrived. `game_manager.gd` now paces local actions at
+120 per second and keeps jump, reload, Use and weapon choices latched until a
+message carries them. `test_input_pacing.gd` drives 500 fps for two seconds
+through a mirror of the server budget: about 240 sends, none dropped, a
+sub-frame tap delivered exactly once, and a tap on a skipped frame carried by
+the next send.
+
+M02 remains a development graybox: Latch as an actor, the Jammer, Crawlers,
+the maintenance loop, captives, secrets, the story page, M01 to M02 carry and
+human acceptance are pending.

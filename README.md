@@ -6,7 +6,7 @@ fragr is a retro-styled 3D FPS built toward an authored campaign and multiplayer
 
 It is the 1993 LAN-party feeling rebuilt for 2026: a Rust authoritative server, a Godot client that only presents, and an MCP adapter so any agent can observe and act like a player.
 
-The current release is [v0.47.1](https://github.com/blisspixel/fragr/releases/tag/v0.47.1). Shipped tags are listed in [CHANGELOG.md](CHANGELOG.md). What is still open is [docs/ROADMAP.md](docs/ROADMAP.md).
+The current release is [v0.48.0](https://github.com/blisspixel/fragr/releases/tag/v0.48.0). Shipped tags are listed in [CHANGELOG.md](CHANGELOG.md). What is still open is [docs/ROADMAP.md](docs/ROADMAP.md).
 
 ## What runs today
 
@@ -26,9 +26,9 @@ The current release is [v0.47.1](https://github.com/blisspixel/fragr/releases/ta
 
 This is a playable vertical slice, not a finished game. The build order and what is still missing live in [`docs/ROADMAP.md`](docs/ROADMAP.md).
 
-The [full build order](docs/ROADMAP.md) now moves from the durable M01 run into M02. Its server foundation can validate objectives, enforce gate transitions and publish them to Rust agents. The Godot client and a playable M02 map are still pending. Watching and joining stay in this app. `GET /status` on the game port is a host probe, not a web client. The Windows taskbar icon is still the Godot mark. The [campaign treatment](docs/CAMPAIGN-MISSIONS.md) plans a personal rescue, offworld resistance, the Union's defeat, a sudden planetary wipe, and its aftermath. This is planned content, not a completed campaign or public-server readiness claim.
+The [full build order](docs/ROADMAP.md) now moves from the durable M01 run into M02. Single Player has an M02 development graybox: an untextured ward route with three Clerk and Sweeper fights, no switches and no save. It is not the finished mission. Watching and joining stay in this app. `GET /status` on the game port is a host probe, not a web client. The Windows taskbar icon is still the Godot mark. The [campaign treatment](docs/CAMPAIGN-MISSIONS.md) plans a personal rescue, offworld resistance, the Union's defeat, a sudden planetary wipe, and its aftermath. This is planned content, not a completed campaign or public-server readiness claim.
 
-The next playable step is to present M02 objectives and controls in Godot, author the ward route, then prove that a solo player and an agent can reach the same exit through actual movement. That comes before more enemies or weapons because server rules alone cannot make the rescue understandable or playable. Latch's release, the visible Jammer projectile and M01-to-M02 save carry follow that route proof. In parallel, multiplayer work continues on server hardening, modes, maps, first-person watching and measured scale. Automated and agent-controlled runs are the current acceptance evidence; an unsteered human M01 session remains near the 1.0 gate.
+A solo player and an agent already fight through the graybox and reach its exit through actual movement. The next playable steps are Latch's release, the Jammer, Crawlers and M01-to-M02 save carry. In parallel, multiplayer work continues on server hardening, modes, maps, first-person watching and measured scale. Automated and agent-controlled runs are the current acceptance evidence; an unsteered human M01 session remains near the 1.0 gate.
 
 The opening mission has an opt-in [development slice](server/maps/README.md):
 enclosed intake rooms, two stair routes, an accessible records balcony, a
@@ -157,8 +157,8 @@ The local prototype has three mission-start continues. A versioned local run
 file now retains the run ID, difficulty, remaining continues and entry gear
 across restarts, including a pending death decision. It resumes at mission
 entry, not at the mid-mission position. M01 departure remains recorded with
-M02 pending; M02 gameplay, cross-mission carry and full campaign progression
-remain unbuilt. F or controller
+M02 pending; M02 is a development graybox, and cross-mission carry and full
+campaign progression remain unbuilt. F or controller
 B uses an aimed mission control; departure ends this prototype. Dedicated
 four-seat development hosts retain shared boarding and automatic party resets;
 `--campaign-run` selects the same one-seat run rules as local Single Player.

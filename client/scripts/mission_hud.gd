@@ -4,6 +4,8 @@ extends Control
 ## The objective card introduces a beat, then leaves. Use prompts and the
 ## fallen-run choice stay for as long as they are true.
 const STAGE_SECONDS: float = 8.0
+const M02_KNOWN: Array[String] = ["companion_released", "party_departed"]
+const M02_USES: Array[String] = []
 var state: Dictionary = {}
 var player_id: String = ""
 var _stage_phase: String = ""
@@ -49,7 +51,7 @@ func _label(font_size: int) -> Label:
 	return label
 
 func apply(value: Dictionary, owner_id: String) -> void:
-	var phase := "" if value.is_empty() else str(value.get("phase", ""))
+	var phase: String = _stage_key(value)
 	if phase != _stage_phase:
 		_stage_phase = phase
 		_stage_left = STAGE_SECONDS
@@ -88,6 +90,9 @@ func _refresh() -> void:
 		_copy.text = ""
 		_prompt.text = ""
 		_card.visible = false
+		return
+	if state.get("id") == MissionState.M02_ID:
+		_refresh_m02()
 		return
 	var lines: Array[String] = [tr("MISSION_M01_TITLE"), tr("DIFFICULTY_" + String(state["rules"]["difficulty"]).to_upper()), ""]
 	_recovery.visible = false
@@ -134,8 +139,60 @@ func _refresh() -> void:
 
 func _stage_card_visible() -> bool:
 	var phase := str(state.get("phase", ""))
+	if state.get("id") == MissionState.M02_ID:
+		# One line at most: a legal prompt replaces the objective line.
+		if phase == "in_progress":
+			return _stage_left > 0.0 and (_prompt == null or not _prompt.visible)
+		return true
 	if phase == "briefing" or phase == "departed":
 		return true
 	if phase == "find_transfer" or phase == "reach_lift":
 		return _stage_left > 0.0
 	return false
+
+## M01 restages the card on a phase change. M02 stays `in_progress`, so its
+## card restages on each new objective and on a retry.
+static func _stage_key(value: Dictionary) -> String:
+	if value.is_empty():
+		return ""
+	var phase: String = str(value.get("phase", ""))
+	if value.get("id") != MissionState.M02_ID or not value.get("m02") is Dictionary:
+		return phase
+	var current: Variant = value["m02"].get("current")
+	var id: String = str(current.get("id", "")) if current is Dictionary else ""
+	return "%s:%s:%s" % [phase, id, str(value.get("attempt", ""))]
+
+## M02 keeps to one line outside menus: the use prompt while it is legal,
+## otherwise the objective for a few seconds after it changes. Gates and
+## panels in the world carry the rest.
+func _refresh_m02() -> void:
+	_recovery.visible = false
+	var progress: Dictionary = state["m02"]
+	var line: String = ""
+	match state["phase"]:
+		"briefing":
+			line = _catalog("M02_WAITING")
+		"departed":
+			line = _catalog("M02_DEPARTED")
+		_:
+			line = _catalog(objective_key(str(progress["current"]["id"])))
+	_copy.text = line
+	_prompt.text = ""
+	for prompt: Dictionary in state["prompts"]:
+		if prompt["player_id"] == player_id:
+			_prompt.text = _catalog(use_key(str(progress["current"]["id"])))
+	_prompt.visible = not _prompt.text.is_empty()
+	_card.visible = _stage_card_visible()
+
+## Catalog copy only. A missing key is an error and shows nothing, never the key.
+func _catalog(key: String) -> String:
+	var copy: String = WorldSign.localized(key)
+	if copy.is_empty():
+		push_error("mission_hud: missing localized key " + key)
+	return copy
+
+static func objective_key(id: String) -> String:
+	return "M02_OBJECTIVE_" + id.to_upper() if id in M02_KNOWN else "M02_OBJECTIVE_UNKNOWN"
+
+static func use_key(id: String) -> String:
+	return "M02_USE_" + id.to_upper() if id in M02_USES else "M02_USE_CONSOLE"

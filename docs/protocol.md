@@ -78,8 +78,8 @@ Initial handshake message. Must be sent immediately after connection.
   selected map's requirement. Rotation uses the maximum across its whole roster.
   No player or spectator session is created on rejection. This is geometry
   compatibility, not general protocol or action-version negotiation.
-- `gameplay_version`: maximum understood gameplay contract. Updated Rust readers send
-  `9`; omission means `1`. Discovery-only maps require 2, maps with authored
+- `gameplay_version`: maximum understood gameplay contract. Updated Rust readers
+  and the Godot client send `9`; omission means `1`. Discovery-only maps require 2, maps with authored
   encounters require 3, and mission sequences require 6 for shared difficulty.
   Versions 4 and 5 introduced physical controls and party readiness respectively;
   they cannot enter current missions. Solo runs require 7 for explicit continues.
@@ -217,9 +217,9 @@ and before the corresponding snapshot whenever shared state changes. `state` is:
   registered `map_info.presentation.decorations` panel and a reachable approach.
   The server validates range, aim, sight and party eligibility. Each gate change
   sends a new `map_info` before the changed mission state. The bundled M02
-  graybox (`server/maps/m02-persons-unknown.json`) authors `ward_reached`,
-  `correction_stopped`, `companion_released`, `loading_gate_open` and
-  `party_departed` with three prepared gates. It has no durable solo run yet.
+  graybox (`server/maps/m02-persons-unknown.json`) authors two arrival
+  objectives, `companion_released` and `party_departed`, with no gates and
+  three authored encounters. It has no durable solo run yet.
 
 Participants finish or skip their opening by sending
 `{"type":"mission_ready","id":"recall_notice","attempt":1}` using the current
@@ -1090,7 +1090,8 @@ the on-wire campaign rules revision. No parent command changes it during a run.
 
 The readiness record names the selected mission's client contract, rather than
 the highest version understood by the server. M01 stays at 8 when the server
-also understands M02 version 9. The local launcher checks this value exactly.
+also understands M02 version 9. The local launcher checks this value exactly:
+8 for `recall_notice` and 9 for `persons_unknown`.
 
 `--local-mission persons_unknown` starts the bundled M02 graybox as a
 development child. It writes the same readiness line with

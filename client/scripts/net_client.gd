@@ -1,7 +1,8 @@
 extends Node
 
-# Version 8 understands private participant records; older servers remain playable.
-const GAMEPLAY_VERSION: int = 8
+# Version 9 understands M02 objective and gate state; version 8 added private
+# participant records. Older servers remain playable.
+const GAMEPLAY_VERSION: int = 9
 
 signal connected_to_server
 signal disconnected_from_server
@@ -323,10 +324,11 @@ func _handle_message(text: String):
 				disconnect_from_server()
 				server_error.emit(problem)
 				return
-			if not data.get("mission") is Dictionary or data["mission"].get("id") != mission_geometry.get("id"):
+			var geometry: Dictionary = MissionState.geometry_for(data)
+			if geometry.is_empty() or geometry.get("id") != mission_geometry.get("id"):
 				_mission_previous.clear()
 			mission.clear()
-			mission_geometry = data["mission"] if data.get("mission") is Dictionary else {}
+			mission_geometry = geometry
 			map_info_received.emit(data)
 			mission_received.emit({})
 		"mission":

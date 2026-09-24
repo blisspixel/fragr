@@ -9,6 +9,8 @@ uniform vec4 bone_color : source_color = vec4(0.910, 0.886, 0.839, 1.0);
 uniform vec4 ink_color : source_color = vec4(0.039, 0.039, 0.047, 1.0);
 uniform vec4 green_color : source_color = vec4(0.306, 0.345, 0.267, 1.0);
 uniform vec4 red_color : source_color = vec4(0.545, 0.118, 0.118, 1.0);
+uniform vec4 gate_locked_color : source_color = vec4(0.902, 0.180, 0.141, 1.0);
+uniform vec4 gate_open_color : source_color = vec4(0.349, 0.839, 0.380, 1.0);
 
 float box(vec2 p, vec2 lo, vec2 hi) {
 	return step(lo.x, p.x) * step(lo.y, p.y) * step(p.x, hi.x) * step(p.y, hi.y);
@@ -54,6 +56,31 @@ void fragment() {
 		ink = mix(ink, bone, diamond * bars * box(uv, vec2(0.32), vec2(0.68)));
 	} else if (style == 6) {
 		ink = mix(bone, steel, frame);
+	} else if (style == 7 || style == 8) {
+		// Gate signal: a lamp over a shutter pictogram. Locked is a red lamp over
+		// a closed slatted door; open is a green lamp over a raised shutter and an
+		// up arrow. Colour and shape both carry the state.
+		bool open = style == 8;
+		vec3 lamp_color = open ? gate_open_color.rgb : gate_locked_color.rgb;
+		vec2 s = vec2(uv.x, 1.0 - uv.y);
+		ink = mix(dark, steel, frame);
+		vec2 lamp_offset = (s - vec2(0.5, 0.79)) * vec2(panel_size.x / panel_size.y, 1.0);
+		float lamp = 1.0 - step(0.15, length(lamp_offset));
+		ink = mix(ink, lamp_color, lamp);
+		glow = lamp_color * lamp * 1.8;
+		float outer = box(s, vec2(0.2, 0.08), vec2(0.8, 0.6));
+		float inner = box(s, vec2(0.27, 0.08), vec2(0.73, 0.53));
+		ink = mix(ink, bone * 0.85, outer * (1.0 - inner));
+		float slats = inner * step(0.5, fract(s.y * 15.0));
+		if (open) {
+			slats *= step(0.44, s.y);
+			float head = step(0.25, s.y) * step(s.y, 0.41) * step(abs(s.x - 0.5), (0.41 - s.y) * 0.9);
+			float shaft = step(0.12, s.y) * step(s.y, 0.26) * step(abs(s.x - 0.5), 0.035);
+			float arrow = max(head, shaft);
+			ink = mix(ink, lamp_color, arrow);
+			glow += lamp_color * arrow * 0.8;
+		}
+		ink = mix(ink, mix(steel, bone, 0.35), slats);
 	} else {
 		ink = mix(ink, bone * 0.75, box(uv, vec2(0.06, 0.90), vec2(0.94, 0.93)));
 	}
