@@ -126,6 +126,7 @@ fn parse_budget_fraction(raw: &str) -> Result<f64, String> {
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    fragr_server::metrics::mark_process_start();
     let args = Args::parse();
     // In benchmark mode the JSON report is the only thing on stdout, so logs
     // go to stderr and only warnings survive.

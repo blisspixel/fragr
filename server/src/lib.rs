@@ -6,6 +6,7 @@ pub mod inventory;
 pub mod join_ticket;
 pub mod local;
 pub mod maps;
+pub mod metrics;
 pub mod mission;
 pub mod movement;
 pub mod navigation;

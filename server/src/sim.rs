@@ -1882,6 +1882,8 @@ impl GameState {
             agents,
             bots,
             connections,
+            health: None,
+            ops: None,
         }
     }
 

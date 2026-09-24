@@ -91,6 +91,29 @@ impl Histogram {
         self.count
     }
 
+    /// Add every sample of `other`, as if each had been recorded here.
+    pub fn merge(&mut self, other: &Histogram) {
+        if other.count == 0 {
+            return;
+        }
+        for (mine, theirs) in self.buckets.iter_mut().zip(&other.buckets) {
+            *mine += theirs;
+        }
+        self.count += other.count;
+        self.sum += other.sum;
+        self.min = self.min.min(other.min);
+        self.max = self.max.max(other.max);
+    }
+
+    /// Forget every sample without releasing the bucket storage.
+    pub fn clear(&mut self) {
+        self.buckets.fill(0);
+        self.count = 0;
+        self.sum = 0.0;
+        self.min = u64::MAX;
+        self.max = 0;
+    }
+
     pub fn mean(&self) -> f64 {
         if self.count == 0 {
             0.0
@@ -508,6 +531,42 @@ mod tests {
         assert_eq!(h.quantile(1.0), h.max());
         assert_eq!(h.quantile(-5.0), h.quantile(0.0));
         assert_eq!(h.quantile(9.0), h.max());
+    }
+
+    #[test]
+    fn merged_histograms_equal_one_recording_and_clear_resets() {
+        let mut whole = Histogram::new();
+        let mut first = Histogram::new();
+        let mut second = Histogram::new();
+        for v in 1..=500u64 {
+            whole.record(v * 1000);
+            first.record(v * 1000);
+        }
+        for v in 501..=1000u64 {
+            whole.record(v * 1000);
+            second.record(v * 1000);
+        }
+        let mut merged = Histogram::new();
+        merged.merge(&first);
+        merged.merge(&Histogram::new());
+        merged.merge(&second);
+        assert_eq!(merged.count(), whole.count());
+        assert_eq!(merged.min(), 1000);
+        assert_eq!(merged.max(), 1_000_000);
+        assert!((merged.mean() - whole.mean()).abs() < 1e-6);
+        for q in [0.5, 0.95, 0.99, 1.0] {
+            assert_eq!(merged.quantile(q), whole.quantile(q));
+        }
+        // p95 of 1..=1000 thousands sits in the bucket holding 950000.
+        let p95 = merged.quantile(0.95) as f64;
+        assert!((950_000.0..950_000.0 * 1.0625).contains(&p95), "{p95}");
+        merged.clear();
+        assert_eq!(merged.count(), 0);
+        assert_eq!(merged.max(), 0);
+        assert_eq!(merged.min(), 0);
+        assert_eq!(merged.quantile(0.99), 0);
+        merged.record(7);
+        assert_eq!((merged.min(), merged.max()), (7, 7));
     }
 
     #[test]

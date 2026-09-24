@@ -299,6 +299,8 @@ async fn run_server_impl(
         let _ = tx.send(net_server.local_addr()?);
     }
     let clients = net_server.clients.clone();
+    crate::metrics::mark_process_start();
+    let mut tracker = crate::metrics::StatusTracker::new(net_server.traffic_totals(), TICK);
 
     tokio::spawn(async move {
         net_server.accept_loop().await;
@@ -356,15 +358,34 @@ async fn run_server_impl(
                 let delivery = broadcast_to_clients(&clients, &messages).await;
                 let broadcast_elapsed = fanout_started.elapsed();
                 {
-                    let connections = clients.lock().await.len();
+                    let now = std::time::Instant::now();
+                    let clients_lock = clients.lock().await;
+                    let connections = clients_lock.len();
+                    if tracker.due(now) {
+                        let samples: Vec<crate::metrics::ClientSample<'_>> = clients_lock
+                            .iter()
+                            .map(|client| crate::metrics::ClientSample {
+                                id: client.id,
+                                traffic: client.traffic(),
+                                queue_depth: client.queue_depth(),
+                            })
+                            .collect();
+                        tracker.refresh(now, &samples);
+                    }
+                    drop(clients_lock);
+                    let mut next = session.state.live_status(connections);
+                    tracker.apply(&mut next, now);
                     if let Ok(mut slot) = live.try_write() {
-                        *slot = session.state.live_status(connections);
+                        *slot = next;
                     }
                 }
                 let unicasts = session.take_unicasts();
                 let unicast_started = std::time::Instant::now();
                 let unicast_delivery = send_unicasts(&clients, &session.client_to_player, &unicasts).await;
                 let fanout_elapsed = broadcast_elapsed.saturating_add(unicast_started.elapsed());
+                let finished = std::time::Instant::now();
+                tracker.record_overflows(finished, delivery.queue_overflows + unicast_delivery.queue_overflows);
+                tracker.record_tick(finished, finished.saturating_duration_since(started));
                 if let Some(metrics) = &metrics {
                     let mut metrics = metrics.lock().unwrap_or_else(|poison| poison.into_inner());
                     metrics.session_ns.record(elapsed.as_nanos().min(u64::MAX as u128) as u64);
@@ -391,6 +412,7 @@ async fn run_server_impl(
                 persist_local_run(&session.state, run_store.as_ref(), &mut last_run_document)?;
                 let unicasts = session.take_unicasts();
                 let delivery = send_unicasts(&clients, &session.client_to_player, &unicasts).await;
+                tracker.record_overflows(std::time::Instant::now(), delivery.queue_overflows);
                 if let Some(metrics) = &metrics {
                     metrics.lock().unwrap_or_else(|poison| poison.into_inner()).record_delivery(delivery);
                 }
