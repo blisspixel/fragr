@@ -65,6 +65,7 @@ Health is `degraded` when any of these hold, otherwise `ok`:
 | Reason | Threshold |
 |---|---|
 | `tick_p99_over_budget` | p99 tick handler time over the last 60 s is at or above 50 ms, with at least 100 ticks in the window |
+| `tick_rate_low` | the loop ran under 19 ticks per second (95 percent of 20) over a window of at least 30 s: the scheduler skipped ticks, which tick handler time alone does not show |
 | `outbound_drops` | at least one outbound queue overflow (a slow reader dropped) in the last 60 s |
 | `stale` | the served snapshot is more than 2 s older than the process clock (the tick loop stopped refreshing it) |
 

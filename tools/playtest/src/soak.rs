@@ -182,6 +182,8 @@ pub struct SoakSummary {
     pub measured_s: f64,
     pub ticks_start: u64,
     pub ticks_end: u64,
+    /// Simulation ticks per second between the first and last sample (nominal 20).
+    pub tick_rate_hz: f64,
     pub window_start: TickRow,
     pub window_end: TickRow,
     pub lifetime_end: TickRow,
@@ -305,6 +307,7 @@ pub fn check_soak(samples: &[Sample], expected: Expected) -> Verdict {
             let per = |end: u64, start: u64| {
                 end.saturating_sub(start) as f64 / summary.measured_s / clients
             };
+            summary.tick_rate_hz = end.tick.saturating_sub(start.tick) as f64 / summary.measured_s;
             summary.out_bytes_per_client_per_s =
                 per(end_ops.traffic.out_bytes, start_ops.traffic.out_bytes);
             summary.in_bytes_per_client_per_s =

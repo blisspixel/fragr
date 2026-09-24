@@ -8,8 +8,8 @@ keeps a dropped pawn for ten seconds. Rung 2 (`feat/hardening-rung2`) adds a
 15 second ping with a 45 second idle close, kick-on-repeat for floods and
 unreadable frames, host ban and allow lists, and an audit log target. A quiet
 spectator that reads is not idle. Next is a measured spectator fan-out before
-any higher connection cap, then TLS. Timing percentiles stay on the log. No
-new crate.
+any higher connection cap, then TLS. Timing percentiles, traffic and health
+now ride on `/status` ([`observability-soak.md`](./observability-soak.md)), with no new crate.
 **Branch:** `feat/hardening-*` (one PR per rung)
 **Spend:** $0 for everything here. A VM for the stranger test needs written approval and sits under the cap.
 
@@ -31,7 +31,7 @@ Phase 2 of [`../ROADMAP.md`](../ROADMAP.md): a server you can open to the intern
 4. **Names and roles.** Three to sixteen characters, NFKC normalised, allowlist letters, digits, underscore, and hyphen; reserved names such as server and admin; duplicates get a suffix. Admin is gated on a token, never on a name, since without an auth server anyone can take any name.
 5. **Speak and action limits.** Speak keeps the shipped 60-tick cooldown from `docs/protocol.md` (mirrored in the adapter). The per-session action-rate cap is the inbound budget (burst 64, 256 per second). Dropped messages feed a strike level draining at 4096 per second; past 8192 the session closes with `rate_limited`. The drain is that high because the Godot client sends one action per rendered frame and renders uncapped by default. Unreadable frames (binary, or text without a JSON object and string `type`) feed a second level draining one per second; past 16 it closes with `malformed`. Well-formed unknown types stay ignored for forward compatibility. Both kicks remove the pawn and its resume token. Ban and allow list files (`--ban-list`, `--allow-list`): one IP or CIDR per line, optional `expires=` (UTC date or `YYYY-MM-DDTHH:MM:SSZ`) and `reason=`, strict parsing with line numbers, refused at start when malformed, reread every five seconds with a bad edit keeping the previous list. A refusal happens before any slot, seat, or status answer. A new ban closes a matching live session. Entries never match callsigns. No player id column: there are no accounts.
 6. **TLS.** Terminate at Caddy: `reverse_proxy localhost:6767` upgrades WebSockets automatically, `stream_close_delay 5m` survives reloads, certificates by DNS-01 (no open port, works behind NAT, DuckDNS or a DNS plugin) for a home box or HTTP-01 on a VM. The client connects with `connect_to_url("wss://play.example", TLSOptions.client())` by name, never by IP. No in-process rustls; issuance and reload would be extra code for no gain.
-7. **Status over HTTP.** The status line and `--bench N M` are built by playtest rung 3 in Phase 1. This rung serves the same JSON to a plain `GET /status` on the game port, answered from the WebSocket upgrade callback before any upgrade, so no HTTP crate is added; a `status` WebSocket message mirrors it for Godot. Percentiles come from `hdrhistogram`, the one new crate here. A Prometheus `/metrics` endpoint waits until something scrapes it.
+7. **Status over HTTP.** The status line and `--bench N M` are built by playtest rung 3 in Phase 1. This rung serves the same JSON to a plain `GET /status` on the game port, answered from the WebSocket upgrade callback before any upgrade, so no HTTP crate is added; a `status` WebSocket message mirrors it for Godot. Percentiles come from the existing `bench::Histogram`; `hdrhistogram` (7.6.0, MIT or Apache-2.0, checked 2026-09-24) was pre-approved and not needed. A Prometheus `/metrics` endpoint waits until something scrapes it.
 8. **Protocol version.** Decided 2026-09-24: no single `protocol_version` field. `gameplay_version` and `geometry_version` are maximum-understood capabilities; each rejects an older client before `Welcome` with a code naming the missing contract (`unsupported_gameplay`, `unsupported_geometry`) and admits newer ones. A single number would duplicate them and could only say "different". The JSON envelope has not changed; a breaking envelope change would add the field with its own rejection code. Recorded in `docs/protocol.md`. The MCP side is covered in [`agent-door-2026.md`](./agent-door-2026.md).
 9. **Audit log.** One `tracing` target, `fragr_server::audit`, with `event` = `join`, `resume`, `reject`, `kick`, `ban`, `lists_loaded`, `lists_reloaded` or `lists_rejected`, plus peer address, client id, role, player id, a bounded escaped callsign, and the stable code. Tickets, resume tokens and the join secret are never fields.
 
@@ -52,7 +52,7 @@ Plaintext on port 6767 stays the LAN path and the documented public path, as the
 1. Frame and buffer caps, handshake timeout, idle timeout, per-IP and global caps. Tests. New crates: none (`DashMap` only if the per-IP map outgrows a mutexed `HashMap`).
 2. Idle ping drop, kick-on-repeat, ban and allow lists, audit log. New crate: none (`governor` not needed, see Design 2).
 3. Join tickets. No new crate (`sha2` is already a server dependency). Rejoin tokens stay with reconnect. Gameplay and geometry versions already reject an old hello. A single `protocol_version` field is not this rung.
-4. Status over HTTP on the game port and the Godot status message. New crate: `hdrhistogram`.
+4. Status over HTTP on the game port and the Godot status message. Percentiles, traffic and health on it are in [`observability-soak.md`](./observability-soak.md). New crate: none.
 5. Caddy guide and the wss client path; the stranger session.
 
 ## Success criteria

@@ -171,7 +171,57 @@ breaking envelope change would add that field then, with its own rejection.
 round, tick, fighters, humans, agents, bots, and connections. A missing `kind`
 is not an arena. It does not list callsigns or addresses, and it does not take
 a connection slot. It is a host probe. Watching and playing happen in the Godot
-app. The timing percentiles stay on the server log.
+app, which reads only those fields and accepts exactly schema 2.
+
+Schema 2 changes only when one of those fields changes meaning or is removed.
+Two additive blocks follow them once the tick loop has refreshed once (about a
+second after start); a reader that does not know them ignores them:
+
+- `health`: `{status, reasons}`. `status` is `ok` or `degraded`. `reasons` lists
+  every rule that currently holds: `tick_p99_over_budget` (window p99 at or
+  above the 50 ms budget with at least 100 window ticks), `tick_rate_low` (the
+  loop ran under 19 ticks per second over a window of at least 30 s, so ticks
+  were skipped), `outbound_drops` (a
+  slow reader's outbound queue overflowed inside the window), `stale` (the
+  served snapshot is more than 2 s older than the process clock, so the tick
+  loop stopped refreshing it).
+- `ops`, versioned by `ops.version` (1), bumped when an `ops` field changes
+  meaning or is removed:
+  - `build`: `crate_version` (the server crate, not the release tag), `release`
+    and `commit` baked in at build time from `FRAGR_BUILD_VERSION` and
+    `FRAGR_BUILD_COMMIT` (release builds set both; otherwise `null` and
+    `unknown`).
+  - `process`: `started_unix_s` (wall clock at start) and `uptime_s`
+    (monotonic, when the snapshot was taken).
+  - `tick`: `budget_ms` (50), `rate_hz` (ticks the loop actually ran per second
+    over the window, `null` until it spans 30 s), `scope` (`tick_handler`: expiry, simulation, run
+    save, broadcast and unicast enqueue, and this refresh), `window_s` (60),
+    and `window` and `lifetime` summaries of `count`, `p50_ms`, `p95_ms`,
+    `p99_ms`, `max_ms` and the exact `over_budget` count. The window is six ten
+    second slots, so it covers the last 50 to 60 s. Percentiles are
+    upper-bucket values from the bench histogram and overstate by under 6.25
+    percent; `max_ms` is exact.
+  - `connections`: `total`, `spectators`, `humans`, `agents` among admitted
+    sessions (rule bots have no connection).
+  - `traffic`: text payload only, excluding WebSocket framing and TCP.
+    `out_bytes_per_s`, `in_bytes_per_s`, `out_msgs_per_s` and `in_msgs_per_s`
+    over the window, `per_client_out_bytes_per_s_mean` and `_max` over live
+    sessions, cumulative `out_bytes`, `in_bytes`, `out_msgs` and `in_msgs`
+    since start (closed sessions included), and `queue_overflows_window` and
+    `queue_overflows_total`. Outbound counts every text frame a session writer
+    delivered, welcome included. Inbound counts every data frame read after
+    admission, hello included, before the inbound budget drops any.
+  - `clients`: only for `GET /status?clients=1`. One anonymous entry per
+    session, ordered human, agent, spectator, longest connected first:
+    `role`, `connected_s`, the four window rates, cumulative `out_bytes` and
+    `in_bytes`, and the current outbound `queue_depth`. No ids, names or
+    addresses.
+
+The plain body stays under 2048 bytes at the 64 connection cap (a test pins
+it), well inside the client's 4096 byte read limit. The operator block is
+rebuilt once a second; the match fields are fresh every tick. The `STATUS` log
+line keeps its own bench-shaped report (session scope). Health changes are
+logged: `warn` when it degrades or its reasons change, `info` when it recovers.
 
 ### Mission sequence
 

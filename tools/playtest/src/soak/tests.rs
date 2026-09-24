@@ -16,7 +16,7 @@ fn status(tick: u64, p99_ms: f64, out_bytes: u64, overflows: u64, degraded: bool
         "ops":{{"version":1,
           "build":{{"crate_version":"0.1.0","release":null,"commit":"abcdef1"}},
           "process":{{"started_unix_s":1,"uptime_s":2.0}},
-          "tick":{{"budget_ms":50.0,"scope":"tick_handler","window_s":60,
+          "tick":{{"budget_ms":50.0,"scope":"tick_handler","window_s":60,"rate_hz":20.0,
             "window":{tick_summary},"lifetime":{tick_summary}}},
           "connections":{{"total":3,"spectators":1,"humans":0,"agents":2}},
           "traffic":{{"window_s":60,"out_bytes_per_s":1.0,"in_bytes_per_s":1.0,
@@ -82,6 +82,7 @@ fn a_clean_soak_passes_and_summarizes_the_table() {
     assert_eq!(summary.samples, 3);
     assert_eq!(summary.measured_s, 120.0);
     assert_eq!((summary.ticks_start, summary.ticks_end), (100, 2500));
+    assert_eq!(summary.tick_rate_hz, 20.0);
     assert_eq!(summary.window_start.p99_ms, 3.0);
     assert_eq!(summary.window_end.p99_ms, 4.0);
     assert_eq!(summary.lifetime_end.p95_ms, 2.0);

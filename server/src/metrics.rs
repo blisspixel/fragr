@@ -23,6 +23,10 @@ const SLOTS: usize = 6;
 pub const WINDOW: Duration = Duration::from_secs(60);
 /// Fewer window ticks than this never trip the p99 rule (a cold start).
 pub const MIN_WINDOW_TICKS: u64 = 100;
+/// The achieved tick rate is judged only over at least this much history.
+pub const MIN_RATE_SPAN: Duration = Duration::from_secs(30);
+/// Below this share of the nominal 20 Hz (19 Hz), ticks are being skipped.
+pub const MIN_RATE_FRACTION: f64 = 0.95;
 /// A served snapshot older than this is `stale`.
 pub const STALE_AFTER: Duration = Duration::from_secs(2);
 /// How often the tick loop rebuilds the operator block.
@@ -288,11 +292,29 @@ fn summarize(histogram: &Histogram, over_budget: u64) -> TickSummary {
     }
 }
 
+/// Achieved ticks per second over the window, once the window spans at
+/// least `MIN_RATE_SPAN`. `None` before that.
+fn tick_rate(history: &VecDeque<(Instant, u64)>) -> Option<f64> {
+    let ((then, earlier), (now, latest)) = (history.front()?, history.back()?);
+    let span = now.saturating_duration_since(*then);
+    (span >= MIN_RATE_SPAN).then(|| latest.saturating_sub(*earlier) as f64 / span.as_secs_f64())
+}
+
 /// The documented thresholds. `stale` is applied when a snapshot is served.
-pub fn evaluate(window: &TickSummary, budget_ms: f64, overflows_window: u64) -> Vec<HealthReason> {
+/// `rate_hz` is the achieved tick rate once the window is long enough.
+pub fn evaluate(
+    window: &TickSummary,
+    budget_ms: f64,
+    overflows_window: u64,
+    rate_hz: Option<f64>,
+) -> Vec<HealthReason> {
     let mut reasons = Vec::new();
     if window.count >= MIN_WINDOW_TICKS && window.p99_ms >= budget_ms {
         reasons.push(HealthReason::TickP99OverBudget);
+    }
+    let expected_hz = 1000.0 / budget_ms;
+    if rate_hz.is_some_and(|rate| rate < expected_hz * MIN_RATE_FRACTION) {
+        reasons.push(HealthReason::TickRateLow);
     }
     if overflows_window > 0 {
         reasons.push(HealthReason::OutboundDrops);
@@ -307,7 +329,7 @@ struct TrafficRates {
     totals: VecDeque<(Instant, Counters)>,
 }
 
-fn push_sample(history: &mut VecDeque<(Instant, Counters)>, now: Instant, counters: Counters) {
+fn push_sample<T>(history: &mut VecDeque<(Instant, T)>, now: Instant, counters: T) {
     history.push_back((now, counters));
     // Keep the newest sample that is at least a window old as the baseline.
     while history.len() > 2 && now.saturating_duration_since(history[1].0) >= WINDOW {
@@ -388,6 +410,7 @@ pub struct StatusTracker {
     budget: Duration,
     ticks: TickWindow,
     rates: TrafficRates,
+    tick_counts: VecDeque<(Instant, u64)>,
     totals: Arc<TrafficCounters>,
     build: BuildInfo,
     last_refresh: Option<Instant>,
@@ -402,6 +425,7 @@ impl StatusTracker {
             budget,
             ticks: TickWindow::new(now),
             rates: TrafficRates::new(now),
+            tick_counts: VecDeque::from([(now, 0)]),
             totals,
             build: build_info(),
             last_refresh: None,
@@ -449,7 +473,9 @@ impl StatusTracker {
                 / clients_rates.len() as f64
         };
         let totals = self.totals.snapshot();
-        let health = Health::from_reasons(evaluate(&window, budget_ms, overflows_window));
+        push_sample(&mut self.tick_counts, now, self.ticks.lifetime.count());
+        let rate_hz = tick_rate(&self.tick_counts);
+        let health = Health::from_reasons(evaluate(&window, budget_ms, overflows_window, rate_hz));
         self.log_transition(&health);
         self.health = Some(health);
         self.ops = Some(OpsStatus {
@@ -460,6 +486,7 @@ impl StatusTracker {
                 budget_ms,
                 scope: TICK_SCOPE.to_string(),
                 window_s: WINDOW.as_secs(),
+                rate_hz,
                 window,
                 lifetime,
             },

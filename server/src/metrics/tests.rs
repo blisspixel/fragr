@@ -92,27 +92,79 @@ fn summary(count: u64, p99_ms: f64) -> TickSummary {
 
 #[test]
 fn degraded_thresholds_are_the_documented_ones() {
-    assert!(evaluate(&summary(1200, 49.9), 50.0, 0).is_empty());
+    assert!(evaluate(&summary(1200, 49.9), 50.0, 0, None).is_empty());
     assert_eq!(
-        evaluate(&summary(1200, 50.0), 50.0, 0),
+        evaluate(&summary(1200, 50.0), 50.0, 0, None),
         vec![HealthReason::TickP99OverBudget]
     );
     // A cold start with a slow first map load is not a verdict yet.
-    assert!(evaluate(&summary(MIN_WINDOW_TICKS - 1, 400.0), 50.0, 0).is_empty());
+    assert!(evaluate(&summary(MIN_WINDOW_TICKS - 1, 400.0), 50.0, 0, None).is_empty());
     assert_eq!(
-        evaluate(&summary(MIN_WINDOW_TICKS, 400.0), 50.0, 0),
+        evaluate(&summary(MIN_WINDOW_TICKS, 400.0), 50.0, 0, None),
         vec![HealthReason::TickP99OverBudget]
     );
     assert_eq!(
-        evaluate(&summary(10, 1.0), 50.0, 1),
+        evaluate(&summary(10, 1.0), 50.0, 1, None),
         vec![HealthReason::OutboundDrops]
     );
     assert_eq!(
-        evaluate(&summary(1200, 80.0), 50.0, 2),
+        evaluate(&summary(1200, 80.0), 50.0, 2, None),
         vec![HealthReason::TickP99OverBudget, HealthReason::OutboundDrops]
+    );
+    // Skipped ticks: 19 Hz is the floor at a 50 ms budget.
+    assert!(evaluate(&summary(1200, 1.0), 50.0, 0, Some(19.0)).is_empty());
+    assert_eq!(
+        evaluate(&summary(1200, 1.0), 50.0, 0, Some(18.9)),
+        vec![HealthReason::TickRateLow]
+    );
+    assert_eq!(
+        evaluate(&summary(1200, 80.0), 50.0, 1, Some(10.0)),
+        vec![
+            HealthReason::TickP99OverBudget,
+            HealthReason::TickRateLow,
+            HealthReason::OutboundDrops
+        ]
     );
     assert!(Health::from_reasons(Vec::new()).is_ok());
     assert!(!Health::from_reasons(vec![HealthReason::Stale]).is_ok());
+}
+
+#[test]
+fn tick_rate_waits_for_thirty_seconds_then_follows_the_window() {
+    let start = Instant::now();
+    let mut history = VecDeque::from([(start, 0u64)]);
+    push_sample(&mut history, start + Duration::from_secs(29), 580);
+    assert_eq!(tick_rate(&history), None);
+    push_sample(&mut history, start + Duration::from_secs(30), 600);
+    assert_eq!(tick_rate(&history), Some(20.0));
+    // Ninety seconds on, a slow final minute shows through.
+    for second in 31..=120u64 {
+        let ticks = if second <= 60 {
+            second * 20
+        } else {
+            1200 + (second - 60) * 15
+        };
+        push_sample(&mut history, start + Duration::from_secs(second), ticks);
+    }
+    let rate = tick_rate(&history).unwrap();
+    assert!((rate - 15.0).abs() < 0.2, "{rate}");
+    assert_eq!(tick_rate(&VecDeque::new()), None);
+
+    // The tracker reports it and degrades on it.
+    let mut tracker = StatusTracker::new(Arc::default(), BUDGET);
+    let now = Instant::now();
+    for i in 0..400u64 {
+        tracker.record_tick(now + Duration::from_millis(i * 100), ms(1));
+    }
+    tracker.refresh(now + Duration::from_secs(40), &[]);
+    assert_eq!(
+        tracker.health().unwrap().reasons,
+        vec![HealthReason::TickRateLow]
+    );
+    let mut live = LiveStatus::default();
+    tracker.apply(&mut live, now + Duration::from_secs(40));
+    let rate = live.ops.unwrap().tick.rate_hz.unwrap();
+    assert!(rate > 9.0 && rate < 10.1, "{rate}");
 }
 
 #[test]
@@ -270,18 +322,25 @@ fn tracker_reports_roles_rates_and_health_transitions() {
     tracker.refresh(later + ms(300), &[]);
     assert_eq!(
         tracker.health().unwrap().reasons,
-        vec![HealthReason::TickP99OverBudget]
+        vec![HealthReason::TickP99OverBudget, HealthReason::TickRateLow]
     );
-    let recovered = later + Duration::from_secs(70);
-    for i in 0..200u64 {
-        tracker.record_tick(recovered + ms(i), ms(1));
+    // A full minute at 20 Hz with fast ticks recovers every rule.
+    for i in 0..1400u64 {
+        let at = later + Duration::from_secs(10) + ms(i * 50);
+        tracker.record_tick(at, ms(1));
+        if i == 100 {
+            tracker.refresh(at, &[]);
+        }
     }
-    tracker.refresh(recovered + ms(300), &[]);
-    assert!(tracker.health().unwrap().is_ok());
+    let recovered = later + Duration::from_secs(80);
+    tracker.refresh(recovered, &[]);
+    assert!(tracker.health().unwrap().is_ok(), "{:?}", tracker.health());
     let mut live = LiveStatus::default();
-    tracker.apply(&mut live, recovered + ms(301));
+    tracker.apply(&mut live, recovered + ms(1));
     let ops = live.ops.unwrap();
-    assert_eq!(ops.tick.lifetime.count, 800);
+    let rate = ops.tick.rate_hz.unwrap();
+    assert!((rate - 20.0).abs() < 0.2, "{rate}");
+    assert_eq!(ops.tick.lifetime.count, 2000);
     assert_eq!(ops.tick.lifetime.over_budget, 400);
     assert_eq!(ops.traffic.queue_overflows_total, 1);
     assert_eq!(ops.traffic.queue_overflows_window, 0);

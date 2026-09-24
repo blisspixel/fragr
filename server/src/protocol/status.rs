@@ -43,6 +43,8 @@ pub enum HealthState {
 pub enum HealthReason {
     /// Window p99 tick handler time at or above the 50 ms budget.
     TickP99OverBudget,
+    /// The loop ran under 19 ticks per second over the window: ticks skipped.
+    TickRateLow,
     /// A slow reader's outbound queue overflowed inside the window.
     OutboundDrops,
     /// The served snapshot stopped being refreshed by the tick loop.
@@ -87,6 +89,9 @@ pub struct TickTiming {
     /// and broadcast plus unicast enqueue for one tick.
     pub scope: String,
     pub window_s: u64,
+    /// Ticks the loop actually ran per second over the window (nominal 20).
+    /// `null` until the window spans 30 s.
+    pub rate_hz: Option<f64>,
     pub window: TickSummary,
     pub lifetime: TickSummary,
 }

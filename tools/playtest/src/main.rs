@@ -107,11 +107,12 @@ fn print_soak(verdict: &fragr_playtest::soak::Verdict, log: &std::path::Path) {
         })
     };
     println!(
-        "soak: {} samples over {:.0} s, ticks {} to {}, window p50/p95/p99 {:.2}/{:.2}/{:.2} ms at start and {:.2}/{:.2}/{:.2} ms at end, lifetime p99 {:.2} ms max {:.2} ms, {:.0} out and {:.0} in bytes per client per second, rss {} to {} (max {})",
+        "soak: {} samples over {:.0} s, ticks {} to {} ({:.2} Hz), window p50/p95/p99 {:.2}/{:.2}/{:.2} ms at start and {:.2}/{:.2}/{:.2} ms at end, lifetime p99 {:.2} ms max {:.2} ms, {:.0} out and {:.0} in bytes per client per second, rss {} to {} (max {})",
         s.samples,
         s.measured_s,
         s.ticks_start,
         s.ticks_end,
+        s.tick_rate_hz,
         s.window_start.p50_ms,
         s.window_start.p95_ms,
         s.window_start.p99_ms,
