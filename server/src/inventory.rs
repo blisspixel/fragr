@@ -1,7 +1,5 @@
 //! Equipment rules independent of controller, transport and rendering.
-use crate::protocol::{
-    AmmoPool, AmmoReserve, EquipmentPolicy, LoadoutState, ReloadState, WeaponAmmo, WeaponType,
-};
+use crate::protocol::{AmmoCount, AmmoPool, EquipmentPolicy, LoadoutState, WeaponType};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeSet;
 use uuid::Uuid;
@@ -13,38 +11,32 @@ pub use controller::{
     control_action, control_action_with_objective, control_action_with_target_filter,
 };
 
-/// Mission-entry equipment without participant identity, tick or transient reload.
+/// Mission-entry equipment without participant identity or tick.
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub(crate) struct SavedEquipment {
     pub selected: WeaponType,
-    pub weapons: Vec<WeaponAmmo>,
-    pub reserves: Vec<AmmoReserve>,
+    pub weapons: Vec<WeaponType>,
+    pub ammo: Vec<AmmoCount>,
     pub personal_claims: Vec<String>,
 }
 
 impl SavedEquipment {
     pub fn validate(&self) -> Result<(), &'static str> {
-        LoadoutState {
-            player_id: Uuid::nil(),
-            tick: 0,
-            selected: self.selected,
-            weapons: self.weapons.clone(),
-            reserves: self.reserves.clone(),
-            reload: None,
-            personal_claims: self.personal_claims.clone(),
-            dry_fire_count: 0,
-        }
-        .validate()
+        crate::protocol::validate_equipment(
+            self.selected,
+            &self.weapons,
+            &self.ammo,
+            &self.personal_claims,
+        )
     }
 }
 
 #[derive(Debug, Clone)]
 pub struct Inventory {
     policy: EquipmentPolicy,
-    magazines: [Option<u16>; 5],
-    reserves: [u16; 3],
-    reload: Option<ReloadState>,
+    owned: [bool; 5],
+    ammo: [u16; 3],
     claims: BTreeSet<String>,
     revision: u64,
     dry_fire_count: u64,
@@ -57,7 +49,7 @@ impl Inventory {
         let saved = SavedEquipment {
             selected,
             weapons: state.weapons,
-            reserves: state.reserves,
+            ammo: state.ammo,
             personal_claims: state.personal_claims,
         };
         saved.validate().ok()?;
@@ -72,27 +64,27 @@ impl Inventory {
             return Err("saved equipment requires discovery policy");
         }
         saved.validate()?;
-        self.magazines = [None; 5];
-        for held in &saved.weapons {
-            self.magazines[held.weapon.index()] = held.magazine;
+        self.owned = [false; 5];
+        for weapon in &saved.weapons {
+            self.owned[weapon.index()] = true;
         }
-        self.reserves = [0; 3];
-        for reserve in &saved.reserves {
-            self.reserves[reserve.pool.index()] = reserve.rounds;
+        self.ammo = [0; 3];
+        for count in &saved.ammo {
+            self.ammo[count.pool.index()] = count.rounds;
         }
         self.claims = saved.personal_claims.iter().cloned().collect();
-        self.reload = None;
         self.dry_latched = false;
         self.revision += 1;
         Ok(())
     }
 
     pub fn new(policy: EquipmentPolicy) -> Self {
+        let mut owned = [false; 5];
+        owned[WeaponType::Fists.index()] = true;
         Self {
             policy,
-            magazines: [None; 5],
-            reserves: [0; 3],
-            reload: None,
+            owned,
+            ammo: [0; 3],
             claims: BTreeSet::new(),
             revision: 0,
             dry_fire_count: 0,
@@ -111,14 +103,13 @@ impl Inventory {
         self.dry_fire_count
     }
 
-    /// Restore durable entry equipment without rolling back observer counters or
-    /// carrying a reload deadline and held trigger across attempts.
+    /// Restore durable entry equipment without rolling back observer counters
+    /// or carrying a held trigger across attempts.
     pub(crate) fn restore_entry(&mut self, entry: &Self) {
         self.policy = entry.policy;
-        self.magazines = entry.magazines;
-        self.reserves = entry.reserves;
+        self.owned = entry.owned;
+        self.ammo = entry.ammo;
         self.claims.clone_from(&entry.claims);
-        self.reload = None;
         self.dry_latched = false;
         self.revision += 1;
     }
@@ -126,9 +117,7 @@ impl Inventory {
     pub fn owns(&self, weapon: WeaponType) -> bool {
         match self.policy {
             EquipmentPolicy::FullArsenal => WeaponType::ARCADE.contains(&weapon),
-            EquipmentPolicy::Discovery => {
-                weapon == WeaponType::Fists || self.magazines[weapon.index()].is_some()
-            }
+            EquipmentPolicy::Discovery => self.owned[weapon.index()],
         }
     }
 
@@ -142,10 +131,8 @@ impl Inventory {
         }
     }
 
-    pub fn cancel_reload(&mut self) {
-        if self.reload.take().is_some() {
-            self.revision += 1;
-        }
+    /// A new selection or a death releases a latched dry trigger.
+    pub fn release_trigger(&mut self) {
         self.dry_latched = false;
     }
 
@@ -154,7 +141,7 @@ impl Inventory {
             return false;
         }
         if current != requested {
-            self.cancel_reload();
+            self.release_trigger();
         }
         true
     }
@@ -166,94 +153,54 @@ impl Inventory {
         let Some(pool) = weapon.ammo_pool() else {
             return false;
         };
-        let acquired = self.magazines[weapon.index()].is_none();
+        let acquired = !self.owned[weapon.index()];
         if acquired {
-            self.magazines[weapon.index()] = Some(weapon.magazine_size());
+            self.owned[weapon.index()] = true;
             self.revision += 1;
         }
-        self.grant_ammo(pool, weapon.initial_reserve()) > 0 || acquired
+        self.grant_ammo(pool, weapon.pickup_rounds()) > 0 || acquired
     }
 
     pub fn needs_ammo(&self, pool: AmmoPool) -> bool {
-        self.policy == EquipmentPolicy::Discovery && self.reserves[pool.index()] < pool.capacity()
+        self.policy == EquipmentPolicy::Discovery && self.ammo[pool.index()] < pool.capacity()
     }
 
     pub fn grant_ammo(&mut self, pool: AmmoPool, amount: u16) -> u16 {
         if self.policy != EquipmentPolicy::Discovery {
             return 0;
         }
-        let reserve = &mut self.reserves[pool.index()];
-        let next = reserve.saturating_add(amount).min(pool.capacity());
-        if next == *reserve {
+        let count = &mut self.ammo[pool.index()];
+        let next = count.saturating_add(amount).min(pool.capacity());
+        if next == *count {
             return 0;
         }
-        let gained = next - *reserve;
-        *reserve = next;
+        let gained = next - *count;
+        *count = next;
         self.revision += 1;
         gained
     }
 
-    pub fn begin_reload(&mut self, selected: WeaponType, tick: u64) -> bool {
-        if self.policy != EquipmentPolicy::Discovery || self.reload.is_some() {
-            return false;
-        }
-        let Some(pool) = selected.ammo_pool() else {
-            return false;
-        };
-        let Some(rounds) = self.magazines[selected.index()] else {
-            return false;
-        };
-        if rounds == selected.magazine_size() || self.reserves[pool.index()] < selected.ammo_cost()
-        {
-            return false;
-        }
-        self.reload = Some(ReloadState {
-            weapon: selected,
-            complete_at: tick.saturating_add(selected.reload_ticks()),
-        });
-        self.revision += 1;
-        self.dry_latched = false;
-        true
-    }
-
-    pub fn tick(&mut self, tick: u64, fire_held: bool) {
+    pub fn tick(&mut self, fire_held: bool) {
         if !fire_held {
             self.dry_latched = false;
-        }
-        if !self
-            .reload
-            .as_ref()
-            .is_some_and(|reload| reload.complete_at <= tick)
-        {
-            return;
-        }
-        if let Some(reload) = self.reload.take() {
-            let weapon = reload.weapon;
-            if let (Some(pool), Some(rounds)) =
-                (weapon.ammo_pool(), self.magazines[weapon.index()].as_mut())
-            {
-                let reserve = &mut self.reserves[pool.index()];
-                let loaded = (weapon.magazine_size() - *rounds).min(*reserve / weapon.ammo_cost());
-                *rounds += loaded;
-                *reserve -= loaded * weapon.ammo_cost();
-            }
-            self.revision += 1;
         }
     }
 
     /// Called only after alive/cooldown admission, before RNG or ray resolution.
+    /// One shot, including one Scatter blast of several pellets, spends one unit.
     pub fn try_fire(&mut self, selected: WeaponType) -> bool {
-        if !self.owns(selected) || self.reload.is_some() {
+        if !self.owns(selected) {
             return false;
         }
-        if self.policy == EquipmentPolicy::FullArsenal || selected == WeaponType::Fists {
+        if self.policy == EquipmentPolicy::FullArsenal {
             return true;
         }
-        if let Some(rounds) = self.magazines[selected.index()]
-            .as_mut()
-            .filter(|rounds| **rounds > 0)
-        {
-            *rounds -= 1;
+        let Some(pool) = selected.ammo_pool() else {
+            return true;
+        };
+        let count = &mut self.ammo[pool.index()];
+        if *count > 0 {
+            *count -= 1;
             self.revision += 1;
             self.dry_latched = false;
             return true;
@@ -277,19 +224,14 @@ impl Inventory {
             weapons: WeaponType::ALL
                 .into_iter()
                 .filter(|&weapon| self.owns(weapon))
-                .map(|weapon| WeaponAmmo {
-                    weapon,
-                    magazine: self.magazines[weapon.index()],
-                })
                 .collect(),
-            reserves: AmmoPool::ALL
+            ammo: AmmoPool::ALL
                 .into_iter()
-                .map(|pool| AmmoReserve {
+                .map(|pool| AmmoCount {
                     pool,
-                    rounds: self.reserves[pool.index()],
+                    rounds: self.ammo[pool.index()],
                 })
                 .collect(),
-            reload: self.reload.clone(),
             personal_claims: self.claims.iter().cloned().collect(),
             dry_fire_count: self.dry_fire_count,
         })

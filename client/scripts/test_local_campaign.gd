@@ -145,7 +145,7 @@ func _run() -> void:
 	if not await _until(func() -> bool: return not current_scene.controls_blocked() and current_scene._has_local_input_target(), "readiness enters first-person play"):
 		return
 	_expect(current_scene.mission_hud.state["phase"] == "find_transfer", "server confirms active mission")
-	_expect(not current_scene.pending_jump and not current_scene.pending_interact and not current_scene.pending_reload, "intro leaves no queued gameplay press")
+	_expect(not current_scene.pending_jump and not current_scene.pending_interact, "intro leaves no queued gameplay press")
 	var first_map: Dictionary = current_scene.current_map_info.duplicate(true)
 	current_scene._on_map_info(first_map)
 	_expect(not is_instance_valid(current_scene.opening) and current_scene._opening_finished, "a repeated mission map does not replay the story")

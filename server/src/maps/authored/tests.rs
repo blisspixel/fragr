@@ -30,7 +30,7 @@ fn authored_content_identity_survives_gate_state_and_changes_with_source() {
             .map(|byte| format!("{byte:02X}"))
             .collect::<Vec<_>>()
             .join(""),
-        "F1B454EFDF5601A6C65927BA3FE46EFAF3A489FB719A46050F35C0386FBEFCE1"
+        "F71CB6494B501F83553593B6267EE537C36EA1BB51771294083268E20C91C67C"
     );
     let closed = crate::maps::RuntimeMap::Authored(map.clone());
     let opened = closed.opened_route().unwrap();
@@ -77,7 +77,7 @@ fn supplies_validate_grants_claims_clearance_and_reachability() {
     let mut doc = small();
     doc["equipment"] = json!("discovery");
     let supply = json!({"id":"supply","feet":[0,0,1],"claim":"contested",
-        "grant":{"kind":"ammo","pool":"darts","amount":30}});
+        "grant":{"kind":"ammo","pool":"shells","amount":8}});
     doc["supplies"] = json!([supply]);
     assert!(decode(&doc).is_ok());
     for grant in [
@@ -93,10 +93,13 @@ fn supplies_validate_grants_claims_clearance_and_reachability() {
     for grant in [
         json!({"kind":"weapon","weapon":"fists"}),
         json!({"kind":"weapon","weapon":"unknown"}),
-        json!({"kind":"ammo","pool":"darts","amount":0}),
-        json!({"kind":"ammo","pool":"darts","amount":121}),
-        json!({"kind":"ammo","pool":"tacks","amount":-1}),
-        json!({"kind":"ammo","pool":"cores","amount":1.5}),
+        json!({"kind":"ammo","pool":"shells","amount":0}),
+        json!({"kind":"ammo","pool":"shells","amount":51}),
+        json!({"kind":"ammo","pool":"bullets","amount":201}),
+        json!({"kind":"ammo","pool":"bullets","amount":-1}),
+        json!({"kind":"ammo","pool":"cells","amount":1.5}),
+        json!({"kind":"ammo","pool":"darts","amount":30}),
+        json!({"kind":"ammo","pool":"tacks","amount":30}),
         json!({"kind":"health","amount":101}),
         json!({"kind":"armor","amount":0}),
         json!({"kind":"weapon","weapon":"tack","amount":1}),

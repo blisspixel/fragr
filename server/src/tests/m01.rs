@@ -12,6 +12,9 @@ use crate::sim::PLAYER_FLOOR_Y;
 use std::collections::BTreeSet;
 use uuid::Uuid;
 
+/// The magazine-era test emptied one 30 round Flechette magazine here.
+const WASTED_BYPASS_BULLETS: usize = 30;
+
 struct Walkthrough {
     session: GameSession,
     id: Uuid,
@@ -136,7 +139,7 @@ impl Walkthrough {
                 .inventory
                 .state(self.id, player.weapon, snapshot.tick)
                 .unwrap();
-            let dry = loadout.weapon(player.weapon).unwrap().magazine == Some(0);
+            let dry = loadout.shots(player.weapon) == Some(0);
             Action {
                 // React to a visible committed tell with ordinary strafing.
                 // This is an accurate-aim moving run, not first-player balance.
@@ -153,8 +156,7 @@ impl Walkthrough {
                     player_id: Some(target.id),
                     ..Default::default()
                 }),
-                fire: !dry && loadout.reload.is_none(),
-                reload: dry && loadout.reload.is_none(),
+                fire: !dry,
                 ..Default::default()
             }
         } else {
@@ -285,10 +287,10 @@ impl Walkthrough {
             .is_some_and(|group| group.regions.iter().any(|region| region.contains(feet)))
     }
 
-    /// Fire one Flechette magazine into the bypass ceiling. Misses here are
-    /// spent before sorting and transfer, and they do not claim file-stack stock.
-    fn waste_bypass_magazine(&mut self) -> usize {
-        let needed = usize::from(WeaponType::Flechette.magazine_size());
+    /// Fire thirty bullets into the bypass ceiling. Misses here are spent
+    /// before sorting and transfer, and they do not claim file-stack stock.
+    fn waste_bypass_bullets(&mut self) -> usize {
+        let needed = WASTED_BYPASS_BULLETS;
         let anchor = [-18.0, 3.0, 27.0];
         self.walk(anchor);
         assert_eq!(
@@ -339,7 +341,7 @@ impl Walkthrough {
                 .inventory
                 .state(self.id, player.weapon, snapshot.tick)
                 .unwrap();
-            let dry = loadout.weapon(player.weapon).unwrap().magazine == Some(0);
+            let dry = loadout.shots(player.weapon) == Some(0);
             self.session.state.set_action(
                 self.id,
                 Action {
@@ -354,8 +356,7 @@ impl Walkthrough {
                         z: Some(feet[2]),
                         player_id: None,
                     }),
-                    fire: !dry && loadout.reload.is_none(),
-                    reload: dry && loadout.reload.is_none(),
+                    fire: !dry,
                     ..Action::default()
                 },
             );
@@ -826,7 +827,7 @@ fn east_bypass_departs_with_all_stack_guards_alive() {
         run.defeated.len() >= 16,
         "east bypass skipped a fought encounter"
     );
-    for id in ["stacks_darts", "stacks_armor", "stacks_medkit"] {
+    for id in ["stacks_bullets", "stacks_armor", "stacks_medkit"] {
         let pad = run
             .session
             .state
@@ -908,15 +909,15 @@ fn the_bypass_is_its_own_encounter() {
         .regions
         .iter()
         .all(|region| !region.contains(choice) && !region.contains(threshold)));
-    let darts = session
+    let bullets = session
         .state
         .map
         .pickups()
         .into_iter()
-        .find(|pickup| pickup.id == "bypass_darts")
+        .find(|pickup| pickup.id == "bypass_bullets")
         .unwrap();
     assert!(
-        (darts.x - sentry.feet[0]).hypot(darts.z - sentry.feet[2]) > 1.0,
+        (bullets.x - sentry.feet[0]).hypot(bullets.z - sentry.feet[2]) > 1.0,
         "bypass ammo is standing on the sentry"
     );
 }
@@ -946,7 +947,7 @@ fn bypass_clear_still_departs_after_wasted_rounds_without_stack_supplies() {
     run.walk([-19.0, 3.0, 9.0]);
     run.walk([-15.5, 3.0, 17.5]);
     run.walk([-19.0, 3.0, 23.0]);
-    let wasted = run.waste_bypass_magazine();
+    let wasted = run.waste_bypass_bullets();
     // Stay east of the file stacks. The west sorting points can path through
     // that room, so they cannot prove a sightline from the bypass.
     for point in [
@@ -974,7 +975,7 @@ fn bypass_clear_still_departs_after_wasted_rounds_without_stack_supplies() {
         .players
         .iter()
         .all(|player| player.name != "bypass_sentry" || player.hp <= 0));
-    for id in ["stacks_darts", "stacks_armor", "stacks_medkit"] {
+    for id in ["stacks_bullets", "stacks_armor", "stacks_medkit"] {
         let pad = run
             .session
             .state
@@ -996,15 +997,14 @@ fn bypass_clear_still_departs_after_wasted_rounds_without_stack_supplies() {
         .state(run.id, player.weapon, run.session.state.tick)
         .unwrap();
     eprintln!(
-        "M01 wasted bypass: ticks={}, hp={}, armor={}, defeats={}, shots={}, wasted={}, darts_mag={:?}, darts_reserve={}",
+        "M01 wasted bypass: ticks={}, hp={}, armor={}, defeats={}, shots={}, wasted={}, bullets={}",
         run.session.state.tick,
         player.hp,
         player.armor,
         run.defeated.len(),
         run.shots,
         wasted,
-        loadout.weapon(WeaponType::Flechette).unwrap().magazine,
-        loadout.reserve(AmmoPool::Darts)
+        loadout.ammo(AmmoPool::Bullets)
     );
 }
 

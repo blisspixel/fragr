@@ -7,12 +7,12 @@
   "equipment": "discovery",
   "supplies": [
     {"id":"landing_tack","feet":[-17,0,-32],"grant":{"kind":"weapon","weapon":"tack"},"claim":"personal"},
-    {"id":"landing_tacks","feet":[-17,0,-28],"grant":{"kind":"ammo","pool":"tacks","amount":24},"claim":"contested"},
+    {"id":"landing_bullets","feet":[-17,0,-28],"grant":{"kind":"ammo","pool":"bullets","amount":20},"claim":"contested"},
     {"id":"antechamber_scatter","feet":[-17,0,-14],"grant":{"kind":"weapon","weapon":"scatter"},"claim":"personal"},
-    {"id":"antechamber_darts","feet":[-14,0,-14],"grant":{"kind":"ammo","pool":"darts","amount":30},"claim":"contested"},
+    {"id":"antechamber_shells","feet":[-14,0,-14],"grant":{"kind":"ammo","pool":"shells","amount":8},"claim":"contested"},
     {"id":"antechamber_medkit","feet":[-12,0,-23],"grant":{"kind":"health","amount":25},"claim":"contested"},
-    {"id":"ward_tacks","feet":[-6,0,-10],"grant":{"kind":"ammo","pool":"tacks","amount":24},"claim":"contested"},
-    {"id":"floor_darts","feet":[-4,0,-5],"grant":{"kind":"ammo","pool":"darts","amount":30},"claim":"contested"},
+    {"id":"ward_bullets","feet":[-6,0,-10],"grant":{"kind":"ammo","pool":"bullets","amount":20},"claim":"contested"},
+    {"id":"floor_shells","feet":[-4,0,-5],"grant":{"kind":"ammo","pool":"shells","amount":8},"claim":"contested"},
     {"id":"floor_medkit","feet":[12,0,5],"grant":{"kind":"health","amount":40},"claim":"contested"},
     {"id":"mezzanine_armor","feet":[-10,2.5,11],"grant":{"kind":"armor","amount":50},"claim":"contested"}
   ],

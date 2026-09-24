@@ -87,9 +87,17 @@ impl CombatCounts {
         {
             return Err("record contains more actions than active frames");
         }
-        if self.weapons.iter().any(|weapon| {
-            weapon.kills > weapon.damaging_attacks || weapon.damaging_attacks > weapon.attacks
-        }) {
+        // One scatter blast can kill every fighter its pellets reach, so its
+        // kills are bounded by pellets rather than by damaging attacks.
+        if self
+            .weapons
+            .iter()
+            .zip(super::WeaponType::ALL)
+            .any(|(counts, weapon)| {
+                counts.kills > counts.damaging_attacks.saturating_mul(weapon.pellets() as u64)
+                    || counts.damaging_attacks > counts.attacks
+            })
+        {
             return Err("inconsistent attack counts");
         }
         Ok(())

@@ -44,7 +44,8 @@ impl CombatLedger {
         self.update(|counts| counts.weapons[weapon.index()].attacks += 1);
     }
 
-    pub fn hit(&mut self, weapon: WeaponType, hp: u64, armor: u64, killed: bool) {
+    /// One call per attack, summed over every fighter its pellets struck.
+    pub fn hit(&mut self, weapon: WeaponType, hp: u64, armor: u64, kills: u64) {
         if hp + armor == 0 {
             return;
         }
@@ -53,7 +54,7 @@ impl CombatLedger {
             weapon.damaging_attacks += 1;
             weapon.hp_damage += hp;
             weapon.armor_damage += armor;
-            weapon.kills += u64::from(killed);
+            weapon.kills += kills;
         });
     }
 

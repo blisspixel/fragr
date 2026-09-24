@@ -11,9 +11,8 @@ pub use decoration::{
     validate_decorations, MapDecoration, MapDecorationKind, MapFace, MAX_MAP_DECORATIONS,
     MAX_MAP_LIGHTS,
 };
-pub use loadout::{
-    AmmoPool, AmmoReserve, EquipmentPolicy, LoadoutState, ReloadState, SupplyClaim, WeaponAmmo,
-};
+pub(crate) use loadout::validate_equipment;
+pub use loadout::{AmmoCount, AmmoPool, EquipmentPolicy, LoadoutState, SupplyClaim};
 pub use mission::{
     CampaignDifficulty, CampaignRules, CampaignRunState, CampaignRunStatus, InteractionKind,
     InteractionPrompt, M02ObjectiveState, MissionContinue, MissionGeometry, MissionId,
@@ -331,20 +330,33 @@ pub enum WeaponType {
 
 /// The scatter gun deals full damage inside this distance.
 pub const SCATTER_FULL_DAMAGE_UNITS: f32 = 4.0;
+/// Pellets in one scatter blast, Doom's shotgun count.
+pub const SCATTER_PELLETS: usize = 7;
 /// And this share of it at the edge of its reach.
 pub const SCATTER_FAR_DAMAGE_SCALE: f32 = 0.35;
 
 impl WeaponType {
-    /// Damage on a clean hit, before the scatter gun's range falloff.
-    /// Four flechette hits, three scatter hits, or two rail hits kill an
-    /// unarmoured fighter, which puts every weapon's time to kill inside the
-    /// 0.6 to 1.2 second band in `docs/plans/gunfeel.md`.
+    /// Damage on a clean hit, before the scatter gun's range falloff. For the
+    /// scatter gun this is per pellet: seven pellets make 70 at point blank,
+    /// Doom's average blast. Four flechette hits, two point-blank scatter
+    /// blasts, or two rail hits kill an unarmoured fighter, which puts every
+    /// weapon's time to kill inside the 0.6 to 1.2 second band in
+    /// `docs/plans/gunfeel.md`.
     pub fn damage(self) -> i32 {
         match self {
             WeaponType::Fists | WeaponType::Tack => 20,
             WeaponType::Flechette => 25,
             WeaponType::Rail => 80,
-            WeaponType::Scatter => 40,
+            WeaponType::Scatter => 10,
+        }
+    }
+
+    /// Rays in one shot. Every pellet is tested against cover and fighters on
+    /// its own; one shot still spends one unit of ammunition.
+    pub fn pellets(self) -> usize {
+        match self {
+            WeaponType::Scatter => SCATTER_PELLETS,
+            _ => 1,
         }
     }
 
@@ -370,14 +382,14 @@ impl WeaponType {
         (base as f32 * scale).round().max(1.0) as i32
     }
 
-    /// Ticks between shots at the 20 Hz tick: 0.20 s, 1.00 s, 0.45 s.
+    /// Ticks between shots at the 20 Hz tick: 0.20 s, 1.00 s, 0.60 s.
     pub fn cooldown_ticks(self) -> u32 {
         match self {
             WeaponType::Fists => 8,
             WeaponType::Tack => 5,
             WeaponType::Flechette => 4,
             WeaponType::Rail => 20,
-            WeaponType::Scatter => 9,
+            WeaponType::Scatter => 12,
         }
     }
 
@@ -392,8 +404,9 @@ impl WeaponType {
             WeaponType::Flechette => 0.045,
             // Long precision: 0.7 degrees, near enough to a laser to reward aim.
             WeaponType::Rail => 0.012,
-            // Close shred: 11 degrees, which is why it only works in your face.
-            WeaponType::Scatter => 0.20,
+            // Pellet cone: 5.4 degrees. Every pellet lands inside a body at
+            // four units and about half of them still do at eight.
+            WeaponType::Scatter => 0.095,
         }
     }
 
@@ -442,8 +455,11 @@ pub const DIFFICULTY_GAMEPLAY_VERSION: u32 = 6;
 pub const CONTINUES_GAMEPLAY_VERSION: u32 = 7;
 pub const RECORD_GAMEPLAY_VERSION: u32 = 8;
 pub const M02_GAMEPLAY_VERSION: u32 = 9;
+/// One ammunition count per type with no magazines or reload, and scatter
+/// pellet traces. Every discovery map requires it for the loadout shape.
+pub const AMMO_GAMEPLAY_VERSION: u32 = 10;
 /// Highest understood gameplay contract; content requirements use their own minimum.
-pub const GAMEPLAY_VERSION: u32 = M02_GAMEPLAY_VERSION;
+pub const GAMEPLAY_VERSION: u32 = AMMO_GAMEPLAY_VERSION;
 pub fn legacy_gameplay_version() -> u32 {
     1
 }
@@ -728,9 +744,6 @@ pub struct Action {
     pub turn_right: bool,
     #[serde(default)]
     pub fire: bool,
-    /// Discrete reload request, consumed once by the authoritative tick.
-    #[serde(default, skip_serializing_if = "is_false")]
-    pub reload: bool,
     /// Rising-edge use request. Release before pressing a second time.
     #[serde(default, skip_serializing_if = "is_false")]
     pub interact: bool,
@@ -782,6 +795,17 @@ pub struct ShotResult {
 pub struct ShotTrace {
     pub weapon: WeaponType,
     pub origin: [f32; 3],
+    /// The first pellet of this result when `pellets` is present.
+    pub end: [f32; 3],
+    pub impact: ShotImpact,
+    /// Scatter only: every pellet this result covers, in firing order, all
+    /// from `origin`. At most `SCATTER_PELLETS`. Empty and omitted otherwise.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub pellets: Vec<PelletTrace>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct PelletTrace {
     pub end: [f32; 3],
     pub impact: ShotImpact,
 }

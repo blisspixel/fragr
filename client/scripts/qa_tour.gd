@@ -167,8 +167,8 @@ func _run() -> void:
 			var direction: Vector3 = Vector3(float(target[0]), float(target[1]), float(target[2])) - camera.global_position
 			camera.set("fp_yaw", atan2(direction.z, direction.x))
 			await _set_aim_pitch(atan2(direction.y, Vector2(direction.x, direction.z).length()))
-		if state.get("empty_magazine", false):
-			await _empty_magazine()
+		if state.get("empty_ammo", false):
+			await _empty_ammo()
 		if state.has("interact"):
 			await _use_mission_control(str(state["interact"]))
 		if state.get("overlay", "") == "match_menu":
@@ -457,20 +457,6 @@ func _capture_strip(state: Dictionary, frames: int, file_name: String) -> void:
 				await RenderingServer.frame_post_draw
 		if state.get("single_shot", false):
 			Input.action_release("fire")
-	elif trigger == "reload":
-		var press: InputEventAction = InputEventAction.new()
-		press.action = &"reload"
-		press.pressed = true
-		Input.parse_input_event(press)
-		var release: InputEventAction = InputEventAction.new()
-		release.action = &"reload"
-		Input.parse_input_event(release)
-		var deadline: int = Time.get_ticks_msec() + 2000
-		while _equipment().get("reload") == null and Time.get_ticks_msec() < deadline:
-			await process_frame
-		if _equipment().get("reload") == null:
-			push_error("qa_tour: no authoritative reload after input")
-			_failed = true
 	for _i in range(STRIP_LEAD_FRAMES):
 		await RenderingServer.frame_post_draw
 	var shots: Array[Image] = []
@@ -537,7 +523,7 @@ func _probe_active(probe: Node, state: Dictionary) -> bool:
 	if probe is MeleeView:
 		return probe.visible and probe.remaining > 0.0
 	if probe is EquipmentHud:
-		return probe.visible and probe.state.get("reload") != null and EquipmentState.reload_progress(probe.state, probe.tick) < 1.0
+		return probe.visible and probe.dry_seconds > 0.0
 	if probe is ShotEffects:
 		var network: Node = _game_manager().get("net_client")
 		return probe.has_shot_from(str(network.get("player_id")), str(state.get("impact_kind", "")))
@@ -618,21 +604,23 @@ func _observed_state() -> Dictionary:
 func _equipment() -> Dictionary:
 	return _game_manager().get("net_client").get("equipment")
 
-func _empty_magazine() -> void:
+## Hold the trigger until the held gun's ammunition count is spent. There is
+## no magazine: the whole count empties through authoritative shots.
+func _empty_ammo() -> void:
 	var state: Dictionary = _equipment()
 	if state.is_empty() or state["selected"] == "fists":
 		push_error("qa_tour: cannot drain a missing gun")
 		_failed = true
 		return
 	Input.action_press("fire")
-	var deadline: int = Time.get_ticks_msec() + 15000
-	while EquipmentState.magazine(_equipment(), state["selected"]) > 0 and Time.get_ticks_msec() < deadline:
+	var deadline: int = Time.get_ticks_msec() + 30000
+	while EquipmentState.shots(_equipment(), state["selected"]) > 0 and Time.get_ticks_msec() < deadline:
 		await process_frame
 	# Keep the trigger down long enough to observe the dry edge as well.
 	await create_timer(0.5).timeout
 	Input.action_release("fire")
-	if EquipmentState.magazine(_equipment(), state["selected"]) != 0 or int(_equipment()["dry_fire_count"]) <= int(state["dry_fire_count"]):
-		push_error("qa_tour: magazine did not empty and produce dry feedback")
+	if EquipmentState.shots(_equipment(), state["selected"]) != 0 or int(_equipment()["dry_fire_count"]) <= int(state["dry_fire_count"]):
+		push_error("qa_tour: ammunition did not empty and produce dry feedback")
 		_failed = true
 
 func _check_equipment(expected: Dictionary) -> void:
@@ -643,10 +631,8 @@ func _check_equipment(expected: Dictionary) -> void:
 		return
 	for key: String in expected:
 		var actual: Variant = state.get(key)
-		if key == "magazine":
-			actual = EquipmentState.magazine(state, state["selected"])
-		elif key == "reserve":
-			actual = EquipmentState.reserve(state, state["selected"])
+		if key == "ammo":
+			actual = EquipmentState.shots(state, state["selected"])
 		if actual != expected[key]:
 			push_error("qa_tour: expected %s %s, observed %s" % [key, expected[key], actual])
 			_failed = true

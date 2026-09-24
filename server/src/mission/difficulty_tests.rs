@@ -146,9 +146,12 @@ fn difficulty_is_fixed_before_admission_and_retained_across_party_reset() {
 fn mission_rules_reject_unknown_revisions_missing_fields_and_midrun_changes() {
     let (session, _) = fixture(CampaignDifficulty::Assisted, EnemyKind::Clerk);
     let state = session.state.mission_state().unwrap();
-    let mut invalid = state.clone();
-    invalid.rules.revision = 2;
-    assert!(invalid.validate(0).is_err());
+    // Revision 1 is the magazine era; 3 is not written yet.
+    for revision in [1, 3] {
+        let mut invalid = state.clone();
+        invalid.rules.revision = revision;
+        assert!(invalid.validate(0).is_err());
+    }
     for bad in [
         json!({"difficulty":"nightmare","revision":1}),
         json!({"difficulty":"standard"}),
@@ -175,7 +178,7 @@ fn mission_rules_reject_unknown_revisions_missing_fields_and_midrun_changes() {
             map.presentation_ref(),
         )
         .unwrap();
-    invalid = state;
+    let mut invalid = state;
     invalid.rules = CampaignRules::new(CampaignDifficulty::Severe);
     assert!(
         observer.observe(0, invalid).is_err(),

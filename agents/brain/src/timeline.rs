@@ -30,7 +30,7 @@ struct Point {
     #[serde(skip_serializing_if = "Option::is_none")]
     weapon: Option<WeaponType>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    magazine: Option<u16>,
+    shots: Option<u16>,
     #[serde(skip_serializing_if = "Option::is_none")]
     target: Option<Uuid>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -62,7 +62,7 @@ impl Point {
             hp: None,
             armor: None,
             weapon: None,
-            magazine: None,
+            shots: None,
             target: None,
             goal_xz: None,
             navigating: None,
@@ -179,7 +179,7 @@ impl Timeline {
             hp: Some(me.hp),
             armor: Some(me.armor),
             weapon: selected,
-            magazine: selected.and_then(|weapon| loadout?.weapon(weapon)?.magazine),
+            shots: selected.and_then(|weapon| loadout?.shots(weapon)),
             target: intent.look_at.as_ref().and_then(|look| look.player_id),
             goal_xz: intent
                 .look_at

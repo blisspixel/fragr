@@ -175,10 +175,6 @@ leave_match={
 Object(InputEventJoypadButton,"resource_local_to_scene":false,"resource_name":"","device":-1,"button_index":6,"pressure":0.0,"pressed":false,"script":null)
 ]
 }
-reload={
-"deadzone": 0.5,
-"events": [Object(InputEventKey,"physical_keycode":82,"unicode":114), Object(InputEventJoypadButton,"button_index":2)]
-}
 interact={
 "deadzone": 0.5,
 "events": [Object(InputEventKey,"physical_keycode":70,"unicode":102), Object(InputEventJoypadButton,"button_index":1)]

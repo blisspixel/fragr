@@ -66,7 +66,19 @@ impl RunStore {
         if bytes.len() as u64 > MAX_RUN_BYTES {
             return Ok(RunProbe::Corrupt);
         }
-        let document: RunDocument = match serde_json::from_slice(&bytes) {
+        let Ok(value) = serde_json::from_slice::<serde_json::Value>(&bytes) else {
+            return Ok(RunProbe::Corrupt);
+        };
+        // A readable document of another format version is a real run this
+        // build cannot continue, not damage. New Run archives its bytes.
+        if value
+            .get("version")
+            .and_then(serde_json::Value::as_u64)
+            .is_some_and(|version| version != u64::from(super::RUN_FILE_VERSION))
+        {
+            return Ok(RunProbe::Incompatible);
+        }
+        let document: RunDocument = match serde_json::from_value(value) {
             Ok(document) => document,
             Err(_) => return Ok(RunProbe::Corrupt),
         };
@@ -289,6 +301,62 @@ mod tests {
             RunStore::preview(&directory, [7; 32]).unwrap(),
             store.load().unwrap()
         );
+        drop(store);
+        fs::remove_dir_all(directory).unwrap();
+    }
+
+    /// A save written before magazines were removed is a real run this build
+    /// cannot continue: it reads as incompatible, never corrupt, and New Run
+    /// keeps its exact bytes.
+    #[test]
+    fn magazine_era_run_needs_a_new_run_and_keeps_its_bytes() {
+        let directory = temp_dir();
+        let store = RunStore::open(&directory, [7; 32]).unwrap();
+        let hash = [7_u8; 32];
+        let legacy = serde_json::json!({
+            "version": 1,
+            "id": Uuid::from_u128(9),
+            "starting_continues": CAMPAIGN_CONTINUES,
+            "remaining_continues": 2,
+            "rules": {"difficulty": "standard", "revision": 1},
+            "content_sha256": hash,
+            "step": {"kind": "mission_entry", "mission": "recall_notice", "entry": {
+                "hp": 100, "armor": 0, "equipment": {
+                    "selected": "tack",
+                    "weapons": [{"weapon": "fists", "magazine": null}, {"weapon": "tack", "magazine": 11}],
+                    "reserves": [{"pool": "tacks", "rounds": 36}, {"pool": "darts", "rounds": 0}, {"pool": "cores", "rounds": 0}],
+                    "personal_claims": ["bay_tack"]
+                }
+            }}
+        });
+        let bytes = serde_json::to_vec(&legacy).unwrap();
+        fs::write(directory.join(RUN_NAME), &bytes).unwrap();
+        assert!(matches!(
+            RunStore::inspect(&directory, [7; 32]).unwrap(),
+            RunProbe::Incompatible
+        ));
+        assert!(store
+            .load()
+            .unwrap_err()
+            .to_string()
+            .contains("incompatible"));
+        // The same shape claiming the current version is damage, not an old run.
+        let mut forged = legacy.clone();
+        forged["version"] = RUN_FILE_VERSION.into();
+        fs::write(
+            directory.join(RUN_NAME),
+            serde_json::to_vec(&forged).unwrap(),
+        )
+        .unwrap();
+        assert!(matches!(
+            RunStore::inspect(&directory, [7; 32]).unwrap(),
+            RunProbe::Corrupt
+        ));
+        fs::write(directory.join(RUN_NAME), &bytes).unwrap();
+        let created = document();
+        let archive = store.start_new(&created).unwrap().unwrap();
+        assert_eq!(fs::read(&archive).unwrap(), bytes);
+        assert_eq!(store.load().unwrap(), Some(created));
         drop(store);
         fs::remove_dir_all(directory).unwrap();
     }

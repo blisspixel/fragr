@@ -79,8 +79,10 @@ fn shared_controller_uses_owned_ammunition_and_recovers_from_empty_weapons() {
         ..Default::default()
     };
     let action = control_action(id, &snapshot, Some(&loadout), intent.clone());
-    assert!(action.reload);
-    assert!(!action.fire);
+    assert!(
+        !action.fire,
+        "no hostile in reach: route to supply, do not shoot"
+    );
     assert!(
         action.weapon_swap.is_none(),
         "unowned requests cannot bypass discovery"
@@ -91,33 +93,30 @@ fn shared_controller_uses_owned_ammunition_and_recovers_from_empty_weapons() {
         serde_json::to_value(intent).unwrap()
     );
     let mut dry = loadout.clone();
-    for reserve in &mut dry.reserves {
-        reserve.rounds = 0;
+    for count in &mut dry.ammo {
+        count.rounds = 0;
     }
     let action = control_action(id, &snapshot, Some(&dry), Action::default());
     assert_eq!(action.weapon_swap, Some(WeaponType::Fists));
-    assert!(!action.reload && !action.fire);
+    assert!(!action.fire);
     assert!(
         action.forward && action.look_at.as_ref().unwrap().player_id.is_none(),
         "seek a supply instead of firing an empty gun"
     );
-    let mut reloading = loadout.clone();
-    reloading.reload = Some(crate::protocol::ReloadState {
-        weapon: WeaponType::Tack,
-        complete_at: reloading.tick + 18,
-    });
+    let mut dry_held = dry.clone();
+    dry_held.selected = WeaponType::Tack;
     let action = control_action(
         id,
         &snapshot,
-        Some(&reloading),
+        Some(&dry_held),
         Action {
             fire: true,
             ..Default::default()
         },
     );
     assert!(
-        !action.reload && !action.fire,
-        "do not repeat reload or shoot during it"
+        !action.fire && action.weapon_swap == Some(WeaponType::Fists),
+        "an empty gun is put away rather than dry fired"
     );
     let mut close = snapshot.clone();
     close.pickups.clear();
@@ -184,8 +183,8 @@ fn personal_discovery_equips_each_participant_including_late_arrivals() {
     for id in [a, b] {
         let loadout = equipment(&session, id);
         assert_eq!(loadout.selected, WeaponType::Tack);
-        assert_eq!(loadout.weapon(WeaponType::Tack).unwrap().magazine, Some(12));
-        assert_eq!(loadout.reserve(AmmoPool::Tacks), 36);
+        assert!(loadout.owns(WeaponType::Tack));
+        assert_eq!(loadout.ammo(AmmoPool::Bullets), 50);
         assert_eq!(loadout.personal_claims, ["bay_tack"]);
     }
     assert!(
@@ -206,7 +205,7 @@ fn personal_discovery_equips_each_participant_including_late_arrivals() {
         })
         .all(|(recipient, loadout)| recipient == Recipient::Player(loadout.player_id)));
     session.tick_messages(0.05);
-    assert_eq!(equipment(&session, a).reserve(AmmoPool::Tacks), 36);
+    assert_eq!(equipment(&session, a).ammo(AmmoPool::Bullets), 50);
     assert!(!session
         .take_unicasts()
         .iter()
@@ -231,11 +230,11 @@ fn contested_ammo_has_one_winner_and_repeat_weapon_discovery_does_not_re_equip()
     }
     session.tick_messages(0.05);
     let grants = [
-        equipment(&session, a).reserve(AmmoPool::Tacks),
-        equipment(&session, b).reserve(AmmoPool::Tacks),
+        equipment(&session, a).ammo(AmmoPool::Bullets),
+        equipment(&session, b).ammo(AmmoPool::Bullets),
     ];
-    assert_eq!(grants.iter().sum::<u16>(), 96);
-    assert!(grants.contains(&60) && grants.contains(&36));
+    assert_eq!(grants.iter().sum::<u16>(), 120);
+    assert!(grants.contains(&70) && grants.contains(&50));
     for id in [a, b] {
         move_to(&mut session, id, [6.0, 0.0, -9.0]);
     }
@@ -253,7 +252,9 @@ fn contested_ammo_has_one_winner_and_repeat_weapon_discovery_does_not_re_equip()
     move_to(&mut session, a, [-17.0, 0.0, -14.0]);
     session.tick_messages(0.05);
     assert_eq!(equipment(&session, a).selected, WeaponType::Tack);
-    assert_eq!(equipment(&session, a).reserve(AmmoPool::Darts), 120);
+    // Two Flechette pickups on top of the Tack and one bullet box, all one count.
+    let bullets = equipment(&session, a).ammo(AmmoPool::Bullets);
+    assert!(bullets == 50 + 60 + 60 || bullets == 50 + 20 + 60 + 60);
     assert!(equipment(&session, a)
         .personal_claims
         .contains(&"service_flechette".into()));
@@ -264,7 +265,7 @@ fn campaign_consumables_do_not_regenerate_and_party_retry_restores_them() {
     use crate::sim::PickupKind;
     for kind in [
         PickupKind::Ammo {
-            pool: AmmoPool::Tacks,
+            pool: AmmoPool::Bullets,
             rounds: 24,
         },
         PickupKind::Health,
@@ -277,7 +278,7 @@ fn campaign_consumables_do_not_regenerate_and_party_retry_restores_them() {
             .state
             .pickups
             .iter_mut()
-            .find(|p| p.id == "bay_tacks")
+            .find(|p| p.id == "bay_bullets")
             .unwrap();
         pad.kind = kind;
         pad.amount = 25;
@@ -294,7 +295,7 @@ fn campaign_consumables_do_not_regenerate_and_party_retry_restores_them() {
             .state
             .pickups
             .iter()
-            .find(|p| p.id == "bay_tacks")
+            .find(|p| p.id == "bay_bullets")
             .unwrap();
         assert!(!claimed.available);
         assert_eq!(claimed.respawn_timer, None, "campaign stock is finite");
@@ -304,7 +305,7 @@ fn campaign_consumables_do_not_regenerate_and_party_retry_restores_them() {
                 .snapshot()
                 .pickups
                 .iter()
-                .find(|p| p.id == "bay_tacks")
+                .find(|p| p.id == "bay_bullets")
                 .unwrap()
                 .respawn_in,
             None
@@ -317,14 +318,14 @@ fn campaign_consumables_do_not_regenerate_and_party_retry_restores_them() {
                 .state
                 .pickups
                 .iter()
-                .find(|p| p.id == "bay_tacks")
+                .find(|p| p.id == "bay_bullets")
                 .unwrap()
                 .available
         );
         match kind {
             PickupKind::Ammo { .. } => assert_eq!(
-                equipment(&session, a).reserve(AmmoPool::Tacks)
-                    + equipment(&session, b).reserve(AmmoPool::Tacks),
+                equipment(&session, a).ammo(AmmoPool::Bullets)
+                    + equipment(&session, b).ammo(AmmoPool::Bullets),
                 24
             ),
             PickupKind::Health => {
@@ -366,7 +367,7 @@ fn campaign_consumables_do_not_regenerate_and_party_retry_restores_them() {
                 .state
                 .pickups
                 .iter()
-                .find(|p| p.id == "bay_tacks")
+                .find(|p| p.id == "bay_bullets")
                 .unwrap()
                 .available
         );
@@ -375,7 +376,7 @@ fn campaign_consumables_do_not_regenerate_and_party_retry_restores_them() {
 }
 
 #[test]
-fn shots_cooldown_reload_and_death_obey_one_simulation_order() {
+fn shots_cooldown_ammunition_and_death_obey_one_simulation_order() {
     let mut session = mission();
     let a = join(&mut session, Role::Human);
     move_to(&mut session, a, [0.0, 0.0, -26.0]);
@@ -391,76 +392,23 @@ fn shots_cooldown_reload_and_death_obey_one_simulation_order() {
     session.tick_messages(0.05);
     assert_eq!(session.state.shot_results.len(), 1);
     assert!(!session.state.shot_results[0].hit);
-    assert_eq!(
-        equipment(&session, a)
-            .weapon(WeaponType::Tack)
-            .unwrap()
-            .magazine,
-        Some(11)
-    );
+    assert_eq!(equipment(&session, a).ammo(AmmoPool::Bullets), 49);
     let rng = session.state.rng_state;
     for _ in 0..4 {
         session.tick_messages(0.05);
         assert!(session.state.shot_results.is_empty());
     }
     assert_eq!(session.state.rng_state, rng);
-    assert_eq!(
-        equipment(&session, a)
-            .weapon(WeaponType::Tack)
-            .unwrap()
-            .magazine,
-        Some(11)
-    );
-    session.state.set_action(
-        a,
-        Action {
-            reload: true,
-            fire: true,
-            ..Default::default()
-        },
-    );
-    // A newer released packet cannot erase the discrete request.
-    session.state.set_action(
-        a,
-        Action {
-            fire: true,
-            ..Default::default()
-        },
-    );
-    session.tick_messages(0.05);
-    let completes = equipment(&session, a).reload.unwrap().complete_at;
-    while session.state.tick + 1 < completes {
+    assert_eq!(equipment(&session, a).ammo(AmmoPool::Bullets), 49);
+    // No reload pause: the held trigger fires on every cooldown until the
+    // count is empty, one bullet per shot.
+    let mut shots = 1;
+    for _ in 0..400 {
         session.tick_messages(0.05);
-        assert!(session.state.shot_results.is_empty());
+        shots += session.state.shot_results.len();
     }
-    assert_eq!(session.state.rng_state, rng);
-    session.tick_messages(0.05);
-    assert_eq!(session.state.shot_results.len(), 1);
-    assert_eq!(
-        equipment(&session, a)
-            .weapon(WeaponType::Tack)
-            .unwrap()
-            .magazine,
-        Some(11)
-    );
-    assert_eq!(equipment(&session, a).reserve(AmmoPool::Tacks), 35);
-    session.state.set_action(
-        a,
-        Action {
-            fire: true,
-            ..Default::default()
-        },
-    );
-    for _ in 0..60 {
-        session.tick_messages(0.05);
-    }
-    assert_eq!(
-        equipment(&session, a)
-            .weapon(WeaponType::Tack)
-            .unwrap()
-            .magazine,
-        Some(0)
-    );
+    assert_eq!(shots, 50);
+    assert_eq!(equipment(&session, a).ammo(AmmoPool::Bullets), 0);
     let rng = session.state.rng_state;
     session.tick_messages(0.05);
     assert!(session.state.shot_results.is_empty());
@@ -474,7 +422,6 @@ fn shots_cooldown_reload_and_death_obey_one_simulation_order() {
         a,
         Action {
             fire: true,
-            reload: true,
             weapon_swap: Some(WeaponType::Tack),
             ..Default::default()
         },
@@ -483,7 +430,7 @@ fn shots_cooldown_reload_and_death_obey_one_simulation_order() {
     let reset = equipment(&session, a);
     assert_eq!(reset.selected, WeaponType::Fists);
     assert!(reset.personal_claims.is_empty());
-    assert!(reset.weapon(WeaponType::Tack).is_none());
+    assert!(!reset.owns(WeaponType::Tack));
     assert!(session.state.shot_results.is_empty());
     move_to(&mut session, a, [0.0, 0.0, -26.0]);
     session.tick_messages(0.05);

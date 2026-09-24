@@ -1,8 +1,9 @@
 extends Node
 
-# Version 9 understands M02 objective and gate state; version 8 added private
-# participant records. Older servers remain playable.
-const GAMEPLAY_VERSION: int = 9
+# Version 10 understands one ammunition count per type and scatter pellet
+# traces; 9 added M02 objective and gate state and 8 private participant
+# records. Older servers remain playable.
+const GAMEPLAY_VERSION: int = 10
 
 signal connected_to_server
 signal disconnected_from_server
@@ -168,8 +169,6 @@ func send_action(action: Dictionary):
 	# reason. Anything added to the action must be added to this list too.
 	# Same Action path as keyboard; optional weapon_swap when cycling.
 	var swap = action.get("weapon_swap", null)
-	if action.get("reload", false):
-		msg["reload"] = true
 	if action.get("interact", false):
 		msg["interact"] = true
 	if swap != null and str(swap) != "":

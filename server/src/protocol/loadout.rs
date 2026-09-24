@@ -22,30 +22,34 @@ pub(super) fn is_contested(claim: &SupplyClaim) -> bool {
     *claim == SupplyClaim::Contested
 }
 
+/// One count per ammunition type. There are no magazines: a shot spends one
+/// unit straight from the count, the way Doom does it.
 #[derive(Debug, Clone, Copy, Deserialize, Serialize, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
 pub enum AmmoPool {
-    Tacks,
-    Darts,
-    Cores,
+    Bullets,
+    Shells,
+    Cells,
 }
 
 impl AmmoPool {
-    pub const ALL: [Self; 3] = [Self::Tacks, Self::Darts, Self::Cores];
+    pub const ALL: [Self; 3] = [Self::Bullets, Self::Shells, Self::Cells];
 
+    /// Doom carries 200 bullets and 50 shells. Rail cells follow Doom's rocket
+    /// cap rather than its plasma cap because one cell is one 80 damage shot.
     pub const fn capacity(self) -> u16 {
         match self {
-            Self::Tacks => 220,
-            Self::Darts => 120,
-            Self::Cores => 100,
+            Self::Bullets => 200,
+            Self::Shells => 50,
+            Self::Cells => 50,
         }
     }
 
     pub const fn index(self) -> usize {
         match self {
-            Self::Tacks => 0,
-            Self::Darts => 1,
-            Self::Cores => 2,
+            Self::Bullets => 0,
+            Self::Shells => 1,
+            Self::Cells => 2,
         }
     }
 }
@@ -70,78 +74,46 @@ impl WeaponType {
         }
     }
 
-    pub const fn magazine_size(self) -> u16 {
-        match self {
-            Self::Fists => 0,
-            Self::Tack => 12,
-            Self::Flechette => 30,
-            Self::Scatter => 6,
-            Self::Rail => 4,
-        }
-    }
-
+    /// The count one shot spends a single unit from. Fists need nothing.
     pub const fn ammo_pool(self) -> Option<AmmoPool> {
         match self {
             Self::Fists => None,
-            Self::Tack => Some(AmmoPool::Tacks),
-            Self::Flechette | Self::Scatter => Some(AmmoPool::Darts),
-            Self::Rail => Some(AmmoPool::Cores),
+            Self::Tack | Self::Flechette => Some(AmmoPool::Bullets),
+            Self::Scatter => Some(AmmoPool::Shells),
+            Self::Rail => Some(AmmoPool::Cells),
         }
     }
 
-    /// Pool rounds needed to load one shot. Scatter uses four darts per shell.
-    pub const fn ammo_cost(self) -> u16 {
+    /// Units a weapon pickup adds, on discovery and again when already carried.
+    pub const fn pickup_rounds(self) -> u16 {
         match self {
             Self::Fists => 0,
-            Self::Scatter => 4,
-            _ => 1,
+            Self::Tack => 50,
+            Self::Flechette => 60,
+            Self::Scatter => 12,
+            Self::Rail => 10,
         }
-    }
-
-    pub const fn reload_ticks(self) -> u64 {
-        match self {
-            Self::Fists => 0,
-            Self::Tack => 18,
-            Self::Flechette => 22,
-            Self::Scatter => 26,
-            Self::Rail => 28,
-        }
-    }
-
-    pub const fn initial_reserve(self) -> u16 {
-        let magazines = if matches!(self, Self::Rail) { 2 } else { 3 };
-        self.magazine_size() * self.ammo_cost() * magazines
     }
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
-pub struct WeaponAmmo {
-    pub weapon: WeaponType,
-    /// None means ammunition is not applicable, never an unowned weapon.
-    pub magazine: Option<u16>,
-}
-
-#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
-pub struct AmmoReserve {
+#[serde(deny_unknown_fields)]
+pub struct AmmoCount {
     pub pool: AmmoPool,
     pub rounds: u16,
 }
 
-#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
-pub struct ReloadState {
-    pub weapon: WeaponType,
-    pub complete_at: u64,
-}
-
 /// Private authoritative equipment. Never embed it in every player's snapshot.
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
 pub struct LoadoutState {
     pub player_id: Uuid,
     pub tick: u64,
     pub selected: WeaponType,
-    pub weapons: Vec<WeaponAmmo>,
-    pub reserves: Vec<AmmoReserve>,
-    pub reload: Option<ReloadState>,
+    /// Carried weapons, Fists always included.
+    pub weapons: Vec<WeaponType>,
+    /// Exactly one count per ammunition type.
+    pub ammo: Vec<AmmoCount>,
     pub personal_claims: Vec<String>,
     pub dry_fire_count: u64,
 }
@@ -163,73 +135,72 @@ impl LoadoutState {
     }
 
     pub fn validate(&self) -> Result<(), &'static str> {
-        if self.weapons.is_empty()
-            || self.weapons.len() > WeaponType::ALL.len()
-            || self.reserves.len() != AmmoPool::ALL.len()
-            || self.personal_claims.len() > 128
-        {
-            return Err("invalid loadout size");
-        }
-        let mut weapons = [false; 5];
-        for held in &self.weapons {
-            if std::mem::replace(&mut weapons[held.weapon.index()], true)
-                || match held.magazine {
-                    None => held.weapon != WeaponType::Fists,
-                    Some(rounds) => {
-                        held.weapon == WeaponType::Fists || rounds > held.weapon.magazine_size()
-                    }
-                }
-            {
-                return Err("invalid owned weapon or magazine");
-            }
-        }
-        if !weapons[WeaponType::Fists.index()] || !weapons[self.selected.index()] {
-            return Err("selected or fallback weapon is unowned");
-        }
-        let mut pools = [false; 3];
-        for reserve in &self.reserves {
-            if std::mem::replace(&mut pools[reserve.pool.index()], true)
-                || reserve.rounds > reserve.pool.capacity()
-            {
-                return Err("invalid ammunition reserve");
-            }
-        }
-        if self.reload.as_ref().is_some_and(|reload| {
-            reload.weapon != self.selected
-                || reload.weapon == WeaponType::Fists
-                || reload.complete_at <= self.tick
-                || reload.complete_at - self.tick > reload.weapon.reload_ticks()
-                || self.weapon(reload.weapon).and_then(|held| held.magazine)
-                    == Some(reload.weapon.magazine_size())
-                || reload
-                    .weapon
-                    .ammo_pool()
-                    .is_some_and(|pool| self.reserve(pool) < reload.weapon.ammo_cost())
-        }) {
-            return Err("invalid reload state");
-        }
-        let mut claims = std::collections::HashSet::new();
-        if self.personal_claims.iter().any(|id| {
-            id.is_empty()
-                || id.len() > 64
-                || !id
-                    .bytes()
-                    .all(|c| c.is_ascii_lowercase() || c.is_ascii_digit() || c == b'_')
-                || !claims.insert(id)
-        }) {
-            return Err("invalid personal supply claims");
-        }
-        Ok(())
+        validate_equipment(
+            self.selected,
+            &self.weapons,
+            &self.ammo,
+            &self.personal_claims,
+        )
     }
 
-    pub fn weapon(&self, weapon: WeaponType) -> Option<&WeaponAmmo> {
-        self.weapons.iter().find(|held| held.weapon == weapon)
+    pub fn owns(&self, weapon: WeaponType) -> bool {
+        self.weapons.contains(&weapon)
     }
 
-    pub fn reserve(&self, pool: AmmoPool) -> u16 {
-        self.reserves
+    pub fn ammo(&self, pool: AmmoPool) -> u16 {
+        self.ammo
             .iter()
-            .find(|reserve| reserve.pool == pool)
-            .map_or(0, |reserve| reserve.rounds)
+            .find(|count| count.pool == pool)
+            .map_or(0, |count| count.rounds)
     }
+
+    /// Shots the weapon can fire now. None means it needs no ammunition.
+    pub fn shots(&self, weapon: WeaponType) -> Option<u16> {
+        weapon.ammo_pool().map(|pool| self.ammo(pool))
+    }
+}
+
+/// Shared by the wire loadout and the saved run entry, so both refuse the same shapes.
+pub(crate) fn validate_equipment(
+    selected: WeaponType,
+    weapons: &[WeaponType],
+    ammo: &[AmmoCount],
+    personal_claims: &[String],
+) -> Result<(), &'static str> {
+    if weapons.is_empty()
+        || weapons.len() > WeaponType::ALL.len()
+        || ammo.len() != AmmoPool::ALL.len()
+        || personal_claims.len() > 128
+    {
+        return Err("invalid loadout size");
+    }
+    let mut owned = [false; 5];
+    for weapon in weapons {
+        if std::mem::replace(&mut owned[weapon.index()], true) {
+            return Err("invalid owned weapon");
+        }
+    }
+    if !owned[WeaponType::Fists.index()] || !owned[selected.index()] {
+        return Err("selected or fallback weapon is unowned");
+    }
+    let mut pools = [false; 3];
+    for count in ammo {
+        if std::mem::replace(&mut pools[count.pool.index()], true)
+            || count.rounds > count.pool.capacity()
+        {
+            return Err("invalid ammunition count");
+        }
+    }
+    let mut claims = std::collections::HashSet::new();
+    if personal_claims.iter().any(|id| {
+        id.is_empty()
+            || id.len() > 64
+            || !id
+                .bytes()
+                .all(|c| c.is_ascii_lowercase() || c.is_ascii_digit() || c == b'_')
+            || !claims.insert(id)
+    }) {
+        return Err("invalid personal supply claims");
+    }
+    Ok(())
 }

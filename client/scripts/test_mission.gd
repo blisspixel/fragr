@@ -27,7 +27,7 @@ func _map() -> Dictionary:
 			"departure": {"decoration": 1, "approach": [3, 0, 3]}, "boarding": {"min": [-6, 0, 1.5], "max": [6, 0.5, 7]}}}
 
 func _message() -> Dictionary:
-	return {"type": "mission", "tick": 10, "state": {"id": "recall_notice", "rules": {"difficulty": "standard", "revision": 1}, "attempt": 1, "phase": "find_transfer", "changed_at": 0,
+	return {"type": "mission", "tick": 10, "state": {"id": "recall_notice", "rules": {"difficulty": "standard", "revision": 2}, "attempt": 1, "phase": "find_transfer", "changed_at": 0,
 		"party": [{"id": PLAYER, "name": "Visitor", "ready": true, "alive": true, "aboard": false}],
 		"prompts": [{"player_id": PLAYER, "kind": "transfer_record"}]}}
 
@@ -48,7 +48,7 @@ func _run() -> void:
 		_expect(not MissionState.map_error(bad).is_empty(), "invalid mission geometry rejected: " + str(patch))
 	var message: Dictionary = _message()
 	_expect(MissionState.validation_error(message, info["mission"]).is_empty(), "valid prompt accepted")
-	for rules: Variant in [null, {}, {"difficulty": "severe"}, {"difficulty": "standard", "revision": 2},
+	for rules: Variant in [null, {}, {"difficulty": "severe"}, {"difficulty": "standard", "revision": 3}, {"difficulty": "standard", "revision": 1},
 		{"difficulty": "invented", "revision": 1}, {"difficulty": "assisted", "revision": true},
 		{"difficulty": "standard", "revision": 1, "adaptive": true}]:
 		var bad: Dictionary = message.duplicate(true)

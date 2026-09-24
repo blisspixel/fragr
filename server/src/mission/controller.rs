@@ -280,7 +280,6 @@ impl MissionClient {
             .sum::<f32>()
             .sqrt();
         let mut wanted = Action {
-            reload: action.reload,
             weapon_swap: action.weapon_swap,
             look_at: Some(LookAt {
                 x: Some(point[0]),
@@ -380,7 +379,6 @@ impl MissionClient {
             .sum::<f32>()
             .sqrt();
         let mut wanted = Action {
-            reload: action.reload,
             weapon_swap: action.weapon_swap,
             look_at: Some(LookAt {
                 x: Some(point[0]),

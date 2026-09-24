@@ -48,8 +48,10 @@ pub struct MissionContinue {
     pub attempt: u32,
 }
 
-/// Revision changes whenever campaign difficulty semantics change.
-pub const CAMPAIGN_RULES_REVISION: u32 = 1;
+/// Revision changes whenever campaign difficulty semantics change. Revision 2
+/// removed magazines and reloading: guards no longer pause to reload and a
+/// scatter blast is seven pellets.
+pub const CAMPAIGN_RULES_REVISION: u32 = 2;
 
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize, clap::ValueEnum)]
 #[serde(rename_all = "snake_case")]

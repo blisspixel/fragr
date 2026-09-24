@@ -480,11 +480,15 @@ impl Observation {
 
     /// Every shot resolved on this tick, with the distance it travelled. The
     /// server publishes hits and misses, so accuracy is exact rather than
-    /// inferred from fire ticks.
+    /// inferred from fire ticks. A scatter blast can publish one result per
+    /// struck fighter plus one for its missed pellets; a fighter fires at most
+    /// once a tick, so all of a shooter's results in one tick are one shot,
+    /// and that shot is a hit if any of its pellets landed.
     fn ingest_shots(&mut self, snapshot: &Snapshot) {
         if snapshot.shot_results.is_empty() {
             return;
         }
+        let mut counted: BTreeMap<Uuid, bool> = BTreeMap::new();
         let by_id: BTreeMap<Uuid, (String, f32, f32)> = snapshot
             .players
             .iter()
@@ -528,11 +532,17 @@ impl Observation {
                 }
             }
             let tally = self.weapons.entry(weapon).or_default();
-            tally.shots += 1;
+            let hit_counted = counted.entry(shot.shooter_id).or_insert_with(|| {
+                tally.shots += 1;
+                false
+            });
             if !shot.hit {
                 continue;
             }
-            tally.hits += 1;
+            if !*hit_counted {
+                tally.hits += 1;
+                *hit_counted = true;
+            }
             tally.damage += shot.damage as i64;
             if let Some(distance) = distance {
                 tally.hit_distances.push(distance);
@@ -2227,6 +2237,7 @@ mod combat_tests {
                     impact: ShotImpact::Fighter {
                         normal: [-1.0, 0.0, 0.0],
                     },
+                    pellets: vec![],
                 });
                 result
             });
@@ -2361,6 +2372,48 @@ mod combat_tests {
         assert_eq!(report.time_to_kill_s.count, 0);
         assert!(report.by_weapon.is_empty());
         assert_eq!(report.kill_distance_buckets.len(), DISTANCE_BUCKETS);
+    }
+    #[test]
+    fn one_scatter_blast_is_one_shot_however_many_results_it_publishes() {
+        use fragr_server::protocol::{PelletTrace, ShotImpact, ShotTrace, WeaponType};
+        let (a, b, c) = (Uuid::from_u128(1), Uuid::from_u128(2), Uuid::from_u128(3));
+        let trace = |impact: ShotImpact, count: usize| ShotTrace {
+            weapon: WeaponType::Scatter,
+            origin: [0.0, 1.6, 0.0],
+            end: [3.0, 1.6, 0.0],
+            impact: impact.clone(),
+            pellets: vec![
+                PelletTrace {
+                    end: [3.0, 1.6, 0.0],
+                    impact,
+                };
+                count
+            ],
+        };
+        let fighter = ShotImpact::Fighter {
+            normal: [-1.0, 0.0, 0.0],
+        };
+        let mut left = shot(a, true, Some(b), 40);
+        left.trace = Some(trace(fighter.clone(), 4));
+        let mut right = shot(a, true, Some(c), 20);
+        right.trace = Some(trace(fighter, 2));
+        let mut missed = shot(a, false, None, 0);
+        missed.trace = Some(trace(ShotImpact::Range, 1));
+        let roster = vec![
+            player("A", a, 0.0, 0.0, "Scatter"),
+            player("B", b, 3.0, 0.5, "Flechette"),
+            player("C", c, 3.0, -0.5, "Flechette"),
+        ];
+        let mut obs = Observation::default();
+        obs.ingest_snapshot(&frame(1, roster.clone(), vec![left, right, missed]), 100);
+        let tally = &obs.weapons["Scatter"];
+        assert_eq!((tally.shots, tally.hits, tally.damage), (1, 1, 60));
+        assert_eq!(tally.hit_distances.len(), 2);
+        let mut miss_only = shot(a, false, None, 0);
+        miss_only.trace = Some(trace(ShotImpact::Range, 7));
+        obs.ingest_snapshot(&frame(2, roster, vec![miss_only]), 100);
+        let tally = &obs.weapons["Scatter"];
+        assert_eq!((tally.shots, tally.hits), (2, 1));
     }
 }
 

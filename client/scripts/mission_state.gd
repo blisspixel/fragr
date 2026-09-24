@@ -4,7 +4,9 @@ extends RefCounted
 ## Mirror of protocol/mission.rs. Validation grants no local mission authority.
 const ID: String = "recall_notice"
 const DIFFICULTIES: Array[String] = ["assisted", "standard", "severe"]
-const RULES_REVISION: int = 1
+## Revision 2 removed magazines and reloading. Records keep the revision
+## they were earned under, so history accepts every earlier revision.
+const RULES_REVISION: int = 2
 const PHASES: Array[String] = ["briefing", "find_transfer", "reach_lift", "departed"]
 const RUN_STATUSES: Array[String] = ["playing", "continue", "failed", "complete", "abandoned"]
 const INVALID: String = "The server sent invalid mission state. Connection closed."
@@ -97,10 +99,10 @@ static func validation_error(message: Dictionary, geometry: Dictionary, previous
 		prompted.append(prompt["player_id"])
 	return ""
 
-static func valid_rules(value: Variant) -> bool:
+static func valid_rules(value: Variant, oldest: int = RULES_REVISION) -> bool:
 	return value is Dictionary and value.size() == 2 \
 		and value.get("difficulty") is String and value["difficulty"] in DIFFICULTIES \
-		and EquipmentState.integer(value.get("revision"), RULES_REVISION) and value["revision"] == RULES_REVISION
+		and EquipmentState.integer(value.get("revision"), RULES_REVISION) and int(value["revision"]) >= maxi(oldest, 1)
 
 static func valid_run_identity(run: Variant, attempt: Variant) -> bool:
 	if not run is Dictionary or run.size() != 3 or not _uuid(run.get("id")) \

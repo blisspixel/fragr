@@ -551,14 +551,14 @@ fn drive_party(mut session: GameSession, size: usize, retry_after_record: bool) 
     if retry_after_record {
         assert!(forced_death);
         let state = session.state.mission_state().unwrap();
-        // One death is injected at the lift. The other two are combat deaths.
-        // The file-stack sweeper is no longer shot from the records approach,
-        // so this seeded controller spends that extra life and finishes on its
-        // last continue. Every death stays charged.
-        assert_eq!(deaths, 3, "{state:?}");
-        assert_eq!(state.attempt, 4);
+        // One death is injected at the lift. In the magazine era this seeded
+        // controller also died twice in combat, both times during a reload
+        // pause, and finished on its last continue. With one count and no
+        // reload it now takes only the injected death. Every death stays charged.
+        assert_eq!(deaths, 1, "{state:?}");
+        assert_eq!(state.attempt, 2);
         let run = state.run.unwrap();
-        assert_eq!(run.continues, 0);
+        assert_eq!(run.continues, crate::protocol::CAMPAIGN_CONTINUES - 1);
         assert_eq!(run.status, crate::protocol::CampaignRunStatus::Complete);
     }
     eprintln!(
@@ -735,7 +735,7 @@ fn supplied_agents_advance_the_mission_instead_of_filling_every_reserve() {
     let mut snapshot = state.snapshot();
     snapshot.pickups.push(crate::protocol::PickupState {
         claim: crate::protocol::SupplyClaim::Contested,
-        pool: Some(crate::protocol::AmmoPool::Tacks),
+        pool: Some(crate::protocol::AmmoPool::Bullets),
         id: "optional_ammo".into(),
         kind: "ammo".into(),
         weapon: String::new(),
@@ -759,13 +759,8 @@ fn supplied_agents_advance_the_mission_instead_of_filling_every_reserve() {
             .is_none()
     );
     let mut dry = supplied;
-    for weapon in &mut dry.weapons {
-        if weapon.weapon == WeaponType::Tack {
-            weapon.magazine = Some(0);
-        }
-    }
-    for pool in &mut dry.reserves {
-        pool.rounds = 0;
+    for count in &mut dry.ammo {
+        count.rounds = 0;
     }
     assert!(
         control_action_with_objective(id, &snapshot, Some(&dry), Action::default(), true)

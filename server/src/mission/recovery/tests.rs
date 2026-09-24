@@ -157,10 +157,9 @@ fn entry_inventory_and_world_restore_without_rewinding_observers() {
     state.mission.as_mut().unwrap().phase = MissionPhase::ReachLift;
     let player = &mut state.players[0];
     player.inventory.grant_weapon(WeaponType::Rail);
-    player.inventory.grant_ammo(AmmoPool::Darts, 20);
+    player.inventory.grant_ammo(AmmoPool::Shells, 20);
     player.inventory.record_claim("later_claim".into());
-    player.inventory.try_fire(WeaponType::Tack);
-    assert!(player.inventory.begin_reload(WeaponType::Tack, 500));
+    assert!(player.inventory.try_fire(WeaponType::Tack));
     player.x = 3.0;
     player.vy = -9.0;
     player.armor = 0;
@@ -196,8 +195,10 @@ fn entry_inventory_and_world_restore_without_rewinding_observers() {
         .state(id, player.weapon, state.tick)
         .unwrap();
     assert_eq!(restored.weapons, entry.weapons);
-    assert_eq!(restored.reserves, entry.reserves);
-    assert!(restored.reload.is_none());
+    assert_eq!(
+        restored.ammo, entry.ammo,
+        "spent and gained ammunition rewinds"
+    );
     assert!(player.inventory.revision() > revision);
     let mission = state.mission_state().unwrap();
     assert_eq!(mission.phase, MissionPhase::FindTransfer);

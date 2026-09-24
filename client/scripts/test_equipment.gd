@@ -17,9 +17,9 @@ func _check(condition: bool, message: String) -> void:
 
 func _state() -> Dictionary:
 	return {"type": "loadout", "player_id": "self", "tick": 20, "selected": "tack",
-		"weapons": [{"weapon": "fists", "magazine": null}, {"weapon": "tack", "magazine": 0}],
-		"reserves": [{"pool": "tacks", "rounds": 36}, {"pool": "darts", "rounds": 0}, {"pool": "cores", "rounds": 0}],
-		"reload": null, "personal_claims": ["bay_tack"], "dry_fire_count": 1}
+		"weapons": ["fists", "tack"],
+		"ammo": [{"pool": "bullets", "rounds": 0}, {"pool": "shells", "rounds": 0}, {"pool": "cells", "rounds": 0}],
+		"personal_claims": ["bay_tack"], "dry_fire_count": 1}
 
 func _run() -> void:
 	var state: Dictionary = _state()
@@ -28,33 +28,43 @@ func _run() -> void:
 	_check(not EquipmentState.validation_error(state, null).is_empty(), "spectators cannot receive private ammunition")
 	_check(EquipmentState.cycle(state, "tack", 1) == "fists" and EquipmentState.cycle(state, "fists", -1) == "tack", "cycling wraps only owned weapons")
 	var ladder: Dictionary = state.duplicate(true)
-	ladder["weapons"] = [{"weapon": "fists", "magazine": null}, {"weapon": "tack", "magazine": 12}, {"weapon": "flechette", "magazine": 30}, {"weapon": "scatter", "magazine": 6}, {"weapon": "rail", "magazine": 4}]
+	ladder["weapons"] = ["fists", "tack", "flechette", "scatter", "rail"]
 	_check(EquipmentState.cycle(ladder, "tack", 1) == "scatter" and EquipmentState.cycle(ladder, "scatter", 1) == "flechette" and EquipmentState.cycle(ladder, "flechette", 1) == "rail" and EquipmentState.cycle(ladder, "rail", 1) == "fists", "the wheel walks fists, pistol, shotgun, rifle, railgun")
 	_check(EquipmentState.slot_if_owned(EquipmentState.carried_names(state), 2) == "tack" and EquipmentState.slot_if_owned(EquipmentState.carried_names(state), 3) == "" and EquipmentState.slot_if_owned(EquipmentState.carried_names(ladder), 4) == "flechette", "number keys select a carried gun and ignore the rest")
 	for patch: Dictionary in [{"tick": -1}, {"tick": 1.5}, {"tick": NAN}, {"tick": "20"}, {"selected": "rail"},
-		{"weapons": []}, {"weapons": [{"weapon": []}]}, {"weapons": [{"weapon": "fists", "magazine": 1}]},
-		{"reserves": []}, {"reserves": [{"pool": []}, {}, {}]}, {"personal_claims": ["../bay"]},
-		{"personal_claims": ["bay_tack", "bay_tack"]}, {"dry_fire_count": -1}, {"reload": []},
-		{"reload": {"weapon": "fists", "complete_at": 21}}, {"reload": {"weapon": "tack", "complete_at": 39}}]:
+		{"weapons": []}, {"weapons": [[]]}, {"weapons": ["tack"]}, {"weapons": ["fists", "fists", "tack"]},
+		{"weapons": [{"weapon": "fists", "magazine": null}, {"weapon": "tack", "magazine": 0}]},
+		{"ammo": []}, {"ammo": [{"pool": []}, {}, {}]}, {"ammo": [{"pool": "bullets", "rounds": 201}, {"pool": "shells", "rounds": 0}, {"pool": "cells", "rounds": 0}]},
+		{"ammo": [{"pool": "bullets", "rounds": 0}, {"pool": "shells", "rounds": 51}, {"pool": "cells", "rounds": 0}]},
+		{"ammo": [{"pool": "tacks", "rounds": 0}, {"pool": "darts", "rounds": 0}, {"pool": "cores", "rounds": 0}]},
+		{"ammo": [{"pool": "bullets", "rounds": 0}, {"pool": "bullets", "rounds": 0}, {"pool": "cells", "rounds": 0}]},
+		{"personal_claims": ["../bay"]}, {"personal_claims": ["bay_tack", "bay_tack"]}, {"dry_fire_count": -1},
+		{"reload": null}, {"reserves": []}]:
 		var invalid: Dictionary = state.duplicate(true)
 		invalid.merge(patch, true)
 		_check(not EquipmentState.validation_error(invalid, "self").is_empty(), "invalid state cannot enter presentation: " + str(patch))
-	var reload: Dictionary = state.duplicate(true)
-	reload["reload"] = {"weapon": "tack", "complete_at": 38}
-	_check(EquipmentState.validation_error(reload, "self", state).is_empty(), "bounded reload accepted")
-	_check(is_equal_approx(EquipmentState.reload_progress(reload, 29), 0.5), "reload progress follows authoritative ticks")
+	var missing: Dictionary = state.duplicate(true)
+	missing.erase("ammo")
+	_check(not EquipmentState.validation_error(missing, "self").is_empty(), "a loadout without counts is refused")
+	var armed: Dictionary = state.duplicate(true)
+	armed["weapons"] = ["fists", "tack", "flechette", "scatter"]
+	armed["ammo"] = [{"pool": "bullets", "rounds": 108}, {"pool": "shells", "rounds": 11}, {"pool": "cells", "rounds": 0}]
+	_check(EquipmentState.validation_error(armed, "self", state).is_empty(), "one count per type is accepted")
+	_check(EquipmentState.shots(armed, "tack") == 108 and EquipmentState.shots(armed, "flechette") == 108, "pistol and rifle share bullets")
+	_check(EquipmentState.shots(armed, "scatter") == 11 and EquipmentState.shots(armed, "rail") == 0 and EquipmentState.shots(armed, "fists") == -1, "shells and cells stay separate and fists need nothing")
+	_check(EquipmentState.pellets("scatter") == 7 and EquipmentState.pellets("Scatter") == 7 and EquipmentState.pellets("rail") == 1, "only the shotgun fires pellets")
 	var earlier: Dictionary = state.duplicate(true)
 	earlier["tick"] = 19
 	_check(not EquipmentState.validation_error(earlier, "self", state).is_empty(), "stale equipment cannot rewind the HUD")
 	var network: CaptureNetwork = CaptureNetwork.new()
 	network.player_id = "self"
 	network._handle_message(JSON.stringify(state))
-	_check(network.equipment.get("selected") == "tack" and EquipmentState.magazine(network.equipment, "tack") == 0 \
-		and EquipmentState.reserve(network.equipment, "tack") == 36 and network.equipment["personal_claims"] == ["bay_tack"], "network publishes validated inventory")
+	_check(network.equipment.get("selected") == "tack" and EquipmentState.shots(network.equipment, "tack") == 0 \
+		and network.equipment["personal_claims"] == ["bay_tack"], "network publishes validated inventory")
 	network._handle_message(JSON.stringify(earlier))
 	_check(network.equipment.is_empty() and network.player_id == null, "invalid private state closes and clears the session")
 	network.send_hello()
-	_check(network.sent[0]["gameplay_version"] == 9 and network.sent[0]["geometry_version"] == MapGeometry.VERSION, "gameplay and geometry capabilities are independent")
+	_check(network.sent[0]["gameplay_version"] == 10 and network.sent[0]["geometry_version"] == MapGeometry.VERSION, "gameplay and geometry capabilities are independent")
 	network.connection_state = WebSocketPeer.STATE_OPEN
 	var manager: Node = load("res://scripts/game_manager.gd").new()
 	manager.net_client = network
@@ -70,23 +80,13 @@ func _run() -> void:
 	var key: InputEventKey = InputEventKey.new()
 	key.physical_keycode = KEY_R
 	key.pressed = true
-	_check(key.is_action_pressed("reload") and not key.is_action_pressed("radio_next_station"), "R reloads without changing station")
-	manager._input(key)
-	key.pressed = false
+	_check(not InputMap.has_action("reload"), "there is no reload action to bind")
 	manager._input(key)
 	manager._last_action_usec = -1000000000
 	manager._process(0.001)
-	_check(network.sent.back().get("reload", false), "short reload press survives until transmission")
-	manager._last_action_usec = -1000000000
-	manager._process(0.001)
-	_check(not network.sent.back().has("reload"), "reload is consumed exactly once and absent from legacy actions")
-	var button: InputEventJoypadButton = InputEventJoypadButton.new()
-	button.pressed = true
-	button.button_index = JOY_BUTTON_X
-	_check(button.is_action_pressed("reload") and not button.is_action_pressed("fire"), "X reloads without shooting")
+	_check(not network.sent.back().has("reload"), "R sends nothing new: an action never carries reload")
 	key.physical_keycode = KEY_C
-	key.pressed = true
-	_check(key.is_action_pressed("radio_next_station") and not key.is_action_pressed("reload"), "C retains radio access")
+	_check(key.is_action_pressed("radio_next_station"), "C retains radio access")
 	network.equipment = state.duplicate(true)
 	var wheel: InputEventMouseButton = InputEventMouseButton.new()
 	wheel.button_index = MOUSE_BUTTON_WHEEL_UP
@@ -136,22 +136,25 @@ func _run() -> void:
 	display.apply(state)
 	display.visible = true
 	display._process(0.0)
-	_check(display.counts.text == "00 / 36" and display.caption.text.contains("RELOAD"), "empty magazine tells the player how to reload")
+	_check(display.counts.text == "0" and display.glyph_pool == "bullets" and display.counts.modulate != Color.WHITE, "an empty pistol shows a dimmed bullet and a red zero")
+	_check(display.get_child_count() == 1, "one number and a drawn glyph, no caption words")
 	_check(EquipmentState.display_name("flechette") == "Rifle" and EquipmentState.display_name("Flechette") == "Rifle" and EquipmentState.display_name("tack") == "Pistol" and EquipmentState.display_name("scatter") == "Shotgun" and EquipmentState.display_name("rail") == "Railgun", "guns use familiar names")
-	_check(EquipmentState.pool_name("darts") == "Shells" and EquipmentState.pool_name("tacks") == "Bullets" and EquipmentState.pool_name("cores") == "Cells", "ammo uses familiar names")
-	var rifle: Dictionary = state.duplicate(true)
-	rifle["selected"] = "flechette"
-	rifle["weapons"].append({"weapon": "flechette", "magazine": 30})
-	display.apply(rifle)
+	_check(EquipmentState.pool_name("bullets") == "Bullets" and EquipmentState.pool_name("shells") == "Shells" and EquipmentState.pool_name("cells") == "Cells", "ammo uses familiar names")
+	armed["selected"] = "scatter"
+	display.apply(armed)
 	display._process(0.0)
-	_check(display.caption.text == "RIFLE", "the held dart gun reads as a rifle")
-	display.apply(reload)
-	display.tick = 29
+	_check(display.counts.text == "11" and display.glyph_pool == "shells" and display.counts.modulate == Color.WHITE, "the held shotgun shows its shell count")
+	armed["selected"] = "flechette"
+	display.apply(armed)
 	display._process(0.0)
-	_check(display.bar.visible and is_equal_approx(display.bar.size.x, 118.0), "reload bar uses server completion")
+	_check(display.counts.text == "108" and display.glyph_pool == "bullets", "the rifle reads the shared bullet count")
+	armed["selected"] = "fists"
+	display.apply(armed)
+	display._process(0.0)
+	_check(display.counts.text == "" and display.glyph_pool == "", "fists show no ammunition")
 	display.apply({})
 	_check(not display.visible and display.tick == 0, "disconnect clears private UI and timebase")
 	display.free()
 	if _failures == 0:
-		print("test_equipment: PASS private boundary, reload input, owned cycling and HUD")
+		print("test_equipment: PASS private boundary, no reload, owned cycling and HUD")
 	quit(0 if _failures == 0 else 1)

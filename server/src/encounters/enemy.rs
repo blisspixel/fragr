@@ -139,34 +139,12 @@ impl EnemyController {
         let Some(body) = state.players.iter().find(|p| p.id == self.id) else {
             return BotIntent::default();
         };
-        // Use the same finite magazines and reload contract as participants.
-        // An exhausted guard can still defend themselves at melee distance.
+        // Guards spend the same finite ammunition counts as participants.
+        // An empty guard can still defend themselves at melee distance.
         if let Some(loadout) = body.inventory.state(body.id, body.weapon, state.tick) {
-            if let Some(reload) = loadout.reload {
-                if self.phase != EnemyPhase::Recovery {
-                    self.enter(
-                        EnemyPhase::Recovery,
-                        tick,
-                        reload.complete_at.saturating_sub(tick),
-                    );
-                }
-                return BotIntent::default();
-            }
-            if loadout
-                .weapon(body.weapon)
-                .is_some_and(|weapon| weapon.magazine == Some(0))
-            {
-                let reserve = body
-                    .weapon
-                    .ammo_pool()
-                    .map_or(0, |pool| loadout.reserve(pool));
-                if reserve >= body.weapon.ammo_cost() {
-                    action.reload = true;
-                    self.enter(EnemyPhase::Recovery, tick, body.weapon.reload_ticks());
-                } else {
-                    action.weapon_swap = Some(WeaponType::Fists);
-                    self.enter(EnemyPhase::Recovery, tick, 6);
-                }
+            if loadout.shots(body.weapon) == Some(0) {
+                action.weapon_swap = Some(WeaponType::Fists);
+                self.enter(EnemyPhase::Recovery, tick, 6);
                 return BotIntent { action, goal: None };
             }
         }

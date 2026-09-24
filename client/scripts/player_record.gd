@@ -60,13 +60,16 @@ static func valid_counts(value: Variant) -> bool:
 	for field: String in COUNTS:
 		if not EquipmentState.integer(value.get(field), EquipmentState.MAX_EXACT_INTEGER):
 			return false
-	for weapon: Variant in value["weapons"]:
+	for index: int in range(value["weapons"].size()):
+		var weapon: Variant = value["weapons"][index]
 		if not weapon is Dictionary or weapon.size() != 5:
 			return false
 		for field: String in WEAPON_COUNTS:
 			if not EquipmentState.integer(weapon.get(field), EquipmentState.MAX_EXACT_INTEGER):
 				return false
-		if int(weapon["kills"]) > int(weapon["damaging_attacks"]) or int(weapon["damaging_attacks"]) > int(weapon["attacks"]):
+		# One scatter blast can kill every fighter its pellets reach.
+		var pellets: int = EquipmentState.pellets(EquipmentState.WEAPONS[index])
+		if int(weapon["kills"]) > int(weapon["damaging_attacks"]) * pellets or int(weapon["damaging_attacks"]) > int(weapon["attacks"]):
 			return false
 	for field: String in WEAPON_COUNTS:
 		if sum_weapon(value, field) > EquipmentState.MAX_EXACT_INTEGER:
@@ -93,7 +96,7 @@ static func _valid_scope(data: Dictionary) -> bool:
 		return scope.size() == 2 and EquipmentState.integer(scope.get("round"), 4294967295) and scope.get("round") == data["round"] and data["attempt"] == data["total"]
 	if scope.get("kind") != "mission" or scope.size() != 5 or scope.get("mission") not in [MissionState.ID, MissionState.M02_ID] \
 		or not EquipmentState.integer(scope.get("attempt"), 4294967295) or int(scope["attempt"]) < 1 \
-		or not MissionState.valid_rules(scope.get("rules")) or not scope.has("run"):
+		or not MissionState.valid_rules(scope.get("rules"), 1) or not scope.has("run"):
 		return false
 	# M02 has no durable solo run yet, so its record never names one.
 	if scope["run"] == null:

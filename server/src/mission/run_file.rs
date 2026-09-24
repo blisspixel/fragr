@@ -10,7 +10,9 @@ use uuid::Uuid;
 
 pub(crate) mod store;
 
-pub(super) const RUN_FILE_VERSION: u32 = 1;
+/// Version 2 saves one ammunition count per type. Version 1 saved magazines
+/// and shared reserves; it reads as incompatible and needs a new run.
+pub(super) const RUN_FILE_VERSION: u32 = 2;
 const NEXT_MISSION: &str = "persons_unknown";
 
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]

@@ -151,17 +151,8 @@ func engage(manager: Node, me: Dictionary, target: Dictionary, solids: Array, an
 			_evade_left = not _evade_left
 		Input.action_press("move_left" if _evade_left else "move_right")
 	var loadout: Dictionary = network.get("equipment")
-	if not loadout.is_empty() and loadout.get("reload") == null:
-		if EquipmentState.magazine(loadout, loadout["selected"]) == 0:
-			var reload: InputEventAction = InputEventAction.new()
-			reload.action = &"reload"
-			reload.pressed = true
-			Input.parse_input_event(reload)
-			reload = reload.duplicate()
-			reload.pressed = false
-			Input.parse_input_event(reload)
-		elif allow_fire:
-			Input.action_press("fire")
+	if not loadout.is_empty() and EquipmentState.shots(loadout, loadout["selected"]) != 0 and allow_fire:
+		Input.action_press("fire")
 
 func travel(manager: Node, anchor: Vector2) -> bool:
 	release_inputs()
