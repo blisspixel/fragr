@@ -4,6 +4,22 @@ Shipped tags, newest first. A line here is on `main`. Planned work stays in
 [docs/ROADMAP.md](docs/ROADMAP.md). Older tags are on the
 [releases page](https://github.com/blisspixel/fragr/releases).
 
+## v0.46.0 (2026-09-24)
+
+A server open to the internet now looks after itself. It pings every session
+every 15 seconds and closes one that sends nothing for 45 seconds with
+`idle_timeout`; a spectator that is still reading answers the ping and stays.
+A sustained message flood closes with `rate_limited`, and repeated unreadable
+frames close with `malformed`. Both remove the pawn. A well-formed message of
+an unknown type is still ignored, so a newer client is never kicked for it.
+
+Hosts can pass `--ban-list` and `--allow-list` files of IP addresses or CIDR
+ranges with optional expiry and reason. Malformed files refuse to start the
+server, edits are picked up within five seconds, and a new ban closes a
+matching live session. Joins, rejects, kicks, bans and list reloads go to the
+`fragr_server::audit` log target without tickets or tokens. The Godot client
+does not yet show a message for the new close codes.
+
 ## v0.45.0 (2026-09-23)
 
 Single Player now keeps its M01 run after Exit to Menu or closing the game.

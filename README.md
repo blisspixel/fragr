@@ -6,7 +6,7 @@ fragr is a retro-styled 3D FPS built toward an authored campaign and multiplayer
 
 It is the 1993 LAN-party feeling rebuilt for 2026: a Rust authoritative server, a Godot client that only presents, and an MCP adapter so any agent can observe and act like a player.
 
-The current release is [v0.45.0](https://github.com/blisspixel/fragr/releases/tag/v0.45.0). Shipped tags are listed in [CHANGELOG.md](CHANGELOG.md). What is still open is [docs/ROADMAP.md](docs/ROADMAP.md).
+The current release is [v0.46.0](https://github.com/blisspixel/fragr/releases/tag/v0.46.0). Shipped tags are listed in [CHANGELOG.md](CHANGELOG.md). What is still open is [docs/ROADMAP.md](docs/ROADMAP.md).
 
 ## What runs today
 
@@ -194,6 +194,10 @@ Clients on other machines set `FRAGR_SERVER` to `your-host:6767` before launchin
 
 Leave `FRAGR_JOIN_SECRET` unset and every hello is accepted, which is the local and open-LAN path. Set it to 16 to 256 bytes on the server, and to the same value for each human or agent that should play. The Godot client, the adapter, and the brain agent mint a short ticket from it. Spectators can watch without the secret. The value is an environment variable, not a command-line flag and not a saved setting. An empty value leaves the server open. A value of the wrong length refuses to bind. The host and the joining machine need clocks within about 15 seconds. A refused player sees "This server refused the join." The app keeps a dropped human's pawn for ten seconds and reconnects it. Leave, or switching back to spectator, removes that pawn immediately.
 
+To keep someone out, pass `--ban-list bans.txt`. To admit only people you know, pass `--allow-list allow.txt`. Each line is one IP address or CIDR range, optionally followed by `expires=2026-10-01` (or `expires=2026-10-01T18:00:00Z`, UTC) and then `reason=` with free text to the end of the line. Lines starting with `#` are comments. A ban wins over an allow entry. Entries match addresses, never callsigns, and apply to watchers too. The server reads both files again every five seconds: a new ban closes a matching live session, and a bad edit keeps the previous list and logs why. A malformed file at start refuses to start. Behind a reverse proxy every peer is the proxy's address, so lists and per-address caps only see the proxy.
+
+The server also pings every session every 15 seconds and closes one that sends nothing, not even the automatic pong, for 45 seconds. A watcher that reads is never idle. A session that floods far past the inbound budget, or keeps sending unreadable frames, is closed with a reason. Joins, rejections, kicks and bans are logged under the `fragr_server::audit` target (`RUST_LOG=fragr_server::audit=info`), without tickets or tokens.
+
 Hosting guides: [`infra/docs/HOME-LAN.md`](infra/docs/HOME-LAN.md) for a home box, [`infra/docs/CHEAP-VPS.md`](infra/docs/CHEAP-VPS.md) for a small VM, and [`infra/`](infra/README.md) for the GCP Terraform path. Cloud deployment stays plan-only until spend is approved.
 
 ## Server options
@@ -212,6 +216,8 @@ Hosting guides: [`infra/docs/HOME-LAN.md`](infra/docs/HOME-LAN.md) for a home bo
 --solo-broadcast     Solo Broadcast Episode 0 (Calibration; Larak Lot face on map 1)
 --seed <N>           Simulation seed; the same seed gives the same match (default 1)
 --status-every-s <N> Log a status report this often (default 60, 0 to disable)
+--ban-list <PATH>    Refuse these addresses or CIDR ranges; reread every 5 seconds
+--allow-list <PATH>  Admit only these addresses or CIDR ranges; a ban still wins
 --bench <N>          Benchmark instead of serving: N scripted fighters, no network,
                      one JSON report on stdout, then exit
 --bench-ticks <N>    Ticks to benchmark (default 1200, which is one minute of match)

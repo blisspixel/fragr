@@ -1350,6 +1350,7 @@ pub async fn run(config: Config) -> Result<(Report, Observation), Error> {
         status_every_s: 0,
         solo_broadcast: false,
         join_secret: None,
+        access: Default::default(),
     };
     let server = tokio::spawn(async move {
         run_server(

@@ -44,11 +44,14 @@ async fn stalled_writer_times_out_and_wakes_connection_cleanup() {
     })
     .await
     .unwrap();
+    let (_stop, stop) = tokio::sync::oneshot::channel();
     let writer = tokio::spawn(run_outbound_writer(
         StalledSink,
         rx,
         shutdown,
         Duration::from_millis(20),
+        Duration::from_secs(60),
+        stop,
     ));
     timeout(Duration::from_secs(1), changed.changed())
         .await
@@ -1038,5 +1041,385 @@ async fn server_close_signal_releases_idle_spectator_without_stalling_peers() {
         .unwrap();
     assert!(matches!(detached, GameCommand::Detached { id } if id == fighter_id));
     assert_eq!(clients.lock().await.len(), 2);
+    accept.abort();
+}
+
+fn quick_limits() -> SessionLimits {
+    SessionLimits {
+        ping_every: Duration::from_millis(50),
+        idle_after: Duration::from_millis(400),
+        ..SessionLimits::default()
+    }
+}
+
+type ClientSocket =
+    tokio_tungstenite::WebSocketStream<tokio_tungstenite::MaybeTlsStream<tokio::net::TcpStream>>;
+
+async fn hello(address: std::net::SocketAddr, body: &str) -> ClientSocket {
+    let (mut socket, _) = connect_async(format!("ws://{address}")).await.unwrap();
+    socket.send(Message::Text(body.to_string())).await.unwrap();
+    socket
+}
+
+async fn welcome_fighter(address: std::net::SocketAddr, resume: bool) -> ClientSocket {
+    let body = if resume {
+        r#"{"type":"hello","role":"human","name":"Kick","resume":""}"#
+    } else {
+        r#"{"type":"hello","role":"human","name":"Kick"}"#
+    };
+    let mut socket = hello(address, body).await;
+    let reply = timeout(Duration::from_secs(2), socket.next())
+        .await
+        .unwrap()
+        .unwrap()
+        .unwrap();
+    assert!(matches!(
+        serde_json::from_str::<ServerMessage>(reply.to_text().unwrap()).unwrap(),
+        ServerMessage::Welcome {
+            player_id: Some(_),
+            ..
+        }
+    ));
+    socket
+}
+
+/// Skip pings until the final server error, and return its code plus the
+/// close reason that follows it.
+async fn closing_code(socket: &mut ClientSocket) -> (String, String) {
+    let mut code = None;
+    loop {
+        let frame = timeout(Duration::from_secs(3), socket.next())
+            .await
+            .expect("server should close");
+        match frame {
+            Some(Ok(Message::Text(text))) => {
+                if let Ok(ServerMessage::Error { code: found, .. }) = serde_json::from_str(&text) {
+                    code = Some(found);
+                }
+            }
+            Some(Ok(Message::Close(Some(frame)))) => {
+                return (code.expect("error before close"), frame.reason.to_string());
+            }
+            Some(Ok(_)) => {}
+            other => panic!("expected a policy close, got {other:?}"),
+        }
+    }
+}
+
+async fn next_command(commands: &mut mpsc::UnboundedReceiver<GameCommand>) -> GameCommand {
+    timeout(Duration::from_secs(3), commands.recv())
+        .await
+        .expect("command timeout")
+        .expect("command channel open")
+}
+
+#[test]
+fn strikes_drain_over_time_and_trip_past_the_limit() {
+    let start = std::time::Instant::now();
+    let mut strikes = Strikes::new(start);
+    for _ in 0..3 {
+        assert!(!strikes.add(start, 1.0, 3.0));
+    }
+    assert!(strikes.add(start, 1.0, 3.0), "fourth strike trips");
+    let mut forgiven = Strikes::new(start);
+    for second in 0..20 {
+        let now = start + Duration::from_secs(second);
+        assert!(!forgiven.add(now, 1.0, 3.0), "one a second drains away");
+    }
+}
+
+#[test]
+fn junk_is_only_text_without_a_typed_envelope() {
+    assert!(is_junk("not json"));
+    assert!(is_junk("[1,2,3]"));
+    assert!(is_junk(r#"{"forward":true}"#));
+    assert!(is_junk(r#"{"type":7}"#));
+    assert!(!is_junk(r#"{"type":"from_a_newer_client"}"#));
+    assert!(!is_junk(r#"{"type":"action","forward":"bad"}"#));
+    assert_eq!(audit_name(&"n".repeat(100)).chars().count(), 32);
+}
+
+#[test]
+fn kick_codes_and_pawn_rules_are_stable() {
+    assert_eq!(Kick::Idle.code(), "idle_timeout");
+    assert!(!Kick::Idle.removes_pawn());
+    assert_eq!(Kick::RateLimited.code(), "rate_limited");
+    assert_eq!(Kick::Malformed.code(), "malformed");
+    assert!(Kick::RateLimited.removes_pawn() && Kick::Malformed.removes_pawn());
+    let banned = Kick::Refused(crate::access::Verdict::Banned {
+        line: 1,
+        reason: None,
+    });
+    assert_eq!(banned.code(), "address_banned");
+    assert_eq!(banned.audit_event(), "ban");
+    let listed = Kick::Refused(crate::access::Verdict::NotAllowed);
+    assert_eq!(listed.code(), "address_not_allowed");
+    assert_eq!(listed.audit_event(), "kick");
+    for kick in [
+        Kick::Idle,
+        Kick::RateLimited,
+        Kick::Malformed,
+        banned,
+        listed,
+    ] {
+        assert!(!kick.message().is_empty());
+    }
+    assert_eq!(
+        refusal_message("connection_limit"),
+        "This server is not taking more connections."
+    );
+}
+
+#[tokio::test]
+async fn quiet_spectator_that_answers_pings_is_not_idle() {
+    let (tx, mut commands) = mpsc::unbounded_channel();
+    let mut server = NetServer::bind("127.0.0.1:0", tx).await.unwrap();
+    server.tighten_session(quick_limits());
+    let address = server.local_addr().unwrap();
+    let accept = tokio::spawn(server.accept_loop());
+    let mut watcher = welcome_spectator(address).await;
+    assert!(matches!(
+        next_command(&mut commands).await,
+        GameCommand::Connected { .. }
+    ));
+    // Read only: the client library answers each ping while it reads.
+    let mut pings = 0;
+    let deadline = tokio::time::Instant::now() + Duration::from_millis(1200);
+    while tokio::time::Instant::now() < deadline {
+        if let Ok(Some(Ok(Message::Ping(_)))) =
+            timeout(Duration::from_millis(100), watcher.next()).await
+        {
+            pings += 1;
+        }
+    }
+    assert!(pings >= 5, "server should ping a quiet session: {pings}");
+    assert!(
+        commands.try_recv().is_err(),
+        "three idle windows passed and the watcher stayed"
+    );
+    accept.abort();
+}
+
+#[tokio::test]
+async fn silent_fighter_is_dropped_as_idle_and_keeps_a_resumable_pawn() {
+    let (tx, mut commands) = mpsc::unbounded_channel();
+    let mut server = NetServer::bind("127.0.0.1:0", tx).await.unwrap();
+    server.tighten_session(quick_limits());
+    let address = server.local_addr().unwrap();
+    let accept = tokio::spawn(server.accept_loop());
+    let mut fighter = welcome_fighter(address, true).await;
+    let GameCommand::Connected { id, .. } = next_command(&mut commands).await else {
+        panic!("expected a connection");
+    };
+    // Not reading means no pong goes back.
+    let detached = next_command(&mut commands).await;
+    assert!(
+        matches!(detached, GameCommand::Detached { id: gone } if gone == id),
+        "an idle drop parks the pawn like any lost network"
+    );
+    let (code, reason) = closing_code(&mut fighter).await;
+    assert_eq!(code, "idle_timeout");
+    assert_eq!(reason, "idle_timeout");
+    accept.abort();
+}
+
+#[tokio::test]
+async fn sustained_flood_is_kicked_and_loses_its_pawn() {
+    let (tx, mut commands) = mpsc::unbounded_channel();
+    let mut server = NetServer::bind("127.0.0.1:0", tx).await.unwrap();
+    server.tighten_session(SessionLimits {
+        flood_drain_per_sec: 0.0,
+        flood_limit: 32.0,
+        ..SessionLimits::default()
+    });
+    let address = server.local_addr().unwrap();
+    let accept = tokio::spawn(server.accept_loop());
+    let mut fighter = welcome_fighter(address, true).await;
+    let GameCommand::Connected { id, .. } = next_command(&mut commands).await else {
+        panic!("expected a connection");
+    };
+    for _ in 0..200 {
+        if fighter
+            .send(Message::Text(r#"{"type":"action","forward":true}"#.into()))
+            .await
+            .is_err()
+        {
+            break;
+        }
+    }
+    loop {
+        match next_command(&mut commands).await {
+            GameCommand::Action { .. } => {}
+            GameCommand::Disconnected { id: gone } => {
+                assert_eq!(gone, id, "abuse removes the pawn, even with resume");
+                break;
+            }
+            _ => panic!("unexpected command"),
+        }
+    }
+    let (code, reason) = closing_code(&mut fighter).await;
+    assert_eq!(
+        (code.as_str(), reason.as_str()),
+        ("rate_limited", "rate_limited")
+    );
+    accept.abort();
+}
+
+#[tokio::test]
+async fn repeated_junk_is_kicked_but_unknown_types_are_ignored() {
+    let (tx, mut commands) = mpsc::unbounded_channel();
+    let mut server = NetServer::bind("127.0.0.1:0", tx).await.unwrap();
+    server.tighten_session(SessionLimits {
+        junk_drain_per_sec: 0.0,
+        junk_limit: 3.0,
+        ..SessionLimits::default()
+    });
+    let address = server.local_addr().unwrap();
+    let accept = tokio::spawn(server.accept_loop());
+    let mut watcher = welcome_spectator(address).await;
+    assert!(matches!(
+        next_command(&mut commands).await,
+        GameCommand::Connected { .. }
+    ));
+    for _ in 0..10 {
+        watcher
+            .send(Message::Text(r#"{"type":"from_a_newer_client"}"#.into()))
+            .await
+            .unwrap();
+    }
+    watcher.send(Message::Binary(vec![1, 2, 3])).await.unwrap();
+    for _ in 0..2 {
+        watcher
+            .send(Message::Text("{not json".into()))
+            .await
+            .unwrap();
+    }
+    assert!(
+        timeout(Duration::from_millis(200), commands.recv())
+            .await
+            .is_err(),
+        "three strikes are still inside the limit"
+    );
+    watcher.send(Message::Text("[]".into())).await.unwrap();
+    assert!(matches!(
+        next_command(&mut commands).await,
+        GameCommand::Disconnected { .. }
+    ));
+    let (code, _) = closing_code(&mut watcher).await;
+    assert_eq!(code, "malformed");
+    accept.abort();
+}
+
+fn policy_from(ban: &str, allow: Option<&str>) -> Arc<crate::access::AccessPolicy> {
+    Arc::new(crate::access::AccessPolicy::new(
+        Some(crate::access::AccessList::parse(ban).unwrap()),
+        allow.map(|text| crate::access::AccessList::parse(text).unwrap()),
+    ))
+}
+
+#[tokio::test]
+async fn listed_addresses_are_refused_before_any_seat_or_status() {
+    for (policy, expected) in [
+        (
+            policy_from("127.0.0.0/8 reason=test\n", None),
+            "address_banned",
+        ),
+        (policy_from("", Some("10.0.0.0/8\n")), "address_not_allowed"),
+    ] {
+        let (tx, mut commands) = mpsc::unbounded_channel();
+        let mut server = NetServer::bind_with_requirements(
+            "127.0.0.1:0",
+            tx,
+            2,
+            crate::protocol::CONTINUES_GAMEPLAY_VERSION,
+        )
+        .await
+        .unwrap();
+        server.reserve_solo_run().unwrap();
+        let (policy_tx, policy_rx) = watch::channel(policy);
+        server.set_access(policy_rx);
+        let address = server.local_addr().unwrap();
+        let accept = tokio::spawn(server.accept_loop());
+
+        let mut fighter = hello(
+            address,
+            r#"{"type":"hello","role":"human","name":"Owner","gameplay_version":9,"geometry_version":2}"#,
+        )
+        .await;
+        let reply = timeout(Duration::from_secs(2), fighter.next())
+            .await
+            .unwrap()
+            .unwrap()
+            .unwrap();
+        assert_eq!(admission_code(reply), expected);
+        let mut watcher = hello(
+            address,
+            r#"{"type":"hello","role":"spectator","name":"Watch","gameplay_version":9,"geometry_version":2}"#,
+        )
+        .await;
+        let (code, reason) = closing_code(&mut watcher).await;
+        assert_eq!((code.as_str(), reason.as_str()), (expected, expected));
+
+        let mut tcp = tokio::net::TcpStream::connect(address).await.unwrap();
+        tcp.write_all(b"GET /status HTTP/1.1\r\nHost: localhost\r\n\r\n")
+            .await
+            .unwrap();
+        let mut buf = vec![0u8; 2048];
+        let read = timeout(Duration::from_secs(7), tcp.read(&mut buf))
+            .await
+            .unwrap();
+        let text = String::from_utf8_lossy(&buf[..read.unwrap_or(0)]).to_string();
+        assert!(!text.starts_with("HTTP/1.1 200"), "{text}");
+        assert!(commands.try_recv().is_err(), "no seat, no session");
+
+        // The refused owner never consumed the lifetime run seat.
+        policy_tx.send_replace(policy_from("", None));
+        let mut owner = hello(
+            address,
+            r#"{"type":"hello","role":"human","name":"Owner","gameplay_version":9,"geometry_version":2}"#,
+        )
+        .await;
+        let reply = timeout(Duration::from_secs(2), owner.next())
+            .await
+            .unwrap()
+            .unwrap()
+            .unwrap();
+        assert!(matches!(
+            serde_json::from_str::<ServerMessage>(reply.to_text().unwrap()).unwrap(),
+            ServerMessage::Welcome {
+                player_id: Some(_),
+                ..
+            }
+        ));
+        accept.abort();
+    }
+}
+
+#[tokio::test]
+async fn a_new_ban_closes_a_live_session_and_an_unrelated_edit_does_not() {
+    let (tx, mut commands) = mpsc::unbounded_channel();
+    let mut server = NetServer::bind("127.0.0.1:0", tx).await.unwrap();
+    let (policy_tx, policy_rx) = watch::channel(policy_from("", None));
+    server.set_access(policy_rx);
+    let address = server.local_addr().unwrap();
+    let accept = tokio::spawn(server.accept_loop());
+    let mut fighter = welcome_fighter(address, true).await;
+    let GameCommand::Connected { id, .. } = next_command(&mut commands).await else {
+        panic!("expected a connection");
+    };
+    policy_tx.send_replace(policy_from("203.0.113.7\n", None));
+    assert!(
+        timeout(Duration::from_millis(200), commands.recv())
+            .await
+            .is_err(),
+        "a ban on someone else leaves this session alone"
+    );
+    policy_tx.send_replace(policy_from("127.0.0.1 reason=reload\n", None));
+    assert!(matches!(
+        next_command(&mut commands).await,
+        GameCommand::Disconnected { id: gone } if gone == id
+    ));
+    let (code, _) = closing_code(&mut fighter).await;
+    assert_eq!(code, "address_banned");
     accept.abort();
 }

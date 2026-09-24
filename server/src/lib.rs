@@ -1,3 +1,4 @@
+pub mod access;
 pub mod bench;
 pub mod combat;
 mod encounters;
