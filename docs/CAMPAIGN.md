@@ -176,17 +176,22 @@ moral penalty for using the shooter's core mechanics.
   [ENEMIES.md](ENEMIES.md) owns the roster.
 - Secrets reward observation with supplies, tactical access, or early weapons.
   Essential motive, objectives, and rescue warnings are never secret-only.
-- Physical objectives: release, defend, cross, disable, evacuate. No mandatory
-  switch hunt, document puzzle, or forced stealth. Short calm stretches can
-  establish the people affected by the next fight.
-- Simple switches, doors, lifts and visible shortcuts make those objectives
-  tangible. Controls have nearby, readable consequences. M08 is the planned
-  combined-arms showcase, with vehicles and infantry routes; vehicles and general
-  moving lifts are not implemented yet. [MAP-DESIGN.md](MAP-DESIGN.md) owns the rules.
+- [A boomer shooter, not a door simulator](VISION.md#easy-to-pick-up-deep-to-master).
+  Objectives advance by arrival or by clearing a fight, with short verb lines.
+  At most three doors per level; a switch-to-open sits next to its door and in
+  view. Never chains, keys or hunts; M01's built record console, away from its
+  lift, is the one exception. No document or code puzzle, required reading,
+  forced stealth, escort micromanagement or slow backtracking. Short calm
+  stretches can establish the people affected by the next fight.
+- M08 is the planned combined-arms showcase, with vehicles and infantry routes;
+  vehicles are not implemented yet. [MAP-DESIGN.md](MAP-DESIGN.md) owns the rules.
 - Difficulty changes authored enemy mixes, resources, and optional challenges.
   Core rescues and story remain on easy; avoid health-sponge scaling.
 - Mission completion is server-owned with an explicit extraction condition.
   Results show relevant performance and survivors without scoring their worth.
+- Planned, not built: each mission's result shows its par time, each level has a
+  faster route for runners, and the [service record](plans/benchmark-and-stats.md)
+  keeps per-mission bests by difficulty.
 
 ## Solo, co-op, agents, and watching
 

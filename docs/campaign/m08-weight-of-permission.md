@@ -26,7 +26,7 @@ worker release area. The launch objective is visible through industrial windows.
 | Foundry edge | Heat shielding, pouring machinery visible behind barriers | Moving threats and a safe alternative to hazard crossings |
 | Machine hall | Dense machines, overhead services and broad work lanes | Mixed squads with meaningful short-range flanks |
 | Upper galleries | Cross-floor views and two ordinary stairs | Priority support targets, exposed supply choice |
-| Worker access | Restraint/control stations and a nearby secured room | Optional worker release, no walking-escort chore |
+| Worker quarters | Restraint frames and a nearby secured room | Optional worker release, no walking-escort chore |
 | Freight loop | Cargo path with functional bends and alcoves | Recovery then counterattack through known space |
 | Launch works | Large but bounded gantries, berms and service rooms | Walker crest, different firing angles and accessible resupply |
 
@@ -39,19 +39,17 @@ positions; service interiors provide flanks and recovery. The player can read
 the next useful destination from each position. Prove the infantry route before
 integrating the planned drivable vehicle. Do not enlarge gaps simply to justify it.
 
-## Vehicle showcase and physical controls
+## Vehicle showcase
 
 This is the first proposed combined-arms campaign landmark. A captured armed
 utility rover connects the freight depot, bermed launch approach and main gantry.
 Its mounted weapon helps break an exposed defense, while service interiors and
-trenches let infantry flank that same position. Entering a control house opens
-a freight shutter and a useful rover shortcut. The Walker remains defeatable if
+trenches let infantry flank that same position. The rover circuit is open
+ground; nothing has to be unlocked. The Walker remains defeatable if
 the rover is lost; scarce vehicle ammunition cannot become a mandatory key.
 
-Before the exterior, a freight lift gives a short view across machinery and
-deposits the player at the gallery. Its call switch and destination are visible
-together. Ordinary stairs preserve the maintenance loop. There is no lever order,
-long timed wait or requirement to move an uncontrolled ally onto a platform.
+Broad stairs and catwalks climb from the machine hall to the gallery, with a
+view across the machinery on the way. No lifts to call, levers or timed waits.
 
 Vehicle and moving-lift systems are unbuilt. Prototype server authority, safe
 occupancy and dismounts, collision, aim, damage, spectator views and agent actions
@@ -79,14 +77,17 @@ for a depleted inventory. Never make the last secret necessary to afford the bos
 
 ## State and exit
 
-`works_entered` -> `local_control_secured` -> `walker_disabled` ->
-`fleet_supply_ready`. Optional worker rescue is distinct from controlling the
-factory. The local systems remain operable after disconnect or failed interaction.
+`works_entered` -> `machine_hall_cleared` -> `walker_disabled` ->
+`fleet_supply_ready`, each by winning a fight or arriving. Optional worker
+rescue is distinct from taking the factory.
 Completion shows allied crews working voluntarily and transports becoming usable.
 
 A continue restarts the mission, including the Walker, supporting units and
 entry resources. Keep the approach compact. Measure repeated failures
 for causes such as unreadable cues or empty ammo, not just player damage totals.
+
+Mastery hooks, planned, not built: a par time on the result, the rover circuit
+as the runner's line to the gantry, and best clear time in the service record.
 
 ## Presentation and allies
 

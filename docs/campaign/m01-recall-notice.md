@@ -109,7 +109,7 @@ flowchart LR
 | T | Sorting floor with screens, worktable and dispatch cabinets | Four mixed guards; cover breaks lanes and supports movement between entries |
 | H | Dispatch office with two sides around a desk | Three guards; a legible final threshold and a resupply opportunity |
 | F | Compact transfer-control office with glass toward the lift | Short crest against mixed Clerks/Sweepers; locate the companion's destination |
-| G | Clearly marked prisoner lift, wide enough for the party | Explicit extraction after control access; no new mandatory fight |
+| G | Clearly marked prisoner lift, wide enough for the party | The exit; no new mandatory fight |
 
 Blockout priorities: sufficient headroom, two distinct hall escape routes, clear
 counter silhouettes and enclosed skyline. No long walk across a courtyard to
@@ -145,6 +145,12 @@ waits for the party; late readers cannot pause active play.
 The terminal interaction supplies the destination and opens a physical
 route; reading a whole log is optional. Completion occurs once on server-confirmed
 departure. Objective text: "Find the transfer record", then "Reach the lift".
+The record console is the campaign's one built exception to the no-switch rule;
+the lift is just the exit.
+
+Mastery hooks, planned, not built: a par time on the result screen, the service
+bypass as the runner's line, and best clear time per difficulty kept in the
+existing service record.
 
 Planned solo recovery: death offers a continue to restart the mission with its
 entry equipment, enemies, pickups and objective state. Death with no continues

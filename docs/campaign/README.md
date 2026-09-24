@@ -45,8 +45,10 @@ rules. Replay cannot overwrite the main run silently.
 Build each mission around one playable character. Viewpoints may differ across
 missions; exact assignments remain to be authored. Optional autonomous allies do
 not imply companion controls, revives or mandatory co-op. Allies must not block
-routes or required controls; death removes them for the mission attempt. People
-move after routes are secured; avoid fragile walking-escort chores. Irreversible
+routes; death removes them for the mission attempt. People
+move after routes are secured; no escort chores. Each plan follows the
+[pillar](../VISION.md#easy-to-pick-up-deep-to-master): at most three doors,
+each switch beside its door, and a planned par time and runner's line. Irreversible
 departures require player confirmation with remaining rescue opportunities visible.
 
 Use stable actor/story IDs, localized objective and caption keys, optional audio,

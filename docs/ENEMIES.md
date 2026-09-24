@@ -35,14 +35,14 @@ fragments. Neither needs constant banter.
 | Ranged Sweeper | Bot with distinct antenna/weapon silhouette | Stops to line up a precision shot | Break sight or close through cover |
 | Heavy Sweeper | Bot with broad armor and heavy gait | Suppressive fire, slow reposition | Flank, splash, or commit finite ammo |
 | Crawler | Low constrained chassis | Fast close attack preceded by a leap/wind-up | Scatter, movement and spacing |
-| Jammer | Constrained service/security chassis | Telegraphs local interference and slow projectiles | Prioritize or bypass its exposed position |
+| Jammer | Constrained service/security chassis | Telegraphs local interference and slow projectiles | Prioritize it from a flank on its exposed position |
 | Enforcer | Committed human elite, powered issued armor | Charge and knockback with a clear wind-up | Dodge and punish recovery, use armor counters |
 | Turret | Fixed equipment, no assumed personhood | Visible tracking/sweep before a strong shot | Cover, flank, precision damage |
 | Redactor | Committed covert elite | Distortion and movement tell before an ambush | Observe, force movement, deny an approach |
 | Auditor | Human command/support officer with shield hardware | Channels limited reactivation of disabled units | Break channel, flank shield, prioritize support |
 
-A Jammer affects explicit local machinery or equipment states, never only optional
-radio. Main objectives must remain readable without audio. Variants differ by
+A Jammer is a priority target, not a circuit puzzle. Main objectives must remain
+readable without audio. Variants differ by
 silhouette, animation and behavior, not color alone. Redactors never require
 hearing a nearly inaudible sound to avoid unavoidable damage.
 

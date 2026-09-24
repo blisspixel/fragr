@@ -27,6 +27,28 @@ that restart the current mission. Autonomous allies may appear, but no mandatory
 buddy system, tactical companion controls or revive mechanic. Optional co-op
 scope remains a separate design choice, not a requirement across all missions.
 
+## Easy to pick up, deep to master
+
+A boomer shooter, not a door simulator: movement, guns, enemies, flow. Stupid
+fun first, no puzzles. A new player is shooting within seconds, taught by the
+first room rather than a wall of tutorial text.
+
+Depth comes from what a player gets better at: movement (strafing, air control,
+jumps), aim, weapon choice and switching, each enemy's tell, route choice, par
+times and speedruns, difficulty tiers and optional secrets. Never from puzzles.
+
+Fights and flow come first. Levels run through open spaces, arenas, stairs and
+catwalks; progress is by fighting and arriving, and a lift is just the exit. A
+level may have a few doors, at most three. A light switch-to-open is fine when
+the switch is next to its door and in view. Never chains, keys or hunts. A room
+may seal for a set-piece fight and open when it is won, sparingly. Objective
+lines are short verbs: "Find Latch", "Reach the lift". No required reading,
+forced stealth, escort micromanagement or slow backtracking.
+
+Planned mastery hooks, not built: a par time per mission shown on the result, a
+faster route in every level for runners, and per-mission bests in the existing
+[service record](plans/benchmark-and-stats.md).
+
 ## Story
 
 [World canon](lore/README.md), [history](lore/history.md), and the

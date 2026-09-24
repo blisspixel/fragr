@@ -21,20 +21,19 @@ screens or an inaccessible gallery; this does not require a boss fight yet.
 
 Observation gallery -> service stair -> ward antechamber -> correction ward ->
 processing floor -> loading exit. A maintenance loop connects the antechamber
-to the floor and opens back to the gallery after release.
+to the floor and the gallery.
 
 | Zone | Physical job | Play and character beat |
 |---|---|---|
 | Gallery | Windows show the ward and processing machinery below | Player sees a destination and evidence of coercion before fighting |
 | Service stair | Enclosed switchback, clear landings, no jump requirement | Introduce Crawler sounds/captions, then a small visible pack |
 | Antechamber | Workroom with cover and a view into the ward | Find Scatter before the close encounter; recovery supplies |
-| Ward | Release console beside a clearly connected restraint bay | Fight guards, stop the correction process, free Latch |
-| Processing floor | Two usable levels with broad stairs and machinery islands | Latch opens a local path; mixed threats pressure escape |
-| Service loop | Optional release bays and supplies | Free other captives; stage them safely after combat |
-| Loading exit | Jammed gate with visible local equipment | Disable Jammer, regroup and leave for home |
+| Ward | Open ward around the restraint frame | Set-piece fight; the correction stops when the guards fall; free Latch |
+| Processing floor | Two usable levels with broad stairs and machinery islands | Latch fights beside us; mixed threats pressure escape |
+| Service loop | Optional captives and supplies | Clear the guards and the captives free themselves |
+| Loading exit | Open dock with the transport in view | Kill the Jammer, regroup and leave for home |
 
-Opening the ward is the crest's first half; escaping together is the second.
-The geometry changes through visible opened routes, not walls silently respawning.
+Winning the ward is the crest's first half; escaping together is the second.
 
 ## Encounters and equipment
 
@@ -43,19 +42,24 @@ player who missed every secret. Crawlers punish retreating straight down a hall;
 the antechamber supplies lateral space. A human officer above the processing
 floor creates a priority target without requiring the Rail.
 
-The Jammer has visible antenna/pulse and projectile tells. Its effect is a local
-release gate, not loss of optional music. Damaging or reaching its exposed circuit
-is possible with guaranteed guns. Do not introduce the entire enemy roster.
+The Jammer has visible antenna/pulse and projectile tells. It guards the dock
+with traveling interference shots and dies to guaranteed guns. Do not introduce
+the entire enemy roster.
 
 Secrets: an armor locker reachable from the gallery loop; a Shiv/replenishment
 cache behind a clearly altered service panel. Neither changes the core rescue.
 
 ## State and retries
 
-`ward_reached` -> `correction_stopped` -> `companion_released` ->
-`loading_gate_open` -> `party_departed`. Latch's release is an authoritative
-one-time transition. Optional prisoner groups have distinct released/evacuated
-states; opening a bay does not automatically claim a safe evacuation.
+`ward_reached` -> `companion_released` (ward fight won) -> `party_departed`
+(dock arrival). Latch's release is an authoritative one-time transition.
+Optional prisoner groups have distinct released/evacuated states.
+
+The #234 graybox's two shutters, each with its switch beside it, fit the
+three-door cap. Objective lines: "Reach the ward", "Free Latch", "Get out".
+
+Mastery hooks, planned, not built: a par time on the result, the maintenance
+loop as the runner's line, and best clear time in the service record.
 
 Spending a continue returns to mission entry, including Latch's original restraint
 state and the player's starting equipment. No timer runs through a cutscene, pause
@@ -78,7 +82,6 @@ be absurd while the reunion stays sincere.
 
 Latch follows a secured-route state machine, keeps passage clear, and appears
 once. Ordinary combat cannot kill them or fail the rescue after release. Their
-later survival is an authored story outcome. A solo player can operate every
-gate. Prove idempotent release, mission-start retry before and after rescue,
-blocked NPC paths, optional captives, muted audio and the complete solo
-retreat. Rescue must be understood as success.
+later survival is an authored story outcome. A solo player can finish alone.
+Prove idempotent release, mission-start retry before and after rescue, blocked
+NPC paths, optional captives, muted audio and the complete solo retreat. Rescue must be understood as success.
