@@ -31,7 +31,7 @@ func _state(completed: Array, current: Variant, phase: String = "in_progress", p
 	var progress: Dictionary = {"completed": completed, "total": 3, "gate_mask": 1 if completed.size() >= 2 else 0}
 	if current != null:
 		progress["current"] = current
-	return {"type": "mission", "tick": tick, "state": {"id": "persons_unknown", "rules": {"difficulty": "standard", "revision": 1},
+	return {"type": "mission", "tick": tick, "state": {"id": "persons_unknown", "rules": {"difficulty": "standard", "revision": 2},
 		"attempt": attempt, "phase": phase, "changed_at": 0,
 		"party": [{"id": PLAYER, "name": "Walker", "ready": phase != "briefing", "alive": true, "aboard": phase == "departed"}],
 		"prompts": prompts, "m02": progress}}
