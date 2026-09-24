@@ -240,23 +240,47 @@ func _process(_delta):
 		if not is_processing():
 			return
 	if state == WebSocketPeer.STATE_CLOSED:
-		if _admission_error(socket.get_close_reason()):
+		var reason: String = socket.get_close_reason()
+		if _admission_error(reason):
 			return
+		# idle_timeout keeps the plain-drop resume path below; it only needs
+		# its message shown, never a hard stop.
+		if reason == "idle_timeout":
+			server_error.emit(_close_message(reason))
 		if _try_resume():
 			return
 		print("Disconnected from server")
 		disconnect_from_server()
 
-func _admission_error(code: String) -> bool:
-	var message: String = ""
+## Localized text for a stable close/error code, or "" when the code is not
+## one of ours. Shared by the hard-stop path below and the idle_timeout drop,
+## which shows the same message without blocking a resume attempt.
+func _close_message(code: String) -> String:
 	match code:
-		"run_seat_closed": message = tr("RUN_SEAT_CLOSED")
-		"party_full": message = tr("MISSION_PARTY_FULL")
-		"unsupported_geometry", "unsupported_gameplay": message = "This server needs a newer client. Update to join."
-		"connection_limit": message = "This server is not taking more connections."
-		"address_limit": message = "Too many connections from this address."
-		"join_rejected": message = "This server refused the join."
-		"resume_rejected": message = "The previous pawn is gone."
+		"run_seat_closed": return tr("RUN_SEAT_CLOSED")
+		"party_full": return tr("MISSION_PARTY_FULL")
+		"unsupported_geometry", "unsupported_gameplay": return "This server needs a newer client. Update to join."
+		"connection_limit": return "This server is not taking more connections."
+		"address_limit": return "Too many connections from this address."
+		"join_rejected": return "This server refused the join."
+		"resume_rejected": return "The previous pawn is gone."
+		"idle_timeout": return tr("NET_IDLE_TIMEOUT")
+		"rate_limited": return tr("NET_RATE_LIMITED")
+		"malformed": return tr("NET_MALFORMED")
+		"address_banned": return tr("NET_ADDRESS_BANNED")
+		"address_not_allowed": return tr("NET_ADDRESS_NOT_ALLOWED")
+	return ""
+
+## A hard stop: disconnects, shows the message, and never attempts to resume.
+## idle_timeout is deliberately excluded here even though it has a message;
+## a dropped-for-idleness pawn still gets its one automatic resume attempt,
+## same as a plain drop. rate_limited, malformed, address_banned and
+## address_not_allowed remove the pawn server-side, so an automatic resume
+## would only be bounced; the client never makes that attempt.
+func _admission_error(code: String) -> bool:
+	if code == "idle_timeout":
+		return false
+	var message: String = _close_message(code)
 	if message.is_empty():
 		return false
 	disconnect_from_server()

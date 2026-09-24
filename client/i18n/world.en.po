@@ -143,3 +143,18 @@ msgstr "The local server is incompatible. Install matching game and server versi
 
 msgid "LOCAL_SERVER_TIMEOUT"
 msgstr "The local game took too long to start. It has been stopped. Try again."
+
+msgid "NET_IDLE_TIMEOUT"
+msgstr "This server disconnected you for being idle."
+
+msgid "NET_RATE_LIMITED"
+msgstr "This server disconnected you for sending too fast."
+
+msgid "NET_MALFORMED"
+msgstr "This server disconnected you after repeated bad messages."
+
+msgid "NET_ADDRESS_BANNED"
+msgstr "This server has banned this address."
+
+msgid "NET_ADDRESS_NOT_ALLOWED"
+msgstr "This server only allows addresses on its list."
