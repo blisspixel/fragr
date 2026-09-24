@@ -13,9 +13,9 @@ secret villains to simplify the political problem.
 
 Latch recognizes captive workers among the force and residents. Renn supplies
 useful knowledge while encountering justified mistrust. Edda can treat people
-if saved; Splice can establish a safe utility route. Each has an alternative task
-for the player if absent. Orrin, if restored, has a small coherent relationship
-beat rather than becoming a magic technical solution.
+if saved; Splice can point out a safer route. Without them, the player simply
+fights through the utility galleries. Orrin, if restored, has a small coherent
+relationship beat rather than becoming a magic technical solution.
 
 ## Habitat layout
 
@@ -25,7 +25,7 @@ beat rather than becoming a magic technical solution.
 | Market street | Low buildings and enclosed cross-passages | Human/Sweeper patrols; two tactical approaches |
 | Greenhouse trench | Food production with crossing bridges and service recesses | First Arc/armored-threat lesson with safe flank |
 | Pumping court | Water/air infrastructure, not a decorative courtyard | Main defensive crest, meaningful cover and retreat |
-| Residential shelter | Safe interior reached after adjacent threats are cleared | People evacuate in secure intervals, not a fragile escort |
+| Residential shelter | Safe interior reached after adjacent threats are cleared | People move on their own once the court is clear; no escort |
 | Utility galleries | Loop behind the court and market | Alternate route, optional supplies and worker rescue |
 | Mutual-aid depot | Actual incoming help and equipment | Resolution and concrete commitment to M08 |
 
@@ -36,7 +36,7 @@ The player sees the resources everyone was negotiating over in ordinary use.
 ## Encounter and supply arc
 
 Arrival disruption -> market skirmish -> greenhouse flank -> pumping-court crest
--> secure shelter access -> rendezvous with the help that finally arrives.
+-> clear the shelter approach -> rendezvous with the help that finally arrives.
 Mix human security, captive Sweepers and one or two established elite roles.
 Introduce Arc with guaranteed Cores and a visible armor counter. No new enemy
 subsystem is needed merely because the planet changed.
@@ -47,9 +47,10 @@ or earlier rescue bonuses can complete the entire mission.
 
 ## State and consequences
 
-Required state: `shelter_route_secured`, `utility_access_restored`,
-`aid_force_arrived`, then `coalition_commitment`. The player's action earns the
-local rescue; broader losses caused by delay remain authored facts, not falsely
+Required state: `shelter_route_secured` (the pumping court is clear),
+`aid_force_arrived` (reach the depot), then `coalition_commitment`. Objective
+lines: "Hold the court", "Reach the depot". The player's action earns the local
+rescue; broader losses caused by delay remain authored facts, not falsely
 reported as an optional-objective failure.
 
 A continue restarts at habitat arrival with prior outcomes intact. Help by
@@ -70,8 +71,9 @@ to be abandoned. People act to improve what failed.
 
 ## Allies and validation
 
-No simultaneous pressure-system interaction is mandatory. Test every previous
-rescue state, alternative repair/triage task, arrival trigger, mission retry and
-interrupted utility interaction. Inspect the habitat at walking height,
+Mastery hooks, planned, not built: a par time on the result, the utility galleries
+as the runner's line behind the court, and best clear time in the service record.
+
+Test every previous rescue state, arrival trigger and mission retry. Inspect the habitat at walking height,
 including safe spaces and background life. Players should understand both why
 Mars matters and why help arrived late.

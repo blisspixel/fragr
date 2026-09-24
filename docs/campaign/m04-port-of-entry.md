@@ -11,29 +11,26 @@ custody depot; Mara coordinates with local contacts without becoming omniscient.
 The port serves established communities. Workers and families are visible through
 safe glass, with ordinary schedules and possessions alongside Union restrictions.
 
-The objective is access, not conquering the whole Moon. Tern remains with the
+The objective is getting in, not conquering the whole Moon. Tern remains with the
 transport; Latch assists only through spaces the player actually clears.
 
 ## Route and place
 
 Dock service bay -> freight hall -> customs split -> shielded crater cut ->
-archive access. Customs has an interior maintenance bypass; the crater cut loops
+archive entrance. Customs has an interior maintenance bypass; the crater cut loops
 back above the freight hall for a useful overview and resupply.
 
-A short dock freight lift introduces riding machinery safely before a fight.
-Show the call control, platform and upper destination together; provide safe
-boarding and ordinary stairs on the maintenance loop. Pressure doors use nearby
-release controls and visible state changes, not pressure-balancing puzzles.
-These are planned interactions, beyond M01's current two-state lift gate.
+The port is open cargo floor, galleries and stairs; no airlock cycling or
+pressure puzzles. Pressure glass and bulkheads are scenery, not doors to open.
 
 | Space | Shape and purpose | Fight or story beat |
 |---|---|---|
-| Dock bay | Thick pressure bulkhead, cargo airlock, crew facilities | Safe arrival and explanation of the next link |
+| Dock bay | Thick pressure bulkhead, cargo bay, crew facilities | Safe arrival and explanation of the next link |
 | Freight hall | Cargo lanes broken by tall handling structures | Sweeper/human pairs, lateral movement and a short flank |
 | Customs split | Two galleries overlooking a central inspection desk | First deliberate Rail lane; ordinary weapons use the service bypass |
-| Service branch | Pipes, pressure controls and broad maintenance stair | Optional prisoner-transfer shortcut for M05 |
+| Service branch | Pipes and broad maintenance stair | Optional fight that marks a prisoner route for M05 |
 | Crater cut | Short exterior protected by berms and structural shielding | Elite Enforcer introduced with room to dodge, clear environmental protection |
-| Archive entrance | A lower freight approach and upper administrative door | Reconverging routes, one shared mission exit |
+| Archive entrance | A lower freight approach and an upper administrative deck | Reconverging routes, one shared mission exit |
 
 Earth is a landmark, not the whole backdrop. Show dust control, seals, pressure
 glass and buried habitation. Combat does not require a spaceflight system or
@@ -48,14 +45,17 @@ slower scoped hit. Customs can be cleared without it. Enforcer commitment
 and recovery are visible; the first charge never starts offscreen beside a spawn.
 Turrets protect positions the player can flank, not every long sightline.
 
-Secrets: pressure-maintenance cache, upper cargo overlook with armor, optional
-transfer shortcut. The shortcut creates a tactical benefit in M05 but its absence
-cannot lock captives away permanently.
+Secrets: pressure-maintenance cache and an upper cargo overlook with armor. The
+optional service-branch fight marks a prisoner route that helps in M05; missing
+it locks nothing away.
 
 ## State and scenes
 
-`port_entered` -> `archive_access_secured` -> `depot_entered`.
-Optional `transfer_shortcut_open`. A continue restarts at the dock with entry state.
+`port_entered` -> `customs_cleared` -> `depot_entered`, by fighting and arriving.
+Optional `prisoner_route_marked`. A continue restarts at the dock with entry state.
+
+Mastery hooks, planned, not built: a par time on the result, the customs
+maintenance bypass as the runner's line, and best clear time in the service record.
 Body choice does not exempt agents from environmental limits while humans die;
 equipment and shared rules determine exposure protection.
 
@@ -65,7 +65,6 @@ Humor: a port declaration requires reporting how much Earth dust one imported.
 
 ## Allies and acceptance
 
-Airlocks have safe occupancy rules for the player and autonomous allies. Required
-items cannot be sealed out. Test both approach routes, rail-free completion,
-ally occupancy, pressure transitions, mission-start retry and spectator view changes.
+Test both approach routes, rail-free completion, autonomous allies,
+mission-start retry and spectator view changes.
 Verify that the archive entrance and the port's inhabited purpose are readable.

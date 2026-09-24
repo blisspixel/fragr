@@ -27,6 +27,7 @@ short epilogue. The detailed briefs hold
 provisional budgets, not measured durations. A continue restarts the current
 mission; shorten mandatory travel and repeated exposition to make another attempt
 worth playing. Faster routes, secrets and optional rescues add depth without padding.
+Each level keeps one runner's line and a par time shown on its result (planned).
 
 M01-M09 currently budget 88-120 minutes. The initial M10 survival target is about
 33 active minutes after a brief ordinary-life opening; the conditional epilogue
@@ -84,7 +85,7 @@ stalls, and armed staff. No villain briefing explains it.
 **Route.** Street-side service entry -> maintenance rooms -> intake hall ->
 records mezzanine -> prisoner-transfer lift. A side corridor and balcony reconnect
 behind the hall, giving a flank and a later shortcut. The transfer lift is seen
-early through an observation window. Real ceilings, doors, machinery, and sightline
+early through an observation window. Real ceilings, machinery, and sightline
 breaks make this a facility rather than cover on a flat outdoor square.
 
 **Fights and discovery.** Start with fists; a conspicuous confiscated Tack and
@@ -116,14 +117,14 @@ decision rather than the end of their involvement.
 
 **Route.** Observation gallery -> service stair -> correction wards -> central
 processing floor -> emergency loading exit. The gallery previews the ward and
-later becomes an escape route. A maintenance loop bypasses an armored checkpoint.
-The release control and the compartment it opens are visibly connected.
+later becomes an escape route. A maintenance loop flanks an armored checkpoint.
+The ward itself is the set-piece fight.
 
 **Fights and discovery.** Scatter pickup before a close Crawler encounter;
 Sweepers on the floor and a single human security officer above teach vertical
-threats. A Jammer complicates the return by blocking a local release circuit,
-with physical pulse/projectile tells that work with audio off. The reunion is
-safe enough to register, then the companion helps open the loading route.
+threats. A Jammer guards the loading dock, with physical pulse/projectile tells
+that work with audio off. The reunion is safe
+enough to register, then the companion fights beside us to the dock.
 
 **Optional and consequence.** Release another group on a visible side loop.
 No captive dies solely to make a gag or punish the player's kindness. A future
@@ -171,7 +172,7 @@ The Union owns the arrival and freight infrastructure. We need a route into the
 depot without surrendering the passengers and evidence brought from Earth.
 
 **Route.** Dock service spaces -> cargo handling hall -> shielded crater-edge
-maintenance cut -> customs gallery -> depot access. Thick doors, pressure glass,
+maintenance cut -> customs gallery -> depot entrance. Pressure glass, bulkheads,
 dust traps, buried habitation, and an Earth view establish place. Exterior ground
 is bounded by functional structures; no enormous empty sky arena.
 
@@ -181,8 +182,9 @@ an elite Enforcer whose charge has a readable wind-up and recovery. Exterior
 movement can eventually vary gravity, but geometry must first work with the
 shared movement contract. No new zero-gravity system is assumed.
 
-**Optional and presentation.** A service diversion opens a safer prisoner route
-for M05. A brief arrival panel establishes elapsed travel and blockade conditions.
+**Optional and presentation.** An optional service-branch fight marks a safer
+prisoner route for M05. A brief arrival panel establishes elapsed travel and
+blockade conditions.
 Enemies, civilians, and agents all need credible environmental protection.
 
 **Review gate.** Observe whether players recognize the next destination through
@@ -198,7 +200,7 @@ without taking people repeats the institution's priorities.
 
 **Route.** Radial archive around an accessible central shaft; custody galleries,
 inspection workshops, and cooling/service ring connect at multiple heights.
-Open visible shortcuts back toward the dock rather than retracing empty corridors.
+The ring loops back toward the dock rather than retracing empty corridors.
 
 **Fights and discovery.** Introduce the actual campaign Auditor reactivating
 disabled units, with strict limits and an obvious channeling tell. Proximity
@@ -225,22 +227,21 @@ message knows a detail about the companion that an ordinary routing service
 should not. Its sender remains uncertain here.
 
 **Route.** Three decks connected by two stair trunks and a freight loop: cargo,
-passenger/refit, and command/engineering. Fire doors change routes with clear
-local causes. Windows establish motion and scale; the mission remains a legible
+passenger/refit, and command/engineering. The decks stay open;
+boarders change where the fight is, not the floor plan. Windows establish motion and scale; the mission remains a legible
 ship interior rather than a corridor procession or mandatory spaceflight minigame.
 
-**Fights and discovery.** Boarding pairs, Crawler access routes, an early Redactor
+**Fights and discovery.** Boarding pairs, Crawler service routes, an early Redactor
 with visible distortion before firing, and cross-deck attacks. Introduce the
-Repeater during the cargo defense. Do not invalidate navigation with random doors
-or decompression that kills unseen teammates.
+Repeater during the cargo defense. No decompression that kills unseen teammates.
 
-**Optional and presentation.** Restore a cargo passage to preserve supplies and
+**Optional and presentation.** Clear a side cargo hold to preserve supplies and
 passengers. Choices made on Earth and the Moon appear as actual people aboard.
 A short jump in travel time follows a completed fight; no instant interplanetary
 journey is implied. The ship's identity continues into later evacuation planning.
 
-**Review gate.** Test doors, autonomous allies and mission retry across all decks.
-No mandatory breach can trap the player or permanently strand a key.
+**Review gate.** Test autonomous allies and mission retry across all decks.
+Nothing can trap the player or strand a required item.
 
 ## Act III: Common cause
 
@@ -259,14 +260,14 @@ short, purposeful links between substantial interiors.
 
 **Fights and discovery.** Mixed human/captive-agent squads and Enforcers pressure
 two routes around a greenhouse hub. Introduce the Arc against readable armor.
-The player opens access, clears positions, and moves evacuees in safe intervals;
-there is no long fragile-NPC escort at walking speed.
+The player clears positions; evacuees move on their own once a stretch is clear.
+No escort.
 
 **Optional and consequence.** Saved clinic workers or technicians contribute
 here if present, while alternate means keep the mission completable if absent.
-Recover records showing optimization systems commissioned by several factions
-and commercial interests. This implicates a culture of incentives, not one evil
-inventor. Critical meaning also appears through conversation and events.
+A short exchange reveals optimization systems commissioned by several factions
+and commercial interests: a culture of incentives, not one evil inventor.
+Records on the route add detail; nobody has to read them.
 
 **Review gate.** A new player understands what the delay cost and why Mars joins.
 Validate the encounter without every previous rescue benefit or premium weapon.
@@ -284,8 +285,8 @@ launch works bounded by gantries and berms. Moving industrial hazards have fixed
 telegraphs and bypasses, not random instant deaths. Catwalk crossings overlook
 ground routes the player used earlier. A short freight lift changes height before
 the launch works. The outdoor crest links a depot, bermed approach and launch
-gantry with a usable rover circuit and sheltered infantry connections. A local
-shutter control opens a vehicle shortcut; it is not a distant switch hunt.
+gantry with a usable rover circuit and sheltered infantry connections. The rover
+circuit is open ground; nothing has to be unlocked.
 
 **Fights and discovery.** Combine the established roster. The Continuance Walker
 uses a broad combat space with enclosed flanks, accessible resupply, and exposed
@@ -409,10 +410,10 @@ and epilogue with fresh players; timer tests do not establish enjoyable pacing.
 
 | Kit | Missions | Required identity and motion |
 |---|---|---|
-| Civic intake/correction | M01, M02, M09 | Public frontage, seals, custody machinery; doors, restraints, release states, institutional light |
+| Civic intake/correction | M01, M02, M09 | Public frontage, seals, custody machinery; restraints, release states, institutional light |
 | Lived-in Earth district | M03, M10, epilogue | Homes and repair work; civilian activity, damage variants, evacuation, later regrowth |
 | Lunar port/archive | M04, M05 | Pressure boundaries, dust, shielded galleries; dock machinery, captive movement, release states |
-| Transport interior | M06, later scenes | Credible decks, bunks, cargo and repairs; boarding, door transitions, recurring passengers |
+| Transport interior | M06, later scenes | Credible decks, bunks, cargo and repairs; boarding, recurring passengers |
 | Martian habitat/industry | M07, M08 | Red rock, inhabited pressure spaces, greenhouse and foundry; workers, fans, hazard tells, Walker |
 | Waterfront/refuge | M10, epilogue | Waterworks, freight, improvised shelter; readable water edges, transport, repaired spaces |
 | Inheritance overlays | M10, aftermath MP | Matte unmarked machines, deliberate removal and repair; full attack/pain/death sets, restrained effects |
@@ -435,8 +436,8 @@ generation receipts, and asset revisions must stay linked through production.
 1. Read M01 through M10 and the epilogue without radio or optional logs. Every destination follows
    from a motive, discovery, or consequence in the previous mission.
 2. Walk the story under human and agent control, with authored viewpoints and
-   spectator observation. Required gates work solo; optional allies cannot make
-   them impossible. Validate any separately approved co-op variant on its own terms.
+   spectator observation. Required objectives work solo; optional allies cannot
+   make them impossible. Validate any separately approved co-op variant on its own terms.
 3. Map the weapon and enemy teaching sequence; add no expensive roster member
    that lacks a distinct gameplay problem and enough encounters to justify it.
 4. Inspect route diagrams before geometry, grayboxes before art, full motion

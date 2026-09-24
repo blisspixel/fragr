@@ -25,19 +25,14 @@ deck signage with shape identifiers. No compulsory zero-gravity or piloting mode
 |---|---|---|
 | Passenger/refit deck | Bunks, body repair, galley and shared space | Brief ordinary-life opening reflecting survivors |
 | Forward cargo | Boxes secured around a clear handling path | First boarding engagement, escape on two levels |
-| Lower service deck | Power and coolant maintenance | Restore a local route through physical controls |
+| Lower service deck | Power and coolant maintenance | Boarders dug in among the machinery; clear them |
 | Upper command approach | Windows and shielded consoles | Tern stays at work; a covert elite pressures the approach |
 | Aft cargo loop | Second boarding point and a route to passengers | Crest combines threats while preventing isolation |
 | Secured passenger deck | Previously used space after the fight | Regroup, restoration/relationship scene, time transition |
 
-Boarding alters routes through visibly closing fire doors. Affected doors always
-have a safe release or bypass. Nothing silently changes the ship into a different
-floor plan between scenes.
-
-Use local cargo-bulkhead controls to reopen a flank and a freight lift to connect
-decks around the familiar shaft. Show the effect from the control where practical.
-The player chooses a useful route, not a sequence of obscure switches. Existing
-stairs remain usable, and bulkheads cannot seal a required person or supply away.
+The decks stay open: stairs, the freight loop and catwalks around the familiar
+shaft. No fire-door or bulkhead-switch chains. Boarders change where
+the fight is, not the floor plan.
 
 ## Combat and weapon plan
 
@@ -50,8 +45,8 @@ distortion and commitment before the multi-angle fight. It is never entirely
 undetectable until an unavoidable hit.
 
 Flanks and weapon choices solve boarding. No long hold timer substitutes for
-specific threats. Seal a breach only after clearing its physical access; no
-decompression puzzle or button that kills unseen party members.
+specific threats. No decompression
+puzzle or button that kills unseen party members.
 
 Secrets: a surplus locker with ammo; a service overlook offering a risky flank;
 a private crew cubby with armor and a minor character detail. No secret contains
@@ -59,14 +54,17 @@ the only evidence needed to understand the unusual message.
 
 ## State and retries
 
-`boarding_detected` -> `forward_deck_clear` -> `service_route_open` ->
-`aft_boarding_stopped` -> `ship_secured`. Optional `cargo_supplies_preserved` can
-change dressing and a later resupply, never gate a main objective.
+`boarding_detected` -> `forward_deck_clear` -> `service_deck_clear` ->
+`aft_boarding_stopped` -> `ship_secured`, each by winning a fight. Optional
+`cargo_supplies_preserved` changes dressing and a later resupply.
 
 A continue restarts before boarding with entry equipment and the passenger roster
-from completed missions. A missed earlier rescue has an authored
-fallback task: the player performs repair or triage access instead of receiving
-Splice's or Edda's help. Never silently substitute a copy of that character.
+from completed missions. A missed earlier rescue costs something plain: without
+Splice or Edda, one fight has less cover or fewer medkits. Never silently
+substitute a copy of that character.
+
+Mastery hooks, planned, not built: a par time on the result, the freight loop as
+the runner's line between cargo holds, and best clear time in the service record.
 
 ## Scene and interpretation
 
@@ -87,7 +85,6 @@ Characters can be funny without stopping the ship's danger from feeling real.
 
 ## Allies and evidence
 
-Test fire-door occupancy, repeated controls, carried items, autonomous allies,
-NPC staging, blocked stairs, mission-start retry and all
-survivor combinations. A spectator following eyes must not see duplicate Latches
+Test carried items, autonomous allies, NPC staging, blocked stairs,
+mission-start retry and all survivor combinations. A spectator following eyes must not see duplicate Latches
 or hear contradictory survivor dialogue. Verify whole-ship orientation in motion.
