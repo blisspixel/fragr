@@ -38,8 +38,8 @@ flowchart LR
 | Clinic | Recognizable lit cross-symbol and covered entrance | Optional Edda rescue with nearby shelter, not a distant escort |
 | Workshop | Tram chassis, cranes and a high maintenance walk | Optional Splice/captive release; first Heavy Sweeper |
 | Court | Homes overlooking a common yard | Civilian route and an enclosed alternative to exposed street |
-| Roof loop | Water tanks, access stairs and sight across the market | Early scout/flank; later changed landmark in the wipe and epilogue |
-| Trench | Functional rail cut with foot crossings and maintenance recesses | Turret lane with cover and a bypass, not an empty ditch |
+| Roof loop | Water tanks, access stairs and sight across the market | Early scout/flank at drone height; first Notary patrol; later changed landmark in the wipe and epilogue |
+| Trench | Functional rail cut with foot crossings and maintenance recesses | Notaries over Sweepers, with cover and a bypass, not an empty ditch |
 | Departure | Loading platform and physically visible transport | Final clearance, survivor regroup and deliberate departure |
 
 Preserve the street and roof silhouette for the post-wipe return. Mark mundane
@@ -49,7 +49,7 @@ meal table. Nothing requires a radio explanation.
 ## Combat, equipment and secrets
 
 Carry weapons. No new mandatory gun; this mission combines Flechette/Scatter
-roles and teaches Heavy and Turret counters. The hand grenade is found on the
+roles and teaches Heavy and Notary drone counters ([ENEMIES](../ENEMIES.md#union-drones)); the Turret waits for M04. The hand grenade is found on the
 ordinary route, in a room with space to throw and retreat. It is a carried
 count, not a new gun, and missing it cannot trap the evacuation. Guaranteed cover and flank access
 make a Rail unnecessary. Draft encounter beats: market intrusion, one branch

@@ -51,8 +51,9 @@ every subsequent mission becomes larger or outdoors.
 The larger encounters take their cues from Battlefield 1942's connected combat
 positions and flanking opportunities. Design buildings, terrain, local objectives,
 sheltered routes and resupply before choosing the outer bounds. M08 is the planned
-vehicle showcase, with a first proposed armed utility rover and infantry flanks.
-Foot combat must work before vehicle integration; vehicles remain unbuilt. Exterior scope
+vehicle showcase, with a captured rover (the jeep) and infantry flanks. M09 adds
+a motorcycle run and M10 a jetpack. Each is built only when its mission is next
+([vehicles](plans/vehicles.md)); foot combat must work first. Exterior scope
 never justifies long empty crossings or abandoning the campaign's authored route.
 
 | ID | Working title | Place and period | Dramatic job | Spatial identity |
@@ -123,7 +124,8 @@ The ward itself is the set-piece fight.
 **Fights and discovery.** Scatter pickup before a close Crawler encounter;
 Sweepers on the floor and a single human security officer above teach vertical
 threats. A Jammer guards the loading dock, with physical pulse/projectile tells
-that work with audio off. The reunion is safe
+that work with audio off. A Notary drone photographs captives beyond the
+gallery glass, out of reach, a preview before M03. The reunion is safe
 enough to register, then the companion fights beside us to the dock.
 
 **Optional and consequence.** Release another group on a visible side loop.
@@ -149,7 +151,8 @@ hub to a freight departure point. Homes and workspaces have distinct functions.
 The street is interrupted by structures and bends, not an unlimited sniper lane.
 
 **Fights and discovery.** Defensive movement between positions, a Heavy Sweeper
-with flankable armor, and the first telegraphed Turret. Supplies are in believable
+with flankable armor, and the first flying Notary drones over the roof loop and
+trench, scouting for the sweep ([ENEMIES](ENEMIES.md#union-drones)). Supplies are in believable
 workshop lockers and stores. Reward revisiting a known route under new pressure,
 not passive waiting in a circle until a progress bar completes.
 
@@ -178,7 +181,8 @@ is bounded by functional structures; no enormous empty sky arena.
 
 **Fights and discovery.** A controlled long lane introduces the Rail; short cargo
 loops let other weapons remain useful. Human security troops coordinate around
-an elite Enforcer whose charge has a readable wind-up and recovery. Exterior
+an elite Enforcer whose charge has a readable wind-up and recovery. The first
+telegraphed Turret guards a flankable customs position. Exterior
 movement can eventually vary gravity, but geometry must first work with the
 shared movement contract. No new zero-gravity system is assumed.
 
@@ -259,7 +263,8 @@ and practical lights distinguish it from the lunar dock. Exterior crossings are
 short, purposeful links between substantial interiors.
 
 **Fights and discovery.** Mixed human/captive-agent squads and Enforcers pressure
-two routes around a greenhouse hub. Introduce the Arc against readable armor.
+two routes around a greenhouse hub. Introduce the Arc against readable armor:
+the heavy Assessor drone over the greenhouse trench, whose plates the Arc ignores.
 The player clears positions; evacuees move on their own once a stretch is clear.
 No escort.
 
@@ -286,7 +291,8 @@ telegraphs and bypasses, not random instant deaths. Catwalk crossings overlook
 ground routes the player used earlier. A short freight lift changes height before
 the launch works. The outdoor crest links a depot, bermed approach and launch
 gantry with a usable rover circuit and sheltered infantry connections. The rover
-circuit is open ground; nothing has to be unlocked.
+is the jeep: driver and gunner seats, a heat gun, no ammunition key. The circuit
+is open ground; nothing has to be unlocked.
 
 **Fights and discovery.** Combine the established roster. The Continuance Walker
 uses a broad combat space with enclosed flanks, accessible resupply, and exposed
@@ -313,7 +319,9 @@ that process. Her later fate remains unconfirmed.
 **Route.** Civic transit approach -> occupied public hall -> administration ring
 -> command galleries -> assembly chamber. Show the public-facing institution
 and its coercive interior. One flank bypasses a frontal kill lane and opens
-the exit path used after the confrontation.
+the exit path used after the confrontation. The transit approach is a motorcycle
+run from the coalition staging point to the foothold under Notary patrols; the
+transit station is the foot route if the bike is lost.
 
 **Fights and discovery.** Committed human elites, captive units, Auditors, and
 heavy defenses combine earlier lessons. Denial appears as a scarce final tool
@@ -354,7 +362,9 @@ restoration machines reveal the operation's scale. Subsequent encounters teach a
 pursuing local unit, an area-denial unit, and the limits of destroying either. Their
 details are proposed in ENEMIES.md. Ordinary firearms work on local bodies.
 Former enemies can help people; faction uniforms alone no longer identify a
-safe route. The protagonist can save real individuals here.
+safe route. The protagonist can save real individuals here. A jetpack from
+coalition stores in the concourse opens roof and waterworks lines over marked
+work strips; the ground route always works.
 
 **Scene.** After the first escape, a short, skippable montage of geographically
 separated consequences establishes that this exceeds one city. It reveals scale,

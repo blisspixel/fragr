@@ -42,7 +42,8 @@ integrating the planned drivable vehicle. Do not enlarge gaps simply to justify 
 ## Vehicle showcase
 
 This is the first proposed combined-arms campaign landmark. A captured armed
-utility rover connects the freight depot, bermed launch approach and main gantry.
+utility rover, the jeep in [vehicles](../plans/vehicles.md) built when M08 is
+next, connects the freight depot, bermed launch approach and main gantry.
 Its mounted weapon helps break an exposed defense, while service interiors and
 trenches let infantry flank that same position. The rover circuit is open
 ground; nothing has to be unlocked. The Walker remains defeatable if

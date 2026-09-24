@@ -82,6 +82,8 @@ Use original institutions and characters. Do not imitate or name real broadcaste
 or insert real people into faction roles. Existing legacy names and recorded
 references need an asset audit before alteration. Historical inspiration does
 not make an in-world claim a factual assertion about a present-day group.
+The Union's historical echo stays subtext; the
+[Chancellery](./the-chancellery.md#felt-never-named) owns that rule.
 
 ## Two notes on lines already in the world
 

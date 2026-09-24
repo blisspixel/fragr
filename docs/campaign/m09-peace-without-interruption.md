@@ -33,7 +33,7 @@ player personally to Voss. Do not stretch the approach into an empty parade grou
 
 | Zone | Fight and route | Character/evidence function |
 |---|---|---|
-| Transit approach | Allied foothold with two attacks on the entrance | Establish this is a coalition operation |
+| Transit approach | Motorcycle run from staging to the allied foothold under Notary patrols, then two attacks on the entrance; the transit station is the foot route | Establish this is a coalition operation |
 | Assembly hall | Large room subdivided by actual civic furniture/structure | Visual contrast between public promises and control |
 | Administrative ring | Short rooms around a return loop | Optional prisoner release and supplies |
 | Command galleries | Cross-floor pressure, two ordinary stair routes | Records imply interests above Voss without proving a cabal |

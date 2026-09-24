@@ -73,7 +73,7 @@ an eight-minute map into thirty-three minutes of waves or locked-room waiting.
 | 0-4 | Recovery square and the clinic route collapse | Escape familiar bots, recover supplies, help reachable people |
 | 4-10 | Service passages and overlook reveal the scale | Fight up through service stairs, learn a restoration unit's tell |
 | 10-17 | Evacuation concourse and adjoining buildings | Secure a crossing, alternate fighting and short sheltered regrouping |
-| 17-25 | Changed Low Water streets and waterworks | Fight through interiors and flanks toward the refuge; rescue opportunities have readable consequences |
+| 17-25 | Changed Low Water streets and waterworks | Fight through interiors and flanks toward the refuge; an optional jetpack opens roof and waterworks lines over work strips; rescue opportunities have readable consequences |
 | 25-33 | Freight pier and refuge approach | Survive converging pressure while independent friends complete their intervention |
 
 The reprieve halts the immediate attack at the end of the survival interval.

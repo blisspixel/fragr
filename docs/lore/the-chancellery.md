@@ -61,6 +61,41 @@ Nobody announced a world government. Eventually the Union claimed authority
 over Earth and the main offworld routes. Independent communities remained outside
 its effective reach, even when its maps refused to admit them.
 
+## Felt, never named
+
+Design subtext, confirmed with Nick on 2026-09-24. The Union is the
+Europe-centered bloc in [history](./history.md) grown into one world government
+and turned fascist: the last century's worst regime returning in administrative
+clothes. No game text, sign, caption, voice line or store copy says so. Players
+should feel the echo without being told.
+
+Keep it subtle and believable, not a cartoon. The Union's evil is understated:
+calm procedure, polite forms, efficient cruelty and ordinary people doing their
+jobs. No mustache-twirling villains, and no constant shouting. The Chancellor's
+rare anger lands because everything around it is quiet and orderly.
+
+Evoke it through:
+
+- The Chancellery and the Chancellor's addresses: podium, ceremony, a cheering
+  crowd, German cadence and captioned euphemism.
+- A continental standards body that kept harmonising until it governed the world.
+- Black and red: black armor, red visors, red armbands and red optics on Union
+  hardware, under original Union emblems. The
+  [art bible](../ART_STORY_BIBLE.md) owns the palette.
+- Ordered ranks, drill, registers, schedules and orderly paperwork cruelty.
+
+Never:
+
+- Name that historical regime or a numbered successor to it, real parties, real
+  politicians, real people or real present-day institutions in game text.
+- Use real insignia, symbols, salutes, slogans or uniforms from that regime.
+- Let the echo replace showing what this particular regime does.
+
+The player always plays from the free side. Story pages, objectives, radio and
+world text frame events through the eyes of free humans and free agents. The
+Union's own words appear as signs, forms and addresses the player reads or hears,
+never as the narrator.
+
 ## How a vote works
 
 The Union describes itself as scrupulously democratic. Its institutions are
