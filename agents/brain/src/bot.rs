@@ -1284,6 +1284,32 @@ mod tests {
         ))
     }
 
+    /// A generous outer bound for tests that drive their own end through
+    /// `stop` once they observe real readiness, or that return early on their
+    /// own (an invalid map, a stop flag already set). Connect and warmup
+    /// latency under contention is unbounded relative to the fixed decision
+    /// cadence a test asserts on, so this constant is never the thing a
+    /// passing run actually waits out; `wait_for` bounds the setup side.
+    const SAFETY_NET_SECONDS: u64 = 20;
+
+    /// Poll a condition with a bounded, generous wait, sleeping briefly
+    /// between checks. Live cadence tests synchronize on actual readiness
+    /// (here, the transport having been reached) before timing the short,
+    /// fixed decision-cadence window that follows, instead of folding
+    /// unbounded connect-and-warmup latency into that same window.
+    async fn wait_for(mut condition: impl FnMut() -> bool, bound: Duration) -> bool {
+        let deadline = tokio::time::Instant::now() + bound;
+        loop {
+            if condition() {
+                return true;
+            }
+            if tokio::time::Instant::now() >= deadline {
+                return false;
+            }
+            tokio::time::sleep(Duration::from_millis(5)).await;
+        }
+    }
+
     #[tokio::test]
     async fn invalid_map_stops_before_actions_or_paid_decisions() {
         let valid = serde_json::to_value(fragr_server::sim::GameState::new().map_info()).unwrap();
@@ -1335,8 +1361,12 @@ mod tests {
             }
         });
         let transport = Arc::new(FakeTransport::ok(push_answers()));
+        // The scripted server task below is only as fast as the executor
+        // schedules it under contention; this run ends as soon as the bad
+        // map arrives and is rejected, so a generous bound never slows the
+        // common case, it only keeps the race off the assertion.
         let result = run_bot(
-            config(&url, Provider::OpenRouter, 2),
+            config(&url, Provider::OpenRouter, SAFETY_NET_SECONDS),
             transport.clone(),
             budget(1.0),
             Arc::new(AtomicBool::new(false)),
@@ -1355,14 +1385,26 @@ mod tests {
             body: br#"{"error":{"message":"No auth"}}"#.to_vec(),
         })]));
         let budget = budget(1.0);
-        let summary = run_bot(
-            config(&url, Provider::OpenRouter, 2),
+        let stop = Arc::new(AtomicBool::new(false));
+        let handle = tokio::spawn(run_bot(
+            config(&url, Provider::OpenRouter, SAFETY_NET_SECONDS),
             transport.clone(),
             budget.clone(),
-            Arc::new(AtomicBool::new(false)),
-        )
-        .await
-        .expect("bot runs");
+            stop.clone(),
+        ));
+        // Connect and warmup are unbounded relative to the fixed decision
+        // cadence under contention; synchronize on the one paid call actually
+        // reaching the transport before timing the cadence-only window below.
+        assert!(
+            wait_for(|| transport.calls() >= 1, Duration::from_secs(10)).await,
+            "the one paid call never reached the transport"
+        );
+        // Local rules take over immediately after the fatal failure; the
+        // 200ms macro cadence needs two more cycles (400ms), so this bounded
+        // margin is generous even under contention.
+        tokio::time::sleep(Duration::from_millis(1_500)).await;
+        stop.store(true, Ordering::Relaxed);
+        let summary = handle.await.unwrap().expect("bot runs");
         assert_eq!(summary.decisions_failed, 1, "{summary:?}");
         assert_eq!(summary.fatal_failures, 1);
         assert_eq!(transport.calls(), 1, "no phantom charges after a 401");
@@ -1382,14 +1424,23 @@ mod tests {
             status: 200,
             body: b"not json".to_vec(),
         })]));
-        let summary = run_bot(
-            config(&url, Provider::Typesafe, 3),
+        let stop = Arc::new(AtomicBool::new(false));
+        let handle = tokio::spawn(run_bot(
+            config(&url, Provider::Typesafe, SAFETY_NET_SECONDS),
             transport.clone(),
             budget(1.0),
-            Arc::new(AtomicBool::new(false)),
-        )
-        .await
-        .expect("bot runs");
+            stop.clone(),
+        ));
+        assert!(
+            wait_for(|| transport.calls() >= 1, Duration::from_secs(10)).await,
+            "the one unreadable call never reached the transport"
+        );
+        // A malformed reply neither backs off nor disables the brain by
+        // itself; the second, budget-pending cycle needs one more 200ms
+        // macro tick, so this bounded margin is generous even under load.
+        tokio::time::sleep(Duration::from_millis(1_500)).await;
+        stop.store(true, Ordering::Relaxed);
+        let summary = handle.await.unwrap().expect("bot runs");
         assert_eq!(transport.calls(), 1, "{summary:?}");
         assert_eq!(summary.decisions_failed, 1);
         assert_eq!(summary.budget_refusals, 1);
@@ -1473,8 +1524,12 @@ mod tests {
         let (url, shutdown) = boot_server(2).await;
         let transport = Arc::new(FakeTransport::ok(push_answers()));
         let stop = Arc::new(AtomicBool::new(false));
+        // Local never touches the transport, so there is no external signal
+        // to synchronize on; a generous window keeps the minimum snapshot,
+        // action, and decision counts below reachable under contention
+        // without folding connect-and-warmup latency into a tight budget.
         let summary = run_bot(
-            config(&url, Provider::Local, 3),
+            config(&url, Provider::Local, 8),
             transport.clone(),
             budget(0.0),
             stop,
@@ -1507,14 +1562,22 @@ mod tests {
         let transport = Arc::new(FakeTransport::ok(push_answers()));
         let budget = budget(1.0);
         let stop = Arc::new(AtomicBool::new(false));
-        let summary = run_bot(
-            config(&url, Provider::Typesafe, 3),
+        let handle = tokio::spawn(run_bot(
+            config(&url, Provider::Typesafe, SAFETY_NET_SECONDS),
             transport.clone(),
             budget.clone(),
-            stop,
-        )
-        .await
-        .expect("bot runs");
+            stop.clone(),
+        ));
+        // Connect and warmup are unbounded relative to the fixed decision
+        // cadence under contention; synchronize on three real calls before
+        // stopping, rather than hoping a short wall-clock window covers both.
+        assert!(
+            wait_for(|| transport.calls() >= 3, Duration::from_secs(10)).await,
+            "fewer than three calls ever reached the transport"
+        );
+        tokio::time::sleep(Duration::from_millis(300)).await;
+        stop.store(true, Ordering::Relaxed);
+        let summary = handle.await.unwrap().expect("bot runs");
         assert!(summary.decisions_remote >= 3, "{summary:?}");
         assert_eq!(summary.decisions_local, 0);
         assert_eq!(summary.budget_refusals, 0);
@@ -1538,8 +1601,12 @@ mod tests {
         let (url, shutdown) = boot_server(1).await;
         let transport = Arc::new(FakeTransport::ok(push_answers()));
         let stop = Arc::new(AtomicBool::new(false));
+        // The refusal is an immediate, in-memory cap check that never reaches
+        // the transport, so there is no external signal to synchronize on; a
+        // generous window keeps the minimum local-decision count reachable
+        // under contention without folding setup latency into a tight budget.
         let summary = run_bot(
-            config(&url, Provider::OpenRouter, 3),
+            config(&url, Provider::OpenRouter, 8),
             transport.clone(),
             budget(0.0),
             stop,
@@ -1563,14 +1630,26 @@ mod tests {
         })]));
         let budget = budget(1.0);
         let stop = Arc::new(AtomicBool::new(false));
-        let summary = run_bot(
-            config(&url, Provider::Typesafe, 2),
+        let handle = tokio::spawn(run_bot(
+            config(&url, Provider::Typesafe, SAFETY_NET_SECONDS),
             transport.clone(),
             budget.clone(),
-            stop,
-        )
-        .await
-        .expect("bot runs");
+            stop.clone(),
+        ));
+        // Connect and warmup are unbounded relative to the fixed decision
+        // cadence under contention; synchronize on the one retryable call
+        // actually reaching the transport before timing the cadence-only
+        // window below.
+        assert!(
+            wait_for(|| transport.calls() >= 1, Duration::from_secs(10)).await,
+            "the one retryable call never reached the transport"
+        );
+        // The backoff after one retryable failure doubles the 200ms cadence
+        // to 400ms before the budget-pending second cycle; this bounded
+        // margin is generous even under contention.
+        tokio::time::sleep(Duration::from_millis(1_500)).await;
+        stop.store(true, Ordering::Relaxed);
+        let summary = handle.await.unwrap().expect("bot runs");
         assert_eq!(summary.decisions_failed, 1, "{summary:?}");
         assert_eq!(summary.decisions_remote, 0);
         assert_eq!(summary.last_plan.as_ref().unwrap().source, Source::Budget);
@@ -1653,8 +1732,12 @@ mod tests {
         let (url, shutdown) = boot_server(0).await;
         let transport = Arc::new(FakeTransport::ok(push_answers()));
         let stop = Arc::new(AtomicBool::new(false));
+        // The spectator below synchronizes on actual readiness (the stance
+        // chip) and drives the bot's end through `stop`; run_bot's own
+        // deadline is only a safety net, so it must outlast that wait
+        // instead of racing connect-and-warmup latency against it.
         let bot = tokio::spawn(run_bot(
-            config(&url, Provider::Local, 2),
+            config(&url, Provider::Local, SAFETY_NET_SECONDS),
             transport,
             budget(0.0),
             stop.clone(),
