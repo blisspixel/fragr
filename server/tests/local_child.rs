@@ -401,3 +401,96 @@ fn read_only_preview_distinguishes_corrupt_and_incompatible_without_deleting() {
     assert_eq!(std::fs::read(&path).unwrap(), bytes);
     std::fs::remove_dir_all(directory).unwrap();
 }
+
+#[tokio::test]
+async fn m02_development_child_serves_the_graybox_without_a_durable_run() {
+    let refused = Command::new(env!("CARGO_BIN_EXE_fragr-server"))
+        .args(["--local-mission", "persons_unknown", "--run-mode", "new"])
+        .current_dir(std::env::temp_dir())
+        .env(
+            "FRAGR_RUN_DIR",
+            std::env::temp_dir().join("fragr-m02-no-run"),
+        )
+        .env("RUST_LOG", "warn")
+        .stdin(Stdio::null())
+        .output()
+        .unwrap();
+    assert!(!refused.status.success());
+    assert!(refused.stdout.is_empty(), "no readiness for a refused run");
+    let mut child = OwnedChild(
+        Command::new(env!("CARGO_BIN_EXE_fragr-server"))
+            .args(["--local-mission", "persons_unknown", "--seed", "67"])
+            .current_dir(std::env::temp_dir())
+            .env("RUST_LOG", "warn")
+            .stdin(Stdio::piped())
+            .stdout(Stdio::piped())
+            .stderr(Stdio::inherit())
+            .spawn()
+            .unwrap(),
+    );
+    let output = child.0.stdout.take().unwrap();
+    let (tx, rx) = std::sync::mpsc::channel();
+    std::thread::spawn(move || {
+        let mut line = String::new();
+        let result = BufReader::new(output).take(4096).read_line(&mut line);
+        tx.send((result, line)).unwrap();
+    });
+    let (result, line) = rx
+        .recv_timeout(Duration::from_secs(10))
+        .expect("M02 child readiness deadline");
+    result.unwrap();
+    let ready: Ready = serde_json::from_str(&line).unwrap();
+    assert_eq!(ready.mission, MissionId::PersonsUnknown);
+    assert_eq!(
+        ready.gameplay_version,
+        fragr_server::protocol::M02_GAMEPLAY_VERSION
+    );
+    let (mut socket, _) = connect_async(&ready.url).await.unwrap();
+    socket
+        .send(Message::Text(
+            serde_json::to_string(&ClientMessage::Hello {
+                role: Role::Human,
+                name: "Ward walker".into(),
+                geometry_version: 2,
+                gameplay_version: fragr_server::protocol::M02_GAMEPLAY_VERSION,
+                ticket: None,
+                resume: None,
+            })
+            .unwrap(),
+        ))
+        .await
+        .unwrap();
+    tokio::time::timeout(Duration::from_secs(3), async {
+        let mut saw_map = false;
+        while let Some(Ok(Message::Text(text))) = socket.next().await {
+            match serde_json::from_str::<ServerMessage>(&text).unwrap() {
+                ServerMessage::MapInfo {
+                    map_id,
+                    mission,
+                    m02_objectives,
+                    ..
+                } => {
+                    assert_eq!(map_id, 1002);
+                    assert!(mission.is_none());
+                    assert_eq!(m02_objectives, Some(5));
+                    saw_map = true;
+                }
+                ServerMessage::Mission { state, .. } => {
+                    assert!(saw_map);
+                    assert_eq!(state.id, MissionId::PersonsUnknown);
+                    assert!(state.run.is_none(), "M02 has no durable solo run yet");
+                    assert_eq!(state.party.len(), 1);
+                    let m02 = state.m02.unwrap();
+                    assert_eq!(m02.current.unwrap().id, "ward_reached");
+                    return;
+                }
+                _ => {}
+            }
+        }
+        panic!("child ended before M02 mission state");
+    })
+    .await
+    .unwrap();
+    drop(child.0.stdin.take());
+    exited(&mut child, &ready, true);
+}

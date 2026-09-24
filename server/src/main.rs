@@ -27,7 +27,7 @@ struct Args {
     /// Run the bundled mission for a desktop parent. Readiness is JSON on stdout;
     /// stdin shutdown or EOF ends this loopback-only child.
     #[arg(group = "campaign_source")]
-    #[arg(long, value_parser = ["recall_notice"], conflicts_with_all = ["bind", "bots", "map", "map_file", "map_rotate", "solo_broadcast", "no_round_events", "bench", "bench_verify_trace", "status_every_s"])]
+    #[arg(long, value_parser = ["recall_notice", "persons_unknown"], conflicts_with_all = ["bind", "bots", "map", "map_file", "map_rotate", "solo_broadcast", "no_round_events", "bench", "bench_verify_trace", "status_every_s"])]
     local_mission: Option<String>,
 
     /// Persist an owned desktop campaign run. Omit for ephemeral development runs.
@@ -127,9 +127,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         println!("{}", serde_json::to_string(&preview)?);
         return Ok(());
     }
-    if args.local_mission.is_some() {
+    if let Some(mission) = args.local_mission.as_deref() {
+        let mission = match mission {
+            "persons_unknown" => fragr_server::protocol::MissionId::PersonsUnknown,
+            _ => fragr_server::protocol::MissionId::RecallNotice,
+        };
         return fragr_server::local::serve_with_mode(
-            fragr_server::protocol::MissionId::RecallNotice,
+            mission,
             args.seed,
             args.difficulty.unwrap_or_default(),
             args.run_mode,
@@ -285,6 +289,15 @@ mod tests {
             "adaptive"
         ])
         .is_err());
+    }
+
+    #[test]
+    fn local_mission_accepts_only_registered_bundled_missions() {
+        for mission in ["recall_notice", "persons_unknown"] {
+            let args = Args::try_parse_from(["fragr-server", "--local-mission", mission]).unwrap();
+            assert_eq!(args.local_mission.as_deref(), Some(mission));
+        }
+        assert!(Args::try_parse_from(["fragr-server", "--local-mission", "m03"]).is_err());
     }
 
     #[test]

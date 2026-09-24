@@ -137,3 +137,47 @@ After the map marker correction, workspace fmt, clippy and tests passed again.
 An encounter-only map with ID 1002 admitted capability 3 clients and omitted
 the marker, while the M02 fixture emitted its count and rejected unmarked
 objective state in the adapter.
+
+## Progress, 2026-09-24: bundled graybox and server route proof
+
+`server/maps/m02-persons-unknown.json` is the bundled map 1002 behind
+`AuthoredSource::Mission(PersonsUnknown)`. It lays out the observation gallery
+(a slot window over the ward), an enclosed service stair, the antechamber, the
+correction ward with a restraint bay, a processing floor with a mezzanine on a
+broad stair and machinery islands, and the loading dock. The authored chain is
+`ward_reached` (arrival at the ward door), `correction_stopped` (ward console),
+`companion_released` (restraint bay console), `loading_gate_open` (loading
+control) and `party_departed` (dock arrival). The three consoles raise the bay
+gate, the floor gate and the loading gate by three metres each, so each
+shutter stays visible overhead. The foundation prepares and validates the
+worlds for masks 0, 1, 3 and 7 before readiness.
+
+Stubs, labeled unbuilt: the restraint console stands in for Latch's
+story-controlled release, and the loading control stands in for disabling the
+Jammer. Neither Latch nor the Jammer exists. The graybox also has no enemies,
+maintenance loop, optional captives, secrets or story page. Supplies are a Tack
+on the stair landing, a Scatter and a medkit in the antechamber and armor on
+the mezzanine.
+
+`fragr-server --local-mission persons_unknown` starts it as a development child
+with readiness `gameplay_version` 9. It refuses `--run-mode`, carries no `run`,
+and keeps development entry respawn and the shared wipe reset. No M01 to M02
+carry exists; the M01 content hash and run files are unchanged.
+
+Seeded route proof in `server/src/mission/m02/route_tests.rs` drives the live
+`GameSession` with `MissionClient` reading only wire messages: MapInfo rebuilds
+its own navigation, mission state is validated before steering, and the
+controller walks, aims and presses use. A solo human and a solo agent each
+complete all five objectives in order and depart after 480 ticks (24 seconds of
+simulated time), with four MapInfo messages (the closed world plus one per
+gate) and no body inside a solid on any tick. In the closed world the three
+later objectives have no navigation route, and walking and jumping into each
+closed gate for three seconds does not pass it. After the bay and floor gates
+open, a death wipe restores attempt 2 at `ward_reached` with all three gates
+down and resends the closed map; the same participant then clears again from
+entry. The local child integration test confirms the M02 readiness line, map
+1002 with five objectives, no run in mission state, and refusal of `--run-mode`.
+
+This is authoring evidence for a traversal graybox, not playable M02. The
+Godot mission boundary, HUD line, gate presentation, a local menu entry and
+first-person captures remain; they are the next slice.

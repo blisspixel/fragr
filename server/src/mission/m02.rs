@@ -221,4 +221,6 @@ impl GameState {
 }
 
 #[cfg(test)]
+mod route_tests;
+#[cfg(test)]
 mod tests;

@@ -8,9 +8,31 @@ the pistol and the rifle, collect finite campaign supplies and reload. Clerks an
 Sweepers share authoritative attack, hit and death states.
 Enemy artwork and animation remain provisional. The physical transfer record
 opens the custody lift; the party can then depart together. This ends the current
-prototype, not a finished M01 or the rescue. Checkpoints and M02 are not built.
+prototype, not a finished M01 or the rescue. Checkpoints are not built.
 
-From the repository root:
+`m02-persons-unknown.json` is the Persons Unknown ward graybox, map 1002. The
+party enters on an observation gallery whose slot window looks down into the
+correction ward. A service stair leads to the antechamber (a Scatter and a
+medkit), then the ward door. Reaching the ward, using the correction console,
+using the restraint console, and using the loading control each advance one
+authored objective. The three consoles raise the restraint bay gate, the
+processing floor gate, and the loading gate in turn; the raised shutters stay
+visible overhead. The processing floor has a mezzanine on a broad stair and
+machinery islands. Arriving on the loading dock departs. The restraint and
+loading consoles stand in for Latch's story-controlled release and the Jammer,
+neither of which is built. The map has no enemies, maintenance loop, optional
+captives or secrets yet. It is a route graybox, not playable M02.
+
+```bash
+cargo run -p fragr-server --locked -- --local-mission persons_unknown
+```
+
+That development child prints its loopback readiness line and serves the
+normal wire; it keeps no run file. `--map-file server/maps/m02-persons-unknown.json
+--bots 0` also works for a dedicated development host. Clients need gameplay
+capability 9.
+
+For M01, from the repository root:
 
 ```bash
 cargo run -p fragr-server --locked -- --bind 127.0.0.1:6767 --bots 0 --map-file server/maps/m01-recall-notice.json
@@ -87,6 +109,20 @@ the option. Final multi-tier encounter and resource balance remains unfinished.
   gate opens. Spawns remain accessible with it closed; other landmarks, supplies
   and enemy placements may be reachable after opening. Both immutable worlds and
   their navigation are validated before binding. No navigation is rebuilt on tick.
+- `m02`: optional, only on map 1002 with discovery equipment and no `mission`.
+  `objectives` is a linear chain of at most eight records, each with a unique
+  `id`, `after` naming the previous objective (omitted on the first), and an
+  `action`: `{"kind":"arrival","region":{min,max},"feet":[x,y,z]}` or
+  `{"kind":"use","panel":{...},"approach":[x,y,z]}` with a `terminal` or
+  `lift_control` panel on a stationary solid. The last objective must be a
+  `party_departed` arrival. `gates` holds at most three `{id,solid,lift,after}`
+  records; each raises one solid by 0.125 to 16 metres once its nonfinal `after`
+  objective completes. Every reachable gate world and its navigation are built
+  and checked before binding: each objective stands and routes from the first
+  spawn in its world, the previous world cannot reach an objective behind a new
+  gate, an arrival region cannot span a closed gate, each approach sees its
+  panel within reach, and the closed world cannot reach the exit. An M02 map
+  is limited to a 128 metre half extent and 128 solids.
 
 The bounded roster is placed when the party first becomes active. Entry regions
 wake existing guards, so crossing a threshold cannot materialize an actor in view.
@@ -135,6 +171,7 @@ campaign saves have no implemented contract yet.
 ```bash
 cargo test -p fragr-server maps::authored --locked
 cargo test -p fragr-server --test authored_maps --locked
+cargo test -p fragr-server --lib mission::m02 --locked
 FRAGR_QA_BOTS=0 FRAGR_QA_MAP_FILE="$PWD/server/maps/m01-recall-notice.json" FRAGR_QA_MANIFEST=res://qa/m01.json bash tools/qa_tour.sh .agents/qa/m01
 FRAGR_QA_BOTS=0 FRAGR_QA_MAP_FILE="$PWD/server/maps/m01-recall-notice.json" FRAGR_QA_MANIFEST=res://qa/m01-discovery.json bash tools/qa_tour.sh .agents/qa/m01-discovery
 FRAGR_QA_BOTS=0 FRAGR_QA_MAP_FILE="$PWD/server/maps/m01-recall-notice.json" FRAGR_QA_MANIFEST=res://qa/m01-encounters.json bash tools/qa_tour.sh .agents/qa/m01-encounters

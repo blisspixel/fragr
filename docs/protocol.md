@@ -175,8 +175,10 @@ and before the corresponding snapshot whenever shared state changes. `state` is:
   Arrival uses the participant's feet inside the region. Use targets name a
   registered `map_info.presentation.decorations` panel and a reachable approach.
   The server validates range, aim, sight and party eligibility. Each gate change
-  sends a new `map_info` before the changed mission state. The M02 preparatory
-  graybox has no bundled client route or durable solo run yet.
+  sends a new `map_info` before the changed mission state. The bundled M02
+  graybox (`server/maps/m02-persons-unknown.json`) authors `ward_reached`,
+  `correction_stopped`, `companion_released`, `loading_gate_open` and
+  `party_departed` with three prepared gates. It has no durable solo run yet.
 
 Participants finish or skip their opening by sending
 `{"type":"mission_ready","id":"recall_notice","attempt":1}` using the current
@@ -1041,6 +1043,13 @@ the on-wire campaign rules revision. No parent command changes it during a run.
 The readiness record names the selected mission's client contract, rather than
 the highest version understood by the server. M01 stays at 8 when the server
 also understands M02 version 9. The local launcher checks this value exactly.
+
+`--local-mission persons_unknown` starts the bundled M02 graybox as a
+development child. It writes the same readiness line with
+`"mission":"persons_unknown"` and `"gameplay_version":9`. It has no durable run:
+`--run-mode` is refused before readiness, mission state carries no `run`, and
+the party keeps development entry respawn and the shared wipe reset. It is not
+a save carry from M01.
 
 The port is chosen by the OS. Diagnostics use stderr. The parent validates the
 exact version, mission, requested difficulty, gameplay capability and loopback endpoint before using
