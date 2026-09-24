@@ -4,6 +4,22 @@ Shipped tags, newest first. A line here is on `main`. Planned work stays in
 [docs/ROADMAP.md](docs/ROADMAP.md). Older tags are on the
 [releases page](https://github.com/blisspixel/fragr/releases).
 
+## v0.48.0 (2026-09-24)
+
+Single Player has a development entry for the second mission, "Persons
+Unknown: ward graybox". Drop from the observation gallery down the service
+stair, grab the pistol and the shotgun, and fight Clerks and Sweepers through
+the correction ward, the processing floor and the loading dock. There are no
+switches or locked doors; the HUD shows one short line at a time, "Find Latch"
+and then "Get out". It is an untextured development route: no save, no carry
+from Recall Notice, and Latch and the Jammer are not in it yet.
+
+A quick tap of Use or jump is no longer lost on a fast display. The client sent
+one action per rendered frame, so at a few hundred frames per second it went
+past the server's inbound limit and about half its messages were dropped,
+including a tap that lasted one frame. Actions are now paced at 120 per second
+and a tap is held until a message carries it.
+
 ## v0.47.1 (2026-09-24)
 
 Multiplayer rounds on Directive 17, Sector 9 and Reclamation Gulch no longer

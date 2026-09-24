@@ -239,6 +239,10 @@ func _page_single() -> void:
 				)
 	_label(tr("MENU_M01_DESCRIPTION"))
 	_button(tr("STORY_REPLAY"), _replay_opening)
+	_label(tr("MENU_M02_DEVELOPMENT"))
+	var graybox: Button = _button(tr("MISSION_M02_GRAYBOX"), _start_development_m02)
+	graybox.name = "PersonsUnknownGraybox"
+	graybox.disabled = not can_start
 	_label(tr("MENU_PRACTICE"))
 	_button("Calibration challenge", func() -> void: _launch("solo", LOOPBACK))
 	_button("Arena against bots", func() -> void: _launch("join", LOOPBACK))
@@ -285,6 +289,16 @@ func _start_campaign(difficulty: String = "standard") -> void:
 	_local_match.start_mission(difficulty, "new")
 	_on_local_state_changed()
 
+## M02 is a development child: no difficulty page, run file or M01 carry.
+func _start_development_m02() -> void:
+	if _launch_pending:
+		return
+	_launch_pending = true
+	_campaign_run_mode = ""
+	_show("launch")
+	_local_match.start_mission("standard", "", MissionState.M02_ID)
+	_on_local_state_changed()
+
 func _start_campaign_resume() -> void:
 	if _launch_pending or _local_match.run_preview.get("status") != "ready":
 		return
@@ -296,7 +310,7 @@ func _start_campaign_resume() -> void:
 	_on_local_state_changed()
 
 func _page_launch() -> void:
-	_label(tr("MISSION_M01_TITLE"))
+	_label(tr("MISSION_M02_GRAYBOX" if _local_match.mission == MissionState.M02_ID else "MISSION_M01_TITLE"))
 	_label(tr("LOCAL_SERVER_STOPPING") if _local_match.state == LocalMatch.State.STOPPING else tr("LOCAL_SERVER_STARTING"))
 	_button(tr("MENU_CANCEL"), _cancel_campaign)
 

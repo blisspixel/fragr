@@ -54,6 +54,8 @@ static func _style(kind: String) -> int:
 		"lockers": return 1
 		"vent": return 2
 		"terminal", "lift_control": return 3
+		"gate_locked": return 7
+		"gate_open": return 8
 		"strip_light": return 4
 		"union_seal": return 5
 		"complaint_notice": return 6

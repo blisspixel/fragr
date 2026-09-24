@@ -25,8 +25,15 @@ func _notification(what: int) -> void:
 	if what == NOTIFICATION_TRANSLATION_CHANGED and font != null and message_key != "":
 		_refresh()
 
+## Catalog copy, or empty when the key is missing. A raw key never reaches the world.
+static func localized(key: String) -> String:
+	var copy: String = TranslationServer.translate(key)
+	return "" if copy == key else copy
+
 func _refresh() -> void:
-	text = tr(message_key)
+	text = localized(message_key)
+	if text.is_empty():
+		push_error("world_sign: missing localized key " + message_key)
 	var measured: Vector2 = font.get_multiline_string_size(text,
 		HORIZONTAL_ALIGNMENT_CENTER, width, font_size, -1, BREAKS)
 	pixel_size = minf(bounds.x / width, bounds.y / maxf(measured.y, 1.0))

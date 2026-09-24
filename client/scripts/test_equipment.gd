@@ -54,7 +54,7 @@ func _run() -> void:
 	network._handle_message(JSON.stringify(earlier))
 	_check(network.equipment.is_empty() and network.player_id == null, "invalid private state closes and clears the session")
 	network.send_hello()
-	_check(network.sent[0]["gameplay_version"] == 8 and network.sent[0]["geometry_version"] == MapGeometry.VERSION, "gameplay and geometry capabilities are independent")
+	_check(network.sent[0]["gameplay_version"] == 9 and network.sent[0]["geometry_version"] == MapGeometry.VERSION, "gameplay and geometry capabilities are independent")
 	network.connection_state = WebSocketPeer.STATE_OPEN
 	var manager: Node = load("res://scripts/game_manager.gd").new()
 	manager.net_client = network
@@ -74,8 +74,10 @@ func _run() -> void:
 	manager._input(key)
 	key.pressed = false
 	manager._input(key)
+	manager._last_action_usec = -1000000000
 	manager._process(0.001)
 	_check(network.sent.back().get("reload", false), "short reload press survives until transmission")
+	manager._last_action_usec = -1000000000
 	manager._process(0.001)
 	_check(not network.sent.back().has("reload"), "reload is consumed exactly once and absent from legacy actions")
 	var button: InputEventJoypadButton = InputEventJoypadButton.new()
@@ -116,8 +118,10 @@ func _run() -> void:
 	_check(fists_key.is_action_pressed("weapon_1"), "1 maps to fists")
 	manager._input(fists_key)
 	_check(manager.pending_weapon_swap == "fists", "1 selects fists from the carried pistol")
+	manager._last_action_usec = -1000000000
 	manager._process(0.001)
 	_check(network.sent.back().get("weapon_swap") == "fists", "1 reaches the server action as fists")
+	manager._last_action_usec = -1000000000
 	manager._process(0.001)
 	_check(not network.sent.back().has("weapon_swap"), "the discrete fists choice is transmitted once")
 	network.equipment = {}

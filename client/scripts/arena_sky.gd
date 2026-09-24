@@ -110,11 +110,11 @@ static func facility() -> Preset:
 ##
 ## Matched loosely on the name the server sends, because MapInfo carries a
 ## display name rather than an identifier, and an unknown venue gets the
-## scrapyard rather than nothing. Recall Notice is an interior, so it does not
-## inherit the outdoor scrap fill.
+## scrapyard rather than nothing. Recall Notice and the Persons Unknown ward are
+## interiors, so they do not inherit the outdoor scrap fill.
 static func preset_for(map_name: String) -> Preset:
 	var key: String = map_name.strip_edges().to_lower()
-	if key.contains("recall"):
+	if key.contains("recall") or key.contains("persons unknown"):
 		return facility()
 	if key.contains("compliance") or key.contains("yard"):
 		return compliance()

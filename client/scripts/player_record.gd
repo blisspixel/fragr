@@ -91,12 +91,15 @@ static func _valid_scope(data: Dictionary) -> bool:
 		return false
 	if scope.get("kind") in ["arena", "practice"]:
 		return scope.size() == 2 and EquipmentState.integer(scope.get("round"), 4294967295) and scope.get("round") == data["round"] and data["attempt"] == data["total"]
-	if scope.get("kind") != "mission" or scope.size() != 5 or scope.get("mission") != MissionState.ID \
+	if scope.get("kind") != "mission" or scope.size() != 5 or scope.get("mission") not in [MissionState.ID, MissionState.M02_ID] \
 		or not EquipmentState.integer(scope.get("attempt"), 4294967295) or int(scope["attempt"]) < 1 \
 		or not MissionState.valid_rules(scope.get("rules")) or not scope.has("run"):
 		return false
+	# M02 has no durable solo run yet, so its record never names one.
 	if scope["run"] == null:
 		return true
+	if scope["mission"] == MissionState.M02_ID:
+		return false
 	var run: Variant = scope["run"]
 	if not MissionState.valid_run_identity(run, scope["attempt"]):
 		return false

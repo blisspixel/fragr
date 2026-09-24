@@ -182,6 +182,14 @@ func _run() -> void:
 			(settings_root.get_node("SettingsPanel") as SettingsPanel).show_page(str(state["settings_tab"]))
 		if state.has("graphics"):
 			_apply_graphics_capture(state["graphics"])
+		# Readability evidence: the _world still of this state then has neither HUD
+		# nor world sign copy, so only lamps, pictograms and geometry explain it.
+		var hidden_copy: Array[Node3D] = []
+		if state.get("hide_world_text", false):
+			for label: Node in get_root().find_children("*", "Label3D", true, false):
+				if label is WorldSign and (label as Node3D).visible:
+					(label as Node3D).visible = false
+					hidden_copy.append(label as Node3D)
 		_pose_camera(state.get("camera", "none"))
 		await create_timer(0.75).timeout
 		await RenderingServer.frame_post_draw
@@ -278,6 +286,9 @@ func _run() -> void:
 			state_name, file_name, measured.get("hud_coverage", 0.0) * 100.0,
 			str(measured.get("world_blank", false)),
 		])
+		for label: Node3D in hidden_copy:
+			if is_instance_valid(label):
+				label.visible = true
 		if state.get("overlay", "") in ["match_menu", "match_settings"]:
 			_game_manager().get_node("PauseMenu").call("close")
 		if _failed and _combat_travel:
@@ -670,30 +681,38 @@ func _local_feet() -> Vector3:
 func _use_mission_control(expected_phase: String) -> void:
 	var network: Node = _game_manager().get("net_client")
 	var deadline: int = Time.get_ticks_msec() + 2000
+	var available: bool = false
 	while Time.get_ticks_msec() < deadline:
 		var mission: Dictionary = network.get("mission")
 		var prompts: Array = mission.get("state", {}).get("prompts", [])
-		var available: bool = false
 		for prompt: Dictionary in prompts:
 			available = available or str(prompt["player_id"]) == str(network.get("player_id"))
 		if available:
 			break
 		await create_timer(0.05).timeout
+	if not available:
+		print("qa_tour: no use prompt before pressing at ", _local_feet())
 	var press: InputEventKey = InputEventKey.new()
 	press.physical_keycode = KEY_F
 	press.pressed = true
 	Input.parse_input_event(press)
+	# Released in the same frame on purpose: a sub-frame tap must still arrive once.
 	var release: InputEventKey = press.duplicate()
 	release.pressed = false
 	Input.parse_input_event(release)
 	deadline = Time.get_ticks_msec() + 2000
 	while Time.get_ticks_msec() < deadline:
 		var mission: Dictionary = network.get("mission")
-		if mission.get("state", {}).get("phase") == expected_phase:
+		var mission_state: Dictionary = mission.get("state", {})
+		# M02 stays in_progress; its expectation names the completed objective.
+		var progress: Variant = mission_state.get("m02")
+		if mission_state.get("phase") == expected_phase \
+			or (progress is Dictionary and expected_phase in progress.get("completed", [])):
 			print("qa_tour: mission reached ", expected_phase)
 			return
 		await create_timer(0.05).timeout
-	push_error("qa_tour: physical use did not reach " + expected_phase)
+	push_error("qa_tour: physical use did not reach %s from %s, prompts %s" % [expected_phase, _local_feet(),
+		network.get("mission").get("state", {}).get("prompts", [])])
 	_failed = true
 
 func _record_movement() -> void:

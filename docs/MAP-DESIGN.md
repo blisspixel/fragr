@@ -60,7 +60,8 @@ light switch-to-open is fine when the switch is next to its door and in view.
 Never chains, keys, hunts or "gate opens when X" sequences. A room may seal
 during a set-piece fight and open when it is won, sparingly. M01's built record
 console, which stands away from its lift, is the one exception. Secrets can ask
-for closer observation.
+for closer observation. M02 authoring enforces part of this: it rejects a
+second required use switch and a door opener more than eight metres away.
 
 **Readable without English.** Every label, prompt, objective line and sign is a
 key in `client/i18n/*.po`; map data carries keys or registered kinds, never

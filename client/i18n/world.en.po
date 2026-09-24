@@ -158,3 +158,35 @@ msgstr "This server has banned this address."
 
 msgid "NET_ADDRESS_NOT_ALLOWED"
 msgstr "This server only allows addresses on its list."
+
+msgid "MISSION_M02_GRAYBOX"
+msgstr "Persons Unknown: ward graybox"
+
+msgid "MENU_M02_DEVELOPMENT"
+msgstr "Development route: a short fight through the ward. No save, no carry from Recall Notice."
+
+msgid "MENU_EXIT_DEVELOPMENT"
+msgstr "Development mission. Leaving keeps no progress."
+
+msgid "M02_WAITING"
+msgstr "WAITING FOR THE PARTY"
+
+
+
+msgid "M02_OBJECTIVE_COMPANION_RELEASED"
+msgstr "FIND LATCH"
+
+
+msgid "M02_OBJECTIVE_PARTY_DEPARTED"
+msgstr "GET OUT"
+
+msgid "M02_OBJECTIVE_UNKNOWN"
+msgstr "KEEP MOVING"
+
+
+msgid "M02_USE_CONSOLE"
+msgstr "F / B: USE"
+
+msgid "M02_DEPARTED"
+msgstr "OUT. ESC TO LEAVE."
+

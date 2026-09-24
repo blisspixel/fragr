@@ -234,8 +234,10 @@ func _input_and_hud(network: CaptureNetwork, state: Dictionary) -> void:
 	release.pressed = false
 	manager._input(press)
 	manager._input(release)
+	manager._last_action_usec = -1000000000
 	manager._process(0.001)
 	_expect(network.sent.back().get("interact", false), "short press survives transmission")
+	manager._last_action_usec = -1000000000
 	manager._process(0.001)
 	_expect(not network.sent.back().has("interact"), "released use is absent from the next action")
 	manager._input(press)
@@ -243,6 +245,7 @@ func _input_and_hud(network: CaptureNetwork, state: Dictionary) -> void:
 	manager._input(release)
 	manager.role_transition = false
 	manager.pending_interact = false
+	manager._last_action_usec = -1000000000
 	manager._process(0.001)
 	_expect(not network.sent.back().has("interact"), "release is observed while controls are blocked")
 	var button: InputEventJoypadButton = InputEventJoypadButton.new()

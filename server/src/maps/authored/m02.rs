@@ -306,6 +306,16 @@ impl Definition {
                 "M02 final objective must be a party_departed arrival",
             ));
         }
+        // Few puzzles: one required switch at most. Every other step is an
+        // arrival (or, once enemies exist, a cleared fight).
+        if objectives
+            .iter()
+            .filter(|objective| objective.control.is_some())
+            .count()
+            > 1
+        {
+            return Err(invalid("M02 allows at most one required use switch"));
+        }
         for (_, _, after) in &gates {
             if !objectives.iter().any(|objective| &objective.id == after)
                 || after == "party_departed"

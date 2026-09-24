@@ -38,6 +38,12 @@ func _run() -> void:
 	var mission: Dictionary = sample.duplicate(true)
 	mission["scope"] = {"kind": "mission", "mission": MissionState.ID, "attempt": 1, "rules": {"difficulty": "standard", "revision": 1}, "run": {"id": "00000000-0000-0000-0000-000000000003", "continues": 3, "status": "complete"}}
 	_check(PlayerRecord.validation_error(mission, mission["player_id"]).is_empty(), "mission record validates")
+	var ward: Dictionary = mission.duplicate(true)
+	ward["scope"]["mission"] = MissionState.M02_ID
+	_check(not PlayerRecord.validation_error(ward, ward["player_id"]).is_empty(), "an M02 record cannot name a durable run")
+	ward["scope"]["run"] = null
+	ward["status"] = "active"
+	_check(PlayerRecord.validation_error(ward, ward["player_id"]).is_empty(), "an M02 development record validates without a run")
 	var rewritten: Dictionary = mission.duplicate(true)
 	rewritten["scope"]["attempt"] = 2
 	rewritten["scope"]["run"]["continues"] = 2

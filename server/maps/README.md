@@ -12,18 +12,14 @@ prototype, not a finished M01 or the rescue. Checkpoints are not built.
 
 `m02-persons-unknown.json` is the Persons Unknown ward graybox, map 1002. The
 party enters on an observation gallery whose slot window looks down into the
-correction ward. A service stair leads to the antechamber (a Scatter and a
-medkit), then the ward door. Arriving in the ward, hitting the correction
-switch beside the restraint bay, arriving at the restraint frame inside the bay,
-and hitting the loading control beside the loading gate each advance one
-authored objective. Each step raises the door right beside it: the bay shutter,
-the bay's back shutter onto the processing floor, then the loading gate. Raised
-shutters stay visible overhead, and matching red lamps on each gate and its
-opener turn green. The processing floor has a mezzanine on a broad stair and
-machinery islands. Arriving on the loading dock departs. The restraint arrival
-stands in for Latch's story-controlled release and the loading control for the
-Jammer; neither is built. The map has no enemies, maintenance loop, optional
-captives or secrets yet. It is a route graybox, not playable M02.
+correction ward and its guards. A service stair (Tack and bullets) leads to the
+antechamber (Scatter, shells, medkit), then straight into the ward. The route
+is open: no switches and no gates. Three encounters (ward, processing floor,
+loading dock) hold nine Clerks and Sweepers. Two objectives advance by arrival:
+"Find Latch" at the restraint frame in the ward, then "Get out" on the loading
+dock. Latch and the Jammer are not built, and the map has no Crawlers,
+maintenance loop, captives or secrets. It is a development graybox, not the
+finished mission.
 
 ```bash
 cargo run -p fragr-server --locked -- --local-mission persons_unknown
@@ -122,8 +118,9 @@ the option. Final multi-tier encounter and resource balance remains unfinished.
   objective completes. Each gate lists two to four `signals`: decorations of
   kind `gate_locked` on the gate and on whatever opens it. Worlds in which the
   gate is raised show them as `gate_open`. Plain `decorations` cannot use either
-  kind. The objective that opens a gate must stand within eight metres of it. Every reachable gate world and its navigation are built
-  and checked before binding: each objective stands and routes from the first
+  kind. The objective that opens a gate must stand within eight metres of it,
+  and at most one objective may be a use switch. Every reachable gate world
+  and its navigation are built and checked before binding: each objective stands and routes from the first
   spawn in its world, the previous world cannot reach an objective behind a new
   gate, an arrival region cannot span a closed gate, each approach sees its
   panel within reach, and the closed world cannot reach the exit. An M02 map
@@ -183,6 +180,7 @@ FRAGR_QA_BOTS=0 FRAGR_QA_MAP_FILE="$PWD/server/maps/m01-recall-notice.json" FRAG
 FRAGR_QA_BOTS=0 FRAGR_QA_MAP_FILE="$PWD/server/maps/m01-recall-notice.json" FRAGR_QA_MANIFEST=res://qa/m01-maintenance.json bash tools/qa_tour.sh .agents/qa/m01-maintenance
 FRAGR_QA_BOTS=0 FRAGR_QA_MAP_FILE="$PWD/server/maps/m01-recall-notice.json" FRAGR_QA_MANIFEST=res://qa/m01-facility.json bash tools/qa_tour.sh .agents/qa/m01-facility
 FRAGR_QA_BOTS=0 FRAGR_QA_MAP_FILE="$PWD/server/maps/m01-recall-notice.json" FRAGR_QA_MANIFEST=res://qa/m01-records.json bash tools/qa_tour.sh .agents/qa/m01-records
+FRAGR_QA_BOTS=0 FRAGR_QA_MAP_FILE="$PWD/server/maps/m02-persons-unknown.json" FRAGR_QA_MANIFEST=res://qa/m02-graybox.json bash tools/qa_tour.sh .agents/qa/m02-graybox
 ```
 
 The tour uses human input through a live server, never teleportation. Inspect

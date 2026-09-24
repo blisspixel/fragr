@@ -26,13 +26,16 @@ func _run() -> void:
 	game.camera = camera
 	game.is_human_player = true
 	network.connection_state = WebSocketPeer.STATE_OPEN
+	game._last_action_usec = -1000000000
 	game._process(0.0)
 	var ok: bool = network.sent.is_empty()
 	network.player_id = "self"
+	game._last_action_usec = -1000000000
 	game._process(0.0)
 	ok = ok and network.sent.is_empty()
 	game.players["self"] = fighter
 	game._refresh_fp_target()
+	game._last_action_usec = -1000000000
 	game._process(0.0)
 	ok = ok and network.sent.get("type") == "action"
 	ok = ok and is_equal_approx(float(network.sent.get("yaw", 99.0)), fighter.target_yaw)
@@ -41,15 +44,18 @@ func _run() -> void:
 	camera.fp_yaw = 1.2
 	camera.fp_pitch = -0.6
 	game._refresh_fp_target()
+	game._last_action_usec = -1000000000
 	game._process(0.0)
 	ok = ok and is_equal_approx(float(network.sent.get("yaw", 99.0)), 1.2)
 	ok = ok and is_equal_approx(float(network.sent.get("pitch", 99.0)), -0.6)
 	ok = ok and int(network.sent.get("seq", 0)) == 2
 	camera.fp_pitch = 10.0
+	game._last_action_usec = -1000000000
 	game._process(0.0)
 	ok = ok and is_equal_approx(float(network.sent.get("pitch", 99.0)), ServerYaw.PITCH_LIMIT)
 	network.sent.clear()
 	network.player_id = "rejoined"
+	game._last_action_usec = -1000000000
 	game._process(0.0)
 	ok = ok and network.sent.is_empty()
 	var legacy: Dictionary = {"fire": true}

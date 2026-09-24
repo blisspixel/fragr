@@ -472,7 +472,7 @@ async fn m02_development_child_serves_the_graybox_without_a_durable_run() {
                 } => {
                     assert_eq!(map_id, 1002);
                     assert!(mission.is_none());
-                    assert_eq!(m02_objectives, Some(5));
+                    assert_eq!(m02_objectives, Some(2));
                     saw_map = true;
                 }
                 ServerMessage::Mission { state, .. } => {
@@ -481,7 +481,7 @@ async fn m02_development_child_serves_the_graybox_without_a_durable_run() {
                     assert!(state.run.is_none(), "M02 has no durable solo run yet");
                     assert_eq!(state.party.len(), 1);
                     let m02 = state.m02.unwrap();
-                    assert_eq!(m02.current.unwrap().id, "ward_reached");
+                    assert_eq!(m02.current.unwrap().id, "companion_released");
                     return;
                 }
                 _ => {}
