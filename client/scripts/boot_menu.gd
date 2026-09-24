@@ -50,6 +50,8 @@ func _ready() -> void:
 	_console.name = "FragrConsole"
 	_console.preferences = _settings
 	add_child(_console)
+	if InstallCheck.requested():
+		add_child(InstallCheck.new(_local_match))
 
 func _apply_preferences() -> void:
 	_settings.apply()

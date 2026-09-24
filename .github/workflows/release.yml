@@ -1,0 +1,318 @@
+name: Release
+
+# Builds the desktop packages: the exported Godot client with fragr-server beside
+# it, one zip per platform. A v* tag attaches them to that tag's GitHub release.
+# A manual run, or a pull request that touches packaging, only builds and smokes
+# them and keeps them as workflow artifacts.
+on:
+  push:
+    tags: ["v*"]
+  pull_request:
+    branches: [main]
+    paths:
+      - .github/workflows/release.yml
+      - client/export_presets.cfg
+      - client/project.godot
+      - client/icon.*
+      - client/scripts/boot_menu.gd
+      - client/scripts/install_check.gd
+      - client/scripts/local_match.gd
+      - client/scripts/local_process.gd
+      - tools/bake_icon.gd
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  CARGO_TERM_COLOR: always
+  GODOT_RELEASE: https://github.com/godotengine/godot/releases/download/4.7.2-stable
+  GODOT_TEMPLATES: 4.7.2.stable
+
+jobs:
+  server:
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          # 22.04 keeps the glibc floor at 2.35 so older Linux desktops can run it.
+          - platform: linux-x86_64
+            os: ubuntu-22.04
+          - platform: windows-x86_64
+            os: windows-2025
+          - platform: macos-universal
+            os: macos-26
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.platform == 'macos-universal' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: release-${{ matrix.platform }}
+      - name: Build fragr-server
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p out
+          case "${{ matrix.platform }}" in
+            macos-universal)
+              cargo build -p fragr-server --release --locked --target aarch64-apple-darwin
+              MACOSX_DEPLOYMENT_TARGET=10.13 cargo build -p fragr-server --release --locked --target x86_64-apple-darwin
+              lipo -create -output out/fragr-server \
+                target/aarch64-apple-darwin/release/fragr-server \
+                target/x86_64-apple-darwin/release/fragr-server
+              lipo -info out/fragr-server
+              ;;
+            windows-x86_64)
+              cargo build -p fragr-server --release --locked
+              cp target/release/fragr-server.exe out/
+              ;;
+            *)
+              cargo build -p fragr-server --release --locked
+              cp target/release/fragr-server out/
+              ;;
+          esac
+      - uses: actions/upload-artifact@v7
+        with:
+          name: server-${{ matrix.platform }}
+          path: out/
+          retention-days: 3
+          if-no-files-found: error
+
+  client:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - name: Restore export templates
+        id: templates
+        uses: actions/cache@v6
+        with:
+          path: ~/.local/share/godot/export_templates/${{ env.GODOT_TEMPLATES }}
+          key: godot-export-templates-${{ env.GODOT_TEMPLATES }}-desktop
+      - name: Install Godot 4.7.2-stable and its desktop templates
+        env:
+          TEMPLATES_HIT: ${{ steps.templates.outputs.cache-hit }}
+        run: |
+          set -euo pipefail
+          curl -fsSL -o SHA512-SUMS.txt "$GODOT_RELEASE/SHA512-SUMS.txt"
+          curl -fsSL -o Godot_v4.7.2-stable_linux.x86_64.zip "$GODOT_RELEASE/Godot_v4.7.2-stable_linux.x86_64.zip"
+          if [ "$TEMPLATES_HIT" != "true" ]; then
+            curl -fsSL -o Godot_v4.7.2-stable_export_templates.tpz "$GODOT_RELEASE/Godot_v4.7.2-stable_export_templates.tpz"
+          fi
+          sha512sum --check --ignore-missing --strict SHA512-SUMS.txt
+          unzip -q Godot_v4.7.2-stable_linux.x86_64.zip
+          chmod +x Godot_v4.7.2-stable_linux.x86_64
+          echo "GODOT_BIN=$PWD/Godot_v4.7.2-stable_linux.x86_64" >> "$GITHUB_ENV"
+          dest="$HOME/.local/share/godot/export_templates/$GODOT_TEMPLATES"
+          if [ "$TEMPLATES_HIT" != "true" ]; then
+            mkdir -p "$dest"
+            unzip -q -j -o Godot_v4.7.2-stable_export_templates.tpz -d "$dest" \
+              templates/version.txt \
+              templates/linux_release.x86_64 \
+              templates/windows_release_x86_64.exe \
+              templates/windows_release_x86_64_console.exe \
+              templates/macos.zip
+            rm Godot_v4.7.2-stable_export_templates.tpz
+          fi
+          test "$(cat "$dest/version.txt")" = "$GODOT_TEMPLATES"
+          ls -l "$dest"
+      - name: Stamp the tag version into the presets
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          set -euo pipefail
+          version="${GITHUB_REF_NAME#v}"
+          [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "tag $GITHUB_REF_NAME is not vMAJOR.MINOR.PATCH"; exit 1; }
+          sed -i -E \
+            -e "s/^application\/(file|product)_version=.*/application\/\1_version=\"$version.0\"/" \
+            -e "s/^application\/short_version=.*/application\/short_version=\"${version%.*}\"/" \
+            -e "s/^application\/version=.*/application\/version=\"$version\"/" \
+            client/export_presets.cfg
+          grep -E '^application/(file_version|product_version|short_version|version)=' client/export_presets.cfg
+      - name: Export Windows, Linux and macOS clients
+        run: |
+          set -euo pipefail
+          "$GODOT_BIN" --headless --path client --import
+          mkdir -p builds/windows builds/linux builds/macos
+          for preset in "Windows Desktop|../builds/windows/fragr.exe" "Linux/X11|../builds/linux/fragr.x86_64" "macOS|../builds/macos/fragr.zip"; do
+            log=$("$GODOT_BIN" --headless --path client --export-release "${preset%%|*}" "${preset#*|}" 2>&1) || { printf '%s\n' "$log"; exit 1; }
+            if grep -qE 'SCRIPT ERROR|(^|[[:space:]])ERROR:' <<<"$log"; then printf '%s\n' "$log"; exit 1; fi
+          done
+          ls -l builds/windows builds/linux builds/macos
+      - uses: actions/upload-artifact@v7
+        with:
+          name: client-windows-x86_64
+          path: builds/windows/
+          compression-level: 1
+          retention-days: 3
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v7
+        with:
+          name: client-linux-x86_64
+          path: builds/linux/
+          compression-level: 1
+          retention-days: 3
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v7
+        with:
+          name: client-macos-universal
+          path: builds/macos/
+          compression-level: 0
+          retention-days: 3
+          if-no-files-found: error
+
+  package:
+    needs: [server, client]
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Smoke on a runner image other than the server build, like a player's machine.
+          - platform: linux-x86_64
+            os: ubuntu-24.04
+          - platform: windows-x86_64
+            os: windows-2025
+          - platform: macos-universal
+            os: macos-26
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    env:
+      PLATFORM: ${{ matrix.platform }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/download-artifact@v8
+        with:
+          name: server-${{ matrix.platform }}
+          path: stage/server
+      - uses: actions/download-artifact@v8
+        with:
+          name: client-${{ matrix.platform }}
+          path: stage/client
+      - name: Assemble the package
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then version="$GITHUB_REF_NAME"; else version="dev-${GITHUB_SHA::7}"; fi
+          name="fragr-$version-$PLATFORM"
+          root="dist/$name"
+          mkdir -p "$root/licenses"
+          # local_match.gd looks for fragr-server in the game executable's own directory.
+          case "$PLATFORM" in
+            linux-x86_64)
+              cp stage/client/fragr.x86_64 stage/server/fragr-server "$root/"
+              chmod +x "$root/fragr.x86_64" "$root/fragr-server"
+              ;;
+            windows-x86_64)
+              cp stage/client/fragr.exe stage/server/fragr-server.exe "$root/"
+              ;;
+            macos-universal)
+              ditto -x -k stage/client/fragr.zip "$root/"
+              app=$(find "$root" -maxdepth 1 -name '*.app' -print -quit)
+              cp stage/server/fragr-server "$app/Contents/MacOS/fragr-server"
+              chmod +x "$app/Contents/MacOS/"*
+              # Ad-hoc signature only: Apple Silicon refuses unsigned code. Not notarized.
+              codesign --force --deep --sign - "$app"
+              codesign --verify --deep --strict --verbose=2 "$app"
+              ;;
+          esac
+          cp LICENSE "$root/licenses/fragr-LICENSE.txt"
+          cp client/assets/fonts/OFL.txt "$root/licenses/fonts-OFL.txt"
+          cp client/assets/fonts/silkscreen/OFL.txt "$root/licenses/silkscreen-OFL.txt"
+          curl -fsSL -o "$root/licenses/godot-LICENSE.txt" https://raw.githubusercontent.com/godotengine/godot/4.7.2-stable/LICENSE.txt
+          curl -fsSL -o "$root/licenses/godot-COPYRIGHT.txt" https://raw.githubusercontent.com/godotengine/godot/4.7.2-stable/COPYRIGHT.txt
+          mkdir -p packages
+          case "$PLATFORM" in
+            linux-x86_64) (cd dist && zip -qry "../packages/$name.zip" "$name") ;;
+            windows-x86_64) (cd dist && 7z a -tzip -bso0 "../packages/$name.zip" "$name") ;;
+            macos-universal) ditto -c -k --keepParent "$root" "packages/$name.zip" ;;
+          esac
+          ls -l packages
+          echo "PACKAGE=packages/$name.zip" >> "$GITHUB_ENV"
+          echo "PACKAGE_NAME=$name" >> "$GITHUB_ENV"
+      - name: Unpack and smoke the package
+        shell: bash
+        run: |
+          set -euo pipefail
+          check="$RUNNER_TEMP/unpacked"
+          rm -rf "$check" && mkdir -p "$check"
+          case "$PLATFORM" in
+            macos-universal) ditto -x -k "$PACKAGE" "$check" ;;
+            windows-x86_64) 7z x -bso0 "-o$check" "$PACKAGE" ;;
+            *) unzip -q "$PACKAGE" -d "$check" ;;
+          esac
+          root="$check/$PACKAGE_NAME"
+          case "$PLATFORM" in
+            linux-x86_64) game="$root/fragr.x86_64"; server="$root/fragr-server" ;;
+            windows-x86_64) game="$root/fragr.exe"; server="$root/fragr-server.exe" ;;
+            macos-universal)
+              app=$(find "$root" -maxdepth 1 -name '*.app' -print -quit)
+              game="$app/Contents/MacOS/$(basename "$app" .app)"
+              server="$app/Contents/MacOS/fragr-server"
+              codesign --verify --deep --strict "$app"
+              ;;
+          esac
+          "$server" --help > "$RUNNER_TEMP/server-help.txt"
+          head -n 3 "$RUNNER_TEMP/server-help.txt"
+          "$server" --bench 4 --bench-ticks 200 --seed 42 > "$RUNNER_TEMP/bench.json"
+          echo "bundled server bench: $(wc -c < "$RUNNER_TEMP/bench.json") bytes of JSON"
+          # The exported game boots its main scene, finds the bundled server beside
+          # itself and asks it for a run preview in an empty run directory.
+          export FRAGR_RUN_DIR="$RUNNER_TEMP/fragr-runs"
+          mkdir -p "$FRAGR_RUN_DIR"
+          out=$("$game" --headless -- --check-install 2>&1) && status=0 || status=$?
+          printf '%s\n' "$out" | grep -v 'Unreferenced static string' || true
+          [ "$status" -eq 0 ] || { echo "install check exited $status"; exit 1; }
+          grep -q 'fragr install check: PASS' <<<"$out"
+      - name: Record the Windows executable icon
+        if: matrix.platform == 'windows-x86_64'
+        shell: pwsh
+        run: |
+          Add-Type -AssemblyName System.Drawing
+          $exe = Get-ChildItem -Recurse -Path dist -Filter fragr.exe | Select-Object -First 1
+          [System.Drawing.Icon]::ExtractAssociatedIcon($exe.FullName).ToBitmap().Save("$env:RUNNER_TEMP/fragr-exe-icon.png")
+      - name: Keep the Windows icon evidence
+        if: matrix.platform == 'windows-x86_64'
+        uses: actions/upload-artifact@v7
+        with:
+          name: windows-exe-icon
+          path: ${{ runner.temp }}/fragr-exe-icon.png
+          retention-days: 7
+      - uses: actions/upload-artifact@v7
+        with:
+          name: package-${{ matrix.platform }}
+          path: ${{ env.PACKAGE }}
+          compression-level: 0
+          retention-days: 7
+          if-no-files-found: error
+
+  publish:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: package
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: package-*
+          path: packages
+          merge-multiple: true
+      - name: Attach the packages to the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          cd packages
+          sha256sum ./*.zip | sed "s| ./| |" > SHA256SUMS.txt
+          cat SHA256SUMS.txt
+          if ! gh release view "$TAG" > /dev/null 2>&1; then
+            gh release create "$TAG" --draft --verify-tag --title "$TAG" --notes "Desktop packages for $TAG."
+          fi
+          gh release upload "$TAG" ./*.zip SHA256SUMS.txt --clobber

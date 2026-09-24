@@ -17,6 +17,7 @@ Status words: **planned**, **in flight**, **implemented** (local evidence record
 
 | Plan | Status | One-liner |
 |---|---|---|
+| [`desktop-release.md`](./desktop-release.md) | **in flight** | Tagged Windows, Linux and macOS zips with the bundled server, a packaged install check, and an original game icon. |
 | [`radio-scene-retirement.md`](./radio-scene-retirement.md) | **proven** ([#231](https://github.com/blisspixel/fragr/pull/231), v0.45.0) | Radio decoder retirement across rapid saved-run restarts, with Linux, Windows and macOS checks. |
 | [`m02-objective-gates.md`](./m02-objective-gates.md) | **in flight** | Authored objectives and precomputed gate worlds for the first M02 graybox, with M01 save compatibility. |
 | [`campaign-run-file.md`](./campaign-run-file.md) | **proven** ([#229](https://github.com/blisspixel/fragr/pull/229), v0.45.0) | Versioned local solo run persistence, exact continue restoration and retained M01 exit equipment. |

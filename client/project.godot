@@ -18,6 +18,8 @@ boot_splash/stretch_mode=1
 boot_splash/use_filter=false
 config/features=PackedStringArray("4.7", "Forward Plus")
 config/icon="res://icon.svg"
+config/macos_native_icon="res://icon.icns"
+config/windows_native_icon="res://icon.ico"
 
 [display]
 
@@ -204,6 +206,7 @@ locale/fallback="en"
 [rendering]
 
 renderer/rendering_method="forward_plus"
+textures/vram_compression/import_etc2_astc=true
 
 [debug]
 

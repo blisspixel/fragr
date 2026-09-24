@@ -65,6 +65,7 @@ If prose and code disagree, code wins; fix the prose in the same change. Keep pl
 | Participant records and local history | `server/src/statistics.rs` counts resolved facts; `protocol/statistics.rs` owns records. Delivery requires capability 8. Client validation: `player_record.gd`; retained history: `player_records.gd`; UI: `records_panel.gd`. Continue resets attempt counts, never total effort. Automation isolates `fragr_records_path` or uses memory. Never infer effective damage from overkill-inclusive `ShotResult.damage`. |
 | Tick loop shared by the binary and harnesses | `server/src/run.rs` (`run_server`, `ServerOptions`) |
 | Local campaign process ownership | `server/src/local.rs` owns readiness, run location and stdin lease; `maps::AuthoredSource` uses one map loader for files and bundled missions. `client/scripts/local_match.gd` owns lifecycle and read-only preview, `local_process.gd` owns native pipes/PID. Never kill a listener by port or process name. |
+| Desktop packages and game icon | `.github/workflows/release.yml` builds, smokes and attaches tag packages; `client/scripts/install_check.gd` is the packaged `-- --check-install`. Icon files come only from `tools/bake_icon.gd`. Keep `fragr-server` beside the game executable. |
 | Agent playtest harness and metrics | `tools/playtest` |
 | Decision-brain agent, budget gate, spend ledger | `agents/brain` (`budget`, `provider`, `bot`) |
 | Session glue, rosters, `min_bots`, broadcast | `server/src/session.rs` |

@@ -165,7 +165,32 @@ four-seat development hosts retain shared boarding and automatic party resets;
 
 ## Desktop exports
 
-Export presets for Windows, macOS, and Linux live in `client/export_presets.cfg` and write under `builds/` (gitignored). Install the matching 4.7.2 export templates, then:
+Tagged releases attach one zip per platform, built by
+`.github/workflows/release.yml`: `fragr-<tag>-windows-x86_64.zip`,
+`fragr-<tag>-linux-x86_64.zip` and `fragr-<tag>-macos-universal.zip`, plus
+`SHA256SUMS.txt`. Each holds the exported game with a matching `fragr-server`
+beside it, and license files. Download one from the
+[releases page](https://github.com/blisspixel/fragr/releases), unpack it, and
+keep the files together.
+
+- **Windows:** run `fragr.exe`. The executable is unsigned, so SmartScreen may
+  ask first ("More info", then "Run anyway").
+- **Linux (x86_64, glibc 2.35 or newer):** run `./fragr.x86_64`.
+- **macOS (Apple Silicon and Intel, 10.13 or newer):** the app is ad-hoc signed
+  but not notarized, so the first open is blocked. Open it once, then choose
+  **Open Anyway** in System Settings, Privacy and Security. Or remove the
+  download flag in Terminal:
+  `xattr -dr com.apple.quarantine "fragr Client.app"`.
+
+`fragr --headless -- --check-install` (the app's `Contents/MacOS/fragr Client`
+on macOS) checks that the game finds its bundled server and prints a PASS or
+FAIL line. CI runs that check on every package before a release gets it. That
+is a headless check; a boot to a playable match on a clean desktop has not been
+recorded yet ([plan](docs/plans/desktop-release.md)). Multiplayer and arcade
+practice use a separately hosted server, normally on port 6767; the bundled
+`fragr-server` can host one (see below).
+
+To export by hand, install the 4.7.2-stable export templates, then:
 
 ```bash
 mkdir -p builds/windows builds/macos builds/linux
@@ -174,13 +199,12 @@ godot --headless --path client --export-release "macOS" ../builds/macos/fragr.zi
 godot --headless --path client --export-release "Linux/X11" ../builds/linux/fragr.x86_64
 ```
 
-These presets export the client only. The local campaign launcher looks for a
-matching `fragr-server` executable beside the game executable (`.exe` on Windows,
-inside `Contents/MacOS` for a macOS app). Checkout runs also search
-`target/release`, then `target/debug`. Package assembly, macOS helper signing and
-downloadable desktop releases remain unverified; the presets alone do not create
-a complete installation. Multiplayer and arcade practice use a separately hosted
-server, normally on port 6767.
+The presets export the client only. The local campaign launcher looks for a
+matching `fragr-server` executable beside the game executable (`.exe` on
+Windows, inside `Contents/MacOS` for a macOS app, which must then be signed
+again). Checkout runs also search `target/release`, then `target/debug`. The
+icon files come from `tools/bake_icon.gd`:
+`godot --headless --path client --script ../tools/bake_icon.gd`.
 
 ## Host a server
 
