@@ -94,7 +94,10 @@ impl CombatCounts {
             .iter()
             .zip(super::WeaponType::ALL)
             .any(|(counts, weapon)| {
-                counts.kills > counts.damaging_attacks.saturating_mul(weapon.pellets() as u64)
+                counts.kills
+                    > counts
+                        .damaging_attacks
+                        .saturating_mul(weapon.pellets() as u64)
                     || counts.damaging_attacks > counts.attacks
             })
         {

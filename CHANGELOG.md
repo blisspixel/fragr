@@ -4,6 +4,25 @@ Shipped tags, newest first. A line here is on `main`. Planned work stays in
 [docs/ROADMAP.md](docs/ROADMAP.md). Older tags are on the
 [releases page](https://github.com/blisspixel/fragr/releases).
 
+## v0.49.0 (2026-09-24)
+
+Guns now work the way Doom does. There are no magazines and no reloading: you
+carry one count of each ammunition type and every shot spends one. The Pistol
+and the Rifle share Bullets, the Shotgun uses Shells and the Railgun uses Cells,
+and the corner shows a single number beside a small ammo sprite for the gun in
+your hand. R no longer does anything. Caps are 200 Bullets, 50 Shells and 50
+Cells.
+
+The Shotgun is a real shotgun. Each blast is seven pellets in a tight cone, every
+pellet hits or misses on its own, cover stops the ones that meet it, and one blast
+can hit two people. Up close all seven land for 70 damage, so two blasts drop an
+unarmoured fighter. Farther out fewer pellets land and each hits softer. You can
+see every pellet's trace and spark.
+
+Recall Notice guards no longer pause to reload either, and its ammo boxes now
+hold bullets. A Recall Notice save from an earlier version cannot continue: the
+menu offers a new run and keeps the old save file beside it.
+
 ## v0.48.0 (2026-09-24)
 
 Single Player has a development entry for the second mission, "Persons

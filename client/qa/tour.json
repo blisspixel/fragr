@@ -92,6 +92,20 @@
       "note": "Single acknowledged local rail shot into the floor, sampled through expiry. Inspect the full-size shot and timed strip for position, sparks, trace, and decay."
     },
     {
+      "name": "scatter_pellets",
+      "at_seconds": 20.5,
+      "camera": "first_person",
+      "weapon": "Scatter",
+      "aim_pitch": -0.35,
+      "trigger": "fire",
+      "strip_frames": 8,
+      "strip_interval_seconds": 0.03,
+      "single_shot": true,
+      "probe": "ShotEffects",
+      "impact_kind": "solid",
+      "note": "Single acknowledged shotgun blast into the floor about five units ahead. Seven pellets should land as seven separate impacts inside a tight cone."
+    },
+    {
       "name": "return_to_spectator",
       "at_seconds": 21,
       "camera": "first_person",

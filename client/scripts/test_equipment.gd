@@ -142,7 +142,7 @@ func _run() -> void:
 	_check(EquipmentState.pool_name("bullets") == "Bullets" and EquipmentState.pool_name("shells") == "Shells" and EquipmentState.pool_name("cells") == "Cells", "ammo uses familiar names")
 	armed["selected"] = "scatter"
 	display.apply(armed)
-	display._process(0.0)
+	display._process(0.3)
 	_check(display.counts.text == "11" and display.glyph_pool == "shells" and display.counts.modulate == Color.WHITE, "the held shotgun shows its shell count")
 	armed["selected"] = "flechette"
 	display.apply(armed)

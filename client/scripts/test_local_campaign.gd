@@ -111,7 +111,7 @@ func _run() -> void:
 	_expect(current_scene.get_node_or_null("LoadingCard") == null and current_scene.controls_blocked(), "campaign replaces timed controls card and blocks play")
 	_expect(current_scene.mission_hud.state["phase"] == "briefing", "server waits for the reader")
 	var rules: Dictionary = current_scene.mission_hud.state["rules"]
-	_expect(rules["difficulty"] == "severe" and rules["revision"] == 1, "menu selection reaches authoritative mission rules: " + str(rules))
+	_expect(rules["difficulty"] == "severe" and rules["revision"] == 2, "menu selection reaches authoritative mission rules: " + str(rules))
 	var partner: Node = load("res://scripts/net_client.gd").new()
 	root.add_child(partner)
 	partner.set_server_host(address)
