@@ -1184,12 +1184,13 @@ mod mcp_tests {
             .pending_mission_ready
             .is_none());
         let mut bad = serde_json::to_value(sim.mission_message().unwrap()).unwrap();
-        bad["state"]["m02"]["current"]["action"]["target"]["decoration"] = serde_json::json!(2);
+        // Index 0 is a gate signal lamp, never a usable panel.
+        bad["state"]["m02"]["current"]["action"]["target"]["decoration"] = serde_json::json!(0);
         assert!(ingest_server_text(&mut state, &bad.to_string()).is_err());
         assert_eq!(
             build_observe_result(&state)["mission"]["m02"]["current"]["action"]["target"]
                 ["decoration"],
-            0
+            2
         );
     }
 

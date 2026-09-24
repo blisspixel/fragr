@@ -46,6 +46,9 @@ objective count, prepared gate mask and the current arrival region or physical
 use target. The target's decoration index refers to `observe.map.presentation`.
 `observe.map.m02_objectives` is present only for M02 and matches the mission's
 objective count; numeric map IDs alone do not identify a mission.
+M02 presentations may also contain `gate_locked` and `gate_open` lamp panels.
+They mirror each gate's real state in the current map and are never use
+targets; the adapter rejects a target that names one.
 The adapter rejects targets that do not match the current map. `mission_ready`
 accepts `persons_unknown` with the observed attempt; `objective_use` prompts
 are issued per eligible participant. The graybox is not yet a normal Godot route.

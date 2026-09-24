@@ -197,6 +197,14 @@ impl AuthoredMap {
                     .get(&detail.solid)
                     .copied()
                     .ok_or_else(|| invalid("map decoration references an unknown solid"))?;
+                // A signal lamp must mean one gate's real state, so only a gate places it.
+                if matches!(
+                    detail.kind,
+                    crate::protocol::MapDecorationKind::GateLocked
+                        | crate::protocol::MapDecorationKind::GateOpen
+                ) {
+                    return Err(invalid("gate signals belong to an M02 gate"));
+                }
                 Ok(detail.with_solid(index))
             })
             .collect::<io::Result<Vec<_>>>()?;

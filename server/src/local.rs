@@ -178,6 +178,12 @@ pub async fn serve_with_mode(
     input: impl Read + Send + 'static,
     output: impl Write,
 ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    // M02 is a development entry: no durable run, continues or save carry yet.
+    // Its party rules keep entry respawn and the shared wipe reset.
+    let campaign_run = mission == MissionId::RecallNotice;
+    if run_mode.is_some() && !campaign_run {
+        return Err(io::Error::other("this mission has no durable local run yet").into());
+    }
     let (owner_tx, mut owner_rx) = oneshot::channel();
     std::thread::Builder::new()
         .name("local-parent".into())
@@ -191,7 +197,7 @@ pub async fn serve_with_mode(
         bots: 0,
         authored: Some(AuthoredSource::Mission(mission)),
         difficulty: Some(difficulty),
-        campaign_run: true,
+        campaign_run,
         seed,
         status_every_s: 0,
         join_secret: crate::join_ticket::JoinSecret::from_process_env()

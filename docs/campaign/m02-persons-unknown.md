@@ -1,6 +1,6 @@
 # M02: Persons Unknown
 
-**Status:** proposed, unbuilt. Earth before the wipe. Target 10-12 minutes.
+**Status:** traversal graybox only (`server/maps/m02-persons-unknown.json`); story, Latch, the Jammer and encounters are unbuilt. Earth before the wipe. Target 10-12 minutes.
 [Treatment](../CAMPAIGN-MISSIONS.md#m02-persons-unknown).
 
 ## Story and cast

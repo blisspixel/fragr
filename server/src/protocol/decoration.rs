@@ -45,6 +45,11 @@ pub enum MapDecorationKind {
     Terminal,
     StripLight,
     LiftControl,
+    /// M02 gate signal: red lamp over a closed shutter pictogram. Authored only
+    /// through a gate, which flips it to `GateOpen` in every world where it is raised.
+    GateLocked,
+    /// Green lamp over a raised shutter and up arrow, on the gate and its opener.
+    GateOpen,
 }
 
 /// Authoring names a solid; the validated wire form uses its index. The same

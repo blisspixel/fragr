@@ -1,4 +1,4 @@
-//! Preparatory M02 objective authoring. No mission wire or live transition uses this yet.
+//! M02 objective, gate and signal authoring, prepared and checked before readiness.
 use super::{identity, invalid, standing};
 use crate::movement::{Arena, EYE_HEIGHT};
 use crate::navigation::{Navigation, RouteStatus, SEARCH_LIMIT};
@@ -14,6 +14,10 @@ const MAX_OBJECTIVES: usize = 8;
 const MAX_GATES: usize = 3;
 const MAX_HALF_EXTENT: f32 = 128.0;
 const MAX_SOLIDS: usize = 128;
+const MIN_SIGNALS: usize = 2;
+const MAX_SIGNALS: usize = 4;
+/// Doom-simple controls: whatever opens a gate stands beside it, never across the map.
+const MAX_OPENER_DISTANCE: f32 = 8.0;
 
 #[derive(Debug, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -51,6 +55,9 @@ struct Gate {
     solid: String,
     lift: f32,
     after: String,
+    /// Matching lamps on the gate and on whatever opens it. Authored locked;
+    /// every world in which this gate is raised shows them open.
+    signals: Vec<MapDecoration<String>>,
 }
 
 #[derive(Debug, Clone)]
@@ -58,6 +65,7 @@ struct World {
     mask: u8,
     arena: Arena,
     navigation: Arc<Navigation>,
+    presentation: MapPresentation,
 }
 
 #[derive(Debug, Clone)]
@@ -89,6 +97,14 @@ impl Prepared {
             .iter()
             .find(|world| world.mask == mask)
             .map(|world| (&world.arena, &world.navigation))
+    }
+
+    /// The presentation of one prepared world, with its gate signals flipped.
+    pub(crate) fn presentation(&self, mask: u8) -> Option<&MapPresentation> {
+        self.worlds
+            .iter()
+            .find(|world| world.mask == mask)
+            .map(|world| &world.presentation)
     }
 
     pub(super) fn navigations(&self) -> impl Iterator<Item = &Navigation> {
@@ -196,6 +212,7 @@ impl Definition {
         let mut gate_solids = HashSet::new();
         let mut gate_after = HashSet::new();
         let mut gates = Vec::with_capacity(self.gates.len());
+        let mut signals = Vec::with_capacity(self.gates.len());
         for gate in self.gates {
             identity(&gate.id, seen)?;
             let solid = *solid_ids
@@ -210,6 +227,23 @@ impl Definition {
                     "M02 gate needs a unique solid and trigger, with bounded lift",
                 ));
             }
+            if !(MIN_SIGNALS..=MAX_SIGNALS).contains(&gate.signals.len()) {
+                return Err(invalid(
+                    "M02 gate needs matching signals on the gate and its opener",
+                ));
+            }
+            let mut lamps = Vec::with_capacity(gate.signals.len());
+            for signal in gate.signals {
+                let host = *solid_ids
+                    .get(&signal.solid)
+                    .ok_or_else(|| invalid("M02 gate signal references an unknown solid"))?;
+                if signal.kind != MapDecorationKind::GateLocked {
+                    return Err(invalid("M02 gate signals are authored locked"));
+                }
+                lamps.push(presentation.decorations.len());
+                presentation.decorations.push(signal.with_solid(host));
+            }
+            signals.push(lamps);
             gates.push((solid, gate.lift, gate.after));
         }
         let mut objectives = Vec::with_capacity(self.objectives.len());
@@ -290,12 +324,34 @@ impl Definition {
                 mask |= 1 << index;
             }
         }
+        // Whatever opens a gate stands beside it: a switch hit in stride, or an
+        // arrival right at the door, never a hunt across the map.
+        for (solid, _, after) in &gates {
+            let opener = objectives
+                .iter()
+                .find(|objective| &objective.id == after)
+                .ok_or_else(|| invalid("M02 gate trigger must name a nonfinal objective"))?;
+            let gate = &arena.solids[*solid];
+            let dx = (gate.min_x - opener.feet[0])
+                .max(opener.feet[0] - gate.max_x)
+                .max(0.0);
+            let dz = (gate.min_z - opener.feet[2])
+                .max(opener.feet[2] - gate.max_z)
+                .max(0.0);
+            if dx.hypot(dz) > MAX_OPENER_DISTANCE {
+                return Err(invalid(
+                    "M02 gate must stand beside the control or arrival that opens it",
+                ));
+            }
+        }
         // Only the actually reachable sequence of masks is constructed. Each
-        // variant has its own collision and topology before server readiness.
+        // variant has its own collision, topology and signal state before
+        // server readiness.
         let mut worlds = Vec::with_capacity(gates.len() + 1);
         let mut mask = 0u8;
         let mut current = arena.clone();
-        worlds.push(Self::build_world(mask, current.clone(), presentation)?);
+        let mut shown = presentation.clone();
+        worlds.push(Self::build_world(mask, current.clone(), shown.clone())?);
         for objective in &objectives {
             if let Some((index, (solid, lift, _))) = gates
                 .iter()
@@ -305,7 +361,10 @@ impl Definition {
                 mask |= 1 << index;
                 current.solids[*solid].bottom += lift;
                 current.solids[*solid].top += lift;
-                worlds.push(Self::build_world(mask, current.clone(), presentation)?);
+                for lamp in &signals[index] {
+                    shown.decorations[*lamp].kind = MapDecorationKind::GateOpen;
+                }
+                worlds.push(Self::build_world(mask, current.clone(), shown.clone())?);
             }
         }
         let prepared = Prepared { worlds, objectives };
@@ -313,15 +372,16 @@ impl Definition {
         Ok(prepared)
     }
 
-    fn build_world(mask: u8, arena: Arena, presentation: &MapPresentation) -> io::Result<World> {
+    fn build_world(mask: u8, arena: Arena, presentation: MapPresentation) -> io::Result<World> {
         crate::movement::validate_geometry(arena.half, &arena.solids).map_err(invalid)?;
-        crate::protocol::validate_map_presentation(Some(presentation), &arena.solids)
+        crate::protocol::validate_map_presentation(Some(&presentation), &arena.solids)
             .map_err(invalid)?;
         let navigation = Navigation::shared(arena.clone()).map_err(invalid)?;
         Ok(World {
             mask,
             arena,
             navigation,
+            presentation,
         })
     }
 }

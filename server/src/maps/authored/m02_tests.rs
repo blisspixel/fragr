@@ -23,7 +23,9 @@ fn fixture() -> Value {
                 {"id":"party_departed","after":"correction_stopped","action":{"kind":"arrival",
                  "region":{"min":[-1,0,3],"max":[1,1,5]},"feet":[0,0,4]}}
             ],
-            "gates":[{"id":"ward_release","solid":"ward_gate","lift":4,"after":"correction_stopped"}]
+            "gates":[{"id":"ward_release","solid":"ward_gate","lift":4,"after":"correction_stopped","signals":[
+                {"solid":"ward_gate","face":"north","center":[0,0.8],"size":[0.5,0.5],"kind":"gate_locked"},
+                {"solid":"divider_west","face":"north","center":[-2.75,0.8],"size":[0.5,0.5],"kind":"gate_locked"}]}]
         }
     })
 }
@@ -141,4 +143,97 @@ fn m02_rejects_unusable_controls_and_routes() {
         .unwrap_err()
         .to_string()
         .contains("arrival region spans"));
+}
+
+#[test]
+fn m02_gate_signals_flip_with_their_prepared_world() {
+    use crate::protocol::MapDecorationKind;
+    let map = read(&fixture()).unwrap();
+    let closed = crate::maps::RuntimeMap::Authored(map);
+    let kinds = |map: &crate::maps::RuntimeMap| -> Vec<MapDecorationKind> {
+        map.presentation_ref()
+            .unwrap()
+            .decorations
+            .iter()
+            .map(|detail| detail.kind)
+            .collect()
+    };
+    assert_eq!(
+        kinds(&closed),
+        [
+            MapDecorationKind::GateLocked,
+            MapDecorationKind::GateLocked,
+            MapDecorationKind::Terminal
+        ]
+    );
+    let opened = closed.prepared_gate_world(1).unwrap();
+    assert_eq!(
+        kinds(&opened),
+        [
+            MapDecorationKind::GateOpen,
+            MapDecorationKind::GateOpen,
+            MapDecorationKind::Terminal
+        ]
+    );
+    // The lamp on the gate rides up with it and stays on its face.
+    let lamp = &opened.presentation_ref().unwrap().decorations[0];
+    assert_eq!(lamp.solid, 2);
+    assert!(lamp.point(&opened.arena().solids[2])[1] > 4.0);
+    assert!(crate::protocol::validate_map_presentation(
+        opened.presentation_ref(),
+        &opened.arena().solids
+    )
+    .is_ok());
+}
+
+#[test]
+fn m02_rejects_unlinked_or_distant_openers_and_loose_signals() {
+    let mut bad = fixture();
+    bad["m02"]["gates"][0]["signals"]
+        .as_array_mut()
+        .unwrap()
+        .truncate(1);
+    assert!(read(&bad)
+        .unwrap_err()
+        .to_string()
+        .contains("matching signals"));
+    let mut bad = fixture();
+    bad["m02"]["gates"][0]["signals"][1]["kind"] = json!("gate_open");
+    assert!(read(&bad)
+        .unwrap_err()
+        .to_string()
+        .contains("authored locked"));
+    let mut bad = fixture();
+    bad["m02"]["gates"][0]["signals"][1]["solid"] = json!("missing");
+    assert!(read(&bad).is_err());
+    let mut bad = fixture();
+    bad["m02"]["gates"][0]
+        .as_object_mut()
+        .unwrap()
+        .remove("signals");
+    assert!(read(&bad).is_err());
+    let mut bad = fixture();
+    bad["decorations"] = json!([
+        {"solid":"divider_east","face":"north","center":[0,0],"size":[0.5,0.5],"kind":"gate_open"}
+    ]);
+    assert!(read(&bad)
+        .unwrap_err()
+        .to_string()
+        .contains("belong to an M02 gate"));
+    // A switch across the room from its door is a hunt, not a Doom switch.
+    let mut far = fixture();
+    far["half_extent"] = json!(20);
+    far["solids"][0]["min"] = json!([-20, 3, -20]);
+    far["solids"][0]["max"] = json!([20, 4, 20]);
+    far["solids"][1]["min"][0] = json!(-20);
+    far["solids"][3]["max"][0] = json!(20);
+    far["m02"]["objectives"][1]["action"]["panel"]["center"] = json!([0, -14]);
+    far["m02"]["objectives"][1]["action"]["approach"] = json!([0, 0, -14.5]);
+    assert!(read(&far)
+        .unwrap_err()
+        .to_string()
+        .contains("beside the control"));
+    far["m02"]["objectives"][1]["action"]["panel"]["center"] = json!([0, -5]);
+    far["m02"]["objectives"][1]["action"]["approach"] = json!([0, 0, -5.5]);
+    assert!(read(&far).is_ok());
 }
