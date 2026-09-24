@@ -208,7 +208,7 @@ impl GameState {
             Some(player) if solo.playing() && player.hp <= 0 => {
                 player.respawn_timer = None;
                 player.clear_input();
-                player.inventory.cancel_reload();
+                player.inventory.release_trigger();
                 if solo.state.continues == 0 {
                     CampaignRunStatus::Failed
                 } else {

@@ -107,7 +107,8 @@ navigation maps. [Enclosed campaign geometry](plans/campaign-spaces.md) shipped 
 #176 for real ceilings and overlapping floors. [Authored maps](plans/authored-campaign-maps.md)
 now brings M01's connected blockout, indoor spawns and institutional surface kits
 through the live server. [M01 discovery](plans/m01-weapon-discovery.md) now adds
-fists, recovered Tack/Flechette, finite ammunition, reload and individual supply
+fists, recovered Tack/Flechette, finite ammunition (one count per type and no
+reload since [boomer ammo](plans/boomer-ammo-and-pellets.md)) and individual supply
 claims. The [intake encounter](plans/m01-intake-encounter.md) shipped its prototype in #182:
 bounded authoring, allied participants and Clerk/Sweeper server phases have local
 tests, including live wire admission. The draft M01 now places a guarded

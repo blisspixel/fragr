@@ -13,27 +13,29 @@ and the map version in observations, and closes its MCP game session if a map
 has unsupported or invalid geometry, or the server sends malformed JSON.
 Ground-filled legacy maps remain readable.
 
-The adapter declares gameplay capability 9. Discovery-only maps require 2; authored
-encounters require 3; M01 mission parties require 6 and solo runs 7. M02 requires
-9 for all roles. Older clients are
+The adapter declares gameplay capability 10. Every discovery map, M01 and M02
+included, requires 10 for all roles; the six full-arsenal arcade maps still
+admit 1. Older clients are
 rejected before admission. `observe.loadout`
-is private to this participant: selected and
-owned weapons, magazines, pooled reserves, reload completion tick, personal
-supply claims and dry-trigger count. Invalid, foreign or backward-tick equipment
+is private to this participant: selected and owned weapons (`["fists","tack"]`),
+one `ammo` count per pool (`bullets`, `shells`, `cells`), personal supply
+claims and dry-trigger count. There are no magazines and no reload: every shot
+spends one unit, a scatter blast of seven pellets included. Invalid, foreign or backward-tick equipment
 ends the session without replacing the last valid observation. Spectators receive
 no private inventory. Arcade servers omit this object.
 
 `observe.mission.rules` reports the host's fixed difficulty (`assisted`, `standard`
-or `severe`) and tuning `revision` (currently 1). Humans, agents and spectators
+or `severe`) and tuning `revision` (currently 2). Humans, agents and spectators
 share these rules. Unknown revisions or changing rules fail validation, including
 across a same-mission geometry update. Difficulty does not alter MCP budgets or
 agent control frequency. Use matching builds when connecting to campaign servers.
 
 `act` accepts `fists`, `tack`, `flechette`, `scatter` and `rail` for `weapon_swap`;
-the server rejects unowned choices. `reload: true` requests one reload and survives
-a subsequent action without the flag until consumed. Scripted and decision
-controllers use the shared equipment helper to find supplies, choose owned guns
-and reload. MCP still sends ordinary actions, never direct inventory changes.
+the server rejects unowned choices. `reload` is retired and the `act` schema no
+longer lists it; an `act` call that carries it is a schema error. Scripted and
+decision controllers use the shared equipment helper to find supplies and to
+put away a gun whose count is empty. MCP still sends ordinary actions, never
+direct inventory changes.
 
 `observe.mission` carries the shared phase, attempt, party readiness/boarding and currently
 legal prompts. `observe.map.mission` describes panel indices, approach positions
@@ -198,7 +200,7 @@ Get the current game state snapshot including self player ID and recent events.
 
 **Notes:**
 - Returns connecting state until first snapshot arrives from server
-- Snapshot may include `shot_results` (per-tick hit-confirm: `hit`, `damage`, `target_hp_after`)
+- Snapshot may include `shot_results` (per-tick hit-confirm: `hit`, `damage`, `target_hp_after`). A scatter blast is one result per struck fighter plus one miss result, each with `trace.pellets`; all of one shooter's results in a tick are one shot
 - `self_player_id`: UUID of your agent's player (null for spectators)
 - `recent_events`: Last 50 game events (player joins/leaves, frags, respawns, round start/end) in chronological order
 - Dead players (HP <= 0) are omitted from players array
@@ -227,7 +229,7 @@ Send an action to control your agent's pawn.
 
 All fields are optional. Movement and fire are booleans (default `false`).
 `weapon_swap` accepts `"fists"`, `"tack"`, `"flechette"`, `"rail"`, or `"scatter"`.
-`reload` is a boolean discrete request. For `look_at`, prefer
+There is no `reload`. For `look_at`, prefer
 `player_id` (UUID), or both `x` and `z` with optional world `y`. The server aims
 at a player's body centre in three dimensions. World x/z without y aims
 horizontally. Nonfinite/out-of-range floating-point coordinates are rejected.

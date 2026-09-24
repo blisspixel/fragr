@@ -1,19 +1,17 @@
 {
-  "comment": "Live M01 discovery and finite-ammo proof. FRAGR_QA_BOTS=0, FRAGR_QA_MAP_FILE=server/maps/m01-recall-notice.json. Uses ordinary movement, trigger and reload input; no granted equipment or teleports.",
+  "comment": "Live M01 discovery and finite-ammo proof. FRAGR_QA_BOTS=0, FRAGR_QA_MAP_FILE=server/maps/m01-recall-notice.json. Uses ordinary movement and trigger input; no granted equipment or teleports. One ammunition count per type, no reload.",
   "width": 1280,
   "height": 720,
   "states": [
-    {"name":"disarmed_entry","scene":"res://scenes/main.tscn","join":"human","camera":"first_person","expect_yaw":1.5707964,"expect_equipment":{"selected":"fists","reload":null},"note":"Arrive disarmed beneath the annex canopy, facing confiscation."},
+    {"name":"disarmed_entry","scene":"res://scenes/main.tscn","join":"human","camera":"first_person","expect_yaw":1.5707964,"expect_equipment":{"selected":"fists"},"note":"Arrive disarmed beneath the annex canopy, facing confiscation."},
     {"name":"alternating_punches","camera":"first_person","trigger":"fire","probe":"MeleeView","strip_frames":10,"strip_interval_seconds":0.07,"expect_equipment":{"selected":"fists"},"note":"Alternating arms, no muzzle flash or tracer."},
-    {"name":"confiscated_tack","camera":"first_person","walk_to":[[0,0,-34],[0,0,-26]],"expect_equipment":{"selected":"tack","magazine":12,"reserve":36},"note":"First recovered weapon, individually claimable by each participant."},
-    {"name":"tack_recoil","camera":"first_person","look_at":[6,1.6,-26],"trigger":"fire","single_shot":true,"probe":"FpMuzzle","strip_frames":6,"strip_interval_seconds":0.03,"expect_equipment":{"selected":"tack","magazine":11,"reserve":36},"note":"One acknowledged Tack shot and recovery."},
-    {"name":"tack_empty","camera":"first_person","empty_magazine":true,"expect_equipment":{"selected":"tack","magazine":0,"reserve":36,"reload":null},"note":"A held empty trigger produces bounded feedback and no automatic weapon switch."},
-    {"name":"tack_reload","camera":"first_person","trigger":"reload","probe":"Equipment","strip_frames":8,"strip_interval_seconds":0.16,"expect_expiry":true,"expect_equipment":{"selected":"tack","magazine":12,"reserve":24,"reload":null},"note":"Server reload completes in eighteen ticks; rounds move out of reserve."},
+    {"name":"confiscated_tack","camera":"first_person","walk_to":[[0,0,-34],[0,0,-26]],"expect_equipment":{"selected":"tack","ammo":50},"note":"First recovered weapon, individually claimable by each participant."},
+    {"name":"tack_recoil","camera":"first_person","look_at":[6,1.6,-26],"trigger":"fire","single_shot":true,"probe":"FpMuzzle","strip_frames":6,"strip_interval_seconds":0.03,"expect_equipment":{"selected":"tack","ammo":49},"note":"One acknowledged Tack shot spends one bullet."},
+    {"name":"tack_empty","camera":"first_person","empty_ammo":true,"probe":"Equipment","expect_equipment":{"selected":"tack","ammo":0},"note":"All forty-nine remaining bullets spent through authoritative shots; a held empty trigger produces bounded feedback and no automatic weapon switch."},
+    {"name":"bay_bullets","camera":"first_person","walk_to":[[-4,0,-24],[-4,0,-23]],"expect_equipment":{"selected":"tack","ammo":20},"note":"A contested box of twenty bullets makes the pistol live again at once."},
     {"name":"clerk_encounter","camera":"first_person","walk_to":[[0,0,-21]],"combat":{"kind":"clerk","defeat":1},"note":"Finite Tack ammunition defeats the guard before the route split."},
     {"name":"sweeper_encounter","camera":"first_person","walk_to":[[0,0,-10]],"combat":{"kind":"sweeper","defeat":2},"note":"Two bots approach around the records screen."},
-    {"name":"hall_flechette","camera":"first_person","walk_to":[[6,0,-10],[6,0,-9]],"expect_equipment":{"selected":"flechette","magazine":30,"reserve":90},"note":"Flechette recovery before the records stairs."},
-    {"name":"flechette_empty","camera":"first_person","look_at":[6,1.6,-15],"empty_magazine":true,"expect_equipment":{"selected":"flechette","magazine":0,"reserve":90},"note":"Thirty-round magazine expended through authoritative shots."},
-    {"name":"flechette_reload","camera":"first_person","trigger":"reload","probe":"Equipment","strip_frames":9,"strip_interval_seconds":0.16,"expect_expiry":true,"expect_equipment":{"selected":"flechette","magazine":30,"reserve":60,"reload":null},"note":"Twenty-two-tick reload completes before continuing upstairs."},
-    {"name":"records_supply","camera":"first_person","walk_to":[[8,0,-8],[8,3,9],[4,3,9]],"look_at":[0,1.6,-9],"expect_equipment":{"selected":"flechette","magazine":30,"reserve":90},"note":"One contested ammunition crate supplies thirty darts at the balcony."}
+    {"name":"hall_flechette","camera":"first_person","walk_to":[[6,0,-10],[6,0,-9]],"expect_equipment":{"selected":"flechette"},"note":"Flechette recovery adds sixty bullets to the same count as the pistol."},
+    {"name":"records_supply","camera":"first_person","walk_to":[[8,0,-8],[8,3,9],[4,3,9]],"look_at":[0,1.6,-9],"expect_equipment":{"selected":"flechette"},"note":"One contested box supplies twenty bullets at the balcony; the count depends on the fights above."}
   ]
 }

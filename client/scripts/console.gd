@@ -224,7 +224,7 @@ func _report_controls() -> void:
 	echo("join / leave    J and L")
 	echo("menu            Escape")
 	echo("radio           C station, N track, M mute")
-	echo("There is no reload key yet. Reloading is specified and not built.")
+	echo("ammo            one count per type, no reload")
 
 func _game() -> Node:
 	for child in get_tree().get_root().get_children():

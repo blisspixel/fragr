@@ -1016,11 +1016,20 @@ fn test_protocol_all_weapon_types_coverage() {
     assert_eq!(WeaponType::Rail.range_units(), 60.0);
     assert_eq!(WeaponType::Rail.name(), "Rail");
 
-    assert_eq!(WeaponType::Scatter.damage(), 40);
-    assert_eq!(WeaponType::Scatter.cooldown_ticks(), 9);
-    assert_eq!(WeaponType::Scatter.spread_radians(), 0.20);
+    assert_eq!(WeaponType::Scatter.damage(), 10);
+    assert_eq!(WeaponType::Scatter.pellets(), 7);
+    assert_eq!(WeaponType::Scatter.cooldown_ticks(), 12);
+    assert_eq!(WeaponType::Scatter.spread_radians(), 0.095);
     assert_eq!(WeaponType::Scatter.range_units(), 12.0);
     assert_eq!(WeaponType::Scatter.name(), "Scatter");
+    for weapon in [
+        WeaponType::Fists,
+        WeaponType::Tack,
+        WeaponType::Flechette,
+        WeaponType::Rail,
+    ] {
+        assert_eq!(weapon.pellets(), 1);
+    }
 }
 
 #[test]
@@ -1509,9 +1518,9 @@ fn test_bots_persist_when_human_leaves() {
 fn test_weapon_type_stats() {
     use crate::protocol::WeaponType;
 
-    // Four flechette hits, three scatter hits, or two rail hits kill an
+    // Four flechette hits, two full scatter blasts, or two rail hits kill an
     // unarmoured fighter, which puts every weapon inside the time-to-kill band
-    // in docs/plans/gunfeel.md.
+    // in docs/plans/gunfeel.md. A scatter "hit" is all seven pellets landing.
     assert_eq!(WeaponType::Flechette.damage(), 25);
     assert_eq!(WeaponType::Flechette.cooldown_ticks(), 4);
     assert_eq!(WeaponType::Flechette.spread_radians(), 0.045);
@@ -1522,18 +1531,19 @@ fn test_weapon_type_stats() {
     assert_eq!(WeaponType::Rail.spread_radians(), 0.012);
     assert_eq!(WeaponType::Rail.range_units(), 60.0);
 
-    assert_eq!(WeaponType::Scatter.damage(), 40);
-    assert_eq!(WeaponType::Scatter.cooldown_ticks(), 9);
-    assert_eq!(WeaponType::Scatter.spread_radians(), 0.20);
+    assert_eq!(WeaponType::Scatter.damage(), 10);
+    assert_eq!(WeaponType::Scatter.cooldown_ticks(), 12);
+    assert_eq!(WeaponType::Scatter.spread_radians(), 0.095);
     assert_eq!(WeaponType::Scatter.range_units(), 12.0);
 
     // Time to kill at 100 HP, in seconds at the 20 Hz tick.
     for (weapon, hits, seconds) in [
         (WeaponType::Flechette, 4, 0.6),
         (WeaponType::Rail, 2, 1.0),
-        (WeaponType::Scatter, 3, 0.9),
+        (WeaponType::Scatter, 2, 0.6),
     ] {
-        let needed = (100 + weapon.damage() - 1) / weapon.damage();
+        let per_shot = weapon.damage() * weapon.pellets() as i32;
+        let needed = (100 + per_shot - 1) / per_shot;
         assert_eq!(needed, hits, "{weapon:?} should need {hits} clean hits");
         let ttk = (needed - 1) as f32 * weapon.cooldown_ticks() as f32 / 20.0;
         assert!(
@@ -1543,6 +1553,17 @@ fn test_weapon_type_stats() {
         assert!(
             (0.5..=1.2).contains(&ttk),
             "{weapon:?} must sit in the target band, got {ttk}"
+        );
+        // Full armour absorbs its 100 first; the plan keeps that under 1.8 s.
+        // The rail's 2.0 s predates this change and is still an open item.
+        if weapon == WeaponType::Rail {
+            continue;
+        }
+        let armoured = (200 + per_shot - 1) / per_shot;
+        let armoured_ttk = (armoured - 1) as f32 * weapon.cooldown_ticks() as f32 / 20.0;
+        assert!(
+            armoured_ttk < 1.8 + 0.001,
+            "{weapon:?} through full armour takes {armoured_ttk} s"
         );
     }
 }
@@ -1736,9 +1757,22 @@ fn test_scatter_hits_harder_than_flechette_up_close() {
 
     let damage_dealt = initial_hp - state.players[target_idx].hp;
     // The target centre is five units away, but the near cylinder surface
-    // is about 4.5 units away. Falloff uses the traveled ray distance.
+    // is about 4.5 units away. Falloff uses each pellet's traveled distance.
+    let trace = state.shot_results[0].trace.as_ref().unwrap();
+    let expected: i32 = trace
+        .pellets
+        .iter()
+        .map(|pellet| {
+            let travelled = (0..3)
+                .map(|axis| (pellet.end[axis] - trace.origin[axis]).powi(2))
+                .sum::<f32>()
+                .sqrt();
+            assert!(travelled > 4.4, "pellets stop on the near body surface");
+            WeaponType::Scatter.damage_at(travelled)
+        })
+        .sum();
     assert_eq!(
-        damage_dealt, 38,
+        damage_dealt, expected,
         "Scatter reaches the near body surface first"
     );
     assert!(
@@ -1746,7 +1780,7 @@ fn test_scatter_hits_harder_than_flechette_up_close() {
         "up close the scatter gun should hit harder than the flechette"
     );
     assert!(
-        damage_dealt < WeaponType::Scatter.damage(),
+        damage_dealt < WeaponType::Scatter.damage() * WeaponType::Scatter.pellets() as i32,
         "and less than point blank, because it falls off"
     );
 }
@@ -1824,8 +1858,8 @@ fn test_scatter_fires_faster_than_rail() {
     state.tick(0.05);
 
     assert_eq!(
-        state.players[shooter_idx].fire_cooldown, 9,
-        "Scatter cooldown should be 9 ticks, slower than it was but far faster than the rail"
+        state.players[shooter_idx].fire_cooldown, 12,
+        "Scatter cooldown should be 12 ticks, a heavy blast but far faster than the rail"
     );
 }
 
@@ -5375,17 +5409,41 @@ fn dispersion_is_dispersion_not_free_aim() {
     let missed = fire_many(&mut state, shooter, ti, 20);
     assert_eq!(missed, 0, "a shot that misses by two units should miss");
 
-    // The scatter gun's wide cone does wander, which is the point: dispersion
-    // at the edge of its reach, not a guaranteed hit.
+    // The scatter gun's pellets do wander, which is the point: at the edge of
+    // its reach a blast lands some pellets and loses others, not all or none.
     let (mut state, shooter, ti) = lane(0.0);
     let si = state.players.iter().position(|p| p.id == shooter).unwrap();
     // Eleven units down the same lane, measured from wherever the lane is.
     state.players[ti].x = state.players[si].x + 11.0;
     state.players[si].weapon = WeaponType::Scatter;
-    let scattered = fire_many(&mut state, shooter, ti, 40);
+    let (mut landed, mut pellets, mut blasts) = (0, 0, 0);
+    while blasts < 10 {
+        state.set_action(
+            shooter,
+            Action {
+                fire: true,
+                ..Default::default()
+            },
+        );
+        state.tick(0.05);
+        if !state.shot_results.is_empty() {
+            blasts += 1;
+        }
+        for result in &state.shot_results {
+            let count = result.trace.as_ref().unwrap().pellets.len();
+            pellets += count;
+            if result.hit {
+                landed += count;
+            }
+        }
+        state.players[ti].hp = 100;
+        state.players[ti].armor = 0;
+        state.players[ti].respawn_timer = None;
+    }
+    assert_eq!(pellets, 10 * WeaponType::Scatter.pellets());
     assert!(
-        (1..40).contains(&scattered),
-        "an eleven unit scatter shot should sometimes land and sometimes not, got {scattered} of 40"
+        (1..pellets).contains(&landed),
+        "an eleven unit scatter blast should land some pellets and lose others, got {landed} of {pellets}"
     );
 }
 
@@ -6345,3 +6403,4 @@ mod vertical_aim {
 }
 mod encounters;
 mod m01;
+mod pellets;

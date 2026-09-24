@@ -260,7 +260,7 @@ fn dry_triggers_are_latched_separately_from_accepted_attacks() {
         crate::inventory::Inventory::new(crate::protocol::EquipmentPolicy::Discovery);
     player.inventory.grant_weapon(WeaponType::Tack);
     player.weapon = WeaponType::Tack;
-    for _ in 0..WeaponType::Tack.magazine_size() {
+    for _ in 0..WeaponType::Tack.pickup_rounds() {
         assert!(player.inventory.try_fire(WeaponType::Tack));
     }
     state.set_action(

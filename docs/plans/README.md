@@ -17,6 +17,7 @@ Status words: **planned**, **in flight**, **implemented** (local evidence record
 
 | Plan | Status | One-liner |
 |---|---|---|
+| [`boomer-ammo-and-pellets.md`](./boomer-ammo-and-pellets.md) | **implemented** | Doom-style ammo (one count per type, no reload) and a seven-pellet shotgun, with capability 10, rules revision 2 and a clean new-run path for magazine-era saves. |
 | [`spawn-quality.md`](./spawn-quality.md) | **implemented** | Spawn pockets on maps 3 to 5, lanes counted only inside rail reach, and an opening spawn-death gate; 47 to 7 spawn deaths over 16 runs. |
 | [`rust-tip-gate.md`](./rust-tip-gate.md) | **implemented** | Port the last Python file, the jammer tip screenshot gate, to a Rust tool with identical verdicts. |
 | [`desktop-release.md`](./desktop-release.md) | **in flight** | Tagged Windows, Linux and macOS zips with the bundled server, a packaged install check, and an original game icon. |

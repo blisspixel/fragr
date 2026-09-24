@@ -665,7 +665,7 @@ pub async fn send_unicasts(
         };
         if let Some(client) = clients_lock.iter_mut().find(|c| c.id == client_id) {
             if matches!(msg, ServerMessage::Record(_))
-                && client.gameplay_version < protocol::RECORD_GAMEPLAY_VERSION
+                && client.gameplay_version < protocol::AMMO_GAMEPLAY_VERSION
             {
                 continue;
             }

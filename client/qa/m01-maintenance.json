@@ -3,9 +3,9 @@
   "width": 1280,
   "height": 720,
   "states": [
-    {"name":"safe_tack","scene":"res://scenes/main.tscn","join":"human","camera":"first_person","walk_to":[[0,0,-34],[0,0,-26]],"expect_equipment":{"selected":"tack","magazine":12,"reserve":36}},
+    {"name":"safe_tack","scene":"res://scenes/main.tscn","join":"human","camera":"first_person","walk_to":[[0,0,-34],[0,0,-26]],"expect_equipment":{"selected":"tack","ammo":50}},
     {"name":"first_clerk","camera":"first_person","walk_to":[[0,0,-21]],"combat":{"kind":"clerk","defeat":1}},
-    {"name":"maintenance_supply","camera":"first_person","walk_to":[[0,0,-18],[-17,0,-18],[-17,0,-14]],"expect_equipment":{"selected":"flechette","magazine":30,"reserve":90},"note":"Take the maintenance weapon before climbing; the hall's bots are still dormant."},
+    {"name":"maintenance_supply","camera":"first_person","walk_to":[[0,0,-18],[-17,0,-18],[-17,0,-14]],"expect_equipment":{"selected":"flechette"},"note":"Take the maintenance weapon before climbing; the hall's bots are still dormant."},
     {"name":"balcony_flank","camera":"first_person","walk_to":[[-17,3,8],[-8,3,9]],"combat":{"kind":"sweeper","defeat":2},"note":"Move out from the service landing to overlook the hall. Bots use their actual stair route, with no knowledge of hidden player movement."},
     {"name":"records_threshold","camera":"first_person","walk_to":[[-19,3,9]],"look_at":[-19,4.7,14],"note":"The maintenance route reaches records reception. The full records wing is covered by m01-records.json."}
   ]

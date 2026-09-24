@@ -34,9 +34,46 @@ func _shot(kind: String = "solid", weapon: String = "rail") -> Dictionary:
 	return {"shooter_id": "self", "hit": kind == "fighter", "damage": 80,
 		"trace": {"weapon": weapon, "origin": [0.0, 1.6, 0.0], "end": [3.0, 0.0, 0.0], "impact": impact}}
 
+func _blast(target: String, kind: String, count: int, damage: int) -> Dictionary:
+	var shot: Dictionary = _shot(kind, "scatter")
+	shot["hit"] = kind == "fighter"
+	shot["damage"] = damage
+	if kind == "fighter":
+		shot["target_id"] = target
+	var pellets: Array = []
+	for i in range(count):
+		var impact: Dictionary = {"kind": kind}
+		if kind != "range":
+			impact["normal"] = [-1.0, 0.0, 0.0]
+		pellets.append({"end": [3.0, 1.2 + 0.1 * i, 0.2 * i], "impact": impact})
+	shot["trace"]["pellets"] = pellets
+	shot["trace"]["end"] = pellets[0]["end"]
+	shot["trace"]["impact"] = pellets[0]["impact"]
+	return shot
+
 func _run() -> void:
 	var effects: ShotEffects = ShotEffects.new()
 	root.add_child(effects)
+	# One scatter blast: four pellets in one fighter, two in another, one lost.
+	effects.ingest(1, [_blast("a", "fighter", 4, 40), _blast("b", "fighter", 2, 20), _blast("", "range", 1, 0)])
+	_check(effects.active_count() == 7, "every pellet draws its own trace and impact")
+	_check(effects.has_shot_from("self", "fighter") and effects.has_shot_from("self", "range"), "pellet impacts keep their own kind")
+	effects.clear()
+	var bad_blasts: Array = []
+	var too_many: Dictionary = _blast("a", "fighter", 8, 80)
+	bad_blasts.append(too_many)
+	var not_scatter: Dictionary = _blast("a", "fighter", 2, 20)
+	not_scatter["trace"]["weapon"] = "rail"
+	bad_blasts.append(not_scatter)
+	var broken: Dictionary = _blast("a", "fighter", 3, 30)
+	broken["trace"]["pellets"][1]["end"] = [NAN, 0, 0]
+	bad_blasts.append(broken)
+	var empty: Dictionary = _blast("a", "fighter", 1, 10)
+	empty["trace"]["pellets"] = []
+	bad_blasts.append(empty)
+	effects.ingest(1, bad_blasts)
+	_check(effects.active_count() == 0, "oversized, foreign, empty or malformed pellet lists draw nothing")
+	effects.clear()
 	effects.ingest(1, [_shot(), _shot("fighter", "scatter"), _shot("range", "flechette")])
 	_check(effects.active_count() == 3 and effects.visible, "all impact kinds create bounded presentation")
 	_check(effects.get_node("Surface").mesh.get_surface_count() == 1, "effects share one mesh surface")
@@ -100,6 +137,11 @@ func _run() -> void:
 	_check(pawn.fired == ["Fists"] and hud.fired.back() == "Fists", "a same-tick Tack pickup cannot turn a punch into gun feedback")
 	game._process_shot_results([_shot("range", "tack")], 8)
 	_check(pawn.fired == ["Fists", "Tack"] and hud.fired.back() == "Tack", "sidearm evidence reaches both first and third person")
+	var blast_hud: int = hud.fired.size()
+	var blast_hits: int = hud.hits.size()
+	game._process_shot_results([_blast("a", "fighter", 4, 40), _blast("b", "fighter", 2, 20), _blast("", "range", 1, 0)], 9)
+	_check(hud.fired.size() == blast_hud + 1 and hud.hits.size() == blast_hits + 1 and hud.fired.back() == "Scatter", "one blast is one kick and one hit marker")
+	_check(effects.active_count() >= 7, "the blast reaches the world as seven pellets")
 	game._clear_world()
 	_check(effects.active_count() == 0, "role teardown clears world effects")
 	game._process_shot_results([_shot()], 1)

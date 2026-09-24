@@ -6,7 +6,7 @@ fragr is a retro-styled 3D FPS built toward an authored campaign and multiplayer
 
 It is the 1993 LAN-party feeling rebuilt for 2026: a Rust authoritative server, a Godot client that only presents, and an MCP adapter so any agent can observe and act like a player.
 
-The current release is [v0.48.0](https://github.com/blisspixel/fragr/releases/tag/v0.48.0). Shipped tags are listed in [CHANGELOG.md](CHANGELOG.md). What is still open is [docs/ROADMAP.md](docs/ROADMAP.md).
+The current release is [v0.49.0](https://github.com/blisspixel/fragr/releases/tag/v0.49.0). Shipped tags are listed in [CHANGELOG.md](CHANGELOG.md). What is still open is [docs/ROADMAP.md](docs/ROADMAP.md).
 
 ## What runs today
 
@@ -15,7 +15,7 @@ The current release is [v0.48.0](https://github.com/blisspixel/fragr/releases/ta
 - **Solo Scrap:** arcade offline on loopback without the episode path (`FRAGR_SOLO_BROADCAST=0`), four named rule bots with visible tactics (Aggressive, Defensive, Flanker, Balanced).
 - **Watch or join:** spectator by default through a fighter's eyes, including their gun and shot feedback. F changes fighter; V cycles eyes, chase, and free camera. Join mid-match as a human, leave back to spectate. Bots keep the server alive.
 - **Contested Frequency match loop:** 10-frag or 3-minute rounds, warmup and round-end Host bumpers, killstreak callouts, a mid-round Compliance Drone boss (Auditor on Solo Broadcast).
-- **Guns and maps:** Pistol, Rifle, Shotgun, and Railgun, plus weapon and health pads. Ammo pads read Bullets, Shells, and Cells. Rifle and Shotgun share the shells reserve. Six server maps have steps and raised ground. Solo Broadcast faces Larak Lot on Arena Duel (map 1). The server CLI chooses the arena; every joining player and spectator receives its geometry.
+- **Guns and maps:** Pistol, Rifle, Shotgun, and Railgun, plus weapon and health pads. Ammo works the way Doom does it: one count per type and no reloading. Pistol and Rifle share Bullets, the Shotgun uses Shells, and the Railgun uses Cells. Every shot spends one, and a shotgun blast is seven pellets for one shell. Six server maps have steps and raised ground. Solo Broadcast faces Larak Lot on Arena Duel (map 1). The server CLI chooses the arena; every joining player and spectator receives its geometry.
 - **Vertical combat:** shots follow your horizontal and vertical aim, intersect finite fighter bodies, and stop at solid cover. Agents can target world height; eye spectators see the watched fighter's pitch.
 - **Combat feedback:** short rail beams, bullet traces, and surface sparks follow the server's actual shot path. Simultaneous trades retain both shots; a victim can award only one frag per death.
 - **Quiet combat HUD:** frags, chatter, streaks and drone alerts share a three-line corner feed. Pickup notices follow your fighter or the one you watch. Routine events do not bounce across the reticle or shake your camera.
@@ -32,7 +32,7 @@ A solo player and an agent already fight through the graybox and reach its exit 
 
 The opening mission has an opt-in [development slice](server/maps/README.md):
 enclosed intake rooms, two stair routes, an accessible records balcony, a
-prisoner lift and fists-to-found-gun progression with finite ammo and reload.
+prisoner lift and fists-to-found-gun progression with finite ammo.
 The current draft continues through records reception, file stacks, a service
 bypass, sorting, dispatch and transfer control. Twenty human Clerks and Sweeper
 bots occupy eight groups, with server-owned attack phases and directional poses.
@@ -129,7 +129,6 @@ Keyboard and gamepad share the same action path into the server.
 | Look | Mouse | Right stick |
 | Fire | Left mouse | RT |
 | Jump | Space | A |
-| Reload (discovery maps) | R | X |
 | Continue after campaign death | Enter | A after releasing held inputs |
 | Weapons | Mouse wheel, [ and ], or 1 through 5 | LB and RB |
 | Speak (taunt) | T | Y |
@@ -146,8 +145,9 @@ railgun. The wheel and the bracket keys walk that order and skip a gun you are
 not carrying. Arcade maps carry the shotgun, the rifle, and the railgun.
 
 M01's development slice now starts with fists. Recover the pistol in
-confiscation and the rifle before the records stairs, collect finite
-ammunition, and reload. Introductory guns remain available independently to
+confiscation and the rifle before the records stairs and collect finite
+bullets. The count under the ammo sprite is everything you carry for the held
+gun; there is no magazine and nothing to reload. Introductory guns remain available independently to
 each participant. The six arcade maps retain unlimited Rifle, Shotgun, and
 Railgun. Run instructions and current
 limitations: [`server/maps/README.md`](server/maps/README.md). M01 still needs

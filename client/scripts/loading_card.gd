@@ -87,7 +87,7 @@ static func _controls_text() -> String:
 	return (
 		"W A S D or arrows to move        Arrows or Q and E to turn\n"
 		+ "Mouse or Ctrl to fire        Space to jump        Wheel to change weapon\n"
-		+ "R or gamepad X to reload        C for radio stations\n"
+		+ "F or gamepad B to use        C for radio stations\n"
 		+ "J to join        L to leave        Escape for the menu        Tilde for the console"
 	)
 

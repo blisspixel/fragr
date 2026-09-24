@@ -7,6 +7,8 @@ const MAX_RESULTS: int = 512
 const MAX_COORDINATE: float = 8192.0
 const MAX_TRACE_LENGTH: float = 1024.0
 const LIFETIME: float = 0.24
+## A scatter blast draws at most this many pellets per result, matching the server.
+const MAX_PELLETS: int = 7
 
 class Effect:
 	var shooter: String
@@ -39,12 +41,10 @@ func ingest(tick: int, results: Array) -> void:
 		return
 	_last_tick = tick
 	for result in results:
-		var effect: Effect = _parse(result)
-		if effect == null:
-			continue
-		if _effects.size() == MAX_EFFECTS:
-			_effects.pop_front()
-		_effects.append(effect)
+		for effect: Effect in _parse_all(result):
+			if _effects.size() == MAX_EFFECTS:
+				_effects.pop_front()
+			_effects.append(effect)
 	_rebuild()
 
 static func _vector(value: Variant) -> Vector3:
@@ -56,6 +56,32 @@ static func _vector(value: Variant) -> Vector3:
 		if not is_finite(float(component)) or absf(float(component)) > MAX_COORDINATE:
 			return Vector3.INF
 	return Vector3(float(value[0]), float(value[1]), float(value[2]))
+
+## Every pellet of a scatter result is its own trace and impact. Single-ray
+## weapons, and servers that omit pellets, yield the one trace in `end`.
+static func _parse_all(value: Variant) -> Array[Effect]:
+	var effects: Array[Effect] = []
+	var first: Effect = _parse(value)
+	if first == null:
+		return effects
+	var pellets: Variant = value["trace"].get("pellets")
+	if pellets == null:
+		effects.append(first)
+		return effects
+	if not pellets is Array or pellets.is_empty() or pellets.size() > MAX_PELLETS or first.weapon != "scatter":
+		return effects
+	for pellet: Variant in pellets:
+		if not pellet is Dictionary or pellet.size() != 2:
+			return [] as Array[Effect]
+		var trace: Dictionary = value["trace"].duplicate()
+		trace.erase("pellets")
+		trace["end"] = pellet.get("end")
+		trace["impact"] = pellet.get("impact")
+		var effect: Effect = _parse({"shooter_id": value["shooter_id"], "trace": trace})
+		if effect == null:
+			return [] as Array[Effect]
+		effects.append(effect)
+	return effects
 
 static func _parse(value: Variant) -> Effect:
 	if not value is Dictionary or not value.get("trace") is Dictionary:

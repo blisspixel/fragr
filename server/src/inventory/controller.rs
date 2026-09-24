@@ -11,12 +11,7 @@ fn weapon_from_name(name: &str) -> Option<WeaponType> {
 }
 
 fn usable(loadout: &LoadoutState, weapon: WeaponType) -> bool {
-    loadout.weapon(weapon).is_some_and(|held| {
-        held.magazine.is_none_or(|rounds| rounds > 0)
-            || weapon
-                .ammo_pool()
-                .is_some_and(|pool| loadout.reserve(pool) >= weapon.ammo_cost())
-    })
+    loadout.owns(weapon) && loadout.shots(weapon).is_none_or(|shots| shots > 0)
 }
 
 fn useful_supply(loadout: &LoadoutState, pickup: &PickupState, seek_upgrade: bool) -> bool {
@@ -27,23 +22,23 @@ fn useful_supply(loadout: &LoadoutState, pickup: &PickupState, seek_upgrade: boo
     }
     match pickup.kind.as_str() {
         "weapon" => weapon_from_name(&pickup.weapon).is_some_and(|weapon| {
-            (seek_upgrade && loadout.weapon(weapon).is_none())
+            (seek_upgrade && !loadout.owns(weapon))
                 || weapon
                     .ammo_pool()
-                    .is_some_and(|pool| loadout.reserve(pool) < weapon.initial_reserve())
+                    .is_some_and(|pool| loadout.ammo(pool) < weapon.pickup_rounds())
         }),
         "ammo" => pickup.pool.is_some_and(|pool| {
-            loadout.reserve(pool) < pool.capacity()
+            loadout.ammo(pool) < pool.capacity()
                 && loadout
                     .weapons
                     .iter()
-                    .any(|held| held.weapon.ammo_pool() == Some(pool))
+                    .any(|weapon| weapon.ammo_pool() == Some(pool))
         }),
         _ => false,
     }
 }
 
-/// Keep ordinary combat intent when supplied, otherwise reload or route to supply.
+/// Keep ordinary combat intent when supplied, otherwise switch or route to supply.
 /// None is the explicit legacy full-arsenal path and returns identical actions.
 pub fn control_action(
     id: Uuid,
@@ -126,11 +121,8 @@ pub fn control_action_with_target_filter(
         })
         .unwrap_or(WeaponType::Fists);
     action.weapon_swap = (selected != held).then_some(selected);
-    let dry = loadout
-        .weapon(selected)
-        .is_some_and(|weapon| weapon.magazine == Some(0));
-    action.reload = dry && loadout.reload.is_none();
-    if dry || loadout.reload.is_some() {
+    let dry = !usable(loadout, selected);
+    if dry {
         action.fire = false;
     }
 
@@ -147,7 +139,6 @@ pub fn control_action_with_target_filter(
         if let Some(supply) = supply {
             return Action {
                 forward: true,
-                reload: action.reload,
                 weapon_swap: action.weapon_swap,
                 look_at: Some(LookAt {
                     x: Some(supply.x),
@@ -167,7 +158,7 @@ pub fn control_action_with_target_filter(
                 ..LookAt::default()
             });
             action.forward = distance > selected.preferred_range().1;
-            action.fire = !dry && loadout.reload.is_none();
+            action.fire = !dry;
         }
         action.fire &= distance <= selected.range_units();
         if selected == WeaponType::Fists {

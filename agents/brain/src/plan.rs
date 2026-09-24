@@ -394,7 +394,7 @@ mod tests {
     #[test]
     fn hidden_guard_does_not_block_mission_but_visible_guard_does() {
         use fragr_server::protocol::{
-            AmmoPool, AmmoReserve, CampaignActor, EnemyKind, EnemyPhase, LoadoutState, WeaponAmmo,
+            AmmoCount, AmmoPool, CampaignActor, EnemyKind, EnemyPhase, LoadoutState,
         };
         let me = Uuid::from_u128(1);
         let hidden = Uuid::from_u128(2);
@@ -424,21 +424,15 @@ mod tests {
             player_id: me,
             tick: 1,
             selected: WeaponType::Tack,
-            weapons: vec![
-                WeaponAmmo {
-                    weapon: WeaponType::Fists,
-                    magazine: None,
-                },
-                WeaponAmmo {
-                    weapon: WeaponType::Tack,
-                    magazine: Some(6),
-                },
-            ],
-            reserves: AmmoPool::ALL
+            weapons: vec![WeaponType::Fists, WeaponType::Tack],
+            // Six bullets, the magazine-era fixture's loaded rounds.
+            ammo: AmmoPool::ALL
                 .into_iter()
-                .map(|pool| AmmoReserve { pool, rounds: 0 })
+                .map(|pool| AmmoCount {
+                    pool,
+                    rounds: if pool == AmmoPool::Bullets { 6 } else { 0 },
+                })
                 .collect(),
-            reload: None,
             personal_claims: vec![],
             dry_fire_count: 0,
         };

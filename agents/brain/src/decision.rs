@@ -198,7 +198,9 @@ pub fn campaign_questions(owned: &[WeaponType]) -> BTreeMap<String, Question> {
     questions.insert(
         Q_WEAPON.to_string(),
         Question::Choice {
-            instructions: "Choose only a carried weapon for the next second. The server owns ammunition and reloads.".to_string(),
+            instructions:
+                "Choose only a carried weapon for the next second. The server owns ammunition."
+                    .to_string(),
             criteria: weapons,
         },
     );
@@ -512,7 +514,7 @@ mod tests {
             "model": "jev-1.13.0",
             "answers": {
                 "stance": {"type": "choice", "choice": "push_enemy", "probabilities": {"push_enemy": 0.8, "hold_angle": 0.2}, "confidence": 0.8},
-                "reload": {"type": "noul", "noul": 0.93},
+                "retreat": {"type": "noul", "noul": 0.93},
                 "danger": {"type": "score", "score": 2.4, "legend": {"1": "safe"}, "probabilities": {"2": 0.6}, "confidence": 0.5}
             },
             "usage": {"input_tokens": 300, "output_tokens": 0}
@@ -521,7 +523,7 @@ mod tests {
         assert_eq!(parsed.model, "jev-1.13.0");
         assert_eq!(parsed.provider, None);
         assert!(
-            matches!(parsed.answers["reload"], Answer::Noul { noul } if (noul - 0.93).abs() < 1e-9)
+            matches!(parsed.answers["retreat"], Answer::Noul { noul } if (noul - 0.93).abs() < 1e-9)
         );
         let cost = parsed.cost_usd(&Pricing::default()).unwrap();
         assert!((cost - 300.0 * 0.042 / 1e6).abs() < 1e-15);

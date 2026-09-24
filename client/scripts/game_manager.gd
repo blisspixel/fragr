@@ -37,7 +37,6 @@ var action_state = {
 	"turn_right": false,
 	"fire": false,
 	"jump": false,
-	"reload": false,
 	"interact": false,
 	"weapon_swap": null,
 	"yaw": 0.0,
@@ -54,7 +53,6 @@ const SPEAK_LINES = [
 var speak_line_index = 0
 var pending_weapon_swap = null
 var pending_jump: bool = false
-var pending_reload: bool = false
 var pending_interact: bool = false
 var interact_held: bool = false
 var mission_hud: MissionHud
@@ -259,13 +257,12 @@ func _on_opening_completed() -> void:
 	opening.queue_free()
 	opening = null
 	pending_jump = false
-	pending_reload = false
 	pending_interact = false
 	interact_held = false
 	pending_weapon_swap = null
 
 func _opening_input_released() -> bool:
-	for action: String in ["ui_accept", "ui_cancel", "fire", "jump", "reload", "interact", "move_forward", "move_back", "move_left", "move_right"]:
+	for action: String in ["ui_accept", "ui_cancel", "fire", "jump", "interact", "move_forward", "move_back", "move_left", "move_right"]:
 		if Input.is_action_pressed(action):
 			return false
 	return true
@@ -400,7 +397,6 @@ func _try_continue(event: InputEvent) -> bool:
 			_continue_armed = false
 			_opening_release = true
 			pending_jump = false
-			pending_reload = false
 			pending_interact = false
 			pending_weapon_swap = null
 			interact_held = false
@@ -422,8 +418,6 @@ func _input(_event):
 		return
 	if is_human_player and _event.is_action_pressed("jump"):
 		pending_jump = true
-	if is_human_player and _event.is_action_pressed("reload"):
-		pending_reload = true
 	if is_human_player and _event.is_action_pressed("interact"):
 		pending_interact = true
 		interact_held = true
@@ -447,7 +441,6 @@ func change_role(play: bool) -> void:
 		return
 	role_transition = true
 	pending_jump = false
-	pending_reload = false
 	pending_interact = false
 	interact_held = false
 	net_client.leave_match()
@@ -508,7 +501,6 @@ func _send_local_action(now_usec: int) -> bool:
 	action_state.right = Input.is_action_pressed("move_right")
 	action_state.fire = Input.is_action_pressed("fire")
 	action_state.jump = pending_jump or Input.is_action_pressed("jump")
-	action_state.reload = pending_reload
 	action_state.interact = pending_interact or interact_held
 	# Client-owned yaw: the server takes the absolute facing and never turns
 	# us at a fixed rate, so the look axis does not round-trip. Turn bits stay
@@ -518,7 +510,7 @@ func _send_local_action(now_usec: int) -> bool:
 		action_state.pitch = camera.consume_pitch()
 	if controls_blocked():
 		interact_held = false
-		for key in ["forward", "back", "left", "right", "fire", "jump", "reload", "interact"]:
+		for key in ["forward", "back", "left", "right", "fire", "jump", "interact"]:
 			action_state[key] = false
 		pending_weapon_swap = null
 	action_state.turn_left = false
@@ -532,7 +524,6 @@ func _send_local_action(now_usec: int) -> bool:
 	pending_weapon_swap = null
 	net_client.send_action(action_state)
 	pending_jump = false
-	pending_reload = false
 	pending_interact = false
 	return true
 
@@ -559,9 +550,8 @@ func _has_local_input_target() -> bool:
 func _carried_weapons() -> Array[String]:
 	var carried: Array[String] = []
 	if net_client != null and not net_client.equipment.is_empty():
-		for entry: Variant in net_client.equipment["weapons"]:
-			if entry is Dictionary:
-				carried.append(str(entry.get("weapon", "")).to_lower())
+		for weapon: Variant in net_client.equipment["weapons"]:
+			carried.append(str(weapon).to_lower())
 		return carried
 	for weapon in EquipmentState.ARCADE:
 		carried.append(weapon)
@@ -664,7 +654,6 @@ func _clear_world() -> void:
 	_awaiting_map = true
 	current_map_info.clear()
 	pending_jump = false
-	pending_reload = false
 	pending_interact = false
 	interact_held = false
 	if mission_hud != null:
@@ -1221,9 +1210,24 @@ func _process_shot_results(results, tick: int) -> void:
 		shot_effects.ingest(tick, results)
 	var my_id = str(net_client.player_id) if net_client.player_id != null else ""
 	var followed_id = "" if is_human_player else _followed_player_id()
-	for shot in results:
-		if typeof(shot) != TYPE_DICTIONARY:
+	# A scatter blast arrives as one result per struck fighter plus one for its
+	# missed pellets. A fighter fires at most once a tick, so fold each
+	# shooter's results into one shot: one flash, one kick, one summed marker.
+	var shots: Array[Dictionary] = []
+	var by_shooter: Dictionary = {}
+	for result in results:
+		if typeof(result) != TYPE_DICTIONARY:
 			continue
+		var key: String = str(result.get("shooter_id", ""))
+		if not by_shooter.has(key):
+			by_shooter[key] = shots.size()
+			shots.append(result.duplicate())
+			continue
+		var folded: Dictionary = shots[by_shooter[key]]
+		if bool(result.get("hit", false)):
+			folded["damage"] = int(folded.get("damage", 0)) * int(bool(folded.get("hit", false))) + int(result.get("damage", 0))
+			folded["hit"] = true
+	for shot: Dictionary in shots:
 		var shooter_id = str(shot.get("shooter_id", ""))
 		var hit = bool(shot.get("hit", false))
 		var dmg = int(shot.get("damage", 0))

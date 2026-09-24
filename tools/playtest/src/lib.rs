@@ -54,11 +54,12 @@ pub struct StickyWeaponTtk {
 }
 
 /// Flechette, rail, and scatter clean-hit TTK from `WeaponType` damage and
-/// cooldown. Point-blank for the scatter gun so falloff does not hide a table
-/// regression. This is the #124 claim made CI-assertable from the harness.
+/// cooldown. Point-blank for the scatter gun, every pellet landing, so falloff
+/// does not hide a table regression. This is the #124 claim made
+/// CI-assertable from the harness.
 pub fn sticky_weapon_ttk_table() -> [StickyWeaponTtk; 3] {
     [WeaponType::Flechette, WeaponType::Rail, WeaponType::Scatter].map(|weapon| {
-        let damage = weapon.damage_at(0.0).max(1);
+        let damage = (weapon.damage_at(0.0) * weapon.pellets() as i32).max(1);
         let hits = ((STICKY_FIGHTER_HP + damage - 1) / damage) as u32;
         let seconds =
             (hits.saturating_sub(1) as f64) * (weapon.cooldown_ticks() as f64) / TICKS_PER_SECOND;
@@ -76,7 +77,7 @@ pub fn check_sticky_ttk_table() -> Vec<String> {
     let expected = [
         (WeaponType::Flechette, 4u32, 0.6),
         (WeaponType::Rail, 2, 1.0),
-        (WeaponType::Scatter, 3, 0.9),
+        (WeaponType::Scatter, 2, 0.6),
     ];
     let mut problems = Vec::new();
     for (row, (weapon, hits, seconds)) in sticky_weapon_ttk_table().into_iter().zip(expected) {
@@ -480,11 +481,15 @@ impl Observation {
 
     /// Every shot resolved on this tick, with the distance it travelled. The
     /// server publishes hits and misses, so accuracy is exact rather than
-    /// inferred from fire ticks.
+    /// inferred from fire ticks. A scatter blast can publish one result per
+    /// struck fighter plus one for its missed pellets; a fighter fires at most
+    /// once a tick, so all of a shooter's results in one tick are one shot,
+    /// and that shot is a hit if any of its pellets landed.
     fn ingest_shots(&mut self, snapshot: &Snapshot) {
         if snapshot.shot_results.is_empty() {
             return;
         }
+        let mut counted: BTreeMap<Uuid, bool> = BTreeMap::new();
         let by_id: BTreeMap<Uuid, (String, f32, f32)> = snapshot
             .players
             .iter()
@@ -528,11 +533,17 @@ impl Observation {
                 }
             }
             let tally = self.weapons.entry(weapon).or_default();
-            tally.shots += 1;
+            let hit_counted = counted.entry(shot.shooter_id).or_insert_with(|| {
+                tally.shots += 1;
+                false
+            });
             if !shot.hit {
                 continue;
             }
-            tally.hits += 1;
+            if !*hit_counted {
+                tally.hits += 1;
+                *hit_counted = true;
+            }
             tally.damage += shot.damage as i64;
             if let Some(distance) = distance {
                 tally.hit_distances.push(distance);
@@ -2165,7 +2176,19 @@ mod combat_tests {
                     player("A", a, 0.0, 0.0, "rail"),
                     player("B", b, 12.0, 0.0, "scatter"),
                 ],
-                vec![shot(a, true, Some(b), 75), shot(a, false, None, 0)],
+                vec![shot(a, true, Some(b), 75)],
+            ),
+            100,
+        );
+        // A fighter fires at most once a tick, so the miss is the next tick.
+        obs.ingest_snapshot(
+            &frame(
+                2,
+                vec![
+                    player("A", a, 0.0, 0.0, "rail"),
+                    player("B", b, 12.0, 0.0, "scatter"),
+                ],
+                vec![shot(a, false, None, 0)],
             ),
             100,
         );
@@ -2187,7 +2210,7 @@ mod combat_tests {
         assert!(!report.by_weapon.contains_key("scatter"), "B never fired");
         obs.ingest_snapshot(
             &frame(
-                2,
+                3,
                 vec![player("A", a, 0.0, 0.0, "rail")],
                 vec![shot(Uuid::new_v4(), true, None, 10)],
             ),
@@ -2227,6 +2250,7 @@ mod combat_tests {
                     impact: ShotImpact::Fighter {
                         normal: [-1.0, 0.0, 0.0],
                     },
+                    pellets: vec![],
                 });
                 result
             });
@@ -2362,6 +2386,48 @@ mod combat_tests {
         assert!(report.by_weapon.is_empty());
         assert_eq!(report.kill_distance_buckets.len(), DISTANCE_BUCKETS);
     }
+    #[test]
+    fn one_scatter_blast_is_one_shot_however_many_results_it_publishes() {
+        use fragr_server::protocol::{PelletTrace, ShotImpact, ShotTrace, WeaponType};
+        let (a, b, c) = (Uuid::from_u128(1), Uuid::from_u128(2), Uuid::from_u128(3));
+        let trace = |impact: ShotImpact, count: usize| ShotTrace {
+            weapon: WeaponType::Scatter,
+            origin: [0.0, 1.6, 0.0],
+            end: [3.0, 1.6, 0.0],
+            impact: impact.clone(),
+            pellets: vec![
+                PelletTrace {
+                    end: [3.0, 1.6, 0.0],
+                    impact,
+                };
+                count
+            ],
+        };
+        let fighter = ShotImpact::Fighter {
+            normal: [-1.0, 0.0, 0.0],
+        };
+        let mut left = shot(a, true, Some(b), 40);
+        left.trace = Some(trace(fighter.clone(), 4));
+        let mut right = shot(a, true, Some(c), 20);
+        right.trace = Some(trace(fighter, 2));
+        let mut missed = shot(a, false, None, 0);
+        missed.trace = Some(trace(ShotImpact::Range, 1));
+        let roster = vec![
+            player("A", a, 0.0, 0.0, "Scatter"),
+            player("B", b, 3.0, 0.5, "Flechette"),
+            player("C", c, 3.0, -0.5, "Flechette"),
+        ];
+        let mut obs = Observation::default();
+        obs.ingest_snapshot(&frame(1, roster.clone(), vec![left, right, missed]), 100);
+        let tally = &obs.weapons["Scatter"];
+        assert_eq!((tally.shots, tally.hits, tally.damage), (1, 1, 60));
+        assert_eq!(tally.hit_distances.len(), 2);
+        let mut miss_only = shot(a, false, None, 0);
+        miss_only.trace = Some(trace(ShotImpact::Range, 7));
+        obs.ingest_snapshot(&frame(2, roster, vec![miss_only]), 100);
+        let tally = &obs.weapons["Scatter"];
+        assert_eq!((tally.shots, tally.hits), (2, 1));
+    }
 }
 
 #[cfg(test)]
@@ -2378,8 +2444,8 @@ mod sticky_ttk_tests {
         assert_eq!(rows[1].hits_to_kill, 2);
         assert!((rows[1].seconds - 1.0).abs() < 0.001);
         assert_eq!(rows[2].weapon, WeaponType::Scatter);
-        assert_eq!(rows[2].hits_to_kill, 3);
-        assert!((rows[2].seconds - 0.9).abs() < 0.001);
+        assert_eq!(rows[2].hits_to_kill, 2, "two full seven-pellet blasts");
+        assert!((rows[2].seconds - 0.6).abs() < 0.001);
         for row in rows {
             assert!(
                 (STICKY_TTK_MIN_S..=STICKY_TTK_MAX_S).contains(&row.seconds),

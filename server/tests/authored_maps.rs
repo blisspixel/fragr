@@ -310,48 +310,29 @@ async fn authored_map_is_shared_by_humans_agents_and_spectators() {
         },
     )
     .await;
-    loop {
+    let bullets = loadout.ammo(fragr_server::protocol::AmmoPool::Bullets);
+    assert_eq!(bullets, WeaponType::Tack.pickup_rounds());
+    let mut spent = false;
+    for _ in 0..80 {
         if let ServerMessage::Loadout(fired) = receive(human).await {
             fired
                 .validate_for(Some(loadout.player_id), Some(&loadout))
                 .unwrap();
-            if fired.weapon(WeaponType::Tack).unwrap().magazine == Some(11) {
+            // One shot spends one bullet straight from the count; there is no
+            // magazine to empty and nothing to reload.
+            if fired.ammo(fragr_server::protocol::AmmoPool::Bullets) == bullets - 1 {
+                assert_eq!(fired.shots(WeaponType::Tack), Some(bullets - 1));
+                spent = true;
                 break;
             }
         }
     }
-    send_action(
-        human,
-        Action {
-            reload: true,
-            ..Default::default()
-        },
-    )
-    .await;
-    send_action(human, Action::default()).await;
-    let mut completion = None;
-    let mut completed = false;
-    for _ in 0..80 {
-        if let ServerMessage::Loadout(update) = receive(human).await {
-            update
-                .validate_for(Some(loadout.player_id), Some(&loadout))
-                .unwrap();
-            if let Some(reload) = update.reload {
-                completion = Some(reload.complete_at);
-            } else if completion.is_some() {
-                assert_eq!(Some(update.tick), completion);
-                assert_eq!(update.weapon(WeaponType::Tack).unwrap().magazine, Some(12));
-                assert_eq!(update.reserve(fragr_server::protocol::AmmoPool::Tacks), 35);
-                completed = true;
-                break;
-            }
-        }
-    }
+    assert!(spent, "a spent bullet must reach the owning socket");
+    let retired = serde_json::json!({"type": "action", "reload": true}).to_string();
     assert!(
-        completion.is_some(),
-        "short reload request survives another input frame"
+        serde_json::from_str::<fragr_server::protocol::ClientMessage>(&retired).is_err(),
+        "the retired reload field is no longer part of an action"
     );
-    assert!(completed, "reload completion must reach the owning socket");
     for socket in &mut sockets {
         socket.close(None).await.unwrap();
     }

@@ -607,48 +607,60 @@ async fn m02_requires_capability_nine_before_any_role_is_admitted() {
     accept.abort();
 }
 
+/// Discovery maps, M01 included, need the ammunition contract: a magazine-era
+/// reader is refused before Welcome and the current reader is admitted.
 #[tokio::test]
-async fn m01_still_admits_capability_eight() {
+async fn m01_refuses_magazine_era_capability_eight_and_admits_ten() {
     let (tx, mut commands) = mpsc::unbounded_channel();
     let server = NetServer::bind_with_requirements(
         "127.0.0.1:0",
         tx,
         2,
-        crate::protocol::DIFFICULTY_GAMEPLAY_VERSION,
+        crate::protocol::AMMO_GAMEPLAY_VERSION,
     )
     .await
     .unwrap();
     let address = server.local_addr().unwrap();
     let accept = tokio::spawn(server.accept_loop());
-    let (mut socket, _) = connect_async(format!("ws://{address}")).await.unwrap();
-    socket
-        .send(Message::Text(
-            serde_json::json!({
-                "type":"hello", "role":"human", "name":"Reader", "geometry_version":2,
-                "gameplay_version":8
-            })
-            .to_string(),
-        ))
-        .await
-        .unwrap();
-    let reply = timeout(Duration::from_secs(2), socket.next())
-        .await
-        .unwrap()
-        .unwrap()
-        .unwrap();
-    assert!(matches!(
-        serde_json::from_str::<ServerMessage>(reply.to_text().unwrap()).unwrap(),
-        ServerMessage::Welcome {
-            player_id: Some(_),
-            ..
-        }
-    ));
-    assert!(matches!(
-        timeout(Duration::from_secs(2), commands.recv())
+    for (version, admitted) in [(8, false), (9, false), (10, true)] {
+        let (mut socket, _) = connect_async(format!("ws://{address}")).await.unwrap();
+        socket
+            .send(Message::Text(
+                serde_json::json!({
+                    "type":"hello", "role":"human", "name":"Reader", "geometry_version":2,
+                    "gameplay_version":version
+                })
+                .to_string(),
+            ))
             .await
-            .unwrap(),
-        Some(GameCommand::Connected { .. })
-    ));
+            .unwrap();
+        let reply = timeout(Duration::from_secs(2), socket.next())
+            .await
+            .unwrap()
+            .unwrap()
+            .unwrap();
+        let message = serde_json::from_str::<ServerMessage>(reply.to_text().unwrap()).unwrap();
+        if admitted {
+            assert!(matches!(
+                message,
+                ServerMessage::Welcome {
+                    player_id: Some(_),
+                    ..
+                }
+            ));
+            assert!(matches!(
+                timeout(Duration::from_secs(2), commands.recv())
+                    .await
+                    .unwrap(),
+                Some(GameCommand::Connected { .. })
+            ));
+        } else {
+            assert!(
+                matches!(&message, ServerMessage::Error { code, .. } if code == "unsupported_gameplay"),
+                "{version}: {message:?}"
+            );
+        }
+    }
     accept.abort();
 }
 

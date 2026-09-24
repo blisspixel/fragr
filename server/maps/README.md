@@ -4,7 +4,7 @@
 weapon discovery and a draft twenty-guard population. Intake and maintenance
 stairs converge at records reception; file stacks and a service bypass lead to
 sorting, dispatch, transfer control and the custody lift. Enter with fists, find
-the pistol and the rifle, collect finite campaign supplies and reload. Clerks and
+the pistol and the rifle and collect finite campaign supplies. Clerks and
 Sweepers share authoritative attack, hit and death states.
 Enemy artwork and animation remain provisional. The physical transfer record
 opens the custody lift; the party can then depart together. This ends the current
@@ -77,13 +77,14 @@ the option. Final multi-tier encounter and resource balance remains unfinished.
 - `supplies`: at most 128 records, allowed only with discovery. Each has unique
   `id`, supported and reachable `feet`, `claim` (`personal` or `contested`) and
   a strict `grant`: `{"kind":"weapon","weapon":"tack"}`,
-  `{"kind":"ammo","pool":"darts","amount":30}`, or `health`/`armor` with
+  `{"kind":"ammo","pool":"bullets","amount":20}` (pools `bullets`, `shells`,
+  `cells`), or `health`/`armor` with
   `amount` from 1 through 100. Ammo amounts cannot exceed pool caps in `WEAPONS.md`.
   Fists cannot be a grant. Personal claims are only for weapons; each participant
   can claim each once per development life. Contested supplies have one winner.
   Campaign stock (maps with encounters or a mission) stays consumed until the
   authoritative party reset; arcade practice retains timed pickup respawns.
-  An additional copy of an owned gun grants reserve without
+  An additional copy of an owned gun adds its pickup ammunition without
   forcing selection. Development respawn resets inventory and personal claims;
   solo retry restores the captured mission-entry inventory and claims instead.
 - `encounters`: optional, discovery only. At most 32 groups, 64 enemies and 64

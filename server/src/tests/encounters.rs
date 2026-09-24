@@ -630,7 +630,7 @@ fn sweeper_bursts_are_spaced_and_recovery_is_an_actual_opening() {
 }
 
 #[test]
-fn guards_reload_finite_magazines_and_use_melee_when_reserves_are_exhausted() {
+fn guards_spend_finite_bullets_without_reloading_and_use_melee_when_empty() {
     let (mut session, id) = session();
     let clerk = enter(&mut session, id);
     let guard = session
@@ -639,42 +639,37 @@ fn guards_reload_finite_magazines_and_use_melee_when_reserves_are_exhausted() {
         .iter_mut()
         .find(|p| p.id == clerk)
         .unwrap();
-    while guard.inventory.try_fire(guard.weapon) {}
-    advance(&mut session, 1);
-    let guard = session
-        .state
-        .players
-        .iter()
-        .find(|p| p.id == clerk)
-        .unwrap();
     let loadout = guard
         .inventory
         .state(clerk, guard.weapon, session.state.tick)
         .unwrap();
-    assert!(loadout.reload.is_some());
-    assert_eq!(phase(&session, clerk), EnemyPhase::Recovery);
-    advance(&mut session, WeaponType::Tack.reload_ticks() as usize);
+    assert_eq!(
+        loadout.shots(WeaponType::Tack),
+        Some(WeaponType::Tack.pickup_rounds()),
+        "a Clerk carries one Tack pickup's worth of bullets"
+    );
+    // One bullet short of empty: the guard keeps its Tack and has no reload pause.
+    for _ in 1..WeaponType::Tack.pickup_rounds() {
+        assert!(guard.inventory.try_fire(guard.weapon));
+    }
+    advance(&mut session, 1);
+    assert_eq!(
+        session
+            .state
+            .players
+            .iter()
+            .find(|p| p.id == clerk)
+            .unwrap()
+            .weapon,
+        WeaponType::Tack
+    );
     let guard = session
         .state
         .players
         .iter_mut()
         .find(|p| p.id == clerk)
         .unwrap();
-    assert_eq!(
-        guard
-            .inventory
-            .state(clerk, guard.weapon, session.state.tick)
-            .unwrap()
-            .weapon(WeaponType::Tack)
-            .unwrap()
-            .magazine,
-        Some(12)
-    );
-    for tick in 0..4 {
-        while guard.inventory.try_fire(guard.weapon) {}
-        guard.inventory.begin_reload(guard.weapon, tick * 100);
-        guard.inventory.tick(tick * 100 + 99, false);
-    }
+    assert!(guard.inventory.try_fire(guard.weapon));
     advance(&mut session, 1);
     assert_eq!(
         session
@@ -708,7 +703,7 @@ fn guards_reload_finite_magazines_and_use_melee_when_reserves_are_exhausted() {
 }
 
 #[test]
-fn a_hit_during_reload_does_not_leave_an_expired_pain_pose() {
+fn a_hit_on_an_empty_guard_does_not_leave_an_expired_pain_pose() {
     let (mut session, id) = session();
     let clerk = enter(&mut session, id);
     let guard = session
@@ -722,12 +717,17 @@ fn a_hit_during_reload_does_not_leave_an_expired_pain_pose() {
     shoot(&mut session, id, clerk);
     assert_eq!(phase(&session, clerk), EnemyPhase::Hit);
     advance(&mut session, 6);
-    assert_eq!(phase(&session, clerk), EnemyPhase::Recovery);
+    // The pain pose expires on time. An empty guard has no reload to wait
+    // out, so it goes straight back to closing for melee.
+    assert!(matches!(
+        phase(&session, clerk),
+        EnemyPhase::Moving | EnemyPhase::Recovery
+    ));
     assert!(session.state.shot_results.is_empty());
     advance(&mut session, 20);
     assert!(matches!(
         phase(&session, clerk),
-        EnemyPhase::Windup | EnemyPhase::Firing | EnemyPhase::Recovery
+        EnemyPhase::Moving | EnemyPhase::Windup | EnemyPhase::Firing | EnemyPhase::Recovery
     ));
 }
 

@@ -8,9 +8,9 @@ use crate::protocol::{
     episode0_host_line_jammer, episode0_host_line_nods_tick, episode0_host_line_win,
     episode0_objective_chip, episode0_unlock_teaser, killstreak_host_line, mvp_host_line,
     roster_host_line, round_open_host_line, rule_bot_taunt_line, warmup_host_line, Action,
-    BotTauntKind, GameEvent, PickupState, PlayerScore, PlayerState, Role, ServerMessage,
-    ShotImpact, ShotResult, ShotTrace, Snapshot, WeaponType, AUDITOR_NAME, BOSS_NAME,
-    EPISODE_ID_EP0, EPISODE_MAP_LARAK_LOT, EPISODE_TITLE_EP0, MODE_NAME, PLAYLIST_NAME,
+    BotTauntKind, GameEvent, PelletTrace, PickupState, PlayerScore, PlayerState, Role,
+    ServerMessage, ShotImpact, ShotResult, ShotTrace, Snapshot, WeaponType, AUDITOR_NAME,
+    BOSS_NAME, EPISODE_ID_EP0, EPISODE_MAP_LARAK_LOT, EPISODE_TITLE_EP0, MODE_NAME, PLAYLIST_NAME,
 };
 use std::collections::HashMap;
 use std::f32::consts::PI;
@@ -25,10 +25,18 @@ pub const PLAYER_FLOOR_Y: f32 = 1.5;
 const TURN_SPEED: f32 = 2.0;
 pub const PLAYER_RADIUS: f32 = crate::movement::RADIUS;
 
-struct ResolvedShot {
+/// One resolved ray. A scatter blast resolves several from the same origin.
+struct ResolvedPellet {
     target: Option<usize>,
     distance: f32,
-    trace: ShotTrace,
+    end: [f32; 3],
+    impact: ShotImpact,
+}
+
+struct ResolvedShot {
+    weapon: WeaponType,
+    origin: [f32; 3],
+    pellets: Vec<ResolvedPellet>,
 }
 const RESPAWN_DELAY_TICKS: u32 = 60;
 /// Ticks after a respawn during which a fighter cannot be hit (one second).
@@ -859,7 +867,6 @@ impl GameState {
             // Continuous input takes the newest value. A discrete weapon choice
             // must survive later frames until the simulation consumes it.
             action.weapon_swap = action.weapon_swap.or(player.pending_action.weapon_swap);
-            action.reload |= player.pending_action.reload;
             player.jump_requested |= action.jump;
             player.interaction_requested |= action.interact && !player.pending_action.interact;
             player.pending_action = action;
@@ -1036,7 +1043,6 @@ impl GameState {
                 continue;
             }
             let jump_requested = std::mem::take(&mut player.jump_requested);
-            let reload_requested = std::mem::take(&mut player.pending_action.reload);
 
             if player.fire_cooldown > 0 {
                 player.fire_cooldown -= 1;
@@ -1055,15 +1061,12 @@ impl GameState {
             }
 
             player.statistics.alive_tick();
-            player.inventory.tick(self.tick, player.pending_action.fire);
+            player.inventory.tick(player.pending_action.fire);
 
             if let Some(new_weapon) = player.pending_action.weapon_swap.take() {
                 if player.inventory.select(player.weapon, new_weapon) {
                     player.weapon = new_weapon;
                 }
-            }
-            if reload_requested {
-                player.inventory.begin_reload(player.weapon, self.tick);
             }
 
             let action = &player.pending_action;
@@ -1219,207 +1222,77 @@ impl GameState {
         }
 
         for (shooter_idx, shot) in hits {
-            let weapon = shot.trace.weapon;
-            // Falloff follows the actual 3D distance traveled to the surface.
-            let damage = weapon.damage_at(shot.distance);
-            let shooter_name = self.players[shooter_idx].name.clone();
-            let shooter_id = self.players[shooter_idx].id;
-
+            let weapon = shot.weapon;
             {
                 let shooter = &mut self.players[shooter_idx];
                 shooter.fire_cooldown = weapon.cooldown_ticks();
                 shooter.just_fired = true;
             }
-
-            if let Some(victim_idx) = shot.target {
-                let hostile = crate::protocol::hostile(
-                    self.players[shooter_idx].campaign,
-                    self.players[victim_idx].campaign,
-                );
-                let (
-                    target_id,
-                    target_name,
-                    target_hp_after,
-                    died,
-                    victim_was_boss,
-                    boss_id,
-                    damage,
-                    hp_damage,
-                    armor_damage,
-                ) = {
-                    let victim = &mut self.players[victim_idx];
-                    let target_id = victim.id;
-                    let target_name = victim.name.clone();
-                    // Rays commit together, including trades. A body already
-                    // killed by an earlier ray this tick cannot award another frag.
-                    let was_alive = victim.hp > 0;
-                    let damage = if was_alive && hostile { damage } else { 0 };
-                    let absorbed = damage.min(victim.armor);
-                    let hp_damage = (damage - absorbed).min(victim.hp.max(0)) as u64;
-                    victim.armor -= absorbed;
-                    victim.hp -= damage - absorbed;
-                    let target_hp_after = victim.hp;
-                    let died = was_alive && victim.hp <= 0;
-                    victim.statistics.hurt(hp_damage, absorbed as u64, died);
-                    let victim_was_boss = victim.is_boss;
-                    if died {
-                        victim.inventory.cancel_reload();
-                        // Victim streak dies with them; boss does not respawn.
-                        victim.killstreak = 0;
-                        if victim_was_boss || victim.is_campaign_enemy() {
-                            victim.respawn_timer = None;
-                        } else {
-                            victim.respawn_timer = Some(RESPAWN_DELAY_TICKS);
-                        }
-                    }
-                    (
-                        target_id,
-                        target_name,
-                        target_hp_after,
-                        died,
-                        victim_was_boss,
-                        target_id,
-                        damage,
-                        hp_damage,
-                        absorbed as u64,
-                    )
-                };
-
-                self.players[shooter_idx]
-                    .statistics
-                    .hit(weapon, hp_damage, armor_damage, died);
-                if damage > 0 {
-                    let victim = &self.players[victim_idx];
-                    let feet = [victim.x, victim.y - PLAYER_FLOOR_Y, victim.z];
-                    if let Some(identity) = self.encounters.hit(target_id, feet, self.tick, died) {
-                        self.players[victim_idx].campaign = Some(identity);
-                    }
+            // Pellets group by struck fighter in firing order; pellets that hit
+            // cover or run out of range share one miss result after them.
+            let mut groups: Vec<(Option<usize>, Vec<ResolvedPellet>)> = Vec::new();
+            for pellet in shot.pellets {
+                match groups
+                    .iter_mut()
+                    .find(|(target, _)| *target == pellet.target)
+                {
+                    Some((_, members)) => members.push(pellet),
+                    None => groups.push((pellet.target, vec![pellet])),
                 }
-
-                self.shot_results.push(ShotResult {
-                    shooter_id,
-                    shooter: shooter_name.clone(),
-                    hit: true,
-                    target_id: Some(target_id),
-                    target: Some(target_name.clone()),
-                    damage,
-                    target_hp_after: Some(target_hp_after),
-                    trace: Some(shot.trace),
-                    killed: died,
-                });
-                if damage > 0 {
-                    self.events.push(GameEvent::Hit {
-                        shooter: shooter_name.clone(),
-                        shooter_id,
-                        target: target_name.clone(),
-                        target_id,
-                        damage,
-                        target_hp_after,
-                    });
-                }
-
-                if died {
-                    // Campaign casualties have no arcade streaks, taunts or
-                    // participant scores. ShotResult remains the kill evidence.
-                    if self.players[shooter_idx].campaign.is_some() {
-                        tracing::info!(shooter = %shooter_name, target = %target_name, "Campaign combatant down");
-                        continue;
-                    }
-                    *self.scores.entry(shooter_id).or_insert(0) += 1;
-                    let killer_score = self.scores[&shooter_id];
-
-                    self.events.push(GameEvent::Frag {
-                        killer: shooter_name.clone(),
-                        victim: target_name.clone(),
-                        killer_score,
-                    });
-
-                    // Killer streak (victim already reset). Host callouts at 2/3/5.
-                    let killer_streak = {
-                        let killer = &mut self.players[shooter_idx];
-                        killer.killstreak = killer.killstreak.saturating_add(1);
-                        killer.killstreak
-                    };
-                    if let Some((tier, message)) =
-                        killstreak_host_line(killer_streak, &shooter_name)
-                    {
-                        self.events.push(GameEvent::Killstreak {
-                            player: shooter_name.clone(),
-                            player_id: shooter_id,
-                            streak: killer_streak,
-                            tier,
-                            message,
-                        });
-                    }
-
-                    // Named rule bots: occasional Contested Frequency speak (off-tick).
-                    if matches!(killer_streak, 2 | 3 | 5) {
-                        self.maybe_rule_bot_taunt(
-                            shooter_id,
-                            BotTauntKind::Killstreak,
-                            RULE_BOT_TAUNT_STREAK_PCT,
-                        );
-                    } else {
-                        self.maybe_rule_bot_taunt(
-                            shooter_id,
-                            BotTauntKind::Frag,
-                            RULE_BOT_TAUNT_FRAG_PCT,
-                        );
-                    }
-                    self.maybe_rule_bot_taunt(
-                        target_id,
-                        BotTauntKind::Death,
-                        RULE_BOT_TAUNT_DEATH_PCT,
-                    );
-
-                    if victim_was_boss {
-                        let boss_msg = if self.solo_broadcast.enabled {
-                            episode0_host_line_win()
-                        } else {
-                            boss_down_host_line()
-                        };
-                        self.events.push(GameEvent::BossDown {
-                            name: target_name.clone(),
-                            boss_id,
-                            killer: Some(shooter_name.clone()),
-                            message: boss_msg,
-                        });
-                        tracing::info!(
-                            "BOSS DOWN: {} fragged {} (score: {})",
-                            shooter_name,
-                            target_name,
-                            killer_score
-                        );
-                        if self.solo_broadcast.enabled
-                            && self.solo_broadcast.phase == EpisodePhase::Auditor
-                        {
-                            self.complete_episode(
-                                "Auditor down. Frequency stays unmetered.".to_string(),
-                            );
-                        }
-                    } else {
-                        self.note_nods_frag(shooter_id, target_id);
-                        tracing::info!(
-                            "FRAG: {} -> {} (score: {})",
-                            shooter_name,
-                            target_name,
-                            killer_score
-                        );
-                    }
-                }
-            } else {
-                self.shot_results.push(ShotResult {
-                    shooter_id,
-                    shooter: shooter_name,
-                    hit: false,
-                    target_id: None,
-                    target: None,
-                    damage: 0,
-                    target_hp_after: None,
-                    trace: Some(shot.trace),
-                    killed: false,
-                });
             }
+            groups.sort_by_key(|(target, _)| target.is_none());
+            let (mut hp_total, mut armor_total, mut kills) = (0, 0, 0);
+            for (target, members) in groups {
+                // Falloff follows each pellet's own 3D distance to the surface.
+                let damage = members
+                    .iter()
+                    .map(|pellet| weapon.damage_at(pellet.distance))
+                    .sum::<i32>();
+                let trace = ShotTrace {
+                    weapon,
+                    origin: shot.origin,
+                    end: members[0].end,
+                    impact: members[0].impact.clone(),
+                    pellets: if weapon.pellets() > 1 {
+                        members
+                            .iter()
+                            .map(|pellet| PelletTrace {
+                                end: pellet.end,
+                                impact: pellet.impact.clone(),
+                            })
+                            .collect()
+                    } else {
+                        Vec::new()
+                    },
+                };
+                match target {
+                    Some(victim_idx) => {
+                        let (hp, armor, died) =
+                            self.resolve_fighter_hit(shooter_idx, victim_idx, damage, trace);
+                        hp_total += hp;
+                        armor_total += armor;
+                        kills += u64::from(died);
+                    }
+                    None => {
+                        let shooter = &self.players[shooter_idx];
+                        self.shot_results.push(ShotResult {
+                            shooter_id: shooter.id,
+                            shooter: shooter.name.clone(),
+                            hit: false,
+                            target_id: None,
+                            target: None,
+                            damage: 0,
+                            target_hp_after: None,
+                            trace: Some(trace),
+                            killed: false,
+                        });
+                    }
+                }
+            }
+            // One attack is one damaging attack however many fighters it struck.
+            self.players[shooter_idx]
+                .statistics
+                .hit(weapon, hp_total, armor_total, kills);
         }
 
         self.update_campaign_run();
@@ -1431,8 +1304,181 @@ impl GameState {
         self.reap_dead_boss();
     }
 
-    /// One seeded 3D ray for both cover and targets. No height auto-aim or
-    /// forgiveness cone: the ray must intersect the finite fighter volume.
+    /// Commit one fighter's share of a shot: every pellet that struck them,
+    /// summed, so armour absorbs once and one death awards one frag.
+    fn resolve_fighter_hit(
+        &mut self,
+        shooter_idx: usize,
+        victim_idx: usize,
+        damage: i32,
+        trace: ShotTrace,
+    ) -> (u64, u64, bool) {
+        let shooter_name = self.players[shooter_idx].name.clone();
+        let shooter_id = self.players[shooter_idx].id;
+        let hostile = crate::protocol::hostile(
+            self.players[shooter_idx].campaign,
+            self.players[victim_idx].campaign,
+        );
+        let (
+            target_id,
+            target_name,
+            target_hp_after,
+            died,
+            victim_was_boss,
+            boss_id,
+            damage,
+            hp_damage,
+            armor_damage,
+        ) = {
+            let victim = &mut self.players[victim_idx];
+            let target_id = victim.id;
+            let target_name = victim.name.clone();
+            // Rays commit together, including trades. A body already
+            // killed by an earlier ray this tick cannot award another frag.
+            let was_alive = victim.hp > 0;
+            let damage = if was_alive && hostile { damage } else { 0 };
+            let absorbed = damage.min(victim.armor);
+            let hp_damage = (damage - absorbed).min(victim.hp.max(0)) as u64;
+            victim.armor -= absorbed;
+            victim.hp -= damage - absorbed;
+            let target_hp_after = victim.hp;
+            let died = was_alive && victim.hp <= 0;
+            victim.statistics.hurt(hp_damage, absorbed as u64, died);
+            let victim_was_boss = victim.is_boss;
+            if died {
+                victim.inventory.release_trigger();
+                // Victim streak dies with them; boss does not respawn.
+                victim.killstreak = 0;
+                if victim_was_boss || victim.is_campaign_enemy() {
+                    victim.respawn_timer = None;
+                } else {
+                    victim.respawn_timer = Some(RESPAWN_DELAY_TICKS);
+                }
+            }
+            (
+                target_id,
+                target_name,
+                target_hp_after,
+                died,
+                victim_was_boss,
+                target_id,
+                damage,
+                hp_damage,
+                absorbed as u64,
+            )
+        };
+
+        if damage > 0 {
+            let victim = &self.players[victim_idx];
+            let feet = [victim.x, victim.y - PLAYER_FLOOR_Y, victim.z];
+            if let Some(identity) = self.encounters.hit(target_id, feet, self.tick, died) {
+                self.players[victim_idx].campaign = Some(identity);
+            }
+        }
+
+        self.shot_results.push(ShotResult {
+            shooter_id,
+            shooter: shooter_name.clone(),
+            hit: true,
+            target_id: Some(target_id),
+            target: Some(target_name.clone()),
+            damage,
+            target_hp_after: Some(target_hp_after),
+            trace: Some(trace),
+            killed: died,
+        });
+        if damage > 0 {
+            self.events.push(GameEvent::Hit {
+                shooter: shooter_name.clone(),
+                shooter_id,
+                target: target_name.clone(),
+                target_id,
+                damage,
+                target_hp_after,
+            });
+        }
+
+        if died {
+            // Campaign casualties have no arcade streaks, taunts or
+            // participant scores. ShotResult remains the kill evidence.
+            if self.players[shooter_idx].campaign.is_some() {
+                tracing::info!(shooter = %shooter_name, target = %target_name, "Campaign combatant down");
+                return (hp_damage, armor_damage, died);
+            }
+            *self.scores.entry(shooter_id).or_insert(0) += 1;
+            let killer_score = self.scores[&shooter_id];
+
+            self.events.push(GameEvent::Frag {
+                killer: shooter_name.clone(),
+                victim: target_name.clone(),
+                killer_score,
+            });
+
+            // Killer streak (victim already reset). Host callouts at 2/3/5.
+            let killer_streak = {
+                let killer = &mut self.players[shooter_idx];
+                killer.killstreak = killer.killstreak.saturating_add(1);
+                killer.killstreak
+            };
+            if let Some((tier, message)) = killstreak_host_line(killer_streak, &shooter_name) {
+                self.events.push(GameEvent::Killstreak {
+                    player: shooter_name.clone(),
+                    player_id: shooter_id,
+                    streak: killer_streak,
+                    tier,
+                    message,
+                });
+            }
+
+            // Named rule bots: occasional Contested Frequency speak (off-tick).
+            if matches!(killer_streak, 2 | 3 | 5) {
+                self.maybe_rule_bot_taunt(
+                    shooter_id,
+                    BotTauntKind::Killstreak,
+                    RULE_BOT_TAUNT_STREAK_PCT,
+                );
+            } else {
+                self.maybe_rule_bot_taunt(shooter_id, BotTauntKind::Frag, RULE_BOT_TAUNT_FRAG_PCT);
+            }
+            self.maybe_rule_bot_taunt(target_id, BotTauntKind::Death, RULE_BOT_TAUNT_DEATH_PCT);
+
+            if victim_was_boss {
+                let boss_msg = if self.solo_broadcast.enabled {
+                    episode0_host_line_win()
+                } else {
+                    boss_down_host_line()
+                };
+                self.events.push(GameEvent::BossDown {
+                    name: target_name.clone(),
+                    boss_id,
+                    killer: Some(shooter_name.clone()),
+                    message: boss_msg,
+                });
+                tracing::info!(
+                    "BOSS DOWN: {} fragged {} (score: {})",
+                    shooter_name,
+                    target_name,
+                    killer_score
+                );
+                if self.solo_broadcast.enabled && self.solo_broadcast.phase == EpisodePhase::Auditor
+                {
+                    self.complete_episode("Auditor down. Frequency stays unmetered.".to_string());
+                }
+            } else {
+                self.note_nods_frag(shooter_id, target_id);
+                tracing::info!(
+                    "FRAG: {} -> {} (score: {})",
+                    shooter_name,
+                    target_name,
+                    killer_score
+                );
+            }
+        }
+        (hp_damage, armor_damage, died)
+    }
+
+    /// Seeded 3D rays for both cover and targets, one per pellet. No height
+    /// auto-aim or forgiveness cone: a ray must intersect the finite fighter volume.
     fn check_hitscan(
         &mut self,
         shooter_idx: usize,
@@ -1444,12 +1490,34 @@ impl GameState {
             shooter.y - PLAYER_FLOOR_Y + EYE_HEIGHT,
             shooter.z,
         ];
-        let yaw = shooter.yaw;
-        let pitch = shooter.pitch;
-        let weapon = shooter.weapon;
-        let samples = [self.next_f32(), self.next_f32()];
-        let ray =
-            crate::combat::Ray::dispersed(origin, yaw, pitch, weapon.spread_radians(), samples);
+        let (yaw, pitch, weapon) = (shooter.yaw, shooter.pitch, shooter.weapon);
+        let pellets = (0..weapon.pellets())
+            .map(|_| {
+                let samples = [self.next_f32(), self.next_f32()];
+                let ray = crate::combat::Ray::dispersed(
+                    origin,
+                    yaw,
+                    pitch,
+                    weapon.spread_radians(),
+                    samples,
+                );
+                self.resolve_pellet(shooter_idx, arena, ray, weapon)
+            })
+            .collect();
+        ResolvedShot {
+            weapon,
+            origin,
+            pellets,
+        }
+    }
+
+    fn resolve_pellet(
+        &self,
+        shooter_idx: usize,
+        arena: &crate::movement::Arena,
+        ray: crate::combat::Ray,
+        weapon: WeaponType,
+    ) -> ResolvedPellet {
         let mut closest_dist = weapon.range_units().min(HITSCAN_RANGE);
         let mut cover_distance = f32::INFINITY;
         let mut impact = ShotImpact::Range;
@@ -1489,15 +1557,11 @@ impl GameState {
             }
         }
         let distance = closest_dist.min(cover_distance);
-        ResolvedShot {
+        ResolvedPellet {
             target: closest_idx,
             distance,
-            trace: ShotTrace {
-                weapon,
-                origin,
-                end: ray.point(distance),
-                impact,
-            },
+            end: ray.point(distance),
+            impact,
         }
     }
     /// Prefer unoccupied slots, then fewer exposed firing lanes, then clearance.
@@ -2167,7 +2231,7 @@ impl GameState {
                         || player.inventory.policy()
                             == crate::protocol::EquipmentPolicy::FullArsenal
                     {
-                        player.inventory.cancel_reload();
+                        player.inventory.release_trigger();
                         player.weapon = w;
                     }
                     (w.name().to_string(), None, w.name().to_string())

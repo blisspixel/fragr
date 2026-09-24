@@ -79,18 +79,24 @@ Initial handshake message. Must be sent immediately after connection.
   No player or spectator session is created on rejection. This is geometry
   compatibility, not general protocol or action-version negotiation.
 - `gameplay_version`: maximum understood gameplay contract. Updated Rust readers
-  and the Godot client send `9`; omission means `1`. Discovery-only maps require 2, maps with authored
+  and the Godot client send `10`; omission means `1`. Discovery-only maps require 2, maps with authored
   encounters require 3, and mission sequences require 6 for shared difficulty.
   Versions 4 and 5 introduced physical controls and party readiness respectively;
   they cannot enter current missions. Solo runs require 7 for explicit continues.
   Version 8 adds private participant records. Record delivery is gated by the
   client's advertised capability; earlier clients keep their existing messages.
-  M02 requires 9 for objective and gate state, including spectators. M01 still
-  admits version 8 readers under its existing solo or party requirement.
+  M02 requires 9 for objective and gate state, including spectators. Version 10
+  replaces magazines, reserves and reload with one ammunition count per type and
+  adds scatter pellet traces. Every discovery map, M01 and M02 included, now
+  requires 10 for every role, because the private loadout shape changed and
+  older readers would refuse it. Records are delivered only to 10 or later.
   Use matching campaign server/client builds.
   Older clients of every role are rejected before `Welcome`
   with `unsupported_gameplay`. This capability is separate from geometry. The six
-  full-arsenal arcade maps still accept 1.
+  full-arsenal arcade maps still accept 1. There an older reader draws only the
+  first pellet of each scatter result, and an action still carrying the retired
+  `reload` field is ignored as an unreadable action, never counted toward
+  `malformed`.
 
 Admission rejection also places its stable error code in a WebSocket policy-close
 reason. Clients may receive the final text and close in one poll; use that reason
@@ -191,7 +197,9 @@ and before the corresponding snapshot whenever shared state changes. `state` is:
 - `phase`: M01 uses `briefing`, `find_transfer`, `reach_lift`, or `departed`.
   M02 uses `briefing`, `in_progress`, or `departed`.
 - `rules`: required `{difficulty,revision}`. Difficulty is `assisted`, `standard`
-  or `severe`; revision is exactly `1`. Unknown fields/revisions are invalid.
+  or `severe`; revision is exactly `2`. Unknown fields/revisions are invalid.
+  Revision 2 (2026-09-24) removed reload pauses for guards and players and made
+  the scatter a seven-pellet blast; revision 1 was the magazine era.
   The host chooses once before admission. Geometry changes, death, retries and
   joining participants preserve these rules. Clients cannot change them through
   actions or readiness; agent observations contain the same rules as human UI.
@@ -269,9 +277,9 @@ command changes nothing and returns `continue_rejected`. Confirm acceptance in
 the next mission state, never from the send result alone.
 
 Retry restores mission-entry position, facing, health, armor, selected weapon,
-magazines, reserves and personal claims; later pickups are discarded. Original
-geometry, supplies, enemies and objectives return together. Reloads, motion and
-queued actions are cleared; input sequence, inventory revision and simulation
+carried weapons, ammunition counts and personal claims; later pickups are
+discarded. Original geometry, supplies, enemies and objectives return together.
+Motion, a latched dry trigger and queued actions are cleared; input sequence, inventory revision and simulation
 tick never rewind. The owner remains ready, so the opening does not replay.
 Leaving an unfinished solo run sets `abandoned`; its seat cannot be reused.
 A dropped socket can rebind that same owner for ten seconds, and the run stays
@@ -288,8 +296,9 @@ reject changed run identity or increasing allowance across same-map updates.
 
 #### Action
 
-Sent by `human` or `agent` roles to control their player. Movement, firing, jump,
-reload and interaction flags are optional booleans defaulting to `false`.
+Sent by `human` or `agent` roles to control their player. Movement, firing, jump
+and interaction flags are optional booleans defaulting to `false`. There is no
+reload: `reload` is not a field, and an action carrying it does not parse.
 Optional aim, sequence and weapon fields use the types described below.
 
 ```json
@@ -332,12 +341,8 @@ World-point aim:
 - `weapon_swap`: (optional) `"fists"` | `"tack"` | `"flechette"` | `"rail"` | `"scatter"`.
   The newest explicit choice survives later packets until one tick consumes it.
   Discovery rejects unowned choices; full-arsenal maps permit their three guns.
-  Switching cancels an unfinished reload without consuming reserve.
-- `reload`: optional boolean, default false and omitted when false. A true request
-  is latched across newer input until one tick consumes it. Dead fighters cannot
-  reload. Full magazines, insufficient reserve and an existing reload reject it.
-  Completion happens before that tick's input, allowing a shot on the completion
-  tick. Dry or reloading weapons create no shot result, cooldown or RNG draw.
+  Switching releases a latched dry trigger. A dry weapon creates no shot result,
+  cooldown or RNG draw.
 - `look_at`: (optional) Authoritative target aim. Prefer `player_id` (UUID string),
   or both `x` and `z` with optional world `y`. A player target aims at the body
   centre, 0.9 units above its feet. A world point without `y` means horizontal aim.
@@ -499,26 +504,29 @@ in `Snapshot.players[].weapon`; ammunition does not.
   "player_id": "550e8400-e29b-41d4-a716-446655440000",
   "tick": 100,
   "selected": "tack",
-  "weapons": [{"weapon":"fists","magazine":null},{"weapon":"tack","magazine":0}],
-  "reserves": [{"pool":"tacks","rounds":36},{"pool":"darts","rounds":0},{"pool":"cores","rounds":0}],
-  "reload": {"weapon":"tack","complete_at":118},
+  "weapons": ["fists", "tack"],
+  "ammo": [{"pool":"bullets","rounds":0},{"pool":"shells","rounds":0},{"pool":"cells","rounds":0}],
   "personal_claims": ["bay_tack"],
   "dry_fire_count": 1
 }
 ```
 
-`weapons` lists owned weapons exactly once, including fists. Fists alone have a
-null magazine; gun magazines are loaded shots. `reserves` contains all three
-unique pools. `reload` is null or the selected gun and its completion tick.
+`weapons` lists owned weapons exactly once, including fists. `ammo` contains
+all three unique pools: `bullets` (Tack and Flechette, cap 200), `shells`
+(Scatter, cap 50) and `cells` (Rail, cap 50). There are no magazines and no
+reload: one shot, including a seven-pellet scatter blast, spends one unit from
+its pool, and fists need nothing. A weapon pickup adds Tack 50, Flechette 60,
+Scatter 12 or Rail 10 units. The magazine-era `reserves` and `reload` fields are
+gone and a message carrying them is refused whole.
 `personal_claims` hides introductory supplies only for their claimant. IDs follow
 the authored map contract. `dry_fire_count` advances once per held empty trigger,
 resets with a development life, and drives feedback without generating shots.
-Clients validate ownership, unique entries, bounded counts, reload consistency
-and nondecreasing ticks before replacing their observation. Limits and timings
+Clients validate ownership, unique entries, bounded counts and nondecreasing
+ticks before replacing their observation. Limits and timings
 come from `protocol/loadout.rs`; the Godot boundary mirrors them.
 
-Pickup entries additionally support `kind: "ammo"`, `pool` (`tacks`, `darts`,
-`cores`) and a round `amount`. `claim` defaults to `contested` and is omitted in
+Pickup entries additionally support `kind: "ammo"`, `pool` (`bullets`, `shells`,
+`cells`) and a round `amount`. `claim` defaults to `contested` and is omitted in
 legacy snapshots. A `personal` weapon supply stays publicly available while each
 participant claims it independently once per development life. Contested stock
 has one authoritative winner and reports the actual received amount in the pickup
@@ -702,6 +710,29 @@ it and deserialize as absent. `trace.weapon` is the firing weapon in snake case.
 range exhaustion has no surface normal. The endpoint is the actual surface hit,
 or the weapon range limit for a clear miss. A ray starting inside a body/solid
 stops at its origin and uses the reverse ray direction as its presentation normal.
+
+**Scatter pellets:** a scatter blast is seven seeded rays from one `origin`. The
+server groups them by what they struck and publishes one result per struck
+fighter, in the order of each fighter's first pellet, then one `hit: false`
+result for every pellet that hit cover or ran out of range. Each of those
+results carries `trace.pellets`, the pellets it covers in firing order, each an
+`end` and an `impact` with the shape above; `trace.end` and `trace.impact`
+repeat its first pellet so a reader that ignores pellets still draws one honest
+trace. A blast has at most seven pellets across all its results. Other weapons
+omit `pellets`. A result's `damage` is the sum of its pellets, each with its
+own falloff, applied once so armour absorbs once and one death is one frag; its
+`killed` is true when that sum first takes the fighter to zero. A shooter fires
+at most once a tick, so all of one shooter's results in a tick are one shot.
+
+```json
+{"shooter_id":"550e8400-e29b-41d4-a716-446655440000","shooter":"ArenaFox","hit":true,
+ "target_id":"660e8400-e29b-41d4-a716-446655440000","target":"Bot1","damage":40,"target_hp_after":60,"killed":false,
+ "trace":{"weapon":"scatter","origin":[0.0,1.6,0.0],"end":[2.5,1.55,0.1],"impact":{"kind":"fighter","normal":[-1.0,0.0,0.0]},
+  "pellets":[{"end":[2.5,1.55,0.1],"impact":{"kind":"fighter","normal":[-1.0,0.0,0.0]}},
+             {"end":[2.5,1.62,-0.2],"impact":{"kind":"fighter","normal":[-1.0,0.0,0.0]}},
+             {"end":[2.5,1.4,0.3],"impact":{"kind":"fighter","normal":[-0.9,0.0,0.44]}},
+             {"end":[2.51,1.7,0.0],"impact":{"kind":"fighter","normal":[-1.0,0.0,0.0]}}]}}
+```
 
 `hit` means the ray intersected a fighter. `damage` is incoming weapon damage
 before armour absorption, including overkill; it is zero on a miss or when that
@@ -1085,17 +1116,16 @@ version 2 requires that field; it is separate from
 the on-wire campaign rules revision. No parent command changes it during a run.
 
 ```json
-{"version":2,"mission":"recall_notice","difficulty":"standard","url":"ws://127.0.0.1:49152","gameplay_version":8}
+{"version":2,"mission":"recall_notice","difficulty":"standard","url":"ws://127.0.0.1:49152","gameplay_version":10}
 ```
 
 The readiness record names the selected mission's client contract, rather than
-the highest version understood by the server. M01 stays at 8 when the server
-also understands M02 version 9. The local launcher checks this value exactly:
-8 for `recall_notice` and 9 for `persons_unknown`.
+the highest version understood by the server. Both missions carry discovery
+equipment, so both name 10. The local launcher checks this value exactly.
 
 `--local-mission persons_unknown` starts the bundled M02 graybox as a
 development child. It writes the same readiness line with
-`"mission":"persons_unknown"` and `"gameplay_version":9`. It has no durable run:
+`"mission":"persons_unknown"` and `"gameplay_version":10`. It has no durable run:
 `--run-mode` is refused before readiness, mission state carries no `run`, and
 the party keeps development entry respawn and the shared wipe reset. It is not
 a save carry from M01.
@@ -1124,7 +1154,9 @@ Recording metadata is not sent on the live socket.
 ## Participant records
 
 A `record` message is private to the participant and sent only to clients that
-advertise gameplay capability 8 or later. Spectators receive no private record.
+advertise gameplay capability 10 or later (8 before the ammunition contract,
+whose multi-kill scatter records an older reader would refuse). Spectators
+receive no private record.
 Ordinary updates are bounded to once per 20 ticks; a new round, mission attempt
 or status change sends immediately. The record's tick can precede the latest
 snapshot. No record is delivered during initial arena warmup or to someone who
@@ -1150,13 +1182,16 @@ shown as incomplete; transport loss is not evidence of failure or victory.
 Each count set contains `alive_ticks`, `deaths`, `hp_lost`, `armor_lost`,
 `dry_triggers` and five `weapons` entries in fists, Tack, flechette, scatter, rail
 order. Weapon counts are `attacks`, `damaging_attacks`, `kills`, `hp_damage` and
-`armor_damage`. The current weapons each resolve one ray per accepted attack.
+`armor_damage`. Every weapon resolves one attack per accepted trigger; the
+scatter's attack is seven pellets and counts once, as one damaging attack when
+any pellet hurt anyone. Its kills are bounded by seven per damaging attack; every
+other weapon's kills are bounded by its damaging attacks.
 Fists count as attacks. A damaging attack removes positive HP or armor from a
 hostile living target. Protected/friendly bodies, scenery, range misses and a
 body killed by an earlier committed ray do not count as damaging attacks.
 Effective damage excludes overkill. Simultaneous trades keep both attacks, and
-one shot receives each death credit. Dry triggers are latched empty-magazine
-pulls, separate from accepted attacks; cooldown and reload denials are neither.
+one shot receives each death credit. Dry triggers are latched pulls on an empty
+count, separate from accepted attacks; cooldown denials are neither.
 
 Living active ticks exclude intro/readiness, dead respawn waiting, continue
 choice and terminal waiting. The lethal frame counts. This is not wall-clock

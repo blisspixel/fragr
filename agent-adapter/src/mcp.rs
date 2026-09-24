@@ -110,7 +110,6 @@ const ACT_ALLOWED_KEYS: &[&str] = &[
     "turn_left",
     "turn_right",
     "fire",
-    "reload",
     "interact",
     "weapon_swap",
     "look_at",
@@ -278,12 +277,6 @@ pub fn validate_act_arguments(arguments: &Value) -> Result<Action, String> {
         turn_left: bool_field("turn_left"),
         turn_right: bool_field("turn_right"),
         fire: bool_field("fire"),
-        reload: match obj.get("reload") {
-            None => false,
-            Some(value) => value
-                .as_bool()
-                .ok_or("schema error: reload must be a boolean")?,
-        },
         jump: bool_field("jump"),
         interact: match obj.get("interact") {
             None => false,
@@ -593,7 +586,6 @@ fn tools_list_result() -> Value {
                         "fire": {"type": "boolean", "default": false, "description": "Fire weapon"},
                         "jump": {"type": "boolean", "default": false, "description": "Jump. A grounded fighter leaves the floor; holding it does not fly"},
                         "weapon_swap": {"type": "string", "enum": ["fists", "tack", "flechette", "rail", "scatter"], "description": "Select an owned weapon"},
-                        "reload": {"type": "boolean", "description": "Request one reload of the selected weapon"},
                         "interact": {"type": "boolean", "description": "Press to use an aimed mission panel when observe supplies your prompt. Release before another press."},
                         "look_at": {
                             "type": "object",
@@ -1354,7 +1346,7 @@ mod mcp_tests {
         assert_eq!(observed["mission"]["phase"], "briefing");
         assert_eq!(
             observed["mission"]["rules"],
-            serde_json::json!({"difficulty":"assisted","revision":1})
+            serde_json::json!({"difficulty":"assisted","revision":2})
         );
         assert_eq!(observed["mission"]["party"][0]["ready"], false);
         assert_eq!(observed["mission"]["party"][0]["id"], id.to_string());
@@ -1522,22 +1514,33 @@ mod mcp_tests {
         let mut inventory = Inventory::new(EquipmentPolicy::Discovery);
         inventory.grant_weapon(WeaponType::Tack);
         inventory.try_fire(WeaponType::Tack);
-        inventory.begin_reload(WeaponType::Tack, 10);
         let loadout = inventory.state(id, WeaponType::Tack, 10).unwrap();
         let wire = serde_json::to_value(protocol::ServerMessage::Loadout(loadout.clone())).unwrap();
         ingest_server_text(&mut state, &wire.to_string()).unwrap();
-        assert_eq!(build_observe_result(&state)["loadout"]["selected"], "tack");
+        let observed = build_observe_result(&state);
+        assert_eq!(observed["loadout"]["selected"], "tack");
         assert_eq!(
-            build_observe_result(&state)["loadout"]["reload"]["complete_at"],
-            28
+            observed["loadout"]["weapons"],
+            serde_json::json!(["fists", "tack"])
         );
+        assert_eq!(
+            observed["loadout"]["ammo"],
+            serde_json::json!([
+                {"pool": "bullets", "rounds": 49},
+                {"pool": "shells", "rounds": 0},
+                {"pool": "cells", "rounds": 0}
+            ])
+        );
+        assert!(observed["loadout"].get("reload").is_none());
         for patch in [
             serde_json::json!({"player_id":Uuid::new_v4()}),
             serde_json::json!({"tick":9}),
             serde_json::json!({"weapons":[]}),
             serde_json::json!({"reload":{"weapon":"tack","complete_at":29}}),
             serde_json::json!({"personal_claims":["bad/path"]}),
-            serde_json::json!({"reserves":"bad"}),
+            serde_json::json!({"ammo":"bad"}),
+            serde_json::json!({"ammo":[{"pool":"darts","rounds":1}]}),
+            serde_json::json!({"reserves":[]}),
         ] {
             let mut invalid = wire.clone();
             invalid
@@ -1549,16 +1552,12 @@ mod mcp_tests {
         }
         for weapon in ["fists", "tack", "flechette", "scatter", "rail"] {
             let action =
-                validate_act_arguments(&serde_json::json!({"weapon_swap":weapon,"reload":true}))
+                validate_act_arguments(&serde_json::json!({"weapon_swap":weapon,"fire":true}))
                     .unwrap();
             assert_eq!(action.weapon_swap.unwrap().name().to_lowercase(), weapon);
-            assert!(action.reload);
         }
-        for reload in [
-            serde_json::json!(1),
-            serde_json::json!("true"),
-            serde_json::json!([]),
-        ] {
+        // Reloading is retired: one ammunition count per type, no magazines.
+        for reload in [serde_json::json!(true), serde_json::json!(false)] {
             assert!(validate_act_arguments(&serde_json::json!({"reload":reload})).is_err());
         }
         assert!(ingest_server_text(
@@ -1697,6 +1696,18 @@ mod mcp_tests {
         assert!(names.contains(&"observe"));
         assert!(names.contains(&"act"));
         assert!(names.contains(&"get_events"));
+        let act = tools.iter().find(|tool| tool["name"] == "act").unwrap();
+        let properties = act["inputSchema"]["properties"].as_object().unwrap();
+        assert!(properties.contains_key("fire") && properties.contains_key("weapon_swap"));
+        assert!(
+            !properties.contains_key("reload"),
+            "no magazines, so there is nothing to reload"
+        );
+        let mut schema_keys: Vec<&str> = properties.keys().map(String::as_str).collect();
+        let mut allowed = ACT_ALLOWED_KEYS.to_vec();
+        schema_keys.sort_unstable();
+        allowed.sort_unstable();
+        assert_eq!(schema_keys, allowed, "the schema and the validator agree");
 
         let bad = handle_mcp_request(req("nope", None), &mut state);
         assert_eq!(bad.response.error.unwrap().code, -32601);

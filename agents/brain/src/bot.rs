@@ -285,7 +285,7 @@ fn decision_state(
     if let Some(equipment) = loadout {
         state["equipment"] = serde_json::json!({
             "selected": equipment.selected, "weapons": equipment.weapons,
-            "reserves": equipment.reserves, "reload": equipment.reload,
+            "ammo": equipment.ammo,
         });
     }
     state
@@ -437,7 +437,7 @@ fn constrain_campaign_equipment(
     if mission {
         plan.weapon = plan
             .weapon
-            .filter(|weapon| loadout.is_some_and(|equipment| equipment.weapon(*weapon).is_some()));
+            .filter(|weapon| loadout.is_some_and(|equipment| equipment.owns(*weapon)));
     }
 }
 
@@ -740,7 +740,7 @@ pub async fn run_bot(
                         summary.decisions_local += 1;
                         continue;
                     };
-                    Arc::new(campaign_questions(&equipment.weapons.iter().map(|held| held.weapon).collect::<Vec<_>>()))
+                    Arc::new(campaign_questions(&equipment.weapons))
                 } else {
                     arena_questions.clone()
                 };
@@ -897,8 +897,8 @@ mod tests {
     use crate::provider::HttpResponse;
     use crate::telemetry::fixtures::{player, snapshot};
     use fragr_server::protocol::{
-        AmmoPool, AmmoReserve, CampaignRules, CampaignRunState, CombatCounts, LoadoutState,
-        MissionMember, PlayerRecord, RecordScope, RecordStatus, WeaponAmmo, WeaponType,
+        AmmoCount, AmmoPool, CampaignRules, CampaignRunState, CombatCounts, LoadoutState,
+        MissionMember, PlayerRecord, RecordScope, RecordStatus, WeaponType,
         RECORD_TICKS_PER_SECOND, RECORD_VERSION,
     };
     use fragr_server::run::{run_server, ServerOptions};
@@ -1118,21 +1118,15 @@ mod tests {
             player_id: id,
             tick: 1,
             selected: WeaponType::Tack,
-            weapons: vec![
-                WeaponAmmo {
-                    weapon: WeaponType::Fists,
-                    magazine: None,
-                },
-                WeaponAmmo {
-                    weapon: WeaponType::Tack,
-                    magazine: Some(6),
-                },
-            ],
-            reserves: AmmoPool::ALL
+            weapons: vec![WeaponType::Fists, WeaponType::Tack],
+            // Six bullets, the magazine-era fixture's loaded rounds.
+            ammo: AmmoPool::ALL
                 .into_iter()
-                .map(|pool| AmmoReserve { pool, rounds: 0 })
+                .map(|pool| AmmoCount {
+                    pool,
+                    rounds: if pool == AmmoPool::Bullets { 6 } else { 0 },
+                })
                 .collect(),
-            reload: None,
             personal_claims: vec![],
             dry_fire_count: 0,
         };

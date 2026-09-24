@@ -979,8 +979,7 @@ func _layout_fp_weapon() -> void:
 	var kick: Vector2 = fp_kick_amount * clampf(fp_kick_timer / 0.12, 0.0, 1.0)
 	var viewport_size: Vector2 = get_viewport().get_visible_rect().size
 	var base: Vector2 = (viewport_size - fp_weapon.size) * Vector2(0.5, 1.0)
-	var lowering: float = equipment_hud.lowering() if equipment_hud.visible else 0.0
-	fp_weapon.position = (base + Vector2(0.0, FP_BOTTOM_OVERLAP + lowering) + bob + kick).round()
+	fp_weapon.position = (base + Vector2(0.0, FP_BOTTOM_OVERLAP) + bob + kick).round()
 	if current_fp_weapon == "Fists":
 		melee_view.pose((base + Vector2(0.0, FP_BOTTOM_OVERLAP) + bob).round(), fp_weapon.size)
 	if fp_muzzle:
