@@ -92,7 +92,10 @@ existing gap in `gunfeel.md`), or any spend.
 - Run file version 2 saves `weapons` and `ammo`. A readable version 1 document
   (magazines and reserves) inspects as **incompatible**, never corrupt, so the
   menu offers New Run, which archives its exact bytes. M01's content hash also
-  changed with the ammo pads. There is no in-place conversion: the rules
+  changed with the ammo pads. M02's four ammo pads became `landing_bullets` and
+`ward_bullets` (20 bullets) and `antechamber_shells` and `floor_shells` (8
+shells, since its darts fed the shotgun); M02 has no durable run. There is no
+in-place conversion: the rules
   revision and the content both changed, so an old entry would restore
   equipment for a mission that no longer exists in that form.
 
@@ -101,7 +104,13 @@ existing gap in `gunfeel.md`), or any spend.
 | Check | Result |
 |---|---|
 | `cargo fmt --all -- --check`, `cargo clippy ... -D warnings` | pass |
-| `cargo test --workspace --locked` | see PR; pellet, ammo, save and adapter tests listed below |
+| `cargo test --workspace --locked --no-fail-fast` | pass, every crate |
+| `cargo llvm-cov --workspace --locked --fail-under-lines 90` | 94.07 percent of lines |
+| `--bench 16 --bench-ticks 1200 --bench-check --bench-assert --seed 42` | pass, deterministic |
+| `cargo build --workspace --release --locked`, `cargo deny check licenses bans sources` | pass |
+| Playtest smoke (4 agents, 1 round) | pass: 9 frags in 35.4 s, 0 spawn deaths |
+| `bash tools/playtest_roster.sh` (2/6/6/8/12/16 across six maps) | pass; 1 non-opening spawn death on maps 2 and 4, none at an opening |
+| Playable smoke on port 6793 | bots frag within 30 s; scripted `Probe` and local-rules `Brain` each land a frag; server stopped by PID |
 | `tools/godot_check.sh` (Godot 4.7.2 console) | `Godot checks: PASS` |
 | `bash tools/test_godot_check.sh` | every scenario `ok` |
 | `tools/qa_tour.sh --publish` | 25 states, 11 stills published |
