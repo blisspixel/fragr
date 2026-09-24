@@ -10,13 +10,34 @@ extends Node3D
 const DEGREES_PER_COUNT := 0.022
 @export var mouse_sensitivity := 1.5
 var invert_y: bool = false
-## Radians per second of turn at full deflection. 2.8 is about a hundred and
-## sixty degrees a second, which is roughly Doom's walking turn, and it is the
-## rate a keyboard gets because a key is either down or it is not. A stick gets
-## everything below it as well.
+## Radians per second of keyboard turn once the short ramp in look_input.gd
+## is done. 2.8 is about a hundred and sixty degrees a second, a little faster
+## than Doom's walking turn.
 @export var stick_look_sensitivity = 2.8
-@export var stick_turn_scale = 18.0
-@export var stick_deadzone = 0.25
+## Gamepad look, radians per second at full deflection, after a radial
+## deadzone and a response curve (look_input.gd).
+var stick_yaw_rate: float = deg_to_rad(240.0)
+var stick_pitch_rate: float = deg_to_rad(150.0)
+@export var stick_deadzone = 0.12
+var stick_curve: float = 1.8
+var stick_accel: bool = true
+var auto_centre: bool = false
+var aim_assist: AimAssist.Level = AimAssist.Level.STANDARD
+## Hostile body centres and map solids, refreshed by the match each frame.
+var assist_targets: Array = []
+var assist_solids: Array = []
+## What the assist chose last frame, for the harnesses.
+var assist_pick: Dictionary = {}
+## Reads a stick: `true` for the right (look) stick. Harnesses replace it.
+var stick_source: Callable = LookInput.read_stick
+var _key_yaw_held: float = 0.0
+var _key_yaw_dir: int = 0
+var _key_pitch_held: float = 0.0
+var _key_pitch_dir: int = 0
+var _since_pitch_key: float = 0.0
+var _centring: bool = false
+var _centre_was_down: bool = false
+var _stick_edge_seconds: float = 0.0
 @export var auto_cycle_interval = 0.0
 
 var follow_mode = true
@@ -63,6 +84,13 @@ func apply_preferences(preferences: FragrSettings) -> void:
 	mouse_sensitivity = float(preferences.get_value("controls", "mouse_sensitivity"))
 	stick_look_sensitivity = float(preferences.get_value("controls", "turn_speed"))
 	invert_y = bool(preferences.get_value("controls", "invert_y"))
+	stick_yaw_rate = deg_to_rad(float(preferences.get_value("controls", "stick_yaw_speed")))
+	stick_pitch_rate = deg_to_rad(float(preferences.get_value("controls", "stick_pitch_speed")))
+	stick_deadzone = float(preferences.get_value("controls", "stick_deadzone"))
+	stick_curve = float(preferences.get_value("controls", "stick_curve"))
+	stick_accel = bool(preferences.get_value("controls", "stick_accel"))
+	auto_centre = bool(preferences.get_value("controls", "auto_centre"))
+	aim_assist = AimAssist.level_from(preferences.get_value("controls", "aim_assist"))
 	var lens: Camera3D = get_node("Camera3D")
 	lens.keep_aspect = Camera3D.KEEP_HEIGHT
 	lens.fov = preferences.fov()
@@ -139,54 +167,66 @@ func _process(delta):
 			_free_fly(delta)
 
 func _gamepad_move_active() -> bool:
-	return (
-		Input.get_action_strength("move_forward") > stick_deadzone
-		or Input.get_action_strength("move_back") > stick_deadzone
-		or Input.get_action_strength("move_left") > stick_deadzone
-		or Input.get_action_strength("move_right") > stick_deadzone
-	)
+	return LookInput.radial(_stick(false), maxf(stick_deadzone, LookInput.MOVE_MIN_DEADZONE)) != Vector2.ZERO
 
 func _gamepad_look_active() -> bool:
-	return (
-		Input.get_action_strength("turn_left") > stick_deadzone
-		or Input.get_action_strength("turn_right") > stick_deadzone
-		or Input.get_action_strength("look_up") > stick_deadzone
-		or Input.get_action_strength("look_down") > stick_deadzone
-	)
+	return LookInput.radial(_stick(true), stick_deadzone) != Vector2.ZERO
+
+## Left stick as the four direction bits the wire carries.
+func pad_move_bits() -> Dictionary:
+	return LookInput.move_bits(_stick(false), stick_deadzone)
+
+func _stick(right: bool) -> Vector2:
+	var value: Variant = stick_source.call(right)
+	return value if value is Vector2 and (value as Vector2).is_finite() else Vector2.ZERO
+
+## Keyboard and gamepad look for one frame, as a (yaw, pitch) change in the
+## server's convention: positive yaw turns right, positive pitch looks up.
+## Keys ramp from a slow start so taps are fine adjustments; the stick goes
+## through a radial deadzone, a response curve and optional acceleration.
+## `friction` slows the stick near a hostile when aim assist allows it.
+func _look_delta(delta: float, friction: float = 1.0) -> Vector2:
+	var change: Vector2 = Vector2.ZERO
+	var strafing: bool = InputMap.has_action("strafe") and Input.is_action_pressed("strafe")
+	var yaw_dir: int = 0
+	if not strafing:
+		yaw_dir = int(Input.is_action_pressed("turn_right")) - int(Input.is_action_pressed("turn_left"))
+	if yaw_dir != _key_yaw_dir:
+		_key_yaw_held = 0.0
+		_key_yaw_dir = yaw_dir
+	if yaw_dir != 0:
+		change.x += yaw_dir * LookInput.key_turn_angle(_key_yaw_held, _key_yaw_held + delta, stick_look_sensitivity)
+		_key_yaw_held += delta
+	var pitch_dir: int = int(Input.is_action_pressed("look_up")) - int(Input.is_action_pressed("look_down"))
+	if pitch_dir != _key_pitch_dir:
+		_key_pitch_held = 0.0
+		_key_pitch_dir = pitch_dir
+	if pitch_dir != 0:
+		change.y += pitch_dir * LookInput.key_turn_angle(_key_pitch_held, _key_pitch_held + delta, stick_look_sensitivity * LookInput.KEY_PITCH_SCALE)
+		_key_pitch_held += delta
+		_since_pitch_key = 0.0
+		_centring = false
+	else:
+		_since_pitch_key += delta
+	var shaped: Vector2 = LookInput.shape(_stick(true), stick_deadzone, stick_curve)
+	if absf(shaped.x) >= LookInput.ACCEL_EDGE:
+		_stick_edge_seconds += delta
+	else:
+		_stick_edge_seconds = 0.0
+	var boost: float = LookInput.accel_multiplier(_stick_edge_seconds, stick_accel)
+	change += LookInput.stick_look(shaped, stick_yaw_rate, stick_pitch_rate, invert_y, boost, delta) * friction
+	if shaped != Vector2.ZERO:
+		_since_pitch_key = 0.0
+	return change
 
 func _apply_stick_look(delta: float, apply_yaw_to_node: bool) -> void:
-	var turn_l = Input.get_action_strength("turn_left")
-	var turn_r = Input.get_action_strength("turn_right")
-	var look_u = Input.get_action_strength("look_up")
-	var look_d = Input.get_action_strength("look_down")
-
-	var yaw = 0.0
-	if turn_l > stick_deadzone:
-		yaw -= (turn_l - stick_deadzone) / (1.0 - stick_deadzone)
-	if turn_r > stick_deadzone:
-		yaw += (turn_r - stick_deadzone) / (1.0 - stick_deadzone)
-
-	var pitch = 0.0
-	if look_u > stick_deadzone:
-		pitch -= (look_u - stick_deadzone) / (1.0 - stick_deadzone)
-	if look_d > stick_deadzone:
-		pitch += (look_d - stick_deadzone) / (1.0 - stick_deadzone)
-	if invert_y:
-		pitch = -pitch
-
-	if abs(yaw) > 0.0:
-		if apply_yaw_to_node:
-			rotation.y -= yaw * stick_look_sensitivity * delta
-		else:
-			fp_yaw = wrapf(fp_yaw + yaw * stick_look_sensitivity * delta, 0.0, TAU)
-
-	if abs(pitch) > 0.0:
-		if apply_yaw_to_node:
-			rotation.x -= pitch * stick_look_sensitivity * delta
-			rotation.x = clamp(rotation.x, -PI / 2, PI / 2)
-		else:
-			fp_pitch -= pitch * stick_look_sensitivity * delta
-			fp_pitch = clampf(fp_pitch, -ServerYaw.PITCH_LIMIT, ServerYaw.PITCH_LIMIT)
+	var change: Vector2 = _look_delta(delta)
+	if apply_yaw_to_node:
+		rotation.y -= change.x
+		rotation.x = clampf(rotation.x + change.y, -PI / 2, PI / 2)
+	else:
+		fp_yaw = wrapf(fp_yaw + change.x, 0.0, TAU)
+		fp_pitch = clampf(fp_pitch + change.y, -ServerYaw.PITCH_LIMIT, ServerYaw.PITCH_LIMIT)
 
 func _free_fly(delta):
 	if mouse_motion.length() > 0:
@@ -203,6 +243,9 @@ func _free_fly(delta):
 	input_dir.z += Input.get_action_strength("move_back")
 	input_dir.x -= Input.get_action_strength("move_left")
 	input_dir.x += Input.get_action_strength("move_right")
+	var pad_move: Vector2 = LookInput.radial(_stick(false), maxf(stick_deadzone, LookInput.MOVE_MIN_DEADZONE))
+	input_dir.x += pad_move.x
+	input_dir.z += pad_move.y
 
 	var speed_mult = 1.0
 	if Input.is_key_pressed(KEY_SHIFT):
@@ -349,8 +392,35 @@ func _process_fp(delta):
 		fp_pitch = clampf(fp_pitch, -ServerYaw.PITCH_LIMIT, ServerYaw.PITCH_LIMIT)
 		mouse_motion = Vector2.ZERO
 
-	# Right stick changes the same local aim sent through Action.
-	_apply_stick_look(delta, false)
+	# Keys and the right stick change the same local aim sent through Action.
+	# Aim assist reads the look source: the mouse is never assisted.
+	var assisted: bool = AimAssist.enabled_for(aim_assist, InputDevice.look_source)
+	assist_pick = AimAssist.pick(_assist_eye(), fp_yaw, fp_pitch, assist_targets, assist_solids, aim_assist) if assisted else {}
+	var pad_look: bool = InputDevice.look_source == "gamepad"
+	var change: Vector2 = _look_delta(delta, AimAssist.friction(assist_pick, aim_assist) if pad_look else 1.0)
+	fp_yaw = wrapf(fp_yaw + change.x, 0.0, TAU)
+	fp_pitch = clampf(fp_pitch + change.y, -ServerYaw.PITCH_LIMIT, ServerYaw.PITCH_LIMIT)
+	var centre_down: bool = InputMap.has_action("center_view") and Input.is_action_pressed("center_view")
+	if centre_down and not _centre_was_down:
+		_centring = true
+	_centre_was_down = centre_down
+	if _centring:
+		fp_pitch = fp_pitch * exp(-12.0 * delta)
+		if absf(fp_pitch) < 0.002:
+			fp_pitch = 0.0
+			_centring = false
+	if assisted and not assist_pick.is_empty():
+		var aim: Vector2
+		if pad_look:
+			var steering: bool = change != Vector2.ZERO or _gamepad_move_active()
+			aim = AimAssist.pad_step(fp_yaw, fp_pitch, assist_pick, aim_assist, steering, delta)
+		else:
+			aim = AimAssist.keyboard_step(fp_yaw, fp_pitch, assist_pick, aim_assist, delta)
+		fp_yaw = aim.x
+		fp_pitch = aim.y
+	elif auto_centre and InputDevice.look_source == "keyboard" and _since_pitch_key >= LookInput.AUTO_CENTRE_DELAY \
+		and (Input.is_action_pressed("move_forward") or Input.is_action_pressed("move_back")):
+		fp_pitch = LookInput.auto_centre(fp_pitch, delta)
 
 	if not is_instance_valid(fp_target):
 		return
@@ -373,7 +443,15 @@ func _process_fp(delta):
 	rotation.y = ServerYaw.camera_rotation_y(yaw)
 	rotation.x = fp_pitch
 
-## The absolute facing to send with this input, in the server's convention.
+## Where the assist measures from: the fighter's authoritative eye.
+func _assist_eye() -> Vector3:
+	if not is_instance_valid(fp_target):
+		return global_position
+	var base: Vector3 = fp_target.global_position
+	if "target_position" in fp_target:
+		base = fp_target.get("target_position")
+	return base + Vector3(0, FP_EYE_HEIGHT, 0)
+
 ## Radians of turn per mouse count at the current sensitivity.
 func _radians_per_count() -> float:
 	return deg_to_rad(DEGREES_PER_COUNT * mouse_sensitivity)

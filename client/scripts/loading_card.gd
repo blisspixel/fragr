@@ -16,6 +16,8 @@ const HOLD_SECONDS: float = 4.0
 var _elapsed: float = 0.0
 var _armed: bool = false
 var _bar: ProgressBar = null
+var _controls: Label = null
+var _device_revision: int = -1
 
 func _ready() -> void:
 	layer = 90
@@ -48,6 +50,8 @@ func _build() -> void:
 	column.add_child(title)
 
 	var controls: Label = Label.new()
+	_controls = controls
+	_device_revision = InputDevice.revision
 	controls.text = _controls_text()
 	controls.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	controls.add_theme_font_size_override("font_size", 17)
@@ -76,23 +80,22 @@ func _build() -> void:
 	column.add_child(_bar)
 
 	var hint: Label = Label.new()
-	hint.text = "Any key to begin"
+	hint.text = tr("LOADING_BEGIN")
 	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	hint.add_theme_font_size_override("font_size", 13)
 	hint.add_theme_color_override("font_color", Color(0.55, 0.57, 0.6))
 	column.add_child(hint)
 
-## The control scheme, in the order a new player needs it.
+## The control scheme, in the order a new player needs it, from the live
+## bindings of the device in the player's hands.
 static func _controls_text() -> String:
-	return (
-		"W A S D or arrows to move        Arrows or Q and E to turn\n"
-		+ "Mouse or Ctrl to fire        Space to jump        Wheel to change weapon\n"
-		+ "F or gamepad B to use        C for radio stations\n"
-		+ "J to join        L to leave        Escape for the menu        Tilde for the console"
-	)
+	return InputGlyphs.plain(TranslationServer.translate("LOADING_CONTROLS_PAD" if InputDevice.is_gamepad() else "LOADING_CONTROLS_KEYS"))
 
 func _process(delta: float) -> void:
 	_elapsed += delta
+	if _controls != null and _device_revision != InputDevice.revision:
+		_device_revision = InputDevice.revision
+		_controls.text = _controls_text()
 	if _bar != null:
 		_bar.value = minf(_elapsed, HOLD_SECONDS)
 	# A short arming delay, so the keypress that started the match does not

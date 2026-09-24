@@ -29,6 +29,7 @@ var _campaign_run_mode: String = "new"
 var _opening: CampaignOpening
 var _title: Label
 var _tagline: Label
+var _device_revision: int = -1
 
 func _ready() -> void:
 	MouseCapture.release()
@@ -45,6 +46,9 @@ func _ready() -> void:
 	_settings.changed.connect(_apply_preferences)
 	get_viewport().size_changed.connect(_apply_render_preferences)
 	_apply_preferences()
+	var watcher: InputDevice = InputDevice.new()
+	watcher.name = "InputDevice"
+	add_child(watcher)
 	_build_chrome()
 	_show("main")
 	_console = FragrConsole.new()
@@ -107,7 +111,7 @@ func _build_chrome() -> void:
 	_status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_status.add_theme_font_size_override("font_size", 18)
 	_status.add_theme_color_override("font_color", Color(0.6, 0.62, 0.64))
-	_status.text = "ARROWS + ENTER   /   ESC BACK\nFreedom is not a licensed feature."
+	_status.text = _nav_hint()
 	column.add_child(_status)
 
 func _clear() -> void:
@@ -151,10 +155,10 @@ func _show(page: String) -> void:
 	if _probe != null:
 		_probe.cancel_request()
 	_page = page
-	_title.add_theme_font_size_override("font_size", 60 if page == "records" else 154)
-	_tagline.visible = page != "records"
+	_title.add_theme_font_size_override("font_size", 60 if page in ["records", "settings"] else 154)
+	_tagline.visible = page not in ["records", "settings"]
 	_clear()
-	_status.text = tr(_local_match.error_key) if not _local_match.error_key.is_empty() else "ARROWS + ENTER   /   ESC BACK\nFreedom is not a licensed feature."
+	_status.text = tr(_local_match.error_key) if not _local_match.error_key.is_empty() else _nav_hint()
 	match page:
 		"main":
 			_page_main()
@@ -192,6 +196,17 @@ func _show(page: String) -> void:
 		if child is Button and not (child as Button).disabled:
 			(child as Button).grab_focus()
 			break
+
+## Navigation help for the device in the player's hands.
+func _nav_hint() -> String:
+	var line: String = InputGlyphs.plain(tr("MENU_NAV_PAD" if InputDevice.is_gamepad() else "MENU_NAV_KEYS"))
+	return line + "\nFreedom is not a licensed feature."
+
+func _process(_delta: float) -> void:
+	if _device_revision != InputDevice.revision and _status != null:
+		_device_revision = InputDevice.revision
+		if _local_match == null or _local_match.error_key.is_empty():
+			_status.text = _nav_hint()
 
 func _page_main() -> void:
 	_button("Single Player", func() -> void: _show("single"))

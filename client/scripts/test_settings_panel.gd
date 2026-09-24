@@ -32,6 +32,8 @@ func _run() -> void:
 	preferences.set_value("profile", "name", "Keep this callsign")
 	preferences.save_to_disk()
 	var panel: SettingsPanel = _panel(preferences)
+	_check(panel.current_page() == "CONTROLS" and panel.find_child("bind_fire_0", true, false) is Button, "settings open on the Controls page with its rebinding rows")
+	panel.show_page("LOOK")
 	(panel.find_child("mouse_sensitivity", true, false) as HSlider).value = 2.25
 	(panel.find_child("invert_y", true, false) as Button).button_pressed = true
 	panel.show_page("DISPLAY")
@@ -63,6 +65,7 @@ func _run() -> void:
 	_check(loaded.get_value("video", "quality") == 2 and loaded.get_value("video", "resolution_height") == 720, "menu resolution and quality choices survive a fresh store")
 	panel.free()
 	panel = _panel(preferences)
+	panel.show_page("LOOK")
 	(panel.find_child("mouse_sensitivity", true, false) as HSlider).value = 7.0
 	panel.show_page("GRAPHICS")
 	(panel.find_child("quality", true, false) as OptionButton).item_selected.emit(0)
@@ -74,6 +77,7 @@ func _run() -> void:
 
 	var bad: FragrSettings = FragrSettings.new("user://missing-directory-%d/settings.cfg" % OS.get_process_id())
 	panel = _panel(bad)
+	panel.show_page("LOOK")
 	(panel.find_child("mouse_sensitivity", true, false) as HSlider).value = 4.0
 	panel.save()
 	_check(_closes == 2 and bad.get_value("controls", "mouse_sensitivity") == 1.5, "failed save must not close or apply")

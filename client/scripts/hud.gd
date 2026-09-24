@@ -67,6 +67,7 @@ var broadcast_chrome: bool = false
 ## Connection status, wall clock and head count. Debug furniture, off.
 var debug_telemetry: bool = false
 var mode_entered_ms: int = 0
+var _controls_revision: int = -1
 var episode_id = ""
 var episode_title = ""
 var episode_objective = ""
@@ -330,14 +331,13 @@ func _refresh_mode_label():
 	# "RT/A: Fire", which names the gamepad binding first and the mouse never,
 	# so a player on a laptop could read the whole line and still not know what
 	# fires the gun. The full scheme lives on the loading card and in settings.
+	#
+	# The legend follows the device in the player's hands, from the live
+	# bindings: a gamepad reads RT fire, a keyboard CTRL fire, a mouse LMB fire.
 	var controls = ""
+	_controls_revision = InputDevice.revision
 	if Time.get_ticks_msec() - mode_entered_ms < CONTROLS_HINT_MS:
-		if client_mode == "SPECTATING":
-			controls = "
-J join   F fighter   V view   ~ console"
-		else:
-			controls = "
-Mouse or Ctrl fire   WASD move   Wheel or 1-5 weapon   L leave"
+		controls = "\n" + InputGlyphs.plain(tr("HUD_CONTROLS_WATCH" if client_mode == "SPECTATING" else "HUD_CONTROLS_PLAY"))
 	# The Host line already says a drone is on deck, in its own words, directly
 	# above. Saying it again underneath is the same sentence twice.
 	var pressure_chip = ""
@@ -915,7 +915,9 @@ func _process(delta):
 		if round_banner_remaining == 0.0:
 			round_message.visible = false
 	if scoreboard:
-		scoreboard.visible = not fp_juice_enabled or Input.is_physical_key_pressed(KEY_TAB)
+		scoreboard.visible = not fp_juice_enabled or (InputMap.has_action("scoreboard") and Input.is_action_pressed("scoreboard"))
+	if _controls_revision != InputDevice.revision and Time.get_ticks_msec() - mode_entered_ms < CONTROLS_HINT_MS:
+		_refresh_mode_label()
 	if damage_flash_timer > 0:
 		damage_flash_timer -= delta
 		if damage_flash:

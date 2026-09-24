@@ -1,0 +1,24 @@
+{
+  "comment": "Use prompt glyph evidence. The m01-records route with ordinary input and accurate-aim combat, stopped at the transfer record so the use prompt is live, then captured for each device.",
+  "width": 1280,
+  "height": 720,
+  "combat_travel": true,
+  "states": [
+    {"name":"arrival","scene":"res://scenes/main.tscn","join":"human","camera":"first_person","look_at":[0,4.7,-28]},
+    {"name":"clerk_lesson","camera":"first_person","walk_to":[[0,0,-26],[0,0,-21]],"combat":{"kind":"clerk","required":["intake_security"]}},
+    {"name":"intake_bots","camera":"first_person","walk_to":[[0,0,-10]],"combat":{"kind":"sweeper","required":["records_sweeper_west","records_sweeper_east"]}},
+    {"name":"public_stairs","camera":"first_person","walk_to":[[6,0,-9],[8,0,-8],[8,3,9]],"look_at":[-19,4.7,12]},
+    {"name":"records_reception","camera":"first_person","walk_to":[[-19,3,9],[-19,3,13.7],[-15.5,3,13.7],[-15.5,3,17.5]],"combat":{"kind":"union","evade_tells":true,"required":["reception_clerk","reception_runner"]},"look_at":[-16,4.2,20],"note":"Counter, cabinets and the two onward routes must be legible."},
+    {"name":"file_stacks","camera":"first_person","walk_to":[[-19,3,18],[-19,3,23],[-19,3,18],[-25,3,18]],"combat":{"kind":"union","evade_tells":true,"required":["stacks_clerk","archive_clerk","stacks_sweeper","archive_sweeper"]},"look_at":[-36,4.6,23],"note":"File aisles need cross-connections, headroom and distinct silhouettes."},
+    {"name":"stacks_cross_aisle","camera":"first_person","walk_to":[[-19,3,18],[-25,3,18],[-25,3,23],[-25.5,3,23],[-32,3,23],[-32,3,17],[-37,3,17],[-37,3,23],[-41.5,3,23],[-41.5,3,17],[-41.5,3,14.5],[-41.5,3,23],[-37,3,23],[-37,3,27.5]],"look_at":[-37,4.7,31]},
+    {"name":"sorting_west","camera":"first_person","walk_to":[[-37,3,31]],"combat":{"kind":"union","evade_tells":true,"required":["sorting_sweeper_west","sorting_sweeper_east","dispatch_clerk_west","dispatch_clerk_east"],"search_route":[[-41.5,3,31],[-41.5,3,38],[-32,3,38.5],[-22,3,38.5],[-18,3,38],[-18,3,31]]},"look_at":[-27,4.5,37],"note":"The western entry has usable cover without hiding the next destination."},
+    {"name":"sorting_east","camera":"first_person","walk_to":[[-32,3,32],[-23,3,32],[-18,3,31]],"look_at":[-28,4.5,37],"note":"The bypass approaches the same room from a different angle."},
+    {"name":"service_bypass","camera":"first_person","walk_to":[[-18,3,27],[-21,3,27],[-16,3,26]],"combat":{"kind":"sweeper","evade_tells":true,"required":["bypass_sentry"]},"look_at":[-21,4.8,27]},
+    {"name":"dispatch","camera":"first_person","walk_to":[[-18,3,27],[-21,3,27],[-15,3,27],[-18,3,27],[-18,3,31],[-28,3,31],[-41.5,3,31],[-41.5,3,40],[-32,3,40],[-32,3,38.5],[-22,3,38.5],[-22,3,41],[-22,3,36],[-11,3,36]],"combat":{"kind":"union","evade_tells":true,"required":["dispatch_sweeper","dispatch_officer","dispatch_guard"]},"look_at":[-7,4.5,34]},
+    {"name":"transfer_control","camera":"first_person","walk_to":[[-11,3,39],[-11,3,42],[-3,3,42],[-10.5,3,42],[-11,3,39],[-11,3,32],[-3,3,32],[-3,3,28]],"combat":{"kind":"union","evade_tells":true,"required":["transfer_clerk","transfer_sweeper_west","transfer_sweeper_east"]},"look_at":[-7.5,3.6,22.988]},
+    {"name":"record_prompt_keyboard","camera":"first_person","walk_to":[[-3,3,28],[-3,3,22],[-7.5,3,21.5]],"look_at":[-7.5,3.6,22.988],"input_device":"keyboard","expect_prompt":true,"note":"The live transfer record use prompt with a keyboard keycap."},
+    {"name":"record_prompt_pad","camera":"first_person","input_device":"pad","expect_prompt":true,"note":"The same prompt after a left trigger pull: positional glyph, since no pad name is reported."},
+    {"name":"record_prompt_letters","camera":"first_person","input_device":"pad","pad_layout":"letters","expect_prompt":true,"note":"Letter layout glyph, forced and recorded."},
+    {"name":"record_prompt_shapes","camera":"first_person","input_device":"pad","pad_layout":"shapes","expect_prompt":true,"note":"Shape layout glyph, forced and recorded."}
+  ]
+}

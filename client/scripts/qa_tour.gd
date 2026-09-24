@@ -171,6 +171,15 @@ func _run() -> void:
 			await _empty_ammo()
 		if state.has("interact"):
 			await _use_mission_control(str(state["interact"]))
+		if state.has("input_device"):
+			await _use_input_device(str(state["input_device"]), str(state.get("pad_layout", "")))
+		if state.get("expect_prompt", false):
+			var prompt_deadline: int = Time.get_ticks_msec() + 3000
+			while _game_manager().mission_hud.prompt_text.is_empty() and Time.get_ticks_msec() < prompt_deadline:
+				await create_timer(0.05).timeout
+			if _game_manager().mission_hud.prompt_text.is_empty():
+				push_error("qa_tour: %s expected a live use prompt" % state_name)
+				_failed = true
 		if state.get("overlay", "") == "match_menu":
 			_game_manager().get_node("PauseMenu").call("open")
 		if state.get("overlay", "") == "match_settings":
@@ -281,6 +290,7 @@ func _run() -> void:
 			# is enough texture to make the whole frame look non-blank.
 			"world_blank": measured.get("world_blank", false),
 			"note": state.get("note", ""),
+			"input": {"kind": ["keyboard", "mouse", "gamepad"][InputDevice.kind], "look": InputDevice.look_source, "pad_layout": InputDevice.pad_layout, "prompt": _game_manager().mission_hud.prompt_text if _game_manager() != null and _game_manager().get("mission_hud") != null else ""},
 		})
 		print("qa_tour: %s -> %s hud %.1f%% world_blank=%s" % [
 			state_name, file_name, measured.get("hud_coverage", 0.0) * 100.0,
@@ -663,6 +673,33 @@ func _local_feet() -> Vector3:
 	push_error("qa_tour: movement probe has no live human")
 	_failed = true
 	return Vector3(INF, INF, INF)
+
+## Switch prompts through the real input path: a key the game does not bind,
+## or a pull of the unbound left trigger. No pad is attached during a tour, so
+## the driver reports no name and the layout is positional unless the state
+## names one; a named layout is recorded in the manifest as forced.
+func _use_input_device(kind: String, layout: String) -> void:
+	if kind == "keyboard":
+		var key: InputEventKey = InputEventKey.new()
+		key.physical_keycode = KEY_F12
+		key.pressed = true
+		Input.parse_input_event(key)
+		var up: InputEventKey = key.duplicate()
+		up.pressed = false
+		Input.parse_input_event(up)
+	else:
+		var pull: InputEventJoypadMotion = InputEventJoypadMotion.new()
+		pull.axis = JOY_AXIS_TRIGGER_LEFT
+		pull.axis_value = 0.8
+		Input.parse_input_event(pull)
+		var rest: InputEventJoypadMotion = pull.duplicate()
+		rest.axis_value = 0.0
+		Input.parse_input_event(rest)
+	await process_frame
+	await process_frame
+	if kind != "keyboard" and layout in ["letters", "shapes", "generic"] and InputDevice.is_gamepad():
+		InputDevice.force(InputDevice.Kind.GAMEPAD, InputDevice.look_source, layout)
+	await process_frame
 
 func _use_mission_control(expected_phase: String) -> void:
 	var network: Node = _game_manager().get("net_client")

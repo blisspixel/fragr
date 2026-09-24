@@ -195,9 +195,9 @@ func _continues() -> void:
 	root.add_child(display)
 	display.apply(message["state"], PLAYER)
 	await process_frame
-	_expect(display._recovery.visible and display._recovery_copy.text.contains("ENTER / A"), "player sees the localized retry choice")
+	_expect(display._recovery.visible and display.recovery_text.contains(InputGlyphs.plain("{accept}: ")) and display.recovery_text.contains("ENTER"), "player sees the localized retry choice with the live accept key")
 	display.apply(message["state"], "")
-	_expect(not display._recovery_copy.text.contains("ENTER / A"), "spectator cannot choose another player's continue")
+	_expect(not display.recovery_text.contains("ENTER:"), "spectator cannot choose another player's continue")
 	network.player_id = null
 	_expect(not network.send_mission_continue(), "spectator cannot submit a continue")
 	var restored: Dictionary = message.duplicate(true)
@@ -256,10 +256,10 @@ func _input_and_hud(network: CaptureNetwork, state: Dictionary) -> void:
 	root.add_child(display)
 	display.apply(state, PLAYER)
 	await process_frame
-	_expect(display.visible and display._card.visible and display._prompt.text.contains("READ") and display._copy.text.contains("Latch"), "local objective and physical prompt are readable")
+	_expect(display.visible and display._card.visible and display.prompt_text == "F: READ TRANSFER RECORD" and display._copy.text.contains("Latch"), "local objective and physical prompt are readable")
 	_expect(not display._copy.text.contains("forced correction"), "play does not keep the introduction paragraph on the card")
 	display.apply(state, "")
-	_expect(display._prompt.text.is_empty(), "spectators see state without another player's use prompt")
+	_expect(display.prompt_text.is_empty(), "spectators see state without another player's use prompt")
 	var arrival: Dictionary = state.duplicate(true)
 	arrival["phase"] = "reach_lift"
 	arrival["prompts"] = []
@@ -275,7 +275,7 @@ func _input_and_hud(network: CaptureNetwork, state: Dictionary) -> void:
 	TranslationServer.set_locale("en")
 	TranslationServer.remove_translation(translated)
 	display._process(MissionHud.STAGE_SECONDS)
-	_expect(not display._card.visible and display._prompt.text.is_empty(), "the objective card sets the stage and then leaves the view")
+	_expect(not display._card.visible and display.prompt_text.is_empty(), "the objective card sets the stage and then leaves the view")
 	display.apply(arrival, PLAYER)
 	_expect(not display._card.visible, "repeated mission state cannot reopen an expired objective card")
 	display.apply(state, PLAYER)

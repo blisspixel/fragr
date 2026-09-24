@@ -80,12 +80,16 @@ var _opening_finished: bool = false
 var _opening_release: bool = false
 var _readiness_attempt_sent: int = 0
 var _awaiting_map: bool = false
+var input_device: InputDevice
 
 func _ready():
 	mission_hud = MissionHud.new()
 	hud.add_child(mission_hud)
 	mouse_capture = MouseCapture.new()
 	add_child(mouse_capture)
+	input_device = InputDevice.new()
+	input_device.name = "InputDevice"
+	add_child(input_device)
 	shot_effects = ShotEffects.new()
 	shot_effects.name = "ShotEffects"
 	add_child(shot_effects)
@@ -182,6 +186,8 @@ func _on_map_info(info: Dictionary) -> void:
 	if shot_effects != null:
 		shot_effects.clear()
 	current_map_info = info.duplicate(true)
+	if camera:
+		camera.assist_solids = info.get("solids", []) if info.get("solids") is Array else []
 	_awaiting_map = false
 	if mission is Dictionary:
 		if is_human_player and not _opening_finished and not is_instance_valid(opening):
@@ -317,15 +323,14 @@ func _report_record_save(result: Error) -> void:
 		_record_save_warning = true
 		push_warning("Service record could not be saved: " + error_string(result))
 
+## Escape or Start opens and closes the match menu; Back on a gamepad (the
+## same ui_cancel as Escape) steps out of it too.
 func _unhandled_input(event: InputEvent) -> void:
-	if console != null and console.is_open():
+	if console != null and console.is_open() or pause_menu == null:
 		return
-	if not (event is InputEventKey):
+	if event.is_echo():
 		return
-	var key: InputEventKey = event
-	if not key.pressed or key.echo:
-		return
-	if key.physical_keycode == KEY_ESCAPE and pause_menu != null:
+	if event.is_action_pressed("pause") or (pause_menu.is_open() and event.is_action_pressed("ui_cancel")):
 		pause_menu.toggle()
 		get_viewport().set_input_as_handled()
 
@@ -477,6 +482,8 @@ func _process(_delta):
 		mouse_capture.set_gameplay(not controls_blocked())
 	if not is_human_player:
 		_update_followed_weapon()
+	if camera and is_human_player:
+		camera.assist_targets = assist_targets()
 	if hud and camera:
 		var watched: Node = players.get(local_fp_pawn_id) if is_human_player else camera.get_followed_target()
 		hud.set_fp_walk_speed(float(watched.get("presentation_speed")) if is_instance_valid(watched) else 0.0)
@@ -495,10 +502,14 @@ func _send_local_action(now_usec: int) -> bool:
 	if now_usec - _last_action_usec < ACTION_SEND_INTERVAL_USEC:
 		return false
 	_last_action_usec = now_usec
-	action_state.forward = Input.is_action_pressed("move_forward")
-	action_state.back = Input.is_action_pressed("move_back")
-	action_state.left = Input.is_action_pressed("move_left")
-	action_state.right = Input.is_action_pressed("move_right")
+	# Keys, the strafe modifier and the left stick all reduce to the same four
+	# direction bits the server has always read.
+	var strafing: bool = Input.is_action_pressed("strafe")
+	var pad: Dictionary = camera.pad_move_bits() if camera and camera.has_method("pad_move_bits") else {}
+	action_state.forward = Input.is_action_pressed("move_forward") or bool(pad.get("forward", false))
+	action_state.back = Input.is_action_pressed("move_back") or bool(pad.get("back", false))
+	action_state.left = Input.is_action_pressed("move_left") or (strafing and Input.is_action_pressed("turn_left")) or bool(pad.get("left", false))
+	action_state.right = Input.is_action_pressed("move_right") or (strafing and Input.is_action_pressed("turn_right")) or bool(pad.get("right", false))
 	action_state.fire = Input.is_action_pressed("fire")
 	action_state.jump = pending_jump or Input.is_action_pressed("jump")
 	action_state.interact = pending_interact or interact_held
@@ -538,6 +549,24 @@ func _on_mission_received(state: Dictionary) -> void:
 		mission_hud.apply(state, str(net_client.player_id) if is_human_player else "")
 	hud.combat_feed.set_campaign(not state.is_empty())
 	_submit_mission_readiness()
+
+## Body centres of the hostiles aim assist may help with: live Union
+## enemies on a mission map, every other live fighter in an arena. The camera
+## still checks range, the cone and line of sight against the map solids.
+func assist_targets() -> Array:
+	var out: Array = []
+	var mission: bool = _mission_map()
+	for id: Variant in players:
+		var pawn: Node = players[id]
+		if not is_instance_valid(pawn) or str(id) == local_fp_pawn_id or int(pawn.get("hp")) <= 0:
+			continue
+		var enemy: bool = bool(pawn.get("is_campaign_enemy"))
+		if enemy != mission:
+			continue
+		if mission and str((pawn.get("campaign_actor") as Dictionary).get("phase", "")) == "dead":
+			continue
+		out.append(AimAssist.body_centre(pawn.get("target_position")))
+	return out
 
 func _has_local_input_target() -> bool:
 	# An open socket precedes the first snapshot. Sending the default camera aim

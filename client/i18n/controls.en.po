@@ -1,0 +1,240 @@
+msgid ""
+msgstr ""
+"Language: en\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+
+# Settings tabs and actions.
+
+msgid "SETTINGS_TAB_CONTROLS"
+msgstr "CONTROLS"
+
+msgid "SETTINGS_TAB_LOOK"
+msgstr "LOOK"
+
+msgid "SETTINGS_TAB_DISPLAY"
+msgstr "DISPLAY"
+
+msgid "SETTINGS_TAB_GRAPHICS"
+msgstr "GRAPHICS"
+
+msgid "SETTINGS_TAB_AUDIO"
+msgstr "AUDIO"
+
+msgid "SETTINGS_SAVE"
+msgstr "SAVE"
+
+msgid "SETTINGS_CANCEL"
+msgstr "CANCEL"
+
+# Controls page: rebinding. Braced names are filled in by the page.
+
+msgid "BIND_HEADER_ACTION"
+msgstr "ACTION"
+
+msgid "BIND_HEADER_KEY"
+msgstr "KEY"
+
+msgid "BIND_HEADER_ALT"
+msgstr "KEY 2"
+
+msgid "BIND_HEADER_PAD"
+msgstr "PAD"
+
+msgid "BIND_WAITING"
+msgstr "PRESS"
+
+msgid "BIND_NOTE"
+msgstr "Pick a slot, then press a key, mouse button, pad button or trigger.\nEscape cancels. Backspace clears. Sticks always move and look."
+
+msgid "BIND_WAITING_NOTE"
+msgstr "Waiting for {slot} on {action}. Escape cancels, Backspace clears."
+
+msgid "BIND_MOVED"
+msgstr "{input} moved from {from} to {to}."
+
+msgid "BIND_SET"
+msgstr "{action}: {input}."
+
+msgid "BIND_CONFLICT"
+msgstr "{input} is on both {first} and {second}. Rebind one of them."
+
+msgid "BIND_RESET"
+msgstr "RESET CONTROLS TO DEFAULTS"
+
+msgid "BIND_RESET_DONE"
+msgstr "Default controls restored. Save to keep them."
+
+msgid "BIND_WRONG_SLOT_PAD"
+msgstr "That slot takes a gamepad button or trigger."
+
+msgid "BIND_WRONG_SLOT_KEY"
+msgstr "That slot takes a key or mouse button."
+
+msgid "ACTION_MOVE_FORWARD"
+msgstr "MOVE FORWARD"
+
+msgid "ACTION_MOVE_BACK"
+msgstr "MOVE BACK"
+
+msgid "ACTION_MOVE_LEFT"
+msgstr "STRAFE LEFT"
+
+msgid "ACTION_MOVE_RIGHT"
+msgstr "STRAFE RIGHT"
+
+msgid "ACTION_STRAFE"
+msgstr "STRAFE (HOLD)"
+
+msgid "ACTION_JUMP"
+msgstr "JUMP"
+
+msgid "ACTION_TURN_LEFT"
+msgstr "TURN LEFT"
+
+msgid "ACTION_TURN_RIGHT"
+msgstr "TURN RIGHT"
+
+msgid "ACTION_LOOK_UP"
+msgstr "LOOK UP"
+
+msgid "ACTION_LOOK_DOWN"
+msgstr "LOOK DOWN"
+
+msgid "ACTION_CENTER_VIEW"
+msgstr "CENTRE VIEW"
+
+msgid "ACTION_FIRE"
+msgstr "FIRE"
+
+msgid "ACTION_INTERACT"
+msgstr "USE"
+
+msgid "ACTION_WEAPON_NEXT"
+msgstr "NEXT WEAPON"
+
+msgid "ACTION_WEAPON_PREV"
+msgstr "PREVIOUS WEAPON"
+
+msgid "ACTION_WEAPON_1"
+msgstr "WEAPON 1"
+
+msgid "ACTION_WEAPON_2"
+msgstr "WEAPON 2"
+
+msgid "ACTION_WEAPON_3"
+msgstr "WEAPON 3"
+
+msgid "ACTION_WEAPON_4"
+msgstr "WEAPON 4"
+
+msgid "ACTION_WEAPON_5"
+msgstr "WEAPON 5"
+
+msgid "ACTION_SCOREBOARD"
+msgstr "SCORES (HOLD)"
+
+msgid "ACTION_SPEAK"
+msgstr "TAUNT"
+
+msgid "ACTION_PAUSE"
+msgstr "MATCH MENU"
+
+msgid "ACTION_LEAVE_MATCH"
+msgstr "LEAVE TO WATCH"
+
+msgid "ACTION_JOIN_AS_HUMAN"
+msgstr "JOIN (WATCHING)"
+
+msgid "ACTION_CYCLE_CAM"
+msgstr "NEXT FIGHTER (WATCHING)"
+
+msgid "ACTION_TOGGLE_FOLLOW"
+msgstr "CAMERA VIEW (WATCHING)"
+
+msgid "ACTION_RADIO_NEXT_STATION"
+msgstr "RADIO STATION"
+
+msgid "ACTION_RADIO_NEXT_TRACK"
+msgstr "RADIO TRACK"
+
+msgid "ACTION_RADIO_TOGGLE"
+msgstr "RADIO ON/OFF"
+
+# Look page.
+
+msgid "LOOK_MOUSE_SENSITIVITY"
+msgstr "MOUSE SENSITIVITY"
+
+msgid "LOOK_INVERT"
+msgstr "INVERT LOOK"
+
+msgid "LOOK_TURN_SPEED"
+msgstr "KEY TURN SPEED"
+
+msgid "LOOK_AUTO_CENTRE"
+msgstr "KEY AUTO-CENTRE"
+
+msgid "LOOK_STICK_YAW"
+msgstr "STICK TURN SPEED"
+
+msgid "LOOK_STICK_PITCH"
+msgstr "STICK PITCH SPEED"
+
+msgid "LOOK_STICK_DEADZONE"
+msgstr "STICK DEADZONE"
+
+msgid "LOOK_STICK_CURVE"
+msgstr "STICK CURVE"
+
+msgid "LOOK_STICK_ACCEL"
+msgstr "STICK TURN BOOST"
+
+msgid "LOOK_AIM_ASSIST"
+msgstr "AIM ASSIST"
+
+msgid "LOOK_ASSIST_OFF"
+msgstr "OFF"
+
+msgid "LOOK_ASSIST_LIGHT"
+msgstr "LIGHT"
+
+msgid "LOOK_ASSIST_STANDARD"
+msgstr "STANDARD"
+
+msgid "LOOK_WEAPON_BOB"
+msgstr "WEAPON BOB"
+
+msgid "LOOK_ON"
+msgstr "ON"
+
+msgid "LOOK_OFF"
+msgstr "OFF"
+
+msgid "LOOK_NOTE"
+msgstr "Mouse: raw counts, never smoothed or assisted. {cm} cm per turn at 800 CPI.\nAim assist helps keyboard and gamepad look only. Speeds are degrees per second."
+
+# Prompts. Braced names become the key or pad glyph for the device in use.
+
+msgid "HUD_CONTROLS_PLAY"
+msgstr "{fire} fire   {interact} use   {jump} jump   {weapon_next} weapon   {pause} menu"
+
+msgid "HUD_CONTROLS_WATCH"
+msgstr "{join} join   {cycle} fighter   {view} view   {pause} menu"
+
+msgid "MENU_PAUSE_HINT"
+msgstr "{pause} resumes. Tilde opens the console."
+
+msgid "MENU_NAV_KEYS"
+msgstr "ARROWS + {accept}   /   {back} BACK"
+
+msgid "MENU_NAV_PAD"
+msgstr "D-PAD + {accept}   /   {back} BACK"
+
+msgid "LOADING_CONTROLS_KEYS"
+msgstr "{move_forward} {move_left} {move_back} {move_right} or arrows to move        {turn_left} {turn_right} or mouse to turn\n{fire} or mouse to fire        {interact} to use        {jump} to jump        {strafe} + arrows to strafe\n{look_up} {look_down} to look        Wheel or 1-5 for weapons        {pause} for the menu        Tilde for the console"
+
+msgid "LOADING_CONTROLS_PAD"
+msgstr "Left stick moves        Right stick looks        {fire} fires        {interact} uses        {jump} jumps\n{weapon_prev} {weapon_next} change weapon        {speak} taunts        {pause} for the menu"
+
+msgid "LOADING_BEGIN"
+msgstr "Any key or button to begin"
