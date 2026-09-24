@@ -122,4 +122,23 @@ No paid service is called.
 
 ## Results
 
-Pending the first workflow run.
+Local, 2026-09-24, Windows 11, Godot 4.7.2-stable: `tools/godot_check.sh`
+PASS (including `test_install_check`), `tools/test_godot_check.sh` PASS,
+`actionlint` clean. All three presets exported. The Windows executable with
+`fragr-server.exe` beside it passed `--check-install`, and exited 1 without it.
+
+Release workflow on [#233](https://github.com/blisspixel/fragr/pull/233),
+[run 36015674280](https://github.com/blisspixel/fragr/actions/runs/36015674280),
+all jobs green, `publish` skipped as intended for a pull request:
+
+| Package | Zip | Server | Unpacked smoke on |
+|---|---|---|---|
+| windows-x86_64 | 621 MB | built on windows-2025 | windows-2025: `--help`, bench, install check PASS |
+| linux-x86_64 | 611 MB | built on ubuntu-22.04 | ubuntu-24.04: `--help`, bench, install check PASS |
+| macos-universal | 645 MB | `lipo`: x86_64 and arm64 | macos-26 (arm64): `codesign --verify --deep --strict` valid, `--help`, bench, install check PASS |
+
+Each install check line named the server inside the unpacked package
+directory (`Contents/MacOS/fragr-server` for the app) and reported `missing`
+for the empty run directory. The icon pulled from the Linux-exported
+`fragr.exe` on the Windows runner is the fragr mark. No tag or release was
+created.
