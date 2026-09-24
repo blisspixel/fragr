@@ -162,6 +162,9 @@ func _apply_arena_sky(map_name: String = "") -> void:
 		return
 	world.environment = ArenaSky.build_environment(map_name)
 	RenderQuality.apply_environment(world.environment, settings)
+	ArenaSky.apply_scene_lights(get_node_or_null("Arena/Layout"), map_name)
+	ArenaSky.apply_view_fill(get_node_or_null("SpectatorCamera/Camera3D") as Camera3D, map_name)
+	RenderQuality.apply_practicals(self, settings)
 
 
 static func _find_world_environment(node: Node) -> WorldEnvironment:
@@ -230,6 +233,8 @@ func _apply_preferences() -> void:
 func _apply_render_preferences() -> void:
 	var world: WorldEnvironment = _find_world_environment(self)
 	RenderQuality.apply(get_viewport(), settings, world.environment if world != null else null)
+	RenderQuality.apply_practicals(self, settings)
+	RenderQuality.apply_dither(self, get_viewport(), settings)
 
 func controls_blocked() -> bool:
 	return role_transition or _mission_controls_blocked() or (mission_hud != null and mission_hud.state.get("phase") == "departed") or (mouse_capture != null and not mouse_capture.gameplay_input_allowed()) or (console != null and console.is_open()) or (pause_menu != null and pause_menu.is_open())

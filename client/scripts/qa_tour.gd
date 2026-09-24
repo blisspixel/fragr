@@ -34,6 +34,7 @@ var _walk_results: Array[Dictionary] = []
 var _combat_probe: QaCombat = QaCombat.new()
 var _combat_travel: bool = false
 var _retiring_audio: Array[WeakRef] = []
+var _capture_size: Vector2i = Vector2i.ZERO
 ## Frames between the trigger and the first strip frame. The shot is resolved by
 ## the server, so the flash arrives a round trip later, not on the next frame.
 const STRIP_LEAD_FRAMES: int = 2
@@ -78,7 +79,8 @@ func _run() -> void:
 	# A custom SceneTree can inherit the project's fullscreen mode even when
 	# the launcher requests a resolution. Set the actual window explicitly.
 	root.mode = Window.MODE_WINDOWED
-	root.size = Vector2i(int(tour["width"]), int(tour["height"]))
+	_capture_size = Vector2i(int(tour["width"]), int(tour["height"]))
+	root.size = _capture_size
 	await process_frame
 
 	var states: Array = tour.get("states", [])
@@ -198,6 +200,10 @@ func _run() -> void:
 			(settings_root.get_node("SettingsPanel") as SettingsPanel).show_page(str(state["settings_tab"]))
 		if state.has("graphics"):
 			_apply_graphics_capture(state["graphics"])
+		var frame_timing: Dictionary = {}
+		if state.has("frame_sample"):
+			_pose_camera(state.get("camera", "none"))
+			frame_timing = await _sample_frames(int(state["frame_sample"]))
 		# Readability evidence: the _world still of this state then has neither HUD
 		# nor world sign copy, so only lamps, pictograms and geometry explain it.
 		var hidden_copy: Array[Node3D] = []
@@ -291,6 +297,7 @@ func _run() -> void:
 			"height": shot.get_height(),
 			"hud_coverage": snappedf(measured.get("hud_coverage", 0.0), 0.0001),
 			"frame_ms": snappedf(Performance.get_monitor(Performance.TIME_PROCESS) * 1000.0, 0.01),
+			"frame_timing": frame_timing,
 			"blank": _looks_blank(shot),
 			# The world behind the HUD. A tour run against a server that never
 			# started photographs an empty grey room, and the HUD panel alone
@@ -367,7 +374,14 @@ func _apply_graphics_capture(options: Variant) -> void:
 	var preferences: FragrSettings = manager.get("settings")
 	var draft: FragrSettings = preferences.draft()
 	for key: Variant in options:
-		if key not in ["quality", "upscaling", "resolution_height"] or not (options[key] is int or options[key] is float) or not is_finite(float(options[key])) or float(options[key]) != floorf(float(options[key])):
+		if key == "dither":
+			if not options[key] is bool:
+				push_error("qa_tour: dither capture option must be a boolean")
+				_failed = true
+				return
+			draft.set_value("video", key, options[key])
+			continue
+		if key not in ["quality", "upscaling", "resolution_height", "pixel_scale"] or not (options[key] is int or options[key] is float) or not is_finite(float(options[key])) or float(options[key]) != floorf(float(options[key])):
 			push_error("qa_tour: invalid graphics capture option")
 			_failed = true
 			return
@@ -381,6 +395,57 @@ func _apply_graphics_capture(options: Variant) -> void:
 	# Keep the capture window fixed while exercising the production world-buffer
 	# and quality path. Display-mode transitions have their own real-window check.
 	manager.call("_apply_render_preferences")
+
+## Frame pacing for a held view: wall time between drawn frames plus the
+## renderer's own CPU and GPU measurements for the root viewport. The capture
+## settings leave VSync off and the frame cap unlimited, so the wall time is
+## the cost of the frame rather than the display's refresh interval.
+func _sample_frames(count: int) -> Dictionary:
+	if count < 10 or count > 2000:
+		push_error("qa_tour: frame_sample needs 10 to 2000 frames")
+		_failed = true
+		return {}
+	# The desktop can resize a large capture window between states. Timing is
+	# only comparable at the manifest's size, so restore it before sampling.
+	if root.size != _capture_size:
+		print("qa_tour: restoring capture window from ", root.size)
+		root.mode = Window.MODE_WINDOWED
+		root.size = _capture_size
+		for _settle: int in range(10):
+			await RenderingServer.frame_post_draw
+	var viewport: RID = root.get_viewport_rid()
+	RenderingServer.viewport_set_measure_render_time(viewport, true)
+	for _warm: int in range(30):
+		await RenderingServer.frame_post_draw
+	var deltas: Array[float] = []
+	var gpu: float = 0.0
+	var cpu: float = 0.0
+	var last: int = Time.get_ticks_usec()
+	for _i: int in range(count):
+		await RenderingServer.frame_post_draw
+		var now: int = Time.get_ticks_usec()
+		deltas.append(float(now - last) / 1000.0)
+		last = now
+		gpu += RenderingServer.viewport_get_measured_render_time_gpu(viewport)
+		cpu += RenderingServer.viewport_get_measured_render_time_cpu(viewport)
+	RenderingServer.viewport_set_measure_render_time(viewport, false)
+	var total: float = 0.0
+	for value: float in deltas:
+		total += value
+	var sorted: Array[float] = deltas.duplicate()
+	sorted.sort()
+	var result: Dictionary = {
+		"frames": count,
+		"mean_ms": snappedf(total / count, 0.01),
+		"p95_ms": snappedf(sorted[mini(count - 1, int(count * 0.95))], 0.01),
+		"gpu_ms": snappedf(gpu / count, 0.01),
+		"render_cpu_ms": snappedf(cpu / count, 0.01),
+		"viewport": [root.size.x, root.size.y],
+		"render_scale": root.scaling_3d_scale,
+		"scaling_mode": root.scaling_3d_mode,
+	}
+	print("qa_tour: frame timing ", JSON.stringify(result))
+	return result
 
 func _load_manifest() -> Dictionary:
 	var path: String = OS.get_environment("FRAGR_QA_MANIFEST")

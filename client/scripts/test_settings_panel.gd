@@ -50,6 +50,14 @@ func _run() -> void:
 	quality.select(2)
 	quality.item_selected.emit(2)
 	_check((panel.find_child("upscaling", true, false) as OptionButton).disabled == not RenderQuality.supports_fsr(RenderingServer.get_current_rendering_method()), "upscaling control reflects the active renderer")
+	var pixels: OptionButton = panel.find_child("pixel_scale", true, false) as OptionButton
+	_check(pixels != null and pixels.item_count == RenderQuality.PIXEL_TARGETS.size(), "world pixel control offers every pixel look")
+	pixels.select(3)
+	pixels.item_selected.emit(3)
+	var dither: Button = panel.find_child("dither", true, false) as Button
+	_check(dither != null and not dither.button_pressed, "palette dither starts off")
+	dither.button_pressed = true
+	_check(pixels.get_item_text(0) == tr("SETTINGS_PIXEL_OFF") and tr("SETTINGS_PIXEL_OFF") != "SETTINGS_PIXEL_OFF", "graphics labels come from the translation catalogue")
 	panel.show_page("AUDIO")
 	(panel.find_child("music", true, false) as HSlider).value = 0.0
 	(panel.find_child("effects", true, false) as HSlider).value = 0.35
@@ -63,6 +71,7 @@ func _run() -> void:
 	_check(loaded.get_value("controls", "mouse_sensitivity") == 2.25 and loaded.get_value("controls", "invert_y") == true, "control settings survive a fresh store")
 	_check(loaded.player_name() == "Keep this callsign", "settings save preserves the profile")
 	_check(loaded.get_value("video", "quality") == 2 and loaded.get_value("video", "resolution_height") == 720, "menu resolution and quality choices survive a fresh store")
+	_check(loaded.get_value("video", "pixel_scale") == 3 and loaded.get_value("video", "dither") == true, "world pixel and dither choices survive a fresh store")
 	panel.free()
 	panel = _panel(preferences)
 	panel.show_page("LOOK")

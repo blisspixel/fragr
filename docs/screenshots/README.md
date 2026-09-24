@@ -12,13 +12,24 @@ in the same change. The other files in this directory stay as tour evidence.
 The Windows taskbar icon is still the Godot mark and is not one of these frames.
 
 `m01_intake_16x9.png`, `m01_balcony_16x9.png`, `m01_stacks_16x9.png`, and
-`m01_dispatch_16x9.png` were captured and inspected 2026-09-22 on Windows from
-the completed 13-state room tour. The objective card has already left. Intake
-shows the counters and lockers with the pistol in hand. The balcony shows the
-rifle and the reserved opening toward the custody lift. The stacks are dark
-steel on green tile, rifle in hand. Dispatch is bone walls on a dark floor
-after the fight, rifle in hand. Sorting and dispatch still share the bone
-wall. These are the development mission, not a finished art pass.
+`m01_dispatch_16x9.png` were captured and inspected 2026-09-24 on Windows,
+OpenGL compatibility, AMD Radeon 780M, from the completed 13-state room tour
+after the first look-pass lighting increment. The rooms are now lit by their
+strip-light fixtures over a low ambient floor: intake has a dark ceiling, lit
+walls and counters and a pistol in hand; the balcony looks toward the custody
+lift; the file stacks are dark steel racks with red warning strips on green
+tile; dispatch is enamel walls with the red pinline under dark ceilings. The
+same 13 states were captured on Vulkan with the same result. The earlier flat,
+evenly lit versions of these four frames are in git history before this
+change. These are the development mission, not a finished art pass.
+
+The tour stills in this directory were republished in the same change: the
+arenas sit under a lower sodium sun with a cooler, darker ambient floor and a
+warmer haze, so cover throws readable shadows. The menus are unchanged. Frame
+times and the quality and world-pixel comparison are in
+[`../plans/look-pass-boomer.md`](../plans/look-pass-boomer.md);
+`FRAGR_QA_MANIFEST=res://qa/look-perf.json` and `res://qa/m01-perf.json` (with
+the M01 map file) repeat them.
 
 `prototypes/local-campaign-menu-20260920.png` shows the inspected Recall Notice
 launch option. `prototypes/local-campaign-entry-20260920.png` is the actual M01
@@ -49,10 +60,10 @@ and fresh-player acceptance outstanding. Source manifest: `client/qa/m01-records
 
 | File | View |
 |---|---|
-| `m01_intake_16x9.png` | Recall Notice intake, pistol in hand, counters and lockers |
+| `m01_intake_16x9.png` | Recall Notice intake under its fixtures, pistol in hand, counters and lockers |
 | `m01_balcony_16x9.png` | Records balcony, opening toward the custody lift |
-| `m01_stacks_16x9.png` | File stacks, dark steel walls, green tile floor |
-| `m01_dispatch_16x9.png` | Dispatch after the fight, dark floor, bone walls |
+| `m01_stacks_16x9.png` | File stacks, dark steel racks with red warning strips, green tile floor |
+| `m01_dispatch_16x9.png` | Dispatch after the fight, enamel walls with the red pinline |
 | `tour_multiplayer_16x9.png` | App multiplayer page after GET /status. Host example is 127.0.0.1:6767. |
 | `tour_menu_16x9.png` | Retro boot menu |
 | `tour_profile_16x9.png` | Callsign, reticle, and weapon bob |

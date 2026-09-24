@@ -190,3 +190,45 @@ msgstr "{use}: USE"
 msgid "M02_DEPARTED"
 msgstr "OUT. {pause} TO LEAVE."
 
+
+msgid "SETTINGS_QUALITY"
+msgstr "QUALITY"
+
+msgid "SETTINGS_QUALITY_PERFORMANCE"
+msgstr "PERFORMANCE"
+
+msgid "SETTINGS_QUALITY_BALANCED"
+msgstr "BALANCED"
+
+msgid "SETTINGS_QUALITY_HIGH"
+msgstr "HIGH"
+
+msgid "SETTINGS_UPSCALING"
+msgstr "UPSCALING"
+
+msgid "SETTINGS_UPSCALING_STANDARD"
+msgstr "STANDARD"
+
+msgid "SETTINGS_PIXEL_SCALE"
+msgstr "WORLD PIXELS"
+
+msgid "SETTINGS_PIXEL_OFF"
+msgstr "NATIVE"
+
+msgid "SETTINGS_PIXEL_FINE"
+msgstr "FINE"
+
+msgid "SETTINGS_PIXEL_MEDIUM"
+msgstr "MEDIUM"
+
+msgid "SETTINGS_PIXEL_CHUNKY"
+msgstr "CHUNKY"
+
+msgid "SETTINGS_DITHER"
+msgstr "PALETTE DITHER"
+
+msgid "SETTINGS_GRAPHICS_NOTE"
+msgstr "Balanced and High add shadows, contact shading and lamp glow.\nWorld pixels replace FSR. Menus and the HUD stay sharp."
+
+msgid "SETTINGS_GRAPHICS_NOTE_NO_FSR"
+msgstr "Standard scaling active. FSR needs the Forward+ renderer.\nWorld pixels use exact nearest scaling. Menus and the HUD stay sharp."
