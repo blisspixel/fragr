@@ -1235,6 +1235,7 @@ mod tests {
             seed: 1,
             status_every_s: 0,
             join_secret: None,
+            access: Default::default(),
         };
         tokio::spawn(async move {
             let _ = run_server(

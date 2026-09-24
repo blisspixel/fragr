@@ -66,7 +66,8 @@ ufw enable
 
 ## Security / scale
 
-- Rock-solid restart via systemd; watch journald.
+- Rock-solid restart via systemd; watch journald. `journalctl -u fragr-server | grep fragr_server::audit` shows joins, rejections, kicks and bans.
+- To keep an address out, add `--ban-list /opt/fragr/bans.txt` to `ExecStart` (one IP or CIDR per line, optional `expires=` and `reason=`). Edits apply within five seconds with no restart. A malformed file at start stops the unit, so check `journalctl` after a first edit.
 - Keep authority on this VM; optional HTTP adapter may sit elsewhere later with private path + app auth.
 - When load proves it: bigger VM or second arena instance. No day-zero load balancer.
 - IaC for a named cloud (GCP Terraform in this repo) stays **plan-only** until Nick/Chief spend ACK. Manual VPS create still counts against the $50 hard cap if it bills.

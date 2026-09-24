@@ -82,6 +82,8 @@ pub struct ServerOptions {
     /// Set only by the dedicated or local process after reading the environment.
     /// Tests and the playtest harness leave this empty so hello stays open.
     pub join_secret: Option<std::sync::Arc<crate::join_ticket::JoinSecret>>,
+    /// Host ban and allow list files. Empty leaves every address admissible.
+    pub access: crate::access::AccessConfig,
     /// Contested Frequency Solo Broadcast Episode 0 (Calibration / Larak Lot).
     pub solo_broadcast: bool,
 }
@@ -101,6 +103,7 @@ impl Default for ServerOptions {
             seed: 1,
             status_every_s: 60,
             join_secret: None,
+            access: crate::access::AccessConfig::default(),
         }
     }
 }
@@ -159,6 +162,12 @@ async fn run_server_impl(
                 .into(),
         );
     }
+    // A list that does not parse refuses to start rather than opening the door.
+    let access = if options.access.is_empty() {
+        None
+    } else {
+        Some(crate::access::AccessControl::load(options.access.clone())?)
+    };
     let authored = options.authored.clone();
     let mut session = tokio::task::spawn_blocking(move || -> std::io::Result<GameSession> {
         match authored {
@@ -269,6 +278,17 @@ async fn run_server_impl(
     if options.campaign_run {
         net_server.reserve_solo_run()?;
     }
+    let access_reload = access.map(|control| {
+        let (bans, allows) = control.summary();
+        tracing::info!(
+            target: crate::net::AUDIT_TARGET,
+            event = "lists_loaded",
+            bans = ?bans,
+            allows = ?allows,
+        );
+        net_server.set_access(control.subscribe());
+        AbortOnDrop(tokio::spawn(control.watch(crate::access::RELOAD_EVERY)))
+    });
     if let Some(tx) = ready {
         let _ = tx.send(net_server.local_addr()?);
     }
@@ -376,8 +396,18 @@ async fn run_server_impl(
             }
         }
     }
+    drop(access_reload);
 
     Ok(())
+}
+
+/// Ends the list reloader with the loop, including on an early error return.
+struct AbortOnDrop(tokio::task::JoinHandle<()>);
+
+impl Drop for AbortOnDrop {
+    fn drop(&mut self) {
+        self.0.abort();
+    }
 }
 
 fn persist_local_run(

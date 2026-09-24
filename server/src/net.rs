@@ -13,27 +13,47 @@ use uuid::Uuid;
 
 type ServerSocket = tokio_tungstenite::WebSocketStream<TcpStream>;
 
+/// Tracing target for the host's audit trail: joins, rejects, kicks and bans.
+/// Never log a ticket, resume token or secret under it.
+pub const AUDIT_TARGET: &str = "fragr_server::audit";
+
+/// Owns the socket's write half. Sends queued messages and a ping on a fixed
+/// cadence. Returns the sink so a kick can still send its reason and close.
 async fn run_outbound_writer<S>(
     mut sink: S,
     mut rx: WsRx,
     shutdown: watch::Sender<bool>,
     send_timeout: Duration,
-) where
+    ping_every: Duration,
+    mut stop: tokio::sync::oneshot::Receiver<()>,
+) -> S
+where
     S: futures_util::Sink<Message> + Unpin,
 {
-    while let Some(msg) = rx.recv().await {
-        let Ok(json) = serde_json::to_string(&msg) else {
-            tracing::warn!("Failed to serialize outbound server message; dropping client send");
-            break;
+    let mut ping = tokio::time::interval_at(tokio::time::Instant::now() + ping_every, ping_every);
+    ping.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Delay);
+    loop {
+        let frame = tokio::select! {
+            msg = rx.recv() => {
+                let Some(msg) = msg else { break };
+                let Ok(json) = serde_json::to_string(&msg) else {
+                    tracing::warn!("Failed to serialize outbound server message; dropping client send");
+                    break;
+                };
+                Message::Text(json)
+            }
+            _ = ping.tick() => Message::Ping(Vec::new()),
+            _ = &mut stop => return sink,
         };
         if !matches!(
-            tokio::time::timeout(send_timeout, sink.send(Message::Text(json))).await,
+            tokio::time::timeout(send_timeout, sink.send(frame)).await,
             Ok(Ok(()))
         ) {
             break;
         }
     }
     shutdown.send_replace(true);
+    sink
 }
 
 /// One text frame is a hello, an action, or a short spoken line. 64 KiB is
@@ -56,6 +76,141 @@ const OUTBOUND_SEND_TIMEOUT: Duration = Duration::from_secs(2);
 /// monitor. A tighter flood is dropped before it reaches the tick queue.
 const INBOUND_PER_SEC: f32 = 256.0;
 const INBOUND_BURST: f32 = 64.0;
+
+/// The server pings every open session on this cadence. Every WebSocket
+/// client answers a ping while it reads, so a quiet spectator stays live.
+const PING_EVERY: Duration = Duration::from_secs(15);
+/// No frame at all for this long, not even a pong, closes with `idle_timeout`.
+/// Three missed pings, so one long frame hitch is not a disconnect.
+const IDLE_AFTER: Duration = Duration::from_secs(45);
+/// Dropped messages fill a strike level that drains at this rate. A client
+/// that renders uncapped sends one action per frame, so only a sustained rate
+/// far above any display (more than 4352 per second) grows the level.
+const FLOOD_DRAIN_PER_SEC: f32 = 4096.0;
+/// Past this level the session closes with `rate_limited`.
+const FLOOD_LIMIT: f32 = 8192.0;
+/// Unreadable frames: binary, or text that is not a JSON object with a string
+/// `type`. One a second is forgiven. Sixteen more closes with `malformed`.
+const JUNK_DRAIN_PER_SEC: f32 = 1.0;
+const JUNK_LIMIT: f32 = 16.0;
+
+/// Per-session liveness and conduct bounds. Tests shrink them.
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct SessionLimits {
+    pub ping_every: Duration,
+    pub idle_after: Duration,
+    pub flood_drain_per_sec: f32,
+    pub flood_limit: f32,
+    pub junk_drain_per_sec: f32,
+    pub junk_limit: f32,
+}
+
+impl Default for SessionLimits {
+    fn default() -> Self {
+        Self {
+            ping_every: PING_EVERY,
+            idle_after: IDLE_AFTER,
+            flood_drain_per_sec: FLOOD_DRAIN_PER_SEC,
+            flood_limit: FLOOD_LIMIT,
+            junk_drain_per_sec: JUNK_DRAIN_PER_SEC,
+            junk_limit: JUNK_LIMIT,
+        }
+    }
+}
+
+/// A leaky counter. Strikes add, time drains, and past the limit it trips.
+#[derive(Debug)]
+struct Strikes {
+    level: f32,
+    updated: std::time::Instant,
+}
+
+impl Strikes {
+    fn new(now: std::time::Instant) -> Self {
+        Self {
+            level: 0.0,
+            updated: now,
+        }
+    }
+
+    fn add(&mut self, now: std::time::Instant, drain_per_sec: f32, limit: f32) -> bool {
+        let elapsed = now.saturating_duration_since(self.updated).as_secs_f32();
+        self.updated = now;
+        self.level = (self.level - elapsed * drain_per_sec).max(0.0) + 1.0;
+        self.level > limit
+    }
+}
+
+/// Why the server ended a live session. Each has a stable wire code.
+#[derive(Debug, Clone, PartialEq, Eq)]
+enum Kick {
+    Idle,
+    RateLimited,
+    Malformed,
+    Refused(crate::access::Verdict),
+}
+
+impl Kick {
+    fn code(&self) -> &'static str {
+        match self {
+            Kick::Idle => "idle_timeout",
+            Kick::RateLimited => "rate_limited",
+            Kick::Malformed => "malformed",
+            Kick::Refused(verdict) => verdict.code().unwrap_or("address_banned"),
+        }
+    }
+
+    fn message(&self) -> &'static str {
+        match self {
+            Kick::Idle => "No reply from this client. Connection closed.",
+            Kick::RateLimited => "Too many messages. Connection closed.",
+            Kick::Malformed => "Unreadable messages. Connection closed.",
+            Kick::Refused(_) => refusal_message(self.code()),
+        }
+    }
+
+    /// Only a silent network keeps a resumable pawn. Abuse and bans remove it.
+    fn removes_pawn(&self) -> bool {
+        !matches!(self, Kick::Idle)
+    }
+
+    fn audit_event(&self) -> &'static str {
+        match self {
+            Kick::Refused(crate::access::Verdict::Banned { .. }) => "ban",
+            _ => "kick",
+        }
+    }
+}
+
+fn refusal_message(code: &str) -> &'static str {
+    match code {
+        "address_limit" => "Too many connections from this address.",
+        "address_banned" => "This server does not accept connections from this address.",
+        "address_not_allowed" => "This server only accepts listed addresses.",
+        _ => "This server is not taking more connections.",
+    }
+}
+
+/// Text that is not even a JSON object with a string `type`. A well-formed
+/// message of a type this server does not know is ignored, not junk, so a
+/// newer client is never closed for it.
+fn is_junk(text: &str) -> bool {
+    match serde_json::from_str::<serde_json::Value>(text) {
+        Ok(serde_json::Value::Object(map)) => {
+            !matches!(map.get("type"), Some(serde_json::Value::String(_)))
+        }
+        _ => true,
+    }
+}
+
+/// Callsigns come from the client. Bound and escape them for the log.
+fn audit_name(name: &str) -> String {
+    name.chars().take(32).collect()
+}
+
+fn audit_reject(peer: std::net::SocketAddr, code: &str) {
+    tracing::info!(target: AUDIT_TARGET, event = "reject", peer = %peer, code);
+}
 
 struct InboundBudget {
     tokens: f32,
@@ -100,6 +255,7 @@ struct Admission {
     max_per_ip: usize,
     handshake_timeout: Duration,
     hello_timeout: Duration,
+    limits: SessionLimits,
 }
 
 struct AdmissionPermit {
@@ -145,6 +301,7 @@ impl Admission {
             max_per_ip: max_per_ip.max(1),
             handshake_timeout,
             hello_timeout,
+            limits: SessionLimits::default(),
         }
     }
 
@@ -169,9 +326,22 @@ impl Admission {
     }
 }
 
+/// Refuse a hello: audit it, then send the reason and close.
+async fn reject_connection(
+    sink: futures_util::stream::SplitSink<ServerSocket, Message>,
+    stream: futures_util::stream::SplitStream<ServerSocket>,
+    rejection: ServerMessage,
+    peer: std::net::SocketAddr,
+) -> Result<(), Box<dyn std::error::Error>> {
+    if let ServerMessage::Error { code, .. } = &rejection {
+        audit_reject(peer, code);
+    }
+    close_with_error(sink, stream, rejection).await
+}
+
 /// Complete the close handshake before dropping TCP, so a client polling less
 /// often than the server can still read its admission error. Bound silent peers.
-async fn reject_connection(
+async fn close_with_error(
     mut sink: futures_util::stream::SplitSink<ServerSocket, Message>,
     mut stream: futures_util::stream::SplitStream<ServerSocket>,
     rejection: ServerMessage,
@@ -263,7 +433,10 @@ pub struct NetServer {
     status: Arc<tokio::sync::RwLock<crate::protocol::LiveStatus>>,
     join_secret: Option<std::sync::Arc<crate::join_ticket::JoinSecret>>,
     resume: std::sync::Arc<crate::resume::ResumeTable>,
+    access: Option<AccessWatch>,
 }
+
+type AccessWatch = watch::Receiver<Arc<crate::access::AccessPolicy>>;
 
 pub enum GameCommand {
     Connected {
@@ -361,7 +534,14 @@ impl NetServer {
             )),
             join_secret: None,
             resume: std::sync::Arc::new(crate::resume::ResumeTable::new()),
+            access: None,
         })
+    }
+
+    /// Refuse listed addresses before a slot or seat, and close live sessions
+    /// whose address a later edit bans.
+    pub fn set_access(&mut self, access: AccessWatch) {
+        self.access = Some(access);
     }
 
     pub(crate) fn share_resume(&mut self, resume: std::sync::Arc<crate::resume::ResumeTable>) {
@@ -395,6 +575,21 @@ impl NetServer {
             handshake_timeout,
             hello_timeout,
         ));
+    }
+
+    /// Shrink liveness and conduct bounds for a test. Call it after
+    /// `tighten_admission` and before `accept_loop`.
+    #[cfg(test)]
+    pub(crate) fn tighten_session(&mut self, limits: SessionLimits) {
+        let admission = &self.admission;
+        let mut replacement = Admission::new(
+            admission.global.available_permits(),
+            admission.max_per_ip,
+            admission.handshake_timeout,
+            admission.hello_timeout,
+        );
+        replacement.limits = limits;
+        self.admission = Arc::new(replacement);
     }
 
     pub fn local_addr(&self) -> std::io::Result<std::net::SocketAddr> {
@@ -431,18 +626,38 @@ impl NetServer {
                     let hello_timeout = admission.hello_timeout;
                     let join_secret = self.join_secret.clone();
                     let resume_table = std::sync::Arc::clone(&self.resume);
+                    let access = self.access.clone();
 
                     tokio::spawn(async move {
+                        let verdict =
+                            access
+                                .as_ref()
+                                .map_or(crate::access::Verdict::Admit, |policy| {
+                                    policy
+                                        .borrow()
+                                        .check(addr.ip(), crate::join_ticket::unix_now())
+                                });
+                        if let Some(code) = verdict.code() {
+                            audit_refusal(addr, &verdict);
+                            // The explanation holds a slot, so a refused flood stays
+                            // inside the connection caps. Past them, just drop TCP.
+                            if let Ok(_permit) = admission.try_admit(addr.ip()) {
+                                reject_before_hello(stream, code, handshake_timeout).await;
+                            }
+                            return;
+                        }
                         if serve_status_if_requested(&mut stream, &status).await {
                             return;
                         }
                         let permit = match admission.try_admit(addr.ip()) {
                             Ok(permit) => permit,
                             Err(code) => {
-                                let _ = reject_before_hello(stream, code, handshake_timeout).await;
+                                audit_reject(addr, code);
+                                reject_before_hello(stream, code, handshake_timeout).await;
                                 return;
                             }
                         };
+                        let limits = admission.limits;
                         if let Err(e) = handle_connection(
                             stream,
                             game_tx,
@@ -456,6 +671,9 @@ impl NetServer {
                                 hello_timeout,
                                 join_secret,
                                 resume: resume_table,
+                                peer: addr,
+                                access,
+                                limits,
                             },
                         )
                         .await
@@ -562,20 +780,29 @@ async fn reject_before_hello(stream: TcpStream, code: &str, handshake_timeout: D
         return;
     };
     let (sink, stream) = ws.split();
-    let message = if code == "address_limit" {
-        "Too many connections from this address."
-    } else {
-        "This server is not taking more connections."
-    };
-    let _ = reject_connection(
+    let _ = close_with_error(
         sink,
         stream,
         ServerMessage::Error {
             code: code.into(),
-            message: message.into(),
+            message: refusal_message(code).into(),
         },
     )
     .await;
+}
+
+fn audit_refusal(peer: std::net::SocketAddr, verdict: &crate::access::Verdict) {
+    match verdict {
+        crate::access::Verdict::Banned { line, reason } => tracing::info!(
+            target: AUDIT_TARGET,
+            event = "ban",
+            peer = %peer,
+            code = "address_banned",
+            list_line = line,
+            reason = ?reason,
+        ),
+        other => audit_reject(peer, other.code().unwrap_or("address_not_allowed")),
+    }
 }
 
 struct HelloPolicy {
@@ -587,6 +814,134 @@ struct HelloPolicy {
     hello_timeout: Duration,
     join_secret: Option<std::sync::Arc<crate::join_ticket::JoinSecret>>,
     resume: std::sync::Arc<crate::resume::ResumeTable>,
+    peer: std::net::SocketAddr,
+    access: Option<AccessWatch>,
+    limits: SessionLimits,
+}
+
+/// What the reader loop learned about the session as it ended.
+struct SessionEnd {
+    left: bool,
+    kick: Option<Kick>,
+}
+
+/// Read one admitted session until it closes, leaves, goes silent, or is
+/// kicked. Every frame, including a pong, proves the client is still there.
+async fn read_session(
+    ws_stream: &mut futures_util::stream::SplitStream<ServerSocket>,
+    shutdown_rx: &mut watch::Receiver<bool>,
+    game_tx: &mpsc::UnboundedSender<GameCommand>,
+    role: Role,
+    player_id: Option<Uuid>,
+    policy: &HelloPolicy,
+) -> SessionEnd {
+    let limits = policy.limits;
+    let mut inbound = InboundBudget::new();
+    let started = std::time::Instant::now();
+    let mut flood = Strikes::new(started);
+    let mut junk = Strikes::new(started);
+    let mut access = policy.access.clone();
+    if let Some(watcher) = access.as_mut() {
+        watcher.mark_unchanged();
+    }
+    let idle = tokio::time::sleep(limits.idle_after);
+    tokio::pin!(idle);
+    let mut left = false;
+    let kick = loop {
+        let msg = tokio::select! {
+            msg = ws_stream.next() => msg,
+            changed = shutdown_rx.changed() => {
+                if changed.is_err() || *shutdown_rx.borrow_and_update() {
+                    break None;
+                }
+                continue;
+            }
+            () = &mut idle => break Some(Kick::Idle),
+            changed = async {
+                match access.as_mut() {
+                    Some(watcher) => watcher.changed().await,
+                    None => std::future::pending().await,
+                }
+            } => {
+                let Some(watcher) = access.as_mut().filter(|_| changed.is_ok()) else {
+                    access = None;
+                    continue;
+                };
+                let verdict = watcher
+                    .borrow_and_update()
+                    .check(policy.peer.ip(), crate::join_ticket::unix_now());
+                if verdict.code().is_some() {
+                    break Some(Kick::Refused(verdict));
+                }
+                continue;
+            }
+        };
+        let Some(msg) = msg else {
+            break None;
+        };
+        let text = match msg {
+            Ok(Message::Close(_)) | Err(_) => break None,
+            Ok(frame) => {
+                idle.as_mut()
+                    .reset(tokio::time::Instant::now() + limits.idle_after);
+                match frame {
+                    Message::Text(text) => Some(text),
+                    Message::Binary(_) => None,
+                    _ => continue,
+                }
+            }
+        };
+        let now = std::time::Instant::now();
+        if !inbound.allow() {
+            if flood.add(now, limits.flood_drain_per_sec, limits.flood_limit) {
+                break Some(Kick::RateLimited);
+            }
+            continue;
+        }
+        let Some(text) = text else {
+            if junk.add(now, limits.junk_drain_per_sec, limits.junk_limit) {
+                break Some(Kick::Malformed);
+            }
+            continue;
+        };
+        let message = match serde_json::from_str::<ClientMessage>(&text) {
+            Ok(message) => message,
+            Err(_) => {
+                if is_junk(&text) && junk.add(now, limits.junk_drain_per_sec, limits.junk_limit) {
+                    break Some(Kick::Malformed);
+                }
+                continue;
+            }
+        };
+        if matches!(message, ClientMessage::Leave) {
+            left = true;
+            continue;
+        }
+        let Some(player_id) = player_id.filter(|_| role != Role::Spectator) else {
+            continue;
+        };
+        let command = match message {
+            ClientMessage::Action(action) => GameCommand::Action { player_id, action },
+            ClientMessage::MissionReady(ready) => GameCommand::MissionReady { player_id, ready },
+            ClientMessage::MissionContinue(request) => {
+                GameCommand::MissionContinue { player_id, request }
+            }
+            ClientMessage::Speak(speak) => GameCommand::Speak {
+                player_id,
+                text: speak.text,
+            },
+            // Further gated in sim (rule bots / humans ignored).
+            ClientMessage::SetDisplayBehavior(msg) if role == Role::Agent => {
+                GameCommand::SetDisplayBehavior {
+                    player_id,
+                    behavior: msg.behavior,
+                }
+            }
+            _ => continue,
+        };
+        let _ = game_tx.send(command);
+    };
+    SessionEnd { left, kick }
 }
 
 async fn handle_connection(
@@ -595,6 +950,7 @@ async fn handle_connection(
     clients: Arc<Mutex<Vec<ClientSession>>>,
     policy: HelloPolicy,
 ) -> Result<(), Box<dyn std::error::Error>> {
+    let peer = policy.peer;
     let ws_stream = match tokio::time::timeout(
         policy.handshake_timeout,
         accept_async_with_config(stream, Some(websocket_limits())),
@@ -603,7 +959,10 @@ async fn handle_connection(
     {
         Ok(Ok(stream)) => stream,
         Ok(Err(error)) => return Err(error.into()),
-        Err(_) => return Ok(()),
+        Err(_) => {
+            audit_reject(peer, "handshake_timeout");
+            return Ok(());
+        }
     };
     let (mut ws_sink, mut ws_stream) = ws_stream.split();
 
@@ -618,11 +977,13 @@ async fn handle_connection(
     // A resume request parks the seat instead of returning it on a drop.
     let mut _party_seat;
     let mut keep_pawn = false;
-    let mut left = false;
 
     let first = match tokio::time::timeout(policy.hello_timeout, ws_stream.next()).await {
         Ok(message) => message,
-        Err(_) => return Ok(()),
+        Err(_) => {
+            audit_reject(peer, "hello_timeout");
+            return Ok(());
+        }
     };
     if let Some(Ok(Message::Text(text))) = first {
         match serde_json::from_str::<ClientMessage>(&text) {
@@ -644,7 +1005,7 @@ async fn handle_connection(
                         code: "join_rejected".into(),
                         message: "This server refused the join.".into(),
                     };
-                    return reject_connection(ws_sink, ws_stream, rejection).await;
+                    return reject_connection(ws_sink, ws_stream, rejection, peer).await;
                 }
                 if gameplay_version < policy.required_gameplay {
                     let rejection = ServerMessage::Error {
@@ -654,7 +1015,7 @@ async fn handle_connection(
                             policy.required_gameplay
                         ),
                     };
-                    return reject_connection(ws_sink, ws_stream, rejection).await;
+                    return reject_connection(ws_sink, ws_stream, rejection, peer).await;
                 }
                 if geometry_version < policy.required_geometry {
                     let rejection = ServerMessage::Error {
@@ -664,33 +1025,23 @@ async fn handle_connection(
                             policy.required_geometry
                         ),
                     };
-                    return reject_connection(ws_sink, ws_stream, rejection).await;
+                    return reject_connection(ws_sink, ws_stream, rejection, peer).await;
                 }
+                let resume_rejected = || ServerMessage::Error {
+                    code: "resume_rejected".into(),
+                    message: "The previous pawn is gone.".into(),
+                };
                 let mut resumed: Option<crate::resume::ResumeAccept> = None;
                 if r != Role::Spectator {
                     if let Some(token) = resume.as_deref().filter(|token| !token.is_empty()) {
                         let Some((claimed_id, claimed_role, nonce)) = policy.resume.open(token)
                         else {
-                            return reject_connection(
-                                ws_sink,
-                                ws_stream,
-                                ServerMessage::Error {
-                                    code: "resume_rejected".into(),
-                                    message: "The previous pawn is gone.".into(),
-                                },
-                            )
-                            .await;
+                            return reject_connection(ws_sink, ws_stream, resume_rejected(), peer)
+                                .await;
                         };
                         if claimed_role != r {
-                            return reject_connection(
-                                ws_sink,
-                                ws_stream,
-                                ServerMessage::Error {
-                                    code: "resume_rejected".into(),
-                                    message: "The previous pawn is gone.".into(),
-                                },
-                            )
-                            .await;
+                            return reject_connection(ws_sink, ws_stream, resume_rejected(), peer)
+                                .await;
                         }
                         let (reply_tx, reply_rx) = tokio::sync::oneshot::channel();
                         clients.lock().await.push(ClientSession::with_shutdown(
@@ -719,15 +1070,8 @@ async fn handle_connection(
                             .flatten();
                         if resumed.is_none() {
                             clients.lock().await.retain(|client| client.id != client_id);
-                            return reject_connection(
-                                ws_sink,
-                                ws_stream,
-                                ServerMessage::Error {
-                                    code: "resume_rejected".into(),
-                                    message: "The previous pawn is gone.".into(),
-                                },
-                            )
-                            .await;
+                            return reject_connection(ws_sink, ws_stream, resume_rejected(), peer)
+                                .await;
                         }
                     }
                 }
@@ -746,11 +1090,19 @@ async fn handle_connection(
                     ws_sink
                         .send(Message::Text(serde_json::to_string(&welcome)?))
                         .await?;
-                    tracing::info!("Client {:?} resumed {:?}", client_id, player_id);
+                    tracing::info!(
+                        target: AUDIT_TARGET,
+                        event = "resume",
+                        peer = %peer,
+                        client = %client_id,
+                        role = ?r,
+                        player = ?player_id,
+                        name = ?audit_name(&name),
+                    );
                 } else {
                     _party_seat = if r != Role::Spectator {
                         match policy.party_slots {
-                            Some(slots) => match slots.try_acquire_owned() {
+                            Some(ref slots) => match Arc::clone(slots).try_acquire_owned() {
                                 Ok(seat) => Some(seat),
                                 Err(_) => {
                                     let rejection = ServerMessage::Error {
@@ -761,7 +1113,8 @@ async fn handle_connection(
                                         "This mission supports four participants; join as a spectator or wait for a seat."
                                     }.into(),
                                 };
-                                    return reject_connection(ws_sink, ws_stream, rejection).await;
+                                    return reject_connection(ws_sink, ws_stream, rejection, peer)
+                                        .await;
                                 }
                             },
                             None => None,
@@ -804,6 +1157,7 @@ async fn handle_connection(
                     ));
                     drop(clients_lock);
 
+                    let logged_name = audit_name(&name);
                     game_tx.send(GameCommand::Connected {
                         id: client_id,
                         role: r,
@@ -817,109 +1171,72 @@ async fn handle_connection(
                     }
 
                     tracing::info!(
-                        "Client {:?} connected as {:?} (player_id: {:?})",
-                        client_id,
-                        r,
-                        player_id
+                        target: AUDIT_TARGET,
+                        event = "join",
+                        peer = %peer,
+                        client = %client_id,
+                        role = ?r,
+                        player = ?player_id,
+                        name = ?logged_name,
                     );
                 }
             }
             _ => {
-                tracing::warn!("Invalid hello message");
+                audit_reject(peer, "bad_hello");
                 return Ok(());
             }
         }
     } else {
+        audit_reject(peer, "bad_hello");
         return Ok(());
     }
 
     let role = role.unwrap();
 
-    let mut inbound = InboundBudget::new();
-    let send_task = tokio::spawn(run_outbound_writer(
+    let (stop_writer, writer_stop) = tokio::sync::oneshot::channel();
+    let mut send_task = tokio::spawn(run_outbound_writer(
         ws_sink,
         rx,
         shutdown_tx,
         OUTBOUND_SEND_TIMEOUT,
+        policy.limits.ping_every,
+        writer_stop,
     ));
 
-    loop {
-        let msg = tokio::select! {
-            msg = ws_stream.next() => msg,
-            changed = shutdown_rx.changed() => {
-                if changed.is_err() || *shutdown_rx.borrow_and_update() {
-                    break;
-                }
-                continue;
+    let end = read_session(
+        &mut ws_stream,
+        &mut shutdown_rx,
+        &game_tx,
+        role,
+        player_id,
+        &policy,
+    )
+    .await;
+
+    // A kick takes the write half back to send its reason. A stalled writer
+    // gives up within its own send timeout.
+    let sink = if end.kick.is_some() {
+        let _ = stop_writer.send(());
+        match tokio::time::timeout(
+            OUTBOUND_SEND_TIMEOUT + Duration::from_millis(500),
+            &mut send_task,
+        )
+        .await
+        {
+            Ok(Ok(sink)) => Some(sink),
+            _ => {
+                send_task.abort();
+                None
             }
-        };
-        let Some(msg) = msg else {
-            break;
-        };
-        match msg {
-            Ok(Message::Text(text)) => {
-                if !inbound.allow() {
-                    continue;
-                }
-                if matches!(
-                    serde_json::from_str::<ClientMessage>(&text),
-                    Ok(ClientMessage::Leave)
-                ) {
-                    left = true;
-                    continue;
-                }
-                if role != Role::Spectator {
-                    match serde_json::from_str::<ClientMessage>(&text) {
-                        Ok(ClientMessage::Action(action)) => {
-                            if let Some(pid) = player_id {
-                                let _ = game_tx.send(GameCommand::Action {
-                                    player_id: pid,
-                                    action,
-                                });
-                            }
-                        }
-                        Ok(ClientMessage::MissionReady(ready)) => {
-                            if let Some(player_id) = player_id {
-                                let _ =
-                                    game_tx.send(GameCommand::MissionReady { player_id, ready });
-                            }
-                        }
-                        Ok(ClientMessage::MissionContinue(request)) => {
-                            if let Some(player_id) = player_id {
-                                let _ = game_tx
-                                    .send(GameCommand::MissionContinue { player_id, request });
-                            }
-                        }
-                        Ok(ClientMessage::Speak(speak)) => {
-                            if let Some(pid) = player_id {
-                                let _ = game_tx.send(GameCommand::Speak {
-                                    player_id: pid,
-                                    text: speak.text,
-                                });
-                            }
-                        }
-                        Ok(ClientMessage::SetDisplayBehavior(msg)) if role == Role::Agent => {
-                            // Further gated in sim (rule bots / humans ignored).
-                            if let Some(pid) = player_id {
-                                let _ = game_tx.send(GameCommand::SetDisplayBehavior {
-                                    player_id: pid,
-                                    behavior: msg.behavior,
-                                });
-                            }
-                        }
-                        _ => {}
-                    }
-                }
-            }
-            Ok(Message::Close(_)) | Err(_) => break,
-            _ => {}
         }
-    }
+    } else {
+        send_task.abort();
+        None
+    };
 
-    send_task.abort();
-
+    let removes_pawn = end.left || end.kick.as_ref().is_some_and(Kick::removes_pawn);
     if let Some(pid) = player_id {
-        if keep_pawn && !left {
+        if keep_pawn && !removes_pawn {
             policy
                 .resume
                 .park(pid, _party_seat.take(), policy.resume.tick());
@@ -934,6 +1251,30 @@ async fn handle_connection(
 
     let mut clients_lock = clients.lock().await;
     clients_lock.retain(|c| c.id != client_id);
+    drop(clients_lock);
+
+    if let Some(kick) = end.kick {
+        tracing::info!(
+            target: AUDIT_TARGET,
+            event = kick.audit_event(),
+            peer = %peer,
+            client = %client_id,
+            role = ?role,
+            player = ?player_id,
+            code = kick.code(),
+        );
+        if let Some(sink) = sink {
+            let reason = ServerMessage::Error {
+                code: kick.code().into(),
+                message: kick.message().into(),
+            };
+            let _ = tokio::time::timeout(
+                Duration::from_secs(3),
+                close_with_error(sink, ws_stream, reason),
+            )
+            .await;
+        }
+    }
 
     tracing::info!("Client {:?} disconnected", client_id);
 

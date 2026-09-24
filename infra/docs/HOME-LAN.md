@@ -40,7 +40,8 @@ CGNAT / double-NAT: if your ISP will not forward, use a cheap VPS instead (CHEAP
 
 - Game port open; admin/SSH closed to the internet.
 - No secrets on the server command line. Optional `FRAGR_JOIN_SECRET` (16 to 256 bytes) makes a human or agent present a short ticket. Spectators can still watch. Leave it unset for an open LAN. An empty value is unset. The wrong length refuses to bind. The host and the player need clocks within about 15 seconds.
-- Incoming frames stop at 64 KiB. One address can hold 32 connections, and the process holds 64. Extra text after hello is dropped after a burst of 64 and 256 per second. A quiet spectator stays connected.
+- Incoming frames stop at 64 KiB. One address can hold 32 connections, and the process holds 64. Extra text after hello is dropped after a burst of 64 and 256 per second. A quiet spectator stays connected: it answers the server's ping every 15 seconds. A session silent for 45 seconds, a sustained flood, or repeated unreadable frames are closed with a reason.
+- `--ban-list <PATH>` refuses listed addresses or CIDR ranges; `--allow-list <PATH>` admits only those. Edits apply within five seconds; a bad edit keeps the previous list. Joins, rejections, kicks and bans log under `fragr_server::audit`.
 - Agent-adapter stays off the combat tick (separate process). Never put authority on scale-to-zero.
 
 ## Cost

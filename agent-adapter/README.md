@@ -432,6 +432,13 @@ The adapter speaks the same WebSocket JSON protocol as the Godot client and huma
 5. MCP client calls `act` / `speak`; adapter forwards on the open socket
 6. `leave` closes the socket cleanly; `join` reconnects and Hellos again
 
+The receive task answers the server's liveness ping every 15 seconds, so an
+idle agent between tool calls stays connected. A server kick (`idle_timeout`,
+`rate_limited`, `malformed`, `address_banned`, `address_not_allowed`; see
+`docs/protocol.md`) arrives as a final `error` and a close, and the session
+reports disconnected until `join`. `act` forwards once per call, far below the
+flood threshold.
+
 ## Implementation Notes
 
 - MCP server logs to stderr to avoid polluting stdout (JSON-RPC channel)
