@@ -34,6 +34,15 @@ const RESPAWN_DELAY_TICKS: u32 = 60;
 /// Ticks after a respawn during which a fighter cannot be hit (one second).
 pub const SPAWN_SHIELD_TICKS: u32 = 20;
 const HITSCAN_RANGE: f32 = 100.0;
+/// The first seconds after a spawn that placement is judged over. The shield
+/// covers the first; the playtest counts a death inside two as a spawn death.
+const SPAWN_SAFE_SECONDS: f32 = 2.0;
+/// How far a spawn point must be screened from a living opponent. No weapon
+/// reaches beyond the rail (60 m), and an opponent just outside it walks
+/// another ten metres inside the safe window. A longer lane cannot hurt the
+/// arriving fighter; counting it would crowd out a slot that is only exposed to
+/// someone too far away to shoot.
+pub(crate) const SPAWN_THREAT_RANGE: f32 = 60.0 + crate::movement::TOP_SPEED * SPAWN_SAFE_SECONDS;
 pub(crate) const PLAYER_MAX_HP: i32 = 100;
 /// Max Unicode scalars in a speak/taunt line (after trim).
 pub const SPEAK_MAX_CHARS: usize = 80;
@@ -1493,6 +1502,8 @@ impl GameState {
     }
     /// Prefer unoccupied slots, then fewer exposed firing lanes, then clearance.
     /// Cover matters even when the widest gap is inside another fighter's range.
+    /// A lane only counts inside `SPAWN_THREAT_RANGE`: one longer than any
+    /// weapon's reach must not push a respawn toward a closer covered corner.
     fn select_spawn_angle(&mut self, player_id: Uuid) -> f32 {
         let others: Vec<[f32; 3]> = self
             .players
@@ -1518,9 +1529,9 @@ impl GameState {
             let exposed = others
                 .iter()
                 .filter(|&&eye| {
-                    // The server's hitscan cap bounds relevant lanes even if the
+                    // The longest weapon bounds relevant lanes even if the
                     // opponent swaps weapons immediately after this spawn.
-                    (eye[0] - sx).hypot(eye[2] - sz) <= HITSCAN_RANGE
+                    (eye[0] - sx).hypot(eye[2] - sz) <= SPAWN_THREAT_RANGE
                         && [crate::combat::FIGHTER_HEIGHT * 0.5, EYE_HEIGHT]
                             .into_iter()
                             .any(|height| {

@@ -63,6 +63,6 @@ fi
   --script res://scripts/tip_capture.gd
 
 # Orange footprint gate: refuse empty hangar jammer stills (Soft Prison orange≈0.01 miss).
-python3 "$ROOT/tools/gate_tip_jammer_orange.py" "$OUT_DIR"
+cargo run --manifest-path "$ROOT/Cargo.toml" -p fragr-tip-gate --release --locked --quiet -- "$OUT_DIR"
 
 echo "Tip capture finished. Inspect PNGs under $OUT_DIR"

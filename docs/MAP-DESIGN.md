@@ -40,7 +40,7 @@ quota replaces playing the room.
 
 Preview destinations through windows or overlooks, then reveal how to reach them.
 Loops reconnect at memorable landmarks and open useful shortcuts. A return
-route changes through objectives, enemies or access, not arbitrary respawning
+route changes through objectives or enemies, not arbitrary respawning
 in a corridor the player just cleared.
 
 Verticality needs decisions: drop to a flank, climb for a precision lane, cross
@@ -50,46 +50,30 @@ The shared finite-solid contract supports stacked accessible rooms and ceilings.
 M01's lift gate has two validated, precomputed states. General moving lifts and
 doors remain unbuilt; a cosmetic object cannot supply their collision or logic.
 
-## Controls, doors and lifts
+## Flow, doors and lifts
 
-Simple physical interactions are part of the campaign, not puzzle difficulty.
-Show the door or machine before its control, make the control readable through
-shape and light as well as color, and show the result in the world. A local switch
-can open a shutter, release a captive, lower a freight lift or reconnect a useful
-shortcut. Avoid mandatory code entry, tiny hidden buttons, long switch hunts and
-repeated trips through cleared corridors. Secrets can ask for closer observation.
-
-**Few puzzles, instant to read, fun first.** The fighting is the game. A control
-is a Doom switch: hit it in stride and it opens a door you can already see or that
-stands right beside it, one step at a time. No puzzle chains, combination or
-order puzzles, switch hunts or long backtracking; a control costs seconds, not
-thought. Where an objective chain allows it, prefer an arrival or a
-combat-cleared gate over another switch. M02 authoring enforces the distance
-part mechanically: whatever opens a gate must stand within eight metres of it.
+**A boomer shooter, not a door simulator.** Fights and flow come first
+([pillar](VISION.md#easy-to-pick-up-deep-to-master)). Levels run through open
+spaces, arenas, stairs and catwalks; progress is by fighting and arriving, and a
+lift is just the exit. A level has at most three doors, never used as pacing. A
+light switch-to-open is fine when the switch is next to its door and in view.
+Never chains, keys, hunts or "gate opens when X" sequences. A room may seal
+during a set-piece fight and open when it is won, sparingly. M01's built record
+console, which stands away from its lift, is the one exception. Secrets can ask
+for closer observation.
 
 **Readable without English.** Every label, prompt, objective line and sign is a
 key in `client/i18n/*.po`; map data carries keys or registered kinds, never
-English, and a missing key fails a harness instead of showing the raw key. The
-world must explain each control with the text hidden: a state read (red lamp
-and closed shutter pictogram while locked, green lamp and raised shutter arrow
-once open), a visible link between the control and what it operates (matching
-pictogram lamps on both, or a conduit or light strip), a pictogram of its
-function, and a world-space change when used (the gate moves, the lamps flip, a
-sound plays). Agents already read the same facts from legal prompts; humans must
-reach that understanding from the picture. Check it with before and after stills
-of every control.
+English, and a missing key fails a harness instead of showing the raw key. Any
+control or sealed room must read with the text hidden: a state lamp, a visible
+link to what it affects, and a world change when it flips. Agents read the same
+facts from legal prompts. Check it with before and after stills.
 
-Teach a safe control before using the same visual language under combat pressure.
-An elevator should reveal a new space or change a fighting angle; waiting for it
-must not become filler. The intended first set is M01's transfer access and lift,
-M02's correction-cell releases, M04's dock freight lift and M06's cargo bulkheads.
-Each belongs to the place's ordinary function and the player's immediate goal.
-
-Extend the existing server-owned use, mission and map boundaries. Moving geometry
-needs an explicit authoritative state and collision path before animation. Verify
-blocked-door behavior, standing on a lift, exit clearance, retry reset, duplicate
-use and late observation. Human input and agent actions operate the same controls;
-rendering a moving door alone does not establish a usable door system.
+An exit lift should reveal a new space or end the mission; waiting for it must
+not become filler. Moving geometry needs an explicit authoritative state and
+collision path before animation. Verify standing on a lift, exit clearance,
+retry reset, duplicate use and late observation. Human input and agent actions
+operate the same controls.
 
 ## One combined-arms campaign landmark
 
@@ -97,8 +81,7 @@ M08's launch works is the planned vehicle showcase. Build a memorable chain of
 freight depot, bermed approach and launch gantry, with occupied buildings and
 covered infantry connections. A captured utility rover with a mounted weapon is
 the first proposed drivable vehicle. It changes routes and firing positions rather
-than turning the mission into a compulsory turret ride. Infantry can open a
-vehicle shortcut from inside a service building; vehicle fire can relieve a
+than turning the mission into a compulsory turret ride. Vehicle fire can relieve a
 defended approach. The player can park, leave it and continue on foot.
 
 Prove the infantry layout first, then integrate and tune the vehicle encounter.
@@ -160,9 +143,12 @@ A secret has a clue readable through geometry, material, lighting, sound with
 caption support, or a relationship between spaces. Test whether attentive players
 can infer it; do not require pixel hunting, random wall pressing or a wiki.
 
-Essential keys and controls identify their door or machinery through shape,
-label and color together. Show the effect. Short objective text supports what
-the world shows; it does not compensate for an incomprehensible layout.
+Short verb objective lines support what the world shows; they do not compensate
+for an incomprehensible layout.
+
+Plan one runner's line per level (planned, not built): a faster route that
+rewards movement, aim and route knowledge against the mission's par time. It
+never skips a required story beat or depends on clipping through collision.
 
 Rescue objectives identify who needs help, the escape conditions, and any actual
 deadline. Optional exploration cannot silently trigger an irreversible loss.

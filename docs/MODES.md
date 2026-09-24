@@ -11,7 +11,7 @@ full-game target includes duel, team play, survival, and last-survivor formats.
 
 You can play this all day after work and have a blast barely thinking about it.
 
-That is the test every design decision has to pass, and it rules things out. **No puzzles.** Nothing where you stop moving to work something out, nothing you have to solve, no hunting a switch to learn which door it opened. Keys are a coloured door and a coloured card lying somewhere you will walk past, which is Doom's version and the most a key is ever allowed to be.
+That is the test every design decision has to pass, and it rules things out. **No puzzles.** Nothing where you stop moving to work something out, nothing you have to solve, no hunting a switch to learn which door it opened. No keys, and at most three doors a level, each with its switch beside it: you get through a level by fighting and arriving ([pillar](VISION.md#easy-to-pick-up-deep-to-master)).
 
 Nothing gates fun behind understanding. The map teaches itself by being walked through. A weapon teaches itself by being fired once. If a mechanic needs explaining before it is enjoyable, it is the wrong mechanic, however clever.
 
@@ -19,7 +19,7 @@ This is not a rejection of depth. Item timing is deep and takes no thought to en
 
 ## The shape
 
-**Single player is Doom and GoldenEye.** Episodes of hand-built maps with keys, secrets, par times and an escalating enemy roster, and objectives that change with the difficulty you picked rather than enemies that simply take more shots.
+**Single player is Doom and GoldenEye.** Episodes of hand-built maps with secrets, par times and an escalating enemy roster, and objectives that change with the difficulty you picked rather than enemies that simply take more shots.
 
 **Multiplayer is against whoever is there.** Other people, agents, the Office's units, or all three in the same round. The seat is the same seat, which is the thing that makes this game different from the ones it is copying, and it means every mode below works with any mix of participants without a separate code path.
 
@@ -38,9 +38,7 @@ current mission with its starting equipment; three per run is the initial balanc
 proposal. Autonomous allies do not imply companion controls or revives, and
 all-mission co-op is not required. [CAMPAIGN.md](CAMPAIGN.md) owns this contract;
 [mission briefs](CAMPAIGN-MISSIONS.md) own the proposed sequence. Weapon discovery,
-enemy combinations, keys, secrets and alternate routes support that story.
-
-Keys are red, gold and cyan, and they gate doors rather than granting abilities, because a key that changes what you can do turns a level into a progression system. A key is never a puzzle: it lies somewhere you will walk past, and the door it opens is the same colour.
+enemy combinations, secrets and alternate routes support that story.
 
 The enemy roster in `docs/ENEMIES.md` is the difficulty curve. A map is hard because of which shapes it puts in which rooms, not because the numbers went up.
 
@@ -52,8 +50,8 @@ Difficulty changes authored rosters, resources and optional challenges rather
 than relying on health inflation. Core story and rescue objectives remain on
 every difficulty; higher tiers can add secondary objectives.
 
-Secondary objectives can require disabling an extra security relay, retrieving
-supplies, or taking a harder extraction route. They are shown clearly and do not
+Secondary objectives can require destroying an extra security relay, retrieving
+supplies, or taking a harder extraction route, all fights or arrivals. They are shown clearly and do not
 silently remove the main story from the easiest setting.
 
 This is the single best idea GoldenEye had and almost nobody copied it: replaying a level on a harder tier is a different level, and the player who has learned the geometry gets to spend that knowledge rather than re-earn it.

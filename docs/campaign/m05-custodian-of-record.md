@@ -24,19 +24,19 @@ keeps this incidental, visible with sound muted, and separate from optional radi
 
 ## Room graph
 
-Entry checkpoint -> circular records hall -> two custody galleries -> control
+Entry checkpoint -> circular records hall -> two custody galleries -> machinery
 bridge -> inspection workshop -> freight evacuation. A cooling/service ring links
-the galleries and creates a shorter return. The M04 shortcut, if opened, joins
-this ring; a normal entrance remains usable without it.
+the galleries and creates a shorter return. The M04 prisoner route, if marked, joins
+this ring; the normal entrance works without it.
 
 | Zone | Architectural function | Encounter or character beat |
 |---|---|---|
 | Records hall | Human-facing desks around a visible shaft | Show how a person becomes a registered asset; establish destination |
-| Lower gallery | Accessible bays and a secure side alcove | Meet Renn after clearing a local threat, verify their access |
+| Lower gallery | Open bays and a side alcove | Meet Renn after clearing a local threat |
 | Upper gallery | Custody platforms with broad stairs and cover | First actual combat Auditor, bounded reactivation mechanic |
-| Service ring | Cooling passages and return doors | Optional Orrin recovery with room for withdrawal |
-| Control bridge | Overlooks a machinery floor, two approaches | Main crest: disable custody-defense hardware under pressure |
-| Workshop | Physical restraints, body maintenance and release stations | Free agents make their own choices and stage for transport |
+| Service ring | Cooling passages looping back to the hall | Optional Orrin recovery with room for withdrawal |
+| Machinery bridge | Overlooks a machinery floor, two approaches | Main crest: shoot apart the custody-defense machine under pressure |
+| Workshop | Opened restraints and body maintenance | Free agents make their own choices and stage for transport |
 | Freight exit | Cargo route back toward the port | Visible evacuation state and regroup |
 
 ## Combat and equipment
@@ -51,7 +51,7 @@ with a visible tell, and detonate when a body comes close. The rocket launcher
 waits for M08, where there is room for splash. A Rail or secret weapon is
 never required.
 Breakable machinery is visibly different from invulnerable walls and provides
-safe attack windows. Avoid needing hits on tiny switches while taking fire.
+safe attack windows.
 
 Secrets: armor reached through the cooling loop; an early Repeater with limited
 ammo in an observation cage. The weapon does not appear as an essential reward
@@ -60,9 +60,11 @@ enemies plus the machinery without perfect accuracy.
 
 ## Objectives and state
 
-Required: obtain transfer evidence, open reachable custody bays, clear evacuation
-access, confirm departure. The evidence identifies Martian industry and common
-systems used by several sides. It does not prove a hidden cabal or explain the AGI.
+Required: beat the upper-gallery Auditor (its fall frees the bays), wreck the
+custody machine, grab the transfer evidence on the way out and reach the freight
+exit. Objective lines: "Beat the Auditor", "Wreck the machine", "Get out". The
+evidence identifies Martian industry and common systems used by several sides.
+It does not prove a hidden cabal or explain the AGI.
 
 Track `custody_released`, `transfer_evidence`, `custodian_joined`, and optional
 `recovered_mind_secured`. Orrin's recovery is a physical, vulnerable archive with
@@ -71,7 +73,7 @@ has occurred. Local captives have release and evacuation states separately.
 
 A continue returns to mission entry. Replaying release must not duplicate people,
 memories, inventory or story events. If the
-M04 shortcut is absent, the ordinary evacuation remains achievable.
+M04 prisoner route is absent, the ordinary evacuation remains achievable.
 
 ## Staging and tone
 
@@ -82,8 +84,11 @@ their recall inconvenienced the service. Keep the captives themselves sincere.
 
 ## Allies and proof
 
-Controls work for one player. Rescued actors stage outside active crossfire after
-routes clear; no tactical companion commands are required.
-Test both M04 shortcut states, Orrin recovered/missed, reactivation limits,
+Rescued actors stage outside active crossfire after routes clear; no tactical
+companion commands are required.
+
+Mastery hooks, planned, not built: a par time on the result, the service ring as
+the runner's line between galleries, and best clear time in the service record.
+Test both M04 prisoner-route states, Orrin recovered/missed, reactivation limits,
 pickup scarcity, repeated releases, save with the archive, scene skips and
 mission-start retry. Inspect all overlapping floors.

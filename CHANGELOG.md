@@ -4,6 +4,16 @@ Shipped tags, newest first. A line here is on `main`. Planned work stays in
 [docs/ROADMAP.md](docs/ROADMAP.md). Older tags are on the
 [releases page](https://github.com/blisspixel/fragr/releases).
 
+## v0.47.1 (2026-09-24)
+
+Multiplayer rounds on Directive 17, Sector 9 and Reclamation Gulch no longer
+open with fighters standing in each other's rail lanes. Each of those maps
+gains sixteen spawn cover pockets, three pickup pads moved a few metres behind
+the new blocks, and respawns ignore lanes longer than any gun can reach. Across
+sixteen seeded runs on maps 3 to 6, spawn deaths fell from 47 to 7, and none of
+the remaining ones happen at the round opening. The playtest now fails a run
+with more than one opening spawn death per round.
+
 ## v0.47.0 (2026-09-24)
 
 fragr now has downloadable desktop builds. Each tagged release attaches a

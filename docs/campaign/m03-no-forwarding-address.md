@@ -63,8 +63,8 @@ approaches, not just a larger HP pool in the same doorway.
 
 ## Rescue and authoritative state
 
-Required: open departure route and board. Optional flags: `medic_evacuated`,
-`technician_evacuated`, with released versus evacuated actors kept distinct.
+Required: clear the trench crossfire and reach the departure platform. Optional
+flags: `medic_evacuated`, `technician_evacuated`, with released versus evacuated actors kept distinct.
 Both are achievable. Departure shows who is aboard and who remains reachable.
 A player confirmation commits the mission outcome; no incidental trigger
 quietly decides that someone was abandoned.
@@ -72,6 +72,9 @@ quietly decides that someone was abandoned.
 A continue restarts arrival, with entry equipment and prior-mission survivors.
 Rescues attempted in this mission reset with its routes and pickups; completed
 earlier outcomes remain intact. No duplicate pickup or rescue credit loop.
+
+Mastery hooks, planned, not built: a par time on the result, the roof loop as
+the runner's line from market to workshop, and best clear time in the service record.
 
 ## Presentation and continuity
 

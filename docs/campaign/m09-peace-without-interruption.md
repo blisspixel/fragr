@@ -36,7 +36,7 @@ player personally to Voss. Do not stretch the approach into an empty parade grou
 | Transit approach | Allied foothold with two attacks on the entrance | Establish this is a coalition operation |
 | Assembly hall | Large room subdivided by actual civic furniture/structure | Visual contrast between public promises and control |
 | Administrative ring | Short rooms around a return loop | Optional prisoner release and supplies |
-| Command galleries | Cross-floor pressure, two ordinary access routes | Records imply interests above Voss without proving a cabal |
+| Command galleries | Cross-floor pressure, two ordinary stair routes | Records imply interests above Voss without proving a cabal |
 | Security core | Final combined encounter with destructible local defenses | Defeat the apparatus rather than a defenseless person's HP bar |
 | Secured chamber | Safe surrender/capture state after defenses fail | Voss loses command and is taken alive |
 | Public hall return | Allied activity and freed people | Let liberation register before the next mission |
@@ -59,10 +59,14 @@ optional texture; the main plot never requires proving a master conspiracy.
 
 ## Authoritative sequence
 
-`allied_foothold` -> `command_access` -> `security_defeated` -> `voss_captured`
+`allied_foothold` -> `galleries_reached` -> `security_defeated` -> `voss_captured`
 -> `coalition_victory`. The capture event occurs once and persists across the
 M10 transition. Mission success requires earned control, not merely entering a
-cutscene trigger while defenders still fight.
+cutscene trigger while defenders still fight. Every step advances by arrival or
+by winning a fight.
+
+Mastery hooks, planned, not built: a par time on the result, the outer service
+stair as the runner's line to the galleries, and best clear time in the service record.
 
 A continue restarts the foothold with mission-entry equipment, prisoners and
 allied state. Capture is committed when the mission completes; skip or retry

@@ -25,7 +25,7 @@ Nobody can establish whether the absorbed individuals still exist.
    and the people it benefits; no countdown, ominous briefing or evacuation order.
 2. Union bots interrupt their routine together. A human supervisor's command gets
    no response; the same recognizable bodies move with one purpose. Free agents
-   nearby do not join them. A transport/access change makes this immediately local.
+   nearby do not join them. A stalled tram makes this immediately local.
 3. Coordinated infrastructure failures and a restoration unit working through
    occupied space compound the danger. The player can act and save people
    immediately; do not hold the camera while everyone dies.
@@ -51,9 +51,9 @@ of the absorbed bots' inner fate or of an extraterrestrial sender.
 
 | Zone | Before rupture | After rupture |
 |---|---|---|
-| Recovery square | Market, repair and aid route | Access changes divide the square but leave readable escapes |
+| Recovery square | Market, repair and aid route | Restoration machines tear up the square but leave readable escapes |
 | Clinic approach | Short everyday destination | Blocked direct route, usable service flank |
-| Maintenance passage | Mundane alternate circulation | First sheltered regroup, visible local controls |
+| Maintenance passage | Mundane alternate circulation | First sheltered regroup |
 | Upper overlook | Familiar infrastructure landmark | Player sees coordinated failures beyond the immediate fight |
 | Evacuation concourse | Transit hall with two levels and side rooms | Final local operation to get civilians through a safe crossing |
 
@@ -66,14 +66,14 @@ Map identity persists as it changes. No ordinary building becomes a forest here.
 The clock begins at the actual rupture. The first proposed 33-minute structure
 below is a pacing hypothesis, not evidence of fun or final balance. Keep changes
 in location, enemy problems, resources and urgency throughout it. Do not stretch
-an eight-minute map into thirty-three minutes of waves or locked-door waiting.
+an eight-minute map into thirty-three minutes of waves or locked-room waiting.
 
 | Active minutes | Place and changing problem | Player activity |
 |---|---|---|
-| 0-4 | Recovery square and clinic access fail | Escape familiar bots, recover supplies, help reachable people |
-| 4-10 | Service passages and overlook reveal the scale | Open a local shutter, use a short lift, learn a restoration unit's tell |
+| 0-4 | Recovery square and the clinic route collapse | Escape familiar bots, recover supplies, help reachable people |
+| 4-10 | Service passages and overlook reveal the scale | Fight up through service stairs, learn a restoration unit's tell |
 | 10-17 | Evacuation concourse and adjoining buildings | Secure a crossing, alternate fighting and short sheltered regrouping |
-| 17-25 | Changed Low Water streets and waterworks | Reconnect refuge access through interiors and flanks; rescue opportunities have readable consequences |
+| 17-25 | Changed Low Water streets and waterworks | Fight through interiors and flanks toward the refuge; rescue opportunities have readable consequences |
 | 25-33 | Freight pier and refuge approach | Survive converging pressure while independent friends complete their intervention |
 
 The reprieve halts the immediate attack at the end of the survival interval.
@@ -108,6 +108,10 @@ Supplies come from existing aid stores, abandoned equipment and secured rooms.
 No large detour secret during the first rupture. Optional alcoves offer supplies
 and short rescues only where the player has time to understand the opportunity.
 
+Mastery hooks, planned, not built: the survival clock is fixed, so the result
+shows rescues made and damage taken rather than a par time, with bests kept in
+the service record.
+
 ## Narrative and authoritative state
 
 `recovery_task` -> `local_rupture` -> `first_escape` -> `scale_revealed` ->
@@ -139,7 +143,7 @@ Caption essential sound cues and text all messages.
 ## Allies and acceptance
 
 Rupture cannot begin while the player is loading into a lethal position.
-Keep authority over phase transitions, autonomous allies and shared doors.
+Keep authority over phase transitions, autonomous allies and sealed set pieces.
 Test every phase with skip, muted audio, solo human/agent control, ally loss and
 mission retry. No teammate revival. Inspect destruction
 and tell visibility in motion; players should experience surprise and then infer
