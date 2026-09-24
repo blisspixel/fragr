@@ -167,6 +167,14 @@ for the empty run directory. The icon pulled from the Linux-exported
 `fragr.exe` on the Windows runner is the fragr mark. No tag or release was
 created.
 
+After the notices and the rename, and rebased onto #235,
+[run 36021684935](https://github.com/blisspixel/fragr/actions/runs/36021684935)
+was green again. `fragr-licenses` resolved 94 crates for Linux and macOS
+(universal) and 95 for Windows against the allowlist; each unpacked zip carried
+all six notice files, and the macOS install check ran from
+`fragr.app/Contents/MacOS/fragr` and found `fragr-server` beside it. Locally,
+setting `MIT` off the allowlist made the tool list every blocked crate and exit 1.
+
 ### Package size
 
 Each zip is about 620 MB because of the committed radio library. Measured on
