@@ -5,10 +5,18 @@ use crate::session::GameSession;
 use serde_json::json;
 
 fn fixture(difficulty: CampaignDifficulty, kind: EnemyKind) -> (GameSession, Uuid) {
+    fixture_facing(difficulty, kind, 0.0)
+}
+
+fn fixture_facing(
+    difficulty: CampaignDifficulty,
+    kind: EnemyKind,
+    yaw: f32,
+) -> (GameSession, Uuid) {
     let mut definition = super::tests::definition();
     definition["encounters"] = json!([{
         "id":"encounter", "regions":[{"min":[-1,0,-7],"max":[1,2,-4]}],
-        "enemies":[{"id":"guard", "kind":kind, "feet":[2,0,-3], "yaw":0}]
+        "enemies":[{"id":"guard", "kind":kind, "feet":[2,0,-3], "yaw":yaw}]
     }]);
     let map = AuthoredMap::read(serde_json::to_vec(&definition).unwrap().as_slice()).unwrap();
     let mut session = GameSession::with_authored_map(map);
@@ -184,4 +192,85 @@ fn mission_rules_reject_unknown_revisions_missing_fields_and_midrun_changes() {
         observer.observe(0, invalid).is_err(),
         "geometry refresh cannot change a run's rules"
     );
+}
+
+#[test]
+fn heavy_and_turret_tells_precede_damage_by_the_documented_time_on_every_tier() {
+    use crate::encounters::enemy::attack_timing;
+    use crate::protocol::WeaponType;
+    // Facing the visitor, so the turret's tracking settles on its first look.
+    let facing = (-3.0f32).atan2(-2.0).rem_euclid(std::f32::consts::TAU);
+    for (kind, weapon, burst) in [
+        (EnemyKind::HeavySweeper, WeaponType::Flechette, 4),
+        (EnemyKind::Turret, WeaponType::Rail, 1),
+    ] {
+        let mut timings = Vec::new();
+        for difficulty in [
+            CampaignDifficulty::Assisted,
+            CampaignDifficulty::Standard,
+            CampaignDifficulty::Severe,
+        ] {
+            let (windup, recovery) = attack_timing(kind, difficulty);
+            assert!(windup >= 20, "a heavy tell stays at least one second");
+            for dodge in [false, true] {
+                let (mut session, id) = fixture_facing(difficulty, kind, facing);
+                session.state.players[0].hp = 500;
+                session.tick_messages(0.05);
+                for _ in 0..8 {
+                    if phase(&session).0 == EnemyPhase::Windup {
+                        break;
+                    }
+                    session.tick_messages(0.05);
+                    assert!(session.state.shot_results.is_empty());
+                }
+                let (current, start, end) = phase(&session);
+                assert_eq!(current, EnemyPhase::Windup);
+                assert_eq!(end - start, windup);
+                if dodge {
+                    session.state.set_action(
+                        id,
+                        Action {
+                            right: true,
+                            yaw: Some(0.0),
+                            ..Default::default()
+                        },
+                    );
+                }
+                while session.state.tick < end - 1 {
+                    session.tick_messages(0.05);
+                    assert!(session.state.shot_results.is_empty());
+                    assert_eq!(session.state.players[0].hp, 500);
+                }
+                session.tick_messages(0.05);
+                assert_eq!(phase(&session).0, EnemyPhase::Firing);
+                assert_eq!(session.state.shot_results.len(), 1);
+                let shot = &session.state.shot_results[0];
+                assert_eq!(shot.damage > 0, !dodge);
+                if !dodge {
+                    assert_eq!(shot.damage, weapon.damage());
+                    assert_eq!(shot.target_id, Some(id));
+                }
+                let mut shots = 1;
+                for _ in 0..20 {
+                    if phase(&session).0 == EnemyPhase::Recovery {
+                        break;
+                    }
+                    session.tick_messages(0.05);
+                    shots += session.state.shot_results.len();
+                }
+                let (current, recovery_start, recovery_end) = phase(&session);
+                assert_eq!(current, EnemyPhase::Recovery);
+                assert_eq!(shots, burst);
+                assert_eq!(recovery_end - recovery_start, recovery);
+                if dodge {
+                    assert_eq!(session.state.players[0].hp, 500);
+                } else {
+                    timings.push((windup, recovery));
+                }
+            }
+        }
+        assert!(timings
+            .windows(2)
+            .all(|pair| pair[0].0 > pair[1].0 && pair[0].1 > pair[1].1));
+    }
 }

@@ -148,3 +148,10 @@ Their old capture workflow is documented in `../plans/tip-screenshots.md` and
 
 `mood/` contains concept plates, never gameplay proof. Keep concepts and historical
 screenshots out of the README's current-build gallery.
+
+The `heavy_turret_*.png` files come from
+`FRAGR_QA_BOTS=0 FRAGR_QA_MAP_FILE=server/maps/test/heavy-turret-range.json FRAGR_QA_MANIFEST=res://qa/heavy-turret.json tools/qa_tour.sh`
+and the baked atlases, captured and inspected 2026-09-24 on Windows. The
+`union_recolor_*.png` files compare Clerk and Sweeper cells before and after the
+black and red Union recolor, plus two frames from the M01 encounter tour. The
+[plan](../plans/heavy-sweeper-and-turret.md) describes what each one shows.

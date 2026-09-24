@@ -11,6 +11,8 @@ const TICK_SECONDS: float = 0.05
 const MAX_EXTRAPOLATION: float = 0.1
 const STRIDE_METRES: float = 1.6
 const DEATH_SECONDS: float = 0.7
+## Fixed equipment has no gait. Its traverse cycle runs on phase time.
+const TRAVERSE_SECONDS: float = 0.8
 
 const CLIPS: Array[Dictionary] = [
 	{"action":"idle", "unarmed":false, "count":1},
@@ -88,5 +90,8 @@ static func frame(actor: Dictionary, weapon: String, tick: int, elapsed: float,
 				progress = age / duration
 		"moving":
 			action = "walk"
-			progress = fposmod(travel / STRIDE_METRES, 1.0)
+			if actor.get("kind") == "turret":
+				progress = fposmod(age / TRAVERSE_SECONDS, 1.0)
+			else:
+				progress = fposmod(travel / STRIDE_METRES, 1.0)
 	return posmod(facing, DIRECTIONS) * poses() + pose_frame(action, unarmed, progress)

@@ -68,7 +68,9 @@ them; keep accents purposeful and silhouettes distinct from their background.
 | Ember | `#C45A20` |
 | Muted signal cyan / magenta | `#4A8A92`, `#8A3A58` |
 | Broadcast red | `#8B1E1E` |
-| Institutional green | `#4E5844` |
+| Institutional green (Union interiors) | `#4E5844` |
+| Union black / steel / plate | `#1E1E22`, `#2C2D32`, `#56575E` |
+| Union red / red optics | `#8C1A1E`, `#E23430` |
 | Vegetation shadow / leaf | `#3A4C2E`, `#74884E` |
 
 Bone-white outlined titles and compact pixel-readable body type. Current menu
@@ -89,8 +91,8 @@ marking. Neither replaces the other. A Union lunar depot must read as both.
 
 | Group | Palette roles | Silhouette, material and motion |
 |---|---|---|
-| Free communities | Gunmetal, rust and worn bone; small personally chosen cyan, ember or magenta accents | Repaired equipment, exposed fasteners, asymmetry, distinct gestures. Humans and agents share practical clothing and tools; no universal rebel uniform |
-| Union humans and bots | Repeated bone panels, institutional green, dark steel and limited dark red seals | Issued rectangular plates, covered mechanisms, repeated numbered insignia, disciplined ranks. Human officers and controlled bots remain distinguishable by shape and movement |
+| Free humans and free agents | Bone and white, warm leather, rust and ember, purple outline, small personally chosen cyan or magenta accents. They read as the people the player is fighting for | Repaired equipment, exposed fasteners, asymmetry, distinct gestures. Humans and agents share practical clothing and tools; no universal rebel uniform |
+| Union humans and bots | Black cloth, dark steel and plates one step lighter, with restrained red: visors and optics, armbands and seals. Red optics are also every Union attack tell light | Issued rectangular plates, covered mechanisms, repeated numbered insignia, disciplined ranks. Menace comes from uniformity and order, never spikes, skulls or cartoon villainy. Plates and red accents keep bodies readable in dark rooms. Human officers and controlled bots remain distinguishable by shape and movement |
 | Inheritance restoration machines | Matte bone over ink joints; minimal muted cyan working indicators | Continuous unfamiliar surfaces, few seams, no serials or faces, deliberate coordinated motion. Never a neon faction |
 | Absorbed Union bots | Preserve their existing Union paint, wear and chassis at onset | Marks do not magically vanish. Shared timing, changed targeting and loss of response to human command reveal absorption. Free agents do not acquire this motion |
 

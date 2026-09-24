@@ -6,6 +6,11 @@ use serde::{Deserialize, Serialize};
 pub enum EnemyKind {
     Clerk,
     Sweeper,
+    /// Broad armored bot: slow gait, long suppressive burst, staggers only on
+    /// a heavy hit.
+    HeavySweeper,
+    /// Fixed equipment with a sweeping head, a spin-up tell and one strong shot.
+    Turret,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]

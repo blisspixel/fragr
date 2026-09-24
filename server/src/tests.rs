@@ -6402,5 +6402,6 @@ mod vertical_aim {
     }
 }
 mod encounters;
+mod heavy_turret;
 mod m01;
 mod pellets;

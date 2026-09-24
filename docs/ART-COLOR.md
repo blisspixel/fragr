@@ -9,7 +9,8 @@ not claims that every current asset or light implements them.
 ## The reconciliation, first
 
 The base palette is deliberately desaturated: gunmetal, rust, ember, blood, muted
-cyan and magenta, bone, ink, institutional green and vegetation greens.
+cyan and magenta, bone, ink, institutional green, vegetation greens, and the
+Union black, steel, plate and red.
 
 Emission is limited to purposeful indicators, attack tells and brief effects.
 Free agents may choose distinct optics; they must not flood rooms with neon or
@@ -47,11 +48,15 @@ control changes, never a color that supposedly diagnoses consciousness.
 
 ## Faction colour
 
-**The Union.** Issued bone panels, institutional green, dark steel and limited
-dark red seals. Repeated manufacture, orderly markings and regimented motion.
-Institutional interiors share materials but retain readable fighter silhouettes.
+**The Union.** Black cloth, dark steel and slightly lighter issued plates, with
+restrained red: visors and optics, armbands and seals. Red optics also carry
+every Union attack tell. Menace comes from uniformity, repeated manufacture and
+regimented motion, not spikes, skulls or cartoon villainy. Institutional
+interiors keep their bone enamel and institutional green, so black and red bodies
+stand out against them and never vanish in dark rooms.
 
-**Free communities.** Worn bone, gunmetal, rust, practical clothing, repair and
+**Free communities.** The good guys read warm and light: bone and white, warm
+leather, worn gunmetal, rust and ember, purple outline, practical clothing, repair and
 small personal accents. Human and agent equipment belongs to the same lived-in
 community. No single rebel uniform or tracer color substitutes for role and team
 readability; weapon effects retain their established weapon meaning.

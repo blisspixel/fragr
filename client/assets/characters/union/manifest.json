@@ -79,13 +79,25 @@
 			"brief": "Visible human face, open helmet, institutional green cloth, issued bone armor and restrained red seal.",
 			"file": "clerk.png",
 			"model": "articulated human security rig",
-			"sha256": "34ac40c7c2655ea4d0770596b076f5711a7dd4c78e64ced3b534b8b203b6d9e1"
+			"sha256": "8c26e5fee05f6f76aeeb16d954ec63447db0d72c3646ddf336455f51c62758b5"
 		},
 		{
 			"brief": "Covered mechanical chassis, dark status slit, battery pack, issued bone armor and restrained red seal.",
 			"file": "sweeper.png",
 			"model": "articulated issued bot rig",
-			"sha256": "6ebd9f12dc70fb389394aa1369f1b3e9455be0921d7625a9c71bde1d1c2671f5"
+			"sha256": "69fabaae8b5251eff0f3c05d4b6262cc51b8d934705c450cff8744866ccd8a08"
+		},
+		{
+			"brief": "Broad armored chassis, head sunk between wide pauldrons, ammunition drum, rotary cannon and ember tell lamps.",
+			"file": "heavy_sweeper.png",
+			"model": "articulated heavy bot rig",
+			"sha256": "246376a5cbb758ecf03c7a44990d509c7ffe1cbec45bd91aec11f81eef569ad4"
+		},
+		{
+			"brief": "Braced column with a rotating bone housing, rail barrel with ember charge coils and a cyan sensor lamp.",
+			"file": "turret.png",
+			"model": "fixed turret rig",
+			"sha256": "af9012f4c6fe356591757bb05f361003eb1b0847516c10b06c5a7c83433c496b"
 		}
 	],
 	"format": "RGBA8 PNG, nearest sampling, no mipmaps",
@@ -93,10 +105,11 @@
 	"rows": 24,
 	"schema": 1,
 	"sources": {
-		"res://art/characters/bake.gd": "bbec113b53735a9c51570deb133577b15d7eceefb9a251b0ec9830d15f7a0723",
-		"res://art/characters/geometry.gd": "c79597bb048cbecd853fdda77a53028374e96facdbe279300258c8ed8ac82386",
-		"res://art/characters/rig.gd": "1c1d62e25aa8a8a45c6974d2433c6eb1a6caed9b8683057a263594e4693a3916",
-		"res://scripts/enemy_animation.gd": "dc90d9d84edd76aede6926890d1b7e504faf380c987193dc28ffbb8b250c426d"
+		"res://art/characters/bake.gd": "e92d94e909df9db8c3fd0a3a3b350f07133c3d9693d7e5f42add70eb129d8fcd",
+		"res://art/characters/geometry.gd": "833318a2c94533aac01abbf7c886b616ec11528624fa406e6cad18dc1a14eec9",
+		"res://art/characters/machines.gd": "9d3897a5d0a0ef833cf32d07a5fc6a352050ff0421d945ed5ecd5f6f2f1bb8d4",
+		"res://art/characters/rig.gd": "2bfbe583b626c047592fbbc2a237047f1dfc70d78ec6b7281169c535e30fa05f",
+		"res://scripts/enemy_animation.gd": "400214a81e9d0656d637787fe8e3fdb31772271b0ad9733b37e1ae5cd010c3cf"
 	},
 	"tile_pixels": 160
 }

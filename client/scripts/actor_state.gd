@@ -2,6 +2,7 @@ class_name ActorState
 extends RefCounted
 
 ## Campaign identity comes from the server, never a callsign or control role.
+const KINDS: Array[String] = ["clerk", "sweeper", "heavy_sweeper", "turret"]
 const PHASES: Array[String] = ["idle", "moving", "windup", "firing", "recovery", "hit", "dead"]
 
 static func is_participant(actor: Dictionary) -> bool:
@@ -33,7 +34,7 @@ static func validation_error(snapshot: Dictionary) -> String:
 				return INVALID
 			continue
 		if campaign["side"] != "union" or campaign.size() != 5 \
-			or not campaign.get("kind") is String or campaign["kind"] not in ["clerk", "sweeper"] \
+			or not campaign.get("kind") is String or campaign["kind"] not in KINDS \
 			or not campaign.get("phase") is String or campaign["phase"] not in PHASES:
 			return INVALID
 		if not EquipmentState.integer(snapshot.get("tick"), EquipmentState.MAX_EXACT_INTEGER) \

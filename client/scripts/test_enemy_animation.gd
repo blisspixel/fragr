@@ -23,6 +23,9 @@ func run() -> void:
 		"stale windup cannot locally turn into a shot")
 	_check(EnemyAnimation.frame(actor, "Tack", 100, 50, 0, INF, 0) ==
 		EnemyAnimation.frame(actor, "Tack", 100, 0.1, 0, INF, 0), "bounded extrapolation")
+	var turret: Dictionary = {"side":"union", "kind":"turret", "phase":"moving", "phase_started":100, "phase_ends":100}
+	_check(EnemyAnimation.frame(turret, "Rail", 100, 0, 0, INF, 0) != EnemyAnimation.frame(turret, "Rail", 108, 0, 0, INF, 0),
+		"a fixed turret traverses on phase time without travel")
 	actor["phase"] = "firing"
 	var fire: int = EnemyAnimation.frame(actor, "Tack", 112, 0, 0, 0, 0)
 	_check(fire != EnemyAnimation.frame(actor, "Tack", 112, 0, 0, INF, 0),
@@ -104,7 +107,7 @@ func _check_atlases() -> void:
 			"atlas matches its bake receipt")
 	_check(int(manifest["poses"]) == EnemyAnimation.poses() and int(manifest["directions"]) == EnemyAnimation.DIRECTIONS,
 		"baked layout matches playback")
-	for kind: String in ["clerk", "sweeper"]:
+	for kind: String in ActorState.KINDS:
 		var texture: Texture2D = load("res://assets/characters/union/%s.png" % kind)
 		var atlas: Image = texture.get_image()
 		_check(atlas.get_width() == EnemyAnimation.COLUMNS * EnemyAnimation.TILE \
@@ -131,6 +134,7 @@ func _check_atlases() -> void:
 		var step_b: Image = _tile(atlas, EnemyAnimation.pose_frame("walk", false, 0.5))
 		_check(step_a.get_data() != step_b.get_data(), kind + " has distinct gait poses")
 	_check_readable_pair()
+	_check_heavy_and_turret_outlines()
 
 func _check_readable_pair() -> void:
 	var clerk: Image = _atlas("clerk")
@@ -146,6 +150,41 @@ func _check_readable_pair() -> void:
 	_check(absi(int(sweeper_raise["width"]) - int(sweeper_idle["width"])) <= 2, "the sweeper's rifle stays inside the shoulders")
 	_check(int(sweeper_raise["width"]) >= int(clerk_raise["width"]) + 8, "the sweeper stays broader while firing")
 
+## At 30 metres, a 720p view with the default 75 degree vertical field of view
+## draws about 15.6 pixels per metre. A 160 pixel, three metre tile is then
+## about 47 pixels. Outlines must still differ at that size.
+const FAR_TILE: int = 47
+
+func _check_heavy_and_turret_outlines() -> void:
+	var outlines: Dictionary[String, Dictionary] = {}
+	var far: Dictionary[String, Dictionary] = {}
+	for kind: String in ActorState.KINDS:
+		var atlas: Image = _atlas(kind)
+		for action: String in ["idle", "raise"]:
+			var tile: Image = _tile(atlas, EnemyAnimation.pose_frame(action, false, 1.0))
+			outlines[kind + "_" + action] = _occupancy(tile)
+			var small: Image = tile.duplicate()
+			small.resize(FAR_TILE, FAR_TILE, Image.INTERPOLATE_BILINEAR)
+			far[kind + "_" + action] = _occupancy(small, FAR_TILE)
+	var heavy: Dictionary = outlines["heavy_sweeper_idle"]
+	print("test_enemy_animation: widths clerk %d sweeper %d heavy %d turret %d" % [
+		outlines["clerk_idle"]["width"], outlines["sweeper_idle"]["width"], heavy["width"], outlines["turret_idle"]["width"]])
+	_check(int(heavy["width"]) >= int(outlines["sweeper_idle"]["width"]) + 10, "the heavy is broader than the sweeper")
+	_check(int(heavy["top"]) <= int(outlines["sweeper_idle"]["top"]) + 6, "the heavy is not a shorter sweeper")
+	var tell: float = _difference(heavy, outlines["heavy_sweeper_raise"])
+	print("test_enemy_animation: heavy tell changes %.3f of its outline" % tell)
+	_check(tell >= 0.15, "the heavy's tell changes its outline, not only its lamps")
+	for kind: String in ["heavy_sweeper", "turret"]:
+		for other: String in ActorState.KINDS:
+			if other == kind or (kind == "turret" and other == "heavy_sweeper"):
+				continue
+			for action: String in ["idle", "raise"]:
+				var near_difference: float = _difference(outlines[kind + "_" + action], outlines[other + "_" + action])
+				var far_difference: float = _difference(far[kind + "_" + action], far[other + "_" + action])
+				print("test_enemy_animation: %s vs %s %s near %.3f far %.3f" % [kind, other, action, near_difference, far_difference])
+				_check(near_difference >= 0.22, "%s and %s %s outlines differ" % [kind, other, action])
+				_check(far_difference >= 0.22, "%s and %s %s outlines differ at 30 metres" % [kind, other, action])
+
 func _atlas(kind: String) -> Image:
 	var image: Image = Image.new()
 	var path: String = ProjectSettings.globalize_path("res://assets/characters/union/%s.png" % kind)
@@ -153,20 +192,20 @@ func _atlas(kind: String) -> Image:
 		_check(false, "could not read " + kind + " atlas")
 	return image
 
-func _occupancy(tile: Image) -> Dictionary:
-	var count: int = EnemyAnimation.TILE * EnemyAnimation.TILE
+func _occupancy(tile: Image, size: int = EnemyAnimation.TILE) -> Dictionary:
+	var count: int = size * size
 	var mask: PackedByteArray = PackedByteArray()
 	mask.resize(count)
-	var min_x: int = EnemyAnimation.TILE
-	var min_y: int = EnemyAnimation.TILE
+	var min_x: int = size
+	var min_y: int = size
 	var max_x: int = 0
 	var max_y: int = 0
 	var filled: int = 0
-	for y: int in range(EnemyAnimation.TILE):
-		for x: int in range(EnemyAnimation.TILE):
+	for y: int in range(size):
+		for x: int in range(size):
 			if tile.get_pixel(x, y).a <= 0.2:
 				continue
-			mask[y * EnemyAnimation.TILE + x] = 1
+			mask[y * size + x] = 1
 			filled += 1
 			min_x = mini(min_x, x)
 			min_y = mini(min_y, y)

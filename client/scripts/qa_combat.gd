@@ -18,6 +18,7 @@ var _initial_dead: Dictionary[String, bool] = {}
 var _network: Node
 var _recording: bool = false
 var _evade_left: bool = true
+var _evade_started: int = -1
 var _participant_seen: bool = false
 var confirmed_deaths: Dictionary[String, int] = {}
 
@@ -142,13 +143,19 @@ func engage(manager: Node, me: Dictionary, target: Dictionary, solids: Array, an
 	var aim: Vector3 = exposed_point(target, eye, solids) - eye
 	camera.set("fp_yaw", atan2(aim.z, aim.x))
 	camera.set("fp_pitch", atan2(aim.y, Vector2(aim.x, aim.z).length()))
-	if evade and not visible_target(snapshot, _player_id, solids, true).is_empty():
-		var offset: Vector2 = Vector2(me.x, me.z) - anchor
-		var direction: Vector2 = MoveStep.wish_dir({"left": _evade_left, "right": not _evade_left}, atan2(aim.z, aim.x))
-		# Alternate near the entry position instead of circling through
-		# adjacent rooms. Collision and the input speed remain unmodified.
-		if offset.length_squared() > 4.0 and offset.dot(direction) > 0.0:
-			_evade_left = not _evade_left
+	var tell: Dictionary = visible_target(snapshot, _player_id, solids, true) if evade else {}
+	if not tell.is_empty():
+		var started: int = int(tell["campaign"]["phase_started"])
+		if started != _evade_started:
+			_evade_started = started
+			var offset: Vector2 = Vector2(me.x, me.z) - anchor
+			var direction: Vector2 = MoveStep.wish_dir({"left": _evade_left, "right": not _evade_left}, atan2(aim.z, aim.x))
+			# Pick a side once per tell, heading back towards the entry
+			# position instead of circling through adjacent rooms. Reversing
+			# mid-tell would carry a long tell's locked aim back onto the
+			# body. Collision and the input speed remain unmodified.
+			if offset.length_squared() > 1.0 and offset.dot(direction) > 0.0:
+				_evade_left = not _evade_left
 		Input.action_press("move_left" if _evade_left else "move_right")
 	var loadout: Dictionary = network.get("equipment")
 	if not loadout.is_empty() and EquipmentState.shots(loadout, loadout["selected"]) != 0 and allow_fire:
@@ -188,7 +195,7 @@ func run(tree: SceneTree, manager: Node, spec: Dictionary, output: String) -> Di
 				return {"passed": false}
 			unique[value] = true
 		expected = required.size()
-	if _kind not in ["clerk", "sweeper", "union"] or expected < 1 or expected > 64:
+	if (_kind not in ActorState.KINDS and _kind != "union") or expected < 1 or expected > 64:
 		push_error("qa_combat: invalid encounter expectation")
 		return {"passed": false}
 	samples.clear()
@@ -211,6 +218,7 @@ func run(tree: SceneTree, manager: Node, spec: Dictionary, output: String) -> Di
 	var starting_actor: Dictionary = actor_by_id(manager.get("latest_snapshot"), _player_id)
 	var anchor: Vector2 = Vector2(starting_actor.get("x", 0.0), starting_actor.get("z", 0.0))
 	_evade_left = true
+	_evade_started = -1
 	var search_route: Array = spec.get("search_route", [])
 	var search_index: int = 0
 	# A corpse from the preceding room cannot satisfy this encounter's claim.

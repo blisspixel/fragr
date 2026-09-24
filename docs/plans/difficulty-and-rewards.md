@@ -21,6 +21,11 @@ retain the released timing. This first pass is not final difficulty balance.
 - Assisted / Standard / Severe Clerk windup: 20 / 12 / 10 ticks; recovery:
   30 / 20 / 16 ticks. Sweeper windup: 22 / 14 / 12 ticks; recovery:
   38 / 26 / 20 ticks. At 20 Hz even Severe keeps a half-second minimum tell.
+  Heavy Sweeper windup: 32 / 24 / 20 ticks; recovery: 46 / 34 / 28 ticks.
+  Turret windup: 36 / 26 / 20 ticks; recovery: 40 / 30 / 24 ticks. Both keep
+  at least one second of tell on Severe. These rows were added with the two
+  kinds, before any mission placed them, so the current revision (2,
+  from the ammunition change) still describes every saved run ([plan](heavy-sweeper-and-turret.md)).
   Preserve health, damage, locked aim, burst length, ammo, movement and hit stun.
 - Local menu chooses a tier before creating a child. The readiness record echoes
   that choice; mismatched or invalid replies fail closed. Remote hosts select
