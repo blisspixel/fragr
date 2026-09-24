@@ -68,10 +68,12 @@ impl RuntimeMap {
         match self {
             Self::BuiltIn(_) => None,
             Self::Authored(map) => {
-                let (arena, navigation) = map.m02.as_ref()?.world(mask)?;
+                let prepared = map.m02.as_ref()?;
+                let (arena, navigation) = prepared.world(mask)?;
                 let mut selected = map.as_ref().clone();
                 selected.arena = arena.clone();
                 selected.navigation = navigation.clone();
+                selected.presentation = prepared.presentation(mask)?.clone();
                 Some(Self::Authored(Arc::new(selected)))
             }
         }

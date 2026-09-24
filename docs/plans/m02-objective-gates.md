@@ -138,6 +138,33 @@ An encounter-only map with ID 1002 admitted capability 3 clients and omitted
 the marker, while the M02 fixture emitted its count and rejected unmarked
 objective state in the adapter.
 
+## Rule: readable controls, few puzzles
+
+Recorded 2026-09-24 at Nick's request, and in `docs/MAP-DESIGN.md` for later
+missions.
+
+- **Few puzzles, fun first.** A control is a Doom switch hit in stride that
+  opens a door the player can already see or that stands right beside it, one
+  step at a time. No chains, combination or order puzzles, switch hunts or long
+  backtracking. Prefer an arrival or a combat-cleared gate over another switch.
+  M02 authoring rejects a gate whose opener stands more than eight metres away.
+- **Readable without English.** All labels, prompts, objective lines and signs
+  are keys in `client/i18n/*.po`; map JSON carries registered kinds, never
+  English; a missing key fails a harness rather than showing the raw key.
+- **The picture explains the control.** Each control has a state read (red
+  lamp and closed shutter pictogram while locked, green lamp and raised shutter
+  arrow once open), a visible link to what it operates (the same lamp on the
+  switch or arrival point and on the gate), a pictogram of its function, and a
+  world change when used (the shutter rises and stays visible, both lamps flip,
+  a sound plays). Agents read the same facts from legal prompts.
+- **Evidence.** Before and after stills of every control, inspected, with a
+  written account of what a player sees with the text hidden.
+
+M01's transfer record console and lift control predate this rule. They have a
+terminal panel, a lift panel and a rising lift gate, but no locked and open
+lamp pair, and the record console stands away from the lift it opens. That is a
+follow-up for M01's own plan, not part of this M02 slice.
+
 ## Progress, 2026-09-24: bundled graybox and server route proof
 
 `server/maps/m02-persons-unknown.json` is the bundled map 1002 behind
@@ -145,14 +172,18 @@ objective state in the adapter.
 (a slot window over the ward), an enclosed service stair, the antechamber, the
 correction ward with a restraint bay, a processing floor with a mezzanine on a
 broad stair and machinery islands, and the loading dock. The authored chain is
-`ward_reached` (arrival at the ward door), `correction_stopped` (ward console),
-`companion_released` (restraint bay console), `loading_gate_open` (loading
-control) and `party_departed` (dock arrival). The three consoles raise the bay
-gate, the floor gate and the loading gate by three metres each, so each
-shutter stays visible overhead. The foundation prepares and validates the
-worlds for masks 0, 1, 3 and 7 before readiness.
+`ward_reached` (arrival at the ward door), `correction_stopped` (a switch beside
+the bay shutter), `companion_released` (arrival at the restraint frame inside
+the bay), `loading_gate_open` (a switch beside the loading gate) and
+`party_departed` (dock arrival). Two switches remain, each right beside the
+door it raises; the restraint arrival raises the bay's back shutter onto the
+processing floor. Each gate rises three metres and stays visible overhead. Two
+`gate_locked` lamps per gate, one on the shutter and one on its opener, become
+`gate_open` in every prepared world where that gate is raised. The foundation
+prepares and validates the worlds, and their presentations, for masks 0, 1, 3
+and 7 before readiness.
 
-Stubs, labeled unbuilt: the restraint console stands in for Latch's
+Stubs, labeled unbuilt: the restraint arrival stands in for Latch's
 story-controlled release, and the loading control stands in for disabling the
 Jammer. Neither Latch nor the Jammer exists. The graybox also has no enemies,
 maintenance loop, optional captives, secrets or story page. Supplies are a Tack
@@ -168,16 +199,19 @@ Seeded route proof in `server/src/mission/m02/route_tests.rs` drives the live
 `GameSession` with `MissionClient` reading only wire messages: MapInfo rebuilds
 its own navigation, mission state is validated before steering, and the
 controller walks, aims and presses use. A solo human and a solo agent each
-complete all five objectives in order and depart after 480 ticks (24 seconds of
-simulated time), with four MapInfo messages (the closed world plus one per
-gate) and no body inside a solid on any tick. In the closed world the three
-later objectives have no navigation route, and walking and jumping into each
-closed gate for three seconds does not pass it. After the bay and floor gates
-open, a death wipe restores attempt 2 at `ward_reached` with all three gates
-down and resends the closed map; the same participant then clears again from
-entry. The local child integration test confirms the M02 readiness line, map
-1002 with five objectives, no run in mission state, and refusal of `--run-mode`.
+complete all five objectives in order and depart after 398 ticks (about 20
+seconds of simulated time), with four MapInfo messages (the closed world plus
+one per gate) whose open lamp counts are 0, 2, 4 and 6, and no body inside a
+solid on any tick. In the closed world the three later objectives have no
+navigation route, and walking and jumping into each closed gate for three
+seconds does not pass it. After the bay and back shutters open, a death wipe
+restores attempt 2 at `ward_reached` with all three gates down and resends the
+closed map; the same participant then clears again from entry. Authoring tests
+reject a gate with fewer than two signals, a signal authored open, a lamp placed
+as a plain decoration, and an opener fourteen metres from its gate. The local
+child integration test confirms the M02 readiness line, map 1002 with five
+objectives, no run in mission state, and refusal of `--run-mode`.
 
 This is authoring evidence for a traversal graybox, not playable M02. The
-Godot mission boundary, HUD line, gate presentation, a local menu entry and
-first-person captures remain; they are the next slice.
+Godot mission boundary, HUD line, lamp and gate presentation, a local menu entry
+and first-person captures are the next slice.

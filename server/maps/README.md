@@ -13,14 +13,16 @@ prototype, not a finished M01 or the rescue. Checkpoints are not built.
 `m02-persons-unknown.json` is the Persons Unknown ward graybox, map 1002. The
 party enters on an observation gallery whose slot window looks down into the
 correction ward. A service stair leads to the antechamber (a Scatter and a
-medkit), then the ward door. Reaching the ward, using the correction console,
-using the restraint console, and using the loading control each advance one
-authored objective. The three consoles raise the restraint bay gate, the
-processing floor gate, and the loading gate in turn; the raised shutters stay
-visible overhead. The processing floor has a mezzanine on a broad stair and
-machinery islands. Arriving on the loading dock departs. The restraint and
-loading consoles stand in for Latch's story-controlled release and the Jammer,
-neither of which is built. The map has no enemies, maintenance loop, optional
+medkit), then the ward door. Arriving in the ward, hitting the correction
+switch beside the restraint bay, arriving at the restraint frame inside the bay,
+and hitting the loading control beside the loading gate each advance one
+authored objective. Each step raises the door right beside it: the bay shutter,
+the bay's back shutter onto the processing floor, then the loading gate. Raised
+shutters stay visible overhead, and matching red lamps on each gate and its
+opener turn green. The processing floor has a mezzanine on a broad stair and
+machinery islands. Arriving on the loading dock departs. The restraint arrival
+stands in for Latch's story-controlled release and the loading control for the
+Jammer; neither is built. The map has no enemies, maintenance loop, optional
 captives or secrets yet. It is a route graybox, not playable M02.
 
 ```bash
@@ -117,7 +119,10 @@ the option. Final multi-tier encounter and resource balance remains unfinished.
   `lift_control` panel on a stationary solid. The last objective must be a
   `party_departed` arrival. `gates` holds at most three `{id,solid,lift,after}`
   records; each raises one solid by 0.125 to 16 metres once its nonfinal `after`
-  objective completes. Every reachable gate world and its navigation are built
+  objective completes. Each gate lists two to four `signals`: decorations of
+  kind `gate_locked` on the gate and on whatever opens it. Worlds in which the
+  gate is raised show them as `gate_open`. Plain `decorations` cannot use either
+  kind. The objective that opens a gate must stand within eight metres of it. Every reachable gate world and its navigation are built
   and checked before binding: each objective stands and routes from the first
   spawn in its world, the previous world cannot reach an objective behind a new
   gate, an arrival region cannot span a closed gate, each approach sees its

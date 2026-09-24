@@ -59,6 +59,26 @@ can open a shutter, release a captive, lower a freight lift or reconnect a usefu
 shortcut. Avoid mandatory code entry, tiny hidden buttons, long switch hunts and
 repeated trips through cleared corridors. Secrets can ask for closer observation.
 
+**Few puzzles, instant to read, fun first.** The fighting is the game. A control
+is a Doom switch: hit it in stride and it opens a door you can already see or that
+stands right beside it, one step at a time. No puzzle chains, combination or
+order puzzles, switch hunts or long backtracking; a control costs seconds, not
+thought. Where an objective chain allows it, prefer an arrival or a
+combat-cleared gate over another switch. M02 authoring enforces the distance
+part mechanically: whatever opens a gate must stand within eight metres of it.
+
+**Readable without English.** Every label, prompt, objective line and sign is a
+key in `client/i18n/*.po`; map data carries keys or registered kinds, never
+English, and a missing key fails a harness instead of showing the raw key. The
+world must explain each control with the text hidden: a state read (red lamp
+and closed shutter pictogram while locked, green lamp and raised shutter arrow
+once open), a visible link between the control and what it operates (matching
+pictogram lamps on both, or a conduit or light strip), a pictogram of its
+function, and a world-space change when used (the gate moves, the lamps flip, a
+sound plays). Agents already read the same facts from legal prompts; humans must
+reach that understanding from the picture. Check it with before and after stills
+of every control.
+
 Teach a safe control before using the same visual language under combat pressure.
 An elevator should reveal a new space or change a fighting angle; waiting for it
 must not become filler. The intended first set is M01's transfer access and lift,

@@ -34,6 +34,8 @@ struct Walker {
     snapshot: Option<Snapshot>,
     completed: Vec<String>,
     maps: usize,
+    /// Open gate lamps in each MapInfo, in arrival order.
+    open_signals: Vec<usize>,
 }
 
 impl Walker {
@@ -46,6 +48,7 @@ impl Walker {
             snapshot: None,
             completed: Vec::new(),
             maps: 0,
+            open_signals: Vec::new(),
         }
     }
 
@@ -78,6 +81,16 @@ impl Walker {
                         })
                         .unwrap(),
                     );
+                    self.open_signals
+                        .push(presentation.as_ref().map_or(0, |shown| {
+                            shown
+                                .decorations
+                                .iter()
+                                .filter(|detail| {
+                                    detail.kind == crate::protocol::MapDecorationKind::GateOpen
+                                })
+                                .count()
+                        }));
                     self.navigator.clear();
                     self.maps += 1;
                 }
@@ -209,6 +222,8 @@ fn solo_human_and_agent_clear_the_graybox_in_order_through_the_shared_controller
         assert_eq!(walker.completed, ORDER, "{role:?}");
         // The closed world plus one resend for each prepared gate.
         assert_eq!(walker.maps, 4, "{role:?}");
+        // Each raised gate turns its two matching lamps green on the wire.
+        assert_eq!(walker.open_signals, [0, 2, 4, 6], "{role:?}");
         let state = session.state.mission_state().unwrap();
         assert_eq!(state.phase, MissionPhase::Departed);
         assert_eq!(state.attempt, 1);
@@ -245,7 +260,7 @@ fn shut_gates_block_the_premature_route_on_foot_and_in_navigation() {
     // Stand at each closed gate and walk into it. The authoritative body stops.
     for (front, limit) in [
         ([5.5, 0.0, -16.5], -15.0),
-        ([-4.0, 0.0, -9.5], -8.0),
+        ([5.5, 0.0, -9.5], -8.0),
         ([0.0, 0.0, 12.5], 14.0),
     ] {
         let player = session

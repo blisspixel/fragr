@@ -413,10 +413,17 @@ also send `map_info` before shared progress, even when the map ID stays the same
   (+Z,+Y), (-Z,+Y), (+X,+Z), (+X,-Z), (-X,+Y), (+X,+Y).
   Kinds are `property_sign`, `intake_sign`, `records_sign`, `maintenance_sign`,
   `transfer_sign`, `lift_sign`, `complaint_notice`, `union_seal`, `lockers`,
-  `vent`, `terminal`, `lift_control` and `strip_light`. Text keys and assets belong to the client;
+  `vent`, `terminal`, `lift_control`, `strip_light`, `gate_locked` and
+  `gate_open`. Text keys and assets belong to the client;
   map data cannot provide scripts, arbitrary text, paths or URLs. These thin
   panels cannot create collision or interactions. Old payloads omit the array;
   older presenters can ignore it without changing geometry or gameplay versions.
+  `gate_locked` and `gate_open` are M02 gate signal lamps (red over a closed
+  shutter pictogram, green over a raised shutter and up arrow). Only an M02 gate
+  places them, so they appear only on maps that require gameplay capability 9.
+  Each prepared gate world carries its own presentation: the `map_info` resent
+  after a gate rises shows that gate's lamps as `gate_open`, on the gate and on
+  whatever opened it. They carry the gate's real state, not decoration.
 - `m02_objectives`: optional objective count (1 to 8), present only on an M02
   map. It identifies the M02 contract independently of `map_id` and must match
   the subsequent `mission.state.m02.total`. Legacy maps omit it, including
