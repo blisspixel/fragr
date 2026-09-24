@@ -4,6 +4,22 @@ Shipped tags, newest first. A line here is on `main`. Planned work stays in
 [docs/ROADMAP.md](docs/ROADMAP.md). Older tags are on the
 [releases page](https://github.com/blisspixel/fragr/releases).
 
+## v0.47.0 (2026-09-24)
+
+fragr now has downloadable desktop builds. Each tagged release attaches a
+Windows, Linux and macOS zip that holds the game with its local server beside
+it, so Single Player starts without building anything. Every package carries
+the fragr, font, Godot and bundled Rust crate license notices. The builds are
+unsigned: Windows SmartScreen and macOS Gatekeeper ask once, and the README
+gives the steps. CI unpacks each package and checks that the game finds its
+server; a clean-desktop playthrough is still to be recorded.
+
+The game has its own icon, a pixel triangle and eye from the fragr mark, in
+the window, the taskbar and the packages. The app is now named fragr, and
+settings and the service record move over from the old "fragr Client" folder
+on first launch. A startup bug that left Single Player's saved-run preview on
+"loading" in exported builds is fixed.
+
 ## v0.46.1 (2026-09-24)
 
 The client now explains why a server closed the connection. Idle, flood,
