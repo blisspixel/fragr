@@ -21,7 +21,7 @@ The current release is [v0.50.1](https://github.com/blisspixel/fragr/releases/ta
 - **Quiet combat HUD:** frags, chatter, streaks and drone alerts share a three-line corner feed. Pickup notices follow your fighter or the one you watch. Routine events do not bounce across the reticle or shake your camera.
 - **Fighter navigation:** rule bots, playtest fighters, and the decision brain share walking routes around cover and up stairs. Fractional treads retain footing, crossed stair entrances are repaired, and stepping off a deck keeps horizontal movement. Quick jump taps survive between frames and server ticks.
 - **Your callsign:** saved player name, reticle colour, and weapon bob options. The default human callsign is Meat Proxy. The boot menu, settings, and match overlay share pixel lettering and industrial styling.
-- **Player settings:** shared retro controls, display, graphics and audio panels at boot and in a match. Fullscreen defaults to native desktop output. Choose resolution, Performance/Balanced/High quality, supported FSR upscaling, vertical FOV, frame cap and VSync. Saved aim controls and separate master/radio/effects levels use the same store. Save applies changes; Cancel discards them. [Graphics behavior and verification](docs/plans/display-quality.md).
+- **Player settings:** shared retro controls, display, graphics and audio panels at boot and in a match. Fullscreen defaults to native desktop output. Choose resolution, Performance/Balanced/High quality, supported FSR upscaling, vertical FOV, frame cap and VSync. A Controls page rebinds every action for keyboard, mouse and gamepad, and a Look page holds sensitivity, stick shape and aim assist. Separate master/radio/effects levels use the same store. Save applies changes; Cancel discards them. [Graphics behavior and verification](docs/plans/display-quality.md).
 - **Agent door:** MCP tools `join`, `leave`, `observe`, `act`, `mission_ready`, `mission_continue`, `speak`, `get_events`, `round_state`, and a reference client (`fragr-brain`) that asks a decision model for its stance while a local controller plays every tick. An agent is one participant however it thinks; the server sees one fighter. Structured state, no vision model required.
 
 This is a playable vertical slice, not a finished game. The build order and what is still missing live in [`docs/ROADMAP.md`](docs/ROADMAP.md).
@@ -115,30 +115,47 @@ cargo run -p fragr-server -- --bind 127.0.0.1:6767 --bots 4 --solo-broadcast
 # Direct scene launch: godot --path client res://scenes/main.tscn -- --solo
 ```
 
-**Controls:** WASD to move, mouse to look, left mouse to fire, J to join, L to leave back to spectate, F to cycle the spectator camera, C next radio station, N next track, M radio on or off, Esc to release the mouse. Gamepads work too; see the controls table below.
+**Controls:** play with the keyboard alone, the keyboard and mouse, or a gamepad. WASD and the mouse, or the arrows with Ctrl to fire and Enter to use, or both sticks and the right trigger. J joins, L leaves back to spectate, F cycles the spectator camera, C, N and M work the radio, Esc opens the match menu. Everything is rebindable on the Controls page in Settings; see the table below.
 
 **Boot menu:** Single Player, Multiplayer, Your Callsign, Service Record, Settings, Quit. Recall Notice starts its own local server. Arcade practice and multiplayer connect to an existing server whose host chooses the map and rules. Use the arcade launcher above for Calibration, or set `FRAGR_SOLO_BROADCAST=0` for arena practice. Escape opens the match menu; gameplay continues behind the menu. Exit to Menu stops the owned local server and retains the run. Leaving an external server does not stop the host.
 
-## Controls (keyboard and gamepad)
+## Controls (keyboard only, keyboard and mouse, gamepad)
 
-Keyboard and gamepad share the same action path into the server.
+Every device reaches the server as the same discrete actions. Settings has a
+Controls page that rebinds every action (two keyboard or mouse slots and one
+gamepad slot each, with conflict detection and a reset) and a Look page for
+sensitivity, stick shape and aim assist. Prompts such as Use and Continue show
+the key, or a small pad glyph, for whichever device you touched last.
 
-| Action | Keyboard and mouse | Gamepad |
-|---|---|---|
-| Move | WASD | Left stick |
-| Look | Mouse | Right stick |
-| Fire | Left mouse | RT |
-| Jump | Space | A |
-| Continue after campaign death | Enter | A after releasing held inputs |
-| Weapons | Mouse wheel, [ and ], or 1 through 5 | LB and RB |
-| Speak (taunt) | T | Y |
-| Join | J | A while spectating |
-| Leave to spectate | L | Start |
-| Spectator camera cycle | F | D-pad right |
-| Spectator view: eyes, chase, free | V | Back |
-| Radio: next station, next track, on or off | C, N, M | D-pad up, down, left |
-| Match menu | Esc | |
-| Hold to show leaders in first person | Tab | |
+| Action | Keyboard only | Keyboard and mouse | Gamepad |
+|---|---|---|---|
+| Move | Up and Down arrows | W and S | Left stick |
+| Turn | Left and Right arrows | Mouse (Q and E also turn) | Right stick |
+| Strafe | Hold Alt with an arrow, or Comma and Period | A and D | Left stick |
+| Look up and down | Page Up and Page Down | Mouse | Right stick |
+| Centre view | End | End | Right stick click |
+| Fire | Ctrl (either side) | Left mouse | RT |
+| Use | Enter | F | B |
+| Jump | Space | Space | A |
+| Continue after campaign death | Enter | Enter | A after releasing held inputs |
+| Weapons | [ and ], or 1 through 5 | Mouse wheel, [ and ], or 1 through 5 | LB and RB |
+| Speak (taunt) | T | T | Y |
+| Join | J | J | A while spectating |
+| Leave to spectate | L | L | Match menu |
+| Spectator camera cycle | F | F | D-pad right |
+| Spectator view: eyes, chase, free | V | V | Back |
+| Radio: next station, next track, on or off | C, N, M | C, N, M | D-pad up, down, left |
+| Match menu | Esc | Esc | Start |
+| Hold to show leaders in first person | Tab | Tab | Back |
+
+Keyboard turning starts slowly and reaches full speed in a quarter second, so a
+tap is a small correction. Mouse look is raw counts at 0.022 degrees per count
+times the sensitivity, never smoothed and never assisted. The sticks use a round
+deadzone, a response curve, separate turn and pitch speeds and an optional turn
+boost. Aim assist (Off, Light, Standard; Standard by default) helps keyboard and
+gamepad look toward visible enemies only by moving the aim the client already
+sends; the server still decides every hit. Details:
+[docs/plans/input-all-devices.md](docs/plans/input-all-devices.md).
 
 1 is fists, 2 is the pistol, 3 is the shotgun, 4 is the rifle, and 5 is the
 railgun. The wheel and the bracket keys walk that order and skip a gun you are
@@ -158,8 +175,8 @@ file now retains the run ID, difficulty, remaining continues and entry gear
 across restarts, including a pending death decision. It resumes at mission
 entry, not at the mid-mission position. M01 departure remains recorded with
 M02 pending; M02 is a development graybox, and cross-mission carry and full
-campaign progression remain unbuilt. F or controller
-B uses an aimed mission control; departure ends this prototype. Dedicated
+campaign progression remain unbuilt. Use (F, Enter or controller
+B) works an aimed mission control; departure ends this prototype. Dedicated
 four-seat development hosts retain shared boarding and automatic party resets;
 `--campaign-run` selects the same one-seat run rules as local Single Player.
 

@@ -1,6 +1,6 @@
 # Plan: every input device feels right
 
-**Status:** in flight (2026-09-24). Keyboard only, keyboard and mouse, and
+**Status:** implemented (2026-09-24). Keyboard only, keyboard and mouse, and
 gamepad are implemented with headless harnesses; hardware feel on real pads
 and high-refresh monitors still needs a person holding them.
 **Branch:** `feat/input-all-devices`

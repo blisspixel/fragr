@@ -387,7 +387,7 @@ Every item above maps to a plan or says "plan needed". The order of the next PRs
 | Phase 1.6b: playtest loop | `plans/agent-playtest-loop.md` | 4 (rung 3 status line and bench), 6 (rung 2 planner tier) |
 | Phase 1.7: compact campaign | [contract](CAMPAIGN.md), [treatment](CAMPAIGN-MISSIONS.md), [12 level plans](campaign/README.md), [build order](plans/campaign-build-order.md), [frameworks](plans/campaign-continuance.md) | full build order: finish M01, then one mission at a time |
 | Phase 1.8: LAN | plan needed (evidence note under `docs/evidence/`) | |
-| Phase 1.9: controller | `plans/controller-and-desktop-platforms.md` (shipped; glyphs remain) | |
+| Phase 1.9: controller and every input device | `plans/controller-and-desktop-platforms.md` (shipped), `plans/input-all-devices.md` (keyboard only, rebinding, stick curves, device glyphs and aim assist in flight; hardware feel open) | |
 | Phase 1.10: benchmark, status line, statistics | `plans/benchmark-and-stats.md` (rung 1 is `plans/agent-playtest-loop.md` rung 3) | 4 |
 | Phase 1.11: visual QA tour | `plans/visual-qa-tour.md` | 2 |
 | Phase 2.1, 2.2, 2.6: hardening, protocol version, status | `plans/public-server-hardening.md` | after Phase 1 |

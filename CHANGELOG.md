@@ -4,6 +4,33 @@ Shipped tags, newest first. A line here is on `main`. Planned work stays in
 [docs/ROADMAP.md](docs/ROADMAP.md). Older tags are on the
 [releases page](https://github.com/blisspixel/fragr/releases).
 
+## v0.51.0 (2026-09-24)
+
+Play the way you like: the keyboard alone, the keyboard and mouse, or a
+gamepad. On the keyboard alone the arrows walk and turn, Alt with an arrow (or
+Comma and Period) strafes, Page Up and Page Down look, End centres the view,
+either Ctrl fires and Enter uses, so one hand can stay on the arrows. Turning
+starts slowly and reaches full speed in a quarter second, so a tap is a small
+correction rather than a lurch.
+
+Settings has a Controls page that rebinds every action for keyboard, mouse and
+gamepad, warns when a key moves from one action to another, and resets to the
+defaults. A Look page holds mouse sensitivity (with centimetres per turn), key
+turn speed, stick deadzone, curve, separate turn and pitch speeds, a turn boost
+for spinning round quickly, and aim assist.
+
+Aim assist is on Standard by default for keyboard and gamepad look and never
+for the mouse. On the keyboard it eases your aim up or down onto a visible enemy
+near the crosshair's line, as Doom did, and nudges gently when one is almost
+centred; on a gamepad the stick slows near an enemy and pulls a little while you
+steer. It only moves the aim you already send, never through cover; the server
+still decides every hit. Mouse look is untouched: raw counts, no smoothing.
+
+The sticks now use a round deadzone and a response curve, Start opens the match
+menu instead of leaving the match, and the use and continue prompts show the key
+you would press, or a small pad glyph in the letter, shape or positional layout
+of the pad you touched last.
+
 ## v0.50.1 (2026-09-24)
 
 Hosts can see how their server is doing. `GET /status` keeps its existing

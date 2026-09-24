@@ -18,6 +18,7 @@ Status words: **planned**, **in flight**, **implemented** (local evidence record
 | Plan | Status | One-liner |
 |---|---|---|
 | [`heavy-sweeper-and-turret.md`](./heavy-sweeper-and-turret.md) | **implemented** | Heavy Sweeper and Turret on the encounter seams with seeded tell tests, a test range, and the black and red Union recolor. |
+| [`input-all-devices.md`](./input-all-devices.md) | **implemented** | Keyboard only, keyboard and mouse, and gamepad: rebinding page, key turn ramp, radial stick curves, device-following pad glyphs and aim assist that never touches the mouse. |
 | [`boomer-ammo-and-pellets.md`](./boomer-ammo-and-pellets.md) | **implemented** | Doom-style ammo (one count per type, no reload) and a seven-pellet shotgun, with capability 10, rules revision 2 and a clean new-run path for magazine-era saves. |
 | [`observability-soak.md`](./observability-soak.md) | **in flight** | Tick percentiles, traffic and health on `/status`, a soak harness sampling it into NDJSON, and two recorded local runs over an hour. |
 | [`spawn-quality.md`](./spawn-quality.md) | **implemented** | Spawn pockets on maps 3 to 5, lanes counted only inside rail reach, and an opening spawn-death gate; 47 to 7 spawn deaths over 16 runs. |
