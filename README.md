@@ -169,7 +169,10 @@ Tagged releases attach one zip per platform, built by
 `.github/workflows/release.yml`: `fragr-<tag>-windows-x86_64.zip`,
 `fragr-<tag>-linux-x86_64.zip` and `fragr-<tag>-macos-universal.zip`, plus
 `SHA256SUMS.txt`. Each holds the exported game with a matching `fragr-server`
-beside it, and license files. Download one from the
+beside it, and a `licenses/` folder: fragr's license, the fonts' OFL, Godot's
+license and copyright notice, and `THIRD_PARTY_LICENSES.txt` for the Rust
+crates the server links. Each zip is about 620 MB, almost all of it the radio
+music library. Download one from the
 [releases page](https://github.com/blisspixel/fragr/releases), unpack it, and
 keep the files together.
 
@@ -180,9 +183,13 @@ keep the files together.
   but not notarized, so the first open is blocked. Open it once, then choose
   **Open Anyway** in System Settings, Privacy and Security. Or remove the
   download flag in Terminal:
-  `xattr -dr com.apple.quarantine "fragr Client.app"`.
+  `xattr -dr com.apple.quarantine fragr.app`.
 
-`fragr --headless -- --check-install` (the app's `Contents/MacOS/fragr Client`
+Before this release the game was named "fragr Client", which is also the name
+Godot gives its settings folder. The first launch copies `settings.cfg` and the
+service record from that old folder when the new one has neither.
+
+`fragr --headless -- --check-install` (`fragr.app/Contents/MacOS/fragr`
 on macOS) checks that the game finds its bundled server and prints a PASS or
 FAIL line. CI runs that check on every package before a release gets it. That
 is a headless check; a boot to a playable match on a clean desktop has not been

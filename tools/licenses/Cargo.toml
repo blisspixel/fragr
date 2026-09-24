@@ -1,0 +1,23 @@
+[package]
+name = "fragr-licenses"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Writes the third-party license notices shipped beside fragr-server in desktop packages"
+publish = false
+
+[lib]
+name = "fragr_licenses"
+path = "src/lib.rs"
+
+[[bin]]
+name = "fragr-licenses"
+path = "src/main.rs"
+
+[dependencies]
+clap = { version = "4.6", features = ["derive"] }
+serde_json = "1.0"
+
+[lints]
+workspace = true

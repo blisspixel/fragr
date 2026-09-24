@@ -19,6 +19,10 @@ on:
       - client/scripts/local_match.gd
       - client/scripts/local_process.gd
       - tools/bake_icon.gd
+      - client/scripts/user_data_migration.gd
+      - tools/licenses/**
+      - deny.toml
+      - Cargo.lock
   workflow_dispatch:
 
 permissions:
@@ -78,6 +82,18 @@ jobs:
               cp target/release/fragr-server out/
               ;;
           esac
+      - name: Third-party license notices for the linked crates
+        shell: bash
+        run: |
+          set -euo pipefail
+          case "${{ matrix.platform }}" in
+            macos-universal) targets=(--target aarch64-apple-darwin --target x86_64-apple-darwin) ;;
+            windows-x86_64) targets=(--target x86_64-pc-windows-msvc) ;;
+            *) targets=(--target x86_64-unknown-linux-gnu) ;;
+          esac
+          # Fails when any linked crate lacks a license the deny.toml allowlist accepts,
+          # or has neither its own license file nor a standard text for its license.
+          cargo run -p fragr-licenses --locked -- "${targets[@]}" --deny deny.toml --out out/THIRD_PARTY_LICENSES.txt
       - uses: actions/upload-artifact@v7
         with:
           name: server-${{ matrix.platform }}
@@ -212,7 +228,8 @@ jobs:
               ;;
             macos-universal)
               ditto -x -k stage/client/fragr.zip "$root/"
-              app=$(find "$root" -maxdepth 1 -name '*.app' -print -quit)
+              app="$root/fragr.app"
+              test -f "$app/Contents/MacOS/fragr" || { echo "expected fragr.app from the export"; ls "$root"; exit 1; }
               cp stage/server/fragr-server "$app/Contents/MacOS/fragr-server"
               chmod +x "$app/Contents/MacOS/"*
               # Ad-hoc signature only: Apple Silicon refuses unsigned code. Not notarized.
@@ -221,6 +238,7 @@ jobs:
               ;;
           esac
           cp LICENSE "$root/licenses/fragr-LICENSE.txt"
+          cp stage/server/THIRD_PARTY_LICENSES.txt "$root/licenses/THIRD_PARTY_LICENSES.txt"
           cp client/assets/fonts/OFL.txt "$root/licenses/fonts-OFL.txt"
           cp client/assets/fonts/silkscreen/OFL.txt "$root/licenses/silkscreen-OFL.txt"
           curl -fsSL -o "$root/licenses/godot-LICENSE.txt" https://raw.githubusercontent.com/godotengine/godot/4.7.2-stable/LICENSE.txt
@@ -250,12 +268,16 @@ jobs:
             linux-x86_64) game="$root/fragr.x86_64"; server="$root/fragr-server" ;;
             windows-x86_64) game="$root/fragr.exe"; server="$root/fragr-server.exe" ;;
             macos-universal)
-              app=$(find "$root" -maxdepth 1 -name '*.app' -print -quit)
-              game="$app/Contents/MacOS/$(basename "$app" .app)"
+              app="$root/fragr.app"
+              game="$app/Contents/MacOS/fragr"
               server="$app/Contents/MacOS/fragr-server"
               codesign --verify --deep --strict "$app"
               ;;
           esac
+          for notice in fragr-LICENSE.txt THIRD_PARTY_LICENSES.txt godot-LICENSE.txt godot-COPYRIGHT.txt fonts-OFL.txt silkscreen-OFL.txt; do
+            test -s "$root/licenses/$notice" || { echo "missing licenses/$notice"; exit 1; }
+          done
+          grep -c '^License: ' "$root/licenses/THIRD_PARTY_LICENSES.txt"
           "$server" --help > "$RUNNER_TEMP/server-help.txt"
           head -n 3 "$RUNNER_TEMP/server-help.txt"
           "$server" --bench 4 --bench-ticks 200 --seed 42 > "$RUNNER_TEMP/bench.json"

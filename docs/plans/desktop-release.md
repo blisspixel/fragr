@@ -68,6 +68,32 @@ instead of the Godot mark.
     empty `FRAGR_RUN_DIR`. Windows also saves the executable's icon as evidence.
   - `publish` (tags only): attach the zips and `SHA256SUMS.txt` to the tag's
     release, creating a draft release if none exists yet.
+- **Third-party notices.** `tools/licenses` (`fragr-licenses`, Rust, clap and
+  serde_json only) runs `cargo metadata --locked --filter-platform <target>`
+  for each target a package covers (both Apple targets for the universal
+  build), walks the normal (linked) dependencies of `fragr-server`, and writes
+  `THIRD_PARTY_LICENSES.txt`: every registry crate with its SPDX expression and
+  the LICENSE, LICENCE, COPYING, COPYRIGHT, NOTICE and UNLICENSE files at the
+  top of its source, plus a declared `license-file`. A crate with no such file
+  gets the SPDX standard text (spdx/license-list-data v3.29.0, bundled under
+  `tools/licenses/texts/` for every id on the deny.toml allowlist) for each id
+  its expression names. The tool fails, and with it the `server` job, when a
+  crate has no expression, the `deny.toml` allowlist does not satisfy the
+  expression (OR takes any allowed branch, AND needs both, as cargo-deny does),
+  or a license has neither a file nor a standard text. Byte-identical texts
+  print once and later crates point at the first. Build and dev dependencies
+  are not linked into the binary and are not listed. Every zip carries the
+  file under `licenses/`, and the smoke fails if any notice file is missing or
+  empty.
+- **Name.** The project was named "fragr Client", which named the macOS bundle
+  (`fragr Client.app`), the window title and Godot's user folder. It is now
+  `fragr`, so the app is `fragr.app` with `Contents/MacOS/fragr`. Renaming
+  moves the `user://` folder, which holds `settings.cfg` and the service
+  record (`service-record.0.json`, `.1.json`). `user_data_migration.gd` copies
+  those from the sibling `fragr Client` folder on the first boot when the new
+  folder has none of them, and leaves the old files in place. Harness runs with
+  isolated settings or records skip it. Server run files are unaffected: they
+  live under the OS data directory's `fragr/runs`, not `user://`.
 - **macOS signing.** The app is ad-hoc signed after the server is placed inside
   it, because Apple Silicon will not run unsigned code and adding a file breaks
   the export's seal. It is not notarized, so Gatekeeper blocks the first open;
@@ -116,8 +142,6 @@ No paid service is called.
 
 - A clean-machine boot to Solo Scrap or the campaign on real Windows, Linux and
   macOS hardware (the 1.0 bar line) has not been recorded.
-- Rust crate license notices for `fragr-server` are not bundled yet; the
-  package carries fragr, font and Godot notices only.
 - Windows SmartScreen will warn on the unsigned executable.
 
 ## Results
@@ -142,3 +166,21 @@ directory (`Contents/MacOS/fragr-server` for the app) and reported `missing`
 for the empty run directory. The icon pulled from the Linux-exported
 `fragr.exe` on the Windows runner is the fragr mark. No tag or release was
 created.
+
+### Package size
+
+Each zip is about 620 MB because of the committed radio library. Measured on
+2026-09-24 from the Windows export (`fragr.exe` 694 MB with the pack embedded):
+
+| Part | Size |
+|---|---|
+| `client/assets/audio/radio` (183 MP3s, 8 stations) | 545 MB |
+| country, lockin, hiphop, edm, rock, world, chill, news | 82, 81, 75, 75, 74, 73, 68, 21 MB |
+| rest of `client/assets/audio` (effects, epilogue) | 6 MB |
+| everything else in `client/` (UI, factions, sprites, scripts, scenes; imported) | about 9 MB |
+| Godot release template: Windows, Linux | 104 MB, 70 MB |
+| Godot release template: macOS universal | 162 MB |
+| `fragr-server` (Windows build, uncompressed) | 5 MB |
+
+MP3 does not compress further in a zip, so the zips are close to the unpacked
+size. No content was removed.
