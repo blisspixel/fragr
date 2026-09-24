@@ -264,15 +264,38 @@ enum Side {
 /// and the harness reported four spawn deaths in eight frags. The blocks are
 /// set back far enough that the spawn point itself stays clear with a
 /// fighter's radius to spare, which is the thing `validate` checks.
-fn spawn_pockets(count: usize, radius: f32, out: &mut Vec<Solid>) {
+///
+/// `phase` turns the ring of pockets by that fraction of one pocket's spacing,
+/// so a map can keep a pocket off a landmark. `top` is the blocks' upper
+/// surface, which must clear a standing fighter's eye on any deck the ring
+/// crosses.
+fn spawn_pockets(count: usize, radius: f32, phase: f32, top: f32, out: &mut Vec<Solid>) {
     for i in 0..count {
-        let angle = PI * 2.0 * (i as f32) / count as f32;
+        let angle = PI * 2.0 * (i as f32 + phase) / count as f32;
         let (ox, oz) = (angle.cos(), angle.sin());
         let (tx, tz) = (-oz, ox);
         let (sx, sz) = (ox * radius, oz * radius);
-        out.push(Solid::from_center(sx + ox * 5.5, sz + oz * 5.5, 2.5, 2.5));
-        out.push(Solid::from_center(sx + tx * 6.0, sz + tz * 6.0, 1.8, 1.8));
-        out.push(Solid::from_center(sx - tx * 6.0, sz - tz * 6.0, 1.8, 1.8));
+        out.push(Solid::from_center_top(
+            sx + ox * 5.5,
+            sz + oz * 5.5,
+            2.5,
+            2.5,
+            top,
+        ));
+        out.push(Solid::from_center_top(
+            sx + tx * 6.0,
+            sz + tz * 6.0,
+            1.8,
+            1.8,
+            top,
+        ));
+        out.push(Solid::from_center_top(
+            sx - tx * 6.0,
+            sz - tz * 6.0,
+            1.8,
+            1.8,
+            top,
+        ));
     }
 }
 
@@ -402,7 +425,7 @@ fn arena_duel() -> MapDef {
         ));
     }
 
-    spawn_pockets(8, spawn, &mut s);
+    spawn_pockets(8, spawn, 0.0, WALL_TOP, &mut s);
 
     // Outer walls set in from the boundary, so the corners are rooms.
     for (cx, cz, hx, hz) in [
@@ -592,6 +615,11 @@ fn directive_17() -> MapDef {
     for (cx, cz) in [(38.0f32, 0.0f32), (-38.0, 0.0), (0.0, 38.0), (0.0, -38.0)] {
         s.push(Solid::from_center(cx, cz, 3.0, 3.0));
     }
+    // Loading bays on the spawn ring. Without them six fighters could not all
+    // open out of each other's rail lanes. A half-step phase keeps the deck
+    // diagonals, their health pads and the deck-to-pit shot open, and the
+    // blocks stand a service stack high so they still screen on a deck.
+    spawn_pockets(16, spawn, 0.5, deck_top + 3.5, &mut s);
 
     MapDef {
         half_extent: half,
@@ -691,6 +719,10 @@ fn sector_9() -> MapDef {
     for (cx, cz) in [(-12.0, -12.0), (12.0, -12.0), (-12.0, 12.0), (12.0, 12.0)] {
         s.push(Solid::from_center(cx, cz, 2.5, 2.5));
     }
+    // Freight bays on the spawn ring: without them the halls could not open
+    // eight fighters out of each other's rail lanes. The south flechette pad
+    // sits behind the south bay rather than inside it.
+    spawn_pockets(16, spawn, 0.0, WALL_TOP, &mut s);
 
     MapDef {
         half_extent: half,
@@ -699,7 +731,7 @@ fn sector_9() -> MapDef {
         pickups: vec![
             weapon_pad("pad_rail", WeaponType::Rail, 58.0, 34.0, 2.0),
             weapon_pad("pad_scatter", WeaponType::Scatter, -58.0, -34.0, 2.0),
-            weapon_pad("pad_flechette", WeaponType::Flechette, 0.0, -60.0, 0.0),
+            weapon_pad("pad_flechette", WeaponType::Flechette, 0.0, -66.0, 0.0),
             health_pad("pad_health_n", -90.0, 0.0, 0.0),
             health_pad("pad_health_s", 90.0, 0.0, 0.0),
             armor_pad("pad_armor", 0.0, 14.0, 0.0),
@@ -834,6 +866,10 @@ fn reclamation_gulch() -> MapDef {
     ] {
         s.push(Solid::from_center(cx, cz, 3.5, 3.5));
     }
+    // Weighbridge bays on the spawn ring: without them twelve fighters could
+    // not open out of each other's rail lanes. The compound weapon pads sit
+    // just behind the bays that cross the compounds.
+    spawn_pockets(16, spawn, 0.0, WALL_TOP, &mut s);
 
     MapDef {
         half_extent: half,
@@ -841,8 +877,8 @@ fn reclamation_gulch() -> MapDef {
         solids: s,
         pickups: vec![
             weapon_pad("pad_rail", WeaponType::Rail, 0.0, -14.0, knoll),
-            weapon_pad("pad_scatter", WeaponType::Scatter, 0.0, -100.0, 0.0),
-            weapon_pad("pad_flechette", WeaponType::Flechette, 0.0, 100.0, 0.0),
+            weapon_pad("pad_scatter", WeaponType::Scatter, 0.0, -104.0, 0.0),
+            weapon_pad("pad_flechette", WeaponType::Flechette, 0.0, 104.0, 0.0),
             health_pad("pad_health_n", -62.0, 0.0, 2.0),
             health_pad("pad_health_s", 62.0, 0.0, 2.0),
             armor_pad("pad_armor", 0.0, 20.0, 0.0),
@@ -983,7 +1019,7 @@ fn tripoint_works() -> MapDef {
 
     // Sorting bays interrupt the outer ring's opening rail lanes. Their inward
     // mouths and shoulder gaps leave a choice of routes toward the yards.
-    spawn_pockets(16, spawn, &mut s);
+    spawn_pockets(16, spawn, 0.0, WALL_TOP, &mut s);
 
     MapDef {
         half_extent: half,
