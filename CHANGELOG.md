@@ -4,6 +4,14 @@ Shipped tags, newest first. A line here is on `main`. Planned work stays in
 [docs/ROADMAP.md](docs/ROADMAP.md). Older tags are on the
 [releases page](https://github.com/blisspixel/fragr/releases).
 
+## v0.46.1 (2026-09-24)
+
+The client now explains why a server closed the connection. Idle, flood,
+unreadable-message, banned and not-allowed closes each show their own short
+localized message on the existing status line. After a kick the client no
+longer makes its automatic resume attempt; an idle close still gets its one
+ten-second resume, like any dropped connection.
+
 ## v0.46.0 (2026-09-24)
 
 A server open to the internet now looks after itself. It pings every session
