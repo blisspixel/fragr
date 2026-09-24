@@ -137,14 +137,14 @@ func _development(fixture: Fixture, child: FakeProcess) -> void:
 	var record: Dictionary = JSON.parse_string(RECORD)
 	var m02: Dictionary = record.duplicate()
 	m02["mission"] = "persons_unknown"
-	m02["gameplay_version"] = 9
+	m02["gameplay_version"] = 10
 	var bytes: PackedByteArray = JSON.stringify(m02).to_ascii_buffer()
 	_expect(not LocalMatch.readiness_url(bytes, "standard", "persons_unknown").is_empty(), "M02 readiness names its own contract")
 	_expect(LocalMatch.readiness_url(bytes).is_empty(), "an M02 child cannot satisfy an M01 launch")
 	_expect(LocalMatch.readiness_url(JSON.stringify(record).to_ascii_buffer(), "standard", "persons_unknown").is_empty(), "an M01 child cannot satisfy an M02 launch")
 	var old: Dictionary = m02.duplicate()
-	old["gameplay_version"] = 8
-	_expect(LocalMatch.readiness_url(JSON.stringify(old).to_ascii_buffer(), "standard", "persons_unknown").is_empty(), "M02 requires capability 9")
+	old["gameplay_version"] = 9
+	_expect(LocalMatch.readiness_url(JSON.stringify(old).to_ascii_buffer(), "standard", "persons_unknown").is_empty(), "M02 requires the capability 10 ammunition contract")
 	_expect(LocalMatch.readiness_url(bytes, "standard", "m03").is_empty(), "an unregistered mission fails closed")
 	var starts: int = child.starts
 	_expect(not fixture.start_mission("standard", "new", "persons_unknown") and child.starts == starts, "M02 refuses a run mode")

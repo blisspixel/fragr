@@ -12,7 +12,7 @@ const STOP_TIMEOUT_MS: int = 3000
 const MAX_READY_BYTES: int = 4096
 const PENDING_META: StringName = &"fragr_local_match_pending"
 ## Each bundled mission child names its own exact client contract.
-const MISSION_GAMEPLAY: Dictionary[String, int] = {"recall_notice": 8, "persons_unknown": 9}
+const MISSION_GAMEPLAY: Dictionary[String, int] = {"recall_notice": 10, "persons_unknown": 10}
 
 var state: State = State.IDLE
 var url: String = ""

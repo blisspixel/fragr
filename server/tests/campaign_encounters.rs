@@ -66,7 +66,8 @@ async fn encounter_capability_and_identity_reach_every_role_over_the_wire() {
                 role,
                 name: "Old client".into(),
                 geometry_version: 2,
-                gameplay_version: 2,
+                // Encounter capability without the ammunition contract.
+                gameplay_version: fragr_server::protocol::CAMPAIGN_GAMEPLAY_VERSION,
 
                 ticket: None,
                 resume: None,
@@ -88,7 +89,7 @@ async fn encounter_capability_and_identity_reach_every_role_over_the_wire() {
                     role,
                     name: format!("{role:?}"),
                     geometry_version: 2,
-                    gameplay_version: fragr_server::protocol::CAMPAIGN_GAMEPLAY_VERSION,
+                    gameplay_version: fragr_server::protocol::AMMO_GAMEPLAY_VERSION,
 
                     ticket: None,
                     resume: None,

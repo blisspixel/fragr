@@ -54,11 +54,12 @@ pub struct StickyWeaponTtk {
 }
 
 /// Flechette, rail, and scatter clean-hit TTK from `WeaponType` damage and
-/// cooldown. Point-blank for the scatter gun so falloff does not hide a table
-/// regression. This is the #124 claim made CI-assertable from the harness.
+/// cooldown. Point-blank for the scatter gun, every pellet landing, so falloff
+/// does not hide a table regression. This is the #124 claim made
+/// CI-assertable from the harness.
 pub fn sticky_weapon_ttk_table() -> [StickyWeaponTtk; 3] {
     [WeaponType::Flechette, WeaponType::Rail, WeaponType::Scatter].map(|weapon| {
-        let damage = weapon.damage_at(0.0).max(1);
+        let damage = (weapon.damage_at(0.0) * weapon.pellets() as i32).max(1);
         let hits = ((STICKY_FIGHTER_HP + damage - 1) / damage) as u32;
         let seconds =
             (hits.saturating_sub(1) as f64) * (weapon.cooldown_ticks() as f64) / TICKS_PER_SECOND;
@@ -76,7 +77,7 @@ pub fn check_sticky_ttk_table() -> Vec<String> {
     let expected = [
         (WeaponType::Flechette, 4u32, 0.6),
         (WeaponType::Rail, 2, 1.0),
-        (WeaponType::Scatter, 3, 0.9),
+        (WeaponType::Scatter, 2, 0.6),
     ];
     let mut problems = Vec::new();
     for (row, (weapon, hits, seconds)) in sticky_weapon_ttk_table().into_iter().zip(expected) {
@@ -2175,7 +2176,19 @@ mod combat_tests {
                     player("A", a, 0.0, 0.0, "rail"),
                     player("B", b, 12.0, 0.0, "scatter"),
                 ],
-                vec![shot(a, true, Some(b), 75), shot(a, false, None, 0)],
+                vec![shot(a, true, Some(b), 75)],
+            ),
+            100,
+        );
+        // A fighter fires at most once a tick, so the miss is the next tick.
+        obs.ingest_snapshot(
+            &frame(
+                2,
+                vec![
+                    player("A", a, 0.0, 0.0, "rail"),
+                    player("B", b, 12.0, 0.0, "scatter"),
+                ],
+                vec![shot(a, false, None, 0)],
             ),
             100,
         );
@@ -2197,7 +2210,7 @@ mod combat_tests {
         assert!(!report.by_weapon.contains_key("scatter"), "B never fired");
         obs.ingest_snapshot(
             &frame(
-                2,
+                3,
                 vec![player("A", a, 0.0, 0.0, "rail")],
                 vec![shot(Uuid::new_v4(), true, None, 10)],
             ),
@@ -2431,8 +2444,8 @@ mod sticky_ttk_tests {
         assert_eq!(rows[1].hits_to_kill, 2);
         assert!((rows[1].seconds - 1.0).abs() < 0.001);
         assert_eq!(rows[2].weapon, WeaponType::Scatter);
-        assert_eq!(rows[2].hits_to_kill, 3);
-        assert!((rows[2].seconds - 0.9).abs() < 0.001);
+        assert_eq!(rows[2].hits_to_kill, 2, "two full seven-pellet blasts");
+        assert!((rows[2].seconds - 0.6).abs() < 0.001);
         for row in rows {
             assert!(
                 (STICKY_TTK_MIN_S..=STICKY_TTK_MAX_S).contains(&row.seconds),
