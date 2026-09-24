@@ -145,7 +145,7 @@ async fn main() {
         }
     }
     println!(
-        "playtest: {} agents, {} round(s), {:.1} s, {} frags ({:.2} per minute), first frag {}, longest gap {:.1} s, {} spawn deaths, {:.0} bytes per snapshot",
+        "playtest: {} agents, {} round(s), {:.1} s, {} frags ({:.2} per minute), first frag {}, longest gap {:.1} s, {} spawn deaths ({} at the opening), {:.0} bytes per snapshot",
         report.agents,
         report.rounds_completed,
         report.seconds,
@@ -157,6 +157,7 @@ async fn main() {
             .unwrap_or_else(|| "never".to_string()),
         report.longest_gap_without_frag_s,
         report.spawn_deaths,
+        report.opening_spawn_deaths,
         report.snapshot_bytes_per_tick
     );
     println!("report: {}", cli.report.display());

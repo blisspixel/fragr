@@ -137,6 +137,12 @@ const IDLE_EPSILON: f32 = 0.01;
 /// Share of frags that may be spawn deaths before a run is called broken,
 /// judged against the low end of the interval rather than the raw ratio.
 const SPAWN_DEATH_RATE_CEILING: f64 = 0.10;
+/// Opening spawn deaths allowed per completed round. The opening is placed
+/// from the whole roster before anyone moves, so a death there is a map or
+/// selector defect rather than a sampling accident. One is tolerated for a
+/// fighter who walks out of cover into a lane inside the window; the rosters
+/// that exposed this gap lost two to four fighters in every opening.
+const OPENING_SPAWN_DEATHS_PER_ROUND: u64 = 1;
 /// Radians the patrol sweep turns per tick: a full circle in about five
 /// seconds, slow enough to actually cross ground rather than spin on the spot.
 const PATROL_TURN_PER_TICK: f32 = 0.06;
@@ -347,6 +353,10 @@ pub struct AgentTrack {
     /// instead of splicing the seconds before it to the seconds after.
     off_field: bool,
     last_pos: Option<(f32, f32)>,
+    /// Where the fighter stood on its first snapshot after arriving, so a
+    /// spawn death names the spawn point rather than only the tick.
+    #[serde(default)]
+    spawned_at: Option<(f32, f32)>,
     pub fire_ticks: u64,
     pub weapon_fire_ticks: BTreeMap<String, u64>,
     /// Weapon held on the newest snapshot, for attributing a frag.
@@ -358,6 +368,14 @@ struct KillEvidence {
     killer: String,
     weapon: String,
     distance: f64,
+}
+
+/// Positions last seen for the two fighters in one frag.
+#[derive(Debug, Clone, Copy, Default, Serialize, Deserialize, PartialEq)]
+struct FragPlace {
+    victim_spawn: Option<(f32, f32)>,
+    victim: Option<(f32, f32)>,
+    killer: Option<(f32, f32)>,
 }
 
 /// Everything the observer keeps. Snapshots are folded in as they arrive so a
@@ -382,6 +400,10 @@ pub struct Observation {
     /// Snapshot evidence awaiting its following frag event, never a prior tick.
     #[serde(default)]
     pending_kills: BTreeMap<String, KillEvidence>,
+    /// Victim spawn point, victim position and killer position for each frag,
+    /// in event order, so spawn-death evidence can say where it happened.
+    #[serde(default)]
+    frag_places: Vec<FragPlace>,
 }
 
 impl Observation {
@@ -438,6 +460,9 @@ impl Observation {
                 if active && moved < IDLE_EPSILON {
                     track.idle_ticks += 1;
                 }
+            }
+            if track.off_field || track.last_pos.is_none() {
+                track.spawned_at = Some(pos);
             }
             track.off_field = false;
             track.last_pos = Some(pos);
@@ -542,6 +567,11 @@ impl Observation {
                     .map(|e| e.weapon.clone())
                     .or_else(|| killer_track.and_then(|t| t.last_weapon.clone()));
                 let victim_pos = self.tracks.get(victim).and_then(|t| t.last_pos);
+                self.frag_places.push(FragPlace {
+                    victim_spawn: self.tracks.get(victim).and_then(|t| t.spawned_at),
+                    victim: victim_pos,
+                    killer: killer_pos,
+                });
                 let distance = evidence.map(|e| e.distance).or_else(|| {
                     let (kx, kz) = killer_pos?;
                     let (vx, vz) = victim_pos?;
@@ -678,6 +708,11 @@ pub struct Report {
     pub host_beats_per_minute: f64,
     pub pickups: u64,
     pub spawn_deaths: u64,
+    /// Spawn deaths whose spawn was the round opening rather than a respawn.
+    /// Opening placement is decided from the whole roster before anyone moves,
+    /// so these point at map geometry or the selector, not at the fight.
+    #[serde(default)]
+    pub opening_spawn_deaths: u64,
     pub snapshot_bytes_per_tick: f64,
     /// How the fighting actually went: time to kill, accuracy with intervals,
     /// and where each weapon does its work.
@@ -722,38 +757,50 @@ pub fn compute_report(obs: &Observation, agents: usize) -> Report {
         );
     }
 
-    let mut last_spawn: BTreeMap<String, u64> = BTreeMap::new();
+    // Spawn tick, and whether that spawn was the round opening.
+    let mut last_spawn: BTreeMap<String, (u64, bool)> = BTreeMap::new();
     let mut frag_ticks: Vec<u64> = Vec::new();
     let mut host_beats = 0u64;
     let mut pickups = 0u64;
     let mut spawn_deaths = 0u64;
+    let mut opening_spawn_deaths = 0u64;
     for timed in &obs.events {
         match &timed.event {
             GameEvent::RoundStart { players, .. } => {
                 host_beats += 1;
                 for player in players {
-                    last_spawn.insert(player.clone(), timed.tick);
+                    last_spawn.insert(player.clone(), (timed.tick, true));
                 }
             }
             GameEvent::Respawn { player } => {
-                last_spawn.insert(player.clone(), timed.tick);
+                last_spawn.insert(player.clone(), (timed.tick, false));
             }
             GameEvent::Frag { killer, victim, .. } => {
+                let place = obs
+                    .frag_places
+                    .get(frag_ticks.len())
+                    .copied()
+                    .unwrap_or_default();
                 frag_ticks.push(timed.tick);
                 per_agent.entry(killer.clone()).or_default().frags += 1;
                 let victim_report = per_agent.entry(victim.clone()).or_default();
                 victim_report.deaths += 1;
-                if let Some(spawned) = last_spawn.get(victim) {
-                    if timed.tick.saturating_sub(*spawned) <= SPAWN_DEATH_WINDOW_TICKS {
+                if let Some(&(spawned, opening)) = last_spawn.get(victim) {
+                    if timed.tick.saturating_sub(spawned) <= SPAWN_DEATH_WINDOW_TICKS {
                         tracing::warn!(
                             spawn_tick = spawned,
                             death_tick = timed.tick,
                             killer,
                             victim,
+                            victim_spawn = ?place.victim_spawn,
+                            victim_at = ?place.victim,
+                            killer_at = ?place.killer,
+                            opening,
                             "spawn death evidence"
                         );
                         victim_report.spawn_deaths += 1;
                         spawn_deaths += 1;
+                        opening_spawn_deaths += u64::from(opening);
                     }
                 }
             }
@@ -799,6 +846,7 @@ pub fn compute_report(obs: &Observation, agents: usize) -> Report {
         host_beats_per_minute: per_minute(host_beats, ticks),
         pickups,
         spawn_deaths,
+        opening_spawn_deaths,
         snapshot_bytes_per_tick: if obs.snapshots_seen == 0 {
             0.0
         } else {
@@ -849,6 +897,13 @@ pub fn check_thresholds(report: &Report) -> Vec<String> {
                 SPAWN_DEATH_RATE_CEILING * 100.0
             ));
         }
+    }
+    let opening_limit = OPENING_SPAWN_DEATHS_PER_ROUND * u64::from(report.rounds_completed.max(1));
+    if report.opening_spawn_deaths > opening_limit {
+        problems.push(format!(
+            "opening spawn deaths {} (limit {opening_limit})",
+            report.opening_spawn_deaths
+        ));
     }
     if report.agents >= 4 && report.frags_per_minute < 1.0 {
         problems.push(format!(
@@ -1865,6 +1920,18 @@ mod tests {
         assert_eq!(report.ticks, 1200);
         assert_eq!(report.frags, 2);
         assert_eq!(report.spawn_deaths, 1);
+        assert_eq!(
+            report.opening_spawn_deaths, 1,
+            "b died inside the opening window"
+        );
+        assert_eq!(
+            obs.frag_places[0],
+            FragPlace {
+                victim_spawn: Some((5.0, 0.0)),
+                victim: Some((5.0, 0.0)),
+                killer: Some((1.0, 0.0)),
+            }
+        );
         assert_eq!(report.pickups, 1);
         assert_eq!(report.time_to_first_frag_s, Some(1.0));
         assert!((report.longest_gap_without_frag_s - 50.0).abs() < 1e-9);
@@ -1879,6 +1946,49 @@ mod tests {
         assert_eq!(empty.frags, 0);
         assert_eq!(empty.time_to_first_frag_s, None);
         assert_eq!(empty.snapshot_bytes_per_tick, 0.0);
+    }
+
+    #[test]
+    fn a_respawn_death_is_not_an_opening_death() {
+        let a = Uuid::from_u128(1);
+        let b = Uuid::from_u128(2);
+        let mut obs = Observation::default();
+        obs.ingest_snapshot(
+            &snapshot(
+                0,
+                vec![
+                    player("a", a, 0.0, 0.0, false),
+                    player("b", b, 50.0, 0.0, false),
+                ],
+            ),
+            100,
+        );
+        obs.ingest_event(round_start(&["a", "b"]));
+        obs.ingest_snapshot(&snapshot(100, vec![player("a", a, 0.0, 0.0, false)]), 100);
+        obs.ingest_event(frag("a", "b"));
+        obs.ingest_snapshot(&snapshot(160, vec![player("a", a, 0.0, 0.0, false)]), 100);
+        obs.ingest_event(GameEvent::Respawn {
+            player: "b".to_string(),
+        });
+        for (tick, x) in [(161, 30.0), (180, 31.0)] {
+            obs.ingest_snapshot(
+                &snapshot(
+                    tick,
+                    vec![
+                        player("a", a, 0.0, 0.0, false),
+                        player("b", b, x, 0.0, false),
+                    ],
+                ),
+                100,
+            );
+        }
+        obs.ingest_event(frag("a", "b"));
+        let report = compute_report(&obs, 2);
+        assert_eq!(report.spawn_deaths, 1, "only the respawn death is early");
+        assert_eq!(report.opening_spawn_deaths, 0);
+        assert_eq!(obs.frag_places[0].victim_spawn, Some((50.0, 0.0)));
+        assert_eq!(obs.frag_places[1].victim_spawn, Some((30.0, 0.0)));
+        assert_eq!(obs.frag_places[1].victim, Some((31.0, 0.0)));
     }
 
     #[test]
@@ -2896,5 +3006,46 @@ mod spawn_death_threshold_tests {
     fn a_clean_run_never_complains() {
         assert!(!complains(0, 200));
         assert!(!complains(0, 0), "no frags is no rate");
+    }
+}
+
+#[cfg(test)]
+mod opening_spawn_death_tests {
+    use super::*;
+
+    fn report_with(opening: u64, rounds: u32) -> Report {
+        Report {
+            rounds_completed: rounds,
+            agents: 6,
+            frags: 30,
+            frags_per_minute: 20.0,
+            spawn_deaths: opening,
+            opening_spawn_deaths: opening,
+            ..Report::default()
+        }
+    }
+
+    fn complains(opening: u64, rounds: u32) -> bool {
+        check_thresholds(&report_with(opening, rounds))
+            .iter()
+            .any(|p| p.contains("opening spawn deaths"))
+    }
+
+    #[test]
+    fn the_recorded_opening_gap_fails() {
+        // Directive 17, Sector 9 and Reclamation Gulch lost two to four
+        // fighters inside the window of the round opening before the fix, and
+        // three of thirty frags still passes the rate ceiling.
+        assert!(complains(2, 1));
+        assert!(complains(3, 1));
+        assert!(complains(3, 2));
+    }
+
+    #[test]
+    fn one_walk_into_a_lane_per_round_is_tolerated() {
+        assert!(!complains(0, 1));
+        assert!(!complains(1, 1));
+        assert!(!complains(2, 2));
+        assert!(!complains(1, 0), "an unfinished round still gets one");
     }
 }
