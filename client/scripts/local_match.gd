@@ -11,6 +11,7 @@ const START_TIMEOUT_MS: int = 15000
 const STOP_TIMEOUT_MS: int = 3000
 const MAX_READY_BYTES: int = 4096
 const GAMEPLAY_VERSION: int = preload("res://scripts/net_client.gd").GAMEPLAY_VERSION
+const PENDING_META: StringName = &"fragr_local_match_pending"
 
 var state: State = State.IDLE
 var url: String = ""
@@ -31,9 +32,15 @@ static func for_tree(tree: SceneTree) -> LocalMatch:
 	var existing: LocalMatch = tree.root.get_node_or_null("LocalMatch") as LocalMatch
 	if existing != null:
 		return existing
+	var pending: Variant = tree.get_meta(PENDING_META) if tree.has_meta(PENDING_META) else null
+	if is_instance_valid(pending) and pending is LocalMatch and not (pending as LocalMatch).is_inside_tree():
+		return pending as LocalMatch
 	var owner: LocalMatch = LocalMatch.new()
 	owner.name = "LocalMatch"
-	tree.root.add_child(owner)
+	# The main scene's _ready runs while the root is still adding children, and a
+	# direct add_child fails there, so the owner would never poll its child.
+	tree.root.add_child.call_deferred(owner)
+	tree.set_meta(PENDING_META, owner)
 	return owner
 
 func executable_path() -> String:

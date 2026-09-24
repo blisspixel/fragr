@@ -515,6 +515,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "fragr-licenses"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "serde_json",
+]
+
+[[package]]
 name = "fragr-playtest"
 version = "0.1.0"
 dependencies = [

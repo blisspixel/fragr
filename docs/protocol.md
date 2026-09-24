@@ -110,14 +110,55 @@ at 64 KiB per frame and per message. The WebSocket handshake and the first
 hello each have five seconds. The process holds at most 64 connections, and
 32 from one address. Past either cap the server sends `connection_limit` or
 `address_limit` and closes. A stalled handshake or a client that never says
-hello releases its slot. A quiet spectator is not dropped for silence: after
-hello, snapshots are the server's traffic, and an idle kick would end watch
-mode. Further inbound text, including actions, is limited to a burst of
-64 and 256 per second. Extra messages are dropped and the player stays
-connected. A client that asked for resume keeps its pawn for ten seconds
+hello releases its slot. Further inbound text, including actions, is limited
+to a burst of 64 and 256 per second. Extra messages are dropped and the player
+stays connected. A client that asked for resume keeps its pawn for ten seconds
 after a drop. `{"type":"leave"}` removes that pawn immediately. The grace
 does not rewind the simulation. When it ends, the leave is the same as a
 disconnect: a solo run whose owner is gone becomes abandoned.
+
+**Liveness and conduct.** After `Welcome` the server sends a WebSocket ping
+every 15 seconds. Any frame from the client, including the pong every
+WebSocket library sends automatically while it reads, keeps the session.
+A quiet spectator that reads is never idle. No frame at all for 45 seconds
+closes the session with `idle_timeout`; a fighter that asked for resume keeps
+its pawn for the usual ten seconds. The server also closes a session with a
+stable code when it:
+
+- keeps flooding: dropped messages fill a strike level that drains at 4096 per
+  second and closes past 8192 (`rate_limited`). Only a sustained rate above about
+  4352 messages per second reaches it. The inbound budget above is unchanged.
+- keeps sending unreadable frames: binary frames, or text that is not a JSON
+  object with a string `type`. One per second is forgiven; past 16 the session
+  closes (`malformed`). A well-formed message of an unknown `type` is ignored
+  and never counts, so a newer client is not closed for it.
+
+`rate_limited` and `malformed` remove the pawn and its resume token.
+
+**Address lists.** A host may start the server with `--ban-list` and
+`--allow-list` files of IP addresses and CIDR ranges. A listed or unlisted
+address receives `address_banned` or `address_not_allowed` before any slot
+check, seat, or `GET /status` answer, whatever its role. When an edit bans the
+address of a live session, that session closes with `address_banned` and its
+pawn is removed. Lists never match callsigns.
+
+Every close in this section, like an admission rejection, is an `error`
+message and then a policy close whose reason is the same code:
+
+| Code | When | Pawn |
+|---|---|---|
+| `idle_timeout` | no frame for 45 seconds | parked if resume was asked |
+| `rate_limited` | sustained flood past the budget | removed |
+| `malformed` | repeated unreadable frames | removed |
+| `address_banned` | address on the ban list, at accept or after an edit | removed |
+| `address_not_allowed` | allow list set and address not on it | removed |
+
+**Protocol version.** There is no single `protocol_version` in `Hello`.
+`gameplay_version` and `geometry_version` already reject an older client
+before `Welcome`, with a code that names which contract it lacks, and a
+newer client is admitted because both are maximum-understood capabilities.
+The envelope itself (JSON text frames tagged by `type`) has not changed. A
+breaking envelope change would add that field then, with its own rejection.
 
 `GET /status` on the game port, before any WebSocket upgrade, returns a JSON
 `LiveStatus` (`schema_version` 2): `kind` (`arena` or `campaign`), map name,

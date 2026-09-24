@@ -4,6 +4,46 @@ Shipped tags, newest first. A line here is on `main`. Planned work stays in
 [docs/ROADMAP.md](docs/ROADMAP.md). Older tags are on the
 [releases page](https://github.com/blisspixel/fragr/releases).
 
+## v0.47.0 (2026-09-24)
+
+fragr now has downloadable desktop builds. Each tagged release attaches a
+Windows, Linux and macOS zip that holds the game with its local server beside
+it, so Single Player starts without building anything. Every package carries
+the fragr, font, Godot and bundled Rust crate license notices. The builds are
+unsigned: Windows SmartScreen and macOS Gatekeeper ask once, and the README
+gives the steps. CI unpacks each package and checks that the game finds its
+server; a clean-desktop playthrough is still to be recorded.
+
+The game has its own icon, a pixel triangle and eye from the fragr mark, in
+the window, the taskbar and the packages. The app is now named fragr, and
+settings and the service record move over from the old "fragr Client" folder
+on first launch. A startup bug that left Single Player's saved-run preview on
+"loading" in exported builds is fixed.
+
+## v0.46.1 (2026-09-24)
+
+The client now explains why a server closed the connection. Idle, flood,
+unreadable-message, banned and not-allowed closes each show their own short
+localized message on the existing status line. After a kick the client no
+longer makes its automatic resume attempt; an idle close still gets its one
+ten-second resume, like any dropped connection.
+
+## v0.46.0 (2026-09-24)
+
+A server open to the internet now looks after itself. It pings every session
+every 15 seconds and closes one that sends nothing for 45 seconds with
+`idle_timeout`; a spectator that is still reading answers the ping and stays.
+A sustained message flood closes with `rate_limited`, and repeated unreadable
+frames close with `malformed`. Both remove the pawn. A well-formed message of
+an unknown type is still ignored, so a newer client is never kicked for it.
+
+Hosts can pass `--ban-list` and `--allow-list` files of IP addresses or CIDR
+ranges with optional expiry and reason. Malformed files refuse to start the
+server, edits are picked up within five seconds, and a new ban closes a
+matching live session. Joins, rejects, kicks, bans and list reloads go to the
+`fragr_server::audit` log target without tickets or tokens. The Godot client
+does not yet show a message for the new close codes.
+
 ## v0.45.0 (2026-09-23)
 
 Single Player now keeps its M01 run after Exit to Menu or closing the game.

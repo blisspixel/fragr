@@ -6,7 +6,7 @@ fragr is a retro-styled 3D FPS built toward an authored campaign and multiplayer
 
 It is the 1993 LAN-party feeling rebuilt for 2026: a Rust authoritative server, a Godot client that only presents, and an MCP adapter so any agent can observe and act like a player.
 
-The current release is [v0.45.0](https://github.com/blisspixel/fragr/releases/tag/v0.45.0). Shipped tags are listed in [CHANGELOG.md](CHANGELOG.md). What is still open is [docs/ROADMAP.md](docs/ROADMAP.md).
+The current release is [v0.47.0](https://github.com/blisspixel/fragr/releases/tag/v0.47.0). Shipped tags are listed in [CHANGELOG.md](CHANGELOG.md). What is still open is [docs/ROADMAP.md](docs/ROADMAP.md).
 
 ## What runs today
 
@@ -165,7 +165,39 @@ four-seat development hosts retain shared boarding and automatic party resets;
 
 ## Desktop exports
 
-Export presets for Windows, macOS, and Linux live in `client/export_presets.cfg` and write under `builds/` (gitignored). Install the matching 4.7.2 export templates, then:
+Tagged releases attach one zip per platform, built by
+`.github/workflows/release.yml`: `fragr-<tag>-windows-x86_64.zip`,
+`fragr-<tag>-linux-x86_64.zip` and `fragr-<tag>-macos-universal.zip`, plus
+`SHA256SUMS.txt`. Each holds the exported game with a matching `fragr-server`
+beside it, and a `licenses/` folder: fragr's license, the fonts' OFL, Godot's
+license and copyright notice, and `THIRD_PARTY_LICENSES.txt` for the Rust
+crates the server links. Each zip is about 620 MB, almost all of it the radio
+music library. Download one from the
+[releases page](https://github.com/blisspixel/fragr/releases), unpack it, and
+keep the files together.
+
+- **Windows:** run `fragr.exe`. The executable is unsigned, so SmartScreen may
+  ask first ("More info", then "Run anyway").
+- **Linux (x86_64, glibc 2.35 or newer):** run `./fragr.x86_64`.
+- **macOS (Apple Silicon and Intel, 10.13 or newer):** the app is ad-hoc signed
+  but not notarized, so the first open is blocked. Open it once, then choose
+  **Open Anyway** in System Settings, Privacy and Security. Or remove the
+  download flag in Terminal:
+  `xattr -dr com.apple.quarantine fragr.app`.
+
+Before this release the game was named "fragr Client", which is also the name
+Godot gives its settings folder. The first launch copies `settings.cfg` and the
+service record from that old folder when the new one has neither.
+
+`fragr --headless -- --check-install` (`fragr.app/Contents/MacOS/fragr`
+on macOS) checks that the game finds its bundled server and prints a PASS or
+FAIL line. CI runs that check on every package before a release gets it. That
+is a headless check; a boot to a playable match on a clean desktop has not been
+recorded yet ([plan](docs/plans/desktop-release.md)). Multiplayer and arcade
+practice use a separately hosted server, normally on port 6767; the bundled
+`fragr-server` can host one (see below).
+
+To export by hand, install the 4.7.2-stable export templates, then:
 
 ```bash
 mkdir -p builds/windows builds/macos builds/linux
@@ -174,13 +206,12 @@ godot --headless --path client --export-release "macOS" ../builds/macos/fragr.zi
 godot --headless --path client --export-release "Linux/X11" ../builds/linux/fragr.x86_64
 ```
 
-These presets export the client only. The local campaign launcher looks for a
-matching `fragr-server` executable beside the game executable (`.exe` on Windows,
-inside `Contents/MacOS` for a macOS app). Checkout runs also search
-`target/release`, then `target/debug`. Package assembly, macOS helper signing and
-downloadable desktop releases remain unverified; the presets alone do not create
-a complete installation. Multiplayer and arcade practice use a separately hosted
-server, normally on port 6767.
+The presets export the client only. The local campaign launcher looks for a
+matching `fragr-server` executable beside the game executable (`.exe` on
+Windows, inside `Contents/MacOS` for a macOS app, which must then be signed
+again). Checkout runs also search `target/release`, then `target/debug`. The
+icon files come from `tools/bake_icon.gd`:
+`godot --headless --path client --script ../tools/bake_icon.gd`.
 
 ## Host a server
 
@@ -193,6 +224,10 @@ cargo run -p fragr-server -- --bind 127.0.0.1:6767 --bots 0 --no-round-events
 Clients on other machines set `FRAGR_SERVER` to `your-host:6767` before launching the client. Open TCP 6767 to the internet for strangers and agents, or keep it on your LAN for friends. UDP 6767 is reserved for the planned low-latency transport.
 
 Leave `FRAGR_JOIN_SECRET` unset and every hello is accepted, which is the local and open-LAN path. Set it to 16 to 256 bytes on the server, and to the same value for each human or agent that should play. The Godot client, the adapter, and the brain agent mint a short ticket from it. Spectators can watch without the secret. The value is an environment variable, not a command-line flag and not a saved setting. An empty value leaves the server open. A value of the wrong length refuses to bind. The host and the joining machine need clocks within about 15 seconds. A refused player sees "This server refused the join." The app keeps a dropped human's pawn for ten seconds and reconnects it. Leave, or switching back to spectator, removes that pawn immediately.
+
+To keep someone out, pass `--ban-list bans.txt`. To admit only people you know, pass `--allow-list allow.txt`. Each line is one IP address or CIDR range, optionally followed by `expires=2026-10-01` (or `expires=2026-10-01T18:00:00Z`, UTC) and then `reason=` with free text to the end of the line. Lines starting with `#` are comments. A ban wins over an allow entry. Entries match addresses, never callsigns, and apply to watchers too. The server reads both files again every five seconds: a new ban closes a matching live session, and a bad edit keeps the previous list and logs why. A malformed file at start refuses to start. Behind a reverse proxy every peer is the proxy's address, so lists and per-address caps only see the proxy.
+
+The server also pings every session every 15 seconds and closes one that sends nothing, not even the automatic pong, for 45 seconds. A watcher that reads is never idle. A session that floods far past the inbound budget, or keeps sending unreadable frames, is closed with a reason. Joins, rejections, kicks and bans are logged under the `fragr_server::audit` target (`RUST_LOG=fragr_server::audit=info`), without tickets or tokens.
 
 Hosting guides: [`infra/docs/HOME-LAN.md`](infra/docs/HOME-LAN.md) for a home box, [`infra/docs/CHEAP-VPS.md`](infra/docs/CHEAP-VPS.md) for a small VM, and [`infra/`](infra/README.md) for the GCP Terraform path. Cloud deployment stays plan-only until spend is approved.
 
@@ -212,6 +247,8 @@ Hosting guides: [`infra/docs/HOME-LAN.md`](infra/docs/HOME-LAN.md) for a home bo
 --solo-broadcast     Solo Broadcast Episode 0 (Calibration; Larak Lot face on map 1)
 --seed <N>           Simulation seed; the same seed gives the same match (default 1)
 --status-every-s <N> Log a status report this often (default 60, 0 to disable)
+--ban-list <PATH>    Refuse these addresses or CIDR ranges; reread every 5 seconds
+--allow-list <PATH>  Admit only these addresses or CIDR ranges; a ban still wins
 --bench <N>          Benchmark instead of serving: N scripted fighters, no network,
                      one JSON report on stdout, then exit
 --bench-ticks <N>    Ticks to benchmark (default 1200, which is one minute of match)

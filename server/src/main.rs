@@ -102,6 +102,15 @@ struct Args {
     /// means the next change has nowhere to go.
     #[arg(long, default_value_t = 0.5, value_parser = parse_budget_fraction)]
     bench_max_budget_p99: f64,
+
+    /// Refuse these addresses. One IP or CIDR range per line, with optional
+    /// `expires=YYYY-MM-DD` and `reason=...`. Read again every five seconds.
+    #[arg(long, conflicts_with_all = ["local_mission", "local_run_preview", "bench", "bench_verify_trace"])]
+    ban_list: Option<PathBuf>,
+
+    /// Admit only these addresses, same format. A ban still wins.
+    #[arg(long, conflicts_with_all = ["local_mission", "local_run_preview", "bench", "bench_verify_trace"])]
+    allow_list: Option<PathBuf>,
 }
 
 fn parse_budget_fraction(raw: &str) -> Result<f64, String> {
@@ -209,6 +218,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
             std::process::exit(1);
         }
     };
+    let access = fragr_server::access::AccessConfig {
+        ban_list: args.ban_list,
+        allow_list: args.allow_list,
+    };
+    if let Err(error) = fragr_server::access::validate(&access) {
+        eprintln!("{error}");
+        std::process::exit(1);
+    }
     let options = ServerOptions {
         bind: args.bind,
         bots: args.bots,
@@ -228,6 +245,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         seed: args.seed,
         status_every_s: args.status_every_s,
         join_secret,
+        access,
     };
     run_server(options, std::future::pending::<()>(), None).await
 }
@@ -365,6 +383,7 @@ mod tests {
                     seed: 1,
                     status_every_s: 0,
                     join_secret: None,
+                    access: Default::default(),
                 },
                 async move {
                     let _ = shutdown_rx.await;
@@ -450,6 +469,67 @@ mod tests {
         assert_eq!(options.bind, args.bind);
         assert_eq!(options.bots, args.bots);
         assert!(options.match_config.is_none());
+    }
+
+    #[test]
+    fn access_lists_are_dedicated_server_flags() {
+        let args = Args::try_parse_from([
+            "fragr-server",
+            "--ban-list",
+            "bans.txt",
+            "--allow-list",
+            "allow.txt",
+        ])
+        .unwrap();
+        assert_eq!(args.ban_list, Some(PathBuf::from("bans.txt")));
+        assert_eq!(args.allow_list, Some(PathBuf::from("allow.txt")));
+        let defaults = Args::try_parse_from(["fragr-server"]).unwrap();
+        assert!(defaults.ban_list.is_none() && defaults.allow_list.is_none());
+        for flag in ["--ban-list", "--allow-list"] {
+            assert!(Args::try_parse_from([
+                "fragr-server",
+                "--local-mission",
+                "recall_notice",
+                flag,
+                "list.txt"
+            ])
+            .is_err());
+            assert!(
+                Args::try_parse_from(["fragr-server", "--bench", "4", flag, "list.txt"]).is_err()
+            );
+        }
+    }
+
+    #[tokio::test]
+    async fn run_server_refuses_a_malformed_list_before_binding() {
+        let path = std::env::temp_dir().join(format!(
+            "fragr-main-ban-{}-{}.txt",
+            std::process::id(),
+            uuid::Uuid::new_v4()
+        ));
+        std::fs::write(&path, "203.0.113.0/33\n").unwrap();
+        let (ready_tx, ready_rx) = tokio::sync::oneshot::channel::<SocketAddr>();
+        let result = run_server(
+            ServerOptions {
+                bind: "127.0.0.1:0".to_string(),
+                bots: 0,
+                status_every_s: 0,
+                access: fragr_server::access::AccessConfig {
+                    ban_list: Some(path.clone()),
+                    allow_list: None,
+                },
+                ..ServerOptions::default()
+            },
+            std::future::pending::<()>(),
+            Some(ready_tx),
+        )
+        .await;
+        let error = result
+            .expect_err("a malformed list must not start")
+            .to_string();
+        assert!(error.contains("line 1"), "{error}");
+        assert!(ready_rx.await.is_err(), "nothing was bound");
+        let _ = std::fs::remove_file(path);
     }
 
     #[test]

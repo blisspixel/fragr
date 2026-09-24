@@ -38,6 +38,7 @@ func _ready() -> void:
 	_local_match.state_changed.connect(_on_local_state_changed)
 	_local_match.run_preview_changed.connect(_on_run_preview_changed)
 	theme = MenuTheme.build()
+	UserDataMigration.run_for(get_tree())
 	if _settings == null:
 		_settings = FragrSettings.for_tree(get_tree())
 	_settings.load_from_disk()
@@ -50,6 +51,8 @@ func _ready() -> void:
 	_console.name = "FragrConsole"
 	_console.preferences = _settings
 	add_child(_console)
+	if InstallCheck.requested():
+		add_child(InstallCheck.new(_local_match))
 
 func _apply_preferences() -> void:
 	_settings.apply()
