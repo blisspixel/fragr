@@ -6,6 +6,10 @@ The canonical list of modes. The roadmap sequences them, the plans build them, t
 Teams, objective modes, elimination, the Sweep, and the campaign/co-op systems
 below are designs until source and playtests demonstrate otherwise. Nick's
 full-game target includes duel, team play, survival, and last-survivor formats.
+The proposed build order for multiplayer modes and the maps they play on lives
+in [the multiplayer maps plan](plans/multiplayer-maps.md): free-for-all, duel,
+mutators, team deathmatch, Control, Custody, the three-cornered mode, then
+conquest-lite with vehicles.
 
 ## The bar
 
@@ -78,6 +82,14 @@ a duel into free-for-all. This is the smallest competitive balance test.
 Free-for-all and teams. Frags, a limit, a clock. What the league runs on a Tuesday, and the mode everything else is measured against.
 
 Weapons, armour and the good health spawn on predictable clocks, so knowing where the rail comes back and getting there first is most of the skill. That is the oldest loop in the genre and it still works.
+
+### Team deathmatch
+
+Scrap in two sides: the Union in black and red against the free coalition. Team spawns in each side's back third, weapons on a slower clock than free-for-all, a team frag limit. Bots fill the short side; humans and agents count the same toward balance. The first team mode, because every later one needs sides, team spawns and team score.
+
+### Control
+
+Hold ground to score. First one hill that moves every minute, so nobody camps it; then three fixed sites on the medium maps. Control proves zone state on the wire before Custody and conquest-lite depend on it.
 
 ### Custody
 
@@ -189,7 +201,7 @@ Cosmetics, earned by doing something hard, and nothing else. No purchases, no se
 
 The challenges are specific and mostly ridiculous: finish an episode on the hardest tier using one weapon, take fifty kills in the air, survive a Sweep past a round nobody else on the server has. What you get is a bright chassis panel, a battered helmet, a flag beside your name.
 
-Beating the campaign unlocks mutators for custom servers, in the old tradition: big heads, low gravity, one-hit kills, double speed, one golden rail on the map, melee only. They cost almost nothing to build and they are where a lot of the fun actually is, so they come before any of the larger modes.
+Mutators (proposed) are host settings from the start, not unlocks: Licence to Kill (one hit kills), Golden Rail (one gold rail on the map, kill the carrier to take it), Rail Only, Scatter Only, Fists Only, Two Lives, and Open Weights. They cost almost nothing to build and they are where a lot of the fun actually is, so they come before team modes. Beating the campaign unlocks only the silly ones, in the old tradition: big heads, low gravity, double speed.
 
 ## Every life starts empty
 
