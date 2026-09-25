@@ -125,6 +125,7 @@ impl Default for Plan {
 pub fn parse_weapon(name: &str) -> Option<WeaponType> {
     match name.to_ascii_lowercase().as_str() {
         "fists" => Some(WeaponType::Fists),
+        "shiv" => Some(WeaponType::Shiv),
         "tack" => Some(WeaponType::Tack),
         "flechette" => Some(WeaponType::Flechette),
         "rail" => Some(WeaponType::Rail),
@@ -136,6 +137,7 @@ pub fn parse_weapon(name: &str) -> Option<WeaponType> {
 pub fn weapon_name(weapon: WeaponType) -> &'static str {
     match weapon {
         WeaponType::Fists => "fists",
+        WeaponType::Shiv => "shiv",
         WeaponType::Tack => "tack",
         WeaponType::Flechette => "flechette",
         WeaponType::Rail => "rail",
@@ -598,7 +600,7 @@ mod tests {
         assert_eq!(parse_weapon("scatter"), Some(WeaponType::Scatter));
         assert_eq!(parse_weapon("FLECHETTE"), Some(WeaponType::Flechette));
         assert_eq!(parse_weapon("bfg"), None);
-        for weapon in [WeaponType::Flechette, WeaponType::Rail, WeaponType::Scatter] {
+        for weapon in WeaponType::ALL {
             assert_eq!(parse_weapon(weapon_name(weapon)), Some(weapon));
         }
         assert_eq!(weapon_for_distance(2.0), WeaponType::Scatter);

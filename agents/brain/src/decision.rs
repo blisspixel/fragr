@@ -184,10 +184,13 @@ pub fn campaign_questions(owned: &[WeaponType]) -> BTreeMap<String, Question> {
     for weapon in owned {
         let description = match weapon {
             WeaponType::Fists => "No ammunition. Last resort against a close guard.",
+            WeaponType::Shiv => {
+                "Found blade. No ammunition, quicker and harder than fists at arm's reach."
+            }
             WeaponType::Tack => {
                 "Pistol for deliberate short and mid-range shots with finite bullets."
             }
-            WeaponType::Flechette => "Rifle for sustained mid-range fire with finite darts.",
+            WeaponType::Flechette => "Rifle for sustained mid-range fire with finite bullets.",
             WeaponType::Scatter => "Shotgun for a close guard, with finite shells.",
             WeaponType::Rail => {
                 "One heavy slow shot for a distant exposed guard, with finite cells."
@@ -480,6 +483,12 @@ mod tests {
         assert!(choices.contains_key("fists"));
         assert!(choices.contains_key("tack"));
         assert!(!choices.contains_key("rail"));
+        let found = campaign_questions(&[WeaponType::Fists, WeaponType::Shiv]);
+        let found = serde_json::to_value(&found).unwrap();
+        assert!(found[Q_WEAPON]["criteria"]["shiv"]
+            .as_str()
+            .unwrap()
+            .contains("No ammunition"));
         assert!(json[Q_STANCE]["instructions"]
             .as_str()
             .unwrap()

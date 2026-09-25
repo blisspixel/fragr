@@ -4,7 +4,7 @@
 v0.28.0. The working [completion draft](../plans/m01-completion.md) expands this
 to twenty Clerks and Sweepers across eight groups, with a records wing, finite
 campaign supplies and preplaced guards, shipped in v0.29.0. This remains a
-development mission. Fists, Tack, Flechette, ammunition counts and
+development mission. Fists, the secret Shiv, Tack, Flechette, ammunition counts and
 enemy phases use server authority. Artwork and animation remain provisional. A
 [reader-paced text opening and party readiness](../plans/m01-opening.md) are
 shipped in #193 and v0.28.0. Finished illustrations and
@@ -27,7 +27,8 @@ Passing automation does not establish fresh-player pacing or fun.
 The [optional supply detours](../plans/m01-optional-supply-detours.md) place a
 medkit beside the confiscation lockers and armor at a maintenance overlook.
 Both are walking returns to the existing route. Neither is a required secret,
-weapon, or mission objective.
+weapon, or mission objective. The alcove's south pocket also holds the
+[secret Shiv](../plans/m01-secret-shiv.md), found by walking in.
 
 ## Story and cast
 
@@ -134,8 +135,9 @@ cover the guaranteed route plus reasonable misses, independent of secrets.
 
 The confiscation alcove and maintenance overlook have optional supplies. They
 are static walking detours, not counted secrets, and contain no essential story
-evidence. A Shiv in the alcove and a changed wall panel remain planned; the
-weapon grant and moving secret trigger are unbuilt.
+evidence. The Shiv in the alcove's south pocket is the mission's one secret: a
+pool-less melee weapon with a quiet `SECRET FOUND` cue, never required. There
+is no moving wall panel or secret trigger; the alcove is open.
 
 ## Objectives and state
 

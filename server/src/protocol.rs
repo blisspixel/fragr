@@ -338,6 +338,8 @@ pub enum WeaponType {
     Scatter,
     Fists,
     Tack,
+    /// Pool-less melee found as an M01 secret: faster and harder than fists.
+    Shiv,
 }
 
 /// The scatter gun deals full damage inside this distance.
@@ -357,6 +359,8 @@ impl WeaponType {
     pub fn damage(self) -> i32 {
         match self {
             WeaponType::Fists | WeaponType::Tack => 20,
+            // Three cuts kill a bare fighter in 0.60 s; fists need five in 1.60 s.
+            WeaponType::Shiv => 35,
             WeaponType::Flechette => 25,
             WeaponType::Rail => 80,
             WeaponType::Scatter => 10,
@@ -398,6 +402,7 @@ impl WeaponType {
     pub fn cooldown_ticks(self) -> u32 {
         match self {
             WeaponType::Fists => 8,
+            WeaponType::Shiv => 6,
             WeaponType::Tack => 5,
             WeaponType::Flechette => 4,
             WeaponType::Rail => 20,
@@ -410,7 +415,7 @@ impl WeaponType {
     /// assistance: a shot still has to pass within a fighter's radius to land.
     pub fn spread_radians(self) -> f32 {
         match self {
-            WeaponType::Fists => 0.0,
+            WeaponType::Fists | WeaponType::Shiv => 0.0,
             WeaponType::Tack => 0.03,
             // Mid workhorse: 2.6 degrees, forgiving in its own band.
             WeaponType::Flechette => 0.045,
@@ -427,6 +432,7 @@ impl WeaponType {
     pub fn range_units(self) -> f32 {
         match self {
             WeaponType::Fists => 1.8,
+            WeaponType::Shiv => 2.2,
             WeaponType::Tack => 30.0,
             WeaponType::Flechette => 40.0,
             WeaponType::Rail => 60.0,
@@ -438,6 +444,7 @@ impl WeaponType {
     pub fn preferred_range(self) -> (f32, f32) {
         match self {
             WeaponType::Fists => (0.0, 1.5),
+            WeaponType::Shiv => (0.0, 1.9),
             WeaponType::Tack => (5.0, 18.0),
             WeaponType::Flechette => (8.0, 28.0),
             WeaponType::Rail => (18.0, 45.0),
@@ -448,6 +455,7 @@ impl WeaponType {
     pub fn name(self) -> &'static str {
         match self {
             WeaponType::Fists => "Fists",
+            WeaponType::Shiv => "Shiv",
             WeaponType::Tack => "Tack",
             WeaponType::Flechette => "Flechette",
             WeaponType::Rail => "Rail",
@@ -470,8 +478,12 @@ pub const M02_GAMEPLAY_VERSION: u32 = 9;
 /// One ammunition count per type with no magazines or reload, and scatter
 /// pellet traces. Every discovery map requires it for the loadout shape.
 pub const AMMO_GAMEPLAY_VERSION: u32 = 10;
+/// The pool-less Shiv in loadouts, shot traces and six-slot records, plus the
+/// secret flag on pickup events and the optional record secret count. Every
+/// discovery map requires it because any authored map may place the Shiv.
+pub const SHIV_GAMEPLAY_VERSION: u32 = 11;
 /// Highest understood gameplay contract; content requirements use their own minimum.
-pub const GAMEPLAY_VERSION: u32 = AMMO_GAMEPLAY_VERSION;
+pub const GAMEPLAY_VERSION: u32 = SHIV_GAMEPLAY_VERSION;
 pub fn legacy_gameplay_version() -> u32 {
     1
 }
@@ -1043,6 +1055,9 @@ pub enum GameEvent {
         #[serde(default, skip_serializing_if = "Option::is_none")]
         amount: Option<i32>,
         pickup_id: String,
+        /// The claim found an authored secret. Omitted when false.
+        #[serde(default, skip_serializing_if = "is_false")]
+        secret: bool,
     },
     /// Within-round multi-kill Host callout (tiers 2 / 3 / 5).
     Killstreak {
@@ -1380,9 +1395,14 @@ mod protocol_tests {
             weapon: "Rail".into(),
             amount: None,
             pickup_id: "pad_rail".into(),
+            secret: false,
         };
         let v = serde_json::to_value(&ev).unwrap();
         assert_eq!(v["event"], "pickup");
+        assert!(
+            v.get("secret").is_none(),
+            "an ordinary claim omits the flag"
+        );
         assert_eq!(v["kind"], "weapon");
         assert_eq!(v["weapon"], "Rail");
         assert_eq!(v["pickup_id"], "pad_rail");
@@ -1408,11 +1428,29 @@ mod protocol_tests {
             weapon: String::new(),
             amount: Some(40),
             pickup_id: "pad_health_n".into(),
+            secret: false,
         };
         let v = serde_json::to_value(&heal).unwrap();
         assert_eq!(v["kind"], "health");
         assert_eq!(v["amount"], 40);
         assert!(v.get("weapon").is_none());
+
+        let found = GameEvent::Pickup {
+            player: "Rusher".into(),
+            player_id: id,
+            kind: "weapon".into(),
+            weapon: "Shiv".into(),
+            amount: None,
+            pickup_id: "alcove_shiv".into(),
+            secret: true,
+        };
+        let v = serde_json::to_value(&found).unwrap();
+        assert_eq!(v["secret"], true);
+        assert_eq!(v["weapon"], "Shiv");
+        assert!(matches!(
+            serde_json::from_value(v).unwrap(),
+            GameEvent::Pickup { secret: true, .. }
+        ));
     }
     #[test]
     fn killstreak_event_wire_json_shape() {

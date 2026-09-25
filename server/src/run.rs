@@ -245,12 +245,12 @@ async fn run_server_impl(
             .max()
             .unwrap_or_else(crate::protocol::legacy_geometry_version)
     };
-    // Discovery equipment delivers the private loadout, whose shape changed in
-    // the ammunition contract. Full-arsenal arcade maps keep older readers.
+    // Discovery equipment delivers the private loadout, whose weapons now
+    // include the Shiv. Full-arsenal arcade maps keep older readers.
     let discovery =
         session.state.map.equipment_policy() == crate::protocol::EquipmentPolicy::Discovery;
     let required_gameplay = if discovery {
-        crate::protocol::AMMO_GAMEPLAY_VERSION
+        crate::protocol::SHIV_GAMEPLAY_VERSION
     } else if session.state.map.m02_objectives().is_some() {
         crate::protocol::M02_GAMEPLAY_VERSION
     } else if options.campaign_run {

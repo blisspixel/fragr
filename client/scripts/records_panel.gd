@@ -122,7 +122,7 @@ func _show_record(index: int) -> void:
 		lines.append(tr("RECORD_MISSION").format({"difficulty": tr("DIFFICULTY_" + String(scope["rules"]["difficulty"]).to_upper()), "attempt": int(scope["attempt"])}))
 	lines.append(tr("RECORD_COMBAT").format({"kills": PlayerRecord.sum_weapon(total, "kills"), "deaths": int(total["deaths"]), "time": _time(int(total["alive_ticks"]))}))
 	lines.append(tr("RECORD_DAMAGE").format({"hp": PlayerRecord.sum_weapon(total, "hp_damage"), "armor": PlayerRecord.sum_weapon(total, "armor_damage"), "lost": int(total["hp_lost"])}))
-	for weapon: int in range(5):
+	for weapon: int in range(total["weapons"].size()):
 		var counts: Dictionary = total["weapons"][weapon]
 		if int(counts["attacks"]) == 0:
 			continue
@@ -132,6 +132,8 @@ func _show_record(index: int) -> void:
 		}))
 	if PlayerRecord.sum_weapon(total, "attacks") == 0:
 		lines.append(tr("RECORD_NO_ATTACKS"))
+	if PlayerRecord.secrets(total) > 0:
+		lines.append(tr("RECORD_SECRETS").format({"count": PlayerRecord.secrets(total)}))
 	if scope["kind"] == "mission" and int(scope["attempt"]) > 1:
 		lines.append(tr("RECORD_ATTEMPT").format({"kills": PlayerRecord.sum_weapon(record["attempt"], "kills"), "time": _time(int(record["attempt"]["alive_ticks"]))}))
 	_details.text = "\n".join(lines)
@@ -145,7 +147,7 @@ static func commentary_key(record: Dictionary) -> String:
 		return "RECORD_QUIP_DRY"
 	var attempt: Dictionary = record["attempt"]
 	if record["status"] == "complete" and PlayerRecord.sum_weapon(attempt, "kills") > 0 \
-		and PlayerRecord.sum_weapon(attempt, "attacks") == int(attempt["weapons"][0]["attacks"]):
+		and PlayerRecord.sum_weapon(attempt, "attacks") == int(attempt["weapons"][0]["attacks"]) + PlayerRecord.weapon_count(attempt, 5, "attacks"):
 		return "RECORD_QUIP_MELEE"
 	return ""
 

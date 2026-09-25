@@ -6,7 +6,7 @@ fragr is a retro-styled 3D FPS built toward an authored campaign and multiplayer
 
 It is the 1993 LAN-party feeling rebuilt for 2026: a Rust authoritative server, a Godot client that only presents, and an MCP adapter so any agent can observe and act like a player.
 
-The current release is [v0.51.0](https://github.com/blisspixel/fragr/releases/tag/v0.51.0). Shipped tags are listed in [CHANGELOG.md](CHANGELOG.md). What is still open is [docs/ROADMAP.md](docs/ROADMAP.md).
+The current release is [v0.53.0](https://github.com/blisspixel/fragr/releases/tag/v0.53.0). Shipped tags are listed in [CHANGELOG.md](CHANGELOG.md). What is still open is [docs/ROADMAP.md](docs/ROADMAP.md).
 
 ## What runs today
 
@@ -158,7 +158,8 @@ sends; the server still decides every hit. Details:
 [docs/plans/input-all-devices.md](docs/plans/input-all-devices.md).
 
 1 is fists, 2 is the pistol, 3 is the shotgun, 4 is the rifle, and 5 is the
-railgun. The wheel and the bracket keys walk that order and skip a gun you are
+railgun. Once you have found the Shiv, 1 draws it and a second press goes back
+to fists. The wheel and the bracket keys walk that order and skip a gun you are
 not carrying. Arcade maps carry the shotgun, the rifle, and the railgun.
 
 M01's development slice now starts with fists. Recover the pistol in
@@ -168,8 +169,8 @@ gun; there is no magazine and nothing to reload. Introductory guns remain availa
 each participant. The six arcade maps retain unlimited Rifle, Shotgun, and
 Railgun. Run instructions and current
 limitations: [`server/maps/README.md`](server/maps/README.md). M01 still needs
-finished enemy presentation, encounter balancing, secrets and opening art before
-it is a complete mission. The planned campaign targets a 2-3-hour successful run.
+finished enemy presentation, encounter balancing and opening art before it is a
+complete mission. Its one secret, a Shiv in the confiscation alcove, is optional. The planned campaign targets a 2-3-hour successful run.
 The local prototype has three mission-start continues. A versioned local run
 file now retains the run ID, difficulty, remaining continues and entry gear
 across restarts, including a pending death decision. It resumes at mission

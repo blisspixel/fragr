@@ -14,6 +14,20 @@ fn usable(loadout: &LoadoutState, weapon: WeaponType) -> bool {
     loadout.owns(weapon) && loadout.shots(weapon).is_none_or(|shots| shots > 0)
 }
 
+/// The best melee in hand: a found Shiv, otherwise fists.
+fn melee(loadout: &LoadoutState) -> WeaponType {
+    if loadout.owns(WeaponType::Shiv) {
+        WeaponType::Shiv
+    } else {
+        WeaponType::Fists
+    }
+}
+
+/// How close melee closes before it stops walking in, inside its reach.
+fn melee_close(weapon: WeaponType) -> f32 {
+    weapon.range_units() - 0.5
+}
+
 fn useful_supply(loadout: &LoadoutState, pickup: &PickupState, seek_upgrade: bool) -> bool {
     if !pickup.available
         || (pickup.claim == SupplyClaim::Personal && loadout.personal_claims.contains(&pickup.id))
@@ -108,7 +122,7 @@ pub fn control_action_with_target_filter(
         .weapon_swap
         .filter(|weapon| usable(loadout, *weapon))
         .or_else(|| usable(loadout, held).then_some(held))
-        .filter(|weapon| *weapon != WeaponType::Fists)
+        .filter(|weapon| weapon.ammo_pool().is_some())
         .or_else(|| {
             [
                 WeaponType::Flechette,
@@ -119,14 +133,15 @@ pub fn control_action_with_target_filter(
             .into_iter()
             .find(|weapon| usable(loadout, *weapon))
         })
-        .unwrap_or(WeaponType::Fists);
+        .unwrap_or_else(|| melee(loadout));
     action.weapon_swap = (selected != held).then_some(selected);
     let dry = !usable(loadout, selected);
     if dry {
         action.fire = false;
     }
 
-    if selected == WeaponType::Fists || (nearest.is_none() && !has_objective) {
+    let melee_only = selected.ammo_pool().is_none();
+    if melee_only || (nearest.is_none() && !has_objective) {
         let supply = snapshot
             .pickups
             .iter()
@@ -161,8 +176,8 @@ pub fn control_action_with_target_filter(
             action.fire = !dry;
         }
         action.fire &= distance <= selected.range_units();
-        if selected == WeaponType::Fists {
-            action.forward = distance > 1.3;
+        if melee_only {
+            action.forward = distance > melee_close(selected);
             action.back = false;
             action.fire = distance <= selected.range_units();
             action.look_at = Some(LookAt {

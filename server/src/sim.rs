@@ -386,6 +386,8 @@ pub struct ArenaPickup {
     pub floor: f32,
     pub available: bool,
     pub respawn_timer: Option<u32>,
+    /// An authored secret: optional, found by exploring, never required.
+    pub secret: bool,
 }
 
 impl ArenaPickup {
@@ -2203,6 +2205,7 @@ impl GameState {
             }
             let kind = pad.kind;
             let amount = pad.amount;
+            let secret = pad.secret;
             let pickup_id = pad.id.clone();
             // Campaign stock is consumed until the authoritative party reset.
             // Arcade pads retain their timed circulation around the map.
@@ -2217,6 +2220,9 @@ impl GameState {
             };
             if pad.claim == crate::protocol::SupplyClaim::Personal {
                 player.inventory.record_claim(pickup_id.clone());
+            }
+            if secret {
+                player.statistics.secret(&pickup_id);
             }
             let (weapon_wire, amount_wire, label) = match kind {
                 PickupKind::Weapon(w) => {
@@ -2260,6 +2266,7 @@ impl GameState {
                 weapon: weapon_wire,
                 amount: amount_wire,
                 pickup_id: pickup_id.clone(),
+                secret,
             });
             tracing::info!("PICKUP: {} claimed {} ({})", name, label, pickup_id);
         }
@@ -2713,7 +2720,7 @@ impl BotController {
         let (prefer_min, prefer_max) = bot.weapon.preferred_range();
         let fire_range = bot.weapon.range_units() * 0.95;
         let aim_slack = match bot.weapon {
-            WeaponType::Fists => 0.55,
+            WeaponType::Fists | WeaponType::Shiv => 0.55,
             WeaponType::Tack => 0.40,
             WeaponType::Rail => 0.22,
             WeaponType::Scatter => 0.55,

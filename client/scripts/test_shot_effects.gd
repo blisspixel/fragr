@@ -114,6 +114,15 @@ func _run() -> void:
 	excessive.fill(_shot())
 	effects.ingest(4, excessive)
 	_check(effects.active_count() == 0, "oversized result batches are rejected")
+	var cut: Dictionary = _shot("fighter", "shiv")
+	cut["trace"]["end"] = [2.0, 1.2, 0.0]
+	var long_cut: Dictionary = _shot("fighter", "shiv")
+	long_cut["trace"]["end"] = [2.4, 1.2, 0.0]
+	var reaching_punch: Dictionary = _shot("fighter", "fists")
+	reaching_punch["trace"]["end"] = [2.0, 1.2, 0.0]
+	effects.ingest(5, [cut, long_cut, reaching_punch, _shot("range", "shiv")])
+	_check(effects.active_count() == 1 and effects.has_shot_from("self", "fighter"), "a Shiv cut draws inside its own reach, never as a tracer or at fist reach")
+	effects.clear()
 	# The real match route must retain the weapon even with no surviving pawn.
 	var game: Node = load("res://scenes/main.tscn").instantiate()
 	game.settings = FragrSettings.new()

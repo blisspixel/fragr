@@ -20,6 +20,7 @@ const COLORS = {
 	"ammo": Color(0.66, 0.60, 0.41),
 	"Rail": Color(0.42, 0.46, 0.50),       # gunmetal
 	"Scatter": Color(0.72, 0.38, 0.22),    # ember
+	"Shiv": Color(0.78, 0.62, 0.36),       # ochre grip
 	"health": Color(0.62, 0.22, 0.20),     # dried blood
 	"armor": Color(0.48, 0.44, 0.38),      # scrap gunmetal
 }
@@ -31,6 +32,7 @@ func _ready():
 	weapon_textures["Rail"] = load("res://assets/weapons/32/rail.png")
 	weapon_textures["Scatter"] = load("res://assets/weapons/32/scatter.png")
 	weapon_textures["Tack"] = load("res://assets/weapons/32/_future/shock_pistol.png")
+	weapon_textures["Shiv"] = load("res://assets/weapons/48/shiv.png")
 	_apply_look()
 
 func setup(id: String, weapon: String, pos: Vector3, kind: String = "weapon", pad_amount: int = 0, pool: String = "") -> void:
@@ -91,7 +93,10 @@ func _apply_look() -> void:
 		body.set_surface_override_material(0, mat)
 	if icon:
 		if pickup_kind == "weapon" and weapon_textures.has(weapon_name):
-			icon.texture = weapon_textures[weapon_name]
+			var texture: Texture2D = weapon_textures[weapon_name]
+			icon.texture = texture
+			# 1.28 m across whether the icon is authored at 32 or 48 pixels.
+			icon.pixel_size = 1.28 / float(maxi(texture.get_height(), 1))
 			icon.visible = true
 			icon.modulate = Color(1.02, 1.0, 0.96)
 		else:

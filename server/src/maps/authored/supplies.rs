@@ -13,6 +13,9 @@ pub(super) struct Definition {
     feet: [f32; 3],
     grant: Grant,
     claim: SupplyClaim,
+    /// Optional and found by exploring. Never an objective or a required gun.
+    #[serde(default)]
+    secret: bool,
 }
 
 #[derive(Debug, Deserialize)]
@@ -76,6 +79,7 @@ pub(super) fn build(
                 z: supply.feet[2],
                 available: true,
                 respawn_timer: None,
+                secret: supply.secret,
             })
         })
         .collect()

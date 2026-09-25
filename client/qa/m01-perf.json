@@ -1,0 +1,15 @@
+{
+  "comment": "Recall Notice intake frame time at a fixed 1920x1080 window for each quality preset and world pixel choice, from the arrival stand looking into intake. VSync off, frame cap unlimited. Numbers are this host only.",
+  "width": 1920,
+  "height": 1080,
+  "states": [
+    {"name":"intake_performance","scene":"res://scenes/main.tscn","join":"human","camera":"first_person","look_at":[0,1.6,-21],"graphics":{"quality":0,"upscaling":0,"resolution_height":0,"pixel_scale":0,"dither":false},"frame_sample":600},
+    {"name":"intake_balanced","camera":"first_person","graphics":{"quality":1},"frame_sample":600},
+    {"name":"intake_high","camera":"first_person","graphics":{"quality":2},"frame_sample":600},
+    {"name":"intake_balanced_fine","camera":"first_person","graphics":{"quality":1,"pixel_scale":1},"frame_sample":600},
+    {"name":"intake_balanced_medium","camera":"first_person","graphics":{"quality":1,"pixel_scale":2},"frame_sample":600},
+    {"name":"intake_balanced_chunky","camera":"first_person","graphics":{"quality":1,"pixel_scale":3},"frame_sample":600},
+    {"name":"intake_balanced_medium_dither","camera":"first_person","graphics":{"quality":1,"pixel_scale":2,"dither":true},"frame_sample":600},
+    {"name":"intake_performance_medium","camera":"first_person","graphics":{"quality":0,"pixel_scale":2,"dither":false},"frame_sample":600}
+  ]
+}

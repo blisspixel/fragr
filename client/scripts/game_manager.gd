@@ -162,6 +162,9 @@ func _apply_arena_sky(map_name: String = "") -> void:
 		return
 	world.environment = ArenaSky.build_environment(map_name)
 	RenderQuality.apply_environment(world.environment, settings)
+	ArenaSky.apply_scene_lights(get_node_or_null("Arena/Layout"), map_name)
+	ArenaSky.apply_view_fill(get_node_or_null("SpectatorCamera/Camera3D") as Camera3D, map_name)
+	RenderQuality.apply_practicals(self, settings)
 
 
 static func _find_world_environment(node: Node) -> WorldEnvironment:
@@ -230,6 +233,8 @@ func _apply_preferences() -> void:
 func _apply_render_preferences() -> void:
 	var world: WorldEnvironment = _find_world_environment(self)
 	RenderQuality.apply(get_viewport(), settings, world.environment if world != null else null)
+	RenderQuality.apply_practicals(self, settings)
+	RenderQuality.apply_dither(self, get_viewport(), settings)
 
 func controls_blocked() -> bool:
 	return role_transition or _mission_controls_blocked() or (mission_hud != null and mission_hud.state.get("phase") == "departed") or (mouse_capture != null and not mouse_capture.gameplay_input_allowed()) or (console != null and console.is_open()) or (pause_menu != null and pause_menu.is_open())
@@ -590,7 +595,7 @@ func _current_weapon_wire() -> String:
 	if net_client != null and not net_client.equipment.is_empty():
 		return str(net_client.equipment["selected"]).to_lower()
 	var name: String = _local_weapon_name().to_lower()
-	if name in EquipmentState.SLOTS:
+	if name in EquipmentState.WEAPONS:
 		return name
 	return "flechette"
 
@@ -601,7 +606,8 @@ func _next_weapon_swap(step: int) -> String:
 func _slot_from_event(event: InputEvent) -> String:
 	for slot in range(1, EquipmentState.SLOTS.size() + 1):
 		if event.is_action_pressed("weapon_%d" % slot):
-			return EquipmentState.slot_if_owned(_carried_weapons(), slot)
+			var current: String = str(pending_weapon_swap) if pending_weapon_swap != null else _current_weapon_wire()
+			return EquipmentState.slot_if_owned(_carried_weapons(), slot, current)
 	return ""
 
 func _choose_weapon(weapon: String) -> void:
@@ -932,6 +938,8 @@ func _on_event_received(data):
 		var weapon = str(data.get("weapon", ""))
 		var amount = int(data.get("amount", 0))
 		hud.show_pickup_toast(who, weapon, kind, amount)
+		if data.get("secret") == true:
+			hud.show_secret_found()
 	elif event_type == "killstreak":
 		var who = str(data.get("player", "?"))
 		var streak = int(data.get("streak", 0))

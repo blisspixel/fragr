@@ -18,6 +18,7 @@ Status words: **proposed** (a design awaiting Nick's decision; directs no work),
 | Plan | Status | One-liner |
 |---|---|---|
 | [`campaign-expansion.md`](./campaign-expansion.md) | **proposed** | Twenty levels in five episodes for a four-hour first run: the ten-mission spine kept, one new thing per level, the wipe in three levels, a brief by difficulty, par and replay waivers. |
+| [`m01-secret-shiv.md`](./m01-secret-shiv.md) | **implemented** | M01's first secret: a pool-less Shiv in the confiscation alcove's south pocket, found by walking in, with capability 11, a quiet cue and a counted find. Replaces draft #203. |
 | [`heavy-sweeper-and-turret.md`](./heavy-sweeper-and-turret.md) | **implemented** | Heavy Sweeper and Turret on the encounter seams with seeded tell tests, a test range, and the black and red Union recolor. |
 | [`input-all-devices.md`](./input-all-devices.md) | **implemented** | Keyboard only, keyboard and mouse, and gamepad: rebinding page, key turn ramp, radial stick curves, device-following pad glyphs and aim assist that never touches the mouse. |
 | [`boomer-ammo-and-pellets.md`](./boomer-ammo-and-pellets.md) | **implemented** | Doom-style ammo (one count per type, no reload) and a seven-pellet shotgun, with capability 10, rules revision 2 and a clean new-run path for magazine-era saves. |
@@ -105,7 +106,7 @@ Status words: **proposed** (a design awaiting Nick's decision; directs no work),
 | [`decision-brain.md`](./decision-brain.md) | **shipped** (#102) | Decision-brain agent: Jev (TypeSafe or OpenRouter) sets intent a few times a second, local controller plays every tick, hard spend cap with a ledger. |
 | [`brain-third-tier-surface.md`](./brain-third-tier-surface.md) | **shipped** (#103) | Surface fragr-brain beside rule bots and MCP agents in the skill card and README, plus the observe-only stance chip. |
 | [`radio-stations.md`](./radio-stations.md) | **shipped** (library) | Contested Frequency radio: eight stations, generated library, client player with ducking. |
-| [`look-pass-boomer.md`](./look-pass-boomer.md) | **planned** | Boomer shooter look pass: low-res render target, dither, atlas, eight-direction sprites, weapon view models, HUD grid. |
+| [`look-pass-boomer.md`](./look-pass-boomer.md) | **in flight** | Boomer shooter look pass. Increment 1: fixture-lit interiors, venue fog and red Union accents, optional world pixels and palette dither. Atlas, sprites, view models and HUD grid remain. |
 | [`campaign-build-order.md`](./campaign-build-order.md) | **planned** | Prove ten missions and the survival-gated epilogue, starting with M01 and limited mission-start continues. |
 | [`campaign-e1.md`](./campaign-e1.md) | **superseded** | Earlier radio-led nine-level episode; current mission treatment lives in `../CAMPAIGN-MISSIONS.md`. |
 | [`campaign-continuance.md`](./campaign-continuance.md) | **planned** | Validated map data, authoritative mission/enemy state, saves and localized presentation; no editor dependency selected yet. |

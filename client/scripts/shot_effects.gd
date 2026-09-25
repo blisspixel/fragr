@@ -9,6 +9,8 @@ const MAX_TRACE_LENGTH: float = 1024.0
 const LIFETIME: float = 0.24
 ## A scatter blast draws at most this many pellets per result, matching the server.
 const MAX_PELLETS: int = 7
+## Server melee reach in world units. A melee trace can never end farther away.
+const MELEE_REACH: Dictionary = {"fists": 1.8, "shiv": 2.2}
 
 class Effect:
 	var shooter: String
@@ -91,7 +93,7 @@ static func _parse(value: Variant) -> Effect:
 		return null
 	var weapon: String = trace["weapon"]
 	var impact: Dictionary = trace["impact"]
-	if weapon not in ["fists", "tack", "flechette", "rail", "scatter"] or not impact.get("kind") is String:
+	if weapon not in EquipmentState.WEAPONS or not impact.get("kind") is String:
 		return null
 	var kind: String = impact["kind"]
 	if kind not in ["fighter", "solid", "range"]:
@@ -100,7 +102,7 @@ static func _parse(value: Variant) -> Effect:
 	var end: Vector3 = _vector(trace.get("end"))
 	if not origin.is_finite() or not end.is_finite() or origin.distance_to(end) > MAX_TRACE_LENGTH:
 		return null
-	if weapon == "fists" and (kind == "range" or origin.distance_to(end) > 1.81):
+	if weapon in EquipmentState.MELEE and (kind == "range" or origin.distance_to(end) > MELEE_REACH[weapon] + 0.01):
 		return null
 	if kind == "range" and origin.distance_to(end) <= 0.05:
 		return null
@@ -156,7 +158,7 @@ func _rebuild() -> void:
 	_mesh.surface_end()
 
 func _draw_effect(effect: Effect) -> void:
-	if effect.weapon == "fists":
+	if effect.weapon in EquipmentState.MELEE:
 		_draw_melee_impact(effect)
 		return
 	var rail: bool = effect.weapon == "rail"

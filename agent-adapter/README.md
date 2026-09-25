@@ -13,9 +13,9 @@ and the map version in observations, and closes its MCP game session if a map
 has unsupported or invalid geometry, or the server sends malformed JSON.
 Ground-filled legacy maps remain readable.
 
-The adapter declares gameplay capability 10. Every discovery map, M01 and M02
-included, requires 10 for all roles; the six full-arsenal arcade maps still
-admit 1. Older clients are
+The adapter declares gameplay capability 11. Every discovery map, M01 and M02
+included, requires 11 for all roles, because any of them may place the found
+`shiv`; the six full-arsenal arcade maps still admit 1. Older clients are
 rejected before admission. `observe.loadout`
 is private to this participant: selected and owned weapons (`["fists","tack"]`),
 one `ammo` count per pool (`bullets`, `shells`, `cells`), personal supply
@@ -30,8 +30,12 @@ share these rules. Unknown revisions or changing rules fail validation, includin
 across a same-mission geometry update. Difficulty does not alter MCP budgets or
 agent control frequency. Use matching builds when connecting to campaign servers.
 
-`act` accepts `fists`, `tack`, `flechette`, `scatter` and `rail` for `weapon_swap`;
-the server rejects unowned choices. `reload` is retired and the `act` schema no
+`act` accepts `fists`, `shiv`, `tack`, `flechette`, `scatter` and `rail` for
+`weapon_swap`; the server rejects unowned choices. The Shiv is an optional
+secret in M01's confiscation alcove: pool-less melee, quicker and harder than
+fists, with no ammunition count. The shared helper keeps a loaded gun in hand
+and draws the Shiv instead of fists only when every gun is dry. A claim that
+found a secret keeps `"secret": true` on its pickup event in `get_events`. `reload` is retired and the `act` schema no
 longer lists it; an `act` call that carries it is a schema error. Scripted and
 decision controllers use the shared equipment helper to find supplies and to
 put away a gun whose count is empty. MCP still sends ordinary actions, never
@@ -228,7 +232,7 @@ Send an action to control your agent's pawn.
 ```
 
 All fields are optional. Movement and fire are booleans (default `false`).
-`weapon_swap` accepts `"fists"`, `"tack"`, `"flechette"`, `"rail"`, or `"scatter"`.
+`weapon_swap` accepts `"fists"`, `"shiv"`, `"tack"`, `"flechette"`, `"rail"`, or `"scatter"`.
 There is no `reload`. For `look_at`, prefer
 `player_id` (UUID), or both `x` and `z` with optional world `y`. The server aims
 at a player's body centre in three dimensions. World x/z without y aims

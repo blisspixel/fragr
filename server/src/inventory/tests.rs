@@ -61,7 +61,7 @@ fn full_arsenal_retains_its_three_unlimited_guns_without_private_state() {
 fn every_shot_spends_one_unit_from_its_count_until_it_is_dry() {
     for weapon in WeaponType::ALL
         .into_iter()
-        .filter(|weapon| *weapon != WeaponType::Fists)
+        .filter(|weapon| weapon.ammo_pool().is_some())
     {
         let mut inventory = Inventory::new(EquipmentPolicy::Discovery);
         assert!(!inventory.owns(weapon));
@@ -220,4 +220,48 @@ fn private_claims_are_stable_and_invalid_wire_equipment_is_rejected() {
         "personal_claims": [], "dry_fire_count": 0
     });
     assert!(serde_json::from_value::<LoadoutState>(legacy).is_err());
+}
+
+#[test]
+fn the_shiv_is_owned_once_without_ammunition_and_survives_the_saved_entry() {
+    let mut inventory = Inventory::new(EquipmentPolicy::Discovery);
+    assert!(!inventory.owns(WeaponType::Shiv));
+    assert!(!inventory.try_fire(WeaponType::Shiv));
+    assert!(!inventory.select(WeaponType::Fists, WeaponType::Shiv));
+    assert!(inventory.grant_weapon(WeaponType::Shiv));
+    let revision = inventory.revision();
+    assert!(
+        !inventory.grant_weapon(WeaponType::Shiv),
+        "a second Shiv adds nothing"
+    );
+    assert_eq!(inventory.revision(), revision);
+    assert!(inventory.select(WeaponType::Fists, WeaponType::Shiv));
+    for _ in 0..500 {
+        assert!(inventory.try_fire(WeaponType::Shiv));
+    }
+    let state = view(&inventory, WeaponType::Shiv, 3);
+    assert_eq!(state.weapons, vec![WeaponType::Fists, WeaponType::Shiv]);
+    assert_eq!(state.shots(WeaponType::Shiv), None);
+    assert!(AmmoPool::ALL.into_iter().all(|pool| state.ammo(pool) == 0));
+    assert_eq!(state.dry_fire_count, 0);
+    assert_eq!(
+        inventory.revision(),
+        revision,
+        "cutting changes no equipment"
+    );
+    let json = serde_json::to_value(&state).unwrap();
+    assert_eq!(json["weapons"], serde_json::json!(["fists", "shiv"]));
+    assert_eq!(json["selected"], "shiv");
+
+    let saved = inventory.saved_equipment(WeaponType::Shiv).unwrap();
+    let text = serde_json::to_string(&saved).unwrap();
+    let read: SavedEquipment = serde_json::from_str(&text).unwrap();
+    let mut restored = Inventory::new(EquipmentPolicy::Discovery);
+    restored.restore_saved_equipment(&read).unwrap();
+    assert!(restored.owns(WeaponType::Shiv));
+    assert_eq!(view(&restored, read.selected, 4).weapons, state.weapons);
+
+    let mut arcade = Inventory::new(EquipmentPolicy::FullArsenal);
+    assert!(!arcade.grant_weapon(WeaponType::Shiv));
+    assert!(!arcade.owns(WeaponType::Shiv));
 }
