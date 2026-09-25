@@ -118,6 +118,36 @@ func _walk_to(goal: Vector2, seconds: float) -> bool:
 	_release_all()
 	return false
 
+## Stop every sound the match started before leaving it. Gunfire and hit
+## players still hold a WAV playback on the audio thread for a few frames
+## after their node is freed; quitting inside that window reports the
+## streams as leaked on some platforms.
+func _silence(node: Node) -> void:
+	for child: Node in node.find_children("*", "", true, false):
+		if child is AudioStreamPlayer3D:
+			(child as AudioStreamPlayer3D).stop()
+			(child as AudioStreamPlayer3D).stream = null
+		elif child is AudioStreamPlayer:
+			(child as AudioStreamPlayer).stop()
+			(child as AudioStreamPlayer).stream = null
+
+## Leave the way a player does, wait for the owned server to exit, then free
+## the menu and give the audio thread and queued frees time to finish.
+func _teardown() -> void:
+	var owned: LocalMatch = LocalMatch.for_tree(self)
+	var pid: int = owned.process._pid if owned.process != null else -1
+	_silence(current_scene)
+	await process_frame
+	current_scene.pause_menu.leave_requested.emit()
+	await _until(func() -> bool: return current_scene != null and current_scene.has_method("_start_campaign") and owned.state == LocalMatch.State.IDLE, "leaving stops the owned server")
+	await _until(func() -> bool: return pid <= 0 or not OS.is_process_running(pid), "the owned server process exits")
+	_silence(current_scene)
+	current_scene.queue_free()
+	for _frame: int in range(6):
+		await process_frame
+	await create_timer(0.5).timeout
+	await process_frame
+
 func _run() -> void:
 	var prefs: FragrSettings = FragrSettings.new(settings_path)
 	prefs.set_value("video", "display_mode", 0)
@@ -201,12 +231,7 @@ func _run() -> void:
 	await _until(func() -> bool: return int(current_scene.input_seq) > before + 2, "use is carried by the next paced send")
 	_key(KEY_ENTER, false)
 	print("test_keyboard_m01: guard down, %d aligned frames firing, %d confirmed hits" % [fired, _shots_hit])
-	current_scene.pause_menu.leave_requested.emit()
-	await _until(func() -> bool: return current_scene != null and current_scene.has_method("_start_campaign") and LocalMatch.for_tree(self).state == LocalMatch.State.IDLE, "leaving stops the owned server")
-	# Let the retired match free its audio players before quitting.
-	current_scene.queue_free()
-	for _frame: int in range(4):
-		await process_frame
+	await _teardown()
 	if failures == 0:
 		print("test_keyboard_m01: PASS menus, walk, turn, fire and use by keyboard alone")
 	quit(0 if failures == 0 else 1)
