@@ -1,6 +1,6 @@
 # Spawn quality on maps 3 to 6
 
-Status: **implemented**. Local evidence is recorded below; the PR tracks CI.
+Status: **shipped** in #237 (v0.47.1).
 Spend: $0. Checked 2026-09-24.
 
 ## Goal

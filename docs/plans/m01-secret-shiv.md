@@ -1,6 +1,6 @@
 # M01 secret Shiv
 
-Status: **implemented**. Local evidence is recorded below; the PR tracks CI.
+Status: **shipped** in #251 (v0.53.0).
 Spend: $0 (existing art from the paused draft, no generation). Checked 2026-09-24.
 
 Supersedes the paused draft in PR #203 (`feat/m01-secrets`, 2026-09-20), which

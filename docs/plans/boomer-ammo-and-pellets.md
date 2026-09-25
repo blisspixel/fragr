@@ -1,6 +1,6 @@
 # Boomer ammo and shotgun pellets
 
-Status: **implemented**. Local evidence is recorded below; the PR tracks CI.
+Status: **shipped** in #243 (v0.49.0).
 Spend: $0. Checked 2026-09-24.
 
 ## Goal

@@ -1,6 +1,6 @@
 # Plan: server observability and soak harness
 
-**Status:** in flight, 2026-09-24.
+**Status:** shipped in #244 (v0.50.1), 2026-09-24.
 **Branch:** `feat/observability-soak`
 **Spend:** $0. Local processes only. No paid model, asset, or cloud call.
 

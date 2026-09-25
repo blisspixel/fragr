@@ -1,6 +1,6 @@
 # Desktop release packages
 
-**Status:** in flight, 2026-09-24. Roadmap Phase 2.7, "desktop exports on tags".
+**Status:** shipped in #233 (v0.47.0), 2026-09-24. Roadmap Phase 2.7, "desktop exports on tags".
 
 ## Goal
 

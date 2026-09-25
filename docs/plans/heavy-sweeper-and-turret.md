@@ -1,6 +1,6 @@
 # Heavy Sweeper and Turret
 
-**Status:** implemented on `feat/heavy-sweeper-turret`, 2026-09-24. Local
+**Status:** shipped in #245 (v0.50.0), 2026-09-24. Local
 evidence is recorded below; no mission places either enemy yet.
 
 ## Goal

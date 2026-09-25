@@ -1,6 +1,6 @@
 # Rust tip screenshot gate
 
-Status: **implemented**. Spend: $0. Checked 2026-09-24.
+Status: **shipped** in #239 (v0.47.1). Spend: $0. Checked 2026-09-24.
 
 ## Goal
 

@@ -1,6 +1,6 @@
 # Plan: multiplayer maps and modes
 
-**Status:** planned (2026-09-24). Everything below is a proposal: no map, mode,
+**Status:** proposed (2026-09-24). Everything below is a proposal: no map, mode,
 item or mutator in this file is built unless a line says so.
 **Branch:** `docs/multiplayer-map-roster` for this plan; one `feat/mp-*` branch per map or mode.
 **Spend:** $0. Graybox, playtest harness and tour stills are local.
