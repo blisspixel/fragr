@@ -13,7 +13,7 @@ Every item below is in exactly one state: **planned**, **in progress**, **shippe
 
 The engineering ladder for scale runs through every phase: small squads first (four to twelve fighters, the current bar), then full servers (thirty-two to sixty-four), then large agent-heavy arenas (hundreds of fighters where most are agents). Each rung has its own measurements and is not claimed until measured.
 
-## Where we are (2026-09-23)
+## Where we are (2026-09-25)
 
 **Shipped and proven on the tip:**
 
@@ -24,6 +24,7 @@ The engineering ladder for scale runs through every phase: small squads first (f
 - CI on Linux: fmt, clippy with warnings denied, tests, deterministic benchmark and budget checks, the agent playtest smoke with thresholds, an unfiltered 90 percent line coverage floor, release build, cargo-deny for licences, bans, and sources, and headless Godot checks. Windows and macOS also pass workspace tests and Godot checks.
 - Live tip screenshots, a one-command Solo Scrap launcher, self-host guides, and plan-only GCP Terraform.
 - v0.34.0 through v0.45.0 are recorded in [the changelog](../CHANGELOG.md). In short: Recall Notice's routes, exit, optional supplies and durable local runs; connection and frame caps; `GET /status`; join tickets; pawn resume; player-facing gun names and cycling; campaign-aware agent control; and bounded spectator delivery. The README stills show current play.
+- v0.46.0 through v0.53.0 (2026-09-24 and 25): host hardening (idle pings, kicks, ban and allow lists, an audit log), localized kick messages, downloadable Windows, Linux and macOS packages on every tag with an original icon, spawn cover on maps 3 to 5, the M02 fight graybox and 120 Hz input pacing, Doom-style ammo with a seven-pellet shotgun, the black and red Union with the Heavy Sweeper and the Turret on a test range, status health metrics with a soak harness, keyboard-only, mouse and gamepad controls with rebinding and aim assist, the first lighting pass, and the M01 secret Shiv.
 - Two developer-only generation pipelines: `tools/audiogen` for audio and `tools/spritegen` for art. Audio uses per-run estimate caps and requires quota reconciliation; art has durable request reservations. Neither replaces asset review. The first art slice produced twenty-four frames for sixty-nine cents, with surfaces rejected.
 - The setting has three sides: the Union/Chancellery, free humans and conscious agents with agency, and the Inheritance. The Inheritance's ecological recovery and mass killing leave conflicting survivor perspectives, not a narrator's declaration that it is right. `docs/lore/` owns the world and voice; bodies do not establish who has freedom or whose suffering matters.
 
@@ -36,9 +37,11 @@ quarantined by the [audio cleanup](plans/music-review.md), with verified backups
 The old radio-only ending cannot be integrated as the new campaign's actual ending. The initial art receipt was $0.69; current remaining provider credit
 must be checked before any new call rather than inferred from that old balance.
 
-**Not built yet (honest list):** low-latency transport (WebSocket JSON only), live client prediction (shared movement vectors exist), a published desktop release (the tag workflow builds and smoke-tests packages; none is attached yet), a complete protocol migration policy (geometry and gameplay admission exist), kick-on-repeat and ban lists, unlimited lifetime statistics, progression, DJ bumpers and a voiced Host, a finished single-player campaign or full co-op lifecycle, a complete art pass, public-server load tests, any cloud apply, vehicles, and multiplayer objective modes. `GET /status` on the game port is a host probe in the current line of work, not an in-app server browser and not a web client. M01 has a developing discovery/combat/mission slice; Episode 0 remains a separate arena prototype. A deterministic local benchmark already exists; it does not establish public-server readiness. Frame caps, connection caps, and the inbound message budget shipped in v0.35.0.
+**Not built yet (honest list):** low-latency transport (WebSocket JSON only), live client prediction (shared movement vectors exist), a complete protocol migration policy (geometry and gameplay admission exist), unlimited lifetime statistics, progression, DJ bumpers and a voiced Host, a finished single-player campaign or full co-op lifecycle, a complete art pass, public-server load tests, any cloud apply, vehicles, and multiplayer objective modes. `GET /status` on the game port is a host probe in the current line of work, not an in-app server browser and not a web client. M01 has a developing discovery/combat/mission slice; Episode 0 remains a separate arena prototype. A deterministic local benchmark already exists; it does not establish public-server readiness. Frame caps, connection caps, and the inbound message budget shipped in v0.35.0.
 
-## What is next, in order (as of 2026-09-23)
+**Decisions waiting on Nick (2026-09-25):** campaign length from the [expansion proposal](plans/campaign-expansion.md) (twenty, fifteen or ten levels), splitting the wipe into three levels, refilling continues each episode, moving five introductions (the Jammer out of M02); from the [multiplayer maps proposal](plans/multiplayer-maps.md), mutators as host settings rather than unlocks and three new pickups; and whether the Cells cap stays at 50 or rises to 100. Parked for the next session: a flaky map 5 opening spawn gate in the six-map roster (a regression test is drafted, no fix yet) and a local open-weights decision model for the reference agent, which needs its model and licence verified first.
+
+## What is next, in order (as of 2026-09-25)
 
 The current sequence is the [full build order](#full-build-order-2026-09-22) below. This section records increments that already shipped. It is not the queue.
 
