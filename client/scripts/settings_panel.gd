@@ -104,15 +104,20 @@ func show_page(page: String) -> void:
 			_toggle("VERTICAL SYNC", "video", "vsync")
 			_update_display_note()
 		"GRAPHICS":
-			_option("QUALITY", "video", "quality", ["PERFORMANCE", "BALANCED", "HIGH"], [0, 1, 2])
-			_option("UPSCALING", "video", "upscaling", ["STANDARD", "FSR 1", "FSR 2"], [0, 1, 2])
+			_option(tr("SETTINGS_QUALITY"), "video", "quality",
+				[tr("SETTINGS_QUALITY_PERFORMANCE"), tr("SETTINGS_QUALITY_BALANCED"), tr("SETTINGS_QUALITY_HIGH")], [0, 1, 2])
+			_option(tr("SETTINGS_UPSCALING"), "video", "upscaling",
+				[tr("SETTINGS_UPSCALING_STANDARD"), "FSR 1", "FSR 2"], [0, 1, 2])
+			_option(tr("SETTINGS_PIXEL_SCALE"), "video", "pixel_scale",
+				[tr("SETTINGS_PIXEL_OFF"), tr("SETTINGS_PIXEL_FINE"), tr("SETTINGS_PIXEL_MEDIUM"), tr("SETTINGS_PIXEL_CHUNKY")], [0, 1, 2, 3])
+			_toggle(tr("SETTINGS_DITHER"), "video", "dither")
 			var renderer: String = RenderingServer.get_current_rendering_method()
 			if not RenderQuality.supports_fsr(renderer):
 				var upscaling: OptionButton = _rows.find_child("upscaling", true, false) as OptionButton
 				upscaling.disabled = true
-				_note.text = "Standard scaling active. FSR needs the Forward+ renderer.\nSaved FSR choices are kept. High adds supported contact shading."
+				_note.text = tr("SETTINGS_GRAPHICS_NOTE_NO_FSR")
 			else:
-				_note.text = "High: smoother edges and contact shading. Pixel textures stay sharp.\nFSR reconstructs lower resolutions. FSR 2 may soften moving sprites."
+				_note.text = tr("SETTINGS_GRAPHICS_NOTE")
 		"AUDIO":
 			_slider("MASTER", "audio", "master", 0.0, 1.0, 0.05)
 			_slider("RADIO", "audio", "music", 0.0, 1.0, 0.05)

@@ -22,6 +22,8 @@ const DEFAULTS: Dictionary = {
 		"resolution_height": 0, # Native fullscreen; automatic size when windowed.
 		"quality": 1,           # Performance, Balanced, High.
 		"upscaling": 0,         # Standard, FSR1, FSR2; renderer gates capability.
+		"pixel_scale": 0,       # Off, fine, medium, chunky world pixels (nearest).
+		"dither": false,        # Ordered dither to the locked palette.
 	},
 	"audio": {
 		"master": 0.9,
@@ -138,6 +140,9 @@ func set_value(section: String, key: String, value: Variant) -> void:
 			value = fallback
 	elif section == "bindings":
 		if not value is String or (not (value as String).is_empty() and InputBindings.parse(value).size() != InputBindings.SLOTS):
+			value = fallback
+	elif path == "video/pixel_scale":
+		if not value is int or value < 0 or value >= RenderQuality.PIXEL_TARGETS.size():
 			value = fallback
 	(_values[section] as Dictionary)[key] = value
 

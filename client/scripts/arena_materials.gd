@@ -32,8 +32,10 @@ static func authored(surface: String) -> ShaderMaterial:
 	var material: ShaderMaterial = ShaderMaterial.new()
 	material.shader = SURFACE
 	var index: int = MapGeometry.SURFACES.find(surface)
-	var bases: Array[Color] = [Color("787468"), Color("c5c1a6"), Color("64675f"), Color("82917f"), Color("343e40")]
-	var accents: Array[Color] = [Color("686954"), Color("52664d"), Color("b9843e"), Color("354d42"), Color("7eaaa0")]
+	# Union spaces read black and red: service steel is dark steel with a
+	# glowing on_air warning strip, and enamel carries a red pinline.
+	var bases: Array[Color] = [Color("787468"), Color("c5c1a6"), Color("565753"), Color("82917f"), Color("343e40")]
+	var accents: Array[Color] = [Color("686954"), Color("52664d"), Color("8b1e1e"), Color("354d42"), Color("7eaaa0")]
 	material.set_shader_parameter("surface_style", index + 1)
 	material.set_shader_parameter("surface_color", bases[index])
 	material.set_shader_parameter("accent_color", accents[index])

@@ -1,6 +1,7 @@
 # Plan: boomer shooter look pass
 
-**Status:** planned (2026-09-18)
+**Status:** in flight (2026-09-24). Stage 1 and the first lighting increment
+are implemented on `feat/look-pass-lighting`; stages 2 to 5 remain planned.
 **Branch:** `feat/look-pass-*` (one PR per stage below)
 **Spend:** $0. Art is authored in-repo (pixel plates, palette, shaders). No paid assets.
 
@@ -41,6 +42,143 @@ Make the tip look like a modern pixel-art boomer shooter instead of a textured g
 - **References.** bearlikelion's BoomerShooter (MIT, GDScript, 4.7 Forward Plus, not low-res), Zorochase's ultimate-retro-shader-collection (MIT, 4.2 to 4.7, PSX and N64 spatial shaders, billboard sprite shaders, dither on a container), psx_visuals_gd4 (MIT port). The Game Engine Black Book: DOOM covers sprite rotations and colormap light diminishing.
 - **Asset production.** Decided in `art-pipeline.md`: generated through two pixel-art-native services (eight views, palette lock, seamless tiles) after written spend approval, or a local Apache 2.0 model at zero cost, then normalised by the Rust tool `tools/pixelforge` (nearest downscale, palette snap, outline, sheet packing, provenance strip, manifest) and touched up in Pixelorama (MIT, built in Godot). Stages 2 to 5 below consume those assets.
 
+## Increment 1: lighting, atmosphere and stage 1 (2026-09-24)
+
+Presentation only. No server, wire or map data changes; the eight strip lights
+per map that the wire already allows are the fixtures.
+
+**Re-verified against 4.7.2 (2026-09-24).** The local binary's own class
+reference (`--doctool`) and the
+[Viewport page](https://docs.godotengine.org/en/4.7/classes/class_viewport.html)
+confirm `SCALING_3D_MODE_NEAREST` ("looks crisper than bilinear and has no
+additional rendering cost"), `OmniLight3D.SHADOW_DUAL_PARABOLOID`,
+`Light3D.light_cull_mask` and distance fade,
+`RenderingServer.environment_set_ssao_quality`,
+`viewport_get_measured_render_time_gpu/cpu`, filmic tonemap, adjustments and
+glow. Two claims above did not hold up: the 4.7
+[resolution scaling page](https://docs.godotengine.org/en/4.7/tutorials/3d/resolution_scaling.html)
+does not document Nearest at all, so the "one over an integer" rule is ours,
+enforced by `RenderQuality.pixel_factor`; and the Compatibility renderer
+refuses paraboloid omni shadows at runtime ("not supported in the
+Compatibility renderer"), which the first measurement run caught. The renderer
+stays Forward+ by default; switching to Compatibility is not part of this
+increment.
+
+**What landed.**
+
+- `arena_sky.gd` owns a light plan per venue. Target: Doom and Dusk
+  readability, rooms clearly lit with the whole space and every enemy visible;
+  shape comes from brighter pools on a lit base, not from a dark baseline. A
+  first tuning with a 0.36 interior ambient was rejected by Nick as too dark;
+  the committed values are the brighter second pass. Recall Notice and the
+  Persons Unknown ward (the `facility` preset) use a warm service-white ambient
+  at 0.82 (was a flat green-grey 1.05), turn the arena's sun down to a faint
+  cool key, hide the arena scene's ember props and fill, and use a thin, light
+  grey-green haze (0.012) so dark silhouettes separate from the far end of an
+  aisle. Filmic tonemap, mild contrast and saturation adjustments, and glow are
+  authored per venue. Arenas keep their sun, now a warmer, stronger sodium key
+  (1.45) over a 0.72 neutral ambient (was 0.8) with a warmer haze.
+- Practical fixtures: each registered strip light adds a brighter pool
+  (energy 3.2, range 12) in service-fluorescent white on top of the ambient. Union seals gain a small
+  red lamp (`on_air`) with no shadow map. Practicals cast shadows from Balanced
+  up (paraboloid where the renderer supports it, cube on High and on
+  Compatibility), drop their shadow past 24 m and fade out past 40 m.
+- Readability: world geometry built from MapInfo renders on visual layer 2. A
+  view-attached omni fill (energy 1.0, range 45 m, shallow falloff) lights
+  layer 1 only: fighters, enemies, pickups and effects, so every enemy keeps a
+  lit front toward the player.
+- Black-and-red enemies (#245): `enemy_view.gd` gives Union bodies
+  `union_sprite.gdshader`. Red optics, visors, armbands and tell lights are
+  full-bright emissive pixels, independent of the light they stand in; the
+  darkest cloth lifts toward charcoal (never grey); and a dim one-texel line
+  separates the silhouette from any wall, reading as a rim on dark steel and an
+  outline on bright enamel. Billboard, nearest sampling, alpha cut and the
+  hit-flash modulate match the Sprite3D settings it replaces.
+  `client/qa/m01-enemies.json` captures Clerks and Sweepers at about 12 to 30 m
+  before each fight in intake, reception and the stacks, then the fights.
+- Surfaces (`arena_surface.gdshader`, `arena_materials.gd`): a stepped
+  per-solid sector level (up to 14 percent darker, from the solid's own
+  centre), a wall-base contact shade that also works on Performance where SSAO
+  is off, service steel darkened to dark steel with an emissive `on_air`
+  warning strip, and a thin emissive red pinline under the enamel band. Union
+  spaces now read black and red against the institutional green.
+- Quality (`render_quality.gd`): Balanced now adds low-quality SSAO and fixture
+  glow; High uses medium SSAO. Performance gets neither; its only added work is
+  the unshadowed practical pools. OpenGL per-object lights are raised to 16 so
+  the single map floor sees every fixture.
+- Stage 1: `video/pixel_scale` (Native, Fine 540 lines, Medium 360, Chunky 270;
+  a whole-number nearest upscale chosen from the actual output) and
+  `video/dither` (ordered 4 by 4 Bayer onto the world swatches of the palette,
+  cyan and magenta accents excluded, aligned to the world pixel grid, on a
+  canvas layer under the HUD and owned by the match scene so menus are never
+  dithered). Both validate and persist through `settings.gd` and appear on the
+  GRAPHICS page, whose labels now come from `client/i18n/world.en.po`. A world
+  pixel choice replaces FSR while selected.
+- **Default: Native, dither off.** At 1080p Fine keeps the large signs, but the
+  intake's far sign and the floating pickup label break up; Medium also breaks
+  the complaints notice. World text was authored for native resolution, so the
+  pixel look stays opt-in until signs and labels are re-authored for a low-res
+  grid.
+
+**Frame time, this host.** Windows 11, AMD Radeon 780M (integrated), Godot
+4.7.2, 1920 by 1080 window, VSync off, frame cap off, 600 frames per state
+after 30 warm-up frames, measured by `frame_sample` in `qa_tour.gd` with
+`client/qa/look-perf.json` (Arena Duel, five bots) and `client/qa/m01-perf.json`
+(M01 intake, no bots). Mean and 95th percentile are wall time between drawn
+frames; GPU is the renderer's own measurement. "Before" is `origin/main` at
+0107197 with the same harness. Repeat runs of one build moved the mean by up to
+1.5 ms, so read smaller differences as noise.
+
+| Renderer | View | Before mean / p95 / GPU ms | After mean / p95 / GPU ms |
+|---|---|---|---|
+| OpenGL | Arena Duel overview, performance | 3.26 / 5.59 / 2.34 | 3.4 / 5.75 / 2.74 |
+| OpenGL | Arena Duel overview, balanced | 3.36 / 5.81 / 2.71 | 5.07 / 6.88 / 4.52 |
+| OpenGL | Arena Duel overview, high | 5.94 / 8.3 / 5.38 | 6.27 / 8.28 / 5.71 |
+| OpenGL | Arena Duel first person, performance | 2.98 / 5.64 / 1.92 | 3.07 / 5.57 / 2.37 |
+| OpenGL | Arena Duel first person, balanced | 3.55 / 6.34 / 2.58 | 4.53 / 6.62 / 4.02 |
+| OpenGL | Arena Duel first person, high | 5.13 / 7.38 / 4.6 | 5.35 / 7.23 / 4.89 |
+| OpenGL | M01 intake, performance | 5.03 / 10.66 / 2.78 | 4.66 / 9.89 / 3.27 |
+| OpenGL | M01 intake, balanced | 5.04 / 10.35 / 3.48 | 7.09 / 11.95 / 6.18 |
+| OpenGL | M01 intake, high | 7.4 / 12.99 / 6.29 | 8.83 / 13.74 / 7.98 |
+| Vulkan | Arena Duel overview, performance | 4.66 / 6.89 / 3.25 | 4.15 / 6.12 / 3.16 |
+| Vulkan | Arena Duel overview, balanced | 5.96 / 7.73 / 4.53 | 7.86 / 9.12 / 6.86 |
+| Vulkan | Arena Duel overview, high | 9.04 / 10.61 / 7.53 | 9.34 / 11.09 / 8.3 |
+| Vulkan | Arena Duel first person, performance | 4.95 / 8.05 / 3.04 | 3.76 / 5.95 / 2.69 |
+| Vulkan | Arena Duel first person, balanced | 5.18 / 7.15 / 3.7 | 6.71 / 8.24 / 5.7 |
+| Vulkan | Arena Duel first person, high | 8.09 / 9.76 / 6.66 | 9.29 / 10.68 / 7.36 |
+| Vulkan | M01 intake, performance | 8.02 / 14.08 / 4.38 | 4.52 / 8.03 / 3.28 |
+| Vulkan | M01 intake, balanced | 7.59 / 13.31 / 5.36 | 8.52 / 12.18 / 7.09 |
+| Vulkan | M01 intake, high | 11.49 / 16.05 / 9.17 | 11.1 / 14.09 / 9.5 |
+| OpenGL | M01 intake, balanced fine | n/a | 7.24 / 10.69 / 4.13 |
+| OpenGL | M01 intake, balanced medium | n/a | 5.47 / 10.77 / 2.89 |
+| OpenGL | M01 intake, balanced chunky | n/a | 4.54 / 9.54 / 2.57 |
+| OpenGL | M01 intake, balanced medium dither | n/a | 4.95 / 10.08 / 3.7 |
+| OpenGL | M01 intake, performance medium | n/a | 3.4 / 7.49 / 1.42 |
+| Vulkan | M01 intake, balanced fine | n/a | 4.94 / 10.14 / 3.36 |
+| Vulkan | M01 intake, balanced medium | n/a | 4.18 / 8.55 / 2.35 |
+| Vulkan | M01 intake, balanced chunky | n/a | 3.63 / 7.57 / 1.92 |
+| Vulkan | M01 intake, balanced medium dither | n/a | 4.59 / 9.48 / 3.01 |
+| Vulkan | M01 intake, performance medium | n/a | 3.71 / 7.89 / 1.01 |
+
+Performance stays cheap: its mean frame time is within noise of before (or
+lower), and its GPU time rises by at most 0.5 ms (the unshadowed practical
+pools). Balanced costs about 1.5 to 2.7 ms more GPU (SSAO, glow and, indoors,
+practical shadow maps); High about 0.3 to 1.7 ms more. The world pixel choices
+cut Balanced intake GPU time from 6.2 ms to 2.6 to 4.1 ms on OpenGL and from
+7.1 ms to 1.9 to 3.4 ms on Vulkan; the dither adds under 1 ms. Performance with
+Medium pixels is the cheapest configuration measured (1.0 to 1.4 ms GPU). "After"
+is the final brighter build with the black-and-red enemy material. This is one
+integrated GPU, not a hardware promise.
+
+**Still weak.** Arenas improved least: they have no registered fixtures, so the
+change there is colour, haze and shadow contrast rather than pools of light. The
+bright enamel walls of M01 still tile visibly in large rooms; the sector steps
+help at corridor scale, not across one long wall. Muzzle flash and impact light
+belong to `shot_effects.gd`, which the weapons PR owns; the follow-up is a
+short-lived `OmniLight3D` per acknowledged shot and impact in the practical
+group so quality controls its shadow. The wall-base shade assumes three-metre
+decks and paints a faint band at three metres on taller walls.
+
 ## Verification
 
 - `tools/godot_check.sh` (import, parse, harnesses) on every stage.
@@ -49,7 +187,7 @@ Make the tip look like a modern pixel-art boomer shooter instead of a textured g
 
 ## Success criteria
 
-- [ ] Stage 1 lands with the toggle and stills.
+- [ ] Stage 1 lands with the toggle and stills. Implemented in increment 1; the default stays Native until world text is re-authored for a low-res grid.
 - [ ] Both maps re-dressed with the atlas.
 - [ ] Fighters read at thirty metres: the far-cam harness asserts sprite height in pixels at 30 m, and a still shows direction and state.
 - [ ] Every weapon is identifiable by its view model silhouette alone: a silhouette contact sheet of the three view models committed with the stills.

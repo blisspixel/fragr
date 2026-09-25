@@ -61,10 +61,11 @@ func apply_map_info(info: Dictionary) -> void:
 		if not presentation.is_empty():
 			material = authored_materials[presentation["solids"][index]]
 		_add_solid(solids[index], material)
-	ArenaDecoration.build(self, solids, presentation.get("decorations", []))
+	ArenaDecoration.build(self, solids, presentation.get("decorations", []), ArenaSky.preset_for(str(info.get("map_name", ""))))
 	var backdrop: ArenaBackdrop = ArenaBackdrop.new()
 	backdrop.build(map_id, _half_extent)
 	add_child(backdrop)
+	ArenaSky.mark_world(self)
 	_hide_scene_props()
 
 ## Half width of the playable square the server last described, so the camera
