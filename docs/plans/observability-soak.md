@@ -89,9 +89,65 @@ Health is `degraded` when any of these hold, otherwise `ok`:
       start time, build identity and health, documented in `docs/protocol.md`.
 - [ ] `fragr-playtest --soak` writes NDJSON samples and fails on a crash, a
       stall, RSS growth, p99 over budget, connection drift or queue drops.
-- [ ] A local soak of at least 60 minutes recorded below with commit and hardware.
+- [x] A local soak of at least 60 minutes recorded below with commit and hardware (two runs; the second failed its own tick rate rule under host load).
 - [ ] A twenty-four hour soak on a release candidate (not this PR).
 
 ## Measurements
 
-Filled in from the recorded run.
+Host: Windows 11 Pro, AMD Ryzen 7 7840U (8 cores, 16 threads), 62 GB RAM,
+rustc 1.97.1, release builds. The machine was shared with other worktrees'
+builds and a Godot check run during both soaks; that load is part of the
+result, not excluded from it. Roster for both: 4 rule bots, 4 reflex agents
+and 2 spectators on loopback, `--soak-map-rotate` (all six arena maps),
+seed 1, one sample a minute. Evidence NDJSON stays under `.agents/soak/`.
+
+```bash
+target/release/fragr-playtest --soak --soak-seconds 3900 --soak-sample-seconds 60 --soak-bots 4 --agents 4 --soak-spectators 2 --soak-map-rotate --assert --soak-log .agents/soak/final-65min.ndjson
+```
+
+| | Run A | Run B |
+|---|---|---|
+| Server commit (`ops.build.commit`) | `1d5933b` | `d1c2a69` (adds `tick_rate_low`) |
+| Measured span | 4200 s (70 min), 71 samples | 3900 s (65 min), 66 samples |
+| Server exit during run | none | none |
+| Ticks start to end | 34 to 82866 (19.72 Hz) | 33 to 77597 (19.89 Hz) |
+| Slowest minute | 16.06 Hz; 6 of 70 minutes under 19 Hz | 18.07 Hz; 2 of 65 minutes under 19 Hz |
+| Window p50/p95/p99 at start | 0.17 / 0.79 / 0.83 ms (21 ticks) | 0.18 / 0.22 / 1.14 ms (20 ticks) |
+| Window p50/p95/p99 at end | 0.24 / 0.85 / 1.38 ms | 0.15 / 0.25 / 0.43 ms |
+| Lifetime p50/p95/p99, max | 0.23 / 0.79 / 1.57 ms, 139.0 ms | 0.20 / 0.51 / 1.18 ms, 114.7 ms |
+| Ticks at or over 50 ms | 6 of 82845 | 1 of 77577 |
+| Outbound bytes per client per second | 47554 | 48091 |
+| Inbound bytes per client per second | 2348 | 2385 |
+| Queue overflows | 0 | 0 |
+| Connections (agents, spectators) | 4, 2 at every sample | 4, 2 at every sample |
+| Resident set start, end, max | 38.2, 33.6, 40.7 MiB | 37.9, 39.7, 40.9 MiB |
+| Health at start and end | ok, ok | ok, ok |
+| Degraded samples | 0 (rule not yet built) | 2 (`tick_rate_low`, 18.8 and 18.1 Hz) |
+| Harness verdict | pass | **fail** (the two degraded samples) |
+
+Run B end status (abridged): `schema_version` 2, map Compliance Yard, round
+44, tick 77597, 8 fighters, 6 connections, health ok, uptime 3902 s,
+1 125 648 264 bytes out and 55 817 069 in since start.
+
+Reading: tick handler time never approached the budget (p99 under 1.6 ms
+over both runs), memory was flat within about 3 MiB, and no connection,
+queue or process failed. What Run A showed, and Run B's new rule then
+flagged, is the scheduler skipping ticks on a loaded desktop: minutes at 16
+to 18 Hz with a fast handler. That is a host-contention signal, not a tick
+cost; a dedicated host has to show it clean. Run B is therefore recorded as a
+failed soak by its own rule, and neither run is the 1.0 soak.
+
+Outbound per client is about 47 KB/s of JSON text on this roster, before
+WebSocket framing and TCP. That matches the fanout matrix order of magnitude
+and is the number the snapshot efficiency work should move.
+
+CI: the `soak` job on PR #244 passed 120 s with 9 samples, 20.00 Hz, window
+p99 0.38 ms at the end, lifetime max 0.83 ms, 46228 out and 2349 in bytes per
+client per second, resident set 37.2 to 37.9 MiB.
+
+## Gaps
+
+- No twenty-four hour run, and no run on an idle or dedicated host.
+- Loopback only. No Internet path, TLS, packet loss or remote clients.
+- No human clients in the roster; humans count only through role tests.
+- Windows memory is the working set from `tasklist`; Linux uses VmRSS.
