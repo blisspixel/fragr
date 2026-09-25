@@ -61,6 +61,10 @@ jobs:
           key: release-${{ matrix.platform }}
       - name: Build fragr-server
         shell: bash
+        env:
+          # Baked into GET /status as ops.build; an empty release reads as none.
+          FRAGR_BUILD_COMMIT: ${{ github.sha }}
+          FRAGR_BUILD_VERSION: ${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || '' }}
         run: |
           set -euo pipefail
           mkdir -p out

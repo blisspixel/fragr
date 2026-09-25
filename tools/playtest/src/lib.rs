@@ -19,6 +19,7 @@ use tokio_tungstenite::{connect_async, tungstenite::Message};
 use uuid::Uuid;
 
 pub mod fanout;
+pub mod soak;
 
 /// Ticks per second of the authoritative loop.
 pub const TICKS_PER_SECOND: f64 = 20.0;

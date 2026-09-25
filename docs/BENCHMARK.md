@@ -59,7 +59,10 @@ version 2 total CPU step times without selecting the same phase.
 Timers exclude hashing, trace construction/writing, sleeps, network fan-out, socket
 serialization per recipient, transport framing, scheduler delay, and rendering.
 The live status line measures the session phase and counts encoded broadcasts;
-it does not claim a whole-network tick duration. Unicast bytes in a rule-bot-only
+it does not claim a whole-network tick duration. `GET /status` reports a
+different scope, `tick_handler` (simulation plus broadcast and unicast enqueue
+and the status refresh), over a sixty second window and the process lifetime,
+from the same histogram type; see `docs/protocol.md`. Unicast bytes in a rule-bot-only
 run are normally zero because these bots do not send numbered input acknowledgements.
 Recording still affects caches and wall-clock load, so compare like configurations.
 

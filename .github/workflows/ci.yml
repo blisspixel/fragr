@@ -105,6 +105,29 @@ jobs:
           bash tools/godot_check.sh
           bash tools/test_godot_check.sh
 
+  soak:
+    # Runs beside the test job, off its critical path. The long soak is local.
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: Build the server and the harness
+        env:
+          FRAGR_BUILD_COMMIT: ${{ github.sha }}
+        run: cargo build -p fragr-server -p fragr-playtest --release --locked
+      - name: Two minute soak
+        run: target/release/fragr-playtest --soak --soak-seconds 120 --soak-sample-seconds 15 --soak-bots 4 --agents 4 --soak-spectators 2 --soak-map-rotate --assert --soak-log .agents/soak/ci.ndjson
+      - name: Preserve soak evidence
+        if: always()
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: soak
+          path: .agents/soak/
+          include-hidden-files: true
+          retention-days: 7
+          if-no-files-found: warn
+
   audit:
     runs-on: ubuntu-24.04
     steps:

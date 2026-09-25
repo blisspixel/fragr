@@ -27,6 +27,31 @@ default. Reports use schema 1. Keep the JSON and record the
 host and revision when comparing results. This local matrix does not establish
 Internet latency or public-server capacity.
 
+`--soak` runs the real `fragr-server` binary (the one beside this tool, or
+`--soak-server PATH`) as a child with `--soak-bots` rule bots, `--agents` reflex
+agents and `--soak-spectators` reading spectators on loopback. Every
+`--soak-sample-seconds` it writes one NDJSON line to `--soak-log` (default
+`.agents/soak/soak.ndjson`, with the server log beside it) holding
+`GET /status?clients=1` and the server's resident set from the OS
+(`/proc/<pid>/status` on Linux, `tasklist` working set on Windows, `ps` on
+macOS; `rss_unavailable` says why when it cannot). A `start` line records the
+configuration, source commit and host; a `verdict` line ends the file. With
+`--assert` it exits non-zero on a server exit, a missing status, a tick that did
+not advance, a client or server connection count off the requested roster, any
+`degraded` health sample (including `tick_rate_low`), a lifetime p99 at or above 50 ms, an outbound queue
+overflow, or resident set growth past half the first sample or 64 MiB,
+whichever is larger. The server is stopped through its own process handle.
+
+```bash
+cargo build -p fragr-server -p fragr-playtest --release --locked
+target/release/fragr-playtest --soak --soak-seconds 3600 --soak-sample-seconds 60 --soak-bots 4 --agents 4 --soak-spectators 2 --soak-map-rotate --assert
+```
+
+CI runs the same command for 120 seconds with 15 second samples in its own
+job. A local run of an hour or more belongs in
+[`observability-soak.md`](../../docs/plans/observability-soak.md); a twenty-four
+hour run is a release gate, not a CI step.
+
 `--assert` exits non-zero when a frustration threshold is crossed: no round completed, an agent stuck (no movement and no fire during an active round) for more than five seconds, spawn deaths above ten percent of frags, or fewer than one frag per minute with four or more agents. It also fails when the sticky flechette, rail, or scatter clean-hit time to kill leaves the 0.5 to 1.2 second band (the #124 table). CI runs exactly that command on every PR. Reports land under the gitignored `.agents/` directory; put the summary table for a change under test into that change's plan doc.
 
 Use `--tiers reflex`, `--tiers planner`, or `--tiers reflex,planner` to deal

@@ -6,6 +6,7 @@ mod decoration;
 mod loadout;
 mod mission;
 mod statistics;
+mod status;
 pub use actors::{hostile, CampaignActor, EnemyKind, EnemyPhase};
 pub use decoration::{
     validate_decorations, MapDecoration, MapDecorationKind, MapFace, MAX_MAP_DECORATIONS,
@@ -23,6 +24,10 @@ pub use mission::{
 pub use statistics::{
     CombatCounts, PlayerRecord, RecordScope, RecordStatus, WeaponCounts, RECORD_TICKS_PER_SECOND,
     RECORD_VERSION,
+};
+pub use status::{
+    BuildInfo, ClientRate, Health, HealthReason, HealthState, OpsStatus, ProcessInfo, RoleCounts,
+    TickSummary, TickTiming, TrafficTotals, OPS_VERSION,
 };
 
 /// Named scrap-league identity (Contested Frequency denies it exists).
@@ -68,6 +73,11 @@ pub struct LiveStatus {
     pub agents: usize,
     pub bots: usize,
     pub connections: usize,
+    /// Additive to schema 2. Absent until the tick loop's first refresh.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub health: Option<Health>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub ops: Option<OpsStatus>,
 }
 
 impl Default for LiveStatus {
@@ -83,6 +93,8 @@ impl Default for LiveStatus {
             agents: 0,
             bots: 0,
             connections: 0,
+            health: None,
+            ops: None,
         }
     }
 }

@@ -64,6 +64,7 @@ If prose and code disagree, code wins; fix the prose in the same change. Keep pl
 | CPU measurements and offline traces | `server/src/bench.rs`, `trace.rs`; contract in `docs/BENCHMARK.md` |
 | Participant records and local history | `server/src/statistics.rs` counts resolved facts; `protocol/statistics.rs` owns records. Delivery requires capability 10. Client validation: `player_record.gd`; retained history: `player_records.gd`; UI: `records_panel.gd`. Continue resets attempt counts, never total effort. Automation isolates `fragr_records_path` or uses memory. Never infer effective damage from overkill-inclusive `ShotResult.damage`. |
 | Tick loop shared by the binary and harnesses | `server/src/run.rs` (`run_server`, `ServerOptions`) |
+| Status health, tick percentiles, traffic counters | `server/src/metrics.rs` builds the `/status` operator block; wire shape in `protocol/status.rs`; session byte counts in `net.rs`. Reuse `bench::Histogram`. Never add an address, callsign, id or token. Soak: `fragr-playtest --soak`. |
 | Local campaign process ownership | `server/src/local.rs` owns readiness, run location and stdin lease; `maps::AuthoredSource` uses one map loader for files and bundled missions. `client/scripts/local_match.gd` owns lifecycle and read-only preview, `local_process.gd` owns native pipes/PID. Never kill a listener by port or process name. |
 | Desktop packages and game icon | `.github/workflows/release.yml` builds, smokes and attaches tag packages; `client/scripts/install_check.gd` is the packaged `-- --check-install`. Icon files come only from `tools/bake_icon.gd`; crate notices only from `tools/licenses` (checked against `deny.toml`). Keep `fragr-server` beside the game executable. The project name is `fragr`; `user_data_migration.gd` carries files from the old `fragr Client` user folder. |
 | Agent playtest harness and metrics | `tools/playtest` |
@@ -124,6 +125,8 @@ cargo build --workspace --release --locked
 cargo deny check licenses bans sources   # advisories are reported, not blocking
 cargo run -p fragr-playtest --locked -- --agents 4 --rounds 1 --frag-limit 3 --time-limit-seconds 45 --assert --report .agents/playtest/ci.json
 bash tools/playtest_roster.sh   # 2/6/6/8/12/16 mixed clients across all six maps
+cargo build -p fragr-server -p fragr-playtest --release --locked   # soak job
+target/release/fragr-playtest --soak --soak-seconds 120 --soak-sample-seconds 15 --soak-bots 4 --agents 4 --soak-spectators 2 --soak-map-rotate --assert --soak-log .agents/soak/ci.ndjson
 ```
 
 Godot (the `godot` CI job runs this; locally point `GODOT_BIN` at a 4.7.2-stable binary):

@@ -4,6 +4,18 @@ Shipped tags, newest first. A line here is on `main`. Planned work stays in
 [docs/ROADMAP.md](docs/ROADMAP.md). Older tags are on the
 [releases page](https://github.com/blisspixel/fragr/releases).
 
+## v0.50.1 (2026-09-24)
+
+Hosts can see how their server is doing. `GET /status` keeps its existing
+fields and adds a health verdict (ok or degraded, with reasons such as slow
+ticks, a low tick rate or dropped slow readers) and an operations block with
+tick timing percentiles, the real tick rate, traffic per client and in total,
+connections by role, uptime and the build version. `fragr-playtest --soak`
+runs the real server with bots, agents and spectators for as long as you ask
+and fails on a crash, a drop, a degraded sample or memory growth. Two local
+soaks of over an hour held tick p99 under 1.6 ms with flat memory; a 24-hour
+soak is still to come.
+
 ## v0.50.0 (2026-09-24)
 
 The Union now looks like what it is. Clerks and Sweepers wear black cloth and

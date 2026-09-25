@@ -52,6 +52,7 @@ async fn stalled_writer_times_out_and_wakes_connection_cleanup() {
         Duration::from_millis(20),
         Duration::from_secs(60),
         stop,
+        crate::metrics::ClientTraffic::new(Role::Spectator, Default::default()),
     ));
     timeout(Duration::from_secs(1), changed.changed())
         .await
@@ -201,6 +202,7 @@ async fn status_get_reports_the_match_without_taking_a_slot() {
         agents: 1,
         bots: 2,
         connections: 2,
+        ..crate::protocol::LiveStatus::default()
     }));
     server.share_status(std::sync::Arc::clone(&status));
     let address = server.local_addr().unwrap();

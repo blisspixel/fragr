@@ -26,6 +26,7 @@ async fn run_outbound_writer<S>(
     send_timeout: Duration,
     ping_every: Duration,
     mut stop: tokio::sync::oneshot::Receiver<()>,
+    traffic: Arc<crate::metrics::ClientTraffic>,
 ) -> S
 where
     S: futures_util::Sink<Message> + Unpin,
@@ -45,11 +46,18 @@ where
             _ = ping.tick() => Message::Ping(Vec::new()),
             _ = &mut stop => return sink,
         };
+        let text_bytes = match &frame {
+            Message::Text(text) => Some(text.len()),
+            _ => None,
+        };
         if !matches!(
             tokio::time::timeout(send_timeout, sink.send(frame)).await,
             Ok(Ok(()))
         ) {
             break;
+        }
+        if let Some(bytes) = text_bytes {
+            traffic.sent(bytes);
         }
     }
     shutdown.send_replace(true);
@@ -385,12 +393,15 @@ pub struct ClientSession {
     /// Broadcasts must follow the initial targeted geometry in this queue.
     pub(crate) initialized: bool,
     shutdown: watch::Sender<bool>,
+    traffic: Arc<crate::metrics::ClientTraffic>,
 }
 
 impl ClientSession {
+    /// A session outside the listener, for tests: its traffic is its own.
     pub fn new(id: Uuid, tx: WsTx, gameplay_version: u32) -> Self {
         let (shutdown, _) = watch::channel(false);
-        Self::with_shutdown(id, tx, gameplay_version, shutdown)
+        let traffic = crate::metrics::ClientTraffic::new(Role::Spectator, Arc::default());
+        Self::with_shutdown(id, tx, gameplay_version, shutdown, traffic)
     }
 
     fn with_shutdown(
@@ -398,6 +409,7 @@ impl ClientSession {
         tx: WsTx,
         gameplay_version: u32,
         shutdown: watch::Sender<bool>,
+        traffic: Arc<crate::metrics::ClientTraffic>,
     ) -> Self {
         Self {
             id,
@@ -405,7 +417,12 @@ impl ClientSession {
             gameplay_version,
             initialized: false,
             shutdown,
+            traffic,
         }
+    }
+
+    pub(crate) fn traffic(&self) -> &crate::metrics::ClientTraffic {
+        &self.traffic
     }
 
     pub(crate) fn request_close(&self) {
@@ -434,6 +451,7 @@ pub struct NetServer {
     join_secret: Option<std::sync::Arc<crate::join_ticket::JoinSecret>>,
     resume: std::sync::Arc<crate::resume::ResumeTable>,
     access: Option<AccessWatch>,
+    traffic: Arc<crate::metrics::TrafficCounters>,
 }
 
 type AccessWatch = watch::Receiver<Arc<crate::access::AccessPolicy>>;
@@ -535,6 +553,7 @@ impl NetServer {
             join_secret: None,
             resume: std::sync::Arc::new(crate::resume::ResumeTable::new()),
             access: None,
+            traffic: Arc::default(),
         })
     }
 
@@ -553,6 +572,11 @@ impl NetServer {
         secret: std::sync::Arc<crate::join_ticket::JoinSecret>,
     ) {
         self.join_secret = Some(secret);
+    }
+
+    /// Payload totals for every session this listener admits, closed ones included.
+    pub fn traffic_totals(&self) -> Arc<crate::metrics::TrafficCounters> {
+        Arc::clone(&self.traffic)
     }
 
     /// Share the match line the tick loop refreshes. `GET /status` reads it.
@@ -627,6 +651,7 @@ impl NetServer {
                     let join_secret = self.join_secret.clone();
                     let resume_table = std::sync::Arc::clone(&self.resume);
                     let access = self.access.clone();
+                    let traffic = Arc::clone(&self.traffic);
 
                     tokio::spawn(async move {
                         let verdict =
@@ -674,6 +699,7 @@ impl NetServer {
                                 peer: addr,
                                 access,
                                 limits,
+                                traffic,
                             },
                         )
                         .await
@@ -757,8 +783,14 @@ async fn serve_status_if_requested(
             break;
         }
     }
+    let with_clients = crate::metrics::wants_clients(&header);
     let body = match status.try_read() {
-        Ok(live) => serde_json::to_string(&*live).unwrap_or_else(|_| "{}".into()),
+        Ok(live) => serde_json::to_string(&crate::metrics::served_status(
+            &live,
+            with_clients,
+            crate::metrics::process_uptime(),
+        ))
+        .unwrap_or_else(|_| "{}".into()),
         Err(_) => "{\"schema_version\":1}".into(),
     };
     let response = format!(
@@ -817,6 +849,7 @@ struct HelloPolicy {
     peer: std::net::SocketAddr,
     access: Option<AccessWatch>,
     limits: SessionLimits,
+    traffic: Arc<crate::metrics::TrafficCounters>,
 }
 
 /// What the reader loop learned about the session as it ended.
@@ -834,6 +867,7 @@ async fn read_session(
     role: Role,
     player_id: Option<Uuid>,
     policy: &HelloPolicy,
+    traffic: &crate::metrics::ClientTraffic,
 ) -> SessionEnd {
     let limits = policy.limits;
     let mut inbound = InboundBudget::new();
@@ -885,8 +919,14 @@ async fn read_session(
                 idle.as_mut()
                     .reset(tokio::time::Instant::now() + limits.idle_after);
                 match frame {
-                    Message::Text(text) => Some(text),
-                    Message::Binary(_) => None,
+                    Message::Text(text) => {
+                        traffic.received(text.len());
+                        Some(text)
+                    }
+                    Message::Binary(bytes) => {
+                        traffic.received(bytes.len());
+                        None
+                    }
                     _ => continue,
                 }
             }
@@ -944,6 +984,18 @@ async fn read_session(
     SessionEnd { left, kick }
 }
 
+async fn send_welcome(
+    sink: &mut futures_util::stream::SplitSink<ServerSocket, Message>,
+    welcome: &ServerMessage,
+    traffic: &crate::metrics::ClientTraffic,
+) -> Result<(), Box<dyn std::error::Error>> {
+    let text = serde_json::to_string(welcome)?;
+    let bytes = text.len();
+    sink.send(Message::Text(text)).await?;
+    traffic.sent(bytes);
+    Ok(())
+}
+
 async fn handle_connection(
     stream: TcpStream,
     game_tx: mpsc::UnboundedSender<GameCommand>,
@@ -972,6 +1024,7 @@ async fn handle_connection(
 
     let role;
     let player_id;
+    let traffic;
     // RAII returns seats after failed admission and development-party disconnect.
     // Solo admission consumes its permit for the server lifetime below.
     // A resume request parks the seat instead of returning it on a drop.
@@ -1027,6 +1080,8 @@ async fn handle_connection(
                     };
                     return reject_connection(ws_sink, ws_stream, rejection, peer).await;
                 }
+                traffic = crate::metrics::ClientTraffic::new(r, Arc::clone(&policy.traffic));
+                traffic.received(text.len());
                 let resume_rejected = || ServerMessage::Error {
                     code: "resume_rejected".into(),
                     message: "The previous pawn is gone.".into(),
@@ -1049,6 +1104,7 @@ async fn handle_connection(
                             tx.clone(),
                             gameplay_version,
                             shutdown_tx.clone(),
+                            Arc::clone(&traffic),
                         ));
                         if game_tx
                             .send(GameCommand::Resume {
@@ -1087,9 +1143,7 @@ async fn handle_connection(
                         playlist: crate::protocol::default_playlist(),
                         resume: Some(accepted.token),
                     };
-                    ws_sink
-                        .send(Message::Text(serde_json::to_string(&welcome)?))
-                        .await?;
+                    send_welcome(&mut ws_sink, &welcome, &traffic).await?;
                     tracing::info!(
                         target: AUDIT_TARGET,
                         event = "resume",
@@ -1144,9 +1198,7 @@ async fn handle_connection(
                         resume: issued,
                     };
 
-                    ws_sink
-                        .send(Message::Text(serde_json::to_string(&welcome)?))
-                        .await?;
+                    send_welcome(&mut ws_sink, &welcome, &traffic).await?;
 
                     let mut clients_lock = clients.lock().await;
                     clients_lock.push(ClientSession::with_shutdown(
@@ -1154,6 +1206,7 @@ async fn handle_connection(
                         tx.clone(),
                         gameplay_version,
                         shutdown_tx.clone(),
+                        Arc::clone(&traffic),
                     ));
                     drop(clients_lock);
 
@@ -1201,6 +1254,7 @@ async fn handle_connection(
         OUTBOUND_SEND_TIMEOUT,
         policy.limits.ping_every,
         writer_stop,
+        Arc::clone(&traffic),
     ));
 
     let end = read_session(
@@ -1210,6 +1264,7 @@ async fn handle_connection(
         role,
         player_id,
         &policy,
+        &traffic,
     )
     .await;
 
