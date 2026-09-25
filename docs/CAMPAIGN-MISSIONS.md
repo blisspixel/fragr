@@ -208,7 +208,7 @@ The ring loops back toward the dock rather than retracing empty corridors.
 
 **Fights and discovery.** Introduce the actual campaign Auditor reactivating
 disabled units, with strict limits and an obvious channeling tell. Proximity
-tins control converging routes; the Lobber arrives for the gallery crest. A
+mines control converging routes; the rocket launcher waits for M08. A
 custody-control boss uses hardware with breakable support nodes and exposed
 recovery windows, not a giant health bar standing on a plinth.
 
@@ -430,7 +430,7 @@ and epilogue with fresh players; timer tests do not establish enjoyable pacing.
 
 Every enemy needs coherent facing, locomotion, attack, pain, death/disable, and
 relevant reactivation frames. Every weapon needs registered first-person poses
-and distinctive fire, reload, empty, pickup, impact, and material response as
+and distinctive fire, cycle, empty, pickup, impact, and material response as
 applicable. Key companions need consistent bodies, readable gestures, and facial
 or equivalent expressive details. A generated still is a reference, not a complete
 character. Budget the complete first-mission set before multiplying asset families.

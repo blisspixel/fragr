@@ -37,7 +37,7 @@ Winning the ward is the crest's first half; escaping together is the second.
 
 ## Encounters and equipment
 
-Carry M01 inventory. Guaranteed Scatter, Darts and ordinary health support a
+Carry M01 inventory. Guaranteed Shotgun, Shells and ordinary health support a
 player who missed every secret. Crawlers punish retreating straight down a hall;
 the antechamber supplies lateral space. A human officer above the processing
 floor creates a priority target without requiring the Rail.

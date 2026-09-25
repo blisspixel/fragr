@@ -12,7 +12,7 @@ an explicit approved cap, and the existing developer pipelines.
 | Concern | Present behavior | Campaign gap |
 |---|---|---|
 | Maps | Six arena layouts and a validated M01 document; shared finite geometry, keyed signs and bounded details | Complete mission layouts, room kits and transitions |
-| Combat | M01 fists, found Tack/Flechette, private finite inventory, reload and supplies; arcade full arsenal | Remaining arsenal, projectiles, authored encounter balance and finished sound sets |
+| Combat | M01 fists, found Tack/Flechette, private finite inventory, one ammunition count per type and supplies; arcade full arsenal | Remaining arsenal, projectiles, authored encounter balance and finished sound sets |
 | Movement | Shared gravity, jump, steps, ceilings and overlapping floors with a verified GDScript mirror | New traversal features require explicit geometry support and live tests |
 | Enemies | Rule bots, elite/boss prototype, authored human Clerk and Sweeper bot with phased attacks and directional animation | Full enemy roster, final art, encounters and balance |
 | Episode | Calibration prototype; M01 transfer/gate/departure shipped in v0.26.0 | Full story missions, rescue outcomes and campaign transitions |
