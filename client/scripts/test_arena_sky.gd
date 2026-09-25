@@ -19,10 +19,10 @@ func _run() -> void:
 	_check(recall.interior and not scrap.interior and not yard.interior, "venue interiors are not matched explicitly")
 	_check(recall.ambient_color != scrap.ambient_color, "Recall Notice still uses the scrapyard fill")
 	_check(yard.ambient_color != scrap.ambient_color, "Compliance Yard lost its own sky")
-	# Interiors are lit by their fixtures now. The ambient floor is lower than
-	# the old flat 1.05 but never low enough to put a wall at arm's length in
-	# pure black, and the fixtures must be the brighter light in the room.
-	_check(recall.ambient_energy >= 0.3 and recall.ambient_energy < 1.0, "interior ambient floor left its readable band")
+	# Interiors read like Doom and Dusk rooms: a clearly lit base with brighter
+	# fixture pools on top, never a dark baseline.
+	_check(recall.ambient_energy >= 0.75, "interior ambient floor dropped below the readable base")
+	_check(scrap.ambient_energy >= 0.65 and yard.ambient_energy >= 0.65, "arena ambient floor dropped below the readable base")
 	_check(recall.practical_energy > scrap.practical_energy * 2.0 and recall.practical_range > scrap.practical_range, "interior fixtures do not dominate the ambient floor")
 	_check(recall.accent_energy > 0.0 and scrap.accent_energy == 0.0, "Union seals lost their red lamp, or it leaked to the arena")
 	_check(recall.view_fill_energy > 0.0 and recall.view_fill_range >= 30.0, "interior enemies lost their readability fill at aisle range")

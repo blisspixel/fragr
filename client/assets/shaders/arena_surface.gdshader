@@ -9,11 +9,11 @@ uniform int surface_style = 0; // 0 arcade, 1 concrete, 2 enamel, 3 service, 4 r
 // Stepped light level per solid, the old sector trick: each box reads a little
 // brighter or darker than its neighbour, so a run of identical panels stops
 // looking like one repeated tile. Zero disables it.
-uniform float sector_variation = 0.14;
+uniform float sector_variation = 0.08;
 // Deck heights repeat every three metres on the authored maps. Wall bases
 // darken toward each deck, a contact shade that costs nothing on Performance.
 uniform float deck_spacing = 3.0;
-uniform float base_shade = 0.28;
+uniform float base_shade = 0.18;
 // Union warning pinline under the enamel band, and the glow of steel strips.
 uniform vec4 warning_color : source_color = vec4(0.545, 0.118, 0.118, 1.0);
 uniform float trim_glow = 0.55;

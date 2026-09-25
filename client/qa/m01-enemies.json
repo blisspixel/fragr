@@ -1,0 +1,21 @@
+{
+  "comment": "Enemy readability in the darkest Recall Notice rooms: Clerks and Sweepers seen at about 12 to 30 m before each fight, then the room tour's fights. Capture evidence, not a difficulty review.",
+  "width": 1280,
+  "height": 720,
+  "combat_travel": true,
+  "states": [
+    {"name":"arrival","scene":"res://scenes/main.tscn","join":"human","camera":"first_person","look_at":[0,4.7,-28]},
+    {"name":"intake_clerk","camera":"first_person","walk_to":[[0,0,-26],[0,0,-21]],"combat":{"kind":"clerk","evade_tells":true,"required":["intake_security"]}},
+    {"name":"sweepers_30m","camera":"first_person","look_at":[0,4.2,9],"note":"Records sweepers at about 30 m from the confiscation bay, under the balcony."},
+    {"name":"sweepers_12m","camera":"first_person","walk_to":[[0,0,-3]],"look_at":[0,4.2,9],"note":"The same sweepers at about 12 m."},
+    {"name":"intake_sweepers","camera":"first_person","walk_to":[[0,0,-10]],"combat":{"kind":"sweeper","evade_tells":true,"required":["records_sweeper_west","records_sweeper_east"]}},
+    {"name":"balcony_lift","camera":"first_person","walk_to":[[6,0,-9],[8,0,-8],[8,3,9],[-4,3,9]],"look_at":[2,7.25,22],"note":"Records deck stand at (-4, 3, 9), aimed at the custody lift sign through the reserved opening."},
+    {"name":"reception_14m","camera":"first_person","walk_to":[[-19,3,9]],"look_at":[-17.5,4.2,22],"note":"Reception clerks at about 13 m across the dark records deck."},
+    {"name":"reception_clear","camera":"first_person","walk_to":[[-19,3,9],[-19,3,13.7],[-15.5,3,13.7],[-15.5,3,17.5]],"combat":{"kind":"union","evade_tells":true,"required":["reception_clerk","reception_runner"]},"look_at":[-18,3.15,24],"note":"Reception after the counter fight."},
+    {"name":"reception_floor","camera":"first_person","walk_to":[[-16.2,3,17.2]],"look_at":[-18,3.4,28],"note":"Reception records tile and enamel walls, clear of the medkit at (-19, 23)."},
+    {"name":"stacks_24m","camera":"first_person","walk_to":[[-19,3,18]],"look_at":[-41.5,4.2,25],"note":"Archive clerk and sweeper at about 24 m down the stacks."},
+    {"name":"stacks_13m","camera":"first_person","look_at":[-32,4.2,16],"note":"Stacks clerk at about 13 m."},
+    {"name":"stacks_clear","camera":"first_person","walk_to":[[-19,3,18],[-19,3,23],[-19,3,18],[-25,3,18]],"combat":{"kind":"union","evade_tells":true,"required":["stacks_clerk","archive_clerk","stacks_sweeper","archive_sweeper"]},"look_at":[-32,3.2,18],"note":"File stacks after the aisle fight."},
+    {"name":"stacks_floor","camera":"first_person","walk_to":[[-25,3,18],[-25.5,3,23],[-25.5,3,24],[-32,3,24]],"look_at":[-35.2,3.15,21],"note":"File-stack records tile and service-steel racks. The stand passes the stack medkit."}
+  ]
+}

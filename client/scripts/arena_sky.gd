@@ -104,21 +104,20 @@ class Preset extends RefCounted:
 ## it replaced. The fix for a void is not a darker void, it is a value the eye
 ## can separate from the silhouette in front of it.
 ##
-## The ambient floor is lower than it was and the sun is stronger, so cover
-## throws a shadow that reads as a shadow. The floor never drops so far that a
-## fighter in shade turns into a hole.
+## A slightly lower ambient floor and a stronger, warmer sun than before, so
+## cover throws a shadow that reads as a shadow while the whole yard stays lit.
 static func scrapyard() -> Preset:
 	var preset: Preset = Preset.new(
 		Color(0.086, 0.082, 0.106),  # cool night
 		Color(0.286, 0.196, 0.141),  # sodium haze
 		Color(0.180, 0.129, 0.102),
-		Color(0.160, 0.118, 0.094),
-		0.014,
-		Color(0.56, 0.60, 0.70),     # cool sky fill against a warm key
-		0.45
+		Color(0.200, 0.150, 0.118),
+		0.009,
+		Color(0.66, 0.66, 0.70),     # neutral sky fill against a warm key
+		0.72
 	)
-	preset.key_color = Color(1.0, 0.80, 0.58)  # low sodium sun
-	preset.key_energy = 1.3
+	preset.key_color = Color(1.0, 0.84, 0.64)  # low sodium sun
+	preset.key_energy = 1.45
 	preset.scene_fill_energy = 0.2
 	preset.view_fill_energy = 0.0
 	preset.contrast = 1.06
@@ -134,13 +133,13 @@ static func compliance() -> Preset:
 		Color(0.063, 0.075, 0.086),
 		Color(0.145, 0.184, 0.176),
 		Color(0.110, 0.133, 0.125),
-		Color(0.110, 0.135, 0.130),
-		0.016,
-		Color(0.56, 0.64, 0.64),
-		0.45
+		Color(0.140, 0.170, 0.165),
+		0.011,
+		Color(0.62, 0.68, 0.66),
+		0.7
 	)
-	preset.key_color = Color(0.86, 0.92, 1.0)
-	preset.key_energy = 1.25
+	preset.key_color = Color(0.90, 0.94, 1.0)
+	preset.key_energy = 1.35
 	preset.scene_fill_energy = 0.2
 	preset.contrast = 1.06
 	preset.saturation = 0.94
@@ -148,38 +147,38 @@ static func compliance() -> Preset:
 	return preset
 
 
-## An enclosed Union interior. The ceilings stop any outdoor key, so the room is
-## lit by what hangs in it: the registered strip lights make pools under the
-## fixtures and leave the corners between them dark. The ambient floor is low
-## but not black, so a wall between fixtures still shows its material, and the
-## actor-only view fill keeps a black-and-red enemy readable in the gaps. The fog is a
-## grey haze rather than ink, so a dark silhouette separates from the far end
-## of an aisle instead of dissolving into it.
+## An enclosed Union interior. Doom and Dusk readability first: the whole room
+## is clearly lit by a warm ambient floor, and the registered strip lights add
+## brighter pools with shadows under the fixtures, so shape comes from light
+## on top of a readable base rather than from a dark baseline. The haze is a
+## light grey-green and thin, so a black-and-red silhouette separates from the
+## far end of an aisle instead of dissolving into it, and the actor-only view
+## fill gives every enemy a lit front toward the player.
 static func facility() -> Preset:
 	var preset: Preset = Preset.new(
 		Color(0.063, 0.075, 0.086),
 		Color(0.145, 0.184, 0.176),
 		Color(0.110, 0.133, 0.125),
-		Color(0.105, 0.118, 0.112),
-		0.024,
-		Color(0.60, 0.68, 0.66),
-		0.36
+		Color(0.235, 0.250, 0.230),
+		0.012,
+		Color(0.78, 0.77, 0.70),     # warm service white, not a green cast
+		0.82
 	)
 	preset.interior = true
 	preset.key_color = Color(0.70, 0.80, 0.90)
 	preset.key_energy = 0.3
 	preset.scene_fill_energy = 0.0
 	preset.practical_color = Color(0.93, 0.98, 0.86)  # service fluorescent
-	preset.practical_energy = 6.0
-	preset.practical_range = 14.0
-	preset.practical_attenuation = 1.6
+	preset.practical_energy = 3.2
+	preset.practical_range = 12.0
+	preset.practical_attenuation = 1.4
 	preset.accent_energy = 2.2
 	preset.accent_range = 4.5
-	preset.view_fill_energy = 1.2
+	preset.view_fill_energy = 1.0
 	preset.view_fill_range = 45.0
-	preset.contrast = 1.1
-	preset.saturation = 0.9
-	preset.glow_intensity = 0.5
+	preset.contrast = 1.05
+	preset.saturation = 0.97
+	preset.glow_intensity = 0.45
 	return preset
 
 

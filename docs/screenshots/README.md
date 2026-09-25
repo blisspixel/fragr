@@ -14,18 +14,19 @@ The Windows taskbar icon is still the Godot mark and is not one of these frames.
 `m01_intake_16x9.png`, `m01_balcony_16x9.png`, `m01_stacks_16x9.png`, and
 `m01_dispatch_16x9.png` were captured and inspected 2026-09-24 on Windows,
 OpenGL compatibility, AMD Radeon 780M, from the completed 13-state room tour
-after the first look-pass lighting increment. The rooms are now lit by their
-strip-light fixtures over a low ambient floor: intake has a dark ceiling, lit
-walls and counters and a pistol in hand; the balcony looks toward the custody
+after the first look-pass lighting increment. Rooms are clearly lit by a warm
+base light with brighter pools under the strip-light fixtures: intake shows the
+counters and lockers with a pistol in hand; the balcony looks toward the custody
 lift; the file stacks are dark steel racks with red warning strips on green
-tile; dispatch is enamel walls with the red pinline under dark ceilings. The
-same 13 states were captured on Vulkan with the same result. The earlier flat,
-evenly lit versions of these four frames are in git history before this
-change. These are the development mission, not a finished art pass.
+tile; dispatch is enamel walls with the red pinline. The earlier flat, evenly
+lit versions of these four frames are in git history before this change.
+Black-and-red Union enemies were checked in the same rooms with
+`client/qa/m01-enemies.json`. These are the development mission, not a
+finished art pass.
 
 The tour stills in this directory were republished in the same change: the
-arenas sit under a lower sodium sun with a cooler, darker ambient floor and a
-warmer haze, so cover throws readable shadows. The menus are unchanged. Frame
+arenas sit under a warmer, stronger sodium sun with a slightly lower ambient
+floor and a warmer haze, so cover throws readable shadows. The menus are unchanged. Frame
 times and the quality and world-pixel comparison are in
 [`../plans/look-pass-boomer.md`](../plans/look-pass-boomer.md);
 `FRAGR_QA_MANIFEST=res://qa/look-perf.json` and `res://qa/m01-perf.json` (with

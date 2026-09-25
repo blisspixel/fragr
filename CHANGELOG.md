@@ -4,6 +4,25 @@ Shipped tags, newest first. A line here is on `main`. Planned work stays in
 [docs/ROADMAP.md](docs/ROADMAP.md). Older tags are on the
 [releases page](https://github.com/blisspixel/fragr/releases).
 
+## v0.52.0 (2026-09-25)
+
+Recall Notice and the Persons Unknown ward are lit like rooms now, not like a
+graybox. A warm, readable base light fills every room, the ceiling strip
+lights add brighter pools with soft shadows under them, a thin haze gives long
+rooms depth, and Union seals burn a small red lamp. Dark steel carries red
+warning strips and the enamel walls a red pinline. The black-and-red Union
+stays easy to spot: red visors, optics and tell lights glow in any light, the
+darkest cloth reads as charcoal, and a faint outline separates every enemy
+from the wall behind it. The arenas sit under a warmer, stronger sun with
+readable shade behind cover.
+
+Graphics settings gain World Pixels (Native, Fine, Medium, Chunky), an exact
+nearest-neighbour upscale of the 3D view that leaves menus and the HUD sharp,
+and an optional Palette Dither onto the game's palette. Both are off by
+default. Balanced now adds contact shading, fixture shadows and lamp glow;
+Performance stays as cheap as before. Frame times are in
+docs/plans/look-pass-boomer.md.
+
 ## v0.51.0 (2026-09-24)
 
 Play the way you like: the keyboard alone, the keyboard and mouse, or a

@@ -66,27 +66,36 @@ increment.
 
 **What landed.**
 
-- `arena_sky.gd` owns a light plan per venue. Recall Notice and the Persons
-  Unknown ward (the `facility` preset) drop the flat 1.05 ambient to 0.36, turn
-  the arena's sun down to a faint cool key, hide the arena scene's ember props
-  and fill, and use a grey-green depth haze (0.024) instead of near-black fog so
-  dark silhouettes separate from the far end of an aisle. Filmic tonemap, mild
-  contrast and saturation adjustments, and glow are authored per venue. Arenas
-  keep their sun, now a lower sodium key over a cooler 0.45 ambient with a
-  warmer haze.
-- Practical fixtures: each registered strip light is a strong, short pool
-  (energy 6, range 14) in service-fluorescent white. Union seals gain a small
+- `arena_sky.gd` owns a light plan per venue. Target: Doom and Dusk
+  readability, rooms clearly lit with the whole space and every enemy visible;
+  shape comes from brighter pools on a lit base, not from a dark baseline. A
+  first tuning with a 0.36 interior ambient was rejected by Nick as too dark;
+  the committed values are the brighter second pass. Recall Notice and the
+  Persons Unknown ward (the `facility` preset) use a warm service-white ambient
+  at 0.82 (was a flat green-grey 1.05), turn the arena's sun down to a faint
+  cool key, hide the arena scene's ember props and fill, and use a thin, light
+  grey-green haze (0.012) so dark silhouettes separate from the far end of an
+  aisle. Filmic tonemap, mild contrast and saturation adjustments, and glow are
+  authored per venue. Arenas keep their sun, now a warmer, stronger sodium key
+  (1.45) over a 0.72 neutral ambient (was 0.8) with a warmer haze.
+- Practical fixtures: each registered strip light adds a brighter pool
+  (energy 3.2, range 12) in service-fluorescent white on top of the ambient. Union seals gain a small
   red lamp (`on_air`) with no shadow map. Practicals cast shadows from Balanced
   up (paraboloid where the renderer supports it, cube on High and on
   Compatibility), drop their shadow past 24 m and fade out past 40 m.
 - Readability: world geometry built from MapInfo renders on visual layer 2. A
-  view-attached omni fill (energy 1.2, range 45 m, shallow falloff) lights
-  layer 1 only: fighters, enemies, pickups and effects. A black-and-red enemy
-  between fixtures keeps a lit front toward the player and the room does not
-  flatten. The campaign combat strips (`*_combat.png` in the M01 and M02 tour
-  folders) show every Clerk and Sweeper readable at its fight range, including
-  the far end of the M02 processing floor. Those runs used today's enemy art;
-  the black-and-red recolour PR should rerun the same strips.
+  view-attached omni fill (energy 1.0, range 45 m, shallow falloff) lights
+  layer 1 only: fighters, enemies, pickups and effects, so every enemy keeps a
+  lit front toward the player.
+- Black-and-red enemies (#245): `enemy_view.gd` gives Union bodies
+  `union_sprite.gdshader`. Red optics, visors, armbands and tell lights are
+  full-bright emissive pixels, independent of the light they stand in; the
+  darkest cloth lifts toward charcoal (never grey); and a dim one-texel line
+  separates the silhouette from any wall, reading as a rim on dark steel and an
+  outline on bright enamel. Billboard, nearest sampling, alpha cut and the
+  hit-flash modulate match the Sprite3D settings it replaces.
+  `client/qa/m01-enemies.json` captures Clerks and Sweepers at about 12 to 30 m
+  before each fight in intake, reception and the stacks, then the fights.
 - Surfaces (`arena_surface.gdshader`, `arena_materials.gd`): a stepped
   per-solid sector level (up to 14 percent darker, from the solid's own
   centre), a wall-base contact shade that also works on Performance where SSAO
@@ -122,42 +131,43 @@ frames; GPU is the renderer's own measurement. "Before" is `origin/main` at
 
 | Renderer | View | Before mean / p95 / GPU ms | After mean / p95 / GPU ms |
 |---|---|---|---|
-| OpenGL | Arena Duel overview, performance | 3.26 / 5.59 / 2.34 | 3.52 / 5.75 / 2.8 |
-| OpenGL | Arena Duel overview, balanced | 3.36 / 5.81 / 2.71 | 5.41 / 7.37 / 4.7 |
-| OpenGL | Arena Duel overview, high | 5.94 / 8.3 / 5.38 | 6.44 / 8.21 / 5.89 |
-| OpenGL | Arena Duel first person, performance | 2.98 / 5.64 / 1.92 | 2.99 / 5.4 / 2.33 |
-| OpenGL | Arena Duel first person, balanced | 3.55 / 6.34 / 2.58 | 4.52 / 6.51 / 4.0 |
-| OpenGL | Arena Duel first person, high | 5.13 / 7.38 / 4.6 | 5.62 / 7.67 / 5.13 |
-| OpenGL | M01 intake, performance | 5.03 / 10.66 / 2.78 | 5.07 / 10.64 / 3.38 |
-| OpenGL | M01 intake, balanced | 5.04 / 10.35 / 3.48 | 8.83 / 14.59 / 7.36 |
-| OpenGL | M01 intake, high | 7.4 / 12.99 / 6.29 | 9.48 / 14.47 / 8.28 |
-| Vulkan | Arena Duel overview, performance | 4.66 / 6.89 / 3.25 | 4.42 / 6.4 / 3.1 |
-| Vulkan | Arena Duel overview, balanced | 5.96 / 7.73 / 4.53 | 8.96 / 10.8 / 7.42 |
-| Vulkan | Arena Duel overview, high | 9.04 / 10.61 / 7.53 | 9.9 / 11.52 / 8.74 |
-| Vulkan | Arena Duel first person, performance | 4.95 / 8.05 / 3.04 | 3.99 / 6.09 / 2.73 |
-| Vulkan | Arena Duel first person, balanced | 5.18 / 7.15 / 3.7 | 8.82 / 12.08 / 7.05 |
-| Vulkan | Arena Duel first person, high | 8.09 / 9.76 / 6.66 | 9.41 / 11.08 / 7.95 |
-| Vulkan | M01 intake, performance | 8.02 / 14.08 / 4.38 | 7.21 / 14.0 / 4.66 |
-| Vulkan | M01 intake, balanced | 7.59 / 13.31 / 5.36 | 12.19 / 16.2 / 9.77 |
-| Vulkan | M01 intake, high | 11.49 / 16.05 / 9.17 | 15.59 / 20.49 / 12.91 |
-| OpenGL | M01 intake, balanced fine | n/a | 6.42 / 12.34 / 3.74 |
-| OpenGL | M01 intake, balanced medium | n/a | 6.51 / 12.09 / 3.1 |
-| OpenGL | M01 intake, balanced chunky | n/a | 6.36 / 11.67 / 2.76 |
-| OpenGL | M01 intake, balanced medium dither | n/a | 7.21 / 12.55 / 4.09 |
-| OpenGL | M01 intake, performance medium | n/a | 4.87 / 10.67 / 1.47 |
-| Vulkan | M01 intake, balanced fine | n/a | 7.01 / 13.47 / 3.93 |
-| Vulkan | M01 intake, balanced medium | n/a | 7.34 / 14.56 / 2.63 |
-| Vulkan | M01 intake, balanced chunky | n/a | 6.96 / 15.35 / 2.14 |
-| Vulkan | M01 intake, balanced medium dither | n/a | 7.72 / 16.3 / 3.45 |
-| Vulkan | M01 intake, performance medium | n/a | 5.73 / 12.31 / 1.04 |
+| OpenGL | Arena Duel overview, performance | 3.26 / 5.59 / 2.34 | 3.4 / 5.75 / 2.74 |
+| OpenGL | Arena Duel overview, balanced | 3.36 / 5.81 / 2.71 | 5.07 / 6.88 / 4.52 |
+| OpenGL | Arena Duel overview, high | 5.94 / 8.3 / 5.38 | 6.27 / 8.28 / 5.71 |
+| OpenGL | Arena Duel first person, performance | 2.98 / 5.64 / 1.92 | 3.07 / 5.57 / 2.37 |
+| OpenGL | Arena Duel first person, balanced | 3.55 / 6.34 / 2.58 | 4.53 / 6.62 / 4.02 |
+| OpenGL | Arena Duel first person, high | 5.13 / 7.38 / 4.6 | 5.35 / 7.23 / 4.89 |
+| OpenGL | M01 intake, performance | 5.03 / 10.66 / 2.78 | 4.66 / 9.89 / 3.27 |
+| OpenGL | M01 intake, balanced | 5.04 / 10.35 / 3.48 | 7.09 / 11.95 / 6.18 |
+| OpenGL | M01 intake, high | 7.4 / 12.99 / 6.29 | 8.83 / 13.74 / 7.98 |
+| Vulkan | Arena Duel overview, performance | 4.66 / 6.89 / 3.25 | 4.15 / 6.12 / 3.16 |
+| Vulkan | Arena Duel overview, balanced | 5.96 / 7.73 / 4.53 | 7.86 / 9.12 / 6.86 |
+| Vulkan | Arena Duel overview, high | 9.04 / 10.61 / 7.53 | 9.34 / 11.09 / 8.3 |
+| Vulkan | Arena Duel first person, performance | 4.95 / 8.05 / 3.04 | 3.76 / 5.95 / 2.69 |
+| Vulkan | Arena Duel first person, balanced | 5.18 / 7.15 / 3.7 | 6.71 / 8.24 / 5.7 |
+| Vulkan | Arena Duel first person, high | 8.09 / 9.76 / 6.66 | 9.29 / 10.68 / 7.36 |
+| Vulkan | M01 intake, performance | 8.02 / 14.08 / 4.38 | 4.52 / 8.03 / 3.28 |
+| Vulkan | M01 intake, balanced | 7.59 / 13.31 / 5.36 | 8.52 / 12.18 / 7.09 |
+| Vulkan | M01 intake, high | 11.49 / 16.05 / 9.17 | 11.1 / 14.09 / 9.5 |
+| OpenGL | M01 intake, balanced fine | n/a | 7.24 / 10.69 / 4.13 |
+| OpenGL | M01 intake, balanced medium | n/a | 5.47 / 10.77 / 2.89 |
+| OpenGL | M01 intake, balanced chunky | n/a | 4.54 / 9.54 / 2.57 |
+| OpenGL | M01 intake, balanced medium dither | n/a | 4.95 / 10.08 / 3.7 |
+| OpenGL | M01 intake, performance medium | n/a | 3.4 / 7.49 / 1.42 |
+| Vulkan | M01 intake, balanced fine | n/a | 4.94 / 10.14 / 3.36 |
+| Vulkan | M01 intake, balanced medium | n/a | 4.18 / 8.55 / 2.35 |
+| Vulkan | M01 intake, balanced chunky | n/a | 3.63 / 7.57 / 1.92 |
+| Vulkan | M01 intake, balanced medium dither | n/a | 4.59 / 9.48 / 3.01 |
+| Vulkan | M01 intake, performance medium | n/a | 3.71 / 7.89 / 1.01 |
 
-Performance stays cheap: its mean frame time is within noise of before, and its
-GPU time rises by at most 0.6 ms (the unshadowed practical pools).
-Balanced costs about 1.5 to 4.5 ms more GPU (SSAO, glow and, indoors, practical
-shadow maps); High about 0.5 to 4 ms more. The world pixel choices cut
-Balanced intake GPU time from 7.4 ms to 2.8 to 3.7 ms on OpenGL and from 9.8 ms
-to 2.1 to 3.9 ms on Vulkan; the dither adds about 1 ms. Performance with Medium
-pixels is the cheapest configuration measured (1.0 to 1.5 ms GPU). This is one
+Performance stays cheap: its mean frame time is within noise of before (or
+lower), and its GPU time rises by at most 0.5 ms (the unshadowed practical
+pools). Balanced costs about 1.5 to 2.7 ms more GPU (SSAO, glow and, indoors,
+practical shadow maps); High about 0.3 to 1.7 ms more. The world pixel choices
+cut Balanced intake GPU time from 6.2 ms to 2.6 to 4.1 ms on OpenGL and from
+7.1 ms to 1.9 to 3.4 ms on Vulkan; the dither adds under 1 ms. Performance with
+Medium pixels is the cheapest configuration measured (1.0 to 1.4 ms GPU). "After"
+is the final brighter build with the black-and-red enemy material. This is one
 integrated GPU, not a hardware promise.
 
 **Still weak.** Arenas improved least: they have no registered fixtures, so the
