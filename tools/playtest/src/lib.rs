@@ -1050,6 +1050,7 @@ pub const PLANNER_PICKUP_REACH: f32 = 18.0;
 fn preferred_band(weapon: WeaponType) -> (f32, f32) {
     match weapon {
         WeaponType::Fists => (0.0, 1.5),
+        WeaponType::Shiv => (0.0, 1.9),
         WeaponType::Tack => (5.0, 12.0),
         WeaponType::Scatter => (1.5, 4.0),
         WeaponType::Flechette => (7.0, 12.0),
@@ -1916,6 +1917,7 @@ mod tests {
             weapon: "Rail".to_string(),
             amount: None,
             pickup_id: "p1".to_string(),
+            secret: false,
         });
         obs.ingest_snapshot(&snapshot(1200, vec![player("a", a, 4.0, 0.0, false)]), 200);
         obs.ingest_event(GameEvent::RoundEnd {

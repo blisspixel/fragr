@@ -496,6 +496,7 @@ fn live_and_dead_enemies_cannot_consume_participant_supplies() {
         floor: 0.0,
         available: true,
         respawn_timer: None,
+        secret: false,
     });
     session.state.tick(0.05);
     assert!(session.state.pickups[0].available);

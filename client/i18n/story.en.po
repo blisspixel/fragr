@@ -179,6 +179,9 @@ msgstr "{weapon}: {hits}/{attacks} attacks connected ({percent}%)"
 msgid "RECORD_NO_ATTACKS"
 msgstr "Accuracy unavailable: no attacks recorded."
 
+msgid "RECORD_SECRETS"
+msgstr "Secrets found: {count}"
+
 msgid "RECORD_LATE_JOIN"
 msgstr "Joined during this round."
 
@@ -229,3 +232,6 @@ msgstr "+{amount} ARMOR"
 
 msgid "HUD_PICKUP_AMMO"
 msgstr "+{amount} AMMO"
+
+msgid "HUD_SECRET_FOUND"
+msgstr "SECRET FOUND"

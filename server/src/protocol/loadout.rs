@@ -55,12 +55,15 @@ impl AmmoPool {
 }
 
 impl WeaponType {
-    pub const ALL: [Self; 5] = [
+    /// Wire and record order. The Shiv is appended so the five original
+    /// record slots keep their meaning.
+    pub const ALL: [Self; 6] = [
         Self::Fists,
         Self::Tack,
         Self::Flechette,
         Self::Scatter,
         Self::Rail,
+        Self::Shiv,
     ];
     pub const ARCADE: [Self; 3] = [Self::Flechette, Self::Rail, Self::Scatter];
 
@@ -71,13 +74,14 @@ impl WeaponType {
             Self::Flechette => 2,
             Self::Scatter => 3,
             Self::Rail => 4,
+            Self::Shiv => 5,
         }
     }
 
-    /// The count one shot spends a single unit from. Fists need nothing.
+    /// The count one shot spends a single unit from. Melee needs nothing.
     pub const fn ammo_pool(self) -> Option<AmmoPool> {
         match self {
-            Self::Fists => None,
+            Self::Fists | Self::Shiv => None,
             Self::Tack | Self::Flechette => Some(AmmoPool::Bullets),
             Self::Scatter => Some(AmmoPool::Shells),
             Self::Rail => Some(AmmoPool::Cells),
@@ -87,7 +91,7 @@ impl WeaponType {
     /// Units a weapon pickup adds, on discovery and again when already carried.
     pub const fn pickup_rounds(self) -> u16 {
         match self {
-            Self::Fists => 0,
+            Self::Fists | Self::Shiv => 0,
             Self::Tack => 50,
             Self::Flechette => 60,
             Self::Scatter => 12,
@@ -174,7 +178,7 @@ pub(crate) fn validate_equipment(
     {
         return Err("invalid loadout size");
     }
-    let mut owned = [false; 5];
+    let mut owned = [false; WeaponType::ALL.len()];
     for weapon in weapons {
         if std::mem::replace(&mut owned[weapon.index()], true) {
             return Err("invalid owned weapon");

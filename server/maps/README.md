@@ -73,14 +73,18 @@ the option. Final multi-tier encounter and resource balance remains unfinished.
   from the first spawn. Names are shared across all records and must be unique
   lowercase ASCII letters, digits or underscores, at most 64 bytes.
 - `equipment`: `discovery` or `full_arsenal` (default). Discovery begins with fists
-  and requires client gameplay capability 2, independently of geometry capability.
+  and requires client gameplay capability 11 (the Shiv contract), independently
+  of geometry capability.
 - `supplies`: at most 128 records, allowed only with discovery. Each has unique
   `id`, supported and reachable `feet`, `claim` (`personal` or `contested`) and
   a strict `grant`: `{"kind":"weapon","weapon":"tack"}`,
   `{"kind":"ammo","pool":"bullets","amount":20}` (pools `bullets`, `shells`,
   `cells`), or `health`/`armor` with
   `amount` from 1 through 100. Ammo amounts cannot exceed pool caps in `WEAPONS.md`.
-  Fists cannot be a grant. Personal claims are only for weapons; each participant
+  Fists cannot be a grant; `"weapon":"shiv"` grants the pool-less Shiv and no
+  ammunition. An optional `"secret": true` marks an optional find: its claim
+  event carries `secret`, the claimant sees a quiet cue, and the record counts
+  it once per run. Personal claims are only for weapons; each participant
   can claim each once per development life. Contested supplies have one winner.
   Campaign stock (maps with encounters or a mission) stays consumed until the
   authoritative party reset; arcade practice retains timed pickup respawns.

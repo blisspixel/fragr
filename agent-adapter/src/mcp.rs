@@ -182,18 +182,19 @@ pub fn validate_act_arguments(arguments: &Value) -> Result<Action, String> {
             None
         } else {
             let s = v.as_str().ok_or_else(|| {
-                "schema error: weapon_swap must be a string (fists|tack|flechette|rail|scatter)"
+                "schema error: weapon_swap must be a string (fists|shiv|tack|flechette|rail|scatter)"
                     .to_string()
             })?;
             match s {
                 "fists" => Some(protocol::WeaponType::Fists),
+                "shiv" => Some(protocol::WeaponType::Shiv),
                 "tack" => Some(protocol::WeaponType::Tack),
                 "flechette" => Some(protocol::WeaponType::Flechette),
                 "rail" => Some(protocol::WeaponType::Rail),
                 "scatter" => Some(protocol::WeaponType::Scatter),
                 other => {
                     return Err(format!(
-                    "schema error: weapon_swap must be fists|tack|flechette|rail|scatter, got '{}'",
+                    "schema error: weapon_swap must be fists|shiv|tack|flechette|rail|scatter, got '{}'",
                     other
                 ))
                 }
@@ -585,7 +586,7 @@ fn tools_list_result() -> Value {
                         "turn_right": {"type": "boolean", "default": false, "description": "Turn right"},
                         "fire": {"type": "boolean", "default": false, "description": "Fire weapon"},
                         "jump": {"type": "boolean", "default": false, "description": "Jump. A grounded fighter leaves the floor; holding it does not fly"},
-                        "weapon_swap": {"type": "string", "enum": ["fists", "tack", "flechette", "rail", "scatter"], "description": "Select an owned weapon"},
+                        "weapon_swap": {"type": "string", "enum": ["fists", "shiv", "tack", "flechette", "rail", "scatter"], "description": "Select an owned weapon. The Shiv is found melee and needs no ammunition"},
                         "interact": {"type": "boolean", "description": "Press to use an aimed mission panel when observe supplies your prompt. Release before another press."},
                         "look_at": {
                             "type": "object",
@@ -1550,7 +1551,7 @@ mod mcp_tests {
             assert!(ingest_server_text(&mut state, &invalid.to_string()).is_err());
             assert_eq!(state.loadout, Some(loadout.clone()));
         }
-        for weapon in ["fists", "tack", "flechette", "scatter", "rail"] {
+        for weapon in ["fists", "shiv", "tack", "flechette", "scatter", "rail"] {
             let action =
                 validate_act_arguments(&serde_json::json!({"weapon_swap":weapon,"fire":true}))
                     .unwrap();
@@ -1644,6 +1645,46 @@ mod mcp_tests {
             .as_str()
             .unwrap()
             .contains("schema error"));
+    }
+
+    #[test]
+    fn a_found_shiv_reaches_observation_and_its_secret_event_is_kept() {
+        use fragr_server::inventory::Inventory;
+        use protocol::{EquipmentPolicy, GameEvent, WeaponType};
+        let id = Uuid::nil();
+        let mut state = ToolState {
+            player_id: Some(id),
+            last_snapshot: Some(serde_json::json!({"tick":10})),
+            ..Default::default()
+        };
+        let mut inventory = Inventory::new(EquipmentPolicy::Discovery);
+        inventory.grant_weapon(WeaponType::Shiv);
+        let loadout = inventory.state(id, WeaponType::Shiv, 10).unwrap();
+        let wire = serde_json::to_value(protocol::ServerMessage::Loadout(loadout)).unwrap();
+        ingest_server_text(&mut state, &wire.to_string()).unwrap();
+        let observed = build_observe_result(&state);
+        assert_eq!(observed["loadout"]["selected"], "shiv");
+        assert_eq!(
+            observed["loadout"]["weapons"],
+            serde_json::json!(["fists", "shiv"])
+        );
+        let event = protocol::ServerMessage::Event(GameEvent::Pickup {
+            player: "Probe".into(),
+            player_id: id,
+            kind: "weapon".into(),
+            weapon: "Shiv".into(),
+            amount: None,
+            pickup_id: "alcove_shiv".into(),
+            secret: true,
+        });
+        ingest_server_text(&mut state, &serde_json::to_string(&event).unwrap()).unwrap();
+        let found = state
+            .recent_events
+            .iter()
+            .find(|e| e["event"] == "pickup")
+            .unwrap();
+        assert_eq!(found["secret"], true);
+        assert_eq!(found["weapon"], "Shiv");
     }
 
     #[test]

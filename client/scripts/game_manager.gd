@@ -595,7 +595,7 @@ func _current_weapon_wire() -> String:
 	if net_client != null and not net_client.equipment.is_empty():
 		return str(net_client.equipment["selected"]).to_lower()
 	var name: String = _local_weapon_name().to_lower()
-	if name in EquipmentState.SLOTS:
+	if name in EquipmentState.WEAPONS:
 		return name
 	return "flechette"
 
@@ -606,7 +606,8 @@ func _next_weapon_swap(step: int) -> String:
 func _slot_from_event(event: InputEvent) -> String:
 	for slot in range(1, EquipmentState.SLOTS.size() + 1):
 		if event.is_action_pressed("weapon_%d" % slot):
-			return EquipmentState.slot_if_owned(_carried_weapons(), slot)
+			var current: String = str(pending_weapon_swap) if pending_weapon_swap != null else _current_weapon_wire()
+			return EquipmentState.slot_if_owned(_carried_weapons(), slot, current)
 	return ""
 
 func _choose_weapon(weapon: String) -> void:
@@ -937,6 +938,8 @@ func _on_event_received(data):
 		var weapon = str(data.get("weapon", ""))
 		var amount = int(data.get("amount", 0))
 		hud.show_pickup_toast(who, weapon, kind, amount)
+		if data.get("secret") == true:
+			hud.show_secret_found()
 	elif event_type == "killstreak":
 		var who = str(data.get("player", "?"))
 		var streak = int(data.get("streak", 0))

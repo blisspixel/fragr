@@ -31,6 +31,19 @@ func _run() -> void:
 	ladder["weapons"] = ["fists", "tack", "flechette", "scatter", "rail"]
 	_check(EquipmentState.cycle(ladder, "tack", 1) == "scatter" and EquipmentState.cycle(ladder, "scatter", 1) == "flechette" and EquipmentState.cycle(ladder, "flechette", 1) == "rail" and EquipmentState.cycle(ladder, "rail", 1) == "fists", "the wheel walks fists, pistol, shotgun, rifle, railgun")
 	_check(EquipmentState.slot_if_owned(EquipmentState.carried_names(state), 2) == "tack" and EquipmentState.slot_if_owned(EquipmentState.carried_names(state), 3) == "" and EquipmentState.slot_if_owned(EquipmentState.carried_names(ladder), 4) == "flechette", "number keys select a carried gun and ignore the rest")
+	var found: Dictionary = state.duplicate(true)
+	found["weapons"] = ["fists", "tack", "shiv"]
+	found["selected"] = "shiv"
+	_check(EquipmentState.validation_error(found, "self").is_empty(), "a found Shiv is carried equipment")
+	_check(EquipmentState.shots(found, "shiv") == -1 and EquipmentState.display_name("shiv") == "Shiv", "the Shiv needs no ammunition")
+	var carried: Array[String] = EquipmentState.carried_names(found)
+	_check(EquipmentState.slot_if_owned(carried, 1, "tack") == "shiv" and EquipmentState.slot_if_owned(carried, 1, "shiv") == "fists", "slot one draws the Shiv, then fists, like Doom's chainsaw")
+	_check(EquipmentState.slot_if_owned(EquipmentState.carried_names(state), 1, "tack") == "fists", "slot one is fists until a Shiv is found")
+	_check(EquipmentState.cycle(found, "fists", 1) == "shiv" and EquipmentState.cycle(found, "shiv", 1) == "tack" and EquipmentState.cycle(found, "tack", 1) == "fists", "the wheel keeps the Shiv beside the fists")
+	var unknown: Dictionary = found.duplicate(true)
+	unknown["weapons"] = ["fists", "chainsaw"]
+	unknown["selected"] = "fists"
+	_check(not EquipmentState.validation_error(unknown, "self").is_empty(), "an unknown melee weapon is refused")
 	for patch: Dictionary in [{"tick": -1}, {"tick": 1.5}, {"tick": NAN}, {"tick": "20"}, {"selected": "rail"},
 		{"weapons": []}, {"weapons": [[]]}, {"weapons": ["tack"]}, {"weapons": ["fists", "fists", "tack"]},
 		{"weapons": [{"weapon": "fists", "magazine": null}, {"weapon": "tack", "magazine": 0}]},
@@ -64,7 +77,7 @@ func _run() -> void:
 	network._handle_message(JSON.stringify(earlier))
 	_check(network.equipment.is_empty() and network.player_id == null, "invalid private state closes and clears the session")
 	network.send_hello()
-	_check(network.sent[0]["gameplay_version"] == 10 and network.sent[0]["geometry_version"] == MapGeometry.VERSION, "gameplay and geometry capabilities are independent")
+	_check(network.sent[0]["gameplay_version"] == 11 and network.sent[0]["geometry_version"] == MapGeometry.VERSION, "gameplay and geometry capabilities are independent")
 	network.connection_state = WebSocketPeer.STATE_OPEN
 	var manager: Node = load("res://scripts/game_manager.gd").new()
 	manager.net_client = network

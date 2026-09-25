@@ -91,6 +91,7 @@ var viewmodel_textures: Dictionary[String, Texture2D] = {
 	"Flechette": preload("res://assets/weapons/viewmodels/wpn_flechette_0.png"),
 	"Rail": preload("res://assets/weapons/viewmodels/px_rail_issued_0.png"),
 	"Scatter": preload("res://assets/weapons/viewmodels/wpn_scatter_0.png"),
+	"Shiv": preload("res://assets/weapons/viewmodels/wpn_shiv_0.png"),
 }
 var followed_player_name = ""
 var fp_juice_enabled = false
@@ -117,6 +118,11 @@ var current_fp_weapon = ""
 var equipment_hud: EquipmentHud
 var melee_view: MeleeView
 const FP_MUZZLE_SECONDS: float = 0.07
+## One Shiv thrust: out toward the crosshair and back inside the 0.30 s cooldown.
+const FP_STAB_SECONDS: float = 0.22
+## The blade fills less of its canvas than the guns, so it is held a little larger.
+const FP_SHIV_SCALE: float = 1.3
+var fp_stab_timer: float = 0.0
 ## Full width of the vitals bars, so a fill can be scaled against it.
 const HEALTH_BAR_WIDTH: float = 200.0
 const ARMOR_BAR_WIDTH: float = 100.0
@@ -156,6 +162,7 @@ func _ready():
 	weapon_textures["Rail"] = load("res://assets/weapons/32/rail.png")
 	weapon_textures["Scatter"] = load("res://assets/weapons/32/scatter.png")
 	weapon_textures["Tack"] = load("res://assets/weapons/32/_future/shock_pistol.png")
+	weapon_textures["Shiv"] = load("res://assets/weapons/48/shiv.png")
 	crosshair_hbar = get_node_or_null("Crosshair/HBar")
 	crosshair_vbar = get_node_or_null("Crosshair/VBar")
 	crosshair_dot = get_node_or_null("Crosshair/Dot")
@@ -856,6 +863,10 @@ func _show_round_banner(text: String, seconds: float) -> void:
 	round_message.modulate = Color.WHITE
 	round_message.visible = true
 
+## A found secret is one quiet corner line, never a banner over the aim.
+func show_secret_found() -> void:
+	combat_feed.push(tr("HUD_SECRET_FOUND"), MenuTheme.EMBER)
+
 func show_pickup_toast(player_name: String, weapon_name: String, kind: String = "weapon", amount: int = 0) -> void:
 	var what: String
 	match kind:
@@ -952,6 +963,7 @@ func _process(delta):
 			hit_marker.modulate.a = 0.0
 	if fp_kick_timer > 0:
 		fp_kick_timer -= delta
+	fp_stab_timer = maxf(0.0, fp_stab_timer - delta)
 	if fp_muzzle_timer > 0:
 		fp_muzzle_timer -= delta
 		if fp_muzzle:
@@ -982,6 +994,8 @@ func _layout_fp_weapon() -> void:
 	var viewport_size: Vector2 = get_viewport().get_visible_rect().size
 	var base: Vector2 = (viewport_size - fp_weapon.size) * Vector2(0.5, 1.0)
 	fp_weapon.position = (base + Vector2(0.0, FP_BOTTOM_OVERLAP) + bob + kick).round()
+	if current_fp_weapon == "Shiv":
+		_pose_stab()
 	if current_fp_weapon == "Fists":
 		melee_view.pose((base + Vector2(0.0, FP_BOTTOM_OVERLAP) + bob).round(), fp_weapon.size)
 	if fp_muzzle:
@@ -990,6 +1004,16 @@ func _layout_fp_weapon() -> void:
 			barrel_y = 8.0
 		var barrel_x: float = fp_weapon.size.x * 0.5 if current_fp_weapon == "Tack" else 224.0
 		fp_muzzle.position = fp_weapon.position + Vector2(barrel_x, barrel_y * 2.0) - fp_muzzle.size * 0.5
+
+## The thrust grows the sprite from the gauntlet at the bottom edge and slides
+## it toward the centre, so the blade reaches forward while the forearm stays
+## below the frame. Moving it up instead would lift the cut-off wrist into view.
+func _pose_stab() -> void:
+	var t: float = 1.0 - fp_stab_timer / FP_STAB_SECONDS if fp_stab_timer > 0.0 else 1.0
+	var reach: float = sin(clampf(t, 0.0, 1.0) * PI) if fp_stab_timer > 0.0 else 0.0
+	fp_weapon.pivot_offset = Vector2(fp_weapon.size.x * 0.8, fp_weapon.size.y)
+	fp_weapon.scale = Vector2.ONE * FP_SHIV_SCALE * (1.0 + 0.22 * reach)
+	fp_weapon.position.x = roundf(fp_weapon.position.x - fp_weapon.size.x * 0.16 * reach)
 
 func set_fp_juice(enabled: bool) -> void:
 	if fp_juice_enabled == enabled:
@@ -1019,6 +1043,7 @@ func set_fp_juice(enabled: bool) -> void:
 		spawn_flash_timer = 0.0
 		hit_marker_timer = 0.0
 		fp_kick_timer = 0.0
+		fp_stab_timer = 0.0
 		fp_bob_t = 0.0
 		fp_walk_speed = 0.0
 		fp_bob_weight = 0.0
@@ -1042,6 +1067,8 @@ func set_fp_weapon(weapon_name: String) -> void:
 		fp_muzzle.visible = false
 		fp_weapon.modulate = Color.WHITE
 		fp_weapon.scale = Vector2.ONE
+		fp_weapon.pivot_offset = Vector2.ZERO
+		fp_stab_timer = 0.0
 		_apply_crosshair_for_weapon(weapon_name)
 	_layout_fp_weapon()
 	fp_weapon.visible = weapon_name != "Fists"
@@ -1172,7 +1199,7 @@ func show_fire_juice(weapon_name: String = "") -> void:
 ## but in first person the pawn is not what anyone is looking at, so until now
 ## the only feedback for pulling the trigger was the sound.
 func _fp_muzzle_flash(weapon_name: String) -> void:
-	if weapon_name == "Fists":
+	if weapon_name == "Fists" or weapon_name == "Shiv":
 		return
 	if not fp_juice_enabled or not fp_muzzle or fp_muzzle_texture == null:
 		return
@@ -1193,6 +1220,10 @@ func _fp_fire_kick(weapon_name: String) -> void:
 		return
 	if weapon_name == "Fists":
 		melee_view.punch()
+		return
+	if weapon_name == "Shiv":
+		fp_stab_timer = FP_STAB_SECONDS
+		_layout_fp_weapon()
 		return
 	_fp_muzzle_flash(weapon_name)
 	fp_kick_timer = 0.12

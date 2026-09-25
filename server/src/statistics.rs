@@ -14,6 +14,10 @@ pub(crate) struct CombatLedger {
     entered_at: u64,
     total: CombatCounts,
     attempt: CombatCounts,
+    /// Secret ids found this round and this attempt. A continue restores the
+    /// secret's pickup, and finding it again is not a second secret.
+    secrets_total: std::collections::BTreeSet<String>,
+    secrets_attempt: std::collections::BTreeSet<String>,
 }
 
 impl CombatLedger {
@@ -30,6 +34,16 @@ impl CombatLedger {
 
     pub fn reset_attempt(&mut self) {
         self.attempt = CombatCounts::default();
+        self.secrets_attempt.clear();
+    }
+
+    pub fn secret(&mut self, id: &str) {
+        if self.secrets_total.insert(id.to_string()) {
+            self.total.secrets += 1;
+        }
+        if self.secrets_attempt.insert(id.to_string()) {
+            self.attempt.secrets += 1;
+        }
     }
 
     pub fn alive_tick(&mut self) {

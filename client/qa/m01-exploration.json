@@ -1,11 +1,14 @@
 {
-  "comment": "Optional M01 supply spaces through normal human movement. Static alcove and maintenance overlook; no secret counter or hidden required weapon.",
+  "comment": "Optional M01 supply spaces through normal human movement. The confiscation alcove holds a medkit and, in its south pocket, the secret Shiv; the maintenance overlook holds armor. Nothing here is required by either route.",
   "width": 1280,
   "height": 720,
   "states": [
     {"name":"safe_pistol","scene":"res://scenes/main.tscn","join":"human","camera":"first_person","walk_to":[[0,0,-34],[0,0,-26]],"expect_equipment":{"selected":"tack","ammo":50}},
     {"name":"clerk_lesson","camera":"first_person","walk_to":[[0,0,-21]],"combat":{"kind":"clerk","required":["intake_security"],"observe_first_shot":true}},
     {"name":"confiscation_alcove","camera":"first_person","walk_to":[[6,0,-21]],"look_at":[9,0.8,-21],"note":"A recessed medkit beside the property lockers rewards a deliberate detour. It is not required by either route."},
+    {"name":"secret_shiv_found","camera":"first_person","walk_to":[[7.6,0,-21.4],[9.2,0,-23.2]],"look_at":[4,1.4,-19],"expect_equipment":{"selected":"shiv"},"note":"Stepping into the alcove's south pocket finds the Shiv. One quiet SECRET FOUND corner line, and the blade is drawn in hand."},
+    {"name":"shiv_thrust","camera":"first_person","trigger":"fire","probe":"FpWeapon","strip_frames":8,"strip_interval_seconds":0.03,"expect_equipment":{"selected":"shiv"},"note":"A cut spends nothing: the blade thrusts toward the crosshair and settles, with no muzzle flash or tracer."},
+    {"name":"back_to_bay","camera":"first_person","walk_to":[[7.6,0,-21.4],[0,0,-21]],"note":"The pocket is a walking return to the bay route."},
     {"name":"maintenance_supply","camera":"first_person","walk_to":[[0,0,-21],[0,0,-18],[-17,0,-18],[-17,0,-14]],"expect_equipment":{"selected":"flechette"}},
     {"name":"overlook_cache","camera":"first_person","walk_to":[[-17,3,8],[-20.5,3,8],[-20.5,3,6.8]],"look_at":[-20.5,3.4,3.8],"note":"Optional armor occupies the quiet landing corner, away from the required walking route."},
     {"name":"maintenance_overlook","camera":"first_person","walk_to":[[-20.5,3,3.8]],"look_at":[-17,2.7,-1],"note":"The low rail frames the service stair and machinery. The authoritative armor claim is covered by the cache lifecycle test."},

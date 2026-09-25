@@ -3,7 +3,7 @@ extends Node
 # Version 10 understands one ammunition count per type and scatter pellet
 # traces; 9 added M02 objective and gate state and 8 private participant
 # records. Older servers remain playable.
-const GAMEPLAY_VERSION: int = 10
+const GAMEPLAY_VERSION: int = 11
 
 signal connected_to_server
 signal disconnected_from_server

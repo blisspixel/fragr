@@ -45,7 +45,7 @@ fn spawn() -> (OwnedChild, Ready) {
     assert_eq!(ready.mission, MissionId::RecallNotice);
     assert_eq!(
         ready.gameplay_version,
-        fragr_server::protocol::AMMO_GAMEPLAY_VERSION
+        fragr_server::protocol::SHIV_GAMEPLAY_VERSION
     );
     assert!(ready.url.starts_with("ws://127.0.0.1:"));
     (child, ready)
@@ -443,7 +443,7 @@ async fn m02_development_child_serves_the_graybox_without_a_durable_run() {
     assert_eq!(ready.mission, MissionId::PersonsUnknown);
     assert_eq!(
         ready.gameplay_version,
-        fragr_server::protocol::AMMO_GAMEPLAY_VERSION
+        fragr_server::protocol::SHIV_GAMEPLAY_VERSION
     );
     let (mut socket, _) = connect_async(&ready.url).await.unwrap();
     socket
@@ -452,7 +452,7 @@ async fn m02_development_child_serves_the_graybox_without_a_durable_run() {
                 role: Role::Human,
                 name: "Ward walker".into(),
                 geometry_version: 2,
-                gameplay_version: fragr_server::protocol::AMMO_GAMEPLAY_VERSION,
+                gameplay_version: fragr_server::protocol::SHIV_GAMEPLAY_VERSION,
                 ticket: None,
                 resume: None,
             })

@@ -89,7 +89,7 @@ async fn encounter_capability_and_identity_reach_every_role_over_the_wire() {
                     role,
                     name: format!("{role:?}"),
                     geometry_version: 2,
-                    gameplay_version: fragr_server::protocol::AMMO_GAMEPLAY_VERSION,
+                    gameplay_version: fragr_server::protocol::SHIV_GAMEPLAY_VERSION,
 
                     ticket: None,
                     resume: None,

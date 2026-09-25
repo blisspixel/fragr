@@ -602,6 +602,11 @@ func _capture_strip(state: Dictionary, frames: int, file_name: String) -> void:
 		print("qa_tour: %s -> %s (%d frames)" % [state.get("name", ""), file_name, shots.size()])
 
 func _probe_active(probe: Node, state: Dictionary) -> bool:
+	if probe is TextureRect and probe.name == "FpWeapon":
+		# The held Shiv is always drawn; only its thrust is the effect.
+		var hud: Node = _find_hud()
+		if str(hud.get("current_fp_weapon")) == "Shiv":
+			return probe.visible and float(hud.get("fp_stab_timer")) > 0.0
 	if probe is MeleeView:
 		return probe.visible and probe.remaining > 0.0
 	if probe is EquipmentHud:

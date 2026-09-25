@@ -422,3 +422,65 @@ fn late_join_records_preserve_their_participation_window() {
         "joining a finished round is not participation"
     );
 }
+
+#[test]
+fn records_keep_five_legacy_weapon_slots_until_the_shiv_is_used() {
+    use crate::protocol::CombatCounts;
+    let mut counts = CombatCounts {
+        alive_ticks: 10,
+        ..Default::default()
+    };
+    counts.weapons[WeaponType::Rail.index()].attacks = 2;
+    let legacy = serde_json::to_value(&counts).unwrap();
+    assert_eq!(legacy["weapons"].as_array().unwrap().len(), 5);
+    assert!(legacy.get("secrets").is_none(), "no secret, no field");
+    assert_eq!(
+        serde_json::from_value::<CombatCounts>(legacy.clone()).unwrap(),
+        counts
+    );
+    counts.weapons[WeaponType::Shiv.index()].attacks = 3;
+    counts.secrets = 1;
+    counts.validate().unwrap();
+    let current = serde_json::to_value(&counts).unwrap();
+    assert_eq!(current["weapons"].as_array().unwrap().len(), 6);
+    assert_eq!(current["secrets"], 1);
+    assert_eq!(
+        current["weapons"][4], legacy["weapons"][4],
+        "Rail keeps its slot"
+    );
+    assert_eq!(
+        serde_json::from_value::<CombatCounts>(current.clone()).unwrap(),
+        counts
+    );
+    for length in [0, 4, 7] {
+        let mut malformed = current.clone();
+        let slots = malformed["weapons"].as_array_mut().unwrap();
+        let slot = slots[0].clone();
+        slots.resize(length, slot);
+        assert!(
+            serde_json::from_value::<CombatCounts>(malformed).is_err(),
+            "{length}"
+        );
+    }
+    let mut malformed = current.clone();
+    malformed["weapons"][5]["unexpected"] = true.into();
+    assert!(serde_json::from_value::<CombatCounts>(malformed).is_err());
+    let mut busy = counts.clone();
+    busy.secrets = 11;
+    assert!(busy.validate().is_err(), "more secrets than active frames");
+    let mut part = counts.clone();
+    part.secrets = 2;
+    assert!(!counts.contains(&part) && part.contains(&counts));
+}
+
+#[test]
+fn shared_shiv_record_fixture_round_trips_its_sixth_slot_and_secret() {
+    let text = include_str!("../../../client/golden/player_record_shiv.json");
+    let record: PlayerRecord = serde_json::from_str(text).unwrap();
+    record.validate_for(Some(record.player_id), None).unwrap();
+    assert_eq!(record.total.weapon(WeaponType::Shiv).kills, 1);
+    assert_eq!(record.total.weapon(WeaponType::Tack).attacks, 2);
+    assert_eq!((record.total.secrets, record.attempt.secrets), (1, 1));
+    let expected: serde_json::Value = serde_json::from_str(text).unwrap();
+    assert_eq!(serde_json::to_value(&record).unwrap(), expected);
+}
