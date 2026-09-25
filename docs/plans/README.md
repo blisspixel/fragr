@@ -4,7 +4,7 @@ Bounded work lives here as one file per item, written **before** implementation 
 
 Each plan covers: goal, non-goals, architecture impact, protocol or API changes, verification, spend and safety gates, and success criteria. When the work ships, update the plan's status here and in the roadmap in the same PR.
 
-Status words: **planned**, **in flight**, **implemented** (local evidence recorded; linked task tracks integration), **shipped** (merged to `main`, PR number noted), **proven** (shipped plus evidence), **superseded** (kept for history, no longer directs work).
+Status words: **proposed** (a design awaiting Nick's decision; directs no work), **planned**, **in flight**, **implemented** (local evidence recorded; linked task tracks integration), **shipped** (merged to `main`, PR number noted), **proven** (shipped plus evidence), **superseded** (kept for history, no longer directs work).
 
 ## Standing facts
 
@@ -17,6 +17,7 @@ Status words: **planned**, **in flight**, **implemented** (local evidence record
 
 | Plan | Status | One-liner |
 |---|---|---|
+| [`campaign-expansion.md`](./campaign-expansion.md) | **proposed** | Twenty levels in five episodes for a four-hour first run: the ten-mission spine kept, one new thing per level, the wipe in three levels, a brief by difficulty, par and replay waivers. |
 | [`heavy-sweeper-and-turret.md`](./heavy-sweeper-and-turret.md) | **implemented** | Heavy Sweeper and Turret on the encounter seams with seeded tell tests, a test range, and the black and red Union recolor. |
 | [`input-all-devices.md`](./input-all-devices.md) | **implemented** | Keyboard only, keyboard and mouse, and gamepad: rebinding page, key turn ramp, radial stick curves, device-following pad glyphs and aim assist that never touches the mouse. |
 | [`boomer-ammo-and-pellets.md`](./boomer-ammo-and-pellets.md) | **implemented** | Doom-style ammo (one count per type, no reload) and a seven-pellet shotgun, with capability 10, rules revision 2 and a clean new-run path for magazine-era saves. |
