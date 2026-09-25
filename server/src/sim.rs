@@ -820,7 +820,7 @@ impl GameState {
     }
 
     pub(crate) fn spawn_campaign_enemy(&mut self, placement: &crate::maps::EnemyPlacement) -> Uuid {
-        use crate::protocol::{CampaignActor, EnemyKind, EnemyPhase, EquipmentPolicy};
+        use crate::protocol::{CampaignActor, EnemyPhase, EquipmentPolicy};
         let id = self.new_entity_id();
         let [x, floor, z] = placement.feet;
         let mut player = Player::at_spawn(
@@ -830,10 +830,7 @@ impl GameState {
             (x, z, placement.yaw, floor),
             EquipmentPolicy::Discovery,
         );
-        let (hp, weapon) = match placement.kind {
-            EnemyKind::Clerk => (60, WeaponType::Tack),
-            EnemyKind::Sweeper => (80, WeaponType::Flechette),
-        };
+        let (hp, weapon) = crate::encounters::enemy_body(placement.kind);
         player.hp = hp;
         player.weapon = weapon;
         player.inventory.grant_weapon(weapon);
@@ -1112,11 +1109,7 @@ impl GameState {
                 dz /= len;
             }
 
-            let move_speed = if player.is_campaign_enemy() {
-                move_speed * 0.5
-            } else {
-                move_speed
-            };
+            let move_speed = move_speed * crate::encounters::gait(player.campaign);
             let moved = crate::movement::integrate(
                 crate::movement::MoveState {
                     x: player.x,

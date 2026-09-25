@@ -1,22 +1,30 @@
 # Union character source
 
-Original articulated source for the M01 human Clerk and bot Sweeper. These are
-the first directional campaign sets, still under visual review in the M01 intake
-plan. They do not establish a completed cast or final character production bar.
+Original articulated source for the Union's human Clerk, bot Sweeper, Heavy
+Sweeper and Turret. These are directional campaign sets under visual review.
+They do not establish a completed cast or final character production bar.
 
-`geometry.gd` owns material/mesh primitives; `rig.gd` owns anatomy, issued gear
-and joint poses; `bake.gd` renders the committed atlases in
+`geometry.gd` owns material/mesh primitives and the Union palette; `rig.gd` owns
+humanoid anatomy, issued gear and joint poses; `machines.gd` owns the Heavy
+Sweeper and Turret; `bake.gd` renders the committed atlases in
 `client/assets/characters/union/`. Edit source and rebake, never retouch an atlas
 that the next bake will replace. The source directory is excluded from exports.
 The bake writes a manifest with source/output hashes. The headless harness rejects
 stale outputs after source or layout changes; a rebake updates the receipt.
 
-The human has an open helmet, visible face, green cloth and a pistol that
+The human has an open helmet, visible face, black cloth and a pistol that
 clears the shoulder when it aims. The bot has wide pauldrons, a box head, a
-status slit, a battery pack and a rifle that stays inside those shoulders.
+red visor slit, a battery pack and a rifle that stays inside those shoulders.
+The Heavy Sweeper is broader still, with its head sunk below two large
+pauldrons, an ammunition drum and a rotary cannon; its tell flares both
+pauldrons and lights their red lamps. The Turret is a braced column under a
+rotating housing with a rail barrel; its tell lights the optic and four red
+charge coils, and its destroyed pose drops the housing beside the broken column.
 Materials are unshaded so distance reads the shape, not a lighting gradient.
-Shared bone armor, steel, green and restrained red seals establish Union
-manufacture. Neither body type establishes moral status. These are not
+Union issue is black cloth, dark steel, plates one step lighter, and restrained
+red on visors, optics, armbands and seals (`union_*` in `docs/palette.json`).
+The plates and red accents keep bodies readable in dark rooms. Muzzle flash and
+sparks keep palette ember_hot because they are fire, not faction. Neither body type establishes moral status. These are not
 free-agent character designs.
 
 Reviewed [reference candidates](references/README.md) now give the next rig pass
@@ -43,7 +51,10 @@ vary across drivers; tests assert bounds and behavior, not a driver-specific has
 
 The layout is shared through `EnemyAnimation`: 54 poses at eight angles, 160-pixel
 cells, 18 columns, 24 rows. Each atlas is 2880 by 3840, below a 4096 texture limit.
-Two uncompressed RGBA atlases total 84.375 MiB, loaded lazily by archetype. PNG
+Four uncompressed RGBA atlases total 168.75 MiB if all are resident; they load
+lazily by archetype, so a room with only Clerks and Sweepers holds two. The
+Turret has no gait: its walk cells are a head traverse that plays on phase time
+while the server turns the head, and its unarmed cells repeat the armed ones. PNG
 disk size is smaller and does not describe texture memory. No mipmaps or automatic
 3D compression; nearest sampling and cutout alpha preserve the pixel edges.
 

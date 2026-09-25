@@ -20,10 +20,14 @@ func _run() -> void:
 		{"id": "human", "campaign": {"side": "participant"}},
 		{"id": "agent", "campaign": {"side": "participant"}}, actor.duplicate(true)]}
 	_check(ActorState.validation_error(snapshot).is_empty(), "valid campaign identity accepted")
+	for kind: String in ["sweeper", "heavy_sweeper", "turret"]:
+		var other: Dictionary = _actor()
+		other["campaign"]["kind"] = kind
+		_check(ActorState.validation_error({"tick": 12, "players": [other]}).is_empty(), "accept Union kind " + kind)
 	var participants: Array[Dictionary] = ActorState.participants(snapshot["players"])
 	_check(participants.size() == 2 and participants[0]["id"] == "human" and participants[1]["id"] == "agent", "only participants belong to the scoreboard and camera roster")
 	_check(ActorState.is_participant({"id": "arcade"}), "legacy arcade roster preserved")
-	for patch: Dictionary in [{"side": "unknown"}, {"kind": "crawler"}, {"phase": "attacking"},
+	for patch: Dictionary in [{"side": "unknown"}, {"kind": "crawler"}, {"kind": "heavy"}, {"kind": "Turret"}, {"phase": "attacking"},
 		{"phase_started": -1}, {"phase_started": 13}, {"phase_started": "10"}, {"phase_ends": 9},
 		{"phase_ends": 111}, {"phase_ends": NAN}, {"phase_ends": 22.5}, {"unknown": 1}, {"kind": []}, {"phase": "dead"}]:
 		var bad: Dictionary = _actor()

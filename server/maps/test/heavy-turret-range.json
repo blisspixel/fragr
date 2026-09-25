@@ -1,0 +1,48 @@
+{
+  "version": 1,
+  "map_id": 1010,
+  "name": "Heavy and turret range",
+  "half_extent": 20,
+  "ground": "concrete",
+  "equipment": "discovery",
+  "solids": [
+    {"id":"start_divider_west","min":[-20,0,-8.5],"max":[-17,3,-7.5],"surface":"enamel"},
+    {"id":"start_divider_mid","min":[-13,0,-8.5],"max":[-3,3,-7.5],"surface":"enamel"},
+    {"id":"start_divider_east","min":[3,0,-8.5],"max":[20,3,-7.5],"surface":"enamel"},
+    {"id":"bypass_wall","min":[-8.5,0,-7.5],"max":[-7.5,3,3],"surface":"service_steel"},
+    {"id":"lane_east","min":[7.5,0,-7.5],"max":[8.5,3,5.5],"surface":"service_steel"},
+    {"id":"lane_pillar_west","min":[-4,0,-4.5],"max":[-2.5,3,-3],"surface":"concrete"},
+    {"id":"lane_pillar_east","min":[2.5,0,-2],"max":[4,3,-0.5],"surface":"concrete"},
+    {"id":"yard_wall_west","min":[-20,0,5.5],"max":[-2,3,6.5],"surface":"enamel"},
+    {"id":"yard_wall_east","min":[2,0,5.5],"max":[20,3,6.5],"surface":"enamel"},
+    {"id":"yard_cover_west","min":[-6,0,10],"max":[-4,2.5,11.5],"surface":"service_steel"},
+    {"id":"yard_cover_east","min":[4,0,10],"max":[6,2.5,11.5],"surface":"service_steel"}
+  ],
+  "spawns": [{"id":"entry","feet":[0,0,-16],"yaw":1.5707964}],
+  "landmarks": [
+    {"id":"bypass_exit","feet":[-6,0,4.5]},
+    {"id":"yard","feet":[0,0,18]}
+  ],
+  "supplies": [
+    {"id":"range_flechette","feet":[-2,0,-14],"grant":{"kind":"weapon","weapon":"flechette"},"claim":"personal"},
+    {"id":"range_scatter","feet":[2,0,-14],"grant":{"kind":"weapon","weapon":"scatter"},"claim":"personal"},
+    {"id":"range_bullets","feet":[0,0,-12],"grant":{"kind":"ammo","pool":"bullets","amount":50},"claim":"contested"},
+    {"id":"range_health","feet":[-15,0,-4],"grant":{"kind":"health","amount":50},"claim":"contested"},
+    {"id":"yard_health","feet":[-6,0,8],"grant":{"kind":"health","amount":50},"claim":"contested"}
+  ],
+  "encounters": [
+    {
+      "id":"turret_lane",
+      "regions":[
+        {"min":[-3,0,-9],"max":[3,2,-6]},
+        {"min":[-17,0,-9],"max":[-13,2,-6]}
+      ],
+      "enemies":[{"id":"lane_turret","kind":"turret","feet":[0,0,1],"yaw":4.712389}]
+    },
+    {
+      "id":"heavy_yard",
+      "regions":[{"min":[-2,0,4],"max":[2,2,8]}],
+      "enemies":[{"id":"yard_heavy","kind":"heavy_sweeper","feet":[0,0,15],"yaw":4.712389}]
+    }
+  ]
+}

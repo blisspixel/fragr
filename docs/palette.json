@@ -16,5 +16,10 @@
   "on_air": [139,30,30,255],
   "institutional_green": [78,88,68,255],
   "moss": [58,76,46,255],
-  "leaf_muted": [116,136,78,255]
+  "leaf_muted": [116,136,78,255],
+  "union_black": [30,30,34,255],
+  "union_steel": [44,45,50,255],
+  "union_plate": [86,87,94,255],
+  "union_red": [140,26,30,255],
+  "union_red_glow": [226,52,48,255]
 }

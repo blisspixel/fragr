@@ -1,11 +1,15 @@
 extends RefCounted
 
-const BONE: Color = Color("e8e2d6")
-const GREEN: Color = Color("4e5844")
-const STEEL: Color = Color("3a3836")
+## Union issue, from docs/palette.json: black and dark steel with restrained
+## red. Plates stay a step lighter than cloth so bodies never vanish indoors.
+const PLATE: Color = Color8(86, 87, 94)
+const CLOTH: Color = Color8(30, 30, 34)
+const STEEL: Color = Color8(44, 45, 50)
 const INK: Color = Color("171b1b")
 const SKIN: Color = Color("b88965")
-const RED: Color = Color("6e1218")
+const RED: Color = Color8(140, 26, 30)
+## Optics and visors: the only lit Union color, and every Union tell light.
+const GLOW: Color = Color8(226, 52, 48)
 
 var materials: Dictionary[Color, StandardMaterial3D] = {}
 
@@ -124,10 +128,10 @@ func helmet(root: Node3D) -> void:
 		previous = ring
 	var node: MeshInstance3D = MeshInstance3D.new()
 	node.mesh = surface.commit()
-	node.material_override = material(BONE)
+	node.material_override = material(PLATE)
 	root.add_child(node)
-	part(root,Vector3(0,1.722,0.135),Vector3(0.258,0.024,0.078),BONE,Vector3(-6,0,0))
-	part(root,Vector3(0,1.705,-0.143),Vector3(0.145,0.085,0.018),GREEN)
+	part(root,Vector3(0,1.722,0.135),Vector3(0.258,0.024,0.078),PLATE,Vector3(-6,0,0))
+	part(root,Vector3(0,1.705,-0.143),Vector3(0.145,0.085,0.018),CLOTH)
 
 func gun(root: Node3D, at: Vector3, bot: bool, raise: float) -> void:
 	var weapon: Node3D = Node3D.new()
@@ -139,7 +143,7 @@ func gun(root: Node3D, at: Vector3, bot: bool, raise: float) -> void:
 		weapon.rotation_degrees.y = lerpf(0.0, 78.0, raise)
 	if bot:
 		part(weapon,Vector3(0,0.02,0.12),Vector3(0.12,0.10,0.40),STEEL)
-		part(weapon,Vector3(0,0.07,0.08),Vector3(0.09,0.045,0.26),BONE.darkened(0.12))
+		part(weapon,Vector3(0,0.07,0.08),Vector3(0.09,0.045,0.26),PLATE.darkened(0.12))
 		part(weapon,Vector3(0,-0.04,-0.02),Vector3(0.08,0.12,0.10),INK)
 		part(weapon,Vector3(0,0.02,0.32),Vector3(0.07,0.07,0.12),INK)
 	else:
@@ -148,6 +152,6 @@ func gun(root: Node3D, at: Vector3, bot: bool, raise: float) -> void:
 		part(weapon,Vector3(0,0.02,0.14),Vector3(0.045,0.045,0.08),INK)
 	if bot:
 		part(weapon,Vector3(0,-0.12,0.1),Vector3(0.074,0.20,0.13),STEEL,Vector3(-8,0,0))
-		part(weapon,Vector3(0,0,-0.19),Vector3(0.095,0.10,0.17),GREEN)
+		part(weapon,Vector3(0,0,-0.19),Vector3(0.095,0.10,0.17),CLOTH)
 		for z: float in [0.07,0.12,0.17]:
 			part(weapon,Vector3(0,0.048,z),Vector3(0.115,0.019,0.014),INK)

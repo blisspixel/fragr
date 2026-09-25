@@ -1,12 +1,15 @@
 # Enemy roster
 
-**Status, 2026-09-22:** Clerk and Sweeper prototype encounters are implemented
+**Status, 2026-09-24:** Clerk and Sweeper prototype encounters are implemented
 through shared simulation bodies, typed campaign identity and directional
 animation. Their unshaded atlases no longer share one outline: the Sweeper is
 the wide bot with the level rifle, and the Clerk is the narrower human whose
-aim clears the shoulder. Full-mission tuning and a fresh-player review remain
-open. Other roles below, including the flying drones added 2026-09-24,
-reactivation and projectiles are proposed.
+aim clears the shoulder. The Heavy Sweeper and the Turret are implemented on
+the same seams and demonstrated on a test range, not yet placed in a mission
+([plan](plans/heavy-sweeper-and-turret.md)). All four wear the black, dark
+steel and restrained red Union issue. Full-mission tuning and a fresh-player
+review remain open. Other roles below, including the flying drones added
+2026-09-24, reactivation and projectiles are proposed.
 Calibration's NODS and Auditor are separate arcade prototypes, not
 implementations of the proposed roster.
 
@@ -34,11 +37,11 @@ fragments. Neither needs constant banter.
 | Clerk | Human security, light issued kit | Low-pressure shots after visible weapon raise | Move, use cover, learn the aim tell |
 | Sweeper | Bot, standard chassis | Mobile bursts with a visible and audible cycle | Interrupt or flank between bursts |
 | Ranged Sweeper | Bot with distinct antenna/weapon silhouette | Stops to line up a precision shot | Break sight or close through cover |
-| Heavy Sweeper | Bot with broad armor and heavy gait | Suppressive fire, slow reposition | Flank, splash, or commit finite ammo |
+| Heavy Sweeper | Bot with broad armor and heavy gait, head sunk below two pauldrons | Pauldrons flare and red lamps light (1.2 s Standard), then a four-round burst; slow sideways shuffle after recovery. Ordinary hits do not flinch it; a 40-damage tick staggers it once per attack | Flank, splash, or commit finite ammo; a heavy hit cancels one burst. Implemented |
 | Crawler | Low constrained chassis | Fast close attack preceded by a leap/wind-up | Scatter, movement and spacing |
 | Jammer | Constrained service/security chassis | Telegraphs local interference and slow projectiles | Prioritize it from a flank on its exposed position |
 | Enforcer | Committed human elite, powered issued armor | Charge and knockback with a clear wind-up | Dodge and punish recovery, use armor counters |
-| Turret | Fixed equipment, no assumed personhood | Visible tracking/sweep before a strong shot | Cover, flank, precision damage |
+| Turret | Fixed equipment, no assumed personhood | Idle head sweep, visible tracking, then a red charge (1.3 s Standard) before one Rail shot. Sees new targets only ahead of its head | Break sight to cancel the charge, flank behind the sweep, precision damage. Never an unavoidable gauntlet. Implemented |
 | Redactor | Committed covert elite | Distortion and movement tell before an ambush | Observe, force movement, deny an approach |
 | Auditor | Human command/support officer with shield hardware | Channels limited reactivation of disabled units | Break channel, flank shield, prioritize support |
 | Notary | Flying patrol drone, Office equipment, no assumed personhood | Red optic flares wide with a shutter click, then a short committed burst | Strafe through the flash, shoot it during the flash, punish the drift |

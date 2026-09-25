@@ -496,7 +496,10 @@ Example `test_input.jsonl`:
 Authored encounter maps require gameplay capability 3, which the adapter sends.
 `observe` preserves each actor's typed `campaign` identity and attack phase.
 `side: participant` includes human and external-agent allies; `side: union`
-identifies Clerk humans and Sweeper bots. Never infer hostility from a callsign,
+identifies Clerk humans, Sweeper and Heavy Sweeper bots, and fixed Turrets
+(`kind`: `clerk`, `sweeper`, `heavy_sweeper`, `turret`). A Turret in `moving` is
+turning its head, not walking. Read `windup` and `phase_ends` as the tell for
+every kind. Never infer hostility from a callsign,
 body appearance or connection role. The scripted controller uses the shared
 hostility predicate and excludes dead actors. MCP clients should follow the same
 rule; dead enemies remain briefly for presentation. Zero-damage friendly

@@ -3,8 +3,17 @@ use crate::protocol::{CampaignActor, EnemyPhase};
 use crate::sim::{BotIntent, GameState, PLAYER_FLOOR_Y};
 use uuid::Uuid;
 
-mod enemy;
+pub(crate) mod enemy;
+pub(crate) use enemy::body as enemy_body;
 use enemy::EnemyController;
+
+/// Share of top speed for a body. Participants and arcade fighters keep 1.0.
+pub(crate) fn gait(identity: Option<CampaignActor>) -> f32 {
+    match identity {
+        Some(CampaignActor::Union { kind, .. }) => enemy::gait(kind),
+        _ => 1.0,
+    }
+}
 
 #[derive(Default)]
 enum Group {
@@ -73,7 +82,13 @@ impl Encounters {
                     ids.push(id);
                     self.enemies.push((
                         index,
-                        EnemyController::new(id, placement.kind, placement.feet, state.tick),
+                        EnemyController::new(
+                            id,
+                            placement.kind,
+                            placement.feet,
+                            placement.yaw,
+                            state.tick,
+                        ),
                     ));
                 }
                 self.groups[index] = Group::Dormant(ids);

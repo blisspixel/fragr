@@ -533,6 +533,44 @@ mod tests {
     use super::*;
 
     #[test]
+    fn mcp_observation_carries_heavy_sweeper_and_turret_tells() {
+        let me = uuid::Uuid::from_u128(1);
+        let heavy = uuid::Uuid::from_u128(4);
+        let turret = uuid::Uuid::from_u128(5);
+        let actor = |id, x, hp, weapon, campaign| {
+            serde_json::json!({
+                "id":id, "name":"Unit", "x":x, "y":1.5, "z":0,
+                "yaw":0, "hp":hp, "just_fired":false, "score":0,
+                "weapon":weapon, "campaign":campaign
+            })
+        };
+        let snapshot: protocol::Snapshot = serde_json::from_value(serde_json::json!({
+            "tick":40, "players":[
+                actor(me, 0, 100, "Flechette", serde_json::json!({"side":"participant"})),
+                actor(heavy, 12, 160, "Flechette", serde_json::json!({"side":"union", "kind":"heavy_sweeper", "phase":"windup", "phase_started":30, "phase_ends":54})),
+                actor(turret, 6, 100, "Rail", serde_json::json!({"side":"union", "kind":"turret", "phase":"moving", "phase_started":38, "phase_ends":38}))]
+        })).unwrap();
+        // The scripted controller treats both as ordinary hostile bodies.
+        assert_eq!(
+            compute_bot_action(me, &snapshot).look_at.unwrap().player_id,
+            Some(turret)
+        );
+        let state = mcp::ToolState {
+            player_id: Some(me),
+            last_snapshot: Some(serde_json::to_value(&snapshot).unwrap()),
+            ..Default::default()
+        };
+        let observation = mcp::build_observe_result(&state);
+        assert_eq!(
+            observation["players"][1]["campaign"]["kind"],
+            "heavy_sweeper"
+        );
+        assert_eq!(observation["players"][1]["campaign"]["phase_ends"], 54);
+        assert_eq!(observation["players"][2]["campaign"]["kind"], "turret");
+        assert_eq!(observation["players"][2]["campaign"]["phase"], "moving");
+    }
+
+    #[test]
     fn scripted_control_and_mcp_observation_preserve_campaign_identity() {
         let me = uuid::Uuid::from_u128(1);
         let ally = uuid::Uuid::from_u128(2);

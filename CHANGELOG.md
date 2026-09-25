@@ -4,6 +4,21 @@ Shipped tags, newest first. A line here is on `main`. Planned work stays in
 [docs/ROADMAP.md](docs/ROADMAP.md). Older tags are on the
 [releases page](https://github.com/blisspixel/fragr/releases).
 
+## v0.50.0 (2026-09-24)
+
+The Union now looks like what it is. Clerks and Sweepers wear black cloth and
+dark steel with restrained red on visors, optics, armbands and seals, and stand
+out against the bone and green interiors of Recall Notice. Their silhouettes
+are unchanged, so each still reads by shape first.
+
+Two new Union enemies are built and tested on a development range, ready for
+later missions: the Heavy Sweeper, a slow armoured bot whose shoulders flare
+before a four-round burst and who staggers only under heavy hits, and the
+Turret, fixed equipment that sweeps its head, lights red coils and spins up
+before one strong shot that breaking line of sight cancels. Difficulty changes
+their warnings and recovery, never their health or damage. Neither is placed
+in a mission yet.
+
 ## v0.49.0 (2026-09-24)
 
 Guns now work the way Doom does. There are no magazines and no reloading: you

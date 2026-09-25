@@ -756,7 +756,8 @@ On encounter maps, each entry in `Snapshot.players` includes `campaign`:
 
 `Role` describes the connection's controller, not faction or fictional anatomy.
 Human and external-agent participants are allies. Union `kind` is `clerk` (human
-security) or `sweeper` (bot). Names are labels, never a targeting rule. Current
+security), `sweeper` (bot), `heavy_sweeper` (armored bot) or `turret` (fixed
+equipment). Names are labels, never a targeting rule. Current
 campaign identity describes these introductory encounters; it does not implement
 Inheritance takeover, companions or the complete co-op lifecycle.
 
@@ -765,6 +766,18 @@ Their start/end are authoritative simulation ticks at 20 Hz. Idle and moving
 have no fixed duration (`phase_ends == phase_started`); other phases may be
 interrupted by hits, lost sight or death. A firing animation never causes damage.
 Resolved `shot_results` still supply the actual weapon, ray and outcome.
+
+Kind-specific phase meaning, same wire shape. A `heavy_sweeper` fires a
+four-round burst after its windup and, after each recovery while it still sees
+a target, spends up to 24 ticks in `moving` shuffling sideways. Ordinary hits
+do not interrupt it: `hit` appears only when one tick deals at least 40 damage,
+at most once per attack cycle, for 16 ticks. A `turret` never changes position.
+In `idle` it sweeps its head around the authored yaw; in `moving` it is turning
+its head toward a target (the actor yaw is the head). Its `windup` is the
+charge before one Rail shot, and broken sight during `windup` or `firing` ends
+the attack in `recovery` without a shot. Its `hit` follows the same heavy-hit
+rule for 10 ticks. Windup and recovery durations per difficulty are in
+[the difficulty plan](plans/difficulty-and-rewards.md).
 
 Campaign participants cannot damage one another. Allies intercept rays with
 `hit: true`, `damage: 0` and `killed: false`; zero damage must not show a hit-confirm

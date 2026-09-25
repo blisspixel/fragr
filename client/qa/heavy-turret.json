@@ -1,0 +1,14 @@
+{
+  "comment": "Heavy Sweeper and Turret demonstration on the test range. FRAGR_QA_BOTS=0, FRAGR_QA_MAP_FILE=server/maps/test/heavy-turret-range.json, FRAGR_QA_MANIFEST=res://qa/heavy-turret.json. Ordinary movement, aim, trigger and reload; no granted equipment or teleports. Each fight observes the first enemy shot and strafes during committed tells.",
+  "width": 1280,
+  "height": 720,
+  "states": [
+    {"name":"range_supplies","scene":"res://scenes/main.tscn","join":"human","camera":"first_person","walk_to":[[2,0,-14],[-2,0,-14],[0,0,-12]],"note":"Collect the Scatter, the Flechette and bullets before the lane."},
+    {"name":"range_armed","camera":"first_person","weapon":"Flechette","note":"Select the Flechette for both fights."},
+    {"name":"turret_idle","camera":"first_person","walk_to":[[0,0,-10]],"look_at":[0,1.5,1],"note":"Dormant turret down the lane, eleven metres away, before its group wakes."},
+    {"name":"turret_fight","camera":"first_person","walk_to":[[0,0,-7]],"combat":{"kind":"turret","defeat":1,"observe_first_shot":true,"evade_tells":true},"note":"The head tracks, the coils charge, the locked rail shot fires. Strafe during the charge, then return fire."},
+    {"name":"bypass_health","camera":"first_person","walk_to":[[0,0,-10],[-15,0,-10],[-15,0,-4]],"note":"The bypass behind the lane wall: the turret flank route, with a medkit."},
+    {"name":"heavy_idle","camera":"first_person","walk_to":[[-15,0,4.5],[-6,0,4.5],[0,0,3]],"look_at":[0,1.2,15],"note":"Dormant Heavy Sweeper across the yard, twelve metres away."},
+    {"name":"heavy_fight","camera":"first_person","walk_to":[[0,0,7]],"combat":{"kind":"heavy_sweeper","defeat":1,"observe_first_shot":true,"evade_tells":true},"note":"Pauldrons flare and lamps light before the four-round burst. Strafe, then commit ammunition."}
+  ]
+}

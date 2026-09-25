@@ -1,6 +1,16 @@
 extends SceneTree
 
-const Rig = preload("res://art/characters/rig.gd")
+const Rig = preload("res://art/characters/machines.gd")
+const KINDS: Dictionary[String, Dictionary] = {
+	"clerk": {"model": "articulated human security rig",
+		"brief": "Visible human face, open helmet, institutional green cloth, issued bone armor and restrained red seal."},
+	"sweeper": {"model": "articulated issued bot rig",
+		"brief": "Covered mechanical chassis, dark status slit, battery pack, issued bone armor and restrained red seal."},
+	"heavy_sweeper": {"model": "articulated heavy bot rig",
+		"brief": "Broad armored chassis, head sunk between wide pauldrons, ammunition drum, rotary cannon and ember tell lamps."},
+	"turret": {"model": "fixed turret rig",
+		"brief": "Braced column with a rotating bone housing, rail barrel with ember charge coils and a cyan sensor lamp."},
+}
 const OUTPUT: String = "res://assets/characters/union/"
 
 func _initialize() -> void:
@@ -40,7 +50,7 @@ func bake() -> void:
 	root.add_child(display)
 	var rig: RefCounted = Rig.new()
 	var entries: Array[Dictionary] = []
-	for kind: String in ["clerk", "sweeper"]:
+	for kind: String in KINDS:
 		var atlas: Image = Image.create(EnemyAnimation.COLUMNS * EnemyAnimation.TILE,
 			EnemyAnimation.rows() * EnemyAnimation.TILE, false, Image.FORMAT_RGBA8)
 		for direction: int in range(EnemyAnimation.DIRECTIONS):
@@ -51,8 +61,10 @@ func bake() -> void:
 					var progress: float = float(index) / maxf(1.0, float(count - 1))
 					if clip["action"] == "walk":
 						progress = float(index) / count
-					var model: Node3D = rig.build_pose(kind == "sweeper",
-						str(clip["action"]), progress, bool(clip["unarmed"]))
+					var action: String = str(clip["action"])
+					var unarmed: bool = bool(clip["unarmed"])
+					var model: Node3D = rig.build_pose(kind == "sweeper", action, progress, unarmed) \
+						if kind in ["clerk", "sweeper"] else rig.build_machine(kind, action, progress, unarmed)
 					viewport.add_child(model)
 					model.rotation_degrees.y = direction * 45.0
 					await process_frame
@@ -79,13 +91,11 @@ func bake() -> void:
 			quit(1)
 			return
 		entries.append({"file": kind + ".png", "sha256": FileAccess.get_sha256(destination),
-			"model": "articulated human security rig" if kind == "clerk" else "articulated issued bot rig",
-			"brief": "Visible human face, open helmet, institutional green cloth, issued bone armor and restrained red seal."
-				if kind == "clerk" else "Covered mechanical chassis, dark status slit, battery pack, issued bone armor and restrained red seal."})
+			"model": KINDS[kind]["model"], "brief": KINDS[kind]["brief"]})
 		print("character_bake: wrote ", kind)
 	var sources: Dictionary[String, String] = {}
 	for source: String in ["res://art/characters/geometry.gd", "res://art/characters/rig.gd",
-		"res://art/characters/bake.gd", "res://scripts/enemy_animation.gd"]:
+		"res://art/characters/machines.gd", "res://art/characters/bake.gd", "res://scripts/enemy_animation.gd"]:
 		sources[source] = FileAccess.get_sha256(source)
 	var manifest: FileAccess = FileAccess.open(OUTPUT + "manifest.json", FileAccess.WRITE)
 	if manifest == null or not manifest.store_string(JSON.stringify({

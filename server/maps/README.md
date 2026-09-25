@@ -51,7 +51,7 @@ support, not the campaign menu's finished first mission.
 
 Add `--difficulty assisted`, `--difficulty standard` or `--difficulty severe` to
 choose the mission's shared pressure before admission. Omission keeps Standard.
-The first profiles adjust Clerk/Sweeper windup and recovery, not health, damage,
+The profiles adjust enemy windup and recovery, not health, damage,
 supplies or story. Local Single Player offers the same choices. Difficulty is
 fixed for that server lifetime; restart for another choice. Use matching client
 and server builds with gameplay capability 7 (6 suffices for development parties). Arcade and benchmark runs reject
@@ -91,10 +91,15 @@ the option. Final multi-tier encounter and resource balance remains unfinished.
   entry regions in total. Each group has a unique `id`, nonempty `regions` and
   `enemies`, and optional `after` naming an earlier group. Each region is an
   inclusive feet-position box with finite ordered `min`/`max` bounds inside the
-  map. Each enemy has a unique `id`, `kind` (`clerk` or `sweeper`), supported and
+  map. Each enemy has a unique `id`, `kind` (`clerk`, `sweeper`, `heavy_sweeper` or `turret`), supported and
   reachable `feet`, and bounded `yaw`, just like a spawn. Unknown fields are
   rejected. No scripts or arbitrary behavior expressions. These maps require
   gameplay capability 3. See [actor semantics](../../docs/protocol.md#campaign-actor-identity).
+  `test/heavy-turret-range.json` (map 1010) demonstrates the Heavy Sweeper and
+  the Turret: supplies, a turret lane with pillar cover and a walled bypass to
+  its flank, then a yard with one Heavy Sweeper. It is a test range for
+  `client/qa/heavy-turret.json`, not a mission. Place a turret only where cover
+  and a flank route exist; never as an unavoidable gauntlet.
 - `mission`: optional, discovery only, requires capability 6 for shared difficulty
   and party readiness, or 7 when the host selects solo run rules. The registered
   `id` is `recall_notice`. `record` and `departure` each contain `panel` (the same

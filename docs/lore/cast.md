@@ -58,12 +58,12 @@ gear can cover them but must not silently change the character underneath.
 | Player | Chosen human or agent body, callsign and supported cosmetics | Body-neutral opening; hands and equipment match the selected body in play |
 | Latch (`companion`) | Practical midweight agent chassis, unequal repaired forearm plates, worn bone/dark steel, small muted cyan patch | Precise hands, self-directed gestures, familiar stance; restraints are imposed equipment, not their natural design |
 | Mara (`organizer`) | Human in a short rust utility coat over dark work gear, folded route case | Work-worn organizer, not an officer redesign after the coalition succeeds |
-| Renn (`custodian`) | Human, upright narrow silhouette, institutional-green coat and bone registry case | Rank marking is deliberately removed after defection; manner changes gradually, old kit remains recognizable |
+| Renn (`custodian`) | Human, upright narrow silhouette, issued black Union coat, dark steel buttons and a registry case | Rank marking is deliberately removed after defection; manner changes gradually, old kit remains recognizable |
 | Tern (`pilot`) | Tall free agent with compact head and flight harness, gunmetal with a small ember shoulder panel | Conserves movement, handles ship equipment with practiced ease; same chassis offworld and on Earth |
 | Edda (`medic`) | Human with broad practical medical satchel, bone apron over dark civilian kit | Readable equipment gesture; avoid copyrighted service emblems or making every medical object a pickup cue |
 | Splice (`technician`) | Compact free agent, offset tool rack, rust repairs and a muted magenta wrist band | Individual tool handling and impatient gestures; never a cosmetic copy of a Union Sweeper |
 | Orrin (`recovered_mind`) | Backup container first; later a plainly repaired available chassis | Body change is an explicit restoration event, not inconsistency; memory gaps persist after restoration |
-| Voss | Human woman with a severe structured institutional-green coat, bone collar, dark red seal | Controlled podium stance that breaks into anger. Capture removes authority, not identity or age |
+| Voss | Human woman in a severe structured black coat, dark steel collar, restrained red seal and armband | Controlled podium stance that breaks into anger. Capture removes authority, not identity or age |
 | Inheritance | No default humanoid avatar | Machines and precise interventions carry its presence; absorbed bots retain recognizable bodies |
 
 Do not establish specific ages, ethnicity, facial features or voice IDs through
