@@ -140,8 +140,28 @@ as text.
 | `test_input_glyphs.gd` | Layout detection, device switching, prompt text per layout, glyph sprites, HUD prompt follows the device |
 | `test_aim_assist.gd` | Cone, range, line of sight, device gating, gentle frame-rate independent pull, pad friction, mouse untouched |
 
-Plus `tools/godot_check.sh`, `tools/test_godot_check.sh`, and tour stills of
-the Controls page and an in-game prompt with keyboard and gamepad glyphs.
+Plus `tools/godot_check.sh` (PASS, 157 checks, 2026-09-24),
+`tools/test_godot_check.sh` (all ten scenarios ok), and tour stills.
+
+### Tour evidence (2026-09-24, Windows, OpenGL)
+
+- `tools/qa_tour.sh`: new states `settings_controls`, `settings_controls_pad`,
+  `settings_look`, `hud_legend_pad`, `hud_legend_keyboard`. The Controls page
+  lists every action with KEY, KEY 2 and PAD columns (W / UP, A / comma, ALT,
+  SPACE / A, LEFT / Q) in the pixel theme with the Controls tab focused; the
+  footer hint switches from "ARROWS + ENTER / ESC BACK" to "D-PAD + A / B BACK"
+  after a trigger pull. The Look page shows 34.6 cm per turn at 800 CPI, key
+  turn 160, stick 240 and 150, deadzone 0.12. The joined player's legend reads
+  "RT fire B use A jump RB weapon MENU menu" on a pad.
+- `client/qa/input-continue.json` (one-seat M01 run, the player walks into the
+  intake guard's fire and falls): the continue card reads "ENTER: SPEND ONE
+  CONTINUE / ESC: MATCH MENU" as keycaps on keyboard, and shows a 44 pixel
+  glyph on a pad: positional south dot from a real trigger event, then a
+  forced letter A and shape cross, recorded as forced in the manifest.
+- Not captured: the transfer record use prompt with glyphs. The full records
+  route in `m01-records.json` no longer reaches it on current `main` (the
+  stacks cross aisle and service bypass waypoints stall against geometry), so
+  that prompt is covered by `test_input_glyphs.gd` and `test_mission.gd` only.
 
 ## Open
 

@@ -71,14 +71,14 @@ func _rich(font_size: int) -> RichTextLabel:
 ## Draw a prompt template with glyphs for the active device.
 func _show_prompt(template: String) -> void:
 	_prompt_template = template
-	prompt_text = InputGlyphs.render(_prompt, template, 30, true) if not template.is_empty() else ""
+	prompt_text = InputGlyphs.render(_prompt, template, 44, true) if not template.is_empty() else ""
 	if template.is_empty():
 		_prompt.clear()
 	_prompt.visible = not prompt_text.is_empty()
 
 func _show_recovery(template: String) -> void:
 	_recovery_template = template
-	recovery_text = InputGlyphs.render(_recovery_copy, template, 30, true) if not template.is_empty() else ""
+	recovery_text = InputGlyphs.render(_recovery_copy, template, 44, true) if not template.is_empty() else ""
 	if template.is_empty():
 		_recovery_copy.clear()
 
