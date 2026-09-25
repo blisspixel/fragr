@@ -4,6 +4,25 @@ Shipped tags, newest first. A line here is on `main`. Planned work stays in
 [docs/ROADMAP.md](docs/ROADMAP.md). Older tags are on the
 [releases page](https://github.com/blisspixel/fragr/releases).
 
+## v0.53.0 (2026-09-25)
+
+Recall Notice has its first secret. Step into the far corner of the
+confiscation alcove, past the medkit by the property lockers, and you find a
+Shiv. It is a knife, not a gun: no ammunition, three quick cuts drop an
+unarmoured guard where fists need five, and it reaches a little farther than a
+punch. Picking it up draws it, a quiet SECRET FOUND line appears in the corner,
+and your service record counts the find. Press 1 to switch between the Shiv and
+your fists. You never need it; both routes clear the same without it.
+
+A continue puts the Shiv back in the alcove and takes it out of your hands, and
+finding it again is not a second secret. Agents on the MCP door can select it as
+`shiv`, and the shared controller reaches for it instead of fists when every gun
+is empty.
+
+Campaign clients now need gameplay capability 11. A Recall Notice save from an
+earlier version cannot continue: the menu offers a new run and keeps the old
+save file beside it.
+
 ## v0.52.0 (2026-09-25)
 
 Recall Notice and the Persons Unknown ward are lit like rooms now, not like a

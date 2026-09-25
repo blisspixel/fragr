@@ -79,7 +79,7 @@ Initial handshake message. Must be sent immediately after connection.
   No player or spectator session is created on rejection. This is geometry
   compatibility, not general protocol or action-version negotiation.
 - `gameplay_version`: maximum understood gameplay contract. Updated Rust readers
-  and the Godot client send `10`; omission means `1`. Discovery-only maps require 2, maps with authored
+  and the Godot client send `11`; omission means `1`. Discovery-only maps require 2, maps with authored
   encounters require 3, and mission sequences require 6 for shared difficulty.
   Versions 4 and 5 introduced physical controls and party readiness respectively;
   they cannot enter current missions. Solo runs require 7 for explicit continues.
@@ -90,6 +90,12 @@ Initial handshake message. Must be sent immediately after connection.
   adds scatter pellet traces. Every discovery map, M01 and M02 included, now
   requires 10 for every role, because the private loadout shape changed and
   older readers would refuse it. Records are delivered only to 10 or later.
+  Version 11 adds the pool-less `shiv` weapon to loadouts, actions and shot
+  traces, the optional `secret` flag on pickup events, and a sixth record weapon
+  slot plus an optional `secrets` count. Every discovery map, M01 and M02
+  included, now requires 11 for every role, because any authored map may place
+  the Shiv and a version 10 reader would refuse a loadout naming it. Records still
+  go to 10 or later: arena and full-arsenal records never carry the new fields.
   Use matching campaign server/client builds.
   Older clients of every role are rejected before `Welcome`
   with `unsupported_gameplay`. This capability is separate from geometry. The six
@@ -388,7 +394,7 @@ World-point aim:
   a press followed by release before the next tick is retained for that tick.
   The retained press is consumed once, including while airborne or dead, so it
   cannot create delayed jumps. Holding jump does not add thrust in the air.
-- `weapon_swap`: (optional) `"fists"` | `"tack"` | `"flechette"` | `"rail"` | `"scatter"`.
+- `weapon_swap`: (optional) `"fists"` | `"shiv"` | `"tack"` | `"flechette"` | `"rail"` | `"scatter"`.
   The newest explicit choice survives later packets until one tick consumes it.
   Discovery rejects unowned choices; full-arsenal maps permit their three guns.
   Switching releases a latched dry trigger. A dry weapon creates no shot result,
@@ -561,7 +567,10 @@ in `Snapshot.players[].weapon`; ammunition does not.
 }
 ```
 
-`weapons` lists owned weapons exactly once, including fists. `ammo` contains
+`weapons` lists owned weapons exactly once, including fists, in the order
+fists, tack, flechette, scatter, rail, shiv. The `shiv` is found, not issued: a
+pool-less melee weapon (35 damage, 6 tick cooldown, 2.2 unit reach) that spends
+nothing and has no ammunition count. Picking it up again adds nothing. `ammo` contains
 all three unique pools: `bullets` (Tack and Flechette, cap 200), `shells`
 (Scatter, cap 50) and `cells` (Rail, cap 50). There are no magazines and no
 reload: one shot, including a seven-pellet scatter blast, spends one unit from
@@ -983,6 +992,22 @@ Tiers: `double` (2), `triple` (3), `rampage` (5). Contested Frequency Host voice
 }
 ```
 
+A claim that found an authored secret adds `"secret": true`; the field is
+omitted otherwise. Like other pickup notices, the Godot client shows its cue only
+for its own participant, or for the fighter a spectator is following:
+```json
+{
+  "type": "event",
+  "event": "pickup",
+  "player": "Visitor",
+  "player_id": "550e8400-e29b-41d4-a716-446655440000",
+  "kind": "weapon",
+  "weapon": "Shiv",
+  "pickup_id": "alcove_shiv",
+  "secret": true
+}
+```
+
 Health example:
 ```json
 {
@@ -1179,16 +1204,16 @@ version 2 requires that field; it is separate from
 the on-wire campaign rules revision. No parent command changes it during a run.
 
 ```json
-{"version":2,"mission":"recall_notice","difficulty":"standard","url":"ws://127.0.0.1:49152","gameplay_version":10}
+{"version":2,"mission":"recall_notice","difficulty":"standard","url":"ws://127.0.0.1:49152","gameplay_version":11}
 ```
 
 The readiness record names the selected mission's client contract, rather than
 the highest version understood by the server. Both missions carry discovery
-equipment, so both name 10. The local launcher checks this value exactly.
+equipment, so both name 11. The local launcher checks this value exactly.
 
 `--local-mission persons_unknown` starts the bundled M02 graybox as a
 development child. It writes the same readiness line with
-`"mission":"persons_unknown"` and `"gameplay_version":10`. It has no durable run:
+`"mission":"persons_unknown"` and `"gameplay_version":11`. It has no durable run:
 `--run-mode` is refused before readiness, mission state carries no `run`, and
 the party keeps development entry respawn and the shared wipe reset. It is not
 a save carry from M01.
@@ -1232,7 +1257,8 @@ player UUID and round number, never a callsign. `entered_at` is the admission ti
 or the latest round start for an existing participant. A late arena join has
 `entered_at > round_started_at`. Mission attempts share one record identity.
 The [shared format fixture](../client/golden/player_record.json) is read by Rust,
-MCP and client tests.
+MCP and client tests; the [Shiv fixture](../client/golden/player_record_shiv.json)
+covers the sixth slot and a found secret on both sides.
 
 Scopes are `arena` or `practice` with `round`, or `mission` with `mission`,
 `attempt`, `rules` and nullable `run` (the existing solo run contract). Calibration
@@ -1244,12 +1270,17 @@ shown as incomplete; transport loss is not evidence of failure or victory.
 
 Each count set contains `alive_ticks`, `deaths`, `hp_lost`, `armor_lost`,
 `dry_triggers` and five `weapons` entries in fists, Tack, flechette, scatter, rail
-order. Weapon counts are `attacks`, `damaging_attacks`, `kills`, `hp_damage` and
+order, plus a sixth Shiv entry only once the Shiv has attacked. Readers accept
+five or six entries and treat a missing sixth as zero, so retained history keeps
+its shape and no slot changes meaning. `secrets`, present only when nonzero,
+counts distinct authored secrets found: `total` over the whole run, `attempt`
+this attempt. Finding a restored secret again after a continue raises `attempt`
+but not `total`. It cannot exceed `alive_ticks`. Weapon counts are `attacks`, `damaging_attacks`, `kills`, `hp_damage` and
 `armor_damage`. Every weapon resolves one attack per accepted trigger; the
 scatter's attack is seven pellets and counts once, as one damaging attack when
 any pellet hurt anyone. Its kills are bounded by seven per damaging attack; every
 other weapon's kills are bounded by its damaging attacks.
-Fists count as attacks. A damaging attack removes positive HP or armor from a
+Fists and Shiv cuts count as attacks. A damaging attack removes positive HP or armor from a
 hostile living target. Protected/friendly bodies, scenery, range misses and a
 body killed by an earlier committed ray do not count as damaging attacks.
 Effective damage excludes overkill. Simultaneous trades keep both attacks, and

@@ -26,8 +26,70 @@ pub struct CombatCounts {
     pub hp_lost: u64,
     pub armor_lost: u64,
     pub dry_triggers: u64,
+    /// Distinct authored secrets found. Omitted while zero, so arena records
+    /// and records from before secrets keep their exact shape.
+    #[serde(default, skip_serializing_if = "is_zero")]
+    pub secrets: u64,
     /// Indexed by WeaponType::index(), in WeaponType::ALL order.
-    pub weapons: [WeaponCounts; 5],
+    #[serde(with = "weapon_counts")]
+    pub weapons: [WeaponCounts; WeaponType::ALL.len()],
+}
+
+fn is_zero(value: &u64) -> bool {
+    *value == 0
+}
+
+/// Five original slots, plus the Shiv's sixth only once it has been used, so
+/// retained history keeps its shape and no index ever changes meaning.
+mod weapon_counts {
+    use super::{WeaponCounts, WeaponType};
+    use serde::de::{Error, IgnoredAny, SeqAccess, Visitor};
+    use serde::Serialize;
+
+    const LEGACY: usize = 5;
+    const SLOTS: usize = WeaponType::ALL.len();
+
+    pub fn serialize<S: serde::Serializer>(
+        counts: &[WeaponCounts; SLOTS],
+        serializer: S,
+    ) -> Result<S::Ok, S::Error> {
+        let used = if counts[LEGACY..]
+            .iter()
+            .all(|c| *c == WeaponCounts::default())
+        {
+            LEGACY
+        } else {
+            SLOTS
+        };
+        counts[..used].serialize(serializer)
+    }
+
+    pub fn deserialize<'de, D: serde::Deserializer<'de>>(
+        deserializer: D,
+    ) -> Result<[WeaponCounts; SLOTS], D::Error> {
+        struct Counts;
+        impl<'de> Visitor<'de> for Counts {
+            type Value = [WeaponCounts; SLOTS];
+            fn expecting(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                f.write_str("five or six weapon counters")
+            }
+            fn visit_seq<A: SeqAccess<'de>>(self, mut seq: A) -> Result<Self::Value, A::Error> {
+                let mut counts = [WeaponCounts::default(); SLOTS];
+                for (index, count) in counts.iter_mut().enumerate() {
+                    match seq.next_element()? {
+                        Some(value) => *count = value,
+                        None if index == LEGACY => return Ok(counts),
+                        None => return Err(A::Error::invalid_length(index, &self)),
+                    }
+                }
+                if seq.next_element::<IgnoredAny>()?.is_some() {
+                    return Err(A::Error::invalid_length(SLOTS + 1, &self));
+                }
+                Ok(counts)
+            }
+        }
+        deserializer.deserialize_seq(Counts)
+    }
 }
 
 impl CombatCounts {
@@ -50,6 +112,7 @@ impl CombatCounts {
             self.hp_lost,
             self.armor_lost,
             self.dry_triggers,
+            self.secrets,
         ];
         for weapon in &self.weapons {
             counts.extend([
@@ -84,6 +147,7 @@ impl CombatCounts {
         if self.attacks() > self.alive_ticks
             || self.deaths > self.alive_ticks
             || self.dry_triggers > self.alive_ticks
+            || self.secrets > self.alive_ticks
         {
             return Err("record contains more actions than active frames");
         }
@@ -112,6 +176,7 @@ impl CombatCounts {
             && self.hp_lost >= other.hp_lost
             && self.armor_lost >= other.armor_lost
             && self.dry_triggers >= other.dry_triggers
+            && self.secrets >= other.secrets
             && self.weapons.iter().zip(&other.weapons).all(|(a, b)| {
                 a.attacks >= b.attacks
                     && a.damaging_attacks >= b.damaging_attacks

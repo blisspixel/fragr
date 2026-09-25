@@ -3,17 +3,22 @@ extends RefCounted
 
 ## Private server inventory. These limits validate presentation, never award ammo.
 ## One count per ammunition type and no magazines: a shot spends one unit.
-const WEAPONS: Array[String] = ["fists", "tack", "flechette", "scatter", "rail"]
+## Wire and record order. The Shiv is appended so old record slots keep their meaning.
+const WEAPONS: Array[String] = ["fists", "tack", "flechette", "scatter", "rail", "shiv"]
 const POOLS: Dictionary = {"tack": "bullets", "flechette": "bullets", "scatter": "shells", "rail": "cells"}
 const CAPACITIES: Dictionary = {"bullets": 200, "shells": 50, "cells": 50}
 ## Pool order on the wire, matching the server.
 const POOL_ORDER: Array[String] = ["bullets", "shells", "cells"]
-const DISPLAY_NAMES: Dictionary = {"fists": "Fists", "tack": "Pistol", "flechette": "Rifle", "scatter": "Shotgun", "rail": "Railgun"}
+const DISPLAY_NAMES: Dictionary = {"fists": "Fists", "shiv": "Shiv", "tack": "Pistol", "flechette": "Rifle", "scatter": "Shotgun", "rail": "Railgun"}
 const POOL_NAMES: Dictionary = {"bullets": "Bullets", "shells": "Shells", "cells": "Cells"}
 ## Rays in one shot. The shotgun's seven pellets still spend one shell.
 const PELLETS: Dictionary = {"scatter": 7}
 ## Doom's ladder for the guns that exist: fists, pistol, shotgun, rifle, railgun.
+## One number key per slot. Slot one also holds the Shiv, as Doom's holds the chainsaw.
 const SLOTS: Array[String] = ["fists", "tack", "scatter", "flechette", "rail"]
+## The wheel order: the Shiv sits beside the fists it shares a key with.
+const CYCLE: Array[String] = ["fists", "shiv", "tack", "scatter", "flechette", "rail"]
+const MELEE: Array[String] = ["fists", "shiv"]
 const ARCADE: Array[String] = ["scatter", "flechette", "rail"]
 const MAX_EXACT_INTEGER: int = 9007199254740991
 
@@ -98,9 +103,9 @@ static func owned_in_order(carried: Array) -> Array[String]:
 	for weapon in carried:
 		have[str(weapon).to_lower()] = true
 	var order: Array[String] = []
-	for slot in SLOTS:
-		if have.has(slot):
-			order.append(slot)
+	for weapon: String in CYCLE:
+		if have.has(weapon):
+			order.append(weapon)
 	return order
 
 static func cycle_owned(carried: Array, current: String, step: int) -> String:
@@ -115,10 +120,15 @@ static func cycle_owned(carried: Array, current: String, step: int) -> String:
 static func cycle(state: Dictionary, current: String, step: int) -> String:
 	return cycle_owned(carried_names(state), current, step)
 
-static func slot_if_owned(carried: Array, slot: int) -> String:
+## Slot one draws the Shiv when carried, and a second press while holding it
+## goes back to fists. Every other slot names one gun.
+static func slot_if_owned(carried: Array, slot: int, current: String = "") -> String:
 	if slot < 1 or slot > SLOTS.size():
 		return ""
+	var owned: Array[String] = owned_in_order(carried)
 	var weapon: String = SLOTS[slot - 1]
-	if not owned_in_order(carried).has(weapon):
+	if slot == 1 and owned.has("shiv") and current.to_lower() != "shiv":
+		return "shiv"
+	if not owned.has(weapon):
 		return ""
 	return weapon

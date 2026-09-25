@@ -58,6 +58,14 @@ func _run() -> void:
 	_check(hud.combat_feed.get_child_count() == 0, "another fighter's pickup is silent regardless of callsign")
 	game._on_event_received({"event":"pickup", "player":"Same label", "player_id":"self", "kind":"health", "amount":25})
 	_check(hud.combat_feed.get_child_count() == 1, "own pickup reaches the corner feed")
+	game._on_event_received({"event":"pickup", "player":"Same label", "player_id":"other", "kind":"weapon", "weapon":"Shiv", "pickup_id":"alcove_shiv", "secret":true})
+	_check(hud.combat_feed.get_child_count() == 1, "another fighter's secret stays theirs")
+	game._on_event_received({"event":"pickup", "player":"Same label", "player_id":"self", "kind":"weapon", "weapon":"Shiv", "pickup_id":"alcove_shiv", "secret":true})
+	var lines: Array[String] = []
+	for entry: Node in hud.combat_feed.get_children():
+		lines.append((entry as Label).text)
+	_check(lines.size() == 3 and lines[1].contains("SHIV") and lines[2] == "SECRET FOUND", "a found secret adds one quiet corner line after the pickup")
+	_check(not hud.round_message.visible, "a secret never takes the centre of the screen")
 	game.is_human_player = false
 	_check(game._shows_participant_notice("watched") and not game._shows_participant_notice("self"), "spectator notices follow the actual watched identity")
 	camera.target = null

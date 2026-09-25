@@ -609,22 +609,22 @@ async fn m02_requires_capability_nine_before_any_role_is_admitted() {
     accept.abort();
 }
 
-/// Discovery maps, M01 included, need the ammunition contract: a magazine-era
-/// reader is refused before Welcome and the current reader is admitted.
+/// Discovery maps, M01 included, need the Shiv contract: a magazine-era or
+/// Shiv-blind reader is refused before Welcome and the current reader is admitted.
 #[tokio::test]
-async fn m01_refuses_magazine_era_capability_eight_and_admits_ten() {
+async fn m01_refuses_shiv_blind_capability_ten_and_admits_eleven() {
     let (tx, mut commands) = mpsc::unbounded_channel();
     let server = NetServer::bind_with_requirements(
         "127.0.0.1:0",
         tx,
         2,
-        crate::protocol::AMMO_GAMEPLAY_VERSION,
+        crate::protocol::SHIV_GAMEPLAY_VERSION,
     )
     .await
     .unwrap();
     let address = server.local_addr().unwrap();
     let accept = tokio::spawn(server.accept_loop());
-    for (version, admitted) in [(8, false), (9, false), (10, true)] {
+    for (version, admitted) in [(8, false), (10, false), (11, true)] {
         let (mut socket, _) = connect_async(format!("ws://{address}")).await.unwrap();
         socket
             .send(Message::Text(

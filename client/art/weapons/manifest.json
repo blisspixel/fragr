@@ -1,0 +1,44 @@
+{
+  "version": 1,
+  "created": "2026-09-20",
+  "status": "integrated: M01 secret Shiv viewmodel and pickup icon",
+  "generation_mode": "built-in image generation",
+  "model": "not exposed by the generation tool",
+  "format": "png",
+  "alpha": true,
+  "reduction": "Godot Image.INTERPOLATE_NEAREST through tools/bake_shiv.gd",
+  "assets": [
+    {
+      "source": "shiv-view-source.png",
+      "source_size": [
+        1448,
+        1086
+      ],
+      "source_sha256": "8ab84669e0dc46d2519eb9953f2acf3159697ea44e723747af6022990d1a1e47",
+      "output": "../../assets/weapons/viewmodels/wpn_shiv_0.png",
+      "output_size": [
+        240,
+        180
+      ],
+      "output_sha256": "5a6e6b3d177936bd66c963383c1e5ad7ec33dd3e2f9873e35a620809ef419048",
+      "reference": "../../assets/weapons/viewmodels/wpn_fists_0.png",
+      "prompt": "Create one production game sprite: an original first-person SHIV weapon viewmodel for fragr, a serious but wry retro pixel-art FPS. Use the attached fists sprite ONLY as a style/palette reference: charcoal gray worn armored work gloves, restrained rust-orange fabric and tiny bone metal highlights. New composition: a single right gauntleted hand firmly holding a salvaged short angular utility blade, blade pointing diagonally upward toward screen centre, wrist/forearm extending all the way THROUGH the bottom edge so no wrist cutoff floats in play. Blade is hand-sized, blunt industrial spine, bright chipped edge, dark steel flats, wrapped ochre handle, no glow. Thick coherent silhouettes, deliberately stepped pixel contours and small flat colour clusters, roughly 256x192 authored pixel density. Original 1990s first-person weapon sprite presentation with modern readability. Wide 4:3 canvas. Keep complete knife and hand inside the frame, generous transparent space above and left; hand at lower centre-right, blade tip around 60% height from bottom. TRUE TRANSPARENT alpha background, no solid matte, checkerboard graphic, ground plane, shadow, border, text, letters, logo, signature, watermark, frame or credits. No scene, no interface, no enemy, no gun. One idle pose only. Anatomically coherent closed grip, five fingers, solid wrist registration at bottom. This must read as a rough stolen tool used by free people, not a glossy futuristic laser sword."
+    },
+    {
+      "source": "shiv-icon-source.png",
+      "source_size": [
+        1254,
+        1254
+      ],
+      "source_sha256": "72c0b3591a8410d6a3fa0fb5476e051817ef4593b67c4bcd6e1dd13a51571a3e",
+      "output": "../../assets/weapons/48/shiv.png",
+      "output_size": [
+        48,
+        48
+      ],
+      "output_sha256": "43174269d32c9afcb850b29039ce7169652ab7df242d6c552c1bef7aee97a962",
+      "reference": "shiv-view-source.png",
+      "prompt": "Create a single isolated pixel-art inventory/world-pickup icon of EXACTLY the industrial salvaged utility knife shown in the reference. Keep its broad chipped bone-highlighted steel blade, dark gray/rust flats, tiny simple guard, ochre wrapped handle and metal pommel. Remove the hand, wrist, arm and gauntlet entirely; show only the complete knife. Diagonal silhouette, blade tip upper-left, pommel lower-right. Strong readable shapes suitable for downsampling to a 48x48 retro FPS icon, flat stepped colour clusters, clean hard pixel contours, no painted blur. Square canvas, complete object with 12 percent transparent margin on all sides. TRUE transparent alpha background. No background, shadow, glow, environment, human, robot, blood, text, letters, logo, signature, credit, watermark or frame. One knife only, matching the existing weapon, no alternative design."
+    }
+  ]
+}

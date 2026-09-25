@@ -35,7 +35,7 @@ impl SavedEquipment {
 #[derive(Debug, Clone)]
 pub struct Inventory {
     policy: EquipmentPolicy,
-    owned: [bool; 5],
+    owned: [bool; WeaponType::ALL.len()],
     ammo: [u16; 3],
     claims: BTreeSet<String>,
     revision: u64,
@@ -64,7 +64,7 @@ impl Inventory {
             return Err("saved equipment requires discovery policy");
         }
         saved.validate()?;
-        self.owned = [false; 5];
+        self.owned = [false; WeaponType::ALL.len()];
         for weapon in &saved.weapons {
             self.owned[weapon.index()] = true;
         }
@@ -79,7 +79,7 @@ impl Inventory {
     }
 
     pub fn new(policy: EquipmentPolicy) -> Self {
-        let mut owned = [false; 5];
+        let mut owned = [false; WeaponType::ALL.len()];
         owned[WeaponType::Fists.index()] = true;
         Self {
             policy,
@@ -151,7 +151,13 @@ impl Inventory {
             return self.owns(weapon);
         }
         let Some(pool) = weapon.ammo_pool() else {
-            return false;
+            // Pool-less melee is ownership alone. Fists are always carried.
+            if weapon == WeaponType::Fists || self.owned[weapon.index()] {
+                return false;
+            }
+            self.owned[weapon.index()] = true;
+            self.revision += 1;
+            return true;
         };
         let acquired = !self.owned[weapon.index()];
         if acquired {

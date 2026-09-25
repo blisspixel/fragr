@@ -29,6 +29,25 @@ func _run() -> void:
 		var broken: Dictionary = sample.duplicate(true)
 		broken["total"]["weapons"][4]["attacks"] = value
 		_check(not PlayerRecord.validation_error(broken, sample["player_id"]).is_empty(), "invalid numeric count")
+	var found: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://golden/player_record_shiv.json"))
+	_check(PlayerRecord.validation_error(found, found["player_id"]).is_empty(), "shared six-slot Shiv record validates")
+	_check(PlayerRecord.secrets(found["total"]) == 1 and PlayerRecord.weapon_count(sample["total"], 5, "attacks") == 0, "a five-slot record reads as no Shiv use")
+	for patch: Dictionary in [{"secrets": 0}, {"secrets": -1}, {"secrets": 22}, {"secrets": "1"}]:
+		var broken: Dictionary = found.duplicate(true)
+		broken["total"].merge(patch, true)
+		broken["attempt"].merge(patch, true)
+		_check(not PlayerRecord.validation_error(broken, found["player_id"]).is_empty(), "invalid secret count: " + str(patch))
+	for size: int in [4, 7]:
+		var broken: Dictionary = found.duplicate(true)
+		broken["total"]["weapons"].resize(size)
+		_check(not PlayerRecord.validation_error(broken, found["player_id"]).is_empty(), "weapon slots must be five or six")
+	var fewer: Dictionary = found.duplicate(true)
+	fewer["attempt"]["secrets"] = 2
+	_check(not PlayerRecord.validation_error(fewer, found["player_id"]).is_empty(), "an attempt cannot find more secrets than the total")
+	var mixed: Dictionary = PlayerRecord.empty_counts()
+	PlayerRecord.add_counts(mixed, sample["total"])
+	PlayerRecord.add_counts(mixed, found["total"])
+	_check(PlayerRecord.sum_weapon(mixed, "attacks") == 7 and PlayerRecord.secrets(mixed) == 1 and int(mixed["weapons"][5]["kills"]) == 1, "history adds five and six slot records without shifting a slot")
 	var active: Dictionary = sample.duplicate(true)
 	active["status"] = "active"
 	_check(not PlayerRecord.validation_error(active, active["player_id"], sample).is_empty(), "terminal status cannot be undone")
@@ -136,6 +155,12 @@ func _run() -> void:
 	panel.call("_select_kind", "arena")
 	await process_frame
 	_check(panel.get("_details").text.contains("100.0"), "rendered analysis derives the ratio")
+	_check(memory.accept(found, "local") == OK, "a six-slot record is retained")
+	panel.call("_select_kind", "practice")
+	await process_frame
+	var details: String = panel.get("_details").text
+	_check(details.contains("SHIV: 3/3") and details.contains("Secrets found: 1"), "the service record names the Shiv and the found secret")
+	_check(RecordsPanel.commentary_key(found).is_empty(), "a pistol attack is not a melee-only run")
 	panel.queue_free()
 	await process_frame
 	if _failures == 0:

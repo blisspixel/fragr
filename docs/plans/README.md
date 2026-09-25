@@ -18,6 +18,7 @@ Status words: **proposed** (a design awaiting Nick's decision; directs no work),
 | Plan | Status | One-liner |
 |---|---|---|
 | [`campaign-expansion.md`](./campaign-expansion.md) | **proposed** | Twenty levels in five episodes for a four-hour first run: the ten-mission spine kept, one new thing per level, the wipe in three levels, a brief by difficulty, par and replay waivers. |
+| [`m01-secret-shiv.md`](./m01-secret-shiv.md) | **implemented** | M01's first secret: a pool-less Shiv in the confiscation alcove's south pocket, found by walking in, with capability 11, a quiet cue and a counted find. Replaces draft #203. |
 | [`heavy-sweeper-and-turret.md`](./heavy-sweeper-and-turret.md) | **implemented** | Heavy Sweeper and Turret on the encounter seams with seeded tell tests, a test range, and the black and red Union recolor. |
 | [`input-all-devices.md`](./input-all-devices.md) | **implemented** | Keyboard only, keyboard and mouse, and gamepad: rebinding page, key turn ramp, radial stick curves, device-following pad glyphs and aim assist that never touches the mouse. |
 | [`boomer-ammo-and-pellets.md`](./boomer-ammo-and-pellets.md) | **implemented** | Doom-style ammo (one count per type, no reload) and a seven-pellet shotgun, with capability 10, rules revision 2 and a clean new-run path for magazine-era saves. |

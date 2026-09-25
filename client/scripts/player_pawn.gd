@@ -56,6 +56,8 @@ var muzzle_flash_texture: Texture2D
 var rail_beam_texture: Texture2D
 
 var weapon_textures = {}
+## The scene's pixel size for a 32 pixel weapon icon.
+var weapon_pixel_size: float = 0.026
 var cyanex_texture: Texture2D
 var kragge_texture: Texture2D
 
@@ -106,6 +108,9 @@ func _ready():
 	weapon_textures["Rail"] = load("res://assets/weapons/32/rail.png")
 	weapon_textures["Scatter"] = load("res://assets/weapons/32/scatter.png")
 	weapon_textures["Tack"] = load("res://assets/weapons/32/_future/shock_pistol.png")
+	weapon_textures["Shiv"] = load("res://assets/weapons/48/shiv.png")
+	if weapon_sprite:
+		weapon_pixel_size = weapon_sprite.pixel_size
 	
 	cyanex_texture = load("res://assets/characters/64/cyanex_idle_strip.png")
 	kragge_texture = load("res://assets/characters/64/kragge_idle_strip.png")
@@ -281,7 +286,10 @@ func _update_weapon_sprite():
 		weapon_sprite.visible = false
 		return
 	
-	weapon_sprite.texture = weapon_textures[current_weapon]
+	var texture: Texture2D = weapon_textures[current_weapon]
+	weapon_sprite.texture = texture
+	# Icons are authored at 32 or 48 pixels; hold every one at the 32 pixel size.
+	weapon_sprite.pixel_size = weapon_pixel_size * 32.0 / float(maxi(texture.get_height(), 1))
 	weapon_sprite.visible = true
 	# Preserve weapon plate readability; light bone lift, not neon wash.
 	weapon_sprite.modulate = Color(1.05, 1.02, 0.98)
@@ -302,7 +310,7 @@ func _update_body_color(hit: bool):
 func show_muzzle_flash(weapon: String):
 	if enemy_view != null:
 		enemy_view.shot()
-	if weapon == "Fists":
+	if weapon == "Fists" or weapon == "Shiv":
 		if muzzle:
 			muzzle.visible = false
 		if muzzle_glow:

@@ -32,6 +32,13 @@ times and the quality and world-pixel comparison are in
 `FRAGR_QA_MANIFEST=res://qa/look-perf.json` and `res://qa/m01-perf.json` (with
 the M01 map file) repeat them.
 
+`m01_secret_shiv_16x9.png` is the `secret_shiv_found` state of
+`FRAGR_QA_MANIFEST=res://qa/m01-exploration.json`, captured and inspected
+2026-09-24 on Windows (OpenGL). The player stands in the confiscation alcove's
+south pocket looking back into the bay: the Shiv is in hand, and the corner
+feed reads the medkit, the Shiv pickup and `SECRET FOUND`. The held blade is the
+draft's single idle pose; the thrust is a scale and slide of that pose.
+
 `prototypes/local-campaign-menu-20260920.png` shows the inspected Recall Notice
 launch option. `prototypes/local-campaign-entry-20260920.png` is the actual M01
 entry after a menu-owned server starts, captured on Vulkan after the controls
@@ -65,6 +72,7 @@ and fresh-player acceptance outstanding. Source manifest: `client/qa/m01-records
 | `m01_balcony_16x9.png` | Records balcony, opening toward the custody lift |
 | `m01_stacks_16x9.png` | File stacks, dark steel racks with red warning strips, green tile floor |
 | `m01_dispatch_16x9.png` | Dispatch after the fight, enamel walls with the red pinline |
+| `m01_secret_shiv_16x9.png` | The secret Shiv found in the confiscation alcove and held in hand |
 | `tour_multiplayer_16x9.png` | App multiplayer page after GET /status. Host example is 127.0.0.1:6767. |
 | `tour_menu_16x9.png` | Retro boot menu |
 | `tour_profile_16x9.png` | Callsign, reticle, and weapon bob |

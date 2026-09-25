@@ -6,6 +6,8 @@ const VERSION: int = 1
 const STATUSES: Array[String] = ["active", "continue", "complete", "failed", "abandoned"]
 const COUNTS: Array[String] = ["alive_ticks", "deaths", "hp_lost", "armor_lost", "dry_triggers"]
 const WEAPON_COUNTS: Array[String] = ["attacks", "damaging_attacks", "kills", "hp_damage", "armor_damage"]
+## Five original weapon slots, and a sixth once the Shiv has been used.
+const LEGACY_WEAPONS: int = 5
 const INVALID: String = "Invalid participant record."
 
 static func terminal(record: Dictionary) -> bool:
@@ -55,7 +57,13 @@ static func validation_error(data: Dictionary, owner: Variant, previous: Diction
 	return ""
 
 static func valid_counts(value: Variant) -> bool:
-	if not value is Dictionary or value.size() != 6 or not value.get("weapons") is Array or value["weapons"].size() != 5:
+	if not value is Dictionary or not value.get("weapons") is Array 		or value["weapons"].size() not in [LEGACY_WEAPONS, EquipmentState.WEAPONS.size()]:
+		return false
+	# Distinct secrets found; omitted while zero.
+	var secrets: bool = value.has("secrets")
+	if value.size() != (7 if secrets else 6):
+		return false
+	if secrets and (not EquipmentState.integer(value["secrets"], EquipmentState.MAX_EXACT_INTEGER) 		or int(value["secrets"]) < 1 or int(value["secrets"]) > int(value.get("alive_ticks", 0))):
 		return false
 	for field: String in COUNTS:
 		if not EquipmentState.integer(value.get(field), EquipmentState.MAX_EXACT_INTEGER):
@@ -82,11 +90,21 @@ static func contains(total: Dictionary, part: Dictionary) -> bool:
 	for field: String in COUNTS:
 		if int(total[field]) < int(part[field]):
 			return false
-	for index: int in range(5):
+	if secrets(total) < secrets(part):
+		return false
+	for index: int in range(EquipmentState.WEAPONS.size()):
 		for field: String in WEAPON_COUNTS:
-			if int(total["weapons"][index][field]) < int(part["weapons"][index][field]):
+			if weapon_count(total, index, field) < weapon_count(part, index, field):
 				return false
 	return true
+
+static func secrets(counts: Dictionary) -> int:
+	return int(counts.get("secrets", 0))
+
+## A slot a five-slot record never sent counts as zero.
+static func weapon_count(counts: Dictionary, index: int, field: String) -> int:
+	var weapons: Array = counts["weapons"]
+	return int(weapons[index][field]) if index < weapons.size() else 0
 
 static func _valid_scope(data: Dictionary) -> bool:
 	var scope: Variant = data.get("scope")
@@ -127,7 +145,7 @@ static func empty_counts() -> Dictionary:
 	var counts: Dictionary = {"weapons": []}
 	for field: String in COUNTS:
 		counts[field] = 0
-	for index: int in range(5):
+	for index: int in range(EquipmentState.WEAPONS.size()):
 		var weapon: Dictionary = {}
 		for field: String in WEAPON_COUNTS:
 			weapon[field] = 0
@@ -137,6 +155,8 @@ static func empty_counts() -> Dictionary:
 static func add_counts(total: Dictionary, value: Dictionary) -> void:
 	for field: String in COUNTS:
 		total[field] = int(total[field]) + int(value[field])
-	for index: int in range(5):
+	if secrets(total) + secrets(value) > 0:
+		total["secrets"] = secrets(total) + secrets(value)
+	for index: int in range(EquipmentState.WEAPONS.size()):
 		for field: String in WEAPON_COUNTS:
-			total["weapons"][index][field] = int(total["weapons"][index][field]) + int(value["weapons"][index][field])
+			total["weapons"][index][field] = weapon_count(total, index, field) + weapon_count(value, index, field)

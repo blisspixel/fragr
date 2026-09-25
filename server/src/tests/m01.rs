@@ -4,8 +4,8 @@ use crate::maps::AuthoredMap;
 use crate::movement::{Arena, CONTACT_EPSILON, EYE_HEIGHT, RADIUS};
 use crate::navigation::{NavigationGoal, Navigator, RouteStatus, SEARCH_LIMIT};
 use crate::protocol::{
-    Action, AmmoPool, CampaignActor, EnemyPhase, LookAt, MapDecorationKind, Role, ShotImpact,
-    WeaponType,
+    Action, AmmoPool, CampaignActor, EnemyPhase, GameEvent, LookAt, MapDecorationKind, Role,
+    ServerMessage, ShotImpact, WeaponType,
 };
 use crate::session::GameSession;
 use crate::sim::PLAYER_FLOOR_Y;
@@ -26,6 +26,8 @@ struct Walkthrough {
     shots: usize,
     first_threat: Option<u64>,
     first_shot: Option<u64>,
+    /// Pickup ids whose claim event announced a found secret.
+    secrets: Vec<String>,
 }
 
 impl Walkthrough {
@@ -62,11 +64,12 @@ impl Walkthrough {
             shots: 0,
             first_threat: None,
             first_shot: None,
+            secrets: Vec::new(),
         }
     }
 
     fn assert_optional_caches_unclaimed(&self) {
-        for id in ["bay_medkit", "overlook_armor"] {
+        for id in ["bay_medkit", "overlook_armor", "alcove_shiv"] {
             assert!(
                 self.session
                     .state
@@ -78,6 +81,13 @@ impl Walkthrough {
                 "ordinary route claimed optional cache {id}"
             );
         }
+        let player = &self.session.state.players[0];
+        assert!(
+            !player.inventory.owns(WeaponType::Shiv)
+                && !player.inventory.claimed("alcove_shiv")
+                && self.secrets.is_empty(),
+            "ordinary route found the secret Shiv"
+        );
     }
 
     fn step(&mut self, destination: [f32; 3]) {
@@ -173,7 +183,18 @@ impl Walkthrough {
             )
         };
         self.session.state.set_action(self.id, action);
-        self.session.tick_messages(0.05);
+        for message in self.session.tick_messages(0.05) {
+            if let ServerMessage::Event(GameEvent::Pickup {
+                secret: true,
+                pickup_id,
+                player_id,
+                ..
+            }) = message
+            {
+                assert_eq!(player_id, self.id);
+                self.secrets.push(pickup_id);
+            }
+        }
         for shot in &self.session.state.shot_results {
             if shot.shooter_id == self.id {
                 self.first_shot.get_or_insert(self.session.state.tick);
@@ -552,6 +573,157 @@ fn m01_optional_caches_are_consumed_once_and_restore_on_continue() {
             .continues,
         2
     );
+}
+
+impl Walkthrough {
+    /// Take the Tack and clear the bay's lone Clerk, as every route does.
+    fn clear_bay(&mut self) {
+        self.walk([0.0, 0.0, -26.0]);
+        self.walk([0.0, 0.0, -21.0]);
+        for _ in 0..400 {
+            if self
+                .session
+                .state
+                .players
+                .iter()
+                .all(|p| p.name != "intake_security" || p.hp <= 0)
+            {
+                return;
+            }
+            self.step([0.0, 0.0, -21.0]);
+        }
+        panic!("the bay guard outlasted the walkthrough");
+    }
+
+    fn secret_count(&self) -> (u64, u64) {
+        let record = self.session.state.player_record(self.id).unwrap();
+        (record.total.secrets, record.attempt.secrets)
+    }
+}
+
+#[test]
+fn m01_secret_shiv_is_a_walking_find_beside_the_property_lockers() {
+    let authored =
+        AuthoredMap::read(include_bytes!("../../maps/m01-recall-notice.json").as_slice()).unwrap();
+    let session = GameSession::with_authored_map(authored.clone());
+    let bay = authored.landmark("confiscation_bay").unwrap();
+    let alcove = authored.landmark("confiscation_alcove").unwrap();
+    let pocket = authored.landmark("property_pocket").unwrap();
+    assert!(
+        (pocket[0] - bay[0]).hypot(pocket[2] - bay[2]) > crate::sim::PICKUP_CLAIM_RADIUS + RADIUS,
+        "the Shiv can be claimed without leaving the bay route"
+    );
+    assert!(
+        (pocket[0] - alcove[0]).hypot(pocket[2] - alcove[2]) > crate::sim::PICKUP_CLAIM_RADIUS,
+        "taking the medkit also takes the Shiv"
+    );
+    for map in [
+        session.state.map.clone(),
+        session.state.map.opened_route().unwrap(),
+    ] {
+        for (from, to) in [(bay, pocket), (pocket, bay)] {
+            let route = map.navigation().route(from, to, SEARCH_LIMIT);
+            assert_eq!(route.status, RouteStatus::Complete, "{route:?}");
+            assert!(route.points.iter().all(|p| p[1].abs() <= CONTACT_EPSILON));
+        }
+        let pad = map
+            .pickups()
+            .into_iter()
+            .find(|p| p.id == "alcove_shiv")
+            .unwrap();
+        assert_eq!([pad.x, pad.floor, pad.z], pocket);
+        assert!(pad.secret);
+        assert_eq!(pad.claim, crate::protocol::SupplyClaim::Personal);
+        assert_eq!(pad.kind, crate::sim::PickupKind::Weapon(WeaponType::Shiv));
+    }
+    // Only the Shiv is a secret, and it is not the medkit that shares the alcove.
+    let secrets: Vec<_> = session
+        .state
+        .map
+        .pickups()
+        .into_iter()
+        .filter(|p| p.secret)
+        .map(|p| p.id)
+        .collect();
+    assert_eq!(secrets, ["alcove_shiv"]);
+}
+
+#[test]
+fn m01_secret_shiv_is_found_once_per_run_and_restores_on_continue() {
+    let mut run = Walkthrough::configured(Role::Human, true);
+    run.clear_bay();
+    assert_eq!(run.secret_count(), (0, 0));
+    // The alcove medkit does not reach the Shiv in the pocket beside it.
+    run.walk([9.0, 0.0, -21.0]);
+    assert!(run.secrets.is_empty());
+    run.walk([9.2, 0.0, -23.2]);
+    assert_eq!(run.secrets, ["alcove_shiv"], "one quiet secret event");
+    let player = &run.session.state.players[0];
+    assert!(player.inventory.owns(WeaponType::Shiv));
+    assert!(player.inventory.claimed("alcove_shiv"));
+    assert_eq!(player.weapon, WeaponType::Shiv, "a found weapon is drawn");
+    let bullets = equipment_bullets(&run);
+    assert_eq!(run.secret_count(), (1, 1));
+    // Standing on it again finds nothing more: the claim is personal and kept.
+    run.walk([7.0, 0.0, -21.0]);
+    run.walk([9.2, 0.0, -23.2]);
+    assert_eq!(run.secrets.len(), 1);
+    assert_eq!(run.secret_count(), (1, 1));
+    // Cutting spends no ammunition and is counted in its own record slot.
+    run.session.state.set_action(
+        run.id,
+        Action {
+            fire: true,
+            ..Action::default()
+        },
+    );
+    for _ in 0..(WeaponType::Shiv.cooldown_ticks() * 2 + 1) {
+        run.session.tick_messages(0.05);
+    }
+    run.session.state.set_action(run.id, Action::default());
+    assert_eq!(equipment_bullets(&run), bullets);
+    let record = run.session.state.player_record(run.id).unwrap();
+    assert_eq!(record.total.weapon(WeaponType::Shiv).attacks, 3);
+    let json = serde_json::to_value(&record).unwrap();
+    assert_eq!(json["total"]["weapons"].as_array().unwrap().len(), 6);
+    assert_eq!(json["total"]["secrets"], 1);
+    record.validate_for(Some(run.id), None).unwrap();
+
+    let before = run.session.state.mission_state().unwrap();
+    run.session.state.players[0].hp = 0;
+    run.session.tick_messages(0.05);
+    assert!(run.session.state.continue_mission(
+        run.id,
+        crate::protocol::MissionContinue {
+            id: before.id,
+            run_id: before.run.unwrap().id,
+            attempt: before.attempt,
+        },
+    ));
+    run.secrets.clear();
+    run.assert_optional_caches_unclaimed();
+    assert_eq!(run.secret_count(), (1, 0), "a continue restores the find");
+    run.clear_bay();
+    run.walk([7.0, 0.0, -21.0]);
+    run.walk([9.2, 0.0, -23.2]);
+    assert_eq!(run.secrets, ["alcove_shiv"]);
+    assert!(run.session.state.players[0]
+        .inventory
+        .owns(WeaponType::Shiv));
+    assert_eq!(
+        run.secret_count(),
+        (1, 1),
+        "finding the same secret again is not a second secret"
+    );
+}
+
+fn equipment_bullets(run: &Walkthrough) -> u16 {
+    let player = &run.session.state.players[0];
+    player
+        .inventory
+        .state(run.id, player.weapon, run.session.state.tick)
+        .unwrap()
+        .ammo(AmmoPool::Bullets)
 }
 
 #[test]

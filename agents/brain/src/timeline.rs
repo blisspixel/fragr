@@ -279,6 +279,7 @@ mod tests {
             weapon: String::new(),
             amount: Some(25),
             pickup_id: "medkit".into(),
+            secret: false,
         };
         trace.event(14, &state(1), own, &pickup);
         assert_eq!(trace.points.len(), 1);
