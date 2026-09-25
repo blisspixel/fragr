@@ -243,3 +243,43 @@ fn a_respawn_takes_the_widest_slot_out_of_every_lane() {
         }
     }
 }
+
+#[test]
+fn experiment_arrival_order_matters() {
+    use rand::seq::SliceRandom;
+    use rand::SeedableRng;
+    let mut rng = rand::rngs::StdRng::seed_from_u64(12345);
+    for (map, count) in PLAYTEST_ROSTER {
+        let mut order: Vec<u128> = (0..count).collect();
+        let mut fails = 0usize;
+        let trials = 500;
+        for _ in 0..trials {
+            order.shuffle(&mut rng);
+            let mut state = GameState::with_map(map, false);
+            for &index in &order {
+                state.add_player(
+                    Uuid::from_u128(index + 1),
+                    format!("Fighter {index}"),
+                    if index % 2 == 0 { Role::Human } else { Role::Agent },
+                );
+            }
+            let solids = state.map.solids();
+            let mut bad = false;
+            for player in &state.players {
+                for other in state.players.iter().filter(|p| p.id != player.id) {
+                    let distance = (player.x - other.x).hypot(player.z - other.z);
+                    if distance < crate::movement::RADIUS * 2.0 {
+                        bad = true;
+                    }
+                    if threatens(feet(other), feet(player), &solids) {
+                        bad = true;
+                    }
+                }
+            }
+            if bad {
+                fails += 1;
+            }
+        }
+        eprintln!("{}: {fails}/{trials} arrival orders produced a lane or overlap", map.name());
+    }
+}
