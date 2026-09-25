@@ -27,7 +27,14 @@ The Rust server owns positions, damage, health, frags, spawns, pickups, and roun
 5. **Replays as evidence.** With the seeded sim and input logs, a round can be replayed exactly. Every flag stores the seed and the input log under the server's data directory; a host reviews before any ban. The playtest harness reads the same logs.
 6. **Rate and abuse limits.** Speak cooldown, join tickets, per-IP caps, and ban lists from `public-server-hardening.md`. Bans are by ticket issuer and IP with an expiry, reviewed, and never automatic from the profiler.
 7. **Fair by design in the rules.** Spawn shields and far-slot respawns already stop spawn camping. Lag compensation is bounded so high ping cannot shoot into the past. Fire is server-clocked so macro fire rates cannot exceed the weapon. The Host's "sus meter" is a parody bit on the HUD; the real profile is on the status line and in the report.
-8. **Agents are welcome, labelled.** Agent fighters carry their chip on the scoreboard (already shipped for the brain's stance), the mixed lane is the default for public servers, and a public server can be humans-only with a flag.
+8. **Client aim assist is a lane fact.** Keyboard-only and gamepad players get
+   optional aim assist (`input-all-devices.md`). It only moves the aim the client
+   sends, never through cover, never for the mouse, and adds no server-side hit
+   forgiveness, so today it is available in every session. Follow-up, not built:
+   a host rule "assist allowed" advertised in the status line, and assisted
+   humans labelled like any other lane difference. That needs a wire field and
+   is out of scope for the input PR.
+9. **Agents are welcome, labelled.** Agent fighters carry their chip on the scoreboard (already shipped for the brain's stance), the mixed lane is the default for public servers, and a public server can be humans-only with a flag.
 
 ## Verification
 

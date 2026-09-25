@@ -106,11 +106,17 @@ func _test_input_path() -> void:
 	cam.accept_mouse_motion(motion, false)
 	_check(cam.mouse_motion == Vector2.ZERO, "released mouse cannot queue aim input")
 	cam.fp_pitch = 0.0
-	Input.action_press("look_down")
+	cam.stick_source = func(right: bool) -> Vector2: return Vector2(0.0, 1.0) if right else Vector2.ZERO
 	cam._apply_stick_look(0.25, false)
-	_check(is_equal_approx(cam.fp_pitch, 0.7), "invert look applies to gamepad pitch")
+	var stick_pitch: float = deg_to_rad(150.0) * 0.25
+	_check(is_equal_approx(cam.fp_pitch, stick_pitch), "invert look applies to gamepad pitch, got %f" % cam.fp_pitch)
 	cam.invert_y = false
 	cam._apply_stick_look(0.25, false)
 	_check(is_zero_approx(cam.fp_pitch), "normal gamepad pitch reverses the same deflection")
+	Input.action_press("look_down")
+	cam.invert_y = true
+	cam.stick_source = func(_right: bool) -> Vector2: return Vector2.ZERO
+	cam._apply_stick_look(0.25, false)
 	Input.action_release("look_down")
+	_check(cam.fp_pitch < 0.0, "look keys are literal: invert changes mouse and stick, never the look down key")
 	owner_node.free()

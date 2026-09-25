@@ -30,8 +30,27 @@ const DEFAULTS: Dictionary = {
 	},
 	"controls": {
 		"mouse_sensitivity": 1.5, # 0.022 degrees per unscaled mouse count.
-		"invert_y": false,
+		"invert_y": false,      # Mouse and stick pitch. Look keys are literal.
 		"turn_speed": 2.8,      # Radians per second for keyboard turning
+		"auto_centre": false,   # Keyboard pitch eases level while walking.
+		"stick_yaw_speed": 240.0,   # Degrees per second at full deflection.
+		"stick_pitch_speed": 150.0, # Degrees per second at full deflection.
+		"stick_deadzone": 0.12, # Radial, rescaled.
+		"stick_curve": 1.8,     # Response exponent on stick magnitude.
+		"stick_accel": true,    # Faster turning once the stick sits at its edge.
+		"aim_assist": 2,        # 0 off, 1 light, 2 standard. Never applies to mouse look.
+	},
+	# One entry per rebindable action (InputBindings.ACTIONS). Empty keeps the
+	# project default; otherwise three slots, see input_bindings.gd.
+	"bindings": {
+		"move_forward": "", "move_back": "", "move_left": "", "move_right": "",
+		"strafe": "", "jump": "", "turn_left": "", "turn_right": "",
+		"look_up": "", "look_down": "", "center_view": "", "fire": "",
+		"interact": "", "weapon_next": "", "weapon_prev": "", "weapon_1": "",
+		"weapon_2": "", "weapon_3": "", "weapon_4": "", "weapon_5": "",
+		"scoreboard": "", "speak": "", "pause": "", "leave_match": "",
+		"join_as_human": "", "cycle_cam": "", "toggle_follow": "",
+		"radio_next_station": "", "radio_next_track": "", "radio_toggle": "",
 	},
 	"gameplay": {
 		"stat_commentary": true,
@@ -57,6 +76,10 @@ const RANGES: Dictionary = {
 	"audio/effects": Vector2(0.0, 1.0),
 	"controls/mouse_sensitivity": Vector2(0.1, 10.0),
 	"controls/turn_speed": Vector2(0.5, 6.0),
+	"controls/stick_yaw_speed": Vector2(60.0, 720.0),
+	"controls/stick_pitch_speed": Vector2(40.0, 480.0),
+	"controls/stick_deadzone": Vector2(0.02, 0.4),
+	"controls/stick_curve": Vector2(1.0, 3.0),
 }
 
 ## Harnesses supply an isolated path before scenes enter the tree.
@@ -110,8 +133,11 @@ func set_value(section: String, key: String, value: Variant) -> void:
 	elif path == "video/resolution_height":
 		if not value is int or value not in RenderQuality.RESOLUTION_HEIGHTS:
 			value = fallback
-	elif path in ["video/quality", "video/upscaling"]:
+	elif path in ["video/quality", "video/upscaling", "controls/aim_assist"]:
 		if not value is int or value not in [0, 1, 2]:
+			value = fallback
+	elif section == "bindings":
+		if not value is String or (not (value as String).is_empty() and InputBindings.parse(value).size() != InputBindings.SLOTS):
 			value = fallback
 	(_values[section] as Dictionary)[key] = value
 
@@ -184,6 +210,11 @@ func reticle_colour() -> Color:
 func apply() -> void:
 	apply_video()
 	apply_audio()
+	apply_controls()
+
+## Rebuild the InputMap from the saved bindings.
+func apply_controls() -> void:
+	InputBindings.apply(self)
 
 func apply_video() -> void:
 	Engine.max_fps = int(get_value("video", "fps_cap"))

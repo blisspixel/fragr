@@ -38,6 +38,21 @@
       "note": "Actual human join, saved callsign, gun silhouette, and aim visibility."
     },
     {
+      "name": "hud_legend_pad",
+      "at_seconds": 13,
+      "camera": "first_person",
+      "input_device": "pad",
+      "pad_layout": "letters",
+      "note": "The joined player's legend after a left trigger pull: pad names from live bindings. Letter layout forced, no pad attached."
+    },
+    {
+      "name": "hud_legend_keyboard",
+      "at_seconds": 14,
+      "camera": "first_person",
+      "input_device": "keyboard",
+      "note": "The same legend after a key press: keyboard names from live bindings."
+    },
+    {
       "name": "rail_viewmodel",
       "at_seconds": 15,
       "camera": "first_person",
@@ -156,6 +171,34 @@
       "menu_page": "settings",
       "settings_tab": "AUDIO",
       "note": "Separate master, radio, and effects controls with Save and Cancel."
+    },
+    {
+      "name": "settings_controls",
+      "at_seconds": 2,
+      "camera": "none",
+      "menu_page": "settings",
+      "settings_tab": "CONTROLS",
+      "input_device": "keyboard",
+      "note": "Controls page: every action with two keyboard or mouse slots and a gamepad slot, keyboard focus, reset."
+    },
+    {
+      "name": "settings_controls_pad",
+      "at_seconds": 2,
+      "camera": "none",
+      "menu_page": "settings",
+      "settings_tab": "CONTROLS",
+      "input_device": "pad",
+      "pad_layout": "letters",
+      "note": "Controls page after a left trigger pull through the real input path. No pad is attached, so the letter layout is forced and recorded as such."
+    },
+    {
+      "name": "settings_look",
+      "at_seconds": 2,
+      "camera": "none",
+      "menu_page": "settings",
+      "settings_tab": "LOOK",
+      "input_device": "keyboard",
+      "note": "Mouse sensitivity with cm per turn, key turn speed, stick shape and speeds, aim assist."
     },
     {
       "name": "multiplayer_menu",

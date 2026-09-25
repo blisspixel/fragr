@@ -43,4 +43,7 @@ static func build() -> Theme:
 	theme.set_stylebox("hover", "PopupMenu", panel(Color("4a241b"), EMBER))
 	theme.set_stylebox("slider", "HSlider", panel(Color("0e1312")))
 	theme.set_stylebox("grabber_area", "HSlider", panel(Color("795130")))
+	theme.set_stylebox("grabber_area_highlight", "HSlider", panel(Color("a86a3a"), EMBER))
+	# Keyboard and gamepad players need to see which slider they are on.
+	theme.set_stylebox("focus", "HSlider", panel(Color(0, 0, 0, 0), EMBER))
 	return theme

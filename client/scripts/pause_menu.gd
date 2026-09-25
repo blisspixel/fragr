@@ -20,6 +20,7 @@ var preferences: FragrSettings
 var _settings_panel: SettingsPanel
 var _settings_frame: PanelContainer
 var _centre: CenterContainer
+var _hint: Label
 
 func _ready() -> void:
 	layer = 100
@@ -78,7 +79,8 @@ func _build() -> void:
 	_add_button("Quit to desktop", func() -> void: get_tree().quit())
 
 	var hint: Label = Label.new()
-	hint.text = "Escape resumes. Tilde opens the console."
+	_hint = hint
+	hint.text = InputGlyphs.plain(tr("MENU_PAUSE_HINT"))
 	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	hint.add_theme_font_size_override("font_size", 12)
 	hint.add_theme_color_override("font_color", Color(0.55, 0.57, 0.6))
@@ -121,6 +123,7 @@ func _refresh_note() -> void:
 	else:
 		_note.text = tr("MENU_EXIT_SAVES_RUN" if _local_campaign_run() else "MENU_LIVE_MATCH")
 	_leave_button.text = tr("RUN_EXIT_MENU") if _local_campaign_run() else "Leave match"
+	_hint.text = InputGlyphs.plain(tr("MENU_PAUSE_HINT"))
 
 func open() -> void:
 	if _open:

@@ -1,0 +1,13 @@
+{
+  "comment": "Continue prompt glyph evidence on a live one-seat M01 run. Run with FRAGR_QA_BOTS=0, FRAGR_QA_CAMPAIGN_RUN=1, FRAGR_QA_MAP_FILE=server/maps/m01-recall-notice.json and FRAGR_QA_MANIFEST=res://qa/input-continue.json. The player walks past the Tack into the intake guard's fire without shooting back, falls, and the continue card is captured for each device. No pad is attached: the positional layout comes from a real trigger event, the letter and shape layouts are forced and recorded in the manifest.",
+  "width": 1280,
+  "height": 720,
+  "combat_travel": false,
+  "states": [
+    {"name":"arrival","scene":"res://scenes/main.tscn","join":"human","camera":"first_person"},
+    {"name":"fallen_keyboard","camera":"first_person","walk_to":[[0,0,-26],[0,0,-21]],"await_run_status":"continue","input_device":"keyboard","note":"Continue card with the keyboard accept keycap."},
+    {"name":"fallen_pad","camera":"first_person","input_device":"pad","note":"The same card after a left trigger pull: positional glyph."},
+    {"name":"fallen_letters","camera":"first_person","input_device":"pad","pad_layout":"letters","note":"Letter layout glyph, forced and recorded."},
+    {"name":"fallen_shapes","camera":"first_person","input_device":"pad","pad_layout":"shapes","note":"Shape layout glyph, forced and recorded."}
+  ]
+}

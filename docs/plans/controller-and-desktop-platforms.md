@@ -3,6 +3,9 @@
 **Repo:** https://github.com/blisspixel/fragr
 **Spend:** $0. No ElevenLabs, no GCP apply, no renet, no look_at/hit reopen.
 **Status:** shipped (#88, v0.8.3). Gamepad join and first-class desktop exports.
+The control map below is historical: stick look now uses a radial deadzone and
+response curve, Start opens the match menu, and every action is rebindable.
+Current bindings and behaviour live in [`input-all-devices.md`](./input-all-devices.md).
 
 ## Goal
 

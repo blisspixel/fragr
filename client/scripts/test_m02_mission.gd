@@ -146,15 +146,15 @@ func _hud(first: Dictionary, use: Dictionary, exit: Dictionary, done: Dictionary
 	hud._process(MissionHud.STAGE_SECONDS + 0.1)
 	_expect(_lines(hud) == 0, "the objective line leaves after the stage")
 	hud.apply(use["state"], PLAYER)
-	_expect(_lines(hud) == 1 and hud._prompt.visible and hud._prompt.text == tr("M02_USE_CONSOLE"),
-		"a legal use shows only the prompt: " + hud._prompt.text)
+	_expect(_lines(hud) == 1 and hud._prompt.visible and hud.prompt_text == InputGlyphs.plain(tr("M02_USE_CONSOLE")) and hud.prompt_text == "F: USE",
+		"a legal use shows only the prompt: " + hud.prompt_text)
 	hud.apply(use["state"], "00000000-0000-0000-0000-000000000009")
 	_expect(not hud._prompt.visible, "another participant's prompt stays private")
 	hud.apply(exit["state"], PLAYER)
 	_expect(_lines(hud) == 1 and hud._copy.text == tr("M02_OBJECTIVE_PARTY_DEPARTED"), "the exit objective replaces the use line")
 	hud.apply(done["state"], PLAYER)
 	hud._process(MissionHud.STAGE_SECONDS + 0.1)
-	_expect(_lines(hud) == 1 and hud._copy.text == tr("M02_DEPARTED"), "departure keeps one line")
+	_expect(_lines(hud) == 1 and hud._copy.text == InputGlyphs.plain(tr("M02_DEPARTED")) and hud._copy.text == "OUT. ESC TO LEAVE.", "departure keeps one line")
 	var unknown: Dictionary = use["state"].duplicate(true)
 	unknown["m02"]["current"]["id"] = "later_objective"
 	unknown["prompts"] = []
@@ -171,8 +171,8 @@ func _lines(hud: MissionHud) -> int:
 	var count: int = 0
 	if hud.visible and hud._card.visible and not hud._copy.text.is_empty():
 		count += hud._copy.text.count("\n") + 1
-	if hud.visible and hud._prompt.visible and not hud._prompt.text.is_empty():
-		count += hud._prompt.text.count("\n") + 1
+	if hud.visible and hud._prompt.visible and not hud.prompt_text.is_empty():
+		count += hud.prompt_text.count("\n") + 1
 	return count
 
 

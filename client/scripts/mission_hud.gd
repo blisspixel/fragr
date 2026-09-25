@@ -12,9 +12,17 @@ var _stage_phase: String = ""
 var _stage_left: float = 0.0
 var _card: PanelContainer
 var _copy: Label
-var _prompt: Label
+## Use and continue prompts carry the key or pad glyph for the device in the
+## player's hands, so they are rich text. The plain strings are kept beside
+## them for tests and for anything that reads the HUD as text.
+var _prompt: RichTextLabel
 var _recovery: PanelContainer
-var _recovery_copy: Label
+var _recovery_copy: RichTextLabel
+var prompt_text: String = ""
+var recovery_text: String = ""
+var _prompt_template: String = ""
+var _recovery_template: String = ""
+var _device_revision: int = -1
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -26,17 +34,13 @@ func _ready() -> void:
 	_copy = _label(18)
 	_copy.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_card.add_child(_copy)
-	_prompt = _label(22)
-	_prompt.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_prompt.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_prompt = _rich(22)
 	add_child(_prompt)
 	_recovery = PanelContainer.new()
 	_recovery.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_recovery.add_theme_stylebox_override("panel", MenuTheme.panel(Color("201b19"), Color("986048")))
 	add_child(_recovery)
-	_recovery_copy = _label(24)
-	_recovery_copy.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_recovery_copy.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_recovery_copy = _rich(24)
 	_recovery.add_child(_recovery_copy)
 	_refresh()
 
@@ -49,6 +53,34 @@ func _label(font_size: int) -> Label:
 	label.add_theme_color_override("font_outline_color", MenuTheme.INK)
 	label.add_theme_constant_override("outline_size", 4)
 	return label
+
+func _rich(font_size: int) -> RichTextLabel:
+	var label: RichTextLabel = RichTextLabel.new()
+	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	label.fit_content = true
+	label.scroll_active = false
+	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	label.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	label.add_theme_font_override("normal_font", MenuTheme.FONT)
+	label.add_theme_font_size_override("normal_font_size", font_size)
+	label.add_theme_color_override("default_color", MenuTheme.BONE)
+	label.add_theme_color_override("font_outline_color", MenuTheme.INK)
+	label.add_theme_constant_override("outline_size", 4)
+	return label
+
+## Draw a prompt template with glyphs for the active device.
+func _show_prompt(template: String) -> void:
+	_prompt_template = template
+	prompt_text = InputGlyphs.render(_prompt, template, 44, true) if not template.is_empty() else ""
+	if template.is_empty():
+		_prompt.clear()
+	_prompt.visible = not prompt_text.is_empty()
+
+func _show_recovery(template: String) -> void:
+	_recovery_template = template
+	recovery_text = InputGlyphs.render(_recovery_copy, template, 44, true) if not template.is_empty() else ""
+	if template.is_empty():
+		_recovery_copy.clear()
 
 func apply(value: Dictionary, owner_id: String) -> void:
 	var phase: String = _stage_key(value)
@@ -64,6 +96,12 @@ func _notification(what: int) -> void:
 		_refresh()
 
 func _process(delta: float) -> void:
+	if _device_revision != InputDevice.revision:
+		_device_revision = InputDevice.revision
+		if not _prompt_template.is_empty():
+			_show_prompt(_prompt_template)
+		if not _recovery_template.is_empty():
+			_show_recovery(_recovery_template)
 	if _stage_left > 0.0:
 		_stage_left = maxf(0.0, _stage_left - delta)
 		if _card != null:
@@ -88,7 +126,7 @@ func _refresh() -> void:
 	visible = not state.is_empty()
 	if not visible:
 		_copy.text = ""
-		_prompt.text = ""
+		_show_prompt("")
 		_card.visible = false
 		return
 	if state.get("id") == MissionState.M02_ID:
@@ -109,7 +147,7 @@ func _refresh() -> void:
 				copy.append(tr("RUN_FAILED" if run["status"] == "failed" else "RUN_ABANDONED"))
 			copy.append("")
 			copy.append(tr("RUN_MENU_INPUT"))
-			_recovery_copy.text = "\n".join(copy)
+			_show_recovery("\n".join(copy))
 	match state["phase"]:
 		"briefing":
 			lines.append(tr("STORY_M01_RECAP"))
@@ -128,21 +166,21 @@ func _refresh() -> void:
 			if not waiting.is_empty():
 				lines.append(tr("MISSION_WAITING_FOR").format({"names": ", ".join(waiting)}))
 		"departed":
-			lines.append(tr("MISSION_DEPARTED"))
+			lines.append(InputGlyphs.plain(tr("MISSION_DEPARTED")))
 	_copy.text = "\n".join(lines)
 	_card.visible = _stage_card_visible()
-	_prompt.text = ""
+	var use: String = ""
 	for prompt: Dictionary in state["prompts"]:
 		if prompt["player_id"] == player_id:
-			_prompt.text = tr("MISSION_USE_RECORD" if prompt["kind"] == "transfer_record" else "MISSION_USE_LIFT")
-	_prompt.visible = not _prompt.text.is_empty()
+			use = tr("MISSION_USE_RECORD" if prompt["kind"] == "transfer_record" else "MISSION_USE_LIFT")
+	_show_prompt(use)
 
 func _stage_card_visible() -> bool:
 	var phase := str(state.get("phase", ""))
 	if state.get("id") == MissionState.M02_ID:
 		# One line at most: a legal prompt replaces the objective line.
 		if phase == "in_progress":
-			return _stage_left > 0.0 and (_prompt == null or not _prompt.visible)
+			return _stage_left > 0.0 and prompt_text.is_empty()
 		return true
 	if phase == "briefing" or phase == "departed":
 		return true
@@ -173,15 +211,15 @@ func _refresh_m02() -> void:
 		"briefing":
 			line = _catalog("M02_WAITING")
 		"departed":
-			line = _catalog("M02_DEPARTED")
+			line = InputGlyphs.plain(_catalog("M02_DEPARTED"))
 		_:
 			line = _catalog(objective_key(str(progress["current"]["id"])))
 	_copy.text = line
-	_prompt.text = ""
+	var use: String = ""
 	for prompt: Dictionary in state["prompts"]:
 		if prompt["player_id"] == player_id:
-			_prompt.text = _catalog(use_key(str(progress["current"]["id"])))
-	_prompt.visible = not _prompt.text.is_empty()
+			use = _catalog(use_key(str(progress["current"]["id"])))
+	_show_prompt(use)
 	_card.visible = _stage_card_visible()
 
 ## Catalog copy only. A missing key is an error and shows nothing, never the key.

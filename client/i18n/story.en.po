@@ -105,7 +105,7 @@ msgid "RUN_RESTORE_ENTRY"
 msgstr "Restart this mission with the equipment you entered with."
 
 msgid "RUN_CONTINUE_INPUT"
-msgstr "ENTER / A: SPEND ONE CONTINUE"
+msgstr "{accept}: SPEND ONE CONTINUE"
 
 msgid "RUN_WAITING_OWNER"
 msgstr "Waiting for the player to continue."
@@ -117,7 +117,7 @@ msgid "RUN_ABANDONED"
 msgstr "The player left this run."
 
 msgid "RUN_MENU_INPUT"
-msgstr "ESC: MATCH MENU"
+msgstr "{pause}: MATCH MENU"
 
 msgid "RUN_SEAT_CLOSED"
 msgstr "This run already has an owner. Watch as a spectator or start a new run."

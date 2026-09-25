@@ -46,13 +46,13 @@ msgid "MISSION_WAITING_FOR"
 msgstr "Awaiting boarding: {names}"
 
 msgid "MISSION_USE_RECORD"
-msgstr "F / B: READ TRANSFER RECORD"
+msgstr "{use}: READ TRANSFER RECORD"
 
 msgid "MISSION_USE_LIFT"
-msgstr "F / B: DEPART TO CORRECTION WARD"
+msgstr "{use}: DEPART TO CORRECTION WARD"
 
 msgid "MISSION_DEPARTED"
-msgstr "TRANSFER ROUTE SECURED\nDestination: correction ward.\n\nLatch is headed to the correction ward. This mission ends here.\nESC: open the match menu to leave."
+msgstr "TRANSFER ROUTE SECURED\nDestination: correction ward.\n\nLatch is headed to the correction ward. This mission ends here.\n{pause}: open the match menu to leave."
 
 msgid "MENU_LIVE_MATCH"
 msgstr "LIVE MATCH. FIND COVER FIRST."
@@ -185,8 +185,8 @@ msgstr "KEEP MOVING"
 
 
 msgid "M02_USE_CONSOLE"
-msgstr "F / B: USE"
+msgstr "{use}: USE"
 
 msgid "M02_DEPARTED"
-msgstr "OUT. ESC TO LEAVE."
+msgstr "OUT. {pause} TO LEAVE."
 
