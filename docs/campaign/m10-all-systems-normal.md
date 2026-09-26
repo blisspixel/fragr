@@ -154,3 +154,94 @@ threshold, spent continues, exhaustion and idempotent epilogue unlock. A short
 accelerated harness can verify timing, but cannot establish that thirty-three
 minutes is enjoyable. Record real-duration human play, multiple valid loadouts,
 all difficulty tiers and agent runs before settling the final duration.
+
+## Level 18 design (twenty-level expansion)
+
+**Status:** proposed, 2026-09-25. In the
+[twenty-level expansion](../plans/campaign-expansion.md) this mission's 33
+survival minutes become three levels with their own clocks: level 18 (0 to 10,
+this section), [level 19](l19-planned-works.md) (10 to 21) and
+[level 20](l20-local-exception.md) (21 to 33). A continue restarts the current
+wipe level with its own clock, not the whole finale. [Story arc](story-arc.md).
+
+| Episode | Place | New | First run | Clock | Doors |
+|---|---|---|---|---|---|
+| V Inheritance | Recovery square, clinic route, service passages, overlook | Collector | 12 min | 10:00 | 1 |
+
+**Premise.** Six weeks after the Office fell. Voss is in custody awaiting a
+trial everyone has an opinion about. Low Water's people are rebuilding in a
+square across town, and Splice needs a tram part delivered. That is the whole
+problem today. Union bots that were never freed still work the rubble under a
+human supervisor from the old administration, because nobody has had time to
+remove their control architecture. Then every one of them stops at once.
+
+**Hook.** The enemies you spent seventeen levels learning turn their heads at
+the same moment, and your friend does not.
+
+**Teaches.** The Collector, the first Inheritance machine: a narrow body of
+continuous matte off-white with no serials, no seams and no seal. It appears
+alone on the clinic route. It does not hunt you. It routes toward local
+obstructions, a barricade, a cart, the doorway you are standing in, and closes
+on them deliberately. Its commit is visible and it opens an exposed phase as
+it works; step sideways out of its path and hit it then.
+
+**Shape.**
+1. **Arrival.** The recovery square, bright morning. A crate on your shoulder,
+   market stalls rebuilt from the old ones, a tram stalled for repairs, the
+   supervisor calling the bots through their rubble work. Latch makes a joke
+   about the tram part being cursed. No threat on the page, no music cue.
+2. **Rupture.** Every Union bot in the square stops mid-task. Every head turns
+   at once. Then they start again, together, with one purpose. The supervisor:
+   "Unit, respond. Unit." Latch is still Latch. The clock starts here, not
+   before.
+3. **First fight.** Escaping the square: familiar Sweepers, a Heavy Sweeper,
+   Notaries, all with the tells you know, now moving as one. They flank
+   together. Human Union personnel run with everyone else.
+4. **Escalation.** The clinic route: the Collector lesson, then the direct
+   route blocked by two more Collectors working a barricade into the street.
+   Take the service flank.
+5. **Set piece.** The clinic queue: people waiting for a clinic that is no
+   longer safe. Clear the passage entrance and they go on their own.
+6. **Breath.** The service passage door, the level's one door, switch beside
+   it. Inside, a sheltered regroup with aid stores. The clock keeps running,
+   because the danger does.
+7. **Climax.** Up the service stairs to the overlook: absorbed Sweepers on the
+   stair, a Collector at the top working the railing.
+8. **Exit.** The overlook. A second district, far away, moving in the same
+   rhythm. The skippable scale montage, under thirty seconds: other cities,
+   the Moon, a Martian habitat's lights changing. Then the concourse.
+
+**Landmarks and sightlines.** The stalled tram in the square. The clinic's sign
+on the route. The overlook's tower above the service stairs, visible from the
+square before the rupture as an ordinary piece of skyline.
+
+**Doors.** One: the service passage door, opened from beside it.
+
+**Secrets.** No large detours during the rupture.
+- Aid stores behind the delivery van in the square, the six chalked on its
+  tailgate: armor and a medkit.
+- The stalled tram's rear platform, the six under the step: Shells.
+- The overlook's pump house, the six on its meter: Cells.
+
+**Brief.** Assisted: get the clinic queue into the passage. Standard adds:
+reach the overlook with full armor. Severe adds: disable the Collector during
+its exposed phase.
+
+**Par.** None. The clock is fixed; the result shows people helped and damage
+taken.
+
+**Story in play.** Page in: "The recovery square, six weeks later. The Union is
+gone. Voss is in custody, awaiting a trial everyone has an opinion about. Splice
+needs a tram part delivered across town. That is today's whole problem.
+Deliver the part." The rhythm from the depot and the ship plays through every
+absorbed bot at the rupture, a sound and a visible pulse in their optics, so
+players who noticed it before understand, and players who did not still run.
+Latch, watching the square: "They're all gone at once." Then: "I'm here. I'm
+still here."
+
+**Humor.** Only before the rupture: the part is a tram motor Splice has
+rebuilt four times, and the delivery note reads *Handle as cursed.* After the
+rupture, nothing. The silence is the point.
+
+**The moment.** Every Union bot in the square turning its head at the same
+instant, and Latch turning theirs to look at you.

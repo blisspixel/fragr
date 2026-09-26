@@ -1,7 +1,7 @@
 # Campaign expansion
 
-**Status:** proposed, 2026-09-24, awaiting Nick's decision. This plan directs no
-work. [CAMPAIGN.md](../CAMPAIGN.md) still owns the contract (ten missions and a
+**Status:** proposed, 2026-09-24; deep dive added 2026-09-25. Awaiting Nick's
+decision. This plan directs no work. [CAMPAIGN.md](../CAMPAIGN.md) still owns the contract (ten missions and a
 survival-gated epilogue, 2-3 hours, agreed 2026-09-20), and the
 [mission plans](../campaign/README.md) stay the current staging until Nick
 chooses. Nothing here is built. Spend: $0, docs only.
@@ -40,8 +40,8 @@ names. None is a detour for length.
 | 1 | Recall Notice | I Recall | Earth intake annex | Fists, Pistol, Rifle; Clerk, Sweeper (opening kit) | 9 | 3:30 |
 | 2 | Persons Unknown | I Recall | Correction ward | Shotgun; Crawler | 11 | 4:30 |
 | 3 | Scheduled Service | I Recall | Perimeter recall rail yard | Jammer | 10 | 4:00 |
-| 4 | Notice to Vacate | I Recall | Low Water, market and clinic | Heavy Sweeper | 11 | 4:30 |
-| 5 | No Forwarding Address | I Recall | Low Water roofs and tram trench | Grenade; Notary | 12 | 5:00 |
+| 4 | Notice to Vacate | I Recall | Low Water, market and clinic | Notary | 11 | 4:30 |
+| 5 | No Forwarding Address | I Recall | Low Water roofs and tram trench | Grenade; Heavy Sweeper | 12 | 5:00 |
 | 6 | Port of Entry | II Custody | Lunar port and customs | Railgun; Turret | 11 | 4:30 |
 | 7 | Declared Goods | II Custody | Lunar town and crater cut | Sniper Rifle; Ranged Sweeper | 10 | 4:00 |
 | 8 | Custodian of Record | II Custody | Lunar custody archive | Proximity Mine; Auditor | 13 | 5:30 |
@@ -227,11 +227,130 @@ places the lore does not have yet, and that is filler.
    Clerk and Sweeper crest), the Enforcer from the crater cut to level 9, the
    Redactor and remote mines from M06 to level 11, the Article Blade from M08 to
    level 15, and the unplaced Ranged Sweeper into level 7. The Turret stays at
-   M04 (level 6), the Heavy Sweeper and Notary stay in M03's levels (4 and 5).
+   M04 (level 6), the Heavy Sweeper and Notary stay in M03's levels, with the
+   Notary first in level 4 and the Heavy Sweeper in level 5 (deep dive).
 5. The brief stays optional on every tier; Waivers are replay-only.
+6. Accept or strike each item of the story arc's
+   [proposed canon](../campaign/story-arc.md#proposed-canon).
 
-If Nick agrees, the follow-up rewrites CAMPAIGN.md's structure line, the
-treatment and one plan per new level. Until then this file is the only change.
+If Nick agrees, the follow-up rewrites CAMPAIGN.md's structure line and the
+treatment. The level designs already exist (see the deep dive below).
+
+## Deep dive, 2026-09-25
+
+**Status:** proposed, docs only, $0. Nick has not chosen twenty, fifteen or ten
+levels; this pass plans for twenty as the working direction. Nothing in the
+contract changes until he does.
+
+- The [story arc](../campaign/story-arc.md) tells the campaign as one story:
+  the player's want and need, Latch's arc and the ledger, the Union's faces,
+  the Inheritance's ladder of signs, the midpoint reversal at levels 10 and 11,
+  the dark night in level 19, both endings, the themes, and how story is told
+  without stopping play. New story material is listed as
+  [proposed canon](../campaign/story-arc.md#proposed-canon).
+- Every level has a full design in one template, indexed in the
+  [mission plans](../campaign/README.md#twenty-level-expansion-proposed). Levels
+  that keep a mission's name are a section at the end of that plan; the ten new
+  levels have their own `lNN` files.
+
+### What the classics taught, and where it is used
+
+Only rules the level designs actually apply.
+
+| Game | Rule taken | Where it lands |
+|---|---|---|
+| Doom, E1M1 | The first room teaches without text; items form a breadcrumb; a window shows a reward before the route to it | Every level's teaching room; level 1's lift light; level 6 shows levels 8 and 9 through the customs glass |
+| Doom II | Each map is a different fantasy, and the run moves through recognizably different places | One fantasy per level, never repeated: break-in, rescue, train yard, home defense, rooftop evacuation, border, curfew town, jailbreak, siege climb |
+| GoldenEye 007 | Difficulty adds objectives; set pieces punctuate foot levels; spaces first | The brief; the train yard (3); the tram ride (5); the tender boarding (11) |
+| Unreal | Arrival is an event: you leave a cramped interior and a world opens in front of you | The quiet dock window with Earth (6); the freight lift into Martian daylight (14); the empty plaza before the bike (16) |
+| Duke Nukem 3D | Real, recognizable places full of things you can touch, with jokes in them | One interactive joke per level: the surviving caption (1), the schedule board (3), the photo printer (4), the dust declaration (6), the office-supplies pallet (13) |
+| Half-Life | Story happens in front of the player with the camera in their hands | Three short scenes in twenty levels; Latch's departure (19) happens beside you, in control |
+| Rock n' Roll Racing | A loud, short-line announcer gives a contest personality | The official stadium announcer and then the Host calling the uprising (15) |
+| Battlefield 1942 | Anyone can take a vehicle, and the best moments come from the open field, not a script | The launch works circuit (14): park the jeep, take the gun seat, bail, finish on foot |
+| Counter-Strike | Readable entrances and a few distinct lanes make a space learnable in one visit | The customs lanes (6), the tender's spine and crawlway (11), the three pier approaches (20) |
+
+### Pacing curve
+
+Intensity runs 1 (calm) to 5 (the hardest fight in the episode), from the
+level's start to its peak. Rest is the inhabited calm that sets up the crest.
+Every episode opens gentler than it closes, puts at least one new toy in every
+level, and ends on its hardest level. No two consecutive levels share a route
+shape or a dominant fighting distance.
+
+**Episode I: Recall** (about 53 minutes)
+
+| Level | Fantasy | Shape | Distance | Intensity | Rest | New |
+|---|---|---|---|---|---|---|
+| 1 Recall Notice | The break-in | Split and rejoin | Mid, indoor | 1 to 3 | Maintenance overlook, the lift light | Fists, Pistol, Rifle; Clerk, Sweeper |
+| 2 Persons Unknown | The rescue | Descending spiral | Close | 2 to 4 | Side ward after the reunion | Shotgun; Crawler |
+| 3 Scheduled Service | The train yard | Parallel lanes | Long, across the tracks | 2 to 3 | The brakemen's hut | Jammer |
+| 4 Notice to Vacate | Home defense | Hub and spokes | Mid, streets | 1 to 4 | The market before the notice; the clinic | Notary |
+| 5 No Forwarding Address | The rooftop evacuation | Loop over and under | Vertical, then close | 3 to 5 | Splice freed in the workshop | Grenade; Heavy Sweeper |
+
+**Episode II: Custody** (about 44 minutes)
+
+| Level | Fantasy | Shape | Distance | Intensity | Rest | New |
+|---|---|---|---|---|---|---|
+| 6 Port of Entry | The border | Split and rejoin | Mid, with one long lane | 1 to 3 | The dock window; family quarters | Railgun; Turret |
+| 7 Declared Goods | The curfew town and the duel | U-shape | Close streets, then a long duel | 2 to 4 | The lamps coming on | Sniper Rifle; Ranged Sweeper |
+| 8 Custodian of Record | The jailbreak | Ring around a shaft | Close, vertical | 3 to 4 | Service ring and Orrin | Proximity Mine; Auditor |
+| 9 Passenger Manifest | The siege climb and liftoff | Spiral climb | Mid, across the cradle | 3 to 5 | Tern freed, captives boarding | Enforcer |
+
+**Episode III: Common Cause** (about 59 minutes)
+
+| Level | Fantasy | Shape | Distance | Intensity | Rest | New |
+|---|---|---|---|---|---|---|
+| 10 Common Carrier | Repel boarders | Figure eight | Close | 2 to 4 | Passenger deck morning; the message | Repeater |
+| 11 Right of Search | The counter-boarding heist | Keel line | Long corridor, close holds | 2 to 4 | The transfer hold and Sorrel | Remote Mine; Redactor |
+| 12 Terms of Cooperation | The relief that came late | Two lanes round a hub | Mid | 2 to 4 | The shelter lobby | Arc; Assessor |
+| 13 The Weight of Permission | Industrial hell | Down, then up | Close, machine hall | 3 to 4 | Worker quarters | Rocket Launcher |
+| 14 Launch Authority | The battlefield | Open circuit | Long, vehicles | 3 to 5 | The flares from the other sites | Jeep; Continuance Walker |
+
+**Episode IV: Reckoning** (about 37 minutes)
+
+| Level | Fantasy | Shape | Distance | Intensity | Rest | New |
+|---|---|---|---|---|---|---|
+| 15 Civic Pressure Valve | The arena uprising | Ring and bowl | Mid, arena | 2 to 5 | Between bout waves | Article Blade |
+| 16 Freedom of Movement | The ride | Arrow | Speed, then mid | 2 to 4 | The prison bus | Motorcycle |
+| 17 Peace Without Interruption | The palace assault | Ascending ring | Close to mid | 3 to 5 | Command galleries; the liberated hall | Denial |
+
+**Episode V: Inheritance** (about 37 minutes, 33 on the clocks)
+
+| Level | Fantasy | Shape | Distance | Intensity | Rest | New |
+|---|---|---|---|---|---|---|
+| 18 All Systems Normal | The rupture | Outward spiral | Mixed | 1, then 4 | The square before; the service passage | Collector |
+| 19 Planned Works | The ruined homecoming | Out and back, changed | Vertical, jetpack | 3 to 4 | The meal table; the water tank | Jetpack; Paver |
+| 20 Local Exception | The last stand | Converging funnels | Mid | 3 to 5 | The pier before the push | Surveyor |
+
+Episode IV is the shortest and the most intense, by design: it is the victory,
+and it should feel like one long charge. Episode V starts at 1 on purpose.
+
+### Refinements to the level list
+
+1. **The Notary debuts in level 4 and the Heavy Sweeper in level 5.** Nick
+   wants flying drones as core enemies; the Union watches before it arrives,
+   so the drones reach home first. The grenade then answers the Heavy.
+2. **Tern flies the party to the Moon** at the end of level 5, matching the M04
+   plan. The port impounds the ship in level 6 and the party takes it back in
+   level 9. This fixes the cast file, which had Tern first appear at lunar
+   departure.
+3. **The Moon has a personal stake:** neighbours taken in level 5 are held at
+   the depot, and level 8's lower bays free some of them.
+4. **Level 1's secret matches the build:** the Shiv is in the confiscation
+   alcove's south pocket, not behind a hatch.
+5. **Three secrets per level,** each marked with the circled six, one Floating
+   67 mark per episode in levels 3, 7, 11, 15 and 19.
+6. **Briefs sharpened:** level 5's Severe objective is the Heavy Sweeper, level
+   9's is baiting an Enforcer off a catwalk, level 15's Standard and Severe
+   reward the Blade and the entrants, since the broadcast booth is now on the
+   route.
+7. **Level 16's green wave** is the most visible Inheritance help before the
+   wipe, deliberately ambiguous.
+8. **Level 18's continue** restarts only the current wipe level with its own
+   clock, as the continues section above proposes.
+
+Nothing else moved: titles, places, order, doors, pars and clocks are as the
+table at the top of this file.
 
 ## The levels
 
@@ -252,8 +371,8 @@ and the record says where. **New:** fists, Pistol, Rifle; Clerk and Sweeper.
 **Route:** split and rejoin (public stair or maintenance flank; stacks or
 bypass). **Doors:** 1, the lift gate. **Brief:** A: recover the confiscated
 belongings from the seized-property bay. S: clear the file stacks. Sv: clear
-dispatch without taking damage. **Secret:** a Shiv behind
-the complaint-form hatch. **Par:** 3:30.
+dispatch without taking damage. **Secret:** the Shiv in
+the confiscation alcove's south pocket, as built. **Par:** 3:30.
 
 **2. Persons Unknown** (M02)
 Correction ward and processing floor. **Beat:** reach Latch before correction
@@ -289,13 +408,13 @@ Low Water: repair market, clinic, habitation court. **Beat:** home, briefly.
 Neighbors argue over charging cables and transport paint; Edda runs the clinic;
 the community next door still debates the vehicles. The notice goes up on the
 market board. The sweep arrives before the aid does. **Fight:** the market held
-against the sweep's heavy, a Heavy Sweeper walking down the stalls while lighter
-bots flank through the court. **Landmark:** Edda's lit clinic sign over the
+against the sweep, Notaries photographing the stalls from above while
+Sweepers flank through the court. **Landmark:** Edda's lit clinic sign over the
 market. **Turn:** the place you were defending becomes the place you are
-leaving. **New:** Heavy Sweeper. **Route:** hub and spokes, market at the center,
+leaving. **New:** Notary. **Route:** hub and spokes, market at the center,
 clinic and court on short branches. **Doors:** 1, the clinic shutter with its
 switch beside it. **Brief:** A: get Edda's team out. S: clear the habitation
-court. Sv: drop the Heavy before it finishes its second burst. **Secret:**
+court. Sv: no Notary completes a photograph. **Secret:**
 spare shells in the tram-paint locker. **Par:** 4:30.
 
 **5. No Forwarding Address** (M03, second half)
@@ -303,14 +422,14 @@ Low Water's roof loop, tram workshop and trench to the freight departure.
 **Beat:** get the rest out. Splice is still in the workshop with captive agents
 Latch insists on freeing. Mara admits the aid was late. Some people are gone
 and no optional objective could have saved them. **Fight:** the tram trench,
-Notaries over Sweepers, crossings and recesses, the grenade's airburst finally
-reaching what hovers. **Landmark:** the water tanks on the roof loop, the
+Notaries over Sweepers, crossings and recesses, then the Heavy Sweeper on the
+platform ramp, staggered by the grenade. **Landmark:** the water tanks on the roof loop, the
 skyline you will see again in the wipe. **Turn:** the departure confirmation
-names who is still missing. **New:** Grenade (workshop, on the route); Notary.
+names who is still missing. **New:** Grenade (workshop, on the route); Heavy Sweeper.
 **Route:** loop, over the roofs and back under through the trench. **Doors:** 1,
 the freight platform gate. **Brief:** A: free Splice's group. S: bring down every
-Notary over the trench. Sv: clear the trench before the second Notary patrol
-arrives.
+Notary over the trench. Sv: kill the Heavy Sweeper before it finishes its
+second burst.
 **Secret:** roof armor behind the second tank. **Par:** 5:00.
 
 ### Episode II: Custody (the Moon)
@@ -372,7 +491,8 @@ its cradle, visible from every point. **Turn:** you leave the Moon as passengers
 on a ship the Union still lists as impounded. **New:** Enforcer. **Route:** spiral
 climb around the cradle. **Doors:** 1, the boarding hatch, the exit. **Brief:**
 A: clear the berth office and free Tern's crew. S: stop the Enforcers before
-they reach the upper catwalk. Sv: finish with every loading lane clear at once.
+they reach the upper catwalk. Sv: kill an Enforcer by baiting its charge off a
+catwalk.
 **Secret:** the berth's customs locker, circled six under the seal. **Par:** 4:30.
 
 ### Episode III: Common Cause (the ship and Mars)
@@ -466,8 +586,8 @@ booth and the screen switches to the pirate subtitle track, same speech,
 honest words. **New:** Article Blade, on its plinth mid-floor, as it is in every
 venue. **Route:** ring and bowl, the concourse ring above a sunken floor.
 **Doors:** 2, the arena gates (one seal) and the players' tunnel. **Brief:** A:
-arm the entrants' pen. S: take the broadcast booth. Sv: win the bout without
-leaving the floor. **Secret:** a confiscated weapons bin under the podium.
+arm the entrants' pen. S: win one gate wave using only the Article Blade.
+Sv: finish the bout with no armed entrant fallen. **Secret:** a confiscated weapons bin under the podium.
 **Par:** 5:00.
 
 **16. Freedom of Movement** (M09, first half)
@@ -595,3 +715,17 @@ Checked 2026-09-24.
 - [Dusk interview, TechRaptor](https://techraptor.net/content/indie-interview-dusk)
 - [Amid Evil review, bit-tech](https://bit-tech.net/reviews/gaming/pc/amid-evil-review/1/)
 - [Prodeus levels, Prodeus Wiki](https://prodeus.fandom.com/wiki/Levels)
+
+Added for the deep dive, checked 2026-09-25.
+
+- [E1M1: Hangar, Doom Wiki](https://doomwiki.org/wiki/E1M1:_Hangar_(Doom))
+- [The design of E1M1, soulsphere.org](https://soulsphere.org/apocrypha/e1m1/)
+- [Doom II, Wikipedia](https://en.wikipedia.org/wiki/Doom_II)
+- [Unreal (1998), Wikipedia](https://en.wikipedia.org/wiki/Unreal_(1998_video_game))
+- [Walkthrough: Vortex Rikers, UnrealSP.org](https://www.unrealsp.org/game-guide/walkthroughs/unreal/vortex-rikers)
+- [Duke Nukem 3D, Wikipedia](https://en.wikipedia.org/wiki/Duke_Nukem_3D)
+- [Duke Nukem 3D turns 30, Tom's Hardware](https://www.tomshardware.com/video-games/retro-gaming/duke-nukem-3d-brought-swaggering-fps-action-to-real-world-environments-30-years-ago-1996-release-broke-the-doom-clone-mold-while-adding-humor-and-personality)
+- [Half-Life, Wikipedia](https://en.wikipedia.org/wiki/Half-Life_(video_game))
+- [Rock n' Roll Racing, Wikipedia](https://en.wikipedia.org/wiki/Rock_n%27_Roll_Racing)
+- [Battlefield 1942, Wikipedia](https://en.wikipedia.org/wiki/Battlefield_1942)
+- [Making Dust 2, johnsto.co.uk](https://www.johnsto.co.uk/design/making-dust2/)

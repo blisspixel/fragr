@@ -72,7 +72,7 @@ units entering from visible lanes. Terrain gives more than one viable response.
 Health is tuned after movement and attack readability work. The player is fighting
 machinery and coordinated defenders, not waiting out invulnerability cutscenes.
 
-Secrets: protected Cores cache reached through the service ring; armor on a
+Secrets: protected Cells cache reached through the service ring; armor on a
 gallery reachable by a clearly readable optional jump; spare Blade/sidearm supply
 for a depleted inventory. Never make the last secret necessary to afford the boss.
 
@@ -101,3 +101,84 @@ Allied workers and fighters act autonomously; no tactical controls are required.
 Test boss target changes, ally loss, solo counters, mission restart and worker
 states. Record frame times during the actual largest
 fight on named hardware; a quiet static view is not the performance evidence.
+
+## Level 13 design (twenty-level expansion)
+
+**Status:** proposed, 2026-09-25. In the
+[twenty-level expansion](../plans/campaign-expansion.md) this mission splits:
+the foundry on foot is level 13, and the exterior launch works with the jeep
+and the Walker become [level 14](l14-launch-authority.md). The Article Blade
+moves to [level 15](l15-civic-pressure-valve.md). [Story arc](story-arc.md).
+
+| Episode | Place | New | First run | Par | Doors |
+|---|---|---|---|---|---|
+| III Common Cause | The Martian foundry | Rocket Launcher | 11 min | 4:30 | 1 |
+
+**Premise.** The works that can arm and repair free communities are still Union
+property, run by bots and a few human overseers. The coalition takes them in
+several places at once; this is ours. Latch insists the workers be asked, not
+freed like cargo and handed to a new owner. The rerouting rhythm from the
+depot runs through the foundry's control systems, and you cut one exposed path
+without cutting the water and air the town depends on.
+
+**Hook.** Industrial hell in bright forge light, and the first rocket.
+
+**Teaches.** The Rocket Launcher, requisitioned, according to its pallet, as
+office supplies. It waits in the freight office before the freight loop.
+Across the loop, on a lower platform far from you, a Sweeper squad clusters
+around a stalled cart: one rocket, splash falling off with distance and
+stopping at cover. Rockets are their own ammunition, scarce, and the level
+gives enough to learn and not enough to waste.
+
+**Shape.**
+1. **Arrival.** The service entrance. The great ladle glows through every
+   window, and the heat shimmer stays behind readable silhouettes.
+2. **First fight.** The foundry edge: Clerks and Sweepers among hazard
+   machinery whose cycles are visible, with a bypass beside every crossing.
+3. **Escalation.** The machine hall: mixed squads, a Heavy Sweeper, two
+   Notaries in the high roof, short-range flanks between machines.
+4. **Breath.** The worker quarters: restraint frames on a bot workforce, and
+   one human overseer who drops his baton. Latch asks the workers what they
+   want. Some come with you, some walk out the other way, and one says no and
+   keeps working, and Latch lets them.
+5. **Set piece.** The Rocket Launcher lesson, then the freight loop
+   counterattack through space you already know: an Assessor over the loop,
+   Sweeper squads at both ends, an Enforcer charging along the rails.
+6. **Turn.** Renn points at the relay the rhythm runs through, bolted beside
+   the town's armored water feed. Shoot the relay; the feed cannot be hurt and
+   stays on. One shot after a fight, not a puzzle.
+7. **Climax.** The ladle hall's upper galleries: a pour in progress, the
+   gallery supports under Union fire positions, Clerks and a Heavy on the far
+   gallery.
+8. **Exit.** The freight lift, the level's one door. It climbs into daylight
+   and the launch works.
+
+**Landmarks and sightlines.** The great ladle and its pour, glowing through
+every window. The upper galleries overlook the route you took below. The
+freight lift's shaft light at the far end of the hall.
+
+**Doors.** One: the freight lift, the exit.
+
+**Secrets.**
+- A Cells cache through the service ring, the six on a slag-stained pipe.
+- Gallery armor reached by a readable jump from a crane rail, the six on the
+  rail's end stop.
+- A foreman's locker, the six inside the lid: Rockets and Shells.
+
+**Brief.** Assisted: free the worker quarters. Standard adds: clear the upper
+gallery's supports. Severe adds: take no hazard damage.
+
+**Par and the runner's line.** 4:30. The upper galleries all the way, dropping
+to the freight loop only for the counterattack.
+
+**Story in play.** Page in: "The Martian foundry, three days later. The
+habitats voted, and this time the vote came with trucks. The works that can arm
+free communities are still Union property. Take the works." Latch's line in the
+quarters: "Ask them. Don't free them like freight." The foundry PA keeps
+announcing shift quotas to a shift that has left.
+
+**Humor.** The Rocket Launcher's pallet: *Office supplies. Qty 1.* The safety
+board: *Days without an unscheduled retirement: 0.*
+
+**The moment.** The first rocket across the freight loop, and the pallet it came
+on.

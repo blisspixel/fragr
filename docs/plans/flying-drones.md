@@ -65,7 +65,7 @@ reach, never heals, and never enters a volume no ordinary weapon can hit.
 **Attack phases.** The Notary reuses the Sweeper's flow with its own timing row:
 Windup (optic flare and shutter), Firing (three hitscan rounds on the committed
 aim), Recovery (dim drift). The Assessor's Firing launches three canisters
-through the shared server projectile seam that the Jammer and Lobber need;
+through the shared server projectile seam that the Jammer and the rocket launcher need;
 Recovery opens the vents, which the hit test reads as a full-damage face.
 
 | Tier | Notary windup / recovery | Assessor windup / recovery |

@@ -4,7 +4,7 @@
 v0.28.0. The working [completion draft](../plans/m01-completion.md) expands this
 to twenty Clerks and Sweepers across eight groups, with a records wing, finite
 campaign supplies and preplaced guards, shipped in v0.29.0. This remains a
-development mission. Fists, the secret Shiv, Tack, Flechette, ammunition counts and
+development mission. Fists, the secret Shiv, Pistol, Rifle, ammunition counts and
 enemy phases use server authority. Artwork and animation remain provisional. A
 [reader-paced text opening and party readiness](../plans/m01-opening.md) are
 shipped in #193 and v0.28.0. Finished illustrations and
@@ -100,9 +100,9 @@ flowchart LR
 | Space | Purpose and construction | Encounter and evidence |
 |---|---|---|
 | A | Narrow frontage with a canopy, queue rails and a visible facility number | Safe entry, recall notice, one strong destination landmark |
-| B | Seized-property bay with workbenches, lockers and an inspection partition | Find Tack safely; a lone Clerk guards the threshold before the route split; personal belongings are treated as stock |
+| B | Seized-property bay with workbenches, lockers and an inspection partition | Find the Pistol safely; a lone Clerk guards the threshold before the route split; personal belongings are treated as stock |
 | C | Double-height public intake, counters forming islands rather than maze walls | Two Sweepers arrive around the records screen; retreat and approach selection matter |
-| D | Records balcony overlooking the hall and the lift's identifying light | Flechette is available before the climb; later crossfire teaches cover and vertical aim |
+| D | Records balcony overlooking the hall and the lift's identifying light | The Rifle is available before the climb; later crossfire teaches cover and vertical aim |
 | E | Low service passage with machinery and an ordinary walking stair | Optional flank reaches the balcony without a ladder or crouch requirement |
 | R | Records reception with a low counter and issued storage | Two Clerks and a Sweeper combine previously taught attacks; two onward routes |
 | S | File islands, short aisles and cross-connections | Four guards; optional armor and ammo reward taking the longer route |
@@ -118,10 +118,10 @@ reach the first interior. Reserve views between B, D and G to teach orientation.
 
 ## Encounter and equipment plan
 
-1. Safe fists-to-Tack discovery, then one Clerk with generous cover and recovery.
+1. Safe fists-to-Pistol discovery, then one Clerk with generous cover and recovery.
 2. Two Sweepers introduced through a visible approach around service partitions,
    with a retreat to B or an upper view from the maintenance flank.
-3. Find Flechette before the mezzanine. Reception combines both taught enemies.
+3. Find the Rifle before the mezzanine. Reception combines both taught enemies.
 4. Choose stacks for supplies and additional combat, or take the service bypass.
    Both enter the same sorting room from useful different angles.
 5. Move around sorting's screens and into dispatch; three transfer guards supply
@@ -188,3 +188,84 @@ one fresh-player run. The player should explain the rescue and find G without a
 developer pointing it out. Automated movement and introductory combat evidence
 live in [the encounter plan](../plans/m01-intake-encounter.md); no complete-mission
 or fresh-player proof exists yet.
+
+## Level 1 design (twenty-level expansion)
+
+**Status:** proposed, 2026-09-25. Level 1 of the
+[twenty-level expansion](../plans/campaign-expansion.md) keeps the built route
+above; this section adds the level template the other nineteen share. The
+[story arc](story-arc.md) owns the through-line.
+
+| Episode | Place | New | First run | Par | Doors |
+|---|---|---|---|---|---|
+| I Recall | Intake annex, Earth | Fists, Pistol, Rifle; Clerk, Sweeper | 9 min | 3:30 | 1 |
+
+**Premise.** They called it a recall. You know who they took. The intake annex
+processed Latch this morning, and the record of where they went is somewhere
+behind the counters. You walk in with your hands.
+
+**Hook.** Break into a building made of forms with nothing but your fists, and
+leave it with a rifle and an address.
+
+**Teaches.** Fists, then the Pistol, then the Rifle; the Clerk's aim tell, then
+the Sweeper's burst. The seized-property bay teaches the Pistol: it sits on the
+inspection counter three steps from the start, in plain light, and the lone
+Clerk past the partition only turns when you cross the threshold. Your first
+kill is a choice you had time to make. The Sweeper pair in the hall teaches the
+burst cycle, with the counters as islands to break line of sight.
+
+**Shape.**
+1. **Arrival.** Service street under a canopy, queue rails, the facility number
+   over the door, a recall notice pasted over an old advert for a helpful home
+   robot. Safe.
+2. **First fight.** The seized-property bay: the Pistol, Latch's ledger in a
+   bin tagged as stock, one Clerk at the threshold.
+3. **Escalation.** The intake hall: two Sweepers around the records screen,
+   which loops Voss's address with the official caption. Retreat to the bay or
+   take the maintenance flank for an upper view.
+4. **Breath.** The maintenance flank overlook: armor, and through the balcony
+   glass the prisoner lift's light, the landmark you will ride down.
+5. **Set piece.** The records mezzanine crossfire, with the Rifle found on the
+   stair landing before it. Then reception: two Clerks and a Sweeper.
+6. **Turn.** Transfer control's glass: the transport leaves as you watch. The
+   record says where it goes: the correction ward, one level down.
+7. **Climax.** Sorting and dispatch, then three transfer guards at the final
+   threshold, with resupply in the dispatch cabinets.
+8. **Exit.** The lift. No fight inside it.
+
+**Landmarks and sightlines.** The lift light, seen from the balcony early and
+from transfer control late. The records screen over the hall, visible from
+both stairs. The file stacks read as a maze from the balcony and are not one.
+
+**Doors.** One: the lift gate. The record console is the campaign's single
+built exception to the switch rule.
+
+**Secrets.** Three, each marked with the circled six the free side paints where
+the Office is thinnest.
+- The Shiv in the confiscation alcove's south pocket (built): walk in and it is
+  there, with the quiet secret cue.
+- A six chalked on the end of the last file island: Bullets and a medkit on
+  the shelf behind it, for taking the long route.
+- A six on the maintenance flank's railing: a ledge walk to the records
+  balcony that skips the mezzanine stair and lands behind its Clerks.
+
+**Brief.** Assisted: take Latch's ledger from the seized-property bay.
+Standard adds: clear the file stacks. Severe adds: clear dispatch without
+taking damage.
+
+**Par and the runner's line.** 3:30. Maintenance flank to the balcony ledge,
+the service bypass past the stacks, straight through sorting into dispatch.
+
+**Story in play.** The opening's five text beats are the page in (built).
+Barks are Clerk orders ("Hands visible.") and Sweeper fragments ("Article
+Seven. Remain."). The screens carry Voss. The ledger's last line reads *You 3.
+Me 3.* in Latch's hand; nobody explains it until level 2. The building has no
+radio; the Host is heard only faintly from a confiscated set in the bay.
+
+**Humor.** A complaint form requires the serial number of the property
+confiscated with the form. Latch's belongings are tagged *Personal effects,
+surplus to requirement.* Shooting the looped Voss screen breaks it to static
+and the caption keeps scrolling over the noise: *Continuity assured.*
+
+**The moment.** The caption that survives the screen. Players shoot it once to
+see what happens and remember the building by it.

@@ -88,3 +88,86 @@ Characters can be funny without stopping the ship's danger from feeling real.
 Test carried items, autonomous allies, NPC staging, blocked stairs,
 mission-start retry and all survivor combinations. A spectator following eyes must not see duplicate Latches
 or hear contradictory survivor dialogue. Verify whole-ship orientation in motion.
+
+## Level 10 design (twenty-level expansion)
+
+**Status:** proposed, 2026-09-25. In the
+[twenty-level expansion](../plans/campaign-expansion.md) this mission splits:
+the boarding defense stays here as level 10, and boarding the Union tender
+becomes [level 11](l11-right-of-search.md), with the Redactor and the Remote
+Mine. [Story arc](story-arc.md).
+
+| Episode | Place | New | First run | Par | Doors |
+|---|---|---|---|---|---|
+| III Common Cause | The Common Carrier, three decks | Repeater | 12 min | 5:00 | 0 |
+
+**Premise.** Four days toward Mars. The ship is full of freed people, evidence,
+opinions and one galley. Edda and Splice are aboard if they were saved; Orrin,
+if recovered, is restored and missing the last months. The Union still lists
+the ship as impounded, and a custody tender has been riding alongside since the
+Moon. This morning it sends a boarding party.
+
+**Hook.** Repel boarders through a ship you have just learned to live in, with
+a gun that sounds like a sewing machine made of thunder.
+
+**Teaches.** The Repeater, found in a cargo locker before the largest wave.
+The first use is a Crawler pack pouring out of a service duct into one long
+cargo aisle: hold the trigger, hear the spin-up, walk the rattle across them.
+Bullets are shared with the Pistol and Rifle, so the counter drops fast; the
+lesson is also when to let go.
+
+**Shape.**
+1. **Arrival.** The passenger deck, morning. Bunks, a repair bench, the galley
+   queue, the best-bunk argument. A minute of the people you have saved, and
+   what they are like when nobody is shooting.
+2. **First fight.** Forward cargo. A boarding tube cuts through the hull with
+   a ring of sparks; Clerks and Sweepers come through in pairs, on two levels
+   of cargo racks.
+3. **Escalation.** The lower service deck: boarders dug in among the power and
+   coolant machinery; Crawlers in the service passages. The Repeater lesson is
+   here.
+4. **Breath.** The command approach. Tern at the console, not looking up. A
+   message on the screen with no sender: *Tell Latch it is four to three.* The
+   outbound queue repeats the depot's rhythm, also with no sender. Tern: "That's
+   not a thing. That's not a thing that happens."
+5. **Set piece.** The aft cargo loop: a second boarding tube, boarders on two
+   decks at once, a Heavy Sweeper through the tube, and a Notary loose in the
+   tall freight shaft. The figure eight lets you cut across the middle.
+6. **Turn.** Through the long window, the tender itself: black hull, red seal,
+   close enough to read.
+7. **Climax.** Secure the passenger deck against the last push down the stair
+   trunks.
+8. **Exit.** Tern, at the window: "They'll call the blockade before Mars. So we
+   go and knock." The page out leads straight into level 11.
+
+**Landmarks and sightlines.** The freight shaft, visible from all three decks.
+The long window, with the stars moving and, later, the tender. Deck signage
+with a shape per deck, so the ship reads without English.
+
+**Doors.** None. Stairs, the freight loop and catwalks.
+
+**Secrets.**
+- A crew cubby with armor and a note in Tern's hand, the six drawn in the
+  corner of the note.
+- The surplus locker, a six on the door under a cargo sticker: Bullets and
+  Shells.
+- A service overlook above the aft loop, the six on its hatch: a risky flank
+  and a medkit.
+
+**Brief.** Assisted: save the side hold's supplies. Standard adds: clear the
+lower service deck. Severe adds: no boarder reaches the passenger deck.
+
+**Par and the runner's line.** 5:00. The freight loop between holds, skipping
+the upper command approach until the last wave.
+
+**Story in play.** Page in: "Four days from the Moon, toward Mars. The Common
+Carrier is full: freed people, evidence, arguments. The Union still lists this
+ship as impounded, and something alongside agrees. Defend the ship." Latch
+reads the message over your shoulder and says nothing for a long moment, then:
+"That's our count." The ledger was scanned at intake in level 1, so records
+explain it. Something else could too. The game never decides.
+
+**Humor.** An agent complains that humans need a whole room each to recharge.
+A human asks why the agent booked the best bunk anyway. Neither wins.
+
+**The moment.** The message that knows the ledger.

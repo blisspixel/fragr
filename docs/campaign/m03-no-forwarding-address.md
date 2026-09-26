@@ -48,11 +48,11 @@ meal table. Nothing requires a radio explanation.
 
 ## Combat, equipment and secrets
 
-Carry weapons. No new mandatory gun; this mission combines Flechette/Scatter
+Carry weapons. No new mandatory gun; this mission combines Rifle/Shotgun
 roles and teaches Heavy and Notary drone counters ([ENEMIES](../ENEMIES.md#union-drones)); the Turret waits for M04. The hand grenade is found on the
 ordinary route, in a room with space to throw and retreat. It is a carried
 count, not a new gun, and missing it cannot trap the evacuation. Guaranteed cover and flank access
-make a Rail unnecessary. Draft encounter beats: market intrusion, one branch
+make a Railgun unnecessary. Draft encounter beats: market intrusion, one branch
 rescue, trench crossfire, second branch if chosen, withdrawal through changed hub.
 Avoid an invisible global timer that makes exploration the wrong decision.
 
@@ -90,3 +90,95 @@ retry; departure cancellation; ally loss; return to an unfinished branch; and
 full first-person path inspection with human and agent control.
 A fresh player must identify home as more than a battlefield and understand why
 the coalition's failure is delayed help, not proof that every free person is cruel.
+
+## Level 5 design (twenty-level expansion)
+
+**Status:** proposed, 2026-09-25. In the
+[twenty-level expansion](../plans/campaign-expansion.md) this mission splits in
+two: the market, clinic and court become [level 4](l04-notice-to-vacate.md),
+and the roof loop, workshop and trench below become level 5, the Episode I
+finale. This pass swaps two introductions (**proposal**): the Notary moves to
+level 4 and the Heavy Sweeper to level 5, so the grenade answers the Heavy.
+[Story arc](story-arc.md).
+
+| Episode | Place | New | First run | Par | Doors |
+|---|---|---|---|---|---|
+| I Recall | Low Water roofs, tram workshop, trench | Grenade; Heavy Sweeper | 12 min | 5:00 | 1 |
+
+**Premise.** Get the rest out. The sweep holds the streets, so the neighbours
+cross the roofs between the water tanks. Splice is still in the tram workshop
+with captive agents the Union rounded up this morning, and Latch will not leave
+them. The freight platform is at the end of the tram trench, and Tern's ship is
+waiting on the pad beyond it, because Mara found one carrier who would come.
+
+**Hook.** Over the roofs, down through the workshop and along the trench on the
+roof of a patched tram, to a Heavy Sweeper standing between you and the last
+way out.
+
+**Teaches.** The Grenade, then the Heavy Sweeper, in different rooms. The
+grenade lies on a paint-bay workbench in the workshop. Below the bay's walkway
+a Sweeper squad crouches behind a tram chassis, out of any gun's line: throw
+over the chassis, watch it bounce, count the fuse. The Heavy Sweeper comes alone
+down the trench's end ramp: head sunk between two pauldrons, pauldrons flaring
+and red lamps lit for the whole windup, then a four-round burst. The trench has
+room to flank around the stalled tram, and a grenade's heavy tick staggers it
+once per attack.
+
+**Shape.**
+1. **Arrival.** The roof stair from level 4 comes out among the water tanks.
+   Neighbours stream across plank bridges. Two Notaries patrol above the
+   crossing and Clerks hold the opposite roof.
+2. **First fight.** The roof loop crossing, fought at drone height for the
+   first time.
+3. **Escalation.** Drop into the tram workshop by the crane walk. Splice and
+   the captive agents are held in a Union loading pen on the floor, guarded by
+   Sweepers and Clerks. The grenade lesson is on the way.
+4. **Breath.** Splice freed, complaining. Latch and Splice argue over which of
+   the captive agents to take first; they take all of them. Mara on the
+   channel, quietly: the aid was late, and she knows it.
+5. **Set piece.** The tram trench. Notaries over Sweepers, foot crossings and
+   maintenance recesses, the grenade's airburst finally reaching what hovers.
+   If Splice is free, their patched tram rolls down the trench on its own and
+   you can ride its roof as moving cover. If not, you walk it.
+6. **Turn.** The trench end: the Heavy Sweeper, alone, on the platform ramp.
+   Then a second wave with it: Sweepers and a Notary pair.
+7. **Climax.** Hold the ramp until the platform gate lifts.
+8. **Exit.** The freight platform gate. The departure confirmation lists who is
+   aboard and who is missing. Some names are gone and no optional objective
+   could have saved them; Sorrel, Low Water's tram driver, is one
+   (**proposal**). Confirm, and board Tern's ship.
+
+**Landmarks and sightlines.** The water tanks on the roof loop, the skyline you
+will see again in the wipe. The workshop's gantry crane from level 4, now
+underfoot. The freight platform's floodlights at the end of the trench, and
+Tern's ship on the pad behind them.
+
+**Doors.** One: the freight platform gate, lifted when the ramp is clear.
+
+**Secrets.**
+- Roof armor behind the second tank, the six on the tank's ladder.
+- Reserve Shells and a grenade behind the tram service bay, the six on the
+  bay's inspection pit.
+- A six on the market's awning seen from the roofs: a drop back into the
+  market that opens a supply shortcut, three medkits and Bullets.
+
+**Brief.** Assisted: free Splice's group. Standard adds: bring down every
+Notary over the trench. Severe adds: kill the Heavy Sweeper before it finishes
+its second burst.
+
+**Par and the runner's line.** 5:00. Roof loop straight to the crane walk, the
+workshop floor without the pen, then the trench on the tram roof. Without
+Splice there is no tram, so the fastest line and the kindest one agree.
+
+**Story in play.** Page in: "The roofs of Low Water, ten minutes later. The
+sweep holds the streets. The only way to the freight platform is over the tanks
+and down the tram trench, and Splice is still in the workshop. Get the rest
+out." Tern's first line, at the ship: "I'm a common carrier. I carry. Get in."
+The page out closes Episode I: the transfer records from level 2 name the lunar
+custody depot, and the missing from today are on their way there.
+
+**Humor.** Splice, climbing onto the tram: "I've rebuilt this tram four times.
+Legally it's mine. Spiritually it's cursed."
+
+**The moment.** Riding Splice's tram down the trench under the drones, then
+staggering the Heavy Sweeper with a grenade off the tram roof.

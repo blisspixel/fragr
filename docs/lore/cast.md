@@ -39,7 +39,7 @@ Working names for the detailed mission plans, all proposed and unvoiced:
 | `medic` | Edda Vale | Human clinician at Low Water. Optional M03 rescue; if saved, helps aboard the ship and during later evacuation. |
 | `technician` | Splice | Free agent maintaining Low Water's infrastructure. Optional M03 rescue; later repairs and advice depend on survival, with alternative completion paths. |
 | `recovered_mind` | Orrin | Agent whose damaged backup can be recovered in M05. Later restoration has missing recent memories; no claim of perfect continuity. |
-| `pilot` | Tern | Free embodied agent operating the Common Carrier. Recurs from lunar departure through coalition transport; dry humor, finite resources and obligations of their own. |
+| `pilot` | Tern | Free embodied agent operating the Common Carrier. Flies the party to the Moon (the M04 plan), then recurs through coalition transport; dry humor, finite resources and obligations of their own. |
 
 Do not make survival a passive permanent perk. These people act, disagree and
 need help. A missing character cannot soft-lock a mandatory mission. The rescued

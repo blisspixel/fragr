@@ -74,6 +74,10 @@ the Turret. They carry no assumed personhood, so the fiction adds no cost to
 shooting them down. Proposed, unbuilt; the
 [flying drones plan](plans/flying-drones.md) owns the implementation.
 
+Not NODS. The arena's Null-Objective Drones are corrected bots on foot; "drone"
+in their name is Office jargon for an obedient worker, and they do not fly. In
+design text, "drone" alone means the Notary or the Assessor.
+
 **Notary, the patrol drone.** Roughly torso-sized: a black box body under two
 ducted fans, about 1.3 m across the ducts, with one red optic and a red
 Office seal. It is never a speck; at any engagement distance it reads at least
@@ -118,7 +122,7 @@ delayed invisible hitscan.
 not a floor capsule, so the Tack, Flechette and Scatter all work and the Rail
 kills a Notary in one shot. Splash measures from the burst to the nearest point
 of that volume and stops at cover, the same rule as on the ground. A thrown
-grenade or Lobber can that bursts beside a drone hits it; one under it at head
+grenade or rocket that bursts beside a drone hits it; one under it at head
 height does too. Rockets hit on contact. Drones are the first enemies where the
 Scatter's vertical spread and a grenade's airburst matter, which is depth, not
 a new rule.
