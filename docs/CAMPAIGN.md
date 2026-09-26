@@ -369,8 +369,9 @@ tell: a scene exists because the camera needs to be taken away from the player
 for a moment, never to explain what the level already showed. [The story
 arc](campaign/story-arc.md#show-dont-tell) owns this rule for every level.
 
-Between levels, the frame is a short audio slideshow (Nick, 2026-09-25):
-pixel stills with a subtle pan or zoom, voiced lines, captions with speaker
+Between levels, the frame is a short audio cutscene (Nick, 2026-09-25):
+a narration script voiced over at least one key pixel image, with a subtle pan
+or zoom, a few character lines, captions with speaker
 labels, and sound. It shows what changed and what is at stake next, never
 recaps the level, and is skippable as a whole. It plays on the same scene
 player as the opening, from a data manifest per scene. A shot without its
@@ -381,10 +382,10 @@ card introduces a beat and then leaves the view. It is not the scene between
 levels. Subtitles have speaker labels, contrast, scalable text, and relevant
 sound captions; they can be turned off only while a clip is speaking.
 
-Stills come from `tools/spritegen` and voices from `tools/audiogen` only after a
+Images come from `tools/spritegen` and voices from `tools/audiogen` only after a
 scene's wording is frozen, each batch with Nick's go, an explicit cap and a
-recorded receipt. Retro movies, including a Higgsfield Seedance 2.5 pass with
-consistent character sheets, are a later skin on the same shots. They are not
+recorded receipt. Retro movies are much later and have their own
+[film plan](plans/cutscene-film.md); they are not
 authorized while missions and sentences are still changing. No essential
 sentence is baked into a picture or a clip. The
 [scene production plan](plans/campaign-scenes.md) owns the format, the scene

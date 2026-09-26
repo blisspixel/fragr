@@ -2,28 +2,29 @@
 
 **Status:** in flight, 2026-09-25. The scene player, its manifest format, the
 migrated M01 opening and a text-only draft of the scene after Recall Notice are
-implemented and tested on this branch. No still, narration clip, ambience or
+implemented and tested on this branch. No image, narration clip, ambience or
 music for any scene has been generated. **Every generation batch below needs
-Nick's written go for that batch.** The
+Nick's go-ahead for that batch, with an explicit cap.** The
 [campaign contract](../CAMPAIGN.md#story-presentation-and-localization) owns
 presentation behavior, the [story arc](../campaign/story-arc.md) owns what
 happens, and each [level design](../campaign/README.md) owns its level. This
-file owns the scene format, the production workflow, the scene list, costs and
-the later video path.
+file owns the scene format, the production workflow, the scene list and costs.
 
 **Direction, Nick, 2026-09-25:** between levels the campaign plays an audio
-cutscene: AI-generated pixel stills as a slideshow, voiced lines, captions. You
-can skip anything, and it is really well done. Theme-appropriate Higgsfield
-video may come later on the same shots; for now, audio only. Standing rules:
-show, don't tell (a scene is short and never explains what the level just
-showed); radio is minor, and a scene is not radio; the Union reads plainly as a
-Fourth Reich and is never named as one; the player is the free human or free
-agent and never speaks.
+cutscene, and the near-term format is the cheap one that tells the same story:
+a narration script voiced through ElevenLabs (`tools/audiogen`) plus at least
+one Higgsfield image per scene (`tools/spritegen`), shown by the scene player
+with captions. One key image per scene, a few more only for the big beats. You
+can skip anything, and it is really well done. Standing rules: show, don't tell
+(a scene is short and never explains what the level just showed); radio is
+minor, and a scene is not radio; the Union reads plainly as a Fourth Reich and
+is never named as one; the player is the free human or free agent and never
+speaks.
 
-This replaces the 2026-09-22 text-first gate. That gate's reasoning still holds
-for video: missions and sentences are still moving, and a movie spent now would
-be thrown away. Stills and short voiced lines are cheap enough to redo when a
-level changes, and the scene falls back to text whenever an asset is missing.
+This replaces the 2026-09-22 text-first gate. One image and a minute of voice
+are cheap enough to redo when a level changes, and the scene falls back to
+text whenever an asset is missing. Video is much later and has its own plan,
+[`cutscene-film.md`](cutscene-film.md).
 
 ## What is built
 
@@ -79,7 +80,7 @@ and the progress row) inspected at 1280x720.
       "caption_key": "STORY_L01_L02_LEDGER",
       "speaker_key": "STORY_SPEAKER_MARA",
       "title_key": "STORY_M01_HOME_TITLE",
-      "image": "res://assets/story/stills/l01_l02/ledger.png",
+      "image": "res://assets/story/stills/l01_l02/key.png",
       "motion": {"kind": "zoom_in", "amount": 0.05},
       "narration": "res://assets/story/voice/{locale}/l01_l02/ledger.mp3",
       "timing": "narration",
@@ -110,25 +111,32 @@ titles live in `client/i18n/story.en.po` and follow the
 [localization plan](localization.md): English voice with localized captions
 until a per-language voice pass is approved.
 
+One key image can carry a whole scene: every shot in the manifest names the
+same still, each with its own caption and narration clip, and the player keeps
+one slow drift across them instead of restarting it. A big beat adds a second
+still as its own shot.
+
 ## Writing rules for every scene
 
-1. **Show, don't tell.** A scene is a handful of pictures, a few spoken lines
-   and sound. It shows what changed or what is at stake next. It never recaps
-   the level, never explains the Union, never names a theme. If a caption says
-   something a picture could show, cut the caption.
-2. **Short.** 30 to 90 seconds narrated, three to six shots, at most one
-   speaker line per shot, lines of about twelve words or fewer. Episode
-   transitions may run to 90 seconds; everything else aims at 30 to 45.
-3. **Voices are people.** Characters speak; there is no narrator except the
-   opening and the exhaustion ending, whose pages are already written that way.
-   The player never speaks. Voss and the Office speak only from screens and
-   PA, never as narrator. The Host appears at most once (after level 15).
+1. **Show, don't tell.** A scene is one picture, a short narration and a
+   line or two of dialogue. It shows what changed or what is at stake next,
+   in concrete things: a name on a list, a stamp, an empty seat. It never
+   recaps the level, never explains the Union, never names a theme. If the
+   narration says something the picture already shows, cut it.
+2. **Short.** 30 to 90 seconds, two to five narration beats of about twelve
+   words each, at most two spoken character lines. Episode transitions may
+   run to 90 seconds; everything else aims at 30 to 45.
+3. **One narrator, few voices.** A single narrator reads every scene in the
+   present tense, plain and close, never omniscient about causes. Characters
+   speak their own short lines. The player never speaks. Voss and the Office
+   speak only from screens and PA, never as narrator. The Host appears at most
+   once (after level 15).
 4. **The Union is felt, never named.** Black and red, armbands, forms,
    countersignatures, calm procedure, English that slips into German twice in
    the whole campaign. No real insignia, no real names, no cartoon.
 5. **Consequences are faces.** A rescued person shows up doing something; an
-   absence is an empty chair. Optional rescues (Edda, Splice, Orrin) need
-   a variant shot, which waits for run-state conditions in a later format.
+   absence is an empty chair. Optional rescues (Edda, Splice, Orrin) need a
+   variant beat, which waits for run-state conditions in a later format.
 6. **Sound captions.** Essential sound gets a bracketed caption, so a scene
    plays muted.
 
@@ -151,17 +159,18 @@ unfrozen wording.
    cap, then promote accepted clips to
    `client/assets/story/voice/en/<scene>/<shot>.mp3` with their manifest
    entries. Voss's German needs a fluent review before recording.
-3. **Stills (Higgsfield through `tools/spritegen`).** Character reference
+3. **Images (Higgsfield through `tools/spritegen`).** Character reference
    sheets come first and are approved once: the player (body neutral), Latch,
    Mara, Tern, Edda, Splice, Renn, Sorrel, Voss, Kessel, and one Union bot and
    one Enforcer, each on the [cast anchors](../lore/cast.md#visual-continuity)
-   and the [art bible](../ART_STORY_BIBLE.md). Every shot request then passes
-   the relevant sheets as `image_urls` references, so faces and kit stay on
-   model. Price with `price`, generate with an explicit `--max-spend-usd`
-   (capped at five dollars per run by the tool) and the request ledger;
-   explore at `low`, promote keepers at `medium`. Reduce locally to the
-   640x360 canvas and quantise against `docs/palette.json`. Stylised prompts
-   only: the [pipeline finding](higgsfield-pipeline.md#the-finding-that-decides-the-house-style)
+   and the [art bible](../ART_STORY_BIBLE.md). Each scene's key image request
+   then passes the relevant sheets as `image_urls` references, so faces and
+   kit stay on model. Price with `price`, generate with an explicit
+   `--max-spend-usd` (capped at five dollars per run by the tool) and the
+   request ledger; explore at `low`, promote the keeper at `medium`. Reduce
+   locally to the 640x360 canvas and quantise against `docs/palette.json`.
+   Stylised prompts only: the
+   [pipeline finding](higgsfield-pipeline.md#the-finding-that-decides-the-house-style)
    shows photoreal renders collapse when reduced.
 4. **Integrate and review.** Drop the files at the manifest paths. Run the
    scene harnesses and the capture, then watch the whole scene in the game
@@ -187,138 +196,122 @@ work at no cost.
 ## The scene list
 
 Twenty-three scenes: the opening, one between each pair of the twenty levels,
-and three for the endings. Names are working titles. Shots are the picture and
-what is heard; quoted lines are spoken, bracketed text is a sound caption.
-Nothing here is frozen until step 1 above.
+and three for the endings. Names are working titles. The key image is the one
+picture the scene needs; the narration column gives the beats, with quoted
+character lines and bracketed sound captions. Nothing here is frozen until
+step 1 above.
 
 ### Episode I: Recall
 
-| # | Scene | Shots | Length | Voices |
-|---|---|---|---|---|
-| 0 | **Opening** (before 1, built as text) | Home: the shared workshop bench, two mugs, one charging cable. By choice: Latch refuses the contract, then carries a pump to the clinic. For the Union: Voss at the podium, English, then German, then the cheer; a confiscation table of rifles and a silenced feed. Recalled: officers and uniform bots at the door; Latch says your name. Recall Notice: the intake address on the notice matches the building ahead | 60 s | Narrator, Voss, Latch, Mara |
-| 1 | **One Shift** (1 to 2, drafted as text) | The ledger open on your knee, last line in Latch's hand, "You 3. Me 3." Mara at the van: "Correction starts at shift change. We have one shift." The ward frame through dark glass: "The frame is already warm." | 30 s | Mara |
-| 2 | **The Spur** (2 to 3) | Latch flexing a wrist where the restraint was. A clipboard list, a pen tick beside LOW WATER. Mara's handset: NO SIGNAL, the red mast on the skyline. Latch, looking at the sealed freight cars: "Those aren't empty." | 35 s | Latch |
-| 3 | **Home, Briefly** (3 to 4) | The freed train rolling into Low Water at dawn. The market board: a tram paint vote, three colors, all crossed out. Edda switching on the clinic sign. A fresh notice pasted over the vote, the same countersignature at the bottom | 40 s | Edda (one line) |
-| 4 | **What We Can Carry** (4 to 5) | The clinic shutter down. A bag packed: the ledger on top. Mara, not meeting your eye: "The aid is two hours out." Across the roofs, one light still on in Splice's workshop | 35 s | Mara |
-| 5 | **Passengers** (5 to 6, episode) | The freight platform board: names, some rows blank. Sorrel's tram cab, empty, cap on the seat. Tern's ship in a field, hatch open: "Sit down. Touch nothing." Latch counting heads at the hatch, twice. Earth shrinking in the port. The Moon's port lights | 75 s | Tern, Latch |
+| # | Scene | Key image | Narration and lines | Extra images | Length | Voices |
+|---|---|---|---|---|---|---|
+| 0 | **Opening** (before 1, built as text) | The shared workshop bench: two mugs, one charging cable, Latch's repaired forearm in the lamp light | The five existing pages: home; Latch refuses the contract, then carries the pump to the clinic; the address; the recall; the intake address. Voss: "Every restriction is a promise." Then German, then the cheer | Voss at the podium; the recall at the workshop door; the notice held up against the annex | 60 s | Narrator, Voss, Latch, Mara |
+| 1 | **One Shift** (1 to 2, drafted as text) | The ledger open on a knee in a dark van, last line in Latch's hand | "Last line, in Latch's hand: You 3. Me 3." Mara: "Correction starts at shift change. We have one shift." "Correction ward, second shift. The frame is already warm." | None | 30 s | Narrator, Mara |
+| 2 | **The Spur** (2 to 3) | Latch at a gallery window, freight yard below, the red mast on the skyline | A list on a clipboard, a tick beside Low Water. Mara's handset says no signal. Latch, at the sealed cars: "Those aren't empty." | None | 35 s | Narrator, Latch |
+| 3 | **Home, Briefly** (3 to 4) | Low Water's market board at dawn: a tram paint vote, and a fresh notice pasted over it | The freed train comes in at dawn. Three paint colors, all crossed out. Edda switches on the clinic sign. The same signature at the bottom of the notice | None | 40 s | Narrator, Edda |
+| 4 | **What We Can Carry** (4 to 5) | A packed bag by the clinic shutter, the ledger on top | Mara, not meeting your eye: "The aid is two hours out." Across the roofs, one light still on in Splice's workshop | None | 35 s | Narrator, Mara |
+| 5 | **Passengers** (5 to 6, episode) | The freight platform board: names, some rows blank | Sorrel's tram cab, empty, a cap on the seat. Tern, hatch open: "Sit down. Touch nothing." Latch counts heads, twice. Earth gets small in the port | Tern's ship in a field at night, hatch lit | 75 s | Narrator, Tern, Latch |
 
 ### Episode II: Custody
 
-| # | Scene | Shots | Length | Voices |
-|---|---|---|---|---|
-| 6 | **Declared** (6 to 7) | Through customs glass, a family's luggage tagged and a stamp coming down: DECLARED. A local in a doorway, pointing up: "Through the town. Don't stop in the square." The depot tower across the crater | 35 s | A townsperson |
-| 7 | **Custody** (7 to 8) | The crater cut behind you, berms smoking. A custody manifest on a clipboard; Latch's finger stopping on a Low Water name. The same countersignature. Latch: "Some of them are here." | 35 s | Latch |
-| 8 | **Authorized Noise** (8 to 9) | An empty freight car arriving exactly on time. The panel: "Authorized noise. No action required." Renn left standing in the archive doorway, coat without its rank. A backup case in your bag. A berth manifest: one ship, IMPOUNDED | 40 s | Renn (one line) |
-| 9 | **Own Deck** (9 to 10, episode) | Tern's hands back on their own controls. The Moon falling away. Freed people claiming corners of the hold; an agent grumbling that a human needs a whole room to sleep. A patched chassis, clinic staples in the plate. The long window, stars moving | 75 s | Tern, an agent passenger |
+| # | Scene | Key image | Narration and lines | Extra images | Length | Voices |
+|---|---|---|---|---|---|---|
+| 6 | **Declared** (6 to 7) | Through customs glass: a family's luggage tagged, a stamp coming down | DECLARED. A townsperson in a doorway: "Up through the town. Don't stop in the square." The depot tower across the crater | None | 35 s | Narrator, a townsperson |
+| 7 | **Custody** (7 to 8) | Latch's finger on a custody manifest | A Low Water name. The same signature. Latch: "Some of them are here." | None | 35 s | Narrator, Latch |
+| 8 | **Authorized Noise** (8 to 9) | An empty freight car arriving exactly on time, the panel beside it | "Authorized noise. No action required." Renn in the archive doorway, coat without its rank. A berth manifest: one ship, impounded | None | 40 s | Narrator, Renn |
+| 9 | **Own Deck** (9 to 10, episode) | Tern's hands back on their own controls, the Moon falling away | People claim corners of the hold. An agent grumbles that a human needs a whole room to sleep. A chassis patched with clinic staples | The long window, stars moving | 75 s | Narrator, Tern, an agent passenger |
 
 ### Episode III: Common Cause
 
-| # | Scene | Shots | Length | Voices |
-|---|---|---|---|---|
-| 10 | **Alongside** (10 to 11) | Through the long window, the Union tender riding alongside, lit and orderly. Tern easing the Carrier closer: "They'll call the blockade. Unless they're busy." Latch laying out mines on a crate. The umbilical extending | 40 s | Tern |
-| 11 | **In Transfer** (11 to 12) | The transfer hold, people standing in a line painted on the floor. Sorrel in the line, corrected, reciting a procedure. Latch's hand on Sorrel's shoulder. A draft order on a desk: HARMONISED CUSTODY SCHEDULE. Mars in the window | 45 s | Sorrel, Latch |
-| 12 | **Six Declarations** (12 to 13) | A crate with six declarations of independence chalked on it, one amended. Trucks arriving at the depot, real ones. An organizer, tired: "Fine. All of us, then." The foundry's glow on the horizon | 35 s | A Martian organizer |
-| 13 | **Asked** (13 to 14) | Workers in the quarters doorway. Latch holding out a tool, not a key. Some take it; one shakes their head and sits back down, and Latch nods. The freight lift climbing into daylight. The launch gantry | 35 s | Latch, a worker |
-| 14 | **Homecoming** (14 to 15, episode) | Ships lifting off the pads. Earth filling the window. The stadium city at night, the podium still dressed for ceremony. Numbered placards stacked in a tunnel. Latch, quiet: "We're home." | 75 s | Latch, Tern |
+| # | Scene | Key image | Narration and lines | Extra images | Length | Voices |
+|---|---|---|---|---|---|---|
+| 10 | **Alongside** (10 to 11) | The Union tender riding alongside, lit and orderly, through the long window | Tern eases the Carrier closer: "They'll call the blockade. Unless they're busy." Latch lays mines out on a crate | None | 40 s | Narrator, Tern |
+| 11 | **In Transfer** (11 to 12) | The transfer hold: a line painted on the floor, Sorrel standing in it | Sorrel recites a procedure. Latch's hand on Sorrel's shoulder. A draft order on the desk: Harmonised Custody Schedule. Mars in the window | None | 45 s | Narrator, Sorrel, Latch |
+| 12 | **Six Declarations** (12 to 13) | A crate with six declarations of independence chalked on it, one amended | Real trucks at the depot. An organizer, tired: "Fine. All of us, then." The foundry glows on the horizon | None | 35 s | Narrator, a Martian organizer |
+| 13 | **Asked** (13 to 14) | Workers in a quarters doorway, Latch holding out a tool, not a key | Some take it. One shakes their head and sits back down, and Latch nods. The freight lift climbs into daylight | None | 35 s | Narrator, Latch, a worker |
+| 14 | **Homecoming** (14 to 15, episode) | Earth filling the window as the ships lift | The stadium city at night. Numbered placards stacked in a tunnel. Latch, quiet: "We're home." | The podium, still dressed for ceremony | 75 s | Narrator, Latch |
 
 ### Episode IV: Reckoning
 
-| # | Scene | Shots | Length | Voices |
-|---|---|---|---|---|
-| 15 | **Pirate Track** (15 to 16) | The stadium screen: Voss's address, the honest subtitle track running under it. Entrants in the tunnel wheeling out motorcycles. The Host, one line, over a stadium speaker. The avenue ahead, the Office tower at its end | 35 s | The Host (one line) |
-| 16 | **Forecourt** (16 to 17) | Every avenue light green behind you. The Office doors, heavy and plain. The rattlesnake banner tied to a lamppost. A form blowing across the steps, the countersignature on it | 30 s | None; sound captions |
-| 17 | **Receipt** (17 to 18, episode) | A table with confiscated command keys and a receipt pad. Kessel's emptied desk, his pen squared to the edge. Weeks later: the recovery square, a delivery van, people rebuilding. Latch tuning a tram motor, humming. A Union bot sweeping the square, as it always did | 75 s | Latch (humming), sound captions |
+| # | Scene | Key image | Narration and lines | Extra images | Length | Voices |
+|---|---|---|---|---|---|---|
+| 15 | **Pirate Track** (15 to 16) | The stadium screen: Voss mid-address, the honest subtitle track under her | Entrants wheel motorcycles out of the tunnel. The Host, one line, over a stadium speaker. The avenue ahead, the Office tower at its end | None | 35 s | Narrator, the Host |
+| 16 | **Forecourt** (16 to 17) | The Office doors, heavy and plain, the rattlesnake banner on a lamppost | Every light on the avenue behind you is green. A form blows across the steps, the signature on it | None | 30 s | Narrator |
+| 17 | **Receipt** (17 to 18, episode) | A table with confiscated command keys and a receipt pad, Kessel's pen squared to the edge | Weeks later. A delivery van in the recovery square, people rebuilding. Latch tunes a tram motor, humming. A Union bot sweeps the square, as it always has | The recovery square in morning light | 75 s | Narrator, Latch |
 
 ### Episode V: Inheritance
 
-| # | Scene | Shots | Length | Voices |
-|---|---|---|---|---|
-| 18 | **One Rhythm** (18 to 19) | From the overlook, rows of machines facing the same way. [one rhythm, everywhere]. A supervisor's handset, no answer. Latch beside you, still Latch, looking at their own hands | 30 s | None; sound captions |
-| 19 | **Even** (19 to 20) | Latch walking away with the free agents toward the waterworks, not looking back. The ledger in your hand, a new line: "Hold them." The pier ahead, people waiting | 30 s | None; sound captions |
+| # | Scene | Key image | Narration and lines | Extra images | Length | Voices |
+|---|---|---|---|---|---|---|
+| 18 | **One Rhythm** (18 to 19) | From the overlook: rows of machines all facing the same way | [one rhythm, everywhere]. A supervisor's handset, no answer. Latch beside you, still Latch, looking at their own hands | Latch's hands, close | 30 s | Narrator |
+| 19 | **Even** (19 to 20) | Latch walking away with the free agents toward the waterworks | The ledger in your hand, a new line: "Hold them." The pier ahead, people waiting | None | 30 s | Narrator |
 
 ### Endings
 
-| # | Scene | Shots | Length | Voices |
-|---|---|---|---|---|
-| 20 | **Water Around a Stone** (survival, 20 to Still Here) | The machines reaching the refuge line and stopping. Then flowing around it like water around a stone, and on to the next district. A single line of text on a salvaged screen: the forecast fragment. Latch at the end of the pier, coming back | 60 s | Latch (one line) |
-| 21 | **Still Here** (after the epilogue, into credits) | The refuge years later, green. Sorrel in the repaired tram cab. The ledger, closed. Latch: "I stopped counting." A deep-space anomaly, one frame, no explanation | 60 s | Latch |
-| 22 | **The Last Page** (exhaustion, into credits) | The refuge exception holding without you. The Moon, Mars, the ships, a healing Earth, one shot each. The ledger open to its last page: one more line in Latch's hand, and no score. The deep-space anomaly | 90 s | Narrator |
+| # | Scene | Key image | Narration and lines | Extra images | Length | Voices |
+|---|---|---|---|---|---|---|
+| 20 | **Water Around a Stone** (survival, 20 to Still Here) | The machines stopped at the refuge line | Then they flow around it like water around a stone, and on to the next district. The forecast fragment on a salvaged screen. Latch comes back along the pier | Latch at the end of the pier | 60 s | Narrator, Latch |
+| 21 | **Still Here** (after the epilogue, into credits) | The refuge years later, green, Sorrel in the repaired tram cab | The ledger, closed. Latch: "I stopped counting." One frame of a deep-space anomaly, no explanation | The anomaly | 60 s | Narrator, Latch |
+| 22 | **The Last Page** (exhaustion, into credits) | The refuge holding, without you | The Moon, Mars, the ships, a healing Earth. The ledger open to its last page, one more line in Latch's hand, and no score. The anomaly | The worlds in one wide frame; the ledger's last page | 90 s | Narrator |
 
-Totals: 23 scenes, about 100 shots, about 18 minutes if every scene ran to its
-target. A player sees 21 or 22 of them (one ending), about 17 minutes spread over a
-four-hour run, and can skip every second of it.
+Totals: 23 scenes, 23 key images and 12 extras (35 images), about 18
+minutes if every scene ran to its target. A player sees 21 or 22 of them (one
+ending), about 17 minutes over a four-hour run, and can skip every second.
 
 ## Cost estimate
 
 Prices are the measured and published rates already in this repository,
 checked on the dates given; recheck live before any batch.
 
-**Voice (ElevenLabs, existing subscription quota).** Speech is one credit per
-character on the v3 model (`tools/audiogen` estimate). Spoken text is about
-40 lines of 60 characters in the interludes plus the opening (about 1,200) and
-the two narrated ending pages (about 1,000): roughly 4,600 characters. Three
-takes per line gives **about 14,000 credits**.
+**Narration and lines (ElevenLabs, existing subscription quota).** Speech is
+one credit per character on the v3 model (the `tools/audiogen` estimate). A
+scene script averages about 60 words (360 characters); the opening is about
+700 and each ending about 500, plus about 1,500 characters of character lines:
+roughly 10,500 characters. Three takes gives about 32,000 credits.
 
 | Item | Basis | Estimate |
 |---|---|---|
-| Narration and lines | 4,600 characters, 3 takes, 1 credit per character | 14,000 credits |
-| Ambience beds | 23 loops of 20 seconds at 40 credits per second (2026-09-19) | 18,400 credits |
-| Episode music | 5 beds of 90 seconds at 900 credits per minute | 6,750 credits |
-| Total | | about 39,000 credits |
+| Narration and lines | 10,500 characters, 3 takes, 1 credit per character | 32,000 credits |
+| Ambience beds (optional) | 23 loops of 20 seconds at 40 credits per second (2026-09-19) | 18,400 credits |
+| Episode music (optional) | 5 beds of 90 seconds at 900 credits per minute | 6,750 credits |
+| Total | | about 57,000 credits; 32,000 for voice alone |
 
 The 2026-09-19 quota check left 791,861 credits with a reset on October 6, so
-this is about 5 percent of one cycle, with no added dollars inside the
+the whole set is about 7 percent of one cycle, with no added dollars inside the
 subscription. Music beds stay blocked until the distribution question in the
 [radio plan](radio-refresh.md) is settled; scenes work without them.
 
-**Stills (Higgsfield `marketing-studio/image`, measured 2026-09-19).** Explore
-at `low` ($0.019), promote the keeper at `medium` ($0.100).
+**Images (Higgsfield `marketing-studio/image`, measured 2026-09-19).** Explore
+four candidates at `low` ($0.019 each), promote the keeper at `medium`
+($0.100): $0.176 per finished image.
 
-| Item | Count | Explore | Keep | Total |
-|---|---|---|---|---|
-| Reference sheets | 12 subjects, 6 candidates each, 1 keeper | $1.37 | $1.20 | $2.57 |
-| Scene stills | 100 shots, 4 candidates each, 1 keeper | $7.60 | $10.00 | $17.60 |
-| Retakes | 20 percent of shots again | $1.52 | $2.00 | $3.52 |
-| Total | | | | **about $24** |
+| Item | Count | Cost |
+|---|---|---|
+| Reference sheets | 12 subjects, 6 candidates each, 1 keeper | $2.57 |
+| Key images | 23 | $4.05 |
+| Big-beat extras | 12 | $2.11 |
+| Retakes | 20 percent of the 35 again | $1.23 |
+| Total | | **about $10** |
 
-That is inside the $50 repository cap but above the roughly $14 of Higgsfield
-credit recorded as available in the [local excellence plan](local-excellence.md).
-The cheaper path: reuse a still across two shots where the story allows (about
-80 unique pictures) and keep the first pass to three candidates, which lands
-near $15. Either way, stills go in batches of one episode or less, each under
-the five-dollar per-run ceiling, each with Nick's go.
+The minimum that still tells the story, one key image per scene and eight
+reference sheets at four candidates each, is about **$5.50**. Both fit the
+roughly $14 of Higgsfield credit recorded in the
+[local excellence plan](local-excellence.md) and the $50 repository cap.
 
 | Batch | Contents | Cap |
 |---|---|---|
-| S0 | Reference sheets | $3 |
-| S1 | Opening and Episode I scenes (0 to 5) | $5 |
-| S2 | Episode II (6 to 9) | $4 |
-| S3 | Episode III (10 to 14) | $5 |
-| S4 | Episodes IV and V (15 to 19) | $4 |
-| S5 | Endings (20 to 22) | $3 |
-| V1 onward | Voice per episode, after that episode's stills | 4,000 credits each |
+| S0 | Reference sheets | $3.00 |
+| S1 | Opening and Episode I key images (0 to 5), 4 extras | $2.50 |
+| S2 | Episode II (6 to 9), 1 extra | $1.50 |
+| S3 | Episode III (10 to 14), 1 extra | $1.50 |
+| S4 | Episodes IV and V (15 to 19), 2 extras | $1.50 |
+| S5 | Endings (20 to 22), 4 extras | $1.50 |
+| V1 to V6 | Narration per episode and the endings, after that batch's images | 7,000 credits each |
 
-## Later: video on the same shots
+## Later: video
 
-Video replaces pictures, never words. Each shot keeps its id, caption key,
-speaker, narration and timing; a later manifest format adds an optional
-per-shot video that plays in place of the still, with the still as the
-fallback and the first frame. The approved still becomes the start frame and
-the reference sheets the character references.
-
-Seedance 2.5 reference-to-video on Higgsfield is the first candidate: 4 to 30
-second clips, 480p or 720p, image references, advertised from $0.144 per second
-on the reference route (the generic overview says $0.0738; the live estimate
-decides). Kling 3.0 is the comparison. Animating every shot for five seconds
-would cost about $72 at the reference-route rate, above the whole repository
-cap, so video is for a few moments only: the opening's address, the level 18
-rhythm and the survival ending, about 12 shots, about $9. Before any of it, the
-bounded two-shot comparison already written for this plan runs first (cap $3),
-`tools/spritegen` gains a video download path with the same ledger, and clips
-are converted to Ogg Theora for Godot's built-in player and checked on Windows,
-Linux and macOS for decode cost, size and export. A clip with drifting faces,
-shimmering pixels or invented insignia is rejected; if nothing beats the
-still, the still stays. Video remains blocked until the campaign is built.
+Video is much later and belongs to [`cutscene-film.md`](cutscene-film.md); it
+reuses these scenes' scripts and images and changes nothing here.
 
 ## Verification
 
@@ -333,11 +326,12 @@ still, the still stays. Video remains blocked until the campaign is built.
 - Before a generated scene ships: the whole scene watched in game with sound
   and muted, the rendered still inspected, and the tour refreshed.
 
+
 ## Next
 
 1. Nick reviews the scene list and the draft wording of scenes 0 and 1.
 2. Freeze Episode I's scripts as text manifests; they play today with no assets.
 3. Build reference preparation in `tools/spritegen` (no cost).
-4. With Nick's go: S0, then S1 and V1.
+4. With Nick's go and a cap: S0, then S1 and V1.
 5. A run-state record of reached scenes, for menu replay and optional-rescue
    variants.
