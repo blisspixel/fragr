@@ -4,6 +4,14 @@ Shipped tags, newest first. A line here is on `main`. Planned work stays in
 [docs/ROADMAP.md](docs/ROADMAP.md). Older tags are on the
 [releases page](https://github.com/blisspixel/fragr/releases).
 
+## v0.57.1 (2026-09-26)
+
+Every fighter now gets the same one-second spawn shield at the start of a
+round that they already got after a respawn. On crowded maps two neighbours
+could open a round within sight of each other and trade a kill before either
+had a fair chance; a respawned fighter never could. Spawn placement and the
+playtest's opening spawn-death gate are unchanged.
+
 ## v0.57.0 (2026-09-26)
 
 Choose who you are. Your callsign page now has a body: a human, or an
