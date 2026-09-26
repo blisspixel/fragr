@@ -32,8 +32,10 @@ The engineering ladder for scale runs through every phase: small squads first (f
 viewmodels, six enemies, four effects, four rejected surfaces), plus a weapon
 bake-off. Three locally prepared idle viewmodels are now integrated. The remaining
 frames need integration. Twelve Chancellery addresses remain under story and
-language review. The old ten-part epilogue and 43 news/PSA/ad clips have been
-quarantined by the [audio cleanup](plans/music-review.md), with verified backups.
+language review. The old ten-part epilogue and the news/PSA/ad clips still ship
+on the radio; a developer review tool that would have quarantined them was
+never merged, and radio is now a minor part of the game. Two stills from an
+earlier opening batch are in the M01 opening ([scene plan](plans/campaign-scenes.md#salvaged-opening-assets-2026-09-26)).
 The old radio-only ending cannot be integrated as the new campaign's actual ending. The initial art receipt was $0.69; current remaining provider credit
 must be checked before any new call rather than inferred from that old balance.
 
@@ -284,19 +286,12 @@ Status: **in progress**. This phase decides whether the game is fun. Everything 
 2. **Boomer shooter look pass.** Render the world at a low internal resolution and upscale with nearest filtering, limit surfaces to the locked palette with dithering, rebuild fighter sprites with eight facing directions and walk, fire, pain, and death frames, rebuild weapon view models with idle, fire, and bob frames, add muzzle flash and impact frames, and lay the HUD out on a grid so nothing overlaps. Level surfaces get a coherent tile atlas with baked lighting and trim. Plan: `plans/look-pass-boomer.md`. Evidence: regenerated tip screenshots and an updated art bible.
 3. **Sound and music.** Radio is a small optional flavor, never a pillar and never
    a priority ahead of campaign or multiplayer gameplay ([VISION.md](VISION.md)).
-   The [developer review loop](plans/music-review.md) is
-   implemented and verified locally: standalone Rust listening, local transcription, current-canon
-   evidence checks, capped Jev classification, reversible culls and station
-   replacement batches, followed by human listening. The
-   [editorial contract](audio-editorial.md) retires the old news/PSA/ad and
-   epilogue recordings for rewrites, and calls for four original long-form radio
-   formats. All fifteen lore chapters have been reviewed, superseded claims
-   removed and asset history separated; factual and editorial gates must both
-   pass, with explicit pass/rejection/unknown counts, and unknowns never count
-   as approvals. The [production sources](audio-production/README.md) hold four
-   candidate full programs and sixteen supporting pieces with local transcripts,
-   passing script comparisons and draft captions; current-canon acceptance and
-   human listening remain gates before any of it ships. The initial library
+   A developer audio review tool (MP3 listening, local transcription, lore
+   checks and reversible culls) was built on an unmerged branch and dropped on
+   2026-09-26: it needed a GUI stack, an audio playback crate, external
+   transcription and model runtimes, and unmerged changes to `agents/brain`,
+   which is too much surface for a minor feature. Old recordings are reviewed by
+   listening against [voice.md](lore/voice.md) when radio work resumes. The initial library
    shipped (#97, #99, #100): seven music stations with twenty tracks each, forty
    talk clips, three news beds/stings, basic effects and station switching/ducking.
    This is not a finished sound pass, and it does not gate the campaign or
