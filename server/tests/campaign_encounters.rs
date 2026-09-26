@@ -63,6 +63,7 @@ async fn encounter_capability_and_identity_reach_every_role_over_the_wire() {
         let (mut old, _) = connect_async(&url).await.unwrap();
         old.send(Message::Text(
             serde_json::to_string(&ClientMessage::Hello {
+                body: None,
                 role,
                 name: "Old client".into(),
                 geometry_version: 2,
@@ -86,6 +87,7 @@ async fn encounter_capability_and_identity_reach_every_role_over_the_wire() {
         socket
             .send(Message::Text(
                 serde_json::to_string(&ClientMessage::Hello {
+                    body: None,
                     role,
                     name: format!("{role:?}"),
                     geometry_version: 2,

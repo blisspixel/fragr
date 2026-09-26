@@ -9,6 +9,7 @@ use crate::protocol::{
 #[cfg(test)]
 use crate::session::GameSession;
 
+mod body;
 mod discovery;
 mod roster;
 mod spawns;
@@ -108,6 +109,7 @@ use uuid::Uuid;
 #[test]
 fn test_protocol_client_message_hello_serialization() {
     let hello = ClientMessage::Hello {
+        body: None,
         gameplay_version: crate::protocol::GAMEPLAY_VERSION,
         geometry_version: crate::protocol::GEOMETRY_VERSION,
         role: Role::Agent,
@@ -123,6 +125,7 @@ fn test_protocol_client_message_hello_serialization() {
     let deserialized: ClientMessage = serde_json::from_str(&json).unwrap();
     match deserialized {
         ClientMessage::Hello {
+            body: _,
             role,
             name,
             geometry_version,
@@ -157,6 +160,7 @@ fn test_protocol_client_message_action_serialization() {
 #[test]
 fn test_protocol_server_message_welcome() {
     let welcome = ServerMessage::Welcome {
+        body: None,
         player_id: Some(Uuid::new_v4()),
         role: Role::Human,
         mode_name: default_mode_name(),
@@ -168,6 +172,7 @@ fn test_protocol_server_message_welcome() {
     assert!(json.contains(r#""role":"human""#));
 
     let welcome_spectator = ServerMessage::Welcome {
+        body: None,
         player_id: None,
         role: Role::Spectator,
         mode_name: default_mode_name(),
@@ -357,6 +362,7 @@ fn test_protocol_snapshot_serialization() {
         team_scores: None,
         tick: 123,
         players: vec![PlayerState {
+            body: None,
             golden: false,
             lives: None,
             team: None,
@@ -935,6 +941,7 @@ fn test_net_game_command_connected() {
     let player_id = Some(Uuid::new_v4());
 
     let cmd = GameCommand::Connected {
+        body: crate::protocol::BodyKind::Human,
         id,
         role: Role::Agent,
         name: "TestAgent".to_string(),
@@ -943,6 +950,7 @@ fn test_net_game_command_connected() {
 
     match cmd {
         GameCommand::Connected {
+            body: _,
             id: _,
             role,
             name,
@@ -2235,6 +2243,7 @@ async fn test_net_ws_agent_hello_welcome_and_connected_command() {
     let welcome: ServerMessage = serde_json::from_str(&welcome_str).expect("parse welcome");
     match welcome {
         ServerMessage::Welcome {
+            body: _,
             player_id: Some(_),
             role: Role::Agent,
             mode_name,
@@ -2322,6 +2331,7 @@ async fn test_net_ws_spectator_hello_no_player_id() {
     let welcome: ServerMessage = serde_json::from_str(&welcome_str).unwrap();
     match welcome {
         ServerMessage::Welcome {
+            body: _,
             player_id: None,
             role: Role::Spectator,
             mode_name,
@@ -2962,6 +2972,7 @@ fn test_compliance_ping_wire_json_shape() {
 #[test]
 fn test_welcome_includes_mode_identity() {
     let welcome = ServerMessage::Welcome {
+        body: None,
         player_id: None,
         role: Role::Spectator,
         mode_name: default_mode_name(),

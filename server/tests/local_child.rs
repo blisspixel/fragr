@@ -95,6 +95,7 @@ async fn campaign_run_id(ready: &Ready) -> uuid::Uuid {
     socket
         .send(Message::Text(
             serde_json::to_string(&ClientMessage::Hello {
+                body: None,
                 role: Role::Spectator,
                 name: "Run witness".into(),
                 geometry_version: 2,
@@ -140,6 +141,7 @@ async fn bundled_mission_serves_the_normal_wire_and_stops_on_explicit_shutdown()
     socket
         .send(Message::Text(
             serde_json::to_string(&ClientMessage::Hello {
+                body: None,
                 role: Role::Spectator,
                 name: "Local observer".into(),
                 geometry_version: 2,
@@ -282,6 +284,7 @@ async fn explicit_leave_durably_abandons_a_local_run() {
     socket
         .send(Message::Text(
             serde_json::to_string(&ClientMessage::Hello {
+                body: None,
                 role: Role::Human,
                 name: "Run owner".into(),
                 geometry_version: 2,
@@ -449,6 +452,7 @@ async fn m02_development_child_serves_the_graybox_without_a_durable_run() {
     socket
         .send(Message::Text(
             serde_json::to_string(&ClientMessage::Hello {
+                body: None,
                 role: Role::Human,
                 name: "Ward walker".into(),
                 geometry_version: 2,

@@ -126,6 +126,7 @@ async fn authored_map_is_shared_by_humans_agents_and_spectators() {
         socket
             .send(Message::Text(
                 serde_json::to_string(&ClientMessage::Hello {
+                    body: None,
                     gameplay_version: fragr_server::protocol::GAMEPLAY_VERSION,
                     geometry_version: GEOMETRY_VERSION,
                     role,

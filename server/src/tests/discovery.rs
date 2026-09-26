@@ -14,6 +14,7 @@ fn mission() -> GameSession {
 fn join(session: &mut GameSession, role: Role) -> Uuid {
     let id = Uuid::new_v4();
     session.apply_command(GameCommand::Connected {
+        body: crate::protocol::BodyKind::Human,
         id,
         role,
         name: format!("Participant {role:?}"),

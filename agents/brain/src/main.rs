@@ -112,6 +112,9 @@ enum Command {
         /// Save a bounded campaign trace for local diagnosis.
         #[arg(long)]
         timeline_path: Option<PathBuf>,
+        /// Body for the pawn: `human` or `synthetic`. Presentation only.
+        #[arg(long, default_value = "human", value_parser = parse_body)]
+        body: fragr_server::protocol::BodyKind,
     },
     /// Send one decision for a state string and print the answers.
     Ask {
@@ -126,6 +129,12 @@ enum Command {
     Spend,
     /// Print the calling key's limit and usage (OpenRouter).
     Key,
+}
+
+/// The wire's own allowlist, so the flag cannot name a path or model.
+fn parse_body(text: &str) -> Result<fragr_server::protocol::BodyKind, String> {
+    serde_json::from_value(serde_json::Value::String(text.to_string()))
+        .map_err(|_| format!("unknown body {text:?}; use human or synthetic"))
 }
 
 fn parse_provider(text: &str) -> Result<Provider, Error> {
@@ -223,6 +232,7 @@ fn run(cli: Cli, transport: Arc<dyn Transport>, out: &mut dyn std::io::Write) ->
             confidence_floor,
             max_seconds,
             timeline_path,
+            body,
         } => {
             let mut budget = budget_from(&cli.common, provider)?;
             if provider.is_paid() {
@@ -269,6 +279,7 @@ fn run(cli: Cli, transport: Arc<dyn Transport>, out: &mut dyn std::io::Write) ->
                 },
                 max_seconds,
                 timeline_path,
+                body,
             };
             let budget = Arc::new(Mutex::new(budget));
             let runtime = tokio::runtime::Runtime::new()
@@ -571,10 +582,29 @@ mod tests {
             ".agents/watch/test-timeline.json",
             "--margin-floor",
             "0.3",
+            "--body",
+            "synthetic",
         ]);
         assert!(
             matches!(cli.command, Command::Play { ref server, ref name, max_seconds: Some(5), .. } if server == "ws://h:1" && name.as_deref() == Some("X"))
         );
+        assert!(matches!(
+            cli.command,
+            Command::Play {
+                body: fragr_server::protocol::BodyKind::Synthetic,
+                ..
+            }
+        ));
+        assert!(matches!(
+            parse(&["play"]).command,
+            Command::Play {
+                body: fragr_server::protocol::BodyKind::Human,
+                ..
+            }
+        ));
+        for bad in ["robot", "res://body.png", "Human"] {
+            assert!(Cli::try_parse_from(["fragr-brain", "play", "--body", bad]).is_err());
+        }
         assert!(
             matches!(cli.command, Command::Play { timeline_path: Some(ref path), .. } if path == &PathBuf::from(".agents/watch/test-timeline.json"))
         );

@@ -101,8 +101,12 @@ impl GameSession {
             } else {
                 format!("{bot_name}-{}", config_index / bot_configs.len() + 1)
             };
-            self.state
-                .add_player(bot_id, display_name.clone(), Role::Agent);
+            self.state.add_player_with_body(
+                bot_id,
+                display_name.clone(),
+                Role::Agent,
+                protocol::BodyKind::for_roster_slot(config_index),
+            );
             let bot_controller = BotController::new(bot_id, behavior);
             self.bots.push(bot_controller.clone());
             self.state.bots.push(bot_controller);
@@ -251,7 +255,9 @@ impl GameSession {
         if player.role != role || player.is_campaign_enemy() {
             return None;
         }
-        let accepted = self.resume.claim(player_id, nonce, role)?;
+        let body = player.body;
+        let mut accepted = self.resume.claim(player_id, nonce, role)?;
+        accepted.body = body;
         self.client_to_player.retain(|_, id| *id != player_id);
         self.client_to_player.insert(client_id, player_id);
         if let Some(player) = self.state.players.iter_mut().find(|p| p.id == player_id) {
@@ -275,13 +281,15 @@ impl GameSession {
                 role,
                 name,
                 player_id,
+                body,
             } => {
                 // Every connection needs geometry, including late spectators.
                 self.pending_unicasts
                     .push((Recipient::Client(id), self.state.map_info()));
                 if let Some(pid) = player_id {
                     let name = self.available_display_name(&name);
-                    self.state.add_player(pid, name.clone(), role);
+                    self.state
+                        .add_player_with_body(pid, name.clone(), role, body);
                     if !self.state.players.iter().any(|player| player.id == pid) {
                         self.pending_unicasts.push((
                             Recipient::Client(id),
@@ -864,6 +872,7 @@ mod session_tests {
         let player_id = Uuid::new_v4();
 
         session.apply_command(GameCommand::Connected {
+            body: crate::protocol::BodyKind::Human,
             id: client_id,
             role: Role::Agent,
             name: "ArenaFox".to_string(),
@@ -893,6 +902,7 @@ mod session_tests {
     fn join_spectator_does_not_add_player() {
         let mut session = GameSession::new();
         session.apply_command(GameCommand::Connected {
+            body: crate::protocol::BodyKind::Human,
             id: Uuid::new_v4(),
             role: Role::Spectator,
             name: "Watcher".to_string(),
@@ -909,6 +919,7 @@ mod session_tests {
         let player_id = Uuid::new_v4();
 
         session.apply_command(GameCommand::Connected {
+            body: crate::protocol::BodyKind::Human,
             id: client_id,
             role: Role::Human,
             name: "Joiner".to_string(),
@@ -951,6 +962,7 @@ mod session_tests {
         let client_id = Uuid::new_v4();
         let player_id = Uuid::new_v4();
         session.apply_command(GameCommand::Connected {
+            body: crate::protocol::BodyKind::Human,
             id: client_id,
             role: Role::Agent,
             name: "Shooter".to_string(),
@@ -1124,12 +1136,14 @@ mod session_tests {
         let p2 = Uuid::new_v4();
 
         session.apply_command(GameCommand::Connected {
+            body: crate::protocol::BodyKind::Human,
             id: c1,
             role: Role::Agent,
             name: "A".to_string(),
             player_id: Some(p1),
         });
         session.apply_command(GameCommand::Connected {
+            body: crate::protocol::BodyKind::Human,
             id: c2,
             role: Role::Agent,
             name: "B".to_string(),
@@ -1162,6 +1176,7 @@ mod session_tests {
         let client_id = Uuid::new_v4();
         let player_id = Uuid::new_v4();
         session.apply_command(GameCommand::Connected {
+            body: crate::protocol::BodyKind::Human,
             id: client_id,
             role: Role::Agent,
             name: "ArenaFox".to_string(),
@@ -1236,6 +1251,7 @@ mod session_tests {
         let mut session = GameSession::new();
         let player_id = Uuid::new_v4();
         session.apply_command(GameCommand::Connected {
+            body: crate::protocol::BodyKind::Human,
             id: Uuid::new_v4(),
             role: Role::Agent,
             name: "Talker".to_string(),
@@ -1282,6 +1298,7 @@ mod session_tests {
         let client = Uuid::new_v4();
         let player = Uuid::new_v4();
         session.apply_command(GameCommand::Connected {
+            body: crate::protocol::BodyKind::Human,
             id: client,
             role: Role::Agent,
             name: "Brain-1".into(),
@@ -1314,6 +1331,7 @@ mod session_tests {
         let human_client = Uuid::new_v4();
         let human = Uuid::new_v4();
         session.apply_command(GameCommand::Connected {
+            body: crate::protocol::BodyKind::Human,
             id: human_client,
             role: Role::Human,
             name: "Player".into(),
@@ -1377,6 +1395,7 @@ mod session_tests {
         let c1 = Uuid::new_v4();
         let p1 = Uuid::new_v4();
         session.apply_command(GameCommand::Connected {
+            body: crate::protocol::BodyKind::Human,
             id: c1,
             role: Role::Human,
             name: "Human Player".to_string(),
@@ -1391,6 +1410,7 @@ mod session_tests {
         let c2 = Uuid::new_v4();
         let p2 = Uuid::new_v4();
         session.apply_command(GameCommand::Connected {
+            body: crate::protocol::BodyKind::Human,
             id: c2,
             role: Role::Human,
             name: "Human Player".to_string(),
@@ -1413,6 +1433,7 @@ mod session_tests {
         let new_player = Uuid::new_v4();
         for (client, player) in [(old_client, old_player), (new_client, new_player)] {
             session.apply_command(GameCommand::Connected {
+                body: crate::protocol::BodyKind::Human,
                 id: client,
                 role: Role::Human,
                 name: "Meat Proxy".into(),
@@ -1484,6 +1505,7 @@ mod session_tests {
         let c1 = Uuid::new_v4();
         let p1 = Uuid::new_v4();
         session.apply_command(GameCommand::Connected {
+            body: crate::protocol::BodyKind::Human,
             id: c1,
             role: Role::Human,
             name: "Alpha".to_string(),
@@ -1495,6 +1517,7 @@ mod session_tests {
         let c2 = Uuid::new_v4();
         let p2 = Uuid::new_v4();
         session.apply_command(GameCommand::Connected {
+            body: crate::protocol::BodyKind::Human,
             id: c2,
             role: Role::Human,
             name: "Bravo".to_string(),
@@ -1517,6 +1540,7 @@ mod session_tests {
         let c1 = Uuid::new_v4();
         let p1 = Uuid::new_v4();
         session.apply_command(GameCommand::Connected {
+            body: crate::protocol::BodyKind::Human,
             id: c1,
             role: Role::Human,
             name: bot_name.clone(),

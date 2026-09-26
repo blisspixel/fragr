@@ -114,6 +114,7 @@ async fn watcher_task(
     let (mut sink, mut stream) = socket.split();
     sink.send(Message::Text(
         serde_json::to_string(&ClientMessage::Hello {
+            body: None,
             gameplay_version: fragr_server::protocol::GAMEPLAY_VERSION,
             geometry_version: fragr_server::protocol::GEOMETRY_VERSION,
             role: Role::Spectator,

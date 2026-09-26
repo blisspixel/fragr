@@ -2,6 +2,7 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 mod actors;
+mod body;
 mod decoration;
 mod loadout;
 mod mission;
@@ -9,6 +10,7 @@ mod rules;
 mod statistics;
 mod status;
 pub use actors::{hostile, CampaignActor, EnemyKind, EnemyPhase};
+pub use body::BodyKind;
 pub use decoration::{
     validate_decorations, MapDecoration, MapDecorationKind, MapFace, MAX_MAP_DECORATIONS,
     MAX_MAP_LIGHTS,
@@ -530,8 +532,12 @@ pub const SHIV_GAMEPLAY_VERSION: u32 = 11;
 /// and the 100 Cells cap. Every discovery map requires it for the larger
 /// loadout, and so does any arena running rules other than plain free-for-all.
 pub const RULES_GAMEPLAY_VERSION: u32 = 12;
+/// The chosen participant body: an optional `body` on Hello, the accepted
+/// body on Welcome and on every participant in a snapshot. Additive: no map
+/// requires it, and an older reader ignores the field.
+pub const BODY_GAMEPLAY_VERSION: u32 = 13;
 /// Highest understood gameplay contract; content requirements use their own minimum.
-pub const GAMEPLAY_VERSION: u32 = RULES_GAMEPLAY_VERSION;
+pub const GAMEPLAY_VERSION: u32 = BODY_GAMEPLAY_VERSION;
 pub fn legacy_gameplay_version() -> u32 {
     1
 }
@@ -681,6 +687,10 @@ pub enum ClientMessage {
         /// Absent means a drop removes the pawn, which is what older clients do.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         resume: Option<String>,
+        /// Requested participant body. Omitted means human. Ignored for a
+        /// spectator, and a resumed pawn keeps the body it already has.
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        body: Option<BodyKind>,
     },
     /// Explicit leave. A later socket close removes the pawn now.
     Leave,
@@ -707,6 +717,10 @@ pub enum ServerMessage {
         /// Set for a human or agent that asked to keep the pawn across a drop.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         resume: Option<String>,
+        /// The accepted body of a human or agent pawn. Omitted for a
+        /// spectator and by servers before capability 13.
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        body: Option<BodyKind>,
     },
     /// The arena's shape: the bounds and the solids that block movement and
     /// shots. Sent once to every role on join and again to everyone when
@@ -1020,6 +1034,10 @@ pub struct PlayerState {
     /// Holds the golden Railgun. Omitted when false.
     #[serde(default, skip_serializing_if = "is_false")]
     pub golden: bool,
+    /// The participant's accepted body. Omitted for Union campaign actors
+    /// and the arena boss, which keep their own authored identity.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub body: Option<BodyKind>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

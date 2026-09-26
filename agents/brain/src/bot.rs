@@ -124,6 +124,8 @@ pub struct BotConfig {
     pub max_seconds: Option<u64>,
     /// Optional local diagnostic file for bounded campaign observations.
     pub timeline_path: Option<PathBuf>,
+    /// The pawn's body, sent in Hello. Presentation only.
+    pub body: fragr_server::protocol::BodyKind,
 }
 
 /// What one run did, printed as JSON when it ends.
@@ -575,6 +577,7 @@ pub async fn run_bot(
         .map_err(transport_err)?;
     let (mut sink, mut stream) = ws.split();
     let hello = ClientMessage::Hello {
+        body: Some(config.body),
         gameplay_version: fragr_server::protocol::GAMEPLAY_VERSION,
         geometry_version: fragr_server::protocol::GEOMETRY_VERSION,
         role: Role::Agent,
@@ -1376,6 +1379,7 @@ mod tests {
             gate: Gate::default(),
             max_seconds: Some(seconds),
             timeline_path: None,
+            body: fragr_server::protocol::BodyKind::Synthetic,
         }
     }
 
@@ -1457,9 +1461,17 @@ mod tests {
         let server = tokio::spawn(async move {
             let (socket, _) = listener.accept().await.unwrap();
             let mut ws = tokio_tungstenite::accept_async(socket).await.unwrap();
-            for _ in 0..2 {
-                ws.next().await.unwrap().unwrap(); // Hello and initial stance.
-            }
+            let hello = ws.next().await.unwrap().unwrap();
+            // The configured body travels in the same Hello every agent sends.
+            assert!(matches!(
+                serde_json::from_str::<ClientMessage>(hello.to_text().unwrap()).unwrap(),
+                ClientMessage::Hello {
+                    body: Some(fragr_server::protocol::BodyKind::Synthetic),
+                    role: Role::Agent,
+                    ..
+                }
+            ));
+            ws.next().await.unwrap().unwrap(); // Initial stance.
             ws.send(Message::Text(valid)).await.unwrap();
             ws.send(Message::Text(bad)).await.unwrap();
             while let Some(Ok(message)) = ws.next().await {
@@ -2055,6 +2067,7 @@ mod tests {
         let (mut sink, mut stream) = ws.split();
         sink.send(Message::Text(
             serde_json::to_string(&ClientMessage::Hello {
+                body: None,
                 gameplay_version: fragr_server::protocol::GAMEPLAY_VERSION,
                 geometry_version: fragr_server::protocol::GEOMETRY_VERSION,
                 role: Role::Spectator,

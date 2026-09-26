@@ -153,12 +153,14 @@ fn records_are_private_cadenced_and_terminal_delivery_is_immediate() {
     let mut session = GameSession::new();
     let id = Uuid::new_v4();
     session.apply_command(GameCommand::Connected {
+        body: crate::protocol::BodyKind::Human,
         id,
         role: Role::Human,
         name: "Probe".into(),
         player_id: Some(id),
     });
     session.apply_command(GameCommand::Connected {
+        body: crate::protocol::BodyKind::Human,
         id: Uuid::new_v4(),
         role: Role::Spectator,
         name: "Observer".into(),

@@ -26,6 +26,10 @@ enum Commands {
         /// Display name sent in Hello. Falls back to FRAGR_AGENT_NAME, then "MCP Agent".
         #[arg(long)]
         name: Option<String>,
+
+        /// Body for the pawn: `human` or `synthetic`. Presentation only.
+        #[arg(long, default_value = "human", value_parser = parse_body)]
+        body: protocol::BodyKind,
     },
 
     ScriptedBot {
@@ -35,7 +39,17 @@ enum Commands {
         /// Display name sent in Hello. Falls back to FRAGR_AGENT_NAME, then "ScriptedBot".
         #[arg(long)]
         name: Option<String>,
+
+        /// Body for the pawn: `human` or `synthetic`. Presentation only.
+        #[arg(long, default_value = "human", value_parser = parse_body)]
+        body: protocol::BodyKind,
     },
+}
+
+/// The same allowlist the wire uses, so the CLI cannot name a path or model.
+fn parse_body(value: &str) -> Result<protocol::BodyKind, String> {
+    serde_json::from_value(Value::String(value.to_string()))
+        .map_err(|_| format!("unknown body '{value}'; use human or synthetic"))
 }
 
 #[tokio::main]
@@ -51,11 +65,21 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args = Args::parse();
 
     match args.command {
-        Commands::Mcp { server, name } => {
-            run_mcp_server(server, resolve_agent_name(name.as_deref(), "MCP Agent")).await?
+        Commands::Mcp { server, name, body } => {
+            run_mcp_server(
+                server,
+                resolve_agent_name(name.as_deref(), "MCP Agent"),
+                body,
+            )
+            .await?
         }
-        Commands::ScriptedBot { server, name } => {
-            run_scripted_bot(server, resolve_agent_name(name.as_deref(), "ScriptedBot")).await?
+        Commands::ScriptedBot { server, name, body } => {
+            run_scripted_bot(
+                server,
+                resolve_agent_name(name.as_deref(), "ScriptedBot"),
+                body,
+            )
+            .await?
         }
     }
 
@@ -96,7 +120,9 @@ async fn mcp_connect_and_hello(
     let (ws_stream, _) = connect_async(server_url).await?;
     let (mut ws_sink, mut ws_stream) = ws_stream.split();
 
+    let body = tool_state.lock().await.body;
     let hello = ClientMessage::Hello {
+        body: Some(body),
         gameplay_version: fragr_server::protocol::GAMEPLAY_VERSION,
         geometry_version: fragr_server::protocol::GEOMETRY_VERSION,
         role: Role::Agent,
@@ -316,6 +342,7 @@ async fn apply_mcp_line(
 async fn run_mcp_server(
     server_url: String,
     name: String,
+    body: protocol::BodyKind,
 ) -> Result<(), Box<dyn std::error::Error>> {
     tracing::info!(
         "Starting MCP server mode as '{}', connecting to {}",
@@ -325,6 +352,7 @@ async fn run_mcp_server(
 
     let tool_state = std::sync::Arc::new(tokio::sync::Mutex::new(ToolState {
         default_name: name.clone(),
+        body,
         ..Default::default()
     }));
 
@@ -346,6 +374,7 @@ async fn run_mcp_server(
 async fn run_scripted_bot(
     server_url: String,
     name: String,
+    body: protocol::BodyKind,
 ) -> Result<(), Box<dyn std::error::Error>> {
     tracing::info!(
         "Starting scripted bot '{}', connecting to {}",
@@ -357,6 +386,7 @@ async fn run_scripted_bot(
     let (mut ws_sink, mut ws_stream) = ws_stream.split();
 
     let hello = ClientMessage::Hello {
+        body: Some(body),
         gameplay_version: fragr_server::protocol::GAMEPLAY_VERSION,
         geometry_version: fragr_server::protocol::GEOMETRY_VERSION,
         role: Role::Agent,
@@ -1028,6 +1058,7 @@ mod tests {
             team_scores: None,
             tick: 100,
             players: vec![protocol::PlayerState {
+                body: None,
                 golden: false,
                 lives: None,
                 team: None,
@@ -1134,6 +1165,7 @@ mod tests {
             tick: 50,
             players: vec![
                 protocol::PlayerState {
+                    body: None,
                     golden: false,
                     lives: None,
                     team: None,
@@ -1153,6 +1185,7 @@ mod tests {
                     weapon: "Flechette".to_string(),
                 },
                 protocol::PlayerState {
+                    body: None,
                     golden: false,
                     lives: None,
                     team: None,
@@ -1230,6 +1263,7 @@ mod tests {
     #[test]
     fn test_client_action_message_structure() {
         let hello = ClientMessage::Hello {
+            body: None,
             gameplay_version: fragr_server::protocol::GAMEPLAY_VERSION,
             geometry_version: fragr_server::protocol::GEOMETRY_VERSION,
             role: protocol::Role::Agent,
@@ -1404,6 +1438,7 @@ mod tests {
         std::env::remove_var("FRAGR_AGENT_NAME");
         let name = resolve_agent_name(Some("ArenaFox"), "MCP Agent");
         let hello = ClientMessage::Hello {
+            body: None,
             gameplay_version: fragr_server::protocol::GAMEPLAY_VERSION,
             geometry_version: fragr_server::protocol::GEOMETRY_VERSION,
             role: Role::Agent,
@@ -1470,6 +1505,7 @@ mod tests {
             tick: 1,
             players: vec![
                 protocol::PlayerState {
+                    body: None,
                     golden: false,
                     lives: None,
                     team: None,
@@ -1489,6 +1525,7 @@ mod tests {
                     weapon: "Flechette".into(),
                 },
                 protocol::PlayerState {
+                    body: None,
                     golden: false,
                     lives: None,
                     team: None,
@@ -1549,9 +1586,10 @@ mod tests {
     fn args_parse_mcp_defaults() {
         let args = Args::try_parse_from(["fragr-agent-adapter", "mcp"]).expect("mcp");
         match args.command {
-            Commands::Mcp { server, name } => {
+            Commands::Mcp { server, name, body } => {
                 assert_eq!(server, "ws://127.0.0.1:6767");
                 assert!(name.is_none());
+                assert_eq!(body, protocol::BodyKind::Human);
             }
             other => panic!("expected Mcp, got {other:?}"),
         }
@@ -1566,12 +1604,15 @@ mod tests {
             "ws://127.0.0.1:9999",
             "--name",
             "ScrapFox",
+            "--body",
+            "synthetic",
         ])
         .expect("scripted-bot");
         match args.command {
-            Commands::ScriptedBot { server, name } => {
+            Commands::ScriptedBot { server, name, body } => {
                 assert_eq!(server, "ws://127.0.0.1:9999");
                 assert_eq!(name.as_deref(), Some("ScrapFox"));
+                assert_eq!(body, protocol::BodyKind::Synthetic);
             }
             other => panic!("expected ScriptedBot, got {other:?}"),
         }
@@ -1940,7 +1981,7 @@ mod tests {
             });
             let result = tokio::time::timeout(
                 std::time::Duration::from_secs(2),
-                run_scripted_bot(url, "Rejected".into()),
+                run_scripted_bot(url, "Rejected".into(), protocol::BodyKind::Human),
             )
             .await
             .unwrap();
@@ -1968,6 +2009,7 @@ mod tests {
                 player.z = 0.0;
             }
             let welcome = ServerMessage::Welcome {
+                body: None,
                 player_id: Some(bot),
                 role: Role::Agent,
                 mode_name: protocol::default_mode_name(),
@@ -2044,7 +2086,7 @@ mod tests {
         });
         let result = tokio::time::timeout(
             std::time::Duration::from_secs(4),
-            run_scripted_bot(url, "Probe".into()),
+            run_scripted_bot(url, "Probe".into(), protocol::BodyKind::Human),
         )
         .await
         .unwrap();
@@ -2060,7 +2102,7 @@ mod tests {
         let (url, peer) = spawn_welcome_peer(WelcomePeerMode::SnapshotThenClose).await;
         let result = tokio::time::timeout(
             std::time::Duration::from_secs(3),
-            run_scripted_bot(url, "ScriptCov".into()),
+            run_scripted_bot(url, "ScriptCov".into(), protocol::BodyKind::Human),
         )
         .await
         .expect("scripted bot timeout");
