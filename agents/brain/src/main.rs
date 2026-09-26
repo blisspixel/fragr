@@ -3,13 +3,16 @@
 //! `play` joins a server and fights; `ask` sends one decision for a state you
 //! type (or prints the request with `--dry-run`); `spend` shows the ledger;
 //! `key` reads an OpenRouter key's own limit. Paid providers refuse to start
-//! until `--max-spend-usd` names a cap.
+//! until `--max-spend-usd` names a cap. The free local model providers
+//! (`ollama`, `openjev`) need no key and no cap, and talk to loopback only
+//! unless `--allow-remote-model` is given.
 
 use clap::{Args, Parser, Subcommand};
 use fragr_brain::bot::{run_bot, BotConfig};
 use fragr_brain::budget::{Budget, Caps, Pricing};
 use fragr_brain::decision::{tactical_questions, Gate};
 use fragr_brain::dotenv::resolve_key;
+use fragr_brain::local_model;
 use fragr_brain::provider::{
     decide, decision_request, key_request, parse_key_status, HttpTransport, Provider, Transport,
 };
@@ -24,7 +27,7 @@ use tracing_subscriber::EnvFilter;
 #[command(
     name = "fragr-brain",
     version,
-    about = "A fragr agent whose intent comes from a decision model (TypeSafe Jev, natively or through OpenRouter) under a hard spend cap; local rules play for free."
+    about = "A fragr agent whose intent comes from a decision model (TypeSafe Jev, natively or through OpenRouter) under a hard spend cap, or from a free open-weights decision model on this machine; local rules play for free."
 )]
 struct Cli {
     #[command(flatten)]
@@ -35,12 +38,23 @@ struct Cli {
 
 #[derive(Args, Debug, Clone)]
 struct Common {
-    /// Decision source: local (free, default), typesafe, or openrouter.
+    /// Decision source: local (free rules, default), ollama (free local
+    /// APUS-OpenJev), openjev (free self-hosted server, non-commercial
+    /// weights), typesafe, or openrouter.
     #[arg(long, default_value = "local", global = true)]
     provider: String,
-    /// Model id; defaults to jev-1.13.0 (typesafe) or typesafe/jev-1.13 (openrouter).
+    /// Model id; defaults to jev-1.13.0 (typesafe), typesafe/jev-1.13
+    /// (openrouter), hf.co/apus-ailab/APUS-OpenJev-v1-4B-GGUF:Q8_0 (ollama) or
+    /// openjev (openjev).
     #[arg(long, global = true)]
     model: Option<String>,
+    /// Base URL of a local model server; defaults to http://127.0.0.1:11434
+    /// (ollama) or http://127.0.0.1:3000 (openjev). Loopback only by default.
+    #[arg(long, global = true)]
+    model_url: Option<String>,
+    /// Allow a local model provider to reach a non-loopback host.
+    #[arg(long, global = true)]
+    allow_remote_model: bool,
     /// Dollars this run may spend. Zero (the default) means no paid call at all.
     #[arg(long, default_value_t = 0.0, global = true)]
     max_spend_usd: f64,
@@ -68,7 +82,8 @@ struct Common {
     /// Read the key from this file instead of the environment.
     #[arg(long, global = true)]
     api_key_file: Option<PathBuf>,
-    /// Per-call HTTP timeout.
+    /// Per-call HTTP timeout; for a local model, the budget for the whole
+    /// decision, every question included. Late answers fall back to rules.
     #[arg(long, default_value_t = 2000, global = true)]
     timeout_ms: u64,
 }
@@ -116,7 +131,7 @@ enum Command {
 fn parse_provider(text: &str) -> Result<Provider, Error> {
     Provider::parse(text).ok_or_else(|| {
         Error::InvalidArgument(format!(
-            "unknown provider {text:?}; use local, typesafe, or openrouter"
+            "unknown provider {text:?}; use local, ollama, openjev, typesafe, or openrouter"
         ))
     })
 }
@@ -160,6 +175,24 @@ fn key_for(common: &Common, provider: Provider) -> Result<Option<String>, Error>
 
 fn require_key(common: &Common, provider: Provider) -> Result<String, Error> {
     key_for(common, provider)?.ok_or_else(|| Error::MissingApiKey(provider.key_names().join(", ")))
+}
+
+/// The checked base URL of a local model provider, `None` for the others.
+fn model_url_for(common: &Common, provider: Provider) -> Result<Option<String>, Error> {
+    let Some(default) = provider.default_base_url() else {
+        return Ok(None);
+    };
+    let url = common.model_url.as_deref().unwrap_or(default);
+    local_model::checked_base_url(url, common.allow_remote_model).map(Some)
+}
+
+fn decision_budget(common: &Common) -> Result<Duration, Error> {
+    if common.timeout_ms == 0 {
+        return Err(Error::InvalidArgument(
+            "--timeout-ms must be above zero".to_string(),
+        ));
+    }
+    Ok(Duration::from_millis(common.timeout_ms))
 }
 
 fn resolve_name(name: Option<&str>, fallback: &str) -> String {
@@ -215,12 +248,20 @@ fn run(cli: Cli, transport: Arc<dyn Transport>, out: &mut dyn std::io::Write) ->
                     "paid play requires a durable ledger; remove --no-ledger".into(),
                 ));
             }
+            let model_url = model_url_for(&cli.common, provider)?;
+            let budget_time = decision_budget(&cli.common)?;
+            if let (Provider::Ollama, Some(url)) = (provider, model_url.as_deref()) {
+                tracing::info!("loading {model} in Ollama at {url}");
+                local_model::warm_up(transport.as_ref(), url, &model)?;
+            }
             let config = BotConfig {
                 server_url: server,
                 name: resolve_name(name.as_deref(), "Brain"),
                 provider,
                 model,
                 api_key,
+                model_url,
+                decision_budget: budget_time,
                 decision_hz,
                 gate: Gate {
                     confidence_floor,
@@ -243,10 +284,71 @@ fn run(cli: Cli, transport: Arc<dyn Transport>, out: &mut dyn std::io::Write) ->
             writeln!(out, "{text}")?;
             Ok(())
         }
+        Command::Ask { state, dry_run } if provider.is_local_model() => {
+            let url = model_url_for(&cli.common, provider)?.unwrap_or_default();
+            let budget_time = decision_budget(&cli.common)?;
+            let state = state_value(state);
+            let questions = tactical_questions();
+            if dry_run {
+                let requests: Vec<serde_json::Value> = match provider {
+                    Provider::Ollama => {
+                        let text = local_model::state_text(&state)?;
+                        questions
+                            .values()
+                            .filter_map(local_model::scoring_for)
+                            .map(|scoring| {
+                                let prompt = local_model::render_prompt(&text, &scoring);
+                                local_model::ollama_request(&url, &model, &prompt, budget_time)
+                                    .redacted()
+                            })
+                            .collect()
+                    }
+                    _ => vec![local_model::systemone_request(
+                        &url,
+                        &model,
+                        &state,
+                        &questions,
+                        budget_time,
+                    )
+                    .redacted()],
+                };
+                let shown = serde_json::json!({"requests": requests, "estimated_usd": 0.0});
+                writeln!(
+                    out,
+                    "{}",
+                    serde_json::to_string_pretty(&shown).unwrap_or_default()
+                )?;
+                return Ok(());
+            }
+            let started = std::time::Instant::now();
+            let response = local_model::decide(
+                transport.as_ref(),
+                provider,
+                &url,
+                &model,
+                &state,
+                &questions,
+                budget_time,
+            )?;
+            let shown = serde_json::json!({
+                "model": response.model,
+                "provider": response.provider,
+                "answers": answers_json(&response.answers),
+                "latency_ms": started.elapsed().as_millis() as u64,
+                "run_usd": 0.0,
+            });
+            writeln!(
+                out,
+                "{}",
+                serde_json::to_string_pretty(&shown).unwrap_or_default()
+            )?;
+            Ok(())
+        }
         Command::Ask { state, dry_run } => {
             if !provider.is_paid() {
                 return Err(Error::InvalidArgument(
-                    "ask needs a paid provider (typesafe or openrouter)".to_string(),
+                    "ask needs a model provider (ollama, openjev, typesafe or openrouter)"
+                        .to_string(),
                 ));
             }
             let budget = budget_from(&cli.common, provider)?;
@@ -255,11 +357,7 @@ fn run(cli: Cli, transport: Arc<dyn Transport>, out: &mut dyn std::io::Write) ->
             } else {
                 require_key(&cli.common, provider)?
             };
-            // A JSON object is sent as given; anything else goes as a plain string.
-            let state = serde_json::from_str::<serde_json::Value>(&state)
-                .ok()
-                .filter(serde_json::Value::is_object)
-                .unwrap_or(serde_json::Value::String(state));
+            let state = state_value(state);
             let request =
                 decision_request(provider, &model, &api_key, &state, &tactical_questions())?;
             let estimate = fragr_brain::provider::estimate_cost(&request, &budget.pricing);
@@ -338,6 +436,14 @@ fn run(cli: Cli, transport: Arc<dyn Transport>, out: &mut dyn std::io::Write) ->
     }
 }
 
+/// A JSON object is sent as given; anything else goes as a plain string.
+fn state_value(state: String) -> serde_json::Value {
+    serde_json::from_str::<serde_json::Value>(&state)
+        .ok()
+        .filter(serde_json::Value::is_object)
+        .unwrap_or(serde_json::Value::String(state))
+}
+
 fn answers_json(
     answers: &std::collections::BTreeMap<String, fragr_brain::decision::Answer>,
 ) -> serde_json::Value {
@@ -375,7 +481,14 @@ fn main() {
         .with_writer(std::io::stderr)
         .init();
     let cli = Cli::parse();
-    let transport = match HttpTransport::new(Duration::from_millis(cli.common.timeout_ms)) {
+    let timeout = Duration::from_millis(cli.common.timeout_ms);
+    let local = Provider::parse(&cli.common.provider).is_some_and(Provider::is_local_model);
+    let built = if local {
+        HttpTransport::local(timeout)
+    } else {
+        HttpTransport::new(timeout)
+    };
+    let transport = match built {
         Ok(transport) => Arc::new(transport),
         Err(err) => {
             eprintln!("error: {err}");
@@ -748,6 +861,201 @@ mod tests {
         assert_eq!(transport.calls.load(Ordering::SeqCst), 1);
         let _ = std::fs::remove_file(env_file);
         let _ = std::fs::remove_file(ledger);
+    }
+
+    fn letter_reply() -> serde_json::Value {
+        serde_json::json!({
+            "response": "B",
+            "logprobs": [{"token": "B", "logprob": -0.1, "top_logprobs": [
+                {"token": "B", "logprob": -0.1}, {"token": "A", "logprob": -2.5},
+                {"token": "C", "logprob": -3.0}, {"token": "D", "logprob": -4.0},
+                {"token": "E", "logprob": -5.0}
+            ]}]
+        })
+    }
+
+    #[test]
+    fn local_models_default_to_loopback_and_refuse_elsewhere() {
+        let cli = parse(&["--provider", "ollama", "ask", "--state", "s"]);
+        assert_eq!(
+            parse_provider(&cli.common.provider).unwrap(),
+            Provider::Ollama
+        );
+        assert_eq!(
+            model_url_for(&cli.common, Provider::Ollama)
+                .unwrap()
+                .as_deref(),
+            Some("http://127.0.0.1:11434")
+        );
+        assert_eq!(
+            model_url_for(&cli.common, Provider::OpenJev)
+                .unwrap()
+                .as_deref(),
+            Some("http://127.0.0.1:3000")
+        );
+        assert_eq!(
+            model_url_for(&cli.common, Provider::Typesafe).unwrap(),
+            None
+        );
+        let remote = parse(&[
+            "--provider",
+            "openjev",
+            "--model-url",
+            "http://192.168.1.5:3000",
+            "ask",
+            "--state",
+            "s",
+        ]);
+        let transport = scripted(200, answers());
+        let err = run(remote, transport.clone(), &mut Vec::new()).unwrap_err();
+        assert!(err.to_string().contains("--allow-remote-model"), "{err}");
+        assert_eq!(transport.calls.load(Ordering::SeqCst), 0, "nothing is sent");
+        let allowed = parse(&[
+            "--provider",
+            "openjev",
+            "--model-url",
+            "http://192.168.1.5:3000",
+            "--allow-remote-model",
+            "ask",
+            "--state",
+            "s",
+        ]);
+        assert!(model_url_for(&allowed.common, Provider::OpenJev).is_ok());
+        let zero = parse(&[
+            "--provider",
+            "ollama",
+            "--timeout-ms",
+            "0",
+            "ask",
+            "--state",
+            "s",
+        ]);
+        assert!(matches!(
+            run(zero, transport.clone(), &mut Vec::new()),
+            Err(Error::InvalidArgument(_))
+        ));
+        let key = parse(&["--provider", "ollama", "--no-ledger", "key"]);
+        assert!(run(key, transport.clone(), &mut Vec::new()).is_err());
+    }
+
+    #[test]
+    fn ask_a_local_model_for_free() {
+        let transport = scripted(200, letter_reply());
+        let cli = parse(&[
+            "--provider",
+            "ollama",
+            "--no-ledger",
+            "ask",
+            "--state",
+            "{\"self\":{\"health\":\"low\"}}",
+        ]);
+        let mut out = Vec::new();
+        run(cli, transport.clone(), &mut out).unwrap();
+        let text = String::from_utf8(out).unwrap();
+        assert!(text.contains("\"provider\": \"ollama\""), "{text}");
+        assert!(
+            text.contains("\"choice\": \"hold_angle\""),
+            "B is the second stance: {text}"
+        );
+        assert!(text.contains("\"run_usd\": 0.0"));
+        assert_eq!(
+            transport.calls.load(Ordering::SeqCst),
+            3,
+            "one call per question"
+        );
+
+        let dry = parse(&["--provider", "ollama", "ask", "--state", "s", "--dry-run"]);
+        let mut out = Vec::new();
+        run(dry, transport.clone(), &mut out).unwrap();
+        let text = String::from_utf8(out).unwrap();
+        assert!(text.contains("/api/generate") && text.contains("\"raw\": true"));
+        assert!(text.contains("\"estimated_usd\": 0.0"));
+        assert_eq!(
+            transport.calls.load(Ordering::SeqCst),
+            3,
+            "a dry run sends nothing"
+        );
+
+        let openjev = scripted(
+            200,
+            serde_json::json!({"answers": {
+                "stance": {"type": "choice", "choice": "kite_distance", "probabilities": {"kite_distance": 0.8, "push_enemy": 0.2}},
+                "weapon": {"type": "choice", "choice": "rail"},
+                "danger": {"type": "score", "score": 2.0}
+            }}),
+        );
+        let dry = parse(&["--provider", "openjev", "ask", "--state", "s", "--dry-run"]);
+        let mut out = Vec::new();
+        run(dry, openjev.clone(), &mut out).unwrap();
+        assert!(String::from_utf8(out).unwrap().contains("/v1/systemone"));
+        let cli = parse(&[
+            "--provider",
+            "openjev",
+            "--no-ledger",
+            "ask",
+            "--state",
+            "s",
+        ]);
+        let mut out = Vec::new();
+        run(cli, openjev.clone(), &mut out).unwrap();
+        let text = String::from_utf8(out).unwrap();
+        assert!(text.contains("\"choice\": \"kite_distance\""), "{text}");
+        assert_eq!(openjev.calls.load(Ordering::SeqCst), 1);
+        let bad = scripted(
+            200,
+            serde_json::json!({"answers": {"stance": {"type": "choice", "choice": "fly"}}}),
+        );
+        let cli = parse(&[
+            "--provider",
+            "openjev",
+            "--no-ledger",
+            "ask",
+            "--state",
+            "s",
+        ]);
+        assert!(matches!(
+            run(cli, bad, &mut Vec::new()),
+            Err(Error::Malformed(_))
+        ));
+    }
+
+    #[test]
+    fn play_with_ollama_warms_up_and_names_a_missing_model() {
+        let missing = scripted(404, serde_json::json!({"error": "model not found"}));
+        let cli = parse(&[
+            "--provider",
+            "ollama",
+            "--no-ledger",
+            "play",
+            "--server",
+            "ws://127.0.0.1:9",
+            "--max-seconds",
+            "1",
+        ]);
+        let err = run(cli, missing.clone(), &mut Vec::new()).unwrap_err();
+        assert!(err.to_string().contains("ollama pull"), "{err}");
+        assert_eq!(missing.calls.load(Ordering::SeqCst), 1);
+        let free = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
+        let port = free.local_addr().unwrap().port();
+        drop(free);
+        let server = format!("ws://127.0.0.1:{port}");
+        let loaded = scripted(200, serde_json::json!({"done": true}));
+        let cli = parse(&[
+            "--provider",
+            "ollama",
+            "--no-ledger",
+            "play",
+            "--server",
+            &server,
+            "--max-seconds",
+            "1",
+        ]);
+        let err = run(cli, loaded.clone(), &mut Vec::new()).unwrap_err();
+        assert!(
+            matches!(err, Error::Transport(_)),
+            "warm, then no game server: {err}"
+        );
+        assert_eq!(loaded.calls.load(Ordering::SeqCst), 1);
     }
 
     #[test]

@@ -2,6 +2,8 @@
 //! and OpenRouter's decisions endpoint take the same body; they differ in URL,
 //! model id, attribution headers, and whether the response reports a cost.
 //! Facts here were checked against both OpenAPI documents on 2026-09-18.
+//! The free local model providers (`ollama`, `openjev`) share the transport
+//! and the answer types but never the budget; see `local_model`.
 
 use crate::budget::{estimate_tokens, now_unix, Budget, Charge, Pricing};
 use crate::decision::{DecisionResponse, Question};
@@ -41,6 +43,12 @@ pub enum Provider {
     Typesafe,
     /// The same model routed through OpenRouter.
     OpenRouter,
+    /// APUS-OpenJev-v1 (Apache 2.0) through a local Ollama server. Free.
+    Ollama,
+    /// A self-hosted openjev systemone server (CC BY-NC 4.0 weights,
+    /// non-commercial only). Free, never bundled, never the default.
+    #[serde(rename = "openjev")]
+    OpenJev,
 }
 
 impl Provider {
@@ -49,6 +57,8 @@ impl Provider {
             "local" | "none" | "rules" => Some(Provider::Local),
             "typesafe" | "jev" => Some(Provider::Typesafe),
             "openrouter" => Some(Provider::OpenRouter),
+            "ollama" | "apus" | "apus-openjev" => Some(Provider::Ollama),
+            "openjev" => Some(Provider::OpenJev),
             _ => None,
         }
     }
@@ -58,16 +68,37 @@ impl Provider {
             Provider::Local => "local",
             Provider::Typesafe => "typesafe",
             Provider::OpenRouter => "openrouter",
+            Provider::Ollama => "ollama",
+            Provider::OpenJev => "openjev",
         }
     }
 
     pub fn is_paid(self) -> bool {
-        !matches!(self, Provider::Local)
+        matches!(self, Provider::Typesafe | Provider::OpenRouter)
+    }
+
+    /// A free decision model on this machine (or one the user explicitly allows).
+    pub fn is_local_model(self) -> bool {
+        matches!(self, Provider::Ollama | Provider::OpenJev)
+    }
+
+    /// Whether decisions come from a model at all, paid or free.
+    pub fn asks_a_model(self) -> bool {
+        self.is_paid() || self.is_local_model()
+    }
+
+    /// Where a local model listens by default.
+    pub fn default_base_url(self) -> Option<&'static str> {
+        match self {
+            Provider::Ollama => Some(crate::local_model::OLLAMA_BASE_URL),
+            Provider::OpenJev => Some(crate::local_model::OPENJEV_BASE_URL),
+            _ => None,
+        }
     }
 
     pub fn endpoint(self) -> Option<&'static str> {
         match self {
-            Provider::Local => None,
+            Provider::Local | Provider::Ollama | Provider::OpenJev => None,
             Provider::Typesafe => Some(TYPESAFE_ENDPOINT),
             Provider::OpenRouter => Some(OPENROUTER_ENDPOINT),
         }
@@ -78,12 +109,14 @@ impl Provider {
             Provider::Local => "rules",
             Provider::Typesafe => TYPESAFE_MODEL,
             Provider::OpenRouter => OPENROUTER_MODEL,
+            Provider::Ollama => crate::local_model::APUS_OLLAMA_MODEL,
+            Provider::OpenJev => crate::local_model::OPENJEV_MODEL,
         }
     }
 
     pub fn key_names(self) -> &'static [&'static str] {
         match self {
-            Provider::Local => &[],
+            Provider::Local | Provider::Ollama | Provider::OpenJev => &[],
             Provider::Typesafe => TYPESAFE_KEY_NAMES,
             Provider::OpenRouter => OPENROUTER_KEY_NAMES,
         }
@@ -103,6 +136,8 @@ pub struct HttpRequest {
     pub url: String,
     pub headers: Vec<(String, String)>,
     pub body: Option<Value>,
+    /// Overrides the transport's own timeout for this request.
+    pub timeout: Option<Duration>,
 }
 
 impl HttpRequest {
@@ -144,9 +179,10 @@ pub fn decision_request(
     questions: &BTreeMap<String, Question>,
 ) -> Result<HttpRequest, Error> {
     let Some(url) = provider.endpoint() else {
-        return Err(Error::InvalidArgument(
-            "the local provider has no endpoint".to_string(),
-        ));
+        return Err(Error::InvalidArgument(format!(
+            "{} has no paid endpoint",
+            provider.name()
+        )));
     };
     if api_key.trim().is_empty() {
         return Err(Error::MissingApiKey(provider.key_names().join(", ")));
@@ -176,6 +212,7 @@ pub fn decision_request(
         url: url.to_string(),
         headers,
         body: Some(body),
+        timeout: None,
     })
 }
 
@@ -198,6 +235,7 @@ pub fn key_request(provider: Provider, api_key: &str) -> Result<HttpRequest, Err
             format!("Bearer {}", api_key.trim()),
         )],
         body: None,
+        timeout: None,
     })
 }
 
@@ -206,15 +244,39 @@ pub trait Transport: Send + Sync {
     fn send(&self, request: &HttpRequest) -> Result<HttpResponse, Error>;
 }
 
+/// The most a response body may hold before it is refused unread.
+pub const MAX_RESPONSE_BYTES: u64 = 1024 * 1024;
+
 /// Blocking reqwest transport with one timeout for connect plus read.
 pub struct HttpTransport {
     client: reqwest::blocking::Client,
+}
+
+/// A timeout reads as `Error::Timeout`, anything else as a transport failure.
+fn send_error(err: reqwest::Error) -> Error {
+    if err.is_timeout() {
+        Error::Timeout(err.to_string())
+    } else {
+        Error::Transport(err.to_string())
+    }
 }
 
 impl HttpTransport {
     pub fn new(timeout: Duration) -> Result<Self, Error> {
         let client = reqwest::blocking::Client::builder()
             .timeout(timeout)
+            .build()
+            .map_err(|err| Error::Transport(err.to_string()))?;
+        Ok(HttpTransport { client })
+    }
+
+    /// A transport for a local model: no redirects (a loopback server must not
+    /// bounce a request to another host) and no environment proxy.
+    pub fn local(timeout: Duration) -> Result<Self, Error> {
+        let client = reqwest::blocking::Client::builder()
+            .timeout(timeout)
+            .redirect(reqwest::redirect::Policy::none())
+            .no_proxy()
             .build()
             .map_err(|err| Error::Transport(err.to_string()))?;
         Ok(HttpTransport { client })
@@ -233,14 +295,22 @@ impl Transport for HttpTransport {
         if let Some(body) = &request.body {
             builder = builder.json(body);
         }
-        let response = builder
-            .send()
-            .map_err(|err| Error::Transport(err.to_string()))?;
+        if let Some(timeout) = request.timeout {
+            builder = builder.timeout(timeout);
+        }
+        let response = builder.send().map_err(send_error)?;
         let status = response.status().as_u16();
-        let body = response
-            .bytes()
-            .map_err(|err| Error::Transport(err.to_string()))?
-            .to_vec();
+        let mut body = Vec::new();
+        std::io::Read::read_to_end(
+            &mut std::io::Read::take(response, MAX_RESPONSE_BYTES + 1),
+            &mut body,
+        )
+        .map_err(|err| Error::Transport(err.to_string()))?;
+        if body.len() as u64 > MAX_RESPONSE_BYTES {
+            return Err(Error::Malformed(format!(
+                "response over {MAX_RESPONSE_BYTES} bytes"
+            )));
+        }
         Ok(HttpResponse { status, body })
     }
 }
@@ -525,9 +595,46 @@ mod tests {
         assert!(Provider::Local.key_names().is_empty());
         assert_eq!(Provider::Typesafe.key_names()[0], "TYPESAFE_API_KEY");
         assert_eq!(Provider::OpenRouter.key_names()[0], "OPENROUTER_API_KEY");
-        for p in [Provider::Local, Provider::Typesafe, Provider::OpenRouter] {
+        for p in [
+            Provider::Local,
+            Provider::Typesafe,
+            Provider::OpenRouter,
+            Provider::Ollama,
+            Provider::OpenJev,
+        ] {
             assert_eq!(Provider::parse(p.name()), Some(p));
         }
+        assert_eq!(Provider::parse("apus"), Some(Provider::Ollama));
+        for free in [Provider::Ollama, Provider::OpenJev] {
+            assert!(!free.is_paid() && free.is_local_model() && free.asks_a_model());
+            assert_eq!(free.endpoint(), None);
+            assert!(free.key_names().is_empty());
+            assert!(free
+                .default_base_url()
+                .unwrap()
+                .starts_with("http://127.0.0.1:"));
+        }
+        assert!(!Provider::Local.asks_a_model() && Provider::Typesafe.asks_a_model());
+        assert_eq!(Provider::Typesafe.default_base_url(), None);
+        assert_eq!(
+            Provider::Ollama.default_model(),
+            crate::local_model::APUS_OLLAMA_MODEL
+        );
+        assert_eq!(Provider::OpenJev.default_model(), "openjev");
+        assert_eq!(
+            serde_json::to_value(Provider::OpenJev).unwrap(),
+            json!("openjev")
+        );
+        assert!(matches!(
+            decision_request(
+                Provider::Ollama,
+                "m",
+                "k",
+                &json!("s"),
+                &tactical_questions()
+            ),
+            Err(Error::InvalidArgument(_))
+        ));
     }
 
     #[test]
@@ -740,6 +847,7 @@ mod tests {
             url: String::new(),
             headers: vec![],
             body: None,
+            timeout: None,
         };
         assert!((estimate_cost(&empty, &pricey) - 16.0).abs() < 1e-9);
     }
@@ -928,12 +1036,86 @@ mod tests {
             url: "http://127.0.0.1:9/nothing".to_string(),
             headers: vec![("X-Test".into(), "1".into())],
             body: Some(json!({"a": 1})),
+            timeout: Some(Duration::from_millis(150)),
         };
-        assert!(matches!(transport.send(&request), Err(Error::Transport(_))));
+        // A refused loopback connect can outlast the timeout on some hosts.
+        let unreachable = |result: Result<HttpResponse, Error>| {
+            matches!(result, Err(Error::Transport(_)) | Err(Error::Timeout(_)))
+        };
+        assert!(unreachable(transport.send(&request)));
         let post = HttpRequest {
             method: Method::Post,
             ..request
         };
-        assert!(matches!(transport.send(&post), Err(Error::Transport(_))));
+        assert!(unreachable(transport.send(&post)));
+        let local = HttpTransport::local(Duration::from_millis(200)).unwrap();
+        assert!(unreachable(local.send(&post)));
+    }
+
+    /// Serve one canned HTTP reply (or none) on an ephemeral loopback port.
+    fn one_reply(reply: Option<Vec<u8>>) -> String {
+        use std::io::{Read, Write};
+        let listener = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
+        let addr = listener.local_addr().unwrap();
+        std::thread::spawn(move || {
+            if let Ok((mut stream, _)) = listener.accept() {
+                let mut buf = [0u8; 4096];
+                let _ = stream.read(&mut buf);
+                match reply {
+                    Some(bytes) => {
+                        let _ = stream.write_all(&bytes);
+                    }
+                    None => std::thread::sleep(Duration::from_millis(800)),
+                }
+            }
+        });
+        format!("http://{addr}/api/generate")
+    }
+
+    fn get(url: String, timeout: Option<Duration>) -> HttpRequest {
+        HttpRequest {
+            method: Method::Get,
+            url,
+            headers: vec![],
+            body: None,
+            timeout,
+        }
+    }
+
+    #[test]
+    fn local_transport_times_out_bounds_bodies_and_never_follows_redirects() {
+        let local = HttpTransport::local(Duration::from_secs(5)).unwrap();
+        let silent = one_reply(None);
+        let started = std::time::Instant::now();
+        let result = local.send(&get(silent, Some(Duration::from_millis(150))));
+        assert!(matches!(result, Err(Error::Timeout(_))), "{result:?}");
+        assert!(
+            started.elapsed() < Duration::from_millis(700),
+            "the request timeout wins"
+        );
+
+        let redirect = one_reply(Some(
+            b"HTTP/1.1 302 Found\r\nLocation: http://example.com/\r\nContent-Length: 0\r\nConnection: close\r\n\r\n".to_vec(),
+        ));
+        let response = local.send(&get(redirect, None)).unwrap();
+        assert_eq!(response.status, 302, "a redirect is returned, not followed");
+
+        let mut huge = format!(
+            "HTTP/1.1 200 OK\r\nContent-Length: {}\r\nConnection: close\r\n\r\n",
+            MAX_RESPONSE_BYTES + 10
+        )
+        .into_bytes();
+        huge.extend(std::iter::repeat_n(b'x', MAX_RESPONSE_BYTES as usize + 10));
+        let oversized = one_reply(Some(huge));
+        assert!(matches!(
+            local.send(&get(oversized, None)),
+            Err(Error::Malformed(_))
+        ));
+
+        let fine = one_reply(Some(
+            b"HTTP/1.1 200 OK\r\nContent-Length: 2\r\nConnection: close\r\n\r\n{}".to_vec(),
+        ));
+        let response = local.send(&get(fine, None)).unwrap();
+        assert_eq!((response.status, response.body), (200, b"{}".to_vec()));
     }
 }
