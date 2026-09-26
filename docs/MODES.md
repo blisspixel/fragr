@@ -2,16 +2,15 @@
 
 The canonical list of modes. The roadmap sequences them, the plans build them, this says what each one is.
 
-**Implementation status, 2026-09-19:** free-for-all Scrap and Episode 0 exist.
-Teams, objective modes, elimination, the Sweep, and the campaign/co-op systems
-below are designs until source and playtests demonstrate otherwise. Nick's
-full-game target includes duel, team play, survival, and last-survivor formats.
-The proposed build order for multiplayer modes and the maps they play on lives
-in [the multiplayer maps plan](plans/multiplayer-maps.md): free-for-all, duel,
-mutators, team deathmatch, Control, Custody, the three-cornered mode, then
-conquest-lite with vehicles. [The replayability plan](plans/replayability.md)
-proposes Jammer, below, as the flagship competitive mode, slotted after team
-deathmatch if accepted.
+**Implementation status, 2026-09-25:** free-for-all Scrap, team deathmatch,
+six host mutators and Episode 0 exist; a host picks the mode and mutators at
+launch ([the multiplayer modes plan](plans/multiplayer-modes.md)). Objective
+modes, duel admission, the Sweep, and the campaign/co-op systems below are
+designs until source and playtests demonstrate otherwise. Nick's multiplayer
+order (2026-09-25): free-for-all, duel, team deathmatch, the GoldenEye-style
+mutators, capture the flag, Rescue, Sabotage, then a big combined-arms
+objective mode. Radio is not a mode. The maps they play on are in
+[the multiplayer maps plan](plans/multiplayer-maps.md).
 
 ## The bar
 
@@ -85,25 +84,33 @@ Free-for-all and teams. Frags, a limit, a clock. What the league runs on a Tuesd
 
 Weapons, armour and the good health spawn on predictable clocks, so knowing where the rail comes back and getting there first is most of the skill. That is the oldest loop in the genre and it still works.
 
-### Team deathmatch
+### Team deathmatch (built)
 
-Scrap in two sides: the Union in black and red against the free coalition. Team spawns in each side's back third, weapons on a slower clock than free-for-all, a team frag limit. Bots fill the short side; humans and agents count the same toward balance. The first team mode, because every later one needs sides, team spawns and team score.
+Scrap in two sides: the Union in black and red against the free coalition in bone, leather and ember. Every join, human, agent or rule bot, takes the smaller side, and a round start moves rule bots first when one side is two ahead. Each side spawns in its own half through the same spawn safety as free-for-all, weapons come back on a slower 30 second clock, friendly fire is off unless the host turns it on, and the first side to the team frag limit (25 by default) takes the round. The first team mode, because every later one needs sides, team spawns and team score.
 
-### Jammer (proposed flagship)
+### Capture the flag (next)
 
-Round-based attack and defend, one life per round, the Counter-Strike loop in
-fragr's world. The coalition carries a jammer to one of two Office relay sites
-and mounts it (3 s); if it runs 35 s, the relay goes to dead air and a
-correction order misses its window. The Union, black and red, holds the relays
-and seizes a mounted jammer (6 s). Elimination, the clock or a seize settle the
-rest. 4v4, halves of 8, first to 9, sides swap at half; Pairs is the one-site
-2v2 cut.
+Two flags, one per side on a stand in its back third. Take theirs home while
+yours is home. A dropped flag returns when a teammate touches it or after a
+short wait. The carrier can shoot. Rules in
+[the multiplayer modes plan](plans/multiplayer-modes.md#rung-2-capture-the-flag).
 
-Frags pay scrip, and a ten second muster at the bell spends it at the spawn
-locker: armour, a primary, three throwables that reward lineups. Survivors keep
-what they carry; the dead drop their gun. It is a labelled loadout exception,
-like Open Weights. Roles emerge from the buy, never from a class menu. Numbers,
-round flow and extra rounds are in [the replayability plan](plans/replayability.md#the-flagship-jammer).
+### Rescue and Sabotage
+
+The Counter-Strike round in fragr's world, as two modes on their own dedicated
+maps, the way that game split hostage and bomb maps. Both share one set of round
+rules: one life per round, attack and defend, sides swap at half, no buy shop
+and no loadouts. You fight with what the floor gives you.
+
+**Rescue.** The free side breaks into a Union correction site and extracts
+captive agents; the Union holds them. Attackers win by getting captives out or
+by eliminating the defenders; defenders win on the clock or by elimination.
+
+**Sabotage.** The free side plants a charge on a Union correction frame or
+registry server at one of two sites; the Union defends the sites or defuses a
+planted charge. Round flow, format and map requirements are in
+[the replayability plan](plans/replayability.md#the-flagship-rescue-and-sabotage).
+
 
 ### Control
 
@@ -129,11 +136,14 @@ spawn, inventory, spectating, and end-condition behavior.
 
 ### Frontline objectives
 
-Larger team maps use linked control sites, reinforcement limits, and routes with
-distinct jobs: exposed long lanes, protected approaches, and flanking height.
-The conflict is over custody infrastructure and territory. The map must stay fun
-on foot before vehicles or greater player counts are added. Scale is established
-by measured fights and server budgets, never inferred from the map's dimensions.
+The big combined-arms mode, in the spirit of Battlefield 1942 and Halo's large
+maps. Larger team maps use linked control sites, reinforcement limits, and
+routes with distinct jobs: exposed long lanes, protected approaches, and
+flanking height. The conflict is over custody infrastructure and territory; on
+the big maps the capture points include pirate radio masts. The map must stay
+fun on foot before vehicles or greater player counts are added. Scale is
+established by measured fights and server budgets, never inferred from the
+map's dimensions.
 
 ### Correction
 
@@ -219,7 +229,7 @@ Cosmetics, earned by doing something hard, and nothing else. No purchases, no se
 
 The challenges are specific and mostly ridiculous: finish an episode on the hardest tier using one weapon, take fifty kills in the air, survive a Sweep past a round nobody else on the server has. What you get is a bright chassis panel, a battered helmet, a flag beside your name.
 
-Mutators (proposed) are host settings from the start, not unlocks: Licence to Kill (one hit kills), Golden Rail (one gold rail on the map, kill the carrier to take it), Rail Only, Scatter Only, Fists Only, Two Lives, and Open Weights. They cost almost nothing to build and they are where a lot of the fun actually is, so they come before team modes. Beating the campaign unlocks only the silly ones, in the old tradition: big heads, low gravity, double speed.
+Mutators are host settings from the start, not unlocks. Built (2026-09-25): Licence to Kill (any damaging hit kills), Golden Rail (one gold Railgun on the map that kills in one hit; kill the holder and it returns to its pad), Rail Only, Shotgun Only, Fists Only, and Two Lives (last fighter or side standing). Open Weights is still proposed. They cost almost nothing to build and they are where a lot of the fun actually is. Beating the campaign unlocks only the silly ones, in the old tradition: big heads, low gravity, double speed.
 
 ## Every life starts empty
 

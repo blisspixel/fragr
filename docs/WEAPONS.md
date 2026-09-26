@@ -22,9 +22,9 @@ trickle below are proposals. Implementation and evidence:
 [`plans/m01-weapon-discovery.md`](plans/m01-weapon-discovery.md).
 
 Current fists reach 1.8 metres. Tack reaches 30 metres with 0.03-radian spread.
-Caps are 200 Bullets and 50 Shells, Doom's own, and 50 Cells: one cell is one
-80 damage rail shot, so the cap follows Doom's rocket count rather than its
-plasma count. A weapon pickup adds Tack 50 Bullets (Doom's pistol start),
+Caps are 200 Bullets and 50 Shells, Doom's own, and 100 Cells: one cell is one
+80 damage rail shot. Nick raised the Cells cap from 50 to 100 on 2026-09-25 so a
+Railgun player can bank ten pickups. A weapon pickup adds Tack 50 Bullets (Doom's pistol start),
 Flechette 60 Bullets, Scatter 12 Shells or Rail 10 Cells, on discovery and
 again when the gun is already carried. Every shot spends one unit, including a
 Scatter blast of seven pellets. Dry fire does not discard a weapon or switch

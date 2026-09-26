@@ -79,7 +79,7 @@ Initial handshake message. Must be sent immediately after connection.
   No player or spectator session is created on rejection. This is geometry
   compatibility, not general protocol or action-version negotiation.
 - `gameplay_version`: maximum understood gameplay contract. Updated Rust readers
-  and the Godot client send `11`; omission means `1`. Discovery-only maps require 2, maps with authored
+  and the Godot client send `12`; omission means `1`. Discovery-only maps require 2, maps with authored
   encounters require 3, and mission sequences require 6 for shared difficulty.
   Versions 4 and 5 introduced physical controls and party readiness respectively;
   they cannot enter current missions. Solo runs require 7 for explicit continues.
@@ -96,6 +96,13 @@ Initial handshake message. Must be sent immediately after connection.
   included, now requires 11 for every role, because any authored map may place
   the Shiv and a version 10 reader would refuse a loadout naming it. Records still
   go to 10 or later: arena and full-arsenal records never carry the new fields.
+  Version 12 adds match rule sets ([Match rules](#match-rules)): sides, lives,
+  the golden Railgun, side scores and keyed `host_reaction` events, and raises
+  the Cells cap from 50 to 100. Every discovery map requires 12, because a
+  version 11 reader would refuse a loadout above 50 cells, and so does any
+  arena running rules other than plain free-for-all, because a team match shown
+  without teams misleads. An arena with a rule set does not take the four-seat
+  mission party limit that capability 4 and above otherwise brings.
   Use matching campaign server/client builds.
   Older clients of every role are rejected before `Welcome`
   with `unsupported_gameplay`. This capability is separate from geometry. The six
@@ -175,7 +182,9 @@ breaking envelope change would add that field then, with its own rejection.
 `GET /status` on the game port, before any WebSocket upgrade, returns a JSON
 `LiveStatus` (`schema_version` 2): `kind` (`arena` or `campaign`), map name,
 round, tick, fighters, humans, agents, bots, and connections. A missing `kind`
-is not an arena. It does not list callsigns or addresses, and it does not take
+is not an arena. Additive to schema 2, `mode` names the rule set's mode (`ffa`
+or `tdm`; a missing `mode` means `ffa`) and `mutators` lists its mutator ids,
+omitted when none, so a server list can show what a server plays. It does not list callsigns or addresses, and it does not take
 a connection slot. It is a host probe. Watching and playing happen in the Godot
 app, which reads only those fields and accepts exactly schema 2.
 
@@ -526,6 +535,8 @@ also send `map_info` before shared progress, even when the map ID stays the same
   Each prepared gate world carries its own presentation: the `map_info` resent
   after a gate rises shows that gate's lamps as `gate_open`, on the gate and on
   whatever opened it. They carry the gate's real state, not decoration.
+- `rules`: the arena's rule set, omitted on authored campaign maps. See
+  [Match rules](#match-rules).
 - `m02_objectives`: optional objective count (1 to 8), present only on an M02
   map. It identifies the M02 contract independently of `map_id` and must match
   the subsequent `mission.state.m02.total`. Legacy maps omit it, including
@@ -572,7 +583,7 @@ fists, tack, flechette, scatter, rail, shiv. The `shiv` is found, not issued: a
 pool-less melee weapon (35 damage, 6 tick cooldown, 2.2 unit reach) that spends
 nothing and has no ammunition count. Picking it up again adds nothing. `ammo` contains
 all three unique pools: `bullets` (Tack and Flechette, cap 200), `shells`
-(Scatter, cap 50) and `cells` (Rail, cap 50). There are no magazines and no
+(Scatter, cap 50) and `cells` (Rail, cap 100 since capability 12). There are no magazines and no
 reload: one shot, including a seven-pellet scatter blast, spends one unit from
 its pool, and fists need nothing. A weapon pickup adds Tack 50, Flechette 60,
 Scatter 12 or Rail 10 units. The magazine-era `reserves` and `reload` fields are
@@ -741,6 +752,9 @@ Periodic state broadcast containing all visible game entities. Sent at ~20 Hz.
   - `behavior`: (optional) Rule-bot tactics name, or Agent-set display label from `set_display_behavior`
   - `score`: Kills in current round
   - `weapon`: Current weapon name ("Flechette", "Rail", or "Scatter")
+  - `team`: (optional) `union` or `coalition` in a team mode, omitted otherwise
+  - `lives`: (optional) lives left this round, this one included, when lives are limited
+  - `golden`: (optional) true while holding the golden Railgun, omitted otherwise
 - `round_state`: (optional) Current round state ("Warmup", "Active", "Ended")
 - `round_time_left`: (optional) Seconds left in Active (time limit) or Warmup countdown. Omitted while Ended.
 - `frag_limit`: (optional) Frag limit for current round
@@ -753,6 +767,7 @@ Periodic state broadcast containing all visible game entities. Sent at ~20 Hz.
 - `playlist`: Arena Duel under the league lie
 - `pressure`: (optional) Live pressure beat id. `"compliance_drone"` while the Compliance Drone is alive; `"compliance"` during Continuance compliance ping slow.
 - `host_line`: Sticky Contested Frequency Host chrome for mid-join / mid-round observe. League Host line by default while Active (no pressure). During Warmup, Contested Frequency bumper names the map, dialed-in scrap roster (callsigns), and countdown seconds. Switches to the compliance Host line while pressure is live. While Ended, carries the MVP Host bumper. Clients show this on join without waiting for the next `round_start`.
+- `team_scores`: (optional) `{"union": n, "coalition": n}`, side frags this round, present only in a team mode.
 - `mvp` / `mvp_frags`: (optional, present while Ended) Structured round MVP name and frag count for mid-join / `round_state` rehydrate. Omitted during Warmup and Active. Same selection as `round_end` MVP (top score / frags).
 - `pickups`: (optional, omitted when empty) Scrap layout: `map_id` (1 Arena Duel / 2 Compliance Yard) and `map_name`. Mid-map pads (weapons, health, armor). Each entry: `id`, `kind` (`"weapon"` / `"health"` / `"armor"`, default `"weapon"`), optional `weapon` (weapon pads), optional `amount` (health/armor pads), `x`/`y`/`z`, `available`, optional `respawn_in` (ticks until the pad returns). Health pads heal +40 (cap max HP); armor scrap grants +25 (cap 100). Touch claim is authoritative on the server; clients only render.
 
@@ -875,9 +890,15 @@ them. Connection-control unicasts may arrive between ticks.
   "event": "frag",
   "killer": "Bot1",
   "victim": "Bot2",
-  "killer_score": 5
+  "killer_score": 5,
+  "killer_team": "union",
+  "victim_team": "coalition"
 }
 ```
+
+`killer_team` and `victim_team` appear only in a team mode. A frag where both
+name the same side is a team kill under friendly fire: it scores nothing and
+`killer_score` is unchanged.
 
 **Hit Event:** (damage applied; structured hit-confirm for agents)
 ```json
@@ -1068,8 +1089,10 @@ MVP is the top scorer (same selection as `winner`). `mvp` / `mvp_frags` / `host_
 ```
 
 **Fields:**
-- `event`: Event type (`frag`, `hit`, `respawn`, `round_start`, `round_end`, `player_joined`, `player_left`, `compliance_ping`, `boss_spawn`, `boss_down`, `speak`, `pickup`, `killstreak`)
-- `kind`: (pickup only) Pad kind: `"weapon"` / `"health"` / `"armor"` (default `"weapon"`). Weapon pads also carry `weapon`; health/armor pads carry `amount`.
+- `event`: Event type (`frag`, `hit`, `respawn`, `round_start`, `round_end`, `player_joined`, `player_left`, `compliance_ping`, `boss_spawn`, `boss_down`, `speak`, `pickup`, `killstreak`, `host_reaction`)
+- `kind`: (pickup only) Pad kind: `"weapon"` / `"health"` / `"armor"` / `"golden_rail"` (default `"weapon"`). Weapon and golden pads also carry `weapon`; health/armor pads carry `amount`.
+- `rules`: (round_start, optional) the arena's rule set, repeated each round for event readers
+- `winning_team` / `team_scores`: (round_end, team modes only) the winning side, omitted for a draw, and the final side frags
 - `killer` / `victim`: Player names involved in frag
 - `killer_score`: Killer's score after the frag
 - `streak` / `tier` / `message`: Killstreak Host callout (tiers `double` / `triple` / `rampage`)
@@ -1095,6 +1118,96 @@ MVP is the top scorer (same selection as `winner`). `mvp` / `mvp_frags` / `host_
   - Buffered in the `recent_events` field of the `observe` tool response (last 50 events)
   - Via the dedicated `get_events` tool for explicit retrieval
 - Events capture match drama (frags, respawns, rounds) without forcing agents onto the combat tick
+
+### Match rules
+
+A server runs one rule set, chosen by the host at launch
+(`--mode ffa|tdm`, repeatable `--mutator`, `--friendly-fire`, `--frag-limit`).
+`map_info.rules` carries it to every connection, `round_start` repeats it,
+`GET /status` names it, and the MCP adapter returns it from `round_state`.
+
+```json
+{
+  "mode": "tdm",
+  "name": "Team Deathmatch: Rail Only, Two Lives",
+  "mutators": ["rail-only", "two-lives"],
+  "friendly_fire": true,
+  "lives": 2
+}
+```
+
+- `mode`: `ffa` (free-for-all) or `tdm` (team deathmatch).
+- `name`: an English label for logs and agents. Clients key their own labels.
+- `mutators`: sorted, unique ids, omitted when none: `rail-only`,
+  `shotgun-only`, `fists-only`, `licence-to-kill`, `golden-rail`, `two-lives`.
+  A Rust reader refuses an unknown id; the Godot client drops it.
+- `friendly_fire`: present and true when team damage lands. Off by default.
+- `lives`: lives per fighter per round when limited (Two Lives sends 2).
+
+Rules the server enforces:
+
+- **Team deathmatch.** Sides are `union` and `coalition`. Every join, human,
+  agent or rule bot, takes the smaller side (ties go to the side behind on
+  frags, then the coalition). At a round start a side two or more ahead gives
+  up rule bots first, then its most recent joiners, who respawn on the new
+  side. The Union spawns in the negative X half and the coalition in the
+  positive X half, through the same spawn safety as free-for-all, counting only
+  enemies as threats. With friendly fire off, a shot stops on a teammate, who
+  takes no damage (`shot_results` shows `hit: true`, `damage: 0`). A frag of an
+  enemy adds one to the killer and one to the side; `frag_limit` is the side
+  limit. At the clock the higher side wins or the round is a draw. Weapon pads
+  respawn after 30 s in team modes. `PlayerState` hostility helpers treat a
+  teammate as not hostile.
+- **Rail Only, Shotgun Only, Fists Only.** Everyone holds that one weapon with
+  unlimited ammunition, `weapon_swap` to anything else is ignored, and weapon
+  and ammunition pads are removed. Health and armour pads stay. No private
+  loadout is sent, as on any full-arsenal arena.
+- **Licence to Kill.** Any hit that deals damage kills: `damage` is at least the
+  victim's health plus armour.
+- **Golden Rail.** One pickup with `kind` `golden_rail` and `id` `golden_rail`
+  replaces the map's Railgun pad (the centre when a map has none). Touching it
+  takes it: `golden` becomes true on the holder, who switches to the Railgun, and
+  a `pickup` event with kind `golden_rail` follows. The holder's Railgun hits
+  kill. When the holder dies or leaves, the pickup is available again.
+- **Two Lives.** `lives` starts at 2 each round (1 for a fighter who joins a
+  live round). A fighter whose lives reach zero leaves `players` until the round
+  ends, like a fighter waiting to respawn, but does not return. When one fighter
+  (or one side) is left with a life, having started with two or more, the round
+  ends: `reason` is `Last fighter standing` (with that fighter as `winner`) or
+  `Last side standing` (with `winning_team`). The mid-round Compliance Drone is
+  off on a lives-limited server.
+
+Plain free-for-all servers send `rules` with `mode` `ffa` and no mutators, and
+none of the team, lives or golden fields.
+
+#### Host reactions
+
+```json
+{
+  "type": "event",
+  "event": "host_reaction",
+  "kind": "streak_ended",
+  "variant": 1,
+  "player": "Dead Air Dan",
+  "other": "Nightfall",
+  "team": "union"
+}
+```
+
+A Host beat from an authoritative fact. The server sends no words: the client
+renders `HOST_REACTION_<KIND>_<VARIANT>` from `client/i18n/match.en.po`, filling
+`{player}`, `{other}` and `{team}`. `variant` is 0 to 2 and rotates per kind
+across the session. `player`, `other` and `team` are each omitted when they do
+not apply. No reaction lands within eight seconds of the last one, except
+`golden_rail`.
+
+| `kind` | When | Names |
+|---|---|---|
+| `first_blood` | The first frag of a round | `player` the killer, `other` the victim, `team` the killer's side |
+| `streak_ended` | A fighter on a streak of three or more is killed (not on first blood) | `player` the streak's owner, `other` who ended it, `team` the owner's side |
+| `last_standing` | A lives-limited team round leaves a side of two or more with one fighter against two or more | `player` that fighter, `team` the side |
+| `comeback` | A side that trailed by four or more draws level | `team` the side |
+| `golden_rail` | Somebody takes the golden Railgun | `player` the holder, `team` their side |
 
 ## Implementation Notes
 
@@ -1140,7 +1253,7 @@ MVP is the top scorer (same selection as `winner`). `mvp` / `mvp_frags` / `host_
 
 ### Round System
 - **Warmup**: 2 seconds (40 ticks) with Contested Frequency Host countdown drama on Snapshot (`host_line` + `round_time_left`; Godot full-frame Warmup TV with GOES LIVE IN N)
-- **Frag limit**: Default 10 kills
+- **Frag limit**: Default 10 kills; 25 side frags in team deathmatch. `--frag-limit` overrides either
 - **Time limit**: Default 180 seconds (3600 ticks)
 - **End delay**: 8 seconds (160 ticks) between rounds
 - **Scoring**: Per-round kills, reset each round
@@ -1204,16 +1317,16 @@ version 2 requires that field; it is separate from
 the on-wire campaign rules revision. No parent command changes it during a run.
 
 ```json
-{"version":2,"mission":"recall_notice","difficulty":"standard","url":"ws://127.0.0.1:49152","gameplay_version":11}
+{"version":2,"mission":"recall_notice","difficulty":"standard","url":"ws://127.0.0.1:49152","gameplay_version":12}
 ```
 
 The readiness record names the selected mission's client contract, rather than
 the highest version understood by the server. Both missions carry discovery
-equipment, so both name 11. The local launcher checks this value exactly.
+equipment, so both name 12. The local launcher checks this value exactly.
 
 `--local-mission persons_unknown` starts the bundled M02 graybox as a
 development child. It writes the same readiness line with
-`"mission":"persons_unknown"` and `"gameplay_version":11`. It has no durable run:
+`"mission":"persons_unknown"` and `"gameplay_version":12`. It has no durable run:
 `--run-mode` is refused before readiness, mission state carries no `run`, and
 the party keeps development entry respawn and the shared wipe reset. It is not
 a save carry from M01.

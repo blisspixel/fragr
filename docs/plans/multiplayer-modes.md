@@ -1,7 +1,7 @@
 # Plan: multiplayer modes
 
-**Status:** in flight (2026-09-25). Rung 1 below is being built on
-`feat/multiplayer-modes`. Rungs 2 and 3 are designs.
+**Status:** in flight (2026-09-25). Rung 1 below is built on
+`feat/multiplayer-modes`. Every later rung is a design.
 **Spend:** $0. Server rules, client presentation, harness runs and tour stills
 are local. No paid audio: the Host reactions are keyed text only.
 
@@ -16,14 +16,29 @@ objective mode in the spirit of Battlefield 1942, Call of Duty or Halo.
 Mutators are host settings from the start, not unlocks. No loadout shop.
 Minimal radio work.
 
+## The mode list, in order
+
+Nick's order (2026-09-25). Radio is not a mode.
+
+| # | Mode | Status |
+|---|---|---|
+| 1 | Free-for-all (Scrap) | built |
+| 2 | Duel | designed in [multiplayer-maps.md](multiplayer-maps.md#modes-in-build-order) |
+| 3 | Team deathmatch | this work |
+| 4 | GoldenEye-style mutators | this work |
+| 5 | Capture the flag | next, rung 2 below |
+| 6 | Rescue | rung 3 below, on its own maps |
+| 7 | Sabotage | rung 3 below, on its own maps |
+| 8 | The big combined-arms objective mode (Frontline) | rung 4 below |
+
 The bar is feel before graphics: responsive fighters, readable kills, strong
 hit feedback, fast respawn and a round that keeps moving. A new rule earns its
 place when it changes how a round plays, not how it looks.
 
 ## Non-goals
 
-- A buy menu, scrip or loadout shop (Jammer's economy stays a separate proposal
-  in [replayability.md](replayability.md)).
+- A buy menu, scrip or loadout shop, in any mode. Rescue and Sabotage are
+  fought with what the floor gives you.
 - Unlocks for mutators. Every mutator is a host flag on day one.
 - New radio or voice production. Host reactions are text keys in the client.
 - New maps. Every mode here runs on the six built-in arena maps.
@@ -187,15 +202,40 @@ object on the wire (`flags` in the snapshot: stand, state, carrier, position),
 flag events for the Host, flag stands in each built-in map's team halves (Arena
 Duel's opposite gantries, Sector 9's two ends first), agents reading flag state
 in `observe`, and harness gates for captures per round and carrier survival
-time. The carried-object seam is shared with Custody and Jammer later.
+time. The carried-object seam is shared with Rescue's captives and Sabotage's
+charge.
 
-### Rung 3: the big combined-arms mode (Frontline)
+### Rung 3: Rescue and Sabotage
+
+The Counter-Strike round as two modes on dedicated maps, the way that game split
+its hostage and bomb maps. One set of round rules for both: one life per round
+(the Two Lives machinery with one life and a round clock), attack and defend,
+sides swap at half, no buy shop and no loadouts. The free coalition attacks and
+the Union defends.
+
+- **Rescue.** The coalition breaks into a Union correction site and extracts
+  captive agents to an exit zone; the Union holds them. A captive follows the
+  attacker who freed it and stops when that attacker dies. Attackers win by
+  extracting enough captives or eliminating the defenders; defenders win on the
+  clock or by elimination.
+- **Sabotage.** The coalition plants a charge on a Union correction frame or
+  registry server at one of two sites; the Union defends the sites and can
+  defuse a planted charge. After a plant, eliminating the attackers does not
+  win: a defender still has to defuse.
+
+Needs: round and half flow in `RoundState`, a carried or escorted object on the
+wire (shared with capture the flag), timed stand-still actions (plant, defuse,
+free a captive) with interruption, dedicated maps built to the rule sheet, and
+harness gates for attacker win rate per site and mean round length.
+
+### Rung 4: the big combined-arms mode (Frontline)
 
 Battlefield 1942 conquest on foot first. Three to five control sites on a
-medium or large map; holding more sites bleeds the other side's tickets, faster
-as the gap grows; a side spawns at its base or any site it holds; the round
-ends at zero tickets. Sites flip by standing on them with no enemy inside,
-with the zone state on the wire (the Control mode's seam from
+medium or large map; the capture points include pirate radio masts on the big
+maps. Holding more sites bleeds the other side's tickets, faster as the gap
+grows; a side spawns at its base or any site it holds; the round ends at zero
+tickets. Sites flip by standing on them with no enemy inside, with the zone
+state on the wire (the Control mode's seam from
 [multiplayer-maps.md](multiplayer-maps.md#modes-in-build-order)). Classes stay
 out: roles come from what you pick up. Vehicles (jeep, motorcycle, jetpack)
 join only after the mode is fun on foot and their missions have built them
@@ -205,8 +245,10 @@ safety, and measured server budgets at 16 to 32 fighters before any claim.
 
 ### Later
 
-- Duel admission and rematch, Control, Custody and Jammer stay in the order in
-  [multiplayer-maps.md](multiplayer-maps.md#modes-in-build-order).
+- Duel admission and rematch sit second in the mode list and can land beside
+  any rung above; Control and Custody from
+  [multiplayer-maps.md](multiplayer-maps.md#modes-in-build-order) are candidate
+  shapes for Frontline's sites and carried objects.
 - Open Weights (everything loaded, no pickups, no respawns) is one more
   mutator on this framework.
 - Boomer-shooter hit effects: blood for humans, oil and sparks for machines,

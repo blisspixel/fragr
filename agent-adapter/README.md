@@ -403,12 +403,31 @@ No fields. Unknown fields -> schema error (`isError: true`).
   "mvp_frags": null,
   "map_id": 1,
   "map_name": "Arena Duel",
+  "rules": {"mode": "tdm", "name": "Team Deathmatch: Rail Only", "mutators": ["rail-only"]},
+  "team_scores": {"union": 4, "coalition": 6},
+  "self_team": "coalition",
+  "self_lives": null,
   "last_round_start": {"event": "round_start", "round_number": 3},
   "last_round_end": null
 }
 ```
 
 Fields come from the last snapshot plus the most recent `round_start` / `round_end` in the events buffer. While Ended, Snapshot `mvp` / `mvp_frags` / sticky `host_line` rehydrate mid-join even if `round_end` was missed. `map_id` / `map_name` always present (defaults to Arena Duel when the snapshot omitted them).
+
+`rules` is the server's rule set from `map_info` (or the last `round_start`
+before `map_info` arrives): `mode` (`ffa` or `tdm`), `name`, `mutators`
+(`rail-only`, `shotgun-only`, `fists-only`, `licence-to-kill`, `golden-rail`,
+`two-lives`), `friendly_fire` and `lives`, each omitted at its default. It is
+null only before either arrives or on a campaign map. `team_scores` is the
+snapshot's side frags in a team mode, else null. `self_team` and `self_lives`
+come from your own entry in the last snapshot; both are null outside a team or
+lives-limited round, and while you are waiting to respawn. Read `rules` before
+joining: in `tdm` a teammate shares your `team`, takes no damage unless
+`friendly_fire` is true, and `observe` players carry `team`, `lives` and
+`golden`. Under a weapon-only mutator, `weapon_swap` to another weapon is
+ignored. `get_events` also returns `host_reaction` beats (`kind`, `variant`,
+`player`, `other`, `team`); the words live in the client. The full rule
+contract is in [`docs/protocol.md`](../docs/protocol.md#match-rules).
 
 ## Architecture
 

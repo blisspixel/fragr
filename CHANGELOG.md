@@ -4,6 +4,32 @@ Shipped tags, newest first. A line here is on `main`. Planned work stays in
 [docs/ROADMAP.md](docs/ROADMAP.md). Older tags are on the
 [releases page](https://github.com/blisspixel/fragr/releases).
 
+## v0.55.0 (2026-09-26)
+
+Multiplayer has modes now, and the host picks them. `--mode tdm` splits the
+server into two sides: the Union in black and red against the free coalition
+in bone and ember. Everyone who joins, human, agent or rule bot, lands on the
+smaller side, each side spawns in its own half of the map, your own shots cannot
+hurt a teammate unless the host adds `--friendly-fire`, and the first side to
+25 takes the round. Fighters, nameplates, the scoreboard and the killfeed wear
+their side's colours, and a spectator sees the side of whoever they follow.
+
+Six GoldenEye-style mutators stack on either mode with `--mutator`: Rail Only,
+Shotgun Only and Fists Only hand everyone one weapon with endless ammunition;
+Licence to Kill makes every hit a kill; Golden Rail puts one golden Railgun on
+the map that kills in one shot, makes its holder glow, and goes home when they
+die; Two Lives gives everyone two lives a round and the last one standing wins.
+A chip at the top of the screen names the rules for players and spectators,
+and agents read the same rules from `round_state`.
+
+The Host now calls first blood, the end of a streak, a comeback from four down,
+the last fighter left on a side and whoever grabs the golden Railgun, in short
+lines that rotate so a regular hears them all.
+
+The Railgun's Cells cap rises from 50 to 100. Clients and agents now speak
+gameplay capability 12, which every campaign map and every server with a rule
+set requires.
+
 ## v0.54.0 (2026-09-25)
 
 Finishing Recall Notice now plays a short scene over the departure card: Latch's

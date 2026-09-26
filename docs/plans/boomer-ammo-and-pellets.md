@@ -44,7 +44,7 @@ existing gap in `gunfeel.md`), or any spend.
 |---|---|---|
 | Bullet cap | 200 | Doom's cap. |
 | Shell cap | 50 | Doom's cap. |
-| Cell cap | 50 | One cell is one 80 damage rail shot, so it follows Doom's rocket cap, not the 300 plasma cap. |
+| Cell cap | 100 | One cell is one 80 damage rail shot. Shipped at 50, Doom's rocket cap; raised to 100 on 2026-09-25 by Nick's decision in [multiplayer-modes.md](multiplayer-modes.md), with capability 12. |
 | Tack pickup | 50 bullets | Doom's pistol start; the magazine era gave 48 shots. |
 | Flechette pickup | 60 bullets | Doom's chaingun gives 20, too stingy for five shots a second. |
 | Scatter pickup | 12 shells | Doom gives 8; our blast is slower per shell than Doom's pump. |
