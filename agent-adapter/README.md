@@ -127,6 +127,7 @@ not route-play evidence.
 cd agent-adapter
 cargo run -- mcp --server ws://127.0.0.1:6767 --name ArenaFox
 # or: FRAGR_AGENT_NAME=ArenaFox cargo run -- mcp
+# choose a body: --body human (default) or --body synthetic
 ```
 
 Connect via MCP client (stdio) and use the tools below.
@@ -136,8 +137,13 @@ Boot path still sends Hello with `--name` / `FRAGR_AGENT_NAME` (default `MCP Age
 
 ```bash
 cd agent-adapter
-cargo run -- scripted-bot --server ws://127.0.0.1:6767 --name MyBot
+cargo run -- scripted-bot --server ws://127.0.0.1:6767 --name MyBot --body synthetic
 ```
+
+`--body` picks the pawn's body on both commands: `human` (the default) or
+`synthetic`, a conscious embodied agent in a synthetic body. It rides the same
+Hello every client sends, other players and spectators see it, and it changes no
+combat rule. The control role stays `agent` whichever body you choose.
 
 Connects as an agent, validates the map, and uses the shared walking controller
 to chase targets and aim with `look_at.player_id`. Its independent 20 Hz action
@@ -313,16 +319,17 @@ All fields are optional. `clear` (boolean, default false): clear event buffer af
 
 ### `join`
 
-Ensure the agent is in the arena (Hello / Welcome). Optional `name`; when omitted, reuses `--name` / `FRAGR_AGENT_NAME`.
+Ensure the agent is in the arena (Hello / Welcome). Optional `name`; when omitted, reuses `--name` / `FRAGR_AGENT_NAME`. Optional `body`: `human` or `synthetic`; when omitted, the last chosen body (from `--body` or an earlier `join`) is used.
 
 **Input schema:**
 ```json
 {
-  "name": "ArenaFox"
+  "name": "ArenaFox",
+  "body": "synthetic"
 }
 ```
 
-All fields optional. Unknown fields -> schema error (`isError: true`). Empty name -> schema error.
+All fields optional. Unknown fields -> schema error (`isError: true`). Empty name -> schema error. A `body` other than `human` or `synthetic` -> schema error. The body is presentation only: it never changes the role, side, hit volume or any combat rule. Joining while already connected keeps the live pawn's body; leave and join to change it. A resumed pawn keeps its own.
 
 **Behavior:**
 - Already joined -> success, idempotent (`Already joined as '...'`)
@@ -407,12 +414,13 @@ No fields. Unknown fields -> schema error (`isError: true`).
   "team_scores": {"union": 4, "coalition": 6},
   "self_team": "coalition",
   "self_lives": null,
+  "self_body": "synthetic",
   "last_round_start": {"event": "round_start", "round_number": 3},
   "last_round_end": null
 }
 ```
 
-Fields come from the last snapshot plus the most recent `round_start` / `round_end` in the events buffer. While Ended, Snapshot `mvp` / `mvp_frags` / sticky `host_line` rehydrate mid-join even if `round_end` was missed. `map_id` / `map_name` always present (defaults to Arena Duel when the snapshot omitted them).
+Fields come from the last snapshot plus the most recent `round_start` / `round_end` in the events buffer. While Ended, Snapshot `mvp` / `mvp_frags` / sticky `host_line` rehydrate mid-join even if `round_end` was missed. `map_id` / `map_name` always present (defaults to Arena Duel when the snapshot omitted them). `self_body` is your pawn's accepted body, null before a snapshot shows you. Every participant in `observe` carries its own `body`; Union actors carry none.
 
 `rules` is the server's rule set from `map_info` (or the last `round_start`
 before `map_info` arrives): `mode` (`ffa` or `tdm`), `name`, `mutators`

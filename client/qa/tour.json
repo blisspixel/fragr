@@ -30,12 +30,27 @@
       "note": "Optional chase view and readable fighter silhouettes."
     },
     {
+      "name": "body_human",
+      "at_seconds": 10,
+      "camera": "body",
+      "body": "human",
+      "note": "Close eye-level still of a fighter the server says is human: free bone, leather and rust, face and hair, feet on the floor at hit-volume height."
+    },
+    {
+      "name": "body_synthetic",
+      "at_seconds": 11,
+      "camera": "body",
+      "body": "synthetic",
+      "note": "The same framing on a fighter in a synthetic body: bone shell, gunmetal frame, ember scarf, cyan lenses. Never Union black and red."
+    },
+    {
       "name": "hud_first_person",
       "at_seconds": 12,
       "camera": "first_person",
       "join": "human",
       "weapon": "Flechette",
-      "note": "Actual human join, saved callsign, gun silhouette, and aim visibility."
+      "note": "Actual human join, saved callsign, gun silhouette, and aim visibility. The profile asks for the synthetic body; first-person hands stay the shared gloved viewmodels.",
+      "profile_body": "synthetic"
     },
     {
       "name": "hud_legend_pad",

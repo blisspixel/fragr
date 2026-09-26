@@ -1,8 +1,8 @@
-# Union character source
+# Character source
 
 Original articulated source for the Union's human Clerk, bot Sweeper, Heavy
-Sweeper and Turret. These are directional campaign sets under visual review.
-They do not establish a completed cast or final character production bar.
+Sweeper and Turret, and for the two free participant bodies. The Union sets are
+directional campaign sets under visual review. They do not establish a completed cast or final character production bar.
 
 `geometry.gd` owns material/mesh primitives and the Union palette; `rig.gd` owns
 humanoid anatomy, issued gear and joint poses; `machines.gd` owns the Heavy
@@ -69,6 +69,29 @@ windup holds its final pose instead of predicting an attack. Dead actors settle
 and remain down until server cleanup. Armed and exhausted melee poses are distinct.
 Recovery lowers/regrips the weapon; the wire does not yet distinguish reload
 from recovery, so the client must not pretend to know which occurred.
+
+## Free participant bodies
+
+`player_rig.gd` extends the same rig with the two bodies a player can choose: a
+free human and a conscious embodied agent in a synthetic body. They share the
+rig's joints, poses, field and feet registration, and none of the Union issue:
+no black cloth, red, serials, pauldrons or visor slit. The human wears a bone
+shirt under an open warm-leather jacket, a rust scarf and a cyan patch and
+armband, with a visible face and hair. The synthetic body is a bone shell over a
+gunmetal frame with a leather harness, an ember scarf, rust repair plates, two
+round cyan lenses and one magenta-tipped antenna. Both are outlined in outline
+purple. Neither body establishes moral status.
+
+`player_bake.gd` writes `client/assets/characters/free/human.png` and
+`synthetic.png`: one row of 160 pixel cells, four idle breaths then four walk
+frames, unarmed, because the runtime weapon sprite is held at the hands. It also
+writes a manifest with source and output hashes, which `test_player_body.gd`
+checks for freshness and for the absence of Union red. A review sheet beside the
+Clerk and Sweeper goes to `.agents/characters/free-bodies/`. Bake the same way:
+
+```sh
+godot --path client --rendering-driver opengl3 --windowed --script res://art/characters/player_bake.gd
+```
 
 Run the main and maintenance M01 tours after changes. Inspect attack and death
 sequences, facing from multiple sides, occlusion, feet, both renderers, and

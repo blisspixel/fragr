@@ -75,13 +75,15 @@ and fresh-player acceptance outstanding. Source manifest: `client/qa/m01-records
 | `m01_secret_shiv_16x9.png` | The secret Shiv found in the confiscation alcove and held in hand |
 | `tour_multiplayer_16x9.png` | App multiplayer page after GET /status. Host example is 127.0.0.1:6767. |
 | `tour_menu_16x9.png` | Retro boot menu |
-| `tour_profile_16x9.png` | Callsign, reticle, and weapon bob |
+| `tour_profile_16x9.png` | Callsign, reticle, body choice with its preview, and weapon bob |
 | `tour_records_16x9.png` | Persisted arena observation, exact attack denominator and incomplete-session status |
 | `tour_settings_16x9.png` | Saved controls, including sensitivity, inversion, turn speed, and weapon bob |
 | `tour_difficulty_16x9.png` | New-run Assisted, Standard and Severe choices |
 | `tour_first_person_16x9.png` | Human first person |
 | `tour_spectator_16x9.png` | Spectator through a fighter's eyes |
 | `tour_combat_follow_16x9.png` | Optional chase view |
+| `tour_body_human_16x9.png` | Close still of a fighter the server says is human, in free colours at hit-volume height |
+| `tour_body_synthetic_16x9.png` | The same framing on a fighter in a synthetic body, an embodied agent |
 | `tour_arena_overview_16x9.png` | Server geometry with industrial surfaces and scenery outside the playable boundary |
 | `tour_shot_strip.png` | Twelve frames of an acknowledged shot |
 | `tour_rail_impact_strip.png` | Single local rail impact on the floor, sampled through spark expiry |

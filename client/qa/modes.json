@@ -17,6 +17,30 @@
       "note": "Both sides on the map in their colours."
     },
     {
+      "name": "modes_body_coalition_human",
+      "at_seconds": 10,
+      "camera": "body",
+      "body": "human",
+      "body_team": "coalition",
+      "note": "Free coalition side: a human body keeps its own free palette under the side plate. Requires FRAGR_QA_MODE=tdm."
+    },
+    {
+      "name": "modes_body_coalition_synthetic",
+      "at_seconds": 11,
+      "camera": "body",
+      "body": "synthetic",
+      "body_team": "coalition",
+      "note": "Free coalition side: a synthetic body keeps bone, leather, ember and cyan, never Union black and red."
+    },
+    {
+      "name": "modes_body_union_side",
+      "at_seconds": 12,
+      "camera": "body",
+      "body": "synthetic",
+      "body_team": "union",
+      "note": "The Union side of a team match: the same body under the dark side tint and red plate, so sides still read apart."
+    },
+    {
       "name": "modes_first_person",
       "at_seconds": 13,
       "camera": "first_person",

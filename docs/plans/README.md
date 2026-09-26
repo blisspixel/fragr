@@ -17,6 +17,7 @@ Status words: **proposed** (a design awaiting Nick's decision; directs no work),
 
 | Plan | Status | One-liner |
 |---|---|---|
+| [`player-body-selection.md`](./player-body-selection.md) | **in flight** | Choose a human or an embodied agent in a synthetic body: capability 13 on Hello, Welcome and snapshots, saved in the profile, honored for agents, free-palette runtime art that keeps its colours on the coalition side. |
 | [`brain-local-model.md`](./brain-local-model.md) | **implemented** | Free open-weights decisions for `fragr-brain`: APUS-OpenJev-v1-4B through local Ollama, or a self-hosted openjev server (non-commercial weights), loopback only, strictly validated, with the paid path's budget and fallback and a measured laptop smoke. |
 | [`multiplayer-modes.md`](./multiplayer-modes.md) | **in flight** | Named rule sets chosen by the host: team deathmatch, six GoldenEye-style mutators, Host reactions and the 100 Cells cap; capture the flag, Rescue, Sabotage and a combined-arms mode designed next. |
 | [`replayability.md`](./replayability.md) | **proposed** | Counter-Strike level replay: loops at three time scales, Rescue and Sabotage as the round-based flagship with no shop or scrip and lineups, mutators, Host reactions, agent rivals, feats, demos from the trace, and a build order. |

@@ -34,7 +34,7 @@ recognition of the intelligence. Play continues into the aftermath.
 |---|---|
 | World | Dark steel, worn enamel, rust, concrete, cables, vents, practical lights, stenciled identifiers, and readable landmarks. Distinguish each arena's purpose. |
 | Surface detail | Deliberate pixel clusters and consistent texel scale. Broad readable material shapes before fine wear. Avoid uniform grids on every surface. |
-| Fighters | Distinct silhouette, facing, faction, weapon, and damage state. Cyanex and Kragge remain seed identities. Flesh or metal does not establish moral status. |
+| Fighters | Distinct silhouette, facing, faction, weapon, and damage state. Participants wear the body they chose, a free human or a free embodied agent in a synthetic body ([plan](plans/player-body-selection.md)); Cyanex and Kragge remain only for fighters an older server sends without one. Flesh or metal does not establish moral status. |
 | Weapons | Flechette, rail, and scatter must read by silhouette and feedback alone. Separate inventory icons from first-person art. Preserve muzzle registration across frames. |
 | Effects | Short, forceful flashes, impacts, debris, and pain/death response. Color and sound communicate the event. Avoid glow that hides targets. |
 | Menus/settings | Chunky pixel type, bone titles, metal framing, physical controls, and strong selection states. The entire front end belongs to the retro FPS. |

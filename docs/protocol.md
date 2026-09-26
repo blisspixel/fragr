@@ -78,8 +78,17 @@ Initial handshake message. Must be sent immediately after connection.
   selected map's requirement. Rotation uses the maximum across its whole roster.
   No player or spectator session is created on rejection. This is geometry
   compatibility, not general protocol or action-version negotiation.
+- `body`: optional. `human` or `synthetic`: the participant's chosen body, a
+  human or a conscious embodied agent in a synthetic body. Both share one
+  personal story, and the body does not establish moral status. Omission or
+  `null` means `human` for every role. It is identity only: it never selects
+  the control role, side, faction, spawn, equipment, hit volume, speed or
+  health. Any other value, including a resource path, fails Hello parsing and
+  the connection closes before `Welcome`. A spectator's body is ignored. A
+  resume keeps the parked pawn's body even if this hello names another.
+  Changing the body means leaving and joining again.
 - `gameplay_version`: maximum understood gameplay contract. Updated Rust readers
-  and the Godot client send `12`; omission means `1`. Discovery-only maps require 2, maps with authored
+  and the Godot client send `13`; omission means `1`. Discovery-only maps require 2, maps with authored
   encounters require 3, and mission sequences require 6 for shared difficulty.
   Versions 4 and 5 introduced physical controls and party readiness respectively;
   they cannot enter current missions. Solo runs require 7 for explicit continues.
@@ -103,6 +112,9 @@ Initial handshake message. Must be sent immediately after connection.
   arena running rules other than plain free-for-all, because a team match shown
   without teams misleads. An arena with a rule set does not take the four-seat
   mission party limit that capability 4 and above otherwise brings.
+  Version 13 adds the chosen participant `body` on Hello, Welcome and snapshot
+  players. It is additive: no map requires it, older readers ignore the field,
+  and an older client's pawn is human.
   Use matching campaign server/client builds.
   Older clients of every role are rejected before `Welcome`
   with `unsupported_gameplay`. This capability is separate from geometry. The six
@@ -653,13 +665,18 @@ Server response to `Hello`. Confirms connection and provides player ID.
   "player_id": "550e8400-e29b-41d4-a716-446655440000" | null,
   "role": "spectator" | "human" | "agent",
   "mode_name": "Contested Frequency",
-  "playlist": "Arena Duel"
+  "playlist": "Arena Duel",
+  "body": "human" | "synthetic"
 }
 ```
 
 **Fields:**
 - `player_id`: UUID of the player entity (null for spectators)
 - `role`: Echoed role from Hello
+- `body`: the accepted body of a human or agent pawn: the requested one on a
+  fresh join, the parked pawn's own on a resume. Omitted for a spectator and by
+  servers before capability 13; a reader then treats the pawn as human rather
+  than inferring a body from the role or name.
 - `mode_name`: Named scrap-league identity (default Contested Frequency)
 - `playlist`: Playlist under the league lie (default Arena Duel)
 
@@ -755,6 +772,12 @@ Periodic state broadcast containing all visible game entities. Sent at ~20 Hz.
   - `team`: (optional) `union` or `coalition` in a team mode, omitted otherwise
   - `lives`: (optional) lives left this round, this one included, when lives are limited
   - `golden`: (optional) true while holding the golden Railgun, omitted otherwise
+  - `body`: (optional) `human` or `synthetic`, the participant's accepted body.
+    Every human, agent and rule-bot participant carries it; rule bots take
+    bodies by roster slot (human, synthetic, synthetic, human, repeating),
+    independent of name and behavior, so both sides of a team match field both. Omitted for Union campaign
+    actors and the arena boss, which keep their own authored identity. Fixed for
+    the pawn's life: respawn, resume and continue keep it.
 - `round_state`: (optional) Current round state ("Warmup", "Active", "Ended")
 - `round_time_left`: (optional) Seconds left in Active (time limit) or Warmup countdown. Omitted while Ended.
 - `frag_limit`: (optional) Frag limit for current round

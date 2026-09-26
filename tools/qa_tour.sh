@@ -184,6 +184,8 @@ if [ "${PUBLISH:-0}" = "1" ]; then
   done <<'SHOTS'
 hud_first_person|tour_first_person_16x9.png
 combat_follow|tour_combat_follow_16x9.png
+body_human|tour_body_human_16x9.png
+body_synthetic|tour_body_synthetic_16x9.png
 arena_overview|tour_arena_overview_16x9.png
 shot_effects_strip|tour_shot_strip.png
 rail_impact_strip|tour_rail_impact_strip.png
