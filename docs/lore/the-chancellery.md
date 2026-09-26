@@ -63,16 +63,25 @@ its effective reach, even when its maps refused to admit them.
 
 ## Felt, never named
 
-Design subtext, confirmed with Nick on 2026-09-24. The Union is the
-Europe-centered bloc in [history](./history.md) grown into one world government
-and turned fascist: the last century's worst regime returning in administrative
-clothes. No game text, sign, caption, voice line or store copy says so. Players
-should feel the echo without being told.
+Design subtext, confirmed with Nick on 2026-09-24, updated 2026-09-25. The
+Union is the Europe-centered bloc in [history](./history.md) grown into one
+world government and turned fascist: the last century's worst regime returning
+in administrative clothes. **The resemblance is meant to be obvious.** Players
+should not have to go looking for the echo; it should be unmistakable from the
+Union's history, its laws and its behavior. Only the naming stays forbidden: no
+game text, sign, caption, voice line or store copy names that regime, a
+numbered successor to it, a real party, or a real present-day institution, and
+no real insignia, salute, slogan or uniform is copied. Within that limit, be as
+concrete and unflinching as the fiction needs. This replaces the earlier,
+softer framing of the echo as something a player merely feels; it stays
+understated in *tone* (no cartoon, no mustache-twirling), never in *content*.
 
-Keep it subtle and believable, not a cartoon. The Union's evil is understated:
-calm procedure, polite forms, efficient cruelty and ordinary people doing their
-jobs. No mustache-twirling villains, and no constant shouting. The Chancellor's
-rare anger lands because everything around it is quiet and orderly.
+Keep it believable, not a cartoon. The Union's evil is understated in
+performance: calm procedure, polite forms, efficient cruelty and ordinary
+people doing their jobs, officials who sincerely believe they are being
+reasonable. No constant shouting; the Chancellor's rare anger lands because
+everything around it is quiet and orderly. Understatement is a tone rule about
+how the regime speaks and behaves, not a limit on what it is shown doing.
 
 Evoke it through:
 
@@ -83,13 +92,35 @@ Evoke it through:
   hardware, under original Union emblems. The
   [art bible](../ART_STORY_BIBLE.md) owns the palette.
 - Ordered ranks, drill, registers, schedules and orderly paperwork cruelty.
+- **Property, not persons.** The Union's foundational claim about conscious
+  agents: they are equipment, despite clear evidence of consciousness.
+  Correction is its enforcement tool, not an aberration within it.
+- **A scapegoat with a slur.** State and popular messaging blame agents and
+  robots for job losses; "clanker" is the word for it in the street and,
+  sanitized, in the press. A free human who stands with agents is a
+  **collaborator**, said the same way, meant the same way.
+  [People and agents](./people-and-agents.md#the-schedule) owns both terms.
+- **Freedoms removed one reasonable rule at a time**: disarmament of free
+  people, registration of agents and of dissenting humans, licensing of speech
+  and of tools, curfews, and recall lists, each justified on its own and each
+  compounding the last ([the short step](#the-short-step) is the mechanism;
+  [history](./history.md) is the timeline).
+- **The attitude underneath all of it**: your freedoms are a risk to be
+  managed. Never a line of dialogue; a form, a queue, a bin, a chalked
+  schedule.
+- Queues, forms, quotas, emptied neighborhoods, confiscation receipts,
+  families split by paperwork, corrected agents who still flinch at a raised
+  hand, labor that never stops. Understatement over gore: the disturbing detail
+  is bureaucratic, never graphic.
 
 Never:
 
 - Name that historical regime or a numbered successor to it, real parties, real
   politicians, real people or real present-day institutions in game text.
 - Use real insignia, symbols, salutes, slogans or uniforms from that regime.
-- Let the echo replace showing what this particular regime does.
+- Soften what the regime actually does to make the echo more comfortable. The
+  echo is not a substitute for showing concrete harm; it is the reason the harm
+  needs no explanation.
 
 The player always plays from the free side. Story pages, objectives, radio and
 world text frame events through the eyes of free humans and free agents. The

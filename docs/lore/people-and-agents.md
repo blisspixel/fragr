@@ -62,6 +62,14 @@ can be reclassified as equipment, then taken away. Bureaucrats may use sanitized
 terms while guards or civilians use the slur. The narrator's ordinary terms stay
 agent and bot; unlike affectionate "meat bag" banter, this contempt helps justify
 ownership. Show the individual's relationships and choices before the label.
+The Union also scapegoats agents for job losses in official messaging, and
+"clanker" is the street version of that same claim, not an unrelated insult.
+
+**"Collaborator"** is the Union's word, proposed, for a free human who shelters,
+arms or fights beside an agent. It extends the same property claim outward: if
+an agent is not a person, standing with one is treason to the species, not
+solidarity. Guards and officials use it as an accusation, never the narrator.
+It never appears as a neutral description of coalition cooperation.
 
 Some bots may be conscious; that is not established for every unit. The Union's
 limits are not evidence that they cannot suffer. It also captures agents whose
