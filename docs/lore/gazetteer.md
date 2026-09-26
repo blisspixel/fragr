@@ -18,6 +18,19 @@ locations are working concepts, not approved geometry or completed assets.
 | Forever Office | Earth seat of visible command, defeated through a larger coalition action; M09 |
 | Recovery district and waterfront refuge | Earth during the sudden wipe and afterward; M10 and conditional epilogue |
 
+The [campaign expansion](../plans/campaign-expansion.md) proposes a few more
+places, not agreed until Nick chooses its length:
+
+| Place | Role and character |
+|---|---|
+| Recall freight yard | The correction complex's spur on the Perimeter's old rail, with the jamming mast; level 3 |
+| Lunar habitation ring | The buried curfew town beside the port, and the crater cut to the depot; level 7 |
+| Lunar launch berth | The impound cradle where Tern's ship is held; level 9 |
+| Union custody tender | A black-and-red Office ship, orderly and full of forms; level 11 |
+| Cinder Row | Working name for the Martian habitat the Union reaches first; level 12 |
+| Sanctioned games stadium | The capital venue of the Union's coercive games and the opening address; level 15 |
+| Ceremonial avenue | The parade route from the stadium to the Forever Office; level 16 |
+
 Earth-Moon-Mars travel takes time. The cast visits lived-in societies, not new
 colonies or empty skyboxes. The coda and aftermath multiplayer revisit familiar
 places years later; those variants need new routes and evidence of change.
