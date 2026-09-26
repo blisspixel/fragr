@@ -46,7 +46,7 @@ clocks; continues refill to three at the start of each episode; five
 introductions moved (the Jammer out of M02); the campaign has no carry cap
 ([readable arsenal](plans/readable-arsenal.md)); and mutators are host
 settings from the start, not unlocks, per the
-[replayability plan](plans/replayability.md#the-flagship). **Decisions
+[replayability plan](plans/replayability.md#the-flagship-rescue-and-sabotage). **Decisions
 waiting on Nick:** from the [multiplayer maps proposal](plans/multiplayer-maps.md),
 three new pickups; and whether the Cells cap stays at 50 or rises to 100.
 Parked for the next session: a flaky map 5 opening spawn gate in the six-map
@@ -353,7 +353,7 @@ Status: **planned**. Only after Phase 2 is proven, so that new content lands on 
 - **Additional co-op formats.** Extend the campaign foundations established in Phase 1 with horde ladders, Survival and optional counter-op. Team-only scenarios may use paired objectives when explicitly labeled; required campaign gates always work solo. Multiplayer settings revisit the world before, during and after the wipe with authored route and population changes.
 - **Maps that teach.** Verticality, flow loops, item control, and named callouts. Learn from the best Unreal Tournament arenas: every corridor has a reason and every fight has a second option. The proposed roster, rule sheet and mode order are in [multiplayer-maps.md](plans/multiplayer-maps.md); they sequence inside this phase and add no rung to the build order.
 - **Bigger modes.** Team deathmatch with COD-sized squads first, then objective control on larger maps with vehicles in the spirit of Battlefield 1942 conquest, without borrowing its art. Vehicles are server-authoritative entities on the same action path; the first vehicle map uses the campaign's jeep, motorcycle and jetpack for conquest-lite ([vehicle](plans/vehicles.md) rung 5). Mode twists as mutators before any of that: one-shot rail only, scatter only, one golden rail on the map, the couch-multiplayer feeling GoldenEye had, cheap to build on the existing rules.
-- **Replayability.** Mutators, reactive Host lines, demos, duel rematches, then the proposed Jammer flagship after team deathmatch; the order is in [replayability.md](plans/replayability.md) (proposed) and adds no rung to the build order.
+- **Replayability.** Mutators, reactive Host lines, demos, duel rematches, then the flagship's two round-based modes, Rescue and Sabotage, after team deathmatch; the order is in [replayability.md](plans/replayability.md) (proposed) and adds no rung to the build order.
 - **Massive agent arenas.** Hundreds of fighters where most are agents. Depends on the scale ladder: interest management, sharded arenas, and a measured tick budget. Not a marketing claim until measured.
 - **Difficulty and earned cosmetics.** The [first difficulty increment](plans/difficulty-and-rewards.md) adds three explicit new-run tiers and shared enemy timing, preserving the released Standard baseline. Supply and encounter variants still need balance evidence. Persistent achievements, titles, emblems and cosmetic variants follow the save/retry contract, with no combat advantages. Accounts and competitive verification remain later work.
 - **Let's-play tooling.** Director camera that follows the story of a round, highlight reels, a stream overlay, and match replays from recorded snapshots.

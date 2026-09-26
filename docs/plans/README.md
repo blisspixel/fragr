@@ -17,7 +17,7 @@ Status words: **proposed** (a design awaiting Nick's decision; directs no work),
 
 | Plan | Status | One-liner |
 |---|---|---|
-| [`replayability.md`](./replayability.md) | **proposed** | Counter-Strike level replay: loops at three time scales, Jammer as a round-based flagship with scrip and lineups, mutators, Host reactions, agent rivals, feats, demos from the trace, and a build order. |
+| [`replayability.md`](./replayability.md) | **proposed** | Counter-Strike level replay: loops at three time scales, Rescue and Sabotage as the round-based flagship with no shop or scrip and lineups, mutators, Host reactions, agent rivals, feats, demos from the trace, and a build order. |
 | [`campaign-expansion.md`](./campaign-expansion.md) | **planned**, accepted 2026-09-25 | Twenty levels in five episodes for a four-hour first run, now the contract in [CAMPAIGN.md](../CAMPAIGN.md): the ten-mission spine kept, one new thing per level, the wipe in three levels, a brief by difficulty, par and replay waivers. The 2026-09-25 deep dive adds the [story arc](../campaign/story-arc.md), a full design per level and the pacing curve; the story arc itself stays proposed. |
 | [`m01-secret-shiv.md`](./m01-secret-shiv.md) | **shipped** ([#251](https://github.com/blisspixel/fragr/pull/251), v0.53.0) | M01's first secret: a pool-less Shiv in the confiscation alcove's south pocket, found by walking in, with capability 11, a quiet cue and a counted find. Replaces draft #203. |
 | [`heavy-sweeper-and-turret.md`](./heavy-sweeper-and-turret.md) | **shipped** ([#245](https://github.com/blisspixel/fragr/pull/245), v0.50.0) | Heavy Sweeper and Turret on the encounter seams with seeded tell tests, a test range, and the black and red Union recolor. |

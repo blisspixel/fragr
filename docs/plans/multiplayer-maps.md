@@ -521,6 +521,12 @@ Each is fun on foot first. Vehicles spawn at team bases on timers, abandoned
 ones return after 30 s, and no site needs a vehicle to take
 ([vehicles.md](vehicles.md) rung 5).
 
+One site flavor recurs across this combined-arms tier: a pirate radio mast,
+captured like any other site, its call sign switching to whichever side holds
+it. This is the one place radio touches a mode, and only as one objective
+skin among several, never a mode of its own; radio stays a small optional
+flavor, the way it already is everywhere else in the game.
+
 #### 14. Launch Works (new)
 
 - **Place:** the Martian habitat's launch works, the M08 place: freight depot,
@@ -596,14 +602,20 @@ The mutator set, all proposed and all cheap on the current rules:
 - **Open Weights:** everything loaded, no pickups, no respawns (the existing
   clan arena).
 
-Maps for Jammer, the proposed flagship in
-[replayability.md](replayability.md#the-flagship-jammer), which needs two sites
-and asymmetric spawns: Sector 9 Transit Hall first (three routes and a measured
-rollout), then Low Water (Clinic Steps and Tram Stop as sites, the Trench as
-the fast route) and Common Carrier (bow and stern sites, the Hold as mid).
-Custody Archive can host it with two workshops as sites. The one-site 2v2 cut
-suits East-West Pipe (site at the Cross) and Area Kitchen (site in the Glass
-Office). Reclamation Gulch, Tripoint Works and the large maps do not suit it.
+Maps for Sabotage, one of the two flagship modes in
+[replayability.md](replayability.md#the-flagship-rescue-and-sabotage), which
+needs two sites and asymmetric spawns: Sector 9 Transit Hall first (three
+routes and a measured rollout), then Low Water (Clinic Steps and Tram Stop as
+sites, the Trench as the fast route) and Common Carrier (bow and stern sites,
+the Hold as mid). Custody Archive can host it with two workshops as sites. The
+one-site 2v2 cut suits East-West Pipe (site at the Cross) and Area Kitchen
+(site in the Glass Office). Reclamation Gulch, Tripoint Works and the large
+maps do not suit it.
+
+Rescue, the other flagship mode, needs a holding cell and one exit rather than
+two sites; the current roster has no purpose-built map for that smaller,
+asymmetric shape yet. Until one exists, a small Sabotage map can prototype it
+by treating one site as the holding cell and the attacker yard as the exit.
 
 Mutators come before team deathmatch because they turn every existing map into
 new play for almost no engine work.
