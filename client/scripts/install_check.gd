@@ -20,6 +20,10 @@ func _init(local: LocalMatch) -> void:
 	_local = local
 
 func _ready() -> void:
+	# Scene manifests are plain JSON; the export filter must carry them.
+	if not StoryScene.exists(CampaignOpening.SCENE_ID):
+		_finish(false, "the story scene manifests are missing from this build")
+		return
 	var path: String = _local.executable_path()
 	if path.is_empty():
 		_finish(false, "no fragr-server beside %s" % OS.get_executable_path())

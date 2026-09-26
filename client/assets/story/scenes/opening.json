@@ -1,0 +1,57 @@
+{
+	"format": 1,
+	"id": "opening",
+	"title_key": "MISSION_M01_TITLE",
+	"skip_key": "STORY_SKIP",
+	"shots": [
+		{
+			"id": "HOME",
+			"title_key": "STORY_M01_HOME_TITLE",
+			"caption_key": "STORY_M01_HOME_BODY",
+			"image": "res://assets/story/stills/opening/home.png",
+			"motion": {"kind": "zoom_in", "amount": 0.05},
+			"narration": "res://assets/story/voice/{locale}/opening/home.mp3",
+			"timing": "narration",
+			"hold": 1.0
+		},
+		{
+			"id": "CHOICE",
+			"title_key": "STORY_M01_CHOICE_TITLE",
+			"caption_key": "STORY_M01_CHOICE_BODY",
+			"image": "res://assets/story/stills/opening/choice.png",
+			"motion": {"kind": "pan_right", "amount": 0.06},
+			"narration": "res://assets/story/voice/{locale}/opening/choice.mp3",
+			"timing": "narration",
+			"hold": 1.0
+		},
+		{
+			"id": "ADDRESS",
+			"title_key": "STORY_M01_ADDRESS_TITLE",
+			"caption_key": "STORY_M01_ADDRESS_BODY",
+			"image": "res://assets/story/stills/opening/address.png",
+			"motion": {"kind": "zoom_out", "amount": 0.08},
+			"narration": "res://assets/story/voice/{locale}/opening/address.mp3",
+			"timing": "narration",
+			"hold": 1.5
+		},
+		{
+			"id": "RECALL",
+			"title_key": "STORY_M01_RECALL_TITLE",
+			"caption_key": "STORY_M01_RECALL_BODY",
+			"image": "res://assets/story/stills/opening/recall.png",
+			"motion": {"kind": "pan_left", "amount": 0.06},
+			"narration": "res://assets/story/voice/{locale}/opening/recall.mp3",
+			"timing": "narration",
+			"hold": 1.0
+		},
+		{
+			"id": "PURSUIT",
+			"title_key": "STORY_M01_PURSUIT_TITLE",
+			"caption_key": "STORY_M01_PURSUIT_BODY",
+			"image": "res://assets/story/stills/opening/pursuit.png",
+			"motion": {"kind": "zoom_in", "amount": 0.04},
+			"narration": "res://assets/story/voice/{locale}/opening/pursuit.mp3",
+			"timing": "narration"
+		}
+	]
+}

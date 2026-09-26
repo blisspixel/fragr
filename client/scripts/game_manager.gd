@@ -76,6 +76,9 @@ var mouse_capture: MouseCapture
 var local_match: LocalMatch
 var _leaving: bool = false
 var opening: CampaignOpening
+## The between-level scene played once the server reports a departure.
+var interlude: ScenePlayer
+var _interludes_played: Dictionary[String, bool] = {}
 var _opening_finished: bool = false
 var _opening_release: bool = false
 var _readiness_attempt_sent: int = 0
@@ -242,7 +245,7 @@ func controls_blocked() -> bool:
 func _mission_controls_blocked() -> bool:
 	if not is_human_player:
 		return false
-	if _awaiting_map or _opening_release or _retry_snapshot_tick >= 0 or is_instance_valid(opening):
+	if _awaiting_map or _opening_release or _retry_snapshot_tick >= 0 or is_instance_valid(opening) or is_instance_valid(interlude):
 		return true
 	if not _mission_map():
 		return false
@@ -554,6 +557,33 @@ func _on_mission_received(state: Dictionary) -> void:
 		mission_hud.apply(state, str(net_client.player_id) if is_human_player else "")
 	hud.combat_feed.set_campaign(not state.is_empty())
 	_submit_mission_readiness()
+	play_departure_scene(state)
+
+## Presentation after the server has already moved the party on. Once per
+## mission per session; skipping or finishing sends nothing to the server.
+func play_departure_scene(state: Dictionary) -> void:
+	if not is_human_player or local_match == null or state.get("phase") != "departed" or is_instance_valid(interlude):
+		return
+	var mission_id: String = str(state.get("id", ""))
+	var scene_id: String = StoryScene.AFTER_MISSION.get(mission_id, "")
+	if scene_id.is_empty() or _interludes_played.has(mission_id) or not StoryScene.exists(scene_id):
+		return
+	_interludes_played[mission_id] = true
+	var manifest: Dictionary = StoryScene.load_scene(scene_id)
+	if manifest.is_empty():
+		return
+	interlude = ScenePlayer.new(manifest)
+	interlude.completed.connect(_on_interlude_completed)
+	add_child(interlude)
+
+func _on_interlude_completed() -> void:
+	if is_instance_valid(interlude):
+		interlude.queue_free()
+	interlude = null
+	pending_jump = false
+	pending_interact = false
+	interact_held = false
+	pending_weapon_swap = null
 
 ## Body centres of the hostiles aim assist may help with: live Union
 ## enemies on a mission map, every other live fighter in an arena. The camera
@@ -683,6 +713,9 @@ func _clear_world() -> void:
 	if is_instance_valid(opening):
 		opening.queue_free()
 	opening = null
+	if is_instance_valid(interlude):
+		interlude.queue_free()
+	interlude = null
 	_opening_finished = false
 	_opening_release = false
 	_readiness_attempt_sent = 0

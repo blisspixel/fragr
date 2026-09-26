@@ -122,6 +122,8 @@ func show_page(page: String) -> void:
 			_slider("MASTER", "audio", "master", 0.0, 1.0, 0.05)
 			_slider("RADIO", "audio", "music", 0.0, 1.0, 0.05)
 			_slider("EFFECTS", "audio", "effects", 0.0, 1.0, 0.05)
+			_slider(tr("SETTINGS_VOICE"), "audio", "voice", 0.0, 1.0, 0.05)
+			_toggle(tr("SETTINGS_STORY_CAPTIONS"), "gameplay", "story_captions")
 			_note.text = "C: next station. N: next track. M: radio on/off.\nChanges apply when saved. Zero volume mutes the bus."
 
 func focus_first() -> void:
