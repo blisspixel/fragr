@@ -1,8 +1,8 @@
 # Level 3: Scheduled Service
 
-**Status:** proposed, 2026-09-25, unbuilt, pending Nick's choice of campaign
-length. A new level in the [twenty-level expansion](../plans/campaign-expansion.md);
-no ten-mission counterpart. [Story arc](story-arc.md).
+**Status:** planned, accepted 2026-09-25, unbuilt. A new level in the
+[twenty-level expansion](../plans/campaign-expansion.md); no ten-mission
+counterpart. [Story arc](story-arc.md).
 
 | Episode | Place | New | First run | Par | Doors |
 |---|---|---|---|---|---|

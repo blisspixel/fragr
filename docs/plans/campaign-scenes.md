@@ -18,7 +18,7 @@ The comparison below is research, not permission to submit.
 
 ## First delivery
 
-Later ending scenes follow the revised ten-mission contract: exhausted wipe
+Later ending scenes follow the twenty-level contract: exhausted wipe
 failure has its own credits; survival unlocks the short playable epilogue. Both
 endings establish surviving free beings, the Union's end, healing and a brief
 wider-universe tease. [Epigraph research](../lore/epigraphs.md) supplies optional

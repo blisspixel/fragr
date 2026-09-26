@@ -1,8 +1,8 @@
 # Level 15: Civic Pressure Valve
 
-**Status:** proposed, 2026-09-25, unbuilt, pending Nick's choice of campaign
-length. A new level in the [twenty-level expansion](../plans/campaign-expansion.md),
-the one new environment kit. The Article Blade moves here from M08.
+**Status:** planned, accepted 2026-09-25, unbuilt. A new level in the
+[twenty-level expansion](../plans/campaign-expansion.md), the one new
+environment kit. The Article Blade moves here from M08.
 [Story arc](story-arc.md).
 
 | Episode | Place | New | First run | Par | Doors |

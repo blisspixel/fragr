@@ -1,7 +1,7 @@
 # M07: Terms of Cooperation
 
 **Status:** proposed, unbuilt. Mars before the wipe. Target 10-14 minutes.
-[Treatment](../CAMPAIGN-MISSIONS.md#m07-terms-of-cooperation).
+[Treatment](../CAMPAIGN-MISSIONS.md#level-12-terms-of-cooperation).
 
 ## Story and character work
 
@@ -81,7 +81,7 @@ Mars matters and why help arrived late.
 
 ## Level 12 design (twenty-level expansion)
 
-**Status:** proposed, 2026-09-25. Level 12 of the
+**Status:** planned, accepted 2026-09-25. Level 12 of the
 [twenty-level expansion](../plans/campaign-expansion.md), the same mission.
 [Story arc](story-arc.md).
 

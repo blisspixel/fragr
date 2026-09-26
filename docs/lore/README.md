@@ -1,9 +1,10 @@
 # fragr lore
 
-World canon, reconciled 2026-09-20. These chapters describe fiction, not claims
-that a character, map, or mechanic ships. [CAMPAIGN.md](../CAMPAIGN.md) owns the
-agreed story and open decisions; [mission briefs](../CAMPAIGN-MISSIONS.md) own
-ten missions and the conditional playable epilogue.
+World canon, reconciled 2026-09-20, structure updated 2026-09-25. These chapters
+describe fiction, not claims that a character, map, or mechanic ships.
+[CAMPAIGN.md](../CAMPAIGN.md) owns the agreed story and open decisions;
+[mission briefs](../CAMPAIGN-MISSIONS.md) own twenty levels in five episodes
+and the conditional playable epilogue.
 
 | Chapter | Owns |
 |---|---|

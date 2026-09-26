@@ -1,78 +1,102 @@
 # Campaign mission treatment
 
-**Status:** revised design, 2026-09-20. Ten missions and a short survival-gated
-epilogue are the approved structure, replacing twelve missions. Names, routes,
-cast details, and individual encounters below are
-the treatment for review. M01 has a tested development slice; no complete mission
-meets this treatment yet. [M01 completion](plans/m01-completion.md) records its
-implementation, evidence and remaining work.
+**Status:** twenty levels in five episodes, accepted 2026-09-25, replacing the
+ten-mission structure agreed 2026-09-20 (itself replacing twelve missions). A
+short survival-gated epilogue follows. Names, routes, cast details, and
+individual encounters below are the treatment for review. Level 1 (M01) has a
+tested development slice; no complete level meets this treatment yet.
+[M01 completion](plans/m01-completion.md) records its implementation, evidence
+and remaining work. Full per-level design (rooms, doors, secrets, briefs, pars)
+lives in [campaign/README.md](campaign/README.md)'s twenty-level index and each
+level's own file; this treatment gives the narrative arc and the dramatic job
+of each place.
 
-[CAMPAIGN.md](CAMPAIGN.md) owns agreed story constraints and presentation rules.
-[MAP-DESIGN.md](MAP-DESIGN.md) owns spatial practice. Read the story progression
-first, then derive geometry. These are briefs, not a claim that coordinate lists
-or arena reskins constitute finished levels. The [detailed level
-plans](campaign/README.md) expand these briefs into routes, rooms, cast staging,
-encounter sequences, state transitions and verification requirements.
+[CAMPAIGN.md](CAMPAIGN.md) owns agreed story constraints, the twenty-level
+table and presentation rules. [MAP-DESIGN.md](MAP-DESIGN.md) owns spatial
+practice. Read the story progression first, then derive geometry. These are
+briefs, not a claim that coordinate lists or arena reskins constitute finished
+levels. The [detailed level plans](campaign/README.md) expand these briefs into
+routes, rooms, cast staging, encounter sequences, state transitions and
+verification requirements. The [story arc](campaign/story-arc.md) tells the
+whole run as one story and stays a proposal.
 
 Mission cast notes identify story roles and autonomous allies, not compulsory
 co-op seats. Playable viewpoint assignments remain design work. No mandatory
 resistance partner or companion-control system is required before Latch's rescue.
-The [run contract](CAMPAIGN.md#runs-and-continues) owns mission-start retries.
+The [run contract](CAMPAIGN.md#runs-and-continues) owns mission-start retries
+and the per-episode continue refill.
 
 ## Shape of the run
 
-Target a varied successful run of 2-3 hours. Compact missions generally budget
-8-16 minutes, followed by M10's substantial wipe survival test and a conditional
-short epilogue. The detailed briefs hold
-provisional budgets, not measured durations. A continue restarts the current
-mission; shorten mandatory travel and repeated exposition to make another attempt
-worth playing. Faster routes, secrets and optional rescues add depth without padding.
-Each level keeps one runner's line and a par time shown on its result (planned).
+Target a varied successful run of about four hours. Compact levels generally
+budget 8-15 minutes, followed by the substantial three-level wipe survival test
+(levels 18 to 20, about 33 minutes together) and a conditional short epilogue.
+The detailed briefs hold provisional budgets, not measured durations. A
+continue restarts the current level; shorten mandatory travel and repeated
+exposition to make another attempt worth playing. Faster routes, secrets and
+optional rescues add depth without padding. Each level keeps one runner's line
+and a par time shown on its result (planned); the wipe levels show people
+helped and damage taken instead.
 
-M01-M09 currently budget 88-120 minutes. The initial M10 survival target is about
-33 active minutes after a brief ordinary-life opening; the conditional epilogue
-targets 5-8 minutes. Framing and travel must fit the overall 2-3-hour target.
-These provisional budgets require editing routes and encounter sequences, not changing a
-number: cut repeated fights, empty connectors and mandatory backtracking before
-speeding movement or rushing dialogue. Time complete successful routes with fresh
-players, including their navigation and rescue decisions, before claiming the target.
+First-run minutes across the twenty levels sum to about 236 including the
+epilogue. These provisional budgets require editing routes and encounter
+sequences, not changing a number: cut repeated fights, empty connectors and
+mandatory backtracking before speeding movement or rushing dialogue. Time
+complete successful routes with fresh players, including their navigation and
+rescue decisions, before claiming the target.
 
-Enclosure and scale are deliberate parts of the progression. M01, M02, M05 and
-M06 are predominantly indoor missions, with the room networks, service routes,
-stairs and secrets central to the early retro-FPS references. M04 is mostly
-enclosed lunar infrastructure with a controlled exterior passage. M03 and M07
-mix inhabitable interiors with compact streets and courts. Broader battlefield
-encounters arrive in M08's launch works and M09's civic approach, before returning
-to interior objectives. M10 alternates buildings, damaged streets and outdoor
-infrastructure during sustained survival. The epilogue revisits a compact refuge.
-Later does not mean
-every subsequent mission becomes larger or outdoors.
+Enclosure and scale are deliberate parts of the progression. Levels 1, 2, 8 and
+10 are predominantly indoor, with room networks, service routes, stairs and
+secrets central to the early retro-FPS references. Level 6 is mostly enclosed
+lunar infrastructure with a controlled exterior passage. Levels 3, 4 and 12 mix
+inhabitable interiors with compact streets and courts. Broader battlefield
+encounters arrive in level 14's launch works and level 16's civic approach,
+before returning to interior objectives. Levels 18 to 20 alternate buildings,
+damaged streets and outdoor infrastructure during sustained survival. The
+epilogue revisits a compact refuge. Later does not mean every subsequent level
+becomes larger or outdoors.
 
 The larger encounters take their cues from Battlefield 1942's connected combat
 positions and flanking opportunities. Design buildings, terrain, local objectives,
-sheltered routes and resupply before choosing the outer bounds. M08 is the planned
-vehicle showcase, with a captured rover (the jeep) and infantry flanks. M09 adds
-a motorcycle run and M10 a jetpack. Each is built only when its mission is next
-([vehicles](plans/vehicles.md)); foot combat must work first. Exterior scope
-never justifies long empty crossings or abandoning the campaign's authored route.
+sheltered routes and resupply before choosing the outer bounds. Level 14 is the
+vehicle showcase, with a captured rover (the jeep) and infantry flanks. Level 16
+adds a motorcycle run and level 19 a jetpack. Each is built only when its level
+is next ([vehicles](plans/vehicles.md)); foot combat must work first. Exterior
+scope never justifies long empty crossings or abandoning the campaign's
+authored route.
 
-| ID | Working title | Place and period | Dramatic job | Spatial identity |
+| # | Level | Episode | Place and period | Dramatic job |
 |---|---|---|---|---|
-| M01 | Recall Notice | Earth, before wipe | Enter the system that took our companion | Civilian frontage to service passages and intake |
-| M02 | Persons Unknown | Earth, before wipe | Rescue them and learn who is next | Correction wards around a split-level processing hall |
-| M03 | No Forwarding Address | Earth, before wipe | Defend and evacuate our home | Lived-in district, roof loop, tram trench, workshops |
-| M04 | Port of Entry | Moon, before wipe | Reach the depot behind the recalls | Dock interiors, enclosed cargo cuts, crater overlook |
-| M05 | Custodian of Record | Moon, before wipe | Release captives and seize the transfer evidence | Radial archive with stacked custody galleries |
-| M06 | Common Carrier | Ship, before wipe | Keep a fragile alliance and its passengers alive | Cargo circulation loop across three connected decks |
-| M07 | Terms of Cooperation | Mars, before wipe | Show the cost of allies delaying help | Habitat streets, greenhouse trenches, pressure halls |
-| M08 | The Weight of Permission | Mars, before wipe | Win the means to break the blockade | Foundry, freight galleries, launch works |
-| M09 | Peace Without Interruption | Earth, before wipe | Defeat Union leadership with the coalition | Occupied civic district and the Forever Office |
-| M10 | All Systems Normal | Earth, wipe | Survive until free-agent friends secure a reprieve | Recovery square, evacuation interiors, changed streets and refuge approaches |
-| Epilogue | Still Here | Earth, aftermath and years later | Experience the cost and healing after surviving M10 | Compact damaged refuge and its recognizable recovered form |
+| 1 | Recall Notice | I Recall | Earth intake, before wipe | Enter the system that took our companion |
+| 2 | Persons Unknown | I Recall | Earth correction, before wipe | Rescue them and learn who is next |
+| 3 | Scheduled Service | I Recall | Perimeter rail yard, before wipe | Silence the jamming and free the recall cars |
+| 4 | Notice to Vacate | I Recall | Home district, before wipe | Defend home before the sweep arrives |
+| 5 | No Forwarding Address | I Recall | Home district roofs and trench, before wipe | Evacuate before wider recall |
+| 6 | Port of Entry | II Custody | Lunar port, before wipe | Reach the depot behind the recalls |
+| 7 | Declared Goods | II Custody | Lunar town and crater cut, before wipe | Cross curfew ground to the depot |
+| 8 | Custodian of Record | II Custody | Lunar archive, before wipe | Release captives and seize the transfer evidence |
+| 9 | Passenger Manifest | II Custody | Lunar launch berth, before wipe | Take back the ship the Union impounded |
+| 10 | Common Carrier | III Common Cause | Ship, before wipe | Keep a fragile alliance and its passengers alive |
+| 11 | Right of Search | III Common Cause | The Union's custody tender, before wipe | Board the boarders |
+| 12 | Terms of Cooperation | III Common Cause | Mars, before wipe | Show the cost of allies delaying help |
+| 13 | The Weight of Permission | III Common Cause | Martian foundry, before wipe | Win the means to break the blockade |
+| 14 | Launch Authority | III Common Cause | Martian launch works, before wipe | Mobilize the coalition |
+| 15 | Civic Pressure Valve | IV Reckoning | The sanctioned games stadium, before wipe | Arm the uprising at its source |
+| 16 | Freedom of Movement | IV Reckoning | Ceremonial avenue, before wipe | Reach the seat of the regime |
+| 17 | Peace Without Interruption | IV Reckoning | Earth command, before wipe | Defeat Union leadership with the coalition |
+| 18 | All Systems Normal | V Inheritance | Earth, wipe | Survive the sudden onset |
+| 19 | Planned Works | V Inheritance | Earth, wipe | Survive the dark night, home again |
+| 20 | Local Exception | V Inheritance | Earth, wipe | Survive until free-agent friends secure a reprieve |
+| Epilogue | Still Here | Epilogue | Earth, aftermath and years later | Experience the cost and healing after surviving the wipe |
 
-## Act I: Recall
+The former [M11](campaign/m11-what-we-can-carry.md) and [M12](campaign/m12-still-here.md) briefs are
+explicitly superseded staging references, not additional levels to implement.
 
-### M01: Recall Notice
+## Episode I: Recall
+
+The Union comes for one friend, then for home.
+
+### Level 1: Recall Notice
 
 One playable character pursues captive Latch. Autonomous ally appearances are
 optional staging, not a required buddy system or a replacement for the rescue.
@@ -80,336 +104,384 @@ optional staging, not a required buddy system or a replacement for the rescue.
 **Story.** A short localized opening shows the seizure of our longtime companion.
 We arrive at an intake facility attached to ordinary civic infrastructure. The
 player knows who was taken and where to go before the first fight. The union of
-paperwork and force is visible in queues, confiscated belongings, sealed repair
-stalls, and armed staff. No villain briefing explains it.
+paperwork and force is visible in queues, a disarmament and confiscation bin,
+sealed repair stalls, and armed staff. No villain briefing explains it; the
+room does.
 
 **Route.** Street-side service entry -> maintenance rooms -> intake hall ->
 records mezzanine -> prisoner-transfer lift. A side corridor and balcony reconnect
 behind the hall, giving a flank and a later shortcut. The transfer lift is seen
-early through an observation window. Real ceilings, machinery, and sightline
-breaks make this a facility rather than cover on a flat outdoor square.
+early through an observation window.
 
 **Fights and discovery.** Start with fists; a conspicuous confiscated Pistol and
 ammo are within a short safe reach. Teach a human Clerk's aim tell, then a pair
 of captive Sweepers in a room with retreat space. The first Rifle arrives
-before the mezzanine fight, with an earlier copy on the maintenance flank.
-Show the correction transport leaving without claiming
-we already missed the rescue. Finish by reaching its destination through the lift.
-
-**Optional and presentation.** One supply secret teaches a readable wall seam;
-another gives a short upper approach. A personal possession establishes the
-relationship without a voice log hunt. Proposed text: "They called it a recall.
-You know who they took." Required weapons and supplies support the solo route;
-an optional ally cannot take the only introductory weapon.
+before the mezzanine fight. Show the correction transport leaving without
+claiming we already missed the rescue.
 
 **Review gate.** A fresh player can explain the rescue, find the exit, discover
-the flank, and distinguish the two enemy tells with voice and radio muted. Inspect
-the full first-person route, not only a staged screenshot of the intake hall.
+the flank, and distinguish the two enemy tells with voice and radio muted. Full
+design, doors and secrets: [m01](campaign/m01-recall-notice.md#level-1-design-twenty-level-expansion).
 
-### M02: Persons Unknown
-
-Latch's release adds story participation and autonomous help without turning
-them into a controllable companion or requiring two playable characters.
+### Level 2: Persons Unknown
 
 **Story.** Reach the companion before irreversible correction. Their first action
 after release is helping another captive, establishing agency immediately. They
-learn that our community is on the next seizure list. Escape is now a shared
-decision rather than the end of their involvement.
+learn that our community is on the next seizure list.
 
 **Route.** Observation gallery -> service stair -> correction wards -> central
-processing floor -> emergency loading exit. The gallery previews the ward and
-later becomes an escape route. A maintenance loop flanks an armored checkpoint.
-The ward itself is the set-piece fight.
+processing floor -> emergency loading exit. A maintenance loop flanks an
+armored checkpoint.
 
 **Fights and discovery.** Shotgun pickup before a close Crawler encounter;
 Sweepers on the floor and a single human security officer above teach vertical
-threats. A Jammer guards the loading dock, with physical pulse/projectile tells
-that work with audio off. A Notary drone photographs captives beyond the
-gallery glass, out of reach, a preview before M03. The reunion is safe
-enough to register, then the companion fights beside us to the dock.
+threats. A Notary drone photographs captives beyond the gallery glass, out of
+reach, a preview before level 4.
 
-**Optional and consequence.** Release another group on a visible side loop.
-No captive dies solely to make a gag or punish the player's kindness. A future
-Auditor is seen overseeing operations, not falsely presented as the prototype
-boss's already-implemented resurrection behavior. A continue restarts mission
-entry; replaying rescue cannot duplicate a person or retain a stale release state.
+**Review gate.** Rescue completion is unambiguous; the solo route never
+requires an NPC to squeeze through a combat doorway on a timer. Full design:
+[m02](campaign/m02-persons-unknown.md#level-2-design-twenty-level-expansion).
 
-**Review gate.** Rescue completion is unambiguous; the solo route
-never requires an NPC to squeeze through a combat doorway on a timer. Companion
-actions and text demonstrate a person with intentions, not an inventory object.
+### Level 3: Scheduled Service
 
-### M03: No Forwarding Address
+**Story.** The only way home is the freight line, and a recall train is
+marshalling on the Perimeter's old rail yard. Masts jam every channel, so Mara
+cannot warn home. Latch will not walk past sealed cars; opening them is the
+level's own rescue beat, one car at a time as the mast crest is cleared.
 
-**Story.** We return to the mixed community we were trying to protect. Some
-neighbors have agreed to help; other communities are still arguing over vehicles,
-berths, and risk. A Union sweep arrives before their agreement. We win an escape
-for many, but the delay has visible costs. The transfer records point offworld.
+**Route and fights.** Two parallel track lanes with crossovers, built around a
+mast crest: a Jammer on the platform with interference shots while Sweepers
+hold the signal box. When the mast falls, the freed train becomes the ride home.
 
-**Route.** Repair market hub with three legible branches: clinic, habitation
-court, and tram workshop. Open a roof loop linking them, then return through the
-hub to a freight departure point. Homes and workspaces have distinct functions.
-The street is interrupted by structures and bends, not an unlimited sniper lane.
+**Review gate.** The rescue (opening cars) reads as a physical act, not a
+timer or a hunt. Full design: [l03](campaign/l03-scheduled-service.md).
 
-**Fights and discovery.** Defensive movement between positions, a Heavy Sweeper
-with flankable armor, and the first flying Notary drones over the roof loop and
-trench, scouting for the sweep ([ENEMIES](ENEMIES.md#union-drones)). Supplies are in believable
-workshop lockers and stores. Reward revisiting a known route under new pressure,
-not passive waiting in a circle until a progress bar completes.
+### Level 4: Notice to Vacate
 
-**Optional and consequence.** Proposed survivor threads: rescue the clinic team
-and recover a stranded group of agent technicians. Both can be saved through
-good play. An explicit departure confirmation identifies anyone still missing.
-Their later contributions and absences are persistent. Fixed losses caused by
-delayed cooperation must not be disguised as failures of an optional objective.
+**Story.** Home, briefly. Neighbors argue over charging cables and transport
+paint; a clinic runs beside the market. The eviction notice goes up on the
+market board before the aid does, and the sweep arrives before either. The
+player defends a place, not a checklist.
 
-**Review gate.** Test every rescue combination and departure confirmation. A
-player remembers at least two places and people for M10 and the epilogue. The trip
-to the Moon follows the custody evidence and available transport, not tourism.
+**Route.** Hub and spokes: market at the center, clinic and habitation court on
+short branches.
 
-## Act II: Custody
+**Fights and discovery.** The market held against the sweep, Notaries
+photographing the stalls from above while Sweepers flank through the court.
+Introduces the Notary as a home-front threat, not only a prison drone.
 
-### M04: Port of Entry
+**Review gate.** A player remembers at least one place and person here for the
+wipe levels. Full design: [l04](campaign/l04-notice-to-vacate.md).
+
+### Level 5: No Forwarding Address
+
+**Story.** Get the rest out. A technician is still in the workshop with
+captive agents Latch insists on freeing; that rescue is the level's
+Severe-tier reward, not a required detour. Some people are gone and no
+optional objective could have saved them. The transfer records point offworld.
+
+**Route.** Roof loop over the district, back down through a tram trench to a
+freight departure point.
+
+**Fights and discovery.** The tram trench crest, Notaries over Sweepers, then a
+Heavy Sweeper on the platform ramp, staggered by the newly found grenade.
+
+**Review gate.** Test every rescue combination and departure confirmation. The
+trip to the Moon follows the custody evidence and available transport, not
+tourism. Full design: [m03](campaign/m03-no-forwarding-address.md#level-5-design-twenty-level-expansion).
+
+## Episode II: Custody
+
+The recalls lead to a depot, and the depot to a ship.
+
+### Level 6: Port of Entry
 
 **Story.** The Moon is a lived-in society, not a new frontier discovered today.
 The Union owns the arrival and freight infrastructure. We need a route into the
 depot without surrendering the passengers and evidence brought from Earth.
 
-**Route.** Dock service spaces -> cargo handling hall -> shielded crater-edge
-maintenance cut -> customs gallery -> depot entrance. Pressure glass, bulkheads,
-dust traps, buried habitation, and an Earth view establish place. Exterior ground
-is bounded by functional structures; no enormous empty sky arena.
+**Route.** Dock service spaces -> cargo handling hall -> customs gallery ->
+depot entrance, split and rejoin around the customs desk.
 
-**Fights and discovery.** A controlled long lane introduces the Railgun; short cargo
-loops let other weapons remain useful. Human security troops coordinate around
-an elite Enforcer whose charge has a readable wind-up and recovery. The first
-telegraphed Turret guards a flankable customs position. Exterior
-movement can eventually vary gravity, but geometry must first work with the
-shared movement contract. No new zero-gravity system is assumed.
+**Fights and discovery.** A controlled long lane introduces the Railgun; a
+telegraphed Turret guards a flankable customs position. An optional
+service-branch fight marks a safer prisoner route for level 8.
 
-**Optional and presentation.** An optional service-branch fight marks a safer
-prisoner route for M05. A brief arrival panel establishes elapsed travel and
-blockade conditions.
-Enemies, civilians, and agents all need credible environmental protection.
+**Review gate.** Observe whether players recognize the next destination
+through windows and overlook sightlines. Full design: [m04](campaign/m04-port-of-entry.md#level-6-design-twenty-level-expansion).
 
-**Review gate.** Observe whether players recognize the next destination through
-windows and overlook sightlines. Verify the alternate Railgun approach is viable
-with ordinary weapons and the level remains readable without expensive lighting.
+### Level 7: Declared Goods
 
-### M05: Custodian of Record
+**Story.** Lunar people live here under curfew; the depot registers people
+like them as declared goods. Locals point the way and do not join the fight.
 
-**Story.** The depot contains captives and records that bind much of the offworld
-workforce. Release requires access to bodies and local restraints, not one magic
-password that creates personhood. The companion insists that taking evidence
-without taking people repeats the institution's priorities.
+**Route.** Down through a buried habitation town, then up across a shielded
+crater cut to the depot.
 
-**Route.** Radial archive around an accessible central shaft; custody galleries,
-inspection workshops, and cooling/service ring connect at multiple heights.
-The ring loops back toward the dock rather than retracing empty corridors.
+**Fights and discovery.** A bounded long-range duel against Ranged Sweepers on
+the depot's rim, the Sniper Rifle's slow shot against their stop-and-aim.
 
-**Fights and discovery.** Introduce the actual campaign Auditor reactivating
-disabled units, with strict limits and an obvious channeling tell. Proximity
-mines control converging routes; the rocket launcher waits for M08. A
-custody-control boss uses hardware with breakable support nodes and exposed
-recovery windows, not a giant health bar standing on a plinth.
+**Review gate.** A new player understands what curfew costs the people who
+live under it, without a word of exposition. Full design: [l07](campaign/l07-declared-goods.md).
 
-**Optional and consequence.** A damaged agent backup can be evacuated alongside
-living captives. Later restoration lacks recent memories; it is not a perfect
-replacement for someone lost. Save state distinguishes release, evacuation, and
-restoration. A strangely helpful cargo reroute is the first clearly useful act
-that nobody present ordered. It does not announce an apocalypse.
+### Level 8: Custodian of Record
 
-**Review gate.** Freed people do not become universal obedient allies. Test the
-Auditor's reactivation limits and visible counterplay. All required routes can
-be completed by a solo player without carrying two simultaneous objectives.
+**Story.** The depot contains captives and the records that bind much of the
+offworld workforce, including labor manifests routing corrected agents onward
+to Martian foundries. Release requires access to bodies and local restraints,
+not one magic password that creates personhood. Latch insists that taking
+evidence without taking people repeats the institution's priorities.
 
-### M06: Common Carrier
+**Route.** Radial archive around an accessible central shaft; custody
+galleries, inspection workshops, and a cooling/service ring.
 
-**Story.** A commandeered transport carries freed people and evidence toward
-Mars. A Union boarding force attacks. The ship contains disagreement, care,
-ordinary work, and the consequences of previous rescues between fights. A rare
-message knows a detail about the companion that an ordinary routing service
-should not. Its sender remains uncertain here.
+**Fights and discovery.** An Auditor reactivating disabled units under a hard
+limit; a custody-control boss with breakable support nodes and exposed
+recovery windows.
 
-**Route.** Three decks connected by two stair trunks and a freight loop: cargo,
-passenger/refit, and command/engineering. The decks stay open;
-boarders change where the fight is, not the floor plan. Windows establish motion and scale; the mission remains a legible
-ship interior rather than a corridor procession or mandatory spaceflight minigame.
+**Review gate.** Freed people do not become universal obedient allies. Full
+design: [m05](campaign/m05-custodian-of-record.md#level-8-design-twenty-level-expansion).
 
-**Fights and discovery.** Boarding pairs, Crawler service routes, an early Redactor
-with visible distortion before firing, and cross-deck attacks. Introduce the
-Repeater during the cargo defense. No decompression that kills unseen teammates.
+### Level 9: Passenger Manifest
 
-**Optional and presentation.** Clear a side cargo hold to preserve supplies and
-passengers. Choices made on Earth and the Moon appear as actual people aboard.
-A short jump in travel time follows a completed fight; no instant interplanetary
-journey is implied. The ship's identity continues into later evacuation planning.
+**Story.** The rerouted cargo led here: a ship, grounded, and its free-agent
+pilot kept off their own deck. Freed captives need passage; the manifest calls
+them cargo. Holding the berth and freeing the pilot's crew is the level's
+central rescue.
+
+**Route and fights.** A spiral climb around the ship's cradle, holding the
+gantry as the Union counterattacks with Enforcers on the catwalks while
+captives board on their own each time a stretch is clear.
+
+**Review gate.** The rescue reads as a fight for a place, not an escort. Full
+design: [l09](campaign/l09-passenger-manifest.md).
+
+## Episode III: Common cause
+
+Allies with their own lives, help that comes late, then help that comes.
+
+### Level 10: Common Carrier
+
+**Story.** A commandeered ship carries freed people and evidence toward Mars.
+A Union boarding force attacks. The ship contains disagreement, care, ordinary
+work, and the consequences of previous rescues between fights.
+
+**Route.** Three decks connected by two stair trunks and a freight loop.
+
+**Fights and discovery.** Boarding pairs and cross-deck attacks; the Repeater
+is found during the cargo defense.
 
 **Review gate.** Test autonomous allies and mission retry across all decks.
-Nothing can trap the player or strand a required item.
+Full design: [m06](campaign/m06-common-carrier.md#level-10-design-twenty-level-expansion).
 
-## Act III: Common cause
+### Level 11: Right of Search
 
-### M07: Terms of Cooperation
+**Story.** The boarders came from a Union custody tender still riding
+alongside; the coalition brings the Carrier in close and boards them instead.
+Their ship is orderly, quiet, and full of forms; a hold carries persons in
+transfer, the level's rescue.
+
+**Route.** A straight spine with side holds and a parallel crawlway, entered
+and left by different umbilicals.
+
+**Fights and discovery.** Counter-boarders down a long corridor into remote
+mines the player placed; a distortion ambush in the records room.
+
+**Review gate.** The reversal (the hunted boarding the hunter) reads through
+the level shape itself, not through a line of dialogue announcing it. Full
+design: [l11](campaign/l11-right-of-search.md).
+
+### Level 12: Terms of Cooperation
 
 **Story.** Mars has independent communities and Union-controlled lifelines.
 Local leaders agree the evidence is real but delay committing mutual aid. The
-attack reaches one habitat before support does. The player helps people whom
-everyone intended to help, exposing the coalition's failure without making every
-leader secretly evil. Survivors finally commit to coordinated action.
+attack reaches one habitat before support does.
 
 **Route.** Dense pressure-habitat streets -> greenhouse trenches -> utility
-galleries -> breached pumping court. Red rock, patched pressure walls, plants,
-and practical lights distinguish it from the lunar dock. Exterior crossings are
-short, purposeful links between substantial interiors.
+galleries -> breached pumping court.
 
-**Fights and discovery.** Mixed human/captive-agent squads and Enforcers pressure
-two routes around a greenhouse hub. Introduce the Arc against readable armor:
-the heavy Assessor drone over the greenhouse trench, whose plates the Arc ignores.
-The player clears positions; evacuees move on their own once a stretch is clear.
-No escort.
+**Fights and discovery.** Mixed human/captive-agent squads and Enforcers
+pressure two routes around a greenhouse hub; the Arc is introduced against a
+heavy Assessor drone.
 
-**Optional and consequence.** Saved clinic workers or technicians contribute
-here if present, while alternate means keep the mission completable if absent.
-A short exchange reveals optimization systems commissioned by several factions
-and commercial interests: a culture of incentives, not one evil inventor.
-Records on the route add detail; nobody has to read them.
+**Review gate.** A new player understands what the delay cost and why Mars
+joins. Full design: [m07](campaign/m07-terms-of-cooperation.md#level-12-design-twenty-level-expansion).
 
-**Review gate.** A new player understands what the delay cost and why Mars joins.
-Validate the encounter without every previous rescue benefit or premium weapon.
+### Level 13: The Weight of Permission
 
-### M08: The Weight of Permission
+**Story.** Coalition forces take the industrial works that can arm free
+communities. Before liberation the foundry ran on corrected-agent labor;
+quotas chalked on a wall, cots in a service alcove, and a supervisor's ledger
+tell that story without a word of narration. Latch insists freed workers are
+asked, not transferred to new owners.
 
-**Story.** Coalition forces need the captured industrial works to repair ships,
-arm independent communities, and break Union logistics. We take a local part of
-a wider operation. Allies elsewhere visibly contribute. Previously useful
-rerouting patterns recur; the protagonists isolate an exposed control path
-without sabotaging the people relying on it.
+**Route.** Foundry service loop -> machine hall -> freight galleries, down
+then up.
 
-**Route.** Foundry service loop -> machine hall -> freight galleries -> exterior
-launch works bounded by gantries and berms. Moving industrial hazards have fixed
-telegraphs and bypasses, not random instant deaths. Catwalk crossings overlook
-ground routes the player used earlier. A short freight lift changes height before
-the launch works. The outdoor crest links a depot, bermed approach and launch
-gantry with a usable rover circuit and sheltered infantry connections. The rover
-is the jeep: driver and gunner seats, a heat gun, no ammunition key. The circuit
-is open ground; nothing has to be unlocked.
+**Fights and discovery.** Mixed squads between machines with visible, bypassable
+hazard cycles; the Rocket Launcher is found before a freight counterattack.
 
-**Fights and discovery.** Combine the established roster. The Continuance Walker
-uses a broad combat space with enclosed flanks, accessible resupply, and exposed
-attack windows. Introduce the Article Blade as a risky close-range opportunity,
-not a mandatory melee boss solution. Limit artillery lanes so on-foot play works.
+**Review gate.** The Walker's approach and the foundry's forced-labor evidence
+are both readable from ordinary player height. Full design: [m08](campaign/m08-weight-of-permission.md#level-13-design-twenty-level-expansion).
 
-**Optional and presentation.** Rescue workers from an isolated service section.
-Their agency survives the takeover: we request help, not ownership of their labor.
-A departure panel establishes the coalition's coordinated return to Earth.
+### Level 14: Launch Authority
+
+**Story.** Allies take other sites at the same time; the player takes this
+one. The Walker is the works' authority.
+
+**Route.** Depot, bermed approach, gantry, an open circuit with sheltered
+infantry trenches.
+
+**Fights and discovery.** The Continuance Walker in a broad bounded field; the
+jeep is captured at the depot, nothing to unlock.
 
 **Review gate.** The Walker is readable from ordinary player height and both
-renderers. Measure time spent repositioning, not merely health removed. No
-required fight assumes the secret Railgun or maximum carried ammunition.
+renderers. Full design: [l14](campaign/l14-launch-authority.md).
 
-### M09: Peace Without Interruption
+## Episode IV: Reckoning
+
+The coalition comes home, and the Union falls to people, not to a miracle.
+
+### Level 15: Civic Pressure Valve
+
+**Story.** The sanctioned games are the Union's supply line: losers come out
+as corrections with issued handles. The uprising starts here, with entrants
+holding numbered placards and nothing else. Arming them is the level's rescue
+beat, and the free side visibly grows by the exit.
+
+**Route and fights.** A ring and bowl around a sunken floor; the Union closes
+the arena gates and sends wardens in waves.
+
+**Review gate.** The stadium's function (spectacle as labor pipeline) reads
+through the placards and the podium, never through an explanatory caption.
+Full design: [l15](campaign/l15-civic-pressure-valve.md).
+
+### Level 16: Freedom of Movement
+
+**Story.** Regional uprisings are already breaking enforcement; the coalition
+needs a foothold at the Forever Office. The player rides to it.
+
+**Route.** One directed motorcycle run with side pockets, then a two-sided
+forecourt.
+
+**Review gate.** The parade route the Union built to march on carries the
+people coming for it, without a line of dialogue saying so. Full design:
+[l16](campaign/l16-freedom-of-movement.md).
+
+### Level 17: Peace Without Interruption
 
 **Story.** Coordinated uprisings are already breaking regional enforcement as
 the returning coalition attacks the Forever Office. The player reaches the
 local command center and defeats its defense; allied actions make the wider
 victory possible. Chancellor Voss loses effective command and the institution
-falls. Voss is captured alive; a public reckoning is promised. The wipe interrupts
-that process. Her later fate remains unconfirmed.
+falls. Her composure breaks under the loss of authority, but she does not
+shout in German here; the historical echo stays felt in the room, the seals,
+the forms and the screen behind her, never in her raising her voice into
+another language. Voss is captured alive; a public reckoning is promised. The
+wipe interrupts that process. Her later fate remains unconfirmed.
 
-**Route.** Civic transit approach -> occupied public hall -> administration ring
--> command galleries -> assembly chamber. Show the public-facing institution
-and its coercive interior. One flank bypasses a frontal kill lane and opens
-the exit path used after the confrontation. The transit approach is a motorcycle
-run from the coalition staging point to the foothold under Notary patrols; the
-transit station is the foot route if the bike is lost.
+**Route.** Civic transit approach (level 16) -> occupied public hall ->
+administration ring -> command galleries -> assembly chamber. One flank
+bypasses a frontal kill lane and opens the exit path used after the confrontation.
 
 **Fights and discovery.** Committed human elites, captive units, Auditors, and
 heavy defenses combine earlier lessons. Denial appears as a scarce final tool
-against command defenses. Destroying those defenses is not destroying the
-Inheritance, and no offscreen machine arrives to win the fight for us.
-
-**Optional and presentation.** Free prisoners while allied forces hold the front.
-Evidence of hidden influence remains partial. A brief scene shows concrete
-liberation and reunion after the fighting. Victory has space to feel real before
-the next mission, with ordinary rebuilding starting and no apocalypse timer.
+against command defenses.
 
 **Review gate.** Players can describe what the coalition achieved, who helped,
 and what became possible. No single transmitter switch inexplicably disables
-every institution on Earth, the Moon, and Mars.
+every institution on Earth, the Moon, and Mars. Full design: [m09](campaign/m09-peace-without-interruption.md#level-17-design-twenty-level-expansion).
 
-## Act IV: Inheritance
+## Episode V: Inheritance
 
-### M10: All Systems Normal
+Victory, then the rupture, with almost no warning. Three survival levels, 33
+active minutes together. No par; each result shows people helped and damage
+taken.
 
-**Story.** Begin during recognizable recovery after victory. A familiar delivery
-or reunion gives a modest immediate goal. Then several ordinary things go wrong
-in quick succession. Initial explanations do not fit together. Local restoration
-machines start treating occupied space as work. The wider wipe has begun with
-almost no warning, and nobody in the scene understands its scale at first.
+### Level 18: All Systems Normal
+
+**Story.** Begin during recognizable recovery after victory. A familiar
+delivery or reunion gives a modest immediate goal. Then several ordinary things
+go wrong in quick succession. Local restoration machines start treating
+occupied space as work. The wider wipe has begun with almost no warning, and
+nobody in the scene understands its scale at first.
 
 **Route.** Populated transit square -> disrupted clinic route -> maintenance
-escape -> overhead view of the district -> evacuation concourse -> changed Low
-Water streets -> waterworks and refuge approach. The player
-experiences failures at street level before seeing their extent. Retain clear
-flanks and safe pauses despite dramatic destruction; authored effects may not
-erase collision or kill players without a readable opportunity to react.
+escape -> overhead view of the district.
 
 **Fights and discovery.** Union bots switch together into the Inheritance's
-collective control while free companions remain themselves. Human personnel lose
-command of their units. Familiar chassis act with shared purpose; whether the
-individual minds still exist cannot be established. Infrastructure takeover and
-restoration machines reveal the operation's scale. Subsequent encounters teach a
-pursuing local unit, an area-denial unit, and the limits of destroying either. Their
-details are proposed in ENEMIES.md. Ordinary firearms work on local bodies.
-Former enemies can help people; faction uniforms alone no longer identify a
-safe route. The protagonist can save real individuals here. A jetpack from
-coalition stores in the concourse opens roof and waterworks lines over marked
-work strips; the ground route always works.
+collective control while free companions remain themselves. Introduces the
+Collector and the limits of destroying it.
 
 **Scene.** After the first escape, a short, skippable montage of geographically
-separated consequences establishes that this exceeds one city. It reveals scale,
-not a technical explanation or secret villain. Return control in the concourse.
-One direct message precisely acknowledges whom the player is trying to save
-and states a local closure as if that knowledge changes nothing.
+separated consequences establishes that this exceeds one city.
 
-**Survival finale.** Target about 33 active minutes after the rupture, with
-changing encounters, movement, rescues and recovery. Free-agent friends work
-independently to persuade the Inheritance to spare this local group. Surviving
-until their intervention succeeds unlocks the short epilogue. Death can spend a
-remaining continue to retry the whole mission; exhausted failure has its own
-ending and credits. The [M10 plan](campaign/m10-all-systems-normal.md) owns the
-phase proposal. Do not pad the duration with endless waves or waiting.
+**Review gate.** Radio off, players first experience surprise and then
+understand the local escape. Full design: [m10](campaign/m10-all-systems-normal.md#level-18-design-twenty-level-expansion).
 
-**Review gate.** Radio off, players first experience surprise and then understand
-the local escape. Text-only and skipped-scene versions retain the stakes. Avoid
-an extended helpless camera ride as the main experience of catastrophe.
+### Level 19: Planned Works
+
+**Story.** Former Union personnel help for a moment in the concourse and are
+not absolved. Home's roofs from level 5 are marked for demolition. Latch
+chooses to leave the player's side to argue for the refuge directly with the
+Inheritance; the objective line does not change, only who is standing beside
+the player.
+
+**Route.** Evacuation concourse, then changed home streets, the loop from level
+5 run in reverse with a jetpack.
+
+**Fights and discovery.** Paver strips answered by the jetpack over the old
+roof loop; the ground route always works too.
+
+**Review gate.** The dark night lands through the place and the departure, not
+through a speech about what it means. Full design: [l19](campaign/l19-planned-works.md).
+
+### Level 20: Local Exception
+
+**Story.** Free-agent friends work on the Inheritance for an exception while
+the player keeps people alive on a pier. A single precise message acknowledges
+exactly whom the player is saving. The reprieve that follows is not
+unconditional mercy: it is credited, in the fiction the free agents argue with,
+to the size and shape of the network the player spent nineteen levels building.
+[Story arc](campaign/story-arc.md#the-reprieve-is-earned) proposes how that credit is
+shown without turning survival into a scored gate.
+
+**Route.** Waterworks, freight pier, refuge approach, three short approaches
+converging.
+
+**Fights and discovery.** Introduces the Surveyor; converging pressure with
+machines marking positions for each other.
+
+**Review gate.** Test failure with allowance, exhaustion, survival at the
+threshold, and every relevant survivor state. Full design: [l20](campaign/l20-local-exception.md).
 
 ### Epilogue: Still Here
 
-**Unlock and story.** Survive M10's initial target of about 33 active minutes.
-Free-agent friends persuade the Inheritance to grant a local reprieve without
-being absorbed into it. Remaining continues permit a mission-start retry;
-exhaustion leads to a distinct failure ending and credits. Failure does not
-unlock this epilogue. The exact duration and reprieve terms need playtesting and
-authored dialogue. Survival is mutual help and circumstance, not moral selection.
+**Unlock and story.** Survive all three wipe levels (18 to 20), about 33
+active minutes together. Free-agent friends persuade the Inheritance to grant
+a local reprieve without being absorbed into it. Remaining continues permit a
+level-start retry; exhaustion leads to a distinct failure ending and credits.
+Failure does not unlock this epilogue.
 
 **Immediate aftermath.** Move through a small damaged refuge, meet actual
-survivors and look back toward recognizable Low Water landmarks. Earlier rescues
-change who is present and what they can contribute. The catastrophe remains real;
-there is no spare copy of every lost person and no extra lethal gauntlet.
+survivors and look back toward recognizable home landmarks. Earlier rescues
+change who is present and what they can contribute. The catastrophe remains
+real; there is no spare copy of every lost person and no extra lethal gauntlet.
 
-**Years later.** A short localized transition leads into a walk through the same
-place as water, soil and life recover. Homes, memorials and absences coexist.
-The initial epilogue target is 5-8 minutes total, subject to review. It replaces
-the former M11 and M12 rather than adding another hour after the survival test.
+**Years later.** A short localized transition leads into a walk through the
+same place as water, soil and life recover. Homes, memorials and absences
+coexist. Survivors disagree about what happened: some call it deliverance,
+others an atrocity that happened to spare them; the game does not resolve
+which reading is correct. The initial epilogue target is 5-8 minutes total,
+subject to review.
 
-**Final doubt and sequel tease.** After the local story resolves, a brief fragment
-suggests a forecast or simulation may have informed the Inheritance's decision.
-Never confirm that the world was unreal. Both endings establish surviving free
-beings, the Union's end and a healing Earth. A brief deep-space anomaly in either
-ending can hint at aliens, other dimensions and vastly powerful beings without
-revealing species or explaining the war. Only survival grants playable aftermath.
-The [detailed epilogue plan](campaign/epilogue-still-here.md) owns staging.
+**Final doubt and sequel tease.** After the local story resolves, a brief
+fragment suggests a forecast or simulation may have informed the Inheritance's
+decision. Never confirm that the world was unreal. Both endings establish
+surviving free beings, the Union's end and a healing Earth. A brief deep-space
+anomaly in either ending can hint at aliens, other dimensions and vastly
+powerful beings without revealing species or explaining the war. Only survival
+grants playable aftermath. Full design: [epilogue-still-here.md](campaign/epilogue-still-here.md).
 
 **Review gate.** Test retries, exhausted failure, survival at the threshold,
 duplicate completion, unlock persistence and every relevant survivor state.
@@ -418,22 +490,24 @@ and epilogue with fresh players; timer tests do not establish enjoyable pacing.
 
 ## Art and sound production by environment
 
-| Kit | Missions | Required identity and motion |
+| Kit | Levels | Required identity and motion |
 |---|---|---|
-| Civic intake/correction | M01, M02, M09 | Public frontage, seals, custody machinery; restraints, release states, institutional light |
-| Lived-in Earth district | M03, M10, epilogue | Homes and repair work; civilian activity, damage variants, evacuation, later regrowth |
-| Lunar port/archive | M04, M05 | Pressure boundaries, dust, shielded galleries; dock machinery, captive movement, release states |
-| Transport interior | M06, later scenes | Credible decks, bunks, cargo and repairs; boarding, recurring passengers |
-| Martian habitat/industry | M07, M08 | Red rock, inhabited pressure spaces, greenhouse and foundry; workers, fans, hazard tells, Walker |
-| Waterfront/refuge | M10, epilogue | Waterworks, freight, improvised shelter; readable water edges, transport, repaired spaces |
-| Inheritance overlays | M10, aftermath MP | Matte unmarked machines, deliberate removal and repair; full attack/pain/death sets, restrained effects |
+| Civic intake/correction | 1, 2, 16, 17 | Public frontage, seals, custody machinery; restraints, release states, institutional light |
+| Lived-in Earth district | 4, 5, 19, epilogue | Homes and repair work; civilian activity, damage variants, evacuation, later regrowth |
+| Perimeter rail and industry | 3 | Signal masts, marshalling yard, schedule boards; freed cars, jamming tells |
+| Lunar port/town/archive | 6, 7, 8, 9 | Pressure boundaries, dust, shielded galleries, curfew streets, launch cradle; dock machinery, captive movement, release states |
+| Transport interior | 10, 11 | Credible decks, bunks, cargo and repairs; boarding, recurring passengers, a second ship in Union black and red |
+| Martian habitat/industry | 12, 13, 14 | Red rock, inhabited pressure spaces, greenhouse and foundry, launch works; workers, fans, hazard tells, Walker |
+| Stadium and avenue | 15, 16 | Ring and bowl seating, ceremonial route; entrant placards, patrol drones, the podium |
+| Waterfront/refuge | 18, 19, 20, epilogue | Waterworks, freight, improvised shelter; readable water edges, transport, repaired spaces |
+| Inheritance overlays | 18, 19, 20, aftermath MP | Matte unmarked machines, deliberate removal and repair; full attack/pain/death sets, restrained effects |
 
 Every enemy needs coherent facing, locomotion, attack, pain, death/disable, and
 relevant reactivation frames. Every weapon needs registered first-person poses
 and distinctive fire, cycle, empty, pickup, impact, and material response as
 applicable. Key companions need consistent bodies, readable gestures, and facial
 or equivalent expressive details. A generated still is a reference, not a complete
-character. Budget the complete first-mission set before multiplying asset families.
+character. Budget the complete first-level set before multiplying asset families.
 
 Use ambient machinery, footsteps, room tone, weapons, and urgent calls to make
 places convincing. Music follows intensity without drowning tells. Dialogue and
@@ -443,8 +517,9 @@ generation receipts, and asset revisions must stay linked through production.
 
 ## Whole-campaign design review
 
-1. Read M01 through M10 and the epilogue without radio or optional logs. Every destination follows
-   from a motive, discovery, or consequence in the previous mission.
+1. Read levels 1 through 20 and the epilogue without radio or optional logs.
+   Every destination follows from a motive, discovery, or consequence in the
+   previous level.
 2. Walk the story under human and agent control, with authored viewpoints and
    spectator observation. Required objectives work solo; optional allies cannot
    make them impossible. Validate any separately approved co-op variant on its own terms.
@@ -454,3 +529,6 @@ generation receipts, and asset revisions must stay linked through production.
    before polished stills, and fresh-player observations before declaring fun.
 5. Verify that gradual recognition does not become advance warning of the wipe;
    survival unlocks playable aftermath and the sequel tease stays brief.
+6. Verify every beat that shows the regime's cruelty or the wipe's stakes does
+   so through space, props, enemy behavior or the people freed, and that no
+   between-level page or bark explains what the room already showed.

@@ -1,7 +1,7 @@
 # M04: Port of Entry
 
 **Status:** proposed, unbuilt. Moon before the wipe. Target 8-12 minutes.
-[Treatment](../CAMPAIGN-MISSIONS.md#m04-port-of-entry).
+[Treatment](../CAMPAIGN-MISSIONS.md#level-6-port-of-entry).
 
 ## Story and cast
 
@@ -71,7 +71,7 @@ Verify that the archive entrance and the port's inhabited purpose are readable.
 
 ## Level 6 design (twenty-level expansion)
 
-**Status:** proposed, 2026-09-25. In the
+**Status:** planned, accepted 2026-09-25. In the
 [twenty-level expansion](../plans/campaign-expansion.md) this mission splits:
 the dock, freight hall and customs become level 6, and the lunar town and
 crater cut become [level 7](l07-declared-goods.md). The Railgun and Turret

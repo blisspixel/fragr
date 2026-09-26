@@ -1,7 +1,7 @@
 # M02: Persons Unknown
 
 **Status:** development graybox (`server/maps/m02-persons-unknown.json`): an open route with three Clerk and Sweeper fights and two arrival objectives. Story, Latch as an actor, the Jammer and Crawlers are unbuilt. Earth before the wipe. Target 10-12 minutes.
-[Treatment](../CAMPAIGN-MISSIONS.md#m02-persons-unknown).
+[Treatment](../CAMPAIGN-MISSIONS.md#level-2-persons-unknown).
 
 ## Story and cast
 
@@ -89,7 +89,7 @@ NPC paths, optional captives, muted audio and the complete solo retreat. Rescue 
 
 ## Level 2 design (twenty-level expansion)
 
-**Status:** proposed, 2026-09-25. Level 2 of the
+**Status:** planned, accepted 2026-09-25. Level 2 of the
 [twenty-level expansion](../plans/campaign-expansion.md). The Jammer moves to
 [level 3](l03-scheduled-service.md); the loading dock becomes a Clerk and
 Sweeper crest. [Story arc](story-arc.md).

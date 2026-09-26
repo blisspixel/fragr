@@ -1,7 +1,7 @@
 # Level 7: Declared Goods
 
-**Status:** proposed, 2026-09-25, unbuilt, pending Nick's choice of campaign
-length. The second half of [M04](m04-port-of-entry.md) in the
+**Status:** planned, accepted 2026-09-25, unbuilt. The second half of
+[M04](m04-port-of-entry.md) in the
 [twenty-level expansion](../plans/campaign-expansion.md): the lunar town and
 the crater cut. [Story arc](story-arc.md).
 

@@ -1,7 +1,7 @@
 # Level 4: Notice to Vacate
 
-**Status:** proposed, 2026-09-25, unbuilt, pending Nick's choice of campaign
-length. The first half of [M03](m03-no-forwarding-address.md) in the
+**Status:** planned, accepted 2026-09-25, unbuilt. The first half of
+[M03](m03-no-forwarding-address.md) in the
 [twenty-level expansion](../plans/campaign-expansion.md): the market, clinic
 and court. [Story arc](story-arc.md).
 

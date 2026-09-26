@@ -1,7 +1,7 @@
 # M05: Custodian of Record
 
 **Status:** proposed, unbuilt. Moon before the wipe. Target 10-14 minutes.
-[Treatment](../CAMPAIGN-MISSIONS.md#m05-custodian-of-record).
+[Treatment](../CAMPAIGN-MISSIONS.md#level-8-custodian-of-record).
 
 ## Story and people
 
@@ -95,7 +95,7 @@ mission-start retry. Inspect all overlapping floors.
 
 ## Level 8 design (twenty-level expansion)
 
-**Status:** proposed, 2026-09-25. Level 8 of the
+**Status:** planned, accepted 2026-09-25. Level 8 of the
 [twenty-level expansion](../plans/campaign-expansion.md), the same mission.
 [Story arc](story-arc.md).
 

@@ -1,10 +1,12 @@
 # Campaign expansion
 
-**Status:** proposed, 2026-09-24; deep dive added 2026-09-25. Awaiting Nick's
-decision. This plan directs no work. [CAMPAIGN.md](../CAMPAIGN.md) still owns the contract (ten missions and a
-survival-gated epilogue, 2-3 hours, agreed 2026-09-20), and the
-[mission plans](../campaign/README.md) stay the current staging until Nick
-chooses. Nothing here is built. Spend: $0, docs only.
+**Status:** planned, accepted 2026-09-25. Originally proposed 2026-09-24, with
+a deep dive added 2026-09-25; Nick accepted twenty levels in five episodes the
+same day. [CAMPAIGN.md](../CAMPAIGN.md) now owns this as the contract,
+replacing the ten-mission structure agreed 2026-09-20. The [mission
+plans](../campaign/README.md) carry the accepted twenty-level index. Nothing
+here is built yet; this plan records the research, the reasoning, and the
+per-level design behind the contract.
 
 ## The recommendation
 
@@ -87,6 +89,25 @@ Every agreed beat keeps its place in order: rescue early (2), the companion
 acting on conviction (3 onward), correction (1, 2, 3, 15), the coalition's
 delay (4, 5, 12) and its real victory (14 to 17), Voss captured alive (17),
 the wipe (18 to 20) and the survival-gated epilogue.
+
+### World balance
+
+| Episode | World | Levels | Distinct places |
+|---|---|---|---|
+| I Recall | Earth, the Perimeter | 5 | Intake annex, correction ward, rail yard, market and clinic, roofs and trench |
+| II Custody | The Moon | 4 | Dock and customs, curfew town and crater cut, custody archive, launch berth |
+| III Common Cause | The ship, then Mars | 5 | Commandeered ship, Union tender, habitat, foundry, launch works |
+| IV Reckoning | Earth | 3 | Games stadium, ceremonial avenue, the Forever Office |
+| V Inheritance | Earth, the wipe | 3 | Recovery square, home streets, waterworks and pier |
+
+Earth carries eleven levels because home is what the whole run is about: the
+loss in Episode I, the reckoning in Episode IV and the wipe in Episode V all
+happen there. The Moon gets four distinct faces from one dock rather than a
+single depot revisited twice. The ship and Mars share five levels so both
+settings feel lived-in rather than passed through. No world gets fewer than
+three levels, and design rule 9 (vary the shape) already keeps consecutive
+levels on the same world from repeating a route shape or a dominant fighting
+distance.
 
 ## Design rules every level is held to
 
@@ -220,21 +241,30 @@ places the lore does not have yet, and that is filler.
 
 ## Decisions for Nick
 
-1. Length: twenty levels in five episodes (recommended), fifteen, or ten.
-2. Split the wipe into three levels with a combined 33-minute clock.
-3. Refill continues to three at each episode start.
-4. Moved introductions: the Jammer from M02 to level 3 (M02's exit becomes a
-   Clerk and Sweeper crest), the Enforcer from the crater cut to level 9, the
-   Redactor and remote mines from M06 to level 11, the Article Blade from M08 to
-   level 15, and the unplaced Ranged Sweeper into level 7. The Turret stays at
-   M04 (level 6), the Heavy Sweeper and Notary stay in M03's levels, with the
-   Notary first in level 4 and the Heavy Sweeper in level 5 (deep dive).
-5. The brief stays optional on every tier; Waivers are replay-only.
-6. Accept or strike each item of the story arc's
-   [proposed canon](../campaign/story-arc.md#proposed-canon).
+Resolved 2026-09-25: Nick accepted items 1 through 5 below, making this plan's
+twenty-level structure the contract in [CAMPAIGN.md](../CAMPAIGN.md). Item 6
+stays open; the story arc's proposed canon remains proposed until Nick accepts
+or strikes each item individually.
 
-If Nick agrees, the follow-up rewrites CAMPAIGN.md's structure line and the
-treatment. The level designs already exist (see the deep dive below).
+1. **Decided: twenty levels in five episodes.**
+2. **Decided: split the wipe into three levels with a combined 33-minute clock.**
+3. **Decided: refill continues to three at each episode start.**
+4. **Decided: moved introductions**: the Jammer from M02 to level 3 (M02's exit
+   becomes a Clerk and Sweeper crest), the Enforcer from the crater cut to
+   level 9, the Redactor and remote mines from M06 to level 11, the Article
+   Blade from M08 to level 15, and the unplaced Ranged Sweeper into level 7.
+   The Turret stays at M04 (level 6), the Heavy Sweeper and Notary stay in
+   M03's levels, with the Notary first in level 4 and the Heavy Sweeper in
+   level 5 (deep dive).
+5. **Decided: the brief stays optional on every tier; Waivers are replay-only.**
+6. **Open:** accept or strike each item of the story arc's
+   [proposed canon](../campaign/story-arc.md#proposed-canon), including the
+   newer additions on the regime's obvious historical echo, corrected-agent
+   labor, the growing network of rescues, and the reprieve's earned framing.
+
+CAMPAIGN.md's structure line and the treatment (CAMPAIGN-MISSIONS.md) have been
+rewritten to this structure. The level designs already exist (see the deep dive
+below).
 
 ## Deep dive, 2026-09-25
 
@@ -364,8 +394,9 @@ The Union comes for one friend, then for home.
 **1. Recall Notice** (M01, built slice)
 Intake annex attached to ordinary civic frontage. **Beat:** they called it a
 recall; you know who they took. Follow Latch's paperwork into the building
-that processed them. **Fight:** the double-height intake hall, counter islands
-under the records balcony, two Sweepers and a Clerk. **Landmark:** the prisoner
+that processed them. **Fight:** the double-height intake hall, a disarmament
+bin bolted beside the queue rail, counter islands under the records balcony,
+two Sweepers and a Clerk. **Landmark:** the prisoner
 lift's light, seen from the balcony. **Turn:** the transport leaves as you watch,
 and the record says where. **New:** fists, Pistol, Rifle; Clerk and Sweeper.
 **Route:** split and rejoin (public stair or maintenance flank; stacks or
@@ -406,8 +437,8 @@ car. S: open every car. Sv: kill the Jammer before it fires a second pulse.
 **4. Notice to Vacate** (M03, first half)
 Low Water: repair market, clinic, habitation court. **Beat:** home, briefly.
 Neighbors argue over charging cables and transport paint; Edda runs the clinic;
-the community next door still debates the vehicles. The notice goes up on the
-market board. The sweep arrives before the aid does. **Fight:** the market held
+the community next door still debates the vehicles. A job-loss poster on the
+board has been papered over twice already. The notice goes up over it. The sweep arrives before the aid does. **Fight:** the market held
 against the sweep, Notaries photographing the stalls from above while
 Sweepers flank through the court. **Landmark:** Edda's lit clinic sign over the
 market. **Turn:** the place you were defending becomes the place you are
@@ -453,7 +484,9 @@ Turret from behind its sweep. Sv: clear customs without the maintenance bypass.
 **7. Declared Goods** (M04, second half)
 The buried habitation ring and the shielded crater cut to the depot. **Beat:**
 lunar people live here under curfew; the depot registers people like them as
-declared goods. Locals point the way and do not join the fight. **Fight:** the
+declared goods. Curfew hours are chalked on every shutter, and one wall carries
+a scratched-out slur nobody has bothered repainting over. Locals point the way
+and do not join the fight. **Fight:** the
 crater cut, a bounded long-range duel against Ranged Sweepers on the depot's
 rim platforms, berms and shielding for cover, the Sniper Rifle's slow shot
 against their stop-and-aim. **Landmark:** the depot's radial tower across the
@@ -473,7 +506,8 @@ maintenance panel calls a repeating pattern "Authorized noise. No action
 required." **Fight:** the machinery bridge, shooting apart the custody machine's
 support nodes while an Auditor repairs disabled units under a hard limit.
 **Landmark:** the central shaft of stacked custody galleries. **Turn:** the
-evidence points at Mars, and at systems several sides built. **New:** Proximity
+evidence points at Mars, and at systems several sides built; a labor manifest
+among the records routes corrected agents onward to Martian foundries. **New:** Proximity
 Mine (before the converging fight); Auditor (upper gallery). **Route:** ring, a
 radial hall with a cooling loop back to the entrance. **Doors:** 1, the upper
 gallery seal for the Auditor fight. **Brief:** A: recover Orrin's backup.
@@ -544,8 +578,9 @@ early Rocket Launcher behind the damaged hatch. **Par:** 5:00.
 
 **13. The Weight of Permission** (M08, first half)
 The Martian foundry: edge, machine hall, freight galleries. **Beat:** the
-coalition takes the works that can arm free communities. Latch insists freed
-workers are asked, not transferred to new owners. Rerouting patterns recur; you
+coalition takes the works that can arm free communities. Quotas chalked on a
+wall and cots in a service alcove show what ran here before liberation. Latch
+insists freed workers are asked, not transferred to new owners. Rerouting patterns recur; you
 isolate a control path without cutting the people depending on it. **Fight:**
 the machine hall, mixed squads between machines whose hazard cycles are visible
 and bypassable, then a counterattack through the freight loop. **Landmark:** the
@@ -608,8 +643,9 @@ civic fountain. **Par:** 4:00.
 **17. Peace Without Interruption** (M09, second half)
 The Forever Office: assembly hall, administration ring, command galleries,
 security core. **Beat:** reach Voss. Records suggest interests above her and
-prove none. Her composure breaks into German; the captions stay accurate.
-**Fight:** the security core, local defenses with exposed mechanisms, Denial's
+prove none. Her composure cracks under the loss of authority, colder and
+quieter, not louder; the historical echo stays in the seals, the forms and the
+screen behind her, never in a raised voice or another language. **Fight:** the security core, local defenses with exposed mechanisms, Denial's
 few charges spent where they matter. **Landmark:** the assembly chamber's dome
 seen from every gallery. **Turn:** she is captured alive, and an official asks
 someone to sign for the confiscated command keys. **New:** Denial (before the

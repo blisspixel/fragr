@@ -1,8 +1,8 @@
 # Level 9: Passenger Manifest
 
-**Status:** proposed, 2026-09-25, unbuilt, pending Nick's choice of campaign
-length. A new level in the [twenty-level expansion](../plans/campaign-expansion.md),
-the Episode II finale. [Story arc](story-arc.md).
+**Status:** planned, accepted 2026-09-25, unbuilt. A new level in the
+[twenty-level expansion](../plans/campaign-expansion.md), the Episode II
+finale. [Story arc](story-arc.md).
 
 | Episode | Place | New | First run | Par | Doors |
 |---|---|---|---|---|---|

@@ -1,7 +1,7 @@
 # Level 14: Launch Authority
 
-**Status:** proposed, 2026-09-25, unbuilt, pending Nick's choice of campaign
-length. The second half of [M08](m08-weight-of-permission.md) in the
+**Status:** planned, accepted 2026-09-25, unbuilt. The second half of
+[M08](m08-weight-of-permission.md) in the
 [twenty-level expansion](../plans/campaign-expansion.md): the exterior launch
 works, the jeep and the Continuance Walker. The Episode III finale and the
 campaign's one combined-arms battle. [Story arc](story-arc.md).

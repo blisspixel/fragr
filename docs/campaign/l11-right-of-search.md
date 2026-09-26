@@ -1,8 +1,8 @@
 # Level 11: Right of Search
 
-**Status:** proposed, 2026-09-25, unbuilt, pending Nick's choice of campaign
-length. A new level in the [twenty-level expansion](../plans/campaign-expansion.md),
-the midpoint reversal. The Redactor and the Remote Mine move here from M06.
+**Status:** planned, accepted 2026-09-25, unbuilt. A new level in the
+[twenty-level expansion](../plans/campaign-expansion.md), the midpoint
+reversal. The Redactor and the Remote Mine move here from M06.
 [Story arc](story-arc.md).
 
 | Episode | Place | New | First run | Par | Doors |
