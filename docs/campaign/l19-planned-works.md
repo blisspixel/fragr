@@ -1,7 +1,7 @@
 # Level 19: Planned Works
 
-**Status:** proposed, 2026-09-25, unbuilt, pending Nick's choice of campaign
-length. The middle third of [M10](m10-all-systems-normal.md) in the
+**Status:** planned, accepted 2026-09-25, unbuilt. The middle third of
+[M10](m10-all-systems-normal.md) in the
 [twenty-level expansion](../plans/campaign-expansion.md): survival minutes 10
 to 21, the concourse and changed Low Water, the dark night.
 [Story arc](story-arc.md).
@@ -19,7 +19,9 @@ absolved for it. And on the water tank where you and Latch used to argue about
 tram motors, Latch decides to leave.
 
 **Hook.** Fly over the roofs of your own home with a jetpack while the
-machines draw demolition lines on the streets below.
+machines draw demolition lines on the streets below. The dark night of the
+wipe: proposed direction, keep this level's despair earned by the place and
+the departure, never stated in a line ([show, don't tell](story-arc.md#show-dont-tell)).
 
 **Teaches.** The jetpack, then the Paver. The jetpack is coalition gear in the
 concourse stores. The first use is the concourse's broken stair to the

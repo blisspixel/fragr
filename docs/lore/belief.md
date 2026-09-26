@@ -36,6 +36,12 @@ Later survivors may call the restoration a flood or a new creation while naming
 the people and minds it erased. Healing landscapes and grief share the frame.
 The final alien and interdimensional hint does not explain away this history.
 
+**Proposed staging:** in the refuge after the wipe, an Ascender says plainly
+that the Curve provided and means it kindly; a Kneeler nearby is not comforted
+and says so. Neither is proven right by anything the game shows next, and the
+scene is one line each, never a debate. [The story arc](../campaign/story-arc.md#the-endings)
+places this at the campaign's survival ending.
+
 ## The Congregation of the Curve
 
 A subculture that drew a line through thirty years of computing and kept drawing until the line drew them.

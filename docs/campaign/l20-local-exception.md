@@ -1,7 +1,7 @@
 # Level 20: Local Exception
 
-**Status:** proposed, 2026-09-25, unbuilt, pending Nick's choice of campaign
-length. The last third of [M10](m10-all-systems-normal.md) in the
+**Status:** planned, accepted 2026-09-25, unbuilt. The last third of
+[M10](m10-all-systems-normal.md) in the
 [twenty-level expansion](../plans/campaign-expansion.md): survival minutes 21
 to 33, the climax. Surviving it unlocks [Still Here](epilogue-still-here.md).
 [Story arc](story-arc.md).
@@ -47,6 +47,10 @@ its lens opens wide.
    exact number of people at this pier, that Latch has said each of their
    names, and that the work here closes in six minutes. It knows exactly whom
    you are saving and states the closure as if that knowledge changes nothing.
+   Proposed: that number is the running total of everyone the run actually
+   freed, not a fixed figure ([the reprieve is earned](story-arc.md#the-reprieve-is-earned)).
+   It changes what the message says; it never changes whether the level can be
+   won.
 7. **Climax.** The last six minutes, the heaviest pressure of the campaign,
    readable to the end.
 8. **Exit.** The reprieve. The machines reach the refuge line and stop, then

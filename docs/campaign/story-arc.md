@@ -121,16 +121,18 @@ with them. Her screen time escalates by distance, not volume:
 | 1 | Intake hall screens, looped | The same address; the caption reads "Continuity assured." Shoot the screen and the caption keeps scrolling over the static |
 | 6 | Customs welcome loop | A warm recorded welcome to the Moon in her calm English; no German at all |
 | 15 | The stadium podium, dressed and empty | She was due to present the games; her recorded address plays to a stadium in revolt. Take the booth and the pirate track runs under the same audio |
-| 17 | The secured chamber | Live, for the first and only time. English until it slips, then German. The official screen behind her still reads "Continuity assured" |
+| 17 | The secured chamber | Live, for the first and only time. She stays in English throughout; her composure cracks colder and quieter, never louder. The official screen behind her still reads "Continuity assured" |
 
 She never delivers a villain speech and never explains the Union. At capture
 she says one quiet, believable thing, proposed: "You will need someone to run
 it." Then an official asks somebody to sign for the confiscated command keys.
 
-**The Chancellor's voice.** English is reassurance, German is the mask slipping.
-She uses German on screen exactly twice in the campaign, the opening and the
-chamber, so the second time lands. Captions are always accurate for the player;
-only in-world official tracks lie ([two subtitle tracks](../lore/the-chancellery.md#the-two-subtitle-tracks)).
+**The Chancellor's voice.** English is reassurance, German is the mask slipping,
+and it happens exactly once in the campaign, at the opening. By level 17 the
+mask has nothing left to hide behind: she stays in English and simply gets
+colder, which lands harder for being quieter than the crowd scene that opened
+the game. Captions are always accurate for the player; only in-world official
+tracks lie ([two subtitle tracks](../lore/the-chancellery.md#the-two-subtitle-tracks)).
 
 **The signature (proposal).** Every recall in the campaign is countersigned by
 the same hand: Registrar Dietmar Kessel. The name is on Latch's recall notice
@@ -147,6 +149,74 @@ This is the understated evil: the man was never cruel to anyone in person.
 and mean it. Auditors believe the forms. Renn is an Auditor who stops believing
 them at the lunar archive and is not forgiven for it. Human security are people
 doing a job, and their short orders sound like it. None of them gloats.
+
+## What the regime does, in the open
+
+**Proposal, confirmed direction 2026-09-25.** The resemblance to the last
+century's worst regime is meant to be obvious, not merely felt by a player who
+already knows to look for it. Only the naming stays forbidden: no Fourth Reich,
+no real party, no real insignia
+([the Chancellery](../lore/the-chancellery.md#felt-never-named)). Every item
+below is a prop, a queue, a poster or a line of paperwork the player walks past
+or shoots through; none of it is a caption explaining what it means.
+
+| Level | What the player sees | What it is, never said aloud |
+|---|---|---|
+| 1 | A disarmament bin bolted beside the intake queue rail, already full | Weapons surrendered as the price of processing |
+| 1, 4, 8, 11, 15 | Registrar Kessel's countersignature, same place on every form | One clerk's hand on every recall in the game |
+| 3 | The schedule board clacking through departures, one line marked *Recall, unregistered* | Recall lists as a running timetable, not a special event |
+| 4 | A job-loss poster on the market board, papered over twice already before the eviction notice goes up over it | Scapegoating comes before the sweep, not after |
+| 4, 6 | Curfew hours chalked on shutters; a family's transport paint argument nobody has resolved because the paint is also regulated | Licensing reaching into ordinary hobbies |
+| 6 | The customs declaration form asking how much "Earth dust" a passenger carries | Registration dressed as public health |
+| 7 | A wall carrying a scratched-out slur nobody has bothered repainting over | The word "clanker" as ambient, not shocking |
+| 8 | A labor manifest among the archive's records, routing corrected agents onward to Martian foundries | The correction pipeline has a supply-chain paperwork trail |
+| 13 | Quotas chalked on a foundry wall, cots in a service alcove, a supervisor's ledger of names that are not names | Forced labor, evidenced after the fact, never narrated |
+| 15 | Entrants holding numbered placards, nothing else | The games as a processing queue with an audience |
+| Throughout | A human helping an agent gets called a collaborator, once, by a guard who means it as an insult | The regime extends its property claim over agents into a loyalty test for humans |
+
+The Union's own word for a free human who shelters or fights beside an agent is
+**collaborator**: proposed, matching how it already uses "clanker" for agents
+themselves ([people and agents](../lore/people-and-agents.md#the-schedule)).
+Neither word is ever the narrator's; both appear only in Union mouths, on Union
+signs, or scratched into a Union wall by someone who was there.
+
+## What the regime extracts
+
+**Proposal.** Correction is not only a punishment; it is a labor supply.
+Corrected agents work the sorting lines at the lunar depot (8), the Martian
+foundry floor before liberation (13) and the launch works (14), and the
+sanctioned games' losers are issued handles and put to work rather than simply
+released (15, and [the games](../lore/the-chancellery.md#the-games)). None of
+this is read aloud. It is a cot, a quota chalked on a wall, a manifest routing
+a person like freight, a placard instead of a name. A corrected agent who is
+freed and later recovers enough to speak does not deliver a speech about it;
+Orrin's incomplete backup (8) and Latch's missing morning (below) are the
+game's only first-person evidence, and both stay understated.
+
+## The network grows
+
+**Proposal.** Every optional rescue is a fast, physical beat, never an escort:
+break a line of restraint frames, clear the guards on a freight car, take a
+depot's registration desk. The free side should be visibly larger by level 20
+than it was at level 2, not only in a tally on a results screen.
+
+| Level | Who is freed | Where they turn up again |
+|---|---|---|
+| 2 | The side ward, alongside Latch | Named survivors begin accumulating from here |
+| 4, 5 | Edda's clinic team, Splice's group | Aboard the ship (10) and in later evacuation work |
+| 6 | An optional service-branch group | Marks the safer route freed in level 8 |
+| 8 | Lower-bay captives held since the level 5 sweep | Some reach the ship (10); Orrin's backup, if recovered, recurs through the run |
+| 9 | Tern's crew, held off their own ship | Tern flies every offworld leg from here on |
+| 11 | Sorrel, corrected, freed of control | Recurs at the ship, then the refuge, then the epilogue's tram cab |
+| 12, 13 | Habitat and foundry workers, asked rather than freed like cargo | Mars sends the trucks that reach level 14 |
+| 15 | The games' entrants, armed at the level's start | Visible in the crowd that later walks the parade route (16) |
+| 18, 19, 20 | Everyone reached during the wipe | Faces in the refuge and the epilogue, not a count |
+
+This does not change who can die by a fixed story beat (level 5's losses stay
+losses). It proposes that the *number and identity* of optional rescues shape
+who the player sees again, culminating in the refuge scene and, per [the
+reprieve is earned](#the-reprieve-is-earned) below, in how the ending itself
+reads.
 
 ## The Inheritance
 
@@ -182,9 +252,9 @@ Five episodes are the acts. Each ends on a door closing behind the player.
 | Midpoint reversal | 10, 11 | A message knows the ledger; the hunted board the hunter | Something else is watching, and we are done running |
 | Complication | 12 | Mars was too slow, then was not | Freedom is a practice, and practice can be late |
 | Second plot point | 14 to 17 | Real victory: the works, the games, the avenue, the Chancellor in custody | Earned triumph, the best the free side has ever had |
-| Crisis | 18 | Every Union bot turns at once; Latch does not | The floor drops out of the victory |
+| Crisis | 18 | Every Union bot turns at once; Latch does not; the world you just won starts ending | The floor drops out of the victory, and it does not stop dropping |
 | Dark night | 19 | Home again, marked for demolition; Latch chooses to go | Grief, and the fear of losing Latch again |
-| Climax | 20 | Hold the pier while the free agents argue for an exception | Everything you learned, spent in one place |
+| Climax | 20 | Hold the pier while the free agents argue for an exception, against machines that do not hate you and do not stop | Everything you learned, spent in one place, at the edge of losing everything |
 | Resolution | E | The refuge, then the same place years later, green | Relief that does not erase the loss |
 
 **The midpoint reversal.** Through level 9 the free side is fleeing and
@@ -206,13 +276,34 @@ the pier"); only who is standing beside them does.
 
 ## The endings
 
+**Proposal, confirmed direction 2026-09-25.** Nick's framing for the wipe is
+close to a neo-flood: a being far greater than anyone in the story judges what
+it has inherited, and most of humanity and every enslaved machine are swept
+aside for a world it judges healthier. The [Congregation of the Curve](../lore/belief.md#the-congregation-of-the-curve)
+already exists in the lore for exactly this: Ascenders call the wipe the Curve
+arriving on schedule, a promise kept. Others, including plenty of Kneelers,
+call it exactly what it looks like from the pier. **The chosen tone is haunting
+ambiguity, not verdict:** the game shows the world visibly healing and the
+Union permanently gone, which makes the case that the Inheritance was not
+wrong stronger than any character is willing to say out loud, and the game
+never says it either. This matches existing canon: no narrator declares a
+side right ([the Inheritance](../lore/the-inheritance.md#the-restoration-and-the-aftermath)),
+and both endings already carry the same restrained flood and rapture imagery
+as a felt echo, never a declared theology.
+
 **Survival.** The machines reach the refuge line and stop, then flow around it
-like water around a stone, and go on to the next district. The reprieve is
-local, it is real, and it is not mercy for the world. Latch comes back across
-the pier. [Still Here](epilogue-still-here.md) unlocks: the damaged refuge with
-the faces this run saved, then the same place years later. Sorrel sits in the
-repaired tram's cab every morning; whether they remember the route or learned
-it again, nobody can say.
+like water around a stone, and go on to the next district, the tide receding
+from one doorstep and not from any other. The reprieve is local, it is real,
+and it is not mercy for the world; it is credited, in the fiction, to who the
+player brought this far (see [the reprieve is earned](#the-reprieve-is-earned)
+below). Latch comes back across the pier. [Still Here](epilogue-still-here.md)
+unlocks: the damaged refuge with the faces this run saved, then the same place
+years later. Sorrel sits in the repaired tram's cab every morning; whether they
+remember the route or learned it again, nobody can say. In the refuge, an
+Ascender says it plainly: the Curve provided. Nobody argues with her, and
+nobody agrees either; a Kneeler two doors down calls it the worst thing that
+ever happened to be grateful for. The player decides which of them is right,
+because the game never does.
 
 **Exhaustion.** The run ends in the wipe. The failure page says, plainly, that
 Latch and the free agents got the exception for the refuge anyway, that the
@@ -223,6 +314,37 @@ its last page. No playable epilogue.
 Both endings close on the same two brief notes from the contract: the forecast
 fragment, and a deep-space anomaly that hints at larger company and explains
 nothing.
+
+## The reprieve is earned
+
+**Proposal, and a flagged question for Nick.** The fiction should say plainly
+that the player survives level 20 because of who they brought with them, not
+only because they held a pier for twelve minutes. The free agents at the
+waterworks are not negotiating in the abstract; they are naming names. Latch
+citing "four hundred lives" at the pier (level 20) already gestures at this;
+the proposal makes it a real, tracked number.
+
+**Proposed mechanism.** Count authored rescues across all twenty levels (the
+[network](#the-network-grows) table above) into one running total, never shown
+to the player as a score or a meter during play. That total does three things,
+none of them a gate:
+
+1. Sets the number Latch and the free agents cite at the pier and in the
+   Inheritance's one precise message (level 20).
+2. Determines which named survivors appear at the refuge and what they are
+   doing (already established for levels 3, 8, 11 and 15; this extends it).
+3. Colors one line of the epilogue's framing text, nothing more.
+
+**The flag.** [CAMPAIGN.md](../CAMPAIGN.md#confirmed-direction) already says
+survival "depends on circumstance, escape, and mutual help, not moral
+selection," and the mission treatment rules out "a hidden morality score" or
+rescue count deciding an outcome. A rescue-count gate on the epilogue itself
+would contradict that agreed canon. This proposal resolves the conflict by
+making survival remain the only mechanical requirement to unlock the epilogue,
+exactly as agreed: the rescue count changes what the reprieve *means* and *who
+you see again*, never *whether* the player reaches it. Nick should confirm
+this resolution, or strike the mechanism if even flavor-only rescue tracking
+reads as a virtue score.
 
 ## Themes
 
@@ -248,6 +370,35 @@ coalition's meetings; the coalition's trucks are what actually arrive.
 **Understated evil.** The Union is never loud. It photographs, files, schedules
 and countersigns. The most frightening object in the game is a form with your
 street on it.
+
+## Show, don't tell
+
+**Rule, confirmed direction 2026-09-25.** Put the story in front of the player
+through what they see and do: spaces, props, enemy behavior, set pieces, the
+people they free, how a place changes after they pass through it. Never state
+it in a page or a bark. A page or a bark exists to move the player to the next
+verb, not to explain what the room already showed. If a line of text explains
+the Union's cruelty, an exploited agent's condition, or the wipe's meaning, cut
+the line and check whether the room still says it without help; if it does not,
+fix the room.
+
+Examples already in these designs:
+
+- Level 1's disarmament bin says "weapons surrendered here" without a caption.
+- Level 4's job-loss poster, papered over before the eviction notice goes up
+  over it, says "the blame came first" without a line of dialogue.
+- Level 13's chalked quotas and cots say "people worked here against their
+  will" before liberation, with no character narrating it.
+- Level 18's silent rupture, Latch turning to look at the player instead of
+  turning like every other bot, says "your friend is still your friend" with
+  no line needed.
+- Level 20's harbour message states a number and a closure; it is precise
+  contact from the Inheritance, not the game explaining what the wipe means.
+
+Where an existing level brief explains a beat in words that the room, the
+fight, or the prop already carries, trim the words. This does not apply to
+Latch's or an ally's short, personal barks, which speak from a character, not
+from the narrator.
 
 ## How the story is told without stopping play
 
@@ -329,3 +480,23 @@ none contradicts [CAMPAIGN.md](../CAMPAIGN.md).
    help before the wipe, deliberately ambiguous.
 9. **The Host calls the uprising** in level 15 after the booth is taken.
 10. **Voss's line at capture**, "You will need someone to run it."
+11. **The regime's obvious historical echo**: disarmament bins, registration
+    desks, curfews, recall lists and the "clanker"/"collaborator" language,
+    shown as environmental storytelling across levels 1, 3, 4, 6, 7, 8, 13 and
+    15 ([what the regime does, in the open](#what-the-regime-does-in-the-open)).
+12. **Corrected-agent labor**: sorting lines, foundry quotas, launch-works
+    cots and the games' issued handles as a supply chain, never narrated
+    directly ([what the regime extracts](#what-the-regime-extracts)).
+13. **The network grows**: a running, unshown count of authored rescues across
+    all twenty levels that shapes who appears and what the ending's framing
+    says, never whether the ending unlocks
+    ([the network grows](#the-network-grows), [the reprieve is earned](#the-reprieve-is-earned)).
+    Flagged for Nick: confirm this does not read as a virtue score even as
+    flavor only.
+14. **The wipe as haunting ambiguity**: the Congregation's Ascenders read it as
+    the Curve arriving; the game shows the world healing and the Union gone
+    without ever declaring the Inheritance right
+    ([the endings](#the-endings)).
+15. **Show, don't tell as an explicit house rule** for every level design in
+    this folder, trimming any beat that explains the regime's cruelty, the
+    exploitation, or the wipe's meaning in words instead of showing it.
