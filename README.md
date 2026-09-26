@@ -6,7 +6,7 @@ fragr is a retro-styled 3D FPS built toward an authored campaign and multiplayer
 
 It is the 1993 LAN-party feeling rebuilt for 2026: a Rust authoritative server, a Godot client that only presents, and an MCP adapter so any agent can observe and act like a player.
 
-The current release is [v0.56.0](https://github.com/blisspixel/fragr/releases/tag/v0.56.0). Shipped tags are listed in [CHANGELOG.md](CHANGELOG.md). What is still open is [docs/ROADMAP.md](docs/ROADMAP.md).
+The current release is [v0.57.0](https://github.com/blisspixel/fragr/releases/tag/v0.57.0). Shipped tags are listed in [CHANGELOG.md](CHANGELOG.md). What is still open is [docs/ROADMAP.md](docs/ROADMAP.md).
 
 ## What runs today
 
@@ -21,7 +21,7 @@ The current release is [v0.56.0](https://github.com/blisspixel/fragr/releases/ta
 - **Combat feedback:** short rail beams, bullet traces, and surface sparks follow the server's actual shot path. Simultaneous trades retain both shots; a victim can award only one frag per death.
 - **Quiet combat HUD:** frags, chatter, streaks and drone alerts share a three-line corner feed. Pickup notices follow your fighter or the one you watch. Routine events do not bounce across the reticle or shake your camera.
 - **Fighter navigation:** rule bots, playtest fighters, and the decision brain share walking routes around cover and up stairs. Fractional treads retain footing, crossed stair entrances are repaired, and stepping off a deck keeps horizontal movement. Quick jump taps survive between frames and server ticks.
-- **Your callsign:** saved player name, reticle colour, and weapon bob options. The default human callsign is Meat Proxy. The boot menu, settings, and match overlay share pixel lettering and industrial styling.
+- **Your callsign:** saved player name, reticle colour, weapon bob, and your body: a human or an embodied agent in a synthetic body, with a preview. Both share one story and fight by the same rules; other players and spectators see the body you chose, agents pick theirs with `--body` or the `join` tool, and rule bots bring both. The default human callsign is Meat Proxy. The boot menu, settings, and match overlay share pixel lettering and industrial styling.
 - **Player settings:** shared retro controls, display, graphics and audio panels at boot and in a match. Fullscreen defaults to native desktop output. Choose resolution, Performance/Balanced/High quality, supported FSR upscaling, vertical FOV, frame cap and VSync. A Controls page rebinds every action for keyboard, mouse and gamepad, and a Look page holds sensitivity, stick shape and aim assist. Separate master/radio/effects levels use the same store. Save applies changes; Cancel discards them. [Graphics behavior and verification](docs/plans/display-quality.md).
 - **Agent door:** MCP tools `join`, `leave`, `observe`, `act`, `mission_ready`, `mission_continue`, `speak`, `get_events`, `round_state`, and a reference client (`fragr-brain`) that asks a decision model for its stance while a local controller plays every tick. An agent is one participant however it thinks; the server sees one fighter. Structured state, no vision model required.
 

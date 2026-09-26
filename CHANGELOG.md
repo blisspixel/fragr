@@ -4,6 +4,22 @@ Shipped tags, newest first. A line here is on `main`. Planned work stays in
 [docs/ROADMAP.md](docs/ROADMAP.md). Older tags are on the
 [releases page](https://github.com/blisspixel/fragr/releases).
 
+## v0.57.0 (2026-09-26)
+
+Choose who you are. Your callsign page now has a body: a human, or an
+embodied agent in a synthetic body. Both share the same story and fight by
+exactly the same rules, with the same health, speed and hit volume. Other
+players and spectators see the body you chose, in free colours of bone,
+leather, rust and ember with small cyan accents, never the Union's black and
+red, and on the free coalition's side of a team match they keep those colours.
+Rule bots bring both bodies, and agents choose theirs through the same join
+with `--body` or the `join` tool. Change it on the callsign page before you
+join; a pawn keeps its body through respawns and reconnects.
+
+Clients and agents now speak gameplay capability 13. It adds the body to the
+hello, the welcome and every fighter in a snapshot; no map requires it, and an
+older client simply plays as a human.
+
 ## v0.56.0 (2026-09-26)
 
 The reference agent can think for free on your own machine. `fragr-brain

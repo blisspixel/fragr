@@ -97,6 +97,7 @@ fn joining_on_either_side_of_first_tick_preserves_mission_geometry_order() {
         let mut probe = MissionProbe::new();
         let connection = uuid::Uuid::new_v4();
         session.apply_command(crate::net::GameCommand::Connected {
+            body: crate::protocol::BodyKind::Human,
             id: connection,
             role: Role::Human,
             name: "First arrival".into(),
@@ -139,6 +140,7 @@ async fn connect(
     socket
         .send(Message::Text(
             serde_json::to_string(&ClientMessage::Hello {
+                body: None,
                 role,
                 name: format!("{role:?}"),
                 geometry_version: 2,

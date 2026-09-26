@@ -688,6 +688,7 @@ fn late_join_receives_map_then_shared_progress_without_reset() {
         let connection = Uuid::new_v4();
         let player_id = (role != Role::Spectator).then(Uuid::new_v4);
         session.apply_command(crate::net::GameCommand::Connected {
+            body: crate::protocol::BodyKind::Human,
             id: connection,
             role,
             name: "Late".into(),

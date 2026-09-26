@@ -30,6 +30,8 @@ pub struct ResumeAccept {
     pub player_id: Uuid,
     pub token: String,
     pub seat: Option<OwnedSemaphorePermit>,
+    /// The parked pawn's body. A resume never changes it.
+    pub body: crate::protocol::BodyKind,
 }
 
 pub struct ResumeTable {
@@ -111,6 +113,7 @@ impl ResumeTable {
             player_id: player,
             token,
             seat: parked.seat,
+            body: crate::protocol::BodyKind::default(),
         })
     }
 
@@ -233,6 +236,7 @@ mod tests {
         let client = Uuid::new_v4();
         let player = Uuid::new_v4();
         session.apply_command(GameCommand::Connected {
+            body: crate::protocol::BodyKind::Human,
             id: client,
             role: Role::Human,
             name: "Patch".into(),
@@ -285,6 +289,7 @@ mod tests {
         let owner_client = Uuid::new_v4();
         let owner = Uuid::new_v4();
         campaign.apply_command(GameCommand::Connected {
+            body: crate::protocol::BodyKind::Human,
             id: owner_client,
             role: Role::Human,
             name: "Owner".into(),

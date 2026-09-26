@@ -35,6 +35,10 @@ var _combat_probe: QaCombat = QaCombat.new()
 var _combat_travel: bool = false
 var _retiring_audio: Array[WeakRef] = []
 var _capture_size: Vector2i = Vector2i.ZERO
+## The fighter a "body" camera holds on, and the side it had to be on.
+var _body_pawn: Node3D = null
+var _body_kind: String = ""
+var _body_team: String = ""
 ## Frames between the trigger and the first strip frame. The shot is resolved by
 ## the server, so the flash arrives a round trip later, not on the next frame.
 const STRIP_LEAD_FRAMES: int = 2
@@ -114,6 +118,7 @@ func _run() -> void:
 		if wait_s > 0.0:
 			await create_timer(wait_s).timeout
 
+		_release_body_camera()
 		var menu_page: String = state.get("menu_page", "")
 		if not menu_page.is_empty():
 			get_root().get_node("BootMenu").call("_show", menu_page)
@@ -133,6 +138,14 @@ func _run() -> void:
 				if state.get("expect_records", false) and panel.records.entries.is_empty():
 					push_error("qa_tour: service record has no actual match observation")
 					_failed = true
+		if state.has("profile_body"):
+			# The next join asks for this body through the saved profile.
+			var preferences: FragrSettings = FragrSettings.for_tree(self)
+			preferences.load_from_disk()
+			preferences.set_value("profile", "body", str(state["profile_body"]))
+			preferences.save_to_disk()
+			if _game_manager() != null:
+				_game_manager().settings.set_value("profile", "body", str(state["profile_body"]))
 		if state.has("join"):
 			await _change_role(state["join"] == "human")
 			if _joined:
@@ -212,6 +225,8 @@ func _run() -> void:
 				if label is WorldSign and (label as Node3D).visible:
 					(label as Node3D).visible = false
 					hidden_copy.append(label as Node3D)
+		if state.get("camera", "") == "body":
+			await _find_body(str(state.get("body", "")), str(state.get("body_team", "")))
 		_pose_camera(state.get("camera", "none"))
 		await create_timer(0.75).timeout
 		await RenderingServer.frame_post_draw
@@ -251,6 +266,12 @@ func _run() -> void:
 			push_error("qa_tour: unexpected capture size for " + state_name)
 			_failed = true
 		var observed: Dictionary = _observed_state().duplicate(true)
+		if _joined and _game_manager() != null:
+			observed["accepted_body"] = _game_manager().net_client.accepted_body
+		if is_instance_valid(_body_pawn):
+			observed["body"] = _body_pawn.get("body_kind")
+			observed["body_team"] = _body_pawn.get("team")
+			observed["body_name"] = _body_pawn.get("player_name")
 		observed["render_scale"] = root.scaling_3d_scale
 		observed["upscaling"] = root.scaling_3d_mode
 		observed["msaa"] = root.msaa_3d
@@ -942,8 +963,67 @@ func _pose_camera(mode: String) -> void:
 			if not _joined:
 				cam.set("follow_mode", true)
 				cam.set("spectator_first_person", true)
+		"body":
+			# A close, eye-level still of one fighter's accepted body. The
+			# camera leaves follow mode and is held on the pawn every frame.
+			cam.set("spectator_first_person", false)
+			cam.set("follow_mode", false)
+			if is_instance_valid(_body_pawn) and not process_frame.is_connected(_hold_body_camera):
+				process_frame.connect(_hold_body_camera)
+				_hold_body_camera()
 		_:
 			push_warning("qa_tour: unknown camera mode " + mode)
+
+## Wait for a live fighter wearing `kind`, on `team` when one is named.
+func _find_body(kind: String, team: String) -> void:
+	_body_kind = kind
+	_body_team = team
+	var deadline: int = Time.get_ticks_msec() + 15000
+	while Time.get_ticks_msec() < deadline:
+		_body_pawn = _live_body()
+		if _body_pawn != null:
+			return
+		await create_timer(0.1).timeout
+	push_error("qa_tour: no live fighter wears body %s %s" % [kind, team])
+	_failed = true
+
+func _live_body() -> Node3D:
+	var gm: Node = _game_manager()
+	if gm == null:
+		return null
+	for pawn: Variant in (gm.get("players") as Dictionary).values():
+		if is_instance_valid(pawn) and pawn.get("body_kind") == _body_kind and int(pawn.get("hp")) > 0 			and (_body_team.is_empty() or pawn.get("team") == _body_team) and not bool(pawn.get("is_local_fp")):
+			return pawn
+	return null
+
+## Three metres from the fighter toward the arena centre, at chest height,
+## so the nearest wall is behind the subject rather than in front of it.
+func _hold_body_camera() -> void:
+	var cam: Node = _spectator_camera()
+	if not is_instance_valid(_body_pawn) or int(_body_pawn.get("hp")) <= 0:
+		# The subject died before the shutter: hold on another who matches.
+		_body_pawn = _live_body()
+	if _body_pawn == null or not cam is Node3D:
+		return
+	var feet: Vector3 = _body_pawn.global_position - Vector3(0, CameraScript.FP_SERVER_REFERENCE_Y, 0)
+	var toward: Vector3 = Vector3(-feet.x, 0, -feet.z)
+	toward = toward.normalized() if toward.length() > 0.5 else Vector3.BACK
+	var camera: Node3D = cam
+	camera.global_position = feet + toward * 3.0 + Vector3(0, 1.3, 0)
+	camera.look_at(feet + Vector3(0, 0.95, 0), Vector3.UP)
+	# The pose lock keeps a frag cut or follow step from moving the camera.
+	cam.set("tip_locked_transform", camera.global_transform)
+	cam.set("tip_has_locked_transform", true)
+	cam.set("tip_pose_lock", true)
+
+func _release_body_camera() -> void:
+	if process_frame.is_connected(_hold_body_camera):
+		process_frame.disconnect(_hold_body_camera)
+		var cam: Node = _spectator_camera()
+		if cam != null:
+			cam.set("tip_pose_lock", false)
+			cam.set("tip_has_locked_transform", false)
+	_body_pawn = null
 
 func _spectator_camera() -> Node:
 	var gm: Node = _game_manager()

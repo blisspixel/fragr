@@ -13,6 +13,8 @@ const DEFAULTS: Dictionary = {
 	"profile": {
 		"name": DEFAULT_CALLSIGN,
 		"reticle_colour": "bone",
+		# Human or embodied agent; see PlayerBody. The next join uses it.
+		"body": "human",
 	},
 	"video": {
 		"display_mode": 2,      # 0 windowed, 2 fullscreen
@@ -121,6 +123,8 @@ func set_value(section: String, key: String, value: Variant) -> void:
 	elif path == "profile/reticle_colour":
 		if not value is String or value not in ["bone", "amber", "cyan"]:
 			value = fallback
+	elif path == "profile/body":
+		value = PlayerBody.preference(value)
 	elif typeof(fallback) == TYPE_BOOL:
 		if not value is bool:
 			value = fallback
@@ -208,6 +212,9 @@ static func clean_player_name(value: Variant) -> String:
 
 func player_name() -> String:
 	return clean_player_name(get_value("profile", "name"))
+
+func player_body() -> String:
+	return PlayerBody.preference(get_value("profile", "body"))
 
 func reticle_colour() -> Color:
 	match get_value("profile", "reticle_colour"):

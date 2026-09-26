@@ -1340,6 +1340,7 @@ async fn agent_task(
     let (ws, _) = connect_async(&url).await.map_err(transport)?;
     let (mut sink, mut stream) = ws.split();
     let hello = ClientMessage::Hello {
+        body: None,
         gameplay_version: fragr_server::protocol::GAMEPLAY_VERSION,
         geometry_version: fragr_server::protocol::GEOMETRY_VERSION,
         role: Role::Agent,
@@ -1564,6 +1565,7 @@ pub async fn run(config: Config) -> Result<(Report, Observation), Error> {
     let (ws, _) = connect_async(&url).await.map_err(transport)?;
     let (mut sink, mut stream) = ws.split();
     let hello = ClientMessage::Hello {
+        body: None,
         gameplay_version: fragr_server::protocol::GAMEPLAY_VERSION,
         geometry_version: fragr_server::protocol::GEOMETRY_VERSION,
         role: Role::Spectator,
@@ -1716,6 +1718,7 @@ mod tests {
 
     fn player(name: &str, id: Uuid, x: f32, z: f32, fired: bool) -> PlayerState {
         PlayerState {
+            body: None,
             golden: false,
             lives: None,
             team: None,
@@ -2209,6 +2212,7 @@ mod combat_tests {
 
     fn player(name: &str, id: Uuid, x: f32, z: f32, weapon: &str) -> PlayerState {
         PlayerState {
+            body: None,
             golden: false,
             lives: None,
             team: None,
@@ -2684,6 +2688,7 @@ mod planner_tests {
 
     fn player(name: &str, id: Uuid, x: f32, z: f32, hp: i32, weapon: &str) -> PlayerState {
         PlayerState {
+            body: None,
             golden: false,
             lives: None,
             team: None,
@@ -3045,6 +3050,7 @@ mod line_of_sight_tests {
             jammer_dish: None,
         };
         let mk = |id: Uuid, x: f32| fragr_server::protocol::PlayerState {
+            body: None,
             golden: false,
             lives: None,
             team: None,
@@ -3115,6 +3121,7 @@ mod patrol_tests {
 
     fn lone(id: Uuid) -> fragr_server::protocol::PlayerState {
         fragr_server::protocol::PlayerState {
+            body: None,
             golden: false,
             lives: None,
             team: None,

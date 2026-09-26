@@ -25,6 +25,7 @@ async fn join(url: &str, role: Role, name: &str) -> (Socket, Option<Uuid>) {
     socket
         .send(Message::Text(
             serde_json::to_string(&ClientMessage::Hello {
+                body: None,
                 gameplay_version: crate::protocol::GAMEPLAY_VERSION,
                 geometry_version: crate::protocol::GEOMETRY_VERSION,
                 role,

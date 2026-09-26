@@ -133,6 +133,7 @@ func _ready():
 		net_client.set_server_host(str(boot["host"]))
 	
 	_awaiting_map = true
+	net_client.requested_body = settings.player_body()
 	net_client.connect_to_server(role, player_name)
 	hud.set_mode(str(boot.get("hud_mode", "SPECTATING")))
 	_setup_radio()
@@ -464,6 +465,7 @@ func change_role(play: bool) -> void:
 	_clear_fp_state()
 	pending_weapon_swap = null
 	await get_tree().create_timer(0.1).timeout
+	net_client.requested_body = settings.player_body()
 	net_client.connect_to_server("human" if play else "spectator", settings.player_name())
 	hud.set_mode(("CAMPAIGN" if local_match != null else "PLAYING") if play else "SPECTATING")
 	hud.set_ghost_rival("")

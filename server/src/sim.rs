@@ -573,6 +573,9 @@ pub struct Player {
     pub eliminated: bool,
     /// Holds the golden Railgun.
     pub golden: bool,
+    /// Chosen at admission and fixed for the pawn's life: respawn, resume
+    /// and continue keep it. Nothing in combat reads it.
+    pub body: crate::protocol::BodyKind,
 }
 
 impl Player {
@@ -629,6 +632,7 @@ impl Player {
             lives: None,
             eliminated: false,
             golden: false,
+            body: crate::protocol::BodyKind::Human,
         }
     }
 
@@ -900,6 +904,18 @@ impl GameState {
     }
 
     pub fn add_player(&mut self, id: Uuid, name: String, role: Role) {
+        self.add_player_with_body(id, name, role, crate::protocol::BodyKind::Human);
+    }
+
+    /// Admit a participant with its chosen body. The body changes nothing the
+    /// simulation decides: side, spawn, equipment and lives ignore it.
+    pub fn add_player_with_body(
+        &mut self,
+        id: Uuid,
+        name: String,
+        role: Role,
+        body: crate::protocol::BodyKind,
+    ) {
         if !self.admit_campaign_owner(id) {
             return;
         }
@@ -924,6 +940,7 @@ impl GameState {
             self.map.spawn(angle),
             self.map.equipment_policy(),
         );
+        player.body = body;
         if self.map.is_campaign() {
             player.campaign = Some(crate::protocol::CampaignActor::Participant {});
         } else {
@@ -1931,6 +1948,7 @@ impl GameState {
                         team: p.team,
                         lives: p.lives,
                         golden: p.golden,
+                        body: (!p.is_boss && !p.is_campaign_enemy()).then_some(p.body),
                     }
                 })
                 .collect(),
@@ -2339,6 +2357,7 @@ impl GameState {
             lives: None,
             eliminated: false,
             golden: false,
+            body: crate::protocol::BodyKind::Human,
         });
         self.bots
             .push(BotController::new(id, BotBehavior::Compliance));
@@ -2639,6 +2658,7 @@ impl GameState {
             lives: None,
             eliminated: false,
             golden: false,
+            body: crate::protocol::BodyKind::Human,
         });
         self.bots
             .push(BotController::new(id, BotBehavior::Compliance));

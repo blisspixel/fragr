@@ -462,6 +462,7 @@ pub enum GameCommand {
         role: Role,
         name: String,
         player_id: Option<Uuid>,
+        body: crate::protocol::BodyKind,
     },
     Disconnected {
         id: Uuid,
@@ -1055,6 +1056,7 @@ async fn handle_connection(
                 gameplay_version,
                 ticket,
                 resume,
+                body: requested_body,
             }) => {
                 if !crate::join_ticket::admit(
                     policy.join_secret.as_deref(),
@@ -1150,6 +1152,7 @@ async fn handle_connection(
                         mode_name: crate::protocol::default_mode_name(),
                         playlist: crate::protocol::default_playlist(),
                         resume: Some(accepted.token),
+                        body: Some(accepted.body),
                     };
                     send_welcome(&mut ws_sink, &welcome, &traffic).await?;
                     tracing::info!(
@@ -1204,6 +1207,7 @@ async fn handle_connection(
                         mode_name: crate::protocol::default_mode_name(),
                         playlist: crate::protocol::default_playlist(),
                         resume: issued,
+                        body: player_id.map(|_| requested_body.unwrap_or_default()),
                     };
 
                     send_welcome(&mut ws_sink, &welcome, &traffic).await?;
@@ -1224,6 +1228,7 @@ async fn handle_connection(
                         role: r,
                         name,
                         player_id,
+                        body: requested_body.unwrap_or_default(),
                     })?;
                     if policy.solo_run {
                         if let Some(seat) = _party_seat.take() {

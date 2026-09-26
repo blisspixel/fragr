@@ -1,0 +1,31 @@
+{
+	"centre_metres": 0.9,
+	"engine": "4.7.2-stable (official)",
+	"entries": [
+		{
+			"body": "human",
+			"brief": "Free human: bone shirt, open warm-leather jacket, rust scarf, cyan patch and armband, visible face and hair.",
+			"file": "human.png",
+			"sha256": "e89763c55f769b9bc29be20537e68c0058db79b1945576fccd48c019ef878046"
+		},
+		{
+			"body": "synthetic",
+			"brief": "Free embodied agent: bone shell over a gunmetal frame, leather harness, ember scarf, rust repair plates, round cyan lenses, magenta-tipped antenna.",
+			"file": "synthetic.png",
+			"sha256": "e1c11a34907b4c77394fcac97c93b930084d1a4a3d11bc5096ba9b0133c773fb"
+		}
+	],
+	"format": "RGBA8 PNG, nearest sampling, no mipmaps",
+	"idle_frames": 4,
+	"schema": 1,
+	"sources": {
+		"res://art/characters/geometry.gd": "833318a2c94533aac01abbf7c886b616ec11528624fa406e6cad18dc1a14eec9",
+		"res://art/characters/player_bake.gd": "f4169d392ea540e8f7ecba89ad7fd97cc4d7d7e5da7b3552771dc9617cacb7e8",
+		"res://art/characters/player_rig.gd": "8816452026528b05b49709f75f1e7170f9761f90bcaedb2c4c8b2d71cdd0f3a4",
+		"res://art/characters/rig.gd": "2bfbe583b626c047592fbbc2a237047f1dfc70d78ec6b7281169c535e30fa05f",
+		"res://scripts/enemy_animation.gd": "400214a81e9d0656d637787fe8e3fdb31772271b0ad9733b37e1ae5cd010c3cf"
+	},
+	"tile_pixels": 160,
+	"view_metres": 3.0,
+	"walk_frames": 4
+}

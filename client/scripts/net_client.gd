@@ -1,9 +1,10 @@
 extends Node
 
-# Version 10 understands one ammunition count per type and scatter pellet
-# traces; 9 added M02 objective and gate state and 8 private participant
-# records. Older servers remain playable.
-const GAMEPLAY_VERSION: int = 12
+# Version 13 understands the chosen participant body; 12 match rule sets;
+# 10 one ammunition count per type and scatter pellet traces; 9 M02
+# objective and gate state; 8 private participant records. Older servers
+# remain playable.
+const GAMEPLAY_VERSION: int = PlayerBody.VERSION
 
 signal connected_to_server
 signal disconnected_from_server
@@ -37,6 +38,11 @@ func _init():
 var role = "spectator"
 var player_name = "Spectator"
 var player_id = null
+## Body the next participant Hello asks for, from the saved profile.
+var requested_body: String = PlayerBody.HUMAN
+## The body the server accepted for our pawn; empty for a spectator or
+## before Welcome. A resumed pawn keeps its own, whatever was requested.
+var accepted_body: String = ""
 var _resume_token: String = ""
 var _leaving: bool = false
 var _resume_used: bool = false
@@ -61,6 +67,7 @@ func connect_to_server(p_role: String = "spectator", p_name: String = "Player"):
 	role = p_role
 	player_name = p_name
 	player_id = null
+	accepted_body = ""
 	_leaving = false
 	_resume_used = false
 	record.clear()
@@ -99,6 +106,7 @@ func disconnect_from_server():
 		socket.close()
 	connection_state = WebSocketPeer.STATE_CLOSED
 	player_id = null
+	accepted_body = ""
 	record.clear()
 	equipment.clear()
 	mission.clear()
@@ -149,6 +157,7 @@ func send_hello():
 		hello["ticket"] = ticket
 	if role == "human" or role == "agent":
 		hello["resume"] = _resume_token
+		hello["body"] = PlayerBody.preference(requested_body)
 	send_json(hello)
 
 func send_action(action: Dictionary):
@@ -305,6 +314,12 @@ func _handle_message(text: String):
 	
 	match msg_type:
 		"welcome":
+			var body_problem: String = PlayerBody.welcome_error(data, role)
+			if not body_problem.is_empty():
+				disconnect_from_server()
+				server_error.emit(body_problem)
+				return
+			accepted_body = PlayerBody.accepted(data, role)
 			if data.get("resume") is String and str(data["resume"]) != "":
 				_resume_token = str(data["resume"])
 			_resume_used = false
@@ -361,6 +376,8 @@ func _handle_message(text: String):
 
 		"snapshot":
 			var problem: String = ActorState.validation_error(data)
+			if problem.is_empty():
+				problem = PlayerBody.snapshot_error(data)
 			if not problem.is_empty():
 				disconnect_from_server()
 				server_error.emit(problem)

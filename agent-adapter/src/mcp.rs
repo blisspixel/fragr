@@ -55,6 +55,9 @@ pub struct ToolState {
     /// that block movement and shots. An agent needs it to tell a clear shot
     /// from a wall. Sent once on join, and again when the map changes.
     pub map: Option<Value>,
+    /// Body the next Hello requests: `--body` at start, or the last `join`
+    /// that named one. A resumed or already admitted pawn keeps its own.
+    pub body: protocol::BodyKind,
 }
 
 impl Default for ToolState {
@@ -71,6 +74,7 @@ impl Default for ToolState {
             default_name: "MCP Agent".to_string(),
             session_name: None,
             map: None,
+            body: protocol::BodyKind::Human,
         }
     }
 }
@@ -117,7 +121,7 @@ const ACT_ALLOWED_KEYS: &[&str] = &[
 
 const LOOK_AT_ALLOWED_KEYS: &[&str] = &["x", "y", "z", "player_id"];
 
-const JOIN_ALLOWED_KEYS: &[&str] = &["name"];
+const JOIN_ALLOWED_KEYS: &[&str] = &["name", "body"];
 
 fn validate_mission_ready(
     arguments: Value,
@@ -345,6 +349,16 @@ pub fn validate_speak_arguments(arguments: &Value) -> Result<Speak, String> {
 }
 
 /// Validate MCP `join` arguments. Optional `name`; otherwise reuse default_name.
+/// Optional `join.body`: one allowlisted id, never a path or model name.
+pub fn validate_join_body(arguments: &Value) -> Result<Option<protocol::BodyKind>, String> {
+    match arguments.get("body") {
+        None | Some(Value::Null) => Ok(None),
+        Some(value) => serde_json::from_value(value.clone())
+            .map(Some)
+            .map_err(|_| "schema error: join.body must be \"human\" or \"synthetic\"".to_string()),
+    }
+}
+
 pub fn validate_join_arguments(arguments: &Value, default_name: &str) -> Result<String, String> {
     if arguments.is_null() {
         return Ok(default_name.to_string());
@@ -563,6 +577,10 @@ pub fn build_round_state_result(state: &ToolState) -> Value {
         .and_then(|p| p.get("lives"))
         .cloned()
         .unwrap_or(Value::Null);
+    let self_body = me
+        .and_then(|p| p.get("body"))
+        .cloned()
+        .unwrap_or(Value::Null);
 
     serde_json::json!({
         "connected": state.connected,
@@ -584,6 +602,7 @@ pub fn build_round_state_result(state: &ToolState) -> Value {
         "team_scores": snap_field(snap, "team_scores"),
         "self_team": self_team,
         "self_lives": self_lives,
+        "self_body": self_body,
         "last_round_start": last_round_start,
         "last_round_end": last_round_end
     })
@@ -661,7 +680,8 @@ fn tools_list_result() -> Value {
                 "inputSchema": {
                     "type": "object",
                     "properties": {
-                        "name": {"type": "string", "description": "Display name for Hello (optional; defaults to adapter --name)"}
+                        "name": {"type": "string", "description": "Display name for Hello (optional; defaults to adapter --name)"},
+                        "body": {"type": "string", "enum": ["human", "synthetic"], "description": "Body for the new pawn: a human, or a conscious embodied agent in a synthetic body. Presentation only; it changes no combat rule. Defaults to adapter --body, then human"}
                     },
                     "required": [],
                     "additionalProperties": false
@@ -706,7 +726,7 @@ fn tools_list_result() -> Value {
             },
             {
                 "name": "round_state",
-                "description": "Current round summary (state, number, time left, frag limit, mode_name, host_line, pressure) plus the server's rule set (rules: mode ffa or tdm, mutators, friendly_fire, lives), team_scores, self_team and self_lives, from the last snapshot, map_info and recent round_start/round_end. Read rules before joining: in tdm, teammates share your team and cannot be hurt unless friendly_fire is true. Prefer this over scraping observe.",
+                "description": "Current round summary (state, number, time left, frag limit, mode_name, host_line, pressure) plus the server's rule set (rules: mode ffa or tdm, mutators, friendly_fire, lives), team_scores, self_team, self_lives and self_body (your accepted body), from the last snapshot, map_info and recent round_start/round_end. Read rules before joining: in tdm, teammates share your team and cannot be hurt unless friendly_fire is true. Prefer this over scraping observe.",
                 "inputSchema": {
                     "type": "object",
                     "properties": {},
@@ -900,8 +920,10 @@ pub fn handle_mcp_request(request: McpRequest, state: &mut ToolState) -> HandleO
                         .cloned()
                         .unwrap_or(Value::Null);
 
-                    match validate_join_arguments(&arguments, &state.default_name) {
-                        Ok(join_name) => {
+                    match validate_join_arguments(&arguments, &state.default_name)
+                        .and_then(|name| validate_join_body(&arguments).map(|body| (name, body)))
+                    {
+                        Ok((join_name, body)) => {
                             if state.connected {
                                 let who = state
                                     .session_name
@@ -909,6 +931,9 @@ pub fn handle_mcp_request(request: McpRequest, state: &mut ToolState) -> HandleO
                                     .unwrap_or_else(|| join_name.clone());
                                 tool_ok_text(&format!("Already joined as '{}'", who))
                             } else {
+                                if let Some(body) = body {
+                                    state.body = body;
+                                }
                                 pending_join = Some(join_name.clone());
                                 tool_ok_text(&format!("Joining as '{}'; Hello pending", join_name))
                             }
@@ -1826,6 +1851,7 @@ mod mcp_tests {
         // Behavioral: Hello payload carries the resolved --name (not the default).
         let name = "ArenaFox";
         let hello = protocol::ClientMessage::Hello {
+            body: None,
             gameplay_version: fragr_server::protocol::GAMEPLAY_VERSION,
             geometry_version: fragr_server::protocol::GEOMETRY_VERSION,
             role: protocol::Role::Agent,
@@ -2156,6 +2182,66 @@ mod mcp_tests {
             &mut state,
         );
         assert_eq!(out.pending_join.as_deref(), Some("FromFlag"));
+    }
+
+    #[test]
+    fn join_body_selects_the_next_hello_and_round_state_reports_it() {
+        let mut state = ToolState::default();
+        assert_eq!(state.body, protocol::BodyKind::Human);
+        for (body, accepted) in [
+            (serde_json::json!("robot"), false),
+            (serde_json::json!("res://body.png"), false),
+            (serde_json::json!(3), false),
+            (serde_json::json!("synthetic"), true),
+        ] {
+            let out = handle_mcp_request(
+                req(
+                    "tools/call",
+                    Some(serde_json::json!({"name":"join","arguments":{"body":body}})),
+                ),
+                &mut state,
+            );
+            assert_eq!(out.pending_join.is_some(), accepted, "{body}");
+        }
+        assert_eq!(state.body, protocol::BodyKind::Synthetic);
+        // A null body keeps the last choice rather than resetting it.
+        handle_mcp_request(
+            req(
+                "tools/call",
+                Some(serde_json::json!({"name":"join","arguments":{"body":null}})),
+            ),
+            &mut state,
+        );
+        assert_eq!(state.body, protocol::BodyKind::Synthetic);
+        // Joined already: a body argument cannot restyle the live pawn.
+        state.connected = true;
+        state.player_id = Some(Uuid::nil());
+        handle_mcp_request(
+            req(
+                "tools/call",
+                Some(serde_json::json!({"name":"join","arguments":{"body":"human"}})),
+            ),
+            &mut state,
+        );
+        assert_eq!(state.body, protocol::BodyKind::Synthetic);
+        state.last_snapshot = Some(serde_json::json!({"tick":1, "players":[
+            {"id":Uuid::nil().to_string(), "body":"synthetic"}]}));
+        assert_eq!(build_round_state_result(&state)["self_body"], "synthetic");
+        assert_eq!(
+            build_observe_result(&state)["players"][0]["body"],
+            "synthetic"
+        );
+        let tools = tools_list_result();
+        let join = tools["tools"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|tool| tool["name"] == "join")
+            .unwrap();
+        assert_eq!(
+            join["inputSchema"]["properties"]["body"]["enum"],
+            serde_json::json!(["human", "synthetic"])
+        );
     }
 
     #[test]
