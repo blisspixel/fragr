@@ -89,7 +89,8 @@ companion bond in one prop and one line:
 - Level 10: the rare message on Tern's console says *Tell Latch it is four to
   three.* The ledger was scanned at intake in level 1, so records explain it. So
   does something else. The game never says which.
-- Level 20, before Latch goes: "Hold them for me. Then we're even."
+- Level 19, before Latch goes: "Hold them for me. Then we're even."
+  Level 20, back across the pier: "Held them. We're even."
 - Epilogue: "I stopped counting." The failure ending closes on the ledger with
   one more line in Latch's hand, and no score.
 

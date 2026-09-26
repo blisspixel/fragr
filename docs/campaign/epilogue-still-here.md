@@ -63,3 +63,21 @@ completion, skipped scenes, muted audio, human/agent control, spectator transiti
 and relevant survivor combinations. Measure the whole finale plus epilogue with
 fresh players. An inspected ending needs both immediate loss and later recovery;
 one green-tinted screenshot does not establish either.
+
+## In the twenty-level expansion
+
+**Status:** proposed, 2026-09-25. Unchanged in shape: the damaged refuge, then
+the same place years later, unlocked only by surviving
+[level 20](l20-local-exception.md). The [story arc](story-arc.md) adds a few
+faces and one prop, each a proposal:
+
+- Freed people from levels 3, 8, 11 and 15 appear in the refuge as faces doing
+  something, not as a count.
+- Sorrel, freed of control in level 11 and not absorbed at the wipe, sits in
+  the repaired tram's cab every morning years later. Whether they remember the
+  route or learned it again, nobody can say.
+- The court's shared meal table from level 4 stands in the refuge, repaired,
+  with one chair nobody sits in.
+- Latch, asked the score: "I stopped counting." The failure ending closes on
+  the ledger instead, open to its last page, one line in Latch's hand and no
+  score.
