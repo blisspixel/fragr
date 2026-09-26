@@ -393,7 +393,7 @@ Every item above maps to a plan or says "plan needed". The order of the next PRs
 | Phase 1.2: look pass | `plans/look-pass-boomer.md`, assets from `plans/art-pipeline.md` | lighting increment and stage 1 (world pixels, palette dither) in flight; stages 2 to 5 next; art rung 1 (the Rust tool) any time, paid rungs after written approval |
 | Phase 1.3: sound and music | `plans/radio-stations.md` (shipped; bumpers and Host voice remain) | |
 | Phase 1.4: bots that read as players | plan needed | after campaign rung 2 |
-| Phase 1.5: reference agents and the door | `plans/decision-brain.md` (shipped), `plans/agent-door-2026.md` | 7 |
+| Phase 1.5: reference agents and the door | `plans/decision-brain.md` (shipped), `plans/brain-local-model.md` (free local decision model, implemented), `plans/agent-door-2026.md` | 7 |
 | Phase 1.6: agents that field agents | `plans/agent-door-2026.md` rung 3 | |
 | Phase 1.6b: playtest loop | `plans/agent-playtest-loop.md` | 4 (rung 3 status line and bench), 6 (rung 2 planner tier) |
 | Phase 1.7: compact campaign | [contract](CAMPAIGN.md), [treatment](CAMPAIGN-MISSIONS.md), [twenty-level plans and the epilogue](campaign/README.md), [build order](plans/campaign-build-order.md), [frameworks](plans/campaign-continuance.md) | full build order: finish M01, then one mission at a time |

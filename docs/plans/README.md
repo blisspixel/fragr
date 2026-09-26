@@ -17,6 +17,7 @@ Status words: **proposed** (a design awaiting Nick's decision; directs no work),
 
 | Plan | Status | One-liner |
 |---|---|---|
+| [`brain-local-model.md`](./brain-local-model.md) | **implemented** | Free open-weights decisions for `fragr-brain`: APUS-OpenJev-v1-4B through local Ollama, or a self-hosted openjev server (non-commercial weights), loopback only, strictly validated, with the paid path's budget and fallback and a measured laptop smoke. |
 | [`multiplayer-modes.md`](./multiplayer-modes.md) | **in flight** | Named rule sets chosen by the host: team deathmatch, six GoldenEye-style mutators, Host reactions and the 100 Cells cap; capture the flag, Rescue, Sabotage and a combined-arms mode designed next. |
 | [`replayability.md`](./replayability.md) | **proposed** | Counter-Strike level replay: loops at three time scales, Rescue and Sabotage as the round-based flagship with no shop or scrip and lineups, mutators, Host reactions, agent rivals, feats, demos from the trace, and a build order. |
 | [`campaign-expansion.md`](./campaign-expansion.md) | **planned**, accepted 2026-09-25 | Twenty levels in five episodes for a four-hour first run, now the contract in [CAMPAIGN.md](../CAMPAIGN.md): the ten-mission spine kept, one new thing per level, the wipe in three levels, a brief by difficulty, par and replay waivers. The 2026-09-25 deep dive adds the [story arc](../campaign/story-arc.md), a full design per level and the pacing curve; the story arc itself stays proposed. |

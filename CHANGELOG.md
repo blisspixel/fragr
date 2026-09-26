@@ -4,6 +4,25 @@ Shipped tags, newest first. A line here is on `main`. Planned work stays in
 [docs/ROADMAP.md](docs/ROADMAP.md). Older tags are on the
 [releases page](https://github.com/blisspixel/fragr/releases).
 
+## v0.56.0 (2026-09-26)
+
+The reference agent can think for free on your own machine. `fragr-brain
+--provider ollama` asks APUS-OpenJev-v1-4B, an Apache 2.0 open-weights decision
+model, through a local Ollama server: the brain renders the model's own
+candidate-scoring prompt and reads its answer from the letter probabilities, so
+there is no text to parse. `--provider openjev` points the same brain at an
+openjev server you run yourself; those weights are licensed for non-commercial
+use only, so fragr never bundles or defaults to them.
+
+Both are loopback only unless you pass `--allow-remote-model`, need no key, and
+never touch the spend ledger. Every reply is checked against the questions
+asked, and a slow, wrong or unreadable answer hands the fighter to local rules
+exactly as a paid one does. The run summary now reports p50 and p95 decision
+latency, timeouts, fallbacks and decisions per second. On a laptop with
+integrated graphics the 4B model answers in about twelve seconds, so give it a
+longer `--timeout-ms`; measurements and hardware are in
+`docs/plans/brain-local-model.md`.
+
 ## v0.55.1 (2026-09-26)
 
 The Recall Notice opening has pictures. The first two pages show Latch at the

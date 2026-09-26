@@ -4,7 +4,7 @@ version = "0.1.0"
 edition.workspace = true
 license.workspace = true
 repository.workspace = true
-description = "Example fragr agent: a remote decision brain (TypeSafe Jev natively or through OpenRouter) sets intent a few times a second, a local controller plays every tick, and a hard spend cap sits in front of every paid call"
+description = "Example fragr agent: a decision brain (TypeSafe Jev natively or through OpenRouter, or a free open-weights model on loopback) sets intent a few times a second, a local controller plays every tick, and a hard spend cap sits in front of every paid call"
 publish = false
 
 [lib]
