@@ -86,3 +86,83 @@ once. Ordinary combat cannot kill them or fail the rescue after release. Their
 later survival is an authored story outcome. A solo player can finish alone.
 Prove idempotent release, mission-start retry before and after rescue, blocked
 NPC paths, optional captives, muted audio and the complete solo retreat. Rescue must be understood as success.
+
+## Level 2 design (twenty-level expansion)
+
+**Status:** proposed, 2026-09-25. Level 2 of the
+[twenty-level expansion](../plans/campaign-expansion.md). The Jammer moves to
+[level 3](l03-scheduled-service.md); the loading dock becomes a Clerk and
+Sweeper crest. [Story arc](story-arc.md).
+
+| Episode | Place | New | First run | Par | Doors |
+|---|---|---|---|---|---|
+| I Recall | Correction ward, Earth | Shotgun; Crawler | 11 min | 4:30 | 1 |
+
+**Premise.** The lift only runs down. Below the intake annex is the ward where
+correction happens, and Latch is on the frame. Get there before it finishes.
+
+**Hook.** Fight down into the worst room in the building and pull your friend
+off the machine with its guards still firing.
+
+**Teaches.** The Shotgun, then the Crawler. The Shotgun waits in a guard room
+at the top of the service stair, where two Clerks sit at a table with their
+weapons down: point blank, one blast each, an easy first lesson in seven
+pellets. The Crawler comes next and alone: a scrabble and a caption, then one
+low chassis leaping from the switchback's lower landing, its wind-up a clear
+crouch, on a landing wide enough to sidestep. The Shotgun answers it.
+
+**Shape.**
+1. **Arrival.** The observation gallery. Through the glass, below: the ward,
+   the restraint frame, and Latch on it. A Notary drifts beyond the glass
+   photographing captives, out of reach. The destination is the first thing you
+   see.
+2. **First fight.** The guard room and the Shotgun.
+3. **Escalation.** The service stair: the first Crawler, then a pack of three
+   on the next landing with a Sweeper firing up the well. Keep space without
+   backing into its lane.
+4. **Set piece.** The ward. The seal drops behind you for this fight only.
+   Sweepers from the bays, Clerks on the gallery above, Crawlers from the floor
+   vents, the frame between you and all of them. The machine stops when its
+   guards fall. No countdown.
+5. **Turn.** The reunion, in engine, under thirty seconds. Latch's first act,
+   before they speak to you, is opening the next restraint. Then they read the
+   transfer list on the frame's screen: Low Water, next.
+6. **Breath.** The side ward on the maintenance loop, optional: captives who
+   free themselves once their guards are down.
+7. **Climax.** The processing floor, two levels of machinery islands, Latch
+   fighting beside you, a human officer on the upper gantry as the priority
+   target. Four Sweepers, four Clerks, a last Crawler pair.
+8. **Exit.** The loading dock and the open door to the yard. "Get out."
+
+**Landmarks and sightlines.** The restraint frame, seen from the gallery before
+the first shot. The gallery glass from below, where you stood a minute ago.
+The dock's daylight at the end of the processing floor.
+
+**Doors.** One: the ward seal, down for its fight and up when it is won.
+
+**Secrets.**
+- An armor locker off the gallery loop, the six scratched into its hinge.
+- A service panel with the six half painted over by a careless inspector:
+  Shells and a Shiv behind it.
+- The processing floor's upper gantry ledge, reached by a readable jump from
+  the stair: a medkit and a sightline down onto the crest.
+
+**Brief.** Assisted: free the side ward. Standard adds: clear the processing
+floor's upper gantry. Severe adds: stop the Crawler pack before it reaches the
+stair landing.
+
+**Par and the runner's line.** 4:30. The maintenance loop from the antechamber
+to the floor, skipping the stair's second landing.
+
+**Story in play.** Page in: "The correction ward, under the same building.
+Minutes, not hours. The lift only runs down. Latch is on the frame. Find
+Latch." The ward PA speaks in a soft voice. Latch's first line after the
+reunion pays off the ledger: "That's four. Don't let it go to your head."
+Then, reading the list: "That's our street." Latch's barks through the floor
+fight are short and practical ("Left. Gantry.").
+
+**Humor.** The ward PA: "Please remain still. Stillness assists your comfort."
+Latch, freed, to you: "Took you long enough." The captives are never the joke.
+
+**The moment.** The frame stops, the room goes quiet, and Latch opens somebody
+else's restraint before they say hello.
