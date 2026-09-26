@@ -280,6 +280,9 @@ async fn run_server_impl(
         required_gameplay,
     )
     .await?;
+    if twisted && !discovery {
+        net_server.open_arena_seats();
+    }
     net_server.share_status(std::sync::Arc::clone(&live));
     net_server.share_resume(std::sync::Arc::clone(&session.resume));
     session.resume.note_tick(session.state.tick);

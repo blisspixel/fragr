@@ -620,6 +620,14 @@ impl NetServer {
         self.listener.local_addr()
     }
 
+    /// An arena rule set needs capability 12 for its sides and lives, not the
+    /// four-seat mission party that capability 4 and above otherwise implies.
+    pub(crate) fn open_arena_seats(&mut self) {
+        if !self.solo_run {
+            self.party_slots = None;
+        }
+    }
+
     /// Only a completed admission consumes the run's lifetime combat seat.
     pub(crate) fn reserve_solo_run(&mut self) -> std::io::Result<()> {
         if self.gameplay_version < crate::protocol::CONTINUES_GAMEPLAY_VERSION {

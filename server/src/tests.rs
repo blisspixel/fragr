@@ -6427,5 +6427,6 @@ mod vertical_aim {
 mod encounters;
 mod heavy_turret;
 mod m01;
+mod modes;
 mod pellets;
 mod shiv;

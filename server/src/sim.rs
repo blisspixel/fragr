@@ -2407,7 +2407,7 @@ impl GameState {
     fn reset_pickups(&mut self) {
         self.pickups = self.map.pickups();
         self.golden_rail = None;
-        if self.map.is_authored() {
+        if self.map.is_campaign() {
             return;
         }
         if self.config.rules.has(Mutator::GoldenRail) {

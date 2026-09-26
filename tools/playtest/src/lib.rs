@@ -131,6 +131,9 @@ fn weapon_from_wire(name: &str) -> Option<WeaponType> {
         "flechette" => Some(WeaponType::Flechette),
         "rail" => Some(WeaponType::Rail),
         "scatter" => Some(WeaponType::Scatter),
+        "tack" => Some(WeaponType::Tack),
+        "fists" => Some(WeaponType::Fists),
+        "shiv" => Some(WeaponType::Shiv),
         _ => None,
     }
 }
@@ -163,6 +166,8 @@ pub struct Config {
     pub seed: u64,
     /// Policies dealt round robin to the agents.
     pub tiers: Vec<Policy>,
+    /// The host's rule set: mode and mutators. Plain free-for-all by default.
+    pub rules: fragr_server::rules::RuleSet,
 }
 
 impl Default for Config {
@@ -176,6 +181,7 @@ impl Default for Config {
             max_ticks: 20 * 120,
             seed: 1,
             tiers: vec![Policy::Reflex],
+            rules: fragr_server::rules::RuleSet::default(),
         }
     }
 }
@@ -406,6 +412,12 @@ pub struct Observation {
     /// in event order, so spawn-death evidence can say where it happened.
     #[serde(default)]
     frag_places: Vec<FragPlace>,
+    /// The rule set the server advertised in map_info.
+    #[serde(default)]
+    pub rules: Option<fragr_server::protocol::MatchRules>,
+    /// The last side each fighter was seen on; None while it had none.
+    #[serde(default)]
+    pub sides: BTreeMap<String, Option<fragr_server::protocol::Team>>,
 }
 
 impl Observation {
@@ -439,6 +451,7 @@ impl Observation {
             }
         }
         for player in &snapshot.players {
+            self.sides.insert(player.name.clone(), player.team);
             let track = self.tracks.entry(player.name.clone()).or_default();
             track.ticks_present += 1;
             let pos = (player.x, player.z);
@@ -730,6 +743,18 @@ pub struct Report {
     /// and where each weapon does its work.
     pub combat: CombatReport,
     pub per_agent: BTreeMap<String, AgentReport>,
+    /// The rule set the server advertised, as every reader sees it.
+    #[serde(default)]
+    pub rules: Option<fragr_server::protocol::MatchRules>,
+    /// Fighters seen on each side; `none` counts fighters without one.
+    #[serde(default)]
+    pub sides: BTreeMap<String, u64>,
+    /// Host reactions called during the run.
+    #[serde(default)]
+    pub host_reactions: u64,
+    /// Frags where killer and victim shared a side.
+    #[serde(default)]
+    pub team_kills: u64,
 }
 
 fn seconds(ticks: u64) -> f64 {
@@ -774,6 +799,8 @@ pub fn compute_report(obs: &Observation, agents: usize) -> Report {
     let mut frag_ticks: Vec<u64> = Vec::new();
     let mut host_beats = 0u64;
     let mut pickups = 0u64;
+    let mut host_reactions = 0u64;
+    let mut team_kills = 0u64;
     let mut spawn_deaths = 0u64;
     let mut opening_spawn_deaths = 0u64;
     for timed in &obs.events {
@@ -787,7 +814,14 @@ pub fn compute_report(obs: &Observation, agents: usize) -> Report {
             GameEvent::Respawn { player } => {
                 last_spawn.insert(player.clone(), (timed.tick, false));
             }
-            GameEvent::Frag { killer, victim, .. } => {
+            GameEvent::Frag {
+                killer,
+                victim,
+                killer_team,
+                victim_team,
+                ..
+            } => {
+                team_kills += u64::from(killer_team.is_some() && killer_team == victim_team);
                 let place = obs
                     .frag_places
                     .get(frag_ticks.len())
@@ -816,9 +850,12 @@ pub fn compute_report(obs: &Observation, agents: usize) -> Report {
                     }
                 }
             }
+            GameEvent::HostReaction { .. } => {
+                host_beats += 1;
+                host_reactions += 1;
+            }
             GameEvent::RoundEnd { .. }
             | GameEvent::Killstreak { .. }
-            | GameEvent::HostReaction { .. }
             | GameEvent::CompliancePing { .. }
             | GameEvent::BossSpawn { .. }
             | GameEvent::BossDown { .. } => host_beats += 1,
@@ -867,6 +904,14 @@ pub fn compute_report(obs: &Observation, agents: usize) -> Report {
         },
         combat: obs.combat_report(),
         per_agent,
+        rules: obs.rules.clone(),
+        sides: obs.sides.values().fold(BTreeMap::new(), |mut sides, side| {
+            let key = side.map_or("none", |team| team.id()).to_string();
+            *sides.entry(key).or_insert(0) += 1;
+            sides
+        }),
+        host_reactions,
+        team_kills,
     }
 }
 
@@ -874,6 +919,7 @@ pub fn compute_report(obs: &Observation, agents: usize) -> Report {
 /// Empty means the run is acceptable and the #124 table still holds.
 pub fn check_thresholds(report: &Report) -> Vec<String> {
     let mut problems = check_sticky_ttk_table();
+    let lives = report.rules.as_ref().and_then(|rules| rules.lives);
     if report.rounds_completed == 0 {
         problems.push("no round completed".to_string());
     }
@@ -885,8 +931,9 @@ pub fn check_thresholds(report: &Report) -> Vec<String> {
             ));
         }
         // Three seconds is the respawn delay. Twice that is a fighter the
-        // server forgot, which no amount of agent cleverness can fix.
-        if agent.dead_max_s > 6.0 {
+        // server forgot, which no amount of agent cleverness can fix. Under
+        // limited lives an eliminated fighter is meant to stay off the field.
+        if agent.dead_max_s > 6.0 && lives.is_none() {
             problems.push(format!(
                 "{name} dead for {:.1} s without respawning",
                 agent.dead_max_s
@@ -918,11 +965,46 @@ pub fn check_thresholds(report: &Report) -> Vec<String> {
             report.opening_spawn_deaths
         ));
     }
+    problems.extend(check_rules(report));
     if report.agents >= 4 && report.frags_per_minute < 1.0 {
         problems.push(format!(
             "only {:.2} frags per minute with {} agents",
             report.frags_per_minute, report.agents
         ));
+    }
+    problems
+}
+
+/// The advertised rule set held: a team round put every fighter on one of
+/// two sides with no team kills unless friendly fire is on, and a weapon-only
+/// round fired nothing else.
+pub fn check_rules(report: &Report) -> Vec<String> {
+    let mut problems = Vec::new();
+    let Some(rules) = report.rules.as_ref() else {
+        return problems;
+    };
+    if rules.mode.teams() {
+        if report.sides.get("none").copied().unwrap_or(0) > 0 {
+            problems.push(format!("{} fighters without a side", report.sides["none"]));
+        }
+        for team in fragr_server::protocol::Team::ALL {
+            if report.sides.get(team.id()).copied().unwrap_or(0) == 0 {
+                problems.push(format!("no fighter on the {} side", team.id()));
+            }
+        }
+        if !rules.friendly_fire && report.team_kills > 0 {
+            problems.push(format!(
+                "{} team kills with friendly fire off",
+                report.team_kills
+            ));
+        }
+    }
+    if let Some(only) = rules.mutators.iter().find_map(|m| m.only_weapon()) {
+        for weapon in report.combat.by_weapon.keys() {
+            if weapon != only.name() {
+                problems.push(format!("{weapon} fired under {}", rules.name));
+            }
+        }
     }
     problems
 }
@@ -975,6 +1057,26 @@ pub fn reflex_action(bot_id: Uuid, snapshot: &Snapshot, arena: &Arena) -> Action
     // rather than standing there: an agent that cannot see its target should
     // move to clear the corner, which is also what stops it looking stuck.
     let clear = arena.fighter_visible(me, target);
+    // A fist or a blade has to be inside its reach, which is also how a
+    // Fists Only round gets played: the swap is refused, so walk in.
+    let held = weapon_from_wire(&me.weapon);
+    if let Some(melee) = held.filter(|w| w.ammo_pool().is_none()) {
+        let reach = melee.range_units() - 0.3;
+        return Action {
+            look_at: Some(LookAt {
+                y: None,
+                player_id: Some(target.id),
+                x: None,
+                z: None,
+            }),
+            forward: dist > reach * 0.6 || !clear,
+            left: !clear && snapshot.tick % 40 < 20,
+            right: !clear && snapshot.tick % 40 >= 20,
+            fire: clear && dist < reach,
+            weapon_swap,
+            ..Action::default()
+        };
+    }
     Action {
         look_at: Some(LookAt {
             y: None,
@@ -1403,6 +1505,7 @@ pub async fn run(config: Config) -> Result<(Report, Observation), Error> {
         time_limit_ticks: Some(config.time_limit_ticks),
         boss_spawn_ticks: None,
         compliance_ping_ticks: None,
+        rules: config.rules.clone(),
         ..MatchConfig::default()
     };
     let options = ServerOptions {
@@ -1486,6 +1589,7 @@ pub async fn run(config: Config) -> Result<(Report, Observation), Error> {
                     observation.ingest_snapshot(&snapshot, text.len());
                 }
                 Ok(ServerMessage::Event(event)) => observation.ingest_event(event),
+                Ok(ServerMessage::MapInfo { rules, .. }) => observation.rules = rules,
                 _ => {}
             }
             if observation.rounds_completed() >= config.rounds {
@@ -1721,6 +1825,25 @@ mod tests {
         let action = reflex_action(me, &close, &Arena::default());
         assert!(!action.forward);
         assert!(action.fire);
+    }
+
+    /// Fists Only refuses every swap, so a reflex agent walks into reach.
+    #[test]
+    fn reflex_action_closes_to_melee_reach_with_fists() {
+        let me = Uuid::new_v4();
+        let rival = Uuid::new_v4();
+        let mut fists = player("me", me, 0.0, 0.0, false);
+        fists.weapon = "Fists".into();
+        let far = snapshot(
+            1,
+            vec![fists.clone(), player("rival", rival, 5.0, 0.0, false)],
+        );
+        let action = reflex_action(me, &far, &Arena::default());
+        assert!(action.forward && !action.fire);
+        let near = snapshot(1, vec![fists, player("rival", rival, 1.2, 0.0, false)]);
+        let action = reflex_action(me, &near, &Arena::default());
+        assert!(action.fire);
+        assert_eq!(weapon_from_wire("Fists"), Some(WeaponType::Fists));
     }
 
     #[test]
@@ -3149,5 +3272,107 @@ mod opening_spawn_death_tests {
         assert!(!complains(1, 1));
         assert!(!complains(2, 2));
         assert!(!complains(1, 0), "an unfinished round still gets one");
+    }
+}
+
+#[cfg(test)]
+mod rule_checks {
+    use super::*;
+    use fragr_server::protocol::{GameMode, MatchRules, Mutator};
+
+    fn rules(mode: GameMode, mutators: &[Mutator], friendly_fire: bool) -> MatchRules {
+        fragr_server::rules::RuleSet::new(mode, mutators, friendly_fire)
+            .unwrap()
+            .wire()
+    }
+
+    fn report(
+        rules: MatchRules,
+        sides: &[(&str, u64)],
+        weapons: &[&str],
+        team_kills: u64,
+    ) -> Report {
+        let mut report = Report {
+            rules: Some(rules),
+            sides: sides.iter().map(|(k, v)| (k.to_string(), *v)).collect(),
+            team_kills,
+            ..Report::default()
+        };
+        for weapon in weapons {
+            report
+                .combat
+                .by_weapon
+                .insert(weapon.to_string(), WeaponReport::default());
+        }
+        report
+    }
+
+    #[test]
+    fn a_team_round_needs_both_sides_and_no_team_kills() {
+        let tdm = rules(GameMode::Tdm, &[], false);
+        assert!(check_rules(&report(
+            tdm.clone(),
+            &[("union", 2), ("coalition", 2)],
+            &["Rail"],
+            0
+        ))
+        .is_empty());
+        let problems = check_rules(&report(
+            tdm.clone(),
+            &[("coalition", 3), ("none", 1)],
+            &[],
+            2,
+        ));
+        assert_eq!(problems.len(), 3, "{problems:?}");
+        let ff = rules(GameMode::Tdm, &[], true);
+        assert!(check_rules(&report(ff, &[("union", 1), ("coalition", 1)], &[], 2)).is_empty());
+        assert!(check_rules(&Report::default()).is_empty());
+    }
+
+    #[test]
+    fn a_weapon_only_round_fires_one_weapon() {
+        let rail = rules(GameMode::Ffa, &[Mutator::RailOnly], false);
+        assert!(check_rules(&report(rail.clone(), &[("none", 4)], &["Rail"], 0)).is_empty());
+        let problems = check_rules(&report(rail, &[("none", 4)], &["Rail", "Flechette"], 0));
+        assert_eq!(problems, ["Flechette fired under Free-for-all: Rail Only"]);
+    }
+
+    #[test]
+    fn the_report_counts_sides_reactions_and_team_kills() {
+        let mut obs = Observation {
+            rules: Some(rules(GameMode::Tdm, &[], false)),
+            ..Observation::default()
+        };
+        obs.sides
+            .insert("a".into(), Some(fragr_server::protocol::Team::Union));
+        obs.sides
+            .insert("b".into(), Some(fragr_server::protocol::Team::Coalition));
+        obs.sides.insert("c".into(), None);
+        obs.events.push(TimedEvent {
+            tick: 5,
+            event: GameEvent::HostReaction {
+                kind: fragr_server::protocol::HostReactionKind::FirstBlood,
+                variant: 0,
+                player: Some("a".into()),
+                other: Some("b".into()),
+                team: None,
+            },
+        });
+        obs.events.push(TimedEvent {
+            tick: 6,
+            event: GameEvent::Frag {
+                killer: "a".into(),
+                victim: "d".into(),
+                killer_score: 1,
+                killer_team: Some(fragr_server::protocol::Team::Union),
+                victim_team: Some(fragr_server::protocol::Team::Union),
+            },
+        });
+        let report = compute_report(&obs, 3);
+        assert_eq!(report.host_reactions, 1);
+        assert_eq!(report.team_kills, 1);
+        assert_eq!(report.sides.get("none"), Some(&1));
+        assert_eq!(report.sides.get("union"), Some(&1));
+        assert_eq!(report.rules.as_ref().unwrap().mode, GameMode::Tdm);
     }
 }

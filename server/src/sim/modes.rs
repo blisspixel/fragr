@@ -71,7 +71,7 @@ impl GameState {
 
     /// Call a Host beat. The client owns the words; the server sends the
     /// kind, a rotating variant and the names.
-    pub(super) fn react(
+    pub(crate) fn react(
         &mut self,
         kind: HostReactionKind,
         player: Option<String>,
