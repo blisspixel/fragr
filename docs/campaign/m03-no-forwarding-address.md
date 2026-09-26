@@ -48,11 +48,11 @@ meal table. Nothing requires a radio explanation.
 
 ## Combat, equipment and secrets
 
-Carry weapons. No new mandatory gun; this mission combines Flechette/Scatter
+Carry weapons. No new mandatory gun; this mission combines Rifle/Shotgun
 roles and teaches Heavy and Notary drone counters ([ENEMIES](../ENEMIES.md#union-drones)); the Turret waits for M04. The hand grenade is found on the
 ordinary route, in a room with space to throw and retreat. It is a carried
 count, not a new gun, and missing it cannot trap the evacuation. Guaranteed cover and flank access
-make a Rail unnecessary. Draft encounter beats: market intrusion, one branch
+make a Railgun unnecessary. Draft encounter beats: market intrusion, one branch
 rescue, trench crossfire, second branch if chosen, withdrawal through changed hub.
 Avoid an invisible global timer that makes exploration the wrong decision.
 

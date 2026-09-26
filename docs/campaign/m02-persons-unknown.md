@@ -27,7 +27,7 @@ to the floor and the gallery.
 |---|---|---|
 | Gallery | Windows show the ward and processing machinery below | Player sees a destination and evidence of coercion before fighting; a Notary drone photographs captives beyond the glass, out of reach |
 | Service stair | Enclosed switchback, clear landings, no jump requirement | Introduce Crawler sounds/captions, then a small visible pack |
-| Antechamber | Workroom with cover and a view into the ward | Find Scatter before the close encounter; recovery supplies |
+| Antechamber | Workroom with cover and a view into the ward | Find the Shotgun before the close encounter; recovery supplies |
 | Ward | Open ward around the restraint frame | Set-piece fight; the correction stops when the guards fall; free Latch |
 | Processing floor | Two usable levels with broad stairs and machinery islands | Latch fights beside us; mixed threats pressure escape |
 | Service loop | Optional captives and supplies | Clear the guards and the captives free themselves |
@@ -40,7 +40,7 @@ Winning the ward is the crest's first half; escaping together is the second.
 Carry M01 inventory. Guaranteed Shotgun, Shells and ordinary health support a
 player who missed every secret. Crawlers punish retreating straight down a hall;
 the antechamber supplies lateral space. A human officer above the processing
-floor creates a priority target without requiring the Rail.
+floor creates a priority target without requiring the Railgun.
 
 The Jammer has visible antenna/pulse and projectile tells. It guards the dock
 with traveling interference shots and dies to guaranteed guns. Do not introduce

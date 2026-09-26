@@ -27,7 +27,7 @@ pressure puzzles. Pressure glass and bulkheads are scenery, not doors to open.
 |---|---|---|
 | Dock bay | Thick pressure bulkhead, cargo bay, crew facilities | Safe arrival and explanation of the next link |
 | Freight hall | Cargo lanes broken by tall handling structures | Sweeper/human pairs, lateral movement and a short flank |
-| Customs split | Two galleries overlooking a central inspection desk | First deliberate Rail lane; ordinary weapons use the service bypass |
+| Customs split | Two galleries overlooking a central inspection desk | First deliberate Railgun lane; ordinary weapons use the service bypass |
 | Service branch | Pipes and broad maintenance stair | Optional fight that marks a prisoner route for M05 |
 | Crater cut | Short exterior protected by berms and structural shielding | Elite Enforcer introduced with room to dodge, clear environmental protection |
 | Archive entrance | A lower freight approach and an upper administrative deck | Reconverging routes, one shared mission exit |
@@ -38,9 +38,9 @@ unimplemented low gravity. Any later movement variant needs explicit tests.
 
 ## Encounters and equipment
 
-Guarantee Rail before the customs lane and enough Cores to learn it. Flechette
-and Scatter retain roles along cargo and service routes. The Sniper Rifle is
-found on the crater cut, after that Rail lesson, with a few shots to learn a
+Guarantee the Railgun before the customs lane and enough Cells to learn it. The Rifle
+and Shotgun retain roles along cargo and service routes. The Sniper Rifle is
+found on the crater cut, after that Railgun lesson, with a few shots to learn a
 slower scoped hit. Customs can be cleared without it. Enforcer commitment
 and recovery are visible; the first charge never starts offscreen beside a spawn.
 The Turret is introduced here. Turrets protect positions the player can flank, not every long sightline.

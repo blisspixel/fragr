@@ -38,7 +38,7 @@ The player sees the resources everyone was negotiating over in ordinary use.
 Arrival disruption -> market skirmish -> greenhouse flank -> pumping-court crest
 -> clear the shelter approach -> rendezvous with the help that finally arrives.
 Mix human security, captive Sweepers and one or two established elite roles.
-Introduce Arc with guaranteed Cores and a visible armor counter. No new enemy
+Introduce Arc with guaranteed Cells and a visible armor counter. No new enemy
 subsystem is needed merely because the planet changed; the Assessor is a heavier
 variant of the M03 drone ([ENEMIES](../ENEMIES.md#union-drones)).
 

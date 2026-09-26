@@ -69,13 +69,13 @@ There is one number per ammunition type and it is everything you carry. A shot s
 | 5 | **Scatter** (shipped) | Close shred | 7 pellets of 10, each falling to 4 | 0.60 s | 12 | Shells | Pad |
 | 6 | **Rail** (shipped) | Long precision | 80 | 1.00 s | 10 | Cells | Pad |
 | 7 | **Repeater** | Heavy full auto | 14 | 0.10 s | 60 | Bullets | Pad |
-| 8 | **Lobber** | Splash, projectile | 65 direct, 45 splash | 0.80 s | 4 | Cans | Pad, outer ring |
+| 8 | **Lobber** | Splash, projectile | 65 direct, 45 splash | 0.80 s | 4 | Rockets | Pad, outer ring |
 | 9 | **Arc** | Energy, ignores armour | 18 | 0.15 s | 40 | Cells | Pad, outer ring |
 | 10 | **Proximity tin** | Thrown, placed | 90 at centre | 1.5 s to arm | 3 carried | none | Pad |
 | 11 | **Article Blade** | Melee upgrade | 70 | 0.45 s | 12 swings | none | Plinth, near centre |
 | 12 | **Denial** | Signature | 250 | 1.25 s | 5, no refill | none | Plinth, centre |
 
-Three melee tiers, six guns and a sidearm, a thrown mine and a signature weapon. Four ammunition types feed the guns: Bullets for the sidearm, the flechette and the repeater, Shells for the scatter, Cells for the rail and the arc, Cans for the lobber. The tin, the blade and the signature weapon carry their own counts and sit outside the pools entirely.
+Three melee tiers, six guns and a sidearm, a thrown mine and a signature weapon. Four ammunition types feed the guns: Bullets for the sidearm, the flechette and the repeater, Shells for the scatter, Cells for the rail, the arc and the sniper rifle, Rockets for the lobber (the rocket launcher). The tin, the blade and the signature weapon carry their own counts and sit outside the pools entirely.
 
 **The Scatter is seven pellets.** Each blast fires seven seeded rays inside a 0.095 radian (5.4 degree) half-angle cone, Doom's pellet count. Every pellet is tested against cover and fighters on its own and falls off by its own distance: full 10 damage to 4 metres, then linearly to 4 at its 12 metre reach. Point blank all seven land for 70, so two blasts kill a bare fighter in 0.60 s and three go through full armour in 1.20 s. At four metres every pellet still lands; at eight about half do; a waist-high sill stops the pellets that hit it. The blast costs one shell however many pellets land.
 
@@ -157,7 +157,7 @@ The fire sounds that exist already set the register: dry, punchy, no reverb, 199
 - **Scatter** is the boom and the pump that already ships, with the pump promoted to its own cycle so you hear it when you are not firing.
 - **Rail** is the electric crack and the cold ring that already ships, and its cycle is the capacitor winding back up, which is the sound that tells an opponent they have one second.
 - **Repeater** is a spin-up, a sustained rattle and a spin-down, and the spin-down is the important one because it is the sound of somebody letting go of the trigger near you.
-- **Lobber** is a hollow thump, then a break and a clack for the next can.
+- **Lobber** is a hollow thump, then a break and a clack for the next rocket.
 - **Arc** is a discharge that ends in a settle rather than a tail.
 - **Article Blade** is a hum at rest, a swing that changes pitch, and a hit that does not sound like metal on metal.
 - **Denial** is the only weapon allowed to sound expensive. It should make people in the room look up.

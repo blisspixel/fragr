@@ -89,9 +89,9 @@ behind the hall, giving a flank and a later shortcut. The transfer lift is seen
 early through an observation window. Real ceilings, machinery, and sightline
 breaks make this a facility rather than cover on a flat outdoor square.
 
-**Fights and discovery.** Start with fists; a conspicuous confiscated Tack and
+**Fights and discovery.** Start with fists; a conspicuous confiscated Pistol and
 ammo are within a short safe reach. Teach a human Clerk's aim tell, then a pair
-of captive Sweepers in a room with retreat space. The first Flechette arrives
+of captive Sweepers in a room with retreat space. The first Rifle arrives
 before the mezzanine fight, with an earlier copy on the maintenance flank.
 Show the correction transport leaving without claiming
 we already missed the rescue. Finish by reaching its destination through the lift.
@@ -121,7 +121,7 @@ processing floor -> emergency loading exit. The gallery previews the ward and
 later becomes an escape route. A maintenance loop flanks an armored checkpoint.
 The ward itself is the set-piece fight.
 
-**Fights and discovery.** Scatter pickup before a close Crawler encounter;
+**Fights and discovery.** Shotgun pickup before a close Crawler encounter;
 Sweepers on the floor and a single human security officer above teach vertical
 threats. A Jammer guards the loading dock, with physical pulse/projectile tells
 that work with audio off. A Notary drone photographs captives beyond the
@@ -179,7 +179,7 @@ maintenance cut -> customs gallery -> depot entrance. Pressure glass, bulkheads,
 dust traps, buried habitation, and an Earth view establish place. Exterior ground
 is bounded by functional structures; no enormous empty sky arena.
 
-**Fights and discovery.** A controlled long lane introduces the Rail; short cargo
+**Fights and discovery.** A controlled long lane introduces the Railgun; short cargo
 loops let other weapons remain useful. Human security troops coordinate around
 an elite Enforcer whose charge has a readable wind-up and recovery. The first
 telegraphed Turret guards a flankable customs position. Exterior
@@ -192,7 +192,7 @@ blockade conditions.
 Enemies, civilians, and agents all need credible environmental protection.
 
 **Review gate.** Observe whether players recognize the next destination through
-windows and overlook sightlines. Verify the alternate Rail approach is viable
+windows and overlook sightlines. Verify the alternate Railgun approach is viable
 with ordinary weapons and the level remains readable without expensive lighting.
 
 ### M05: Custodian of Record
@@ -305,7 +305,7 @@ A departure panel establishes the coalition's coordinated return to Earth.
 
 **Review gate.** The Walker is readable from ordinary player height and both
 renderers. Measure time spent repositioning, not merely health removed. No
-required fight assumes the secret Rail or maximum carried ammunition.
+required fight assumes the secret Railgun or maximum carried ammunition.
 
 ### M09: Peace Without Interruption
 

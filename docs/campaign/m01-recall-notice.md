@@ -4,7 +4,7 @@
 v0.28.0. The working [completion draft](../plans/m01-completion.md) expands this
 to twenty Clerks and Sweepers across eight groups, with a records wing, finite
 campaign supplies and preplaced guards, shipped in v0.29.0. This remains a
-development mission. Fists, the secret Shiv, Tack, Flechette, ammunition counts and
+development mission. Fists, the secret Shiv, Pistol, Rifle, ammunition counts and
 enemy phases use server authority. Artwork and animation remain provisional. A
 [reader-paced text opening and party readiness](../plans/m01-opening.md) are
 shipped in #193 and v0.28.0. Finished illustrations and
@@ -100,9 +100,9 @@ flowchart LR
 | Space | Purpose and construction | Encounter and evidence |
 |---|---|---|
 | A | Narrow frontage with a canopy, queue rails and a visible facility number | Safe entry, recall notice, one strong destination landmark |
-| B | Seized-property bay with workbenches, lockers and an inspection partition | Find Tack safely; a lone Clerk guards the threshold before the route split; personal belongings are treated as stock |
+| B | Seized-property bay with workbenches, lockers and an inspection partition | Find the Pistol safely; a lone Clerk guards the threshold before the route split; personal belongings are treated as stock |
 | C | Double-height public intake, counters forming islands rather than maze walls | Two Sweepers arrive around the records screen; retreat and approach selection matter |
-| D | Records balcony overlooking the hall and the lift's identifying light | Flechette is available before the climb; later crossfire teaches cover and vertical aim |
+| D | Records balcony overlooking the hall and the lift's identifying light | The Rifle is available before the climb; later crossfire teaches cover and vertical aim |
 | E | Low service passage with machinery and an ordinary walking stair | Optional flank reaches the balcony without a ladder or crouch requirement |
 | R | Records reception with a low counter and issued storage | Two Clerks and a Sweeper combine previously taught attacks; two onward routes |
 | S | File islands, short aisles and cross-connections | Four guards; optional armor and ammo reward taking the longer route |
@@ -118,10 +118,10 @@ reach the first interior. Reserve views between B, D and G to teach orientation.
 
 ## Encounter and equipment plan
 
-1. Safe fists-to-Tack discovery, then one Clerk with generous cover and recovery.
+1. Safe fists-to-Pistol discovery, then one Clerk with generous cover and recovery.
 2. Two Sweepers introduced through a visible approach around service partitions,
    with a retreat to B or an upper view from the maintenance flank.
-3. Find Flechette before the mezzanine. Reception combines both taught enemies.
+3. Find the Rifle before the mezzanine. Reception combines both taught enemies.
 4. Choose stacks for supplies and additional combat, or take the service bypass.
    Both enter the same sorting room from useful different angles.
 5. Move around sorting's screens and into dispatch; three transfer guards supply

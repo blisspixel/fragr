@@ -72,7 +72,7 @@ units entering from visible lanes. Terrain gives more than one viable response.
 Health is tuned after movement and attack readability work. The player is fighting
 machinery and coordinated defenders, not waiting out invulnerability cutscenes.
 
-Secrets: protected Cores cache reached through the service ring; armor on a
+Secrets: protected Cells cache reached through the service ring; armor on a
 gallery reachable by a clearly readable optional jump; spare Blade/sidearm supply
 for a depleted inventory. Never make the last secret necessary to afford the boss.
 

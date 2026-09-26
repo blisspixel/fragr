@@ -103,7 +103,7 @@ through the shared server splash seam.
 
 - Hitscan hits the vehicle's body box or an exposed occupant; exposed zones
   are part of the vehicle definition, not guessed by the client.
-- Splash, rockets and the Lobber are strong against vehicles; the Arc is not
+- Splash and rockets are strong against vehicles; the Arc is not
   special. Numbers are tuned per rung.
 - Run-over damage scales with speed above about 6 m/s and applies only to
   hostile actors under the existing `hostile` rule. Allies, civilians and
