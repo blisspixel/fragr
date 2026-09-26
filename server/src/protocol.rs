@@ -5,6 +5,7 @@ mod actors;
 mod decoration;
 mod loadout;
 mod mission;
+mod rules;
 mod statistics;
 mod status;
 pub use actors::{hostile, CampaignActor, EnemyKind, EnemyPhase};
@@ -20,6 +21,9 @@ pub use mission::{
     MissionMember, MissionObjective, MissionObjectiveAction, MissionPhase, MissionReady,
     MissionState, Region3, UseTarget, CAMPAIGN_CONTINUES, CAMPAIGN_RULES_REVISION,
     MISSION_PARTY_LIMIT, USE_DISTANCE,
+};
+pub use rules::{
+    GameMode, HostReactionKind, MatchRules, Mutator, Team, TeamScores, HOST_REACTION_VARIANTS,
 };
 pub use statistics::{
     CombatCounts, PlayerRecord, RecordScope, RecordStatus, WeaponCounts, RECORD_TICKS_PER_SECOND,
@@ -45,6 +49,10 @@ pub fn default_playlist() -> String {
 
 pub fn default_host_line() -> String {
     "HOST: CONTESTED FREQUENCY. PLAY VS COMPLIANCE. ARENA DUEL IS LIVE.".to_string()
+}
+
+pub fn default_mode_id() -> String {
+    GameMode::Ffa.id().to_string()
 }
 
 pub const MAP_ID_ARENA_DUEL: u32 = 1;
@@ -73,6 +81,12 @@ pub struct LiveStatus {
     pub agents: usize,
     pub bots: usize,
     pub connections: usize,
+    /// Additive to schema 2: the rule set's mode id, `ffa` when absent.
+    #[serde(default = "default_mode_id")]
+    pub mode: String,
+    /// Additive to schema 2: mutator ids, omitted when none.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub mutators: Vec<String>,
     /// Additive to schema 2. Absent until the tick loop's first refresh.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub health: Option<Health>,
@@ -93,6 +107,8 @@ impl Default for LiveStatus {
             agents: 0,
             bots: 0,
             connections: 0,
+            mode: default_mode_id(),
+            mutators: Vec::new(),
             health: None,
             ops: None,
         }
@@ -141,6 +157,34 @@ pub fn killstreak_host_line(streak: u32, player: &str) -> Option<(String, String
 /// Host line for round-end MVP / podium (Contested Frequency voice).
 pub fn mvp_host_line(mvp: &str, frags: u32) -> String {
     format!("HOST: ROUND MVP. {mvp} WITH {frags} FRAGS. CONTINUANCE DENIES THE PODIUM.")
+}
+
+/// Host line when a team round ends: the winning side and the score, or a draw.
+pub fn team_round_host_line(winner: Option<Team>, scores: TeamScores) -> String {
+    match winner {
+        Some(team) => {
+            let (win, lose) = (scores.get(team), scores.get(team.other()));
+            format!(
+                "HOST: {} TAKE THE ROUND, {win} TO {lose}. SAME RULES NEXT TIME.",
+                team.name().to_uppercase()
+            )
+        }
+        None => format!(
+            "HOST: LEVEL AT THE BELL, {} ALL. NOBODY FILES A COMPLAINT.",
+            scores.union
+        ),
+    }
+}
+
+/// Host line when a lives-limited round ends with one fighter left, or none.
+pub fn last_fighter_host_line(survivor: Option<&str>) -> String {
+    match survivor {
+        Some(name) => format!(
+            "HOST: LAST ONE STANDING. {} WALKS OUT.",
+            name.to_uppercase()
+        ),
+        None => "HOST: NOBODY LEFT STANDING. THE BOOTH CALLS IT EVEN.".to_string(),
+    }
 }
 
 /// Host line when a round ends with no scored MVP.
@@ -482,8 +526,12 @@ pub const AMMO_GAMEPLAY_VERSION: u32 = 10;
 /// secret flag on pickup events and the optional record secret count. Every
 /// discovery map requires it because any authored map may place the Shiv.
 pub const SHIV_GAMEPLAY_VERSION: u32 = 11;
+/// Match rule sets (sides, lives, the golden Railgun, keyed Host reactions)
+/// and the 100 Cells cap. Every discovery map requires it for the larger
+/// loadout, and so does any arena running rules other than plain free-for-all.
+pub const RULES_GAMEPLAY_VERSION: u32 = 12;
 /// Highest understood gameplay contract; content requirements use their own minimum.
-pub const GAMEPLAY_VERSION: u32 = SHIV_GAMEPLAY_VERSION;
+pub const GAMEPLAY_VERSION: u32 = RULES_GAMEPLAY_VERSION;
 pub fn legacy_gameplay_version() -> u32 {
     1
 }
@@ -591,6 +639,7 @@ mod geometry_tests {
         }
         assert!(validate_map_geometry(f32::NAN, &raised, 2).is_err());
         let message = ServerMessage::MapInfo {
+            rules: None,
             presentation: None,
             mission: None,
             m02_objectives: None,
@@ -682,6 +731,9 @@ pub enum ServerMessage {
         /// Present only for M02 maps. The count binds mission state to this map.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         m02_objectives: Option<u8>,
+        /// The arena's rule set. Omitted on authored campaign maps.
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        rules: Option<MatchRules>,
     },
     Mission {
         tick: u64,
@@ -934,6 +986,9 @@ pub struct Snapshot {
     /// Jammer dish world marker while Solo Broadcast episode is live on jammer/seize.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub jammer_dish: Option<JammerDishState>,
+    /// Side frags this round. Present only in team modes.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub team_scores: Option<TeamScores>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -956,6 +1011,15 @@ pub struct PlayerState {
     pub behavior: Option<String>,
     pub score: u32,
     pub weapon: String,
+    /// The fighter's side in a team mode. Omitted otherwise.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub team: Option<Team>,
+    /// Lives left this round when lives are limited, this one included.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub lives: Option<u8>,
+    /// Holds the golden Railgun. Omitted when false.
+    #[serde(default, skip_serializing_if = "is_false")]
+    pub golden: bool,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -971,6 +1035,11 @@ pub enum GameEvent {
         killer: String,
         victim: String,
         killer_score: u32,
+        /// Sides in a team mode, for killfeed colours. Omitted otherwise.
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        killer_team: Option<Team>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        victim_team: Option<Team>,
     },
     /// Non-lethal or pre-frag damage. Structured hit-confirm for agents.
     Hit {
@@ -996,6 +1065,9 @@ pub enum GameEvent {
         playlist: String,
         #[serde(default = "default_host_line")]
         host_line: String,
+        /// The arena's rule set, repeated each round for event readers.
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        rules: Option<MatchRules>,
     },
     RoundEnd {
         winner: Option<String>,
@@ -1011,6 +1083,12 @@ pub enum GameEvent {
         /// Contested Frequency Host bumper for round-end podium.
         #[serde(default = "default_host_line")]
         host_line: String,
+        /// Team modes: the side that won, or omitted for a draw.
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        winning_team: Option<Team>,
+        /// Team modes: the final side frags.
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        team_scores: Option<TeamScores>,
     },
     PlayerJoined {
         player: String,
@@ -1066,6 +1144,22 @@ pub enum GameEvent {
         streak: u32,
         tier: String,
         message: String,
+    },
+    /// A Host beat from an authoritative fact. The client owns the words,
+    /// keyed by kind and variant; names fill its placeholders.
+    HostReaction {
+        kind: HostReactionKind,
+        /// `0..HOST_REACTION_VARIANTS`, rotated so a regular hears them all.
+        variant: u8,
+        /// The fighter the beat is about.
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        player: Option<String>,
+        /// The other fighter involved, such as who ended a streak.
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        other: Option<String>,
+        /// The side the beat is about.
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        team: Option<Team>,
     },
     /// Off-tick agent/human callout (rate-limited, length-capped).
     Speak {
@@ -1185,6 +1279,7 @@ mod protocol_tests {
             target_hp_after: Some(75),
         };
         let snap = Snapshot {
+            team_scores: None,
             tick: 1,
             players: vec![],
             round_state: None,
@@ -1357,6 +1452,7 @@ mod protocol_tests {
             respawn_in: Some(80),
         };
         let snap = Snapshot {
+            team_scores: None,
             tick: 2,
             players: vec![],
             round_state: None,
@@ -1570,6 +1666,8 @@ mod protocol_tests {
     #[test]
     fn round_end_mvp_wire_round_trip() {
         let event = GameEvent::RoundEnd {
+            team_scores: None,
+            winning_team: None,
             winner: Some("Rusher".to_string()),
             reason: "Frag limit reached".to_string(),
             final_scores: vec![PlayerScore {

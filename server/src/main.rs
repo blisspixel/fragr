@@ -59,6 +59,25 @@ struct Args {
     #[arg(long, conflicts_with_all = ["solo_broadcast", "bench", "bench_verify_trace"])]
     no_round_events: bool,
 
+    /// Match mode: ffa (free-for-all) or tdm (team deathmatch, the Union
+    /// against the free coalition).
+    #[arg(long, value_enum, default_value_t = fragr_server::protocol::GameMode::Ffa, conflicts_with_all = ["campaign_source", "solo_broadcast", "bench", "bench_verify_trace"])]
+    mode: fragr_server::protocol::GameMode,
+
+    /// A host rule twist, repeatable: rail-only, shotgun-only, fists-only,
+    /// licence-to-kill, golden-rail, two-lives.
+    #[arg(long = "mutator", value_enum, conflicts_with_all = ["campaign_source", "solo_broadcast", "bench", "bench_verify_trace"])]
+    mutators: Vec<fragr_server::protocol::Mutator>,
+
+    /// Team damage lands. Needs --mode tdm. Off by default.
+    #[arg(long, conflicts_with_all = ["campaign_source", "solo_broadcast", "bench", "bench_verify_trace"])]
+    friendly_fire: bool,
+
+    /// Frags that end a round: a fighter's in ffa, a side's in tdm.
+    /// Defaults to 10 in ffa and 25 in tdm.
+    #[arg(long, value_parser = clap::value_parser!(u32).range(1..=999), conflicts_with_all = ["campaign_source", "solo_broadcast", "bench", "bench_verify_trace"])]
+    frag_limit: Option<u32>,
+
     /// Benchmark instead of serving: run this many scripted fighters with no
     /// network, print one JSON report, and exit. The ruler for every change.
     #[arg(long)]
@@ -227,6 +246,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         eprintln!("{error}");
         std::process::exit(1);
     }
+    let rules =
+        match fragr_server::rules::RuleSet::new(args.mode, &args.mutators, args.friendly_fire) {
+            Ok(rules) => rules,
+            Err(error) => {
+                eprintln!("invalid rule set: {error}");
+                std::process::exit(2);
+            }
+        };
+    let match_config = match_config(rules, args.frag_limit, args.no_round_events);
     let options = ServerOptions {
         bind: args.bind,
         bots: args.bots,
@@ -235,13 +263,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         difficulty: args.difficulty,
         campaign_run: args.campaign_run,
         map_rotate: args.map_rotate,
-        match_config: args
-            .no_round_events
-            .then(|| fragr_server::sim::MatchConfig {
-                boss_spawn_ticks: None,
-                compliance_ping_ticks: None,
-                ..Default::default()
-            }),
+        match_config,
         solo_broadcast: args.solo_broadcast,
         seed: args.seed,
         status_every_s: args.status_every_s,
@@ -249,6 +271,30 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         access,
     };
     run_server(options, std::future::pending::<()>(), None).await
+}
+
+/// Arcade rules from the host's flags. None keeps the plain defaults, which
+/// is also what an authored campaign map requires.
+fn match_config(
+    rules: fragr_server::rules::RuleSet,
+    frag_limit: Option<u32>,
+    no_round_events: bool,
+) -> Option<fragr_server::sim::MatchConfig> {
+    if rules.is_plain() && frag_limit.is_none() && !no_round_events {
+        return None;
+    }
+    let defaults = fragr_server::sim::MatchConfig::default();
+    Some(fragr_server::sim::MatchConfig {
+        frag_limit: Some(frag_limit.unwrap_or_else(|| rules.default_frag_limit())),
+        boss_spawn_ticks: (!no_round_events)
+            .then_some(defaults.boss_spawn_ticks)
+            .flatten(),
+        compliance_ping_ticks: (!no_round_events)
+            .then_some(defaults.compliance_ping_ticks)
+            .flatten(),
+        rules,
+        ..defaults
+    })
 }
 
 fn init_tracing(quiet: bool) {

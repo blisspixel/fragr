@@ -181,6 +181,8 @@ fn test_protocol_server_message_welcome() {
 #[test]
 fn test_protocol_server_message_event_frag() {
     let event = GameEvent::Frag {
+        killer_team: None,
+        victim_team: None,
         killer: "Bot1".to_string(),
         victim: "Bot2".to_string(),
         killer_score: 3,
@@ -197,6 +199,7 @@ fn test_protocol_server_message_event_frag() {
             killer,
             victim,
             killer_score,
+            ..
         }) => {
             assert_eq!(killer, "Bot1");
             assert_eq!(victim, "Bot2");
@@ -282,6 +285,7 @@ fn test_protocol_game_event_respawn() {
 #[test]
 fn test_protocol_game_event_round_start() {
     let event = GameEvent::RoundStart {
+        rules: None,
         round_number: 2,
         frag_limit: Some(10),
         time_limit: Some(180),
@@ -300,6 +304,8 @@ fn test_protocol_game_event_round_start() {
 #[test]
 fn test_protocol_game_event_round_end() {
     let event = GameEvent::RoundEnd {
+        team_scores: None,
+        winning_team: None,
         winner: Some("Bot1".to_string()),
         reason: "Frag limit reached".to_string(),
         final_scores: vec![PlayerScore {
@@ -348,8 +354,12 @@ fn test_protocol_game_event_player_left() {
 #[test]
 fn test_protocol_snapshot_serialization() {
     let snapshot = Snapshot {
+        team_scores: None,
         tick: 123,
         players: vec![PlayerState {
+            golden: false,
+            lives: None,
+            team: None,
             campaign: None,
             pitch: 0.0,
             id: Uuid::new_v4(),
@@ -393,6 +403,7 @@ fn test_protocol_snapshot_serialization() {
 #[test]
 fn test_protocol_snapshot_empty_players() {
     let snapshot = Snapshot {
+        team_scores: None,
         tick: 0,
         players: vec![],
         round_state: None,
@@ -698,6 +709,7 @@ fn test_sim_yaw_normalization() {
 #[test]
 fn test_sim_match_config_custom() {
     let config = MatchConfig {
+        rules: Default::default(),
         frag_limit: Some(5),
         time_limit_ticks: Some(100),
         warmup_ticks: 10,
@@ -2034,6 +2046,7 @@ fn test_round_cycle_events_survive_ticks() {
 
     let mut state = GameState::new();
     state.config = MatchConfig {
+        rules: Default::default(),
         frag_limit: Some(2),
         time_limit_ticks: None,
         warmup_ticks: 3,
@@ -2110,6 +2123,7 @@ fn test_server_round_event_wire_json_shape() {
     use crate::protocol::{GameEvent, PlayerScore, ServerMessage};
 
     let start = ServerMessage::Event(GameEvent::RoundStart {
+        rules: None,
         round_number: 2,
         frag_limit: Some(10),
         time_limit: Some(180),
@@ -2143,6 +2157,8 @@ fn test_server_round_event_wire_json_shape() {
     );
 
     let end = ServerMessage::Event(GameEvent::RoundEnd {
+        team_scores: None,
+        winning_team: None,
         winner: Some("Alpha".into()),
         reason: "Frag limit reached".into(),
         final_scores: vec![
@@ -2413,6 +2429,7 @@ async fn test_net_ws_action_forwarded_for_agent() {
     {
         use crate::session::broadcast_to_clients;
         let snap = ServerMessage::Snapshot(Snapshot {
+            team_scores: None,
             tick: 1,
             players: vec![],
             round_state: Some("active".into()),
@@ -2811,6 +2828,7 @@ fn test_snapshot_carries_contested_frequency_mode_identity() {
 fn test_compliance_ping_fires_once_and_sets_pressure() {
     let mut state = GameState::new();
     state.config = MatchConfig {
+        rules: Default::default(),
         frag_limit: Some(99),
         time_limit_ticks: Some(20 * 60),
         warmup_ticks: 2,
@@ -2883,6 +2901,7 @@ fn test_compliance_ping_fires_once_and_sets_pressure() {
 fn test_compliance_pressure_slows_movement() {
     let mut state = GameState::new();
     state.config = MatchConfig {
+        rules: Default::default(),
         frag_limit: Some(99),
         time_limit_ticks: Some(20 * 60),
         warmup_ticks: 1,
@@ -2959,6 +2978,7 @@ fn test_snapshot_host_line_sticky_for_mid_join() {
     // Mid-join / observe must see Host chrome without waiting for RoundStart.
     let mut state = GameState::new();
     state.config = MatchConfig {
+        rules: Default::default(),
         frag_limit: Some(99),
         time_limit_ticks: Some(20 * 60),
         warmup_ticks: 2,
@@ -3022,6 +3042,7 @@ fn test_compliance_drone_spawns_once_with_pressure_and_host() {
     let a = Uuid::new_v4();
     state.add_player(a, "Rusher".into(), Role::Agent);
     state.config = MatchConfig {
+        rules: Default::default(),
         frag_limit: Some(99),
         time_limit_ticks: Some(20 * 60),
         warmup_ticks: 1,
@@ -3070,6 +3091,7 @@ fn test_boss_wiped_on_round_end_emits_boss_down_no_killer() {
     let a = Uuid::new_v4();
     state.add_player(a, "Rusher".into(), Role::Agent);
     state.config = MatchConfig {
+        rules: Default::default(),
         frag_limit: Some(99),
         time_limit_ticks: Some(5),
         warmup_ticks: 1,
@@ -3138,6 +3160,7 @@ fn test_compliance_drone_killable_emits_boss_down_no_respawn() {
     let shooter = Uuid::new_v4();
     state.add_player(shooter, "Rusher".into(), Role::Agent);
     state.config = MatchConfig {
+        rules: Default::default(),
         frag_limit: Some(99),
         time_limit_ticks: Some(20 * 60),
         warmup_ticks: 1,

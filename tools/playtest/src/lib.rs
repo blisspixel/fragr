@@ -818,6 +818,7 @@ pub fn compute_report(obs: &Observation, agents: usize) -> Report {
             }
             GameEvent::RoundEnd { .. }
             | GameEvent::Killstreak { .. }
+            | GameEvent::HostReaction { .. }
             | GameEvent::CompliancePing { .. }
             | GameEvent::BossSpawn { .. }
             | GameEvent::BossDown { .. } => host_beats += 1,
@@ -1611,6 +1612,9 @@ mod tests {
 
     fn player(name: &str, id: Uuid, x: f32, z: f32, fired: bool) -> PlayerState {
         PlayerState {
+            golden: false,
+            lives: None,
+            team: None,
             campaign: None,
             pitch: 0.0,
             id,
@@ -1630,6 +1634,7 @@ mod tests {
 
     fn snapshot(tick: u64, players: Vec<PlayerState>) -> Snapshot {
         Snapshot {
+            team_scores: None,
             tick,
             players,
             round_state: Some("Active".to_string()),
@@ -1656,6 +1661,7 @@ mod tests {
 
     fn round_start(players: &[&str]) -> GameEvent {
         GameEvent::RoundStart {
+            rules: None,
             round_number: 1,
             frag_limit: Some(5),
             time_limit: None,
@@ -1669,6 +1675,8 @@ mod tests {
 
     fn frag(killer: &str, victim: &str) -> GameEvent {
         GameEvent::Frag {
+            killer_team: None,
+            victim_team: None,
             killer: killer.to_string(),
             victim: victim.to_string(),
             killer_score: 1,
@@ -1840,6 +1848,8 @@ mod tests {
             100,
         );
         obs.ingest_event(GameEvent::Frag {
+            killer_team: None,
+            victim_team: None,
             killer: "killer".to_string(),
             victim: "victim".to_string(),
             killer_score: 1,
@@ -1921,6 +1931,8 @@ mod tests {
         });
         obs.ingest_snapshot(&snapshot(1200, vec![player("a", a, 4.0, 0.0, false)]), 200);
         obs.ingest_event(GameEvent::RoundEnd {
+            team_scores: None,
+            winning_team: None,
             winner: Some("a".to_string()),
             reason: "frag_limit".to_string(),
             final_scores: Vec::new(),
@@ -2074,6 +2086,9 @@ mod combat_tests {
 
     fn player(name: &str, id: Uuid, x: f32, z: f32, weapon: &str) -> PlayerState {
         PlayerState {
+            golden: false,
+            lives: None,
+            team: None,
             campaign: None,
             pitch: 0.0,
             id,
@@ -2093,6 +2108,7 @@ mod combat_tests {
 
     fn frame(tick: u64, players: Vec<PlayerState>, shots: Vec<ShotResult>) -> Snapshot {
         Snapshot {
+            team_scores: None,
             tick,
             players,
             round_state: Some("Active".to_string()),
@@ -2275,6 +2291,8 @@ mod combat_tests {
                     target_hp_after: 0,
                 });
                 obs.ingest_event(GameEvent::Frag {
+                    killer_team: None,
+                    victim_team: None,
                     killer: result.shooter,
                     victim: result.target.unwrap(),
                     killer_score: 1,
@@ -2319,6 +2337,8 @@ mod combat_tests {
         obs.ingest_event(hit());
         obs.ingest_snapshot(&scene(120), 50);
         obs.ingest_event(GameEvent::Frag {
+            killer_team: None,
+            victim_team: None,
             killer: "A".into(),
             victim: "B".into(),
             killer_score: 1,
@@ -2348,6 +2368,8 @@ mod combat_tests {
         obs.ingest_event(GameEvent::Respawn { player: "B".into() });
         obs.ingest_snapshot(&scene(200), 50);
         obs.ingest_event(GameEvent::Frag {
+            killer_team: None,
+            victim_team: None,
             killer: "A".into(),
             victim: "B".into(),
             killer_score: 2,
@@ -2539,6 +2561,9 @@ mod planner_tests {
 
     fn player(name: &str, id: Uuid, x: f32, z: f32, hp: i32, weapon: &str) -> PlayerState {
         PlayerState {
+            golden: false,
+            lives: None,
+            team: None,
             campaign: None,
             pitch: 0.0,
             id,
@@ -2574,6 +2599,7 @@ mod planner_tests {
 
     fn scene(tick: u64, players: Vec<PlayerState>, pickups: Vec<PickupState>) -> Snapshot {
         Snapshot {
+            team_scores: None,
             tick,
             players,
             round_state: Some("Active".to_string()),
@@ -2872,6 +2898,7 @@ mod line_of_sight_tests {
         let me = Uuid::new_v4();
         let foe = Uuid::new_v4();
         let mut snap = Snapshot {
+            team_scores: None,
             tick: 0,
             players: vec![],
             round_state: Some("Active".to_string()),
@@ -2895,6 +2922,9 @@ mod line_of_sight_tests {
             jammer_dish: None,
         };
         let mk = |id: Uuid, x: f32| fragr_server::protocol::PlayerState {
+            golden: false,
+            lives: None,
+            team: None,
             campaign: None,
             pitch: 0.0,
             id,
@@ -2962,6 +2992,9 @@ mod patrol_tests {
 
     fn lone(id: Uuid) -> fragr_server::protocol::PlayerState {
         fragr_server::protocol::PlayerState {
+            golden: false,
+            lives: None,
+            team: None,
             campaign: None,
             pitch: 0.0,
             id,

@@ -35,6 +35,8 @@ impl SavedEquipment {
 #[derive(Debug, Clone)]
 pub struct Inventory {
     policy: EquipmentPolicy,
+    /// A weapon-only mutator: this is the one weapon, with unlimited ammunition.
+    only: Option<WeaponType>,
     owned: [bool; WeaponType::ALL.len()],
     ammo: [u16; 3],
     claims: BTreeSet<String>,
@@ -83,6 +85,7 @@ impl Inventory {
         owned[WeaponType::Fists.index()] = true;
         Self {
             policy,
+            only: None,
             owned,
             ammo: [0; 3],
             claims: BTreeSet::new(),
@@ -90,6 +93,19 @@ impl Inventory {
             dry_fire_count: 0,
             dry_latched: false,
         }
+    }
+
+    /// A weapon-only arsenal: one weapon, unlimited ammunition, nothing to
+    /// pick up. It is an arena arsenal, so it sends no private loadout.
+    pub fn restricted(weapon: WeaponType) -> Self {
+        Self {
+            only: Some(weapon),
+            ..Self::new(EquipmentPolicy::FullArsenal)
+        }
+    }
+
+    pub fn only(&self) -> Option<WeaponType> {
+        self.only
     }
 
     pub fn policy(&self) -> EquipmentPolicy {
@@ -115,6 +131,9 @@ impl Inventory {
     }
 
     pub fn owns(&self, weapon: WeaponType) -> bool {
+        if let Some(only) = self.only {
+            return weapon == only;
+        }
         match self.policy {
             EquipmentPolicy::FullArsenal => WeaponType::ARCADE.contains(&weapon),
             EquipmentPolicy::Discovery => self.owned[weapon.index()],

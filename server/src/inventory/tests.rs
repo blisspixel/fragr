@@ -134,15 +134,15 @@ fn rifle_and_pistol_share_bullets_while_shells_and_cells_stay_separate() {
     assert!(!inventory.needs_ammo(AmmoPool::Bullets));
     assert!(!inventory.grant_weapon(WeaponType::Flechette));
     assert_eq!(inventory.grant_ammo(AmmoPool::Shells, u16::MAX), 39);
-    assert_eq!(inventory.grant_ammo(AmmoPool::Cells, u16::MAX), 41);
+    assert_eq!(inventory.grant_ammo(AmmoPool::Cells, u16::MAX), 91);
     let full = view(&inventory, WeaponType::Rail, 4);
     for pool in AmmoPool::ALL {
         assert_eq!(full.ammo(pool), pool.capacity());
     }
     assert_eq!(
         AmmoPool::ALL.map(AmmoPool::capacity),
-        [200, 50, 50],
-        "Doom caps for bullets and shells; rail cells follow the rocket cap"
+        [200, 50, 100],
+        "Doom caps for bullets and shells; one hundred rail cells since 2026-09-25"
     );
     // A known weapon picked up again tops its count up.
     inventory.ammo[AmmoPool::Shells.index()] = 45;
@@ -264,4 +264,41 @@ fn the_shiv_is_owned_once_without_ammunition_and_survives_the_saved_entry() {
     let mut arcade = Inventory::new(EquipmentPolicy::FullArsenal);
     assert!(!arcade.grant_weapon(WeaponType::Shiv));
     assert!(!arcade.owns(WeaponType::Shiv));
+}
+
+#[test]
+fn a_weapon_only_arsenal_holds_one_weapon_with_unlimited_ammunition() {
+    for only in [WeaponType::Rail, WeaponType::Scatter, WeaponType::Fists] {
+        let mut inventory = Inventory::restricted(only);
+        assert_eq!(inventory.only(), Some(only));
+        for weapon in WeaponType::ALL {
+            assert_eq!(
+                inventory.owns(weapon),
+                weapon == only,
+                "{only:?} {weapon:?}"
+            );
+            assert_eq!(inventory.select(only, weapon), weapon == only);
+        }
+        for _ in 0..500 {
+            assert!(inventory.try_fire(only));
+        }
+        assert!(!inventory.try_fire(WeaponType::Flechette));
+        assert!(!inventory.grant_weapon(WeaponType::Flechette));
+        assert_eq!(inventory.grant_ammo(AmmoPool::Cells, 10), 0);
+        assert!(inventory.state(Uuid::nil(), only, 1).is_none());
+    }
+}
+
+#[test]
+fn the_cells_cap_is_one_hundred_rail_shots() {
+    assert_eq!(AmmoPool::Cells.capacity(), 100);
+    let mut inventory = Inventory::new(EquipmentPolicy::Discovery);
+    for _ in 0..12 {
+        inventory.grant_weapon(WeaponType::Rail);
+    }
+    assert_eq!(
+        view(&inventory, WeaponType::Rail, 1).ammo(AmmoPool::Cells),
+        100
+    );
+    assert!(!inventory.grant_weapon(WeaponType::Rail));
 }

@@ -54,8 +54,13 @@ pub fn hostile(a: Option<CampaignActor>, b: Option<CampaignActor>) -> bool {
 }
 
 impl super::PlayerState {
+    /// Worth aiming at: alive, on the other side of the campaign, and not a
+    /// teammate. Friendly fire never makes a teammate a target.
     pub fn is_hostile_to(&self, other: &Self) -> bool {
-        self.id != other.id && other.hp > 0 && hostile(self.campaign, other.campaign)
+        self.id != other.id
+            && other.hp > 0
+            && hostile(self.campaign, other.campaign)
+            && (self.team.is_none() || self.team != other.team)
     }
 
     pub fn is_participant(&self) -> bool {

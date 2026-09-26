@@ -35,13 +35,14 @@ pub enum AmmoPool {
 impl AmmoPool {
     pub const ALL: [Self; 3] = [Self::Bullets, Self::Shells, Self::Cells];
 
-    /// Doom carries 200 bullets and 50 shells. Rail cells follow Doom's rocket
-    /// cap rather than its plasma cap because one cell is one 80 damage shot.
+    /// Doom carries 200 bullets and 50 shells. One cell is one 80 damage rail
+    /// shot; the cap of 100 (raised from 50 on 2026-09-25) lets a Railgun
+    /// player bank ten pickups without the count reading like a plasma pool.
     pub const fn capacity(self) -> u16 {
         match self {
             Self::Bullets => 200,
             Self::Shells => 50,
-            Self::Cells => 50,
+            Self::Cells => 100,
         }
     }
 

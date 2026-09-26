@@ -1027,6 +1027,7 @@ pub fn ingest_server_text(state: &mut ToolState, text: &str) -> Result<(), &'sta
             geometry_version,
             presentation,
             mission,
+            rules,
         }) => {
             fragr_server::protocol::validate_map_geometry(half_extent, &solids, geometry_version)?;
             protocol::validate_map_presentation(presentation.as_ref(), &solids)?;
@@ -1049,6 +1050,9 @@ pub fn ingest_server_text(state: &mut ToolState, text: &str) -> Result<(), &'sta
             });
             if let Some(count) = m02_objectives {
                 map["m02_objectives"] = serde_json::json!(count);
+            }
+            if let Some(rules) = rules {
+                map["rules"] = serde_json::json!(rules);
             }
             state.map = Some(map);
         }
