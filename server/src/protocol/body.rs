@@ -27,13 +27,15 @@ impl BodyKind {
         }
     }
 
-    /// Rule bots alternate by roster slot, independent of name and behavior,
-    /// so a four-bot room always shows both bodies.
+    /// Rule bots take bodies by roster slot, independent of name and
+    /// behavior, in the pattern human, synthetic, synthetic, human. A plain
+    /// alternation would line up with team sides, which also alternate by
+    /// join order, and give each side one body; this pattern puts both bodies
+    /// on both sides, so appearance never names an allegiance.
     pub const fn for_roster_slot(slot: usize) -> Self {
-        if slot.is_multiple_of(2) {
-            Self::Human
-        } else {
-            Self::Synthetic
+        match slot % 4 {
+            0 | 3 => Self::Human,
+            _ => Self::Synthetic,
         }
     }
 }
@@ -66,16 +68,17 @@ mod tests {
     }
 
     #[test]
-    fn roster_slots_alternate_bodies() {
-        let slots: Vec<BodyKind> = (0..4).map(BodyKind::for_roster_slot).collect();
+    fn roster_slots_mix_bodies_across_sides() {
+        let slots: Vec<BodyKind> = (0..8).map(BodyKind::for_roster_slot).collect();
+        let (human, synthetic) = (BodyKind::Human, BodyKind::Synthetic);
         assert_eq!(
             slots,
-            [
-                BodyKind::Human,
-                BodyKind::Synthetic,
-                BodyKind::Human,
-                BodyKind::Synthetic
-            ]
+            [human, synthetic, synthetic, human, human, synthetic, synthetic, human]
         );
+        // Every alternating split (the way sides fill) holds both bodies.
+        for parity in [0, 1] {
+            let side: Vec<_> = slots.iter().skip(parity).step_by(2).collect();
+            assert!(side.contains(&&human) && side.contains(&&synthetic));
+        }
     }
 }

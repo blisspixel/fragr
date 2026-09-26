@@ -21,6 +21,11 @@ var team: String = ""
 var golden: bool = false
 ## The callsign colour before a side took it over.
 var _own_color: Color = Color.WHITE
+## The server-accepted body this pawn wears, or empty for an actor without
+## one (Union actors, the arena boss, an older server's fighters).
+var body_kind: String = ""
+## Ground distance walked, which advances the body's gait.
+var _walked: float = 0.0
 var campaign_actor: Dictionary = {}
 var _has_authoritative_state: bool = false
 var enemy_view: EnemyView = null
@@ -189,8 +194,11 @@ func _process(delta):
 	else:
 		idle_anim_timer += delta * 4.0
 	if body and enemy_view == null:
-		var frame = int(idle_anim_timer) % 4
-		body.frame = frame
+		if body_kind.is_empty():
+			body.frame = int(idle_anim_timer) % 4
+		else:
+			_walked += travel
+			body.frame = PlayerBody.frame(idle_anim_timer, _walked, presentation_speed)
 
 func set_player_data(id: String, name: String):
 	player_id = id
@@ -252,6 +260,8 @@ func update_state(state: Dictionary, snapshot_tick: int = 0):
 		show_hit_feedback()
 	_has_authoritative_state = true
 	
+	if not is_campaign_enemy and PlayerBody.valid(state.get("body")) and state["body"] != body_kind:
+		_wear_body(state["body"])
 	var next_team: String = MatchRules.valid_team(state.get("team"))
 	if next_team != team:
 		team = next_team
@@ -295,6 +305,27 @@ func update_state(state: Dictionary, snapshot_tick: int = 0):
 	if body and hit_flash_timer <= 0:
 		_update_body_color(false)
 
+## Swap the legacy callsign strip for the accepted body. The field and feet
+## registration match the Union bake, so the figure is exactly as tall as the
+## shared hit volume: nothing here enlarges a body for readability.
+func _wear_body(kind: String) -> void:
+	var strip: Texture2D = load(PlayerBody.strip_path(kind))
+	if strip == null or body == null:
+		return
+	body_kind = kind
+	body.texture = strip
+	body.hframes = PlayerBody.IDLE_FRAMES + PlayerBody.WALK_FRAMES
+	body.vframes = 1
+	body.frame = 0
+	body.pixel_size = EnemyAnimation.VIEW_SIZE / EnemyAnimation.TILE
+	body.position.y = EnemyAnimation.CENTRE_HEIGHT - EnemyView.CAMERA.FP_SERVER_REFERENCE_Y
+	# The held weapon sits at the resting hands, about hip height.
+	weapon_sprite.position = Vector3(0.34, 0.0, 0.02)
+	muzzle.position = Vector3(0.64, 0.2, 0.04)
+	# The plate rides just over a 1.8 metre head, not over the old tall strip.
+	label.position.y = 0.65
+	_update_body_color(false)
+
 func _update_weapon_sprite():
 	if not weapon_sprite:
 		return
@@ -325,6 +356,11 @@ func _update_body_color(hit: bool):
 	elif golden:
 		# The golden Railgun's holder glows so everyone knows who to chase.
 		body.modulate = Color(1.0, 1.0, 1.0).lerp(MatchRules.GOLD, 0.6) * 1.25
+	elif not body_kind.is_empty() and team != "union":
+		# A free body keeps its own bone, leather, rust and ember, with or
+		# without a side: the coalition is who these people already are,
+		# and the side still reads from the plate and the side chip.
+		body.modulate = Color.WHITE
 	elif team != "":
 		# Sides read from the body, not only the plate: Union dark plate,
 		# coalition bone.

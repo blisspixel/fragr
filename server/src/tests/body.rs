@@ -161,7 +161,7 @@ fn body_changes_no_seeded_combat_outcome_and_survives_respawn() {
 }
 
 #[test]
-fn rule_bots_alternate_bodies_and_authored_foes_have_none() {
+fn rule_bots_take_slot_bodies_and_authored_foes_have_none() {
     let mut session = GameSession::new();
     session.spawn_bots(4);
     let bodies = session
@@ -176,8 +176,8 @@ fn rule_bots_alternate_bodies_and_authored_foes_have_none() {
         [
             Some(BodyKind::Human),
             Some(BodyKind::Synthetic),
-            Some(BodyKind::Human),
-            Some(BodyKind::Synthetic)
+            Some(BodyKind::Synthetic),
+            Some(BodyKind::Human)
         ]
     );
     // Renaming or recasting a bot's controller does not move its body.
@@ -297,5 +297,32 @@ fn team_sides_ignore_the_body() {
             .map(|(_, body)| *body)
             .collect();
         assert_eq!(bodies.len(), 2, "{side:?} fielded one body");
+    }
+}
+
+#[test]
+fn rule_bots_field_both_bodies_on_both_sides() {
+    for bots in [4, 6, 8] {
+        let mut session = GameSession::with_map(MapKind::ArenaDuel, false);
+        session.state.apply_config(MatchConfig {
+            rules: RuleSet::new(GameMode::Tdm, &[], false).unwrap(),
+            ..MatchConfig::default()
+        });
+        session.spawn_bots(bots);
+        for side in [Team::Union, Team::Coalition] {
+            let bodies: std::collections::HashSet<_> = session
+                .state
+                .snapshot()
+                .players
+                .iter()
+                .filter(|player| player.team == Some(side))
+                .map(|player| player.body)
+                .collect();
+            assert_eq!(
+                bodies,
+                [Some(BodyKind::Human), Some(BodyKind::Synthetic)].into(),
+                "{bots} bots: {side:?} wears one body"
+            );
+        }
     }
 }

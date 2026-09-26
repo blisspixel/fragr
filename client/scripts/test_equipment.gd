@@ -78,7 +78,7 @@ func _run() -> void:
 	network._handle_message(JSON.stringify(earlier))
 	_check(network.equipment.is_empty() and network.player_id == null, "invalid private state closes and clears the session")
 	network.send_hello()
-	_check(network.sent[0]["gameplay_version"] == 12 and network.sent[0]["geometry_version"] == MapGeometry.VERSION, "gameplay and geometry capabilities are independent")
+	_check(network.sent[0]["gameplay_version"] == 13 and network.sent[0]["geometry_version"] == MapGeometry.VERSION, "gameplay and geometry capabilities are independent")
 	network.connection_state = WebSocketPeer.STATE_OPEN
 	var manager: Node = load("res://scripts/game_manager.gd").new()
 	manager.net_client = network

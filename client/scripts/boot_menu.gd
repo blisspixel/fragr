@@ -155,8 +155,8 @@ func _show(page: String) -> void:
 	if _probe != null:
 		_probe.cancel_request()
 	_page = page
-	_title.add_theme_font_size_override("font_size", 60 if page in ["records", "settings"] else 154)
-	_tagline.visible = page not in ["records", "settings"]
+	_title.add_theme_font_size_override("font_size", 60 if page in ["records", "settings", "profile"] else 154)
+	_tagline.visible = page not in ["records", "settings", "profile"]
 	_clear()
 	_status.text = tr(_local_match.error_key) if not _local_match.error_key.is_empty() else _nav_hint()
 	match page:
@@ -451,6 +451,31 @@ func _page_profile() -> void:
 		_settings.set_value("profile", "reticle_colour", choices[index])
 	)
 	_root.add_child(colour)
+	_label("BODY")
+	var body_row: HBoxContainer = HBoxContainer.new()
+	body_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	body_row.add_theme_constant_override("separation", 18)
+	var body: OptionButton = OptionButton.new()
+	body.name = "Body"
+	body.custom_minimum_size = Vector2(300, 50)
+	body.add_theme_font_size_override("font_size", 24)
+	for kind: String in PlayerBody.KINDS:
+		body.add_item(PlayerBody.label(kind))
+	body.select(PlayerBody.KINDS.find(_settings.player_body()))
+	var preview: TextureRect = TextureRect.new()
+	preview.name = "BodyPreview"
+	preview.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	preview.stretch_mode = TextureRect.STRETCH_KEEP_CENTERED
+	preview.custom_minimum_size = BODY_PREVIEW.size
+	_preview_body(preview, _settings.player_body())
+	body.item_selected.connect(func(index: int) -> void:
+		_settings.set_value("profile", "body", PlayerBody.KINDS[index])
+		_preview_body(preview, PlayerBody.KINDS[index])
+	)
+	body_row.add_child(body)
+	body_row.add_child(preview)
+	_root.add_child(body_row)
+	_label("Your body in every mode. Others see it; it never changes how you fight.")
 	var bob: CheckButton = CheckButton.new()
 	bob.name = "WeaponBob"
 	bob.text = "WEAPON BOB"
@@ -463,6 +488,19 @@ func _page_profile() -> void:
 		_settings.load_from_disk()
 		_show("main")
 	)
+
+## The standing figure inside the first idle cell of a baked body strip.
+const BODY_PREVIEW: Rect2 = Rect2(40, 22, 80, 114)
+
+func _preview_body(preview: TextureRect, kind: String) -> void:
+	var strip: Texture2D = load(PlayerBody.strip_path(kind))
+	if strip == null:
+		preview.texture = null
+		return
+	var cell: AtlasTexture = AtlasTexture.new()
+	cell.atlas = strip
+	cell.region = BODY_PREVIEW
+	preview.texture = cell
 
 func _save_profile() -> void:
 	_settings.set_value("profile", "name", _name_edit.text)

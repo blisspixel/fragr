@@ -126,13 +126,22 @@ func _initialize() -> void:
 	if s.get_value("profile", "reticle_colour") != "bone":
 		push_error("test_settings: invalid reticle option must use the default")
 		ok = false
+	if s.player_body() != "human":
+		push_error("test_settings: a new profile is human")
+		ok = false
+	for bad: Variant in ["robot", "res://assets/characters/free/synthetic.png", 3, null]:
+		s.set_value("profile", "body", bad)
+		if s.get_value("profile", "body") != "human":
+			push_error("test_settings: an unknown body must narrow to human: " + str(bad))
+			ok = false
 	s.set_value("profile", "name", "Signal 67")
 	s.set_value("profile", "reticle_colour", "cyan")
+	s.set_value("profile", "body", "synthetic")
 	if s.save_to_disk() != OK:
 		push_error("test_settings: save must report success")
 		ok = false
 	loaded.load_from_disk()
-	if loaded.player_name() != "Signal 67" or loaded.reticle_colour() != Color("8ee9df"):
+	if loaded.player_name() != "Signal 67" or loaded.reticle_colour() != Color("8ee9df") 		or loaded.player_body() != "synthetic":
 		push_error("test_settings: profile must survive a fresh instance")
 		ok = false
 	# Malformed config values never reach engine APIs through permissive casts.

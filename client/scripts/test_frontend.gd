@@ -23,6 +23,14 @@ func _run() -> void:
 	var colour: OptionButton = column.get_node("ReticleColour")
 	colour.select(2)
 	colour.item_selected.emit(2)
+	var body: OptionButton = column.find_child("Body", true, false)
+	var preview: TextureRect = column.find_child("BodyPreview", true, false)
+	_check(body != null and preview != null and preview.texture != null, "profile shows a body choice with its preview")
+	var human_preview: Texture2D = preview.texture if preview != null else null
+	body.select(1)
+	body.item_selected.emit(1)
+	_check(preview.texture != human_preview and (preview.texture as AtlasTexture).atlas.resource_path == PlayerBody.strip_path("synthetic"),
+		"choosing a body previews that body")
 	var bob: CheckButton = column.get_node("WeaponBob")
 	bob.button_pressed = false
 	menu._save_profile()
@@ -32,6 +40,7 @@ func _run() -> void:
 	_check(saved.player_name() == "Patch 67", "profile save must persist the chosen callsign")
 	_check(saved.reticle_colour() == Color("8ee9df"), "profile selection must persist the chosen reticle")
 	_check(not bool(saved.get_value("gameplay", "head_bob")), "profile bob switch must persist")
+	_check(saved.player_body() == "synthetic", "profile save must persist the chosen body")
 	var escape: InputEventKey = InputEventKey.new()
 	escape.physical_keycode = KEY_ESCAPE
 	escape.pressed = true
@@ -42,12 +51,14 @@ func _run() -> void:
 		await menu._show("profile")
 		column.get_node("Callsign").text = "Discard this"
 		column.get_node("ReticleColour").item_selected.emit(0)
+		(column.find_child("Body", true, false) as OptionButton).item_selected.emit(0)
 		menu._unhandled_input(cancel)
 		await process_frame
 		_check(menu._page == "main", "keyboard and controller cancel return to the main menu")
 		await menu._show("profile")
 		_check(column.get_node("Callsign").text == "Patch 67", "back must discard unsaved callsign")
 		_check(column.get_node("ReticleColour").selected == 2, "back must discard unsaved colour")
+		_check((column.find_child("Body", true, false) as OptionButton).selected == 1, "back must discard an unsaved body")
 	for page in ["single", "multi", "settings", "main"]:
 		await menu._show(page)
 		_check(column.get_child_count() > 0, "page should expose controls: " + page)
