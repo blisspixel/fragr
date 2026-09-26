@@ -107,6 +107,7 @@ func _still_and_narration() -> void:
 	_expect(player._voiced and player._narration.bus == &"Voice", "narration plays on the Voice bus")
 	_expect(AudioServer.get_bus_index(&"Voice") >= 0, "the Voice bus exists")
 	_expect(player._motion != null and player._motion.is_valid(), "the still drifts")
+	var drift: Tween = player._motion
 	_expect(player._captions.visible and player._scroll.visible, "captions show by default beside narration")
 	await _key(KEY_C, true)
 	await _key(KEY_C, false)
@@ -117,6 +118,7 @@ func _still_and_narration() -> void:
 	for frame: int in 4:
 		await process_frame
 	_expect(player.page == 1, "narration timing advances when the clip ends")
+	_expect(player._motion == drift, "beats over the same still keep one drift")
 	player._on_narration_finished()
 	for frame: int in 60:
 		await process_frame

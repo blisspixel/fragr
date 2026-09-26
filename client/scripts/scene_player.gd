@@ -43,6 +43,7 @@ var _motion: Tween
 ## Seconds left before a narrated shot advances itself; negative when idle.
 var _auto_advance: float = -1.0
 var _voiced: bool = false
+var _still_path: String = ""
 
 func _init(manifest: Dictionary = {}) -> void:
 	scene = manifest
@@ -219,7 +220,11 @@ func _notification(what: int) -> void:
 func _enter_shot() -> void:
 	_auto_advance = -1.0
 	var current: Dictionary = shot()
-	var texture: Texture2D = _texture(str(current.get("image", "")))
+	var path: String = str(current.get("image", ""))
+	var texture: Texture2D = _texture(path)
+	# Several beats over one key image keep drifting instead of snapping back.
+	var same_still: bool = texture != null and path == _still_path
+	_still_path = path if texture != null else ""
 	_still.texture = texture
 	_still_frame.visible = texture != null
 	_layout(texture != null)
@@ -228,7 +233,8 @@ func _enter_shot() -> void:
 	_voiced = _narration.stream != null
 	if _voiced:
 		_narration.play()
-	_start_motion(current, texture != null)
+	if not same_still:
+		_start_motion(current, texture != null)
 	_refresh()
 
 ## Text pages keep the original centered panel; a still gets a caption band.
