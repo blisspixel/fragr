@@ -96,7 +96,29 @@ ignored and its Welcome has none.
 | Tour `client/qa/tour.json` | `body_human`, `body_synthetic` close stills, the joined player's accepted body recorded as synthetic, the callsign page with the choice and preview |
 | Tour `client/qa/modes.json` with `FRAGR_QA_MODE=tdm` | coalition human, coalition synthetic and a Union-side synthetic |
 
-Full repository gates are listed in the PR with their results.
+Tour stills were inspected on Windows, OpenGL compatibility, AMD Radeon 780M,
+2026-09-26 (local runs under `.agents/qa/body-tour-2/` and
+`.agents/qa/body-modes-2/`). The first team tour found the one-body-per-side bot
+pattern described above; the second run shows a coalition human, a coalition
+synthetic and a Union-side synthetic. Fighters are now drawn at the 1.8 metre
+hit-volume height instead of the taller legacy strips, so they read smaller in
+a distant chase view; that is the honest size.
+
+Full gates on 2026-09-26, all local on Windows:
+
+| Gate | Result |
+|---|---|
+| `cargo fmt --all -- --check`, `cargo clippy ... -D warnings` | pass |
+| `cargo test --workspace --locked` | pass |
+| bench 16 fighters, 1200 ticks, seed 42, check and assert | pass |
+| `cargo llvm-cov --workspace --locked --fail-under-lines 90` | pass, 94.06% lines |
+| `cargo build --workspace --release --locked`, `cargo deny check licenses bans sources` | pass |
+| four CI playtests (FFA, TDM, rail-only, TDM licence-to-kill) | pass |
+| `tools/playtest_roster.sh` | pass |
+| 120 second soak with bots, agents, spectators and map rotation | pass |
+| `tools/godot_check.sh` (Godot 4.7.2) | pass, every harness |
+| `tools/test_godot_check.sh` | pass, every injected scenario |
+| Playable smoke on a release server with 4 bots | frags logged; `scripted-bot --body synthetic` and `fragr-brain play --body synthetic --max-seconds 20` (local rules, no ledger, $0) both joined and played |
 
 ## Gaps
 
