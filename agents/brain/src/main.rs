@@ -320,6 +320,10 @@ fn run(cli: Cli, transport: Arc<dyn Transport>, out: &mut dyn std::io::Write) ->
                 )?;
                 return Ok(());
             }
+            if provider == Provider::Ollama {
+                // Loading the weights is not part of the decision's budget.
+                local_model::warm_up(transport.as_ref(), &url, &model)?;
+            }
             let started = std::time::Instant::now();
             let response = local_model::decide(
                 transport.as_ref(),
@@ -960,8 +964,8 @@ mod tests {
         assert!(text.contains("\"run_usd\": 0.0"));
         assert_eq!(
             transport.calls.load(Ordering::SeqCst),
-            3,
-            "one call per question"
+            4,
+            "a warmup, then one call per question"
         );
 
         let dry = parse(&["--provider", "ollama", "ask", "--state", "s", "--dry-run"]);
@@ -972,7 +976,7 @@ mod tests {
         assert!(text.contains("\"estimated_usd\": 0.0"));
         assert_eq!(
             transport.calls.load(Ordering::SeqCst),
-            3,
+            4,
             "a dry run sends nothing"
         );
 
