@@ -369,20 +369,26 @@ tell: a scene exists because the camera needs to be taken away from the player
 for a moment, never to explain what the level already showed. [The story
 arc](campaign/story-arc.md#show-dont-tell) owns this rule for every level.
 
-Between missions, the frame is a full-screen pixel text page: place, the time
-that passed, the immediate stake, and the next objective, in a few readable
-lines. It uses the same reader-paced presenter as the opening. Text waits for
-the reader. The in-level objective card introduces a beat and then leaves the
-view. It is not the page between missions. Voice, when it exists, reads the
-approved page and never forces an early advance. A missing clip leaves the
-text complete. Subtitles have speaker labels, contrast, scalable text, and
-relevant sound captions.
+Between levels, the frame is a short audio slideshow (Nick, 2026-09-25):
+pixel stills with a subtle pan or zoom, voiced lines, captions with speaker
+labels, and sound. It shows what changed and what is at stake next, never
+recaps the level, and is skippable as a whole. It plays on the same scene
+player as the opening, from a data manifest per scene. A shot without its
+still is the full-screen text page; a shot without its clip waits for the
+reader. A voiced shot moves on after its line and a short hold, Back returns
+to it, and the last shot always waits for the player. The in-level objective
+card introduces a beat and then leaves the view. It is not the scene between
+levels. Subtitles have speaker labels, contrast, scalable text, and relevant
+sound captions; they can be turned off only while a clip is speaking.
 
-Spoken clips use `tools/audiogen` only after that page's wording is frozen,
-with an explicit cap and a recorded receipt. Retro movies, including a
-Higgsfield Seedance 2.5 pass with consistent character sheets, are a later
-skin on the same pages. They are not authorized while missions and sentences
-are still changing. No essential sentence is baked into a picture or a clip.
+Stills come from `tools/spritegen` and voices from `tools/audiogen` only after a
+scene's wording is frozen, each batch with Nick's go, an explicit cap and a
+recorded receipt. Retro movies, including a Higgsfield Seedance 2.5 pass with
+consistent character sheets, are a later skin on the same shots. They are not
+authorized while missions and sentences are still changing. No essential
+sentence is baked into a picture or a clip. The
+[scene production plan](plans/campaign-scenes.md) owns the format, the scene
+list and the costs.
 
 Use stable story/line IDs, localization keys and parameters, separate subtitle
 timing, optional voice references, and per-locale text. Never bake essential text
