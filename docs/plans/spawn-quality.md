@@ -198,7 +198,8 @@ Local Windows, Ryzen 7 7840U, logs under `.agents/verify-spawn/`:
 
 ## Follow-up: the round opening had no shield
 
-Status: **shipped** (branch `fix/map5-opening-spawns`), checked 2026-09-26.
+Status: **implemented**, [#263](https://github.com/blisspixel/fragr/pull/263), checked 2026-09-26.
+Local evidence recorded below; the linked PR tracks merge to `main`.
 
 The mixed-client roster's Reclamation Gulch run (map 5, seed 42, 12 fighters)
 is occasionally flaky in CI: the gate in `check_thresholds` fails a run with
