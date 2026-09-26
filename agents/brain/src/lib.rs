@@ -10,12 +10,15 @@
 //! Nothing here bills unless a run is started with an explicit spend cap, and
 //! every paid call is estimated before it is sent and written to a ledger after
 //! it returns. The same loop runs with `Provider::Local` at zero cost, which is
-//! what CI exercises.
+//! what CI exercises. A free open-weights decision model on this machine
+//! (`Provider::Ollama`, or a self-hosted `Provider::OpenJev` server) takes the
+//! same path without any budget: see `local_model`.
 
 pub mod bot;
 pub mod budget;
 pub mod decision;
 pub mod dotenv;
+pub mod local_model;
 pub mod plan;
 pub mod provider;
 pub mod telemetry;
@@ -31,8 +34,10 @@ pub enum Error {
     MissingApiKey(String),
     /// A spend cap would be crossed by the next call.
     Budget(budget::Refusal),
-    /// The request never completed (connect, timeout, read).
+    /// The request never completed (connect, read).
     Transport(String),
+    /// The request or the whole decision ran past its time budget.
+    Timeout(String),
     /// The provider answered with a non-success status.
     Api {
         status: u16,
@@ -53,6 +58,7 @@ impl fmt::Display for Error {
             ),
             Error::Budget(refusal) => write!(f, "budget: {refusal}"),
             Error::Transport(msg) => write!(f, "transport: {msg}"),
+            Error::Timeout(msg) => write!(f, "timeout: {msg}"),
             Error::Api { status, message } => write!(f, "api error {status}: {message}"),
             Error::Malformed(msg) => write!(f, "malformed response: {msg}"),
             Error::Io(err) => write!(f, "io: {err}"),
@@ -85,6 +91,7 @@ mod error_tests {
             (Error::MissingApiKey("A, B".into()), "no API key"),
             (Error::Budget(budget::Refusal::NoCap), "budget:"),
             (Error::Transport("x".into()), "transport: x"),
+            (Error::Timeout("t".into()), "timeout: t"),
             (
                 Error::Api {
                     status: 402,

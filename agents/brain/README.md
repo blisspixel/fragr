@@ -2,7 +2,7 @@
 
 A reference agent whose intent comes from a decision model and whose reflexes stay local. An agent in fragr is one participant on the wire, however it thinks: server-run rule bots, any MCP client through the adapter, a scripted client, or this one, which asks a decision model what to do a few times a second while a local controller keeps playing every tick. One agent can combine a language model, other ML, and a decision model; the server sees one fighter either way.
 
-The brain is Jev, TypeSafe AI's decision model, reached either at TypeSafe's own endpoint or through OpenRouter. Jev does not generate text. It answers typed questions (a choice between named options, a yes-or-no probability, a score on an ordered scale) with calibrated confidence, in a few hundred milliseconds, for about four cents per million input tokens. That shape fits a shooter far better than a chat model: no prose to parse, no invalid actions to guard against, no warm-up.
+The paid brain is Jev, TypeSafe AI's decision model, reached either at TypeSafe's own endpoint or through OpenRouter. A free brain is an open-weights decision model on your own machine; see [Run it with a free local model](#run-it-with-a-free-local-model). Jev does not generate text. It answers typed questions (a choice between named options, a yes-or-no probability, a score on an ordered scale) with calibrated confidence, in a few hundred milliseconds, for about four cents per million input tokens. That shape fits a shooter far better than a chat model: no prose to parse, no invalid actions to guard against, no warm-up.
 
 The MCP door is unchanged. Any MCP client still drives a fighter through `agent-adapter`; this crate is a separate, optional client on the same wire protocol, and the two can be mixed inside one agent.
 
@@ -53,7 +53,28 @@ The verified receipt includes the mission state,
 kills, and deaths after the run.
 The watch also saves `timeline.json` beside the verified receipt.
 
-## Run it with a brain
+## Run it with a free local model
+
+APUS-OpenJev-v1-4B is an Apache 2.0 decision model fine-tuned from Qwen3.5-4B. It scores the options fragr supplies and runs in [Ollama](https://ollama.com) on your own machine. No key, no cap, no ledger entry. Pull it once, then play:
+
+```bash
+ollama pull hf.co/apus-ailab/APUS-OpenJev-v1-4B-GGUF:Q8_0
+cargo run -p fragr-brain -- --provider ollama --timeout-ms 20000 play --name Apus-1 --decision-hz 1
+```
+
+`play` loads the model before joining and names the pull command if it is missing. If the `hf.co` pull fails (Ollama 0.34.2 refused the Hugging Face CDN redirect on 2026-09-26), download `APUS-OpenJev-v1-4B-Q8_0.gguf` from the model's GGUF repository, check it against the repository's `SHA256SUMS`, create the model with the repository's `Modelfile` (`ollama create apus-openjev-v1-4b:q8_0 -f Modelfile`), and pass `--model apus-openjev-v1-4b:q8_0`. Weights live in Ollama's store, never in this repository.
+
+The brain renders the model's own prompt contract and reads its answer from the probabilities of the candidate letters, one short request per question, all inside one latency budget: `--timeout-ms` bounds the whole decision. On a Ryzen 7 7840U laptop with integrated graphics a decision took about twelve seconds, so the default two second budget times out every time and the fighter plays on local rules. Measurements, hardware and next steps are in [`docs/plans/brain-local-model.md`](../../docs/plans/brain-local-model.md).
+
+`--provider openjev` sends the same `systemone` body as the TypeSafe provider to an [openjev](https://huggingface.co/openjev/openjev) server you run yourself (default `http://127.0.0.1:3000`, no key). **The openjev weights are CC BY-NC 4.0: non-commercial use only.** fragr never bundles, downloads or defaults to them, and this path is tested with fake transports only.
+
+Both local providers reach loopback only (`localhost`, 127.0.0.0/8, `::1`); `--model-url` changes the address and `--allow-remote-model` is required for any other host. Replies are untrusted: bounded, parsed strictly and checked against the questions asked. A slow, failed or unreadable answer falls back to local rules exactly as a paid one does, including backoff and switching the model off after repeated bad answers. `ask` works too, with `--dry-run` to print the requests:
+
+```bash
+cargo run -p fragr-brain -- --provider ollama --timeout-ms 20000 ask --state '{"self":{"health":"low"},"enemy":{"present":true,"range":"close"}}'
+```
+
+## Run it with a paid brain
 
 Put a key in `.env` at the repository root (gitignored) or in the environment:
 
@@ -130,7 +151,7 @@ cargo run -p fragr-brain -- --provider openrouter --max-spend-usd 0.01 ask --sta
 
 ## What it reports
 
-`play` prints a JSON summary when it leaves: snapshots seen, actions sent, decisions by source (remote, low confidence, failed, local, budget refusals), backoffs, decision round-trip statistics, arena frags, server-recorded kills and deaths, the latest server-validated mission receipt when present, dollars this run, dollars in the ledger, the last plan, and the last state string. The summary is for your eyes; keep it out of public write-ups.
+`play` prints a JSON summary when it leaves: provider and model, snapshots seen, actions sent, decisions by source (remote, low confidence, failed, local, budget refusals), timeouts, fallbacks, backoffs, decision round-trip statistics (minimum, mean, p50, p95, maximum), decisions per second, arena frags, server-recorded kills and deaths, the latest server-validated mission receipt when present, dollars this run, dollars in the ledger, the last plan, and the last state string. The summary is for your eyes; keep it out of public write-ups.
 
 ## Known limits
 

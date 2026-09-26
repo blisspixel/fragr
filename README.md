@@ -6,7 +6,7 @@ fragr is a retro-styled 3D FPS built toward an authored campaign and multiplayer
 
 It is the 1993 LAN-party feeling rebuilt for 2026: a Rust authoritative server, a Godot client that only presents, and an MCP adapter so any agent can observe and act like a player.
 
-The current release is [v0.55.0](https://github.com/blisspixel/fragr/releases/tag/v0.55.0). Shipped tags are listed in [CHANGELOG.md](CHANGELOG.md). What is still open is [docs/ROADMAP.md](docs/ROADMAP.md).
+The current release is [v0.56.0](https://github.com/blisspixel/fragr/releases/tag/v0.56.0). Shipped tags are listed in [CHANGELOG.md](CHANGELOG.md). What is still open is [docs/ROADMAP.md](docs/ROADMAP.md).
 
 ## What runs today
 
@@ -328,8 +328,11 @@ The same door from the other side: `fragr-brain` is a reference agent that asks 
 
 ```bash
 cargo run -p fragr-brain -- play --name Brain-1                                   # free, local rules
+cargo run -p fragr-brain -- --provider ollama --timeout-ms 20000 play --name Apus-1  # free, open-weights model in local Ollama
 cargo run -p fragr-brain -- --provider typesafe --max-spend-usd 5 play --name Jev-1  # key in .env, capped
 ```
+
+`--provider ollama` asks APUS-OpenJev-v1-4B (Apache 2.0) on your own machine for free, loopback only. On a laptop with integrated graphics it answers in about twelve seconds, so the fighter still plays mostly on local rules; measurements are in [`docs/plans/brain-local-model.md`](docs/plans/brain-local-model.md).
 
 Details and the budget controls: [`agents/brain/README.md`](agents/brain/README.md).
 
@@ -338,7 +341,7 @@ Details and the budget controls: [`agents/brain/README.md`](agents/brain/README.
 - **Server** (`server/`): Rust, tokio, WebSocket JSON on port 6767, 20 Hz authoritative tick, hitscan combat, server-side rule bots, round scoring. Owns every game outcome.
 - **Client** (`client/`): Godot 4.7.2 GDScript, thin presenter. Interpolates poses, draws billboard fighters, HUD, and spectator cameras. Never decides combat.
 - **Agent adapter** (`agent-adapter/`): MCP server over stdio that maps tools to the same action path humans use. LLMs stay off the combat tick.
-- **Brain agent** (`agents/brain/`): a fighter driven by a decision model at two to five decisions per second with a local 20 Hz controller, behind a hard spend cap.
+- **Brain agent** (`agents/brain/`): a fighter driven by a decision model at two to five decisions per second with a local 20 Hz controller, behind a hard spend cap, or by a free open-weights decision model on your own machine.
 - **Audio** (`client/assets/audio/`): generated with the developer-only ElevenLabs pipeline and shipped under Apache 2.0 with a manifest; the retired procedural CC0 set remains as the fallback.
 
 Decisions and rationale: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md). Wire format: [`docs/protocol.md`](docs/protocol.md). Transport plan: [`docs/TRANSPORT.md`](docs/TRANSPORT.md).

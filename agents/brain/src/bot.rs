@@ -8,6 +8,7 @@ use crate::decision::{
     campaign_questions, constrain_plan_weapon, plan_from_answers, tactical_questions, Gate,
     Question,
 };
+use crate::local_model;
 use crate::plan::{
     campaign_enemy_engageable, campaign_micro_action, campaign_target, fallback_plan, micro_action,
     Plan, Source, Stance,
@@ -64,6 +65,7 @@ pub fn is_retryable(err: &Error) -> bool {
     matches!(
         err,
         Error::Transport(_)
+            | Error::Timeout(_)
             | Error::Api {
                 status: 408 | 429 | 500..=599,
                 ..
@@ -110,6 +112,12 @@ pub struct BotConfig {
     pub model: String,
     /// Required for paid providers; ignored for `Provider::Local`.
     pub api_key: Option<String>,
+    /// Checked base URL of a free local model (`ollama`, `openjev`).
+    pub model_url: Option<String>,
+    /// The whole-decision latency budget for a local model. A later answer is
+    /// a timeout and local rules play that cycle. Paid calls use the
+    /// transport's own timeout.
+    pub decision_budget: Duration,
     pub decision_hz: f64,
     pub gate: Gate,
     /// Leave the match after this long; `None` plays until the socket closes.
@@ -133,6 +141,10 @@ pub struct BotSummary {
     pub decisions_failed: u64,
     pub decisions_local: u64,
     pub budget_refusals: u64,
+    /// Decisions that ran past their latency budget (counted in `decisions_failed`).
+    pub timeouts: u64,
+    /// Asked decisions that ended on local rules: low confidence, failed, refused.
+    pub fallbacks: u64,
     /// Times the decision interval was doubled after a retryable failure.
     pub backoffs: u64,
     /// Failures that switched the brain off for the rest of the run.
@@ -153,6 +165,10 @@ pub struct BotSummary {
     pub last_plan: Option<Plan>,
     pub last_state: Option<String>,
     pub decision_latency: LatencyStats,
+    /// Wall time from joining to leaving.
+    pub elapsed_seconds: f64,
+    /// Model answers (trusted or not) per second of play.
+    pub decisions_per_second: f64,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
@@ -307,10 +323,38 @@ pub struct LatencyStats {
     pub min_ms: u64,
     pub max_ms: u64,
     pub mean_ms: f64,
+    /// Nearest-rank percentiles over the retained samples, set by `finish`.
+    pub p50_ms: u64,
+    pub p95_ms: u64,
+    #[serde(skip)]
+    retained: Vec<u64>,
+}
+
+/// Samples kept for percentiles; hours of play at five decisions a second.
+pub const LATENCY_SAMPLES_KEPT: usize = 100_000;
+
+/// The nearest-rank percentile of sorted values, zero when empty.
+pub fn percentile(sorted: &[u64], pct: f64) -> u64 {
+    if sorted.is_empty() {
+        return 0;
+    }
+    let rank = ((pct / 100.0) * sorted.len() as f64).ceil() as usize;
+    sorted[rank.clamp(1, sorted.len()) - 1]
 }
 
 impl LatencyStats {
+    /// Compute the percentiles from the samples seen so far.
+    pub fn finish(&mut self) {
+        let mut sorted = self.retained.clone();
+        sorted.sort_unstable();
+        self.p50_ms = percentile(&sorted, 50.0);
+        self.p95_ms = percentile(&sorted, 95.0);
+    }
+
     pub fn push(&mut self, ms: u64) {
+        if self.retained.len() < LATENCY_SAMPLES_KEPT {
+            self.retained.push(ms);
+        }
         if self.samples == 0 {
             self.min_ms = ms;
             self.max_ms = ms;
@@ -388,14 +432,60 @@ pub fn next_roll(state: &mut u64) -> f64 {
     (value >> 11) as f64 / (1u64 << 53) as f64
 }
 
+/// Who answers a decision and how to reach them.
+#[derive(Debug, Clone)]
+struct Asker {
+    provider: Provider,
+    model: String,
+    api_key: String,
+    model_url: String,
+    decision_budget: Duration,
+}
+
+impl Asker {
+    fn from_config(config: &BotConfig) -> Self {
+        Asker {
+            provider: config.provider,
+            model: config.model.clone(),
+            api_key: config.api_key.clone().unwrap_or_default(),
+            model_url: config.model_url.clone().unwrap_or_default(),
+            decision_budget: config.decision_budget,
+        }
+    }
+
+    /// The answers to one decision: free and unbudgeted for a local model,
+    /// through the spend gate for a paid one.
+    fn answers(
+        &self,
+        transport: &dyn Transport,
+        budget: &Mutex<Budget>,
+        state: &Value,
+        questions: &BTreeMap<String, Question>,
+    ) -> Result<BTreeMap<String, crate::decision::Answer>, Error> {
+        if self.provider.is_local_model() {
+            return local_model::decide(
+                transport,
+                self.provider,
+                &self.model_url,
+                &self.model,
+                state,
+                questions,
+                self.decision_budget,
+            )
+            .map(|response| response.answers);
+        }
+        decision_request(self.provider, &self.model, &self.api_key, state, questions)
+            .and_then(|request| decide(transport, budget, self.provider, &self.model, &request))
+            .map(|decision| decision.response.answers)
+    }
+}
+
 #[allow(clippy::too_many_arguments)]
 fn spawn_decision(
     transport: Arc<dyn Transport>,
     budget: Arc<Mutex<Budget>>,
     questions: Arc<BTreeMap<String, Question>>,
-    provider: Provider,
-    model: String,
-    api_key: String,
+    asker: Asker,
     state: Value,
     fallback: Plan,
     gate: Gate,
@@ -406,11 +496,10 @@ fn spawn_decision(
 ) -> JoinHandle<()> {
     tokio::task::spawn_blocking(move || {
         let started = std::time::Instant::now();
-        let result = decision_request(provider, &model, &api_key, &state, &questions)
-            .and_then(|request| decide(transport.as_ref(), &budget, provider, &model, &request))
-            .map(|decision| {
-                let mut plan =
-                    plan_from_answers(&decision.response.answers, &gate, &fallback, roll);
+        let result = asker
+            .answers(transport.as_ref(), &budget, &state, &questions)
+            .map(|answers| {
+                let mut plan = plan_from_answers(&answers, &gate, &fallback, roll);
                 constrain_plan_weapon(&mut plan, &questions);
                 plan
             });
@@ -470,6 +559,16 @@ pub async fn run_bot(
     if config.provider.is_paid() && config.api_key.as_deref().unwrap_or("").trim().is_empty() {
         return Err(Error::MissingApiKey(config.provider.key_names().join(", ")));
     }
+    if config.provider.is_local_model()
+        && (config.model_url.as_deref().unwrap_or("").is_empty()
+            || config.decision_budget.is_zero())
+    {
+        return Err(Error::InvalidArgument(format!(
+            "{} needs a checked model url and a latency budget",
+            config.provider.name()
+        )));
+    }
+    let started = std::time::Instant::now();
     let (ws, _) = tokio::time::timeout(CONNECT_TIMEOUT, connect_async(&config.server_url))
         .await
         .map_err(|_| Error::Transport(format!("connect to {} timed out", config.server_url)))?
@@ -527,7 +626,9 @@ pub async fn run_bot(
     let mut mission_geometry = None;
     let mut timeline = config.timeline_path.as_ref().map(|_| Timeline::default());
     let mut hits = RecentHits::default();
-    let mut paid_enabled = config.provider.is_paid();
+    // Whether a model is still being asked. A paid cap refusal, a fatal error,
+    // or repeated unreadable answers switch it off for the rest of the run.
+    let mut paid_enabled = config.provider.asks_a_model();
     let arena_questions = Arc::new(tactical_questions());
     let hz = if config.decision_hz.is_finite() {
         config.decision_hz.clamp(MIN_DECISION_HZ, MAX_DECISION_HZ)
@@ -722,6 +823,8 @@ pub async fn run_bot(
                 if !paid_enabled || !brain_worth_asking(&telemetry) || !mission_client.participating(id) {
                     let source = if config.provider.is_paid() && !paid_enabled {
                         Source::Budget
+                    } else if config.provider.is_local_model() && !paid_enabled {
+                        Source::Failure
                     } else {
                         Source::Local
                     };
@@ -749,9 +852,7 @@ pub async fn run_bot(
                     transport.clone(),
                     budget.clone(),
                     questions,
-                    config.provider,
-                    config.model.clone(),
-                    config.api_key.clone().unwrap_or_default(),
+                    Asker::from_config(&config),
                     {
                         let mut with_memory = telemetry.clone();
                         with_memory.recent = memory.clone();
@@ -789,7 +890,10 @@ pub async fn run_bot(
                         consecutive_malformed = 0;
                         match decided.source {
                             Source::Remote => summary.decisions_remote += 1,
-                            _ => summary.decisions_low_confidence += 1,
+                            _ => {
+                                summary.decisions_low_confidence += 1;
+                                summary.fallbacks += 1;
+                            }
                         }
                         remember(&mut memory, plan_word(&decided));
                         plan = decided;
@@ -811,6 +915,7 @@ pub async fn run_bot(
                     }
                     Outcome::Refused(err, fallback) => {
                         summary.budget_refusals += 1;
+                        summary.fallbacks += 1;
                         if paid_enabled {
                             tracing::warn!("brain off for the rest of the run: {err}");
                             summary.brain_disabled = Some(err.to_string());
@@ -827,6 +932,10 @@ pub async fn run_bot(
                     }
                     Outcome::Failed(err, fallback) => {
                         summary.decisions_failed += 1;
+                        summary.fallbacks += 1;
+                        if matches!(err, Error::Timeout(_)) {
+                            summary.timeouts += 1;
+                        }
                         let unreadable = matches!(err, Error::Malformed(_) | Error::Io(_));
                         consecutive_malformed = if unreadable { consecutive_malformed + 1 } else { 0 };
                         if is_fatal(&err) || consecutive_malformed >= MAX_CONSECUTIVE_MALFORMED {
@@ -879,6 +988,12 @@ pub async fn run_bot(
     }
     constrain_campaign_equipment(&mut plan, mission_client.state.is_some(), loadout.as_ref());
     summary.last_plan = Some(plan);
+    summary.decision_latency.finish();
+    summary.elapsed_seconds = started.elapsed().as_secs_f64();
+    if summary.elapsed_seconds > 0.0 {
+        summary.decisions_per_second =
+            summary.decision_latency.samples as f64 / summary.elapsed_seconds;
+    }
     if let (Some(trace), Some(path)) = (timeline.as_ref(), config.timeline_path.as_ref()) {
         trace.write(path, me)?;
     }
@@ -1255,6 +1370,8 @@ mod tests {
             provider,
             model: provider.default_model().to_string(),
             api_key: provider.is_paid().then(|| "sk_test".to_string()),
+            model_url: provider.default_base_url().map(str::to_string),
+            decision_budget: Duration::from_secs(2),
             decision_hz: 5.0,
             gate: Gate::default(),
             max_seconds: Some(seconds),
@@ -1588,6 +1705,203 @@ mod tests {
         assert!(state.is_object(), "the brain gets an object: {state}");
         assert!(state["self"]["health"].is_string());
         let _ = shutdown.send(());
+    }
+
+    /// What Ollama returns for one scoring call: letter A, far ahead of the rest.
+    fn letter_a() -> serde_json::Value {
+        let top: Vec<serde_json::Value> = [
+            ("A", -0.01),
+            ("B", -5.0),
+            ("C", -6.0),
+            ("D", -7.0),
+            ("E", -8.0),
+        ]
+        .iter()
+        .map(|(token, logprob)| serde_json::json!({"token": token, "logprob": logprob}))
+        .collect();
+        serde_json::json!({
+            "response": "A",
+            "done": true,
+            "logprobs": [{"token": "A", "logprob": -0.01, "top_logprobs": top}]
+        })
+    }
+
+    /// Answers every request after a fixed delay.
+    struct Slow {
+        delay: Duration,
+        reply: HttpResponse,
+        calls: std::sync::atomic::AtomicUsize,
+    }
+
+    impl Transport for Slow {
+        fn send(&self, request: &crate::provider::HttpRequest) -> Result<HttpResponse, Error> {
+            self.calls.fetch_add(1, Ordering::SeqCst);
+            let wait = request.timeout.map_or(self.delay, |t| t.min(self.delay));
+            std::thread::sleep(wait);
+            if wait < self.delay {
+                return Err(Error::Timeout("request timed out".into()));
+            }
+            Ok(self.reply.clone())
+        }
+    }
+
+    #[tokio::test]
+    async fn a_local_model_decides_without_touching_the_budget() {
+        let (url, shutdown) = boot_server(2).await;
+        let transport = Arc::new(FakeTransport::ok(letter_a()));
+        let budget = budget(0.0);
+        let stop = Arc::new(AtomicBool::new(false));
+        let handle = tokio::spawn(run_bot(
+            config(&url, Provider::Ollama, SAFETY_NET_SECONDS),
+            transport.clone(),
+            budget.clone(),
+            stop.clone(),
+        ));
+        // Three scoring requests make one decision; wait for two decisions.
+        assert!(
+            wait_for(|| transport.calls() >= 6, Duration::from_secs(10)).await,
+            "the local model was never asked twice"
+        );
+        stop.store(true, Ordering::Relaxed);
+        let summary = handle.await.unwrap().expect("bot runs");
+        assert_eq!(summary.provider, "ollama");
+        assert!(summary.decisions_remote >= 1, "{summary:?}");
+        assert_eq!(summary.budget_refusals, 0);
+        assert_eq!(summary.run_usd, 0.0);
+        assert_eq!(budget.lock().unwrap().run_calls(), 0, "no ledger entry");
+        assert!(budget.lock().unwrap().ledger().charges.is_empty());
+        let plan = summary.last_plan.as_ref().unwrap();
+        assert_eq!(plan.source, Source::Remote);
+        // Letter A is the first option in sorted order.
+        assert_eq!(plan.stance, crate::plan::Stance::FallBackHeal);
+        assert!(summary.decision_latency.samples >= 1);
+        assert!(summary.decision_latency.p95_ms >= summary.decision_latency.p50_ms);
+        assert!(summary.elapsed_seconds > 0.0);
+        assert!(summary.decisions_per_second > 0.0);
+        let sent = transport.last_request.lock().unwrap().clone().unwrap();
+        assert!(sent.url.starts_with("http://127.0.0.1:11434/api/generate"));
+        assert!(sent.headers.iter().all(|(name, _)| name != "Authorization"));
+        let _ = shutdown.send(());
+    }
+
+    #[tokio::test]
+    async fn a_slow_local_model_falls_back_and_backs_off() {
+        let (url, shutdown) = boot_server(1).await;
+        let transport = Arc::new(Slow {
+            delay: Duration::from_millis(400),
+            reply: HttpResponse {
+                status: 200,
+                body: letter_a().to_string().into_bytes(),
+            },
+            calls: std::sync::atomic::AtomicUsize::new(0),
+        });
+        let mut slow = config(&url, Provider::Ollama, SAFETY_NET_SECONDS);
+        slow.decision_budget = Duration::from_millis(100);
+        let stop = Arc::new(AtomicBool::new(false));
+        let handle = tokio::spawn(run_bot(slow, transport.clone(), budget(0.0), stop.clone()));
+        assert!(
+            wait_for(
+                || transport.calls.load(Ordering::SeqCst) >= 1,
+                Duration::from_secs(10)
+            )
+            .await,
+            "the slow model was never asked"
+        );
+        tokio::time::sleep(Duration::from_millis(600)).await;
+        stop.store(true, Ordering::Relaxed);
+        let summary = handle.await.unwrap().expect("bot runs");
+        assert!(summary.timeouts >= 1, "{summary:?}");
+        assert_eq!(summary.decisions_remote, 0);
+        assert!(summary.fallbacks >= summary.timeouts);
+        assert!(summary.backoffs >= 1, "a timeout slows the cadence");
+        assert!(summary.brain_disabled.is_none());
+        assert!(
+            summary.decision_latency.max_ms < 400,
+            "the budget cuts the wait"
+        );
+        let _ = shutdown.send(());
+    }
+
+    #[tokio::test]
+    async fn unreadable_local_answers_switch_the_model_off() {
+        let (url, shutdown) = boot_server(1).await;
+        let transport = Arc::new(FakeTransport::new(vec![Ok(HttpResponse {
+            status: 200,
+            body: br#"{"response":"The","logprobs":[{"token":"The","logprob":-0.1,"top_logprobs":[]}]}"#
+                .to_vec(),
+        })]));
+        let stop = Arc::new(AtomicBool::new(false));
+        let handle = tokio::spawn(run_bot(
+            config(&url, Provider::Ollama, SAFETY_NET_SECONDS),
+            transport.clone(),
+            budget(0.0),
+            stop.clone(),
+        ));
+        assert!(
+            wait_for(|| transport.calls() >= 3, Duration::from_secs(10)).await,
+            "three unreadable answers never arrived"
+        );
+        tokio::time::sleep(Duration::from_millis(600)).await;
+        stop.store(true, Ordering::Relaxed);
+        let summary = handle.await.unwrap().expect("bot runs");
+        assert_eq!(transport.calls(), MAX_CONSECUTIVE_MALFORMED as usize);
+        assert_eq!(
+            summary.decisions_failed,
+            u64::from(MAX_CONSECUTIVE_MALFORMED)
+        );
+        assert_eq!(summary.fatal_failures, 1);
+        assert!(summary.brain_disabled.is_some());
+        assert!(summary.decisions_local >= 1, "{summary:?}");
+        assert_eq!(summary.last_plan.as_ref().unwrap().source, Source::Failure);
+        let _ = shutdown.send(());
+    }
+
+    #[tokio::test]
+    async fn a_local_model_needs_a_checked_url_and_a_budget() {
+        let transport = Arc::new(FakeTransport::ok(letter_a()));
+        let mut no_url = config("ws://127.0.0.1:9", Provider::OpenJev, 1);
+        no_url.model_url = None;
+        let err = run_bot(
+            no_url,
+            transport.clone(),
+            budget(0.0),
+            Arc::new(AtomicBool::new(false)),
+        )
+        .await
+        .unwrap_err();
+        assert!(matches!(err, Error::InvalidArgument(_)), "{err}");
+        let mut no_budget = config("ws://127.0.0.1:9", Provider::Ollama, 1);
+        no_budget.decision_budget = Duration::ZERO;
+        assert!(matches!(
+            run_bot(
+                no_budget,
+                transport.clone(),
+                budget(0.0),
+                Arc::new(AtomicBool::new(false))
+            )
+            .await,
+            Err(Error::InvalidArgument(_))
+        ));
+        assert_eq!(transport.calls(), 0);
+    }
+
+    #[test]
+    fn percentiles_use_the_nearest_rank() {
+        assert_eq!(percentile(&[], 50.0), 0);
+        let sorted: Vec<u64> = (1..=20).collect();
+        assert_eq!(percentile(&sorted, 50.0), 10);
+        assert_eq!(percentile(&sorted, 95.0), 19);
+        assert_eq!(percentile(&sorted, 0.0), 1);
+        assert_eq!(percentile(&[7], 95.0), 7);
+        let mut stats = LatencyStats::default();
+        for ms in [300, 100, 200] {
+            stats.push(ms);
+        }
+        stats.finish();
+        assert_eq!((stats.p50_ms, stats.p95_ms), (200, 300));
+        let shown = serde_json::to_value(&stats).unwrap();
+        assert!(shown.get("retained").is_none());
+        assert_eq!(shown["p95_ms"], 300);
     }
 
     #[tokio::test]
