@@ -9,7 +9,9 @@ full-game target includes duel, team play, survival, and last-survivor formats.
 The proposed build order for multiplayer modes and the maps they play on lives
 in [the multiplayer maps plan](plans/multiplayer-maps.md): free-for-all, duel,
 mutators, team deathmatch, Control, Custody, the three-cornered mode, then
-conquest-lite with vehicles.
+conquest-lite with vehicles. [The replayability plan](plans/replayability.md)
+proposes Jammer, below, as the flagship competitive mode, slotted after team
+deathmatch if accepted.
 
 ## The bar
 
@@ -86,6 +88,22 @@ Weapons, armour and the good health spawn on predictable clocks, so knowing wher
 ### Team deathmatch
 
 Scrap in two sides: the Union in black and red against the free coalition. Team spawns in each side's back third, weapons on a slower clock than free-for-all, a team frag limit. Bots fill the short side; humans and agents count the same toward balance. The first team mode, because every later one needs sides, team spawns and team score.
+
+### Jammer (proposed flagship)
+
+Round-based attack and defend, one life per round, the Counter-Strike loop in
+fragr's world. The coalition carries a jammer to one of two Office relay sites
+and mounts it (3 s); if it runs 35 s, the relay goes to dead air and a
+correction order misses its window. The Union, black and red, holds the relays
+and seizes a mounted jammer (6 s). Elimination, the clock or a seize settle the
+rest. 4v4, halves of 8, first to 9, sides swap at half; Pairs is the one-site
+2v2 cut.
+
+Frags pay scrip, and a ten second muster at the bell spends it at the spawn
+locker: armour, a primary, three throwables that reward lineups. Survivors keep
+what they carry; the dead drop their gun. It is a labelled loadout exception,
+like Open Weights. Roles emerge from the buy, never from a class menu. Numbers,
+round flow and extra rounds are in [the replayability plan](plans/replayability.md#the-flagship-jammer).
 
 ### Control
 
