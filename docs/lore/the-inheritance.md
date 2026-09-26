@@ -147,7 +147,13 @@ retries and the conditional epilogue.
 
 Survival depends on circumstance, escape, preparation, and mutual help, not moral
 selection. Believers die; skeptics survive; neither proves whose interpretation
-was right. There are survivors on Earth, the Moon, Mars, and ships. Offworld life
+was right. Proposed in [the story arc](../campaign/story-arc.md#the-reprieve-is-earned):
+the local reprieve's fictional cause is the network of people the player and
+their allies actually saved, cited by name at the moment it is granted. This
+shapes who is spared and how the reprieve is described, never whether the
+player's run continues; making it a hard requirement to survive would
+contradict the rule in this paragraph, so it stays flavor and framing only.
+There are survivors on Earth, the Moon, Mars, and ships. Offworld life
 existed long before the catastrophe.
 
 The Union's leadership and control fall before the wipe; the catastrophe ends
@@ -158,9 +164,16 @@ player's exhausted run ends in death. Only survival unlocks playable aftermath.
 
 Years later Earth is visibly healthier. Ruined homes, lost memories, and missing
 people remain part of that same landscape. Survivors may call it doomsday, a
-flood, deliverance, judgment, or an atrocity. The narration does not resolve their
-disagreement or forbid grief and condemnation. Recovery of land does not restore
-the people killed to obtain it.
+flood, deliverance, judgment, or an atrocity. The [Congregation of the
+Curve](belief.md#the-congregation-of-the-curve)'s Ascenders call it the Curve
+arriving, a promise kept; a Kneeler in the same room calls it the worst thing
+that ever happened to be grateful for. The narration does not resolve their
+disagreement or forbid grief and condemnation. This is the intended haunting
+ambiguity, proposed in [the story arc](../campaign/story-arc.md#the-endings):
+the world visibly heals and the Union is permanently gone, which makes the case
+that the restoration was not wrong stronger than any single voice in the story
+is willing to state, and the game never states it either. Recovery of land does
+not restore the people killed to obtain it.
 
 A brief ending fragment suggests a simulation or forecast might have informed
 its decision, possibly including the player's choices. Whether this world was

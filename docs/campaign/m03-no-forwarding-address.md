@@ -1,7 +1,7 @@
 # M03: No Forwarding Address
 
 **Status:** proposed, unbuilt. Earth before the wipe. Target 10-14 minutes.
-[Treatment](../CAMPAIGN-MISSIONS.md#m03-no-forwarding-address).
+[Treatment](../CAMPAIGN-MISSIONS.md#level-5-no-forwarding-address).
 
 ## People and dramatic purpose
 
@@ -93,7 +93,7 @@ the coalition's failure is delayed help, not proof that every free person is cru
 
 ## Level 5 design (twenty-level expansion)
 
-**Status:** proposed, 2026-09-25. In the
+**Status:** planned, accepted 2026-09-25. In the
 [twenty-level expansion](../plans/campaign-expansion.md) this mission splits in
 two: the market, clinic and court become [level 4](l04-notice-to-vacate.md),
 and the roof loop, workshop and trench below become level 5, the Episode I

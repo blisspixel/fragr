@@ -7,6 +7,13 @@ for the five current weapons are unchanged. The sniper rifle, rocket launcher,
 grenade, proximity mine, and remote mine are locked as campaign finds. None of
 them is implemented.
 
+Decided 2026-09-25: the campaign has no carry cap. Every gun found on the route
+below stays carried, Doom style, all the way to the credits; nothing hits the
+floor to make room for the next pickup. [WEAPONS.md](../WEAPONS.md)'s "you
+carry a melee, a sidearm, and two found weapons" rule is an arcade and
+multiplayer rule and does not apply here. [CAMPAIGN.md](../CAMPAIGN.md#combat-and-level-contract)
+owns this carve-out for the campaign specifically.
+
 ## Goal
 
 Use familiar weapon names. The opening kit stays fists, then the pistol and
@@ -35,11 +42,14 @@ are not in that kit, not in a secret menu, and not on the six arcade maps.
 
 Each one sits on the ordinary route of its teaching mission, with enough
 ammunition to learn the new verb and a space that makes that verb the
-interesting choice. Finishing the mission carries it into the next mission's
-entry equipment once a run can cross missions. A continue restores that
-mission's entry kit, so a death before leaving puts the found copy back on
-the floor until you pick it up again. Quitting still ends the local run.
-Disk saves do not exist yet, so there is no permanent account unlock.
+interesting choice. Finishing the mission carries it, and every earlier find,
+into the next mission's entry equipment once a run can cross missions. Nothing
+is dropped to make room: by the Martian foundry the player is carrying the
+pistol, rifle, shotgun, railgun, sniper rifle and grenades at once, each with
+its own ammunition pool. A continue restores that mission's entry kit, so a
+death before leaving puts the found copy back on the floor until you pick it
+up again. Quitting still ends the local run. Disk saves do not exist yet, so
+there is no permanent account unlock.
 
 None of the five is required to finish an earlier mission. The customs lane
 in M04 still teaches the Railgun without a sniper. M03 still has no new

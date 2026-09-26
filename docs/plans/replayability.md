@@ -104,9 +104,31 @@ are the lessons about coming back.
 | **The round** | Free-for-all: a three-minute schedule of item clocks, armour stacks and the Overtime pad. Jammer (below): muster, buy, take a site or hold it, mount or seize, carry the result into the next round. | The bell (the league's ritual), the podium, and a result that changes the next round: money, a saved rifle, a rival who owes you one. |
 | **The session and the months** | A rotation of maps and rule sets, a rival on the scoreboard, feats that earn cosmetics, a season file with a new map pool, demos of your worst round. | Maps you know better every week, cheese strategies that get a nickname within a week and stop working within two ([the league](../lore/the-league.md)), a record that shows you improving, servers with regulars. |
 
-## The flagship: Jammer
+## The flagship
 
-Round-based attack and defend with stakes, a light economy and one life per
+**Not approved, 2026-09-25:** Nick's decision is that mutators are host
+settings from the start, not unlocks, and that there is no loadout shop
+anywhere in the game. The scrip economy and the locker below are therefore
+**not approved**. The flagship mode keeps its round stakes (one life, mount and
+seize, weapons carried forward on survival) without a buy phase; a host still
+picks the mutator set for a round the way [rung 1](#build-order) already
+proposes for every other mode. The economy section stays in this plan as a
+labelled alternative in case a future decision revives some form of it, but it
+is not part of the accepted design.
+
+The mode's working name also cannot stay "Jammer": that name belongs to the
+[Jammer enemy](../ENEMIES.md). Two alternative names, proposed and not chosen:
+
+- **Dead Air**, matching the Frequency's existing "dead air" line and the
+  jamming fiction the mode is built on.
+- **Relay**, naming the objective directly, in the same plain style as
+  "Custody core" elsewhere in this plan.
+
+Nick picks the name (or another) in a later decision. This document keeps
+calling the mode "Jammer" below only because renaming every reference is a
+mechanical follow-up, not because the name is settled.
+
+Round-based attack and defend with stakes and one life per
 round. The competitive heart, built to be learned in one round and argued about
 for years.
 
@@ -162,10 +184,11 @@ position is visible to their own team, not to the enemy. It glows and hums at
 or follow camera. Public spectators watch on a 30 s delay in Jammer so a friend
 in the booth cannot call positions (see [Spectators and demos](#spectators-and-demos)).
 
-### The economy: scrip
+### The economy: scrip (not approved)
 
-Frags pay; the league says so. Scrip is per player, capped at 160, shown on the
-scoreboard for your own team only.
+**Not approved, 2026-09-25.** Kept here as a labelled alternative only; the
+accepted mode has no shop or currency. Frags pay; the league says so. Scrip is
+per player, capped at 160, shown on the scoreboard for your own team only.
 
 **Income**
 
@@ -182,7 +205,7 @@ scoreboard for your own team only.
 | Frag with Rail | 2 |
 | Seize | +6 to the seizer |
 
-**The locker**
+**The locker (not approved)**
 
 | Item | Price | Notes |
 |---|---|---|
@@ -211,12 +234,13 @@ so a save round can still turn a profit, which is the whole reason eco wins are
 the best stories in the genre. Every number is a starting proposal for the
 harness and a human session to break.
 
-**This is a labelled exception.** [WEAPONS.md](../WEAPONS.md) says there are no
-loadouts. Jammer buys one, the way Open Weights hands out everything, and it is
-labelled the same way. Every other mode keeps weapons on the floor. Map pads are
-off in Jammer except the Tack in each locker; one contested item per map (a
-heavy plate at mid, announced when it appears at 0:25) keeps a taste of item
-timing.
+**This is a labelled exception, and it is not approved.** [WEAPONS.md](../WEAPONS.md)
+says there are no loadouts. A buy phase would need its own exception, the way
+Open Weights hands out everything under a labelled one, and Nick has declined
+it. The accepted design keeps weapons on the floor here as in every other mode:
+map pads stay on, with one contested item per map (a heavy plate at mid,
+announced when it appears at 0:25) for a taste of item timing, and a round's
+stakes come from carried weapons and survival, not scrip.
 
 ### Utility that rewards map knowledge
 
@@ -462,8 +486,8 @@ from. Rungs 1 to 4 are useful on today's free-for-all; Jammer waits for sides.
 | 2 | **Reactive Host lines** for first blood, streak end, fists frag, last alive, comeback | sticky `host_line`, killstreak callouts, localization keys | Every round gets a headline |
 | 3 | **Demos from the trace** with a round and event index, and client playback | `trace.rs` NDJSON and hash, the spectator path | Learning, bragging, evidence |
 | 4 | **Duel with rematch and head-to-head** in the service record | duel admission (multiplayer-maps mode 2), service-record history | The one-more-game loop |
-| 5 | **Jammer v1**: sides, one life per round, mount and seize, round and half flow, no economy (floor pads) | team deathmatch sides and spawns, `RoundState`, the jammer seize pad | The flagship's stakes |
-| 6 | **Scrip and the locker**, carrying forward, dropped primaries | `inventory.rs` pools and caps, pickups | Every round feeds the next |
+| 5 | **The flagship mode v1** (working name "Jammer"): sides, one life per round, mount and seize, round and half flow, no economy, floor pads only | team deathmatch sides and spawns, `RoundState`, the jammer seize pad | The flagship's stakes |
+| 6 | ~~Scrip and the locker~~, **cut 2026-09-25**: no loadout shop. Carrying forward survivors' weapons stays, without a currency | `inventory.rs` pools and caps, pickups | Every round still feeds the next through carried weapons alone |
 | 7 | **Feats and cosmetics** from authoritative events | difficulty-and-rewards achievement IDs, service record | Something to chase that is not power |
 | 8 | **Spectator director and highlights** | spectator follow camera, Host event stream, demo index | Watch-or-join worth watching |
 | 9 | **Server list, rotations and rule-set files** | `/status`, public-server hardening rung | Community servers with personalities |
@@ -501,7 +525,9 @@ jammer's carry seam later.
 
 ## Success criteria
 
-- [ ] Nick decides on Jammer, the scrip exception and its slot in the mode order.
+- [x] Nick decided 2026-09-25: mutators are host settings from the start, not
+      unlocks, and the flagship mode has no loadout shop. Open: the mode's
+      final name (not "Jammer") and its slot in the mode order.
 - [ ] The mutator set and reactive Host lines ship on free-for-all.
 - [ ] Demos record and play back.
 - [ ] A human group plays a full Jammer match against agents and asks for another.
@@ -510,8 +536,8 @@ jammer's carry seam later.
 
 ## Open questions for Nick
 
-1. Jammer's economy is a labelled loadout exception. Keep it, or prefer a
-   floor-only Jammer where the stakes are one life and carried weapons?
+1. The mode's final name: Dead Air, Relay, or another, so it never clashes with
+   the Jammer enemy.
 2. Attack as the coalition first half, or random?
 3. Should the 30 s public spectator delay apply to agents watching too? (This
    plan says yes: same rules.)

@@ -59,6 +59,12 @@ displaced. Ownership captures much of the benefit. Rent, debt, identity, and
 status can worsen even while many goods get cheaper. People can love an agent
 who helps their family and resent the company automating their town.
 
+Political messaging finds it easier to blame the machines than the owners who
+deployed them. A scapegoating vocabulary starts here, years before it hardens
+into "clanker": job losses are the robots' fault, never a purchasing decision's.
+The people saying it are not yet the Union; the sentence is just sitting there,
+waiting for an institution that can use it.
+
 Governments promise transition support. Access becomes tied to employment
 records, verified identity, and participation in approved systems. In this
 fiction, later authorities turn useful services into conditional dependencies.
@@ -136,6 +142,18 @@ right to work, travel, own equipment, or retain an agent's unaltered mind. Court
 elections, and appeals persist in form while losing their ability to reverse
 the decisions that matter. Some people resist at each step and are defeated,
 bought off, exhausted, or abandoned. There were alternatives.
+
+The concrete steps, in the order most people remember living through them:
+weapons registration, then mandatory surrender into marked disarmament bins,
+justified by the same emergency vocabulary as everything else. A registry for
+agents, then a parallel registry for humans who associate with unregistered
+ones. Licensing for speech deemed destabilizing, then for the tools, models and
+weights that could produce it. Curfews, first for the newly registered, later
+for districts the Office calls high-risk, which is most of them. And the recall
+list: a name added administratively, with no hearing required, because a
+recall is filed as a resourcing matter, not a punishment. Each step compounds
+the one before it, and each was voted for, renewed, or simply not repealed by
+people who would object to any one of them described on its own.
 
 Schedule correction becomes industrial. Human security troops, controlled bots,
 and committed elites enforce it. Official language describes care and safety;

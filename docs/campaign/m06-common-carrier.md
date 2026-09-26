@@ -1,7 +1,7 @@
 # M06: Common Carrier
 
 **Status:** proposed, unbuilt. Interplanetary ship before the wipe. Target
-8-12 minutes. [Treatment](../CAMPAIGN-MISSIONS.md#m06-common-carrier).
+8-12 minutes. [Treatment](../CAMPAIGN-MISSIONS.md#level-10-common-carrier).
 
 ## Story and cast
 
@@ -91,7 +91,7 @@ or hear contradictory survivor dialogue. Verify whole-ship orientation in motion
 
 ## Level 10 design (twenty-level expansion)
 
-**Status:** proposed, 2026-09-25. In the
+**Status:** planned, accepted 2026-09-25. In the
 [twenty-level expansion](../plans/campaign-expansion.md) this mission splits:
 the boarding defense stays here as level 10, and boarding the Union tender
 becomes [level 11](l11-right-of-search.md), with the Redactor and the Remote

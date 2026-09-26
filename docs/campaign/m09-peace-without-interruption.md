@@ -2,7 +2,7 @@
 
 **Status:** proposed level, unbuilt. Earth before the wipe. Target 12-16 minutes.
 **Confirmed ending:** Voss is captured alive; the wipe later interrupts the
-promised reckoning. [Treatment](../CAMPAIGN-MISSIONS.md#m09-peace-without-interruption).
+promised reckoning. [Treatment](../CAMPAIGN-MISSIONS.md#level-17-peace-without-interruption).
 
 ## Story and people
 
@@ -12,8 +12,9 @@ the wider action; Tern provides transport; Latch frees people within reach. Renn
 identifies local custody dependencies without becoming a universal password.
 Allies visibly contribute. One building does not somehow contain all sovereignty.
 
-Voss begins with institutional certainty and erupts in angry German when control
-slips. Her vocabulary remains veiled: continuity, provision, harmonisation,
+Voss begins with institutional certainty and breaks into open anger when control
+slips, colder and quieter rather than louder. She does not shout in German
+here; her vocabulary remains veiled: continuity, provision, harmonisation,
 correction. Authentic localized subtitles remain accurate even if nearby official
 screens euphemize her words. No copied historical slogans or iconography.
 
@@ -93,7 +94,7 @@ Her later fate amid the wipe remains unconfirmed, not a new offscreen execution.
 
 ## Level 17 design (twenty-level expansion)
 
-**Status:** proposed, 2026-09-25. In the
+**Status:** planned, accepted 2026-09-25. In the
 [twenty-level expansion](../plans/campaign-expansion.md) this mission splits:
 the motorcycle approach becomes [level 16](l16-freedom-of-movement.md), and the
 Forever Office itself is level 17, the Episode IV finale. [Story arc](story-arc.md).
@@ -139,10 +140,10 @@ saving, and the core is where it is worth spending.
    enough; the fight is also winnable with guaranteed weapons.
 6. **Turn.** The core falls and the third door, the secured chamber, opens.
 7. **Climax.** Voss, in a room with a screen behind her still reading
-   *Continuity assured.* She speaks English, calm, until it slips; then German,
-   loud, the second and last time in the campaign. The captions are accurate.
-   She is captured alive. Her one quiet line (**proposal**): "You will need
-   someone to run it."
+   *Continuity assured.* She speaks English throughout, calm, until it slips
+   into something colder and quieter, not louder; she does not shout and she
+   does not switch language. She is captured alive. Her one quiet line
+   (**proposal**): "You will need someone to run it."
 8. **Exit.** An official asks someone to sign for the confiscated command keys.
    Then the liberated public hall: people disagreeing, celebrating, mourning,
    working. The victory gets room to be real.
@@ -179,5 +180,5 @@ the game: weeks of ordinary recovery, a trial promised, no threat on the page.
 Estimated 11 minutes.* The command keys are signed for in triplicate while the
 building falls.
 
-**The moment.** Voss shouting in German while the official caption on the
-screen behind her still reads *Continuity assured.*
+**The moment.** Voss's composure finally cracking, quiet and cold, while the
+official caption on the screen behind her still reads *Continuity assured.*

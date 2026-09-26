@@ -1,7 +1,7 @@
 # Campaign build order
 
 **Status:** planned, revised 2026-09-21. No full campaign mission is accepted. The sequence is the [full build order](../ROADMAP.md#full-build-order-2026-09-22): two readable enemies, then secrets and a fresh-player gate, then persist the run, then one mission at a time.
-**Goal:** deliver ten missions and a conditional epilogue in [CAMPAIGN.md](../CAMPAIGN.md) through
+**Goal:** deliver twenty levels in five episodes and a conditional epilogue in [CAMPAIGN.md](../CAMPAIGN.md) through
 bounded, verifiable milestones. [Mission briefs](../CAMPAIGN-MISSIONS.md) define
 content; this plan defines dependencies.
 **Spend:** local design/code work is free. Paid asset batches use current quota,
@@ -41,7 +41,7 @@ These are existing arena traversal improvements, not a completed campaign map.
 3. **Complete M01 as the quality target.** Full room sequence, flanks, secrets,
    discovery economy, animation, impact and room audio, localized opening,
    extraction, limited continues, and results. Target an 8-10-minute mission
-   within a 2-3-hour successful campaign run. Inspect the whole route. No paid
+   within a four-hour successful campaign run. Inspect the whole route. No paid
    scene needed to prove it. Human/agent control and eye-view spectators must work.
 4. **Build M02 and the early rescue.** Add companion state, release objectives,
    Jammer behavior, rescue-aware mission retry, reunion and optional text/voice.

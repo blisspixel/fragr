@@ -2,7 +2,8 @@
 
 Status: approved direction, unbuilt, 2026-09-20. Replaces the two proposed
 aftermath missions, M11 and M12. Initial target: 5-8 minutes, to be playtested.
-Only surviving M10 unlocks this playable ending. The
+Only surviving all three wipe levels (18, 19 and 20, formerly M10) unlocks this
+playable ending. The
 [campaign contract](../CAMPAIGN.md#runs-and-continues) owns eligibility.
 
 ## Immediate aftermath
@@ -19,6 +20,12 @@ table where the recorded survivor state supports it. A person who died does not
 return as a convenient spare copy. Missing people are not automatically confirmed
 dead merely because they were unobserved. No second boss or lethal escort task
 can revoke an already-earned ending.
+
+**Proposal.** The refuge is where [the network grows](story-arc.md#the-network-grows)
+pays off: the faces here are people the player actually freed, doing something,
+not a tally. Somewhere in the court, one line each: an Ascender says the Curve
+provided; a Kneeler nearby is not comforted. Neither is answered by the scene
+that follows ([the endings](story-arc.md#the-endings)).
 
 ## Years later
 
@@ -66,13 +73,16 @@ one green-tinted screenshot does not establish either.
 
 ## In the twenty-level expansion
 
-**Status:** proposed, 2026-09-25. Unchanged in shape: the damaged refuge, then
+**Status:** planned, accepted 2026-09-25. Unchanged in shape: the damaged refuge, then
 the same place years later, unlocked only by surviving
 [level 20](l20-local-exception.md). The [story arc](story-arc.md) adds a few
 faces and one prop, each a proposal:
 
 - Freed people from levels 3, 8, 11 and 15 appear in the refuge as faces doing
-  something, not as a count.
+  something, not as a count. [The network grows](story-arc.md#the-network-grows)
+  extends this to rescues across all twenty levels.
+- The Ascender/Kneeler beat above, and the reprieve's earned framing in [the
+  reprieve is earned](story-arc.md#the-reprieve-is-earned): both proposals.
 - Sorrel, freed of control in level 11 and not absorbed at the wipe, sits in
   the repaired tram's cab every morning years later. Whether they remember the
   route or learned it again, nobody can say.

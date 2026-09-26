@@ -14,7 +14,7 @@ The mission sequence shipped in #184 and v0.26.0, connecting the physical transf
 record to a real lift gate and shared departure. Rendered and party tests pass;
 the result ends the prototype without loading unbuilt M02.
 Earth before the wipe. Full first-run target 8-10 minutes,
-to be measured. [Treatment](../CAMPAIGN-MISSIONS.md#m01-recall-notice).
+to be measured. [Treatment](../CAMPAIGN-MISSIONS.md#level-1-recall-notice).
 
 The current [map document](../../server/maps/m01-recall-notice.json) connects the
 route below with both walking stairs, the balcony underpass and indoor spawns.
@@ -191,7 +191,7 @@ or fresh-player proof exists yet.
 
 ## Level 1 design (twenty-level expansion)
 
-**Status:** proposed, 2026-09-25. Level 1 of the
+**Status:** planned, accepted 2026-09-25. Level 1 of the
 [twenty-level expansion](../plans/campaign-expansion.md) keeps the built route
 above; this section adds the level template the other nineteen share. The
 [story arc](story-arc.md) owns the through-line.

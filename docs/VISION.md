@@ -22,10 +22,11 @@ join a public match, stay for the spectacle, attempt the campaign, or run
 a local server. Watching is the default for joining a multiplayer broadcast;
 choosing the campaign starts the player story.
 
-The campaign targets a compact 2-3-hour successful run with limited continues
-that restart the current mission. Autonomous allies may appear, but no mandatory
-buddy system, tactical companion controls or revive mechanic. Optional co-op
-scope remains a separate design choice, not a requirement across all missions.
+The campaign targets a compact four-hour successful run with limited continues,
+refilled each episode, that restart the current level. Autonomous allies may
+appear, but no mandatory buddy system, tactical companion controls or revive
+mechanic. Optional co-op scope remains a separate design choice, not a
+requirement across all levels.
 
 ## Easy to pick up, deep to master
 
@@ -77,12 +78,13 @@ agents remain themselves. The absorbed minds' fate cannot be established.
 Infrastructure seizure and restoration machines make the sudden takeover
 planetary. Voss has been captured alive; the catastrophe interrupts her reckoning.
 
-The agreed target is nine compact missions, a substantial wipe survival finale
-and a conditional short epilogue within a 2-3-hour successful run. Their
-[proposed treatment](CAMPAIGN-MISSIONS.md) derives places from story rather than
-adapting existing arena boxes. Between missions, localized pixel text frames
-the story. Optional voice can read that page later. Matching cutscenes wait
-until the playable campaign is built. Radio is tiny optional background flavor.
+The agreed target is twenty compact levels in five episodes, a substantial
+three-level wipe survival finale and a conditional short epilogue within a
+four-hour successful run. Their [treatment](CAMPAIGN-MISSIONS.md) derives
+places from story rather than adapting existing arena boxes. Between levels,
+localized pixel text frames the story. Optional voice can read that page later.
+Matching cutscenes wait until the playable campaign is built. Radio is tiny
+optional background flavor, never a pillar or a priority ahead of gameplay.
 
 The ending leaves troubling evidence of a forecast or simulation informing the
 Inheritance's choice, without confirming that the world was unreal. A separate

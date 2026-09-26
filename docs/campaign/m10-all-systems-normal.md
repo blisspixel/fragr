@@ -3,7 +3,7 @@
 **Status:** agreed survival-finale direction; detailed encounters proposed and
 unbuilt, revised 2026-09-20. Earth at the abrupt onset of the wipe. Initial target:
 about 33 active survival minutes after a short ordinary-life opening.
-[Treatment](../CAMPAIGN-MISSIONS.md#m10-all-systems-normal).
+[Treatment](../CAMPAIGN-MISSIONS.md#level-18-all-systems-normal).
 
 ## Confirmed premise and cast
 
@@ -157,7 +157,7 @@ all difficulty tiers and agent runs before settling the final duration.
 
 ## Level 18 design (twenty-level expansion)
 
-**Status:** proposed, 2026-09-25. In the
+**Status:** planned, accepted 2026-09-25. In the
 [twenty-level expansion](../plans/campaign-expansion.md) this mission's 33
 survival minutes become three levels with their own clocks: level 18 (0 to 10,
 this section), [level 19](l19-planned-works.md) (10 to 21) and
@@ -176,7 +176,11 @@ human supervisor from the old administration, because nobody has had time to
 remove their control architecture. Then every one of them stops at once.
 
 **Hook.** The enemies you spent seventeen levels learning turn their heads at
-the same moment, and your friend does not.
+the same moment, and your friend does not. This level opens the wipe finale:
+proposed direction, the three wipe levels together should be the most intense,
+disturbing and desperate stretch of the campaign, carried entirely by pressure,
+pacing and what the player sees, never by a line of dialogue announcing the
+stakes ([show, don't tell](story-arc.md#show-dont-tell)).
 
 **Teaches.** The Collector, the first Inheritance machine: a narrow body of
 continuous matte off-white with no serials, no seams and no seal. It appears

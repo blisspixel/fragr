@@ -1,7 +1,7 @@
 # Level 16: Freedom of Movement
 
-**Status:** proposed, 2026-09-25, unbuilt, pending Nick's choice of campaign
-length. The first half of [M09](m09-peace-without-interruption.md) in the
+**Status:** planned, accepted 2026-09-25, unbuilt. The first half of
+[M09](m09-peace-without-interruption.md) in the
 [twenty-level expansion](../plans/campaign-expansion.md): the motorcycle run to
 the Forever Office. [Story arc](story-arc.md).
 

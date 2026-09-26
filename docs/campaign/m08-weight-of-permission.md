@@ -1,7 +1,7 @@
 # M08: The Weight of Permission
 
 **Status:** proposed, unbuilt. Mars before the wipe. Target 12-16 minutes.
-[Treatment](../CAMPAIGN-MISSIONS.md#m08-the-weight-of-permission).
+[Treatment](../CAMPAIGN-MISSIONS.md#level-13-the-weight-of-permission).
 
 ## Story and cast
 
@@ -104,7 +104,7 @@ fight on named hardware; a quiet static view is not the performance evidence.
 
 ## Level 13 design (twenty-level expansion)
 
-**Status:** proposed, 2026-09-25. In the
+**Status:** planned, accepted 2026-09-25. In the
 [twenty-level expansion](../plans/campaign-expansion.md) this mission splits:
 the foundry on foot is level 13, and the exterior launch works with the jeep
 and the Walker become [level 14](l14-launch-authority.md). The Article Blade
