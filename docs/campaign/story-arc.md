@@ -419,11 +419,12 @@ both lessons. The fight is the scene.
    captioned with a speaker label, never over an attack tell, never required.
    Union troops bark orders; bots speak in procedural fragments; the Office
    speaks through PA announcements that are funnier than they should be.
-4. **The page between levels.** A full-screen pixel text page: where, how long
-   it has been, what is at stake, the next verb. Forty to sixty words, reader
-   paced, voice optional later ([campaign scenes](../plans/campaign-scenes.md)).
-   Episode pages may run to ninety words. Every level design in this folder
-   carries its page draft.
+4. **The scene between levels.** A short audio cutscene: narration over a key image, a few
+   voiced lines, captions and sound, 30 to 90 seconds, skippable, showing what
+   changed rather than recapping it. With no assets it is a full-screen text
+   page, reader paced. Every level design in this folder carries its page
+   draft; the [campaign scenes](../plans/campaign-scenes.md) plan turns those
+   into shot lists.
 5. **Screens are the Union's voice.** Voss and the Office speak only through
    signs, forms, PA and screens the player sees or shoots. Never as narrator.
 6. **Radio is seasoning.** About one percent: the Host, Emergency Inventory and

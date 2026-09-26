@@ -4,6 +4,24 @@ Shipped tags, newest first. A line here is on `main`. Planned work stays in
 [docs/ROADMAP.md](docs/ROADMAP.md). Older tags are on the
 [releases page](https://github.com/blisspixel/fragr/releases).
 
+## v0.54.0 (2026-09-25)
+
+Finishing Recall Notice now plays a short scene over the departure card: Latch's
+ledger, Mara at the van and the correction ward ahead. It is three captioned
+pages for now, with pictures and voices to come, and Escape or B skips it. It
+plays once and changes nothing about the run.
+
+Story scenes are data now. The M01 opening and every later scene play from a
+manifest of shots, each with a still that drifts slowly, a keyed caption with a
+speaker label, an optional voiced line and optional music and ambience. A
+voiced shot moves on when its line ends; the last shot always waits for you. A
+missing picture or clip falls back to the text page you see today, so no scene
+ever waits on an asset. The opening reads as before, with a small progress row.
+
+The Audio settings gain VOICE, a separate volume for spoken story lines, and
+STORY CAPTIONS. Captions show by default and can be hidden only while a line is
+being spoken; C or Y toggles them inside a scene.
+
 ## v0.53.0 (2026-09-25)
 
 Recall Notice has its first secret. Step into the far corner of the

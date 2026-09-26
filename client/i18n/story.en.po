@@ -66,6 +66,36 @@ msgstr "{name}: reading"
 msgid "STORY_SCROLL_HINT"
 msgstr "Page Up / Page Down or LB / RB: scroll text"
 
+msgid "STORY_SKIP_SCENE"
+msgstr "Skip scene"
+
+msgid "STORY_CAPTIONS_ON"
+msgstr "Captions: on"
+
+msgid "STORY_CAPTIONS_OFF"
+msgstr "Captions: off"
+
+msgid "STORY_SPEAKER_MARA"
+msgstr "Mara"
+
+msgid "STORY_L02_TITLE"
+msgstr "Persons Unknown"
+
+msgid "STORY_L01_L02_LEDGER"
+msgstr "Last line, in Latch's hand:\n\n\"You 3. Me 3.\""
+
+msgid "STORY_L01_L02_SHIFT"
+msgstr "\"Correction starts at shift change. We have one shift.\""
+
+msgid "STORY_L01_L02_WARD"
+msgstr "Correction ward, second shift. The frame is already warm."
+
+msgid "SETTINGS_VOICE"
+msgstr "VOICE"
+
+msgid "SETTINGS_STORY_CAPTIONS"
+msgstr "STORY CAPTIONS"
+
 msgid "DIFFICULTY_CHOOSE"
 msgstr "Choose your pressure"
 

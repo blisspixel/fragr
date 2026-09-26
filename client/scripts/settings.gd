@@ -29,6 +29,7 @@ const DEFAULTS: Dictionary = {
 		"master": 0.9,
 		"music": 0.7,
 		"effects": 0.5,
+		"voice": 0.9,       # Story narration; its own bus so speech stays level.
 	},
 	"controls": {
 		"mouse_sensitivity": 1.5, # 0.022 degrees per unscaled mouse count.
@@ -64,6 +65,8 @@ const DEFAULTS: Dictionary = {
 		"broadcast_chrome": false,
 		# Connection status, wall clock and head count. Debug furniture.
 		"debug_telemetry": false,
+		# Scene captions while narration speaks. Text-only shots always show.
+		"story_captions": true,
 	},
 }
 
@@ -76,6 +79,7 @@ const RANGES: Dictionary = {
 	"audio/master": Vector2(0.0, 1.0),
 	"audio/music": Vector2(0.0, 1.0),
 	"audio/effects": Vector2(0.0, 1.0),
+	"audio/voice": Vector2(0.0, 1.0),
 	"controls/mouse_sensitivity": Vector2(0.1, 10.0),
 	"controls/turn_speed": Vector2(0.5, 6.0),
 	"controls/stick_yaw_speed": Vector2(60.0, 720.0),
@@ -248,6 +252,7 @@ func apply_audio() -> void:
 	_set_bus("Master", float(get_value("audio", "master")))
 	_set_bus("Radio", float(get_value("audio", "music")))
 	_set_bus("Effects", float(get_value("audio", "effects")))
+	_set_bus("Voice", float(get_value("audio", "voice")))
 
 static func _set_bus(name: String, linear: float) -> void:
 	var index: int = AudioServer.get_bus_index(name)
