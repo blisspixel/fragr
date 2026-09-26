@@ -193,7 +193,8 @@ func _on_map_info(info: Dictionary) -> void:
 		shot_effects.clear()
 	current_map_info = info.duplicate(true)
 	# The rule set arrives with the map; a campaign map has none.
-	hud.set_match_rules(MatchRules.parse(info.get("rules")))
+	if hud and hud.has_method("set_match_rules"):
+		hud.set_match_rules(MatchRules.parse(info.get("rules")))
 	if camera:
 		camera.assist_solids = info.get("solids", []) if info.get("solids") is Array else []
 	_awaiting_map = false
@@ -723,7 +724,7 @@ func _clear_world() -> void:
 	_readiness_attempt_sent = 0
 	_awaiting_map = true
 	current_map_info.clear()
-	if hud:
+	if hud and hud.has_method("set_match_rules"):
 		hud.set_match_rules({})
 	pending_jump = false
 	pending_interact = false
@@ -817,8 +818,9 @@ func _on_snapshot_received(data):
 	hud.set_player_count(participant_list.size())
 	hud.sync_scores_from_players(participant_list)
 	hud.set_round_info(round_state, round_time_left, frag_limit)
-	hud.set_team_scores(data.get("team_scores"))
-	if is_human_player and net_client.player_id != null:
+	if hud.has_method("set_team_scores"):
+		hud.set_team_scores(data.get("team_scores"))
+	if is_human_player and net_client.player_id != null and hud.has_method("set_own_lives"):
 		for player_data in player_list:
 			if str(player_data.get("id", "")) == str(net_client.player_id):
 				var lives: Variant = player_data.get("lives")
@@ -907,7 +909,7 @@ func _on_event_received(data):
 			killer_color = MatchRules.team_label_color(killer_team)
 		if victim_team != "":
 			victim_color = MatchRules.team_label_color(victim_team)
-		if is_human_player and hud.own_lives > 0 and players.has(str(net_client.player_id)) \
+		if is_human_player and hud.has_method("set_own_lives") and hud.own_lives > 0 and players.has(str(net_client.player_id)) \
 				and players[str(net_client.player_id)].player_name == victim_name:
 			hud.set_own_lives(hud.own_lives - 1)
 		
@@ -1004,7 +1006,8 @@ func _on_event_received(data):
 		if frag_sound and frag_sound.stream:
 			frag_sound.play()
 	elif event_type == "host_reaction":
-		hud.show_host_reaction(data)
+		if hud.has_method("show_host_reaction"):
+			hud.show_host_reaction(data)
 	elif event_type == "speak":
 		var speaker = str(data.get("player", "?"))
 		var line = str(data.get("text", ""))

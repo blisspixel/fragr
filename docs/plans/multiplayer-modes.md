@@ -185,8 +185,38 @@ capability 12 because an older client would refuse a loadout above 50 cells.
 
 ## What shipped
 
-Filled in when the PR merges: the PR number, the tests, the playtest lines and
-what the stills show.
+Built on `feat/multiplayer-modes` (2026-09-25 and 26); the PR number is added
+at merge. Evidence recorded locally on Windows:
+
+- Server: 15 seeded tests in `server/src/tests/modes.rs` (balance, team spawns
+  on all six maps, friendly fire both ways, side and elimination wins, each
+  mutator, the golden Railgun's return, reactions and their gap, one wire for
+  every reader), plus `rules.rs`, `protocol/rules.rs`, inventory, CLI and a
+  live capability 11 refusal and 12 admission. Adapter and playtest tests cover
+  `round_state` rules and the rule checks.
+- `cargo fmt`, `clippy -D warnings`, `cargo test --workspace` (all pass),
+  bench (p99 budget use 0.017), llvm-cov 93.37 percent lines, `cargo deny`
+  (licenses, bans, sources ok), the roster script and a 120 s soak all passed.
+  `tools/godot_check.sh` passed, including the new `test_match_rules.gd`.
+- Playtests, 4 reflex agents, no thresholds crossed: free-for-all 16.0
+  frags/min; team deathmatch 16.8 (sides 2 and 2, 0 team kills); Rail Only
+  17.4 (Railgun only); team Licence to Kill 23.1; Shotgun Only 18.6; Fists Only
+  15.2; Golden Rail 19.6; Two Lives two rounds 14.3; team Two Lives with six
+  agents 22.9, 0 spawn deaths throughout.
+- Tour (`FRAGR_QA_MODE=tdm FRAGR_QA_MUTATORS=golden-rail
+  FRAGR_QA_MANIFEST=res://qa/modes.json`, local only, not published): the chip
+  reads TEAM DEATHMATCH // GOLDEN RAIL over the side score; nameplates carry
+  [UNION] in red and [FREE] in ember; the scoreboard leads with the side score
+  and tags every row. Union bodies read dark. Coalition bodies read olive
+  rather than bone, because the tint multiplies the existing green sprite: the
+  colour holds on nameplates but the body contrast is weak. No frame caught
+  the golden pad or a golden holder, and the overview chip sits over the far
+  wall. These are presentation follow-ups, not blockers.
+
+Gaps: no human session has played a team round yet; the golden Railgun and a
+Two Lives elimination have server tests and harness runs but no inspected still;
+spawn halves split on X, which suits the ring maps but is not an authored
+team layout.
 
 ## What is next
 
@@ -242,6 +272,14 @@ join only after the mode is fun on foot and their missions have built them
 ([vehicles.md](vehicles.md)). Needs: a larger map from the roster plan, zone
 state and tickets on the wire, spawn-at-site selection through the existing
 safety, and measured server budgets at 16 to 32 fighters before any claim.
+
+### Next steps, in order
+
+1. Presentation follow-ups from the tour: coalition bodies that read as bone,
+   a still of the golden pad and holder, and a still of a Two Lives elimination.
+2. Rung 2, capture the flag.
+3. Rung 3, Rescue and Sabotage, on their own maps.
+4. Rung 4, the big combined-arms mode.
 
 ### Later
 
