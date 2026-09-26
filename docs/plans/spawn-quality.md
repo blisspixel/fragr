@@ -195,3 +195,148 @@ Local Windows, Ryzen 7 7840U, logs under `.agents/verify-spawn/`:
   lanes, but their covered capacity is 8 each.
 - A larger roster than `tools/playtest_roster.sh` uses on a given map has not
   been measured.
+
+## Follow-up: the round opening had no shield
+
+Status: **shipped** (branch `fix/map5-opening-spawns`), checked 2026-09-26.
+
+The mixed-client roster's Reclamation Gulch run (map 5, seed 42, 12 fighters)
+is occasionally flaky in CI: the gate in `check_thresholds` fails a run with
+more than one opening spawn death, and this map can trade two. The gate is
+unchanged and was not loosened.
+
+### Root cause
+
+Reclamation Gulch has sixteen spawn pockets (`spawn_pockets(16, ...)` in
+`server/src/maps.rs`); the roster fills twelve of them. By the pigeonhole
+principle, twelve items in sixteen ring slots force at least eight pairs of
+immediate neighbours with no empty pocket between them, about 35.9 m apart. A
+direct check of the roster's actual twelve-fighter placement confirms this: 9
+of the 12 fighters have a nearest neighbour at exactly that distance. That is
+close enough that two fighters who each push toward their nearest hostile and
+hold the trigger the instant a corner clears, which is exactly what a reflex
+or planner playtest agent does, can close, expose each other and trade a
+Railgun kill inside the two-second window `tools/playtest` classes as an
+opening spawn death.
+
+`do_respawn` has always shielded a fighter for `SPAWN_SHIELD_TICKS` (one
+second) the instant it puts them back in danger. Nothing did the same for the
+round's opening roster: `add_player` places fighters during Warmup, and
+`GameState::tick`'s Warmup-to-Active and Ended-to-Active transitions called
+`start_round` directly, which never touched `spawn_shields`. The opening
+roster therefore fought completely unshielded from the first Active tick,
+while an identical closing dash after a mid-round respawn had a full second of
+cover. This is the gap: spawn shield timing was not consistent between the two
+situations a fighter goes live in.
+
+Rule sets and team deathmatch (v0.55.0, #258) changed `select_spawn_angle`'s
+signature to take a side and added team placement, but the free-for-all path
+this roster uses is unchanged: `team` is `None`, so `add_player` and the
+selector run the same geometry they did before #258. The regression is not a
+v0.55.0 side effect; the missing shield predates it and v0.55.0 only touched
+an unrelated branch of the same functions.
+
+### Change
+
+`server/src/sim.rs`: a new private `open_round` wraps `start_round` and then
+shields every contesting fighter for `SPAWN_SHIELD_TICKS`, the same window
+`do_respawn` grants. `GameState::tick`'s two natural round-opening call sites
+(Warmup elapsing, and the post-round intermission elapsing) call `open_round`
+instead of `start_round` directly. No other seam changed: spawn selection, map
+pockets and the playtest gate are untouched, and the respawn shield's own
+duration is untouched.
+
+This is deliberately narrow. Roughly a hundred tests across `server/src`
+call `start_round` directly to stage a scenario without waiting through the
+game clock; those are unaffected; `test_sim_respawn_lands_far_from_living_fighters`
+still asserts a join placed this way is not shielded, and it still passes
+unchanged. Only the two places the tick loop itself opens a round (which
+`tools/playtest` and the live server both go through, since both always run
+through the real Warmup countdown) grant the shield.
+
+### Regression tests
+
+`server/src/tests/spawns.rs`:
+
+- `adjacent_gulch_pockets_survive_the_opening_closing_duel`: places the actual
+  twelve-fighter Reclamation Gulch roster, takes the pair it packed closest
+  together (the pigeonhole-forced ~35.9 m gap), drives the real Warmup to
+  Active transition, then has both fighters push toward each other and hold
+  the trigger every tick. Before the fix this fails at the assertion that the
+  opening roster is shielded like a respawn (`spawn_shields` is empty right
+  after `RoundStart`, confirmed by reverting the two `open_round` call sites
+  back to `start_round`); after the fix it passes, and the duel does not
+  register a kill before the shield expires.
+- `every_arrival_order_still_opens_screened_and_clear` finishes the draft
+  commit's `experiment_arrival_order_matters` (a diagnostic that printed
+  counts but asserted nothing): 500 shuffled arrival orders per map, on every
+  `tools/playtest_roster.sh` roster size, must open with no overlap and no
+  lane, matching what the listed join order already guaranteed. This was
+  already true before this fix (arrival order was never the defect; the
+  missing shield was), and it stays true after.
+
+### Reproduction and rate
+
+`tools/playtest --map 5 --agents 12 --tiers reflex,planner --rounds 1
+--frag-limit 8 --time-limit-seconds 60 --max-seconds 75 --assert`, Windows,
+Ryzen 7 7840U (16 threads). Reports and logs: `.agents/spawnq-map5/`.
+
+| Batch | Seeds / concurrency | Runs | Opening spawn deaths observed |
+|---|---|---:|---:|
+| Before, varied seeds 1 to 51, sequential | 51 distinct seeds | 51 | 0 |
+| Before, seed 42 (the CI seed), 25 sequential repeats | seed 42 | 25 | 0 |
+| Before, seed 42, 24-way concurrent | seed 42 | 24 | 0 |
+| Before, seed 42, 48-way concurrent (three times the sixteen threads) | seed 42 | 48 | 0 |
+| **Before total** | | **148** | **0** |
+| After, varied seeds, sequential + 24-way concurrent + 3 roster script runs | mixed | 33 | 0 |
+
+Neither before nor after did a local run trip the gate, or even record a
+single opening spawn death on this map, across 181 total runs. This machine
+has sixteen threads; `ci.yml` runs `ubuntu-24.04`, a shared two-vCPU runner,
+and the closing duel above depends on real WebSocket and tick scheduling, not
+on the seed (the sim's own RNG does not choose arrival order or drive bot
+movement). A rarer, harder-to-reproduce timing race on a slower, shared
+runner is consistent with "sometimes fails, passes on other runs" without
+showing up in 181 local samples. Sampling roughly thirty of this repository's
+most recent CI runs (`gh run list`, `gh api .../jobs`, `.../logs`) found two
+genuine `Mixed-client map roster` failures, but both were unrelated: one map 6
+(Tripoint Works) run never completed a round after `Connection error: channel
+closed` on every client, and one failed the unrelated Wilson-bound
+spawn-death-rate ceiling on map 6, not the opening-count gate on map 5. No
+sampled run reproduced the map 5 opening-count failure itself. The defect is
+real and demonstrated deterministically above; a live occurrence of the exact
+CI symptom this fixes was not captured in samples from either environment, and
+the fix is evaluated on that basis rather than on a caught failure.
+
+Total spawn deaths (opening and respawn together) did not regress: 36 of 6574
+frags before (0.55%), 5 of 1508 frags after (0.33%), both far under the
+existing Wilson-bound ceiling that gate already enforces.
+
+### Verification
+
+Local Windows, Ryzen 7 7840U, logs under `.agents/spawnq-map5/` and
+`.agents/soak/`:
+
+- `cargo fmt --all -- --check`, `cargo clippy --workspace --all-targets
+  --locked -- -D warnings` (clean, no warnings), `cargo test --workspace
+  --locked` (full workspace, no failures), `cargo build --workspace --release
+  --locked`, and `cargo deny check licenses bans sources` (bans ok, licenses
+  ok, sources ok; pre-existing duplicate-version advisories only) all pass.
+- The seed-42 16-bot release benchmark (`--bench 16 --bench-ticks 1200
+  --bench-check --bench-assert`) passes and reports `"deterministic": true`.
+- `cargo llvm-cov --workspace --locked --fail-under-lines 90` passed at 94.32
+  percent of lines on the run recorded here. A second run failed
+  `fragr-brain`'s `ask_sends_under_a_cap_and_reports_the_charge` on a pending
+  ledger file; that test passes cleanly under plain `cargo test`, so this is
+  the same instrumentation-timing flake this plan already recorded for a
+  different `fragr-brain` test, not something this change caused.
+- The four required playtest smokes (default, `--mode tdm`, `--mutator
+  rail-only`, `--mode tdm --mutator licence-to-kill`) all pass with `--assert`.
+- `bash tools/playtest_roster.sh` passed three consecutive times, all six
+  maps, zero spawn deaths of any kind on any map in two of the three runs and
+  one respawn death (not an opening death) on map 4 in the other.
+- `target/release/fragr-playtest --soak --soak-seconds 120 ...` passes:
+  p99 tick time 0.62 ms, RSS 37.6 to 38.5 MiB over 120 s.
+- The playable smoke started `fragr-server --bind 127.0.0.1:16767 --bots 4`,
+  confirmed bots spawn and the tick loop runs at 20 Hz, and the process was
+  stopped by its own PID.

@@ -805,6 +805,28 @@ impl GameState {
         );
     }
 
+    /// Start a round the way the live game clock does: Warmup running out, or
+    /// the post-round intermission running out. A respawn has always shielded
+    /// a fighter for `SPAWN_SHIELD_TICKS` the instant it puts them back in
+    /// danger; a round opening is the same moment, for every fighter still
+    /// waiting in Warmup, but nothing granted it the same shield. On a dense
+    /// roster the nearest opponent can be one open pocket away, well inside
+    /// rail reach, so two bots that each beeline for the other close the gap
+    /// and trade a kill inside the two-second safe window this shield covers.
+    /// That is what let two of Reclamation Gulch's twelve fighters die at the
+    /// opening: adjacent spawn pockets on that ring sit about 36 m apart, and
+    /// the roster packs enough of them that some pair always is. Tests that
+    /// call `start_round` directly to stage a scenario skip this on purpose:
+    /// they are not exercising the game clock's own opening.
+    fn open_round(&mut self) {
+        self.start_round();
+        for player in &self.players {
+            if player.contestant() {
+                self.spawn_shields.insert(player.id, SPAWN_SHIELD_TICKS);
+            }
+        }
+    }
+
     fn ranked_scores(&self) -> Vec<PlayerScore> {
         let mut final_scores: Vec<PlayerScore> = self
             .scores
@@ -1119,7 +1141,7 @@ impl GameState {
                 self.maybe_warmup_rule_bot_taunts();
                 self.tick_solo_broadcast();
                 if self.round_ticks >= self.config.warmup_ticks {
-                    self.start_round();
+                    self.open_round();
                 }
                 return;
             }
@@ -1184,7 +1206,7 @@ impl GameState {
             RoundState::Ended => {
                 self.round_ticks += 1;
                 if self.round_ticks >= self.config.end_delay_ticks {
-                    self.start_round();
+                    self.open_round();
                 }
                 return;
             }

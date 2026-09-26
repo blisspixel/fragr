@@ -1,7 +1,7 @@
 use crate::combat::{line_of_sight, FIGHTER_HEIGHT};
 use crate::movement::EYE_HEIGHT;
-use crate::protocol::{Role, WeaponType};
-use crate::sim::{GameState, MapKind, PLAYER_FLOOR_Y};
+use crate::protocol::{Action, LookAt, Role, WeaponType};
+use crate::sim::{GameState, MapKind, RoundState, PLAYER_FLOOR_Y, SPAWN_SHIELD_TICKS};
 use uuid::Uuid;
 
 #[test]
@@ -244,42 +244,180 @@ fn a_respawn_takes_the_widest_slot_out_of_every_lane() {
     }
 }
 
+/// Real clients connect concurrently, so the order `add_player` sees them in
+/// is not the roster's listed order: it depends on WebSocket and scheduler
+/// timing. Shuffle that arrival order many times per map and require every
+/// shuffle to open exactly as screened and clear as the listed order does.
 #[test]
-fn experiment_arrival_order_matters() {
+fn every_arrival_order_still_opens_screened_and_clear() {
     use rand::seq::SliceRandom;
     use rand::SeedableRng;
     let mut rng = rand::rngs::StdRng::seed_from_u64(12345);
     for (map, count) in PLAYTEST_ROSTER {
         let mut order: Vec<u128> = (0..count).collect();
-        let mut fails = 0usize;
-        let trials = 500;
-        for _ in 0..trials {
+        for trial in 0..500 {
             order.shuffle(&mut rng);
             let mut state = GameState::with_map(map, false);
             for &index in &order {
                 state.add_player(
                     Uuid::from_u128(index + 1),
                     format!("Fighter {index}"),
-                    if index % 2 == 0 { Role::Human } else { Role::Agent },
+                    if index % 2 == 0 {
+                        Role::Human
+                    } else {
+                        Role::Agent
+                    },
                 );
             }
             let solids = state.map.solids();
-            let mut bad = false;
             for player in &state.players {
                 for other in state.players.iter().filter(|p| p.id != player.id) {
                     let distance = (player.x - other.x).hypot(player.z - other.z);
-                    if distance < crate::movement::RADIUS * 2.0 {
-                        bad = true;
-                    }
-                    if threatens(feet(other), feet(player), &solids) {
-                        bad = true;
-                    }
+                    assert!(
+                        distance >= crate::movement::RADIUS * 2.0,
+                        "{} trial {trial} order {order:?}: {} overlaps {}",
+                        map.name(),
+                        player.name,
+                        other.name
+                    );
+                    assert!(
+                        !threatens(feet(other), feet(player), &solids),
+                        "{} trial {trial} order {order:?}: {} opens in {}'s lane",
+                        map.name(),
+                        player.name,
+                        other.name
+                    );
                 }
             }
-            if bad {
-                fails += 1;
+        }
+    }
+}
+
+/// Reclamation Gulch has sixteen spawn pockets; the playtest roster fills
+/// twelve of them. By the pigeonhole principle at least eight of those
+/// pockets sit on an immediate neighbour with no empty pocket between them,
+/// 35.9 m apart. That is close enough that two fighters who each push toward
+/// their nearest hostile and hold the trigger the moment a corner clears,
+/// which is exactly what a reflex or planner playtest agent does at the
+/// opening, can close, expose each other and trade a Railgun kill well inside
+/// the two-second window `tools/playtest` classes as an opening spawn death.
+///
+/// `do_respawn` has always shielded a fighter for `SPAWN_SHIELD_TICKS` the
+/// instant it puts them back in danger. Nothing did the same for the round's
+/// opening roster: they went live with zero protection, so whichever adjacent
+/// pair happened to clear its corner first could close the kill immediately.
+/// A respawn under the identical closing dash survives on its shield; the
+/// opening must survive it too, or the mixed-client roster's twelve-fighter
+/// map trades more than the one opening death per round the gate allows.
+#[test]
+fn adjacent_gulch_pockets_survive_the_opening_closing_duel() {
+    // Place the actual twelve-fighter roster the way the playtest harness
+    // does, then take the two it packed closest together: the pair the
+    // pigeonhole argument in the doc comment above says must exist.
+    let mut roster = GameState::with_map(MapKind::ReclamationGulch, false);
+    for index in 0..12u128 {
+        roster.add_player(
+            Uuid::from_u128(index + 100),
+            format!("Roster {index}"),
+            Role::Agent,
+        );
+    }
+    let mut closest: Option<(f32, usize, usize)> = None;
+    for (i, p) in roster.players.iter().enumerate() {
+        for (j, q) in roster.players.iter().enumerate().skip(i + 1) {
+            let d = (p.x - q.x).hypot(p.z - q.z);
+            if closest.is_none_or(|(best, ..)| d < best) {
+                closest = Some((d, i, j));
             }
         }
-        eprintln!("{}: {fails}/{trials} arrival orders produced a lane or overlap", map.name());
+    }
+    let (gap, i, j) = closest.expect("twelve fighters give at least one pair");
+    assert!(
+        (30.0..42.0).contains(&gap),
+        "expected the pigeonhole-forced adjacent-pocket gap near 35.9 m, got {gap:.1}"
+    );
+    let (ax, az, ayaw, afloor) = (
+        roster.players[i].x,
+        roster.players[i].z,
+        roster.players[i].yaw,
+        roster.players[i].y - PLAYER_FLOOR_Y,
+    );
+    let (bx, bz, byaw, bfloor) = (
+        roster.players[j].x,
+        roster.players[j].z,
+        roster.players[j].yaw,
+        roster.players[j].y - PLAYER_FLOOR_Y,
+    );
+    let solids = roster.map.solids();
+    assert!(
+        !threatens([ax, afloor, az], [bx, bfloor, bz], &solids),
+        "the closest pair must still open screened from each other"
+    );
+
+    // Rebuild just that pair on their own so the duel below is not muddied by
+    // the other ten fighters' shots and movement.
+    let mut state = GameState::with_map(MapKind::ReclamationGulch, false);
+    state.config.boss_spawn_ticks = None;
+    state.config.compliance_ping_ticks = None;
+    let (a, b) = (Uuid::from_u128(1), Uuid::from_u128(2));
+    state.add_player(a, "A".into(), Role::Agent);
+    state.add_player(b, "B".into(), Role::Agent);
+    for (id, x, z, yaw, floor) in [(a, ax, az, ayaw, afloor), (b, bx, bz, byaw, bfloor)] {
+        let player = state.players.iter_mut().find(|p| p.id == id).unwrap();
+        player.x = x;
+        player.z = z;
+        player.yaw = yaw;
+        player.y = PLAYER_FLOOR_Y + floor;
+        player.weapon = WeaponType::Rail;
+    }
+
+    // Drive the real Warmup -> Active transition: the game's own opening, not
+    // a direct `start_round` call.
+    for _ in 0..state.config.warmup_ticks {
+        state.tick(0.05);
+    }
+    assert_eq!(state.round_state, RoundState::Active);
+    assert!(
+        state.spawn_shields.contains_key(&a) && state.spawn_shields.contains_key(&b),
+        "the opening roster must be shielded exactly like a respawn"
+    );
+
+    // Both fighters push toward each other and hold the trigger every tick,
+    // exactly what a reflex or planner agent does once it names the other its
+    // nearest hostile. The server's own collision and line of sight decide
+    // whether a shot lands, not this test.
+    let mut first_death: Option<u32> = None;
+    for elapsed in 0..80u32 {
+        for (id, other) in [(a, b), (b, a)] {
+            state.set_action(
+                id,
+                Action {
+                    forward: true,
+                    fire: true,
+                    look_at: Some(LookAt {
+                        player_id: Some(other),
+                        x: None,
+                        y: None,
+                        z: None,
+                    }),
+                    ..Action::default()
+                },
+            );
+        }
+        state.tick(0.05);
+        if first_death.is_none()
+            && state
+                .players
+                .iter()
+                .any(|p| (p.id == a || p.id == b) && p.hp <= 0)
+        {
+            first_death = Some(elapsed);
+        }
+    }
+    if let Some(tick) = first_death {
+        assert!(
+            tick >= SPAWN_SHIELD_TICKS,
+            "adjacent pockets traded an opening kill at tick {tick}, inside the {SPAWN_SHIELD_TICKS}-tick shield"
+        );
     }
 }
