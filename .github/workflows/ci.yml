@@ -46,6 +46,12 @@ jobs:
       - name: Agent playtest smoke
         run: cargo run -p fragr-playtest --locked -- --agents 4 --rounds 1 --frag-limit 3 --time-limit-seconds 45 --assert --report .agents/playtest/ci.json
 
+      - name: Team deathmatch and mutator playtests
+        run: |
+          cargo run -p fragr-playtest --locked -- --agents 4 --rounds 1 --mode tdm --frag-limit 6 --time-limit-seconds 60 --assert --report .agents/playtest/ci-tdm.json
+          cargo run -p fragr-playtest --locked -- --agents 4 --rounds 1 --mutator rail-only --frag-limit 3 --time-limit-seconds 45 --assert --report .agents/playtest/ci-rail-only.json
+          cargo run -p fragr-playtest --locked -- --agents 4 --rounds 1 --mode tdm --mutator licence-to-kill --frag-limit 6 --time-limit-seconds 60 --assert --report .agents/playtest/ci-tdm-licence.json
+
       - name: Mixed-client map roster
         run: bash tools/playtest_roster.sh
 
@@ -56,6 +62,7 @@ jobs:
           name: playtest-reports
           path: |
             .agents/playtest/ci.json
+            .agents/playtest/ci-*.json
             .agents/playtest/roster/*.json
             .agents/playtest/roster/*.log
           include-hidden-files: true

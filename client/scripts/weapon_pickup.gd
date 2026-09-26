@@ -23,6 +23,7 @@ const COLORS = {
 	"Shiv": Color(0.78, 0.62, 0.36),       # ochre grip
 	"health": Color(0.62, 0.22, 0.20),     # dried blood
 	"armor": Color(0.48, 0.44, 0.38),      # scrap gunmetal
+	"golden_rail": Color(1.0, 0.8, 0.28),  # the one golden Railgun
 }
 
 var weapon_textures = {}
@@ -56,6 +57,8 @@ func _label_text() -> String:
 		return "MEDKIT" if amount <= 0 else ("+%d HP" % amount)
 	if pickup_kind == "armor":
 		return "ARMOR" if amount <= 0 else ("+%d ARM" % amount)
+	if pickup_kind == "golden_rail":
+		return tr("PICKUP_GOLDEN_RAIL")
 	if weapon_name != "":
 		return EquipmentState.display_name(weapon_name).to_upper()
 	return "PAD"
@@ -67,6 +70,8 @@ func _tint() -> Color:
 		return COLORS["health"]
 	if pickup_kind == "armor":
 		return COLORS["armor"]
+	if pickup_kind == "golden_rail":
+		return COLORS["golden_rail"]
 	return COLORS.get(weapon_name, Color(0.7, 0.68, 0.64))
 
 func _apply_look() -> void:
@@ -79,8 +84,9 @@ func _apply_look() -> void:
 		var mat = body.get_active_material(0).duplicate()
 		mat.albedo_color = tint.darkened(0.25)
 		mat.emission_enabled = true
-		# Health pads get a soft ember glow (blood/ember, not neon).
-		var glow = 0.22 if pickup_kind == "health" else 0.18
+		# Health pads get a soft ember glow (blood/ember, not neon); the
+		# golden Railgun glows so it reads across the map.
+		var glow = 0.6 if pickup_kind == "golden_rail" else (0.22 if pickup_kind == "health" else 0.18)
 		mat.emission = tint * glow
 		mat.emission_energy_multiplier = 0.7 if pickup_kind == "health" else 0.6
 		body.set_surface_override_material(0, mat)
@@ -92,13 +98,13 @@ func _apply_look() -> void:
 		mat.emission_energy_multiplier = 0.6
 		body.set_surface_override_material(0, mat)
 	if icon:
-		if pickup_kind == "weapon" and weapon_textures.has(weapon_name):
+		if (pickup_kind == "weapon" or pickup_kind == "golden_rail") and weapon_textures.has(weapon_name):
 			var texture: Texture2D = weapon_textures[weapon_name]
 			icon.texture = texture
 			# 1.28 m across whether the icon is authored at 32 or 48 pixels.
 			icon.pixel_size = 1.28 / float(maxi(texture.get_height(), 1))
 			icon.visible = true
-			icon.modulate = Color(1.02, 1.0, 0.96)
+			icon.modulate = Color(1.6, 1.25, 0.45) if pickup_kind == "golden_rail" else Color(1.02, 1.0, 0.96)
 		else:
 			# Medkit / armor: hide weapon icon; label carries the scrap read.
 			icon.visible = false

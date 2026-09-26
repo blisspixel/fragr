@@ -49,6 +49,7 @@ func _run() -> void:
 		{"weapons": [{"weapon": "fists", "magazine": null}, {"weapon": "tack", "magazine": 0}]},
 		{"ammo": []}, {"ammo": [{"pool": []}, {}, {}]}, {"ammo": [{"pool": "bullets", "rounds": 201}, {"pool": "shells", "rounds": 0}, {"pool": "cells", "rounds": 0}]},
 		{"ammo": [{"pool": "bullets", "rounds": 0}, {"pool": "shells", "rounds": 51}, {"pool": "cells", "rounds": 0}]},
+		{"ammo": [{"pool": "bullets", "rounds": 0}, {"pool": "shells", "rounds": 0}, {"pool": "cells", "rounds": 101}]},
 		{"ammo": [{"pool": "tacks", "rounds": 0}, {"pool": "darts", "rounds": 0}, {"pool": "cores", "rounds": 0}]},
 		{"ammo": [{"pool": "bullets", "rounds": 0}, {"pool": "bullets", "rounds": 0}, {"pool": "cells", "rounds": 0}]},
 		{"personal_claims": ["../bay"]}, {"personal_claims": ["bay_tack", "bay_tack"]}, {"dry_fire_count": -1},
@@ -77,7 +78,7 @@ func _run() -> void:
 	network._handle_message(JSON.stringify(earlier))
 	_check(network.equipment.is_empty() and network.player_id == null, "invalid private state closes and clears the session")
 	network.send_hello()
-	_check(network.sent[0]["gameplay_version"] == 11 and network.sent[0]["geometry_version"] == MapGeometry.VERSION, "gameplay and geometry capabilities are independent")
+	_check(network.sent[0]["gameplay_version"] == 12 and network.sent[0]["geometry_version"] == MapGeometry.VERSION, "gameplay and geometry capabilities are independent")
 	network.connection_state = WebSocketPeer.STATE_OPEN
 	var manager: Node = load("res://scripts/game_manager.gd").new()
 	manager.net_client = network

@@ -646,6 +646,8 @@ mod tests {
     #[test]
     fn test_game_event_serialization() {
         let frag_event = protocol::GameEvent::Frag {
+            killer_team: None,
+            victim_team: None,
             killer: "Bot1".to_string(),
             victim: "Bot2".to_string(),
             killer_score: 5,
@@ -686,6 +688,7 @@ mod tests {
         assert_eq!(respawn_json["player"], "Bot2");
 
         let round_start_event = protocol::GameEvent::RoundStart {
+            rules: None,
             round_number: 1,
             frag_limit: Some(10),
             time_limit: Some(180),
@@ -704,6 +707,8 @@ mod tests {
         assert_eq!(round_start_json["players"].as_array().unwrap().len(), 2);
 
         let round_end_event = protocol::GameEvent::RoundEnd {
+            team_scores: None,
+            winning_team: None,
             winner: Some("Bot1".to_string()),
             reason: "Frag limit reached".to_string(),
             final_scores: vec![
@@ -772,6 +777,7 @@ mod tests {
                 killer,
                 victim,
                 killer_score,
+                ..
             }) => {
                 assert_eq!(killer, "Bot1");
                 assert_eq!(victim, "Bot2");
@@ -1019,8 +1025,12 @@ mod tests {
     #[test]
     fn test_snapshot_with_players() {
         let snapshot = protocol::Snapshot {
+            team_scores: None,
             tick: 100,
             players: vec![protocol::PlayerState {
+                golden: false,
+                lives: None,
+                team: None,
                 campaign: None,
                 pitch: 0.0,
                 id: uuid::Uuid::new_v4(),
@@ -1074,6 +1084,7 @@ mod tests {
     #[test]
     fn test_snapshot_carries_sticky_host_line() {
         let mut snap = protocol::Snapshot {
+            team_scores: None,
             tick: 7,
             players: vec![],
             round_state: Some("Active".into()),
@@ -1119,9 +1130,13 @@ mod tests {
     #[test]
     fn test_snapshot_includes_weapon_in_observe() {
         let snapshot = protocol::Snapshot {
+            team_scores: None,
             tick: 50,
             players: vec![
                 protocol::PlayerState {
+                    golden: false,
+                    lives: None,
+                    team: None,
                     campaign: None,
                     pitch: 0.0,
                     id: uuid::Uuid::new_v4(),
@@ -1138,6 +1153,9 @@ mod tests {
                     weapon: "Flechette".to_string(),
                 },
                 protocol::PlayerState {
+                    golden: false,
+                    lives: None,
+                    team: None,
                     campaign: None,
                     pitch: 0.0,
                     id: uuid::Uuid::new_v4(),
@@ -1448,9 +1466,13 @@ mod tests {
         let bot_id = uuid::Uuid::new_v4();
         let target_id = uuid::Uuid::new_v4();
         let snapshot = protocol::Snapshot {
+            team_scores: None,
             tick: 1,
             players: vec![
                 protocol::PlayerState {
+                    golden: false,
+                    lives: None,
+                    team: None,
                     campaign: None,
                     pitch: 0.0,
                     id: bot_id,
@@ -1467,6 +1489,9 @@ mod tests {
                     weapon: "Flechette".into(),
                 },
                 protocol::PlayerState {
+                    golden: false,
+                    lives: None,
+                    team: None,
                     campaign: None,
                     pitch: 0.0,
                     id: target_id,
@@ -1953,6 +1978,7 @@ mod tests {
                 .await
                 .unwrap();
             let map = ServerMessage::MapInfo {
+                rules: None,
                 mission: None,
                 m02_objectives: None,
                 presentation: None,

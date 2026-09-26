@@ -2,7 +2,7 @@
 use crate::maps::{AuthoredSource, RuntimeMap};
 use crate::mission::run_file::store::{RunProbe, RunStore};
 use crate::mission::run_file::SavedStep;
-use crate::protocol::{CampaignDifficulty, MissionId, SHIV_GAMEPLAY_VERSION};
+use crate::protocol::{CampaignDifficulty, MissionId, RULES_GAMEPLAY_VERSION};
 use crate::run::{run_local_server, run_server, LocalRunConfig, ServerOptions};
 use serde::{Deserialize, Serialize};
 use std::io::{self, BufRead, BufReader, Read, Write};
@@ -119,7 +119,7 @@ impl Ready {
             url: format!("ws://{address}"),
             // Both missions use discovery equipment, so both need the Shiv
             // contract, which includes ammunition, records and M02 state.
-            gameplay_version: SHIV_GAMEPLAY_VERSION,
+            gameplay_version: RULES_GAMEPLAY_VERSION,
         })
     }
 
@@ -296,13 +296,13 @@ mod tests {
         assert_eq!(bytes.iter().filter(|c| **c == b'\n').count(), 1);
         assert_eq!(serde_json::from_slice::<Ready>(&bytes).unwrap(), ready);
         assert_eq!(ready.url, "ws://127.0.0.1:6767");
-        assert_eq!(ready.gameplay_version, SHIV_GAMEPLAY_VERSION);
+        assert_eq!(ready.gameplay_version, RULES_GAMEPLAY_VERSION);
         let m02 = Ready::new(
             MissionId::PersonsUnknown,
             CampaignDifficulty::Standard,
             "127.0.0.1:6767".parse().unwrap(),
         )
         .unwrap();
-        assert_eq!(m02.gameplay_version, SHIV_GAMEPLAY_VERSION);
+        assert_eq!(m02.gameplay_version, RULES_GAMEPLAY_VERSION);
     }
 }

@@ -82,6 +82,13 @@ fi
 if [ "${FRAGR_QA_NO_ROUND_EVENTS:-0}" = "1" ]; then
   SERVER_ARGS+=(--no-round-events)
 fi
+# A rule set for the tour server: FRAGR_QA_MODE=tdm, FRAGR_QA_MUTATORS="rail-only two-lives".
+if [ -n "${FRAGR_QA_MODE:-}" ]; then
+  SERVER_ARGS+=(--mode "$FRAGR_QA_MODE")
+fi
+for mutator in ${FRAGR_QA_MUTATORS:-}; do
+  SERVER_ARGS+=(--mutator "$mutator")
+done
 "$ROOT/target/release/fragr-server" "${SERVER_ARGS[@]}" >"$OUT_DIR/server.log" 2>&1 &
 SERVER_PID=$!
 cleanup() {

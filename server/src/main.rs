@@ -59,6 +59,25 @@ struct Args {
     #[arg(long, conflicts_with_all = ["solo_broadcast", "bench", "bench_verify_trace"])]
     no_round_events: bool,
 
+    /// Match mode: ffa (free-for-all) or tdm (team deathmatch, the Union
+    /// against the free coalition).
+    #[arg(long, value_enum, default_value_t = fragr_server::protocol::GameMode::Ffa, conflicts_with_all = ["campaign_source", "solo_broadcast", "bench", "bench_verify_trace"])]
+    mode: fragr_server::protocol::GameMode,
+
+    /// A host rule twist, repeatable: rail-only, shotgun-only, fists-only,
+    /// licence-to-kill, golden-rail, two-lives.
+    #[arg(long = "mutator", value_enum, conflicts_with_all = ["campaign_source", "solo_broadcast", "bench", "bench_verify_trace"])]
+    mutators: Vec<fragr_server::protocol::Mutator>,
+
+    /// Team damage lands. Needs --mode tdm. Off by default.
+    #[arg(long, conflicts_with_all = ["campaign_source", "solo_broadcast", "bench", "bench_verify_trace"])]
+    friendly_fire: bool,
+
+    /// Frags that end a round: a fighter's in ffa, a side's in tdm.
+    /// Defaults to 10 in ffa and 25 in tdm.
+    #[arg(long, value_parser = clap::value_parser!(u32).range(1..=999), conflicts_with_all = ["campaign_source", "solo_broadcast", "bench", "bench_verify_trace"])]
+    frag_limit: Option<u32>,
+
     /// Benchmark instead of serving: run this many scripted fighters with no
     /// network, print one JSON report, and exit. The ruler for every change.
     #[arg(long)]
@@ -227,6 +246,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         eprintln!("{error}");
         std::process::exit(1);
     }
+    let rules =
+        match fragr_server::rules::RuleSet::new(args.mode, &args.mutators, args.friendly_fire) {
+            Ok(rules) => rules,
+            Err(error) => {
+                eprintln!("invalid rule set: {error}");
+                std::process::exit(2);
+            }
+        };
+    let match_config = match_config(rules, args.frag_limit, args.no_round_events);
     let options = ServerOptions {
         bind: args.bind,
         bots: args.bots,
@@ -235,13 +263,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         difficulty: args.difficulty,
         campaign_run: args.campaign_run,
         map_rotate: args.map_rotate,
-        match_config: args
-            .no_round_events
-            .then(|| fragr_server::sim::MatchConfig {
-                boss_spawn_ticks: None,
-                compliance_ping_ticks: None,
-                ..Default::default()
-            }),
+        match_config,
         solo_broadcast: args.solo_broadcast,
         seed: args.seed,
         status_every_s: args.status_every_s,
@@ -249,6 +271,30 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         access,
     };
     run_server(options, std::future::pending::<()>(), None).await
+}
+
+/// Arcade rules from the host's flags. None keeps the plain defaults, which
+/// is also what an authored campaign map requires.
+fn match_config(
+    rules: fragr_server::rules::RuleSet,
+    frag_limit: Option<u32>,
+    no_round_events: bool,
+) -> Option<fragr_server::sim::MatchConfig> {
+    if rules.is_plain() && frag_limit.is_none() && !no_round_events {
+        return None;
+    }
+    let defaults = fragr_server::sim::MatchConfig::default();
+    Some(fragr_server::sim::MatchConfig {
+        frag_limit: Some(frag_limit.unwrap_or_else(|| rules.default_frag_limit())),
+        boss_spawn_ticks: (!no_round_events)
+            .then_some(defaults.boss_spawn_ticks)
+            .flatten(),
+        compliance_ping_ticks: (!no_round_events)
+            .then_some(defaults.compliance_ping_ticks)
+            .flatten(),
+        rules,
+        ..defaults
+    })
 }
 
 fn init_tracing(quiet: bool) {
@@ -357,6 +403,130 @@ mod tests {
             Args::try_parse_from(["fragr-server", "--solo-broadcast", "--no-round-events"])
                 .is_err()
         );
+    }
+
+    #[test]
+    fn host_picks_a_mode_and_repeatable_mutators() {
+        use fragr_server::protocol::{GameMode, Mutator};
+        let args = Args::try_parse_from([
+            "fragr-server",
+            "--mode",
+            "tdm",
+            "--mutator",
+            "rail-only",
+            "--mutator",
+            "two-lives",
+            "--friendly-fire",
+            "--frag-limit",
+            "30",
+        ])
+        .unwrap();
+        assert_eq!(args.mode, GameMode::Tdm);
+        assert_eq!(args.mutators, [Mutator::RailOnly, Mutator::TwoLives]);
+        assert!(args.friendly_fire);
+        let rules =
+            fragr_server::rules::RuleSet::new(args.mode, &args.mutators, args.friendly_fire)
+                .unwrap();
+        let config = match_config(rules, args.frag_limit, args.no_round_events).unwrap();
+        assert_eq!(config.frag_limit, Some(30));
+        assert!(config.boss_spawn_ticks.is_some());
+        assert_eq!(config.rules.lives(), Some(2));
+
+        let defaults = Args::try_parse_from(["fragr-server"]).unwrap();
+        assert_eq!(defaults.mode, GameMode::Ffa);
+        assert!(defaults.mutators.is_empty());
+        assert!(match_config(Default::default(), None, false).is_none());
+        let team = fragr_server::rules::RuleSet::new(GameMode::Tdm, &[], false).unwrap();
+        assert_eq!(
+            match_config(team, None, false).unwrap().frag_limit,
+            Some(25)
+        );
+        let quiet = match_config(Default::default(), None, true).unwrap();
+        assert_eq!(quiet.boss_spawn_ticks, None);
+        assert_eq!(quiet.compliance_ping_ticks, None);
+        assert_eq!(quiet.frag_limit, Some(10));
+
+        for bad in [
+            vec!["fragr-server", "--mode", "ctf"],
+            vec!["fragr-server", "--mutator", "low-gravity"],
+            vec!["fragr-server", "--frag-limit", "0"],
+            vec!["fragr-server", "--mode", "tdm", "--solo-broadcast"],
+            vec!["fragr-server", "--mutator", "rail-only", "--bench", "4"],
+            vec![
+                "fragr-server",
+                "--local-mission",
+                "recall_notice",
+                "--mode",
+                "tdm",
+            ],
+        ] {
+            assert!(Args::try_parse_from(&bad).is_err(), "{bad:?}");
+        }
+    }
+
+    /// A team server needs a client that renders sides: capability 11 is
+    /// refused at hello and 12 is welcomed.
+    #[tokio::test]
+    async fn a_rule_set_server_requires_capability_twelve() {
+        tokio::task::spawn_blocking(fragr_server::session::GameSession::new)
+            .await
+            .expect("navigation fixture");
+        let (shutdown_tx, shutdown_rx) = tokio::sync::oneshot::channel::<()>();
+        let (ready_tx, ready_rx) = tokio::sync::oneshot::channel::<SocketAddr>();
+        let rules =
+            fragr_server::rules::RuleSet::new(fragr_server::protocol::GameMode::Tdm, &[], false)
+                .unwrap();
+        let server = tokio::spawn(async move {
+            run_server(
+                ServerOptions {
+                    bind: "127.0.0.1:0".to_string(),
+                    bots: 0,
+                    match_config: match_config(rules, None, true),
+                    status_every_s: 0,
+                    ..Default::default()
+                },
+                async move {
+                    let _ = shutdown_rx.await;
+                },
+                Some(ready_tx),
+            )
+            .await
+            .map_err(|e| e.to_string())
+        });
+        let addr = tokio::time::timeout(Duration::from_secs(5), ready_rx)
+            .await
+            .expect("ready timeout")
+            .expect("ready addr");
+        // An arena rule set is not a four-seat mission party.
+        let mut held = Vec::new();
+        for (version, admitted) in [
+            (11, false),
+            (12, true),
+            (12, true),
+            (12, true),
+            (12, true),
+            (12, true),
+            (12, true),
+        ] {
+            let (mut ws, _) = connect_async(format!("ws://{addr}")).await.unwrap();
+            let hello = serde_json::json!({
+                "type": "hello", "role": "human", "name": "Sided",
+                "gameplay_version": version
+            });
+            ws.send(Message::Text(hello.to_string())).await.unwrap();
+            let reply = tokio::time::timeout(Duration::from_secs(5), ws.next())
+                .await
+                .expect("reply timeout");
+            let welcomed = matches!(
+                reply,
+                Some(Ok(Message::Text(ref text))) if text.contains("\"welcome\"")
+            );
+            assert_eq!(welcomed, admitted, "capability {version}: {reply:?}");
+            held.push(ws);
+        }
+        drop(held);
+        let _ = shutdown_tx.send(());
+        let _ = tokio::time::timeout(Duration::from_secs(5), server).await;
     }
 
     #[tokio::test]

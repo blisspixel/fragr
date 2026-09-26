@@ -192,6 +192,9 @@ func _on_map_info(info: Dictionary) -> void:
 	if shot_effects != null:
 		shot_effects.clear()
 	current_map_info = info.duplicate(true)
+	# The rule set arrives with the map; a campaign map has none.
+	if hud and hud.has_method("set_match_rules"):
+		hud.set_match_rules(MatchRules.parse(info.get("rules")))
 	if camera:
 		camera.assist_solids = info.get("solids", []) if info.get("solids") is Array else []
 	_awaiting_map = false
@@ -721,6 +724,8 @@ func _clear_world() -> void:
 	_readiness_attempt_sent = 0
 	_awaiting_map = true
 	current_map_info.clear()
+	if hud and hud.has_method("set_match_rules"):
+		hud.set_match_rules({})
 	pending_jump = false
 	pending_interact = false
 	interact_held = false
@@ -813,6 +818,13 @@ func _on_snapshot_received(data):
 	hud.set_player_count(participant_list.size())
 	hud.sync_scores_from_players(participant_list)
 	hud.set_round_info(round_state, round_time_left, frag_limit)
+	if hud.has_method("set_team_scores"):
+		hud.set_team_scores(data.get("team_scores"))
+	if is_human_player and net_client.player_id != null and hud.has_method("set_own_lives"):
+		for player_data in player_list:
+			if str(player_data.get("id", "")) == str(net_client.player_id):
+				var lives: Variant = player_data.get("lives")
+				hud.set_own_lives(int(lives) if lives is float or lives is int else -1)
 	hud.round_label.visible = not _mission_map()
 	_maybe_rehydrate_ended_mvp(data, round_state)
 	_maybe_assign_ghost_rival(participant_list)
@@ -889,6 +901,17 @@ func _on_event_received(data):
 			if is_instance_valid(pawn) and pawn.player_name == victim_name:
 				victim_color = pawn.player_color
 				break
+		# In a team mode the killfeed wears the sides' colours, which also
+		# covers a victim whose pawn already left the field.
+		var killer_team: String = MatchRules.valid_team(data.get("killer_team"))
+		var victim_team: String = MatchRules.valid_team(data.get("victim_team"))
+		if killer_team != "":
+			killer_color = MatchRules.team_label_color(killer_team)
+		if victim_team != "":
+			victim_color = MatchRules.team_label_color(victim_team)
+		if is_human_player and hud.has_method("set_own_lives") and hud.own_lives > 0 and players.has(str(net_client.player_id)) \
+				and players[str(net_client.player_id)].player_name == victim_name:
+			hud.set_own_lives(hud.own_lives - 1)
 		
 		hud.show_frag(killer_name, victim_name, killer_color, victim_color)
 		
@@ -982,6 +1005,9 @@ func _on_event_received(data):
 			hud.show_killstreak(who, streak, tier, message)
 		if frag_sound and frag_sound.stream:
 			frag_sound.play()
+	elif event_type == "host_reaction":
+		if hud.has_method("show_host_reaction"):
+			hud.show_host_reaction(data)
 	elif event_type == "speak":
 		var speaker = str(data.get("player", "?"))
 		var line = str(data.get("text", ""))
@@ -1132,6 +1158,7 @@ func _update_followed_weapon():
 	var weapon_name = ""
 	var player_name = ""
 	var behavior = ""
+	var team: String = ""
 	if players.has(target.player_id):
 		var pawn = players[target.player_id]
 		if pawn.has_method("get_weapon_name"):
@@ -1139,12 +1166,13 @@ func _update_followed_weapon():
 		player_name = pawn.player_name
 		if "behavior" in pawn:
 			behavior = pawn.behavior
+		team = pawn.team
 	
 	hud.set_fp_juice(camera.is_observing_first_person())
 	if camera.is_observing_first_person():
 		hud.set_vitals(int(target.hp), int(target.armor))
 	hud.set_fp_weapon(weapon_name)
-	hud.set_followed_weapon(weapon_name, player_name, behavior)
+	hud.set_followed_weapon(weapon_name, player_name, behavior, team)
 
 func _pick_ghost_rival_from_alive():
 	var names = []

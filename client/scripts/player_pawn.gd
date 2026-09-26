@@ -15,6 +15,12 @@ var is_local_fp: bool = false
 var armor: int = 0
 var nameplate_enabled: bool = true
 var is_campaign_enemy: bool = false
+## Side in a team mode ("union" or "coalition"), empty otherwise.
+var team: String = ""
+## Holds the golden Railgun.
+var golden: bool = false
+## The callsign colour before a side took it over.
+var _own_color: Color = Color.WHITE
 var campaign_actor: Dictionary = {}
 var _has_authoritative_state: bool = false
 var enemy_view: EnemyView = null
@@ -213,6 +219,7 @@ func set_player_data(id: String, name: String):
 	if name == "COMPLIANCE-DRONE" and body:
 		body.pixel_size = body.pixel_size * 1.35
 	
+	_own_color = player_color
 	if label:
 		label.text = name
 		label.modulate = player_color
@@ -245,6 +252,12 @@ func update_state(state: Dictionary, snapshot_tick: int = 0):
 		show_hit_feedback()
 	_has_authoritative_state = true
 	
+	var next_team: String = MatchRules.valid_team(state.get("team"))
+	if next_team != team:
+		team = next_team
+		player_color = MatchRules.team_label_color(team) if team != "" else _own_color
+	golden = state.get("golden") == true
+
 	var weapon_name = state.get("weapon", "")
 	if weapon_name != current_weapon:
 		current_weapon = weapon_name
@@ -267,7 +280,14 @@ func update_state(state: Dictionary, snapshot_tick: int = 0):
 		
 		# Stance beside callsign so follow / overview reads it without Tab.
 		label.text = StanceChipScript.nameplate(player_name, behavior, hp_display, score_chip)
-		if behavior != "":
+		# A side chip leads the plate so a spectator reads teams at a glance.
+		if team != "":
+			label.text = "[" + MatchRules.team_short(team) + "] " + label.text
+		if golden:
+			label.modulate = MatchRules.GOLD
+		elif team != "":
+			label.modulate = player_color
+		elif behavior != "":
 			label.modulate = StanceChipScript.accent_color(true)
 		else:
 			label.modulate = player_color
@@ -302,6 +322,13 @@ func _update_body_color(hit: bool):
 		body.modulate = Color(1.55, 0.35, 0.28)
 	elif is_campaign_enemy:
 		body.modulate = Color.WHITE
+	elif golden:
+		# The golden Railgun's holder glows so everyone knows who to chase.
+		body.modulate = Color(1.0, 1.0, 1.0).lerp(MatchRules.GOLD, 0.6) * 1.25
+	elif team != "":
+		# Sides read from the body, not only the plate: Union dark plate,
+		# coalition bone.
+		body.modulate = Color(1.0, 1.0, 1.0).lerp(MatchRules.team_body_color(team), 0.55)
 	else:
 		# Near-white multiply so Cyanex/Kragge pixel art reads; brand on label.
 		body.modulate = Color(1.0, 1.0, 1.0).lerp(player_color, 0.18)

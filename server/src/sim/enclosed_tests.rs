@@ -215,6 +215,7 @@ fn export_enclosed_capture() {
         "kind": "active_frame_fixture",
         "dt": 0.05,
         "map": ServerMessage::MapInfo {
+            rules: None,
             presentation: None,
             mission: None,
             m02_objectives: None,

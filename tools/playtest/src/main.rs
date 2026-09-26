@@ -45,6 +45,13 @@ struct Cli {
     /// Simulation seed, so a run can be reproduced and two runs compared.
     #[arg(long, default_value_t = 1)]
     seed: u64,
+    /// Match mode: ffa or tdm (the Union against the free coalition).
+    #[arg(long, value_enum, default_value_t = fragr_server::protocol::GameMode::Ffa)]
+    mode: fragr_server::protocol::GameMode,
+    /// A host rule twist, repeatable: rail-only, shotgun-only, fists-only,
+    /// licence-to-kill, golden-rail, two-lives.
+    #[arg(long = "mutator", value_enum)]
+    mutators: Vec<fragr_server::protocol::Mutator>,
     /// Agent policies, dealt round robin: reflex, planner, or a comma
     /// separated mix such as `reflex,planner` for an even split.
     #[arg(long, default_value = "reflex")]
@@ -149,6 +156,8 @@ fn config_from(cli: &Cli) -> Result<Config, String> {
         seed: cli.seed,
         tiers: fragr_playtest::Policy::parse_list(&cli.tiers)
             .map_err(|e| format!("invalid --tiers {:?}: {e}", cli.tiers))?,
+        rules: fragr_server::rules::RuleSet::new(cli.mode, &cli.mutators, false)
+            .map_err(|e| format!("invalid rule set: {e}"))?,
     })
 }
 
@@ -267,6 +276,12 @@ async fn main() {
         report.opening_spawn_deaths,
         report.snapshot_bytes_per_tick
     );
+    if let Some(rules) = report.rules.as_ref() {
+        println!(
+            "rules: {}, sides {:?}, {} host reactions, {} team kills",
+            rules.name, report.sides, report.host_reactions, report.team_kills
+        );
+    }
     println!("report: {}", cli.report.display());
     let problems = check_thresholds(&report);
     for problem in &problems {
@@ -325,6 +340,36 @@ mod tests {
         assert!(cli.assert);
         let bad = Cli::try_parse_from(["fragr-playtest", "--map", "moon"]).unwrap();
         assert!(config_from(&bad).is_err());
+    }
+
+    #[test]
+    fn parses_a_rule_set() {
+        let cli = Cli::try_parse_from([
+            "fragr-playtest",
+            "--mode",
+            "tdm",
+            "--mutator",
+            "rail-only",
+            "--mutator",
+            "licence-to-kill",
+        ])
+        .unwrap();
+        let config = config_from(&cli).unwrap();
+        assert!(config.rules.teams());
+        assert_eq!(
+            config.rules.name(),
+            "Team Deathmatch: Rail Only, Licence to Kill"
+        );
+        let clash = Cli::try_parse_from([
+            "fragr-playtest",
+            "--mutator",
+            "rail-only",
+            "--mutator",
+            "fists-only",
+        ])
+        .unwrap();
+        assert!(config_from(&clash).is_err());
+        assert!(Cli::try_parse_from(["fragr-playtest", "--mode", "ctf"]).is_err());
     }
 
     #[test]

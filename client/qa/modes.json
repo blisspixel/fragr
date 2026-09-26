@@ -1,0 +1,27 @@
+{
+  "comment": "Rule set captures. Run with FRAGR_QA_MODE and FRAGR_QA_MUTATORS set on the tour server. The frame is evidence only if the chip names the rules the server was started with.",
+  "width": 1280,
+  "height": 720,
+  "states": [
+    {
+      "name": "modes_follow",
+      "scene": "res://scenes/main.tscn",
+      "at_seconds": 6,
+      "camera": "follow",
+      "note": "Spectator chase view: mode chip, side score, team-coloured fighters and nameplates, the followed side."
+    },
+    {
+      "name": "modes_overview",
+      "at_seconds": 9,
+      "camera": "overview",
+      "note": "Both sides on the map in their colours."
+    },
+    {
+      "name": "modes_first_person",
+      "at_seconds": 13,
+      "camera": "first_person",
+      "join": "human",
+      "note": "A joined player sees the same chip and the side score."
+    }
+  ]
+}

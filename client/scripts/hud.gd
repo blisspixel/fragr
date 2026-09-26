@@ -32,6 +32,15 @@ signal host_spoke(seconds: float)
 @onready var contested_frequency_badge = $ContestedFrequencyBadge
 @onready var hangar_candy_badge = $HangarCandyBadge
 var map_chip_label: Label = null
+## The server's rule set, top centre, for players and spectators alike.
+var mode_chip_label: Label = null
+## Validated `map_info.rules`; empty on campaign maps and old servers.
+var match_rules: Dictionary = {}
+## Side of every fighter by callsign, from the last snapshot.
+var sides: Dictionary = {}
+var team_score_text: String = ""
+## The local fighter's lives when lives are limited, otherwise -1.
+var own_lives: int = -1
 @onready var warmup_tv = $WarmupTv
 var crosshair_hbar = null
 var crosshair_vbar = null
@@ -152,6 +161,7 @@ func _ready():
 	add_child(melee_view)
 	_load_display_settings()
 	_ensure_map_chip_label()
+	_ensure_mode_chip_label()
 	if vitals:
 		vitals.visible = false
 	fp_muzzle_texture = load("res://assets/vfx/32/muzzle_flash.png")
@@ -243,6 +253,84 @@ func _ensure_map_chip_label() -> void:
 	map_chip_label.grow_vertical = Control.GROW_DIRECTION_BEGIN
 	add_child(map_chip_label)
 	_refresh_map_chip_badge()
+
+
+func _ensure_mode_chip_label() -> void:
+	if mode_chip_label != null and is_instance_valid(mode_chip_label):
+		return
+	mode_chip_label = Label.new()
+	mode_chip_label.name = "ModeChipLabel"
+	mode_chip_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	mode_chip_label.add_theme_font_size_override("font_size", 16)
+	mode_chip_label.add_theme_color_override("font_color", Color(0.96, 0.90, 0.72, 0.95))
+	mode_chip_label.add_theme_color_override("font_outline_color", Color(0.05, 0.04, 0.03, 1))
+	mode_chip_label.add_theme_constant_override("outline_size", 4)
+	mode_chip_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	mode_chip_label.vertical_alignment = VERTICAL_ALIGNMENT_TOP
+	mode_chip_label.anchor_left = 0.5
+	mode_chip_label.anchor_right = 0.5
+	mode_chip_label.offset_left = -360.0
+	mode_chip_label.offset_right = 360.0
+	mode_chip_label.offset_top = 8.0
+	mode_chip_label.offset_bottom = 72.0
+	mode_chip_label.visible = false
+	add_child(mode_chip_label)
+
+
+## The rule set from `map_info`. Empty clears the chip and the sides.
+func set_match_rules(rules: Dictionary) -> void:
+	match_rules = rules
+	if not MatchRules.teams(rules):
+		team_score_text = ""
+		sides = {}
+	if int(rules.get("lives", 0)) <= 0:
+		own_lives = -1
+	_refresh_mode_chip()
+	update_scoreboard()
+
+
+## Side frags from a snapshot. Ignored outside a team mode.
+func set_team_scores(scores: Variant) -> void:
+	var line: String = MatchRules.team_score_line(scores) if MatchRules.teams(match_rules) else ""
+	if line == team_score_text:
+		return
+	team_score_text = line
+	_refresh_mode_chip()
+	update_scoreboard()
+
+
+## The local fighter's lives, or -1 when unlimited or not playing.
+func set_own_lives(lives: int) -> void:
+	var shown: int = lives if int(match_rules.get("lives", 0)) > 0 else -1
+	if shown == own_lives:
+		return
+	own_lives = shown
+	_refresh_mode_chip()
+
+
+func _refresh_mode_chip() -> void:
+	_ensure_mode_chip_label()
+	var lines: PackedStringArray = []
+	var chip: String = MatchRules.chip_text(match_rules)
+	if chip != "":
+		lines.append(chip)
+	if team_score_text != "":
+		lines.append(team_score_text)
+	if own_lives > 0:
+		lines.append(tr("HUD_LIVES").format({"count": own_lives}))
+	elif own_lives == 0:
+		lines.append(tr("HUD_OUT_OF_LIVES"))
+	mode_chip_label.text = "\n".join(lines)
+	mode_chip_label.visible = not lines.is_empty()
+
+
+## A Host beat from a `host_reaction` event, in the Host's corner voice.
+func show_host_reaction(data: Dictionary) -> void:
+	var line: String = MatchRules.reaction_line(data)
+	if line.is_empty():
+		return
+	host_spoke.emit(2.0)
+	combat_feed.push(line, MenuTheme.EMBER)
 
 
 func _refresh_map_chip_badge() -> void:
@@ -425,23 +513,20 @@ func update_scoreboard():
 		return
 	var sorted_scores = []
 	for player in scores.keys():
-		sorted_scores.append({"name": player, "kills": scores[player]})
+		var chip = ""
+		if behaviors.has(player):
+			chip = " [" + _short_behavior(behaviors[player]) + "]"
+		sorted_scores.append({"name": player, "kills": scores[player], "chip": chip})
 	sorted_scores.sort_custom(func(a, b): return a.kills > b.kills)
 	# No headers. The league and the playlist are already the first line of
 	# the panel, so repeating them above the names was two more lines saying
-	# what the player had just read.
-	var text = ""
+	# what the player had just read. A team mode leads with the side score,
+	# and each row carries its side's chip.
 	# Four names, not the whole roster. Eight ran the panel off the bottom of
 	# the window, which the first visual QA tour caught, and a standing HUD is
 	# for who is winning. The full table belongs on the scoreboard screen.
-	for i in range(min(HUD_SCOREBOARD_ROWS, len(sorted_scores))):
-		var entry = sorted_scores[i]
-		var chip = ""
-		if behaviors.has(entry.name):
-			chip = " [" + _short_behavior(behaviors[entry.name]) + "]"
-		var marker = "*" if i == 0 and entry.kills > 0 else " "
-		text += str(i + 1) + "." + marker + entry.name + chip + ": " + str(entry.kills) + "\n"
-	scoreboard.text = text if len(sorted_scores) > 0 else "(waiting for scrap)"
+	var text: String = MatchRules.scoreboard_text(sorted_scores, sides, team_score_text, HUD_SCOREBOARD_ROWS)
+	scoreboard.text = text if len(sorted_scores) > 0 or team_score_text != "" else "(waiting for scrap)"
 
 func _short_behavior(behavior: String) -> String:
 	return StanceChipScript.short(behavior)
@@ -449,14 +534,19 @@ func _short_behavior(behavior: String) -> String:
 func sync_scores_from_players(player_list: Array):
 	var next_scores = {}
 	var next_behaviors = {}
+	var next_sides = {}
 	for player_data in player_list:
 		var pname = str(player_data.get("name", "?"))
 		next_scores[pname] = int(player_data.get("score", 0))
+		var side: String = MatchRules.valid_team(player_data.get("team"))
+		if side != "":
+			next_sides[pname] = side
 		var beh = player_data.get("behavior", null)
 		if beh != null:
 			next_behaviors[pname] = str(beh)
 	scores = next_scores
 	behaviors = next_behaviors
+	sides = next_sides
 	leader_name = ""
 	var best = -1
 	for pname in scores.keys():
@@ -876,7 +966,7 @@ func show_pickup_toast(player_name: String, weapon_name: String, kind: String = 
 		_: what = EquipmentState.display_name(weapon_name).to_upper()
 	combat_feed.push(tr("HUD_PICKUP").format({"player": player_name, "item": what}))
 
-func set_followed_weapon(weapon_name: String, player_name: String = "", behavior: String = ""):
+func set_followed_weapon(weapon_name: String, player_name: String = "", behavior: String = "", team: String = ""):
 	if not weapon_label or not weapon_icon:
 		return
 
@@ -904,7 +994,13 @@ func set_followed_weapon(weapon_name: String, player_name: String = "", behavior
 		weapon_label.text = ""
 	else:
 		weapon_label.text = StanceChipScript.follow_line(player_name, behavior, weapon_desc)
-	weapon_label.add_theme_color_override("font_color", StanceChipScript.accent_color(behavior != ""))
+		# A spectator sees which side the followed fighter is on.
+		if team != "":
+			weapon_label.text = "[" + MatchRules.team_short(team) + "] " + weapon_label.text
+	if team != "":
+		weapon_label.add_theme_color_override("font_color", MatchRules.team_label_color(team))
+	else:
+		weapon_label.add_theme_color_override("font_color", StanceChipScript.accent_color(behavior != ""))
 	# A player already has the gun in their hands, drawn large in the corner
 	# this icon sits in. Two pictures of the same weapon, one of them in a
 	# dark box, is one too many. The icon is how a spectator knows what the

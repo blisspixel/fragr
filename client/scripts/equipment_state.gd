@@ -6,7 +6,7 @@ extends RefCounted
 ## Wire and record order. The Shiv is appended so old record slots keep their meaning.
 const WEAPONS: Array[String] = ["fists", "tack", "flechette", "scatter", "rail", "shiv"]
 const POOLS: Dictionary = {"tack": "bullets", "flechette": "bullets", "scatter": "shells", "rail": "cells"}
-const CAPACITIES: Dictionary = {"bullets": 200, "shells": 50, "cells": 50}
+const CAPACITIES: Dictionary = {"bullets": 200, "shells": 50, "cells": 100}
 ## Pool order on the wire, matching the server.
 const POOL_ORDER: Array[String] = ["bullets", "shells", "cells"]
 const DISPLAY_NAMES: Dictionary = {"fists": "Fists", "shiv": "Shiv", "tack": "Pistol", "flechette": "Rifle", "scatter": "Shotgun", "rail": "Railgun"}

@@ -1,5 +1,6 @@
 #[cfg(test)]
 mod enclosed_tests;
+mod modes;
 use crate::movement::{EYE_HEIGHT, STEP_UP};
 use crate::protocol::{
     boss_down_host_line, boss_host_line, boss_round_wipe_host_line, compliance_host_line,
@@ -12,6 +13,7 @@ use crate::protocol::{
     ServerMessage, ShotImpact, ShotResult, ShotTrace, Snapshot, WeaponType, AUDITOR_NAME,
     BOSS_NAME, EPISODE_ID_EP0, EPISODE_MAP_LARAK_LOT, EPISODE_TITLE_EP0, MODE_NAME, PLAYLIST_NAME,
 };
+use crate::protocol::{HostReactionKind, Mutator, Team, TeamScores};
 use std::collections::HashMap;
 use std::f32::consts::PI;
 use uuid::Uuid;
@@ -321,6 +323,8 @@ pub struct MatchConfig {
     pub compliance_duration_ticks: u32,
     /// Tick into Active when Compliance Drone spawns once (None = off).
     pub boss_spawn_ticks: Option<u32>,
+    /// The host's mode and mutators. Plain free-for-all by default.
+    pub rules: crate::rules::RuleSet,
 }
 
 impl Default for MatchConfig {
@@ -335,8 +339,40 @@ impl Default for MatchConfig {
             compliance_duration_ticks: 20 * 6,
             // ~20s into Active: Continuance escalates with a killable drone.
             boss_spawn_ticks: Some(20 * 20),
+            rules: crate::rules::RuleSet::default(),
         }
     }
+}
+
+/// The golden Railgun under the Golden Rail mutator: one on the map, on the
+/// Railgun pad. Its holder's Railgun kills in one hit; it returns to the pad
+/// when the holder dies or leaves.
+#[derive(Debug, Clone, PartialEq)]
+pub struct GoldenRail {
+    pub x: f32,
+    pub y: f32,
+    pub z: f32,
+    pub floor: f32,
+    pub holder: Option<Uuid>,
+}
+
+pub const GOLDEN_RAIL_PICKUP_ID: &str = "golden_rail";
+
+/// Per-round Host reaction memory.
+#[derive(Debug, Clone, Default)]
+struct ReactionState {
+    first_blood: bool,
+    last_tick: Option<u64>,
+    /// Largest deficit each side has faced since it was last level.
+    deficit: [u32; 2],
+    last_standing: [bool; 2],
+}
+
+/// How a lives-limited round ended by elimination.
+#[derive(Debug, Clone, PartialEq, Eq)]
+enum Standing {
+    Fighter(Option<String>),
+    Side(Option<Team>),
 }
 
 /// What a mid-map pad grants on claim.
@@ -485,6 +521,13 @@ pub struct GameState {
     pub spawn_shields: HashMap<Uuid, u32>,
     /// Solo Broadcast Episode 0 (Calibration / Larak Lot). Off for MP.
     pub solo_broadcast: SoloBroadcastEp0,
+    /// Side frags this round in a team mode.
+    pub team_scores: TeamScores,
+    /// The golden Railgun when the Golden Rail mutator is on.
+    pub golden_rail: Option<GoldenRail>,
+    reactions: ReactionState,
+    /// Reactions called per kind across the session, so variants rotate.
+    reaction_counts: [u32; HostReactionKind::ALL.len()],
 }
 
 pub struct Player {
@@ -522,6 +565,14 @@ pub struct Player {
     pub display_behavior: Option<String>,
     /// Newest input sequence applied to this fighter, echoed in the Ack.
     pub last_input_seq: Option<u32>,
+    /// Side in a team mode.
+    pub team: Option<Team>,
+    /// Lives left this round when lives are limited, the current one included.
+    pub lives: Option<u8>,
+    /// Out of lives: watches until the round ends.
+    pub eliminated: bool,
+    /// Holds the golden Railgun.
+    pub golden: bool,
 }
 
 impl Player {
@@ -574,7 +625,16 @@ impl Player {
             killstreak: 0,
             display_behavior: None,
             last_input_seq: None,
+            team: None,
+            lives: None,
+            eliminated: false,
+            golden: false,
         }
+    }
+
+    /// Takes part in arena scoring: not a boss, not a campaign combatant.
+    fn contestant(&self) -> bool {
+        !self.is_boss && self.campaign.is_none()
     }
 }
 
@@ -690,11 +750,28 @@ impl GameState {
         self.ended_host_line = None;
         self.ended_mvp = None;
         self.ended_mvp_frags = None;
+        self.team_scores = TeamScores::default();
+        self.reactions = ReactionState::default();
 
+        let lives = self.config.rules.lives();
+        let mut revive = Vec::new();
         for player in &mut self.players {
             self.scores.insert(player.id, 0);
             player.killstreak = 0;
             player.statistics.begin(self.tick);
+            player.golden = false;
+            if player.contestant() {
+                player.lives = lives;
+            }
+            if std::mem::take(&mut player.eliminated) {
+                revive.push(player.id);
+            }
+        }
+        for id in revive {
+            self.do_respawn(id);
+        }
+        if self.config.rules.teams() {
+            self.balance_teams();
         }
 
         let players: Vec<String> = self.players.iter().map(|p| p.name.clone()).collect();
@@ -712,11 +789,13 @@ impl GameState {
             } else {
                 round_open_host_line(self.map.name(), &self.roster_names)
             },
+            rules: self.wire_rules(),
         });
 
         tracing::info!(
-            "Round {} started (frag_limit: {:?}, time_limit: {:?}s)",
+            "Round {} started ({}, frag_limit: {:?}, time_limit: {:?}s)",
             self.round_number,
+            self.config.rules.name(),
             self.config.frag_limit,
             self.config.time_limit_ticks.map(|t| t / 20)
         );
@@ -744,11 +823,15 @@ impl GameState {
     }
 
     pub fn end_round(&mut self, reason: String) {
+        self.finish_round(reason, None);
+    }
+
+    fn finish_round(&mut self, reason: String, standing: Option<Standing>) {
         // Dismiss a live drone before podium so Ended mid-join is not soft-prisoned
         // with compliance_drone pressure and MCP gets boss_down (killer null).
         self.wipe_boss_for_round_end();
         let final_scores = self.ranked_scores();
-        let (winner, winner_score) = final_scores
+        let (mut winner, mut winner_score) = final_scores
             .first()
             .map(|score| (score.name.clone(), score.score))
             .unzip();
@@ -756,8 +839,25 @@ impl GameState {
         // MVP is top score / frags (same selection as winner).
         let mvp = winner.clone();
         let mvp_frags = winner_score;
-        let host_line = match (&mvp, mvp_frags) {
-            (Some(name), Some(frags)) => mvp_host_line(name, frags),
+        let teams = self.config.rules.teams();
+        let winning_team = match &standing {
+            Some(Standing::Side(side)) => *side,
+            _ if teams => self.team_scores.leader(),
+            _ => None,
+        };
+        if let Some(Standing::Fighter(survivor)) = &standing {
+            winner_score = survivor
+                .as_ref()
+                .and_then(|name| final_scores.iter().find(|s| &s.name == name))
+                .map(|s| s.score);
+            winner = survivor.clone();
+        }
+        let host_line = match (&standing, &mvp, mvp_frags) {
+            _ if teams => crate::protocol::team_round_host_line(winning_team, self.team_scores),
+            (Some(Standing::Fighter(survivor)), _, _) => {
+                crate::protocol::last_fighter_host_line(survivor.as_deref())
+            }
+            (_, Some(name), Some(frags)) => mvp_host_line(name, frags),
             _ => empty_mvp_host_line(),
         };
         self.ended_host_line = Some(host_line.clone());
@@ -778,14 +878,24 @@ impl GameState {
             mvp: mvp.clone(),
             mvp_frags,
             host_line: host_line.clone(),
+            winning_team,
+            team_scores: teams.then_some(self.team_scores),
         });
 
         tracing::info!(
-            "Round {} ended: {} (mvp: {:?}, frags: {:?})",
+            "Round {} ended: {} (mvp: {:?}, frags: {:?}{})",
             self.round_number,
             reason,
             mvp,
-            mvp_frags
+            mvp_frags,
+            if teams {
+                format!(
+                    ", union {} coalition {}, winner {:?}",
+                    self.team_scores.union, self.team_scores.coalition, winning_team
+                )
+            } else {
+                String::new()
+            }
         );
     }
 
@@ -793,15 +903,19 @@ impl GameState {
         if !self.admit_campaign_owner(id) {
             return;
         }
+        let team = (self.config.rules.teams() && !self.map.is_campaign())
+            .then(|| crate::rules::choose_team(self.team_counts(), self.team_scores));
         let mut angle = (self.players.len() as f32) * (2.0 * PI / 8.0);
         // Warmup is placement for the opening fight. It needs the same cover
         // and clearance policy as a live join, even before weapons activate.
-        if self
-            .players
-            .iter()
-            .any(|other| other.respawn_timer.is_none())
+        // A side always spawns in its own half.
+        if team.is_some()
+            || self
+                .players
+                .iter()
+                .any(|other| other.respawn_timer.is_none())
         {
-            angle = self.select_spawn_angle(id);
+            angle = self.select_spawn_angle(id, team);
         }
         let mut player = Player::at_spawn(
             id,
@@ -812,6 +926,20 @@ impl GameState {
         );
         if self.map.is_campaign() {
             player.campaign = Some(crate::protocol::CampaignActor::Participant {});
+        } else {
+            player.team = team;
+            if let Some(weapon) = self.config.rules.only_weapon() {
+                player.inventory = crate::inventory::Inventory::restricted(weapon);
+                player.weapon = weapon;
+            }
+            // A fighter who joins a live round enters with one life.
+            player.lives = self.config.rules.lives().map(|lives| {
+                if self.round_state == RoundState::Active {
+                    1
+                } else {
+                    lives
+                }
+            });
         }
         self.restore_campaign_owner(&mut player)
             .expect("validated campaign owner equipment must restore");
@@ -852,6 +980,7 @@ impl GameState {
                 tracing::info!("Human player left, bots keep fighting");
             }
         }
+        self.return_golden_rail_from(id);
         self.players.retain(|p| p.id != id);
         self.scores.remove(&id);
         self.refresh_mission_readiness();
@@ -917,7 +1046,19 @@ impl GameState {
             map_name: self.map.name().to_string(),
             half_extent: self.map.half_extent(),
             solids: self.map.solids(),
+            rules: self.wire_rules(),
         }
+    }
+
+    /// The rule set for readers. Authored campaign maps have none.
+    pub fn wire_rules(&self) -> Option<crate::protocol::MatchRules> {
+        (!self.map.is_authored()).then(|| self.config.rules.wire())
+    }
+
+    /// Replace the match rules and refit the pads they govern.
+    pub fn apply_config(&mut self, config: MatchConfig) {
+        self.config = config;
+        self.reset_pickups();
     }
 
     /// One Ack per fighter whose client numbers its inputs. Built after a
@@ -979,7 +1120,10 @@ impl GameState {
                         }
                     }
                 }
-                if !self.boss_spawned && !self.solo_broadcast.enabled {
+                if !self.boss_spawned
+                    && !self.solo_broadcast.enabled
+                    && self.config.rules.lives().is_none()
+                {
                     if let Some(at) = self.config.boss_spawn_ticks {
                         if self.round_ticks >= at {
                             self.spawn_compliance_drone();
@@ -999,12 +1143,25 @@ impl GameState {
                 }
 
                 if let Some(frag_limit) = self.config.frag_limit {
-                    if let Some(&max_score) = self.scores.values().max() {
-                        if max_score >= frag_limit {
-                            self.end_round("Frag limit reached".to_string());
-                            return;
-                        }
+                    let max_score = if self.config.rules.teams() {
+                        Some(self.team_scores.max())
+                    } else {
+                        self.scores.values().max().copied()
+                    };
+                    if max_score.is_some_and(|max_score| max_score >= frag_limit) {
+                        self.end_round("Frag limit reached".to_string());
+                        return;
                     }
+                }
+
+                if let Some(standing) = self.elimination() {
+                    let reason = if self.config.rules.teams() {
+                        "Last side standing"
+                    } else {
+                        "Last fighter standing"
+                    };
+                    self.finish_round(reason.to_string(), Some(standing));
+                    return;
                 }
             }
             RoundState::Ended => {
@@ -1297,6 +1454,7 @@ impl GameState {
         }
 
         self.reap_dead_boss();
+        self.react_to_last_standing();
     }
 
     /// Commit one fighter's share of a shot: every pellet that struck them,
@@ -1310,10 +1468,15 @@ impl GameState {
     ) -> (u64, u64, bool) {
         let shooter_name = self.players[shooter_idx].name.clone();
         let shooter_id = self.players[shooter_idx].id;
-        let hostile = crate::protocol::hostile(
-            self.players[shooter_idx].campaign,
-            self.players[victim_idx].campaign,
-        );
+        let hostile = self.damage_lands(shooter_idx, victim_idx);
+        let shooter_team = self.players[shooter_idx].team;
+        let victim_team = self.players[victim_idx].team;
+        let teammates = shooter_team.is_some() && shooter_team == victim_team;
+        // Licence to Kill, or the golden Railgun: any damaging hit is a kill.
+        let lethal = self.config.rules.has(Mutator::LicenceToKill)
+            || (self.players[shooter_idx].golden && trace.weapon == WeaponType::Rail);
+        let mut ended_streak = 0;
+        let mut lost_golden = false;
         let (
             target_id,
             target_name,
@@ -1332,6 +1495,11 @@ impl GameState {
             // killed by an earlier ray this tick cannot award another frag.
             let was_alive = victim.hp > 0;
             let damage = if was_alive && hostile { damage } else { 0 };
+            let damage = if lethal && damage > 0 {
+                damage.max(victim.hp + victim.armor)
+            } else {
+                damage
+            };
             let absorbed = damage.min(victim.armor);
             let hp_damage = (damage - absorbed).min(victim.hp.max(0)) as u64;
             victim.armor -= absorbed;
@@ -1343,9 +1511,17 @@ impl GameState {
             if died {
                 victim.inventory.release_trigger();
                 // Victim streak dies with them; boss does not respawn.
-                victim.killstreak = 0;
+                ended_streak = std::mem::take(&mut victim.killstreak);
+                lost_golden = std::mem::take(&mut victim.golden);
+                if let Some(lives) = victim.lives.as_mut() {
+                    *lives = lives.saturating_sub(1);
+                }
                 if victim_was_boss || victim.is_campaign_enemy() {
                     victim.respawn_timer = None;
+                } else if victim.lives == Some(0) {
+                    // Out of lives: watches until the round ends.
+                    victim.respawn_timer = None;
+                    victim.eliminated = true;
                 } else {
                     victim.respawn_timer = Some(RESPAWN_DELAY_TICKS);
                 }
@@ -1393,11 +1569,26 @@ impl GameState {
             });
         }
 
+        if lost_golden {
+            self.return_golden_rail_from(target_id);
+        }
         if died {
             // Campaign casualties have no arcade streaks, taunts or
             // participant scores. ShotResult remains the kill evidence.
             if self.players[shooter_idx].campaign.is_some() {
                 tracing::info!(shooter = %shooter_name, target = %target_name, "Campaign combatant down");
+                return (hp_damage, armor_damage, died);
+            }
+            if teammates {
+                // Friendly fire is on and landed: a team kill scores nothing.
+                self.events.push(GameEvent::Frag {
+                    killer: shooter_name.clone(),
+                    victim: target_name.clone(),
+                    killer_score: *self.scores.get(&shooter_id).unwrap_or(&0),
+                    killer_team: shooter_team,
+                    victim_team,
+                });
+                tracing::info!("TEAM KILL: {} -> {}", shooter_name, target_name);
                 return (hp_damage, armor_damage, died);
             }
             *self.scores.entry(shooter_id).or_insert(0) += 1;
@@ -1407,7 +1598,28 @@ impl GameState {
                 killer: shooter_name.clone(),
                 victim: target_name.clone(),
                 killer_score,
+                killer_team: shooter_team,
+                victim_team,
             });
+            if !self.reactions.first_blood {
+                self.reactions.first_blood = true;
+                self.react(
+                    HostReactionKind::FirstBlood,
+                    Some(shooter_name.clone()),
+                    Some(target_name.clone()),
+                    shooter_team,
+                );
+            } else if ended_streak >= crate::rules::STREAK_WORTH_ENDING {
+                self.react(
+                    HostReactionKind::StreakEnded,
+                    Some(target_name.clone()),
+                    Some(shooter_name.clone()),
+                    victim_team,
+                );
+            }
+            if let (Some(side), Some(_)) = (shooter_team, victim_team) {
+                self.note_team_frag(side);
+            }
 
             // Killer streak (victim already reset). Host callouts at 2/3/5.
             let killer_streak = {
@@ -1563,30 +1775,55 @@ impl GameState {
     /// Cover matters even when the widest gap is inside another fighter's range.
     /// A lane only counts inside `SPAWN_THREAT_RANGE`: one longer than any
     /// weapon's reach must not push a respawn toward a closer covered corner.
-    fn select_spawn_angle(&mut self, player_id: Uuid) -> f32 {
-        let others: Vec<[f32; 3]> = self
+    fn select_spawn_angle(&mut self, player_id: Uuid, team: Option<Team>) -> f32 {
+        let others: Vec<([f32; 3], bool)> = self
             .players
             .iter()
-            .filter(|p| p.id != player_id && p.respawn_timer.is_none())
-            .map(|p| [p.x, p.y - PLAYER_FLOOR_Y + EYE_HEIGHT, p.z])
+            .filter(|p| p.id != player_id && p.respawn_timer.is_none() && !p.eliminated)
+            .map(|p| {
+                let friendly = team.is_some() && p.team == team;
+                ([p.x, p.y - PLAYER_FLOOR_Y + EYE_HEIGHT, p.z], !friendly)
+            })
             .collect();
+        let slots = self.map.spawn_slots();
+        let angles: Vec<f32> = (0..slots)
+            .map(|slot| slot as f32 * (2.0 * PI / slots as f32))
+            .collect();
+        // A side spawns in its own half of the map; a map without one falls
+        // back to every slot rather than refusing to spawn.
+        let own: Vec<f32> = team
+            .map(|team| {
+                angles
+                    .iter()
+                    .copied()
+                    .filter(|angle| {
+                        crate::rules::spawn_side(self.map.spawn(*angle).0) == Some(team)
+                    })
+                    .collect()
+            })
+            .unwrap_or_default();
+        let candidates = if own.is_empty() { angles } else { own };
         if others.is_empty() {
+            if team.is_some() {
+                let pick = self.next_u64() % candidates.len() as u64;
+                return candidates[pick as usize];
+            }
             return self.next_f32() * 2.0 * PI;
         }
         let mut best_angle = 0.0;
         let mut best: Option<(bool, usize, f32)> = None;
         let solids = self.map.solids();
-        let slots = self.map.spawn_slots();
-        for slot in 0..slots {
-            let angle = slot as f32 * (2.0 * PI / slots as f32);
+        for angle in candidates {
             let (sx, sz, _, floor) = self.map.spawn(angle);
             let nearest = others
                 .iter()
-                .map(|eye| (eye[0] - sx).hypot(eye[2] - sz))
+                .map(|(eye, _)| (eye[0] - sx).hypot(eye[2] - sz))
                 .fold(f32::MAX, f32::min);
             let clear = nearest >= PLAYER_RADIUS * 2.0;
             let exposed = others
                 .iter()
+                .filter(|(_, hostile)| *hostile)
+                .map(|(eye, _)| eye)
                 .filter(|&&eye| {
                     // The longest weapon bounds relevant lanes even if the
                     // opponent swaps weapons immediately after this spawn.
@@ -1611,7 +1848,12 @@ impl GameState {
     }
 
     fn do_respawn(&mut self, player_id: Uuid) {
-        let angle = self.select_spawn_angle(player_id);
+        let team = self
+            .players
+            .iter()
+            .find(|p| p.id == player_id)
+            .and_then(|p| p.team);
+        let angle = self.select_spawn_angle(player_id, team);
         if let Some(player) = self.players.iter_mut().find(|p| p.id == player_id) {
             let (sx, sz, yaw, floor) = self.map.spawn(angle);
 
@@ -1626,6 +1868,9 @@ impl GameState {
             player.armor = 0;
             player.respawn_timer = None;
             player.fire_cooldown = 0;
+            if let Some(weapon) = player.inventory.only() {
+                player.weapon = weapon;
+            }
 
             if self.map.equipment_policy() == crate::protocol::EquipmentPolicy::Discovery {
                 player.inventory = crate::inventory::Inventory::new(self.map.equipment_policy());
@@ -1659,7 +1904,7 @@ impl GameState {
             players: self
                 .players
                 .iter()
-                .filter(|p| p.respawn_timer.is_none())
+                .filter(|p| p.respawn_timer.is_none() && !p.eliminated)
                 .map(|p| {
                     let behavior = self
                         .bots
@@ -1683,6 +1928,9 @@ impl GameState {
                         behavior,
                         score: *self.scores.get(&p.id).unwrap_or(&0),
                         weapon: p.weapon.name().to_string(),
+                        team: p.team,
+                        lives: p.lives,
+                        golden: p.golden,
                     }
                 })
                 .collect(),
@@ -1744,7 +1992,24 @@ impl GameState {
             } else {
                 None
             },
-            pickups: self.pickups.iter().map(|p| p.to_state()).collect(),
+            pickups: self
+                .pickups
+                .iter()
+                .map(|p| p.to_state())
+                .chain(self.golden_rail.as_ref().map(|gold| PickupState {
+                    claim: crate::protocol::SupplyClaim::Contested,
+                    pool: None,
+                    id: GOLDEN_RAIL_PICKUP_ID.to_string(),
+                    kind: GOLDEN_RAIL_PICKUP_ID.to_string(),
+                    weapon: WeaponType::Rail.name().to_string(),
+                    amount: None,
+                    x: gold.x,
+                    y: gold.y,
+                    z: gold.z,
+                    available: gold.holder.is_none(),
+                    respawn_in: None,
+                }))
+                .collect(),
             map_id: self.map.id(),
             map_name: self.display_map_name(),
             episode_id: if self.solo_broadcast.enabled {
@@ -1773,6 +2038,7 @@ impl GameState {
                 None
             },
             jammer_dish: self.jammer_dish_state(),
+            team_scores: self.config.rules.teams().then_some(self.team_scores),
         }
     }
 
@@ -1884,6 +2150,14 @@ impl GameState {
             agents,
             bots,
             connections,
+            mode: self.config.rules.mode().id().to_string(),
+            mutators: self
+                .config
+                .rules
+                .mutators()
+                .iter()
+                .map(|m| m.id().to_string())
+                .collect(),
             health: None,
             ops: None,
         }
@@ -2061,6 +2335,10 @@ impl GameState {
             killstreak: 0,
             display_behavior: None,
             last_input_seq: None,
+            team: None,
+            lives: None,
+            eliminated: false,
+            golden: false,
         });
         self.bots
             .push(BotController::new(id, BotBehavior::Compliance));
@@ -2128,10 +2406,41 @@ impl GameState {
 
     fn reset_pickups(&mut self) {
         self.pickups = self.map.pickups();
+        self.golden_rail = None;
+        if self.map.is_campaign() {
+            return;
+        }
+        if self.config.rules.has(Mutator::GoldenRail) {
+            let pad = self
+                .pickups
+                .iter()
+                .position(|pad| pad.kind == PickupKind::Weapon(WeaponType::Rail));
+            let (x, y, z, floor) = match pad {
+                Some(index) => {
+                    let pad = self.pickups.remove(index);
+                    (pad.x, pad.y, pad.z, pad.floor)
+                }
+                None => (0.0, 0.4, 0.0, 0.0),
+            };
+            self.golden_rail = Some(GoldenRail {
+                x,
+                y,
+                z,
+                floor,
+                holder: None,
+            });
+        }
+        if self.config.rules.only_weapon().is_some() {
+            // One weapon for everybody: nothing on the floor to change it.
+            self.pickups
+                .retain(|pad| !matches!(pad.kind, PickupKind::Weapon(_) | PickupKind::Ammo { .. }));
+        }
     }
 
     /// Decrement pad respawn timers and claim available pads on touch.
     fn tick_pickups(&mut self) {
+        self.claim_golden_rail();
+        let team_clock = self.config.rules.teams();
         for pad in &mut self.pickups {
             if let Some(timer) = pad.respawn_timer.as_mut() {
                 *timer = timer.saturating_sub(1);
@@ -2209,7 +2518,10 @@ impl GameState {
             let pickup_id = pad.id.clone();
             // Campaign stock is consumed until the authoritative party reset.
             // Arcade pads retain their timed circulation around the map.
-            let respawn = (!self.map.is_campaign()).then(|| pad.respawn_ticks());
+            let respawn = (!self.map.is_campaign()).then(|| match pad.kind {
+                PickupKind::Weapon(_) if team_clock => crate::rules::TEAM_WEAPON_RESPAWN_TICKS,
+                _ => pad.respawn_ticks(),
+            });
             if pad.claim == crate::protocol::SupplyClaim::Contested {
                 pad.available = false;
                 pad.respawn_timer = respawn;
@@ -2323,6 +2635,10 @@ impl GameState {
             killstreak: 0,
             display_behavior: None,
             last_input_seq: None,
+            team: None,
+            lives: None,
+            eliminated: false,
+            golden: false,
         });
         self.bots
             .push(BotController::new(id, BotBehavior::Compliance));
@@ -2553,6 +2869,10 @@ impl Default for GameState {
             map_rotate: false,
             spawn_shields: HashMap::new(),
             solo_broadcast: SoloBroadcastEp0::default(),
+            team_scores: TeamScores::default(),
+            golden_rail: None,
+            reactions: ReactionState::default(),
+            reaction_counts: [0; HostReactionKind::ALL.len()],
         }
     }
 }
@@ -2608,6 +2928,7 @@ impl BotController {
                 || target.respawn_timer.is_some()
                 || target.hp <= 0
                 || !crate::protocol::hostile(bot.campaign, target.campaign)
+                || (bot.team.is_some() && target.team == bot.team)
             {
                 continue;
             }
@@ -2648,6 +2969,35 @@ impl BotController {
             pitch: crate::combat::aim_at(eye, target_centre).map(|(_, pitch)| pitch),
             ..Action::default()
         };
+
+        // The golden Railgun is worth a detour when nobody is close.
+        if self.behavior != BotBehavior::Compliance {
+            if let Some(feet) = state.golden_rail_goal(bot, nearest_dist) {
+                let pad_angle = (feet[2] - bot.z).atan2(feet[0] - bot.x);
+                let mut pad_diff = pad_angle - bot.yaw;
+                while pad_diff > PI {
+                    pad_diff -= 2.0 * PI;
+                }
+                while pad_diff < -PI {
+                    pad_diff += 2.0 * PI;
+                }
+                if pad_diff.abs() > 0.2 {
+                    if pad_diff > 0.0 {
+                        action.turn_right = true;
+                    } else {
+                        action.turn_left = true;
+                    }
+                }
+                action.forward = true;
+                return BotIntent {
+                    action,
+                    goal: Some(crate::navigation::NavigationGoal {
+                        feet,
+                        combat: false,
+                    }),
+                };
+            }
+        }
 
         // Seek a role pad when Flechette and a better weapon is nearby.
         // Prefer Scatter when the fight is close; Rail when it is long.

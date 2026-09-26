@@ -1,0 +1,100 @@
+msgid ""
+msgstr ""
+"Language: en\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+
+msgid "MODE_FFA"
+msgstr "FREE FOR ALL"
+
+msgid "MODE_TDM"
+msgstr "TEAM DEATHMATCH"
+
+msgid "MUTATOR_RAIL_ONLY"
+msgstr "RAIL ONLY"
+
+msgid "MUTATOR_SHOTGUN_ONLY"
+msgstr "SHOTGUN ONLY"
+
+msgid "MUTATOR_FISTS_ONLY"
+msgstr "FISTS ONLY"
+
+msgid "MUTATOR_LICENCE_TO_KILL"
+msgstr "LICENCE TO KILL"
+
+msgid "MUTATOR_GOLDEN_RAIL"
+msgstr "GOLDEN RAIL"
+
+msgid "MUTATOR_TWO_LIVES"
+msgstr "TWO LIVES"
+
+msgid "RULES_FRIENDLY_FIRE"
+msgstr "FRIENDLY FIRE"
+
+msgid "TEAM_UNION"
+msgstr "The Union"
+
+msgid "TEAM_COALITION"
+msgstr "The Free Coalition"
+
+msgid "TEAM_UNION_SHORT"
+msgstr "UNION"
+
+msgid "TEAM_COALITION_SHORT"
+msgstr "FREE"
+
+msgid "TEAM_SCORE_LINE"
+msgstr "UNION {union} : {coalition} FREE COALITION"
+
+msgid "HUD_LIVES"
+msgstr "LIVES {count}"
+
+msgid "HUD_OUT_OF_LIVES"
+msgstr "OUT OF LIVES. WATCHING UNTIL THE ROUND ENDS."
+
+msgid "PICKUP_GOLDEN_RAIL"
+msgstr "GOLDEN RAIL"
+
+msgid "HOST_REACTION_FIRST_BLOOD_0"
+msgstr "HOST: FIRST BLOOD. {player}. SOMEBODY HAD TO."
+
+msgid "HOST_REACTION_FIRST_BLOOD_1"
+msgstr "HOST: {player} OPENS THE BOOKS ON {other}."
+
+msgid "HOST_REACTION_FIRST_BLOOD_2"
+msgstr "HOST: FIRST ONE ON THE BOARD. {player}."
+
+msgid "HOST_REACTION_STREAK_ENDED_0"
+msgstr "HOST: THE {player} STREAK IS OVER. SAY SOMETHING NICE."
+
+msgid "HOST_REACTION_STREAK_ENDED_1"
+msgstr "HOST: {other} ENDS THE {player} SHOW."
+
+msgid "HOST_REACTION_STREAK_ENDED_2"
+msgstr "HOST: THAT RUN IS DONE. {other} SIGNED FOR IT."
+
+msgid "HOST_REACTION_LAST_STANDING_0"
+msgstr "HOST: {player} IS ALL {team} HAS LEFT. THE BOOTH IS STANDING."
+
+msgid "HOST_REACTION_LAST_STANDING_1"
+msgstr "HOST: ONE LEFT FOR {team}. {player}, NO PRESSURE."
+
+msgid "HOST_REACTION_LAST_STANDING_2"
+msgstr "HOST: {team} IS DOWN TO {player}. SAME RULES."
+
+msgid "HOST_REACTION_COMEBACK_0"
+msgstr "HOST: {team} CLAWS IT BACK. LEVEL GAME."
+
+msgid "HOST_REACTION_COMEBACK_1"
+msgstr "HOST: NOBODY BELIEVED {team}. LEVEL AGAIN."
+
+msgid "HOST_REACTION_COMEBACK_2"
+msgstr "HOST: DOWN AND OUT, THEN LEVEL. {team}, EVERYBODY."
+
+msgid "HOST_REACTION_GOLDEN_RAIL_0"
+msgstr "HOST: {player} HAS THE GOLDEN RAIL. ONE SHOT, ONE FORM."
+
+msgid "HOST_REACTION_GOLDEN_RAIL_1"
+msgstr "HOST: GOLD IN THE HANDS OF {player}. TAKE IT OFF THEM."
+
+msgid "HOST_REACTION_GOLDEN_RAIL_2"
+msgstr "HOST: {player} FOUND THE GOLDEN RAIL. EVERYBODY KNOWS."

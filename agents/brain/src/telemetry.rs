@@ -347,6 +347,9 @@ pub(crate) mod fixtures {
 
     pub fn player(name: &str, id: Uuid, x: f32, z: f32, hp: i32, weapon: &str) -> PlayerState {
         PlayerState {
+            golden: false,
+            lives: None,
+            team: None,
             campaign: None,
             pitch: 0.0,
             id,
@@ -382,6 +385,7 @@ pub(crate) mod fixtures {
 
     pub fn snapshot(tick: u64, players: Vec<PlayerState>, pickups: Vec<PickupState>) -> Snapshot {
         Snapshot {
+            team_scores: None,
             tick,
             players,
             round_state: Some("Active".to_string()),

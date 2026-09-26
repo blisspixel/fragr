@@ -249,8 +249,13 @@ async fn run_server_impl(
     // include the Shiv. Full-arsenal arcade maps keep older readers.
     let discovery =
         session.state.map.equipment_policy() == crate::protocol::EquipmentPolicy::Discovery;
-    let required_gameplay = if discovery {
-        crate::protocol::SHIV_GAMEPLAY_VERSION
+    // Sides, lives and the golden Railgun need a client that renders them.
+    let twisted = options
+        .match_config
+        .as_ref()
+        .is_some_and(|config| !config.rules.is_plain());
+    let required_gameplay = if discovery || twisted {
+        crate::protocol::RULES_GAMEPLAY_VERSION
     } else if session.state.map.m02_objectives().is_some() {
         crate::protocol::M02_GAMEPLAY_VERSION
     } else if options.campaign_run {
@@ -275,6 +280,9 @@ async fn run_server_impl(
         required_gameplay,
     )
     .await?;
+    if twisted && !discovery {
+        net_server.open_arena_seats();
+    }
     net_server.share_status(std::sync::Arc::clone(&live));
     net_server.share_resume(std::sync::Arc::clone(&session.resume));
     session.resume.note_tick(session.state.tick);
@@ -308,7 +316,10 @@ async fn run_server_impl(
 
     session.state.seed(options.seed);
     if let Some(config) = options.match_config {
-        session.state.config = config;
+        session.state.apply_config(config);
+    }
+    if !session.state.map.is_authored() {
+        tracing::info!("Rules: {}", session.state.config.rules.name());
     }
     session.spawn_bots(options.bots);
     if options.solo_broadcast {

@@ -538,6 +538,31 @@ pub fn build_round_state_result(state: &ToolState) -> Value {
         Value::Null => Value::from(crate::protocol::default_map_name()),
         other => other,
     };
+    // The arena's rule set arrives once in map_info; a round_start repeats it.
+    let rules = state
+        .map
+        .as_ref()
+        .and_then(|map| map.get("rules"))
+        .cloned()
+        .or_else(|| last_round_start.get("rules").cloned())
+        .unwrap_or(Value::Null);
+    let me = state.player_id.and_then(|id| {
+        snap.and_then(|s| s.get("players"))
+            .and_then(Value::as_array)
+            .and_then(|players| {
+                players
+                    .iter()
+                    .find(|p| p.get("id").and_then(Value::as_str) == Some(&id.to_string()))
+            })
+    });
+    let self_team = me
+        .and_then(|p| p.get("team"))
+        .cloned()
+        .unwrap_or(Value::Null);
+    let self_lives = me
+        .and_then(|p| p.get("lives"))
+        .cloned()
+        .unwrap_or(Value::Null);
 
     serde_json::json!({
         "connected": state.connected,
@@ -555,6 +580,10 @@ pub fn build_round_state_result(state: &ToolState) -> Value {
         "mvp_frags": mvp_frags,
         "map_id": map_id,
         "map_name": map_name,
+        "rules": rules,
+        "team_scores": snap_field(snap, "team_scores"),
+        "self_team": self_team,
+        "self_lives": self_lives,
         "last_round_start": last_round_start,
         "last_round_end": last_round_end
     })
@@ -677,7 +706,7 @@ fn tools_list_result() -> Value {
             },
             {
                 "name": "round_state",
-                "description": "Current round summary (state, number, time left, frag limit, mode_name, host_line, pressure) from last snapshot plus recent round_start/round_end. Prefer this over scraping observe.",
+                "description": "Current round summary (state, number, time left, frag limit, mode_name, host_line, pressure) plus the server's rule set (rules: mode ffa or tdm, mutators, friendly_fire, lives), team_scores, self_team and self_lives, from the last snapshot, map_info and recent round_start/round_end. Read rules before joining: in tdm, teammates share your team and cannot be hurt unless friendly_fire is true. Prefer this over scraping observe.",
                 "inputSchema": {
                     "type": "object",
                     "properties": {},
@@ -1027,6 +1056,7 @@ pub fn ingest_server_text(state: &mut ToolState, text: &str) -> Result<(), &'sta
             geometry_version,
             presentation,
             mission,
+            rules,
         }) => {
             fragr_server::protocol::validate_map_geometry(half_extent, &solids, geometry_version)?;
             protocol::validate_map_presentation(presentation.as_ref(), &solids)?;
@@ -1049,6 +1079,9 @@ pub fn ingest_server_text(state: &mut ToolState, text: &str) -> Result<(), &'sta
             });
             if let Some(count) = m02_objectives {
                 map["m02_objectives"] = serde_json::json!(count);
+            }
+            if let Some(rules) = rules {
+                map["rules"] = serde_json::json!(rules);
             }
             state.map = Some(map);
         }
@@ -2215,6 +2248,85 @@ mod mcp_tests {
             .as_str()
             .unwrap()
             .contains("schema error"));
+    }
+
+    /// Agents read the same rule set a human's client shows: from map_info,
+    /// the snapshot's side scores, and their own side and lives.
+    #[test]
+    fn round_state_reports_rules_teams_and_lives() {
+        let mut sim = fragr_server::sim::GameState::new();
+        sim.apply_config(fragr_server::sim::MatchConfig {
+            rules: fragr_server::rules::RuleSet::new(
+                fragr_server::protocol::GameMode::Tdm,
+                &[
+                    fragr_server::protocol::Mutator::TwoLives,
+                    fragr_server::protocol::Mutator::RailOnly,
+                ],
+                false,
+            )
+            .unwrap(),
+            ..Default::default()
+        });
+        let me = Uuid::from_u128(7);
+        sim.add_player(me, "Probe".into(), fragr_server::protocol::Role::Agent);
+        sim.add_player(
+            Uuid::from_u128(8),
+            "Rival".into(),
+            fragr_server::protocol::Role::Agent,
+        );
+        let mut state = ToolState {
+            connected: true,
+            player_id: Some(me),
+            ..Default::default()
+        };
+        ingest_server_text(&mut state, &serde_json::to_string(&sim.map_info()).unwrap()).unwrap();
+        let snapshot = fragr_server::protocol::ServerMessage::Snapshot(sim.snapshot());
+        ingest_server_text(&mut state, &serde_json::to_string(&snapshot).unwrap()).unwrap();
+        let out = handle_mcp_request(
+            req(
+                "tools/call",
+                Some(serde_json::json!({"name":"round_state","arguments":{}})),
+            ),
+            &mut state,
+        );
+        let result = out.response.result.unwrap();
+        assert_eq!(result["rules"]["mode"], "tdm");
+        assert_eq!(
+            result["rules"]["mutators"],
+            serde_json::json!(["rail-only", "two-lives"])
+        );
+        assert_eq!(result["rules"]["lives"], 2);
+        assert_eq!(
+            result["rules"]["name"],
+            "Team Deathmatch: Rail Only, Two Lives"
+        );
+        assert_eq!(
+            result["team_scores"],
+            serde_json::json!({"union": 0, "coalition": 0})
+        );
+        assert_eq!(result["self_team"], "coalition");
+        assert_eq!(result["self_lives"], 2);
+        let observed = build_observe_result(&state);
+        assert_eq!(observed["map"]["rules"]["mode"], "tdm");
+        assert_eq!(observed["players"][1]["team"], "union");
+
+        // Before map_info, a buffered round_start still names the rules;
+        // a free-for-all snapshot has no sides.
+        let fallback = ToolState {
+            connected: true,
+            last_snapshot: Some(serde_json::json!({"tick": 1, "players": []})),
+            recent_events: vec![serde_json::json!({
+                "event": "round_start",
+                "round_number": 1,
+                "rules": {"mode": "ffa", "name": "Free-for-all", "mutators": ["licence-to-kill"]}
+            })],
+            ..Default::default()
+        };
+        let result = build_round_state_result(&fallback);
+        assert_eq!(result["rules"]["mutators"][0], "licence-to-kill");
+        assert!(result["team_scores"].is_null());
+        assert!(result["self_team"].is_null());
+        assert!(build_round_state_result(&ToolState::default())["rules"].is_null());
     }
 
     #[test]
