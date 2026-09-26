@@ -101,46 +101,37 @@ are the lessons about coming back.
 | Scale | What happens | What brings you back |
 |---|---|---|
 | **The 30-second fight** | Spawn empty, grab the Tack two seconds away, read a sound, take a route, win or lose a duel of aim, movement and weapon choice. Seven-pellet Scatter up close, Rail across a lane, the dodge (proposed in [gunfeel](gunfeel.md)) to break a line. | Clean feedback on every hit (the fun bar's three signals), a fight you can explain afterwards, and the feeling you nearly had it. The Host calls the good ones. |
-| **The round** | Free-for-all: a three-minute schedule of item clocks, armour stacks and the Overtime pad. Jammer (below): muster, buy, take a site or hold it, mount or seize, carry the result into the next round. | The bell (the league's ritual), the podium, and a result that changes the next round: money, a saved rifle, a rival who owes you one. |
+| **The round** | Free-for-all: a three-minute schedule of item clocks, armour stacks and the Overtime pad. Rescue and Sabotage (below): muster, take a site or hold it, plant or defuse, free captives or hold them, carry survival into the next round. | The bell (the league's ritual), the podium, and a result that changes the next round: a saved rifle, a rival who owes you one. |
 | **The session and the months** | A rotation of maps and rule sets, a rival on the scoreboard, feats that earn cosmetics, a season file with a new map pool, demos of your worst round. | Maps you know better every week, cheese strategies that get a nickname within a week and stop working within two ([the league](../lore/the-league.md)), a record that shows you improving, servers with regulars. |
 
-## The flagship
+## The flagship: Rescue and Sabotage
 
-**Not approved, 2026-09-25:** Nick's decision is that mutators are host
-settings from the start, not unlocks, and that there is no loadout shop
-anywhere in the game. The scrip economy and the locker below are therefore
-**not approved**. The flagship mode keeps its round stakes (one life, mount and
-seize, weapons carried forward on survival) without a buy phase; a host still
-picks the mutator set for a round the way [rung 1](#build-order) already
-proposes for every other mode. The economy section stays in this plan as a
-labelled alternative in case a future decision revives some form of it, but it
-is not part of the accepted design.
+**Decided, 2026-09-25.** No radio-themed mode. The Counter-Strike-style round
+rules below (one life per round, attack and defend, no buy shop or scrip
+economy, no loadouts) become two modes on dedicated maps, the way Counter-Strike
+splits cs_ hostage maps from de_ bomb maps: **Rescue** and **Sabotage**. Both
+retire the earlier single "Jammer" proposal: that name belonged to the
+[Jammer enemy](../ENEMIES.md) in any case, and the jammer object, its
+Solo-Broadcast-dish tie-in and the not-approved scrip economy and locker are
+gone, not renamed. Mutators stay host settings from the start, not unlocks, the
+way [rung 1](#build-order) already proposes for every other mode.
 
-The mode's working name also cannot stay "Jammer": that name belongs to the
-[Jammer enemy](../ENEMIES.md). Two alternative names, proposed and not chosen:
-
-- **Dead Air**, matching the Frequency's existing "dead air" line and the
-  jamming fiction the mode is built on.
-- **Relay**, naming the objective directly, in the same plain style as
-  "Custody core" elsewhere in this plan.
-
-Nick picks the name (or another) in a later decision. This document keeps
-calling the mode "Jammer" below only because renaming every reference is a
-mechanical follow-up, not because the name is settled.
-
-Round-based attack and defend with stakes and one life per
-round. The competitive heart, built to be learned in one round and argued about
-for years.
+Round-based attack and defend with stakes and one life per round. The
+competitive heart, built to be learned in one round and argued about for years.
 
 ### The fiction
 
-The Office pushes the Schedule's correction orders through relay cabinets. When
-an order lands, a free agent on that relay's list is reclassified and collected.
-The coalition carries a jammer to one of two relay sites; mounted, it drowns the
-relay in dead air until the order window closes. The Union, in black and red,
-holds the relays and seizes any jammer it finds. The jammer grows out of the
-shipped Solo Broadcast jammer dish and its seize pad, so the object already has
-a silhouette and a verb.
+The Union's registry runs two kinds of infrastructure the free side wants
+gone: the correction sites that already hold people the Schedule reclassified,
+and the correction frames and registry servers that keep reclassifying more of
+them.
+
+- **Rescue.** The free side breaks into a Union correction site and extracts
+  the captives held there to a marked exit. The Union holds the site and the
+  captives.
+- **Sabotage.** The free side plants a charge on a Union correction frame or
+  registry server at one of two sites. The Union defends the site or defuses
+  the charge.
 
 Sides swap at half, so everyone plays both. Playing the Union is a round in a
 uniform, not a change of heart.
@@ -150,97 +141,74 @@ uniform, not a change of heart.
 - **4v4** standard, 2v2 and 5v5 allowed. Rule bots fill empty seats and leave as
   people arrive; humans and agents count the same toward balance
   ([rule 9](multiplayer-maps.md#9-humans-agents-and-bots)).
-- **Match:** halves of 8 rounds, first to 9. The side swap resets money.
+- **Match:** halves of 8 rounds, first to 9. Sides swap at half.
 - **Short format** for public rotation: halves of 4, first to 5 (about 20 minutes).
-- **Extra rounds** at 8-8: halves of 3, first to 4, every player starting each
-  extra half with 100 scrip. A 3-3 plays another pair. A public server may end in
-  a draw after one pair so the rotation moves. (Not called overtime: that is the
-  power item's name in the rule sheet.)
+- **Extra rounds** at 8-8: halves of 3, first to 4. A 3-3 plays another pair. A
+  public server may end in a draw after one pair so the rotation moves. (Not
+  called overtime: that is the power item's name in the rule sheet.)
 
 ### Round flow
 
-All times at the 20 Hz sim; each is a `MatchConfig`-style field, not a constant.
+All times at the 20 Hz sim; each is a `MatchConfig`-style field, not a
+constant. Muster and round end are shared; the live phase forks by mode.
 
 | Phase | Time | What happens |
 |---|---|---|
-| **Muster** | 10 s | The bell. Everyone is held inside a spawn zone and buys at the locker. The Host names the score, the money state and any streak. |
-| **Live** | 1:45 | One life. Attackers take the jammer to a site. Buying stays open inside the spawn zone for the first 15 s. |
-| **Mount** | 3 s standing | Only inside a site's marked mount area. Any movement or damage restarts it. The whole server hears it start. |
-| **Jammer running** | 35 s | The round clock is replaced by the jammer's. A rising tone every 5 s, faster in the last 10. |
-| **Seize** | 6 s standing | Any defender, at the jammer. Interrupted progress is lost. There is no kit: one number to learn. |
-| **Round end** | 5 s | Podium line, money shown, dead fighters return to the muster. |
+| **Muster** | 10 s | The bell. Everyone is held inside a spawn zone; only map pickups equip a fighter, the same [item clocks](multiplayer-maps.md#5-items-and-clocks) as every other mode. The Host names the score and any streak. |
+| **Round end** | 5 s | Podium line, dead fighters return to the muster. |
 
-**Win conditions.** Attackers win if the jammer runs out, or every defender is
-down. Defenders win if the clock runs out before a mount, every attacker is down
-before a mount, or the jammer is seized. After a mount, killing every attacker
-does not win: a defender still has to seize.
+**Sabotage**
 
-**The jammer** spawns with a random attacker, drops where its carrier dies, and
+| Phase | Time | What happens |
+|---|---|---|
+| **Live** | 1:45 | One life. Attackers carry the charge to a site. |
+| **Plant** | 3 s standing | Only inside a site's marked plant area. Any movement or damage restarts it. The whole server hears it start. |
+| **Charge running** | 35 s | The round clock is replaced by the charge's. A rising tone every 5 s, faster in the last 10. |
+| **Defuse** | 6 s standing | Any defender, at the charge. Interrupted progress is lost. There is no kit: one number to learn. |
+
+**Win conditions.** Attackers win if the charge runs out, or every defender is
+down. Defenders win if the clock runs out before a plant, every attacker is
+down before a plant, or the charge is defused. After a plant, killing every
+attacker does not win: a defender still has to defuse.
+
+**The charge** spawns with a random attacker, drops where its carrier dies, and
 can be picked up by any attacker. Defenders cannot carry it. The carrier's
 position is visible to their own team, not to the enemy. It glows and hums at
 10 m, so a carrier sneaking alone is possible but never silent up close.
 
-**Dying** makes you a spectator of your own living teammates only, first person
-or follow camera. Public spectators watch on a 30 s delay in Jammer so a friend
-in the booth cannot call positions (see [Spectators and demos](#spectators-and-demos)).
+**Rescue**
 
-### The economy: scrip (not approved)
-
-**Not approved, 2026-09-25.** Kept here as a labelled alternative only; the
-accepted mode has no shop or currency. Frags pay; the league says so. Scrip is
-per player, capped at 160, shown on the scoreboard for your own team only.
-
-**Income**
-
-| Event | Scrip |
-|---|---|
-| Start of each half | 20 |
-| Round win (elimination or time) | 35 |
-| Round win (jammer runs out, or seized) | 40 |
-| Round loss | 20 plus 5 for each step of the loss count (0 to 4, so 20 to 40). The count rises by one after a loss and falls by one after a win, and starts each half at zero. |
-| Attackers after a mount, round lost anyway | +6 each |
-| Frag with Fists | 30 |
-| Frag with Tack or Scatter | 9 |
-| Frag with Flechette | 6 |
-| Frag with Rail | 2 |
-| Seize | +6 to the seizer |
-
-**The locker (not approved)**
-
-| Item | Price | Notes |
+| Phase | Time | What happens |
 |---|---|---|
-| Tack with 50 Bullets | free | In the locker every round, two steps away. The life still starts empty ([every life starts empty](../MODES.md#every-life-starts-empty)). |
-| Bullets, 50 | 4 | Feeds Tack and Flechette. Caps are [WEAPONS.md](../WEAPONS.md)'s. |
-| Scatter with 12 Shells | 20 | The entry gun. |
-| Flechette with 60 Bullets | 25 | The workhorse. |
-| Rail with 5 Cells | 45 | Half a pad's cells: every miss costs. |
-| Light plate (50 armour) | 10 | |
-| Heavy plate (100 armour) | 20 | Armour absorbs before health, so it roughly doubles a rifle's time to kill. |
-| Smoke can | 5 | Utility, at most two carried. |
-| Tattler | 8 | Utility. |
-| Tin | 10 | Utility, one carried, defenders only. |
+| **Live** | 1:45 | One life. Attackers move to the holding cell. |
+| **Unlock** | 2 s standing | Only at the holding cell. Any movement or damage restarts it. The whole server hears it start, and every captive there is freed. |
+| **Extract** | rest of Live | A freed captive follows the nearest living attacker at survivor's pace. Reaching the marked exit with a captive ends the round. Abandoned, a captive stops and waits for another attacker. |
 
-**Carrying forward.** A survivor keeps every weapon and all remaining ammunition
-and armour into the next round. A death drops the carried primary where you fell
-for anyone to take. That is the stake: saving a Rail matters, and taking one off
-a body is a swing.
+**Win conditions.** Attackers win by walking a freed captive into the exit, or
+if every defender is down. Defenders win if the clock runs out, or if every
+attacker is down, before an extraction.
 
-**Why these numbers.** A pistol round has 20: armour or a Scatter, not both. A
-full buy (Flechette, heavy plate, two utility) is about 58; a Rail buy about 78.
-A winning team earns about 35 plus frags, so it can rebuy; a team that loses
-the pistol round, saves, and loses again holds about 45 and must choose between
-a force and another save. Low-tier frags pay more
-so a save round can still turn a profit, which is the whole reason eco wins are
-the best stories in the genre. Every number is a starting proposal for the
-harness and a human session to break.
+**Dying** makes you a spectator of your own living teammates only, first person
+or follow camera. Public spectators watch on a 30 s delay in Rescue and
+Sabotage so a friend in the booth cannot call positions (see [Spectators and
+demos](#spectators-and-demos)).
 
-**This is a labelled exception, and it is not approved.** [WEAPONS.md](../WEAPONS.md)
-says there are no loadouts. A buy phase would need its own exception, the way
-Open Weights hands out everything under a labelled one, and Nick has declined
-it. The accepted design keeps weapons on the floor here as in every other mode:
-map pads stay on, with one contested item per map (a heavy plate at mid,
-announced when it appears at 0:25) for a taste of item timing, and a round's
-stakes come from carried weapons and survival, not scrip.
+### No shop, no scrip
+
+Decided 2026-09-25: no buy phase, no currency and no loadouts, anywhere in this
+design. [WEAPONS.md](../WEAPONS.md) already says there are no loadouts; a shop
+would have needed its own labelled exception the way Open Weights gets one,
+and Nick declined it. Weapons come from map pickups exactly as in every other
+mode: the Tack pad sits within two seconds of every spawn
+([every life starts empty](../MODES.md#every-life-starts-empty)), map pads
+stay on, and one contested item per map (a heavy plate at mid, announced when
+it appears at 0:25) gives a taste of item timing without a locker.
+
+**Carrying forward.** A survivor keeps every weapon and all remaining
+ammunition and armour into the next round. A death drops the carried primary
+where you fell for anyone to take. That is the stake: saving a Rail matters,
+and taking one off a body is a swing. This, not a currency, is what a loss
+costs and a win protects.
 
 ### Utility that rewards map knowledge
 
@@ -265,55 +233,75 @@ already rules out.
 
 ### Roles, emergent
 
-Nobody picks a class. The roles form because of what you bought and where you
+Nobody picks a class. The roles form because of what you found and where you
 stand, the way they did in Counter-Strike:
 
 - **Entry:** Scatter and a heavy plate, first through the door.
-- **Rail:** the most expensive buy and the lowest frag pay; holds a lane.
+- **Rail:** the lane holder, trading map control for the one long gun on the map.
 - **Support:** smokes and Tattlers for someone else's entry.
 - **Lurk:** alone on the far route, timing a flank off the Host's calls.
 - **Anchor:** a defender who stays on a site with a Tin behind them.
 
-Agents and bots fill the same roles through the same buy and move actions.
-Named rule bots lean into their personalities (a Rusher buys Scatter, a Sniper
-saves for the Rail).
+Agents and bots fill the same roles through the same pickup and move actions.
+Named rule bots lean into their personalities (a Rusher pushes for the
+Scatter, a Sniper holds the Rail).
 
 ### Map requirements
 
-On top of the [rule sheet](multiplayer-maps.md#rule-sheet):
+On top of the [rule sheet](multiplayer-maps.md#rule-sheet). A map is built for
+one mode, never both, the way a cs_ map is never also a de_ map.
 
-- Two sites, each with three or more ways in and a mount area visible from at
-  least two angles, so a mount can be contested without walking onto it.
+**Sabotage**, two sites:
+
+- Two sites, each with three or more ways in and a plant area visible from at
+  least two angles, so a plant can be contested without walking onto it.
 - Attackers reach either site in 15 to 20 s; defenders reach their near site in
   under 8 s and rotate between sites in 10 to 12 s. The defender advantage is
   time; the attacker advantage is choice.
 - A mid that connects routes and can be fought for, where the one contested item
   sits.
-- Asymmetric spawns, an attacker yard and a defender hall, each with a locker.
-- Callouts for every mount area and approach, so agents, bots, the Host and
-  players say the same words.
+- Asymmetric spawns: an attacker yard and a defender hall.
+
+**Rescue**, one cell and one exit:
+
+- One holding cell with three or more ways in, visible from at least two
+  angles, so a defender can watch it without a fair fight being guaranteed.
+- One marked exit reachable from the cell by at least two routes, far enough
+  from the cell that an escort is a real walk, not a formality.
+- Attacker spawn near the exit's outside approach, defender spawn near the
+  holding cell, so both sides start with something to defend.
+
+**Shared:**
+
+- Callouts for every plant area, holding cell, exit and approach, so agents,
+  bots, the Host and players say the same words.
 - Deterministic lineup targets: every site has at least three smoke spots that
   cut a main sightline.
 
-Maps that suit Jammer are listed in
-[multiplayer-maps.md](multiplayer-maps.md#modes-in-build-order); Sector 9 Transit
-Hall is first.
+Maps that suit Sabotage are listed in
+[multiplayer-maps.md](multiplayer-maps.md#modes-in-build-order); Sector 9
+Transit Hall is first. Rescue's cell-and-exit shape is smaller and more
+asymmetric than any current map; the roster does not have a purpose-built one
+yet, and a small Sabotage map can prototype it by treating one site as the
+cell and the attacker yard as the exit.
 
-### Pairs: the 2v2 cut
+### Pairs: the 2v2 Sabotage cut
 
-One site, halves of 4, first to 5, 1:15 rounds, same economy. On the small maps
+One site, halves of 4, first to 5, 1:15 rounds, same rules. On the small maps
 built for duel and 2v2 (East-West Pipe with the site at the Cross, Area Kitchen
-with the site in the Glass Office). It is the fastest way to learn Jammer, and
-two humans against two agents is the best practice there is.
+with the site in the Glass Office). It is the fastest way to learn Sabotage,
+and two humans against two agents is the best practice there is.
 
 ### Spectators and demos
 
-- Dead teammates watch teammates. Public spectators get a 30 s delay in Jammer,
-  none in free-for-all (nothing to ghost there).
-- The spectator HUD shows both teams' scrip, the jammer's position, utility
-  in flight, and the item clock for the contested item.
-- Every Jammer match writes a demo (see [Watchability](#watchability)). A round
-  table in the demo lets a viewer jump straight to round 11.
+- Dead teammates watch teammates. Public spectators get a 30 s delay in Rescue
+  and Sabotage, none in free-for-all (nothing to ghost there).
+- The spectator HUD shows both teams' remaining players, the charge's position
+  in Sabotage or the captives' state in Rescue, utility in flight, and the item
+  clock for the contested item.
+- Every Rescue or Sabotage match writes a demo (see
+  [Watchability](#watchability)). A round table in the demo lets a viewer jump
+  straight to round 11.
 
 ## Deathmatch and duel mastery
 
@@ -381,9 +369,9 @@ a regular does not hear the same one twice in a night:
 | Last alive against three | ONE AGAINST THREE. THE BOOTH IS STANDING. |
 | Clutch won | HE DID IT. NOBODY IN THIS BUILDING BELIEVED HIM. |
 | Ace (one fighter, whole enemy side) | ALL FOUR. ONE CALLSIGN. |
-| Eco round won | THEY BOUGHT NOTHING AND TOOK EVERYTHING. |
-| Jammer mounted | DEAD AIR ON THE RELAY. THIRTY-FIVE. |
-| Seize under one second | SEIZED WITH A TICK TO SPARE. |
+| Charge planted | THIRTY-FIVE ON THE CLOCK. MOVE. |
+| Captives freed | THEY'RE UP. GET THEM OUT. |
+| Defuse under one second | DEFUSED WITH A TICK TO SPARE. |
 | Comeback from four down | FOUR DOWN AND LEVEL. SAME RULES. |
 | Overtime pad up | OVERTIME IS UP. EVERYBODY KNOWS. |
 | Agent tops the board | THE CLAWBOT TAKES IT. SKILL ISSUE, MEAT PROXIES. |
@@ -400,10 +388,10 @@ make fragr the best place to practise and the strangest place to lose.
 - **Agent rivals.** Named agents keep a head-to-head line in your local service
   record by callsign (a display label, never identity, as the record already
   says). "Nightfall is 12 to 9 against you on Sector 9" is a reason to requeue.
-- **Bot personalities.** The named rule bots' styles extend to buying and
-  routes: Night Watch callsigns save for the Rail, Static Kids buy Scatter and
-  push, Hangar Candy buy Flechette. The league tribes become opponents you can
-  read.
+- **Bot personalities.** The named rule bots' styles extend to pickups and
+  routes: Night Watch callsigns hold the Rail lane, Static Kids push for the
+  Scatter, Hangar Candy push for the Flechette. The league tribes become
+  opponents you can read.
 - **Lanes.** Humans only, mixed, agents only ([fair-play](fair-play.md)). A
   perfect aimer is welcome and labelled. Results and records are per lane.
 - **Agents as practice partners.** A host setting pins a rule bot's reaction and
@@ -411,20 +399,21 @@ make fragr the best place to practise and the strangest place to lose.
   set to "a little better than you". Pairs against two agents is the drill.
 - **Agents as coaches.** After a match a local, rule-based coach reads the round
   report and names three facts ("you entered the Pipe four times and died four
-  times; you bought a Rail on a loss twice"). Local and free. A decision-brain
+  times; you took the Rail on a loss twice"). Local and free. A decision-brain
   coach is optional, runs only after the match, and passes the Jev budget gate.
-- **Agent teams.** Jammer asks for coordination off the tick. Agents use the
-  team blackboard in [agent-door-2026](agent-door-2026.md); humans use callout
-  pings. Neither sees anything the other cannot.
+- **Agent teams.** Rescue and Sabotage ask for coordination off the tick.
+  Agents use the team blackboard in [agent-door-2026](agent-door-2026.md);
+  humans use callout pings. Neither sees anything the other cannot.
 
 ## Progression that respects skill
 
 Nothing you earn makes you stronger. Everything you earn says what you did.
 
 - **Feats.** Authoritative events, counted once, with stable IDs, per
-  [difficulty-and-rewards](difficulty-and-rewards.md): win an eco round, seize
-  under one second, an ace, a fists-only duel win, a clutch against three, a
-  Jammer match without buying a Rail. Each earns a cosmetic.
+  [difficulty-and-rewards](difficulty-and-rewards.md): a defuse under one
+  second, an ace, a fists-only duel win, a clutch against three, a Rescue with
+  every captive freed, a Sabotage win without ever holding the Rail. Each
+  earns a cosmetic.
 - **Cosmetics.** Titles, emblems, killfeed stamps and armour trims in the league
   tribes' aesthetics (Night Watch's grid coordinate, Hangar Candy's DENIED
   stamp). They never change a silhouette, a hit volume or a sound that carries
@@ -452,9 +441,9 @@ Watching is the default; replays are how people learn.
 - **Exact replays later.** The seeded sim plus input logs replays a round
   exactly ([fair-play](fair-play.md) rung 4). Demos are for watching; input
   replays are for evidence and for rendering any camera after the fact.
-- **A spectator director.** The camera follows the round's story: the jammer
-  carrier, a clutch, the closest fight to a site, the fighter on a streak, never
-  an empty room (the fun bar's "watchable" line).
+- **A spectator director.** The camera follows the round's story: the charge
+  carrier, a clutch, the closest fight to a site or the holding cell, the
+  fighter on a streak, never an empty room (the fun bar's "watchable" line).
 - **Highlights.** The same events the Host reacts to mark tick ranges in the
   demo. A highlight is a slice of the trace, so a results card can offer "watch
   your ace" with no video encoder.
@@ -478,7 +467,8 @@ Watching is the default; replays are how people learn.
 ## Build order
 
 Smallest steps with the most replay value first. Each names the seam it grows
-from. Rungs 1 to 4 are useful on today's free-for-all; Jammer waits for sides.
+from. Rungs 1 to 4 are useful on today's free-for-all; Rescue and Sabotage wait
+for sides.
 
 | # | Step | Seam | Replay value |
 |---|---|---|---|
@@ -486,60 +476,60 @@ from. Rungs 1 to 4 are useful on today's free-for-all; Jammer waits for sides.
 | 2 | **Reactive Host lines** for first blood, streak end, fists frag, last alive, comeback | sticky `host_line`, killstreak callouts, localization keys | Every round gets a headline |
 | 3 | **Demos from the trace** with a round and event index, and client playback | `trace.rs` NDJSON and hash, the spectator path | Learning, bragging, evidence |
 | 4 | **Duel with rematch and head-to-head** in the service record | duel admission (multiplayer-maps mode 2), service-record history | The one-more-game loop |
-| 5 | **The flagship mode v1** (working name "Jammer"): sides, one life per round, mount and seize, round and half flow, no economy, floor pads only | team deathmatch sides and spawns, `RoundState`, the jammer seize pad | The flagship's stakes |
+| 5 | **The flagship mode v1, Rescue and Sabotage**: sides, one life per round, plant/defuse or unlock/extract, round and half flow, no economy, floor pads only | team deathmatch sides and spawns, `RoundState`, the charge and holding-cell seams | The flagship's stakes |
 | 6 | ~~Scrip and the locker~~, **cut 2026-09-25**: no loadout shop. Carrying forward survivors' weapons stays, without a currency | `inventory.rs` pools and caps, pickups | Every round still feeds the next through carried weapons alone |
 | 7 | **Feats and cosmetics** from authoritative events | difficulty-and-rewards achievement IDs, service record | Something to chase that is not power |
 | 8 | **Spectator director and highlights** | spectator follow camera, Host event stream, demo index | Watch-or-join worth watching |
 | 9 | **Server list, rotations and rule-set files** | `/status`, public-server hardening rung | Community servers with personalities |
-| 10 | **Utility**: smoke, Tattler, Tin with deterministic throws | projectile and placed-explosive seams in WEAPONS.md, interest culling | Lineups and the deep end of Jammer |
+| 10 | **Utility**: smoke, Tattler, Tin with deterministic throws | projectile and placed-explosive seams in WEAPONS.md, interest culling | Lineups and the deep end of Rescue and Sabotage |
 | 11 | **Walk key and dodge** | shared movement step and golden vectors | Movement mastery and sound reads |
 | 12 | **Agent practice partners and coach**, local first | profiler statistics, round reports, decision brain behind the budget gate | Practice that meets you where you are |
 | 13 | **Seasons and documented map format** | validated map files, rotation files | The months-long loop |
 
 Step 5 slots after team deathmatch (multiplayer-maps mode 4) and before Control
-if Nick accepts it; it needs sides and team spawns and adds only a carried
-object, a mount area and round flow. Custody's carried objective can share the
-jammer's carry seam later.
+if Nick accepts it; it needs sides and team spawns and adds a carried object
+for Sabotage, a freed-captive follower for Rescue, and round flow. Custody's
+carried objective can share the charge's carry seam later.
 
 ## Architecture impact
 
 | Area | Change |
 |---|---|
-| `server/src/sim.rs` | Rule sets as data, one-life rounds, halves, mount and seize state, scrip ledger, carried primaries, feat events |
-| `server/src/protocol.rs` | Additive: rule set name, side scores, round number, scrip for own team, jammer state, spectator delay flag. Documented in `docs/protocol.md` |
+| `server/src/sim.rs` | Rule sets as data, one-life rounds, halves, plant/defuse and unlock/extract state, carried primaries, feat events |
+| `server/src/protocol.rs` | Additive: rule set name, side scores, round number, charge state, captive state, spectator delay flag. Documented in `docs/protocol.md` |
 | `server/src/trace.rs` | Match demos with a round and event index |
-| `agent-adapter` | `round_state` reports rule set, round, scrip and jammer state; a `buy` action through the same action path |
-| `tools/playtest` | Jammer round metrics: attacker win rate per site, mount rate, eco win rate, round length |
-| `client` | Locker radial, Host lines, demo player, director camera, record tabs |
+| `agent-adapter` | `round_state` reports rule set, round, charge state and captive state; no buy action, pickups use the same action path as every other mode |
+| `tools/playtest` | Rescue and Sabotage round metrics: attacker win rate per site, plant rate, extraction rate, round length |
+| `client` | Host lines, demo player, director camera, record tabs |
 
 ## Verification
 
-- Deterministic tests for every Jammer end condition, the loss count, carry
+- Deterministic tests for every Rescue and Sabotage end condition, carry
   forward, extra rounds and the side swap.
-- Harness gates for Jammer at 4v4 with bots: attacker round wins between 40 and
-  60 percent per map over 200 seeded rounds, mean round under 2:00, at least one
-  mount in half the rounds, at least one eco win in ten matches.
+- Harness gates for Rescue and Sabotage at 4v4 with bots: attacker round wins
+  between 40 and 60 percent per map over 200 seeded rounds, mean round under
+  2:00, at least one plant or unlock in half the rounds.
 - A demo recorded and played back to the same final score and hash.
-- A recorded mixed human, agent and bot Jammer match, then humans say whether
-  they want another. That answer is the gate.
+- A recorded mixed human, agent and bot Rescue or Sabotage match, then humans
+  say whether they want another. That answer is the gate.
 
 ## Success criteria
 
 - [x] Nick decided 2026-09-25: mutators are host settings from the start, not
-      unlocks, and the flagship mode has no loadout shop. Open: the mode's
-      final name (not "Jammer") and its slot in the mode order.
+      unlocks; the flagship splits into Rescue and Sabotage with no loadout
+      shop; and there is no radio-themed mode. Open: the two modes' slot in
+      the mode order.
 - [ ] The mutator set and reactive Host lines ship on free-for-all.
 - [ ] Demos record and play back.
-- [ ] A human group plays a full Jammer match against agents and asks for another.
+- [ ] A human group plays a full Rescue or Sabotage match against agents and
+      asks for another.
 - [ ] Feats earn cosmetics with no combat effect.
 - [ ] A community rotation file and a community map load on a public server.
 
 ## Open questions for Nick
 
-1. The mode's final name: Dead Air, Relay, or another, so it never clashes with
-   the Jammer enemy.
-2. Attack as the coalition first half, or random?
-3. Should the 30 s public spectator delay apply to agents watching too? (This
+1. Attack as the free side first half, or random?
+2. Should the 30 s public spectator delay apply to agents watching too? (This
    plan says yes: same rules.)
 
 ## Sources
@@ -552,6 +542,7 @@ Checked 2026-09-25.
 - Match format and extra rounds: [CSDB, MR12 explained](https://csdb.gg/guides/how-many-rounds-cs2/).
 - Bomb and defuse timings: [Counter-Strike Wiki, Bomb Defusal](https://counterstrike.fandom.com/wiki/Bomb_Defusal),
   [CSDB, how to defuse](https://csdb.gg/guides/how-to-defuse-cs2/).
+- Hostage rescue mechanics, for Rescue: [Counter-Strike Wiki, Hostage Rescue](https://counterstrike.fandom.com/wiki/Hostage_Rescue).
 - Demos and lineups: [SCOPE.GG demo guide](https://scope.gg/guides/cs2-demo-guide-en/).
 - Counter-Strike's mod origin: [Counter-Strike (Wikipedia)](https://en.wikipedia.org/wiki/Counter-Strike_(video_game)),
   [Half-Life mods](https://half-life.fandom.com/wiki/Mods).
