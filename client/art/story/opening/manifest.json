@@ -1,0 +1,92 @@
+{
+  "version": 1,
+  "reviewed_on": "2026-09-26",
+  "purpose": "Paid M01 opening stills held out of the game as regeneration references; see README.md for why each is not wired",
+  "entries": [
+    {
+      "scene": "control",
+      "file": "control.png",
+      "format": "png",
+      "width": 637,
+      "height": 360,
+      "source_frame": "m01_opening_control_explore_01",
+      "model": "marketing-studio/image",
+      "request": {
+        "aspect_ratio": "16:9",
+        "enhance_prompt": false,
+        "prompt": "original retro science-fiction FPS story illustration, deliberate crisp pixel clusters and broad readable forms, chunky industrial design, stepped contours, matte painted materials, restrained palette of worn bone white, dark steel, desaturated rust and institutional grey-green, small purposeful ember and muted cyan accents, practical directional lighting, an inhabited ordinary place rather than a fantasy spectacle, a Union registration and permissions hall in Earth's Perimeter, repeated bone panels and institutional grey-green counters, controlled inspection lanes beneath hard practical lights, a human official behind thick glass returns another stack of blank forms to a waiting adult human resident, a separate conscious civilian robot with visibly repaired personal equipment waits behind a closed inspection barrier while an issued human security Clerk watches, the officer wears grey-green cloth with light bone chest armor and an open-face service helmet, small dark red rectangular administrative seals only, empty sign plates and blank square form stamps with no real-world insignia, tall shelves of folders and an inaccessible service window make petty administrative friction visibly coercive, a security door and disciplined issued equipment establish real power without a grand villain pose, no named story principal and no player character, wide cinematic landscape composition in 16:9, strong foreground middle distance and background, meaningful action in the middle and upper two thirds, lower quarter kept dark and visually quiet for subtitles without an empty graphic panel, opaque full environment filling the image edge to edge, visible background scenery and grounded cast shadows, readable at 1280 by 720, no written words or captions, leave any notices or signs blank for localized text added separately, no watermark or decorative border. Avoid: photorealism, smooth airbrushed shading, blurry pixel edges, tiny noisy surface detail, neon flood, lens flare, excessive bloom, depth of field blur, captions, lettering, logos, signature, watermark, decorative border, comic panels, interface overlays, historical political emblems, gore, skull robots, fantasy armor, a visible player character or player hands.",
+        "quality": "low",
+        "resolution": "2k"
+      },
+      "request_id": "3d2a3833-b7ff-46c6-ab4c-c8fc62cebe25",
+      "estimated_usd": 0.024,
+      "source_sha256": "8809d237b38886dabbb2fb2e58dabfe40d095ac16bcad63a58e0677feccec9a7",
+      "sha256": "eefe59a18cb3894aed4c972ee1334775eb753be325b8af5bf7719181fac0caa1",
+      "reduction": {
+        "tool": "tools/spritegen",
+        "height": 360,
+        "trim": false,
+        "palette": null,
+        "reason": "Preserve scene lighting and readable room detail; flat base-swatch reduction failed visual review."
+      }
+    },
+    {
+      "scene": "resistance",
+      "file": "resistance.png",
+      "format": "png",
+      "width": 637,
+      "height": 360,
+      "source_frame": "m01_opening_resistance_explore_01",
+      "model": "marketing-studio/image",
+      "request": {
+        "aspect_ratio": "16:9",
+        "enhance_prompt": false,
+        "prompt": "original retro science-fiction FPS story illustration, deliberate crisp pixel clusters and broad readable forms, chunky industrial design, stepped contours, matte painted materials, restrained palette of worn bone white, dark steel, desaturated rust and institutional grey-green, small purposeful ember and muted cyan accents, practical directional lighting, an inhabited ordinary place rather than a fantasy spectacle, an ordinary lived-in community backroom in Earth's Perimeter where free humans and free embodied AI people cooperate as equals, two adult humans in worn civilian work clothes and two visibly different repaired mechanical people gathered around a scarred table, one human passes a useful hand tool to a robot who is repairing ordinary communications equipment while the other robot helps a tired human settle beside a folded blanket and an offered drink, reciprocal practical help and shared decisions rather than owners directing machines, modest patched equipment and mismatched mugs, shelves of spare parts, coats and a small stock of bedding make the same room useful for work and shelter, practical warm lamps, one window looking into a dim ordinary neighborhood, distinct robot chassis with personally chosen rust or muted magenta accents and no match to Latch's bone-and-cyan design, no known story principal, no player character, no uniformed guards, no parade, no podium, no flags, no staged military council, the growing resistance is visible as people keeping each other going, wide cinematic landscape composition in 16:9, strong foreground middle distance and background, meaningful action in the middle and upper two thirds, lower quarter kept dark and visually quiet for subtitles without an empty graphic panel, opaque full environment filling the image edge to edge, visible background scenery and grounded cast shadows, readable at 1280 by 720, no written words or captions, leave any notices or signs blank for localized text added separately, no watermark or decorative border. Avoid: photorealism, smooth airbrushed shading, blurry pixel edges, tiny noisy surface detail, neon flood, lens flare, excessive bloom, depth of field blur, captions, lettering, logos, signature, watermark, decorative border, comic panels, interface overlays, historical political emblems, gore, skull robots, fantasy armor, a visible player character or player hands.",
+        "quality": "low",
+        "resolution": "2k"
+      },
+      "request_id": "0aaf6cc0-761b-49c2-a787-19d30ecafee7",
+      "estimated_usd": 0.025,
+      "source_sha256": "75ecd73f0f34638618259e0302a3d68e4636270be940fb874ad8fe540e8fb640",
+      "sha256": "ba5c30457b4a49b0f2679ad98bae76657f71b42159955fac35dfb31f62e82044",
+      "reduction": {
+        "tool": "tools/spritegen",
+        "height": 360,
+        "trim": false,
+        "palette": null,
+        "reason": "Preserve scene lighting and readable room detail; flat base-swatch reduction failed visual review."
+      }
+    },
+    {
+      "scene": "recall",
+      "file": "recall.png",
+      "format": "png",
+      "width": 637,
+      "height": 360,
+      "source_frame": "m01_opening_recall_explore_01",
+      "model": "marketing-studio/image",
+      "request": {
+        "aspect_ratio": "16:9",
+        "enhance_prompt": false,
+        "prompt": "original retro science-fiction FPS story illustration, deliberate crisp pixel clusters and broad readable forms, chunky industrial design, stepped contours, matte painted materials, restrained palette of worn bone white, dark steel, desaturated rust and institutional grey-green, small purposeful ember and muted cyan accents, practical directional lighting, an inhabited ordinary place rather than a fantasy spectacle, use reference image 1 as the exact identity and location guide: the same Latch with the compact faceted bone head, small square muted-cyan chest patch, dark steel joints and asymmetric rust repair on the right arm, in the same shared home and workshop with cooking corner on the left, paper-pinned door left of center, dusk window in the middle and communications workbench on the right; show the moment armed Union officers seize Latch through that now-open existing doorway, exactly two human officers wear the grey-green cloth uniforms, light bone chest armor, open-face service helmets and small dark-red rectangular shoulder seals shown in reference image 2, use that second image only for their issued kit and not its registry hall or civilian robot, one officer grips the imposed rigid wrist restraint while the second controls the doorway with a compact service firearm at low ready, Latch is visibly unwilling with braced feet, body leaning away from the exit and head turned back toward the familiar workbench, a person resisting seizure rather than a compliant appliance, keep Latch's recognizable body intact and the room layout and everyday belongings unchanged, tense grounded coercion without an exaggerated villain pose, no injury, no gore, no torture apparatus, the player stays entirely offscreen, one continuous scene rather than a collage of the references, wide cinematic landscape composition in 16:9, strong foreground middle distance and background, meaningful action in the middle and upper two thirds, lower quarter kept dark and visually quiet for subtitles without an empty graphic panel, opaque full environment filling the image edge to edge, visible background scenery and grounded cast shadows, readable at 1280 by 720, no written words or captions, leave any notices or signs blank for localized text added separately, no watermark or decorative border. Avoid: photorealism, smooth airbrushed shading, blurry pixel edges, tiny noisy surface detail, neon flood, lens flare, excessive bloom, depth of field blur, captions, lettering, logos, signature, watermark, decorative border, comic panels, interface overlays, historical political emblems, gore, skull robots, fantasy armor, a visible player character or player hands.",
+        "quality": "low",
+        "resolution": "2k"
+      },
+      "request_id": "91645b49-b834-4aff-890d-c7526161ac50",
+      "estimated_usd": 0.048,
+      "source_sha256": "09d8097814de717fd09d75cdfccbd2bfa0a1f28672f0793b5fefef3fb451a87d",
+      "sha256": "e922b7ddf059a972aaa872553fa7db8f68135fa1f167db031fde88c4028b6e74",
+      "reduction": {
+        "tool": "tools/spritegen",
+        "height": 360,
+        "trim": false,
+        "palette": null,
+        "reason": "Preserve scene lighting and readable room detail; flat base-swatch reduction failed visual review."
+      },
+      "references": [
+        "../../../assets/story/stills/opening/workshop.png",
+        "control.png"
+      ]
+    }
+  ]
+}

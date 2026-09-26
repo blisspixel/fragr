@@ -4,6 +4,13 @@ Shipped tags, newest first. A line here is on `main`. Planned work stays in
 [docs/ROADMAP.md](docs/ROADMAP.md). Older tags are on the
 [releases page](https://github.com/blisspixel/fragr/releases).
 
+## v0.55.1 (2026-09-26)
+
+The Recall Notice opening has pictures. The first two pages show Latch at the
+workshop bench, and the last shows Annex 67's service entrance at dusk. The
+address and the recall stay text pages until their pictures are made in the
+black and red Union look; the words on every page are unchanged.
+
 ## v0.55.0 (2026-09-26)
 
 Multiplayer has modes now, and the host picks them. `--mode tdm` splits the
