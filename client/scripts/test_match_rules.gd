@@ -106,6 +106,8 @@ func _check_hud() -> void:
 	hud.call("set_match_rules", MatchRules.parse({"mode": "ffa", "mutators": ["two-lives"], "lives": 2}))
 	hud.call("set_own_lives", 1)
 	_check(chip.text == "FREE FOR ALL // TWO LIVES\nLIVES 1", "lives line under two lives: " + chip.text)
+	hud.call("set_own_lives", 0)
+	_check(chip.text.ends_with("OUT OF LIVES. WATCHING UNTIL THE ROUND ENDS."), "an eliminated player is told why: " + chip.text)
 	hud.call("sync_scores_from_players", [{"name": "Dead Air Dan", "score": 2}])
 	_check(not hud.get("scoreboard").text.contains("[UNION]"), "free-for-all rows carry no side")
 	hud.call("show_host_reaction", {"kind": "golden_rail", "variant": 2, "player": "Aunt Linda"})

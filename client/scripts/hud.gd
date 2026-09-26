@@ -316,8 +316,10 @@ func _refresh_mode_chip() -> void:
 		lines.append(chip)
 	if team_score_text != "":
 		lines.append(team_score_text)
-	if own_lives >= 0:
+	if own_lives > 0:
 		lines.append(tr("HUD_LIVES").format({"count": own_lives}))
+	elif own_lives == 0:
+		lines.append(tr("HUD_OUT_OF_LIVES"))
 	mode_chip_label.text = "\n".join(lines)
 	mode_chip_label.visible = not lines.is_empty()
 
