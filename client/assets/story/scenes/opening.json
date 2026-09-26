@@ -48,7 +48,7 @@
 			"id": "PURSUIT",
 			"title_key": "STORY_M01_PURSUIT_TITLE",
 			"caption_key": "STORY_M01_PURSUIT_BODY",
-			"image": "res://assets/story/stills/opening/notice.png",
+			"image": "res://assets/story/stills/opening/annex.png",
 			"motion": {"kind": "zoom_in", "amount": 0.04},
 			"narration": "res://assets/story/voice/{locale}/opening/pursuit.mp3",
 			"timing": "narration"

@@ -99,6 +99,10 @@ func _run() -> void:
 		_expect(shot["caption_key"] == "STORY_M01_" + shot["id"] + "_BODY", "opening body key is unchanged for " + shot["id"])
 		_expect(shot.get("title_key") == "STORY_M01_" + shot["id"] + "_TITLE", "opening title key is unchanged for " + shot["id"])
 	_expect(beats == CampaignOpening.BEATS, "opening manifest matches the five beats")
+	# The committed opening stills load; ADDRESS and RECALL stay text until theirs exist.
+	for shot: Dictionary in opening.get("shots", []):
+		if shot["id"] in ["HOME", "CHOICE", "PURSUIT"]:
+			_expect(ResourceLoader.exists(shot.get("image", "")), "opening still loads for " + shot["id"])
 	_expect(StoryScene.validation_error(CampaignOpening.fallback()).is_empty(), "the opening fallback is itself a valid scene")
 
 	# File loading refuses names that are not identifiers and ids that disagree.

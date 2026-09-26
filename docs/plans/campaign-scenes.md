@@ -2,8 +2,10 @@
 
 **Status:** in flight, 2026-09-25. The scene player, its manifest format, the
 migrated M01 opening and a text-only draft of the scene after Recall Notice are
-implemented and tested on this branch. No image, narration clip, ambience or
-music for any scene has been generated. **Every generation batch below needs
+implemented and tested. On 2026-09-26 two stills from an earlier paid opening
+batch were wired into the opening ([salvaged opening assets](#salvaged-opening-assets-2026-09-26));
+no new image, narration clip, ambience or music has been generated for any
+scene. **Every generation batch below needs
 Nick's go-ahead for that batch, with an explicit cap.** The
 [campaign contract](../CAMPAIGN.md#story-presentation-and-localization) owns
 presentation behavior, the [story arc](../campaign/story-arc.md) owns what
@@ -32,7 +34,7 @@ text whenever an asset is missing. Video is much later and has its own plan,
 |---|---|---|
 | Manifest format and validation | `client/scripts/story_scene.gd` | Strict JSON under `client/assets/story/scenes/<id>.json`; unknown fields, unsafe paths and out-of-range values are refused |
 | Scene player | `client/scripts/scene_player.gd` | Stills with nearest filtering and a subtle pan or zoom, keyed captions with speaker labels, narration on the `Voice` bus, optional music and ambience beds, a progress row |
-| M01 opening | `client/scripts/campaign_opening.gd`, `scenes/opening.json` | The five keyed beats on the shared player, reader paced until assets exist; unchanged readiness handoff through GameManager |
+| M01 opening | `client/scripts/campaign_opening.gd`, `scenes/opening.json` | The five keyed beats on the shared player, reader paced until narration exists; HOME, CHOICE and PURSUIT show stills, ADDRESS and RECALL are text pages; unchanged readiness handoff through GameManager |
 | Departure hook | `GameManager.play_departure_scene` | Once the server reports a mission `departed`, the local campaign plays the scene named in `StoryScene.AFTER_MISSION`, once per mission per session. It sends nothing to the server |
 | First interlude draft | `scenes/l01_l02.json`, keys in `story.en.po` | Recall Notice to Persons Unknown, three shots, text only |
 | Settings | `settings.gd`, `settings_panel.gd`, `default_bus_layout.tres` | Audio page gains VOICE (the new `Voice` bus) and STORY CAPTIONS |
@@ -62,7 +64,7 @@ Evidence: `test_story_scene`, `test_scene_player` and the unchanged
 `test_campaign_opening` harnesses, the full `tools/godot_check.sh` run and
 `tools/test_godot_check.sh`, and a rendered still from
 `client/scripts/qa_story_scene.gd` (placeholder banner art, a speaker caption
-and the progress row) inspected at 1280x720.
+and the progress row) inspected at 1280x720. `-- --scene opening --shot N` renders a committed shot; shots 1, 3 and 5 of the opening were captured and inspected on 2026-09-26.
 
 ## Manifest format
 
@@ -307,6 +309,53 @@ roughly $14 of Higgsfield credit recorded in the
 | S4 | Episodes IV and V (15 to 19), 2 extras | $1.50 |
 | S5 | Endings (20 to 22), 4 extras | $1.50 |
 | V1 to V6 | Narration per episode and the endings, after that batch's images | 7,000 credits each |
+
+## Salvaged opening assets (2026-09-26)
+
+An older, unmerged branch paid for five opening stills (Higgsfield
+`marketing-studio/image`, `low`, $0.145 estimated within a $0.15 cap) and three
+narration takes (ElevenLabs `eleven_multilingual_v2`, inside the subscription
+quota) on 2026-09-22. Each was checked against the current art bible and the
+current keyed copy before anything landed.
+
+**Stills.** Two fit and are wired; three are held as regeneration references in
+`client/art/story/opening/`, which is excluded from import and export. Both
+directories carry a provenance manifest (exact prompt, model, request, hashes)
+and a README.
+
+| Still | Shot | Verdict |
+|---|---|---|
+| Workshop (Latch at the bench) | HOME, CHOICE | Fits: Latch on model, the player offscreen, no lettering, lower quarter quiet for captions. Dusk-dark but readable; a brighter take is optional |
+| Annex 67 service entrance | PURSUIT | Fits: bone and institutional green with restrained red seals, blank plate, clear destination |
+| Recall at the workshop door | RECALL (held) | Regenerate: officers in grey-green and white helmets, not the black and red Union. Composition and Latch continuity are right; use it as the layout reference |
+| Registration hall | none (held) | Regenerate if used: same off-model officers. ADDRESS needs Voss at the podium instead |
+| Resistance backroom | none (held) | On tone; no current beat. Candidate reference for a later scene |
+
+The stills were reduced to 637 by 360 without quantizing against
+`docs/palette.json`; flat swatches destroyed the lighting in review. That is a
+recorded exception to step 3 above, not the rule for new stills. ADDRESS and
+RECALL play as text pages until their stills exist. The S1 batch therefore
+needs two opening images (Voss at the podium, the recall), not four.
+
+**Narration.** No clip matches the current keyed copy, so none is wired and
+none landed; captions stay the source of truth. The takes were written for an
+earlier, longer opening that explained the Union in narration, which the
+writing rules above now forbid. The closest lines:
+
+| Shot | Current copy (`story.en.po`) | Closest recorded line | Result |
+|---|---|---|---|
+| HOME | "You and Latch kept a small workshop alive: bad wiring, borrowed tools..." | "Earth. The Perimeter. You and Latch share a home, a repair workshop, and..." | Different words |
+| CHOICE | "The contract wanted Latch's work, memories and permission to rewrite both. Latch refused." | Take 1: "A contract demanded Latch's work, memories and permission to rewrite both. Latch refused." | Near miss (three words) and missing the clinic line |
+| ADDRESS | Voss's address, then German | None; Voss was never voiced | No clip |
+| RECALL | "They called it a recall. The officers called Latch equipment. Latch said your name..." | "Armed Union officers came to your home and took them. They called your friend equipment..." | Different words |
+| PURSUIT | "Mara found the intake address. Annex 67..." | "Mara, a local organizer, found the intake address: Annex sixty-seven..." | Different words |
+
+The takes also carried lines with no current shot (the Union's history,
+"verboten", property, resistance, correction, a human and a free agent
+variant of "friend"). Revoicing the frozen copy costs about 1,000 characters
+of quota, so V1 records it fresh from the current catalog rather than editing
+old takes. The old clips, specs and manifest entries remain in the local
+backup of that branch and are not needed to do so.
 
 ## Later: video
 
