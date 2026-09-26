@@ -419,7 +419,7 @@ both lessons. The fight is the scene.
    captioned with a speaker label, never over an attack tell, never required.
    Union troops bark orders; bots speak in procedural fragments; the Office
    speaks through PA announcements that are funnier than they should be.
-4. **The scene between levels.** A short audio slideshow: pixel stills, a few
+4. **The scene between levels.** A short audio cutscene: narration over a key image, a few
    voiced lines, captions and sound, 30 to 90 seconds, skippable, showing what
    changed rather than recapping it. With no assets it is a full-screen text
    page, reader paced. Every level design in this folder carries its page

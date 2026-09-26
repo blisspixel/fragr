@@ -154,9 +154,9 @@ survival-gated epilogue.
   the finale. A successful run targets about four hours. Story causes the
   travel; remove padding rather than the causal arc.
 - Radio is roughly one percent of the story, optional funny background flavor.
-  Main plot and objectives work with it off. Between missions, a full-screen
-  pixel text page frames the story. Optional voice can read that same page
-  later. Retro cutscene movies wait until the playable campaign is built.
+  Main plot and objectives work with it off. Between levels, a short audio
+  cutscene frames the story: narration over a key image, captioned, skippable,
+  and a text page when assets are missing. Video waits for the built campaign.
 
 ## The player story
 
