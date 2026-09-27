@@ -1,6 +1,7 @@
 # M02 processing floor gantry
 
-**Status:** in flight, 2026-09-27. Stacked after the autonomous Latch escape draft.
+**Status:** in flight, 2026-09-27. [Draft PR #275](https://github.com/blisspixel/fragr/pull/275)
+is stacked after the autonomous Latch escape draft.
 
 ## Goal and reason
 
