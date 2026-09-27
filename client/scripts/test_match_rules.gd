@@ -87,6 +87,8 @@ func _check_hud() -> void:
 	hud.set_process(false)
 	var chip: Label = hud.get("mode_chip_label")
 	_check(chip != null and not chip.visible, "no chip before rules")
+	var round_line: Label = hud.get("round_label")
+	_check(chip.get_parent() == round_line.get_parent() and chip.get_index() == round_line.get_index() + 1, "mode chip follows the round line in the HUD stack")
 	hud.call("set_match_rules", MatchRules.parse({"mode": "tdm", "mutators": ["rail-only"]}))
 	hud.call("set_team_scores", {"union": 3, "coalition": 5})
 	hud.call("sync_scores_from_players", [
@@ -103,6 +105,13 @@ func _check_hud() -> void:
 	_check(lines[2] == "2. [UNION] Dead Air Dan: 2", "second row: " + lines[2])
 	hud.call("set_own_lives", 2)
 	_check(not chip.text.contains("LIVES"), "no lives line without limited lives")
+	hud.call("set_match_rules", MatchRules.parse({"mode": "tdm", "mutators": ["rail-only", "two-lives"], "lives": 2}))
+	hud.call("set_own_lives", 2)
+	await process_frame
+	var chip_bounds: Rect2 = chip.get_global_rect()
+	var panel_bounds: Rect2 = hud.get_node("Panel").get_global_rect()
+	_check(chip.text.contains("RAIL ONLY") and chip.text.contains("TWO LIVES") and chip.text.contains("LIVES 2"), "combined rules and lives stay in the chip")
+	_check(chip_bounds.end.x <= panel_bounds.end.x and chip_bounds.end.y <= panel_bounds.end.y, "combined rule chip fits inside the HUD panel")
 	hud.call("set_match_rules", MatchRules.parse({"mode": "ffa", "mutators": ["two-lives"], "lives": 2}))
 	hud.call("set_own_lives", 1)
 	_check(chip.text == "FREE FOR ALL // TWO LIVES\nLIVES 1", "lives line under two lives: " + chip.text)

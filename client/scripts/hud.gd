@@ -10,6 +10,8 @@ signal host_spoke(seconds: float)
 @onready var player_count_label = $Panel/VBoxContainer/PlayerCountLabel
 @onready var mode_label = $Panel/VBoxContainer/ModeLabel
 @onready var round_label = $Panel/VBoxContainer/RoundLabel
+## The server's rule set under the round line, for players and spectators.
+@onready var mode_chip_label: Label = $Panel/VBoxContainer/ModeChipLabel
 @onready var weapon_label = $Panel/VBoxContainer/WeaponLabel
 @onready var combat_feed: CombatFeed = $CombatFeed
 @onready var round_message = $RoundMessage
@@ -32,8 +34,6 @@ signal host_spoke(seconds: float)
 @onready var contested_frequency_badge = $ContestedFrequencyBadge
 @onready var hangar_candy_badge = $HangarCandyBadge
 var map_chip_label: Label = null
-## The server's rule set, top centre, for players and spectators alike.
-var mode_chip_label: Label = null
 ## Validated `map_info.rules`; empty on campaign maps and old servers.
 var match_rules: Dictionary = {}
 ## Side of every fighter by callsign, from the last snapshot.
@@ -161,7 +161,6 @@ func _ready():
 	add_child(melee_view)
 	_load_display_settings()
 	_ensure_map_chip_label()
-	_ensure_mode_chip_label()
 	if vitals:
 		vitals.visible = false
 	fp_muzzle_texture = load("res://assets/vfx/32/muzzle_flash.png")
@@ -255,28 +254,6 @@ func _ensure_map_chip_label() -> void:
 	_refresh_map_chip_badge()
 
 
-func _ensure_mode_chip_label() -> void:
-	if mode_chip_label != null and is_instance_valid(mode_chip_label):
-		return
-	mode_chip_label = Label.new()
-	mode_chip_label.name = "ModeChipLabel"
-	mode_chip_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	mode_chip_label.add_theme_font_size_override("font_size", 16)
-	mode_chip_label.add_theme_color_override("font_color", Color(0.96, 0.90, 0.72, 0.95))
-	mode_chip_label.add_theme_color_override("font_outline_color", Color(0.05, 0.04, 0.03, 1))
-	mode_chip_label.add_theme_constant_override("outline_size", 4)
-	mode_chip_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	mode_chip_label.vertical_alignment = VERTICAL_ALIGNMENT_TOP
-	mode_chip_label.anchor_left = 0.5
-	mode_chip_label.anchor_right = 0.5
-	mode_chip_label.offset_left = -360.0
-	mode_chip_label.offset_right = 360.0
-	mode_chip_label.offset_top = 8.0
-	mode_chip_label.offset_bottom = 72.0
-	mode_chip_label.visible = false
-	add_child(mode_chip_label)
-
-
 ## The rule set from `map_info`. Empty clears the chip and the sides.
 func set_match_rules(rules: Dictionary) -> void:
 	match_rules = rules
@@ -309,7 +286,6 @@ func set_own_lives(lives: int) -> void:
 
 
 func _refresh_mode_chip() -> void:
-	_ensure_mode_chip_label()
 	var lines: PackedStringArray = []
 	var chip: String = MatchRules.chip_text(match_rules)
 	if chip != "":
