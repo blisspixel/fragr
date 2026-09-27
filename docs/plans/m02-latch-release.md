@@ -189,8 +189,10 @@ gates are resolved.
   [`docs/screenshots/m02-latch/`](../screenshots/m02-latch/README.md).
 - 2026-09-27: The final pinned Godot checker passed after the QA fix, and the
   entire Rust workspace built in release mode with the locked dependency set.
-- 2026-09-27: Draft PR #272 opened against main to run combined stack CI.
-  Restore its base to the Crawler branch once those checks pass.
-- Remaining for this slice: combined CI. An unsteered player review of the
-  rescue and Low Water meaning remains an acceptance gate after the engineering
-  slice.
+- 2026-09-27: Draft PR #272 passed combined stack CI against main: Rust test,
+  benchmark, roster, 90 percent coverage gate, release build, Godot, soak,
+  audit, packages and Windows/macOS portability. Its base was restored to the
+  Crawler draft for focused review. The integration check ran on commit
+  `d9335fc`; this plan-only status update has no gameplay changes.
+- An unsteered player review of the rescue and Low Water meaning remains an
+  acceptance gate after the engineering slice.
