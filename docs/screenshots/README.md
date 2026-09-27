@@ -4,6 +4,10 @@ The `tour_*.png` files are the arena tour captured by
 `tools/qa_tour.sh --publish` with Godot 4.7.2-stable and a loopback server.
 The `m01_*.png` files are Recall Notice gameplay from
 `FRAGR_QA_BOTS=0 FRAGR_QA_MAP_FILE=server/maps/m01-recall-notice.json FRAGR_QA_MANIFEST=res://qa/m01-rooms.json tools/qa_tour.sh`.
+The [M02 Crawler evidence](m02-crawler/README.md) records its crouch, leap and
+pack cues. The [M02 Latch ward evidence](m02-latch/README.md) shows the stopped
+machine, restraint use, opened second bay and Low Water list. Its live tour
+manifest also records dock departure.
 Inspect every frame before it is named anywhere. A nonblank image is not
 proof of good art. The README embeds four files and no more: `tour_menu_16x9.png`,
 `m01_intake_16x9.png`, `tour_multiplayer_16x9.png`, and `tour_combat_follow_16x9.png`.

@@ -118,10 +118,11 @@ Initial handshake message. Must be sent immediately after connection.
   Version 14 is allocated to capture the flag in a separate branch. Version 15
   adds optional `seated: true` to the Union Clerk campaign identity.
   Version 16 adds the low Union Crawler, its timed leap and the positional
-  `crawler_scrabble` event. M02 requires 16 for every role because its stair
-  encounter depends on those tells. M01 and the arcade maps keep their earlier
-  requirements. Capabilities 14 and 15 must be integrated before a version 16
-  release; use matching campaign server/client builds.
+  `crawler_scrabble` event. Version 17 adds the M02 `ward_secured` fact, which
+  distinguishes guard victory and machine halt from the later restraint use
+  that frees Latch. M02 requires 17 for every role. M01 and the arcade maps
+  keep their earlier requirements. Capabilities 14 to 16 must be integrated
+  before a version 17 release; use matching campaign server/client builds.
   Older clients of every role are rejected before `Welcome`
   with `unsupported_gameplay`. This capability is separate from geometry. The six
   full-arsenal arcade maps still accept 1. There an older reader draws only the
@@ -299,18 +300,24 @@ and before the corresponding snapshot whenever shared state changes. `state` is:
   contain no use prompts. Run identity and rules survive geometry changes.
 - `m02`: present only for `persons_unknown`, absent from the M01 JSON. It has
   `completed` (ordered stable objective IDs), `total` (1 to 8), `gate_mask`
-  (three low bits for prepared gate variants), and `current`. The current
+  (three low bits for prepared gate variants), `ward_secured` (server-owned
+  `ward_guards` completion, which stops correction before release), and
+  `current`. `ward_secured` is derived from the encounter state on each
+  projection, not stored as a second mission flag. The current
   objective is null or omitted only after departure. An arrival objective has
   `{"id":"ward_reached","action":{"kind":"arrival","region":{"min":[x,y,z],"max":[x,y,z]},"feet":[x,y,z]}}`.
   A physical-use objective has
-  `{"id":"correction_stopped","action":{"kind":"use","target":{"decoration":0,"approach":[x,y,z]}}}`.
+  `{"id":"companion_released","action":{"kind":"use","target":{"decoration":0,"approach":[x,y,z]}}}`.
   Arrival uses the participant's feet inside the region. Use targets name a
   registered `map_info.presentation.decorations` panel and a reachable approach.
-  The server validates range, aim, sight and party eligibility. Each gate change
+  The server validates range, aim, sight, party eligibility and the authored
+  `ward_guards` prerequisite before offering or accepting the release use. Each gate change
   sends a new `map_info` before the changed mission state. The bundled M02
-  graybox (`server/maps/m02-persons-unknown.json`) authors two arrival
-  objectives, `companion_released` and `party_departed`, with no gates and
-  three authored encounters. It has no durable solo run yet.
+  graybox (`server/maps/m02-persons-unknown.json`) authors `ward_reached`
+  arrival, `companion_released` use and `party_departed` arrival, with no
+  gates and six authored encounters. The visible frame release derives from
+  completed `companion_released`; late readers receive both facts in the
+  current mission state. It has no durable solo run yet.
 
 Participants finish or skip their opening by sending
 `{"type":"mission_ready","id":"recall_notice","attempt":1}` using the current
@@ -1381,12 +1388,12 @@ the on-wire campaign rules revision. No parent command changes it during a run.
 
 The readiness record names the selected mission's client contract, rather than
 the highest version understood by the server. M01 names 12 for discovery
-equipment; M02 names 16 for the Crawler stair identity and timed leap. The local launcher
+equipment; M02 names 17 for the separate ward-victory and release facts. The local launcher
 checks this value exactly.
 
 `--local-mission persons_unknown` starts the bundled M02 graybox as a
 development child. It writes the same readiness line with
-`"mission":"persons_unknown"` and `"gameplay_version":16`. It has no durable run:
+`"mission":"persons_unknown"` and `"gameplay_version":17`. It has no durable run:
 `--run-mode` is refused before readiness, mission state carries no `run`, and
 the party keeps development entry respawn and the shared wipe reset. It is not
 a save carry from M01.

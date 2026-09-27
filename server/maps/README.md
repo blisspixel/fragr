@@ -12,18 +12,23 @@ prototype, not a finished M01 or the rescue. Checkpoints are not built.
 
 `m02-persons-unknown.json` is the Persons Unknown ward graybox, map 1002. The
 party enters on an observation gallery whose slot window faces the correction
-ward. Its destination tableau is still unbuilt. The upper gallery offers a
+ward. A provisional Latch and second-bay tableau marks the destination. The
+upper gallery offers a
 Shotgun and Shells before a guard room with two initially seated Clerks. The
 service stair turns toward a lower Crawler lesson and a raised pack landing,
-then leads to the antechamber and ward. The route is open: no switches or gates.
+then leads to the antechamber and ward. The route is open, with no door switch
+or physical gate; the restraint panel is the one required local Use control.
 Six encounters hold sixteen Union enemies: the guard-room Clerks, one Crawler
 after the turn, three Crawlers and a Sweeper on the later landing, then the ward,
-processing-floor and loading-dock fights. Two objectives advance by arrival:
-"Find Latch" at the restraint frame in the ward, then "Get out" on the loading
-dock. A 30 HP pickup at [-1, 0, -5.5] supports the processing-floor entry route;
+processing-floor and loading-dock fights. The three objectives are ward arrival,
+local Use at Latch's frame after the ward guards fall, and dock arrival. Ward
+victory stops the correction machine; the release is a separate action. A
+30 HP pickup at [-1, 0, -5.5] supports the processing-floor entry route;
 the eastern 40 HP pickup remains an optional detour. This balance is provisional
-until fresh-player review. Latch is not built, and the map has no maintenance
-loop, captives or secrets. The Jammer first appears in level 3. Seeded Crawler
+until fresh-player review. Latch's fixed release tableau opens another occupied
+bay and reveals Low Water, but Latch does not yet travel or fight through the
+processing floor. The map has no maintenance loop or secrets. The Jammer first
+appears in level 3. Seeded Crawler
 route clears and the rendered warning, leap and pack pass authoring review;
 fresh-player review remains. This is a
 development graybox, not the finished mission.

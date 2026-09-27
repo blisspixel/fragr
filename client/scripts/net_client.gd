@@ -1,13 +1,14 @@
 extends Node
 
-# Version 16 understands the server-owned Crawler leap and M02 sound cue;
+# Version 17 understands the server-owned M02 ward and release facts;
+# 16 understands the server-owned Crawler leap and M02 sound cue;
 # 15 understands seated M02 Clerks, and 14 is capture the flag;
 # 13 understands the chosen participant body;
 # 12 match rule sets;
 # 10 one ammunition count per type and scatter pellet traces; 9 M02
 # objective and gate state; 8 private participant records. Older servers
 # remain playable.
-const GAMEPLAY_VERSION: int = 16
+const GAMEPLAY_VERSION: int = 17
 
 signal connected_to_server
 signal disconnected_from_server

@@ -18,6 +18,7 @@ Status words: **proposed** (a design awaiting Nick's decision; directs no work),
 | Plan | Status | One-liner |
 |---|---|---|
 | [`m02-crawler-descent.md`](./m02-crawler-descent.md) | **in flight** | Draft low Crawler and later three-Crawler and Sweeper landing pass seeded route and rendered visual checks; fresh-player review remains. |
+| [`m02-latch-release.md`](./m02-latch-release.md) | **in flight** | Gate Latch's ward release on guard victory and a local restraint control, then project a visible one-time result to every role. |
 | [`m02-guard-room-at-stair-top.md`](./m02-guard-room-at-stair-top.md) | **implemented** ([#269](https://github.com/blisspixel/fragr/pull/269)) | Move the Shotgun and seated Clerk introduction above M02's service stair before the Crawler descent. |
 | [`m02-shotgun-introduction.md`](./m02-shotgun-introduction.md) | **implemented** ([#268](https://github.com/blisspixel/fragr/pull/268)) | Guarantee the Shotgun before a two-Clerk first fight, then replay the M02 route and wipe; the accepted stair order and seated pose remain ahead. |
 | [`player-body-selection.md`](./player-body-selection.md) | **in flight** | Choose a human or an embodied agent in a synthetic body: capability 13 on Hello, Welcome and snapshots, saved in the profile, honored for agents, free-palette runtime art that keeps its colours on the coalition side. |

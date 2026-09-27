@@ -542,8 +542,10 @@ pub const BODY_GAMEPLAY_VERSION: u32 = 13;
 pub const SEATED_GUARD_GAMEPLAY_VERSION: u32 = 15;
 /// A low Crawler body, a timed leap and an audible encounter cue.
 pub const CRAWLER_GAMEPLAY_VERSION: u32 = 16;
+/// M02 projects ward victory before Latch's later release action.
+pub const LATCH_RELEASE_GAMEPLAY_VERSION: u32 = 17;
 /// Highest understood gameplay contract; content requirements use their own minimum.
-pub const GAMEPLAY_VERSION: u32 = CRAWLER_GAMEPLAY_VERSION;
+pub const GAMEPLAY_VERSION: u32 = LATCH_RELEASE_GAMEPLAY_VERSION;
 pub fn legacy_gameplay_version() -> u32 {
     1
 }

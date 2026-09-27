@@ -165,6 +165,10 @@ func _run() -> void:
 		_walk_results.clear()
 		if state.get("jump_probe", false):
 			await _jump_probe()
+		# A detached observation state must hand the eye back before ordinary
+		# walking resumes, or the next live route would send no human input.
+		if state.get("camera", "") == "first_person" and _joined and not bool(_spectator_camera().get("fp_mode")):
+			_pose_camera("first_person", state)
 		for point: Array in state.get("walk_to", []):
 			await _walk_to(Vector3(float(point[0]), float(point[1]), float(point[2])))
 			if _failed:
@@ -204,6 +208,8 @@ func _run() -> void:
 			await _empty_ammo()
 		if state.has("interact"):
 			await _use_mission_control(str(state["interact"]))
+		if state.has("expect_m02_ward_stage"):
+			await _expect_m02_ward_stage(str(state["expect_m02_ward_stage"]), state_name)
 		if state.has("await_run_status"):
 			var run_deadline: int = Time.get_ticks_msec() + 120000
 			while _run_status() != str(state["await_run_status"]) and Time.get_ticks_msec() < run_deadline:
@@ -278,6 +284,13 @@ func _run() -> void:
 			_strip_times_ms.clear()
 		if state.has("expect_equipment"):
 			_check_equipment(state["expect_equipment"])
+		# A live bot can kill the idle tour pawn during the framing delay. Wait
+		# for its next authoritative spawn and resend the authored aim before
+		# sampling the frame, including after a first-person camera handoff.
+		if state.has("weapon"):
+			await _select_weapon(str(state["weapon"]))
+		if state.has("aim_pitch"):
+			await _set_aim_pitch(float(state["aim_pitch"]))
 
 		await RenderingServer.frame_post_draw
 		await RenderingServer.frame_post_draw
@@ -318,8 +331,10 @@ func _run() -> void:
 			_failed = true
 		if state.has("aim_pitch"):
 			var expected_pitch: float = float(state["aim_pitch"])
-			if absf(float(observed.get("camera_pitch", 99.0)) - expected_pitch) > 0.001 or absf(_local_server_pitch(_game_manager()) - expected_pitch) > 0.001:
-				push_error("qa_tour: captured aim disagrees with the server for " + state_name)
+			var camera_pitch: float = float(observed.get("camera_pitch", 99.0))
+			var server_pitch: float = _local_server_pitch(_game_manager())
+			if absf(camera_pitch - expected_pitch) > 0.001 or absf(server_pitch - expected_pitch) > 0.001:
+				push_error("qa_tour: captured aim disagrees with the server for %s (expected %.3f, camera %.3f, server %.3f)" % [state_name, expected_pitch, camera_pitch, server_pitch])
 				_failed = true
 		var path: String = _out_dir.path_join(file_name)
 		var err: Error = shot.save_png(path)
@@ -714,10 +729,13 @@ func _change_role(play: bool) -> void:
 
 func _select_weapon(weapon: String) -> void:
 	var gm: Node = _game_manager()
-	gm.set("pending_weapon_swap", weapon.to_lower())
-	var deadline: int = Time.get_ticks_msec() + 3000
+	var deadline: int = Time.get_ticks_msec() + 6000
 	while str(gm.call("_local_weapon_name")) != weapon and Time.get_ticks_msec() < deadline:
-		await process_frame
+		# A swap issued during the respawn gap is cleared by the manager.
+		# Reissue only after an authoritative pawn exists in the snapshot.
+		if _local_server_pitch(gm) != 99.0:
+			gm.set("pending_weapon_swap", weapon.to_lower())
+		await create_timer(0.1).timeout
 	if str(gm.call("_local_weapon_name")) != weapon:
 		push_error("qa_tour: server did not equip " + weapon)
 		_failed = true
@@ -887,6 +905,35 @@ func _use_mission_control(expected_phase: String) -> void:
 		network.get("mission").get("state", {}).get("prompts", [])])
 	_failed = true
 
+func _expect_m02_ward_stage(stage: String, state_name: String) -> void:
+	var manager: Node = _game_manager()
+	var ward: M02Ward = manager.get("m02_ward") as M02Ward if manager != null else null
+	var deadline: int = Time.get_ticks_msec() + 8000
+	while ward != null and Time.get_ticks_msec() < deadline:
+		var progress: Dictionary = manager.net_client.mission.get("state", {}).get("m02", {})
+		var secured: bool = progress.get("ward_secured") == true
+		var released: bool = "companion_released" in progress.get("completed", [])
+		var passed: bool = false
+		match stage:
+			"secured":
+				passed = secured and not released and not (ward._machine_lamp.material_override as StandardMaterial3D).emission_enabled
+			"restrained":
+				passed = secured and not released and ward._second_left.position.x > -0.5
+			"released":
+				passed = secured and released and ward._release_elapsed >= 0.0 and ward._second_left.position.x > -0.5
+			"second_open":
+				passed = secured and released and ward._release_elapsed >= M02Ward.SECOND_OPEN_END \
+					and ward._second_left.position.x < -0.9 and ward._caption_key == "M02_LATCH_SPEECH"
+			"low_water":
+				passed = secured and released and ward._release_elapsed >= M02Ward.LIST_REVEAL \
+					and ward._transfer_list.visible and (ward._transfer_list.get_node("Copy") as WorldSign).text.contains("LOW WATER")
+		if passed:
+			print("qa_tour: %s reached M02 ward stage %s" % [state_name, stage])
+			return
+		await create_timer(0.05).timeout
+	push_error("qa_tour: %s never reached M02 ward stage %s" % [state_name, stage])
+	_failed = true
+
 func _record_movement() -> void:
 	var feet: Vector3 = _local_feet()
 	var camera: Node3D = _spectator_camera()
@@ -972,7 +1019,7 @@ func _set_aim_pitch(pitch: float) -> void:
 		_failed = true
 		return
 	cam.set("fp_pitch", pitch)
-	var deadline: int = Time.get_ticks_msec() + 3000
+	var deadline: int = Time.get_ticks_msec() + 5000
 	while absf(_local_server_pitch(gm) - pitch) > 0.001 and Time.get_ticks_msec() < deadline:
 		await process_frame
 	if absf(_local_server_pitch(gm) - pitch) > 0.001:

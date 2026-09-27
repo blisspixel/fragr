@@ -13,9 +13,9 @@ and the map version in observations, and closes its MCP game session if a map
 has unsupported or invalid geometry, or the server sends malformed JSON.
 Ground-filled legacy maps remain readable.
 
-The adapter declares gameplay capability 16. Every discovery map requires at
-least 12 for all roles; M02 requires 16 for its seated Clerk and Crawler stair
-encounters. The six full-arsenal arcade maps still admit 1. Older clients are
+The adapter declares gameplay capability 17. Every discovery map requires at
+least 12 for all roles; M02 requires 17 for its seated Clerk, Crawler stair
+and separate ward-victory and release facts. The six full-arsenal arcade maps still admit 1. Older clients are
 rejected before admission. `observe.loadout`
 is private to this participant: selected and owned weapons (`["fists","tack"]`),
 one `ammo` count per pool (`bullets`, `shells`, `cells`), personal supply

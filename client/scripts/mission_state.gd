@@ -197,14 +197,16 @@ static func m02_validation_error(message: Dictionary, geometry: Dictionary, prev
 	var total: int = int(geometry["total"])
 	if not progress.get("completed") is Array or not EquipmentState.integer(progress.get("total"), M02_MAX_OBJECTIVES) \
 		or int(progress["total"]) != total or not EquipmentState.integer(progress.get("gate_mask"), 7) \
-		or progress.size() != (4 if progress.has("current") else 3):
+		or not progress.get("ward_secured") is bool \
+		or progress.size() != (5 if progress.has("current") else 4):
 		return INVALID
 	var completed: Array = progress["completed"]
 	var departed: bool = value["phase"] == "departed"
 	var current: Variant = progress.get("current")
 	if completed.size() > total or departed != (completed.size() == total) \
 		or (current != null) != (completed.size() < total) \
-		or (value["phase"] == "briefing" and (not completed.is_empty() or int(progress["gate_mask"]) != 0)):
+		or (value["phase"] == "briefing" and (not completed.is_empty() or int(progress["gate_mask"]) != 0 or progress["ward_secured"])) \
+		or ("companion_released" in completed and not progress["ward_secured"]):
 		return INVALID
 	var seen: Array[String] = []
 	for id: Variant in completed:
@@ -219,6 +221,8 @@ static func m02_validation_error(message: Dictionary, geometry: Dictionary, prev
 		if not problem.is_empty():
 			return problem
 		use_prompt = current["action"]["kind"] == "use" and value["phase"] == "in_progress"
+		if current["id"] == "companion_released" and not progress["ward_secured"]:
+			use_prompt = false
 		if current["id"] == M02_DEPARTURE and (completed.size() + 1 != total or current["action"]["kind"] != "arrival"):
 			return INVALID
 	if not previous.is_empty():
@@ -229,7 +233,8 @@ static func m02_validation_error(message: Dictionary, geometry: Dictionary, prev
 		# Within one attempt, progress only extends; a retry may restart it.
 		if int(value["attempt"]) == int(old["attempt"]):
 			var before: Array = old["m02"]["completed"]
-			if completed.size() < before.size() or completed.slice(0, before.size()) != before:
+			if completed.size() < before.size() or completed.slice(0, before.size()) != before \
+				or (old["m02"]["ward_secured"] and not progress["ward_secured"]):
 				return INVALID
 	var party: Dictionary = {}
 	for member: Variant in value["party"]:

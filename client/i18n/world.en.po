@@ -171,14 +171,17 @@ msgstr "Development mission. Leaving keeps no progress."
 msgid "M02_WAITING"
 msgstr "WAITING FOR THE PARTY"
 
-
+msgid "M02_OBJECTIVE_WARD_REACHED"
+msgstr "REACH THE CORRECTION WARD"
 
 msgid "M02_OBJECTIVE_COMPANION_RELEASED"
-msgstr "FIND LATCH"
+msgstr "CLEAR THE WARD GUARDS"
 
+msgid "M02_OBJECTIVE_COMPANION_SECURED"
+msgstr "FREE LATCH AT THE RESTRAINT"
 
 msgid "M02_OBJECTIVE_PARTY_DEPARTED"
-msgstr "GET OUT"
+msgstr "GET TO THE LOADING DOCK"
 
 msgid "M02_OBJECTIVE_UNKNOWN"
 msgstr "KEEP MOVING"
@@ -186,6 +189,33 @@ msgstr "KEEP MOVING"
 
 msgid "M02_USE_CONSOLE"
 msgstr "{use}: USE"
+
+msgid "M02_USE_COMPANION_RELEASED"
+msgstr "{use}: OPEN LATCH'S RESTRAINT"
+
+msgid "M02_WARD_STOPPED"
+msgstr "CORRECTION HALTED"
+
+msgid "M02_LATCH_RELEASE"
+msgstr "LATCH'S RESTRAINT OPENS"
+
+msgid "M02_LATCH_HEADING"
+msgstr "LATCH"
+
+msgid "M02_LATCH_SPEECH"
+msgstr "Latch opens the next restraint. 'You came. There are more people here.'"
+
+msgid "M02_LOW_WATER"
+msgstr "LOW WATER IS NEXT ON THE RECALL LIST. 'There are more people to help.'"
+
+msgid "M02_RELEASE_RECAP"
+msgstr "Latch freed another captive. LOW WATER is next on the recall list."
+
+msgid "M02_TRANSFER_LIST"
+msgstr "RECALL LIST\nNEXT: LOW WATER\nMORE NAMES"
+
+msgid "M02_SKIP_HINT"
+msgstr "{back}: SKIP"
 
 msgid "M02_DEPARTED"
 msgstr "OUT. {pause} TO LEAVE."

@@ -40,6 +40,10 @@ pub(crate) struct Encounters {
 }
 
 impl Encounters {
+    pub(crate) fn is_complete(&self, index: usize) -> bool {
+        matches!(self.groups.get(index), Some(Group::Complete))
+    }
+
     fn reset(&mut self, state: &mut GameState) {
         state.players.retain(|p| !p.is_campaign_enemy());
         self.enemies.clear();

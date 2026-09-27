@@ -257,7 +257,14 @@ impl AuthoredMap {
         let m02 = doc
             .m02
             .map(|definition| {
-                definition.prepare(&arena, &solid_ids, &mut presentation, start, &mut seen)
+                definition.prepare(
+                    &arena,
+                    &solid_ids,
+                    &doc.encounters,
+                    &mut presentation,
+                    start,
+                    &mut seen,
+                )
             })
             .transpose()?
             .map(Arc::new);

@@ -9,6 +9,21 @@ pub(super) struct M02Progress {
 }
 
 impl GameState {
+    /// The machine is quiet only after the authored ward group is fully cleared.
+    /// This is derived from encounter state, never a second mutable mission flag.
+    pub(crate) fn m02_ward_secured(&self) -> bool {
+        self.mission
+            .as_ref()
+            .filter(|run| run.m02.is_some())
+            .and_then(|run| {
+                run.initial_map
+                    .encounters()
+                    .iter()
+                    .position(|encounter| encounter.id == "ward_guards")
+            })
+            .is_some_and(|index| self.encounters.is_complete(index))
+    }
+
     /// The existing mission_ready command enters here only for M02.
     pub fn acknowledge_m02(&mut self, player_id: Uuid, attempt: u32) -> bool {
         let Some(run) = self.mission.as_mut().filter(|run| {
@@ -81,6 +96,12 @@ impl GameState {
         let prompts = if run.phase == MissionPhase::InProgress {
             current
                 .as_ref()
+                .filter(|_| {
+                    prepared.objective(progress.index).is_some_and(|step| {
+                        step.required_encounter
+                            .is_none_or(|index| self.encounters.is_complete(index))
+                    })
+                })
                 .and_then(|objective| match &objective.action {
                     MissionObjectiveAction::Use { target } => Some(
                         self.players
@@ -117,6 +138,7 @@ impl GameState {
                 completed,
                 total: u8::try_from(prepared.len()).ok()?,
                 gate_mask: progress.gate_mask,
+                ward_secured: self.m02_ward_secured(),
                 current,
             }),
         })
@@ -150,6 +172,12 @@ impl GameState {
         let Some(objective) = prepared.objective(progress.index) else {
             return;
         };
+        if objective
+            .required_encounter
+            .is_some_and(|index| !self.encounters.is_complete(index))
+        {
+            return;
+        }
         let active = |player: &Player| {
             player.hp > 0
                 && player.respawn_timer.is_none()

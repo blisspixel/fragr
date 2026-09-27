@@ -1203,7 +1203,18 @@ mod mcp_tests {
             build_observe_result(&state)["mission"]["m02"]["current"]["id"],
             "ward_reached"
         );
+        assert_eq!(
+            build_observe_result(&state)["mission"]["m02"]["ward_secured"],
+            false
+        );
         assert_eq!(build_observe_result(&state)["mission"]["phase"], "briefing");
+        let mut missing_ward_fact: Value =
+            serde_json::to_value(sim.mission_message().unwrap()).unwrap();
+        missing_ward_fact["state"]["m02"]
+            .as_object_mut()
+            .unwrap()
+            .remove("ward_secured");
+        assert!(ingest_server_text(&mut state, &missing_ward_fact.to_string()).is_err());
         let request = || McpRequest {
             jsonrpc: "2.0".into(),
             id: Some(serde_json::json!(91)),

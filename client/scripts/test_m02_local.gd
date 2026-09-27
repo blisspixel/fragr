@@ -63,10 +63,11 @@ func _run() -> void:
 	_expect(owned.mission == MissionState.M02_ID and owned.state == LocalMatch.State.RUNNING, "the owned child is the M02 development child")
 	_expect(not is_instance_valid(current_scene.opening), "the graybox has no story page yet")
 	var state: Dictionary = current_scene.mission_hud.state
-	_expect(not state.has("run") and state["m02"]["current"]["id"] == "companion_released", "M02 starts at the first objective without a run")
+	_expect(not state.has("run") and state["m02"]["current"]["id"] == "ward_reached" and not state["m02"]["ward_secured"],
+		"M02 starts at the ward approach without a run or correction win")
 	_expect(not current_scene.controls_blocked(), "the ready participant can move")
 	var hud: MissionHud = current_scene.mission_hud
-	_expect(hud._card.visible and hud._copy.text == tr("M02_OBJECTIVE_COMPANION_RELEASED") and not hud._prompt.visible, "one objective line shows on entry")
+	_expect(hud._card.visible and hud._copy.text == tr("M02_OBJECTIVE_WARD_REACHED") and not hud._prompt.visible, "one objective line shows on entry")
 	await process_frame
 	await process_frame
 	# The card wraps; every M02 objective line must fit it without a second row.
@@ -77,6 +78,9 @@ func _run() -> void:
 		hud._copy.text = tr(MissionHud.objective_key(id))
 		await process_frame
 		_expect(hud._copy.get_line_count() == 1, "objective copy fits one card line: " + id)
+	hud._copy.text = tr("M02_OBJECTIVE_COMPANION_SECURED")
+	await process_frame
+	_expect(hud._copy.get_line_count() == 1, "secured ward copy fits one card line")
 	for key: String in ["M02_WAITING", "M02_DEPARTED", "M02_OBJECTIVE_UNKNOWN"]:
 		hud._copy.text = tr(key)
 		await process_frame

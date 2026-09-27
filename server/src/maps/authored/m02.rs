@@ -1,5 +1,5 @@
 //! M02 objective, gate and signal authoring, prepared and checked before readiness.
-use super::{identity, invalid, standing};
+use super::{encounters::EncounterDefinition, identity, invalid, standing};
 use crate::movement::{Arena, EYE_HEIGHT};
 use crate::navigation::{Navigation, RouteStatus, SEARCH_LIMIT};
 use crate::protocol::{
@@ -32,6 +32,8 @@ struct Objective {
     id: String,
     #[serde(default)]
     after: Option<String>,
+    #[serde(default)]
+    requires_encounter: Option<String>,
     action: Action,
 }
 
@@ -79,6 +81,7 @@ pub(crate) struct PreparedObjective {
     pub(crate) id: String,
     pub(crate) feet: [f32; 3],
     pub(crate) required_mask: u8,
+    pub(crate) required_encounter: Option<usize>,
     pub(crate) control: Option<UseTarget>,
     pub(crate) arrival: Option<Region3>,
 }
@@ -197,6 +200,7 @@ impl Definition {
         self,
         arena: &Arena,
         solid_ids: &HashMap<String, usize>,
+        encounters: &[EncounterDefinition],
         presentation: &mut MapPresentation,
         start: [f32; 3],
         seen: &mut HashSet<String>,
@@ -258,6 +262,16 @@ impl Definition {
                     "M02 objectives need a linear, acyclic prerequisite chain",
                 ));
             }
+            let required_encounter = objective
+                .requires_encounter
+                .as_ref()
+                .map(|id| {
+                    encounters
+                        .iter()
+                        .position(|encounter| encounter.id == *id)
+                        .ok_or_else(|| invalid("M02 objective references an unknown encounter"))
+                })
+                .transpose()?;
             let (feet, control, arrival) = match objective.action {
                 Action::Arrival { region, feet } => {
                     if !region.valid(arena.half) || !region.contains(feet) {
@@ -293,6 +307,7 @@ impl Definition {
                 id: objective.id.clone(),
                 feet,
                 required_mask: 0,
+                required_encounter,
                 control,
                 arrival,
             });

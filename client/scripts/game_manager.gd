@@ -56,6 +56,7 @@ var pending_jump: bool = false
 var pending_interact: bool = false
 var interact_held: bool = false
 var mission_hud: MissionHud
+var m02_ward: M02Ward
 var _continue_armed: bool = false
 var _continue_attempt_sent: int = -1
 var _presented_attempt: int = 0
@@ -159,6 +160,9 @@ func _ready():
 	var arena_root: Node = get_node_or_null("Arena")
 	if arena_root != null:
 		arena_root.add_child(arena_cover)
+		m02_ward = M02Ward.new()
+		m02_ward.pause_menu = pause_menu
+		arena_root.add_child(m02_ward)
 	else:
 		add_child(arena_cover)
 
@@ -227,6 +231,8 @@ func _on_map_info(info: Dictionary) -> void:
 	# The venue decides the sky, and the venue is only known once the server
 	# has said which one this is.
 	_apply_arena_sky(str(info.get("map_name", "")))
+	if m02_ward != null:
+		m02_ward.configure_map(info)
 
 ## The console, the pause menu and the loading card. Built here rather than in
 ## the scene because they are the same three things whatever the match is.
@@ -635,6 +641,8 @@ func _on_mission_received(state: Dictionary) -> void:
 		_presented_attempt = attempt
 	if mission_hud != null:
 		mission_hud.apply(state, str(net_client.player_id) if is_human_player else "")
+	if m02_ward != null:
+		m02_ward.apply_state(state)
 	hud.combat_feed.set_campaign(not state.is_empty())
 	_submit_mission_readiness()
 	play_departure_scene(state)
@@ -809,6 +817,8 @@ func _clear_world() -> void:
 	interact_held = false
 	if mission_hud != null:
 		mission_hud.apply({}, "")
+	if m02_ward != null:
+		m02_ward.clear_map()
 	hud.combat_feed.set_campaign(false)
 	pending_weapon_swap = null
 	latest_snapshot.clear()

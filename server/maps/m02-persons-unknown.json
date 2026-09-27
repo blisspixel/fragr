@@ -48,8 +48,10 @@
     },
     {
       "id":"ward_guards",
-      "after":"crawler_pack",
-      "regions":[{"min":[-13,0,-21],"max":[-10,1,-18]}],
+      "regions":[
+        {"min":[-13,0,-21],"max":[-8,1,-18]},
+        {"min":[5,0,-13],"max":[8,1,-9]}
+      ],
       "enemies":[
         {"id":"ward_clerk","kind":"clerk","feet":[5,0,-19],"yaw":3.141593},
         {"id":"ward_sweeper","kind":"sweeper","feet":[4,0,-11],"yaw":3.141593},
@@ -146,7 +148,7 @@
     {"solid":"antechamber_north","face":"north","center":[-1,0],"size":[3.4,2.8],"kind":"complaint_notice"},
     {"solid":"antechamber_lockers","face":"east","center":[0,0],"size":[3.6,2.2],"kind":"lockers"},
     {"solid":"correction_machine","face":"north","center":[0,0.6],"size":[3.6,1.4],"kind":"vent"},
-    {"solid":"restraint_frame","face":"west","center":[0,-0.4],"size":[3.6,1.6],"kind":"lockers"},
+    {"solid":"restraint_frame","face":"west","center":[0,-0.6],"size":[3.6,1.2],"kind":"lockers"},
     {"solid":"floor_east","face":"west","center":[2,0.5],"size":[8,2.4],"kind":"vent"},
     {"solid":"ceiling","face":"down","center":[0,-30],"size":[4.0,0.5],"kind":"strip_light"},
     {"solid":"ceiling","face":"down","center":[-15,-18],"size":[3.0,0.5],"kind":"strip_light"},
@@ -159,8 +161,11 @@
   ],
   "m02": {
     "objectives": [
-      {"id":"companion_released","action":{"kind":"arrival",
-       "region":{"min":[5,0,-13],"max":[8,1,-9]},"feet":[7,0,-11]}},
+      {"id":"ward_reached","action":{"kind":"arrival",
+       "region":{"min":[-9,0,-21],"max":[8,1,-9]},"feet":[-8,0,-19]}},
+      {"id":"companion_released","after":"ward_reached","requires_encounter":"ward_guards",
+       "action":{"kind":"use","panel":{"solid":"restraint_frame","face":"west",
+       "center":[0,0.6],"size":[0.6,0.6],"kind":"terminal"},"approach":[7,0,-11]}},
       {"id":"party_departed","after":"companion_released","action":{"kind":"arrival",
        "region":{"min":[-4,0,19],"max":[4,1,23]},"feet":[0,0,21.5]}}
     ],

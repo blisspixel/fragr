@@ -114,6 +114,16 @@ fn m02_rejects_bad_prerequisites_gate_triggers_and_budget() {
 }
 
 #[test]
+fn m02_rejects_an_unknown_encounter_requirement_before_readiness() {
+    let mut bad = fixture();
+    bad["m02"]["objectives"][1]["requires_encounter"] = json!("ward_guards");
+    assert!(read(&bad)
+        .unwrap_err()
+        .to_string()
+        .contains("unknown encounter"));
+}
+
+#[test]
 fn m02_rejects_unusable_controls_and_routes() {
     let mut bad = fixture();
     bad["m02"]["objectives"][1]["action"]["panel"]["solid"] = json!("ward_gate");

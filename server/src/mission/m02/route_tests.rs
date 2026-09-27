@@ -5,12 +5,13 @@ use super::*;
 use crate::maps::AuthoredSource;
 use crate::movement::{Arena, BODY_HEIGHT, CONTACT_EPSILON};
 use crate::navigation::{Navigation, Navigator};
+use crate::net::GameCommand;
 use crate::protocol::{Action, CampaignActor, EnemyPhase, LookAt, Role, ServerMessage, Snapshot};
 use crate::session::GameSession;
 use std::collections::BTreeSet;
 use std::sync::Arc;
 
-const ORDER: [&str; 2] = ["companion_released", "party_departed"];
+const ORDER: [&str; 3] = ["ward_reached", "companion_released", "party_departed"];
 const ENEMIES: usize = 16;
 
 fn session() -> GameSession {
@@ -468,8 +469,325 @@ fn living_enemies(session: &GameSession) -> usize {
         .count()
 }
 
+fn ward_test_state() -> (GameState, Uuid) {
+    let map = AuthoredSource::Mission(MissionId::PersonsUnknown)
+        .load()
+        .unwrap();
+    let mut state = GameState::with_authored_map(map);
+    let id = Uuid::from_u128(0x02aa);
+    state.add_player(id, "Release probe".into(), Role::Human);
+    assert!(state.acknowledge_m02(id, 1));
+    (state, id)
+}
+
+fn release_control_point(state: &GameState) -> [f32; 3] {
+    state
+        .map
+        .m02_objectives()
+        .unwrap()
+        .objective(1)
+        .unwrap()
+        .control
+        .as_ref()
+        .unwrap()
+        .point(
+            state.map.presentation_ref().unwrap(),
+            &state.map.arena().solids,
+        )
+        .unwrap()
+}
+
+fn face_release_control(state: &mut GameState, id: Uuid, x: f32, z: f32) {
+    let target = release_control_point(state);
+    let player = state
+        .players
+        .iter_mut()
+        .find(|player| player.id == id)
+        .unwrap();
+    [player.x, player.y, player.z] = [x, PLAYER_FLOOR_Y, z];
+    (player.yaw, player.pitch) =
+        crate::combat::aim_at([player.x, crate::movement::EYE_HEIGHT, player.z], target).unwrap();
+}
+
+fn at_frame_facing_control(state: &mut GameState, id: Uuid) {
+    face_release_control(state, id, 7.0, -11.0);
+}
+
+fn defeat_ward_guards(state: &mut GameState) {
+    for enemy in state.players.iter_mut().filter(|player| {
+        matches!(
+            player.name.as_str(),
+            "ward_clerk" | "ward_sweeper" | "machine_clerk"
+        )
+    }) {
+        enemy.hp = 0;
+    }
+}
+
 #[test]
-fn bundled_graybox_is_an_open_route_with_arrival_objectives_and_fights() {
+fn ward_victory_precedes_the_local_release_and_a_second_use_is_inert() {
+    let (mut state, id) = ward_test_state();
+    {
+        let player = state
+            .players
+            .iter_mut()
+            .find(|player| player.id == id)
+            .unwrap();
+        [player.x, player.y, player.z] = [-8.0, PLAYER_FLOOR_Y, -19.0];
+    }
+    state.update_encounters();
+    state.advance_m02();
+    assert_eq!(
+        state.mission_state().unwrap().m02.unwrap().completed,
+        ["ward_reached"]
+    );
+    at_frame_facing_control(&mut state, id);
+    assert!(state.mission_state().unwrap().prompts.is_empty());
+    state.players[0].interaction_requested = true;
+    state.advance_m02();
+    assert_eq!(
+        state.mission_state().unwrap().m02.unwrap().completed,
+        ["ward_reached"]
+    );
+    defeat_ward_guards(&mut state);
+    state.players[0].interaction_requested = true;
+    state.advance_m02();
+    assert!(
+        !state.m02_ward_secured(),
+        "the last death is not yet the completed group"
+    );
+    state.update_encounters();
+    assert!(state.m02_ward_secured());
+    let before_use = state.mission_state().unwrap();
+    assert!(before_use.m02.unwrap().ward_secured);
+    assert_eq!(before_use.prompts.len(), 1);
+
+    state.players[0].hp = 0;
+    state.players[0].interaction_requested = true;
+    state.advance_m02();
+    state.players[0].hp = 100;
+    state.players[0].yaw = std::f32::consts::PI;
+    state.players[0].pitch = 0.0;
+    state.players[0].interaction_requested = true;
+    state.advance_m02();
+    assert_eq!(
+        state.mission_state().unwrap().m02.unwrap().completed,
+        ["ward_reached"]
+    );
+    at_frame_facing_control(&mut state, id);
+    state.players[0].interaction_requested = true;
+    state.advance_m02();
+    assert_eq!(
+        state.mission_state().unwrap().m02.unwrap().completed,
+        ["ward_reached", "companion_released"]
+    );
+    state.players[0].interaction_requested = true;
+    state.advance_m02();
+    assert_eq!(
+        state.mission_state().unwrap().m02.unwrap().completed.len(),
+        2
+    );
+    [state.players[0].x, state.players[0].y, state.players[0].z] = [0.0, PLAYER_FLOOR_Y, 21.5];
+    state.advance_m02();
+    assert!(
+        state.mission_departed(),
+        "one participant can leave without a Latch seat"
+    );
+}
+
+#[test]
+fn release_control_rejects_briefing_remote_and_occluded_presses() {
+    let map = AuthoredSource::Mission(MissionId::PersonsUnknown)
+        .load()
+        .unwrap();
+    let mut state = GameState::with_authored_map(map);
+    let id = Uuid::from_u128(0x02ad);
+    state.add_player(id, "Release probe".into(), Role::Human);
+    at_frame_facing_control(&mut state, id);
+    state.players[0].interaction_requested = true;
+    state.advance_m02();
+    assert_eq!(state.mission_state().unwrap().phase, MissionPhase::Briefing);
+    assert!(state.mission_state().unwrap().prompts.is_empty());
+    assert!(!state.players[0].interaction_requested);
+    assert!(state.acknowledge_m02(id, 1));
+    state.update_encounters();
+    state.advance_m02();
+    assert_eq!(
+        state.mission_state().unwrap().m02.unwrap().completed,
+        ["ward_reached"]
+    );
+    defeat_ward_guards(&mut state);
+    state.update_encounters();
+    assert!(state.m02_ward_secured());
+
+    face_release_control(&mut state, id, 4.5, -11.0);
+    state.players[0].interaction_requested = true;
+    assert!(state.mission_state().unwrap().prompts.is_empty());
+    state.advance_m02();
+    assert_eq!(
+        state.mission_state().unwrap().m02.unwrap().completed.len(),
+        1
+    );
+
+    // Even a forged position just behind the frame's south edge has its ray
+    // blocked by the solid. Facing and distance alone cannot operate it.
+    face_release_control(&mut state, id, 8.5, -13.2);
+    let eye = [8.5, crate::movement::EYE_HEIGHT, -13.2];
+    let target = release_control_point(&state);
+    assert!((target[0] - eye[0]).hypot(target[2] - eye[2]) < crate::protocol::USE_DISTANCE);
+    assert!(!crate::combat::line_of_sight(
+        eye,
+        target,
+        &state.map.arena().solids
+    ));
+    state.players[0].interaction_requested = true;
+    assert!(state.mission_state().unwrap().prompts.is_empty());
+    state.advance_m02();
+    assert_eq!(
+        state.mission_state().unwrap().m02.unwrap().completed.len(),
+        1
+    );
+
+    at_frame_facing_control(&mut state, id);
+    assert_eq!(state.mission_state().unwrap().prompts.len(), 1);
+    state.players[0].interaction_requested = true;
+    state.advance_m02();
+    assert_eq!(
+        state.mission_state().unwrap().m02.unwrap().completed,
+        ["ward_reached", "companion_released"]
+    );
+}
+
+#[test]
+fn wiping_after_ward_victory_but_before_release_restores_the_restraint() {
+    let (mut state, id) = ward_test_state();
+    at_frame_facing_control(&mut state, id);
+    state.update_encounters();
+    state.advance_m02();
+    defeat_ward_guards(&mut state);
+    state.update_encounters();
+    assert!(state.m02_ward_secured());
+    assert_eq!(state.mission_state().unwrap().prompts.len(), 1);
+    assert_eq!(
+        state.mission_state().unwrap().m02.unwrap().completed.len(),
+        1
+    );
+
+    state.players[0].hp = 0;
+    state.players[0].respawn_timer = Some(60);
+    state.update_encounters();
+    let mission = state.mission_state().unwrap();
+    assert_eq!(mission.attempt, 2);
+    assert!(!mission.m02.as_ref().unwrap().ward_secured);
+    assert!(mission.m02.as_ref().unwrap().completed.is_empty());
+    assert_eq!(mission.m02.unwrap().current.unwrap().id, "ward_reached");
+    assert!(state
+        .players
+        .iter()
+        .all(|player| !player.is_campaign_enemy()));
+
+    state.players[0].hp = 100;
+    state.players[0].respawn_timer = None;
+    state.update_encounters();
+    assert!(state
+        .players
+        .iter()
+        .any(|player| player.name == "ward_clerk"));
+    assert!(!state.m02_ward_secured());
+    state.advance_m02();
+    assert_eq!(
+        state.mission_state().unwrap().m02.unwrap().completed.len(),
+        1
+    );
+    assert!(state.mission_state().unwrap().prompts.is_empty());
+}
+
+#[test]
+fn a_bypassed_pack_cannot_leave_the_ward_dormant_at_latch() {
+    let (mut state, id) = ward_test_state();
+    at_frame_facing_control(&mut state, id);
+    state.update_encounters();
+    state.advance_m02();
+    assert_eq!(
+        state
+            .mission_state()
+            .unwrap()
+            .m02
+            .unwrap()
+            .current
+            .unwrap()
+            .id,
+        "companion_released",
+        "the frame approach must also satisfy ward_reached for a bypasser"
+    );
+    assert!(
+        !state.encounters.is_complete(2),
+        "the pack remains uncleared"
+    );
+    assert!(state
+        .players
+        .iter()
+        .any(|player| player.name == "ward_clerk" && player.hp > 0));
+    defeat_ward_guards(&mut state);
+    state.update_encounters();
+    assert!(
+        state.m02_ward_secured(),
+        "the frame-side region wakes the ward despite the pack bypass"
+    );
+}
+
+#[test]
+fn late_spectator_receives_the_durable_release_without_a_party_seat() {
+    let mut session = session();
+    let id = Uuid::from_u128(0x02ab);
+    session
+        .state
+        .add_player(id, "Release probe".into(), Role::Human);
+    assert!(session.state.acknowledge_m02(id, 1));
+    at_frame_facing_control(&mut session.state, id);
+    session.state.update_encounters();
+    session.state.advance_m02();
+    defeat_ward_guards(&mut session.state);
+    session.state.update_encounters();
+    session.state.players[0].interaction_requested = true;
+    session.state.advance_m02();
+    assert_eq!(
+        session
+            .state
+            .mission_state()
+            .unwrap()
+            .m02
+            .unwrap()
+            .completed,
+        ["ward_reached", "companion_released"]
+    );
+    let watcher = Uuid::from_u128(0x02ac);
+    session.apply_command(GameCommand::Connected {
+        id: watcher,
+        role: Role::Spectator,
+        name: "Watcher".into(),
+        player_id: None,
+        body: crate::protocol::BodyKind::Human,
+    });
+    let messages = session.take_unicasts();
+    assert!(matches!(
+        messages.first(),
+        Some((crate::session::Recipient::Client(client), ServerMessage::MapInfo { .. }))
+            if *client == watcher
+    ));
+    assert!(messages.iter().any(|(recipient, message)| {
+        matches!(recipient, crate::session::Recipient::Client(client) if *client == watcher)
+            && matches!(message, ServerMessage::Mission { state, .. }
+                if state.party.len() == 1
+                    && state.m02.as_ref().is_some_and(|m02|
+                        m02.ward_secured
+                            && m02.completed == ["ward_reached", "companion_released"]))
+    }));
+    assert_eq!(session.state.mission_state().unwrap().party.len(), 1);
+}
+
+#[test]
+fn bundled_graybox_has_a_local_release_after_the_ward_fight() {
     let map = crate::maps::RuntimeMap::Authored(
         AuthoredSource::Mission(MissionId::PersonsUnknown)
             .load()
@@ -480,11 +798,11 @@ fn bundled_graybox_is_an_open_route_with_arrival_objectives_and_fights() {
         .map(|index| prepared.objective(index).unwrap().id.as_str())
         .collect();
     assert_eq!(ids, ORDER);
-    // No switches and no gates: the only prepared world is the open one.
-    assert!((0..prepared.len()).all(|index| {
-        let objective = prepared.objective(index).unwrap();
-        objective.control.is_none() && objective.arrival.is_some()
-    }));
+    assert!(prepared.objective(0).unwrap().arrival.is_some());
+    assert!(prepared.objective(1).unwrap().control.is_some());
+    assert_eq!(prepared.objective(1).unwrap().required_encounter, Some(3));
+    assert!(prepared.objective(2).unwrap().arrival.is_some());
+    // The restraint control is required, but it opens no route gate.
     assert!(map.prepared_gate_world(0).is_some());
     assert!(map.prepared_gate_world(1).is_none());
     let encounters = map.encounters();
@@ -523,7 +841,8 @@ fn bundled_graybox_is_an_open_route_with_arrival_objectives_and_fights() {
     assert_eq!(encounters[2].id, "crawler_pack");
     assert_eq!(encounters[2].after.as_deref(), Some("crawler_first"));
     assert_eq!(encounters[3].id, "ward_guards");
-    assert_eq!(encounters[3].after.as_deref(), Some("crawler_pack"));
+    assert_eq!(encounters[3].after, None);
+    assert_eq!(encounters[3].regions.len(), 2);
     assert_eq!(
         encounters
             .iter()
@@ -540,7 +859,7 @@ fn bundled_graybox_is_an_open_route_with_arrival_objectives_and_fights() {
         wire,
         ServerMessage::MapInfo {
             map_id: 1002,
-            m02_objectives: Some(2),
+            m02_objectives: Some(3),
             mission: None,
             ..
         }
@@ -846,8 +1165,11 @@ fn a_wipe_resets_the_objective_and_the_fights() {
     let id = Uuid::from_u128(0x0202);
     session.state.add_player(id, "Walker".into(), Role::Agent);
     let mut walker = Walker::new(id);
-    walker.until(&mut session, 12000, |_, walker| walker.completed.len() == 1);
-    assert!(!walker.defeated.is_empty(), "the ward fight happened first");
+    walker.until(&mut session, 12000, |_, walker| walker.completed.len() == 2);
+    assert!(
+        session.state.m02_ward_secured(),
+        "the ward fight happened first"
+    );
     let fallen = session
         .state
         .players
@@ -862,7 +1184,8 @@ fn a_wipe_resets_the_objective_and_the_fights() {
     let m02 = state.m02.clone().unwrap();
     assert_eq!(state.attempt, 2);
     assert!(m02.completed.is_empty());
-    assert_eq!(m02.current.unwrap().id, "companion_released");
+    assert!(!session.state.m02_ward_secured());
+    assert_eq!(m02.current.unwrap().id, "ward_reached");
     walker.until(&mut session, 200, |session, _| {
         living_enemies(session) == ENEMIES
     });

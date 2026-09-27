@@ -1,6 +1,6 @@
 # M02: Persons Unknown
 
-**Status:** development graybox (`server/maps/m02-persons-unknown.json`): an open route with a two-Clerk Shotgun introduction, a lone Crawler encounter, a later three-Crawler and Sweeper encounter, three further Clerk and Sweeper fights, and two arrival objectives. The Crawler slice has seeded route and rendered visual checks but awaits fresh-player review. Story, Latch as an actor, ward fight gates and M01-to-M02 save carry remain unbuilt. The Jammer first appears in level 3. Earth before the wipe. Target 10-12 minutes.
+**Status:** development graybox (`server/maps/m02-persons-unknown.json`): an open route with a two-Clerk Shotgun introduction, a lone Crawler encounter, a later three-Crawler and Sweeper encounter, three further Clerk and Sweeper fights, and a guarded local release control between ward and dock arrival. The Crawler slice has seeded route and rendered visual checks but awaits fresh-player review. Latch's fixed release presentation is in draft; their autonomous escape, the remaining story and M01-to-M02 save carry remain unbuilt. The Jammer first appears in level 3. Earth before the wipe. Target 10-12 minutes.
 [Treatment](../CAMPAIGN-MISSIONS.md#level-2-persons-unknown).
 
 The current graybox places the Shotgun on the upper gallery and two initially
@@ -19,8 +19,10 @@ helps release another captive and discovers Low Water on the wider recall list.
 They argue for helping others and participate in escape. They are neither a
 silent trophy nor a fragile escort whose mistakes constantly fail the mission.
 
-Latch acts autonomously after release. Their reunion does not introduce a
-controllable companion, a required second player or a revive system.
+The target mission gives Latch autonomous behavior after release. The current
+ward draft stops at the fixed reunion tableau. Their reunion does not
+introduce a controllable companion, a required second player or a revive
+system.
 
 The warning to Mara waits until the level 3 Jammer falls. A Notary drone
 photographs captives beyond the gallery glass, out of reach. Its first fight
@@ -38,7 +40,7 @@ to the floor and the gallery.
 | Service stair | Enclosed switchback, clear landings, no jump requirement | One Crawler gets a captioned scrabble and a readable leap before three Crawlers mix with a Sweeper on the next landing; fresh-player readability review pending |
 | Antechamber | Workroom with cover and a view into the ward | Recover after the stair and read the ward before entering it |
 | Ward | Open ward around the restraint frame | Set-piece fight; the correction stops when the guards fall; free Latch |
-| Processing floor | Two usable levels with broad stairs and machinery islands | Latch fights beside us; mixed threats pressure escape |
+| Processing floor | Two usable levels with broad stairs and machinery islands | Planned: Latch fights beside us; mixed threats pressure escape. The current draft has no moving ally. |
 | Service loop | Optional captives and supplies | Clear the guards and the captives free themselves |
 | Loading exit | Open dock with the yard in view | Clerk and Sweeper crest, regroup and leave for the rail yard |
 
@@ -60,13 +62,14 @@ cache behind a clearly altered service panel. Neither changes the core rescue.
 
 ## State and retries
 
-`ward_reached` -> `companion_released` (ward fight won) -> `party_departed`
-(dock arrival). Latch's release is an authoritative one-time transition.
+`ward_reached` -> `companion_released` (ward guards defeated, then local Use at
+the frame) -> `party_departed` (dock arrival). Ward victory quiets the machine;
+the release is a separate authoritative one-time transition.
 Optional prisoner groups have distinct released/evacuated states.
 
-The current graybox has no switches or gates and two objectives. It advances
-`companion_released` by arriving at the restraint frame ("Find Latch") until
-an objective can complete on a won fight, then "Get out" on the dock.
+The current draft has one required Use control and no physical gate. Its
+render-only ward figures show Latch freeing another captive and reading Low
+Water, but no companion travels through the later combat yet.
 
 Mastery hooks, planned, not built: a par time on the result, the maintenance
 loop as the runner's line, and best clear time in the service record.

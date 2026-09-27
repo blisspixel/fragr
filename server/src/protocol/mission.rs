@@ -243,6 +243,8 @@ pub struct M02ObjectiveState {
     pub completed: Vec<String>,
     pub total: u8,
     pub gate_mask: u8,
+    /// Authoritative ward encounter is complete; correction has stopped.
+    pub ward_secured: bool,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub current: Option<MissionObjective>,
 }
@@ -324,6 +326,8 @@ impl MissionState {
                             .and_then(|m02| m02.current.as_ref())
                             .is_some_and(|current| {
                                 matches!(current.action, MissionObjectiveAction::Use { .. })
+                                    && (current.id != "companion_released"
+                                        || self.m02.as_ref().is_some_and(|m02| m02.ward_secured))
                             })
                 }
                 MissionPhase::Briefing | MissionPhase::Departed => false,
@@ -355,7 +359,8 @@ impl MissionState {
                 != (m02.completed.len() == usize::from(m02.total))
             || m02.current.is_some() != (m02.completed.len() < usize::from(m02.total))
             || (self.phase == MissionPhase::Briefing
-                && (!m02.completed.is_empty() || m02.gate_mask != 0))
+                && (!m02.completed.is_empty() || m02.gate_mask != 0 || m02.ward_secured))
+            || (m02.completed.iter().any(|id| id == "companion_released") && !m02.ward_secured)
         {
             return Err("invalid M02 objective progress");
         }
@@ -443,8 +448,9 @@ mod m02_wire_tests {
                 completed: vec!["ward_reached".into()],
                 total: 3,
                 gate_mask: 0,
+                ward_secured: true,
                 current: Some(MissionObjective {
-                    id: "correction_stopped".into(),
+                    id: "companion_released".into(),
                     action: MissionObjectiveAction::Use {
                         target: UseTarget {
                             decoration: 0,
@@ -463,6 +469,15 @@ mod m02_wire_tests {
         let json = serde_json::to_string(&valid).unwrap();
         let decoded: MissionState = serde_json::from_str(&json).unwrap();
         decoded.validate(2).unwrap();
+        let mut missing_fact: serde_json::Value = serde_json::from_str(&json).unwrap();
+        missing_fact["m02"]
+            .as_object_mut()
+            .unwrap()
+            .remove("ward_secured");
+        assert!(serde_json::from_value::<MissionState>(missing_fact).is_err());
+        let mut wrong_fact: serde_json::Value = serde_json::from_str(&json).unwrap();
+        wrong_fact["m02"]["ward_secured"] = serde_json::json!(1);
+        assert!(serde_json::from_value::<MissionState>(wrong_fact).is_err());
         let mut invalid = valid.clone();
         invalid.phase = MissionPhase::FindTransfer;
         assert!(invalid.validate(2).is_err());
@@ -503,5 +518,31 @@ mod m02_wire_tests {
         m01.m02 = None;
         m01.validate(2).unwrap();
         assert!(!serde_json::to_string(&m01).unwrap().contains("m02"));
+    }
+
+    #[test]
+    fn ward_victory_is_required_for_release_progress_and_prompt() {
+        let mut before = state();
+        before.m02.as_mut().unwrap().ward_secured = false;
+        before.validate(2).unwrap();
+        before.prompts.push(InteractionPrompt {
+            player_id: before.party[0].id,
+            kind: InteractionKind::ObjectiveUse,
+        });
+        assert!(before.validate(2).is_err());
+        before.prompts.clear();
+        let m02 = before.m02.as_mut().unwrap();
+        m02.completed.push("companion_released".into());
+        m02.current.as_mut().unwrap().id = "party_departed".into();
+        m02.current.as_mut().unwrap().action = MissionObjectiveAction::Arrival {
+            region: Region3 {
+                min: [0.0, 0.0, 0.0],
+                max: [1.0, 1.0, 1.0],
+            },
+            feet: [0.5, 0.0, 0.5],
+        };
+        assert!(before.validate(2).is_err());
+        before.m02.as_mut().unwrap().ward_secured = true;
+        before.validate(2).unwrap();
     }
 }

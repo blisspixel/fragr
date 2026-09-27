@@ -4,8 +4,8 @@ extends Control
 ## The objective card introduces a beat, then leaves. Use prompts and the
 ## fallen-run choice stay for as long as they are true.
 const STAGE_SECONDS: float = 8.0
-const M02_KNOWN: Array[String] = ["companion_released", "party_departed"]
-const M02_USES: Array[String] = []
+const M02_KNOWN: Array[String] = ["ward_reached", "companion_released", "party_departed"]
+const M02_USES: Array[String] = ["companion_released"]
 var state: Dictionary = {}
 var player_id: String = ""
 var _stage_phase: String = ""
@@ -198,7 +198,7 @@ static func _stage_key(value: Dictionary) -> String:
 		return phase
 	var current: Variant = value["m02"].get("current")
 	var id: String = str(current.get("id", "")) if current is Dictionary else ""
-	return "%s:%s:%s" % [phase, id, str(value.get("attempt", ""))]
+	return "%s:%s:%s:%s" % [phase, id, str(value["m02"].get("ward_secured", false)), str(value.get("attempt", ""))]
 
 ## M02 keeps to one line outside menus: the use prompt while it is legal,
 ## otherwise the objective for a few seconds after it changes. Gates and
@@ -213,7 +213,8 @@ func _refresh_m02() -> void:
 		"departed":
 			line = InputGlyphs.plain(_catalog("M02_DEPARTED"))
 		_:
-			line = _catalog(objective_key(str(progress["current"]["id"])))
+			var objective_id: String = str(progress["current"]["id"])
+			line = _catalog("M02_OBJECTIVE_COMPANION_SECURED" if objective_id == "companion_released" and progress["ward_secured"] else objective_key(objective_id))
 	_copy.text = line
 	var use: String = ""
 	for prompt: Dictionary in state["prompts"]:
