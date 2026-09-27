@@ -16,6 +16,9 @@ firing above the processing floor and the reachable upper route.
 The [M02 side-ward plan](../plans/m02-side-ward.md) links four inspected
 first-person frames of the release-controlled ward exit and the optional
 captives before and after their guards fall.
+The [M02 maintenance plan](../plans/m02-maintenance-circulation.md) links
+first-person frames of the ground service fork, its antechamber rejoin, and
+the side ward's second return onto the processing floor.
 Inspect every frame before it is named anywhere. A nonblank image is not
 proof of good art. The README embeds four files and no more: `tour_menu_16x9.png`,
 `m01_intake_16x9.png`, `tour_multiplayer_16x9.png`, and `tour_combat_follow_16x9.png`.
@@ -93,6 +96,9 @@ and fresh-player acceptance outstanding. Source manifest: `client/qa/m01-records
 | `m02_ward_exit_open.png` | Ward exit shutter raised after the same release action |
 | `m02_side_ward_held.png` | Optional captives restrained beyond the entry baffle |
 | `m02_side_ward_free.png` | The captives step clear after their guards fall; evacuation is not shown |
+| `m02_maintenance_fork.png` | Choice after the first Crawler between the service cut and the pack landing |
+| `m02_maintenance_rejoin.png` | The grounded service cut rejoins at the antechamber |
+| `m02_side_ward_north_return.png` | The optional room's second opening looks back onto the processing floor |
 | `tour_multiplayer_16x9.png` | App multiplayer page after GET /status. Host example is 127.0.0.1:6767. |
 | `tour_menu_16x9.png` | Retro boot menu |
 | `tour_profile_16x9.png` | Callsign, reticle, body choice with its preview, and weapon bob |

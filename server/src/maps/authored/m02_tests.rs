@@ -184,6 +184,216 @@ fn side_ward_is_reachable_but_the_dock_route_stays_on_the_floor() {
 }
 
 #[test]
+fn maintenance_cut_skips_only_the_pack_landing() {
+    let map = AuthoredMap::read(include_str!("../../../maps/m02-persons-unknown.json").as_bytes())
+        .unwrap();
+    let pack = map
+        .encounters
+        .iter()
+        .find(|encounter| encounter.id == "crawler_pack")
+        .unwrap();
+    let first = [-12.0, 0.0, -27.0];
+    let west_turn = [-16.0, 0.0, -26.0];
+    let rejoin = [-15.5, 0.0, -22.0];
+    let antechamber = [-14.0, 0.0, -21.5];
+    let direct = [-12.5, 0.0, -24.5];
+    let landing = [-16.0, 0.5, -27.6];
+    assert!(pack.regions.iter().any(|region| region.contains(direct)));
+    assert!(pack.regions.iter().any(|region| region.contains(landing)));
+    assert!(!pack.regions.iter().any(|region| region.contains(first)));
+    for (from, to) in [
+        (first, west_turn),
+        (west_turn, rejoin),
+        (rejoin, antechamber),
+    ] {
+        let route = map
+            .navigation
+            .route(from, to, crate::navigation::SEARCH_LIMIT);
+        assert_eq!(route.status, RouteStatus::Complete, "{from:?} to {to:?}");
+        assert!(
+            route
+                .points
+                .iter()
+                .all(|point| pack.regions.iter().all(|region| !region.contains(*point))),
+            "maintenance cut touched the pack trigger: {:?}",
+            route.points
+        );
+    }
+    assert_eq!(
+        map.navigation
+            .route(first, direct, crate::navigation::SEARCH_LIMIT)
+            .status,
+        RouteStatus::Complete
+    );
+}
+
+#[test]
+fn pack_stays_dormant_at_the_fork_and_wakes_on_the_direct_lane() {
+    let map = AuthoredMap::read(include_str!("../../../maps/m02-persons-unknown.json").as_bytes())
+        .unwrap();
+    let mut state = crate::sim::GameState::with_authored_map(map);
+    let id = uuid::Uuid::from_u128(0x02bc);
+    state.add_player(id, "Route probe".into(), crate::protocol::Role::Human);
+    assert!(state.acknowledge_m02(id, 1));
+    let place = |state: &mut crate::sim::GameState, feet: [f32; 3]| {
+        let player = state
+            .players
+            .iter_mut()
+            .find(|player| player.id == id)
+            .unwrap();
+        player.x = feet[0];
+        player.y = feet[1] + crate::sim::PLAYER_FLOOR_Y;
+        player.z = feet[2];
+        state.update_encounters();
+    };
+    place(&mut state, [-3.2, 3.0, -31.0]);
+    for guard in state
+        .players
+        .iter_mut()
+        .filter(|player| player.name.starts_with("guard_room_clerk_"))
+    {
+        guard.hp = 0;
+    }
+    state.update_encounters();
+    place(&mut state, [-10.5, 1.0, -29.5]);
+    let first = state
+        .players
+        .iter()
+        .find(|player| player.name == "stair_crawler_first")
+        .unwrap()
+        .id;
+    state
+        .players
+        .iter_mut()
+        .find(|player| player.id == first)
+        .unwrap()
+        .hp = 0;
+    state.update_encounters();
+    let pack = state
+        .players
+        .iter()
+        .find(|player| player.name == "stair_crawler_pack_a")
+        .unwrap()
+        .id;
+    for feet in [
+        [-12.0, 0.0, -27.0],
+        [-13.5, 0.0, -26.5],
+        [-16.0, 0.0, -26.0],
+        [-15.5, 0.0, -24.5],
+        [-15.5, 0.0, -22.0],
+    ] {
+        place(&mut state, feet);
+        assert!(
+            !state.encounters.is_active_enemy(pack),
+            "the pack woke on the maintenance cut at {feet:?}"
+        );
+    }
+    place(&mut state, [-12.5, 0.0, -24.5]);
+    assert!(state.encounters.is_active_enemy(pack));
+}
+
+#[test]
+fn pack_wakes_when_the_west_approach_enters_its_landing() {
+    let map = AuthoredMap::read(include_str!("../../../maps/m02-persons-unknown.json").as_bytes())
+        .unwrap();
+    let arena = map.arena.clone();
+    let mut state = crate::sim::GameState::with_authored_map(map);
+    let id = uuid::Uuid::from_u128(0x02bd);
+    state.add_player(id, "Landing probe".into(), crate::protocol::Role::Human);
+    assert!(state.acknowledge_m02(id, 1));
+    let place = |state: &mut crate::sim::GameState, feet: [f32; 3]| {
+        let player = state
+            .players
+            .iter_mut()
+            .find(|player| player.id == id)
+            .unwrap();
+        player.x = feet[0];
+        player.y = feet[1] + crate::sim::PLAYER_FLOOR_Y;
+        player.z = feet[2];
+        state.update_encounters();
+    };
+    place(&mut state, [-3.2, 3.0, -31.0]);
+    for guard in state
+        .players
+        .iter_mut()
+        .filter(|player| player.name.starts_with("guard_room_clerk_"))
+    {
+        guard.hp = 0;
+    }
+    state.update_encounters();
+    place(&mut state, [-10.5, 1.0, -29.5]);
+    let first = state
+        .players
+        .iter()
+        .find(|player| player.name == "stair_crawler_first")
+        .unwrap()
+        .id;
+    state
+        .players
+        .iter_mut()
+        .find(|player| player.id == first)
+        .unwrap()
+        .hp = 0;
+    state.update_encounters();
+    let pack = state
+        .players
+        .iter()
+        .find(|player| player.name == "stair_crawler_pack_a")
+        .unwrap()
+        .id;
+    place(&mut state, [-12.0, 0.0, -27.0]);
+    place(&mut state, [-16.0, 0.0, -26.0]);
+    assert!(!state.encounters.is_active_enemy(pack));
+    let mut body = crate::movement::MoveState {
+        x: -16.0,
+        z: -26.0,
+        y: 0.0,
+        vx: 0.0,
+        vz: -crate::movement::TOP_SPEED,
+        vy: 0.0,
+        yaw: 0.0,
+    };
+    for _ in 0..8 {
+        body = crate::movement::integrate(body, false, 0.05, &arena);
+        place(&mut state, [body.x, body.y, body.z]);
+    }
+    assert!(body.z <= -27.5, "body did not reach the pack landing");
+    assert!(state.encounters.is_active_enemy(pack));
+}
+
+#[test]
+fn side_ward_has_a_grounded_north_return_after_release() {
+    let map = AuthoredMap::read(include_str!("../../../maps/m02-persons-unknown.json").as_bytes())
+        .unwrap();
+    let opened = map.m02.as_ref().unwrap().world(1).unwrap().1;
+    let floor = [13.0, 0.0, 9.0];
+    let side = [16.0, 0.0, 9.0];
+    assert_eq!(
+        map.navigation
+            .route(map.spawns[0].feet, side, crate::navigation::SEARCH_LIMIT)
+            .status,
+        RouteStatus::Unreachable,
+        "the maintenance return must not bypass Latch's release"
+    );
+    for (from, to) in [(floor, side), (side, floor)] {
+        let route = opened.route(from, to, crate::navigation::SEARCH_LIMIT);
+        assert_eq!(route.status, RouteStatus::Complete, "{from:?} to {to:?}");
+        assert!(
+            route.points.iter().any(|point| {
+                (13.5..=15.5).contains(&point[0]) && (7.0..=10.0).contains(&point[2])
+            }),
+            "route used the old south entry instead of the north return: {:?}",
+            route.points
+        );
+    }
+    assert!(
+        !map.arena
+            .blocked_motion((side[0], side[2]), (floor[0], floor[2]), 0.6),
+        "the return opening needs player-body clearance"
+    );
+}
+
+#[test]
 fn m02_worlds_are_prepared_and_the_closed_gate_blocks_departure() {
     let map = read(&fixture()).unwrap();
     let closed = crate::maps::RuntimeMap::Authored(map.clone());

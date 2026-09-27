@@ -39,24 +39,24 @@ the ward and shutter as the only path into the floor.
 
 `server/maps/m02-persons-unknown.json` owns all blocking walls, platforms,
 stairs, surfaces, trigger regions and supplies. Reuse its existing authored
-world and navigation; no client-only collision. The initial candidate fork is
-near the lower switchback after `crawler_first` (around x -12, z -27). The
-existing pack trigger spans x -14.8 to -11.8, z -29 to -22.5 and y 0 to 0.6;
-a ground-level fork at x -12 would wake that encounter. Begin the branch east
-of its x edge, or raise the player's feet above its y edge before entering.
-A full-body-width maintenance passage remains above the `crawler_pack` trigger
-until it passes the trigger's north edge, then descends in walkable steps and
-rejoins the antechamber near x -14, z -22. Exact dimensions are determined by
-the shared movement and route tests, not by the sketch alone. The direct
-landing stays readable as the main fight route. Do not hide the only intended
-route behind an unmarked wall.
+world and navigation; no client-only collision. The fork begins near the lower
+switchback after `crawler_first` (x -12, z -27). Shortening the old screen
+opens a grounded west passage around the pack landing; an offset screen marks
+its north edge. The revised direct-lane trigger spans x -13.5 to -11.8,
+z -26 to -22.5, y 0 to 0.6. A second trigger strip spans the west landing
+approach at x -18.5 to -14, z -28 to -27.2. It closes a gap that would let a
+player reach the pack without waking it. The bypass passes north of that strip
+and rejoins the antechamber near x -14, z -22. Loaded navigation, live body
+integration into the landing, and a first-person bypass with an idle-pack
+assertion verify both boundaries. The direct landing stays readable as the
+main fight route. Do not hide the service choice behind an unmarked wall.
 
 The side-ward loop uses a roughly three-metre ground-level opening in the
 floor's east wall near the conveyor, north of the existing side-ward entrance.
 The width leaves a usable centerline between the pawn radius and side-ward
 cover for Latch as well as the player. It rejoins the same floor, upstream of
-the dock. Move decorations hosted on any split wall to
-a valid remaining face. Preserve side-ward sightlines and cover. Neither return
+the dock. Move decorations hosted on any split wall to a valid remaining face.
+Preserve side-ward sightlines and cover. Neither return
 opening may let a player enter the floor before `companion_released` raises
 `ward_exit_shutter`.
 
@@ -95,7 +95,7 @@ keeping the Crawler's sound cue readable.
   A player can identify both directions without reading English, and neither
   route requires a jump or a client-only prop.
 - The pack encounter remains readable and testable on the direct path. Its
-  trigger does not activate simply because a player walks above the bypass.
+  trigger does not activate when a player uses the grounded bypass.
 - The side ward is a loop with two useful approaches. A player can skip it and
   still depart, or clear it and return to the floor without backtracking
   through the same doorway.
@@ -104,10 +104,56 @@ keeping the Crawler's sound cue readable.
 - Record the new authored map hash, measured fight routes, inspected captures,
   CI and remaining fresh-player questions here before requesting integration.
 
+The revised authored map SHA-256 is
+`4460ac8b7b1d7a1b3726b034c3693a23e4e9bb418e9a7e41bc1c990dde397e01`.
+Older saved M02 map bytes require New Run and remain archived by the existing
+content-hash migration path.
+
+## Rendered review
+
+The Standard first-person maintenance tour completed 25 of 25 states with
+ordinary movement and combat, checked all four pack actors were still idle
+after the cut, then departed. The direct-route side-ward tour completed 24 of
+24 states after its old waypoints were corrected for the new geometry. The
+17-state Latch motion tour passed on the direct route, including its sampled
+companion escape. The regular published tour completed 32 of 32 states. These
+full-resolution frames were inspected on Godot 4.7.2-stable, OpenGL, AMD Radeon
+780M:
+
+- [Service fork](../screenshots/m02_maintenance_fork.png): the player can choose
+  the open service cut or approach the visible pack landing after the first
+  Crawler. This frame does not show whether the pack has activated; the live
+  encounter test establishes that fact.
+- [Antechamber rejoin](../screenshots/m02_maintenance_rejoin.png): the bypass
+  returns to the normal ward approach without a jump.
+- [Northern side-ward return](../screenshots/m02_side_ward_north_return.png):
+  the second opening leads back onto the processing floor, past machinery.
+
+The route and room remain graybox. The scripted tour proves traversal and
+state order, not fresh-player discovery or fight balance.
+
+## Verification record
+
+- `cargo fmt --all -- --check`, workspace Clippy with warnings denied,
+  `cargo test --workspace --locked`, the release build, `cargo deny check
+  licenses bans sources`, and the deterministic 16-bot benchmark passed.
+- Unfiltered workspace line coverage passed the 90 percent floor at 93.79
+  percent after the landing strip test was added. The focused M02 tests passed
+  47 of 47, including integrated body movement into the new strip. Full
+  workspace tests passed after that change.
+- Four named mixed-agent playtests and the six-map 2/6/6/8/12/16 roster sweep
+  passed. These arena checks do not establish M02 fight balance.
+- `tools/godot_check.sh` and `tools/test_godot_check.sh` passed after the
+  tour's new idle-pack assertion. The 120-second rotating-map soak passed:
+  20.00 Hz, 0.59 ms lifetime p99 tick time, 38.8 MiB peak resident memory,
+  and nine healthy samples with four agents, four bots and two spectators.
+  This local arena soak is not a cloud-host or M02 capacity claim. PR CI remains.
+- No external API or cloud charge was made. This slice spent $0.
+
 ## Open review
 
-The exact service stair geometry needs a live collision and encounter-trigger
-probe. If a safe bypass cannot fit beside the current stair core while preserving
-the solo Crawler lesson, revise the fork position in this plan before widening
-the map. The treatment's armored checkpoint has no authored encounter yet; this
-route slice does not invent one.
+The loaded route, live encounter-state probe and scripted first-person walk
+pass for the ground passage. Unsteered play still needs to prove the fork's
+readability and the Crawler lesson. If those fail, revise the fork before
+widening the map. The treatment's armored checkpoint has no authored encounter;
+this route slice does not invent one.

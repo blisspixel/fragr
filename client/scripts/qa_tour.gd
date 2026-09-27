@@ -288,6 +288,19 @@ func _run() -> void:
 				if active_enemy_phases.size() != expected_active.size():
 					push_error("qa_tour: named pack enemies were not all active in the spectator frame")
 					_failed = true
+		if state.has("expect_enemy_phases"):
+			var expected_phases: Variant = state["expect_enemy_phases"]
+			if not expected_phases is Dictionary or expected_phases.is_empty():
+				push_error("qa_tour: enemy phases require a nonempty name-to-phase map")
+				_failed = true
+			else:
+				var actual_phases: Dictionary[String, String] = active_named_enemies(
+					_game_manager().get("latest_snapshot"), expected_phases.keys())
+				for enemy_name: String in expected_phases:
+					if actual_phases.get(enemy_name, "") != str(expected_phases[enemy_name]):
+						push_error("qa_tour: %s has phase %s, expected %s in %s" % [
+							enemy_name, actual_phases.get(enemy_name, "missing"), expected_phases[enemy_name], state_name])
+						_failed = true
 
 		# An effect that lasts sixty milliseconds is never in a still taken at a
 		# fixed second. A state can instead pull the trigger and keep a strip of
