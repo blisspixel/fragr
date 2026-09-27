@@ -6,20 +6,30 @@
   "ground": "concrete",
   "equipment": "discovery",
   "supplies": [
-    {"id":"landing_tack","feet":[-17,0,-32],"grant":{"kind":"weapon","weapon":"tack"},"claim":"personal"},
+    {"id":"ward_tack","feet":[-8,0,-18],"grant":{"kind":"weapon","weapon":"tack"},"claim":"personal"},
     {"id":"landing_bullets","feet":[-17,0,-28],"grant":{"kind":"ammo","pool":"bullets","amount":20},"claim":"contested"},
-    {"id":"antechamber_scatter","feet":[-17,0,-14],"grant":{"kind":"weapon","weapon":"scatter"},"claim":"personal"},
-    {"id":"antechamber_shells","feet":[-14,0,-14],"grant":{"kind":"ammo","pool":"shells","amount":8},"claim":"contested"},
-    {"id":"antechamber_medkit","feet":[-12,0,-23],"grant":{"kind":"health","amount":25},"claim":"contested"},
+    {"id":"antechamber_scatter","feet":[-16.5,0,-32],"grant":{"kind":"weapon","weapon":"scatter"},"claim":"personal"},
+    {"id":"antechamber_shells","feet":[-16.5,0,-31],"grant":{"kind":"ammo","pool":"shells","amount":8},"claim":"contested"},
+    {"id":"antechamber_medkit","feet":[-11,0,-20],"grant":{"kind":"health","amount":25},"claim":"contested"},
     {"id":"ward_bullets","feet":[-6,0,-10],"grant":{"kind":"ammo","pool":"bullets","amount":20},"claim":"contested"},
     {"id":"floor_shells","feet":[-4,0,-5],"grant":{"kind":"ammo","pool":"shells","amount":8},"claim":"contested"},
     {"id":"floor_medkit","feet":[12,0,5],"grant":{"kind":"health","amount":40},"claim":"contested"},
+    {"id":"dock_approach_medkit","feet":[2,0,10],"grant":{"kind":"health","amount":35},"claim":"contested"},
     {"id":"mezzanine_armor","feet":[-10,2.5,11],"grant":{"kind":"armor","amount":50},"claim":"contested"}
   ],
   "encounters": [
     {
+      "id":"guard_room",
+      "regions":[{"min":[-18,0,-26],"max":[-14,1,-24]}],
+      "enemies":[
+        {"id":"guard_room_clerk_west","kind":"clerk","feet":[-15,0,-21],"yaw":3.141593},
+        {"id":"guard_room_clerk_east","kind":"clerk","feet":[-12,0,-22],"yaw":3.141593}
+      ]
+    },
+    {
       "id":"ward_guards",
-      "regions":[{"min":[-8.5,0,-20],"max":[-6,1,-17]}],
+      "after":"guard_room",
+      "regions":[{"min":[-13,0,-21],"max":[-10,1,-18]}],
       "enemies":[
         {"id":"ward_clerk","kind":"clerk","feet":[5,0,-19],"yaw":3.141593},
         {"id":"ward_sweeper","kind":"sweeper","feet":[4,0,-11],"yaw":3.141593},
@@ -84,7 +94,7 @@
     {"id":"press_a","min":[-4,0,3],"max":[-1,2.2,6],"surface":"lift_panel"},
     {"id":"press_b","min":[8,0,-2],"max":[11,2.8,2],"surface":"lift_panel"},
     {"id":"conveyor","min":[5,0,8],"max":[12,1,9.5],"surface":"service_steel"},
-    {"id":"jammer_rack","min":[3,0,12],"max":[5,1.8,14],"surface":"service_steel"},
+    {"id":"service_rack","min":[3,0,12],"max":[5,1.8,14],"surface":"service_steel"},
     {"id":"loading_west","min":[-15,0,14],"max":[-3,7,15],"surface":"service_steel"},
     {"id":"loading_east","min":[3,0,14],"max":[15,7,15],"surface":"service_steel"},
     {"id":"dock_crates","min":[-5,0,19],"max":[-3,1.4,21],"surface":"service_steel"},
