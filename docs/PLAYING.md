@@ -79,7 +79,8 @@ Recall Notice offers three mission-start continues. Death presents an explicit
 retry; the fourth death ends the run. Exit to Menu retains the run at mission
 entry, including a pending continue. **Continue Run** reopens a compatible
 save; it does not resume the mid-mission position. **Start New Run** archives
-the previous run after confirmation. A deliberate Leave abandons it.
+the previous run after confirmation. The pause menu's **Leave match** returns
+to the menu and keeps this local save for Continue Run.
 
 The local file is `run.json` under the platform user-data `runs` directory:
 `%LOCALAPPDATA%/fragr/runs` on Windows,
