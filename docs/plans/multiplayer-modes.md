@@ -218,6 +218,10 @@ Two Lives elimination have server tests and harness runs but no inspected still;
 spawn halves split on X, which suits the ring maps but is not an authored
 team layout.
 
+The body contrast gap was resolved in #262. The mode chip layout is implemented
+locally in [mode-chip-layout.md](mode-chip-layout.md), with free-for-all and
+team captures inspected. Neither change substitutes for a human team round.
+
 ## What is next
 
 ### Rung 2: capture the flag
@@ -275,8 +279,8 @@ safety, and measured server budgets at 16 to 32 fighters before any claim.
 
 ### Next steps, in order
 
-1. Presentation follow-ups from the tour: coalition bodies that read as bone,
-   a still of the golden pad and holder, and a still of a Two Lives elimination.
+1. Presentation follow-ups from the tour: a still of the golden pad and holder,
+   a still of a Two Lives elimination, and a human team round.
 2. Rung 2, capture the flag.
 3. Rung 3, Rescue and Sabotage, on their own maps.
 4. Rung 4, the big combined-arms mode.
