@@ -1,7 +1,7 @@
 # M01 to M02 durable solo run carry
 
-**Status:** in flight, 2026-09-27. Stacked after the Latch release in
-[draft PR #272](https://github.com/blisspixel/fragr/pull/272).
+**Status:** in flight, 2026-09-27. [Draft PR #273](https://github.com/blisspixel/fragr/pull/273)
+stacks after the Latch release in [draft PR #272](https://github.com/blisspixel/fragr/pull/272).
 
 ## Goal and reason
 
@@ -199,4 +199,5 @@ handoff: the playing guide overstated what the pause menu's Leave action does,
 and JSON preview numbers rendered as decimal continue counts. Both were fixed;
 the M02 menu proof frame was recaptured and inspected. No other actionable
 review finding remains. The unsteered player and difficulty acceptance gates
-remain open for the mission itself.
+remain open for the mission itself. Draft PR #273 is running combined CI
+against main before its review base returns to the Latch branch.
