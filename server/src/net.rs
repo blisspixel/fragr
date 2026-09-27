@@ -446,6 +446,7 @@ pub struct NetServer {
     gameplay_version: u32,
     party_slots: Option<Arc<Semaphore>>,
     solo_run: bool,
+    solo_bound_body: Option<crate::protocol::BodyKind>,
     admission: Arc<Admission>,
     status: Arc<tokio::sync::RwLock<crate::protocol::LiveStatus>>,
     join_secret: Option<std::sync::Arc<crate::join_ticket::JoinSecret>>,
@@ -545,6 +546,7 @@ impl NetServer {
             geometry_version,
             gameplay_version,
             solo_run: false,
+            solo_bound_body: None,
             party_slots: (gameplay_version >= crate::protocol::MISSION_GAMEPLAY_VERSION)
                 .then(|| Arc::new(Semaphore::new(crate::protocol::MISSION_PARTY_LIMIT))),
             admission: Arc::new(Admission::standard()),
@@ -642,6 +644,10 @@ impl NetServer {
         Ok(())
     }
 
+    pub(crate) fn set_solo_bound_body(&mut self, body: Option<crate::protocol::BodyKind>) {
+        self.solo_bound_body = body;
+    }
+
     pub async fn accept_loop(self) {
         loop {
             match self.listener.accept().await {
@@ -653,6 +659,7 @@ impl NetServer {
                     let gameplay_version = self.gameplay_version;
                     let party_slots = self.party_slots.clone();
                     let solo_run = self.solo_run;
+                    let solo_bound_body = self.solo_bound_body;
                     let admission = Arc::clone(&self.admission);
                     let status = Arc::clone(&self.status);
                     let handshake_timeout = admission.handshake_timeout;
@@ -701,6 +708,7 @@ impl NetServer {
                                 required_gameplay: gameplay_version,
                                 party_slots,
                                 solo_run,
+                                solo_bound_body,
                                 handshake_timeout,
                                 hello_timeout,
                                 join_secret,
@@ -851,6 +859,7 @@ struct HelloPolicy {
     required_gameplay: u32,
     party_slots: Option<Arc<Semaphore>>,
     solo_run: bool,
+    solo_bound_body: Option<crate::protocol::BodyKind>,
     handshake_timeout: Duration,
     hello_timeout: Duration,
     join_secret: Option<std::sync::Arc<crate::join_ticket::JoinSecret>>,
@@ -1201,13 +1210,16 @@ async fn handle_connection(
                         None
                     };
 
+                    let accepted_body = policy
+                        .solo_bound_body
+                        .unwrap_or(requested_body.unwrap_or_default());
                     let welcome = ServerMessage::Welcome {
                         player_id,
                         role: r,
                         mode_name: crate::protocol::default_mode_name(),
                         playlist: crate::protocol::default_playlist(),
                         resume: issued,
-                        body: player_id.map(|_| requested_body.unwrap_or_default()),
+                        body: player_id.map(|_| accepted_body),
                     };
 
                     send_welcome(&mut ws_sink, &welcome, &traffic).await?;
@@ -1228,7 +1240,7 @@ async fn handle_connection(
                         role: r,
                         name,
                         player_id,
-                        body: requested_body.unwrap_or_default(),
+                        body: accepted_body,
                     })?;
                     if policy.solo_run {
                         if let Some(seat) = _party_seat.take() {

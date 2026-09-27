@@ -10,6 +10,12 @@ func _check(condition: bool, message: String) -> void:
 		_failures += 1
 		push_error("test_frontend: " + message)
 
+func _menu_text(column: VBoxContainer) -> String:
+	var lines: Array[String] = []
+	for node: Node in column.find_children("*", "Label", true, false):
+		lines.append((node as Label).text)
+	return "\n".join(lines)
+
 func _run() -> void:
 	var test_path: String = "user://test-profile-%d.cfg" % OS.get_process_id()
 	var menu: Control = load("res://scenes/boot_menu.tscn").instantiate()
@@ -59,9 +65,42 @@ func _run() -> void:
 		_check(column.get_node("Callsign").text == "Patch 67", "back must discard unsaved callsign")
 		_check(column.get_node("ReticleColour").selected == 2, "back must discard unsaved colour")
 		_check((column.find_child("Body", true, false) as OptionButton).selected == 1, "back must discard an unsaved body")
-	for page in ["single", "multi", "settings", "main"]:
+	for page in ["single", "practice", "multi", "settings", "main"]:
 		await menu._show(page)
 		_check(column.get_child_count() > 0, "page should expose controls: " + page)
+	var owned: LocalMatch = menu.get("_local_match")
+	owned._preview_active = false
+	owned.run_preview = {"status": "awaiting_mission", "mission": MissionState.M02_ID, "difficulty": "severe", "continues": 2.0, "body": null}
+	menu._show("single")
+	_check(column.get_node_or_null("PersonsUnknownSaved") != null, "M01 completion offers the saved M02 continuation")
+	_check(_menu_text(column).contains("Body for this run: EMBODIED AGENT"), "legacy unknown body shows the explicit current selection")
+	_check(_menu_text(column).contains("2 continues left") and not _menu_text(column).contains("2.0 continues"), "saved M02 destination shows a whole-number allowance")
+	var choose_body: Button = column.get_node("ChooseRunBody")
+	choose_body.pressed.emit()
+	await process_frame
+	_check(menu._page == "profile", "unbound run opens the body selector")
+	menu._unhandled_input(escape)
+	await process_frame
+	_check(menu._page == "single", "cancel from run body choice returns to Single Player")
+	choose_body = column.get_node("ChooseRunBody")
+	choose_body.pressed.emit()
+	await process_frame
+	menu._save_profile()
+	await process_frame
+	_check(menu._page == "single", "saving run body choice returns to Single Player")
+	owned.run_preview = {"status": "ready", "mission": MissionState.M02_ID, "difficulty": "severe", "attempt": 1.0, "continues": 2.0, "pending_continue": false, "body": PlayerBody.HUMAN}
+	menu._show("single")
+	_check(column.get_node_or_null("PersonsUnknownSaved") != null and _menu_text(column).contains("Run body: HUMAN"), "a bound run body wins over the current profile")
+	_check(_menu_text(column).contains("attempt 1") and _menu_text(column).contains("2 continues left") and not _menu_text(column).contains(".0"), "ready run shows whole-number attempt and allowance")
+	owned.run_preview = {"status": "awaiting_mission", "mission": LocalMatch.NEXT_MISSION, "difficulty": "severe", "continues": 2.0, "body": PlayerBody.HUMAN}
+	menu._show("single")
+	_check(column.get_node_or_null("PersonsUnknownSaved") == null and _menu_text(column).contains("Scheduled Service is in development"), "unsupported M03 has no launch button")
+	_check(_menu_text(column).contains("NEXT: SCHEDULED SERVICE") and _menu_text(column).contains("2 continues left") \
+		and _menu_text(column).contains("Run body: HUMAN"), "pending M03 previews mission, shared continues and saved body")
+	owned.run_preview["body"] = null
+	menu._show("single")
+	_check(_menu_text(column).contains("Run body is not bound yet") and column.get_node_or_null("ChooseRunBody") == null,
+		"pending M03 leaves an unbound body visible without an unavailable selector")
 	await menu._show("multi")
 	menu._apply_status({"schema_version": 2, "kind": "arena", "map": "Arena Duel", "fighters": 4, "connections": 2})
 	_check(menu._match_line.text == "Arena Duel. Arena. 4 fighters. 2 connections.", "a live arena enables the match line")

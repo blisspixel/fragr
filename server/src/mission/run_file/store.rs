@@ -1,5 +1,7 @@
 //! Bounded local run storage. The lock file is never renamed with the save.
-use super::RunDocument;
+use super::{RunDocument, RunDocumentV2};
+use crate::protocol::MissionId;
+use sha2::{Digest, Sha256};
 use std::fs::{self, File, OpenOptions};
 use std::io::{self, Read, Write};
 use std::path::{Path, PathBuf};
@@ -11,7 +13,8 @@ const LOCK_NAME: &str = "run.lock";
 
 pub(crate) struct RunStore {
     directory: PathBuf,
-    content_sha256: [u8; 32],
+    m01_hash: [u8; 32],
+    m02_hash: [u8; 32],
     _lock: File,
 }
 
@@ -24,7 +27,16 @@ pub(crate) enum RunProbe {
 
 impl RunStore {
     /// Only the local child opens a writable run. Tests supply an isolated dir.
+    #[cfg(test)]
     pub fn open(directory: &Path, content_sha256: [u8; 32]) -> io::Result<Self> {
+        Self::open_with_hashes(directory, content_sha256, content_sha256)
+    }
+
+    pub fn open_with_hashes(
+        directory: &Path,
+        m01_hash: [u8; 32],
+        m02_hash: [u8; 32],
+    ) -> io::Result<Self> {
         fs::create_dir_all(directory)?;
         let lock = OpenOptions::new()
             .read(true)
@@ -35,19 +47,29 @@ impl RunStore {
         lock.try_lock()?;
         Ok(Self {
             directory: directory.to_owned(),
-            content_sha256,
+            m01_hash,
+            m02_hash,
             _lock: lock,
         })
     }
 
     pub fn load(&self) -> io::Result<Option<RunDocument>> {
-        Self::preview(&self.directory, self.content_sha256)
+        Self::preview_with_hashes(&self.directory, self.m01_hash, self.m02_hash)
     }
 
     /// A menu may inspect an unlocked snapshot. Launch always reopens under
     /// the writer lock and validates again before advertising readiness.
+    #[cfg(test)]
     pub fn preview(directory: &Path, content_sha256: [u8; 32]) -> io::Result<Option<RunDocument>> {
-        match Self::inspect(directory, content_sha256)? {
+        Self::preview_with_hashes(directory, content_sha256, content_sha256)
+    }
+
+    pub fn preview_with_hashes(
+        directory: &Path,
+        m01_hash: [u8; 32],
+        m02_hash: [u8; 32],
+    ) -> io::Result<Option<RunDocument>> {
+        match Self::inspect_with_hashes(directory, m01_hash, m02_hash)? {
             RunProbe::Missing => Ok(None),
             RunProbe::Compatible(document) => Ok(Some(document)),
             RunProbe::Incompatible => Err(invalid("incompatible campaign run document")),
@@ -55,7 +77,16 @@ impl RunStore {
         }
     }
 
+    #[cfg(test)]
     pub fn inspect(directory: &Path, content_sha256: [u8; 32]) -> io::Result<RunProbe> {
+        Self::inspect_with_hashes(directory, content_sha256, content_sha256)
+    }
+
+    pub fn inspect_with_hashes(
+        directory: &Path,
+        m01_hash: [u8; 32],
+        m02_hash: [u8; 32],
+    ) -> io::Result<RunProbe> {
         let file = match File::open(directory.join(RUN_NAME)) {
             Ok(file) => file,
             Err(error) if error.kind() == io::ErrorKind::NotFound => return Ok(RunProbe::Missing),
@@ -63,29 +94,133 @@ impl RunStore {
         };
         let mut bytes = Vec::new();
         file.take(MAX_RUN_BYTES + 1).read_to_end(&mut bytes)?;
+        Ok(Self::inspect_bytes(&bytes, m01_hash, m02_hash))
+    }
+
+    fn inspect_bytes(bytes: &[u8], m01_hash: [u8; 32], m02_hash: [u8; 32]) -> RunProbe {
         if bytes.len() as u64 > MAX_RUN_BYTES {
-            return Ok(RunProbe::Corrupt);
+            return RunProbe::Corrupt;
         }
-        let Ok(value) = serde_json::from_slice::<serde_json::Value>(&bytes) else {
-            return Ok(RunProbe::Corrupt);
+        let Ok(value) = serde_json::from_slice::<serde_json::Value>(bytes) else {
+            return RunProbe::Corrupt;
         };
         // A readable document of another format version is a real run this
         // build cannot continue, not damage. New Run archives its bytes.
-        if value
-            .get("version")
-            .and_then(serde_json::Value::as_u64)
-            .is_some_and(|version| version != u64::from(super::RUN_FILE_VERSION))
-        {
-            return Ok(RunProbe::Incompatible);
-        }
-        let document: RunDocument = match serde_json::from_value(value) {
-            Ok(document) => document,
-            Err(_) => return Ok(RunProbe::Corrupt),
+        let version = value.get("version").and_then(serde_json::Value::as_u64);
+        let document = match version {
+            Some(2) => {
+                let legacy: RunDocumentV2 = match serde_json::from_value(value) {
+                    Ok(document) => document,
+                    Err(_) => return RunProbe::Corrupt,
+                };
+                match legacy.upgrade(m01_hash) {
+                    Ok(document) => document,
+                    Err(_) => return RunProbe::Incompatible,
+                }
+            }
+            Some(version) if version == u64::from(super::RUN_FILE_VERSION) => {
+                match serde_json::from_value::<RunDocument>(value) {
+                    Ok(document) => document,
+                    Err(_) => return RunProbe::Corrupt,
+                }
+            }
+            Some(_) => return RunProbe::Incompatible,
+            None => return RunProbe::Corrupt,
         };
-        if document.validate(content_sha256).is_err() {
-            return Ok(RunProbe::Incompatible);
+        let expected = match document.stage_mission() {
+            MissionId::RecallNotice => m01_hash,
+            MissionId::PersonsUnknown => m02_hash,
+        };
+        if document.validate(expected).is_err() {
+            return RunProbe::Incompatible;
         }
-        Ok(RunProbe::Compatible(document))
+        RunProbe::Compatible(document)
+    }
+
+    pub fn needs_upgrade(&self) -> io::Result<bool> {
+        let mut bytes = Vec::new();
+        File::open(self.directory.join(RUN_NAME))?
+            .take(MAX_RUN_BYTES + 1)
+            .read_to_end(&mut bytes)?;
+        if bytes.len() as u64 > MAX_RUN_BYTES {
+            return Err(invalid("campaign run exceeds size limit"));
+        }
+        let value: serde_json::Value = serde_json::from_slice(&bytes)?;
+        Ok(value.get("version").and_then(serde_json::Value::as_u64) == Some(2))
+    }
+
+    /// Archive source bytes without removing run.json, then atomically replace
+    /// it. A pre-replace failure leaves the old document at its normal path.
+    pub fn archive_and_save(
+        &self,
+        source_document: &RunDocument,
+        document: &RunDocument,
+    ) -> io::Result<PathBuf> {
+        self.archive_and_save_before_replace(source_document, document, |_| Ok(()))
+    }
+
+    fn archive_and_save_before_replace(
+        &self,
+        source_document: &RunDocument,
+        document: &RunDocument,
+        before_replace: impl FnOnce(&Path) -> io::Result<()>,
+    ) -> io::Result<PathBuf> {
+        document
+            .validate(self.expected_hash(document))
+            .map_err(invalid)?;
+        let source = read_bounded(&self.directory.join(RUN_NAME))?;
+        if !matches!(
+            Self::inspect_bytes(&source, self.m01_hash, self.m02_hash),
+            RunProbe::Compatible(current) if current == *source_document
+        ) {
+            return Err(invalid("campaign run changed before migration"));
+        }
+        // The source may still be run.json after a failed replacement. Its
+        // content address makes migration retries reuse the same archive.
+        let digest: String = Sha256::digest(&source)
+            .iter()
+            .map(|byte| format!("{byte:02x}"))
+            .collect();
+        let archive = self.directory.join(format!("run.prior-{digest}.json"));
+        if archive.exists() {
+            if read_bounded(&archive)? != source {
+                return Err(invalid("campaign run archive differs from source"));
+            }
+        } else {
+            let temporary = self
+                .directory
+                .join(format!(".run-archive-{}.tmp", Uuid::new_v4().simple()));
+            let result = (|| {
+                let mut file = OpenOptions::new()
+                    .write(true)
+                    .create_new(true)
+                    .open(&temporary)?;
+                file.write_all(&source)?;
+                file.sync_all()?;
+                drop(file);
+                fs::rename(&temporary, &archive)
+            })();
+            if let Err(error) = result {
+                let _ = fs::remove_file(&temporary);
+                return Err(error);
+            }
+        }
+        sync_directory(&self.directory)?;
+        self.save_before_replace(document, |temporary| {
+            before_replace(temporary)?;
+            if read_bounded(&self.directory.join(RUN_NAME))? != source {
+                return Err(invalid("campaign run changed before replacement"));
+            }
+            Ok(())
+        })?;
+        Ok(archive)
+    }
+
+    fn expected_hash(&self, document: &RunDocument) -> [u8; 32] {
+        match document.stage_mission() {
+            MissionId::RecallNotice => self.m01_hash,
+            MissionId::PersonsUnknown => self.m02_hash,
+        }
     }
 
     pub fn save(&self, document: &RunDocument) -> io::Result<()> {
@@ -103,7 +238,9 @@ impl RunStore {
         document: &RunDocument,
         sync: impl Fn(&Path) -> io::Result<()>,
     ) -> io::Result<Option<PathBuf>> {
-        document.validate(self.content_sha256).map_err(invalid)?;
+        document
+            .validate(self.expected_hash(document))
+            .map_err(invalid)?;
         let prior = self.directory.join(RUN_NAME);
         let archived = if prior.try_exists()? {
             let archive = self
@@ -143,7 +280,9 @@ impl RunStore {
         before_replace: impl FnOnce(&Path) -> io::Result<()>,
         sync: impl Fn(&Path) -> io::Result<()>,
     ) -> io::Result<()> {
-        document.validate(self.content_sha256).map_err(invalid)?;
+        document
+            .validate(self.expected_hash(document))
+            .map_err(invalid)?;
         let bytes = serde_json::to_vec(document)
             .map_err(|_| invalid("campaign run document could not be encoded"))?;
         if bytes.len() as u64 > MAX_RUN_BYTES {
@@ -191,6 +330,17 @@ impl RunStore {
     }
 }
 
+fn read_bounded(path: &Path) -> io::Result<Vec<u8>> {
+    let mut bytes = Vec::new();
+    File::open(path)?
+        .take(MAX_RUN_BYTES + 1)
+        .read_to_end(&mut bytes)?;
+    if bytes.len() as u64 > MAX_RUN_BYTES {
+        return Err(invalid("campaign run exceeds size limit"));
+    }
+    Ok(bytes)
+}
+
 fn invalid(reason: &str) -> io::Error {
     io::Error::new(io::ErrorKind::InvalidData, reason)
 }
@@ -227,6 +377,8 @@ mod tests {
             id: Uuid::new_v4(),
             starting_continues: CAMPAIGN_CONTINUES,
             remaining_continues: 2,
+            level_start_continues: CAMPAIGN_CONTINUES,
+            body: None,
             rules: CampaignRules::new(CampaignDifficulty::Standard),
             content_sha256: [7; 32],
             step: SavedStep::MissionEntry {
@@ -410,6 +562,148 @@ mod tests {
             serde_json::to_vec(&original).unwrap()
         );
         assert!(store.load().unwrap().is_none());
+        drop(store);
+        fs::remove_dir_all(directory).unwrap();
+    }
+
+    #[test]
+    fn v2_m01_departure_is_readable_and_archived_before_m02_promotion() {
+        let directory = temp_dir();
+        let store = RunStore::open_with_hashes(&directory, [7; 32], [8; 32]).unwrap();
+        let mut legacy = serde_json::to_value(document()).unwrap();
+        legacy["version"] = 2.into();
+        legacy
+            .as_object_mut()
+            .unwrap()
+            .remove("level_start_continues");
+        legacy.as_object_mut().unwrap().remove("body");
+        legacy["step"] = serde_json::json!({
+            "kind": "awaiting_mission", "completed_mission": "recall_notice",
+            "next_mission": "persons_unknown", "exit": {
+                "hp": 61, "armor": 7,
+                "equipment": Inventory::new(EquipmentPolicy::Discovery)
+                    .saved_equipment(WeaponType::Fists).unwrap()
+            }
+        });
+        let source = serde_json::to_vec(&legacy).unwrap();
+        fs::write(directory.join(RUN_NAME), &source).unwrap();
+        let loaded = store.load().unwrap().unwrap();
+        assert_eq!(loaded.version, RUN_FILE_VERSION);
+        assert_eq!(loaded.level_start_continues, CAMPAIGN_CONTINUES);
+        assert_eq!(loaded.body, None);
+        assert!(store.needs_upgrade().unwrap());
+        let promoted = loaded.promote_m02([8; 32]).unwrap();
+        assert_eq!(promoted.remaining_continues, 2);
+        assert_eq!(promoted.level_start_continues, 2);
+        assert_eq!(promoted.attempt(), 1);
+        let archive = store.archive_and_save(&loaded, &promoted).unwrap();
+        assert_eq!(fs::read(archive).unwrap(), source);
+        assert_eq!(store.load().unwrap(), Some(promoted));
+        assert!(!store.needs_upgrade().unwrap());
+        drop(store);
+        fs::remove_dir_all(directory).unwrap();
+    }
+
+    #[test]
+    fn promotion_write_failure_keeps_original_run_and_an_exact_archive() {
+        let directory = temp_dir();
+        let store = RunStore::open_with_hashes(&directory, [7; 32], [8; 32]).unwrap();
+        let mut awaiting = document();
+        let SavedStep::MissionEntry { entry, .. } = awaiting.step else {
+            panic!("expected entry")
+        };
+        awaiting.step = SavedStep::AwaitingMission {
+            completed_mission: MissionId::RecallNotice,
+            next_mission: "persons_unknown".into(),
+            exit: entry,
+        };
+        store.save(&awaiting).unwrap();
+        let source = fs::read(directory.join(RUN_NAME)).unwrap();
+        let promoted = awaiting.promote_m02([8; 32]).unwrap();
+        let error = store
+            .archive_and_save_before_replace(&awaiting, &promoted, |_| {
+                Err(io::Error::other("injected replacement failure"))
+            })
+            .unwrap_err();
+        assert!(error.to_string().contains("injected replacement failure"));
+        assert_eq!(fs::read(directory.join(RUN_NAME)).unwrap(), source);
+        let archives: Vec<_> = fs::read_dir(&directory)
+            .unwrap()
+            .filter_map(Result::ok)
+            .filter(|entry| {
+                entry
+                    .file_name()
+                    .to_string_lossy()
+                    .starts_with("run.prior-")
+            })
+            .collect();
+        assert_eq!(archives.len(), 1);
+        assert_eq!(fs::read(archives[0].path()).unwrap(), source);
+        assert_eq!(store.load().unwrap(), Some(awaiting.clone()));
+        let retried = store.archive_and_save(&awaiting, &promoted).unwrap();
+        assert_eq!(retried, archives[0].path());
+        assert_eq!(store.load().unwrap(), Some(promoted));
+        let archive_count = fs::read_dir(&directory)
+            .unwrap()
+            .filter_map(Result::ok)
+            .filter(|entry| {
+                entry
+                    .file_name()
+                    .to_string_lossy()
+                    .starts_with("run.prior-")
+            })
+            .count();
+        assert_eq!(archive_count, 1);
+        drop(store);
+        fs::remove_dir_all(directory).unwrap();
+    }
+
+    #[test]
+    fn invalid_migration_target_does_not_archive_source() {
+        let directory = temp_dir();
+        let store = RunStore::open(&directory, [7; 32]).unwrap();
+        let original = document();
+        store.save(&original).unwrap();
+        let source = fs::read(directory.join(RUN_NAME)).unwrap();
+        let mut invalid_target = original.clone();
+        invalid_target.content_sha256 = [9; 32];
+        assert!(store.archive_and_save(&original, &invalid_target).is_err());
+        assert_eq!(fs::read(directory.join(RUN_NAME)).unwrap(), source);
+        assert_eq!(fs::read_dir(&directory).unwrap().count(), 2);
+        drop(store);
+        fs::remove_dir_all(directory).unwrap();
+    }
+
+    #[test]
+    fn migration_refuses_oversized_or_changed_source() {
+        let directory = temp_dir();
+        let store = RunStore::open(&directory, [7; 32]).unwrap();
+        let original = document();
+        let mut target = original.clone();
+        target.remaining_continues = 1;
+        let path = directory.join(RUN_NAME);
+        fs::write(&path, vec![b' '; MAX_RUN_BYTES as usize + 1]).unwrap();
+        assert!(store.archive_and_save(&original, &target).is_err());
+        assert_eq!(fs::read_dir(&directory).unwrap().count(), 2);
+
+        store.save(&original).unwrap();
+        let mut changed = original.clone();
+        changed.remaining_continues = 0;
+        let changed_bytes = serde_json::to_vec(&changed).unwrap();
+        fs::write(&path, &changed_bytes).unwrap();
+        assert!(store.archive_and_save(&original, &target).is_err());
+        assert_eq!(fs::read(&path).unwrap(), changed_bytes);
+        assert_eq!(fs::read_dir(&directory).unwrap().count(), 2);
+
+        store.save(&original).unwrap();
+        let error = store
+            .archive_and_save_before_replace(&original, &target, |_| {
+                fs::write(&path, &changed_bytes)
+            })
+            .unwrap_err();
+        assert!(error.to_string().contains("changed before replacement"));
+        assert_eq!(fs::read(&path).unwrap(), changed_bytes);
+        assert_eq!(store.load().unwrap(), Some(changed));
         drop(store);
         fs::remove_dir_all(directory).unwrap();
     }

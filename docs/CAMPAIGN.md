@@ -10,7 +10,9 @@ own room and encounter staging for every level. No complete level is finished.
 Level 1 (M01, Recall Notice) has a playable development slice with discovery,
 introductory enemies, a transfer/lift sequence and a reader-paced text opening.
 Solo level 1 now has three explicit mission-start continues and exhaustion;
-M01 entry persistence is implemented, while cross-mission carry remains unbuilt.
+M01 entry persistence is implemented. M01-to-M02 carry is in a stacked draft
+with the same saved body, equipment and remaining Episode I allowance. That
+draft does not certify M02 as a finished mission or make level 3 playable.
 Scene art/narration, secrets and final encounter acceptance remain unfinished;
 [M01 completion](plans/m01-completion.md)
 tracks the next build.
@@ -318,9 +320,9 @@ with its starting equipment and world state restored. No mid-level checkpoint
 retry or teammate revival. With no continues left, the next death ends the run.
 
 Decided 2026-09-25: three continues, refilled to three at the start of each
-episode. Completing a level inside an episode does not refill them; starting the
-next episode does, at the same page where the episode transition sits. The
-exact allowance needs playtests; it is not a shipped rule. A successful run
+episode. M01 enforces the three-continue allowance. The M01-to-M02 draft carries
+what remains without a refill. Later episode refills are a design rule and are
+not implemented. The allowance still needs playtests. A successful run
 targets about four hours, excluding failed attempts. Cutscenes remain skippable
 on retries and mandatory travel must stay purposeful.
 
@@ -346,8 +348,9 @@ A retry preserves outcomes from completed levels and resets only the failed
 level's attempt. It restores entry inventory, health/armor, enemies, supplies,
 doors, objectives and local ally state coherently. A gameplay retry does not
 establish in-world resurrection. Earned cosmetics are separate from expendable
-run progress. Save-and-quit design must preserve the remaining allowance instead
-of silently creating a fresh run. The format and save policy remain unbuilt.
+run progress. The local M01 run file preserves the remaining allowance without
+silently creating a fresh run. The M01-to-M02 migration is in draft; later
+levels, episode refills and any cloud save policy remain unbuilt.
 
 ## Story presentation and localization
 

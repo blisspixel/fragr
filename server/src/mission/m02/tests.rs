@@ -69,6 +69,60 @@ fn arrival_and_use_advance_once_per_tick_and_select_the_prepared_world() {
 }
 
 #[test]
+fn durable_solo_m02_departure_saves_m03_pending_and_survives_owner_drop() {
+    let mut state = state();
+    state.enable_campaign_run().unwrap();
+    let id = Uuid::new_v4();
+    state.add_player(id, "Runner".into(), Role::Agent);
+    assert!(state.acknowledge_m02(id, 1));
+    state.tick(0.05);
+    assert_eq!(progress(&state).0, 1);
+    let target = state
+        .map
+        .m02_objectives()
+        .unwrap()
+        .objective(1)
+        .unwrap()
+        .control
+        .as_ref()
+        .unwrap()
+        .point(
+            state.map.presentation_ref().unwrap(),
+            &state.map.arena().solids,
+        )
+        .unwrap();
+    let player = &mut state.players[0];
+    [player.x, player.y, player.z] = [0.0, PLAYER_FLOOR_Y, -3.0];
+    (player.yaw, player.pitch) =
+        crate::combat::aim_at([player.x, crate::movement::EYE_HEIGHT, player.z], target).unwrap();
+    player.interaction_requested = true;
+    state.tick(0.05);
+    assert_eq!(progress(&state).0, 2);
+    state.players[0].hp = 63;
+    state.players[0].armor = 9;
+    [state.players[0].x, state.players[0].y, state.players[0].z] = [0.0, PLAYER_FLOOR_Y, 4.0];
+    state.tick(0.05);
+    assert_eq!(
+        state.mission_state().unwrap().run.unwrap().status,
+        crate::protocol::CampaignRunStatus::Complete
+    );
+    let before = state.campaign_run_document().unwrap().unwrap();
+    let crate::mission::run_file::SavedStep::AwaitingMission {
+        completed_mission,
+        next_mission,
+        exit,
+    } = &before.step
+    else {
+        panic!("M02 departure must wait for M03");
+    };
+    assert_eq!(*completed_mission, MissionId::PersonsUnknown);
+    assert_eq!(next_mission, "scheduled_service");
+    assert_eq!((exit.hp, exit.armor), (63, 9));
+    state.remove_player(id);
+    assert_eq!(state.campaign_run_document().unwrap(), Some(before));
+}
+
+#[test]
 fn wire_projection_has_current_objective_and_prompts_for_all_eligible_members() {
     let mut state = state();
     let first = Uuid::from_u128(11);
@@ -115,10 +169,6 @@ fn wire_projection_has_current_objective_and_prompts_for_all_eligible_members() 
 #[test]
 fn unready_and_dead_participants_cannot_trigger_and_retry_restores_entry() {
     let mut state = state();
-    assert_eq!(
-        state.enable_campaign_run(),
-        Err("durable campaign runs require M01 mission geometry")
-    );
     let id = Uuid::new_v4();
     state.add_player(id, "Walker".into(), Role::Human);
     assert!(!state.acknowledge_m02(id, 2));

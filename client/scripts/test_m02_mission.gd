@@ -107,12 +107,50 @@ func _run() -> void:
 	_expect(not MissionState.validation_error(ward_fight, geometry, use).is_empty(), "ward victory cannot rewind within an attempt")
 	var retry: Dictionary = _state([], _arrival("ward_reached", -4), "in_progress", [], 2, 30)
 	_expect(MissionState.validation_error(retry, geometry, exit).is_empty(), "a retry restarts at the first objective")
+	await _durable(geometry, first, done)
 	await _network(info)
 	_hud(first, ward_fight, use, exit, done)
 	_readable(info)
 	if failures == 0:
 		print("test_m02_mission: PASS capability 17 ward fact, strict progress, gate map refresh, HUD and catalog keys")
 	quit(0 if failures == 0 else 1)
+
+func _durable(geometry: Dictionary, first: Dictionary, done: Dictionary) -> void:
+	var live: Dictionary = first.duplicate(true)
+	live["state"]["run"] = {"id": PLAYER, "status": "playing", "continues": 2, "level_start_continues": 2}
+	_expect(MissionState.validation_error(live, geometry).is_empty(), "M02 durable entry starts at attempt one with carried allowance")
+	var no_allowance: Dictionary = live.duplicate(true)
+	no_allowance["state"]["run"]["continues"] = 0
+	no_allowance["state"]["run"]["level_start_continues"] = 0
+	_expect(MissionState.validation_error(no_allowance, geometry).is_empty(), "M02 can start with no remaining continues")
+	var fallen: Dictionary = live.duplicate(true)
+	fallen["tick"] = 21
+	fallen["state"]["run"]["status"] = "continue"
+	fallen["state"]["party"][0]["alive"] = false
+	_expect(MissionState.validation_error(fallen, geometry, live).is_empty(), "M02 death offers a continue without spending it")
+	var retry: Dictionary = live.duplicate(true)
+	retry["tick"] = 22
+	retry["state"]["attempt"] = 2
+	retry["state"]["run"]["continues"] = 1
+	_expect(MissionState.validation_error(retry, geometry, fallen).is_empty(), "M02 retry spends one shared continue and resets this level")
+	var bad: Dictionary = retry.duplicate(true)
+	bad["state"]["run"]["level_start_continues"] = 3
+	_expect(not MissionState.validation_error(bad, geometry, fallen).is_empty(), "level baseline cannot change inside M02")
+	bad = live.duplicate(true)
+	bad["state"]["run"].erase("level_start_continues")
+	_expect(not MissionState.validation_error(bad, geometry).is_empty(), "live M02 rejects old three-key run state")
+	var completed: Dictionary = done.duplicate(true)
+	completed["state"]["run"] = {"id": PLAYER, "status": "complete", "continues": 2, "level_start_continues": 2}
+	_expect(MissionState.validation_error(completed, geometry).is_empty(), "M02 departure completes the durable run step")
+	var hud: MissionHud = MissionHud.new()
+	root.add_child(hud)
+	hud.apply(live["state"], PLAYER)
+	_expect(hud._run_badge.visible and hud._run_badge.text == "ATTEMPT 1  /  2 CONTINUES", "M02 shows the current level attempt and shared allowance")
+	hud.apply(fallen["state"], PLAYER)
+	_expect(hud._recovery.visible and hud.recovery_text.contains("ENTER"), "M02 offers the same explicit continue choice")
+	hud.apply(first["state"], PLAYER)
+	_expect(not hud._run_badge.visible and not hud._recovery.visible, "development M02 keeps the run UI hidden")
+	hud.queue_free()
 
 func _network(info: Dictionary) -> void:
 	var network: CaptureNetwork = CaptureNetwork.new()

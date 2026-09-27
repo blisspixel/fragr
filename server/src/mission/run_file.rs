@@ -1,8 +1,8 @@
 //! Versioned solo-run document. Disk transport is local-only and separate.
 use crate::inventory::{Inventory, SavedEquipment};
 use crate::protocol::{
-    CampaignRules, CampaignRunStatus, EquipmentPolicy, MissionId, WeaponType, CAMPAIGN_CONTINUES,
-    CAMPAIGN_RULES_REVISION,
+    BodyKind, CampaignRules, CampaignRunStatus, EquipmentPolicy, MissionId, WeaponType,
+    CAMPAIGN_CONTINUES, CAMPAIGN_RULES_REVISION,
 };
 use crate::sim::{GameState, Player, PLAYER_MAX_ARMOR, PLAYER_MAX_HP};
 use serde::{Deserialize, Serialize};
@@ -12,8 +12,9 @@ pub(crate) mod store;
 
 /// Version 2 saves one ammunition count per type. Version 1 saved magazines
 /// and shared reserves; it reads as incompatible and needs a new run.
-pub(super) const RUN_FILE_VERSION: u32 = 2;
-const NEXT_MISSION: &str = "persons_unknown";
+pub(super) const RUN_FILE_VERSION: u32 = 3;
+const M02_MISSION: &str = "persons_unknown";
+const M03_MISSION: &str = "scheduled_service";
 
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
@@ -89,18 +90,106 @@ pub(crate) struct RunDocument {
     pub id: Uuid,
     pub starting_continues: u8,
     pub remaining_continues: u8,
+    pub level_start_continues: u8,
+    pub body: Option<BodyKind>,
     pub rules: CampaignRules,
     pub content_sha256: [u8; 32],
     pub step: SavedStep,
 }
 
+/// The released version 2 shape is decoded explicitly. It had no body or
+/// per-level baseline and could only represent M01 or its pending M02 edge.
+#[derive(Debug, Clone, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub(crate) struct RunDocumentV2 {
+    pub version: u32,
+    pub id: Uuid,
+    pub starting_continues: u8,
+    pub remaining_continues: u8,
+    pub rules: CampaignRules,
+    pub content_sha256: [u8; 32],
+    pub step: SavedStep,
+}
+
+impl RunDocumentV2 {
+    pub fn upgrade(self, m01_hash: [u8; 32]) -> Result<RunDocument, &'static str> {
+        let supported = match &self.step {
+            SavedStep::MissionEntry { mission, .. }
+            | SavedStep::PendingContinue { mission, .. }
+            | SavedStep::Failed { mission, .. }
+            | SavedStep::Abandoned { mission, .. } => *mission == MissionId::RecallNotice,
+            SavedStep::AwaitingMission {
+                completed_mission,
+                next_mission,
+                ..
+            } => *completed_mission == MissionId::RecallNotice && next_mission == M02_MISSION,
+        };
+        if self.version != 2 || !supported {
+            return Err("unsupported legacy campaign run");
+        }
+        let document = RunDocument {
+            version: RUN_FILE_VERSION,
+            id: self.id,
+            starting_continues: self.starting_continues,
+            remaining_continues: self.remaining_continues,
+            level_start_continues: CAMPAIGN_CONTINUES,
+            body: None,
+            rules: self.rules,
+            content_sha256: self.content_sha256,
+            step: self.step,
+        };
+        document.validate(m01_hash)?;
+        Ok(document)
+    }
+}
+
 impl RunDocument {
+    pub fn stage_mission(&self) -> MissionId {
+        match &self.step {
+            SavedStep::MissionEntry { mission, .. }
+            | SavedStep::PendingContinue { mission, .. }
+            | SavedStep::Failed { mission, .. }
+            | SavedStep::Abandoned { mission, .. } => *mission,
+            SavedStep::AwaitingMission {
+                completed_mission, ..
+            } => *completed_mission,
+        }
+    }
+
+    pub fn promote_m02(&self, m02_hash: [u8; 32]) -> Result<Self, &'static str> {
+        let SavedStep::AwaitingMission {
+            completed_mission: MissionId::RecallNotice,
+            next_mission,
+            exit,
+        } = &self.step
+        else {
+            return Err("campaign run is not awaiting M02");
+        };
+        if next_mission != M02_MISSION {
+            return Err("unsupported saved campaign transition");
+        }
+        let mut entry = exit.clone();
+        // Personal supply identities belong to the old map. The weapons and
+        // ammunition they granted remain in the carried equipment.
+        entry.equipment.personal_claims.clear();
+        let mut promoted = self.clone();
+        promoted.content_sha256 = m02_hash;
+        promoted.level_start_continues = self.remaining_continues;
+        promoted.step = SavedStep::MissionEntry {
+            mission: MissionId::PersonsUnknown,
+            entry,
+        };
+        promoted.validate(m02_hash)?;
+        Ok(promoted)
+    }
     pub fn new(id: Uuid, rules: CampaignRules, content_sha256: [u8; 32]) -> Self {
         Self {
             version: RUN_FILE_VERSION,
             id,
             starting_continues: CAMPAIGN_CONTINUES,
             remaining_continues: CAMPAIGN_CONTINUES,
+            level_start_continues: CAMPAIGN_CONTINUES,
+            body: None,
             rules,
             content_sha256,
             step: SavedStep::MissionEntry {
@@ -115,6 +204,8 @@ impl RunDocument {
             || self.id.is_nil()
             || self.starting_continues != CAMPAIGN_CONTINUES
             || self.remaining_continues > self.starting_continues
+            || self.level_start_continues > self.starting_continues
+            || self.remaining_continues > self.level_start_continues
             || self.rules.revision != CAMPAIGN_RULES_REVISION
             || self.content_sha256 != content_sha256
         {
@@ -140,8 +231,17 @@ impl RunDocument {
                 next_mission,
                 exit,
             } => {
-                if *completed_mission != MissionId::RecallNotice || next_mission != NEXT_MISSION {
+                if !matches!(
+                    (*completed_mission, next_mission.as_str()),
+                    (MissionId::RecallNotice, M02_MISSION)
+                        | (MissionId::PersonsUnknown, M03_MISSION)
+                ) {
                     return Err("unsupported saved campaign transition");
+                }
+                if *completed_mission == MissionId::RecallNotice
+                    && self.level_start_continues != CAMPAIGN_CONTINUES
+                {
+                    return Err("M01 run has the wrong continue baseline");
                 }
                 exit.validate()
             }
@@ -149,14 +249,14 @@ impl RunDocument {
     }
 
     fn validate_mission(&self, mission: MissionId, entry: &SavedEntry) -> Result<(), &'static str> {
-        if mission != MissionId::RecallNotice {
-            return Err("unsupported saved mission");
+        if mission == MissionId::RecallNotice && self.level_start_continues != CAMPAIGN_CONTINUES {
+            return Err("M01 run has the wrong continue baseline");
         }
         entry.validate()
     }
 
     pub fn attempt(&self) -> u32 {
-        u32::from(self.starting_continues - self.remaining_continues) + 1
+        u32::from(self.level_start_continues - self.remaining_continues) + 1
     }
 }
 
@@ -175,16 +275,19 @@ impl GameState {
         let entry = solo.saved_entry().unwrap_or_else(SavedEntry::initial);
         let mission = self
             .map
-            .mission()
-            .ok_or("campaign run requires mission geometry")?
-            .id;
+            .campaign_mission_id()
+            .ok_or("campaign run requires mission geometry")?;
         let step = match solo.state.status {
             CampaignRunStatus::Playing => SavedStep::MissionEntry { mission, entry },
             CampaignRunStatus::Continue => SavedStep::PendingContinue { mission, entry },
             CampaignRunStatus::Failed => SavedStep::Failed { mission, entry },
             CampaignRunStatus::Complete => SavedStep::AwaitingMission {
                 completed_mission: mission,
-                next_mission: NEXT_MISSION.into(),
+                next_mission: match mission {
+                    MissionId::RecallNotice => M02_MISSION,
+                    MissionId::PersonsUnknown => M03_MISSION,
+                }
+                .into(),
                 exit: solo
                     .saved_exit()
                     .ok_or("completed run has no saved exit")?
@@ -197,6 +300,8 @@ impl GameState {
             id: solo.state.id,
             starting_continues: CAMPAIGN_CONTINUES,
             remaining_continues: solo.state.continues,
+            level_start_continues: solo.state.level_start_continues,
+            body: solo.body(),
             rules: run.rules,
             content_sha256,
             step,
@@ -210,8 +315,10 @@ impl GameState {
 mod tests {
     use super::*;
     use crate::inventory::Inventory;
-    use crate::maps::AuthoredMap;
-    use crate::protocol::{CampaignDifficulty, EquipmentPolicy, MissionContinue, Role, WeaponType};
+    use crate::maps::{AuthoredMap, RuntimeMap};
+    use crate::protocol::{
+        AmmoPool, BodyKind, CampaignDifficulty, EquipmentPolicy, MissionContinue, Role, WeaponType,
+    };
 
     fn state_with_map() -> GameState {
         let map = AuthoredMap::read(
@@ -230,6 +337,8 @@ mod tests {
             id: Uuid::from_u128(1),
             starting_continues: CAMPAIGN_CONTINUES,
             remaining_continues: CAMPAIGN_CONTINUES,
+            level_start_continues: CAMPAIGN_CONTINUES,
+            body: None,
             rules: CampaignRules::new(CampaignDifficulty::Standard),
             content_sha256: [5; 32],
             step: SavedStep::MissionEntry {
@@ -289,7 +398,7 @@ mod tests {
         };
         saved.step = SavedStep::AwaitingMission {
             completed_mission: mission,
-            next_mission: NEXT_MISSION.into(),
+            next_mission: M02_MISSION.into(),
             exit: entry,
         };
         saved.validate([5; 32]).unwrap();
@@ -325,10 +434,9 @@ mod tests {
         assert_eq!(mission.attempt, 3);
         assert_eq!(mission.run.unwrap().status, CampaignRunStatus::Continue);
         assert!(!mission.party[0].alive);
-        assert_eq!(
-            state.campaign_run_document().unwrap(),
-            Some(document.clone())
-        );
+        let mut bound = document.clone();
+        bound.body = Some(crate::protocol::BodyKind::Human);
+        assert_eq!(state.campaign_run_document().unwrap(), Some(bound));
         let request = MissionContinue {
             id: MissionId::RecallNotice,
             run_id: document.id,
@@ -379,7 +487,7 @@ mod tests {
                 exit,
             } => {
                 assert_eq!(*completed_mission, MissionId::RecallNotice);
-                assert_eq!(next_mission, NEXT_MISSION);
+                assert_eq!(next_mission, M02_MISSION);
                 assert_eq!((exit.hp, exit.armor), (54, 12));
                 assert_eq!(exit.equipment.selected, WeaponType::Tack);
                 assert_eq!(exit.equipment.weapons.len(), 2);
@@ -399,5 +507,176 @@ mod tests {
         assert_eq!(state.campaign_run_document().unwrap(), Some(completed));
         drop(store);
         std::fs::remove_dir_all(directory).unwrap();
+    }
+
+    #[test]
+    fn m01_exit_promotes_exact_gear_and_body_into_m02_retry_anchor() {
+        let m01_hash = RuntimeMap::Authored(
+            crate::maps::AuthoredSource::Mission(MissionId::RecallNotice)
+                .load()
+                .unwrap(),
+        )
+        .content_sha256()
+        .unwrap();
+        let m02_map = crate::maps::AuthoredSource::Mission(MissionId::PersonsUnknown)
+            .load()
+            .unwrap();
+        let m02_hash = RuntimeMap::Authored(m02_map.clone())
+            .content_sha256()
+            .unwrap();
+        let mut inventory = Inventory::new(EquipmentPolicy::Discovery);
+        inventory.grant_weapon(WeaponType::Tack);
+        inventory.grant_ammo(AmmoPool::Bullets, 17);
+        inventory.record_claim("bay_tack".into());
+        let exit = SavedEntry {
+            hp: 47,
+            armor: 12,
+            equipment: inventory.saved_equipment(WeaponType::Tack).unwrap(),
+        };
+        let exit_ammo = exit.equipment.ammo.clone();
+        let mut saved = RunDocument::new(
+            Uuid::new_v4(),
+            CampaignRules::new(CampaignDifficulty::Severe),
+            m01_hash,
+        );
+        saved.remaining_continues = 1;
+        saved.body = Some(BodyKind::Synthetic);
+        saved.step = SavedStep::AwaitingMission {
+            completed_mission: MissionId::RecallNotice,
+            next_mission: M02_MISSION.into(),
+            exit,
+        };
+        saved.validate(m01_hash).unwrap();
+        let promoted = saved.promote_m02(m02_hash).unwrap();
+        assert_eq!(promoted.id, saved.id);
+        assert_eq!(promoted.rules, saved.rules);
+        assert_eq!(promoted.remaining_continues, 1);
+        assert_eq!(promoted.level_start_continues, 1);
+        assert_eq!(promoted.attempt(), 1);
+        assert_eq!(promoted.body, Some(BodyKind::Synthetic));
+        let SavedStep::MissionEntry { mission, entry } = &promoted.step else {
+            panic!("expected M02 entry")
+        };
+        assert_eq!(*mission, MissionId::PersonsUnknown);
+        assert_eq!((entry.hp, entry.armor), (47, 12));
+        assert_eq!(entry.equipment.selected, WeaponType::Tack);
+        assert!(entry.equipment.personal_claims.is_empty());
+        assert_eq!(entry.equipment.ammo, exit_ammo);
+        assert!(saved.promote_m02(m02_hash).is_ok());
+        assert!(promoted.promote_m02(m02_hash).is_err());
+        let mut state = GameState::with_authored_map(m02_map);
+        state.load_campaign_run(&promoted).unwrap();
+        let owner = Uuid::new_v4();
+        state.add_player_with_body(owner, "Runner".into(), Role::Human, BodyKind::Human);
+        let player = state
+            .players
+            .iter()
+            .find(|player| player.id == owner)
+            .unwrap();
+        assert_eq!(player.body, BodyKind::Synthetic);
+        assert_eq!(
+            (player.hp, player.armor, player.weapon),
+            (47, 12, WeaponType::Tack)
+        );
+        assert!(!player.inventory.claimed("bay_tack"));
+        assert!(!player.inventory.claimed("guard_room_scatter"));
+        assert_eq!(
+            state
+                .mission_state()
+                .unwrap()
+                .run
+                .unwrap()
+                .level_start_continues,
+            1
+        );
+        assert!(state.acknowledge_m02(owner, 1));
+        {
+            let player = state
+                .players
+                .iter_mut()
+                .find(|player| player.id == owner)
+                .unwrap();
+            [player.x, player.y, player.z] = [-2.1, 3.0 + crate::sim::PLAYER_FLOOR_Y, -31.0];
+        }
+        state.tick(0.05);
+        assert!(state
+            .players
+            .iter()
+            .find(|player| player.id == owner)
+            .unwrap()
+            .inventory
+            .owns(WeaponType::Scatter));
+        state
+            .players
+            .iter_mut()
+            .find(|player| player.id == owner)
+            .unwrap()
+            .hp = 0;
+        state.update_campaign_run();
+        assert_eq!(
+            state.mission_state().unwrap().run.unwrap().status,
+            CampaignRunStatus::Continue
+        );
+        let request = MissionContinue {
+            id: MissionId::PersonsUnknown,
+            run_id: promoted.id,
+            attempt: 1,
+        };
+        assert!(state.continue_mission(owner, request));
+        assert!(!state.continue_mission(owner, request));
+        let retry = state.mission_state().unwrap();
+        assert_eq!(retry.attempt, 2);
+        assert_eq!(retry.run.unwrap().continues, 0);
+        let player = state
+            .players
+            .iter()
+            .find(|player| player.id == owner)
+            .unwrap();
+        assert_eq!(
+            (player.hp, player.armor, player.weapon),
+            (47, 12, WeaponType::Tack)
+        );
+        assert!(!player.inventory.owns(WeaponType::Scatter));
+        assert_eq!(state.campaign_run_document().unwrap().unwrap().attempt(), 2);
+    }
+
+    #[test]
+    fn zero_continues_at_m02_entry_allows_a_first_attempt_then_fails() {
+        let map = crate::maps::AuthoredSource::Mission(MissionId::PersonsUnknown)
+            .load()
+            .unwrap();
+        let hash = RuntimeMap::Authored(map.clone()).content_sha256().unwrap();
+        let mut document = RunDocument::new(Uuid::new_v4(), CampaignRules::default(), hash);
+        document.remaining_continues = 0;
+        document.level_start_continues = 0;
+        document.step = SavedStep::MissionEntry {
+            mission: MissionId::PersonsUnknown,
+            entry: SavedEntry::initial(),
+        };
+        document.validate(hash).unwrap();
+        let mut state = GameState::with_authored_map(map);
+        state.load_campaign_run(&document).unwrap();
+        let owner = Uuid::new_v4();
+        state.add_player(owner, "Runner".into(), Role::Agent);
+        assert!(state.acknowledge_m02(owner, 1));
+        assert_eq!(state.mission_state().unwrap().attempt, 1);
+        state
+            .players
+            .iter_mut()
+            .find(|player| player.id == owner)
+            .unwrap()
+            .hp = 0;
+        state.update_campaign_run();
+        let run = state.mission_state().unwrap().run.unwrap();
+        assert_eq!(run.status, CampaignRunStatus::Failed);
+        assert_eq!(run.continues, 0);
+        assert!(!state.continue_mission(
+            owner,
+            MissionContinue {
+                id: MissionId::PersonsUnknown,
+                run_id: document.id,
+                attempt: 1
+            }
+        ));
     }
 }

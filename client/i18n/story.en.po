@@ -128,6 +128,9 @@ msgstr "Back"
 msgid "RUN_CONTINUES"
 msgstr "CONTINUES: {count}"
 
+msgid "RUN_LEVEL_BADGE"
+msgstr "ATTEMPT {attempt}  /  {continues} CONTINUES"
+
 msgid "RUN_FALLEN"
 msgstr "YOU FELL. THE FIGHT IS NOT OVER."
 

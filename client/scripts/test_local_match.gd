@@ -33,7 +33,7 @@ class Fixture extends LocalMatch:
 	func executable_path() -> String:
 		return path
 
-const RECORD: String = '{"version":2,"mission":"recall_notice","difficulty":"standard","url":"ws://127.0.0.1:12345","gameplay_version":12}\n'
+const RECORD: String = '{"version":2,"mission":"recall_notice","difficulty":"standard","url":"ws://127.0.0.1:12345","gameplay_version":18}\n'
 var failures: int = 0
 
 func _initialize() -> void:
@@ -113,13 +113,24 @@ func _run() -> void:
 	_expect(not fixture.start_mission("invalid") and child.starts == starts, "invalid tier cannot start a child")
 	_expect(not fixture.start_mission("standard", "invalid") and child.starts == starts, "invalid run mode cannot start a child")
 	_development(fixture, child)
-	var ready_preview: Dictionary = {"status": "ready", "difficulty": "severe", "attempt": 3, "continues": 1, "pending_continue": true}
+	var ready_preview: Dictionary = {"status": "ready", "mission": "recall_notice", "difficulty": "severe", "attempt": 3, "continues": 1, "pending_continue": true, "body": "synthetic"}
 	var parsed_preview: Dictionary = LocalMatch.parse_run_preview(JSON.stringify(ready_preview).to_ascii_buffer())
-	_expect(parsed_preview.size() == 5 and parsed_preview.get("status") == "ready" and int(parsed_preview.get("attempt", 0)) == 3 and parsed_preview.get("pending_continue") == true, "bounded preview accepts a valid pending run")
-	for patch: Dictionary in [{"attempt": 2}, {"continues": 0}, {"difficulty": "other"}, {"extra": 1}, {"pending_continue": 1}]:
+	_expect(parsed_preview.size() == 7 and parsed_preview.get("status") == "ready" and int(parsed_preview.get("attempt", 0)) == 3 and parsed_preview.get("pending_continue") == true, "bounded preview accepts a valid pending run")
+	for patch: Dictionary in [{"attempt": 2}, {"continues": 0}, {"difficulty": "other"}, {"extra": 1}, {"pending_continue": 1}, {"body": "robot"}, {"mission": "other"}]:
 		var bad_preview: Dictionary = ready_preview.duplicate()
 		bad_preview.merge(patch, true)
 		_expect(LocalMatch.parse_run_preview(JSON.stringify(bad_preview).to_ascii_buffer()).is_empty(), "preview rejects inconsistent state: " + str(patch))
+	var m02_preview: Dictionary = ready_preview.duplicate()
+	m02_preview["mission"] = MissionState.M02_ID
+	m02_preview["attempt"] = 1
+	m02_preview["body"] = null
+	_expect(LocalMatch.parse_run_preview(JSON.stringify(m02_preview).to_ascii_buffer()).get("mission") == MissionState.M02_ID, "M02 attempt resets while remaining continues carry")
+	var awaiting: Dictionary = {"status": "awaiting_mission", "mission": MissionState.M02_ID, "difficulty": "severe", "continues": 1, "body": null}
+	_expect(LocalMatch.parse_run_preview(JSON.stringify(awaiting).to_ascii_buffer()).get("mission") == MissionState.M02_ID, "M01 completion previews the pending M02 destination and unbound legacy body")
+	awaiting["mission"] = LocalMatch.NEXT_MISSION
+	_expect(LocalMatch.parse_run_preview(JSON.stringify(awaiting).to_ascii_buffer()).get("mission") == LocalMatch.NEXT_MISSION, "M02 completion previews the pending M03 destination")
+	awaiting["mission"] = "other"
+	_expect(LocalMatch.parse_run_preview(JSON.stringify(awaiting).to_ascii_buffer()).is_empty(), "unknown pending destination is rejected")
 	_expect(LocalMatch.parse_run_preview('{"status":"corrupt"}'.to_ascii_buffer()).get("status") == "corrupt", "preview distinguishes corrupt save")
 	for patch: Dictionary in [{"version":true}, {"version":1.5}, {"mission":"calibration"}, {"extra":1},
 		{"gameplay_version":4}, {"gameplay_version":5.5}, {"gameplay_version":10}, {"gameplay_version":11}, {"url":"ws://localhost:12345"}, {"url":"ws://127.0.0.1:0"},
@@ -132,19 +143,19 @@ func _run() -> void:
 		print("test_local_match: PASS")
 	quit(0 if failures == 0 else 1)
 
-## M02 is a development child: its own mission and capability, never a run mode.
+## M02 development and durable resume use distinct bootstrap capabilities.
 func _development(fixture: Fixture, child: FakeProcess) -> void:
 	var record: Dictionary = JSON.parse_string(RECORD)
 	var m02: Dictionary = record.duplicate()
 	m02["mission"] = "persons_unknown"
 	m02["gameplay_version"] = 17
 	var bytes: PackedByteArray = JSON.stringify(m02).to_ascii_buffer()
-	_expect(not LocalMatch.readiness_url(bytes, "standard", "persons_unknown").is_empty(), "M02 readiness names its own contract")
+	_expect(not LocalMatch.readiness_url(bytes, "standard", "persons_unknown", "").is_empty(), "development M02 readiness names its own contract")
 	_expect(LocalMatch.readiness_url(bytes).is_empty(), "an M02 child cannot satisfy an M01 launch")
-	_expect(LocalMatch.readiness_url(JSON.stringify(record).to_ascii_buffer(), "standard", "persons_unknown").is_empty(), "an M01 child cannot satisfy an M02 launch")
+	_expect(LocalMatch.readiness_url(JSON.stringify(record).to_ascii_buffer(), "standard", "persons_unknown", "").is_empty(), "an M01 child cannot satisfy an M02 launch")
 	var old: Dictionary = m02.duplicate()
 	old["gameplay_version"] = 16
-	_expect(LocalMatch.readiness_url(JSON.stringify(old).to_ascii_buffer(), "standard", "persons_unknown").is_empty(), "M02 requires the capability 17 contract")
+	_expect(LocalMatch.readiness_url(JSON.stringify(old).to_ascii_buffer(), "standard", "persons_unknown", "").is_empty(), "development M02 requires the capability 17 contract")
 	_expect(LocalMatch.readiness_url(bytes, "standard", "m03").is_empty(), "an unregistered mission fails closed")
 	var starts: int = child.starts
 	_expect(not fixture.start_mission("standard", "new", "persons_unknown") and child.starts == starts, "M02 refuses a run mode")
@@ -157,5 +168,16 @@ func _development(fixture: Fixture, child: FakeProcess) -> void:
 	child.alive = false
 	fixture._process(0)
 	_expect(fixture.error_key == "LOCAL_SERVER_STOPPED", "a stopped M02 child is reported")
+	fixture.stop()
+	var durable: Dictionary = m02.duplicate()
+	durable["gameplay_version"] = 18
+	child.expected = PackedStringArray(["--local-mission", "persons_unknown", "--run-mode", "resume", "--difficulty", "standard"])
+	_expect(fixture.start_mission("standard", "resume", "persons_unknown"), "saved M02 resumes as a durable child")
+	child.output = JSON.stringify(durable).to_ascii_buffer() + PackedByteArray([10])
+	fixture._process(0)
+	_expect(fixture.state == LocalMatch.State.RUNNING and fixture.has_durable_run(), "durable M02 requires capability 18")
+	_expect(LocalMatch.readiness_url(bytes, "standard", "persons_unknown", "resume").is_empty(), "development readiness cannot satisfy durable resume")
+	child.alive = false
+	fixture._process(0)
 	fixture.stop()
 	child.expected = PackedStringArray(["--local-mission", "recall_notice", "--run-mode", "new", "--difficulty", "standard"])

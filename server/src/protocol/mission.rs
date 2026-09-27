@@ -24,13 +24,15 @@ pub struct CampaignRunState {
     pub id: Uuid,
     pub status: CampaignRunStatus,
     pub continues: u8,
+    pub level_start_continues: u8,
 }
 
 impl CampaignRunState {
     pub fn validate_attempt(&self, attempt: u32) -> Result<(), &'static str> {
         if self.id.is_nil()
-            || self.continues > CAMPAIGN_CONTINUES
-            || attempt != u32::from(CAMPAIGN_CONTINUES - self.continues) + 1
+            || self.level_start_continues > CAMPAIGN_CONTINUES
+            || self.continues > self.level_start_continues
+            || attempt != u32::from(self.level_start_continues - self.continues) + 1
             || (self.status == CampaignRunStatus::Continue && self.continues == 0)
             || (self.status == CampaignRunStatus::Failed && self.continues != 0)
         {
@@ -347,12 +349,10 @@ impl MissionState {
 
     fn validate_m02(&self) -> Result<(), &'static str> {
         let m02 = self.m02.as_ref().ok_or("M02 objective state is missing")?;
-        if self.run.is_some()
-            || !matches!(
-                self.phase,
-                MissionPhase::Briefing | MissionPhase::InProgress | MissionPhase::Departed
-            )
-            || !(1..=8).contains(&m02.total)
+        if !matches!(
+            self.phase,
+            MissionPhase::Briefing | MissionPhase::InProgress | MissionPhase::Departed
+        ) || !(1..=8).contains(&m02.total)
             || m02.completed.len() > usize::from(m02.total)
             || m02.gate_mask > 7
             || (self.phase == MissionPhase::Departed)

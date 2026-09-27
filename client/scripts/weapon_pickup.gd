@@ -1,6 +1,7 @@
 extends Node3D
 
-## Scrap crate / pad billboard for mid-map pickups (weapon, health, armor).
+## Scrap crate / pad billboard for mid-map pickups. Ammunition is a compact
+## packet so a nearby optional supply does not fill the player's first view.
 ## Palette: bone-white / gunmetal / ember / blood-ember (not neon).
 
 var pickup_id: String = ""
@@ -12,7 +13,14 @@ var available: bool = true
 
 @onready var label: Label3D = $Label3D
 @onready var body: MeshInstance3D = $Body
+@onready var ammo_band: MeshInstance3D = $AmmoBand
 @onready var icon: Sprite3D = $Icon
+
+const AMMO_BODY_SIZE: Vector3 = Vector3(0.42, 0.22, 0.32)
+const AMMO_BODY_Y: float = 0.11
+const AMMO_LABEL_Y: float = 0.59
+const AMMO_FONT_SIZE: int = 20
+const AMMO_OUTLINE_SIZE: int = 5
 
 const COLORS = {
 	"Flechette": Color(0.86, 0.82, 0.74),  # bone-white
@@ -26,9 +34,29 @@ const COLORS = {
 	"golden_rail": Color(1.0, 0.8, 0.28),  # the one golden Railgun
 }
 
-var weapon_textures = {}
+var weapon_textures: Dictionary[String, Texture2D] = {}
+var _regular_mesh: Mesh
+var _regular_body_position: Vector3
+var _regular_label_position: Vector3
+var _regular_font_size: int
+var _regular_outline_size: int
+var _ammo_mesh: BoxMesh
+var _body_material: StandardMaterial3D
 
-func _ready():
+func _ready() -> void:
+	_regular_mesh = body.mesh
+	_regular_body_position = body.position
+	_regular_label_position = label.position
+	_regular_font_size = label.font_size
+	_regular_outline_size = label.outline_size
+	_ammo_mesh = BoxMesh.new()
+	_ammo_mesh.size = AMMO_BODY_SIZE
+	var active_material: Material = body.get_active_material(0)
+	if active_material != null:
+		_body_material = active_material.duplicate() as StandardMaterial3D
+	if _body_material == null:
+		_body_material = StandardMaterial3D.new()
+	body.set_surface_override_material(0, _body_material)
 	weapon_textures["Flechette"] = load("res://assets/weapons/32/flechette.png")
 	weapon_textures["Rail"] = load("res://assets/weapons/32/rail.png")
 	weapon_textures["Scatter"] = load("res://assets/weapons/32/scatter.png")
@@ -75,28 +103,28 @@ func _tint() -> Color:
 	return COLORS.get(weapon_name, Color(0.7, 0.68, 0.64))
 
 func _apply_look() -> void:
-	var tint = _tint()
+	var ammo: bool = pickup_kind == "ammo"
+	var tint: Color = _tint()
+	if body:
+		body.mesh = _ammo_mesh if ammo else _regular_mesh
+		body.position = Vector3(0.0, AMMO_BODY_Y, 0.0) if ammo else _regular_body_position
+	if ammo_band:
+		ammo_band.visible = ammo
 	if label:
 		label.text = _label_text()
 		label.modulate = tint
 		label.outline_modulate = Color(0.12, 0.11, 0.10)
-	if body and body.get_active_material(0):
-		var mat = body.get_active_material(0).duplicate()
-		mat.albedo_color = tint.darkened(0.25)
-		mat.emission_enabled = true
+		label.position = Vector3(0.0, AMMO_LABEL_Y, 0.0) if ammo else _regular_label_position
+		label.font_size = AMMO_FONT_SIZE if ammo else _regular_font_size
+		label.outline_size = AMMO_OUTLINE_SIZE if ammo else _regular_outline_size
+	if _body_material:
+		_body_material.albedo_color = tint.darkened(0.25)
+		_body_material.emission_enabled = true
 		# Health pads get a soft ember glow (blood/ember, not neon); the
 		# golden Railgun glows so it reads across the map.
-		var glow = 0.6 if pickup_kind == "golden_rail" else (0.22 if pickup_kind == "health" else 0.18)
-		mat.emission = tint * glow
-		mat.emission_energy_multiplier = 0.7 if pickup_kind == "health" else 0.6
-		body.set_surface_override_material(0, mat)
-	elif body:
-		var mat = StandardMaterial3D.new()
-		mat.albedo_color = tint.darkened(0.25)
-		mat.emission_enabled = true
-		mat.emission = tint * 0.18
-		mat.emission_energy_multiplier = 0.6
-		body.set_surface_override_material(0, mat)
+		var glow: float = 0.6 if pickup_kind == "golden_rail" else (0.22 if pickup_kind == "health" else 0.18)
+		_body_material.emission = tint * glow
+		_body_material.emission_energy_multiplier = 0.7 if pickup_kind == "health" else 0.6
 	if icon:
 		if (pickup_kind == "weapon" or pickup_kind == "golden_rail") and weapon_textures.has(weapon_name):
 			var texture: Texture2D = weapon_textures[weapon_name]

@@ -13,9 +13,11 @@ and the map version in observations, and closes its MCP game session if a map
 has unsupported or invalid geometry, or the server sends malformed JSON.
 Ground-filled legacy maps remain readable.
 
-The adapter declares gameplay capability 17. Every discovery map requires at
-least 12 for all roles; M02 requires 17 for its seated Clerk, Crawler stair
-and separate ward-victory and release facts. The six full-arsenal arcade maps still admit 1. Older clients are
+The adapter declares gameplay capability 18. Every discovery map requires at
+least 12 for all roles; M02 development parties require 17 for the seated
+Clerk, Crawler stair and separate ward-victory and release facts. Durable solo
+M01 and M02 runs require 18 for the per-level continue baseline. The six
+full-arsenal arcade maps still admit 1. Older clients are
 rejected before admission. `observe.loadout`
 is private to this participant: selected and owned weapons (`["fists","tack"]`),
 one `ammo` count per pool (`bullets`, `shells`, `cells`), personal supply
@@ -48,7 +50,8 @@ before another press. Range, aim, sight, gate changes and departure remain serve
 decisions. The shared local controller walks to mission controls when it has no
 combat or equipment target. Map changes replace navigation even with the same ID.
 For the M02 preparatory graybox, `observe.mission.m02` carries completed IDs,
-objective count, prepared gate mask and the current arrival region or physical
+objective count, prepared gate mask, the server-owned `ward_secured` fact and
+the current arrival region or physical
 use target. The target's decoration index refers to `observe.map.presentation`.
 `observe.map.m02_objectives` is present only for M02 and matches the mission's
 objective count; numeric map IDs alone do not identify a mission.
@@ -57,12 +60,17 @@ They mirror each gate's real state in the current map and are never use
 targets; the adapter rejects a target that names one.
 The adapter rejects targets that do not match the current map. `mission_ready`
 accepts `persons_unknown` with the observed attempt; `objective_use` prompts
-are issued per eligible participant. Single Player exposes a development entry
-for the same open route, without durable M02 run carry.
+are issued per eligible participant. Single Player retains a separate M02
+development entry without a save, while a completed M01 solo run may resume
+into M02. In a durable run, `observe.mission.run` carries the same run ID and
+remaining Episode I allowance plus `level_start_continues`; M02 starts at
+attempt 1 even if M01 used a continue. Agents must use the observed mission ID
+and attempt for readiness and retry.
 Development mission parties allow four humans/agents together. `--campaign-run`
 instead permits one lifetime combat seat; spectators do not take seats. Leaving
-ends the solo run, and a callsign cannot reclaim it. This is prototype progression,
-not persistent saves or reconnect.
+ends the solo run, and a callsign cannot reclaim it. Disk persistence belongs
+to the owned local child with `--run-mode`; ordinary dedicated sessions do not
+write that run file.
 
 After reading the current mission, call `mission_ready` with its `id` and
 `attempt`. Confirm the member's `ready` flag and active phase through `observe`;
@@ -117,7 +125,8 @@ neither field can supply asset paths. A material list must match the solid count
 Optional face decorations pass the shared host-index, bounds and panel/light
 budget validator. They contain registered kinds, never arbitrary text or paths.
 The current M01 prototype has a human Clerk, two bot Sweepers, a transfer record
-and shared lift departure. Departure does not load M02. An idle combat agent is
+and shared lift departure. Departure does not load M02 in the same process; an
+owned local run records it as the next mission. An idle combat agent is
 not route-play evidence.
 
 ## Quick Start
@@ -367,9 +376,10 @@ processed. Use `observe` to confirm readiness and the shared phase before acting
 
 ### `mission_continue`
 
-In a solo run, `observe.mission.run` reports its UUID, status and remaining
-continues. Only its dead owner in `continue` status can request a mission-start
-retry using the observed mission ID, run ID and attempt:
+In a solo run, `observe.mission.run` reports its UUID, status, remaining
+continues and `level_start_continues`. Only its dead owner in `continue`
+status can request a mission-start retry using the observed mission ID, run ID
+and attempt. This applies to M01 and to a saved M02 run:
 
 ```json
 {"jsonrpc":"2.0","id":9,"method":"tools/call","params":{"name":"mission_continue","arguments":{"id":"recall_notice","run_id":"550e8400-e29b-41d4-a716-446655440000","attempt":1}}}

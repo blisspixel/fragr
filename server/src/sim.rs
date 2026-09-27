@@ -2225,10 +2225,11 @@ impl GameState {
                 String::new()
             } else if self.map.is_authored() {
                 if self.map.has_encounters() {
-                    "Campaign development: introductory encounters; objectives and extraction remain in progress."
+                    "Campaign development: this mission slice is still being built."
                 } else {
                     "Campaign development: encounters and objectives are not implemented."
-                }.to_string()
+                }
+                .to_string()
             } else if self.round_state == RoundState::Ended {
                 self.ended_host_line
                     .clone()

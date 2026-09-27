@@ -56,12 +56,15 @@ func _run() -> void:
 	_check(not PlayerRecord.validation_error(backwards, active["player_id"], active).is_empty(), "late observations are rejected")
 	var mission: Dictionary = sample.duplicate(true)
 	mission["scope"] = {"kind": "mission", "mission": MissionState.ID, "attempt": 1, "rules": {"difficulty": "standard", "revision": 1}, "run": {"id": "00000000-0000-0000-0000-000000000003", "continues": 3, "status": "complete"}}
-	_check(PlayerRecord.validation_error(mission, mission["player_id"]).is_empty(), "mission record validates")
+	_check(PlayerRecord.validation_error(mission, mission["player_id"]).is_empty(), "historical three-key M01 record remains readable")
 	var ward: Dictionary = mission.duplicate(true)
 	ward["scope"]["mission"] = MissionState.M02_ID
-	_check(not PlayerRecord.validation_error(ward, ward["player_id"]).is_empty(), "an M02 record cannot name a durable run")
-	ward["scope"]["run"] = null
+	_check(not PlayerRecord.validation_error(ward, ward["player_id"]).is_empty(), "new M02 durable records need the level baseline")
+	ward["scope"]["run"] = {"id": mission["scope"]["run"]["id"], "status": "playing", "continues": 2, "level_start_continues": 2}
+	ward["scope"]["attempt"] = 1
 	ward["status"] = "active"
+	_check(PlayerRecord.validation_error(ward, ward["player_id"]).is_empty(), "M02 durable record accepts a reset level attempt and retained allowance")
+	ward["scope"]["run"] = null
 	_check(PlayerRecord.validation_error(ward, ward["player_id"]).is_empty(), "an M02 development record validates without a run")
 	var rewritten: Dictionary = mission.duplicate(true)
 	rewritten["scope"]["attempt"] = 2

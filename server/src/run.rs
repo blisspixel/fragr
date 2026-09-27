@@ -192,12 +192,67 @@ async fn run_server_impl(
             .map
             .content_sha256()
             .ok_or("durable local run requires authored content")?;
-        let store = RunStore::open(&local_run.directory, content_sha256)?;
+        let m01_hash = if session.state.map.campaign_mission_id()
+            == Some(crate::protocol::MissionId::RecallNotice)
+        {
+            content_sha256
+        } else {
+            crate::maps::AuthoredSource::bundled_content_sha256(
+                crate::protocol::MissionId::RecallNotice,
+            )
+        };
+        let m02_hash = if session.state.map.campaign_mission_id()
+            == Some(crate::protocol::MissionId::PersonsUnknown)
+        {
+            content_sha256
+        } else {
+            crate::maps::AuthoredSource::bundled_content_sha256(
+                crate::protocol::MissionId::PersonsUnknown,
+            )
+        };
+        let store = RunStore::open_with_hashes(&local_run.directory, m01_hash, m02_hash)?;
         if local_run.resume {
-            let saved = store.load()?.ok_or("no saved campaign run to resume")?;
+            let mut saved = store.load()?.ok_or("no saved campaign run to resume")?;
+            let source = saved.clone();
+            if session.state.map.campaign_mission_id()
+                == Some(crate::protocol::MissionId::PersonsUnknown)
+                && matches!(
+                    saved.step,
+                    crate::mission::run_file::SavedStep::AwaitingMission {
+                        completed_mission: crate::protocol::MissionId::RecallNotice,
+                        ..
+                    }
+                )
+            {
+                saved = saved.promote_m02(m02_hash)?;
+                store.archive_and_save(&source, &saved)?;
+            } else if saved.stage_mission()
+                != session
+                    .state
+                    .map
+                    .campaign_mission_id()
+                    .ok_or("missing mission identity")?
+            {
+                return Err("saved campaign run names another mission".into());
+            }
+            if !matches!(
+                saved.step,
+                crate::mission::run_file::SavedStep::MissionEntry { .. }
+                    | crate::mission::run_file::SavedStep::PendingContinue { .. }
+            ) {
+                return Err("saved campaign run is not playable".into());
+            }
+            if store.needs_upgrade()? {
+                store.archive_and_save(&source, &saved)?;
+            }
             session.state.load_campaign_run(&saved)?;
             last_run_document = Some(saved);
         } else {
+            if session.state.map.campaign_mission_id()
+                != Some(crate::protocol::MissionId::RecallNotice)
+            {
+                return Err("new durable run must start at M01".into());
+            }
             session
                 .state
                 .set_campaign_difficulty(options.difficulty.unwrap_or_default())?;
@@ -254,12 +309,12 @@ async fn run_server_impl(
         .match_config
         .as_ref()
         .is_some_and(|config| !config.rules.is_plain());
-    let required_gameplay = if session.state.map.m02_objectives().is_some() {
+    let required_gameplay = if options.campaign_run {
+        crate::protocol::RUN_CARRY_GAMEPLAY_VERSION
+    } else if session.state.map.m02_objectives().is_some() {
         crate::protocol::LATCH_RELEASE_GAMEPLAY_VERSION
     } else if discovery || twisted {
         crate::protocol::RULES_GAMEPLAY_VERSION
-    } else if options.campaign_run {
-        crate::protocol::CONTINUES_GAMEPLAY_VERSION
     } else if session.state.map.mission().is_some() {
         crate::protocol::DIFFICULTY_GAMEPLAY_VERSION
     } else if session.state.map.has_encounters() {
@@ -291,6 +346,7 @@ async fn run_server_impl(
     }
     if options.campaign_run {
         net_server.reserve_solo_run()?;
+        net_server.set_solo_bound_body(session.state.campaign_run_body());
     }
     let access_reload = access.map(|control| {
         let (bans, allows) = control.summary();

@@ -149,3 +149,54 @@ paid assets, merge, tag or release is part of this branch.
   across the two levels, and found stale Low Water level numbers in the lore
   gazetteer and cast pages. The copy must keep level 3 at the rail yard and Low
   Water at level 4, while M02 remains a development rescue slice.
+- 2026-09-27: The draft v3 document adds a per-level continue baseline and an
+  optional bound body. A validated M01 departure promotes to an M02 entry with
+  its ID, difficulty, allowance and exit equipment intact. Legacy v2 M01 saves
+  have an explicit decoder and retain exact source bytes in a content-addressed
+  archive. Wrong-destination launch leaves them untouched. Archive reads are
+  bounded, and retries reuse the exact archive after a failed replacement.
+- 2026-09-27: The durable local child now advertises gameplay capability 18,
+  including M01 without `--run-mode`; the independent M02 development child
+  remains at 17. A saved body overrides a changed profile in both Welcome and
+  the authoritative pawn. The menu names the saved mission, difficulty, body
+  and allowance; the pending level 3 state is read-only. No M03 launch exists.
+- 2026-09-27: A real Godot M02 child and restart carried Severe difficulty,
+  two continues, a Synthetic body, 61 HP, 7 armor, Tack and 29 Bullets. The
+  first private Loadout on each join matched the saved equipment after moving
+  the optional gallery shells beyond every spawn pickup radius. The final
+  gallery position passed all 13 M02 route tests and eight authored M02 tests;
+  its strict headless and rendered client smokes also passed. A compact ammo
+  packet and label keep the first view readable. Inspected rendered evidence
+  is indexed in [the screenshot record](../screenshots/m02-run-carry/README.md).
+  Earlier frames showing an automatic spawn pickup or a clipped crate were
+  discarded.
+- 2026-09-27: Four asserted multiplayer playtests passed. The six-map mixed
+  roster passed at 2, 6, 6, 8, 12 and 16 agents; map 4 still recorded two
+  post-opening spawn deaths and none at the opening. Pinned Godot checks and
+  their verifier-injection tests passed after updating the story replay
+  harness for the Practice page. Format, Clippy, full workspace tests, release
+  build, dependency policy, and the deterministic bench passed. Unfiltered
+  workspace coverage was 93.73 percent. The published tour passed all 32
+  states; the current menu and M02 frames were inspected. The asserted
+  120-second local soak passed with four agents, four bots, two spectators,
+  and rotating arenas. The combined CI gate remains in progress. External
+  spend remains $0.
+
+| Local soak sample (2026-09-27) | Measured result |
+|---|---:|
+| Duration and samples | 120 seconds, 9 samples |
+| Tick rate | 20.00 Hz |
+| Lifetime tick p99 and maximum | 0.52 ms, 1.44 ms |
+| Resident memory, first to peak | 37.6 MiB to 38.7 MiB |
+| Average outbound per connected client | 50,453 bytes/s |
+
+These are local Windows loopback measurements with eight fighters and two
+spectators, not a public-host or larger-map capacity result. The raw samples
+and server log are under `.agents/soak/carry-ci.*` in the worktree.
+
+Independent source and screenshot review caught two presentation errors before
+handoff: the playing guide overstated what the pause menu's Leave action does,
+and JSON preview numbers rendered as decimal continue counts. Both were fixed;
+the M02 menu proof frame was recaptured and inspected. No other actionable
+review finding remains. The unsteered player and difficulty acceptance gates
+remain open for the mission itself.

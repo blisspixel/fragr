@@ -1045,6 +1045,7 @@ mod tests {
                 id: Uuid::from_u128(2),
                 status: CampaignRunStatus::Playing,
                 continues: 1,
+                level_start_continues: 3,
             }),
             rules: CampaignRules::new(CampaignDifficulty::Standard),
             attempt: 3,
@@ -1087,6 +1088,7 @@ mod tests {
             id: Uuid::from_u128(2),
             status: CampaignRunStatus::Complete,
             continues: 3,
+            level_start_continues: 3,
         };
         let state = MissionState {
             id: MissionId::RecallNotice,
@@ -1216,6 +1218,7 @@ mod tests {
                 id: Uuid::from_u128(2),
                 status: CampaignRunStatus::Playing,
                 continues: 3,
+                level_start_continues: 3,
             }),
             rules: CampaignRules::new(CampaignDifficulty::Severe),
             attempt: 1,

@@ -93,7 +93,7 @@ func _run() -> void:
 	var menu: Control = load("res://scripts/boot_menu.gd").new()
 	root.add_child(menu)
 	await process_frame
-	menu._show("single")
+	menu._show("practice")
 	await process_frame
 	menu._replay_opening()
 	await process_frame
@@ -101,7 +101,7 @@ func _run() -> void:
 	_expect(menu._local_match.state == LocalMatch.State.IDLE and not has_meta("fragr_boot"), "replay launches no game session")
 	await _key(KEY_ESCAPE, true)
 	await _key(KEY_ESCAPE, false)
-	_expect(not is_instance_valid(menu._opening) and menu._page == "single", "Escape closes replay without dismissing its underlying menu")
+	_expect(not is_instance_valid(menu._opening) and menu._page == "practice", "Escape closes replay without dismissing its underlying menu")
 	_expect(menu._local_match.state == LocalMatch.State.IDLE and not has_meta("fragr_boot"), "closing replay mutates no game session")
 	menu.free()
 	await process_frame

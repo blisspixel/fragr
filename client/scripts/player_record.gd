@@ -116,13 +116,12 @@ static func _valid_scope(data: Dictionary) -> bool:
 		or not EquipmentState.integer(scope.get("attempt"), 4294967295) or int(scope["attempt"]) < 1 \
 		or not MissionState.valid_rules(scope.get("rules"), 1) or not scope.has("run"):
 		return false
-	# M02 has no durable solo run yet, so its record never names one.
+	# Development records have no run. Durable solo records carry its identity.
 	if scope["run"] == null:
 		return true
-	if scope["mission"] == MissionState.M02_ID:
-		return false
 	var run: Variant = scope["run"]
-	if not MissionState.valid_run_identity(run, scope["attempt"]):
+	# Historical service records retain the previous three-field run shape.
+	if not MissionState.valid_run_identity(run, scope["attempt"], scope["mission"] == MissionState.ID):
 		return false
 	return data["status"] == ("active" if run["status"] == "playing" else run["status"])
 

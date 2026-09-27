@@ -12,6 +12,7 @@ var _stage_phase: String = ""
 var _stage_left: float = 0.0
 var _card: PanelContainer
 var _copy: Label
+var _run_badge: Label
 ## Use and continue prompts carry the key or pad glyph for the device in the
 ## player's hands, so they are rich text. The plain strings are kept beside
 ## them for tests and for anything that reads the HUD as text.
@@ -34,6 +35,9 @@ func _ready() -> void:
 	_copy = _label(18)
 	_copy.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_card.add_child(_copy)
+	_run_badge = _label(16)
+	_run_badge.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	add_child(_run_badge)
 	_prompt = _rich(22)
 	add_child(_prompt)
 	_recovery = PanelContainer.new()
@@ -113,6 +117,8 @@ func _process(delta: float) -> void:
 	_card.position = Vector2(viewport.x - width - 24.0, 70.0)
 	_card.size = Vector2(width, 0.0)
 	_copy.custom_minimum_size.x = width - 32.0
+	_run_badge.position = Vector2(viewport.x - width - 24.0, 45.0)
+	_run_badge.size = Vector2(width, 0.0)
 	_prompt.position = Vector2(viewport.x * 0.2, viewport.y * 0.64)
 	_prompt.size = Vector2(viewport.x * 0.6, 0.0)
 	var recovery_width: float = minf(660.0, viewport.x - 48.0)
@@ -126,28 +132,20 @@ func _refresh() -> void:
 	visible = not state.is_empty()
 	if not visible:
 		_copy.text = ""
+		_run_badge.visible = false
 		_show_prompt("")
 		_card.visible = false
 		return
 	if state.get("id") == MissionState.M02_ID:
 		_refresh_m02()
 		return
+	_run_badge.visible = false
 	var lines: Array[String] = [tr("MISSION_M01_TITLE"), tr("DIFFICULTY_" + String(state["rules"]["difficulty"]).to_upper()), ""]
 	_recovery.visible = false
 	if state.get("run") is Dictionary:
 		var run: Dictionary = state["run"]
 		lines.insert(2, tr("RUN_CONTINUES").format({"count": int(run["continues"])}))
-		if run["status"] in ["continue", "failed", "abandoned"]:
-			_recovery.visible = true
-			var copy: Array[String] = [tr("RUN_FALLEN" if run["status"] == "continue" else "RUN_ENDED"), "", tr("RUN_CONTINUES").format({"count": int(run["continues"])}), ""]
-			if run["status"] == "continue":
-				copy.append(tr("RUN_RESTORE_ENTRY"))
-				copy.append(tr("RUN_CONTINUE_INPUT" if not player_id.is_empty() else "RUN_WAITING_OWNER"))
-			else:
-				copy.append(tr("RUN_FAILED" if run["status"] == "failed" else "RUN_ABANDONED"))
-			copy.append("")
-			copy.append(tr("RUN_MENU_INPUT"))
-			_show_recovery("\n".join(copy))
+		_refresh_run_recovery(run)
 	match state["phase"]:
 		"briefing":
 			lines.append(tr("STORY_M01_RECAP"))
@@ -205,6 +203,11 @@ static func _stage_key(value: Dictionary) -> String:
 ## panels in the world carry the rest.
 func _refresh_m02() -> void:
 	_recovery.visible = false
+	_run_badge.visible = state.get("run") is Dictionary
+	if _run_badge.visible:
+		var run: Dictionary = state["run"]
+		_run_badge.text = tr("RUN_LEVEL_BADGE").format({"attempt": int(state["attempt"]), "continues": int(run["continues"])})
+		_refresh_run_recovery(run)
 	var progress: Dictionary = state["m02"]
 	var line: String = ""
 	match state["phase"]:
@@ -222,6 +225,21 @@ func _refresh_m02() -> void:
 			use = _catalog(use_key(str(progress["current"]["id"])))
 	_show_prompt(use)
 	_card.visible = _stage_card_visible()
+
+func _refresh_run_recovery(run: Dictionary) -> void:
+	_recovery.visible = run["status"] in ["continue", "failed", "abandoned"]
+	if not _recovery.visible:
+		_show_recovery("")
+		return
+	var copy: Array[String] = [tr("RUN_FALLEN" if run["status"] == "continue" else "RUN_ENDED"), "", tr("RUN_CONTINUES").format({"count": int(run["continues"])}), ""]
+	if run["status"] == "continue":
+		copy.append(tr("RUN_RESTORE_ENTRY"))
+		copy.append(tr("RUN_CONTINUE_INPUT" if not player_id.is_empty() else "RUN_WAITING_OWNER"))
+	else:
+		copy.append(tr("RUN_FAILED" if run["status"] == "failed" else "RUN_ABANDONED"))
+	copy.append("")
+	copy.append(tr("RUN_MENU_INPUT"))
+	_show_recovery("\n".join(copy))
 
 ## Catalog copy only. A missing key is an error and shows nothing, never the key.
 func _catalog(key: String) -> String:

@@ -1,6 +1,6 @@
 # M02: Persons Unknown
 
-**Status:** development graybox (`server/maps/m02-persons-unknown.json`): an open route with a two-Clerk Shotgun introduction, a lone Crawler encounter, a later three-Crawler and Sweeper encounter, three further Clerk and Sweeper fights, and a guarded local release control between ward and dock arrival. The Crawler slice has seeded route and rendered visual checks but awaits fresh-player review. Latch's fixed release presentation is in draft; their autonomous escape, the remaining story and M01-to-M02 save carry remain unbuilt. The Jammer first appears in level 3. Earth before the wipe. Target 10-12 minutes.
+**Status:** development graybox (`server/maps/m02-persons-unknown.json`): an open route with a two-Clerk Shotgun introduction, a lone Crawler encounter, a later three-Crawler and Sweeper encounter, three further Clerk and Sweeper fights, and a guarded local release control between ward and dock arrival. The Crawler slice has seeded route and rendered visual checks but awaits fresh-player review. Latch's fixed release presentation and M01-to-M02 save carry are in stacked drafts; their autonomous escape and the remaining story are unbuilt. The Jammer first appears in level 3. Earth before the wipe. Target 10-12 minutes.
 [Treatment](../CAMPAIGN-MISSIONS.md#level-2-persons-unknown).
 
 The current graybox places the Shotgun on the upper gallery and two initially

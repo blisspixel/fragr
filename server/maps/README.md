@@ -53,8 +53,10 @@ continues and a lifetime owner seat. The local Single Player menu uses this mode
 Without it, the command above retains four-seat development party behavior.
 Solo death waits for a continue, the fourth death ends the run, and leaving cannot
 refill or reclaim it. Spectators can watch either mode. Retry restores original
-entry equipment, geometry, guards, supplies and objectives together. Disk saves,
-reconnect and cross-mission carry remain unbuilt.
+entry equipment, geometry, guards, supplies and objectives together. The owned
+local child writes the disk run and, in this draft, carries it into M02. An
+ordinary dedicated `--campaign-run` process has no disk save. A dropped pawn can
+resume briefly through the existing socket token.
 
 Connect the ordinary client, agent or spectator to the same server. This mode
 has no arcade timer, boss or map rotation. `--map-file` rejects arcade
@@ -189,7 +191,8 @@ already-validated public record ID, never dump document contents or source paths
 The source path is never sent to clients. `MapInfo` supplies the validated geometry
 and materials. Reloading a map means restarting the host; live content reload has
 no implemented contract yet. M01 has a versioned local mission-entry run file;
-M02 cross-mission carry remains unbuilt.
+the stacked carry draft promotes a validated M01 exit into an M02 entry under
+the same local run ID. The separate M02 development party has no disk save.
 
 ## Verification
 

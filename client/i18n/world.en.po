@@ -78,6 +78,30 @@ msgstr "Continue Run"
 msgid "RUN_SAVED_DETAIL"
 msgstr "{difficulty} / attempt {attempt} / {continues} continues left"
 
+msgid "RUN_SAVED_MISSION"
+msgstr "NEXT: {mission}"
+
+msgid "RUN_AWAITING_DETAIL"
+msgstr "{difficulty} / {continues} continues left"
+
+msgid "RUN_BODY_BOUND"
+msgstr "Run body: {body}. This choice stays with the run."
+
+msgid "RUN_BODY_UNBOUND"
+msgstr "Body for this run: {body}. Joining will save this choice."
+
+msgid "RUN_BODY_PENDING"
+msgstr "Run body is not bound yet. Choose it when this mission is ready."
+
+msgid "RUN_CHOOSE_BODY"
+msgstr "Choose body before continuing"
+
+msgid "MENU_BODY_PREFERENCE"
+msgstr "Your preferred body for new matches and unbound runs. Saved runs keep their body. It never changes how you fight."
+
+msgid "MENU_PRACTICE_DEVELOPMENT"
+msgstr "Practice and development"
+
 msgid "RUN_NEW"
 msgstr "Start New Run"
 
@@ -87,8 +111,11 @@ msgstr "Starting a new run archives the current save. You can recover its file l
 msgid "RUN_ARCHIVE_START"
 msgstr "Archive prior run and choose difficulty"
 
-msgid "RUN_M02_PENDING"
-msgstr "M01 complete. M02 is still in development. Your completed run is retained."
+msgid "RUN_M03_PENDING"
+msgstr "Scheduled Service is in development. This run stays saved."
+
+msgid "RUN_M02_DESCRIPTION"
+msgstr "The transfer route leads to Latch in the correction ward. Continue the same run."
 
 msgid "RUN_FAILED"
 msgstr "This run ended after its final continue. You can start a new run."
@@ -103,7 +130,7 @@ msgid "MISSION_PARTY_FULL"
 msgstr "The four-player mission party is full. Join as a spectator or wait for a seat."
 
 msgid "MENU_CAMPAIGN"
-msgstr "CAMPAIGN / DEVELOPMENT MISSION"
+msgstr "SINGLE PLAYER CAMPAIGN"
 
 msgid "MENU_M01_DESCRIPTION"
 msgstr "Latch has been taken. Enter Annex 67 and find the transfer record.\nOpening mission slice. Starts a local game."
@@ -161,6 +188,12 @@ msgstr "This server only allows addresses on its list."
 
 msgid "MISSION_M02_GRAYBOX"
 msgstr "Persons Unknown: ward graybox"
+
+msgid "MISSION_M02_TITLE"
+msgstr "PERSONS UNKNOWN"
+
+msgid "MISSION_M03_TITLE"
+msgstr "SCHEDULED SERVICE"
 
 msgid "MENU_M02_DEVELOPMENT"
 msgstr "Development route: a short fight through the ward. No save, no carry from Recall Notice."

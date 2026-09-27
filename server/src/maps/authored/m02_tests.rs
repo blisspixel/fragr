@@ -35,6 +35,38 @@ fn read(doc: &Value) -> io::Result<Arc<AuthoredMap>> {
 }
 
 #[test]
+fn bundled_guard_shells_require_a_step_off_every_gallery_spawn() {
+    let map = AuthoredMap::read(include_str!("../../../maps/m02-persons-unknown.json").as_bytes())
+        .unwrap();
+    let shells = map
+        .supplies
+        .iter()
+        .find(|supply| supply.id == "guard_room_shells")
+        .unwrap();
+    assert_eq!(shells.floor, 3.0);
+    for spawn in &map.spawns {
+        assert!(
+            (spawn.feet[0] - shells.x).hypot(spawn.feet[2] - shells.z)
+                > crate::sim::PICKUP_CLAIM_RADIUS + crate::movement::RADIUS,
+            "{} starts inside the optional shell pickup reach",
+            spawn.id
+        );
+    }
+    assert_eq!(
+        map.navigation
+            .route(
+                map.spawns[0].feet,
+                [shells.x, shells.floor, shells.z],
+                crate::navigation::SEARCH_LIMIT
+            )
+            .status,
+        RouteStatus::Complete
+    );
+    // The shells stay on the open gallery path just north of the first guard trigger.
+    assert!(shells.x > -3.0 && shells.z > -30.6 && shells.z < -26.0);
+}
+
+#[test]
 fn m02_worlds_are_prepared_and_the_closed_gate_blocks_departure() {
     let map = read(&fixture()).unwrap();
     let closed = crate::maps::RuntimeMap::Authored(map.clone());

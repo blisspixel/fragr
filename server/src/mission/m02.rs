@@ -43,6 +43,9 @@ impl GameState {
             .find(|player| player.id == player_id)
         {
             player.clear_input();
+            if let Some(solo) = run.solo.as_mut() {
+                solo.capture_entry(player, *self.scores.get(&player_id).unwrap_or(&0));
+            }
         }
         self.refresh_mission_readiness();
         true
@@ -127,7 +130,7 @@ impl GameState {
         };
         Some(MissionState {
             id: MissionId::PersonsUnknown,
-            run: None,
+            run: run.solo.as_ref().map(|solo| solo.state),
             rules: run.rules,
             attempt: run.attempt,
             phase: run.phase,
@@ -217,6 +220,23 @@ impl GameState {
         }
         let next = progress.index + 1;
         let completed = next == prepared.len();
+        let exit = if completed && run.solo.is_some() {
+            let Some(owner) = run.solo.as_ref().and_then(recovery::SoloRun::owner) else {
+                return;
+            };
+            let Some(player) = self.players.iter().find(|player| player.id == owner) else {
+                return;
+            };
+            match run_file::SavedEntry::from_player(player) {
+                Ok(exit) => Some(exit),
+                Err(reason) => {
+                    tracing::error!(reason, "M02 exit equipment could not be saved");
+                    return;
+                }
+            }
+        } else {
+            None
+        };
         let completed_id = objective.id.clone();
         let next_mask = prepared
             .objective(next)
@@ -243,6 +263,12 @@ impl GameState {
         run.changed_at = self.tick;
         if completed {
             run.phase = MissionPhase::Departed;
+            if let Some(solo) = run.solo.as_mut() {
+                if let Some(exit) = exit {
+                    solo.capture_exit(exit);
+                }
+                solo.state.status = crate::protocol::CampaignRunStatus::Complete;
+            }
         }
         tracing::info!(objective = %completed_id, gate_mask = next_mask, "M02 objective progressed");
     }

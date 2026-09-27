@@ -104,12 +104,16 @@ static func valid_rules(value: Variant, oldest: int = RULES_REVISION) -> bool:
 		and value.get("difficulty") is String and value["difficulty"] in DIFFICULTIES \
 		and EquipmentState.integer(value.get("revision"), RULES_REVISION) and int(value["revision"]) >= maxi(oldest, 1)
 
-static func valid_run_identity(run: Variant, attempt: Variant) -> bool:
-	if not run is Dictionary or run.size() != 3 or not _uuid(run.get("id")) \
+static func valid_run_identity(run: Variant, attempt: Variant, allow_legacy: bool = false) -> bool:
+	if not run is Dictionary or run.size() != (4 if run.has("level_start_continues") else 3) \
+		or (not run.has("level_start_continues") and not allow_legacy) or not _uuid(run.get("id")) \
 		or run["id"] == "00000000-0000-0000-0000-000000000000" \
 		or not run.get("status") is String or run["status"] not in RUN_STATUSES \
 		or not EquipmentState.integer(run.get("continues"), 3) \
-		or not EquipmentState.integer(attempt, 4) or int(attempt) != 4 - int(run["continues"]):
+		or (run.has("level_start_continues") and not EquipmentState.integer(run["level_start_continues"], 3)) \
+		or int(run["continues"]) > int(run.get("level_start_continues", 3)) \
+		or not EquipmentState.integer(attempt, 4) \
+		or int(attempt) != int(run.get("level_start_continues", 3)) - int(run["continues"]) + 1:
 		return false
 	return not ((run["status"] == "continue" and run["continues"] == 0) \
 		or (run["status"] == "failed" and run["continues"] != 0))
@@ -117,6 +121,8 @@ static func valid_run_identity(run: Variant, attempt: Variant) -> bool:
 static func valid_run(state: Dictionary) -> bool:
 	var run: Variant = state.get("run")
 	if not valid_run_identity(run, state.get("attempt")) or state["party"].size() > 1:
+		return false
+	if state.get("id") == ID and int(run["level_start_continues"]) != 3:
 		return false
 	if (run["status"] == "complete") != (state["phase"] == "departed") \
 		or (run["status"] == "abandoned" and not state["party"].is_empty()) \
@@ -131,7 +137,8 @@ static func valid_run(state: Dictionary) -> bool:
 static func run_follows(current: Variant, previous: Variant) -> bool:
 	if previous == null or current == null:
 		return previous == current
-	return current["id"] == previous["id"] and current["continues"] <= previous["continues"]
+	return current["id"] == previous["id"] and current["continues"] <= previous["continues"] \
+		and current.get("level_start_continues", 3) == previous.get("level_start_continues", 3)
 
 static func _point(value: Variant, half: float) -> bool:
 	if not value is Array or value.size() != 3:
@@ -183,7 +190,7 @@ static func geometry_for(info: Dictionary) -> Dictionary:
 static func m02_validation_error(message: Dictionary, geometry: Dictionary, previous: Dictionary = {}) -> String:
 	var value: Variant = message.get("state")
 	if not EquipmentState.integer(message.get("tick"), EquipmentState.MAX_EXACT_INTEGER) \
-		or not value is Dictionary or value.size() != 8 or value.has("run") \
+		or not value is Dictionary or value.size() != (9 if value.has("run") else 8) \
 		or geometry.get("id") != M02_ID or value.get("id") != M02_ID \
 		or not valid_rules(value.get("rules")) \
 		or not value.get("phase") is String or value["phase"] not in M02_PHASES \
@@ -192,6 +199,8 @@ static func m02_validation_error(message: Dictionary, geometry: Dictionary, prev
 		or not value.get("party") is Array or value["party"].size() > 4 \
 		or not value.get("prompts") is Array or value["prompts"].size() > value["party"].size() \
 		or not value.get("m02") is Dictionary:
+		return INVALID
+	if value.has("run") and not valid_run(value):
 		return INVALID
 	var progress: Dictionary = value["m02"]
 	var total: int = int(geometry["total"])
@@ -228,7 +237,8 @@ static func m02_validation_error(message: Dictionary, geometry: Dictionary, prev
 	if not previous.is_empty():
 		var old: Dictionary = previous["state"]
 		if int(value["attempt"]) < int(old["attempt"]) or int(message["tick"]) < int(previous["tick"]) \
-			or value["rules"] != old["rules"] or old.get("id") != M02_ID:
+			or value["rules"] != old["rules"] or old.get("id") != M02_ID \
+			or not run_follows(value.get("run"), old.get("run")):
 			return INVALID
 		# Within one attempt, progress only extends; a retry may restart it.
 		if int(value["attempt"]) == int(old["attempt"]):

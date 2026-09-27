@@ -46,7 +46,7 @@ func _run() -> void:
 	_expect(change_scene_to_file("res://scenes/boot_menu.tscn") == OK, "boot menu loads")
 	await process_frame
 	await process_frame
-	current_scene._show("single")
+	current_scene._show("practice")
 	await process_frame
 	var entry: Button = current_scene._root.get_node_or_null("PersonsUnknownGraybox") as Button
 	_expect(entry != null and not entry.disabled, "the development entry is selectable")

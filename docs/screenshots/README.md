@@ -8,6 +8,9 @@ The [M02 Crawler evidence](m02-crawler/README.md) records its crouch, leap and
 pack cues. The [M02 Latch ward evidence](m02-latch/README.md) shows the stopped
 machine, restraint use, opened second bay and Low Water list. Its live tour
 manifest also records dock departure.
+The [M01 to M02 carry check](m02-run-carry/README.md) shows a saved-run menu
+and the first durable M02 frame from an isolated local child. It does not show
+a completed rescue or a playable level 3.
 Inspect every frame before it is named anywhere. A nonblank image is not
 proof of good art. The README embeds four files and no more: `tour_menu_16x9.png`,
 `m01_intake_16x9.png`, `tour_multiplayer_16x9.png`, and `tour_combat_follow_16x9.png`.
@@ -28,9 +31,13 @@ Black-and-red Union enemies were checked in the same rooms with
 `client/qa/m01-enemies.json`. These are the development mission, not a
 finished art pass.
 
-The tour stills in this directory were republished in the same change: the
+The tour stills in this directory were republished for the 2026-09-27
+run-carry check. The boot and Single Player menus show the current layout;
+the published tour completed all 32 named states on Windows with Godot
+4.7.2-stable and AMD Radeon 780M OpenGL compatibility. The earlier look pass
+had republished the same arena views: the
 arenas sit under a warmer, stronger sodium sun with a slightly lower ambient
-floor and a warmer haze, so cover throws readable shadows. The menus are unchanged. Frame
+floor and a warmer haze, so cover throws readable shadows. Frame
 times and the quality and world-pixel comparison are in
 [`../plans/look-pass-boomer.md`](../plans/look-pass-boomer.md);
 `FRAGR_QA_MANIFEST=res://qa/look-perf.json` and `res://qa/m01-perf.json` (with

@@ -52,6 +52,13 @@ impl RuntimeMap {
         }
     }
 
+    pub(crate) fn campaign_mission_id(&self) -> Option<crate::protocol::MissionId> {
+        self.mission().map(|mission| mission.id).or_else(|| {
+            self.m02_objectives()
+                .map(|_| crate::protocol::MissionId::PersonsUnknown)
+        })
+    }
+
     pub fn opened_route(&self) -> Option<Self> {
         match self {
             Self::BuiltIn(_) => None,

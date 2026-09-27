@@ -88,7 +88,7 @@ Initial handshake message. Must be sent immediately after connection.
   resume keeps the parked pawn's body even if this hello names another.
   Changing the body means leaving and joining again.
 - `gameplay_version`: maximum understood gameplay contract. Updated Rust readers
-  and the Godot client send `16`; omission means `1`. Discovery-only maps require 2, maps with authored
+  and the Godot client send `18`; omission means `1`. Discovery-only maps require 2, maps with authored
   encounters require 3, and mission sequences require 6 for shared difficulty.
   Versions 4 and 5 introduced physical controls and party readiness respectively;
   they cannot enter current missions. Solo runs require 7 for explicit continues.
@@ -120,9 +120,11 @@ Initial handshake message. Must be sent immediately after connection.
   Version 16 adds the low Union Crawler, its timed leap and the positional
   `crawler_scrabble` event. Version 17 adds the M02 `ward_secured` fact, which
   distinguishes guard victory and machine halt from the later restraint use
-  that frees Latch. M02 requires 17 for every role. M01 and the arcade maps
-  keep their earlier requirements. Capabilities 14 to 16 must be integrated
-  before a version 17 release; use matching campaign server/client builds.
+  that frees Latch. Version 18 adds the solo run's per-level continue baseline
+  and permits a durable M02 run. Durable local M01 and M02 require 18; the M02
+  development party still requires 17, and arcade maps keep their earlier
+  requirements. Capabilities 14 to 17 must be integrated before a version 18
+  release; use matching campaign server/client builds.
   Older clients of every role are rejected before `Welcome`
   with `unsupported_gameplay`. This capability is separate from geometry. The six
   full-arsenal arcade maps still accept 1. There an older reader draws only the
@@ -291,9 +293,14 @@ and before the corresponding snapshot whenever shared state changes. `state` is:
 - `prompts`: `{player_id,kind}` for currently legal interactions. Kinds are
   `transfer_record` and `lift_departure` for M01, or `objective_use` for an M02
   use objective. These are not localized strings.
-- `run`: present only in solo mode: `{id,status,continues}`. `id` is a nonnil UUID;
+- `run`: present only in durable solo mode:
+  `{id,status,continues,level_start_continues}`. `id` is a nonnil UUID;
   `status` is `playing`, `continue`, `failed`, `complete` or `abandoned`. Allowance
-  starts at 3 and only decreases. The current M01 attempt equals `4 - continues`.
+  starts at 3 for Episode I and only decreases. A new level records the
+  remaining allowance as `level_start_continues`, so its first attempt is 1
+  even if a previous level used a continue. During that level, `attempt` equals
+  `level_start_continues - continues + 1`. Starting M02 never refills the pool;
+  zero remaining continues still permits its first attempt, then exhaustion.
   State has at most one party member. Waiting requires its dead owner; failed
   retains a dead owner until they leave, then an empty party.
   abandonment has no member, and completion requires `departed`. Nonplaying states
@@ -317,7 +324,8 @@ and before the corresponding snapshot whenever shared state changes. `state` is:
   arrival, `companion_released` use and `party_departed` arrival, with no
   gates and six authored encounters. The visible frame release derives from
   completed `companion_released`; late readers receive both facts in the
-  current mission state. It has no durable solo run yet.
+  current mission state. Its independent development child has no run; a
+  resumed solo run may carry the same identity and Episode I allowance from M01.
 
 Participants finish or skip their opening by sending
 `{"type":"mission_ready","id":"recall_notice","attempt":1}` using the current
@@ -346,10 +354,13 @@ plus an explicit use press. One participant disconnecting does not reset the
 remaining players' progress. In development party mode, a wipe or the last participant leaving resets the gate, supplies
 and encounters together, once. NPCs and spectators never count as party members.
 
-The current `departed` state freezes the prototype simulation and shows a result;
-it does not load M02. Development party mode retains entry respawn and allows a
-new party after everyone leaves. Neither mode has disk saves or mid-mission
-checkpoints. A dropped socket can rebind the same pawn for ten seconds. Text is localized; voice/radio is optional.
+The current `departed` state freezes that mission's simulation and shows a
+result; it does not load the next map in the same process. A durable solo M01
+child saves M02 as pending, and the menu can start a new local M02 child from
+that exit. Development party mode retains entry respawn and allows a new party
+after everyone leaves. It has no disk save. Neither path has a mid-mission
+checkpoint. A dropped socket can rebind the same pawn for ten seconds. Text is
+localized; voice/radio is optional.
 
 #### Solo run recovery
 
@@ -366,9 +377,11 @@ and waiting state before consuming one continue. A duplicate, stale or invalid
 command changes nothing and returns `continue_rejected`. Confirm acceptance in
 the next mission state, never from the send result alone.
 
-Retry restores mission-entry position, facing, health, armor, selected weapon,
-carried weapons, ammunition counts and personal claims; later pickups are
-discarded. Original geometry, supplies, enemies and objectives return together.
+Retry restores that level's entry position, facing, health, armor, selected
+weapon, carried weapons, ammunition counts and personal claims; later pickups
+are discarded. Original geometry, supplies, enemies and objectives return
+together. M02's entry carries M01's exit health, armor, weapons, ammunition
+and selection but starts with M02's own pickup claims and attempt count.
 Motion, a latched dry trigger and queued actions are cleared; input sequence, inventory revision and simulation
 tick never rewind. The owner remains ready, so the opening does not replay.
 Leaving an unfinished solo run sets `abandoned`; its seat cannot be reused.
@@ -687,7 +700,8 @@ Server response to `Hello`. Confirms connection and provides player ID.
 - `player_id`: UUID of the player entity (null for spectators)
 - `role`: Echoed role from Hello
 - `body`: the accepted body of a human or agent pawn: the requested one on a
-  fresh join, the parked pawn's own on a resume. Omitted for a spectator and by
+  fresh join, except that a bound solo run keeps its saved body. A resume keeps
+  the parked pawn's own body. Omitted for a spectator and by
   servers before capability 13; a reader then treats the pawn as human rather
   than inferring a body from the role or name.
 - `mode_name`: Named scrap-league identity (default Contested Frequency)
@@ -1366,15 +1380,23 @@ from WebSocket messages. It loads the registered map from the committed JSON
 embedded at build time, binds `127.0.0.1:0`, and writes one ASCII JSON line to
 stdout after map preparation and bind:
 
-The desktop menu supplies `--run-mode new|resume`. New archives prior run
-bytes under a unique name and saves the initial run before readiness. Resume
-locks and validates the versioned run against the exact authored content bytes
-and campaign rules before readiness. A second child cannot own the same file.
-Omitting `--run-mode` retains the ephemeral development behavior. The
-read-only `--local-run-preview` prints one bounded JSON status line for the
-menu: `missing`, `ready` (difficulty, attempt, continues,
-pending_continue), `failed`, `abandoned`, `awaiting_mission`, `incompatible`, or
-`corrupt`.
+The desktop menu supplies `--run-mode new|resume`. New starts at M01, archives
+prior run bytes under a unique name and saves the initial run before readiness.
+Resume locks and validates the versioned run against the exact authored
+content bytes and campaign rules before readiness. An M01 exit waiting for M02
+is checked against the M01 content it names, then promoted once to an M02 entry
+under the same lock. A supported v2 M01 document is migrated to v3 with its
+original bytes retained; v1 magazine-era saves remain incompatible. A second
+child cannot own the same file. Omitting `--run-mode` retains independent
+development behavior. The read-only `--local-run-preview` identifies the saved
+mission, instead of using the launcher's guessed map. It prints one bounded
+JSON status line for the menu: `missing`, `ready` (mission, difficulty, attempt,
+continues, pending_continue, nullable body), `failed`, `abandoned`,
+`awaiting_mission` (mission, difficulty, continues, nullable body),
+`incompatible`, or `corrupt`. `awaiting_mission` identifies M02 after M01 or
+the unsupported `scheduled_service` level after M02. An absent body on a legacy
+save is bound by the player's visible body choice on admission; a bound body
+remains the server-owned run identity despite later profile changes.
 The menu treats preview as advisory; launch validates again under the lock.
 
 The optional `--difficulty assisted|standard|severe` defaults to `standard` on
@@ -1383,20 +1405,20 @@ version 2 requires that field; it is separate from
 the on-wire campaign rules revision. No parent command changes it during a run.
 
 ```json
-{"version":2,"mission":"recall_notice","difficulty":"standard","url":"ws://127.0.0.1:49152","gameplay_version":12}
+{"version":2,"mission":"recall_notice","difficulty":"standard","url":"ws://127.0.0.1:49152","gameplay_version":18}
 ```
 
 The readiness record names the selected mission's client contract, rather than
-the highest version understood by the server. M01 names 12 for discovery
-equipment; M02 names 17 for the separate ward-victory and release facts. The local launcher
-checks this value exactly.
+the highest version understood by the server. Durable local M01 or M02 names
+18 for run carry. Independent M02 development names 17 for the ward release.
+The local launcher checks this value exactly.
 
-`--local-mission persons_unknown` starts the bundled M02 graybox as a
-development child. It writes the same readiness line with
-`"mission":"persons_unknown"` and `"gameplay_version":17`. It has no durable run:
-`--run-mode` is refused before readiness, mission state carries no `run`, and
-the party keeps development entry respawn and the shared wipe reset. It is not
-a save carry from M01.
+`--local-mission persons_unknown` without a run mode starts the bundled M02
+graybox as a development child. It writes the same readiness line with
+`"mission":"persons_unknown"` and `"gameplay_version":17`, carries no
+`run`, and keeps development entry respawn and the shared wipe reset. With
+`--run-mode resume`, M02 receives the saved solo run from M01 or resumes its
+own entry; it requires capability 18. A new durable run must start at M01.
 
 The port is chosen by the OS. Diagnostics use stderr. The parent validates the
 exact version, mission, requested difficulty, gameplay capability and loopback endpoint before using
@@ -1441,12 +1463,13 @@ MCP and client tests; the [Shiv fixture](../client/golden/player_record_shiv.jso
 covers the sixth slot and a found secret on both sides.
 
 Scopes are `arena` or `practice` with `round`, or `mission` with `mission`,
-`attempt`, `rules` and nullable `run` (the existing solo run contract). Calibration
+`attempt`, `rules` and nullable `run` (the solo run contract above). Calibration
 and non-mission authored test maps are practice. Status is `active`, `continue`,
 `complete`, `failed` or `abandoned`. A completed arena record means the round
-finished, not that this participant won. A completed M01 record means the mission
-finished, not that the unbuilt campaign finished. A missing final update must be
-shown as incomplete; transport loss is not evidence of failure or victory.
+finished, not that this participant won. A completed M01 or M02 record means
+that mission's route finished, not that the unbuilt campaign finished. A
+missing final update must be shown as incomplete; transport loss is not
+evidence of failure or victory.
 
 Each count set contains `alive_ticks`, `deaths`, `hp_lost`, `armor_lost`,
 `dry_triggers` and five `weapons` entries in fists, Tack, flechette, scatter, rail

@@ -41,6 +41,21 @@ pub enum AuthoredSource {
 }
 
 impl AuthoredSource {
+    /// Exact bundled bytes also hashed by the strict loader. Preview needs
+    /// identity only and must not build two complete navigation topologies.
+    pub(crate) fn bundled_content_sha256(mission: crate::protocol::MissionId) -> [u8; 32] {
+        use sha2::Digest;
+        let bytes: &[u8] = match mission {
+            crate::protocol::MissionId::RecallNotice => {
+                include_bytes!("../maps/m01-recall-notice.json")
+            }
+            crate::protocol::MissionId::PersonsUnknown => {
+                include_bytes!("../maps/m02-persons-unknown.json")
+            }
+        };
+        sha2::Sha256::digest(bytes).into()
+    }
+
     pub fn load(&self) -> std::io::Result<std::sync::Arc<AuthoredMap>> {
         match self {
             Self::File(path) => AuthoredMap::load(path),
