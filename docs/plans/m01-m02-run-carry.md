@@ -179,8 +179,13 @@ paid assets, merge, tag or release is part of this branch.
   workspace coverage was 93.73 percent. The published tour passed all 32
   states; the current menu and M02 frames were inspected. The asserted
   120-second local soak passed with four agents, four bots, two spectators,
-  and rotating arenas. The combined CI gate remains in progress. External
-  spend remains $0.
+  and rotating arenas. External spend remains $0.
+
+- 2026-09-27: The complete stacked branch passed CI against main on
+  [run 36334623719](https://github.com/blisspixel/fragr/actions/runs/36334623719):
+  test, Linux/Windows/macOS server and portability, client, packages, Godot,
+  soak and audit all succeeded. Draft PR #273 returned to the Latch branch
+  as its focused review base. No merge, cloud apply or paid API call occurred.
 
 | Local soak sample (2026-09-27) | Measured result |
 |---|---:|
@@ -199,5 +204,5 @@ handoff: the playing guide overstated what the pause menu's Leave action does,
 and JSON preview numbers rendered as decimal continue counts. Both were fixed;
 the M02 menu proof frame was recaptured and inspected. No other actionable
 review finding remains. The unsteered player and difficulty acceptance gates
-remain open for the mission itself. Draft PR #273 is running combined CI
-against main before its review base returns to the Latch branch.
+remain open for the mission itself. Draft PR #273 passed the combined CI
+gate against main and is back on the Latch branch for focused review.
