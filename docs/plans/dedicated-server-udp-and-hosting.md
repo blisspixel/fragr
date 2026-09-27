@@ -1,7 +1,8 @@
 # Dedicated server, transport and hosting
 
-**Status:** in flight, 2026-09-26. The first implementation slice is a local
-container host. No cloud resource has been created and UDP is not implemented.
+**Status:** in flight, 2026-09-26. The local container host is implemented in
+[PR #265](https://github.com/blisspixel/fragr/pull/265), which is open as a
+draft. No cloud resource has been created and UDP is not implemented.
 **Spend:** $0 for this slice. Nick set a $20 ceiling for today's combined
 external costs, including asset APIs and a bounded GCP test if needed, still
 subject to the project's $50 total cap. No cloud test is needed for this slice.
@@ -185,13 +186,15 @@ output no longer claims `$0.00`, and the hosting guide identifies the Cloud
 Run adapter as an undeployable placeholder. Terraform 1.16.4 in Docker passed
 `fmt -check` and `validate`; no plan or apply was run. The CI container job
 builds the image, checks legal notices and runtime identity, and probes a live
-Compose server. `actionlint` passed on that workflow locally. Its first hosted
-run remains to be observed.
+Compose server. `actionlint` passed on that workflow locally. The first hosted
+CI run for PR #265 passed all seven jobs: test, container, Godot, soak, audit,
+Windows portability and macOS portability. The branch remains unmerged.
 
 Local workspace checks passed: formatting, Clippy with denied warnings,
 workspace tests, the deterministic 16-bot benchmark, `cargo deny` license,
 ban and source gates, release build, all four standard match playtests,
-the Godot headless checker, and unfiltered coverage at 93.58 percent. Logs are
+the Godot headless checker, all ten verifier fault-injection scenarios, and
+unfiltered coverage at 93.58 percent. Logs are
 under `.agents/verification/container-hosting/`. The final image was built and
 probed through Compose. The Docker build and agent smoke were run directly;
 they are not a public-network or ten-fighter capacity measurement. No paid
@@ -210,6 +213,6 @@ for an `e2-micro` or an internet session.
 
 The next gameplay sprints remain the mode-chip presentation and a human team
 round, followed by capture the flag, and level 2's rescue, Crawlers and run
-carry. Prediction measurement remains ahead of the UDP pilot. Do not promote
-the hosting plan to shipped until the container CI job passes after
-integration.
+carry. Prediction measurement remains ahead of the UDP pilot. Keep this plan
+in flight for the remaining transport and cloud rungs; mark the local host
+shipped only after PR #265 merges.
