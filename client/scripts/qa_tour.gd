@@ -290,12 +290,28 @@ func _run() -> void:
 				push_error("qa_tour: %s expected live flags %s, got %s" % [state_name,
 					str(state["expect_flag_statuses"]), str(actual_statuses)])
 				_failed = true
+		if state.has("expect_flag_return_ticks"):
+			var timer_expectation: Dictionary = state["expect_flag_return_ticks"]
+			var timer_found: bool = false
+			var timer_flags: Variant = observed.get("flags")
+			if timer_flags is Array:
+				for flag: Variant in timer_flags:
+					if flag is Dictionary and flag.get("team") == timer_expectation.get("team") and flag.get("status") == "dropped":
+						var remaining: Variant = flag.get("return_ticks")
+						if remaining is int or remaining is float:
+							var ticks: int = int(remaining)
+							timer_found = ticks >= int(timer_expectation.get("min", 1)) and ticks <= int(timer_expectation.get("max", 400))
+			if not timer_found:
+				push_error("qa_tour: %s has no live dropped-flag return timer in range" % state_name)
+				_failed = true
 		if state.has("expect_capture_scores") and observed.get("capture_scores") != state["expect_capture_scores"]:
 			push_error("qa_tour: %s expected live capture scores %s, got %s" % [state_name,
 				str(state["expect_capture_scores"]), str(observed.get("capture_scores"))])
 			_failed = true
 		if _joined and _game_manager() != null:
 			observed["accepted_body"] = _game_manager().net_client.accepted_body
+			var feet: Vector3 = _local_feet()
+			observed["local_feet"] = [feet.x, feet.y, feet.z]
 		if is_instance_valid(_body_pawn):
 			observed["body"] = _body_pawn.get("body_kind")
 			observed["body_team"] = _body_pawn.get("team")
@@ -308,7 +324,7 @@ func _run() -> void:
 			if observed.get("server_yaw") == null or absf(angle_difference(float(observed["camera_yaw"]), expected_yaw)) > 0.001 or absf(angle_difference(float(observed["server_yaw"]), expected_yaw)) > 0.001:
 				push_error("qa_tour: captured facing disagrees with the authored spawn for " + state_name)
 				_failed = true
-		if current_scene == "res://scenes/main.tscn" and (observed.get("fighters", 0) == 0 or observed.get("map_id", 0) == 0):
+		if current_scene == "res://scenes/main.tscn" and (observed.get("map_id", 0) == 0 or (observed.get("fighters", 0) == 0 and not state.get("allow_empty_roster", false))):
 			push_error("qa_tour: no live match for " + state_name)
 			_failed = true
 		if state.has("aim_pitch"):
@@ -1004,8 +1020,8 @@ func _pose_camera(mode: String) -> void:
 		return
 	cam.set("frag_follow_timer", 0.0)
 	match mode:
-		"ctf_carried":
-			var wanted: String = "carried"
+		"ctf_carried", "ctf_dropped":
+			var wanted: String = "carried" if mode == "ctf_carried" else "dropped"
 			var flags: Variant = _observed_state().get("flags")
 			if flags is Array:
 				for flag: Variant in flags:
