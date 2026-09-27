@@ -144,6 +144,119 @@ fn ctf() -> GameState {
 }
 
 #[test]
+fn ctf_four_rule_bots_finish_a_scored_round_on_seed_42() {
+    let (captures, frags, drops, ended, visible_drop_ticks) = ctf_bot_round(42);
+    assert_eq!(
+        captures, 1,
+        "four bots should finish a CTF objective round; frags={frags}, drops={drops}"
+    );
+    assert!(ended);
+    assert!(
+        frags > 0 && drops > 0,
+        "a defender should cause a combat drop"
+    );
+    assert!(
+        visible_drop_ticks >= 10,
+        "the drop should reach snapshots for the touch window"
+    );
+}
+
+fn ctf_bot_round(seed: u64) -> (usize, usize, usize, bool, usize) {
+    let mut session = GameSession::with_map(MapKind::Sector9, false);
+    session.state.seed(seed);
+    let mut match_config = config(rules(GameMode::Ctf, &[]));
+    match_config.frag_limit = None;
+    match_config.capture_limit = Some(1);
+    session.state.apply_config(match_config);
+    session.spawn_bots(4);
+    let mut captures = 0;
+    let mut frags = 0;
+    let mut drops = 0;
+    let mut visible_drop_ticks = 0;
+    for _ in 0..20 * 120 {
+        for message in session.tick_messages(0.05) {
+            match message {
+                ServerMessage::Event(GameEvent::Flag {
+                    kind: crate::protocol::FlagEventKind::Captured,
+                    ..
+                }) => captures += 1,
+                ServerMessage::Event(GameEvent::Flag {
+                    kind: crate::protocol::FlagEventKind::Dropped,
+                    ..
+                }) => drops += 1,
+                ServerMessage::Event(GameEvent::Frag { .. }) => frags += 1,
+                _ => {}
+            }
+        }
+        if session.state.snapshot().flags.is_some_and(|flags| {
+            flags
+                .iter()
+                .any(|flag| flag.status == crate::protocol::FlagStatus::Dropped)
+        }) {
+            visible_drop_ticks += 1;
+        }
+        if session.state.round_state == RoundState::Ended {
+            break;
+        }
+    }
+    (
+        captures,
+        frags,
+        drops,
+        session.state.round_state == RoundState::Ended,
+        visible_drop_ticks,
+    )
+}
+
+#[test]
+fn ctf_rule_bot_seed_survey() {
+    let mut completed = 0;
+    let mut visible_combat_drops = 0;
+    for seed in 40..56 {
+        let (captures, frags, drops, ended, visible_drop_ticks) = ctf_bot_round(seed);
+        if captures == 1 && ended {
+            completed += 1;
+        }
+        if frags > 0 && drops > 0 && visible_drop_ticks >= 10 {
+            visible_combat_drops += 1;
+        }
+    }
+    assert!(
+        completed >= 14,
+        "CTF bots completed only {completed}/16 seeded rounds"
+    );
+    assert!(
+        visible_combat_drops >= 8,
+        "only {visible_combat_drops}/16 seeded rounds showed a combat drop"
+    );
+}
+
+#[test]
+fn ctf_rule_bot_roster_has_one_defender_per_side() {
+    let mut session = GameSession::with_map(MapKind::Sector9, false);
+    session
+        .state
+        .apply_config(config(rules(GameMode::Ctf, &[])));
+    session.spawn_bots(12);
+    session.state.start_round();
+    let flags = session.state.snapshot().flags.unwrap();
+    let mut defenders = [0; 2];
+    let mut attackers = [0; 2];
+    for bot in &session.bots {
+        let team = player(&session.state, bot.player_id).team.unwrap();
+        let destination = bot.intent(&session.state).goal.unwrap().feet;
+        if destination == flags[team.index()].stand {
+            defenders[team.index()] += 1;
+        } else {
+            assert_eq!(destination, flags[team.other().index()].stand);
+            attackers[team.index()] += 1;
+        }
+    }
+    assert_eq!(defenders, [1, 1]);
+    assert_eq!(attackers, [5, 5]);
+}
+
+#[test]
 fn ctf_pickup_capture_and_reset_are_independent_of_frags() {
     let mut state = ctf();
     let coalition = join(&mut state, 1, Role::Human);
@@ -194,8 +307,14 @@ fn ctf_drop_return_and_home_requirement() {
     let flags = state.snapshot().flags.unwrap();
     assert_eq!(flags[1].status, crate::protocol::FlagStatus::Dropped);
     assert_eq!(flags[1].return_ticks, Some(400));
-    // Friendly touch returns the dropped flag, then the carrier captures.
-    state.tick(0.05);
+    // A nearby teammate waits through the visible drop window before return.
+    wait(&mut state, 9);
+    assert_eq!(state.capture_scores.coalition, 0);
+    assert_eq!(
+        state.snapshot().flags.unwrap()[1].status,
+        crate::protocol::FlagStatus::Dropped
+    );
+    wait(&mut state, 1);
     assert_eq!(state.capture_scores.coalition, 1);
     assert_eq!(
         state.snapshot().flags.unwrap()[1].status,
@@ -333,7 +452,7 @@ fn ctf_detached_carrier_cannot_retake_until_resume() {
         accepted.blocking_recv().unwrap().unwrap().player_id,
         carrier
     );
-    session.state.tick(0.05);
+    wait(&mut session.state, 8);
     assert_eq!(
         session.state.snapshot().flags.unwrap()[0].carrier,
         Some(carrier)
@@ -422,7 +541,7 @@ fn ctf_airborne_drop_lands_on_reachable_support() {
         crate::navigation::RouteStatus::Complete
     );
     place(&mut state, owner, 40.0, 0.0);
-    state.tick(0.05);
+    wait(&mut state, 10);
     assert_eq!(
         state.snapshot().flags.unwrap()[0].status,
         crate::protocol::FlagStatus::Home
@@ -453,7 +572,12 @@ fn ctf_same_tick_owner_return_precedes_enemy_retake() {
     state.remove_player(first_carrier);
     place(&mut state, owner_toucher, 0.0, 0.0);
     state.take_events();
-    state.tick(0.05);
+    wait(&mut state, 9);
+    assert_eq!(
+        state.snapshot().flags.unwrap()[0].status,
+        crate::protocol::FlagStatus::Dropped
+    );
+    wait(&mut state, 1);
     assert_eq!(
         state.snapshot().flags.unwrap()[0].status,
         crate::protocol::FlagStatus::Home

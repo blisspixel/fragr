@@ -1,0 +1,33 @@
+{
+  "comment": "Live Sector 9 CTF carrier death-drop and scored result. Run with FRAGR_QA_MODE=ctf FRAGR_QA_MAP=4 FRAGR_QA_BOTS=4 FRAGR_QA_CAPTURE_LIMIT=1 FRAGR_QA_SEED=42.",
+  "width": 1280,
+  "height": 720,
+  "states": [
+    {
+      "name": "ctf_combat_carried",
+      "scene": "res://scenes/main.tscn",
+      "at_seconds": 3,
+      "camera": "ctf_carried",
+      "await_ctf": {"status": "carried"},
+      "await_timeout_seconds": 120,
+      "settle_seconds": 0.1,
+      "note": "A bot carries the opposing flag in the active round."
+    },
+    {
+      "name": "ctf_combat_dropped",
+      "camera": "ctf_dropped",
+      "await_ctf": {"status": "dropped"},
+      "await_timeout_seconds": 120,
+      "settle_seconds": 0.1,
+      "note": "A bot defender killed the carrier; the server dropped the flag at the resolved location."
+    },
+    {
+      "name": "ctf_combat_result",
+      "camera": "overview",
+      "await_ctf": {"capture_at_least": 1, "round_state": "Ended"},
+      "await_timeout_seconds": 120,
+      "settle_seconds": 0.1,
+      "note": "The same live match ended by capture after the combat drop."
+    }
+  ]
+}

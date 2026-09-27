@@ -7,6 +7,7 @@ use uuid::Uuid;
 
 const TOUCH_RADIUS_SQUARED: f32 = 2.5 * 2.5;
 const RETURN_TICKS: u64 = 20 * 20;
+const DROP_TOUCH_GRACE_TICKS: u64 = 10;
 
 #[derive(Debug, Clone)]
 pub(super) struct Flag {
@@ -179,12 +180,20 @@ impl GameState {
             let feet = [p.x, p.y - PLAYER_FLOOR_Y, p.z];
             let own = side.index();
             let enemy = side.other().index();
-            if flags[own].dropped_at.is_some() && touches(feet, flags[own].position) {
+            // Keep a combat drop in replicated state before either side touches
+            // it. Otherwise an overlapping defender can return it in one tick.
+            if flags[own]
+                .dropped_at
+                .is_some_and(|at| self.tick.saturating_sub(at) >= DROP_TOUCH_GRACE_TICKS)
+                && touches(feet, flags[own].position)
+            {
                 flags[own].return_home();
                 self.flag_event(FlagEventKind::Returned, side, Some(id));
             }
             if flags[enemy].carrier.is_none()
-                && flags[enemy].dropped_at != Some(self.tick)
+                && flags[enemy]
+                    .dropped_at
+                    .is_none_or(|at| self.tick.saturating_sub(at) >= DROP_TOUCH_GRACE_TICKS)
                 && touches(feet, flags[enemy].position)
             {
                 flags[enemy].carrier = Some(id);

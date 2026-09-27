@@ -3047,6 +3047,17 @@ impl BotController {
             if let (Some(team), Some(flags)) = (bot.team, state.flags.as_ref()) {
                 let own = &flags[team.index()];
                 let enemy = &flags[team.other().index()];
+                // Keep one stable defender per side. The other rule bots stay
+                // on the flag route even when the roster grows.
+                let defender = state
+                    .bots
+                    .iter()
+                    .find(|controller| {
+                        state.players.iter().any(|player| {
+                            player.id == controller.player_id && player.team == Some(team)
+                        })
+                    })
+                    .is_some_and(|controller| controller.player_id == bot.id);
                 let feet = if enemy.carrier == Some(bot.id) {
                     if own.dropped_at.is_some() {
                         own.position
@@ -3062,13 +3073,15 @@ impl BotController {
                     }
                 } else if own.dropped_at.is_some() {
                     own.position
-                } else if let Some(carrier) = own.carrier {
+                } else if let Some(carrier) = own.carrier.filter(|_| defender) {
                     state
                         .players
                         .iter()
                         .find(|p| p.id == carrier)
                         .map(|p| [p.x, p.y - PLAYER_FLOOR_Y, p.z])
                         .unwrap_or(own.stand)
+                } else if defender {
+                    own.stand
                 } else if enemy.carrier.is_none() {
                     enemy.position
                 } else {
@@ -3086,7 +3099,18 @@ impl BotController {
                 if diff < -0.18 {
                     action.turn_left = true;
                 }
-                if let Some(target) = nearest_target.filter(|_| nearest_dist < 25.0) {
+                let thief = own.carrier.and_then(|carrier| {
+                    state
+                        .players
+                        .iter()
+                        .find(|p| p.id == carrier && p.hp > 0 && p.respawn_timer.is_none())
+                });
+                // Contact-range defense can force a drop without turning every
+                // flag run into a map-wide chase.
+                let intercept = defender
+                    && enemy.carrier != Some(bot.id)
+                    && thief.is_some_and(|target| (target.x - bot.x).hypot(target.z - bot.z) < 1.5);
+                if let Some(target) = thief.filter(|_| intercept) {
                     let eye = [bot.x, bot.y - PLAYER_FLOOR_Y + EYE_HEIGHT, bot.z];
                     let centre = [
                         target.x,
@@ -3101,7 +3125,7 @@ impl BotController {
                     action,
                     goal: Some(crate::navigation::NavigationGoal {
                         feet,
-                        combat: false,
+                        combat: intercept,
                     }),
                 };
             }

@@ -1195,7 +1195,10 @@ Rules the server enforces:
   carrier can shoot. Death, leave, disconnect parking or side reassignment
   drops the flag; an untouched dropped flag returns home after 400 ticks (20 s).
   The carrier scores only by touching the own stand while the own flag is home.
-  A new drop cannot be picked up again on its drop tick. Combat resolves before
+  A grounded flag cannot be returned or retaken for its first 10 ticks (0.5 s)
+  after a drop. This makes the drop visible in replicated snapshots even when
+  the defender is standing on the fallen carrier. The 400-tick return clock
+  starts at the drop and includes this touch window. Combat resolves before
   objective touches, and eligible touches use Union then Coalition side order,
   followed by ascending participant UUID within each side. Parked resume pawns
   cannot touch flags until the socket resumes. Dropped flags rest on the
