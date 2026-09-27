@@ -80,6 +80,7 @@ Status words: **proposed** (a design awaiting Nick's decision; directs no work),
 | [`player-settings.md`](./player-settings.md) | **proven** (#168, v0.18.0) | Persistent controls, display, and audio through one validated retro panel in boot and match menus. |
 | [`arena-surface-pass.md`](./arena-surface-pass.md) | **proven** (#167, v0.17.0) | Industrial pixel surfaces and a readable arena backdrop, preserving server collision geometry. |
 | [`local-excellence.md`](./local-excellence.md) | **in flight** | Cohesive local polish through verified instructions, reliable checks, art integration, and repeated visual and playtest review. |
+| [`readme-navigation.md`](./readme-navigation.md) | **implemented** | A concise product front page with linked play, desktop, hosting and agent instructions; draft PR review and CI pending. |
 | [`solo-story-episodes.md`](./solo-story-episodes.md) | **shipped** (#106) | Solo Broadcast Episode 0 Calibration / Larak Lot face + juice bar. |
 | [`tip-stills-ep0.md`](./tip-stills-ep0.md) | **shipped** (#110) | Recapture tip stills + README Solo Broadcast face after Episode 0. |
 | [`ep0-nods-progress-fix.md`](./ep0-nods-progress-fix.md) | **shipped** (#111) | Calibration NODS credit for meatbags, jammer dish silhouette, map_name honesty. |
