@@ -53,7 +53,11 @@ route and application authentication must be designed and tested before it is
 enabled. Do not create a ticket issuer or server list with no consumer or access
 contract. A host may use TLS for public WebSocket, but TLS termination and
 ticket distribution need an end-to-end design before public admission is called
-secure. Docker alone does not make an open internet server safe.
+secure. The current Godot client can mint an HMAC join ticket only when it knows
+`FRAGR_JOIN_SECRET`; distributing that long-term secret to public clients lets
+them mint their own tickets. An issuer must keep the secret server-side and
+define who may request a ticket. Existing tickets can also be replayed during
+their validity window. Docker alone does not make an open internet server safe.
 
 Google stopped new `gce-container-declaration` and konlet deployments on
 2026-07-31; existing deployments have support through 2027-07-31. A future COS
@@ -64,12 +68,14 @@ image tag for an applied host.
 
 ## Transport decision
 
-WebSocket remains the shipping path. Before adding another transport, measure
-round-trip latency, loss, jitter, input age, correction distance, snapshot
-delivery, tick cost and per-client bytes in a real two-machine session. Build
-the local prediction and reconciliation loop on the existing action sequence
-and authoritative acknowledgment. Then compare WebSocket against a bounded
-UDP or QUIC pilot under the same conditions.
+WebSocket remains the shipping path. First measure round-trip latency, jitter,
+input age, snapshot delivery, tick cost and per-client bytes in a real
+two-machine session. Build the local prediction and reconciliation loop on the
+existing action sequence and authoritative acknowledgment, then measure
+correction distance and play feel under controlled delay and loss. Compare the
+predicted WebSocket baseline against a bounded UDP or QUIC pilot under the same
+conditions. The client currently paces Actions to at most 120 per second, but
+its 3D movement mirror is not yet live prediction.
 
 An early UDP bind and echo proves only socket plumbing. It does not prove
 responsive play, client interoperability or public safety. A token sent over
@@ -96,17 +102,23 @@ network and the shipped WebSocket protocol stays unchanged.
 container, a live `/status` reply, and a WebSocket match smoke. Verify the
 server exits cleanly and can restart. No UDP port is published until it works.
 
-### 2. Control feel on the present wire
+### 2. Measure and improve control feel on the present wire
 
-Use the existing movement mirror and action acknowledgment to predict only the
-local body. Reconcile unacknowledged inputs, interpolate other actors, and add
-a bounded hitscan history when measurements justify it. Keep every outcome
+Record a two-machine WebSocket baseline first, including action-to-ack time,
+snapshot age, per-client traffic and tick percentiles. The current local soak
+measured 50,457 outgoing bytes per client per second with four bots, four agents
+and two spectators; the 20 KB/s target in `buttery-controls.md` has not been
+met. Use the existing movement mirror and action acknowledgment to predict only
+the local body. Reconcile unacknowledged inputs, interpolate other actors, and
+add a bounded hitscan history when measurements justify it. Keep every outcome
 server-owned. Test stairs, jumps, death, resume, spectators and campaign gates,
 then record inspected play at controlled latency and loss. Never infer human
 feel from a headless pass.
 
-**Acceptance:** golden movement vectors on both sides, replayable network
-tests, latency and correction measurements, and a two-machine human session.
+**Acceptance:** golden 3D movement vectors on both sides, replayable delay and
+loss tests, a before-and-after table for latency, snapshot age, traffic and
+correction distance, and a two-machine human session. A local CPU benchmark or
+soak alone does not prove the cloud host class.
 
 ### 3. Measured transport pilot
 
@@ -147,12 +159,14 @@ needed and its projected running and egress costs fit the remaining $20 daily
 ceiling and $50 project cap. No production deployment is part of this slice.
 Never enable top-ups or overages.
 
-GCP budget alerts notify; they are not a hard spending limit. Ongoing VM,
-storage, address and egress charges can continue. The Terraform cost text must
-state that a used public IPv4 address and game traffic can bill even when the
-VM is eligible for Always Free.
+GCP alerts-only budgets notify and do not cap charges. Google's preview spend
+cap budgets cover selected services such as Cloud Run, but do not stop ongoing
+Compute Engine, storage, public address or egress charges. The Terraform cost
+text must state that an in-use public IPv4 address and game traffic can bill
+even when the VM is eligible for Always Free. This round made no paid call or
+cloud apply; external spend remains $0.
 
-## Research checked 2026-09-26
+## Research checked 2026-09-27
 
 - [Docker build practices](https://docs.docker.com/build/building/best-practices/):
   multi-stage builds, a small context, non-root runtime and tested images.
@@ -162,8 +176,9 @@ VM is eligible for Always Free.
 - [Container startup agent shutdown](https://docs.cloud.google.com/compute/docs/containers/prepare-for-container-agent-shutdown)
   and [COS container launch](https://docs.cloud.google.com/container-optimized-os/docs/how-to/run-container-instance).
 - [GCP free features](https://docs.cloud.google.com/free/docs/free-cloud-features),
-  [network prices](https://cloud.google.com/vpc/network-pricing) and
-  [budget behavior](https://docs.cloud.google.com/billing/docs/how-to/budgets).
+  [network prices](https://cloud.google.com/vpc/network-pricing),
+  [alerts-only budgets](https://docs.cloud.google.com/billing/docs/how-to/budgets)
+  and [preview service spend caps](https://docs.cloud.google.com/billing/docs/how-to/budgets-spend-caps).
 - [Godot PacketPeerUDP](https://docs.godotengine.org/en/4.7/classes/class_packetpeerudp.html)
   warns that its connected UDP socket does not authenticate peers.
   [RFC 8085](https://www.rfc-editor.org/rfc/rfc8085.html) covers datagram

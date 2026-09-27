@@ -16,91 +16,94 @@ The 1.0 bar in [`../ROADMAP.md`](../ROADMAP.md) asks for first-person movement a
 
 ## Protocol changes
 
-- Stage 1: `Action` gains an absolute `yaw` (f32) and an input `seq` (u32); the server acknowledges `last_seq` in the snapshot it sends that client.
-- Stage 3: `PlayerState` gains velocity (three f32).
-- Stage 4: every tick-count field on the wire (`respawn_in`, cooldowns, `duration_ticks`, the 160-tick linger) becomes seconds or milliseconds, with the tick rate stated in `Hello`.
+- Shipped stage 1: `Action` has absolute `yaw` and numbered `seq`; the server sends a separate unicast `ack` with the applied sequence, tick, x, z and yaw.
+- Planned prediction stage: extend the authoritative acknowledgement and snapshot with the 3D position and velocity needed to replay the shared movement step.
+- Planned tick migration: convert tick-count fields (`respawn_in`, cooldowns, `duration_ticks`, the 160-tick linger) to seconds or milliseconds, with the tick rate stated in `Welcome`.
 - Each of these lands in `docs/protocol.md` in the same PR. The adapter reads the wire types from `fragr-server` (as the playtest harness and the brain do), so a wire change is edited once and the compiler finds every reader.
 
-## Dependents of the tick change (stage 4)
+## Dependents of the tick change (stage 2)
 
-Every `*_TICKS` constant in `server/src/sim.rs` and `server/src/protocol.rs`, the adapter's speak cooldown mirror, the playtest harness's spawn-death window, the brain's 50 ms controller interval, and the campaign's monster tables to come. Stage 4 lands before campaign rung 2 so those tables are authored in seconds from the start.
+Review every `*_TICKS` constant in `server/src/sim.rs` and `server/src/protocol.rs`, the adapter's speak cooldown mirror, the playtest harness's spawn-death window, the brain's 50 ms controller interval, and authored campaign timing. The current roadmap places this migration after Episode I and before the long Rail lane in level 6.
 
 ## Where we stand (from the code, not the docs)
 
 - The server ticks at 20 Hz and every snapshot is the full JSON world (`server/src/run.rs`).
-- The client sends an Action every rendered frame (`client/scripts/game_manager.gd`), so at 144 frames per second it sends 144 messages a second, nearly all redundant.
-- Mouse yaw is quantised into `turn_left` and `turn_right` bits (`client/scripts/spectator_cam.gd`), the server turns at a fixed rate, and the camera copies the pawn's yaw, which `player_pawn.gd` smooths with an exponential lerp of roughly a 100 ms time constant. The look axis round-trips the network and then passes two smoothing stages. That is the mush. Prediction alone does not fix it unless yaw becomes client-owned.
+- `client/scripts/game_manager.gd` paces Action sends to at most 120 per second and keeps one-shot inputs latched until a send. The server's inbound budget is 256 messages per second per session.
+- Client-owned yaw and numbered actions shipped. The separate `ack` is received by Godot, but Godot only stores the latest acknowledgement; live position prediction and reconciliation remain unbuilt.
+- `server/src/movement.rs` and `client/scripts/movement.gd` share 3D golden vectors, including stairs, jumps and gravity. The live server still uses the authoritative integration path; the mirror is not wired into live client prediction.
 
 ## Design
 
 1. **Client-owned yaw.** Every input carries an absolute yaw (f32). The server clamps only for sanity. Mouse motion is applied to the camera in the same frame it arrives and never waits on the network.
 2. **Prediction and reconciliation for the local pawn only.** Inputs are numbered. The client applies each input locally at once and keeps the unacknowledged ones. The server returns the authoritative state plus the last processed sequence number; the client rewinds to that state and replays the unacknowledged inputs. Other fighters are never predicted.
-3. **One move function, written twice.** The move integrator (acceleration, friction, maximum speed, dt equal to one tick) and static collision (capsule against a shared list of boxes) live in Rust and in GDScript with the same golden test vectors. The predicted step never uses the Godot physics server, because a Rust server cannot bit-match Jolt. Floats: f32 in both languages with a tolerance, corrections blended per frame by 0.95 for errors under 25 cm and 0.85 above 1 m, snapped beyond 1 m. Switch to fixed-point millimetres only if the correction metric stays noisy.
+3. **One move function, mirrored.** The existing Rust and GDScript steps include horizontal acceleration, 3D solids, step-up, jump and gravity, with shared golden vectors. The predicted step must use that mirror, not the Godot physics server. Compare live server integration against replay under the same inputs before choosing correction thresholds. Keep float tolerances explicit in both tests.
 4. **Timeline interpolation for others.** A ring of tick-stamped states, rendered at server time minus 100 ms at 20 Hz snapshots (150 ms while on TCP, because one loss stalls the stream), 33 to 50 ms once snapshots run at 60 Hz. Extrapolate at most 100 ms, then freeze. The exponential lerp goes away.
 5. **Lag compensation for hitscan.** The server rewinds targets by `clamp(RTT / 2 + interpolation delay, 0, 200 ms)` and keeps 250 ms of history. This matters even on a LAN: at 7 m/s a target moves 0.7 m during a 100 ms interpolation delay, more than a capsule radius.
-6. **Sim at 60 Hz, snapshots at 20 Hz.** Input granularity drops from 50 ms to 16.7 ms and the rewind history gets three times finer for trivial CPU. Every `*_TICKS` constant becomes seconds. Snapshots carry the tick, the last acknowledged input sequence, and velocity so 20 Hz interpolation does not lose the finer sim.
-7. **One input per client physics frame.** Sixty a second, each packet bundling every unacknowledged input so loss costs nothing. Per-frame sending stops.
+6. **Sim at 60 Hz, snapshots at 20 Hz.** Input granularity would drop from 50 ms to 16.7 ms and the rewind history would become finer. Measure CPU and traffic before adopting this cadence. Convert tick constants to time units; snapshots and acknowledgements must carry the tick and 3D state needed by interpolation and replay.
+7. **One input per client physics step after the tick migration.** The present cap is 120 sends per second from the rendered client. Stage 3 must define how sampled inputs, acknowledgement and replay relate to the authoritative 60 Hz movement step. Bound the replay window; do not resend unbounded history.
 8. **Mouse feel in Godot 4.7.** Sum unscaled `screen_relative` motion while captured, apply it in the same frame, and never multiply it by delta or a viewport scale. Source units are 0.022 degrees per count at sensitivity 1, with a current default of 1.5. The player-settings pass persists that value and blocks input under overlays. This follows the official InputEventMouseMotion reference checked 2026-09-19. Camera interpolation and predicted-body positioning remain part of the movement work below.
 9. **Gamepad look.** Radial deadzone 0.12 with rescale, response exponent 1.5 to 2, 250 degrees per second maximum yaw with a 0.25 s ramp in the outer five percent of the stick, aim friction at half speed inside a three degree cone around a fighter. Magnetism and snap later, if at all. These starting values are ours to tune, not sourced.
 10. **Transport spike.** WebSocket JSON stays the control plane and the path for spectators and agents. Candidate A is a 12-byte header (sequence, ack, ack bits) over UDP with `PacketPeerUDP` on the client and `tokio::net::UdpSocket` on the server; candidate B is ENet through `ENetMultiplayerPeer` with a Rust binding still to be verified. WebTransport is not in Godot 4.7. Decide with the measurements below.
 
-## Design detail (decision-complete)
+## Design detail (proposed)
 
-Everything below is chosen so a later implementer does not have to choose. Numbers are starting values; the QA tour and the feel probes tune them, and a change lands with its golden vectors regenerated.
+The following is a design proposal. The movement model has evolved to 3D and
+the client send cadence is now capped. Resolve the remaining wire and timing
+choices against current source and measurements before implementing each stage.
 
 ### The movement model, written once in words
 
-State per fighter: position `(x, z)` in units, velocity `(vx, vz)` in units per second, yaw in radians in `[0, 2 pi)`. No vertical motion. Radius 0.5. The step is:
+State per fighter: position `(x, y, z)` in units, velocity `(vx, vy, vz)` in units per second, yaw in radians in `[0, 2 pi)`. The fighter has a 0.5 unit horizontal radius and a 1.8 unit standing height. The shared step is:
 
 1. Wish direction: forward, back, left, right bits combined into a unit vector in the yaw frame (the same trigonometry as today, normalised when non-zero).
-2. Target velocity: wish direction times top speed. Top speed 5.0, halved under the compliance slow (today's values, unchanged so balance holds).
-3. Velocity approach: `v = v + (target - v) * min(1, dt / tau)` with `tau_accel = 0.06 s` when the target is faster than the current speed along the wish and `tau_decel = 0.04 s` otherwise. This replaces instantaneous velocity so stops and starts read as weight without feeling slow. If the QA tour says it feels mushy, halve both taus; the wire does not change.
-4. Move: `x += vx * dt`, `z += vz * dt`, then collide.
-5. Collide: clamp to the arena bounds, then the axis-separated slide against the obstacle boxes exactly as `resolve_move` does today (try full move, then x only, then z only, else stay). Boxes are the map manifest's obstacles inflated by the radius. Sliding zeroes the blocked velocity component so the next step does not push into the wall again.
-6. Yaw: taken from the input, normalised into `[0, 2 pi)`. The server does not turn fighters any more; `turn_left` and `turn_right` remain on the wire for agents and are applied at the old rate only when the input carries no yaw.
+2. Target horizontal velocity: wish direction times top speed. Top speed is 5.0, halved under the compliance slow.
+3. Velocity approach: the pure step uses `v = v + (target - v) * min(1, dt / tau)` with `tau_accel = 0.06 s` and `tau_decel = 0.04 s`. The live server integration path currently applies horizontal velocity immediately. Stage 3 must reconcile that difference instead of assuming the pure step already predicts live play.
+4. Move horizontally with the shared acceleration step. Apply a grounded jump and gravity to `y` and `vy`; resolve landing against the floor or the highest reachable deck.
+5. Collide against the authoritative 3D solids and bounds, including step-up, clearance and horizontal sliding. Review `server/src/movement.rs` for the exact order; the golden vectors are the executable contract.
+6. Yaw: take a valid absolute value from the input. `turn_left` and `turn_right` remain for agents whose input carries no yaw.
 
-Written twice: `server/src/movement.rs` (`pub fn step(state, input, dt, obstacles) -> state`) and `client/scripts/movement.gd` (`static func step(state, input, dt, obstacles)`), both pure functions over plain data, no engine calls. Both compile against the same golden vectors.
+The pure step is mirrored in `server/src/movement.rs` and `client/scripts/movement.gd`, with no engine physics dependency. The live server currently calls `integrate`; stage 3 must prove the client replay matches that live path, including grounded and airborne transitions.
 
 ### Golden vectors
 
-`docs/golden/move_vectors.json`: a list of cases, each with an obstacle list, an initial state, a `dt`, a list of inputs, and the expected state after every input, generated by the Rust step and committed. A Rust test asserts the Rust step reproduces the file to 1e-6; a headless Godot test (`client/scripts/test_move_golden.gd`, run by `tools/godot_check.sh`) asserts the GDScript step matches every step to 1e-4 and the final state of a 1000-step case to 1e-2. Regeneration is `cargo test -p fragr-server golden -- --ignored` writing the file; the diff is reviewed like code. Cases: straight run, diagonal run (normalisation), start and stop (the taus), slide along a wall in x, slide in z, corner stop, arena edge clamp, yaw wrap at 0 and 2 pi, compliance slow.
+`client/golden/move_vectors.json` contains the shared Rust/GDScript cases. Rust generates and checks the vectors; `client/scripts/test_move_golden.gd`, run by `tools/godot_check.sh`, checks the GDScript mirror. Review changes to the vectors like code. The roster includes horizontal movement, stair and deck contact, jump, gravity and enclosed-space cases. Add replay cases with delayed or missing acknowledgements before claiming live prediction.
 
 ### Wire changes, exact
 
-`Action` (client to server) gains three optional fields, all `serde(default)`, so old clients and every agent keep working:
+`Action` already has optional `seq` and `yaw`. A later stage proposes `view_tick` for lag compensation:
 
 - `seq: u32` input sequence, increasing by one per input, wrapping. Absent means an unnumbered agent action.
 - `yaw: f32` absolute yaw in radians. Present means client-owned yaw; the server normalises and stores it.
 - `view_tick: u32` the server tick the client was rendering other fighters at when this input was sampled (for lag compensation). Absent means no rewind.
 
-A new unicast message, humans only, sent every tick after the snapshot:
+A separate unicast acknowledgement already reaches human clients every tick:
 
 ```json
-{"type": "ack", "seq": 4123, "tick": 88210, "x": 12.25, "z": -3.5, "vx": 4.9, "vz": 0.7}
+{"type": "ack", "seq": 4123, "tick": 88210, "x": 12.25, "z": -3.5, "yaw": 1.4}
 ```
 
-`seq` is the last input applied to that fighter. Snapshots gain `vx` and `vz` per fighter (stage 3) and a `tick_hz` field in `Welcome` (stage 2). Every tick-count field on the wire becomes seconds as a float (`respawn_in_s`, `cooldown_s`, `time_left_s`), with the old fields kept for one release and the adapter mirror updated in the same PR.
+`seq` is the latest input applied to that fighter. Prediction needs an authoritative 3D state with velocity, including `y` and `vy`; design the exact `ack` extension and snapshot shape with `docs/protocol.md` and client validation in the same PR. The tick migration adds `tick_hz` and `snapshot_hz` to `Welcome`. Tick-count fields then move to time units with a documented compatibility window.
 
 ### Input cadence and bundling
 
-The client samples inputs in `_physics_process` at the server's movement rate (60 Hz after stage 2; 20 Hz before), assigns `seq`, applies the step locally, and sends the unacknowledged inputs (at most eight, oldest first) in one message. The server applies each input once, in order, skipping any `seq` it has already applied; it never applies more than four inputs from one client in one step (a client that falls behind is clamped, not trusted). Per-frame sending stops.
+Today the client samples its rendered input and sends at most 120 Actions per second; the 20 Hz server keeps the latest pending action. Stage 3 should sample and predict at the migrated movement cadence, number each step, and retain a bounded replay history. Before bundling several inputs in one message, specify and test server-side ordering, duplicate rejection, per-tick work limits and one-shot input handling. A dropped or duplicated bundle must not cause a second jump, Use or shot.
 
 ### Reconciliation
 
-The client keeps a ring of the last 64 `(seq, input, state_after)`. On `ack`:
+The client keeps a bounded ring of `(seq, input, state_after)`, including `y` and `vy`. On an acknowledgement carrying the complete authoritative movement state:
 
 1. Find the ring entry for `ack.seq`. If missing (too old), snap to the ack state and clear the ring.
 2. Error `e = ack.position - entry.state_after.position`.
-3. If `|e| > 1.0` snap: set the state to the ack state and replay every input after `seq` with the shared step. Otherwise replay from the ack state the same way, and add `e` to a `visual_offset` that the renderer subtracts, decaying per frame by `0.95` when `|offset| < 0.25` and `0.85` above, so the camera never pops.
+3. Replay later inputs from the acknowledged state, and blend or snap the visual correction according to measured error. Check vertical error and grounded state as well as horizontal distance. Tune thresholds from recorded play, not the old 2D proposal.
 4. Record `|e|` into the correction histogram reported on the status line and by the feel probes (p99 under 10 cm is the pass).
 
 ### Interpolation of other fighters
 
-A ring of the last eight snapshots with their ticks. Server time is estimated as `snapshot.tick * dt` plus an offset filtered with an exponential moving average over arrival times (alpha 0.1), never jumping more than 50 ms per second. Render time is server time minus 100 ms at 20 Hz snapshots on TCP (150 ms while packet loss is observed), 50 ms once snapshots come at 60 Hz or over UDP. Each other fighter is positioned by linear interpolation between the two snapshots bracketing render time; if render time is beyond the newest snapshot, extrapolate with the snapshot velocity for at most 100 ms, then hold. The exponential lerp in `player_pawn.gd` is deleted. Yaw interpolates by shortest arc.
+A ring of recent tick-stamped snapshots supports interpolation of other fighters in 3D. Estimate server time from observed arrivals; tune the render delay against measured jitter and loss on WebSocket before selecting a fixed buffer. Bound extrapolation and hold when data becomes stale. Preserve shortest-arc yaw interpolation. Replace the current presentation lerp only after the timeline path matches ground, stair, jump and death states.
 
 ### Lag compensation
 
-The server keeps, per fighter, a ring of the last 15 movement steps (250 ms at 60 Hz) of `(tick, x, z)`. A fire input carrying `view_tick` rewinds every other fighter to `clamp(view_tick, now - 12 steps, now)` for the hit test, then restores. Without `view_tick` (agents, old clients) no rewind. Rewind is capped so a client cannot claim a shot from further back than 200 ms; the status line counts clamped rewinds.
+The server keeps, per fighter, a bounded history of the complete 3D hit volume and facing needed by `server/src/combat.rs`, not only `(x, z)`. A fire input carrying a validated `view_tick` proposes a rewind no further than 200 ms. Without it (agents and old clients), no rewind. The historical states are used for the shot test without changing present authoritative state; tests cover elevated fighters, cover, stairs and a too-old view tick.
 
 ### Tick migration (stage 2)
 
@@ -120,7 +123,7 @@ Gamepad: radial deadzone 0.12 rescaled to a full range, exponent 1.8, yaw rate 2
 4. Timeline interpolation for others with snapshot velocity; the lerp removed.
 5. Lag compensation with `view_tick` and the bounded rewind.
 6. Gamepad curves and aim friction from the settings dictionary.
-7. The transport spike against the pass thresholds above; fragr-wire v1 from `massive-arenas.md` is what goes over it.
+7. A measured transport pilot after the WebSocket feel and bandwidth baseline. The older 2D `fragr-wire v1` sketch in `massive-arenas.md` is not the current 3D wire contract.
 
 ## Measurements
 

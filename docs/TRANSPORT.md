@@ -3,7 +3,7 @@
 ## Current: WebSocket JSON (Slice 1)
 
 **Status:** Implemented  
-**Use case:** Loopback, agent play, spectator streams, human play (acceptable latency)
+**Use case:** Loopback, agent play, spectator streams, human play (network feel unmeasured)
 
 ### Details
 - Protocol: WebSocket over TCP
@@ -13,74 +13,71 @@
 - Tick rate: ~20 Hz server broadcast
 - Multi-peer: Multiple spectators/players can connect to same match
 - Pros: Simple, universal, easy to debug, works for all roles, multi-peer ready
-- Cons: Higher latency than UDP, more bandwidth than binary
+- Limits: TCP loss can delay later messages; JSON snapshots consume bandwidth
 
-**Good enough for Slice 1.** Spectators do not need low latency, agents operate on slow control plane, and human play is acceptable with minor input lag. A second peer spectates the same match over LAN or a public host.
+**Current evidence:** WebSocket supports human, agent and spectator sessions in
+the local test path. A two-machine human session with measured latency, jitter
+and loss has not been recorded, so its competitive feel remains unproven.
 
-## Planned: UDP/renet (Post-Slice 1)
+## Planned: measured transport pilot
 
-**Status:** Next networking spike  
+**Status:** after WebSocket prediction and a two-machine baseline
 **Use case:** Low-latency human FPS play, competitive matches
 
-### Why UDP/renet?
+### Why test another transport?
 
-For smooth human FPS, sub-50ms input latency is ideal. WebSocket over TCP has:
+For smooth human FPS, low input latency matters. The current WebSocket JSON path has:
 - TCP head-of-line blocking (one dropped packet stalls the stream)
-- JSON serialization overhead
-- Larger packet sizes
+- JSON encoding overhead and full-world snapshot traffic
 
-UDP with custom protocol (e.g., `renet`, `laminar`, or hand-rolled) provides:
-- Unreliable + reliable channels (input on unreliable, events on reliable)
-- Binary serialization (smaller packets)
-- No head-of-line blocking
-- Client-side prediction + server reconciliation
+A suitable datagram transport can carry sequenced inputs and snapshots without
+TCP head-of-line blocking. Binary encoding and selective reliability are
+separate protocol choices. Client prediction and server reconciliation work on
+WebSocket and must be measured there first. The current client already owns yaw
+and sends numbered actions at no more than 120 per second; the server returns
+authoritative acknowledgements, but live prediction is not wired in.
 
-### Planned Architecture
+### Transport sequence
 
 ```
-┌──────────────────────────────────────────┐
-│  Godot Client (Human)                    │
-│  • UDP for actions (unreliable)          │
-│  • UDP for snapshots (unreliable)        │
-│  • Prediction + reconciliation           │
-└──────────────────────────────────────────┘
-           ↕ UDP (renet or custom)
-┌──────────────────────────────────────────┐
-│  Rust Server                             │
-│  • UDP socket for fast clients           │
-│  • WebSocket for spectators/agents       │
-│  • Dual transport support                │
-└──────────────────────────────────────────┘
-           ↕ WebSocket JSON
-┌──────────────────────────────────────────┐
-│  Spectators / Agent Adapter              │
-│  • Keep WebSocket (good enough)          │
-│  • No need for UDP complexity            │
-└──────────────────────────────────────────┘
+Godot human client
+  local yaw now; local prediction and reconciliation planned
+       |
+       | WebSocket JSON actions, snapshots and acknowledgements (current)
+       | optional datagram inputs and snapshots (only after pilot passes)
+       v
+Rust authoritative server
+  20 Hz WebSocket match now; optional datagram socket later
+       ^
+       | WebSocket JSON remains the path for spectators and agents
+Spectators and agent adapter
 ```
 
 ### Godot ↔ Rust UDP Options
 
 | Option | Pros | Cons |
 |--------|------|------|
-| `renet` | Battle-tested, channels, reliable + unreliable | Rust-first; Godot needs custom GDScript wrapper |
-| `laminar` | Rust + clean API | Less mature, GDScript integration unclear |
-| Custom UDP | Full control, tailored to fragr | More work, reinvent reliability layer |
-| GDExtension | Native Rust in Godot | Build complexity, cross-platform pain |
+| `PacketPeerUDP` plus a narrow protocol | Existing Godot and Tokio APIs | Must design authentication, replay defense, congestion control and reliability |
+| QUIC | Maintained encrypted transport with datagrams and streams | Godot interoperability and certificate flow must be proven |
+| ENet | Godot has an ENet peer | Rust interoperability and the existing wire integration must be proven |
 
-**Recommendation:** the spike of record is stage 7 of `plans/buttery-controls.md`: candidate A is a 12-byte sequence, ack, and ack-bits header over `PacketPeerUDP` and `tokio::net::UdpSocket`; candidate B is ENet; the decision is made against the pass thresholds in that plan. `renet` is a fallback, not the default. WebTransport is not available in Godot 4.7.
+**Recommendation:** complete the WebSocket baseline and local prediction first.
+Then compare complete Godot-to-Rust input and snapshot loops under the same
+conditions. Stage 7 of [`plans/buttery-controls.md`](plans/buttery-controls.md)
+records the earlier 12-byte header proposal; validate its security and wire
+requirements before treating it as a design. A bind or echo alone is not a
+transport pass. Keep WebSocket for control, spectators and agents throughout.
 
 Prediction and reconciliation do not wait for UDP: stages 1 to 3 of the buttery-controls plan land on WebSocket first.
 
 ## Timeline
 
-- **Now:** WebSocket JSON for everyone.
-- **Buttery-controls stages 1 to 6:** client-owned yaw, prediction, interpolation, 60 Hz sim, lag compensation, still on WebSocket.
-- **Buttery-controls stage 7:** the measured UDP spike; on a pass, humans move to UDP while spectators and agents stay on WebSocket.
+- **Now:** WebSocket JSON for everyone; client-owned yaw and input acknowledgements have shipped.
+- **Before the pilot:** measure a two-machine WebSocket session, then complete prediction, reconciliation, interpolation and bounded lag compensation on that wire.
+- **Pilot:** compare a full datagram path against the same WebSocket session. Move humans only if play feel, security, interoperability and reconnect evidence pass.
 
 ## References
 
-- `renet`: https://github.com/lucaspoffo/renet
-- `laminar`: https://github.com/TimonPost/laminar
-- Godot PacketPeerUDP: https://docs.godotengine.org/en/stable/classes/class_packetpeerudp.html
+- Godot 4.7 PacketPeerUDP: https://docs.godotengine.org/en/4.7/classes/class_packetpeerudp.html
+- UDP congestion and datagram guidance: https://www.rfc-editor.org/info/rfc8085/
 - Fast-Paced Multiplayer: https://www.gabrielgambetta.com/client-server-game-architecture.html
