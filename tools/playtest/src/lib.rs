@@ -158,6 +158,7 @@ pub struct Config {
     pub rounds: u32,
     pub map: MapKind,
     pub frag_limit: u32,
+    pub capture_limit: u32,
     pub time_limit_ticks: u32,
     /// Hard stop for the whole run, in ticks of the observed clock.
     pub max_ticks: u64,
@@ -177,6 +178,7 @@ impl Default for Config {
             rounds: 1,
             map: MapKind::ArenaDuel,
             frag_limit: 5,
+            capture_limit: 3,
             time_limit_ticks: 20 * 60,
             max_ticks: 20 * 120,
             seed: 1,
@@ -394,6 +396,9 @@ pub struct Observation {
     pub first_tick: Option<u64>,
     pub last_tick: u64,
     pub snapshot_bytes: u64,
+    /// Sum of carrier ticks across both flags, measured from received snapshots.
+    #[serde(default)]
+    pub carrier_ticks: u64,
     pub events: Vec<TimedEvent>,
     pub tracks: BTreeMap<String, AgentTrack>,
     /// Per weapon, what it fired and what landed.
@@ -425,6 +430,9 @@ impl Observation {
         self.pending_kills.clear();
         self.snapshots_seen += 1;
         self.snapshot_bytes += bytes as u64;
+        if let Some(flags) = snapshot.flags.as_ref() {
+            self.carrier_ticks += flags.iter().filter(|flag| flag.carrier.is_some()).count() as u64;
+        }
         if self.first_tick.is_none() {
             self.first_tick = Some(snapshot.tick);
         }
@@ -727,6 +735,12 @@ pub struct Report {
     pub ticks: u64,
     pub seconds: f64,
     pub frags: u64,
+    #[serde(default)]
+    pub flag_takes: u64,
+    #[serde(default)]
+    pub captures: u64,
+    #[serde(default)]
+    pub carrier_seconds: f64,
     pub frags_per_minute: f64,
     pub time_to_first_frag_s: Option<f64>,
     pub longest_gap_without_frag_s: f64,
@@ -801,6 +815,8 @@ pub fn compute_report(obs: &Observation, agents: usize) -> Report {
     let mut pickups = 0u64;
     let mut host_reactions = 0u64;
     let mut team_kills = 0u64;
+    let mut flag_takes = 0u64;
+    let mut captures = 0u64;
     let mut spawn_deaths = 0u64;
     let mut opening_spawn_deaths = 0u64;
     for timed in &obs.events {
@@ -860,6 +876,11 @@ pub fn compute_report(obs: &Observation, agents: usize) -> Report {
             | GameEvent::BossSpawn { .. }
             | GameEvent::BossDown { .. } => host_beats += 1,
             GameEvent::Pickup { .. } => pickups += 1,
+            GameEvent::Flag { kind, .. } => match kind {
+                fragr_server::protocol::FlagEventKind::Taken => flag_takes += 1,
+                fragr_server::protocol::FlagEventKind::Captured => captures += 1,
+                _ => {}
+            },
             GameEvent::Hit { .. }
             | GameEvent::PlayerJoined { .. }
             | GameEvent::PlayerLeft { .. }
@@ -890,6 +911,9 @@ pub fn compute_report(obs: &Observation, agents: usize) -> Report {
         ticks,
         seconds: seconds(ticks),
         frags,
+        flag_takes,
+        captures,
+        carrier_seconds: seconds(obs.carrier_ticks),
         frags_per_minute: per_minute(frags, ticks),
         time_to_first_frag_s,
         longest_gap_without_frag_s: seconds(longest_gap),
@@ -966,7 +990,18 @@ pub fn check_thresholds(report: &Report) -> Vec<String> {
         ));
     }
     problems.extend(check_rules(report));
-    if report.agents >= 4 && report.frags_per_minute < 1.0 {
+    if report
+        .rules
+        .as_ref()
+        .is_some_and(|rules| rules.mode == fragr_server::protocol::GameMode::Ctf)
+    {
+        if report.flag_takes == 0 {
+            problems.push("no flag pickups".to_string());
+        }
+        if report.captures == 0 {
+            problems.push("no flag captures".to_string());
+        }
+    } else if report.agents >= 4 && report.frags_per_minute < 1.0 {
         problems.push(format!(
             "only {:.2} frags per minute with {} agents",
             report.frags_per_minute, report.agents
@@ -1276,6 +1311,58 @@ fn walk_to(
 
 /// The action for one agent under its policy.
 pub fn policy_action(policy: Policy, bot_id: Uuid, snapshot: &Snapshot, arena: &Arena) -> Action {
+    if let Some(flags) = snapshot.flags.as_ref() {
+        let Some(me) = snapshot.players.iter().find(|p| p.id == bot_id) else {
+            return Action::default();
+        };
+        let Some(team) = me.team else {
+            return Action::default();
+        };
+        let own = &flags[team.index()];
+        let enemy = &flags[team.other().index()];
+        let carrying = enemy.carrier == Some(bot_id);
+        if policy == Policy::Planner
+            && !carrying
+            && snapshot.players.iter().any(|other| {
+                me.is_hostile_to(other)
+                    && other.hp > 0
+                    && (other.x - me.x).hypot(other.z - me.z) < 12.0
+                    && arena.fighter_visible(me, other)
+            })
+        {
+            return reflex_action(bot_id, snapshot, arena);
+        }
+        let goal = if carrying {
+            if own.status == fragr_server::protocol::FlagStatus::Dropped {
+                own.position
+            } else {
+                own.stand
+            }
+        } else if own.status == fragr_server::protocol::FlagStatus::Dropped {
+            own.position
+        } else if let Some(carrier) = own.carrier {
+            snapshot
+                .players
+                .iter()
+                .find(|p| p.id == carrier)
+                .map(|p| [p.x, p.y - fragr_server::sim::PLAYER_FLOOR_Y, p.z])
+                .unwrap_or(own.stand)
+        } else if enemy.carrier.is_none() {
+            enemy.position
+        } else {
+            own.stand
+        };
+        return Action {
+            look_at: Some(LookAt {
+                x: Some(goal[0]),
+                y: Some(goal[1]),
+                z: Some(goal[2]),
+                player_id: None,
+            }),
+            forward: (goal[0] - me.x).hypot(goal[2] - me.z) > 1.5,
+            ..Action::default()
+        };
+    }
     match policy {
         Policy::Reflex => reflex_action(bot_id, snapshot, arena),
         Policy::Planner => planner_action(bot_id, snapshot, arena),
@@ -1502,7 +1589,10 @@ pub async fn run(config: Config) -> Result<(Report, Observation), Error> {
     // Controlled rounds: no mid-round boss or compliance beat, so the numbers
     // describe the fighters and nothing else.
     let match_config = MatchConfig {
-        frag_limit: Some(config.frag_limit),
+        frag_limit: (config.rules.mode() != fragr_server::protocol::GameMode::Ctf)
+            .then_some(config.frag_limit),
+        capture_limit: (config.rules.mode() == fragr_server::protocol::GameMode::Ctf)
+            .then_some(config.capture_limit),
         time_limit_ticks: Some(config.time_limit_ticks),
         boss_spawn_ticks: None,
         compliance_ping_ticks: None,
@@ -1742,6 +1832,9 @@ mod tests {
     fn snapshot(tick: u64, players: Vec<PlayerState>) -> Snapshot {
         Snapshot {
             team_scores: None,
+            flags: None,
+            capture_scores: None,
+            capture_limit: None,
             tick,
             players,
             round_state: Some("Active".to_string()),
@@ -2058,6 +2151,7 @@ mod tests {
         obs.ingest_snapshot(&snapshot(1200, vec![player("a", a, 4.0, 0.0, false)]), 200);
         obs.ingest_event(GameEvent::RoundEnd {
             team_scores: None,
+            capture_scores: None,
             winning_team: None,
             winner: Some("a".to_string()),
             reason: "frag_limit".to_string(),
@@ -2236,6 +2330,9 @@ mod combat_tests {
     fn frame(tick: u64, players: Vec<PlayerState>, shots: Vec<ShotResult>) -> Snapshot {
         Snapshot {
             team_scores: None,
+            flags: None,
+            capture_scores: None,
+            capture_limit: None,
             tick,
             players,
             round_state: Some("Active".to_string()),
@@ -2728,6 +2825,9 @@ mod planner_tests {
     fn scene(tick: u64, players: Vec<PlayerState>, pickups: Vec<PickupState>) -> Snapshot {
         Snapshot {
             team_scores: None,
+            flags: None,
+            capture_scores: None,
+            capture_limit: None,
             tick,
             players,
             round_state: Some("Active".to_string()),
@@ -2960,6 +3060,45 @@ mod planner_tests {
             "the planner is already where it wants to be"
         );
     }
+
+    #[test]
+    fn ctf_policy_fights_a_visible_blocker_then_resumes_the_flag_route() {
+        use fragr_server::protocol::{FlagState, FlagStatus, Team};
+        let me = Uuid::from_u128(1);
+        let foe = Uuid::from_u128(2);
+        let mut mine = player("me", me, 0.0, 0.0, 100, "flechette");
+        mine.team = Some(Team::Coalition);
+        let mut blocker = player("foe", foe, 6.0, 0.0, 100, "flechette");
+        blocker.team = Some(Team::Union);
+        let mut snap = scene(1, vec![mine, blocker], vec![]);
+        snap.flags = Some([
+            FlagState {
+                team: Team::Union,
+                stand: [-70.0, 0.0, 0.0],
+                position: [-70.0, 0.0, 0.0],
+                status: FlagStatus::Home,
+                carrier: None,
+                return_ticks: None,
+            },
+            FlagState {
+                team: Team::Coalition,
+                stand: [70.0, 0.0, 0.0],
+                position: [70.0, 0.0, 0.0],
+                status: FlagStatus::Home,
+                carrier: None,
+                return_ticks: None,
+            },
+        ]);
+        let rush = policy_action(Policy::Reflex, me, &snap, &Arena::default());
+        assert_eq!(rush.look_at.unwrap().x, Some(-70.0));
+        let fight = policy_action(Policy::Planner, me, &snap, &Arena::default());
+        assert_eq!(fight.look_at.unwrap().player_id, Some(foe));
+        assert!(fight.fire);
+        snap.players[1].x = 30.0;
+        let route = policy_action(Policy::Planner, me, &snap, &Arena::default());
+        assert_eq!(route.look_at.unwrap().x, Some(-70.0));
+        assert!(!route.fire);
+    }
 }
 
 #[cfg(test)]
@@ -3027,6 +3166,9 @@ mod line_of_sight_tests {
         let foe = Uuid::new_v4();
         let mut snap = Snapshot {
             team_scores: None,
+            flags: None,
+            capture_scores: None,
+            capture_limit: None,
             tick: 0,
             players: vec![],
             round_state: Some("Active".to_string()),

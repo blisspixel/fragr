@@ -52,6 +52,9 @@ jobs:
           cargo run -p fragr-playtest --locked -- --agents 4 --rounds 1 --mutator rail-only --frag-limit 3 --time-limit-seconds 45 --assert --report .agents/playtest/ci-rail-only.json
           cargo run -p fragr-playtest --locked -- --agents 4 --rounds 1 --mode tdm --mutator licence-to-kill --frag-limit 6 --time-limit-seconds 60 --assert --report .agents/playtest/ci-tdm-licence.json
 
+      - name: Sector 9 capture the flag playtest
+        run: cargo run -p fragr-playtest --locked -- --agents 4 --rounds 1 --mode ctf --map 4 --tiers reflex,planner --capture-limit 1 --time-limit-seconds 180 --max-seconds 240 --assert --report .agents/playtest/ci-ctf.json
+
       - name: Mixed-client map roster
         run: bash tools/playtest_roster.sh
 

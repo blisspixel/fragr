@@ -30,6 +30,9 @@ struct Cli {
     /// Frag limit for each round.
     #[arg(long, default_value_t = 5)]
     frag_limit: u32,
+    /// Captures that end a capture the flag round.
+    #[arg(long, default_value_t = 3, value_parser = clap::value_parser!(u32).range(1..=99))]
+    capture_limit: u32,
     /// Round time limit in seconds.
     #[arg(long, default_value_t = 60)]
     time_limit_seconds: u32,
@@ -45,7 +48,7 @@ struct Cli {
     /// Simulation seed, so a run can be reproduced and two runs compared.
     #[arg(long, default_value_t = 1)]
     seed: u64,
-    /// Match mode: ffa or tdm (the Union against the free coalition).
+    /// Match mode: ffa, tdm or ctf (Sector 9).
     #[arg(long, value_enum, default_value_t = fragr_server::protocol::GameMode::Ffa)]
     mode: fragr_server::protocol::GameMode,
     /// A host rule twist, repeatable: rail-only, shotgun-only, fists-only,
@@ -146,11 +149,17 @@ fn print_soak(verdict: &fragr_playtest::soak::Verdict, log: &std::path::Path) {
 fn config_from(cli: &Cli) -> Result<Config, String> {
     let map = fragr_server::sim::MapKind::from_cli(&cli.map)
         .ok_or_else(|| format!("invalid --map {:?}", cli.map))?;
+    if cli.mode == fragr_server::protocol::GameMode::Ctf
+        && map != fragr_server::sim::MapKind::Sector9
+    {
+        return Err("ctf currently requires --map 4 (Sector 9)".into());
+    }
     Ok(Config {
         agents: cli.agents,
         rounds: cli.rounds,
         map,
         frag_limit: cli.frag_limit,
+        capture_limit: cli.capture_limit,
         time_limit_ticks: cli.time_limit_seconds * 20,
         max_ticks: cli.max_seconds * 20,
         seed: cli.seed,
@@ -281,6 +290,12 @@ async fn main() {
             "rules: {}, sides {:?}, {} host reactions, {} team kills",
             rules.name, report.sides, report.host_reactions, report.team_kills
         );
+        if rules.mode == fragr_server::protocol::GameMode::Ctf {
+            println!(
+                "flags: {} pickups, {} captures, {:.1} carrier seconds",
+                report.flag_takes, report.captures, report.carrier_seconds
+            );
+        }
     }
     println!("report: {}", cli.report.display());
     let problems = check_thresholds(&report);
@@ -369,7 +384,21 @@ mod tests {
         ])
         .unwrap();
         assert!(config_from(&clash).is_err());
-        assert!(Cli::try_parse_from(["fragr-playtest", "--mode", "ctf"]).is_err());
+        let ctf_without_stands = Cli::try_parse_from(["fragr-playtest", "--mode", "ctf"]).unwrap();
+        assert!(config_from(&ctf_without_stands).is_err());
+        let ctf = Cli::try_parse_from([
+            "fragr-playtest",
+            "--mode",
+            "ctf",
+            "--map",
+            "4",
+            "--capture-limit",
+            "2",
+        ])
+        .unwrap();
+        let ctf_config = config_from(&ctf).unwrap();
+        assert_eq!(ctf_config.map, fragr_server::sim::MapKind::Sector9);
+        assert_eq!(ctf_config.capture_limit, 2);
     }
 
     #[test]

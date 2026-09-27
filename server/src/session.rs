@@ -262,6 +262,7 @@ impl GameSession {
         self.client_to_player.insert(client_id, player_id);
         if let Some(player) = self.state.players.iter_mut().find(|p| p.id == player_id) {
             player.clear_input();
+            player.detached = false;
         }
         self.pending_unicasts
             .push((Recipient::Client(client_id), self.state.map_info()));
@@ -335,9 +336,11 @@ impl GameSession {
             }
             GameCommand::Detached { id } => {
                 if let Some(player_id) = self.client_to_player.remove(&id) {
+                    self.state.drop_flag_from(player_id);
                     if let Some(player) = self.state.players.iter_mut().find(|p| p.id == player_id)
                     {
                         player.clear_input();
+                        player.detached = true;
                     }
                 }
             }

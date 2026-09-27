@@ -387,6 +387,9 @@ pub(crate) mod fixtures {
     pub fn snapshot(tick: u64, players: Vec<PlayerState>, pickups: Vec<PickupState>) -> Snapshot {
         Snapshot {
             team_scores: None,
+            flags: None,
+            capture_scores: None,
+            capture_limit: None,
             tick,
             players,
             round_state: Some("Active".to_string()),

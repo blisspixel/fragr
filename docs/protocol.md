@@ -115,6 +115,10 @@ Initial handshake message. Must be sent immediately after connection.
   Version 13 adds the chosen participant `body` on Hello, Welcome and snapshot
   players. It is additive: no map requires it, older readers ignore the field,
   and an older client's pawn is human.
+  Version 14 adds typed flag state, capture scores and flag events. A capture
+  the flag server requires 14 for every role so a reader cannot miss the
+  objective or mistake frags for the score. Other modes keep their earlier
+  minimum capability.
   Use matching campaign server/client builds.
   Older clients of every role are rejected before `Welcome`
   with `unsupported_gameplay`. This capability is separate from geometry. The six
@@ -790,7 +794,9 @@ Periodic state broadcast containing all visible game entities. Sent at ~20 Hz.
 - `playlist`: Arena Duel under the league lie
 - `pressure`: (optional) Live pressure beat id. `"compliance_drone"` while the Compliance Drone is alive; `"compliance"` during Continuance compliance ping slow.
 - `host_line`: Sticky Contested Frequency Host chrome for mid-join / mid-round observe. League Host line by default while Active (no pressure). During Warmup, Contested Frequency bumper names the map, dialed-in scrap roster (callsigns), and countdown seconds. Switches to the compliance Host line while pressure is live. While Ended, carries the MVP Host bumper. Clients show this on join without waiting for the next `round_start`.
-- `team_scores`: (optional) `{"union": n, "coalition": n}`, side frags this round, present only in a team mode.
+- `team_scores`: (optional) `{"union": n, "coalition": n}`, side frags this round, present only in team deathmatch.
+- `flags`: (CTF only) exactly two entries, Union then Coalition. Each has `team`, `stand` and `position` as `[x, floor, z]` metres, `status` (`home`, `carried`, `dropped`), optional `carrier` UUID only when carried, and `return_ticks` only when dropped. Stands stay fixed for the round; carried positions follow the authoritative fighter. Present during warmup, active play and intermission.
+- `capture_scores`: (CTF only) side capture counts, independent of fighter and team frags. `capture_limit` is the host's capture target (default 3).
 - `mvp` / `mvp_frags`: (optional, present while Ended) Structured round MVP name and frag count for mid-join / `round_state` rehydrate. Omitted during Warmup and Active. Same selection as `round_end` MVP (top score / frags).
 - `pickups`: (optional, omitted when empty) Scrap layout: `map_id` (1 Arena Duel / 2 Compliance Yard) and `map_name`. Mid-map pads (weapons, health, armor). Each entry: `id`, `kind` (`"weapon"` / `"health"` / `"armor"`, default `"weapon"`), optional `weapon` (weapon pads), optional `amount` (health/armor pads), `x`/`y`/`z`, `available`, optional `respawn_in` (ticks until the pad returns). Health pads heal +40 (cap max HP); armor scrap grants +25 (cap 100). Touch claim is authoritative on the server; clients only render.
 
@@ -1112,10 +1118,12 @@ MVP is the top scorer (same selection as `winner`). `mvp` / `mvp_frags` / `host_
 ```
 
 **Fields:**
-- `event`: Event type (`frag`, `hit`, `respawn`, `round_start`, `round_end`, `player_joined`, `player_left`, `compliance_ping`, `boss_spawn`, `boss_down`, `speak`, `pickup`, `killstreak`, `host_reaction`)
+- `event`: Event type (`frag`, `hit`, `respawn`, `round_start`, `round_end`, `flag`, `player_joined`, `player_left`, `compliance_ping`, `boss_spawn`, `boss_down`, `speak`, `pickup`, `killstreak`, `host_reaction`)
 - `kind`: (pickup only) Pad kind: `"weapon"` / `"health"` / `"armor"` / `"golden_rail"` (default `"weapon"`). Weapon and golden pads also carry `weapon`; health/armor pads carry `amount`.
 - `rules`: (round_start, optional) the arena's rule set, repeated each round for event readers
-- `winning_team` / `team_scores`: (round_end, team modes only) the winning side, omitted for a draw, and the final side frags
+- `winning_team`: (round_end, team modes) the winning side, omitted for a draw. `team_scores` is the final side frags for TDM; `capture_scores` is the final captures for CTF. A CTF round can have an MVP by frags while its winning side is decided by captures.
+
+CTF emits `{"event":"flag","kind":"taken|dropped|returned|captured","flag":"union|coalition","player":name,"player_id":uuid,"capture_scores":{"union":n,"coalition":n}}`. `player` and `player_id` are omitted on automatic return. The flag field names the flag's owner side, which can differ from the carrier's side. Events follow authoritative combat and objective resolution for that tick.
 - `killer` / `victim`: Player names involved in frag
 - `killer_score`: Killer's score after the frag
 - `streak` / `tier` / `message`: Killstreak Host callout (tiers `double` / `triple` / `rampage`)
@@ -1145,7 +1153,7 @@ MVP is the top scorer (same selection as `winner`). `mvp` / `mvp_frags` / `host_
 ### Match rules
 
 A server runs one rule set, chosen by the host at launch
-(`--mode ffa|tdm`, repeatable `--mutator`, `--friendly-fire`, `--frag-limit`).
+(`--mode ffa|tdm|ctf`, repeatable `--mutator`, `--friendly-fire`, `--frag-limit` for FFA/TDM or `--capture-limit` for CTF).
 `map_info.rules` carries it to every connection, `round_start` repeats it,
 `GET /status` names it, and the MCP adapter returns it from `round_state`.
 
@@ -1159,7 +1167,7 @@ A server runs one rule set, chosen by the host at launch
 }
 ```
 
-- `mode`: `ffa` (free-for-all) or `tdm` (team deathmatch).
+- `mode`: `ffa` (free-for-all), `tdm` (team deathmatch), or `ctf` (capture the flag).
 - `name`: an English label for logs and agents. Clients key their own labels.
 - `mutators`: sorted, unique ids, omitted when none: `rail-only`,
   `shotgun-only`, `fists-only`, `licence-to-kill`, `golden-rail`, `two-lives`.
@@ -1181,6 +1189,21 @@ Rules the server enforces:
   limit. At the clock the higher side wins or the round is a draw. Weapon pads
   respawn after 30 s in team modes. `PlayerState` hostility helpers treat a
   teammate as not hostile.
+- **Capture the flag.** A staged league scenario on fixed Sector 9 while other
+  maps await validated two-base routes. Touch the enemy flag to carry it. A
+  living owner-side fighter touching a dropped friendly flag returns it. A
+  carrier can shoot. Death, leave, disconnect parking or side reassignment
+  drops the flag; an untouched dropped flag returns home after 400 ticks (20 s).
+  The carrier scores only by touching the own stand while the own flag is home.
+  A new drop cannot be picked up again on its drop tick. Combat resolves before
+  objective touches, and eligible touches use Union then Coalition side order,
+  followed by ascending participant UUID within each side. Parked resume pawns
+  cannot touch flags until the socket resumes. Dropped flags rest on the
+  reachable support below the carrier rather than hanging in the air.
+  Captures, not frags, decide the winner at the capture limit or clock. Equal
+  captures at the clock draw. The default capture limit is 3. `--frag-limit`
+  and the Two Lives mutator are refused in CTF. The Compliance slow and Drone
+  arena events do not run in CTF.
 - **Rail Only, Shotgun Only, Fists Only.** Everyone holds that one weapon with
   unlimited ammunition, `weapon_swap` to anything else is ignored, and weapon
   and ammunition pads are removed. Health and armour pads stay. No private

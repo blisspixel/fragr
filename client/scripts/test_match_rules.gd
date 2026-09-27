@@ -36,9 +36,11 @@ func _check_parse() -> void:
 	_check(tdm.get("mutators") == ["rail-only", "two-lives"], "mutators dedupe and drop unknown ids: " + str(tdm.get("mutators")))
 	_check(tdm.get("friendly_fire") == true and tdm.get("lives") == 2, "friendly fire and lives parse")
 	_check(MatchRules.teams(tdm), "tdm has sides")
+	var ctf: Dictionary = MatchRules.parse({"mode": "ctf", "name": "Capture the Flag"})
+	_check(MatchRules.teams(ctf), "ctf has sides")
 	var ffa: Dictionary = MatchRules.parse({"mode": "ffa", "name": "Free-for-all"})
 	_check(ffa.get("mutators") == [] and ffa.get("lives") == 0 and not MatchRules.teams(ffa), "plain ffa parses with defaults")
-	for bad: Variant in [null, "tdm", {}, {"mode": "ctf"}, {"mode": 1}, {"mode": "ffa", "mutators": "rail-only"},
+	for bad: Variant in [null, "tdm", {}, {"mode": "unknown"}, {"mode": 1}, {"mode": "ffa", "mutators": "rail-only"},
 			{"mode": "ffa", "friendly_fire": "yes"}, {"mode": "ffa", "lives": 0}, {"mode": "ffa", "lives": 1.5},
 			{"mode": "ffa", "lives": 99}, {"mode": "ffa", "lives": "2"}]:
 		_check(MatchRules.parse(bad).is_empty(), "malformed rules are refused: " + str(bad))
@@ -48,6 +50,7 @@ func _check_labels() -> void:
 	var tdm: Dictionary = MatchRules.parse({"mode": "tdm", "mutators": ["rail-only", "two-lives"], "friendly_fire": true, "lives": 2})
 	_check(MatchRules.chip_text(tdm) == "TEAM DEATHMATCH // RAIL ONLY + TWO LIVES + FRIENDLY FIRE", "tdm chip: " + MatchRules.chip_text(tdm))
 	_check(MatchRules.chip_text(MatchRules.parse({"mode": "ffa"})) == "FREE FOR ALL", "ffa chip")
+	_check(MatchRules.chip_text(MatchRules.parse({"mode": "ctf"})) == "CAPTURE THE FLAG", "ctf chip")
 	_check(MatchRules.chip_text({}) == "", "no rules, no chip")
 	for mutator: String in MatchRules.MUTATORS:
 		var chip: String = MatchRules.chip_text(MatchRules.parse({"mode": "ffa", "mutators": [mutator]}))
@@ -103,6 +106,28 @@ func _check_hud() -> void:
 	_check(lines[0] == "UNION 3 : 5 FREE COALITION", "side score leads the scoreboard: " + lines[0])
 	_check(lines[1] == "1.*[FREE] Nightfall [DEF]: 4", "leader row carries the side chip: " + lines[1])
 	_check(lines[2] == "2. [UNION] Dead Air Dan: 2", "second row: " + lines[2])
+	hud.call("set_match_rules", MatchRules.parse({"mode": "ctf", "mutators": []}))
+	hud.call("set_league_identity", "Contested Frequency", "Arena Duel")
+	var league_line: String = hud.get("mode_label").text
+	_check(league_line.begins_with("CONTESTED FREQUENCY") and not league_line.contains("ARENA DUEL"), "ctf does not advertise the older arena playlist: " + league_line)
+	var flags: Array = [
+		{"team": "union", "status": "carried", "carrier": "a1"},
+		{"team": "coalition", "status": "dropped", "return_ticks": 39, "position": [10.0, 0.0, -10.0]},
+	]
+	hud.call("set_ctf_state", flags, {"union": 1.0, "coalition": 2.0}, 3.0,
+		[{"id": "a1", "name": "Dead Air Dan", "x": 0.0, "y": 0.0, "z": 0.0}], "a1")
+	_check(chip.text.contains("CAPTURES U 1 : 2 FREE / 3 TO WIN"), "ctf score and win target: " + chip.text)
+	_check(chip.text.contains("UNION FLAG CARRIED BY Dead Air Dan  //  FREE FLAG DOWN 2S, 14M NE"), "carrier and dropped bearing: " + chip.text)
+	_check(hud.get("scoreboard").text.begins_with("FRAGS (CAPTURES WIN)"), "fighter frag rows are secondary to captures")
+	await process_frame
+	var ctf_chip_bounds: Rect2 = chip.get_global_rect()
+	var ctf_panel_bounds: Rect2 = hud.get_node("Panel").get_global_rect()
+	_check(ctf_chip_bounds.end.x <= ctf_panel_bounds.end.x and ctf_chip_bounds.end.y <= ctf_panel_bounds.end.y, "ctf status fits inside the HUD panel")
+	hud.call("show_round_end", "Dead Air Dan", "Capture limit reached", 8, "", [], "coalition", {"union": 1.0, "coalition": 3.0})
+	var round_banner: Label = hud.get("round_message")
+	_check(round_banner.text.begins_with("FREE TAKES THE ROUND\nCAPTURES: UNION 1 : 3 FREE"), "ctf winner follows captures instead of mvp frags: " + round_banner.text)
+	hud.call("show_round_end", "Dead Air Dan", "Clock expired", 8, "", [], null, {"union": 1.0, "coalition": 1.0})
+	_check(round_banner.text.begins_with("ROUND DRAW: FLAGS DEADLOCKED\nCAPTURES: UNION 1 : 1 FREE"), "equal captures announce a draw: " + round_banner.text)
 	hud.call("set_own_lives", 2)
 	_check(not chip.text.contains("LIVES"), "no lives line without limited lives")
 	hud.call("set_match_rules", MatchRules.parse({"mode": "tdm", "mutators": ["rail-only", "two-lives"], "lives": 2}))

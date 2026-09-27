@@ -135,6 +135,343 @@ fn wait(state: &mut GameState, ticks: u32) {
     }
 }
 
+fn ctf() -> GameState {
+    let mut state = arena(MapKind::Sector9, rules(GameMode::Ctf, &[]));
+    state.config.frag_limit = None;
+    state.config.capture_limit = Some(3);
+    state.config.time_limit_ticks = Some(20 * 180);
+    state
+}
+
+#[test]
+fn ctf_pickup_capture_and_reset_are_independent_of_frags() {
+    let mut state = ctf();
+    let coalition = join(&mut state, 1, Role::Human);
+    let union = join(&mut state, 2, Role::Agent);
+    assert_eq!(player(&state, coalition).team, Some(Team::Coalition));
+    state.start_round();
+    place(&mut state, coalition, -70.0, 0.0);
+    place(&mut state, union, 50.0, 0.0);
+    state.tick(0.05);
+    let flags = state.snapshot().flags.unwrap();
+    assert_eq!(flags[0].status, crate::protocol::FlagStatus::Carried);
+    assert_eq!(flags[0].carrier, Some(coalition));
+    place(&mut state, coalition, 70.0, 0.0);
+    state.tick(0.05);
+    assert_eq!(state.capture_scores.coalition, 1);
+    assert_eq!(state.team_scores.coalition, 0);
+    assert_eq!(state.round_state, RoundState::Active);
+    assert!(events(&mut state).iter().any(|event| matches!(
+        event,
+        GameEvent::Flag {
+            kind: crate::protocol::FlagEventKind::Captured,
+            ..
+        }
+    )));
+    state.start_round();
+    assert_eq!(state.capture_scores.coalition, 0);
+    assert_eq!(
+        state.snapshot().flags.unwrap()[0].status,
+        crate::protocol::FlagStatus::Home
+    );
+}
+
+#[test]
+fn ctf_drop_return_and_home_requirement() {
+    let mut state = ctf();
+    let coalition = join(&mut state, 1, Role::Human);
+    let union = join(&mut state, 2, Role::Human);
+    state.start_round();
+    place(&mut state, coalition, -70.0, 0.0);
+    place(&mut state, union, 70.0, 0.0);
+    state.tick(0.05);
+    assert_eq!(state.snapshot().flags.unwrap()[0].carrier, Some(coalition));
+    assert_eq!(state.snapshot().flags.unwrap()[1].carrier, Some(union));
+    place(&mut state, coalition, 70.0, 0.0);
+    state.tick(0.05);
+    assert_eq!(state.capture_scores.coalition, 0, "own flag is away");
+    state.remove_player(union);
+    let flags = state.snapshot().flags.unwrap();
+    assert_eq!(flags[1].status, crate::protocol::FlagStatus::Dropped);
+    assert_eq!(flags[1].return_ticks, Some(400));
+    // Friendly touch returns the dropped flag, then the carrier captures.
+    state.tick(0.05);
+    assert_eq!(state.capture_scores.coalition, 1);
+    assert_eq!(
+        state.snapshot().flags.unwrap()[1].status,
+        crate::protocol::FlagStatus::Home
+    );
+}
+
+#[test]
+fn ctf_capture_limit_and_clock_use_captures() {
+    let mut state = ctf();
+    state.config.capture_limit = Some(1);
+    let coalition = join(&mut state, 1, Role::Human);
+    let union = join(&mut state, 2, Role::Human);
+    state.start_round();
+    place(&mut state, union, 0.0, 0.0);
+    place(&mut state, coalition, -70.0, 0.0);
+    state.tick(0.05);
+    place(&mut state, coalition, 70.0, 0.0);
+    state.tick(0.05);
+    assert_eq!(state.round_state, RoundState::Ended);
+    assert!(events(&mut state).iter().any(|event| matches!(event, GameEvent::RoundEnd { winning_team: Some(Team::Coalition), capture_scores: Some(scores), .. } if scores.coalition == 1)));
+
+    state.start_round();
+    state.config.time_limit_ticks = Some(1);
+    state.tick(0.05);
+    assert!(events(&mut state).iter().any(|event| matches!(event, GameEvent::RoundEnd { winning_team: None, capture_scores: Some(scores), .. } if scores.union == 0 && scores.coalition == 0)));
+}
+
+#[test]
+fn ctf_contested_touch_and_return_boundary_are_deterministic() {
+    let mut state = ctf();
+    let first = join(&mut state, 1, Role::Human);
+    let defender = join(&mut state, 2, Role::Human);
+    let second = join(&mut state, 3, Role::Agent);
+    state.start_round();
+    place(&mut state, first, -70.0, 0.0);
+    place(&mut state, second, -70.0, 0.0);
+    place(&mut state, defender, 0.0, 0.0);
+    state.tick(0.05);
+    assert_eq!(state.snapshot().flags.unwrap()[0].carrier, Some(first));
+    state.remove_player(first);
+    place(&mut state, second, 0.0, 0.0);
+    wait(&mut state, 399);
+    assert_eq!(
+        state.snapshot().flags.unwrap()[0].status,
+        crate::protocol::FlagStatus::Dropped
+    );
+    wait(&mut state, 1);
+    assert_eq!(
+        state.snapshot().flags.unwrap()[0].status,
+        crate::protocol::FlagStatus::Home
+    );
+}
+
+#[test]
+fn ctf_rule_bot_has_a_flag_route_without_an_enemy() {
+    let mut state = ctf();
+    let bot_id = join(&mut state, 1, Role::Agent);
+    state.start_round();
+    let bot = crate::sim::BotController::new(bot_id, crate::sim::BotBehavior::Balanced);
+    let intent = bot.intent(&state);
+    assert!(intent.action.forward);
+    assert_eq!(intent.goal.unwrap().feet, [-70.0, 0.0, 0.0]);
+    let world = state.map.navigation();
+    let route = world.route(
+        [55.0, 0.0, 0.0],
+        [-70.0, 0.0, 0.0],
+        crate::navigation::SEARCH_LIMIT,
+    );
+    assert_eq!(route.status, crate::navigation::RouteStatus::Complete);
+}
+
+#[test]
+fn ctf_frags_do_not_change_capture_score() {
+    let mut state = ctf();
+    let attacker = join(&mut state, 1, Role::Human);
+    let victim = join(&mut state, 2, Role::Human);
+    state.start_round();
+    kill(&mut state, attacker, victim);
+    assert_eq!(state.scores[&attacker], 1);
+    assert_eq!(state.capture_scores, crate::protocol::TeamScores::default());
+    assert_eq!(state.team_scores, crate::protocol::TeamScores::default());
+}
+
+#[test]
+fn ctf_detached_carrier_cannot_retake_until_resume() {
+    use crate::net::GameCommand;
+
+    let mut session = GameSession::with_map(MapKind::Sector9, false);
+    session
+        .state
+        .apply_config(config(rules(GameMode::Ctf, &[])));
+    session.state.config.frag_limit = None;
+    session.state.config.capture_limit = Some(3);
+    let client = Uuid::from_u128(101);
+    let carrier = Uuid::from_u128(102);
+    session.apply_command(GameCommand::Connected {
+        body: crate::protocol::BodyKind::Human,
+        id: client,
+        role: Role::Human,
+        name: "Carrier".into(),
+        player_id: Some(carrier),
+    });
+    let defender = join(&mut session.state, 103, Role::Human);
+    session.state.start_round();
+    place(&mut session.state, carrier, -70.0, 0.0);
+    place(&mut session.state, defender, 0.0, 0.0);
+    session.state.tick(0.05);
+    assert_eq!(
+        session.state.snapshot().flags.unwrap()[0].carrier,
+        Some(carrier)
+    );
+
+    let token = session.resume.arm(carrier, Role::Human);
+    let (_, _, nonce) = session.resume.open(&token).unwrap();
+    session.resume.park(carrier, None, session.state.tick);
+    session.apply_command(GameCommand::Detached { id: client });
+    for _ in 0..2 {
+        session.state.tick(0.05);
+        let flag = &session.state.snapshot().flags.unwrap()[0];
+        assert_eq!(flag.status, crate::protocol::FlagStatus::Dropped);
+        assert_eq!(flag.carrier, None);
+    }
+
+    let replacement = Uuid::from_u128(104);
+    let (reply, accepted) = tokio::sync::oneshot::channel();
+    session.apply_command(GameCommand::Resume {
+        client_id: replacement,
+        player_id: carrier,
+        nonce,
+        role: Role::Human,
+        reply,
+    });
+    assert_eq!(
+        accepted.blocking_recv().unwrap().unwrap().player_id,
+        carrier
+    );
+    session.state.tick(0.05);
+    assert_eq!(
+        session.state.snapshot().flags.unwrap()[0].carrier,
+        Some(carrier)
+    );
+}
+
+#[test]
+fn ctf_default_capture_limit_matches_advertised_limit() {
+    let mut state = arena(MapKind::Sector9, rules(GameMode::Ctf, &[]));
+    state.config.frag_limit = None;
+    state.config.capture_limit = None;
+    let carrier = join(&mut state, 1, Role::Human);
+    let defender = join(&mut state, 2, Role::Human);
+    state.start_round();
+    place(&mut state, defender, 0.0, 0.0);
+    assert_eq!(state.snapshot().capture_limit, Some(3));
+    for capture in 1..=3 {
+        place(&mut state, carrier, -70.0, 0.0);
+        state.tick(0.05);
+        assert_eq!(state.snapshot().flags.unwrap()[0].carrier, Some(carrier));
+        place(&mut state, carrier, 70.0, 0.0);
+        state.tick(0.05);
+        assert_eq!(state.capture_scores.coalition, capture);
+        assert_eq!(state.round_state == RoundState::Ended, capture == 3);
+    }
+}
+
+#[test]
+fn ctf_combat_death_drops_flag_at_carrier_position() {
+    let mut state = ctf();
+    let carrier = join(&mut state, 1, Role::Human);
+    let defender = join(&mut state, 2, Role::Human);
+    state.start_round();
+    place(&mut state, carrier, -70.0, 0.0);
+    place(&mut state, defender, 0.0, 0.0);
+    state.tick(0.05);
+    assert_eq!(state.snapshot().flags.unwrap()[0].carrier, Some(carrier));
+    kill(&mut state, defender, carrier);
+    let flag = &state.snapshot().flags.unwrap()[0];
+    assert_eq!(flag.status, crate::protocol::FlagStatus::Dropped);
+    assert_eq!(flag.carrier, None);
+    assert_eq!(flag.position, [4.0, 0.0, 0.0]);
+    assert!(events(&mut state).iter().any(|event| matches!(
+        event,
+        GameEvent::Flag {
+            kind: crate::protocol::FlagEventKind::Dropped,
+            player_id: Some(id),
+            ..
+        } if *id == carrier
+    )));
+}
+
+#[test]
+fn ctf_airborne_drop_lands_on_reachable_support() {
+    let mut state = ctf();
+    let carrier = join(&mut state, 1, Role::Human);
+    let owner = join(&mut state, 2, Role::Human);
+    state.start_round();
+    place(&mut state, carrier, -70.0, 0.0);
+    place(&mut state, owner, 0.0, 0.0);
+    state.tick(0.05);
+    assert_eq!(state.snapshot().flags.unwrap()[0].carrier, Some(carrier));
+
+    // The carrier is falling toward a clear ground lane.
+    place(&mut state, carrier, 40.0, 0.0);
+    state
+        .players
+        .iter_mut()
+        .find(|p| p.id == carrier)
+        .unwrap()
+        .y = PLAYER_FLOOR_Y + 3.0;
+    state.remove_player(carrier);
+    let flag = &state.snapshot().flags.unwrap()[0];
+    assert_eq!(flag.status, crate::protocol::FlagStatus::Dropped);
+    assert_eq!(flag.position, [40.0, 0.0, 0.0]);
+    assert_eq!(
+        state
+            .map
+            .navigation()
+            .route(
+                [-70.0, 0.0, 0.0],
+                flag.position,
+                crate::navigation::SEARCH_LIMIT
+            )
+            .status,
+        crate::navigation::RouteStatus::Complete
+    );
+    place(&mut state, owner, 40.0, 0.0);
+    state.tick(0.05);
+    assert_eq!(
+        state.snapshot().flags.unwrap()[0].status,
+        crate::protocol::FlagStatus::Home
+    );
+}
+
+#[test]
+fn ctf_same_tick_owner_return_precedes_enemy_retake() {
+    let mut state = ctf();
+    // Give the enemy a lower UUID to prove team order wins over identity order.
+    let first_carrier = join(&mut state, 2, Role::Human);
+    let owner_toucher = join(&mut state, 3, Role::Human);
+    let enemy_toucher = join(&mut state, 1, Role::Human);
+    assert_eq!(player(&state, first_carrier).team, Some(Team::Coalition));
+    assert_eq!(player(&state, enemy_toucher).team, Some(Team::Coalition));
+    assert_eq!(player(&state, owner_toucher).team, Some(Team::Union));
+    state.start_round();
+    place(&mut state, first_carrier, -70.0, 0.0);
+    place(&mut state, enemy_toucher, 0.0, 0.0);
+    place(&mut state, owner_toucher, 10.0, 0.0);
+    state.tick(0.05);
+    assert_eq!(
+        state.snapshot().flags.unwrap()[0].carrier,
+        Some(first_carrier)
+    );
+
+    place(&mut state, first_carrier, 0.0, 0.0);
+    state.remove_player(first_carrier);
+    place(&mut state, owner_toucher, 0.0, 0.0);
+    state.take_events();
+    state.tick(0.05);
+    assert_eq!(
+        state.snapshot().flags.unwrap()[0].status,
+        crate::protocol::FlagStatus::Home
+    );
+    let flag_events: Vec<_> = events(&mut state)
+        .into_iter()
+        .filter(|event| matches!(event, GameEvent::Flag { .. }))
+        .collect();
+    assert!(matches!(
+        flag_events.as_slice(),
+        [GameEvent::Flag {
+            kind: crate::protocol::FlagEventKind::Returned,
+            player_id: Some(id),
+            ..
+        }] if *id == owner_toucher
+    ));
+}
+
 #[test]
 fn joiners_fill_the_short_side_through_one_path() {
     let mut state = arena(MapKind::ArenaDuel, rules(GameMode::Tdm, &[]));

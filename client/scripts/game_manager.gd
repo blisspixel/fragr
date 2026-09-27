@@ -11,6 +11,7 @@ extends Node
 var players = {}
 var pickups = {}
 var jammer_dish_node = null
+var arena_flags: ArenaFlags = null
 # tip_capture latch: keep forced live dish through nods-phase Snapshot nulls.
 var tip_force_jammer_dish = false
 const JammerDishBuilderScript = preload("res://scripts/jammer_dish.gd")
@@ -149,8 +150,13 @@ func _ready():
 	var arena_root: Node = get_node_or_null("Arena")
 	if arena_root != null:
 		arena_root.add_child(arena_cover)
+		arena_flags = ArenaFlags.new()
+		arena_flags.name = "ArenaFlags"
+		arena_root.add_child(arena_flags)
 	else:
 		add_child(arena_cover)
+		arena_flags = ArenaFlags.new()
+		add_child(arena_flags)
 
 ## Replace whatever the arena scene shipped with the environment in
 ## arena_sky.gd, so both arenas get the same sky from one place.
@@ -728,6 +734,8 @@ func _clear_world() -> void:
 	current_map_info.clear()
 	if hud and hud.has_method("set_match_rules"):
 		hud.set_match_rules({})
+	if arena_flags != null:
+		arena_flags.clear_flags()
 	pending_jump = false
 	pending_interact = false
 	interact_held = false
@@ -822,6 +830,9 @@ func _on_snapshot_received(data):
 	hud.set_round_info(round_state, round_time_left, frag_limit)
 	if hud.has_method("set_team_scores"):
 		hud.set_team_scores(data.get("team_scores"))
+	if hud.has_method("set_ctf_state"):
+		var ctf_viewer_id: String = str(net_client.player_id) if is_human_player and net_client.player_id != null else _followed_player_id()
+		hud.set_ctf_state(data.get("flags"), data.get("capture_scores"), data.get("capture_limit", 0), player_list, ctf_viewer_id)
 	if is_human_player and net_client.player_id != null and hud.has_method("set_own_lives"):
 		for player_data in player_list:
 			if str(player_data.get("id", "")) == str(net_client.player_id):
@@ -875,6 +886,8 @@ func _on_snapshot_received(data):
 	
 	_update_followed_weapon()
 	_sync_pickups(data.get("pickups", []))
+	if arena_flags != null:
+		arena_flags.apply(data.get("flags"))
 	_sync_jammer_dish(data.get("jammer_dish", null))
 	if is_human_player:
 		_refresh_fp_target()
@@ -885,7 +898,9 @@ func _on_snapshot_received(data):
 
 func _on_event_received(data):
 	var event_type = data.get("event", "")
-	if event_type == "frag":
+	if event_type == "flag":
+		hud.show_flag_event(data)
+	elif event_type == "frag":
 		var killer_name = data.get("killer", "?")
 		var victim_name = data.get("victim", "?")
 		
@@ -1021,7 +1036,7 @@ func _on_event_received(data):
 		var host_line = str(data.get("host_line", ""))
 		var podium = data.get("final_scores", [])
 		if hud and hud.has_method("show_round_end"):
-			hud.show_round_end(mvp_name, str(data.get("reason", "")), mvp_frags, host_line, podium)
+			hud.show_round_end(mvp_name, str(data.get("reason", "")), mvp_frags, host_line, podium, data.get("winning_team"), data.get("capture_scores"))
 		if round_end_sound and round_end_sound.stream:
 			round_end_sound.play()
 
@@ -1056,7 +1071,14 @@ func _maybe_rehydrate_ended_mvp(data, round_state) -> void:
 		podium = rows
 	ended_podium_shown = true
 	if hud and hud.has_method("show_round_end"):
-		hud.show_round_end(mvp_name, "MID-JOIN // ROUND ENDED", mvp_frags, host_line, podium)
+		var captures: Variant = data.get("capture_scores")
+		var winner_side: Variant = null
+		if captures is Dictionary:
+			var union_count: int = int(captures.get("union", 0))
+			var coalition_count: int = int(captures.get("coalition", 0))
+			if union_count != coalition_count:
+				winner_side = "union" if union_count > coalition_count else "coalition"
+		hud.show_round_end(mvp_name, "MID-JOIN // ROUND ENDED", mvp_frags, host_line, podium, winner_side, captures)
 
 func _sync_pickups(pickup_list):
 	var seen = {}

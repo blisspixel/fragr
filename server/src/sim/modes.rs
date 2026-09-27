@@ -55,6 +55,8 @@ impl GameState {
             else {
                 break;
             };
+            let id = self.players[index].id;
+            self.drop_flag_from(id);
             let player = &mut self.players[index];
             player.team = Some(small);
             let (id, name, placed) = (

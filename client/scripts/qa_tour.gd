@@ -213,6 +213,11 @@ func _run() -> void:
 			(settings_root.get_node("SettingsPanel") as SettingsPanel).show_page(str(state["settings_tab"]))
 		if state.has("graphics"):
 			_apply_graphics_capture(state["graphics"])
+		if state.has("fixture_ctf_result"):
+			# Layout fixture only. A scored match still needs separate live evidence.
+			var fixture: Dictionary = state["fixture_ctf_result"]
+			_find_hud().call("show_round_end", "", "Capture limit reached", 0, "", [],
+				fixture.get("winning_team"), fixture.get("capture_scores"))
 		var frame_timing: Dictionary = {}
 		if state.has("frame_sample"):
 			_pose_camera(state.get("camera", "none"))
@@ -266,6 +271,21 @@ func _run() -> void:
 			push_error("qa_tour: unexpected capture size for " + state_name)
 			_failed = true
 		var observed: Dictionary = _observed_state().duplicate(true)
+		if state.has("expect_flag_statuses"):
+			var actual_statuses: Array[String] = []
+			var observed_flags: Variant = observed.get("flags")
+			if observed_flags is Array:
+				for flag: Variant in observed_flags:
+					if flag is Dictionary:
+						actual_statuses.append(str(flag.get("status", "")))
+			if JSON.stringify(actual_statuses) != JSON.stringify(state["expect_flag_statuses"]):
+				push_error("qa_tour: %s expected live flags %s, got %s" % [state_name,
+					str(state["expect_flag_statuses"]), str(actual_statuses)])
+				_failed = true
+		if state.has("expect_capture_scores") and observed.get("capture_scores") != state["expect_capture_scores"]:
+			push_error("qa_tour: %s expected live capture scores %s, got %s" % [state_name,
+				str(state["expect_capture_scores"]), str(observed.get("capture_scores"))])
+			_failed = true
 		if _joined and _game_manager() != null:
 			observed["accepted_body"] = _game_manager().net_client.accepted_body
 		if is_instance_valid(_body_pawn):
@@ -696,6 +716,9 @@ func _observed_state() -> Dictionary:
 		"mission_rules": gm.get("net_client").get("mission").get("state", {}).get("rules", {}),
 		"mission_run": gm.get("net_client").get("mission").get("state", {}).get("run", {}),
 		"map_id": snapshot.get("map_id", 0),
+		"flags": snapshot.get("flags"),
+		"capture_scores": snapshot.get("capture_scores"),
+		"capture_limit": snapshot.get("capture_limit"),
 		"round_state": snapshot.get("round_state", "unknown"),
 		"fighters": (snapshot.get("players", []) as Array).size(),
 		"human": gm.get("is_human_player"),
@@ -943,6 +966,15 @@ func _pose_camera(mode: String) -> void:
 		return
 	cam.set("frag_follow_timer", 0.0)
 	match mode:
+		"union_flag", "coalition_flag":
+			cam.set("spectator_first_person", false)
+			cam.set("follow_mode", false)
+			cam.set("fp_mode", false)
+			if cam is Node3D:
+				var side: float = -1.0 if mode == "union_flag" else 1.0
+				var n3: Node3D = cam
+				n3.global_position = Vector3(side * 63.0, 4.0, 11.0)
+				n3.look_at(Vector3(side * 70.0, 1.2, 0.0), Vector3.UP)
 		"overview":
 			cam.set("spectator_first_person", false)
 			if cam is Node3D:

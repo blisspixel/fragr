@@ -39,6 +39,7 @@ var match_rules: Dictionary = {}
 ## Side of every fighter by callsign, from the last snapshot.
 var sides: Dictionary = {}
 var team_score_text: String = ""
+var flag_status_text: String = ""
 ## The local fighter's lives when lives are limited, otherwise -1.
 var own_lives: int = -1
 @onready var warmup_tv = $WarmupTv
@@ -256,22 +257,74 @@ func _ensure_map_chip_label() -> void:
 
 ## The rule set from `map_info`. Empty clears the chip and the sides.
 func set_match_rules(rules: Dictionary) -> void:
+	var old_mode: String = str(match_rules.get("mode", ""))
 	match_rules = rules
-	if not MatchRules.teams(rules):
+	if not MatchRules.teams(rules) or str(rules.get("mode", "")) != old_mode:
 		team_score_text = ""
 		sides = {}
+	if rules.get("mode", "") != "ctf":
+		flag_status_text = ""
 	if int(rules.get("lives", 0)) <= 0:
 		own_lives = -1
+	_refresh_mode_label()
 	_refresh_mode_chip()
 	update_scoreboard()
 
 
 ## Side frags from a snapshot. Ignored outside a team mode.
 func set_team_scores(scores: Variant) -> void:
+	if match_rules.get("mode", "") == "ctf":
+		return
 	var line: String = MatchRules.team_score_line(scores) if MatchRules.teams(match_rules) else ""
 	if line == team_score_text:
 		return
 	team_score_text = line
+	_refresh_mode_chip()
+	update_scoreboard()
+
+
+func set_ctf_state(flags: Variant, scores: Variant, limit: Variant, players: Array, viewer_id: String = "") -> void:
+	if match_rules.get("mode", "") != "ctf" or not flags is Array or not scores is Dictionary:
+		if flag_status_text != "":
+			flag_status_text = ""
+			_refresh_mode_chip()
+			update_scoreboard()
+		return
+	var names: Dictionary = {}
+	var viewer_position: Array = []
+	for player: Variant in players:
+		if player is Dictionary:
+			names[str(player.get("id", ""))] = str(player.get("name", ""))
+			if str(player.get("id", "")) == viewer_id:
+				viewer_position = [player.get("x", 0.0), player.get("y", 0.0), player.get("z", 0.0)]
+	var line: String = tr("FLAG_CAPTURE_SCORE_LINE").format({
+		"union": int(scores["union"]), "coalition": int(scores["coalition"]), "limit": int(limit),
+	})
+	var states: Array[String] = []
+	for flag: Variant in flags:
+		var status_id: String = str(flag["status"])
+		var status_text: String = tr("FLAG_HOME")
+		if status_id == "carried":
+			status_text = tr("FLAG_CARRIED").format({"player": str(names.get(str(flag.get("carrier", "")), "?"))})
+		elif status_id == "dropped":
+			var seconds: int = ceili(float(flag.get("return_ticks", 0)) / 20.0)
+			status_text = tr("FLAG_DROPPED").format({"seconds": seconds})
+			if viewer_position.size() == 3:
+				var position: Array = flag["position"]
+				status_text = tr("FLAG_DROPPED_BEARING").format({
+					"seconds": seconds,
+					"distance": FlagState.distance_m(viewer_position, position),
+					"bearing": FlagState.bearing(viewer_position, position),
+				})
+		states.append(status_text)
+	var status: String = tr("FLAG_STATUS_LINE").format({
+		"union": states[0],
+		"coalition": states[1],
+	})
+	if line == team_score_text and status == flag_status_text:
+		return
+	team_score_text = line
+	flag_status_text = status
 	_refresh_mode_chip()
 	update_scoreboard()
 
@@ -292,6 +345,8 @@ func _refresh_mode_chip() -> void:
 		lines.append(chip)
 	if team_score_text != "":
 		lines.append(team_score_text)
+	if flag_status_text != "":
+		lines.append(flag_status_text)
 	if own_lives > 0:
 		lines.append(tr("HUD_LIVES").format({"count": own_lives}))
 	elif own_lives == 0:
@@ -307,6 +362,19 @@ func show_host_reaction(data: Dictionary) -> void:
 		return
 	host_spoke.emit(2.0)
 	combat_feed.push(line, MenuTheme.EMBER)
+
+
+func show_flag_event(data: Dictionary) -> void:
+	var kind: Variant = data.get("kind")
+	var flag: String = MatchRules.valid_team(data.get("flag"))
+	if not kind is String or not ["taken", "dropped", "returned", "captured"].has(kind) or flag == "":
+		return
+	var key: String = "FLAG_EVENT_" + kind.to_upper()
+	var line: String = tr(key).format({
+		"player": str(data.get("player", "")).to_upper(),
+		"flag": MatchRules.team_short(flag),
+	})
+	combat_feed.push(line, MatchRules.team_label_color(flag))
 
 
 func _refresh_map_chip_badge() -> void:
@@ -380,7 +448,11 @@ func _refresh_mode_label():
 	# into. A player picked the match and is standing in it.
 	var league = ""
 	if client_mode == "SPECTATING":
-		league = league_mode_name.to_upper() + " // " + league_playlist.to_upper()
+		league = league_mode_name.to_upper()
+		# Arena Duel is the older playlist label on the wire. CTF has its own
+		# rules chip and an actual map chip, so do not advertise a different game.
+		if match_rules.get("mode", "") != "ctf":
+			league += " // " + league_playlist.to_upper()
 	# The map name is already on screen as its own chip. It used to be here as
 	# well, and inside the playlist above, so the first visual QA tour
 	# photographed three copies of "ARENA DUEL" in a single frame.
@@ -501,7 +573,8 @@ func update_scoreboard():
 	# Four names, not the whole roster. Eight ran the panel off the bottom of
 	# the window, which the first visual QA tour caught, and a standing HUD is
 	# for who is winning. The full table belongs on the scoreboard screen.
-	var text: String = MatchRules.scoreboard_text(sorted_scores, sides, team_score_text, HUD_SCOREBOARD_ROWS)
+	var board_score: String = tr("FLAG_FRAGS_BOARD_LABEL") if match_rules.get("mode", "") == "ctf" else team_score_text
+	var text: String = MatchRules.scoreboard_text(sorted_scores, sides, board_score, HUD_SCOREBOARD_ROWS)
 	scoreboard.text = text if len(sorted_scores) > 0 or team_score_text != "" else "(waiting for scrap)"
 
 func _short_behavior(behavior: String) -> String:
@@ -866,7 +939,7 @@ func show_speak(player: String, line: String) -> void:
 	if not line.is_empty():
 		combat_feed.push(player + ": " + line)
 
-func show_round_end(mvp_name: String, reason: String, mvp_frags: int = 0, host_line: String = "", podium = []):
+func show_round_end(mvp_name: String, reason: String, mvp_frags: int = 0, host_line: String = "", podium: Variant = [], winning_team: Variant = null, capture_scores: Variant = null) -> void:
 	host_spoke.emit(4.0)
 	# Round-end MVP / podium Host drama (Contested Frequency voice).
 	scores = {}
@@ -895,6 +968,17 @@ func show_round_end(mvp_name: String, reason: String, mvp_frags: int = 0, host_l
 		streak_flash.modulate = Color(1.0, 0.78, 0.28, 0.55)
 
 	if round_message:
+		if match_rules.get("mode", "") == "ctf" and capture_scores is Dictionary:
+			var winner_side: String = MatchRules.valid_team(winning_team)
+			var result: String = tr("FLAG_ROUND_WINNER").format({"team": MatchRules.team_short(winner_side)}) if winner_side != "" else tr("FLAG_ROUND_DRAW")
+			result += "\n" + tr("FLAG_ROUND_FINAL_SCORE").format({
+				"union": int(capture_scores.get("union", 0)),
+				"coalition": int(capture_scores.get("coalition", 0)),
+			})
+			if reason != "":
+				result += "\n" + reason.to_upper()
+			_show_round_banner(result, 5.5)
+			return
 		var message = host_line
 		if message == "":
 			if mvp_name != "":

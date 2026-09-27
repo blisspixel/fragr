@@ -7,6 +7,7 @@ use crate::protocol::{GameMode, MatchRules, Mutator, Team, TeamScores, WeaponTyp
 pub const TWO_LIVES: u8 = 2;
 /// Default frag limit for a team round: side frags, not fighter frags.
 pub const TEAM_FRAG_LIMIT: u32 = 25;
+pub const CTF_CAPTURE_LIMIT: u32 = 3;
 /// Weapon pads come back on the rule sheet's slower team clock.
 pub const TEAM_WEAPON_RESPAWN_TICKS: u32 = 20 * 30;
 /// No Host reaction lands within eight seconds of the last one.
@@ -60,6 +61,9 @@ impl RuleSet {
         }
         if friendly_fire && !mode.teams() {
             return Err("friendly fire needs a team mode".into());
+        }
+        if mode == GameMode::Ctf && mutators.contains(&Mutator::TwoLives) {
+            return Err("two-lives would let elimination decide a capture the flag round".into());
         }
         Ok(Self {
             mode,
@@ -203,6 +207,7 @@ mod tests {
             assert!(RuleSet::new(GameMode::Ffa, &bad, false).is_err(), "{bad:?}");
         }
         assert!(RuleSet::new(GameMode::Ffa, &[], true).is_err());
+        assert!(RuleSet::new(GameMode::Ctf, &[Mutator::TwoLives], false).is_err());
         assert!(RuleSet::new(
             GameMode::Ffa,
             &[Mutator::GoldenRail, Mutator::RailOnly],

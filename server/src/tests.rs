@@ -310,6 +310,7 @@ fn test_protocol_game_event_round_start() {
 fn test_protocol_game_event_round_end() {
     let event = GameEvent::RoundEnd {
         team_scores: None,
+        capture_scores: None,
         winning_team: None,
         winner: Some("Bot1".to_string()),
         reason: "Frag limit reached".to_string(),
@@ -360,6 +361,9 @@ fn test_protocol_game_event_player_left() {
 fn test_protocol_snapshot_serialization() {
     let snapshot = Snapshot {
         team_scores: None,
+        flags: None,
+        capture_scores: None,
+        capture_limit: None,
         tick: 123,
         players: vec![PlayerState {
             body: None,
@@ -410,6 +414,9 @@ fn test_protocol_snapshot_serialization() {
 fn test_protocol_snapshot_empty_players() {
     let snapshot = Snapshot {
         team_scores: None,
+        flags: None,
+        capture_scores: None,
+        capture_limit: None,
         tick: 0,
         players: vec![],
         round_state: None,
@@ -716,6 +723,7 @@ fn test_sim_yaw_normalization() {
 fn test_sim_match_config_custom() {
     let config = MatchConfig {
         rules: Default::default(),
+        capture_limit: None,
         frag_limit: Some(5),
         time_limit_ticks: Some(100),
         warmup_ticks: 10,
@@ -2055,6 +2063,7 @@ fn test_round_cycle_events_survive_ticks() {
     let mut state = GameState::new();
     state.config = MatchConfig {
         rules: Default::default(),
+        capture_limit: None,
         frag_limit: Some(2),
         time_limit_ticks: None,
         warmup_ticks: 3,
@@ -2166,6 +2175,7 @@ fn test_server_round_event_wire_json_shape() {
 
     let end = ServerMessage::Event(GameEvent::RoundEnd {
         team_scores: None,
+        capture_scores: None,
         winning_team: None,
         winner: Some("Alpha".into()),
         reason: "Frag limit reached".into(),
@@ -2440,6 +2450,9 @@ async fn test_net_ws_action_forwarded_for_agent() {
         use crate::session::broadcast_to_clients;
         let snap = ServerMessage::Snapshot(Snapshot {
             team_scores: None,
+            flags: None,
+            capture_scores: None,
+            capture_limit: None,
             tick: 1,
             players: vec![],
             round_state: Some("active".into()),
@@ -2839,6 +2852,7 @@ fn test_compliance_ping_fires_once_and_sets_pressure() {
     let mut state = GameState::new();
     state.config = MatchConfig {
         rules: Default::default(),
+        capture_limit: None,
         frag_limit: Some(99),
         time_limit_ticks: Some(20 * 60),
         warmup_ticks: 2,
@@ -2912,6 +2926,7 @@ fn test_compliance_pressure_slows_movement() {
     let mut state = GameState::new();
     state.config = MatchConfig {
         rules: Default::default(),
+        capture_limit: None,
         frag_limit: Some(99),
         time_limit_ticks: Some(20 * 60),
         warmup_ticks: 1,
@@ -2990,6 +3005,7 @@ fn test_snapshot_host_line_sticky_for_mid_join() {
     let mut state = GameState::new();
     state.config = MatchConfig {
         rules: Default::default(),
+        capture_limit: None,
         frag_limit: Some(99),
         time_limit_ticks: Some(20 * 60),
         warmup_ticks: 2,
@@ -3054,6 +3070,7 @@ fn test_compliance_drone_spawns_once_with_pressure_and_host() {
     state.add_player(a, "Rusher".into(), Role::Agent);
     state.config = MatchConfig {
         rules: Default::default(),
+        capture_limit: None,
         frag_limit: Some(99),
         time_limit_ticks: Some(20 * 60),
         warmup_ticks: 1,
@@ -3103,6 +3120,7 @@ fn test_boss_wiped_on_round_end_emits_boss_down_no_killer() {
     state.add_player(a, "Rusher".into(), Role::Agent);
     state.config = MatchConfig {
         rules: Default::default(),
+        capture_limit: None,
         frag_limit: Some(99),
         time_limit_ticks: Some(5),
         warmup_ticks: 1,
@@ -3172,6 +3190,7 @@ fn test_compliance_drone_killable_emits_boss_down_no_respawn() {
     state.add_player(shooter, "Rusher".into(), Role::Agent);
     state.config = MatchConfig {
         rules: Default::default(),
+        capture_limit: None,
         frag_limit: Some(99),
         time_limit_ticks: Some(20 * 60),
         warmup_ticks: 1,

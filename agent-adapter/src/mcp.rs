@@ -600,6 +600,9 @@ pub fn build_round_state_result(state: &ToolState) -> Value {
         "map_name": map_name,
         "rules": rules,
         "team_scores": snap_field(snap, "team_scores"),
+        "flags": snap_field(snap, "flags"),
+        "capture_scores": snap_field(snap, "capture_scores"),
+        "capture_limit": snap_field(snap, "capture_limit"),
         "self_team": self_team,
         "self_lives": self_lives,
         "self_body": self_body,
@@ -726,7 +729,7 @@ fn tools_list_result() -> Value {
             },
             {
                 "name": "round_state",
-                "description": "Current round summary (state, number, time left, frag limit, mode_name, host_line, pressure) plus the server's rule set (rules: mode ffa or tdm, mutators, friendly_fire, lives), team_scores, self_team, self_lives and self_body (your accepted body), from the last snapshot, map_info and recent round_start/round_end. Read rules before joining: in tdm, teammates share your team and cannot be hurt unless friendly_fire is true. Prefer this over scraping observe.",
+                "description": "Current round summary (state, number, time left, frag limit, mode_name, host_line, pressure), rules (ffa, tdm or ctf; mutators, friendly_fire, lives), team_scores, flags, capture_scores, capture_limit, self_team, self_lives and self_body, from the last snapshot, map_info and recent round events. In tdm, teammates cannot be hurt unless friendly_fire is true. In ctf, captures decide the winner. Prefer this over scraping observe.",
                 "inputSchema": {
                     "type": "object",
                     "properties": {},
@@ -2631,5 +2634,26 @@ mod mcp_tests {
         ).unwrap();
         assert!(state.connected);
         assert!(state.player_id.is_some());
+    }
+
+    #[test]
+    fn ctf_round_state_exposes_flags_and_captures() {
+        let state = ToolState {
+            connected: true,
+            last_snapshot: Some(serde_json::json!({
+                "tick": 10, "players": [],
+                "flags": [
+                    {"team":"union","stand":[-70,0,0],"position":[-70,0,0],"status":"home"},
+                    {"team":"coalition","stand":[70,0,0],"position":[70,0,0],"status":"home"}
+                ],
+                "capture_scores": {"union":1,"coalition":0},
+                "capture_limit":3
+            })),
+            ..Default::default()
+        };
+        let round = build_round_state_result(&state);
+        assert_eq!(round["flags"][0]["status"], "home");
+        assert_eq!(round["capture_scores"]["union"], 1);
+        assert_eq!(round["capture_limit"], 3);
     }
 }

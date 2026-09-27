@@ -796,6 +796,7 @@ pub async fn run_bot(
                     constrain_campaign_equipment(&mut plan, mission_client.state.is_some(), loadout.as_ref());
                     let action = match (mission_client.state.as_ref(), navigation.as_ref()) {
                         (Some(_), Some(world)) => campaign_micro_action(&plan, id, snapshot, world),
+                        _ if snapshot.flags.is_some() => crate::plan::ctf_micro_action(&plan, id, snapshot),
                         _ => micro_action(&plan, id, snapshot),
                     };
                     let action = if let (Some(_), Some(world)) = (mission_client.state.as_ref(), navigation.as_ref()) {

@@ -1,7 +1,8 @@
 # Plan: multiplayer modes
 
-**Status:** in flight (2026-09-25). Rung 1 below is built on
-`feat/multiplayer-modes`. Every later rung is a design.
+**Status:** in flight (2026-09-26). Rung 1 is built. Rung 2 is being
+implemented on Sector 9 in [capture-the-flag.md](capture-the-flag.md).
+Later objective modes remain designs.
 **Spend:** $0. Server rules, client presentation, harness runs and tour stills
 are local. No paid audio: the Host reactions are keyed text only.
 
@@ -26,7 +27,7 @@ Nick's order (2026-09-25). Radio is not a mode.
 | 2 | Duel | designed in [multiplayer-maps.md](multiplayer-maps.md#modes-in-build-order) |
 | 3 | Team deathmatch | this work |
 | 4 | GoldenEye-style mutators | this work |
-| 5 | Capture the flag | next, rung 2 below |
+| 5 | Capture the flag | Sector 9 implementation in flight, rung 2 below |
 | 6 | Rescue | rung 3 below, on its own maps |
 | 7 | Sabotage | rung 3 below, on its own maps |
 | 8 | The big combined-arms objective mode (Frontline) | rung 4 below |
@@ -41,7 +42,8 @@ place when it changes how a round plays, not how it looks.
   fought with what the floor gives you.
 - Unlocks for mutators. Every mutator is a host flag on day one.
 - New radio or voice production. Host reactions are text keys in the client.
-- New maps. Every mode here runs on the six built-in arena maps.
+- New maps. Capture the flag first uses Sector 9; other arenas need validated
+  two-side routes before this mode is enabled on them.
 - Matchmaking. A host picks the rules; a server's rules are its personality.
 - Blood and oil effects (welcome later, see What is next).
 
@@ -54,12 +56,14 @@ picks it at launch:
 fragr-server --mode tdm --mutator rail-only --mutator two-lives
 ```
 
-- `--mode ffa|tdm` (default `ffa`).
+- `--mode ffa|tdm|ctf` (default `ffa`; CTF currently requires Sector 9).
 - `--mutator <id>`, repeatable: `rail-only`, `shotgun-only`, `fists-only`,
   `licence-to-kill`, `golden-rail`, `two-lives`.
 - `--friendly-fire` turns team damage on (off by default).
 - `--frag-limit <n>` sets the limit: fighter frags in free-for-all, team
   frags in team deathmatch. Default 10 for free-for-all, 25 for teams.
+- `--capture-limit <n>` sets the CTF target (default 3); frags never score
+  CTF captures.
 
 The rule set lives in `MatchConfig` (`server/src/rules.rs`), so the dedicated
 binary, the playtest harness and tests share one path. It is validated once at
@@ -228,13 +232,13 @@ team captures inspected. Neither change substitutes for a human team round.
 
 Two flags, one per side, each on a stand in its side's back third. Touch the
 enemy flag to carry it; touch your own stand while your flag is home to score.
-A carrier who dies drops the flag where they fell; a teammate who touches a
+A carrier who dies drops the flag where they fell; an owner-side fighter who touches a
 dropped flag returns it at once, and an untouched dropped flag returns after
 20 s. Carriers can shoot (the GoldenEye flag tag rule where the carrier cannot
 shoot belongs to Custody). Three captures or the clock. Needs: a carried
 object on the wire (`flags` in the snapshot: stand, state, carrier, position),
-flag events for the Host, flag stands in each built-in map's team halves (Arena
-Duel's opposite gantries, Sector 9's two ends first), agents reading flag state
+flag events for the Host, flag stands on validated two-side routes (Sector 9
+first; the other layouts need route and spawn-axis review), agents reading flag state
 in `observe`, and harness gates for captures per round and carrier survival
 time. The carried-object seam is shared with Rescue's captives and Sabotage's
 charge.

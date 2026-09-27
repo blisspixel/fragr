@@ -738,6 +738,7 @@ mod tests {
 
         let round_end_event = protocol::GameEvent::RoundEnd {
             team_scores: None,
+            capture_scores: None,
             winning_team: None,
             winner: Some("Bot1".to_string()),
             reason: "Frag limit reached".to_string(),
@@ -1056,6 +1057,9 @@ mod tests {
     fn test_snapshot_with_players() {
         let snapshot = protocol::Snapshot {
             team_scores: None,
+            flags: None,
+            capture_scores: None,
+            capture_limit: None,
             tick: 100,
             players: vec![protocol::PlayerState {
                 body: None,
@@ -1116,6 +1120,9 @@ mod tests {
     fn test_snapshot_carries_sticky_host_line() {
         let mut snap = protocol::Snapshot {
             team_scores: None,
+            flags: None,
+            capture_scores: None,
+            capture_limit: None,
             tick: 7,
             players: vec![],
             round_state: Some("Active".into()),
@@ -1162,6 +1169,9 @@ mod tests {
     fn test_snapshot_includes_weapon_in_observe() {
         let snapshot = protocol::Snapshot {
             team_scores: None,
+            flags: None,
+            capture_scores: None,
+            capture_limit: None,
             tick: 50,
             players: vec![
                 protocol::PlayerState {
@@ -1502,6 +1512,9 @@ mod tests {
         let target_id = uuid::Uuid::new_v4();
         let snapshot = protocol::Snapshot {
             team_scores: None,
+            flags: None,
+            capture_scores: None,
+            capture_limit: None,
             tick: 1,
             players: vec![
                 protocol::PlayerState {

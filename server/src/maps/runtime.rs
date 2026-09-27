@@ -154,6 +154,13 @@ impl RuntimeMap {
         self.arena().half
     }
 
+    pub(crate) fn ctf_stands(&self) -> Option<[[f32; 3]; 2]> {
+        match self {
+            Self::BuiltIn(kind) => super::ctf_stands(*kind),
+            Self::Authored(_) => None,
+        }
+    }
+
     pub(crate) fn pickups(&self) -> Vec<ArenaPickup> {
         match self {
             Self::BuiltIn(kind) => kind.pickups(),

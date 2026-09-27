@@ -15,7 +15,7 @@ The current release is [v0.57.1](https://github.com/blisspixel/fragr/releases/ta
 - **Solo Scrap:** arcade offline on loopback without the episode path (`FRAGR_SOLO_BROADCAST=0`), four named rule bots with visible tactics (Aggressive, Defensive, Flanker, Balanced).
 - **Watch or join:** spectator by default through a fighter's eyes, including their gun and shot feedback. F changes fighter; V cycles eyes, chase, and free camera. Join mid-match as a human, leave back to spectate. Bots keep the server alive.
 - **Contested Frequency match loop:** 10-frag or 3-minute rounds, warmup and round-end Host bumpers, killstreak callouts, a mid-round Compliance Drone boss (Auditor on Solo Broadcast).
-- **Modes and mutators:** the host picks free-for-all or team deathmatch (the Union in black and red against the free coalition in bone and ember, with auto-balanced sides, team spawns, friendly fire off by default and a side frag limit), plus any of Rail Only, Shotgun Only, Fists Only, Licence to Kill, Golden Rail and Two Lives. A chip at the top of the screen names the rules for players and spectators, and agents read the same rules from `round_state`. The Host calls first blood, ended streaks, comebacks, the last one standing and the golden Railgun. Capture the flag and a large objective mode are [designed next](docs/plans/multiplayer-modes.md).
+- **Modes and mutators:** the host picks free-for-all, team deathmatch or a Sector 9 capture the flag match. Team deathmatch scores frags; capture the flag scores captures with two visible flags and a 20 second drop return. The Union wears black and red against the free coalition in bone and ember. Rail Only, Shotgun Only, Fists Only, Licence to Kill, Golden Rail and Two Lives are host mutators; Two Lives is unavailable in capture the flag. The rule chip names the match for players and spectators, and agents read the same facts from `round_state`. [CTF acceptance and remaining maps](docs/plans/capture-the-flag.md).
 - **Guns and maps:** Pistol, Rifle, Shotgun, and Railgun, plus weapon and health pads. Ammo works the way Doom does it: one count per type and no reloading. Pistol and Rifle share Bullets, the Shotgun uses Shells, and the Railgun uses Cells (up to 100). Every shot spends one, and a shotgun blast is seven pellets for one shell. Six server maps have steps and raised ground. Solo Broadcast faces Larak Lot on Arena Duel (map 1). The server CLI chooses the arena; every joining player and spectator receives its geometry.
 - **Vertical combat:** shots follow your horizontal and vertical aim, intersect finite fighter bodies, and stop at solid cover. Agents can target world height; eye spectators see the watched fighter's pitch.
 - **Combat feedback:** short rail beams, bullet traces, and surface sparks follow the server's actual shot path. Simultaneous trades retain both shots; a victim can award only one frag per death.
@@ -240,6 +240,8 @@ cargo run -p fragr-server -- --bind 0.0.0.0:6767 --bots 4
 cargo run -p fragr-server -- --bind 127.0.0.1:6767 --bots 0 --no-round-events
 # Team deathmatch with rail guns only, first side to 25.
 cargo run -p fragr-server -- --bind 0.0.0.0:6767 --bots 6 --mode tdm --mutator rail-only
+# Sector 9 capture the flag, local first (no cloud required).
+cargo run -p fragr-server -- --bind 127.0.0.1:6767 --bots 6 --map 4 --mode ctf --capture-limit 3
 # GoldenEye rules: one golden Railgun, two lives each.
 cargo run -p fragr-server -- --bind 0.0.0.0:6767 --bots 4 --mutator golden-rail --mutator two-lives
 ```
@@ -247,8 +249,9 @@ cargo run -p fragr-server -- --bind 0.0.0.0:6767 --bots 4 --mutator golden-rail 
 A server runs one rule set for its whole life. Mutators combine, except two
 weapon mutators together, or Golden Rail beside Licence to Kill, Shotgun Only
 or Fists Only; the server refuses those at start. A server with any rules other
-than plain free-for-all needs clients at gameplay capability 12, which the
-current app and agents send. The [multiplayer modes plan](docs/plans/multiplayer-modes.md)
+than plain free-for-all needs clients at gameplay capability 12. CTF requires
+capability 14 so every viewer understands flags. The current app and agents send
+14. The [multiplayer modes plan](docs/plans/multiplayer-modes.md)
 has every rule.
 
 Clients on other machines set `FRAGR_SERVER` to `your-host:6767` before launching the client. Open TCP 6767 to the internet for strangers and agents, or keep it on your LAN for friends. UDP 6767 is reserved for the planned low-latency transport.
@@ -275,12 +278,13 @@ Hosting guides: [`infra/docs/HOME-LAN.md`](infra/docs/HOME-LAN.md) for a home bo
                     Requires --local-mission; omit for an ephemeral development run.
 --local-run-preview Read-only compatibility summary for the Single Player menu.
 --solo-broadcast     Solo Broadcast Episode 0 (Calibration; Larak Lot face on map 1)
---mode <MODE>        ffa (free-for-all, default) or tdm (team deathmatch)
+--mode <MODE>        ffa (default), tdm (team deathmatch), ctf (Sector 9)
 --mutator <ID>       Repeatable: rail-only, shotgun-only, fists-only, licence-to-kill,
                      golden-rail, two-lives
---friendly-fire      Team damage lands (tdm only; off by default)
+--friendly-fire      Team damage lands (team modes; off by default)
 --frag-limit <N>     Frags that end a round: a fighter's in ffa (default 10),
                      a side's in tdm (default 25)
+--capture-limit <N>  Captures that end a ctf round (default 3)
 --no-round-events    Disable timed compliance slowdowns and boss spawns
 --seed <N>           Simulation seed; the same seed gives the same match (default 1)
 --status-every-s <N> Log a status report this often (default 60, 0 to disable)
