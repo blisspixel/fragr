@@ -68,14 +68,25 @@ image tag for an applied host.
 
 ## Transport decision
 
-WebSocket remains the shipping path. First measure round-trip latency, jitter,
-input age, snapshot delivery, tick cost and per-client bytes in a real
-two-machine session. Build the local prediction and reconciliation loop on the
-existing action sequence and authoritative acknowledgment, then measure
-correction distance and play feel under controlled delay and loss. Compare the
-predicted WebSocket baseline against a bounded UDP or QUIC pilot under the same
-conditions. The client currently paces Actions to at most 120 per second, but
-its 3D movement mirror is not yet live prediction.
+WebSocket remains the shipping path. First measure action-send-to-ack time,
+snapshot arrival intervals, application-level tick gaps, tick cost and
+per-client bytes on loopback and in a real two-machine session. Action-to-ack
+includes the 20 Hz simulation step and reader/writer scheduling; it is not
+network RTT. Use a timed echo for application round-trip time, and packet
+capture or controlled impairment to examine retransmissions and transport
+loss. TCP retransmission is hidden from the game's snapshot stream.
+
+The client currently sends numbered Actions at up to 120 per second while the
+20 Hz server keeps the newest continuous action for each tick. An Ack can skip
+intermediate sequence numbers or repeat one sequence over several ticks. It
+contains x and z but no authoritative y or vertical velocity. The shared
+golden-vector `step` accelerates horizontally, while live `integrate` applies
+horizontal velocity immediately. Define and test the input-to-server-step
+contract, one-shot edges and the actual mirrored movement path before using
+those Acks for replay. Extend Ack validation and full 3D state on both sides
+in the prediction change. Then measure correction distance and play feel under
+controlled delay and loss. Compare that predicted WebSocket baseline against
+a bounded UDP or QUIC pilot under the same conditions.
 
 An early UDP bind and echo proves only socket plumbing. It does not prove
 responsive play, client interoperability or public safety. A token sent over
@@ -105,20 +116,28 @@ server exits cleanly and can restart. No UDP port is published until it works.
 ### 2. Measure and improve control feel on the present wire
 
 Record a two-machine WebSocket baseline first, including action-to-ack time,
-snapshot age, per-client traffic and tick percentiles. The current local soak
-measured 50,457 outgoing bytes per client per second with four bots, four agents
+snapshot intervals and gaps, per-client traffic and tick percentiles. Reuse
+the existing fanout and soak reports for those receive and traffic metrics;
+add a numbered human probe for Ack behavior. Record sent, acknowledged,
+skipped and repeated input sequences. Do not call Ack time RTT or snapshot
+gaps packet loss. The current local soak measured 50,457 outgoing bytes per
+client per second with four bots, four agents
 and two spectators; the 20 KB/s target in `buttery-controls.md` has not been
-met. Use the existing movement mirror and action acknowledgment to predict only
-the local body. Reconcile unacknowledged inputs, interpolate other actors, and
-add a bounded hitscan history when measurements justify it. Keep every outcome
+met. After specifying the step contract and aligning the movement mirror with
+live integration, predict only the local body. Reconcile unacknowledged movement
+steps, interpolate other actors, and add a bounded hitscan history when
+measurements justify it. Keep every outcome
 server-owned. Test stairs, jumps, death, resume, spectators and campaign gates,
 then record inspected play at controlled latency and loss. Never infer human
 feel from a headless pass.
 
-**Acceptance:** golden 3D movement vectors on both sides, replayable delay and
-loss tests, a before-and-after table for latency, snapshot age, traffic and
-correction distance, and a two-machine human session. A local CPU benchmark or
-soak alone does not prove the cloud host class.
+**Acceptance:** golden 3D movement vectors on both sides matching live steps,
+replayable delay and loss tests, a before-and-after table for action-to-ack,
+snapshot interarrival and relative arrival spread, traffic and correction
+distance, and a two-machine human session. One-way snapshot age requires a
+server send timestamp and correlated clocks. Report RTT only from a distinct
+measured round-trip probe.
+A local CPU benchmark or soak alone does not prove the cloud host class.
 
 ### 3. Measured transport pilot
 

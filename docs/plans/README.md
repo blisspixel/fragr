@@ -108,7 +108,7 @@ Status words: **proposed** (a design awaiting Nick's decision; directs no work),
 | [`hud-quiet.md`](./hud-quiet.md) | **in progress** | Get the words off the screen. Measured HUD coverage per state, clipped panels, duplicate badges, and nameplates that hide the fighter behind them. |
 | [`gunfeel.md`](./gunfeel.md) | **in flight** (aim defaults shipped) | What the weapons and the aim do: the parameter set from the classics, dispersion separated from aim assist, feedback timings, the dodge. |
 | [`ttk-feel-harness-proof.md`](./ttk-feel-harness-proof.md) | **in flight** | Sticky flechette/rail/scatter TTK asserted from playtest `--assert` (#124 proof). |
-| [`buttery-controls.md`](./buttery-controls.md) | **planned** | Client-owned yaw, prediction and reconciliation, timeline interpolation, 60 Hz sim, lag compensation, gamepad curves, transport spike, all with pass numbers. |
+| [`buttery-controls.md`](./buttery-controls.md) | **in flight**, stage 1 shipped | Client-owned yaw is live; measure WebSocket and define replay before prediction, interpolation, a justified tick migration, lag compensation and a transport pilot. |
 | [`public-server-hardening.md`](./public-server-hardening.md) | **in flight** | Caps v0.35.0, `GET /status` v0.36.0, the app match line v0.37.0, join tickets v0.38.0, pawn resume v0.39.0. Next is a measured spectator fan-out. TLS remains. |
 | [`agent-door-2026.md`](./agent-door-2026.md) | **planned** | MCP 2026-07-28 compliance with legacy clients kept, the rmcp decision, a team blackboard before A2A. |
 | [`decision-brain.md`](./decision-brain.md) | **shipped** (#102) | Decision-brain agent: Jev (TypeSafe or OpenRouter) sets intent a few times a second, local controller plays every tick, hard spend cap with a ledger. |

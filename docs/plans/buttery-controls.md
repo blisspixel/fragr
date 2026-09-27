@@ -31,12 +31,29 @@ Review every `*_TICKS` constant in `server/src/sim.rs` and `server/src/protocol.
 - `client/scripts/game_manager.gd` paces Action sends to at most 120 per second and keeps one-shot inputs latched until a send. The server's inbound budget is 256 messages per second per session.
 - Client-owned yaw and numbered actions shipped. The separate `ack` is received by Godot, but Godot only stores the latest acknowledgement; live position prediction and reconciliation remain unbuilt.
 - `server/src/movement.rs` and `client/scripts/movement.gd` share 3D golden vectors, including stairs, jumps and gravity. The live server still uses the authoritative integration path; the mirror is not wired into live client prediction.
+- The 20 Hz sim applies the newest pending continuous action for a fighter each tick. At up to 120 client sends per second, Ack sequences can skip and repeat; they are not one acknowledgement per client step. The current Ack omits y and vertical velocity. The golden-vector `step` accelerates horizontally, while the live `integrate` path sets horizontal velocity immediately. Replaying the golden step against live Acks would diverge.
+
+## Entry gate before the next controls stage
+
+Record a real WebSocket baseline on loopback and two machines before changing
+the tick. Reuse the fanout report's snapshot intervals, application-level tick
+gaps and payload bytes, plus the soak report's per-client traffic and server
+tick percentiles. Add a numbered human probe for action-send-to-ack time and
+skipped or repeated sequences. Action-to-ack includes tick and socket
+scheduling, so do not label it RTT. A snapshot tick gap on TCP is not packet
+loss. Save host, commit, map, roster and duration with each result.
+
+Then define a tick-indexed input contract and prove the same movement function
+matches live server integration in Rust and GDScript, including jump and Use
+edges. Extend Ack with the complete 3D state and validate it in Godot before
+live replay. Measure the cost and rules impact of 60 Hz movement before
+selecting that rate. The roadmap still places this controls work after Episode I.
 
 ## Design
 
 1. **Client-owned yaw.** Every input carries an absolute yaw (f32). The server clamps only for sanity. Mouse motion is applied to the camera in the same frame it arrives and never waits on the network.
-2. **Prediction and reconciliation for the local pawn only.** Inputs are numbered. The client applies each input locally at once and keeps the unacknowledged ones. The server returns the authoritative state plus the last processed sequence number; the client rewinds to that state and replays the unacknowledged inputs. Other fighters are never predicted.
-3. **One move function, mirrored.** The existing Rust and GDScript steps include horizontal acceleration, 3D solids, step-up, jump and gravity, with shared golden vectors. The predicted step must use that mirror, not the Godot physics server. Compare live server integration against replay under the same inputs before choosing correction thresholds. Keep float tolerances explicit in both tests.
+2. **Prediction and reconciliation for the local pawn only.** Number sampled inputs, then define which input each authoritative movement tick consumes, including repeated samples and one-shot edges. Predict and replay those movement steps against complete authoritative Ack state. The sequence alone cannot identify one server step while the server coalesces Actions. Other fighters are never predicted.
+3. **One live move function, mirrored.** The existing pure Rust and GDScript steps include horizontal acceleration, 3D solids, step-up, jump and gravity, with shared golden vectors. Live Rust integration currently sets horizontal velocity immediately. The prediction change must mirror the live path or intentionally migrate both live paths to the same step, with matching golden cases and float tolerances. Do not use the accelerated pure step to predict immediate-velocity live play.
 4. **Timeline interpolation for others.** A ring of tick-stamped states, rendered at server time minus 100 ms at 20 Hz snapshots (150 ms while on TCP, because one loss stalls the stream), 33 to 50 ms once snapshots run at 60 Hz. Extrapolate at most 100 ms, then freeze. The exponential lerp goes away.
 5. **Lag compensation for hitscan.** The server rewinds targets by `clamp(RTT / 2 + interpolation delay, 0, 200 ms)` and keeps 250 ms of history. This matters even on a LAN: at 7 m/s a target moves 0.7 m during a 100 ms interpolation delay, more than a capsule radius.
 6. **Sim at 60 Hz, snapshots at 20 Hz.** Input granularity would drop from 50 ms to 16.7 ms and the rewind history would become finer. Measure CPU and traffic before adopting this cadence. Convert tick constants to time units; snapshots and acknowledgements must carry the tick and 3D state needed by interpolation and replay.
@@ -58,11 +75,11 @@ State per fighter: position `(x, y, z)` in units, velocity `(vx, vy, vz)` in uni
 1. Wish direction: forward, back, left, right bits combined into a unit vector in the yaw frame (the same trigonometry as today, normalised when non-zero).
 2. Target horizontal velocity: wish direction times top speed. Top speed is 5.0, halved under the compliance slow.
 3. Velocity approach: the pure step uses `v = v + (target - v) * min(1, dt / tau)` with `tau_accel = 0.06 s` and `tau_decel = 0.04 s`. The live server integration path currently applies horizontal velocity immediately. Stage 3 must reconcile that difference instead of assuming the pure step already predicts live play.
-4. Move horizontally with the shared acceleration step. Apply a grounded jump and gravity to `y` and `vy`; resolve landing against the floor or the highest reachable deck.
+4. Move horizontally with the chosen live integration step. Apply a grounded jump and gravity to `y` and `vy`; resolve landing against the floor or the highest reachable deck.
 5. Collide against the authoritative 3D solids and bounds, including step-up, clearance and horizontal sliding. Review `server/src/movement.rs` for the exact order; the golden vectors are the executable contract.
 6. Yaw: take a valid absolute value from the input. `turn_left` and `turn_right` remain for agents whose input carries no yaw.
 
-The pure step is mirrored in `server/src/movement.rs` and `client/scripts/movement.gd`, with no engine physics dependency. The live server currently calls `integrate`; stage 3 must prove the client replay matches that live path, including grounded and airborne transitions.
+The pure step is mirrored in `server/src/movement.rs` and `client/scripts/movement.gd`, with no engine physics dependency. The live server currently calls `integrate`; stage 3 must prove the client replay matches that live path, including grounded and airborne transitions. If the server adopts the accelerated pure step, treat that as a separate movement-rules change and verify both languages before replay ships.
 
 ### Golden vectors
 
@@ -86,20 +103,20 @@ A separate unicast acknowledgement already reaches human clients every tick:
 
 ### Input cadence and bundling
 
-Today the client samples its rendered input and sends at most 120 Actions per second; the 20 Hz server keeps the latest pending action. Stage 3 should sample and predict at the migrated movement cadence, number each step, and retain a bounded replay history. Before bundling several inputs in one message, specify and test server-side ordering, duplicate rejection, per-tick work limits and one-shot input handling. A dropped or duplicated bundle must not cause a second jump, Use or shot.
+Today the client samples its rendered input and sends at most 120 Actions per second; the 20 Hz server keeps the latest pending action. Stage 3 should define an authoritative movement-step identity and a bounded history of the samples that actually drive those steps. It must work at 20 Hz before any proposed migration to 60 Hz. Before bundling several inputs in one message, specify and test server-side ordering, duplicate rejection, per-tick work limits and one-shot input handling. A dropped or duplicated bundle must not cause a second jump, Use or shot.
 
 ### Reconciliation
 
-The client keeps a bounded ring of `(seq, input, state_after)`, including `y` and `vy`. On an acknowledgement carrying the complete authoritative movement state:
+The client keeps a bounded ring keyed by authoritative movement step, with the sampled input, movement state including `y` and `vy`, and the associated client sequence. The wire must identify the acknowledged movement step and complete authoritative state. On that acknowledgement:
 
-1. Find the ring entry for `ack.seq`. If missing (too old), snap to the ack state and clear the ring.
+1. Find the ring entry for the acknowledged movement step. If missing (too old), snap to the Ack state and clear the ring.
 2. Error `e = ack.position - entry.state_after.position`.
-3. Replay later inputs from the acknowledged state, and blend or snap the visual correction according to measured error. Check vertical error and grounded state as well as horizontal distance. Tune thresholds from recorded play, not the old 2D proposal.
-4. Record `|e|` into the correction histogram reported on the status line and by the feel probes (p99 under 10 cm is the pass).
+3. Replay later movement steps from the acknowledged state, and blend or snap the visual correction according to measured error. Check vertical error and grounded state as well as horizontal distance. Tune thresholds from recorded play, not the old 2D proposal.
+4. Record `|e|` in client or playtest-harness telemetry (p99 under 10 cm is the proposed pass). Server `/status` has no access to client correction without an explicit, validated reporting channel.
 
 ### Interpolation of other fighters
 
-A ring of recent tick-stamped snapshots supports interpolation of other fighters in 3D. Estimate server time from observed arrivals; tune the render delay against measured jitter and loss on WebSocket before selecting a fixed buffer. Bound extrapolation and hold when data becomes stale. Preserve shortest-arc yaw interpolation. Replace the current presentation lerp only after the timeline path matches ground, stair, jump and death states.
+A ring of recent tick-stamped snapshots supports interpolation of other fighters in 3D. Estimate server time from observed arrivals; tune the render delay against measured arrival variation and controlled injected loss or TCP retransmissions before selecting a fixed buffer. A snapshot tick gap alone is not packet loss. Bound extrapolation and hold when data becomes stale. Preserve shortest-arc yaw interpolation. Replace the current presentation lerp only after the timeline path matches ground, stair, jump and death states.
 
 ### Lag compensation
 
@@ -118,8 +135,8 @@ Gamepad: radial deadzone 0.12 rescaled to a full range, exponent 1.8, yaw rate 2
 ### Order of stages, revised
 
 1. **Shipped.** Client-owned yaw and numbered inputs on the 20 Hz sim; the `ack` message; turn bits kept for agents. The look axis no longer round-trips: the camera and the fighter's facing move on the frame the mouse moves, and the server takes the absolute value. Bundling several unacknowledged inputs per message comes with stage 3, when there is something to replay.
-2. Tick migration: 60 Hz movement step, constants to seconds, `tick_hz` in `Welcome`.
-3. The shared step in both languages with golden vectors, prediction and reconciliation, correction metrics on the status line.
+2. After the measured entry gate above, tick migration if 60 Hz movement earns its cost: constants to seconds, `tick_hz` in `Welcome`. Resolve the input-to-step replay contract on the current 20 Hz server first.
+3. The live movement step mirrored in both languages with golden vectors, prediction and reconciliation, and client or harness correction metrics.
 4. Timeline interpolation for others with snapshot velocity; the lerp removed.
 5. Lag compensation with `view_tick` and the bounded rewind.
 6. Gamepad curves and aim friction from the settings dictionary.
@@ -127,15 +144,27 @@ Gamepad: radial deadzone 0.12 rescaled to a full range, exponent 1.8, yaw rate 2
 
 ## Measurements
 
-The benchmark mode prints these; the 1.0 release notes quote them.
+These are design targets, not current measurements or active CI gates. The
+offline benchmark has no sockets and reports CPU timing only. Live fanout and
+soak report local delivery intervals and bytes, but no network RTT, TCP packet
+loss or prediction correction metric. A two-machine probe and a distinct RTT
+measurement must be built before claiming the targets below. The current local
+soak measured 50,457 outgoing bytes per client per second with four bots,
+four agents and two spectators, above the proposed 20 KB/s target; see
+[`dedicated-server-udp-and-hosting.md`](dedicated-server-udp-and-hosting.md).
 
-- Transport, LAN: RTT p99 under 5 ms, jitter (p99 arrival delta) under 3 ms, zero loss. Public same-region: RTT p50 under 60 ms, p99 under 100 ms, loss under 1 percent. Under 20 KB/s down per client at eight players. Correction magnitude p99 under 10 cm.
+- Transport targets: LAN RTT p99 under 5 ms and snapshot-arrival jitter p99 under 3 ms; public same-region RTT p50 under 60 ms and p99 under 100 ms. Packet loss needs a transport-level measurement or controlled impairment with known injected loss, not missing WebSocket snapshot ticks. Target under 20 KB/s down per client at eight players after replication work. Prediction correction magnitude p99 under 10 cm once correction is implemented.
 - Feel: motion-to-photon under 50 ms at 60 Hz and under 35 ms at 144 Hz, measured with a phone at 240 frames per second filming mouse and screen or an Open-Source-LDAT build. Frame budget 6.9 ms at 144 Hz; p99 frame time under 1.5 times the median; no frame over twice the median during a sixty second bot match. Aiming measurably degrades from about 41 ms of local latency, and 4 to 12 ms of frame-time variance reads as less smooth, so those are the lines.
-- Repeatable tests: a headless Godot harness injects mouse motion and asserts yaw changes in the same frame and the predicted body moves on the next tick; a Rust test asserts an input is acknowledged within one tick; a sixty second LAN run logs frame time, correction error, snapshot age, and RTT, and CI gates on the p99s.
+- Planned repeatable tests: a headless Godot harness injects mouse motion and asserts yaw changes in the same frame and the predicted body moves on its defined local step; Rust tests prove input coalescing, repeated and skipped Acks, one-shot jump and Use behavior, and replay against live integration. A sixty-second two-machine run records frame time, correction error, snapshot interarrival and relative arrival spread, plus a separately measured application RTT. One-way snapshot age requires a server send timestamp and clock-correlation method. Add CI percentile gates only after a stable, reproducible harness exists.
 
 ## Staged PRs
 
-The order is the revised one at the end of the design detail: yaw and numbered inputs, tick migration, the shared step with prediction, interpolation, lag compensation, gamepad, transport. Stage 3 needs the status line from playtest rung 3 for its correction metrics.
+The order is the revised one at the end of the design detail: shipped yaw and
+numbered inputs; a measured WebSocket baseline and input-to-step contract;
+conditional tick migration; live-step prediction with client or harness
+correction metrics; interpolation; lag compensation; gamepad; then a transport
+pilot. A server status line cannot report client correction without a separate
+validated reporting channel.
 
 ## Sources
 
@@ -144,7 +173,7 @@ Gabriel Gambetta's client-server series; Valve's Source multiplayer networking a
 ## Success criteria
 
 - [x] Stage 1 shipped: yaw is client-owned and inputs are numbered, proven by the server tests (client yaw wins over the turn bits and steers the same tick, acks report the state the input produced, agents unchanged). The same-frame yaw harness lands with the QA tour's feel probes.
-- [ ] Prediction with golden vectors passing in both languages.
+- [ ] Live-step prediction and replay with golden vectors passing in both languages.
 - [ ] Others interpolate on a timeline; no lerp.
 - [ ] 60 Hz sim; constants in seconds.
 - [ ] Lag compensation bounded and tested.
