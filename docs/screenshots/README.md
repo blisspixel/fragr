@@ -11,6 +11,8 @@ manifest also records dock departure.
 The [M01 to M02 carry check](m02-run-carry/README.md) shows a saved-run menu
 and the first durable M02 frame from an isolated local child. It does not show
 a completed rescue or a playable level 3.
+The [M02 gantry evidence](m02-floor-gantry/README.md) shows the live officer
+firing above the processing floor and the reachable upper route.
 Inspect every frame before it is named anywhere. A nonblank image is not
 proof of good art. The README embeds four files and no more: `tour_menu_16x9.png`,
 `m01_intake_16x9.png`, `tour_multiplayer_16x9.png`, and `tour_combat_follow_16x9.png`.

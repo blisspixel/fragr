@@ -13,7 +13,7 @@
     {"id":"antechamber_medkit","feet":[-11,0,-20],"grant":{"kind":"health","amount":25},"claim":"contested"},
     {"id":"ward_bullets","feet":[-6,0,-10],"grant":{"kind":"ammo","pool":"bullets","amount":20},"claim":"contested"},
     {"id":"floor_shells","feet":[-4,0,-5],"grant":{"kind":"ammo","pool":"shells","amount":8},"claim":"contested"},
-    {"id":"floor_entry_medkit","feet":[-1,0,-5.5],"grant":{"kind":"health","amount":30},"claim":"contested"},
+    {"id":"floor_entry_medkit","feet":[-4,0,-6.2],"grant":{"kind":"health","amount":30},"claim":"contested"},
     {"id":"floor_medkit","feet":[12,0,5],"grant":{"kind":"health","amount":40},"claim":"contested"},
     {"id":"dock_approach_medkit","feet":[2,0,10],"grant":{"kind":"health","amount":35},"claim":"contested"},
     {"id":"mezzanine_armor","feet":[-10,2.5,11],"grant":{"kind":"armor","amount":50},"claim":"contested"}
@@ -63,7 +63,7 @@
       "after":"ward_guards",
       "regions":[{"min":[-6,0,-7.5],"max":[-2,1,-5]}],
       "enemies":[
-        {"id":"floor_officer","kind":"clerk","feet":[12,0,-5],"yaw":3.141593},
+        {"id":"floor_officer","kind":"clerk","feet":[-8.5,2.5,4],"yaw":4.712389},
         {"id":"floor_sweeper","kind":"sweeper","feet":[-10,0,-5.5],"yaw":0},
         {"id":"press_clerk","kind":"clerk","feet":[-3,0,10],"yaw":4.712389},
         {"id":"conveyor_sweeper","kind":"sweeper","feet":[10,0,11],"yaw":4.712389}

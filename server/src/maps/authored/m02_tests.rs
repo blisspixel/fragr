@@ -67,6 +67,47 @@ fn bundled_guard_shells_require_a_step_off_every_gallery_spawn() {
 }
 
 #[test]
+fn floor_officer_uses_the_reachable_upper_mezzanine() {
+    let map = AuthoredMap::read(include_str!("../../../maps/m02-persons-unknown.json").as_bytes())
+        .unwrap();
+    let officer = map
+        .encounters
+        .iter()
+        .find(|encounter| encounter.id == "floor_crew")
+        .unwrap()
+        .enemies
+        .iter()
+        .find(|enemy| enemy.id == "floor_officer")
+        .unwrap();
+    assert_eq!(officer.kind, crate::protocol::EnemyKind::Clerk);
+    assert!(
+        officer.feet[1] >= 2.5,
+        "officer must own the upper sightline"
+    );
+    assert!((-14.0..=-6.0).contains(&officer.feet[0]));
+    assert!((1.0..=14.0).contains(&officer.feet[2]));
+    assert_eq!(
+        map.arena
+            .support_height(officer.feet[0], officer.feet[2], officer.feet[1] + 0.01),
+        officer.feet[1]
+    );
+    assert_eq!(
+        map.navigation
+            .route(
+                [-4.0, 0.0, -5.0],
+                officer.feet,
+                crate::navigation::SEARCH_LIMIT
+            )
+            .status,
+        RouteStatus::Complete
+    );
+    assert!(map.navigation.line_of_sight(
+        [-4.0, crate::movement::EYE_HEIGHT, -5.0],
+        [officer.feet[0], officer.feet[1] + 0.9, officer.feet[2]]
+    ));
+}
+
+#[test]
 fn m02_worlds_are_prepared_and_the_closed_gate_blocks_departure() {
     let map = read(&fixture()).unwrap();
     let closed = crate::maps::RuntimeMap::Authored(map.clone());
