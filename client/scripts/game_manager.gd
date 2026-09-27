@@ -946,7 +946,8 @@ func _update_nameplates() -> void:
 			pawn.set_nameplate_enabled(false)
 			continue
 		var area: Rect2 = _nameplate_rect(view, label)
-		if not viewport_rect.intersects(area):
+		if area.position.x < viewport_rect.position.x or area.position.y < viewport_rect.position.y \
+			or area.end.x > viewport_rect.end.x or area.end.y > viewport_rect.end.y:
 			pawn.set_nameplate_enabled(false)
 			continue
 		var priority: int = 0 if carrier_ids.has(str(id)) else (1 if pawn == followed else 2)
