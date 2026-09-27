@@ -2670,6 +2670,7 @@ mod planner_tests {
             phase: EnemyPhase::Idle,
             phase_started: 0,
             phase_ends: 0,
+            seated: false,
         });
         let mut snapshot = scene(1, vec![mine, partner, guard], vec![]);
         let arena = Arena::default();

@@ -1,6 +1,11 @@
 {
 	"clips": [
 		{
+			"action": "seated",
+			"count": 1,
+			"unarmed": false
+		},
+		{
 			"action": "idle",
 			"count": 1,
 			"unarmed": false
@@ -79,37 +84,37 @@
 			"brief": "Visible human face, open helmet, institutional green cloth, issued bone armor and restrained red seal.",
 			"file": "clerk.png",
 			"model": "articulated human security rig",
-			"sha256": "8c26e5fee05f6f76aeeb16d954ec63447db0d72c3646ddf336455f51c62758b5"
+			"sha256": "9b2f7e494c50f5785586b2f0122e32e51041d43639a39486b46a2bb9ee794fde"
 		},
 		{
 			"brief": "Covered mechanical chassis, dark status slit, battery pack, issued bone armor and restrained red seal.",
 			"file": "sweeper.png",
 			"model": "articulated issued bot rig",
-			"sha256": "69fabaae8b5251eff0f3c05d4b6262cc51b8d934705c450cff8744866ccd8a08"
+			"sha256": "efd79308dcfa4c72ebf10b4aa204b9ea746aee1f9f523f1a5bd90de90f3fdc77"
 		},
 		{
 			"brief": "Broad armored chassis, head sunk between wide pauldrons, ammunition drum, rotary cannon and ember tell lamps.",
 			"file": "heavy_sweeper.png",
 			"model": "articulated heavy bot rig",
-			"sha256": "246376a5cbb758ecf03c7a44990d509c7ffe1cbec45bd91aec11f81eef569ad4"
+			"sha256": "a2908d3c76963122244f9f039cafd9eced3a4387d2154be76ba0d1551d272223"
 		},
 		{
 			"brief": "Braced column with a rotating bone housing, rail barrel with ember charge coils and a cyan sensor lamp.",
 			"file": "turret.png",
 			"model": "fixed turret rig",
-			"sha256": "af9012f4c6fe356591757bb05f361003eb1b0847516c10b06c5a7c83433c496b"
+			"sha256": "e90a5801c678af9348e7cca78d04f4b4cade68b5a45faebaf8c66f10eefe29e2"
 		}
 	],
 	"format": "RGBA8 PNG, nearest sampling, no mipmaps",
-	"poses": 54,
-	"rows": 24,
+	"poses": 55,
+	"rows": 25,
 	"schema": 1,
 	"sources": {
 		"res://art/characters/bake.gd": "e92d94e909df9db8c3fd0a3a3b350f07133c3d9693d7e5f42add70eb129d8fcd",
 		"res://art/characters/geometry.gd": "833318a2c94533aac01abbf7c886b616ec11528624fa406e6cad18dc1a14eec9",
 		"res://art/characters/machines.gd": "9d3897a5d0a0ef833cf32d07a5fc6a352050ff0421d945ed5ecd5f6f2f1bb8d4",
-		"res://art/characters/rig.gd": "2bfbe583b626c047592fbbc2a237047f1dfc70d78ec6b7281169c535e30fa05f",
-		"res://scripts/enemy_animation.gd": "400214a81e9d0656d637787fe8e3fdb31772271b0ad9733b37e1ae5cd010c3cf"
+		"res://art/characters/rig.gd": "106d5f720f665cffe9a52a16f9969bd6908b084c61521218aa51ddef9bc20441",
+		"res://scripts/enemy_animation.gd": "f2f1ef38f496d2d5a48c3ca81995788b7108aef81f712a6c67a1de3504b84573"
 	},
 	"tile_pixels": 160
 }

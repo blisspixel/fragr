@@ -13,9 +13,9 @@ and the map version in observations, and closes its MCP game session if a map
 has unsupported or invalid geometry, or the server sends malformed JSON.
 Ground-filled legacy maps remain readable.
 
-The adapter declares gameplay capability 11. Every discovery map, M01 and M02
-included, requires 11 for all roles, because any of them may place the found
-`shiv`; the six full-arsenal arcade maps still admit 1. Older clients are
+The adapter declares gameplay capability 15. Every discovery map requires at
+least 12 for all roles; M02 requires 15 for its seated Clerk identity. The six
+full-arsenal arcade maps still admit 1. Older clients are
 rejected before admission. `observe.loadout`
 is private to this participant: selected and owned weapons (`["fists","tack"]`),
 one `ammo` count per pool (`bullets`, `shells`, `cells`), personal supply
@@ -57,7 +57,8 @@ They mirror each gate's real state in the current map and are never use
 targets; the adapter rejects a target that names one.
 The adapter rejects targets that do not match the current map. `mission_ready`
 accepts `persons_unknown` with the observed attempt; `objective_use` prompts
-are issued per eligible participant. The graybox is not yet a normal Godot route.
+are issued per eligible participant. Single Player exposes a development entry
+for the same open route, without durable M02 run carry.
 Development mission parties allow four humans/agents together. `--campaign-run`
 instead permits one lifetime combat seat; spectators do not take seats. Leaving
 ends the solo run, and a callsign cannot reclaim it. This is prototype progression,

@@ -36,6 +36,8 @@ struct Walker {
     defeated: BTreeSet<Uuid>,
     defeated_names: BTreeSet<String>,
     first_fight_names: Option<BTreeSet<String>>,
+    guard_room_seated: BTreeSet<String>,
+    guard_room_stood: BTreeSet<String>,
     shots: usize,
     scatter_shots: usize,
     guard_room_scatter_hits: BTreeSet<String>,
@@ -61,6 +63,8 @@ impl Walker {
             defeated: BTreeSet::new(),
             defeated_names: BTreeSet::new(),
             first_fight_names: None,
+            guard_room_seated: BTreeSet::new(),
+            guard_room_stood: BTreeSet::new(),
             shots: 0,
             scatter_shots: 0,
             guard_room_scatter_hits: BTreeSet::new(),
@@ -125,6 +129,20 @@ impl Walker {
     fn step(&mut self, session: &mut GameSession) {
         let messages = session.tick_messages(0.05);
         self.read(messages);
+        for player in session
+            .state
+            .players
+            .iter()
+            .filter(|player| player.name.starts_with("guard_room_clerk_"))
+        {
+            if let Some(CampaignActor::Union { seated, phase, .. }) = player.campaign {
+                if seated && phase == EnemyPhase::Idle {
+                    self.guard_room_seated.insert(player.name.clone());
+                } else if !seated {
+                    self.guard_room_stood.insert(player.name.clone());
+                }
+            }
+        }
         let guard_active = session.state.players.iter().any(|player| {
             player.name.starts_with("guard_room_clerk_")
                 && matches!(
@@ -145,7 +163,7 @@ impl Walker {
                 .players
                 .iter()
                 .find(|player| player.id == self.id)
-                .map(|player| player.inventory.claimed("antechamber_scatter"));
+                .map(|player| player.inventory.claimed("guard_room_scatter"));
         }
         if self.defeated.len() < 2 {
             self.ward_woke_before_guard_clear |= session.state.players.iter().any(|player| {
@@ -216,7 +234,7 @@ impl Walker {
                 .players
                 .iter()
                 .find(|player| player.id == self.id)
-                .map(|player| player.inventory.claimed("antechamber_scatter"));
+                .map(|player| player.inventory.claimed("guard_room_scatter"));
             self.guard_room_weapon_selected = session
                 .state
                 .players
@@ -227,7 +245,7 @@ impl Walker {
                 .state
                 .pickups
                 .iter()
-                .find(|pickup| pickup.id == "antechamber_shells")
+                .find(|pickup| pickup.id == "guard_room_shells")
                 .map(|pickup| !pickup.available);
         }
         if let Some(ready) = self.client.readiness(Some(self.id)) {
@@ -315,6 +333,8 @@ impl Walker {
         self.defeated.clear();
         self.defeated_names.clear();
         self.first_fight_names = None;
+        self.guard_room_seated.clear();
+        self.guard_room_stood.clear();
         self.scatter_shots = 0;
         self.guard_room_scatter_hits.clear();
         self.guard_room_claimed_at_activation = None;
@@ -379,12 +399,15 @@ fn departed(session: &GameSession, _: &Walker) -> bool {
 }
 
 fn assert_guard_room_lesson(walker: &Walker) {
+    let guards = BTreeSet::from([
+        "guard_room_clerk_west".to_string(),
+        "guard_room_clerk_east".to_string(),
+    ]);
+    assert_eq!(walker.guard_room_seated, guards);
+    assert_eq!(walker.guard_room_stood, guards);
     assert_eq!(
         walker.first_fight_names,
-        Some(BTreeSet::from([
-            "guard_room_clerk_west".to_string(),
-            "guard_room_clerk_east".to_string(),
-        ])),
+        Some(guards),
         "the first two defeats must be the guard-room Clerks"
     );
     assert_eq!(walker.guard_room_claimed_at_activation, Some(true));
@@ -437,6 +460,35 @@ fn bundled_graybox_is_an_open_route_with_arrival_objectives_and_fights() {
     assert!(map.prepared_gate_world(1).is_none());
     let encounters = map.encounters();
     assert_eq!(encounters[0].id, "guard_room");
+    assert!(encounters[0]
+        .enemies
+        .iter()
+        .all(|enemy| enemy.seated && enemy.feet[1] == 3.0));
+    for id in ["guard_room_scatter", "guard_room_shells"] {
+        assert_eq!(
+            map.pickups().iter().find(|pad| pad.id == id).unwrap().floor,
+            3.0
+        );
+    }
+    // A player must cross the Shotgun claim radius before any corner of the
+    // guard trigger. Leave one full 20 Hz movement step as margin because
+    // pickups resolve after movement and encounter triggers before it.
+    let scatter = map
+        .pickups()
+        .into_iter()
+        .find(|pad| pad.id == "guard_room_scatter")
+        .unwrap();
+    for region in &encounters[0].regions {
+        for x in [region.min[0], region.max[0]] {
+            for z in [region.min[2], region.max[2]] {
+                assert!(
+                    (x - scatter.x).hypot(z - scatter.z) + crate::movement::TOP_SPEED * 0.05
+                        < crate::sim::PICKUP_CLAIM_RADIUS,
+                    "guard trigger can be reached before claiming the Shotgun"
+                );
+            }
+        }
+    }
     assert_eq!(encounters[1].id, "ward_guards");
     assert_eq!(encounters[1].after.as_deref(), Some("guard_room"));
     assert_eq!(
@@ -460,6 +512,46 @@ fn bundled_graybox_is_an_open_route_with_arrival_objectives_and_fights() {
             ..
         }
     ));
+}
+
+#[test]
+fn guard_room_arrival_shows_the_pickup_then_publishes_the_wake() {
+    let mut session = session();
+    let id = Uuid::from_u128(0x0203);
+    session.state.add_player(id, "Arrival".into(), Role::Human);
+    session.tick_messages(0.05);
+    assert!(
+        !session
+            .state
+            .players
+            .iter()
+            .find(|player| player.id == id)
+            .unwrap()
+            .inventory
+            .claimed("guard_room_scatter"),
+        "the Shotgun must remain visible at the starting point"
+    );
+    let participant = session
+        .state
+        .players
+        .iter_mut()
+        .find(|player| player.id == id)
+        .unwrap();
+    participant.x = -3.1;
+    participant.z = -31.0;
+    session.state.update_encounters();
+    for player in session
+        .state
+        .snapshot()
+        .players
+        .iter()
+        .filter(|player| player.name.starts_with("guard_room_clerk_"))
+    {
+        assert!(matches!(
+            player.campaign,
+            Some(CampaignActor::Union { seated: false, .. })
+        ));
+    }
 }
 
 #[test]

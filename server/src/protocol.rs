@@ -536,8 +536,12 @@ pub const RULES_GAMEPLAY_VERSION: u32 = 12;
 /// body on Welcome and on every participant in a snapshot. Additive: no map
 /// requires it, and an older reader ignores the field.
 pub const BODY_GAMEPLAY_VERSION: u32 = 13;
+/// Version 14 is allocated to the separate capture-the-flag branch.
+/// Optional seated opening posture on authored Union Clerks. M02 requires
+/// this so an older presenter cannot mistake its first fight for standing guards.
+pub const SEATED_GUARD_GAMEPLAY_VERSION: u32 = 15;
 /// Highest understood gameplay contract; content requirements use their own minimum.
-pub const GAMEPLAY_VERSION: u32 = BODY_GAMEPLAY_VERSION;
+pub const GAMEPLAY_VERSION: u32 = SEATED_GUARD_GAMEPLAY_VERSION;
 pub fn legacy_gameplay_version() -> u32 {
     1
 }

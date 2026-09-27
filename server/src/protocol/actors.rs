@@ -34,7 +34,14 @@ pub enum CampaignActor {
         phase: EnemyPhase,
         phase_started: u64,
         phase_ends: u64,
+        /// Authored opening pose only while a dormant Clerk sits at a station.
+        #[serde(default, skip_serializing_if = "not_seated")]
+        seated: bool,
     },
+}
+
+fn not_seated(seated: &bool) -> bool {
+    !seated
 }
 
 impl CampaignActor {
@@ -79,6 +86,7 @@ mod tests {
             phase: EnemyPhase::Idle,
             phase_started: 0,
             phase_ends: 0,
+            seated: false,
         };
         let identities = [None, Some(CampaignActor::Participant {}), Some(union)];
         for (i, a) in identities.into_iter().enumerate() {
@@ -88,6 +96,20 @@ mod tests {
         }
         let json = serde_json::to_string(&union).unwrap();
         assert_eq!(serde_json::from_str::<CampaignActor>(&json).unwrap(), union);
+        assert!(!json.contains("seated"));
+        let seated = CampaignActor::Union {
+            kind: EnemyKind::Clerk,
+            phase: EnemyPhase::Idle,
+            phase_started: 0,
+            phase_ends: 0,
+            seated: true,
+        };
+        let seated_json = serde_json::to_string(&seated).unwrap();
+        assert!(seated_json.contains("\"seated\":true"));
+        assert_eq!(
+            serde_json::from_str::<CampaignActor>(&seated_json).unwrap(),
+            seated
+        );
         for raw in [
             r#"{"side":"union","kind":"unknown"}"#,
             r#"{"side":"participant","role":"human"}"#,

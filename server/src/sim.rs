@@ -1008,6 +1008,7 @@ impl GameState {
             phase: EnemyPhase::Idle,
             phase_started: self.tick,
             phase_ends: self.tick,
+            seated: placement.seated,
         });
         self.players.push(player);
         id
@@ -1583,6 +1584,7 @@ impl GameState {
             let feet = [victim.x, victim.y - PLAYER_FLOOR_Y, victim.z];
             if let Some(identity) = self.encounters.hit(target_id, feet, self.tick, died) {
                 self.players[victim_idx].campaign = Some(identity);
+                self.encounters.sync_identities(&mut self.players);
             }
         }
 

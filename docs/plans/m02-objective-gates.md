@@ -277,9 +277,9 @@ The tour holds Use for 0.15 s: a press and release in the same frame travels in
 one action message, which the server's inbound rate limit can drop at high
 frame rates. A person's press spans many frames.
 
-M02 is still not playable as a mission: Latch, the Jammer, encounters, the
-maintenance loop, optional captives, secrets, the story page, M01 to M02 carry
-and human acceptance remain.
+M02 is still a development route: Latch as an actor, Crawlers, the ward seal,
+maintenance loop, optional captives, secrets, story page, M01 to M02 carry and
+human acceptance remain. The Jammer first appears in level 3.
 
 ## Progress, 2026-09-24: fights, not doors
 

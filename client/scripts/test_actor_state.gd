@@ -20,6 +20,16 @@ func _run() -> void:
 		{"id": "human", "campaign": {"side": "participant"}},
 		{"id": "agent", "campaign": {"side": "participant"}}, actor.duplicate(true)]}
 	_check(ActorState.validation_error(snapshot).is_empty(), "valid campaign identity accepted")
+	var seated: Dictionary = _actor()
+	seated["campaign"]["phase"] = "idle"
+	seated["campaign"]["seated"] = true
+	_check(ActorState.validation_error({"tick":12, "players":[seated]}).is_empty(),
+		"seated Clerk is accepted before activation")
+	for patch: Dictionary in [{"seated":false}, {"seated":1}, {"kind":"sweeper"}, {"phase":"windup"}]:
+		var invalid_seat: Dictionary = seated.duplicate(true)
+		invalid_seat["campaign"].merge(patch, true)
+		_check(not ActorState.validation_error({"tick":12, "players":[invalid_seat]}).is_empty(),
+			"reject invalid seated guard: " + str(patch))
 	for kind: String in ["sweeper", "heavy_sweeper", "turret"]:
 		var other: Dictionary = _actor()
 		other["campaign"]["kind"] = kind

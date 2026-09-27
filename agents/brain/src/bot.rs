@@ -1295,6 +1295,7 @@ mod tests {
             phase: EnemyPhase::Idle,
             phase_started: 0,
             phase_ends: 0,
+            seated: false,
         });
         let mut hidden = player("Hidden", Uuid::from_u128(2), 10.0, 0.0, 60, "tack");
         hidden.campaign = union;

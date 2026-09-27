@@ -20,6 +20,11 @@ fn encounter_dependencies_and_placements_validate_before_startup() {
     let doc = document();
     let map = decode(&doc).unwrap();
     assert_eq!(map.encounters.len(), 2);
+    let mut seated = doc.clone();
+    seated["encounters"][0]["enemies"][0]["seated"] = json!(true);
+    assert!(decode(&seated).unwrap().encounters[0].enemies[0].seated);
+    seated["encounters"][0]["enemies"][0]["kind"] = json!("sweeper");
+    assert!(decode(&seated).is_err(), "only Clerks may start seated");
     let region = &map.encounters[0].regions[0];
     assert!(region.contains([-2.0, 0.0, -2.0]));
     assert!(region.contains([2.0, 2.0, 0.0]));

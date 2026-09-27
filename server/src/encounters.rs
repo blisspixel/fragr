@@ -1,6 +1,6 @@
 //! Authored encounter lifecycle. Bodies, weapons and collision belong to sim.
 use crate::protocol::{CampaignActor, EnemyPhase};
-use crate::sim::{BotIntent, GameState, PLAYER_FLOOR_Y};
+use crate::sim::{BotIntent, GameState, Player, PLAYER_FLOOR_Y};
 use uuid::Uuid;
 
 pub(crate) mod enemy;
@@ -88,6 +88,7 @@ impl Encounters {
                             placement.feet,
                             placement.yaw,
                             state.tick,
+                            placement.seated,
                         ),
                     ));
                 }
@@ -126,6 +127,7 @@ impl Encounters {
                 tracing::info!(encounter = %definition.id, "Campaign encounter activated");
             }
         }
+        self.sync_identities(&mut state.players);
         state.players.retain(|player| !matches!(player.campaign,
             Some(CampaignActor::Union { phase: EnemyPhase::Dead, phase_ends, .. }) if state.tick >= phase_ends));
         self.enemies
@@ -145,6 +147,16 @@ impl Encounters {
         }
         for (_, enemy) in self.enemies.iter_mut().filter(|(index, _)| *index == group) {
             enemy.alarm(alarm, tick);
+        }
+    }
+
+    /// An alarm can happen after intents have run for this tick. Publish the
+    /// changed posture before the next snapshot, including peers of a hit guard.
+    pub(crate) fn sync_identities(&self, players: &mut [Player]) {
+        for (_, enemy) in &self.enemies {
+            if let Some(player) = players.iter_mut().find(|player| player.id == enemy.id) {
+                player.campaign = Some(enemy.identity());
+            }
         }
     }
 

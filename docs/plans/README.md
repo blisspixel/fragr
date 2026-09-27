@@ -17,6 +17,7 @@ Status words: **proposed** (a design awaiting Nick's decision; directs no work),
 
 | Plan | Status | One-liner |
 |---|---|---|
+| [`m02-guard-room-at-stair-top.md`](./m02-guard-room-at-stair-top.md) | **implemented** | Move the Shotgun and seated Clerk introduction above M02's service stair before the Crawler descent. |
 | [`m02-shotgun-introduction.md`](./m02-shotgun-introduction.md) | **implemented** ([#268](https://github.com/blisspixel/fragr/pull/268)) | Guarantee the Shotgun before a two-Clerk first fight, then replay the M02 route and wipe; the accepted stair order and seated pose remain ahead. |
 | [`player-body-selection.md`](./player-body-selection.md) | **in flight** | Choose a human or an embodied agent in a synthetic body: capability 13 on Hello, Welcome and snapshots, saved in the profile, honored for agents, free-palette runtime art that keeps its colours on the coalition side. |
 | [`brain-local-model.md`](./brain-local-model.md) | **implemented** | Free open-weights decisions for `fragr-brain`: APUS-OpenJev-v1-4B through local Ollama, or a self-hosted openjev server (non-commercial weights), loopback only, strictly validated, with the paid path's budget and fallback and a measured laptop smoke. |

@@ -112,8 +112,8 @@ not to this bounded combat lesson.
 
 ## Next work and acceptance
 
-Rebuild the beginning so the guard room precedes the service stair. Introduce
-one Crawler with its sound, caption and low wind-up on the descent, then the
-three-Crawler escalation. Add a seated Clerk pose and first-shot response;
-the standing graybox is not final. Follow with Latch's authored rescue, M01
+The [stair-top guard-room plan](m02-guard-room-at-stair-top.md) moves the first
+fight before the service stair and adds an opening seated Clerk pose. Next,
+introduce one Crawler with its sound, caption and low wind-up on the descent,
+then the three-Crawler escalation and a readable guard reaction. Follow with Latch's authored rescue, M01
 run carry, and a fresh-player review of route reading, difficulty and timing.

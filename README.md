@@ -27,9 +27,9 @@ The current release is [v0.57.1](https://github.com/blisspixel/fragr/releases/ta
 
 This is a playable vertical slice, not a finished game. The build order and what is still missing live in [`docs/ROADMAP.md`](docs/ROADMAP.md).
 
-The [full build order](docs/ROADMAP.md) now moves from the durable M01 run into M02. Single Player has an M02 development graybox: an untextured ward route with three Clerk and Sweeper fights, no switches and no save. It is not the finished mission. Watching and joining stay in this app. `GET /status` on the game port is a host probe, not a web client. The [campaign treatment](docs/CAMPAIGN-MISSIONS.md) plans a personal rescue, offworld resistance, the Union's defeat, a sudden planetary wipe, and its aftermath. This is planned content, not a completed campaign or public-server readiness claim.
+The [full build order](docs/ROADMAP.md) now moves from the durable M01 run into M02. Single Player has an M02 development graybox: an open ward route with four Clerk and Sweeper fights, including a Shotgun lesson with two initially seated Clerks above the service stair. It has no switches or save and is not the finished mission. Watching and joining stay in this app. `GET /status` on the game port is a host probe, not a web client. The [campaign treatment](docs/CAMPAIGN-MISSIONS.md) plans a personal rescue, offworld resistance, the Union's defeat, a sudden planetary wipe, and its aftermath. This is planned content, not a completed campaign or public-server readiness claim.
 
-A solo player and an agent already fight through the graybox and reach its exit through actual movement. The next playable steps are Latch's release, the Jammer, Crawlers and M01-to-M02 save carry. In parallel, multiplayer work continues on server hardening, modes, maps, first-person watching and measured scale. Automated and agent-controlled runs are the current acceptance evidence; an unsteered human M01 session remains near the 1.0 gate.
+A solo player and an agent already fight through the graybox and reach its exit through actual movement. The next M02 steps are the Crawler descent, Latch's release and M01-to-M02 save carry. The Jammer begins in level 3. In parallel, multiplayer work continues on server hardening, modes, maps, first-person watching and measured scale. Automated and agent-controlled runs are the current acceptance evidence; an unsteered human M01 session remains near the 1.0 gate.
 
 The opening mission has an opt-in [development slice](server/maps/README.md):
 enclosed intake rooms, two stair routes, an accessible records balcony, a
@@ -71,7 +71,7 @@ One host in this app. The example is 127.0.0.1:6767. Watch and Join stay on this
 
 A watched Arena Duel, through the fighter's eyes. The rifle is the gun they are holding.
 
-![Match](docs/screenshots/tour_spectator_16x9.png)
+![Match](docs/screenshots/tour_combat_follow_16x9.png)
 
 ## Quick start
 

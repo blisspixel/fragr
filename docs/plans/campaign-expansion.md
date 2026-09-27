@@ -412,7 +412,7 @@ Low Water is on the list. **Fight:** the ward itself, around the restraint
 frame; the machine stops when its guards fall. **Landmark:** the frame, seen
 through the observation glass from the first room. **Turn:** a Notary behind the
 glass photographs captives, out of reach, the Office filing what it sees.
-**New:** Shotgun (antechamber); Crawler (service stair). **Route:** descending
+**New:** Shotgun (guard room above the stair); Crawler (service stair). **Route:** descending
 spiral, gallery to ward to floor, with a maintenance loop back up. **Doors:** 1,
 the ward seal for its fight. **Brief:** A: free the side ward. S: clear the
 processing floor's upper gantry. Sv: stop the Crawler pack before it reaches

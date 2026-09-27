@@ -16,6 +16,13 @@ func run() -> void:
 	_check(EnemyAnimation.direction(TAU * 3.0, Vector3.RIGHT) == 0, "wrapped yaw")
 	_check(EnemyAnimation.direction(0.0, Vector3.UP) == 0, "overhead fallback")
 	var actor: Dictionary = {"side":"union", "kind":"clerk", "phase":"windup", "phase_started":100, "phase_ends":112}
+	var seated: Dictionary = {"side":"union", "kind":"clerk", "phase":"idle",
+		"phase_started":100, "phase_ends":100, "seated":true}
+	_check(EnemyAnimation.frame(seated, "Tack", 100, 0, 0, INF, 0) ==
+		EnemyAnimation.pose_frame("seated", false, 0.0), "opening Clerk sits before activation")
+	seated.erase("seated")
+	_check(EnemyAnimation.frame(seated, "Tack", 100, 0, 0, INF, 0) ==
+		EnemyAnimation.pose_frame("idle", false, 0.0), "woken Clerk stands")
 	var initial: int = EnemyAnimation.frame(actor, "Tack", 100, 0, 0, INF, 0)
 	var raised: int = EnemyAnimation.frame(actor, "Tack", 111, 0.05, 0, INF, 0)
 	_check(initial != raised, "windup actually raises the weapon")

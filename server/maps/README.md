@@ -11,14 +11,16 @@ opens the custody lift; the party can then depart together. This ends the curren
 prototype, not a finished M01 or the rescue. Checkpoints are not built.
 
 `m02-persons-unknown.json` is the Persons Unknown ward graybox, map 1002. The
-party enters on an observation gallery whose slot window looks down into the
-correction ward and its guards. A service stair (Tack and bullets) leads to the
-antechamber (Scatter, shells, medkit), then straight into the ward. The route
-is open: no switches and no gates. Three encounters (ward, processing floor,
-loading dock) hold nine Clerks and Sweepers. Two objectives advance by arrival:
+party enters on an observation gallery whose slot window faces the correction
+ward. Its destination tableau is still unbuilt. The upper gallery offers a
+Shotgun and Shells before a guard room with two initially seated Clerks. The
+service stair then leads to the antechamber and ward. The route is open: no
+switches and no gates.
+Four encounters (guard room, ward, processing floor, loading dock) hold eleven
+Clerks and Sweepers. Two objectives advance by arrival:
 "Find Latch" at the restraint frame in the ward, then "Get out" on the loading
-dock. Latch and the Jammer are not built, and the map has no Crawlers,
-maintenance loop, captives or secrets. It is a development graybox, not the
+dock. Latch is not built, and the map has no Crawlers, maintenance loop,
+captives or secrets. The Jammer first appears in level 3. This is a development graybox, not the
 finished mission.
 
 ```bash
@@ -28,7 +30,7 @@ cargo run -p fragr-server --locked -- --local-mission persons_unknown
 That development child prints its loopback readiness line and serves the
 normal wire; it keeps no run file. `--map-file server/maps/m02-persons-unknown.json
 --bots 0` also works for a dedicated development host. Clients need gameplay
-capability 9.
+capability 15, including spectators.
 
 For M01, from the repository root:
 

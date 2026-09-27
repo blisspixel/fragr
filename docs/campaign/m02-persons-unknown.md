@@ -3,12 +3,11 @@
 **Status:** development graybox (`server/maps/m02-persons-unknown.json`): an open route with four Clerk and Sweeper fights, including a two-Clerk Shotgun introduction, and two arrival objectives. Story, Latch as an actor and Crawlers are unbuilt. The Jammer first appears in level 3. Earth before the wipe. Target 10-12 minutes.
 [Treatment](../CAMPAIGN-MISSIONS.md#level-2-persons-unknown).
 
-The current graybox descends the existing service stair before collecting the
-Shotgun and fighting two standing Clerks. This proves the combat lesson, but
-does not yet match the accepted level order below: the guard room belongs at
-the top of the stair, followed by the Crawler descent. Rebuild that route when
-adding Crawlers, and give the first two Clerks their seated, weapons-down pose
-and readable reaction before treating the introduction as finished.
+The current graybox places the Shotgun on the upper gallery and two initially
+seated Clerks in a guard room at the top of the service stair. Their encounter
+raises them before the descent. The Crawler lesson on the lower landing, the
+authored reaction and fresh-player proof remain to be built before this
+introduction is finished.
 
 ## Story and cast
 
@@ -27,15 +26,15 @@ belongs to level 4.
 
 ## Layout
 
-Observation gallery -> service stair -> ward antechamber -> correction ward ->
+Observation gallery -> guard room -> service stair -> ward antechamber -> correction ward ->
 processing floor -> loading exit. A maintenance loop connects the antechamber
 to the floor and the gallery.
 
 | Zone | Physical job | Play and character beat |
 |---|---|---|
-| Gallery | Windows show the ward and processing machinery below | Player sees a destination and evidence of coercion before fighting; a Notary drone photographs captives beyond the glass, out of reach |
+| Gallery and guard room | Windows show the ward and processing machinery below; a small table and chairs interrupt the route to the stair | Player finds the Shotgun and Shells, then wakes two seated Clerks before descending; a Notary drone photographs captives beyond the glass, out of reach |
 | Service stair | Enclosed switchback, clear landings, no jump requirement | Introduce Crawler sounds/captions, then a small visible pack |
-| Antechamber | Workroom with cover and a view into the ward | Find the Shotgun and Shells on entry, fight two Clerks at close range, then recover before the ward |
+| Antechamber | Workroom with cover and a view into the ward | Recover after the stair and read the ward before entering it |
 | Ward | Open ward around the restraint frame | Set-piece fight; the correction stops when the guards fall; free Latch |
 | Processing floor | Two usable levels with broad stairs and machinery islands | Latch fights beside us; mixed threats pressure escape |
 | Service loop | Optional captives and supplies | Clear the guards and the captives free themselves |
@@ -112,19 +111,20 @@ correction happens, and Latch is on the frame. Get there before it finishes.
 **Hook.** Fight down into the worst room in the building and pull your friend
 off the machine with its guards still firing.
 
-**Teaches.** The Shotgun, then the Crawler. The Shotgun waits in a guard room
-at the top of the service stair, where two Clerks sit at a table with their
-weapons down: point blank, one blast each, an easy first lesson in seven
-pellets. The Crawler comes next and alone: a scrabble and a caption, then one
-low chassis leaping from the switchback's lower landing, its wind-up a clear
-crouch, on a landing wide enough to sidestep. The Shotgun answers it.
+**Teaches.** The Shotgun, then the Crawler. The Shotgun waits on the upper
+gallery before a guard room at the top of the service stair, where two Clerks
+sit at a table with their weapons down: point blank, one blast each, an easy
+first lesson in seven pellets. The Crawler comes next and alone: a scrabble and
+a caption, then one low chassis leaping from the switchback's lower landing,
+its wind-up a clear crouch, on a landing wide enough to sidestep. The Shotgun
+answers it.
 
 **Shape.**
 1. **Arrival.** The observation gallery. Through the glass, below: the ward,
    the restraint frame, and Latch on it. A Notary drifts beyond the glass
    photographing captives, out of reach. The destination is the first thing you
    see.
-2. **First fight.** The guard room and the Shotgun.
+2. **First fight.** Find the Shotgun on the gallery, then fight in the guard room.
 3. **Escalation.** The service stair: the first Crawler, then a pack of three
    on the next landing with a Sweeper firing up the well. Keep space without
    backing into its lane.

@@ -446,8 +446,34 @@ async fn m02_development_child_serves_the_graybox_without_a_durable_run() {
     assert_eq!(ready.mission, MissionId::PersonsUnknown);
     assert_eq!(
         ready.gameplay_version,
-        fragr_server::protocol::RULES_GAMEPLAY_VERSION
+        fragr_server::protocol::SEATED_GUARD_GAMEPLAY_VERSION
     );
+    let (mut old, _) = connect_async(&ready.url).await.unwrap();
+    old.send(Message::Text(
+        serde_json::to_string(&ClientMessage::Hello {
+            body: None,
+            role: Role::Spectator,
+            name: "Old ward reader".into(),
+            geometry_version: 2,
+            gameplay_version: fragr_server::protocol::BODY_GAMEPLAY_VERSION,
+            ticket: None,
+            resume: None,
+        })
+        .unwrap(),
+    ))
+    .await
+    .unwrap();
+    let rejection = tokio::time::timeout(Duration::from_secs(3), old.next())
+        .await
+        .unwrap()
+        .unwrap()
+        .unwrap();
+    assert!(matches!(
+        rejection,
+        Message::Text(text)
+            if matches!(serde_json::from_str::<ServerMessage>(&text),
+                Ok(ServerMessage::Error { code, .. }) if code == "unsupported_gameplay")
+    ));
     let (mut socket, _) = connect_async(&ready.url).await.unwrap();
     socket
         .send(Message::Text(
@@ -456,7 +482,7 @@ async fn m02_development_child_serves_the_graybox_without_a_durable_run() {
                 role: Role::Human,
                 name: "Ward walker".into(),
                 geometry_version: 2,
-                gameplay_version: fragr_server::protocol::RULES_GAMEPLAY_VERSION,
+                gameplay_version: fragr_server::protocol::SEATED_GUARD_GAMEPLAY_VERSION,
                 ticket: None,
                 resume: None,
             })

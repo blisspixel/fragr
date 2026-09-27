@@ -113,9 +113,13 @@ func build_pose(bot: bool, action: String, progress: float, unarmed: bool = fals
 	model.add_child(upper)
 	var hip_height: float = 0.88 if bot else 0.91
 	var walk: bool = action == "walk"
+	var seated: bool = action == "seated" and not bot
 	var cycle: float = progress * TAU
 	var collapse: float = progress if action == "death" else 0.0
 	var hip: Vector3 = Vector3(0,hip_height,0)
+	if seated:
+		# Align the pelvis with the graybox chair seat at 0.46 m above the floor.
+		hip += Vector3(0,-0.45,-0.12)
 	hip.y -= collapse*0.68
 	hip.z -= collapse*0.34
 	if walk:
@@ -137,6 +141,9 @@ func build_pose(bot: bool, action: String, progress: float, unarmed: bool = fals
 		var lift: float = maxf(-sin(phase),0.0)*0.17 if walk else 0.0
 		var ankle: Vector3 = Vector3(side*0.145,0.124+lift,stride*0.3)
 		var knee: Vector3 = Vector3(side*0.155,0.48+lift*0.15,stride*0.16+lift+0.025)
+		if seated:
+			ankle = Vector3(side*0.19,0.124,0.55)
+			knee = Vector3(side*0.19,0.49,0.39)
 		knee = knee.lerp(Vector3(side*0.21,0.15,0.04),collapse)
 		ankle = ankle.lerp(Vector3(side*0.22,0.124,-0.32-side*0.09),collapse)
 		leg(model,bot,side,hip+Vector3(side*0.13,-0.035,0),knee,ankle)
@@ -153,6 +160,10 @@ func build_pose(bot: bool, action: String, progress: float, unarmed: bool = fals
 		else:
 			elbow = elbow.lerp(Vector3(-0.18,1.16,0.10),raised)
 			hand = hand.lerp(Vector3(-0.04,1.28,0.14),raised)
+		if seated:
+			# Both forearms rest below the work surface; the pistol stays low.
+			elbow = Vector3(side*0.34,0.90,0.19)
+			hand = Vector3(side*0.22,0.69,0.37)
 		if walk:
 			elbow.z -= stride*(0.045 if bot else 0.12)
 			hand.z -= stride*(0.065 if bot else 0.18)

@@ -378,6 +378,7 @@ mod tests {
             phase: EnemyPhase::Idle,
             phase_started: 0,
             phase_ends: 0,
+            seated: false,
         });
         let mut snap = snapshot(1, vec![mine, partner, guard], vec![]);
         let telemetry = telemetry_for(&snap, me);
@@ -409,6 +410,7 @@ mod tests {
             phase: EnemyPhase::Idle,
             phase_started: 0,
             phase_ends: 0,
+            seated: false,
         });
         let world = Navigation::new(Arena {
             half: 24.0,

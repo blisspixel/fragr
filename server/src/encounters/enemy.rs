@@ -105,6 +105,7 @@ pub(super) struct EnemyController {
     stagger_ready: bool,
     reposition_until: u64,
     strafe_left: bool,
+    seated: bool,
 }
 
 /// (windup, recovery) ticks. Tiers change tells and openings only; health,
@@ -127,7 +128,14 @@ pub(crate) fn attack_timing(kind: EnemyKind, difficulty: CampaignDifficulty) -> 
 }
 
 impl EnemyController {
-    pub fn new(id: Uuid, kind: EnemyKind, alarm_position: [f32; 3], yaw: f32, tick: u64) -> Self {
+    pub fn new(
+        id: Uuid,
+        kind: EnemyKind,
+        alarm_position: [f32; 3],
+        yaw: f32,
+        tick: u64,
+        seated: bool,
+    ) -> Self {
         Self {
             id,
             kind,
@@ -150,6 +158,7 @@ impl EnemyController {
             stagger_ready: true,
             reposition_until: 0,
             strafe_left: false,
+            seated,
         }
     }
 
@@ -159,10 +168,12 @@ impl EnemyController {
             phase: self.phase,
             phase_started: self.started,
             phase_ends: self.until,
+            seated: self.seated,
         }
     }
 
     pub fn alarm(&mut self, position: [f32; 3], tick: u64) {
+        self.seated = false;
         self.last_known = position;
         self.search_until = tick.saturating_add(600);
     }
@@ -174,6 +185,7 @@ impl EnemyController {
     }
 
     pub fn hit(&mut self, tick: u64, died: bool) {
+        self.seated = false;
         if self.phase == EnemyPhase::Dead {
             return;
         }
@@ -419,5 +431,32 @@ impl EnemyController {
             self.enter(EnemyPhase::Moving, tick, 0);
         }
         BotIntent { action, goal: None }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn seated_clerk_stands_on_alarm_or_hit() {
+        let seated = || EnemyController::new(Uuid::nil(), EnemyKind::Clerk, [0.0; 3], 0.0, 0, true);
+        let mut alarmed = seated();
+        assert!(matches!(
+            alarmed.identity(),
+            CampaignActor::Union { seated: true, .. }
+        ));
+        alarmed.alarm([1.0, 0.0, 0.0], 1);
+        assert!(matches!(
+            alarmed.identity(),
+            CampaignActor::Union { seated: false, .. }
+        ));
+
+        let mut struck = seated();
+        struck.hit(1, false);
+        assert!(matches!(
+            struck.identity(),
+            CampaignActor::Union { seated: false, .. }
+        ));
     }
 }

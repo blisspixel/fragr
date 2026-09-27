@@ -33,9 +33,15 @@ static func validation_error(snapshot: Dictionary) -> String:
 			if campaign.size() != 1:
 				return INVALID
 			continue
-		if campaign["side"] != "union" or campaign.size() != 5 \
+		if campaign["side"] != "union" or campaign.size() not in [5, 6] \
 			or not campaign.get("kind") is String or campaign["kind"] not in KINDS \
 			or not campaign.get("phase") is String or campaign["phase"] not in PHASES:
+			return INVALID
+		if campaign.size() == 6 and not campaign.has("seated"):
+			return INVALID
+		if campaign.has("seated") and (campaign.size() != 6 \
+			or typeof(campaign["seated"]) != TYPE_BOOL or campaign["seated"] != true \
+			or campaign["kind"] != "clerk" or campaign["phase"] != "idle"):
 			return INVALID
 		if not EquipmentState.integer(snapshot.get("tick"), EquipmentState.MAX_EXACT_INTEGER) \
 			or not EquipmentState.integer(campaign.get("phase_started"), EquipmentState.MAX_EXACT_INTEGER) \

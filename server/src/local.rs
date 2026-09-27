@@ -117,9 +117,13 @@ impl Ready {
             mission,
             difficulty,
             url: format!("ws://{address}"),
-            // Both missions use discovery equipment, so both need the Shiv
-            // contract, which includes ammunition, records and M02 state.
-            gameplay_version: RULES_GAMEPLAY_VERSION,
+            // M01 uses discovery equipment and rule sets. M02 also needs the
+            // seated Clerk identity on its opening encounter.
+            gameplay_version: if mission == MissionId::PersonsUnknown {
+                crate::protocol::SEATED_GUARD_GAMEPLAY_VERSION
+            } else {
+                RULES_GAMEPLAY_VERSION
+            },
         })
     }
 
@@ -303,6 +307,9 @@ mod tests {
             "127.0.0.1:6767".parse().unwrap(),
         )
         .unwrap();
-        assert_eq!(m02.gameplay_version, RULES_GAMEPLAY_VERSION);
+        assert_eq!(
+            m02.gameplay_version,
+            crate::protocol::SEATED_GUARD_GAMEPLAY_VERSION
+        );
     }
 }

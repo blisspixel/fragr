@@ -63,6 +63,7 @@ fn identity(session: &GameSession, id: Uuid) -> (EnemyKind, EnemyPhase, u64, u64
             phase,
             phase_started,
             phase_ends,
+            ..
         } => (kind, phase, phase_started, phase_ends),
         CampaignActor::Participant {} => panic!("expected enemy"),
     }
@@ -320,6 +321,7 @@ fn new_kinds_are_strict_on_the_actor_wire() {
             phase: EnemyPhase::Windup,
             phase_started: 10,
             phase_ends: 36,
+            seated: false,
         };
         let json = serde_json::to_value(actor).unwrap();
         assert_eq!(json["kind"], wire);

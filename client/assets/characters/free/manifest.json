@@ -22,8 +22,8 @@
 		"res://art/characters/geometry.gd": "833318a2c94533aac01abbf7c886b616ec11528624fa406e6cad18dc1a14eec9",
 		"res://art/characters/player_bake.gd": "f4169d392ea540e8f7ecba89ad7fd97cc4d7d7e5da7b3552771dc9617cacb7e8",
 		"res://art/characters/player_rig.gd": "8816452026528b05b49709f75f1e7170f9761f90bcaedb2c4c8b2d71cdd0f3a4",
-		"res://art/characters/rig.gd": "2bfbe583b626c047592fbbc2a237047f1dfc70d78ec6b7281169c535e30fa05f",
-		"res://scripts/enemy_animation.gd": "400214a81e9d0656d637787fe8e3fdb31772271b0ad9733b37e1ae5cd010c3cf"
+		"res://art/characters/rig.gd": "106d5f720f665cffe9a52a16f9969bd6908b084c61521218aa51ddef9bc20441",
+		"res://scripts/enemy_animation.gd": "f2f1ef38f496d2d5a48c3ca81995788b7108aef81f712a6c67a1de3504b84573"
 	},
 	"tile_pixels": 160,
 	"view_metres": 3.0,

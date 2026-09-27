@@ -49,9 +49,9 @@ On Linux, the bake needs a display or the existing Xvfb approach from
 on the AMD Radeon 780M was used for the first bake, 2026-09-20. Exact pixels can
 vary across drivers; tests assert bounds and behavior, not a driver-specific hash.
 
-The layout is shared through `EnemyAnimation`: 54 poses at eight angles, 160-pixel
-cells, 18 columns, 24 rows. Each atlas is 2880 by 3840, below a 4096 texture limit.
-Four uncompressed RGBA atlases total 168.75 MiB if all are resident; they load
+The layout is shared through `EnemyAnimation`: 55 poses at eight angles, 160-pixel
+cells, 18 columns, 25 rows. Each atlas is 2880 by 4000, below a 4096 texture limit.
+Four uncompressed RGBA atlases total 175.78 MiB if all are resident; they load
 lazily by archetype, so a room with only Clerks and Sweepers holds two. The
 Turret has no gait: its walk cells are a head traverse that plays on phase time
 while the server turns the head, and its unarmed cells repeat the armed ones. PNG
@@ -63,7 +63,9 @@ feet. Runtime placement subtracts the server reference height. The living
 silhouette is approximately 1.8 metres tall. Do not trim individual tiles, scale
 corpses to fill their cell, or enlarge combat bodies for distant cameras.
 
-Animation is presentation only. Server phases choose raise, hit and collapse;
+Animation is presentation only. M02 Clerks may start seated with weapons down;
+the server clears that posture when their group wakes or one is hit. Server
+phases choose raise, hit and collapse;
 resolved shots start recoil; traveled distance advances the gait. A delayed
 windup holds its final pose instead of predicting an attack. Dead actors settle
 and remain down until server cleanup. Armed and exhausted melee poses are distinct.

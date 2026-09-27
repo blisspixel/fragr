@@ -88,13 +88,13 @@ Initial handshake message. Must be sent immediately after connection.
   resume keeps the parked pawn's body even if this hello names another.
   Changing the body means leaving and joining again.
 - `gameplay_version`: maximum understood gameplay contract. Updated Rust readers
-  and the Godot client send `13`; omission means `1`. Discovery-only maps require 2, maps with authored
+  and the Godot client send `15`; omission means `1`. Discovery-only maps require 2, maps with authored
   encounters require 3, and mission sequences require 6 for shared difficulty.
   Versions 4 and 5 introduced physical controls and party readiness respectively;
   they cannot enter current missions. Solo runs require 7 for explicit continues.
   Version 8 adds private participant records. Record delivery is gated by the
   client's advertised capability; earlier clients keep their existing messages.
-  M02 requires 9 for objective and gate state, including spectators. Version 10
+  Version 9 introduced M02 objective and gate state, including spectators. Version 10
   replaces magazines, reserves and reload with one ammunition count per type and
   adds scatter pellet traces. Every discovery map, M01 and M02 included, now
   requires 10 for every role, because the private loadout shape changed and
@@ -115,6 +115,10 @@ Initial handshake message. Must be sent immediately after connection.
   Version 13 adds the chosen participant `body` on Hello, Welcome and snapshot
   players. It is additive: no map requires it, older readers ignore the field,
   and an older client's pawn is human.
+  Version 14 is allocated to capture the flag in a separate branch. Version 15
+  adds optional `seated: true` to the Union Clerk campaign identity.
+  M02 requires 15 for every role because the guard-room introduction depends on
+  this posture. M01 and the arcade maps keep their earlier requirements.
   Use matching campaign server/client builds.
   Older clients of every role are rejected before `Welcome`
   with `unsupported_gameplay`. This capability is separate from geometry. The six
@@ -851,6 +855,11 @@ On encounter maps, each entry in `Snapshot.players` includes `campaign`:
 {"side":"union","kind":"clerk","phase":"windup","phase_started":10,"phase_ends":22}
 ```
 
+An M02 Clerk can initially include `"seated":true` while idle in the guard
+room. The server omits the field when false and clears it when the encounter
+wakes or a dormant Clerk is hit. No other Union kind uses this posture. It
+changes presentation only, not the authoritative body or shot geometry.
+
 `Role` describes the connection's controller, not faction or fictional anatomy.
 Human and external-agent participants are allies. Union `kind` is `clerk` (human
 security), `sweeper` (bot), `heavy_sweeper` (armored bot) or `turret` (fixed
@@ -1344,12 +1353,13 @@ the on-wire campaign rules revision. No parent command changes it during a run.
 ```
 
 The readiness record names the selected mission's client contract, rather than
-the highest version understood by the server. Both missions carry discovery
-equipment, so both name 12. The local launcher checks this value exactly.
+the highest version understood by the server. M01 names 12 for discovery
+equipment; M02 names 15 for the seated Clerk identity. The local launcher
+checks this value exactly.
 
 `--local-mission persons_unknown` starts the bundled M02 graybox as a
 development child. It writes the same readiness line with
-`"mission":"persons_unknown"` and `"gameplay_version":12`. It has no durable run:
+`"mission":"persons_unknown"` and `"gameplay_version":15`. It has no durable run:
 `--run-mode` is refused before readiness, mission state carries no `run`, and
 the party keeps development entry respawn and the shared wipe reset. It is not
 a save carry from M01.

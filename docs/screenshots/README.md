@@ -6,7 +6,7 @@ The `m01_*.png` files are Recall Notice gameplay from
 `FRAGR_QA_BOTS=0 FRAGR_QA_MAP_FILE=server/maps/m01-recall-notice.json FRAGR_QA_MANIFEST=res://qa/m01-rooms.json tools/qa_tour.sh`.
 Inspect every frame before it is named anywhere. A nonblank image is not
 proof of good art. The README embeds four files and no more: `tour_menu_16x9.png`,
-`m01_intake_16x9.png`, `tour_multiplayer_16x9.png`, and `tour_spectator_16x9.png`.
+`m01_intake_16x9.png`, `tour_multiplayer_16x9.png`, and `tour_combat_follow_16x9.png`.
 A player-visible change refreshes the one of those four that shows the surface,
 in the same change. The other files in this directory stay as tour evidence.
 The Windows taskbar icon is still the Godot mark and is not one of these frames.
