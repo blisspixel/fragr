@@ -17,6 +17,7 @@ Status words: **proposed** (a design awaiting Nick's decision; directs no work),
 
 | Plan | Status | One-liner |
 |---|---|---|
+| [`m02-latch-autonomous-escape.md`](./m02-latch-autonomous-escape.md) | **planned** | Give released Latch one server-owned allied body that helps through M02's processing floor without making the solo exit an escort gate. |
 | [`m01-m02-run-carry.md`](./m01-m02-run-carry.md) | **in flight** | Promote the same solo run from M01 into M02 with exact equipment, body and shared continues, plus a per-level attempt baseline and v2 save migration. |
 | [`m02-crawler-descent.md`](./m02-crawler-descent.md) | **in flight** | Draft low Crawler and later three-Crawler and Sweeper landing pass seeded route and rendered visual checks; fresh-player review remains. |
 | [`m02-latch-release.md`](./m02-latch-release.md) | **in flight** | Gate Latch's ward release on guard victory and a local restraint control, then project a visible one-time result to every role. |
