@@ -1,6 +1,7 @@
 # M02 Latch release
 
-**Status:** in flight, 2026-09-27. Stacked after the Crawler descent in
+**Status:** in flight in [draft PR #272](https://github.com/blisspixel/fragr/pull/272),
+2026-09-27. Stacked after the Crawler descent in
 [draft PR #270](https://github.com/blisspixel/fragr/pull/270).
 
 ## Goal and reason
@@ -188,6 +189,8 @@ gates are resolved.
   [`docs/screenshots/m02-latch/`](../screenshots/m02-latch/README.md).
 - 2026-09-27: The final pinned Godot checker passed after the QA fix, and the
   entire Rust workspace built in release mode with the locked dependency set.
-- Remaining for this slice: draft PR and CI. An unsteered player review of the
+- 2026-09-27: Draft PR #272 opened against main to run combined stack CI.
+  Restore its base to the Crawler branch once those checks pass.
+- Remaining for this slice: combined CI. An unsteered player review of the
   rescue and Low Water meaning remains an acceptance gate after the engineering
   slice.
