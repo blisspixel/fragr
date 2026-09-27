@@ -13,7 +13,9 @@
     {"id":"antechamber_medkit","feet":[-11,0,-20],"grant":{"kind":"health","amount":25},"claim":"contested"},
     {"id":"ward_bullets","feet":[-6,0,-10],"grant":{"kind":"ammo","pool":"bullets","amount":20},"claim":"contested"},
     {"id":"floor_shells","feet":[-4,0,-5],"grant":{"kind":"ammo","pool":"shells","amount":8},"claim":"contested"},
-    {"id":"floor_entry_medkit","feet":[-4,0,-6.2],"grant":{"kind":"health","amount":30},"claim":"contested"},
+    {"id":"floor_entry_medkit","feet":[5,0,-5.5],"grant":{"kind":"health","amount":30},"claim":"contested"},
+    {"id":"side_ward_shells","feet":[19,0,4],"grant":{"kind":"ammo","pool":"shells","amount":16},"claim":"contested"},
+    {"id":"side_ward_return_shells","feet":[20,0,7.5],"grant":{"kind":"ammo","pool":"shells","amount":16},"claim":"contested"},
     {"id":"floor_medkit","feet":[12,0,5],"grant":{"kind":"health","amount":40},"claim":"contested"},
     {"id":"dock_approach_medkit","feet":[2,0,10],"grant":{"kind":"health","amount":35},"claim":"contested"},
     {"id":"mezzanine_armor","feet":[-10,2.5,11],"grant":{"kind":"armor","amount":50},"claim":"contested"}
@@ -61,12 +63,21 @@
     {
       "id":"floor_crew",
       "after":"ward_guards",
-      "regions":[{"min":[-6,0,-7.5],"max":[-2,1,-5]}],
+      "regions":[{"min":[4,0,-7],"max":[7,1,-5]}],
       "enemies":[
         {"id":"floor_officer","kind":"clerk","feet":[-8.5,2.5,4],"yaw":4.712389},
-        {"id":"floor_sweeper","kind":"sweeper","feet":[-10,0,-5.5],"yaw":0},
+        {"id":"floor_sweeper","kind":"sweeper","feet":[1.5,0,-2],"yaw":0},
         {"id":"press_clerk","kind":"clerk","feet":[-3,0,10],"yaw":4.712389},
         {"id":"conveyor_sweeper","kind":"sweeper","feet":[10,0,11],"yaw":4.712389}
+      ]
+    },
+    {
+      "id":"side_ward_guards",
+      "after":"ward_guards",
+      "regions":[{"min":[23,0,6],"max":[25,1,7.5]}],
+      "enemies":[
+        {"id":"side_ward_clerk","kind":"clerk","feet":[19,0,8],"yaw":3.141593},
+        {"id":"side_ward_sweeper","kind":"sweeper","feet":[24,0,8],"yaw":3.141593}
       ]
     },
     {
@@ -122,10 +133,18 @@
     {"id":"ward_east","min":[9,0,-26],"max":[10,7,-7],"surface":"enamel"},
     {"id":"correction_machine","min":[-4,0,-15],"max":[0,3.2,-13],"surface":"lift_panel"},
     {"id":"restraint_frame","min":[8,0,-13],"max":[9,2.6,-9],"surface":"lift_panel"},
-    {"id":"ward_north_west","min":[-15,0,-8],"max":[-6,7,-7],"surface":"enamel"},
-    {"id":"ward_north_east","min":[-2,0,-8],"max":[15,7,-7],"surface":"enamel"},
+    {"id":"ward_north_west","min":[-15,0,-8],"max":[4,7,-7],"surface":"enamel"},
+    {"id":"ward_exit_shutter","min":[4,0,-8],"max":[7,3,-7],"surface":"lift_panel"},
+    {"id":"ward_north_east","min":[7,0,-8],"max":[15,7,-7],"surface":"enamel"},
     {"id":"floor_west","min":[-15,0,-8],"max":[-14,7,15],"surface":"service_steel"},
-    {"id":"floor_east","min":[14,0,-8],"max":[15,7,15],"surface":"service_steel"},
+    {"id":"floor_east_south","min":[14,0,-8],"max":[15,7,2],"surface":"service_steel"},
+    {"id":"floor_east_opening_header","min":[14,3,2],"max":[15,7,5],"surface":"service_steel"},
+    {"id":"floor_east_north","min":[14,0,5],"max":[15,7,15],"surface":"service_steel"},
+    {"id":"side_ward_south","min":[15,0,0],"max":[27,7,1],"surface":"concrete"},
+    {"id":"side_ward_east","min":[26,0,0],"max":[27,7,11],"surface":"concrete"},
+    {"id":"side_ward_north","min":[15,0,10],"max":[27,7,11],"surface":"concrete"},
+    {"id":"side_ward_entry_baffle","min":[15,0,5],"max":[18,3,6],"surface":"service_steel"},
+    {"id":"side_ward_cover","min":[17,0,7],"max":[18,1.2,8],"surface":"service_steel"},
     {"id":"mezzanine_step_1","min":[-14,0,-3],"max":[-6,0.5,-2],"surface":"service_steel"},
     {"id":"mezzanine_step_2","min":[-14,0,-2],"max":[-6,1,-1],"surface":"service_steel"},
     {"id":"mezzanine_step_3","min":[-14,0,-1],"max":[-6,1.5,0],"surface":"service_steel"},
@@ -149,7 +168,7 @@
     {"solid":"antechamber_lockers","face":"east","center":[0,0],"size":[3.6,2.2],"kind":"lockers"},
     {"solid":"correction_machine","face":"north","center":[0,0.6],"size":[3.6,1.4],"kind":"vent"},
     {"solid":"restraint_frame","face":"west","center":[0,-0.6],"size":[3.6,1.2],"kind":"lockers"},
-    {"solid":"floor_east","face":"west","center":[2,0.5],"size":[8,2.4],"kind":"vent"},
+    {"solid":"floor_east_north","face":"west","center":[0,0.5],"size":[7,2.4],"kind":"vent"},
     {"solid":"ceiling","face":"down","center":[0,-30],"size":[4.0,0.5],"kind":"strip_light"},
     {"solid":"ceiling","face":"down","center":[-15,-18],"size":[3.0,0.5],"kind":"strip_light"},
     {"solid":"ceiling","face":"down","center":[-2,-18],"size":[4.0,0.5],"kind":"strip_light"},
@@ -167,9 +186,12 @@
        "action":{"kind":"use","panel":{"solid":"restraint_frame","face":"west",
        "center":[0,0.6],"size":[0.6,0.6],"kind":"terminal"},"approach":[7,0,-11]}},
       {"id":"party_departed","after":"companion_released","action":{"kind":"arrival",
-       "region":{"min":[-4,0,19],"max":[4,1,23]},"feet":[0,0,21.5]}}
+       "region":{"min":[-2.5,0,19],"max":[4,1,23]},"feet":[0,0,21.5]}}
     ],
-    "gates": []
+    "gates": [{"id":"ward_exit_release","solid":"ward_exit_shutter","lift":4,"after":"companion_released","signals":[
+      {"solid":"ward_exit_shutter","face":"south","center":[0,0],"size":[0.6,0.3],"kind":"gate_locked"},
+      {"solid":"restraint_frame","face":"west","center":[0,0.95],"size":[0.5,0.25],"kind":"gate_locked"}
+    ]}]
   },
   "spawns": [
     {"id":"gallery_entry","feet":[0,3,-31],"yaw":1.5707964},
@@ -184,6 +206,7 @@
     {"id":"correction_ward","feet":[-4,0,-20]},
     {"id":"latch_frame","feet":[7,0,-11]},
     {"id":"processing_floor","feet":[0,0,0]},
+    {"id":"side_ward","feet":[23,0,8]},
     {"id":"processing_mezzanine","feet":[-10,2.5,8]},
     {"id":"loading_dock","feet":[0,0,21]}
   ]

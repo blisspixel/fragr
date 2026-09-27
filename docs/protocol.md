@@ -123,9 +123,11 @@ Initial handshake message. Must be sent immediately after connection.
   that frees Latch. Version 18 adds the solo run's per-level continue baseline
   and permits a durable M02 run. Durable local M01 requires 18. Version 19 adds
   the M02 companion identity, movement and bounded support fire. Durable M02
-  and its development party require 19; arcade maps keep their earlier
-  requirements. Capabilities 14 to 17 must be integrated before a version 18
-  release; use matching campaign server/client builds.
+  and its development party require 19. Version 20 adds the M02
+  `side_ward_secured` fact, derived from the optional side ward encounter.
+  M02 development and durable sessions now require 20; arcade maps keep their
+  earlier requirements. Capabilities 14 to 17 must be integrated before a
+  version 18 release; use matching campaign server/client builds.
   Older clients of every role are rejected before `Welcome`
   with `unsupported_gameplay`. This capability is separate from geometry. The six
   full-arsenal arcade maps still accept 1. There an older reader draws only the
@@ -308,10 +310,14 @@ and before the corresponding snapshot whenever shared state changes. `state` is:
   contain no use prompts. Run identity and rules survive geometry changes.
 - `m02`: present only for `persons_unknown`, absent from the M01 JSON. It has
   `completed` (ordered stable objective IDs), `total` (1 to 8), `gate_mask`
-  (three low bits for prepared gate variants), `ward_secured` (server-owned
-  `ward_guards` completion, which stops correction before release), and
-  `current`. `ward_secured` is derived from the encounter state on each
-  projection, not stored as a second mission flag. The current
+  (three low bits for prepared gate variants; M02 uses bit 0 for the ward exit
+  shutter raised on `companion_released`), `ward_secured` (server-owned
+  `ward_guards` completion, which stops correction before release),
+  `side_ward_secured` (optional `side_ward_guards` completion), and `current`.
+  Both facts are derived from encounter state on each projection, not stored
+  as second mission flags. `side_ward_secured` implies `ward_secured` and is
+  monotonic within one attempt; Continue resets it. It says the captives can
+  free themselves, not that they have evacuated. The current
   objective is null or omitted only after departure. An arrival objective has
   `{"id":"ward_reached","action":{"kind":"arrival","region":{"min":[x,y,z],"max":[x,y,z]},"feet":[x,y,z]}}`.
   A physical-use objective has

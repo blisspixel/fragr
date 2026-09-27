@@ -546,8 +546,9 @@ pub const CRAWLER_GAMEPLAY_VERSION: u32 = 16;
 pub const LATCH_RELEASE_GAMEPLAY_VERSION: u32 = 17;
 pub const RUN_CARRY_GAMEPLAY_VERSION: u32 = 18;
 pub const COMPANION_GAMEPLAY_VERSION: u32 = 19;
+pub const SIDE_WARD_GAMEPLAY_VERSION: u32 = 20;
 /// Highest understood gameplay contract; content requirements use their own minimum.
-pub const GAMEPLAY_VERSION: u32 = COMPANION_GAMEPLAY_VERSION;
+pub const GAMEPLAY_VERSION: u32 = SIDE_WARD_GAMEPLAY_VERSION;
 pub fn legacy_gameplay_version() -> u32 {
     1
 }

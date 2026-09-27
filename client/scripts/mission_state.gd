@@ -206,15 +206,17 @@ static func m02_validation_error(message: Dictionary, geometry: Dictionary, prev
 	var total: int = int(geometry["total"])
 	if not progress.get("completed") is Array or not EquipmentState.integer(progress.get("total"), M02_MAX_OBJECTIVES) \
 		or int(progress["total"]) != total or not EquipmentState.integer(progress.get("gate_mask"), 7) \
-		or not progress.get("ward_secured") is bool \
-		or progress.size() != (5 if progress.has("current") else 4):
+		or not progress.get("ward_secured") is bool or not progress.get("side_ward_secured") is bool \
+		or progress.size() != (6 if progress.has("current") else 5):
 		return INVALID
 	var completed: Array = progress["completed"]
 	var departed: bool = value["phase"] == "departed"
 	var current: Variant = progress.get("current")
 	if completed.size() > total or departed != (completed.size() == total) \
 		or (current != null) != (completed.size() < total) \
-		or (value["phase"] == "briefing" and (not completed.is_empty() or int(progress["gate_mask"]) != 0 or progress["ward_secured"])) \
+		or (value["phase"] == "briefing" and (not completed.is_empty() or int(progress["gate_mask"]) != 0 \
+			or progress["ward_secured"] or progress["side_ward_secured"])) \
+		or (progress["side_ward_secured"] and not progress["ward_secured"]) \
 		or ("companion_released" in completed and not progress["ward_secured"]):
 		return INVALID
 	var seen: Array[String] = []
@@ -244,7 +246,8 @@ static func m02_validation_error(message: Dictionary, geometry: Dictionary, prev
 		if int(value["attempt"]) == int(old["attempt"]):
 			var before: Array = old["m02"]["completed"]
 			if completed.size() < before.size() or completed.slice(0, before.size()) != before \
-				or (old["m02"]["ward_secured"] and not progress["ward_secured"]):
+				or (old["m02"]["ward_secured"] and not progress["ward_secured"]) \
+				or (old["m02"]["side_ward_secured"] and not progress["side_ward_secured"]):
 				return INVALID
 	var party: Dictionary = {}
 	for member: Variant in value["party"]:

@@ -14,7 +14,7 @@ use std::collections::BTreeSet;
 use std::sync::Arc;
 
 const ORDER: [&str; 3] = ["ward_reached", "companion_released", "party_departed"];
-const ENEMIES: usize = 16;
+const ENEMIES: usize = 18;
 
 fn session() -> GameSession {
     let mut session = GameSession::with_authored_map(
@@ -37,6 +37,7 @@ struct Walker {
     completed: Vec<String>,
     maps: usize,
     defeated: BTreeSet<Uuid>,
+    attempt_enemies: Option<BTreeSet<Uuid>>,
     defeated_names: BTreeSet<String>,
     first_fight_names: Option<BTreeSet<String>>,
     guard_room_seated: BTreeSet<String>,
@@ -56,6 +57,7 @@ struct Walker {
     companion_kills: usize,
     crawler_cues: Vec<(u64, [f32; 3], [f32; 3])>,
     first_crawler_clear_tick: Option<u64>,
+    retrying: bool,
 }
 
 impl Walker {
@@ -69,6 +71,7 @@ impl Walker {
             completed: Vec::new(),
             maps: 0,
             defeated: BTreeSet::new(),
+            attempt_enemies: None,
             defeated_names: BTreeSet::new(),
             first_fight_names: None,
             guard_room_seated: BTreeSet::new(),
@@ -88,6 +91,7 @@ impl Walker {
             companion_kills: 0,
             crawler_cues: Vec::new(),
             first_crawler_clear_tick: None,
+            retrying: false,
         }
     }
 
@@ -260,13 +264,18 @@ impl Walker {
             }
         }
         for player in &session.state.players {
-            if matches!(
-                player.campaign,
-                Some(CampaignActor::Union {
-                    phase: EnemyPhase::Dead,
-                    ..
-                })
-            ) {
+            if self
+                .attempt_enemies
+                .as_ref()
+                .is_none_or(|ids| ids.contains(&player.id))
+                && matches!(
+                    player.campaign,
+                    Some(CampaignActor::Union {
+                        phase: EnemyPhase::Dead,
+                        ..
+                    })
+                )
+            {
                 self.defeated.insert(player.id);
                 self.defeated_names.insert(player.name.clone());
             }
@@ -361,21 +370,48 @@ impl Walker {
         let loadout = player
             .inventory
             .state(self.id, player.weapon, snapshot.tick);
-        let equipped = crate::inventory::control_action_with_objective(
+        let ward_release_pending = self.completed == ["ward_reached"];
+        let mut equipped = crate::inventory::control_action_with_target_filter(
             self.id,
             snapshot,
             loadout.as_ref(),
             combat,
             true,
+            |_, other| !ward_release_pending || other.z < -7.0,
         );
+        if self.retrying
+            && equipped.look_at.is_some()
+            && !equipped.fire
+            && !equipped.forward
+            && !equipped.back
+            && !equipped.left
+            && !equipped.right
+        {
+            // On a retry, do not stand at a distant target that the current
+            // weapon cannot hit. Approach through the same navigator and
+            // finish the fight before continuing the objective route.
+            equipped.forward = true;
+        }
         let action = self
             .client
             .steer(&mut self.navigator, world, self.id, snapshot, equipped);
         session.state.set_action(self.id, action);
     }
 
-    fn reset_attempt_evidence(&mut self) {
+    fn reset_attempt_evidence(&mut self, session: &GameSession) {
+        self.snapshot = None;
+        self.navigator.clear();
+        self.retrying = true;
         self.defeated.clear();
+        self.attempt_enemies = Some(
+            session
+                .state
+                .players
+                .iter()
+                .filter(|player| player.is_campaign_enemy() && player.hp > 0)
+                .map(|player| player.id)
+                .collect(),
+        );
         self.defeated_names.clear();
         self.first_fight_names = None;
         self.guard_room_seated.clear();
@@ -406,7 +442,8 @@ impl Walker {
             assert_body_clear(session, self.id);
         }
         panic!(
-            "route stalled after {:?} at {:?} with {} defeats and {} living enemies",
+            "route stalled at tick {} after {:?} at {:?} with {} defeats and {} living enemies {:?}",
+            session.state.tick,
             self.completed,
             session
                 .state
@@ -420,7 +457,8 @@ impl Walker {
                     player.hp as f32
                 ]),
             self.defeated.len(),
-            living_enemies(session)
+            living_enemies(session),
+            session.state.players.iter().filter(|p| p.is_campaign_enemy() && p.hp > 0).map(|p| (&p.name, p.x, p.z)).collect::<Vec<_>>()
         );
     }
 }
@@ -576,7 +614,9 @@ fn ward_victory_precedes_the_local_release_and_a_second_use_is_inert() {
     state.update_encounters();
     assert!(state.m02_ward_secured());
     let before_use = state.mission_state().unwrap();
-    assert!(before_use.m02.unwrap().ward_secured);
+    let before_progress = before_use.m02.unwrap();
+    assert!(before_progress.ward_secured);
+    assert_eq!(before_progress.gate_mask, 0);
     assert_eq!(before_use.prompts.len(), 1);
 
     state.players[0].hp = 0;
@@ -594,10 +634,12 @@ fn ward_victory_precedes_the_local_release_and_a_second_use_is_inert() {
     at_frame_facing_control(&mut state, id);
     state.players[0].interaction_requested = true;
     state.advance_m02();
+    let after_release = state.mission_state().unwrap().m02.unwrap();
     assert_eq!(
-        state.mission_state().unwrap().m02.unwrap().completed,
+        after_release.completed,
         ["ward_reached", "companion_released"]
     );
+    assert_eq!(after_release.gate_mask, 1);
     state.players[0].interaction_requested = true;
     state.advance_m02();
     assert_eq!(
@@ -641,6 +683,129 @@ fn ward_victory_precedes_the_local_release_and_a_second_use_is_inert() {
         state.mission_departed(),
         "one participant can leave without a Latch seat"
     );
+}
+
+#[test]
+fn side_ward_clear_is_optional() {
+    let (mut state, id) = ward_test_state();
+    let side_index = state
+        .mission
+        .as_ref()
+        .unwrap()
+        .initial_map
+        .encounters()
+        .iter()
+        .position(|encounter| encounter.id == "side_ward_guards")
+        .unwrap();
+    at_frame_facing_control(&mut state, id);
+    state.update_encounters();
+    state.advance_m02();
+    defeat_ward_guards(&mut state);
+    state.update_encounters();
+    state.players[0].interaction_requested = true;
+    state.advance_m02();
+    assert_eq!(
+        state.mission_state().unwrap().m02.unwrap().completed,
+        ["ward_reached", "companion_released"]
+    );
+    for enemy in state.players.iter_mut().filter(|player| {
+        matches!(
+            player.name.as_str(),
+            "floor_officer"
+                | "floor_sweeper"
+                | "press_clerk"
+                | "conveyor_sweeper"
+                | "dock_sweeper"
+                | "dock_clerk"
+        )
+    }) {
+        enemy.hp = 0;
+    }
+    state.update_encounters();
+    assert!(!state.encounters.is_complete(side_index));
+    assert!(
+        !state
+            .mission_state()
+            .unwrap()
+            .m02
+            .unwrap()
+            .side_ward_secured
+    );
+    assert!(state
+        .players
+        .iter()
+        .any(|player| { player.name == "side_ward_clerk" && player.hp > 0 }));
+    [state.players[0].x, state.players[0].y, state.players[0].z] = [0.0, PLAYER_FLOOR_Y, 21.5];
+    state.advance_m02();
+    assert!(
+        state.mission_departed(),
+        "the side ward cannot gate the dock"
+    );
+
+    let (mut optional, _) = ward_test_state();
+    [
+        optional.players[0].x,
+        optional.players[0].y,
+        optional.players[0].z,
+    ] = [7.0, PLAYER_FLOOR_Y, -11.0];
+    optional.update_encounters();
+    defeat_ward_guards(&mut optional);
+    optional.update_encounters();
+    [
+        optional.players[0].x,
+        optional.players[0].y,
+        optional.players[0].z,
+    ] = [23.5, PLAYER_FLOOR_Y, 6.5];
+    optional.update_encounters();
+    assert!(optional.encounters.is_active_enemy(
+        optional
+            .players
+            .iter()
+            .find(|player| player.name == "side_ward_clerk")
+            .unwrap()
+            .id
+    ));
+    for enemy in optional.players.iter_mut().filter(|player| {
+        matches!(
+            player.name.as_str(),
+            "side_ward_clerk" | "side_ward_sweeper"
+        )
+    }) {
+        enemy.hp = 0;
+    }
+    optional.update_encounters();
+    assert!(optional.encounters.is_complete(side_index));
+    assert!(
+        optional
+            .mission_state()
+            .unwrap()
+            .m02
+            .unwrap()
+            .side_ward_secured
+    );
+}
+
+#[test]
+fn severe_side_ward_route_survives_with_ordinary_supplies() {
+    let mut session = session();
+    session
+        .state
+        .set_campaign_difficulty(crate::protocol::CampaignDifficulty::Severe)
+        .unwrap();
+    let id = Uuid::from_u128(0x02b0);
+    session
+        .state
+        .add_player(id, "Severe walker".into(), Role::Human);
+    let mut walker = Walker::new(id);
+    walker.until(&mut session, 16000, departed);
+    assert_eq!(walker.defeated.len(), ENEMIES);
+    assert!(session
+        .state
+        .players
+        .iter()
+        .find(|player| player.id == id)
+        .is_some_and(|player| player.hp > 0));
+    assert!(session.state.m02_side_ward_secured());
 }
 
 #[test]
@@ -1094,7 +1259,7 @@ fn controlled_unshielded_escape_companion_reaches_floor_and_resolves_a_shot() {
             session.state.players[0].x,
             session.state.players[0].y,
             session.state.players[0].z,
-        ] = [-4.0, PLAYER_FLOOR_Y, -5.0];
+        ] = [5.5, PLAYER_FLOOR_Y, -6.0];
         // Keep this stationary observation alive without making its body
         // transparent to either side's hitscan. This is not a survivability
         // or normal combat pacing test.
@@ -1362,6 +1527,22 @@ fn late_spectator_receives_the_durable_release_without_a_party_seat() {
             .completed,
         ["ward_reached", "companion_released"]
     );
+    [
+        session.state.players[0].x,
+        session.state.players[0].y,
+        session.state.players[0].z,
+    ] = [23.5, PLAYER_FLOOR_Y, 6.5];
+    session.state.update_encounters();
+    for enemy in session.state.players.iter_mut().filter(|player| {
+        matches!(
+            player.name.as_str(),
+            "side_ward_clerk" | "side_ward_sweeper"
+        )
+    }) {
+        enemy.hp = 0;
+    }
+    session.state.update_encounters();
+    assert!(session.state.m02_side_ward_secured());
     let watcher = Uuid::from_u128(0x02ac);
     session.apply_command(GameCommand::Connected {
         id: watcher,
@@ -1373,8 +1554,12 @@ fn late_spectator_receives_the_durable_release_without_a_party_seat() {
     let messages = session.take_unicasts();
     assert!(matches!(
         messages.first(),
-        Some((crate::session::Recipient::Client(client), ServerMessage::MapInfo { .. }))
-            if *client == watcher
+        Some((crate::session::Recipient::Client(client), ServerMessage::MapInfo { solids, .. }))
+            if *client == watcher && solids.iter().any(|solid| {
+                solid.min_x == 4.0 && solid.max_x == 7.0
+                    && solid.min_z == -8.0 && solid.max_z == -7.0
+                    && solid.bottom == 4.0
+            })
     ));
     assert!(messages.iter().any(|(recipient, message)| {
         matches!(recipient, crate::session::Recipient::Client(client) if *client == watcher)
@@ -1382,6 +1567,7 @@ fn late_spectator_receives_the_durable_release_without_a_party_seat() {
                 if state.party.len() == 1
                     && state.m02.as_ref().is_some_and(|m02|
                         m02.ward_secured
+                            && m02.side_ward_secured
                             && m02.completed == ["ward_reached", "companion_released"]))
     }));
     assert_eq!(session.state.mission_state().unwrap().party.len(), 1);
@@ -1471,9 +1657,9 @@ fn bundled_graybox_has_a_local_release_after_the_ward_fight() {
     assert!(prepared.objective(1).unwrap().control.is_some());
     assert_eq!(prepared.objective(1).unwrap().required_encounter, Some(3));
     assert!(prepared.objective(2).unwrap().arrival.is_some());
-    // The restraint control is required, but it opens no route gate.
+    // Releasing Latch opens the only route out of the ward.
     assert!(map.prepared_gate_world(0).is_some());
-    assert!(map.prepared_gate_world(1).is_none());
+    assert!(map.prepared_gate_world(1).is_some());
     let encounters = map.encounters();
     assert_eq!(encounters[0].id, "guard_room");
     assert!(encounters[0]
@@ -1586,11 +1772,11 @@ fn solo_human_and_agent_fight_through_and_depart() {
         walker.read(session.tick_messages(0.05));
         assert_eq!(walker.completed, ORDER, "{role:?}");
         assert_guard_room_lesson(&walker);
-        assert_eq!(walker.maps, 1, "{role:?}: no gate ever changes the world");
+        assert_eq!(walker.maps, 2, "{role:?}: release opens the ward exit");
         assert_eq!(
             walker.defeated.len(),
             ENEMIES,
-            "{role:?} must clear every fight on the way out"
+            "{role:?} clears the optional room on this authored route"
         );
         let state = session.state.mission_state().unwrap();
         assert_eq!(state.phase, MissionPhase::Departed);
@@ -1856,27 +2042,37 @@ fn a_wipe_resets_the_objective_and_the_fights() {
     let m02 = state.m02.clone().unwrap();
     assert_eq!(state.attempt, 2);
     assert!(m02.completed.is_empty());
+    assert_eq!(m02.gate_mask, 0);
+    assert!(session.state.map.arena().solids.iter().any(|solid| {
+        solid.min_x == 4.0
+            && solid.max_x == 7.0
+            && solid.min_z == -8.0
+            && solid.max_z == -7.0
+            && solid.bottom == 0.0
+    }));
     assert!(!session.state.m02_ward_secured());
+    assert!(!session.state.m02_side_ward_secured());
     assert_eq!(m02.current.unwrap().id, "ward_reached");
+    assert!(session.state.pickups.iter().all(|pickup| pickup.available));
     walker.until(&mut session, 200, |session, _| {
         living_enemies(session) == ENEMIES
     });
-    assert!(session.state.pickups.iter().all(|pickup| pickup.available));
+    assert!(session
+        .state
+        .players
+        .iter()
+        .any(|player| { player.name == "side_ward_clerk" && player.hp > 0 }));
     // The same participant then fights through again from entry.
-    walker.reset_attempt_evidence();
+    walker.reset_attempt_evidence(&session);
     walker.until(&mut session, 14000, departed);
     walker.read(session.tick_messages(0.05));
     assert_guard_room_lesson(&walker);
-    assert!(
-        session
-            .state
-            .pickups
-            .iter()
-            .find(|pickup| pickup.id == "floor_entry_medkit")
-            .is_some_and(|pickup| !pickup.available),
-        "the floor-entry recovery must be on the retry route"
-    );
     assert_eq!(walker.completed, ORDER);
-    assert_eq!(walker.defeated.len(), ENEMIES);
+    assert_eq!(
+        walker.defeated.len(),
+        ENEMIES,
+        "{:?}",
+        walker.defeated_names
+    );
     assert_eq!(session.state.mission_state().unwrap().attempt, 2);
 }

@@ -27,8 +27,9 @@ func _map(gate_bottom: float = 0.0) -> Dictionary:
 		"presentation": {"ground": "concrete", "solids": ["service_steel", "lift_panel"], "decorations": [
 			{"solid": 0, "face": "north", "center": [0, 0], "size": [1.6, 0.8], "kind": "terminal"}]}}
 
-func _state(completed: Array, current: Variant, phase: String = "in_progress", prompts: Array = [], attempt: int = 1, tick: int = 20, secured: bool = false) -> Dictionary:
-	var progress: Dictionary = {"completed": completed, "total": 3, "gate_mask": 1 if completed.size() >= 2 else 0, "ward_secured": secured}
+func _state(completed: Array, current: Variant, phase: String = "in_progress", prompts: Array = [], attempt: int = 1, tick: int = 20, secured: bool = false, side_secured: bool = false) -> Dictionary:
+	var progress: Dictionary = {"completed": completed, "total": 3, "gate_mask": 1 if completed.size() >= 2 else 0,
+		"ward_secured": secured, "side_ward_secured": side_secured}
 	if current != null:
 		progress["current"] = current
 	return {"type": "mission", "tick": tick, "state": {"id": "persons_unknown", "rules": {"difficulty": "standard", "revision": 2},
@@ -57,7 +58,8 @@ func _run() -> void:
 	var use: Dictionary = _state(["ward_reached"], _use(), "in_progress", [{"player_id": PLAYER, "kind": "objective_use"}], 1, 20, true)
 	var exit: Dictionary = _state(["ward_reached", "companion_released"], _arrival("party_departed", 4), "in_progress", [], 1, 21, true)
 	var done: Dictionary = _state(["ward_reached", "companion_released", "party_departed"], null, "departed", [], 1, 22, true)
-	for valid: Dictionary in [first, ward_fight, use, exit, done]:
+	var optional_room: Dictionary = _state(["ward_reached"], _use(), "in_progress", [], 1, 21, true, true)
+	for valid: Dictionary in [first, ward_fight, use, exit, done, optional_room]:
 		_expect(MissionState.validation_error(valid, geometry).is_empty(), "valid M02 state accepted: " + str(valid["state"]["m02"]))
 	var briefing: Dictionary = _state([], _arrival("ward_reached", -4), "briefing")
 	_expect(MissionState.validation_error(briefing, geometry).is_empty(), "briefing waits on the first objective")
@@ -67,7 +69,8 @@ func _run() -> void:
 		var bad: Dictionary = use.duplicate(true)
 		bad["state"].merge(patch, true)
 		invalid.append(bad)
-	for patch: Dictionary in [{"total": 4}, {"gate_mask": 8}, {"ward_secured": 1}, {"completed": ["ward_reached", "ward_reached"]},
+	for patch: Dictionary in [{"total": 4}, {"gate_mask": 8}, {"ward_secured": 1}, {"side_ward_secured": 1},
+		{"completed": ["ward_reached", "ward_reached"]},
 		{"completed": ["Ward Reached"]}, {"current": null}, {"extra": 1}]:
 		var bad: Dictionary = use.duplicate(true)
 		bad["state"]["m02"].merge(patch, true)
@@ -81,12 +84,21 @@ func _run() -> void:
 	var missing_fact: Dictionary = ward_fight.duplicate(true)
 	missing_fact["state"]["m02"].erase("ward_secured")
 	invalid.append(missing_fact)
+	var missing_side_fact: Dictionary = ward_fight.duplicate(true)
+	missing_side_fact["state"]["m02"].erase("side_ward_secured")
+	invalid.append(missing_side_fact)
 	var premature_win: Dictionary = briefing.duplicate(true)
 	premature_win["state"]["m02"]["ward_secured"] = true
 	invalid.append(premature_win)
 	var release_without_win: Dictionary = exit.duplicate(true)
 	release_without_win["state"]["m02"]["ward_secured"] = false
 	invalid.append(release_without_win)
+	var premature_side: Dictionary = briefing.duplicate(true)
+	premature_side["state"]["m02"]["side_ward_secured"] = true
+	invalid.append(premature_side)
+	var side_without_ward: Dictionary = ward_fight.duplicate(true)
+	side_without_ward["state"]["m02"]["side_ward_secured"] = true
+	invalid.append(side_without_ward)
 	var wrong_panel: Dictionary = use.duplicate(true)
 	wrong_panel["state"]["m02"]["current"]["action"]["target"]["decoration"] = 1
 	invalid.append(wrong_panel)
@@ -105,6 +117,15 @@ func _run() -> void:
 	_expect(not MissionState.validation_error(m01_like, geometry).is_empty(), "M01 id cannot claim M02 geometry")
 	_expect(not MissionState.validation_error(first, geometry, use).is_empty(), "progress cannot rewind within an attempt")
 	_expect(not MissionState.validation_error(ward_fight, geometry, use).is_empty(), "ward victory cannot rewind within an attempt")
+	var optional_rewind: Dictionary = ward_fight.duplicate(true)
+	optional_rewind["tick"] = 22
+	_expect(not MissionState.validation_error(optional_rewind, geometry, optional_room).is_empty(),
+		"the optional side ward cannot rewind within an attempt")
+	var optional_retry: Dictionary = _state([], _arrival("ward_reached", -4), "in_progress", [], 2, 30)
+	_expect(MissionState.validation_error(optional_retry, geometry, optional_room).is_empty(),
+		"a retry can restore the side ward's secured fact to false")
+	_expect(MissionState.validation_error(done, geometry).is_empty(),
+		"direct departure can leave the optional side ward unsecured")
 	var retry: Dictionary = _state([], _arrival("ward_reached", -4), "in_progress", [], 2, 30)
 	_expect(MissionState.validation_error(retry, geometry, exit).is_empty(), "a retry restarts at the first objective")
 	await _durable(geometry, first, done)
@@ -112,7 +133,7 @@ func _run() -> void:
 	_hud(first, ward_fight, use, exit, done)
 	_readable(info)
 	if failures == 0:
-		print("test_m02_mission: PASS capability 19 ward fact, strict progress, gate map refresh, HUD and catalog keys")
+		print("test_m02_mission: PASS capability 20 side ward fact, strict progress, gate map refresh, HUD and catalog keys")
 	quit(0 if failures == 0 else 1)
 
 func _durable(geometry: Dictionary, first: Dictionary, done: Dictionary) -> void:

@@ -13,6 +13,9 @@ and the first durable M02 frame from an isolated local child. It does not show
 a completed rescue or a playable level 3.
 The [M02 gantry evidence](m02-floor-gantry/README.md) shows the live officer
 firing above the processing floor and the reachable upper route.
+The [M02 side-ward plan](../plans/m02-side-ward.md) links four inspected
+first-person frames of the release-controlled ward exit and the optional
+captives before and after their guards fall.
 Inspect every frame before it is named anywhere. A nonblank image is not
 proof of good art. The README embeds four files and no more: `tour_menu_16x9.png`,
 `m01_intake_16x9.png`, `tour_multiplayer_16x9.png`, and `tour_combat_follow_16x9.png`.
@@ -33,8 +36,8 @@ Black-and-red Union enemies were checked in the same rooms with
 `client/qa/m01-enemies.json`. These are the development mission, not a
 finished art pass.
 
-The tour stills in this directory were republished for the 2026-09-27
-run-carry check. The boot and Single Player menus show the current layout;
+The tour stills in this directory were republished on 2026-09-27 during the
+side-ward build. The boot and Single Player menus show the current layout;
 the published tour completed all 32 named states on Windows with Godot
 4.7.2-stable and AMD Radeon 780M OpenGL compatibility. The earlier look pass
 had republished the same arena views: the
@@ -86,6 +89,10 @@ and fresh-player acceptance outstanding. Source manifest: `client/qa/m01-records
 | `m01_stacks_16x9.png` | File stacks, dark steel racks with red warning strips, green tile floor |
 | `m01_dispatch_16x9.png` | Dispatch after the fight, enamel walls with the red pinline |
 | `m01_secret_shiv_16x9.png` | The secret Shiv found in the confiscation alcove and held in hand |
+| `m02_ward_exit_held.png` | Ward exit shutter closed before Latch's release |
+| `m02_ward_exit_open.png` | Ward exit shutter raised after the same release action |
+| `m02_side_ward_held.png` | Optional captives restrained beyond the entry baffle |
+| `m02_side_ward_free.png` | The captives step clear after their guards fall; evacuation is not shown |
 | `tour_multiplayer_16x9.png` | App multiplayer page after GET /status. Host example is 127.0.0.1:6767. |
 | `tour_menu_16x9.png` | Retro boot menu |
 | `tour_profile_16x9.png` | Callsign, reticle, body choice with its preview, and weapon bob |

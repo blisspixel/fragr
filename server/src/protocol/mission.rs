@@ -247,6 +247,8 @@ pub struct M02ObjectiveState {
     pub gate_mask: u8,
     /// Authoritative ward encounter is complete; correction has stopped.
     pub ward_secured: bool,
+    /// Optional side ward guards are defeated; captives may free themselves.
+    pub side_ward_secured: bool,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub current: Option<MissionObjective>,
 }
@@ -359,8 +361,12 @@ impl MissionState {
                 != (m02.completed.len() == usize::from(m02.total))
             || m02.current.is_some() != (m02.completed.len() < usize::from(m02.total))
             || (self.phase == MissionPhase::Briefing
-                && (!m02.completed.is_empty() || m02.gate_mask != 0 || m02.ward_secured))
+                && (!m02.completed.is_empty()
+                    || m02.gate_mask != 0
+                    || m02.ward_secured
+                    || m02.side_ward_secured))
             || (m02.completed.iter().any(|id| id == "companion_released") && !m02.ward_secured)
+            || (m02.side_ward_secured && !m02.ward_secured)
         {
             return Err("invalid M02 objective progress");
         }
@@ -449,6 +455,7 @@ mod m02_wire_tests {
                 total: 3,
                 gate_mask: 0,
                 ward_secured: true,
+                side_ward_secured: false,
                 current: Some(MissionObjective {
                     id: "companion_released".into(),
                     action: MissionObjectiveAction::Use {
@@ -478,6 +485,19 @@ mod m02_wire_tests {
         let mut wrong_fact: serde_json::Value = serde_json::from_str(&json).unwrap();
         wrong_fact["m02"]["ward_secured"] = serde_json::json!(1);
         assert!(serde_json::from_value::<MissionState>(wrong_fact).is_err());
+        let mut missing_side: serde_json::Value = serde_json::from_str(&json).unwrap();
+        missing_side["m02"]
+            .as_object_mut()
+            .unwrap()
+            .remove("side_ward_secured");
+        assert!(serde_json::from_value::<MissionState>(missing_side).is_err());
+        let mut wrong_side: serde_json::Value = serde_json::from_str(&json).unwrap();
+        wrong_side["m02"]["side_ward_secured"] = serde_json::json!(1);
+        assert!(serde_json::from_value::<MissionState>(wrong_side).is_err());
+        let mut premature_side = valid.clone();
+        premature_side.m02.as_mut().unwrap().side_ward_secured = true;
+        premature_side.m02.as_mut().unwrap().ward_secured = false;
+        assert!(premature_side.validate(2).is_err());
         let mut invalid = valid.clone();
         invalid.phase = MissionPhase::FindTransfer;
         assert!(invalid.validate(2).is_err());

@@ -224,6 +224,10 @@ func _run() -> void:
 			await _use_mission_control(str(state["interact"]))
 		if state.has("expect_m02_ward_stage"):
 			await _expect_m02_ward_stage(str(state["expect_m02_ward_stage"]), state_name)
+		if state.has("expect_m02_side_stage"):
+			await _expect_m02_side_stage(str(state["expect_m02_side_stage"]), state_name)
+		if state.has("expect_m02_gate_mask"):
+			await _expect_m02_gate_mask(int(state["expect_m02_gate_mask"]), state_name)
 		if state.has("expect_companion_phase"):
 			await _expect_companion_phase(str(state["expect_companion_phase"]), state_name)
 		if state.has("await_run_status"):
@@ -997,6 +1001,41 @@ func _expect_m02_ward_stage(stage: String, state_name: String) -> void:
 			return
 		await create_timer(0.05).timeout
 	push_error("qa_tour: %s never reached M02 ward stage %s" % [state_name, stage])
+	_failed = true
+
+func _expect_m02_side_stage(stage: String, state_name: String) -> void:
+	var manager: Node = _game_manager()
+	var ward: M02Ward = manager.get("m02_ward") as M02Ward if manager != null else null
+	var deadline: int = Time.get_ticks_msec() + 8000
+	while ward != null and Time.get_ticks_msec() < deadline:
+		if ward._side_captives.size() != 2 or ward._side_left_bars.size() != 2:
+			await create_timer(0.05).timeout
+			continue
+		var progress: Dictionary = manager.net_client.mission.get("state", {}).get("m02", {})
+		var secured: bool = progress.get("side_ward_secured") == true
+		var held: bool = ward._side_captives.size() == 2 and ward._side_left_bars.size() == 2 \
+			and ward._side_captives[0].position == M02Ward.SIDE_CAPTIVE_FEET[0] \
+			and ward._side_left_bars[0].position.x > -0.5
+		var free: bool = ward._side_release_elapsed >= M02Ward.SIDE_RELEASE_SECONDS \
+			and ward._side_captives[0].position.z < 8.0 and ward._side_captives[1].position.z < 8.0 \
+			and ward._side_left_bars[0].position.x < -0.9
+		if (stage == "held" and not secured and held) or (stage == "released" and secured and free):
+			print("qa_tour: %s reached M02 side ward stage %s" % [state_name, stage])
+			return
+		await create_timer(0.05).timeout
+	push_error("qa_tour: %s never reached M02 side ward stage %s" % [state_name, stage])
+	_failed = true
+
+func _expect_m02_gate_mask(expected: int, state_name: String) -> void:
+	var manager: Node = _game_manager()
+	var deadline: int = Time.get_ticks_msec() + 8000
+	while manager != null and Time.get_ticks_msec() < deadline:
+		var progress: Dictionary = manager.net_client.mission.get("state", {}).get("m02", {})
+		if progress.get("gate_mask") == expected:
+			print("qa_tour: %s reached M02 gate mask %d" % [state_name, expected])
+			return
+		await create_timer(0.05).timeout
+	push_error("qa_tour: %s never reached M02 gate mask %d" % [state_name, expected])
 	_failed = true
 
 ## Read the authoritative pawn and both render nodes on the same frame.

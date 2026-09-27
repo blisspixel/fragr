@@ -23,9 +23,10 @@ func _check(ok: bool, message: String) -> void:
 func _map() -> Dictionary:
 	return {"map_id": M02Ward.MAP_ID, "map_name": M02Ward.MAP_NAME, "m02_objectives": 3}
 
-func _state(attempt: int, secured: bool, released: bool) -> Dictionary:
+func _state(attempt: int, secured: bool, released: bool, side_secured: bool = false) -> Dictionary:
 	return {"id": MissionState.M02_ID, "attempt": attempt, "m02": {
-		"ward_secured": secured, "completed": ["ward_reached", "companion_released"] if released else ["ward_reached"]}}
+		"ward_secured": secured, "side_ward_secured": side_secured,
+		"completed": ["ward_reached", "companion_released"] if released else ["ward_reached"]}}
 
 func _run() -> void:
 	var ward: M02Ward = M02Ward.new()
@@ -34,16 +35,30 @@ func _run() -> void:
 	_check(not ward._built, "the setpiece stays off unrelated maps")
 	ward.configure_map(_map())
 	_check(ward._built and ward._latch != null and ward._other_captive != null, "the bundled ward has two visible figures")
+	_check(ward._side_captives.size() == 2 and ward._side_captives[0].visible and ward._side_captives[1].visible,
+		"the side ward starts with two visible captives")
 	for part: Node in ward._latch.find_children("*", "VisualInstance3D", true, false):
 		_check((part as VisualInstance3D).layers == ArenaSky.ACTOR_LAYERS,
 			"the fixed and moving Latch share the facility actor lighting layer")
 	_check(ward._transfer_list != null and not ward._transfer_list.visible, "the transfer list is hidden until release")
 	ward.apply_state(_state(1, false, false))
 	_check(not ward._secured and not ward._released and ward._release_elapsed < 0.0, "initial projection keeps Latch restrained")
+	_check(ward._side_release_elapsed < 0.0 and ward._side_left_bars[0].position.x > -0.5,
+		"the optional captives remain behind their restraints before a server win")
 	ward.apply_state(_state(1, true, false))
 	_check(ward._secured and not ward._released and not (ward._machine_lamp.material_override as StandardMaterial3D).emission_enabled,
 		"the correction machine stops on ward victory before restraint use")
-	ward.apply_state(_state(1, true, true))
+	ward.apply_state(_state(1, true, false, true))
+	ward._process(1.0)
+	_check(ward._side_left_bars[0].position.x < -0.9 and ward._side_captives[0].position.z < M02Ward.SIDE_CAPTIVE_FEET[0].z,
+		"the side captives visibly open their own restraints and step away on a server win")
+	ward._process(M02Ward.SIDE_RELEASE_SECONDS)
+	_check(ward._side_release_elapsed == M02Ward.SIDE_RELEASE_SECONDS and ward._side_captives[1].position.z < 8.0,
+		"the optional release settles into a free pose")
+	ward.apply_state(_state(1, true, false, true))
+	_check(ward._side_release_elapsed == M02Ward.SIDE_RELEASE_SECONDS,
+		"duplicate side ward state does not replay the release")
+	ward.apply_state(_state(1, true, true, true))
 	_check(ward._release_elapsed == 0.0 and ward._second_left.position.x > -0.5,
 		"the server release begins with the second bay shut")
 	_check(ward._latch.visible,
@@ -65,7 +80,7 @@ func _run() -> void:
 	_check(ward._transfer_list.visible and ward._caption_key == "M02_LOW_WATER"
 		and ward._copy.text.contains("LOW WATER"), "the transfer list and legible Low Water beat follow speech")
 	var elapsed: float = ward._release_elapsed
-	ward.apply_state(_state(1, true, true))
+	ward.apply_state(_state(1, true, true, true))
 	_check(ward._release_elapsed == elapsed, "duplicate mission projection does not replay the release")
 	var menu: PauseMenu = PauseMenu.new()
 	menu.development_mission = true
@@ -117,11 +132,16 @@ func _run() -> void:
 	_check(not ward._secured and not ward._released and ward._latch.visible
 		and not ward._transfer_list.visible and ward._second_left.position.x > -0.5,
 		"retry reconstructs the restrained ward")
+	_check(ward._side_release_elapsed < 0.0 and ward._side_captives[0].position == M02Ward.SIDE_CAPTIVE_FEET[0]
+		and ward._side_left_bars[0].position.x > -0.5,
+		"retry reconstructs both side captives behind their restraints")
 	ward.clear_map()
 	ward.configure_map(_map())
-	ward.apply_state(_state(2, true, true))
+	ward.apply_state(_state(2, true, true, true))
 	_check(ward._transfer_list.visible and ward._second_left.position.x < -0.9 and ward._caption_key == "M02_RELEASE_RECAP"
 		and ward._copy.text.contains("LOW WATER"), "late observers receive the final open bay and recap")
+	_check(ward._side_release_elapsed == M02Ward.SIDE_RELEASE_SECONDS and ward._side_captives[1].position.z < 8.0,
+		"late observers see the optional captives already free")
 	_check(not ward._latch.visible,
 		"state-first late join waits for a companion snapshot before showing fixed Latch")
 	ward.set_companion_phase("")
@@ -162,5 +182,5 @@ func _run() -> void:
 	ward.queue_free()
 	await process_frame
 	if failures == 0:
-		print("test_m02_ward: PASS ordered bay release, server facts, late join, retry, skip, muted fallback")
+		print("test_m02_ward: PASS ordered bay and side releases, server facts, late join, retry, skip, muted fallback")
 	quit(0 if failures == 0 else 1)

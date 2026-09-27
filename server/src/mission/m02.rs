@@ -18,9 +18,7 @@ pub(super) struct M02Progress {
 mod companion;
 
 impl GameState {
-    /// The machine is quiet only after the authored ward group is fully cleared.
-    /// This is derived from encounter state, never a second mutable mission flag.
-    pub(crate) fn m02_ward_secured(&self) -> bool {
+    fn m02_encounter_complete(&self, id: &str) -> bool {
         self.mission
             .as_ref()
             .filter(|run| run.m02.is_some())
@@ -28,9 +26,21 @@ impl GameState {
                 run.initial_map
                     .encounters()
                     .iter()
-                    .position(|encounter| encounter.id == "ward_guards")
+                    .position(|encounter| encounter.id == id)
             })
             .is_some_and(|index| self.encounters.is_complete(index))
+    }
+
+    /// The machine is quiet only after the authored ward group is fully cleared.
+    /// This is derived from encounter state, never a second mutable mission flag.
+    pub(crate) fn m02_ward_secured(&self) -> bool {
+        self.m02_encounter_complete("ward_guards")
+    }
+
+    /// The optional group is independent of departure and resets with the
+    /// authored encounter state on Continue.
+    pub(crate) fn m02_side_ward_secured(&self) -> bool {
+        self.m02_encounter_complete("side_ward_guards")
     }
 
     /// The existing mission_ready command enters here only for M02.
@@ -151,6 +161,7 @@ impl GameState {
                 total: u8::try_from(prepared.len()).ok()?,
                 gate_mask: progress.gate_mask,
                 ward_secured: self.m02_ward_secured(),
+                side_ward_secured: self.m02_side_ward_secured(),
                 current,
             }),
         })

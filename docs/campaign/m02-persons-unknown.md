@@ -1,6 +1,6 @@
 # M02: Persons Unknown
 
-**Status:** development graybox (`server/maps/m02-persons-unknown.json`): an open route with a two-Clerk Shotgun introduction, a lone Crawler encounter, a later three-Crawler and Sweeper encounter, three further Clerk and Sweeper fights, and a guarded local release control between ward and dock arrival. The Crawler slice has seeded route and rendered visual checks but awaits fresh-player review. Latch's release, M01-to-M02 save carry and autonomous escape are in stacked drafts. The processing-floor officer's upper mezzanine placement is in [a measured draft](../plans/m02-floor-gantry.md). The remaining story and floor roster are unbuilt. The Jammer first appears in level 3. Earth before the wipe. Target 10-12 minutes.
+**Status:** development graybox (`server/maps/m02-persons-unknown.json`): a route with a two-Clerk Shotgun introduction, a lone Crawler encounter, a later three-Crawler and Sweeper encounter, three further Clerk and Sweeper fights, and a guarded local release control between ward and dock arrival. The Crawler slice has seeded route and rendered visual checks but awaits fresh-player review. Latch's release, M01-to-M02 save carry and autonomous escape are in stacked drafts. The processing-floor officer's upper mezzanine placement is in [a measured draft](../plans/m02-floor-gantry.md). An [optional side ward](../plans/m02-side-ward.md) with independent guards, captive self-release and one release-controlled ward exit is in flight. The full maintenance loop, evacuation and remaining floor roster are unbuilt. The Jammer first appears in level 3. Earth before the wipe. Target 10-12 minutes.
 [Treatment](../CAMPAIGN-MISSIONS.md#level-2-persons-unknown).
 
 The current graybox places the Shotgun on the upper gallery and two initially
@@ -67,8 +67,9 @@ the frame) -> `party_departed` (dock arrival). Ward victory quiets the machine;
 the release is a separate authoritative one-time transition.
 Optional prisoner groups have distinct released/evacuated states.
 
-The current draft has one required Use control and no physical gate. Its
-ward scene shows Latch freeing another captive and reading Low Water, then
+The current side-ward draft has one required Use control and a ward-exit
+shutter raised by that same release. The ward scene shows Latch freeing another
+captive and reading Low Water, then
 hands off to the moving server-owned companion for later combat.
 
 Mastery hooks, planned, not built: a par time on the result, the maintenance
@@ -133,7 +134,8 @@ answers it.
 3. **Escalation.** The service stair: the first Crawler, then a pack of three
    on the next landing with a Sweeper firing up the well. Keep space without
    backing into its lane.
-4. **Set piece.** The ward. The seal drops behind you for this fight only.
+4. **Set piece.** The ward. Its exit shutter stays shut through the fight and
+   rises when Latch is released.
    Sweepers from the bays, Clerks on the gallery above, Crawlers from the floor
    vents, the frame between you and all of them. The machine stops when its
    guards fall. No countdown.
@@ -151,7 +153,8 @@ answers it.
 the first shot. The gallery glass from below, where you stood a minute ago.
 The dock's daylight at the end of the processing floor.
 
-**Doors.** One: the ward seal, down for its fight and up when it is won.
+**Doors.** One: the ward exit shutter, closed through the fight and raised by
+Latch's release at the existing restraint control.
 
 **Secrets.**
 - An armor locker off the gallery loop, the six scratched into its hinge.

@@ -63,8 +63,9 @@ func _run() -> void:
 	_expect(owned.mission == MissionState.M02_ID and owned.state == LocalMatch.State.RUNNING, "the owned child is the M02 development child")
 	_expect(not is_instance_valid(current_scene.opening), "the graybox has no story page yet")
 	var state: Dictionary = current_scene.mission_hud.state
-	_expect(not state.has("run") and state["m02"]["current"]["id"] == "ward_reached" and not state["m02"]["ward_secured"],
-		"M02 starts at the ward approach without a run or correction win")
+	_expect(not state.has("run") and state["m02"]["current"]["id"] == "ward_reached"
+		and not state["m02"]["ward_secured"] and not state["m02"]["side_ward_secured"],
+		"M02 starts at the ward approach with neither captive room secured")
 	_expect(not current_scene.controls_blocked(), "the ready participant can move")
 	var hud: MissionHud = current_scene.mission_hud
 	_expect(hud._card.visible and hud._copy.text == tr("M02_OBJECTIVE_WARD_REACHED") and not hud._prompt.visible, "one objective line shows on entry")

@@ -457,6 +457,37 @@ mod tests {
         fs::remove_dir_all(directory).unwrap();
     }
 
+    #[test]
+    fn changed_m02_map_hash_requires_new_run_and_archives_the_prior_bytes() {
+        let directory = temp_dir();
+        let store = RunStore::open_with_hashes(&directory, [7; 32], [9; 32]).unwrap();
+        let mut prior = document();
+        prior.step = SavedStep::MissionEntry {
+            mission: MissionId::PersonsUnknown,
+            entry: SavedEntry {
+                hp: 100,
+                armor: 0,
+                equipment: Inventory::new(EquipmentPolicy::Discovery)
+                    .saved_equipment(WeaponType::Fists)
+                    .unwrap(),
+            },
+        };
+        prior.content_sha256 = [8; 32];
+        let bytes = serde_json::to_vec(&prior).unwrap();
+        fs::write(directory.join(RUN_NAME), &bytes).unwrap();
+        assert!(matches!(
+            RunStore::inspect_with_hashes(&directory, [7; 32], [9; 32]).unwrap(),
+            RunProbe::Incompatible
+        ));
+        let mut current = prior;
+        current.content_sha256 = [9; 32];
+        let archive = store.start_new(&current).unwrap().unwrap();
+        assert_eq!(fs::read(archive).unwrap(), bytes);
+        assert_eq!(store.load().unwrap(), Some(current));
+        drop(store);
+        fs::remove_dir_all(directory).unwrap();
+    }
+
     /// A save written before magazines were removed is a real run this build
     /// cannot continue: it reads as incompatible, never corrupt, and New Run
     /// keeps its exact bytes.

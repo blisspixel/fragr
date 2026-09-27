@@ -13,12 +13,16 @@ const CROSS_END: float = 3.5
 const SECOND_OPEN_END: float = 4.6
 const LIST_REVEAL: float = 6.0
 const END_SECONDS: float = 12.0
+const SIDE_RELEASE_SECONDS: float = 2.4
+const SIDE_CAPTIVE_FEET: Array[Vector3] = [Vector3(22.6, 0.0, 9.0), Vector3(24.5, 0.0, 9.0)]
 
 var _built: bool = false
 var _seen_state: bool = false
 var _attempt: int = 0
 var _secured: bool = false
 var _released: bool = false
+var _side_secured: bool = false
+var _side_release_elapsed: float = -1.0
 var _companion_moving: bool = false
 var _companion_phase_known: bool = false
 var _awaiting_companion_snapshot: bool = false
@@ -33,6 +37,10 @@ var _first_right: Node3D
 var _second_left: Node3D
 var _second_right: Node3D
 var _other_captive: Node3D
+var _side_captives: Array[Node3D] = []
+var _side_left_bars: Array[Node3D] = []
+var _side_right_bars: Array[Node3D] = []
+var _side_lamp: MeshInstance3D
 var _machine_lamp: MeshInstance3D
 var _machine_running: StandardMaterial3D
 var _machine_stopped: StandardMaterial3D
@@ -64,11 +72,17 @@ func clear_map() -> void:
 		_overlay.queue_free()
 	_root = null
 	_overlay = null
+	_side_captives.clear()
+	_side_left_bars.clear()
+	_side_right_bars.clear()
+	_side_lamp = null
 	_built = false
 	_seen_state = false
 	_attempt = 0
 	_secured = false
 	_released = false
+	_side_secured = false
+	_side_release_elapsed = -1.0
 	_companion_moving = false
 	_companion_phase_known = false
 	_awaiting_companion_snapshot = false
@@ -83,6 +97,7 @@ func apply_state(state: Dictionary) -> void:
 	var progress: Dictionary = state["m02"]
 	var attempt: int = int(state["attempt"])
 	var secured: bool = bool(progress["ward_secured"])
+	var side_secured: bool = bool(progress["side_ward_secured"])
 	var released: bool = "companion_released" in progress["completed"]
 	if not _seen_state or attempt != _attempt:
 		# Snapshot and MissionState are separate messages. A late observer may
@@ -93,9 +108,12 @@ func apply_state(state: Dictionary) -> void:
 		_attempt = attempt
 		_secured = secured
 		_released = released
+		_side_secured = side_secured
+		_side_release_elapsed = SIDE_RELEASE_SECONDS if side_secured else -1.0
 		_companion_moving = false
 		_release_elapsed = -1.0
 		_set_visual(END_SECONDS if released else 0.0, released)
+		_set_side_visual(_side_release_elapsed)
 		set_companion_phase("unresolved" if state_first_release else ("following" if first_snapshot_moving else "releasing"))
 		if released:
 			_show_caption("M02_RELEASE_RECAP", 8.0)
@@ -106,6 +124,10 @@ func apply_state(state: Dictionary) -> void:
 		_secured = true
 		_set_machine_stopped(true)
 		_show_caption("M02_WARD_STOPPED", 4.0)
+	if side_secured and not _side_secured:
+		_side_secured = true
+		_side_release_elapsed = 0.0
+		_set_side_visual(0.0)
 	if released and not _released:
 		_released = true
 		_release_elapsed = 0.0
@@ -137,6 +159,9 @@ func _process(delta: float) -> void:
 			_show_caption("M02_LATCH_SPEECH", LIST_REVEAL - SECOND_OPEN_END)
 		if before < LIST_REVEAL and _release_elapsed >= LIST_REVEAL:
 			_show_caption("M02_LOW_WATER", END_SECONDS - LIST_REVEAL)
+	if _side_release_elapsed >= 0.0 and _side_release_elapsed < SIDE_RELEASE_SECONDS:
+		_side_release_elapsed = minf(_side_release_elapsed + delta, SIDE_RELEASE_SECONDS)
+		_set_side_visual(_side_release_elapsed)
 	if _caption_left > 0.0:
 		_caption_left = maxf(0.0, _caption_left - delta)
 		_card.visible = _caption_left > 0.0
@@ -180,6 +205,22 @@ func _set_visual(seconds: float, released: bool) -> void:
 
 func _set_machine_stopped(stopped: bool) -> void:
 	_machine_lamp.material_override = _machine_stopped if stopped else _machine_running
+
+## These figures are a reading of the encounter fact. Their movement has no
+## collision or mission authority, and a late reader receives the settled pose.
+func _set_side_visual(seconds: float) -> void:
+	if _side_captives.size() != SIDE_CAPTIVE_FEET.size():
+		return
+	var open: float = clampf(seconds / 0.8, 0.0, 1.0)
+	var step: float = clampf((seconds - 0.65) / (SIDE_RELEASE_SECONDS - 0.65), 0.0, 1.0)
+	for index: int in range(_side_captives.size()):
+		_side_left_bars[index].position.x = -0.44 - 0.55 * open
+		_side_right_bars[index].position.x = 0.44 + 0.55 * open
+		_side_captives[index].position = SIDE_CAPTIVE_FEET[index] + Vector3(0.0, 0.0, -1.5 * step)
+		_side_captives[index].rotation.y = PI + (0.28 if index == 0 else -0.28) * step
+		(_side_captives[index].get_node("LeftArm") as Node3D).rotation.x = -0.7 * step
+		(_side_captives[index].get_node("RightArm") as Node3D).rotation.x = -0.7 * step
+	_side_lamp.material_override = _machine_stopped if _side_secured else _machine_running
 
 func _show_caption(key: String, seconds: float) -> void:
 	_caption_key = key
@@ -241,6 +282,22 @@ func _build() -> void:
 	_machine_stopped = _material(Color("626c69"))
 	_box(_root, "MachineStatusFrame", Vector3(-2.0, 2.75, -15.16), Vector3(1.44, 0.44, 0.14), steel)
 	_machine_lamp = _box(_root, "MachineLamp", Vector3(-2.0, 2.75, -15.26), Vector3(1.16, 0.22, 0.09), _machine_running)
+	for index: int in range(SIDE_CAPTIVE_FEET.size()):
+		var feet: Vector3 = SIDE_CAPTIVE_FEET[index]
+		var frame: Node3D = Node3D.new()
+		frame.name = "SideRestraint_%d" % index
+		frame.position = feet
+		_root.add_child(frame)
+		_box(frame, "Back", Vector3(0.0, 1.25, 0.38), Vector3(1.4, 2.5, 0.12), steel)
+		_side_left_bars.append(_bar(frame, "LeftLatch", -0.44, door))
+		_side_right_bars.append(_bar(frame, "RightLatch", 0.44, door))
+		var captive: Node3D = _figure("SideCaptive_%d" % index, muted, steel, _material(Color("778e88")))
+		captive.position = feet
+		captive.rotation.y = PI
+		_root.add_child(captive)
+		_side_captives.append(captive)
+	_box(_root, "SideStatusFrame", Vector3(23.55, 2.85, 9.84), Vector3(1.2, 0.36, 0.12), steel)
+	_side_lamp = _box(_root, "SideStatusLamp", Vector3(23.55, 2.85, 9.74), Vector3(0.94, 0.16, 0.08), _machine_running)
 	var list: Node3D = Node3D.new()
 	list.name = "TransferList"
 	list.position = Vector3(8.27, 1.72, -18.35)

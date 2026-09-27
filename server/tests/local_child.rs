@@ -171,7 +171,7 @@ async fn isolated_m01_departure_fixture_for_m02_client_smoke() {
         );
         assert_eq!(
             ready.gameplay_version,
-            fragr_server::protocol::COMPANION_GAMEPLAY_VERSION
+            fragr_server::protocol::SIDE_WARD_GAMEPLAY_VERSION
         );
         let (mut socket, _) = connect_async(&ready.url).await.unwrap();
         socket
@@ -313,7 +313,7 @@ fn wrong_mission_resume_does_not_migrate_v2_departure() {
     let (child, ready) = spawn_persistent_mission(&directory, "persons_unknown", "resume", None);
     assert_eq!(
         ready.gameplay_version,
-        fragr_server::protocol::COMPANION_GAMEPLAY_VERSION
+        fragr_server::protocol::SIDE_WARD_GAMEPLAY_VERSION
     );
     drop(child);
     assert_eq!(preview(&directory)["mission"], "persons_unknown");
@@ -676,16 +676,16 @@ async fn m02_development_child_serves_the_graybox_without_a_durable_run() {
     assert_eq!(ready.mission, MissionId::PersonsUnknown);
     assert_eq!(
         ready.gameplay_version,
-        fragr_server::protocol::COMPANION_GAMEPLAY_VERSION
+        fragr_server::protocol::SIDE_WARD_GAMEPLAY_VERSION
     );
     let (mut old, _) = connect_async(&ready.url).await.unwrap();
     old.send(Message::Text(
         serde_json::to_string(&ClientMessage::Hello {
             body: None,
             role: Role::Spectator,
-            name: "Old ward reader".into(),
+            name: "Old side ward reader".into(),
             geometry_version: 2,
-            gameplay_version: fragr_server::protocol::BODY_GAMEPLAY_VERSION,
+            gameplay_version: fragr_server::protocol::COMPANION_GAMEPLAY_VERSION,
             ticket: None,
             resume: None,
         })
@@ -712,7 +712,7 @@ async fn m02_development_child_serves_the_graybox_without_a_durable_run() {
                 role: Role::Human,
                 name: "Ward walker".into(),
                 geometry_version: 2,
-                gameplay_version: fragr_server::protocol::COMPANION_GAMEPLAY_VERSION,
+                gameplay_version: fragr_server::protocol::SIDE_WARD_GAMEPLAY_VERSION,
                 ticket: None,
                 resume: None,
             })
@@ -742,6 +742,7 @@ async fn m02_development_child_serves_the_graybox_without_a_durable_run() {
                     assert_eq!(state.party.len(), 1);
                     let m02 = state.m02.unwrap();
                     assert!(!m02.ward_secured);
+                    assert!(!m02.side_ward_secured);
                     assert_eq!(m02.current.unwrap().id, "ward_reached");
                     return;
                 }

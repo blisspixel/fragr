@@ -108,6 +108,82 @@ fn floor_officer_uses_the_reachable_upper_mezzanine() {
 }
 
 #[test]
+fn side_ward_is_reachable_but_the_dock_route_stays_on_the_floor() {
+    let map = AuthoredMap::read(include_str!("../../../maps/m02-persons-unknown.json").as_bytes())
+        .unwrap();
+    let opened = map.m02.as_ref().unwrap().world(1).unwrap().1;
+    let entry = [0.0, 3.0, -31.0];
+    assert_eq!(
+        map.navigation
+            .route(
+                [-16.7, 0.0, -21.9],
+                [7.0, 0.0, -11.0],
+                crate::navigation::SEARCH_LIMIT
+            )
+            .status,
+        RouteStatus::Complete
+    );
+    let branch = map
+        .landmarks
+        .iter()
+        .find(|place| place.id == "side_ward")
+        .unwrap()
+        .feet;
+    assert_eq!(
+        map.navigation
+            .route(entry, branch, crate::navigation::SEARCH_LIMIT)
+            .status,
+        RouteStatus::Unreachable,
+        "the side ward must wait for Latch's release"
+    );
+    assert_eq!(
+        opened
+            .route(entry, branch, crate::navigation::SEARCH_LIMIT)
+            .status,
+        RouteStatus::Complete
+    );
+    assert_eq!(
+        opened
+            .route(
+                [7.0, 0.0, -11.0],
+                [5.0, 0.0, -5.5],
+                crate::navigation::SEARCH_LIMIT
+            )
+            .status,
+        RouteStatus::Complete,
+        "the floor-entry recovery is reachable after release"
+    );
+    assert_eq!(
+        map.navigation
+            .route([-4.0, 0.0, -5.0], branch, crate::navigation::SEARCH_LIMIT)
+            .status,
+        RouteStatus::Complete
+    );
+    let dock = map.navigation.route(
+        [-4.0, 0.0, -5.0],
+        [0.0, 0.0, 21.0],
+        crate::navigation::SEARCH_LIMIT,
+    );
+    assert_eq!(dock.status, RouteStatus::Complete);
+    assert!(dock.points.iter().all(|point| point[0] < 15.0));
+    assert!(map
+        .navigation
+        .line_of_sight([18.5, crate::movement::EYE_HEIGHT, 4.0], [23.4, 1.45, 8.8]));
+    let side = map
+        .encounters
+        .iter()
+        .find(|encounter| encounter.id == "side_ward_guards")
+        .unwrap();
+    assert_eq!(side.after.as_deref(), Some("ward_guards"));
+    assert_eq!(side.enemies.len(), 2);
+    assert!(map
+        .encounters
+        .iter()
+        .filter(|encounter| matches!(encounter.id.as_str(), "floor_crew" | "dock_watch"))
+        .all(|encounter| encounter.after.as_deref() != Some("side_ward_guards")));
+}
+
+#[test]
 fn m02_worlds_are_prepared_and_the_closed_gate_blocks_departure() {
     let map = read(&fixture()).unwrap();
     let closed = crate::maps::RuntimeMap::Authored(map.clone());

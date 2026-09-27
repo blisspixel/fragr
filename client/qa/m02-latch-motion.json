@@ -19,7 +19,7 @@
     {"name":"second_bay_open","camera":"overview","camera_position":[5.7,2.2,-16.0],"camera_look_at":[8.3,1.2,-16.0],"expect_m02_ward_stage":"second_open"},
     {"name":"low_water_list","camera":"overview","camera_position":[5.8,2.0,-18.4],"camera_look_at":[8.27,1.72,-18.35],"expect_m02_ward_stage":"low_water","note":"The transfer list names Low Water and the occupied second bay stays open."},
     {"name":"latch_handoff","camera":"overview","camera_position":[5.8,2.2,-15.8],"camera_look_at":[8,1.2,-15.1],"expect_companion_phase":"releasing","strip_frames":16,"strip_interval_seconds":0.5,"expect_companion_transition":true,"note":"Consecutive live frames show the static Latch yielding to one server pawn exactly 240 ticks after release."},
-    {"name":"latch_escape_route","camera":"first_person","walk_to":[[-4,0,-10]],"route_look_back":true,"capture_companion_route":true,"expect_companion_displacement":5.0,"look_at":[8,1.2,-15],"note":"The participant walks backward toward the processing floor while looking at Latch. The server pawn moves more than five metres from the second bay across rendered samples."},
+    {"name":"latch_escape_route","camera":"first_person","walk_to":[[-4,0,-10]],"route_look_back":true,"capture_companion_route":true,"expect_companion_displacement":5.0,"look_at":[8,1.2,-15],"note":"The participant walks backward across the ward while looking at Latch. The server pawn moves more than five metres from the second bay across rendered samples."},
     {"name":"latch_floor_observer","camera":"overview","camera_position":[-9,2.3,-12],"camera_look_at":[-6,1.2,-9],"expect_companion_phase":"following","note":"Detached view of the allied chassis at its west-forward formation point beside the processing-floor threshold."}
   ]
 }
