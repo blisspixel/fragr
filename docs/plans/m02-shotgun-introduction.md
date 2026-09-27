@@ -1,6 +1,6 @@
 # M02 Shotgun introduction
 
-**Status:** implemented, 2026-09-27. This bounded level 2 encounter slice follows
+**Status:** implemented in [draft PR #268](https://github.com/blisspixel/fragr/pull/268), 2026-09-27. This bounded level 2 encounter slice follows
 the accepted [Persons Unknown design](../campaign/m02-persons-unknown.md).
 
 ## Goal and reason
