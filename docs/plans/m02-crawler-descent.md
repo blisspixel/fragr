@@ -1,7 +1,8 @@
 # M02 Crawler descent
 
 **Status:** in flight, 2026-09-27. Stacked on the stair-top guard room in
-[draft PR #269](https://github.com/blisspixel/fragr/pull/269).
+[draft PR #269](https://github.com/blisspixel/fragr/pull/269); this slice is
+[draft PR #270](https://github.com/blisspixel/fragr/pull/270).
 
 ## Goal and reason
 
@@ -222,6 +223,9 @@ capture do not pass the unsteered fresh-player gate or prove final difficulty.
 - 2026-09-27: The full pinned Godot 4.7.2 checker passed after correcting a
   new harness PASS marker and supplying the new caption node to the existing
   shot-effects fixture. Focused cue and shot-effects harnesses passed too.
+- 2026-09-27: `tools/test_godot_check.sh` passed all ten verifier scenarios,
+  including missing PASS markers, nonzero exits, debug socket failures and
+  error lines mixed with passing output.
 - Remaining before the slice passes its player acceptance gate: an unsteered
   player's first Crawler encounter and a human muted-sound trial. Sound loading
   and event routing were checked, but no human listening result is recorded.
