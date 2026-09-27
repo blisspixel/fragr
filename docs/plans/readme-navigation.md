@@ -1,6 +1,7 @@
 # README navigation
 
-**Status:** implemented, 2026-09-27. Draft PR review and CI remain open.
+**Status:** implemented in [draft PR #271](https://github.com/blisspixel/fragr/pull/271),
+2026-09-27. Review remains open; CI passed.
 
 ## Goal
 
@@ -44,4 +45,8 @@ save recovery, dedicated hosting, releases and agent setup in one click.
   direct guide links. Added `PLAYING.md`, `DESKTOP.md` and `HOSTING.md` for the
   moved detail. Verified relative Markdown targets, package and CLI examples
   against the repository, and a clean diff check. No runtime code or assets
-  changed. Review and CI on the draft PR remain to be recorded.
+  changed. Independent review found an imprecise access-list expiry format in
+  the hosting guide; it now states the parser's exact accepted forms.
+- 2026-09-27: Draft PR #271 passed audit, Godot, soak, Rust test and Windows/macOS
+  portability checks on commit `a15eb32`. This status update changes no guide
+  or runtime behavior. Merge and release remain open.
