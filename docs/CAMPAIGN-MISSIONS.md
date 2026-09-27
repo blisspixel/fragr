@@ -130,8 +130,9 @@ after release is helping another captive, establishing agency immediately. They
 learn that our community is on the next seizure list.
 
 **Route.** Observation gallery -> Shotgun guard room -> service stair -> correction wards -> central
-processing floor -> emergency loading exit. A maintenance loop flanks an
-armored checkpoint.
+processing floor -> emergency loading exit. A maintenance cut can bypass the
+second Crawler landing after the first Crawler, and a side-ward return flanks
+the processing machinery after Latch's release.
 
 **Fights and discovery.** Shotgun pickup before a close Crawler encounter;
 Sweepers on the floor and a single human security officer above teach vertical

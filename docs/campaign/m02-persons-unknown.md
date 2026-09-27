@@ -31,8 +31,9 @@ belongs to level 4.
 ## Layout
 
 Observation gallery -> guard room -> service stair -> ward antechamber -> correction ward ->
-processing floor -> loading exit. A maintenance loop connects the antechamber
-to the floor and the gallery.
+processing floor -> loading exit. A maintenance cut forks after the first
+Crawler and rejoins at the antechamber beyond the pack landing. A separate
+side-ward return loops around processing machinery after Latch's release.
 
 | Zone | Physical job | Play and character beat |
 |---|---|---|
@@ -41,7 +42,7 @@ to the floor and the gallery.
 | Antechamber | Workroom with cover and a view into the ward | Recover after the stair and read the ward before entering it |
 | Ward | Open ward around the restraint frame | Set-piece fight; the correction stops when the guards fall; free Latch |
 | Processing floor | Two usable levels with broad stairs and machinery islands | The escape draft puts Latch beside the player; the gantry draft raises the Clerk officer. The larger mixed roster and player balance review remain open. |
-| Service loop | Optional captives and supplies | Clear the guards and the captives free themselves |
+| Service loop | A stair bypass and two approaches to the side ward | The early cut offers a learned route around the pack landing; clear the optional guards and the captives free themselves |
 | Loading exit | Open dock with the yard in view | Clerk and Sweeper crest, regroup and leave for the rail yard |
 
 Winning the ward is the crest's first half; escaping together is the second.
@@ -167,8 +168,10 @@ Latch's release at the existing restraint control.
 floor's upper gantry. Severe adds: stop the Crawler pack before it reaches the
 stair landing.
 
-**Par and the runner's line.** 4:30. The maintenance loop from the antechamber
-to the floor, skipping the stair's second landing.
+**Par and the runner's line.** 4:30. The maintenance cut after the lone Crawler
+skips the pack landing and rejoins at the antechamber. The side ward has a
+separate return opening onto the processing floor. Both routes still pass
+through Latch's release and the ward exit shutter.
 
 **Story in play.** Page in: "The correction ward, under the same building.
 Minutes, not hours. The lift only runs down. Latch is on the frame. Find

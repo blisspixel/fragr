@@ -413,7 +413,8 @@ frame; the machine stops when its guards fall. **Landmark:** the frame, seen
 through the observation glass from the first room. **Turn:** a Notary behind the
 glass photographs captives, out of reach, the Office filing what it sees.
 **New:** Shotgun (guard room above the stair); Crawler (service stair). **Route:** descending
-spiral, gallery to ward to floor, with a maintenance loop back up. **Doors:** 1,
+spiral, gallery to ward to floor, with a service bypass around the pack landing
+and a side-ward return around floor machinery. **Doors:** 1,
 the ward exit shutter raised on Latch's release. **Brief:** A: free the side
 ward. S: clear the
 processing floor's upper gantry. Sv: stop the Crawler pack before it reaches

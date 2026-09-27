@@ -17,6 +17,7 @@ Status words: **proposed** (a design awaiting Nick's decision; directs no work),
 
 | Plan | Status | One-liner |
 |---|---|---|
+| [`m02-maintenance-circulation.md`](./m02-maintenance-circulation.md) | **in flight** | Add a service bypass after the first Crawler and a processing-floor return through the side ward, while preserving Latch's release shutter. |
 | [`m02-floor-gantry.md`](./m02-floor-gantry.md) | **implemented**, [draft #275](https://github.com/blisspixel/fragr/pull/275) | Put the M02 processing-floor officer on the reachable upper mezzanine and measure the revised Standard and Severe fight. |
 | [`m02-side-ward.md`](./m02-side-ward.md) | **implemented**, [draft #276](https://github.com/blisspixel/fragr/pull/276) | Add an optional captive side ward beyond Latch's release shutter, with independent guards and an unchanged dock objective. |
 | [`m02-latch-autonomous-escape.md`](./m02-latch-autonomous-escape.md) | **in flight**, [draft #274](https://github.com/blisspixel/fragr/pull/274) | Give released Latch one server-owned allied body that helps through M02's processing floor without making the solo exit an escort gate. |
