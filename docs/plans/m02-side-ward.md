@@ -1,6 +1,7 @@
 # M02 optional side ward
 
-**Status:** in flight, 2026-09-27. This work follows the processing-floor
+**Status:** implemented in [draft #276](https://github.com/blisspixel/fragr/pull/276),
+2026-09-27. This work follows the processing-floor
 [gantry pass](m02-floor-gantry.md). It is one bounded part of the accepted
 [Persons Unknown brief](../campaign/m02-persons-unknown.md), not completion of
 the level or the later full maintenance loop.
