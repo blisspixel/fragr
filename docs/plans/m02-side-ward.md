@@ -159,13 +159,15 @@ maintenance loop, separate evacuated fact and unsteered review remain open.
   `cargo llvm-cov --workspace --locked --fail-under-lines 90` passed. Coverage
   was 93.79 percent of unfiltered workspace lines. `tools/godot_check.sh`,
   `tools/test_godot_check.sh`, `cargo deny check licenses bans sources`, and
-  `git diff --check` passed. CI will rerun whole-workspace gates on the draft.
+  `git diff --check` passed. Draft #276 CI passed its full test, Godot, audit,
+  soak and Windows and macOS portability jobs; the release packaging checks
+  also passed without publishing.
 - The release workspace build and deterministic 16-bot benchmark passed. Four
   named mixed-agent playtests passed. The six-map 2/6/6/8/12/16 roster script
   passed. A 120-second rotating-map soak held 20 Hz, with 0.51 ms lifetime
   p99 tick time and 38.8 MiB maximum RSS on the local Windows run. These arena
   results do not prove M02 balance or cloud capacity.
-- Remaining review gate: PR CI. Fresh-player navigation, visual readability
-  and side-fight balance still need human observation. The side ward is
+- Fresh-player navigation, visual readability and side-fight balance still
+  need human observation. The side ward is
   optional; it does not finish the maintenance loop or M02.
 - External spend was $0 for this slice. No cloud resource was applied.
