@@ -460,12 +460,13 @@ morality meter or a promise that good behavior guarantees survival.
 ## Open decisions
 
 The central arc, twenty levels in five episodes plus conditional epilogue, a
-four-hour target and mission-start continues refilled each episode are settled.
-Exact continue allowances, save policy, playable viewpoints, ally fates and
-optional co-op scope still need design. Detailed route, working cast/place
-names, exact companion relationship wording, individual wipe operations, final
-rescue tradeoffs, the reprieve's precise terms, final survival duration, travel
-technology, and sequel image remain proposals or open. The [story
+four-hour target and three mission-start continues refilled each episode are
+settled. Persistence across later levels, per-level viewpoint assignments,
+ally fates and optional co-op scope still need design. Detailed route, working
+cast/place names, exact companion relationship wording, individual wipe
+operations, final rescue tradeoffs, the reprieve's precise terms, final
+survival duration, travel technology, and sequel image remain proposals or
+open. The [story
 arc](campaign/story-arc.md)'s proposed canon, including the specific mechanism
 tying who the player rescued to the reprieve's telling, stays proposed until
 Nick accepts or strikes each item. Review the treatment before detailed

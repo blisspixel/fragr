@@ -17,6 +17,7 @@ Status words: **proposed** (a design awaiting Nick's decision; directs no work),
 
 | Plan | Status | One-liner |
 |---|---|---|
+| [`m01-m02-run-carry.md`](./m01-m02-run-carry.md) | **in flight** | Promote the same solo run from M01 into M02 with exact equipment, body and shared continues, plus a per-level attempt baseline and v2 save migration. |
 | [`m02-crawler-descent.md`](./m02-crawler-descent.md) | **in flight** | Draft low Crawler and later three-Crawler and Sweeper landing pass seeded route and rendered visual checks; fresh-player review remains. |
 | [`m02-latch-release.md`](./m02-latch-release.md) | **in flight** | Gate Latch's ward release on guard victory and a local restraint control, then project a visible one-time result to every role. |
 | [`m02-guard-room-at-stair-top.md`](./m02-guard-room-at-stair-top.md) | **implemented** ([#269](https://github.com/blisspixel/fragr/pull/269)) | Move the Shotgun and seated Clerk introduction above M02's service stair before the Crawler descent. |
