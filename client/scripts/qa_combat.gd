@@ -83,6 +83,28 @@ static func valid_waypoints(value: Variant) -> bool:
 				return false
 	return true
 
+## Server-tick cadence for a bounded tour probe. The player keeps ordinary
+## movement, aim, health, ammunition and weapon cooldowns.
+static func valid_fire_cadence(value: Variant) -> bool:
+	if not value is Dictionary or value.size() != 3:
+		return false
+	for key: String in ["period_ticks", "fire_ticks", "duration_ticks"]:
+		if not value.has(key) or not (value[key] is int or value[key] is float):
+			return false
+		var number: float = float(value[key])
+		if not is_finite(number) or number < 0.0 or number > 400.0 or number != floorf(number):
+			return false
+	var period: int = value["period_ticks"]
+	var fire: int = value["fire_ticks"]
+	var duration: int = value["duration_ticks"]
+	return period >= 4 and period <= 80 and fire >= 1 and fire < period and \
+		duration >= 20 and duration <= 400
+
+static func cadence_allows_fire(cadence: Dictionary, elapsed_ticks: int) -> bool:
+	if elapsed_ticks >= int(cadence["duration_ticks"]):
+		return true
+	return elapsed_ticks % int(cadence["period_ticks"]) < int(cadence["fire_ticks"])
+
 static func actor_by_id(snapshot: Dictionary, id: String) -> Dictionary:
 	for actor: Dictionary in snapshot.get("players", []):
 		if str(actor["id"]) == id:
@@ -310,6 +332,15 @@ static func follow_route(me: Dictionary, camera: Node3D, route: Array, index: in
 
 func run(tree: SceneTree, manager: Node, spec: Dictionary, output: String) -> Dictionary:
 	begin(manager)
+	var fire_cadence: Dictionary = {}
+	if spec.has("fire_cadence"):
+		if not valid_fire_cadence(spec["fire_cadence"]):
+			push_error("qa_combat: invalid bounded fire cadence")
+			return {"passed": false}
+		fire_cadence = spec["fire_cadence"]
+	if spec.has("require_companion_damage") and not spec["require_companion_damage"] is bool:
+		push_error("qa_combat: companion damage requirement must be a boolean")
+		return {"passed": false}
 	_kind = str(spec.get("kind", ""))
 	var expected: int = int(spec.get("defeat", 0))
 	if not valid_waypoints(spec.get("search_route", [])):
@@ -319,6 +350,9 @@ func run(tree: SceneTree, manager: Node, spec: Dictionary, output: String) -> Di
 		push_error("qa_combat: invalid approach route")
 		return {"passed": false}
 	var required: Array = spec.get("required", [])
+	if spec.get("require_companion_damage", false) and required.is_empty():
+		push_error("qa_combat: companion damage proof requires named targets")
+		return {"passed": false}
 	var required_phases_value: Variant = spec.get("required_phases", [])
 	if not required_phases_value is Array or required_phases_value.size() > ActorState.PHASES.size():
 		push_error("qa_combat: invalid required phases")
@@ -359,6 +393,7 @@ func run(tree: SceneTree, manager: Node, spec: Dictionary, output: String) -> Di
 	var info: Dictionary = manager.get("current_map_info")
 	var solids: Array = info["solids"]
 	var frames: Array[Image] = []
+	var companion_fire_file: String = ""
 	var captured: Dictionary[String, bool] = {}
 	var captured_ticks: Dictionary[String, int] = {}
 	var deadline: int = Time.get_ticks_msec() + 25000
@@ -367,6 +402,10 @@ func run(tree: SceneTree, manager: Node, spec: Dictionary, output: String) -> Di
 	var last_target_id: String = ""
 	var alive: bool = true
 	var starting_actor: Dictionary = actor_by_id(manager.get("latest_snapshot"), _player_id)
+	var start_tick: int = int(manager.get("latest_snapshot").get("tick", 0))
+	var companion_shots_before: int = companion_shots.size()
+	var participant_hp_start: int = int(starting_actor.get("hp", 0))
+	var participant_armor_start: int = int(starting_actor.get("armor", 0))
 	var anchor: Vector2 = Vector2(starting_actor.get("x", 0.0), starting_actor.get("z", 0.0))
 	_evade_left = true
 	_evade_started = -1
@@ -411,6 +450,8 @@ func run(tree: SceneTree, manager: Node, spec: Dictionary, output: String) -> Di
 		elif not target.is_empty() and alive and not complete:
 			var may_fire: bool = (not spec.get("observe_first_shot", false) or enemy_shots > 0) and \
 				(observe_phase.is_empty() or phases.has(observe_phase))
+			if not fire_cadence.is_empty():
+				may_fire = may_fire and cadence_allows_fire(fire_cadence, maxi(0, int(snapshot["tick"]) - start_tick))
 			engage(manager, me, target, solids, anchor, spec.get("evade_tells", false), may_fire)
 		elif target.is_empty() and alive and not complete and search_index < search_route.size():
 			var previous_index: int = search_index
@@ -428,10 +469,23 @@ func run(tree: SceneTree, manager: Node, spec: Dictionary, output: String) -> Di
 			capture_key = str(rendered["campaign"]["kind"]) + "_" + str(rendered["campaign"]["phase"])
 		# Single-shot firing can last only one server tick. Capture a new phase
 		# immediately as well as sampling the ongoing motion at a steady cadence.
-		if frames.size() < 128 and (Time.get_ticks_msec() >= next_frame or (not capture_key.is_empty() and not captured.has(capture_key))):
+		var new_companion_hit: bool = false
+		if companion_fire_file.is_empty():
+			for companion_shot: Dictionary in companion_shots.slice(companion_shots_before):
+				if int(companion_shot["damage"]) > 0:
+					new_companion_hit = true
+					break
+		if new_companion_hit or (frames.size() < 128 and (Time.get_ticks_msec() >= next_frame or \
+			(not capture_key.is_empty() and not captured.has(capture_key)))):
 			next_frame = Time.get_ticks_msec() + 150
 			await RenderingServer.frame_post_draw
 			var frame: Image = tree.root.get_texture().get_image()
+			if new_companion_hit:
+				var support_file: String = output + "_companion_fire.png"
+				if frame.save_png(support_file) == OK:
+					companion_fire_file = support_file
+				else:
+					push_error("qa_combat: failed to save companion fire frame")
 			# Label the rendered state, not the observation from before the await.
 			snapshot = manager.get("latest_snapshot")
 			target = actor_by_id(snapshot, last_target_id)
@@ -471,8 +525,20 @@ func run(tree: SceneTree, manager: Node, spec: Dictionary, output: String) -> Di
 	var no_damage_proven: bool = not bool(spec.get("expect_first_crawler_no_damage", false)) or \
 		first_crawler_encounter_no_damage_proven()
 	var approach_complete: bool = approach_index == approach_route.size()
+	var stage_companion_shots: Array[Dictionary] = companion_shots.slice(companion_shots_before)
+	var companion_damage: bool = false
+	for shot: Dictionary in stage_companion_shots:
+		if int(shot["damage"]) > 0 and str(shot["target"]) in required:
+			companion_damage = true
+	var participant_end: Dictionary = actor_by_id(manager.get("latest_snapshot"), _player_id)
 	var passed: bool = alive and not participant_died and completed and saved and \
-		phases_proven and no_damage_proven and approach_complete
+		phases_proven and no_damage_proven and approach_complete and \
+		(not spec.get("require_companion_damage", false) or companion_damage)
+	if spec.get("require_companion_damage", false):
+		print("qa_combat: companion support ", JSON.stringify({"shots": stage_companion_shots,
+			"participant_hp_start": participant_hp_start, "participant_armor_start": participant_armor_start,
+			"participant_hp_end": int(participant_end.get("hp", 0)),
+			"participant_armor_end": int(participant_end.get("armor", 0)), "passed": companion_damage}))
 	if not passed:
 		push_error("qa_combat: %s defeated %d, required %s confirmed %s, shots %d, alive %s, saved %s, approach %s, encounter HP %d to %d, no damage %s" % [
 			_kind, defeated.size(), required, confirmed_names.keys(), shots, alive, saved,
@@ -487,6 +553,13 @@ func run(tree: SceneTree, manager: Node, spec: Dictionary, output: String) -> Di
 		"confirmed": confirmed_names,
 		"shots": shots,
 		"enemy_shots": enemy_shots,
+		"companion_shots": stage_companion_shots,
+		"companion_damage": companion_damage,
+		"companion_fire_file": companion_fire_file,
+		"participant_hp_start": participant_hp_start,
+		"participant_armor_start": participant_armor_start,
+		"participant_hp_end": int(participant_end.get("hp", 0)),
+		"participant_armor_end": int(participant_end.get("armor", 0)),
 		"observed_phases": phases.keys(),
 		"observed_kind_phases": phases_by_kind.keys(),
 		"captured_phases": captured.keys(),
@@ -500,7 +573,7 @@ func run(tree: SceneTree, manager: Node, spec: Dictionary, output: String) -> Di
 		"first_crawler_encounter_low_hp": first_crawler_encounter_low_hp,
 		"first_crawler_no_damage_proven": first_crawler_encounter_no_damage_proven(),
 		"first_crawler_trace": first_crawler_trace.duplicate(true),
-		"samples": samples,
+		"samples": samples.duplicate(true),
 	}
 
 static func required_phases_proven(observed: Dictionary, captured: Dictionary,

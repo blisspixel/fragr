@@ -890,7 +890,10 @@ an active visible Union enemy, with `phase_started` set to that transition tick.
 Their resolved shots use the ordinary `shot_results` channel. They are present in
 snapshots for late observers and reconnects, but never take a party seat, score,
 participant record or supply claim. They are not a departure requirement or bullet
-shield, and ordinary combat cannot kill them. M02 attempt reset removes them and
+shield, and ordinary combat cannot kill them. A centered preflight avoids firing
+through a participant's known position. If movement or Tack spread later crosses
+that participant, the companion ray ignores their body and cannot report a hit
+on them. M02 attempt reset removes Latch and
 a later lawful release spawns one fresh pawn.
 
 An M02 Clerk can initially include `"seated":true` while idle in the guard
@@ -904,7 +907,7 @@ security), `sweeper` (bot), `heavy_sweeper` (armored bot), `turret` (fixed
 equipment) or `crawler` (low constrained bot). Names are labels, never a
 targeting rule. Current
 campaign identity describes these introductory encounters; it does not implement
-Inheritance takeover, companions or the complete co-op lifecycle.
+Inheritance takeover, additional companions or the complete co-op lifecycle.
 
 Phases are `idle`, `moving`, `windup`, `leaping`, `firing`, `recovery`, `hit` and `dead`.
 Their start/end are authoritative simulation ticks at 20 Hz. Idle and moving

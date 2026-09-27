@@ -2082,11 +2082,16 @@ impl GameState {
             }
         }
         let mut closest_idx = None;
+        // Companion fire must never consume a ray on a friendly body. The
+        // earlier support preflight uses a centered ray before movement, while
+        // this resolved ray includes spread and current participant positions.
+        let companion_shot = self.players[shooter_idx].is_campaign_companion();
         for (i, target) in self.players.iter().enumerate() {
             if i == shooter_idx
                 || target.hp <= 0
                 || target.respawn_timer.is_some()
                 || target.is_campaign_companion()
+                || (companion_shot && target.is_participant())
                 || !crate::mission::actor_active(self.mission.as_ref(), target.id, target.campaign)
                 || self.spawn_shields.get(&target.id).is_some_and(|t| *t > 0)
             {

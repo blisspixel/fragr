@@ -191,8 +191,26 @@ place controls, save behavior and mission detail in its linked guides.
   Severe, then four shots, 80 damage and one kill in 25 seconds while three
   floor enemies remain alive. That test also places the participant at the
   floor trigger, so it proves the action and shot path, not natural survival
-  or encounter balance. Rendered support fire and a normal-paced player gate
-  remain open. Keep this limit visible in PR review.
+  or encounter balance. Keep this limit visible in PR review.
+- 2026-09-27: A separate 18-state Godot support route kept ordinary health,
+  armor, ammunition, pickups and damage, with player fire paced for five
+  seconds. On the final server, Standard departed after Latch's one 20-damage
+  Tack hit killed the floor Sweeper and the player cleared the other three
+  floor enemies; floor HP went from 75 to 50. Severe also departed: Latch
+  dealt 20 damage to the floor Sweeper, the player made all four floor kills,
+  and floor HP went from 55 to 40. Full-size frames captured Latch in the
+  active fight when the authoritative shots resolved. These are scripted
+  authoring routes, not normal-paced or unsteered play. Earlier scratch
+  no-fire probes entered at 30 to 55 HP after earlier fights and died; they
+  do not establish ordinary difficulty or contradict the passing routes.
+- 2026-09-27: The rendered route exposed one zero-damage companion shot
+  reported against the participant. The centered preflight used pre-tick
+  positions, whereas the live Tack ray used spread after movement. Companion
+  rays now ignore participant bodies while the preflight still avoids a known
+  blocked lane. A seeded regression places an unshielded participant inside
+  the actual spread ray and proves no participant ShotResult or damage while
+  the enemy behind takes the hit. Ordinary fighter collision is unchanged.
+  Neither final Godot route reported a companion hit on the participant.
 
 ### Local verification so far
 
@@ -205,7 +223,11 @@ passed 32 states and published 13 selected stills; the four README stills and
 the M02 second bay, floor and departure frames were inspected. Four live
 playtest variants passed with zero spawn deaths. The six-map mixed roster
 passed at 2, 6, 6, 8, 12 and 16 clients. It recorded one post-spawn death on
-map 4 and no opening spawn deaths. PR CI is pending at this point.
+map 4 and no opening spawn deaths. The complete combined PR CI passed at
+`75bb339`. After the support QA and friendly-collision patch, format,
+workspace Clippy, workspace tests, 93.75% unfiltered line coverage of
+60,370 lines, workspace release build and pinned Godot checks pass locally.
+Final PR CI remains pending.
 
 | Workload | Machine and roster | Evidence |
 |---|---|---|

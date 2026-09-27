@@ -22,6 +22,24 @@ func _initialize() -> void:
 	_check(QaCombat.valid_waypoints([[1, 2.0, 3]]), "finite route accepted")
 	for invalid: Variant in [null, {}, [1, 2, 3], [[1, 2]], [[1, INF, 3]], [[1, "2", 3]]]:
 		_check(not QaCombat.valid_waypoints(invalid), "invalid route rejected")
+	var cadence: Dictionary = {"period_ticks": 24, "fire_ticks": 4, "duration_ticks": 160}
+	_check(QaCombat.valid_fire_cadence(cadence), "bounded server-tick fire cadence accepted")
+	var parsed_cadence: Variant = JSON.parse_string('{"period_ticks":24,"fire_ticks":4,"duration_ticks":160}')
+	_check(QaCombat.valid_fire_cadence(parsed_cadence), "JSON numeric cadence accepted at the manifest boundary")
+	for invalid: Variant in [null, {}, {"period_ticks": 24, "fire_ticks": 4},
+		{"period_ticks": true, "fire_ticks": 4, "duration_ticks": 160},
+		{"period_ticks": 24.5, "fire_ticks": 4, "duration_ticks": 160},
+		{"period_ticks": 0, "fire_ticks": 4, "duration_ticks": 160},
+		{"period_ticks": 24, "fire_ticks": 24, "duration_ticks": 160},
+		{"period_ticks": 24, "fire_ticks": 4, "duration_ticks": 401},
+		{"period_ticks": 24, "fire_ticks": 4, "duration_ticks": 160, "extra": 1}]:
+		_check(not QaCombat.valid_fire_cadence(invalid), "invalid or unbounded fire cadence rejected")
+	_check(QaCombat.cadence_allows_fire(cadence, 0) and QaCombat.cadence_allows_fire(cadence, 3)
+		and not QaCombat.cadence_allows_fire(cadence, 4)
+		and QaCombat.cadence_allows_fire(cadence, 24)
+		and not QaCombat.cadence_allows_fire(cadence, 159)
+		and QaCombat.cadence_allows_fire(cadence, 160),
+		"fire pulses resume on server ticks and stop throttling after the bounded window")
 	for invalid: Variant in [null, [], [1], [{"walk_to": [1, 2, 3]}]]:
 		_check(not TOUR.valid_walks(invalid), "invalid manifest walking shape rejected before play")
 	_check(not TOUR.valid_walks([{"camera":"overview", "camera_position":[0, INF, 0],
@@ -37,6 +55,11 @@ func _initialize() -> void:
 			continue
 		var manifest: Variant = JSON.parse_string(FileAccess.get_file_as_string("res://qa/" + filename))
 		_check(manifest is Dictionary and TOUR.valid_walks(manifest.get("states")), filename + " has valid walking routes")
+		if manifest is Dictionary:
+			for state: Variant in manifest.get("states", []):
+				if state is Dictionary and state.get("combat") is Dictionary and state["combat"].has("fire_cadence"):
+					_check(QaCombat.valid_fire_cadence(state["combat"]["fire_cadence"]),
+						filename + " has a valid bounded fire cadence")
 	var me: Dictionary = {"id":"player", "hp":100, "x":0.0, "y":1.5, "z":0.0, "campaign":{"side":"participant"}}
 	var friend: Dictionary = me.duplicate(true)
 	friend["id"] = "friend"

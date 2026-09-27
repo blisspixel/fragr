@@ -961,6 +961,103 @@ fn companion_only_fires_bounded_support_at_visible_active_union() {
 }
 
 #[test]
+fn companion_spread_cannot_turn_a_clear_support_shot_into_a_participant_hit() {
+    let (mut state, participant_id) = ward_test_state();
+    at_frame_facing_control(&mut state, participant_id);
+    state.update_encounters();
+    state.advance_m02();
+    let target_id = state
+        .players
+        .iter()
+        .find(|p| p.name == "ward_sweeper")
+        .unwrap()
+        .id;
+    assert!(state.encounters.is_active_enemy(target_id));
+    for enemy in state
+        .players
+        .iter_mut()
+        .filter(|p| p.is_campaign_enemy() && p.id != target_id)
+    {
+        enemy.hp = 0;
+    }
+    let companion_id = state.spawn_m02_companion().unwrap();
+    let companion = state
+        .players
+        .iter_mut()
+        .find(|p| p.id == companion_id)
+        .unwrap();
+    [companion.x, companion.y, companion.z] = [6.5, PLAYER_FLOOR_Y, -10.0];
+    companion.campaign = Some(CampaignActor::Companion {
+        kind: crate::protocol::CompanionKind::Latch,
+        phase: CompanionPhase::Following,
+        phase_started: state.tick,
+    });
+    let target = state
+        .players
+        .iter_mut()
+        .find(|p| p.id == target_id)
+        .unwrap();
+    [target.x, target.y, target.z] = [4.0, PLAYER_FLOOR_Y, -11.0];
+    let participant = state
+        .players
+        .iter_mut()
+        .find(|p| p.id == participant_id)
+        .unwrap();
+    [participant.x, participant.y, participant.z] = [5.25, PLAYER_FLOOR_Y, -11.05];
+    let participant_hp = participant.hp;
+    assert!(!state.spawn_shields.contains_key(&participant_id));
+
+    let (_, intent) = state.m02_companion_intent().unwrap();
+    assert!(intent.action.fire, "the centered preflight ray is clear");
+    assert_eq!(
+        intent.action.look_at.as_ref().unwrap().player_id,
+        Some(target_id)
+    );
+    state.seed(9);
+    state.set_companion_action(companion_id, intent.action);
+    state.tick(0.0);
+
+    assert_eq!(
+        state
+            .players
+            .iter()
+            .find(|p| p.id == participant_id)
+            .unwrap()
+            .hp,
+        participant_hp
+    );
+    assert!(state
+        .snapshot()
+        .shot_results
+        .iter()
+        .all(|shot| { shot.shooter_id != companion_id || shot.target_id != Some(participant_id) }));
+    let shot = state
+        .snapshot()
+        .shot_results
+        .into_iter()
+        .find(|shot| shot.shooter_id == companion_id && shot.target_id == Some(target_id))
+        .expect("the shot passes through the participant and reaches the target");
+    assert!(shot.damage > 0);
+    let trace = shot.trace.unwrap();
+    let delta: [f32; 3] = std::array::from_fn(|i| trace.end[i] - trace.origin[i]);
+    let length = delta.iter().map(|v| v * v).sum::<f32>().sqrt();
+    let ray = crate::combat::Ray {
+        origin: trace.origin,
+        direction: delta.map(|v| v / length),
+    };
+    assert!(
+        ray.fighter_with_height(
+            [5.25, 0.0, -11.05],
+            crate::sim::PLAYER_RADIUS,
+            crate::combat::FIGHTER_HEIGHT,
+            length,
+        )
+        .is_some(),
+        "the actual spread ray crosses the unshielded participant"
+    );
+}
+
+#[test]
 fn controlled_unshielded_escape_companion_reaches_floor_and_resolves_a_shot() {
     for difficulty in [
         crate::protocol::CampaignDifficulty::Standard,
