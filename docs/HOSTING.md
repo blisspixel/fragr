@@ -17,9 +17,12 @@ cargo run -p fragr-server --locked -- --bind 0.0.0.0:6767 --bots 4
 
 Open the client and choose **Multiplayer**. On another machine, set
 `FRAGR_SERVER` to `your-host:6767` before launching. For a LAN match, keep
-TCP 6767 inside the network. To invite people over the internet, forward
-or allow TCP 6767 to the host and set the access policy below. Tailscale is
-optional for private tests, not a requirement for a public host.
+TCP 6767 inside the network. Trusted friends can use a forwarded TCP 6767
+port with the access policy below. The direct `ws://` connection is not
+encrypted, and today's ticket flow gives each fighter the shared secret.
+A stranger-facing host still needs TLS termination and a server-side ticket
+issuer; that public admission path is planned, not shipped. Tailscale is
+optional for private tests.
 
 Other examples:
 
@@ -45,9 +48,10 @@ cover the rule contract.
 
 Without `FRAGR_JOIN_SECRET`, the join-ticket requirement is disabled; bans,
 allow lists and capacity checks still apply. Set a
-16 to 256 byte value on the host and on each human or agent allowed to fight
-when you want ticketed admission. The clients mint short-lived tickets;
-spectators do not need one. The value stays in the environment, not a CLI
+16 to 256 byte value on the host and on each trusted human or agent allowed
+to fight when you want ticketed admission. The clients mint short-lived
+tickets; this shared value is not a public player credential or user identity.
+Spectators do not need one. The value stays in the environment, not a CLI
 flag or saved game setting. An empty value leaves the host open, and a value
 of the wrong length prevents startup. Host and client clocks should be within
 about 15 seconds. A dropped pawn is parked briefly for resume; explicit
