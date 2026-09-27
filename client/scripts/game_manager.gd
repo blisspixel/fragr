@@ -16,6 +16,7 @@ var arena_flags: ArenaFlags = null
 var tip_force_jammer_dish = false
 const JammerDishBuilderScript = preload("res://scripts/jammer_dish.gd")
 const StanceChipScript = preload("res://scripts/stance_chip.gd")
+const NameplateLayoutScript = preload("res://scripts/nameplate_layout.gd")
 var pickup_scene = preload("res://scenes/weapon_pickup.tscn")
 var player_scene = preload("res://scenes/player.tscn")
 var arena_duel_scene = preload("res://scenes/arena.tscn")
@@ -501,6 +502,7 @@ func _process(_delta):
 		mouse_capture.set_gameplay(not controls_blocked())
 	if not is_human_player:
 		_update_followed_weapon()
+	_update_nameplates()
 	if camera and is_human_player:
 		camera.assist_targets = assist_targets()
 	if hud and camera:
@@ -881,7 +883,6 @@ func _on_snapshot_received(data):
 		for pawn in players.values():
 			if is_instance_valid(pawn):
 				pawn.set_highlighted(pawn == followed)
-				pawn.set_nameplate_enabled(not is_human_player and not camera.is_observing_first_person())
 				pawn.broadcast_scale_enabled = not is_human_player and not camera.is_observing_first_person()
 	
 	_update_followed_weapon()
@@ -895,6 +896,67 @@ func _on_snapshot_received(data):
 	_process_shot_results(data.get("shot_results", []), int(data.get("tick", -1)))
 	hud.equipment_hud.tick = int(data.get("tick", 0))
 	_refresh_equipment_visibility()
+	_update_nameplates()
+
+func _nameplate_rect(view: Camera3D, label: Label3D) -> Rect2:
+	var font: Font = label.font if label.font != null else ThemeDB.fallback_font
+	var text_size: Vector2 = Vector2(label.text.length() * label.font_size * 0.6, label.font_size)
+	if font != null:
+		text_size = font.get_string_size(label.text, HORIZONTAL_ALIGNMENT_LEFT, -1, label.font_size)
+	var width: float = (text_size.x + label.outline_size * 2.0 + 12.0) * label.pixel_size * label.scale.x
+	var height: float = (text_size.y + label.outline_size + 8.0) * label.pixel_size * label.scale.y
+	var point: Vector3 = label.global_position
+	var right: Vector3 = view.global_transform.basis.x.normalized()
+	var up: Vector3 = view.global_transform.basis.y.normalized()
+	var left_px: Vector2 = view.unproject_position(point - right * width * 0.5)
+	var right_px: Vector2 = view.unproject_position(point + right * width * 0.5)
+	var top_px: Vector2 = view.unproject_position(point + up * height * 0.5)
+	var bottom_px: Vector2 = view.unproject_position(point - up * height * 0.5)
+	return Rect2(Vector2(minf(left_px.x, right_px.x), minf(top_px.y, bottom_px.y)),
+		Vector2(absf(right_px.x - left_px.x), absf(bottom_px.y - top_px.y))).grow(4.0)
+
+func _update_nameplates() -> void:
+	if camera == null:
+		return
+	var viewport: Viewport = get_viewport()
+	if viewport == null:
+		return
+	var watching: bool = not is_human_player and not camera.is_observing_first_person()
+	var view: Camera3D = viewport.get_camera_3d()
+	if not watching or view == null:
+		for pawn: Node in players.values():
+			if is_instance_valid(pawn):
+				pawn.set_nameplate_enabled(false)
+		return
+	var carrier_ids: Array[String] = []
+	var flags: Variant = latest_snapshot.get("flags")
+	if flags is Array:
+		for flag: Variant in flags:
+			if flag is Dictionary and flag.get("status") == "carried" and flag.get("carrier") is String:
+				carrier_ids.append(str(flag["carrier"]))
+	var followed: Node = camera.get_followed_target()
+	var viewport_rect: Rect2 = viewport.get_visible_rect()
+	var entries: Array[Dictionary] = []
+	for id: Variant in players:
+		var pawn: Node3D = players[id]
+		if not is_instance_valid(pawn):
+			continue
+		var label: Label3D = pawn.get_node_or_null("Label3D") as Label3D
+		if label == null or view.is_position_behind(label.global_position):
+			pawn.set_nameplate_enabled(false)
+			continue
+		var area: Rect2 = _nameplate_rect(view, label)
+		if not viewport_rect.intersects(area):
+			pawn.set_nameplate_enabled(false)
+			continue
+		var priority: int = 0 if carrier_ids.has(str(id)) else (1 if pawn == followed else 2)
+		entries.append({"id": str(id), "rect": area, "priority": priority,
+			"distance": view.global_position.distance_to(label.global_position)})
+	var visible_ids: Array[String] = NameplateLayoutScript.choose(entries)
+	for id: Variant in players:
+		var pawn: Node = players[id]
+		if is_instance_valid(pawn):
+			pawn.set_nameplate_enabled(visible_ids.has(str(id)))
 
 func _on_event_received(data):
 	var event_type = data.get("event", "")
