@@ -55,7 +55,8 @@ Leave removes it immediately. See the [wire contract](protocol.md) and
 
 Use `--ban-list bans.txt` to refuse peers or `--allow-list allow.txt` to admit
 only listed addresses. Each line is an IP address or CIDR range, optionally
-followed by `expires=2026-10-01` or an RFC 3339 UTC timestamp and then
+followed by `expires=2026-10-01` or exactly
+`expires=2026-10-01T18:00:00Z` and then
 `reason=` text. Lines beginning with `#` are comments. A ban wins over an
 allow entry. Lists apply to watchers too. The server reloads them every five
 seconds; a bad reload keeps the previous valid list and logs the error. A
