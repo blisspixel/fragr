@@ -43,7 +43,8 @@ cover the rule contract.
 
 ## Join tickets and access lists
 
-Without `FRAGR_JOIN_SECRET`, a local or LAN host accepts every hello. Set a
+Without `FRAGR_JOIN_SECRET`, the join-ticket requirement is disabled; bans,
+allow lists and capacity checks still apply. Set a
 16 to 256 byte value on the host and on each human or agent allowed to fight
 when you want ticketed admission. The clients mint short-lived tickets;
 spectators do not need one. The value stays in the environment, not a CLI
