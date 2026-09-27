@@ -108,14 +108,11 @@ remains usable. Preserve M01 run carry and the M02 development child.
 
 ## Open review
 
-The accepted brief describes a maintenance line from the antechamber to the
-floor that also skips the stair's second landing, although the antechamber is
-after that landing in the current route. The full loop needs a route sketch
-and junction decision before its walls move. The release shutter is now the
-common boundary: any future gallery-to-antechamber shortcut or maintenance
-flank must rejoin on the ward side of that shutter, then reach the floor only
-after Latch's release. The optional side ward can ship without deciding the
-earlier shortcut. The Notary remains an unreachable, noncombat
+The [maintenance circulation draft](m02-maintenance-circulation.md) corrects
+the accepted brief's route order: its stair bypass rejoins at the antechamber
+before the release shutter, and a second side-ward opening loops back onto the
+floor after Latch's release. The optional side ward can ship independently of
+that route. The Notary remains an unreachable, noncombat
 M02 sighting and first fights in level 4; the older
 [`flying-drones.md`](flying-drones.md) mission numbers need correction when its
 plan is next edited.
@@ -139,7 +136,8 @@ and after its separate guard encounter:
 
 The room remains graybox art. A scripted clear with ordinary combat proves the
 route and state contract, not fresh-player readability or final balance. The full
-maintenance loop, separate evacuated fact and unsteered review remain open.
+maintenance circulation is in [draft #277](https://github.com/blisspixel/fragr/pull/277).
+The separate evacuated fact and unsteered review remain open.
 
 ## Verification and handoff
 

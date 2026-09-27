@@ -1,7 +1,8 @@
 # M02 maintenance circulation
 
-**Status:** in flight, 2026-09-27. This follows the [optional side ward](m02-side-ward.md)
-in draft #276 and belongs to the accepted [Persons Unknown brief](../campaign/m02-persons-unknown.md).
+**Status:** implemented in [draft #277](https://github.com/blisspixel/fragr/pull/277),
+2026-09-27. This follows the [optional side ward](m02-side-ward.md) in draft
+#276 and belongs to the accepted [Persons Unknown brief](../campaign/m02-persons-unknown.md).
 It does not complete the level.
 
 ## Goal and why
