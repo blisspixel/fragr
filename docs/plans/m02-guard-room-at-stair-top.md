@@ -1,6 +1,7 @@
 # M02 guard room at the stair top
 
-**Status:** implemented locally, 2026-09-27. Stacked on the implemented
+**Status:** implemented in [draft PR #269](https://github.com/blisspixel/fragr/pull/269),
+2026-09-27. Stacked on the implemented
 [Shotgun introduction](m02-shotgun-introduction.md) until its draft PR lands.
 
 ## Goal and reason
