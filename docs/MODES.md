@@ -34,14 +34,14 @@ This is not a rejection of depth. Item timing is deep and takes no thought to en
 
 ### Campaign
 
-Nine compact missions across Earth, Moon, Mars and a ship lead through rescue,
-resistance and Union defeat into a substantial tenth mission: surviving the wipe.
-The initial survival target is about 33 active minutes; survival unlocks a short
-playable epilogue. Exhausted failure receives its own ending and credits. A
-successful run targets 2-3 hours. Limited continues restart the
-current mission with its starting equipment; three per run is the initial balance
-proposal. Autonomous allies do not imply companion controls or revives, and
-all-mission co-op is not required. [CAMPAIGN.md](CAMPAIGN.md) owns this contract;
+Twenty compact levels in five episodes across Earth, Moon, Mars and a ship lead
+through rescue, resistance and Union defeat into a three-level wipe survival
+finale. Survival unlocks a short playable epilogue. Exhausted failure receives
+its own ending and credits. A successful run targets about four hours. Three
+continues refill at each episode start; each continue restarts the current
+level with its entry equipment. Autonomous allies do not imply companion
+controls or revives, and all-mission co-op is not required.
+[CAMPAIGN.md](CAMPAIGN.md) owns this contract;
 [mission briefs](CAMPAIGN-MISSIONS.md) own the proposed sequence. Weapon discovery,
 enemy combinations, secrets and alternate routes support that story.
 

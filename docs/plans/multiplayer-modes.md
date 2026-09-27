@@ -1,7 +1,6 @@
 # Plan: multiplayer modes
 
-**Status:** in flight (2026-09-25). Rung 1 below is built on
-`feat/multiplayer-modes`. Every later rung is a design.
+**Status:** rung 1 shipped in #258 (2026-09-25). Every later rung is a design.
 **Spend:** $0. Server rules, client presentation, harness runs and tour stills
 are local. No paid audio: the Host reactions are keyed text only.
 
@@ -185,8 +184,7 @@ capability 12 because an older client would refuse a loadout above 50 cells.
 
 ## What shipped
 
-Built on `feat/multiplayer-modes` (2026-09-25 and 26); the PR number is added
-at merge. Evidence recorded locally on Windows:
+Rung 1 merged in #258 (2026-09-25 and 26). Evidence recorded locally on Windows:
 
 - Server: 15 seeded tests in `server/src/tests/modes.rs` (balance, team spawns
   on all six maps, friendly fire both ways, side and elimination wins, each

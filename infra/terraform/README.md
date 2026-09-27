@@ -1,5 +1,7 @@
 # terraform
 
-Modules for the $0 GCE authority path land here.
+Plan-only GCE authority draft. `main.tf` contains a Debian VM and a placeholder
+Cloud Run adapter; it does not yet deploy the game server image.
 
-Until modules exist: follow `../README.md` and `../docs/ZERO-COST.md`. No apply without ACK.
+Follow `../README.md` and `../docs/ZERO-COST.md`. No apply without Nick's
+written approval and a reviewed cost estimate.

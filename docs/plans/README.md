@@ -9,7 +9,7 @@ Status words: **proposed** (a design awaiting Nick's decision; directs no work),
 ## Standing facts
 
 - Game port is **6767** (TCP today; UDP reserved for the planned low-latency transport).
-- Local play is $0. Public hosting sits under the $50 cap and needs written approval before anything bills. GCP Terraform stays plan-only until then.
+- Local play is $0. Public hosting sits under the $50 total cap. Nick authorized up to $20 combined external charges for 2026-09-26 build work, including a bounded GCP test if needed; production deployment still needs a reviewed cost and written approval. The current GCP Terraform remains plan-only.
 - Tailscale is private smoke only, never the documented join path.
 - The dedicated server bar is rock solid, secure, and cheap: input validation, rate limits, clean join and leave and reconnect, and a home box or small VM first.
 
@@ -17,9 +17,10 @@ Status words: **proposed** (a design awaiting Nick's decision; directs no work),
 
 | Plan | Status | One-liner |
 |---|---|---|
-| [`player-body-selection.md`](./player-body-selection.md) | **in flight** | Choose a human or an embodied agent in a synthetic body: capability 13 on Hello, Welcome and snapshots, saved in the profile, honored for agents, free-palette runtime art that keeps its colours on the coalition side. |
-| [`brain-local-model.md`](./brain-local-model.md) | **implemented** | Free open-weights decisions for `fragr-brain`: APUS-OpenJev-v1-4B through local Ollama, or a self-hosted openjev server (non-commercial weights), loopback only, strictly validated, with the paid path's budget and fallback and a measured laptop smoke. |
-| [`multiplayer-modes.md`](./multiplayer-modes.md) | **in flight** | Named rule sets chosen by the host: team deathmatch, six GoldenEye-style mutators, Host reactions and the 100 Cells cap; capture the flag, Rescue, Sabotage and a combined-arms mode designed next. |
+| [`dedicated-server-udp-and-hosting.md`](./dedicated-server-udp-and-hosting.md) | **in flight** | Build a tested local container host, then measure prediction on WebSocket before a UDP pilot and plan-only container cloud hosting. |
+| [`player-body-selection.md`](./player-body-selection.md) | **shipped** (#262) | Choose a human or an embodied agent in a synthetic body: capability 13 on Hello, Welcome and snapshots, saved in the profile, honored for agents, free-palette runtime art that keeps its colours on the coalition side. |
+| [`brain-local-model.md`](./brain-local-model.md) | **shipped** (#261) | Free open-weights decisions for `fragr-brain`: APUS-OpenJev-v1-4B through local Ollama, or a self-hosted openjev server (non-commercial weights), loopback only, strictly validated, with the paid path's budget and fallback and a measured laptop smoke. |
+| [`multiplayer-modes.md`](./multiplayer-modes.md) | **shipped, rung 1** (#258) | Named rule sets chosen by the host: team deathmatch, six GoldenEye-style mutators, Host reactions and the 100 Cells cap; capture the flag, Rescue, Sabotage and a combined-arms mode designed next. |
 | [`replayability.md`](./replayability.md) | **proposed** | Counter-Strike level replay: loops at three time scales, Rescue and Sabotage as the round-based flagship with no shop or scrip and lineups, mutators, Host reactions, agent rivals, feats, demos from the trace, and a build order. |
 | [`campaign-expansion.md`](./campaign-expansion.md) | **planned**, accepted 2026-09-25 | Twenty levels in five episodes for a four-hour first run, now the contract in [CAMPAIGN.md](../CAMPAIGN.md): the ten-mission spine kept, one new thing per level, the wipe in three levels, a brief by difficulty, par and replay waivers. The 2026-09-25 deep dive adds the [story arc](../campaign/story-arc.md), a full design per level and the pacing curve; the story arc itself stays proposed. |
 | [`m01-secret-shiv.md`](./m01-secret-shiv.md) | **shipped** ([#251](https://github.com/blisspixel/fragr/pull/251), v0.53.0) | M01's first secret: a pool-less Shiv in the confiscation alcove's south pocket, found by walking in, with capability 11, a quiet cue and a counted find. Replaces draft #203. |
@@ -157,7 +158,7 @@ Status words: **proposed** (a design awaiting Nick's decision; directs no work),
 | [`weapons-system.md`](./weapons-system.md) | **shipped** (v0.3.0) | Flechette, rail, and scatter roles. |
 | [`client-assets-wiring.md`](./client-assets-wiring.md) | **shipped** | Pixel assets wired into the Godot client. |
 | [`audio-drama.md`](./audio-drama.md) | **shipped** | Match audio drama with procedural CC0 audio. |
-| [`terraform-zero-cost-gcp.md`](./terraform-zero-cost-gcp.md) | **shipped** (plan-only, PR #5) | Zero-cost GCP IaC; no apply without approval. |
+| [`terraform-zero-cost-gcp.md`](./terraform-zero-cost-gcp.md) | **superseded** (PR #5 draft) | Historical Terraform draft. Current cost and deployment decisions live in the dedicated hosting plan. |
 | [`tip-screenshots.md`](./tip-screenshots.md) | **shipped** (#60) | Tip screenshot capture (Xvfb, Viewport API). |
 | [`honest-coverage-lock.md`](./honest-coverage-lock.md) | **shipped** | Unfiltered llvm-cov fail-under 80; no carve-outs. |
 | [`SPRINT-24H.md`](./SPRINT-24H.md) | **superseded** | 24 hour sprint framing. |

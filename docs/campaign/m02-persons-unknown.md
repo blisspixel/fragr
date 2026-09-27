@@ -1,6 +1,6 @@
 # M02: Persons Unknown
 
-**Status:** development graybox (`server/maps/m02-persons-unknown.json`): an open route with three Clerk and Sweeper fights and two arrival objectives. Story, Latch as an actor, the Jammer and Crawlers are unbuilt. Earth before the wipe. Target 10-12 minutes.
+**Status:** development graybox (`server/maps/m02-persons-unknown.json`): an open route with three Clerk and Sweeper fights and two arrival objectives. Story, Latch as an actor and Crawlers are unbuilt. The Jammer first appears in level 3. Earth before the wipe. Target 10-12 minutes.
 [Treatment](../CAMPAIGN-MISSIONS.md#level-2-persons-unknown).
 
 ## Story and cast
@@ -14,8 +14,9 @@ silent trophy nor a fragile escort whose mistakes constantly fail the mission.
 Latch acts autonomously after release. Their reunion does not introduce a
 controllable companion, a required second player or a revive system.
 
-Mara receives the warning at departure. An Auditor oversees the facility through
-screens or an inaccessible gallery; this does not require a boss fight yet.
+The warning to Mara must wait until the level 3 Jammer falls. A Notary drone
+photographs captives beyond the gallery glass, out of reach. Its first fight
+belongs to level 4.
 
 ## Layout
 
@@ -31,7 +32,7 @@ to the floor and the gallery.
 | Ward | Open ward around the restraint frame | Set-piece fight; the correction stops when the guards fall; free Latch |
 | Processing floor | Two usable levels with broad stairs and machinery islands | Latch fights beside us; mixed threats pressure escape |
 | Service loop | Optional captives and supplies | Clear the guards and the captives free themselves |
-| Loading exit | Open dock with the transport in view | Kill the Jammer, regroup and leave for home |
+| Loading exit | Open dock with the yard in view | Clerk and Sweeper crest, regroup and leave for the rail yard |
 
 Winning the ward is the crest's first half; escaping together is the second.
 
@@ -42,9 +43,9 @@ player who missed every secret. Crawlers punish retreating straight down a hall;
 the antechamber supplies lateral space. A human officer above the processing
 floor creates a priority target without requiring the Railgun.
 
-The Jammer has visible antenna/pulse and projectile tells. It guards the dock
-with traveling interference shots and dies to guaranteed guns. Do not introduce
-the entire enemy roster.
+The dock remains a grounded Clerk and Sweeper fight. The Jammer's first
+interference shots belong to level 3's rail yard. Do not introduce the entire
+enemy roster here.
 
 Secrets: an armor locker reachable from the gallery loop; a Shiv/replenishment
 cache behind a clearly altered service panel. Neither changes the core rescue.
@@ -75,7 +76,7 @@ and optional speech carry the same meaning. Do not settle the friend/partner
 relationship with gendered or romantic lines before that wording is approved.
 
 Need ward machinery, restraints, active/inactive release states, companion
-locomotion and gestures, Crawler set and Jammer projectiles. Captive suffering
+locomotion and gestures, and the Crawler set. Captive suffering
 is purposeful context, not prolonged spectacle. Institutional announcements can
 be absurd while the reunion stays sincere.
 

@@ -1,0 +1,23 @@
+services:
+  server:
+    build:
+      context: .
+    image: fragr-server:local
+    command: ["--bind", "0.0.0.0:6767", "--bots", "${FRAGR_BOTS:-4}", "--map", "${FRAGR_MAP:-1}"]
+    environment:
+      FRAGR_JOIN_SECRET: ${FRAGR_JOIN_SECRET:-}
+      RUST_LOG: ${RUST_LOG:-info}
+    ports:
+      - "6767:6767/tcp"
+    init: true
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+    stop_grace_period: 15s
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:6767/status | grep -q '\"health\":{\"status\":\"ok\"'"]
+      interval: 15s
+      timeout: 5s
+      start_period: 60s
+      retries: 4

@@ -4,7 +4,7 @@ Operating rules for coding agents and human contributors. Humans: start with `RE
 
 ## What this is
 
-**fragr** (working name) is an agentic-first **3D** FPS with retro pixel surfaces, targeting a compact authored campaign and multiplayer. Current play supports local bot matches and a campaign prototype. The campaign targets 2-3 hours with limited mission-start continues; no mandatory buddy, revival or all-mission co-op. `docs/CAMPAIGN.md` owns the current contract. Watch-or-join multiplayer shares one match among humans, agents and spectators. Not branded as Doom or id. Monorepo:
+**fragr** (working name) is an agentic-first **3D** FPS with retro pixel surfaces, targeting a compact authored campaign and multiplayer. Current play supports local bot matches and a campaign prototype. The campaign targets about four hours across twenty levels in five episodes, with limited mission-start continues refilled each episode; no mandatory buddy, revival or all-mission co-op. `docs/CAMPAIGN.md` owns the current contract. Watch-or-join multiplayer shares one match among humans, agents and spectators. Not branded as Doom or id. Monorepo:
 
 - `server/` - Rust authoritative game server (tokio, WebSocket JSON, 20 Hz tick). Owns positions, damage, HP, frags, spawns, scoring, rule bots, rounds, maps.
 - `client/` - Godot **4.7.2-stable**, GDScript only. Thin presenter: render, audio, HUD, spectator cameras, input. Never sim authority.
@@ -33,7 +33,7 @@ If prose and code disagree, code wins; fix the prose in the same change. Keep pl
 
 ## Hard constraints (project law)
 
-- **Spend:** hard cap **$50** total. Local play and LAN are $0. Anything that bills needs written approval from Nick first. Approved developer asset services: ElevenLabs through `tools/audiogen` and Higgsfield through `tools/spritegen`, within approved existing credits. Verify quota and price before generation, pass an explicit cap, record usage, and never enable top-ups or overages. Jev (TypeSafe native or OpenRouter) runs only through `agents/brain`, with an explicit `--max-spend-usd`, a $5 per-run ceiling enforced in code, and a ledger under `.agents/spend/`. Paid calls never run in CI or at player runtime by default. Other paid services and cloud apply still need approval. A subscription is not an unlimited generation budget.
+- **Spend:** hard cap **$50** total. Local play and LAN are $0. Anything that bills needs written approval from Nick first. Nick authorized up to **$20 combined external charges for 2026-09-26 build work**, including asset APIs and a bounded GCP test if needed, within the total cap. Price the exact operation, verify remaining allowance, set an explicit cap where the service supports one, record actual usage, and never enable top-ups or overages. Approved developer asset services: ElevenLabs through `tools/audiogen` and Higgsfield through `tools/spritegen`, within approved existing credits. Jev (TypeSafe native or OpenRouter) runs only through `agents/brain`, with an explicit `--max-spend-usd`, a $5 per-run ceiling enforced in code, and a ledger under `.agents/spend/`. Paid calls never run in CI or at player runtime by default. Production cloud apply and other paid services still need approval. A subscription is not an unlimited generation budget.
 - **Authority:** the Rust server is the source of truth for every game outcome. Godot never decides combat. Movement math in `server/src/movement.rs` has a deliberate GDScript mirror and golden vectors; change and verify both together. Mirror availability does not prove prediction is wired into live play.
 - **Agents off the hot path:** humans and agents share one discrete action channel. Rule and utility bots run at tick rate on the server. MCP is for slow operations, never aim or fire at 20 to 60 Hz.
 - **Transport:** WebSocket JSON on `0.0.0.0:6767` (clients use loopback or `FRAGR_SERVER`). UDP is a planned, measured spike (`docs/TRANSPORT.md`), not a silent rewrite.
@@ -144,6 +144,12 @@ On Windows use Git Bash for these shell wrappers and set `GODOT_BIN`; the visual
 tour also accepts `FRAGR_GODOT`. Run focused checks during iteration, then the full
 suite before claiming completion. Report unavailable tools or baseline failures
 with evidence. Keep logs under `.agents/`; a command that never ran did not pass.
+
+The `container` CI job also builds the dedicated server image, checks its
+unprivileged runtime and legal notices, starts Compose, and requires
+`health.status: ok` from `GET /status`. Locally run `docker compose build server`,
+`docker compose up -d --no-build`, `docker compose ps`, then
+`docker compose down` after the probe.
 
 Playable smoke:
 

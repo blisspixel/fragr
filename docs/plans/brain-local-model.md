@@ -1,6 +1,6 @@
 # Plan: a free local decision model for the brain agent
 
-**Status:** implemented (branch `feat/brain-local-openjev`, local evidence below)
+**Status:** shipped in #261 (local evidence below)
 **Spend:** $0. No key, no ledger entry, no cap. Weights are pulled by the user into Ollama's own store and are never committed.
 
 ## Goal

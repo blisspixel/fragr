@@ -61,7 +61,7 @@ variable "boot_disk_size_gb" {
 }
 
 variable "game_port" {
-  description = "Game server port (TCP for WebSocket, UDP for future renet)"
+  description = "Game server port (TCP for WebSocket)"
   type        = number
   default     = 6767
 
@@ -69,6 +69,12 @@ variable "game_port" {
     condition     = var.game_port > 1024 && var.game_port < 65536
     error_message = "Game port must be between 1024 and 65535."
   }
+}
+
+variable "enable_experimental_udp" {
+  description = "Open the UDP game firewall only after an authenticated UDP path is implemented and approved for deployment"
+  type        = bool
+  default     = false
 }
 
 variable "network_cidr" {
@@ -80,12 +86,6 @@ variable "network_cidr" {
     condition     = can(cidrhost(var.network_cidr, 0))
     error_message = "Network CIDR must be a valid IPv4 CIDR block."
   }
-}
-
-variable "ssh_source_ranges" {
-  description = "Additional source IP ranges for SSH access (IAP is always enabled)"
-  type        = list(string)
-  default     = []
 }
 
 variable "enable_cloud_run_adapter" {

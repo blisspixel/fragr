@@ -11,7 +11,7 @@ The current release is [v0.57.1](https://github.com/blisspixel/fragr/releases/ta
 ## What runs today
 
 - **Recall Notice:** Single Player starts a solo M01 run with a skippable, reader-paced opening and three continues. Enter Annex 67 to find Latch's transfer record, recover weapons, fight through intake and records, and depart by the custody lift, which plays a short, skippable scene toward the correction ward. Death offers an explicit mission-start retry with entry equipment restored. Exit to Menu saves the run at mission entry, including a pending continue; Continue Run reopens it. The fourth death ends the run. This is a developing mission, not the complete campaign.
-- **Solo Broadcast:** Episode 0 Calibration on Larak Lot. Host cold-open, objective chip (clear NODS, seize jammer, drop Auditor), same guns as MP. Default from `./tools/solo_scrap.sh` (server `--solo-broadcast`). This is an arena prototype. The planned ten-mission story and conditional epilogue live in [`docs/CAMPAIGN.md`](docs/CAMPAIGN.md); [`solo-story-episodes.md`](docs/plans/solo-story-episodes.md) records this prototype's implementation.
+- **Solo Broadcast:** Episode 0 Calibration on Larak Lot. Host cold-open, objective chip (clear NODS, seize jammer, drop Auditor), same guns as MP. Default from `./tools/solo_scrap.sh` (server `--solo-broadcast`). This is an arena prototype. The planned twenty-level story and conditional epilogue live in [`docs/CAMPAIGN.md`](docs/CAMPAIGN.md); [`solo-story-episodes.md`](docs/plans/solo-story-episodes.md) records this prototype's implementation.
 - **Solo Scrap:** arcade offline on loopback without the episode path (`FRAGR_SOLO_BROADCAST=0`), four named rule bots with visible tactics (Aggressive, Defensive, Flanker, Balanced).
 - **Watch or join:** spectator by default through a fighter's eyes, including their gun and shot feedback. F changes fighter; V cycles eyes, chase, and free camera. Join mid-match as a human, leave back to spectate. Bots keep the server alive.
 - **Contested Frequency match loop:** 10-frag or 3-minute rounds, warmup and round-end Host bumpers, killstreak callouts, a mid-round Compliance Drone boss (Auditor on Solo Broadcast).
@@ -29,7 +29,7 @@ This is a playable vertical slice, not a finished game. The build order and what
 
 The [full build order](docs/ROADMAP.md) now moves from the durable M01 run into M02. Single Player has an M02 development graybox: an untextured ward route with three Clerk and Sweeper fights, no switches and no save. It is not the finished mission. Watching and joining stay in this app. `GET /status` on the game port is a host probe, not a web client. The [campaign treatment](docs/CAMPAIGN-MISSIONS.md) plans a personal rescue, offworld resistance, the Union's defeat, a sudden planetary wipe, and its aftermath. This is planned content, not a completed campaign or public-server readiness claim.
 
-A solo player and an agent already fight through the graybox and reach its exit through actual movement. The next playable steps are Latch's release, the Jammer, Crawlers and M01-to-M02 save carry. In parallel, multiplayer work continues on server hardening, modes, maps, first-person watching and measured scale. Automated and agent-controlled runs are the current acceptance evidence; an unsteered human M01 session remains near the 1.0 gate.
+A solo player and an agent already fight through the graybox and reach its exit through actual movement. The next playable steps are Latch's release, the Shotgun and Crawlers, and M01-to-M02 save carry. The Jammer belongs to level 3, Scheduled Service. In parallel, multiplayer work continues on modes, maps, server hardening and measured scale. Automated and agent-controlled runs are the current acceptance evidence; an unsteered human M01 session remains near the 1.0 gate.
 
 The opening mission has an opt-in [development slice](server/maps/README.md):
 enclosed intake rooms, two stair routes, an accessible records balcony, a
@@ -171,7 +171,7 @@ each participant. The six arcade maps retain unlimited Rifle, Shotgun, and
 Railgun. Run instructions and current
 limitations: [`server/maps/README.md`](server/maps/README.md). M01 still needs
 finished enemy presentation, encounter balancing and opening art before it is a
-complete mission. Its one secret, a Shiv in the confiscation alcove, is optional. The planned campaign targets a 2-3-hour successful run.
+complete mission. Its one secret, a Shiv in the confiscation alcove, is optional. The planned campaign targets an approximately four-hour successful run.
 The local prototype has three mission-start continues. A versioned local run
 file now retains the run ID, difficulty, remaining continues and entry gear
 across restarts, including a pending death decision. It resumes at mission
@@ -233,6 +233,12 @@ icon files come from `tools/bake_icon.gd`:
 `godot --headless --path client --script ../tools/bake_icon.gd`.
 
 ## Host a server
+
+For a container host, run `docker compose up --build -d` at the repository
+root. `docker compose ps` reports health, and `docker compose down` stops the
+match. This publishes TCP 6767 and runs the same dedicated server as the
+commands below. See the [friend-host guide](infra/docs/HOME-LAN.md) for LAN,
+router forwarding, tickets and access files. Docker is optional.
 
 ```bash
 cargo run -p fragr-server -- --bind 0.0.0.0:6767 --bots 4

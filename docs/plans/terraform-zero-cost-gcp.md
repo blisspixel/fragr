@@ -1,6 +1,6 @@
 # Plan: Terraform Infrastructure for Zero-Cost GCP Deployment
 
-**Status:** Implemented (PR #5, not applied)  
+**Status:** superseded by [dedicated server, transport and hosting](dedicated-server-udp-and-hosting.md). PR #5 implemented a Terraform draft, not an applied or deployable game host. The design and cost assumptions below are historical.
 **Date:** 2026-09-18  
 **Spend:** $0 (plan only, no apply)
 

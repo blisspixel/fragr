@@ -66,14 +66,16 @@ output "cloud_run_url" {
 }
 
 output "estimated_monthly_cost" {
-  description = "Estimated monthly cost in USD"
-  value       = "$0.00 (Always Free tier)"
+  description = "Cost estimate status; determine actual monthly cost before apply"
+  value       = "Not estimated: public IPv4, egress and any non-free resources can bill"
 }
 
 output "cost_warnings" {
   description = "Potential cost warnings"
   value = [
-    "Network egress beyond 1 GB/month: ~$0.12/GB",
+    "In-use public IPv4 is billed after the first free hour each month",
+    "Network egress beyond the applicable free allowance is billed",
+    "Budget alerts notify but do not cap charges",
     "Stopping/starting VM changes external IP",
     "Monitor billing at: https://console.cloud.google.com/billing"
   ]

@@ -65,7 +65,7 @@ resource "google_compute_subnetwork" "subnet" {
   private_ip_google_access = true
 }
 
-# Firewall: Allow game port from all (TCP for WebSocket, UDP for future renet)
+# Firewall: Allow the current WebSocket game port
 resource "google_compute_firewall" "game_port_tcp" {
   name    = "fragr-allow-game-tcp"
   network = google_compute_network.vpc.name
@@ -82,6 +82,7 @@ resource "google_compute_firewall" "game_port_tcp" {
 }
 
 resource "google_compute_firewall" "game_port_udp" {
+  count   = var.enable_experimental_udp ? 1 : 0
   name    = "fragr-allow-game-udp"
   network = google_compute_network.vpc.name
 
@@ -93,7 +94,7 @@ resource "google_compute_firewall" "game_port_udp" {
   source_ranges = ["0.0.0.0/0"]
   target_tags   = ["fragr-game-server"]
 
-  description = "Allow UDP game traffic (future renet) on port ${var.game_port}"
+  description = "Allow experimental UDP game traffic on port ${var.game_port}"
 }
 
 # Firewall: Allow IAP SSH
@@ -111,23 +112,6 @@ resource "google_compute_firewall" "iap_ssh" {
   target_tags   = ["fragr-game-server"]
 
   description = "Allow SSH via Identity-Aware Proxy"
-}
-
-# Optional: Allow SSH from specific IPs
-resource "google_compute_firewall" "ssh_custom" {
-  count   = length(var.ssh_source_ranges) > 0 ? 1 : 0
-  name    = "fragr-allow-ssh-custom"
-  network = google_compute_network.vpc.name
-
-  allow {
-    protocol = "tcp"
-    ports    = ["22"]
-  }
-
-  source_ranges = var.ssh_source_ranges
-  target_tags   = ["fragr-game-server"]
-
-  description = "Allow SSH from specific IP ranges"
 }
 
 # Service Account for VM
