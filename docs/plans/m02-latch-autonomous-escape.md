@@ -1,8 +1,10 @@
 # M02 Latch autonomous escape
 
-**Status:** in flight, 2026-09-27. Stacked after the M02 Latch release and
-[M01 to M02 run carry](m01-m02-run-carry.md) drafts. This plan does not claim
-that Persons Unknown is finished.
+**Status:** in flight, 2026-09-27. [Draft PR #274](https://github.com/blisspixel/fragr/pull/274)
+is stacked after the M02 Latch release and [M01 to M02 run carry](m01-m02-run-carry.md)
+drafts. The engineering and rendered route evidence is recorded below; unsteered
+player review and normal-play support pacing remain open. Persons Unknown is
+not finished.
 
 ## Goal and reason
 
