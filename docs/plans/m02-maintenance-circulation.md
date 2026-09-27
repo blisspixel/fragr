@@ -40,8 +40,11 @@ the ward and shutter as the only path into the floor.
 `server/maps/m02-persons-unknown.json` owns all blocking walls, platforms,
 stairs, surfaces, trigger regions and supplies. Reuse its existing authored
 world and navigation; no client-only collision. The initial candidate fork is
-near the lower switchback after `crawler_first` (around x -12, z -27). A
-full-body-width maintenance passage remains above the `crawler_pack` trigger
+near the lower switchback after `crawler_first` (around x -12, z -27). The
+existing pack trigger spans x -14.8 to -11.8, z -29 to -22.5 and y 0 to 0.6;
+a ground-level fork at x -12 would wake that encounter. Begin the branch east
+of its x edge, or raise the player's feet above its y edge before entering.
+A full-body-width maintenance passage remains above the `crawler_pack` trigger
 until it passes the trigger's north edge, then descends in walkable steps and
 rejoins the antechamber near x -14, z -22. Exact dimensions are determined by
 the shared movement and route tests, not by the sketch alone. The direct
@@ -69,7 +72,8 @@ keeping the Crawler's sound cue readable.
    frames. Add the service route and prove grounded traversal, adequate headroom,
    and a rejoin at the antechamber. Confirm the solo Crawler stays on the
    intended first route and the `crawler_pack` trigger stays untouched by the
-   bypass but fires on the direct route.
+   bypass, including immediately after the first Crawler dies while the player
+   stands at the fork, but fires on the direct route.
 2. Open the side ward's northern return into the processing floor. Prove both
    directions with the loaded navigation graph and real movement. Ensure the
    main floor-to-dock path still works with the optional guards alive.
