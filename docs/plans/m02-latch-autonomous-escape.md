@@ -214,20 +214,20 @@ place controls, save behavior and mission detail in its linked guides.
 
 ### Local verification so far
 
-`cargo fmt --all -- --check`, workspace Clippy with warnings denied, workspace
-tests, unfiltered `cargo llvm-cov --workspace --locked --fail-under-lines 90`,
-workspace release build and dependency policy all passed. Coverage was 93.75%
-of 60,364 lines after the final support test edit. The pinned Godot
-checker and its ten failure-injection scenarios passed. The standard tour
-passed 32 states and published 13 selected stills; the four README stills and
-the M02 second bay, floor and departure frames were inspected. Four live
-playtest variants passed with zero spawn deaths. The six-map mixed roster
-passed at 2, 6, 6, 8, 12 and 16 clients. It recorded one post-spawn death on
-map 4 and no opening spawn deaths. The complete combined PR CI passed at
-`75bb339`. After the support QA and friendly-collision patch, format,
-workspace Clippy, workspace tests, 93.75% unfiltered line coverage of
-60,370 lines, workspace release build and pinned Godot checks pass locally.
-Final PR CI remains pending.
+On final code commit `66866e0`, `cargo fmt --all -- --check`, workspace Clippy
+with warnings denied, workspace tests, unfiltered
+`cargo llvm-cov --workspace --locked --fail-under-lines 90`, workspace release
+build and pinned Godot checks passed locally. Coverage was 93.75% of 60,370
+lines. Dependency policy and all ten Godot checker failure-injection scenarios
+passed before the final QA-only change; neither dependency policy nor the
+checker changed. The standard tour passed 32 states and published 13 selected
+stills; the four README stills and the M02 second bay, floor and departure
+frames were inspected. Four live playtest variants passed with zero spawn
+deaths. The six-map mixed roster passed at 2, 6, 6, 8, 12 and 16 clients. It
+recorded one post-spawn death on map 4 and no opening spawn deaths.
+Full combined [CI run 36343775587](https://github.com/blisspixel/fragr/actions/runs/36343775587)
+passed on code commit `66866e0`, including test, Godot, macOS and Windows
+portability, soak and audit. The later plan update only records that result.
 
 | Workload | Machine and roster | Evidence |
 |---|---|---|
