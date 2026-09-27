@@ -5,11 +5,33 @@ const TOUR = preload("res://scripts/qa_tour.gd")
 var _failures: int = 0
 
 func _initialize() -> void:
+	var facing_route: Dictionary[String, bool] = QaCombat.route_buttons(Vector2(1, 0), PI * 0.5)
+	_check(facing_route["move_left"] and not facing_route["move_forward"] and not facing_route["move_right"],
+		"turning toward a windup preserves the escape route through a strafe")
+	var retreat_route: Dictionary[String, bool] = QaCombat.route_buttons(Vector2(-1, 0), 0.0)
+	_check(retreat_route["move_back"] and not retreat_route["move_forward"],
+		"retreating while watching the Crawler preserves the world-space course")
+	var route_camera: Node3D = preload("res://scripts/spectator_cam.gd").new()
+	var near_waypoint: Dictionary = {"x": 0.0, "y": 2.0, "z": 0.0}
+	_check(QaCombat.follow_route(near_waypoint, route_camera, [[0.2, 0.5, 0.1]], 0,
+		Vector3(-1.0, 0.4, 2.0)) == 1 and \
+		is_equal_approx(float(route_camera.get("fp_yaw")), atan2(2.0, -1.0)) and \
+		float(route_camera.get("fp_pitch")) < -0.1,
+		"a first windup at a waypoint boundary still turns the live camera down toward the low body")
+	route_camera.free()
 	_check(QaCombat.valid_waypoints([[1, 2.0, 3]]), "finite route accepted")
 	for invalid: Variant in [null, {}, [1, 2, 3], [[1, 2]], [[1, INF, 3]], [[1, "2", 3]]]:
 		_check(not QaCombat.valid_waypoints(invalid), "invalid route rejected")
 	for invalid: Variant in [null, [], [1], [{"walk_to": [1, 2, 3]}]]:
 		_check(not TOUR.valid_walks(invalid), "invalid manifest walking shape rejected before play")
+	_check(not TOUR.valid_walks([{"camera":"overview", "camera_position":[0, INF, 0],
+		"camera_look_at":[0, 0, 0]}]), "invalid spectator framing rejected before play")
+	var pack_snapshot: Dictionary = {"players":[
+		{"name":"crawler", "hp":20, "campaign":{"side":"union", "phase":"moving"}},
+		{"name":"sweeper", "hp":0, "campaign":{"side":"union", "phase":"dead"}},
+	]}
+	_check(TOUR.active_named_enemies(pack_snapshot, ["crawler", "sweeper"]) == {"crawler":"moving"},
+		"spectator proof counts only named living enemies")
 	for filename: String in DirAccess.get_files_at("res://qa"):
 		if filename.get_extension() != "json":
 			continue
@@ -36,6 +58,29 @@ func _initialize() -> void:
 	var exposed: Vector3 = QaCombat.exposed_point(guard, Vector3(0, 1.6, 0), [low_cover])
 	_check(exposed.y > 1.3 and exposed.y < MoveStep.BODY_HEIGHT, "low cover permits an exposed upper-body shot within the real hit volume")
 	_check(QaCombat.visible_target(snapshot, "player", [low_cover], true).get("id") == "guard", "visible upper-body tell permits evasion")
+	guard["campaign"]["kind"] = "crawler"
+	guard["campaign"]["phase"] = "leaping"
+	var crawler_point: Vector3 = QaCombat.exposed_point(guard, Vector3(0, 1.6, 0), [])
+	_check(is_equal_approx(crawler_point.y, 0.4), "tour aims inside Crawler's short body")
+	_check(QaCombat.visible_target(snapshot, "player", [low_cover]).is_empty(),
+		"a waist-high counter hides the whole low Crawler")
+	_check(QaCombat.visible_target(snapshot, "player", [], true).get("id") == "guard",
+		"committed leap drives dodge input")
+	_check(QaCombat.required_phases_proven({"crawler_windup":true, "crawler_leaping":true},
+		{"crawler_windup":true, "crawler_leaping":true}, "crawler", ["windup", "leaping"]),
+		"Crawler phase proof requires both observed and rendered states")
+	_check(not QaCombat.required_phases_proven({"sweeper_windup":true, "crawler_leaping":true},
+		{"sweeper_windup":true, "crawler_leaping":true}, "crawler", ["windup", "leaping"]),
+		"mixed Union phase proof cannot borrow a Sweeper tell")
+	var windup_identity: Dictionary = {"kind":"crawler", "phase":"windup", "phase_started":10}
+	_check(not QaCombat.phase_ready_for_capture(windup_identity, 14) and \
+		QaCombat.phase_ready_for_capture(windup_identity, 15),
+		"named Crawler windup still waits for a rendered crouch within the twelve-tick tell")
+	windup_identity["phase"] = "leaping"
+	_check(QaCombat.phase_ready_for_capture(windup_identity, 10),
+		"short leap phase remains eligible for immediate capture")
+	guard["campaign"]["kind"] = "clerk"
+	guard["campaign"]["phase"] = "windup"
 	solid["bottom"] = 2.4
 	_check(QaCombat.visible_target(snapshot, "player", [solid]).get("id") == "guard", "raised deck leaves a real underpass")
 	guard["campaign"]["phase"] = "idle"
@@ -96,6 +141,89 @@ func _initialize() -> void:
 	snapshot["tick"] = 7
 	absence._observe(snapshot)
 	_check(absence.participant_died, "omitted respawning participant cannot hide a death between fights")
+	var leap_player: Dictionary = me.duplicate(true)
+	leap_player["hp"] = 100
+	var leap_enemy: Dictionary = guard.duplicate(true)
+	leap_enemy["name"] = "stair_crawler_first"
+	leap_enemy["hp"] = 60
+	leap_enemy["campaign"]["kind"] = "crawler"
+	leap_enemy["campaign"]["phase"] = "windup"
+	var leap_snapshot: Dictionary = {"tick": 1, "players": [leap_player, leap_enemy]}
+	var before_activation: QaCombat = QaCombat.new()
+	before_activation.set("_player_id", "player")
+	leap_enemy["campaign"]["phase"] = "idle"
+	before_activation._observe(leap_snapshot)
+	leap_snapshot["tick"] = 2
+	leap_player["hp"] = 90
+	before_activation._observe(leap_snapshot)
+	leap_snapshot["tick"] = 3
+	leap_enemy["campaign"]["phase"] = "moving"
+	before_activation._observe(leap_snapshot)
+	_check(before_activation.first_crawler_encounter_start_hp == 90,
+		"guard-room damage before Crawler activation does not contaminate its proof")
+	leap_player["hp"] = 100
+	leap_snapshot["tick"] = 1
+	leap_enemy["campaign"]["phase"] = "windup"
+	var safe_leap: QaCombat = QaCombat.new()
+	safe_leap.set("_player_id", "player")
+	safe_leap._observe(leap_snapshot)
+	leap_snapshot["tick"] = 2
+	leap_enemy["campaign"]["phase"] = "leaping"
+	safe_leap._observe(leap_snapshot)
+	leap_snapshot["tick"] = 3
+	leap_enemy["campaign"]["phase"] = "recovery"
+	safe_leap._observe(leap_snapshot)
+	_check(safe_leap.first_crawler_leap_no_contact_proven() and safe_leap.first_crawler_leap_start_hp == 100,
+		"first Crawler leap leaves authoritative HP unchanged through landing")
+	leap_snapshot["tick"] = 4
+	leap_enemy["hp"] = 0
+	leap_enemy["campaign"]["phase"] = "dead"
+	safe_leap._observe(leap_snapshot)
+	_check(safe_leap.first_crawler_encounter_no_damage_proven(),
+		"first Crawler encounter remains free of damage through its defeat")
+	var later_contact: QaCombat = QaCombat.new()
+	later_contact.set("_player_id", "player")
+	leap_player["hp"] = 100
+	leap_enemy["hp"] = 60
+	leap_snapshot["tick"] = 1
+	leap_enemy["campaign"]["phase"] = "windup"
+	later_contact._observe(leap_snapshot)
+	leap_snapshot["tick"] = 2
+	leap_enemy["campaign"]["phase"] = "leaping"
+	later_contact._observe(leap_snapshot)
+	leap_snapshot["tick"] = 3
+	leap_enemy["campaign"]["phase"] = "recovery"
+	later_contact._observe(leap_snapshot)
+	leap_snapshot["tick"] = 4
+	leap_enemy["campaign"]["phase"] = "windup"
+	later_contact._observe(leap_snapshot)
+	leap_snapshot["tick"] = 5
+	leap_enemy["campaign"]["phase"] = "leaping"
+	leap_player["hp"] = 80
+	later_contact._observe(leap_snapshot)
+	leap_snapshot["tick"] = 6
+	leap_enemy["hp"] = 0
+	leap_enemy["campaign"]["phase"] = "dead"
+	later_contact._observe(leap_snapshot)
+	_check(later_contact.first_crawler_leap_no_contact_proven() and
+		not later_contact.first_crawler_encounter_no_damage_proven(),
+		"a safe first leap cannot hide damage from a later visible leap")
+	var contact: QaCombat = QaCombat.new()
+	contact.set("_player_id", "player")
+	leap_player["hp"] = 100
+	leap_snapshot["tick"] = 1
+	leap_enemy["hp"] = 60
+	leap_enemy["campaign"]["phase"] = "windup"
+	contact._observe(leap_snapshot)
+	leap_snapshot["tick"] = 2
+	leap_enemy["campaign"]["phase"] = "leaping"
+	leap_player["hp"] = 88
+	contact._observe(leap_snapshot)
+	leap_snapshot["tick"] = 3
+	leap_enemy["campaign"]["phase"] = "recovery"
+	contact._observe(leap_snapshot)
+	_check(not contact.first_crawler_leap_no_contact_proven() and contact.first_crawler_leap_low_hp == 88,
+		"contact on the first leaping tick cannot masquerade as a dodge")
 	if _failures == 0:
 		print("test_qa_combat: PASS")
 	quit(0 if _failures == 0 else 1)

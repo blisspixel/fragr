@@ -1,5 +1,5 @@
 //! Authored encounter lifecycle. Bodies, weapons and collision belong to sim.
-use crate::protocol::{CampaignActor, EnemyPhase};
+use crate::protocol::{CampaignActor, EnemyKind, EnemyPhase, GameEvent};
 use crate::sim::{BotIntent, GameState, Player, PLAYER_FLOOR_Y};
 use uuid::Uuid;
 
@@ -10,6 +10,11 @@ use enemy::EnemyController;
 /// Share of top speed for a body. Participants and arcade fighters keep 1.0.
 pub(crate) fn gait(identity: Option<CampaignActor>) -> f32 {
     match identity {
+        Some(CampaignActor::Union {
+            kind: crate::protocol::EnemyKind::Crawler,
+            phase: EnemyPhase::Leaping,
+            ..
+        }) => 1.15,
         Some(CampaignActor::Union { kind, .. }) => enemy::gait(kind),
         _ => 1.0,
     }
@@ -124,6 +129,15 @@ impl Encounters {
             });
             if let Some(&feet) = entered.filter(|_| ready) {
                 self.activate(index, feet, state.tick, true);
+                if let Some(crawler) = definition
+                    .enemies
+                    .iter()
+                    .find(|enemy| enemy.kind == EnemyKind::Crawler)
+                {
+                    state.events.push(GameEvent::CrawlerScrabble {
+                        position: crawler.feet,
+                    });
+                }
                 tracing::info!(encounter = %definition.id, "Campaign encounter activated");
             }
         }
@@ -192,6 +206,13 @@ impl Encounters {
         let enemy = &mut self.enemies[index].1;
         enemy.hit(tick, died);
         Some(enemy.identity())
+    }
+
+    pub(crate) fn claim_crawler_contact(&mut self, id: Uuid) -> bool {
+        self.enemies
+            .iter_mut()
+            .find(|(_, enemy)| enemy.id == id)
+            .is_some_and(|(_, enemy)| enemy.claim_crawler_contact())
     }
 }
 

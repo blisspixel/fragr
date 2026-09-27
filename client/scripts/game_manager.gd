@@ -85,6 +85,16 @@ var _readiness_attempt_sent: int = 0
 var _awaiting_map: bool = false
 var input_device: InputDevice
 
+const CRAWLER_SOUND_PATH: String = "res://assets/audio/crawler_scrabble.wav"
+const CRAWLER_SOUND_VOICES: int = 4
+const CRAWLER_CUE_DISTANCE: float = 24.0
+var crawler_sound_stream: AudioStream = null
+var crawler_sound_players: Array[AudioStreamPlayer3D] = []
+var crawler_sound_next: int = 0
+var crawler_scrabble_count: int = 0
+var crawler_last_position: Vector3 = Vector3.INF
+var crawler_last_ms: int = -1000
+
 func _ready():
 	mission_hud = MissionHud.new()
 	hud.add_child(mission_hud)
@@ -182,6 +192,7 @@ static func _find_world_environment(node: Node) -> WorldEnvironment:
 
 
 func _on_map_info(info: Dictionary) -> void:
+	_reset_crawler_cues()
 	var mission: Variant = info.get("mission")
 	var m02: bool = info.get("m02_objectives") != null
 	if local_match != null:
@@ -403,6 +414,69 @@ func _load_audio_streams():
 	
 	if round_end_sound and ResourceLoader.exists(audio_dir + "round_end.wav"):
 		round_end_sound.stream = load(audio_dir + "round_end.wav")
+	if ResourceLoader.exists(CRAWLER_SOUND_PATH):
+		crawler_sound_stream = load(CRAWLER_SOUND_PATH)
+
+func _crawler_position(value: Variant) -> Vector3:
+	if not value is Array or value.size() != 3:
+		return Vector3.INF
+	var coords: Array[float] = []
+	for component: Variant in value:
+		if typeof(component) != TYPE_FLOAT and typeof(component) != TYPE_INT:
+			return Vector3.INF
+		var number: float = float(component)
+		if not is_finite(number) or absf(number) > 10000.0:
+			return Vector3.INF
+		coords.append(number)
+	return Vector3(coords[0], coords[1], coords[2])
+
+func _reset_crawler_cues() -> void:
+	crawler_scrabble_count = 0
+	crawler_last_position = Vector3.INF
+	crawler_last_ms = -1000
+	for voice: AudioStreamPlayer3D in crawler_sound_players:
+		if is_instance_valid(voice):
+			voice.stop()
+	if hud != null and hud.crawler_caption != null:
+		hud.crawler_caption.clear()
+
+func _accept_crawler_scrabble(position: Vector3, now_ms: int) -> bool:
+	if now_ms - crawler_last_ms < 300 and position.distance_squared_to(crawler_last_position) < 1.0:
+		return false
+	crawler_last_ms = now_ms
+	crawler_last_position = position
+	crawler_scrabble_count += 1
+	return true
+
+func _crawler_listener_near(position: Vector3) -> bool:
+	var lens: Camera3D = get_node_or_null("SpectatorCamera/Camera3D") as Camera3D
+	return lens != null and lens.global_position.distance_squared_to(position) <= CRAWLER_CUE_DISTANCE * CRAWLER_CUE_DISTANCE
+
+func _play_crawler_scrabble(position: Vector3) -> void:
+	var arena_root: Node3D = get_node_or_null("Arena") as Node3D
+	if crawler_sound_stream == null or arena_root == null:
+		return
+	for index: int in range(crawler_sound_players.size() - 1, -1, -1):
+		var existing: AudioStreamPlayer3D = crawler_sound_players[index]
+		if not is_instance_valid(existing) or existing.get_parent() != arena_root:
+			crawler_sound_players.remove_at(index)
+	if crawler_sound_next >= crawler_sound_players.size():
+		crawler_sound_next = 0
+	if crawler_sound_players.size() < CRAWLER_SOUND_VOICES:
+		var voice := AudioStreamPlayer3D.new()
+		voice.name = "CrawlerScrabble%d" % crawler_sound_players.size()
+		voice.stream = crawler_sound_stream
+		voice.bus = &"Effects"
+		voice.unit_size = 4.0
+		voice.max_distance = 24.0
+		voice.volume_db = -4.0
+		arena_root.add_child(voice)
+		crawler_sound_players.append(voice)
+		crawler_sound_next = crawler_sound_players.size() - 1
+	var player: AudioStreamPlayer3D = crawler_sound_players[crawler_sound_next]
+	crawler_sound_next = (crawler_sound_next + 1) % CRAWLER_SOUND_VOICES
+	player.global_position = position
+	player.play()
 
 func _try_continue(event: InputEvent) -> bool:
 	if _continue_armed and is_human_player and event.is_action_pressed("ui_accept") \
@@ -557,6 +631,7 @@ func _on_mission_received(state: Dictionary) -> void:
 		var attempt: int = int(state["attempt"])
 		if attempt > 1 and attempt != _presented_attempt:
 			_retry_snapshot_tick = int(net_client.mission["tick"])
+			_reset_crawler_cues()
 		_presented_attempt = attempt
 	if mission_hud != null:
 		mission_hud.apply(state, str(net_client.player_id) if is_human_player else "")
@@ -605,7 +680,8 @@ func assist_targets() -> Array:
 			continue
 		if mission and str((pawn.get("campaign_actor") as Dictionary).get("phase", "")) == "dead":
 			continue
-		out.append(AimAssist.body_centre(pawn.get("target_position")))
+		out.append(AimAssist.body_centre(pawn.get("target_position"),
+			pawn.get("campaign_actor") if mission else {}))
 	return out
 
 func _has_local_input_target() -> bool:
@@ -940,6 +1016,12 @@ func _on_event_received(data):
 		var duration_ticks = int(data.get("duration_ticks", 120))
 		var duration_sec = float(duration_ticks) / 20.0
 		hud.show_compliance_ping(str(data.get("message", "")), duration_sec)
+	elif event_type == "crawler_scrabble":
+		var crawler_position: Vector3 = _crawler_position(data.get("position"))
+		if crawler_position.is_finite() and _crawler_listener_near(crawler_position) \
+				and _accept_crawler_scrabble(crawler_position, Time.get_ticks_msec()):
+			hud.show_crawler_scrabble_caption()
+			_play_crawler_scrabble(crawler_position)
 	elif event_type == "boss_spawn":
 		hud.set_pressure("compliance_drone")
 		hud.show_boss_spawn(str(data.get("message", "")), str(data.get("name", "COMPLIANCE-DRONE")))

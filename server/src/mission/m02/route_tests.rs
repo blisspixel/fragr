@@ -11,7 +11,7 @@ use std::collections::BTreeSet;
 use std::sync::Arc;
 
 const ORDER: [&str; 2] = ["companion_released", "party_departed"];
-const ENEMIES: usize = 11;
+const ENEMIES: usize = 16;
 
 fn session() -> GameSession {
     let mut session = GameSession::with_authored_map(
@@ -48,6 +48,8 @@ struct Walker {
     guard_room_shells_claimed: Option<bool>,
     guard_room_weapon_selected: Option<crate::protocol::WeaponType>,
     enemy_shots: usize,
+    crawler_cues: Vec<(u64, [f32; 3], [f32; 3])>,
+    first_crawler_clear_tick: Option<u64>,
 }
 
 impl Walker {
@@ -75,6 +77,8 @@ impl Walker {
             guard_room_shells_claimed: None,
             guard_room_weapon_selected: None,
             enemy_shots: 0,
+            crawler_cues: Vec::new(),
+            first_crawler_clear_tick: None,
         }
     }
 
@@ -127,8 +131,31 @@ impl Walker {
     }
 
     fn step(&mut self, session: &mut GameSession) {
+        let feet = session
+            .state
+            .players
+            .iter()
+            .find(|player| player.id == self.id)
+            .map(|player| [player.x, player.y - PLAYER_FLOOR_Y, player.z]);
         let messages = session.tick_messages(0.05);
+        for message in &messages {
+            if let ServerMessage::Event(crate::protocol::GameEvent::CrawlerScrabble { position }) =
+                message
+            {
+                self.crawler_cues
+                    .push((session.state.tick, feet.unwrap(), *position));
+            }
+        }
         self.read(messages);
+        if session
+            .state
+            .players
+            .iter()
+            .any(|p| p.name == "stair_crawler_first" && p.hp <= 0)
+            && self.first_crawler_clear_tick.is_none()
+        {
+            self.first_crawler_clear_tick = Some(session.state.tick);
+        }
         for player in session
             .state
             .players
@@ -279,7 +306,7 @@ impl Walker {
                         eye,
                         [
                             p.x,
-                            p.y - PLAYER_FLOOR_Y + crate::combat::FIGHTER_HEIGHT * 0.5,
+                            p.y - PLAYER_FLOOR_Y + crate::combat::target_height(p.campaign) * 0.5,
                             p.z,
                         ],
                         &session.state.map.arena().solids,
@@ -301,7 +328,7 @@ impl Walker {
                 matches!(
                     enemy.campaign,
                     Some(CampaignActor::Union {
-                        phase: EnemyPhase::Windup | EnemyPhase::Firing,
+                        phase: EnemyPhase::Windup | EnemyPhase::Firing | EnemyPhase::Leaping,
                         ..
                     })
                 )
@@ -343,6 +370,8 @@ impl Walker {
         self.guard_room_shotgun_claimed = None;
         self.guard_room_shells_claimed = None;
         self.guard_room_weapon_selected = None;
+        self.crawler_cues.clear();
+        self.first_crawler_clear_tick = None;
     }
 
     fn until(
@@ -489,8 +518,12 @@ fn bundled_graybox_is_an_open_route_with_arrival_objectives_and_fights() {
             }
         }
     }
-    assert_eq!(encounters[1].id, "ward_guards");
+    assert_eq!(encounters[1].id, "crawler_first");
     assert_eq!(encounters[1].after.as_deref(), Some("guard_room"));
+    assert_eq!(encounters[2].id, "crawler_pack");
+    assert_eq!(encounters[2].after.as_deref(), Some("crawler_first"));
+    assert_eq!(encounters[3].id, "ward_guards");
+    assert_eq!(encounters[3].after.as_deref(), Some("crawler_pack"));
     assert_eq!(
         encounters
             .iter()
@@ -587,6 +620,206 @@ fn solo_human_and_agent_fight_through_and_depart() {
 }
 
 #[test]
+fn crawler_descent_is_walked_in_order_with_a_hidden_first_cue() {
+    let mut session = session();
+    let id = Uuid::from_u128(0x02c0);
+    session.state.add_player(id, "Walker".into(), Role::Human);
+    let mut walker = Walker::new(id);
+    walker.until(&mut session, 12000, departed);
+    assert_eq!(walker.crawler_cues.len(), 2, "each Crawler group cues once");
+    let first = walker.crawler_cues[0];
+    let pack = walker.crawler_cues[1];
+    assert!(first.0 < pack.0, "the first landing precedes the pack");
+    assert!(
+        walker
+            .first_crawler_clear_tick
+            .is_some_and(|tick| tick < pack.0),
+        "the pack must not wake before the lone Crawler clears"
+    );
+    assert_eq!(first.2, [-12.0, 0.0, -27.0]);
+    assert_eq!(pack.2, [-16.0, 0.5, -28.4]);
+    assert!((-10.9..=-10.1).contains(&first.1[0]));
+    assert!((0.9..=1.1).contains(&first.1[1]));
+    assert!((-30.7..=-28.7).contains(&first.1[2]));
+    assert!((-14.8..=-11.8).contains(&pack.1[0]));
+    assert!((0.0..=0.6).contains(&pack.1[1]));
+    assert!((-29.0..=-22.5).contains(&pack.1[2]));
+    let solids = &session.state.map.arena().solids;
+    assert!(
+        !crate::combat::line_of_sight(
+            [
+                first.1[0],
+                first.1[1] + crate::movement::EYE_HEIGHT,
+                first.1[2]
+            ],
+            [
+                first.2[0],
+                first.2[1] + crate::combat::CRAWLER_HEIGHT * 0.5,
+                first.2[2]
+            ],
+            solids,
+        ),
+        "the first scrabble must precede a direct sightline"
+    );
+}
+
+#[test]
+fn engaged_descent_clears_the_lone_crawler_before_the_pack_landing() {
+    let mut session = session();
+    let id = Uuid::from_u128(0x02c2);
+    session.state.add_player(id, "Walker".into(), Role::Human);
+    let mut walker = Walker::new(id);
+    walker.until(&mut session, 1000, |_, walker| {
+        walker.crawler_cues.len() == 1
+    });
+    walker.until(&mut session, 80, |session, _| {
+        session
+            .state
+            .players
+            .iter()
+            .find(|p| p.id == id)
+            .is_some_and(|p| {
+                (p.y - PLAYER_FLOOR_Y).abs() < 0.1
+                    && (-12.7..=-10.5).contains(&p.x)
+                    && (-28.0..=-26.5).contains(&p.z)
+            })
+    });
+    let enemy = session
+        .state
+        .players
+        .iter()
+        .find(|p| p.name == "stair_crawler_first")
+        .unwrap()
+        .id;
+    let combat_feet = session
+        .state
+        .players
+        .iter()
+        .find(|p| p.id == id)
+        .map(|p| [p.x, p.y - PLAYER_FLOOR_Y, p.z])
+        .unwrap();
+    for _ in 0..100 {
+        if session
+            .state
+            .players
+            .iter()
+            .find(|p| p.id == enemy)
+            .is_some_and(|p| p.hp <= 0)
+        {
+            break;
+        }
+        session.state.set_action(
+            id,
+            Action {
+                fire: true,
+                look_at: Some(LookAt {
+                    player_id: Some(enemy),
+                    ..Default::default()
+                }),
+                ..Default::default()
+            },
+        );
+        walker.read(session.tick_messages(0.05));
+    }
+    assert!(
+        session
+            .state
+            .players
+            .iter()
+            .find(|p| p.id == enemy)
+            .is_some_and(|p| p.hp <= 0),
+        "the lone Crawler must be fightable from the grounded switchback"
+    );
+    let after_fight = session.state.players.iter().find(|p| p.id == id).unwrap();
+    assert!((after_fight.x - combat_feet[0]).abs() < 0.05);
+    assert!((after_fight.z - combat_feet[2]).abs() < 0.05);
+    assert!(after_fight.hp > 0);
+    walker.until(&mut session, 120, |_, walker| {
+        walker.crawler_cues.len() == 2
+    });
+    assert_eq!(walker.crawler_cues.len(), 2);
+    assert!(
+        (-29.0..=-25.0).contains(&walker.crawler_cues[1].1[2]),
+        "the pack cue should occur on the next landing approach"
+    );
+}
+
+#[test]
+fn crawler_pack_can_leave_raised_cover_and_attack_the_approach() {
+    let mut session = session();
+    let id = Uuid::from_u128(0x02c1);
+    session.state.add_player(id, "Anchor".into(), Role::Human);
+    let mut walker = Walker::new(id);
+    walker.step(&mut session);
+    walker.step(&mut session);
+    let place = |session: &mut GameSession, x: f32, y: f32, z: f32| {
+        let player = session
+            .state
+            .players
+            .iter_mut()
+            .find(|p| p.id == id)
+            .unwrap();
+        player.x = x;
+        player.y = PLAYER_FLOOR_Y + y;
+        player.z = z;
+    };
+    place(&mut session, -3.2, 3.0, -31.0);
+    session.state.update_encounters();
+    for enemy in session
+        .state
+        .players
+        .iter_mut()
+        .filter(|p| p.name.starts_with("guard_room_clerk_"))
+    {
+        enemy.hp = 0;
+    }
+    session.state.update_encounters();
+    place(&mut session, -10.5, 1.0, -29.5);
+    session.state.update_encounters();
+    session
+        .state
+        .players
+        .iter_mut()
+        .find(|p| p.name == "stair_crawler_first")
+        .unwrap()
+        .hp = 0;
+    session.state.update_encounters();
+    place(&mut session, -12.5, 0.0, -23.9);
+    session
+        .state
+        .players
+        .iter_mut()
+        .find(|p| p.id == id)
+        .unwrap()
+        .hp = 1000;
+    session.state.update_encounters();
+    let mut left_cover = false;
+    let mut sweeper_fired = false;
+    for _ in 0..400 {
+        session.tick_messages(0.05);
+        left_cover |= session.state.players.iter().any(|p| {
+            p.name.starts_with("stair_crawler_pack_") && p.hp > 0 && (p.x > -14.2 || p.z > -24.0)
+        });
+        sweeper_fired |= session
+            .state
+            .shot_results
+            .iter()
+            .any(|shot| shot.shooter == "stair_pack_sweeper");
+        if left_cover && sweeper_fired {
+            break;
+        }
+    }
+    assert!(
+        left_cover,
+        "a Crawler must route around the cover without a script override"
+    );
+    assert!(
+        sweeper_fired,
+        "the pack Sweeper must acquire a real shot lane"
+    );
+}
+
+#[test]
 fn first_guard_room_teaches_the_shotgun_across_seeds() {
     for seed in [1, 42, 67, 99] {
         let mut session = session();
@@ -639,6 +872,15 @@ fn a_wipe_resets_the_objective_and_the_fights() {
     walker.until(&mut session, 14000, departed);
     walker.read(session.tick_messages(0.05));
     assert_guard_room_lesson(&walker);
+    assert!(
+        session
+            .state
+            .pickups
+            .iter()
+            .find(|pickup| pickup.id == "floor_entry_medkit")
+            .is_some_and(|pickup| !pickup.available),
+        "the floor-entry recovery must be on the retry route"
+    );
     assert_eq!(walker.completed, ORDER);
     assert_eq!(walker.defeated.len(), ENEMIES);
     assert_eq!(session.state.mission_state().unwrap().attempt, 2);

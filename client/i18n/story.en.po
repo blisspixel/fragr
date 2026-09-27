@@ -3,6 +3,9 @@ msgstr ""
 "Language: en\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 
+msgid "CAPTION_CRAWLER_SCRABBLE"
+msgstr "[Mechanical claws scrabble nearby]"
+
 msgid "STORY_M01_HOME_TITLE"
 msgstr "Home"
 

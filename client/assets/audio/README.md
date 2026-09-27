@@ -10,7 +10,9 @@ Generated files are owned by the project under the ElevenLabs terms for the acco
 
 ## Earlier procedural set (retired)
 
-The first effect set was synthesised procedurally and dedicated to the public domain under CC0 1.0 Universal. It has been replaced by generated effects with manifest entries; the old files remain in git history. Any file not listed in `audiogen-manifest.json` came from that earlier set.
+The first effect set was synthesised procedurally and dedicated to the public domain under CC0 1.0 Universal. It has been replaced by generated effects with manifest entries; the old files remain in git history.
+
+The M02 Crawler scrabble is a new original offline procedural cue. `bake_crawler_scrabble.gd` writes the WAV and a deterministic `crawler_scrabble-manifest.json` with its format, fixed seed and SHA-256. Regenerate from the repository root with `godot --headless --path client --script res://assets/audio/bake_crawler_scrabble.gd` using Godot 4.7.2-stable. It makes no external request and has no generation charge. Its caption is localized and remains visible when audio is muted.
 
 ## Files the client loads
 
@@ -21,9 +23,10 @@ The first effect set was synthesised procedurally and dedicated to the public do
 | `hit_flechette.wav`, `hit_rail.wav`, `hit_scatter.wav` | Per-weapon hit |
 | `frag.wav` | Elimination stinger |
 | `round_start.wav`, `round_end.wav` | Round cues |
+| `crawler_scrabble.wav` | Spatial M02 Crawler warning cue |
 | `radio/<station>/` | Contested Frequency radio tracks, grouped by station id; `radio/stations.json` names the stations |
 
-Loading paths: `client/scripts/player_pawn.gd` (per-weapon fire and hit), `client/scripts/game_manager.gd` (frag and round cues), `client/scripts/radio.gd` (radio tracks, discovered through the manifest, never by directory listing). Import presets: keep WAV as samples, MP3 as streams, loop flags off unless the manifest marks a file as looping.
+Loading paths: `client/scripts/player_pawn.gd` (per-weapon fire and hit), `client/scripts/game_manager.gd` (frag, round and Crawler cues), `client/scripts/radio.gd` (radio tracks, discovered through the manifest, never by directory listing). Import presets: keep WAV as samples, MP3 as streams, loop flags off unless the manifest marks a file as looping.
 
 Radio controls in the match: C next station, N next track, M radio on or off
 (D-pad up, down, left on a gamepad). R and gamepad X reload on discovery maps.

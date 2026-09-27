@@ -9,6 +9,8 @@ pub enum EnemyKind {
     /// Broad armored bot: slow gait, long suppressive burst, staggers only on
     /// a heavy hit.
     HeavySweeper,
+    /// Low constrained chassis that commits to a short leaping attack.
+    Crawler,
     /// Fixed equipment with a sweeping head, a spin-up tell and one strong shot.
     Turret,
 }
@@ -19,6 +21,7 @@ pub enum EnemyPhase {
     Idle,
     Moving,
     Windup,
+    Leaping,
     Firing,
     Recovery,
     Hit,

@@ -171,8 +171,26 @@ func _run() -> void:
 				await _retire_scene()
 				quit(1)
 				return
+		if state.get("expect_crawler_scrabble", false):
+			var manager: Node = _game_manager()
+			var caption: Node = manager.hud.get("crawler_caption") if manager != null else null
+			var caption_label: Label = caption.get("caption_label") as Label if is_instance_valid(caption) else null
+			var required_cues: int = int(state.get("expect_crawler_cues", 1))
+			if manager == null or int(manager.get("crawler_scrabble_count")) != required_cues or \
+				not is_instance_valid(caption_label) or \
+				caption_label.text != tr("CAPTION_CRAWLER_SCRABBLE"):
+				push_error("qa_tour: Crawler scrabble cue and live caption were not observed")
+				_failed = true
+			if manager != null and state.has("expect_crawler_source"):
+				var source: Array = state["expect_crawler_source"]
+				var expected_source: Vector3 = Vector3(float(source[0]), float(source[1]), float(source[2]))
+				if (manager.get("crawler_last_position") as Vector3).distance_to(expected_source) > 0.2:
+					push_error("qa_tour: Crawler scrabble came from the wrong landing")
+					_failed = true
 		var combat: Dictionary = {}
 		if state.has("combat"):
+			if state.get("camera", "") == "first_person":
+				_pose_camera("first_person", state)
 			combat = await _combat_probe.run(self, _game_manager(), state["combat"], _out_dir.path_join(state_name))
 			if not combat.get("passed", false):
 				_failed = true
@@ -215,7 +233,7 @@ func _run() -> void:
 			_apply_graphics_capture(state["graphics"])
 		var frame_timing: Dictionary = {}
 		if state.has("frame_sample"):
-			_pose_camera(state.get("camera", "none"))
+			_pose_camera(state.get("camera", "none"), state)
 			frame_timing = await _sample_frames(int(state["frame_sample"]))
 		# Readability evidence: the _world still of this state then has neither HUD
 		# nor world sign copy, so only lamps, pictograms and geometry explain it.
@@ -227,10 +245,23 @@ func _run() -> void:
 					hidden_copy.append(label as Node3D)
 		if state.get("camera", "") == "body":
 			await _find_body(str(state.get("body", "")), str(state.get("body_team", "")))
-		_pose_camera(state.get("camera", "none"))
-		await create_timer(0.75).timeout
+		_pose_camera(state.get("camera", "none"), state)
+		# A detached live-combat view needs only a few settled frames. Holding
+		# the human still for the menu-still delay would change the fight.
+		await create_timer(0.2 if state.has("expect_active_enemies") else 0.75).timeout
 		await RenderingServer.frame_post_draw
 		await RenderingServer.frame_post_draw
+		var active_enemy_phases: Dictionary[String, String] = {}
+		if state.has("expect_active_enemies"):
+			var expected_active: Variant = state["expect_active_enemies"]
+			if not expected_active is Array or expected_active.is_empty():
+				push_error("qa_tour: active enemies require a nonempty name list")
+				_failed = true
+			else:
+				active_enemy_phases = active_named_enemies(_game_manager().get("latest_snapshot"), expected_active)
+				if active_enemy_phases.size() != expected_active.size():
+					push_error("qa_tour: named pack enemies were not all active in the spectator frame")
+					_failed = true
 
 		# An effect that lasts sixty milliseconds is never in a still taken at a
 		# fixed second. A state can instead pull the trigger and keep a strip of
@@ -266,6 +297,8 @@ func _run() -> void:
 			push_error("qa_tour: unexpected capture size for " + state_name)
 			_failed = true
 		var observed: Dictionary = _observed_state().duplicate(true)
+		if state.has("expect_active_enemies"):
+			observed["active_enemy_phases"] = active_enemy_phases
 		if _joined and _game_manager() != null:
 			observed["accepted_body"] = _game_manager().net_client.accepted_body
 		if is_instance_valid(_body_pawn):
@@ -384,7 +417,18 @@ static func valid_walks(states: Variant) -> bool:
 	for state: Variant in states:
 		if not state is Dictionary or not QaCombat.valid_waypoints(state.get("walk_to", [])):
 			return false
+		if state.get("camera", "") == "overview" and state.has("camera_position") and \
+			not QaCombat.valid_waypoints([state.get("camera_position"), state.get("camera_look_at")]):
+			return false
 	return true
+
+static func active_named_enemies(snapshot: Dictionary, names: Array) -> Dictionary[String, String]:
+	var found: Dictionary[String, String] = {}
+	for actor: Dictionary in snapshot.get("players", []):
+		if actor.get("name", "") in names and int(actor.get("hp", 0)) > 0 and \
+			not ActorState.is_participant(actor):
+			found[str(actor["name"])] = str(actor["campaign"]["phase"])
+	return found
 
 func _apply_graphics_capture(options: Variant) -> void:
 	var manager: Node = _game_manager()
@@ -935,7 +979,7 @@ func _set_aim_pitch(pitch: float) -> void:
 		push_error("qa_tour: pitch did not reach the authoritative snapshot")
 		_failed = true
 
-func _pose_camera(mode: String) -> void:
+func _pose_camera(mode: String, state: Dictionary = {}) -> void:
 	if mode == "none":
 		return
 	var cam: Node = _spectator_camera()
@@ -947,12 +991,23 @@ func _pose_camera(mode: String) -> void:
 			cam.set("spectator_first_person", false)
 			if cam is Node3D:
 				var n3: Node3D = cam
-				n3.global_position = Vector3(0, 22, 28)
-				n3.look_at(Vector3.ZERO, Vector3.UP)
+				var position: Vector3 = Vector3(0, 22, 28)
+				var look: Vector3 = Vector3.ZERO
+				if state.has("camera_position"):
+					var p: Array = state["camera_position"]
+					var l: Array = state["camera_look_at"]
+					position = Vector3(float(p[0]), float(p[1]), float(p[2]))
+					look = Vector3(float(l[0]), float(l[1]), float(l[2]))
+				n3.global_position = position
+				n3.look_at(look, Vector3.UP)
 			if "follow_mode" in cam:
 				cam.set("follow_mode", false)
 			if "fp_mode" in cam:
 				cam.set("fp_mode", false)
+			if state.has("camera_position"):
+				cam.set("tip_locked_transform", cam.global_transform)
+				cam.set("tip_has_locked_transform", true)
+				cam.set("tip_pose_lock", true)
 		"follow":
 			cam.set("spectator_first_person", false)
 			if "follow_mode" in cam:
@@ -960,7 +1015,14 @@ func _pose_camera(mode: String) -> void:
 			if "fp_mode" in cam:
 				cam.set("fp_mode", false)
 		"first_person":
-			if not _joined:
+			if _joined:
+				release_camera_pose_lock(cam)
+				var manager: Node = _game_manager()
+				var pawn_id: String = str(manager.net_client.player_id)
+				var pawn: Variant = manager.players.get(pawn_id)
+				if pawn is Node3D and is_instance_valid(pawn):
+					cam.call("set_fp_mode", true, pawn)
+			else:
 				cam.set("follow_mode", true)
 				cam.set("spectator_first_person", true)
 		"body":
@@ -1019,11 +1081,14 @@ func _hold_body_camera() -> void:
 func _release_body_camera() -> void:
 	if process_frame.is_connected(_hold_body_camera):
 		process_frame.disconnect(_hold_body_camera)
-		var cam: Node = _spectator_camera()
-		if cam != null:
-			cam.set("tip_pose_lock", false)
-			cam.set("tip_has_locked_transform", false)
+	var cam: Node = _spectator_camera()
+	if cam != null:
+		release_camera_pose_lock(cam)
 	_body_pawn = null
+
+static func release_camera_pose_lock(cam: Node) -> void:
+	cam.set("tip_pose_lock", false)
+	cam.set("tip_has_locked_transform", false)
 
 func _spectator_camera() -> Node:
 	var gm: Node = _game_manager()

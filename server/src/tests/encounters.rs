@@ -9,6 +9,23 @@ fn session() -> (GameSession, Uuid) {
     fixture(false)
 }
 
+fn crawler_fixture() -> (GameSession, Uuid) {
+    let doc = json!({
+        "version":1,"map_id":1001,"name":"Crawler fixture","half_extent":12,
+        "ground":"concrete","equipment":"discovery","solids":[],
+        "spawns":[{"id":"entry","feet":[0,0,-6],"yaw":1.5707964}],
+        "landmarks":[{"id":"exit","feet":[0,0,10]}],
+        "encounters":[{"id":"crawler","regions":[{"min":[-2,0,-2],"max":[2,2,2]}],
+            "enemies":[{"id":"crawler_one","kind":"crawler","feet":[0,0,2],"yaw":4.712389}]}]
+    });
+    let map = AuthoredMap::read(serde_json::to_vec(&doc).unwrap().as_slice()).unwrap();
+    let mut session = GameSession::with_authored_map(map);
+    session.state.seed(42);
+    let id = Uuid::from_u128(101);
+    session.state.add_player(id, "Visitor".into(), Role::Human);
+    (session, id)
+}
+
 fn fixture(cover: bool) -> (GameSession, Uuid) {
     let mut doc = json!({
         "version":1,"map_id":1000,"name":"Encounter fixture","half_extent":12,
@@ -75,6 +92,130 @@ fn phase(session: &GameSession, id: Uuid) -> EnemyPhase {
         CampaignActor::Union { phase, .. } => phase,
         CampaignActor::Participant {} => panic!("expected enemy"),
     }
+}
+
+#[test]
+fn crawler_scrabble_precedes_a_single_contact_and_recovery() {
+    let (mut session, id) = crawler_fixture();
+    let player = session
+        .state
+        .players
+        .iter_mut()
+        .find(|p| p.id == id)
+        .unwrap();
+    player.x = 0.0;
+    player.z = 0.0;
+    let mut cues = 0;
+    let mut first_leap = None;
+    let mut first_hit = None;
+    let mut recovery = None;
+    let mut contact_results = 0;
+    for _ in 0..80 {
+        let messages = session.tick_messages(0.05);
+        cues += messages
+            .iter()
+            .filter(|message| {
+                matches!(
+                    message,
+                    crate::protocol::ServerMessage::Event(
+                        crate::protocol::GameEvent::CrawlerScrabble { .. }
+                    )
+                )
+            })
+            .count();
+        let crawler = session
+            .state
+            .players
+            .iter()
+            .find(|p| p.name == "crawler_one")
+            .unwrap();
+        let current = match crawler.campaign.unwrap() {
+            CampaignActor::Union { phase, .. } => phase,
+            CampaignActor::Participant {} => panic!("expected Crawler"),
+        };
+        if current == EnemyPhase::Leaping {
+            first_leap.get_or_insert(session.state.tick);
+        }
+        if current == EnemyPhase::Recovery && first_leap.is_some() {
+            recovery.get_or_insert(session.state.tick);
+        }
+        for shot in &session.state.shot_results {
+            if shot.shooter == "crawler_one" && shot.hit {
+                contact_results += 1;
+                first_hit.get_or_insert(session.state.tick);
+                assert_eq!(shot.trace.as_ref().unwrap().weapon, WeaponType::Fists);
+                assert_eq!(shot.target_id, Some(id));
+            }
+        }
+        if recovery.is_some() {
+            break;
+        }
+    }
+    assert_eq!(cues, 1);
+    assert!(first_leap.is_some_and(|tick| tick > 1));
+    assert!(first_hit.is_some_and(|tick| first_leap.is_some_and(|leap| tick >= leap)));
+    assert_eq!(contact_results, 1, "one leap must connect at most once");
+    assert!(recovery.is_some_and(|tick| tick <= first_leap.unwrap() + 16));
+    assert!(
+        session
+            .state
+            .players
+            .iter()
+            .find(|p| p.id == id)
+            .unwrap()
+            .hp
+            < 100
+    );
+}
+
+#[test]
+fn crawler_contact_respects_the_existing_spawn_shield() {
+    let (mut session, id) = crawler_fixture();
+    let player = session
+        .state
+        .players
+        .iter_mut()
+        .find(|p| p.id == id)
+        .unwrap();
+    player.x = 0.0;
+    player.z = 0.0;
+    session.state.spawn_shields.insert(id, 80);
+    let mut leaped = false;
+    let mut recovered = false;
+    for _ in 0..60 {
+        session.tick_messages(0.05);
+        let crawler = session
+            .state
+            .players
+            .iter()
+            .find(|p| p.name == "crawler_one")
+            .unwrap();
+        let phase = match crawler.campaign.unwrap() {
+            CampaignActor::Union { phase, .. } => phase,
+            CampaignActor::Participant {} => panic!("expected Crawler"),
+        };
+        leaped |= phase == EnemyPhase::Leaping;
+        recovered |= leaped && phase == EnemyPhase::Recovery;
+        if recovered {
+            break;
+        }
+    }
+    assert!(leaped && recovered);
+    assert_eq!(
+        session
+            .state
+            .players
+            .iter()
+            .find(|p| p.id == id)
+            .unwrap()
+            .hp,
+        100
+    );
+    assert!(session
+        .state
+        .shot_results
+        .iter()
+        .all(|shot| shot.shooter != "crawler_one"));
 }
 
 fn shoot(session: &mut GameSession, shooter: Uuid, target: Uuid) {

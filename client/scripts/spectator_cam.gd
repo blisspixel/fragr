@@ -425,7 +425,13 @@ func _process_fp(delta):
 	if not is_instance_valid(fp_target):
 		return
 
-	var eye = fp_target.global_position + Vector3(0, FP_EYE_HEIGHT, 0)
+	# Local first-person play follows the latest authoritative pawn position.
+	# The rendered pawn already interpolates between snapshots. Following that
+	# interpolation, then smoothing the camera again, can leave the eye behind
+	# a stair wall while the server and hit geometry are in the next room.
+	var eye: Vector3 = fp_target.global_position + Vector3(0, FP_EYE_HEIGHT, 0)
+	if "target_position" in fp_target:
+		eye = fp_target.get("target_position") + Vector3(0, FP_EYE_HEIGHT, 0)
 	# The eye looks where the client aims, not where the last snapshot said.
 	var yaw = fp_yaw
 
@@ -436,7 +442,11 @@ func _process_fp(delta):
 			0
 		)
 
-	position = position.lerp(eye, min(1.0, 18.0 * delta))
+	var smoothed_eye: Vector3 = global_position.lerp(eye, minf(1.0, 18.0 * delta))
+	# Keep the usual motion smoothing while both eyes share a clear space.
+	# Crossing an authoritative solid would put the view inside cover, so use
+	# the server eye immediately at that boundary.
+	global_position = smoothed_eye if AimAssist.line_of_sight(smoothed_eye, eye, assist_solids) else eye
 	# The server's yaw is not a Godot rotation. Assigning it straight to
 	# rotation.y pointed the camera ninety degrees away from where the server
 	# was moving the fighter, which is why holding forward read as strafing.

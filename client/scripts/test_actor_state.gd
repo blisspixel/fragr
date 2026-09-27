@@ -30,14 +30,19 @@ func _run() -> void:
 		invalid_seat["campaign"].merge(patch, true)
 		_check(not ActorState.validation_error({"tick":12, "players":[invalid_seat]}).is_empty(),
 			"reject invalid seated guard: " + str(patch))
-	for kind: String in ["sweeper", "heavy_sweeper", "turret"]:
+	for kind: String in ["sweeper", "heavy_sweeper", "turret", "crawler"]:
 		var other: Dictionary = _actor()
 		other["campaign"]["kind"] = kind
 		_check(ActorState.validation_error({"tick": 12, "players": [other]}).is_empty(), "accept Union kind " + kind)
 	var participants: Array[Dictionary] = ActorState.participants(snapshot["players"])
 	_check(participants.size() == 2 and participants[0]["id"] == "human" and participants[1]["id"] == "agent", "only participants belong to the scoreboard and camera roster")
 	_check(ActorState.is_participant({"id": "arcade"}), "legacy arcade roster preserved")
-	for patch: Dictionary in [{"side": "unknown"}, {"kind": "crawler"}, {"kind": "heavy"}, {"kind": "Turret"}, {"phase": "attacking"},
+	var leap: Dictionary = _actor()
+	leap["campaign"]["kind"] = "crawler"
+	leap["campaign"]["phase"] = "leaping"
+	_check(ActorState.validation_error({"tick": 12, "players": [leap]}).is_empty(),
+		"typed Crawler leap accepted")
+	for patch: Dictionary in [{"side": "unknown"}, {"kind": "crawling"}, {"kind": "heavy"}, {"kind": "Turret"}, {"phase": "attacking"},
 		{"phase_started": -1}, {"phase_started": 13}, {"phase_started": "10"}, {"phase_ends": 9},
 		{"phase_ends": 111}, {"phase_ends": NAN}, {"phase_ends": 22.5}, {"unknown": 1}, {"kind": []}, {"phase": "dead"}]:
 		var bad: Dictionary = _actor()

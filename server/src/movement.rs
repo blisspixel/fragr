@@ -267,10 +267,19 @@ impl Arena {
     }
 
     pub fn blocked_body_at(&self, x: f32, z: f32, feet: f32, climb: f32) -> bool {
+        self.blocked_body_at_height(x, z, feet, climb, BODY_HEIGHT)
+    }
+
+    pub fn blocked_body_at_height(
+        &self,
+        x: f32,
+        z: f32,
+        feet: f32,
+        climb: f32,
+        height: f32,
+    ) -> bool {
         self.solids.iter().any(|s| {
-            s.top > climb
-                && s.bottom < feet + BODY_HEIGHT - CONTACT_EPSILON
-                && s.blocks(x, z, RADIUS)
+            s.top > climb && s.bottom < feet + height - CONTACT_EPSILON && s.blocks(x, z, RADIUS)
         })
     }
 
@@ -289,6 +298,18 @@ impl Arena {
         climb: f32,
         was_grounded: bool,
     ) -> bool {
+        self.blocked_body_motion_height(from, to, feet, climb, was_grounded, BODY_HEIGHT)
+    }
+
+    pub fn blocked_body_motion_height(
+        &self,
+        from: (f32, f32),
+        to: (f32, f32),
+        feet: f32,
+        climb: f32,
+        was_grounded: bool,
+        height: f32,
+    ) -> bool {
         let support = self.support_height(to.0, to.1, climb);
         let next_feet = if was_grounded && feet - support <= STEP_UP {
             support
@@ -297,8 +318,8 @@ impl Arena {
         };
         self.solids.iter().any(|solid| {
             solid.top > climb
-                && solid.bottom < next_feet + BODY_HEIGHT - CONTACT_EPSILON
-                && if solid.bottom >= feet + BODY_HEIGHT - CONTACT_EPSILON {
+                && solid.bottom < next_feet + height - CONTACT_EPSILON
+                && if solid.bottom >= feet + height - CONTACT_EPSILON {
                     // The old body was below this slab. Horizontal overlap is
                     // not permission to step upward through its underside.
                     solid.blocks(to.0, to.1, RADIUS)
@@ -311,10 +332,14 @@ impl Arena {
     /// Lowest underside above the current head, including radius overlap at an
     /// edge. Swept upward motion stops here even if one tick crosses the slab.
     pub fn ceiling_height(&self, x: f32, z: f32, feet: f32) -> f32 {
+        self.ceiling_height_for_body(x, z, feet, BODY_HEIGHT)
+    }
+
+    pub fn ceiling_height_for_body(&self, x: f32, z: f32, feet: f32, height: f32) -> f32 {
         self.solids
             .iter()
             .filter(|solid| {
-                solid.bottom >= feet + BODY_HEIGHT - CONTACT_EPSILON && solid.blocks(x, z, RADIUS)
+                solid.bottom >= feet + height - CONTACT_EPSILON && solid.blocks(x, z, RADIUS)
             })
             .map(|solid| solid.bottom)
             .fold(f32::INFINITY, f32::min)
@@ -445,6 +470,18 @@ pub fn step(state: MoveState, input: &MoveInput, dt: f32, arena: &Arena) -> Move
 /// gravity. The live server supplies immediate horizontal velocity; `step`
 /// supplies accelerated velocity. Both use this collision and grounding path.
 pub fn integrate(state: MoveState, jump: bool, dt: f32, arena: &Arena) -> MoveState {
+    integrate_with_height(state, jump, dt, arena, BODY_HEIGHT)
+}
+
+/// Server-only body profile for low authored enemies. Participant movement
+/// continues through `integrate` and its unchanged client mirror.
+pub fn integrate_with_height(
+    state: MoveState,
+    jump: bool,
+    dt: f32,
+    arena: &Arena,
+    height: f32,
+) -> MoveState {
     let mut vx = state.vx;
     let mut vz = state.vz;
 
@@ -459,8 +496,16 @@ pub fn integrate(state: MoveState, jump: bool, dt: f32, arena: &Arena) -> MoveSt
     let was_grounded = grounded(state.y, floor, state.vy);
     let climb = climb_height(state.y, floor, state.vy);
 
-    let blocked =
-        |x, z| arena.blocked_body_motion((old_x, old_z), (x, z), state.y, climb, was_grounded);
+    let blocked = |x, z| {
+        arena.blocked_body_motion_height(
+            (old_x, old_z),
+            (x, z),
+            state.y,
+            climb,
+            was_grounded,
+            height,
+        )
+    };
     let (x, z) = if !blocked(nx, nz) {
         (nx, nz)
     } else if !blocked(nx, old_z) {
@@ -492,10 +537,10 @@ pub fn integrate(state: MoveState, jump: bool, dt: f32, arena: &Arena) -> MoveSt
     } else {
         vy -= GRAVITY * dt;
     }
-    let ceiling = arena.ceiling_height(x, z, y);
+    let ceiling = arena.ceiling_height_for_body(x, z, y, height);
     y += vy * dt;
-    if vy > 0.0 && y + BODY_HEIGHT > ceiling {
-        y = ceiling - BODY_HEIGHT;
+    if vy > 0.0 && y + height > ceiling {
+        y = ceiling - height;
         vy = 0.0;
     }
     // Swept landing: anything the fall passed through on the way down counts,
@@ -874,6 +919,34 @@ pub fn golden_cases(dt: f32) -> GoldenFile {
 mod tests {
     use super::*;
     use std::path::Path;
+
+    #[test]
+    fn low_crawler_passes_under_a_beam_that_blocks_a_standing_fighter() {
+        let arena = Arena {
+            half: 10.0,
+            solids: vec![Solid {
+                min_x: -1.0,
+                max_x: 1.0,
+                min_z: -1.0,
+                max_z: 1.0,
+                bottom: 1.0,
+                top: 2.5,
+            }],
+        };
+        let mut low = at(-2.0, 0.0, 0.0);
+        let mut standing = low;
+        for _ in 0..20 {
+            low.vx = 5.0;
+            standing.vx = 5.0;
+            low = integrate_with_height(low, false, 0.05, &arena, crate::combat::CRAWLER_HEIGHT);
+            standing = integrate(standing, false, 0.05, &arena);
+        }
+        assert!(low.x > 1.5, "low body should clear the beam: {low:?}");
+        assert!(
+            standing.x <= -1.5,
+            "standing body must stop before the beam: {standing:?}"
+        );
+    }
 
     fn workspace_path(rel: &str) -> std::path::PathBuf {
         Path::new(env!("CARGO_MANIFEST_DIR")).join("..").join(rel)

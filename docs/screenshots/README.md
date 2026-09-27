@@ -80,7 +80,7 @@ and fresh-player acceptance outstanding. Source manifest: `client/qa/m01-records
 | `tour_settings_16x9.png` | Saved controls, including sensitivity, inversion, turn speed, and weapon bob |
 | `tour_difficulty_16x9.png` | New-run Assisted, Standard and Severe choices |
 | `tour_first_person_16x9.png` | Human first person |
-| `tour_spectator_16x9.png` | Spectator through a fighter's eyes |
+| `tour_spectator_16x9.png` | Spectator chase of a live fighter |
 | `tour_combat_follow_16x9.png` | Optional chase view |
 | `tour_body_human_16x9.png` | Close still of a fighter the server says is human, in free colours at hit-volume height |
 | `tour_body_synthetic_16x9.png` | The same framing on a fighter in a synthetic body, an embodied agent |

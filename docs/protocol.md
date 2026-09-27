@@ -88,7 +88,7 @@ Initial handshake message. Must be sent immediately after connection.
   resume keeps the parked pawn's body even if this hello names another.
   Changing the body means leaving and joining again.
 - `gameplay_version`: maximum understood gameplay contract. Updated Rust readers
-  and the Godot client send `15`; omission means `1`. Discovery-only maps require 2, maps with authored
+  and the Godot client send `16`; omission means `1`. Discovery-only maps require 2, maps with authored
   encounters require 3, and mission sequences require 6 for shared difficulty.
   Versions 4 and 5 introduced physical controls and party readiness respectively;
   they cannot enter current missions. Solo runs require 7 for explicit continues.
@@ -117,9 +117,11 @@ Initial handshake message. Must be sent immediately after connection.
   and an older client's pawn is human.
   Version 14 is allocated to capture the flag in a separate branch. Version 15
   adds optional `seated: true` to the Union Clerk campaign identity.
-  M02 requires 15 for every role because the guard-room introduction depends on
-  this posture. M01 and the arcade maps keep their earlier requirements.
-  Use matching campaign server/client builds.
+  Version 16 adds the low Union Crawler, its timed leap and the positional
+  `crawler_scrabble` event. M02 requires 16 for every role because its stair
+  encounter depends on those tells. M01 and the arcade maps keep their earlier
+  requirements. Capabilities 14 and 15 must be integrated before a version 16
+  release; use matching campaign server/client builds.
   Older clients of every role are rejected before `Welcome`
   with `unsupported_gameplay`. This capability is separate from geometry. The six
   full-arsenal arcade maps still accept 1. There an older reader draws only the
@@ -862,12 +864,13 @@ changes presentation only, not the authoritative body or shot geometry.
 
 `Role` describes the connection's controller, not faction or fictional anatomy.
 Human and external-agent participants are allies. Union `kind` is `clerk` (human
-security), `sweeper` (bot), `heavy_sweeper` (armored bot) or `turret` (fixed
-equipment). Names are labels, never a targeting rule. Current
+security), `sweeper` (bot), `heavy_sweeper` (armored bot), `turret` (fixed
+equipment) or `crawler` (low constrained bot). Names are labels, never a
+targeting rule. Current
 campaign identity describes these introductory encounters; it does not implement
 Inheritance takeover, companions or the complete co-op lifecycle.
 
-Phases are `idle`, `moving`, `windup`, `firing`, `recovery`, `hit` and `dead`.
+Phases are `idle`, `moving`, `windup`, `leaping`, `firing`, `recovery`, `hit` and `dead`.
 Their start/end are authoritative simulation ticks at 20 Hz. Idle and moving
 have no fixed duration (`phase_ends == phase_started`); other phases may be
 interrupted by hits, lost sight or death. A firing animation never causes damage.
@@ -884,6 +887,16 @@ charge before one Rail shot, and broken sight during `windup` or `firing` ends
 the attack in `recovery` without a shot. Its `hit` follows the same heavy-hit
 rule for 10 ticks. Windup and recovery durations per difficulty are in
 [the difficulty plan](plans/difficulty-and-rewards.md).
+
+A `crawler` uses a server-owned 0.8 m body, including movement clearance, shot
+volume and target centre. Its `windup` is a 12-tick crouch that locks the target
+position and bearing. The `leaping` phase lasts at most 16 ticks and moves the
+body along that bearing without homing. Server movement resolves at most one
+contact hit per leap against a hostile body; a wall, lateral dodge or a miss
+prevents it. The Crawler then spends 20 ticks in `recovery`. These provisional
+durations are the same across difficulty tiers and do not change the campaign
+rules revision. A contact resolved during movement can trade with a shot fired
+later in the same tick. Presentation frames do not apply damage.
 
 Campaign participants cannot damage one another. Allies intercept rays with
 `hit: true`, `damage: 0` and `killed: false`; zero damage must not show a hit-confirm
@@ -945,6 +958,19 @@ name the same side is a team kill under friendly fire: it scores nothing and
   "target_hp_after": 75
 }
 ```
+
+**Crawler Scrabble Event:** (one positional warning when an authored Crawler
+group's entry region alarms; the client chooses a localized caption and spatial
+sound)
+```json
+{"type":"event","event":"crawler_scrabble","position":[-12,0,-27]}
+```
+
+`position` is a world-space source near the first Crawler in that group. It is
+not an asset path, caption, player identity or damage instruction. A preemptive
+shot at a visible dormant Crawler can wake it before region entry without this
+event. Clients validate its finite three-component shape before playback; the event remains
+available to sound-muted players through the caption and visible attack tell.
 
 **Respawn Event:**
 ```json
@@ -1121,7 +1147,8 @@ MVP is the top scorer (same selection as `winner`). `mvp` / `mvp_frags` / `host_
 ```
 
 **Fields:**
-- `event`: Event type (`frag`, `hit`, `respawn`, `round_start`, `round_end`, `player_joined`, `player_left`, `compliance_ping`, `boss_spawn`, `boss_down`, `speak`, `pickup`, `killstreak`, `host_reaction`)
+- `event`: Event type (`frag`, `hit`, `crawler_scrabble`, `respawn`, `round_start`, `round_end`, `player_joined`, `player_left`, `compliance_ping`, `boss_spawn`, `boss_down`, `speak`, `pickup`, `killstreak`, `host_reaction`)
+- `position`: (`crawler_scrabble` only) three finite world coordinates for the spatial sound source
 - `kind`: (pickup only) Pad kind: `"weapon"` / `"health"` / `"armor"` / `"golden_rail"` (default `"weapon"`). Weapon and golden pads also carry `weapon`; health/armor pads carry `amount`.
 - `rules`: (round_start, optional) the arena's rule set, repeated each round for event readers
 - `winning_team` / `team_scores`: (round_end, team modes only) the winning side, omitted for a draw, and the final side frags
@@ -1354,12 +1381,12 @@ the on-wire campaign rules revision. No parent command changes it during a run.
 
 The readiness record names the selected mission's client contract, rather than
 the highest version understood by the server. M01 names 12 for discovery
-equipment; M02 names 15 for the seated Clerk identity. The local launcher
+equipment; M02 names 16 for the Crawler stair identity and timed leap. The local launcher
 checks this value exactly.
 
 `--local-mission persons_unknown` starts the bundled M02 graybox as a
 development child. It writes the same readiness line with
-`"mission":"persons_unknown"` and `"gameplay_version":15`. It has no durable run:
+`"mission":"persons_unknown"` and `"gameplay_version":16`. It has no durable run:
 `--run-mode` is refused before readiness, mission state carries no `run`, and
 the party keeps development entry respawn and the shared wipe reset. It is not
 a save carry from M01.

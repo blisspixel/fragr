@@ -540,8 +540,10 @@ pub const BODY_GAMEPLAY_VERSION: u32 = 13;
 /// Optional seated opening posture on authored Union Clerks. M02 requires
 /// this so an older presenter cannot mistake its first fight for standing guards.
 pub const SEATED_GUARD_GAMEPLAY_VERSION: u32 = 15;
+/// A low Crawler body, a timed leap and an audible encounter cue.
+pub const CRAWLER_GAMEPLAY_VERSION: u32 = 16;
 /// Highest understood gameplay contract; content requirements use their own minimum.
-pub const GAMEPLAY_VERSION: u32 = SEATED_GUARD_GAMEPLAY_VERSION;
+pub const GAMEPLAY_VERSION: u32 = CRAWLER_GAMEPLAY_VERSION;
 pub fn legacy_gameplay_version() -> u32 {
     1
 }
@@ -1053,6 +1055,10 @@ pub struct PlayerScore {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "event", rename_all = "snake_case")]
 pub enum GameEvent {
+    /// A nearby Crawler encounter wakes before its first visible attack.
+    CrawlerScrabble {
+        position: [f32; 3],
+    },
     Frag {
         killer: String,
         victim: String,

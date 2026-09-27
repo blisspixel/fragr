@@ -13,9 +13,9 @@ and the map version in observations, and closes its MCP game session if a map
 has unsupported or invalid geometry, or the server sends malformed JSON.
 Ground-filled legacy maps remain readable.
 
-The adapter declares gameplay capability 15. Every discovery map requires at
-least 12 for all roles; M02 requires 15 for its seated Clerk identity. The six
-full-arsenal arcade maps still admit 1. Older clients are
+The adapter declares gameplay capability 16. Every discovery map requires at
+least 12 for all roles; M02 requires 16 for its seated Clerk and Crawler stair
+encounters. The six full-arsenal arcade maps still admit 1. Older clients are
 rejected before admission. `observe.loadout`
 is private to this participant: selected and owned weapons (`["fists","tack"]`),
 one `ammo` count per pool (`bullets`, `shells`, `cells`), personal supply
@@ -528,10 +528,15 @@ Example `test_input.jsonl`:
 Authored encounter maps require gameplay capability 3, which the adapter sends.
 `observe` preserves each actor's typed `campaign` identity and attack phase.
 `side: participant` includes human and external-agent allies; `side: union`
-identifies Clerk humans, Sweeper and Heavy Sweeper bots, and fixed Turrets
-(`kind`: `clerk`, `sweeper`, `heavy_sweeper`, `turret`). A Turret in `moving` is
-turning its head, not walking. Read `windup` and `phase_ends` as the tell for
-every kind. Never infer hostility from a callsign,
+identifies Clerk humans, Sweeper and Heavy Sweeper bots, fixed Turrets, and low
+Crawlers (`kind`: `clerk`, `sweeper`, `heavy_sweeper`, `turret`, `crawler`). A
+Turret in `moving` is turning its head, not walking. Read `windup` and
+`phase_ends` as the tell for
+every kind. A Crawler's `leaping` phase is committed movement after a crouched
+windup; its contact damage is resolved by the server. `crawler_scrabble` events
+in `recent_events` and `get_events` carry a finite world position for the
+mechanical warning, never text or a player identity. Never infer hostility from
+a callsign,
 body appearance or connection role. The scripted controller uses the shared
 hostility predicate and excludes dead actors. MCP clients should follow the same
 rule; dead enemies remain briefly for presentation. Zero-damage friendly

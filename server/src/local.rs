@@ -118,9 +118,9 @@ impl Ready {
             difficulty,
             url: format!("ws://{address}"),
             // M01 uses discovery equipment and rule sets. M02 also needs the
-            // seated Clerk identity on its opening encounter.
+            // seated Clerk and low Crawler encounter contracts.
             gameplay_version: if mission == MissionId::PersonsUnknown {
-                crate::protocol::SEATED_GUARD_GAMEPLAY_VERSION
+                crate::protocol::CRAWLER_GAMEPLAY_VERSION
             } else {
                 RULES_GAMEPLAY_VERSION
             },
@@ -309,7 +309,7 @@ mod tests {
         .unwrap();
         assert_eq!(
             m02.gameplay_version,
-            crate::protocol::SEATED_GUARD_GAMEPLAY_VERSION
+            crate::protocol::CRAWLER_GAMEPLAY_VERSION
         );
     }
 }

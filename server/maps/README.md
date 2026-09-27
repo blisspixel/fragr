@@ -14,14 +14,19 @@ prototype, not a finished M01 or the rescue. Checkpoints are not built.
 party enters on an observation gallery whose slot window faces the correction
 ward. Its destination tableau is still unbuilt. The upper gallery offers a
 Shotgun and Shells before a guard room with two initially seated Clerks. The
-service stair then leads to the antechamber and ward. The route is open: no
-switches and no gates.
-Four encounters (guard room, ward, processing floor, loading dock) hold eleven
-Clerks and Sweepers. Two objectives advance by arrival:
+service stair turns toward a lower Crawler lesson and a raised pack landing,
+then leads to the antechamber and ward. The route is open: no switches or gates.
+Six encounters hold sixteen Union enemies: the guard-room Clerks, one Crawler
+after the turn, three Crawlers and a Sweeper on the later landing, then the ward,
+processing-floor and loading-dock fights. Two objectives advance by arrival:
 "Find Latch" at the restraint frame in the ward, then "Get out" on the loading
-dock. Latch is not built, and the map has no Crawlers, maintenance loop,
-captives or secrets. The Jammer first appears in level 3. This is a development graybox, not the
-finished mission.
+dock. A 30 HP pickup at [-1, 0, -5.5] supports the processing-floor entry route;
+the eastern 40 HP pickup remains an optional detour. This balance is provisional
+until fresh-player review. Latch is not built, and the map has no maintenance
+loop, captives or secrets. The Jammer first appears in level 3. Seeded Crawler
+route clears and the rendered warning, leap and pack pass authoring review;
+fresh-player review remains. This is a
+development graybox, not the finished mission.
 
 ```bash
 cargo run -p fragr-server --locked -- --local-mission persons_unknown
@@ -30,7 +35,7 @@ cargo run -p fragr-server --locked -- --local-mission persons_unknown
 That development child prints its loopback readiness line and serves the
 normal wire; it keeps no run file. `--map-file server/maps/m02-persons-unknown.json
 --bots 0` also works for a dedicated development host. Clients need gameplay
-capability 15, including spectators.
+capability 16, including spectators.
 
 For M01, from the repository root:
 
@@ -177,8 +182,9 @@ Errors report the reason or parser location. Placement diagnostics identify the
 already-validated public record ID, never dump document contents or source paths.
 
 The source path is never sent to clients. `MapInfo` supplies the validated geometry
-and materials. Reloading a map means restarting the host; live content reload and
-campaign saves have no implemented contract yet.
+and materials. Reloading a map means restarting the host; live content reload has
+no implemented contract yet. M01 has a versioned local mission-entry run file;
+M02 cross-mission carry remains unbuilt.
 
 ## Verification
 

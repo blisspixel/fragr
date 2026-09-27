@@ -197,7 +197,7 @@ arena_overview|tour_arena_overview_16x9.png
 shot_effects_strip|tour_shot_strip.png
 rail_impact_strip|tour_rail_impact_strip.png
 boot_menu|tour_menu_16x9.png
-spectator_eyes|tour_spectator_16x9.png
+spectator_chase|tour_spectator_16x9.png
 profile_menu|tour_profile_16x9.png
 settings_menu|tour_settings_16x9.png
 campaign_difficulty|tour_difficulty_16x9.png

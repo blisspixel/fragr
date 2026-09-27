@@ -10,8 +10,9 @@ own room and encounter staging for every level. No complete level is finished.
 Level 1 (M01, Recall Notice) has a playable development slice with discovery,
 introductory enemies, a transfer/lift sequence and a reader-paced text opening.
 Solo level 1 now has three explicit mission-start continues and exhaustion;
-persistence and cross-mission carry remain unbuilt. Scene art/narration, secrets
-and final encounter acceptance remain unfinished; [M01 completion](plans/m01-completion.md)
+M01 entry persistence is implemented, while cross-mission carry remains unbuilt.
+Scene art/narration, secrets and final encounter acceptance remain unfinished;
+[M01 completion](plans/m01-completion.md)
 tracks the next build.
 Solo Broadcast:
 Calibration is the shipped Episode 0 arena prototype, not the campaign opening.

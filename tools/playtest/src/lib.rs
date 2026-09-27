@@ -861,6 +861,7 @@ pub fn compute_report(obs: &Observation, agents: usize) -> Report {
             | GameEvent::BossDown { .. } => host_beats += 1,
             GameEvent::Pickup { .. } => pickups += 1,
             GameEvent::Hit { .. }
+            | GameEvent::CrawlerScrabble { .. }
             | GameEvent::PlayerJoined { .. }
             | GameEvent::PlayerLeft { .. }
             | GameEvent::Speak { .. } => {}
@@ -1317,10 +1318,14 @@ impl Arena {
         from: &fragr_server::protocol::PlayerState,
         to: &fragr_server::protocol::PlayerState,
     ) -> bool {
-        use fragr_server::{combat::FIGHTER_HEIGHT, sim::PLAYER_FLOOR_Y};
+        use fragr_server::sim::PLAYER_FLOOR_Y;
         fragr_server::combat::line_of_sight(
             [from.x, from.y - PLAYER_FLOOR_Y + EYE_HEIGHT, from.z],
-            [to.x, to.y - PLAYER_FLOOR_Y + FIGHTER_HEIGHT * 0.5, to.z],
+            [
+                to.x,
+                to.y - PLAYER_FLOOR_Y + fragr_server::combat::target_height(to.campaign) * 0.5,
+                to.z,
+            ],
             &self.solids,
         )
     }

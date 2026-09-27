@@ -255,7 +255,7 @@ async fn run_server_impl(
         .as_ref()
         .is_some_and(|config| !config.rules.is_plain());
     let required_gameplay = if session.state.map.m02_objectives().is_some() {
-        crate::protocol::SEATED_GUARD_GAMEPLAY_VERSION
+        crate::protocol::CRAWLER_GAMEPLAY_VERSION
     } else if discovery || twisted {
         crate::protocol::RULES_GAMEPLAY_VERSION
     } else if options.campaign_run {

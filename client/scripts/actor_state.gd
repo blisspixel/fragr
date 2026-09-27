@@ -2,8 +2,8 @@ class_name ActorState
 extends RefCounted
 
 ## Campaign identity comes from the server, never a callsign or control role.
-const KINDS: Array[String] = ["clerk", "sweeper", "heavy_sweeper", "turret"]
-const PHASES: Array[String] = ["idle", "moving", "windup", "firing", "recovery", "hit", "dead"]
+const KINDS: Array[String] = ["clerk", "sweeper", "heavy_sweeper", "turret", "crawler"]
+const PHASES: Array[String] = ["idle", "moving", "windup", "leaping", "firing", "recovery", "hit", "dead"]
 
 static func is_participant(actor: Dictionary) -> bool:
 	var campaign: Variant = actor.get("campaign")

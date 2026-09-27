@@ -1,13 +1,15 @@
 # M02: Persons Unknown
 
-**Status:** development graybox (`server/maps/m02-persons-unknown.json`): an open route with four Clerk and Sweeper fights, including a two-Clerk Shotgun introduction, and two arrival objectives. Story, Latch as an actor and Crawlers are unbuilt. The Jammer first appears in level 3. Earth before the wipe. Target 10-12 minutes.
+**Status:** development graybox (`server/maps/m02-persons-unknown.json`): an open route with a two-Clerk Shotgun introduction, a lone Crawler encounter, a later three-Crawler and Sweeper encounter, three further Clerk and Sweeper fights, and two arrival objectives. The Crawler slice has seeded route and rendered visual checks but awaits fresh-player review. Story, Latch as an actor, ward fight gates and M01-to-M02 save carry remain unbuilt. The Jammer first appears in level 3. Earth before the wipe. Target 10-12 minutes.
 [Treatment](../CAMPAIGN-MISSIONS.md#level-2-persons-unknown).
 
 The current graybox places the Shotgun on the upper gallery and two initially
 seated Clerks in a guard room at the top of the service stair. Their encounter
-raises them before the descent. The Crawler lesson on the lower landing, the
-authored reaction and fresh-player proof remain to be built before this
-introduction is finished.
+raises them before the descent. A separate trigger stages one low Crawler on
+the lower stair, then another stages three Crawlers with a Sweeper. The server
+owns their body, leap and contact; the client has distinct motion and a
+captioned spatial scrabble cue. Seeded clears and inspected live motion pass;
+fresh-player review still decides whether the introduction is accepted.
 
 ## Story and cast
 
@@ -33,7 +35,7 @@ to the floor and the gallery.
 | Zone | Physical job | Play and character beat |
 |---|---|---|
 | Gallery and guard room | Windows show the ward and processing machinery below; a small table and chairs interrupt the route to the stair | Player finds the Shotgun and Shells, then wakes two seated Clerks before descending; a Notary drone photographs captives beyond the glass, out of reach |
-| Service stair | Enclosed switchback, clear landings, no jump requirement | Introduce Crawler sounds/captions, then a small visible pack |
+| Service stair | Enclosed switchback, clear landings, no jump requirement | One Crawler gets a captioned scrabble and a readable leap before three Crawlers mix with a Sweeper on the next landing; fresh-player readability review pending |
 | Antechamber | Workroom with cover and a view into the ward | Recover after the stair and read the ward before entering it |
 | Ward | Open ward around the restraint frame | Set-piece fight; the correction stops when the guards fall; free Latch |
 | Processing floor | Two usable levels with broad stairs and machinery islands | Latch fights beside us; mixed threats pressure escape |
@@ -82,7 +84,7 @@ and optional speech carry the same meaning. Do not settle the friend/partner
 relationship with gendered or romantic lines before that wording is approved.
 
 Need ward machinery, restraints, active/inactive release states, companion
-locomotion and gestures, and the Crawler set. Captive suffering
+locomotion and gestures, and an accepted Crawler presentation pass. Captive suffering
 is purposeful context, not prolonged spectacle. Institutional announcements can
 be absurd while the reunion stays sincere.
 

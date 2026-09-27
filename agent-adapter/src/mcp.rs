@@ -1780,6 +1780,22 @@ mod mcp_tests {
     }
 
     #[test]
+    fn crawler_warning_keeps_its_position_for_agent_observation() {
+        use protocol::GameEvent;
+        let mut state = ToolState::default();
+        let wire = protocol::ServerMessage::Event(GameEvent::CrawlerScrabble {
+            position: [-11.5, 0.0, -28.5],
+        });
+        ingest_server_text(&mut state, &serde_json::to_string(&wire).unwrap()).unwrap();
+        let observed = build_observe_result(&state);
+        assert_eq!(observed["recent_events"][0]["event"], "crawler_scrabble");
+        assert_eq!(
+            observed["recent_events"][0]["position"],
+            serde_json::json!([-11.5, 0.0, -28.5])
+        );
+    }
+
+    #[test]
     fn initialize_and_tools_list_and_unknown_method() {
         let mut state = ToolState::default();
         let init = handle_mcp_request(req("initialize", None), &mut state);

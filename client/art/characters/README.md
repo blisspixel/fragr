@@ -58,6 +58,26 @@ while the server turns the head, and its unarmed cells repeat the armed ones. PN
 disk size is smaller and does not describe texture memory. No mipmaps or automatic
 3D compression; nearest sampling and cutout alpha preserve the pixel edges.
 
+M02's Crawler uses a separate original low-chassis rig and atlas. Its source is
+`crawler_rig.gd`; `crawler_bake.gd` renders 20 poses at eight angles in 160-pixel
+cells and writes `crawler.png` plus `crawler-manifest.json`, with source and output
+hashes. The 2880 by 1440 atlas does not inflate the four 4000-pixel standing
+atlases. The uncompressed RGBA footprint is about 15.8 MiB when loaded. The
+chassis, crouch and extended leap poses are deliberately below standing height;
+the authoritative server owns leap travel and the low hit volume. Bake with the
+same pinned Godot graphics context used above:
+
+```sh
+godot --path client --rendering-driver opengl3 --windowed --script res://art/characters/crawler_bake.gd
+godot --headless --path client --import
+godot --headless --path client --script res://scripts/test_enemy_animation.gd
+```
+
+Require `crawler_bake: PASS` and `test_enemy_animation: PASS`, then inspect the
+M02 first-person and spectator motion captures. The atlas test checks freshness,
+layout, clipping, phase poses and feet registration; it cannot judge whether the
+crouch and leap read during a live fight.
+
 The orthographic field is three metres with its centre 0.9 metres above the
 feet. Runtime placement subtracts the server reference height. The living
 silhouette is approximately 1.8 metres tall. Do not trim individual tiles, scale

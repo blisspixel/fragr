@@ -8,6 +8,7 @@ const CAMERA = preload("res://scripts/spectator_cam.gd")
 var samples: Array[Dictionary] = []
 var defeated: Dictionary[String, bool] = {}
 var phases: Dictionary[String, bool] = {}
+var phases_by_kind: Dictionary[String, bool] = {}
 var shots: int = 0
 var enemy_shots: int = 0
 var participant_died: bool = false
@@ -21,6 +22,16 @@ var _evade_left: bool = true
 var _evade_started: int = -1
 var _participant_seen: bool = false
 var confirmed_deaths: Dictionary[String, int] = {}
+var first_crawler_leap_started: bool = false
+var first_crawler_leap_finished: bool = false
+var first_crawler_leap_start_hp: int = -1
+var first_crawler_leap_low_hp: int = -1
+var first_crawler_encounter_start_hp: int = -1
+var first_crawler_encounter_low_hp: int = -1
+var first_crawler_encounter_finished: bool = false
+var _previous_participant_hp: int = -1
+var _first_crawler_last_phase: String = ""
+var first_crawler_trace: Array[Dictionary] = []
 
 func finish() -> void:
 	if is_instance_valid(_network) and _network.snapshot_received.is_connected(_observe):
@@ -40,6 +51,16 @@ func begin(manager: Node) -> void:
 	participant_died = false
 	_participant_seen = false
 	confirmed_deaths.clear()
+	first_crawler_leap_started = false
+	first_crawler_leap_finished = false
+	first_crawler_leap_start_hp = -1
+	first_crawler_leap_low_hp = -1
+	first_crawler_encounter_start_hp = -1
+	first_crawler_encounter_low_hp = -1
+	first_crawler_encounter_finished = false
+	_previous_participant_hp = -1
+	_first_crawler_last_phase = ""
+	first_crawler_trace.clear()
 	_network.snapshot_received.connect(_observe)
 
 func confirmed(required: Array) -> Dictionary[String, int]:
@@ -69,8 +90,9 @@ static func actor_by_id(snapshot: Dictionary, id: String) -> Dictionary:
 static func exposed_point(actor: Dictionary, eye: Vector3, solids: Array) -> Vector3:
 	# Aim at a visible part of the real body. A low counter can hide the centre
 	# while leaving the upper body exposed to an ordinary player shot.
+	var height: float = AimAssist.CRAWLER_HEIGHT if actor.get("campaign", {}).get("kind") == "crawler" else MoveStep.BODY_HEIGHT
 	for fraction: float in [0.5, 0.85, 0.2]:
-		var point: Vector3 = Vector3(actor.x, float(actor.y) - CAMERA.FP_SERVER_REFERENCE_Y + MoveStep.BODY_HEIGHT * fraction, actor.z)
+		var point: Vector3 = Vector3(actor.x, float(actor.y) - CAMERA.FP_SERVER_REFERENCE_Y + height * fraction, actor.z)
 		var clear: bool = true
 		for solid: Dictionary in solids:
 			var lower: Vector3 = Vector3(solid.min_x, solid.get("bottom", 0.0), solid.min_z)
@@ -92,7 +114,7 @@ static func visible_target(snapshot: Dictionary, player_id: String, solids: Arra
 	for actor: Dictionary in snapshot.get("players", []):
 		if ActorState.is_participant(actor) or int(actor["hp"]) <= 0:
 			continue
-		if committed_only and str(actor["campaign"]["phase"]) not in ["windup", "firing"]:
+		if committed_only and str(actor["campaign"]["phase"]) not in ["windup", "leaping", "firing"]:
 			continue
 		var point: Vector3 = exposed_point(actor, eye, solids)
 		if not point.is_finite() or eye.distance_squared_to(point) >= distance:
@@ -113,6 +135,7 @@ func _observe(snapshot: Dictionary) -> void:
 	elif _participant_seen:
 		# The server omits participants while they are awaiting respawn.
 		participant_died = true
+	_track_first_crawler_leap(snapshot, participant)
 	for actor: Dictionary in snapshot.get("players", []):
 		if ActorState.is_participant(actor):
 			continue
@@ -123,6 +146,7 @@ func _observe(snapshot: Dictionary) -> void:
 		var campaign: Dictionary = actor["campaign"]
 		if _kind == "union" or campaign["kind"] == _kind:
 			phases[str(campaign["phase"])] = true
+			phases_by_kind[str(campaign["kind"]) + "_" + str(campaign["phase"])] = true
 			if int(actor["hp"]) <= 0 and not _initial_dead.has(str(actor["id"])):
 				defeated[str(actor["id"])] = true
 	if not _recording:
@@ -134,6 +158,65 @@ func _observe(snapshot: Dictionary) -> void:
 			var shooter: Dictionary = actor_by_id(snapshot, str(shot["shooter_id"]))
 			if not shooter.is_empty() and not ActorState.is_participant(shooter) and (_kind == "union" or shooter["campaign"]["kind"] == _kind):
 				enemy_shots += 1
+
+func _track_first_crawler_leap(snapshot: Dictionary, participant: Dictionary) -> void:
+	if participant.is_empty():
+		return
+	var hp: int = int(participant["hp"])
+	var phase: String = ""
+	var crawler_found: bool = false
+	var crawler_dead: bool = false
+	var crawler_body: Dictionary = {}
+	for actor: Dictionary in snapshot.get("players", []):
+		if actor.get("name", "") == "stair_crawler_first":
+			crawler_found = true
+			crawler_dead = int(actor["hp"]) <= 0
+			crawler_body = actor
+			phase = str(actor.get("campaign", {}).get("phase", ""))
+			break
+	if crawler_found and (phase != _first_crawler_last_phase or (_previous_participant_hp >= 0 and hp < _previous_participant_hp)):
+		var entry: Dictionary = {
+			"tick": int(snapshot["tick"]),
+			"phase": phase,
+			"hp": hp,
+			"player_feet": [float(participant["x"]), float(participant["y"]) - CAMERA.FP_SERVER_REFERENCE_Y, float(participant["z"])],
+			"crawler_feet": [float(crawler_body["x"]), float(crawler_body["y"]) - CAMERA.FP_SERVER_REFERENCE_Y, float(crawler_body["z"])],
+		}
+		first_crawler_trace.append(entry)
+		if is_instance_valid(_network):
+			print("qa_combat: first Crawler trace ", JSON.stringify(entry))
+		_first_crawler_last_phase = phase
+	if crawler_found and phase not in ["idle", "dead"] and not first_crawler_encounter_finished:
+		if first_crawler_encounter_start_hp < 0:
+			# Start with the authored activation, not earlier guard-room damage.
+			first_crawler_encounter_start_hp = hp
+			first_crawler_encounter_low_hp = first_crawler_encounter_start_hp
+		first_crawler_encounter_low_hp = mini(first_crawler_encounter_low_hp, hp)
+	elif crawler_found and first_crawler_encounter_start_hp >= 0 and not first_crawler_encounter_finished:
+		first_crawler_encounter_low_hp = mini(first_crawler_encounter_low_hp, hp)
+	first_crawler_encounter_finished = first_crawler_encounter_finished or \
+		(crawler_found and crawler_dead and first_crawler_encounter_start_hp >= 0)
+	if not first_crawler_leap_finished:
+		if phase == "leaping":
+			if not first_crawler_leap_started:
+				first_crawler_leap_started = true
+				first_crawler_leap_start_hp = _previous_participant_hp if _previous_participant_hp >= 0 else hp
+				first_crawler_leap_low_hp = first_crawler_leap_start_hp
+			first_crawler_leap_low_hp = mini(first_crawler_leap_low_hp, hp)
+		elif first_crawler_leap_started:
+			# Include the first post-leap snapshot: landing contact is server-owned.
+			first_crawler_leap_low_hp = mini(first_crawler_leap_low_hp, hp)
+			first_crawler_leap_finished = true
+	_previous_participant_hp = hp
+
+func first_crawler_leap_no_contact_proven() -> bool:
+	return first_crawler_leap_finished and first_crawler_leap_start_hp >= 0 and \
+		first_crawler_leap_low_hp == first_crawler_leap_start_hp
+
+func first_crawler_encounter_no_damage_proven() -> bool:
+	return first_crawler_encounter_finished and first_crawler_leap_no_contact_proven() and \
+		first_crawler_encounter_start_hp >= 0 and \
+		first_crawler_encounter_low_hp == first_crawler_encounter_start_hp
 
 func engage(manager: Node, me: Dictionary, target: Dictionary, solids: Array, anchor: Vector2, evade: bool, allow_fire: bool) -> void:
 	var camera: Node3D = manager.get_node("SpectatorCamera")
@@ -176,8 +259,44 @@ func travel(manager: Node, anchor: Vector2) -> bool:
 	return true
 
 static func release_inputs() -> void:
-	for action: String in ["fire", "move_forward", "move_left", "move_right"]:
+	for action: String in ["fire", "move_forward", "move_back", "move_left", "move_right"]:
 		Input.action_release(action)
+
+static func route_buttons(course: Vector2, yaw: float) -> Dictionary[String, bool]:
+	var direction: Vector2 = course.normalized()
+	var forward: float = direction.dot(Vector2(cos(yaw), sin(yaw)))
+	var right: float = direction.dot(Vector2(-sin(yaw), cos(yaw)))
+	return {
+		"move_forward": forward > 0.2,
+		"move_back": forward < -0.2,
+		"move_right": right > 0.2,
+		"move_left": right < -0.2,
+	}
+
+static func follow_route(me: Dictionary, camera: Node3D, route: Array, index: int,
+		look_at: Vector3 = Vector3.INF) -> int:
+	if index >= route.size():
+		return index
+	var point: Array = route[index]
+	var delta: Vector3 = Vector3(float(point[0]) - float(me.x),
+		float(point[1]) - (float(me.y) - CAMERA.FP_SERVER_REFERENCE_Y),
+		float(point[2]) - float(me.z))
+	var yaw: float = atan2(delta.z, delta.x)
+	var pitch: float = 0.0
+	if look_at.is_finite():
+		var toward: Vector2 = Vector2(look_at.x - float(me.x), look_at.z - float(me.z))
+		if toward.length_squared() > 0.04:
+			yaw = atan2(toward.y, toward.x)
+			pitch = atan2(look_at.y - (float(me.y) + CAMERA.FP_EYE_HEIGHT), toward.length())
+	camera.set("fp_yaw", yaw)
+	camera.set("fp_pitch", pitch)
+	if Vector2(delta.x, delta.z).length() < 0.5 and absf(delta.y) < 0.2:
+		return index + 1
+	var buttons: Dictionary[String, bool] = route_buttons(Vector2(delta.x, delta.z), yaw)
+	for action: String in buttons:
+		if buttons[action]:
+			Input.action_press(action)
+	return index
 
 func run(tree: SceneTree, manager: Node, spec: Dictionary, output: String) -> Dictionary:
 	begin(manager)
@@ -186,7 +305,27 @@ func run(tree: SceneTree, manager: Node, spec: Dictionary, output: String) -> Di
 	if not valid_waypoints(spec.get("search_route", [])):
 		push_error("qa_combat: invalid search route")
 		return {"passed": false}
+	if not valid_waypoints(spec.get("approach_route", [])):
+		push_error("qa_combat: invalid approach route")
+		return {"passed": false}
 	var required: Array = spec.get("required", [])
+	var required_phases_value: Variant = spec.get("required_phases", [])
+	if not required_phases_value is Array or required_phases_value.size() > ActorState.PHASES.size():
+		push_error("qa_combat: invalid required phases")
+		return {"passed": false}
+	var required_phases: Array = required_phases_value
+	var phase_kind: String = str(spec.get("phase_kind", _kind))
+	var observe_phase: String = str(spec.get("observe_phase", ""))
+	if not observe_phase.is_empty() and observe_phase not in ActorState.PHASES:
+		push_error("qa_combat: invalid observed phase")
+		return {"passed": false}
+	if not required_phases.is_empty() and phase_kind not in ActorState.KINDS:
+		push_error("qa_combat: required phases need a specific enemy kind")
+		return {"passed": false}
+	for phase: Variant in required_phases:
+		if not phase is String or phase not in ActorState.PHASES:
+			push_error("qa_combat: invalid required phase")
+			return {"passed": false}
 	if not required.is_empty():
 		var unique: Dictionary[String, bool] = {}
 		for value: Variant in required:
@@ -201,6 +340,7 @@ func run(tree: SceneTree, manager: Node, spec: Dictionary, output: String) -> Di
 	samples.clear()
 	defeated.clear()
 	phases.clear()
+	phases_by_kind.clear()
 	_initial_dead.clear()
 	shots = 0
 	enemy_shots = 0
@@ -210,6 +350,7 @@ func run(tree: SceneTree, manager: Node, spec: Dictionary, output: String) -> Di
 	var solids: Array = info["solids"]
 	var frames: Array[Image] = []
 	var captured: Dictionary[String, bool] = {}
+	var captured_ticks: Dictionary[String, int] = {}
 	var deadline: int = Time.get_ticks_msec() + 25000
 	var next_frame: int = 0
 	var finish_at: int = -1
@@ -221,6 +362,8 @@ func run(tree: SceneTree, manager: Node, spec: Dictionary, output: String) -> Di
 	_evade_started = -1
 	var search_route: Array = spec.get("search_route", [])
 	var search_index: int = 0
+	var approach_route: Array = spec.get("approach_route", [])
+	var approach_index: int = 0
 	# A corpse from the preceding room cannot satisfy this encounter's claim.
 	for actor: Dictionary in manager.get("latest_snapshot").get("players", []):
 		if not ActorState.is_participant(actor) and int(actor["hp"]) <= 0:
@@ -240,18 +383,34 @@ func run(tree: SceneTree, manager: Node, spec: Dictionary, output: String) -> Di
 		if not target.is_empty():
 			last_target_id = str(target["id"])
 		release_inputs()
-		if not target.is_empty() and alive and not complete:
-			engage(manager, me, target, solids, anchor, spec.get("evade_tells", false), not spec.get("observe_first_shot", false) or enemy_shots > 0)
-		elif target.is_empty() and alive and not complete and search_index < search_route.size():
-			var point: Array = search_route[search_index]
-			var delta: Vector3 = Vector3(float(point[0]) - float(me.x), float(point[1]) - (float(me.y) - CAMERA.FP_SERVER_REFERENCE_Y), float(point[2]) - float(me.z))
-			if Vector2(delta.x, delta.z).length() < 0.5 and absf(delta.y) < 0.2:
-				search_index += 1
-				anchor = Vector2(me.x, me.z)
+		if alive and not complete and approach_index < approach_route.size():
+			var committed: Dictionary = visible_target(snapshot, _player_id, solids, true)
+			if not committed.is_empty():
+				engage(manager, me, committed, solids, anchor, true, false)
 			else:
-				camera.set("fp_yaw", atan2(delta.z, delta.x))
-				camera.set("fp_pitch", 0.0)
-				Input.action_press("move_forward")
+				var previous_index: int = approach_index
+				var focus: Vector3 = Vector3.INF
+				for actor: Dictionary in snapshot.get("players", []):
+					if actor.get("name", "") == "stair_crawler_first" and \
+						actor.get("campaign", {}).get("phase", "") == "windup":
+						focus = Vector3(float(actor.x), float(actor.y) - CAMERA.FP_SERVER_REFERENCE_Y + AimAssist.CRAWLER_HEIGHT * 0.5, float(actor.z))
+						break
+				approach_index = follow_route(me, camera, approach_route, approach_index, focus)
+				if approach_index != previous_index:
+					anchor = Vector2(me.x, me.z)
+		elif not target.is_empty() and alive and not complete:
+			var may_fire: bool = (not spec.get("observe_first_shot", false) or enemy_shots > 0) and \
+				(observe_phase.is_empty() or phases.has(observe_phase))
+			engage(manager, me, target, solids, anchor, spec.get("evade_tells", false), may_fire)
+		elif target.is_empty() and alive and not complete and search_index < search_route.size():
+			var previous_index: int = search_index
+			search_index = follow_route(me, camera, search_route, search_index)
+			if search_index != previous_index:
+				anchor = Vector2(me.x, me.z)
+		var handled_phase: String = ""
+		var handled_actor: Dictionary = actor_by_id(snapshot, last_target_id)
+		if not handled_actor.is_empty():
+			handled_phase = str(handled_actor["campaign"]["kind"]) + "_" + str(handled_actor["campaign"]["phase"])
 		await tree.process_frame
 		var rendered: Dictionary = actor_by_id(manager.get("latest_snapshot"), last_target_id)
 		var capture_key: String = ""
@@ -270,8 +429,11 @@ func run(tree: SceneTree, manager: Node, spec: Dictionary, output: String) -> Di
 			if not target.is_empty():
 				var identity: Dictionary = target["campaign"]
 				var key: String = str(identity["kind"]) + "_" + str(identity["phase"])
-				if not captured.has(key):
+				# A phase can change while this frame is drawing. Name only a
+				# frame whose phase the controller already handled before drawing.
+				if key == handled_phase and phase_ready_for_capture(identity, int(snapshot["tick"])) and not captured.has(key):
 					captured[key] = true
+					captured_ticks[key] = int(snapshot["tick"])
 					if frame.save_png(output + "_" + key + ".png") != OK:
 						push_error("qa_combat: failed to save phase capture")
 			frame.resize(320, 180, Image.INTERPOLATE_BILINEAR)
@@ -295,7 +457,53 @@ func run(tree: SceneTree, manager: Node, spec: Dictionary, output: String) -> Di
 		saved = sheet.save_png(output + "_combat.png") == OK
 	var confirmed_names: Dictionary[String, int] = confirmed(required)
 	var completed: bool = confirmed_names.size() == expected if not required.is_empty() else defeated.size() == expected and shots > 0
-	var passed: bool = alive and not participant_died and completed and saved
+	var phases_proven: bool = required_phases_proven(phases_by_kind, captured, phase_kind, required_phases)
+	var no_damage_proven: bool = not bool(spec.get("expect_first_crawler_no_damage", false)) or \
+		first_crawler_encounter_no_damage_proven()
+	var approach_complete: bool = approach_index == approach_route.size()
+	var passed: bool = alive and not participant_died and completed and saved and \
+		phases_proven and no_damage_proven and approach_complete
 	if not passed:
-		push_error("qa_combat: %s defeated %d, required %s confirmed %s, shots %d, alive %s, saved %s" % [_kind, defeated.size(), required, confirmed_names.keys(), shots, alive, saved])
-	return {"passed": passed, "kind": _kind, "defeated": defeated.size(), "required": required, "confirmed": confirmed_names, "shots": shots, "enemy_shots": enemy_shots, "observed_phases": phases.keys(), "captured_phases": captured.keys(), "samples": samples}
+		push_error("qa_combat: %s defeated %d, required %s confirmed %s, shots %d, alive %s, saved %s, approach %s, encounter HP %d to %d, no damage %s" % [
+			_kind, defeated.size(), required, confirmed_names.keys(), shots, alive, saved,
+			approach_complete, first_crawler_encounter_start_hp,
+			first_crawler_encounter_low_hp, no_damage_proven,
+		])
+	return {
+		"passed": passed,
+		"kind": _kind,
+		"defeated": defeated.size(),
+		"required": required,
+		"confirmed": confirmed_names,
+		"shots": shots,
+		"enemy_shots": enemy_shots,
+		"observed_phases": phases.keys(),
+		"observed_kind_phases": phases_by_kind.keys(),
+		"captured_phases": captured.keys(),
+		"captured_phase_ticks": captured_ticks,
+		"approach_complete": approach_complete,
+		"first_crawler_leap_started": first_crawler_leap_started,
+		"first_crawler_leap_finished": first_crawler_leap_finished,
+		"first_crawler_leap_start_hp": first_crawler_leap_start_hp,
+		"first_crawler_leap_low_hp": first_crawler_leap_low_hp,
+		"first_crawler_encounter_start_hp": first_crawler_encounter_start_hp,
+		"first_crawler_encounter_low_hp": first_crawler_encounter_low_hp,
+		"first_crawler_no_damage_proven": first_crawler_encounter_no_damage_proven(),
+		"first_crawler_trace": first_crawler_trace.duplicate(true),
+		"samples": samples,
+	}
+
+static func required_phases_proven(observed: Dictionary, captured: Dictionary,
+		kind: String, required: Array) -> bool:
+	for phase: String in required:
+		var key: String = kind + "_" + phase
+		if not observed.has(key) or not captured.has(key):
+			return false
+	return true
+
+static func phase_ready_for_capture(identity: Dictionary, tick: int) -> bool:
+	# The first network frame can precede a readable pose and camera turn.
+	# Five of twelve windup ticks still leave a visible reaction window.
+	if identity.get("kind", "") == "crawler" and identity.get("phase", "") == "windup":
+		return tick - int(identity.get("phase_started", tick)) >= 5
+	return true
