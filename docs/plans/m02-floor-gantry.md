@@ -1,6 +1,6 @@
 # M02 processing floor gantry
 
-**Status:** in flight, 2026-09-27. [Draft PR #275](https://github.com/blisspixel/fragr/pull/275)
+**Status:** implemented, 2026-09-27. [Draft PR #275](https://github.com/blisspixel/fragr/pull/275)
 is stacked after the autonomous Latch escape draft.
 
 ## Goal and reason
@@ -118,7 +118,12 @@ pinned Godot checker passed. The standard 32-state tour ran with `--publish`
 and passed; its arena and menu stills were inspected, with no changed surface
 to replace among the four README images. The final 20-state M02 routes passed
 on both difficulties and the two representative frames were archived above.
-The final combined CI run and any remaining gates will be recorded before
-this draft is marked implemented. The full floor roster, optional captives,
+The [combined CI run](https://github.com/blisspixel/fragr/actions/runs/36346592792)
+passed on code commit `f8eecd7`: Rust tests, Clippy, benchmark, mixed-client
+roster, 120-second soak, Godot checks, Windows and macOS portability, audit
+and release build. Unfiltered workspace line coverage was 93.73 percent
+against the 90 percent floor. This documentation update does not change the
+tested code. Draft PR #275 is again stacked on draft #274; no merge, release,
+cloud apply or paid call occurred. The full floor roster, optional captives,
 maintenance loop, Notary tableau and unsteered human gate remain later M02
 work.
