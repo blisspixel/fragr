@@ -117,6 +117,11 @@ func _run() -> void:
 		var wait_s: float = float(due_ms - (Time.get_ticks_msec() - _clock_ms)) / 1000.0
 		if wait_s > 0.0:
 			await create_timer(wait_s).timeout
+		if state.has("await_ctf"):
+			if not await _await_ctf(state["await_ctf"], float(state.get("await_timeout_seconds", 120.0))):
+				await _retire_scene()
+				quit(1)
+				return
 
 		_release_body_camera()
 		var menu_page: String = state.get("menu_page", "")
@@ -233,7 +238,7 @@ func _run() -> void:
 		if state.get("camera", "") == "body":
 			await _find_body(str(state.get("body", "")), str(state.get("body_team", "")))
 		_pose_camera(state.get("camera", "none"))
-		await create_timer(0.75).timeout
+		await create_timer(float(state.get("settle_seconds", 0.75))).timeout
 		await RenderingServer.frame_post_draw
 		await RenderingServer.frame_post_draw
 
@@ -271,6 +276,9 @@ func _run() -> void:
 			push_error("qa_tour: unexpected capture size for " + state_name)
 			_failed = true
 		var observed: Dictionary = _observed_state().duplicate(true)
+		if state.has("await_ctf") and not _ctf_matches(state["await_ctf"], observed):
+			push_error("qa_tour: %s lost the awaited live CTF state before capture" % state_name)
+			_failed = true
 		if state.has("expect_flag_statuses"):
 			var actual_statuses: Array[String] = []
 			var observed_flags: Variant = observed.get("flags")
@@ -958,6 +966,36 @@ func _set_aim_pitch(pitch: float) -> void:
 		push_error("qa_tour: pitch did not reach the authoritative snapshot")
 		_failed = true
 
+func _ctf_matches(expected: Dictionary, observed: Dictionary) -> bool:
+	if expected.has("status"):
+		var flags: Variant = observed.get("flags")
+		if not flags is Array:
+			return false
+		var found: bool = false
+		for flag: Variant in flags:
+			if flag is Dictionary:
+				if flag.get("status") == expected["status"] and (not expected.has("team") or flag.get("team") == expected["team"]):
+					found = true
+		if not found:
+			return false
+	if expected.has("capture_at_least"):
+		var scores: Variant = observed.get("capture_scores")
+		if not scores is Dictionary or int(scores.get("union", 0)) + int(scores.get("coalition", 0)) < int(expected["capture_at_least"]):
+			return false
+	if expected.has("round_state") and observed.get("round_state") != expected["round_state"]:
+		return false
+	return true
+
+func _await_ctf(expected: Dictionary, timeout_seconds: float) -> bool:
+	var deadline: int = Time.get_ticks_msec() + roundi(timeout_seconds * 1000.0)
+	while Time.get_ticks_msec() < deadline:
+		if _ctf_matches(expected, _observed_state()):
+			return true
+		await create_timer(0.05).timeout
+	push_error("qa_tour: live CTF state never reached %s" % str(expected))
+	_failed = true
+	return false
+
 func _pose_camera(mode: String) -> void:
 	if mode == "none":
 		return
@@ -966,6 +1004,24 @@ func _pose_camera(mode: String) -> void:
 		return
 	cam.set("frag_follow_timer", 0.0)
 	match mode:
+		"ctf_carried":
+			var wanted: String = "carried"
+			var flags: Variant = _observed_state().get("flags")
+			if flags is Array:
+				for flag: Variant in flags:
+					if flag is Dictionary and flag.get("status") == wanted:
+						var position: Array = flag["position"]
+						var point: Vector3 = Vector3(float(position[0]), float(position[1]), float(position[2]))
+						cam.set("spectator_first_person", false)
+						cam.set("follow_mode", false)
+						cam.set("fp_mode", false)
+						if cam is Node3D:
+							var camera: Node3D = cam
+							camera.global_position = point + Vector3(9.0, 4.5, 11.0)
+							camera.look_at(point + Vector3(0.0, 1.2, 0.0), Vector3.UP)
+						return
+			push_error("qa_tour: no live %s flag to frame" % wanted)
+			_failed = true
 		"union_flag", "coalition_flag":
 			cam.set("spectator_first_person", false)
 			cam.set("follow_mode", false)
