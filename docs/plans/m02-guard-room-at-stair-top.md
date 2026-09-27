@@ -85,7 +85,9 @@ and retry restores it. Treat accurate-aim clears as authoring evidence only.
   seated rig now sits at the existing chair height. The eleven-state tour
   passed and its Shotgun, seated room and stair frames were inspected. The
   table now exposes the guards' lower bodies, but this remains a graybox cue,
-  not a final presentation pass. See the [prototype captures](../screenshots/prototypes/README.md).
+  not a final presentation pass. Inspect the [Shotgun before claim](../screenshots/prototypes/m02-shotgun-before-claim-20260927.png),
+  [seated guard room](../screenshots/prototypes/m02-seated-guard-room-20260927.png)
+  and [service stair](../screenshots/prototypes/m02-service-stair-20260927.png).
 - 2026-09-27: Rebased the free-body bake manifest after the shared rig change.
   Final Rust workspace tests, formatting, Clippy, dependency policy and
   unfiltered coverage pass; coverage is 93.59 percent against the 90 percent
