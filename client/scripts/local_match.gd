@@ -13,7 +13,8 @@ const MAX_READY_BYTES: int = 4096
 const PENDING_META: StringName = &"fragr_local_match_pending"
 ## Each bundled mission child names its own exact client contract.
 const DURABLE_GAMEPLAY: int = 18
-const MISSION_GAMEPLAY: Dictionary[String, int] = {"recall_notice": DURABLE_GAMEPLAY, "persons_unknown": 17}
+const M02_GAMEPLAY: int = 19
+const MISSION_GAMEPLAY: Dictionary[String, int] = {"recall_notice": DURABLE_GAMEPLAY, "persons_unknown": M02_GAMEPLAY}
 const NEXT_MISSION: String = "scheduled_service"
 
 var state: State = State.IDLE
@@ -237,7 +238,7 @@ static func readiness_url(bytes: PackedByteArray, difficulty: String = "standard
 	if parser.parse(bytes.get_string_from_ascii()) != OK:
 		return ""
 	var data: Variant = parser.data
-	var gameplay: int = 17 if mission_id == MissionState.M02_ID and run_mode.is_empty() else DURABLE_GAMEPLAY
+	var gameplay: int = M02_GAMEPLAY if mission_id == MissionState.M02_ID else DURABLE_GAMEPLAY
 	if difficulty not in MissionState.DIFFICULTIES or not MISSION_GAMEPLAY.has(mission_id) \
 		or (mission_id == MissionState.M02_ID and run_mode not in ["", "resume"]) \
 		or (mission_id == MissionState.ID and run_mode not in ["new", "resume"]) \

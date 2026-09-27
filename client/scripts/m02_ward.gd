@@ -19,11 +19,14 @@ var _seen_state: bool = false
 var _attempt: int = 0
 var _secured: bool = false
 var _released: bool = false
+var _companion_moving: bool = false
+var _companion_phase_known: bool = false
+var _awaiting_companion_snapshot: bool = false
 var _release_elapsed: float = -1.0
 var _caption_left: float = 0.0
 var _caption_key: String = ""
 var _root: Node3D
-var _latch: Node3D
+var _latch: LatchView
 var _latch_arm: Node3D
 var _first_left: Node3D
 var _first_right: Node3D
@@ -66,6 +69,9 @@ func clear_map() -> void:
 	_attempt = 0
 	_secured = false
 	_released = false
+	_companion_moving = false
+	_companion_phase_known = false
+	_awaiting_companion_snapshot = false
 	_release_elapsed = -1.0
 	_caption_left = 0.0
 	_caption_key = ""
@@ -79,12 +85,18 @@ func apply_state(state: Dictionary) -> void:
 	var secured: bool = bool(progress["ward_secured"])
 	var released: bool = "companion_released" in progress["completed"]
 	if not _seen_state or attempt != _attempt:
+		# Snapshot and MissionState are separate messages. A late observer may
+		# receive the following pawn first; retain that handoff on first state.
+		var first_snapshot_moving: bool = not _seen_state and _companion_phase_known and _companion_moving
+		var state_first_release: bool = not _seen_state and released and not _companion_phase_known
 		_seen_state = true
 		_attempt = attempt
 		_secured = secured
 		_released = released
+		_companion_moving = false
 		_release_elapsed = -1.0
 		_set_visual(END_SECONDS if released else 0.0, released)
+		set_companion_phase("unresolved" if state_first_release else ("following" if first_snapshot_moving else "releasing"))
 		if released:
 			_show_caption("M02_RELEASE_RECAP", 8.0)
 		else:
@@ -99,6 +111,20 @@ func apply_state(state: Dictionary) -> void:
 		_release_elapsed = 0.0
 		_set_visual(0.0, true)
 		_show_caption("M02_LATCH_RELEASE", SECOND_OPEN_END)
+
+## A snapshot owns the transition from tableau figure to moving companion.
+## The fixed figure stays through the full server releasing phase, including
+## a skipped scene or a late observer, so exactly one Latch is visible.
+func set_companion_phase(phase: String) -> void:
+	if phase in ["releasing", "following", "firing", "departed"]:
+		_companion_phase_known = true
+		_awaiting_companion_snapshot = false
+	elif phase == "unresolved":
+		_awaiting_companion_snapshot = true
+	_companion_moving = phase in ["following", "firing", "departed", "unresolved"] \
+		or (_awaiting_companion_snapshot and phase.is_empty())
+	if is_instance_valid(_latch):
+		_latch.visible = not _companion_moving
 
 func _process(delta: float) -> void:
 	if not _built:
@@ -138,7 +164,13 @@ func _set_visual(seconds: float, released: bool) -> void:
 	_first_right.position.x = 0.43 + unfasten * 0.53
 	var travel: float = clampf((seconds - UNFASTEN_END) / (CROSS_END - UNFASTEN_END), 0.0, 1.0) if released else 0.0
 	_latch.position = FIRST_FEET.lerp(SECOND_FEET, travel)
-	_latch.rotation.y = lerp_angle(-PI / 2.0, 2.55, clampf((seconds - 2.8) / 0.7, 0.0, 1.0)) if released else -PI / 2.0
+	if released:
+		var bay_turn: float = lerp_angle(-PI / 2.0, 2.55, clampf((seconds - 2.8) / 0.7, 0.0, 1.0))
+		# Face back toward the escape route before the server pawn takes over.
+		# The server's release yaw is PI, which the shared view renders as -PI/2.
+		_latch.rotation.y = lerp_angle(bay_turn, -PI / 2.0, clampf((seconds - 8.0) / 2.0, 0.0, 1.0))
+	else:
+		_latch.rotation.y = -PI / 2.0
 	_latch_arm.rotation.x = -clampf((seconds - CROSS_END) / 0.5, 0.0, 1.0) * PI / 2.0 if released else 0.0
 	var open: float = clampf((seconds - CROSS_END) / (SECOND_OPEN_END - CROSS_END), 0.0, 1.0) if released else 0.0
 	_second_left.position.x = -0.3 - open * 0.68
@@ -177,10 +209,10 @@ func _build() -> void:
 	add_child(_root)
 	var steel: StandardMaterial3D = _material(Color("343d3d"))
 	var bone: StandardMaterial3D = _material(Color("c2b9a4"))
-	var cyan: StandardMaterial3D = _material(Color("71b8ad"), true)
 	var muted: StandardMaterial3D = _material(Color("808a84"))
 	var door: StandardMaterial3D = _material(Color("46504e"))
-	_latch = _figure("Latch", bone, steel, cyan)
+	_latch = LatchView.new()
+	_latch.name = "Latch"
 	_latch.position = FIRST_FEET
 	_latch.rotation.y = -PI / 2.0
 	_root.add_child(_latch)
@@ -222,6 +254,7 @@ func _build() -> void:
 	list.add_child(world_copy)
 	_transfer_list = list
 	ArenaSky.mark_world(_root)
+	_latch.set_render_layers(ArenaSky.ACTOR_LAYERS)
 	_build_caption()
 	_built = true
 

@@ -136,10 +136,10 @@ impl Ready {
             url: format!("ws://{address}"),
             // M01 uses discovery equipment and rule sets. M02 also needs the
             // seated Clerk, low Crawler and ward release contracts.
-            gameplay_version: if durable || mission == MissionId::RecallNotice {
+            gameplay_version: if mission == MissionId::PersonsUnknown {
+                crate::protocol::COMPANION_GAMEPLAY_VERSION
+            } else if durable || mission == MissionId::RecallNotice {
                 crate::protocol::RUN_CARRY_GAMEPLAY_VERSION
-            } else if mission == MissionId::PersonsUnknown {
-                crate::protocol::LATCH_RELEASE_GAMEPLAY_VERSION
             } else {
                 RULES_GAMEPLAY_VERSION
             },
@@ -345,7 +345,7 @@ mod tests {
         .unwrap();
         assert_eq!(
             m02.gameplay_version,
-            crate::protocol::LATCH_RELEASE_GAMEPLAY_VERSION
+            crate::protocol::COMPANION_GAMEPLAY_VERSION
         );
     }
 }

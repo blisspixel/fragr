@@ -309,10 +309,10 @@ async fn run_server_impl(
         .match_config
         .as_ref()
         .is_some_and(|config| !config.rules.is_plain());
-    let required_gameplay = if options.campaign_run {
+    let required_gameplay = if session.state.map.m02_objectives().is_some() {
+        crate::protocol::COMPANION_GAMEPLAY_VERSION
+    } else if options.campaign_run {
         crate::protocol::RUN_CARRY_GAMEPLAY_VERSION
-    } else if session.state.map.m02_objectives().is_some() {
-        crate::protocol::LATCH_RELEASE_GAMEPLAY_VERSION
     } else if discovery || twisted {
         crate::protocol::RULES_GAMEPLAY_VERSION
     } else if session.state.map.mission().is_some() {
@@ -465,7 +465,7 @@ async fn run_server_impl(
             _ = async { status_interval.as_mut().expect("guarded").tick().await },
                 if status_interval.is_some() && stats.ticks() > 0 =>
             {
-                let fighters = session.state.players.len();
+                let fighters = session.state.players.iter().filter(|p| p.is_participant()).count();
                 let client_count = clients.lock().await.len();
                 let report = stats.report(fighters, client_count);
                 match serde_json::to_string(&report) {

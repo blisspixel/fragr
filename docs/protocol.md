@@ -88,7 +88,7 @@ Initial handshake message. Must be sent immediately after connection.
   resume keeps the parked pawn's body even if this hello names another.
   Changing the body means leaving and joining again.
 - `gameplay_version`: maximum understood gameplay contract. Updated Rust readers
-  and the Godot client send `18`; omission means `1`. Discovery-only maps require 2, maps with authored
+  and the Godot client send `19`; omission means `1`. Discovery-only maps require 2, maps with authored
   encounters require 3, and mission sequences require 6 for shared difficulty.
   Versions 4 and 5 introduced physical controls and party readiness respectively;
   they cannot enter current missions. Solo runs require 7 for explicit continues.
@@ -121,8 +121,9 @@ Initial handshake message. Must be sent immediately after connection.
   `crawler_scrabble` event. Version 17 adds the M02 `ward_secured` fact, which
   distinguishes guard victory and machine halt from the later restraint use
   that frees Latch. Version 18 adds the solo run's per-level continue baseline
-  and permits a durable M02 run. Durable local M01 and M02 require 18; the M02
-  development party still requires 17, and arcade maps keep their earlier
+  and permits a durable M02 run. Durable local M01 requires 18. Version 19 adds
+  the M02 companion identity, movement and bounded support fire. Durable M02
+  and its development party require 19; arcade maps keep their earlier
   requirements. Capabilities 14 to 17 must be integrated before a version 18
   release; use matching campaign server/client builds.
   Older clients of every role are rejected before `Welcome`
@@ -878,6 +879,20 @@ On encounter maps, each entry in `Snapshot.players` includes `campaign`:
 {"side":"union","kind":"clerk","phase":"windup","phase_started":10,"phase_ends":22}
 ```
 
+```json
+{"side":"companion","kind":"latch","phase":"following","phase_started":240}
+```
+
+M02 spawns one server-owned Latch pawn when `companion_released` completes. They
+appear at the second ward bay in `releasing` for 240 ticks, then follow the
+nearest ready living participant. `firing` marks a bounded Tack support shot at
+an active visible Union enemy, with `phase_started` set to that transition tick.
+Their resolved shots use the ordinary `shot_results` channel. They are present in
+snapshots for late observers and reconnects, but never take a party seat, score,
+participant record or supply claim. They are not a departure requirement or bullet
+shield, and ordinary combat cannot kill them. M02 attempt reset removes them and
+a later lawful release spawns one fresh pawn.
+
 An M02 Clerk can initially include `"seated":true` while idle in the guard
 room. The server omits the field when false and clears it when the encounter
 wakes or a dormant Clerk is hit. No other Union kind uses this posture. It
@@ -919,9 +934,10 @@ durations are the same across difficulty tiers and do not change the campaign
 rules revision. A contact resolved during movement can trade with a shot fired
 later in the same tick. Presentation frames do not apply damage.
 
-Campaign participants cannot damage one another. Allies intercept rays with
-`hit: true`, `damage: 0` and `killed: false`; zero damage must not show a hit-confirm
-or wound. Union allies follow the same rule. Dead enemies remain in snapshots for
+Campaign participants cannot damage one another. Participant and Union allies
+intercept rays with `hit: true`, `damage: 0` and `killed: false`; zero damage must
+not show a hit-confirm or wound. The M02 companion does not intercept bullets or
+collect supplies. Dead enemies remain in snapshots for
 40 ticks with nonpositive HP and phase `dead`, then disappear. They cannot move,
 fire, collect supplies or intercept shots, and never use arcade respawn. Exclude
 Union actors from participant counts, scoreboards and spectator-player selection.

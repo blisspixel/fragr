@@ -1,8 +1,8 @@
 # M02 Latch autonomous escape
 
-**Status:** planned, 2026-09-27. Build after the M02 Latch release and
-[M01 to M02 run carry](m01-m02-run-carry.md) drafts are integrated. This plan
-does not claim that Persons Unknown is finished.
+**Status:** in flight, 2026-09-27. Stacked after the M02 Latch release and
+[M01 to M02 run carry](m01-m02-run-carry.md) drafts. This plan does not claim
+that Persons Unknown is finished.
 
 ## Goal and reason
 
@@ -93,8 +93,8 @@ routes. Reuse the existing four-search-per-tick scheduling; measure any tick
 cost under the M02 roster. Keep the MCP adapter on its slow control plane;
 there is no new campaign tool and no privileged client command for Latch.
 
-Choose the next gameplay capability after 18 during implementation and make
-M02 readiness require it for human, agent and spectator readers. Add the
+Use gameplay capability 19 for M02 development and durable readers; M01 stays
+at 18. Make M02 readiness require 19 for human, agent and spectator readers. Add the
 identity, any new actor phase and optional event to `docs/protocol.md` and
 validate it in Rust, Godot and adapter readers in the same change. If a field
 is needed for the ward-to-actor handoff, derive it from the server's mission
@@ -153,3 +153,62 @@ apply, paid generation, merge, tag or release is part of this plan. Record
 implementation evidence here and update the single Full build order section
 of the roadmap when the next rung changes. Keep the root README concise and
 place controls, save behavior and mission detail in its linked guides.
+
+## Progress
+
+- 2026-09-27: Source audit found that admission, resume, statistics, pickup
+  and snapshot paths sometimes treat every non-Union pawn as a participant.
+  The companion needs explicit classification before it can appear safely.
+  The fixed ward figure also needs a handoff to the server pawn so one Latch
+  is visible through release, skip and late observation.
+- 2026-09-27: Implementation is in flight on a stacked branch. The agreed
+  wire shape is `companion` kind `latch`, with `releasing`, `following` and
+  `firing` phases tied to a server tick. M02 development and durable clients
+  will require gameplay capability 19; M01 remains at 18. No external
+  service has been called.
+- 2026-09-27: The server now spawns one Latch only after a lawful ward release,
+  keeps them outside seats, status counts, records and supplies, removes them on
+  attempt reset, and gives the Union AI the actual participant as its target.
+  A first-ray check defers a limited support shot when a participant would
+  intercept it. The shared ward chassis and moving pawn hand off after exactly
+  240 ticks, including the state-first late-observer case. An independent
+  review found and drove the AI, status, shot-lane, lighting and late-observer
+  corrections.
+- 2026-09-27: A real Godot motion tour passed 17 states, measured one visible
+  Latch through the handoff and 11.04 m of movement from the second bay, and
+  inspected adjacent full-resolution handoff frames. A separate 17-state
+  scripted M02 route cleared all floor and dock targets and departed on the
+  rebuilt server. The participant record did not add HP loss during the
+  release tableau. These runs are authored route evidence, not a fresh-player
+  acceptance or a rendered proof of Latch firing.
+- 2026-09-27: A bounded live nonfiring floor hold failed when the
+  conveyor_sweeper killed the participant before a Latch hit. A separate
+  controlled server test keeps the participant's ordinary bullet body and
+  restores HP after each tick to prevent a reset. It resolves the first Latch
+  Tack hit 116 ticks (5.8 seconds) after floor activation on Standard and
+  Severe, then four shots, 80 damage and one kill in 25 seconds while three
+  floor enemies remain alive. That test also places the participant at the
+  floor trigger, so it proves the action and shot path, not natural survival
+  or encounter balance. Rendered support fire and a normal-paced player gate
+  remain open. Keep this limit visible in PR review.
+
+### Local verification so far
+
+`cargo fmt --all -- --check`, workspace Clippy with warnings denied, workspace
+tests, unfiltered `cargo llvm-cov --workspace --locked --fail-under-lines 90`,
+workspace release build and dependency policy all passed. Coverage was 93.75%
+of 60,364 lines after the final support test edit. The pinned Godot
+checker and its ten failure-injection scenarios passed. The standard tour
+passed 32 states and published 13 selected stills; the four README stills and
+the M02 second bay, floor and departure frames were inspected. Four live
+playtest variants passed with zero spawn deaths. The six-map mixed roster
+passed at 2, 6, 6, 8, 12 and 16 clients. It recorded one post-spawn death on
+map 4 and no opening spawn deaths. PR CI is pending at this point.
+
+| Workload | Machine and roster | Evidence |
+|---|---|---|
+| Deterministic release benchmark | Windows 11 Pro, Ryzen 7 7840U, 16 arena bots plus host, 1,200 ticks | p99 0.623 ms, max 2.09 ms, no budget violation |
+| Release soak | Same machine, four bots, four agents, two spectators, 120 seconds | 20.00 Hz, lifetime p99 0.51 ms, max 1.03 ms, RSS 37.7 to 38.5 MiB, assertions pass |
+
+These are local arena measurements. They do not prove active M02 ally cost,
+public-host performance or large-map capacity. External spend remains $0.

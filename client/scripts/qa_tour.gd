@@ -28,6 +28,12 @@ var _joined: bool = false
 var _strip_for_state: String = ""
 var _probe_frames: int = 0
 var _strip_times_ms: Array[int] = []
+var _companion_strip_samples: Array[Dictionary] = []
+var _companion_route_samples: Array[Dictionary] = []
+var _companion_route_images: Array[Image] = []
+var _companion_route_capture: bool = false
+var _companion_route_last_ms: int = 0
+var _companion_route_file: String = ""
 var _failed: bool = false
 var _movement_samples: Array[Dictionary] = []
 var _walk_results: Array[Dictionary] = []
@@ -102,6 +108,11 @@ func _run() -> void:
 			push_error("qa_tour: a state has no name")
 			quit(1)
 			return
+		_companion_route_capture = state.get("capture_companion_route", false)
+		_companion_route_samples.clear()
+		_companion_route_images.clear()
+		_companion_route_last_ms = 0
+		_companion_route_file = ""
 
 		var scene: String = state.get("scene", "")
 		if not scene.is_empty() and scene != current_scene:
@@ -170,11 +181,14 @@ func _run() -> void:
 		if state.get("camera", "") == "first_person" and _joined and not bool(_spectator_camera().get("fp_mode")):
 			_pose_camera("first_person", state)
 		for point: Array in state.get("walk_to", []):
-			await _walk_to(Vector3(float(point[0]), float(point[1]), float(point[2])))
+			await _walk_to(Vector3(float(point[0]), float(point[1]), float(point[2])),
+				state.get("route_look_back", false))
 			if _failed:
 				await _retire_scene()
 				quit(1)
 				return
+		if state.has("expect_companion_displacement"):
+			await _expect_companion_displacement(float(state["expect_companion_displacement"]), state_name)
 		if state.get("expect_crawler_scrabble", false):
 			var manager: Node = _game_manager()
 			var caption: Node = manager.hud.get("crawler_caption") if manager != null else null
@@ -210,6 +224,8 @@ func _run() -> void:
 			await _use_mission_control(str(state["interact"]))
 		if state.has("expect_m02_ward_stage"):
 			await _expect_m02_ward_stage(str(state["expect_m02_ward_stage"]), state_name)
+		if state.has("expect_companion_phase"):
+			await _expect_companion_phase(str(state["expect_companion_phase"]), state_name)
 		if state.has("await_run_status"):
 			var run_deadline: int = Time.get_ticks_msec() + 120000
 			while _run_status() != str(state["await_run_status"]) and Time.get_ticks_msec() < run_deadline:
@@ -282,6 +298,7 @@ func _run() -> void:
 			_strip_for_state = ""
 			_probe_frames = 0
 			_strip_times_ms.clear()
+			_companion_strip_samples.clear()
 		if state.has("expect_equipment"):
 			_check_equipment(state["expect_equipment"])
 		# A live bot can kill the idle tour pawn during the framing delay. Wait
@@ -303,6 +320,10 @@ func _run() -> void:
 			return
 
 		var file_name: String = "%02d_%s.png" % [_results.size() + 1, state_name]
+		if _companion_route_capture:
+			await _record_companion_route(true)
+			_companion_route_file = _save_companion_route_strip(state_name)
+			_companion_route_capture = false
 		if _looks_blank(shot) or measured.get("world_blank", false):
 			push_error("qa_tour: blank capture for " + state_name)
 			_failed = true
@@ -359,6 +380,10 @@ func _run() -> void:
 			"strip_file": _strip_for_state,
 			"probe_visible_frames": _probe_frames,
 			"strip_sample_ms": _strip_times_ms.duplicate(),
+			"companion_strip_samples": _companion_strip_samples.duplicate(true),
+			"companion": _companion_observation(),
+			"companion_route_samples": _companion_route_samples.duplicate(true),
+			"companion_route_strip": _companion_route_file,
 			"movement_samples": _movement_samples.duplicate(true),
 			"walks": _walk_results.duplicate(true),
 			"combat": combat,
@@ -441,7 +466,7 @@ static func active_named_enemies(snapshot: Dictionary, names: Array) -> Dictiona
 	var found: Dictionary[String, String] = {}
 	for actor: Dictionary in snapshot.get("players", []):
 		if actor.get("name", "") in names and int(actor.get("hp", 0)) > 0 and \
-			not ActorState.is_participant(actor):
+			ActorState.is_union(actor):
 			found[str(actor["name"])] = str(actor["campaign"]["phase"])
 	return found
 
@@ -593,6 +618,7 @@ func _measure() -> Dictionary:
 ## Capture consecutive frames or timed samples through an effect's full lifetime.
 func _capture_strip(state: Dictionary, frames: int, file_name: String) -> void:
 	var trigger: String = state.get("trigger", "")
+	_companion_strip_samples.clear()
 	var interval: float = float(state.get("strip_interval_seconds", 0.0))
 	var walk_action: String = str(state.get("walk_action", "move_forward"))
 	var walk_start: Vector3 = Vector3.ZERO
@@ -628,6 +654,8 @@ func _capture_strip(state: Dictionary, frames: int, file_name: String) -> void:
 			await create_timer(interval).timeout
 		await RenderingServer.frame_post_draw
 		_strip_times_ms.append(Time.get_ticks_msec() - start_ms)
+		if state.get("expect_companion_transition", false):
+			_companion_strip_samples.append(_companion_observation())
 		if trigger == "walk":
 			_record_movement()
 			var manager: Node = _game_manager()
@@ -658,6 +686,43 @@ func _capture_strip(state: Dictionary, frames: int, file_name: String) -> void:
 		_failed = true
 	if shots.is_empty():
 		return
+	if state.get("expect_companion_transition", false):
+		var saw_releasing: bool = false
+		var saw_following: bool = false
+		var release_tick: int = -1
+		var following_tick: int = -1
+		var transition_index: int = -1
+		for sample_index: int in range(_companion_strip_samples.size()):
+			var observation: Dictionary = _companion_strip_samples[sample_index]
+			var phase: String = str(observation.get("phase", ""))
+			var moving: bool = phase in ["following", "firing"]
+			if observation.is_empty() or observation.get("pawn_visible") != moving \
+				or observation.get("ward_visible") == moving or observation.get("followable") == true:
+				push_error("qa_tour: companion strip handoff disagreed with the server: " + JSON.stringify(observation))
+				_failed = true
+			if phase == "releasing":
+				if saw_following:
+					push_error("qa_tour: companion returned to releasing after following")
+					_failed = true
+				saw_releasing = true
+				release_tick = int(observation.get("phase_started", -1))
+			elif phase in ["following", "firing"]:
+				saw_following = true
+				if following_tick < 0:
+					following_tick = int(observation.get("phase_started", -1))
+					transition_index = sample_index
+		if not saw_releasing or not saw_following:
+			push_error("qa_tour: companion strip missed the authoritative release-to-follow transition")
+			_failed = true
+		elif following_tick - release_tick != 240:
+			push_error("qa_tour: companion release phase lasted %d ticks instead of 240" % (following_tick - release_tick))
+			_failed = true
+		if transition_index > 0 and transition_index < shots.size():
+			var handoff_base: String = _out_dir.path_join(file_name.trim_suffix("_strip.png"))
+			if shots[transition_index - 1].save_png(handoff_base + "_before.png") != OK \
+				or shots[transition_index].save_png(handoff_base + "_after.png") != OK:
+				push_error("qa_tour: could not save consecutive full-size companion handoff frames")
+				_failed = true
 	var tile_width: int = STRIP_TILE_WIDTH
 	var tile_height: int = int(round(
 		float(tile_width) * float(shots[0].get_height()) / float(shots[0].get_width())
@@ -934,6 +999,112 @@ func _expect_m02_ward_stage(stage: String, state_name: String) -> void:
 	push_error("qa_tour: %s never reached M02 ward stage %s" % [state_name, stage])
 	_failed = true
 
+## Read the authoritative pawn and both render nodes on the same frame.
+## The nameplate or callsign alone cannot prove which Latch is visible.
+func _companion_observation() -> Dictionary:
+	var manager: Node = _game_manager()
+	if manager == null:
+		return {}
+	var snapshot: Dictionary = manager.get("latest_snapshot")
+	for actor: Dictionary in snapshot.get("players", []):
+		if not ActorState.is_companion(actor):
+			continue
+		var pawn: Node3D = manager.players.get(actor["id"])
+		var ward: M02Ward = manager.get("m02_ward") as M02Ward
+		var targets: Array = manager.camera.get("available_targets") if manager.camera != null else []
+		return {"tick": int(snapshot.get("tick", -1)), "phase": str(actor["campaign"]["phase"]),
+			"phase_started": int(actor["campaign"]["phase_started"]),
+			"position": [float(actor["x"]), float(actor["y"]), float(actor["z"])],
+			"pawn_visible": is_instance_valid(pawn) and pawn.visible,
+			"ward_visible": ward != null and is_instance_valid(ward._latch) and ward._latch.visible,
+			"followable": pawn in targets}
+	return {}
+
+func _expect_companion_phase(phase: String, state_name: String) -> void:
+	var deadline: int = Time.get_ticks_msec() + 20000
+	while Time.get_ticks_msec() < deadline:
+		var observed: Dictionary = _companion_observation()
+		if observed.get("phase") == phase:
+			print("qa_tour: %s reached companion phase %s at tick %d" % [state_name, phase, observed["tick"]])
+			return
+		await create_timer(0.05).timeout
+	push_error("qa_tour: %s never reached companion phase %s" % [state_name, phase])
+	_failed = true
+
+func _expect_companion_displacement(metres: float, state_name: String) -> void:
+	var deadline: int = Time.get_ticks_msec() + 20000
+	while Time.get_ticks_msec() < deadline:
+		var observed: Dictionary = _companion_observation()
+		if not observed.is_empty():
+			var point: Array = observed["position"]
+			var distance: float = Vector2(float(point[0]) - M02Ward.SECOND_FEET.x,
+				float(point[2]) - M02Ward.SECOND_FEET.z).length()
+			if distance >= metres and observed["phase"] in ["following", "firing"]:
+				await _record_companion_route(true)
+				print("qa_tour: %s companion moved %.2f m from the second bay at tick %d" % [state_name, distance, observed["tick"]])
+				return
+		await _record_companion_route()
+		await create_timer(0.05).timeout
+	push_error("qa_tour: %s companion did not move %.1f m from the second bay" % [state_name, metres])
+	_failed = true
+
+func _record_companion_route(force: bool = false) -> void:
+	if not _companion_route_capture or _companion_route_images.size() >= 24:
+		return
+	var now: int = Time.get_ticks_msec()
+	if not force and now - _companion_route_last_ms < 500:
+		return
+	await RenderingServer.frame_post_draw
+	_companion_route_last_ms = Time.get_ticks_msec()
+	_companion_route_samples.append(_companion_observation())
+	var frame: Image = _grab()
+	if frame != null:
+		frame.convert(Image.FORMAT_RGBA8)
+		_companion_route_images.append(frame)
+
+func _save_companion_route_strip(state_name: String) -> String:
+	if _companion_route_images.size() < 2:
+		push_error("qa_tour: %s had fewer than two companion route frames" % state_name)
+		_failed = true
+		return ""
+	var first: Dictionary = _companion_route_samples.front()
+	var last: Dictionary = _companion_route_samples.back()
+	if first.is_empty() or last.is_empty():
+		push_error("qa_tour: %s lost the companion during route capture" % state_name)
+		_failed = true
+		return ""
+	var start: Array = first["position"]
+	var finish: Array = last["position"]
+	var visual_displacement: float = Vector2(float(finish[0]) - float(start[0]),
+		float(finish[2]) - float(start[2])).length()
+	if visual_displacement < 4.0:
+		push_error("qa_tour: %s route frames moved the server companion only %.2f m" % [state_name, visual_displacement])
+		_failed = true
+	for observation: Dictionary in _companion_route_samples:
+		var moving: bool = str(observation.get("phase", "")) in ["following", "firing"]
+		if observation.get("pawn_visible") != moving or observation.get("ward_visible") == moving \
+			or observation.get("followable") == true:
+			push_error("qa_tour: %s route frame showed the wrong Latch figure: %s" % [state_name, JSON.stringify(observation)])
+			_failed = true
+	var tile_width: int = STRIP_TILE_WIDTH
+	var tile_height: int = int(round(float(tile_width) * float(_companion_route_images[0].get_height()) \
+		/ float(_companion_route_images[0].get_width())))
+	var sheet: Image = Image.create(tile_width * _companion_route_images.size(), tile_height,
+		false, Image.FORMAT_RGBA8)
+	for i: int in range(_companion_route_images.size()):
+		var tile: Image = _companion_route_images[i]
+		if i == 0 or i == _companion_route_images.size() - 1:
+			var full_name: String = "%s_companion_route_%02d.png" % [state_name, i]
+			if tile.save_png(_out_dir.path_join(full_name)) != OK:
+				_failed = true
+		tile.resize(tile_width, tile_height, Image.INTERPOLATE_BILINEAR)
+		sheet.blit_rect(tile, Rect2i(Vector2i.ZERO, tile.get_size()), Vector2i(i * tile_width, 0))
+	var file_name: String = "%s_companion_route_strip.png" % state_name
+	if sheet.save_png(_out_dir.path_join(file_name)) != OK:
+		push_error("qa_tour: could not save companion route strip")
+		_failed = true
+	return file_name
+
 func _record_movement() -> void:
 	var feet: Vector3 = _local_feet()
 	var camera: Node3D = _spectator_camera()
@@ -974,18 +1145,20 @@ func _jump_probe() -> void:
 		_failed = true
 	print("qa_tour: jump peak %.3f m, eye rise %.3f m" % [peak - start.y, camera_peak - camera_start])
 
-func _walk_to(goal: Vector3) -> void:
+func _walk_to(goal: Vector3, look_back: bool = false) -> void:
 	# Keep the original movement bound. Opt-in combat uses a separate bounded
 	# allowance, because the controller intentionally stops walking to fight.
 	var walking_ms: int = 0
 	var fighting_ms: int = 0
 	var camera: Node = _spectator_camera()
 	Input.action_release("jump")
-	Input.action_press("move_forward")
+	var movement_action: StringName = &"move_back" if look_back else &"move_forward"
+	Input.action_press(movement_action)
 	var arrived: bool = false
 	var anchor: Vector2 = Vector2(_local_feet().x, _local_feet().z)
 	while walking_ms < 15000 and fighting_ms < 25000:
 		var step_started: int = Time.get_ticks_msec()
+		await _record_companion_route()
 		var feet: Vector3 = _local_feet()
 		if not feet.is_finite() or (_combat_travel and _combat_probe.participant_died):
 			break
@@ -998,8 +1171,8 @@ func _walk_to(goal: Vector3) -> void:
 			fighting_ms += Time.get_ticks_msec() - step_started
 			continue
 		anchor = Vector2(feet.x, feet.z)
-		Input.action_press("move_forward")
-		camera.set("fp_yaw", atan2(goal.z - feet.z, goal.x - feet.x))
+		Input.action_press(movement_action)
+		camera.set("fp_yaw", atan2(goal.z - feet.z, goal.x - feet.x) + (PI if look_back else 0.0))
 		camera.set("fp_pitch", 0.0)
 		_record_movement()
 		await create_timer(0.05).timeout
@@ -1167,6 +1340,7 @@ func _write_manifest(tour: Dictionary) -> void:
 		"device": RenderingServer.get_video_adapter_name(),
 		"width": tour.get("width", 0),
 		"height": tour.get("height", 0),
+		"companion_shots": _combat_probe.companion_shots.duplicate(true),
 		"states": _results,
 	}
 	var path: String = _out_dir.path_join("manifest.json")

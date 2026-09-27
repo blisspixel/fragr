@@ -15,6 +15,7 @@ var is_local_fp: bool = false
 var armor: int = 0
 var nameplate_enabled: bool = true
 var is_campaign_enemy: bool = false
+var is_campaign_companion: bool = false
 ## Side in a team mode ("union" or "coalition"), empty otherwise.
 var team: String = ""
 ## Holds the golden Railgun.
@@ -29,6 +30,7 @@ var _walked: float = 0.0
 var campaign_actor: Dictionary = {}
 var _has_authoritative_state: bool = false
 var enemy_view: EnemyView = null
+var latch_view: LatchView = null
 
 var target_position: Vector3 = Vector3.ZERO
 var presentation_speed: float = 0.0
@@ -191,9 +193,11 @@ func _process(delta):
 		var camera: Camera3D = get_viewport().get_camera_3d()
 		var to_camera: Vector3 = camera.global_position - global_position if camera else ServerYaw.forward(target_yaw)
 		enemy_view.render(body, -rotation.y, to_camera)
+	elif latch_view != null:
+		latch_view.advance(delta, travel, str(campaign_actor.get("phase", "following")))
 	else:
 		idle_anim_timer += delta * 4.0
-	if body and enemy_view == null:
+	if body and enemy_view == null and latch_view == null:
 		if body_kind.is_empty():
 			body.frame = int(idle_anim_timer) % 4
 		else:
@@ -239,8 +243,9 @@ func set_player_data(id: String, name: String):
 	target_yaw = 0.0
 
 func update_state(state: Dictionary, snapshot_tick: int = 0):
-	is_campaign_enemy = not ActorState.is_participant(state)
-	campaign_actor = state["campaign"] if is_campaign_enemy else {}
+	is_campaign_enemy = ActorState.is_union(state)
+	is_campaign_companion = ActorState.is_companion(state)
+	campaign_actor = state["campaign"] if is_campaign_enemy or is_campaign_companion else {}
 	if is_campaign_enemy:
 		if enemy_view == null:
 			enemy_view = EnemyView.new()
@@ -248,6 +253,19 @@ func update_state(state: Dictionary, snapshot_tick: int = 0):
 			muzzle.pixel_size = 0.005
 		enemy_view.update(state, snapshot_tick, body)
 		weapon_sprite.visible = false
+	elif is_campaign_companion:
+		if latch_view == null:
+			latch_view = LatchView.new()
+			latch_view.name = "LatchView"
+			latch_view.position.y = -1.5
+			# Shared ward geometry faces local +Z; a pawn faces local +X.
+			latch_view.rotation.y = PI / 2.0
+			add_child(latch_view)
+			latch_view.set_render_layers(ArenaSky.ACTOR_LAYERS)
+			label.position.y = 0.68
+		body.visible = false
+		weapon_sprite.visible = false
+		latch_view.set_weapon_visible(campaign_actor["phase"] != "releasing")
 	target_position = Vector3(state.x, state.y, state.z)
 	target_yaw = state.yaw
 	target_pitch = clampf(float(state.get("pitch", 0.0)), -ServerYaw.PITCH_LIMIT, ServerYaw.PITCH_LIMIT)
@@ -260,7 +278,7 @@ func update_state(state: Dictionary, snapshot_tick: int = 0):
 		show_hit_feedback()
 	_has_authoritative_state = true
 	
-	if not is_campaign_enemy and PlayerBody.valid(state.get("body")) and state["body"] != body_kind:
+	if not is_campaign_enemy and not is_campaign_companion and PlayerBody.valid(state.get("body")) and state["body"] != body_kind:
 		_wear_body(state["body"])
 	var next_team: String = MatchRules.valid_team(state.get("team"))
 	if next_team != team:
@@ -279,28 +297,32 @@ func update_state(state: Dictionary, snapshot_tick: int = 0):
 		behavior = ""
 	
 	if label:
-		var hp_display = str(hp) + " HP"
-		if hp < 30:
-			hp_display = "!" + hp_display + "!"
-		
-		var score = int(state.get("score", 0))
-		var score_chip = ""
-		if score > 0:
-			score_chip = " +" + str(score)
-		
-		# Stance beside callsign so follow / overview reads it without Tab.
-		label.text = StanceChipScript.nameplate(player_name, behavior, hp_display, score_chip)
-		# A side chip leads the plate so a spectator reads teams at a glance.
-		if team != "":
-			label.text = "[" + MatchRules.team_short(team) + "] " + label.text
-		if golden:
-			label.modulate = MatchRules.GOLD
-		elif team != "":
-			label.modulate = player_color
-		elif behavior != "":
-			label.modulate = StanceChipScript.accent_color(true)
+		if is_campaign_companion:
+			label.text = "LATCH"
+			label.modulate = LatchView.CYAN
 		else:
-			label.modulate = player_color
+			var hp_display = str(hp) + " HP"
+			if hp < 30:
+				hp_display = "!" + hp_display + "!"
+		
+			var score = int(state.get("score", 0))
+			var score_chip = ""
+			if score > 0:
+				score_chip = " +" + str(score)
+		
+			# Stance beside callsign so follow / overview reads it without Tab.
+			label.text = StanceChipScript.nameplate(player_name, behavior, hp_display, score_chip)
+			# A side chip leads the plate so a spectator reads teams at a glance.
+			if team != "":
+				label.text = "[" + MatchRules.team_short(team) + "] " + label.text
+			if golden:
+				label.modulate = MatchRules.GOLD
+			elif team != "":
+				label.modulate = player_color
+			elif behavior != "":
+				label.modulate = StanceChipScript.accent_color(true)
+			else:
+				label.modulate = player_color
 	
 	if body and hit_flash_timer <= 0:
 		_update_body_color(false)
@@ -329,7 +351,7 @@ func _wear_body(kind: String) -> void:
 func _update_weapon_sprite():
 	if not weapon_sprite:
 		return
-	if is_campaign_enemy:
+	if is_campaign_enemy or is_campaign_companion:
 		weapon_sprite.visible = false
 		return
 	
@@ -351,6 +373,8 @@ func _update_body_color(hit: bool):
 	
 	if hit:
 		body.modulate = Color(1.55, 0.35, 0.28)
+	elif is_campaign_companion:
+		body.modulate = Color.WHITE
 	elif is_campaign_enemy:
 		body.modulate = Color.WHITE
 	elif golden:
@@ -371,6 +395,13 @@ func _update_body_color(hit: bool):
 	_apply_body_scale(hit)
 
 func show_muzzle_flash(weapon: String):
+	if is_campaign_companion:
+		if latch_view != null:
+			latch_view.shot()
+		if fire_sound and fire_streams.has(weapon):
+			fire_sound.stream = fire_streams[weapon]
+			fire_sound.play()
+		return
 	if enemy_view != null:
 		enemy_view.shot()
 	if weapon == "Fists" or weapon == "Shiv":
@@ -492,7 +523,7 @@ func _update_far_cam_scale() -> void:
 func _apply_body_scale(hit: bool) -> void:
 	if not body:
 		return
-	if is_campaign_enemy:
+	if is_campaign_enemy or is_campaign_companion:
 		# Fixed feet registration and silhouette size preserve the cover contract.
 		body.scale = Vector3.ONE
 		return
@@ -505,7 +536,7 @@ func set_local_fp(enabled: bool) -> void:
 	# Hide local billboard in FP so the HUD viewmodel owns the scrap face.
 	is_local_fp = enabled
 	if body:
-		body.visible = not enabled
+		body.visible = not enabled and not is_campaign_companion
 	if label:
 		label.visible = nameplate_enabled and not enabled
 	if highlight:

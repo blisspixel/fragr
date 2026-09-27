@@ -43,8 +43,12 @@ func _initialize() -> void:
 	friend["z"] = 1.0
 	var guard: Dictionary = {"id":"guard", "hp":60, "x":0.0, "y":1.5, "z":5.0,
 		"campaign":{"side":"union", "kind":"clerk", "phase":"windup"}}
-	var snapshot: Dictionary = {"tick":1, "players":[me, friend, guard]}
+	var latch: Dictionary = {"id":"latch", "name":"Latch", "hp":100, "x":0.0, "y":1.5, "z":2.0,
+		"campaign":{"side":"companion", "kind":"latch", "phase":"following", "phase_started":0}}
+	var snapshot: Dictionary = {"tick":1, "players":[me, friend, latch, guard]}
 	_check(QaCombat.visible_target(snapshot, "player", []).get("id") == "guard", "closer participant is never a target")
+	_check(QaCombat.visible_target(snapshot, "player", []).get("id") != "latch",
+		"the nearby companion is never an automated combat target")
 	_check(not QaCombat.visible_target(snapshot, "player", [], true).is_empty(), "visible windup permits evasive input")
 	_check(QaCombat.visible_target(snapshot, "player", [], false, 24.0).get("id") == "guard", "travel engages a nearby threat")
 	guard["z"] = 34.0
@@ -92,11 +96,16 @@ func _initialize() -> void:
 	probe.set("_player_id", "player")
 	probe.set("_kind", "clerk")
 	probe.set("_recording", true)
-	snapshot["shot_results"] = [{"shooter_id":"player"}, {"shooter_id":"friend"}, {"shooter_id":"guard"}]
+	snapshot["shot_results"] = [{"shooter_id":"player"}, {"shooter_id":"friend"},
+		{"shooter_id":"guard"}, {"shooter_id":"latch", "trace":{"weapon":"Tack"},
+		"target_id":"guard", "target":"Clerk", "hit":true, "damage":6, "killed":false}]
 	probe._observe(snapshot)
 	probe._observe(snapshot)
 	_check(probe.shots == 1 and probe.defeated.size() == 1, "repeated snapshot cannot inflate evidence")
 	_check(probe.enemy_shots == 1, "a friend's shot cannot stand in for an enemy tell")
+	_check(probe.companion_shots.size() == 1 and probe.companion_shots[0]["weapon"] == "Tack"
+		and probe.companion_shots[0]["damage"] == 6 and probe.companion_shots[0]["target_id"] == "guard",
+		"the ally's resolved shot is recorded separately from hostile fire and participant shots")
 	var next_room: QaCombat = QaCombat.new()
 	next_room.set("_player_id", "player")
 	next_room.set("_kind", "union")

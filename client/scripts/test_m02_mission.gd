@@ -112,7 +112,7 @@ func _run() -> void:
 	_hud(first, ward_fight, use, exit, done)
 	_readable(info)
 	if failures == 0:
-		print("test_m02_mission: PASS capability 17 ward fact, strict progress, gate map refresh, HUD and catalog keys")
+		print("test_m02_mission: PASS capability 19 ward fact, strict progress, gate map refresh, HUD and catalog keys")
 	quit(0 if failures == 0 else 1)
 
 func _durable(geometry: Dictionary, first: Dictionary, done: Dictionary) -> void:

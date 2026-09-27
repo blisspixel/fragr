@@ -6,7 +6,9 @@ use crate::maps::AuthoredSource;
 use crate::movement::{Arena, BODY_HEIGHT, CONTACT_EPSILON};
 use crate::navigation::{Navigation, Navigator};
 use crate::net::GameCommand;
-use crate::protocol::{Action, CampaignActor, EnemyPhase, LookAt, Role, ServerMessage, Snapshot};
+use crate::protocol::{
+    Action, CampaignActor, CompanionPhase, EnemyPhase, LookAt, Role, ServerMessage, Snapshot,
+};
 use crate::session::GameSession;
 use std::collections::BTreeSet;
 use std::sync::Arc;
@@ -49,6 +51,9 @@ struct Walker {
     guard_room_shells_claimed: Option<bool>,
     guard_room_weapon_selected: Option<crate::protocol::WeaponType>,
     enemy_shots: usize,
+    companion_shots: usize,
+    companion_damage: u32,
+    companion_kills: usize,
     crawler_cues: Vec<(u64, [f32; 3], [f32; 3])>,
     first_crawler_clear_tick: Option<u64>,
 }
@@ -78,6 +83,9 @@ impl Walker {
             guard_room_shells_claimed: None,
             guard_room_weapon_selected: None,
             enemy_shots: 0,
+            companion_shots: 0,
+            companion_damage: 0,
+            companion_kills: 0,
             crawler_cues: Vec::new(),
             first_crawler_clear_tick: None,
         }
@@ -240,6 +248,15 @@ impl Walker {
                 .any(|p| p.id == shot.shooter_id && p.is_campaign_enemy())
             {
                 self.enemy_shots += 1;
+            } else if session
+                .state
+                .players
+                .iter()
+                .any(|p| p.id == shot.shooter_id && p.is_campaign_companion())
+            {
+                self.companion_shots += 1;
+                self.companion_damage += shot.damage.max(0) as u32;
+                self.companion_kills += usize::from(shot.killed);
             }
         }
         for player in &session.state.players {
@@ -587,12 +604,499 @@ fn ward_victory_precedes_the_local_release_and_a_second_use_is_inert() {
         state.mission_state().unwrap().m02.unwrap().completed.len(),
         2
     );
+    let companion: Vec<_> = state
+        .players
+        .iter()
+        .filter(|p| p.is_campaign_companion())
+        .collect();
+    assert_eq!(companion.len(), 1);
+    assert_eq!(
+        companion[0].campaign,
+        Some(CampaignActor::Companion {
+            kind: crate::protocol::CompanionKind::Latch,
+            phase: CompanionPhase::Releasing,
+            phase_started: state.tick,
+        })
+    );
+    assert_eq!(
+        [
+            companion[0].x,
+            companion[0].y - PLAYER_FLOOR_Y,
+            companion[0].z
+        ],
+        LATCH_SECOND_FEET
+    );
+    assert!(!state.scores.contains_key(&companion[0].id));
+    assert!(state.player_record(companion[0].id).is_none());
+    assert_eq!(state.mission_state().unwrap().party.len(), 1);
+    let status = state.live_status(2);
+    assert_eq!(
+        (status.fighters, status.humans, status.agents, status.bots),
+        (1, 1, 0, 0)
+    );
+    state.players.retain(|p| !p.is_campaign_companion());
     [state.players[0].x, state.players[0].y, state.players[0].z] = [0.0, PLAYER_FLOOR_Y, 21.5];
     state.advance_m02();
     assert!(
         state.mission_departed(),
         "one participant can leave without a Latch seat"
     );
+}
+
+#[test]
+fn released_companion_waits_for_tableau_then_follows_and_retry_removes_latch() {
+    let (mut state, id) = ward_test_state();
+    at_frame_facing_control(&mut state, id);
+    state.update_encounters();
+    state.advance_m02();
+    defeat_ward_guards(&mut state);
+    state.update_encounters();
+    state.players[0].interaction_requested = true;
+    state.advance_m02();
+    let companion_id = state
+        .players
+        .iter()
+        .find(|p| p.is_campaign_companion())
+        .unwrap()
+        .id;
+    let release_tick = state.tick;
+    state.set_action(
+        companion_id,
+        Action {
+            forward: true,
+            fire: true,
+            ..Action::default()
+        },
+    );
+    for _ in 0..LATCH_RELEASE_TICKS - 1 {
+        state.tick(0.05);
+    }
+    let companion = state.players.iter().find(|p| p.id == companion_id).unwrap();
+    assert_eq!(
+        [companion.x, companion.y - PLAYER_FLOOR_Y, companion.z],
+        LATCH_SECOND_FEET
+    );
+    assert!(
+        matches!(companion.campaign, Some(CampaignActor::Companion { phase: CompanionPhase::Releasing, phase_started, .. }) if phase_started == release_tick)
+    );
+    assert!(!companion.just_fired);
+    state.tick(0.05);
+    let companion = state.players.iter().find(|p| p.id == companion_id).unwrap();
+    assert!(
+        matches!(companion.campaign, Some(CampaignActor::Companion { phase: CompanionPhase::Following, phase_started, .. }) if phase_started == state.tick)
+    );
+    assert_eq!(
+        [companion.x, companion.y - PLAYER_FLOOR_Y, companion.z],
+        LATCH_SECOND_FEET
+    );
+    [state.players[0].x, state.players[0].y, state.players[0].z] = [-4.0, PLAYER_FLOOR_Y, -10.0];
+    let (intent_id, intent) = state.m02_companion_intent().unwrap();
+    assert_eq!(intent_id, companion_id);
+    assert!(
+        intent.goal.is_some(),
+        "the released ally seeks the distant participant"
+    );
+    assert!(!intent.action.fire);
+    let mut live = session();
+    live.state = state;
+    for _ in 0..160 {
+        live.tick_messages(0.05);
+    }
+    let moved = live
+        .state
+        .players
+        .iter()
+        .find(|p| p.id == companion_id)
+        .unwrap();
+    assert!(
+        (moved.x - LATCH_SECOND_FEET[0]).hypot(moved.z - LATCH_SECOND_FEET[2]) > 5.0,
+        "the shared navigator must move Latch out of the bay toward the party"
+    );
+    let participant = live.state.players.iter().find(|p| p.id == id).unwrap();
+    assert!(
+        (moved.x - participant.x).hypot(moved.z - participant.z) >= 2.0,
+        "the ally holds a lateral slot outside the player's aiming lane"
+    );
+    let pad = live
+        .state
+        .pickups
+        .iter()
+        .find(|p| p.id == "floor_medkit")
+        .unwrap()
+        .clone();
+    let companion = live
+        .state
+        .players
+        .iter_mut()
+        .find(|p| p.id == companion_id)
+        .unwrap();
+    [companion.x, companion.y, companion.z] = [pad.x, pad.floor + PLAYER_FLOOR_Y, pad.z];
+    companion.hp = 50;
+    live.tick_messages(0.05);
+    assert!(
+        live.state
+            .pickups
+            .iter()
+            .find(|p| p.id == pad.id)
+            .unwrap()
+            .available
+    );
+    assert_eq!(
+        live.state
+            .players
+            .iter()
+            .find(|p| p.id == companion_id)
+            .unwrap()
+            .hp,
+        50
+    );
+    let participant = live.state.players.iter_mut().find(|p| p.id == id).unwrap();
+    participant.hp = 0;
+    participant.respawn_timer = Some(60);
+    live.state.update_encounters();
+    assert!(!live.state.players.iter().any(|p| p.is_campaign_companion()));
+    assert_eq!(live.state.mission_state().unwrap().party.len(), 1);
+    assert_eq!(live.state.mission_state().unwrap().attempt, 2);
+    assert_eq!(
+        live.state
+            .mission_state()
+            .unwrap()
+            .m02
+            .unwrap()
+            .completed
+            .len(),
+        0
+    );
+    let participant = live.state.players.iter_mut().find(|p| p.id == id).unwrap();
+    participant.hp = 100;
+    participant.respawn_timer = None;
+    at_frame_facing_control(&mut live.state, id);
+    live.state.update_encounters();
+    live.state.advance_m02();
+    defeat_ward_guards(&mut live.state);
+    live.state.update_encounters();
+    live.state
+        .players
+        .iter_mut()
+        .find(|p| p.id == id)
+        .unwrap()
+        .interaction_requested = true;
+    live.state.advance_m02();
+    let retry_companions: Vec<_> = live
+        .state
+        .players
+        .iter()
+        .filter(|p| p.is_campaign_companion())
+        .collect();
+    assert_eq!(retry_companions.len(), 1);
+    assert_ne!(retry_companions[0].id, companion_id);
+}
+
+#[test]
+fn companion_only_fires_bounded_support_at_visible_active_union() {
+    let (mut state, id) = ward_test_state();
+    at_frame_facing_control(&mut state, id);
+    state.update_encounters();
+    state.advance_m02();
+    let target_id = state
+        .players
+        .iter()
+        .find(|p| p.name == "ward_sweeper")
+        .unwrap()
+        .id;
+    assert!(state.encounters.is_active_enemy(target_id));
+    let companion_id = state.spawn_m02_companion().unwrap();
+    let companion = state
+        .players
+        .iter_mut()
+        .find(|p| p.id == companion_id)
+        .unwrap();
+    [companion.x, companion.y, companion.z] = [6.5, PLAYER_FLOOR_Y, -10.0];
+    companion.campaign = Some(CampaignActor::Companion {
+        kind: crate::protocol::CompanionKind::Latch,
+        phase: CompanionPhase::Following,
+        phase_started: state.tick,
+    });
+    let (shooter, intent) = state.m02_companion_intent().unwrap();
+    assert_eq!(shooter, companion_id);
+    assert!(
+        intent.action.fire,
+        "visible active ward guard receives bounded support"
+    );
+    assert_eq!(
+        intent.action.look_at.as_ref().unwrap().player_id,
+        Some(target_id)
+    );
+    let (_, cooling) = state.m02_companion_intent().unwrap();
+    assert!(!cooling.action.fire, "the support fire cadence is bounded");
+    assert_eq!(
+        state
+            .mission
+            .as_ref()
+            .unwrap()
+            .m02
+            .as_ref()
+            .unwrap()
+            .support_shots,
+        1
+    );
+    state.set_companion_action(companion_id, intent.action);
+    state.tick(0.05);
+    assert!(state.snapshot().shot_results.iter().any(|shot| {
+        shot.shooter_id == companion_id && shot.target_id == Some(target_id) && shot.damage > 0
+    }));
+    assert_eq!(state.scores.get(&id), Some(&0));
+    assert!(!state.scores.contains_key(&companion_id));
+    let companion = state
+        .players
+        .iter_mut()
+        .find(|p| p.id == companion_id)
+        .unwrap();
+    [companion.x, companion.y, companion.z] = [6.5, PLAYER_FLOOR_Y, -11.0];
+    let hp = state.players.iter().find(|p| p.id == id).unwrap().hp;
+    state.set_action(
+        target_id,
+        Action {
+            fire: true,
+            look_at: Some(LookAt {
+                player_id: Some(id),
+                ..LookAt::default()
+            }),
+            ..Action::default()
+        },
+    );
+    state.tick(0.05);
+    assert_eq!(
+        state
+            .players
+            .iter()
+            .find(|p| p.id == companion_id)
+            .unwrap()
+            .hp,
+        100
+    );
+    assert!(state.players.iter().find(|p| p.id == id).unwrap().hp < hp);
+    for enemy in state
+        .players
+        .iter_mut()
+        .filter(|p| p.is_campaign_enemy() && p.id != target_id)
+    {
+        enemy.hp = 0;
+    }
+    let target = state
+        .players
+        .iter_mut()
+        .find(|p| p.id == target_id)
+        .unwrap();
+    [target.x, target.y, target.z] = [8.5, PLAYER_FLOOR_Y, -13.2];
+    let target_height = crate::combat::target_height(target.campaign);
+    let companion = state
+        .players
+        .iter_mut()
+        .find(|p| p.id == companion_id)
+        .unwrap();
+    [companion.x, companion.y, companion.z] = [7.0, PLAYER_FLOOR_Y, -11.0];
+    state
+        .mission
+        .as_mut()
+        .unwrap()
+        .m02
+        .as_mut()
+        .unwrap()
+        .last_support_tick = None;
+    assert!(!crate::combat::line_of_sight(
+        [7.0, crate::movement::EYE_HEIGHT, -11.0],
+        [8.5, target_height * 0.5, -13.2],
+        &state.map.arena().solids,
+    ));
+    assert!(!state.m02_companion_intent().unwrap().1.action.fire);
+    let target = state
+        .players
+        .iter_mut()
+        .find(|p| p.id == target_id)
+        .unwrap();
+    [target.x, target.y, target.z] = [4.0, PLAYER_FLOOR_Y, -11.0];
+    state
+        .mission
+        .as_mut()
+        .unwrap()
+        .m02
+        .as_mut()
+        .unwrap()
+        .support_shots = 12;
+    assert!(!state.m02_companion_intent().unwrap().1.action.fire);
+    let progress = state.mission.as_mut().unwrap().m02.as_mut().unwrap();
+    progress.support_shots = 1;
+    progress.last_support_tick = None;
+    let companion = state
+        .players
+        .iter_mut()
+        .find(|p| p.id == companion_id)
+        .unwrap();
+    [companion.x, companion.y, companion.z] = [6.5, PLAYER_FLOOR_Y, -10.0];
+    let participant = state.players.iter_mut().find(|p| p.id == id).unwrap();
+    [participant.x, participant.y, participant.z] = [5.25, PLAYER_FLOOR_Y, -10.5];
+    let target = state.players.iter().find(|p| p.id == target_id).unwrap();
+    assert!(crate::combat::line_of_sight(
+        [6.5, crate::movement::EYE_HEIGHT, -10.0],
+        [
+            4.0,
+            crate::combat::target_height(target.campaign) * 0.5,
+            -11.0
+        ],
+        &state.map.arena().solids,
+    ));
+    assert!(!state.m02_companion_intent().unwrap().1.action.fire);
+    assert_eq!(
+        state
+            .mission
+            .as_ref()
+            .unwrap()
+            .m02
+            .as_ref()
+            .unwrap()
+            .support_shots,
+        1
+    );
+}
+
+#[test]
+fn controlled_unshielded_escape_companion_reaches_floor_and_resolves_a_shot() {
+    for difficulty in [
+        crate::protocol::CampaignDifficulty::Standard,
+        crate::protocol::CampaignDifficulty::Severe,
+    ] {
+        let mut session = session();
+        session.state.seed(1);
+        session.state.set_campaign_difficulty(difficulty).unwrap();
+        let id = Uuid::from_u128(0x02ae);
+        session
+            .state
+            .add_player(id, "Controlled observer".into(), Role::Human);
+        assert!(session.state.acknowledge_m02(id, 1));
+        at_frame_facing_control(&mut session.state, id);
+        session.state.update_encounters();
+        session.state.advance_m02();
+        defeat_ward_guards(&mut session.state);
+        session.state.update_encounters();
+        session.state.players[0].interaction_requested = true;
+        session.state.advance_m02();
+        let ally_id = session
+            .state
+            .players
+            .iter()
+            .find(|p| p.is_campaign_companion())
+            .unwrap()
+            .id;
+        // The live probe can reach the floor trigger while the 12-second
+        // release tableau is still active.
+        for _ in 0..LATCH_RELEASE_TICKS - 40 {
+            session.tick_messages(0.05);
+        }
+        [
+            session.state.players[0].x,
+            session.state.players[0].y,
+            session.state.players[0].z,
+        ] = [-4.0, PLAYER_FLOOR_Y, -5.0];
+        // Keep this stationary observation alive without making its body
+        // transparent to either side's hitscan. This is not a survivability
+        // or normal combat pacing test.
+        session.state.players[0].hp = crate::sim::PLAYER_MAX_HP;
+        let mut resolved = None;
+        let mut first_damage_step = None;
+        let mut sampled_positions = Vec::new();
+        let mut support_shots = 0;
+        let mut support_damage = 0;
+        let mut support_kills = 0;
+        for step in 0..500 {
+            session.tick_messages(0.05);
+            let player = session
+                .state
+                .players
+                .iter_mut()
+                .find(|p| p.id == id)
+                .unwrap();
+            assert!(
+                player.hp > 0,
+                "controlled participant died at tick {}",
+                step + 1
+            );
+            player.hp = crate::sim::PLAYER_MAX_HP;
+            if [39, 99, 199].contains(&step) {
+                let ally = session
+                    .state
+                    .players
+                    .iter()
+                    .find(|p| p.id == ally_id)
+                    .unwrap_or_else(|| panic!("companion missing at controlled tick {}", step + 1));
+                sampled_positions.push((step + 1, ally.x, ally.z));
+            }
+            for shot in session
+                .state
+                .shot_results
+                .iter()
+                .filter(|shot| shot.shooter_id == ally_id)
+            {
+                support_shots += 1;
+                support_damage += shot.damage.max(0);
+                support_kills += usize::from(shot.killed);
+                if shot.damage > 0 && resolved.is_none() {
+                    first_damage_step = Some(step + 1);
+                    resolved = Some(shot.clone());
+                }
+            }
+        }
+        let shot = resolved.unwrap_or_else(|| {
+        let ally = session.state.players.iter().find(|p| p.id == ally_id).unwrap();
+        panic!(
+            "Latch must support the active floor group in the controlled stationary case: ally [{:.1},{:.1},{:.1}], phase {:?}, shots {}, floor enemies {:?}",
+            ally.x,
+            ally.y - PLAYER_FLOOR_Y,
+            ally.z,
+            ally.campaign,
+            session.state.mission.as_ref().unwrap().m02.as_ref().unwrap().support_shots,
+            session.state.players.iter().filter(|p| p.name.starts_with("floor_") || p.name.starts_with("press_") || p.name.starts_with("conveyor_")).map(|p| (&p.name, p.hp, p.x, p.z)).collect::<Vec<_>>()
+        )
+    });
+        assert!(shot.target_id.is_some());
+        assert_eq!(
+            shot.trace.unwrap().weapon,
+            crate::protocol::WeaponType::Tack
+        );
+        assert_eq!(
+            session.state.mission_state().unwrap().phase,
+            MissionPhase::InProgress
+        );
+        let living_floor = session
+            .state
+            .players
+            .iter()
+            .filter(|p| {
+                matches!(
+                    p.name.as_str(),
+                    "floor_officer" | "floor_sweeper" | "press_clerk" | "conveyor_sweeper"
+                ) && p.hp > 0
+            })
+            .count();
+        let ally = session
+            .state
+            .players
+            .iter()
+            .find(|p| p.id == ally_id)
+            .unwrap();
+        let participant = session.state.players.iter().find(|p| p.id == id).unwrap();
+        let separation = (ally.x - participant.x).hypot(ally.z - participant.z);
+        assert!(
+            separation >= 2.0,
+            "the floor formation must not crowd the player"
+        );
+        assert!(
+            living_floor > 0,
+            "Latch must not clear the floor while the player waits"
+        );
+        assert!(support_shots <= 12);
+        eprintln!("M02 controlled unshielded escape {difficulty:?}: first damaging shot tick {:?}, companion positions at ticks 40/100/200 {:?}, shots {support_shots}, damage {support_damage}, kills {support_kills}, floor enemies alive {living_floor}, separation {separation:.2}m, ally [{:.2},{:.2}]", first_damage_step, sampled_positions, ally.x, ally.z);
+    }
 }
 
 #[test]
@@ -784,6 +1288,74 @@ fn late_spectator_receives_the_durable_release_without_a_party_seat() {
                             && m02.completed == ["ward_reached", "companion_released"]))
     }));
     assert_eq!(session.state.mission_state().unwrap().party.len(), 1);
+    let snapshot = session.state.snapshot();
+    assert!(snapshot
+        .players
+        .iter()
+        .find(|p| p.campaign.is_some_and(CampaignActor::is_companion))
+        .unwrap()
+        .body
+        .is_none());
+    assert_eq!(
+        snapshot
+            .players
+            .iter()
+            .filter(|p| matches!(
+                p.campaign,
+                Some(CampaignActor::Companion {
+                    phase: CompanionPhase::Releasing,
+                    ..
+                })
+            ))
+            .count(),
+        1
+    );
+    let ally_id = session
+        .state
+        .players
+        .iter()
+        .find(|p| p.is_campaign_companion())
+        .unwrap()
+        .id;
+    [
+        session.state.players[0].x,
+        session.state.players[0].y,
+        session.state.players[0].z,
+    ] = [0.0, PLAYER_FLOOR_Y, 21.5];
+    session.state.advance_m02();
+    assert!(session.state.mission_departed());
+    let before = session
+        .state
+        .players
+        .iter()
+        .find(|p| p.id == ally_id)
+        .unwrap();
+    let feet = [before.x, before.y, before.z];
+    session.state.set_companion_action(
+        ally_id,
+        Action {
+            forward: true,
+            ..Action::default()
+        },
+    );
+    session.state.tick(0.05);
+    let after = session
+        .state
+        .players
+        .iter()
+        .find(|p| p.id == ally_id)
+        .unwrap();
+    assert_eq!([after.x, after.y, after.z], feet);
+    assert_eq!(
+        session
+            .state
+            .snapshot()
+            .players
+            .iter()
+            .filter(|p| p.id == ally_id)
+            .count(),
+        1
+    );
 }
 
 #[test]
@@ -928,12 +1500,15 @@ fn solo_human_and_agent_fight_through_and_depart() {
         assert_eq!(state.attempt, 1);
         let me = session.state.players.iter().find(|p| p.id == id).unwrap();
         eprintln!(
-            "M02 graybox {role:?}: departed after {ticks} ticks, hp {}, armor {}, defeats {}, shots {}, enemy shots {}",
+            "M02 graybox {role:?}: departed after {ticks} ticks, hp {}, armor {}, defeats {}, player shots {}, enemy shots {}, companion shots {}, companion damage {}, companion kills {}",
             me.hp,
             me.armor,
             walker.defeated.len(),
             walker.shots,
-            walker.enemy_shots
+            walker.enemy_shots,
+            walker.companion_shots,
+            walker.companion_damage,
+            walker.companion_kills
         );
     }
 }

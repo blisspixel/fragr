@@ -44,8 +44,14 @@ impl Encounters {
         matches!(self.groups.get(index), Some(Group::Complete))
     }
 
+    pub(crate) fn is_active_enemy(&self, id: Uuid) -> bool {
+        self.enemies.iter().any(|(group, enemy)| {
+            enemy.id == id && matches!(self.groups.get(*group), Some(Group::Active { .. }))
+        })
+    }
+
     fn reset(&mut self, state: &mut GameState) {
-        state.players.retain(|p| !p.is_campaign_enemy());
+        state.players.retain(Player::is_participant);
         self.enemies.clear();
         self.groups
             .iter_mut()

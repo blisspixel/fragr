@@ -65,7 +65,7 @@ fn identity(session: &GameSession, id: Uuid) -> (EnemyKind, EnemyPhase, u64, u64
             phase_ends,
             ..
         } => (kind, phase, phase_started, phase_ends),
-        CampaignActor::Participant {} => panic!("expected enemy"),
+        _ => panic!("expected enemy"),
     }
 }
 

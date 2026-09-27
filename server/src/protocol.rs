@@ -9,7 +9,7 @@ mod mission;
 mod rules;
 mod statistics;
 mod status;
-pub use actors::{hostile, CampaignActor, EnemyKind, EnemyPhase};
+pub use actors::{hostile, CampaignActor, CompanionKind, CompanionPhase, EnemyKind, EnemyPhase};
 pub use body::BodyKind;
 pub use decoration::{
     validate_decorations, MapDecoration, MapDecorationKind, MapFace, MAX_MAP_DECORATIONS,
@@ -545,8 +545,9 @@ pub const CRAWLER_GAMEPLAY_VERSION: u32 = 16;
 /// M02 projects ward victory before Latch's later release action.
 pub const LATCH_RELEASE_GAMEPLAY_VERSION: u32 = 17;
 pub const RUN_CARRY_GAMEPLAY_VERSION: u32 = 18;
+pub const COMPANION_GAMEPLAY_VERSION: u32 = 19;
 /// Highest understood gameplay contract; content requirements use their own minimum.
-pub const GAMEPLAY_VERSION: u32 = RUN_CARRY_GAMEPLAY_VERSION;
+pub const GAMEPLAY_VERSION: u32 = COMPANION_GAMEPLAY_VERSION;
 pub fn legacy_gameplay_version() -> u32 {
     1
 }
@@ -1043,8 +1044,8 @@ pub struct PlayerState {
     /// Holds the golden Railgun. Omitted when false.
     #[serde(default, skip_serializing_if = "is_false")]
     pub golden: bool,
-    /// The participant's accepted body. Omitted for Union campaign actors
-    /// and the arena boss, which keep their own authored identity.
+    /// The participant's accepted body. Omitted for Union and companion
+    /// campaign actors and the arena boss, which keep their own identity.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub body: Option<BodyKind>,
 }

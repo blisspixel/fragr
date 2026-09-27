@@ -1,6 +1,7 @@
 extends Node
 
-# Version 18 understands durable M02 runs and the per-level continue baseline;
+# Version 19 understands the autonomous Latch companion in M02 snapshots;
+# 18 understands durable M02 runs and the per-level continue baseline;
 # 17 understands the server-owned M02 ward and release facts;
 # 16 understands the server-owned Crawler leap and M02 sound cue;
 # 15 understands seated M02 Clerks, and 14 is capture the flag;
@@ -9,7 +10,7 @@ extends Node
 # 10 one ammunition count per type and scatter pellet traces; 9 M02
 # objective and gate state; 8 private participant records. Older servers
 # remain playable.
-const GAMEPLAY_VERSION: int = 18
+const GAMEPLAY_VERSION: int = 19
 
 signal connected_to_server
 signal disconnected_from_server

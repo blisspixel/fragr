@@ -275,7 +275,8 @@ impl EnemyController {
             ]
         };
         let visible = |p: &&crate::protocol::PlayerState| {
-            me.is_hostile_to(p)
+            p.campaign == Some(CampaignActor::Participant {})
+                && me.is_hostile_to(p)
                 && crate::mission::actor_active(state.mission.as_ref(), p.id, p.campaign)
                 && (p.x - me.x).hypot(p.z - me.z) <= SIGHT_RANGE
                 && line_of_sight(eye, centre(p), &state.map.arena().solids)
@@ -590,6 +591,86 @@ impl EnemyController {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn union_pursues_the_participant_even_when_latch_is_closer() {
+        use crate::maps::AuthoredSource;
+        use crate::protocol::{MissionId, Role};
+
+        let mut state = GameState::with_authored_map(
+            AuthoredSource::Mission(MissionId::PersonsUnknown)
+                .load()
+                .unwrap(),
+        );
+        let participant_id = Uuid::from_u128(0x02b0);
+        state.add_player(participant_id, "Runner".into(), Role::Human);
+        assert!(state.acknowledge_m02(participant_id, 1));
+        let placement = state.map.encounters()[3]
+            .enemies
+            .iter()
+            .find(|placement| placement.id == "ward_sweeper")
+            .unwrap()
+            .clone();
+        let enemy_id = state.spawn_campaign_enemy(&placement);
+        let companion_id = state.spawn_m02_companion().unwrap();
+        let participant = state
+            .players
+            .iter_mut()
+            .find(|p| p.id == participant_id)
+            .unwrap();
+        [participant.x, participant.y, participant.z] = [7.0, PLAYER_FLOOR_Y, -11.0];
+        let companion = state
+            .players
+            .iter_mut()
+            .find(|p| p.id == companion_id)
+            .unwrap();
+        [companion.x, companion.y, companion.z] = [5.5, PLAYER_FLOOR_Y, -11.0];
+        let snapshot = state.snapshot();
+        let enemy = snapshot.players.iter().find(|p| p.id == enemy_id).unwrap();
+        let eye = [enemy.x, crate::movement::EYE_HEIGHT, enemy.z];
+        for target_id in [companion_id, participant_id] {
+            let target = snapshot.players.iter().find(|p| p.id == target_id).unwrap();
+            assert!(line_of_sight(
+                eye,
+                [
+                    target.x,
+                    crate::combat::target_height(target.campaign) * 0.5,
+                    target.z
+                ],
+                &state.map.arena().solids,
+            ));
+        }
+        let mut controller = EnemyController::new(
+            enemy_id,
+            placement.kind,
+            placement.feet,
+            placement.yaw,
+            state.tick,
+            false,
+        );
+        controller.intent(&state, &snapshot);
+        assert_eq!(controller.target, Some(participant_id));
+
+        state
+            .players
+            .iter_mut()
+            .find(|p| p.id == participant_id)
+            .unwrap()
+            .hp = 0;
+        let mut controller = EnemyController::new(
+            enemy_id,
+            placement.kind,
+            placement.feet,
+            placement.yaw,
+            state.tick,
+            false,
+        );
+        controller.intent(&state, &state.snapshot());
+        assert_eq!(
+            controller.target, None,
+            "an invulnerable ally cannot distract Union fire"
+        );
+    }
 
     #[test]
     fn crawler_waits_for_visible_body_width_before_windup() {

@@ -37,6 +37,33 @@ func _run() -> void:
 	var participants: Array[Dictionary] = ActorState.participants(snapshot["players"])
 	_check(participants.size() == 2 and participants[0]["id"] == "human" and participants[1]["id"] == "agent", "only participants belong to the scoreboard and camera roster")
 	_check(ActorState.is_participant({"id": "arcade"}), "legacy arcade roster preserved")
+	var latch: Dictionary = {"id": "ally", "name": "Latch", "x": 7.55, "y": 1.5, "z": -14.8,
+		"yaw": 0.0, "hp": 100, "weapon": "Tack", "just_fired": false,
+		"campaign": {"side": "companion", "kind": "latch", "phase": "releasing", "phase_started": 10}}
+	snapshot["players"].append(latch)
+	_check(ActorState.validation_error(snapshot).is_empty() and ActorState.is_companion(latch) and not ActorState.is_union(latch),
+		"one server-owned Latch identity and spatial pawn are accepted")
+	_check(ActorState.participants(snapshot["players"]).size() == 2, "Latch never enters participant roster")
+	_check(not ActorState.validation_error({"tick": 12, "players": [latch, latch.duplicate(true)]}).is_empty(),
+		"a snapshot cannot present two Latches")
+	for patch: Dictionary in [{"side": "union"}, {"kind": "unknown"}, {"phase": "dead"},
+		{"phase_started": 13}, {"phase_started": -1}, {"phase_started": 1.5}, {"phase_ends": 20}]:
+		var invalid_latch: Dictionary = latch.duplicate(true)
+		invalid_latch["campaign"].merge(patch, true)
+		_check(not ActorState.validation_error({"tick": 12, "players": [invalid_latch]}).is_empty(),
+			"reject malformed companion identity: " + str(patch))
+	for patch: Dictionary in [{"body": "synthetic"}, {"hp": 0}, {"hp": 101}, {"weapon": "Rail"},
+		{"just_fired": 1}, {"just_fired": true}, {"x": NAN}, {"yaw": INF}]:
+		var invalid_latch: Dictionary = latch.duplicate(true)
+		invalid_latch.merge(patch, true)
+		_check(not ActorState.validation_error({"tick": 12, "players": [invalid_latch]}).is_empty(),
+			"reject contradictory releasing companion pawn: " + str(patch))
+	var fighting_latch: Dictionary = latch.duplicate(true)
+	fighting_latch["campaign"]["phase"] = "firing"
+	fighting_latch["just_fired"] = true
+	_check(ActorState.validation_error({"tick": 12, "players": [fighting_latch]}).is_empty(),
+		"authoritative supporting fire is accepted after release")
+	snapshot["players"].pop_back()
 	var leap: Dictionary = _actor()
 	leap["campaign"]["kind"] = "crawler"
 	leap["campaign"]["phase"] = "leaping"
@@ -81,6 +108,33 @@ func _run() -> void:
 	pawn.update_state(appearance)
 	_check(pawn.hit_flash_timer > 0.0, "actual subsequent damage still produces feedback")
 	pawn.free()
+	var ally: Node3D = load("res://scenes/player.tscn").instantiate()
+	root.add_child(ally)
+	ally.set_process(false)
+	ally.set_player_data("ally", "Latch")
+	ally.update_state(latch, 12)
+	_check(ally.is_campaign_companion and not ally.is_campaign_enemy and ally.latch_view is LatchView,
+		"the companion uses a separate authored chassis")
+	for part: Node in ally.latch_view.find_children("*", "VisualInstance3D", true, false):
+		_check((part as VisualInstance3D).layers == ArenaSky.ACTOR_LAYERS,
+			"the moving Latch uses the same actor lighting layer as the ward figure")
+	_check(not ally.body.visible and not ally.weapon_sprite.visible and not ally.latch_view.get_node("RightArm/Tack").visible,
+		"releasing Latch shows neither a participant body nor a drawn weapon")
+	_check(is_equal_approx(ally.latch_view.position.y, -1.5) and ally.label.text == "LATCH",
+		"the companion feet and name register apart from a player body")
+	var moving: Dictionary = latch.duplicate(true)
+	moving["campaign"]["phase"] = "following"
+	moving["x"] = 8.0
+	ally.update_state(moving, 13)
+	_check(ally.latch_view.get_node("RightArm/Tack").visible and ally.target_position.x == 8.0,
+		"following Latch uses the server position and carries a Tack")
+	ally.latch_view.advance(0.1, 0.5, "following")
+	_check(not is_zero_approx(ally.latch_view.get_node("LeftLeg").rotation.x),
+		"rendered travel animates the ally legs")
+	ally.show_muzzle_flash("Tack")
+	_check(ally.latch_view.get_node("RightArm/Tack/Flash").visible,
+		"authoritative supporting fire lights the ally's weapon")
+	ally.free()
 	if _failures == 0:
 		print("test_actor_state: PASS")
 	quit(0 if _failures == 0 else 1)

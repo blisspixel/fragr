@@ -171,7 +171,7 @@ async fn isolated_m01_departure_fixture_for_m02_client_smoke() {
         );
         assert_eq!(
             ready.gameplay_version,
-            fragr_server::protocol::RUN_CARRY_GAMEPLAY_VERSION
+            fragr_server::protocol::COMPANION_GAMEPLAY_VERSION
         );
         let (mut socket, _) = connect_async(&ready.url).await.unwrap();
         socket
@@ -313,7 +313,7 @@ fn wrong_mission_resume_does_not_migrate_v2_departure() {
     let (child, ready) = spawn_persistent_mission(&directory, "persons_unknown", "resume", None);
     assert_eq!(
         ready.gameplay_version,
-        fragr_server::protocol::RUN_CARRY_GAMEPLAY_VERSION
+        fragr_server::protocol::COMPANION_GAMEPLAY_VERSION
     );
     drop(child);
     assert_eq!(preview(&directory)["mission"], "persons_unknown");
@@ -676,7 +676,7 @@ async fn m02_development_child_serves_the_graybox_without_a_durable_run() {
     assert_eq!(ready.mission, MissionId::PersonsUnknown);
     assert_eq!(
         ready.gameplay_version,
-        fragr_server::protocol::LATCH_RELEASE_GAMEPLAY_VERSION
+        fragr_server::protocol::COMPANION_GAMEPLAY_VERSION
     );
     let (mut old, _) = connect_async(&ready.url).await.unwrap();
     old.send(Message::Text(
@@ -712,7 +712,7 @@ async fn m02_development_child_serves_the_graybox_without_a_durable_run() {
                 role: Role::Human,
                 name: "Ward walker".into(),
                 geometry_version: 2,
-                gameplay_version: fragr_server::protocol::LATCH_RELEASE_GAMEPLAY_VERSION,
+                gameplay_version: fragr_server::protocol::COMPANION_GAMEPLAY_VERSION,
                 ticket: None,
                 resume: None,
             })

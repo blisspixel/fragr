@@ -591,6 +591,18 @@ impl Player {
             .is_some_and(crate::protocol::CampaignActor::is_enemy)
     }
 
+    pub fn is_campaign_companion(&self) -> bool {
+        self.campaign
+            .is_some_and(crate::protocol::CampaignActor::is_companion)
+    }
+
+    pub fn is_participant(&self) -> bool {
+        !self.is_boss
+            && self
+                .campaign
+                .is_none_or(crate::protocol::CampaignActor::is_participant)
+    }
+
     fn at_spawn(
         id: Uuid,
         name: String,
@@ -1120,6 +1132,53 @@ impl GameState {
         id
     }
 
+    pub(crate) fn spawn_m02_companion(&mut self) -> Option<Uuid> {
+        use crate::protocol::{CampaignActor, CompanionKind, CompanionPhase, EquipmentPolicy};
+        if self.map.m02_objectives().is_none()
+            || self.players.iter().any(Player::is_campaign_companion)
+        {
+            return None;
+        }
+        let id = self.new_entity_id();
+        let [x, floor, z] = crate::mission::LATCH_SECOND_FEET;
+        let mut player = Player::at_spawn(
+            id,
+            "Latch".into(),
+            Role::Agent,
+            (x, z, std::f32::consts::PI, floor),
+            EquipmentPolicy::Discovery,
+        );
+        player.weapon = WeaponType::Tack;
+        player.inventory.grant_weapon(WeaponType::Tack);
+        player.campaign = Some(CampaignActor::Companion {
+            kind: CompanionKind::Latch,
+            phase: CompanionPhase::Releasing,
+            phase_started: self.tick,
+        });
+        self.players.push(player);
+        Some(id)
+    }
+
+    fn update_m02_companion_phase(&mut self) {
+        use crate::protocol::{CampaignActor, CompanionPhase};
+        for player in &mut self.players {
+            if let Some(CampaignActor::Companion {
+                kind,
+                phase: CompanionPhase::Releasing,
+                phase_started,
+            }) = player.campaign
+            {
+                if self.tick.saturating_sub(phase_started) >= crate::mission::LATCH_RELEASE_TICKS {
+                    player.campaign = Some(CampaignActor::Companion {
+                        kind,
+                        phase: CompanionPhase::Following,
+                        phase_started: self.tick,
+                    });
+                }
+            }
+        }
+    }
+
     pub fn remove_player(&mut self, id: Uuid) {
         if let Some(player) = self.players.iter().find(|p| p.id == id) {
             if player.role == Role::Human {
@@ -1133,8 +1192,19 @@ impl GameState {
         self.update_encounters();
     }
 
-    pub fn set_action(&mut self, id: Uuid, mut action: Action) {
+    pub fn set_action(&mut self, id: Uuid, action: Action) {
+        self.set_actor_action(id, action, false);
+    }
+
+    pub(crate) fn set_companion_action(&mut self, id: Uuid, action: Action) {
+        self.set_actor_action(id, action, true);
+    }
+
+    fn set_actor_action(&mut self, id: Uuid, mut action: Action, companion_intent: bool) {
         if let Some(player) = self.players.iter_mut().find(|p| p.id == id) {
+            if player.is_campaign_companion() != companion_intent {
+                return;
+            }
             if !crate::mission::actor_active(self.mission.as_ref(), player.id, player.campaign) {
                 return;
             }
@@ -1233,6 +1303,7 @@ impl GameState {
 
     pub fn tick(&mut self, dt: f32) {
         self.tick += 1;
+        self.update_m02_companion_phase();
         self.shot_results.clear();
         self.spawn_shields.retain(|_, ticks| {
             *ticks = ticks.saturating_sub(1);
@@ -1346,6 +1417,15 @@ impl GameState {
         };
         for player in &mut self.players {
             player.just_fired = false;
+            if matches!(
+                player.campaign,
+                Some(CampaignActor::Companion {
+                    phase: crate::protocol::CompanionPhase::Releasing,
+                    ..
+                })
+            ) {
+                continue;
+            }
             if !crate::mission::actor_active(self.mission.as_ref(), player.id, player.campaign) {
                 continue;
             }
@@ -1651,6 +1731,7 @@ impl GameState {
                 .filter_map(|(victim, target)| {
                     if attacker == victim
                         || target.hp <= 0
+                        || target.is_campaign_companion()
                         || target.respawn_timer.is_some()
                         || !crate::mission::actor_active(
                             self.mission.as_ref(),
@@ -2005,6 +2086,7 @@ impl GameState {
             if i == shooter_idx
                 || target.hp <= 0
                 || target.respawn_timer.is_some()
+                || target.is_campaign_companion()
                 || !crate::mission::actor_active(self.mission.as_ref(), target.id, target.campaign)
                 || self.spawn_shields.get(&target.id).is_some_and(|t| *t > 0)
             {
@@ -2194,7 +2276,7 @@ impl GameState {
                         team: p.team,
                         lives: p.lives,
                         golden: p.golden,
-                        body: (!p.is_boss && !p.is_campaign_enemy()).then_some(p.body),
+                        body: p.is_participant().then_some(p.body),
                     }
                 })
                 .collect(),
@@ -2392,6 +2474,9 @@ impl GameState {
         let mut agents = 0;
         let mut bots = 0;
         for player in &self.players {
+            if !player.is_participant() {
+                continue;
+            }
             match player.role {
                 Role::Human => humans += 1,
                 Role::Agent if self.is_rule_bot(player.id) => bots += 1,
@@ -2724,6 +2809,7 @@ impl GameState {
                 || player.hp <= 0
                 || player.is_boss
                 || player.is_campaign_enemy()
+                || player.is_campaign_companion()
                 || !crate::mission::actor_active(self.mission.as_ref(), player.id, player.campaign)
             {
                 continue;

@@ -683,6 +683,8 @@ func assist_targets() -> Array:
 		var pawn: Node = players[id]
 		if not is_instance_valid(pawn) or str(id) == local_fp_pawn_id or int(pawn.get("hp")) <= 0:
 			continue
+		if bool(pawn.get("is_campaign_companion")):
+			continue
 		var enemy: bool = bool(pawn.get("is_campaign_enemy"))
 		if enemy != mission:
 			continue
@@ -857,6 +859,15 @@ func _on_snapshot_received(data):
 	_apply_map_from_snapshot(data)
 	var tick = data.get("tick", 0)
 	var player_list = data.get("players", [])
+	var companion_phase: String = ""
+	for player_data: Dictionary in player_list:
+		if ActorState.is_companion(player_data):
+			companion_phase = str(player_data["campaign"]["phase"])
+			break
+	if companion_phase.is_empty() and net_client.mission.get("state", {}).get("phase") == "departed":
+		companion_phase = "departed"
+	if m02_ward != null:
+		m02_ward.set_companion_phase(companion_phase)
 	var participant_list: Array[Dictionary] = ActorState.participants(player_list)
 	var round_state = data.get("round_state", "")
 	var round_time_left = data.get("round_time_left", 0)
@@ -938,6 +949,10 @@ func _on_snapshot_received(data):
 		
 		if players.has(id):
 			players[id].update_state(player_data, int(tick))
+			if players[id].is_campaign_companion:
+				# The fixed figure owns the full release tableau. The server pawn
+				# takes over at the same feet when it starts following.
+				players[id].visible = companion_phase != "releasing"
 	
 	for id in players.keys():
 		if not current_ids.has(id):
@@ -947,7 +962,7 @@ func _on_snapshot_received(data):
 	
 	var targets = []
 	for pawn in players.values():
-		if is_instance_valid(pawn) and not pawn.is_campaign_enemy:
+		if is_instance_valid(pawn) and not pawn.is_campaign_enemy and not pawn.is_campaign_companion:
 			targets.append(pawn)
 	if camera:
 		camera.set_available_targets(targets)
@@ -1271,7 +1286,8 @@ func _update_followed_weapon():
 func _pick_ghost_rival_from_alive():
 	var names = []
 	for pawn in players.values():
-		if is_instance_valid(pawn) and pawn.player_name != "" and pawn.player_name != "Human Player":
+		if is_instance_valid(pawn) and not pawn.is_campaign_enemy and not pawn.is_campaign_companion \
+			and pawn.player_name != "" and pawn.player_name != "Human Player":
 			names.append(pawn.player_name)
 	if names.is_empty():
 		hud.set_ghost_rival("")

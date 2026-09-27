@@ -11,6 +11,7 @@ var phases: Dictionary[String, bool] = {}
 var phases_by_kind: Dictionary[String, bool] = {}
 var shots: int = 0
 var enemy_shots: int = 0
+var companion_shots: Array[Dictionary] = []
 var participant_died: bool = false
 var _last_tick: int = -1
 var _kind: String = ""
@@ -51,6 +52,7 @@ func begin(manager: Node) -> void:
 	participant_died = false
 	_participant_seen = false
 	confirmed_deaths.clear()
+	companion_shots.clear()
 	first_crawler_leap_started = false
 	first_crawler_leap_finished = false
 	first_crawler_leap_start_hp = -1
@@ -112,7 +114,8 @@ static func visible_target(snapshot: Dictionary, player_id: String, solids: Arra
 	var nearest: Dictionary = {}
 	var distance: float = max_distance * max_distance
 	for actor: Dictionary in snapshot.get("players", []):
-		if ActorState.is_participant(actor) or int(actor["hp"]) <= 0:
+		# The campaign has both Union hostiles and a free companion.
+		if not ActorState.is_union(actor) or int(actor["hp"]) <= 0:
 			continue
 		if committed_only and str(actor["campaign"]["phase"]) not in ["windup", "leaping", "firing"]:
 			continue
@@ -137,7 +140,7 @@ func _observe(snapshot: Dictionary) -> void:
 		participant_died = true
 	_track_first_crawler_leap(snapshot, participant)
 	for actor: Dictionary in snapshot.get("players", []):
-		if ActorState.is_participant(actor):
+		if not ActorState.is_union(actor):
 			continue
 		if int(actor["hp"]) <= 0 and actor.has("name") and not confirmed_deaths.has(str(actor["name"])):
 			confirmed_deaths[str(actor["name"])] = tick
@@ -156,7 +159,14 @@ func _observe(snapshot: Dictionary) -> void:
 			shots += 1
 		else:
 			var shooter: Dictionary = actor_by_id(snapshot, str(shot["shooter_id"]))
-			if not shooter.is_empty() and not ActorState.is_participant(shooter) and (_kind == "union" or shooter["campaign"]["kind"] == _kind):
+			if not shooter.is_empty() and ActorState.is_companion(shooter):
+				var trace: Dictionary = shot.get("trace", {}) if shot.get("trace") is Dictionary else {}
+				companion_shots.append({"tick": tick, "shooter_id": str(shot["shooter_id"]),
+					"weapon": str(trace.get("weapon", "")), "target_id": str(shot.get("target_id", "")),
+					"target": str(shot.get("target", "")), "hit": shot.get("hit") == true,
+					"damage": int(shot.get("damage", 0)), "killed": shot.get("killed") == true})
+			elif not shooter.is_empty() and ActorState.is_union(shooter) \
+				and (_kind == "union" or shooter["campaign"]["kind"] == _kind):
 				enemy_shots += 1
 
 func _track_first_crawler_leap(snapshot: Dictionary, participant: Dictionary) -> void:
@@ -366,7 +376,7 @@ func run(tree: SceneTree, manager: Node, spec: Dictionary, output: String) -> Di
 	var approach_index: int = 0
 	# A corpse from the preceding room cannot satisfy this encounter's claim.
 	for actor: Dictionary in manager.get("latest_snapshot").get("players", []):
-		if not ActorState.is_participant(actor) and int(actor["hp"]) <= 0:
+		if ActorState.is_union(actor) and int(actor["hp"]) <= 0:
 			_initial_dead[str(actor["id"])] = true
 	while Time.get_ticks_msec() < deadline and alive and not participant_died:
 		var snapshot: Dictionary = manager.get("latest_snapshot")

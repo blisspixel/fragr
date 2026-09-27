@@ -2,11 +2,20 @@
 use super::*;
 use crate::protocol::{M02ObjectiveState, MissionObjective, MissionObjectiveAction};
 
+/// Matches the end of the fixed ward tableau. The moving pawn starts here
+/// while that tableau is still visible and only moves after its final beat.
+pub(crate) const LATCH_SECOND_FEET: [f32; 3] = [7.55, 0.0, -14.8];
+pub(crate) const LATCH_RELEASE_TICKS: u64 = 240;
+
 #[derive(Default)]
 pub(super) struct M02Progress {
     pub(super) index: usize,
     pub(super) gate_mask: u8,
+    pub(super) support_shots: u8,
+    pub(super) last_support_tick: Option<u64>,
 }
+
+mod companion;
 
 impl GameState {
     /// The machine is quiet only after the authored ward group is fully cleared.
@@ -269,6 +278,9 @@ impl GameState {
                 }
                 solo.state.status = crate::protocol::CampaignRunStatus::Complete;
             }
+        }
+        if completed_id == "companion_released" {
+            self.spawn_m02_companion();
         }
         tracing::info!(objective = %completed_id, gate_mask = next_mask, "M02 objective progressed");
     }

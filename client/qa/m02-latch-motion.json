@@ -1,0 +1,25 @@
+{
+  "comment": "Development evidence for the server-owned Latch release and ward-to-processing-floor motion. Real human input and server snapshots; the scripted route and accurate combat aim are not a fresh-player gate.",
+  "width": 1280,
+  "height": 720,
+  "combat_travel": false,
+  "states": [
+    {"name":"gallery_arrival","scene":"res://scenes/main.tscn","join":"human","camera":"first_person","look_at":[2,0.8,-15]},
+    {"name":"shotgun_discovery","camera":"first_person","look_at":[-2.1,3.4,-31],"expect_equipment":{"selected":"fists","personal_claims":[]}},
+    {"name":"upper_gallery_loadout","camera":"first_person","walk_to":[[-1.2,3,-31]],"look_at":[-3,4,-31],"expect_equipment":{"selected":"scatter","personal_claims":["guard_room_scatter"]}},
+    {"name":"seated_guard_room","camera":"first_person","walk_to":[[-1.5,3,-33.3]],"look_at":[-6.35,4,-30.75]},
+    {"name":"guard_room_fight","camera":"first_person","weapon":"Scatter","walk_to":[[-3,3,-33]],"combat":{"kind":"union","evade_tells":true,"required":["guard_room_clerk_west","guard_room_clerk_east"],"search_route":[[-4,3,-33],[-6,3,-33],[-6,3,-29]]},"look_at":[-6,4,-31]},
+    {"name":"crawler_scrabble","camera":"first_person","walk_to":[[-7,3,-33],[-9.5,2,-32.5],[-10.5,1.5,-32.5],[-12.5,1.5,-32.5],[-12.5,1.5,-29.8],[-10.7,1,-29.5]],"expect_crawler_scrabble":true,"expect_crawler_source":[-12,0,-27],"look_at":[-12,0.4,-27]},
+    {"name":"crawler_solo","camera":"first_person","weapon":"Scatter","combat":{"kind":"crawler","evade_tells":true,"observe_phase":"leaping","required_phases":["windup","leaping"],"expect_first_crawler_no_damage":true,"required":["stair_crawler_first"],"approach_route":[[-10.5,1,-29],[-9.5,0.5,-29],[-9.5,0,-27.5]],"search_route":[[-11.5,0,-27.5],[-11.5,0,-26.5]]},"look_at":[-12,0.4,-27]},
+    {"name":"crawler_pack_spectator","camera":"overview","camera_position":[-17.5,3.4,-23.8],"camera_look_at":[-16.2,0.7,-28],"walk_to":[[-11.5,0,-27.5],[-12.5,0,-23.8],[-16,0,-23.2]],"expect_crawler_scrabble":true,"expect_crawler_cues":2,"expect_crawler_source":[-16,0.5,-28.4],"expect_active_enemies":["stair_crawler_pack_a","stair_crawler_pack_b","stair_crawler_pack_c","stair_pack_sweeper"]},
+    {"name":"crawler_pack","camera":"first_person","weapon":"Scatter","combat":{"kind":"union","evade_tells":true,"required":["stair_crawler_pack_a","stair_crawler_pack_b","stair_crawler_pack_c","stair_pack_sweeper"],"search_route":[[-16,0,-23.5],[-16,0.5,-28],[-17,0.5,-29]]},"look_at":[-16,0.7,-28]},
+    {"name":"ward_fight","camera":"first_person","walk_to":[[-12.5,0,-23.2],[-16,0,-23.2],[-17,0,-25],[-11.5,0,-18.5],[-7.5,0,-18.5]],"combat":{"kind":"union","evade_tells":true,"required":["ward_clerk","ward_sweeper","machine_clerk"],"search_route":[[-4,0,-18.5],[2,0,-18],[2,0,-10]]},"look_at":[-2,2.8,-15],"expect_m02_ward_stage":"secured"},
+    {"name":"latch_restrained","camera":"first_person","walk_to":[[3,0,-17],[5,0,-11],[7,0,-11]],"look_at":[8,1.9,-11],"expect_m02_ward_stage":"restrained","expect_prompt":true},
+    {"name":"latch_release","camera":"overview","camera_position":[5.2,2.3,-14.4],"camera_look_at":[8,1.25,-13.8],"look_at":[8,1.9,-11],"interact":"companion_released","expect_m02_ward_stage":"released"},
+    {"name":"second_bay_open","camera":"overview","camera_position":[5.7,2.2,-16.0],"camera_look_at":[8.3,1.2,-16.0],"expect_m02_ward_stage":"second_open"},
+    {"name":"low_water_list","camera":"overview","camera_position":[5.8,2.0,-18.4],"camera_look_at":[8.27,1.72,-18.35],"expect_m02_ward_stage":"low_water","note":"The transfer list names Low Water and the occupied second bay stays open."},
+    {"name":"latch_handoff","camera":"overview","camera_position":[5.8,2.2,-15.8],"camera_look_at":[8,1.2,-15.1],"expect_companion_phase":"releasing","strip_frames":16,"strip_interval_seconds":0.5,"expect_companion_transition":true,"note":"Consecutive live frames show the static Latch yielding to one server pawn exactly 240 ticks after release."},
+    {"name":"latch_escape_route","camera":"first_person","walk_to":[[-4,0,-10]],"route_look_back":true,"capture_companion_route":true,"expect_companion_displacement":5.0,"look_at":[8,1.2,-15],"note":"The participant walks backward toward the processing floor while looking at Latch. The server pawn moves more than five metres from the second bay across rendered samples."},
+    {"name":"latch_floor_observer","camera":"overview","camera_position":[-9,2.3,-12],"camera_look_at":[-6,1.2,-9],"expect_companion_phase":"following","note":"Detached view of the allied chassis at its west-forward formation point beside the processing-floor threshold."}
+  ]
+}

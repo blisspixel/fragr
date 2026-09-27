@@ -14,6 +14,7 @@ mod m02;
 mod recovery;
 pub(crate) mod run_file;
 pub use controller::MissionClient;
+pub(crate) use m02::{LATCH_RELEASE_TICKS, LATCH_SECOND_FEET};
 
 #[cfg(test)]
 mod difficulty_tests;
@@ -185,6 +186,7 @@ impl GameState {
             return;
         };
         self.map = run.initial_map.clone();
+        self.players.retain(Player::is_participant);
         if let Some(m02) = run.m02.as_mut() {
             *m02 = m02::M02Progress::default();
         }

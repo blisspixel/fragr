@@ -13,13 +13,13 @@ and the map version in observations, and closes its MCP game session if a map
 has unsupported or invalid geometry, or the server sends malformed JSON.
 Ground-filled legacy maps remain readable.
 
-The adapter declares gameplay capability 18. Every discovery map requires at
-least 12 for all roles; M02 development parties require 17 for the seated
-Clerk, Crawler stair and separate ward-victory and release facts. Durable solo
-M01 and M02 runs require 18 for the per-level continue baseline. The six
-full-arsenal arcade maps still admit 1. Older clients are
-rejected before admission. `observe.loadout`
-is private to this participant: selected and owned weapons (`["fists","tack"]`),
+The adapter declares gameplay capability 19. Every discovery map requires at
+least 12 for all roles; M01 solo runs require 18 for the per-level continue
+baseline. M02 development parties and durable M02 runs require 19 for the
+server-owned Latch companion after the seated Clerk, Crawler stair, and separate
+ward-victory and release facts. The six full-arsenal arcade maps still admit 1.
+Older clients are rejected before admission. `observe.loadout` is private to
+this participant: selected and owned weapons (`["fists","tack"]`),
 one `ammo` count per pool (`bullets`, `shells`, `cells`), personal supply
 claims and dry-trigger count. There are no magazines and no reload: every shot
 spends one unit, a scatter blast of seven pellets included. Invalid, foreign or backward-tick equipment
@@ -431,7 +431,13 @@ No fields. Unknown fields -> schema error (`isError: true`).
 }
 ```
 
-Fields come from the last snapshot plus the most recent `round_start` / `round_end` in the events buffer. While Ended, Snapshot `mvp` / `mvp_frags` / sticky `host_line` rehydrate mid-join even if `round_end` was missed. `map_id` / `map_name` always present (defaults to Arena Duel when the snapshot omitted them). `self_body` is your pawn's accepted body, null before a snapshot shows you. Every participant in `observe` carries its own `body`; Union actors carry none.
+Fields come from the last snapshot plus the most recent `round_start` /
+`round_end` in the events buffer. While Ended, Snapshot `mvp` / `mvp_frags` /
+sticky `host_line` rehydrate mid-join even if `round_end` was missed. `map_id` /
+`map_name` are always present (defaulting to Arena Duel if the snapshot omitted
+them). `self_body` is your pawn's accepted body, null before a snapshot shows
+you. Every participant in `observe` carries its own `body`; Union and
+companion actors carry none.
 
 `rules` is the server's rule set from `map_info` (or the last `round_start`
 before `map_info` arrives): `mode` (`ffa` or `tdm`), `name`, `mutators`
@@ -537,11 +543,15 @@ Example `test_input.jsonl`:
 
 Authored encounter maps require gameplay capability 3, which the adapter sends.
 `observe` preserves each actor's typed `campaign` identity and attack phase.
-`side: participant` includes human and external-agent allies; `side: union`
-identifies Clerk humans, Sweeper and Heavy Sweeper bots, fixed Turrets, and low
-Crawlers (`kind`: `clerk`, `sweeper`, `heavy_sweeper`, `turret`, `crawler`). A
-Turret in `moving` is turning its head, not walking. Read `windup` and
-`phase_ends` as the tell for
+`side: participant` includes human and external-agent allies. M02 adds one
+`side: companion`, `kind: latch` actor after the guarded release. Its
+`releasing`, `following`, and `firing` phases describe a server-owned ally, not
+an MCP seat or an action target. It appears in `observe` for late observers,
+but does not collect supplies or count toward the party or departure.
+`side: union` identifies Clerk humans, Sweeper and Heavy Sweeper bots, fixed
+Turrets, and low Crawlers (`kind`: `clerk`, `sweeper`, `heavy_sweeper`, `turret`,
+`crawler`). A Turret in `moving` is turning its head, not walking. Read
+`windup` and `phase_ends` as the tell for
 every kind. A Crawler's `leaping` phase is committed movement after a crouched
 windup; its contact damage is resolved by the server. `crawler_scrabble` events
 in `recent_events` and `get_events` carry a finite world position for the

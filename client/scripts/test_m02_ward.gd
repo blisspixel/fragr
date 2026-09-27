@@ -34,6 +34,9 @@ func _run() -> void:
 	_check(not ward._built, "the setpiece stays off unrelated maps")
 	ward.configure_map(_map())
 	_check(ward._built and ward._latch != null and ward._other_captive != null, "the bundled ward has two visible figures")
+	for part: Node in ward._latch.find_children("*", "VisualInstance3D", true, false):
+		_check((part as VisualInstance3D).layers == ArenaSky.ACTOR_LAYERS,
+			"the fixed and moving Latch share the facility actor lighting layer")
 	_check(ward._transfer_list != null and not ward._transfer_list.visible, "the transfer list is hidden until release")
 	ward.apply_state(_state(1, false, false))
 	_check(not ward._secured and not ward._released and ward._release_elapsed < 0.0, "initial projection keeps Latch restrained")
@@ -43,6 +46,11 @@ func _run() -> void:
 	ward.apply_state(_state(1, true, true))
 	_check(ward._release_elapsed == 0.0 and ward._second_left.position.x > -0.5,
 		"the server release begins with the second bay shut")
+	_check(ward._latch.visible,
+		"an observed local release keeps Latch visible before its first releasing snapshot")
+	ward.set_companion_phase("releasing")
+	_check(ward._latch.visible and ward._latch is LatchView,
+		"the tableau keeps the shared Latch chassis while the server pawn releases")
 	ward._process(M02Ward.CROSS_END)
 	_check(ward._second_left.position.x > -0.5 and ward._caption_key != "M02_LATCH_SPEECH",
 		"Latch crosses the ward before the second door moves or speech begins")
@@ -100,14 +108,46 @@ func _run() -> void:
 	ward.skip_presentation()
 	_check(ward._transfer_list.visible and ward._second_left.position.x < -0.9 and not ward._card.visible,
 		"skipping hides text while preserving the server-derived opened bay")
+	_check(absf(wrapf(ward._latch.rotation.y + PI / 2.0, -PI, PI)) < 0.01,
+		"the tableau faces the server pawn's initial direction before handoff")
+	ward.set_companion_phase("following")
+	_check(not ward._latch.visible and ward._transfer_list.visible,
+		"the first following snapshot hands visible Latch to the moving server pawn")
 	ward.apply_state(_state(2, false, false))
-	_check(not ward._secured and not ward._released and not ward._transfer_list.visible and ward._second_left.position.x > -0.5,
+	_check(not ward._secured and not ward._released and ward._latch.visible
+		and not ward._transfer_list.visible and ward._second_left.position.x > -0.5,
 		"retry reconstructs the restrained ward")
 	ward.clear_map()
 	ward.configure_map(_map())
 	ward.apply_state(_state(2, true, true))
 	_check(ward._transfer_list.visible and ward._second_left.position.x < -0.9 and ward._caption_key == "M02_RELEASE_RECAP"
 		and ward._copy.text.contains("LOW WATER"), "late observers receive the final open bay and recap")
+	_check(not ward._latch.visible,
+		"state-first late join waits for a companion snapshot before showing fixed Latch")
+	ward.set_companion_phase("")
+	_check(not ward._latch.visible,
+		"a first snapshot without the companion does not briefly resurrect fixed Latch")
+	ward.set_companion_phase("releasing")
+	_check(ward._latch.visible,
+		"a releasing snapshot resolves a state-first late join to the ward tableau")
+	ward.set_companion_phase("firing")
+	_check(not ward._latch.visible and ward._transfer_list.visible,
+		"a late observer sees the moving ally without a duplicate ward figure")
+	ward.set_companion_phase("departed")
+	_check(not ward._latch.visible and ward._transfer_list.visible,
+		"a departed mission does not resurrect the ward figure if the actor is omitted")
+	ward.clear_map()
+	ward.configure_map(_map())
+	ward.apply_state(_state(2, true, true))
+	ward.set_companion_phase("following")
+	_check(not ward._latch.visible and ward._transfer_list.visible,
+		"state-first late join resolves directly to a moving companion without a fixed flash")
+	ward.clear_map()
+	ward.configure_map(_map())
+	ward.set_companion_phase("following")
+	ward.apply_state(_state(2, true, true))
+	_check(not ward._latch.visible and ward._transfer_list.visible,
+		"a snapshot arriving before first MissionState keeps the fixed figure hidden")
 	var voice_bus: int = AudioServer.get_bus_index(&"Voice")
 	if voice_bus >= 0:
 		var muted: bool = AudioServer.is_bus_mute(voice_bus)

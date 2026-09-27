@@ -90,7 +90,7 @@ fn phase(session: &GameSession, id: Uuid) -> EnemyPhase {
         .unwrap()
     {
         CampaignActor::Union { phase, .. } => phase,
-        CampaignActor::Participant {} => panic!("expected enemy"),
+        _ => panic!("expected enemy"),
     }
 }
 
@@ -131,7 +131,7 @@ fn crawler_scrabble_precedes_a_single_contact_and_recovery() {
             .unwrap();
         let current = match crawler.campaign.unwrap() {
             CampaignActor::Union { phase, .. } => phase,
-            CampaignActor::Participant {} => panic!("expected Crawler"),
+            _ => panic!("expected Crawler"),
         };
         if current == EnemyPhase::Leaping {
             first_leap.get_or_insert(session.state.tick);
@@ -192,7 +192,7 @@ fn crawler_contact_respects_the_existing_spawn_shield() {
             .unwrap();
         let phase = match crawler.campaign.unwrap() {
             CampaignActor::Union { phase, .. } => phase,
-            CampaignActor::Participant {} => panic!("expected Crawler"),
+            _ => panic!("expected Crawler"),
         };
         leaped |= phase == EnemyPhase::Leaping;
         recovered |= leaped && phase == EnemyPhase::Recovery;
