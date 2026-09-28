@@ -4,6 +4,7 @@ extends SceneTree
 ## godot --headless --path client --script res://scripts/test_radio.gd
 
 const RadioScript := preload("res://scripts/radio.gd")
+const TourScript := preload("res://scripts/qa_tour.gd")
 
 var failures: Array = []
 
@@ -136,6 +137,17 @@ func _test_playback_retirement() -> void:
 			root.remove_child(radio)
 			radio.free()
 			return
+		if iteration == 0:
+			_check(TourScript.fixed_radio_track(radio, "radio/lockin/missing").is_empty(),
+				"QA comparison rejects a track outside the committed station catalog")
+			var selected: Dictionary = TourScript.fixed_radio_track(radio, "radio/lockin/01-push")
+			_check(selected.get("title") == "Push Push Push Push"
+				and selected.get("path") == "res://assets/audio/radio/lockin/01-push.mp3"
+				and TourScript.radio_comparison_matches(radio, selected),
+				"QA comparison plays the fixed committed track on the ordinary radio")
+			radio.play_random()
+			_check(TourScript.radio_comparison_matches(radio, selected),
+				"QA comparison repeats the same track if playback rolls over")
 		var playback: WeakRef = weakref(player.get_stream_playback())
 		root.remove_child(radio)
 		_check(not player.playing, "scene exit stops radio %d" % iteration)

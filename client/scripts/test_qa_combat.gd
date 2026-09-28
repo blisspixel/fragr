@@ -44,6 +44,12 @@ func _initialize() -> void:
 		_check(not TOUR.valid_walks(invalid), "invalid manifest walking shape rejected before play")
 	_check(not TOUR.valid_walks([{"camera":"overview", "camera_position":[0, INF, 0],
 		"camera_look_at":[0, 0, 0]}]), "invalid spectator framing rejected before play")
+	_check(TOUR.valid_radio_comparison("", [{"radio_off":true}])
+		and TOUR.valid_radio_comparison("on", [{"radio_off":true}]),
+		"radio comparison leaves the default route alone and accepts explicit opt-in")
+	_check(not TOUR.valid_radio_comparison("on", [{"camera":"first_person"}])
+		and not TOUR.valid_radio_comparison("yes", [{"radio_off":true}]),
+		"radio comparison rejects unsupported and inapplicable overrides")
 	_check(TOUR.valid_walks([{"scene":"res://scenes/main.tscn", "record_audio_start":true},
 		{"record_audio_stop":true}]), "bounded live audio state pair accepted")
 	for invalid_audio: Array in [

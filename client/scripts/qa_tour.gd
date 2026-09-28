@@ -20,6 +20,7 @@ const THUMB_WIDTH: int = 320
 const CONTACT_COLUMNS: int = 4
 const STRIP_TILE_WIDTH: int = 320
 const DIFF_EPSILON: float = 0.02
+const RADIO_COMPARE_TRACK: String = "radio/lockin/01-push"
 
 var _out_dir: String = ""
 var _results: Array = []
@@ -39,6 +40,8 @@ var _movement_samples: Array[Dictionary] = []
 var _walk_results: Array[Dictionary] = []
 var _combat_probe: QaCombat = QaCombat.new()
 var _combat_travel: bool = false
+var _radio_compare_on: bool = false
+var _radio_comparison: Dictionary = {}
 var _retiring_audio: Array[WeakRef] = []
 var _audio_recorder: AudioEffectRecord = null
 var _audio_master: int = -1
@@ -109,6 +112,12 @@ func _run() -> void:
 		push_error("qa_tour: manifest lists no states")
 		quit(1)
 		return
+	var radio_compare_value: String = OS.get_environment("FRAGR_QA_RADIO_COMPARE")
+	if not valid_radio_comparison(radio_compare_value, states):
+		push_error("qa_tour: FRAGR_QA_RADIO_COMPARE must be on and the route must request radio_off")
+		quit(1)
+		return
+	_radio_compare_on = radio_compare_value == "on"
 
 	var current_scene: String = ""
 	var audio_levels: Dictionary = {}
@@ -178,6 +187,13 @@ func _run() -> void:
 			if radio == null:
 				push_error("qa_tour: radio was unavailable for isolated audio capture")
 				_failed = true
+			elif _radio_compare_on:
+				_radio_comparison = fixed_radio_track(radio, RADIO_COMPARE_TRACK)
+				if _radio_comparison.is_empty():
+					push_error("qa_tour: fixed radio comparison track did not start")
+					_failed = true
+				else:
+					print("qa_tour: radio comparison ", JSON.stringify(_radio_comparison))
 			elif bool(radio.get("enabled")):
 				radio.call("toggle")
 		if state.has("record_status"):
@@ -328,6 +344,12 @@ func _run() -> void:
 			audio_capture = _finish_audio("%02d_live_audio.wav" % (_results.size() + 1), 0.25)
 			if audio_capture.is_empty():
 				_failed = true
+			elif _radio_compare_on:
+				if not radio_comparison_matches(_game_manager().get("radio"), _radio_comparison):
+					push_error("qa_tour: radio comparison track stopped or changed during live capture")
+					_failed = true
+				else:
+					audio_capture["radio"] = _radio_comparison.duplicate(true)
 		await RenderingServer.frame_post_draw
 		await RenderingServer.frame_post_draw
 		var active_enemy_phases: Dictionary[String, String] = {}
@@ -656,6 +678,52 @@ static func valid_walks(states: Variant) -> bool:
 				or not (ratio is float or ratio is int) or not is_finite(float(ratio)) or float(ratio) < 1.0:
 				return false
 	return not live_audio_open
+
+static func valid_radio_comparison(value: String, states: Variant) -> bool:
+	if value.is_empty():
+		return true
+	if value != "on" or not states is Array:
+		return false
+	for state: Variant in states:
+		if state is Dictionary and state.get("radio_off") == true:
+			return true
+	return false
+
+## Narrow the QA copy of the current catalog station to one committed track.
+## Radio still owns loading, bus routing, volume and playback retirement.
+static func fixed_radio_track(radio: Node, track_name: String) -> Dictionary:
+	if radio == null or not radio.has_method("play_random"):
+		return {}
+	var stations: Array = radio.get("stations")
+	if stations.is_empty() or not stations[0] is Dictionary or stations[0].get("id") != "lockin":
+		return {}
+	var station: Dictionary = stations[0].duplicate(true)
+	for raw_track: Variant in station.get("tracks", []):
+		if raw_track is Dictionary and raw_track.get("name") == track_name:
+			station["tracks"] = [raw_track]
+			stations[0] = station
+			radio.set("stations", stations)
+			radio.set("station_index", 0)
+			if not bool(radio.get("enabled")):
+				radio.call("toggle")
+			else:
+				radio.call("play_random")
+			var player: AudioStreamPlayer = radio.get("player") as AudioStreamPlayer
+			var path: String = str(raw_track.get("path", ""))
+			if player == null or not player.playing or player.stream == null \
+					or player.stream.resource_path != path or str(radio.get("current_title")) != str(raw_track.get("title", "")):
+				return {}
+			return {"station": str(station["id"]), "track": track_name,
+				"title": str(raw_track["title"]), "path": path}
+	return {}
+
+static func radio_comparison_matches(radio: Node, expected: Dictionary) -> bool:
+	if radio == null or expected.is_empty() or not bool(radio.get("enabled")):
+		return false
+	var player: AudioStreamPlayer = radio.get("player") as AudioStreamPlayer
+	return player != null and player.playing and player.stream != null \
+		and player.stream.resource_path == str(expected.get("path", "")) \
+		and str(radio.get("current_title")) == str(expected.get("title", ""))
 
 static func active_named_enemies(snapshot: Dictionary, names: Array) -> Dictionary[String, String]:
 	var found: Dictionary[String, String] = {}
@@ -1603,6 +1671,7 @@ func _write_manifest(tour: Dictionary) -> void:
 		"width": tour.get("width", 0),
 		"height": tour.get("height", 0),
 		"companion_shots": _combat_probe.companion_shots.duplicate(true),
+		"radio_comparison": _radio_comparison.duplicate(true) if _radio_compare_on else {},
 		"states": _results,
 	}
 	var path: String = _out_dir.path_join("manifest.json")
