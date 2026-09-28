@@ -1,11 +1,12 @@
 # M01 to M02 integrated player gate
 
-**Status:** in flight, 2026-09-28. Based on the stacked M02 draft head in
-[#292](https://github.com/blisspixel/fragr/pull/292). Local preparation spend $0.
+**Status:** in flight, 2026-09-28. Test the published
+[v0.58.0 Windows package](https://github.com/blisspixel/fragr/releases/tag/v0.58.0)
+from `ea0d2bf7b028aa19db3edbe9b23ff3c7d3d223c3`. Preparation spend $0.
 
 ## Goal and reason
 
-Prove that the current M01 and M02 drafts behave as one playable solo run and
+Prove that the integrated M01 and M02 build behaves as one playable solo run and
 learn where a first-time player actually stalls. The scripted route clears,
 headless checks and rendered tours prove authoring and runtime contracts. They
 do not establish that a player understands the Shotgun, Crawler lessons, Latch
@@ -14,18 +15,16 @@ exists.
 
 ## Scope
 
-1. Review the stacked M02 changes in order and build a local Windows preview
-   from the exact draft head with Godot 4.7.2-stable and its matching export
-   templates. Keep the preview under ignored `.agents/`, not a public release.
-   Place the matching Rust server beside it and run the packaged install check.
+1. Download the v0.58.0 Windows package and `SHA256SUMS.txt`. Check the archive
+   hash before extraction. The package includes its matching Rust server. Run
+   the packaged install check with an isolated `FRAGR_RUN_DIR`.
 2. Start a fresh local run at M01 and verify the M01-to-M02 transition, body,
    equipment, remaining continues and M02 retry behavior through the packaged
    client. Use the existing gameplay capability 22 boundary and one local save
-   path. Record the preview's source commit and the exact commands and logs.
-   Automate the saved departure fixture through a real source-client local
-   child: M02 entry, ordinary movement into the guard encounter, death, child
-   restart, pending Continue, Enter and restored attempt-two state.
-3. Have one new player use that preview uncoached. Mute spoken radio and voice
+   path. Record the release tag, source commit, commands and observations. The
+   saved departure fixture already has a real source-client automation check;
+   its result is supporting evidence, not this fresh-run gate.
+3. Have one new player use that package uncoached. Mute spoken radio and voice
    but leave combat sound on. Do not tell them routes, objectives or controls
    beyond the normal menu. Observe and time-stamp first Shotgun claim, the lone
    Crawler and later pack, stalls, deaths, Latch recognition and release, the
@@ -48,11 +47,12 @@ in level 3. The level has at most one required door.
 
 No protocol change is planned in this gate. If play exposes a real contract
 defect, update the owning source, both readers, tests and `docs/protocol.md`
-together before changing the preview.
+together before issuing a fixed package.
 
 ## Verification and success
 
-- Preview export and `--check-install` pass with no script/runtime errors.
+- The release archive matches its published checksum and `--check-install`
+  passes with no script/runtime errors.
 - One fresh-run M01-to-M02 transition and one M02 retry preserve server-owned
   body, equipment and continue counts in the local run record.
 - The observation log names the exact build, session conditions, timestamps,
@@ -64,30 +64,33 @@ together before changing the preview.
 
 ## Spend and release gate
 
-This local preview costs $0 and uses no asset API or GCP resource. The earlier
-$20 allowance remains available only for priced, approved build operations
-within the repository's total $50 cap. The preview is a local test artifact,
-not a release, public deployment or approval to merge the draft stack.
+This local player gate costs $0 and uses no asset API or GCP resource. Any
+future priced operation needs written approval and must stay within the $20
+build-sprint allowance and the repository's total $50 cap. v0.58.0 is already
+released; any player-visible fix follows the normal PR, CI and release path.
 
 ## Current record
 
-The local Windows preview was built from `bad8236118c9e70705b84b335928cdb97dc7199b`
-with `cargo build -p fragr-server --release --locked` and the pinned Godot
-4.7.2-stable Windows export. Its exact files and SHA-256 hashes are in the
-ignored `.agents/playtest-preview/manifest.json`; the game and server sit
-together in `.agents/playtest-preview/windows/`. Export exited 0 with no
-script or parse errors in `.agents/playtest-preview/export.log`. From Git
-Bash, `fragr.exe --headless -- --check-install` printed `PASS` with an empty
-isolated run. The preview folder carries the project's license, generated
-notices for 95 linked Windows crates, both font licenses and the pinned Godot
-license and copyright record. The local
-`.agents/playtest-preview/fragr-bad8236-windows-preview.zip` was checked for
-both executables, a player start card and all six nonempty legal notice files;
-its SHA-256 is in the ignored manifest. An exported `--script` attempt did
-not return and was stopped; that command is not accepted as transition
-evidence. The source Godot local
-campaign harnesses and Rust route tests passed on the parent draft. A
-packaged M01-to-M02 player transition is still open.
+The published Windows archive is 622,536,156 bytes. Its SHA-256 is
+`3e2434f542b1870a5ba357288b543239cb6cc4587ab26b2c9a78f2b7b28548f4`,
+matching the release's `SHA256SUMS.txt`. It contains `fragr.exe`, the matching
+`fragr-server.exe` and all six required notice files. On Windows, the unpacked
+game returned exit 0 and `fragr install check: PASS` from `--headless --
+--check-install` with a fresh absolute `FRAGR_RUN_DIR` and no script errors.
+The exact download and check log are under ignored
+`.agents/player-gate-v058/`. The [main CI run](https://github.com/blisspixel/fragr/actions/runs/36444024937)
+passed on attempt 2 after the first hosted roster attempt stalled and was
+cancelled. The [tag package workflow](https://github.com/blisspixel/fragr/actions/runs/36444484929)
+passed all three desktop package smoke jobs. These checks prove packaging and
+the built-in install probe, not a played M01-to-M02 transition.
+
+Historical draft preparation: a local Windows preview at
+`bad8236118c9e70705b84b335928cdb97dc7199b` passed export and install
+smokes. Its ignored files were removed with the superseded worktree; v0.58.0
+is the retained test target. An exported `--script` attempt did not return and
+was stopped, so it is not transition evidence. The source Godot campaign
+harnesses and Rust route tests passed on the parent draft. A played, packaged
+M01-to-M02 transition remains open.
 
 The source-client carry check now exercises a validated synthetic M01 departure
 through a real M02 local child, a second child restart, ordinary movement to
@@ -108,22 +111,25 @@ including the saved-carry Godot step, workspace tests and coverage, soak,
 audit, Windows and macOS portability and desktop packages. Publishing was
 skipped for this draft. The player gate still needs a fresh-player session.
 
-For the first session, a moderator starts PowerShell in the worktree and runs:
+For the first session, a moderator starts PowerShell at the repository root.
+After extracting the verified v0.58.0 archive into
+`.agents/player-gate-v058/unpacked/`, run:
 
 ```powershell
-$env:FRAGR_RUN_DIR = (Join-Path (Resolve-Path '.agents/playtest-preview').Path 'player-run-1')
-& '.agents/playtest-preview/windows/fragr.exe'
+New-Item -ItemType Directory -Force '.agents/player-gate-v058/player-run-1' | Out-Null
+$env:FRAGR_RUN_DIR = (Resolve-Path '.agents/player-gate-v058/player-run-1').Path
+& '.agents/player-gate-v058/unpacked/fragr-v0.58.0-windows-x86_64/fragr.exe'
 ```
 
 Before play, set **Radio** and **Voice** to zero in Settings > Audio, leave
 **Effects** audible, and choose Single Player > Recall Notice. Do not use the
 M02 development shortcut for this gate. The moderator may record the screen
 with the player's consent; no recording is required to note timestamps and
-their own words. The repeat session uses a separate `player-run-2` path and
-a different fresh player.
+their own words. Record time, place, player action or words, and the observed
+outcome for each Shotgun claim, Crawler lesson, Latch encounter, optional ward,
+retry and departure. The repeat session uses a separate `player-run-2` path
+and a different fresh player.
 
-Exact-head CI for #292 passed at
-[test and portability](https://github.com/blisspixel/fragr/actions/runs/36415145839)
-and [cross-platform builds and packages](https://github.com/blisspixel/fragr/actions/runs/36415145858).
-The uncoached player sessions remain open. Keep this status in flight until
-the transition, comprehension and repeat session are recorded.
+The earlier [draft #292](https://github.com/blisspixel/fragr/pull/292) checks
+are historical. The uncoached player sessions remain open. Keep this status
+in flight until the transition, comprehension and repeat session are recorded.
