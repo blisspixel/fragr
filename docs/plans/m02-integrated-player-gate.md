@@ -101,8 +101,12 @@ pinned Godot 4.7.2-stable binary returned `M02 carry check: PASS`; the fixture
 test passed. The first direct source run returned the same PASS marker. This
 is source-client automation from a validated departure fixture; it does not
 prove a fresh player can finish M01 or understand M02, and it does not convert
-the packaged preview into transition evidence. The new CI step has not yet
-run on a PR head.
+the packaged preview into transition evidence. Exact-head CI for
+[`008dd17`](https://github.com/blisspixel/fragr/commit/008dd17be7c48b7f84b12dc1c902d143993b4e12)
+passed all required checks on [draft #293](https://github.com/blisspixel/fragr/pull/293),
+including the saved-carry Godot step, workspace tests and coverage, soak,
+audit, Windows and macOS portability and desktop packages. Publishing was
+skipped for this draft. The player gate still needs a fresh-player session.
 
 For the first session, a moderator starts PowerShell in the worktree and runs:
 
