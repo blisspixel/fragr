@@ -1,6 +1,6 @@
 # Playable stack integration
 
-**Status:** in flight, 2026-09-28. Local integration branch only. External spend $0.
+**Status:** implemented, 2026-09-28. Integration review: [PR #297](https://github.com/blisspixel/fragr/pull/297). External spend $0.
 
 ## Goal and reason
 
@@ -88,5 +88,6 @@ were preserved from dirty side worktrees as superseded plans before cleanup.
 No cloud resource or paid API was called. The unsteered M02, human CTF,
 two-machine LAN and public-week gates remain open after this integration.
 
-Exact-head CI, merge and release evidence will be recorded after the GitHub
-run. Superseded draft PRs and their branches will be closed after the merge.
+The exact-head CI and merge record live on [PR #297](https://github.com/blisspixel/fragr/pull/297).
+The packaged release record lives at [v0.58.0](https://github.com/blisspixel/fragr/releases/tag/v0.58.0).
+Superseded draft PRs and worktrees are retired after the merge.
