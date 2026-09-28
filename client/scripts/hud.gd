@@ -15,6 +15,7 @@ signal host_spoke(seconds: float)
 @onready var weapon_label = $Panel/VBoxContainer/WeaponLabel
 @onready var combat_feed: CombatFeed = $CombatFeed
 @onready var round_message = $RoundMessage
+@onready var round_backdrop: Panel = get_node_or_null("RoundBackdrop")
 @onready var scoreboard = $Panel/VBoxContainer/Scoreboard
 @onready var weapon_icon = $WeaponIcon
 @onready var weapon_icon_bg = $WeaponIconBg
@@ -187,6 +188,8 @@ func _ready():
 	if round_message:
 		round_message.text = ""
 		round_message.visible = false
+	if round_backdrop:
+		round_backdrop.visible = false
 	if weapon_label:
 		weapon_label.text = ""
 	if weapon_icon:
@@ -977,7 +980,7 @@ func show_round_end(mvp_name: String, reason: String, mvp_frags: int = 0, host_l
 			})
 			if reason != "":
 				result += "\n" + reason.to_upper()
-			_show_round_banner(result, 5.5)
+			_show_round_banner(result, 5.5, true)
 			return
 		var message = host_line
 		if message == "":
@@ -1006,12 +1009,14 @@ func show_round_end(mvp_name: String, reason: String, mvp_frags: int = 0, host_l
 
 		_show_round_banner(message, 5.5)
 
-func _show_round_banner(text: String, seconds: float) -> void:
+func _show_round_banner(text: String, seconds: float, backed: bool = false) -> void:
 	round_banner_remaining = seconds
 	round_message.text = text
 	round_message.scale = Vector2.ONE
 	round_message.modulate = Color.WHITE
 	round_message.visible = true
+	if round_backdrop:
+		round_backdrop.visible = backed
 
 ## A found secret is one quiet corner line, never a banner over the aim.
 func show_secret_found() -> void:
@@ -1081,6 +1086,10 @@ func _process(delta):
 		round_banner_remaining = maxf(0.0, round_banner_remaining - delta)
 		if round_banner_remaining == 0.0:
 			round_message.visible = false
+			if round_backdrop:
+				round_backdrop.visible = false
+	if round_backdrop and round_backdrop.visible and not round_message.visible:
+		round_backdrop.visible = false
 	if scoreboard:
 		scoreboard.visible = not fp_juice_enabled or (InputMap.has_action("scoreboard") and Input.is_action_pressed("scoreboard"))
 	if _controls_revision != InputDevice.revision and Time.get_ticks_msec() - mode_entered_ms < CONTROLS_HINT_MS:

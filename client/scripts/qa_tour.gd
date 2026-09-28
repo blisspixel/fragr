@@ -290,6 +290,18 @@ func _run() -> void:
 				push_error("qa_tour: %s expected live flags %s, got %s" % [state_name,
 					str(state["expect_flag_statuses"]), str(actual_statuses)])
 				_failed = true
+		if state.has("expect_carried_flag_team"):
+			var carried_team: String = str(state["expect_carried_flag_team"])
+			var local_id: Variant = _game_manager().net_client.player_id if _joined else null
+			var self_carrying: bool = false
+			var carried_flags: Variant = observed.get("flags")
+			if local_id != null and carried_flags is Array:
+				for flag: Variant in carried_flags:
+					if flag is Dictionary and flag.get("team") == carried_team and flag.get("status") == "carried":
+						self_carrying = str(flag.get("carrier", "")) == str(local_id)
+			if not self_carrying:
+				push_error("qa_tour: %s expected the joined fighter to carry the %s flag" % [state_name, carried_team])
+				_failed = true
 		if state.has("expect_flag_return_ticks"):
 			var timer_expectation: Dictionary = state["expect_flag_return_ticks"]
 			var timer_found: bool = false
@@ -307,6 +319,10 @@ func _run() -> void:
 		if state.has("expect_capture_scores") and observed.get("capture_scores") != state["expect_capture_scores"]:
 			push_error("qa_tour: %s expected live capture scores %s, got %s" % [state_name,
 				str(state["expect_capture_scores"]), str(observed.get("capture_scores"))])
+			_failed = true
+		if state.has("expect_round_state") and observed.get("round_state") != state["expect_round_state"]:
+			push_error("qa_tour: %s expected live round state %s, got %s" % [state_name,
+				str(state["expect_round_state"]), str(observed.get("round_state"))])
 			_failed = true
 		if _joined and _game_manager() != null:
 			observed["accepted_body"] = _game_manager().net_client.accepted_body
