@@ -1,6 +1,6 @@
 # Sector 9 carry episode evidence
 
-**Status:** implemented, 2026-09-28. Stacked after [external-agent roles](ctf-external-agent-roles.md). Human and spectator CTF acceptance remains open in the [mode plan](capture-the-flag.md).
+**Status:** implemented in [draft #295](https://github.com/blisspixel/fragr/pull/295), 2026-09-28. Stacked after [external-agent roles](ctf-external-agent-roles.md). Human and spectator CTF acceptance remains open in the [mode plan](capture-the-flag.md).
 
 ## Goal and why
 
