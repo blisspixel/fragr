@@ -3,9 +3,9 @@
 **Status:** in flight, 2026-09-26. The local container host is implemented in
 [PR #265](https://github.com/blisspixel/fragr/pull/265), which is open as a
 draft. No cloud resource has been created and UDP is not implemented.
-**Spend:** $0 for this slice. Nick set a $20 ceiling for today's combined
-external costs, including asset APIs and a bounded GCP test if needed, still
-subject to the project's $50 total cap. No cloud test is needed for this slice.
+**Spend:** $0 for this slice. Nick authorized a combined $20 ceiling for
+2026-09-26 external build costs, including asset APIs and a bounded GCP test
+if needed, within the project's $50 total cap. No cloud test was needed.
 
 ## Goal and order
 
@@ -170,12 +170,11 @@ gate. Agones stays a later fleet decision.
 ## Cost and safety gates
 
 Local image builds, tests and LAN play cost $0 externally. No paid asset
-generation or GCP test is needed for this slice. Before an ElevenLabs or
-Higgsfield call today, verify quota and per-call price, set an explicit cap,
-and record the actual charge under the existing asset manifests and ledger.
-A GCP test today is within Nick's authorization only when a concrete setup is
-needed and its projected running and egress costs fit the remaining $20 daily
-ceiling and $50 project cap. No production deployment is part of this slice.
+generation or GCP test is needed for this slice. Before any later ElevenLabs
+or Higgsfield call, verify its authorization, quota and per-call price, set an
+explicit cap, and record the actual charge under the existing asset manifests
+and ledger. A later GCP test needs its own exact-cost approval. No production
+deployment is part of this slice.
 Never enable top-ups or overages.
 
 GCP alerts-only budgets notify and do not cap charges. Google's preview spend
