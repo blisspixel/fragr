@@ -1,4 +1,4 @@
-extends SceneTree
+extends "res://scripts/qa_tour.gd"
 
 ## Manual integration check against a server-generated M01 AwaitingMission fixture.
 ## Set FRAGR_RUN_DIR to the fixture directory and, for rendered stills, set
@@ -23,8 +23,8 @@ func _expect(value: bool, message: String) -> void:
 		failures += 1
 		push_error("run_carry_live: " + message)
 
-func _until(condition: Callable, description: String) -> bool:
-	var deadline: int = Time.get_ticks_msec() + 20000
+func _until(condition: Callable, description: String, timeout_ms: int = 20000) -> bool:
+	var deadline: int = Time.get_ticks_msec() + timeout_ms
 	while not condition.call() and Time.get_ticks_msec() < deadline:
 		await process_frame
 	var passed: bool = condition.call()
@@ -137,18 +137,76 @@ func _run() -> void:
 		and EquipmentState.ammo(current_scene.net_client.equipment, "cells") == 0 \
 		and current_scene.net_client.equipment.get("personal_claims") == [],
 		"M02 resume restores exact saved body and first private loadout: welcome=%s loadout=%s" % [current_scene.net_client.accepted_body, current_scene.net_client.equipment])
+	await _walk_to(Vector3(-3.2, 3, -31))
+	_expect(not _failed, "ordinary movement reaches the first guard trigger")
+	if failures > 0:
+		quit(1)
+		return
+	if not await _until(func() -> bool: return current_scene.mission_hud.state.get("run", {}).get("status") == "continue",
+		"M02 guard encounter offers a saved continue after death", 45000):
+		return
+	state = current_scene.mission_hud.state
+	_expect(state.get("attempt") == 1 and state.get("run", {}).get("continues") == 2,
+		"death leaves the first M02 attempt and unspent shared allowance")
+	QaCombat.release_inputs()
 	current_scene.pause_menu.leave_requested.emit()
-	if not await _until(func() -> bool: return _menu() and owned.state == LocalMatch.State.IDLE, "second M02 child stops"):
+	if not await _until(func() -> bool: return _menu() and owned.state == LocalMatch.State.IDLE, "dead M02 child stops"):
+		return
+	current_scene._show("single")
+	if not await _until(func() -> bool: return owned.run_preview.get("status") == "ready", "pending M02 continue previews after restart"):
+		return
+	preview = owned.run_preview
+	_expect(preview.get("mission") == MissionState.M02_ID and preview.get("attempt") == 1 \
+		and preview.get("continues") == 2 and preview.get("pending_continue") == true,
+		"menu preserves the pending M02 death choice and unspent allowance")
+	current_scene._start_campaign_resume()
+	if not await _until(func() -> bool: return current_scene != null and current_scene.has_method("change_role") \
+		and current_scene.mission_hud.state.get("run", {}).get("status") == "continue" \
+		and current_scene._continue_armed and current_scene.net_client.record.get("status") == "continue",
+		"third child restores the authoritative pending continue and matching record"):
+		return
+	state = current_scene.mission_hud.state
+	_expect(state.get("run", {}).get("id") == run_id and state.get("attempt") == 1 \
+		and state.get("run", {}).get("continues") == 2,
+		"pending choice preserves M02 run identity, attempt and allowance")
+	var press: InputEventKey = InputEventKey.new()
+	press.keycode = KEY_ENTER
+	press.physical_keycode = KEY_ENTER
+	press.pressed = true
+	Input.parse_input_event(press)
+	await process_frame
+	press = press.duplicate()
+	press.pressed = false
+	Input.parse_input_event(press)
+	if not await _until(func() -> bool: return _playing() and current_scene.mission_hud.state.get("attempt") == 2 \
+		and current_scene.mission_hud.state.get("run", {}).get("continues") == 1,
+		"ordinary Enter spends one continue and starts M02 attempt two"):
+		return
+	if not await _until(func() -> bool: return not current_scene.net_client.equipment.is_empty(),
+		"M02 retry receives its restored private loadout"):
+		return
+	state = current_scene.mission_hud.state
+	_expect(state.get("run", {}).get("id") == run_id and current_scene.net_client.accepted_body == PlayerBody.SYNTHETIC \
+		and _local_pawn().get("hp") == 61 and _local_pawn().get("armor") == 7,
+		"M02 retry restores run, saved body, entry health and armour")
+	_expect(current_scene.net_client.equipment.get("selected") == "tack" \
+		and current_scene.net_client.equipment.get("weapons") == ["fists", "tack"] \
+		and EquipmentState.ammo(current_scene.net_client.equipment, "bullets") == 29 \
+		and EquipmentState.ammo(current_scene.net_client.equipment, "shells") == 0 \
+		and current_scene.net_client.equipment.get("personal_claims") == [],
+		"M02 retry restores entry equipment and clears first-attempt pickups: %s" % current_scene.net_client.equipment)
+	current_scene.pause_menu.leave_requested.emit()
+	if not await _until(func() -> bool: return _menu() and owned.state == LocalMatch.State.IDLE, "retried M02 child stops"):
 		return
 	# The next mission has no bundled child yet. Preview its read-only layout
 	# with a marked synthetic state, without claiming a server departure.
 	owned.run_preview = {"status": "awaiting_mission", "mission": LocalMatch.NEXT_MISSION,
-		"difficulty": "severe", "continues": 2, "body": PlayerBody.SYNTHETIC}
+		"difficulty": "severe", "continues": 1, "body": PlayerBody.SYNTHETIC}
 	current_scene._show("single")
 	_expect(current_scene._root.get_node_or_null("PersonsUnknownSaved") == null,
 		"pending Scheduled Service has no launch action")
 	await _capture("04-m03-pending-layout-mock")
 	await create_timer(0.5).timeout
 	if failures == 0:
-		print("run_carry_live: PASS M01 departure preview, durable M02 launch, body/loadout carry, M02 restart")
+		print("run_carry_live: PASS M01 departure, M02 carry, death, restart and one spent continue")
 	quit(0 if failures == 0 else 1)

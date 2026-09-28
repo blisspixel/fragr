@@ -22,6 +22,9 @@ exists.
    equipment, remaining continues and M02 retry behavior through the packaged
    client. Use the existing gameplay capability 22 boundary and one local save
    path. Record the preview's source commit and the exact commands and logs.
+   Automate the saved departure fixture through a real source-client local
+   child: M02 entry, ordinary movement into the guard encounter, death, child
+   restart, pending Continue, Enter and restored attempt-two state.
 3. Have one new player use that preview uncoached. Mute spoken radio and voice
    but leave combat sound on. Do not tell them routes, objectives or controls
    beyond the normal menu. Observe and time-stamp first Shotgun claim, the lone
@@ -85,6 +88,20 @@ not return and was stopped; that command is not accepted as transition
 evidence. The source Godot local
 campaign harnesses and Rust route tests passed on the parent draft. A
 packaged M01-to-M02 player transition is still open.
+
+The source-client carry check now exercises a server-generated M01 departure
+through a real M02 local child, a second child restart, ordinary movement to
+the first guard encounter, death, another restart with the pending Continue,
+and Enter to begin attempt two. It verifies the same run ID, synthetic body,
+entry health, armour, Tack, 29 bullets and one remaining continue after retry.
+`tools/test_m02_carry.sh` registers the check in the Godot CI job and requires
+both a clean engine log and its own PASS marker. On Windows, Git Bash with the
+pinned Godot 4.7.2-stable binary returned `M02 carry check: PASS`; the fixture
+test passed. The first direct source run returned the same PASS marker. This
+is source-client automation from a validated departure fixture; it does not
+prove a fresh player can finish M01 or understand M02, and it does not convert
+the packaged preview into transition evidence. The new CI step has not yet
+run on a PR head.
 
 For the first session, a moderator starts PowerShell in the worktree and runs:
 
