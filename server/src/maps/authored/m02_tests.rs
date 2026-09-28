@@ -1,5 +1,6 @@
 use super::*;
 use crate::navigation::RouteStatus;
+use crate::protocol::EnemyKind;
 use serde_json::{json, Value};
 
 fn fixture() -> Value {
@@ -73,7 +74,7 @@ fn floor_officer_uses_the_reachable_upper_mezzanine() {
     let officer = map
         .encounters
         .iter()
-        .find(|encounter| encounter.id == "floor_crew")
+        .find(|encounter| encounter.id == "floor_entry")
         .unwrap()
         .enemies
         .iter()
@@ -105,6 +106,81 @@ fn floor_officer_uses_the_reachable_upper_mezzanine() {
         [-4.0, crate::movement::EYE_HEIGHT, -5.0],
         [officer.feet[0], officer.feet[1] + 0.9, officer.feet[2]]
     ));
+}
+
+#[test]
+fn processing_floor_has_the_accepted_roster_and_both_route_triggers() {
+    let map = AuthoredMap::read(include_str!("../../../maps/m02-persons-unknown.json").as_bytes())
+        .unwrap();
+    let floor = ["floor_entry", "floor_crossfire", "floor_crew"].map(|id| {
+        map.encounters
+            .iter()
+            .find(|encounter| encounter.id == id)
+            .unwrap()
+    });
+    assert_eq!(floor[0].after.as_deref(), Some("ward_guards"));
+    assert_eq!(floor[1].after.as_deref(), Some("floor_entry"));
+    assert_eq!(floor[2].after.as_deref(), Some("floor_crossfire"));
+    assert_eq!(floor.map(|group| group.enemies.len()), [4, 4, 2]);
+    let kinds: Vec<_> = floor
+        .iter()
+        .flat_map(|group| group.enemies.iter().map(|enemy| enemy.kind))
+        .collect();
+    assert_eq!(
+        kinds
+            .iter()
+            .filter(|&&kind| kind == EnemyKind::Clerk)
+            .count(),
+        4
+    );
+    assert_eq!(
+        kinds
+            .iter()
+            .filter(|&&kind| kind == EnemyKind::Sweeper)
+            .count(),
+        4
+    );
+    assert_eq!(
+        kinds
+            .iter()
+            .filter(|&&kind| kind == EnemyKind::Crawler)
+            .count(),
+        2
+    );
+    assert!(floor[0]
+        .regions
+        .iter()
+        .any(|region| region.contains([5.0, 0.0, -6.0])));
+    assert!(floor[1]
+        .regions
+        .iter()
+        .any(|region| region.contains([0.0, 0.0, 5.0])));
+    assert!(floor[1]
+        .regions
+        .iter()
+        .any(|region| region.contains([12.0, 0.0, 8.0])));
+    assert!(floor[1]
+        .regions
+        .iter()
+        .any(|region| region.contains([-8.0, 2.5, 5.0])));
+    assert!(floor[2]
+        .regions
+        .iter()
+        .any(|region| region.contains([0.0, 0.0, 12.0])));
+    let dock = map
+        .encounters
+        .iter()
+        .find(|group| group.id == "dock_watch")
+        .unwrap();
+    assert_eq!(dock.after.as_deref(), Some("floor_crew"));
+    assert!(!dock
+        .regions
+        .iter()
+        .any(|region| region.contains([0.0, 0.0, 12.0])));
+    assert!(dock
+        .regions
+        .iter()
+        .any(|region| region.contains([0.0, 0.0, 17.0])));
 }
 
 #[test]

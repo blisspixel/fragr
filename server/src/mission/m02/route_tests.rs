@@ -14,7 +14,7 @@ use std::collections::BTreeSet;
 use std::sync::Arc;
 
 const ORDER: [&str; 3] = ["ward_reached", "companion_released", "party_departed"];
-const ENEMIES: usize = 18;
+const ENEMIES: usize = 24;
 
 fn session() -> GameSession {
     let mut session = GameSession::with_authored_map(
@@ -57,7 +57,6 @@ struct Walker {
     companion_kills: usize,
     crawler_cues: Vec<(u64, [f32; 3], [f32; 3])>,
     first_crawler_clear_tick: Option<u64>,
-    retrying: bool,
 }
 
 impl Walker {
@@ -91,7 +90,6 @@ impl Walker {
             companion_kills: 0,
             crawler_cues: Vec::new(),
             first_crawler_clear_tick: None,
-            retrying: false,
         }
     }
 
@@ -372,7 +370,7 @@ impl Walker {
         let loadout = player
             .inventory
             .state(self.id, player.weapon, snapshot.tick);
-        let ward_release_pending = self.completed == ["ward_reached"];
+        let ward_release_pending = !self.completed.iter().any(|id| id == "companion_released");
         let mut equipped = crate::inventory::control_action_with_target_filter(
             self.id,
             snapshot,
@@ -381,17 +379,15 @@ impl Walker {
             true,
             |_, other| !ward_release_pending || other.z < -7.0,
         );
-        if self.retrying
-            && equipped.look_at.is_some()
+        if equipped.look_at.is_some()
             && !equipped.fire
             && !equipped.forward
             && !equipped.back
             && !equipped.left
             && !equipped.right
         {
-            // On a retry, do not stand at a distant target that the current
-            // weapon cannot hit. Approach through the same navigator and
-            // finish the fight before continuing the objective route.
+            // Do not stand at a distant target the current weapon cannot hit.
+            // Approach through the same navigator before resuming the route.
             equipped.forward = true;
         }
         let action = self
@@ -403,7 +399,6 @@ impl Walker {
     fn reset_attempt_evidence(&mut self, session: &GameSession) {
         self.snapshot = None;
         self.navigator.clear();
-        self.retrying = true;
         self.defeated.clear();
         self.attempt_enemies = Some(
             session
@@ -710,18 +705,49 @@ fn side_ward_clear_is_optional() {
         state.mission_state().unwrap().m02.unwrap().completed,
         ["ward_reached", "companion_released"]
     );
-    for enemy in state.players.iter_mut().filter(|player| {
-        matches!(
-            player.name.as_str(),
-            "floor_officer"
-                | "floor_sweeper"
-                | "press_clerk"
-                | "conveyor_sweeper"
-                | "dock_sweeper"
-                | "dock_clerk"
-        )
-    }) {
-        enemy.hp = 0;
+    for (feet, names, stage) in [
+        (
+            [6.0, PLAYER_FLOOR_Y, -6.0],
+            &[
+                "floor_officer",
+                "floor_sweeper",
+                "floor_entry_clerk",
+                "floor_stair_sweeper",
+            ][..],
+            "floor_entry",
+        ),
+        (
+            [0.0, PLAYER_FLOOR_Y, 5.0],
+            &[
+                "press_clerk",
+                "conveyor_sweeper",
+                "floor_lane_clerk",
+                "side_return_sweeper",
+            ][..],
+            "floor_crossfire",
+        ),
+        (
+            [0.0, PLAYER_FLOOR_Y, 12.0],
+            &["floor_crawler_west", "floor_crawler_east"][..],
+            "floor_crew",
+        ),
+        (
+            [0.0, PLAYER_FLOOR_Y, 17.0],
+            &["dock_sweeper", "dock_clerk"][..],
+            "dock_watch",
+        ),
+    ] {
+        [state.players[0].x, state.players[0].y, state.players[0].z] = feet;
+        state.update_encounters();
+        for enemy in state
+            .players
+            .iter_mut()
+            .filter(|player| names.contains(&player.name.as_str()))
+        {
+            enemy.hp = 0;
+        }
+        state.update_encounters();
+        assert!(state.m02_encounter_complete(stage));
     }
     state.update_encounters();
     assert!(!state.encounters.is_complete(side_index));
@@ -785,6 +811,38 @@ fn side_ward_clear_is_optional() {
             .unwrap()
             .side_ward_secured
     );
+}
+
+#[test]
+fn a_long_shot_can_wake_the_crossfire_without_completing_the_floor() {
+    let (mut state, id) = ward_test_state();
+    at_frame_facing_control(&mut state, id);
+    state.update_encounters();
+    state.advance_m02();
+    defeat_ward_guards(&mut state);
+    state.update_encounters();
+    state.players[0].interaction_requested = true;
+    state.advance_m02();
+    let enemy = state
+        .players
+        .iter()
+        .find(|player| player.name == "floor_lane_clerk")
+        .unwrap();
+    let enemy_id = enemy.id;
+    let feet = [enemy.x, enemy.y - PLAYER_FLOOR_Y, enemy.z];
+    assert!(!state.encounters.is_active_enemy(enemy_id));
+    assert!(!state.m02_encounter_complete("floor_entry"));
+    state.encounters.hit(enemy_id, feet, state.tick, false);
+    assert!(state.encounters.is_active_enemy(enemy_id));
+    assert!(!state.m02_encounter_complete("floor_entry"));
+    assert!(!state.m02_encounter_complete("floor_crew"));
+    [state.players[0].x, state.players[0].y, state.players[0].z] = [0.0, PLAYER_FLOOR_Y, 17.0];
+    state.update_encounters();
+    assert!(state
+        .players
+        .iter()
+        .find(|player| player.name == "dock_clerk")
+        .is_some_and(|player| !state.encounters.is_active_enemy(player.id)));
 }
 
 #[test]
@@ -878,14 +936,40 @@ fn dock_clear_and_immediate_departure_do_not_grant_unwalked_evacuation() {
     for enemy in state.players.iter_mut().filter(|player| {
         matches!(
             player.name.as_str(),
-            "floor_officer" | "floor_sweeper" | "press_clerk" | "conveyor_sweeper"
+            "floor_officer" | "floor_sweeper" | "floor_entry_clerk" | "floor_stair_sweeper"
+        )
+    }) {
+        enemy.hp = 0;
+    }
+    state.update_encounters();
+    assert!(state.m02_encounter_complete("floor_entry"));
+    assert!(!state.m02_encounter_complete("floor_crew"));
+    [state.players[0].x, state.players[0].y, state.players[0].z] = [0.0, PLAYER_FLOOR_Y, 5.0];
+    state.update_encounters();
+    for enemy in state.players.iter_mut().filter(|player| {
+        matches!(
+            player.name.as_str(),
+            "press_clerk" | "conveyor_sweeper" | "floor_lane_clerk" | "side_return_sweeper"
+        )
+    }) {
+        enemy.hp = 0;
+    }
+    state.update_encounters();
+    assert!(state.m02_encounter_complete("floor_crossfire"));
+    assert!(!state.m02_encounter_complete("floor_crew"));
+    [state.players[0].x, state.players[0].y, state.players[0].z] = [0.0, PLAYER_FLOOR_Y, 12.0];
+    state.update_encounters();
+    for enemy in state.players.iter_mut().filter(|player| {
+        matches!(
+            player.name.as_str(),
+            "floor_crawler_west" | "floor_crawler_east"
         )
     }) {
         enemy.hp = 0;
     }
     state.update_encounters();
     assert!(state.m02_encounter_complete("floor_crew"));
-    [state.players[0].x, state.players[0].y, state.players[0].z] = [0.0, PLAYER_FLOOR_Y, 11.0];
+    [state.players[0].x, state.players[0].y, state.players[0].z] = [0.0, PLAYER_FLOOR_Y, 17.0];
     state.update_encounters();
     for enemy in state
         .players
@@ -927,8 +1011,9 @@ fn severe_side_ward_route_survives_with_ordinary_supplies() {
         .state
         .add_player(id, "Severe walker".into(), Role::Human);
     let mut walker = Walker::new(id);
-    walker.until(&mut session, 16000, departed);
+    let ticks = walker.until(&mut session, 16000, departed);
     assert_eq!(walker.defeated.len(), ENEMIES);
+    assert_eq!(session.state.mission_state().unwrap().attempt, 1);
     assert!(session
         .state
         .players
@@ -936,6 +1021,21 @@ fn severe_side_ward_route_survives_with_ordinary_supplies() {
         .find(|player| player.id == id)
         .is_some_and(|player| player.hp > 0));
     assert!(session.state.m02_side_ward_secured());
+    for supply in ["side_ward_medkit", "side_ward_armor"] {
+        assert!(session
+            .state
+            .pickups
+            .iter()
+            .find(|pickup| pickup.id == supply)
+            .is_some_and(|pickup| !pickup.available));
+    }
+    let player = session
+        .state
+        .players
+        .iter()
+        .find(|player| player.id == id)
+        .unwrap();
+    eprintln!("M02 graybox Severe: departed after {ticks} ticks, hp {}, armor {}, defeats {}, player shots {}, enemy shots {}, companion damage {}", player.hp, player.armor, walker.defeated.len(), walker.shots, walker.enemy_shots, walker.companion_damage);
 }
 
 #[test]

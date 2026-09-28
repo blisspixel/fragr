@@ -16,6 +16,8 @@
     {"id":"floor_entry_medkit","feet":[5,0,-5.5],"grant":{"kind":"health","amount":30},"claim":"contested"},
     {"id":"side_ward_shells","feet":[19,0,4],"grant":{"kind":"ammo","pool":"shells","amount":16},"claim":"contested"},
     {"id":"side_ward_return_shells","feet":[20,0,7.5],"grant":{"kind":"ammo","pool":"shells","amount":16},"claim":"contested"},
+    {"id":"side_ward_medkit","feet":[19.5,0,6],"grant":{"kind":"health","amount":35},"claim":"contested"},
+    {"id":"side_ward_armor","feet":[20.5,0,6],"grant":{"kind":"armor","amount":50},"claim":"contested"},
     {"id":"floor_medkit","feet":[12,0,5],"grant":{"kind":"health","amount":40},"claim":"contested"},
     {"id":"dock_approach_medkit","feet":[2,0,10],"grant":{"kind":"health","amount":35},"claim":"contested"},
     {"id":"mezzanine_armor","feet":[-10,2.5,11],"grant":{"kind":"armor","amount":50},"claim":"contested"}
@@ -64,14 +66,37 @@
       ]
     },
     {
-      "id":"floor_crew",
+      "id":"floor_entry",
       "after":"ward_guards",
       "regions":[{"min":[4,0,-7],"max":[7,1,-5]}],
       "enemies":[
         {"id":"floor_officer","kind":"clerk","feet":[-8.5,2.5,4],"yaw":4.712389},
         {"id":"floor_sweeper","kind":"sweeper","feet":[1.5,0,-2],"yaw":0},
+        {"id":"floor_entry_clerk","kind":"clerk","feet":[5,0,1],"yaw":3.141593},
+        {"id":"floor_stair_sweeper","kind":"sweeper","feet":[-4.5,0,-2],"yaw":0}
+      ]
+    },
+    {
+      "id":"floor_crossfire",
+      "after":"floor_entry",
+      "regions":[
+        {"min":[-13.5,0,3],"max":[13.5,3,8]},
+        {"min":[11,0,7],"max":[14.5,3,10]}
+      ],
+      "enemies":[
         {"id":"press_clerk","kind":"clerk","feet":[-3,0,10],"yaw":4.712389},
-        {"id":"conveyor_sweeper","kind":"sweeper","feet":[10,0,11],"yaw":4.712389}
+        {"id":"conveyor_sweeper","kind":"sweeper","feet":[10,0,11],"yaw":4.712389},
+        {"id":"floor_lane_clerk","kind":"clerk","feet":[2,0,7],"yaw":4.712389},
+        {"id":"side_return_sweeper","kind":"sweeper","feet":[12,0,7.1],"yaw":3.141593}
+      ]
+    },
+    {
+      "id":"floor_crew",
+      "after":"floor_crossfire",
+      "regions":[{"min":[-5,0,10],"max":[5,3,14]}],
+      "enemies":[
+        {"id":"floor_crawler_west","kind":"crawler","feet":[-4,0,12],"yaw":4.712389},
+        {"id":"floor_crawler_east","kind":"crawler","feet":[7,0,12],"yaw":4.712389}
       ]
     },
     {
@@ -86,7 +111,7 @@
     {
       "id":"dock_watch",
       "after":"floor_crew",
-      "regions":[{"min":[-3,0,10],"max":[3,1,14]}],
+      "regions":[{"min":[-3,0,15.5],"max":[3,1,18.5]}],
       "enemies":[
         {"id":"dock_sweeper","kind":"sweeper","feet":[4.5,0,22.5],"yaw":4.712389},
         {"id":"dock_clerk","kind":"clerk","feet":[-4.5,0,23],"yaw":4.712389}
