@@ -147,6 +147,14 @@ async fn run_server_impl(
     // Keep it off the async executor, including single-threaded local harnesses.
     let map = options.map;
     let rotate = options.map_rotate;
+    if options
+        .match_config
+        .as_ref()
+        .is_some_and(|config| config.rules.mode() == crate::protocol::GameMode::Ctf)
+        && (map != MapKind::Sector9 || rotate || options.authored.is_some())
+    {
+        return Err("capture the flag currently requires fixed Sector 9 (--map 4)".into());
+    }
     if (options.difficulty.is_some() || options.campaign_run) && options.authored.is_none() {
         return Err("difficulty requires an authored mission".into());
     }
@@ -309,7 +317,13 @@ async fn run_server_impl(
         .match_config
         .as_ref()
         .is_some_and(|config| !config.rules.is_plain());
-    let required_gameplay = if session.state.map.m02_objectives().is_some() {
+    let required_gameplay = if options
+        .match_config
+        .as_ref()
+        .is_some_and(|config| config.rules.mode() == crate::protocol::GameMode::Ctf)
+    {
+        crate::protocol::CTF_GAMEPLAY_VERSION
+    } else if session.state.map.m02_objectives().is_some() {
         crate::protocol::INSPECTION_GLASS_GAMEPLAY_VERSION
     } else if options.campaign_run {
         crate::protocol::RUN_CARRY_GAMEPLAY_VERSION

@@ -11,10 +11,12 @@ extends Node
 var players = {}
 var pickups = {}
 var jammer_dish_node = null
+var arena_flags: ArenaFlags = null
 # tip_capture latch: keep forced live dish through nods-phase Snapshot nulls.
 var tip_force_jammer_dish = false
 const JammerDishBuilderScript = preload("res://scripts/jammer_dish.gd")
 const StanceChipScript = preload("res://scripts/stance_chip.gd")
+const NameplateLayoutScript = preload("res://scripts/nameplate_layout.gd")
 var pickup_scene = preload("res://scenes/weapon_pickup.tscn")
 var player_scene = preload("res://scenes/player.tscn")
 var arena_duel_scene = preload("res://scenes/arena.tscn")
@@ -163,8 +165,17 @@ func _ready():
 		m02_ward = M02Ward.new()
 		m02_ward.pause_menu = pause_menu
 		arena_root.add_child(m02_ward)
+		arena_flags = ArenaFlags.new()
+		arena_flags.name = "ArenaFlags"
+		arena_root.add_child(arena_flags)
 	else:
 		add_child(arena_cover)
+		m02_ward = M02Ward.new()
+		m02_ward.pause_menu = pause_menu
+		add_child(m02_ward)
+		arena_flags = ArenaFlags.new()
+		arena_flags.name = "ArenaFlags"
+		add_child(arena_flags)
 
 ## Replace whatever the arena scene shipped with the environment in
 ## arena_sky.gd, so both arenas get the same sky from one place.
@@ -575,6 +586,7 @@ func _process(_delta):
 		mouse_capture.set_gameplay(not controls_blocked())
 	if not is_human_player:
 		_update_followed_weapon()
+	_update_nameplates()
 	if camera and is_human_player:
 		camera.assist_targets = assist_targets()
 	if hud and camera:
@@ -814,6 +826,8 @@ func _clear_world() -> void:
 	current_map_info.clear()
 	if hud and hud.has_method("set_match_rules"):
 		hud.set_match_rules({})
+	if arena_flags != null:
+		arena_flags.clear_flags()
 	pending_jump = false
 	pending_interact = false
 	interact_held = false
@@ -919,6 +933,9 @@ func _on_snapshot_received(data):
 	hud.set_round_info(round_state, round_time_left, frag_limit)
 	if hud.has_method("set_team_scores"):
 		hud.set_team_scores(data.get("team_scores"))
+	if hud.has_method("set_ctf_state"):
+		var ctf_viewer_id: String = str(net_client.player_id) if is_human_player and net_client.player_id != null else _followed_player_id()
+		hud.set_ctf_state(data.get("flags"), data.get("capture_scores"), data.get("capture_limit", 0), player_list, ctf_viewer_id)
 	if is_human_player and net_client.player_id != null and hud.has_method("set_own_lives"):
 		for player_data in player_list:
 			if str(player_data.get("id", "")) == str(net_client.player_id):
@@ -971,11 +988,12 @@ func _on_snapshot_received(data):
 		for pawn in players.values():
 			if is_instance_valid(pawn):
 				pawn.set_highlighted(pawn == followed)
-				pawn.set_nameplate_enabled(not is_human_player and not camera.is_observing_first_person())
 				pawn.broadcast_scale_enabled = not is_human_player and not camera.is_observing_first_person()
 	
 	_update_followed_weapon()
 	_sync_pickups(data.get("pickups", []))
+	if arena_flags != null:
+		arena_flags.apply(data.get("flags"))
 	_sync_jammer_dish(data.get("jammer_dish", null))
 	if is_human_player:
 		_refresh_fp_target()
@@ -983,10 +1001,74 @@ func _on_snapshot_received(data):
 	_process_shot_results(data.get("shot_results", []), int(data.get("tick", -1)))
 	hud.equipment_hud.tick = int(data.get("tick", 0))
 	_refresh_equipment_visibility()
+	_update_nameplates()
+
+func _nameplate_rect(view: Camera3D, label: Label3D) -> Rect2:
+	var font: Font = label.font if label.font != null else ThemeDB.fallback_font
+	var text_size: Vector2 = Vector2(label.text.length() * label.font_size * 0.6, label.font_size)
+	if font != null:
+		text_size = font.get_string_size(label.text, HORIZONTAL_ALIGNMENT_LEFT, -1, label.font_size)
+	var width: float = (text_size.x + label.outline_size * 2.0 + 12.0) * label.pixel_size * label.scale.x
+	var height: float = (text_size.y + label.outline_size + 8.0) * label.pixel_size * label.scale.y
+	var point: Vector3 = label.global_position
+	var right: Vector3 = view.global_transform.basis.x.normalized()
+	var up: Vector3 = view.global_transform.basis.y.normalized()
+	var left_px: Vector2 = view.unproject_position(point - right * width * 0.5)
+	var right_px: Vector2 = view.unproject_position(point + right * width * 0.5)
+	var top_px: Vector2 = view.unproject_position(point + up * height * 0.5)
+	var bottom_px: Vector2 = view.unproject_position(point - up * height * 0.5)
+	return Rect2(Vector2(minf(left_px.x, right_px.x), minf(top_px.y, bottom_px.y)),
+		Vector2(absf(right_px.x - left_px.x), absf(bottom_px.y - top_px.y))).grow(4.0)
+
+func _update_nameplates() -> void:
+	if camera == null:
+		return
+	var viewport: Viewport = get_viewport()
+	if viewport == null:
+		return
+	var watching: bool = not is_human_player and not camera.is_observing_first_person()
+	var view: Camera3D = viewport.get_camera_3d()
+	if not watching or view == null:
+		for pawn: Node in players.values():
+			if is_instance_valid(pawn):
+				pawn.set_nameplate_enabled(false)
+		return
+	var carrier_ids: Array[String] = []
+	var flags: Variant = latest_snapshot.get("flags")
+	if flags is Array:
+		for flag: Variant in flags:
+			if flag is Dictionary and flag.get("status") == "carried" and flag.get("carrier") is String:
+				carrier_ids.append(str(flag["carrier"]))
+	var followed: Node = camera.get_followed_target()
+	var viewport_rect: Rect2 = viewport.get_visible_rect()
+	var entries: Array[Dictionary] = []
+	for id: Variant in players:
+		var pawn: Node3D = players[id]
+		if not is_instance_valid(pawn):
+			continue
+		var label: Label3D = pawn.get_node_or_null("Label3D") as Label3D
+		if label == null or view.is_position_behind(label.global_position):
+			pawn.set_nameplate_enabled(false)
+			continue
+		var area: Rect2 = _nameplate_rect(view, label)
+		if area.position.x < viewport_rect.position.x or area.position.y < viewport_rect.position.y \
+			or area.end.x > viewport_rect.end.x or area.end.y > viewport_rect.end.y:
+			pawn.set_nameplate_enabled(false)
+			continue
+		var priority: int = 0 if carrier_ids.has(str(id)) else (1 if pawn == followed else 2)
+		entries.append({"id": str(id), "rect": area, "priority": priority,
+			"distance": view.global_position.distance_to(label.global_position)})
+	var visible_ids: Array[String] = NameplateLayoutScript.choose(entries)
+	for id: Variant in players:
+		var pawn: Node = players[id]
+		if is_instance_valid(pawn):
+			pawn.set_nameplate_enabled(visible_ids.has(str(id)))
 
 func _on_event_received(data):
 	var event_type = data.get("event", "")
-	if event_type == "frag":
+	if event_type == "flag":
+		hud.show_flag_event(data)
+	elif event_type == "frag":
 		var killer_name = data.get("killer", "?")
 		var victim_name = data.get("victim", "?")
 		
@@ -1128,7 +1210,7 @@ func _on_event_received(data):
 		var host_line = str(data.get("host_line", ""))
 		var podium = data.get("final_scores", [])
 		if hud and hud.has_method("show_round_end"):
-			hud.show_round_end(mvp_name, str(data.get("reason", "")), mvp_frags, host_line, podium)
+			hud.show_round_end(mvp_name, str(data.get("reason", "")), mvp_frags, host_line, podium, data.get("winning_team"), data.get("capture_scores"))
 		if round_end_sound and round_end_sound.stream:
 			round_end_sound.play()
 
@@ -1163,7 +1245,14 @@ func _maybe_rehydrate_ended_mvp(data, round_state) -> void:
 		podium = rows
 	ended_podium_shown = true
 	if hud and hud.has_method("show_round_end"):
-		hud.show_round_end(mvp_name, "MID-JOIN // ROUND ENDED", mvp_frags, host_line, podium)
+		var captures: Variant = data.get("capture_scores")
+		var winner_side: Variant = null
+		if captures is Dictionary:
+			var union_count: int = int(captures.get("union", 0))
+			var coalition_count: int = int(captures.get("coalition", 0))
+			if union_count != coalition_count:
+				winner_side = "union" if union_count > coalition_count else "coalition"
+		hud.show_round_end(mvp_name, "MID-JOIN // ROUND ENDED", mvp_frags, host_line, podium, winner_side, captures)
 
 func _sync_pickups(pickup_list):
 	var seen = {}

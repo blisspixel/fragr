@@ -536,7 +536,9 @@ pub const RULES_GAMEPLAY_VERSION: u32 = 12;
 /// body on Welcome and on every participant in a snapshot. Additive: no map
 /// requires it, and an older reader ignores the field.
 pub const BODY_GAMEPLAY_VERSION: u32 = 13;
-/// Version 14 is allocated to the separate capture-the-flag branch.
+/// Capture the flag state and events. CTF servers require a client that can
+/// show the objective before admitting a fighter or spectator.
+pub const CTF_GAMEPLAY_VERSION: u32 = 14;
 /// Optional seated opening posture on authored Union Clerks. M02 requires
 /// this so an older presenter cannot mistake its first fight for standing guards.
 pub const SEATED_GUARD_GAMEPLAY_VERSION: u32 = 15;
@@ -1024,6 +1026,44 @@ pub struct Snapshot {
     /// Side frags this round. Present only in team modes.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub team_scores: Option<TeamScores>,
+    /// Two objective flags, one for each side, only in capture the flag.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub flags: Option<[FlagState; 2]>,
+    /// Captures, independent of frags.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub capture_scores: Option<TeamScores>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub capture_limit: Option<u32>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum FlagStatus {
+    Home,
+    Carried,
+    Dropped,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct FlagState {
+    pub team: Team,
+    pub stand: [f32; 3],
+    pub position: [f32; 3],
+    pub status: FlagStatus,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub carrier: Option<Uuid>,
+    /// Remaining ticks before automatic return, present only when dropped.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub return_ticks: Option<u32>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum FlagEventKind {
+    Taken,
+    Dropped,
+    Returned,
+    Captured,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -1073,6 +1113,15 @@ pub enum GameEvent {
     /// A nearby Crawler encounter wakes before its first visible attack.
     CrawlerScrabble {
         position: [f32; 3],
+    },
+    Flag {
+        kind: FlagEventKind,
+        flag: Team,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        player: Option<String>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        player_id: Option<Uuid>,
+        capture_scores: TeamScores,
     },
     Frag {
         killer: String,
@@ -1132,6 +1181,9 @@ pub enum GameEvent {
         /// Team modes: the final side frags.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         team_scores: Option<TeamScores>,
+        /// Capture the flag: final capture counts, independent of frags.
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        capture_scores: Option<TeamScores>,
     },
     PlayerJoined {
         player: String,
@@ -1323,6 +1375,9 @@ mod protocol_tests {
         };
         let snap = Snapshot {
             team_scores: None,
+            flags: None,
+            capture_scores: None,
+            capture_limit: None,
             tick: 1,
             players: vec![],
             round_state: None,
@@ -1496,6 +1551,9 @@ mod protocol_tests {
         };
         let snap = Snapshot {
             team_scores: None,
+            flags: None,
+            capture_scores: None,
+            capture_limit: None,
             tick: 2,
             players: vec![],
             round_state: None,
@@ -1710,6 +1768,7 @@ mod protocol_tests {
     fn round_end_mvp_wire_round_trip() {
         let event = GameEvent::RoundEnd {
             team_scores: None,
+            capture_scores: None,
             winning_team: None,
             winner: Some("Rusher".to_string()),
             reason: "Frag limit reached".to_string(),
@@ -1757,5 +1816,38 @@ mod protocol_tests {
             }
             other => panic!("expected RoundEnd, got {:?}", other),
         }
+    }
+
+    #[test]
+    fn ctf_flag_and_event_round_trip() {
+        let id = Uuid::from_u128(7);
+        let flag = FlagState {
+            team: Team::Union,
+            stand: [-70.0, 0.0, 0.0],
+            position: [3.0, 0.0, 2.0],
+            status: FlagStatus::Carried,
+            carrier: Some(id),
+            return_ticks: None,
+        };
+        let value = serde_json::to_value(&flag).unwrap();
+        assert_eq!(value["status"], "carried");
+        assert_eq!(serde_json::from_value::<FlagState>(value).unwrap(), flag);
+        let event = GameEvent::Flag {
+            kind: FlagEventKind::Taken,
+            flag: Team::Union,
+            player: Some("Carrier".into()),
+            player_id: Some(id),
+            capture_scores: TeamScores::default(),
+        };
+        let value = serde_json::to_value(&event).unwrap();
+        assert_eq!(value["event"], "flag");
+        assert_eq!(value["kind"], "taken");
+        assert!(matches!(
+            serde_json::from_value::<GameEvent>(value).unwrap(),
+            GameEvent::Flag {
+                kind: FlagEventKind::Taken,
+                ..
+            }
+        ));
     }
 }

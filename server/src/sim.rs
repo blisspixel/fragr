@@ -1,3 +1,4 @@
+mod ctf;
 #[cfg(test)]
 mod enclosed_tests;
 mod modes;
@@ -315,6 +316,8 @@ pub enum RoundState {
 #[derive(Debug, Clone)]
 pub struct MatchConfig {
     pub frag_limit: Option<u32>,
+    /// Capture target for capture the flag, independent of frags.
+    pub capture_limit: Option<u32>,
     pub time_limit_ticks: Option<u32>,
     pub warmup_ticks: u32,
     pub end_delay_ticks: u32,
@@ -332,6 +335,7 @@ impl Default for MatchConfig {
     fn default() -> Self {
         Self {
             frag_limit: Some(10),
+            capture_limit: None,
             time_limit_ticks: Some(20 * 60 * 3),
             warmup_ticks: 20 * 2,
             end_delay_ticks: 20 * 8,
@@ -524,6 +528,9 @@ pub struct GameState {
     pub solo_broadcast: SoloBroadcastEp0,
     /// Side frags this round in a team mode.
     pub team_scores: TeamScores,
+    /// Flag captures; frags stay in team_scores.
+    pub capture_scores: TeamScores,
+    flags: Option<[ctf::Flag; 2]>,
     /// The golden Railgun when the Golden Rail mutator is on.
     pub golden_rail: Option<GoldenRail>,
     reactions: ReactionState,
@@ -572,6 +579,8 @@ pub struct Player {
     pub lives: Option<u8>,
     /// Out of lives: watches until the round ends.
     pub eliminated: bool,
+    /// A parked resume pawn remains in the world but cannot touch objectives.
+    pub(crate) detached: bool,
     /// Holds the golden Railgun.
     pub golden: bool,
     /// Chosen at admission and fixed for the pawn's life: respawn, resume
@@ -644,6 +653,7 @@ impl Player {
             team: None,
             lives: None,
             eliminated: false,
+            detached: false,
             golden: false,
             body: crate::protocol::BodyKind::Human,
         }
@@ -873,6 +883,7 @@ impl GameState {
         self.ended_mvp = None;
         self.ended_mvp_frags = None;
         self.team_scores = TeamScores::default();
+        self.reset_ctf();
         self.reactions = ReactionState::default();
 
         let lives = self.config.rules.lives();
@@ -983,9 +994,16 @@ impl GameState {
         // MVP is top score / frags (same selection as winner).
         let mvp = winner.clone();
         let mvp_frags = winner_score;
+        if self.config.rules.mode() == crate::protocol::GameMode::Ctf {
+            winner = None;
+            winner_score = None;
+        }
         let teams = self.config.rules.teams();
         let winning_team = match &standing {
             Some(Standing::Side(side)) => *side,
+            _ if self.config.rules.mode() == crate::protocol::GameMode::Ctf => {
+                self.capture_scores.leader()
+            }
             _ if teams => self.team_scores.leader(),
             _ => None,
         };
@@ -997,6 +1015,10 @@ impl GameState {
             winner = survivor.clone();
         }
         let host_line = match (&standing, &mvp, mvp_frags) {
+            _ if self.config.rules.mode() == crate::protocol::GameMode::Ctf => format!(
+                "HOST: FLAG ROUND. UNION {} : {} FREE COALITION.",
+                self.capture_scores.union, self.capture_scores.coalition
+            ),
             _ if teams => crate::protocol::team_round_host_line(winning_team, self.team_scores),
             (Some(Standing::Fighter(survivor)), _, _) => {
                 crate::protocol::last_fighter_host_line(survivor.as_deref())
@@ -1023,7 +1045,10 @@ impl GameState {
             mvp_frags,
             host_line: host_line.clone(),
             winning_team,
-            team_scores: teams.then_some(self.team_scores),
+            team_scores: (self.config.rules.mode() == crate::protocol::GameMode::Tdm)
+                .then_some(self.team_scores),
+            capture_scores: (self.config.rules.mode() == crate::protocol::GameMode::Ctf)
+                .then_some(self.capture_scores),
         });
 
         tracing::info!(
@@ -1032,13 +1057,16 @@ impl GameState {
             reason,
             mvp,
             mvp_frags,
-            if teams {
-                format!(
-                    ", union {} coalition {}, winner {:?}",
+            match self.config.rules.mode() {
+                crate::protocol::GameMode::Ctf => format!(
+                    ", captures union {} coalition {}, winner {:?}",
+                    self.capture_scores.union, self.capture_scores.coalition, winning_team
+                ),
+                crate::protocol::GameMode::Tdm => format!(
+                    ", frags union {} coalition {}, winner {:?}",
                     self.team_scores.union, self.team_scores.coalition, winning_team
-                )
-            } else {
-                String::new()
+                ),
+                crate::protocol::GameMode::Ffa => String::new(),
             }
         );
     }
@@ -1180,6 +1208,7 @@ impl GameState {
     }
 
     pub fn remove_player(&mut self, id: Uuid) {
+        self.drop_flag_from(id);
         if let Some(player) = self.players.iter().find(|p| p.id == id) {
             if player.role == Role::Human {
                 tracing::info!("Human player left, bots keep fighting");
@@ -1275,6 +1304,7 @@ impl GameState {
     /// Replace the match rules and refit the pads they govern.
     pub fn apply_config(&mut self, config: MatchConfig) {
         self.config = config;
+        self.reset_ctf();
         self.reset_pickups();
     }
 
@@ -1331,7 +1361,9 @@ impl GameState {
                 if self.compliance_ticks_left > 0 {
                     self.compliance_ticks_left -= 1;
                 }
-                if !self.compliance_fired {
+                if !self.compliance_fired
+                    && self.config.rules.mode() != crate::protocol::GameMode::Ctf
+                {
                     if let Some(at) = self.config.compliance_ping_ticks {
                         if self.round_ticks >= at {
                             self.fire_compliance_ping();
@@ -1341,6 +1373,7 @@ impl GameState {
                 if !self.boss_spawned
                     && !self.solo_broadcast.enabled
                     && self.config.rules.lives().is_none()
+                    && self.config.rules.mode() != crate::protocol::GameMode::Ctf
                 {
                     if let Some(at) = self.config.boss_spawn_ticks {
                         if self.round_ticks >= at {
@@ -1360,7 +1393,11 @@ impl GameState {
                     }
                 }
 
-                if let Some(frag_limit) = self.config.frag_limit {
+                if let Some(frag_limit) = self
+                    .config
+                    .frag_limit
+                    .filter(|_| self.config.rules.mode() != crate::protocol::GameMode::Ctf)
+                {
                     let max_score = if self.config.rules.teams() {
                         Some(self.team_scores.max())
                     } else {
@@ -1702,6 +1739,7 @@ impl GameState {
 
         self.reap_dead_boss();
         self.react_to_last_standing();
+        self.tick_ctf();
     }
 
     fn crawler_contacts(
@@ -1914,6 +1952,9 @@ impl GameState {
             self.return_golden_rail_from(target_id);
         }
         if died {
+            self.drop_flag_from(target_id);
+        }
+        if died {
             // Campaign casualties have no arcade streaks, taunts or
             // participant scores. ShotResult remains the kill evidence.
             if self.players[shooter_idx].campaign.is_some() {
@@ -1958,8 +1999,10 @@ impl GameState {
                     victim_team,
                 );
             }
-            if let (Some(side), Some(_)) = (shooter_team, victim_team) {
-                self.note_team_frag(side);
+            if self.config.rules.mode() == crate::protocol::GameMode::Tdm {
+                if let (Some(side), Some(_)) = (shooter_team, victim_team) {
+                    self.note_team_frag(side);
+                }
             }
 
             // Killer streak (victim already reset). Host callouts at 2/3/5.
@@ -2392,7 +2435,16 @@ impl GameState {
                 None
             },
             jammer_dish: self.jammer_dish_state(),
-            team_scores: self.config.rules.teams().then_some(self.team_scores),
+            team_scores: (self.config.rules.mode() == crate::protocol::GameMode::Tdm)
+                .then_some(self.team_scores),
+            flags: self.wire_flags(),
+            capture_scores: (self.config.rules.mode() == crate::protocol::GameMode::Ctf)
+                .then_some(self.capture_scores),
+            capture_limit: (self.config.rules.mode() == crate::protocol::GameMode::Ctf).then_some(
+                self.config
+                    .capture_limit
+                    .unwrap_or(crate::rules::CTF_CAPTURE_LIMIT),
+            ),
         }
     }
 
@@ -2695,6 +2747,7 @@ impl GameState {
             team: None,
             lives: None,
             eliminated: false,
+            detached: false,
             golden: false,
             body: crate::protocol::BodyKind::Human,
         });
@@ -2997,6 +3050,7 @@ impl GameState {
             team: None,
             lives: None,
             eliminated: false,
+            detached: false,
             golden: false,
             body: crate::protocol::BodyKind::Human,
         });
@@ -3230,6 +3284,8 @@ impl Default for GameState {
             spawn_shields: HashMap::new(),
             solo_broadcast: SoloBroadcastEp0::default(),
             team_scores: TeamScores::default(),
+            capture_scores: TeamScores::default(),
+            flags: None,
             golden_rail: None,
             reactions: ReactionState::default(),
             reaction_counts: [0; HostReactionKind::ALL.len()],
@@ -3300,6 +3356,96 @@ impl BotController {
             if dist < nearest_dist {
                 nearest_dist = dist;
                 nearest_target = Some(target);
+            }
+        }
+
+        // Objective movement runs through the same bounded navigator as combat.
+        // It must work even when no enemy is in sight.
+        if state.config.rules.mode() == crate::protocol::GameMode::Ctf && bot.contestant() {
+            if let (Some(team), Some(flags)) = (bot.team, state.flags.as_ref()) {
+                let own = &flags[team.index()];
+                let enemy = &flags[team.other().index()];
+                // Keep one stable defender per side. The other rule bots stay
+                // on the flag route even when the roster grows.
+                let defender = state
+                    .bots
+                    .iter()
+                    .find(|controller| {
+                        state.players.iter().any(|player| {
+                            player.id == controller.player_id && player.team == Some(team)
+                        })
+                    })
+                    .is_some_and(|controller| controller.player_id == bot.id);
+                let feet = if enemy.carrier == Some(bot.id) {
+                    if own.dropped_at.is_some() {
+                        own.position
+                    } else if let Some(carrier) = own.carrier {
+                        state
+                            .players
+                            .iter()
+                            .find(|p| p.id == carrier)
+                            .map(|p| [p.x, p.y - PLAYER_FLOOR_Y, p.z])
+                            .unwrap_or(own.stand)
+                    } else {
+                        own.stand
+                    }
+                } else if own.dropped_at.is_some() {
+                    own.position
+                } else if let Some(carrier) = own.carrier.filter(|_| defender) {
+                    state
+                        .players
+                        .iter()
+                        .find(|p| p.id == carrier)
+                        .map(|p| [p.x, p.y - PLAYER_FLOOR_Y, p.z])
+                        .unwrap_or(own.stand)
+                } else if defender {
+                    own.stand
+                } else if enemy.carrier.is_none() {
+                    enemy.position
+                } else {
+                    own.stand
+                };
+                let goal_angle = (feet[2] - bot.z).atan2(feet[0] - bot.x);
+                let diff = (goal_angle - bot.yaw + PI).rem_euclid(2.0 * PI) - PI;
+                let mut action = Action {
+                    forward: true,
+                    ..Action::default()
+                };
+                if diff > 0.18 {
+                    action.turn_right = true;
+                }
+                if diff < -0.18 {
+                    action.turn_left = true;
+                }
+                let thief = own.carrier.and_then(|carrier| {
+                    state
+                        .players
+                        .iter()
+                        .find(|p| p.id == carrier && p.hp > 0 && p.respawn_timer.is_none())
+                });
+                // Contact-range defense can force a drop without turning every
+                // flag run into a map-wide chase.
+                let intercept = defender
+                    && enemy.carrier != Some(bot.id)
+                    && thief.is_some_and(|target| (target.x - bot.x).hypot(target.z - bot.z) < 1.5);
+                if let Some(target) = thief.filter(|_| intercept) {
+                    let eye = [bot.x, bot.y - PLAYER_FLOOR_Y + EYE_HEIGHT, bot.z];
+                    let centre = [
+                        target.x,
+                        target.y - PLAYER_FLOOR_Y + crate::combat::FIGHTER_HEIGHT * 0.5,
+                        target.z,
+                    ];
+                    action.pitch = crate::combat::aim_at(eye, centre).map(|(_, pitch)| pitch);
+                    let aim = (target.z - bot.z).atan2(target.x - bot.x);
+                    action.fire = ((aim - bot.yaw + PI).rem_euclid(2.0 * PI) - PI).abs() < 0.25;
+                }
+                return BotIntent {
+                    action,
+                    goal: Some(crate::navigation::NavigationGoal {
+                        feet,
+                        combat: intercept,
+                    }),
+                };
             }
         }
 

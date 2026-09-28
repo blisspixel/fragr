@@ -1,0 +1,50 @@
+{
+  "comment": "Sector 9 CTF visual review. Timing is a sample, not evidence that a capture occurred.",
+  "width": 1280,
+  "height": 720,
+  "states": [
+    {
+      "name": "ctf_spectator",
+      "scene": "res://scenes/main.tscn",
+      "at_seconds": 4,
+      "camera": "first_person",
+      "expect_flag_statuses": ["home", "home"],
+      "expect_capture_scores": {"union": 0, "coalition": 0},
+      "note": "Spectator view of live CTF with capture score and both flag states."
+    },
+    {
+      "name": "ctf_union_flag",
+      "at_seconds": 6,
+      "camera": "union_flag",
+      "expect_flag_statuses": ["home", "home"],
+      "note": "Union stand and flag are visible from a nearby free camera."
+    },
+    {
+      "name": "ctf_coalition_flag",
+      "at_seconds": 8,
+      "camera": "coalition_flag",
+      "expect_flag_statuses": ["home", "home"],
+      "note": "Free Coalition stand and flag are visible from a nearby free camera."
+    },
+    {
+      "name": "ctf_overview",
+      "at_seconds": 10,
+      "camera": "overview",
+      "note": "Sector 9 lanes and side colours."
+    },
+    {
+      "name": "ctf_joined",
+      "at_seconds": 12,
+      "camera": "first_person",
+      "join": "human",
+      "note": "Joined fighter view of the same objective HUD."
+    },
+    {
+      "name": "ctf_result_fixture",
+      "at_seconds": 15,
+      "camera": "first_person",
+      "fixture_ctf_result": {"winning_team": "coalition", "capture_scores": {"union": 1, "coalition": 3}},
+      "note": "Explicit layout fixture for the final capture banner. It is not a recorded server capture."
+    }
+  ]
+}

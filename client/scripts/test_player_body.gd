@@ -56,7 +56,8 @@ func _check_hello_and_welcome() -> void:
 			network.requested_body = body
 			network.send_hello()
 			var hello: Dictionary = network.sent[0]
-			_check(hello["gameplay_version"] == network.GAMEPLAY_VERSION, "hello advertises the current gameplay capability")
+			_check(hello["gameplay_version"] == network.GAMEPLAY_VERSION and int(hello["gameplay_version"]) >= PlayerBody.VERSION,
+				"hello advertises the current gameplay and body capabilities")
 			if role == "spectator":
 				_check(not hello.has("body"), "a spectator asks for no body")
 			else:

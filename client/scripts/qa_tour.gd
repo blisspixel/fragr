@@ -149,6 +149,11 @@ func _run() -> void:
 		var wait_s: float = float(due_ms - (Time.get_ticks_msec() - _clock_ms)) / 1000.0
 		if wait_s > 0.0:
 			await create_timer(wait_s).timeout
+		if state.has("await_ctf"):
+			if not await _await_ctf(state["await_ctf"], float(state.get("await_timeout_seconds", 120.0))):
+				await _retire_scene()
+				quit(1)
+				return
 
 		_release_body_camera()
 		var menu_page: String = state.get("menu_page", "")
@@ -301,6 +306,11 @@ func _run() -> void:
 			(settings_root.get_node("SettingsPanel") as SettingsPanel).show_page(str(state["settings_tab"]))
 		if state.has("graphics"):
 			_apply_graphics_capture(state["graphics"])
+		if state.has("fixture_ctf_result"):
+			# Layout fixture only. A scored match still needs separate live evidence.
+			var fixture: Dictionary = state["fixture_ctf_result"]
+			_find_hud().call("show_round_end", "", "Capture limit reached", 0, "", [],
+				fixture.get("winning_team"), fixture.get("capture_scores"))
 		var frame_timing: Dictionary = {}
 		if state.has("frame_sample"):
 			_pose_camera(state.get("camera", "none"), state)
@@ -318,7 +328,8 @@ func _run() -> void:
 		_pose_camera(state.get("camera", "none"), state)
 		# A detached live-combat view needs only a few settled frames. Holding
 		# the human still for the menu-still delay would change the fight.
-		await create_timer(0.2 if state.has("expect_active_enemies") else 0.75).timeout
+		await create_timer(float(state.get("settle_seconds",
+			0.2 if state.has("expect_active_enemies") else 0.75))).timeout
 		if state.has("expect_m02_machine_playing"):
 			var ward: M02Ward = _game_manager().get("m02_ward") as M02Ward if _game_manager() != null else null
 			var playing: bool = ward != null and is_instance_valid(ward._ward_machine_sound) and ward._ward_machine_sound.playing
@@ -431,8 +442,58 @@ func _run() -> void:
 					last_crawler_source.z]
 		if state.has("expect_active_enemies"):
 			observed["active_enemy_phases"] = active_enemy_phases
+		if state.has("await_ctf") and not _ctf_matches(state["await_ctf"], observed):
+			push_error("qa_tour: %s lost the awaited live CTF state before capture" % state_name)
+			_failed = true
+		if state.has("expect_flag_statuses"):
+			var actual_statuses: Array[String] = []
+			var observed_flags: Variant = observed.get("flags")
+			if observed_flags is Array:
+				for flag: Variant in observed_flags:
+					if flag is Dictionary:
+						actual_statuses.append(str(flag.get("status", "")))
+			if JSON.stringify(actual_statuses) != JSON.stringify(state["expect_flag_statuses"]):
+				push_error("qa_tour: %s expected live flags %s, got %s" % [state_name,
+					str(state["expect_flag_statuses"]), str(actual_statuses)])
+				_failed = true
+		if state.has("expect_carried_flag_team"):
+			var carried_team: String = str(state["expect_carried_flag_team"])
+			var local_id: Variant = _game_manager().net_client.player_id if _joined else null
+			var self_carrying: bool = false
+			var carried_flags: Variant = observed.get("flags")
+			if local_id != null and carried_flags is Array:
+				for flag: Variant in carried_flags:
+					if flag is Dictionary and flag.get("team") == carried_team and flag.get("status") == "carried":
+						self_carrying = str(flag.get("carrier", "")) == str(local_id)
+			if not self_carrying:
+				push_error("qa_tour: %s expected the joined fighter to carry the %s flag" % [state_name, carried_team])
+				_failed = true
+		if state.has("expect_flag_return_ticks"):
+			var timer_expectation: Dictionary = state["expect_flag_return_ticks"]
+			var timer_found: bool = false
+			var timer_flags: Variant = observed.get("flags")
+			if timer_flags is Array:
+				for flag: Variant in timer_flags:
+					if flag is Dictionary and flag.get("team") == timer_expectation.get("team") and flag.get("status") == "dropped":
+						var remaining: Variant = flag.get("return_ticks")
+						if remaining is int or remaining is float:
+							var ticks: int = int(remaining)
+							timer_found = ticks >= int(timer_expectation.get("min", 1)) and ticks <= int(timer_expectation.get("max", 400))
+			if not timer_found:
+				push_error("qa_tour: %s has no live dropped-flag return timer in range" % state_name)
+				_failed = true
+		if state.has("expect_capture_scores") and observed.get("capture_scores") != state["expect_capture_scores"]:
+			push_error("qa_tour: %s expected live capture scores %s, got %s" % [state_name,
+				str(state["expect_capture_scores"]), str(observed.get("capture_scores"))])
+			_failed = true
+		if state.has("expect_round_state") and observed.get("round_state") != state["expect_round_state"]:
+			push_error("qa_tour: %s expected live round state %s, got %s" % [state_name,
+				str(state["expect_round_state"]), str(observed.get("round_state"))])
+			_failed = true
 		if _joined and _game_manager() != null:
 			observed["accepted_body"] = _game_manager().net_client.accepted_body
+			var feet: Vector3 = _local_feet()
+			observed["local_feet"] = [feet.x, feet.y, feet.z]
 		if is_instance_valid(_body_pawn):
 			observed["body"] = _body_pawn.get("body_kind")
 			observed["body_team"] = _body_pawn.get("team")
@@ -1094,6 +1155,9 @@ func _observed_state() -> Dictionary:
 		"mission_rules": gm.get("net_client").get("mission").get("state", {}).get("rules", {}),
 		"mission_run": gm.get("net_client").get("mission").get("state", {}).get("run", {}),
 		"map_id": snapshot.get("map_id", 0),
+		"flags": snapshot.get("flags"),
+		"capture_scores": snapshot.get("capture_scores"),
+		"capture_limit": snapshot.get("capture_limit"),
 		"round_state": snapshot.get("round_state", "unknown"),
 		"fighters": (snapshot.get("players", []) as Array).size(),
 		"human": gm.get("is_human_player"),
@@ -1529,6 +1593,36 @@ func _set_aim_pitch(pitch: float) -> void:
 		push_error("qa_tour: pitch did not reach the authoritative snapshot")
 		_failed = true
 
+func _ctf_matches(expected: Dictionary, observed: Dictionary) -> bool:
+	if expected.has("status"):
+		var flags: Variant = observed.get("flags")
+		if not flags is Array:
+			return false
+		var found: bool = false
+		for flag: Variant in flags:
+			if flag is Dictionary:
+				if flag.get("status") == expected["status"] and (not expected.has("team") or flag.get("team") == expected["team"]):
+					found = true
+		if not found:
+			return false
+	if expected.has("capture_at_least"):
+		var scores: Variant = observed.get("capture_scores")
+		if not scores is Dictionary or int(scores.get("union", 0)) + int(scores.get("coalition", 0)) < int(expected["capture_at_least"]):
+			return false
+	if expected.has("round_state") and observed.get("round_state") != expected["round_state"]:
+		return false
+	return true
+
+func _await_ctf(expected: Dictionary, timeout_seconds: float) -> bool:
+	var deadline: int = Time.get_ticks_msec() + roundi(timeout_seconds * 1000.0)
+	while Time.get_ticks_msec() < deadline:
+		if _ctf_matches(expected, _observed_state()):
+			return true
+		await create_timer(0.05).timeout
+	push_error("qa_tour: live CTF state never reached %s" % str(expected))
+	_failed = true
+	return false
+
 func _pose_camera(mode: String, state: Dictionary = {}) -> void:
 	if mode == "none":
 		return
@@ -1537,6 +1631,33 @@ func _pose_camera(mode: String, state: Dictionary = {}) -> void:
 		return
 	cam.set("frag_follow_timer", 0.0)
 	match mode:
+		"ctf_carried", "ctf_dropped":
+			var wanted: String = "carried" if mode == "ctf_carried" else "dropped"
+			var flags: Variant = _observed_state().get("flags")
+			if flags is Array:
+				for flag: Variant in flags:
+					if flag is Dictionary and flag.get("status") == wanted:
+						var position: Array = flag["position"]
+						var point: Vector3 = Vector3(float(position[0]), float(position[1]), float(position[2]))
+						cam.set("spectator_first_person", false)
+						cam.set("follow_mode", false)
+						cam.set("fp_mode", false)
+						if cam is Node3D:
+							var camera: Node3D = cam
+							camera.global_position = point + Vector3(9.0, 4.5, 11.0)
+							camera.look_at(point + Vector3(0.0, 1.2, 0.0), Vector3.UP)
+						return
+			push_error("qa_tour: no live %s flag to frame" % wanted)
+			_failed = true
+		"union_flag", "coalition_flag":
+			cam.set("spectator_first_person", false)
+			cam.set("follow_mode", false)
+			cam.set("fp_mode", false)
+			if cam is Node3D:
+				var side: float = -1.0 if mode == "union_flag" else 1.0
+				var n3: Node3D = cam
+				n3.global_position = Vector3(side * 63.0, 4.0, 11.0)
+				n3.look_at(Vector3(side * 70.0, 1.2, 0.0), Vector3.UP)
 		"overview":
 			cam.set("spectator_first_person", false)
 			if cam is Node3D:

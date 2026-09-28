@@ -446,11 +446,14 @@ you. Every participant in `observe` carries its own `body`; Union and
 companion actors carry none.
 
 `rules` is the server's rule set from `map_info` (or the last `round_start`
-before `map_info` arrives): `mode` (`ffa` or `tdm`), `name`, `mutators`
+before `map_info` arrives): `mode` (`ffa`, `tdm` or `ctf`), `name`, `mutators`
 (`rail-only`, `shotgun-only`, `fists-only`, `licence-to-kill`, `golden-rail`,
 `two-lives`), `friendly_fire` and `lives`, each omitted at its default. It is
 null only before either arrives or on a campaign map. `team_scores` is the
-snapshot's side frags in a team mode, else null. `self_team` and `self_lives`
+snapshot's side frags in team deathmatch, else null. In CTF, `flags` lists
+both stands and current flag state, `capture_scores` counts captures, and
+`capture_limit` is the win target. `observe` carries the same typed snapshot.
+`self_team` and `self_lives`
 come from your own entry in the last snapshot; both are null outside a team or
 lives-limited round, and while you are waiting to respawn. Read `rules` before
 joining: in `tdm` a teammate shares your `team`, takes no damage unless

@@ -6,7 +6,8 @@
 
 use fragr_server::movement::{Solid, EYE_HEIGHT};
 use fragr_server::protocol::{
-    Action, ClientMessage, GameEvent, LookAt, Role, ServerMessage, Snapshot, WeaponType,
+    Action, ClientMessage, FlagEventKind, FlagState, FlagStatus, GameEvent, LookAt, Role,
+    ServerMessage, Snapshot, Team, WeaponType,
 };
 use fragr_server::run::{run_server, ServerOptions, TICK};
 use fragr_server::sim::{MapKind, MatchConfig};
@@ -25,6 +26,10 @@ pub mod soak;
 pub const TICKS_PER_SECOND: f64 = 20.0;
 /// A death this soon after a spawn counts as a spawn death.
 pub const SPAWN_DEATH_WINDOW_TICKS: u64 = 40;
+/// Bound additional CTF diagnostic storage independently of match duration.
+const MAX_CARRY_EPISODES: usize = 256;
+/// The authoritative flag touch radius is 2.5 world units.
+const CTF_HOME_TOUCH_RADIUS: f32 = 2.5;
 /// Reflex agents fire inside this range and walk toward targets beyond three units.
 const FIRE_RANGE: f32 = 20.0;
 const CLOSE_RANGE: f32 = 3.0;
@@ -158,6 +163,7 @@ pub struct Config {
     pub rounds: u32,
     pub map: MapKind,
     pub frag_limit: u32,
+    pub capture_limit: u32,
     pub time_limit_ticks: u32,
     /// Hard stop for the whole run, in ticks of the observed clock.
     pub max_ticks: u64,
@@ -177,6 +183,7 @@ impl Default for Config {
             rounds: 1,
             map: MapKind::ArenaDuel,
             frag_limit: 5,
+            capture_limit: 3,
             time_limit_ticks: 20 * 60,
             max_ticks: 20 * 120,
             seed: 1,
@@ -386,6 +393,79 @@ struct FragPlace {
     killer: Option<(f32, f32)>,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum CarryEnd {
+    Dropped,
+    Captured,
+    RoundEnded,
+    ObservationEnded,
+    Incomplete,
+}
+
+/// One bounded summary of a server-owned flag carry. Distances are horizontal
+/// world units to the carrier's own stand, sampled only while the snapshot
+/// still identifies this fighter as the carrier.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct CarryEpisode {
+    pub flag: Team,
+    pub carrier: Option<String>,
+    pub started_tick: u64,
+    pub ended_tick: u64,
+    pub end: CarryEnd,
+    pub first_distance_to_home: Option<f32>,
+    pub closest_distance_to_home: Option<f32>,
+    pub last_distance_to_home: Option<f32>,
+    pub observed_carrier_ticks: u64,
+    pub own_flag_away_ticks: u64,
+    pub home_blocked_ticks: u64,
+    /// A same-tick frag named this carrier when the flag was dropped.
+    pub combat_drop: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+struct ActiveCarry {
+    episode: CarryEpisode,
+    carrier_id: Option<Uuid>,
+    last_sample_tick: Option<u64>,
+}
+
+impl ActiveCarry {
+    fn sample(
+        &mut self,
+        tick: u64,
+        carrier: Uuid,
+        name: &str,
+        position: [f32; 3],
+        own: &FlagState,
+    ) {
+        if self.last_sample_tick == Some(tick) || self.carrier_id.is_some_and(|id| id != carrier) {
+            return;
+        }
+        self.carrier_id = Some(carrier);
+        self.episode.carrier.get_or_insert_with(|| name.to_string());
+        self.last_sample_tick = Some(tick);
+        let distance = (position[0] - own.stand[0]).hypot(position[2] - own.stand[2]);
+        let episode = &mut self.episode;
+        episode.first_distance_to_home.get_or_insert(distance);
+        episode.closest_distance_to_home = Some(
+            episode
+                .closest_distance_to_home
+                .map_or(distance, |closest| closest.min(distance)),
+        );
+        episode.last_distance_to_home = Some(distance);
+        episode.observed_carrier_ticks += 1;
+        if own.status != FlagStatus::Home {
+            episode.own_flag_away_ticks += 1;
+            if distance <= CTF_HOME_TOUCH_RADIUS
+                && (position[1] - own.stand[1]).abs() <= CTF_HOME_TOUCH_RADIUS
+            {
+                episode.home_blocked_ticks += 1;
+            }
+        }
+    }
+}
+
 /// Everything the observer keeps. Snapshots are folded in as they arrive so a
 /// long run does not hold every frame in memory.
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
@@ -394,6 +474,20 @@ pub struct Observation {
     pub first_tick: Option<u64>,
     pub last_tick: u64,
     pub snapshot_bytes: u64,
+    /// Sum of carrier ticks across both flags, measured from received snapshots.
+    #[serde(default)]
+    pub carrier_ticks: u64,
+    #[serde(default)]
+    carry_episodes: Vec<CarryEpisode>,
+    #[serde(default)]
+    active_carries: [Option<ActiveCarry>; 2],
+    /// The immediately preceding authoritative snapshot, not a frame log.
+    #[serde(default)]
+    latest_flags: Option<[FlagState; 2]>,
+    #[serde(default)]
+    carry_episodes_omitted: u64,
+    #[serde(default)]
+    unmatched_flag_ends: u64,
     pub events: Vec<TimedEvent>,
     pub tracks: BTreeMap<String, AgentTrack>,
     /// Per weapon, what it fired and what landed.
@@ -421,10 +515,131 @@ pub struct Observation {
 }
 
 impl Observation {
+    fn finish_carry(&mut self, flag: Team, end: CarryEnd) {
+        let Some(mut active) = self.active_carries[flag.index()].take() else {
+            return;
+        };
+        active.episode.ended_tick = self.last_tick;
+        active.episode.end = end;
+        if end == CarryEnd::Dropped {
+            active.episode.combat_drop = self
+                .events
+                .iter()
+                .rev()
+                .take_while(|timed| timed.tick == self.last_tick)
+                .any(|timed| {
+                    matches!(&timed.event, GameEvent::Frag { victim, .. }
+                    if active.episode.carrier.as_ref() == Some(victim))
+                });
+        }
+        if self.carry_episodes.len() < MAX_CARRY_EPISODES {
+            self.carry_episodes.push(active.episode);
+        } else {
+            self.carry_episodes_omitted += 1;
+        }
+    }
+
+    fn finish_carry_from_event(
+        &mut self,
+        flag: Team,
+        player: Option<&str>,
+        player_id: Option<Uuid>,
+        end: CarryEnd,
+    ) {
+        let matches = self.active_carries[flag.index()]
+            .as_ref()
+            .is_some_and(|active| {
+                if let (Some(active_id), Some(event_id)) = (active.carrier_id, player_id) {
+                    active_id == event_id
+                } else if let (Some(active_name), Some(event_name)) =
+                    (active.episode.carrier.as_deref(), player)
+                {
+                    active_name == event_name
+                } else {
+                    false
+                }
+            });
+        if matches {
+            self.finish_carry(flag, end);
+        } else {
+            // An end without its matching take cannot establish this carry's
+            // outcome. Preserve the partial episode and count the unmatched
+            // event instead of mislabeling another fighter's route.
+            self.finish_carry(flag, CarryEnd::Incomplete);
+            self.unmatched_flag_ends += 1;
+        }
+    }
+
+    fn start_carry(&mut self, flag: Team, player: Option<String>, player_id: Option<Uuid>) {
+        // A missing end event must not merge two distinct carriers into one.
+        self.finish_carry(flag, CarryEnd::Incomplete);
+        self.active_carries[flag.index()] = Some(ActiveCarry {
+            episode: CarryEpisode {
+                flag,
+                carrier: player.clone(),
+                started_tick: self.last_tick,
+                ended_tick: self.last_tick,
+                end: CarryEnd::ObservationEnded,
+                first_distance_to_home: None,
+                closest_distance_to_home: None,
+                last_distance_to_home: None,
+                observed_carrier_ticks: 0,
+                own_flag_away_ticks: 0,
+                home_blocked_ticks: 0,
+                combat_drop: false,
+            },
+            carrier_id: player_id,
+            last_sample_tick: None,
+        });
+        // Session broadcasts Snapshot before its same-tick events. Reuse that
+        // compact frame so a one-tick carry is still measured.
+        if let (Some(flags), Some(name), Some(id)) =
+            (&self.latest_flags, player.as_ref(), player_id)
+        {
+            if flags[flag.index()].carrier == Some(id) {
+                if let Some((x, z)) = self.tracks.get(name).and_then(|track| track.last_pos) {
+                    self.active_carries[flag.index()]
+                        .as_mut()
+                        .expect("created above")
+                        .sample(
+                            self.last_tick,
+                            id,
+                            name,
+                            [x, flags[flag.index()].position[1], z],
+                            &flags[flag.other().index()],
+                        );
+                }
+            }
+        }
+    }
+
     pub fn ingest_snapshot(&mut self, snapshot: &Snapshot, bytes: usize) {
         self.pending_kills.clear();
         self.snapshots_seen += 1;
         self.snapshot_bytes += bytes as u64;
+        if let Some(flags) = snapshot.flags.as_ref() {
+            self.carrier_ticks += flags.iter().filter(|flag| flag.carrier.is_some()).count() as u64;
+            for flag in flags {
+                let Some(active) = self.active_carries[flag.team.index()].as_mut() else {
+                    continue;
+                };
+                let Some(carrier_id) = flag.carrier else {
+                    continue;
+                };
+                let Some(carrier) = snapshot.players.iter().find(|p| p.id == carrier_id) else {
+                    continue;
+                };
+                let own = &flags[flag.team.other().index()];
+                active.sample(
+                    snapshot.tick,
+                    carrier_id,
+                    &carrier.name,
+                    [carrier.x, flag.position[1], carrier.z],
+                    own,
+                );
+            }
+        }
+        self.latest_flags = snapshot.flags.clone();
         if self.first_tick.is_none() {
             self.first_tick = Some(snapshot.tick);
         }
@@ -574,6 +789,15 @@ impl Observation {
                     .or_insert(self.last_tick);
             }
             GameEvent::Frag { killer, victim, .. } => {
+                for episode in self.carry_episodes.iter_mut().rev() {
+                    if episode.ended_tick != self.last_tick {
+                        break;
+                    }
+                    if episode.end == CarryEnd::Dropped && episode.carrier.as_ref() == Some(victim)
+                    {
+                        episode.combat_drop = true;
+                    }
+                }
                 let ttk_s = self.engagement_start.remove(victim).map(|start| {
                     let ticks = self.last_tick.saturating_sub(start);
                     ticks as f64 / TICKS_PER_SECOND
@@ -622,6 +846,33 @@ impl Observation {
             // A fighter who respawned is not still in their last engagement.
             GameEvent::Respawn { player } => {
                 self.engagement_start.remove(player);
+            }
+            GameEvent::Flag {
+                kind,
+                flag,
+                player,
+                player_id,
+                ..
+            } => match kind {
+                FlagEventKind::Taken => self.start_carry(*flag, player.clone(), *player_id),
+                FlagEventKind::Dropped => self.finish_carry_from_event(
+                    *flag,
+                    player.as_deref(),
+                    *player_id,
+                    CarryEnd::Dropped,
+                ),
+                FlagEventKind::Captured => self.finish_carry_from_event(
+                    *flag,
+                    player.as_deref(),
+                    *player_id,
+                    CarryEnd::Captured,
+                ),
+                FlagEventKind::Returned => {}
+            },
+            GameEvent::RoundEnd { .. } => {
+                for flag in Team::ALL {
+                    self.finish_carry(flag, CarryEnd::RoundEnded);
+                }
             }
             _ => {}
         }
@@ -727,6 +978,30 @@ pub struct Report {
     pub ticks: u64,
     pub seconds: f64,
     pub frags: u64,
+    #[serde(default)]
+    pub flag_takes: u64,
+    #[serde(default)]
+    pub flag_drops: u64,
+    #[serde(default)]
+    pub flag_returns: u64,
+    #[serde(default)]
+    pub captures: u64,
+    #[serde(default)]
+    pub carrier_seconds: f64,
+    /// At most 256 carry summaries in total, including any still in progress
+    /// when the observer stopped. No per-tick position log is retained.
+    #[serde(default)]
+    pub carry_episodes: Vec<CarryEpisode>,
+    #[serde(default)]
+    pub carry_episodes_omitted: u64,
+    /// End events without a matching flag and carrier take.
+    #[serde(default)]
+    pub unmatched_flag_ends: u64,
+    /// The most recent completed round, if the observer received its end event.
+    #[serde(default)]
+    pub last_round_reason: Option<String>,
+    #[serde(default)]
+    pub last_round_capture_scores: Option<fragr_server::protocol::TeamScores>,
     pub frags_per_minute: f64,
     pub time_to_first_frag_s: Option<f64>,
     pub longest_gap_without_frag_s: f64,
@@ -801,6 +1076,12 @@ pub fn compute_report(obs: &Observation, agents: usize) -> Report {
     let mut pickups = 0u64;
     let mut host_reactions = 0u64;
     let mut team_kills = 0u64;
+    let mut flag_takes = 0u64;
+    let mut flag_drops = 0u64;
+    let mut flag_returns = 0u64;
+    let mut captures = 0u64;
+    let mut last_round_reason = None;
+    let mut last_round_capture_scores = None;
     let mut spawn_deaths = 0u64;
     let mut opening_spawn_deaths = 0u64;
     for timed in &obs.events {
@@ -854,12 +1135,26 @@ pub fn compute_report(obs: &Observation, agents: usize) -> Report {
                 host_beats += 1;
                 host_reactions += 1;
             }
-            GameEvent::RoundEnd { .. }
-            | GameEvent::Killstreak { .. }
+            GameEvent::RoundEnd {
+                reason,
+                capture_scores,
+                ..
+            } => {
+                host_beats += 1;
+                last_round_reason = Some(reason.clone());
+                last_round_capture_scores = *capture_scores;
+            }
+            GameEvent::Killstreak { .. }
             | GameEvent::CompliancePing { .. }
             | GameEvent::BossSpawn { .. }
             | GameEvent::BossDown { .. } => host_beats += 1,
             GameEvent::Pickup { .. } => pickups += 1,
+            GameEvent::Flag { kind, .. } => match kind {
+                fragr_server::protocol::FlagEventKind::Taken => flag_takes += 1,
+                fragr_server::protocol::FlagEventKind::Dropped => flag_drops += 1,
+                fragr_server::protocol::FlagEventKind::Returned => flag_returns += 1,
+                fragr_server::protocol::FlagEventKind::Captured => captures += 1,
+            },
             GameEvent::Hit { .. }
             | GameEvent::CrawlerScrabble { .. }
             | GameEvent::PlayerJoined { .. }
@@ -885,12 +1180,35 @@ pub fn compute_report(obs: &Observation, agents: usize) -> Report {
     }
     longest_gap = longest_gap.max(obs.last_tick.saturating_sub(previous));
 
+    let mut carry_episodes = obs.carry_episodes.clone();
+    let mut carry_episodes_omitted = obs.carry_episodes_omitted;
+    for active in obs.active_carries.iter().flatten() {
+        if carry_episodes.len() == MAX_CARRY_EPISODES {
+            carry_episodes_omitted += 1;
+        } else {
+            let mut episode = active.episode.clone();
+            episode.ended_tick = obs.last_tick;
+            episode.end = CarryEnd::ObservationEnded;
+            carry_episodes.push(episode);
+        }
+    }
+
     Report {
         agents,
         rounds_completed: obs.rounds_completed(),
         ticks,
         seconds: seconds(ticks),
         frags,
+        flag_takes,
+        flag_drops,
+        flag_returns,
+        captures,
+        carrier_seconds: seconds(obs.carrier_ticks),
+        carry_episodes,
+        carry_episodes_omitted,
+        unmatched_flag_ends: obs.unmatched_flag_ends,
+        last_round_reason,
+        last_round_capture_scores,
         frags_per_minute: per_minute(frags, ticks),
         time_to_first_frag_s,
         longest_gap_without_frag_s: seconds(longest_gap),
@@ -919,6 +1237,28 @@ pub fn compute_report(obs: &Observation, agents: usize) -> Report {
 /// Frustration signals and sticky weapon-table TTK that block a merge.
 /// Empty means the run is acceptable and the #124 table still holds.
 pub fn check_thresholds(report: &Report) -> Vec<String> {
+    let mut problems = check_shared_thresholds(report);
+    if report
+        .rules
+        .as_ref()
+        .is_some_and(|rules| rules.mode == fragr_server::protocol::GameMode::Ctf)
+    {
+        if report.flag_takes == 0 {
+            problems.push("no flag pickups".to_string());
+        }
+        if report.captures == 0 {
+            problems.push("no flag captures".to_string());
+        }
+    } else if report.agents >= 4 && report.frags_per_minute < 1.0 {
+        problems.push(format!(
+            "only {:.2} frags per minute with {} agents",
+            report.frags_per_minute, report.agents
+        ));
+    }
+    problems
+}
+
+fn check_shared_thresholds(report: &Report) -> Vec<String> {
     let mut problems = check_sticky_ttk_table();
     let lives = report.rules.as_ref().and_then(|rules| rules.lives);
     if report.rounds_completed == 0 {
@@ -967,11 +1307,112 @@ pub fn check_thresholds(report: &Report) -> Vec<String> {
         ));
     }
     problems.extend(check_rules(report));
-    if report.agents >= 4 && report.frags_per_minute < 1.0 {
-        problems.push(format!(
-            "only {:.2} frags per minute with {} agents",
-            report.frags_per_minute, report.agents
-        ));
+    problems
+}
+
+/// A contested sample must prove combat and valid CTF replication. Capture is
+/// covered by the separate controlled route gate, not by match luck.
+pub fn check_contested_ctf(report: &Report, observation: &Observation) -> Vec<String> {
+    let mut problems = check_shared_thresholds(report);
+    if report.rules.as_ref().map(|rules| rules.mode) != Some(fragr_server::protocol::GameMode::Ctf)
+    {
+        problems.push("not a CTF round".to_string());
+    }
+    if report.frags == 0 {
+        problems.push("no contested combat".to_string());
+    }
+    if observation.latest_flags.is_none() {
+        problems.push("no authoritative flag snapshot".to_string());
+    }
+    if report.last_round_capture_scores.is_none() {
+        problems.push("no final capture score".to_string());
+    }
+    problems
+}
+
+/// The controlled route must make the one joined fighter take and score over
+/// the normal socket, with corroborating server events, carried state and end.
+pub fn check_ctf_route_smoke(report: &Report, observation: &Observation) -> Vec<String> {
+    let mut problems = Vec::new();
+    if report.rules.as_ref().map(|rules| rules.mode) != Some(fragr_server::protocol::GameMode::Ctf)
+    {
+        problems.push("not a CTF round".to_string());
+    }
+    if report.agents != 1 || report.rounds_completed != 1 {
+        problems.push("route probe did not finish one single-fighter round".to_string());
+    }
+    if report.flag_takes == 0 || report.captures != 1 {
+        problems.push("route probe did not take and capture one flag".to_string());
+    }
+    let capture = observation
+        .events
+        .iter()
+        .enumerate()
+        .find_map(|(index, timed)| {
+            if let GameEvent::Flag {
+                kind: FlagEventKind::Captured,
+                flag,
+                player: Some(player),
+                player_id: Some(id),
+                capture_scores,
+            } = &timed.event
+            {
+                (player == "route-probe-1").then_some((index, *flag, *id, *capture_scores))
+            } else {
+                None
+            }
+        });
+    if let Some((index, flag, id, event_scores)) = capture {
+        let same_take = observation.events[..index].iter().any(|timed| {
+            matches!(&timed.event, GameEvent::Flag {
+                kind: FlagEventKind::Taken,
+                flag: taken_flag,
+                player_id: Some(taker),
+                ..
+            } if *taken_flag == flag && *taker == id)
+        });
+        if !same_take {
+            problems.push("capture had no preceding take by the same fighter".to_string());
+        }
+        if !report.carry_episodes.iter().any(|episode| {
+            episode.flag == flag
+                && episode.carrier.as_deref() == Some("route-probe-1")
+                && episode.end == CarryEnd::Captured
+                && episode.observed_carrier_ticks > 0
+        }) {
+            problems.push("no carried snapshot and capture for the joined route probe".to_string());
+        }
+        let scored_side = flag.other();
+        if event_scores.get(scored_side) != 1 || event_scores.get(flag) != 0 {
+            problems.push("capture event did not credit the carrier's side".to_string());
+        }
+        if !report
+            .last_round_capture_scores
+            .is_some_and(|scores| scores.get(scored_side) == 1 && scores.get(flag) == 0)
+        {
+            problems.push("capture score did not credit the carrier's side".to_string());
+        }
+        let matching_end = observation.events[index + 1..].iter().any(|timed| {
+            matches!(&timed.event, GameEvent::RoundEnd {
+                winning_team: Some(winner),
+                capture_scores: Some(scores),
+                reason,
+                ..
+            } if *winner == scored_side
+                && Some(*scores) == report.last_round_capture_scores
+                && reason == "Capture limit reached")
+        });
+        if !matching_end {
+            problems.push("no matching server round end after capture".to_string());
+        }
+    } else {
+        problems.push("no server capture event naming the route probe".to_string());
+    }
+    if report.last_round_reason.as_deref() != Some("Capture limit reached") {
+        problems.push("round did not end at the capture limit".to_string());
+    }
+    if report.carry_episodes_omitted > 0 || report.unmatched_flag_ends > 0 {
+        problems.push("route evidence was omitted or unmatched".to_string());
     }
     problems
 }
@@ -1108,6 +1549,8 @@ pub enum Policy {
     /// Keep the distance its weapon wants, break off for health when hurt,
     /// and collect a weapon it does not have.
     Planner,
+    /// Controlled, unopposed CTF route probe. Not offered as a normal tier.
+    RouteProbe,
 }
 
 impl Policy {
@@ -1123,6 +1566,7 @@ impl Policy {
         match self {
             Policy::Reflex => "reflex",
             Policy::Planner => "planner",
+            Policy::RouteProbe => "route-probe",
         }
     }
 
@@ -1277,9 +1721,93 @@ fn walk_to(
 
 /// The action for one agent under its policy.
 pub fn policy_action(policy: Policy, bot_id: Uuid, snapshot: &Snapshot, arena: &Arena) -> Action {
+    if let Some(flags) = snapshot.flags.as_ref() {
+        let Some(me) = snapshot.players.iter().find(|p| p.id == bot_id) else {
+            return Action::default();
+        };
+        let Some(team) = me.team else {
+            return Action::default();
+        };
+        let own = &flags[team.index()];
+        let enemy = &flags[team.other().index()];
+        let carrying = enemy.carrier == Some(bot_id);
+        // The harness gives each agent a unique callsign. Pick by that stable
+        // identity rather than process-local player IDs or snapshot order.
+        let defending = policy != Policy::RouteProbe
+            && snapshot
+                .players
+                .iter()
+                .filter(|player| {
+                    player.team == Some(team) && player.hp > 0 && enemy.carrier != Some(player.id)
+                })
+                .min_by(|a, b| a.name.cmp(&b.name))
+                .is_some_and(|player| player.id == bot_id);
+        if policy == Policy::Planner
+            && !carrying
+            && snapshot.players.iter().any(|other| {
+                me.is_hostile_to(other)
+                    && other.hp > 0
+                    && (other.x - me.x).hypot(other.z - me.z) < 12.0
+                    && arena.fighter_visible(me, other)
+            })
+        {
+            return reflex_action(bot_id, snapshot, arena);
+        }
+        let goal = if carrying {
+            if own.status == fragr_server::protocol::FlagStatus::Dropped {
+                own.position
+            } else {
+                own.stand
+            }
+        } else if own.status == fragr_server::protocol::FlagStatus::Dropped {
+            own.position
+        } else if defending {
+            own.carrier
+                .and_then(|carrier| snapshot.players.iter().find(|p| p.id == carrier))
+                .map(|p| [p.x, p.y - fragr_server::sim::PLAYER_FLOOR_Y, p.z])
+                .unwrap_or(own.stand)
+        } else {
+            enemy.position
+        };
+        return Action {
+            look_at: Some(LookAt {
+                x: Some(goal[0]),
+                y: Some(goal[1]),
+                z: Some(goal[2]),
+                player_id: None,
+            }),
+            forward: (goal[0] - me.x).hypot(goal[2] - me.z) > 1.5,
+            ..Action::default()
+        };
+    }
     match policy {
         Policy::Reflex => reflex_action(bot_id, snapshot, arena),
         Policy::Planner => planner_action(bot_id, snapshot, arena),
+        Policy::RouteProbe => Action::default(),
+    }
+}
+
+#[derive(Default)]
+struct ObservationDeadline {
+    drain_tick_events: bool,
+}
+
+impl ObservationDeadline {
+    fn before_message(&self, message: &ServerMessage) -> bool {
+        self.drain_tick_events && matches!(message, ServerMessage::Snapshot(_))
+    }
+
+    fn after_message(&mut self, observation: &Observation, max_ticks: u64, rounds: u32) -> bool {
+        if observation.rounds_completed() >= rounds {
+            return true;
+        }
+        let elapsed = observation
+            .last_tick
+            .saturating_sub(observation.first_tick.unwrap_or(0));
+        if elapsed >= max_ticks {
+            self.drain_tick_events = true;
+        }
+        false
     }
 }
 
@@ -1509,7 +2037,10 @@ pub async fn run(config: Config) -> Result<(Report, Observation), Error> {
     // Controlled rounds: no mid-round boss or compliance beat, so the numbers
     // describe the fighters and nothing else.
     let match_config = MatchConfig {
-        frag_limit: Some(config.frag_limit),
+        frag_limit: (config.rules.mode() != fragr_server::protocol::GameMode::Ctf)
+            .then_some(config.frag_limit),
+        capture_limit: (config.rules.mode() == fragr_server::protocol::GameMode::Ctf)
+            .then_some(config.capture_limit),
         time_limit_ticks: Some(config.time_limit_ticks),
         boss_spawn_ticks: None,
         compliance_ping_ticks: None,
@@ -1587,13 +2118,33 @@ pub async fn run(config: Config) -> Result<(Report, Observation), Error> {
     .map_err(transport)?;
 
     let mut observation = Observation::default();
+    let mut observation_deadline = ObservationDeadline::default();
     let deadline = Duration::from_secs_f64(config.max_ticks as f64 / TICKS_PER_SECOND + 15.0);
     let watch = async {
-        while let Some(msg) = stream.next().await {
+        loop {
+            // The server sends Snapshot before that tick's Event messages.
+            // At the max tick, drain those events through the next snapshot,
+            // with a bounded wait if the connection stalls.
+            let next = if observation_deadline.drain_tick_events {
+                tokio::time::timeout(Duration::from_secs(1), stream.next())
+                    .await
+                    .ok()
+                    .flatten()
+            } else {
+                stream.next().await
+            };
+            let Some(msg) = next else { break };
             let Ok(Message::Text(text)) = msg else {
                 continue;
             };
-            match serde_json::from_str::<ServerMessage>(&text) {
+            let parsed = serde_json::from_str::<ServerMessage>(&text);
+            if parsed
+                .as_ref()
+                .is_ok_and(|message| observation_deadline.before_message(message))
+            {
+                break;
+            }
+            match parsed {
                 Ok(ServerMessage::Snapshot(snapshot)) => {
                     observation.ingest_snapshot(&snapshot, text.len());
                 }
@@ -1601,13 +2152,7 @@ pub async fn run(config: Config) -> Result<(Report, Observation), Error> {
                 Ok(ServerMessage::MapInfo { rules, .. }) => observation.rules = rules,
                 _ => {}
             }
-            if observation.rounds_completed() >= config.rounds {
-                break;
-            }
-            let elapsed = observation
-                .last_tick
-                .saturating_sub(observation.first_tick.unwrap_or(0));
-            if elapsed >= config.max_ticks {
+            if observation_deadline.after_message(&observation, config.max_ticks, config.rounds) {
                 break;
             }
         }
@@ -1749,6 +2294,9 @@ mod tests {
     fn snapshot(tick: u64, players: Vec<PlayerState>) -> Snapshot {
         Snapshot {
             team_scores: None,
+            flags: None,
+            capture_scores: None,
+            capture_limit: None,
             tick,
             players,
             round_state: Some("Active".to_string()),
@@ -2065,6 +2613,7 @@ mod tests {
         obs.ingest_snapshot(&snapshot(1200, vec![player("a", a, 4.0, 0.0, false)]), 200);
         obs.ingest_event(GameEvent::RoundEnd {
             team_scores: None,
+            capture_scores: None,
             winning_team: None,
             winner: Some("a".to_string()),
             reason: "frag_limit".to_string(),
@@ -2181,6 +2730,418 @@ mod tests {
         assert!(problems.iter().any(|p| p.contains("0.50 frags per minute")));
     }
 
+    #[test]
+    fn ctf_report_accounts_for_each_flag_transition_and_final_score() {
+        use fragr_server::protocol::{FlagEventKind, Team, TeamScores};
+
+        let mut obs = Observation::default();
+        obs.ingest_snapshot(&snapshot(1, Vec::new()), 100);
+        let empty = TeamScores::default();
+        for kind in [
+            FlagEventKind::Taken,
+            FlagEventKind::Dropped,
+            FlagEventKind::Returned,
+            FlagEventKind::Taken,
+        ] {
+            obs.ingest_event(GameEvent::Flag {
+                kind,
+                flag: Team::Union,
+                player: None,
+                player_id: None,
+                capture_scores: empty,
+            });
+        }
+        let score = TeamScores {
+            union: 0,
+            coalition: 1,
+        };
+        obs.ingest_event(GameEvent::Flag {
+            kind: FlagEventKind::Captured,
+            flag: Team::Union,
+            player: None,
+            player_id: None,
+            capture_scores: score,
+        });
+        obs.ingest_event(GameEvent::RoundEnd {
+            winner: None,
+            reason: "Time limit reached".to_string(),
+            final_scores: Vec::new(),
+            winner_score: None,
+            mvp: None,
+            mvp_frags: None,
+            host_line: String::new(),
+            winning_team: Some(Team::Coalition),
+            team_scores: None,
+            capture_scores: Some(score),
+        });
+        let report = compute_report(&obs, 12);
+        assert_eq!(report.flag_takes, 2);
+        assert_eq!(report.flag_drops, 1);
+        assert_eq!(report.flag_returns, 1);
+        assert_eq!(report.captures, 1);
+        assert_eq!(report.rounds_completed, 1);
+        assert_eq!(
+            report.last_round_reason.as_deref(),
+            Some("Time limit reached")
+        );
+        assert_eq!(report.last_round_capture_scores, Some(score));
+
+        let mut older = serde_json::to_value(report).unwrap();
+        for field in [
+            "flag_drops",
+            "flag_returns",
+            "last_round_reason",
+            "last_round_capture_scores",
+        ] {
+            older.as_object_mut().unwrap().remove(field);
+        }
+        let older: Report = serde_json::from_value(older).unwrap();
+        assert_eq!(older.flag_drops, 0);
+        assert_eq!(older.flag_returns, 0);
+        assert_eq!(older.last_round_reason, None);
+        assert_eq!(older.last_round_capture_scores, None);
+
+        let next_score = TeamScores {
+            union: 3,
+            coalition: 1,
+        };
+        obs.ingest_event(GameEvent::RoundEnd {
+            winner: None,
+            reason: "Capture limit reached".to_string(),
+            final_scores: Vec::new(),
+            winner_score: None,
+            mvp: None,
+            mvp_frags: None,
+            host_line: String::new(),
+            winning_team: Some(Team::Union),
+            team_scores: None,
+            capture_scores: Some(next_score),
+        });
+        let latest = compute_report(&obs, 12);
+        assert_eq!(latest.rounds_completed, 2);
+        assert_eq!(
+            latest.last_round_reason.as_deref(),
+            Some("Capture limit reached")
+        );
+        assert_eq!(latest.last_round_capture_scores, Some(next_score));
+    }
+
+    fn carry_snapshot(tick: u64, x: f32, own_status: FlagStatus) -> Snapshot {
+        use fragr_server::protocol::FlagState;
+        let carrier_id = Uuid::from_u128(1);
+        let carrier = player("Carrier", carrier_id, x, 0.0, false);
+        let mut snapshot = snapshot(tick, vec![carrier]);
+        snapshot.flags = Some([
+            FlagState {
+                team: Team::Union,
+                stand: [-70.0, 0.0, 0.0],
+                position: [x, 0.0, 0.0],
+                status: FlagStatus::Carried,
+                carrier: Some(carrier_id),
+                return_ticks: None,
+            },
+            FlagState {
+                team: Team::Coalition,
+                stand: [70.0, 0.0, 0.0],
+                position: [70.0, 0.0, 0.0],
+                status: own_status,
+                carrier: (own_status == FlagStatus::Carried).then_some(Uuid::from_u128(2)),
+                return_ticks: None,
+            },
+        ]);
+        snapshot
+    }
+
+    fn carry_event(kind: FlagEventKind) -> GameEvent {
+        GameEvent::Flag {
+            kind,
+            flag: Team::Union,
+            player: Some("Carrier".to_string()),
+            player_id: Some(Uuid::from_u128(1)),
+            capture_scores: fragr_server::protocol::TeamScores::default(),
+        }
+    }
+
+    #[test]
+    fn ctf_carry_tracks_progress_and_home_flag_denial_without_snapshots_in_report() {
+        let mut obs = Observation::default();
+        obs.ingest_event(carry_event(FlagEventKind::Taken));
+        for (tick, x, status) in [
+            (1, -70.0, FlagStatus::Carried),
+            (2, 0.0, FlagStatus::Carried),
+            (3, 69.0, FlagStatus::Carried),
+            (4, 70.0, FlagStatus::Home),
+        ] {
+            obs.ingest_snapshot(&carry_snapshot(tick, x, status), 100);
+        }
+        // Duplicate delivery at the same tick must not inflate blocked time.
+        obs.ingest_snapshot(&carry_snapshot(4, 70.0, FlagStatus::Home), 100);
+        obs.ingest_event(carry_event(FlagEventKind::Captured));
+        let report = compute_report(&obs, 12);
+        assert_eq!(report.carry_episodes.len(), 1);
+        let episode = &report.carry_episodes[0];
+        assert_eq!(episode.end, CarryEnd::Captured);
+        assert_eq!(episode.observed_carrier_ticks, 4);
+        assert_eq!(episode.first_distance_to_home, Some(140.0));
+        assert_eq!(episode.closest_distance_to_home, Some(0.0));
+        assert_eq!(episode.last_distance_to_home, Some(0.0));
+        assert_eq!(episode.own_flag_away_ticks, 3);
+        assert_eq!(episode.home_blocked_ticks, 1);
+        assert!(!episode.combat_drop);
+        assert_eq!(report.carry_episodes_omitted, 0);
+    }
+
+    #[test]
+    fn ctf_carry_samples_snapshot_before_same_tick_take_event() {
+        let mut obs = Observation::default();
+        // Session sends the tick's Snapshot before its Flag events.
+        obs.ingest_snapshot(&carry_snapshot(7, -68.0, FlagStatus::Home), 100);
+        obs.ingest_event(carry_event(FlagEventKind::Taken));
+        obs.ingest_event(carry_event(FlagEventKind::Dropped));
+        let episode = &compute_report(&obs, 12).carry_episodes[0];
+        assert_eq!(episode.started_tick, 7);
+        assert_eq!(episode.ended_tick, 7);
+        assert_eq!(episode.observed_carrier_ticks, 1);
+        assert_eq!(episode.first_distance_to_home, Some(138.0));
+        assert_eq!(episode.end, CarryEnd::Dropped);
+    }
+
+    #[test]
+    fn observer_max_tick_drains_same_tick_flag_events_before_next_snapshot() {
+        let mut obs = Observation::default();
+        let mut deadline = ObservationDeadline::default();
+        let messages = [
+            ServerMessage::Snapshot(snapshot(1, Vec::new())),
+            ServerMessage::Snapshot(carry_snapshot(3, -68.0, FlagStatus::Home)),
+            ServerMessage::Event(carry_event(FlagEventKind::Taken)),
+            ServerMessage::Event(carry_event(FlagEventKind::Dropped)),
+            ServerMessage::Snapshot(snapshot(4, Vec::new())),
+        ];
+        for message in messages {
+            if deadline.before_message(&message) {
+                break;
+            }
+            match message {
+                ServerMessage::Snapshot(frame) => obs.ingest_snapshot(&frame, 100),
+                ServerMessage::Event(event) => obs.ingest_event(event),
+                _ => unreachable!(),
+            }
+            if deadline.after_message(&obs, 2, 1) {
+                break;
+            }
+        }
+        let report = compute_report(&obs, 12);
+        assert_eq!(obs.last_tick, 3);
+        assert_eq!(report.flag_takes, 1);
+        assert_eq!(report.flag_drops, 1);
+        assert_eq!(report.carry_episodes[0].end, CarryEnd::Dropped);
+        assert_eq!(report.carry_episodes[0].observed_carrier_ticks, 1);
+    }
+
+    #[test]
+    fn ctf_carry_distinguishes_death_drop_leave_drop_and_unfinished_round() {
+        let mut obs = Observation::default();
+        obs.ingest_event(carry_event(FlagEventKind::Taken));
+        obs.ingest_snapshot(&carry_snapshot(1, -20.0, FlagStatus::Home), 100);
+        obs.ingest_event(carry_event(FlagEventKind::Dropped));
+        // The authoritative combat path emits the drop before the frag.
+        obs.ingest_event(frag("Defender", "Carrier"));
+        obs.ingest_snapshot(&snapshot(2, Vec::new()), 100);
+        obs.ingest_event(carry_event(FlagEventKind::Taken));
+        obs.ingest_event(carry_event(FlagEventKind::Dropped));
+        obs.ingest_snapshot(&snapshot(3, Vec::new()), 100);
+        obs.ingest_event(carry_event(FlagEventKind::Taken));
+        obs.ingest_event(GameEvent::RoundEnd {
+            winner: None,
+            reason: "Time limit reached".to_string(),
+            final_scores: Vec::new(),
+            winner_score: None,
+            mvp: None,
+            mvp_frags: None,
+            host_line: String::new(),
+            winning_team: None,
+            team_scores: None,
+            capture_scores: None,
+        });
+        let report = compute_report(&obs, 12);
+        assert_eq!(report.carry_episodes.len(), 3);
+        assert_eq!(report.carry_episodes[0].end, CarryEnd::Dropped);
+        assert!(report.carry_episodes[0].combat_drop);
+        assert_eq!(report.carry_episodes[1].end, CarryEnd::Dropped);
+        assert!(!report.carry_episodes[1].combat_drop);
+        assert_eq!(report.carry_episodes[2].end, CarryEnd::RoundEnded);
+        assert_eq!(report.carry_episodes[2].first_distance_to_home, None);
+        assert_eq!(report.carry_episodes[2].closest_distance_to_home, None);
+        assert_eq!(report.carry_episodes[2].last_distance_to_home, None);
+        assert_eq!(report.unmatched_flag_ends, 0);
+    }
+
+    #[test]
+    fn ctf_carry_rejects_an_end_for_a_different_carrier() {
+        let mut obs = Observation::default();
+        obs.ingest_event(carry_event(FlagEventKind::Taken));
+        let wrong_end = GameEvent::Flag {
+            kind: FlagEventKind::Captured,
+            flag: Team::Union,
+            player: Some("Other".to_string()),
+            player_id: Some(Uuid::from_u128(2)),
+            capture_scores: fragr_server::protocol::TeamScores::default(),
+        };
+        obs.ingest_event(wrong_end.clone());
+        // A missing take for the next carrier cannot be fabricated from its
+        // score event; count it without assigning an episode to the first.
+        obs.ingest_event(wrong_end);
+        let report = compute_report(&obs, 12);
+        assert_eq!(report.carry_episodes.len(), 1);
+        assert_eq!(report.carry_episodes[0].carrier.as_deref(), Some("Carrier"));
+        assert_eq!(report.carry_episodes[0].end, CarryEnd::Incomplete);
+        assert_eq!(report.unmatched_flag_ends, 2);
+        assert!(report.carry_episodes[0].first_distance_to_home.is_none());
+    }
+
+    #[test]
+    fn ctf_carry_report_is_bounded_and_old_json_defaults() {
+        let mut obs = Observation::default();
+        for _ in 0..=MAX_CARRY_EPISODES {
+            obs.ingest_event(carry_event(FlagEventKind::Taken));
+            obs.ingest_event(carry_event(FlagEventKind::Dropped));
+        }
+        let report = compute_report(&obs, 12);
+        assert_eq!(report.carry_episodes.len(), MAX_CARRY_EPISODES);
+        assert_eq!(report.carry_episodes_omitted, 1);
+        obs.ingest_event(carry_event(FlagEventKind::Taken));
+        let active_report = compute_report(&obs, 12);
+        assert_eq!(active_report.carry_episodes.len(), MAX_CARRY_EPISODES);
+        assert_eq!(active_report.carry_episodes_omitted, 2);
+        let mut old = serde_json::to_value(report).unwrap();
+        old.as_object_mut().unwrap().remove("carry_episodes");
+        old.as_object_mut()
+            .unwrap()
+            .remove("carry_episodes_omitted");
+        old.as_object_mut().unwrap().remove("unmatched_flag_ends");
+        let old: Report = serde_json::from_value(old).unwrap();
+        assert!(old.carry_episodes.is_empty());
+        assert_eq!(old.carry_episodes_omitted, 0);
+        assert_eq!(old.unmatched_flag_ends, 0);
+    }
+
+    #[test]
+    fn controlled_ctf_gate_requires_one_fighters_causal_take_carry_and_score() {
+        let id = Uuid::from_u128(1);
+        let score = fragr_server::protocol::TeamScores {
+            union: 0,
+            coalition: 1,
+        };
+        let flag = |kind| GameEvent::Flag {
+            kind,
+            flag: Team::Union,
+            player: Some("route-probe-1".to_string()),
+            player_id: Some(id),
+            capture_scores: score,
+        };
+        let mut obs = Observation {
+            rules: Some(
+                fragr_server::rules::RuleSet::new(
+                    fragr_server::protocol::GameMode::Ctf,
+                    &[],
+                    false,
+                )
+                .unwrap()
+                .wire(),
+            ),
+            ..Observation::default()
+        };
+        obs.ingest_snapshot(&carry_snapshot(1, -68.0, FlagStatus::Home), 100);
+        obs.ingest_event(flag(FlagEventKind::Taken));
+        obs.ingest_snapshot(&carry_snapshot(2, 68.0, FlagStatus::Home), 100);
+        obs.ingest_event(flag(FlagEventKind::Captured));
+        obs.ingest_event(GameEvent::RoundEnd {
+            winner: None,
+            reason: "Capture limit reached".to_string(),
+            final_scores: Vec::new(),
+            winner_score: None,
+            mvp: None,
+            mvp_frags: None,
+            host_line: String::new(),
+            winning_team: Some(Team::Coalition),
+            team_scores: None,
+            capture_scores: Some(score),
+        });
+        let report = compute_report(&obs, 1);
+        assert!(check_ctf_route_smoke(&report, &obs).is_empty());
+
+        let mut wrong_id = obs.clone();
+        if let GameEvent::Flag { player_id, .. } = &mut wrong_id.events[1].event {
+            *player_id = Some(Uuid::from_u128(2));
+        }
+        assert!(check_ctf_route_smoke(&report, &wrong_id)
+            .iter()
+            .any(|problem| problem.contains("preceding take")));
+
+        let mut wrong_event_score = obs.clone();
+        if let GameEvent::Flag { capture_scores, .. } = &mut wrong_event_score.events[1].event {
+            *capture_scores = Default::default();
+        }
+        assert!(check_ctf_route_smoke(&report, &wrong_event_score)
+            .iter()
+            .any(|problem| problem.contains("capture event")));
+
+        let mut no_carried_frame = report.clone();
+        no_carried_frame.carry_episodes[0].observed_carrier_ticks = 0;
+        assert!(check_ctf_route_smoke(&no_carried_frame, &obs)
+            .iter()
+            .any(|problem| problem.contains("carried snapshot")));
+
+        let mut wrong_score = report.clone();
+        wrong_score.last_round_capture_scores = Some(Default::default());
+        assert!(check_ctf_route_smoke(&wrong_score, &obs)
+            .iter()
+            .any(|problem| problem.contains("capture score")));
+    }
+
+    #[test]
+    fn contested_ctf_gate_requires_combat_flag_state_and_both_sides() {
+        let mut report = Report {
+            agents: 4,
+            rounds_completed: 1,
+            frags: 12,
+            rules: Some(
+                fragr_server::rules::RuleSet::new(
+                    fragr_server::protocol::GameMode::Ctf,
+                    &[],
+                    false,
+                )
+                .unwrap()
+                .wire(),
+            ),
+            sides: [("union".to_string(), 2), ("coalition".to_string(), 2)]
+                .into_iter()
+                .collect(),
+            last_round_capture_scores: Some(Default::default()),
+            ..Report::default()
+        };
+        let mut obs = Observation::default();
+        obs.ingest_snapshot(&carry_snapshot(1, -68.0, FlagStatus::Home), 100);
+        assert!(check_contested_ctf(&report, &obs).is_empty());
+        // A scoreless but active fight like the failed CI run is valid
+        // contested evidence when the independent capture gate passes.
+        assert_eq!(report.flag_takes, 0);
+        assert_eq!(report.captures, 0);
+        report.frags = 0;
+        assert!(check_contested_ctf(&report, &obs)
+            .iter()
+            .any(|problem| problem.contains("contested combat")));
+        report.frags = 12;
+        obs.latest_flags = None;
+        assert!(check_contested_ctf(&report, &obs)
+            .iter()
+            .any(|problem| problem.contains("flag snapshot")));
+        report.sides.remove("union");
+        assert!(check_contested_ctf(&report, &obs)
+            .iter()
+            .any(|problem| problem.contains("union side")));
+    }
+
     #[tokio::test]
     async fn reflex_agents_finish_a_round_in_process() {
         let config = Config {
@@ -2243,6 +3204,9 @@ mod combat_tests {
     fn frame(tick: u64, players: Vec<PlayerState>, shots: Vec<ShotResult>) -> Snapshot {
         Snapshot {
             team_scores: None,
+            flags: None,
+            capture_scores: None,
+            capture_limit: None,
             tick,
             players,
             round_state: Some("Active".to_string()),
@@ -2736,6 +3700,9 @@ mod planner_tests {
     fn scene(tick: u64, players: Vec<PlayerState>, pickups: Vec<PickupState>) -> Snapshot {
         Snapshot {
             team_scores: None,
+            flags: None,
+            capture_scores: None,
+            capture_limit: None,
             tick,
             players,
             round_state: Some("Active".to_string()),
@@ -2968,6 +3935,180 @@ mod planner_tests {
             "the planner is already where it wants to be"
         );
     }
+
+    #[test]
+    fn ctf_policy_fights_a_visible_blocker_then_resumes_the_flag_route() {
+        use fragr_server::protocol::{FlagState, FlagStatus, Team};
+        let me = Uuid::from_u128(1);
+        let foe = Uuid::from_u128(2);
+        let mut mine = player("me", me, 0.0, 0.0, 100, "flechette");
+        mine.team = Some(Team::Coalition);
+        let mut blocker = player("foe", foe, 6.0, 0.0, 100, "flechette");
+        blocker.team = Some(Team::Union);
+        let mut defender = player("a-defender", Uuid::from_u128(3), 0.0, 0.0, 100, "flechette");
+        defender.team = Some(Team::Coalition);
+        let mut snap = scene(1, vec![mine, blocker, defender], vec![]);
+        snap.flags = Some([
+            FlagState {
+                team: Team::Union,
+                stand: [-70.0, 0.0, 0.0],
+                position: [-70.0, 0.0, 0.0],
+                status: FlagStatus::Home,
+                carrier: None,
+                return_ticks: None,
+            },
+            FlagState {
+                team: Team::Coalition,
+                stand: [70.0, 0.0, 0.0],
+                position: [70.0, 0.0, 0.0],
+                status: FlagStatus::Home,
+                carrier: None,
+                return_ticks: None,
+            },
+        ]);
+        let rush = policy_action(Policy::Reflex, me, &snap, &Arena::default());
+        assert_eq!(rush.look_at.unwrap().x, Some(-70.0));
+        let fight = policy_action(Policy::Planner, me, &snap, &Arena::default());
+        assert_eq!(fight.look_at.unwrap().player_id, Some(foe));
+        assert!(fight.fire);
+        snap.players[1].x = 30.0;
+        let route = policy_action(Policy::Planner, me, &snap, &Arena::default());
+        assert_eq!(route.look_at.unwrap().x, Some(-70.0));
+        assert!(!route.fire);
+    }
+
+    fn ctf_six_a_side() -> Snapshot {
+        use fragr_server::protocol::{FlagState, FlagStatus, Team};
+
+        let mut players = Vec::new();
+        for (team, first_id, prefix) in [
+            (Team::Union, 1_u128, "union"),
+            (Team::Coalition, 7_u128, "coalition"),
+        ] {
+            for seat in 0..6 {
+                let mut fighter = player(
+                    &format!("{prefix}-{:02}", seat + 1),
+                    Uuid::from_u128(first_id + seat),
+                    0.0,
+                    0.0,
+                    100,
+                    "flechette",
+                );
+                fighter.team = Some(team);
+                players.push(fighter);
+            }
+        }
+        let mut snapshot = scene(1, players, vec![]);
+        snapshot.flags = Some([
+            FlagState {
+                team: Team::Union,
+                stand: [-70.0, 0.0, 0.0],
+                position: [-70.0, 0.0, 0.0],
+                status: FlagStatus::Home,
+                carrier: None,
+                return_ticks: None,
+            },
+            FlagState {
+                team: Team::Coalition,
+                stand: [70.0, 0.0, 0.0],
+                position: [70.0, 0.0, 0.0],
+                status: FlagStatus::Home,
+                carrier: None,
+                return_ticks: None,
+            },
+        ]);
+        snapshot
+    }
+
+    fn ctf_goal_x(snapshot: &Snapshot, id: Uuid) -> f32 {
+        policy_action(Policy::Reflex, id, snapshot, &Arena::default())
+            .look_at
+            .unwrap()
+            .x
+            .unwrap()
+    }
+
+    #[test]
+    fn ctf_six_a_side_has_one_stable_defender_per_side() {
+        use fragr_server::protocol::Team;
+
+        let mut snapshot = ctf_six_a_side();
+        for team in [Team::Union, Team::Coalition] {
+            let own_x = snapshot.flags.as_ref().unwrap()[team.index()].stand[0];
+            let enemy_x = snapshot.flags.as_ref().unwrap()[team.other().index()].stand[0];
+            let side: Vec<_> = snapshot
+                .players
+                .iter()
+                .filter(|player| player.team == Some(team))
+                .map(|player| player.id)
+                .collect();
+            assert_eq!(side.len(), 6);
+            assert_eq!(
+                side.iter()
+                    .filter(|id| ctf_goal_x(&snapshot, **id) == own_x)
+                    .count(),
+                1
+            );
+            assert_eq!(
+                side.iter()
+                    .filter(|id| ctf_goal_x(&snapshot, **id) == enemy_x)
+                    .count(),
+                5
+            );
+        }
+        let original: Vec<_> = snapshot
+            .players
+            .iter()
+            .map(|player| (player.id, ctf_goal_x(&snapshot, player.id)))
+            .collect();
+        snapshot.players.reverse();
+        for (id, goal_x) in original {
+            assert_eq!(ctf_goal_x(&snapshot, id), goal_x);
+        }
+        snapshot
+            .players
+            .iter_mut()
+            .find(|player| player.id == Uuid::from_u128(1))
+            .unwrap()
+            .hp = 0;
+        assert_eq!(ctf_goal_x(&snapshot, Uuid::from_u128(2)), -70.0);
+    }
+
+    #[test]
+    fn ctf_roles_recover_dropped_flags_and_support_carriers() {
+        use fragr_server::protocol::{FlagStatus, Team};
+
+        let mut snapshot = ctf_six_a_side();
+        let union_defender = Uuid::from_u128(1);
+        let union_attacker = Uuid::from_u128(2);
+        let coalition_carrier = Uuid::from_u128(7);
+        let coalition_next_defender = Uuid::from_u128(8);
+        let coalition_attacker = Uuid::from_u128(9);
+
+        // A stolen Union flag pulls its defender toward the thief, while
+        // another Union fighter still presses the Coalition stand. The carrier
+        // returns home, and another Coalition fighter assumes defense.
+        snapshot.players[6].x = 15.0;
+        snapshot.players[6].z = 3.0;
+        let flags = snapshot.flags.as_mut().unwrap();
+        flags[Team::Union.index()].status = FlagStatus::Carried;
+        flags[Team::Union.index()].position = [15.0, 0.0, 3.0];
+        flags[Team::Union.index()].carrier = Some(coalition_carrier);
+        assert_eq!(ctf_goal_x(&snapshot, union_defender), 15.0);
+        assert_eq!(ctf_goal_x(&snapshot, union_attacker), 70.0);
+        assert_eq!(ctf_goal_x(&snapshot, coalition_carrier), 70.0);
+        assert_eq!(ctf_goal_x(&snapshot, coalition_next_defender), 70.0);
+        assert_eq!(ctf_goal_x(&snapshot, coalition_attacker), 15.0);
+
+        // A grounded home flag takes objective priority for every noncarrier
+        // and the carrier attempting to score. Reflex has no combat detour.
+        let flags = snapshot.flags.as_mut().unwrap();
+        flags[Team::Coalition.index()].status = FlagStatus::Dropped;
+        flags[Team::Coalition.index()].position = [32.0, 0.0, 0.0];
+        assert_eq!(ctf_goal_x(&snapshot, coalition_carrier), 32.0);
+        assert_eq!(ctf_goal_x(&snapshot, coalition_next_defender), 32.0);
+        assert_eq!(ctf_goal_x(&snapshot, coalition_attacker), 32.0);
+    }
 }
 
 #[cfg(test)]
@@ -3035,6 +4176,9 @@ mod line_of_sight_tests {
         let foe = Uuid::new_v4();
         let mut snap = Snapshot {
             team_scores: None,
+            flags: None,
+            capture_scores: None,
+            capture_limit: None,
             tick: 0,
             players: vec![],
             round_state: Some("Active".to_string()),

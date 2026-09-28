@@ -15,16 +15,19 @@ pub enum GameMode {
     Ffa,
     /// Team deathmatch: the Union against the free coalition.
     Tdm,
+    /// Two-side capture the flag, scored by captures.
+    Ctf,
 }
 
 impl GameMode {
-    pub const ALL: [Self; 2] = [Self::Ffa, Self::Tdm];
+    pub const ALL: [Self; 3] = [Self::Ffa, Self::Tdm, Self::Ctf];
 
     /// The wire and command-line id.
     pub const fn id(self) -> &'static str {
         match self {
             Self::Ffa => "ffa",
             Self::Tdm => "tdm",
+            Self::Ctf => "ctf",
         }
     }
 
@@ -33,11 +36,12 @@ impl GameMode {
         match self {
             Self::Ffa => "Free-for-all",
             Self::Tdm => "Team Deathmatch",
+            Self::Ctf => "Capture the Flag",
         }
     }
 
     pub const fn teams(self) -> bool {
-        matches!(self, Self::Tdm)
+        matches!(self, Self::Tdm | Self::Ctf)
     }
 }
 

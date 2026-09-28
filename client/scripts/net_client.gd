@@ -54,6 +54,7 @@ var accepted_body: String = ""
 var _resume_token: String = ""
 var _leaving: bool = false
 var _resume_used: bool = false
+var _requires_flags: bool = false
 
 signal session_resumed
 
@@ -83,6 +84,7 @@ func connect_to_server(p_role: String = "spectator", p_name: String = "Player"):
 	mission.clear()
 	mission_geometry.clear()
 	_mission_previous.clear()
+	_requires_flags = false
 
 	# Godot WebSocketPeer is not reliably reusable after close. Always start fresh
 	# so J/L join-leave-reconnect cannot soft-prison on a dead peer.
@@ -120,6 +122,7 @@ func disconnect_from_server():
 	mission.clear()
 	mission_geometry.clear()
 	_mission_previous.clear()
+	_requires_flags = false
 	set_process(false)
 	disconnected_from_server.emit()
 
@@ -342,6 +345,9 @@ func _handle_message(text: String):
 			var problem: String = MapGeometry.validation_error(data)
 			if problem.is_empty():
 				problem = MissionState.map_error(data)
+			if problem.is_empty():
+				var rules: Dictionary = MatchRules.parse(data.get("rules"))
+				_requires_flags = rules.get("mode", "") == "ctf"
 			if problem != "":
 				disconnect_from_server()
 				server_error.emit(problem)
@@ -393,6 +399,10 @@ func _handle_message(text: String):
 			var problem: String = ActorState.validation_error(data)
 			if problem.is_empty():
 				problem = PlayerBody.snapshot_error(data)
+			if problem.is_empty():
+				problem = FlagState.snapshot_error(data)
+			if problem.is_empty() and _requires_flags and data.get("flags") == null:
+				problem = "ctf snapshot has no flags"
 			if not problem.is_empty():
 				disconnect_from_server()
 				server_error.emit(problem)

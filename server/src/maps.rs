@@ -83,6 +83,15 @@ pub(crate) fn arena(kind: MapKind) -> &'static crate::movement::Arena {
     })
 }
 
+/// Ground-level flag stands for two-sided league scenarios. A map without
+/// validated stands cannot run capture the flag.
+pub(crate) fn ctf_stands(kind: MapKind) -> Option<[[f32; 3]; 2]> {
+    match kind {
+        MapKind::Sector9 => Some([[-70.0, 0.0, 0.0], [70.0, 0.0, 0.0]]),
+        _ => None,
+    }
+}
+
 struct NavigationCache {
     maps: [OnceLock<std::sync::Arc<crate::navigation::Navigation>>; MapKind::ALL.len()],
 }
@@ -1132,6 +1141,28 @@ pub(crate) fn validate(kind: MapKind) -> Vec<String> {
         }
     }
 
+    if let Some(stands) = ctf_stands(kind) {
+        for (i, stand) in stands.iter().enumerate() {
+            let [x, floor, z] = *stand;
+            if x.abs() < def.half_extent / 3.0
+                || x.abs() + RADIUS > def.half_extent
+                || z.abs() + RADIUS > def.half_extent
+            {
+                problems.push(format!("{name}: flag stand {i} is outside its back third"));
+            }
+            if !can_stand(kind, x, z) || (stand_height(kind, x, z) - floor).abs() > 0.01 {
+                problems.push(format!("{name}: flag stand {i} lacks clear ground"));
+            }
+            if def
+                .pickups
+                .iter()
+                .any(|pad| (pad.x - x).hypot(pad.z - z) < 5.0)
+            {
+                problems.push(format!("{name}: flag stand {i} overlaps a pickup"));
+            }
+        }
+    }
+
     problems.extend(unreachable(kind));
     problems
 }
@@ -1223,6 +1254,17 @@ pub(crate) fn unreachable(kind: MapKind) -> Vec<String> {
                 pad.id, pad.floor
             )),
             Some(_) => {}
+        }
+    }
+    if let Some(stands) = ctf_stands(kind) {
+        for (i, [x, floor, z]) in stands.into_iter().enumerate() {
+            match at(x, z) {
+                None => problems.push(format!("{name}: flag stand {i} is unreachable")),
+                Some(height) if (height - floor).abs() > STEP_UP => {
+                    problems.push(format!("{name}: flag stand {i} has an unreachable floor"))
+                }
+                Some(_) => {}
+            }
         }
     }
     let mut reachable_spawns = 0;
