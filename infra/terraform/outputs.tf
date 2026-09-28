@@ -1,80 +1,29 @@
-# fragr Terraform Outputs
-
-output "project_id" {
-  description = "GCP project ID"
-  value       = var.project_id
-}
-
-output "region" {
-  description = "GCP region"
-  value       = var.region
-}
-
-output "zone" {
-  description = "GCP zone"
-  value       = var.zone
-}
-
 output "instance_name" {
-  description = "VM instance name"
+  description = "Container host instance name"
   value       = google_compute_instance.game_server.name
 }
 
-output "instance_id" {
-  description = "VM instance ID"
-  value       = google_compute_instance.game_server.instance_id
-}
-
 output "external_ip" {
-  description = "Ephemeral external IP address (changes on stop/start)"
-  value       = google_compute_instance.game_server.network_interface[0].access_config[0].nat_ip
-}
-
-output "internal_ip" {
-  description = "Internal IP address"
-  value       = google_compute_instance.game_server.network_interface[0].network_ip
-}
-
-output "service_account_email" {
-  description = "Service account email for the VM"
-  value       = google_service_account.game_server.email
-}
-
-output "network_name" {
-  description = "VPC network name"
-  value       = google_compute_network.vpc.name
-}
-
-output "subnet_name" {
-  description = "Subnet name"
-  value       = google_compute_subnetwork.subnet.name
-}
-
-output "ssh_command" {
-  description = "SSH command to connect via IAP"
-  value       = "gcloud compute ssh ${google_compute_instance.game_server.name} --zone=${var.zone} --tunnel-through-iap"
+  description = "Optional billable ephemeral IPv4 address; null by default"
+  value       = try(google_compute_instance.game_server.network_interface[0].access_config[0].nat_ip, null)
 }
 
 output "game_server_address" {
-  description = "Game server address (IP:PORT)"
-  value       = "${google_compute_instance.game_server.network_interface[0].access_config[0].nat_ip}:${var.game_port}"
+  description = "Optional TCP address reachable only from reviewed game_source_ranges"
+  value       = var.enable_external_ipv4 ? "${google_compute_instance.game_server.network_interface[0].access_config[0].nat_ip}:6767" : null
 }
 
-output "cloud_run_url" {
-  description = "Cloud Run adapter URL (if enabled)"
-  value       = var.enable_cloud_run_adapter ? google_cloud_run_v2_service.adapter[0].uri : "Not enabled"
+output "image_ref" {
+  description = "Pinned server image deployed at next host replacement"
+  value       = local.image_ref
 }
 
-output "estimated_monthly_cost" {
-  description = "Estimated monthly cost in USD"
-  value       = "$0.00 (Always Free tier)"
+output "ssh_command" {
+  description = "Break-glass IAP SSH command, subject to operator IAM"
+  value       = "gcloud compute ssh ${google_compute_instance.game_server.name} --zone=${var.zone} --tunnel-through-iap"
 }
 
-output "cost_warnings" {
-  description = "Potential cost warnings"
-  value = [
-    "Network egress beyond 1 GB/month: ~$0.12/GB",
-    "Stopping/starting VM changes external IP",
-    "Monitor billing at: https://console.cloud.google.com/billing"
-  ]
+output "cost_warning" {
+  description = "Billing review required before apply"
+  value       = "External IPv4 is off by default. If enabled, it bills while the VM runs even with game ingress closed. VM, disk, image storage and egress can also bill. Budget alerts do not cap charges."
 }

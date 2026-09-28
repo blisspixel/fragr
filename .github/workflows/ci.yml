@@ -14,6 +14,23 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
+  terraform:
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: infra/terraform
+    steps:
+      - uses: actions/checkout@v7
+      - uses: hashicorp/setup-terraform@v4.0.1
+        with:
+          terraform_version: 1.16.4
+      - name: Check plan-only container host
+        run: |
+          terraform fmt -check
+          terraform init -backend=false -lockfile=readonly -input=false
+          terraform validate
+          terraform test
+
   test:
     runs-on: ubuntu-24.04
     steps:
@@ -80,6 +97,33 @@ jobs:
 
       - name: Build release
         run: cargo build --workspace --release --locked
+
+  container:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - name: Build dedicated server image
+        run: docker compose build server
+      - name: Check runtime identity and legal notices
+        run: |
+          test "$(docker run --rm --entrypoint id fragr-server:local -u)" = "10001"
+          docker run --rm --entrypoint sh fragr-server:local -c 'test -s /usr/share/doc/fragr/fragr-LICENSE.txt && test -s /usr/share/doc/fragr/THIRD_PARTY_LICENSES.txt'
+      - name: Start and probe dedicated match
+        run: |
+          set -euo pipefail
+          trap 'docker compose down' EXIT
+          docker compose up -d --no-build
+          container_id="$(docker compose ps -q server)"
+          test -n "$container_id"
+          for attempt in {1..45}; do
+            if [ "$(docker inspect --format '{{.State.Health.Status}}' "$container_id")" = healthy ]; then
+              break
+            fi
+            sleep 2
+          done
+          test "$(docker inspect --format '{{.State.Health.Status}}' "$container_id")" = healthy
+          curl --fail --silent --show-error http://127.0.0.1:6767/status | grep -q '"kind":"arena"'
+          curl --fail --silent --show-error http://127.0.0.1:6767/status | grep -q '"health":{"status":"ok"'
 
   portability:
     strategy:

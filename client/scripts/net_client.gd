@@ -42,10 +42,10 @@ var last_send_ok: bool = false
 var server_url = "ws://127.0.0.1:6767"
 
 func _init():
-	# Allow server URL override via environment variable for LAN/Tailscale
+	# Allow server URL override via environment variable for LAN or TLS hosts.
 	var env_server = OS.get_environment("FRAGR_SERVER")
 	if env_server != "":
-		server_url = "ws://" + env_server if not env_server.begins_with("ws://") else env_server
+		set_server_host(env_server)
 		print("Using server from FRAGR_SERVER: ", server_url)
 
 var role = "spectator"

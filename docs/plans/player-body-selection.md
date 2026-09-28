@@ -1,8 +1,8 @@
 # Player body selection
 
-Status: **in flight**, 2026-09-26. Wire, persistence, agent flags, runtime art
-and tour stills are implemented with local evidence; the PR is open and not
-merged. The [roadmap](../ROADMAP.md) owns sequencing.
+Status: **shipped** in #262, 2026-09-26. Wire, persistence, agent flags,
+runtime art and tour stills are implemented. The [roadmap](../ROADMAP.md) owns
+sequencing.
 
 ## Goal
 

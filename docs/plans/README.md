@@ -9,7 +9,7 @@ Status words: **proposed** (a design awaiting Nick's decision; directs no work),
 ## Standing facts
 
 - Game port is **6767** (TCP today; UDP reserved for the planned low-latency transport).
-- Local play is $0. Public hosting sits under the $50 cap and needs written approval before anything bills. GCP Terraform stays plan-only until then.
+- Local play is $0. Public hosting sits under the $50 total cap. Nick authorized up to $20 combined external charges for 2026-09-26 build work, including a bounded GCP test if needed; production deployment still needs a reviewed cost and written approval. The current GCP Terraform remains plan-only.
 - Tailscale is private smoke only, never the documented join path.
 - The dedicated server bar is rock solid, secure, and cheap: input validation, rate limits, clean join and leave and reconnect, and a home box or small VM first.
 
@@ -47,9 +47,11 @@ Status words: **proposed** (a design awaiting Nick's decision; directs no work),
 | [`local-pawn-prediction.md`](./local-pawn-prediction.md) | **implemented** | Bounded 20 Hz local human body replay and Ack correction on the existing WebSocket path; human feel gate remains. |
 | [`movement-ack-v1.md`](./movement-ack-v1.md) | **implemented** | Optional full-3D Ack and input selection rules for replay on the current 20 Hz WebSocket server, without visual prediction. |
 | [`live-movement-step.md`](./live-movement-step.md) | **implemented** | Current 20 Hz authoritative movement step extracted and mirrored with distinct 3D goldens and a `GameState.tick` equivalence test; full CI pending before the next prediction rung. |
-| [`player-body-selection.md`](./player-body-selection.md) | **in flight** | Choose a human or an embodied agent in a synthetic body: capability 13 on Hello, Welcome and snapshots, saved in the profile, honored for agents, free-palette runtime art that keeps its colours on the coalition side. |
-| [`brain-local-model.md`](./brain-local-model.md) | **implemented** | Free open-weights decisions for `fragr-brain`: APUS-OpenJev-v1-4B through local Ollama, or a self-hosted openjev server (non-commercial weights), loopback only, strictly validated, with the paid path's budget and fallback and a measured laptop smoke. |
-| [`multiplayer-modes.md`](./multiplayer-modes.md) | **in flight** | Named rule sets chosen by the host: team deathmatch and six mutators built, Sector 9 capture the flag in flight, Rescue, Sabotage and combined arms designed. |
+| [`cos-container-host.md`](./cos-container-host.md) | **in flight** | Plan-only COS game container host with digest pinning, scoped IAM and closed default game ingress. |
+| [`dedicated-server-udp-and-hosting.md`](./dedicated-server-udp-and-hosting.md) | **in flight** | Build a tested local container host, then measure prediction on WebSocket before a UDP pilot and plan-only container cloud hosting. |
+| [`player-body-selection.md`](./player-body-selection.md) | **shipped** (#262) | Choose a human or an embodied agent in a synthetic body: capability 13 on Hello, Welcome and snapshots, saved in the profile, honored for agents, free-palette runtime art that keeps its colours on the coalition side. |
+| [`brain-local-model.md`](./brain-local-model.md) | **shipped** (#261) | Free open-weights decisions for `fragr-brain`: APUS-OpenJev-v1-4B through local Ollama, or a self-hosted openjev server (non-commercial weights), loopback only, strictly validated, with the paid path's budget and fallback and a measured laptop smoke. |
+| [`multiplayer-modes.md`](./multiplayer-modes.md) | **in flight**, rung 1 shipped (#258) | Team deathmatch and mutators shipped; Sector 9 capture the flag is in draft review. Rescue, Sabotage and combined arms remain designs. |
 | [`replayability.md`](./replayability.md) | **proposed** | Counter-Strike level replay: loops at three time scales, Rescue and Sabotage as the round-based flagship with no shop or scrip and lineups, mutators, Host reactions, agent rivals, feats, demos from the trace, and a build order. |
 | [`campaign-expansion.md`](./campaign-expansion.md) | **planned**, accepted 2026-09-25 | Twenty levels in five episodes for a four-hour first run, now the contract in [CAMPAIGN.md](../CAMPAIGN.md): the ten-mission spine kept, one new thing per level, the wipe in three levels, a brief by difficulty, par and replay waivers. The 2026-09-25 deep dive adds the [story arc](../campaign/story-arc.md), a full design per level and the pacing curve; the story arc itself stays proposed. |
 | [`m01-secret-shiv.md`](./m01-secret-shiv.md) | **shipped** ([#251](https://github.com/blisspixel/fragr/pull/251), v0.53.0) | M01's first secret: a pool-less Shiv in the confiscation alcove's south pocket, found by walking in, with capability 11, a quiet cue and a counted find. Replaces draft #203. |
@@ -137,8 +139,8 @@ Status words: **proposed** (a design awaiting Nick's decision; directs no work),
 | [`hud-quiet.md`](./hud-quiet.md) | **in progress** | Get the words off the screen. Measured HUD coverage per state, clipped panels, duplicate badges, and nameplates that hide the fighter behind them. |
 | [`gunfeel.md`](./gunfeel.md) | **in flight** (aim defaults shipped) | What the weapons and the aim do: the parameter set from the classics, dispersion separated from aim assist, feedback timings, the dodge. |
 | [`ttk-feel-harness-proof.md`](./ttk-feel-harness-proof.md) | **in flight** | Sticky flechette/rail/scatter TTK asserted from playtest `--assert` (#124 proof). |
-| [`buttery-controls.md`](./buttery-controls.md) | **in flight** | Client-owned yaw shipped; prediction and reconciliation, timeline interpolation, 60 Hz sim, lag compensation and a transport spike remain. |
-| [`human-action-ack-baseline.md`](./human-action-ack-baseline.md) | **in flight** | Measure the real Godot human Action-to-Ack path and snapshot cadence before prediction or UDP. |
+| [`buttery-controls.md`](./buttery-controls.md) | **in flight** | Client-owned yaw shipped; movement Ack and local prediction are in draft review, with a measured WebSocket probe. Interpolation, lag compensation and a transport pilot remain. |
+| [`human-action-ack-baseline.md`](./human-action-ack-baseline.md) | **implemented** | A real Godot human-role Action-to-Ack baseline is in draft review; two-machine and human-feel measurements remain. |
 | [`public-server-hardening.md`](./public-server-hardening.md) | **in flight** | Caps v0.35.0, `GET /status` v0.36.0, the app match line v0.37.0, join tickets v0.38.0, pawn resume v0.39.0. Next is a measured spectator fan-out. TLS remains. |
 | [`agent-door-2026.md`](./agent-door-2026.md) | **planned** | MCP 2026-07-28 compliance with legacy clients kept, the rmcp decision, a team blackboard before A2A. |
 | [`decision-brain.md`](./decision-brain.md) | **shipped** (#102) | Decision-brain agent: Jev (TypeSafe or OpenRouter) sets intent a few times a second, local controller plays every tick, hard spend cap with a ledger. |
@@ -188,7 +190,7 @@ Status words: **proposed** (a design awaiting Nick's decision; directs no work),
 | [`weapons-system.md`](./weapons-system.md) | **shipped** (v0.3.0) | Flechette, rail, and scatter roles. |
 | [`client-assets-wiring.md`](./client-assets-wiring.md) | **shipped** | Pixel assets wired into the Godot client. |
 | [`audio-drama.md`](./audio-drama.md) | **shipped** | Match audio drama with procedural CC0 audio. |
-| [`terraform-zero-cost-gcp.md`](./terraform-zero-cost-gcp.md) | **shipped** (plan-only, PR #5) | Zero-cost GCP IaC; no apply without approval. |
+| [`terraform-zero-cost-gcp.md`](./terraform-zero-cost-gcp.md) | **superseded** (PR #5 draft) | Historical Terraform draft. Current cost and deployment decisions live in the dedicated hosting plan. |
 | [`tip-screenshots.md`](./tip-screenshots.md) | **shipped** (#60) | Tip screenshot capture (Xvfb, Viewport API). |
 | [`honest-coverage-lock.md`](./honest-coverage-lock.md) | **shipped** | Unfiltered llvm-cov fail-under 80; no carve-outs. |
 | [`SPRINT-24H.md`](./SPRINT-24H.md) | **superseded** | 24 hour sprint framing. |
