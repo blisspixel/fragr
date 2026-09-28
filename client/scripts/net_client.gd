@@ -23,6 +23,7 @@ var record: Dictionary = {}
 var mission_geometry: Dictionary = {}
 var mission: Dictionary = {}
 var _mission_previous: Dictionary = {}
+var _movement_ack_previous: Dictionary = {}
 
 var socket = WebSocketPeer.new()
 var connection_state = WebSocketPeer.STATE_CLOSED
@@ -79,6 +80,7 @@ func connect_to_server(p_role: String = "spectator", p_name: String = "Player"):
 	mission.clear()
 	mission_geometry.clear()
 	_mission_previous.clear()
+	_movement_ack_previous.clear()
 
 	# Godot WebSocketPeer is not reliably reusable after close. Always start fresh
 	# so J/L join-leave-reconnect cannot soft-prison on a dead peer.
@@ -323,6 +325,7 @@ func _handle_message(text: String):
 	
 	match msg_type:
 		"welcome":
+			_movement_ack_previous.clear()
 			var body_problem: String = PlayerBody.welcome_error(data, role)
 			if not body_problem.is_empty():
 				disconnect_from_server()
@@ -352,6 +355,7 @@ func _handle_message(text: String):
 				_mission_previous.clear()
 			mission.clear()
 			mission_geometry = geometry
+			_movement_ack_previous.clear()
 			map_info_received.emit(data)
 			mission_received.emit({})
 		"mission":
@@ -394,6 +398,12 @@ func _handle_message(text: String):
 			snapshot_received.emit(data)
 		
 		"ack":
+			var problem: String = MovementAck.validation_error(data, _movement_ack_previous)
+			if not problem.is_empty():
+				disconnect_from_server()
+				server_error.emit(problem)
+				return
+			_movement_ack_previous = data.duplicate(true) if MovementAck.has_replay_body(data) else {}
 			ack_received.emit(data)
 		
 		"event":

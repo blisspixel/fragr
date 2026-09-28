@@ -7,6 +7,7 @@ extends RefCounted
 # this does not prove server receipt.
 const MAX_PENDING: int = 512
 const MAX_BUCKET_MS: int = 1000
+const MAX_ACTION_SEQ: int = 4294967295
 
 var active: bool = false
 var interrupted: bool = false
@@ -85,6 +86,11 @@ func begin(now_usec: int) -> void:
 
 func record_send(seq: int, now_usec: int) -> void:
 	if not active:
+		return
+	if _last_sent_seq == MAX_ACTION_SEQ and seq == 1:
+		# The probe's ordered sample window cannot span a wrapped sequence.
+		interrupted = true
+		active = false
 		return
 	if seq <= 0 or seq <= _last_sent_seq or now_usec < _started_usec:
 		invalid_sends += 1

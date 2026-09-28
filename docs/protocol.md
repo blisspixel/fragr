@@ -429,11 +429,14 @@ World-point aim:
 - `pitch`: (optional) Absolute vertical aim in radians, positive upward, clamped
   to +/-85 degrees. Missing or nonfinite values retain the last pitch, initially
   zero. Pitch does not redirect movement. Respawn resets it to zero.
-- `seq`: (optional) Input sequence number. The server acknowledges the newest sequence it applied for this fighter in an `ack` message every tick. Clients that do not predict may omit it.
+- `seq`: (optional) Input sequence number. For a numbered human, the server accepts only numbers newer than the last admitted sample in u32 half-range order, including wrap. The Godot sender uses 1 through 4294967295 and wraps back to 1. Duplicate and stale samples do not replace continuous input or latch a jump, interaction or weapon choice. Once a human sends a numbered Action, an unnumbered Action on that pawn is ignored. Humans that never number Actions, agents, and older clients retain their unnumbered path. The server echoes the selected sequence in an `ack` every tick after the first numbered movement step.
 
 **Notes:**
-- Continuous action fields use the latest held value. Weapon selection and a
-  jump press survive intervening packets until one tick consumes them.
+- Continuous action fields use the latest admitted value at the game-loop tick
+  boundary. This boundary is when the server applies the Action command, not
+  the client's send time or raw socket arrival. The selected value is held on
+  later ticks until a newer Action replaces it. Weapon selection and a jump
+  press survive intervening packets until an active tick consumes them.
 - All `true` fields are applied together on the next server tick
 - Movement keys combine (e.g., forward + left = diagonal)
 - `look_at` is applied after movement/turn so agents can strafe while locking aim
@@ -620,7 +623,7 @@ A resumed pawn keeps the claims it still holds. A new hello does not restore a p
 
 #### Ack
 
-Unicast, once per tick, to a client whose input carried a `seq`. Carries the newest sequence the server applied to that client's fighter and the horizontal state it produced. Today's client sends faster than the tick and does not predict movement, so an Ack sequence is not yet one replayable simulation step. Vertical position and velocity are absent and must be added and validated before full 3D reconciliation. Clients that send no `seq` (agents, spectators, older clients) never receive it.
+Unicast after each server tick to a human whose Action carried a `seq`. The root fields keep their existing shape. The optional `movement` version 1 object carries the final 3D body state and whether that tick produced a replayable movement step. The client still does not predict movement. Clients that never send `seq` (agents, spectators, older clients) do not receive Acks.
 
 ```json
 {
@@ -630,17 +633,62 @@ Unicast, once per tick, to a client whose input carried a `seq`. Carries the new
   "x": 12.25,
   "z": -3.5,
   "yaw": 1.5707963,
-  "pitch": 0.25
+  "pitch": 0.25,
+  "movement": {
+    "version": 1,
+    "epoch": 2,
+    "applied": true,
+    "y": 1.8,
+    "vx": 0.0,
+    "vy": 6.0,
+    "vz": 5.0,
+    "effective_speed": 5.0,
+    "jump_input": true
+  }
 }
 ```
 
 **Fields:**
-- `seq`: the newest input sequence applied to this fighter
-- `tick`: the server tick that applied it
+- `seq`: the newest selected numbered input sequence. It can skip samples or
+  repeat across ticks while the same held Action is reused. During a tick that
+  does not apply movement, it remains the last selected sequence. After input
+  ownership resets, it may remain historical even on the first active tick
+  stepping neutral input. The new epoch invalidates replay of that old Action.
+- `tick`: the server tick after which this state was captured. This is the
+  authoritative movement-step identity; `seq` is a sampled Action identity.
 - `x` / `z`: authoritative position after that tick
 - `yaw`: authoritative horizontal facing after that tick
 - `pitch`: authoritative vertical facing after that tick, default zero when
   reading older messages/recordings
+- `movement.version`: 1 for this optional extension. An older Ack omits
+  `movement`; a newer client then uses authoritative snapshots. No new Action
+  field or global gameplay requirement is introduced by this outbound block.
+- `movement.epoch`: per-pawn movement baseline revision. It advances on a
+  round transition, respawn, input ownership reset, or campaign continue.
+  A reconnect, role change, MapInfo, death, changed epoch or unapplied tick
+  clears any client replay history. Server tick and input sequence do not rewind.
+- `movement.applied`: true only if this pawn completed a replayable movement
+  step and remains active at the end of the tick. Warmup, ended rounds, frozen
+  missions, death and respawn ticks are false. The final pose still comes in
+  the Ack. The zeroed `vx`, `vz`, `effective_speed` and `jump_input` on a false
+  tick must not be replayed as an Action.
+- `movement.y`: authoritative world-reference position, the same coordinate
+  as `Snapshot.players[].y`. The movement integrator uses feet height
+  `y - PLAYER_FLOOR_Y` internally.
+- `movement.vx`, `vy`, `vz`: post-collision body velocities in world units per
+  second. The current live step replaces horizontal velocity immediately on
+  each active tick; these fields preserve the complete resulting state.
+- `movement.effective_speed`: pre-collision speed selected for that tick,
+  including the compliance modifier, or zero when `applied` is false.
+- `movement.jump_input`: the latched or held jump request sent into the
+  movement integrator for this tick. It is not proof of takeoff: an airborne
+  body or low ceiling can prevent a new jump.
+
+The server builds the Ack after simulation. It queues MapInfo, Mission,
+Snapshot and events before the same-tick Ack unicast. A client must accept
+Snapshot before Ack and tolerate a missing Ack after connection loss. Godot
+validates finite body numbers, exact JSON integer values, monotonic tick and
+epoch, and u32 sequence progression before exposing a version 1 Ack.
 
 
 ### Solo Broadcast episode fields (Snapshot)

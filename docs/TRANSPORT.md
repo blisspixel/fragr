@@ -70,7 +70,7 @@ UDP with custom protocol (e.g., `renet`, `laminar`, or hand-rolled) provides:
 
 **Recommendation:** the spike of record is stage 7 of `plans/buttery-controls.md`: candidate A is a 12-byte sequence, ack, and ack-bits header over `PacketPeerUDP` and `tokio::net::UdpSocket`; candidate B is ENet; the decision is made against the pass thresholds in that plan. `renet` is a fallback, not the default. WebTransport is not available in Godot 4.7.
 
-Prediction and reconciliation do not wait for UDP. The [human Action-to-Ack baseline](plans/human-action-ack-baseline.md) measures today's WebSocket path first; its send-to-ack interval is neither RTT nor a prediction-correction metric. The transport spike follows prediction and a two-machine LAN comparison.
+Prediction and reconciliation do not wait for UDP. The [human Action-to-Ack baseline](plans/human-action-ack-baseline.md) measures the WebSocket path; its send-to-ack interval is neither RTT nor a prediction-correction metric. The [live step](plans/live-movement-step.md) and [3D movement Ack](plans/movement-ack-v1.md) prepare replay on that same wire. The transport spike follows live prediction and a two-machine LAN comparison.
 
 ## Timeline
 

@@ -565,6 +565,15 @@ pub struct Player {
     pub display_behavior: Option<String>,
     /// Newest input sequence applied to this fighter, echoed in the Ack.
     pub last_input_seq: Option<u32>,
+    /// Newest numbered human Action admitted before a movement tick. Kept
+    /// across resume and respawn so a stale sample cannot replace live input.
+    last_received_seq: Option<u32>,
+    movement_epoch: u64,
+    last_movement_tick: Option<u64>,
+    last_move_vx: f32,
+    last_move_vz: f32,
+    last_move_speed: f32,
+    last_jump_input: bool,
     /// Side in a team mode.
     pub team: Option<Team>,
     /// Lives left this round when lives are limited, the current one included.
@@ -579,10 +588,20 @@ pub struct Player {
 }
 
 impl Player {
+    fn reset_movement_baseline(&mut self) {
+        self.movement_epoch = self.movement_epoch.saturating_add(1);
+        self.last_movement_tick = None;
+        self.last_move_vx = 0.0;
+        self.last_move_vz = 0.0;
+        self.last_move_speed = 0.0;
+        self.last_jump_input = false;
+    }
+
     pub(crate) fn clear_input(&mut self) {
         self.pending_action = Action::default();
         self.jump_requested = false;
         self.interaction_requested = false;
+        self.reset_movement_baseline();
     }
 
     pub fn is_campaign_enemy(&self) -> bool {
@@ -628,6 +647,13 @@ impl Player {
             killstreak: 0,
             display_behavior: None,
             last_input_seq: None,
+            last_received_seq: None,
+            movement_epoch: 1,
+            last_movement_tick: None,
+            last_move_vx: 0.0,
+            last_move_vz: 0.0,
+            last_move_speed: 0.0,
+            last_jump_input: false,
             team: None,
             lives: None,
             eliminated: false,
@@ -760,6 +786,7 @@ impl GameState {
         let lives = self.config.rules.lives();
         let mut revive = Vec::new();
         for player in &mut self.players {
+            player.reset_movement_baseline();
             self.scores.insert(player.id, 0);
             player.killstreak = 0;
             player.statistics.begin(self.tick);
@@ -1031,6 +1058,23 @@ impl GameState {
             if !crate::mission::actor_active(self.mission.as_ref(), player.id, player.campaign) {
                 return;
             }
+            if player.role == Role::Human {
+                match (action.seq, player.last_received_seq) {
+                    (Some(seq), Some(previous)) => {
+                        let distance = seq.wrapping_sub(previous);
+                        if distance == 0 || distance >= (1_u32 << 31) {
+                            return;
+                        }
+                        player.last_received_seq = Some(seq);
+                    }
+                    (Some(seq), None) => player.last_received_seq = Some(seq),
+                    // A legacy human that never numbered inputs still plays.
+                    // Once numbered, a mixed unnumbered Action cannot have a
+                    // replayable selected sequence and must not change input.
+                    (None, Some(_)) => return,
+                    (None, None) => {}
+                }
+            }
             // Continuous input takes the newest value. A discrete weapon choice
             // must survive later frames until the simulation consumes it.
             action.weapon_swap = action.weapon_swap.or(player.pending_action.weapon_swap);
@@ -1103,11 +1147,19 @@ impl GameState {
     /// One Ack per fighter whose client numbers its inputs. Built after a
     /// tick so the state it carries is the state that input produced.
     pub fn input_acks(&self) -> Vec<(Uuid, ServerMessage)> {
+        let movement_open = self.round_state == RoundState::Active
+            && !self.mission_departed()
+            && !self.campaign_run_frozen();
         self.players
             .iter()
             .filter(|p| p.role == Role::Human)
             .filter_map(|p| {
                 p.last_input_seq.map(|seq| {
+                    let applied = movement_open
+                        && p.last_movement_tick == Some(self.tick)
+                        && p.hp > 0
+                        && p.respawn_timer.is_none()
+                        && !p.eliminated;
                     (
                         p.id,
                         ServerMessage::Ack {
@@ -1117,6 +1169,17 @@ impl GameState {
                             z: p.z,
                             yaw: p.yaw,
                             pitch: p.pitch,
+                            movement: Some(crate::protocol::MovementAck {
+                                version: 1,
+                                epoch: p.movement_epoch,
+                                applied,
+                                y: p.y,
+                                vx: if applied { p.last_move_vx } else { 0.0 },
+                                vy: p.vy,
+                                vz: if applied { p.last_move_vz } else { 0.0 },
+                                effective_speed: if applied { p.last_move_speed } else { 0.0 },
+                                jump_input: applied && p.last_jump_input,
+                            }),
                         },
                     )
                 })
@@ -1283,6 +1346,7 @@ impl GameState {
             }
 
             let move_speed = move_speed * crate::encounters::gait(player.campaign);
+            let jump_input = action.jump || jump_requested;
             let moved = crate::movement::live_step(
                 crate::movement::MoveState {
                     x: player.x,
@@ -1298,7 +1362,7 @@ impl GameState {
                     back: action.back,
                     left: action.left,
                     right: action.right,
-                    jump: action.jump || jump_requested,
+                    jump: jump_input,
                     yaw: player.yaw,
                     speed_scale: 1.0,
                 },
@@ -1310,6 +1374,11 @@ impl GameState {
             player.z = moved.z;
             player.y = PLAYER_FLOOR_Y + moved.y;
             player.vy = moved.vy;
+            player.last_movement_tick = Some(self.tick);
+            player.last_move_vx = moved.vx;
+            player.last_move_vz = moved.vz;
+            player.last_move_speed = move_speed;
+            player.last_jump_input = jump_input;
 
             if client_yaw.is_none() {
                 if action.turn_left {
@@ -1880,6 +1949,8 @@ impl GameState {
         if let Some(player) = self.players.iter_mut().find(|p| p.id == player_id) {
             let (sx, sz, yaw, floor) = self.map.spawn(angle);
 
+            player.reset_movement_baseline();
+
             player.x = sx;
             player.y = PLAYER_FLOOR_Y + floor;
             // A fighter that died mid-jump must not respawn still falling.
@@ -2359,6 +2430,13 @@ impl GameState {
             killstreak: 0,
             display_behavior: None,
             last_input_seq: None,
+            last_received_seq: None,
+            movement_epoch: 1,
+            last_movement_tick: None,
+            last_move_vx: 0.0,
+            last_move_vz: 0.0,
+            last_move_speed: 0.0,
+            last_jump_input: false,
             team: None,
             lives: None,
             eliminated: false,
@@ -2660,6 +2738,13 @@ impl GameState {
             killstreak: 0,
             display_behavior: None,
             last_input_seq: None,
+            last_received_seq: None,
+            movement_epoch: 1,
+            last_movement_tick: None,
+            last_move_vx: 0.0,
+            last_move_vz: 0.0,
+            last_move_speed: 0.0,
+            last_jump_input: false,
             team: None,
             lives: None,
             eliminated: false,

@@ -58,6 +58,12 @@ func _initialize() -> void:
 	_expect(report["sent"] == 0 and report["action_to_ack_ms"]["p99"] == null and
 		report["snapshot_interval_ms"]["samples"] == 0,
 		"new sessions clear all samples and report missing percentiles honestly")
+	probe.begin(300)
+	probe.record_send(InputAckProbe.MAX_ACTION_SEQ, 400)
+	probe.record_send(1, 500)
+	report = probe.finish(1000)
+	_expect(report["interrupted"] and report["sent"] == 1,
+		"the probe interrupts if a sample window crosses a sequence wrap")
 	if _failures == 0:
 		print("test_input_ack_probe: PASS")
 	quit(1 if _failures > 0 else 0)

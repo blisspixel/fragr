@@ -17,7 +17,7 @@ The 1.0 bar in [`../ROADMAP.md`](../ROADMAP.md) asks for first-person movement a
 ## Protocol changes
 
 - Stage 1 shipped: `Action` gained absolute `yaw` and numbered `seq`; the server sends a separate human-only unicast `ack` with `seq`, `tick`, `x`, `z` and `yaw`. It is not embedded in a snapshot.
-- Before prediction: define a replayable input step and return the full authoritative local body, including `y` and velocity, in the Ack. The current Ack is insufficient for live 3D reconciliation.
+- The [live movement step](live-movement-step.md) and optional [full 3D movement Ack](movement-ack-v1.md) provide the rule and post-tick body baseline. The local client still needs a bounded tick-indexed replay history, prediction and correction measurements before 3D reconciliation is active.
 - Stage 4: every tick-count field on the wire (`respawn_in`, cooldowns, `duration_ticks`, the 160-tick linger) becomes seconds or milliseconds, with the tick rate stated in `Hello`.
 - Each of these lands in `docs/protocol.md` in the same PR. The adapter reads the wire types from `fragr-server` (as the playtest harness and the brain do), so a wire change is edited once and the compiler finds every reader.
 
@@ -29,7 +29,7 @@ Every `*_TICKS` constant in `server/src/sim.rs` and `server/src/protocol.rs`, th
 
 - The server ticks at 20 Hz and every snapshot is the full JSON world (`server/src/run.rs`).
 - The client now caps numbered human Actions at 120 per second (`client/scripts/game_manager.gd`). The 20 Hz server applies the newest one per tick and repeats that sequence in later Acks. [The human Action-to-Ack baseline](human-action-ack-baseline.md) measures this live path before defining replayable input steps.
-- The [live movement step](live-movement-step.md) is being extracted into a pure Rust function and a GDScript mirror with separate 20 Hz goldens. That rung changes no gameplay and does not wire prediction.
+- The [live movement step](live-movement-step.md) uses a pure Rust function and a GDScript mirror with separate 20 Hz goldens. The optional [movement Ack](movement-ack-v1.md) adds a 3D post-tick baseline and selected-input semantics. Neither rung wires live prediction.
 - Mouse yaw is client-owned on the displayed frame, and the server accepts the absolute facing. Remote pawn presentation still has a smoothing path; local movement is not yet predicted. The original per-frame, turn-bit-only look path described below is design history, not the current implementation.
 
 ## Design

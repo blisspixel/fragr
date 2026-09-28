@@ -474,7 +474,7 @@ func change_role(play: bool) -> void:
 	_awaiting_map = true
 	role_transition = false
 
-## Input sequence. The server echoes the newest one it applied in an Ack.
+## Input sequence. The server echoes the newest accepted one in an Ack.
 var input_seq: int = 0
 ## Newest Ack from the server: {seq, tick, x, z, yaw}. Live prediction needs
 ## a replayable movement step and a full authoritative body state first.
@@ -528,6 +528,7 @@ func _process(_delta):
 ## exactly one of them. Sends are paced below the budget instead, and discrete
 ## presses stay latched until a message actually carries them.
 const ACTION_SEND_INTERVAL_USEC: int = 1000000 / 120
+const MAX_ACTION_SEQ: int = 4294967295
 var _last_action_usec: int = -ACTION_SEND_INTERVAL_USEC
 
 func _send_local_action(now_usec: int) -> bool:
@@ -561,7 +562,7 @@ func _send_local_action(now_usec: int) -> bool:
 	if _mission_controls_blocked():
 		action_state.erase("yaw")
 		action_state.erase("pitch")
-	input_seq += 1
+	input_seq = 1 if input_seq >= MAX_ACTION_SEQ else input_seq + 1
 	action_state.seq = input_seq
 	action_state.weapon_swap = pending_weapon_swap
 	pending_weapon_swap = null
