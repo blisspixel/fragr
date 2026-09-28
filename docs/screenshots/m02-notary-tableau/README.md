@@ -15,13 +15,13 @@ use ordinary gallery walking and the first claimed Shotgun.
 
 ![Eight sampled closer-gallery motion frames](closer-motion.png)
 
-![Shotgun effects on the pane](pane-shot.png)
+![Post-shot view toward the inspection pane](pane-shot.png)
 
 The Notary is a small, peripheral surveillance glimpse. Its twin fans and
 optic do not read reliably in these stills, so fresh-player recognition is
 open. The visible pane is the same server solid that blocks movement and
 ballistics. The `gallery_shotgun_trace_stops_at_the_notary_inspection_pane`
-test checks a live resolved pellet against the named pane bounds; the effect
+test checks a live resolved pellet against the named pane bounds; the post-shot
 frame alone does not identify which solid was hit. The ordinary closer view
 also exposes a ward Sweeper before its intended encounter, a pre-existing
 gallery sightline in the parent M02 map that this draft does not widen.
