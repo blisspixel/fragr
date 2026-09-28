@@ -105,12 +105,14 @@ impl Walker {
                     presentation,
                     mission,
                     m02_objectives,
+                    m02_side_ward,
                     ..
                 } => {
                     self.client
                         .replace_map_with_id(
                             map_id,
                             m02_objectives,
+                            m02_side_ward,
                             mission.as_ref(),
                             half_extent,
                             &solids,
@@ -782,6 +784,134 @@ fn side_ward_clear_is_optional() {
             .m02
             .unwrap()
             .side_ward_secured
+    );
+}
+
+#[test]
+fn m02_continue_restores_held_captives_and_stable_bay_order() {
+    let (mut state, id) = ward_test_state();
+    at_frame_facing_control(&mut state, id);
+    state.update_encounters();
+    state.advance_m02();
+    defeat_ward_guards(&mut state);
+    state.update_encounters();
+    state.players[0].interaction_requested = true;
+    state.advance_m02();
+    [state.players[0].x, state.players[0].y, state.players[0].z] = [23.5, PLAYER_FLOOR_Y, 6.5];
+    state.update_encounters();
+    for enemy in state.players.iter_mut().filter(|player| {
+        matches!(
+            player.name.as_str(),
+            "side_ward_clerk" | "side_ward_sweeper"
+        )
+    }) {
+        enemy.hp = 0;
+    }
+    state.update_encounters();
+    assert!(state.m02_side_ward_secured());
+    state.advance_m02_evacuation(0.05);
+    assert_eq!(
+        state
+            .mission_state()
+            .unwrap()
+            .m02
+            .unwrap()
+            .evacuation
+            .unwrap()
+            .phase,
+        crate::protocol::M02EvacuationPhase::Freeing
+    );
+    state.reset_mission();
+    state.reset_campaign_encounters();
+    let current = state.mission_state().unwrap();
+    assert_eq!(current.attempt, 2);
+    let progress = current.m02.unwrap();
+    assert!(!progress.side_ward_secured);
+    assert_eq!(
+        progress.evacuation.as_ref().unwrap().phase,
+        crate::protocol::M02EvacuationPhase::Held
+    );
+    assert_eq!(
+        progress.evacuation.as_ref().unwrap().captives,
+        crate::protocol::M02EvacuationState::HELD_FEET
+    );
+    for _ in 0..5 {
+        state.advance_m02_evacuation(0.05);
+    }
+    assert_eq!(
+        state
+            .mission_state()
+            .unwrap()
+            .m02
+            .unwrap()
+            .evacuation
+            .unwrap()
+            .captives,
+        crate::protocol::M02EvacuationState::HELD_FEET
+    );
+}
+
+#[test]
+fn dock_clear_and_immediate_departure_do_not_grant_unwalked_evacuation() {
+    let (mut state, id) = ward_test_state();
+    at_frame_facing_control(&mut state, id);
+    state.update_encounters();
+    state.advance_m02();
+    defeat_ward_guards(&mut state);
+    state.update_encounters();
+    state.players[0].interaction_requested = true;
+    state.advance_m02();
+    [state.players[0].x, state.players[0].y, state.players[0].z] = [23.5, PLAYER_FLOOR_Y, 6.5];
+    state.update_encounters();
+    for enemy in state.players.iter_mut().filter(|player| {
+        matches!(
+            player.name.as_str(),
+            "side_ward_clerk" | "side_ward_sweeper"
+        )
+    }) {
+        enemy.hp = 0;
+    }
+    state.update_encounters();
+    assert!(state.m02_side_ward_secured());
+    [state.players[0].x, state.players[0].y, state.players[0].z] = [6.0, PLAYER_FLOOR_Y, -6.0];
+    state.update_encounters();
+    for enemy in state.players.iter_mut().filter(|player| {
+        matches!(
+            player.name.as_str(),
+            "floor_officer" | "floor_sweeper" | "press_clerk" | "conveyor_sweeper"
+        )
+    }) {
+        enemy.hp = 0;
+    }
+    state.update_encounters();
+    assert!(state.m02_encounter_complete("floor_crew"));
+    [state.players[0].x, state.players[0].y, state.players[0].z] = [0.0, PLAYER_FLOOR_Y, 11.0];
+    state.update_encounters();
+    for enemy in state
+        .players
+        .iter_mut()
+        .filter(|player| matches!(player.name.as_str(), "dock_sweeper" | "dock_clerk"))
+    {
+        enemy.hp = 0;
+    }
+    state.update_encounters();
+    assert!(state.m02_encounter_complete("dock_watch"));
+    [state.players[0].x, state.players[0].y, state.players[0].z] = [0.0, PLAYER_FLOOR_Y, 21.5];
+    state.advance_m02();
+    assert!(state.mission_departed());
+    state.advance_m02_evacuation(0.05);
+    let evacuation = state
+        .mission_state()
+        .unwrap()
+        .m02
+        .unwrap()
+        .evacuation
+        .unwrap();
+    assert_eq!(evacuation.phase, crate::protocol::M02EvacuationPhase::Held);
+    assert!(!evacuation.evacuated);
+    assert_eq!(
+        evacuation.captives,
+        crate::protocol::M02EvacuationState::HELD_FEET
     );
 }
 
@@ -1554,7 +1684,7 @@ fn late_spectator_receives_the_durable_release_without_a_party_seat() {
     let messages = session.take_unicasts();
     assert!(matches!(
         messages.first(),
-        Some((crate::session::Recipient::Client(client), ServerMessage::MapInfo { solids, .. }))
+        Some((crate::session::Recipient::Client(client), ServerMessage::MapInfo { solids, m02_side_ward: true, .. }))
             if *client == watcher && solids.iter().any(|solid| {
                 solid.min_x == 4.0 && solid.max_x == 7.0
                     && solid.min_z == -8.0 && solid.max_z == -7.0
@@ -1568,6 +1698,10 @@ fn late_spectator_receives_the_durable_release_without_a_party_seat() {
                     && state.m02.as_ref().is_some_and(|m02|
                         m02.ward_secured
                             && m02.side_ward_secured
+                            && m02.evacuation.as_ref().is_some_and(|evacuation|
+                                evacuation.phase == crate::protocol::M02EvacuationPhase::Held
+                                    && evacuation.captives
+                                        == crate::protocol::M02EvacuationState::HELD_FEET)
                             && m02.completed == ["ward_reached", "companion_released"]))
     }));
     assert_eq!(session.state.mission_state().unwrap().party.len(), 1);
@@ -1600,6 +1734,18 @@ fn late_spectator_receives_the_durable_release_without_a_party_seat() {
         .find(|p| p.is_campaign_companion())
         .unwrap()
         .id;
+    session.state.advance_m02_evacuation(0.05);
+    let before_departure = session
+        .state
+        .mission_state()
+        .unwrap()
+        .m02
+        .unwrap()
+        .evacuation;
+    assert_eq!(
+        before_departure.as_ref().unwrap().phase,
+        crate::protocol::M02EvacuationPhase::Freeing
+    );
     [
         session.state.players[0].x,
         session.state.players[0].y,
@@ -1622,6 +1768,17 @@ fn late_spectator_receives_the_durable_release_without_a_party_seat() {
         },
     );
     session.state.tick(0.05);
+    assert_eq!(
+        session
+            .state
+            .mission_state()
+            .unwrap()
+            .m02
+            .unwrap()
+            .evacuation,
+        before_departure,
+        "early party departure freezes optional captive progress"
+    );
     let after = session
         .state
         .players
@@ -1710,6 +1867,14 @@ fn bundled_graybox_has_a_local_release_after_the_ward_fight() {
         _ => unreachable!("bundled missions are authored"),
     })
     .map_info();
+    assert!(matches!(
+        &wire,
+        ServerMessage::MapInfo {
+            m02_side_ward: true,
+            ..
+        }
+    ));
+    assert_eq!(serde_json::to_value(&wire).unwrap()["m02_side_ward"], true);
     assert!(matches!(
         wire,
         ServerMessage::MapInfo {

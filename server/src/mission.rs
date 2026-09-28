@@ -14,6 +14,7 @@ mod m02;
 mod recovery;
 pub(crate) mod run_file;
 pub use controller::MissionClient;
+pub(crate) use m02::validate_m02_evacuation_route;
 pub(crate) use m02::{LATCH_RELEASE_TICKS, LATCH_SECOND_FEET};
 
 #[cfg(test)]

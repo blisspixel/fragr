@@ -88,8 +88,9 @@ Initial handshake message. Must be sent immediately after connection.
   resume keeps the parked pawn's body even if this hello names another.
   Changing the body means leaving and joining again.
 - `gameplay_version`: maximum understood gameplay contract. Updated Rust readers
-  and the Godot client send `19`; omission means `1`. Discovery-only maps require 2, maps with authored
-  encounters require 3, and mission sequences require 6 for shared difficulty.
+  and the Godot client send `21`; omission means `1`. Discovery-only maps require
+  2, maps with authored encounters require 3, and mission sequences require 6
+  for shared difficulty.
   Versions 4 and 5 introduced physical controls and party readiness respectively;
   they cannot enter current missions. Solo runs require 7 for explicit continues.
   Version 8 adds private participant records. Record delivery is gated by the
@@ -125,7 +126,10 @@ Initial handshake message. Must be sent immediately after connection.
   the M02 companion identity, movement and bounded support fire. Durable M02
   and its development party require 19. Version 20 adds the M02
   `side_ward_secured` fact, derived from the optional side ward encounter.
-  M02 development and durable sessions now require 20; arcade maps keep their
+  Version 21 adds the M02 `evacuation` state and the matching
+  `map_info.m02_side_ward` marker for maps with an authored side ward. M02
+  development and
+  durable sessions now require 21; arcade maps keep their
   earlier requirements. Capabilities 14 to 17 must be integrated before a
   version 18 release; use matching campaign server/client builds.
   Older clients of every role are rejected before `Welcome`
@@ -313,11 +317,24 @@ and before the corresponding snapshot whenever shared state changes. `state` is:
   (three low bits for prepared gate variants; M02 uses bit 0 for the ward exit
   shutter raised on `companion_released`), `ward_secured` (server-owned
   `ward_guards` completion, which stops correction before release),
-  `side_ward_secured` (optional `side_ward_guards` completion), and `current`.
+  `side_ward_secured` (optional `side_ward_guards` completion), optional
+  `evacuation`, and
+  `current`.
   Both facts are derived from encounter state on each projection, not stored
   as second mission flags. `side_ward_secured` implies `ward_secured` and is
   monotonic within one attempt; Continue resets it. It says the captives can
-  free themselves, not that they have evacuated. The current
+  free themselves, not that they have evacuated. `evacuation` is present exactly
+  when the preceding `map_info.m02_side_ward` is true; legal M02 maps without
+  that room omit it. When present it is
+  `{phase,captives,evacuated}`. `phase` is `held`, `freeing`, `ready`,
+  `moving`, `waiting`, or `evacuated`. `captives` contains exactly two stable-order
+  `[x,y,z]` world-feet positions, bay A then bay B. The Rust server owns their
+  movement and sends bounded samples to every role, including late observers.
+  The figures have no fighter seats, combat state, score, or spectator target.
+  `evacuated` is true exactly when both reach the safe dock and `phase` is
+  `evacuated`. `side_ward_secured` alone never means evacuated. Departure can
+  precede evacuation and then freezes the current state. Continue starts a new
+  attempt with both captives held. The current
   objective is null or omitted only after departure. An arrival objective has
   `{"id":"ward_reached","action":{"kind":"arrival","region":{"min":[x,y,z],"max":[x,y,z]},"feet":[x,y,z]}}`.
   A physical-use objective has
@@ -328,8 +345,8 @@ and before the corresponding snapshot whenever shared state changes. `state` is:
   `ward_guards` prerequisite before offering or accepting the release use. Each gate change
   sends a new `map_info` before the changed mission state. The bundled M02
   graybox (`server/maps/m02-persons-unknown.json`) authors `ward_reached`
-  arrival, `companion_released` use and `party_departed` arrival, with no
-  gates and six authored encounters. The visible frame release derives from
+  arrival, `companion_released` use and `party_departed` arrival. The visible
+  frame release derives from
   completed `companion_released`; late readers receive both facts in the
   current mission state. Its independent development child has no run; a
   resumed solo run may carry the same identity and Episode I allowance from M01.
@@ -586,6 +603,10 @@ also send `map_info` before shared progress, even when the map ID stays the same
   map. It identifies the M02 contract independently of `map_id` and must match
   the subsequent `mission.state.m02.total`. Legacy maps omit it, including
   encounter-only maps whose numeric ID happens to be 1002.
+- `m02_side_ward`: true only when an M02 map authors `side_ward_guards`.
+  Omitted means false. This is the presence contract for the two-person
+  `mission.state.m02.evacuation` state. A client rejects a mission state whose
+  evacuation presence disagrees with the current map marker.
 
 Geometry bounds: finite half extent from 2 to 256; at most 2048 solids; finite
 coordinates within -512 to 512; strictly increasing X and Z bounds. Navigation
@@ -1434,16 +1455,17 @@ the on-wire campaign rules revision. No parent command changes it during a run.
 ```
 
 The readiness record names the selected mission's client contract, rather than
-the highest version understood by the server. Durable local M01 or M02 names
-18 for run carry. Independent M02 development names 17 for the ward release.
+the highest version understood by the server. Durable local M01 names 18 for
+run carry. M02 development and durable local sessions name 21 for the
+server-owned optional evacuation state.
 The local launcher checks this value exactly.
 
 `--local-mission persons_unknown` without a run mode starts the bundled M02
 graybox as a development child. It writes the same readiness line with
-`"mission":"persons_unknown"` and `"gameplay_version":17`, carries no
+`"mission":"persons_unknown"` and `"gameplay_version":21`, carries no
 `run`, and keeps development entry respawn and the shared wipe reset. With
 `--run-mode resume`, M02 receives the saved solo run from M01 or resumes its
-own entry; it requires capability 18. A new durable run must start at M01.
+own entry; it requires capability 21. A new durable run must start at M01.
 
 The port is chosen by the OS. Diagnostics use stderr. The parent validates the
 exact version, mission, requested difficulty, gameplay capability and loopback endpoint before using

@@ -13,9 +13,12 @@ pub(super) struct M02Progress {
     pub(super) gate_mask: u8,
     pub(super) support_shots: u8,
     pub(super) last_support_tick: Option<u64>,
+    evacuation: evacuation::Controller,
 }
 
 mod companion;
+mod evacuation;
+pub(crate) use evacuation::validate_route as validate_m02_evacuation_route;
 
 impl GameState {
     fn m02_encounter_complete(&self, id: &str) -> bool {
@@ -162,9 +165,37 @@ impl GameState {
                 gate_mask: progress.gate_mask,
                 ward_secured: self.m02_ward_secured(),
                 side_ward_secured: self.m02_side_ward_secured(),
+                evacuation: run
+                    .initial_map
+                    .has_m02_side_ward()
+                    .then(|| progress.evacuation.published.clone()),
                 current,
             }),
         })
+    }
+
+    pub(crate) fn advance_m02_evacuation(&mut self, dt: f32) {
+        let side_clear = self.m02_side_ward_secured();
+        let floor_clear = self.m02_encounter_complete("floor_crew");
+        let dock_clear = self.m02_encounter_complete("dock_watch");
+        let frozen = self.campaign_run_frozen();
+        let Some(run) = self.mission.as_mut() else {
+            return;
+        };
+        if run.phase != MissionPhase::InProgress || frozen {
+            return;
+        }
+        let Some(progress) = run.m02.as_mut() else {
+            return;
+        };
+        progress.evacuation.tick(
+            self.tick,
+            dt,
+            self.map.arena(),
+            side_clear,
+            floor_clear,
+            dock_clear,
+        );
     }
 
     pub(super) fn advance_m02(&mut self) {

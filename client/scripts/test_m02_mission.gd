@@ -21,7 +21,7 @@ func _expect(value: bool, message: String) -> void:
 ## The shape of the bundled graybox wire, reduced to one gate and one console.
 func _map(gate_bottom: float = 0.0) -> Dictionary:
 	return {"type": "map_info", "map_id": 1002, "map_name": "Persons Unknown: ward graybox", "geometry_version": 2,
-		"half_extent": 8, "m02_objectives": 3,
+		"half_extent": 40, "m02_objectives": 3, "m02_side_ward": true,
 		"solids": [{"min_x": -3, "max_x": -1, "bottom": 0, "top": 1.2, "min_z": -2, "max_z": -1},
 			{"min_x": -2, "max_x": 2, "bottom": gate_bottom, "top": gate_bottom + 4, "min_z": 1, "max_z": 2}],
 		"presentation": {"ground": "concrete", "solids": ["service_steel", "lift_panel"], "decorations": [
@@ -29,7 +29,9 @@ func _map(gate_bottom: float = 0.0) -> Dictionary:
 
 func _state(completed: Array, current: Variant, phase: String = "in_progress", prompts: Array = [], attempt: int = 1, tick: int = 20, secured: bool = false, side_secured: bool = false) -> Dictionary:
 	var progress: Dictionary = {"completed": completed, "total": 3, "gate_mask": 1 if completed.size() >= 2 else 0,
-		"ward_secured": secured, "side_ward_secured": side_secured}
+		"ward_secured": secured, "side_ward_secured": side_secured,
+		"evacuation": {"phase": "ready" if side_secured else "held", "captives":
+			[[22.6, 0.0, 7.5], [24.5, 0.0, 7.5]] if side_secured else [[22.6, 0.0, 9.0], [24.5, 0.0, 9.0]], "evacuated": false}}
 	if current != null:
 		progress["current"] = current
 	return {"type": "mission", "tick": tick, "state": {"id": "persons_unknown", "rules": {"difficulty": "standard", "revision": 2},
@@ -47,13 +49,51 @@ func _run() -> void:
 	var info: Dictionary = _map()
 	_expect(MapGeometry.validation_error(info).is_empty() and MissionState.map_error(info).is_empty(), "M02 marker is valid")
 	for patch: Dictionary in [{"m02_objectives": 0}, {"m02_objectives": 9}, {"m02_objectives": 1.5}, {"m02_objectives": "3"},
-		{"mission": {"id": "recall_notice"}}, {"presentation": null}]:
+		{"mission": {"id": "recall_notice"}}, {"presentation": null}, {"m02_side_ward": "true"}]:
 		var bad: Dictionary = info.duplicate(true)
 		bad.merge(patch, true)
 		_expect(not MissionState.map_error(bad).is_empty(), "invalid M02 marker rejected: " + str(patch))
 	var geometry: Dictionary = MissionState.geometry_for(info)
-	_expect(geometry.get("id") == MissionState.M02_ID and geometry.get("total") == 3, "marker binds the objective count")
+	_expect(geometry.get("id") == MissionState.M02_ID and geometry.get("total") == 3 and geometry.get("side_ward") == true,
+		"MapInfo binds the objective count and side-ward presence")
+	var stray_marker: Dictionary = info.duplicate(true)
+	stray_marker.erase("m02_objectives")
+	_expect(not MissionState.map_error(stray_marker).is_empty(), "a non-M02 map cannot advertise an M02 side ward")
 	var first: Dictionary = _state([], _arrival("ward_reached", -4))
+	var bundled_omission: Dictionary = first.duplicate(true)
+	bundled_omission["state"]["m02"].erase("evacuation")
+	_expect(not MissionState.validation_error(bundled_omission, geometry).is_empty(),
+		"the bundled side ward must include evacuation even before the guards clear")
+	var small_info: Dictionary = info.duplicate(true)
+	small_info["map_id"] = 999
+	small_info["map_name"] = "Small M02 fixture"
+	small_info["half_extent"] = 8
+	small_info.erase("m02_side_ward")
+	var small_geometry: Dictionary = MissionState.geometry_for(small_info)
+	_expect(small_geometry.get("side_ward") == false, "omitted marker means no authored side ward")
+	var no_side_ward: Dictionary = first.duplicate(true)
+	no_side_ward["state"]["m02"].erase("evacuation")
+	_expect(MissionState.map_error(small_info).is_empty() and MissionState.validation_error(no_side_ward, small_geometry).is_empty(),
+		"a small legal M02 map can omit the side-ward controller")
+	var impossible_side: Dictionary = no_side_ward.duplicate(true)
+	impossible_side["state"]["m02"]["ward_secured"] = true
+	impossible_side["state"]["m02"]["side_ward_secured"] = true
+	_expect(not MissionState.validation_error(impossible_side, small_geometry).is_empty(),
+		"side-ward success requires the controller even on a generic map")
+	_expect(not MissionState.validation_error(first, small_geometry).is_empty(),
+		"an unmarked M02 map forbids evacuation state")
+	var no_side_large: Dictionary = info.duplicate(true)
+	no_side_large["m02_side_ward"] = false
+	_expect(MissionState.map_error(no_side_large).is_empty() \
+		and MissionState.validation_error(no_side_ward, MissionState.geometry_for(no_side_large)).is_empty() \
+		and not MissionState.validation_error(first, MissionState.geometry_for(no_side_large)).is_empty(),
+		"an explicit false marker has the same no-side-ward contract regardless of map extent")
+	var small_network: CaptureNetwork = CaptureNetwork.new()
+	small_network._handle_message(JSON.stringify(small_info))
+	small_network._handle_message(JSON.stringify(no_side_ward))
+	_expect(small_network.mission.get("state", {}).get("id") == MissionState.M02_ID,
+		"the network door accepts a legal small M02 map without captive state")
+	small_network.free()
 	var ward_fight: Dictionary = _state(["ward_reached"], _use())
 	var use: Dictionary = _state(["ward_reached"], _use(), "in_progress", [{"player_id": PLAYER, "kind": "objective_use"}], 1, 20, true)
 	var exit: Dictionary = _state(["ward_reached", "companion_released"], _arrival("party_departed", 4), "in_progress", [], 1, 21, true)
@@ -87,6 +127,18 @@ func _run() -> void:
 	var missing_side_fact: Dictionary = ward_fight.duplicate(true)
 	missing_side_fact["state"]["m02"].erase("side_ward_secured")
 	invalid.append(missing_side_fact)
+	for evacuation: Dictionary in [
+		{"phase": "unknown", "captives": [[22.6, 0, 9], [24.5, 0, 9]], "evacuated": false},
+		{"phase": "held", "captives": [[22.6, 0, 9]], "evacuated": false},
+		{"phase": "held", "captives": [[22.6, 0, 9], [24.5, INF, 9]], "evacuated": false},
+		{"phase": "held", "captives": [[22.6, 1, 9], [24.5, 0, 9]], "evacuated": false},
+		{"phase": "held", "captives": [[22.6, 0, 9], [24.5, 0, 9]], "evacuated": true},
+		{"phase": "held", "captives": [[24.5, 0, 9], [22.6, 0, 9]], "evacuated": false},
+		{"phase": "moving", "captives": [[22.6, 0, 9], [24.5, 0, 9]], "evacuated": false},
+		{"phase": "held", "captives": [[22.6, 0, 9], [24.5, 0, 9]], "evacuated": false, "extra": 1}]:
+		var bad_evacuation: Dictionary = ward_fight.duplicate(true)
+		bad_evacuation["state"]["m02"]["evacuation"] = evacuation
+		invalid.append(bad_evacuation)
 	var premature_win: Dictionary = briefing.duplicate(true)
 	premature_win["state"]["m02"]["ward_secured"] = true
 	invalid.append(premature_win)
@@ -124,6 +176,47 @@ func _run() -> void:
 	var optional_retry: Dictionary = _state([], _arrival("ward_reached", -4), "in_progress", [], 2, 30)
 	_expect(MissionState.validation_error(optional_retry, geometry, optional_room).is_empty(),
 		"a retry can restore the side ward's secured fact to false")
+	var moving: Dictionary = optional_room.duplicate(true)
+	moving["tick"] = 22
+	moving["state"]["m02"]["evacuation"]["phase"] = "moving"
+	_expect(MissionState.validation_error(moving, geometry, optional_room).is_empty(), "sparse broadcasts can skip release phases")
+	var waiting: Dictionary = moving.duplicate(true)
+	waiting["tick"] = 23
+	waiting["state"]["m02"]["evacuation"] = {"phase": "waiting", "captives": [[-5.2, 0, 11], [-3.5, 0, 11]], "evacuated": false}
+	_expect(MissionState.validation_error(waiting, geometry, moving).is_empty(), "captives can wait before the dock")
+	var wrong_wait: Dictionary = waiting.duplicate(true)
+	wrong_wait["state"]["m02"]["evacuation"]["captives"][0][0] = 0.0
+	_expect(not MissionState.validation_error(wrong_wait, geometry, moving).is_empty(), "waiting feet stay at authored west-wall cover")
+	var resumed: Dictionary = waiting.duplicate(true)
+	resumed["tick"] = 24
+	resumed["state"]["m02"]["evacuation"]["phase"] = "moving"
+	_expect(MissionState.validation_error(resumed, geometry, waiting).is_empty(), "dock clear resumes movement")
+	_expect(not MissionState.validation_error(optional_room, geometry, moving).is_empty(), "evacuation cannot rewind to ready")
+	var skipped_phases: Dictionary = optional_room.duplicate(true)
+	skipped_phases["tick"] = 22
+	skipped_phases["state"]["m02"]["evacuation"] = {"phase": "evacuated", "captives": [[-1, 0, 21.5], [1, 0, 21.5]], "evacuated": true}
+	_expect(not MissionState.validation_error(skipped_phases, geometry, optional_room).is_empty(), "reliable mission state cannot skip from ready to evacuated")
+	var arrived: Dictionary = resumed.duplicate(true)
+	arrived["tick"] = 25
+	arrived["state"]["m02"]["evacuation"] = {"phase": "evacuated", "captives": [[-1, 0, 21.5], [1, 0, 21.5]], "evacuated": true}
+	_expect(MissionState.validation_error(arrived, geometry, resumed).is_empty(), "two server feet can arrive")
+	var premature_arrival: Dictionary = arrived.duplicate(true)
+	premature_arrival["state"]["m02"]["evacuation"]["captives"][1][2] = 8.0
+	_expect(not MissionState.validation_error(premature_arrival, geometry, resumed).is_empty(), "the evacuated fact needs both captives inside the dock safe region")
+	var drifting_arrival: Dictionary = arrived.duplicate(true)
+	drifting_arrival["tick"] = 26
+	drifting_arrival["state"]["m02"]["evacuation"]["captives"][0][0] = 0.0
+	_expect(not MissionState.validation_error(drifting_arrival, geometry, arrived).is_empty(), "evacuated feet stay fixed before departure")
+	var frozen: Dictionary = arrived.duplicate(true)
+	frozen["state"]["phase"] = "departed"
+	frozen["state"]["m02"]["completed"] = ["ward_reached", "companion_released", "party_departed"]
+	frozen["state"]["m02"]["gate_mask"] = 1
+	frozen["state"]["m02"].erase("current")
+	_expect(MissionState.validation_error(frozen, geometry, arrived).is_empty(), "departure may follow physical arrival")
+	var post_departure: Dictionary = frozen.duplicate(true)
+	post_departure["tick"] = 26
+	post_departure["state"]["m02"]["evacuation"]["captives"][0][0] = 1.0
+	_expect(not MissionState.validation_error(post_departure, geometry, frozen).is_empty(), "departed feet freeze")
 	_expect(MissionState.validation_error(done, geometry).is_empty(),
 		"direct departure can leave the optional side ward unsecured")
 	var retry: Dictionary = _state([], _arrival("ward_reached", -4), "in_progress", [], 2, 30)
@@ -131,9 +224,10 @@ func _run() -> void:
 	await _durable(geometry, first, done)
 	await _network(info)
 	_hud(first, ward_fight, use, exit, done)
+	_evacuation_hud(moving, waiting, arrived, frozen, no_side_ward)
 	_readable(info)
 	if failures == 0:
-		print("test_m02_mission: PASS capability 20 side ward fact, strict progress, gate map refresh, HUD and catalog keys")
+		print("test_m02_mission: PASS capability 21 evacuation, strict progress, gate map refresh, HUD and catalog keys")
 	quit(0 if failures == 0 else 1)
 
 func _durable(geometry: Dictionary, first: Dictionary, done: Dictionary) -> void:
@@ -174,6 +268,16 @@ func _durable(geometry: Dictionary, first: Dictionary, done: Dictionary) -> void
 	hud.queue_free()
 
 func _network(info: Dictionary) -> void:
+	var malformed: CaptureNetwork = CaptureNetwork.new()
+	var malformed_errors: Array[String] = []
+	malformed.server_error.connect(func(problem: String) -> void: malformed_errors.append(problem))
+	malformed._handle_message(JSON.stringify(info))
+	var missing_evacuation: Dictionary = _state([], _arrival("ward_reached", -4), "briefing", [], 1, 5)
+	missing_evacuation["state"]["m02"].erase("evacuation")
+	malformed._handle_message(JSON.stringify(missing_evacuation))
+	_expect(malformed_errors.size() == 1 and malformed.mission.is_empty(),
+		"the network door closes when the bundled map omits evacuation before guard clear")
+	malformed.free()
 	var network: CaptureNetwork = CaptureNetwork.new()
 	network._handle_message(JSON.stringify(info))
 	network._handle_message(JSON.stringify(_state([], _arrival("ward_reached", -4), "briefing", [], 1, 5)))
@@ -209,6 +313,29 @@ func _network(info: Dictionary) -> void:
 	manager.free()
 	fresh.free()
 	network.free()
+	var flipped: CaptureNetwork = CaptureNetwork.new()
+	var flip_errors: Array[String] = []
+	flipped.server_error.connect(func(problem: String) -> void: flip_errors.append(problem))
+	flipped._handle_message(JSON.stringify(info))
+	var false_refresh: Dictionary = info.duplicate(true)
+	false_refresh["m02_side_ward"] = false
+	flipped._handle_message(JSON.stringify(false_refresh))
+	_expect(flip_errors.size() == 1 and flipped.mission_geometry.is_empty(),
+		"a same-mission MapInfo refresh cannot erase the authored side ward")
+	flipped.free()
+	var switched: CaptureNetwork = CaptureNetwork.new()
+	switched._handle_message(JSON.stringify(info))
+	var another_m02: Dictionary = info.duplicate(true)
+	another_m02["map_id"] = 999
+	another_m02["half_extent"] = 8
+	another_m02.erase("m02_side_ward")
+	switched._handle_message(JSON.stringify(another_m02))
+	var no_side_state: Dictionary = _state([], _arrival("ward_reached", -4), "briefing", [], 1, 5)
+	no_side_state["state"]["m02"].erase("evacuation")
+	switched._handle_message(JSON.stringify(no_side_state))
+	_expect(switched.mission_geometry.get("side_ward") == false and switched.mission.get("state", {}).get("id") == MissionState.M02_ID,
+		"a distinct M02 map can start with no authored side ward")
+	switched.free()
 	await process_frame
 
 func _hud(first: Dictionary, ward_fight: Dictionary, use: Dictionary, exit: Dictionary, done: Dictionary) -> void:
@@ -242,6 +369,26 @@ func _hud(first: Dictionary, ward_fight: Dictionary, use: Dictionary, exit: Dict
 		"M02_USE_CONSOLE", "M02_USE_COMPANION_RELEASED", "M02_WAITING", "M02_DEPARTED",
 		"MISSION_M02_GRAYBOX", "MENU_M02_DEVELOPMENT", "MENU_EXIT_DEVELOPMENT"]:
 		_expect(tr(key) != key and not tr(key).contains("\n"), "localized single line: " + key)
+	hud.queue_free()
+
+func _evacuation_hud(moving: Dictionary, waiting: Dictionary, arrived: Dictionary, frozen: Dictionary, no_side_ward: Dictionary) -> void:
+	var hud: MissionHud = MissionHud.new()
+	root.add_child(hud)
+	hud.apply(no_side_ward["state"], PLAYER)
+	_expect(not hud._evac_badge.visible, "generic M02 has no side-ward badge")
+	hud.apply(moving["state"], PLAYER)
+	_expect(hud._evac_badge.visible and hud._evac_badge.text == "SIDE WARD: MOVING TO DOCK",
+		"moving captives have a small keyed corner status")
+	hud.apply(waiting["state"], PLAYER)
+	_expect(hud._evac_badge.text == "SIDE WARD: HOLDING FOR DOCK", "dock wait has a factual corner status")
+	hud.apply(arrived["state"], PLAYER)
+	_expect(hud._evac_badge.text == "SIDE WARD: AT DOCK", "physical arrival has its own status")
+	hud.apply(frozen["state"], PLAYER)
+	_expect(hud._evac_badge.text == "SIDE WARD: AT DOCK", "departed arrival stays factual")
+	var early_departure: Dictionary = frozen.duplicate(true)
+	early_departure["state"]["m02"]["evacuation"] = moving["state"]["m02"]["evacuation"].duplicate(true)
+	hud.apply(early_departure["state"], PLAYER)
+	_expect(hud._evac_badge.text == "SIDE WARD: OUTCOME UNCONFIRMED", "early departure does not claim the captives arrived")
 	hud.queue_free()
 
 func _lines(hud: MissionHud) -> int:

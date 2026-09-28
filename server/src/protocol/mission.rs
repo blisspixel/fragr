@@ -249,8 +249,72 @@ pub struct M02ObjectiveState {
     pub ward_secured: bool,
     /// Optional side ward guards are defeated; captives may free themselves.
     pub side_ward_secured: bool,
+    /// Present on maps that author the optional side-ward encounter.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub evacuation: Option<M02EvacuationState>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub current: Option<MissionObjective>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum M02EvacuationPhase {
+    Held,
+    Freeing,
+    Ready,
+    Moving,
+    Waiting,
+    Evacuated,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct M02EvacuationState {
+    pub phase: M02EvacuationPhase,
+    /// Grounded world feet, in the same coordinate frame as authored map feet.
+    pub captives: [[f32; 3]; 2],
+    pub evacuated: bool,
+}
+
+impl M02EvacuationState {
+    pub const HELD_FEET: [[f32; 3]; 2] = [[22.6, 0.0, 9.0], [24.5, 0.0, 9.0]];
+    pub const WAIT_FEET: [[f32; 3]; 2] = [[-5.2, 0.0, 11.0], [-3.5, 0.0, 11.0]];
+
+    pub fn held() -> Self {
+        Self {
+            phase: M02EvacuationPhase::Held,
+            captives: Self::HELD_FEET,
+            evacuated: false,
+        }
+    }
+
+    fn valid(&self, side_ward_secured: bool, briefing: bool) -> bool {
+        const DOCK_SAFE_MIN: [f32; 3] = [-2.5, 0.0, 19.0];
+        const DOCK_SAFE_MAX: [f32; 3] = [4.0, 1.0, 23.0];
+        self.evacuated == (self.phase == M02EvacuationPhase::Evacuated)
+            && (side_ward_secured || self.phase == M02EvacuationPhase::Held)
+            && (!briefing || self.phase == M02EvacuationPhase::Held)
+            && (self.phase != M02EvacuationPhase::Held
+                || self
+                    .captives
+                    .iter()
+                    .zip(Self::HELD_FEET)
+                    .all(|(feet, held)| (0..3).all(|axis| (feet[axis] - held[axis]).abs() <= 0.01)))
+            && (self.phase != M02EvacuationPhase::Waiting
+                || self
+                    .captives
+                    .iter()
+                    .zip(Self::WAIT_FEET)
+                    .all(|(feet, wait)| (0..3).all(|axis| (feet[axis] - wait[axis]).abs() <= 0.25)))
+            && self.captives.iter().all(|feet| {
+                feet.iter()
+                    .all(|v| v.is_finite() && v.abs() <= crate::movement::MAX_HALF_EXTENT)
+                    && (self.phase != M02EvacuationPhase::Evacuated
+                        || (0..3).all(|axis| {
+                            feet[axis] >= DOCK_SAFE_MIN[axis] && feet[axis] <= DOCK_SAFE_MAX[axis]
+                        }))
+            })
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -367,6 +431,10 @@ impl MissionState {
                     || m02.side_ward_secured))
             || (m02.completed.iter().any(|id| id == "companion_released") && !m02.ward_secured)
             || (m02.side_ward_secured && !m02.ward_secured)
+            || (m02.side_ward_secured && m02.evacuation.is_none())
+            || m02.evacuation.as_ref().is_some_and(|evacuation| {
+                !evacuation.valid(m02.side_ward_secured, self.phase == MissionPhase::Briefing)
+            })
         {
             return Err("invalid M02 objective progress");
         }
@@ -456,6 +524,7 @@ mod m02_wire_tests {
                 gate_mask: 0,
                 ward_secured: true,
                 side_ward_secured: false,
+                evacuation: Some(M02EvacuationState::held()),
                 current: Some(MissionObjective {
                     id: "companion_released".into(),
                     action: MissionObjectiveAction::Use {
@@ -494,6 +563,58 @@ mod m02_wire_tests {
         let mut wrong_side: serde_json::Value = serde_json::from_str(&json).unwrap();
         wrong_side["m02"]["side_ward_secured"] = serde_json::json!(1);
         assert!(serde_json::from_value::<MissionState>(wrong_side).is_err());
+        let mut missing_evacuation: serde_json::Value = serde_json::from_str(&json).unwrap();
+        missing_evacuation["m02"]
+            .as_object_mut()
+            .unwrap()
+            .remove("evacuation");
+        let fixture_without_side: MissionState =
+            serde_json::from_value(missing_evacuation).unwrap();
+        fixture_without_side.validate(2).unwrap();
+        let mut missing_after_side_clear = fixture_without_side.clone();
+        missing_after_side_clear
+            .m02
+            .as_mut()
+            .unwrap()
+            .side_ward_secured = true;
+        assert!(missing_after_side_clear.validate(2).is_err());
+        let mut extra_captive: serde_json::Value = serde_json::from_str(&json).unwrap();
+        extra_captive["m02"]["evacuation"]["captives"] =
+            serde_json::json!([[22.6, 0, 9], [24.5, 0, 9], [0, 0, 0]]);
+        assert!(serde_json::from_value::<MissionState>(extra_captive).is_err());
+        let mut wrong_phase: serde_json::Value = serde_json::from_str(&json).unwrap();
+        wrong_phase["m02"]["evacuation"]["phase"] = serde_json::json!("teleported");
+        assert!(serde_json::from_value::<MissionState>(wrong_phase).is_err());
+        let mut dishonest = valid.clone();
+        dishonest
+            .m02
+            .as_mut()
+            .unwrap()
+            .evacuation
+            .as_mut()
+            .unwrap()
+            .evacuated = true;
+        assert!(dishonest.validate(2).is_err());
+        let mut displaced = valid.clone();
+        displaced
+            .m02
+            .as_mut()
+            .unwrap()
+            .evacuation
+            .as_mut()
+            .unwrap()
+            .captives[0][0] = 1.0;
+        assert!(displaced.validate(2).is_err());
+        let mut false_wait = valid.clone();
+        let evacuation = false_wait
+            .m02
+            .as_mut()
+            .unwrap()
+            .evacuation
+            .as_mut()
+            .unwrap();
+        evacuation.phase = M02EvacuationPhase::Waiting;
+        assert!(false_wait.validate(2).is_err());
         let mut premature_side = valid.clone();
         premature_side.m02.as_mut().unwrap().side_ward_secured = true;
         premature_side.m02.as_mut().unwrap().ward_secured = false;

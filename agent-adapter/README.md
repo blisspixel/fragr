@@ -13,11 +13,11 @@ and the map version in observations, and closes its MCP game session if a map
 has unsupported or invalid geometry, or the server sends malformed JSON.
 Ground-filled legacy maps remain readable.
 
-The adapter declares gameplay capability 19. Every discovery map requires at
+The adapter declares gameplay capability 21. Every discovery map requires at
 least 12 for all roles; M01 solo runs require 18 for the per-level continue
-baseline. M02 development parties and durable M02 runs require 19 for the
-server-owned Latch companion after the seated Clerk, Crawler stair, and separate
-ward-victory and release facts. The six full-arsenal arcade maps still admit 1.
+baseline. M02 development parties and durable M02 runs require 21 for the
+server-owned Latch companion and optional captive evacuation state. The six
+full-arsenal arcade maps still admit 1.
 Older clients are rejected before admission. `observe.loadout` is private to
 this participant: selected and owned weapons (`["fists","tack"]`),
 one `ammo` count per pool (`bullets`, `shells`, `cells`), personal supply
@@ -49,10 +49,16 @@ and the boarding area. `act.interact: true` presses Use; release with `false`
 before another press. Range, aim, sight, gate changes and departure remain server
 decisions. The shared local controller walks to mission controls when it has no
 combat or equipment target. Map changes replace navigation even with the same ID.
-For the M02 preparatory graybox, `observe.mission.m02` carries completed IDs,
-objective count, prepared gate mask, the server-owned `ward_secured` fact and
-the current arrival region or physical
-use target. The target's decoration index refers to `observe.map.presentation`.
+For the M02 development mission, `observe.mission.m02` carries completed IDs,
+objective count, prepared gate mask, the server-owned `ward_secured` and
+`side_ward_secured` facts. `observe.map.m02_side_ward` identifies whether the
+authored map has the optional room. When true, the mission state also carries
+`evacuation` with its phase, two server-owned world-feet positions and final
+`evacuated` fact. Freeing the side ward and evacuating both captives are
+separate facts. This optional movement never gates
+player departure. The mission state also carries the current arrival region or
+physical use target. The target's decoration index refers to
+`observe.map.presentation`.
 `observe.map.m02_objectives` is present only for M02 and matches the mission's
 objective count; numeric map IDs alone do not identify a mission.
 M02 presentations may also contain `gate_locked` and `gate_open` lamp panels.

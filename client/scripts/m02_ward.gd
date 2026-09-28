@@ -23,6 +23,9 @@ var _secured: bool = false
 var _released: bool = false
 var _side_secured: bool = false
 var _side_release_elapsed: float = -1.0
+var _side_targets: Array[Vector3] = []
+var _side_evacuation_phase: String = "held"
+var _side_walk_time: float = 0.0
 var _companion_moving: bool = false
 var _companion_phase_known: bool = false
 var _awaiting_companion_snapshot: bool = false
@@ -62,6 +65,7 @@ func configure_map(info: Dictionary) -> void:
 		return
 	_build()
 	_set_visual(0.0, false)
+	_set_side_present(false)
 
 func clear_map() -> void:
 	if is_instance_valid(_root):
@@ -83,6 +87,9 @@ func clear_map() -> void:
 	_released = false
 	_side_secured = false
 	_side_release_elapsed = -1.0
+	_side_targets.clear()
+	_side_evacuation_phase = "held"
+	_side_walk_time = 0.0
 	_companion_moving = false
 	_companion_phase_known = false
 	_awaiting_companion_snapshot = false
@@ -95,6 +102,8 @@ func apply_state(state: Dictionary) -> void:
 	if not _built or state.get("id") != MissionState.M02_ID or not state.get("m02") is Dictionary:
 		return
 	var progress: Dictionary = state["m02"]
+	var has_evacuation: bool = progress.get("evacuation") is Dictionary
+	_set_side_present(has_evacuation)
 	var attempt: int = int(state["attempt"])
 	var secured: bool = bool(progress["ward_secured"])
 	var side_secured: bool = bool(progress["side_ward_secured"])
@@ -114,6 +123,8 @@ func apply_state(state: Dictionary) -> void:
 		_release_elapsed = -1.0
 		_set_visual(END_SECONDS if released else 0.0, released)
 		_set_side_visual(_side_release_elapsed)
+		if has_evacuation:
+			_apply_evacuation(progress["evacuation"], true)
 		set_companion_phase("unresolved" if state_first_release else ("following" if first_snapshot_moving else "releasing"))
 		if released:
 			_show_caption("M02_RELEASE_RECAP", 8.0)
@@ -133,6 +144,8 @@ func apply_state(state: Dictionary) -> void:
 		_release_elapsed = 0.0
 		_set_visual(0.0, true)
 		_show_caption("M02_LATCH_RELEASE", SECOND_OPEN_END)
+	if has_evacuation:
+		_apply_evacuation(progress["evacuation"], false)
 
 ## A snapshot owns the transition from tableau figure to moving companion.
 ## The fixed figure stays through the full server releasing phase, including
@@ -162,6 +175,18 @@ func _process(delta: float) -> void:
 	if _side_release_elapsed >= 0.0 and _side_release_elapsed < SIDE_RELEASE_SECONDS:
 		_side_release_elapsed = minf(_side_release_elapsed + delta, SIDE_RELEASE_SECONDS)
 		_set_side_visual(_side_release_elapsed)
+	if _side_targets.size() == _side_captives.size():
+		_side_walk_time += delta
+		for index: int in range(_side_captives.size()):
+			var captive: Node3D = _side_captives[index]
+			var to_target: Vector3 = _side_targets[index] - captive.position
+			captive.position = captive.position.lerp(_side_targets[index], clampf(delta * 8.0, 0.0, 1.0))
+			var walking: bool = _side_evacuation_phase in ["freeing", "moving"] and to_target.length() > 0.02
+			if walking and _side_evacuation_phase == "moving":
+				captive.rotation.y = lerp_angle(captive.rotation.y, atan2(to_target.x, to_target.z), clampf(delta * 6.0, 0.0, 1.0))
+			var stride: float = sin(_side_walk_time * TAU * 1.5 + index * 0.6) * 0.24 if walking else 0.0
+			(captive.get_node("LeftLeg") as Node3D).rotation.x = stride
+			(captive.get_node("RightLeg") as Node3D).rotation.x = -stride
 	if _caption_left > 0.0:
 		_caption_left = maxf(0.0, _caption_left - delta)
 		_card.visible = _caption_left > 0.0
@@ -206,8 +231,7 @@ func _set_visual(seconds: float, released: bool) -> void:
 func _set_machine_stopped(stopped: bool) -> void:
 	_machine_lamp.material_override = _machine_stopped if stopped else _machine_running
 
-## These figures are a reading of the encounter fact. Their movement has no
-## collision or mission authority, and a late reader receives the settled pose.
+## The local release animates the restraints and pose. The server owns feet.
 func _set_side_visual(seconds: float) -> void:
 	if _side_captives.size() != SIDE_CAPTIVE_FEET.size():
 		return
@@ -216,11 +240,29 @@ func _set_side_visual(seconds: float) -> void:
 	for index: int in range(_side_captives.size()):
 		_side_left_bars[index].position.x = -0.44 - 0.55 * open
 		_side_right_bars[index].position.x = 0.44 + 0.55 * open
-		_side_captives[index].position = SIDE_CAPTIVE_FEET[index] + Vector3(0.0, 0.0, -1.5 * step)
 		_side_captives[index].rotation.y = PI + (0.28 if index == 0 else -0.28) * step
 		(_side_captives[index].get_node("LeftArm") as Node3D).rotation.x = -0.7 * step
 		(_side_captives[index].get_node("RightArm") as Node3D).rotation.x = -0.7 * step
 	_side_lamp.material_override = _machine_stopped if _side_secured else _machine_running
+
+func _set_side_present(present: bool) -> void:
+	for captive: Node3D in _side_captives:
+		captive.visible = present
+	for bar: Node3D in _side_left_bars:
+		bar.visible = present
+	for bar: Node3D in _side_right_bars:
+		bar.visible = present
+	if is_instance_valid(_side_lamp):
+		_side_lamp.visible = present
+
+func _apply_evacuation(state: Dictionary, immediate: bool) -> void:
+	_side_evacuation_phase = state["phase"]
+	_side_targets.clear()
+	for feet: Array in state["captives"]:
+		_side_targets.append(Vector3(float(feet[0]), float(feet[1]), float(feet[2])))
+	if immediate:
+		for index: int in range(_side_captives.size()):
+			_side_captives[index].position = _side_targets[index]
 
 func _show_caption(key: String, seconds: float) -> void:
 	_caption_key = key
@@ -324,6 +366,7 @@ func _figure(label: String, shell: StandardMaterial3D, joints: StandardMaterial3
 	_box(figure, "Head", Vector3(0.0, 1.9, 0.0), Vector3(0.36, 0.32, 0.32), shell)
 	for side: float in [-1.0, 1.0]:
 		var leg: Node3D = Node3D.new()
+		leg.name = "RightLeg" if side > 0.0 else "LeftLeg"
 		leg.position = Vector3(side * 0.18, 0.62, 0.0)
 		figure.add_child(leg)
 		_box(leg, "Leg", Vector3(0.0, -0.24, 0.0), Vector3(0.21, 0.68, 0.22), joints)

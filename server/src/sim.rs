@@ -1258,6 +1258,7 @@ impl GameState {
                 .map
                 .m02_objectives()
                 .and_then(|objectives| u8::try_from(objectives.len()).ok()),
+            m02_side_ward: self.map.has_m02_side_ward(),
             map_id: self.map.id(),
             map_name: self.map.name().to_string(),
             half_extent: self.map.half_extent(),
@@ -1694,6 +1695,7 @@ impl GameState {
 
         self.update_campaign_run();
         self.advance_mission();
+        self.advance_m02_evacuation(dt);
         for id in respawn_ids {
             self.do_respawn(id);
         }

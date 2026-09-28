@@ -148,14 +148,14 @@ func _development(fixture: Fixture, child: FakeProcess) -> void:
 	var record: Dictionary = JSON.parse_string(RECORD)
 	var m02: Dictionary = record.duplicate()
 	m02["mission"] = "persons_unknown"
-	m02["gameplay_version"] = 20
+	m02["gameplay_version"] = 21
 	var bytes: PackedByteArray = JSON.stringify(m02).to_ascii_buffer()
 	_expect(not LocalMatch.readiness_url(bytes, "standard", "persons_unknown", "").is_empty(), "development M02 readiness names its own contract")
 	_expect(LocalMatch.readiness_url(bytes).is_empty(), "an M02 child cannot satisfy an M01 launch")
 	_expect(LocalMatch.readiness_url(JSON.stringify(record).to_ascii_buffer(), "standard", "persons_unknown", "").is_empty(), "an M01 child cannot satisfy an M02 launch")
 	var old: Dictionary = m02.duplicate()
-	old["gameplay_version"] = 19
-	_expect(LocalMatch.readiness_url(JSON.stringify(old).to_ascii_buffer(), "standard", "persons_unknown", "").is_empty(), "development M02 requires the capability 20 contract")
+	old["gameplay_version"] = 20
+	_expect(LocalMatch.readiness_url(JSON.stringify(old).to_ascii_buffer(), "standard", "persons_unknown", "").is_empty(), "development M02 requires the capability 21 contract")
 	_expect(LocalMatch.readiness_url(bytes, "standard", "m03").is_empty(), "an unregistered mission fails closed")
 	var starts: int = child.starts
 	_expect(not fixture.start_mission("standard", "new", "persons_unknown") and child.starts == starts, "M02 refuses a run mode")
@@ -170,14 +170,14 @@ func _development(fixture: Fixture, child: FakeProcess) -> void:
 	_expect(fixture.error_key == "LOCAL_SERVER_STOPPED", "a stopped M02 child is reported")
 	fixture.stop()
 	var durable: Dictionary = m02.duplicate()
-	durable["gameplay_version"] = 20
+	durable["gameplay_version"] = 21
 	child.expected = PackedStringArray(["--local-mission", "persons_unknown", "--run-mode", "resume", "--difficulty", "standard"])
 	_expect(fixture.start_mission("standard", "resume", "persons_unknown"), "saved M02 resumes as a durable child")
 	child.output = JSON.stringify(durable).to_ascii_buffer() + PackedByteArray([10])
 	fixture._process(0)
-	_expect(fixture.state == LocalMatch.State.RUNNING and fixture.has_durable_run(), "durable M02 requires capability 20")
+	_expect(fixture.state == LocalMatch.State.RUNNING and fixture.has_durable_run(), "durable M02 requires capability 21")
 	_expect(not LocalMatch.readiness_url(bytes, "standard", "persons_unknown", "resume").is_empty(),
-		"both M02 launch modes use the same capability 20 readiness envelope")
+		"both M02 launch modes use the same capability 21 readiness envelope")
 	child.alive = false
 	fixture._process(0)
 	fixture.stop()

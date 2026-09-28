@@ -19,6 +19,9 @@ captives before and after their guards fall.
 The [M02 maintenance plan](../plans/m02-maintenance-circulation.md) links
 first-person frames of the ground service fork, its antechamber rejoin, and
 the side ward's second return onto the processing floor.
+The [M02 evacuation evidence](m02-evacuation/README.md) shows the optional
+captives leaving the ward, waiting behind the dock wall, and arriving at the
+loading exit through a server-owned route.
 Inspect every frame before it is named anywhere. A nonblank image is not
 proof of good art. The README embeds four files and no more: `tour_menu_16x9.png`,
 `m01_intake_16x9.png`, `tour_multiplayer_16x9.png`, and `tour_combat_follow_16x9.png`.

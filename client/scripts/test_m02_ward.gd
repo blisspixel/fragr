@@ -26,6 +26,8 @@ func _map() -> Dictionary:
 func _state(attempt: int, secured: bool, released: bool, side_secured: bool = false) -> Dictionary:
 	return {"id": MissionState.M02_ID, "attempt": attempt, "m02": {
 		"ward_secured": secured, "side_ward_secured": side_secured,
+		"evacuation": {"phase": "ready" if side_secured else "held", "captives":
+			[[22.6, 0.0, 7.5], [24.5, 0.0, 7.5]] if side_secured else [[22.6, 0.0, 9.0], [24.5, 0.0, 9.0]], "evacuated": false},
 		"completed": ["ward_reached", "companion_released"] if released else ["ward_reached"]}}
 
 func _run() -> void:
@@ -35,13 +37,15 @@ func _run() -> void:
 	_check(not ward._built, "the setpiece stays off unrelated maps")
 	ward.configure_map(_map())
 	_check(ward._built and ward._latch != null and ward._other_captive != null, "the bundled ward has two visible figures")
-	_check(ward._side_captives.size() == 2 and ward._side_captives[0].visible and ward._side_captives[1].visible,
-		"the side ward starts with two visible captives")
+	_check(ward._side_captives.size() == 2 and not ward._side_captives[0].visible and not ward._side_captives[1].visible,
+		"side-ward figures wait for the optional server state")
 	for part: Node in ward._latch.find_children("*", "VisualInstance3D", true, false):
 		_check((part as VisualInstance3D).layers == ArenaSky.ACTOR_LAYERS,
 			"the fixed and moving Latch share the facility actor lighting layer")
 	_check(ward._transfer_list != null and not ward._transfer_list.visible, "the transfer list is hidden until release")
 	ward.apply_state(_state(1, false, false))
+	_check(ward._side_captives[0].visible and ward._side_captives[1].visible,
+		"two figures appear only after the server supplies evacuation state")
 	_check(not ward._secured and not ward._released and ward._release_elapsed < 0.0, "initial projection keeps Latch restrained")
 	_check(ward._side_release_elapsed < 0.0 and ward._side_left_bars[0].position.x > -0.5,
 		"the optional captives remain behind their restraints before a server win")
@@ -128,6 +132,28 @@ func _run() -> void:
 	ward.set_companion_phase("following")
 	_check(not ward._latch.visible and ward._transfer_list.visible,
 		"the first following snapshot hands visible Latch to the moving server pawn")
+	var route: Dictionary = _state(1, true, true, true)
+	route["m02"]["evacuation"] = {"phase": "moving", "captives": [[18.0, 0.0, 9.0], [19.0, 0.0, 9.0]], "evacuated": false}
+	var before_route: Vector3 = ward._side_captives[0].position
+	ward.apply_state(route)
+	ward._process(0.05)
+	_check(ward._side_captives[0].position.x < before_route.x and ward._side_captives[0].position.x > 18.0,
+		"moving captives interpolate toward server feet without a snap")
+	_check((ward._side_captives[0].get_node("LeftLeg") as Node3D).rotation.x != 0.0,
+		"server-driven travel has a visible walking pose")
+	ward._process(1.0)
+	_check(ward._side_captives[0].position.distance_to(Vector3(18.0, 0.0, 9.0)) < 0.01,
+		"the first captive reaches the server sample")
+	route["m02"]["evacuation"] = {"phase": "waiting", "captives": [[10.0, 0.0, 11.0], [11.0, 0.0, 11.0]], "evacuated": false}
+	ward.apply_state(route)
+	ward._process(0.25)
+	_check(ward._side_captives[0].position.distance_to(Vector3(10.0, 0.0, 11.0)) < 0.01,
+		"both figures can wait at the authoritative floor positions")
+	route["m02"]["evacuation"] = {"phase": "evacuated", "captives": [[1.0, 0.0, 20.0], [2.0, 0.0, 20.0]], "evacuated": true}
+	ward.apply_state(route)
+	ward._process(0.25)
+	_check(ward._side_captives[0].position.distance_to(Vector3(1.0, 0.0, 20.0)) < 0.01,
+		"both figures appear at the authoritative dock arrival, without inventing success")
 	ward.apply_state(_state(2, false, false))
 	_check(not ward._secured and not ward._released and ward._latch.visible
 		and not ward._transfer_list.visible and ward._second_left.position.x > -0.5,
@@ -135,6 +161,21 @@ func _run() -> void:
 	_check(ward._side_release_elapsed < 0.0 and ward._side_captives[0].position == M02Ward.SIDE_CAPTIVE_FEET[0]
 		and ward._side_left_bars[0].position.x > -0.5,
 		"retry reconstructs both side captives behind their restraints")
+	ward.clear_map()
+	ward.configure_map(_map())
+	var no_side_ward: Dictionary = _state(2, false, false)
+	no_side_ward["m02"].erase("evacuation")
+	ward.apply_state(no_side_ward)
+	_check(not ward._side_captives[0].visible and not ward._side_captives[1].visible,
+		"a legal M02 map without side-ward state draws no captive figures")
+	ward.clear_map()
+	ward.configure_map(_map())
+	var joined_route: Dictionary = _state(2, true, true, true)
+	joined_route["m02"]["evacuation"] = {"phase": "waiting", "captives": [[-5.2, 0.0, 11.0], [-3.5, 0.0, 11.0]], "evacuated": false}
+	ward.apply_state(joined_route)
+	_check(ward._side_captives[0].position == Vector3(-5.2, 0.0, 11.0)
+		and ward._side_captives[1].position == Vector3(-3.5, 0.0, 11.0),
+		"a late observer starts both figures at the server's current feet without replaying travel")
 	ward.clear_map()
 	ward.configure_map(_map())
 	ward.apply_state(_state(2, true, true, true))

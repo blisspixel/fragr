@@ -1409,6 +1409,7 @@ async fn agent_task(
             Ok(ServerMessage::MapInfo {
                 map_id,
                 m02_objectives,
+                m02_side_ward,
                 solids,
                 half_extent,
                 geometry_version,
@@ -1422,6 +1423,7 @@ async fn agent_task(
                     .replace_map_with_id(
                         map_id,
                         m02_objectives,
+                        m02_side_ward,
                         mission.as_ref(),
                         half_extent,
                         &solids,

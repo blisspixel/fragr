@@ -29,6 +29,15 @@ impl PartialEq<MapKind> for RuntimeMap {
 }
 
 impl RuntimeMap {
+    /// The authored side-ward encounter controls the matching map and mission wire marker.
+    pub(crate) fn has_m02_side_ward(&self) -> bool {
+        self.m02_objectives().is_some()
+            && self
+                .encounters()
+                .iter()
+                .any(|encounter| encounter.id == "side_ward_guards")
+    }
+
     pub(crate) fn m02_objectives(&self) -> Option<&super::authored::m02::Prepared> {
         match self {
             Self::BuiltIn(_) => None,

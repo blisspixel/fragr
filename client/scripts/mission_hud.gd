@@ -13,6 +13,7 @@ var _stage_left: float = 0.0
 var _card: PanelContainer
 var _copy: Label
 var _run_badge: Label
+var _evac_badge: Label
 ## Use and continue prompts carry the key or pad glyph for the device in the
 ## player's hands, so they are rich text. The plain strings are kept beside
 ## them for tests and for anything that reads the HUD as text.
@@ -38,6 +39,10 @@ func _ready() -> void:
 	_run_badge = _label(16)
 	_run_badge.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	add_child(_run_badge)
+	_evac_badge = _label(15)
+	_evac_badge.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	_evac_badge.add_theme_color_override("font_color", MenuTheme.EMBER)
+	add_child(_evac_badge)
 	_prompt = _rich(22)
 	add_child(_prompt)
 	_recovery = PanelContainer.new()
@@ -119,6 +124,8 @@ func _process(delta: float) -> void:
 	_copy.custom_minimum_size.x = width - 32.0
 	_run_badge.position = Vector2(viewport.x - width - 24.0, 45.0)
 	_run_badge.size = Vector2(width, 0.0)
+	_evac_badge.position = Vector2(viewport.x - width - 24.0, 132.0)
+	_evac_badge.size = Vector2(width, 0.0)
 	_prompt.position = Vector2(viewport.x * 0.2, viewport.y * 0.64)
 	_prompt.size = Vector2(viewport.x * 0.6, 0.0)
 	var recovery_width: float = minf(660.0, viewport.x - 48.0)
@@ -133,6 +140,7 @@ func _refresh() -> void:
 	if not visible:
 		_copy.text = ""
 		_run_badge.visible = false
+		_evac_badge.visible = false
 		_show_prompt("")
 		_card.visible = false
 		return
@@ -140,6 +148,7 @@ func _refresh() -> void:
 		_refresh_m02()
 		return
 	_run_badge.visible = false
+	_evac_badge.visible = false
 	var lines: Array[String] = [tr("MISSION_M01_TITLE"), tr("DIFFICULTY_" + String(state["rules"]["difficulty"]).to_upper()), ""]
 	_recovery.visible = false
 	if state.get("run") is Dictionary:
@@ -209,6 +218,14 @@ func _refresh_m02() -> void:
 		_run_badge.text = tr("RUN_LEVEL_BADGE").format({"attempt": int(state["attempt"]), "continues": int(run["continues"])})
 		_refresh_run_recovery(run)
 	var progress: Dictionary = state["m02"]
+	var evacuation: Dictionary = progress.get("evacuation", {})
+	var evac_phase: String = str(evacuation.get("phase", "held"))
+	_evac_badge.visible = not evacuation.is_empty() and evac_phase != "held"
+	if _evac_badge.visible:
+		var key: String = "M02_EVAC_" + evac_phase.to_upper()
+		if state["phase"] == "departed" and not evacuation["evacuated"]:
+			key = "M02_EVAC_UNCONFIRMED"
+		_evac_badge.text = _catalog(key)
 	var line: String = ""
 	match state["phase"]:
 		"briefing":

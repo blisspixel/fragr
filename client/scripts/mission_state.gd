@@ -15,6 +15,8 @@ static func map_error(info: Dictionary) -> String:
 	var m02_problem: String = m02_map_error(info)
 	if not m02_problem.is_empty() or info.get("m02_objectives") != null:
 		return m02_problem
+	if info.has("m02_side_ward") and (not info["m02_side_ward"] is bool or info["m02_side_ward"]):
+		return INVALID
 	var value: Variant = info.get("mission")
 	if value == null:
 		return ""
@@ -165,6 +167,11 @@ const M02_ID: String = "persons_unknown"
 const M02_PHASES: Array[String] = ["briefing", "in_progress", "departed"]
 const M02_DEPARTURE: String = "party_departed"
 const M02_MAX_OBJECTIVES: int = 8
+const M02_EVAC_PHASES: Array[String] = ["held", "freeing", "ready", "moving", "waiting", "evacuated"]
+const M02_HELD_FEET: Array[Vector3] = [Vector3(22.6, 0.0, 9.0), Vector3(24.5, 0.0, 9.0)]
+const M02_WAIT_FEET: Array[Vector3] = [Vector3(-5.2, 0.0, 11.0), Vector3(-3.5, 0.0, 11.0)]
+const M02_DOCK_SAFE_MIN: Vector2 = Vector2(-2.5, 19.0)
+const M02_DOCK_SAFE_MAX: Vector2 = Vector2(4.0, 23.0)
 
 static func m02_map_error(info: Dictionary) -> String:
 	var count: Variant = info.get("m02_objectives")
@@ -172,6 +179,7 @@ static func m02_map_error(info: Dictionary) -> String:
 		return ""
 	var presentation: Variant = info.get("presentation")
 	if info.get("mission") != null or not EquipmentState.integer(count, M02_MAX_OBJECTIVES) or int(count) < 1 \
+		or not info.get("m02_side_ward", false) is bool \
 		or not presentation is Dictionary or not presentation.get("decorations") is Array:
 		return INVALID
 	return ""
@@ -185,7 +193,8 @@ static func geometry_for(info: Dictionary) -> Dictionary:
 	var kinds: Array[String] = []
 	for detail: Dictionary in info["presentation"]["decorations"]:
 		kinds.append(str(detail["kind"]))
-	return {"id": M02_ID, "total": int(info["m02_objectives"]), "half_extent": float(info["half_extent"]), "kinds": kinds}
+	return {"id": M02_ID, "map_id": int(info["map_id"]), "total": int(info["m02_objectives"]), "half_extent": float(info["half_extent"]),
+		"kinds": kinds, "side_ward": bool(info.get("m02_side_ward", false))}
 
 static func m02_validation_error(message: Dictionary, geometry: Dictionary, previous: Dictionary = {}) -> String:
 	var value: Variant = message.get("state")
@@ -207,7 +216,10 @@ static func m02_validation_error(message: Dictionary, geometry: Dictionary, prev
 	if not progress.get("completed") is Array or not EquipmentState.integer(progress.get("total"), M02_MAX_OBJECTIVES) \
 		or int(progress["total"]) != total or not EquipmentState.integer(progress.get("gate_mask"), 7) \
 		or not progress.get("ward_secured") is bool or not progress.get("side_ward_secured") is bool \
-		or progress.size() != (6 if progress.has("current") else 5):
+		or progress.size() != ((7 if progress.has("current") else 6) if progress.has("evacuation") else (6 if progress.has("current") else 5)) \
+		or progress.has("evacuation") != geometry.get("side_ward", false) \
+		or (not progress.has("evacuation") and progress["side_ward_secured"]) \
+		or (progress.has("evacuation") and not _m02_evacuation_valid(progress["evacuation"], progress, value["phase"], float(geometry["half_extent"]))):
 		return INVALID
 	var completed: Array = progress["completed"]
 	var departed: bool = value["phase"] == "departed"
@@ -247,7 +259,9 @@ static func m02_validation_error(message: Dictionary, geometry: Dictionary, prev
 			var before: Array = old["m02"]["completed"]
 			if completed.size() < before.size() or completed.slice(0, before.size()) != before \
 				or (old["m02"]["ward_secured"] and not progress["ward_secured"]) \
-				or (old["m02"]["side_ward_secured"] and not progress["side_ward_secured"]):
+				or (old["m02"]["side_ward_secured"] and not progress["side_ward_secured"]) \
+				or progress.has("evacuation") != old["m02"].has("evacuation") \
+				or (progress.has("evacuation") and not _m02_evacuation_follows(progress["evacuation"], old["m02"]["evacuation"], old["phase"])):
 				return INVALID
 	var party: Dictionary = {}
 	for member: Variant in value["party"]:
@@ -271,6 +285,44 @@ static func m02_validation_error(message: Dictionary, geometry: Dictionary, prev
 			return INVALID
 		prompted.append(prompt["player_id"])
 	return ""
+
+static func _m02_evacuation_valid(value: Variant, progress: Dictionary, mission_phase: String, half: float) -> bool:
+	if not value is Dictionary or value.size() != 3 or not value.get("phase") is String \
+		or value["phase"] not in M02_EVAC_PHASES or not value.get("evacuated") is bool \
+		or not value.get("captives") is Array or value["captives"].size() != 2:
+		return false
+	for index: int in range(2):
+		var feet: Variant = value["captives"][index]
+		if not _point(feet, half) or absf(float(feet[1])) > 0.001:
+			return false
+		if value["phase"] == "held" and Vector3(float(feet[0]), float(feet[1]), float(feet[2])).distance_to(M02_HELD_FEET[index]) > 0.01:
+			return false
+		if value["phase"] == "waiting" and Vector3(float(feet[0]), float(feet[1]), float(feet[2])).distance_to(M02_WAIT_FEET[index]) > 0.25:
+			return false
+	var phase: String = value["phase"]
+	if phase == "evacuated":
+		for feet: Array in value["captives"]:
+			if float(feet[0]) < M02_DOCK_SAFE_MIN.x or float(feet[0]) > M02_DOCK_SAFE_MAX.x \
+				or float(feet[2]) < M02_DOCK_SAFE_MIN.y or float(feet[2]) > M02_DOCK_SAFE_MAX.y:
+				return false
+	return value["evacuated"] == (phase == "evacuated") \
+		and (progress["side_ward_secured"] or phase == "held") \
+		and (mission_phase != "briefing" or phase == "held")
+
+static func _m02_evacuation_follows(current: Dictionary, previous: Dictionary, old_mission_phase: String) -> bool:
+	if old_mission_phase == "departed" or previous["phase"] == "evacuated":
+		return current == previous
+	if current["phase"] == previous["phase"]:
+		return true
+	# Mission changes use the reliable ordered WebSocket door. The server sends
+	# every phase edge, including the wait-to-move restart, before new positions.
+	match previous["phase"]:
+		"held": return current["phase"] == "freeing"
+		"freeing": return current["phase"] == "ready"
+		"ready": return current["phase"] == "moving"
+		"moving": return current["phase"] in ["waiting", "evacuated"]
+		"waiting": return current["phase"] == "moving"
+	return false
 
 static func _m02_objective_error(current: Variant, geometry: Dictionary, completed: Array[String]) -> String:
 	if not current is Dictionary or current.size() != 2 or not valid_objective_id(current.get("id")) \

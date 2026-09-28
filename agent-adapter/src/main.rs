@@ -440,9 +440,9 @@ async fn run_scripted_bot(
                             loadout = Some(next);
                         }
                         ServerMessage::Snapshot(snapshot) => last_snapshot = Some(snapshot),
-                        ServerMessage::MapInfo { map_id, m02_objectives, half_extent, solids, geometry_version, presentation, mission, .. } => {
+                        ServerMessage::MapInfo { map_id, m02_objectives, m02_side_ward, half_extent, solids, geometry_version, presentation, mission, .. } => {
                             protocol::validate_map_presentation(presentation.as_ref(), &solids)?;
-                            mission_client.replace_map_with_id(map_id, m02_objectives, mission.as_ref(), half_extent, &solids, presentation.as_ref()).map_err(io::Error::other)?;
+                            mission_client.replace_map_with_id(map_id, m02_objectives, m02_side_ward, mission.as_ref(), half_extent, &solids, presentation.as_ref()).map_err(io::Error::other)?;
                             protocol::validate_map_geometry(half_extent, &solids, geometry_version)
                                 .map_err(io::Error::other)?;
                             let arena = fragr_server::movement::Arena { half: half_extent, solids };
@@ -2023,6 +2023,7 @@ mod tests {
                 rules: None,
                 mission: None,
                 m02_objectives: None,
+                m02_side_ward: false,
                 presentation: None,
                 map_id: 1,
                 map_name: "Raised fixture".into(),

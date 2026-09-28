@@ -271,6 +271,19 @@ impl AuthoredMap {
         let supplies = supplies::build(doc.supplies, doc.equipment, &arena, &mut seen)?;
         encounters::validate(&doc.encounters, doc.equipment, &arena, &mut seen)?;
         let navigation = Navigation::shared(arena.clone()).map_err(invalid)?;
+        // The optional M02 room has its own grounded captive route. Check it
+        // in the prepared raised-shutter world before admitting a party.
+        if doc
+            .encounters
+            .iter()
+            .any(|encounter| encounter.id == "side_ward_guards")
+        {
+            let released = m02
+                .as_ref()
+                .and_then(|prepared| prepared.world(1))
+                .ok_or_else(|| invalid("M02 side ward requires a released gate world"))?;
+            crate::mission::validate_m02_evacuation_route(released.1).map_err(invalid)?;
+        }
         let opened_navigation = mission
             .as_ref()
             .map(|m| Navigation::shared(m.opened.clone()).map_err(invalid))

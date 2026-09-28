@@ -1075,6 +1075,7 @@ pub fn ingest_server_text(state: &mut ToolState, text: &str) -> Result<(), &'sta
         Ok(protocol::ServerMessage::MapInfo {
             map_id,
             m02_objectives,
+            m02_side_ward,
             map_name,
             half_extent,
             solids,
@@ -1088,6 +1089,7 @@ pub fn ingest_server_text(state: &mut ToolState, text: &str) -> Result<(), &'sta
             state.mission.replace_map_with_id(
                 map_id,
                 m02_objectives,
+                m02_side_ward,
                 mission.as_ref(),
                 half_extent,
                 &solids,
@@ -1104,6 +1106,9 @@ pub fn ingest_server_text(state: &mut ToolState, text: &str) -> Result<(), &'sta
             });
             if let Some(count) = m02_objectives {
                 map["m02_objectives"] = serde_json::json!(count);
+            }
+            if m02_side_ward {
+                map["m02_side_ward"] = serde_json::json!(true);
             }
             if let Some(rules) = rules {
                 map["rules"] = serde_json::json!(rules);

@@ -226,6 +226,8 @@ func _run() -> void:
 			await _expect_m02_ward_stage(str(state["expect_m02_ward_stage"]), state_name)
 		if state.has("expect_m02_side_stage"):
 			await _expect_m02_side_stage(str(state["expect_m02_side_stage"]), state_name)
+		if state.has("expect_m02_evacuation_phase"):
+			await _expect_m02_evacuation_phase(str(state["expect_m02_evacuation_phase"]), state_name)
 		if state.has("expect_m02_gate_mask"):
 			await _expect_m02_gate_mask(int(state["expect_m02_gate_mask"]), state_name)
 		if state.has("expect_companion_phase"):
@@ -835,7 +837,15 @@ func _observed_state() -> Dictionary:
 	var server_pitch: float = _local_server_pitch(gm)
 	var server_yaw: float = _local_server_yaw(gm)
 	var camera_forward: Vector3 = -cam.get("transform").basis.z
+	var evacuation: Dictionary = gm.get("net_client").get("mission").get("state", {}).get("m02", {}).get("evacuation", {})
+	var ward: M02Ward = gm.get("m02_ward") as M02Ward
+	var captive_views: Array[Array] = []
+	if ward != null:
+		for captive: Node3D in ward._side_captives:
+			captive_views.append([captive.position.x, captive.position.y, captive.position.z])
 	return {
+		"m02_evacuation": evacuation,
+		"m02_captive_views": captive_views,
 		"participant_record": gm.get("net_client").get("record"),
 		"mission_rules": gm.get("net_client").get("mission").get("state", {}).get("rules", {}),
 		"mission_run": gm.get("net_client").get("mission").get("state", {}).get("run", {}),
@@ -1029,14 +1039,38 @@ func _expect_m02_side_stage(stage: String, state_name: String) -> void:
 		var held: bool = ward._side_captives.size() == 2 and ward._side_left_bars.size() == 2 \
 			and ward._side_captives[0].position == M02Ward.SIDE_CAPTIVE_FEET[0] \
 			and ward._side_left_bars[0].position.x > -0.5
+		var evacuation: Dictionary = progress.get("evacuation", {})
 		var free: bool = ward._side_release_elapsed >= M02Ward.SIDE_RELEASE_SECONDS \
-			and ward._side_captives[0].position.z < 8.0 and ward._side_captives[1].position.z < 8.0 \
-			and ward._side_left_bars[0].position.x < -0.9
+			and evacuation.get("phase") != "held" and ward._side_left_bars[0].position.x < -0.9
 		if (stage == "held" and not secured and held) or (stage == "released" and secured and free):
 			print("qa_tour: %s reached M02 side ward stage %s" % [state_name, stage])
 			return
 		await create_timer(0.05).timeout
 	push_error("qa_tour: %s never reached M02 side ward stage %s" % [state_name, stage])
+	_failed = true
+
+func _expect_m02_evacuation_phase(phase: String, state_name: String) -> void:
+	var manager: Node = _game_manager()
+	var ward: M02Ward = manager.get("m02_ward") as M02Ward if manager != null else null
+	var deadline: int = Time.get_ticks_msec() + 45000
+	while ward != null and Time.get_ticks_msec() < deadline:
+		var evacuation: Dictionary = manager.net_client.mission.get("state", {}).get("m02", {}).get("evacuation", {})
+		if evacuation.get("phase") == phase and ward._side_captives.size() == 2:
+			var feet: Array = evacuation.get("captives", [])
+			var presented: bool = feet.size() == 2
+			for index: int in range(mini(feet.size(), ward._side_captives.size())):
+				var target: Vector3 = Vector3(float(feet[index][0]), float(feet[index][1]), float(feet[index][2]))
+				presented = presented and ward._side_captives[index].position.distance_to(target) < 0.4
+				if phase == "moving":
+					presented = presented and target.distance_to(M02Ward.SIDE_CAPTIVE_FEET[index]) > 2.0
+				elif phase == "waiting":
+					var wait_feet: Vector3 = Vector3(-5.2 if index == 0 else -3.5, 0.0, 11.0)
+					presented = presented and target.distance_to(wait_feet) < 0.25
+			if presented and evacuation.get("evacuated") == (phase == "evacuated"):
+				print("qa_tour: %s observed two server captives at M02 evacuation phase %s" % [state_name, phase])
+				return
+		await create_timer(0.05).timeout
+	push_error("qa_tour: %s never presented two server captives at M02 evacuation phase %s" % [state_name, phase])
 	_failed = true
 
 func _expect_m02_gate_mask(expected: int, state_name: String) -> void:

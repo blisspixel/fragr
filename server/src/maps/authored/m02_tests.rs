@@ -403,6 +403,23 @@ fn side_ward_has_a_grounded_north_return_after_release() {
 }
 
 #[test]
+fn side_ward_captive_route_is_rejected_at_map_load_if_return_is_closed() {
+    let source = include_str!("../../../maps/m02-persons-unknown.json");
+    let blocked = source.replace(
+        "\"floor_east_return_header\",\"min\":[14,3,7]",
+        "\"floor_east_return_header\",\"min\":[14,0,7]",
+    );
+    assert_ne!(blocked, source);
+    let reason = AuthoredMap::read(blocked.as_bytes())
+        .unwrap_err()
+        .to_string();
+    assert!(
+        reason.contains("M02 captive northern return is blocked"),
+        "unexpected rejection: {reason}"
+    );
+}
+
+#[test]
 fn m02_worlds_are_prepared_and_the_closed_gate_blocks_departure() {
     let map = read(&fixture()).unwrap();
     let closed = crate::maps::RuntimeMap::Authored(map.clone());
