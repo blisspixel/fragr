@@ -4,6 +4,35 @@ Shipped tags, newest first. A line here is on `main`. Planned work stays in
 [docs/ROADMAP.md](docs/ROADMAP.md). Older tags are on the
 [releases page](https://github.com/blisspixel/fragr/releases).
 
+## v0.58.0 (2026-09-28)
+
+Persons Unknown now follows Recall Notice as one local solo run. The same body,
+equipment and remaining Episode I continues carry into level 2, and an
+accepted Continue restarts that level at its own entry. The development route
+teaches the Shotgun and Crawler, lets the player release Latch, and gives Latch
+server-owned help without making departure an escort objective. An optional
+side ward can evacuate captives; the Notary is only seen behind glass. The
+level still needs unsteered player review before its route and presentation
+can be called finished.
+
+Sector 9 now supports capture the flag with server-owned flags, return and
+capture rules, side scores and a separate match limit. Bots and agents can
+play the objective, and spectators see the same state. Team aim assist now
+ignores allies. Controlled socket tests prove a complete capture, while
+contested play and human readability remain active review gates.
+
+Human movement now predicts and reconciles locally from 3D server Acks on the
+existing 20 Hz WebSocket match. Moving-combat and delayed-egress probes record
+the current behavior. One-shot jump, use and weapon choices survive a failed
+send. A two-machine human session is still needed before a network feel or
+UDP decision.
+
+The dedicated server has a local container image and Compose path with a
+health check. The optional COS cloud host is Terraform plan-only and has no
+default public game ingress. The README is a shorter entry point to the
+playing, hosting, campaign and technical guides. External asset and cloud
+spend for this build was $0.
+
 ## v0.57.1 (2026-09-26)
 
 Every fighter now gets the same one-second spawn shield at the start of a

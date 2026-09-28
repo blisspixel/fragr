@@ -11,6 +11,14 @@ class OpenOwner extends Node:
 	func controls_blocked() -> bool:
 		return false
 
+class TargetPawn extends Node3D:
+	var hp: int = 100
+	var team: String = ""
+	var is_campaign_companion: bool = false
+	var is_campaign_enemy: bool = false
+	var campaign_actor: Dictionary = {}
+	var target_position: Vector3 = Vector3.ZERO
+
 var _failures: int = 0
 
 func _initialize() -> void:
@@ -36,10 +44,38 @@ func _run() -> void:
 	_test_pad()
 	_test_camera_mouse_untouched()
 	_test_camera_keyboard_and_levels()
+	_test_team_target_selection()
 	InputDevice.reset()
 	if _failures == 0:
-		print("test_aim_assist: PASS cone, line of sight, device gating, gentle pull, pad friction, mouse untouched")
+		print("test_aim_assist: PASS cone, line of sight, device gating, gentle pull, pad friction, mouse untouched, team targeting")
 	quit(0 if _failures == 0 else 1)
+
+func _test_team_target_selection() -> void:
+	var manager: Node = load("res://scripts/game_manager.gd").new()
+	var self_pawn: TargetPawn = TargetPawn.new()
+	var ally: TargetPawn = TargetPawn.new()
+	var rival: TargetPawn = TargetPawn.new()
+	ally.target_position = Vector3(5.0, 1.5, 0.0)
+	rival.target_position = Vector3(8.0, 1.5, 0.0)
+	manager.set("players", {"self": self_pawn, "ally": ally, "rival": rival})
+	manager.set("local_fp_pawn_id", "self")
+	for mode: String in ["tdm", "ctf"]:
+		manager.set("current_map_info", {"rules": {"mode": mode}})
+		self_pawn.team = "union"
+		ally.team = "union"
+		rival.team = "coalition"
+		_check(manager.call("assist_targets") == [AimAssist.body_centre(rival.target_position)],
+			"%s aims only toward the opposing side" % mode)
+	manager.set("current_map_info", {"rules": {"mode": "scrap"}})
+	self_pawn.team = ""
+	ally.team = ""
+	rival.team = ""
+	_check(manager.call("assist_targets") == [AimAssist.body_centre(ally.target_position),
+		AimAssist.body_centre(rival.target_position)], "free for all keeps both opposing fighters")
+	manager.free()
+	self_pawn.free()
+	ally.free()
+	rival.free()
 
 func _test_cone_and_range() -> void:
 	var eye: Vector3 = Vector3(0, 1.6, 0)

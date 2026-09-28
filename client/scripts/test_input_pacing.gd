@@ -7,8 +7,13 @@ class CaptureNetwork extends Node:
 	var player_id: String = "self"
 	var mission: Dictionary = {}
 	var sent: Array[Dictionary] = []
+	var last_send_ok: bool = true
+	var fail_next: bool = false
 	func send_action(action: Dictionary) -> void:
-		sent.append(action.duplicate())
+		last_send_ok = not fail_next
+		fail_next = false
+		if last_send_ok:
+			sent.append(action.duplicate())
 
 ## Mirror of net.rs InboundBudget: 256 messages per second, burst 64.
 const BUDGET_PER_SEC: float = 256.0
@@ -89,6 +94,24 @@ func _run() -> void:
 	_check(network.sent.size() == 2 and network.sent[0]["seq"] == 4294967295 and
 		network.sent[1]["seq"] == 1,
 		"the live sender wraps within the u32 sequence range")
+	# A failed WebSocket send cannot consume a one-shot press or weapon choice.
+	network.sent.clear()
+	manager.set("pending_jump", true)
+	manager.set("pending_interact", true)
+	manager.set("pending_weapon_swap", "scatter")
+	network.fail_next = true
+	manager.call("_send_local_action", now + interval * 5)
+	_check(network.sent.is_empty() and not network.last_send_ok, "failed action was not delivered")
+	_check(manager.get("pending_jump") and manager.get("pending_interact") and manager.get("pending_weapon_swap") == "scatter",
+		"failed send keeps all one-shot inputs")
+	manager.call("_send_local_action", now + interval * 6)
+	_check(network.sent.size() == 1 and network.sent[0].get("jump", false) and
+		network.sent[0].get("interact", false) and network.sent[0].get("weapon_swap") == "scatter",
+		"next successful action carries the retained one-shot inputs")
+	manager.call("_send_local_action", now + interval * 7)
+	_check(network.sent.size() == 2 and not network.sent[1].get("jump", false) and
+		not network.sent[1].get("interact", false) and network.sent[1].get("weapon_swap") == null,
+		"one-shot inputs clear after a successful send")
 	manager.free()
 	network.free()
 	if _failures == 0:

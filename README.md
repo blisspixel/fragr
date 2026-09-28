@@ -7,9 +7,9 @@ one match. Watch by default, join when you want to fight, and step back out
 while the match continues. A Rust server decides every game outcome; the Godot
 client presents it; agents use the same action channel through an MCP adapter.
 
-The current release is [v0.57.1](https://github.com/blisspixel/fragr/releases/tag/v0.57.1).
-This is a playable development game. See the [roadmap](docs/ROADMAP.md) for the
-build order and the [changelog](CHANGELOG.md) for shipped releases.
+Get the [latest development release](https://github.com/blisspixel/fragr/releases/latest).
+See the [roadmap](docs/ROADMAP.md) for the build order and the
+[changelog](CHANGELOG.md) for shipped changes.
 
 ## Play now
 
@@ -17,13 +17,15 @@ build order and the [changelog](CHANGELOG.md) for shipped releases.
 |---|---|---|
 | **Recall Notice** | The first campaign mission in development: enter Annex 67, find Latch's transfer record, fight to the custody lift. Solo runs have three mission-start continues and a local save at mission entry. | **Single Player > Recall Notice** |
 | **Calibration** | Episode 0's arena challenge against named bots, with the Host, objectives and an Auditor. | `./tools/solo_scrap.sh` |
-| **Multiplayer** | Six arenas, free-for-all or team deathmatch, host-selected mutators, spectators, humans and agents in one server-owned match. | Run a server, then choose **Multiplayer**. |
+| **Multiplayer** | Six arenas for free-for-all or team deathmatch, plus Sector 9 capture the flag. Spectators, humans and agents share one server-owned match. | Run a server, then choose **Multiplayer**. |
 
-Single Player also offers an M02 ward graybox for development. Latch's rescue,
-cross-mission save carry, and the complete campaign are still being built.
+Single Player also offers the M02 Persons Unknown development route, with
+Latch's rescue and saved run carry from M01. Its fresh-player acceptance and
+the rest of the campaign remain in progress.
 The planned story spans twenty shorter levels in five episodes; its current
-contract is in [CAMPAIGN.md](docs/CAMPAIGN.md). Capture the flag and larger
-objective modes are in [draft work and plans](docs/ROADMAP.md), not this release.
+contract is in [CAMPAIGN.md](docs/CAMPAIGN.md). Sector 9 capture the flag is
+playable; its human playtest is still open. Larger objective modes remain in
+the [roadmap](docs/ROADMAP.md).
 
 ## Quick start
 

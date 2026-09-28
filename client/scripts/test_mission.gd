@@ -3,6 +3,7 @@ extends SceneTree
 class CaptureNetwork extends "res://scripts/net_client.gd":
 	var sent: Array[Dictionary] = []
 	func send_json(data: Dictionary) -> void:
+		last_send_ok = true
 		sent.append(data.duplicate(true))
 
 const PLAYER: String = "00000000-0000-0000-0000-000000000001"

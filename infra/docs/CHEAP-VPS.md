@@ -1,80 +1,64 @@
-# Cheap VPS self-host (fragr)
+# Small VPS dedicated host
 
-Generic small VM (any provider) for public stranger/agent join without Tailscale. Prefer this when home CGNAT blocks port-forward. For GCP Always Free shape + Terraform plan-only, see DURABLE-HOST.md and ZERO-COST.md.
+Use a small host with a public address when a home connection cannot accept a
+router forward. The server remains one long-lived authoritative container on
+TCP 6767. [Home LAN](HOME-LAN.md) is the $0 starting point, and the
+[COS host](DURABLE-HOST.md) remains a plan-only GCP option. No VPS has been
+deployed or measured as part of this guide.
 
-Default game port: **TCP 6767**. Combat tick is always-on dedicated process. Not Cloud Run / Functions / scale-to-zero.
+## Before creating a paid host
 
-## Shape (under $50 hard cap)
+Compare the provider's current compute, disk, public IPv4 and egress prices
+against the remaining project cap. Record an exact estimate and obtain Nick's
+written approval before creating a billable instance. A small machine size is
+a test candidate, not a ten-fighter capacity claim. Measure tick percentiles,
+traffic and health with the intended roster before relying on it for a match.
 
-- 1 vCPU / 1 GB RAM class is enough for early friends + agents (Slice 1).
-- Ubuntu LTS or similar; persistent disk small.
-- Public IPv4 with firewall allowing **only** TCP 6767 (UDP 6767 later if renet).
-- SSH: key-only, optionally allowlisted IPs or provider console/serial. Never 0.0.0.0/0 password SSH.
-- Monthly ESTIMATE should stay well under the $50 project hard cap. Flag Chief/Nick before paid create if unclear.
+The container image is the deployment unit. There is no published game image
+to pull yet. For a bounded test, check out the reviewed source on the host and
+build the same locked image used by local Compose and CI. A later published
+digest can replace this build after its image and rollback path are reviewed.
 
-## Install sketch
+## Start a bounded friends test
 
-```bash
-# as root once
-useradd --system --home /opt/fragr --shell /usr/sbin/nologin fragr
-mkdir -p /opt/fragr
-# copy release binary built elsewhere:
-install -o fragr -g fragr -m 0755 fragr-server /opt/fragr/fragr-server
-```
-
-Systemd unit (same as DURABLE-HOST.md):
-
-```ini
-[Unit]
-Description=fragr authoritative game server
-After=network-online.target
-Wants=network-online.target
-
-[Service]
-Type=simple
-User=fragr
-WorkingDirectory=/opt/fragr
-ExecStart=/opt/fragr/fragr-server --bind 0.0.0.0:6767 --bots 4
-Restart=always
-RestartSec=5s
-StandardOutput=journal
-StandardError=journal
-
-[Install]
-WantedBy=multi-user.target
-```
+Install Docker with the Compose plugin using your host's supported packages.
+From the repository checkout:
 
 ```bash
-systemctl enable --now fragr-server.service
+docker compose up --build -d
+docker compose ps
+curl -fsS http://127.0.0.1:6767/status
 ```
 
-Firewall example (ufw):
+Wait for `healthy` in `docker compose ps` and `health.status: ok` in the
+response. The image carries the server, bundled maps and legal notices. The
+container runs unprivileged with a read-only root filesystem, and Compose
+restarts it after a failure. Set `FRAGR_BOTS` and `FRAGR_MAP` through the
+ignored root `.env` or the host environment. See [Home LAN](HOME-LAN.md) for
+join-ticket and access-list configuration. Keep secrets out of the image,
+checkout and shell history.
+
+Allow inbound TCP 6767 only from the approved friends' addresses during this
+test. Keep SSH limited to key-based operator access or the provider's private
+management path. UDP is closed because the current game transport uses
+WebSocket. The Godot Multiplayer page or `FRAGR_SERVER` connects to the host
+address. No VPN is required for this path.
+
+Direct `ws://` gameplay is plaintext, and today's shared join secret is not a
+public player credential. An address allowlist and a healthy container do not
+make stranger admission safe. A stranger-facing service still needs TLS,
+server-side ticket distribution, abuse tests and a recovery exercise. See the
+[hosting guide](../../docs/HOSTING.md) and
+[transport plan](../../docs/TRANSPORT.md) for those open gates.
+
+## Operate and stop
 
 ```bash
-ufw default deny incoming
-ufw allow 6767/tcp
-# SSH only from your admin IP if possible
-ufw enable
+docker compose logs --tail=100 server
+docker compose down
 ```
 
-## Join path
-
-- Strangers / agents: `ws://VPS_PUBLIC_IP:6767` (or your DNS). **No VPN.**
-- Optional Tailscale: operator/dev overlay only. Do not close public 6767 for the shipped path.
-- Godot clients set `FRAGR_SERVER` or the client URL to that host.
-- Agent-adapter: `cargo run -- mcp --server ws://VPS_PUBLIC_IP:6767` (or run adapter beside the server on private localhost and expose only what you intend).
-
-## Security / scale
-
-- Rock-solid restart via systemd; watch journald. `journalctl -u fragr-server | grep fragr_server::audit` shows joins, rejections, kicks and bans.
-- To keep an address out, add `--ban-list /opt/fragr/bans.txt` to `ExecStart` (one IP or CIDR per line, optional `expires=` and `reason=`). Edits apply within five seconds with no restart. A malformed file at start stops the unit, so check `journalctl` after a first edit.
-- Keep authority on this VM; optional HTTP adapter may sit elsewhere later with private path + app auth.
-- When load proves it: bigger VM or second arena instance. No day-zero load balancer.
-- IaC for a named cloud (GCP Terraform in this repo) stays **plan-only** until Nick/Chief spend ACK. Manual VPS create still counts against the $50 hard cap if it bills.
-
-## Throw-outs
-
-- Tailscale-only public join
-- Authoritative tick on serverless / scale-to-zero
-- Opening SSH to the world
-- Documenting port 7777
+Check the provider bill and egress after the test, and record actual spend.
+When load measurements justify a different host size, review its new estimate
+before changing it. Cloud Terraform in this repository remains plan-only;
+running Compose on a VPS does not apply it.

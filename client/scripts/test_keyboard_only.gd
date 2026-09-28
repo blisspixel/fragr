@@ -12,7 +12,9 @@ class CaptureNetwork extends Node:
 	var player_id: String = "self"
 	var mission: Dictionary = {}
 	var sent: Array[Dictionary] = []
+	var last_send_ok: bool = true
 	func send_action(action: Dictionary) -> void:
+		last_send_ok = true
 		sent.append(action.duplicate())
 
 class OpenOwner extends Node:

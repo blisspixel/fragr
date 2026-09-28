@@ -17,6 +17,8 @@ Status words: **proposed** (a design awaiting Nick's decision; directs no work),
 
 | Plan | Status | One-liner |
 |---|---|---|
+| [`m02-latch-restraint-backing.md`](./m02-latch-restraint-backing.md) | **superseded** | A rendered dark backing study did not improve Latch recognition and hurt the close ward view; no candidate runtime change was kept. |
+| [`m02-custody-image.md`](./m02-custody-image.md) | **superseded** | Two local gallery portrait studies failed the in-world identity and destination gate; no candidate runtime change was kept. |
 | [`playable-stack-integration.md`](./playable-stack-integration.md) | **in flight** | Combine the green M02, CTF, predicted WebSocket, hosting and README drafts on one exact head, then verify their shared contracts. |
 | [`m02-integrated-player-gate.md`](./m02-integrated-player-gate.md) | **in flight** | Package the stacked M01-to-M02 solo run, then observe an uncoached player before adding more M02 content. |
 | [`m02-notary-tableau.md`](./m02-notary-tableau.md) | **in flight** | Show one unreachable Notary observing captives behind an authoritative glass pane in level 2, without introducing its level 4 fight. |

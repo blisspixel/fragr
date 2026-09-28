@@ -217,7 +217,14 @@ The phases below are the long shape. The sequence that follows is the build orde
 
 **Active goal:** build the agreed game through a proven 1.0. That is Recall Notice as the quality bar, then each later mission on systems the whole campaign reuses, then local prediction before the first long Rail lane, then the wipe and its conditional epilogue, then a LAN proof, then an exposed server. Cloud apply, matchmaking, and conquest-scale vehicles stay behind that server. The story spine in [`CAMPAIGN.md`](CAMPAIGN.md) is settled. Names, rescue tradeoffs, wipe operations, and the reprieve's exact terms stay proposals until the gate that needs them. Mission briefs live in [`CAMPAIGN-MISSIONS.md`](CAMPAIGN-MISSIONS.md) and [one plan per level](campaign/README.md). Geometry comes from the mission, not from an arena layout. The six current layouts stay playable foundations. Boltgun remains the visual bar for a played sequence, not a reason to generate the roster before the first two enemies read. Every rung serves the [easy to pick up, deep to master pillar](VISION.md#easy-to-pick-up-deep-to-master): fights and flow first, at most three doors a level.
 
-**Next, as of 2026-09-28.** Integrate the current M02 draft stack and run an unsteered M01-to-M02 player session before another M02 content slice. Gameplay loop first. (1) Multiplayer: body selection shipped; the mode-chip fix and capture the flag are in draft review. Prove a human CTF session, then build Rescue and Sabotage on maps made for them, then the combined-arms mode with pirate radio masts as one capture flavour. Rework and shrink maps per [multiplayer-maps.md](plans/multiplayer-maps.md) alongside. (2) Campaign: finish level 2 (Persons Unknown) from its [accepted design](campaign/m02-persons-unknown.md). The [Shotgun guard-room slice](plans/m02-shotgun-introduction.md), [stair-top guard room](plans/m02-guard-room-at-stair-top.md), [Crawler descent](plans/m02-crawler-descent.md) and [Latch release](plans/m02-latch-release.md) are in stacked draft review. The [M01 to M02 durable run carry](plans/m01-m02-run-carry.md) is in flight after Latch. Its engineering gate covers one body, one inventory and the remaining Episode I continues across both levels; it does not finish M02. [Latch's autonomous escape](plans/m02-latch-autonomous-escape.md) is in [draft review](https://github.com/blisspixel/fragr/pull/274), with a server-owned ally on the processing floor and a solo exit that never depends on ally pathfinding. The [floor gantry pass](plans/m02-floor-gantry.md) moves the officer above the player and measures the same fights. The [optional side ward](plans/m02-side-ward.md) is in [draft review](https://github.com/blisspixel/fragr/pull/276) and adds a release-controlled ward exit, a grounded detour, independent guards and a server-owned guard-clear fact that presents captive self-release; the [maintenance circulation](plans/m02-maintenance-circulation.md) is in [draft review](https://github.com/blisspixel/fragr/pull/277) as a stair bypass and side-ward return, followed by the [side-ward evacuation](plans/m02-side-ward-evacuation.md) in [draft review](https://github.com/blisspixel/fragr/pull/278), which moves both optional captives to the dock under server authority without gating departure. The accepted [processing-floor roster](plans/m02-processing-floor-roster.md) has three staged encounters with four Clerks, four Sweepers and a final Crawler pair, and is in [draft review](https://github.com/blisspixel/fragr/pull/279). Scripted Standard and Severe routes clear it with ordinary health and supplies, and 29-state first-person tours on both difficulties reach departure. Unsteered player review of the Crawler lesson, Latch reunion, close-range pair cues and floor balance remains open. The [ward soundscape](plans/m02-ward-soundscape.md) is in [draft review](https://github.com/blisspixel/fragr/pull/280) with original offline cues and state-driven playback. Its listening and in-game mix review follow the fight review before M02 presentation can be accepted. Then build levels 3 to 5 of Episode I in order. (3) Scenes: freeze Episode I scripts, then one capped narration and key image batch for Nick to approve. (4) Run a human session with the pellet Shotgun, controls and aim assist, and a team round. (5) Speed up the free local decision model before it drives a fighter at the default budget. Video cutscenes wait until the levels are polished ([plan](plans/cutscene-film.md)).
+**Next, as of 2026-09-28.** The integrated v0.58.0 source combines the M02 development route and durable M01-to-M02 run, Sector 9 capture the flag, predicted WebSocket movement, the local container host and the plan-only cloud host. These systems share one build, but their player and remote-network acceptance gates remain open. Work in this order:
+
+1. Run an unsteered packaged M01-to-M02 session with a fresh player, following the [integrated player gate](plans/m02-integrated-player-gate.md). Observe the Shotgun and Crawler lessons, Latch's release, optional captives, retry and departure. Fix observed blockers, then repeat with another fresh player. Keep the Notary a noncombat level 2 glimpse and the Jammer in level 3.
+2. Run a human and spectator CTF round, plus a team deathmatch controls pass. Judge flag readability, carry drops, score, teammate aim assist and match pacing against the [CTF plan](plans/capture-the-flag.md). Refine Sector 9 and the smaller arena routes before adding Rescue or Sabotage maps. The combined-arms mode waits for its own map and vehicle work.
+3. Run a real two-machine LAN session with the predicted WebSocket client, the pellet Shotgun, keyboard and gamepad controls, an agent and a spectator. Record both directions of timing, correction and visual feel per [TRANSPORT.md](TRANSPORT.md). Interpolation and bounded lag compensation follow that evidence; a UDP pilot follows a matched transport comparison.
+4. Build level 3 Scheduled Service after M02 player review. Keep the twenty-level campaign's one-new-thing-per-level order in [CAMPAIGN-MISSIONS.md](CAMPAIGN-MISSIONS.md). Freeze Episode I scene wording before any capped narration or key-image batch. Speed up the free local decision model through measured stance-only or cached questions before calling it a real-time fighter.
+
+No cloud apply, paid asset batch, public-server claim or 1.0 controls claim follows from this integration. The $0 local container host is available for friends; public admission, cloud cost and exposed-server testing retain their own gates.
 
 The CTF draft's five corrected six-a-side observations recorded 16 flag takes,
 11 combat drops, four captures and one carry at the clock. A controlled socket
@@ -227,7 +234,7 @@ replication. Neither gate establishes human or spectator clarity. See the
 [socket gate](plans/ctf-socket-smoke.md).
 
 The live human Action-to-Ack baseline, 20 Hz movement step, full 3D Ack and
-local pawn prediction are implemented in draft work. A moving-combat WebSocket
+local pawn prediction are integrated in v0.58.0. A moving-combat WebSocket
 probe recorded loopback correction, fallback, cadence and payload evidence.
 Nine one-host Windows-to-WSL captures at 0, 40 and 80 ms added server-egress
 delay kept prediction active while delayed p99 same-tick error rose to about
@@ -235,15 +242,10 @@ delay kept prediction active while delayed p99 same-tick error rose to about
 session with the pellet Shotgun, controls, aim assist and a team round is next
 before a 1.0 controls or UDP decision.
 
-The [dedicated hosting plan](plans/dedicated-server-udp-and-hosting.md) starts
-with a $0 local container host alongside that gameplay work. The cloud image
-host remains plan-only. Prediction and the two-machine session precede a
+The [dedicated hosting plan](plans/dedicated-server-udp-and-hosting.md) includes
+a $0 local container host. The cloud image host remains plan-only. Prediction
+and the two-machine session precede a
 measured UDP pilot, as described in [TRANSPORT.md](TRANSPORT.md).
-
-The [dedicated hosting plan](plans/dedicated-server-udp-and-hosting.md) starts
-with a $0 local container host alongside that gameplay work. Network feel
-continues through prediction on WebSocket and a measured UDP pilot, in the
-order set by [TRANSPORT.md](TRANSPORT.md). Cloud resources remain plan-only.
 
 The numbered list that used to sit here is historical. It put the campaign foundation seventh, behind a generation pipeline M01 does not need, and it still treated gunfeel rung 2 as next after that work had shipped. Spend restraint stays: no paid batch to paper over the uncertain art reservation, no cloud deployment in this slice, and no server browser.
 

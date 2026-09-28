@@ -130,9 +130,10 @@ Initial handshake message. Must be sent immediately after connection.
   and its development party require 19. Version 20 adds the M02
   `side_ward_secured` fact, derived from the optional side ward encounter.
   Version 21 adds the M02 `evacuation` state and the matching
-  `map_info.m02_side_ward` marker for maps with an authored side ward. M02
-  development and
-  durable sessions now require 21; arcade maps keep their
+  `map_info.m02_side_ward` marker for maps with an authored side ward. Version 22
+  adds M02's ballistic inspection glass, which older strict surface readers
+  cannot render. M02 development and durable sessions now require 22; arcade
+  maps keep their
   earlier requirements. Use matching campaign server/client builds.
   Older clients of every role are rejected before `Welcome`
   with `unsupported_gameplay`. This capability is separate from geometry. The six

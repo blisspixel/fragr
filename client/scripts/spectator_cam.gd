@@ -443,7 +443,7 @@ func _process_fp(delta):
 		)
 
 	var camera_eye: Vector3 = fp_camera_position(global_position, eye, delta,
-		bool(fp_target.get("prediction_active")))
+		fp_target.get("prediction_active") == true)
 	# Keep the usual motion smoothing while both eyes share a clear space.
 	# Crossing an authoritative solid would put the view inside cover, so use
 	# the server eye immediately at that boundary.
@@ -465,7 +465,7 @@ func _assist_eye() -> Vector3:
 	if not is_instance_valid(fp_target):
 		return global_position
 	var base: Vector3 = fp_target.global_position
-	if "target_position" in fp_target and not bool(fp_target.get("prediction_active")):
+	if "target_position" in fp_target and fp_target.get("prediction_active") != true:
 		base = fp_target.get("target_position")
 	return base + Vector3(0, FP_EYE_HEIGHT, 0)
 

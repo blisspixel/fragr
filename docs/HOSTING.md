@@ -35,13 +35,16 @@ cargo run -p fragr-server --locked -- --bind 0.0.0.0:6767 --bots 6 --mode tdm --
 
 # Golden Rail with two lives.
 cargo run -p fragr-server --locked -- --bind 0.0.0.0:6767 --bots 4 --mutator golden-rail --mutator two-lives
+
+# Development CTF match on Sector 9, first side to three captures.
+cargo run -p fragr-server --locked -- --bind 0.0.0.0:6767 --map 4 --mode ctf --capture-limit 3 --bots 6
 ```
 
 One server keeps one rule set for its lifetime. Two weapon mutators cannot
 combine; Golden Rail also cannot combine with Licence to Kill, Shotgun Only
 or Fists Only. Invalid combinations fail at startup. Current clients and
 agents understand team rules; older clients need gameplay capability 12 for
-any nonplain arena rules. [Multiplayer mode details](plans/multiplayer-modes.md)
+any nonplain arena rules, and CTF requires capability 14. [Multiplayer mode details](plans/multiplayer-modes.md)
 cover the rule contract.
 
 ## Join tickets and access lists
@@ -72,7 +75,8 @@ The host pings idle sessions and closes one that sends nothing, including no
 automatic pong, for 45 seconds. Flooding or repeated unreadable frames can
 also close a connection. Audit logs for joins, refusals, kicks and bans use
 `RUST_LOG=fragr_server::audit=info` without logging tickets or resume tokens.
-`GET /status` on the game port is a host probe, not a web client.
+`GET /status` on the game port is a host probe, not a web client. CTF is in
+draft review and needs a human match before it can be called accepted.
 
 ## Server options
 
@@ -87,10 +91,11 @@ also close a connection. Audit logs for joins, refusals, kicks and bans use
 | `--run-mode <MODE>` | `new` or `resume` for a local mission run. |
 | `--local-run-preview` | Read-only campaign save compatibility for the menu. |
 | `--solo-broadcast` | Episode 0 Calibration in Arena Duel. |
-| `--mode <MODE>` | `ffa` or `tdm`. |
+| `--mode <MODE>` | `ffa`, `tdm`, or `ctf`; CTF currently requires fixed Sector 9. |
 | `--mutator <ID>` | Repeatable: `rail-only`, `shotgun-only`, `fists-only`, `licence-to-kill`, `golden-rail`, `two-lives`. |
 | `--friendly-fire` | Allow team damage in TDM. |
-| `--frag-limit <N>` | Fighter limit in FFA or side limit in TDM. |
+| `--frag-limit <N>` | Fighter limit in FFA or side limit in TDM; unavailable in CTF. |
+| `--capture-limit <N>` | Captures to end a CTF round; valid only with `--mode ctf`. |
 | `--no-round-events` | Disable timed slowdowns and boss spawns. |
 | `--seed <N>` | Simulation seed, default 1. |
 | `--status-every-s <N>` | Status log interval; 0 disables it. |

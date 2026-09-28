@@ -15,7 +15,7 @@ authoritative Rust server stays the source of truth for fighters, agents and
 spectators. A container image is the portable hosting unit; local play remains
 available without Docker.
 
-This work supports the [full build order](../ROADMAP.md#full-build-order-2026-09-22).
+This work supports the [full build order](../ROADMAP.md#full-build-order-2026-09-27).
 It does not displace the M02 rescue or the next multiplayer mode. The existing
 [transport decision](../TRANSPORT.md) puts prediction, reconciliation,
 interpolation and bounded lag compensation on WebSocket before a measured UDP
@@ -29,7 +29,10 @@ to both documents.
   sessions, inbound budgets, tickets, resume, bans and allow lists, and bounded
   spectator delivery. CLI and local launch share `server/src/run.rs`.
 - The Godot client presents server state and sends discrete actions. The shared
-  movement mirror has golden vectors, but live prediction is not wired in.
+  movement mirror has golden vectors. Local human movement prediction and
+  reconciliation are implemented in draft work on WebSocket; the
+  [delayed-egress probe](./websocket-delayed-egress.md) measured that path on
+  one physical machine. Human feel and two-machine behavior remain open.
 - The six-map mixed roster, 120-second soak and CPU benchmark are local
   evidence. They do not establish internet latency or a ten-fighter minimum on
   a small cloud instance.
@@ -82,17 +85,15 @@ network RTT. Use a timed echo for application round-trip time, and packet
 capture or controlled impairment to examine retransmissions and transport
 loss. TCP retransmission is hidden from the game's snapshot stream.
 
-The client currently sends numbered Actions at up to 120 per second while the
-20 Hz server keeps the newest continuous action for each tick. An Ack can skip
-intermediate sequence numbers or repeat one sequence over several ticks. It
-contains x and z but no authoritative y or vertical velocity. The shared
-golden-vector `step` accelerates horizontally, while live `integrate` applies
-horizontal velocity immediately. Define and test the input-to-server-step
-contract, one-shot edges and the actual mirrored movement path before using
-those Acks for replay. Extend Ack validation and full 3D state on both sides
-in the prediction change. Then measure correction distance and play feel under
-controlled delay and loss. Compare that predicted WebSocket baseline against
-a bounded UDP or QUIC pilot under the same conditions.
+The client sends numbered Actions at up to 120 per second while the 20 Hz
+server keeps the newest continuous action for each tick. An Ack can skip
+intermediate sequence numbers or repeat one over several ticks. The draft 3D
+Ack includes position, vertical velocity and selected input sequence; the
+client replays the mirrored live step from it. The one-host moving-combat and
+delayed-egress probes measured corrections and fallback behavior without
+injected loss or jitter. Next measure play feel and both directions of network
+timing on two machines. Compare that WebSocket baseline against a bounded UDP
+or QUIC pilot under the same conditions.
 
 An early UDP bind and echo proves only socket plumbing. It does not prove
 responsive play, client interoperability or public safety. A token sent over
@@ -253,8 +254,9 @@ for an `e2-micro` or an internet session.
 | 120-second rotating-map soak | 20.00 Hz, lifetime tick p99 0.59 ms, maximum 12.15 ms |
 | Same soak traffic and memory | 50,457 outgoing and 2,408 incoming bytes per client per second; RSS 37.5 to 38.4 MiB |
 
-The next gameplay sprints remain the mode-chip presentation and a human team
-round, followed by capture the flag, and level 2's rescue, Crawlers and run
-carry. Prediction measurement remains ahead of the UDP pilot. Keep this plan
+The mode-chip, CTF, M02 rescue, Crawler and run-carry work are in draft review.
+The next gates are unsteered M01-to-M02 play, a human CTF/team round and a
+two-machine predicted WebSocket session. Keep prediction measurement ahead of
+the UDP pilot. Keep this plan
 in flight for the remaining transport and cloud rungs; mark the local host
 shipped only after PR #265 merges.

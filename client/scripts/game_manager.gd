@@ -685,6 +685,8 @@ func _send_local_action(now_usec: int) -> bool:
 		action_state.pitch = camera.consume_pitch()
 	if controls_blocked():
 		interact_held = false
+		pending_jump = false
+		pending_interact = false
 		for key in ["forward", "back", "left", "right", "fire", "jump", "interact"]:
 			action_state[key] = false
 		pending_weapon_swap = null
@@ -696,14 +698,11 @@ func _send_local_action(now_usec: int) -> bool:
 	input_seq = 1 if input_seq >= MAX_ACTION_SEQ else input_seq + 1
 	action_state.seq = input_seq
 	action_state.weapon_swap = pending_weapon_swap
-	pending_weapon_swap = null
 	var send_usec: int = 0
 	if ack_probe.active:
 		send_usec = Time.get_ticks_usec()
-		net_client.last_send_ok = false
 	var predicting: bool = local_prediction.active()
-	if predicting:
-		net_client.last_send_ok = false
+	net_client.last_send_ok = false
 	net_client.send_action(action_state)
 	if predicting:
 		local_prediction.record_action(action_state, now_usec, net_client.last_send_ok)
@@ -712,8 +711,10 @@ func _send_local_action(now_usec: int) -> bool:
 			ack_probe.record_send(input_seq, send_usec)
 		else:
 			ack_probe.failed_sends += 1
-	pending_jump = false
-	pending_interact = false
+	if net_client.last_send_ok:
+		pending_jump = false
+		pending_interact = false
+		pending_weapon_swap = null
 	return true
 
 func _on_mission_received(state: Dictionary) -> void:
@@ -767,6 +768,10 @@ func _on_interlude_completed() -> void:
 func assist_targets() -> Array:
 	var out: Array = []
 	var mission: bool = _mission_map()
+	var own_team: String = ""
+	var local_pawn: Node = players.get(local_fp_pawn_id)
+	if is_instance_valid(local_pawn):
+		own_team = MatchRules.valid_team(local_pawn.get("team"))
 	for id: Variant in players:
 		var pawn: Node = players[id]
 		if not is_instance_valid(pawn) or str(id) == local_fp_pawn_id or int(pawn.get("hp")) <= 0:
@@ -775,6 +780,8 @@ func assist_targets() -> Array:
 			continue
 		var enemy: bool = bool(pawn.get("is_campaign_enemy"))
 		if enemy != mission:
+			continue
+		if not mission and own_team != "" and MatchRules.valid_team(pawn.get("team")) == own_team:
 			continue
 		if mission and str((pawn.get("campaign_actor") as Dictionary).get("phase", "")) == "dead":
 			continue

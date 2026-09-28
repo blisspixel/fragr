@@ -1,6 +1,7 @@
 extends Node
 
-# Version 21 understands server-owned M02 captive evacuation;
+# Version 22 understands M02 ballistic inspection glass;
+# 21 understands server-owned M02 captive evacuation;
 # 20 understands the optional side ward fact in M02 state;
 # 19 understands the autonomous Latch companion in M02 snapshots;
 # 18 understands durable M02 runs and the per-level continue baseline;
