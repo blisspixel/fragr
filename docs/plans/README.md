@@ -17,6 +17,7 @@ Status words: **proposed** (a design awaiting Nick's decision; directs no work),
 
 | Plan | Status | One-liner |
 |---|---|---|
+| [`m02-integrated-player-gate.md`](./m02-integrated-player-gate.md) | **in flight** | Package the stacked M01-to-M02 solo run, then observe an uncoached player before adding more M02 content. |
 | [`m02-notary-tableau.md`](./m02-notary-tableau.md) | **in flight** | Show one unreachable Notary observing captives behind an authoritative glass pane in level 2, without introducing its level 4 fight. |
 | [`m02-natural-entry-composition.md`](./m02-natural-entry-composition.md) | **in flight** | Check the real M02 first-person spawn, then frame Latch by authored facing without skipping the Shotgun and Crawler lessons. |
 | [`m02-gallery-first-view.md`](./m02-gallery-first-view.md) | **implemented** | Open and prove the M02 gallery's first sightline to Latch's restraint frame without bypassing the opening fight or stair route; player recognition remains open. |
