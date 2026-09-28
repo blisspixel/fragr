@@ -1,6 +1,6 @@
 # Live movement step for prediction
 
-Status: implemented locally, 2026-09-28; awaiting integration review. This is the first bounded rung after the measured human Action-to-Ack baseline. The implementation branch is `feat/live-movement-step`.
+Status: implemented in [draft PR #283](https://github.com/blisspixel/fragr/pull/283), 2026-09-28; awaiting full CI. This is the first bounded rung after the measured human Action-to-Ack baseline.
 
 ## Goal
 
@@ -48,6 +48,7 @@ Local code and tests only, $0 external spend. Use the draft PR workflow for inte
 - `cargo test -p fragr-server --locked live_step_preserves_the_previous_inline_velocity_formula`: passed for flat movement, collision, compliance speed and jump.
 - `cargo test -p fragr-server --locked live_step_matches_one_authoritative_tick_with_jump_and_compliance`: passed, including a jump tap latched before the selected continuous Action.
 - Godot 4.7.2-stable `--headless --path client --import`: exited 0. The direct `test_move_golden.gd` harness passed, 37 cases and 1,330 recorded states across both models.
-- `git diff --check`: passed. No external spend, commit, push, PR, or deploy.
+- `git diff --check`: passed. External spend was $0; no deploy or merge.
+- Independent review found no material change to the prior tick behavior. The live vectors can be regenerated deliberately with `cargo test -p fragr-server --locked regenerate_live_golden_vectors -- --ignored`, then reviewed alongside both language implementations.
 
 The remaining integration gate is parent review and the full repository CI set. This rung does not define a client input-to-server-tick contract, add authoritative `y`/`vy` to Ack, or place the local pawn from the mirror. These are required before live prediction can be claimed.
