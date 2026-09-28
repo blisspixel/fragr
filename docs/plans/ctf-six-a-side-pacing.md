@@ -22,7 +22,7 @@ Run the focused report test, formatting, Clippy and workspace tests, then the fi
 
 ## Five-run baseline, 2026-09-28
 
-Ran the debug `fragr-playtest` socket harness on Windows with an AMD Ryzen 7 7840U, using twelve external agents, alternating Reflex and Planner, six per side, zero server rule bots. Command for each seed: `target/debug/fragr-playtest.exe --agents 12 --rounds 1 --mode ctf --map 4 --tiers reflex,planner --capture-limit 3 --time-limit-seconds 180 --max-seconds 190 --seed SEED --report .agents/playtest/ctf-pacing-seed-SEED.json`. Reports and console logs are ignored local diagnostics. The binary was built from the report-field code in this branch before the later test and documentation edits.
+Ran the debug `fragr-playtest` socket harness on Windows with an AMD Ryzen 7 7840U, using twelve external agents, alternating Reflex and Planner, six per side, zero server rule bots. Command for each seed: `target/debug/fragr-playtest.exe --agents 12 --rounds 1 --mode ctf --map 4 --tiers reflex,planner --capture-limit 3 --time-limit-seconds 180 --max-seconds 190 --seed SEED --report .agents/playtest/ctf-pacing-seed-SEED.json`. Reports and console logs are ignored local diagnostics. The report implementation is in `cfb1a93`; the binary used the same code before a later test-only change and documentation edits.
 
 | Seed | Seconds | Takes | Drops | Returns | Captures | Carrier seconds | Frags | Final score (Union:Coalition) |
 |---:|---:|---:|---:|---:|---:|---:|---:|---:|
