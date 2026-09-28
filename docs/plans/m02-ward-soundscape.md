@@ -1,6 +1,6 @@
 # M02 ward and processing-floor soundscape
 
-**Status:** planned, 2026-09-27. Follows the [processing-floor roster draft](m02-processing-floor-roster.md). M02 remains a development mission until fresh-player route and fight review passes.
+**Status:** planned, [draft #280](https://github.com/blisspixel/fragr/pull/280), 2026-09-27. Follows the [processing-floor roster draft](m02-processing-floor-roster.md). M02 remains a development mission until fresh-player route and fight review passes.
 
 ## Goal and why
 
