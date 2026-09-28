@@ -1,6 +1,6 @@
 # M02 live cue listening gate
 
-**Status:** in flight, 2026-09-27. Follows the [ward soundscape](m02-ward-soundscape.md) draft. M02 remains a development mission.
+**Status:** in flight, [draft #281](https://github.com/blisspixel/fragr/pull/281), 2026-09-27. Follows the [ward soundscape](m02-ward-soundscape.md) draft. M02 remains a development mission.
 
 ## Goal and why
 
