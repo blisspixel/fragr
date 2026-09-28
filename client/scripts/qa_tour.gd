@@ -40,6 +40,12 @@ var _walk_results: Array[Dictionary] = []
 var _combat_probe: QaCombat = QaCombat.new()
 var _combat_travel: bool = false
 var _retiring_audio: Array[WeakRef] = []
+var _audio_recorder: AudioEffectRecord = null
+var _audio_master: int = -1
+var _audio_effects_before: int = 0
+var _audio_started_ms: int = 0
+var _audio_start_state: String = ""
+const MAX_LIVE_AUDIO_MS: int = 90000
 var _capture_size: Vector2i = Vector2i.ZERO
 ## The fighter a "body" camera holds on, and the side it had to be on.
 var _body_pawn: Node3D = null
@@ -55,10 +61,15 @@ func _initialize() -> void:
 	call_deferred("_run")
 
 func _finalize() -> void:
+	_discard_audio()
 	_combat_probe.finish()
 	MouseCapture.release()
 
 func _process(_delta: float) -> bool:
+	if _audio_recorder != null and Time.get_ticks_msec() - _audio_started_ms > MAX_LIVE_AUDIO_MS:
+		push_error("qa_tour: live audio capture exceeded 90 seconds")
+		_discard_audio()
+		_failed = true
 	if Input.mouse_mode != Input.MOUSE_MODE_VISIBLE:
 		MouseCapture.release()
 		push_error("qa_tour: automation attempted to capture the desktop pointer")
@@ -180,6 +191,11 @@ func _run() -> void:
 			await _select_weapon(str(state["weapon"]))
 		if state.has("aim_pitch"):
 			await _set_aim_pitch(float(state["aim_pitch"]))
+		if state.get("record_audio_start", false) and not _begin_audio(state_name):
+			_failed = true
+			await _retire_scene()
+			quit(1)
+			return
 		_movement_samples.clear()
 		_walk_results.clear()
 		if state.get("jump_probe", false):
@@ -202,10 +218,12 @@ func _run() -> void:
 			var caption: Node = manager.hud.get("crawler_caption") if manager != null else null
 			var caption_label: Label = caption.get("caption_label") as Label if is_instance_valid(caption) else null
 			var required_cues: int = int(state.get("expect_crawler_cues", 1))
-			if manager == null or int(manager.get("crawler_scrabble_count")) != required_cues or \
-				not is_instance_valid(caption_label) or \
-				caption_label.text != tr("CAPTION_CRAWLER_SCRABBLE"):
-				push_error("qa_tour: Crawler scrabble cue and live caption were not observed")
+			var actual_cues: int = int(manager.get("crawler_scrabble_count")) if manager != null else 0
+			var caption_text: String = caption_label.text if is_instance_valid(caption_label) else ""
+			if manager == null or actual_cues != required_cues or \
+				caption_text != tr("CAPTION_CRAWLER_SCRABBLE"):
+				push_error("qa_tour: expected %d Crawler cues and live caption; observed %d and %s" % [
+					required_cues, actual_cues, caption_text])
 				_failed = true
 			if manager != null and state.has("expect_crawler_source"):
 				var source: Array = state["expect_crawler_source"]
@@ -306,6 +324,10 @@ func _run() -> void:
 							float(audio_capture["rms"]), required_ratio, comparison, reference_level])
 						_failed = true
 				audio_levels[state_name] = audio_capture["rms"]
+		if state.get("record_audio_stop", false):
+			audio_capture = _finish_audio("%02d_live_audio.wav" % (_results.size() + 1), 0.25)
+			if audio_capture.is_empty():
+				_failed = true
 		await RenderingServer.frame_post_draw
 		await RenderingServer.frame_post_draw
 		var active_enemy_phases: Dictionary[String, String] = {}
@@ -379,6 +401,12 @@ func _run() -> void:
 			push_error("qa_tour: unexpected capture size for " + state_name)
 			_failed = true
 		var observed: Dictionary = _observed_state().duplicate(true)
+		if state.get("expect_crawler_scrabble", false) and _game_manager() != null:
+			observed["crawler_cues"] = int(_game_manager().get("crawler_scrabble_count"))
+			var last_crawler_source: Vector3 = _game_manager().get("crawler_last_position")
+			if observed["crawler_cues"] > 0:
+				observed["crawler_last_source"] = [last_crawler_source.x, last_crawler_source.y,
+					last_crawler_source.z]
 		if state.has("expect_active_enemies"):
 			observed["active_enemy_phases"] = active_enemy_phases
 		if _joined and _game_manager() != null:
@@ -468,6 +496,9 @@ func _run() -> void:
 	quit(1 if _failed else 0)
 
 func _retire_scene() -> void:
+	if not _discard_audio():
+		push_error("qa_tour: Master recording effect remained during scene retirement")
+		_failed = true
 	# Retire the live world while the rendering server can still drain resource
 	# frees. Quitting on the capture frame can leave textures pending retirement.
 	if self.current_scene != null:
@@ -493,27 +524,41 @@ func _retire_scene() -> void:
 		_failed = true
 
 func _record_audio(seconds: float, state_index: int) -> Dictionary:
+	if not _begin_audio("steady-state"):
+		return {}
+	await create_timer(seconds).timeout
+	return _finish_audio("%02d_audio.wav" % state_index, seconds * 0.8)
+
+func _begin_audio(state_name: String) -> bool:
 	# Master receives Effects, Radio and Voice. The effect observes that bus
 	# before its final fader, so its level is useful for relative QA only.
-	var master: int = AudioServer.get_bus_index(&"Master")
-	if master < 0:
+	if _audio_recorder != null:
+		push_error("qa_tour: audio recording is already active")
+		return false
+	_audio_master = AudioServer.get_bus_index(&"Master")
+	if _audio_master < 0:
 		push_error("qa_tour: Master audio bus is missing")
+		return false
+	_audio_recorder = AudioEffectRecord.new()
+	_audio_recorder.format = AudioStreamWAV.FORMAT_16_BITS
+	_audio_effects_before = AudioServer.get_bus_effect_count(_audio_master)
+	AudioServer.add_bus_effect(_audio_master, _audio_recorder)
+	_audio_recorder.set_recording_active(true)
+	_audio_started_ms = Time.get_ticks_msec()
+	_audio_start_state = state_name
+	return true
+
+func _finish_audio(file_name: String, minimum_seconds: float) -> Dictionary:
+	if _audio_recorder == null:
+		push_error("qa_tour: audio recording was not active at stop")
 		return {}
-	var recorder: AudioEffectRecord = AudioEffectRecord.new()
-	recorder.format = AudioStreamWAV.FORMAT_16_BITS
-	var effects_before: int = AudioServer.get_bus_effect_count(master)
-	AudioServer.add_bus_effect(master, recorder)
-	recorder.set_recording_active(true)
-	await create_timer(seconds).timeout
 	# Obtain the buffer while active. Restarting or removing the effect clears
 	# its capture, so copy it before stopping the mixer-side recording.
-	var recording: AudioStreamWAV = recorder.get_recording()
-	recorder.set_recording_active(false)
-	for effect_index: int in range(AudioServer.get_bus_effect_count(master) - 1, -1, -1):
-		if AudioServer.get_bus_effect(master, effect_index) == recorder:
-			AudioServer.remove_bus_effect(master, effect_index)
-			break
-	if AudioServer.get_bus_effect_count(master) != effects_before:
+	var recording: AudioStreamWAV = _audio_recorder.get_recording()
+	var start_state: String = _audio_start_state
+	var elapsed_seconds: float = float(Time.get_ticks_msec() - _audio_started_ms) / 1000.0
+	var removed: bool = _discard_audio()
+	if not removed:
 		push_error("qa_tour: Master recording effect remained on the bus")
 		return {}
 	if recording == null or recording.format != AudioStreamWAV.FORMAT_16_BITS:
@@ -522,7 +567,7 @@ func _record_audio(seconds: float, state_index: int) -> Dictionary:
 	var pcm: PackedByteArray = recording.data
 	var channels: int = 2 if recording.stereo else 1
 	var duration: float = float(pcm.size()) / float(recording.mix_rate * channels * 2)
-	if pcm.size() < 2 or pcm.size() % 2 != 0 or duration < seconds * 0.8:
+	if pcm.size() < 2 or pcm.size() % 2 != 0 or duration < minimum_seconds:
 		push_error("qa_tour: Master recording was empty or shorter than requested")
 		return {}
 	var sum_squares: float = 0.0
@@ -538,13 +583,30 @@ func _record_audio(seconds: float, state_index: int) -> Dictionary:
 	if rms <= 0.000001:
 		push_error("qa_tour: Master recording is silent")
 		return {}
-	var file_name: String = "%02d_audio.wav" % state_index
 	if recording.save_to_wav(_out_dir.path_join(file_name)) != OK:
 		push_error("qa_tour: could not write " + file_name)
 		return {}
 	print("qa_tour: %s %.2f s RMS %.6f peak %.6f" % [file_name, duration, rms, peak])
-	return {"file": file_name, "duration_seconds": duration, "rms": rms, "peak": peak,
+	return {"file": file_name, "duration_seconds": duration, "elapsed_seconds": elapsed_seconds,
+		"start_state": start_state, "rms": rms, "peak": peak,
 		"sample_rate": recording.mix_rate, "channels": channels, "master_pre_fader": true}
+
+func _discard_audio() -> bool:
+	if _audio_recorder == null:
+		return true
+	_audio_recorder.set_recording_active(false)
+	var removed: bool = false
+	for effect_index: int in range(AudioServer.get_bus_effect_count(_audio_master) - 1, -1, -1):
+		if AudioServer.get_bus_effect(_audio_master, effect_index) == _audio_recorder:
+			AudioServer.remove_bus_effect(_audio_master, effect_index)
+			removed = true
+			break
+	var count_restored: bool = AudioServer.get_bus_effect_count(_audio_master) == _audio_effects_before
+	_audio_recorder = null
+	_audio_master = -1
+	_audio_started_ms = 0
+	_audio_start_state = ""
+	return removed and count_restored
 
 func _track_scene_audio() -> void:
 	if self.current_scene == null:
@@ -557,9 +619,28 @@ func _track_scene_audio() -> void:
 static func valid_walks(states: Variant) -> bool:
 	if not states is Array or states.is_empty():
 		return false
+	var live_audio_open: bool = false
+	var scene_path: String = ""
 	for state: Variant in states:
 		if not state is Dictionary or not QaCombat.valid_waypoints(state.get("walk_to", [])):
 			return false
+		if state.has("scene") and not str(state["scene"]).is_empty():
+			if live_audio_open and str(state["scene"]) != scene_path:
+				return false
+			scene_path = str(state["scene"])
+		for key: String in ["record_audio_start", "record_audio_stop"]:
+			if state.has(key) and not state[key] is bool:
+				return false
+		var starts_audio: bool = state.get("record_audio_start", false)
+		var stops_audio: bool = state.get("record_audio_stop", false)
+		if starts_audio and live_audio_open or stops_audio and not (live_audio_open or starts_audio):
+			return false
+		if state.has("record_audio_seconds") and (starts_audio or stops_audio or live_audio_open):
+			return false
+		if starts_audio:
+			live_audio_open = true
+		if stops_audio:
+			live_audio_open = false
 		if state.get("camera", "") == "overview" and state.has("camera_position") and \
 			not QaCombat.valid_waypoints([state.get("camera_position"), state.get("camera_look_at")]):
 			return false
@@ -574,7 +655,7 @@ static func valid_walks(states: Variant) -> bool:
 			if not state.has("record_audio_seconds") or not reference is String or reference.is_empty() \
 				or not (ratio is float or ratio is int) or not is_finite(float(ratio)) or float(ratio) < 1.0:
 				return false
-	return true
+	return not live_audio_open
 
 static func active_named_enemies(snapshot: Dictionary, names: Array) -> Dictionary[String, String]:
 	var found: Dictionary[String, String] = {}

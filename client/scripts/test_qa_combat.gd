@@ -44,6 +44,17 @@ func _initialize() -> void:
 		_check(not TOUR.valid_walks(invalid), "invalid manifest walking shape rejected before play")
 	_check(not TOUR.valid_walks([{"camera":"overview", "camera_position":[0, INF, 0],
 		"camera_look_at":[0, 0, 0]}]), "invalid spectator framing rejected before play")
+	_check(TOUR.valid_walks([{"scene":"res://scenes/main.tscn", "record_audio_start":true},
+		{"record_audio_stop":true}]), "bounded live audio state pair accepted")
+	for invalid_audio: Array in [
+		[{"record_audio_start":true}],
+		[{"record_audio_stop":true}],
+		[{"record_audio_start":true}, {"record_audio_start":true}, {"record_audio_stop":true}],
+		[{"record_audio_start":true}, {"scene":"res://scenes/boot_menu.tscn", "record_audio_stop":true}],
+		[{"record_audio_start":true, "record_audio_seconds":1.0, "record_audio_stop":true}],
+		[{"record_audio_start":"yes", "record_audio_stop":true}],
+	]:
+		_check(not TOUR.valid_walks(invalid_audio), "invalid live audio span rejected before play")
 	var pack_snapshot: Dictionary = {"players":[
 		{"name":"crawler", "hp":20, "campaign":{"side":"union", "phase":"moving"}},
 		{"name":"sweeper", "hp":0, "campaign":{"side":"union", "phase":"dead"}},

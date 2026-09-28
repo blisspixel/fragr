@@ -39,7 +39,7 @@ Distribution needs a separate check before committing generated WAVs. ElevenLabs
 
 - `test_m02_ward.gd` covers initial snapshot, live transition, duplicate state, retry, late spectator, map clear and missing-file behavior. Godot import, script checks and each harness PASS marker must be clean.
 - A first-person Standard and Severe tour reaches the ward stop, release, side room and departure with the intended sounds and captions. Inspect screenshots and listen to the recorded sequence on real hardware; a headless PASS cannot establish mix quality.
-- The floor bed never drowns the Crawler scrabble or combat tells. There is no duplicated stop or release after reconnect, retry or scene skip.
+- The floor bed never drowns the Crawler scrabble or combat tells. Latch's current words are captions, so check their readability separately from the mix. There is no duplicated stop or release after reconnect, retry or scene skip.
 - Asset files load in Godot, stay within practical packaged size, and have a manifest entry or original source recipe. No player runtime API request is introduced.
 - Rust and workspace checks stay green; unfiltered coverage remains at or above 90 percent. No cloud apply or new external charge occurs without the exact spend and distribution gates above.
 
@@ -57,4 +57,6 @@ The four-effect [request spec](../../tools/audiogen/specs/m02-ward-sfx.json) is 
 
 The public draft uses four original offline-baked effects from [the deterministic Godot recipe](../../client/assets/audio/m02/bake_soundscape.gd), with file hashes, levels and durations in [the asset manifest](../../client/assets/audio/m02/soundscape-manifest.json). The existing M02 ward presenter plays them from validated mission-state transitions on the spatial `Effects` bus. Latch's first restraint, the later second-bay opening and the optional side ward each have a local mechanism cue. A first snapshot or retry starts only the current machinery beds; late joins, duplicates, skips and map clear do not replay old one-shots. The focused `test_m02_ward.gd` state test passed under Godot 4.7.2-stable. Godot import and loop metadata passed; the two loop seam jumps measure 0.001648 and 0.001160 full scale. Total WAV data is 336,176 bytes. No external asset charge was incurred.
 
-Listening and the in-game mix are still open. This environment could inspect waveforms and measure levels but could not audition audio. The next pass must hear both difficulties in a first-person route, check the ward stop and restraint at their positions, and make sure the floor bed leaves the Crawler warning and speech clear before this plan is accepted.
+Listening and the in-game mix are still open. This environment could inspect waveforms and measure levels but could not audition audio. The next pass must hear both difficulties in a first-person route, check the ward stop and restraint at their positions, make sure the floor bed leaves the Crawler warning and combat cues clear, and check caption readability before this plan is accepted.
+
+The [live cue listening gate](m02-live-cue-listening-gate.md) records those first-person transitions in Standard and Severe for hardware review. Its captured levels and stage assertions are evidence for the review, not a listening verdict.
