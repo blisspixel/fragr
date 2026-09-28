@@ -1282,43 +1282,27 @@ impl GameState {
                 player.pitch = pitch;
             }
 
-            let mut dx = 0.0;
-            let mut dz = 0.0;
-            if action.forward {
-                dx += player.yaw.cos();
-                dz += player.yaw.sin();
-            }
-            if action.back {
-                dx -= player.yaw.cos();
-                dz -= player.yaw.sin();
-            }
-            if action.left {
-                dx += (player.yaw - PI / 2.0).cos();
-                dz += (player.yaw - PI / 2.0).sin();
-            }
-            if action.right {
-                dx += (player.yaw + PI / 2.0).cos();
-                dz += (player.yaw + PI / 2.0).sin();
-            }
-
-            let len = (dx * dx + dz * dz).sqrt();
-            if len > 0.0 {
-                dx /= len;
-                dz /= len;
-            }
-
             let move_speed = move_speed * crate::encounters::gait(player.campaign);
-            let moved = crate::movement::integrate(
+            let moved = crate::movement::live_step(
                 crate::movement::MoveState {
                     x: player.x,
                     z: player.z,
                     y: player.y - PLAYER_FLOOR_Y,
-                    vx: dx * move_speed,
-                    vz: dz * move_speed,
+                    vx: 0.0,
+                    vz: 0.0,
                     vy: player.vy,
                     yaw: player.yaw,
                 },
-                action.jump || jump_requested,
+                &crate::movement::MoveInput {
+                    forward: action.forward,
+                    back: action.back,
+                    left: action.left,
+                    right: action.right,
+                    jump: action.jump || jump_requested,
+                    yaw: player.yaw,
+                    speed_scale: 1.0,
+                },
+                move_speed,
                 dt,
                 arena,
             );

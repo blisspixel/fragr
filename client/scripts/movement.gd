@@ -2,15 +2,16 @@ class_name MoveStep
 extends RefCounted
 ## The shared movement step, mirrored line for line from server/src/movement.rs.
 ## Pure functions over dictionaries: no nodes, no physics server, no randomness.
-## The headless harness test_move_golden.gd proves this mirror matches the
-## Rust step against client/golden/move_vectors.json. Change the model in Rust,
-## regenerate the vectors, then bring this file into line.
+## The headless harness test_move_golden.gd checks both the accelerated 60 Hz
+## vectors and the current immediate-velocity 20 Hz live vectors. Neither
+## mirror is wired to a predicting client yet.
 
 const RADIUS: float = 0.5
 const TOP_SPEED: float = 5.0
 const TAU_ACCEL: float = 0.06
 const TAU_DECEL: float = 0.04
 const DT_60HZ: float = 1.0 / 60.0
+const DT_LIVE: float = 1.0 / 20.0
 const GROUND_Y: float = 0.0
 ## How far a fighter climbs or drops without leaving the ground.
 const STEP_UP: float = 0.6
@@ -189,6 +190,19 @@ static func wish_dir(input: Dictionary, yaw: float) -> Vector2:
 	if len > 0.0:
 		return Vector2(dx / len, dz / len)
 	return Vector2.ZERO
+
+
+## Mirror of the current authoritative 20 Hz movement path. The caller has
+## already chosen effective speed, client yaw and any latched jump edge.
+## Horizontal velocity changes immediately, unlike the accelerated step.
+static func live_step(state: Dictionary, input: Dictionary, speed: float, dt: float, arena: Dictionary) -> Dictionary:
+	var yaw: float = normalize_yaw(float(input.get("yaw", 0.0)))
+	var wish: Vector2 = wish_dir(input, yaw)
+	var moving: Dictionary = state.duplicate()
+	moving["vx"] = wish.x * speed
+	moving["vz"] = wish.y * speed
+	moving["yaw"] = yaw
+	return integrate(moving, bool(input.get("jump", false)), dt, arena)
 
 
 ## Advance one fighter by dt seconds. Same order as the Rust step: yaw, wish,

@@ -1,13 +1,13 @@
-//! Shared body integration and an acceleration-based input step, mirrored in
-//! `client/scripts/movement.gd`. The live server calls `integrate` with immediate
-//! horizontal velocity. The mirror and goldens do not imply live prediction.
+//! Shared body integration and two input steps, mirrored in
+//! `client/scripts/movement.gd`. The live server uses immediate horizontal
+//! velocity; the older pure step uses acceleration. Neither mirror implies
+//! live client prediction.
 //! Pure data in, pure data out, with no engine calls or randomness.
 //!
-//! Agreement is proven by golden vectors in `client/golden/move_vectors.json`:
-//! this module generates them, the test below asserts this module reproduces
-//! them exactly, and the headless Godot harness asserts the GDScript mirror
-//! reproduces them within a tolerance. Change the model here, regenerate the
-//! vectors, review the diff like code.
+//! Each model has separate golden vectors. This module generates them, its
+//! tests assert the committed files still match, and the headless Godot
+//! harness checks the GDScript mirror within a tolerance. Change a model,
+//! regenerate only its vectors, and review the diff like code.
 
 use serde::{Deserialize, Serialize};
 use std::f32::consts::PI;
@@ -25,6 +25,9 @@ pub const TAU_ACCEL: f32 = 0.06;
 pub const TAU_DECEL: f32 = 0.04;
 /// The movement step length at the 60 Hz rate the tick migration adopts.
 pub const DT_60HZ: f32 = 1.0 / 60.0;
+/// Current authoritative movement step length. Keep separate from the
+/// proposed 60 Hz movement rate and its accelerated golden vectors.
+pub const DT_LIVE: f32 = 1.0 / 20.0;
 /// The base floor. Solids stand on it and a fighter with nothing under it
 /// falls back to it, so it is the bottom of the heightfield rather than the
 /// only ground there is.
@@ -398,6 +401,33 @@ pub fn wish_dir(input: &MoveInput, yaw: f32) -> (f32, f32) {
     }
 }
 
+/// The current authoritative input-to-body step. `speed` is the effective
+/// units-per-second speed already chosen by the simulation, including its
+/// compliance and body-gait modifiers. Horizontal velocity changes at once;
+/// no acceleration is applied. The caller supplies the yaw selected for this
+/// server tick and owns jump-edge latching and the world-y/feet conversion.
+pub fn live_step(
+    state: MoveState,
+    input: &MoveInput,
+    speed: f32,
+    dt: f32,
+    arena: &Arena,
+) -> MoveState {
+    let yaw = normalize_yaw(input.yaw);
+    let (wx, wz) = wish_dir(input, yaw);
+    integrate(
+        MoveState {
+            vx: wx * speed,
+            vz: wz * speed,
+            yaw,
+            ..state
+        },
+        input.jump,
+        dt,
+        arena,
+    )
+}
+
 /// Advance one fighter by `dt` seconds. The order of operations is the
 /// contract the GDScript mirror keeps: yaw, wish, velocity approach, the floor
 /// under the old position, integrate, clamp, axis-separated slide with
@@ -546,6 +576,145 @@ pub struct GoldenFile {
 
 /// Where the vectors live, shared with the Godot harness.
 pub const GOLDEN_PATH: &str = "client/golden/move_vectors.json";
+/// Independent vectors for the current 20 Hz immediate-velocity server path.
+pub const LIVE_GOLDEN_PATH: &str = "client/golden/live_move_vectors.json";
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct LiveGoldenCase {
+    pub name: String,
+    pub arena: Arena,
+    pub start: MoveState,
+    pub speed: f32,
+    pub inputs: Vec<MoveInput>,
+    pub stride: usize,
+    pub expected: Vec<MoveState>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct LiveGoldenFile {
+    pub version: u32,
+    pub dt: f32,
+    pub top_speed: f32,
+    pub cases: Vec<LiveGoldenCase>,
+}
+
+fn live_case(
+    name: &str,
+    arena: &Arena,
+    start: MoveState,
+    speed: f32,
+    inputs: Vec<MoveInput>,
+    stride: usize,
+) -> LiveGoldenCase {
+    let mut state = start;
+    let mut expected = Vec::new();
+    for (i, input) in inputs.iter().enumerate() {
+        state = live_step(state, input, speed, DT_LIVE, arena);
+        if (i + 1) % stride == 0 {
+            expected.push(state);
+        }
+    }
+    LiveGoldenCase {
+        name: name.to_string(),
+        arena: arena.clone(),
+        start,
+        speed,
+        inputs,
+        stride,
+        expected,
+    }
+}
+
+/// Selected paths include immediate starts/stops, yaw, collision, height,
+/// jump, overhead clearance and the live compliance speed modifier.
+pub fn live_golden_cases() -> LiveGoldenFile {
+    let flat = Arena {
+        half: 25.0,
+        solids: Vec::new(),
+    };
+    let obstacle = golden_arena();
+    let terrace = golden_terrace_arena();
+    let ceiling = Arena {
+        half: 12.0,
+        solids: vec![Solid::from_center_volume(0.0, 0.0, 2.0, 2.0, 2.1, 3.0)],
+    };
+    let mut start_stop = hold(keys(true, false, false, false, 0.0), 5);
+    start_stop.extend(hold(MoveInput::default(), 5));
+    let mut jump = hold(MoveInput::default(), 16);
+    jump[0].jump = true;
+    let cases = vec![
+        live_case(
+            "instant_start_stop",
+            &flat,
+            at(0.0, 0.0, 0.0),
+            TOP_SPEED,
+            start_stop,
+            1,
+        ),
+        live_case(
+            "diagonal_yaw",
+            &flat,
+            at(0.0, 0.0, 0.0),
+            TOP_SPEED,
+            hold(keys(true, false, false, true, PI / 3.0), 8),
+            1,
+        ),
+        live_case(
+            "wall_slide",
+            &obstacle,
+            at(4.3, -2.0, 0.0),
+            TOP_SPEED,
+            hold(keys(true, false, false, true, 0.0), 16),
+            1,
+        ),
+        live_case(
+            "stair_climb_and_deck",
+            &terrace,
+            at(0.0, 0.0, 0.0),
+            TOP_SPEED,
+            hold(keys(true, false, false, false, 0.0), 56),
+            4,
+        ),
+        live_case(
+            "deck_edge_fall",
+            &terrace,
+            at_y(12.0, 0.0, 3.0, 0.0),
+            TOP_SPEED,
+            hold(keys(false, false, false, true, 0.0), 24),
+            2,
+        ),
+        live_case(
+            "jump_arc",
+            &flat,
+            at(0.0, 0.0, 0.0),
+            TOP_SPEED,
+            jump.clone(),
+            1,
+        ),
+        live_case(
+            "ceiling_head_strike",
+            &ceiling,
+            at(0.0, 0.0, 0.0),
+            TOP_SPEED,
+            jump,
+            1,
+        ),
+        live_case(
+            "compliance_half_speed",
+            &flat,
+            at(0.0, 0.0, 0.0),
+            TOP_SPEED * 0.5,
+            hold(keys(true, false, false, false, 0.0), 8),
+            1,
+        ),
+    ];
+    LiveGoldenFile {
+        version: 1,
+        dt: DT_LIVE,
+        top_speed: TOP_SPEED,
+        cases,
+    }
+}
 
 fn run_case(
     arena: &Arena,
@@ -1150,6 +1319,161 @@ mod tests {
                 }
             }
         }
+    }
+
+    #[test]
+    fn live_golden_vectors_match_this_model() {
+        let path = workspace_path(LIVE_GOLDEN_PATH);
+        let text = std::fs::read_to_string(&path).unwrap_or_else(|e| {
+            panic!(
+                "read {}: {e}; regenerate with the ignored test",
+                path.display()
+            )
+        });
+        let file: LiveGoldenFile = serde_json::from_str(&text).expect("live golden json");
+        assert_eq!(
+            (file.version, file.dt, file.top_speed),
+            (1, DT_LIVE, TOP_SPEED)
+        );
+        let fresh = live_golden_cases();
+        assert_eq!(fresh.cases.len(), file.cases.len());
+        for (want, have) in file.cases.iter().zip(fresh.cases.iter()) {
+            assert_eq!(want.name, have.name);
+            assert_eq!(want.arena, have.arena);
+            assert_eq!(want.start, have.start);
+            assert_eq!(want.inputs, have.inputs);
+            assert_eq!(want.speed, have.speed);
+            assert_eq!(want.stride, have.stride);
+            assert_eq!(want.expected.len(), have.expected.len(), "{}", want.name);
+            for (i, (w, h)) in want.expected.iter().zip(have.expected.iter()).enumerate() {
+                for (label, a, b) in [
+                    ("x", w.x, h.x),
+                    ("z", w.z, h.z),
+                    ("y", w.y, h.y),
+                    ("vx", w.vx, h.vx),
+                    ("vz", w.vz, h.vz),
+                    ("vy", w.vy, h.vy),
+                    ("yaw", w.yaw, h.yaw),
+                ] {
+                    assert!(
+                        (a - b).abs() <= 1e-6,
+                        "{} step {} {label}: file {a} vs model {b}",
+                        want.name,
+                        i
+                    );
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn live_golden_cases_exercise_the_claimed_behaviors() {
+        let file = live_golden_cases();
+        let find = |name: &str| {
+            file.cases
+                .iter()
+                .find(|case| case.name == name)
+                .unwrap_or_else(|| panic!("missing live case {name}"))
+        };
+        let stop = find("instant_start_stop");
+        assert_eq!(stop.expected[0].x, TOP_SPEED * DT_LIVE);
+        assert_eq!(stop.expected[5].x, stop.expected[4].x);
+        assert_eq!(stop.expected[5].vx, 0.0);
+        let slow = find("compliance_half_speed");
+        assert_eq!(slow.expected[0].x, TOP_SPEED * 0.5 * DT_LIVE);
+        let wall = find("wall_slide");
+        assert!(wall
+            .expected
+            .iter()
+            .any(|state| state.vz == 0.0 && state.vx > 0.0));
+        let stairs = find("stair_climb_and_deck");
+        assert_eq!(stairs.expected.last().unwrap().y, 3.0);
+        let fall = find("deck_edge_fall");
+        assert!(fall.expected.last().unwrap().y < fall.start.y);
+        let jump = find("jump_arc");
+        assert!(jump.expected.iter().any(|state| state.y > 1.0));
+        assert_eq!(jump.expected.last().unwrap().y, GROUND_Y);
+        let ceiling = find("ceiling_head_strike");
+        assert!(ceiling.expected.iter().any(|state| state.y > 0.0));
+        assert!(ceiling.expected.iter().all(|state| state.y < 0.31));
+    }
+
+    #[test]
+    fn live_step_preserves_the_previous_inline_velocity_formula() {
+        let arena = golden_arena();
+        for (state, input, speed) in [
+            (
+                at(0.0, 0.0, 0.0),
+                keys(true, false, false, false, 0.0),
+                TOP_SPEED,
+            ),
+            (
+                at(4.3, -2.0, 0.0),
+                keys(true, false, false, true, 0.0),
+                TOP_SPEED,
+            ),
+            (
+                at(0.0, 0.0, PI / 3.0),
+                keys(true, false, true, false, PI / 3.0),
+                TOP_SPEED * 0.5,
+            ),
+            (
+                at(0.0, 0.0, PI / 2.0),
+                MoveInput {
+                    jump: true,
+                    yaw: PI / 2.0,
+                    ..MoveInput::default()
+                },
+                TOP_SPEED,
+            ),
+        ] {
+            // This is the original sim.rs calculation, retained in a test so
+            // extraction cannot silently change the current live rule.
+            let yaw = input.yaw;
+            let mut dx = 0.0;
+            let mut dz = 0.0;
+            if input.forward {
+                dx += yaw.cos();
+                dz += yaw.sin();
+            }
+            if input.back {
+                dx -= yaw.cos();
+                dz -= yaw.sin();
+            }
+            if input.left {
+                dx += (yaw - PI / 2.0).cos();
+                dz += (yaw - PI / 2.0).sin();
+            }
+            if input.right {
+                dx += (yaw + PI / 2.0).cos();
+                dz += (yaw + PI / 2.0).sin();
+            }
+            let len = (dx * dx + dz * dz).sqrt();
+            if len > 0.0 {
+                dx /= len;
+                dz /= len;
+            }
+            let legacy = integrate(
+                MoveState {
+                    vx: dx * speed,
+                    vz: dz * speed,
+                    yaw,
+                    ..state
+                },
+                input.jump,
+                DT_LIVE,
+                &arena,
+            );
+            assert_eq!(live_step(state, &input, speed, DT_LIVE, &arena), legacy);
+        }
+    }
+
+    #[test]
+    #[ignore]
+    fn regenerate_live_golden_vectors() {
+        let path = workspace_path(LIVE_GOLDEN_PATH);
+        let file = live_golden_cases();
+        std::fs::write(&path, serde_json::to_string_pretty(&file).unwrap() + "\n").unwrap();
     }
 
     /// Rewrites the golden file from the current model. Run it on purpose:

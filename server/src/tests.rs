@@ -1076,6 +1076,74 @@ fn test_sim_all_bot_behaviors_coverage() {
 }
 
 #[test]
+fn live_step_matches_one_authoritative_tick_with_jump_and_compliance() {
+    use crate::movement::{live_step, MoveInput, MoveState, TOP_SPEED};
+    use crate::sim::PLAYER_FLOOR_Y;
+
+    let mut state = GameState::new();
+    let id = Uuid::new_v4();
+    state.add_player(id, "Mover".to_string(), Role::Human);
+    state.start_round();
+    state.players[0].x = 0.0;
+    state.players[0].z = 0.0;
+    state.players[0].y = PLAYER_FLOOR_Y;
+    state.players[0].vy = 0.0;
+    state.compliance_ticks_left = 2;
+    let yaw = std::f32::consts::FRAC_PI_3;
+    let action = Action {
+        forward: true,
+        right: true,
+        yaw: Some(yaw),
+        ..Action::default()
+    };
+    let player = &state.players[0];
+    let predicted = live_step(
+        MoveState {
+            x: player.x,
+            z: player.z,
+            y: player.y - PLAYER_FLOOR_Y,
+            vx: 0.0,
+            vz: 0.0,
+            vy: player.vy,
+            yaw,
+        },
+        &MoveInput {
+            forward: action.forward,
+            back: action.back,
+            left: action.left,
+            right: action.right,
+            // An earlier tap is latched even when the selected action has
+            // released jump before this 20 Hz movement step.
+            jump: true,
+            yaw,
+            speed_scale: 1.0,
+        },
+        TOP_SPEED * 0.5,
+        0.05,
+        state.map.arena(),
+    );
+    state.set_action(
+        id,
+        Action {
+            jump: true,
+            ..Action::default()
+        },
+    );
+    state.set_action(id, action);
+    state.tick(0.05);
+    let actual = &state.players[0];
+    for (label, a, b) in [
+        ("x", actual.x, predicted.x),
+        ("z", actual.z, predicted.z),
+        ("y", actual.y, predicted.y + PLAYER_FLOOR_Y),
+        ("vy", actual.vy, predicted.vy),
+        ("yaw", actual.yaw, predicted.yaw),
+    ] {
+        assert!((a - b).abs() <= 1e-6, "{label}: sim {a} vs live step {b}");
+    }
+}
+
+#[test]
 fn test_sim_player_movement_all_directions() {
     let mut state = GameState::new();
     state.start_round();

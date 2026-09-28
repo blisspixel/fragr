@@ -29,6 +29,7 @@ Every `*_TICKS` constant in `server/src/sim.rs` and `server/src/protocol.rs`, th
 
 - The server ticks at 20 Hz and every snapshot is the full JSON world (`server/src/run.rs`).
 - The client now caps numbered human Actions at 120 per second (`client/scripts/game_manager.gd`). The 20 Hz server applies the newest one per tick and repeats that sequence in later Acks. [The human Action-to-Ack baseline](human-action-ack-baseline.md) measures this live path before defining replayable input steps.
+- The [live movement step](live-movement-step.md) is being extracted into a pure Rust function and a GDScript mirror with separate 20 Hz goldens. That rung changes no gameplay and does not wire prediction.
 - Mouse yaw is client-owned on the displayed frame, and the server accepts the absolute facing. Remote pawn presentation still has a smoothing path; local movement is not yet predicted. The original per-frame, turn-bit-only look path described below is design history, not the current implementation.
 
 ## Design
@@ -63,7 +64,7 @@ Written twice: `server/src/movement.rs` (`pub fn step(state, input, dt, obstacle
 
 ### Golden vectors
 
-Current golden vectors live at `client/golden/move_vectors.json` and exercise the shared movement mirror. They do not establish that live human prediction or reconciliation is wired. Extend them with live 3D movement cases and verify both implementations before treating the draft cases below as a prediction contract.
+Accelerated 60 Hz goldens live at `client/golden/move_vectors.json`. The separate `client/golden/live_move_vectors.json` exercises the 20 Hz immediate-velocity rule. Neither establishes that live human prediction or reconciliation is wired.
 
 ### Wire changes, exact
 
