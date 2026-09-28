@@ -1,58 +1,89 @@
 # Durable cloud host
 
-**Status:** design only, checked 2026-09-26. No GCP host has been deployed.
-The current Terraform VM and Cloud Run adapter are placeholders, not a playable
-cloud deployment. Follow the [dedicated hosting plan](../../docs/plans/dedicated-server-udp-and-hosting.md)
-for the implementation and acceptance gates.
+**Status:** plan-only, checked 2026-09-28. No GCP host or game image has been
+deployed. Follow the [bounded COS plan](../../docs/plans/cos-container-host.md)
+and [Terraform guide](../terraform/README.md).
 
-## Deployable unit
+## Image and identity
 
-Build and test the same `fragr-server` image used by local Compose. For GCP,
-store an immutable image digest in Artifact Registry and run it on a small
-Container-Optimized OS host through a startup script or cloud-init. Configure
-automatic restart, health checks, least-privilege image pull and a documented
-rollback. Retrieve secrets at runtime; keep them out of the image, instance
-metadata text, Terraform state and command arguments.
+The Terraform draft consumes an existing private Artifact Registry Docker
+repository and a published `fragr-server` manifest digest. The repository,
+build, push and legal-notice check must be done and reviewed before a cloud
+apply. A floating tag cannot select the deployed build.
 
-Do not use `gce-container-declaration` or the container startup agent: Google
-stopped new deployments through that path on 2026-07-31. Do not make a Debian
-host maintained by `scp` the default deployment model.
+The host uses a COS stable image, Docker and a startup script. It uses no
+container startup agent, Debian package installer, or `scp` game binary.
+The VM's service account receives repository-scoped Reader and secret-scoped
+Secret Accessor. It has the `cloud-platform` OAuth scope required by Secret
+Manager; IAM limits what it can read. Operator IAP IAM is separate.
 
-The authoritative tick stays in the container. Cloud Run may later serve
-implemented HTTP ticket, status or discovery APIs, but cannot expose the public
-UDP game socket. No Cloud Run API exists for fragr yet.
+Create a Secret Manager version with a single 16 to 256 byte ASCII token
+containing letters, digits, underscore or hyphen. Pin its numeric version.
+Terraform holds only the secret name and version, not its value. At boot the
+host reads that version into root-only `/run/fragr` tmpfs and passes it
+through Docker's env-file interface, because the current server reads
+`FRAGR_JOIN_SECRET` from the environment. Root and Docker administrators on
+the host can inspect the running environment. A missing or invalid secret
+keeps the game container stopped. The launcher removes a stale env file at
+each attempt and deletes a newly staged file if image pull fails. Its shell
+parser expects the trusted Secret Manager API's documented `payload.data`
+shape; an unexpected response fails closed.
 
-## Public network
+## Network and cost
 
-- Open **TCP 6767** for the current WebSocket game only after public admission,
-  TLS, abuse limits and recovery have been tested. UDP 6767 remains closed until
-  an authenticated client/server transport passes its own review.
-- A COS host denies incoming traffic by default. Configure narrow host firewall
-  allowances for the published game port and required container forwarding,
-  alongside the VPC firewall, then probe ingress from outside the host. Review
-  the [COS migration guidance](https://docs.cloud.google.com/compute/docs/containers/migrate-containers#configure-internal-firewall) before writing the startup script.
-- Permit SSH through IAP only. No world-accessible SSH, broad admin port or
-  public Cloud Run adapter placeholder.
-- Tailscale may help private operator tests. Public friends should be able to
-  use the documented address without it.
-- Test the intended host class with at least ten fighters and bounded
-  spectators before claiming capacity. An `e2-micro` Free Tier label does not
-  establish game performance.
+Default Terraform has no external IPv4 and no game firewall source ranges.
+The subnet enables Private Google Access, which lets this internal-only VM
+reach normal Artifact Registry and Secret Manager endpoints without Cloud
+NAT. An approved public test would enable an ephemeral external IPv4 and
+specify up to eight distinct canonical operator IPv4 /32 addresses. The VPC
+then allows TCP 6767 from those sources; the COS startup installs a matching
+host INPUT rule for each /32 for its
+host-network Docker container. Test the actual ingress from an allowed
+outside address. UDP cannot be enabled in this draft. SSH is IAP only.
 
-## Spend decision
+This is still plain WebSocket. A CIDR and HMAC secret do not complete public
+admission, TLS termination, ticket distribution, replay control or abuse
+review. Do not advertise this as a public stranger server. A future
+serverless ticket, list or status edge needs a real HTTP implementation and
+an access contract; none is deployed by this Terraform.
 
-The project's external spend cap is $50 total. Nick authorized at most $20
-combined external charges for 2026-09-26 build work, including a bounded GCP
-test if one is needed. No GCP test is needed for the local container slice.
-Before a cloud apply, price the exact configuration and exposure window, check
-remaining allowance, and obtain approval for a production deployment.
+An `e2-micro` Free Tier allowance does not establish ten-fighter capacity.
+The VM, disk, Artifact Registry storage and egress may bill. An in-use
+external IPv4 costs $0.005 per hour on a standard VM, even if game ingress
+is closed ([Google VPC pricing](https://cloud.google.com/vpc/pricing#ipaddress),
+checked 2026-09-28). Billing alerts notify but do not cap charges. Price the
+exact approved runtime window and teardown before any apply.
 
-An Always Free eligible VM does not make a public host free. An in-use external
-IPv4 address is billed separately, currently $0.005 per hour on a standard VM
-([Google VPC pricing](https://cloud.google.com/vpc/pricing#ipaddress), checked
-2026-09-28). Egress can bill after the applicable allowance. A billing budget
-sends alerts; it does not stop a running host. Inspect the current
-[GCP Free Tier](https://docs.cloud.google.com/free/docs/free-cloud-features),
-[network prices](https://cloud.google.com/vpc/pricing#ipaddress) and
-[budget behavior](https://docs.cloud.google.com/billing/docs/how-to/budgets)
-before choosing a machine, address or test duration.
+## Boot and recovery probes after a future approved apply
+
+1. Confirm the desired digest and numeric secret version in the reviewed
+   Terraform plan, then inspect the instance's startup-script journal.
+2. Through IAP SSH, check `systemctl status fragr-server.service`,
+   `docker inspect fragr-server --format '{{json .State.Health}}'`, and
+   `curl -fsS http://127.0.0.1:6767/status`. Require
+   `health.status: ok` and the expected map/roster. Do not print the secret,
+   metadata token, env file or Docker environment.
+3. If public ingress was separately approved, probe `GET /status` and a
+   complete WebSocket join from an allowed external /32, then confirm a
+   blocked source cannot connect. Test IAP access and closed UDP.
+4. Review journal and `docker logs fragr-server` on startup failure.
+   Systemd retries a failed image pull or stopped container. Docker's
+   health check reports degraded status, but an unhealthy container does
+   not automatically restart solely because of that result.
+5. Roll back by restoring the last known-good image digest and matching
+   secret version in Terraform, review the replacement plan and its downtime
+   and cost, then apply only with the relevant approval. Changing the
+   startup script replaces the single host and its ephemeral address.
+
+The current work can validate Terraform and inspect a rendered startup
+script, but cannot prove first boot, Google API reachability, remote ingress
+or rollback without an approved cloud test.
+
+## Sources checked 2026-09-28
+
+- [COS startup and Docker credentials](https://docs.cloud.google.com/container-optimized-os/docs/how-to/run-container-instance)
+- [COS host firewall](https://docs.cloud.google.com/container-optimized-os/docs/how-to/firewall)
+- [Private Google Access](https://docs.cloud.google.com/vpc/docs/configure-private-google-access)
+- [Artifact Registry private route](https://docs.cloud.google.com/artifact-registry/docs/securing-with-vpc-sc)
+- [Secret Manager access](https://docs.cloud.google.com/secret-manager/docs/access-secret-version)
+- [Container startup agent migration](https://docs.cloud.google.com/compute/docs/containers/migrate-containers)

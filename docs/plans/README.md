@@ -17,6 +17,7 @@ Status words: **proposed** (a design awaiting Nick's decision; directs no work),
 
 | Plan | Status | One-liner |
 |---|---|---|
+| [`cos-container-host.md`](./cos-container-host.md) | **in flight** | Plan-only COS game container host with digest pinning, scoped IAM and closed default game ingress. |
 | [`dedicated-server-udp-and-hosting.md`](./dedicated-server-udp-and-hosting.md) | **in flight** | Build a tested local container host, then measure prediction on WebSocket before a UDP pilot and plan-only container cloud hosting. |
 | [`player-body-selection.md`](./player-body-selection.md) | **shipped** (#262) | Choose a human or an embodied agent in a synthetic body: capability 13 on Hello, Welcome and snapshots, saved in the profile, honored for agents, free-palette runtime art that keeps its colours on the coalition side. |
 | [`brain-local-model.md`](./brain-local-model.md) | **shipped** (#261) | Free open-weights decisions for `fragr-brain`: APUS-OpenJev-v1-4B through local Ollama, or a self-hosted openjev server (non-commercial weights), loopback only, strictly validated, with the paid path's budget and fallback and a measured laptop smoke. |

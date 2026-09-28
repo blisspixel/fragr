@@ -33,10 +33,11 @@ to both documents.
 - The six-map mixed roster, 120-second soak and CPU benchmark are local
   evidence. They do not establish internet latency or a ten-fighter minimum on
   a small cloud instance.
-- `infra/terraform` is plan-only. Its VM currently boots Debian 12 and runs a
-  remote Docker installer, then leaves a placeholder for server deployment.
-  Its Cloud Run adapter runs a placeholder image. The `$0.00` cost output is
-  inaccurate for a continuously used public IPv4 address.
+- `infra/terraform` remains plan-only. The
+  [COS host rung](./cos-container-host.md) replaces its Debian and Cloud Run
+  placeholders with a digest-pinned game container, scoped image and secret
+  access, and no external IPv4 or game ingress by default. No image has been
+  published or VM created.
 
 ## Hosting architecture
 
@@ -53,10 +54,10 @@ are not a public game front door: they have no public endpoint or autoscaling,
 and Direct VPC ingress is private TCP only. Keep them out of the friends-host
 path.
 
-The present Cloud Run adapter stub is not deployable: an HTTP container, private
-route and application authentication must be designed and tested before it is
-enabled. Do not create a ticket issuer or server list with no consumer or access
-contract. A host may use TLS for public WebSocket, but TLS termination and
+No Cloud Run adapter is deployed by the Terraform draft: an HTTP container,
+private route and application authentication must be designed and tested
+before it is enabled. Do not create a ticket issuer or server list with no
+consumer or access contract. A host may use TLS for public WebSocket, but TLS termination and
 ticket distribution need an end-to-end design before public admission is called
 secure. The current Godot client can mint an HMAC join ticket only when it knows
 `FRAGR_JOIN_SECRET`; distributing that long-term secret to public clients lets
@@ -165,14 +166,15 @@ tier label.
 
 ### 5. Plan-only cloud image deployment
 
-After the local image is proven, replace the placeholder VM startup with a
-versioned container image on COS or a justified alternative. Design Artifact
-Registry, least-privilege pull, Secret Manager, restart, rollback and health
-checks. COS needs a narrow host firewall allowance as well as VPC rules; test
-real ingress before calling the host reachable. Add HTTP edge services only
-for implemented APIs. Run Terraform format and validation, inspect the plan
-and cost estimate, and retain the no-apply
-gate. Agones stays a later fleet decision.
+The [plan-only COS rung](./cos-container-host.md) now describes a pinned
+Artifact Registry image and secret version, scoped IAM, startup service,
+restart, rollback and health checks. It leaves external IPv4 and game ingress
+off by default; the subnet uses Private Google Access for image and secret
+reads. A reviewed public test needs a narrow host firewall allowance as well
+as VPC rules, and real ingress must be probed before calling the host
+reachable. Add HTTP edge services only for implemented APIs. Run Terraform
+format and validation, inspect an authorized plan and cost estimate, and
+retain the no-apply gate. Agones stays a later fleet decision.
 
 ## Cost and safety gates
 
@@ -221,8 +223,8 @@ WebSocket port, received 200 snapshots and sent 199 actions; the run made no
 remote decision or external API charge. A Compose restart returned to healthy,
 then the container and network were stopped cleanly.
 
-The plan-only Terraform draft now leaves UDP closed by default. Its cost
-output no longer claims `$0.00`, and the hosting guide identifies the Cloud
+The initial plan-only Terraform draft left UDP closed by default. Its cost
+output no longer claimed `$0.00`, and the hosting guide identified the Cloud
 Run adapter as an undeployable placeholder. Terraform 1.16.4 in Docker passed
 `fmt -check` and `validate`; no plan or apply was run. The CI container job
 builds the image, checks legal notices and runtime identity, and probes a live

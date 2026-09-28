@@ -1,47 +1,22 @@
-# fragr Terraform Configuration Example
-# Copy this file to terraform.tfvars and fill in your values.
-# DO NOT commit terraform.tfvars - it is gitignored.
+# Example values only. Do not put secret contents in Terraform variables.
+project_id          = "your-gcp-project-id"
+region              = "us-west1"
+zone                = "us-west1-a"
+artifact_repository = "fragr-images"
+image_sha256        = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+join_secret_id      = "fragr-join-secret"
+join_secret_version = "1"
 
-# GCP project ID (required)
-# Find yours: gcloud projects list
-project_id = "your-gcp-project-id"
+# No external IPv4 or game ingress in the default configuration.
+enable_external_ipv4   = false
+game_source_ranges     = []
 
-# Region for resources (must be Always Free eligible)
-# Options: us-west1, us-central1, us-east1
-region = "us-west1"
-
-# Zone within the region
-# Options: us-west1-a, us-west1-b, us-central1-a, us-east1-b, etc.
-zone = "us-west1-a"
-
-# VM instance name (optional, has default)
-instance_name = "fragr-game-server"
-
-# Boot disk size in GB (must be <= 30 for Always Free)
+instance_name     = "fragr-game-server"
+machine_type      = "e2-micro"
 boot_disk_size_gb = 20
+network_cidr      = "10.0.0.0/24"
 
-# Game server port (default 6767)
-game_port = 6767
-
-# Keep UDP closed until the measured transport is implemented and approved.
-enable_experimental_udp = false
-
-# Enable Cloud Run HTTP adapter (optional, min_instances=0)
-enable_cloud_run_adapter = false
-
-# Cloud Run adapter region (if enabled)
-cloud_run_region = "us-west1"
-
-# Network CIDR range (optional, has default)
-network_cidr = "10.0.0.0/24"
-
-# Allow SSH from specific IPs (optional, IAP is always enabled)
-# Example: ["203.0.113.0/24", "198.51.100.1/32"]
-# Leave empty to only allow IAP SSH
-
-# Labels for resources (optional)
 labels = {
-  project     = "fragr"
-  environment = "prod"
-  managed_by  = "terraform"
+  project    = "fragr"
+  managed_by = "terraform"
 }
