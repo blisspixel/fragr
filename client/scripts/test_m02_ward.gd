@@ -37,6 +37,23 @@ func _run() -> void:
 	_check(not ward._built, "the setpiece stays off unrelated maps")
 	ward.configure_map(_map())
 	_check(ward._built and ward._latch != null and ward._other_captive != null, "the bundled ward has two visible figures")
+	var latch: LatchView = ward._latch
+	var head: MeshInstance3D = latch.get_node("FacetedHead") as MeshInstance3D
+	var patch: MeshInstance3D = latch.get_node("Patch") as MeshInstance3D
+	var repair: MeshInstance3D = latch.get_node("RightArm/RustRepair") as MeshInstance3D
+	_check(latch.find_children("*", "VisualInstance3D", true, false).size() <= 40,
+		"the shared local chassis stays within a bounded mesh count")
+	_check(head.mesh is CylinderMesh and (head.mesh as CylinderMesh).radial_segments == 6
+		and latch.get_node_or_null("LeftArm/RustRepair") == null
+		and latch.get_node_or_null("LeftArm/RustRepairEdge") == null,
+		"the plain faceted head and individual right-forearm repair distinguish Latch")
+	_check(is_equal_approx((patch.mesh as BoxMesh).size.x, (patch.mesh as BoxMesh).size.y)
+		and (patch.material_override as StandardMaterial3D).albedo_color == LatchView.CYAN
+		and (repair.material_override as StandardMaterial3D).albedo_color == LatchView.RUST,
+		"the square chest patch and rust repair retain the workshop palette")
+	_check(latch.get_node("RightArm/Hand/Index") is Node3D
+		and latch.get_node("RightArm/Hand/Opposed") is Node3D,
+		"the right hand has separate fingers for an intentional release gesture")
 	_check(ward._side_captives.size() == 2 and not ward._side_captives[0].visible and not ward._side_captives[1].visible,
 		"side-ward figures wait for the optional server state")
 	for part: Node in ward._latch.find_children("*", "VisualInstance3D", true, false):
@@ -113,6 +130,10 @@ func _run() -> void:
 	_check(ward._second_left.position.x < -0.9 and ward._second_right.position.x > 0.9
 		and ward._caption_key == "M02_LATCH_SPEECH" and not ward._transfer_list.visible,
 		"both door leaves open before Latch speaks")
+	_check((latch.get_node("RightArm/Hand") as Node3D).rotation.x < -0.3
+		and (latch.get_node("RightArm/Hand/Index") as Node3D).rotation.z < -0.3
+		and (latch.get_node("LeftArm") as Node3D).rotation.x < -0.25,
+		"Latch opens a hand and braces with the other arm at the second restraint")
 	ward._process(1.4)
 	_check(ward._transfer_list.visible and ward._caption_key == "M02_LOW_WATER"
 		and ward._copy.text.contains("LOW WATER"), "the transfer list and legible Low Water beat follow speech")
@@ -196,6 +217,9 @@ func _run() -> void:
 		and not ward._ward_stop_sound.playing and not ward._release_sound.playing
 		and not ward._second_release_sound.playing,
 		"retry restores both beds and suppresses old one-shots")
+	_check(is_zero_approx((latch.get_node("RightArm/Hand") as Node3D).rotation.x)
+		and is_zero_approx((latch.get_node("LeftArm") as Node3D).rotation.x),
+		"retry returns Latch's hands to the restrained pose")
 	_check(not ward._secured and not ward._released and ward._latch.visible
 		and not ward._transfer_list.visible and ward._second_left.position.x > -0.5,
 		"retry reconstructs the restrained ward")

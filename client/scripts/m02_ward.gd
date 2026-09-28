@@ -263,6 +263,7 @@ func _set_visual(seconds: float, released: bool) -> void:
 	else:
 		_latch.rotation.y = -PI / 2.0
 	_latch_arm.rotation.x = -clampf((seconds - CROSS_END) / 0.5, 0.0, 1.0) * PI / 2.0 if released else 0.0
+	_latch.pose_release(clampf((seconds - CROSS_END) / 0.5, 0.0, 1.0) if released else 0.0)
 	var open: float = clampf((seconds - CROSS_END) / (SECOND_OPEN_END - CROSS_END), 0.0, 1.0) if released else 0.0
 	_second_left.position.x = -0.3 - open * 0.68
 	_second_right.position.x = 0.3 + open * 0.68
