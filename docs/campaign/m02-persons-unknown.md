@@ -1,6 +1,16 @@
 # M02: Persons Unknown
 
-**Status:** development graybox (`server/maps/m02-persons-unknown.json`): a route with a two-Clerk Shotgun introduction, a lone Crawler encounter, a later three-Crawler and Sweeper encounter, three further Clerk and Sweeper fights, and a guarded local release control between ward and dock arrival. The Crawler slice has seeded route and rendered visual checks but awaits fresh-player review. Latch's release, M01-to-M02 save carry and autonomous escape are in stacked drafts. The processing-floor officer's upper mezzanine placement is in [a measured draft](../plans/m02-floor-gantry.md). An [optional side ward](../plans/m02-side-ward.md) with independent guards, captive self-release and one release-controlled ward exit is in draft review. The [maintenance circulation](../plans/m02-maintenance-circulation.md) is in [draft #277](https://github.com/blisspixel/fragr/pull/277); evacuation and the remaining floor roster are unbuilt. The Jammer first appears in level 3. Earth before the wipe. Target 10-12 minutes.
+**Status:** development graybox (`server/maps/m02-persons-unknown.json`). The
+two-Clerk Shotgun introduction, single Crawler, later pack, guarded Latch
+release and cross-mission run carry have seeded engineering checks in stacked
+drafts. The officer's [upper mezzanine](../plans/m02-floor-gantry.md),
+[optional side ward](../plans/m02-side-ward.md) and
+[maintenance circulation](../plans/m02-maintenance-circulation.md) are also in
+draft review. [Draft #278](https://github.com/blisspixel/fragr/pull/278) moves
+the optional captives from that ward to the dock under server authority. The
+accepted ten-enemy processing-floor roster and fresh-player Crawler and floor
+review remain open. The Jammer first appears in level 3. Earth before the
+wipe. Target 10-12 minutes.
 [Treatment](../CAMPAIGN-MISSIONS.md#level-2-persons-unknown).
 
 The current graybox places the Shotgun on the upper gallery and two initially
@@ -42,7 +52,7 @@ side-ward return loops around processing machinery after Latch's release.
 | Antechamber | Workroom with cover and a view into the ward | Recover after the stair and read the ward before entering it |
 | Ward | Open ward around the restraint frame | Set-piece fight; the correction stops when the guards fall; free Latch |
 | Processing floor | Two usable levels with broad stairs and machinery islands | The escape draft puts Latch beside the player; the gantry draft raises the Clerk officer. The larger mixed roster and player balance review remain open. |
-| Service loop | A stair bypass and two approaches to the side ward | The early cut offers a learned route around the pack landing; clear the optional guards and the captives free themselves |
+| Service loop | A stair bypass and two approaches to the side ward | The early cut offers a learned route around the pack landing; clear the optional guards and the captives free themselves, then move to the dock after the floor is safe |
 | Loading exit | Open dock with the yard in view | Clerk and Sweeper crest, regroup and leave for the rail yard |
 
 Winning the ward is the crest's first half; escaping together is the second.
