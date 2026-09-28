@@ -23,7 +23,7 @@ Deterministic Godot tests cover matched, skipped, repeated, stale, invalid, unkn
 
 ### Loopback capture, 2026-09-28 UTC
 
-Source: `feat/human-action-ack-baseline` built from `7cce324` with this plan's code changes. Host: Windows NT 10.0.26200.0, Godot 4.7.2-stable, OpenGL compatibility renderer on AMD Radeon 780M. Transport: local WebSocket on TCP, one joined fighter on Arena Duel, zero rule bots and round events disabled. The QA input makes one jump and is otherwise idle. This is a live human-role client path with synthetic input, not an unsteered human or a LAN measurement. Captured report: ignored `.agents/qa/human-ack-baseline-verified/manifest.json`; UTC time 06:55:35. The still was inspected and shows a live first-person Arena Duel match.
+Source code revision: `67dfc94f7406200eb64902cdcbf6f8737b76a873`. Host: Windows NT 10.0.26200.0, Godot 4.7.2-stable, OpenGL compatibility renderer on AMD Radeon 780M. Transport: local WebSocket on TCP, one joined fighter on Arena Duel, zero rule bots and round events disabled. The QA input makes one jump and is otherwise idle. This is a live human-role client path with synthetic input, not an unsteered human or a LAN measurement. Captured report: ignored `.agents/qa/human-ack-baseline-verified/manifest.json`; UTC time 06:55:35. The still was inspected and shows a live first-person Arena Duel match.
 
 | Window | Queued Actions | Matched Acks | Other sequences without individual Acks | Snapshots | Ack timing p50/p95/p99 | Snapshot arrival p50/p95/p99 | Largest arrival gap | Text payload out/in |
 |---|---:|---:|---:|---:|---|---|---|---|
