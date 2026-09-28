@@ -440,9 +440,9 @@ async fn run_scripted_bot(
                             loadout = Some(next);
                         }
                         ServerMessage::Snapshot(snapshot) => last_snapshot = Some(snapshot),
-                        ServerMessage::MapInfo { map_id, m02_objectives, half_extent, solids, geometry_version, presentation, mission, .. } => {
+                        ServerMessage::MapInfo { map_id, m02_objectives, m02_side_ward, half_extent, solids, geometry_version, presentation, mission, .. } => {
                             protocol::validate_map_presentation(presentation.as_ref(), &solids)?;
-                            mission_client.replace_map_with_id(map_id, m02_objectives, mission.as_ref(), half_extent, &solids, presentation.as_ref()).map_err(io::Error::other)?;
+                            mission_client.replace_map_with_id(map_id, m02_objectives, m02_side_ward, mission.as_ref(), half_extent, &solids, presentation.as_ref()).map_err(io::Error::other)?;
                             protocol::validate_map_geometry(half_extent, &solids, geometry_version)
                                 .map_err(io::Error::other)?;
                             let arena = fragr_server::movement::Arena { half: half_extent, solids };
@@ -738,6 +738,7 @@ mod tests {
 
         let round_end_event = protocol::GameEvent::RoundEnd {
             team_scores: None,
+            capture_scores: None,
             winning_team: None,
             winner: Some("Bot1".to_string()),
             reason: "Frag limit reached".to_string(),
@@ -1056,6 +1057,9 @@ mod tests {
     fn test_snapshot_with_players() {
         let snapshot = protocol::Snapshot {
             team_scores: None,
+            flags: None,
+            capture_scores: None,
+            capture_limit: None,
             tick: 100,
             players: vec![protocol::PlayerState {
                 body: None,
@@ -1116,6 +1120,9 @@ mod tests {
     fn test_snapshot_carries_sticky_host_line() {
         let mut snap = protocol::Snapshot {
             team_scores: None,
+            flags: None,
+            capture_scores: None,
+            capture_limit: None,
             tick: 7,
             players: vec![],
             round_state: Some("Active".into()),
@@ -1162,6 +1169,9 @@ mod tests {
     fn test_snapshot_includes_weapon_in_observe() {
         let snapshot = protocol::Snapshot {
             team_scores: None,
+            flags: None,
+            capture_scores: None,
+            capture_limit: None,
             tick: 50,
             players: vec![
                 protocol::PlayerState {
@@ -1502,6 +1512,9 @@ mod tests {
         let target_id = uuid::Uuid::new_v4();
         let snapshot = protocol::Snapshot {
             team_scores: None,
+            flags: None,
+            capture_scores: None,
+            capture_limit: None,
             tick: 1,
             players: vec![
                 protocol::PlayerState {
@@ -2023,6 +2036,7 @@ mod tests {
                 rules: None,
                 mission: None,
                 m02_objectives: None,
+                m02_side_ward: false,
                 presentation: None,
                 map_id: 1,
                 map_name: "Raised fixture".into(),

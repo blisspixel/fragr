@@ -9,7 +9,7 @@ mod mission;
 mod rules;
 mod statistics;
 mod status;
-pub use actors::{hostile, CampaignActor, EnemyKind, EnemyPhase};
+pub use actors::{hostile, CampaignActor, CompanionKind, CompanionPhase, EnemyKind, EnemyPhase};
 pub use body::BodyKind;
 pub use decoration::{
     validate_decorations, MapDecoration, MapDecorationKind, MapFace, MAX_MAP_DECORATIONS,
@@ -19,10 +19,10 @@ pub(crate) use loadout::validate_equipment;
 pub use loadout::{AmmoCount, AmmoPool, EquipmentPolicy, LoadoutState, SupplyClaim};
 pub use mission::{
     CampaignDifficulty, CampaignRules, CampaignRunState, CampaignRunStatus, InteractionKind,
-    InteractionPrompt, M02ObjectiveState, MissionContinue, MissionGeometry, MissionId,
-    MissionMember, MissionObjective, MissionObjectiveAction, MissionPhase, MissionReady,
-    MissionState, Region3, UseTarget, CAMPAIGN_CONTINUES, CAMPAIGN_RULES_REVISION,
-    MISSION_PARTY_LIMIT, USE_DISTANCE,
+    InteractionPrompt, M02EvacuationPhase, M02EvacuationState, M02ObjectiveState, MissionContinue,
+    MissionGeometry, MissionId, MissionMember, MissionObjective, MissionObjectiveAction,
+    MissionPhase, MissionReady, MissionState, Region3, UseTarget, CAMPAIGN_CONTINUES,
+    CAMPAIGN_RULES_REVISION, MISSION_PARTY_LIMIT, USE_DISTANCE,
 };
 pub use rules::{
     GameMode, HostReactionKind, MatchRules, Mutator, Team, TeamScores, HOST_REACTION_VARIANTS,
@@ -536,8 +536,25 @@ pub const RULES_GAMEPLAY_VERSION: u32 = 12;
 /// body on Welcome and on every participant in a snapshot. Additive: no map
 /// requires it, and an older reader ignores the field.
 pub const BODY_GAMEPLAY_VERSION: u32 = 13;
+/// Capture the flag state and events. CTF servers require a client that can
+/// show the objective before admitting a fighter or spectator.
+pub const CTF_GAMEPLAY_VERSION: u32 = 14;
+/// Optional seated opening posture on authored Union Clerks. M02 requires
+/// this so an older presenter cannot mistake its first fight for standing guards.
+pub const SEATED_GUARD_GAMEPLAY_VERSION: u32 = 15;
+/// A low Crawler body, a timed leap and an audible encounter cue.
+pub const CRAWLER_GAMEPLAY_VERSION: u32 = 16;
+/// M02 projects ward victory before Latch's later release action.
+pub const LATCH_RELEASE_GAMEPLAY_VERSION: u32 = 17;
+pub const RUN_CARRY_GAMEPLAY_VERSION: u32 = 18;
+pub const COMPANION_GAMEPLAY_VERSION: u32 = 19;
+pub const SIDE_WARD_GAMEPLAY_VERSION: u32 = 20;
+/// Server-owned, visible M02 captive evacuation after the optional side ward.
+pub const EVACUATION_GAMEPLAY_VERSION: u32 = 21;
+/// M02's ballistic inspection glass, which older strict surface readers cannot render.
+pub const INSPECTION_GLASS_GAMEPLAY_VERSION: u32 = 22;
 /// Highest understood gameplay contract; content requirements use their own minimum.
-pub const GAMEPLAY_VERSION: u32 = BODY_GAMEPLAY_VERSION;
+pub const GAMEPLAY_VERSION: u32 = INSPECTION_GLASS_GAMEPLAY_VERSION;
 pub fn legacy_gameplay_version() -> u32 {
     1
 }
@@ -584,6 +601,7 @@ pub enum MapSurface {
     ServiceSteel,
     RecordsTile,
     LiftPanel,
+    InspectionGlass,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
@@ -649,6 +667,7 @@ mod geometry_tests {
             presentation: None,
             mission: None,
             m02_objectives: None,
+            m02_side_ward: false,
             map_id: 67,
             map_name: "Enclosed fixture".into(),
             half_extent: 12.0,
@@ -656,6 +675,7 @@ mod geometry_tests {
             geometry_version: 2,
         };
         let json = serde_json::to_string(&message).unwrap();
+        assert!(!json.contains("m02_side_ward"));
         assert!(
             matches!(serde_json::from_str::<ServerMessage>(&json).unwrap(),
             ServerMessage::MapInfo { geometry_version: 2, solids, .. } if solids == raised)
@@ -745,6 +765,9 @@ pub enum ServerMessage {
         /// Present only for M02 maps. The count binds mission state to this map.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         m02_objectives: Option<u8>,
+        /// True only when this M02 map authors the optional side-ward encounter.
+        #[serde(default, skip_serializing_if = "is_false")]
+        m02_side_ward: bool,
         /// The arena's rule set. Omitted on authored campaign maps.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         rules: Option<MatchRules>,
@@ -768,12 +791,37 @@ pub enum ServerMessage {
         yaw: f32,
         #[serde(default)]
         pitch: f32,
+        /// Optional post-tick body state for replay-aware human clients.
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        movement: Option<MovementAck>,
     },
     /// Unicast control-plane rejection (e.g. speak rate limit). Not broadcast.
     Error {
         code: String,
         message: String,
     },
+}
+
+/// Additive full-body extension to the legacy Ack root fields. An absent block
+/// means the server does not provide a replayable movement baseline.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct MovementAck {
+    pub version: u32,
+    /// A new body/input ownership baseline. Never used to rewind server ticks.
+    pub epoch: u64,
+    /// Whether this tick produced a replayable movement step for this pawn.
+    pub applied: bool,
+    /// World-reference height, matching Snapshot PlayerState.y.
+    pub y: f32,
+    /// Post-collision velocity in world units per second.
+    pub vx: f32,
+    pub vy: f32,
+    pub vz: f32,
+    /// Speed chosen before collision, zero on an unapplied tick.
+    pub effective_speed: f32,
+    /// Jump request passed to movement integration, not proof of takeoff.
+    pub jump_input: bool,
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
@@ -1003,6 +1051,44 @@ pub struct Snapshot {
     /// Side frags this round. Present only in team modes.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub team_scores: Option<TeamScores>,
+    /// Two objective flags, one for each side, only in capture the flag.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub flags: Option<[FlagState; 2]>,
+    /// Captures, independent of frags.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub capture_scores: Option<TeamScores>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub capture_limit: Option<u32>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum FlagStatus {
+    Home,
+    Carried,
+    Dropped,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct FlagState {
+    pub team: Team,
+    pub stand: [f32; 3],
+    pub position: [f32; 3],
+    pub status: FlagStatus,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub carrier: Option<Uuid>,
+    /// Remaining ticks before automatic return, present only when dropped.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub return_ticks: Option<u32>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum FlagEventKind {
+    Taken,
+    Dropped,
+    Returned,
+    Captured,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -1034,8 +1120,8 @@ pub struct PlayerState {
     /// Holds the golden Railgun. Omitted when false.
     #[serde(default, skip_serializing_if = "is_false")]
     pub golden: bool,
-    /// The participant's accepted body. Omitted for Union campaign actors
-    /// and the arena boss, which keep their own authored identity.
+    /// The participant's accepted body. Omitted for Union and companion
+    /// campaign actors and the arena boss, which keep their own identity.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub body: Option<BodyKind>,
 }
@@ -1049,6 +1135,19 @@ pub struct PlayerScore {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "event", rename_all = "snake_case")]
 pub enum GameEvent {
+    /// A nearby Crawler encounter wakes before its first visible attack.
+    CrawlerScrabble {
+        position: [f32; 3],
+    },
+    Flag {
+        kind: FlagEventKind,
+        flag: Team,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        player: Option<String>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        player_id: Option<Uuid>,
+        capture_scores: TeamScores,
+    },
     Frag {
         killer: String,
         victim: String,
@@ -1107,6 +1206,9 @@ pub enum GameEvent {
         /// Team modes: the final side frags.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         team_scores: Option<TeamScores>,
+        /// Capture the flag: final capture counts, independent of frags.
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        capture_scores: Option<TeamScores>,
     },
     PlayerJoined {
         player: String,
@@ -1298,6 +1400,9 @@ mod protocol_tests {
         };
         let snap = Snapshot {
             team_scores: None,
+            flags: None,
+            capture_scores: None,
+            capture_limit: None,
             tick: 1,
             players: vec![],
             round_state: None,
@@ -1471,6 +1576,9 @@ mod protocol_tests {
         };
         let snap = Snapshot {
             team_scores: None,
+            flags: None,
+            capture_scores: None,
+            capture_limit: None,
             tick: 2,
             players: vec![],
             round_state: None,
@@ -1685,6 +1793,7 @@ mod protocol_tests {
     fn round_end_mvp_wire_round_trip() {
         let event = GameEvent::RoundEnd {
             team_scores: None,
+            capture_scores: None,
             winning_team: None,
             winner: Some("Rusher".to_string()),
             reason: "Frag limit reached".to_string(),
@@ -1732,5 +1841,38 @@ mod protocol_tests {
             }
             other => panic!("expected RoundEnd, got {:?}", other),
         }
+    }
+
+    #[test]
+    fn ctf_flag_and_event_round_trip() {
+        let id = Uuid::from_u128(7);
+        let flag = FlagState {
+            team: Team::Union,
+            stand: [-70.0, 0.0, 0.0],
+            position: [3.0, 0.0, 2.0],
+            status: FlagStatus::Carried,
+            carrier: Some(id),
+            return_ticks: None,
+        };
+        let value = serde_json::to_value(&flag).unwrap();
+        assert_eq!(value["status"], "carried");
+        assert_eq!(serde_json::from_value::<FlagState>(value).unwrap(), flag);
+        let event = GameEvent::Flag {
+            kind: FlagEventKind::Taken,
+            flag: Team::Union,
+            player: Some("Carrier".into()),
+            player_id: Some(id),
+            capture_scores: TeamScores::default(),
+        };
+        let value = serde_json::to_value(&event).unwrap();
+        assert_eq!(value["event"], "flag");
+        assert_eq!(value["kind"], "taken");
+        assert!(matches!(
+            serde_json::from_value::<GameEvent>(value).unwrap(),
+            GameEvent::Flag {
+                kind: FlagEventKind::Taken,
+                ..
+            }
+        ));
     }
 }

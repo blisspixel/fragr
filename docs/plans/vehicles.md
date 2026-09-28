@@ -9,7 +9,7 @@ approved audio pipeline within existing credits.
 Vehicles are built only when the campaign reaches the mission that needs one.
 Much of the game is built without them. No vehicle rung is in the near-term
 sequence and none of this blocks Act I (M01 to M03), M04 to M07, or the
-controls work in rung 7 of the [full build order](../ROADMAP.md#full-build-order-2026-09-22).
+controls work in rung 7 of the [full build order](../ROADMAP.md#full-build-order-2026-09-27).
 
 | Rung | Starts when | First use |
 |---|---|---|

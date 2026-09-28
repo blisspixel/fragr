@@ -3,6 +3,9 @@ msgstr ""
 "Language: en\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 
+msgid "CAPTION_CRAWLER_SCRABBLE"
+msgstr "[Mechanical claws scrabble nearby]"
+
 msgid "STORY_M01_HOME_TITLE"
 msgstr "Home"
 
@@ -124,6 +127,9 @@ msgid "MENU_BACK"
 msgstr "Back"
 msgid "RUN_CONTINUES"
 msgstr "CONTINUES: {count}"
+
+msgid "RUN_LEVEL_BADGE"
+msgstr "ATTEMPT {attempt}  /  {continues} CONTINUES"
 
 msgid "RUN_FALLEN"
 msgstr "YOU FELL. THE FIGHT IS NOT OVER."

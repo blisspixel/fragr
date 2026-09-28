@@ -24,6 +24,13 @@ func _run() -> void:
 	var surfaced: Dictionary = raised.duplicate(true)
 	surfaced["presentation"] = {"ground": "concrete", "solids": ["enamel"]}
 	_expect(MapGeometry.validation_error(surfaced) == "", "registered surfaces rejected")
+	var glass: Dictionary = surfaced.duplicate(true)
+	glass["presentation"]["solids"] = ["inspection_glass"]
+	_expect(MapGeometry.validation_error(glass) == "", "registered inspection glass rejected")
+	var pane: Material = ArenaMaterials.authored("inspection_glass")
+	_expect(pane is StandardMaterial3D and (pane as StandardMaterial3D).transparency == BaseMaterial3D.TRANSPARENCY_ALPHA
+		and (pane as StandardMaterial3D).albedo_color.a > 0.0 and (pane as StandardMaterial3D).albedo_color.a < 1.0,
+		"the authoritative inspection solid must draw as transparent glass")
 	for bad_surface: Variant in ["res://untrusted.gd", {}, {"ground": "concrete", "solids": []}, {"ground": "concrete", "solids": ["unregistered"]}]:
 		surfaced["presentation"] = bad_surface
 		_expect(MapGeometry.validation_error(surfaced) != "", "invalid surfaces accepted")

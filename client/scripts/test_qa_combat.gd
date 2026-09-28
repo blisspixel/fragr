@@ -5,24 +5,129 @@ const TOUR = preload("res://scripts/qa_tour.gd")
 var _failures: int = 0
 
 func _initialize() -> void:
+	var facing_route: Dictionary[String, bool] = QaCombat.route_buttons(Vector2(1, 0), PI * 0.5)
+	_check(facing_route["move_left"] and not facing_route["move_forward"] and not facing_route["move_right"],
+		"turning toward a windup preserves the escape route through a strafe")
+	var retreat_route: Dictionary[String, bool] = QaCombat.route_buttons(Vector2(-1, 0), 0.0)
+	_check(retreat_route["move_back"] and not retreat_route["move_forward"],
+		"retreating while watching the Crawler preserves the world-space course")
+	var route_camera: Node3D = preload("res://scripts/spectator_cam.gd").new()
+	var near_waypoint: Dictionary = {"x": 0.0, "y": 2.0, "z": 0.0}
+	_check(QaCombat.follow_route(near_waypoint, route_camera, [[0.2, 0.5, 0.1]], 0,
+		Vector3(-1.0, 0.4, 2.0)) == 1 and \
+		is_equal_approx(float(route_camera.get("fp_yaw")), atan2(2.0, -1.0)) and \
+		float(route_camera.get("fp_pitch")) < -0.1,
+		"a first windup at a waypoint boundary still turns the live camera down toward the low body")
+	route_camera.free()
 	_check(QaCombat.valid_waypoints([[1, 2.0, 3]]), "finite route accepted")
 	for invalid: Variant in [null, {}, [1, 2, 3], [[1, 2]], [[1, INF, 3]], [[1, "2", 3]]]:
 		_check(not QaCombat.valid_waypoints(invalid), "invalid route rejected")
+	var cadence: Dictionary = {"period_ticks": 24, "fire_ticks": 4, "duration_ticks": 160}
+	_check(QaCombat.valid_fire_cadence(cadence), "bounded server-tick fire cadence accepted")
+	var parsed_cadence: Variant = JSON.parse_string('{"period_ticks":24,"fire_ticks":4,"duration_ticks":160}')
+	_check(QaCombat.valid_fire_cadence(parsed_cadence), "JSON numeric cadence accepted at the manifest boundary")
+	for invalid: Variant in [null, {}, {"period_ticks": 24, "fire_ticks": 4},
+		{"period_ticks": true, "fire_ticks": 4, "duration_ticks": 160},
+		{"period_ticks": 24.5, "fire_ticks": 4, "duration_ticks": 160},
+		{"period_ticks": 0, "fire_ticks": 4, "duration_ticks": 160},
+		{"period_ticks": 24, "fire_ticks": 24, "duration_ticks": 160},
+		{"period_ticks": 24, "fire_ticks": 4, "duration_ticks": 401},
+		{"period_ticks": 24, "fire_ticks": 4, "duration_ticks": 160, "extra": 1}]:
+		_check(not QaCombat.valid_fire_cadence(invalid), "invalid or unbounded fire cadence rejected")
+	_check(QaCombat.cadence_allows_fire(cadence, 0) and QaCombat.cadence_allows_fire(cadence, 3)
+		and not QaCombat.cadence_allows_fire(cadence, 4)
+		and QaCombat.cadence_allows_fire(cadence, 24)
+		and not QaCombat.cadence_allows_fire(cadence, 159)
+		and QaCombat.cadence_allows_fire(cadence, 160),
+		"fire pulses resume on server ticks and stop throttling after the bounded window")
 	for invalid: Variant in [null, [], [1], [{"walk_to": [1, 2, 3]}]]:
 		_check(not TOUR.valid_walks(invalid), "invalid manifest walking shape rejected before play")
+	_check(not TOUR.valid_walks([{"camera":"overview", "camera_position":[0, INF, 0],
+		"camera_look_at":[0, 0, 0]}]), "invalid spectator framing rejected before play")
+	_check(TOUR.valid_radio_comparison("", [{"radio_off":true}])
+		and TOUR.valid_radio_comparison("on", [{"radio_off":true}]),
+		"radio comparison leaves the default route alone and accepts explicit opt-in")
+	_check(not TOUR.valid_radio_comparison("on", [{"camera":"first_person"}])
+		and not TOUR.valid_radio_comparison("yes", [{"radio_off":true}]),
+		"radio comparison rejects unsupported and inapplicable overrides")
+	_check(TOUR.valid_walks([{"scene":"res://scenes/main.tscn", "record_audio_start":true},
+		{"record_audio_stop":true}]), "bounded live audio state pair accepted")
+	for invalid_audio: Array in [
+		[{"record_audio_start":true}],
+		[{"record_audio_stop":true}],
+		[{"record_audio_start":true}, {"record_audio_start":true}, {"record_audio_stop":true}],
+		[{"record_audio_start":true}, {"scene":"res://scenes/boot_menu.tscn", "record_audio_stop":true}],
+		[{"record_audio_start":true, "record_audio_seconds":1.0, "record_audio_stop":true}],
+		[{"record_audio_start":"yes", "record_audio_stop":true}],
+	]:
+		_check(not TOUR.valid_walks(invalid_audio), "invalid live audio span rejected before play")
+	var pack_snapshot: Dictionary = {"players":[
+		{"name":"crawler", "hp":20, "campaign":{"side":"union", "phase":"moving"}},
+		{"name":"sweeper", "hp":0, "campaign":{"side":"union", "phase":"dead"}},
+	]}
+	_check(TOUR.active_named_enemies(pack_snapshot, ["crawler", "sweeper"]) == {"crawler":"moving"},
+		"spectator proof counts only named living enemies")
+	for invalid_seconds: Variant in [0, 121, INF, "60"]:
+		_check(not TOUR.valid_walks([{"join": "human", "ack_probe_seconds": invalid_seconds}]),
+			"Ack probe duration must be finite and bounded")
+		_check(not TOUR.valid_walks([{"join": "human", "moving_combat_seconds": invalid_seconds}]),
+			"moving combat duration must be finite and bounded")
+	_check(not TOUR.valid_walks([{"ack_probe_seconds": 60}]),
+		"Ack probe cannot run without a human join")
+	_check(not TOUR.valid_walks([{"moving_combat_seconds": 20}]),
+		"moving combat cannot run without a human join")
+	_check(TOUR.valid_walks([{"join": "human", "moving_combat_seconds": 20}]),
+		"moving combat accepts a bounded joined window")
+	_check(not TOUR.valid_walks([{"join": "human", "moving_combat_seconds": 20, "ack_probe_seconds": 20}]),
+		"one state cannot start two Ack probes")
+	var healthy: Dictionary = {"interrupted": false, "failed_sends": 0,
+		"invalid_acks": 0, "invalid_snapshots": 0, "duration_seconds": 60.1,
+		"sent": 3600, "matched_acks": 1100, "snapshots": 1100,
+		"first_matched_ack_ms": 50, "last_matched_ack_ms": 59950,
+		"first_snapshot_ms": 50, "last_snapshot_ms": 59950,
+		"max_matched_ack_gap_ms": 75, "max_snapshot_gap_ms": 75}
+	_check(TOUR.valid_ack_capture(healthy, 60.0), "full-window Ack capture accepted")
+	var stalled: Dictionary = healthy.duplicate()
+	stalled["last_snapshot_ms"] = 30000
+	_check(not TOUR.valid_ack_capture(stalled, 60.0), "capture cannot pass after a late snapshot stall")
+	stalled = healthy.duplicate()
+	stalled["max_matched_ack_gap_ms"] = 1000
+	_check(not TOUR.valid_ack_capture(stalled, 60.0), "capture cannot hide a one-second Ack gap")
+	var combat: Dictionary = {"interruption": "", "ack_probe": healthy, "server_snapshot_distance_m": 30.0,
+		"server_shots": 10, "shots_while_moving": 8, "snapshots_with_live_opponents": 300,
+		"snapshots_observed": 1100, "correction_m": {"samples": 900}, "prediction_active_at_end": true}
+	_check(TOUR.valid_moving_combat_capture(combat, 60.0), "live moving combat window accepted")
+	for missing: String in ["server_snapshot_distance_m", "server_shots", "shots_while_moving"]:
+		var idle: Dictionary = combat.duplicate(true)
+		idle[missing] = 0
+		_check(not TOUR.valid_moving_combat_capture(idle, 60.0), "no movement or shot evidence cannot pass")
 	for filename: String in DirAccess.get_files_at("res://qa"):
 		if filename.get_extension() != "json":
 			continue
 		var manifest: Variant = JSON.parse_string(FileAccess.get_file_as_string("res://qa/" + filename))
 		_check(manifest is Dictionary and TOUR.valid_walks(manifest.get("states")), filename + " has valid walking routes")
+		if manifest is Dictionary:
+			for state: Variant in manifest.get("states", []):
+				if state is Dictionary and state.get("combat") is Dictionary and state["combat"].has("fire_cadence"):
+					_check(QaCombat.valid_fire_cadence(state["combat"]["fire_cadence"]),
+						filename + " has a valid bounded fire cadence")
 	var me: Dictionary = {"id":"player", "hp":100, "x":0.0, "y":1.5, "z":0.0, "campaign":{"side":"participant"}}
 	var friend: Dictionary = me.duplicate(true)
 	friend["id"] = "friend"
 	friend["z"] = 1.0
 	var guard: Dictionary = {"id":"guard", "hp":60, "x":0.0, "y":1.5, "z":5.0,
 		"campaign":{"side":"union", "kind":"clerk", "phase":"windup"}}
-	var snapshot: Dictionary = {"tick":1, "players":[me, friend, guard]}
+	var latch: Dictionary = {"id":"latch", "name":"Latch", "hp":100, "x":0.0, "y":1.5, "z":2.0,
+		"campaign":{"side":"companion", "kind":"latch", "phase":"following", "phase_started":0}}
+	var snapshot: Dictionary = {"tick":1, "players":[me, friend, latch, guard]}
 	_check(QaCombat.visible_target(snapshot, "player", []).get("id") == "guard", "closer participant is never a target")
+	guard["name"] = "ward_clerk"
+	_check(QaCombat.visible_target(snapshot, "player", [], false, INF, ["ward_clerk"]).get("id") == "guard",
+		"named ward target remains eligible")
+	_check(QaCombat.visible_target(snapshot, "player", [], false, INF, ["stair_crawler_pack_a"]).is_empty(),
+		"named combat stage does not shoot a dormant optional pack")
+	_check(QaCombat.visible_target(snapshot, "player", []).get("id") != "latch",
+		"the nearby companion is never an automated combat target")
 	_check(not QaCombat.visible_target(snapshot, "player", [], true).is_empty(), "visible windup permits evasive input")
 	_check(QaCombat.visible_target(snapshot, "player", [], false, 24.0).get("id") == "guard", "travel engages a nearby threat")
 	guard["z"] = 34.0
@@ -36,6 +141,29 @@ func _initialize() -> void:
 	var exposed: Vector3 = QaCombat.exposed_point(guard, Vector3(0, 1.6, 0), [low_cover])
 	_check(exposed.y > 1.3 and exposed.y < MoveStep.BODY_HEIGHT, "low cover permits an exposed upper-body shot within the real hit volume")
 	_check(QaCombat.visible_target(snapshot, "player", [low_cover], true).get("id") == "guard", "visible upper-body tell permits evasion")
+	guard["campaign"]["kind"] = "crawler"
+	guard["campaign"]["phase"] = "leaping"
+	var crawler_point: Vector3 = QaCombat.exposed_point(guard, Vector3(0, 1.6, 0), [])
+	_check(is_equal_approx(crawler_point.y, 0.4), "tour aims inside Crawler's short body")
+	_check(QaCombat.visible_target(snapshot, "player", [low_cover]).is_empty(),
+		"a waist-high counter hides the whole low Crawler")
+	_check(QaCombat.visible_target(snapshot, "player", [], true).get("id") == "guard",
+		"committed leap drives dodge input")
+	_check(QaCombat.required_phases_proven({"crawler_windup":true, "crawler_leaping":true},
+		{"crawler_windup":true, "crawler_leaping":true}, "crawler", ["windup", "leaping"]),
+		"Crawler phase proof requires both observed and rendered states")
+	_check(not QaCombat.required_phases_proven({"sweeper_windup":true, "crawler_leaping":true},
+		{"sweeper_windup":true, "crawler_leaping":true}, "crawler", ["windup", "leaping"]),
+		"mixed Union phase proof cannot borrow a Sweeper tell")
+	var windup_identity: Dictionary = {"kind":"crawler", "phase":"windup", "phase_started":10}
+	_check(not QaCombat.phase_ready_for_capture(windup_identity, 14) and \
+		QaCombat.phase_ready_for_capture(windup_identity, 15),
+		"named Crawler windup still waits for a rendered crouch within the twelve-tick tell")
+	windup_identity["phase"] = "leaping"
+	_check(QaCombat.phase_ready_for_capture(windup_identity, 10),
+		"short leap phase remains eligible for immediate capture")
+	guard["campaign"]["kind"] = "clerk"
+	guard["campaign"]["phase"] = "windup"
 	solid["bottom"] = 2.4
 	_check(QaCombat.visible_target(snapshot, "player", [solid]).get("id") == "guard", "raised deck leaves a real underpass")
 	guard["campaign"]["phase"] = "idle"
@@ -47,11 +175,16 @@ func _initialize() -> void:
 	probe.set("_player_id", "player")
 	probe.set("_kind", "clerk")
 	probe.set("_recording", true)
-	snapshot["shot_results"] = [{"shooter_id":"player"}, {"shooter_id":"friend"}, {"shooter_id":"guard"}]
+	snapshot["shot_results"] = [{"shooter_id":"player"}, {"shooter_id":"friend"},
+		{"shooter_id":"guard"}, {"shooter_id":"latch", "trace":{"weapon":"Tack"},
+		"target_id":"guard", "target":"Clerk", "hit":true, "damage":6, "killed":false}]
 	probe._observe(snapshot)
 	probe._observe(snapshot)
 	_check(probe.shots == 1 and probe.defeated.size() == 1, "repeated snapshot cannot inflate evidence")
 	_check(probe.enemy_shots == 1, "a friend's shot cannot stand in for an enemy tell")
+	_check(probe.companion_shots.size() == 1 and probe.companion_shots[0]["weapon"] == "Tack"
+		and probe.companion_shots[0]["damage"] == 6 and probe.companion_shots[0]["target_id"] == "guard",
+		"the ally's resolved shot is recorded separately from hostile fire and participant shots")
 	var next_room: QaCombat = QaCombat.new()
 	next_room.set("_player_id", "player")
 	next_room.set("_kind", "union")
@@ -96,6 +229,89 @@ func _initialize() -> void:
 	snapshot["tick"] = 7
 	absence._observe(snapshot)
 	_check(absence.participant_died, "omitted respawning participant cannot hide a death between fights")
+	var leap_player: Dictionary = me.duplicate(true)
+	leap_player["hp"] = 100
+	var leap_enemy: Dictionary = guard.duplicate(true)
+	leap_enemy["name"] = "stair_crawler_first"
+	leap_enemy["hp"] = 60
+	leap_enemy["campaign"]["kind"] = "crawler"
+	leap_enemy["campaign"]["phase"] = "windup"
+	var leap_snapshot: Dictionary = {"tick": 1, "players": [leap_player, leap_enemy]}
+	var before_activation: QaCombat = QaCombat.new()
+	before_activation.set("_player_id", "player")
+	leap_enemy["campaign"]["phase"] = "idle"
+	before_activation._observe(leap_snapshot)
+	leap_snapshot["tick"] = 2
+	leap_player["hp"] = 90
+	before_activation._observe(leap_snapshot)
+	leap_snapshot["tick"] = 3
+	leap_enemy["campaign"]["phase"] = "moving"
+	before_activation._observe(leap_snapshot)
+	_check(before_activation.first_crawler_encounter_start_hp == 90,
+		"guard-room damage before Crawler activation does not contaminate its proof")
+	leap_player["hp"] = 100
+	leap_snapshot["tick"] = 1
+	leap_enemy["campaign"]["phase"] = "windup"
+	var safe_leap: QaCombat = QaCombat.new()
+	safe_leap.set("_player_id", "player")
+	safe_leap._observe(leap_snapshot)
+	leap_snapshot["tick"] = 2
+	leap_enemy["campaign"]["phase"] = "leaping"
+	safe_leap._observe(leap_snapshot)
+	leap_snapshot["tick"] = 3
+	leap_enemy["campaign"]["phase"] = "recovery"
+	safe_leap._observe(leap_snapshot)
+	_check(safe_leap.first_crawler_leap_no_contact_proven() and safe_leap.first_crawler_leap_start_hp == 100,
+		"first Crawler leap leaves authoritative HP unchanged through landing")
+	leap_snapshot["tick"] = 4
+	leap_enemy["hp"] = 0
+	leap_enemy["campaign"]["phase"] = "dead"
+	safe_leap._observe(leap_snapshot)
+	_check(safe_leap.first_crawler_encounter_no_damage_proven(),
+		"first Crawler encounter remains free of damage through its defeat")
+	var later_contact: QaCombat = QaCombat.new()
+	later_contact.set("_player_id", "player")
+	leap_player["hp"] = 100
+	leap_enemy["hp"] = 60
+	leap_snapshot["tick"] = 1
+	leap_enemy["campaign"]["phase"] = "windup"
+	later_contact._observe(leap_snapshot)
+	leap_snapshot["tick"] = 2
+	leap_enemy["campaign"]["phase"] = "leaping"
+	later_contact._observe(leap_snapshot)
+	leap_snapshot["tick"] = 3
+	leap_enemy["campaign"]["phase"] = "recovery"
+	later_contact._observe(leap_snapshot)
+	leap_snapshot["tick"] = 4
+	leap_enemy["campaign"]["phase"] = "windup"
+	later_contact._observe(leap_snapshot)
+	leap_snapshot["tick"] = 5
+	leap_enemy["campaign"]["phase"] = "leaping"
+	leap_player["hp"] = 80
+	later_contact._observe(leap_snapshot)
+	leap_snapshot["tick"] = 6
+	leap_enemy["hp"] = 0
+	leap_enemy["campaign"]["phase"] = "dead"
+	later_contact._observe(leap_snapshot)
+	_check(later_contact.first_crawler_leap_no_contact_proven() and
+		not later_contact.first_crawler_encounter_no_damage_proven(),
+		"a safe first leap cannot hide damage from a later visible leap")
+	var contact: QaCombat = QaCombat.new()
+	contact.set("_player_id", "player")
+	leap_player["hp"] = 100
+	leap_snapshot["tick"] = 1
+	leap_enemy["hp"] = 60
+	leap_enemy["campaign"]["phase"] = "windup"
+	contact._observe(leap_snapshot)
+	leap_snapshot["tick"] = 2
+	leap_enemy["campaign"]["phase"] = "leaping"
+	leap_player["hp"] = 88
+	contact._observe(leap_snapshot)
+	leap_snapshot["tick"] = 3
+	leap_enemy["campaign"]["phase"] = "recovery"
+	contact._observe(leap_snapshot)
+	_check(not contact.first_crawler_leap_no_contact_proven() and contact.first_crawler_leap_low_hp == 88,
+		"contact on the first leaping tick cannot masquerade as a dodge")
 	if _failures == 0:
 		print("test_qa_combat: PASS")
 	quit(0 if _failures == 0 else 1)

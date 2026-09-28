@@ -310,6 +310,7 @@ fn test_protocol_game_event_round_start() {
 fn test_protocol_game_event_round_end() {
     let event = GameEvent::RoundEnd {
         team_scores: None,
+        capture_scores: None,
         winning_team: None,
         winner: Some("Bot1".to_string()),
         reason: "Frag limit reached".to_string(),
@@ -360,6 +361,9 @@ fn test_protocol_game_event_player_left() {
 fn test_protocol_snapshot_serialization() {
     let snapshot = Snapshot {
         team_scores: None,
+        flags: None,
+        capture_scores: None,
+        capture_limit: None,
         tick: 123,
         players: vec![PlayerState {
             body: None,
@@ -410,6 +414,9 @@ fn test_protocol_snapshot_serialization() {
 fn test_protocol_snapshot_empty_players() {
     let snapshot = Snapshot {
         team_scores: None,
+        flags: None,
+        capture_scores: None,
+        capture_limit: None,
         tick: 0,
         players: vec![],
         round_state: None,
@@ -716,6 +723,7 @@ fn test_sim_yaw_normalization() {
 fn test_sim_match_config_custom() {
     let config = MatchConfig {
         rules: Default::default(),
+        capture_limit: None,
         frag_limit: Some(5),
         time_limit_ticks: Some(100),
         warmup_ticks: 10,
@@ -1072,6 +1080,74 @@ fn test_sim_all_bot_behaviors_coverage() {
     ] {
         let bot = BotController::new(bot_id, behavior);
         let _ = bot.update(&state);
+    }
+}
+
+#[test]
+fn live_step_matches_one_authoritative_tick_with_jump_and_compliance() {
+    use crate::movement::{live_step, MoveInput, MoveState, TOP_SPEED};
+    use crate::sim::PLAYER_FLOOR_Y;
+
+    let mut state = GameState::new();
+    let id = Uuid::new_v4();
+    state.add_player(id, "Mover".to_string(), Role::Human);
+    state.start_round();
+    state.players[0].x = 0.0;
+    state.players[0].z = 0.0;
+    state.players[0].y = PLAYER_FLOOR_Y;
+    state.players[0].vy = 0.0;
+    state.compliance_ticks_left = 2;
+    let yaw = std::f32::consts::FRAC_PI_3;
+    let action = Action {
+        forward: true,
+        right: true,
+        yaw: Some(yaw),
+        ..Action::default()
+    };
+    let player = &state.players[0];
+    let predicted = live_step(
+        MoveState {
+            x: player.x,
+            z: player.z,
+            y: player.y - PLAYER_FLOOR_Y,
+            vx: 0.0,
+            vz: 0.0,
+            vy: player.vy,
+            yaw,
+        },
+        &MoveInput {
+            forward: action.forward,
+            back: action.back,
+            left: action.left,
+            right: action.right,
+            // An earlier tap is latched even when the selected action has
+            // released jump before this 20 Hz movement step.
+            jump: true,
+            yaw,
+            speed_scale: 1.0,
+        },
+        TOP_SPEED * 0.5,
+        0.05,
+        state.map.arena(),
+    );
+    state.set_action(
+        id,
+        Action {
+            jump: true,
+            ..Action::default()
+        },
+    );
+    state.set_action(id, action);
+    state.tick(0.05);
+    let actual = &state.players[0];
+    for (label, a, b) in [
+        ("x", actual.x, predicted.x),
+        ("z", actual.z, predicted.z),
+        ("y", actual.y, predicted.y + PLAYER_FLOOR_Y),
+        ("vy", actual.vy, predicted.vy),
+        ("yaw", actual.yaw, predicted.yaw),
+    ] {
+        assert!((a - b).abs() <= 1e-6, "{label}: sim {a} vs live step {b}");
     }
 }
 
@@ -2055,6 +2131,7 @@ fn test_round_cycle_events_survive_ticks() {
     let mut state = GameState::new();
     state.config = MatchConfig {
         rules: Default::default(),
+        capture_limit: None,
         frag_limit: Some(2),
         time_limit_ticks: None,
         warmup_ticks: 3,
@@ -2166,6 +2243,7 @@ fn test_server_round_event_wire_json_shape() {
 
     let end = ServerMessage::Event(GameEvent::RoundEnd {
         team_scores: None,
+        capture_scores: None,
         winning_team: None,
         winner: Some("Alpha".into()),
         reason: "Frag limit reached".into(),
@@ -2440,6 +2518,9 @@ async fn test_net_ws_action_forwarded_for_agent() {
         use crate::session::broadcast_to_clients;
         let snap = ServerMessage::Snapshot(Snapshot {
             team_scores: None,
+            flags: None,
+            capture_scores: None,
+            capture_limit: None,
             tick: 1,
             players: vec![],
             round_state: Some("active".into()),
@@ -2839,6 +2920,7 @@ fn test_compliance_ping_fires_once_and_sets_pressure() {
     let mut state = GameState::new();
     state.config = MatchConfig {
         rules: Default::default(),
+        capture_limit: None,
         frag_limit: Some(99),
         time_limit_ticks: Some(20 * 60),
         warmup_ticks: 2,
@@ -2912,6 +2994,7 @@ fn test_compliance_pressure_slows_movement() {
     let mut state = GameState::new();
     state.config = MatchConfig {
         rules: Default::default(),
+        capture_limit: None,
         frag_limit: Some(99),
         time_limit_ticks: Some(20 * 60),
         warmup_ticks: 1,
@@ -2990,6 +3073,7 @@ fn test_snapshot_host_line_sticky_for_mid_join() {
     let mut state = GameState::new();
     state.config = MatchConfig {
         rules: Default::default(),
+        capture_limit: None,
         frag_limit: Some(99),
         time_limit_ticks: Some(20 * 60),
         warmup_ticks: 2,
@@ -3054,6 +3138,7 @@ fn test_compliance_drone_spawns_once_with_pressure_and_host() {
     state.add_player(a, "Rusher".into(), Role::Agent);
     state.config = MatchConfig {
         rules: Default::default(),
+        capture_limit: None,
         frag_limit: Some(99),
         time_limit_ticks: Some(20 * 60),
         warmup_ticks: 1,
@@ -3103,6 +3188,7 @@ fn test_boss_wiped_on_round_end_emits_boss_down_no_killer() {
     state.add_player(a, "Rusher".into(), Role::Agent);
     state.config = MatchConfig {
         rules: Default::default(),
+        capture_limit: None,
         frag_limit: Some(99),
         time_limit_ticks: Some(5),
         warmup_ticks: 1,
@@ -3172,6 +3258,7 @@ fn test_compliance_drone_killable_emits_boss_down_no_respawn() {
     state.add_player(shooter, "Rusher".into(), Role::Agent);
     state.config = MatchConfig {
         rules: Default::default(),
+        capture_limit: None,
         frag_limit: Some(99),
         time_limit_ticks: Some(20 * 60),
         warmup_ticks: 1,
@@ -5170,6 +5257,7 @@ fn client_owned_yaw_replaces_the_turn_bits_and_steers_the_same_tick() {
         id,
         Action {
             yaw: Some(-std::f32::consts::FRAC_PI_2),
+            seq: Some(8),
             ..Default::default()
         },
     );
@@ -5188,6 +5276,7 @@ fn client_owned_yaw_replaces_the_turn_bits_and_steers_the_same_tick() {
         Action {
             turn_right: true,
             yaw: Some(f32::NAN),
+            seq: Some(9),
             ..Default::default()
         },
     );
@@ -5269,6 +5358,7 @@ fn acks_report_the_state_the_input_produced() {
             z,
             yaw,
             pitch,
+            movement,
         } => {
             assert!(pitch.is_finite());
             assert_eq!(*seq, 41);
@@ -5277,6 +5367,7 @@ fn acks_report_the_state_the_input_produced() {
             assert_eq!(*z, state.players[idx].z);
             assert_eq!(*yaw, state.players[idx].yaw);
             assert_eq!(*pitch, state.players[idx].pitch);
+            assert!(movement.is_some());
         }
         other => panic!("expected an Ack, got {other:?}"),
     }
@@ -5294,6 +5385,333 @@ fn acks_report_the_state_the_input_produced() {
         ServerMessage::Ack { seq, .. } => assert_eq!(*seq, 42),
         other => panic!("expected an Ack, got {other:?}"),
     }
+}
+
+#[test]
+fn movement_ack_reports_one_selected_step_and_earlier_jump_latch() {
+    let mut state = GameState::new();
+    state.start_round();
+    let human = Uuid::new_v4();
+    state.add_player(human, "Runner".into(), Role::Human);
+    state.players[0].x = 0.0;
+    state.players[0].z = 0.0;
+    state.players[0].y = crate::sim::PLAYER_FLOOR_Y;
+    state.set_action(
+        human,
+        Action {
+            seq: Some(20),
+            jump: true,
+            ..Default::default()
+        },
+    );
+    state.set_action(
+        human,
+        Action {
+            seq: Some(21),
+            forward: true,
+            ..Default::default()
+        },
+    );
+    state.set_action(
+        human,
+        Action {
+            seq: Some(22),
+            right: true,
+            yaw: Some(0.0),
+            ..Default::default()
+        },
+    );
+    let expected = crate::movement::live_step(
+        crate::movement::MoveState {
+            x: state.players[0].x,
+            z: state.players[0].z,
+            y: state.players[0].y - crate::sim::PLAYER_FLOOR_Y,
+            vx: 0.0,
+            vz: 0.0,
+            vy: state.players[0].vy,
+            yaw: 0.0,
+        },
+        &crate::movement::MoveInput {
+            right: true,
+            jump: true,
+            ..Default::default()
+        },
+        crate::movement::TOP_SPEED,
+        0.05,
+        state.map.arena(),
+    );
+    state.tick(0.05);
+    let first_tick = state.tick;
+    let first = &state.input_acks()[0].1;
+    let ServerMessage::Ack {
+        seq,
+        tick,
+        x,
+        z,
+        movement: Some(movement),
+        ..
+    } = first
+    else {
+        panic!("expected a full movement Ack: {first:?}");
+    };
+    assert_eq!((*seq, *tick), (22, first_tick));
+    assert_eq!(
+        (*x, *z, movement.y),
+        (state.players[0].x, state.players[0].z, state.players[0].y)
+    );
+    assert_eq!(movement.version, 1);
+    assert!(movement.applied);
+    assert!(
+        movement.jump_input,
+        "the skipped earlier jump still reached the integrator"
+    );
+    assert_eq!(movement.effective_speed, crate::movement::TOP_SPEED);
+    assert_eq!((movement.vx, movement.vz), (expected.vx, expected.vz));
+    assert_eq!(movement.vy, state.players[0].vy);
+    assert!(movement.y > crate::sim::PLAYER_FLOOR_Y);
+
+    state.tick(0.05);
+    let second = &state.input_acks()[0].1;
+    let ServerMessage::Ack {
+        seq,
+        tick,
+        movement: Some(movement),
+        ..
+    } = second
+    else {
+        panic!("expected a repeated held movement Ack: {second:?}");
+    };
+    assert_eq!((*seq, *tick), (22, first_tick + 1));
+    assert!(movement.applied);
+    assert!(!movement.jump_input, "the earlier edge was consumed once");
+}
+
+#[test]
+fn numbered_human_actions_reject_stale_duplicate_and_mixed_samples() {
+    let mut state = GameState::new();
+    state.start_round();
+    let human = Uuid::new_v4();
+    state.add_player(human, "Runner".into(), Role::Human);
+    state.players[0].x = 0.0;
+    state.players[0].z = 0.0;
+    state.players[0].y = crate::sim::PLAYER_FLOOR_Y;
+    state.set_action(
+        human,
+        Action {
+            seq: Some(7),
+            forward: true,
+            yaw: Some(0.0),
+            ..Default::default()
+        },
+    );
+    for seq in [Some(7), Some(6), None] {
+        state.set_action(
+            human,
+            Action {
+                seq,
+                back: true,
+                jump: true,
+                interact: true,
+                weapon_swap: Some(WeaponType::Rail),
+                ..Default::default()
+            },
+        );
+    }
+    assert!(!state.players[0].interaction_requested);
+    assert_eq!(state.players[0].pending_action.weapon_swap, None);
+    state.tick(0.05);
+    assert_eq!(state.players[0].x, crate::movement::TOP_SPEED * 0.05);
+    assert_eq!(state.players[0].y, crate::sim::PLAYER_FLOOR_Y);
+    assert!(matches!(
+        state.input_acks()[0].1,
+        ServerMessage::Ack { seq: 7, .. }
+    ));
+    state.players[0].clear_input();
+    state.set_action(
+        human,
+        Action {
+            seq: Some(7),
+            back: true,
+            ..Default::default()
+        },
+    );
+    state.set_action(
+        human,
+        Action {
+            seq: Some(8),
+            right: true,
+            ..Default::default()
+        },
+    );
+    state.tick(0.05);
+    assert!((state.players[0].x - crate::movement::TOP_SPEED * 0.05).abs() < 1e-6);
+    assert!(
+        state.players[0].z > 0.0,
+        "a fresh sample advances after input reset"
+    );
+    assert!(matches!(
+        state.input_acks()[0].1,
+        ServerMessage::Ack { seq: 8, .. }
+    ));
+}
+
+#[test]
+fn numbered_human_sequence_advances_across_u32_wrap() {
+    let mut state = GameState::new();
+    state.start_round();
+    let human = Uuid::new_v4();
+    state.add_player(human, "Runner".into(), Role::Human);
+    state.set_action(
+        human,
+        Action {
+            seq: Some(u32::MAX - 1),
+            ..Default::default()
+        },
+    );
+    state.set_action(
+        human,
+        Action {
+            seq: Some(u32::MAX),
+            ..Default::default()
+        },
+    );
+    state.set_action(
+        human,
+        Action {
+            seq: Some(0),
+            forward: true,
+            ..Default::default()
+        },
+    );
+    state.set_action(
+        human,
+        Action {
+            seq: Some(u32::MAX),
+            back: true,
+            jump: true,
+            ..Default::default()
+        },
+    );
+    state.tick(0.05);
+    assert!(matches!(
+        state.input_acks()[0].1,
+        ServerMessage::Ack { seq: 0, .. }
+    ));
+    let ServerMessage::Ack {
+        movement: Some(body),
+        ..
+    } = &state.input_acks()[0].1
+    else {
+        panic!("missing movement state");
+    };
+    assert!(!body.jump_input);
+}
+
+#[test]
+fn movement_ack_marks_inactive_and_respawned_body_boundaries() {
+    let mut state = GameState::new();
+    state.start_round();
+    let human = Uuid::new_v4();
+    state.add_player(human, "Runner".into(), Role::Human);
+    state.set_action(
+        human,
+        Action {
+            seq: Some(1),
+            forward: true,
+            ..Default::default()
+        },
+    );
+    state.tick(0.05);
+    let ServerMessage::Ack {
+        movement: Some(first),
+        ..
+    } = &state.input_acks()[0].1
+    else {
+        panic!("missing first movement state");
+    };
+    let first_epoch = first.epoch;
+    assert!(first.applied);
+
+    state.players[0].hp = 0;
+    let ServerMessage::Ack {
+        movement: Some(dead),
+        ..
+    } = &state.input_acks()[0].1
+    else {
+        panic!("missing dead movement state");
+    };
+    assert!(
+        !dead.applied,
+        "death after movement makes the final pose a reset baseline"
+    );
+    assert_eq!(dead.epoch, first_epoch);
+    state.players[0].respawn_timer = Some(1);
+    state.tick(0.05);
+    let ServerMessage::Ack {
+        movement: Some(respawn),
+        ..
+    } = &state.input_acks()[0].1
+    else {
+        panic!("missing respawn movement state");
+    };
+    assert!(!respawn.applied);
+    assert!(respawn.epoch > first_epoch);
+    assert_eq!(
+        (respawn.vx, respawn.vz, respawn.effective_speed),
+        (0.0, 0.0, 0.0)
+    );
+    let respawn_epoch = respawn.epoch;
+
+    state.start_round();
+    let ServerMessage::Ack {
+        movement: Some(round),
+        ..
+    } = &state.input_acks()[0].1
+    else {
+        panic!("missing round movement state");
+    };
+    assert!(!round.applied);
+    assert!(round.epoch > respawn_epoch);
+}
+
+#[test]
+fn movement_ack_reset_epoch_does_not_replay_historical_sequence() {
+    let mut state = GameState::new();
+    state.start_round();
+    let human = Uuid::new_v4();
+    state.add_player(human, "Runner".into(), Role::Human);
+    state.set_action(
+        human,
+        Action {
+            seq: Some(17),
+            forward: true,
+            ..Default::default()
+        },
+    );
+    state.tick(0.05);
+    let ServerMessage::Ack {
+        movement: Some(before),
+        ..
+    } = &state.input_acks()[0].1
+    else {
+        panic!("missing movement Ack before input reset");
+    };
+    let before_epoch = before.epoch;
+
+    state.players[0].clear_input();
+    state.tick(0.05);
+    let ServerMessage::Ack {
+        seq,
+        movement: Some(after),
+        ..
+    } = &state.input_acks()[0].1
+    else {
+        panic!("missing movement Ack after input reset");
+    };
+    assert_eq!(*seq, 17, "the last sequence remains historical context");
+    assert!(after.epoch > before_epoch);
+    assert!(after.applied, "a neutral active tick still steps the body");
+    assert_eq!((after.vx, after.vz, after.jump_input), (0.0, 0.0, false));
 }
 
 #[test]
@@ -5325,6 +5743,7 @@ fn action_wire_accepts_yaw_and_seq_and_still_accepts_neither() {
         x: 1.5,
         z: -2.0,
         yaw: 0.5,
+        movement: None,
     };
     let json = serde_json::to_string(&ack).unwrap();
     assert!(json.contains("\"type\":\"ack\""), "{json}");
@@ -5332,6 +5751,34 @@ fn action_wire_accepts_yaw_and_seq_and_still_accepts_neither() {
         json.contains("\"seq\":3") && json.contains("\"tick\":12"),
         "{json}"
     );
+    assert!(
+        !json.contains("movement"),
+        "legacy Ack is still the old shape: {json}"
+    );
+    let old: ServerMessage = serde_json::from_str(&json).unwrap();
+    assert!(matches!(old, ServerMessage::Ack { movement: None, .. }));
+    let full = ServerMessage::Ack {
+        pitch: 0.25,
+        seq: 3,
+        tick: 12,
+        x: 1.5,
+        z: -2.0,
+        yaw: 0.5,
+        movement: Some(crate::protocol::MovementAck {
+            version: 1,
+            epoch: 2,
+            applied: true,
+            y: 1.5,
+            vx: 0.0,
+            vy: 0.0,
+            vz: 5.0,
+            effective_speed: 5.0,
+            jump_input: false,
+        }),
+    };
+    let full_json = serde_json::to_string(&full).unwrap();
+    let read: ServerMessage = serde_json::from_str(&full_json).unwrap();
+    assert!(matches!(read, ServerMessage::Ack { movement: Some(body), .. } if body.epoch == 2));
 }
 
 /// A straight, unobstructed east-west lane in the arena: a shooter position

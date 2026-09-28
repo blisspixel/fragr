@@ -88,7 +88,7 @@ impl GameState {
             return None;
         }
         let player = self.players.iter().find(|player| player.id == id)?;
-        if player.is_campaign_enemy() || player.is_boss {
+        if !player.is_participant() {
             return None;
         }
         if self.mission.is_none()

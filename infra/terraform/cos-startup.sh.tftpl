@@ -1,0 +1,102 @@
+#!/bin/bash
+set -euo pipefail
+
+# COS reruns this startup script on every boot. /etc is stateless there.
+install -d -m 0700 /etc/fragr /home/fragr-host /run/fragr
+
+cat > /etc/fragr/launch.sh <<'LAUNCH'
+#!/bin/bash
+set -euo pipefail
+umask 077
+
+export HOME=/home/fragr-host
+install -d -m 0700 "$HOME" /run/fragr
+rm -f /run/fragr/server.env
+response_file=/run/fragr/secret-response.json
+raw_file=/run/fragr/secret.raw
+trap 'rm -f "$response_file" "$raw_file" /run/fragr/server.env' EXIT
+
+# The credential helper is already in COS. The VM identity has repository
+# Reader on exactly the preexisting image repository.
+/usr/bin/docker-credential-gcr configure-docker --registries '${registry_host}'
+
+token_json="$(curl --fail --silent --show-error --max-time 10 \
+  -H 'Metadata-Flavor: Google' \
+  'http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token')"
+access_token="$(printf '%s' "$token_json" | sed -n 's/.*"access_token"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p')"
+test -n "$access_token" || { echo 'Missing VM access token' >&2; exit 1; }
+unset token_json
+
+curl --fail --silent --show-error --max-time 15 \
+  -H "Authorization: Bearer $access_token" \
+  'https://secretmanager.googleapis.com/v1/projects/${project_id}/secrets/${join_secret_id}/versions/${join_secret_version}:access' \
+  -o "$response_file"
+unset access_token
+
+# The API may format JSON over several lines. Match only the payload data
+# field; a missing or changed response fails closed. Never print this value.
+encoded="$(tr -d '\n\r' < "$response_file" | sed -n 's/.*"payload"[[:space:]]*:[[:space:]]*{[^}]*"data"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p')"
+test -n "$encoded" || { echo 'Missing join secret payload' >&2; exit 1; }
+printf '%s' "$encoded" | tr '_-' '/+' | base64 -d > "$raw_file"
+unset encoded
+
+# Docker's env-file parser does not escape values. Restrict the cloud secret
+# to a single safe ASCII token and enforce the server's 16-256 byte range.
+secret="$(cat "$raw_file")"
+byte_count="$(wc -c < "$raw_file")"
+test "$byte_count" -ge 16 && test "$byte_count" -le 256 || {
+  echo 'Invalid join secret length' >&2; exit 1;
+}
+test "$byte_count" -eq "$(printf '%s' "$secret" | wc -c)" || {
+  echo 'Join secret contains a line break' >&2; exit 1;
+}
+printf '%s' "$secret" | LC_ALL=C grep -Eq '^[A-Za-z0-9_-]{16,256}$' || {
+  echo 'Join secret must be a single ASCII token' >&2; exit 1;
+}
+printf 'FRAGR_JOIN_SECRET=%s\n' "$secret" > /run/fragr/server.env
+chmod 0600 /run/fragr/server.env
+unset secret
+rm -f "$response_file" "$raw_file"
+
+image='${image_ref}'
+docker pull "$image"
+exec docker run --rm --name fragr-server --network host \
+  --user 10001:10001 --read-only --cap-drop ALL \
+  --security-opt no-new-privileges --env-file /run/fragr/server.env \
+  --health-cmd "curl -fsS http://127.0.0.1:6767/status | grep -Fq '\"health\":{\"status\":\"ok\"'" \
+  --health-interval 15s --health-timeout 5s \
+  --health-start-period 60s --health-retries 4 \
+  --stop-timeout 15 --log-driver local \
+  "$image" --bind 0.0.0.0:6767 --bots 4
+LAUNCH
+chmod 0700 /etc/fragr/launch.sh
+
+cat > /etc/systemd/system/fragr-server.service <<'UNIT'
+[Unit]
+Description=fragr authoritative match container
+Requires=docker.service
+Wants=gcr-online.target
+After=docker.service gcr-online.target
+
+[Service]
+Type=simple
+Environment=HOME=/home/fragr-host
+ExecStartPre=-/usr/bin/docker rm -f fragr-server
+ExecStart=/bin/bash /etc/fragr/launch.sh
+ExecStop=-/usr/bin/docker stop -t 15 fragr-server
+ExecStopPost=-/usr/bin/rm -f /run/fragr/server.env
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
+UNIT
+
+%{ for cidr in game_source_ranges ~}
+# Docker host networking needs the same reviewed source CIDR as the VPC rule.
+/sbin/iptables -w -C INPUT -s ${cidr} -p tcp --dport 6767 -j ACCEPT 2>/dev/null || \
+  /sbin/iptables -w -I INPUT -s ${cidr} -p tcp --dport 6767 -j ACCEPT
+%{ endfor ~}
+
+systemctl daemon-reload
+systemctl restart fragr-server.service

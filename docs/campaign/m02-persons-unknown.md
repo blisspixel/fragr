@@ -1,7 +1,43 @@
 # M02: Persons Unknown
 
-**Status:** development graybox (`server/maps/m02-persons-unknown.json`): an open route with three Clerk and Sweeper fights and two arrival objectives. Story, Latch as an actor, the Jammer and Crawlers are unbuilt. Earth before the wipe. Target 10-12 minutes.
+**Status:** development graybox (`server/maps/m02-persons-unknown.json`). The
+two-Clerk Shotgun introduction, single Crawler, later pack, guarded Latch
+release and cross-mission run carry have seeded engineering checks in stacked
+drafts. The officer's [upper mezzanine](../plans/m02-floor-gantry.md),
+[optional side ward](../plans/m02-side-ward.md) and
+[maintenance circulation](../plans/m02-maintenance-circulation.md) are also in
+draft review. [Draft #278](https://github.com/blisspixel/fragr/pull/278) moves
+the optional captives from that ward to the dock under server authority. The
+accepted ten-enemy processing-floor roster is staged in
+[draft #279](https://github.com/blisspixel/fragr/pull/279); fresh-player Crawler
+and floor balance review remain open. The Jammer first appears in level 3.
+Earth before the wipe. Target 10-12 minutes.
 [Treatment](../CAMPAIGN-MISSIONS.md#level-2-persons-unknown).
+
+The current graybox places the Shotgun on the upper gallery and two initially
+seated Clerks in a guard room at the top of the service stair. Their encounter
+raises them before the descent. A separate trigger stages one low Crawler on
+the lower stair, then another stages three Crawlers with a Sweeper. The server
+owns their body, leap and contact; the client has distinct motion and a
+captioned spatial scrabble cue. Seeded clears and inspected live motion pass;
+fresh-player review still decides whether the introduction is accepted.
+
+The [gallery first-view draft](../plans/m02-gallery-first-view.md) lowers the
+window sill enough for the primary standing entry to see Latch and the
+restraint frame; the other gallery entries can walk to that view. The sill
+stays too high to step through, and the first fight and Crawler descent keep
+their authored route. This is an authored view and rendered frame check, not
+evidence that a new player recognizes Latch at that distance. The
+[Notary observation tableau draft](../plans/m02-notary-tableau.md) now places
+one passive drone behind a sealed pane. Its small peripheral silhouette is
+visible from the gallery, while fresh-player recognition remains open.
+
+The [natural entry draft](../plans/m02-natural-entry-composition.md) turns the
+primary gallery spawn toward that restraint without moving its feet or
+changing the window. Its unforced first-person frame and live snapshot check
+test the view a participant actually receives before input. The Shotgun and
+service stair remain reachable; recognizing Latch is still a fresh-player
+question.
 
 ## Story and cast
 
@@ -11,27 +47,31 @@ helps release another captive and discovers Low Water on the wider recall list.
 They argue for helping others and participate in escape. They are neither a
 silent trophy nor a fragile escort whose mistakes constantly fail the mission.
 
-Latch acts autonomously after release. Their reunion does not introduce a
-controllable companion, a required second player or a revive system.
+The stacked escape draft gives Latch autonomous behavior after release, with
+bounded server-owned support on the processing floor. Their reunion does not
+introduce a controllable companion, a required second player or a revive
+system. Unsteered player review of that support remains open.
 
-Mara receives the warning at departure. An Auditor oversees the facility through
-screens or an inaccessible gallery; this does not require a boss fight yet.
+The warning to Mara waits until the level 3 Jammer falls. A Notary drone
+photographs captives beyond the gallery glass, out of reach. Its first fight
+belongs to level 4.
 
 ## Layout
 
-Observation gallery -> service stair -> ward antechamber -> correction ward ->
-processing floor -> loading exit. A maintenance loop connects the antechamber
-to the floor and the gallery.
+Observation gallery -> guard room -> service stair -> ward antechamber -> correction ward ->
+processing floor -> loading exit. A maintenance cut forks after the first
+Crawler and rejoins at the antechamber beyond the pack landing. A separate
+side-ward return loops around processing machinery after Latch's release.
 
 | Zone | Physical job | Play and character beat |
 |---|---|---|
-| Gallery | Windows show the ward and processing machinery below | Player sees a destination and evidence of coercion before fighting; a Notary drone photographs captives beyond the glass, out of reach |
-| Service stair | Enclosed switchback, clear landings, no jump requirement | Introduce Crawler sounds/captions, then a small visible pack |
-| Antechamber | Workroom with cover and a view into the ward | Find the Shotgun before the close encounter; recovery supplies |
+| Gallery and guard room | Windows show the ward and processing machinery below; a small table and chairs interrupt the route to the stair | Player finds the Shotgun and Shells, then wakes two seated Clerks before descending; a Notary drone photographs captives beyond the glass, out of reach |
+| Service stair | Enclosed switchback, clear landings, no jump requirement | One Crawler gets a captioned scrabble and a readable leap before three Crawlers mix with a Sweeper on the next landing; fresh-player readability review pending |
+| Antechamber | Workroom with cover and a view into the ward | Recover after the stair and read the ward before entering it |
 | Ward | Open ward around the restraint frame | Set-piece fight; the correction stops when the guards fall; free Latch |
-| Processing floor | Two usable levels with broad stairs and machinery islands | Latch fights beside us; mixed threats pressure escape |
-| Service loop | Optional captives and supplies | Clear the guards and the captives free themselves |
-| Loading exit | Open dock with the transport in view | Kill the Jammer, regroup and leave for home |
+| Processing floor | Two usable levels with broad stairs and machinery islands | The escape draft puts Latch beside the player; the gantry draft raises the Clerk officer. The ten-enemy roster is staged in three encounters; unsteered player balance review remains open. |
+| Service loop | A stair bypass and two approaches to the side ward | The early cut offers a learned route around the pack landing; clear the optional guards and the captives free themselves, then move to the dock after the floor is safe |
+| Loading exit | Open dock with the yard in view | Clerk and Sweeper crest, regroup and leave for the rail yard |
 
 Winning the ward is the crest's first half; escaping together is the second.
 
@@ -42,22 +82,24 @@ player who missed every secret. Crawlers punish retreating straight down a hall;
 the antechamber supplies lateral space. A human officer above the processing
 floor creates a priority target without requiring the Railgun.
 
-The Jammer has visible antenna/pulse and projectile tells. It guards the dock
-with traveling interference shots and dies to guaranteed guns. Do not introduce
-the entire enemy roster.
+The dock remains a grounded Clerk and Sweeper fight. The Jammer's first
+interference shots belong to level 3's rail yard. Do not introduce the entire
+enemy roster here.
 
 Secrets: an armor locker reachable from the gallery loop; a Shiv/replenishment
 cache behind a clearly altered service panel. Neither changes the core rescue.
 
 ## State and retries
 
-`ward_reached` -> `companion_released` (ward fight won) -> `party_departed`
-(dock arrival). Latch's release is an authoritative one-time transition.
+`ward_reached` -> `companion_released` (ward guards defeated, then local Use at
+the frame) -> `party_departed` (dock arrival). Ward victory quiets the machine;
+the release is a separate authoritative one-time transition.
 Optional prisoner groups have distinct released/evacuated states.
 
-The current graybox has no switches or gates and two objectives. It advances
-`companion_released` by arriving at the restraint frame ("Find Latch") until
-an objective can complete on a won fight, then "Get out" on the dock.
+The current side-ward draft has one required Use control and a ward-exit
+shutter raised by that same release. The ward scene shows Latch freeing another
+captive and reading Low Water, then
+hands off to the moving server-owned companion for later combat.
 
 Mastery hooks, planned, not built: a par time on the result, the maintenance
 loop as the runner's line, and best clear time in the service record.
@@ -75,7 +117,7 @@ and optional speech carry the same meaning. Do not settle the friend/partner
 relationship with gendered or romantic lines before that wording is approved.
 
 Need ward machinery, restraints, active/inactive release states, companion
-locomotion and gestures, Crawler set and Jammer projectiles. Captive suffering
+locomotion and gestures, and an accepted Crawler presentation pass. Captive suffering
 is purposeful context, not prolonged spectacle. Institutional announcements can
 be absurd while the reunion stays sincere.
 
@@ -104,23 +146,25 @@ correction happens, and Latch is on the frame. Get there before it finishes.
 **Hook.** Fight down into the worst room in the building and pull your friend
 off the machine with its guards still firing.
 
-**Teaches.** The Shotgun, then the Crawler. The Shotgun waits in a guard room
-at the top of the service stair, where two Clerks sit at a table with their
-weapons down: point blank, one blast each, an easy first lesson in seven
-pellets. The Crawler comes next and alone: a scrabble and a caption, then one
-low chassis leaping from the switchback's lower landing, its wind-up a clear
-crouch, on a landing wide enough to sidestep. The Shotgun answers it.
+**Teaches.** The Shotgun, then the Crawler. The Shotgun waits on the upper
+gallery before a guard room at the top of the service stair, where two Clerks
+sit at a table with their weapons down: point blank, one blast each, an easy
+first lesson in seven pellets. The Crawler comes next and alone: a scrabble and
+a caption, then one low chassis leaping from the switchback's lower landing,
+its wind-up a clear crouch, on a landing wide enough to sidestep. The Shotgun
+answers it.
 
 **Shape.**
 1. **Arrival.** The observation gallery. Through the glass, below: the ward,
    the restraint frame, and Latch on it. A Notary drifts beyond the glass
    photographing captives, out of reach. The destination is the first thing you
    see.
-2. **First fight.** The guard room and the Shotgun.
+2. **First fight.** Find the Shotgun on the gallery, then fight in the guard room.
 3. **Escalation.** The service stair: the first Crawler, then a pack of three
    on the next landing with a Sweeper firing up the well. Keep space without
    backing into its lane.
-4. **Set piece.** The ward. The seal drops behind you for this fight only.
+4. **Set piece.** The ward. Its exit shutter stays shut through the fight and
+   rises when Latch is released.
    Sweepers from the bays, Clerks on the gallery above, Crawlers from the floor
    vents, the frame between you and all of them. The machine stops when its
    guards fall. No countdown.
@@ -138,7 +182,8 @@ crouch, on a landing wide enough to sidestep. The Shotgun answers it.
 the first shot. The gallery glass from below, where you stood a minute ago.
 The dock's daylight at the end of the processing floor.
 
-**Doors.** One: the ward seal, down for its fight and up when it is won.
+**Doors.** One: the ward exit shutter, closed through the fight and raised by
+Latch's release at the existing restraint control.
 
 **Secrets.**
 - An armor locker off the gallery loop, the six scratched into its hinge.
@@ -147,12 +192,16 @@ The dock's daylight at the end of the processing floor.
 - The processing floor's upper gantry ledge, reached by a readable jump from
   the stair: a medkit and a sightline down onto the crest.
 
-**Brief.** Assisted: free the side ward. Standard adds: clear the processing
-floor's upper gantry. Severe adds: stop the Crawler pack before it reaches the
-stair landing.
+**Optional challenge ideas, not active objectives.** Freeing the side ward,
+clearing the upper gantry and stopping the Crawler pack before the landing may
+become named challenges later. The side ward remains optional on Assisted,
+Standard and Severe. No tier adds a required rescue or changes the ward release
+and dock departure chain.
 
-**Par and the runner's line.** 4:30. The maintenance loop from the antechamber
-to the floor, skipping the stair's second landing.
+**Par and the runner's line.** 4:30. The maintenance cut after the lone Crawler
+skips the pack landing and rejoins at the antechamber. The side ward has a
+separate return opening onto the processing floor. Both routes still pass
+through Latch's release and the ward exit shutter.
 
 **Story in play.** Page in: "The correction ward, under the same building.
 Minutes, not hours. The lift only runs down. Latch is on the frame. Find

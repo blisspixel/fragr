@@ -1,0 +1,44 @@
+{
+  "comment": "Solo live CTF leave-drop route on Sector 9. Run with FRAGR_QA_MODE=ctf FRAGR_QA_MAP=4 FRAGR_QA_BOTS=0 FRAGR_QA_SEED=42.",
+  "width": 1280,
+  "height": 720,
+  "states": [
+    {
+      "name": "ctf_solo_join",
+      "scene": "res://scenes/main.tscn",
+      "at_seconds": 2,
+      "join": "human",
+      "camera": "first_person",
+      "note": "The client joins a live Sector 9 CTF round before taking the enemy flag."
+    },
+    {
+      "name": "ctf_enemy_stand",
+      "at_seconds": 8,
+      "camera": "first_person",
+      "walk_to": [[32, 0, -32], [32, 0, 0], [20, 0, 0], [-20, 0, 0], [-32, 0, 0], [-48, 0, 0], [-48, 0, 12], [-70, 0, 12], [-70, 0, 0]],
+      "expect_flag_statuses": ["carried", "home"],
+      "note": "The client crosses Mid Doors and takes the live Union flag as a Coalition fighter."
+    },
+    {
+      "name": "ctf_leave_drop",
+      "at_seconds": 9,
+      "join": "spectator",
+      "camera": "ctf_dropped",
+      "allow_empty_roster": true,
+      "expect_flag_statuses": ["dropped", "home"],
+      "expect_flag_return_ticks": {"team": "union", "min": 1, "max": 399},
+      "settle_seconds": 0.1,
+      "note": "The Coalition carrier explicitly leaves. The server drops the Union flag at the last carried position, with a live return timer."
+    },
+    {
+      "name": "ctf_auto_return",
+      "at_seconds": 10,
+      "camera": "union_flag",
+      "allow_empty_roster": true,
+      "await_ctf": {"status": "home", "team": "union"},
+      "await_timeout_seconds": 30,
+      "expect_flag_statuses": ["home", "home"],
+      "note": "The server returns the dropped Union flag to its stand after the 20-second clock."
+    }
+  ]
+}

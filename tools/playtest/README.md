@@ -77,3 +77,21 @@ directly with current traveled distances. Damage includes armour and overkill.
 Keep seed, map, policies, duration, sample counts, and source revision with any
 comparison. Small samples and perfect-aim agents are not a weapon-balance verdict.
 The deeper workflow is in `../../docs/plans/agent-playtest-loop.md`.
+
+Sector 9 CTF has two separate socket gates. The controlled route runs one
+unopposed joined fighter through ordinary navigation and server-owned flag
+rules. It fails unless that fighter takes and carries the flag, the server
+emits its matching capture event, the final score credits its side and the
+round ends at the capture limit. The contested gate runs four mixed agents and
+keeps the usual round, roster and frustration checks; it also requires combat,
+authoritative flag state and a final capture score. A particular contested
+match need not capture. Keep its flag outcomes in the report for pacing review.
+
+```bash
+cargo run -p fragr-playtest --locked -- --ctf-route-smoke --report .agents/playtest/ci-ctf-route.json
+cargo run -p fragr-playtest --locked -- --agents 4 --rounds 1 --mode ctf --map 4 --tiers reflex,planner --capture-limit 1 --time-limit-seconds 180 --max-seconds 240 --assert --ctf-contested --report .agents/playtest/ci-ctf.json
+```
+
+The ordinary CTF `--assert` still requires pickups and captures. The split
+gates are described in
+[`ctf-socket-smoke.md`](../../docs/plans/ctf-socket-smoke.md).

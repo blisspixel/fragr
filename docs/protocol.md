@@ -88,13 +88,14 @@ Initial handshake message. Must be sent immediately after connection.
   resume keeps the parked pawn's body even if this hello names another.
   Changing the body means leaving and joining again.
 - `gameplay_version`: maximum understood gameplay contract. Updated Rust readers
-  and the Godot client send `13`; omission means `1`. Discovery-only maps require 2, maps with authored
-  encounters require 3, and mission sequences require 6 for shared difficulty.
+  and the Godot client send `21`; omission means `1`. Discovery-only maps require
+  2, maps with authored encounters require 3, and mission sequences require 6
+  for shared difficulty.
   Versions 4 and 5 introduced physical controls and party readiness respectively;
   they cannot enter current missions. Solo runs require 7 for explicit continues.
   Version 8 adds private participant records. Record delivery is gated by the
   client's advertised capability; earlier clients keep their existing messages.
-  M02 requires 9 for objective and gate state, including spectators. Version 10
+  Version 9 introduced M02 objective and gate state, including spectators. Version 10
   replaces magazines, reserves and reload with one ammunition count per type and
   adds scatter pellet traces. Every discovery map, M01 and M02 included, now
   requires 10 for every role, because the private loadout shape changed and
@@ -115,7 +116,25 @@ Initial handshake message. Must be sent immediately after connection.
   Version 13 adds the chosen participant `body` on Hello, Welcome and snapshot
   players. It is additive: no map requires it, older readers ignore the field,
   and an older client's pawn is human.
-  Use matching campaign server/client builds.
+  Version 14 adds typed flag state, capture scores and flag events. A capture
+  the flag server requires 14 for every role so a reader cannot miss the
+  objective or mistake frags for the score. Other modes keep their earlier
+  minimum capability. Version 15
+  adds optional `seated: true` to the Union Clerk campaign identity.
+  Version 16 adds the low Union Crawler, its timed leap and the positional
+  `crawler_scrabble` event. Version 17 adds the M02 `ward_secured` fact, which
+  distinguishes guard victory and machine halt from the later restraint use
+  that frees Latch. Version 18 adds the solo run's per-level continue baseline
+  and permits a durable M02 run. Durable local M01 requires 18. Version 19 adds
+  the M02 companion identity, movement and bounded support fire. Durable M02
+  and its development party require 19. Version 20 adds the M02
+  `side_ward_secured` fact, derived from the optional side ward encounter.
+  Version 21 adds the M02 `evacuation` state and the matching
+  `map_info.m02_side_ward` marker for maps with an authored side ward. Version 22
+  adds M02's ballistic inspection glass, which older strict surface readers
+  cannot render. M02 development and durable sessions now require 22; arcade
+  maps keep their
+  earlier requirements. Use matching campaign server/client builds.
   Older clients of every role are rejected before `Welcome`
   with `unsupported_gameplay`. This capability is separate from geometry. The six
   full-arsenal arcade maps still accept 1. There an older reader draws only the
@@ -284,27 +303,56 @@ and before the corresponding snapshot whenever shared state changes. `state` is:
 - `prompts`: `{player_id,kind}` for currently legal interactions. Kinds are
   `transfer_record` and `lift_departure` for M01, or `objective_use` for an M02
   use objective. These are not localized strings.
-- `run`: present only in solo mode: `{id,status,continues}`. `id` is a nonnil UUID;
+- `run`: present only in durable solo mode:
+  `{id,status,continues,level_start_continues}`. `id` is a nonnil UUID;
   `status` is `playing`, `continue`, `failed`, `complete` or `abandoned`. Allowance
-  starts at 3 and only decreases. The current M01 attempt equals `4 - continues`.
+  starts at 3 for Episode I and only decreases. A new level records the
+  remaining allowance as `level_start_continues`, so its first attempt is 1
+  even if a previous level used a continue. During that level, `attempt` equals
+  `level_start_continues - continues + 1`. Starting M02 never refills the pool;
+  zero remaining continues still permits its first attempt, then exhaustion.
   State has at most one party member. Waiting requires its dead owner; failed
   retains a dead owner until they leave, then an empty party.
   abandonment has no member, and completion requires `departed`. Nonplaying states
   contain no use prompts. Run identity and rules survive geometry changes.
 - `m02`: present only for `persons_unknown`, absent from the M01 JSON. It has
   `completed` (ordered stable objective IDs), `total` (1 to 8), `gate_mask`
-  (three low bits for prepared gate variants), and `current`. The current
+  (three low bits for prepared gate variants; M02 uses bit 0 for the ward exit
+  shutter raised on `companion_released`), `ward_secured` (server-owned
+  `ward_guards` completion, which stops correction before release),
+  `side_ward_secured` (optional `side_ward_guards` completion), optional
+  `evacuation`, and
+  `current`.
+  Both facts are derived from encounter state on each projection, not stored
+  as second mission flags. `side_ward_secured` implies `ward_secured` and is
+  monotonic within one attempt; Continue resets it. It says the captives can
+  free themselves, not that they have evacuated. `evacuation` is present exactly
+  when the preceding `map_info.m02_side_ward` is true; legal M02 maps without
+  that room omit it. When present it is
+  `{phase,captives,evacuated}`. `phase` is `held`, `freeing`, `ready`,
+  `moving`, `waiting`, or `evacuated`. `captives` contains exactly two stable-order
+  `[x,y,z]` world-feet positions, bay A then bay B. The Rust server owns their
+  movement and sends bounded samples to every role, including late observers.
+  The figures have no fighter seats, combat state, score, or spectator target.
+  `evacuated` is true exactly when both reach the safe dock and `phase` is
+  `evacuated`. `side_ward_secured` alone never means evacuated. Departure can
+  precede evacuation and then freezes the current state. Continue starts a new
+  attempt with both captives held. The current
   objective is null or omitted only after departure. An arrival objective has
   `{"id":"ward_reached","action":{"kind":"arrival","region":{"min":[x,y,z],"max":[x,y,z]},"feet":[x,y,z]}}`.
   A physical-use objective has
-  `{"id":"correction_stopped","action":{"kind":"use","target":{"decoration":0,"approach":[x,y,z]}}}`.
+  `{"id":"companion_released","action":{"kind":"use","target":{"decoration":0,"approach":[x,y,z]}}}`.
   Arrival uses the participant's feet inside the region. Use targets name a
   registered `map_info.presentation.decorations` panel and a reachable approach.
-  The server validates range, aim, sight and party eligibility. Each gate change
+  The server validates range, aim, sight, party eligibility and the authored
+  `ward_guards` prerequisite before offering or accepting the release use. Each gate change
   sends a new `map_info` before the changed mission state. The bundled M02
-  graybox (`server/maps/m02-persons-unknown.json`) authors two arrival
-  objectives, `companion_released` and `party_departed`, with no gates and
-  three authored encounters. It has no durable solo run yet.
+  graybox (`server/maps/m02-persons-unknown.json`) authors `ward_reached`
+  arrival, `companion_released` use and `party_departed` arrival. The visible
+  frame release derives from
+  completed `companion_released`; late readers receive both facts in the
+  current mission state. Its independent development child has no run; a
+  resumed solo run may carry the same identity and Episode I allowance from M01.
 
 Participants finish or skip their opening by sending
 `{"type":"mission_ready","id":"recall_notice","attempt":1}` using the current
@@ -333,10 +381,13 @@ plus an explicit use press. One participant disconnecting does not reset the
 remaining players' progress. In development party mode, a wipe or the last participant leaving resets the gate, supplies
 and encounters together, once. NPCs and spectators never count as party members.
 
-The current `departed` state freezes the prototype simulation and shows a result;
-it does not load M02. Development party mode retains entry respawn and allows a
-new party after everyone leaves. Neither mode has disk saves or mid-mission
-checkpoints. A dropped socket can rebind the same pawn for ten seconds. Text is localized; voice/radio is optional.
+The current `departed` state freezes that mission's simulation and shows a
+result; it does not load the next map in the same process. A durable solo M01
+child saves M02 as pending, and the menu can start a new local M02 child from
+that exit. Development party mode retains entry respawn and allows a new party
+after everyone leaves. It has no disk save. Neither path has a mid-mission
+checkpoint. A dropped socket can rebind the same pawn for ten seconds. Text is
+localized; voice/radio is optional.
 
 #### Solo run recovery
 
@@ -353,9 +404,11 @@ and waiting state before consuming one continue. A duplicate, stale or invalid
 command changes nothing and returns `continue_rejected`. Confirm acceptance in
 the next mission state, never from the send result alone.
 
-Retry restores mission-entry position, facing, health, armor, selected weapon,
-carried weapons, ammunition counts and personal claims; later pickups are
-discarded. Original geometry, supplies, enemies and objectives return together.
+Retry restores that level's entry position, facing, health, armor, selected
+weapon, carried weapons, ammunition counts and personal claims; later pickups
+are discarded. Original geometry, supplies, enemies and objectives return
+together. M02's entry carries M01's exit health, armor, weapons, ammunition
+and selection but starts with M02's own pickup claims and attempt count.
 Motion, a latched dry trigger and queued actions are cleared; input sequence, inventory revision and simulation
 tick never rewind. The owner remains ready, so the opening does not replay.
 Leaving an unfinished solo run sets `abandoned`; its seat cannot be reused.
@@ -429,11 +482,14 @@ World-point aim:
 - `pitch`: (optional) Absolute vertical aim in radians, positive upward, clamped
   to +/-85 degrees. Missing or nonfinite values retain the last pitch, initially
   zero. Pitch does not redirect movement. Respawn resets it to zero.
-- `seq`: (optional) Input sequence number. The server acknowledges the newest sequence it applied for this fighter in an `ack` message every tick. Clients that do not predict may omit it.
+- `seq`: (optional) Input sequence number. For a numbered human, the server accepts only numbers newer than the last admitted sample in u32 half-range order, including wrap. The Godot sender uses 1 through 4294967295 and wraps back to 1. Duplicate and stale samples do not replace continuous input or latch a jump, interaction or weapon choice. Once a human sends a numbered Action, an unnumbered Action on that pawn is ignored. Humans that never number Actions, agents, and older clients retain their unnumbered path. The server echoes the selected sequence in an `ack` every tick after the first numbered movement step.
 
 **Notes:**
-- Continuous action fields use the latest held value. Weapon selection and a
-  jump press survive intervening packets until one tick consumes them.
+- Continuous action fields use the latest admitted value at the game-loop tick
+  boundary. This boundary is when the server applies the Action command, not
+  the client's send time or raw socket arrival. The selected value is held on
+  later ticks until a newer Action replaces it. Weapon selection and a jump
+  press survive intervening packets until an active tick consumes them.
 - All `true` fields are applied together on the next server tick
 - Movement keys combine (e.g., forward + left = diagonal)
 - `look_at` is applied after movement/turn so agents can strafe while locking aim
@@ -523,8 +579,11 @@ also send `map_info` before shared progress, even when the map ID stays the same
   volumes declare 2. Unknown versions and raised volumes declaring 1 are invalid.
 - `presentation`: optional registered material mapping, omitted on legacy maps.
   Contains `ground` and `solids`, with exactly one entry per collision solid in
-  the same order. IDs are `concrete`, `enamel`, `service_steel`, `records_tile` and
-  `lift_panel`. Unknown IDs and mismatched cardinality are rejected. Materials
+  the same order. IDs are `concrete`, `enamel`, `service_steel`, `records_tile`,
+  `lift_panel` and `inspection_glass`. The last is a transparent visual over a
+  normal ballistic and movement solid, used by M02 under gameplay capability 22.
+  Older strict surface readers are refused before MapInfo. Unknown IDs and
+  mismatched cardinality are rejected. Materials
   cannot load arbitrary paths or change collision. A presenter predating this
   optional field may retain its default appearance without changing geometry.
   Optional `decorations` describes at most 128 cosmetic panels, including at most
@@ -553,6 +612,10 @@ also send `map_info` before shared progress, even when the map ID stays the same
   map. It identifies the M02 contract independently of `map_id` and must match
   the subsequent `mission.state.m02.total`. Legacy maps omit it, including
   encounter-only maps whose numeric ID happens to be 1002.
+- `m02_side_ward`: true only when an M02 map authors `side_ward_guards`.
+  Omitted means false. This is the presence contract for the two-person
+  `mission.state.m02.evacuation` state. A client rejects a mission state whose
+  evacuation presence disagrees with the current map marker.
 
 Geometry bounds: finite half extent from 2 to 256; at most 2048 solids; finite
 coordinates within -512 to 512; strictly increasing X and Z bounds. Navigation
@@ -620,7 +683,7 @@ A resumed pawn keeps the claims it still holds. A new hello does not restore a p
 
 #### Ack
 
-Unicast, once per tick, to a client whose input carried a `seq`. Carries the newest sequence the server applied to that client's fighter and the authoritative state it produced, which is what a predicting client reconciles against. Clients that send no `seq` (agents, spectators, older clients) never receive it.
+Unicast after each server tick to a human whose Action carried a `seq`. The root fields keep their existing shape. The optional `movement` version 1 object carries the final 3D body state and whether that tick produced a replayable movement step. The client still does not predict movement. Clients that never send `seq` (agents, spectators, older clients) do not receive Acks.
 
 ```json
 {
@@ -630,17 +693,62 @@ Unicast, once per tick, to a client whose input carried a `seq`. Carries the new
   "x": 12.25,
   "z": -3.5,
   "yaw": 1.5707963,
-  "pitch": 0.25
+  "pitch": 0.25,
+  "movement": {
+    "version": 1,
+    "epoch": 2,
+    "applied": true,
+    "y": 1.8,
+    "vx": 0.0,
+    "vy": 6.0,
+    "vz": 5.0,
+    "effective_speed": 5.0,
+    "jump_input": true
+  }
 }
 ```
 
 **Fields:**
-- `seq`: the newest input sequence applied to this fighter
-- `tick`: the server tick that applied it
+- `seq`: the newest selected numbered input sequence. It can skip samples or
+  repeat across ticks while the same held Action is reused. During a tick that
+  does not apply movement, it remains the last selected sequence. After input
+  ownership resets, it may remain historical even on the first active tick
+  stepping neutral input. The new epoch invalidates replay of that old Action.
+- `tick`: the server tick after which this state was captured. This is the
+  authoritative movement-step identity; `seq` is a sampled Action identity.
 - `x` / `z`: authoritative position after that tick
 - `yaw`: authoritative horizontal facing after that tick
 - `pitch`: authoritative vertical facing after that tick, default zero when
   reading older messages/recordings
+- `movement.version`: 1 for this optional extension. An older Ack omits
+  `movement`; a newer client then uses authoritative snapshots. No new Action
+  field or global gameplay requirement is introduced by this outbound block.
+- `movement.epoch`: per-pawn movement baseline revision. It advances on a
+  round transition, respawn, input ownership reset, or campaign continue.
+  A reconnect, role change, MapInfo, death, changed epoch or unapplied tick
+  clears any client replay history. Server tick and input sequence do not rewind.
+- `movement.applied`: true only if this pawn completed a replayable movement
+  step and remains active at the end of the tick. Warmup, ended rounds, frozen
+  missions, death and respawn ticks are false. The final pose still comes in
+  the Ack. The zeroed `vx`, `vz`, `effective_speed` and `jump_input` on a false
+  tick must not be replayed as an Action.
+- `movement.y`: authoritative world-reference position, the same coordinate
+  as `Snapshot.players[].y`. The movement integrator uses feet height
+  `y - PLAYER_FLOOR_Y` internally.
+- `movement.vx`, `vy`, `vz`: post-collision body velocities in world units per
+  second. The current live step replaces horizontal velocity immediately on
+  each active tick; these fields preserve the complete resulting state.
+- `movement.effective_speed`: pre-collision speed selected for that tick,
+  including the compliance modifier, or zero when `applied` is false.
+- `movement.jump_input`: the latched or held jump request sent into the
+  movement integrator for this tick. It is not proof of takeoff: an airborne
+  body or low ceiling can prevent a new jump.
+
+The server builds the Ack after simulation. It queues MapInfo, Mission,
+Snapshot and events before the same-tick Ack unicast. A client must accept
+Snapshot before Ack and tolerate a missing Ack after connection loss. Godot
+validates finite body numbers, exact JSON integer values, monotonic tick and
+epoch, and u32 sequence progression before exposing a version 1 Ack.
 
 
 ### Solo Broadcast episode fields (Snapshot)
@@ -674,7 +782,8 @@ Server response to `Hello`. Confirms connection and provides player ID.
 - `player_id`: UUID of the player entity (null for spectators)
 - `role`: Echoed role from Hello
 - `body`: the accepted body of a human or agent pawn: the requested one on a
-  fresh join, the parked pawn's own on a resume. Omitted for a spectator and by
+  fresh join, except that a bound solo run keeps its saved body. A resume keeps
+  the parked pawn's own body. Omitted for a spectator and by
   servers before capability 13; a reader then treats the pawn as human rather
   than inferring a body from the role or name.
 - `mode_name`: Named scrap-league identity (default Contested Frequency)
@@ -790,7 +899,9 @@ Periodic state broadcast containing all visible game entities. Sent at ~20 Hz.
 - `playlist`: Arena Duel under the league lie
 - `pressure`: (optional) Live pressure beat id. `"compliance_drone"` while the Compliance Drone is alive; `"compliance"` during Continuance compliance ping slow.
 - `host_line`: Sticky Contested Frequency Host chrome for mid-join / mid-round observe. League Host line by default while Active (no pressure). During Warmup, Contested Frequency bumper names the map, dialed-in scrap roster (callsigns), and countdown seconds. Switches to the compliance Host line while pressure is live. While Ended, carries the MVP Host bumper. Clients show this on join without waiting for the next `round_start`.
-- `team_scores`: (optional) `{"union": n, "coalition": n}`, side frags this round, present only in a team mode.
+- `team_scores`: (optional) `{"union": n, "coalition": n}`, side frags this round, present only in team deathmatch.
+- `flags`: (CTF only) exactly two entries, Union then Coalition. Each has `team`, `stand` and `position` as `[x, floor, z]` metres, `status` (`home`, `carried`, `dropped`), optional `carrier` UUID only when carried, and `return_ticks` only when dropped. Stands stay fixed for the round; carried positions follow the authoritative fighter. Present during warmup, active play and intermission.
+- `capture_scores`: (CTF only) side capture counts, independent of fighter and team frags. `capture_limit` is the host's capture target (default 3).
 - `mvp` / `mvp_frags`: (optional, present while Ended) Structured round MVP name and frag count for mid-join / `round_state` rehydrate. Omitted during Warmup and Active. Same selection as `round_end` MVP (top score / frags).
 - `pickups`: (optional, omitted when empty) Scrap layout: `map_id` (1 Arena Duel / 2 Compliance Yard) and `map_name`. Mid-map pads (weapons, health, armor). Each entry: `id`, `kind` (`"weapon"` / `"health"` / `"armor"`, default `"weapon"`), optional `weapon` (weapon pads), optional `amount` (health/armor pads), `x`/`y`/`z`, `available`, optional `respawn_in` (ticks until the pad returns). Health pads heal +40 (cap max HP); armor scrap grants +25 (cap 100). Touch claim is authoritative on the server; clients only render.
 
@@ -851,14 +962,37 @@ On encounter maps, each entry in `Snapshot.players` includes `campaign`:
 {"side":"union","kind":"clerk","phase":"windup","phase_started":10,"phase_ends":22}
 ```
 
+```json
+{"side":"companion","kind":"latch","phase":"following","phase_started":240}
+```
+
+M02 spawns one server-owned Latch pawn when `companion_released` completes. They
+appear at the second ward bay in `releasing` for 240 ticks, then follow the
+nearest ready living participant. `firing` marks a bounded Tack support shot at
+an active visible Union enemy, with `phase_started` set to that transition tick.
+Their resolved shots use the ordinary `shot_results` channel. They are present in
+snapshots for late observers and reconnects, but never take a party seat, score,
+participant record or supply claim. They are not a departure requirement or bullet
+shield, and ordinary combat cannot kill them. A centered preflight avoids firing
+through a participant's known position. If movement or Tack spread later crosses
+that participant, the companion ray ignores their body and cannot report a hit
+on them. M02 attempt reset removes Latch and
+a later lawful release spawns one fresh pawn.
+
+An M02 Clerk can initially include `"seated":true` while idle in the guard
+room. The server omits the field when false and clears it when the encounter
+wakes or a dormant Clerk is hit. No other Union kind uses this posture. It
+changes presentation only, not the authoritative body or shot geometry.
+
 `Role` describes the connection's controller, not faction or fictional anatomy.
 Human and external-agent participants are allies. Union `kind` is `clerk` (human
-security), `sweeper` (bot), `heavy_sweeper` (armored bot) or `turret` (fixed
-equipment). Names are labels, never a targeting rule. Current
+security), `sweeper` (bot), `heavy_sweeper` (armored bot), `turret` (fixed
+equipment) or `crawler` (low constrained bot). Names are labels, never a
+targeting rule. Current
 campaign identity describes these introductory encounters; it does not implement
-Inheritance takeover, companions or the complete co-op lifecycle.
+Inheritance takeover, additional companions or the complete co-op lifecycle.
 
-Phases are `idle`, `moving`, `windup`, `firing`, `recovery`, `hit` and `dead`.
+Phases are `idle`, `moving`, `windup`, `leaping`, `firing`, `recovery`, `hit` and `dead`.
 Their start/end are authoritative simulation ticks at 20 Hz. Idle and moving
 have no fixed duration (`phase_ends == phase_started`); other phases may be
 interrupted by hits, lost sight or death. A firing animation never causes damage.
@@ -876,9 +1010,20 @@ the attack in `recovery` without a shot. Its `hit` follows the same heavy-hit
 rule for 10 ticks. Windup and recovery durations per difficulty are in
 [the difficulty plan](plans/difficulty-and-rewards.md).
 
-Campaign participants cannot damage one another. Allies intercept rays with
-`hit: true`, `damage: 0` and `killed: false`; zero damage must not show a hit-confirm
-or wound. Union allies follow the same rule. Dead enemies remain in snapshots for
+A `crawler` uses a server-owned 0.8 m body, including movement clearance, shot
+volume and target centre. Its `windup` is a 12-tick crouch that locks the target
+position and bearing. The `leaping` phase lasts at most 16 ticks and moves the
+body along that bearing without homing. Server movement resolves at most one
+contact hit per leap against a hostile body; a wall, lateral dodge or a miss
+prevents it. The Crawler then spends 20 ticks in `recovery`. These provisional
+durations are the same across difficulty tiers and do not change the campaign
+rules revision. A contact resolved during movement can trade with a shot fired
+later in the same tick. Presentation frames do not apply damage.
+
+Campaign participants cannot damage one another. Participant and Union allies
+intercept rays with `hit: true`, `damage: 0` and `killed: false`; zero damage must
+not show a hit-confirm or wound. The M02 companion does not intercept bullets or
+collect supplies. Dead enemies remain in snapshots for
 40 ticks with nonpositive HP and phase `dead`, then disappear. They cannot move,
 fire, collect supplies or intercept shots, and never use arcade respawn. Exclude
 Union actors from participant counts, scoreboards and spectator-player selection.
@@ -936,6 +1081,19 @@ name the same side is a team kill under friendly fire: it scores nothing and
   "target_hp_after": 75
 }
 ```
+
+**Crawler Scrabble Event:** (one positional warning when an authored Crawler
+group's entry region alarms; the client chooses a localized caption and spatial
+sound)
+```json
+{"type":"event","event":"crawler_scrabble","position":[-12,0,-27]}
+```
+
+`position` is a world-space source near the first Crawler in that group. It is
+not an asset path, caption, player identity or damage instruction. A preemptive
+shot at a visible dormant Crawler can wake it before region entry without this
+event. Clients validate its finite three-component shape before playback; the event remains
+available to sound-muted players through the caption and visible attack tell.
 
 **Respawn Event:**
 ```json
@@ -1112,10 +1270,13 @@ MVP is the top scorer (same selection as `winner`). `mvp` / `mvp_frags` / `host_
 ```
 
 **Fields:**
-- `event`: Event type (`frag`, `hit`, `respawn`, `round_start`, `round_end`, `player_joined`, `player_left`, `compliance_ping`, `boss_spawn`, `boss_down`, `speak`, `pickup`, `killstreak`, `host_reaction`)
+- `event`: Event type (`frag`, `hit`, `crawler_scrabble`, `respawn`, `round_start`, `round_end`, `flag`, `player_joined`, `player_left`, `compliance_ping`, `boss_spawn`, `boss_down`, `speak`, `pickup`, `killstreak`, `host_reaction`)
+- `position`: (`crawler_scrabble` only) three finite world coordinates for the spatial sound source
 - `kind`: (pickup only) Pad kind: `"weapon"` / `"health"` / `"armor"` / `"golden_rail"` (default `"weapon"`). Weapon and golden pads also carry `weapon`; health/armor pads carry `amount`.
 - `rules`: (round_start, optional) the arena's rule set, repeated each round for event readers
-- `winning_team` / `team_scores`: (round_end, team modes only) the winning side, omitted for a draw, and the final side frags
+- `winning_team`: (round_end, team modes) the winning side, omitted for a draw. `team_scores` is the final side frags for TDM; `capture_scores` is the final captures for CTF. A CTF round can have an MVP by frags while its winning side is decided by captures.
+
+CTF emits `{"event":"flag","kind":"taken|dropped|returned|captured","flag":"union|coalition","player":name,"player_id":uuid,"capture_scores":{"union":n,"coalition":n}}`. `player` and `player_id` are omitted on automatic return. The flag field names the flag's owner side, which can differ from the carrier's side. Events follow authoritative combat and objective resolution for that tick.
 - `killer` / `victim`: Player names involved in frag
 - `killer_score`: Killer's score after the frag
 - `streak` / `tier` / `message`: Killstreak Host callout (tiers `double` / `triple` / `rampage`)
@@ -1145,7 +1306,7 @@ MVP is the top scorer (same selection as `winner`). `mvp` / `mvp_frags` / `host_
 ### Match rules
 
 A server runs one rule set, chosen by the host at launch
-(`--mode ffa|tdm`, repeatable `--mutator`, `--friendly-fire`, `--frag-limit`).
+(`--mode ffa|tdm|ctf`, repeatable `--mutator`, `--friendly-fire`, `--frag-limit` for FFA/TDM or `--capture-limit` for CTF).
 `map_info.rules` carries it to every connection, `round_start` repeats it,
 `GET /status` names it, and the MCP adapter returns it from `round_state`.
 
@@ -1159,7 +1320,7 @@ A server runs one rule set, chosen by the host at launch
 }
 ```
 
-- `mode`: `ffa` (free-for-all) or `tdm` (team deathmatch).
+- `mode`: `ffa` (free-for-all), `tdm` (team deathmatch), or `ctf` (capture the flag).
 - `name`: an English label for logs and agents. Clients key their own labels.
 - `mutators`: sorted, unique ids, omitted when none: `rail-only`,
   `shotgun-only`, `fists-only`, `licence-to-kill`, `golden-rail`, `two-lives`.
@@ -1181,6 +1342,24 @@ Rules the server enforces:
   limit. At the clock the higher side wins or the round is a draw. Weapon pads
   respawn after 30 s in team modes. `PlayerState` hostility helpers treat a
   teammate as not hostile.
+- **Capture the flag.** A staged league scenario on fixed Sector 9 while other
+  maps await validated two-base routes. Touch the enemy flag to carry it. A
+  living owner-side fighter touching a dropped friendly flag returns it. A
+  carrier can shoot. Death, leave, disconnect parking or side reassignment
+  drops the flag; an untouched dropped flag returns home after 400 ticks (20 s).
+  The carrier scores only by touching the own stand while the own flag is home.
+  A grounded flag cannot be returned or retaken for its first 10 ticks (0.5 s)
+  after a drop. This makes the drop visible in replicated snapshots even when
+  the defender is standing on the fallen carrier. The 400-tick return clock
+  starts at the drop and includes this touch window. Combat resolves before
+  objective touches, and eligible touches use Union then Coalition side order,
+  followed by ascending participant UUID within each side. Parked resume pawns
+  cannot touch flags until the socket resumes. Dropped flags rest on the
+  reachable support below the carrier rather than hanging in the air.
+  Captures, not frags, decide the winner at the capture limit or clock. Equal
+  captures at the clock draw. The default capture limit is 3. `--frag-limit`
+  and the Two Lives mutator are refused in CTF. The Compliance slow and Drone
+  arena events do not run in CTF.
 - **Rail Only, Shotgun Only, Fists Only.** Everyone holds that one weapon with
   unlimited ammunition, `weapon_swap` to anything else is ignored, and weapon
   and ammunition pads are removed. Health and armour pads stay. No private
@@ -1323,15 +1502,23 @@ from WebSocket messages. It loads the registered map from the committed JSON
 embedded at build time, binds `127.0.0.1:0`, and writes one ASCII JSON line to
 stdout after map preparation and bind:
 
-The desktop menu supplies `--run-mode new|resume`. New archives prior run
-bytes under a unique name and saves the initial run before readiness. Resume
-locks and validates the versioned run against the exact authored content bytes
-and campaign rules before readiness. A second child cannot own the same file.
-Omitting `--run-mode` retains the ephemeral development behavior. The
-read-only `--local-run-preview` prints one bounded JSON status line for the
-menu: `missing`, `ready` (difficulty, attempt, continues,
-pending_continue), `failed`, `abandoned`, `awaiting_mission`, `incompatible`, or
-`corrupt`.
+The desktop menu supplies `--run-mode new|resume`. New starts at M01, archives
+prior run bytes under a unique name and saves the initial run before readiness.
+Resume locks and validates the versioned run against the exact authored
+content bytes and campaign rules before readiness. An M01 exit waiting for M02
+is checked against the M01 content it names, then promoted once to an M02 entry
+under the same lock. A supported v2 M01 document is migrated to v3 with its
+original bytes retained; v1 magazine-era saves remain incompatible. A second
+child cannot own the same file. Omitting `--run-mode` retains independent
+development behavior. The read-only `--local-run-preview` identifies the saved
+mission, instead of using the launcher's guessed map. It prints one bounded
+JSON status line for the menu: `missing`, `ready` (mission, difficulty, attempt,
+continues, pending_continue, nullable body), `failed`, `abandoned`,
+`awaiting_mission` (mission, difficulty, continues, nullable body),
+`incompatible`, or `corrupt`. `awaiting_mission` identifies M02 after M01 or
+the unsupported `scheduled_service` level after M02. An absent body on a legacy
+save is bound by the player's visible body choice on admission; a bound body
+remains the server-owned run identity despite later profile changes.
 The menu treats preview as advisory; launch validates again under the lock.
 
 The optional `--difficulty assisted|standard|severe` defaults to `standard` on
@@ -1340,19 +1527,21 @@ version 2 requires that field; it is separate from
 the on-wire campaign rules revision. No parent command changes it during a run.
 
 ```json
-{"version":2,"mission":"recall_notice","difficulty":"standard","url":"ws://127.0.0.1:49152","gameplay_version":12}
+{"version":2,"mission":"recall_notice","difficulty":"standard","url":"ws://127.0.0.1:49152","gameplay_version":18}
 ```
 
 The readiness record names the selected mission's client contract, rather than
-the highest version understood by the server. Both missions carry discovery
-equipment, so both name 12. The local launcher checks this value exactly.
+the highest version understood by the server. Durable local M01 names 18 for
+run carry. M02 development and durable local sessions name 22 for the
+server-owned optional evacuation state and the strict inspection glass surface.
+The local launcher checks this value exactly.
 
-`--local-mission persons_unknown` starts the bundled M02 graybox as a
-development child. It writes the same readiness line with
-`"mission":"persons_unknown"` and `"gameplay_version":12`. It has no durable run:
-`--run-mode` is refused before readiness, mission state carries no `run`, and
-the party keeps development entry respawn and the shared wipe reset. It is not
-a save carry from M01.
+`--local-mission persons_unknown` without a run mode starts the bundled M02
+graybox as a development child. It writes the same readiness line with
+`"mission":"persons_unknown"` and `"gameplay_version":22`, carries no
+`run`, and keeps development entry respawn and the shared wipe reset. With
+`--run-mode resume`, M02 receives the saved solo run from M01 or resumes its
+own entry; it requires capability 22. A new durable run must start at M01.
 
 The port is chosen by the OS. Diagnostics use stderr. The parent validates the
 exact version, mission, requested difficulty, gameplay capability and loopback endpoint before using
@@ -1397,12 +1586,13 @@ MCP and client tests; the [Shiv fixture](../client/golden/player_record_shiv.jso
 covers the sixth slot and a found secret on both sides.
 
 Scopes are `arena` or `practice` with `round`, or `mission` with `mission`,
-`attempt`, `rules` and nullable `run` (the existing solo run contract). Calibration
+`attempt`, `rules` and nullable `run` (the solo run contract above). Calibration
 and non-mission authored test maps are practice. Status is `active`, `continue`,
 `complete`, `failed` or `abandoned`. A completed arena record means the round
-finished, not that this participant won. A completed M01 record means the mission
-finished, not that the unbuilt campaign finished. A missing final update must be
-shown as incomplete; transport loss is not evidence of failure or victory.
+finished, not that this participant won. A completed M01 or M02 record means
+that mission's route finished, not that the unbuilt campaign finished. A
+missing final update must be shown as incomplete; transport loss is not
+evidence of failure or victory.
 
 Each count set contains `alive_ticks`, `deaths`, `hp_lost`, `armor_lost`,
 `dry_triggers` and five `weapons` entries in fists, Tack, flechette, scatter, rail

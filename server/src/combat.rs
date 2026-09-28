@@ -1,9 +1,40 @@
 //! Authoritative aim and finite shot intersections in world coordinates.
 
 use crate::movement::Solid;
+use crate::protocol::{CampaignActor, EnemyKind};
 
 pub const PITCH_LIMIT: f32 = 85.0 * std::f32::consts::PI / 180.0;
 pub const FIGHTER_HEIGHT: f32 = crate::movement::BODY_HEIGHT;
+/// The Crawler's physical clearance and finite shot volume.
+pub const CRAWLER_HEIGHT: f32 = 0.8;
+
+pub fn target_height(identity: Option<CampaignActor>) -> f32 {
+    if matches!(
+        identity,
+        Some(CampaignActor::Union {
+            kind: EnemyKind::Crawler,
+            ..
+        })
+    ) {
+        CRAWLER_HEIGHT
+    } else {
+        FIGHTER_HEIGHT
+    }
+}
+
+pub fn eye_height(identity: Option<CampaignActor>) -> f32 {
+    if matches!(
+        identity,
+        Some(CampaignActor::Union {
+            kind: EnemyKind::Crawler,
+            ..
+        })
+    ) {
+        0.55
+    } else {
+        crate::movement::EYE_HEIGHT
+    }
+}
 
 pub fn clamp_pitch(pitch: f32) -> Option<f32> {
     pitch
@@ -94,7 +125,18 @@ impl Ray {
     }
 
     /// First intersection with a closed vertical cylinder, measured along the ray.
+    #[cfg(test)]
     pub fn fighter(self, feet: [f32; 3], radius: f32, range: f32) -> Option<SurfaceHit> {
+        self.fighter_with_height(feet, radius, FIGHTER_HEIGHT, range)
+    }
+
+    pub fn fighter_with_height(
+        self,
+        feet: [f32; 3],
+        radius: f32,
+        height: f32,
+        range: f32,
+    ) -> Option<SurfaceHit> {
         let ox = f64::from(self.origin[0]) - f64::from(feet[0]);
         let oz = f64::from(self.origin[2]) - f64::from(feet[2]);
         let dx = f64::from(self.direction[0]);
@@ -122,7 +164,7 @@ impl Ray {
             self.origin[1],
             self.direction[1],
             feet[1],
-            feet[1] + FIGHTER_HEIGHT,
+            feet[1] + height,
             &mut near,
             &mut far,
         )?;
@@ -304,6 +346,36 @@ mod tests {
         assert!(ray([0.0, 3.0, 0.0], [1.0, -1e-10, 0.0])
             .solid(&solid, 20.0)
             .is_none());
+    }
+
+    #[test]
+    fn low_crawler_requires_a_low_pellet_lane_and_cover_stops_it() {
+        let feet = [4.0, 0.0, 0.0];
+        let high = Ray::dispersed([0.0, 1.1, 0.0], 0.0, 0.0, 0.0, [0.5, 0.5]);
+        assert!(high
+            .fighter_with_height(feet, 0.5, CRAWLER_HEIGHT, 10.0)
+            .is_none());
+        let low = Ray::dispersed([0.0, 0.4, 0.0], 0.0, 0.0, 0.0, [0.5, 0.5]);
+        let body = low
+            .fighter_with_height(feet, 0.5, CRAWLER_HEIGHT, 10.0)
+            .unwrap();
+        assert!((body.distance - 3.5).abs() < 0.0001);
+        let spread_pellet = Ray::dispersed([0.0, 0.4, 0.0], 0.0, 0.0, 0.08, [0.1, 0.5]);
+        assert!(spread_pellet
+            .fighter_with_height(feet, 0.5, CRAWLER_HEIGHT, 10.0)
+            .is_some());
+        let cover = Solid {
+            min_x: 2.0,
+            max_x: 2.2,
+            min_z: -1.0,
+            max_z: 1.0,
+            bottom: 0.0,
+            top: 0.6,
+        };
+        assert!(
+            low.solid(&cover, body.distance).is_some(),
+            "low cover must block the pellet"
+        );
     }
 
     #[test]

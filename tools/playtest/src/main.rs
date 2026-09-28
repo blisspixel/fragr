@@ -1,7 +1,9 @@
 //! Command line front end for the agent playtest harness.
 
 use clap::Parser;
-use fragr_playtest::{check_thresholds, run, Config};
+use fragr_playtest::{
+    check_contested_ctf, check_ctf_route_smoke, check_thresholds, run, Config, Policy,
+};
 use std::path::PathBuf;
 use tracing_subscriber::EnvFilter;
 
@@ -12,6 +14,19 @@ use tracing_subscriber::EnvFilter;
     about = "Scripted agents play fragr rounds in-process and file a metrics report."
 )]
 struct Cli {
+    /// Prove a joined fighter takes and scores a flag through a real socket.
+    #[arg(long, conflicts_with_all = [
+        "ctf_contested", "fanout_matrix", "fanout_seconds", "soak",
+        "agents", "rounds", "map", "frag_limit", "capture_limit",
+        "time_limit_seconds", "max_seconds", "assert", "seed", "mode",
+        "mutators", "tiers", "soak_seconds", "soak_sample_seconds",
+        "soak_bots", "soak_spectators", "soak_map_rotate", "soak_server",
+        "soak_log"
+    ])]
+    ctf_route_smoke: bool,
+    /// Assert combat and flag replication in a contested CTF observation.
+    #[arg(long, requires = "assert", conflicts_with_all = ["soak", "fanout_matrix"])]
+    ctf_contested: bool,
     /// Run the local fighter and spectator delivery matrix instead of a round.
     #[arg(long)]
     fanout_matrix: bool,
@@ -30,6 +45,9 @@ struct Cli {
     /// Frag limit for each round.
     #[arg(long, default_value_t = 5)]
     frag_limit: u32,
+    /// Captures that end a capture the flag round.
+    #[arg(long, default_value_t = 3, value_parser = clap::value_parser!(u32).range(1..=99))]
+    capture_limit: u32,
     /// Round time limit in seconds.
     #[arg(long, default_value_t = 60)]
     time_limit_seconds: u32,
@@ -45,7 +63,7 @@ struct Cli {
     /// Simulation seed, so a run can be reproduced and two runs compared.
     #[arg(long, default_value_t = 1)]
     seed: u64,
-    /// Match mode: ffa or tdm (the Union against the free coalition).
+    /// Match mode: ffa, tdm or ctf (Sector 9).
     #[arg(long, value_enum, default_value_t = fragr_server::protocol::GameMode::Ffa)]
     mode: fragr_server::protocol::GameMode,
     /// A host rule twist, repeatable: rail-only, shotgun-only, fists-only,
@@ -144,13 +162,41 @@ fn print_soak(verdict: &fragr_playtest::soak::Verdict, log: &std::path::Path) {
 }
 
 fn config_from(cli: &Cli) -> Result<Config, String> {
+    if cli.ctf_route_smoke {
+        return Ok(Config {
+            agents: 1,
+            rounds: 1,
+            map: fragr_server::sim::MapKind::Sector9,
+            capture_limit: 1,
+            time_limit_ticks: 20 * 180,
+            max_ticks: 20 * 190,
+            seed: 42,
+            tiers: vec![Policy::RouteProbe],
+            rules: fragr_server::rules::RuleSet::new(
+                fragr_server::protocol::GameMode::Ctf,
+                &[],
+                false,
+            )
+            .map_err(|error| format!("invalid CTF route rules: {error}"))?,
+            ..Config::default()
+        });
+    }
+    if cli.ctf_contested && cli.mode != fragr_server::protocol::GameMode::Ctf {
+        return Err("--ctf-contested requires --mode ctf".into());
+    }
     let map = fragr_server::sim::MapKind::from_cli(&cli.map)
         .ok_or_else(|| format!("invalid --map {:?}", cli.map))?;
+    if cli.mode == fragr_server::protocol::GameMode::Ctf
+        && map != fragr_server::sim::MapKind::Sector9
+    {
+        return Err("ctf currently requires --map 4 (Sector 9)".into());
+    }
     Ok(Config {
         agents: cli.agents,
         rounds: cli.rounds,
         map,
         frag_limit: cli.frag_limit,
+        capture_limit: cli.capture_limit,
         time_limit_ticks: cli.time_limit_seconds * 20,
         max_ticks: cli.max_seconds * 20,
         seed: cli.seed,
@@ -233,7 +279,7 @@ async fn main() {
             std::process::exit(2);
         }
     };
-    let (report, _observation) = match run(config).await {
+    let (report, observation) = match run(config).await {
         Ok(result) => result,
         Err(err) => {
             eprintln!("error: {err}");
@@ -281,13 +327,31 @@ async fn main() {
             "rules: {}, sides {:?}, {} host reactions, {} team kills",
             rules.name, report.sides, report.host_reactions, report.team_kills
         );
+        if rules.mode == fragr_server::protocol::GameMode::Ctf {
+            println!(
+                "flags: {} takes, {} drops, {} returns, {} captures, {:.1} carrier seconds, last round {:?} {:?}",
+                report.flag_takes,
+                report.flag_drops,
+                report.flag_returns,
+                report.captures,
+                report.carrier_seconds,
+                report.last_round_reason,
+                report.last_round_capture_scores
+            );
+        }
     }
     println!("report: {}", cli.report.display());
-    let problems = check_thresholds(&report);
+    let problems = if cli.ctf_route_smoke {
+        check_ctf_route_smoke(&report, &observation)
+    } else if cli.ctf_contested {
+        check_contested_ctf(&report, &observation)
+    } else {
+        check_thresholds(&report)
+    };
     for problem in &problems {
         println!("threshold: {problem}");
     }
-    if cli.assert && !problems.is_empty() {
+    if (cli.assert || cli.ctf_route_smoke) && !problems.is_empty() {
         std::process::exit(1);
     }
 }
@@ -309,6 +373,42 @@ mod tests {
         assert!(!cli.assert);
         assert!(!cli.fanout_matrix);
         assert_eq!(cli.fanout_seconds, 10);
+    }
+
+    #[test]
+    fn controlled_route_and_contested_ctf_have_distinct_gate_configs() {
+        let route = Cli::try_parse_from(["fragr-playtest", "--ctf-route-smoke"]).unwrap();
+        let config = config_from(&route).unwrap();
+        assert_eq!(config.agents, 1);
+        assert_eq!(config.map, fragr_server::sim::MapKind::Sector9);
+        assert_eq!(config.tiers, vec![Policy::RouteProbe]);
+        assert_eq!(config.capture_limit, 1);
+        assert_eq!(config.rules.mode(), fragr_server::protocol::GameMode::Ctf);
+        for extra in [["--map", "99"], ["--mode", "tdm"], ["--seed", "99"]] {
+            assert!(Cli::try_parse_from([
+                "fragr-playtest",
+                "--ctf-route-smoke",
+                extra[0],
+                extra[1]
+            ])
+            .is_err());
+        }
+
+        let contested = Cli::try_parse_from([
+            "fragr-playtest",
+            "--mode",
+            "ctf",
+            "--map",
+            "4",
+            "--assert",
+            "--ctf-contested",
+        ])
+        .unwrap();
+        assert!(config_from(&contested).is_ok());
+        assert!(Cli::try_parse_from(["fragr-playtest", "--ctf-contested"]).is_err());
+        let wrong_mode =
+            Cli::try_parse_from(["fragr-playtest", "--assert", "--ctf-contested"]).unwrap();
+        assert!(config_from(&wrong_mode).is_err());
     }
 
     #[test]
@@ -369,7 +469,21 @@ mod tests {
         ])
         .unwrap();
         assert!(config_from(&clash).is_err());
-        assert!(Cli::try_parse_from(["fragr-playtest", "--mode", "ctf"]).is_err());
+        let ctf_without_stands = Cli::try_parse_from(["fragr-playtest", "--mode", "ctf"]).unwrap();
+        assert!(config_from(&ctf_without_stands).is_err());
+        let ctf = Cli::try_parse_from([
+            "fragr-playtest",
+            "--mode",
+            "ctf",
+            "--map",
+            "4",
+            "--capture-limit",
+            "2",
+        ])
+        .unwrap();
+        let ctf_config = config_from(&ctf).unwrap();
+        assert_eq!(ctf_config.map, fragr_server::sim::MapKind::Sector9);
+        assert_eq!(ctf_config.capture_limit, 2);
     }
 
     #[test]

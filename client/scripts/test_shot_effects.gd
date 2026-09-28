@@ -1,8 +1,13 @@
 extends SceneTree
 
+class CaptionProbe extends Node:
+	func clear() -> void:
+		pass
+
 class HudProbe extends Node:
 	var equipment_hud: EquipmentHud = EquipmentHud.new()
 	var combat_feed: CombatFeed = CombatFeed.new()
+	var crawler_caption: CaptionProbe = CaptionProbe.new()
 	var fired: Array[String] = []
 	var hits: Array[String] = []
 	func show_fire_juice(weapon: String) -> void:
@@ -160,6 +165,7 @@ func _run() -> void:
 	game.free()
 	hud.equipment_hud.free()
 	hud.combat_feed.free()
+	hud.crawler_caption.free()
 	hud.free()
 	effects.queue_free()
 	await process_frame

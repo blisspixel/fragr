@@ -1,0 +1,10 @@
+{
+  "comment": "M02 gallery visibility check. A first-person entry eye looks directly toward Latch and the restraint frame before the guard-room fight; a second frame checks the near-window view. The server's authored solids decide actual occlusion. These frames are visual authoring evidence, not fresh-player comprehension.",
+  "width": 1280,
+  "height": 720,
+  "combat_travel": false,
+  "states": [
+    {"name":"gallery_entry_view","scene":"res://scenes/main.tscn","join":"human","camera":"first_person","look_at":[7.55,1.9,-10],"note":"The initial standing eye should see Latch on the restraint through the gallery window."},
+    {"name":"gallery_window_view","camera":"first_person","walk_to":[[0,3,-27]],"look_at":[7.55,1.9,-10],"note":"The window approach should show the restraint frame in the ward without opening a shortcut."}
+  ]
+}

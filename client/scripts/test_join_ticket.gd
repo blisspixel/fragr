@@ -8,6 +8,14 @@ func _fail(message: String) -> void:
 	quit(1)
 
 func _run() -> void:
+	var previous_server: String = OS.get_environment("FRAGR_SERVER")
+	OS.set_environment("FRAGR_SERVER", "wss://example.test:6767")
+	var tls_network: Node = load("res://scripts/net_client.gd").new()
+	OS.set_environment("FRAGR_SERVER", previous_server)
+	if str(tls_network.get("server_url")) != "wss://example.test:6767":
+		_fail("FRAGR_SERVER TLS address was " + str(tls_network.get("server_url")))
+		return
+	tls_network.free()
 	var network: Node = load("res://scripts/net_client.gd").new()
 	var expected := "v1.1700000060.human.5b6e18c7aef8a218ef64786317c23e472eb2b432bfa681e1c76e340b48d232ba"
 	var ticket: String = str(network.call("join_ticket", "human", "0123456789abcdef", 1700000060))

@@ -142,6 +142,7 @@ fn shared_controller_uses_owned_ammunition_and_recovers_from_empty_weapons() {
         phase: crate::protocol::EnemyPhase::Idle,
         phase_started: close.tick,
         phase_ends: close.tick,
+        seated: false,
     });
     let action = control_action(id, &close, Some(&dry), Action::default());
     assert!(action.fire && action.forward && !action.back);

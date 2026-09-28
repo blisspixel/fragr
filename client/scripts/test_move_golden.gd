@@ -8,6 +8,7 @@ extends SceneTree
 ## their arithmetic in different precisions.
 
 const GOLDEN_PATH := "res://golden/move_vectors.json"
+const LIVE_GOLDEN_PATH := "res://golden/live_move_vectors.json"
 const STEP_TOLERANCE := 1e-4
 const LONG_TOLERANCE := 1e-2
 ## Height and vertical speed are checked too, because the heightfield is the
@@ -15,6 +16,7 @@ const LONG_TOLERANCE := 1e-2
 const FIELDS := ["x", "z", "y", "vx", "vz", "vy", "yaw"]
 
 var failures: Array = []
+var live_cases_count: int = 0
 
 
 func _check(condition: bool, message: String) -> void:
@@ -54,10 +56,11 @@ func _initialize() -> void:
 	var checked := 0
 	for case: Dictionary in cases:
 		checked += _run_case(case, dt)
+	checked += _test_live_golden()
 	_test_unit_behaviour()
 
 	if failures.is_empty():
-		print("test_move_golden: PASS (%d cases, %d states)" % [cases.size(), checked])
+		print("test_move_golden: PASS (%d cases, %d states)" % [cases.size() + live_cases_count, checked])
 		quit(0)
 	else:
 		for failure: String in failures:
@@ -91,6 +94,61 @@ func _run_case(case: Dictionary, dt: float) -> int:
 			next_expected += 1
 			checked += 1
 	_check(next_expected == expected.size(), "%s: consumed every expected state" % name)
+	return checked
+
+
+func _test_live_golden() -> int:
+	var file := FileAccess.open(LIVE_GOLDEN_PATH, FileAccess.READ)
+	if file == null:
+		_check(false, "cannot open " + LIVE_GOLDEN_PATH)
+		return 0
+	var parsed: Variant = JSON.parse_string(file.get_as_text())
+	if not parsed is Dictionary:
+		_check(false, "live golden file is not a JSON object")
+		return 0
+	var golden: Dictionary = parsed
+	_check(int(golden.get("version", 0)) == 1, "live golden version is 1")
+	_check(absf(float(golden.get("dt", 0.0)) - MoveStep.DT_LIVE) < 1e-7, "live dt is 20 Hz")
+	_check(absf(float(golden.get("top_speed", 0.0)) - MoveStep.TOP_SPEED) < 1e-9, "live top speed matches")
+	var cases: Array = golden.get("cases", [])
+	live_cases_count = cases.size()
+	var names: Array[String] = []
+	for case: Dictionary in cases:
+		names.append(str(case.get("name", "?")))
+	for needed: String in ["instant_start_stop", "diagonal_yaw", "wall_slide", "stair_climb_and_deck", "deck_edge_fall", "jump_arc", "ceiling_head_strike", "compliance_half_speed"]:
+		_check(names.has(needed), "live vectors cover %s" % needed)
+	var checked: int = 0
+	for case: Dictionary in cases:
+		checked += _run_live_case(case, MoveStep.DT_LIVE)
+	return checked
+
+
+func _run_live_case(case: Dictionary, dt: float) -> int:
+	var name: String = str(case.get("name", "?"))
+	var arena: Dictionary = case["arena"]
+	var state: Dictionary = (case["start"] as Dictionary).duplicate()
+	var inputs: Array = case["inputs"]
+	var expected: Array = case["expected"]
+	var stride: int = int(case.get("stride", 1))
+	var speed: float = float(case.get("speed", 0.0))
+	var checked: int = 0
+	var next_expected: int = 0
+	for i in range(inputs.size()):
+		state = MoveStep.live_step(state, inputs[i], speed, dt, arena)
+		if (i + 1) % stride == 0:
+			if next_expected >= expected.size():
+				_check(false, "%s: more live checkpoints than expected states" % name)
+				break
+			var want: Dictionary = expected[next_expected]
+			for field: String in FIELDS:
+				var a: float = float(state[field])
+				var b: float = float(want[field])
+				if absf(a - b) > STEP_TOLERANCE:
+					_check(false, "%s live step %d %s: got %.6f want %.6f" % [name, i + 1, field, a, b])
+					break
+			next_expected += 1
+			checked += 1
+	_check(next_expected == expected.size(), "%s: consumed every live expected state" % name)
 	return checked
 
 

@@ -1,0 +1,2614 @@
+{
+  "version": 1,
+  "dt": 0.05,
+  "top_speed": 5.0,
+  "cases": [
+    {
+      "name": "instant_start_stop",
+      "arena": {
+        "half": 25.0,
+        "solids": []
+      },
+      "start": {
+        "x": 0.0,
+        "z": 0.0,
+        "y": 0.0,
+        "vx": 0.0,
+        "vz": 0.0,
+        "vy": 0.0,
+        "yaw": 0.0
+      },
+      "speed": 5.0,
+      "inputs": [
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        }
+      ],
+      "stride": 1,
+      "expected": [
+        {
+          "x": 0.25,
+          "z": 0.0,
+          "y": 0.0,
+          "vx": 5.0,
+          "vz": 0.0,
+          "vy": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "x": 0.5,
+          "z": 0.0,
+          "y": 0.0,
+          "vx": 5.0,
+          "vz": 0.0,
+          "vy": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "x": 0.75,
+          "z": 0.0,
+          "y": 0.0,
+          "vx": 5.0,
+          "vz": 0.0,
+          "vy": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "x": 1.0,
+          "z": 0.0,
+          "y": 0.0,
+          "vx": 5.0,
+          "vz": 0.0,
+          "vy": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "x": 1.25,
+          "z": 0.0,
+          "y": 0.0,
+          "vx": 5.0,
+          "vz": 0.0,
+          "vy": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "x": 1.25,
+          "z": 0.0,
+          "y": 0.0,
+          "vx": 0.0,
+          "vz": 0.0,
+          "vy": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "x": 1.25,
+          "z": 0.0,
+          "y": 0.0,
+          "vx": 0.0,
+          "vz": 0.0,
+          "vy": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "x": 1.25,
+          "z": 0.0,
+          "y": 0.0,
+          "vx": 0.0,
+          "vz": 0.0,
+          "vy": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "x": 1.25,
+          "z": 0.0,
+          "y": 0.0,
+          "vx": 0.0,
+          "vz": 0.0,
+          "vy": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "x": 1.25,
+          "z": 0.0,
+          "y": 0.0,
+          "vx": 0.0,
+          "vz": 0.0,
+          "vy": 0.0,
+          "yaw": 0.0
+        }
+      ]
+    },
+    {
+      "name": "diagonal_yaw",
+      "arena": {
+        "half": 25.0,
+        "solids": []
+      },
+      "start": {
+        "x": 0.0,
+        "z": 0.0,
+        "y": 0.0,
+        "vx": 0.0,
+        "vz": 0.0,
+        "vy": 0.0,
+        "yaw": 0.0
+      },
+      "speed": 5.0,
+      "inputs": [
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": true,
+          "jump": false,
+          "yaw": 1.0471976,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": true,
+          "jump": false,
+          "yaw": 1.0471976,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": true,
+          "jump": false,
+          "yaw": 1.0471976,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": true,
+          "jump": false,
+          "yaw": 1.0471976,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": true,
+          "jump": false,
+          "yaw": 1.0471976,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": true,
+          "jump": false,
+          "yaw": 1.0471976,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": true,
+          "jump": false,
+          "yaw": 1.0471976,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": true,
+          "jump": false,
+          "yaw": 1.0471976,
+          "speed_scale": 1.0
+        }
+      ],
+      "stride": 1,
+      "expected": [
+        {
+          "x": -0.06470477,
+          "z": 0.24148145,
+          "y": 0.0,
+          "vx": -1.2940953,
+          "vz": 4.829629,
+          "vy": 0.0,
+          "yaw": 1.0471976
+        },
+        {
+          "x": -0.12940954,
+          "z": 0.4829629,
+          "y": 0.0,
+          "vx": -1.2940953,
+          "vz": 4.829629,
+          "vy": 0.0,
+          "yaw": 1.0471976
+        },
+        {
+          "x": -0.1941143,
+          "z": 0.7244444,
+          "y": 0.0,
+          "vx": -1.2940953,
+          "vz": 4.829629,
+          "vy": 0.0,
+          "yaw": 1.0471976
+        },
+        {
+          "x": -0.25881907,
+          "z": 0.9659258,
+          "y": 0.0,
+          "vx": -1.2940953,
+          "vz": 4.829629,
+          "vy": 0.0,
+          "yaw": 1.0471976
+        },
+        {
+          "x": -0.32352385,
+          "z": 1.2074072,
+          "y": 0.0,
+          "vx": -1.2940953,
+          "vz": 4.829629,
+          "vy": 0.0,
+          "yaw": 1.0471976
+        },
+        {
+          "x": -0.38822863,
+          "z": 1.4488887,
+          "y": 0.0,
+          "vx": -1.2940953,
+          "vz": 4.829629,
+          "vy": 0.0,
+          "yaw": 1.0471976
+        },
+        {
+          "x": -0.4529334,
+          "z": 1.6903701,
+          "y": 0.0,
+          "vx": -1.2940953,
+          "vz": 4.829629,
+          "vy": 0.0,
+          "yaw": 1.0471976
+        },
+        {
+          "x": -0.51763815,
+          "z": 1.9318515,
+          "y": 0.0,
+          "vx": -1.2940953,
+          "vz": 4.829629,
+          "vy": 0.0,
+          "yaw": 1.0471976
+        }
+      ]
+    },
+    {
+      "name": "wall_slide",
+      "arena": {
+        "half": 25.0,
+        "solids": [
+          {
+            "min_x": 5.0,
+            "max_x": 7.0,
+            "min_z": -1.0,
+            "max_z": 1.0,
+            "top": 4.5
+          },
+          {
+            "min_x": -6.0,
+            "max_x": 6.0,
+            "min_z": 9.5,
+            "max_z": 10.5,
+            "top": 4.5
+          },
+          {
+            "min_x": -13.5,
+            "max_x": -10.5,
+            "min_z": -13.5,
+            "max_z": -10.5,
+            "top": 4.5
+          }
+        ]
+      },
+      "start": {
+        "x": 4.3,
+        "z": -2.0,
+        "y": 0.0,
+        "vx": 0.0,
+        "vz": 0.0,
+        "vy": 0.0,
+        "yaw": 0.0
+      },
+      "speed": 5.0,
+      "inputs": [
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": true,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": true,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": true,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": true,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": true,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": true,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": true,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": true,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": true,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": true,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": true,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": true,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": true,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": true,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": true,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": true,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        }
+      ],
+      "stride": 1,
+      "expected": [
+        {
+          "x": 4.476777,
+          "z": -1.8232234,
+          "y": 0.0,
+          "vx": 3.535534,
+          "vz": 3.535534,
+          "vy": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "x": 4.653554,
+          "z": -1.6464467,
+          "y": 0.0,
+          "vx": 3.535534,
+          "vz": 3.535534,
+          "vy": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "x": 4.830331,
+          "z": -1.6464467,
+          "y": 0.0,
+          "vx": 3.535534,
+          "vz": 0.0,
+          "vy": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "x": 5.0071077,
+          "z": -1.6464467,
+          "y": 0.0,
+          "vx": 3.535534,
+          "vz": 0.0,
+          "vy": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "x": 5.1838846,
+          "z": -1.6464467,
+          "y": 0.0,
+          "vx": 3.535534,
+          "vz": 0.0,
+          "vy": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "x": 5.3606615,
+          "z": -1.6464467,
+          "y": 0.0,
+          "vx": 3.535534,
+          "vz": 0.0,
+          "vy": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "x": 5.5374384,
+          "z": -1.6464467,
+          "y": 0.0,
+          "vx": 3.535534,
+          "vz": 0.0,
+          "vy": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "x": 5.7142153,
+          "z": -1.6464467,
+          "y": 0.0,
+          "vx": 3.535534,
+          "vz": 0.0,
+          "vy": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "x": 5.890992,
+          "z": -1.6464467,
+          "y": 0.0,
+          "vx": 3.535534,
+          "vz": 0.0,
+          "vy": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "x": 6.067769,
+          "z": -1.6464467,
+          "y": 0.0,
+          "vx": 3.535534,
+          "vz": 0.0,
+          "vy": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "x": 6.244546,
+          "z": -1.6464467,
+          "y": 0.0,
+          "vx": 3.535534,
+          "vz": 0.0,
+          "vy": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "x": 6.421323,
+          "z": -1.6464467,
+          "y": 0.0,
+          "vx": 3.535534,
+          "vz": 0.0,
+          "vy": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "x": 6.5980997,
+          "z": -1.6464467,
+          "y": 0.0,
+          "vx": 3.535534,
+          "vz": 0.0,
+          "vy": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "x": 6.7748766,
+          "z": -1.6464467,
+          "y": 0.0,
+          "vx": 3.535534,
+          "vz": 0.0,
+          "vy": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "x": 6.9516535,
+          "z": -1.6464467,
+          "y": 0.0,
+          "vx": 3.535534,
+          "vz": 0.0,
+          "vy": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "x": 7.1284304,
+          "z": -1.6464467,
+          "y": 0.0,
+          "vx": 3.535534,
+          "vz": 0.0,
+          "vy": 0.0,
+          "yaw": 0.0
+        }
+      ]
+    },
+    {
+      "name": "stair_climb_and_deck",
+      "arena": {
+        "half": 25.0,
+        "solids": [
+          {
+            "min_x": 1.9999999,
+            "max_x": 3.1999998,
+            "min_z": -4.0,
+            "max_z": 4.0,
+            "top": 0.5
+          },
+          {
+            "min_x": 3.2000003,
+            "max_x": 4.4,
+            "min_z": -4.0,
+            "max_z": 4.0,
+            "top": 1.0
+          },
+          {
+            "min_x": 4.4,
+            "max_x": 5.6,
+            "min_z": -4.0,
+            "max_z": 4.0,
+            "top": 1.5
+          },
+          {
+            "min_x": 5.6000004,
+            "max_x": 6.8,
+            "min_z": -4.0,
+            "max_z": 4.0,
+            "top": 2.0
+          },
+          {
+            "min_x": 6.8,
+            "max_x": 8.0,
+            "min_z": -4.0,
+            "max_z": 4.0,
+            "top": 2.5
+          },
+          {
+            "min_x": 8.0,
+            "max_x": 9.200001,
+            "min_z": -4.0,
+            "max_z": 4.0,
+            "top": 3.0
+          },
+          {
+            "min_x": 9.2,
+            "max_x": 17.2,
+            "min_z": -4.0,
+            "max_z": 4.0,
+            "top": 3.0
+          },
+          {
+            "min_x": 17.2,
+            "max_x": 18.0,
+            "min_z": -4.0,
+            "max_z": 4.0,
+            "top": 6.0
+          }
+        ]
+      },
+      "start": {
+        "x": 0.0,
+        "z": 0.0,
+        "y": 0.0,
+        "vx": 0.0,
+        "vz": 0.0,
+        "vy": 0.0,
+        "yaw": 0.0
+      },
+      "speed": 5.0,
+      "inputs": [
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        }
+      ],
+      "stride": 4,
+      "expected": [
+        {
+          "x": 1.0,
+          "z": 0.0,
+          "y": 0.0,
+          "vx": 5.0,
+          "vz": 0.0,
+          "vy": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "x": 2.0,
+          "z": 0.0,
+          "y": 0.5,
+          "vx": 5.0,
+          "vz": 0.0,
+          "vy": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "x": 3.0,
+          "z": 0.0,
+          "y": 0.5,
+          "vx": 5.0,
+          "vz": 0.0,
+          "vy": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "x": 4.0,
+          "z": 0.0,
+          "y": 1.0,
+          "vx": 5.0,
+          "vz": 0.0,
+          "vy": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "x": 5.0,
+          "z": 0.0,
+          "y": 1.5,
+          "vx": 5.0,
+          "vz": 0.0,
+          "vy": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "x": 6.0,
+          "z": 0.0,
+          "y": 2.0,
+          "vx": 5.0,
+          "vz": 0.0,
+          "vy": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "x": 7.0,
+          "z": 0.0,
+          "y": 2.5,
+          "vx": 5.0,
+          "vz": 0.0,
+          "vy": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "x": 8.0,
+          "z": 0.0,
+          "y": 3.0,
+          "vx": 5.0,
+          "vz": 0.0,
+          "vy": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "x": 9.0,
+          "z": 0.0,
+          "y": 3.0,
+          "vx": 5.0,
+          "vz": 0.0,
+          "vy": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "x": 10.0,
+          "z": 0.0,
+          "y": 3.0,
+          "vx": 5.0,
+          "vz": 0.0,
+          "vy": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "x": 11.0,
+          "z": 0.0,
+          "y": 3.0,
+          "vx": 5.0,
+          "vz": 0.0,
+          "vy": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "x": 12.0,
+          "z": 0.0,
+          "y": 3.0,
+          "vx": 5.0,
+          "vz": 0.0,
+          "vy": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "x": 13.0,
+          "z": 0.0,
+          "y": 3.0,
+          "vx": 5.0,
+          "vz": 0.0,
+          "vy": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "x": 14.0,
+          "z": 0.0,
+          "y": 3.0,
+          "vx": 5.0,
+          "vz": 0.0,
+          "vy": 0.0,
+          "yaw": 0.0
+        }
+      ]
+    },
+    {
+      "name": "deck_edge_fall",
+      "arena": {
+        "half": 25.0,
+        "solids": [
+          {
+            "min_x": 1.9999999,
+            "max_x": 3.1999998,
+            "min_z": -4.0,
+            "max_z": 4.0,
+            "top": 0.5
+          },
+          {
+            "min_x": 3.2000003,
+            "max_x": 4.4,
+            "min_z": -4.0,
+            "max_z": 4.0,
+            "top": 1.0
+          },
+          {
+            "min_x": 4.4,
+            "max_x": 5.6,
+            "min_z": -4.0,
+            "max_z": 4.0,
+            "top": 1.5
+          },
+          {
+            "min_x": 5.6000004,
+            "max_x": 6.8,
+            "min_z": -4.0,
+            "max_z": 4.0,
+            "top": 2.0
+          },
+          {
+            "min_x": 6.8,
+            "max_x": 8.0,
+            "min_z": -4.0,
+            "max_z": 4.0,
+            "top": 2.5
+          },
+          {
+            "min_x": 8.0,
+            "max_x": 9.200001,
+            "min_z": -4.0,
+            "max_z": 4.0,
+            "top": 3.0
+          },
+          {
+            "min_x": 9.2,
+            "max_x": 17.2,
+            "min_z": -4.0,
+            "max_z": 4.0,
+            "top": 3.0
+          },
+          {
+            "min_x": 17.2,
+            "max_x": 18.0,
+            "min_z": -4.0,
+            "max_z": 4.0,
+            "top": 6.0
+          }
+        ]
+      },
+      "start": {
+        "x": 12.0,
+        "z": 0.0,
+        "y": 3.0,
+        "vx": 0.0,
+        "vz": 0.0,
+        "vy": 0.0,
+        "yaw": 0.0
+      },
+      "speed": 5.0,
+      "inputs": [
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": true,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": true,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": true,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": true,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": true,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": true,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": true,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": true,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": true,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": true,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": true,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": true,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": true,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": true,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": true,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": true,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": true,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": true,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": true,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": true,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": true,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": true,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": true,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": true,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        }
+      ],
+      "stride": 2,
+      "expected": [
+        {
+          "x": 12.0,
+          "z": 0.5,
+          "y": 3.0,
+          "vx": -2.1855695e-7,
+          "vz": 5.0,
+          "vy": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "x": 12.0,
+          "z": 1.0,
+          "y": 3.0,
+          "vx": -2.1855695e-7,
+          "vz": 5.0,
+          "vy": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "x": 12.0,
+          "z": 1.5,
+          "y": 3.0,
+          "vx": -2.1855695e-7,
+          "vz": 5.0,
+          "vy": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "x": 12.0,
+          "z": 2.0,
+          "y": 3.0,
+          "vx": -2.1855695e-7,
+          "vz": 5.0,
+          "vy": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "x": 12.0,
+          "z": 2.5,
+          "y": 3.0,
+          "vx": -2.1855695e-7,
+          "vz": 5.0,
+          "vy": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "x": 12.0,
+          "z": 3.0,
+          "y": 3.0,
+          "vx": -2.1855695e-7,
+          "vz": 5.0,
+          "vy": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "x": 12.0,
+          "z": 3.5,
+          "y": 3.0,
+          "vx": -2.1855695e-7,
+          "vz": 5.0,
+          "vy": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "x": 12.0,
+          "z": 4.0,
+          "y": 3.0,
+          "vx": -2.1855695e-7,
+          "vz": 5.0,
+          "vy": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "x": 12.0,
+          "z": 4.5,
+          "y": 2.835,
+          "vx": -2.1855695e-7,
+          "vz": 5.0,
+          "vy": -2.2,
+          "yaw": 0.0
+        },
+        {
+          "x": 12.0,
+          "z": 5.0,
+          "y": 2.45,
+          "vx": -2.1855695e-7,
+          "vz": 5.0,
+          "vy": -4.4,
+          "yaw": 0.0
+        },
+        {
+          "x": 12.0,
+          "z": 5.5,
+          "y": 1.8449999,
+          "vx": -2.1855695e-7,
+          "vz": 5.0,
+          "vy": -6.6,
+          "yaw": 0.0
+        },
+        {
+          "x": 12.0,
+          "z": 6.0,
+          "y": 1.0199999,
+          "vx": -2.1855695e-7,
+          "vz": 5.0,
+          "vy": -8.8,
+          "yaw": 0.0
+        }
+      ]
+    },
+    {
+      "name": "jump_arc",
+      "arena": {
+        "half": 25.0,
+        "solids": []
+      },
+      "start": {
+        "x": 0.0,
+        "z": 0.0,
+        "y": 0.0,
+        "vx": 0.0,
+        "vz": 0.0,
+        "vy": 0.0,
+        "yaw": 0.0
+      },
+      "speed": 5.0,
+      "inputs": [
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        }
+      ],
+      "stride": 1,
+      "expected": [
+        {
+          "x": 0.0,
+          "z": 0.0,
+          "y": 0.35,
+          "vx": 0.0,
+          "vz": 0.0,
+          "vy": 7.0,
+          "yaw": 0.0
+        },
+        {
+          "x": 0.0,
+          "z": 0.0,
+          "y": 0.645,
+          "vx": 0.0,
+          "vz": 0.0,
+          "vy": 5.9,
+          "yaw": 0.0
+        },
+        {
+          "x": 0.0,
+          "z": 0.0,
+          "y": 0.885,
+          "vx": 0.0,
+          "vz": 0.0,
+          "vy": 4.8,
+          "yaw": 0.0
+        },
+        {
+          "x": 0.0,
+          "z": 0.0,
+          "y": 1.07,
+          "vx": 0.0,
+          "vz": 0.0,
+          "vy": 3.7000003,
+          "yaw": 0.0
+        },
+        {
+          "x": 0.0,
+          "z": 0.0,
+          "y": 1.2,
+          "vx": 0.0,
+          "vz": 0.0,
+          "vy": 2.6000004,
+          "yaw": 0.0
+        },
+        {
+          "x": 0.0,
+          "z": 0.0,
+          "y": 1.2750001,
+          "vx": 0.0,
+          "vz": 0.0,
+          "vy": 1.5000004,
+          "yaw": 0.0
+        },
+        {
+          "x": 0.0,
+          "z": 0.0,
+          "y": 1.2950001,
+          "vx": 0.0,
+          "vz": 0.0,
+          "vy": 0.40000033,
+          "yaw": 0.0
+        },
+        {
+          "x": 0.0,
+          "z": 0.0,
+          "y": 1.2600001,
+          "vx": 0.0,
+          "vz": 0.0,
+          "vy": -0.6999997,
+          "yaw": 0.0
+        },
+        {
+          "x": 0.0,
+          "z": 0.0,
+          "y": 1.1700001,
+          "vx": 0.0,
+          "vz": 0.0,
+          "vy": -1.7999997,
+          "yaw": 0.0
+        },
+        {
+          "x": 0.0,
+          "z": 0.0,
+          "y": 1.0250001,
+          "vx": 0.0,
+          "vz": 0.0,
+          "vy": -2.8999996,
+          "yaw": 0.0
+        },
+        {
+          "x": 0.0,
+          "z": 0.0,
+          "y": 0.8250001,
+          "vx": 0.0,
+          "vz": 0.0,
+          "vy": -3.9999995,
+          "yaw": 0.0
+        },
+        {
+          "x": 0.0,
+          "z": 0.0,
+          "y": 0.5700002,
+          "vx": 0.0,
+          "vz": 0.0,
+          "vy": -5.0999994,
+          "yaw": 0.0
+        },
+        {
+          "x": 0.0,
+          "z": 0.0,
+          "y": 0.2600002,
+          "vx": 0.0,
+          "vz": 0.0,
+          "vy": -6.1999993,
+          "yaw": 0.0
+        },
+        {
+          "x": 0.0,
+          "z": 0.0,
+          "y": 0.0,
+          "vx": 0.0,
+          "vz": 0.0,
+          "vy": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "x": 0.0,
+          "z": 0.0,
+          "y": 0.0,
+          "vx": 0.0,
+          "vz": 0.0,
+          "vy": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "x": 0.0,
+          "z": 0.0,
+          "y": 0.0,
+          "vx": 0.0,
+          "vz": 0.0,
+          "vy": 0.0,
+          "yaw": 0.0
+        }
+      ]
+    },
+    {
+      "name": "ceiling_head_strike",
+      "arena": {
+        "half": 12.0,
+        "solids": [
+          {
+            "min_x": -2.0,
+            "max_x": 2.0,
+            "min_z": -2.0,
+            "max_z": 2.0,
+            "bottom": 2.1,
+            "top": 3.0
+          }
+        ]
+      },
+      "start": {
+        "x": 0.0,
+        "z": 0.0,
+        "y": 0.0,
+        "vx": 0.0,
+        "vz": 0.0,
+        "vy": 0.0,
+        "yaw": 0.0
+      },
+      "speed": 5.0,
+      "inputs": [
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        }
+      ],
+      "stride": 1,
+      "expected": [
+        {
+          "x": 0.0,
+          "z": 0.0,
+          "y": 0.29999995,
+          "vx": 0.0,
+          "vz": 0.0,
+          "vy": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "x": 0.0,
+          "z": 0.0,
+          "y": 0.24499995,
+          "vx": 0.0,
+          "vz": 0.0,
+          "vy": -1.1,
+          "yaw": 0.0
+        },
+        {
+          "x": 0.0,
+          "z": 0.0,
+          "y": 0.13499993,
+          "vx": 0.0,
+          "vz": 0.0,
+          "vy": -2.2,
+          "yaw": 0.0
+        },
+        {
+          "x": 0.0,
+          "z": 0.0,
+          "y": 0.0,
+          "vx": 0.0,
+          "vz": 0.0,
+          "vy": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "x": 0.0,
+          "z": 0.0,
+          "y": 0.0,
+          "vx": 0.0,
+          "vz": 0.0,
+          "vy": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "x": 0.0,
+          "z": 0.0,
+          "y": 0.0,
+          "vx": 0.0,
+          "vz": 0.0,
+          "vy": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "x": 0.0,
+          "z": 0.0,
+          "y": 0.0,
+          "vx": 0.0,
+          "vz": 0.0,
+          "vy": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "x": 0.0,
+          "z": 0.0,
+          "y": 0.0,
+          "vx": 0.0,
+          "vz": 0.0,
+          "vy": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "x": 0.0,
+          "z": 0.0,
+          "y": 0.0,
+          "vx": 0.0,
+          "vz": 0.0,
+          "vy": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "x": 0.0,
+          "z": 0.0,
+          "y": 0.0,
+          "vx": 0.0,
+          "vz": 0.0,
+          "vy": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "x": 0.0,
+          "z": 0.0,
+          "y": 0.0,
+          "vx": 0.0,
+          "vz": 0.0,
+          "vy": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "x": 0.0,
+          "z": 0.0,
+          "y": 0.0,
+          "vx": 0.0,
+          "vz": 0.0,
+          "vy": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "x": 0.0,
+          "z": 0.0,
+          "y": 0.0,
+          "vx": 0.0,
+          "vz": 0.0,
+          "vy": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "x": 0.0,
+          "z": 0.0,
+          "y": 0.0,
+          "vx": 0.0,
+          "vz": 0.0,
+          "vy": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "x": 0.0,
+          "z": 0.0,
+          "y": 0.0,
+          "vx": 0.0,
+          "vz": 0.0,
+          "vy": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "x": 0.0,
+          "z": 0.0,
+          "y": 0.0,
+          "vx": 0.0,
+          "vz": 0.0,
+          "vy": 0.0,
+          "yaw": 0.0
+        }
+      ]
+    },
+    {
+      "name": "compliance_half_speed",
+      "arena": {
+        "half": 25.0,
+        "solids": []
+      },
+      "start": {
+        "x": 0.0,
+        "z": 0.0,
+        "y": 0.0,
+        "vx": 0.0,
+        "vz": 0.0,
+        "vy": 0.0,
+        "yaw": 0.0
+      },
+      "speed": 2.5,
+      "inputs": [
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        }
+      ],
+      "stride": 1,
+      "expected": [
+        {
+          "x": 0.125,
+          "z": 0.0,
+          "y": 0.0,
+          "vx": 2.5,
+          "vz": 0.0,
+          "vy": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "x": 0.25,
+          "z": 0.0,
+          "y": 0.0,
+          "vx": 2.5,
+          "vz": 0.0,
+          "vy": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "x": 0.375,
+          "z": 0.0,
+          "y": 0.0,
+          "vx": 2.5,
+          "vz": 0.0,
+          "vy": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "x": 0.5,
+          "z": 0.0,
+          "y": 0.0,
+          "vx": 2.5,
+          "vz": 0.0,
+          "vy": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "x": 0.625,
+          "z": 0.0,
+          "y": 0.0,
+          "vx": 2.5,
+          "vz": 0.0,
+          "vy": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "x": 0.75,
+          "z": 0.0,
+          "y": 0.0,
+          "vx": 2.5,
+          "vz": 0.0,
+          "vy": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "x": 0.875,
+          "z": 0.0,
+          "y": 0.0,
+          "vx": 2.5,
+          "vz": 0.0,
+          "vy": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "x": 1.0,
+          "z": 0.0,
+          "y": 0.0,
+          "vx": 2.5,
+          "vz": 0.0,
+          "vy": 0.0,
+          "yaw": 0.0
+        }
+      ]
+    }
+  ]
+}

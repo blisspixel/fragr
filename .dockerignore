@@ -1,0 +1,17 @@
+.git
+.agents
+.agent
+**/target
+**/.godot
+builds
+client
+docs
+infra
+art
+*.key
+.env
+**/.env
+**/.env.*
+**/*.key
+**/*.pem
+**/*.p12

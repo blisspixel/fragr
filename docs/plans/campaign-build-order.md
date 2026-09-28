@@ -1,6 +1,6 @@
 # Campaign build order
 
-**Status:** planned, revised 2026-09-21. No full campaign mission is accepted. The sequence is the [full build order](../ROADMAP.md#full-build-order-2026-09-22): two readable enemies, then secrets and a fresh-player gate, then persist the run, then one mission at a time.
+**Status:** planned, revised 2026-09-28. No full campaign mission is accepted. The current [full build order](../ROADMAP.md#full-build-order-2026-09-27) calls for an unsteered M01-to-M02 player session on the integrated build before another M02 content slice. M01's fresh-player gate remains open.
 **Goal:** deliver twenty levels in five episodes and a conditional epilogue in [CAMPAIGN.md](../CAMPAIGN.md) through
 bounded, verifiable milestones. [Mission briefs](../CAMPAIGN-MISSIONS.md) define
 content; this plan defines dependencies.
@@ -11,12 +11,12 @@ an explicit approved cap, and the existing developer pipelines.
 
 | Concern | Present behavior | Campaign gap |
 |---|---|---|
-| Maps | Six arena layouts and a validated M01 document; shared finite geometry, keyed signs and bounded details | Complete mission layouts, room kits and transitions |
-| Combat | M01 fists, found Tack/Flechette, private finite inventory, one ammunition count per type and supplies; arcade full arsenal | Remaining arsenal, projectiles, authored encounter balance and finished sound sets |
+| Maps | Six arena layouts, an M01 development mission and an M02 combat graybox; shared finite geometry, keyed signs and bounded details | Complete mission layouts, room kits and transitions |
+| Combat | M01 fists, found Pistol and Rifle, private finite inventory, one ammunition count per type and supplies; arcade full arsenal | Remaining arsenal, projectiles, authored encounter balance and finished sound sets |
 | Movement | Shared gravity, jump, steps, ceilings and overlapping floors with a verified GDScript mirror | New traversal features require explicit geometry support and live tests |
 | Enemies | Rule bots, elite/boss prototype, authored human Clerk and Sweeper bot with phased attacks and directional animation | Full enemy roster, final art, encounters and balance |
 | Episode | Calibration prototype; M01 transfer/gate/departure shipped in v0.26.0 | Full story missions, rescue outcomes and campaign transitions |
-| Runs and persistence | Settings; in-memory solo M01 run with three continues and entry restoration; local service-record history | Campaign disk saves, cross-mission carry, achievements, rescue outcomes and epilogue unlock |
+| Runs and persistence | Versioned local M01 run file, three mission-start continues, entry restoration and local service-record history | Cross-mission carry, episode refill, achievements, rescue outcomes and epilogue unlock |
 | Co-op | Allied campaign participants, encounter wipe reset; shared mission boarding and four-seat admission shipped with live party evidence | Optional scope undecided; no mandatory duo, revival or all-mission co-op requirement |
 | Presentation | Retro front end, HUD, radio and viewmodels; localized M01 text opening and party readiness shipped in v0.28.0 | Finished scene art/narration, companion scenes, complete character/weapon/effect motion |
 
@@ -44,23 +44,25 @@ These are existing arena traversal improvements, not a completed campaign map.
    within a four-hour successful campaign run. Inspect the whole route. No paid
    scene needed to prove it. Human/agent control and eye-view spectators must work.
 4. **Build M02 and the early rescue.** Add companion state, release objectives,
-   Jammer behavior, rescue-aware mission retry, reunion and optional text/voice.
+   Shotgun and Crawler encounters, rescue-aware mission retry, reunion and
+   optional text/voice. The Jammer first appears in level 3.
    Prove joins and retries cannot duplicate or erase people.
-5. **Build M03 and finish Act I.** Home district, mixed fights, evacuation,
-   persistent optional rescues, and the lunar transition. Run M01-M03 end to end
-   with several survivor states. This is the first substantial campaign release.
-6. **Build Act II, one mission at a time.** Lunar kit and Rail encounters, custody
-   archive and Auditor, then shipboard circulation and boarding. Implement only
-   the next needed enemy/projectile/weapon capability and test its distinct role.
-7. **Build Act III.** Martian inhabited/industrial environments, coalition
-   consequences, Walker and mixed squads, then earned Union defeat on Earth.
-   Show other communities' contribution without an omnipotent victory switch.
-8. **Build the wipe finale and conditional epilogue.** Sudden onset, scale-revealing
-   scene, varied survival route and a local reprieve obtained by free-agent friends.
-   Prototype the roughly 33-minute survival target before committing the encounter
-   budget. Remaining continues allow retries; exhaustion ends with credits.
-   Survival alone unlocks short playable aftermath and years-later healing. Both
-   endings establish world consequences and briefly tease the wider universe.
+5. **Finish Episode I, levels 3 to 5.** The rail yard introduces the Jammer,
+   the home district introduces the Notary as a direct threat, and the departure
+   level introduces the grenade against a Heavy Sweeper. Persist optional rescue
+   outcomes and test M01 through level 5 with several survivor states.
+6. **Build Episodes II and III one level at a time.** Follow the accepted
+   [mission treatment](../CAMPAIGN-MISSIONS.md) across custody, the Moon, ship
+   and coalition work. Add only the enemy, traversal or weapon capability the
+   next level teaches, and test its distinct role and carry state.
+7. **Build Episode IV.** Make the Union defeat earned through the inhabited and
+   industrial fronts. Show other communities' contributions without a single
+   victory switch or a premature wipe.
+8. **Build Episode V and the conditional epilogue.** Prototype the three-level
+   wipe survival route before locking each encounter budget. Free-agent friends
+   secure a local reprieve. Surviving the finale unlocks the short playable
+   aftermath; exhaustion receives its own ending and credits. Both outcomes
+   establish consequences without declaring the catastrophe justified.
 9. **Validate and refine the complete run.** Every mission and survivor path,
    continues, run exhaustion, solo/agent play, spectator transitions, localization,
    accessibility, exports, performance, and fresh-player comprehension and fun.
@@ -92,8 +94,8 @@ without entering the combat loop. No provider is required at player runtime.
   observations on route clarity, enemy reads, dead time and repeat-play interest.
 - Asset manifests, roadmap status and release evidence updated together.
 
-Vehicles are deferred from M01, but planned for M08's combined-arms launch works.
+Vehicles are deferred from M01, but planned for level 14's combined-arms launch works.
 Prove a small server-owned drivable-vehicle slice before building that encounter;
-the [M08 brief](../campaign/m08-weight-of-permission.md) owns its scope.
+the [level 14 brief](../campaign/l14-launch-authority.md) owns its scope.
 Alien combat, dimensional traversal, the later Inheritance command mode, and
 large-scale hosting remain beyond separately measured milestones.

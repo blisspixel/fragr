@@ -11,10 +11,12 @@ extends Node
 var players = {}
 var pickups = {}
 var jammer_dish_node = null
+var arena_flags: ArenaFlags = null
 # tip_capture latch: keep forced live dish through nods-phase Snapshot nulls.
 var tip_force_jammer_dish = false
 const JammerDishBuilderScript = preload("res://scripts/jammer_dish.gd")
 const StanceChipScript = preload("res://scripts/stance_chip.gd")
+const NameplateLayoutScript = preload("res://scripts/nameplate_layout.gd")
 var pickup_scene = preload("res://scenes/weapon_pickup.tscn")
 var player_scene = preload("res://scenes/player.tscn")
 var arena_duel_scene = preload("res://scenes/arena.tscn")
@@ -56,6 +58,7 @@ var pending_jump: bool = false
 var pending_interact: bool = false
 var interact_held: bool = false
 var mission_hud: MissionHud
+var m02_ward: M02Ward
 var _continue_armed: bool = false
 var _continue_attempt_sent: int = -1
 var _presented_attempt: int = 0
@@ -84,6 +87,18 @@ var _opening_release: bool = false
 var _readiness_attempt_sent: int = 0
 var _awaiting_map: bool = false
 var input_device: InputDevice
+var local_prediction: LocalPrediction = LocalPrediction.new()
+var _adopt_local_spawn_snapshot: bool = false
+
+const CRAWLER_SOUND_PATH: String = "res://assets/audio/crawler_scrabble.wav"
+const CRAWLER_SOUND_VOICES: int = 4
+const CRAWLER_CUE_DISTANCE: float = 24.0
+var crawler_sound_stream: AudioStream = null
+var crawler_sound_players: Array[AudioStreamPlayer3D] = []
+var crawler_sound_next: int = 0
+var crawler_scrabble_count: int = 0
+var crawler_last_position: Vector3 = Vector3.INF
+var crawler_last_ms: int = -1000
 
 func _ready():
 	mission_hud = MissionHud.new()
@@ -149,8 +164,20 @@ func _ready():
 	var arena_root: Node = get_node_or_null("Arena")
 	if arena_root != null:
 		arena_root.add_child(arena_cover)
+		m02_ward = M02Ward.new()
+		m02_ward.pause_menu = pause_menu
+		arena_root.add_child(m02_ward)
+		arena_flags = ArenaFlags.new()
+		arena_flags.name = "ArenaFlags"
+		arena_root.add_child(arena_flags)
 	else:
 		add_child(arena_cover)
+		m02_ward = M02Ward.new()
+		m02_ward.pause_menu = pause_menu
+		add_child(m02_ward)
+		arena_flags = ArenaFlags.new()
+		arena_flags.name = "ArenaFlags"
+		add_child(arena_flags)
 
 ## Replace whatever the arena scene shipped with the environment in
 ## arena_sky.gd, so both arenas get the same sky from one place.
@@ -182,6 +209,10 @@ static func _find_world_environment(node: Node) -> WorldEnvironment:
 
 
 func _on_map_info(info: Dictionary) -> void:
+	_reset_crawler_cues()
+	local_prediction.configure_map(info)
+	_clear_predicted_pawn()
+	_adopt_local_spawn_snapshot = is_human_player
 	var mission: Variant = info.get("mission")
 	var m02: bool = info.get("m02_objectives") != null
 	if local_match != null:
@@ -210,12 +241,14 @@ func _on_map_info(info: Dictionary) -> void:
 	elif is_human_player:
 		show_loading_card()
 	if pause_menu != null:
-		pause_menu.development_mission = m02
+		pause_menu.development_mission = m02 and local_match != null and not local_match.has_durable_run()
 	if arena_cover != null:
 		arena_cover.apply_map_info(info)
 	# The venue decides the sky, and the venue is only known once the server
 	# has said which one this is.
 	_apply_arena_sky(str(info.get("map_name", "")))
+	if m02_ward != null:
+		m02_ward.configure_map(info)
 
 ## The console, the pause menu and the loading card. Built here rather than in
 ## the scene because they are the same three things whatever the match is.
@@ -403,6 +436,69 @@ func _load_audio_streams():
 	
 	if round_end_sound and ResourceLoader.exists(audio_dir + "round_end.wav"):
 		round_end_sound.stream = load(audio_dir + "round_end.wav")
+	if ResourceLoader.exists(CRAWLER_SOUND_PATH):
+		crawler_sound_stream = load(CRAWLER_SOUND_PATH)
+
+func _crawler_position(value: Variant) -> Vector3:
+	if not value is Array or value.size() != 3:
+		return Vector3.INF
+	var coords: Array[float] = []
+	for component: Variant in value:
+		if typeof(component) != TYPE_FLOAT and typeof(component) != TYPE_INT:
+			return Vector3.INF
+		var number: float = float(component)
+		if not is_finite(number) or absf(number) > 10000.0:
+			return Vector3.INF
+		coords.append(number)
+	return Vector3(coords[0], coords[1], coords[2])
+
+func _reset_crawler_cues() -> void:
+	crawler_scrabble_count = 0
+	crawler_last_position = Vector3.INF
+	crawler_last_ms = -1000
+	for voice: AudioStreamPlayer3D in crawler_sound_players:
+		if is_instance_valid(voice):
+			voice.stop()
+	if hud != null and hud.crawler_caption != null:
+		hud.crawler_caption.clear()
+
+func _accept_crawler_scrabble(position: Vector3, now_ms: int) -> bool:
+	if now_ms - crawler_last_ms < 300 and position.distance_squared_to(crawler_last_position) < 1.0:
+		return false
+	crawler_last_ms = now_ms
+	crawler_last_position = position
+	crawler_scrabble_count += 1
+	return true
+
+func _crawler_listener_near(position: Vector3) -> bool:
+	var lens: Camera3D = get_node_or_null("SpectatorCamera/Camera3D") as Camera3D
+	return lens != null and lens.global_position.distance_squared_to(position) <= CRAWLER_CUE_DISTANCE * CRAWLER_CUE_DISTANCE
+
+func _play_crawler_scrabble(position: Vector3) -> void:
+	var arena_root: Node3D = get_node_or_null("Arena") as Node3D
+	if crawler_sound_stream == null or arena_root == null:
+		return
+	for index: int in range(crawler_sound_players.size() - 1, -1, -1):
+		var existing: AudioStreamPlayer3D = crawler_sound_players[index]
+		if not is_instance_valid(existing) or existing.get_parent() != arena_root:
+			crawler_sound_players.remove_at(index)
+	if crawler_sound_next >= crawler_sound_players.size():
+		crawler_sound_next = 0
+	if crawler_sound_players.size() < CRAWLER_SOUND_VOICES:
+		var voice := AudioStreamPlayer3D.new()
+		voice.name = "CrawlerScrabble%d" % crawler_sound_players.size()
+		voice.stream = crawler_sound_stream
+		voice.bus = &"Effects"
+		voice.unit_size = 4.0
+		voice.max_distance = 24.0
+		voice.volume_db = -4.0
+		arena_root.add_child(voice)
+		crawler_sound_players.append(voice)
+		crawler_sound_next = crawler_sound_players.size() - 1
+	var player: AudioStreamPlayer3D = crawler_sound_players[crawler_sound_next]
+	crawler_sound_next = (crawler_sound_next + 1) % CRAWLER_SOUND_VOICES
+	player.global_position = position
+	player.play()
 
 func _try_continue(event: InputEvent) -> bool:
 	if _continue_armed and is_human_player and event.is_action_pressed("ui_accept") \
@@ -474,16 +570,38 @@ func change_role(play: bool) -> void:
 	_awaiting_map = true
 	role_transition = false
 
-## Input sequence. The server echoes the newest one it applied in an ack,
-## which is what a predicting client reconciles against.
+## Input sequence. The server echoes the newest accepted one in an Ack.
 var input_seq: int = 0
-## Newest ack from the server: {seq, tick, x, z, yaw}. Recorded now, used by
-## prediction later; the difference against the local view is the correction.
+## Newest Ack from the server: {seq, tick, x, z, yaw}. Live prediction needs
+## a replayable movement step and a full authoritative body state first.
 var last_ack: Dictionary = {}
+var ack_probe: InputAckProbe = InputAckProbe.new()
 
 
 func _on_ack_received(data: Dictionary) -> void:
 	last_ack = data
+	ack_probe.record_ack(data, Time.get_ticks_usec())
+	if is_human_player:
+		local_prediction.accept_ack(data, Time.get_ticks_usec())
+		_apply_local_prediction()
+
+
+func begin_ack_probe() -> bool:
+	if not is_human_player or net_client.connection_state != WebSocketPeer.STATE_OPEN:
+		return false
+	ack_probe.begin(Time.get_ticks_usec())
+	net_client.tx_text_bytes = 0
+	net_client.rx_text_bytes = 0
+	net_client.track_text_bytes = true
+	return true
+
+
+func end_ack_probe() -> Dictionary:
+	var report: Dictionary = ack_probe.finish(Time.get_ticks_usec())
+	report["tx_text_payload_bytes"] = net_client.tx_text_bytes
+	report["rx_text_payload_bytes"] = net_client.rx_text_bytes
+	net_client.track_text_bytes = false
+	return report
 
 
 func _process(_delta):
@@ -493,8 +611,11 @@ func _process(_delta):
 		_submit_mission_readiness()
 	if mouse_capture != null:
 		mouse_capture.set_gameplay(not controls_blocked())
+	if is_human_player and net_client.connection_state != WebSocketPeer.STATE_OPEN and local_prediction.active():
+		_reset_prediction_for_connection("connection_lost")
 	if not is_human_player:
 		_update_followed_weapon()
+	_update_nameplates()
 	if camera and is_human_player:
 		camera.assist_targets = assist_targets()
 	if hud and camera:
@@ -502,6 +623,35 @@ func _process(_delta):
 		hud.set_fp_walk_speed(float(watched.get("presentation_speed")) if is_instance_valid(watched) else 0.0)
 	if is_human_player and not role_transition and net_client.connection_state == WebSocketPeer.STATE_OPEN and _has_local_input_target():
 		_send_local_action(Time.get_ticks_usec())
+	if is_human_player:
+		local_prediction.advance(Time.get_ticks_usec())
+		local_prediction.decay_visual(_delta)
+		_apply_local_prediction()
+
+
+func _clear_predicted_pawn() -> void:
+	var pawn: Node = players.get(local_fp_pawn_id)
+	if is_instance_valid(pawn) and pawn.has_method("clear_predicted_position"):
+		pawn.clear_predicted_position()
+
+
+func _reset_prediction_for_connection(reason: String) -> void:
+	local_prediction.reset(reason, true)
+	_clear_predicted_pawn()
+	_adopt_local_spawn_snapshot = is_human_player
+	pending_jump = false
+	pending_interact = false
+
+
+func _apply_local_prediction() -> void:
+	var pawn: Node = players.get(local_fp_pawn_id)
+	if not is_instance_valid(pawn):
+		return
+	if local_prediction.active() and pawn.hp > 0 and _has_local_input_target() and pawn.has_method("set_predicted_position"):
+		var velocity: Vector2 = Vector2(float(local_prediction.state["vx"]), float(local_prediction.state["vz"]))
+		pawn.set_predicted_position(local_prediction.presented_position(), velocity.length())
+	elif pawn.has_method("clear_predicted_position"):
+		pawn.clear_predicted_position()
 
 ## One action message per displayed frame flooded the server at high frame
 ## rates: a 500 fps client sent twice the 256 per second inbound budget, so
@@ -509,6 +659,7 @@ func _process(_delta):
 ## exactly one of them. Sends are paced below the budget instead, and discrete
 ## presses stay latched until a message actually carries them.
 const ACTION_SEND_INTERVAL_USEC: int = 1000000 / 120
+const MAX_ACTION_SEQ: int = 4294967295
 var _last_action_usec: int = -ACTION_SEND_INTERVAL_USEC
 
 func _send_local_action(now_usec: int) -> bool:
@@ -534,6 +685,8 @@ func _send_local_action(now_usec: int) -> bool:
 		action_state.pitch = camera.consume_pitch()
 	if controls_blocked():
 		interact_held = false
+		pending_jump = false
+		pending_interact = false
 		for key in ["forward", "back", "left", "right", "fire", "jump", "interact"]:
 			action_state[key] = false
 		pending_weapon_swap = null
@@ -542,13 +695,26 @@ func _send_local_action(now_usec: int) -> bool:
 	if _mission_controls_blocked():
 		action_state.erase("yaw")
 		action_state.erase("pitch")
-	input_seq += 1
+	input_seq = 1 if input_seq >= MAX_ACTION_SEQ else input_seq + 1
 	action_state.seq = input_seq
 	action_state.weapon_swap = pending_weapon_swap
-	pending_weapon_swap = null
+	var send_usec: int = 0
+	if ack_probe.active:
+		send_usec = Time.get_ticks_usec()
+	var predicting: bool = local_prediction.active()
+	net_client.last_send_ok = false
 	net_client.send_action(action_state)
-	pending_jump = false
-	pending_interact = false
+	if predicting:
+		local_prediction.record_action(action_state, now_usec, net_client.last_send_ok)
+	if ack_probe.active:
+		if net_client.last_send_ok:
+			ack_probe.record_send(input_seq, send_usec)
+		else:
+			ack_probe.failed_sends += 1
+	if net_client.last_send_ok:
+		pending_jump = false
+		pending_interact = false
+		pending_weapon_swap = null
 	return true
 
 func _on_mission_received(state: Dictionary) -> void:
@@ -556,10 +722,16 @@ func _on_mission_received(state: Dictionary) -> void:
 	if is_human_player and state.get("run") is Dictionary and state["run"]["status"] == "playing":
 		var attempt: int = int(state["attempt"])
 		if attempt > 1 and attempt != _presented_attempt:
+			local_prediction.reset("continue", true)
+			_clear_predicted_pawn()
 			_retry_snapshot_tick = int(net_client.mission["tick"])
+			_reset_crawler_cues()
+			_adopt_local_spawn_snapshot = true
 		_presented_attempt = attempt
 	if mission_hud != null:
 		mission_hud.apply(state, str(net_client.player_id) if is_human_player else "")
+	if m02_ward != null:
+		m02_ward.apply_state(state)
 	hud.combat_feed.set_campaign(not state.is_empty())
 	_submit_mission_readiness()
 	play_departure_scene(state)
@@ -596,22 +768,31 @@ func _on_interlude_completed() -> void:
 func assist_targets() -> Array:
 	var out: Array = []
 	var mission: bool = _mission_map()
+	var own_team: String = ""
+	var local_pawn: Node = players.get(local_fp_pawn_id)
+	if is_instance_valid(local_pawn):
+		own_team = MatchRules.valid_team(local_pawn.get("team"))
 	for id: Variant in players:
 		var pawn: Node = players[id]
 		if not is_instance_valid(pawn) or str(id) == local_fp_pawn_id or int(pawn.get("hp")) <= 0:
 			continue
+		if bool(pawn.get("is_campaign_companion")):
+			continue
 		var enemy: bool = bool(pawn.get("is_campaign_enemy"))
 		if enemy != mission:
 			continue
+		if not mission and own_team != "" and MatchRules.valid_team(pawn.get("team")) == own_team:
+			continue
 		if mission and str((pawn.get("campaign_actor") as Dictionary).get("phase", "")) == "dead":
 			continue
-		out.append(AimAssist.body_centre(pawn.get("target_position")))
+		out.append(AimAssist.body_centre(pawn.get("target_position"),
+			pawn.get("campaign_actor") if mission else {}))
 	return out
 
 func _has_local_input_target() -> bool:
 	# An open socket precedes the first snapshot. Sending the default camera aim
 	# in that interval overwrites the authored spawn facing before we adopt it.
-	if net_client.player_id == null or local_fp_pawn_id != str(net_client.player_id):
+	if _adopt_local_spawn_snapshot or net_client.player_id == null or local_fp_pawn_id != str(net_client.player_id):
 		return false
 	var pawn: Node = players.get(local_fp_pawn_id)
 	return is_instance_valid(pawn) and is_instance_valid(camera) and camera.fp_mode and camera.fp_target == pawn
@@ -698,12 +879,21 @@ func _apply_map_from_snapshot(snapshot: Dictionary) -> void:
 		hud.set_map_name(map_name)
 
 func _on_connected():
+	_reset_prediction_for_connection("connected")
+	if ack_probe.active:
+		ack_probe.interrupted = true
+		ack_probe.active = false
+	net_client.track_text_bytes = false
 	hud.set_status("Connected to server")
 
 func _on_session_resumed() -> void:
 	hud.set_status("Reconnected.")
 
 func _on_disconnected():
+	if ack_probe.active:
+		ack_probe.interrupted = true
+		ack_probe.active = false
+	net_client.track_text_bytes = false
 	hud.set_status("Disconnected")
 	hud.reset_host_chrome()
 	ended_podium_shown = false
@@ -715,6 +905,8 @@ func _on_server_error(message: String) -> void:
 	hud.set_status(message)
 
 func _clear_world() -> void:
+	local_prediction.reset("disconnect", true)
+	_adopt_local_spawn_snapshot = false
 	if is_instance_valid(opening):
 		opening.queue_free()
 	opening = null
@@ -728,11 +920,15 @@ func _clear_world() -> void:
 	current_map_info.clear()
 	if hud and hud.has_method("set_match_rules"):
 		hud.set_match_rules({})
+	if arena_flags != null:
+		arena_flags.clear_flags()
 	pending_jump = false
 	pending_interact = false
 	interact_held = false
 	if mission_hud != null:
 		mission_hud.apply({}, "")
+	if m02_ward != null:
+		m02_ward.clear_map()
 	hud.combat_feed.set_campaign(false)
 	pending_weapon_swap = null
 	latest_snapshot.clear()
@@ -767,10 +963,20 @@ func _refresh_equipment_visibility() -> void:
 		and is_instance_valid(pawn) and pawn.hp > 0 and hud.fp_juice_enabled
 
 func _on_snapshot_received(data):
+	ack_probe.record_snapshot(data.get("tick"), Time.get_ticks_usec())
 	latest_snapshot = data
 	_apply_map_from_snapshot(data)
 	var tick = data.get("tick", 0)
 	var player_list = data.get("players", [])
+	var companion_phase: String = ""
+	for player_data: Dictionary in player_list:
+		if ActorState.is_companion(player_data):
+			companion_phase = str(player_data["campaign"]["phase"])
+			break
+	if companion_phase.is_empty() and net_client.mission.get("state", {}).get("phase") == "departed":
+		companion_phase = "departed"
+	if m02_ward != null:
+		m02_ward.set_companion_phase(companion_phase)
 	var participant_list: Array[Dictionary] = ActorState.participants(player_list)
 	var round_state = data.get("round_state", "")
 	var round_time_left = data.get("round_time_left", 0)
@@ -822,6 +1028,9 @@ func _on_snapshot_received(data):
 	hud.set_round_info(round_state, round_time_left, frag_limit)
 	if hud.has_method("set_team_scores"):
 		hud.set_team_scores(data.get("team_scores"))
+	if hud.has_method("set_ctf_state"):
+		var ctf_viewer_id: String = str(net_client.player_id) if is_human_player and net_client.player_id != null else _followed_player_id()
+		hud.set_ctf_state(data.get("flags"), data.get("capture_scores"), data.get("capture_limit", 0), player_list, ctf_viewer_id)
 	if is_human_player and net_client.player_id != null and hud.has_method("set_own_lives"):
 		for player_data in player_list:
 			if str(player_data.get("id", "")) == str(net_client.player_id):
@@ -852,6 +1061,10 @@ func _on_snapshot_received(data):
 		
 		if players.has(id):
 			players[id].update_state(player_data, int(tick))
+			if players[id].is_campaign_companion:
+				# The fixed figure owns the full release tableau. The server pawn
+				# takes over at the same feet when it starts following.
+				players[id].visible = companion_phase != "releasing"
 	
 	for id in players.keys():
 		if not current_ids.has(id):
@@ -861,7 +1074,7 @@ func _on_snapshot_received(data):
 	
 	var targets = []
 	for pawn in players.values():
-		if is_instance_valid(pawn) and not pawn.is_campaign_enemy:
+		if is_instance_valid(pawn) and not pawn.is_campaign_enemy and not pawn.is_campaign_companion:
 			targets.append(pawn)
 	if camera:
 		camera.set_available_targets(targets)
@@ -870,22 +1083,88 @@ func _on_snapshot_received(data):
 		for pawn in players.values():
 			if is_instance_valid(pawn):
 				pawn.set_highlighted(pawn == followed)
-				pawn.set_nameplate_enabled(not is_human_player and not camera.is_observing_first_person())
 				pawn.broadcast_scale_enabled = not is_human_player and not camera.is_observing_first_person()
 	
 	_update_followed_weapon()
 	_sync_pickups(data.get("pickups", []))
+	if arena_flags != null:
+		arena_flags.apply(data.get("flags"))
 	_sync_jammer_dish(data.get("jammer_dish", null))
 	if is_human_player:
 		_refresh_fp_target()
 		_update_local_fp_hud(data.get("players", []))
+		_apply_local_prediction()
 	_process_shot_results(data.get("shot_results", []), int(data.get("tick", -1)))
 	hud.equipment_hud.tick = int(data.get("tick", 0))
 	_refresh_equipment_visibility()
+	_update_nameplates()
+
+func _nameplate_rect(view: Camera3D, label: Label3D) -> Rect2:
+	var font: Font = label.font if label.font != null else ThemeDB.fallback_font
+	var text_size: Vector2 = Vector2(label.text.length() * label.font_size * 0.6, label.font_size)
+	if font != null:
+		text_size = font.get_string_size(label.text, HORIZONTAL_ALIGNMENT_LEFT, -1, label.font_size)
+	var width: float = (text_size.x + label.outline_size * 2.0 + 12.0) * label.pixel_size * label.scale.x
+	var height: float = (text_size.y + label.outline_size + 8.0) * label.pixel_size * label.scale.y
+	var point: Vector3 = label.global_position
+	var right: Vector3 = view.global_transform.basis.x.normalized()
+	var up: Vector3 = view.global_transform.basis.y.normalized()
+	var left_px: Vector2 = view.unproject_position(point - right * width * 0.5)
+	var right_px: Vector2 = view.unproject_position(point + right * width * 0.5)
+	var top_px: Vector2 = view.unproject_position(point + up * height * 0.5)
+	var bottom_px: Vector2 = view.unproject_position(point - up * height * 0.5)
+	return Rect2(Vector2(minf(left_px.x, right_px.x), minf(top_px.y, bottom_px.y)),
+		Vector2(absf(right_px.x - left_px.x), absf(bottom_px.y - top_px.y))).grow(4.0)
+
+func _update_nameplates() -> void:
+	if camera == null:
+		return
+	var viewport: Viewport = get_viewport()
+	if viewport == null:
+		return
+	var watching: bool = not is_human_player and not camera.is_observing_first_person()
+	var view: Camera3D = viewport.get_camera_3d()
+	if not watching or view == null:
+		for pawn: Node in players.values():
+			if is_instance_valid(pawn):
+				pawn.set_nameplate_enabled(false)
+		return
+	var carrier_ids: Array[String] = []
+	var flags: Variant = latest_snapshot.get("flags")
+	if flags is Array:
+		for flag: Variant in flags:
+			if flag is Dictionary and flag.get("status") == "carried" and flag.get("carrier") is String:
+				carrier_ids.append(str(flag["carrier"]))
+	var followed: Node = camera.get_followed_target()
+	var viewport_rect: Rect2 = viewport.get_visible_rect()
+	var entries: Array[Dictionary] = []
+	for id: Variant in players:
+		var pawn: Node3D = players[id]
+		if not is_instance_valid(pawn):
+			continue
+		var label: Label3D = pawn.get_node_or_null("Label3D") as Label3D
+		if label == null or view.is_position_behind(label.global_position):
+			pawn.set_nameplate_enabled(false)
+			continue
+		var area: Rect2 = _nameplate_rect(view, label)
+		if area.position.x < viewport_rect.position.x or area.position.y < viewport_rect.position.y \
+			or area.end.x > viewport_rect.end.x or area.end.y > viewport_rect.end.y:
+			pawn.set_nameplate_enabled(false)
+			continue
+		var priority: int = 0 if carrier_ids.has(str(id)) else (1 if pawn == followed else 2)
+		entries.append({"id": str(id), "rect": area, "priority": priority,
+			"distance": view.global_position.distance_to(label.global_position)})
+	var visible_ids: Array[String] = NameplateLayoutScript.choose(entries)
+	for id: Variant in players:
+		var pawn: Node = players[id]
+		if is_instance_valid(pawn):
+			pawn.set_nameplate_enabled(visible_ids.has(str(id)))
 
 func _on_event_received(data):
 	var event_type = data.get("event", "")
-	if event_type == "frag":
+	if event_type == "flag":
+		hud.show_flag_event(data)
+	elif event_type == "frag":
 		var killer_name = data.get("killer", "?")
 		var victim_name = data.get("victim", "?")
 		
@@ -940,6 +1219,12 @@ func _on_event_received(data):
 		var duration_ticks = int(data.get("duration_ticks", 120))
 		var duration_sec = float(duration_ticks) / 20.0
 		hud.show_compliance_ping(str(data.get("message", "")), duration_sec)
+	elif event_type == "crawler_scrabble":
+		var crawler_position: Vector3 = _crawler_position(data.get("position"))
+		if crawler_position.is_finite() and _crawler_listener_near(crawler_position) \
+				and _accept_crawler_scrabble(crawler_position, Time.get_ticks_msec()):
+			hud.show_crawler_scrabble_caption()
+			_play_crawler_scrabble(crawler_position)
 	elif event_type == "boss_spawn":
 		hud.set_pressure("compliance_drone")
 		hud.show_boss_spawn(str(data.get("message", "")), str(data.get("name", "COMPLIANCE-DRONE")))
@@ -1021,7 +1306,7 @@ func _on_event_received(data):
 		var host_line = str(data.get("host_line", ""))
 		var podium = data.get("final_scores", [])
 		if hud and hud.has_method("show_round_end"):
-			hud.show_round_end(mvp_name, str(data.get("reason", "")), mvp_frags, host_line, podium)
+			hud.show_round_end(mvp_name, str(data.get("reason", "")), mvp_frags, host_line, podium, data.get("winning_team"), data.get("capture_scores"))
 		if round_end_sound and round_end_sound.stream:
 			round_end_sound.play()
 
@@ -1056,7 +1341,14 @@ func _maybe_rehydrate_ended_mvp(data, round_state) -> void:
 		podium = rows
 	ended_podium_shown = true
 	if hud and hud.has_method("show_round_end"):
-		hud.show_round_end(mvp_name, "MID-JOIN // ROUND ENDED", mvp_frags, host_line, podium)
+		var captures: Variant = data.get("capture_scores")
+		var winner_side: Variant = null
+		if captures is Dictionary:
+			var union_count: int = int(captures.get("union", 0))
+			var coalition_count: int = int(captures.get("coalition", 0))
+			if union_count != coalition_count:
+				winner_side = "union" if union_count > coalition_count else "coalition"
+		hud.show_round_end(mvp_name, "MID-JOIN // ROUND ENDED", mvp_frags, host_line, podium, winner_side, captures)
 
 func _sync_pickups(pickup_list):
 	var seen = {}
@@ -1179,7 +1471,8 @@ func _update_followed_weapon():
 func _pick_ghost_rival_from_alive():
 	var names = []
 	for pawn in players.values():
-		if is_instance_valid(pawn) and pawn.player_name != "" and pawn.player_name != "Human Player":
+		if is_instance_valid(pawn) and not pawn.is_campaign_enemy and not pawn.is_campaign_companion \
+			and pawn.player_name != "" and pawn.player_name != "Human Player":
 			names.append(pawn.player_name)
 	if names.is_empty():
 		hud.set_ghost_rival("")
@@ -1227,6 +1520,9 @@ func _set_human_fp(enabled: bool) -> void:
 	_refresh_fp_target()
 
 func _clear_fp_state() -> void:
+	local_prediction.reset("role", true)
+	_adopt_local_spawn_snapshot = false
+	_clear_predicted_pawn()
 	if local_fp_pawn_id != "" and players.has(local_fp_pawn_id):
 		var old = players[local_fp_pawn_id]
 		if is_instance_valid(old) and old.has_method("set_local_fp"):
@@ -1272,7 +1568,33 @@ func _update_local_fp_hud(player_list: Array) -> void:
 	for pdata in player_list:
 		if str(pdata.get("id", "")) != pid:
 			continue
+		if _adopt_local_spawn_snapshot and (_retry_snapshot_tick < 0 or int(latest_snapshot.get("tick", -1)) >= _retry_snapshot_tick):
+			var pawn: Node = players.get(pid)
+			if is_instance_valid(pawn) and pawn.has_method("snap_authoritative_position"):
+				pawn.snap_authoritative_position()
+			if camera:
+				camera.fp_yaw = float(pdata["yaw"])
+				camera.fp_pitch = float(pdata["pitch"])
+				camera.turn_accum = 0.0
+				if is_instance_valid(pawn):
+					camera.position = pawn.global_position + Vector3(0.0, MoveStep.EYE_HEIGHT - LocalPrediction.FLOOR_OFFSET, 0.0)
+			_adopt_local_spawn_snapshot = false
 		var hp = int(pdata.get("hp", 100))
+		if hp <= 0:
+			local_prediction.reset("death", true)
+			_clear_predicted_pawn()
+		elif local_hp_seen <= 0 and local_hp_seen >= 0:
+			local_prediction.reset("respawn", true)
+			_clear_predicted_pawn()
+			var pawn: Node = players.get(pid)
+			if is_instance_valid(pawn) and pawn.has_method("snap_authoritative_position"):
+				pawn.snap_authoritative_position()
+			if camera:
+				camera.fp_yaw = float(pdata["yaw"])
+				camera.fp_pitch = float(pdata["pitch"])
+				camera.turn_accum = 0.0
+				if is_instance_valid(pawn):
+					camera.position = pawn.global_position + Vector3(0.0, MoveStep.EYE_HEIGHT - LocalPrediction.FLOOR_OFFSET, 0.0)
 		if local_hp_seen >= 0 and hp < local_hp_seen and hp > 0:
 			if hud and hud.has_method("show_damage_flash"):
 				hud.show_damage_flash()

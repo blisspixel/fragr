@@ -24,6 +24,8 @@ pub(crate) struct EnemyPlacement {
     pub kind: EnemyKind,
     pub feet: [f32; 3],
     pub yaw: f32,
+    #[serde(default)]
+    pub seated: bool,
 }
 
 pub(super) fn validate(
@@ -67,7 +69,8 @@ pub(super) fn validate(
         }
         for enemy in &encounter.enemies {
             identity(&enemy.id, seen)?;
-            if !standing(arena, enemy.feet)
+            if (enemy.seated && enemy.kind != EnemyKind::Clerk)
+                || !standing(arena, enemy.feet)
                 || !enemy.yaw.is_finite()
                 || !(0.0..std::f32::consts::TAU).contains(&enemy.yaw)
             {

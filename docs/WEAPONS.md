@@ -30,7 +30,8 @@ again when the gun is already carried. Every shot spends one unit, including a
 Scatter blast of seven pellets. Dry fire does not discard a weapon or switch
 automatically, and any pickup of that type makes it live again at once. M01 death
 offers an explicit mission-start continue with entry equipment restored. Three
-continues are implemented for the local run; cross-mission persistence remains unbuilt.
+continues are implemented for the local run. The stacked M01-to-M02 carry draft
+preserves found guns, ammunition and selection at the next level's entry.
 
 Balance numbers live here and nowhere else. `plans/gunfeel.md` explains how they were arrived at, `plans/weapon-economy.md` explains the ammunition and the pickup economy, and `docs/lore/guns.md` is what they get called on the radio.
 

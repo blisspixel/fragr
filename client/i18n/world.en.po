@@ -78,6 +78,30 @@ msgstr "Continue Run"
 msgid "RUN_SAVED_DETAIL"
 msgstr "{difficulty} / attempt {attempt} / {continues} continues left"
 
+msgid "RUN_SAVED_MISSION"
+msgstr "NEXT: {mission}"
+
+msgid "RUN_AWAITING_DETAIL"
+msgstr "{difficulty} / {continues} continues left"
+
+msgid "RUN_BODY_BOUND"
+msgstr "Run body: {body}. This choice stays with the run."
+
+msgid "RUN_BODY_UNBOUND"
+msgstr "Body for this run: {body}. Joining will save this choice."
+
+msgid "RUN_BODY_PENDING"
+msgstr "Run body is not bound yet. Choose it when this mission is ready."
+
+msgid "RUN_CHOOSE_BODY"
+msgstr "Choose body before continuing"
+
+msgid "MENU_BODY_PREFERENCE"
+msgstr "Your preferred body for new matches and unbound runs. Saved runs keep their body. It never changes how you fight."
+
+msgid "MENU_PRACTICE_DEVELOPMENT"
+msgstr "Practice and development"
+
 msgid "RUN_NEW"
 msgstr "Start New Run"
 
@@ -87,8 +111,11 @@ msgstr "Starting a new run archives the current save. You can recover its file l
 msgid "RUN_ARCHIVE_START"
 msgstr "Archive prior run and choose difficulty"
 
-msgid "RUN_M02_PENDING"
-msgstr "M01 complete. M02 is still in development. Your completed run is retained."
+msgid "RUN_M03_PENDING"
+msgstr "Scheduled Service is in development. This run stays saved."
+
+msgid "RUN_M02_DESCRIPTION"
+msgstr "The transfer route leads to Latch in the correction ward. Continue the same run."
 
 msgid "RUN_FAILED"
 msgstr "This run ended after its final continue. You can start a new run."
@@ -103,7 +130,7 @@ msgid "MISSION_PARTY_FULL"
 msgstr "The four-player mission party is full. Join as a spectator or wait for a seat."
 
 msgid "MENU_CAMPAIGN"
-msgstr "CAMPAIGN / DEVELOPMENT MISSION"
+msgstr "SINGLE PLAYER CAMPAIGN"
 
 msgid "MENU_M01_DESCRIPTION"
 msgstr "Latch has been taken. Enter Annex 67 and find the transfer record.\nOpening mission slice. Starts a local game."
@@ -162,6 +189,12 @@ msgstr "This server only allows addresses on its list."
 msgid "MISSION_M02_GRAYBOX"
 msgstr "Persons Unknown: ward graybox"
 
+msgid "MISSION_M02_TITLE"
+msgstr "PERSONS UNKNOWN"
+
+msgid "MISSION_M03_TITLE"
+msgstr "SCHEDULED SERVICE"
+
 msgid "MENU_M02_DEVELOPMENT"
 msgstr "Development route: a short fight through the ward. No save, no carry from Recall Notice."
 
@@ -171,21 +204,69 @@ msgstr "Development mission. Leaving keeps no progress."
 msgid "M02_WAITING"
 msgstr "WAITING FOR THE PARTY"
 
-
+msgid "M02_OBJECTIVE_WARD_REACHED"
+msgstr "REACH THE CORRECTION WARD"
 
 msgid "M02_OBJECTIVE_COMPANION_RELEASED"
-msgstr "FIND LATCH"
+msgstr "CLEAR THE WARD GUARDS"
 
+msgid "M02_OBJECTIVE_COMPANION_SECURED"
+msgstr "FREE LATCH AT THE RESTRAINT"
 
 msgid "M02_OBJECTIVE_PARTY_DEPARTED"
-msgstr "GET OUT"
+msgstr "GET TO THE LOADING DOCK"
 
 msgid "M02_OBJECTIVE_UNKNOWN"
 msgstr "KEEP MOVING"
 
+msgid "M02_EVAC_FREEING"
+msgstr "SIDE WARD: BREAKING FREE"
+
+msgid "M02_EVAC_READY"
+msgstr "SIDE WARD: WAITING FOR A ROUTE"
+
+msgid "M02_EVAC_MOVING"
+msgstr "SIDE WARD: MOVING TO DOCK"
+
+msgid "M02_EVAC_WAITING"
+msgstr "SIDE WARD: HOLDING FOR DOCK"
+
+msgid "M02_EVAC_EVACUATED"
+msgstr "SIDE WARD: AT DOCK"
+
+msgid "M02_EVAC_UNCONFIRMED"
+msgstr "SIDE WARD: OUTCOME UNCONFIRMED"
+
 
 msgid "M02_USE_CONSOLE"
 msgstr "{use}: USE"
+
+msgid "M02_USE_COMPANION_RELEASED"
+msgstr "{use}: OPEN LATCH'S RESTRAINT"
+
+msgid "M02_WARD_STOPPED"
+msgstr "CORRECTION HALTED"
+
+msgid "M02_LATCH_RELEASE"
+msgstr "LATCH'S RESTRAINT OPENS"
+
+msgid "M02_LATCH_HEADING"
+msgstr "LATCH"
+
+msgid "M02_LATCH_SPEECH"
+msgstr "Latch opens the next restraint. 'You came. There are more people here.'"
+
+msgid "M02_LOW_WATER"
+msgstr "LOW WATER IS NEXT ON THE RECALL LIST. 'There are more people to help.'"
+
+msgid "M02_RELEASE_RECAP"
+msgstr "Latch freed another captive. LOW WATER is next on the recall list."
+
+msgid "M02_TRANSFER_LIST"
+msgstr "RECALL LIST\nNEXT: LOW WATER\nMORE NAMES"
+
+msgid "M02_SKIP_HINT"
+msgstr "{back}: SKIP"
 
 msgid "M02_DEPARTED"
 msgstr "OUT. {pause} TO LEAVE."

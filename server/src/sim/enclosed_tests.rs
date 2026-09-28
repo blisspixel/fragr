@@ -219,6 +219,7 @@ fn export_enclosed_capture() {
             presentation: None,
             mission: None,
             m02_objectives: None,
+            m02_side_ward: false,
             map_id: 1,
             map_name: "Enclosed geometry fixture".into(),
             half_extent: arena.half,

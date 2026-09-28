@@ -3,6 +3,7 @@ extends SceneTree
 class CapturingClient extends "res://scripts/net_client.gd":
 	var sent: Dictionary = {}
 	func send_json(data: Dictionary) -> void:
+		last_send_ok = true
 		sent = data.duplicate(true)
 
 class Fighter extends Node3D:

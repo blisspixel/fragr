@@ -218,6 +218,13 @@ impl AuthoredMap {
             solids: surfaces,
             decorations,
         };
+        // The current glass renderer is an M02 presentation contract. Only
+        // that map asks for capability 22 before sending its strict surface ID.
+        if presentation.ground == MapSurface::InspectionGlass
+            || (doc.m02.is_none() && presentation.solids.contains(&MapSurface::InspectionGlass))
+        {
+            return Err(invalid("inspection glass belongs to an M02 solid"));
+        }
         if doc.mission.is_some() && doc.equipment != crate::protocol::EquipmentPolicy::Discovery {
             return Err(invalid("missions require discovered equipment"));
         }
@@ -257,13 +264,33 @@ impl AuthoredMap {
         let m02 = doc
             .m02
             .map(|definition| {
-                definition.prepare(&arena, &solid_ids, &mut presentation, start, &mut seen)
+                definition.prepare(
+                    &arena,
+                    &solid_ids,
+                    &doc.encounters,
+                    &mut presentation,
+                    start,
+                    &mut seen,
+                )
             })
             .transpose()?
             .map(Arc::new);
         let supplies = supplies::build(doc.supplies, doc.equipment, &arena, &mut seen)?;
         encounters::validate(&doc.encounters, doc.equipment, &arena, &mut seen)?;
         let navigation = Navigation::shared(arena.clone()).map_err(invalid)?;
+        // The optional M02 room has its own grounded captive route. Check it
+        // in the prepared raised-shutter world before admitting a party.
+        if doc
+            .encounters
+            .iter()
+            .any(|encounter| encounter.id == "side_ward_guards")
+        {
+            let released = m02
+                .as_ref()
+                .and_then(|prepared| prepared.world(1))
+                .ok_or_else(|| invalid("M02 side ward requires a released gate world"))?;
+            crate::mission::validate_m02_evacuation_route(released.1).map_err(invalid)?;
+        }
         let opened_navigation = mission
             .as_ref()
             .map(|m| Navigation::shared(m.opened.clone()).map_err(invalid))

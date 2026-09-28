@@ -2,10 +2,12 @@
 
 The canonical list of modes. The roadmap sequences them, the plans build them, this says what each one is.
 
-**Implementation status, 2026-09-25:** free-for-all Scrap, team deathmatch,
+**Implementation status, 2026-09-26:** free-for-all Scrap, team deathmatch,
 six host mutators and Episode 0 exist; a host picks the mode and mutators at
-launch ([the multiplayer modes plan](plans/multiplayer-modes.md)). Objective
-modes, duel admission, the Sweep, and the campaign/co-op systems below are
+launch ([the multiplayer modes plan](plans/multiplayer-modes.md)). Capture the
+flag has a locally tested Sector 9 implementation in flight
+([plan](plans/capture-the-flag.md)); a human match and other maps remain open.
+Other objective modes, duel admission, the Sweep, and the campaign/co-op systems below are
 designs until source and playtests demonstrate otherwise. Nick's multiplayer
 order (2026-09-25): free-for-all, duel, team deathmatch, the GoldenEye-style
 mutators, capture the flag, Rescue, Sabotage, then a big combined-arms
@@ -34,13 +36,13 @@ This is not a rejection of depth. Item timing is deep and takes no thought to en
 
 ### Campaign
 
-Nine compact missions across Earth, Moon, Mars and a ship lead through rescue,
-resistance and Union defeat into a substantial tenth mission: surviving the wipe.
-The initial survival target is about 33 active minutes; survival unlocks a short
-playable epilogue. Exhausted failure receives its own ending and credits. A
-successful run targets 2-3 hours. Limited continues restart the
-current mission with its starting equipment; three per run is the initial balance
-proposal. Autonomous allies do not imply companion controls or revives, and
+Twenty levels in five episodes carry the campaign across Earth, Moon, Mars and
+a ship. The wipe occupies three levels with distinct clocks, about 33 active
+minutes in the initial balance target. Survival unlocks a short playable
+epilogue; exhausted failure receives its own ending and credits. A successful
+first run targets about four hours. Limited continues restart the current level
+with its starting equipment; three refilled at each episode start is the current
+contract. Autonomous allies do not imply companion controls or revives, and
 all-mission co-op is not required. [CAMPAIGN.md](CAMPAIGN.md) owns this contract;
 [mission briefs](CAMPAIGN-MISSIONS.md) own the proposed sequence. Weapon discovery,
 enemy combinations, secrets and alternate routes support that story.
@@ -88,12 +90,13 @@ Weapons, armour and the good health spawn on predictable clocks, so knowing wher
 
 Scrap in two sides: the Union in black and red against the free coalition in bone, leather and ember. Every join, human, agent or rule bot, takes the smaller side, and a round start moves rule bots first when one side is two ahead. Each side spawns in its own half through the same spawn safety as free-for-all, weapons come back on a slower 30 second clock, friendly fire is off unless the host turns it on, and the first side to the team frag limit (25 by default) takes the round. The first team mode, because every later one needs sides, team spawns and team score.
 
-### Capture the flag (next)
+### Capture the flag (Sector 9 implementation in flight)
 
 Two flags, one per side on a stand in its back third. Take theirs home while
-yours is home. A dropped flag returns when a teammate touches it or after a
-short wait. The carrier can shoot. Rules in
-[the multiplayer modes plan](plans/multiplayer-modes.md#rung-2-capture-the-flag).
+yours is home. A dropped friendly flag returns when an owner-side fighter
+touches it or after 20 seconds. The carrier can shoot. Captures decide the
+match, not frags. Sector 9 is the first authored route; the other arenas need
+two-side route review. Evidence lives in [the CTF plan](plans/capture-the-flag.md).
 
 ### Rescue and Sabotage
 

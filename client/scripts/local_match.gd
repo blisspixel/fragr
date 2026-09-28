@@ -12,7 +12,10 @@ const STOP_TIMEOUT_MS: int = 3000
 const MAX_READY_BYTES: int = 4096
 const PENDING_META: StringName = &"fragr_local_match_pending"
 ## Each bundled mission child names its own exact client contract.
-const MISSION_GAMEPLAY: Dictionary[String, int] = {"recall_notice": 12, "persons_unknown": 12}
+const DURABLE_GAMEPLAY: int = 18
+const M02_GAMEPLAY: int = 22
+const MISSION_GAMEPLAY: Dictionary[String, int] = {"recall_notice": DURABLE_GAMEPLAY, "persons_unknown": M02_GAMEPLAY}
+const NEXT_MISSION: String = "scheduled_service"
 
 var state: State = State.IDLE
 var url: String = ""
@@ -30,6 +33,9 @@ var _difficulty: String = "standard"
 var _run_mode: String = "new"
 ## The bundled mission of the running or starting child.
 var mission: String = MissionState.ID
+
+func has_durable_run() -> bool:
+	return not _run_mode.is_empty()
 
 static func for_tree(tree: SceneTree) -> LocalMatch:
 	var existing: LocalMatch = tree.root.get_node_or_null("LocalMatch") as LocalMatch
@@ -79,10 +85,11 @@ func refresh_run_preview() -> void:
 func start_mission(difficulty: String = "standard", run_mode: String = "new", mission_id: String = MissionState.ID) -> bool:
 	if state not in [State.IDLE, State.FAILED]:
 		return false
-	# M02 is a development child without a durable run, so it takes no run mode.
-	var development: bool = mission_id == MissionState.M02_ID
+	# M02 keeps an independent development child beside the durable resume path.
+	var development: bool = mission_id == MissionState.M02_ID and run_mode.is_empty()
 	if difficulty not in MissionState.DIFFICULTIES or not MISSION_GAMEPLAY.has(mission_id) \
-		or (development and not run_mode.is_empty()) or (not development and run_mode not in ["new", "resume"]):
+		or (mission_id == MissionState.ID and run_mode not in ["new", "resume"]) \
+		or (mission_id == MissionState.M02_ID and run_mode not in ["", "resume"]):
 		_fail("LOCAL_SERVER_INVALID_DIFFICULTY")
 		return false
 	_preview_process.dispose()
@@ -154,7 +161,7 @@ func _process(_delta: float) -> void:
 			return
 		var newline: int = _pending.find(10)
 		if newline >= 0:
-			var address: String = readiness_url(_pending.slice(0, newline), _difficulty, mission)
+			var address: String = readiness_url(_pending.slice(0, newline), _difficulty, mission, _run_mode)
 			if address.is_empty() or newline != _pending.size() - 1:
 				_fail("LOCAL_SERVER_INVALID_READY")
 				return
@@ -203,17 +210,26 @@ static func parse_run_preview(bytes: PackedByteArray) -> Dictionary:
 	if not data.get("status") is String:
 		return {}
 	var status: String = data["status"]
-	if status in ["missing", "failed", "abandoned", "awaiting_mission", "incompatible", "corrupt"]:
+	if status in ["missing", "failed", "abandoned", "incompatible", "corrupt"]:
 		return data if data.size() == 1 else {}
-	if status != "ready" or data.size() != 5 \
+	if status == "awaiting_mission":
+		return data if data.size() == 5 and data.has("body") and data.get("mission") in [MissionState.M02_ID, NEXT_MISSION] \
+			and data.get("difficulty") in MissionState.DIFFICULTIES \
+			and EquipmentState.integer(data.get("continues"), 3) \
+			and (data.get("body") == null or PlayerBody.valid(data["body"])) else {}
+	if status != "ready" or data.size() != 7 or not data.has("body") \
+		or data.get("mission") not in [MissionState.ID, MissionState.M02_ID] \
 		or not data.get("difficulty") is String or data["difficulty"] not in MissionState.DIFFICULTIES \
 		or not EquipmentState.integer(data.get("continues"), 3) \
-		or not EquipmentState.integer(data.get("attempt"), 4) or int(data["attempt"]) != 4 - int(data["continues"]) \
-		or not data.get("pending_continue") is bool or (data["pending_continue"] and int(data["continues"]) == 0):
+		or not EquipmentState.integer(data.get("attempt"), 4) or int(data["attempt"]) < 1 \
+		or int(data["attempt"]) + int(data["continues"]) > 4 \
+		or (data["mission"] == MissionState.ID and int(data["attempt"]) != 4 - int(data["continues"])) \
+		or not data.get("pending_continue") is bool or (data["pending_continue"] and int(data["continues"]) == 0) \
+		or (data.get("body") != null and not PlayerBody.valid(data["body"])):
 		return {}
 	return data
 
-static func readiness_url(bytes: PackedByteArray, difficulty: String = "standard", mission_id: String = MissionState.ID) -> String:
+static func readiness_url(bytes: PackedByteArray, difficulty: String = "standard", mission_id: String = MissionState.ID, run_mode: String = "new") -> String:
 	# This bootstrap contract contains only fixed ASCII identifiers and IPv4.
 	for byte: int in bytes:
 		if byte < 32 or byte > 126:
@@ -222,13 +238,16 @@ static func readiness_url(bytes: PackedByteArray, difficulty: String = "standard
 	if parser.parse(bytes.get_string_from_ascii()) != OK:
 		return ""
 	var data: Variant = parser.data
+	var gameplay: int = M02_GAMEPLAY if mission_id == MissionState.M02_ID else DURABLE_GAMEPLAY
 	if difficulty not in MissionState.DIFFICULTIES or not MISSION_GAMEPLAY.has(mission_id) \
+		or (mission_id == MissionState.M02_ID and run_mode not in ["", "resume"]) \
+		or (mission_id == MissionState.ID and run_mode not in ["new", "resume"]) \
 		or not data is Dictionary or data.size() != 5 \
 		or not EquipmentState.integer(data.get("version"), 2) or data["version"] != 2 \
 		or not data.get("difficulty") is String or data["difficulty"] != difficulty \
 		or not data.get("mission") is String or data["mission"] != mission_id \
 		or not EquipmentState.integer(data.get("gameplay_version"), 4294967295) \
-		or int(data["gameplay_version"]) != MISSION_GAMEPLAY[mission_id] \
+		or int(data["gameplay_version"]) != gameplay \
 		or not data.get("url") is String:
 		return ""
 	var address: String = data["url"]

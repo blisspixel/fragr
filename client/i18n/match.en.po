@@ -9,6 +9,87 @@ msgstr "FREE FOR ALL"
 msgid "MODE_TDM"
 msgstr "TEAM DEATHMATCH"
 
+msgid "MODE_CTF"
+msgstr "CAPTURE THE FLAG"
+
+msgid "FLAG_CAPTURE_SCORE_LINE"
+msgstr "CAPTURES U {union} : {coalition} FREE / {limit} TO WIN"
+
+msgid "FLAG_FRAGS_BOARD_LABEL"
+msgstr "FRAGS (CAPTURES WIN)"
+
+msgid "FLAG_ROUND_WINNER"
+msgstr "{team} TAKES THE ROUND"
+
+msgid "FLAG_ROUND_DRAW"
+msgstr "ROUND DRAW: FLAGS DEADLOCKED"
+
+msgid "FLAG_ROUND_FINAL_SCORE"
+msgstr "CAPTURES: UNION {union} : {coalition} FREE"
+
+msgid "FLAG_STATUS_LINE"
+msgstr "UNION FLAG {union}  //  FREE FLAG {coalition}"
+
+msgid "FLAG_HOME"
+msgstr "HOME"
+
+msgid "FLAG_CARRIED"
+msgstr "CARRIED BY {player}"
+
+msgid "FLAG_DROPPED"
+msgstr "DROPPED {seconds}S"
+
+msgid "FLAG_DROPPED_BEARING"
+msgstr "DOWN {seconds}S, {distance}M {bearing}"
+
+msgid "FLAG_BEARING_N"
+msgstr "N"
+
+msgid "FLAG_BEARING_NE"
+msgstr "NE"
+
+msgid "FLAG_BEARING_E"
+msgstr "E"
+
+msgid "FLAG_BEARING_SE"
+msgstr "SE"
+
+msgid "FLAG_BEARING_S"
+msgstr "S"
+
+msgid "FLAG_BEARING_SW"
+msgstr "SW"
+
+msgid "FLAG_BEARING_W"
+msgstr "W"
+
+msgid "FLAG_BEARING_NW"
+msgstr "NW"
+
+msgid "FLAG_WORLD_UNION"
+msgstr "UNION FLAG"
+
+msgid "FLAG_WORLD_COALITION"
+msgstr "FREE FLAG"
+
+msgid "FLAG_WORLD_UNION_DOWN"
+msgstr "UNION FLAG DOWN"
+
+msgid "FLAG_WORLD_COALITION_DOWN"
+msgstr "FREE FLAG DOWN"
+
+msgid "FLAG_EVENT_TAKEN"
+msgstr "{player} TAKES THE {flag} FLAG"
+
+msgid "FLAG_EVENT_DROPPED"
+msgstr "{player} DROPS THE {flag} FLAG"
+
+msgid "FLAG_EVENT_RETURNED"
+msgstr "{flag} FLAG RETURNS HOME"
+
+msgid "FLAG_EVENT_CAPTURED"
+msgstr "{player} CAPTURES THE {flag} FLAG"
+
 msgid "MUTATOR_RAIL_ONLY"
 msgstr "RAIL ONLY"
 

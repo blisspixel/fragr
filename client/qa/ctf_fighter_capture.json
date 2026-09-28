@@ -1,0 +1,40 @@
+{
+  "comment": "Joined first-person Coalition capture on Sector 9. Run with FRAGR_QA_MODE=ctf FRAGR_QA_MAP=4 FRAGR_QA_BOTS=0 FRAGR_QA_CAPTURE_LIMIT=1 FRAGR_QA_SEED=42.",
+  "width": 1280,
+  "height": 720,
+  "states": [
+    {
+      "name": "ctf_fighter_enemy_stand",
+      "scene": "res://scenes/main.tscn",
+      "at_seconds": 2,
+      "join": "human",
+      "camera": "first_person",
+      "walk_to": [[32, 0, -32], [32, 0, 0], [20, 0, 0], [-20, 0, 0], [-32, 0, 0], [-48, 0, 0], [-48, 0, 12], [-70, 0, 12], [-70, 0, 0]],
+      "expect_flag_statuses": ["carried", "home"],
+      "expect_carried_flag_team": "union",
+      "expect_capture_scores": {"union": 0, "coalition": 0},
+      "expect_round_state": "Active",
+      "note": "The joined Coalition fighter took the Union flag at its stand."
+    },
+    {
+      "name": "ctf_fighter_home_approach",
+      "camera": "first_person",
+      "walk_to": [[-70, 0, 12], [-48, 0, 12], [-48, 0, 0], [-32, 0, 0], [-20, 0, 0], [20, 0, 0], [32, 0, 0], [48, 0, 0], [48, 0, 12]],
+      "expect_flag_statuses": ["carried", "home"],
+      "expect_carried_flag_team": "union",
+      "expect_capture_scores": {"union": 0, "coalition": 0},
+      "expect_round_state": "Active",
+      "note": "The same joined fighter carries the Union flag toward the Coalition stand while its own flag is home."
+    },
+    {
+      "name": "ctf_fighter_capture_result",
+      "camera": "first_person",
+      "walk_to": [[70, 0, 12], [70, 0, 2]],
+      "settle_seconds": 0.25,
+      "expect_flag_statuses": ["home", "home"],
+      "expect_capture_scores": {"union": 0, "coalition": 1},
+      "expect_round_state": "Ended",
+      "note": "The joined fighter delivered the Union flag to the Coalition stand and ended the round by capture."
+    }
+  ]
+}

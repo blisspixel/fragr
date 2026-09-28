@@ -1,7 +1,7 @@
 # M02 objective and gate foundation
 
 **Status:** in flight, 2026-09-23. This is the first M02 seam after the
-[durable run](campaign-run-file.md), in the [full build order](../ROADMAP.md#full-build-order-2026-09-22).
+[durable run](campaign-run-file.md), in the [full build order](../ROADMAP.md#full-build-order-2026-09-27).
 
 ## Goal
 
@@ -277,9 +277,9 @@ The tour holds Use for 0.15 s: a press and release in the same frame travels in
 one action message, which the server's inbound rate limit can drop at high
 frame rates. A person's press spans many frames.
 
-M02 is still not playable as a mission: Latch, the Jammer, encounters, the
-maintenance loop, optional captives, secrets, the story page, M01 to M02 carry
-and human acceptance remain.
+M02 is still a development route: Latch as an actor, Crawlers, the ward seal,
+maintenance loop, optional captives, secrets, story page, M01 to M02 carry and
+human acceptance remain. The Jammer first appears in level 3.
 
 ## Progress, 2026-09-24: fights, not doors
 
@@ -352,6 +352,12 @@ through a mirror of the server budget: about 240 sends, none dropped, a
 sub-frame tap delivered exactly once, and a tap on a skipped frame carried by
 the next send.
 
-M02 remains a development graybox: Latch as an actor, the Jammer, Crawlers,
-the maintenance loop, captives, secrets, the story page, M01 to M02 carry and
-human acceptance are pending.
+At this 2026-09-24 checkpoint, M02 remained a development graybox: Latch as
+an actor, Crawlers, the maintenance loop, captives, secrets, the story page,
+M01 to M02 carry and human acceptance were pending.
+
+**2026-09-27 correction:** the accepted twenty-level design places the Jammer
+in level 3, not M02. Its mentions above are historical graybox scope. The
+separate [Shotgun introduction](m02-shotgun-introduction.md) adds the guard-room
+fight; this plan's earlier nine-enemy measurement remains evidence for the
+previous graybox, not the revised map.

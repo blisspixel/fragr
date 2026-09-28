@@ -1,49 +1,87 @@
-# Home LAN self-host (fragr)
+# Home and LAN dedicated host
 
-Run the Rust authoritative server on a box you control at home. Minecraft-shaped: friends and agents join the same fight without a VPN when you open the game port.
+The Rust server owns one match. Run it on a machine you control and give
+friends that machine's address. The current game port is **TCP 6767** for
+WebSocket. UDP is reserved for a measured future transport and the container
+does not publish it yet. No cloud account or external API charge is needed.
 
-Default game port: **TCP 6767** (WebSocket today; UDP later if renet). Do not document 7777.
+## Start with Docker Compose
 
-## Local play (no strangers)
-
-```bash
-cargo run -p fragr-server -- --bind 127.0.0.1:6767 --bots 4
-# Godot client/ F5, or FRAGR_SERVER=127.0.0.1:6767
-# agent-adapter: cargo run -- mcp --server ws://127.0.0.1:6767
-```
-
-Loopback only. Fine for solo + bots and private agent tests.
-
-## LAN buddies (same network)
+From the repository root, with Docker running:
 
 ```bash
-cargo run -p fragr-server -- --bind 0.0.0.0:6767 --bots 4
+docker compose up --build -d
+docker compose ps
 ```
 
-Clients use the host's LAN IP: `ws://192.168.x.x:6767`. Allow TCP 6767 on the host firewall (ufw/firewalld/Windows Defender) for the LAN subnet.
+The image compiles the locked Rust server, embeds the shipped maps and carries
+fragr's license and the linked crates' notices under `/usr/share/doc/fragr`.
+Compose
+starts four rule bots on Arena Duel, restarts the process if it exits, and
+checks that `GET /status` reports `health.status: ok` from inside the
+container. Wait until `docker compose ps`
+shows `healthy`. Confirm the host can read `http://127.0.0.1:6767/status`.
+The health reply is an operator probe, not a player or agent protocol.
 
-Tailscale is optional for operator smoke when you are away from home. It is **not** required for friends on the same LAN.
+```bash
+docker compose logs --tail=100 server
+docker compose down
+```
 
-## Public strangers + agents (no Tailscale required)
+Set `FRAGR_BOTS` or `FRAGR_MAP` in the shell or a repository-root `.env` before
+starting Compose to change the roster or map. `.env` is ignored by Git. To
+select a rule set, use a local Compose override that replaces the `command`
+array with the server's documented CLI flags. Do not put join secrets in the
+image, command, or a committed override.
 
-Same binary. Expose **only** the game port:
+The container runs as a non-root user with a read-only root filesystem and
+publishes TCP 6767. It writes no campaign run file. Local Single Player owns
+its separate loopback process and run storage; do not point that menu at the
+dedicated container.
 
-1. Bind `0.0.0.0:6767` on the host.
-2. Router port-forward **TCP 6767** (and UDP 6767 later if transport adds it) to that host.
-3. Prefer a dedicated low-privilege `fragr` user + systemd unit with `Restart=always` (see DURABLE-HOST.md sketch).
-4. Do **not** open SSH to the world. Keep SSH on LAN or IAP/Tailscale for operators only.
-5. Tell joiners your public IP or DNS: `ws://YOUR_PUBLIC:6767`.
+## Connect
 
-CGNAT / double-NAT: if your ISP will not forward, use a cheap VPS instead (CHEAP-VPS.md) or the GCP durable recipe (DURABLE-HOST.md). Do not ship Tailscale-only as the stranger/agent path.
+- On the same machine, the Godot client can use `127.0.0.1:6767`.
+- On a LAN, use the host's LAN address, such as `192.168.x.x:6767`. Allow TCP
+  6767 through the host firewall only for the LAN subnet if this is a private
+  match.
+- A trusted-friends internet test can forward **TCP 6767** on the router to
+  the host and give joiners the public IP or DNS name. The direct `ws://`
+  connection is plaintext. Limit the source addresses at the firewall where
+  possible and do not treat a shared join secret over that connection as
+  protected. A stranger-facing service needs TLS, ticket distribution and a
+  public abuse and recovery test before it is ready. If your ISP uses CGNAT or
+  double NAT, a small host with a public address is an alternative in
+  [CHEAP-VPS.md](CHEAP-VPS.md).
 
-## Security bar (home)
+The app's Multiplayer page and `FRAGR_SERVER` accept the host address.
+The adapter connects to the configured WebSocket endpoint. Tailscale can be
+used for a private test, but is not required for the public join path.
 
-- Game port open; admin/SSH closed to the internet.
-- No secrets on the server command line. Optional `FRAGR_JOIN_SECRET` (16 to 256 bytes) makes a human or agent present a short ticket. Spectators can still watch. Leave it unset for an open LAN. An empty value is unset. The wrong length refuses to bind. The host and the player need clocks within about 15 seconds.
-- Incoming frames stop at 64 KiB. One address can hold 32 connections, and the process holds 64. Extra text after hello is dropped after a burst of 64 and 256 per second. A quiet spectator stays connected: it answers the server's ping every 15 seconds. A session silent for 45 seconds, a sustained flood, or repeated unreadable frames are closed with a reason.
-- `--ban-list <PATH>` refuses listed addresses or CIDR ranges; `--allow-list <PATH>` admits only those. Edits apply within five seconds; a bad edit keeps the previous list. Joins, rejections, kicks and bans log under `fragr_server::audit`.
-- Agent-adapter stays off the combat tick (separate process). Never put authority on scale-to-zero.
+## Admission and access files
 
-## Cost
+An unset or empty `FRAGR_JOIN_SECRET` leaves player admission open. To require
+join tickets, set one 16 to 256 byte value as an environment variable on the
+host and on each human or agent client. Compose passes it to the server.
+Spectators can still watch. The client and host clocks must agree within about
+15 seconds. Do not reuse a valuable secret on a plaintext public connection.
+Configure transport security before relying on tickets for public admission.
 
-Home electricity only unless you also run cloud. No GCP spend for this path.
+The server accepts `--ban-list` and `--allow-list` file paths. For a container,
+mount the files read-only and pass their **container paths** in a local Compose
+override. Do not mount an entire secret directory or include the files in the
+image. Invalid lists refuse startup; bad reloads keep the last valid list.
+Addresses and CIDR ranges are checked before a session takes a seat.
+
+`docker compose logs server` shows joins, rejections and health diagnostics.
+Keep SSH closed to the public internet. The [hosting plan](../../docs/plans/dedicated-server-udp-and-hosting.md)
+records the later TLS, measured transport and cloud gates.
+
+## Without Docker
+
+```bash
+cargo run -p fragr-server --locked -- --bind 127.0.0.1:6767 --bots 4
+```
+
+For LAN peers, bind `0.0.0.0:6767` and apply the same firewall rule. The
+desktop client and adapter use exactly the same wire as the container host.

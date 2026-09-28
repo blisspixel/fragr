@@ -203,6 +203,70 @@ pub fn micro_action(plan: &Plan, me: Uuid, snapshot: &Snapshot) -> Action {
     micro_action_with_visibility(plan, me, snapshot, |_, _| true, |_, _| true)
 }
 
+/// Arena CTF uses local route intent at tick rate. A decision model can still
+/// choose equipment and stance, but cannot override objective ownership.
+pub fn ctf_micro_action(plan: &Plan, me: Uuid, snapshot: &Snapshot) -> Action {
+    let Some(flags) = snapshot.flags.as_ref() else {
+        return micro_action(plan, me, snapshot);
+    };
+    let Some(mine) = snapshot.players.iter().find(|p| p.id == me) else {
+        return Action::default();
+    };
+    let Some(team) = mine.team else {
+        return Action::default();
+    };
+    let own = &flags[team.index()];
+    let enemy = &flags[team.other().index()];
+    if enemy.carrier != Some(me)
+        && snapshot.players.iter().any(|other| {
+            mine.is_hostile_to(other)
+                && other.hp > 0
+                && (other.x - mine.x).hypot(other.z - mine.z) < 12.0
+        })
+    {
+        return micro_action(plan, me, snapshot);
+    }
+    let goal = if enemy.carrier == Some(me) {
+        if own.status == fragr_server::protocol::FlagStatus::Dropped {
+            own.position
+        } else if let Some(carrier) = own.carrier {
+            snapshot
+                .players
+                .iter()
+                .find(|p| p.id == carrier)
+                .map(|p| [p.x, p.y - fragr_server::sim::PLAYER_FLOOR_Y, p.z])
+                .unwrap_or(own.stand)
+        } else {
+            own.stand
+        }
+    } else if own.status == fragr_server::protocol::FlagStatus::Dropped {
+        own.position
+    } else if let Some(carrier) = own.carrier {
+        snapshot
+            .players
+            .iter()
+            .find(|p| p.id == carrier)
+            .map(|p| [p.x, p.y - fragr_server::sim::PLAYER_FLOOR_Y, p.z])
+            .unwrap_or(own.stand)
+    } else if enemy.carrier.is_none() {
+        enemy.position
+    } else {
+        own.stand
+    };
+    let close = (goal[0] - mine.x).hypot(goal[2] - mine.z) < 1.5;
+    Action {
+        forward: !close,
+        look_at: Some(LookAt {
+            x: Some(goal[0]),
+            y: Some(goal[1]),
+            z: Some(goal[2]),
+            player_id: None,
+        }),
+        weapon_swap: plan.weapon,
+        ..Action::default()
+    }
+}
+
 /// Campaign combat only takes over the mission route for a guard in view.
 /// Visibility is an observation; the server still resolves every shot.
 pub fn campaign_micro_action(
@@ -264,7 +328,7 @@ pub fn campaign_enemy_engageable(
     ];
     let center = [
         other.x,
-        other.y - PLAYER_FLOOR_Y + fragr_server::combat::FIGHTER_HEIGHT * 0.5,
+        other.y - PLAYER_FLOOR_Y + fragr_server::combat::target_height(other.campaign) * 0.5,
         other.z,
     ];
     world.line_of_sight(eye, center)
@@ -378,6 +442,7 @@ mod tests {
             phase: EnemyPhase::Idle,
             phase_started: 0,
             phase_ends: 0,
+            seated: false,
         });
         let mut snap = snapshot(1, vec![mine, partner, guard], vec![]);
         let telemetry = telemetry_for(&snap, me);
@@ -409,6 +474,7 @@ mod tests {
             phase: EnemyPhase::Idle,
             phase_started: 0,
             phase_ends: 0,
+            seated: false,
         });
         let world = Navigation::new(Arena {
             half: 24.0,
@@ -468,6 +534,39 @@ mod tests {
         snap.players[2].x = 24.0;
         snap.players[2].z = 20.0;
         assert!(through_inventory(&snap).look_at.is_none());
+    }
+
+    #[test]
+    fn campaign_visibility_uses_the_crawlers_low_hit_volume() {
+        use fragr_server::protocol::{CampaignActor, EnemyKind, EnemyPhase};
+        let me = Uuid::from_u128(1);
+        let foe = Uuid::from_u128(2);
+        let mut mine = player("me", me, 0.0, 0.0, 100, "tack");
+        mine.campaign = Some(CampaignActor::Participant {});
+        mine.y = PLAYER_FLOOR_Y;
+        let mut guard = player("guard", foe, 10.0, 0.0, 60, "tack");
+        guard.y = PLAYER_FLOOR_Y;
+        guard.campaign = Some(CampaignActor::Union {
+            kind: EnemyKind::Clerk,
+            phase: EnemyPhase::Idle,
+            phase_started: 0,
+            phase_ends: 0,
+            seated: false,
+        });
+        let world = Navigation::new(Arena {
+            half: 24.0,
+            solids: vec![Solid::from_center_top(5.0, 0.0, 0.25, 2.0, 1.15)],
+        })
+        .unwrap();
+        assert!(campaign_enemy_engageable(&world, &mine, &guard));
+        guard.campaign = Some(CampaignActor::Union {
+            kind: EnemyKind::Crawler,
+            phase: EnemyPhase::Idle,
+            phase_started: 0,
+            phase_ends: 0,
+            seated: false,
+        });
+        assert!(!campaign_enemy_engageable(&world, &mine, &guard));
     }
 
     #[test]
@@ -836,6 +935,47 @@ mod tests {
         let action = micro_action(&heal, me, &no_pads);
         assert_eq!(action.look_at.unwrap().player_id, Some(foe));
         assert!(action.back, "kite when there is nowhere to heal");
+    }
+
+    #[test]
+    fn ctf_controller_pursues_flag_then_own_stand() {
+        use fragr_server::protocol::{FlagState, FlagStatus, Team};
+        let me = Uuid::from_u128(1);
+        let mut mine = player("me", me, 0.0, 0.0, 90, "rail");
+        mine.team = Some(Team::Coalition);
+        let mut snap = snapshot(1, vec![mine], vec![]);
+        snap.flags = Some([
+            FlagState {
+                team: Team::Union,
+                stand: [-70.0, 0.0, 0.0],
+                position: [-70.0, 0.0, 0.0],
+                status: FlagStatus::Home,
+                carrier: None,
+                return_ticks: None,
+            },
+            FlagState {
+                team: Team::Coalition,
+                stand: [70.0, 0.0, 0.0],
+                position: [70.0, 0.0, 0.0],
+                status: FlagStatus::Home,
+                carrier: None,
+                return_ticks: None,
+            },
+        ]);
+        let plan = Plan::default();
+        let first = ctf_micro_action(&plan, me, &snap);
+        assert!(first.forward);
+        assert_eq!(first.look_at.unwrap().x, Some(-70.0));
+        let mut blocker = player("foe", Uuid::from_u128(2), 5.0, 0.0, 100, "rail");
+        blocker.team = Some(Team::Union);
+        snap.players.push(blocker);
+        let fight = ctf_micro_action(&plan, me, &snap);
+        assert_eq!(fight.look_at.unwrap().player_id, Some(Uuid::from_u128(2)));
+        snap.players.pop();
+        snap.flags.as_mut().unwrap()[0].carrier = Some(me);
+        snap.flags.as_mut().unwrap()[0].status = FlagStatus::Carried;
+        let return_home = ctf_micro_action(&plan, me, &snap);
+        assert_eq!(return_home.look_at.unwrap().x, Some(70.0));
     }
 
     #[test]

@@ -173,6 +173,13 @@ fn entry_inventory_and_world_restore_without_rewinding_observers() {
     };
     let revision = player.inventory.revision();
     die(&mut state, id);
+    let before_epoch = match &state.input_acks()[0].1 {
+        crate::protocol::ServerMessage::Ack {
+            movement: Some(body),
+            ..
+        } => body.epoch,
+        other => panic!("expected full Ack before continue: {other:?}"),
+    };
     let tick = state.tick;
     assert!(state.continue_mission(id, request(&state)));
     assert_eq!(state.map, original_map);
@@ -184,6 +191,16 @@ fn entry_inventory_and_world_restore_without_rewinding_observers() {
     );
     assert_eq!(player.weapon, WeaponType::Tack);
     assert_eq!(player.last_input_seq, Some(123));
+    let continued = match &state.input_acks()[0].1 {
+        crate::protocol::ServerMessage::Ack {
+            movement: Some(body),
+            ..
+        } => body.clone(),
+        other => panic!("expected full Ack after continue: {other:?}"),
+    };
+    assert!(continued.epoch > before_epoch);
+    assert!(!continued.applied);
+    assert_eq!(continued.y, player.y);
     assert!(
         !player.pending_action.fire && !player.pending_action.jump && !player.interaction_requested
     );

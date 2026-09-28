@@ -23,6 +23,7 @@ func _departed_state() -> Dictionary:
 			"id": "00000000-0000-0000-0000-000000000002",
 			"status": "complete",
 			"continues": 3,
+			"level_start_continues": 3,
 		},
 	}
 

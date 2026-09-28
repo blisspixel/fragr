@@ -3,6 +3,7 @@ extends SceneTree
 class CaptureNetwork extends "res://scripts/net_client.gd":
 	var sent: Array[Dictionary] = []
 	func send_json(data: Dictionary) -> void:
+		last_send_ok = true
 		sent.append(data.duplicate(true))
 
 const PLAYER: String = "00000000-0000-0000-0000-000000000001"
@@ -157,7 +158,7 @@ func _continues() -> void:
 	var message: Dictionary = _message()
 	message["state"]["prompts"] = []
 	message["state"]["party"][0]["alive"] = false
-	message["state"]["run"] = {"id": "00000000-0000-0000-0000-000000000067", "status": "continue", "continues": 3}
+	message["state"]["run"] = {"id": "00000000-0000-0000-0000-000000000067", "status": "continue", "continues": 3, "level_start_continues": 3}
 	_expect(MissionState.validation_error(message, _map()["mission"]).is_empty(), "dead owner can choose a continue")
 	var failed: Dictionary = message.duplicate(true)
 	failed["state"]["attempt"] = 4
@@ -165,7 +166,7 @@ func _continues() -> void:
 	failed["state"]["run"]["status"] = "failed"
 	failed["state"]["party"] = []
 	_expect(MissionState.validation_error(failed, _map()["mission"]).is_empty(), "exhaustion remains visible after owner departure")
-	for patch: Dictionary in [{"continues": 4}, {"continues": 0}, {"continues": true}, {"status": "complete"}, {"status": "failed"}, {"status": "abandoned"}, {"id": PLAYER.replace("1", "0")}, {"extra": true}]:
+	for patch: Dictionary in [{"continues": 4}, {"continues": 0}, {"continues": true}, {"level_start_continues": 2}, {"level_start_continues": 4}, {"level_start_continues": true}, {"status": "complete"}, {"status": "failed"}, {"status": "abandoned"}, {"id": PLAYER.replace("1", "0")}, {"extra": true}]:
 		var bad: Dictionary = message.duplicate(true)
 		bad["state"]["run"].merge(patch, true)
 		_expect(not MissionState.validation_error(bad, _map()["mission"]).is_empty(), "invalid run rejected: " + str(patch))

@@ -15,6 +15,8 @@ static func map_error(info: Dictionary) -> String:
 	var m02_problem: String = m02_map_error(info)
 	if not m02_problem.is_empty() or info.get("m02_objectives") != null:
 		return m02_problem
+	if info.has("m02_side_ward") and (not info["m02_side_ward"] is bool or info["m02_side_ward"]):
+		return INVALID
 	var value: Variant = info.get("mission")
 	if value == null:
 		return ""
@@ -104,12 +106,16 @@ static func valid_rules(value: Variant, oldest: int = RULES_REVISION) -> bool:
 		and value.get("difficulty") is String and value["difficulty"] in DIFFICULTIES \
 		and EquipmentState.integer(value.get("revision"), RULES_REVISION) and int(value["revision"]) >= maxi(oldest, 1)
 
-static func valid_run_identity(run: Variant, attempt: Variant) -> bool:
-	if not run is Dictionary or run.size() != 3 or not _uuid(run.get("id")) \
+static func valid_run_identity(run: Variant, attempt: Variant, allow_legacy: bool = false) -> bool:
+	if not run is Dictionary or run.size() != (4 if run.has("level_start_continues") else 3) \
+		or (not run.has("level_start_continues") and not allow_legacy) or not _uuid(run.get("id")) \
 		or run["id"] == "00000000-0000-0000-0000-000000000000" \
 		or not run.get("status") is String or run["status"] not in RUN_STATUSES \
 		or not EquipmentState.integer(run.get("continues"), 3) \
-		or not EquipmentState.integer(attempt, 4) or int(attempt) != 4 - int(run["continues"]):
+		or (run.has("level_start_continues") and not EquipmentState.integer(run["level_start_continues"], 3)) \
+		or int(run["continues"]) > int(run.get("level_start_continues", 3)) \
+		or not EquipmentState.integer(attempt, 4) \
+		or int(attempt) != int(run.get("level_start_continues", 3)) - int(run["continues"]) + 1:
 		return false
 	return not ((run["status"] == "continue" and run["continues"] == 0) \
 		or (run["status"] == "failed" and run["continues"] != 0))
@@ -117,6 +123,8 @@ static func valid_run_identity(run: Variant, attempt: Variant) -> bool:
 static func valid_run(state: Dictionary) -> bool:
 	var run: Variant = state.get("run")
 	if not valid_run_identity(run, state.get("attempt")) or state["party"].size() > 1:
+		return false
+	if state.get("id") == ID and int(run["level_start_continues"]) != 3:
 		return false
 	if (run["status"] == "complete") != (state["phase"] == "departed") \
 		or (run["status"] == "abandoned" and not state["party"].is_empty()) \
@@ -131,7 +139,8 @@ static func valid_run(state: Dictionary) -> bool:
 static func run_follows(current: Variant, previous: Variant) -> bool:
 	if previous == null or current == null:
 		return previous == current
-	return current["id"] == previous["id"] and current["continues"] <= previous["continues"]
+	return current["id"] == previous["id"] and current["continues"] <= previous["continues"] \
+		and current.get("level_start_continues", 3) == previous.get("level_start_continues", 3)
 
 static func _point(value: Variant, half: float) -> bool:
 	if not value is Array or value.size() != 3:
@@ -158,6 +167,11 @@ const M02_ID: String = "persons_unknown"
 const M02_PHASES: Array[String] = ["briefing", "in_progress", "departed"]
 const M02_DEPARTURE: String = "party_departed"
 const M02_MAX_OBJECTIVES: int = 8
+const M02_EVAC_PHASES: Array[String] = ["held", "freeing", "ready", "moving", "waiting", "evacuated"]
+const M02_HELD_FEET: Array[Vector3] = [Vector3(22.6, 0.0, 9.0), Vector3(24.5, 0.0, 9.0)]
+const M02_WAIT_FEET: Array[Vector3] = [Vector3(-5.2, 0.0, 11.0), Vector3(-3.5, 0.0, 11.0)]
+const M02_DOCK_SAFE_MIN: Vector2 = Vector2(-2.5, 19.0)
+const M02_DOCK_SAFE_MAX: Vector2 = Vector2(4.0, 23.0)
 
 static func m02_map_error(info: Dictionary) -> String:
 	var count: Variant = info.get("m02_objectives")
@@ -165,6 +179,7 @@ static func m02_map_error(info: Dictionary) -> String:
 		return ""
 	var presentation: Variant = info.get("presentation")
 	if info.get("mission") != null or not EquipmentState.integer(count, M02_MAX_OBJECTIVES) or int(count) < 1 \
+		or not info.get("m02_side_ward", false) is bool \
 		or not presentation is Dictionary or not presentation.get("decorations") is Array:
 		return INVALID
 	return ""
@@ -178,12 +193,13 @@ static func geometry_for(info: Dictionary) -> Dictionary:
 	var kinds: Array[String] = []
 	for detail: Dictionary in info["presentation"]["decorations"]:
 		kinds.append(str(detail["kind"]))
-	return {"id": M02_ID, "total": int(info["m02_objectives"]), "half_extent": float(info["half_extent"]), "kinds": kinds}
+	return {"id": M02_ID, "map_id": int(info["map_id"]), "total": int(info["m02_objectives"]), "half_extent": float(info["half_extent"]),
+		"kinds": kinds, "side_ward": bool(info.get("m02_side_ward", false))}
 
 static func m02_validation_error(message: Dictionary, geometry: Dictionary, previous: Dictionary = {}) -> String:
 	var value: Variant = message.get("state")
 	if not EquipmentState.integer(message.get("tick"), EquipmentState.MAX_EXACT_INTEGER) \
-		or not value is Dictionary or value.size() != 8 or value.has("run") \
+		or not value is Dictionary or value.size() != (9 if value.has("run") else 8) \
 		or geometry.get("id") != M02_ID or value.get("id") != M02_ID \
 		or not valid_rules(value.get("rules")) \
 		or not value.get("phase") is String or value["phase"] not in M02_PHASES \
@@ -193,18 +209,27 @@ static func m02_validation_error(message: Dictionary, geometry: Dictionary, prev
 		or not value.get("prompts") is Array or value["prompts"].size() > value["party"].size() \
 		or not value.get("m02") is Dictionary:
 		return INVALID
+	if value.has("run") and not valid_run(value):
+		return INVALID
 	var progress: Dictionary = value["m02"]
 	var total: int = int(geometry["total"])
 	if not progress.get("completed") is Array or not EquipmentState.integer(progress.get("total"), M02_MAX_OBJECTIVES) \
 		or int(progress["total"]) != total or not EquipmentState.integer(progress.get("gate_mask"), 7) \
-		or progress.size() != (4 if progress.has("current") else 3):
+		or not progress.get("ward_secured") is bool or not progress.get("side_ward_secured") is bool \
+		or progress.size() != ((7 if progress.has("current") else 6) if progress.has("evacuation") else (6 if progress.has("current") else 5)) \
+		or progress.has("evacuation") != geometry.get("side_ward", false) \
+		or (not progress.has("evacuation") and progress["side_ward_secured"]) \
+		or (progress.has("evacuation") and not _m02_evacuation_valid(progress["evacuation"], progress, value["phase"], float(geometry["half_extent"]))):
 		return INVALID
 	var completed: Array = progress["completed"]
 	var departed: bool = value["phase"] == "departed"
 	var current: Variant = progress.get("current")
 	if completed.size() > total or departed != (completed.size() == total) \
 		or (current != null) != (completed.size() < total) \
-		or (value["phase"] == "briefing" and (not completed.is_empty() or int(progress["gate_mask"]) != 0)):
+		or (value["phase"] == "briefing" and (not completed.is_empty() or int(progress["gate_mask"]) != 0 \
+			or progress["ward_secured"] or progress["side_ward_secured"])) \
+		or (progress["side_ward_secured"] and not progress["ward_secured"]) \
+		or ("companion_released" in completed and not progress["ward_secured"]):
 		return INVALID
 	var seen: Array[String] = []
 	for id: Variant in completed:
@@ -219,17 +244,24 @@ static func m02_validation_error(message: Dictionary, geometry: Dictionary, prev
 		if not problem.is_empty():
 			return problem
 		use_prompt = current["action"]["kind"] == "use" and value["phase"] == "in_progress"
+		if current["id"] == "companion_released" and not progress["ward_secured"]:
+			use_prompt = false
 		if current["id"] == M02_DEPARTURE and (completed.size() + 1 != total or current["action"]["kind"] != "arrival"):
 			return INVALID
 	if not previous.is_empty():
 		var old: Dictionary = previous["state"]
 		if int(value["attempt"]) < int(old["attempt"]) or int(message["tick"]) < int(previous["tick"]) \
-			or value["rules"] != old["rules"] or old.get("id") != M02_ID:
+			or value["rules"] != old["rules"] or old.get("id") != M02_ID \
+			or not run_follows(value.get("run"), old.get("run")):
 			return INVALID
 		# Within one attempt, progress only extends; a retry may restart it.
 		if int(value["attempt"]) == int(old["attempt"]):
 			var before: Array = old["m02"]["completed"]
-			if completed.size() < before.size() or completed.slice(0, before.size()) != before:
+			if completed.size() < before.size() or completed.slice(0, before.size()) != before \
+				or (old["m02"]["ward_secured"] and not progress["ward_secured"]) \
+				or (old["m02"]["side_ward_secured"] and not progress["side_ward_secured"]) \
+				or progress.has("evacuation") != old["m02"].has("evacuation") \
+				or (progress.has("evacuation") and not _m02_evacuation_follows(progress["evacuation"], old["m02"]["evacuation"], old["phase"])):
 				return INVALID
 	var party: Dictionary = {}
 	for member: Variant in value["party"]:
@@ -253,6 +285,44 @@ static func m02_validation_error(message: Dictionary, geometry: Dictionary, prev
 			return INVALID
 		prompted.append(prompt["player_id"])
 	return ""
+
+static func _m02_evacuation_valid(value: Variant, progress: Dictionary, mission_phase: String, half: float) -> bool:
+	if not value is Dictionary or value.size() != 3 or not value.get("phase") is String \
+		or value["phase"] not in M02_EVAC_PHASES or not value.get("evacuated") is bool \
+		or not value.get("captives") is Array or value["captives"].size() != 2:
+		return false
+	for index: int in range(2):
+		var feet: Variant = value["captives"][index]
+		if not _point(feet, half) or absf(float(feet[1])) > 0.001:
+			return false
+		if value["phase"] == "held" and Vector3(float(feet[0]), float(feet[1]), float(feet[2])).distance_to(M02_HELD_FEET[index]) > 0.01:
+			return false
+		if value["phase"] == "waiting" and Vector3(float(feet[0]), float(feet[1]), float(feet[2])).distance_to(M02_WAIT_FEET[index]) > 0.25:
+			return false
+	var phase: String = value["phase"]
+	if phase == "evacuated":
+		for feet: Array in value["captives"]:
+			if float(feet[0]) < M02_DOCK_SAFE_MIN.x or float(feet[0]) > M02_DOCK_SAFE_MAX.x \
+				or float(feet[2]) < M02_DOCK_SAFE_MIN.y or float(feet[2]) > M02_DOCK_SAFE_MAX.y:
+				return false
+	return value["evacuated"] == (phase == "evacuated") \
+		and (progress["side_ward_secured"] or phase == "held") \
+		and (mission_phase != "briefing" or phase == "held")
+
+static func _m02_evacuation_follows(current: Dictionary, previous: Dictionary, old_mission_phase: String) -> bool:
+	if old_mission_phase == "departed" or previous["phase"] == "evacuated":
+		return current == previous
+	if current["phase"] == previous["phase"]:
+		return true
+	# Mission changes use the reliable ordered WebSocket door. The server sends
+	# every phase edge, including the wait-to-move restart, before new positions.
+	match previous["phase"]:
+		"held": return current["phase"] == "freeing"
+		"freeing": return current["phase"] == "ready"
+		"ready": return current["phase"] == "moving"
+		"moving": return current["phase"] in ["waiting", "evacuated"]
+		"waiting": return current["phase"] == "moving"
+	return false
 
 static func _m02_objective_error(current: Variant, geometry: Dictionary, completed: Array[String]) -> String:
 	if not current is Dictionary or current.size() != 2 or not valid_objective_id(current.get("id")) \

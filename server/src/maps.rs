@@ -41,6 +41,21 @@ pub enum AuthoredSource {
 }
 
 impl AuthoredSource {
+    /// Exact bundled bytes also hashed by the strict loader. Preview needs
+    /// identity only and must not build two complete navigation topologies.
+    pub(crate) fn bundled_content_sha256(mission: crate::protocol::MissionId) -> [u8; 32] {
+        use sha2::Digest;
+        let bytes: &[u8] = match mission {
+            crate::protocol::MissionId::RecallNotice => {
+                include_bytes!("../maps/m01-recall-notice.json")
+            }
+            crate::protocol::MissionId::PersonsUnknown => {
+                include_bytes!("../maps/m02-persons-unknown.json")
+            }
+        };
+        sha2::Sha256::digest(bytes).into()
+    }
+
     pub fn load(&self) -> std::io::Result<std::sync::Arc<AuthoredMap>> {
         match self {
             Self::File(path) => AuthoredMap::load(path),
@@ -66,6 +81,15 @@ pub(crate) fn arena(kind: MapKind) -> &'static crate::movement::Arena {
             solids: layout.solids.clone(),
         }
     })
+}
+
+/// Ground-level flag stands for two-sided league scenarios. A map without
+/// validated stands cannot run capture the flag.
+pub(crate) fn ctf_stands(kind: MapKind) -> Option<[[f32; 3]; 2]> {
+    match kind {
+        MapKind::Sector9 => Some([[-70.0, 0.0, 0.0], [70.0, 0.0, 0.0]]),
+        _ => None,
+    }
 }
 
 struct NavigationCache {
@@ -1117,6 +1141,28 @@ pub(crate) fn validate(kind: MapKind) -> Vec<String> {
         }
     }
 
+    if let Some(stands) = ctf_stands(kind) {
+        for (i, stand) in stands.iter().enumerate() {
+            let [x, floor, z] = *stand;
+            if x.abs() < def.half_extent / 3.0
+                || x.abs() + RADIUS > def.half_extent
+                || z.abs() + RADIUS > def.half_extent
+            {
+                problems.push(format!("{name}: flag stand {i} is outside its back third"));
+            }
+            if !can_stand(kind, x, z) || (stand_height(kind, x, z) - floor).abs() > 0.01 {
+                problems.push(format!("{name}: flag stand {i} lacks clear ground"));
+            }
+            if def
+                .pickups
+                .iter()
+                .any(|pad| (pad.x - x).hypot(pad.z - z) < 5.0)
+            {
+                problems.push(format!("{name}: flag stand {i} overlaps a pickup"));
+            }
+        }
+    }
+
     problems.extend(unreachable(kind));
     problems
 }
@@ -1208,6 +1254,17 @@ pub(crate) fn unreachable(kind: MapKind) -> Vec<String> {
                 pad.id, pad.floor
             )),
             Some(_) => {}
+        }
+    }
+    if let Some(stands) = ctf_stands(kind) {
+        for (i, [x, floor, z]) in stands.into_iter().enumerate() {
+            match at(x, z) {
+                None => problems.push(format!("{name}: flag stand {i} is unreachable")),
+                Some(height) if (height - floor).abs() > STEP_UP => {
+                    problems.push(format!("{name}: flag stand {i} has an unreachable floor"))
+                }
+                Some(_) => {}
+            }
         }
     }
     let mut reachable_spawns = 0;

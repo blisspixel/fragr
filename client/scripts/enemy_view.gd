@@ -28,10 +28,16 @@ func update(state: Dictionary, snapshot_tick: int, body: Sprite3D) -> void:
 		_textures[kind] = load("res://assets/characters/union/%s.png" % kind)
 	body.frame = 0
 	body.texture = _textures[kind]
-	body.hframes = EnemyAnimation.COLUMNS
-	body.vframes = EnemyAnimation.rows()
-	body.pixel_size = EnemyAnimation.VIEW_SIZE / EnemyAnimation.TILE
-	body.position.y = EnemyAnimation.CENTRE_HEIGHT - CAMERA.FP_SERVER_REFERENCE_Y
+	if kind == "crawler":
+		body.hframes = CrawlerAnimation.COLUMNS
+		body.vframes = CrawlerAnimation.rows()
+		body.pixel_size = CrawlerAnimation.VIEW_SIZE / CrawlerAnimation.TILE
+		body.position.y = CrawlerAnimation.CENTRE_HEIGHT - CAMERA.FP_SERVER_REFERENCE_Y
+	else:
+		body.hframes = EnemyAnimation.COLUMNS
+		body.vframes = EnemyAnimation.rows()
+		body.pixel_size = EnemyAnimation.VIEW_SIZE / EnemyAnimation.TILE
+		body.position.y = EnemyAnimation.CENTRE_HEIGHT - CAMERA.FP_SERVER_REFERENCE_Y
 	body.shaded = true
 	# Black and red in fixture-lit rooms: red optics and tells burn full-bright,
 	# the darkest cloth lifts toward charcoal, and a one-texel line separates
@@ -48,7 +54,8 @@ func advance(delta: float, distance: float) -> void:
 	elapsed += delta
 	shot_age += delta
 	if actor.get("phase") == "moving" and distance >= 0.0 and distance < 2.0:
-		travel = fposmod(travel + distance, EnemyAnimation.STRIDE_METRES)
+		var stride: float = CrawlerAnimation.STRIDE_METRES if _kind == "crawler" else EnemyAnimation.STRIDE_METRES
+		travel = fposmod(travel + distance, stride)
 
 func shot() -> void:
 	shot_age = 0.0
@@ -56,5 +63,9 @@ func shot() -> void:
 func render(body: Sprite3D, yaw: float, to_camera: Vector3) -> void:
 	if actor.is_empty():
 		return
-	body.frame = EnemyAnimation.frame(actor, weapon, tick, elapsed, travel,
-		shot_age, EnemyAnimation.direction(yaw, to_camera))
+	var facing: int = EnemyAnimation.direction(yaw, to_camera)
+	if _kind == "crawler":
+		body.frame = CrawlerAnimation.frame(actor, tick, elapsed, travel, facing)
+	else:
+		body.frame = EnemyAnimation.frame(actor, weapon, tick, elapsed, travel,
+			shot_age, facing)

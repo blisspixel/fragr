@@ -14,6 +14,23 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
+  terraform:
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: infra/terraform
+    steps:
+      - uses: actions/checkout@v7
+      - uses: hashicorp/setup-terraform@v4.0.1
+        with:
+          terraform_version: 1.16.4
+      - name: Check plan-only container host
+        run: |
+          terraform fmt -check
+          terraform init -backend=false -lockfile=readonly -input=false
+          terraform validate
+          terraform test
+
   test:
     runs-on: ubuntu-24.04
     steps:
@@ -52,6 +69,12 @@ jobs:
           cargo run -p fragr-playtest --locked -- --agents 4 --rounds 1 --mutator rail-only --frag-limit 3 --time-limit-seconds 45 --assert --report .agents/playtest/ci-rail-only.json
           cargo run -p fragr-playtest --locked -- --agents 4 --rounds 1 --mode tdm --mutator licence-to-kill --frag-limit 6 --time-limit-seconds 60 --assert --report .agents/playtest/ci-tdm-licence.json
 
+      - name: Sector 9 capture the flag socket proof
+        run: cargo run -p fragr-playtest --locked -- --ctf-route-smoke --report .agents/playtest/ci-ctf-route.json
+
+      - name: Sector 9 contested playtest
+        run: cargo run -p fragr-playtest --locked -- --agents 4 --rounds 1 --mode ctf --map 4 --tiers reflex,planner --capture-limit 1 --time-limit-seconds 180 --max-seconds 240 --assert --ctf-contested --report .agents/playtest/ci-ctf.json
+
       - name: Mixed-client map roster
         run: bash tools/playtest_roster.sh
 
@@ -74,6 +97,33 @@ jobs:
 
       - name: Build release
         run: cargo build --workspace --release --locked
+
+  container:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - name: Build dedicated server image
+        run: docker compose build server
+      - name: Check runtime identity and legal notices
+        run: |
+          test "$(docker run --rm --entrypoint id fragr-server:local -u)" = "10001"
+          docker run --rm --entrypoint sh fragr-server:local -c 'test -s /usr/share/doc/fragr/fragr-LICENSE.txt && test -s /usr/share/doc/fragr/THIRD_PARTY_LICENSES.txt'
+      - name: Start and probe dedicated match
+        run: |
+          set -euo pipefail
+          trap 'docker compose down' EXIT
+          docker compose up -d --no-build
+          container_id="$(docker compose ps -q server)"
+          test -n "$container_id"
+          for attempt in {1..45}; do
+            if [ "$(docker inspect --format '{{.State.Health.Status}}' "$container_id")" = healthy ]; then
+              break
+            fi
+            sleep 2
+          done
+          test "$(docker inspect --format '{{.State.Health.Status}}' "$container_id")" = healthy
+          curl --fail --silent --show-error http://127.0.0.1:6767/status | grep -q '"kind":"arena"'
+          curl --fail --silent --show-error http://127.0.0.1:6767/status | grep -q '"health":{"status":"ok"'
 
   portability:
     strategy:
@@ -172,6 +222,9 @@ jobs:
 
       - name: Headless client checks
         run: bash tools/godot_check.sh
+
+      - name: Saved M01 departure and M02 retry
+        run: bash tools/test_m02_carry.sh
 
       - name: Verify client check failure detection
         run: bash tools/test_godot_check.sh

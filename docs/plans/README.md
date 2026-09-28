@@ -9,7 +9,7 @@ Status words: **proposed** (a design awaiting Nick's decision; directs no work),
 ## Standing facts
 
 - Game port is **6767** (TCP today; UDP reserved for the planned low-latency transport).
-- Local play is $0. Public hosting sits under the $50 cap and needs written approval before anything bills. GCP Terraform stays plan-only until then.
+- Local play is $0. Public hosting sits under the $50 total cap. Nick authorized up to $20 combined external charges for 2026-09-26 build work, including a bounded GCP test if needed; production deployment still needs a reviewed cost and written approval. The current GCP Terraform remains plan-only.
 - Tailscale is private smoke only, never the documented join path.
 - The dedicated server bar is rock solid, secure, and cheap: input validation, rate limits, clean join and leave and reconnect, and a home box or small VM first.
 
@@ -17,9 +17,43 @@ Status words: **proposed** (a design awaiting Nick's decision; directs no work),
 
 | Plan | Status | One-liner |
 |---|---|---|
-| [`player-body-selection.md`](./player-body-selection.md) | **in flight** | Choose a human or an embodied agent in a synthetic body: capability 13 on Hello, Welcome and snapshots, saved in the profile, honored for agents, free-palette runtime art that keeps its colours on the coalition side. |
-| [`brain-local-model.md`](./brain-local-model.md) | **implemented** | Free open-weights decisions for `fragr-brain`: APUS-OpenJev-v1-4B through local Ollama, or a self-hosted openjev server (non-commercial weights), loopback only, strictly validated, with the paid path's budget and fallback and a measured laptop smoke. |
-| [`multiplayer-modes.md`](./multiplayer-modes.md) | **in flight** | Named rule sets chosen by the host: team deathmatch, six GoldenEye-style mutators, Host reactions and the 100 Cells cap; capture the flag, Rescue, Sabotage and a combined-arms mode designed next. |
+| [`m02-latch-restraint-backing.md`](./m02-latch-restraint-backing.md) | **superseded** | A rendered dark backing study did not improve Latch recognition and hurt the close ward view; no candidate runtime change was kept. |
+| [`m02-custody-image.md`](./m02-custody-image.md) | **superseded** | Two local gallery portrait studies failed the in-world identity and destination gate; no candidate runtime change was kept. |
+| [`playable-stack-integration.md`](./playable-stack-integration.md) | **implemented** | One release candidate combines M02, CTF, predicted WebSocket, hosting and README drafts; PR #297 carries exact-head CI. |
+| [`m02-integrated-player-gate.md`](./m02-integrated-player-gate.md) | **in flight** | Package the stacked M01-to-M02 solo run, then observe an uncoached player before adding more M02 content. |
+| [`m02-notary-tableau.md`](./m02-notary-tableau.md) | **in flight** | Show one unreachable Notary observing captives behind an authoritative glass pane in level 2, without introducing its level 4 fight. |
+| [`m02-natural-entry-composition.md`](./m02-natural-entry-composition.md) | **in flight** | Check the real M02 first-person spawn, then frame Latch by authored facing without skipping the Shotgun and Crawler lessons. |
+| [`m02-gallery-first-view.md`](./m02-gallery-first-view.md) | **implemented** | Open and prove the M02 gallery's first sightline to Latch's restraint frame without bypassing the opening fight or stair route; player recognition remains open. |
+| [`m02-latch-visual-identity.md`](./m02-latch-visual-identity.md) | **implemented** | Give the ward figure and moving ally one repaired Latch silhouette; distant recognition and human review remain open. |
+| [`m02-ward-soundscape.md`](./m02-ward-soundscape.md) | **in flight**, [draft #280](https://github.com/blisspixel/fragr/pull/280) | Give M02's correction ward and processing floor four state-driven, lore-aligned mechanical cues with a bounded asset and distribution gate. |
+| [`m02-live-cue-listening-gate.md`](./m02-live-cue-listening-gate.md) | **in flight**, [draft #281](https://github.com/blisspixel/fragr/pull/281) | Record the real first-person M02 cue sequence for a hardware listening review. |
+| [`m02-processing-floor-roster.md`](./m02-processing-floor-roster.md) | **implemented**, [draft #279](https://github.com/blisspixel/fragr/pull/279) | Stage the accepted ten-enemy M02 floor crest, measure ordinary-health Standard and Severe scripted clears, and preserve the optional evacuation trigger. Unsteered player review remains. |
+| [`m02-side-ward-evacuation.md`](./m02-side-ward-evacuation.md) | **implemented**, [draft #278](https://github.com/blisspixel/fragr/pull/278) | Move the optional side-ward captives on a server-owned route to the dock and record evacuation only after both arrive. |
+| [`m02-maintenance-circulation.md`](./m02-maintenance-circulation.md) | **implemented**, [draft #277](https://github.com/blisspixel/fragr/pull/277) | Add a service bypass after the first Crawler and a processing-floor return through the side ward, while preserving Latch's release shutter. |
+| [`m02-floor-gantry.md`](./m02-floor-gantry.md) | **implemented**, [draft #275](https://github.com/blisspixel/fragr/pull/275) | Put the M02 processing-floor officer on the reachable upper mezzanine and measure the revised Standard and Severe fight. |
+| [`m02-side-ward.md`](./m02-side-ward.md) | **implemented**, [draft #276](https://github.com/blisspixel/fragr/pull/276) | Add an optional captive side ward beyond Latch's release shutter, with independent guards and an unchanged dock objective. |
+| [`m02-latch-autonomous-escape.md`](./m02-latch-autonomous-escape.md) | **in flight**, [draft #274](https://github.com/blisspixel/fragr/pull/274) | Give released Latch one server-owned allied body that helps through M02's processing floor without making the solo exit an escort gate. |
+| [`m01-m02-run-carry.md`](./m01-m02-run-carry.md) | **in flight** | Promote the same solo run from M01 into M02 with exact equipment, body and shared continues, plus a per-level attempt baseline and v2 save migration. |
+| [`m02-crawler-descent.md`](./m02-crawler-descent.md) | **in flight** | Draft low Crawler and later three-Crawler and Sweeper landing pass seeded route and rendered visual checks; fresh-player review remains. |
+| [`m02-latch-release.md`](./m02-latch-release.md) | **in flight** | Gate Latch's ward release on guard victory and a local restraint control, then project a visible one-time result to every role. |
+| [`m02-guard-room-at-stair-top.md`](./m02-guard-room-at-stair-top.md) | **implemented** ([#269](https://github.com/blisspixel/fragr/pull/269)) | Move the Shotgun and seated Clerk introduction above M02's service stair before the Crawler descent. |
+| [`m02-shotgun-introduction.md`](./m02-shotgun-introduction.md) | **implemented** ([#268](https://github.com/blisspixel/fragr/pull/268)) | Guarantee the Shotgun before a two-Clerk first fight, then replay the M02 route and wipe; the accepted stair order and seated pose remain ahead. |
+| [`mode-chip-layout.md`](./mode-chip-layout.md) | **implemented** | Place the shipped match rule and side score with round information, then inspect rendered team and free-for-all views. Human team acceptance remains open. |
+| [`capture-the-flag.md`](./capture-the-flag.md) | **in flight** | First playable objective match on Sector 9, with authoritative flags, capture scoring, client and agent reads, bot routes and measured verification. |
+| [`ctf-six-a-side-pacing.md`](./ctf-six-a-side-pacing.md) | **implemented** | Five fixed-seed default-rule Sector 9 observations with twelve mixed agents; all rounds timed out below the three-capture limit, so external-agent roles need a measured follow-up. |
+| [`ctf-external-agent-roles.md`](./ctf-external-agent-roles.md) | **implemented** | One stable external-agent defender per side, with paired five-seed six-a-side observations; all rounds still reached the clock. |
+| [`ctf-carry-episodes.md`](./ctf-carry-episodes.md) | **implemented**, [draft #295](https://github.com/blisspixel/fragr/pull/295) | Bounded per-carry progress and outcome evidence from the existing CTF observer; human and spectator acceptance remains open. |
+| [`ctf-socket-smoke.md`](./ctf-socket-smoke.md) | **implemented**, [draft #295](https://github.com/blisspixel/fragr/pull/295) | Controlled real-socket flag capture and asserted contested combat are separate CI gates; exact-head Linux CI passed, human match remains. |
+| [`websocket-delayed-egress.md`](./websocket-delayed-egress.md) | **implemented**, [draft #296](https://github.com/blisspixel/fragr/pull/296) | Nine $0 Windows-to-WSL moving-combat captures at 0, 40 and 80 ms server-egress delay, plus a prediction bootstrap fix; two-machine and human gates remain. |
+| [`websocket-moving-combat-probe.md`](./websocket-moving-combat-probe.md) | **implemented**, [draft #294](https://github.com/blisspixel/fragr/pull/294) | Continuous joined-fighter WebSocket movement and firing receipt for corrections, fallbacks, cadence and payload traffic; LAN gate remains. |
+| [`local-pawn-prediction.md`](./local-pawn-prediction.md) | **implemented** | Bounded 20 Hz local human body replay and Ack correction on the existing WebSocket path; human feel gate remains. |
+| [`movement-ack-v1.md`](./movement-ack-v1.md) | **implemented** | Optional full-3D Ack and input selection rules for replay on the current 20 Hz WebSocket server, without visual prediction. |
+| [`live-movement-step.md`](./live-movement-step.md) | **implemented** | Current 20 Hz authoritative movement step extracted and mirrored with distinct 3D goldens and a `GameState.tick` equivalence test; full CI pending before the next prediction rung. |
+| [`cos-container-host.md`](./cos-container-host.md) | **in flight** | Plan-only COS game container host with digest pinning, scoped IAM and closed default game ingress. |
+| [`dedicated-server-udp-and-hosting.md`](./dedicated-server-udp-and-hosting.md) | **in flight** | Build a tested local container host, then measure prediction on WebSocket before a UDP pilot and plan-only container cloud hosting. |
+| [`player-body-selection.md`](./player-body-selection.md) | **shipped** (#262) | Choose a human or an embodied agent in a synthetic body: capability 13 on Hello, Welcome and snapshots, saved in the profile, honored for agents, free-palette runtime art that keeps its colours on the coalition side. |
+| [`brain-local-model.md`](./brain-local-model.md) | **shipped** (#261) | Free open-weights decisions for `fragr-brain`: APUS-OpenJev-v1-4B through local Ollama, or a self-hosted openjev server (non-commercial weights), loopback only, strictly validated, with the paid path's budget and fallback and a measured laptop smoke. |
+| [`multiplayer-modes.md`](./multiplayer-modes.md) | **in flight**, rung 1 shipped (#258) | Team deathmatch and mutators shipped; Sector 9 capture the flag is integrated for v0.58.0, with human review open. Rescue, Sabotage and combined arms remain designs. |
 | [`replayability.md`](./replayability.md) | **proposed** | Counter-Strike level replay: loops at three time scales, Rescue and Sabotage as the round-based flagship with no shop or scrip and lineups, mutators, Host reactions, agent rivals, feats, demos from the trace, and a build order. |
 | [`campaign-expansion.md`](./campaign-expansion.md) | **planned**, accepted 2026-09-25 | Twenty levels in five episodes for a four-hour first run, now the contract in [CAMPAIGN.md](../CAMPAIGN.md): the ten-mission spine kept, one new thing per level, the wipe in three levels, a brief by difficulty, par and replay waivers. The 2026-09-25 deep dive adds the [story arc](../campaign/story-arc.md), a full design per level and the pacing curve; the story arc itself stays proposed. |
 | [`m01-secret-shiv.md`](./m01-secret-shiv.md) | **shipped** ([#251](https://github.com/blisspixel/fragr/pull/251), v0.53.0) | M01's first secret: a pool-less Shiv in the confiscation alcove's south pocket, found by walking in, with capability 11, a quiet cue and a counted find. Replaces draft #203. |
@@ -32,7 +66,7 @@ Status words: **proposed** (a design awaiting Nick's decision; directs no work),
 | [`desktop-release.md`](./desktop-release.md) | **shipped** ([#233](https://github.com/blisspixel/fragr/pull/233), v0.47.0) | Tagged Windows, Linux and macOS zips with the bundled server, a packaged install check, and an original game icon. |
 | [`radio-scene-retirement.md`](./radio-scene-retirement.md) | **proven** ([#231](https://github.com/blisspixel/fragr/pull/231), v0.45.0) | Radio decoder retirement across rapid saved-run restarts, with Linux, Windows and macOS checks. |
 | [`m02-objective-gates.md`](./m02-objective-gates.md) | **in flight** | Authored objectives and precomputed gate worlds for the first M02 graybox, with M01 save compatibility. |
-| [`flying-drones.md`](./flying-drones.md) | **planned** | Notary patrol drone for M03 and armored Assessor for M07 on the encounter seam: hover, air routing, committed tells, crashes. |
+| [`flying-drones.md`](./flying-drones.md) | **planned** | First shootable Notary in level 4 Notice to Vacate, armored Assessor in level 12 Terms of Cooperation: hover, air routing, committed tells, crashes. The level 2 sighting is a separate noncombat tableau. |
 | [`multiplayer-maps.md`](./multiplayer-maps.md) | **proposed** | Rule sheet for multiplayer maps, sixteen proposed maps from duel rooms to conquest-lite fronts, a verdict on the six current maps, and the mode order. |
 | [`vehicles.md`](./vehicles.md) | **planned** | Jeep, motorcycle and jetpack, each built only when its mission (M08, M09, M10) is next; multiplayer vehicle map in Phase 4. |
 | [`campaign-encounter-variation.md`](./campaign-encounter-variation.md) | **planned** | Seeded, authored alternate guard positions for campaign replays, validated before readiness and stored in the run file; difficulty composition after that. |
@@ -80,6 +114,7 @@ Status words: **proposed** (a design awaiting Nick's decision; directs no work),
 | [`player-settings.md`](./player-settings.md) | **proven** (#168, v0.18.0) | Persistent controls, display, and audio through one validated retro panel in boot and match menus. |
 | [`arena-surface-pass.md`](./arena-surface-pass.md) | **proven** (#167, v0.17.0) | Industrial pixel surfaces and a readable arena backdrop, preserving server collision geometry. |
 | [`local-excellence.md`](./local-excellence.md) | **in flight** | Cohesive local polish through verified instructions, reliable checks, art integration, and repeated visual and playtest review. |
+| [`readme-navigation.md`](./readme-navigation.md) | **implemented** | A concise product front page with linked play, desktop, hosting and agent instructions; draft PR review and CI pending. |
 | [`solo-story-episodes.md`](./solo-story-episodes.md) | **shipped** (#106) | Solo Broadcast Episode 0 Calibration / Larak Lot face + juice bar. |
 | [`tip-stills-ep0.md`](./tip-stills-ep0.md) | **shipped** (#110) | Recapture tip stills + README Solo Broadcast face after Episode 0. |
 | [`ep0-nods-progress-fix.md`](./ep0-nods-progress-fix.md) | **shipped** (#111) | Calibration NODS credit for meatbags, jammer dish silhouette, map_name honesty. |
@@ -107,7 +142,8 @@ Status words: **proposed** (a design awaiting Nick's decision; directs no work),
 | [`hud-quiet.md`](./hud-quiet.md) | **in progress** | Get the words off the screen. Measured HUD coverage per state, clipped panels, duplicate badges, and nameplates that hide the fighter behind them. |
 | [`gunfeel.md`](./gunfeel.md) | **in flight** (aim defaults shipped) | What the weapons and the aim do: the parameter set from the classics, dispersion separated from aim assist, feedback timings, the dodge. |
 | [`ttk-feel-harness-proof.md`](./ttk-feel-harness-proof.md) | **in flight** | Sticky flechette/rail/scatter TTK asserted from playtest `--assert` (#124 proof). |
-| [`buttery-controls.md`](./buttery-controls.md) | **planned** | Client-owned yaw, prediction and reconciliation, timeline interpolation, 60 Hz sim, lag compensation, gamepad curves, transport spike, all with pass numbers. |
+| [`buttery-controls.md`](./buttery-controls.md) | **in flight** | Client-owned yaw, movement Ack and local prediction are integrated, with a measured WebSocket probe. Interpolation, lag compensation and a transport pilot remain. |
+| [`human-action-ack-baseline.md`](./human-action-ack-baseline.md) | **implemented** | A real Godot human-role Action-to-Ack baseline is integrated; two-machine and human-feel measurements remain. |
 | [`public-server-hardening.md`](./public-server-hardening.md) | **in flight** | Caps v0.35.0, `GET /status` v0.36.0, the app match line v0.37.0, join tickets v0.38.0, pawn resume v0.39.0. Next is a measured spectator fan-out. TLS remains. |
 | [`agent-door-2026.md`](./agent-door-2026.md) | **planned** | MCP 2026-07-28 compliance with legacy clients kept, the rmcp decision, a team blackboard before A2A. |
 | [`decision-brain.md`](./decision-brain.md) | **shipped** (#102) | Decision-brain agent: Jev (TypeSafe or OpenRouter) sets intent a few times a second, local controller plays every tick, hard spend cap with a ledger. |
@@ -157,7 +193,7 @@ Status words: **proposed** (a design awaiting Nick's decision; directs no work),
 | [`weapons-system.md`](./weapons-system.md) | **shipped** (v0.3.0) | Flechette, rail, and scatter roles. |
 | [`client-assets-wiring.md`](./client-assets-wiring.md) | **shipped** | Pixel assets wired into the Godot client. |
 | [`audio-drama.md`](./audio-drama.md) | **shipped** | Match audio drama with procedural CC0 audio. |
-| [`terraform-zero-cost-gcp.md`](./terraform-zero-cost-gcp.md) | **shipped** (plan-only, PR #5) | Zero-cost GCP IaC; no apply without approval. |
+| [`terraform-zero-cost-gcp.md`](./terraform-zero-cost-gcp.md) | **superseded** (PR #5 draft) | Historical Terraform draft. Current cost and deployment decisions live in the dedicated hosting plan. |
 | [`tip-screenshots.md`](./tip-screenshots.md) | **shipped** (#60) | Tip screenshot capture (Xvfb, Viewport API). |
 | [`honest-coverage-lock.md`](./honest-coverage-lock.md) | **shipped** | Unfiltered llvm-cov fail-under 80; no carve-outs. |
 | [`SPRINT-24H.md`](./SPRINT-24H.md) | **superseded** | 24 hour sprint framing. |

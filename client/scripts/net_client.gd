@@ -1,10 +1,19 @@
 extends Node
 
-# Version 13 understands the chosen participant body; 12 match rule sets;
+# Version 22 understands M02 ballistic inspection glass;
+# 21 understands server-owned M02 captive evacuation;
+# 20 understands the optional side ward fact in M02 state;
+# 19 understands the autonomous Latch companion in M02 snapshots;
+# 18 understands durable M02 runs and the per-level continue baseline;
+# 17 understands the server-owned M02 ward and release facts;
+# 16 understands the server-owned Crawler leap and M02 sound cue;
+# 15 understands seated M02 Clerks, and 14 is capture the flag;
+# 13 understands the chosen participant body;
+# 12 match rule sets;
 # 10 one ammunition count per type and scatter pellet traces; 9 M02
 # objective and gate state; 8 private participant records. Older servers
 # remain playable.
-const GAMEPLAY_VERSION: int = PlayerBody.VERSION
+const GAMEPLAY_VERSION: int = 22
 
 signal connected_to_server
 signal disconnected_from_server
@@ -23,16 +32,21 @@ var record: Dictionary = {}
 var mission_geometry: Dictionary = {}
 var mission: Dictionary = {}
 var _mission_previous: Dictionary = {}
+var _movement_ack_previous: Dictionary = {}
 
 var socket = WebSocketPeer.new()
 var connection_state = WebSocketPeer.STATE_CLOSED
+var track_text_bytes: bool = false
+var tx_text_bytes: int = 0
+var rx_text_bytes: int = 0
+var last_send_ok: bool = false
 var server_url = "ws://127.0.0.1:6767"
 
 func _init():
-	# Allow server URL override via environment variable for LAN/Tailscale
+	# Allow server URL override via environment variable for LAN or TLS hosts.
 	var env_server = OS.get_environment("FRAGR_SERVER")
 	if env_server != "":
-		server_url = "ws://" + env_server if not env_server.begins_with("ws://") else env_server
+		set_server_host(env_server)
 		print("Using server from FRAGR_SERVER: ", server_url)
 
 var role = "spectator"
@@ -46,6 +60,7 @@ var accepted_body: String = ""
 var _resume_token: String = ""
 var _leaving: bool = false
 var _resume_used: bool = false
+var _requires_flags: bool = false
 
 signal session_resumed
 
@@ -75,6 +90,8 @@ func connect_to_server(p_role: String = "spectator", p_name: String = "Player"):
 	mission.clear()
 	mission_geometry.clear()
 	_mission_previous.clear()
+	_requires_flags = false
+	_movement_ack_previous.clear()
 
 	# Godot WebSocketPeer is not reliably reusable after close. Always start fresh
 	# so J/L join-leave-reconnect cannot soft-prison on a dead peer.
@@ -112,6 +129,7 @@ func disconnect_from_server():
 	mission.clear()
 	mission_geometry.clear()
 	_mission_previous.clear()
+	_requires_flags = false
 	set_process(false)
 	disconnected_from_server.emit()
 
@@ -224,7 +242,10 @@ func send_speak(text: String) -> void:
 
 func send_json(data: Dictionary):
 	var json = JSON.stringify(data)
-	socket.send_text(json)
+	var result: Error = socket.send_text(json)
+	last_send_ok = result == OK
+	if track_text_bytes and result == OK:
+		tx_text_bytes += json.to_utf8_buffer().size()
 
 func _process(_delta):
 	socket.poll()
@@ -244,6 +265,8 @@ func _process(_delta):
 	# messages before retiring the session so the useful error is not discarded.
 	while socket.get_available_packet_count() > 0:
 		var packet = socket.get_packet()
+		if track_text_bytes:
+			rx_text_bytes += packet.size()
 		var text = packet.get_string_from_utf8()
 		_handle_message(text)
 		if not is_processing():
@@ -314,6 +337,7 @@ func _handle_message(text: String):
 	
 	match msg_type:
 		"welcome":
+			_movement_ack_previous.clear()
 			var body_problem: String = PlayerBody.welcome_error(data, role)
 			if not body_problem.is_empty():
 				disconnect_from_server()
@@ -334,15 +358,26 @@ func _handle_message(text: String):
 			var problem: String = MapGeometry.validation_error(data)
 			if problem.is_empty():
 				problem = MissionState.map_error(data)
+			if problem.is_empty():
+				var rules: Dictionary = MatchRules.parse(data.get("rules"))
+				_requires_flags = rules.get("mode", "") == "ctf"
 			if problem != "":
 				disconnect_from_server()
 				server_error.emit(problem)
 				return
 			var geometry: Dictionary = MissionState.geometry_for(data)
-			if geometry.is_empty() or geometry.get("id") != mission_geometry.get("id"):
+			if geometry.get("id") == MissionState.M02_ID and mission_geometry.get("id") == MissionState.M02_ID \
+				and geometry.get("map_id") == mission_geometry.get("map_id") \
+				and geometry.get("side_ward") != mission_geometry.get("side_ward"):
+				disconnect_from_server()
+				server_error.emit(MissionState.INVALID)
+				return
+			if geometry.is_empty() or geometry.get("id") != mission_geometry.get("id") \
+				or (geometry.get("id") == MissionState.M02_ID and geometry.get("map_id") != mission_geometry.get("map_id")):
 				_mission_previous.clear()
 			mission.clear()
 			mission_geometry = geometry
+			_movement_ack_previous.clear()
 			map_info_received.emit(data)
 			mission_received.emit({})
 		"mission":
@@ -378,6 +413,10 @@ func _handle_message(text: String):
 			var problem: String = ActorState.validation_error(data)
 			if problem.is_empty():
 				problem = PlayerBody.snapshot_error(data)
+			if problem.is_empty():
+				problem = FlagState.snapshot_error(data)
+			if problem.is_empty() and _requires_flags and data.get("flags") == null:
+				problem = "ctf snapshot has no flags"
 			if not problem.is_empty():
 				disconnect_from_server()
 				server_error.emit(problem)
@@ -385,6 +424,12 @@ func _handle_message(text: String):
 			snapshot_received.emit(data)
 		
 		"ack":
+			var problem: String = MovementAck.validation_error(data, _movement_ack_previous)
+			if not problem.is_empty():
+				disconnect_from_server()
+				server_error.emit(problem)
+				return
+			_movement_ack_previous = data.duplicate(true) if MovementAck.has_replay_body(data) else {}
 			ack_received.emit(data)
 		
 		"event":

@@ -59,8 +59,7 @@ struct Args {
     #[arg(long, conflicts_with_all = ["solo_broadcast", "bench", "bench_verify_trace"])]
     no_round_events: bool,
 
-    /// Match mode: ffa (free-for-all) or tdm (team deathmatch, the Union
-    /// against the free coalition).
+    /// Match mode: ffa, tdm, or ctf (Sector 9 only).
     #[arg(long, value_enum, default_value_t = fragr_server::protocol::GameMode::Ffa, conflicts_with_all = ["campaign_source", "solo_broadcast", "bench", "bench_verify_trace"])]
     mode: fragr_server::protocol::GameMode,
 
@@ -69,14 +68,18 @@ struct Args {
     #[arg(long = "mutator", value_enum, conflicts_with_all = ["campaign_source", "solo_broadcast", "bench", "bench_verify_trace"])]
     mutators: Vec<fragr_server::protocol::Mutator>,
 
-    /// Team damage lands. Needs --mode tdm. Off by default.
+    /// Team damage lands. Needs a team mode. Off by default.
     #[arg(long, conflicts_with_all = ["campaign_source", "solo_broadcast", "bench", "bench_verify_trace"])]
     friendly_fire: bool,
 
     /// Frags that end a round: a fighter's in ffa, a side's in tdm.
-    /// Defaults to 10 in ffa and 25 in tdm.
+    /// Defaults to 10 in ffa and 25 in tdm; unavailable in ctf.
     #[arg(long, value_parser = clap::value_parser!(u32).range(1..=999), conflicts_with_all = ["campaign_source", "solo_broadcast", "bench", "bench_verify_trace"])]
     frag_limit: Option<u32>,
+
+    /// Captures that end a ctf round (default 3). Only valid with --mode ctf.
+    #[arg(long, value_parser = clap::value_parser!(u32).range(1..=99), conflicts_with_all = ["campaign_source", "solo_broadcast", "bench", "bench_verify_trace"])]
+    capture_limit: Option<u32>,
 
     /// Benchmark instead of serving: run this many scripted fighters with no
     /// network, print one JSON report, and exit. The ruler for every change.
@@ -254,7 +257,21 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
                 std::process::exit(2);
             }
         };
-    let match_config = match_config(rules, args.frag_limit, args.no_round_events);
+    if rules.mode() == fragr_server::protocol::GameMode::Ctf && args.frag_limit.is_some() {
+        return Err("ctf uses --capture-limit, not --frag-limit".into());
+    }
+    if rules.mode() != fragr_server::protocol::GameMode::Ctf && args.capture_limit.is_some() {
+        return Err("--capture-limit requires --mode ctf".into());
+    }
+    let mut match_config = match_config(rules, args.frag_limit, args.no_round_events);
+    if let Some(config) = match_config.as_mut() {
+        if config.rules.mode() == fragr_server::protocol::GameMode::Ctf {
+            config.capture_limit = Some(
+                args.capture_limit
+                    .unwrap_or(fragr_server::rules::CTF_CAPTURE_LIMIT),
+            );
+        }
+    }
     let options = ServerOptions {
         bind: args.bind,
         bots: args.bots,
@@ -285,11 +302,14 @@ fn match_config(
     }
     let defaults = fragr_server::sim::MatchConfig::default();
     Some(fragr_server::sim::MatchConfig {
-        frag_limit: Some(frag_limit.unwrap_or_else(|| rules.default_frag_limit())),
-        boss_spawn_ticks: (!no_round_events)
+        frag_limit: (rules.mode() != fragr_server::protocol::GameMode::Ctf)
+            .then(|| frag_limit.unwrap_or_else(|| rules.default_frag_limit())),
+        boss_spawn_ticks: (!no_round_events
+            && rules.mode() != fragr_server::protocol::GameMode::Ctf)
             .then_some(defaults.boss_spawn_ticks)
             .flatten(),
-        compliance_ping_ticks: (!no_round_events)
+        compliance_ping_ticks: (!no_round_events
+            && rules.mode() != fragr_server::protocol::GameMode::Ctf)
             .then_some(defaults.compliance_ping_ticks)
             .flatten(),
         rules,
@@ -446,8 +466,24 @@ mod tests {
         assert_eq!(quiet.compliance_ping_ticks, None);
         assert_eq!(quiet.frag_limit, Some(10));
 
+        let ctf = Args::try_parse_from([
+            "fragr-server",
+            "--mode",
+            "ctf",
+            "--map",
+            "4",
+            "--capture-limit",
+            "2",
+        ])
+        .unwrap();
+        assert_eq!(ctf.mode, GameMode::Ctf);
+        assert_eq!(ctf.capture_limit, Some(2));
+        let ctf_rules = fragr_server::rules::RuleSet::new(GameMode::Ctf, &[], false).unwrap();
+        let ctf_config = match_config(ctf_rules, None, false).unwrap();
+        assert_eq!(ctf_config.boss_spawn_ticks, None);
+        assert_eq!(ctf_config.compliance_ping_ticks, None);
+
         for bad in [
-            vec!["fragr-server", "--mode", "ctf"],
             vec!["fragr-server", "--mutator", "low-gravity"],
             vec!["fragr-server", "--frag-limit", "0"],
             vec!["fragr-server", "--mode", "tdm", "--solo-broadcast"],
@@ -461,6 +497,33 @@ mod tests {
             ],
         ] {
             assert!(Args::try_parse_from(&bad).is_err(), "{bad:?}");
+        }
+    }
+
+    #[tokio::test]
+    async fn ctf_refuses_an_unvalidated_map_or_rotation_before_binding() {
+        let rules =
+            fragr_server::rules::RuleSet::new(fragr_server::protocol::GameMode::Ctf, &[], false)
+                .unwrap();
+        let config = match_config(rules, None, false).unwrap();
+        for (map, rotate) in [
+            (fragr_server::sim::MapKind::ArenaDuel, false),
+            (fragr_server::sim::MapKind::Sector9, true),
+        ] {
+            let error = run_server(
+                ServerOptions {
+                    map,
+                    map_rotate: rotate,
+                    match_config: Some(config.clone()),
+                    bind: "127.0.0.1:0".to_string(),
+                    ..ServerOptions::default()
+                },
+                std::future::pending::<()>(),
+                None,
+            )
+            .await
+            .unwrap_err();
+            assert!(error.to_string().contains("fixed Sector 9"));
         }
     }
 
@@ -525,6 +588,65 @@ mod tests {
             held.push(ws);
         }
         drop(held);
+        let _ = shutdown_tx.send(());
+        let _ = tokio::time::timeout(Duration::from_secs(5), server).await;
+    }
+
+    #[tokio::test]
+    async fn ctf_requires_capability_fourteen_for_spectators_and_fighters() {
+        let (shutdown_tx, shutdown_rx) = tokio::sync::oneshot::channel::<()>();
+        let (ready_tx, ready_rx) = tokio::sync::oneshot::channel::<SocketAddr>();
+        let rules =
+            fragr_server::rules::RuleSet::new(fragr_server::protocol::GameMode::Ctf, &[], false)
+                .unwrap();
+        let mut config = match_config(rules, None, true).unwrap();
+        config.capture_limit = Some(3);
+        let server = tokio::spawn(async move {
+            run_server(
+                ServerOptions {
+                    bind: "127.0.0.1:0".to_string(),
+                    bots: 0,
+                    map: fragr_server::sim::MapKind::Sector9,
+                    match_config: Some(config),
+                    status_every_s: 0,
+                    ..Default::default()
+                },
+                async move {
+                    let _ = shutdown_rx.await;
+                },
+                Some(ready_tx),
+            )
+            .await
+        });
+        let addr = tokio::time::timeout(Duration::from_secs(20), ready_rx)
+            .await
+            .expect("ctf ready timeout")
+            .expect("ctf ready addr");
+        for (version, role, admitted) in [
+            (13, "spectator", false),
+            (13, "human", false),
+            (14, "spectator", true),
+            (14, "human", true),
+        ] {
+            let (mut ws, _) = connect_async(format!("ws://{addr}")).await.unwrap();
+            ws.send(Message::Text(
+                serde_json::json!({
+                    "type": "hello", "role": role, "name": "FlagCheck",
+                    "gameplay_version": version
+                })
+                .to_string(),
+            ))
+            .await
+            .unwrap();
+            let reply = tokio::time::timeout(Duration::from_secs(5), ws.next())
+                .await
+                .expect("ctf reply timeout");
+            let welcomed = matches!(
+                reply,
+                Some(Ok(Message::Text(ref text))) if text.contains("\"welcome\"")
+            );
+            assert_eq!(welcomed, admitted, "{role} capability {version}: {reply:?}");
+        }
         let _ = shutdown_tx.send(());
         let _ = tokio::time::timeout(Duration::from_secs(5), server).await;
     }

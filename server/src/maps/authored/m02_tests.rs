@@ -1,5 +1,6 @@
 use super::*;
 use crate::navigation::RouteStatus;
+use crate::protocol::{EnemyKind, MapSurface};
 use serde_json::{json, Value};
 
 fn fixture() -> Value {
@@ -32,6 +33,723 @@ fn fixture() -> Value {
 
 fn read(doc: &Value) -> io::Result<Arc<AuthoredMap>> {
     AuthoredMap::read(serde_json::to_vec(doc).unwrap().as_slice())
+}
+
+#[test]
+fn bundled_guard_shells_require_a_step_off_every_gallery_spawn() {
+    let map = AuthoredMap::read(include_str!("../../../maps/m02-persons-unknown.json").as_bytes())
+        .unwrap();
+    let shells = map
+        .supplies
+        .iter()
+        .find(|supply| supply.id == "guard_room_shells")
+        .unwrap();
+    assert_eq!(shells.floor, 3.0);
+    for spawn in &map.spawns {
+        assert!(
+            (spawn.feet[0] - shells.x).hypot(spawn.feet[2] - shells.z)
+                > crate::sim::PICKUP_CLAIM_RADIUS + crate::movement::RADIUS,
+            "{} starts inside the optional shell pickup reach",
+            spawn.id
+        );
+    }
+    assert_eq!(
+        map.navigation
+            .route(
+                map.spawns[0].feet,
+                [shells.x, shells.floor, shells.z],
+                crate::navigation::SEARCH_LIMIT
+            )
+            .status,
+        RouteStatus::Complete
+    );
+    // The shells stay on the open gallery path just north of the first guard trigger.
+    assert!(shells.x > -3.0 && shells.z > -30.6 && shells.z < -26.0);
+}
+
+#[test]
+fn gallery_entry_frames_latch_without_exposing_the_ward_guards() {
+    let map = AuthoredMap::read(include_str!("../../../maps/m02-persons-unknown.json").as_bytes())
+        .unwrap();
+    let spawn = map
+        .spawns
+        .iter()
+        .find(|spawn| spawn.id == "gallery_entry")
+        .unwrap();
+    let eye = [
+        spawn.feet[0],
+        spawn.feet[1] + crate::movement::EYE_HEIGHT,
+        spawn.feet[2],
+    ];
+    let solids = &map.arena.solids;
+    assert!(
+        crate::combat::line_of_sight(eye, [7.55, 1.9, -10.0], solids),
+        "the primary standing entry eye must see Latch on the restraint"
+    );
+    assert!(
+        crate::combat::line_of_sight(eye, [7.9, 2.45, -11.0], solids),
+        "the primary entry must see the front of the restraint frame"
+    );
+    let window_eye = [0.0, 3.0 + crate::movement::EYE_HEIGHT, -27.0];
+    assert!(crate::combat::line_of_sight(
+        window_eye,
+        [7.55, 1.9, -10.0],
+        solids
+    ));
+    for spawn in &map.spawns {
+        assert_eq!(
+            map.navigation
+                .route(
+                    spawn.feet,
+                    [0.0, 3.0, -27.0],
+                    crate::navigation::SEARCH_LIMIT
+                )
+                .status,
+            RouteStatus::Complete,
+            "{} must be able to reach the unobstructed window view",
+            spawn.id
+        );
+    }
+    for id in ["ward_clerk", "ward_sweeper", "machine_clerk"] {
+        let guard = map
+            .encounters
+            .iter()
+            .flat_map(|group| &group.enemies)
+            .find(|enemy| enemy.id == id)
+            .unwrap();
+        assert!(
+            !crate::combat::line_of_sight(
+                eye,
+                [guard.feet[0], guard.feet[1] + 1.1, guard.feet[2]],
+                solids
+            ),
+            "{id} must not become an opening-gallery shooting target"
+        );
+    }
+    assert!(
+        !crate::combat::line_of_sight(eye, [7.55, 0.5, -10.0], solids),
+        "the lower wall must still cover the ward floor"
+    );
+    let sill = solids
+        .iter()
+        .find(|solid| solid.min_z == -26.0 && solid.max_z == -25.0 && solid.min_x == -9.0)
+        .unwrap();
+    assert!(
+        sill.top - spawn.feet[1] > crate::movement::STEP_UP + 0.1,
+        "the player must not step onto the window sill and bypass the stairs"
+    );
+    assert_eq!(
+        map.navigation
+            .route(
+                spawn.feet,
+                [-12.5, 0.0, -22.0],
+                crate::navigation::SEARCH_LIMIT
+            )
+            .status,
+        RouteStatus::Complete,
+        "the ordinary service stair and ward route must stay walkable"
+    );
+}
+
+#[test]
+fn notary_observation_bay_is_visible_through_ballistic_glass_but_unreachable() {
+    let map = AuthoredMap::read(include_str!("../../../maps/m02-persons-unknown.json").as_bytes())
+        .unwrap();
+    let spawn = map
+        .spawns
+        .iter()
+        .find(|spawn| spawn.id == "gallery_entry")
+        .unwrap();
+    let eye = [
+        spawn.feet[0],
+        spawn.feet[1] + crate::movement::EYE_HEIGHT,
+        spawn.feet[2],
+    ];
+    let notary = [10.4, 4.35, -21.3];
+    let glass_index = map
+        .presentation
+        .solids
+        .iter()
+        .position(|surface| *surface == MapSurface::InspectionGlass)
+        .unwrap();
+    assert_eq!(
+        map.presentation
+            .solids
+            .iter()
+            .filter(|surface| { **surface == MapSurface::InspectionGlass })
+            .count(),
+        1,
+        "one bounded pane keeps the glass readable"
+    );
+    let glass = map.arena.solids[glass_index];
+    assert_eq!(
+        [
+            glass.min_x,
+            glass.max_x,
+            glass.min_z,
+            glass.max_z,
+            glass.bottom,
+            glass.top
+        ],
+        [9.0, 9.08, -24.0, -20.0, 3.3, 5.2]
+    );
+    assert!(
+        !crate::combat::line_of_sight(eye, notary, &[glass]),
+        "the server must stop a shot at the visible pane"
+    );
+    let without_glass: Vec<_> = map
+        .arena
+        .solids
+        .iter()
+        .enumerate()
+        .filter_map(|(index, solid)| (index != glass_index).then_some(*solid))
+        .collect();
+    assert!(
+        crate::combat::line_of_sight(eye, notary, &without_glass),
+        "the drone must actually be visible through the pane from primary entry"
+    );
+    let closer = [3.5, 3.0 + crate::movement::EYE_HEIGHT, -27.0];
+    assert_eq!(
+        map.navigation
+            .route(
+                spawn.feet,
+                [3.5, 3.0, -27.0],
+                crate::navigation::SEARCH_LIMIT
+            )
+            .status,
+        RouteStatus::Complete,
+        "ordinary gallery walking must reach the closer inspection angle"
+    );
+    assert!(crate::combat::line_of_sight(closer, notary, &without_glass));
+    assert!(!crate::combat::line_of_sight(
+        closer,
+        notary,
+        &map.arena.solids
+    ));
+    assert!(!crate::combat::line_of_sight(
+        eye,
+        notary,
+        &map.arena.solids
+    ));
+    assert!(
+        map.arena.blocked_body_at(9.02, -22.0, 3.0, 3.0),
+        "the glass and sill block a standing player"
+    );
+    assert_ne!(
+        map.navigation
+            .route(
+                spawn.feet,
+                [10.4, 2.5, -21.3],
+                crate::navigation::SEARCH_LIMIT
+            )
+            .status,
+        RouteStatus::Complete,
+        "the observation bay must never become a playable shortcut"
+    );
+    assert!(
+        map.encounters
+            .iter()
+            .flat_map(|group| &group.enemies)
+            .all(|enemy| enemy.feet[0] < 10.0 || enemy.feet[2] < -24.0 || enemy.feet[2] > -18.0),
+        "the M02 observation is not an encounter actor"
+    );
+}
+
+#[test]
+fn inspection_glass_requires_the_m02_capability_boundary() {
+    let mut doc = fixture();
+    doc["solids"][0]["surface"] = json!("inspection_glass");
+    read(&doc).unwrap();
+    doc.as_object_mut().unwrap().remove("m02");
+    assert!(read(&doc)
+        .unwrap_err()
+        .to_string()
+        .contains("inspection glass"));
+    doc["ground"] = json!("inspection_glass");
+    assert!(read(&doc)
+        .unwrap_err()
+        .to_string()
+        .contains("inspection glass"));
+}
+
+#[test]
+fn primary_gallery_spawn_naturally_faces_latch_and_keeps_the_shotgun_route() {
+    let map = AuthoredMap::read(include_str!("../../../maps/m02-persons-unknown.json").as_bytes())
+        .unwrap();
+    let spawn = map
+        .spawns
+        .iter()
+        .find(|spawn| spawn.id == "gallery_entry")
+        .unwrap();
+    assert_eq!(spawn.feet, [0.0, 3.0, -31.0]);
+
+    let latch = [7.55_f32, 1.9, -10.0];
+    let destination_yaw = (latch[2] - spawn.feet[2]).atan2(latch[0] - spawn.feet[0]);
+    assert!(
+        (spawn.yaw - destination_yaw).abs() < 0.08,
+        "the unforced standing view must place Latch near its center, not rely on QA look_at"
+    );
+
+    let shotgun = map
+        .supplies
+        .iter()
+        .find(|supply| supply.id == "guard_room_scatter")
+        .unwrap();
+    assert!(
+        (spawn.feet[0] - shotgun.x).hypot(spawn.feet[2] - shotgun.z)
+            > crate::sim::PICKUP_CLAIM_RADIUS,
+        "the first weapon still needs a deliberate step"
+    );
+    assert_eq!(
+        map.navigation
+            .route(
+                spawn.feet,
+                [shotgun.x, shotgun.floor, shotgun.z],
+                crate::navigation::SEARCH_LIMIT
+            )
+            .status,
+        RouteStatus::Complete,
+        "the opening view must leave the Shotgun discovery walkable"
+    );
+    assert_eq!(
+        map.navigation
+            .route(
+                spawn.feet,
+                [-3.0, 3.0, -33.0],
+                crate::navigation::SEARCH_LIMIT
+            )
+            .status,
+        RouteStatus::Complete,
+        "the first guard-room fight must remain reachable"
+    );
+}
+
+#[test]
+fn floor_officer_uses_the_reachable_upper_mezzanine() {
+    let map = AuthoredMap::read(include_str!("../../../maps/m02-persons-unknown.json").as_bytes())
+        .unwrap();
+    let officer = map
+        .encounters
+        .iter()
+        .find(|encounter| encounter.id == "floor_entry")
+        .unwrap()
+        .enemies
+        .iter()
+        .find(|enemy| enemy.id == "floor_officer")
+        .unwrap();
+    assert_eq!(officer.kind, crate::protocol::EnemyKind::Clerk);
+    assert!(
+        officer.feet[1] >= 2.5,
+        "officer must own the upper sightline"
+    );
+    assert!((-14.0..=-6.0).contains(&officer.feet[0]));
+    assert!((1.0..=14.0).contains(&officer.feet[2]));
+    assert_eq!(
+        map.arena
+            .support_height(officer.feet[0], officer.feet[2], officer.feet[1] + 0.01),
+        officer.feet[1]
+    );
+    assert_eq!(
+        map.navigation
+            .route(
+                [-4.0, 0.0, -5.0],
+                officer.feet,
+                crate::navigation::SEARCH_LIMIT
+            )
+            .status,
+        RouteStatus::Complete
+    );
+    assert!(map.navigation.line_of_sight(
+        [-4.0, crate::movement::EYE_HEIGHT, -5.0],
+        [officer.feet[0], officer.feet[1] + 0.9, officer.feet[2]]
+    ));
+}
+
+#[test]
+fn processing_floor_has_the_accepted_roster_and_both_route_triggers() {
+    let map = AuthoredMap::read(include_str!("../../../maps/m02-persons-unknown.json").as_bytes())
+        .unwrap();
+    let floor = ["floor_entry", "floor_crossfire", "floor_crew"].map(|id| {
+        map.encounters
+            .iter()
+            .find(|encounter| encounter.id == id)
+            .unwrap()
+    });
+    assert_eq!(floor[0].after.as_deref(), Some("ward_guards"));
+    assert_eq!(floor[1].after.as_deref(), Some("floor_entry"));
+    assert_eq!(floor[2].after.as_deref(), Some("floor_crossfire"));
+    assert_eq!(floor.map(|group| group.enemies.len()), [4, 4, 2]);
+    let kinds: Vec<_> = floor
+        .iter()
+        .flat_map(|group| group.enemies.iter().map(|enemy| enemy.kind))
+        .collect();
+    assert_eq!(
+        kinds
+            .iter()
+            .filter(|&&kind| kind == EnemyKind::Clerk)
+            .count(),
+        4
+    );
+    assert_eq!(
+        kinds
+            .iter()
+            .filter(|&&kind| kind == EnemyKind::Sweeper)
+            .count(),
+        4
+    );
+    assert_eq!(
+        kinds
+            .iter()
+            .filter(|&&kind| kind == EnemyKind::Crawler)
+            .count(),
+        2
+    );
+    assert!(floor[0]
+        .regions
+        .iter()
+        .any(|region| region.contains([5.0, 0.0, -6.0])));
+    assert!(floor[1]
+        .regions
+        .iter()
+        .any(|region| region.contains([0.0, 0.0, 5.0])));
+    assert!(floor[1]
+        .regions
+        .iter()
+        .any(|region| region.contains([12.0, 0.0, 8.0])));
+    assert!(floor[1]
+        .regions
+        .iter()
+        .any(|region| region.contains([-8.0, 2.5, 5.0])));
+    assert!(floor[2]
+        .regions
+        .iter()
+        .any(|region| region.contains([0.0, 0.0, 12.0])));
+    let dock = map
+        .encounters
+        .iter()
+        .find(|group| group.id == "dock_watch")
+        .unwrap();
+    assert_eq!(dock.after.as_deref(), Some("floor_crew"));
+    assert!(!dock
+        .regions
+        .iter()
+        .any(|region| region.contains([0.0, 0.0, 12.0])));
+    assert!(dock
+        .regions
+        .iter()
+        .any(|region| region.contains([0.0, 0.0, 17.0])));
+}
+
+#[test]
+fn side_ward_is_reachable_but_the_dock_route_stays_on_the_floor() {
+    let map = AuthoredMap::read(include_str!("../../../maps/m02-persons-unknown.json").as_bytes())
+        .unwrap();
+    let opened = map.m02.as_ref().unwrap().world(1).unwrap().1;
+    let entry = [0.0, 3.0, -31.0];
+    assert_eq!(
+        map.navigation
+            .route(
+                [-16.7, 0.0, -21.9],
+                [7.0, 0.0, -11.0],
+                crate::navigation::SEARCH_LIMIT
+            )
+            .status,
+        RouteStatus::Complete
+    );
+    let branch = map
+        .landmarks
+        .iter()
+        .find(|place| place.id == "side_ward")
+        .unwrap()
+        .feet;
+    assert_eq!(
+        map.navigation
+            .route(entry, branch, crate::navigation::SEARCH_LIMIT)
+            .status,
+        RouteStatus::Unreachable,
+        "the side ward must wait for Latch's release"
+    );
+    assert_eq!(
+        opened
+            .route(entry, branch, crate::navigation::SEARCH_LIMIT)
+            .status,
+        RouteStatus::Complete
+    );
+    assert_eq!(
+        opened
+            .route(
+                [7.0, 0.0, -11.0],
+                [5.0, 0.0, -5.5],
+                crate::navigation::SEARCH_LIMIT
+            )
+            .status,
+        RouteStatus::Complete,
+        "the floor-entry recovery is reachable after release"
+    );
+    assert_eq!(
+        map.navigation
+            .route([-4.0, 0.0, -5.0], branch, crate::navigation::SEARCH_LIMIT)
+            .status,
+        RouteStatus::Complete
+    );
+    let dock = map.navigation.route(
+        [-4.0, 0.0, -5.0],
+        [0.0, 0.0, 21.0],
+        crate::navigation::SEARCH_LIMIT,
+    );
+    assert_eq!(dock.status, RouteStatus::Complete);
+    assert!(dock.points.iter().all(|point| point[0] < 15.0));
+    assert!(map
+        .navigation
+        .line_of_sight([18.5, crate::movement::EYE_HEIGHT, 4.0], [23.4, 1.45, 8.8]));
+    let side = map
+        .encounters
+        .iter()
+        .find(|encounter| encounter.id == "side_ward_guards")
+        .unwrap();
+    assert_eq!(side.after.as_deref(), Some("ward_guards"));
+    assert_eq!(side.enemies.len(), 2);
+    assert!(map
+        .encounters
+        .iter()
+        .filter(|encounter| matches!(encounter.id.as_str(), "floor_crew" | "dock_watch"))
+        .all(|encounter| encounter.after.as_deref() != Some("side_ward_guards")));
+}
+
+#[test]
+fn maintenance_cut_skips_only_the_pack_landing() {
+    let map = AuthoredMap::read(include_str!("../../../maps/m02-persons-unknown.json").as_bytes())
+        .unwrap();
+    let pack = map
+        .encounters
+        .iter()
+        .find(|encounter| encounter.id == "crawler_pack")
+        .unwrap();
+    let first = [-12.0, 0.0, -27.0];
+    let west_turn = [-16.0, 0.0, -26.0];
+    let rejoin = [-15.5, 0.0, -22.0];
+    let antechamber = [-14.0, 0.0, -21.5];
+    let direct = [-12.5, 0.0, -24.5];
+    let landing = [-16.0, 1.2, -27.6];
+    assert!(pack.regions.iter().any(|region| region.contains(direct)));
+    assert!(pack.regions.iter().any(|region| region.contains(landing)));
+    assert!(!pack.regions.iter().any(|region| region.contains(first)));
+    for (from, to) in [
+        (first, west_turn),
+        (west_turn, rejoin),
+        (rejoin, antechamber),
+    ] {
+        let route = map
+            .navigation
+            .route(from, to, crate::navigation::SEARCH_LIMIT);
+        assert_eq!(route.status, RouteStatus::Complete, "{from:?} to {to:?}");
+        assert!(
+            route
+                .points
+                .iter()
+                .all(|point| pack.regions.iter().all(|region| !region.contains(*point))),
+            "maintenance cut touched the pack trigger: {:?}",
+            route.points
+        );
+    }
+    assert_eq!(
+        map.navigation
+            .route(first, direct, crate::navigation::SEARCH_LIMIT)
+            .status,
+        RouteStatus::Complete
+    );
+}
+
+#[test]
+fn pack_stays_dormant_at_the_fork_and_wakes_on_the_direct_lane() {
+    let map = AuthoredMap::read(include_str!("../../../maps/m02-persons-unknown.json").as_bytes())
+        .unwrap();
+    let mut state = crate::sim::GameState::with_authored_map(map);
+    let id = uuid::Uuid::from_u128(0x02bc);
+    state.add_player(id, "Route probe".into(), crate::protocol::Role::Human);
+    assert!(state.acknowledge_m02(id, 1));
+    let place = |state: &mut crate::sim::GameState, feet: [f32; 3]| {
+        let player = state
+            .players
+            .iter_mut()
+            .find(|player| player.id == id)
+            .unwrap();
+        player.x = feet[0];
+        player.y = feet[1] + crate::sim::PLAYER_FLOOR_Y;
+        player.z = feet[2];
+        state.update_encounters();
+    };
+    place(&mut state, [-3.2, 3.0, -31.0]);
+    for guard in state
+        .players
+        .iter_mut()
+        .filter(|player| player.name.starts_with("guard_room_clerk_"))
+    {
+        guard.hp = 0;
+    }
+    state.update_encounters();
+    place(&mut state, [-10.5, 1.0, -29.5]);
+    let first = state
+        .players
+        .iter()
+        .find(|player| player.name == "stair_crawler_first")
+        .unwrap()
+        .id;
+    state
+        .players
+        .iter_mut()
+        .find(|player| player.id == first)
+        .unwrap()
+        .hp = 0;
+    state.update_encounters();
+    let pack = state
+        .players
+        .iter()
+        .find(|player| player.name == "stair_crawler_pack_a")
+        .unwrap()
+        .id;
+    for feet in [
+        [-12.0, 0.0, -27.0],
+        [-13.5, 0.0, -26.5],
+        [-16.0, 0.0, -26.0],
+        [-15.5, 0.0, -24.5],
+        [-15.5, 0.0, -22.0],
+    ] {
+        place(&mut state, feet);
+        assert!(
+            !state.encounters.is_active_enemy(pack),
+            "the pack woke on the maintenance cut at {feet:?}"
+        );
+    }
+    place(&mut state, [-12.5, 0.0, -24.5]);
+    assert!(state.encounters.is_active_enemy(pack));
+}
+
+#[test]
+fn pack_wakes_when_the_west_approach_enters_its_landing() {
+    for jump_from_staging in [false, true] {
+        let map =
+            AuthoredMap::read(include_str!("../../../maps/m02-persons-unknown.json").as_bytes())
+                .unwrap();
+        let arena = map.arena.clone();
+        let mut state = crate::sim::GameState::with_authored_map(map);
+        let id = uuid::Uuid::from_u128(0x02bd);
+        state.add_player(id, "Landing probe".into(), crate::protocol::Role::Human);
+        assert!(state.acknowledge_m02(id, 1));
+        let place = |state: &mut crate::sim::GameState, feet: [f32; 3]| {
+            let player = state
+                .players
+                .iter_mut()
+                .find(|player| player.id == id)
+                .unwrap();
+            player.x = feet[0];
+            player.y = feet[1] + crate::sim::PLAYER_FLOOR_Y;
+            player.z = feet[2];
+            state.update_encounters();
+        };
+        place(&mut state, [-3.2, 3.0, -31.0]);
+        for guard in state
+            .players
+            .iter_mut()
+            .filter(|player| player.name.starts_with("guard_room_clerk_"))
+        {
+            guard.hp = 0;
+        }
+        state.update_encounters();
+        place(&mut state, [-10.5, 1.0, -29.5]);
+        let first = state
+            .players
+            .iter()
+            .find(|player| player.name == "stair_crawler_first")
+            .unwrap()
+            .id;
+        state
+            .players
+            .iter_mut()
+            .find(|player| player.id == first)
+            .unwrap()
+            .hp = 0;
+        state.update_encounters();
+        let pack = state
+            .players
+            .iter()
+            .find(|player| player.name == "stair_crawler_pack_a")
+            .unwrap()
+            .id;
+        place(&mut state, [-12.0, 0.0, -27.0]);
+        place(&mut state, [-16.0, 0.0, -26.0]);
+        assert!(!state.encounters.is_active_enemy(pack));
+        let mut body = crate::movement::MoveState {
+            x: -16.0,
+            z: -26.0,
+            y: 0.0,
+            vx: 0.0,
+            vz: -crate::movement::TOP_SPEED,
+            vy: 0.0,
+            yaw: 0.0,
+        };
+        for step in 0..8 {
+            body = crate::movement::integrate(body, jump_from_staging && step == 0, 0.05, &arena);
+            place(&mut state, [body.x, body.y, body.z]);
+        }
+        assert!(body.z <= -27.5, "body did not reach the pack landing");
+        if jump_from_staging {
+            assert!(
+                body.y > 1.0,
+                "the jump did not clear the old trigger height"
+            );
+        }
+        assert!(state.encounters.is_active_enemy(pack));
+    }
+}
+
+#[test]
+fn side_ward_has_a_grounded_north_return_after_release() {
+    let map = AuthoredMap::read(include_str!("../../../maps/m02-persons-unknown.json").as_bytes())
+        .unwrap();
+    let opened = map.m02.as_ref().unwrap().world(1).unwrap().1;
+    let floor = [13.0, 0.0, 9.0];
+    let side = [16.0, 0.0, 9.0];
+    assert_eq!(
+        map.navigation
+            .route(map.spawns[0].feet, side, crate::navigation::SEARCH_LIMIT)
+            .status,
+        RouteStatus::Unreachable,
+        "the maintenance return must not bypass Latch's release"
+    );
+    for (from, to) in [(floor, side), (side, floor)] {
+        let route = opened.route(from, to, crate::navigation::SEARCH_LIMIT);
+        assert_eq!(route.status, RouteStatus::Complete, "{from:?} to {to:?}");
+        assert!(
+            route.points.iter().any(|point| {
+                (13.5..=15.5).contains(&point[0]) && (7.0..=10.0).contains(&point[2])
+            }),
+            "route used the old south entry instead of the north return: {:?}",
+            route.points
+        );
+    }
+    assert!(
+        !map.arena
+            .blocked_motion((side[0], side[2]), (floor[0], floor[2]), 0.6),
+        "the return opening needs player-body clearance"
+    );
+}
+
+#[test]
+fn side_ward_captive_route_is_rejected_at_map_load_if_return_is_closed() {
+    let source = include_str!("../../../maps/m02-persons-unknown.json");
+    let blocked = source.replace(
+        "\"floor_east_return_header\",\"min\":[14,3,7]",
+        "\"floor_east_return_header\",\"min\":[14,0,7]",
+    );
+    assert_ne!(blocked, source);
+    let reason = AuthoredMap::read(blocked.as_bytes())
+        .unwrap_err()
+        .to_string();
+    assert!(
+        reason.contains("M02 captive northern return is blocked"),
+        "unexpected rejection: {reason}"
+    );
 }
 
 #[test]
@@ -111,6 +829,16 @@ fn m02_rejects_bad_prerequisites_gate_triggers_and_budget() {
     let mut bad = fixture();
     bad["map_id"] = json!(1001);
     assert!(read(&bad).is_err());
+}
+
+#[test]
+fn m02_rejects_an_unknown_encounter_requirement_before_readiness() {
+    let mut bad = fixture();
+    bad["m02"]["objectives"][1]["requires_encounter"] = json!("ward_guards");
+    assert!(read(&bad)
+        .unwrap_err()
+        .to_string()
+        .contains("unknown encounter"));
 }
 
 #[test]
