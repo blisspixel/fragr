@@ -64,6 +64,8 @@ The implementation branch `test/ctf-carry-episodes` is based on `357ad1b`.
 No external service was used, and external spend was $0. The corrected sample
 command above used the rebuilt debug binary, ran each seed serially, and
 stored reports and logs under ignored `.agents/playtest/`.
+Exact-head CI targets `main` for validation, then the draft returns to its
+CTF role-policy parent; the workflow only starts for `main` pull requests.
 
 - `cargo test -p fragr-playtest --lib ctf_carry --locked`: five tests passed.
 - `cargo test -p fragr-playtest --lib observer_max_tick --locked`: one test passed.
