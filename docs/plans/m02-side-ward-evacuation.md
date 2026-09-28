@@ -1,6 +1,6 @@
 # M02 side-ward evacuation
 
-**Status:** implemented locally, 2026-09-27; draft review pending. Follows the [maintenance circulation draft](m02-maintenance-circulation.md) and the [optional side ward](m02-side-ward.md). This is one bounded M02 slice, not a level-completion claim.
+**Status:** implemented locally, 2026-09-27; [draft #278](https://github.com/blisspixel/fragr/pull/278) in review. Follows the [maintenance circulation draft](m02-maintenance-circulation.md) and the [optional side ward](m02-side-ward.md). This is one bounded M02 slice, not a level-completion claim.
 
 ## Goal and reason
 
