@@ -1347,6 +1347,16 @@ pub fn policy_action(policy: Policy, bot_id: Uuid, snapshot: &Snapshot, arena: &
         let own = &flags[team.index()];
         let enemy = &flags[team.other().index()];
         let carrying = enemy.carrier == Some(bot_id);
+        // The harness gives each agent a unique callsign. Pick by that stable
+        // identity rather than process-local player IDs or snapshot order.
+        let defending = snapshot
+            .players
+            .iter()
+            .filter(|player| {
+                player.team == Some(team) && player.hp > 0 && enemy.carrier != Some(player.id)
+            })
+            .min_by(|a, b| a.name.cmp(&b.name))
+            .is_some_and(|player| player.id == bot_id);
         if policy == Policy::Planner
             && !carrying
             && snapshot.players.iter().any(|other| {
@@ -1366,17 +1376,13 @@ pub fn policy_action(policy: Policy, bot_id: Uuid, snapshot: &Snapshot, arena: &
             }
         } else if own.status == fragr_server::protocol::FlagStatus::Dropped {
             own.position
-        } else if let Some(carrier) = own.carrier {
-            snapshot
-                .players
-                .iter()
-                .find(|p| p.id == carrier)
+        } else if defending {
+            own.carrier
+                .and_then(|carrier| snapshot.players.iter().find(|p| p.id == carrier))
                 .map(|p| [p.x, p.y - fragr_server::sim::PLAYER_FLOOR_Y, p.z])
                 .unwrap_or(own.stand)
-        } else if enemy.carrier.is_none() {
-            enemy.position
         } else {
-            own.stand
+            enemy.position
         };
         return Action {
             look_at: Some(LookAt {
@@ -3192,7 +3198,9 @@ mod planner_tests {
         mine.team = Some(Team::Coalition);
         let mut blocker = player("foe", foe, 6.0, 0.0, 100, "flechette");
         blocker.team = Some(Team::Union);
-        let mut snap = scene(1, vec![mine, blocker], vec![]);
+        let mut defender = player("a-defender", Uuid::from_u128(3), 0.0, 0.0, 100, "flechette");
+        defender.team = Some(Team::Coalition);
+        let mut snap = scene(1, vec![mine, blocker, defender], vec![]);
         snap.flags = Some([
             FlagState {
                 team: Team::Union,
@@ -3220,6 +3228,139 @@ mod planner_tests {
         let route = policy_action(Policy::Planner, me, &snap, &Arena::default());
         assert_eq!(route.look_at.unwrap().x, Some(-70.0));
         assert!(!route.fire);
+    }
+
+    fn ctf_six_a_side() -> Snapshot {
+        use fragr_server::protocol::{FlagState, FlagStatus, Team};
+
+        let mut players = Vec::new();
+        for (team, first_id, prefix) in [
+            (Team::Union, 1_u128, "union"),
+            (Team::Coalition, 7_u128, "coalition"),
+        ] {
+            for seat in 0..6 {
+                let mut fighter = player(
+                    &format!("{prefix}-{:02}", seat + 1),
+                    Uuid::from_u128(first_id + seat),
+                    0.0,
+                    0.0,
+                    100,
+                    "flechette",
+                );
+                fighter.team = Some(team);
+                players.push(fighter);
+            }
+        }
+        let mut snapshot = scene(1, players, vec![]);
+        snapshot.flags = Some([
+            FlagState {
+                team: Team::Union,
+                stand: [-70.0, 0.0, 0.0],
+                position: [-70.0, 0.0, 0.0],
+                status: FlagStatus::Home,
+                carrier: None,
+                return_ticks: None,
+            },
+            FlagState {
+                team: Team::Coalition,
+                stand: [70.0, 0.0, 0.0],
+                position: [70.0, 0.0, 0.0],
+                status: FlagStatus::Home,
+                carrier: None,
+                return_ticks: None,
+            },
+        ]);
+        snapshot
+    }
+
+    fn ctf_goal_x(snapshot: &Snapshot, id: Uuid) -> f32 {
+        policy_action(Policy::Reflex, id, snapshot, &Arena::default())
+            .look_at
+            .unwrap()
+            .x
+            .unwrap()
+    }
+
+    #[test]
+    fn ctf_six_a_side_has_one_stable_defender_per_side() {
+        use fragr_server::protocol::Team;
+
+        let mut snapshot = ctf_six_a_side();
+        for team in [Team::Union, Team::Coalition] {
+            let own_x = snapshot.flags.as_ref().unwrap()[team.index()].stand[0];
+            let enemy_x = snapshot.flags.as_ref().unwrap()[team.other().index()].stand[0];
+            let side: Vec<_> = snapshot
+                .players
+                .iter()
+                .filter(|player| player.team == Some(team))
+                .map(|player| player.id)
+                .collect();
+            assert_eq!(side.len(), 6);
+            assert_eq!(
+                side.iter()
+                    .filter(|id| ctf_goal_x(&snapshot, **id) == own_x)
+                    .count(),
+                1
+            );
+            assert_eq!(
+                side.iter()
+                    .filter(|id| ctf_goal_x(&snapshot, **id) == enemy_x)
+                    .count(),
+                5
+            );
+        }
+        let original: Vec<_> = snapshot
+            .players
+            .iter()
+            .map(|player| (player.id, ctf_goal_x(&snapshot, player.id)))
+            .collect();
+        snapshot.players.reverse();
+        for (id, goal_x) in original {
+            assert_eq!(ctf_goal_x(&snapshot, id), goal_x);
+        }
+        snapshot
+            .players
+            .iter_mut()
+            .find(|player| player.id == Uuid::from_u128(1))
+            .unwrap()
+            .hp = 0;
+        assert_eq!(ctf_goal_x(&snapshot, Uuid::from_u128(2)), -70.0);
+    }
+
+    #[test]
+    fn ctf_roles_recover_dropped_flags_and_support_carriers() {
+        use fragr_server::protocol::{FlagStatus, Team};
+
+        let mut snapshot = ctf_six_a_side();
+        let union_defender = Uuid::from_u128(1);
+        let union_attacker = Uuid::from_u128(2);
+        let coalition_carrier = Uuid::from_u128(7);
+        let coalition_next_defender = Uuid::from_u128(8);
+        let coalition_attacker = Uuid::from_u128(9);
+
+        // A stolen Union flag pulls its defender toward the thief, while
+        // another Union fighter still presses the Coalition stand. The carrier
+        // returns home, and another Coalition fighter assumes defense.
+        snapshot.players[6].x = 15.0;
+        snapshot.players[6].z = 3.0;
+        let flags = snapshot.flags.as_mut().unwrap();
+        flags[Team::Union.index()].status = FlagStatus::Carried;
+        flags[Team::Union.index()].position = [15.0, 0.0, 3.0];
+        flags[Team::Union.index()].carrier = Some(coalition_carrier);
+        assert_eq!(ctf_goal_x(&snapshot, union_defender), 15.0);
+        assert_eq!(ctf_goal_x(&snapshot, union_attacker), 70.0);
+        assert_eq!(ctf_goal_x(&snapshot, coalition_carrier), 70.0);
+        assert_eq!(ctf_goal_x(&snapshot, coalition_next_defender), 70.0);
+        assert_eq!(ctf_goal_x(&snapshot, coalition_attacker), 15.0);
+
+        // A grounded home flag takes objective priority for every noncarrier
+        // and the carrier attempting to score. Reflex has no combat detour.
+        let flags = snapshot.flags.as_mut().unwrap();
+        flags[Team::Coalition.index()].status = FlagStatus::Dropped;
+        flags[Team::Coalition.index()].position = [32.0, 0.0, 0.0];
+        assert_eq!(ctf_goal_x(&snapshot, coalition_carrier), 32.0);
+        assert_eq!(ctf_goal_x(&snapshot, coalition_next_defender), 32.0);
+        assert_eq!(ctf_goal_x(&snapshot, coalition_attacker), 32.0);
     }
 }
 
