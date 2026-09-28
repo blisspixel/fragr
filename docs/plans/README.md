@@ -17,6 +17,7 @@ Status words: **proposed** (a design awaiting Nick's decision; directs no work),
 
 | Plan | Status | One-liner |
 |---|---|---|
+| [`m02-processing-floor-roster.md`](./m02-processing-floor-roster.md) | **planned** | Stage the accepted ten-enemy M02 floor crest, then measure ordinary-health Standard and Severe clears and preserve the optional evacuation trigger. |
 | [`m02-side-ward-evacuation.md`](./m02-side-ward-evacuation.md) | **implemented**, [draft #278](https://github.com/blisspixel/fragr/pull/278) | Move the optional side-ward captives on a server-owned route to the dock and record evacuation only after both arrive. |
 | [`m02-maintenance-circulation.md`](./m02-maintenance-circulation.md) | **implemented**, [draft #277](https://github.com/blisspixel/fragr/pull/277) | Add a service bypass after the first Crawler and a processing-floor return through the side ward, while preserving Latch's release shutter. |
 | [`m02-floor-gantry.md`](./m02-floor-gantry.md) | **implemented**, [draft #275](https://github.com/blisspixel/fragr/pull/275) | Put the M02 processing-floor officer on the reachable upper mezzanine and measure the revised Standard and Severe fight. |
