@@ -1,6 +1,6 @@
 extends "res://scripts/qa_tour.gd"
 
-## Manual integration check against a server-generated M01 AwaitingMission fixture.
+## Source-client integration check against a validated synthetic M01 departure.
 ## Set FRAGR_RUN_DIR to the fixture directory and, for rendered stills, set
 ## FRAGR_LOCAL_QA_DIR to an absolute output directory before launching Godot.
 var failures: int = 0
@@ -12,7 +12,13 @@ func _initialize() -> void:
 	settings_path = "user://run-carry-%d.cfg" % OS.get_process_id()
 	set_meta("fragr_settings_path", settings_path)
 	captures = OS.get_environment("FRAGR_LOCAL_QA_DIR")
+	call_deferred("_watchdog")
 	call_deferred("_run")
+
+func _watchdog() -> void:
+	await create_timer(120.0).timeout
+	push_error("run_carry_live: overall check exceeded 120 seconds")
+	quit(1)
 
 func _finalize() -> void:
 	MouseCapture.release()
@@ -68,6 +74,9 @@ func _run() -> void:
 	root.mode = Window.MODE_WINDOWED
 	root.size = Vector2i(1280, 960)
 	_expect(change_scene_to_file("res://scenes/boot_menu.tscn") == OK, "boot menu loads")
+	if failures > 0:
+		quit(1)
+		return
 	await process_frame
 	await process_frame
 	current_scene._show("single")
@@ -142,6 +151,10 @@ func _run() -> void:
 	if failures > 0:
 		quit(1)
 		return
+	if not await _until(func() -> bool: return current_scene.net_client.equipment.get("weapons", []).has("scatter") \
+		and current_scene.net_client.equipment.get("personal_claims", []).has("guard_room_scatter"),
+		"first M02 attempt claims the Shotgun before the guard encounter"):
+		return
 	if not await _until(func() -> bool: return current_scene.mission_hud.state.get("run", {}).get("status") == "continue",
 		"M02 guard encounter offers a saved continue after death", 45000):
 		return
@@ -182,8 +195,11 @@ func _run() -> void:
 		and current_scene.mission_hud.state.get("run", {}).get("continues") == 1,
 		"ordinary Enter spends one continue and starts M02 attempt two"):
 		return
-	if not await _until(func() -> bool: return not current_scene.net_client.equipment.is_empty(),
-		"M02 retry receives its restored private loadout"):
+	if not await _until(func() -> bool: return _local_pawn().get("hp") == 61 \
+		and _local_pawn().get("armor") == 7 and current_scene.net_client.equipment.get("selected") == "tack" \
+		and current_scene.net_client.equipment.get("weapons") == ["fists", "tack"] \
+		and current_scene.net_client.equipment.get("personal_claims") == [],
+		"M02 retry receives its restored snapshot and private loadout"):
 		return
 	state = current_scene.mission_hud.state
 	_expect(state.get("run", {}).get("id") == run_id and current_scene.net_client.accepted_body == PlayerBody.SYNTHETIC \
