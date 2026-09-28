@@ -1,0 +1,43 @@
+{
+  "out_dir": ".agents/audio-m02/pilot",
+  "items": [
+    {
+      "kind": "sfx",
+      "name": "m02/ward_machine_loop",
+      "title": "M02 ward machine loop",
+      "prompt": "Seamless short loop of an enclosed industrial correction machine: low electric motor hum, restrained relay clicks and a steady metal drive. Physical and indifferent, inside a tiled room. Even level across the seam. No voices, music, alarms, siren, combat, skittering or dramatic swell.",
+      "seconds": 2.0,
+      "influence": 0.65,
+      "loop": true,
+      "format": "pcm_24000"
+    },
+    {
+      "kind": "sfx",
+      "name": "m02/ward_machine_stop",
+      "title": "M02 ward machine stop",
+      "prompt": "One correction machine shutting down: a relay trips, its electric drive winds down and a steel frame settles into silence. Dry mechanical stop with a short natural decay. No explosion, voices, music, success chime or prolonged ambience.",
+      "seconds": 1.0,
+      "influence": 0.7,
+      "format": "pcm_24000"
+    },
+    {
+      "kind": "sfx",
+      "name": "m02/restraint_release",
+      "title": "M02 restraint release",
+      "prompt": "One industrial restraint opening: a heavy steel latch retracts, two tight ratchet clicks and the hinged restraint arm swings free. Close, dry and physical. No voice, scream, music, chime or victory sound.",
+      "seconds": 1.4,
+      "influence": 0.7,
+      "format": "pcm_24000"
+    },
+    {
+      "kind": "sfx",
+      "name": "m02/floor_machinery_loop",
+      "title": "M02 processing-floor machinery loop",
+      "prompt": "Seamless short loop of a separate working industrial processing floor: distant conveyor rollers, low electric motors and a sparse structural creak in a broad room. Quiet texture beneath speech and combat, distinct from the stopped ward machine. No voices, music, alarms, weapon sounds or creature skitter.",
+      "seconds": 2.6,
+      "influence": 0.65,
+      "loop": true,
+      "format": "pcm_24000"
+    }
+  ]
+}

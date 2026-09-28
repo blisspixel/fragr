@@ -1,6 +1,6 @@
 # M02 ward and processing-floor soundscape
 
-**Status:** planned, [draft #280](https://github.com/blisspixel/fragr/pull/280), 2026-09-27. Follows the [processing-floor roster draft](m02-processing-floor-roster.md). M02 remains a development mission until fresh-player route and fight review passes.
+**Status:** in flight, [draft #280](https://github.com/blisspixel/fragr/pull/280), 2026-09-27. Follows the [processing-floor roster draft](m02-processing-floor-roster.md). M02 remains a development mission until fresh-player route and fight review passes.
 
 ## Goal and why
 
@@ -45,4 +45,4 @@ Distribution needs a separate check before committing generated WAVs. ElevenLabs
 
 ## Handoff
 
-No API request or asset generation has run for this plan. Next: prepare the request spec and offline fallback, then test state-driven playback. Record the selected distribution path before a public asset commit.
+The four-effect [request spec](../../tools/audiogen/specs/m02-ward-sfx.json) is prepared with local ignored output. `cargo run -p fragr-audiogen --locked -- --dry-run batch --spec tools/audiogen/specs/m02-ward-sfx.json --max-credits 320` validated all four requests and estimated 80 + 40 + 56 + 104 = 280 credits. It made no API request, wrote no WAV, and incurred no external charge. Next: build the original offline fallback and test state-driven playback. Record the selected distribution path before a public asset commit.
