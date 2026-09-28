@@ -38,6 +38,9 @@ repository and secret. It must be reviewed before any apply. No plan or
 validation command creates cloud resources. Never put secret bytes in a
 `*.tfvars` file or Terraform state.
 
+CI runs these checks with a mocked provider for the test cases. It has no GCP
+credentials and never applies resources.
+
 The default has no external IPv4 and no game ingress. Private Google Access
 on the subnet gives the VM access to Google API endpoints for the image pull
 and Secret Manager read without a Cloud NAT. To enable a bounded external

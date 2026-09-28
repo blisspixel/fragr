@@ -14,6 +14,23 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
+  terraform:
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: infra/terraform
+    steps:
+      - uses: actions/checkout@v7
+      - uses: hashicorp/setup-terraform@v4.0.1
+        with:
+          terraform_version: 1.16.4
+      - name: Check plan-only container host
+        run: |
+          terraform fmt -check
+          terraform init -backend=false -lockfile=readonly -input=false
+          terraform validate
+          terraform test
+
   test:
     runs-on: ubuntu-24.04
     steps:

@@ -151,6 +151,11 @@ unprivileged runtime and legal notices, starts Compose, and requires
 `docker compose up -d --no-build`, `docker compose ps`, then
 `docker compose down` after the probe.
 
+The `terraform` CI job runs `fmt -check`, locked backend-free `init`,
+`validate`, and eleven mocked plan tests under `infra/terraform`. It has no
+cloud credentials and does not apply resources. Run those commands locally
+after changing the COS host draft.
+
 Playable smoke:
 
 1. `cargo run -p fragr-server -- --bind 127.0.0.1:6767 --bots 4` starts with no cloud config.
