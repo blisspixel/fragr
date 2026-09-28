@@ -292,8 +292,14 @@ async fn main() {
         );
         if rules.mode == fragr_server::protocol::GameMode::Ctf {
             println!(
-                "flags: {} pickups, {} captures, {:.1} carrier seconds",
-                report.flag_takes, report.captures, report.carrier_seconds
+                "flags: {} takes, {} drops, {} returns, {} captures, {:.1} carrier seconds, last round {:?} {:?}",
+                report.flag_takes,
+                report.flag_drops,
+                report.flag_returns,
+                report.captures,
+                report.carrier_seconds,
+                report.last_round_reason,
+                report.last_round_capture_scores
             );
         }
     }

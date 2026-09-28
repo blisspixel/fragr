@@ -738,9 +738,18 @@ pub struct Report {
     #[serde(default)]
     pub flag_takes: u64,
     #[serde(default)]
+    pub flag_drops: u64,
+    #[serde(default)]
+    pub flag_returns: u64,
+    #[serde(default)]
     pub captures: u64,
     #[serde(default)]
     pub carrier_seconds: f64,
+    /// The most recent completed round, if the observer received its end event.
+    #[serde(default)]
+    pub last_round_reason: Option<String>,
+    #[serde(default)]
+    pub last_round_capture_scores: Option<fragr_server::protocol::TeamScores>,
     pub frags_per_minute: f64,
     pub time_to_first_frag_s: Option<f64>,
     pub longest_gap_without_frag_s: f64,
@@ -816,7 +825,11 @@ pub fn compute_report(obs: &Observation, agents: usize) -> Report {
     let mut host_reactions = 0u64;
     let mut team_kills = 0u64;
     let mut flag_takes = 0u64;
+    let mut flag_drops = 0u64;
+    let mut flag_returns = 0u64;
     let mut captures = 0u64;
+    let mut last_round_reason = None;
+    let mut last_round_capture_scores = None;
     let mut spawn_deaths = 0u64;
     let mut opening_spawn_deaths = 0u64;
     for timed in &obs.events {
@@ -870,16 +883,25 @@ pub fn compute_report(obs: &Observation, agents: usize) -> Report {
                 host_beats += 1;
                 host_reactions += 1;
             }
-            GameEvent::RoundEnd { .. }
-            | GameEvent::Killstreak { .. }
+            GameEvent::RoundEnd {
+                reason,
+                capture_scores,
+                ..
+            } => {
+                host_beats += 1;
+                last_round_reason = Some(reason.clone());
+                last_round_capture_scores = *capture_scores;
+            }
+            GameEvent::Killstreak { .. }
             | GameEvent::CompliancePing { .. }
             | GameEvent::BossSpawn { .. }
             | GameEvent::BossDown { .. } => host_beats += 1,
             GameEvent::Pickup { .. } => pickups += 1,
             GameEvent::Flag { kind, .. } => match kind {
                 fragr_server::protocol::FlagEventKind::Taken => flag_takes += 1,
+                fragr_server::protocol::FlagEventKind::Dropped => flag_drops += 1,
+                fragr_server::protocol::FlagEventKind::Returned => flag_returns += 1,
                 fragr_server::protocol::FlagEventKind::Captured => captures += 1,
-                _ => {}
             },
             GameEvent::Hit { .. }
             | GameEvent::PlayerJoined { .. }
@@ -912,8 +934,12 @@ pub fn compute_report(obs: &Observation, agents: usize) -> Report {
         seconds: seconds(ticks),
         frags,
         flag_takes,
+        flag_drops,
+        flag_returns,
         captures,
         carrier_seconds: seconds(obs.carrier_ticks),
+        last_round_reason,
+        last_round_capture_scores,
         frags_per_minute: per_minute(frags, ticks),
         time_to_first_frag_s,
         longest_gap_without_frag_s: seconds(longest_gap),
@@ -2266,6 +2292,102 @@ mod tests {
             .any(|p| p.contains("Probe-1 stuck for 6.0 s")));
         assert!(problems.iter().any(|p| p.contains("spawn deaths 5 of 20")));
         assert!(problems.iter().any(|p| p.contains("0.50 frags per minute")));
+    }
+
+    #[test]
+    fn ctf_report_accounts_for_each_flag_transition_and_final_score() {
+        use fragr_server::protocol::{FlagEventKind, Team, TeamScores};
+
+        let mut obs = Observation::default();
+        obs.ingest_snapshot(&snapshot(1, Vec::new()), 100);
+        let empty = TeamScores::default();
+        for kind in [
+            FlagEventKind::Taken,
+            FlagEventKind::Dropped,
+            FlagEventKind::Returned,
+            FlagEventKind::Taken,
+        ] {
+            obs.ingest_event(GameEvent::Flag {
+                kind,
+                flag: Team::Union,
+                player: None,
+                player_id: None,
+                capture_scores: empty,
+            });
+        }
+        let score = TeamScores {
+            union: 0,
+            coalition: 1,
+        };
+        obs.ingest_event(GameEvent::Flag {
+            kind: FlagEventKind::Captured,
+            flag: Team::Union,
+            player: None,
+            player_id: None,
+            capture_scores: score,
+        });
+        obs.ingest_event(GameEvent::RoundEnd {
+            winner: None,
+            reason: "Time limit reached".to_string(),
+            final_scores: Vec::new(),
+            winner_score: None,
+            mvp: None,
+            mvp_frags: None,
+            host_line: String::new(),
+            winning_team: Some(Team::Coalition),
+            team_scores: None,
+            capture_scores: Some(score),
+        });
+        let report = compute_report(&obs, 12);
+        assert_eq!(report.flag_takes, 2);
+        assert_eq!(report.flag_drops, 1);
+        assert_eq!(report.flag_returns, 1);
+        assert_eq!(report.captures, 1);
+        assert_eq!(report.rounds_completed, 1);
+        assert_eq!(
+            report.last_round_reason.as_deref(),
+            Some("Time limit reached")
+        );
+        assert_eq!(report.last_round_capture_scores, Some(score));
+
+        let mut older = serde_json::to_value(report).unwrap();
+        for field in [
+            "flag_drops",
+            "flag_returns",
+            "last_round_reason",
+            "last_round_capture_scores",
+        ] {
+            older.as_object_mut().unwrap().remove(field);
+        }
+        let older: Report = serde_json::from_value(older).unwrap();
+        assert_eq!(older.flag_drops, 0);
+        assert_eq!(older.flag_returns, 0);
+        assert_eq!(older.last_round_reason, None);
+        assert_eq!(older.last_round_capture_scores, None);
+
+        let next_score = TeamScores {
+            union: 3,
+            coalition: 1,
+        };
+        obs.ingest_event(GameEvent::RoundEnd {
+            winner: None,
+            reason: "Capture limit reached".to_string(),
+            final_scores: Vec::new(),
+            winner_score: None,
+            mvp: None,
+            mvp_frags: None,
+            host_line: String::new(),
+            winning_team: Some(Team::Union),
+            team_scores: None,
+            capture_scores: Some(next_score),
+        });
+        let latest = compute_report(&obs, 12);
+        assert_eq!(latest.rounds_completed, 2);
+        assert_eq!(
+            latest.last_round_reason.as_deref(),
+            Some("Capture limit reached")
+        );
+        assert_eq!(latest.last_round_capture_scores, Some(next_score));
     }
 
     #[tokio::test]
