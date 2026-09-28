@@ -164,8 +164,14 @@ func _run() -> void:
 		_movement_samples.clear()
 		_walk_results.clear()
 		var ack_report: Dictionary = {}
+		var moving_combat: Dictionary = {}
 		var ack_deadline_usec: int = 0
-		if state.has("ack_probe_seconds"):
+		if state.has("moving_combat_seconds"):
+			moving_combat = await _moving_combat_probe(float(state["moving_combat_seconds"]))
+			ack_report = moving_combat.get("ack_probe", {})
+			if not moving_combat.get("passed", false):
+				_failed = true
+		elif state.has("ack_probe_seconds"):
 			if not _joined or _game_manager() == null or not _game_manager().begin_ack_probe():
 				push_error("qa_tour: Ack probe requires a connected human fighter")
 				quit(1)
@@ -329,6 +335,7 @@ func _run() -> void:
 			"movement_samples": _movement_samples.duplicate(true),
 			"walks": _walk_results.duplicate(true),
 			"combat": combat,
+			"moving_combat": moving_combat,
 			"ack_probe": ack_report,
 			"width": shot.get_width(),
 			"height": shot.get_height(),
@@ -405,6 +412,12 @@ static func valid_walks(states: Variant) -> bool:
 			if not (seconds is int or seconds is float) or not is_finite(float(seconds)) or \
 				float(seconds) < 1.0 or float(seconds) > 120.0 or state.get("join") != "human":
 				return false
+		if state.has("moving_combat_seconds"):
+			var combat_seconds: Variant = state["moving_combat_seconds"]
+			if state.has("ack_probe_seconds") or not (combat_seconds is int or combat_seconds is float) or \
+				not is_finite(float(combat_seconds)) or float(combat_seconds) < 5.0 or \
+				float(combat_seconds) > 120.0 or state.get("join") != "human":
+				return false
 	return true
 
 static func valid_ack_capture(report: Dictionary, seconds: float) -> bool:
@@ -425,6 +438,16 @@ static func valid_ack_capture(report: Dictionary, seconds: float) -> bool:
 		int(report["last_snapshot_ms"]) >= window_ms - 1000 and \
 		int(report.get("max_matched_ack_gap_ms", 100000)) <= 250 and \
 		int(report.get("max_snapshot_gap_ms", 100000)) <= 250
+
+static func valid_moving_combat_capture(report: Dictionary, seconds: float) -> bool:
+	return str(report.get("interruption", "invalid")) == "" and \
+		valid_ack_capture(report.get("ack_probe", {}), seconds) and \
+		float(report.get("server_snapshot_distance_m", 0.0)) >= 5.0 and \
+		int(report.get("server_shots", 0)) >= 2 and int(report.get("shots_while_moving", 0)) >= 1 and \
+		int(report.get("snapshots_with_live_opponents", 0)) >= 10 and \
+		int(report.get("snapshots_observed", 0)) >= int(seconds * 15.0) and \
+		int(report.get("correction_m", {}).get("samples", 0)) >= int(seconds * 10.0) and \
+		bool(report.get("prediction_active_at_end", false))
 
 func _apply_graphics_capture(options: Variant) -> void:
 	var manager: Node = _game_manager()
@@ -979,6 +1002,116 @@ func _walk_to(goal: Vector3) -> void:
 	if not arrived:
 		push_error("qa_tour: ordinary walk failed to reach %s, stopped at %s (walking %d ms, fighting %d ms)" % [goal, _local_feet(), walking_ms, fighting_ms])
 		_failed = true
+
+## One uninterrupted diagnostic window. Every control goes through the same
+## human Action path as ordinary play; snapshot shots and positions prove that
+## the server resolved combat and movement during the measured interval.
+func _moving_combat_probe(seconds: float) -> Dictionary:
+	var gm: Node = _game_manager()
+	if gm == null or not gm.begin_ack_probe():
+		push_error("qa_tour: moving combat requires a connected human fighter")
+		return {"passed": false}
+	var network: Node = gm.get("net_client")
+	var player_id: String = str(network.get("player_id"))
+	var predictor: LocalPrediction = gm.get("local_prediction")
+	predictor.clear_measurements()
+	var started_usec: int = Time.get_ticks_usec()
+	var deadline_usec: int = started_usec + int(seconds * 1000000.0)
+	var previous_tick: int = -1
+	var previous_position: Vector2 = Vector2.ZERO
+	var distance_m: float = 0.0
+	var shots: int = 0
+	var moving_shots: int = 0
+	var bot_shots: int = 0
+	var bot_snapshots: int = 0
+	var snapshots_observed: int = 0
+	var interruption: String = ""
+	while Time.get_ticks_usec() < deadline_usec:
+		if network.get("connection_state") != WebSocketPeer.STATE_OPEN or not bool(gm.get("is_human_player")):
+			interruption = "connection_or_role"
+			break
+		var snapshot: Dictionary = gm.get("latest_snapshot")
+		var tick: int = int(snapshot.get("tick", -1))
+		if tick > previous_tick:
+			var me: Dictionary = QaCombat.actor_by_id(snapshot, player_id)
+			if me.is_empty() or int(me.get("hp", 0)) <= 0:
+				interruption = "death_or_respawn"
+				break
+			var position: Vector2 = Vector2(float(me["x"]), float(me["z"]))
+			var moved: bool = false
+			if previous_tick >= 0:
+				var step_distance: float = position.distance_to(previous_position)
+				distance_m += step_distance
+				moved = step_distance > 0.01
+			previous_position = position
+			previous_tick = tick
+			snapshots_observed += 1
+			var target: Dictionary = {}
+			var target_distance: float = INF
+			for actor: Dictionary in snapshot.get("players", []):
+				if str(actor.get("id", "")) == player_id or not ActorState.is_participant(actor) or int(actor.get("hp", 0)) <= 0:
+					continue
+				var gap: float = position.distance_squared_to(Vector2(float(actor["x"]), float(actor["z"])))
+				if gap < target_distance:
+					target = actor
+					target_distance = gap
+			if not target.is_empty():
+				bot_snapshots += 1
+				var camera: Node = _spectator_camera()
+				camera.set("fp_yaw", atan2(float(target["z"]) - position.y, float(target["x"]) - position.x))
+				camera.set("fp_pitch", 0.0)
+			for shot: Dictionary in snapshot.get("shot_results", []):
+				if str(shot.get("shooter_id", "")) == player_id:
+					shots += 1
+					if moved:
+						moving_shots += 1
+				else:
+					bot_shots += 1
+		Input.action_press("fire")
+		Input.action_press("move_forward")
+		if int((Time.get_ticks_usec() - started_usec) / 1000000) % 2 == 0:
+			Input.action_press("move_left")
+			Input.action_release("move_right")
+		else:
+			Input.action_release("move_left")
+			Input.action_press("move_right")
+		await create_timer(0.05).timeout
+	QaCombat.release_inputs()
+	var ack: Dictionary = gm.end_ack_probe()
+	var correction_samples: Array[float] = predictor.correction_samples.duplicate()
+	var corrections: Dictionary = _correction_distribution(correction_samples)
+	var result: Dictionary = {
+		"interruption": interruption,
+		"duration_seconds": ack.get("duration_seconds", 0.0),
+		"server_snapshot_distance_m": snappedf(distance_m, 0.001),
+		"server_shots": shots, "shots_while_moving": moving_shots,
+		"other_shots": bot_shots, "snapshots_with_live_opponents": bot_snapshots,
+		"snapshots_observed": snapshots_observed,
+		"correction_m": corrections, "prediction_fallbacks": predictor.fallback_reasons.duplicate(),
+		"peak_correction": {"tick": predictor.correction_max_tick,
+			"elapsed_ms": (predictor.correction_max_usec - started_usec) / 1000 if predictor.correction_max_usec >= started_usec else null,
+			"server_position": [snappedf(predictor.correction_max_server_position.x, 0.001),
+				snappedf(predictor.correction_max_server_position.y, 0.001),
+				snappedf(predictor.correction_max_server_position.z, 0.001)]},
+		"prediction_fallback_count": predictor.fallback_count,
+		"prediction_active_at_end": predictor.active(),
+		"ack_probe": ack,
+	}
+	var passed: bool = valid_moving_combat_capture(result, seconds)
+	result["passed"] = passed
+	if not passed:
+		push_error("qa_tour: moving combat probe failed: " + JSON.stringify(result))
+	return result
+
+static func _correction_distribution(samples: Array[float]) -> Dictionary:
+	if samples.is_empty():
+		return {"samples": 0, "p50": null, "p95": null, "p99": null, "max": null}
+	var ordered: Array[float] = samples.duplicate()
+	ordered.sort()
+	return {"samples": ordered.size(), "p50": snappedf(ordered[int(ceilf(ordered.size() * 0.50)) - 1], 0.0001),
+		"p95": snappedf(ordered[int(ceilf(ordered.size() * 0.95)) - 1], 0.0001),
+		"p99": snappedf(ordered[int(ceilf(ordered.size() * 0.99)) - 1], 0.0001),
+		"max": snappedf(ordered.back(), 0.0001)}
 
 func _set_aim_pitch(pitch: float) -> void:
 	var gm: Node = _game_manager()

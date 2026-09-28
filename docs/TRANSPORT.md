@@ -15,7 +15,7 @@
 - Pros: Simple, universal, easy to debug, works for all roles, multi-peer ready
 - Cons: Ordered TCP delivery can stall newer updates after loss; JSON uses more bytes than a compact binary format
 
-**Current playable path.** Spectators and agents share this transport with humans. Competitive human feel is not yet established by a two-machine or unsteered human session. The [loopback Action-to-Ack measurement](plans/human-action-ack-baseline.md) samples only server-selected Actions, so it is not a general input-latency result. A second peer can spectate the same match over LAN or a public host.
+**Current playable path.** Spectators and agents share this transport with humans. Competitive human feel is not yet established by a two-machine or unsteered human session. The [loopback Action-to-Ack measurement](plans/human-action-ack-baseline.md) samples only server-selected Actions, so it is not a general input-latency result. The [continuous moving-combat probe](plans/websocket-moving-combat-probe.md) adds a same-window correction, fallback, cadence and payload receipt on loopback. It does not establish remote network behavior. A second peer can spectate the same match over LAN or a public host.
 
 ## Planned: measured UDP pilot
 

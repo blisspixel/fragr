@@ -27,6 +27,9 @@ var next_step_usec: int = 0
 var visual_offset: Vector3 = Vector3.ZERO
 var correction_count: int = 0
 var correction_max: float = 0.0
+var correction_max_tick: int = -1
+var correction_max_usec: int = -1
+var correction_max_server_position: Vector3 = Vector3.ZERO
 var correction_samples: Array[float] = []
 var fallback_count: int = 0
 var fallback_reasons: Dictionary = {}
@@ -56,17 +59,25 @@ func reset(reason: String, clear_measurements: bool = false) -> void:
 	next_step_usec = 0
 	visual_offset = Vector3.ZERO
 	if clear_measurements:
-		correction_count = 0
-		correction_max = 0.0
-		correction_samples.clear()
-		fallback_count = 0
-		fallback_reasons.clear()
-		last_fallback_reason = ""
+		clear_measurements()
 	elif was_active:
 		fallback_count += 1
 		fallback_reasons[reason] = int(fallback_reasons.get(reason, 0)) + 1
 		last_fallback_reason = reason
 	fallback_reason = reason
+
+
+## Start an opt-in measurement window without changing replay state.
+func clear_measurements() -> void:
+	correction_count = 0
+	correction_max = 0.0
+	correction_max_tick = -1
+	correction_max_usec = -1
+	correction_max_server_position = Vector3.ZERO
+	correction_samples.clear()
+	fallback_count = 0
+	fallback_reasons.clear()
+	last_fallback_reason = ""
 
 
 func active() -> bool:
@@ -174,7 +185,11 @@ func accept_ack(ack: Dictionary, now_usec: int) -> void:
 	if not discontinuity and not matched_state.is_empty():
 		var same_tick_error: float = world_position(matched_state).distance_to(world_position(new_body))
 		correction_count += 1
-		correction_max = maxf(correction_max, same_tick_error)
+		if same_tick_error > correction_max:
+			correction_max = same_tick_error
+			correction_max_tick = incoming_tick
+			correction_max_usec = now_usec
+			correction_max_server_position = world_position(new_body)
 		correction_samples.append(same_tick_error)
 		if correction_samples.size() > MAX_CORRECTION_SAMPLES:
 			correction_samples.pop_front()

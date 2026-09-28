@@ -42,8 +42,14 @@ func _initialize() -> void:
 	predictor.accept_ack(_ack(2, 12, 1, 0.3), 1100000)
 	_check(predictor.correction_count == 2 and predictor.correction_max > 0.0,
 		"newer tick with repeated selected sequence records correction")
+	_check(predictor.correction_max_tick == 12 and predictor.correction_max_usec == 1100000 and
+		is_equal_approx(predictor.correction_max_server_position.x, 0.3),
+		"largest correction retains its authoritative tick, time and position")
 	_check(predictor.correction_percentile(0.99) >= predictor.correction_percentile(0.50),
 		"bounded correction samples report ordered percentiles")
+	predictor.clear_measurements()
+	_check(predictor.active() and predictor.correction_count == 0 and predictor.correction_max_tick == -1,
+		"diagnostic reset preserves live prediction while clearing prior-window samples")
 	var revised: LocalPrediction = LocalPrediction.new()
 	revised.configure_map(map)
 	revised.accept_ack(_ack(0, 50), 5000000)

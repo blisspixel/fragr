@@ -13,8 +13,16 @@ func _initialize() -> void:
 	for invalid_seconds: Variant in [0, 121, INF, "60"]:
 		_check(not TOUR.valid_walks([{"join": "human", "ack_probe_seconds": invalid_seconds}]),
 			"Ack probe duration must be finite and bounded")
+		_check(not TOUR.valid_walks([{"join": "human", "moving_combat_seconds": invalid_seconds}]),
+			"moving combat duration must be finite and bounded")
 	_check(not TOUR.valid_walks([{"ack_probe_seconds": 60}]),
 		"Ack probe cannot run without a human join")
+	_check(not TOUR.valid_walks([{"moving_combat_seconds": 20}]),
+		"moving combat cannot run without a human join")
+	_check(TOUR.valid_walks([{"join": "human", "moving_combat_seconds": 20}]),
+		"moving combat accepts a bounded joined window")
+	_check(not TOUR.valid_walks([{"join": "human", "moving_combat_seconds": 20, "ack_probe_seconds": 20}]),
+		"one state cannot start two Ack probes")
 	var healthy: Dictionary = {"interrupted": false, "failed_sends": 0,
 		"invalid_acks": 0, "invalid_snapshots": 0, "duration_seconds": 60.1,
 		"sent": 3600, "matched_acks": 1100, "snapshots": 1100,
@@ -28,6 +36,14 @@ func _initialize() -> void:
 	stalled = healthy.duplicate()
 	stalled["max_matched_ack_gap_ms"] = 1000
 	_check(not TOUR.valid_ack_capture(stalled, 60.0), "capture cannot hide a one-second Ack gap")
+	var combat: Dictionary = {"interruption": "", "ack_probe": healthy, "server_snapshot_distance_m": 30.0,
+		"server_shots": 10, "shots_while_moving": 8, "snapshots_with_live_opponents": 300,
+		"snapshots_observed": 1100, "correction_m": {"samples": 900}, "prediction_active_at_end": true}
+	_check(TOUR.valid_moving_combat_capture(combat, 60.0), "live moving combat window accepted")
+	for missing: String in ["server_snapshot_distance_m", "server_shots", "shots_while_moving"]:
+		var idle: Dictionary = combat.duplicate(true)
+		idle[missing] = 0
+		_check(not TOUR.valid_moving_combat_capture(idle, 60.0), "no movement or shot evidence cannot pass")
 	for filename: String in DirAccess.get_files_at("res://qa"):
 		if filename.get_extension() != "json":
 			continue
