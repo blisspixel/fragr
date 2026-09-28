@@ -278,8 +278,11 @@ func _run() -> void:
 	for key: String in ["M02_WARD_STOPPED", "M02_LATCH_RELEASE", "M02_LATCH_HEADING", "M02_LATCH_SPEECH", "M02_LOW_WATER",
 		"M02_RELEASE_RECAP", "M02_TRANSFER_LIST", "M02_SKIP_HINT"]:
 		_check(not WorldSign.localized(key).is_empty(), "keyed release copy exists: " + key)
-	ward.queue_free()
+	ward.clear_map()
 	await process_frame
+	ward.free()
+	# The headless mixer releases a stopped looping playback on its next buffer.
+	await create_timer(0.25).timeout
 	if failures == 0:
 		print("test_m02_ward: PASS ordered bay and side releases, server facts, late join, retry, skip, muted fallback")
 	quit(0 if failures == 0 else 1)

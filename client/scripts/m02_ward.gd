@@ -81,7 +81,7 @@ func configure_map(info: Dictionary) -> void:
 	_set_side_present(false)
 
 func clear_map() -> void:
-	_stop_audio()
+	_stop_audio(true)
 	if is_instance_valid(_root):
 		remove_child(_root)
 		_root.queue_free()
@@ -116,6 +116,9 @@ func clear_map() -> void:
 	_second_release_sound = null
 	_side_release_sound = null
 	_floor_machine_sound = null
+
+func _exit_tree() -> void:
+	_stop_audio(true)
 
 ## Only validated MissionState data reaches this method from GameManager.
 func apply_state(state: Dictionary) -> void:
@@ -397,14 +400,14 @@ func _build() -> void:
 	_built = true
 
 func _build_audio() -> void:
-	_ward_machine_sound = _audio_player("WardMachine", "ward_machine_loop.wav", WARD_MACHINE_FEET, MACHINE_VOLUME_DB, 7.0, 22.0, true)
+	_ward_machine_sound = _audio_player("WardMachine", "ward_machine_loop.wav", WARD_MACHINE_FEET, MACHINE_VOLUME_DB, 7.0, 22.0)
 	_ward_stop_sound = _audio_player("WardMachineStop", "ward_machine_stop.wav", WARD_MACHINE_FEET, -8.0, 6.0, 20.0)
 	_release_sound = _audio_player("RestraintRelease", "restraint_release.wav", FIRST_FEET + Vector3(0.0, 1.3, 0.0), -6.0, 5.0, 18.0)
 	_second_release_sound = _audio_player("SecondRestraintRelease", "restraint_release.wav", SECOND_FEET + Vector3(0.0, 1.3, 0.0), -6.0, 5.0, 18.0)
 	_side_release_sound = _audio_player("SideRestraintRelease", "restraint_release.wav", SIDE_RELEASE_FEET, -6.0, 5.0, 18.0)
-	_floor_machine_sound = _audio_player("FloorMachinery", "floor_machinery_loop.wav", FLOOR_MACHINE_FEET, -22.0, 7.0, 22.0, true)
+	_floor_machine_sound = _audio_player("FloorMachinery", "floor_machinery_loop.wav", FLOOR_MACHINE_FEET, -22.0, 7.0, 22.0)
 
-func _audio_player(label: String, file_name: String, at: Vector3, volume: float, unit: float, distance: float, loop: bool = false) -> AudioStreamPlayer3D:
+func _audio_player(label: String, file_name: String, at: Vector3, volume: float, unit: float, distance: float) -> AudioStreamPlayer3D:
 	var player: AudioStreamPlayer3D = AudioStreamPlayer3D.new()
 	player.name = label
 	player.position = at
@@ -414,12 +417,7 @@ func _audio_player(label: String, file_name: String, at: Vector3, volume: float,
 	player.volume_db = volume
 	var path: String = AUDIO_DIR + file_name
 	if ResourceLoader.exists(path):
-		var stream: AudioStream = load(path) as AudioStream
-		if loop and stream is AudioStreamWAV:
-			var wav: AudioStreamWAV = stream.duplicate() as AudioStreamWAV
-			wav.loop_mode = AudioStreamWAV.LOOP_FORWARD
-			stream = wav
-		player.stream = stream
+		player.stream = load(path) as AudioStream
 	_root.add_child(player)
 	return player
 
@@ -427,10 +425,12 @@ func _play_audio(player: AudioStreamPlayer3D) -> void:
 	if player.stream != null:
 		player.play()
 
-func _stop_audio() -> void:
+func _stop_audio(release_streams: bool = false) -> void:
 	for player: AudioStreamPlayer3D in [_ward_machine_sound, _ward_stop_sound, _release_sound, _second_release_sound, _side_release_sound, _floor_machine_sound]:
 		if is_instance_valid(player):
 			player.stop()
+			if release_streams:
+				player.stream = null
 	_machine_fade_elapsed = -1.0
 
 func _sync_audio_snapshot() -> void:
