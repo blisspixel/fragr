@@ -100,6 +100,7 @@ func _run() -> void:
 		return
 
 	var current_scene: String = ""
+	var audio_levels: Dictionary = {}
 	_clock_ms = Time.get_ticks_msec()
 	for entry in states:
 		var state: Dictionary = entry
@@ -161,6 +162,13 @@ func _run() -> void:
 			await _change_role(state["join"] == "human")
 			if _joined:
 				_combat_probe.begin(_game_manager())
+		if state.get("radio_off", false):
+			var radio: Node = _game_manager().get("radio") if _game_manager() != null else null
+			if radio == null:
+				push_error("qa_tour: radio was unavailable for isolated audio capture")
+				_failed = true
+			elif bool(radio.get("enabled")):
+				radio.call("toggle")
 		if state.has("record_status"):
 			var deadline: int = Time.get_ticks_msec() + 200000
 			while _game_manager().net_client.record.get("status") != state["record_status"] and Time.get_ticks_msec() < deadline:
@@ -277,6 +285,27 @@ func _run() -> void:
 		# A detached live-combat view needs only a few settled frames. Holding
 		# the human still for the menu-still delay would change the fight.
 		await create_timer(0.2 if state.has("expect_active_enemies") else 0.75).timeout
+		if state.has("expect_m02_machine_playing"):
+			var ward: M02Ward = _game_manager().get("m02_ward") as M02Ward if _game_manager() != null else null
+			var playing: bool = ward != null and is_instance_valid(ward._ward_machine_sound) and ward._ward_machine_sound.playing
+			if playing != bool(state["expect_m02_machine_playing"]):
+				push_error("qa_tour: %s ward machine playback did not match the live state" % state_name)
+				_failed = true
+		var audio_capture: Dictionary = {}
+		if state.has("record_audio_seconds"):
+			audio_capture = await _record_audio(float(state["record_audio_seconds"]), _results.size() + 1)
+			if audio_capture.is_empty():
+				_failed = true
+			else:
+				var comparison: String = str(state.get("expect_audio_louder_than", ""))
+				if not comparison.is_empty():
+					var reference_level: float = float(audio_levels.get(comparison, 0.0))
+					var required_ratio: float = float(state.get("audio_level_ratio", 1.5))
+					if reference_level <= 0.0 or float(audio_capture["rms"]) < reference_level * required_ratio:
+						push_error("qa_tour: %s audio RMS %.6f was not %.2fx %s (%.6f)" % [state_name,
+							float(audio_capture["rms"]), required_ratio, comparison, reference_level])
+						_failed = true
+				audio_levels[state_name] = audio_capture["rms"]
 		await RenderingServer.frame_post_draw
 		await RenderingServer.frame_post_draw
 		var active_enemy_phases: Dictionary[String, String] = {}
@@ -366,7 +395,7 @@ func _run() -> void:
 			if observed.get("server_yaw") == null or absf(angle_difference(float(observed["camera_yaw"]), expected_yaw)) > 0.001 or absf(angle_difference(float(observed["server_yaw"]), expected_yaw)) > 0.001:
 				push_error("qa_tour: captured facing disagrees with the authored spawn for " + state_name)
 				_failed = true
-		if current_scene == "res://scenes/main.tscn" and (observed.get("fighters", 0) == 0 or observed.get("map_id", 0) == 0):
+		if current_scene == "res://scenes/main.tscn" and (observed.get("map_id", 0) == 0 or (observed.get("fighters", 0) == 0 and not state.get("allow_empty_roster", false))):
 			push_error("qa_tour: no live match for " + state_name)
 			_failed = true
 		if state.has("aim_pitch"):
@@ -406,6 +435,7 @@ func _run() -> void:
 			"movement_samples": _movement_samples.duplicate(true),
 			"walks": _walk_results.duplicate(true),
 			"combat": combat,
+			"audio": audio_capture,
 			"width": shot.get_width(),
 			"height": shot.get_height(),
 			"hud_coverage": snappedf(measured.get("hud_coverage", 0.0), 0.0001),
@@ -462,6 +492,60 @@ func _retire_scene() -> void:
 		push_error("qa_tour: %d audio playbacks remain after scene retirement" % _retiring_audio.size())
 		_failed = true
 
+func _record_audio(seconds: float, state_index: int) -> Dictionary:
+	# Master receives Effects, Radio and Voice. The effect observes that bus
+	# before its final fader, so its level is useful for relative QA only.
+	var master: int = AudioServer.get_bus_index(&"Master")
+	if master < 0:
+		push_error("qa_tour: Master audio bus is missing")
+		return {}
+	var recorder: AudioEffectRecord = AudioEffectRecord.new()
+	recorder.format = AudioStreamWAV.FORMAT_16_BITS
+	var effects_before: int = AudioServer.get_bus_effect_count(master)
+	AudioServer.add_bus_effect(master, recorder)
+	recorder.set_recording_active(true)
+	await create_timer(seconds).timeout
+	# Obtain the buffer while active. Restarting or removing the effect clears
+	# its capture, so copy it before stopping the mixer-side recording.
+	var recording: AudioStreamWAV = recorder.get_recording()
+	recorder.set_recording_active(false)
+	for effect_index: int in range(AudioServer.get_bus_effect_count(master) - 1, -1, -1):
+		if AudioServer.get_bus_effect(master, effect_index) == recorder:
+			AudioServer.remove_bus_effect(master, effect_index)
+			break
+	if AudioServer.get_bus_effect_count(master) != effects_before:
+		push_error("qa_tour: Master recording effect remained on the bus")
+		return {}
+	if recording == null or recording.format != AudioStreamWAV.FORMAT_16_BITS:
+		push_error("qa_tour: Master recording returned no 16-bit PCM")
+		return {}
+	var pcm: PackedByteArray = recording.data
+	var channels: int = 2 if recording.stereo else 1
+	var duration: float = float(pcm.size()) / float(recording.mix_rate * channels * 2)
+	if pcm.size() < 2 or pcm.size() % 2 != 0 or duration < seconds * 0.8:
+		push_error("qa_tour: Master recording was empty or shorter than requested")
+		return {}
+	var sum_squares: float = 0.0
+	var peak: float = 0.0
+	for byte_index: int in range(0, pcm.size(), 2):
+		var sample: int = int(pcm[byte_index]) | (int(pcm[byte_index + 1]) << 8)
+		if sample >= 32768:
+			sample -= 65536
+		var level: float = absf(float(sample) / 32768.0)
+		sum_squares += level * level
+		peak = maxf(peak, level)
+	var rms: float = sqrt(sum_squares / float(pcm.size() / 2))
+	if rms <= 0.000001:
+		push_error("qa_tour: Master recording is silent")
+		return {}
+	var file_name: String = "%02d_audio.wav" % state_index
+	if recording.save_to_wav(_out_dir.path_join(file_name)) != OK:
+		push_error("qa_tour: could not write " + file_name)
+		return {}
+	print("qa_tour: %s %.2f s RMS %.6f peak %.6f" % [file_name, duration, rms, peak])
+	return {"file": file_name, "duration_seconds": duration, "rms": rms, "peak": peak,
+		"sample_rate": recording.mix_rate, "channels": channels, "master_pre_fader": true}
+
 func _track_scene_audio() -> void:
 	if self.current_scene == null:
 		return
@@ -479,6 +563,17 @@ static func valid_walks(states: Variant) -> bool:
 		if state.get("camera", "") == "overview" and state.has("camera_position") and \
 			not QaCombat.valid_waypoints([state.get("camera_position"), state.get("camera_look_at")]):
 			return false
+		if state.has("record_audio_seconds"):
+			var seconds: Variant = state["record_audio_seconds"]
+			if not (seconds is float or seconds is int) or not is_finite(float(seconds)) \
+				or float(seconds) <= 0.0 or float(seconds) > 10.0:
+				return false
+		if state.has("expect_audio_louder_than"):
+			var reference: Variant = state["expect_audio_louder_than"]
+			var ratio: Variant = state.get("audio_level_ratio", 1.5)
+			if not state.has("record_audio_seconds") or not reference is String or reference.is_empty() \
+				or not (ratio is float or ratio is int) or not is_finite(float(ratio)) or float(ratio) < 1.0:
+				return false
 	return true
 
 static func active_named_enemies(snapshot: Dictionary, names: Array) -> Dictionary[String, String]:
