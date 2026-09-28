@@ -41,8 +41,8 @@
       "id":"crawler_pack",
       "after":"crawler_first",
         "regions":[
-          {"min":[-13.5,0,-26],"max":[-11.8,0.6,-22.5]},
-          {"min":[-18.5,0,-28],"max":[-14,1,-27.2]}
+          {"min":[-13.5,0,-26],"max":[-11.8,3,-22.5]},
+          {"min":[-18.5,0,-28],"max":[-14,3,-27.2]}
         ],
       "enemies":[
         {"id":"stair_crawler_pack_a","kind":"crawler","feet":[-16,0.5,-28.4],"yaw":0},

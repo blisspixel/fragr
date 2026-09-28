@@ -128,7 +128,7 @@ static func exposed_point(actor: Dictionary, eye: Vector3, solids: Array) -> Vec
 			return point
 	return Vector3.INF
 
-static func visible_target(snapshot: Dictionary, player_id: String, solids: Array, committed_only: bool = false, max_distance: float = INF) -> Dictionary:
+static func visible_target(snapshot: Dictionary, player_id: String, solids: Array, committed_only: bool = false, max_distance: float = INF, allowed_names: Array = []) -> Dictionary:
 	var me: Dictionary = actor_by_id(snapshot, player_id)
 	if me.is_empty() or int(me["hp"]) <= 0:
 		return {}
@@ -138,6 +138,8 @@ static func visible_target(snapshot: Dictionary, player_id: String, solids: Arra
 	for actor: Dictionary in snapshot.get("players", []):
 		# The campaign has both Union hostiles and a free companion.
 		if not ActorState.is_union(actor) or int(actor["hp"]) <= 0:
+			continue
+		if not allowed_names.is_empty() and actor.get("name", "") not in allowed_names:
 			continue
 		if committed_only and str(actor["campaign"]["phase"]) not in ["windup", "leaping", "firing"]:
 			continue
@@ -350,6 +352,10 @@ func run(tree: SceneTree, manager: Node, spec: Dictionary, output: String) -> Di
 		push_error("qa_combat: invalid approach route")
 		return {"passed": false}
 	var required: Array = spec.get("required", [])
+	if spec.get("target_required_only", false) and required.is_empty():
+		push_error("qa_combat: target_required_only needs named required enemies")
+		return {"passed": false}
+	var target_names: Array = required if spec.get("target_required_only", false) else []
 	if spec.get("require_companion_damage", false) and required.is_empty():
 		push_error("qa_combat: companion damage proof requires named targets")
 		return {"passed": false}
@@ -428,7 +434,7 @@ func run(tree: SceneTree, manager: Node, spec: Dictionary, output: String) -> Di
 				break
 		var me: Dictionary = actor_by_id(snapshot, _player_id)
 		alive = not me.is_empty() and int(me["hp"]) > 0
-		var target: Dictionary = visible_target(snapshot, _player_id, solids)
+		var target: Dictionary = visible_target(snapshot, _player_id, solids, false, INF, target_names)
 		if not target.is_empty():
 			last_target_id = str(target["id"])
 		release_inputs()

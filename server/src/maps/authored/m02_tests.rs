@@ -197,7 +197,7 @@ fn maintenance_cut_skips_only_the_pack_landing() {
     let rejoin = [-15.5, 0.0, -22.0];
     let antechamber = [-14.0, 0.0, -21.5];
     let direct = [-12.5, 0.0, -24.5];
-    let landing = [-16.0, 0.5, -27.6];
+    let landing = [-16.0, 1.2, -27.6];
     assert!(pack.regions.iter().any(|region| region.contains(direct)));
     assert!(pack.regions.iter().any(|region| region.contains(landing)));
     assert!(!pack.regions.iter().any(|region| region.contains(first)));
@@ -294,71 +294,80 @@ fn pack_stays_dormant_at_the_fork_and_wakes_on_the_direct_lane() {
 
 #[test]
 fn pack_wakes_when_the_west_approach_enters_its_landing() {
-    let map = AuthoredMap::read(include_str!("../../../maps/m02-persons-unknown.json").as_bytes())
-        .unwrap();
-    let arena = map.arena.clone();
-    let mut state = crate::sim::GameState::with_authored_map(map);
-    let id = uuid::Uuid::from_u128(0x02bd);
-    state.add_player(id, "Landing probe".into(), crate::protocol::Role::Human);
-    assert!(state.acknowledge_m02(id, 1));
-    let place = |state: &mut crate::sim::GameState, feet: [f32; 3]| {
-        let player = state
+    for jump_from_staging in [false, true] {
+        let map =
+            AuthoredMap::read(include_str!("../../../maps/m02-persons-unknown.json").as_bytes())
+                .unwrap();
+        let arena = map.arena.clone();
+        let mut state = crate::sim::GameState::with_authored_map(map);
+        let id = uuid::Uuid::from_u128(0x02bd);
+        state.add_player(id, "Landing probe".into(), crate::protocol::Role::Human);
+        assert!(state.acknowledge_m02(id, 1));
+        let place = |state: &mut crate::sim::GameState, feet: [f32; 3]| {
+            let player = state
+                .players
+                .iter_mut()
+                .find(|player| player.id == id)
+                .unwrap();
+            player.x = feet[0];
+            player.y = feet[1] + crate::sim::PLAYER_FLOOR_Y;
+            player.z = feet[2];
+            state.update_encounters();
+        };
+        place(&mut state, [-3.2, 3.0, -31.0]);
+        for guard in state
             .players
             .iter_mut()
-            .find(|player| player.id == id)
-            .unwrap();
-        player.x = feet[0];
-        player.y = feet[1] + crate::sim::PLAYER_FLOOR_Y;
-        player.z = feet[2];
+            .filter(|player| player.name.starts_with("guard_room_clerk_"))
+        {
+            guard.hp = 0;
+        }
         state.update_encounters();
-    };
-    place(&mut state, [-3.2, 3.0, -31.0]);
-    for guard in state
-        .players
-        .iter_mut()
-        .filter(|player| player.name.starts_with("guard_room_clerk_"))
-    {
-        guard.hp = 0;
+        place(&mut state, [-10.5, 1.0, -29.5]);
+        let first = state
+            .players
+            .iter()
+            .find(|player| player.name == "stair_crawler_first")
+            .unwrap()
+            .id;
+        state
+            .players
+            .iter_mut()
+            .find(|player| player.id == first)
+            .unwrap()
+            .hp = 0;
+        state.update_encounters();
+        let pack = state
+            .players
+            .iter()
+            .find(|player| player.name == "stair_crawler_pack_a")
+            .unwrap()
+            .id;
+        place(&mut state, [-12.0, 0.0, -27.0]);
+        place(&mut state, [-16.0, 0.0, -26.0]);
+        assert!(!state.encounters.is_active_enemy(pack));
+        let mut body = crate::movement::MoveState {
+            x: -16.0,
+            z: -26.0,
+            y: 0.0,
+            vx: 0.0,
+            vz: -crate::movement::TOP_SPEED,
+            vy: 0.0,
+            yaw: 0.0,
+        };
+        for step in 0..8 {
+            body = crate::movement::integrate(body, jump_from_staging && step == 0, 0.05, &arena);
+            place(&mut state, [body.x, body.y, body.z]);
+        }
+        assert!(body.z <= -27.5, "body did not reach the pack landing");
+        if jump_from_staging {
+            assert!(
+                body.y > 1.0,
+                "the jump did not clear the old trigger height"
+            );
+        }
+        assert!(state.encounters.is_active_enemy(pack));
     }
-    state.update_encounters();
-    place(&mut state, [-10.5, 1.0, -29.5]);
-    let first = state
-        .players
-        .iter()
-        .find(|player| player.name == "stair_crawler_first")
-        .unwrap()
-        .id;
-    state
-        .players
-        .iter_mut()
-        .find(|player| player.id == first)
-        .unwrap()
-        .hp = 0;
-    state.update_encounters();
-    let pack = state
-        .players
-        .iter()
-        .find(|player| player.name == "stair_crawler_pack_a")
-        .unwrap()
-        .id;
-    place(&mut state, [-12.0, 0.0, -27.0]);
-    place(&mut state, [-16.0, 0.0, -26.0]);
-    assert!(!state.encounters.is_active_enemy(pack));
-    let mut body = crate::movement::MoveState {
-        x: -16.0,
-        z: -26.0,
-        y: 0.0,
-        vx: 0.0,
-        vz: -crate::movement::TOP_SPEED,
-        vy: 0.0,
-        yaw: 0.0,
-    };
-    for _ in 0..8 {
-        body = crate::movement::integrate(body, false, 0.05, &arena);
-        place(&mut state, [body.x, body.y, body.z]);
-    }
-    assert!(body.z <= -27.5, "body did not reach the pack landing");
-    assert!(state.encounters.is_active_enemy(pack));
 }
 
 #[test]

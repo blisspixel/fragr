@@ -44,11 +44,13 @@ world and navigation; no client-only collision. The fork begins near the lower
 switchback after `crawler_first` (x -12, z -27). Shortening the old screen
 opens a grounded west passage around the pack landing; an offset screen marks
 its north edge. The revised direct-lane trigger spans x -13.5 to -11.8,
-z -26 to -22.5, y 0 to 0.6. A second trigger strip spans the west landing
-approach at x -18.5 to -14, z -28 to -27.2. It closes a gap that would let a
-player reach the pack without waking it. The bypass passes north of that strip
+z -26 to -22.5, y 0 to 3. A second trigger strip spans the west landing
+approach at x -18.5 to -14, z -28 to -27.2, y 0 to 3. It closes a gap that
+would let a player walk or jump into the pack without waking it. The bypass
+passes north of that strip
 and rejoins the antechamber near x -14, z -22. Loaded navigation, live body
-integration into the landing, and a first-person bypass with an idle-pack
+integration into the landing with and without a jump, and a first-person bypass
+with an idle-pack
 assertion verify both boundaries. The direct landing stays readable as the
 main fight route. Do not hide the service choice behind an unmarked wall.
 
@@ -106,7 +108,7 @@ keeping the Crawler's sound cue readable.
   CI and remaining fresh-player questions here before requesting integration.
 
 The revised authored map SHA-256 is
-`4460ac8b7b1d7a1b3726b034c3693a23e4e9bb418e9a7e41bc1c990dde397e01`.
+`79e1922314f078cd5524ab030ddd677c35f05a23860f3ab3002fc6af8b1b015f`.
 Older saved M02 map bytes require New Run and remain archived by the existing
 content-hash migration path.
 
@@ -114,12 +116,12 @@ content-hash migration path.
 
 The Standard first-person maintenance tour completed 25 of 25 states with
 ordinary movement and combat, checked all four pack actors were still idle
-after the cut, then departed. The direct-route side-ward tour completed 24 of
-24 states after its old waypoints were corrected for the new geometry. The
-17-state Latch motion tour passed on the direct route, including its sampled
-companion escape. The regular published tour completed 32 of 32 states. These
-full-resolution frames were inspected on Godot 4.7.2-stable, OpenGL, AMD Radeon
-780M:
+after the cut and ward fight, then departed. The direct-route side-ward tour
+completed 24 of 24 states after its old waypoints were corrected for the new
+geometry. The 17-state Latch motion tour passed on the direct route, including
+its sampled companion escape. The regular published tour completed 32 of 32
+states. Full-resolution frames were inspected on Godot 4.7.2-stable, OpenGL,
+AMD Radeon 780M:
 
 - [Service fork](../screenshots/m02_maintenance_fork.png): the player can choose
   the open service cut or approach the visible pack landing after the first
@@ -133,15 +135,22 @@ full-resolution frames were inspected on Godot 4.7.2-stable, OpenGL, AMD Radeon
 The route and room remain graybox. The scripted tour proves traversal and
 state order, not fresh-player discovery or fight balance.
 
+One rerun reset during Latch's handoff because the tour's general combat probe
+selected a dormant pack actor while clearing the ward, which woke the skipped
+encounter. The maintenance tour now restricts that stage to its three named
+ward guards and checks that the pack stays idle afterward. This constrains the
+evidence run to the intended service route; a player can still choose to wake
+the pack by shooting into it.
+
 ## Verification record
 
 - `cargo fmt --all -- --check`, workspace Clippy with warnings denied,
   `cargo test --workspace --locked`, the release build, `cargo deny check
   licenses bans sources`, and the deterministic 16-bot benchmark passed.
 - Unfiltered workspace line coverage passed the 90 percent floor at 93.79
-  percent after the landing strip test was added. The focused M02 tests passed
-  47 of 47, including integrated body movement into the new strip. Full
-  workspace tests passed after that change.
+  percent after the jump-height correction. The focused M02 tests passed 47
+  of 47, including walking and jumping through the new strip. Full workspace
+  tests passed under coverage after that change.
 - Four named mixed-agent playtests and the six-map 2/6/6/8/12/16 roster sweep
   passed. These arena checks do not establish M02 fight balance.
 - `tools/godot_check.sh` and `tools/test_godot_check.sh` passed after the
@@ -150,6 +159,8 @@ state order, not fresh-player discovery or fight balance.
   and nine healthy samples with four agents, four bots and two spectators.
   This local arena soak is not a cloud-host or M02 capacity claim. PR CI remains.
 - No external API or cloud charge was made. This slice spent $0.
+- The first base-main CI run and release packaging run passed on the earlier
+  draft head. The final trigger and tour correction require a fresh CI run.
 
 ## Open review
 

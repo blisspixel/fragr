@@ -70,6 +70,11 @@ func _initialize() -> void:
 		"campaign":{"side":"companion", "kind":"latch", "phase":"following", "phase_started":0}}
 	var snapshot: Dictionary = {"tick":1, "players":[me, friend, latch, guard]}
 	_check(QaCombat.visible_target(snapshot, "player", []).get("id") == "guard", "closer participant is never a target")
+	guard["name"] = "ward_clerk"
+	_check(QaCombat.visible_target(snapshot, "player", [], false, INF, ["ward_clerk"]).get("id") == "guard",
+		"named ward target remains eligible")
+	_check(QaCombat.visible_target(snapshot, "player", [], false, INF, ["stair_crawler_pack_a"]).is_empty(),
+		"named combat stage does not shoot a dormant optional pack")
 	_check(QaCombat.visible_target(snapshot, "player", []).get("id") != "latch",
 		"the nearby companion is never an automated combat target")
 	_check(not QaCombat.visible_target(snapshot, "player", [], true).is_empty(), "visible windup permits evasive input")
