@@ -1,6 +1,6 @@
 # Campaign build order
 
-**Status:** planned, revised 2026-09-28. No full campaign mission is accepted. The current [full build order](../ROADMAP.md#full-build-order-2026-09-27) calls for integration of the M02 draft stack and an unsteered M01-to-M02 player session before another M02 content slice. M01's fresh-player gate remains open.
+**Status:** planned, revised 2026-09-28. No full campaign mission is accepted. The current [full build order](../ROADMAP.md#full-build-order-2026-09-27) calls for an unsteered M01-to-M02 player session on the integrated build before another M02 content slice. M01's fresh-player gate remains open.
 **Goal:** deliver twenty levels in five episodes and a conditional epilogue in [CAMPAIGN.md](../CAMPAIGN.md) through
 bounded, verifiable milestones. [Mission briefs](../CAMPAIGN-MISSIONS.md) define
 content; this plan defines dependencies.

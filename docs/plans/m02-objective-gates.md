@@ -1,7 +1,7 @@
 # M02 objective and gate foundation
 
 **Status:** in flight, 2026-09-23. This is the first M02 seam after the
-[durable run](campaign-run-file.md), in the [full build order](../ROADMAP.md#full-build-order-2026-09-22).
+[durable run](campaign-run-file.md), in the [full build order](../ROADMAP.md#full-build-order-2026-09-27).
 
 ## Goal
 

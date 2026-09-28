@@ -3,7 +3,7 @@
 Status: planned, 2026-09-22; reviewed against main 2026-09-26 (spectators still
 start in first person, `Speak` still accepts only fighters, join tickets shipped). Nick wants watching a live match to feel like a
 first-person retro shooter stream, with a simple shared chat and no ads.
-Sequencing belongs to the [full build order](../ROADMAP.md#full-build-order-2026-09-22).
+Sequencing belongs to the [full build order](../ROADMAP.md#full-build-order-2026-09-27).
 
 ## Goal
 

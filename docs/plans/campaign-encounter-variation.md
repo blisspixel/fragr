@@ -2,7 +2,7 @@
 
 Status: planned, 2026-09-22; reviewed against main 2026-09-26. Human playtests
 remain a later acceptance gate.
-The [roadmap](../ROADMAP.md#full-build-order-2026-09-22) owns sequencing.
+The [roadmap](../ROADMAP.md#full-build-order-2026-09-27) owns sequencing.
 [CAMPAIGN.md](../CAMPAIGN.md) already lets difficulty change authored enemy mixes;
 [replayability](replayability.md) owns why players come back overall.
 
