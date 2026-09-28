@@ -1,5 +1,5 @@
-# fragr Infrastructure - Main Configuration
-# Zero-cost GCP deployment using Always Free tier
+# fragr infrastructure, plan-only legacy VM placeholder.
+# Always Free VM eligibility does not make public hosting free.
 
 terraform {
   required_version = ">= 1.5.0"
@@ -154,7 +154,7 @@ resource "google_compute_instance" "game_server" {
     network    = google_compute_network.vpc.id
     subnetwork = google_compute_subnetwork.subnet.id
 
-    # Ephemeral external IP (no static IP cost)
+    # Ephemeral external IPv4; billed while the VM runs.
     access_config {
       # Ephemeral IP
     }

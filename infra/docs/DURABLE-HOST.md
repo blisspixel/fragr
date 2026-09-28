@@ -27,6 +27,10 @@ UDP game socket. No Cloud Run API exists for fragr yet.
 - Open **TCP 6767** for the current WebSocket game only after public admission,
   TLS, abuse limits and recovery have been tested. UDP 6767 remains closed until
   an authenticated client/server transport passes its own review.
+- A COS host denies incoming traffic by default. Configure narrow host firewall
+  allowances for the published game port and required container forwarding,
+  alongside the VPC firewall, then probe ingress from outside the host. Review
+  the [COS migration guidance](https://docs.cloud.google.com/compute/docs/containers/migrate-containers#configure-internal-firewall) before writing the startup script.
 - Permit SSH through IAP only. No world-accessible SSH, broad admin port or
   public Cloud Run adapter placeholder.
 - Tailscale may help private operator tests. Public friends should be able to
@@ -44,9 +48,11 @@ Before a cloud apply, price the exact configuration and exposure window, check
 remaining allowance, and obtain approval for a production deployment.
 
 An Always Free eligible VM does not make a public host free. An in-use external
-IPv4 address bills after the applicable free hour, and egress can bill after
-the applicable allowance. A billing budget sends alerts; it does not stop a
-running host. Inspect the current [GCP Free Tier](https://docs.cloud.google.com/free/docs/free-cloud-features),
-[network prices](https://cloud.google.com/vpc/network-pricing) and
+IPv4 address is billed separately, currently $0.005 per hour on a standard VM
+([Google VPC pricing](https://cloud.google.com/vpc/pricing#ipaddress), checked
+2026-09-28). Egress can bill after the applicable allowance. A billing budget
+sends alerts; it does not stop a running host. Inspect the current
+[GCP Free Tier](https://docs.cloud.google.com/free/docs/free-cloud-features),
+[network prices](https://cloud.google.com/vpc/pricing#ipaddress) and
 [budget behavior](https://docs.cloud.google.com/billing/docs/how-to/budgets)
 before choosing a machine, address or test duration.

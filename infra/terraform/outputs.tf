@@ -73,7 +73,7 @@ output "estimated_monthly_cost" {
 output "cost_warnings" {
   description = "Potential cost warnings"
   value = [
-    "In-use public IPv4 is billed after the first free hour each month",
+    "In-use public IPv4 is billed separately; confirm the current VPC price before apply",
     "Network egress beyond the applicable free allowance is billed",
     "Budget alerts notify but do not cap charges",
     "Stopping/starting VM changes external IP",

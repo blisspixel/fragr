@@ -48,6 +48,11 @@ to both documents.
 | Cloud match host | Container image on a thin COS or comparable host, after approval | Reuses the tested image and exposes the game port. |
 | Fleet | Agones on GKE after several matches need orchestration | Avoids cluster cost and operations for one friends match. |
 
+[Cloud Run worker pools](https://docs.cloud.google.com/run/docs/deploy-worker-pools)
+are not a public game front door: they have no public endpoint or autoscaling,
+and Direct VPC ingress is private TCP only. Keep them out of the friends-host
+path.
+
 The present Cloud Run adapter stub is not deployable: an HTTP container, private
 route and application authentication must be designed and tested before it is
 enabled. Do not create a ticket issuer or server list with no consumer or access
@@ -163,8 +168,10 @@ tier label.
 After the local image is proven, replace the placeholder VM startup with a
 versioned container image on COS or a justified alternative. Design Artifact
 Registry, least-privilege pull, Secret Manager, restart, rollback and health
-checks. Add HTTP edge services only for implemented APIs. Run Terraform format
-and validation, inspect the plan and cost estimate, and retain the no-apply
+checks. COS needs a narrow host firewall allowance as well as VPC rules; test
+real ingress before calling the host reachable. Add HTTP edge services only
+for implemented APIs. Run Terraform format and validation, inspect the plan
+and cost estimate, and retain the no-apply
 gate. Agones stays a later fleet decision.
 
 ## Cost and safety gates
