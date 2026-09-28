@@ -17,7 +17,7 @@ Status words: **proposed** (a design awaiting Nick's decision; directs no work),
 
 | Plan | Status | One-liner |
 |---|---|---|
-| [`websocket-delayed-egress.md`](./websocket-delayed-egress.md) | **implemented** | Nine $0 Windows-to-WSL moving-combat captures at 0, 40 and 80 ms server-egress delay, plus a prediction bootstrap fix; two-machine and human gates remain. |
+| [`websocket-delayed-egress.md`](./websocket-delayed-egress.md) | **implemented**, [draft #296](https://github.com/blisspixel/fragr/pull/296) | Nine $0 Windows-to-WSL moving-combat captures at 0, 40 and 80 ms server-egress delay, plus a prediction bootstrap fix; two-machine and human gates remain. |
 | [`websocket-moving-combat-probe.md`](./websocket-moving-combat-probe.md) | **implemented**, [draft #294](https://github.com/blisspixel/fragr/pull/294) | Continuous joined-fighter WebSocket movement and firing receipt for corrections, fallbacks, cadence and payload traffic; LAN gate remains. |
 | [`local-pawn-prediction.md`](./local-pawn-prediction.md) | **implemented** | Bounded 20 Hz local human body replay and Ack correction on the existing WebSocket path; human feel gate remains. |
 | [`movement-ack-v1.md`](./movement-ack-v1.md) | **implemented** | Optional full-3D Ack and input selection rules for replay on the current 20 Hz WebSocket server, without visual prediction. |

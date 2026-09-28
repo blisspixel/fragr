@@ -1,6 +1,6 @@
 # Delayed WebSocket combat probe
 
-**Status:** implemented, 2026-09-28. Stacked after the [continuous moving-combat
+**Status:** implemented, 2026-09-28, [draft #296](https://github.com/blisspixel/fragr/pull/296). Stacked after the [continuous moving-combat
 probe](websocket-moving-combat-probe.md). The two-machine and human-feel gates
 remain open. External spend $0.
 
