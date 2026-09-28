@@ -121,9 +121,27 @@ jobs:
             fi
             sleep 2
           done
-          test "$(docker inspect --format '{{.State.Health.Status}}' "$container_id")" = healthy
-          curl --fail --silent --show-error http://127.0.0.1:6767/status | grep -q '"kind":"arena"'
-          curl --fail --silent --show-error http://127.0.0.1:6767/status | grep -q '"health":{"status":"ok"'
+          if [ "$(docker inspect --format '{{.State.Health.Status}}' "$container_id")" != healthy ]; then
+            docker compose ps
+            docker compose logs --no-color server
+            exit 1
+          fi
+          host_ready=false
+          for attempt in {1..15}; do
+            if response="$(curl --fail --silent --show-error --max-time 3 http://127.0.0.1:6767/status 2>&1)" \
+              && grep -q '"kind":"arena"' <<<"$response" \
+              && grep -q '"health":{"status":"ok"' <<<"$response"; then
+              host_ready=true
+              break
+            fi
+            sleep 2
+          done
+          if [ "$host_ready" != true ]; then
+            printf 'host /status did not become ready: %s\n' "$response" >&2
+            docker compose ps
+            docker compose logs --no-color server
+            exit 1
+          fi
 
   portability:
     strategy:

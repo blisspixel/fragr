@@ -1,6 +1,6 @@
 # Playable stack integration
 
-**Status:** implemented, 2026-09-28. Integration review: [PR #297](https://github.com/blisspixel/fragr/pull/297). External spend $0.
+**Status:** shipped in v0.58.0, 2026-09-28. Integration review: [PR #297](https://github.com/blisspixel/fragr/pull/297). External spend $0.
 
 ## Goal and reason
 

@@ -69,7 +69,7 @@ Prediction and reconciliation already run on WebSocket. The [live step](plans/li
 
 ## Timeline
 
-- **Now:** WebSocket JSON for everyone; client-owned yaw, movement Acks and bounded local prediction have shipped in draft work.
+- **Now:** WebSocket JSON for everyone; client-owned yaw, movement Acks and bounded local prediction shipped in v0.58.0.
 - **Before the pilot:** measure a two-machine WebSocket session, then complete interpolation and bounded lag compensation on that wire.
 - **Pilot:** compare a full datagram path against the same WebSocket session. Move humans only if play feel, security, interoperability and reconnect evidence pass.
 
