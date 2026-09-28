@@ -1,6 +1,6 @@
 # Sector 9 external-agent objective roles
 
-**Status:** implemented locally, 2026-09-28; integration and CI pending. Stacked after the [six-a-side pacing sample](ctf-six-a-side-pacing.md).
+**Status:** implemented in draft PR, 2026-09-28; CI pending. Stacked after the [six-a-side pacing sample](ctf-six-a-side-pacing.md).
 
 ## Goal and evidence
 
