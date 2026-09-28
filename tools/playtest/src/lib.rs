@@ -1236,6 +1236,28 @@ pub fn compute_report(obs: &Observation, agents: usize) -> Report {
 /// Frustration signals and sticky weapon-table TTK that block a merge.
 /// Empty means the run is acceptable and the #124 table still holds.
 pub fn check_thresholds(report: &Report) -> Vec<String> {
+    let mut problems = check_shared_thresholds(report);
+    if report
+        .rules
+        .as_ref()
+        .is_some_and(|rules| rules.mode == fragr_server::protocol::GameMode::Ctf)
+    {
+        if report.flag_takes == 0 {
+            problems.push("no flag pickups".to_string());
+        }
+        if report.captures == 0 {
+            problems.push("no flag captures".to_string());
+        }
+    } else if report.agents >= 4 && report.frags_per_minute < 1.0 {
+        problems.push(format!(
+            "only {:.2} frags per minute with {} agents",
+            report.frags_per_minute, report.agents
+        ));
+    }
+    problems
+}
+
+fn check_shared_thresholds(report: &Report) -> Vec<String> {
     let mut problems = check_sticky_ttk_table();
     let lives = report.rules.as_ref().and_then(|rules| rules.lives);
     if report.rounds_completed == 0 {
@@ -1284,22 +1306,112 @@ pub fn check_thresholds(report: &Report) -> Vec<String> {
         ));
     }
     problems.extend(check_rules(report));
-    if report
-        .rules
-        .as_ref()
-        .is_some_and(|rules| rules.mode == fragr_server::protocol::GameMode::Ctf)
+    problems
+}
+
+/// A contested sample must prove combat and valid CTF replication. Capture is
+/// covered by the separate controlled route gate, not by match luck.
+pub fn check_contested_ctf(report: &Report, observation: &Observation) -> Vec<String> {
+    let mut problems = check_shared_thresholds(report);
+    if report.rules.as_ref().map(|rules| rules.mode) != Some(fragr_server::protocol::GameMode::Ctf)
     {
-        if report.flag_takes == 0 {
-            problems.push("no flag pickups".to_string());
+        problems.push("not a CTF round".to_string());
+    }
+    if report.frags == 0 {
+        problems.push("no contested combat".to_string());
+    }
+    if observation.latest_flags.is_none() {
+        problems.push("no authoritative flag snapshot".to_string());
+    }
+    if report.last_round_capture_scores.is_none() {
+        problems.push("no final capture score".to_string());
+    }
+    problems
+}
+
+/// The controlled route must make the one joined fighter take and score over
+/// the normal socket, with corroborating server events, carried state and end.
+pub fn check_ctf_route_smoke(report: &Report, observation: &Observation) -> Vec<String> {
+    let mut problems = Vec::new();
+    if report.rules.as_ref().map(|rules| rules.mode) != Some(fragr_server::protocol::GameMode::Ctf)
+    {
+        problems.push("not a CTF round".to_string());
+    }
+    if report.agents != 1 || report.rounds_completed != 1 {
+        problems.push("route probe did not finish one single-fighter round".to_string());
+    }
+    if report.flag_takes == 0 || report.captures != 1 {
+        problems.push("route probe did not take and capture one flag".to_string());
+    }
+    let capture = observation
+        .events
+        .iter()
+        .enumerate()
+        .find_map(|(index, timed)| {
+            if let GameEvent::Flag {
+                kind: FlagEventKind::Captured,
+                flag,
+                player: Some(player),
+                player_id: Some(id),
+                capture_scores,
+            } = &timed.event
+            {
+                (player == "route-probe-1").then_some((index, *flag, *id, *capture_scores))
+            } else {
+                None
+            }
+        });
+    if let Some((index, flag, id, event_scores)) = capture {
+        let same_take = observation.events[..index].iter().any(|timed| {
+            matches!(&timed.event, GameEvent::Flag {
+                kind: FlagEventKind::Taken,
+                flag: taken_flag,
+                player_id: Some(taker),
+                ..
+            } if *taken_flag == flag && *taker == id)
+        });
+        if !same_take {
+            problems.push("capture had no preceding take by the same fighter".to_string());
         }
-        if report.captures == 0 {
-            problems.push("no flag captures".to_string());
+        if !report.carry_episodes.iter().any(|episode| {
+            episode.flag == flag
+                && episode.carrier.as_deref() == Some("route-probe-1")
+                && episode.end == CarryEnd::Captured
+                && episode.observed_carrier_ticks > 0
+        }) {
+            problems.push("no carried snapshot and capture for the joined route probe".to_string());
         }
-    } else if report.agents >= 4 && report.frags_per_minute < 1.0 {
-        problems.push(format!(
-            "only {:.2} frags per minute with {} agents",
-            report.frags_per_minute, report.agents
-        ));
+        let scored_side = flag.other();
+        if event_scores.get(scored_side) != 1 || event_scores.get(flag) != 0 {
+            problems.push("capture event did not credit the carrier's side".to_string());
+        }
+        if !report
+            .last_round_capture_scores
+            .is_some_and(|scores| scores.get(scored_side) == 1 && scores.get(flag) == 0)
+        {
+            problems.push("capture score did not credit the carrier's side".to_string());
+        }
+        let matching_end = observation.events[index + 1..].iter().any(|timed| {
+            matches!(&timed.event, GameEvent::RoundEnd {
+                winning_team: Some(winner),
+                capture_scores: Some(scores),
+                reason,
+                ..
+            } if *winner == scored_side
+                && Some(*scores) == report.last_round_capture_scores
+                && reason == "Capture limit reached")
+        });
+        if !matching_end {
+            problems.push("no matching server round end after capture".to_string());
+        }
+    } else {
+        problems.push("no server capture event naming the route probe".to_string());
+    }
+    if report.last_round_reason.as_deref() != Some("Capture limit reached") {
+        problems.push("round did not end at the capture limit".to_string());
+    }
+    if report.carry_episodes_omitted > 0 || report.unmatched_flag_ends > 0 {
+        problems.push("route evidence was omitted or unmatched".to_string());
     }
     problems
 }
@@ -1436,6 +1548,8 @@ pub enum Policy {
     /// Keep the distance its weapon wants, break off for health when hurt,
     /// and collect a weapon it does not have.
     Planner,
+    /// Controlled, unopposed CTF route probe. Not offered as a normal tier.
+    RouteProbe,
 }
 
 impl Policy {
@@ -1451,6 +1565,7 @@ impl Policy {
         match self {
             Policy::Reflex => "reflex",
             Policy::Planner => "planner",
+            Policy::RouteProbe => "route-probe",
         }
     }
 
@@ -1617,14 +1732,15 @@ pub fn policy_action(policy: Policy, bot_id: Uuid, snapshot: &Snapshot, arena: &
         let carrying = enemy.carrier == Some(bot_id);
         // The harness gives each agent a unique callsign. Pick by that stable
         // identity rather than process-local player IDs or snapshot order.
-        let defending = snapshot
-            .players
-            .iter()
-            .filter(|player| {
-                player.team == Some(team) && player.hp > 0 && enemy.carrier != Some(player.id)
-            })
-            .min_by(|a, b| a.name.cmp(&b.name))
-            .is_some_and(|player| player.id == bot_id);
+        let defending = policy != Policy::RouteProbe
+            && snapshot
+                .players
+                .iter()
+                .filter(|player| {
+                    player.team == Some(team) && player.hp > 0 && enemy.carrier != Some(player.id)
+                })
+                .min_by(|a, b| a.name.cmp(&b.name))
+                .is_some_and(|player| player.id == bot_id);
         if policy == Policy::Planner
             && !carrying
             && snapshot.players.iter().any(|other| {
@@ -1666,6 +1782,7 @@ pub fn policy_action(policy: Policy, bot_id: Uuid, snapshot: &Snapshot, arena: &
     match policy {
         Policy::Reflex => reflex_action(bot_id, snapshot, arena),
         Policy::Planner => planner_action(bot_id, snapshot, arena),
+        Policy::RouteProbe => Action::default(),
     }
 }
 
@@ -2899,6 +3016,123 @@ mod tests {
         assert!(old.carry_episodes.is_empty());
         assert_eq!(old.carry_episodes_omitted, 0);
         assert_eq!(old.unmatched_flag_ends, 0);
+    }
+
+    #[test]
+    fn controlled_ctf_gate_requires_one_fighters_causal_take_carry_and_score() {
+        let id = Uuid::from_u128(1);
+        let score = fragr_server::protocol::TeamScores {
+            union: 0,
+            coalition: 1,
+        };
+        let flag = |kind| GameEvent::Flag {
+            kind,
+            flag: Team::Union,
+            player: Some("route-probe-1".to_string()),
+            player_id: Some(id),
+            capture_scores: score,
+        };
+        let mut obs = Observation {
+            rules: Some(
+                fragr_server::rules::RuleSet::new(
+                    fragr_server::protocol::GameMode::Ctf,
+                    &[],
+                    false,
+                )
+                .unwrap()
+                .wire(),
+            ),
+            ..Observation::default()
+        };
+        obs.ingest_snapshot(&carry_snapshot(1, -68.0, FlagStatus::Home), 100);
+        obs.ingest_event(flag(FlagEventKind::Taken));
+        obs.ingest_snapshot(&carry_snapshot(2, 68.0, FlagStatus::Home), 100);
+        obs.ingest_event(flag(FlagEventKind::Captured));
+        obs.ingest_event(GameEvent::RoundEnd {
+            winner: None,
+            reason: "Capture limit reached".to_string(),
+            final_scores: Vec::new(),
+            winner_score: None,
+            mvp: None,
+            mvp_frags: None,
+            host_line: String::new(),
+            winning_team: Some(Team::Coalition),
+            team_scores: None,
+            capture_scores: Some(score),
+        });
+        let report = compute_report(&obs, 1);
+        assert!(check_ctf_route_smoke(&report, &obs).is_empty());
+
+        let mut wrong_id = obs.clone();
+        if let GameEvent::Flag { player_id, .. } = &mut wrong_id.events[1].event {
+            *player_id = Some(Uuid::from_u128(2));
+        }
+        assert!(check_ctf_route_smoke(&report, &wrong_id)
+            .iter()
+            .any(|problem| problem.contains("preceding take")));
+
+        let mut wrong_event_score = obs.clone();
+        if let GameEvent::Flag { capture_scores, .. } = &mut wrong_event_score.events[1].event {
+            *capture_scores = Default::default();
+        }
+        assert!(check_ctf_route_smoke(&report, &wrong_event_score)
+            .iter()
+            .any(|problem| problem.contains("capture event")));
+
+        let mut no_carried_frame = report.clone();
+        no_carried_frame.carry_episodes[0].observed_carrier_ticks = 0;
+        assert!(check_ctf_route_smoke(&no_carried_frame, &obs)
+            .iter()
+            .any(|problem| problem.contains("carried snapshot")));
+
+        let mut wrong_score = report.clone();
+        wrong_score.last_round_capture_scores = Some(Default::default());
+        assert!(check_ctf_route_smoke(&wrong_score, &obs)
+            .iter()
+            .any(|problem| problem.contains("capture score")));
+    }
+
+    #[test]
+    fn contested_ctf_gate_requires_combat_flag_state_and_both_sides() {
+        let mut report = Report {
+            agents: 4,
+            rounds_completed: 1,
+            frags: 12,
+            rules: Some(
+                fragr_server::rules::RuleSet::new(
+                    fragr_server::protocol::GameMode::Ctf,
+                    &[],
+                    false,
+                )
+                .unwrap()
+                .wire(),
+            ),
+            sides: [("union".to_string(), 2), ("coalition".to_string(), 2)]
+                .into_iter()
+                .collect(),
+            last_round_capture_scores: Some(Default::default()),
+            ..Report::default()
+        };
+        let mut obs = Observation::default();
+        obs.ingest_snapshot(&carry_snapshot(1, -68.0, FlagStatus::Home), 100);
+        assert!(check_contested_ctf(&report, &obs).is_empty());
+        // A scoreless but active fight like the failed CI run is valid
+        // contested evidence when the independent capture gate passes.
+        assert_eq!(report.flag_takes, 0);
+        assert_eq!(report.captures, 0);
+        report.frags = 0;
+        assert!(check_contested_ctf(&report, &obs)
+            .iter()
+            .any(|problem| problem.contains("contested combat")));
+        report.frags = 12;
+        obs.latest_flags = None;
+        assert!(check_contested_ctf(&report, &obs)
+            .iter()
+            .any(|problem| problem.contains("flag snapshot")));
+        report.sides.remove("union");
+        assert!(check_contested_ctf(&report, &obs)
+            .iter()
+            .any(|problem| problem.contains("union side")));
     }
 
     #[tokio::test]
