@@ -1,6 +1,6 @@
 # M02 processing-floor roster and pacing
 
-**Status:** implemented, 2026-09-27. Follows the [optional captive evacuation draft](m02-side-ward-evacuation.md). This is a bounded encounter pass, not a claim that M02 is finished.
+**Status:** implemented, [draft #279](https://github.com/blisspixel/fragr/pull/279), 2026-09-27. Follows the [optional captive evacuation draft](m02-side-ward-evacuation.md). This is a bounded encounter pass, not a claim that M02 is finished.
 
 ## Goal and reason
 
