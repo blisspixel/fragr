@@ -26,6 +26,10 @@ var _mission_previous: Dictionary = {}
 
 var socket = WebSocketPeer.new()
 var connection_state = WebSocketPeer.STATE_CLOSED
+var track_text_bytes: bool = false
+var tx_text_bytes: int = 0
+var rx_text_bytes: int = 0
+var last_send_ok: bool = false
 var server_url = "ws://127.0.0.1:6767"
 
 func _init():
@@ -224,7 +228,10 @@ func send_speak(text: String) -> void:
 
 func send_json(data: Dictionary):
 	var json = JSON.stringify(data)
-	socket.send_text(json)
+	var result: Error = socket.send_text(json)
+	last_send_ok = result == OK
+	if track_text_bytes and result == OK:
+		tx_text_bytes += json.to_utf8_buffer().size()
 
 func _process(_delta):
 	socket.poll()
@@ -244,6 +251,8 @@ func _process(_delta):
 	# messages before retiring the session so the useful error is not discarded.
 	while socket.get_available_packet_count() > 0:
 		var packet = socket.get_packet()
+		if track_text_bytes:
+			rx_text_bytes += packet.size()
 		var text = packet.get_string_from_utf8()
 		_handle_message(text)
 		if not is_processing():

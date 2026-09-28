@@ -620,7 +620,7 @@ A resumed pawn keeps the claims it still holds. A new hello does not restore a p
 
 #### Ack
 
-Unicast, once per tick, to a client whose input carried a `seq`. Carries the newest sequence the server applied to that client's fighter and the authoritative state it produced, which is what a predicting client reconciles against. Clients that send no `seq` (agents, spectators, older clients) never receive it.
+Unicast, once per tick, to a client whose input carried a `seq`. Carries the newest sequence the server applied to that client's fighter and the horizontal state it produced. Today's client sends faster than the tick and does not predict movement, so an Ack sequence is not yet one replayable simulation step. Vertical position and velocity are absent and must be added and validated before full 3D reconciliation. Clients that send no `seq` (agents, spectators, older clients) never receive it.
 
 ```json
 {

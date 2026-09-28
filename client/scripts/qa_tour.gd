@@ -163,6 +163,14 @@ func _run() -> void:
 			await _set_aim_pitch(float(state["aim_pitch"]))
 		_movement_samples.clear()
 		_walk_results.clear()
+		var ack_report: Dictionary = {}
+		var ack_deadline_usec: int = 0
+		if state.has("ack_probe_seconds"):
+			if not _joined or _game_manager() == null or not _game_manager().begin_ack_probe():
+				push_error("qa_tour: Ack probe requires a connected human fighter")
+				quit(1)
+				return
+			ack_deadline_usec = Time.get_ticks_usec() + int(float(state["ack_probe_seconds"]) * 1000000.0)
 		if state.get("jump_probe", false):
 			await _jump_probe()
 		for point: Array in state.get("walk_to", []):
@@ -171,6 +179,13 @@ func _run() -> void:
 				await _retire_scene()
 				quit(1)
 				return
+		if ack_deadline_usec > 0:
+			while Time.get_ticks_usec() < ack_deadline_usec:
+				await create_timer(0.1).timeout
+			ack_report = _game_manager().end_ack_probe()
+			if not valid_ack_capture(ack_report, float(state["ack_probe_seconds"])):
+				push_error("qa_tour: Ack probe lacked a stable live human sample: " + JSON.stringify(ack_report))
+				_failed = true
 		var combat: Dictionary = {}
 		if state.has("combat"):
 			combat = await _combat_probe.run(self, _game_manager(), state["combat"], _out_dir.path_join(state_name))
@@ -314,6 +329,7 @@ func _run() -> void:
 			"movement_samples": _movement_samples.duplicate(true),
 			"walks": _walk_results.duplicate(true),
 			"combat": combat,
+			"ack_probe": ack_report,
 			"width": shot.get_width(),
 			"height": shot.get_height(),
 			"hud_coverage": snappedf(measured.get("hud_coverage", 0.0), 0.0001),
@@ -384,7 +400,31 @@ static func valid_walks(states: Variant) -> bool:
 	for state: Variant in states:
 		if not state is Dictionary or not QaCombat.valid_waypoints(state.get("walk_to", [])):
 			return false
+		if state.has("ack_probe_seconds"):
+			var seconds: Variant = state["ack_probe_seconds"]
+			if not (seconds is int or seconds is float) or not is_finite(float(seconds)) or \
+				float(seconds) < 1.0 or float(seconds) > 120.0 or state.get("join") != "human":
+				return false
 	return true
+
+static func valid_ack_capture(report: Dictionary, seconds: float) -> bool:
+	if report.get("interrupted", true) or int(report.get("failed_sends", -1)) != 0 or \
+		int(report.get("invalid_acks", -1)) != 0 or int(report.get("invalid_snapshots", -1)) != 0 or \
+		float(report.get("duration_seconds", 0.0)) < seconds - 0.05:
+		return false
+	for key: String in ["first_matched_ack_ms", "last_matched_ack_ms", "first_snapshot_ms", "last_snapshot_ms"]:
+		if not report.get(key) is int:
+			return false
+	var window_ms: int = int(seconds * 1000.0)
+	return int(report.get("sent", 0)) >= int(seconds * 30.0) and \
+		int(report.get("matched_acks", 0)) >= int(seconds * 15.0) and \
+		int(report.get("snapshots", 0)) >= int(seconds * 15.0) and \
+		int(report["first_matched_ack_ms"]) <= 1000 and \
+		int(report["first_snapshot_ms"]) <= 1000 and \
+		int(report["last_matched_ack_ms"]) >= window_ms - 1000 and \
+		int(report["last_snapshot_ms"]) >= window_ms - 1000 and \
+		int(report.get("max_matched_ack_gap_ms", 100000)) <= 250 and \
+		int(report.get("max_snapshot_gap_ms", 100000)) <= 250
 
 func _apply_graphics_capture(options: Variant) -> void:
 	var manager: Node = _game_manager()

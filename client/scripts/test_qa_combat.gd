@@ -10,6 +10,24 @@ func _initialize() -> void:
 		_check(not QaCombat.valid_waypoints(invalid), "invalid route rejected")
 	for invalid: Variant in [null, [], [1], [{"walk_to": [1, 2, 3]}]]:
 		_check(not TOUR.valid_walks(invalid), "invalid manifest walking shape rejected before play")
+	for invalid_seconds: Variant in [0, 121, INF, "60"]:
+		_check(not TOUR.valid_walks([{"join": "human", "ack_probe_seconds": invalid_seconds}]),
+			"Ack probe duration must be finite and bounded")
+	_check(not TOUR.valid_walks([{"ack_probe_seconds": 60}]),
+		"Ack probe cannot run without a human join")
+	var healthy: Dictionary = {"interrupted": false, "failed_sends": 0,
+		"invalid_acks": 0, "invalid_snapshots": 0, "duration_seconds": 60.1,
+		"sent": 3600, "matched_acks": 1100, "snapshots": 1100,
+		"first_matched_ack_ms": 50, "last_matched_ack_ms": 59950,
+		"first_snapshot_ms": 50, "last_snapshot_ms": 59950,
+		"max_matched_ack_gap_ms": 75, "max_snapshot_gap_ms": 75}
+	_check(TOUR.valid_ack_capture(healthy, 60.0), "full-window Ack capture accepted")
+	var stalled: Dictionary = healthy.duplicate()
+	stalled["last_snapshot_ms"] = 30000
+	_check(not TOUR.valid_ack_capture(stalled, 60.0), "capture cannot pass after a late snapshot stall")
+	stalled = healthy.duplicate()
+	stalled["max_matched_ack_gap_ms"] = 1000
+	_check(not TOUR.valid_ack_capture(stalled, 60.0), "capture cannot hide a one-second Ack gap")
 	for filename: String in DirAccess.get_files_at("res://qa"):
 		if filename.get_extension() != "json":
 			continue

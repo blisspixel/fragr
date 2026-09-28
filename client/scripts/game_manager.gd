@@ -474,16 +474,35 @@ func change_role(play: bool) -> void:
 	_awaiting_map = true
 	role_transition = false
 
-## Input sequence. The server echoes the newest one it applied in an ack,
-## which is what a predicting client reconciles against.
+## Input sequence. The server echoes the newest one it applied in an Ack.
 var input_seq: int = 0
-## Newest ack from the server: {seq, tick, x, z, yaw}. Recorded now, used by
-## prediction later; the difference against the local view is the correction.
+## Newest Ack from the server: {seq, tick, x, z, yaw}. Live prediction needs
+## a replayable movement step and a full authoritative body state first.
 var last_ack: Dictionary = {}
+var ack_probe: InputAckProbe = InputAckProbe.new()
 
 
 func _on_ack_received(data: Dictionary) -> void:
 	last_ack = data
+	ack_probe.record_ack(data, Time.get_ticks_usec())
+
+
+func begin_ack_probe() -> bool:
+	if not is_human_player or net_client.connection_state != WebSocketPeer.STATE_OPEN:
+		return false
+	ack_probe.begin(Time.get_ticks_usec())
+	net_client.tx_text_bytes = 0
+	net_client.rx_text_bytes = 0
+	net_client.track_text_bytes = true
+	return true
+
+
+func end_ack_probe() -> Dictionary:
+	var report: Dictionary = ack_probe.finish(Time.get_ticks_usec())
+	report["tx_text_payload_bytes"] = net_client.tx_text_bytes
+	report["rx_text_payload_bytes"] = net_client.rx_text_bytes
+	net_client.track_text_bytes = false
+	return report
 
 
 func _process(_delta):
@@ -546,7 +565,16 @@ func _send_local_action(now_usec: int) -> bool:
 	action_state.seq = input_seq
 	action_state.weapon_swap = pending_weapon_swap
 	pending_weapon_swap = null
+	var send_usec: int = 0
+	if ack_probe.active:
+		send_usec = Time.get_ticks_usec()
+		net_client.last_send_ok = false
 	net_client.send_action(action_state)
+	if ack_probe.active:
+		if net_client.last_send_ok:
+			ack_probe.record_send(input_seq, send_usec)
+		else:
+			ack_probe.failed_sends += 1
 	pending_jump = false
 	pending_interact = false
 	return true
@@ -698,12 +726,20 @@ func _apply_map_from_snapshot(snapshot: Dictionary) -> void:
 		hud.set_map_name(map_name)
 
 func _on_connected():
+	if ack_probe.active:
+		ack_probe.interrupted = true
+		ack_probe.active = false
+	net_client.track_text_bytes = false
 	hud.set_status("Connected to server")
 
 func _on_session_resumed() -> void:
 	hud.set_status("Reconnected.")
 
 func _on_disconnected():
+	if ack_probe.active:
+		ack_probe.interrupted = true
+		ack_probe.active = false
+	net_client.track_text_bytes = false
 	hud.set_status("Disconnected")
 	hud.reset_host_chrome()
 	ended_podium_shown = false
@@ -767,6 +803,7 @@ func _refresh_equipment_visibility() -> void:
 		and is_instance_valid(pawn) and pawn.hp > 0 and hud.fp_juice_enabled
 
 func _on_snapshot_received(data):
+	ack_probe.record_snapshot(data.get("tick"), Time.get_ticks_usec())
 	latest_snapshot = data
 	_apply_map_from_snapshot(data)
 	var tick = data.get("tick", 0)

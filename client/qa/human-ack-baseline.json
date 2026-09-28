@@ -1,0 +1,17 @@
+{
+  "comment": "Joined fighter loopback timing sample. A synthetic jump proves the human input path; the remaining observation is idle. Timing values are send-to-first-matching-Ack and snapshot arrival intervals, not RTT or prediction correction.",
+  "width": 1280,
+  "height": 720,
+  "states": [
+    {
+      "name": "human_action_ack_60s",
+      "scene": "res://scenes/main.tscn",
+      "at_seconds": 2,
+      "join": "human",
+      "jump_probe": true,
+      "ack_probe_seconds": 60,
+      "camera": "first_person",
+      "note": "One joined fighter, one jump, then idle at the server's 20 Hz tick. Inspect the saved aggregate report."
+    }
+  ]
+}
