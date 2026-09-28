@@ -17,6 +17,7 @@ Status words: **proposed** (a design awaiting Nick's decision; directs no work),
 
 | Plan | Status | One-liner |
 |---|---|---|
+| [`m02-notary-tableau.md`](./m02-notary-tableau.md) | **in flight** | Show one unreachable Notary observing captives behind an authoritative glass pane in level 2, without introducing its level 4 fight. |
 | [`m02-natural-entry-composition.md`](./m02-natural-entry-composition.md) | **in flight** | Check the real M02 first-person spawn, then frame Latch by authored facing without skipping the Shotgun and Crawler lessons. |
 | [`m02-gallery-first-view.md`](./m02-gallery-first-view.md) | **implemented** | Open and prove the M02 gallery's first sightline to Latch's restraint frame without bypassing the opening fight or stair route; player recognition remains open. |
 | [`m02-latch-visual-identity.md`](./m02-latch-visual-identity.md) | **implemented** | Give the ward figure and moving ally one repaired Latch silhouette; distant recognition and human review remain open. |
@@ -48,7 +49,7 @@ Status words: **proposed** (a design awaiting Nick's decision; directs no work),
 | [`desktop-release.md`](./desktop-release.md) | **shipped** ([#233](https://github.com/blisspixel/fragr/pull/233), v0.47.0) | Tagged Windows, Linux and macOS zips with the bundled server, a packaged install check, and an original game icon. |
 | [`radio-scene-retirement.md`](./radio-scene-retirement.md) | **proven** ([#231](https://github.com/blisspixel/fragr/pull/231), v0.45.0) | Radio decoder retirement across rapid saved-run restarts, with Linux, Windows and macOS checks. |
 | [`m02-objective-gates.md`](./m02-objective-gates.md) | **in flight** | Authored objectives and precomputed gate worlds for the first M02 graybox, with M01 save compatibility. |
-| [`flying-drones.md`](./flying-drones.md) | **planned** | Notary patrol drone for M03 and armored Assessor for M07 on the encounter seam: hover, air routing, committed tells, crashes. |
+| [`flying-drones.md`](./flying-drones.md) | **planned** | First shootable Notary in level 4 Notice to Vacate, armored Assessor in level 12 Terms of Cooperation: hover, air routing, committed tells, crashes. The level 2 sighting is a separate noncombat tableau. |
 | [`multiplayer-maps.md`](./multiplayer-maps.md) | **proposed** | Rule sheet for multiplayer maps, sixteen proposed maps from duel rooms to conquest-lite fronts, a verdict on the six current maps, and the mode order. |
 | [`vehicles.md`](./vehicles.md) | **planned** | Jeep, motorcycle and jetpack, each built only when its mission (M08, M09, M10) is next; multiplayer vehicle map in Phase 4. |
 | [`campaign-encounter-variation.md`](./campaign-encounter-variation.md) | **planned** | Seeded, authored alternate guard positions for campaign replays, validated before readiness and stored in the run file; difficulty composition after that. |

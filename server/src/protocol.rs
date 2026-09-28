@@ -549,8 +549,10 @@ pub const COMPANION_GAMEPLAY_VERSION: u32 = 19;
 pub const SIDE_WARD_GAMEPLAY_VERSION: u32 = 20;
 /// Server-owned, visible M02 captive evacuation after the optional side ward.
 pub const EVACUATION_GAMEPLAY_VERSION: u32 = 21;
+/// M02's ballistic inspection glass, which older strict surface readers cannot render.
+pub const INSPECTION_GLASS_GAMEPLAY_VERSION: u32 = 22;
 /// Highest understood gameplay contract; content requirements use their own minimum.
-pub const GAMEPLAY_VERSION: u32 = EVACUATION_GAMEPLAY_VERSION;
+pub const GAMEPLAY_VERSION: u32 = INSPECTION_GLASS_GAMEPLAY_VERSION;
 pub fn legacy_gameplay_version() -> u32 {
     1
 }
@@ -597,6 +599,7 @@ pub enum MapSurface {
     ServiceSteel,
     RecordsTile,
     LiftPanel,
+    InspectionGlass,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]

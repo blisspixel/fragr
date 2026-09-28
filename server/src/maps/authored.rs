@@ -218,6 +218,13 @@ impl AuthoredMap {
             solids: surfaces,
             decorations,
         };
+        // The current glass renderer is an M02 presentation contract. Only
+        // that map asks for capability 22 before sending its strict surface ID.
+        if presentation.ground == MapSurface::InspectionGlass
+            || (doc.m02.is_none() && presentation.solids.contains(&MapSurface::InspectionGlass))
+        {
+            return Err(invalid("inspection glass belongs to an M02 solid"));
+        }
         if doc.mission.is_some() && doc.equipment != crate::protocol::EquipmentPolicy::Discovery {
             return Err(invalid("missions require discovered equipment"));
         }

@@ -573,8 +573,11 @@ also send `map_info` before shared progress, even when the map ID stays the same
   volumes declare 2. Unknown versions and raised volumes declaring 1 are invalid.
 - `presentation`: optional registered material mapping, omitted on legacy maps.
   Contains `ground` and `solids`, with exactly one entry per collision solid in
-  the same order. IDs are `concrete`, `enamel`, `service_steel`, `records_tile` and
-  `lift_panel`. Unknown IDs and mismatched cardinality are rejected. Materials
+  the same order. IDs are `concrete`, `enamel`, `service_steel`, `records_tile`,
+  `lift_panel` and `inspection_glass`. The last is a transparent visual over a
+  normal ballistic and movement solid, used by M02 under gameplay capability 22.
+  Older strict surface readers are refused before MapInfo. Unknown IDs and
+  mismatched cardinality are rejected. Materials
   cannot load arbitrary paths or change collision. A presenter predating this
   optional field may retain its default appearance without changing geometry.
   Optional `decorations` describes at most 128 cosmetic panels, including at most
@@ -1456,16 +1459,16 @@ the on-wire campaign rules revision. No parent command changes it during a run.
 
 The readiness record names the selected mission's client contract, rather than
 the highest version understood by the server. Durable local M01 names 18 for
-run carry. M02 development and durable local sessions name 21 for the
-server-owned optional evacuation state.
+run carry. M02 development and durable local sessions name 22 for the
+server-owned optional evacuation state and the strict inspection glass surface.
 The local launcher checks this value exactly.
 
 `--local-mission persons_unknown` without a run mode starts the bundled M02
 graybox as a development child. It writes the same readiness line with
-`"mission":"persons_unknown"` and `"gameplay_version":21`, carries no
+`"mission":"persons_unknown"` and `"gameplay_version":22`, carries no
 `run`, and keeps development entry respawn and the shared wipe reset. With
 `--run-mode resume`, M02 receives the saved solo run from M01 or resumes its
-own entry; it requires capability 21. A new durable run must start at M01.
+own entry; it requires capability 22. A new durable run must start at M01.
 
 The port is chosen by the OS. Diagnostics use stderr. The parent validates the
 exact version, mission, requested difficulty, gameplay capability and loopback endpoint before using

@@ -8,6 +8,7 @@ const MAP_NAME: String = "Persons Unknown: ward graybox"
 const FIRST_FEET: Vector3 = Vector3(7.55, 0.0, -10.0)
 const SECOND_FEET: Vector3 = Vector3(7.55, 0.0, -14.8)
 const BAY_FEET: Vector3 = Vector3(8.35, 0.0, -16.0)
+const NOTARY_CENTER: Vector3 = Vector3(10.4, 4.35, -21.3)
 const UNFASTEN_END: float = 0.8
 const CROSS_END: float = 3.5
 const SECOND_OPEN_END: float = 4.6
@@ -40,6 +41,7 @@ var _caption_left: float = 0.0
 var _caption_key: String = ""
 var _root: Node3D
 var _latch: LatchView
+var _notary: NotaryView
 var _latch_arm: Node3D
 var _first_left: Node3D
 var _first_right: Node3D
@@ -89,6 +91,7 @@ func clear_map() -> void:
 		remove_child(_overlay)
 		_overlay.queue_free()
 	_root = null
+	_notary = null
 	_overlay = null
 	_side_captives.clear()
 	_side_left_bars.clear()
@@ -192,6 +195,7 @@ func set_companion_phase(phase: String) -> void:
 func _process(delta: float) -> void:
 	if not _built:
 		return
+	_notary.advance(delta)
 	if _machine_fade_elapsed >= 0.0:
 		_machine_fade_elapsed = minf(_machine_fade_elapsed + delta, MACHINE_FADE_SECONDS)
 		if _machine_fade_elapsed >= MACHINE_FADE_SECONDS:
@@ -341,6 +345,12 @@ func _build() -> void:
 	_latch.position = FIRST_FEET
 	_latch.rotation.y = -PI / 2.0
 	_root.add_child(_latch)
+	_notary = NotaryView.new()
+	_notary.name = "NotaryBehindGlass"
+	_notary.position = NOTARY_CENTER
+	_notary.scale = Vector3.ONE * 1.2
+	_notary.rotation.y = -PI / 2.0
+	_root.add_child(_notary)
 	_latch_arm = _latch.get_node("RightArm") as Node3D
 	var first: Node3D = Node3D.new()
 	first.name = "LatchRestraint"
@@ -397,6 +407,7 @@ func _build() -> void:
 	_build_audio()
 	ArenaSky.mark_world(_root)
 	_latch.set_render_layers(ArenaSky.ACTOR_LAYERS)
+	_notary.set_render_layers(ArenaSky.ACTOR_LAYERS)
 	_build_caption()
 	_built = true
 

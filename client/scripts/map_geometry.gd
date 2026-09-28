@@ -5,7 +5,7 @@ class_name MapGeometry
 const VERSION: int = 2
 const MAX_HALF: float = 256.0
 const MAX_SOLIDS: int = 2048
-const SURFACES: Array[String] = ["concrete", "enamel", "service_steel", "records_tile", "lift_panel"]
+const SURFACES: Array[String] = ["concrete", "enamel", "service_steel", "records_tile", "lift_panel", "inspection_glass"]
 
 static func validation_error(info: Dictionary) -> String:
 	var version: Variant = info.get("geometry_version", 1)

@@ -12,26 +12,23 @@ prototype, not a finished M01 or the rescue. Checkpoints are not built.
 
 `m02-persons-unknown.json` is the Persons Unknown ward graybox, map 1002. The
 party enters on an observation gallery whose slot window faces the correction
-ward. A provisional Latch and second-bay tableau marks the destination. The
-upper gallery offers a
-Shotgun and Shells before a guard room with two initially seated Clerks. The
-service stair turns toward a lower Crawler lesson and a raised pack landing,
-then leads to the antechamber and ward. The route is open, with no door switch
-or physical gate; the restraint panel is the one required local Use control.
-Six encounters hold sixteen Union enemies: the guard-room Clerks, one Crawler
-after the turn, three Crawlers and a Sweeper on the later landing, then the ward,
-processing-floor and loading-dock fights. The three objectives are ward arrival,
-local Use at Latch's frame after the ward guards fall, and dock arrival. Ward
-victory stops the correction machine; the release is a separate action. A
-30 HP pickup at [-1, 0, -5.5] supports the processing-floor entry route;
-the eastern 40 HP pickup remains an optional detour. This balance is provisional
-until fresh-player review. Latch's fixed release tableau opens another occupied
-bay and reveals Low Water, but Latch does not yet travel or fight through the
-processing floor. The map has no maintenance loop or secrets. The Jammer first
-appears in level 3. Seeded Crawler
-route clears and the rendered warning, leap and pack pass authoring review;
-fresh-player review remains. This is a
-development graybox, not the finished mission.
+ward. Latch's repaired body and second-bay release mark the destination. One
+noncombat Notary scans from a sealed high bay beyond ballistic inspection glass;
+its first fight belongs to level 4 Notice to Vacate. The upper gallery offers
+the Shotgun and Shells before two initially seated Clerks. The service stair
+turns toward a lone Crawler and a later raised pack landing, then the
+antechamber and ward. A maintenance cut offers a stair bypass. Nine encounters
+hold 24 Union enemies across the guard room, descent, ward, processing floor,
+optional side ward and loading dock. The three required objectives are ward
+arrival, local Use at Latch's frame after the ward guards fall, and dock arrival.
+Ward victory stops the correction machine; release separately opens the ward
+exit shutter. Latch then joins as one server-owned companion. Optional side-ward
+captives can reach the dock without gating departure. A 30 HP pickup at
+[-1, 0, -5.5] supports the processing-floor entry route; the eastern 40 HP
+pickup remains an optional detour. Scripted route clears and rendered first-person
+captures establish authored reachability, not fresh-player recognition or
+balance. The Jammer first appears in level 3. This remains a development
+mission, not a finished level.
 
 ```bash
 cargo run -p fragr-server --locked -- --local-mission persons_unknown
@@ -40,7 +37,8 @@ cargo run -p fragr-server --locked -- --local-mission persons_unknown
 That development child prints its loopback readiness line and serves the
 normal wire; it keeps no run file. `--map-file server/maps/m02-persons-unknown.json
 --bots 0` also works for a dedicated development host. Clients need gameplay
-capability 16, including spectators.
+capability 22, including spectators. Capability 21 clients are refused before
+receiving the strict `inspection_glass` surface.
 
 For M01, from the repository root:
 
@@ -163,7 +161,8 @@ tuning values. Complete-mission verification continues in
 [the active plan](../../docs/plans/m01-completion.md); final character acceptance
 remains tracked in [the encounter plan](../../docs/plans/m01-intake-encounter.md).
 
-Surface kits: `concrete`, `enamel`, `service_steel`, `records_tile`, `lift_panel`.
+Surface kits: `concrete`, `enamel`, `service_steel`, `records_tile`, `lift_panel`,
+and `inspection_glass` on M02 solids under capability 22.
 They select existing offline materials, never paths, URLs or shader code. The
 wire presentation array preserves exactly the solid order. It affects appearance,
 not geometry version or collision. Older presenters may use their default kit.

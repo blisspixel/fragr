@@ -13,7 +13,7 @@ const MAX_READY_BYTES: int = 4096
 const PENDING_META: StringName = &"fragr_local_match_pending"
 ## Each bundled mission child names its own exact client contract.
 const DURABLE_GAMEPLAY: int = 18
-const M02_GAMEPLAY: int = 21
+const M02_GAMEPLAY: int = 22
 const MISSION_GAMEPLAY: Dictionary[String, int] = {"recall_notice": DURABLE_GAMEPLAY, "persons_unknown": M02_GAMEPLAY}
 const NEXT_MISSION: String = "scheduled_service"
 

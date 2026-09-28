@@ -13,10 +13,10 @@ and the map version in observations, and closes its MCP game session if a map
 has unsupported or invalid geometry, or the server sends malformed JSON.
 Ground-filled legacy maps remain readable.
 
-The adapter declares gameplay capability 21. Every discovery map requires at
+The adapter declares gameplay capability 22. Every discovery map requires at
 least 12 for all roles; M01 solo runs require 18 for the per-level continue
-baseline. M02 development parties and durable M02 runs require 21 for the
-server-owned Latch companion and optional captive evacuation state. The six
+baseline. M02 development parties and durable M02 runs require 22 for the
+server-owned Latch companion, optional captive evacuation and inspection glass. The six
 full-arsenal arcade maps still admit 1.
 Older clients are rejected before admission. `observe.loadout` is private to
 this participant: selected and owned weapons (`["fists","tack"]`),

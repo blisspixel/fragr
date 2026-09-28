@@ -1,6 +1,6 @@
 use super::*;
 use crate::navigation::RouteStatus;
-use crate::protocol::EnemyKind;
+use crate::protocol::{EnemyKind, MapSurface};
 use serde_json::{json, Value};
 
 fn fixture() -> Value {
@@ -149,6 +149,127 @@ fn gallery_entry_frames_latch_without_exposing_the_ward_guards() {
         RouteStatus::Complete,
         "the ordinary service stair and ward route must stay walkable"
     );
+}
+
+#[test]
+fn notary_observation_bay_is_visible_through_ballistic_glass_but_unreachable() {
+    let map = AuthoredMap::read(include_str!("../../../maps/m02-persons-unknown.json").as_bytes())
+        .unwrap();
+    let spawn = map
+        .spawns
+        .iter()
+        .find(|spawn| spawn.id == "gallery_entry")
+        .unwrap();
+    let eye = [
+        spawn.feet[0],
+        spawn.feet[1] + crate::movement::EYE_HEIGHT,
+        spawn.feet[2],
+    ];
+    let notary = [10.4, 4.35, -21.3];
+    let glass_index = map
+        .presentation
+        .solids
+        .iter()
+        .position(|surface| *surface == MapSurface::InspectionGlass)
+        .unwrap();
+    assert_eq!(
+        map.presentation
+            .solids
+            .iter()
+            .filter(|surface| { **surface == MapSurface::InspectionGlass })
+            .count(),
+        1,
+        "one bounded pane keeps the glass readable"
+    );
+    let glass = map.arena.solids[glass_index];
+    assert_eq!(
+        [
+            glass.min_x,
+            glass.max_x,
+            glass.min_z,
+            glass.max_z,
+            glass.bottom,
+            glass.top
+        ],
+        [9.0, 9.08, -24.0, -20.0, 3.3, 5.2]
+    );
+    assert!(
+        !crate::combat::line_of_sight(eye, notary, &[glass]),
+        "the server must stop a shot at the visible pane"
+    );
+    let without_glass: Vec<_> = map
+        .arena
+        .solids
+        .iter()
+        .enumerate()
+        .filter_map(|(index, solid)| (index != glass_index).then_some(*solid))
+        .collect();
+    assert!(
+        crate::combat::line_of_sight(eye, notary, &without_glass),
+        "the drone must actually be visible through the pane from primary entry"
+    );
+    let closer = [3.5, 3.0 + crate::movement::EYE_HEIGHT, -27.0];
+    assert_eq!(
+        map.navigation
+            .route(
+                spawn.feet,
+                [3.5, 3.0, -27.0],
+                crate::navigation::SEARCH_LIMIT
+            )
+            .status,
+        RouteStatus::Complete,
+        "ordinary gallery walking must reach the closer inspection angle"
+    );
+    assert!(crate::combat::line_of_sight(closer, notary, &without_glass));
+    assert!(!crate::combat::line_of_sight(
+        closer,
+        notary,
+        &map.arena.solids
+    ));
+    assert!(!crate::combat::line_of_sight(
+        eye,
+        notary,
+        &map.arena.solids
+    ));
+    assert!(
+        map.arena.blocked_body_at(9.02, -22.0, 3.0, 3.0),
+        "the glass and sill block a standing player"
+    );
+    assert_ne!(
+        map.navigation
+            .route(
+                spawn.feet,
+                [10.4, 2.5, -21.3],
+                crate::navigation::SEARCH_LIMIT
+            )
+            .status,
+        RouteStatus::Complete,
+        "the observation bay must never become a playable shortcut"
+    );
+    assert!(
+        map.encounters
+            .iter()
+            .flat_map(|group| &group.enemies)
+            .all(|enemy| enemy.feet[0] < 10.0 || enemy.feet[2] < -24.0 || enemy.feet[2] > -18.0),
+        "the M02 observation is not an encounter actor"
+    );
+}
+
+#[test]
+fn inspection_glass_requires_the_m02_capability_boundary() {
+    let mut doc = fixture();
+    doc["solids"][0]["surface"] = json!("inspection_glass");
+    read(&doc).unwrap();
+    doc.as_object_mut().unwrap().remove("m02");
+    assert!(read(&doc)
+        .unwrap_err()
+        .to_string()
+        .contains("inspection glass"));
+    doc["ground"] = json!("inspection_glass");
+    assert!(read(&doc)
+        .unwrap_err()
+        .to_string()
+        .contains("inspection glass"));
 }
 
 #[test]

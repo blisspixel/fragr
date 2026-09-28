@@ -16,6 +16,8 @@ they were.
 The yaw-only change puts the distant restraint within the natural first view.
 Latch remains small against ward machinery at this range. These frames and
 the server line-of-sight test show composition, not proof that a new player
-identifies Latch or understands the objective. The distant Notary tableau is
-still unbuilt. The capture source is `client/qa/m02-natural-entry.json`; the
+identifies Latch or understands the objective. A later
+[observation bay draft](../m02-notary-tableau/README.md) adds a small
+noncombat Notary beyond glass. The capture source is
+`client/qa/m02-natural-entry.json`; the
 baseline ran the same one-state manifest with the old expected yaw.

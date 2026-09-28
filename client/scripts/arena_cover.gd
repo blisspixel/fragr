@@ -24,7 +24,7 @@ const LOW_TOP: float = 1.6
 
 var _built_info: Dictionary = {}
 var _half_extent: float = 0.0
-var _materials: Array[ShaderMaterial] = []
+var _materials: Array[Material] = []
 
 func _ready() -> void:
 	name = "ArenaCover"
@@ -46,7 +46,7 @@ func apply_map_info(info: Dictionary) -> void:
 	for kind: int in range(4):
 		_materials.append(ArenaMaterials.make(map_id, kind))
 	var presentation: Dictionary = info.get("presentation") if info.get("presentation") is Dictionary else {}
-	var authored_materials: Dictionary[String, ShaderMaterial] = {}
+	var authored_materials: Dictionary[String, Material] = {}
 	if not presentation.is_empty():
 		for surface: String in MapGeometry.SURFACES:
 			authored_materials[surface] = ArenaMaterials.authored(surface)
@@ -57,7 +57,7 @@ func apply_map_info(info: Dictionary) -> void:
 	_build_shell(_half_extent)
 	var solids: Array = info.get("solids", [])
 	for index: int in range(solids.size()):
-		var material: ShaderMaterial = null
+		var material: Material = null
 		if not presentation.is_empty():
 			material = authored_materials[presentation["solids"][index]]
 		_add_solid(solids[index], material)
@@ -131,7 +131,7 @@ func _hide_scene_props() -> void:
 		if node is Node3D:
 			(node as Node3D).visible = false
 
-func _add_solid(solid: Dictionary, material: ShaderMaterial = null) -> void:
+func _add_solid(solid: Dictionary, material: Material = null) -> void:
 	var min_x: float = float(solid.get("min_x", 0.0))
 	var max_x: float = float(solid.get("max_x", 0.0))
 	var min_z: float = float(solid.get("min_z", 0.0))

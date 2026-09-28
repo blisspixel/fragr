@@ -27,8 +27,10 @@ window sill enough for the primary standing entry to see Latch and the
 restraint frame; the other gallery entries can walk to that view. The sill
 stays too high to step through, and the first fight and Crawler descent keep
 their authored route. This is an authored view and rendered frame check, not
-evidence that a new player recognizes Latch at that distance. The distant
-Notary tableau remains unbuilt.
+evidence that a new player recognizes Latch at that distance. The
+[Notary observation tableau draft](../plans/m02-notary-tableau.md) now places
+one passive drone behind a sealed pane. Its small peripheral silhouette is
+visible from the gallery, while fresh-player recognition remains open.
 
 The [natural entry draft](../plans/m02-natural-entry-composition.md) turns the
 primary gallery spawn toward that restraint without moving its feet or

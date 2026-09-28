@@ -37,6 +37,12 @@ func _run() -> void:
 	_check(not ward._built, "the setpiece stays off unrelated maps")
 	ward.configure_map(_map())
 	_check(ward._built and ward._latch != null and ward._other_captive != null, "the bundled ward has two visible figures")
+	_check(ward._notary != null and ward._notary.get_node_or_null("NotaryBody/LeftDuct") != null
+		and ward._notary.get_node_or_null("NotaryBody/RightDuct") != null
+		and ward._notary.get_node_or_null("NotaryBody/DimOptic") != null,
+		"the M02 bay shows one canonical ducted-fan Notary silhouette")
+	_check(ward._notary.find_children("*", "VisualInstance3D", true, false).size() <= 22,
+		"the observation model stays bounded for a later source bake")
 	var latch: LatchView = ward._latch
 	var head: MeshInstance3D = latch.get_node("FacetedHead") as MeshInstance3D
 	var patch: MeshInstance3D = latch.get_node("Patch") as MeshInstance3D
@@ -61,6 +67,8 @@ func _run() -> void:
 			"the fixed and moving Latch share the facility actor lighting layer")
 	_check(ward._transfer_list != null and not ward._transfer_list.visible, "the transfer list is hidden until release")
 	ward.apply_state(_state(1, false, false))
+	_check(ward._notary.visible and (ward._notary.get_node("NotaryBody/DimOptic") as MeshInstance3D).visible,
+		"held captives retain the dim observation pose")
 	_check(ward._ward_machine_sound.playing and ward._floor_machine_sound.playing,
 		"initial mission state starts the spatial ward and floor beds")
 	_check(not ward._ward_stop_sound.playing and not ward._release_sound.playing
@@ -106,6 +114,8 @@ func _run() -> void:
 	ward.apply_state(_state(1, true, false, true))
 	_check(not ward._side_release_sound.playing, "duplicate side state cannot restart its release sound")
 	ward.apply_state(_state(1, true, true, true))
+	_check(ward._notary.visible and (ward._notary.get_node("NotaryBody/DimOptic") as MeshInstance3D).visible,
+		"the Notary remains separate from Latch's release and the side captives")
 	_check(ward._release_sound.playing, "Latch's live release plays at the primary restraint")
 	_check(not ward._second_release_sound.playing and ward._second_release_sound.position.distance_to(M02Ward.SECOND_FEET) < 1.5,
 		"the second restraint cue waits at the correct bay")
@@ -213,6 +223,8 @@ func _run() -> void:
 	_check(ward._side_captives[0].position.distance_to(Vector3(1.0, 0.0, 20.0)) < 0.01,
 		"both figures appear at the authoritative dock arrival, without inventing success")
 	ward.apply_state(_state(2, false, false))
+	_check(ward._notary.visible and (ward._notary.get_node("NotaryBody/DimOptic") as MeshInstance3D).visible,
+		"retry keeps one passive observation without a second actor")
 	_check(ward._ward_machine_sound.playing and ward._floor_machine_sound.playing
 		and not ward._ward_stop_sound.playing and not ward._release_sound.playing
 		and not ward._second_release_sound.playing,
@@ -246,6 +258,8 @@ func _run() -> void:
 	var joined_route: Dictionary = _state(2, true, true, true)
 	joined_route["m02"]["evacuation"] = {"phase": "waiting", "captives": [[-5.2, 0.0, 11.0], [-3.5, 0.0, 11.0]], "evacuated": false}
 	ward.apply_state(joined_route)
+	_check(ward._notary.visible and (ward._notary.get_node("NotaryBody/DimOptic") as MeshInstance3D).visible,
+		"a late observer sees one passive Notary independent of either captive release")
 	_check(not ward._ward_machine_sound.playing and ward._floor_machine_sound.playing
 		and not ward._ward_stop_sound.playing and not ward._release_sound.playing
 		and not ward._second_release_sound.playing

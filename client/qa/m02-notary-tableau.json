@@ -1,0 +1,13 @@
+{
+  "comment": "Level 2 observation bay. First frame is the live primary spawn without look_at or camera takeover. The near-window frame and motion strip show the noncombat Notary through an authoritative glass solid. Run with FRAGR_QA_MAP_FILE=server/maps/m02-persons-unknown.json and FRAGR_QA_BOTS=0.",
+  "width": 1280,
+  "height": 720,
+  "combat_travel": false,
+  "states": [
+    {"name":"unforced_gallery_spawn","scene":"res://scenes/main.tscn","join":"human","camera":"first_person","expect_yaw":1.2256624,"expect_pitch":0.0,"note":"No look_at, walk or camera takeover before the first live frame."},
+    {"name":"shotgun_first_claim","camera":"first_person","walk_to":[[-1.2,3,-31]],"look_at":[-3,4,-31],"expect_equipment":{"selected":"scatter","personal_claims":["guard_room_scatter"]},"note":"The ordinary gallery route grants the Shotgun before any pane shot."},
+    {"name":"notary_window","camera":"first_person","walk_to":[[0,3,-27]],"look_at":[10.4,4.35,-21.3],"strip_frames":8,"strip_interval_seconds":0.5,"note":"Standing behind the existing gallery sill, see one drifting Notary in the sealed east bay through glass."},
+    {"name":"closer_gallery_inspection","camera":"first_person","walk_to":[[3.5,3,-27]],"look_at":[10.4,4.35,-21.3],"strip_frames":8,"strip_interval_seconds":0.5,"note":"An optional ordinary walk along the upper gallery gives a closer look. No camera takeover or encounter skip."},
+    {"name":"glass_blocks_shot","camera":"first_person","look_at":[10.4,4.35,-21.3],"weapon":"Scatter","trigger":"fire","single_shot":true,"probe":"ShotEffects","impact_kind":"solid","strip_frames":7,"strip_interval_seconds":0.05,"note":"An ordinary acknowledged Shotgun blast aimed at the Notary ends in a solid impact on the visible glass. The server geometry test pins the exact hit volume."}
+  ]
+}

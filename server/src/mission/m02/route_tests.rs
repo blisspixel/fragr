@@ -7,7 +7,8 @@ use crate::movement::{Arena, BODY_HEIGHT, CONTACT_EPSILON};
 use crate::navigation::{Navigation, Navigator};
 use crate::net::GameCommand;
 use crate::protocol::{
-    Action, CampaignActor, CompanionPhase, EnemyPhase, LookAt, Role, ServerMessage, Snapshot,
+    Action, CampaignActor, CompanionPhase, EnemyPhase, LookAt, Role, ServerMessage, ShotImpact,
+    Snapshot, WeaponType,
 };
 use crate::session::GameSession;
 use std::collections::BTreeSet;
@@ -24,6 +25,87 @@ fn session() -> GameSession {
     );
     session.state.seed(67);
     session
+}
+
+#[test]
+fn gallery_shotgun_trace_stops_at_the_notary_inspection_pane() {
+    let mut session = session();
+    let id = Uuid::from_u128(0x0290);
+    session
+        .state
+        .add_player(id, "Inspector".into(), Role::Human);
+    let mut walker = Walker::new(id);
+    walker.step(&mut session);
+    walker.step(&mut session);
+    let player = session
+        .state
+        .players
+        .iter_mut()
+        .find(|player| player.id == id)
+        .unwrap();
+    [player.x, player.y, player.z] = [-2.1, PLAYER_FLOOR_Y + 3.0, -31.0];
+    session.tick_messages(0.05);
+    assert!(session
+        .state
+        .players
+        .iter()
+        .find(|player| player.id == id)
+        .unwrap()
+        .inventory
+        .claimed("guard_room_scatter"));
+    session.state.set_action(
+        id,
+        Action {
+            weapon_swap: Some(WeaponType::Scatter),
+            ..Action::default()
+        },
+    );
+    session.tick_messages(0.05);
+    let player = session
+        .state
+        .players
+        .iter_mut()
+        .find(|player| player.id == id)
+        .unwrap();
+    assert_eq!(player.weapon, WeaponType::Scatter);
+    [player.x, player.y, player.z] = [3.5, PLAYER_FLOOR_Y + 3.0, -27.0];
+    session.state.set_action(
+        id,
+        Action {
+            fire: true,
+            look_at: Some(LookAt {
+                x: Some(10.4),
+                y: Some(4.35),
+                z: Some(-21.3),
+                ..LookAt::default()
+            }),
+            ..Action::default()
+        },
+    );
+    session.tick_messages(0.05);
+    let shots: Vec<_> = session
+        .state
+        .shot_results
+        .iter()
+        .filter(|shot| shot.shooter_id == id)
+        .collect();
+    assert_eq!(shots.len(), 1, "one acknowledged shotgun blast");
+    assert!(
+        !shots[0].hit && shots[0].target_id.is_none(),
+        "the Notary has no combat target"
+    );
+    let trace = shots[0].trace.as_ref().unwrap();
+    assert_eq!(trace.weapon, WeaponType::Scatter);
+    assert_eq!(trace.pellets.len(), crate::protocol::SCATTER_PELLETS);
+    assert!(
+        trace.pellets.iter().any(|pellet| {
+            matches!(pellet.impact, ShotImpact::Solid { .. })
+                && (pellet.end[0] - 9.0).abs() < 0.02
+                && (3.3..=5.2).contains(&pellet.end[1])
+                && (-24.0..=-20.0).contains(&pellet.end[2])
+        }),
+        "at least one resolved pellet must end on the named glass face, not a distant wall"
+    );
 }
 
 /// One wire reader: MapInfo rebuilds its own navigation, mission state is

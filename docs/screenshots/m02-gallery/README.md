@@ -15,4 +15,6 @@ candidate loaded this branch's map. No retouching or generated asset is used.
 The candidate reveals a narrow view into the ward and the distant restraint.
 Latch is still small in this entry view. This capture proves a rendered opening and the
 server test proves a clear ray; neither proves a new player recognizes the
-character or understands the rescue. The Notary tableau remains unbuilt.
+character or understands the rescue. A later
+[observation bay draft](../m02-notary-tableau/README.md) adds the distant
+noncombat Notary beyond glass; it does not change this earlier comparison.
