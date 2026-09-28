@@ -23,6 +23,7 @@ var epoch: int = 0
 var tick: int = -1
 var last_speed: float = 0.0
 var ack_seq: int = 0
+var first_recorded_seq: int = -1
 var next_step_usec: int = 0
 var visual_offset: Vector3 = Vector3.ZERO
 var correction_count: int = 0
@@ -55,6 +56,7 @@ func reset(reason: String, clear_measurements: bool = false) -> void:
 	epoch = 0
 	tick = -1
 	ack_seq = 0
+	first_recorded_seq = -1
 	last_speed = 0.0
 	next_step_usec = 0
 	visual_offset = Vector3.ZERO
@@ -130,7 +132,11 @@ func accept_ack(ack: Dictionary, now_usec: int) -> void:
 			if int(sample["seq"]) == int(ack["seq"]):
 				known = true
 				break
-		if not known:
+		# A delayed Ack can select an Action sent before this predictor began
+		# recording samples. Accept that authoritative body as a new baseline;
+		# a later unknown Action is still a broken replay history.
+		if not known and first_recorded_seq >= 0 and \
+				not newer_sequence(first_recorded_seq, int(ack["seq"])):
 			reset("unknown_seq")
 			return
 	var before: Vector3 = world_position(state) + visual_offset if active() else world_position(new_body)
@@ -140,6 +146,7 @@ func accept_ack(ack: Dictionary, now_usec: int) -> void:
 	if discontinuity:
 		steps.clear()
 		samples.clear()
+		first_recorded_seq = -1
 		held.clear()
 		pending_jump_latch = false
 		visual_offset = Vector3.ZERO
@@ -210,6 +217,8 @@ func record_action(action: Dictionary, now_usec: int, sent: bool) -> void:
 		"right": bool(action["right"]), "jump": bool(action["jump"]),
 		"yaw": float(action["yaw"]),
 	}
+	if first_recorded_seq < 0:
+		first_recorded_seq = int(sample["seq"])
 	samples.append(sample)
 	held = sample.duplicate()
 	if bool(sample["jump"]):

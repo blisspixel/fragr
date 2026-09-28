@@ -157,6 +157,8 @@ func _run() -> void:
 			if _game_manager().net_client.record.get("status") != state["record_status"]:
 				push_error("qa_tour: participant never reached requested record status")
 				_failed = true
+		if _joined and (state.has("weapon") or state.has("aim_pitch")):
+			await _wait_live_joined_fighter(state_name)
 		if state.has("weapon"):
 			await _select_weapon(str(state["weapon"]))
 		if state.has("aim_pitch"):
@@ -271,6 +273,8 @@ func _run() -> void:
 
 		await RenderingServer.frame_post_draw
 		await RenderingServer.frame_post_draw
+		if state.has("aim_pitch"):
+			await _restore_static_aim_after_respawn(state)
 
 		var measured: Dictionary = await _measure()
 		var shot: Image = measured.get("shot")
@@ -304,6 +308,13 @@ func _run() -> void:
 		if current_scene == "res://scenes/main.tscn" and (observed.get("fighters", 0) == 0 or observed.get("map_id", 0) == 0):
 			push_error("qa_tour: no live match for " + state_name)
 			_failed = true
+		if _joined and (state.has("weapon") or state.has("aim_pitch")):
+			if not _local_human_alive(_game_manager()):
+				push_error("qa_tour: no live joined fighter in " + state_name)
+				_failed = true
+			if state.has("weapon") and str(observed.get("local_weapon", "")) != str(state["weapon"]):
+				push_error("qa_tour: captured weapon disagrees with the server for " + state_name)
+				_failed = true
 		if state.has("aim_pitch"):
 			var expected_pitch: float = float(state["aim_pitch"])
 			if absf(float(observed.get("camera_pitch", 99.0)) - expected_pitch) > 0.001 or absf(_local_server_pitch(_game_manager()) - expected_pitch) > 0.001:
@@ -844,6 +855,40 @@ func _local_server_pitch(gm: Node) -> float:
 			return float(player.get("pitch", 99.0))
 	return 99.0
 
+func _local_human_alive(gm: Node) -> bool:
+	var network: Node = gm.get("net_client")
+	for player: Dictionary in gm.get("latest_snapshot").get("players", []):
+		if str(player.get("id", "")) == str(network.get("player_id")):
+			return int(player.get("hp", 0)) > 0
+	return false
+
+func _wait_live_joined_fighter(state_name: String) -> bool:
+	var gm: Node = _game_manager()
+	if gm == null:
+		push_error("qa_tour: missing match for " + state_name)
+		_failed = true
+		return false
+	var deadline: int = Time.get_ticks_msec() + 10000
+	while not _local_human_alive(gm) and Time.get_ticks_msec() < deadline:
+		await process_frame
+	if not _local_human_alive(gm):
+		push_error("qa_tour: joined fighter did not respawn for " + state_name)
+		_failed = true
+		return false
+	return true
+
+func _restore_static_aim_after_respawn(state: Dictionary) -> void:
+	var gm: Node = _game_manager()
+	if gm == null or not _joined or _local_human_alive(gm):
+		return
+	if not await _wait_live_joined_fighter(str(state.get("name", "static aim"))):
+		return
+	if state.has("weapon"):
+		await _select_weapon(str(state["weapon"]))
+	await _set_aim_pitch(float(state["aim_pitch"]))
+	await RenderingServer.frame_post_draw
+	await RenderingServer.frame_post_draw
+
 func _local_feet() -> Vector3:
 	var gm: Node = _game_manager()
 	var snapshot: Dictionary = gm.get("latest_snapshot")
@@ -1075,7 +1120,9 @@ func _moving_combat_probe(seconds: float) -> Dictionary:
 		else:
 			Input.action_release("move_left")
 			Input.action_press("move_right")
-		await create_timer(0.05).timeout
+		# Poll faster than the 20 Hz snapshot cadence so phase alignment does
+		# not hide a valid server update from the observed-combat count.
+		await create_timer(0.025).timeout
 	QaCombat.release_inputs()
 	var ack: Dictionary = gm.end_ack_probe()
 	var correction_samples: Array[float] = predictor.correction_samples.duplicate()

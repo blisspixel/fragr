@@ -104,6 +104,39 @@ func _initialize() -> void:
 	predictor.accept_ack(_ack(2, 21), 2050000)
 	_check(not predictor.active() and predictor.fallback_reason == "unknown_seq",
 		"unknown newer selected Action disables guessed replay")
+	var delayed: LocalPrediction = LocalPrediction.new()
+	delayed.configure_map(map)
+	delayed.accept_ack(_ack(10, 100), 10000000)
+	delayed.record_action(_action(19), 10000000, false)
+	_check(delayed.first_recorded_seq == -1,
+		"failed send does not establish a replay history fence")
+	delayed.record_action(_action(20), 10000001, true)
+	delayed.accept_ack(_ack(11, 101, 1, 0.25), 10050000)
+	_check(delayed.active() and delayed.fallback_count == 0 and delayed.ack_seq == 11,
+		"late Ack for a pre-tracking Action keeps prediction active")
+	delayed.accept_ack(_ack(19, 102, 1, 0.5), 10100000)
+	_check(delayed.active() and delayed.fallback_count == 0,
+		"successive delayed pre-tracking Acks preserve the bootstrap boundary")
+	delayed.accept_ack(_ack(21, 103, 1, 0.75), 10150000)
+	_check(not delayed.active() and delayed.fallback_reason == "unknown_seq",
+		"unknown Action newer than tracked history still disables replay")
+	delayed.configure_map(map)
+	delayed.accept_ack(_ack(10, 200), 20000000)
+	delayed.record_action(_action(20), 20000001, true)
+	delayed.accept_ack(_ack(10, 201, 2), 20050000)
+	delayed.record_action(_action(30), 20050001, true)
+	delayed.accept_ack(_ack(21, 202, 2), 20100000)
+	_check(delayed.active() and delayed.fallback_count == 0,
+		"new epoch clears the old sample fence before delayed Acks")
+	delayed.configure_map(map)
+	delayed.accept_ack(_ack(4294967290, 300), 30000000)
+	delayed.record_action(_action(2), 30000001, true)
+	delayed.accept_ack(_ack(4294967295, 301), 30050000)
+	_check(delayed.active() and delayed.fallback_count == 0,
+		"delayed pre-tracking Ack crosses Action sequence wrap")
+	delayed.accept_ack(_ack(3, 302), 30100000)
+	_check(not delayed.active() and delayed.fallback_reason == "unknown_seq",
+		"unknown wrapped Action newer than history still disables replay")
 	predictor.configure_map(map)
 	predictor.accept_ack(_ack(0, 30), 3000000)
 	predictor.record_action(_action(1, false, true), 3000001, true)
