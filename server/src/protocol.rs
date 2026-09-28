@@ -791,12 +791,37 @@ pub enum ServerMessage {
         yaw: f32,
         #[serde(default)]
         pitch: f32,
+        /// Optional post-tick body state for replay-aware human clients.
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        movement: Option<MovementAck>,
     },
     /// Unicast control-plane rejection (e.g. speak rate limit). Not broadcast.
     Error {
         code: String,
         message: String,
     },
+}
+
+/// Additive full-body extension to the legacy Ack root fields. An absent block
+/// means the server does not provide a replayable movement baseline.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct MovementAck {
+    pub version: u32,
+    /// A new body/input ownership baseline. Never used to rewind server ticks.
+    pub epoch: u64,
+    /// Whether this tick produced a replayable movement step for this pawn.
+    pub applied: bool,
+    /// World-reference height, matching Snapshot PlayerState.y.
+    pub y: f32,
+    /// Post-collision velocity in world units per second.
+    pub vx: f32,
+    pub vy: f32,
+    pub vz: f32,
+    /// Speed chosen before collision, zero on an unapplied tick.
+    pub effective_speed: f32,
+    /// Jump request passed to movement integration, not proof of takeoff.
+    pub jump_input: bool,
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]

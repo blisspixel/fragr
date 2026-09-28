@@ -2,8 +2,8 @@
 
 ## Current: WebSocket JSON (Slice 1)
 
-**Status:** Implemented  
-**Use case:** Loopback, agent play, spectator streams, human play (acceptable latency)
+**Status:** Implemented
+**Use case:** Loopback, agent play, spectator streams and current human play
 
 ### Details
 - Protocol: WebSocket over TCP
@@ -13,16 +13,16 @@
 - Tick rate: ~20 Hz server broadcast
 - Multi-peer: Multiple spectators/players can connect to same match
 - Pros: Simple, universal, easy to debug, works for all roles, multi-peer ready
-- Cons: Higher latency than UDP, more bandwidth than binary
+- Cons: Ordered TCP delivery can stall newer updates after loss; JSON uses more bytes than a compact binary format
 
-**Good enough for Slice 1.** Spectators do not need low latency, agents operate on slow control plane, and human play is acceptable with minor input lag. A second peer spectates the same match over LAN or a public host.
+**Current playable path.** Spectators and agents share this transport with humans. Competitive human feel is not yet established by a two-machine or unsteered human session. The [loopback Action-to-Ack measurement](plans/human-action-ack-baseline.md) samples only server-selected Actions, so it is not a general input-latency result. The [continuous moving-combat probe](plans/websocket-moving-combat-probe.md) adds a same-window correction, fallback, cadence and payload receipt on loopback. It does not establish remote network behavior. A second peer can spectate the same match over LAN or a public host.
 
-## Planned: UDP/renet (Post-Slice 1)
+## Planned: measured UDP pilot
 
-**Status:** Next networking spike  
+**Status:** Planned after the human Action-to-Ack baseline and live prediction measurement
 **Use case:** Low-latency human FPS play, competitive matches
 
-### Why UDP/renet?
+### Why test UDP?
 
 For smooth human FPS, sub-50ms input latency is ideal. WebSocket over TCP has:
 - TCP head-of-line blocking (one dropped packet stalls the stream)
@@ -70,7 +70,7 @@ UDP with custom protocol (e.g., `renet`, `laminar`, or hand-rolled) provides:
 
 **Recommendation:** the spike of record is stage 7 of `plans/buttery-controls.md`: candidate A is a 12-byte sequence, ack, and ack-bits header over `PacketPeerUDP` and `tokio::net::UdpSocket`; candidate B is ENet; the decision is made against the pass thresholds in that plan. `renet` is a fallback, not the default. WebTransport is not available in Godot 4.7.
 
-Prediction and reconciliation do not wait for UDP: stages 1 to 3 of the buttery-controls plan land on WebSocket first.
+Prediction and reconciliation do not wait for UDP. The [human Action-to-Ack baseline](plans/human-action-ack-baseline.md) measures the WebSocket path; its send-to-ack interval is neither RTT nor a prediction-correction metric. The [live step](plans/live-movement-step.md) and [3D movement Ack](plans/movement-ack-v1.md) prepare replay on that same wire. The transport spike follows live prediction and a two-machine LAN comparison.
 
 ## Timeline
 

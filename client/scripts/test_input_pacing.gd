@@ -82,6 +82,13 @@ func _run() -> void:
 	_check(manager.call("_send_local_action", now + interval) and network.sent.size() == 1 and network.sent[0].get("interact", false), "the latched tap is carried by the next send")
 	manager.call("_send_local_action", now + interval * 2)
 	_check(network.sent.size() == 2 and not network.sent[1].get("interact", false), "the tap is consumed once")
+	network.sent.clear()
+	manager.set("input_seq", manager.get("MAX_ACTION_SEQ") - 1)
+	manager.call("_send_local_action", now + interval * 3)
+	manager.call("_send_local_action", now + interval * 4)
+	_check(network.sent.size() == 2 and network.sent[0]["seq"] == 4294967295 and
+		network.sent[1]["seq"] == 1,
+		"the live sender wraps within the u32 sequence range")
 	manager.free()
 	network.free()
 	if _failures == 0:

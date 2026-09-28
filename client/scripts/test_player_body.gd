@@ -106,6 +106,24 @@ func _check_pawn() -> void:
 		"hp":100, "armor":0, "score":0, "weapon":"Rail"}
 	pawn.call("update_state", state, 1)
 	_check(body.texture == legacy and str(pawn.get("body_kind")).is_empty(), "no body keeps the legacy look")
+	pawn.call("set_predicted_position", Vector3(2.0, 1.5, 0.0), 5.0)
+	state["x"] = 1.0
+	state["hp"] = 75
+	state["weapon"] = "Tack"
+	pawn.call("update_state", state, 2)
+	pawn.call("_process", 1.0 / 60.0)
+	_check(is_equal_approx(pawn.position.x, 2.0) and is_equal_approx(pawn.get("target_position").x, 1.0),
+		"local prediction presents its own position while retaining snapshot position")
+	_check(pawn.get("hp") == 75 and pawn.get("current_weapon") == "Tack",
+		"authoritative snapshot health and weapon still update during prediction")
+	_check(is_equal_approx(float(pawn.get("presentation_speed")), 5.0),
+		"local movement feedback uses predicted velocity rather than a one-frame position jump")
+	pawn.call("clear_predicted_position")
+	_check(is_equal_approx(pawn.position.x, 1.0), "snapshot fallback snaps to retained authoritative position")
+	pawn.set("hit_flash_timer", 0.0)
+	state["x"] = 0.0
+	state["hp"] = 100
+	state["weapon"] = "Rail"
 	state["body"] = PlayerBody.SYNTHETIC
 	pawn.call("update_state", state, 2)
 	_check(body.texture.resource_path == strip[PlayerBody.SYNTHETIC], "the accepted body is worn")

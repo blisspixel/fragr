@@ -1,6 +1,6 @@
 # Plan: buttery controls
 
-**Status:** in flight (stage 1 shipped 2026-09-18)
+**Status:** in flight (stage 1 shipped 2026-09-18; later-stage design requires revalidation against live 3D movement)
 **Branch:** `feat/controls-*` (one PR per stage below)
 **Spend:** $0.
 
@@ -16,8 +16,8 @@ The 1.0 bar in [`../ROADMAP.md`](../ROADMAP.md) asks for first-person movement a
 
 ## Protocol changes
 
-- Stage 1: `Action` gains an absolute `yaw` (f32) and an input `seq` (u32); the server acknowledges `last_seq` in the snapshot it sends that client.
-- Stage 3: `PlayerState` gains velocity (three f32).
+- Stage 1 shipped: `Action` gained absolute `yaw` and numbered `seq`; the server sends a separate human-only unicast `ack` with `seq`, `tick`, `x`, `z` and `yaw`. It is not embedded in a snapshot.
+- The [live movement step](live-movement-step.md) and optional [full 3D movement Ack](movement-ack-v1.md) provide the rule and post-tick body baseline. The local client still needs a bounded tick-indexed replay history, prediction and correction measurements before 3D reconciliation is active.
 - Stage 4: every tick-count field on the wire (`respawn_in`, cooldowns, `duration_ticks`, the 160-tick linger) becomes seconds or milliseconds, with the tick rate stated in `Hello`.
 - Each of these lands in `docs/protocol.md` in the same PR. The adapter reads the wire types from `fragr-server` (as the playtest harness and the brain do), so a wire change is edited once and the compiler finds every reader.
 
@@ -28,8 +28,9 @@ Every `*_TICKS` constant in `server/src/sim.rs` and `server/src/protocol.rs`, th
 ## Where we stand (from the code, not the docs)
 
 - The server ticks at 20 Hz and every snapshot is the full JSON world (`server/src/run.rs`).
-- The client sends an Action every rendered frame (`client/scripts/game_manager.gd`), so at 144 frames per second it sends 144 messages a second, nearly all redundant.
-- Mouse yaw is quantised into `turn_left` and `turn_right` bits (`client/scripts/spectator_cam.gd`), the server turns at a fixed rate, and the camera copies the pawn's yaw, which `player_pawn.gd` smooths with an exponential lerp of roughly a 100 ms time constant. The look axis round-trips the network and then passes two smoothing stages. That is the mush. Prediction alone does not fix it unless yaw becomes client-owned.
+- The client now caps numbered human Actions at 120 per second (`client/scripts/game_manager.gd`). The 20 Hz server applies the newest one per tick and repeats that sequence in later Acks. [The human Action-to-Ack baseline](human-action-ack-baseline.md) measures this live path before defining replayable input steps.
+- The [live movement step](live-movement-step.md) uses a pure Rust function and a GDScript mirror with separate 20 Hz goldens. The optional [movement Ack](movement-ack-v1.md) adds a 3D post-tick baseline and selected-input semantics. Neither rung wires live prediction.
+- Mouse yaw is client-owned on the displayed frame, and the server accepts the absolute facing. Remote pawn presentation still has a smoothing path; local movement is not yet predicted. The original per-frame, turn-bit-only look path described below is design history, not the current implementation.
 
 ## Design
 
@@ -44,13 +45,13 @@ Every `*_TICKS` constant in `server/src/sim.rs` and `server/src/protocol.rs`, th
 9. **Gamepad look.** Radial deadzone 0.12 with rescale, response exponent 1.5 to 2, 250 degrees per second maximum yaw with a 0.25 s ramp in the outer five percent of the stick, aim friction at half speed inside a three degree cone around a fighter. Magnetism and snap later, if at all. These starting values are ours to tune, not sourced.
 10. **Transport spike.** WebSocket JSON stays the control plane and the path for spectators and agents. Candidate A is a 12-byte header (sequence, ack, ack bits) over UDP with `PacketPeerUDP` on the client and `tokio::net::UdpSocket` on the server; candidate B is ENet through `ENetMultiplayerPeer` with a Rust binding still to be verified. WebTransport is not in Godot 4.7. Decide with the measurements below.
 
-## Design detail (decision-complete)
+## Earlier design detail (requires revalidation)
 
-Everything below is chosen so a later implementer does not have to choose. Numbers are starting values; the QA tour and the feel probes tune them, and a change lands with its golden vectors regenerated.
+The following draft was written before the current live 3D movement path and 120-per-second Action sender were inspected. It is a record of candidate values, not an implementation contract. The [human baseline](human-action-ack-baseline.md) and a comparison of `movement.rs` live integration with the GDScript mirror must precede a revised prediction plan. Recheck every wire field and tick conversion against source before building these stages.
 
 ### The movement model, written once in words
 
-State per fighter: position `(x, z)` in units, velocity `(vx, vz)` in units per second, yaw in radians in `[0, 2 pi)`. No vertical motion. Radius 0.5. The step is:
+This early sketch uses a planar `(x, z)` state and omits vertical motion. The live game has `y`, gravity and jumping; a predicting client must replay those dimensions and use the actual server collision and movement path. The sketch's candidate horizontal step is:
 
 1. Wish direction: forward, back, left, right bits combined into a unit vector in the yaw frame (the same trigonometry as today, normalised when non-zero).
 2. Target velocity: wish direction times top speed. Top speed 5.0, halved under the compliance slow (today's values, unchanged so balance holds).
@@ -63,7 +64,7 @@ Written twice: `server/src/movement.rs` (`pub fn step(state, input, dt, obstacle
 
 ### Golden vectors
 
-`docs/golden/move_vectors.json`: a list of cases, each with an obstacle list, an initial state, a `dt`, a list of inputs, and the expected state after every input, generated by the Rust step and committed. A Rust test asserts the Rust step reproduces the file to 1e-6; a headless Godot test (`client/scripts/test_move_golden.gd`, run by `tools/godot_check.sh`) asserts the GDScript step matches every step to 1e-4 and the final state of a 1000-step case to 1e-2. Regeneration is `cargo test -p fragr-server golden -- --ignored` writing the file; the diff is reviewed like code. Cases: straight run, diagonal run (normalisation), start and stop (the taus), slide along a wall in x, slide in z, corner stop, arena edge clamp, yaw wrap at 0 and 2 pi, compliance slow.
+Accelerated 60 Hz goldens live at `client/golden/move_vectors.json`. The separate `client/golden/live_move_vectors.json` exercises the 20 Hz immediate-velocity rule. Neither establishes that live human prediction or reconciliation is wired.
 
 ### Wire changes, exact
 
@@ -73,13 +74,13 @@ Written twice: `server/src/movement.rs` (`pub fn step(state, input, dt, obstacle
 - `yaw: f32` absolute yaw in radians. Present means client-owned yaw; the server normalises and stores it.
 - `view_tick: u32` the server tick the client was rendering other fighters at when this input was sampled (for lag compensation). Absent means no rewind.
 
-A new unicast message, humans only, sent every tick after the snapshot:
+A separate unicast Ack to humans already exists. Its current shape is:
 
 ```json
-{"type": "ack", "seq": 4123, "tick": 88210, "x": 12.25, "z": -3.5, "vx": 4.9, "vz": 0.7}
+{"type": "ack", "seq": 4123, "tick": 88210, "x": 12.25, "z": -3.5, "yaw": 1.2}
 ```
 
-`seq` is the last input applied to that fighter. Snapshots gain `vx` and `vz` per fighter (stage 3) and a `tick_hz` field in `Welcome` (stage 2). Every tick-count field on the wire becomes seconds as a float (`respawn_in_s`, `cooldown_s`, `time_left_s`), with the old fields kept for one release and the adapter mirror updated in the same PR.
+`seq` is the newest Action selected for that fighter at the 20 Hz server tick. Intervening Actions do not each receive an Ack. A future full-state Ack needs `y`, velocity and the server movement step identity before input replay is meaningful. Snapshot velocity, tick metadata and time-field migrations remain proposals.
 
 ### Input cadence and bundling
 
@@ -92,7 +93,7 @@ The client keeps a ring of the last 64 `(seq, input, state_after)`. On `ack`:
 1. Find the ring entry for `ack.seq`. If missing (too old), snap to the ack state and clear the ring.
 2. Error `e = ack.position - entry.state_after.position`.
 3. If `|e| > 1.0` snap: set the state to the ack state and replay every input after `seq` with the shared step. Otherwise replay from the ack state the same way, and add `e` to a `visual_offset` that the renderer subtracts, decaying per frame by `0.95` when `|offset| < 0.25` and `0.85` above, so the camera never pops.
-4. Record `|e|` into the correction histogram reported on the status line and by the feel probes (p99 under 10 cm is the pass).
+4. Record `|e|` in an opt-in client-side correction probe (p99 under 10 cm is the proposed pass). The server status endpoint cannot observe the client's visual correction.
 
 ### Interpolation of other fighters
 
@@ -116,7 +117,7 @@ Gamepad: radial deadzone 0.12 rescaled to a full range, exponent 1.8, yaw rate 2
 
 1. **Shipped.** Client-owned yaw and numbered inputs on the 20 Hz sim; the `ack` message; turn bits kept for agents. The look axis no longer round-trips: the camera and the fighter's facing move on the frame the mouse moves, and the server takes the absolute value. Bundling several unacknowledged inputs per message comes with stage 3, when there is something to replay.
 2. Tick migration: 60 Hz movement step, constants to seconds, `tick_hz` in `Welcome`.
-3. The shared step in both languages with golden vectors, prediction and reconciliation, correction metrics on the status line.
+3. The shared live step in both languages with golden vectors, prediction and reconciliation, correction metrics in a client-side probe.
 4. Timeline interpolation for others with snapshot velocity; the lerp removed.
 5. Lag compensation with `view_tick` and the bounded rewind.
 6. Gamepad curves and aim friction from the settings dictionary.
@@ -132,7 +133,7 @@ The benchmark mode prints these; the 1.0 release notes quote them.
 
 ## Staged PRs
 
-The order is the revised one at the end of the design detail: yaw and numbered inputs, tick migration, the shared step with prediction, interpolation, lag compensation, gamepad, transport. Stage 3 needs the status line from playtest rung 3 for its correction metrics.
+The shipped first stage is yaw and numbered inputs. Before any prediction stage, measure the live human path, define one replayable authoritative movement step and a full 3D Ack, then revise the remaining order. Correction metrics belong in a client-side probe.
 
 ## Sources
 

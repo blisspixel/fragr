@@ -208,6 +208,8 @@ func _run() -> void:
 			if _game_manager().net_client.record.get("status") != state["record_status"]:
 				push_error("qa_tour: participant never reached requested record status")
 				_failed = true
+		if _joined and (state.has("weapon") or state.has("aim_pitch")):
+			await _wait_live_joined_fighter(state_name)
 		if state.has("weapon"):
 			await _select_weapon(str(state["weapon"]))
 		if state.has("aim_pitch"):
@@ -219,6 +221,20 @@ func _run() -> void:
 			return
 		_movement_samples.clear()
 		_walk_results.clear()
+		var ack_report: Dictionary = {}
+		var moving_combat: Dictionary = {}
+		var ack_deadline_usec: int = 0
+		if state.has("moving_combat_seconds"):
+			moving_combat = await _moving_combat_probe(float(state["moving_combat_seconds"]))
+			ack_report = moving_combat.get("ack_probe", {})
+			if not moving_combat.get("passed", false):
+				_failed = true
+		elif state.has("ack_probe_seconds"):
+			if not _joined or _game_manager() == null or not _game_manager().begin_ack_probe():
+				push_error("qa_tour: Ack probe requires a connected human fighter")
+				quit(1)
+				return
+			ack_deadline_usec = Time.get_ticks_usec() + int(float(state["ack_probe_seconds"]) * 1000000.0)
 		if state.get("jump_probe", false):
 			await _jump_probe()
 		# A detached observation state must hand the eye back before ordinary
@@ -252,6 +268,13 @@ func _run() -> void:
 				if (manager.get("crawler_last_position") as Vector3).distance_to(expected_source) > 0.2:
 					push_error("qa_tour: Crawler scrabble came from the wrong landing")
 					_failed = true
+		if ack_deadline_usec > 0:
+			while Time.get_ticks_usec() < ack_deadline_usec:
+				await create_timer(0.1).timeout
+			ack_report = _game_manager().end_ack_probe()
+			if not valid_ack_capture(ack_report, float(state["ack_probe_seconds"])):
+				push_error("qa_tour: Ack probe lacked a stable live human sample: " + JSON.stringify(ack_report))
+				_failed = true
 		var combat: Dictionary = {}
 		if state.has("combat"):
 			if state.get("camera", "") == "first_person":
@@ -414,6 +437,8 @@ func _run() -> void:
 
 		await RenderingServer.frame_post_draw
 		await RenderingServer.frame_post_draw
+		if state.has("aim_pitch"):
+			await _restore_static_aim_after_respawn(state)
 
 		var measured: Dictionary = await _measure()
 		var shot: Image = measured.get("shot")
@@ -509,6 +534,13 @@ func _run() -> void:
 		if current_scene == "res://scenes/main.tscn" and (observed.get("map_id", 0) == 0 or (observed.get("fighters", 0) == 0 and not state.get("allow_empty_roster", false))):
 			push_error("qa_tour: no live match for " + state_name)
 			_failed = true
+		if _joined and (state.has("weapon") or state.has("aim_pitch")):
+			if not _local_human_alive(_game_manager()):
+				push_error("qa_tour: no live joined fighter in " + state_name)
+				_failed = true
+			if state.has("weapon") and str(observed.get("local_weapon", "")) != str(state["weapon"]):
+				push_error("qa_tour: captured weapon disagrees with the server for " + state_name)
+				_failed = true
 		if state.has("aim_pitch") or state.has("expect_pitch"):
 			var expected_pitch: float = float(state["expect_pitch"] if state.has("expect_pitch") else state["aim_pitch"])
 			var camera_pitch: float = float(observed.get("camera_pitch", 99.0))
@@ -547,6 +579,8 @@ func _run() -> void:
 			"walks": _walk_results.duplicate(true),
 			"combat": combat,
 			"audio": audio_capture,
+			"moving_combat": moving_combat,
+			"ack_probe": ack_report,
 			"width": shot.get_width(),
 			"height": shot.get_height(),
 			"hud_coverage": snappedf(measured.get("hud_coverage", 0.0), 0.0001),
@@ -738,6 +772,17 @@ static func valid_walks(states: Variant) -> bool:
 			if not state.has("record_audio_seconds") or not reference is String or reference.is_empty() \
 				or not (ratio is float or ratio is int) or not is_finite(float(ratio)) or float(ratio) < 1.0:
 				return false
+		if state.has("ack_probe_seconds"):
+			var seconds: Variant = state["ack_probe_seconds"]
+			if not (seconds is int or seconds is float) or not is_finite(float(seconds)) or \
+				float(seconds) < 1.0 or float(seconds) > 120.0 or state.get("join") != "human":
+				return false
+		if state.has("moving_combat_seconds"):
+			var combat_seconds: Variant = state["moving_combat_seconds"]
+			if state.has("ack_probe_seconds") or not (combat_seconds is int or combat_seconds is float) or \
+				not is_finite(float(combat_seconds)) or float(combat_seconds) < 5.0 or \
+				float(combat_seconds) > 120.0 or state.get("join") != "human":
+				return false
 	return not live_audio_open
 
 static func valid_radio_comparison(value: String, states: Variant) -> bool:
@@ -793,6 +838,35 @@ static func active_named_enemies(snapshot: Dictionary, names: Array) -> Dictiona
 			ActorState.is_union(actor):
 			found[str(actor["name"])] = str(actor["campaign"]["phase"])
 	return found
+
+static func valid_ack_capture(report: Dictionary, seconds: float) -> bool:
+	if report.get("interrupted", true) or int(report.get("failed_sends", -1)) != 0 or \
+		int(report.get("invalid_acks", -1)) != 0 or int(report.get("invalid_snapshots", -1)) != 0 or \
+		float(report.get("duration_seconds", 0.0)) < seconds - 0.05:
+		return false
+	for key: String in ["first_matched_ack_ms", "last_matched_ack_ms", "first_snapshot_ms", "last_snapshot_ms"]:
+		if not report.get(key) is int:
+			return false
+	var window_ms: int = int(seconds * 1000.0)
+	return int(report.get("sent", 0)) >= int(seconds * 30.0) and \
+		int(report.get("matched_acks", 0)) >= int(seconds * 15.0) and \
+		int(report.get("snapshots", 0)) >= int(seconds * 15.0) and \
+		int(report["first_matched_ack_ms"]) <= 1000 and \
+		int(report["first_snapshot_ms"]) <= 1000 and \
+		int(report["last_matched_ack_ms"]) >= window_ms - 1000 and \
+		int(report["last_snapshot_ms"]) >= window_ms - 1000 and \
+		int(report.get("max_matched_ack_gap_ms", 100000)) <= 250 and \
+		int(report.get("max_snapshot_gap_ms", 100000)) <= 250
+
+static func valid_moving_combat_capture(report: Dictionary, seconds: float) -> bool:
+	return str(report.get("interruption", "invalid")) == "" and \
+		valid_ack_capture(report.get("ack_probe", {}), seconds) and \
+		float(report.get("server_snapshot_distance_m", 0.0)) >= 5.0 and \
+		int(report.get("server_shots", 0)) >= 2 and int(report.get("shots_while_moving", 0)) >= 1 and \
+		int(report.get("snapshots_with_live_opponents", 0)) >= 10 and \
+		int(report.get("snapshots_observed", 0)) >= int(seconds * 15.0) and \
+		int(report.get("correction_m", {}).get("samples", 0)) >= int(seconds * 10.0) and \
+		bool(report.get("prediction_active_at_end", false))
 
 func _apply_graphics_capture(options: Variant) -> void:
 	var manager: Node = _game_manager()
@@ -1148,7 +1222,7 @@ func _observed_state() -> Dictionary:
 	if ward != null:
 		for captive: Node3D in ward._side_captives:
 			captive_views.append([captive.position.x, captive.position.y, captive.position.z])
-	return {
+	var report: Dictionary = {
 		"m02_evacuation": evacuation,
 		"m02_captive_views": captive_views,
 		"participant_record": gm.get("net_client").get("record"),
@@ -1170,6 +1244,26 @@ func _observed_state() -> Dictionary:
 		"server_yaw": server_yaw if absf(server_yaw) <= TAU else null,
 		"server_pitch": server_pitch if absf(server_pitch) <= ServerYaw.PITCH_LIMIT else null,
 	}
+	if bool(gm.get("is_human_player")):
+		var predictor: LocalPrediction = gm.get("local_prediction")
+		var pawn: Node = gm.get("players").get(gm.get("local_fp_pawn_id"))
+		report["local_prediction"] = {
+			"active": predictor.active(),
+			"fallback": predictor.fallback_reason,
+			"fallback_count": predictor.fallback_count,
+			"fallback_reasons": predictor.fallback_reasons.duplicate(),
+			"last_fallback": predictor.last_fallback_reason,
+			"corrections": predictor.correction_count,
+			"max_correction_m": snappedf(predictor.correction_max, 0.0001),
+			"p50_correction_m": snappedf(predictor.correction_percentile(0.50), 0.0001),
+			"p95_correction_m": snappedf(predictor.correction_percentile(0.95), 0.0001),
+			"p99_correction_m": snappedf(predictor.correction_percentile(0.99), 0.0001),
+			"pending_ticks": predictor.steps.size(),
+			"camera_eye_gap_m": snappedf(cam.global_position.distance_to(
+				pawn.global_position + Vector3(0.0, MoveStep.EYE_HEIGHT - LocalPrediction.FLOOR_OFFSET, 0.0)), 0.0001)
+				if is_instance_valid(pawn) else null,
+		}
+	return report
 
 func _equipment() -> Dictionary:
 	return _game_manager().get("net_client").get("equipment")
@@ -1222,6 +1316,40 @@ func _local_server_pitch(gm: Node) -> float:
 		if str(player.get("id", "")) == str(network.get("player_id")):
 			return float(player.get("pitch", 99.0))
 	return 99.0
+
+func _local_human_alive(gm: Node) -> bool:
+	var network: Node = gm.get("net_client")
+	for player: Dictionary in gm.get("latest_snapshot").get("players", []):
+		if str(player.get("id", "")) == str(network.get("player_id")):
+			return int(player.get("hp", 0)) > 0
+	return false
+
+func _wait_live_joined_fighter(state_name: String) -> bool:
+	var gm: Node = _game_manager()
+	if gm == null:
+		push_error("qa_tour: missing match for " + state_name)
+		_failed = true
+		return false
+	var deadline: int = Time.get_ticks_msec() + 10000
+	while not _local_human_alive(gm) and Time.get_ticks_msec() < deadline:
+		await process_frame
+	if not _local_human_alive(gm):
+		push_error("qa_tour: joined fighter did not respawn for " + state_name)
+		_failed = true
+		return false
+	return true
+
+func _restore_static_aim_after_respawn(state: Dictionary) -> void:
+	var gm: Node = _game_manager()
+	if gm == null or not _joined or _local_human_alive(gm):
+		return
+	if not await _wait_live_joined_fighter(str(state.get("name", "static aim"))):
+		return
+	if state.has("weapon"):
+		await _select_weapon(str(state["weapon"]))
+	await _set_aim_pitch(float(state["aim_pitch"]))
+	await RenderingServer.frame_post_draw
+	await RenderingServer.frame_post_draw
 
 func _local_feet() -> Vector3:
 	var gm: Node = _game_manager()
@@ -1577,6 +1705,118 @@ func _walk_to(goal: Vector3, look_back: bool = false) -> void:
 	if not arrived:
 		push_error("qa_tour: ordinary walk failed to reach %s, stopped at %s (walking %d ms, fighting %d ms)" % [goal, _local_feet(), walking_ms, fighting_ms])
 		_failed = true
+
+## One uninterrupted diagnostic window. Every control goes through the same
+## human Action path as ordinary play; snapshot shots and positions prove that
+## the server resolved combat and movement during the measured interval.
+func _moving_combat_probe(seconds: float) -> Dictionary:
+	var gm: Node = _game_manager()
+	if gm == null or not gm.begin_ack_probe():
+		push_error("qa_tour: moving combat requires a connected human fighter")
+		return {"passed": false}
+	var network: Node = gm.get("net_client")
+	var player_id: String = str(network.get("player_id"))
+	var predictor: LocalPrediction = gm.get("local_prediction")
+	predictor.clear_measurements()
+	var started_usec: int = Time.get_ticks_usec()
+	var deadline_usec: int = started_usec + int(seconds * 1000000.0)
+	var previous_tick: int = -1
+	var previous_position: Vector2 = Vector2.ZERO
+	var distance_m: float = 0.0
+	var shots: int = 0
+	var moving_shots: int = 0
+	var bot_shots: int = 0
+	var bot_snapshots: int = 0
+	var snapshots_observed: int = 0
+	var interruption: String = ""
+	while Time.get_ticks_usec() < deadline_usec:
+		if network.get("connection_state") != WebSocketPeer.STATE_OPEN or not bool(gm.get("is_human_player")):
+			interruption = "connection_or_role"
+			break
+		var snapshot: Dictionary = gm.get("latest_snapshot")
+		var tick: int = int(snapshot.get("tick", -1))
+		if tick > previous_tick:
+			var me: Dictionary = QaCombat.actor_by_id(snapshot, player_id)
+			if me.is_empty() or int(me.get("hp", 0)) <= 0:
+				interruption = "death_or_respawn"
+				break
+			var position: Vector2 = Vector2(float(me["x"]), float(me["z"]))
+			var moved: bool = false
+			if previous_tick >= 0:
+				var step_distance: float = position.distance_to(previous_position)
+				distance_m += step_distance
+				moved = step_distance > 0.01
+			previous_position = position
+			previous_tick = tick
+			snapshots_observed += 1
+			var target: Dictionary = {}
+			var target_distance: float = INF
+			for actor: Dictionary in snapshot.get("players", []):
+				if str(actor.get("id", "")) == player_id or not ActorState.is_participant(actor) or int(actor.get("hp", 0)) <= 0:
+					continue
+				var gap: float = position.distance_squared_to(Vector2(float(actor["x"]), float(actor["z"])))
+				if gap < target_distance:
+					target = actor
+					target_distance = gap
+			if not target.is_empty():
+				bot_snapshots += 1
+				var camera: Node = _spectator_camera()
+				camera.set("fp_yaw", atan2(float(target["z"]) - position.y, float(target["x"]) - position.x))
+				camera.set("fp_pitch", 0.0)
+			for shot: Dictionary in snapshot.get("shot_results", []):
+				if str(shot.get("shooter_id", "")) == player_id:
+					shots += 1
+					if moved:
+						moving_shots += 1
+				else:
+					bot_shots += 1
+		Input.action_press("fire")
+		Input.action_press("move_forward")
+		if int((Time.get_ticks_usec() - started_usec) / 1000000) % 2 == 0:
+			Input.action_press("move_left")
+			Input.action_release("move_right")
+		else:
+			Input.action_release("move_left")
+			Input.action_press("move_right")
+		# Poll faster than the 20 Hz snapshot cadence so phase alignment does
+		# not hide a valid server update from the observed-combat count.
+		await create_timer(0.025).timeout
+	QaCombat.release_inputs()
+	var ack: Dictionary = gm.end_ack_probe()
+	var correction_samples: Array[float] = predictor.correction_samples.duplicate()
+	var corrections: Dictionary = _correction_distribution(correction_samples)
+	var result: Dictionary = {
+		"interruption": interruption,
+		"duration_seconds": ack.get("duration_seconds", 0.0),
+		"server_snapshot_distance_m": snappedf(distance_m, 0.001),
+		"server_shots": shots, "shots_while_moving": moving_shots,
+		"other_shots": bot_shots, "snapshots_with_live_opponents": bot_snapshots,
+		"snapshots_observed": snapshots_observed,
+		"correction_m": corrections, "prediction_fallbacks": predictor.fallback_reasons.duplicate(),
+		"peak_correction": {"tick": predictor.correction_max_tick,
+			"elapsed_ms": (predictor.correction_max_usec - started_usec) / 1000 if predictor.correction_max_usec >= started_usec else null,
+			"server_position": [snappedf(predictor.correction_max_server_position.x, 0.001),
+				snappedf(predictor.correction_max_server_position.y, 0.001),
+				snappedf(predictor.correction_max_server_position.z, 0.001)]},
+		"prediction_fallback_count": predictor.fallback_count,
+		"prediction_active_at_end": predictor.active(),
+		"ack_probe": ack,
+	}
+	var passed: bool = valid_moving_combat_capture(result, seconds)
+	result["passed"] = passed
+	if not passed:
+		push_error("qa_tour: moving combat probe failed: " + JSON.stringify(result))
+	return result
+
+static func _correction_distribution(samples: Array[float]) -> Dictionary:
+	if samples.is_empty():
+		return {"samples": 0, "p50": null, "p95": null, "p99": null, "max": null}
+	var ordered: Array[float] = samples.duplicate()
+	ordered.sort()
+	return {"samples": ordered.size(), "p50": snappedf(ordered[int(ceilf(ordered.size() * 0.50)) - 1], 0.0001),
+		"p95": snappedf(ordered[int(ceilf(ordered.size() * 0.95)) - 1], 0.0001),
+		"p99": snappedf(ordered[int(ceilf(ordered.size() * 0.99)) - 1], 0.0001),
+		"max": snappedf(ordered.back(), 0.0001)}
 
 func _set_aim_pitch(pitch: float) -> void:
 	var gm: Node = _game_manager()

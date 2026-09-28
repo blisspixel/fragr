@@ -226,6 +226,15 @@ replication. Neither gate establishes human or spectator clarity. See the
 [carry evidence](plans/ctf-carry-episodes.md) and
 [socket gate](plans/ctf-socket-smoke.md).
 
+The live human Action-to-Ack baseline, 20 Hz movement step, full 3D Ack and
+local pawn prediction are implemented in draft work. A moving-combat WebSocket
+probe recorded loopback correction, fallback, cadence and payload evidence.
+Nine one-host Windows-to-WSL captures at 0, 40 and 80 ms added server-egress
+delay kept prediction active while delayed p99 same-tick error rose to about
+0.35 m ([measurement](plans/websocket-delayed-egress.md)). A two-machine human
+session with the pellet Shotgun, controls, aim assist and a team round is next
+before a 1.0 controls or UDP decision.
+
 The numbered list that used to sit here is historical. It put the campaign foundation seventh, behind a generation pipeline M01 does not need, and it still treated gunfeel rung 2 as next after that work had shipped. Spend restraint stays: no paid batch to paper over the uncertain art reservation, no cloud, and no server browser.
 
 Story between levels is a short audio cutscene on the scene player that now runs the M01 opening: a narration script voiced over at least one key image per scene, with captions, skippable, falling back to the text page when an asset is missing. Images through `tools/spritegen` and voices through `tools/audiogen` wait for frozen wording and Nick's go per batch with a cap. Video is much later, in [`plans/cutscene-film.md`](plans/cutscene-film.md). [`plans/campaign-scenes.md`](plans/campaign-scenes.md) holds the scene list, costs and gates.

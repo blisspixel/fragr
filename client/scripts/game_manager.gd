@@ -87,6 +87,8 @@ var _opening_release: bool = false
 var _readiness_attempt_sent: int = 0
 var _awaiting_map: bool = false
 var input_device: InputDevice
+var local_prediction: LocalPrediction = LocalPrediction.new()
+var _adopt_local_spawn_snapshot: bool = false
 
 const CRAWLER_SOUND_PATH: String = "res://assets/audio/crawler_scrabble.wav"
 const CRAWLER_SOUND_VOICES: int = 4
@@ -208,6 +210,9 @@ static func _find_world_environment(node: Node) -> WorldEnvironment:
 
 func _on_map_info(info: Dictionary) -> void:
 	_reset_crawler_cues()
+	local_prediction.configure_map(info)
+	_clear_predicted_pawn()
+	_adopt_local_spawn_snapshot = is_human_player
 	var mission: Variant = info.get("mission")
 	var m02: bool = info.get("m02_objectives") != null
 	if local_match != null:
@@ -565,16 +570,38 @@ func change_role(play: bool) -> void:
 	_awaiting_map = true
 	role_transition = false
 
-## Input sequence. The server echoes the newest one it applied in an ack,
-## which is what a predicting client reconciles against.
+## Input sequence. The server echoes the newest accepted one in an Ack.
 var input_seq: int = 0
-## Newest ack from the server: {seq, tick, x, z, yaw}. Recorded now, used by
-## prediction later; the difference against the local view is the correction.
+## Newest Ack from the server: {seq, tick, x, z, yaw}. Live prediction needs
+## a replayable movement step and a full authoritative body state first.
 var last_ack: Dictionary = {}
+var ack_probe: InputAckProbe = InputAckProbe.new()
 
 
 func _on_ack_received(data: Dictionary) -> void:
 	last_ack = data
+	ack_probe.record_ack(data, Time.get_ticks_usec())
+	if is_human_player:
+		local_prediction.accept_ack(data, Time.get_ticks_usec())
+		_apply_local_prediction()
+
+
+func begin_ack_probe() -> bool:
+	if not is_human_player or net_client.connection_state != WebSocketPeer.STATE_OPEN:
+		return false
+	ack_probe.begin(Time.get_ticks_usec())
+	net_client.tx_text_bytes = 0
+	net_client.rx_text_bytes = 0
+	net_client.track_text_bytes = true
+	return true
+
+
+func end_ack_probe() -> Dictionary:
+	var report: Dictionary = ack_probe.finish(Time.get_ticks_usec())
+	report["tx_text_payload_bytes"] = net_client.tx_text_bytes
+	report["rx_text_payload_bytes"] = net_client.rx_text_bytes
+	net_client.track_text_bytes = false
+	return report
 
 
 func _process(_delta):
@@ -584,6 +611,8 @@ func _process(_delta):
 		_submit_mission_readiness()
 	if mouse_capture != null:
 		mouse_capture.set_gameplay(not controls_blocked())
+	if is_human_player and net_client.connection_state != WebSocketPeer.STATE_OPEN and local_prediction.active():
+		_reset_prediction_for_connection("connection_lost")
 	if not is_human_player:
 		_update_followed_weapon()
 	_update_nameplates()
@@ -594,6 +623,35 @@ func _process(_delta):
 		hud.set_fp_walk_speed(float(watched.get("presentation_speed")) if is_instance_valid(watched) else 0.0)
 	if is_human_player and not role_transition and net_client.connection_state == WebSocketPeer.STATE_OPEN and _has_local_input_target():
 		_send_local_action(Time.get_ticks_usec())
+	if is_human_player:
+		local_prediction.advance(Time.get_ticks_usec())
+		local_prediction.decay_visual(_delta)
+		_apply_local_prediction()
+
+
+func _clear_predicted_pawn() -> void:
+	var pawn: Node = players.get(local_fp_pawn_id)
+	if is_instance_valid(pawn) and pawn.has_method("clear_predicted_position"):
+		pawn.clear_predicted_position()
+
+
+func _reset_prediction_for_connection(reason: String) -> void:
+	local_prediction.reset(reason, true)
+	_clear_predicted_pawn()
+	_adopt_local_spawn_snapshot = is_human_player
+	pending_jump = false
+	pending_interact = false
+
+
+func _apply_local_prediction() -> void:
+	var pawn: Node = players.get(local_fp_pawn_id)
+	if not is_instance_valid(pawn):
+		return
+	if local_prediction.active() and pawn.hp > 0 and _has_local_input_target() and pawn.has_method("set_predicted_position"):
+		var velocity: Vector2 = Vector2(float(local_prediction.state["vx"]), float(local_prediction.state["vz"]))
+		pawn.set_predicted_position(local_prediction.presented_position(), velocity.length())
+	elif pawn.has_method("clear_predicted_position"):
+		pawn.clear_predicted_position()
 
 ## One action message per displayed frame flooded the server at high frame
 ## rates: a 500 fps client sent twice the 256 per second inbound budget, so
@@ -601,6 +659,7 @@ func _process(_delta):
 ## exactly one of them. Sends are paced below the budget instead, and discrete
 ## presses stay latched until a message actually carries them.
 const ACTION_SEND_INTERVAL_USEC: int = 1000000 / 120
+const MAX_ACTION_SEQ: int = 4294967295
 var _last_action_usec: int = -ACTION_SEND_INTERVAL_USEC
 
 func _send_local_action(now_usec: int) -> bool:
@@ -634,11 +693,25 @@ func _send_local_action(now_usec: int) -> bool:
 	if _mission_controls_blocked():
 		action_state.erase("yaw")
 		action_state.erase("pitch")
-	input_seq += 1
+	input_seq = 1 if input_seq >= MAX_ACTION_SEQ else input_seq + 1
 	action_state.seq = input_seq
 	action_state.weapon_swap = pending_weapon_swap
 	pending_weapon_swap = null
+	var send_usec: int = 0
+	if ack_probe.active:
+		send_usec = Time.get_ticks_usec()
+		net_client.last_send_ok = false
+	var predicting: bool = local_prediction.active()
+	if predicting:
+		net_client.last_send_ok = false
 	net_client.send_action(action_state)
+	if predicting:
+		local_prediction.record_action(action_state, now_usec, net_client.last_send_ok)
+	if ack_probe.active:
+		if net_client.last_send_ok:
+			ack_probe.record_send(input_seq, send_usec)
+		else:
+			ack_probe.failed_sends += 1
 	pending_jump = false
 	pending_interact = false
 	return true
@@ -648,8 +721,11 @@ func _on_mission_received(state: Dictionary) -> void:
 	if is_human_player and state.get("run") is Dictionary and state["run"]["status"] == "playing":
 		var attempt: int = int(state["attempt"])
 		if attempt > 1 and attempt != _presented_attempt:
+			local_prediction.reset("continue", true)
+			_clear_predicted_pawn()
 			_retry_snapshot_tick = int(net_client.mission["tick"])
 			_reset_crawler_cues()
+			_adopt_local_spawn_snapshot = true
 		_presented_attempt = attempt
 	if mission_hud != null:
 		mission_hud.apply(state, str(net_client.player_id) if is_human_player else "")
@@ -709,7 +785,7 @@ func assist_targets() -> Array:
 func _has_local_input_target() -> bool:
 	# An open socket precedes the first snapshot. Sending the default camera aim
 	# in that interval overwrites the authored spawn facing before we adopt it.
-	if net_client.player_id == null or local_fp_pawn_id != str(net_client.player_id):
+	if _adopt_local_spawn_snapshot or net_client.player_id == null or local_fp_pawn_id != str(net_client.player_id):
 		return false
 	var pawn: Node = players.get(local_fp_pawn_id)
 	return is_instance_valid(pawn) and is_instance_valid(camera) and camera.fp_mode and camera.fp_target == pawn
@@ -796,12 +872,21 @@ func _apply_map_from_snapshot(snapshot: Dictionary) -> void:
 		hud.set_map_name(map_name)
 
 func _on_connected():
+	_reset_prediction_for_connection("connected")
+	if ack_probe.active:
+		ack_probe.interrupted = true
+		ack_probe.active = false
+	net_client.track_text_bytes = false
 	hud.set_status("Connected to server")
 
 func _on_session_resumed() -> void:
 	hud.set_status("Reconnected.")
 
 func _on_disconnected():
+	if ack_probe.active:
+		ack_probe.interrupted = true
+		ack_probe.active = false
+	net_client.track_text_bytes = false
 	hud.set_status("Disconnected")
 	hud.reset_host_chrome()
 	ended_podium_shown = false
@@ -813,6 +898,8 @@ func _on_server_error(message: String) -> void:
 	hud.set_status(message)
 
 func _clear_world() -> void:
+	local_prediction.reset("disconnect", true)
+	_adopt_local_spawn_snapshot = false
 	if is_instance_valid(opening):
 		opening.queue_free()
 	opening = null
@@ -869,6 +956,7 @@ func _refresh_equipment_visibility() -> void:
 		and is_instance_valid(pawn) and pawn.hp > 0 and hud.fp_juice_enabled
 
 func _on_snapshot_received(data):
+	ack_probe.record_snapshot(data.get("tick"), Time.get_ticks_usec())
 	latest_snapshot = data
 	_apply_map_from_snapshot(data)
 	var tick = data.get("tick", 0)
@@ -998,6 +1086,7 @@ func _on_snapshot_received(data):
 	if is_human_player:
 		_refresh_fp_target()
 		_update_local_fp_hud(data.get("players", []))
+		_apply_local_prediction()
 	_process_shot_results(data.get("shot_results", []), int(data.get("tick", -1)))
 	hud.equipment_hud.tick = int(data.get("tick", 0))
 	_refresh_equipment_visibility()
@@ -1424,6 +1513,9 @@ func _set_human_fp(enabled: bool) -> void:
 	_refresh_fp_target()
 
 func _clear_fp_state() -> void:
+	local_prediction.reset("role", true)
+	_adopt_local_spawn_snapshot = false
+	_clear_predicted_pawn()
 	if local_fp_pawn_id != "" and players.has(local_fp_pawn_id):
 		var old = players[local_fp_pawn_id]
 		if is_instance_valid(old) and old.has_method("set_local_fp"):
@@ -1469,7 +1561,33 @@ func _update_local_fp_hud(player_list: Array) -> void:
 	for pdata in player_list:
 		if str(pdata.get("id", "")) != pid:
 			continue
+		if _adopt_local_spawn_snapshot and (_retry_snapshot_tick < 0 or int(latest_snapshot.get("tick", -1)) >= _retry_snapshot_tick):
+			var pawn: Node = players.get(pid)
+			if is_instance_valid(pawn) and pawn.has_method("snap_authoritative_position"):
+				pawn.snap_authoritative_position()
+			if camera:
+				camera.fp_yaw = float(pdata["yaw"])
+				camera.fp_pitch = float(pdata["pitch"])
+				camera.turn_accum = 0.0
+				if is_instance_valid(pawn):
+					camera.position = pawn.global_position + Vector3(0.0, MoveStep.EYE_HEIGHT - LocalPrediction.FLOOR_OFFSET, 0.0)
+			_adopt_local_spawn_snapshot = false
 		var hp = int(pdata.get("hp", 100))
+		if hp <= 0:
+			local_prediction.reset("death", true)
+			_clear_predicted_pawn()
+		elif local_hp_seen <= 0 and local_hp_seen >= 0:
+			local_prediction.reset("respawn", true)
+			_clear_predicted_pawn()
+			var pawn: Node = players.get(pid)
+			if is_instance_valid(pawn) and pawn.has_method("snap_authoritative_position"):
+				pawn.snap_authoritative_position()
+			if camera:
+				camera.fp_yaw = float(pdata["yaw"])
+				camera.fp_pitch = float(pdata["pitch"])
+				camera.turn_accum = 0.0
+				if is_instance_valid(pawn):
+					camera.position = pawn.global_position + Vector3(0.0, MoveStep.EYE_HEIGHT - LocalPrediction.FLOOR_OFFSET, 0.0)
 		if local_hp_seen >= 0 and hp < local_hp_seen and hp > 0:
 			if hud and hud.has_method("show_damage_flash"):
 				hud.show_damage_flash()

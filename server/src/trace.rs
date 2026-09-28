@@ -362,6 +362,7 @@ mod tests {
                     x: 1.0,
                     z: 2.0,
                     yaw: 0.0,
+                    movement: None,
                 };
                 assert_eq!(
                     crate::bench::encoded_payload_bytes(std::iter::once(&ack)).unwrap(),
