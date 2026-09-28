@@ -152,6 +152,58 @@ fn gallery_entry_frames_latch_without_exposing_the_ward_guards() {
 }
 
 #[test]
+fn primary_gallery_spawn_naturally_faces_latch_and_keeps_the_shotgun_route() {
+    let map = AuthoredMap::read(include_str!("../../../maps/m02-persons-unknown.json").as_bytes())
+        .unwrap();
+    let spawn = map
+        .spawns
+        .iter()
+        .find(|spawn| spawn.id == "gallery_entry")
+        .unwrap();
+    assert_eq!(spawn.feet, [0.0, 3.0, -31.0]);
+
+    let latch = [7.55_f32, 1.9, -10.0];
+    let destination_yaw = (latch[2] - spawn.feet[2]).atan2(latch[0] - spawn.feet[0]);
+    assert!(
+        (spawn.yaw - destination_yaw).abs() < 0.08,
+        "the unforced standing view must place Latch near its center, not rely on QA look_at"
+    );
+
+    let shotgun = map
+        .supplies
+        .iter()
+        .find(|supply| supply.id == "guard_room_scatter")
+        .unwrap();
+    assert!(
+        (spawn.feet[0] - shotgun.x).hypot(spawn.feet[2] - shotgun.z)
+            > crate::sim::PICKUP_CLAIM_RADIUS,
+        "the first weapon still needs a deliberate step"
+    );
+    assert_eq!(
+        map.navigation
+            .route(
+                spawn.feet,
+                [shotgun.x, shotgun.floor, shotgun.z],
+                crate::navigation::SEARCH_LIMIT
+            )
+            .status,
+        RouteStatus::Complete,
+        "the opening view must leave the Shotgun discovery walkable"
+    );
+    assert_eq!(
+        map.navigation
+            .route(
+                spawn.feet,
+                [-3.0, 3.0, -33.0],
+                crate::navigation::SEARCH_LIMIT
+            )
+            .status,
+        RouteStatus::Complete,
+        "the first guard-room fight must remain reachable"
+    );
+}
+
+#[test]
 fn floor_officer_uses_the_reachable_upper_mezzanine() {
     let map = AuthoredMap::read(include_str!("../../../maps/m02-persons-unknown.json").as_bytes())
         .unwrap();

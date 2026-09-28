@@ -448,12 +448,12 @@ func _run() -> void:
 		if current_scene == "res://scenes/main.tscn" and (observed.get("map_id", 0) == 0 or (observed.get("fighters", 0) == 0 and not state.get("allow_empty_roster", false))):
 			push_error("qa_tour: no live match for " + state_name)
 			_failed = true
-		if state.has("aim_pitch"):
-			var expected_pitch: float = float(state["aim_pitch"])
+		if state.has("aim_pitch") or state.has("expect_pitch"):
+			var expected_pitch: float = float(state["expect_pitch"] if state.has("expect_pitch") else state["aim_pitch"])
 			var camera_pitch: float = float(observed.get("camera_pitch", 99.0))
 			var server_pitch: float = _local_server_pitch(_game_manager())
 			if absf(camera_pitch - expected_pitch) > 0.001 or absf(server_pitch - expected_pitch) > 0.001:
-				push_error("qa_tour: captured aim disagrees with the server for %s (expected %.3f, camera %.3f, server %.3f)" % [state_name, expected_pitch, camera_pitch, server_pitch])
+				push_error("qa_tour: captured pitch disagrees with the server for %s (expected %.3f, camera %.3f, server %.3f)" % [state_name, expected_pitch, camera_pitch, server_pitch])
 				_failed = true
 		var path: String = _out_dir.path_join(file_name)
 		var err: Error = shot.save_png(path)

@@ -225,7 +225,7 @@
     ]}]
   },
   "spawns": [
-    {"id":"gallery_entry","feet":[0,3,-31],"yaw":1.5707964},
+    {"id":"gallery_entry","feet":[0,3,-31],"yaw":1.2256624},
     {"id":"gallery_entry_2","feet":[3,3,-31],"yaw":1.5707964},
     {"id":"gallery_entry_3","feet":[2,3,-33],"yaw":1.5707964},
     {"id":"gallery_entry_4","feet":[0,3,-28],"yaw":1.5707964}

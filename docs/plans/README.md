@@ -17,6 +17,7 @@ Status words: **proposed** (a design awaiting Nick's decision; directs no work),
 
 | Plan | Status | One-liner |
 |---|---|---|
+| [`m02-natural-entry-composition.md`](./m02-natural-entry-composition.md) | **in flight** | Check the real M02 first-person spawn, then frame Latch by authored facing without skipping the Shotgun and Crawler lessons. |
 | [`m02-gallery-first-view.md`](./m02-gallery-first-view.md) | **implemented** | Open and prove the M02 gallery's first sightline to Latch's restraint frame without bypassing the opening fight or stair route; player recognition remains open. |
 | [`m02-latch-visual-identity.md`](./m02-latch-visual-identity.md) | **implemented** | Give the ward figure and moving ally one repaired Latch silhouette; distant recognition and human review remain open. |
 | [`m02-ward-soundscape.md`](./m02-ward-soundscape.md) | **in flight**, [draft #280](https://github.com/blisspixel/fragr/pull/280) | Give M02's correction ward and processing floor four state-driven, lore-aligned mechanical cues with a bounded asset and distribution gate. |

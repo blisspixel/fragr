@@ -1,0 +1,9 @@
+{
+  "comment": "M02 primary gallery spawn with no forced look or camera pose. Server and camera yaw must agree before the first input; the player sees the live authored room and Latch restraint through the real window.",
+  "width": 1280,
+  "height": 720,
+  "combat_travel": false,
+  "states": [
+    {"name":"unforced_gallery_spawn","scene":"res://scenes/main.tscn","join":"human","camera":"first_person","expect_yaw":1.2256624,"expect_pitch":0.0,"note":"First live participant frame without look_at, walking, or a camera takeover."}
+  ]
+}

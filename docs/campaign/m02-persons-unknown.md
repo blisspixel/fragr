@@ -30,6 +30,13 @@ their authored route. This is an authored view and rendered frame check, not
 evidence that a new player recognizes Latch at that distance. The distant
 Notary tableau remains unbuilt.
 
+The [natural entry draft](../plans/m02-natural-entry-composition.md) turns the
+primary gallery spawn toward that restraint without moving its feet or
+changing the window. Its unforced first-person frame and live snapshot check
+test the view a participant actually receives before input. The Shotgun and
+service stair remain reachable; recognizing Latch is still a fresh-player
+question.
+
 ## Story and cast
 
 Reach Latch before irreversible correction and rescue them early in the campaign.
