@@ -17,6 +17,7 @@ Status words: **proposed** (a design awaiting Nick's decision; directs no work),
 
 | Plan | Status | One-liner |
 |---|---|---|
+| [`local-pawn-prediction.md`](./local-pawn-prediction.md) | **implemented** | Bounded 20 Hz local human body replay and Ack correction on the existing WebSocket path; human feel gate remains. |
 | [`movement-ack-v1.md`](./movement-ack-v1.md) | **implemented** | Optional full-3D Ack and input selection rules for replay on the current 20 Hz WebSocket server, without visual prediction. |
 | [`live-movement-step.md`](./live-movement-step.md) | **implemented** | Current 20 Hz authoritative movement step extracted and mirrored with distinct 3D goldens and a `GameState.tick` equivalence test; full CI pending before the next prediction rung. |
 | [`player-body-selection.md`](./player-body-selection.md) | **in flight** | Choose a human or an embodied agent in a synthetic body: capability 13 on Hello, Welcome and snapshots, saved in the profile, honored for agents, free-palette runtime art that keeps its colours on the coalition side. |

@@ -436,19 +436,25 @@ func _process_fp(delta):
 			0
 		)
 
-	position = position.lerp(eye, min(1.0, 18.0 * delta))
+	position = fp_camera_position(position, eye, delta, bool(fp_target.get("prediction_active")))
 	# The server's yaw is not a Godot rotation. Assigning it straight to
 	# rotation.y pointed the camera ninety degrees away from where the server
 	# was moving the fighter, which is why holding forward read as strafing.
 	rotation.y = ServerYaw.camera_rotation_y(yaw)
 	rotation.x = fp_pitch
 
+
+## The prediction seam has its own bounded correction offset. Running the old
+## snapshot lerp on top adds a second camera delay to every local move.
+static func fp_camera_position(current: Vector3, eye: Vector3, delta: float, predicted: bool) -> Vector3:
+	return eye if predicted else current.lerp(eye, minf(1.0, 18.0 * delta))
+
 ## Where the assist measures from: the fighter's authoritative eye.
 func _assist_eye() -> Vector3:
 	if not is_instance_valid(fp_target):
 		return global_position
 	var base: Vector3 = fp_target.global_position
-	if "target_position" in fp_target:
+	if "target_position" in fp_target and not bool(fp_target.get("prediction_active")):
 		base = fp_target.get("target_position")
 	return base + Vector3(0, FP_EYE_HEIGHT, 0)
 

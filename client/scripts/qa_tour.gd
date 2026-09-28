@@ -731,7 +731,7 @@ func _observed_state() -> Dictionary:
 	var server_pitch: float = _local_server_pitch(gm)
 	var server_yaw: float = _local_server_yaw(gm)
 	var camera_forward: Vector3 = -cam.get("transform").basis.z
-	return {
+	var report: Dictionary = {
 		"participant_record": gm.get("net_client").get("record"),
 		"mission_rules": gm.get("net_client").get("mission").get("state", {}).get("rules", {}),
 		"mission_run": gm.get("net_client").get("mission").get("state", {}).get("run", {}),
@@ -748,6 +748,26 @@ func _observed_state() -> Dictionary:
 		"server_yaw": server_yaw if absf(server_yaw) <= TAU else null,
 		"server_pitch": server_pitch if absf(server_pitch) <= ServerYaw.PITCH_LIMIT else null,
 	}
+	if bool(gm.get("is_human_player")):
+		var predictor: LocalPrediction = gm.get("local_prediction")
+		var pawn: Node = gm.get("players").get(gm.get("local_fp_pawn_id"))
+		report["local_prediction"] = {
+			"active": predictor.active(),
+			"fallback": predictor.fallback_reason,
+			"fallback_count": predictor.fallback_count,
+			"fallback_reasons": predictor.fallback_reasons.duplicate(),
+			"last_fallback": predictor.last_fallback_reason,
+			"corrections": predictor.correction_count,
+			"max_correction_m": snappedf(predictor.correction_max, 0.0001),
+			"p50_correction_m": snappedf(predictor.correction_percentile(0.50), 0.0001),
+			"p95_correction_m": snappedf(predictor.correction_percentile(0.95), 0.0001),
+			"p99_correction_m": snappedf(predictor.correction_percentile(0.99), 0.0001),
+			"pending_ticks": predictor.steps.size(),
+			"camera_eye_gap_m": snappedf(cam.global_position.distance_to(
+				pawn.global_position + Vector3(0.0, MoveStep.EYE_HEIGHT - LocalPrediction.FLOOR_OFFSET, 0.0)), 0.0001)
+				if is_instance_valid(pawn) else null,
+		}
+	return report
 
 func _equipment() -> Dictionary:
 	return _game_manager().get("net_client").get("equipment")

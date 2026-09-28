@@ -31,6 +31,9 @@ var _has_authoritative_state: bool = false
 var enemy_view: EnemyView = null
 
 var target_position: Vector3 = Vector3.ZERO
+var prediction_active: bool = false
+var predicted_position: Vector3 = Vector3.ZERO
+var predicted_speed: float = 0.0
 var presentation_speed: float = 0.0
 var target_yaw: float = 0.0
 var target_pitch: float = 0.0
@@ -170,11 +173,11 @@ static func smoothing(speed: float, delta: float) -> float:
 func _process(delta):
 	var t: float = smoothing(INTERP_SPEED, delta)
 	var previous: Vector3 = position
-	position = position.lerp(target_position, t)
+	position = predicted_position if prediction_active else position.lerp(target_position, t)
 	var travel: float = Vector2(position.x - previous.x, position.z - previous.z).length()
 	# Motion feedback follows the rendered fighter, including observed agents.
 	# Discontinuities and dead bodies are not walking strides.
-	presentation_speed = travel / delta if delta > 0.0 and travel < 2.0 and hp > 0 else 0.0
+	presentation_speed = predicted_speed if prediction_active and hp > 0 else (travel / delta if delta > 0.0 and travel < 2.0 and hp > 0 else 0.0)
 	# The pawn's muzzle and weapon sprites hang off its local +X, so that is
 	# what has to point where the server is sending it.
 	rotation.y = lerp_angle(rotation.y, ServerYaw.pawn_rotation_y(target_yaw), t)
@@ -304,6 +307,26 @@ func update_state(state: Dictionary, snapshot_tick: int = 0):
 	
 	if body and hit_flash_timer <= 0:
 		_update_body_color(false)
+
+## Only the local human body uses this path. Snapshot metadata still flows
+## through update_state; the positional target is kept for safe fallback.
+func set_predicted_position(value: Vector3, speed: float) -> void:
+	prediction_active = true
+	predicted_position = value
+	predicted_speed = clampf(speed, 0.0, MoveStep.TOP_SPEED)
+
+
+func clear_predicted_position() -> void:
+	if prediction_active:
+		prediction_active = false
+		predicted_speed = 0.0
+		position = target_position
+
+
+func snap_authoritative_position() -> void:
+	prediction_active = false
+	predicted_speed = 0.0
+	position = target_position
 
 ## Swap the legacy callsign strip for the accepted body. The field and feet
 ## registration match the Union bake, so the figure is exactly as tall as the
