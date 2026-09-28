@@ -1,6 +1,6 @@
 # Plan-only COS container host
 
-**Status:** implemented in draft PR, 2026-09-28. This is a Terraform and
+**Status:** implemented in draft PR #287, 2026-09-28. This is a Terraform and
 operator-documentation change. It has not been applied to GCP. External spend
 is $0.
 
