@@ -6,7 +6,8 @@
 
 use fragr_server::movement::{Solid, EYE_HEIGHT};
 use fragr_server::protocol::{
-    Action, ClientMessage, GameEvent, LookAt, Role, ServerMessage, Snapshot, WeaponType,
+    Action, ClientMessage, FlagEventKind, FlagState, FlagStatus, GameEvent, LookAt, Role,
+    ServerMessage, Snapshot, Team, WeaponType,
 };
 use fragr_server::run::{run_server, ServerOptions, TICK};
 use fragr_server::sim::{MapKind, MatchConfig};
@@ -25,6 +26,10 @@ pub mod soak;
 pub const TICKS_PER_SECOND: f64 = 20.0;
 /// A death this soon after a spawn counts as a spawn death.
 pub const SPAWN_DEATH_WINDOW_TICKS: u64 = 40;
+/// Bound additional CTF diagnostic storage independently of match duration.
+const MAX_CARRY_EPISODES: usize = 256;
+/// The authoritative flag touch radius is 2.5 world units.
+const CTF_HOME_TOUCH_RADIUS: f32 = 2.5;
 /// Reflex agents fire inside this range and walk toward targets beyond three units.
 const FIRE_RANGE: f32 = 20.0;
 const CLOSE_RANGE: f32 = 3.0;
@@ -388,6 +393,79 @@ struct FragPlace {
     killer: Option<(f32, f32)>,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum CarryEnd {
+    Dropped,
+    Captured,
+    RoundEnded,
+    ObservationEnded,
+    Incomplete,
+}
+
+/// One bounded summary of a server-owned flag carry. Distances are horizontal
+/// world units to the carrier's own stand, sampled only while the snapshot
+/// still identifies this fighter as the carrier.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct CarryEpisode {
+    pub flag: Team,
+    pub carrier: Option<String>,
+    pub started_tick: u64,
+    pub ended_tick: u64,
+    pub end: CarryEnd,
+    pub first_distance_to_home: Option<f32>,
+    pub closest_distance_to_home: Option<f32>,
+    pub last_distance_to_home: Option<f32>,
+    pub observed_carrier_ticks: u64,
+    pub own_flag_away_ticks: u64,
+    pub home_blocked_ticks: u64,
+    /// A same-tick frag named this carrier when the flag was dropped.
+    pub combat_drop: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+struct ActiveCarry {
+    episode: CarryEpisode,
+    carrier_id: Option<Uuid>,
+    last_sample_tick: Option<u64>,
+}
+
+impl ActiveCarry {
+    fn sample(
+        &mut self,
+        tick: u64,
+        carrier: Uuid,
+        name: &str,
+        position: [f32; 3],
+        own: &FlagState,
+    ) {
+        if self.last_sample_tick == Some(tick) || self.carrier_id.is_some_and(|id| id != carrier) {
+            return;
+        }
+        self.carrier_id = Some(carrier);
+        self.episode.carrier.get_or_insert_with(|| name.to_string());
+        self.last_sample_tick = Some(tick);
+        let distance = (position[0] - own.stand[0]).hypot(position[2] - own.stand[2]);
+        let episode = &mut self.episode;
+        episode.first_distance_to_home.get_or_insert(distance);
+        episode.closest_distance_to_home = Some(
+            episode
+                .closest_distance_to_home
+                .map_or(distance, |closest| closest.min(distance)),
+        );
+        episode.last_distance_to_home = Some(distance);
+        episode.observed_carrier_ticks += 1;
+        if own.status != FlagStatus::Home {
+            episode.own_flag_away_ticks += 1;
+            if distance <= CTF_HOME_TOUCH_RADIUS
+                && (position[1] - own.stand[1]).abs() <= CTF_HOME_TOUCH_RADIUS
+            {
+                episode.home_blocked_ticks += 1;
+            }
+        }
+    }
+}
+
 /// Everything the observer keeps. Snapshots are folded in as they arrive so a
 /// long run does not hold every frame in memory.
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
@@ -399,6 +477,17 @@ pub struct Observation {
     /// Sum of carrier ticks across both flags, measured from received snapshots.
     #[serde(default)]
     pub carrier_ticks: u64,
+    #[serde(default)]
+    carry_episodes: Vec<CarryEpisode>,
+    #[serde(default)]
+    active_carries: [Option<ActiveCarry>; 2],
+    /// The immediately preceding authoritative snapshot, not a frame log.
+    #[serde(default)]
+    latest_flags: Option<[FlagState; 2]>,
+    #[serde(default)]
+    carry_episodes_omitted: u64,
+    #[serde(default)]
+    unmatched_flag_ends: u64,
     pub events: Vec<TimedEvent>,
     pub tracks: BTreeMap<String, AgentTrack>,
     /// Per weapon, what it fired and what landed.
@@ -426,13 +515,131 @@ pub struct Observation {
 }
 
 impl Observation {
+    fn finish_carry(&mut self, flag: Team, end: CarryEnd) {
+        let Some(mut active) = self.active_carries[flag.index()].take() else {
+            return;
+        };
+        active.episode.ended_tick = self.last_tick;
+        active.episode.end = end;
+        if end == CarryEnd::Dropped {
+            active.episode.combat_drop = self
+                .events
+                .iter()
+                .rev()
+                .take_while(|timed| timed.tick == self.last_tick)
+                .any(|timed| {
+                    matches!(&timed.event, GameEvent::Frag { victim, .. }
+                    if active.episode.carrier.as_ref() == Some(victim))
+                });
+        }
+        if self.carry_episodes.len() < MAX_CARRY_EPISODES {
+            self.carry_episodes.push(active.episode);
+        } else {
+            self.carry_episodes_omitted += 1;
+        }
+    }
+
+    fn finish_carry_from_event(
+        &mut self,
+        flag: Team,
+        player: Option<&str>,
+        player_id: Option<Uuid>,
+        end: CarryEnd,
+    ) {
+        let matches = self.active_carries[flag.index()]
+            .as_ref()
+            .is_some_and(|active| {
+                if let (Some(active_id), Some(event_id)) = (active.carrier_id, player_id) {
+                    active_id == event_id
+                } else if let (Some(active_name), Some(event_name)) =
+                    (active.episode.carrier.as_deref(), player)
+                {
+                    active_name == event_name
+                } else {
+                    false
+                }
+            });
+        if matches {
+            self.finish_carry(flag, end);
+        } else {
+            // An end without its matching take cannot establish this carry's
+            // outcome. Preserve the partial episode and count the unmatched
+            // event instead of mislabeling another fighter's route.
+            self.finish_carry(flag, CarryEnd::Incomplete);
+            self.unmatched_flag_ends += 1;
+        }
+    }
+
+    fn start_carry(&mut self, flag: Team, player: Option<String>, player_id: Option<Uuid>) {
+        // A missing end event must not merge two distinct carriers into one.
+        self.finish_carry(flag, CarryEnd::Incomplete);
+        self.active_carries[flag.index()] = Some(ActiveCarry {
+            episode: CarryEpisode {
+                flag,
+                carrier: player.clone(),
+                started_tick: self.last_tick,
+                ended_tick: self.last_tick,
+                end: CarryEnd::ObservationEnded,
+                first_distance_to_home: None,
+                closest_distance_to_home: None,
+                last_distance_to_home: None,
+                observed_carrier_ticks: 0,
+                own_flag_away_ticks: 0,
+                home_blocked_ticks: 0,
+                combat_drop: false,
+            },
+            carrier_id: player_id,
+            last_sample_tick: None,
+        });
+        // Session broadcasts Snapshot before its same-tick events. Reuse that
+        // compact frame so a one-tick carry is still measured.
+        if let (Some(flags), Some(name), Some(id)) =
+            (&self.latest_flags, player.as_ref(), player_id)
+        {
+            if flags[flag.index()].carrier == Some(id) {
+                if let Some((x, z)) = self.tracks.get(name).and_then(|track| track.last_pos) {
+                    self.active_carries[flag.index()]
+                        .as_mut()
+                        .expect("created above")
+                        .sample(
+                            self.last_tick,
+                            id,
+                            name,
+                            [x, flags[flag.index()].position[1], z],
+                            &flags[flag.other().index()],
+                        );
+                }
+            }
+        }
+    }
+
     pub fn ingest_snapshot(&mut self, snapshot: &Snapshot, bytes: usize) {
         self.pending_kills.clear();
         self.snapshots_seen += 1;
         self.snapshot_bytes += bytes as u64;
         if let Some(flags) = snapshot.flags.as_ref() {
             self.carrier_ticks += flags.iter().filter(|flag| flag.carrier.is_some()).count() as u64;
+            for flag in flags {
+                let Some(active) = self.active_carries[flag.team.index()].as_mut() else {
+                    continue;
+                };
+                let Some(carrier_id) = flag.carrier else {
+                    continue;
+                };
+                let Some(carrier) = snapshot.players.iter().find(|p| p.id == carrier_id) else {
+                    continue;
+                };
+                let own = &flags[flag.team.other().index()];
+                active.sample(
+                    snapshot.tick,
+                    carrier_id,
+                    &carrier.name,
+                    [carrier.x, flag.position[1], carrier.z],
+                    own,
+                );
+            }
         }
+        self.latest_flags = snapshot.flags.clone();
         if self.first_tick.is_none() {
             self.first_tick = Some(snapshot.tick);
         }
@@ -582,6 +789,15 @@ impl Observation {
                     .or_insert(self.last_tick);
             }
             GameEvent::Frag { killer, victim, .. } => {
+                for episode in self.carry_episodes.iter_mut().rev() {
+                    if episode.ended_tick != self.last_tick {
+                        break;
+                    }
+                    if episode.end == CarryEnd::Dropped && episode.carrier.as_ref() == Some(victim)
+                    {
+                        episode.combat_drop = true;
+                    }
+                }
                 let ttk_s = self.engagement_start.remove(victim).map(|start| {
                     let ticks = self.last_tick.saturating_sub(start);
                     ticks as f64 / TICKS_PER_SECOND
@@ -630,6 +846,33 @@ impl Observation {
             // A fighter who respawned is not still in their last engagement.
             GameEvent::Respawn { player } => {
                 self.engagement_start.remove(player);
+            }
+            GameEvent::Flag {
+                kind,
+                flag,
+                player,
+                player_id,
+                ..
+            } => match kind {
+                FlagEventKind::Taken => self.start_carry(*flag, player.clone(), *player_id),
+                FlagEventKind::Dropped => self.finish_carry_from_event(
+                    *flag,
+                    player.as_deref(),
+                    *player_id,
+                    CarryEnd::Dropped,
+                ),
+                FlagEventKind::Captured => self.finish_carry_from_event(
+                    *flag,
+                    player.as_deref(),
+                    *player_id,
+                    CarryEnd::Captured,
+                ),
+                FlagEventKind::Returned => {}
+            },
+            GameEvent::RoundEnd { .. } => {
+                for flag in Team::ALL {
+                    self.finish_carry(flag, CarryEnd::RoundEnded);
+                }
             }
             _ => {}
         }
@@ -745,6 +988,15 @@ pub struct Report {
     pub captures: u64,
     #[serde(default)]
     pub carrier_seconds: f64,
+    /// At most 256 carry summaries in total, including any still in progress
+    /// when the observer stopped. No per-tick position log is retained.
+    #[serde(default)]
+    pub carry_episodes: Vec<CarryEpisode>,
+    #[serde(default)]
+    pub carry_episodes_omitted: u64,
+    /// End events without a matching flag and carrier take.
+    #[serde(default)]
+    pub unmatched_flag_ends: u64,
     /// The most recent completed round, if the observer received its end event.
     #[serde(default)]
     pub last_round_reason: Option<String>,
@@ -927,6 +1179,19 @@ pub fn compute_report(obs: &Observation, agents: usize) -> Report {
     }
     longest_gap = longest_gap.max(obs.last_tick.saturating_sub(previous));
 
+    let mut carry_episodes = obs.carry_episodes.clone();
+    let mut carry_episodes_omitted = obs.carry_episodes_omitted;
+    for active in obs.active_carries.iter().flatten() {
+        if carry_episodes.len() == MAX_CARRY_EPISODES {
+            carry_episodes_omitted += 1;
+        } else {
+            let mut episode = active.episode.clone();
+            episode.ended_tick = obs.last_tick;
+            episode.end = CarryEnd::ObservationEnded;
+            carry_episodes.push(episode);
+        }
+    }
+
     Report {
         agents,
         rounds_completed: obs.rounds_completed(),
@@ -938,6 +1203,9 @@ pub fn compute_report(obs: &Observation, agents: usize) -> Report {
         flag_returns,
         captures,
         carrier_seconds: seconds(obs.carrier_ticks),
+        carry_episodes,
+        carry_episodes_omitted,
+        unmatched_flag_ends: obs.unmatched_flag_ends,
         last_round_reason,
         last_round_capture_scores,
         frags_per_minute: per_minute(frags, ticks),
@@ -1401,6 +1669,30 @@ pub fn policy_action(policy: Policy, bot_id: Uuid, snapshot: &Snapshot, arena: &
     }
 }
 
+#[derive(Default)]
+struct ObservationDeadline {
+    drain_tick_events: bool,
+}
+
+impl ObservationDeadline {
+    fn before_message(&self, message: &ServerMessage) -> bool {
+        self.drain_tick_events && matches!(message, ServerMessage::Snapshot(_))
+    }
+
+    fn after_message(&mut self, observation: &Observation, max_ticks: u64, rounds: u32) -> bool {
+        if observation.rounds_completed() >= rounds {
+            return true;
+        }
+        let elapsed = observation
+            .last_tick
+            .saturating_sub(observation.first_tick.unwrap_or(0));
+        if elapsed >= max_ticks {
+            self.drain_tick_events = true;
+        }
+        false
+    }
+}
+
 /// The arena's solids, learned from the MapInfo the server sends on join.
 /// Without them an agent has no way to tell a clear shot from a wall, which
 /// is why the first combat reports showed accuracy near fifteen percent
@@ -1702,13 +1994,33 @@ pub async fn run(config: Config) -> Result<(Report, Observation), Error> {
     .map_err(transport)?;
 
     let mut observation = Observation::default();
+    let mut observation_deadline = ObservationDeadline::default();
     let deadline = Duration::from_secs_f64(config.max_ticks as f64 / TICKS_PER_SECOND + 15.0);
     let watch = async {
-        while let Some(msg) = stream.next().await {
+        loop {
+            // The server sends Snapshot before that tick's Event messages.
+            // At the max tick, drain those events through the next snapshot,
+            // with a bounded wait if the connection stalls.
+            let next = if observation_deadline.drain_tick_events {
+                tokio::time::timeout(Duration::from_secs(1), stream.next())
+                    .await
+                    .ok()
+                    .flatten()
+            } else {
+                stream.next().await
+            };
+            let Some(msg) = next else { break };
             let Ok(Message::Text(text)) = msg else {
                 continue;
             };
-            match serde_json::from_str::<ServerMessage>(&text) {
+            let parsed = serde_json::from_str::<ServerMessage>(&text);
+            if parsed
+                .as_ref()
+                .is_ok_and(|message| observation_deadline.before_message(message))
+            {
+                break;
+            }
+            match parsed {
                 Ok(ServerMessage::Snapshot(snapshot)) => {
                     observation.ingest_snapshot(&snapshot, text.len());
                 }
@@ -1716,13 +2028,7 @@ pub async fn run(config: Config) -> Result<(Report, Observation), Error> {
                 Ok(ServerMessage::MapInfo { rules, .. }) => observation.rules = rules,
                 _ => {}
             }
-            if observation.rounds_completed() >= config.rounds {
-                break;
-            }
-            let elapsed = observation
-                .last_tick
-                .saturating_sub(observation.first_tick.unwrap_or(0));
-            if elapsed >= config.max_ticks {
+            if observation_deadline.after_message(&observation, config.max_ticks, config.rounds) {
                 break;
             }
         }
@@ -2394,6 +2700,205 @@ mod tests {
             Some("Capture limit reached")
         );
         assert_eq!(latest.last_round_capture_scores, Some(next_score));
+    }
+
+    fn carry_snapshot(tick: u64, x: f32, own_status: FlagStatus) -> Snapshot {
+        use fragr_server::protocol::FlagState;
+        let carrier_id = Uuid::from_u128(1);
+        let carrier = player("Carrier", carrier_id, x, 0.0, false);
+        let mut snapshot = snapshot(tick, vec![carrier]);
+        snapshot.flags = Some([
+            FlagState {
+                team: Team::Union,
+                stand: [-70.0, 0.0, 0.0],
+                position: [x, 0.0, 0.0],
+                status: FlagStatus::Carried,
+                carrier: Some(carrier_id),
+                return_ticks: None,
+            },
+            FlagState {
+                team: Team::Coalition,
+                stand: [70.0, 0.0, 0.0],
+                position: [70.0, 0.0, 0.0],
+                status: own_status,
+                carrier: (own_status == FlagStatus::Carried).then_some(Uuid::from_u128(2)),
+                return_ticks: None,
+            },
+        ]);
+        snapshot
+    }
+
+    fn carry_event(kind: FlagEventKind) -> GameEvent {
+        GameEvent::Flag {
+            kind,
+            flag: Team::Union,
+            player: Some("Carrier".to_string()),
+            player_id: Some(Uuid::from_u128(1)),
+            capture_scores: fragr_server::protocol::TeamScores::default(),
+        }
+    }
+
+    #[test]
+    fn ctf_carry_tracks_progress_and_home_flag_denial_without_snapshots_in_report() {
+        let mut obs = Observation::default();
+        obs.ingest_event(carry_event(FlagEventKind::Taken));
+        for (tick, x, status) in [
+            (1, -70.0, FlagStatus::Carried),
+            (2, 0.0, FlagStatus::Carried),
+            (3, 69.0, FlagStatus::Carried),
+            (4, 70.0, FlagStatus::Home),
+        ] {
+            obs.ingest_snapshot(&carry_snapshot(tick, x, status), 100);
+        }
+        // Duplicate delivery at the same tick must not inflate blocked time.
+        obs.ingest_snapshot(&carry_snapshot(4, 70.0, FlagStatus::Home), 100);
+        obs.ingest_event(carry_event(FlagEventKind::Captured));
+        let report = compute_report(&obs, 12);
+        assert_eq!(report.carry_episodes.len(), 1);
+        let episode = &report.carry_episodes[0];
+        assert_eq!(episode.end, CarryEnd::Captured);
+        assert_eq!(episode.observed_carrier_ticks, 4);
+        assert_eq!(episode.first_distance_to_home, Some(140.0));
+        assert_eq!(episode.closest_distance_to_home, Some(0.0));
+        assert_eq!(episode.last_distance_to_home, Some(0.0));
+        assert_eq!(episode.own_flag_away_ticks, 3);
+        assert_eq!(episode.home_blocked_ticks, 1);
+        assert!(!episode.combat_drop);
+        assert_eq!(report.carry_episodes_omitted, 0);
+    }
+
+    #[test]
+    fn ctf_carry_samples_snapshot_before_same_tick_take_event() {
+        let mut obs = Observation::default();
+        // Session sends the tick's Snapshot before its Flag events.
+        obs.ingest_snapshot(&carry_snapshot(7, -68.0, FlagStatus::Home), 100);
+        obs.ingest_event(carry_event(FlagEventKind::Taken));
+        obs.ingest_event(carry_event(FlagEventKind::Dropped));
+        let episode = &compute_report(&obs, 12).carry_episodes[0];
+        assert_eq!(episode.started_tick, 7);
+        assert_eq!(episode.ended_tick, 7);
+        assert_eq!(episode.observed_carrier_ticks, 1);
+        assert_eq!(episode.first_distance_to_home, Some(138.0));
+        assert_eq!(episode.end, CarryEnd::Dropped);
+    }
+
+    #[test]
+    fn observer_max_tick_drains_same_tick_flag_events_before_next_snapshot() {
+        let mut obs = Observation::default();
+        let mut deadline = ObservationDeadline::default();
+        let messages = [
+            ServerMessage::Snapshot(snapshot(1, Vec::new())),
+            ServerMessage::Snapshot(carry_snapshot(3, -68.0, FlagStatus::Home)),
+            ServerMessage::Event(carry_event(FlagEventKind::Taken)),
+            ServerMessage::Event(carry_event(FlagEventKind::Dropped)),
+            ServerMessage::Snapshot(snapshot(4, Vec::new())),
+        ];
+        for message in messages {
+            if deadline.before_message(&message) {
+                break;
+            }
+            match message {
+                ServerMessage::Snapshot(frame) => obs.ingest_snapshot(&frame, 100),
+                ServerMessage::Event(event) => obs.ingest_event(event),
+                _ => unreachable!(),
+            }
+            if deadline.after_message(&obs, 2, 1) {
+                break;
+            }
+        }
+        let report = compute_report(&obs, 12);
+        assert_eq!(obs.last_tick, 3);
+        assert_eq!(report.flag_takes, 1);
+        assert_eq!(report.flag_drops, 1);
+        assert_eq!(report.carry_episodes[0].end, CarryEnd::Dropped);
+        assert_eq!(report.carry_episodes[0].observed_carrier_ticks, 1);
+    }
+
+    #[test]
+    fn ctf_carry_distinguishes_death_drop_leave_drop_and_unfinished_round() {
+        let mut obs = Observation::default();
+        obs.ingest_event(carry_event(FlagEventKind::Taken));
+        obs.ingest_snapshot(&carry_snapshot(1, -20.0, FlagStatus::Home), 100);
+        obs.ingest_event(carry_event(FlagEventKind::Dropped));
+        // The authoritative combat path emits the drop before the frag.
+        obs.ingest_event(frag("Defender", "Carrier"));
+        obs.ingest_snapshot(&snapshot(2, Vec::new()), 100);
+        obs.ingest_event(carry_event(FlagEventKind::Taken));
+        obs.ingest_event(carry_event(FlagEventKind::Dropped));
+        obs.ingest_snapshot(&snapshot(3, Vec::new()), 100);
+        obs.ingest_event(carry_event(FlagEventKind::Taken));
+        obs.ingest_event(GameEvent::RoundEnd {
+            winner: None,
+            reason: "Time limit reached".to_string(),
+            final_scores: Vec::new(),
+            winner_score: None,
+            mvp: None,
+            mvp_frags: None,
+            host_line: String::new(),
+            winning_team: None,
+            team_scores: None,
+            capture_scores: None,
+        });
+        let report = compute_report(&obs, 12);
+        assert_eq!(report.carry_episodes.len(), 3);
+        assert_eq!(report.carry_episodes[0].end, CarryEnd::Dropped);
+        assert!(report.carry_episodes[0].combat_drop);
+        assert_eq!(report.carry_episodes[1].end, CarryEnd::Dropped);
+        assert!(!report.carry_episodes[1].combat_drop);
+        assert_eq!(report.carry_episodes[2].end, CarryEnd::RoundEnded);
+        assert_eq!(report.carry_episodes[2].first_distance_to_home, None);
+        assert_eq!(report.carry_episodes[2].closest_distance_to_home, None);
+        assert_eq!(report.carry_episodes[2].last_distance_to_home, None);
+        assert_eq!(report.unmatched_flag_ends, 0);
+    }
+
+    #[test]
+    fn ctf_carry_rejects_an_end_for_a_different_carrier() {
+        let mut obs = Observation::default();
+        obs.ingest_event(carry_event(FlagEventKind::Taken));
+        let wrong_end = GameEvent::Flag {
+            kind: FlagEventKind::Captured,
+            flag: Team::Union,
+            player: Some("Other".to_string()),
+            player_id: Some(Uuid::from_u128(2)),
+            capture_scores: fragr_server::protocol::TeamScores::default(),
+        };
+        obs.ingest_event(wrong_end.clone());
+        // A missing take for the next carrier cannot be fabricated from its
+        // score event; count it without assigning an episode to the first.
+        obs.ingest_event(wrong_end);
+        let report = compute_report(&obs, 12);
+        assert_eq!(report.carry_episodes.len(), 1);
+        assert_eq!(report.carry_episodes[0].carrier.as_deref(), Some("Carrier"));
+        assert_eq!(report.carry_episodes[0].end, CarryEnd::Incomplete);
+        assert_eq!(report.unmatched_flag_ends, 2);
+        assert!(report.carry_episodes[0].first_distance_to_home.is_none());
+    }
+
+    #[test]
+    fn ctf_carry_report_is_bounded_and_old_json_defaults() {
+        let mut obs = Observation::default();
+        for _ in 0..=MAX_CARRY_EPISODES {
+            obs.ingest_event(carry_event(FlagEventKind::Taken));
+            obs.ingest_event(carry_event(FlagEventKind::Dropped));
+        }
+        let report = compute_report(&obs, 12);
+        assert_eq!(report.carry_episodes.len(), MAX_CARRY_EPISODES);
+        assert_eq!(report.carry_episodes_omitted, 1);
+        obs.ingest_event(carry_event(FlagEventKind::Taken));
+        let active_report = compute_report(&obs, 12);
+        assert_eq!(active_report.carry_episodes.len(), MAX_CARRY_EPISODES);
+        assert_eq!(active_report.carry_episodes_omitted, 2);
+        let mut old = serde_json::to_value(report).unwrap();
+        old.as_object_mut().unwrap().remove("carry_episodes");
+        old.as_object_mut()
+            .unwrap()
+            .remove("carry_episodes_omitted");
+        old.as_object_mut().unwrap().remove("unmatched_flag_ends");
+        let old: Report = serde_json::from_value(old).unwrap();
+        assert!(old.carry_episodes.is_empty());
+        assert_eq!(old.carry_episodes_omitted, 0);
+        assert_eq!(old.unmatched_flag_ends, 0);
     }
 
     #[tokio::test]

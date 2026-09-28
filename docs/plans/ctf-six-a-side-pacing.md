@@ -1,6 +1,6 @@
 # Sector 9 six-a-side pacing sample
 
-**Status:** implemented in [draft PR #284](https://github.com/blisspixel/fragr/pull/284), 2026-09-28; full CI pending. Stacked after the [first CTF route](capture-the-flag.md). This is a measured agent check before changing objective policy or calling the mode balanced.
+**Status:** implemented in [draft PR #284](https://github.com/blisspixel/fragr/pull/284), 2026-09-28; exact-head CI passed. Stacked after the [first CTF route](capture-the-flag.md). This is a measured agent check before changing objective policy or calling the mode balanced.
 
 ## Goal and why
 

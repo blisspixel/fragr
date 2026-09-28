@@ -1,6 +1,6 @@
 # Sector 9 external-agent objective roles
 
-**Status:** implemented in draft PR, 2026-09-28; CI pending. Stacked after the [six-a-side pacing sample](ctf-six-a-side-pacing.md).
+**Status:** implemented in [draft PR #285](https://github.com/blisspixel/fragr/pull/285), 2026-09-28; exact-head CI passed. Stacked after the [six-a-side pacing sample](ctf-six-a-side-pacing.md).
 
 ## Goal and evidence
 
@@ -41,4 +41,4 @@ Across five rounds, the before policy had 31 takes, 26 drops, 19 returns, three 
 
 **Decision:** keep the single-defender policy as a clearer external-agent objective assignment and a modest observed improvement in scored rounds and take-to-capture conversion. Do not call the default six-a-side pace solved: five live socket runs are too small and not exact replays, all rounds used the full clock, and one paired seed regressed. The unchanged Planner combat detour can still interrupt any objective goal, including dropped-flag recovery. A separate measured tactic or round-rule experiment, then human route and balance sessions, is needed before accepting the mode's pacing.
 
-Verification on this branch: `cargo test -p fragr-playtest --lib ctf_ --locked` passed four focused tests; `cargo test -p fragr-playtest --lib --locked` passed all 64 tests; `cargo clippy -p fragr-playtest --all-targets --locked -- -D warnings`, `cargo build -p fragr-playtest --locked`, `cargo fmt --all -- --check`, and `git diff --check` passed. The five after socket runs exited 0 and wrote the reports above. Workspace-wide CI remains pending integration. No paid service or cloud resource was used.
+Verification on this branch: `cargo test -p fragr-playtest --lib ctf_ --locked` passed four focused tests; `cargo test -p fragr-playtest --lib --locked` passed all 64 tests; `cargo clippy -p fragr-playtest --all-targets --locked -- -D warnings`, `cargo build -p fragr-playtest --locked`, `cargo fmt --all -- --check`, and `git diff --check` passed. The five after socket runs exited 0 and wrote the reports above. Exact-head CI passed on draft #285. No paid service or cloud resource was used.
