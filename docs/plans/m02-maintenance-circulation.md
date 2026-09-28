@@ -159,8 +159,8 @@ the pack by shooting into it.
   and nine healthy samples with four agents, four bots and two spectators.
   This local arena soak is not a cloud-host or M02 capacity claim. PR CI remains.
 - No external API or cloud charge was made. This slice spent $0.
-- The first base-main CI run and release packaging run passed on the earlier
-  draft head. The final trigger and tour correction require a fresh CI run.
+- The final base-main CI run `36360807672` passed all six jobs on head
+  `2f13df5`. Release packaging run `36360807677` passed on that head too.
 
 ## Open review
 
