@@ -15,6 +15,12 @@ const LIST_REVEAL: float = 6.0
 const END_SECONDS: float = 12.0
 const SIDE_RELEASE_SECONDS: float = 2.4
 const SIDE_CAPTIVE_FEET: Array[Vector3] = [Vector3(22.6, 0.0, 9.0), Vector3(24.5, 0.0, 9.0)]
+const AUDIO_DIR: String = "res://assets/audio/m02/"
+const WARD_MACHINE_FEET: Vector3 = Vector3(-2.0, 1.5, -15.0)
+const FLOOR_MACHINE_FEET: Vector3 = Vector3(0.0, 1.5, 3.0)
+const SIDE_RELEASE_FEET: Vector3 = Vector3(23.55, 1.4, 9.0)
+const MACHINE_FADE_SECONDS: float = 0.18
+const MACHINE_VOLUME_DB: float = -18.0
 
 var _built: bool = false
 var _seen_state: bool = false
@@ -53,6 +59,13 @@ var _card: PanelContainer
 var _heading: Label
 var _copy: Label
 var _hint: Label
+var _ward_machine_sound: AudioStreamPlayer3D
+var _ward_stop_sound: AudioStreamPlayer3D
+var _release_sound: AudioStreamPlayer3D
+var _second_release_sound: AudioStreamPlayer3D
+var _side_release_sound: AudioStreamPlayer3D
+var _floor_machine_sound: AudioStreamPlayer3D
+var _machine_fade_elapsed: float = -1.0
 var pause_menu: PauseMenu
 
 func configure_map(info: Dictionary) -> void:
@@ -68,6 +81,7 @@ func configure_map(info: Dictionary) -> void:
 	_set_side_present(false)
 
 func clear_map() -> void:
+	_stop_audio()
 	if is_instance_valid(_root):
 		remove_child(_root)
 		_root.queue_free()
@@ -96,6 +110,12 @@ func clear_map() -> void:
 	_release_elapsed = -1.0
 	_caption_left = 0.0
 	_caption_key = ""
+	_ward_machine_sound = null
+	_ward_stop_sound = null
+	_release_sound = null
+	_second_release_sound = null
+	_side_release_sound = null
+	_floor_machine_sound = null
 
 ## Only validated MissionState data reaches this method from GameManager.
 func apply_state(state: Dictionary) -> void:
@@ -123,6 +143,7 @@ func apply_state(state: Dictionary) -> void:
 		_release_elapsed = -1.0
 		_set_visual(END_SECONDS if released else 0.0, released)
 		_set_side_visual(_side_release_elapsed)
+		_sync_audio_snapshot()
 		if has_evacuation:
 			_apply_evacuation(progress["evacuation"], true)
 		set_companion_phase("unresolved" if state_first_release else ("following" if first_snapshot_moving else "releasing"))
@@ -134,15 +155,19 @@ func apply_state(state: Dictionary) -> void:
 	if secured and not _secured:
 		_secured = true
 		_set_machine_stopped(true)
+		_stop_ward_machine()
+		_play_audio(_ward_stop_sound)
 		_show_caption("M02_WARD_STOPPED", 4.0)
 	if side_secured and not _side_secured:
 		_side_secured = true
 		_side_release_elapsed = 0.0
 		_set_side_visual(0.0)
+		_play_audio(_side_release_sound)
 	if released and not _released:
 		_released = true
 		_release_elapsed = 0.0
 		_set_visual(0.0, true)
+		_play_audio(_release_sound)
 		_show_caption("M02_LATCH_RELEASE", SECOND_OPEN_END)
 	if has_evacuation:
 		_apply_evacuation(progress["evacuation"], false)
@@ -164,10 +189,19 @@ func set_companion_phase(phase: String) -> void:
 func _process(delta: float) -> void:
 	if not _built:
 		return
+	if _machine_fade_elapsed >= 0.0:
+		_machine_fade_elapsed = minf(_machine_fade_elapsed + delta, MACHINE_FADE_SECONDS)
+		if _machine_fade_elapsed >= MACHINE_FADE_SECONDS:
+			_ward_machine_sound.stop()
+			_machine_fade_elapsed = -1.0
+		else:
+			_ward_machine_sound.volume_db = lerpf(MACHINE_VOLUME_DB, -60.0, _machine_fade_elapsed / MACHINE_FADE_SECONDS)
 	if _release_elapsed >= 0.0 and _release_elapsed < END_SECONDS:
 		var before: float = _release_elapsed
 		_release_elapsed = minf(_release_elapsed + delta, END_SECONDS)
 		_set_visual(_release_elapsed, true)
+		if before < CROSS_END and _release_elapsed >= CROSS_END:
+			_play_audio(_second_release_sound)
 		if before < SECOND_OPEN_END and _release_elapsed >= SECOND_OPEN_END:
 			_show_caption("M02_LATCH_SPEECH", LIST_REVEAL - SECOND_OPEN_END)
 		if before < LIST_REVEAL and _release_elapsed >= LIST_REVEAL:
@@ -203,6 +237,10 @@ func _input(event: InputEvent) -> void:
 func skip_presentation() -> void:
 	if not _built or not _released:
 		return
+	_release_sound.stop()
+	_second_release_sound.stop()
+	_side_release_sound.stop()
+	_ward_stop_sound.stop()
 	_release_elapsed = END_SECONDS
 	_set_visual(END_SECONDS, true)
 	_hide_caption()
@@ -352,10 +390,59 @@ func _build() -> void:
 	world_copy.position.z = 0.055
 	list.add_child(world_copy)
 	_transfer_list = list
+	_build_audio()
 	ArenaSky.mark_world(_root)
 	_latch.set_render_layers(ArenaSky.ACTOR_LAYERS)
 	_build_caption()
 	_built = true
+
+func _build_audio() -> void:
+	_ward_machine_sound = _audio_player("WardMachine", "ward_machine_loop.wav", WARD_MACHINE_FEET, MACHINE_VOLUME_DB, 7.0, 22.0, true)
+	_ward_stop_sound = _audio_player("WardMachineStop", "ward_machine_stop.wav", WARD_MACHINE_FEET, -8.0, 6.0, 20.0)
+	_release_sound = _audio_player("RestraintRelease", "restraint_release.wav", FIRST_FEET + Vector3(0.0, 1.3, 0.0), -6.0, 5.0, 18.0)
+	_second_release_sound = _audio_player("SecondRestraintRelease", "restraint_release.wav", SECOND_FEET + Vector3(0.0, 1.3, 0.0), -6.0, 5.0, 18.0)
+	_side_release_sound = _audio_player("SideRestraintRelease", "restraint_release.wav", SIDE_RELEASE_FEET, -6.0, 5.0, 18.0)
+	_floor_machine_sound = _audio_player("FloorMachinery", "floor_machinery_loop.wav", FLOOR_MACHINE_FEET, -22.0, 7.0, 22.0, true)
+
+func _audio_player(label: String, file_name: String, at: Vector3, volume: float, unit: float, distance: float, loop: bool = false) -> AudioStreamPlayer3D:
+	var player: AudioStreamPlayer3D = AudioStreamPlayer3D.new()
+	player.name = label
+	player.position = at
+	player.bus = &"Effects"
+	player.unit_size = unit
+	player.max_distance = distance
+	player.volume_db = volume
+	var path: String = AUDIO_DIR + file_name
+	if ResourceLoader.exists(path):
+		var stream: AudioStream = load(path) as AudioStream
+		if loop and stream is AudioStreamWAV:
+			var wav: AudioStreamWAV = stream.duplicate() as AudioStreamWAV
+			wav.loop_mode = AudioStreamWAV.LOOP_FORWARD
+			stream = wav
+		player.stream = stream
+	_root.add_child(player)
+	return player
+
+func _play_audio(player: AudioStreamPlayer3D) -> void:
+	if player.stream != null:
+		player.play()
+
+func _stop_audio() -> void:
+	for player: AudioStreamPlayer3D in [_ward_machine_sound, _ward_stop_sound, _release_sound, _second_release_sound, _side_release_sound, _floor_machine_sound]:
+		if is_instance_valid(player):
+			player.stop()
+	_machine_fade_elapsed = -1.0
+
+func _sync_audio_snapshot() -> void:
+	_stop_audio()
+	_ward_machine_sound.volume_db = MACHINE_VOLUME_DB
+	if not _secured:
+		_play_audio(_ward_machine_sound)
+	_play_audio(_floor_machine_sound)
+
+func _stop_ward_machine() -> void:
+	if _ward_machine_sound.playing:
+		_machine_fade_elapsed = 0.0
 
 func _figure(label: String, shell: StandardMaterial3D, joints: StandardMaterial3D, patch: StandardMaterial3D) -> Node3D:
 	var figure: Node3D = Node3D.new()

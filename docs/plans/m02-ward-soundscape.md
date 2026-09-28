@@ -14,7 +14,7 @@ The [accepted M02 brief](../campaign/m02-persons-unknown.md) puts the machine st
 |---|---:|---|---|
 | Ward machine loop | 2.0 s loop | Active ward, near the restraint frame | Establish place, below combat and speech |
 | Ward machine stop | 1.0 s one-shot | First server-confirmed `ward_secured` transition | Audible silence after a mechanical decay |
-| Restraint release | 1.4 s one-shot | First `companion_released` transition; reuse for the optional side ward | Physical latch, no success fanfare |
+| Restraint release | 1.4 s one-shot | First `companion_released` transition at Latch's restraint, then at the second bay when its door starts opening; reuse for the optional side ward | Physical latch, no success fanfare |
 | Floor machinery loop | 2.6 s loop | Processing machinery island | Low, local texture that leaves the Crawler cue clear |
 
 Do not add a new server event. The client already receives validated M02 mission facts. `client/scripts/m02_ward.gd` owns the ward and side-bay transitions and clears its scene on map change. Reuse the existing `Effects` bus and spatial player pattern in `client/scripts/game_manager.gd`. Initial snapshots, reconnects, retries, skipped scenes and map changes must initialize or stop sounds without replaying one-shot cues. Muted settings and missing assets remain usable. The Rust server retains all outcome authority.
@@ -45,4 +45,8 @@ Distribution needs a separate check before committing generated WAVs. ElevenLabs
 
 ## Handoff
 
-The four-effect [request spec](../../tools/audiogen/specs/m02-ward-sfx.json) is prepared with local ignored output. `cargo run -p fragr-audiogen --locked -- --dry-run batch --spec tools/audiogen/specs/m02-ward-sfx.json --max-credits 320` validated all four requests and estimated 80 + 40 + 56 + 104 = 280 credits. It made no API request, wrote no WAV, and incurred no external charge. Next: build the original offline fallback and test state-driven playback. Record the selected distribution path before a public asset commit.
+The four-effect [request spec](../../tools/audiogen/specs/m02-ward-sfx.json) is prepared with local ignored output. `cargo run -p fragr-audiogen --locked -- --dry-run batch --spec tools/audiogen/specs/m02-ward-sfx.json --max-credits 320` validated all four requests and estimated 80 + 40 + 56 + 104 = 280 credits. It made no API request, wrote no WAV, and incurred no external charge.
+
+The public draft uses four original offline-baked effects from [the deterministic Godot recipe](../../client/assets/audio/m02/bake_soundscape.gd), with file hashes, levels and durations in [the asset manifest](../../client/assets/audio/m02/soundscape-manifest.json). The existing M02 ward presenter plays them from validated mission-state transitions on the spatial `Effects` bus. Latch's first restraint, the later second-bay opening and the optional side ward each have a local mechanism cue. A first snapshot or retry starts only the current machinery beds; late joins, duplicates, skips and map clear do not replay old one-shots. The focused `test_m02_ward.gd` state test passed under Godot 4.7.2-stable. Godot import and loop metadata passed; the two loop seam jumps measure 0.001648 and 0.001160 full scale. Total WAV data is 336,176 bytes. No external asset charge was incurred.
+
+Listening and the in-game mix are still open. This environment could inspect waveforms and measure levels but could not audition audio. The next pass must hear both difficulties in a first-person route, check the ward stop and restraint at their positions, and make sure the floor bed leaves the Crawler warning and speech clear before this plan is accepted.

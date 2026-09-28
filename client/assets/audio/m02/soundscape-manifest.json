@@ -1,0 +1,53 @@
+{
+  "cues": [
+    {
+      "bytes": 96044,
+      "file": "ward_machine_loop.wav",
+      "loop": true,
+      "peak_linear": 0.0891,
+      "purpose": "correction ward machine bed",
+      "rms_linear": 0.0409,
+      "samples": 48000,
+      "seconds": 2.0,
+      "sha256": "60e916de4d7c6c297ee73e94081cf41b8d98390860cab318f82fc6e78f818aae"
+    },
+    {
+      "bytes": 48044,
+      "file": "ward_machine_stop.wav",
+      "loop": false,
+      "peak_linear": 0.2401,
+      "purpose": "server-confirmed ward machine stop",
+      "rms_linear": 0.0321,
+      "samples": 24000,
+      "seconds": 1.0,
+      "sha256": "fac2f97628266d99c89dc03f82c5e61c6757e05e653c707790e0e6b1d3523768"
+    },
+    {
+      "bytes": 67244,
+      "file": "restraint_release.wav",
+      "loop": false,
+      "peak_linear": 0.2345,
+      "purpose": "mechanical restraint release",
+      "rms_linear": 0.0336,
+      "samples": 33600,
+      "seconds": 1.4,
+      "sha256": "8e0813e3380ca62460b55886254bb3b6d9fe3979a557d989eb1bd3ad56e969fc"
+    },
+    {
+      "bytes": 124844,
+      "file": "floor_machinery_loop.wav",
+      "loop": true,
+      "peak_linear": 0.0778,
+      "purpose": "processing-floor machinery bed",
+      "rms_linear": 0.0264,
+      "samples": 62400,
+      "seconds": 2.6,
+      "sha256": "b8e0d1e852aca60a6b75af2d5f1ee9e993ff811ba19d640bda8034d4378f571b"
+    }
+  ],
+  "engine": "Godot 4.7.2-stable",
+  "format": "pcm_s16le_mono_24000",
+  "generator": "bake_soundscape.gd",
+  "kind": "original_offline_procedural",
+  "seed": 240927
+}
