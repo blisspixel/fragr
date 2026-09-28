@@ -1,6 +1,6 @@
 # Replayable movement Ack v1
 
-Status: implemented in draft PR, 2026-09-28. Branch: `feat/movement-ack-v1`, based on `feat/live-movement-step` at `95641bd`.
+Status: implemented in draft PR #286, 2026-09-28. Branch: `feat/movement-ack-v1`, stacked after the [live movement step](live-movement-step.md). The implementation began from that branch at `95641bd`.
 
 ## Goal
 
