@@ -231,7 +231,15 @@ Run adapter as an undeployable placeholder. Terraform 1.16.4 in Docker passed
 builds the image, checks legal notices and runtime identity, and probes a live
 Compose server. `actionlint` passed on that workflow locally. The first hosted
 CI run for PR #265 passed all seven jobs: test, container, Godot, soak, audit,
-Windows portability and macOS portability. The branch remains unmerged.
+Windows portability and macOS portability. That draft was later merged through
+[#297](https://github.com/blisspixel/fragr/pull/297) and shipped in v0.58.0.
+
+A later [CI container run](https://github.com/blisspixel/fragr/actions/runs/36453594667)
+reported an empty host-port reply after the container's internal health was
+already healthy. The host-facing `/status` check now retries for a bounded
+window and prints Compose state and server logs if it never receives the
+expected arena and healthy fields. It still requires a real response through
+the published port; container-internal health alone is not acceptance.
 
 Local workspace checks passed: formatting, Clippy with denied warnings,
 workspace tests, the deterministic 16-bot benchmark, `cargo deny` license,
