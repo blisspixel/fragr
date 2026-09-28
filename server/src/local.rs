@@ -1,8 +1,8 @@
 //! Desktop child readiness and ownership. Gameplay still uses the normal wire.
-use crate::maps::{AuthoredSource, RuntimeMap};
+use crate::maps::AuthoredSource;
 use crate::mission::run_file::store::{RunProbe, RunStore};
 use crate::mission::run_file::SavedStep;
-use crate::protocol::{CampaignDifficulty, MissionId, RULES_GAMEPLAY_VERSION};
+use crate::protocol::{BodyKind, CampaignDifficulty, MissionId, RULES_GAMEPLAY_VERSION};
 use crate::run::{run_local_server, run_server, LocalRunConfig, ServerOptions};
 use serde::{Deserialize, Serialize};
 use std::io::{self, BufRead, BufReader, Read, Write};
@@ -23,39 +23,55 @@ pub enum LocalRunMode {
 pub enum RunPreview {
     Missing,
     Ready {
+        mission: String,
         difficulty: CampaignDifficulty,
         attempt: u32,
         continues: u8,
         pending_continue: bool,
+        body: Option<BodyKind>,
     },
     Failed,
     Abandoned,
-    AwaitingMission,
+    AwaitingMission {
+        mission: String,
+        difficulty: CampaignDifficulty,
+        continues: u8,
+        body: Option<BodyKind>,
+    },
     Incompatible,
     Corrupt,
 }
 
-pub fn preview_run(mission: MissionId) -> io::Result<RunPreview> {
-    let map = RuntimeMap::Authored(AuthoredSource::Mission(mission).load()?);
-    let hash = map
-        .content_sha256()
-        .ok_or_else(|| io::Error::other("campaign content identity is unavailable"))?;
-    match RunStore::inspect(&run_directory()?, hash)? {
+pub fn preview_run(_mission: MissionId) -> io::Result<RunPreview> {
+    let m01_hash = AuthoredSource::bundled_content_sha256(MissionId::RecallNotice);
+    let m02_hash = AuthoredSource::bundled_content_sha256(MissionId::PersonsUnknown);
+    match RunStore::inspect_with_hashes(&run_directory()?, m01_hash, m02_hash)? {
         RunProbe::Missing => Ok(RunPreview::Missing),
         RunProbe::Incompatible => Ok(RunPreview::Incompatible),
         RunProbe::Corrupt => Ok(RunPreview::Corrupt),
         RunProbe::Compatible(document) => match &document.step {
             SavedStep::MissionEntry { .. } | SavedStep::PendingContinue { .. } => {
                 Ok(RunPreview::Ready {
+                    mission: match document.stage_mission() {
+                        MissionId::RecallNotice => "recall_notice",
+                        MissionId::PersonsUnknown => "persons_unknown",
+                    }
+                    .into(),
                     difficulty: document.rules.difficulty,
                     attempt: document.attempt(),
                     continues: document.remaining_continues,
                     pending_continue: matches!(&document.step, SavedStep::PendingContinue { .. }),
+                    body: document.body,
                 })
             }
             SavedStep::Failed { .. } => Ok(RunPreview::Failed),
             SavedStep::Abandoned { .. } => Ok(RunPreview::Abandoned),
-            SavedStep::AwaitingMission { .. } => Ok(RunPreview::AwaitingMission),
+            SavedStep::AwaitingMission { next_mission, .. } => Ok(RunPreview::AwaitingMission {
+                mission: next_mission.clone(),
+                difficulty: document.rules.difficulty,
+                continues: document.remaining_continues,
+                body: document.body,
+            }),
         },
     }
 }
@@ -106,6 +122,7 @@ impl Ready {
         mission: MissionId,
         difficulty: CampaignDifficulty,
         address: SocketAddr,
+        durable: bool,
     ) -> io::Result<Self> {
         if address.ip() != Ipv4Addr::LOCALHOST || address.port() == 0 {
             return Err(io::Error::other(
@@ -117,9 +134,15 @@ impl Ready {
             mission,
             difficulty,
             url: format!("ws://{address}"),
-            // Both missions use discovery equipment, so both need the Shiv
-            // contract, which includes ammunition, records and M02 state.
-            gameplay_version: RULES_GAMEPLAY_VERSION,
+            // M01 uses discovery equipment and rule sets. M02 also needs the
+            // seated Clerk, low Crawler and ward release contracts.
+            gameplay_version: if mission == MissionId::PersonsUnknown {
+                crate::protocol::INSPECTION_GLASS_GAMEPLAY_VERSION
+            } else if durable || mission == MissionId::RecallNotice {
+                crate::protocol::RUN_CARRY_GAMEPLAY_VERSION
+            } else {
+                RULES_GAMEPLAY_VERSION
+            },
         })
     }
 
@@ -175,11 +198,10 @@ pub async fn serve_with_mode(
     input: impl Read + Send + 'static,
     output: impl Write,
 ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    // M02 is a development entry: no durable run, continues or save carry yet.
-    // Its party rules keep entry respawn and the shared wipe reset.
-    let campaign_run = mission == MissionId::RecallNotice;
-    if run_mode.is_some() && !campaign_run {
-        return Err(io::Error::other("this mission has no durable local run yet").into());
+    // M02 without a run mode remains the independent development party.
+    let campaign_run = mission == MissionId::RecallNotice || run_mode.is_some();
+    if mission == MissionId::PersonsUnknown && run_mode == Some(LocalRunMode::New) {
+        return Err(io::Error::other("a new durable run must start at M01").into());
     }
     let (owner_tx, mut owner_rx) = oneshot::channel();
     std::thread::Builder::new()
@@ -240,7 +262,7 @@ pub async fn serve_with_mode(
     } else {
         difficulty
     };
-    Ready::new(mission, selected_difficulty, address)?.write(output)?;
+    Ready::new(mission, selected_difficulty, address, run_mode.is_some())?.write(output)?;
     tokio::select! {
         result = &mut server => result,
         owner = &mut owner_rx => {
@@ -255,6 +277,18 @@ pub async fn serve_with_mode(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn bundled_byte_hash_matches_the_strict_runtime_loader() {
+        for mission in [MissionId::RecallNotice, MissionId::PersonsUnknown] {
+            let map =
+                crate::maps::RuntimeMap::Authored(AuthoredSource::Mission(mission).load().unwrap());
+            assert_eq!(
+                map.content_sha256(),
+                Some(AuthoredSource::bundled_content_sha256(mission))
+            );
+        }
+    }
 
     #[test]
     fn lease_ends_only_with_eof_or_bounded_shutdown_and_rejects_bad_frames() {
@@ -281,7 +315,8 @@ mod tests {
             assert!(Ready::new(
                 MissionId::RecallNotice,
                 CampaignDifficulty::Standard,
-                address.parse().unwrap()
+                address.parse().unwrap(),
+                true,
             )
             .is_err());
         }
@@ -289,6 +324,7 @@ mod tests {
             MissionId::RecallNotice,
             CampaignDifficulty::Standard,
             "127.0.0.1:6767".parse().unwrap(),
+            true,
         )
         .unwrap();
         let mut bytes = Vec::new();
@@ -296,13 +332,20 @@ mod tests {
         assert_eq!(bytes.iter().filter(|c| **c == b'\n').count(), 1);
         assert_eq!(serde_json::from_slice::<Ready>(&bytes).unwrap(), ready);
         assert_eq!(ready.url, "ws://127.0.0.1:6767");
-        assert_eq!(ready.gameplay_version, RULES_GAMEPLAY_VERSION);
+        assert_eq!(
+            ready.gameplay_version,
+            crate::protocol::RUN_CARRY_GAMEPLAY_VERSION
+        );
         let m02 = Ready::new(
             MissionId::PersonsUnknown,
             CampaignDifficulty::Standard,
             "127.0.0.1:6767".parse().unwrap(),
+            false,
         )
         .unwrap();
-        assert_eq!(m02.gameplay_version, RULES_GAMEPLAY_VERSION);
+        assert_eq!(
+            m02.gameplay_version,
+            crate::protocol::INSPECTION_GLASS_GAMEPLAY_VERSION
+        );
     }
 }

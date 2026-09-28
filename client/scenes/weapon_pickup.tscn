@@ -1,4 +1,4 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://scripts/weapon_pickup.gd" id="1_script"]
 
@@ -8,6 +8,12 @@ size = Vector3(0.9, 0.55, 0.9)
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_crate"]
 albedo_color = Color(0.55, 0.52, 0.48, 1)
 
+[sub_resource type="BoxMesh" id="BoxMesh_ammo_band"]
+size = Vector3(0.44, 0.035, 0.34)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ammo_band"]
+albedo_color = Color(0.28, 0.27, 0.24, 1)
+
 [node name="WeaponPickup" type="Node3D"]
 script = ExtResource("1_script")
 
@@ -15,6 +21,12 @@ script = ExtResource("1_script")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.28, 0)
 mesh = SubResource("BoxMesh_crate")
 surface_material_override/0 = SubResource("StandardMaterial3D_crate")
+
+[node name="AmmoBand" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.21, 0)
+visible = false
+mesh = SubResource("BoxMesh_ammo_band")
+surface_material_override/0 = SubResource("StandardMaterial3D_ammo_band")
 
 [node name="Icon" type="Sprite3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.05, 0)

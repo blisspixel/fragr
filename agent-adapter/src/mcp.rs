@@ -1075,6 +1075,7 @@ pub fn ingest_server_text(state: &mut ToolState, text: &str) -> Result<(), &'sta
         Ok(protocol::ServerMessage::MapInfo {
             map_id,
             m02_objectives,
+            m02_side_ward,
             map_name,
             half_extent,
             solids,
@@ -1088,6 +1089,7 @@ pub fn ingest_server_text(state: &mut ToolState, text: &str) -> Result<(), &'sta
             state.mission.replace_map_with_id(
                 map_id,
                 m02_objectives,
+                m02_side_ward,
                 mission.as_ref(),
                 half_extent,
                 &solids,
@@ -1104,6 +1106,9 @@ pub fn ingest_server_text(state: &mut ToolState, text: &str) -> Result<(), &'sta
             });
             if let Some(count) = m02_objectives {
                 map["m02_objectives"] = serde_json::json!(count);
+            }
+            if m02_side_ward {
+                map["m02_side_ward"] = serde_json::json!(true);
             }
             if let Some(rules) = rules {
                 map["rules"] = serde_json::json!(rules);
@@ -1203,7 +1208,18 @@ mod mcp_tests {
             build_observe_result(&state)["mission"]["m02"]["current"]["id"],
             "ward_reached"
         );
+        assert_eq!(
+            build_observe_result(&state)["mission"]["m02"]["ward_secured"],
+            false
+        );
         assert_eq!(build_observe_result(&state)["mission"]["phase"], "briefing");
+        let mut missing_ward_fact: Value =
+            serde_json::to_value(sim.mission_message().unwrap()).unwrap();
+        missing_ward_fact["state"]["m02"]
+            .as_object_mut()
+            .unwrap()
+            .remove("ward_secured");
+        assert!(ingest_server_text(&mut state, &missing_ward_fact.to_string()).is_err());
         let request = || McpRequest {
             jsonrpc: "2.0".into(),
             id: Some(serde_json::json!(91)),
@@ -1777,6 +1793,22 @@ mod mcp_tests {
         );
         assert!(out.response.result.is_some());
         assert!(state.recent_events.is_empty());
+    }
+
+    #[test]
+    fn crawler_warning_keeps_its_position_for_agent_observation() {
+        use protocol::GameEvent;
+        let mut state = ToolState::default();
+        let wire = protocol::ServerMessage::Event(GameEvent::CrawlerScrabble {
+            position: [-11.5, 0.0, -28.5],
+        });
+        ingest_server_text(&mut state, &serde_json::to_string(&wire).unwrap()).unwrap();
+        let observed = build_observe_result(&state);
+        assert_eq!(observed["recent_events"][0]["event"], "crawler_scrabble");
+        assert_eq!(
+            observed["recent_events"][0]["position"],
+            serde_json::json!([-11.5, 0.0, -28.5])
+        );
     }
 
     #[test]

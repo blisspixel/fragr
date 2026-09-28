@@ -11,15 +11,24 @@ opens the custody lift; the party can then depart together. This ends the curren
 prototype, not a finished M01 or the rescue. Checkpoints are not built.
 
 `m02-persons-unknown.json` is the Persons Unknown ward graybox, map 1002. The
-party enters on an observation gallery whose slot window looks down into the
-correction ward and its guards. A service stair (Tack and bullets) leads to the
-antechamber (Scatter, shells, medkit), then straight into the ward. The route
-is open: no switches and no gates. Three encounters (ward, processing floor,
-loading dock) hold nine Clerks and Sweepers. Two objectives advance by arrival:
-"Find Latch" at the restraint frame in the ward, then "Get out" on the loading
-dock. Latch and the Jammer are not built, and the map has no Crawlers,
-maintenance loop, captives or secrets. It is a development graybox, not the
-finished mission.
+party enters on an observation gallery whose slot window faces the correction
+ward. Latch's repaired body and second-bay release mark the destination. One
+noncombat Notary scans from a sealed high bay beyond ballistic inspection glass;
+its first fight belongs to level 4 Notice to Vacate. The upper gallery offers
+the Shotgun and Shells before two initially seated Clerks. The service stair
+turns toward a lone Crawler and a later raised pack landing, then the
+antechamber and ward. A maintenance cut offers a stair bypass. Nine encounters
+hold 24 Union enemies across the guard room, descent, ward, processing floor,
+optional side ward and loading dock. The three required objectives are ward
+arrival, local Use at Latch's frame after the ward guards fall, and dock arrival.
+Ward victory stops the correction machine; release separately opens the ward
+exit shutter. Latch then joins as one server-owned companion. Optional side-ward
+captives can reach the dock without gating departure. A 30 HP pickup at
+[-1, 0, -5.5] supports the processing-floor entry route; the eastern 40 HP
+pickup remains an optional detour. Scripted route clears and rendered first-person
+captures establish authored reachability, not fresh-player recognition or
+balance. The Jammer first appears in level 3. This remains a development
+mission, not a finished level.
 
 ```bash
 cargo run -p fragr-server --locked -- --local-mission persons_unknown
@@ -28,7 +37,8 @@ cargo run -p fragr-server --locked -- --local-mission persons_unknown
 That development child prints its loopback readiness line and serves the
 normal wire; it keeps no run file. `--map-file server/maps/m02-persons-unknown.json
 --bots 0` also works for a dedicated development host. Clients need gameplay
-capability 9.
+capability 22, including spectators. Capability 21 clients are refused before
+receiving the strict `inspection_glass` surface.
 
 For M01, from the repository root:
 
@@ -41,8 +51,10 @@ continues and a lifetime owner seat. The local Single Player menu uses this mode
 Without it, the command above retains four-seat development party behavior.
 Solo death waits for a continue, the fourth death ends the run, and leaving cannot
 refill or reclaim it. Spectators can watch either mode. Retry restores original
-entry equipment, geometry, guards, supplies and objectives together. Disk saves,
-reconnect and cross-mission carry remain unbuilt.
+entry equipment, geometry, guards, supplies and objectives together. The owned
+local child writes the disk run and, in this draft, carries it into M02. An
+ordinary dedicated `--campaign-run` process has no disk save. A dropped pawn can
+resume briefly through the existing socket token.
 
 Connect the ordinary client, agent or spectator to the same server. This mode
 has no arcade timer, boss or map rotation. `--map-file` rejects arcade
@@ -149,7 +161,8 @@ tuning values. Complete-mission verification continues in
 [the active plan](../../docs/plans/m01-completion.md); final character acceptance
 remains tracked in [the encounter plan](../../docs/plans/m01-intake-encounter.md).
 
-Surface kits: `concrete`, `enamel`, `service_steel`, `records_tile`, `lift_panel`.
+Surface kits: `concrete`, `enamel`, `service_steel`, `records_tile`, `lift_panel`,
+and `inspection_glass` on M02 solids under capability 22.
 They select existing offline materials, never paths, URLs or shader code. The
 wire presentation array preserves exactly the solid order. It affects appearance,
 not geometry version or collision. Older presenters may use their default kit.
@@ -175,8 +188,10 @@ Errors report the reason or parser location. Placement diagnostics identify the
 already-validated public record ID, never dump document contents or source paths.
 
 The source path is never sent to clients. `MapInfo` supplies the validated geometry
-and materials. Reloading a map means restarting the host; live content reload and
-campaign saves have no implemented contract yet.
+and materials. Reloading a map means restarting the host; live content reload has
+no implemented contract yet. M01 has a versioned local mission-entry run file;
+the stacked carry draft promotes a validated M01 exit into an M02 entry under
+the same local run ID. The separate M02 development party has no disk save.
 
 ## Verification
 

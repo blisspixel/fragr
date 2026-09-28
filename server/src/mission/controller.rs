@@ -12,7 +12,7 @@ use uuid::Uuid;
 pub struct MissionClient {
     geometry: Option<MissionGeometry>,
     points: [[f32; 3]; 2],
-    m02_map: Option<(u32, u8, f32, Vec<Solid>, MapPresentation)>,
+    m02_map: Option<M02Map>,
     m02_point: Option<[f32; 3]>,
     pub state: Option<MissionState>,
     last_tick: Option<u64>,
@@ -22,16 +22,39 @@ pub struct MissionClient {
     observed: bool,
 }
 
+#[derive(Debug, Clone)]
+struct M02Map {
+    id: u32,
+    total: u8,
+    side_ward: bool,
+    half: f32,
+    solids: Vec<Solid>,
+    presentation: MapPresentation,
+}
+
 impl MissionClient {
+    // One validated handoff receives the corresponding MapInfo wire fields.
+    #[allow(clippy::too_many_arguments)]
     pub fn replace_map_with_id(
         &mut self,
         map_id: u32,
         m02_objectives: Option<u8>,
+        m02_side_ward: bool,
         mission: Option<&MissionGeometry>,
         half_extent: f32,
         solids: &[Solid],
         presentation: Option<&MapPresentation>,
     ) -> Result<(), &'static str> {
+        if m02_side_ward && m02_objectives.is_none() {
+            return Err("side ward marker requires M02 objectives");
+        }
+        if self
+            .m02_map
+            .as_ref()
+            .is_some_and(|old| old.id == map_id && old.side_ward != m02_side_ward)
+        {
+            return Err("M02 side ward marker changed for the same map");
+        }
         if let Some(count) = m02_objectives {
             if !(1..=8).contains(&count) || mission.is_some() || presentation.is_none() {
                 return Err("invalid M02 map marker or presentation");
@@ -41,18 +64,17 @@ impl MissionClient {
         self.replace_map(mission, half_extent, solids, presentation)?;
         if let Some(count) = m02_objectives {
             let presentation = presentation.ok_or("M02 requires map presentation")?;
-            self.m02_map = Some((
-                map_id,
-                count,
-                half_extent,
-                solids.to_vec(),
-                presentation.clone(),
-            ));
-            if old
-                .m02_map
-                .as_ref()
-                .is_some_and(|(old_id, old_count, ..)| *old_id == map_id && *old_count == count)
-            {
+            self.m02_map = Some(M02Map {
+                id: map_id,
+                total: count,
+                side_ward: m02_side_ward,
+                half: half_extent,
+                solids: solids.to_vec(),
+                presentation: presentation.clone(),
+            });
+            if old.m02_map.as_ref().is_some_and(|old| {
+                old.id == map_id && old.total == count && old.side_ward == m02_side_ward
+            }) {
                 self.state = old.state;
                 self.last_tick = old.last_tick;
                 self.rules = old.rules;
@@ -108,8 +130,10 @@ impl MissionClient {
             None
         };
         let map_matches = if state.id == MissionId::PersonsUnknown {
-            self.m02_map.as_ref().is_some_and(|(_, count, ..)| {
-                state.m02.as_ref().is_some_and(|m02| m02.total == *count)
+            self.m02_map.as_ref().is_some_and(|map| {
+                state.m02.as_ref().is_some_and(|m02| {
+                    m02.total == map.total && m02.evacuation.is_some() == map.side_ward
+                })
             })
         } else {
             self.geometry.as_ref().is_some_and(|map| map.id == state.id)
@@ -140,12 +164,27 @@ impl MissionClient {
     }
 
     fn validate_m02_target(&self, state: &MissionState) -> Result<Option<[f32; 3]>, &'static str> {
-        let (_, _, half, solids, presentation) =
-            self.m02_map.as_ref().ok_or("M02 map is missing")?;
+        let map = self.m02_map.as_ref().ok_or("M02 map is missing")?;
+        let half = map.half;
+        let solids = &map.solids;
+        let presentation = &map.presentation;
+        if state
+            .m02
+            .as_ref()
+            .and_then(|m02| m02.evacuation.as_ref())
+            .is_some_and(|evacuation| {
+                evacuation
+                    .captives
+                    .iter()
+                    .any(|feet| feet[0].abs() > half || feet[2].abs() > half)
+            })
+        {
+            return Err("M02 captive feet lie outside the map");
+        }
         let current = state.m02.as_ref().and_then(|m02| m02.current.as_ref());
         match current.map(|objective| &objective.action) {
             Some(MissionObjectiveAction::Arrival { region, feet }) => {
-                if !region.valid(*half) || !region.contains(*feet) {
+                if !region.valid(half) || !region.contains(*feet) {
                     return Err("M02 arrival lies outside the map");
                 }
                 Ok(None)
@@ -159,8 +198,8 @@ impl MissionClient {
                     panel.kind,
                     crate::protocol::MapDecorationKind::Terminal
                         | crate::protocol::MapDecorationKind::LiftControl
-                ) || target.approach[0].abs() > *half
-                    || target.approach[2].abs() > *half
+                ) || target.approach[0].abs() > half
+                    || target.approach[2].abs() > half
                 {
                     return Err("M02 target has an invalid panel or approach");
                 }

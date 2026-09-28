@@ -173,5 +173,8 @@ jobs:
       - name: Headless client checks
         run: bash tools/godot_check.sh
 
+      - name: Saved M01 departure and M02 retry
+        run: bash tools/test_m02_carry.sh
+
       - name: Verify client check failure detection
         run: bash tools/test_godot_check.sh

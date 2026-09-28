@@ -743,13 +743,13 @@ pub async fn run_bot(
                     }
                     // Geometry belongs to the local controller, never a paid
                     // per-frame decision. Reject invalid worlds before driving.
-                    Ok(ServerMessage::MapInfo { map_id, m02_objectives, map_name, solids, half_extent, geometry_version, presentation, mission, .. }) => {
+                    Ok(ServerMessage::MapInfo { map_id, m02_objectives, m02_side_ward, map_name, solids, half_extent, geometry_version, presentation, mission, .. }) => {
                         if let Err(error) = fragr_server::protocol::validate_map_presentation(presentation.as_ref(), &solids) {
                             session_error = Some(Error::Transport(format!("invalid map presentation: {error}")));
                             break;
                         }
                         tracing::debug!("map: {map_name}");
-                        if let Err(error) = mission_client.replace_map_with_id(map_id, m02_objectives, mission.as_ref(), half_extent, &solids, presentation.as_ref()) {
+                        if let Err(error) = mission_client.replace_map_with_id(map_id, m02_objectives, m02_side_ward, mission.as_ref(), half_extent, &solids, presentation.as_ref()) {
                             session_error = Some(Error::Transport(format!("invalid mission map: {error}")));
                             break;
                         }
@@ -1045,6 +1045,7 @@ mod tests {
                 id: Uuid::from_u128(2),
                 status: CampaignRunStatus::Playing,
                 continues: 1,
+                level_start_continues: 3,
             }),
             rules: CampaignRules::new(CampaignDifficulty::Standard),
             attempt: 3,
@@ -1087,6 +1088,7 @@ mod tests {
             id: Uuid::from_u128(2),
             status: CampaignRunStatus::Complete,
             continues: 3,
+            level_start_continues: 3,
         };
         let state = MissionState {
             id: MissionId::RecallNotice,
@@ -1216,6 +1218,7 @@ mod tests {
                 id: Uuid::from_u128(2),
                 status: CampaignRunStatus::Playing,
                 continues: 3,
+                level_start_continues: 3,
             }),
             rules: CampaignRules::new(CampaignDifficulty::Severe),
             attempt: 1,
@@ -1295,6 +1298,7 @@ mod tests {
             phase: EnemyPhase::Idle,
             phase_started: 0,
             phase_ends: 0,
+            seated: false,
         });
         let mut hidden = player("Hidden", Uuid::from_u128(2), 10.0, 0.0, 60, "tack");
         hidden.campaign = union;

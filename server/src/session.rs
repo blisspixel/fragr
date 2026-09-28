@@ -207,7 +207,7 @@ impl GameSession {
             .state
             .players
             .iter()
-            .filter(|p| !p.is_campaign_enemy())
+            .filter(|p| p.is_participant())
             .count();
         self.state.remove_player(player_id);
         self.state.push_event(protocol::GameEvent::PlayerLeft {
@@ -252,7 +252,7 @@ impl GameSession {
             .players
             .iter()
             .find(|player| player.id == player_id)?;
-        if player.role != role || player.is_campaign_enemy() {
+        if player.role != role || !player.is_participant() {
             return None;
         }
         let body = player.body;
@@ -305,7 +305,7 @@ impl GameSession {
                         .state
                         .players
                         .iter()
-                        .filter(|p| !p.is_campaign_enemy())
+                        .filter(|p| p.is_participant())
                         .count();
                     self.state.push_event(protocol::GameEvent::PlayerJoined {
                         player: name.clone(),
@@ -430,10 +430,17 @@ impl GameSession {
         driven.extend(controllers.iter().map(|bot| bot.player_id));
         let enemies = self.state.enemy_intents();
         driven.extend(enemies.iter().map(|(id, _)| *id));
+        let companion = self.state.m02_companion_intent();
+        if let Some((id, _)) = &companion {
+            driven.insert(*id);
+        }
         self.navigators.retain(|id, _| driven.contains(id));
         // At most four searches per tick, with rotating slots so larger rosters
         // cannot starve their later controllers. Cached paths keep advancing.
-        let batches = (controllers.len() + enemies.len()).div_ceil(4).max(1);
+        let batches = (controllers.len() + enemies.len() + usize::from(companion.is_some()))
+            .div_ceil(4)
+            .max(1);
+        let companion_search_index = controllers.len() + enemies.len();
         let discovery = (map.equipment_policy() == protocol::EquipmentPolicy::Discovery)
             .then(|| self.state.snapshot());
         for (index, bot) in controllers.iter().enumerate() {
@@ -505,6 +512,25 @@ impl GameSession {
                 intent.action
             };
             self.state.set_action(id, action);
+        }
+
+        if let Some((id, intent)) = companion {
+            let action = if let (Some(goal), Some(player)) =
+                (intent.goal, self.state.players.iter().find(|p| p.id == id))
+            {
+                self.navigators.entry(id).or_default().steer(
+                    world,
+                    [player.x, player.y - crate::sim::PLAYER_FLOOR_Y, player.z],
+                    goal,
+                    intent.action,
+                    self.state.tick,
+                    companion_search_index / 4 == self.state.tick as usize % batches,
+                )
+            } else {
+                self.navigators.remove(&id);
+                intent.action
+            };
+            self.state.set_companion_action(id, action);
         }
 
         self.state.tick(dt);

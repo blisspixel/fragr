@@ -28,7 +28,15 @@ static func make(map_id: int, kind: int) -> ShaderMaterial:
 	material.set_shader_parameter("panel_size", 3.0 if kind == 0 else (4.0 if kind == 1 else 2.0))
 	return material
 
-static func authored(surface: String) -> ShaderMaterial:
+static func authored(surface: String) -> Material:
+	if surface == "inspection_glass":
+		var glass: StandardMaterial3D = StandardMaterial3D.new()
+		glass.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+		glass.albedo_color = Color(0.31, 0.52, 0.53, 0.38)
+		glass.roughness = 0.85
+		glass.metallic_specular = 0.0
+		glass.depth_draw_mode = BaseMaterial3D.DEPTH_DRAW_OPAQUE_ONLY
+		return glass
 	var material: ShaderMaterial = ShaderMaterial.new()
 	material.shader = SURFACE
 	var index: int = MapGeometry.SURFACES.find(surface)

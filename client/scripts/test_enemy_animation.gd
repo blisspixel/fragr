@@ -1,6 +1,7 @@
 extends SceneTree
 
 var _failures: int = 0
+const STANDING_KINDS: Array[String] = ["clerk", "sweeper", "heavy_sweeper", "turret"]
 
 func _initialize() -> void:
 	set_meta("fragr_automated", true)
@@ -16,6 +17,13 @@ func run() -> void:
 	_check(EnemyAnimation.direction(TAU * 3.0, Vector3.RIGHT) == 0, "wrapped yaw")
 	_check(EnemyAnimation.direction(0.0, Vector3.UP) == 0, "overhead fallback")
 	var actor: Dictionary = {"side":"union", "kind":"clerk", "phase":"windup", "phase_started":100, "phase_ends":112}
+	var seated: Dictionary = {"side":"union", "kind":"clerk", "phase":"idle",
+		"phase_started":100, "phase_ends":100, "seated":true}
+	_check(EnemyAnimation.frame(seated, "Tack", 100, 0, 0, INF, 0) ==
+		EnemyAnimation.pose_frame("seated", false, 0.0), "opening Clerk sits before activation")
+	seated.erase("seated")
+	_check(EnemyAnimation.frame(seated, "Tack", 100, 0, 0, INF, 0) ==
+		EnemyAnimation.pose_frame("idle", false, 0.0), "woken Clerk stands")
 	var initial: int = EnemyAnimation.frame(actor, "Tack", 100, 0, 0, INF, 0)
 	var raised: int = EnemyAnimation.frame(actor, "Tack", 111, 0.05, 0, INF, 0)
 	_check(initial != raised, "windup actually raises the weapon")
@@ -42,6 +50,22 @@ func run() -> void:
 	_check(collapsed != EnemyAnimation.frame(actor, "Tack", 112, 0, 0, INF, 0), "death collapses")
 	_check(collapsed == EnemyAnimation.frame(actor, "Tack", 149, 0, 0, 0, 0), "late corpse stays down")
 	_check(collapsed != EnemyAnimation.frame(actor, "Fists", 149, 0, 0, 0, 0), "unarmed corpse has no gun")
+	var crawler: Dictionary = {"side":"union", "kind":"crawler", "phase":"windup",
+		"phase_started":100, "phase_ends":112}
+	_check(CrawlerAnimation.poses() == 20 and CrawlerAnimation.rows() == 9,
+		"Crawler has a compact independent atlas")
+	_check(CrawlerAnimation.frame(crawler, 100, 0.0, 0.0, 0) !=
+		CrawlerAnimation.frame(crawler, 111, 0.0, 0.0, 0), "Crawler crouch changes its outline")
+	crawler["phase"] = "leaping"
+	crawler["phase_started"] = 112
+	crawler["phase_ends"] = 128
+	_check(CrawlerAnimation.frame(crawler, 112, 0.0, 0.0, 0) !=
+		CrawlerAnimation.frame(crawler, 125, 0.0, 0.0, 0), "authoritative leap advances the pose")
+	crawler["phase"] = "dead"
+	crawler["phase_started"] = 128
+	crawler["phase_ends"] = 148
+	_check(CrawlerAnimation.frame(crawler, 145, 0.0, 0.0, 0) ==
+		CrawlerAnimation.frame(crawler, 147, 0.0, 0.0, 0), "Crawler corpse settles")
 
 	var body: Sprite3D = Sprite3D.new()
 	var view: EnemyView = EnemyView.new()
@@ -107,7 +131,7 @@ func _check_atlases() -> void:
 			"atlas matches its bake receipt")
 	_check(int(manifest["poses"]) == EnemyAnimation.poses() and int(manifest["directions"]) == EnemyAnimation.DIRECTIONS,
 		"baked layout matches playback")
-	for kind: String in ActorState.KINDS:
+	for kind: String in STANDING_KINDS:
 		var texture: Texture2D = load("res://assets/characters/union/%s.png" % kind)
 		var atlas: Image = texture.get_image()
 		_check(atlas.get_width() == EnemyAnimation.COLUMNS * EnemyAnimation.TILE \
@@ -135,6 +159,62 @@ func _check_atlases() -> void:
 		_check(step_a.get_data() != step_b.get_data(), kind + " has distinct gait poses")
 	_check_readable_pair()
 	_check_heavy_and_turret_outlines()
+	_check_crawler_atlas()
+
+func _check_crawler_atlas() -> void:
+	var manifest: Variant = JSON.parse_string(FileAccess.get_file_as_string(
+		"res://assets/characters/union/crawler-manifest.json"))
+	if not manifest is Dictionary or not manifest.get("sources") is Dictionary:
+		_check(false, "Crawler bake receipt exists")
+		return
+	for source: String in manifest["sources"]:
+		_check(FileAccess.get_sha256(source) == manifest["sources"][source],
+			"Crawler source matches bake receipt " + source)
+	var path: String = "res://assets/characters/union/crawler.png"
+	_check(FileAccess.get_sha256(path) == manifest["sha256"], "Crawler atlas matches bake receipt")
+	_check(int(manifest["poses"]) == CrawlerAnimation.poses() and
+		int(manifest["directions"]) == CrawlerAnimation.DIRECTIONS and
+		int(manifest["rows"]) == CrawlerAnimation.rows(), "Crawler baked layout matches playback")
+	var atlas: Image = _atlas("crawler")
+	_check(atlas.get_width() == CrawlerAnimation.COLUMNS * CrawlerAnimation.TILE and
+		atlas.get_height() == CrawlerAnimation.rows() * CrawlerAnimation.TILE and
+		atlas.get_width() <= 4096 and atlas.get_height() <= 4096, "Crawler atlas portable bounds")
+	_check(not atlas.has_mipmaps(), "Crawler pixels have no mipmaps")
+	var highest_pixel: int = CrawlerAnimation.TILE
+	for direction: int in range(CrawlerAnimation.DIRECTIONS):
+		for pose: int in range(CrawlerAnimation.poses()):
+			var frame: int = direction * CrawlerAnimation.poses() + pose
+			var tile: Image = _crawler_tile(atlas, frame)
+			var used: Rect2i = tile.get_used_rect()
+			highest_pixel = mini(highest_pixel, used.position.y)
+			_check(used.size != Vector2i.ZERO and used.position.x > 0 and used.position.y > 0 and
+				used.end.x < CrawlerAnimation.TILE and used.end.y < CrawlerAnimation.TILE,
+				"Crawler pose is visible and unclipped %d" % frame)
+	_check(highest_pixel >= 85, "Crawler art never reaches above its 0.8-metre hit volume")
+	var idle: Dictionary = _occupancy(_crawler_tile(atlas, CrawlerAnimation.pose_frame("idle", 0.0)))
+	var crouch: Dictionary = _occupancy(_crawler_tile(atlas, CrawlerAnimation.pose_frame("crouch", 1.0)))
+	var leap: Dictionary = _occupancy(_crawler_tile(atlas, CrawlerAnimation.pose_frame("leap", 0.5)))
+	var sweeper_idle: Dictionary = _occupancy(_tile(_atlas("sweeper"),
+		EnemyAnimation.pose_frame("idle", false, 0.0)))
+	_check(int(idle["top"]) >= int(sweeper_idle["top"]) + 35,
+		"Crawler silhouette stays physically lower than a Sweeper")
+	_check(_difference(idle, crouch) >= 0.15, "crouch changes silhouette")
+	_check(_difference(crouch, leap) >= 0.18, "leap changes silhouette beyond optic glow")
+	var body: Sprite3D = Sprite3D.new()
+	var view: EnemyView = EnemyView.new()
+	view.update({"campaign":{"side":"union", "kind":"crawler", "phase":"leaping",
+		"phase_started":100, "phase_ends":116}, "weapon":"Fists"}, 108, body)
+	view.render(body, 0.0, Vector3.RIGHT)
+	_check(body.texture.resource_path.ends_with("union/crawler.png") and
+		body.hframes == CrawlerAnimation.COLUMNS and body.vframes == CrawlerAnimation.rows() and
+		is_equal_approx(body.position.y, CrawlerAnimation.CENTRE_HEIGHT - EnemyView.CAMERA.FP_SERVER_REFERENCE_Y),
+		"Crawler renders from its own atlas at server feet")
+	body.free()
+
+func _crawler_tile(atlas: Image, frame: int) -> Image:
+	var at: Vector2i = Vector2i(frame % CrawlerAnimation.COLUMNS,
+		floori(float(frame) / CrawlerAnimation.COLUMNS)) * CrawlerAnimation.TILE
+	return atlas.get_region(Rect2i(at, Vector2i.ONE * CrawlerAnimation.TILE))
 
 func _check_readable_pair() -> void:
 	var clerk: Image = _atlas("clerk")
@@ -158,7 +238,7 @@ const FAR_TILE: int = 47
 func _check_heavy_and_turret_outlines() -> void:
 	var outlines: Dictionary[String, Dictionary] = {}
 	var far: Dictionary[String, Dictionary] = {}
-	for kind: String in ActorState.KINDS:
+	for kind: String in STANDING_KINDS:
 		var atlas: Image = _atlas(kind)
 		for action: String in ["idle", "raise"]:
 			var tile: Image = _tile(atlas, EnemyAnimation.pose_frame(action, false, 1.0))
@@ -175,7 +255,7 @@ func _check_heavy_and_turret_outlines() -> void:
 	print("test_enemy_animation: heavy tell changes %.3f of its outline" % tell)
 	_check(tell >= 0.15, "the heavy's tell changes its outline, not only its lamps")
 	for kind: String in ["heavy_sweeper", "turret"]:
-		for other: String in ActorState.KINDS:
+		for other: String in STANDING_KINDS:
 			if other == kind or (kind == "turret" and other == "heavy_sweeper"):
 				continue
 			for action: String in ["idle", "raise"]:

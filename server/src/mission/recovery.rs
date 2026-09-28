@@ -3,7 +3,7 @@ use super::*;
 use crate::inventory::Inventory;
 use crate::mission::run_file::{RunDocument, SavedEntry, SavedStep};
 use crate::protocol::{
-    CampaignRunState, CampaignRunStatus, MissionContinue, WeaponType, CAMPAIGN_CONTINUES,
+    BodyKind, CampaignRunState, CampaignRunStatus, MissionContinue, WeaponType, CAMPAIGN_CONTINUES,
 };
 
 #[cfg(test)]
@@ -15,6 +15,7 @@ pub(super) struct SoloRun {
     entry: Option<Entry>,
     saved_entry: Option<SavedEntry>,
     exit: Option<SavedEntry>,
+    body: Option<BodyKind>,
 }
 
 struct Entry {
@@ -51,6 +52,10 @@ impl SoloRun {
         self.exit.as_ref()
     }
 
+    pub fn body(&self) -> Option<BodyKind> {
+        self.body
+    }
+
     pub fn capture_exit(&mut self, exit: SavedEntry) {
         self.exit = Some(exit);
     }
@@ -78,12 +83,16 @@ impl SoloRun {
 }
 
 impl GameState {
+    pub(crate) fn campaign_run_body(&self) -> Option<BodyKind> {
+        self.mission
+            .as_ref()
+            .and_then(|mission| mission.solo.as_ref())
+            .and_then(SoloRun::body)
+    }
+
     pub fn enable_campaign_run(&mut self) -> Result<(), &'static str> {
         if self.tick != 0 || !self.players.is_empty() {
             return Err("campaign run must be configured before admission");
-        }
-        if self.mission.as_ref().is_some_and(|run| run.m02.is_some()) {
-            return Err("durable campaign runs require M01 mission geometry");
         }
         let mission = self
             .mission
@@ -97,11 +106,13 @@ impl GameState {
                 id: Uuid::new_v4(),
                 status: CampaignRunStatus::Playing,
                 continues: CAMPAIGN_CONTINUES,
+                level_start_continues: CAMPAIGN_CONTINUES,
             },
             owner: None,
             entry: None,
             saved_entry: None,
             exit: None,
+            body: None,
         });
         Ok(())
     }
@@ -115,6 +126,9 @@ impl GameState {
             .content_sha256()
             .ok_or("campaign run requires authored content")?;
         document.validate(hash)?;
+        if self.map.campaign_mission_id() != Some(document.stage_mission()) {
+            return Err("saved campaign run names another mission");
+        }
         let (status, entry) = match &document.step {
             SavedStep::MissionEntry { entry, .. } => (CampaignRunStatus::Playing, entry),
             SavedStep::PendingContinue { entry, .. } => (CampaignRunStatus::Continue, entry),
@@ -133,8 +147,10 @@ impl GameState {
             id: document.id,
             status,
             continues: document.remaining_continues,
+            level_start_continues: document.level_start_continues,
         };
         solo.saved_entry = Some(entry.clone());
+        solo.body = document.body;
         Ok(())
     }
 
@@ -169,6 +185,11 @@ impl GameState {
         if solo.owner != Some(player.id) {
             return Ok(());
         }
+        if let Some(body) = solo.body {
+            player.body = body;
+        } else {
+            solo.body = Some(player.body);
+        }
         let Some(saved) = solo.saved_entry.as_ref() else {
             return Ok(());
         };
@@ -181,7 +202,11 @@ impl GameState {
             player.hp = 0;
             player.respawn_timer = None;
             player.clear_input();
-            run.phase = MissionPhase::FindTransfer;
+            run.phase = if run.m02.is_some() {
+                MissionPhase::InProgress
+            } else {
+                MissionPhase::FindTransfer
+            };
             run.ready.insert(player.id);
             run.started = true;
         }
@@ -247,7 +272,7 @@ impl GameState {
         let Some(solo) = run.solo.as_mut() else {
             return false;
         };
-        if self.map.mission().is_none_or(|map| map.id != request.id)
+        if self.map.campaign_mission_id() != Some(request.id)
             || request.run_id != solo.state.id
             || request.attempt != run.attempt
             || solo.owner != Some(player_id)

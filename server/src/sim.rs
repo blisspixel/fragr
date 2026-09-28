@@ -9,9 +9,10 @@ use crate::protocol::{
     episode0_host_line_jammer, episode0_host_line_nods_tick, episode0_host_line_win,
     episode0_objective_chip, episode0_unlock_teaser, killstreak_host_line, mvp_host_line,
     roster_host_line, round_open_host_line, rule_bot_taunt_line, warmup_host_line, Action,
-    BotTauntKind, GameEvent, PelletTrace, PickupState, PlayerScore, PlayerState, Role,
-    ServerMessage, ShotImpact, ShotResult, ShotTrace, Snapshot, WeaponType, AUDITOR_NAME,
-    BOSS_NAME, EPISODE_ID_EP0, EPISODE_MAP_LARAK_LOT, EPISODE_TITLE_EP0, MODE_NAME, PLAYLIST_NAME,
+    BotTauntKind, CampaignActor, EnemyPhase, GameEvent, PelletTrace, PickupState, PlayerScore,
+    PlayerState, Role, ServerMessage, ShotImpact, ShotResult, ShotTrace, Snapshot, WeaponType,
+    AUDITOR_NAME, BOSS_NAME, EPISODE_ID_EP0, EPISODE_MAP_LARAK_LOT, EPISODE_TITLE_EP0, MODE_NAME,
+    PLAYLIST_NAME,
 };
 use crate::protocol::{HostReactionKind, Mutator, Team, TeamScores};
 use std::collections::HashMap;
@@ -590,6 +591,18 @@ impl Player {
             .is_some_and(crate::protocol::CampaignActor::is_enemy)
     }
 
+    pub fn is_campaign_companion(&self) -> bool {
+        self.campaign
+            .is_some_and(crate::protocol::CampaignActor::is_companion)
+    }
+
+    pub fn is_participant(&self) -> bool {
+        !self.is_boss
+            && self
+                .campaign
+                .is_none_or(crate::protocol::CampaignActor::is_participant)
+    }
+
     fn at_spawn(
         id: Uuid,
         name: String,
@@ -639,6 +652,111 @@ impl Player {
     /// Takes part in arena scoring: not a boss, not a campaign combatant.
     fn contestant(&self) -> bool {
         !self.is_boss && self.campaign.is_none()
+    }
+}
+
+/// Earliest common interval of horizontal body contact and vertical overlap.
+/// Both bodies move during the tick; closest approach alone can choose the
+/// wrong victim or miss a falling Crawler that overlaps later in the frame.
+fn crawler_contact_time(
+    crawler_from: [f32; 3],
+    crawler_to: [f32; 3],
+    target_from: [f32; 3],
+    target_to: [f32; 3],
+    target_height: f32,
+) -> Option<f32> {
+    let dx = crawler_from[0] - target_from[0];
+    let dz = crawler_from[2] - target_from[2];
+    let vx = crawler_to[0] - crawler_from[0] - (target_to[0] - target_from[0]);
+    let vz = crawler_to[2] - crawler_from[2] - (target_to[2] - target_from[2]);
+    let radius = PLAYER_RADIUS * 2.0;
+    let a = vx * vx + vz * vz;
+    let b = 2.0 * (dx * vx + dz * vz);
+    let c = dx * dx + dz * dz - radius * radius;
+    let (mut entry, mut exit) = if a <= f32::EPSILON {
+        if c > 0.0 {
+            return None;
+        }
+        (0.0, 1.0)
+    } else {
+        let discriminant = b * b - 4.0 * a * c;
+        if discriminant < 0.0 {
+            return None;
+        }
+        let root = discriminant.sqrt();
+        ((-b - root) / (2.0 * a), (-b + root) / (2.0 * a))
+    };
+    entry = entry.max(0.0);
+    exit = exit.min(1.0);
+    if entry > exit {
+        return None;
+    }
+
+    let dy = crawler_from[1] - target_from[1];
+    let vy = crawler_to[1] - crawler_from[1] - (target_to[1] - target_from[1]);
+    let lower = -crate::combat::CRAWLER_HEIGHT + crate::movement::CONTACT_EPSILON;
+    let upper = target_height - crate::movement::CONTACT_EPSILON;
+    if vy.abs() <= f32::EPSILON {
+        if dy < lower || dy > upper {
+            return None;
+        }
+    } else {
+        let low_at = (lower - dy) / vy;
+        let high_at = (upper - dy) / vy;
+        entry = entry.max(low_at.min(high_at));
+        exit = exit.min(low_at.max(high_at));
+    }
+    (entry <= exit).then_some(entry)
+}
+
+#[cfg(test)]
+mod crawler_contact_tests {
+    use super::crawler_contact_time;
+
+    #[test]
+    fn first_body_entry_beats_an_earlier_closest_approach() {
+        let crawler = ([0.0, 0.0, 0.0], [4.0, 0.0, 0.0]);
+        let already_touching = ([0.8, 0.0, 0.0], [4.2, 0.0, 0.0]);
+        let later_touching = ([2.0, 0.0, 0.0], [2.0, 0.0, 0.0]);
+        let first = crawler_contact_time(
+            crawler.0,
+            crawler.1,
+            already_touching.0,
+            already_touching.1,
+            1.8,
+        )
+        .unwrap();
+        let second = crawler_contact_time(
+            crawler.0,
+            crawler.1,
+            later_touching.0,
+            later_touching.1,
+            1.8,
+        )
+        .unwrap();
+        assert_eq!(first, 0.0);
+        assert!((second - 0.25).abs() < 0.0001);
+    }
+
+    #[test]
+    fn falling_into_a_stationary_body_contacts_after_horizontal_entry() {
+        let time = crawler_contact_time(
+            [0.5, 2.0, 0.0],
+            [0.5, 0.0, 0.0],
+            [0.0, 0.0, 0.0],
+            [0.0, 0.0, 0.0],
+            1.8,
+        )
+        .unwrap();
+        assert!((0.09..0.11).contains(&time));
+        assert!(crawler_contact_time(
+            [0.5, 3.0, 0.0],
+            [0.5, 2.0, 0.0],
+            [0.0, 0.0, 0.0],
+            [0.0, 0.0, 0.0],
+            1.8,
+        )
+        .is_none());
     }
 }
 
@@ -1008,9 +1126,57 @@ impl GameState {
             phase: EnemyPhase::Idle,
             phase_started: self.tick,
             phase_ends: self.tick,
+            seated: placement.seated,
         });
         self.players.push(player);
         id
+    }
+
+    pub(crate) fn spawn_m02_companion(&mut self) -> Option<Uuid> {
+        use crate::protocol::{CampaignActor, CompanionKind, CompanionPhase, EquipmentPolicy};
+        if self.map.m02_objectives().is_none()
+            || self.players.iter().any(Player::is_campaign_companion)
+        {
+            return None;
+        }
+        let id = self.new_entity_id();
+        let [x, floor, z] = crate::mission::LATCH_SECOND_FEET;
+        let mut player = Player::at_spawn(
+            id,
+            "Latch".into(),
+            Role::Agent,
+            (x, z, std::f32::consts::PI, floor),
+            EquipmentPolicy::Discovery,
+        );
+        player.weapon = WeaponType::Tack;
+        player.inventory.grant_weapon(WeaponType::Tack);
+        player.campaign = Some(CampaignActor::Companion {
+            kind: CompanionKind::Latch,
+            phase: CompanionPhase::Releasing,
+            phase_started: self.tick,
+        });
+        self.players.push(player);
+        Some(id)
+    }
+
+    fn update_m02_companion_phase(&mut self) {
+        use crate::protocol::{CampaignActor, CompanionPhase};
+        for player in &mut self.players {
+            if let Some(CampaignActor::Companion {
+                kind,
+                phase: CompanionPhase::Releasing,
+                phase_started,
+            }) = player.campaign
+            {
+                if self.tick.saturating_sub(phase_started) >= crate::mission::LATCH_RELEASE_TICKS {
+                    player.campaign = Some(CampaignActor::Companion {
+                        kind,
+                        phase: CompanionPhase::Following,
+                        phase_started: self.tick,
+                    });
+                }
+            }
+        }
     }
 
     pub fn remove_player(&mut self, id: Uuid) {
@@ -1026,8 +1192,19 @@ impl GameState {
         self.update_encounters();
     }
 
-    pub fn set_action(&mut self, id: Uuid, mut action: Action) {
+    pub fn set_action(&mut self, id: Uuid, action: Action) {
+        self.set_actor_action(id, action, false);
+    }
+
+    pub(crate) fn set_companion_action(&mut self, id: Uuid, action: Action) {
+        self.set_actor_action(id, action, true);
+    }
+
+    fn set_actor_action(&mut self, id: Uuid, mut action: Action, companion_intent: bool) {
         if let Some(player) = self.players.iter_mut().find(|p| p.id == id) {
+            if player.is_campaign_companion() != companion_intent {
+                return;
+            }
             if !crate::mission::actor_active(self.mission.as_ref(), player.id, player.campaign) {
                 return;
             }
@@ -1081,6 +1258,7 @@ impl GameState {
                 .map
                 .m02_objectives()
                 .and_then(|objectives| u8::try_from(objectives.len()).ok()),
+            m02_side_ward: self.map.has_m02_side_ward(),
             map_id: self.map.id(),
             map_name: self.map.name().to_string(),
             half_extent: self.map.half_extent(),
@@ -1126,6 +1304,7 @@ impl GameState {
 
     pub fn tick(&mut self, dt: f32) {
         self.tick += 1;
+        self.update_m02_companion_phase();
         self.shot_results.clear();
         self.spawn_shields.retain(|_, ticks| {
             *ticks = ticks.saturating_sub(1);
@@ -1227,6 +1406,11 @@ impl GameState {
     /// must consume the same volumes, including their lower vertical bounds.
     fn tick_active(&mut self, dt: f32, arena: &crate::movement::Arena) {
         let mut respawn_ids = Vec::new();
+        let before: Vec<[f32; 3]> = self
+            .players
+            .iter()
+            .map(|p| [p.x, p.y - PLAYER_FLOOR_Y, p.z])
+            .collect();
         let move_speed = if self.compliance_ticks_left > 0 {
             MOVE_SPEED * 0.5
         } else {
@@ -1234,6 +1418,15 @@ impl GameState {
         };
         for player in &mut self.players {
             player.just_fired = false;
+            if matches!(
+                player.campaign,
+                Some(CampaignActor::Companion {
+                    phase: crate::protocol::CompanionPhase::Releasing,
+                    ..
+                })
+            ) {
+                continue;
+            }
             if !crate::mission::actor_active(self.mission.as_ref(), player.id, player.campaign) {
                 continue;
             }
@@ -1308,7 +1501,7 @@ impl GameState {
             }
 
             let move_speed = move_speed * crate::encounters::gait(player.campaign);
-            let moved = crate::movement::integrate(
+            let moved = crate::movement::integrate_with_height(
                 crate::movement::MoveState {
                     x: player.x,
                     z: player.z,
@@ -1321,6 +1514,7 @@ impl GameState {
                 action.jump || jump_requested,
                 dt,
                 arena,
+                crate::combat::target_height(player.campaign),
             );
             player.x = moved.x;
             player.z = moved.z;
@@ -1344,6 +1538,11 @@ impl GameState {
             }
         }
 
+        // Commit leap contacts from actual server movement, including both
+        // bodies' displacement this tick. Record before gunfire so a Crawler
+        // shot on the same frame can still trade its already-landed contact.
+        let crawler_contacts = self.crawler_contacts(&before, arena);
+
         // Target intent takes precedence after movement, for every controller role.
         // Applied after movement/turn so agents can still strafe while locking aim.
         let look_intents: Vec<(Uuid, crate::protocol::LookAt)> = self
@@ -1365,7 +1564,7 @@ impl GameState {
                     .map(|p| {
                         [
                             p.x,
-                            p.y - PLAYER_FLOOR_Y + crate::combat::FIGHTER_HEIGHT * 0.5,
+                            p.y - PLAYER_FLOOR_Y + crate::combat::target_height(p.campaign) * 0.5,
                             p.z,
                         ]
                     })
@@ -1485,15 +1684,117 @@ impl GameState {
                 .statistics
                 .hit(weapon, hp_total, armor_total, kills);
         }
+        for (attacker, victim, trace) in crawler_contacts {
+            self.players[attacker].statistics.attack(WeaponType::Fists);
+            let (hp, armor, died) =
+                self.resolve_fighter_hit(attacker, victim, WeaponType::Fists.damage(), trace);
+            self.players[attacker]
+                .statistics
+                .hit(WeaponType::Fists, hp, armor, u64::from(died));
+        }
 
         self.update_campaign_run();
         self.advance_mission();
+        self.advance_m02_evacuation(dt);
         for id in respawn_ids {
             self.do_respawn(id);
         }
 
         self.reap_dead_boss();
         self.react_to_last_standing();
+    }
+
+    fn crawler_contacts(
+        &mut self,
+        before: &[[f32; 3]],
+        arena: &crate::movement::Arena,
+    ) -> Vec<(usize, usize, ShotTrace)> {
+        let mut contacts = Vec::new();
+        for attacker in 0..self.players.len() {
+            let crawler = &self.players[attacker];
+            if crawler.hp <= 0
+                || !matches!(
+                    crawler.campaign,
+                    Some(CampaignActor::Union {
+                        kind: crate::protocol::EnemyKind::Crawler,
+                        phase: EnemyPhase::Leaping,
+                        ..
+                    })
+                )
+            {
+                continue;
+            }
+            let a0 = before[attacker];
+            let a1 = [crawler.x, crawler.y - PLAYER_FLOOR_Y, crawler.z];
+            let best = self
+                .players
+                .iter()
+                .enumerate()
+                .filter_map(|(victim, target)| {
+                    if attacker == victim
+                        || target.hp <= 0
+                        || target.is_campaign_companion()
+                        || target.respawn_timer.is_some()
+                        || !crate::mission::actor_active(
+                            self.mission.as_ref(),
+                            target.id,
+                            target.campaign,
+                        )
+                        || self
+                            .spawn_shields
+                            .get(&target.id)
+                            .is_some_and(|ticks| *ticks > 0)
+                        || !self.damage_lands(attacker, victim)
+                    {
+                        return None;
+                    }
+                    let b0 = before[victim];
+                    let b1 = [target.x, target.y - PLAYER_FLOOR_Y, target.z];
+                    let t = crawler_contact_time(
+                        a0,
+                        a1,
+                        b0,
+                        b1,
+                        crate::combat::target_height(target.campaign),
+                    )?;
+                    let af = a0[1] + (a1[1] - a0[1]) * t;
+                    let bf = b0[1] + (b1[1] - b0[1]) * t;
+                    let ax = a0[0] + (a1[0] - a0[0]) * t;
+                    let az = a0[2] + (a1[2] - a0[2]) * t;
+                    let bx = b0[0] + (b1[0] - b0[0]) * t;
+                    let bz = b0[2] + (b1[2] - b0[2]) * t;
+                    let horizontal = (bx - ax).hypot(bz - az);
+                    let origin = [ax, af + crate::combat::CRAWLER_HEIGHT * 0.5, az];
+                    let end = [
+                        bx,
+                        bf + crate::combat::target_height(target.campaign) * 0.5,
+                        bz,
+                    ];
+                    if !crate::combat::line_of_sight(origin, end, &arena.solids) {
+                        return None;
+                    }
+                    let normal = if horizontal > 0.001 {
+                        [(bx - ax) / horizontal, 0.0, (bz - az) / horizontal]
+                    } else {
+                        [1.0, 0.0, 0.0]
+                    };
+                    let trace = ShotTrace {
+                        weapon: WeaponType::Fists,
+                        origin,
+                        end,
+                        impact: ShotImpact::Fighter { normal },
+                        pellets: Vec::new(),
+                    };
+                    Some((t, target.id, victim, trace))
+                })
+                .min_by(|a, b| a.0.total_cmp(&b.0).then(a.1.cmp(&b.1)));
+            if let Some((_, _, victim, trace)) = best {
+                if self.encounters.claim_crawler_contact(crawler.id) {
+                    contacts.push((attacker, victim, trace));
+                }
+            }
+        }
+        contacts
     }
 
     /// Commit one fighter's share of a shot: every pellet that struck them,
@@ -1583,6 +1884,7 @@ impl GameState {
             let feet = [victim.x, victim.y - PLAYER_FLOOR_Y, victim.z];
             if let Some(identity) = self.encounters.hit(target_id, feet, self.tick, died) {
                 self.players[victim_idx].campaign = Some(identity);
+                self.encounters.sync_identities(&mut self.players);
             }
         }
 
@@ -1733,7 +2035,7 @@ impl GameState {
         let shooter = &self.players[shooter_idx];
         let origin = [
             shooter.x,
-            shooter.y - PLAYER_FLOOR_Y + EYE_HEIGHT,
+            shooter.y - PLAYER_FLOOR_Y + crate::combat::eye_height(shooter.campaign),
             shooter.z,
         ];
         let (yaw, pitch, weapon) = (shooter.yaw, shooter.pitch, shooter.weapon);
@@ -1782,17 +2084,28 @@ impl GameState {
             }
         }
         let mut closest_idx = None;
+        // Companion fire must never consume a ray on a friendly body. The
+        // earlier support preflight uses a centered ray before movement, while
+        // this resolved ray includes spread and current participant positions.
+        let companion_shot = self.players[shooter_idx].is_campaign_companion();
         for (i, target) in self.players.iter().enumerate() {
             if i == shooter_idx
                 || target.hp <= 0
                 || target.respawn_timer.is_some()
+                || target.is_campaign_companion()
+                || (companion_shot && target.is_participant())
                 || !crate::mission::actor_active(self.mission.as_ref(), target.id, target.campaign)
                 || self.spawn_shields.get(&target.id).is_some_and(|t| *t > 0)
             {
                 continue;
             }
             let feet = [target.x, target.y - PLAYER_FLOOR_Y, target.z];
-            if let Some(hit) = ray.fighter(feet, PLAYER_RADIUS, closest_dist) {
+            if let Some(hit) = ray.fighter_with_height(
+                feet,
+                PLAYER_RADIUS,
+                crate::combat::target_height(target.campaign),
+                closest_dist,
+            ) {
                 if hit.distance < cover_distance
                     && (closest_idx.is_none() || hit.distance < closest_dist)
                 {
@@ -1970,7 +2283,7 @@ impl GameState {
                         team: p.team,
                         lives: p.lives,
                         golden: p.golden,
-                        body: (!p.is_boss && !p.is_campaign_enemy()).then_some(p.body),
+                        body: p.is_participant().then_some(p.body),
                     }
                 })
                 .collect(),
@@ -2001,10 +2314,11 @@ impl GameState {
                 String::new()
             } else if self.map.is_authored() {
                 if self.map.has_encounters() {
-                    "Campaign development: introductory encounters; objectives and extraction remain in progress."
+                    "Campaign development: this mission slice is still being built."
                 } else {
                     "Campaign development: encounters and objectives are not implemented."
-                }.to_string()
+                }
+                .to_string()
             } else if self.round_state == RoundState::Ended {
                 self.ended_host_line
                     .clone()
@@ -2167,6 +2481,9 @@ impl GameState {
         let mut agents = 0;
         let mut bots = 0;
         for player in &self.players {
+            if !player.is_participant() {
+                continue;
+            }
             match player.role {
                 Role::Human => humans += 1,
                 Role::Agent if self.is_rule_bot(player.id) => bots += 1,
@@ -2499,6 +2816,7 @@ impl GameState {
                 || player.hp <= 0
                 || player.is_boss
                 || player.is_campaign_enemy()
+                || player.is_campaign_companion()
                 || !crate::mission::actor_active(self.mission.as_ref(), player.id, player.campaign)
             {
                 continue;
@@ -3004,7 +3322,7 @@ impl BotController {
         let eye = [bot.x, bot.y - PLAYER_FLOOR_Y + EYE_HEIGHT, bot.z];
         let target_centre = [
             target.x,
-            target.y - PLAYER_FLOOR_Y + crate::combat::FIGHTER_HEIGHT * 0.5,
+            target.y - PLAYER_FLOOR_Y + crate::combat::target_height(target.campaign) * 0.5,
             target.z,
         ];
         let mut action = Action {

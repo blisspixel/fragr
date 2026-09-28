@@ -10,8 +10,11 @@ own room and encounter staging for every level. No complete level is finished.
 Level 1 (M01, Recall Notice) has a playable development slice with discovery,
 introductory enemies, a transfer/lift sequence and a reader-paced text opening.
 Solo level 1 now has three explicit mission-start continues and exhaustion;
-persistence and cross-mission carry remain unbuilt. Scene art/narration, secrets
-and final encounter acceptance remain unfinished; [M01 completion](plans/m01-completion.md)
+M01 entry persistence is implemented. M01-to-M02 carry is in a stacked draft
+with the same saved body, equipment and remaining Episode I allowance. That
+draft does not certify M02 as a finished mission or make level 3 playable.
+Scene art/narration, secrets and final encounter acceptance remain unfinished;
+[M01 completion](plans/m01-completion.md)
 tracks the next build.
 Solo Broadcast:
 Calibration is the shipped Episode 0 arena prototype, not the campaign opening.
@@ -317,9 +320,9 @@ with its starting equipment and world state restored. No mid-level checkpoint
 retry or teammate revival. With no continues left, the next death ends the run.
 
 Decided 2026-09-25: three continues, refilled to three at the start of each
-episode. Completing a level inside an episode does not refill them; starting the
-next episode does, at the same page where the episode transition sits. The
-exact allowance needs playtests; it is not a shipped rule. A successful run
+episode. M01 enforces the three-continue allowance. The M01-to-M02 draft carries
+what remains without a refill. Later episode refills are a design rule and are
+not implemented. The allowance still needs playtests. A successful run
 targets about four hours, excluding failed attempts. Cutscenes remain skippable
 on retries and mandatory travel must stay purposeful.
 
@@ -345,8 +348,9 @@ A retry preserves outcomes from completed levels and resets only the failed
 level's attempt. It restores entry inventory, health/armor, enemies, supplies,
 doors, objectives and local ally state coherently. A gameplay retry does not
 establish in-world resurrection. Earned cosmetics are separate from expendable
-run progress. Save-and-quit design must preserve the remaining allowance instead
-of silently creating a fresh run. The format and save policy remain unbuilt.
+run progress. The local M01 run file preserves the remaining allowance without
+silently creating a fresh run. The M01-to-M02 migration is in draft; later
+levels, episode refills and any cloud save policy remain unbuilt.
 
 ## Story presentation and localization
 
@@ -459,12 +463,13 @@ morality meter or a promise that good behavior guarantees survival.
 ## Open decisions
 
 The central arc, twenty levels in five episodes plus conditional epilogue, a
-four-hour target and mission-start continues refilled each episode are settled.
-Exact continue allowances, save policy, playable viewpoints, ally fates and
-optional co-op scope still need design. Detailed route, working cast/place
-names, exact companion relationship wording, individual wipe operations, final
-rescue tradeoffs, the reprieve's precise terms, final survival duration, travel
-technology, and sequel image remain proposals or open. The [story
+four-hour target and three mission-start continues refilled each episode are
+settled. Persistence across later levels, per-level viewpoint assignments,
+ally fates and optional co-op scope still need design. Detailed route, working
+cast/place names, exact companion relationship wording, individual wipe
+operations, final rescue tradeoffs, the reprieve's precise terms, final
+survival duration, travel technology, and sequel image remain proposals or
+open. The [story
 arc](campaign/story-arc.md)'s proposed canon, including the specific mechanism
 tying who the player rescued to the reprieve's telling, stays proposed until
 Nick accepts or strikes each item. Review the treatment before detailed

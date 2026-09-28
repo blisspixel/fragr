@@ -1,0 +1,32 @@
+{
+  "comment": "Opt-in Master-bus mix capture on the bundled M02 map. A spectator turns off the radio, then compares the active ward machine from the antechamber and inside the ward before any fight. Run with FRAGR_QA_MAP_FILE=server/maps/m02-persons-unknown.json FRAGR_QA_BOTS=0.",
+  "width": 1280,
+  "height": 720,
+  "states": [
+    {
+      "name": "ward_far",
+      "scene": "res://scenes/main.tscn",
+      "join": "spectator",
+      "radio_off": true,
+      "allow_empty_roster": true,
+      "camera": "overview",
+      "camera_position": [-12, 1.6, -19],
+      "camera_look_at": [-2, 1.5, -15],
+      "expect_m02_machine_playing": true,
+      "record_audio_seconds": 3.0,
+      "note": "Ward loop from the clear antechamber approach. The Master capture includes the live local game mix."
+    },
+    {
+      "name": "ward_near",
+      "allow_empty_roster": true,
+      "camera": "overview",
+      "camera_position": [2, 1.6, -18],
+      "camera_look_at": [-2, 1.5, -15],
+      "expect_m02_machine_playing": true,
+      "record_audio_seconds": 3.0,
+      "expect_audio_louder_than": "ward_far",
+      "audio_level_ratio": 1.5,
+      "note": "The active ward loop is louder near its spatial source."
+    }
+  ]
+}

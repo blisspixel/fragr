@@ -13,11 +13,13 @@ and the map version in observations, and closes its MCP game session if a map
 has unsupported or invalid geometry, or the server sends malformed JSON.
 Ground-filled legacy maps remain readable.
 
-The adapter declares gameplay capability 11. Every discovery map, M01 and M02
-included, requires 11 for all roles, because any of them may place the found
-`shiv`; the six full-arsenal arcade maps still admit 1. Older clients are
-rejected before admission. `observe.loadout`
-is private to this participant: selected and owned weapons (`["fists","tack"]`),
+The adapter declares gameplay capability 22. Every discovery map requires at
+least 12 for all roles; M01 solo runs require 18 for the per-level continue
+baseline. M02 development parties and durable M02 runs require 22 for the
+server-owned Latch companion, optional captive evacuation and inspection glass. The six
+full-arsenal arcade maps still admit 1.
+Older clients are rejected before admission. `observe.loadout` is private to
+this participant: selected and owned weapons (`["fists","tack"]`),
 one `ammo` count per pool (`bullets`, `shells`, `cells`), personal supply
 claims and dry-trigger count. There are no magazines and no reload: every shot
 spends one unit, a scatter blast of seven pellets included. Invalid, foreign or backward-tick equipment
@@ -47,9 +49,16 @@ and the boarding area. `act.interact: true` presses Use; release with `false`
 before another press. Range, aim, sight, gate changes and departure remain server
 decisions. The shared local controller walks to mission controls when it has no
 combat or equipment target. Map changes replace navigation even with the same ID.
-For the M02 preparatory graybox, `observe.mission.m02` carries completed IDs,
-objective count, prepared gate mask and the current arrival region or physical
-use target. The target's decoration index refers to `observe.map.presentation`.
+For the M02 development mission, `observe.mission.m02` carries completed IDs,
+objective count, prepared gate mask, the server-owned `ward_secured` and
+`side_ward_secured` facts. `observe.map.m02_side_ward` identifies whether the
+authored map has the optional room. When true, the mission state also carries
+`evacuation` with its phase, two server-owned world-feet positions and final
+`evacuated` fact. Freeing the side ward and evacuating both captives are
+separate facts. This optional movement never gates
+player departure. The mission state also carries the current arrival region or
+physical use target. The target's decoration index refers to
+`observe.map.presentation`.
 `observe.map.m02_objectives` is present only for M02 and matches the mission's
 objective count; numeric map IDs alone do not identify a mission.
 M02 presentations may also contain `gate_locked` and `gate_open` lamp panels.
@@ -57,11 +66,17 @@ They mirror each gate's real state in the current map and are never use
 targets; the adapter rejects a target that names one.
 The adapter rejects targets that do not match the current map. `mission_ready`
 accepts `persons_unknown` with the observed attempt; `objective_use` prompts
-are issued per eligible participant. The graybox is not yet a normal Godot route.
+are issued per eligible participant. Single Player retains a separate M02
+development entry without a save, while a completed M01 solo run may resume
+into M02. In a durable run, `observe.mission.run` carries the same run ID and
+remaining Episode I allowance plus `level_start_continues`; M02 starts at
+attempt 1 even if M01 used a continue. Agents must use the observed mission ID
+and attempt for readiness and retry.
 Development mission parties allow four humans/agents together. `--campaign-run`
 instead permits one lifetime combat seat; spectators do not take seats. Leaving
-ends the solo run, and a callsign cannot reclaim it. This is prototype progression,
-not persistent saves or reconnect.
+ends the solo run, and a callsign cannot reclaim it. Disk persistence belongs
+to the owned local child with `--run-mode`; ordinary dedicated sessions do not
+write that run file.
 
 After reading the current mission, call `mission_ready` with its `id` and
 `attempt`. Confirm the member's `ready` flag and active phase through `observe`;
@@ -116,7 +131,8 @@ neither field can supply asset paths. A material list must match the solid count
 Optional face decorations pass the shared host-index, bounds and panel/light
 budget validator. They contain registered kinds, never arbitrary text or paths.
 The current M01 prototype has a human Clerk, two bot Sweepers, a transfer record
-and shared lift departure. Departure does not load M02. An idle combat agent is
+and shared lift departure. Departure does not load M02 in the same process; an
+owned local run records it as the next mission. An idle combat agent is
 not route-play evidence.
 
 ## Quick Start
@@ -366,9 +382,10 @@ processed. Use `observe` to confirm readiness and the shared phase before acting
 
 ### `mission_continue`
 
-In a solo run, `observe.mission.run` reports its UUID, status and remaining
-continues. Only its dead owner in `continue` status can request a mission-start
-retry using the observed mission ID, run ID and attempt:
+In a solo run, `observe.mission.run` reports its UUID, status, remaining
+continues and `level_start_continues`. Only its dead owner in `continue`
+status can request a mission-start retry using the observed mission ID, run ID
+and attempt. This applies to M01 and to a saved M02 run:
 
 ```json
 {"jsonrpc":"2.0","id":9,"method":"tools/call","params":{"name":"mission_continue","arguments":{"id":"recall_notice","run_id":"550e8400-e29b-41d4-a716-446655440000","attempt":1}}}
@@ -420,7 +437,13 @@ No fields. Unknown fields -> schema error (`isError: true`).
 }
 ```
 
-Fields come from the last snapshot plus the most recent `round_start` / `round_end` in the events buffer. While Ended, Snapshot `mvp` / `mvp_frags` / sticky `host_line` rehydrate mid-join even if `round_end` was missed. `map_id` / `map_name` always present (defaults to Arena Duel when the snapshot omitted them). `self_body` is your pawn's accepted body, null before a snapshot shows you. Every participant in `observe` carries its own `body`; Union actors carry none.
+Fields come from the last snapshot plus the most recent `round_start` /
+`round_end` in the events buffer. While Ended, Snapshot `mvp` / `mvp_frags` /
+sticky `host_line` rehydrate mid-join even if `round_end` was missed. `map_id` /
+`map_name` are always present (defaulting to Arena Duel if the snapshot omitted
+them). `self_body` is your pawn's accepted body, null before a snapshot shows
+you. Every participant in `observe` carries its own `body`; Union and
+companion actors carry none.
 
 `rules` is the server's rule set from `map_info` (or the last `round_start`
 before `map_info` arrives): `mode` (`ffa` or `tdm`), `name`, `mutators`
@@ -526,11 +549,20 @@ Example `test_input.jsonl`:
 
 Authored encounter maps require gameplay capability 3, which the adapter sends.
 `observe` preserves each actor's typed `campaign` identity and attack phase.
-`side: participant` includes human and external-agent allies; `side: union`
-identifies Clerk humans, Sweeper and Heavy Sweeper bots, and fixed Turrets
-(`kind`: `clerk`, `sweeper`, `heavy_sweeper`, `turret`). A Turret in `moving` is
-turning its head, not walking. Read `windup` and `phase_ends` as the tell for
-every kind. Never infer hostility from a callsign,
+`side: participant` includes human and external-agent allies. M02 adds one
+`side: companion`, `kind: latch` actor after the guarded release. Its
+`releasing`, `following`, and `firing` phases describe a server-owned ally, not
+an MCP seat or an action target. It appears in `observe` for late observers,
+but does not collect supplies or count toward the party or departure.
+`side: union` identifies Clerk humans, Sweeper and Heavy Sweeper bots, fixed
+Turrets, and low Crawlers (`kind`: `clerk`, `sweeper`, `heavy_sweeper`, `turret`,
+`crawler`). A Turret in `moving` is turning its head, not walking. Read
+`windup` and `phase_ends` as the tell for
+every kind. A Crawler's `leaping` phase is committed movement after a crouched
+windup; its contact damage is resolved by the server. `crawler_scrabble` events
+in `recent_events` and `get_events` carry a finite world position for the
+mechanical warning, never text or a player identity. Never infer hostility from
+a callsign,
 body appearance or connection role. The scripted controller uses the shared
 hostility predicate and excludes dead actors. MCP clients should follow the same
 rule; dead enemies remain briefly for presentation. Zero-damage friendly

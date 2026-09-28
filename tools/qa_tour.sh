@@ -24,6 +24,13 @@ SERVER_PORT="${FRAGR_PORT:-6767}"
 SERVER_URL="${FRAGR_SERVER:-127.0.0.1:$SERVER_PORT}"
 BOTS="${FRAGR_QA_BOTS:-5}"
 
+# An unrelated listener can satisfy the readiness probe while this server
+# fails to bind. Refuse that port before building or launching the tour.
+if (exec 3<>"/dev/tcp/127.0.0.1/$SERVER_PORT") 2>/dev/null; then
+  echo "qa_tour: port $SERVER_PORT is already in use; choose FRAGR_PORT" >&2
+  exit 1
+fi
+
 mkdir -p "$OUT_DIR"
 # Godot changes its working directory to the project. A relative path otherwise
 # saves the images in a different directory from the wrapper's logs and publish.
@@ -103,8 +110,8 @@ trap cleanup EXIT
 # is exactly what happened the first time this ran.
 UP=0
 for _ in $(seq 1 50); do
-  if (exec 3<>"/dev/tcp/127.0.0.1/$SERVER_PORT") 2>/dev/null; then exec 3>&- 3<&-; UP=1; break; fi
   if ! kill -0 "$SERVER_PID" 2>/dev/null; then break; fi
+  if (exec 3<>"/dev/tcp/127.0.0.1/$SERVER_PORT") 2>/dev/null; then exec 3>&- 3<&-; UP=1; break; fi
   sleep 0.2
 done
 if [ "$UP" -ne 1 ]; then
@@ -190,7 +197,7 @@ arena_overview|tour_arena_overview_16x9.png
 shot_effects_strip|tour_shot_strip.png
 rail_impact_strip|tour_rail_impact_strip.png
 boot_menu|tour_menu_16x9.png
-spectator_eyes|tour_spectator_16x9.png
+spectator_chase|tour_spectator_16x9.png
 profile_menu|tour_profile_16x9.png
 settings_menu|tour_settings_16x9.png
 campaign_difficulty|tour_difficulty_16x9.png

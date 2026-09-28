@@ -5,31 +5,19 @@ shipped geometry. A nickname does not establish that its described map exists.
 
 ## Campaign geography
 
-The [mission treatment](../CAMPAIGN-MISSIONS.md) owns the proposed route. These
-locations are working concepts, not approved geometry or completed assets.
+The [campaign contract](../CAMPAIGN.md) owns the accepted twenty-level route;
+the [mission treatment](../CAMPAIGN-MISSIONS.md) develops each stop. Place names
+and visual details remain working concepts unless a level has authored geometry.
 
 | Place | Role and character |
 |---|---|
-| Perimeter intake/correction complex | Earth civic frontage concealing custody machinery; M01-M02 |
-| Home district, working name Low Water | Mixed homes, clinic, repair market, tram trench; M03 and changed return in M10/epilogue |
-| Lunar port and custody archive | Established infrastructure under Union control, pressure galleries and captive workshops; M04-M05 |
-| Common Carrier | Working name for the commandeered transport, with passengers, cargo, repair and command decks; M06 |
-| Martian habitat and launch works | Communities around controlled lifelines, greenhouse and industrial spaces; M07-M08 |
-| Forever Office | Earth seat of visible command, defeated through a larger coalition action; M09 |
-| Recovery district and waterfront refuge | Earth during the sudden wipe and afterward; M10 and conditional epilogue |
-
-The [campaign expansion](../plans/campaign-expansion.md) proposes a few more
-places, not agreed until Nick chooses its length:
-
-| Place | Role and character |
-|---|---|
-| Recall freight yard | The correction complex's spur on the Perimeter's old rail, with the jamming mast; level 3 |
-| Lunar habitation ring | The buried curfew town beside the port, and the crater cut to the depot; level 7 |
-| Lunar launch berth | The impound cradle where Tern's ship is held; level 9 |
-| Union custody tender | A black-and-red Office ship, orderly and full of forms; level 11 |
-| Cinder Row | Working name for the Martian habitat the Union reaches first; level 12 |
-| Sanctioned games stadium | The capital venue of the Union's coercive games and the opening address; level 15 |
-| Ceremonial avenue | The parade route from the stadium to the Forever Office; level 16 |
+| Perimeter intake, correction ward and recall freight yard | Earth civic frontage, custody machinery and a rail spur with a jamming mast; levels 1-3 |
+| Home district, working name Low Water | Mixed homes, clinic, repair market and tram trench; levels 4-5, changed return in level 19 and epilogue |
+| Lunar port, habitation ring, archive and launch berth | Established communities and custody infrastructure, from curfew town to the impound cradle; levels 6-9 |
+| Common Carrier and Union custody tender | A commandeered transport with passengers and working decks, then the Office ship that tries to stop it; levels 10-11 |
+| Martian habitat, foundry and launch works | Communities around controlled lifelines, greenhouse and industrial spaces; levels 12-14 |
+| Sanctioned games stadium, ceremonial avenue and Forever Office | Earth venues where the coalition's real victory breaks visible Union command; levels 15-17 |
+| Recovery district, changed Low Water and waterfront refuge | Earth during the sudden wipe and its aftermath; levels 18-20 and conditional epilogue |
 
 Earth-Moon-Mars travel takes time. The cast visits lived-in societies, not new
 colonies or empty skyboxes. The coda and aftermath multiplayer revisit familiar

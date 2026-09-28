@@ -300,6 +300,7 @@ fn completed_mission_records_cannot_rewrite_the_attempt_or_run_allowance() {
         id: Uuid::from_u128(3),
         status: CampaignRunStatus::Complete,
         continues: 3,
+        level_start_continues: 3,
     };
     record.scope = RecordScope::Mission {
         mission: MissionId::RecallNotice,
@@ -330,7 +331,8 @@ fn completed_mission_records_cannot_rewrite_the_attempt_or_run_allowance() {
         assert!(CampaignRunState {
             id,
             status,
-            continues
+            continues,
+            level_start_continues: 3,
         }
         .validate_attempt(attempt)
         .is_err());

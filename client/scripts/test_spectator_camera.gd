@@ -1,5 +1,7 @@
 extends SceneTree
 
+const TOUR = preload("res://scripts/qa_tour.gd")
+
 class Fighter extends Node3D:
 	var player_id: String = ""
 	var target_yaw: float = 0.0
@@ -7,6 +9,9 @@ class Fighter extends Node3D:
 	var local_fp: bool = false
 	func set_local_fp(enabled: bool) -> void:
 		local_fp = enabled
+
+class AuthoritativeFighter extends Fighter:
+	var target_position: Vector3 = Vector3.ZERO
 
 class InputBlocker extends Node3D:
 	func controls_blocked() -> bool:
@@ -53,6 +58,32 @@ func _run() -> void:
 	_check(is_equal_approx(camera.position.y, 1.6), "spectator eye height is 1.6 metres")
 	_check((-camera.transform.basis.z).distance_to(ServerYaw.aim_direction(first.target_yaw, first.target_pitch)) < 0.00001, "spectator facing uses server yaw and pitch")
 	_check(camera.position.distance_to(first.position + Vector3(0.0, 0.1, 0.0)) < 0.00001, "camera origin matches the server eye without a forward offset")
+	var local: AuthoritativeFighter = AuthoritativeFighter.new()
+	root.add_child(local)
+	local.position = Vector3(-2.0, 1.5, 0.0)
+	local.target_position = Vector3(4.0, 1.5, 0.0)
+	camera.set_fp_mode(false)
+	camera.set_fp_mode(true, local)
+	camera.assist_solids = [{"min_x":-0.5, "max_x":0.5, "min_z":-1.0, "max_z":1.0, "bottom":0.0, "top":3.0}]
+	camera._process(0.016)
+	_check(camera.global_position.distance_to(local.target_position + Vector3(0.0, 0.1, 0.0)) < 0.00001,
+		"local first-person eye snaps to the server body instead of smoothing through stair cover")
+	camera.assist_solids = []
+	camera.global_position = local.position + Vector3(0.0, 0.1, 0.0)
+	camera._process(0.016)
+	_check(camera.global_position.x > local.position.x and camera.global_position.x < local.target_position.x,
+		"local first-person motion remains smoothed in open space")
+	camera.set_fp_mode(false)
+	camera.set("tip_pose_lock", true)
+	camera.set("tip_has_locked_transform", true)
+	camera.set_fp_mode(true, local)
+	_check(not bool(camera.get("fp_mode")), "a detached spectator pose blocks human first-person mode")
+	TOUR.release_camera_pose_lock(camera)
+	camera.set_fp_mode(true, local)
+	_check(bool(camera.get("fp_mode")) and camera.get("fp_target") == local,
+		"tour clears the detached pose before restoring human first-person control")
+	camera.set_fp_mode(false)
+	local.queue_free()
 	camera.set_available_targets([second, first])
 	_check(camera.get_followed_target() == first, "roster order must not change the watched fighter")
 	camera.cycle_next_target()

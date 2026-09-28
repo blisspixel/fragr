@@ -1,0 +1,11 @@
+{
+  "bytes": 48044,
+  "engine": "Godot 4.7.2-stable",
+  "file": "crawler_scrabble.wav",
+  "format": "pcm_s16le_mono_24000",
+  "generator": "bake_crawler_scrabble.gd",
+  "kind": "offline_procedural",
+  "samples": 24000,
+  "seed": 17041,
+  "sha256": "18b70a0271c6ee5216988b6dd72a5f3e2b4a26e943f310243053babf1dd3b484"
+}

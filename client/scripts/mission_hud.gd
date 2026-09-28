@@ -4,14 +4,16 @@ extends Control
 ## The objective card introduces a beat, then leaves. Use prompts and the
 ## fallen-run choice stay for as long as they are true.
 const STAGE_SECONDS: float = 8.0
-const M02_KNOWN: Array[String] = ["companion_released", "party_departed"]
-const M02_USES: Array[String] = []
+const M02_KNOWN: Array[String] = ["ward_reached", "companion_released", "party_departed"]
+const M02_USES: Array[String] = ["companion_released"]
 var state: Dictionary = {}
 var player_id: String = ""
 var _stage_phase: String = ""
 var _stage_left: float = 0.0
 var _card: PanelContainer
 var _copy: Label
+var _run_badge: Label
+var _evac_badge: Label
 ## Use and continue prompts carry the key or pad glyph for the device in the
 ## player's hands, so they are rich text. The plain strings are kept beside
 ## them for tests and for anything that reads the HUD as text.
@@ -34,6 +36,13 @@ func _ready() -> void:
 	_copy = _label(18)
 	_copy.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_card.add_child(_copy)
+	_run_badge = _label(16)
+	_run_badge.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	add_child(_run_badge)
+	_evac_badge = _label(15)
+	_evac_badge.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	_evac_badge.add_theme_color_override("font_color", MenuTheme.EMBER)
+	add_child(_evac_badge)
 	_prompt = _rich(22)
 	add_child(_prompt)
 	_recovery = PanelContainer.new()
@@ -113,6 +122,10 @@ func _process(delta: float) -> void:
 	_card.position = Vector2(viewport.x - width - 24.0, 70.0)
 	_card.size = Vector2(width, 0.0)
 	_copy.custom_minimum_size.x = width - 32.0
+	_run_badge.position = Vector2(viewport.x - width - 24.0, 45.0)
+	_run_badge.size = Vector2(width, 0.0)
+	_evac_badge.position = Vector2(viewport.x - width - 24.0, 132.0)
+	_evac_badge.size = Vector2(width, 0.0)
 	_prompt.position = Vector2(viewport.x * 0.2, viewport.y * 0.64)
 	_prompt.size = Vector2(viewport.x * 0.6, 0.0)
 	var recovery_width: float = minf(660.0, viewport.x - 48.0)
@@ -126,28 +139,22 @@ func _refresh() -> void:
 	visible = not state.is_empty()
 	if not visible:
 		_copy.text = ""
+		_run_badge.visible = false
+		_evac_badge.visible = false
 		_show_prompt("")
 		_card.visible = false
 		return
 	if state.get("id") == MissionState.M02_ID:
 		_refresh_m02()
 		return
+	_run_badge.visible = false
+	_evac_badge.visible = false
 	var lines: Array[String] = [tr("MISSION_M01_TITLE"), tr("DIFFICULTY_" + String(state["rules"]["difficulty"]).to_upper()), ""]
 	_recovery.visible = false
 	if state.get("run") is Dictionary:
 		var run: Dictionary = state["run"]
 		lines.insert(2, tr("RUN_CONTINUES").format({"count": int(run["continues"])}))
-		if run["status"] in ["continue", "failed", "abandoned"]:
-			_recovery.visible = true
-			var copy: Array[String] = [tr("RUN_FALLEN" if run["status"] == "continue" else "RUN_ENDED"), "", tr("RUN_CONTINUES").format({"count": int(run["continues"])}), ""]
-			if run["status"] == "continue":
-				copy.append(tr("RUN_RESTORE_ENTRY"))
-				copy.append(tr("RUN_CONTINUE_INPUT" if not player_id.is_empty() else "RUN_WAITING_OWNER"))
-			else:
-				copy.append(tr("RUN_FAILED" if run["status"] == "failed" else "RUN_ABANDONED"))
-			copy.append("")
-			copy.append(tr("RUN_MENU_INPUT"))
-			_show_recovery("\n".join(copy))
+		_refresh_run_recovery(run)
 	match state["phase"]:
 		"briefing":
 			lines.append(tr("STORY_M01_RECAP"))
@@ -198,14 +205,27 @@ static func _stage_key(value: Dictionary) -> String:
 		return phase
 	var current: Variant = value["m02"].get("current")
 	var id: String = str(current.get("id", "")) if current is Dictionary else ""
-	return "%s:%s:%s" % [phase, id, str(value.get("attempt", ""))]
+	return "%s:%s:%s:%s" % [phase, id, str(value["m02"].get("ward_secured", false)), str(value.get("attempt", ""))]
 
 ## M02 keeps to one line outside menus: the use prompt while it is legal,
 ## otherwise the objective for a few seconds after it changes. Gates and
 ## panels in the world carry the rest.
 func _refresh_m02() -> void:
 	_recovery.visible = false
+	_run_badge.visible = state.get("run") is Dictionary
+	if _run_badge.visible:
+		var run: Dictionary = state["run"]
+		_run_badge.text = tr("RUN_LEVEL_BADGE").format({"attempt": int(state["attempt"]), "continues": int(run["continues"])})
+		_refresh_run_recovery(run)
 	var progress: Dictionary = state["m02"]
+	var evacuation: Dictionary = progress.get("evacuation", {})
+	var evac_phase: String = str(evacuation.get("phase", "held"))
+	_evac_badge.visible = not evacuation.is_empty() and evac_phase != "held"
+	if _evac_badge.visible:
+		var key: String = "M02_EVAC_" + evac_phase.to_upper()
+		if state["phase"] == "departed" and not evacuation["evacuated"]:
+			key = "M02_EVAC_UNCONFIRMED"
+		_evac_badge.text = _catalog(key)
 	var line: String = ""
 	match state["phase"]:
 		"briefing":
@@ -213,7 +233,8 @@ func _refresh_m02() -> void:
 		"departed":
 			line = InputGlyphs.plain(_catalog("M02_DEPARTED"))
 		_:
-			line = _catalog(objective_key(str(progress["current"]["id"])))
+			var objective_id: String = str(progress["current"]["id"])
+			line = _catalog("M02_OBJECTIVE_COMPANION_SECURED" if objective_id == "companion_released" and progress["ward_secured"] else objective_key(objective_id))
 	_copy.text = line
 	var use: String = ""
 	for prompt: Dictionary in state["prompts"]:
@@ -221,6 +242,21 @@ func _refresh_m02() -> void:
 			use = _catalog(use_key(str(progress["current"]["id"])))
 	_show_prompt(use)
 	_card.visible = _stage_card_visible()
+
+func _refresh_run_recovery(run: Dictionary) -> void:
+	_recovery.visible = run["status"] in ["continue", "failed", "abandoned"]
+	if not _recovery.visible:
+		_show_recovery("")
+		return
+	var copy: Array[String] = [tr("RUN_FALLEN" if run["status"] == "continue" else "RUN_ENDED"), "", tr("RUN_CONTINUES").format({"count": int(run["continues"])}), ""]
+	if run["status"] == "continue":
+		copy.append(tr("RUN_RESTORE_ENTRY"))
+		copy.append(tr("RUN_CONTINUE_INPUT" if not player_id.is_empty() else "RUN_WAITING_OWNER"))
+	else:
+		copy.append(tr("RUN_FAILED" if run["status"] == "failed" else "RUN_ABANDONED"))
+	copy.append("")
+	copy.append(tr("RUN_MENU_INPUT"))
+	_show_recovery("\n".join(copy))
 
 ## Catalog copy only. A missing key is an error and shows nothing, never the key.
 func _catalog(key: String) -> String:

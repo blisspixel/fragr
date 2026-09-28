@@ -1,15 +1,18 @@
 # Flying Union drones
 
-**Status:** planned, 2026-09-24. Design lives in
-[ENEMIES.md](../ENEMIES.md#union-drones); this plan owns the build. Stage 1
-starts with M03 in rung 7 of the
-[full build order](../ROADMAP.md#full-build-order-2026-09-22), not before.
+**Status:** planned, placement corrected 2026-09-28. Design lives in
+[ENEMIES.md](../ENEMIES.md#union-drones); this plan owns the combat build.
+The noncombat level 2 sighting is a separate
+[tableau](m02-notary-tableau.md). The Notary's first fight belongs to level 4
+Notice to Vacate, and the Assessor to level 12 Terms of Cooperation, under the
+[full build order](../ROADMAP.md#full-build-order-2026-09-27).
 **Spend:** $0. Sprites come from the offline rig and bake, no paid generation.
 
 ## Goal
 
 Two server-authoritative flying enemies on the existing campaign encounter
-seam: the Notary patrol drone for M03 and the heavier Assessor for M07. A
+seam: the Notary patrol drone for level 4 Notice to Vacate and the heavier
+Assessor for level 12 Terms of Cooperation. A
 player learns each one's tell, meets it at readable heights, shoots it down
 with guns already carried, and watches it fall. Agents see and fight it through
 the same wire.
@@ -131,10 +134,11 @@ text names the new kinds. MCP tools and schemas are unchanged.
    Seeded test room fixture.
 2. **Notary presentation.** Rig, bake, shadow, audio, captions, tour states for
    patrol, flare, fire and crash.
-3. **M03 placement.** Roof loop and tram trench encounters once the M03
-   graybox exists, plus the M02 gallery sighting behind glass (non-combat).
+3. **Level 4 placement.** Low Water market and clinic encounters once the
+   Notice to Vacate route exists. The earlier level 2 glimpse is separately
+   authored and does not grant a combat actor.
 4. **Assessor.** After the projectile seam ships. Plates, vents, canister
-   volley, wreck damage, rig and bake, M07 greenhouse placement.
+   volley, wreck damage, rig and bake, level 12 Terms of Cooperation placement.
 
 ## Verification
 
@@ -144,7 +148,7 @@ text names the new kinds. MCP tools and schemas are unchanged.
   flare cancels it; line of sight required both ways; kill, fall, landing and
   harmless wreck; Assessor wreck damages Union units only; plates and vents;
   encounter reset on continue; validator rejects an unreachable perch.
-- A seeded solo human and solo agent clear of the test room and of the M03
+- A seeded solo human and solo agent clear of the test room and of the level 4
   placement through the live session, with the shared equipment controller.
 - Godot headless checks with a drone harness; regenerated tour stills showing
   the flare and a crash, inspected in motion.

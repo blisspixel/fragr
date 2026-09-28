@@ -126,6 +126,7 @@ var fp_kick_amount = Vector2.ZERO
 var current_fp_weapon = ""
 var equipment_hud: EquipmentHud
 var melee_view: MeleeView
+var crawler_caption: CrawlerCaption
 const FP_MUZZLE_SECONDS: float = 0.07
 ## One Shiv thrust: out toward the crosshair and back inside the 0.30 s cooldown.
 const FP_STAB_SECONDS: float = 0.22
@@ -156,6 +157,8 @@ func _ready():
 	equipment_hud = EquipmentHud.new()
 	equipment_hud.name = "Equipment"
 	add_child(equipment_hud)
+	crawler_caption = CrawlerCaption.new()
+	add_child(crawler_caption)
 	melee_view = MeleeView.new()
 	melee_view.name = "MeleeView"
 	add_child(melee_view)
@@ -1388,6 +1391,10 @@ func show_damage_flash() -> void:
 	if damage_flash:
 		damage_flash.visible = true
 		damage_flash.modulate = Color(0.55, 0.08, 0.06, 0.55)
+
+func show_crawler_scrabble_caption() -> void:
+	if crawler_caption != null:
+		crawler_caption.push_scrabble()
 
 func show_spawn_flash() -> void:
 	if not fp_juice_enabled:

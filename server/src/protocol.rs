@@ -9,7 +9,7 @@ mod mission;
 mod rules;
 mod statistics;
 mod status;
-pub use actors::{hostile, CampaignActor, EnemyKind, EnemyPhase};
+pub use actors::{hostile, CampaignActor, CompanionKind, CompanionPhase, EnemyKind, EnemyPhase};
 pub use body::BodyKind;
 pub use decoration::{
     validate_decorations, MapDecoration, MapDecorationKind, MapFace, MAX_MAP_DECORATIONS,
@@ -19,10 +19,10 @@ pub(crate) use loadout::validate_equipment;
 pub use loadout::{AmmoCount, AmmoPool, EquipmentPolicy, LoadoutState, SupplyClaim};
 pub use mission::{
     CampaignDifficulty, CampaignRules, CampaignRunState, CampaignRunStatus, InteractionKind,
-    InteractionPrompt, M02ObjectiveState, MissionContinue, MissionGeometry, MissionId,
-    MissionMember, MissionObjective, MissionObjectiveAction, MissionPhase, MissionReady,
-    MissionState, Region3, UseTarget, CAMPAIGN_CONTINUES, CAMPAIGN_RULES_REVISION,
-    MISSION_PARTY_LIMIT, USE_DISTANCE,
+    InteractionPrompt, M02EvacuationPhase, M02EvacuationState, M02ObjectiveState, MissionContinue,
+    MissionGeometry, MissionId, MissionMember, MissionObjective, MissionObjectiveAction,
+    MissionPhase, MissionReady, MissionState, Region3, UseTarget, CAMPAIGN_CONTINUES,
+    CAMPAIGN_RULES_REVISION, MISSION_PARTY_LIMIT, USE_DISTANCE,
 };
 pub use rules::{
     GameMode, HostReactionKind, MatchRules, Mutator, Team, TeamScores, HOST_REACTION_VARIANTS,
@@ -536,8 +536,23 @@ pub const RULES_GAMEPLAY_VERSION: u32 = 12;
 /// body on Welcome and on every participant in a snapshot. Additive: no map
 /// requires it, and an older reader ignores the field.
 pub const BODY_GAMEPLAY_VERSION: u32 = 13;
+/// Version 14 is allocated to the separate capture-the-flag branch.
+/// Optional seated opening posture on authored Union Clerks. M02 requires
+/// this so an older presenter cannot mistake its first fight for standing guards.
+pub const SEATED_GUARD_GAMEPLAY_VERSION: u32 = 15;
+/// A low Crawler body, a timed leap and an audible encounter cue.
+pub const CRAWLER_GAMEPLAY_VERSION: u32 = 16;
+/// M02 projects ward victory before Latch's later release action.
+pub const LATCH_RELEASE_GAMEPLAY_VERSION: u32 = 17;
+pub const RUN_CARRY_GAMEPLAY_VERSION: u32 = 18;
+pub const COMPANION_GAMEPLAY_VERSION: u32 = 19;
+pub const SIDE_WARD_GAMEPLAY_VERSION: u32 = 20;
+/// Server-owned, visible M02 captive evacuation after the optional side ward.
+pub const EVACUATION_GAMEPLAY_VERSION: u32 = 21;
+/// M02's ballistic inspection glass, which older strict surface readers cannot render.
+pub const INSPECTION_GLASS_GAMEPLAY_VERSION: u32 = 22;
 /// Highest understood gameplay contract; content requirements use their own minimum.
-pub const GAMEPLAY_VERSION: u32 = BODY_GAMEPLAY_VERSION;
+pub const GAMEPLAY_VERSION: u32 = INSPECTION_GLASS_GAMEPLAY_VERSION;
 pub fn legacy_gameplay_version() -> u32 {
     1
 }
@@ -584,6 +599,7 @@ pub enum MapSurface {
     ServiceSteel,
     RecordsTile,
     LiftPanel,
+    InspectionGlass,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
@@ -649,6 +665,7 @@ mod geometry_tests {
             presentation: None,
             mission: None,
             m02_objectives: None,
+            m02_side_ward: false,
             map_id: 67,
             map_name: "Enclosed fixture".into(),
             half_extent: 12.0,
@@ -656,6 +673,7 @@ mod geometry_tests {
             geometry_version: 2,
         };
         let json = serde_json::to_string(&message).unwrap();
+        assert!(!json.contains("m02_side_ward"));
         assert!(
             matches!(serde_json::from_str::<ServerMessage>(&json).unwrap(),
             ServerMessage::MapInfo { geometry_version: 2, solids, .. } if solids == raised)
@@ -745,6 +763,9 @@ pub enum ServerMessage {
         /// Present only for M02 maps. The count binds mission state to this map.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         m02_objectives: Option<u8>,
+        /// True only when this M02 map authors the optional side-ward encounter.
+        #[serde(default, skip_serializing_if = "is_false")]
+        m02_side_ward: bool,
         /// The arena's rule set. Omitted on authored campaign maps.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         rules: Option<MatchRules>,
@@ -1034,8 +1055,8 @@ pub struct PlayerState {
     /// Holds the golden Railgun. Omitted when false.
     #[serde(default, skip_serializing_if = "is_false")]
     pub golden: bool,
-    /// The participant's accepted body. Omitted for Union campaign actors
-    /// and the arena boss, which keep their own authored identity.
+    /// The participant's accepted body. Omitted for Union and companion
+    /// campaign actors and the arena boss, which keep their own identity.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub body: Option<BodyKind>,
 }
@@ -1049,6 +1070,10 @@ pub struct PlayerScore {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "event", rename_all = "snake_case")]
 pub enum GameEvent {
+    /// A nearby Crawler encounter wakes before its first visible attack.
+    CrawlerScrabble {
+        position: [f32; 3],
+    },
     Frag {
         killer: String,
         victim: String,

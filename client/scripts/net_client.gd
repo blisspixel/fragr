@@ -1,10 +1,18 @@
 extends Node
 
-# Version 13 understands the chosen participant body; 12 match rule sets;
+# Version 21 understands server-owned M02 captive evacuation;
+# 20 understands the optional side ward fact in M02 state;
+# 19 understands the autonomous Latch companion in M02 snapshots;
+# 18 understands durable M02 runs and the per-level continue baseline;
+# 17 understands the server-owned M02 ward and release facts;
+# 16 understands the server-owned Crawler leap and M02 sound cue;
+# 15 understands seated M02 Clerks, and 14 is capture the flag;
+# 13 understands the chosen participant body;
+# 12 match rule sets;
 # 10 one ammunition count per type and scatter pellet traces; 9 M02
 # objective and gate state; 8 private participant records. Older servers
 # remain playable.
-const GAMEPLAY_VERSION: int = PlayerBody.VERSION
+const GAMEPLAY_VERSION: int = 22
 
 signal connected_to_server
 signal disconnected_from_server
@@ -339,7 +347,14 @@ func _handle_message(text: String):
 				server_error.emit(problem)
 				return
 			var geometry: Dictionary = MissionState.geometry_for(data)
-			if geometry.is_empty() or geometry.get("id") != mission_geometry.get("id"):
+			if geometry.get("id") == MissionState.M02_ID and mission_geometry.get("id") == MissionState.M02_ID \
+				and geometry.get("map_id") == mission_geometry.get("map_id") \
+				and geometry.get("side_ward") != mission_geometry.get("side_ward"):
+				disconnect_from_server()
+				server_error.emit(MissionState.INVALID)
+				return
+			if geometry.is_empty() or geometry.get("id") != mission_geometry.get("id") \
+				or (geometry.get("id") == MissionState.M02_ID and geometry.get("map_id") != mission_geometry.get("map_id")):
 				_mission_previous.clear()
 			mission.clear()
 			mission_geometry = geometry

@@ -264,7 +264,7 @@ pub fn campaign_enemy_engageable(
     ];
     let center = [
         other.x,
-        other.y - PLAYER_FLOOR_Y + fragr_server::combat::FIGHTER_HEIGHT * 0.5,
+        other.y - PLAYER_FLOOR_Y + fragr_server::combat::target_height(other.campaign) * 0.5,
         other.z,
     ];
     world.line_of_sight(eye, center)
@@ -378,6 +378,7 @@ mod tests {
             phase: EnemyPhase::Idle,
             phase_started: 0,
             phase_ends: 0,
+            seated: false,
         });
         let mut snap = snapshot(1, vec![mine, partner, guard], vec![]);
         let telemetry = telemetry_for(&snap, me);
@@ -409,6 +410,7 @@ mod tests {
             phase: EnemyPhase::Idle,
             phase_started: 0,
             phase_ends: 0,
+            seated: false,
         });
         let world = Navigation::new(Arena {
             half: 24.0,
@@ -468,6 +470,39 @@ mod tests {
         snap.players[2].x = 24.0;
         snap.players[2].z = 20.0;
         assert!(through_inventory(&snap).look_at.is_none());
+    }
+
+    #[test]
+    fn campaign_visibility_uses_the_crawlers_low_hit_volume() {
+        use fragr_server::protocol::{CampaignActor, EnemyKind, EnemyPhase};
+        let me = Uuid::from_u128(1);
+        let foe = Uuid::from_u128(2);
+        let mut mine = player("me", me, 0.0, 0.0, 100, "tack");
+        mine.campaign = Some(CampaignActor::Participant {});
+        mine.y = PLAYER_FLOOR_Y;
+        let mut guard = player("guard", foe, 10.0, 0.0, 60, "tack");
+        guard.y = PLAYER_FLOOR_Y;
+        guard.campaign = Some(CampaignActor::Union {
+            kind: EnemyKind::Clerk,
+            phase: EnemyPhase::Idle,
+            phase_started: 0,
+            phase_ends: 0,
+            seated: false,
+        });
+        let world = Navigation::new(Arena {
+            half: 24.0,
+            solids: vec![Solid::from_center_top(5.0, 0.0, 0.25, 2.0, 1.15)],
+        })
+        .unwrap();
+        assert!(campaign_enemy_engageable(&world, &mine, &guard));
+        guard.campaign = Some(CampaignActor::Union {
+            kind: EnemyKind::Crawler,
+            phase: EnemyPhase::Idle,
+            phase_started: 0,
+            phase_ends: 0,
+            seated: false,
+        });
+        assert!(!campaign_enemy_engageable(&world, &mine, &guard));
     }
 
     #[test]

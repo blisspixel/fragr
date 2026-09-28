@@ -861,6 +861,7 @@ pub fn compute_report(obs: &Observation, agents: usize) -> Report {
             | GameEvent::BossDown { .. } => host_beats += 1,
             GameEvent::Pickup { .. } => pickups += 1,
             GameEvent::Hit { .. }
+            | GameEvent::CrawlerScrabble { .. }
             | GameEvent::PlayerJoined { .. }
             | GameEvent::PlayerLeft { .. }
             | GameEvent::Speak { .. } => {}
@@ -1317,10 +1318,14 @@ impl Arena {
         from: &fragr_server::protocol::PlayerState,
         to: &fragr_server::protocol::PlayerState,
     ) -> bool {
-        use fragr_server::{combat::FIGHTER_HEIGHT, sim::PLAYER_FLOOR_Y};
+        use fragr_server::sim::PLAYER_FLOOR_Y;
         fragr_server::combat::line_of_sight(
             [from.x, from.y - PLAYER_FLOOR_Y + EYE_HEIGHT, from.z],
-            [to.x, to.y - PLAYER_FLOOR_Y + FIGHTER_HEIGHT * 0.5, to.z],
+            [
+                to.x,
+                to.y - PLAYER_FLOOR_Y + fragr_server::combat::target_height(to.campaign) * 0.5,
+                to.z,
+            ],
             &self.solids,
         )
     }
@@ -1404,6 +1409,7 @@ async fn agent_task(
             Ok(ServerMessage::MapInfo {
                 map_id,
                 m02_objectives,
+                m02_side_ward,
                 solids,
                 half_extent,
                 geometry_version,
@@ -1417,6 +1423,7 @@ async fn agent_task(
                     .replace_map_with_id(
                         map_id,
                         m02_objectives,
+                        m02_side_ward,
                         mission.as_ref(),
                         half_extent,
                         &solids,
@@ -2670,6 +2677,7 @@ mod planner_tests {
             phase: EnemyPhase::Idle,
             phase_started: 0,
             phase_ends: 0,
+            seated: false,
         });
         let mut snapshot = scene(1, vec![mine, partner, guard], vec![]);
         let arena = Arena::default();

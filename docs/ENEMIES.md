@@ -1,12 +1,15 @@
 # Enemy roster
 
-**Status, 2026-09-24:** Clerk and Sweeper prototype encounters are implemented
+**Status, 2026-09-27:** Clerk and Sweeper prototype encounters are implemented
 through shared simulation bodies, typed campaign identity and directional
 animation. Their unshaded atlases no longer share one outline: the Sweeper is
 the wide bot with the level rifle, and the Clerk is the narrower human whose
-aim clears the shoulder. The Heavy Sweeper and the Turret are implemented on
+aim clears the shoulder. The M02 Crawler is implemented in a draft slice with
+a low server body, committed leap, original atlas and captioned spatial cue;
+live motion and fresh-player acceptance remain open. The Heavy Sweeper and the
+Turret are implemented on
 the same seams and demonstrated on a test range, not yet placed in a mission
-([plan](plans/heavy-sweeper-and-turret.md)). All four wear the black, dark
+([plan](plans/heavy-sweeper-and-turret.md)). All five wear the black, dark
 steel and restrained red Union issue. Full-mission tuning and a fresh-player
 review remain open. Other roles below, including the flying drones added
 2026-09-24, reactivation and projectiles are proposed.
@@ -38,7 +41,7 @@ fragments. Neither needs constant banter.
 | Sweeper | Bot, standard chassis | Mobile bursts with a visible and audible cycle | Interrupt or flank between bursts |
 | Ranged Sweeper | Bot with distinct antenna/weapon silhouette | Stops to line up a precision shot | Break sight or close through cover |
 | Heavy Sweeper | Bot with broad armor and heavy gait, head sunk below two pauldrons | Pauldrons flare and red lamps light (1.2 s Standard), then a four-round burst; slow sideways shuffle after recovery. Ordinary hits do not flinch it; a 40-damage tick staggers it once per attack | Flank, splash, or commit finite ammo; a heavy hit cancels one burst. Implemented |
-| Crawler | Low constrained chassis | Fast close attack preceded by a leap/wind-up | Scatter, movement and spacing |
+| Crawler | Low constrained Union chassis, M02 draft | Locked leap after a visible crouch; mechanical scrabble and caption on encounter reveal | Shotgun, lateral dodge and punishable recovery; live review pending |
 | Jammer | Constrained service/security chassis | Telegraphs local interference and slow projectiles | Prioritize it from a flank on its exposed position |
 | Enforcer | Committed human elite, powered issued armor | Charge and knockback with a clear wind-up | Dodge and punish recovery, use armor counters |
 | Turret | Fixed equipment, no assumed personhood | Idle head sweep, visible tracking, then a red charge (1.3 s Standard) before one Rail shot. Sees new targets only ahead of its head | Break sight to cancel the charge, flank behind the sweep, precision damage. Never an unavoidable gauntlet. Implemented |
@@ -127,14 +130,15 @@ height does too. Rockets hit on contact. Drones are the first enemies where the
 Scatter's vertical spread and a grenade's airburst matter, which is depth, not
 a new rule.
 
-**Introductions.** M02 shows one Notary behind the observation gallery's glass,
-photographing captives, out of reach and out of combat. M03's Union sweep brings
-the first fight: Notaries over the roof loop and the tram trench with Sweepers
-below, in place of the Turret, which first appears in M04. The Assessor is M07's
-armored threat over the greenhouse trench, the enemy that the Arc lesson
-answers, so Mars adds a variant of an existing subsystem rather than a new one.
-From M08 on they mix with established roles. In M10 the Inheritance can seize
-surviving Notaries as infrastructure; same tells, changed targets.
+**Introductions.** Level 2 shows one Notary behind the observation gallery's
+glass, photographing captives, out of reach and out of combat. Level 4 brings
+the first fight over Low Water's market and clinic with Sweepers below. The
+Turret first fights in level 6 at lunar customs. The Assessor is level 12's
+armored threat in the Martian habitat, answered by the Arc lesson. Later fights
+can mix these established roles. During the level 18 wipe, the Inheritance can
+seize surviving Notaries as infrastructure; their issued shape remains, while
+their targets and timing change. These placements follow the accepted
+[campaign order](CAMPAIGN.md#structure); the drones remain unbuilt.
 
 **What the existing Compliance Drone gives.** Less than its name suggests. It is
 an arena prototype: an ordinary player body with an `is_boss` flag, spawned once
@@ -186,13 +190,13 @@ then mix it with an established role. Proposed progression:
 | Combination | Player decision | Place in the campaign |
 |---|---|---|
 | Clerk + Sweeper | Interrupt the human's single shot or evade the bot's committed burst; use counter islands to separate their angles | M01 records and transfer rooms, implemented draft |
-| Crawler + Sweeper | Keep space from the close threat without backing into a ranged lane | M02 correction/service loop, planned |
-| Heavy + mobile security | Spend ammunition on suppression or take the exposed flank while lighter units move | M03 workshops and later industrial spaces, planned |
-| Notary + Sweeper | Look up to break the flash or keep pressure on the ground burst; take the roof to meet the drone level | M03 roof loop and tram trench, planned |
-| Assessor + human security | Leave the canister splash while the squad pushes, or spend Arc charge on the vents | M07 greenhouse trench, planned |
+| Crawler + Sweeper | Keep space from the close threat without backing into a ranged lane | Level 2 service stair authored in draft; live proof pending. Later correction spaces planned |
+| Heavy + mobile security | Spend ammunition on suppression or take the exposed flank while lighter units move | Level 5 Low Water and later industrial spaces, planned |
+| Notary + Sweeper | Look up to break the flash or keep pressure on the ground burst; take the roof to meet the drone level | Level 4 Low Water, planned |
+| Assessor + human security | Leave the canister splash while the squad pushes, or spend Arc charge on the vents | Level 12 Martian habitat, planned |
 | Ranged Sweeper + Jammer | Break the precision sightline while dodging clearly traveling interference shots | Lunar galleries with side routes, planned |
-| Auditor + disabled bodies | Interrupt a bounded repair channel or finish an immediate attacker | M05 custody defense, planned |
-| Absorbed bot + restoration machine | Apply the learned weapon counter while responding to newly marked work zones | M10 survival finale, planned |
+| Auditor + disabled bodies | Interrupt a bounded repair channel or finish an immediate attacker | Level 8 lunar custody archive, planned |
+| Absorbed bot + restoration machine | Apply the learned weapon counter while responding to newly marked work zones | Levels 18 to 20, planned |
 
 Each pairing needs routes that allow both answers, readable attack overlap and
 supplies for imperfect play. A room full of hitscan enemies does not reproduce

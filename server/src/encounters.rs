@@ -1,6 +1,6 @@
 //! Authored encounter lifecycle. Bodies, weapons and collision belong to sim.
-use crate::protocol::{CampaignActor, EnemyPhase};
-use crate::sim::{BotIntent, GameState, PLAYER_FLOOR_Y};
+use crate::protocol::{CampaignActor, EnemyKind, EnemyPhase, GameEvent};
+use crate::sim::{BotIntent, GameState, Player, PLAYER_FLOOR_Y};
 use uuid::Uuid;
 
 pub(crate) mod enemy;
@@ -10,6 +10,11 @@ use enemy::EnemyController;
 /// Share of top speed for a body. Participants and arcade fighters keep 1.0.
 pub(crate) fn gait(identity: Option<CampaignActor>) -> f32 {
     match identity {
+        Some(CampaignActor::Union {
+            kind: crate::protocol::EnemyKind::Crawler,
+            phase: EnemyPhase::Leaping,
+            ..
+        }) => 1.15,
         Some(CampaignActor::Union { kind, .. }) => enemy::gait(kind),
         _ => 1.0,
     }
@@ -35,8 +40,18 @@ pub(crate) struct Encounters {
 }
 
 impl Encounters {
+    pub(crate) fn is_complete(&self, index: usize) -> bool {
+        matches!(self.groups.get(index), Some(Group::Complete))
+    }
+
+    pub(crate) fn is_active_enemy(&self, id: Uuid) -> bool {
+        self.enemies.iter().any(|(group, enemy)| {
+            enemy.id == id && matches!(self.groups.get(*group), Some(Group::Active { .. }))
+        })
+    }
+
     fn reset(&mut self, state: &mut GameState) {
-        state.players.retain(|p| !p.is_campaign_enemy());
+        state.players.retain(Player::is_participant);
         self.enemies.clear();
         self.groups
             .iter_mut()
@@ -88,33 +103,45 @@ impl Encounters {
                             placement.feet,
                             placement.yaw,
                             state.tick,
+                            placement.seated,
                         ),
                     ));
                 }
                 self.groups[index] = Group::Dormant(ids);
             }
-            if let Group::Active { ids, .. } = &self.groups[index] {
-                if ids
+            // A distant shot can wake and kill a later group before its
+            // predecessor clears. Keep it active until the authored chain
+            // clears so downstream encounters and mission facts stay gated.
+            let predecessor_complete = definition.after.as_ref().is_none_or(|id| {
+                definitions
                     .iter()
-                    .all(|id| !state.players.iter().any(|p| p.id == *id && p.hp > 0))
+                    .position(|encounter| encounter.id == *id)
+                    .is_some_and(|at| matches!(self.groups[at], Group::Complete))
+            });
+            if let Group::Active { ids, .. } = &self.groups[index] {
+                if predecessor_complete
+                    && ids
+                        .iter()
+                        .all(|id| !state.players.iter().any(|p| p.id == *id && p.hp > 0))
                 {
                     self.groups[index] = Group::Complete;
                     tracing::info!(encounter = %definition.id, "Campaign encounter cleared");
                 }
             }
-            let ready = matches!(
-                self.groups[index],
+            let active_undispatched_alive = match &self.groups[index] {
                 Group::Active {
+                    ids,
                     dispatched: false,
-                    ..
-                }
-            ) || matches!(self.groups[index], Group::Dormant(_))
-                && definition.after.as_ref().is_none_or(|id| {
-                    definitions
+                } => ids.iter().any(|id| {
+                    state
+                        .players
                         .iter()
-                        .position(|e| e.id == *id)
-                        .is_some_and(|at| matches!(self.groups[at], Group::Complete))
-                });
+                        .any(|player| player.id == *id && player.hp > 0)
+                }),
+                _ => false,
+            };
+            let ready = active_undispatched_alive
+                || matches!(self.groups[index], Group::Dormant(_)) && predecessor_complete;
             let entered = living.iter().find(|&&feet| {
                 definition
                     .regions
@@ -123,9 +150,19 @@ impl Encounters {
             });
             if let Some(&feet) = entered.filter(|_| ready) {
                 self.activate(index, feet, state.tick, true);
+                if let Some(crawler) = definition
+                    .enemies
+                    .iter()
+                    .find(|enemy| enemy.kind == EnemyKind::Crawler)
+                {
+                    state.events.push(GameEvent::CrawlerScrabble {
+                        position: crawler.feet,
+                    });
+                }
                 tracing::info!(encounter = %definition.id, "Campaign encounter activated");
             }
         }
+        self.sync_identities(&mut state.players);
         state.players.retain(|player| !matches!(player.campaign,
             Some(CampaignActor::Union { phase: EnemyPhase::Dead, phase_ends, .. }) if state.tick >= phase_ends));
         self.enemies
@@ -145,6 +182,16 @@ impl Encounters {
         }
         for (_, enemy) in self.enemies.iter_mut().filter(|(index, _)| *index == group) {
             enemy.alarm(alarm, tick);
+        }
+    }
+
+    /// An alarm can happen after intents have run for this tick. Publish the
+    /// changed posture before the next snapshot, including peers of a hit guard.
+    pub(crate) fn sync_identities(&self, players: &mut [Player]) {
+        for (_, enemy) in &self.enemies {
+            if let Some(player) = players.iter_mut().find(|player| player.id == enemy.id) {
+                player.campaign = Some(enemy.identity());
+            }
         }
     }
 
@@ -180,6 +227,13 @@ impl Encounters {
         let enemy = &mut self.enemies[index].1;
         enemy.hit(tick, died);
         Some(enemy.identity())
+    }
+
+    pub(crate) fn claim_crawler_contact(&mut self, id: Uuid) -> bool {
+        self.enemies
+            .iter_mut()
+            .find(|(_, enemy)| enemy.id == id)
+            .is_some_and(|(_, enemy)| enemy.claim_crawler_contact())
     }
 }
 

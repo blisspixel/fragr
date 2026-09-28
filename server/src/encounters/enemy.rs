@@ -1,5 +1,4 @@
-use crate::combat::{aim_at, line_of_sight, FIGHTER_HEIGHT};
-use crate::movement::EYE_HEIGHT;
+use crate::combat::{aim_at, line_of_sight};
 use crate::navigation::NavigationGoal;
 use crate::protocol::{
     Action, CampaignActor, CampaignDifficulty, EnemyKind, EnemyPhase, Snapshot, WeaponType,
@@ -30,6 +29,43 @@ const TURRET_LOCK: f32 = 0.06;
 /// Sideways steps a Heavy Sweeper takes after each recovery before its next
 /// burst. Slow gait makes this a short shuffle, not a dodge.
 const HEAVY_REPOSITION_TICKS: u64 = 24;
+/// Require enough of a low body to be visible for its leap tell to read.
+const CRAWLER_EXPOSED_HALF_WIDTH: f32 = 0.6;
+const CRAWLER_WINDUP_TICKS: u64 = 12;
+const CRAWLER_RECOVERY_TICKS: u64 = 20;
+
+fn crawler_body_exposed(
+    viewer: &crate::protocol::PlayerState,
+    crawler_feet: [f32; 3],
+    solids: &[crate::movement::Solid],
+) -> bool {
+    let origin = [
+        viewer.x,
+        viewer.y - PLAYER_FLOOR_Y + crate::combat::eye_height(viewer.campaign),
+        viewer.z,
+    ];
+    let dx = crawler_feet[0] - viewer.x;
+    let dz = crawler_feet[2] - viewer.z;
+    let distance = dx.hypot(dz);
+    let lateral = if distance > 0.001 {
+        [-dz / distance, dx / distance]
+    } else {
+        [1.0, 0.0]
+    };
+    [-CRAWLER_EXPOSED_HALF_WIDTH, 0.0, CRAWLER_EXPOSED_HALF_WIDTH]
+        .into_iter()
+        .all(|offset| {
+            line_of_sight(
+                origin,
+                [
+                    crawler_feet[0] + lateral[0] * offset,
+                    crawler_feet[1] + crate::combat::CRAWLER_HEIGHT * 0.5,
+                    crawler_feet[2] + lateral[1] * offset,
+                ],
+                solids,
+            )
+        })
+}
 
 /// Spawned health and issued weapon. Difficulty never changes these.
 pub(crate) fn body(kind: EnemyKind) -> (i32, WeaponType) {
@@ -38,6 +74,7 @@ pub(crate) fn body(kind: EnemyKind) -> (i32, WeaponType) {
         EnemyKind::Sweeper => (80, WeaponType::Flechette),
         EnemyKind::HeavySweeper => (160, WeaponType::Flechette),
         EnemyKind::Turret => (100, WeaponType::Rail),
+        EnemyKind::Crawler => (55, WeaponType::Fists),
     }
 }
 
@@ -47,13 +84,14 @@ pub(crate) fn gait(kind: EnemyKind) -> f32 {
         EnemyKind::Clerk | EnemyKind::Sweeper => 0.5,
         EnemyKind::HeavySweeper => 0.3,
         EnemyKind::Turret => 0.0,
+        EnemyKind::Crawler => 0.7,
     }
 }
 
 /// Committed shots per attack.
 fn burst(kind: EnemyKind) -> u8 {
     match kind {
-        EnemyKind::Clerk | EnemyKind::Turret => 1,
+        EnemyKind::Clerk | EnemyKind::Turret | EnemyKind::Crawler => 1,
         EnemyKind::Sweeper => 3,
         EnemyKind::HeavySweeper => 4,
     }
@@ -62,7 +100,7 @@ fn burst(kind: EnemyKind) -> u8 {
 /// Hit stun in ticks. Armored bodies only enter it on a heavy hit.
 fn stun(kind: EnemyKind) -> u64 {
     match kind {
-        EnemyKind::Clerk | EnemyKind::Sweeper => 6,
+        EnemyKind::Clerk | EnemyKind::Sweeper | EnemyKind::Crawler => 6,
         EnemyKind::HeavySweeper => 16,
         EnemyKind::Turret => 10,
     }
@@ -105,6 +143,9 @@ pub(super) struct EnemyController {
     stagger_ready: bool,
     reposition_until: u64,
     strafe_left: bool,
+    seated: bool,
+    /// A Crawler can connect once in each committed leap.
+    contact_used: bool,
 }
 
 /// (windup, recovery) ticks. Tiers change tells and openings only; health,
@@ -123,11 +164,19 @@ pub(crate) fn attack_timing(kind: EnemyKind, difficulty: CampaignDifficulty) -> 
         (EnemyKind::Turret, CampaignDifficulty::Assisted) => (36, 40),
         (EnemyKind::Turret, CampaignDifficulty::Standard) => (26, 30),
         (EnemyKind::Turret, CampaignDifficulty::Severe) => (20, 24),
+        (EnemyKind::Crawler, _) => (CRAWLER_WINDUP_TICKS, CRAWLER_RECOVERY_TICKS),
     }
 }
 
 impl EnemyController {
-    pub fn new(id: Uuid, kind: EnemyKind, alarm_position: [f32; 3], yaw: f32, tick: u64) -> Self {
+    pub fn new(
+        id: Uuid,
+        kind: EnemyKind,
+        alarm_position: [f32; 3],
+        yaw: f32,
+        tick: u64,
+        seated: bool,
+    ) -> Self {
         Self {
             id,
             kind,
@@ -150,6 +199,8 @@ impl EnemyController {
             stagger_ready: true,
             reposition_until: 0,
             strafe_left: false,
+            seated,
+            contact_used: false,
         }
     }
 
@@ -159,10 +210,12 @@ impl EnemyController {
             phase: self.phase,
             phase_started: self.started,
             phase_ends: self.until,
+            seated: self.seated,
         }
     }
 
     pub fn alarm(&mut self, position: [f32; 3], tick: u64) {
+        self.seated = false;
         self.last_known = position;
         self.search_until = tick.saturating_add(600);
     }
@@ -174,6 +227,8 @@ impl EnemyController {
     }
 
     pub fn hit(&mut self, tick: u64, died: bool) {
+        self.seated = false;
+        self.contact_used = true;
         if self.phase == EnemyPhase::Dead {
             return;
         }
@@ -211,12 +266,17 @@ impl EnemyController {
         let (windup, recovery) = attack_timing(self.kind, state.campaign_rules().difficulty);
         let turret = self.kind == EnemyKind::Turret;
         let feet = [me.x, me.y - PLAYER_FLOOR_Y, me.z];
-        let eye = [me.x, feet[1] + EYE_HEIGHT, me.z];
+        let eye = [me.x, feet[1] + crate::combat::eye_height(me.campaign), me.z];
         let centre = |p: &crate::protocol::PlayerState| {
-            [p.x, p.y - PLAYER_FLOOR_Y + FIGHTER_HEIGHT * 0.5, p.z]
+            [
+                p.x,
+                p.y - PLAYER_FLOOR_Y + crate::combat::target_height(p.campaign) * 0.5,
+                p.z,
+            ]
         };
         let visible = |p: &&crate::protocol::PlayerState| {
-            me.is_hostile_to(p)
+            p.campaign == Some(CampaignActor::Participant {})
+                && me.is_hostile_to(p)
                 && crate::mission::actor_active(state.mission.as_ref(), p.id, p.campaign)
                 && (p.x - me.x).hypot(p.z - me.z) <= SIGHT_RANGE
                 && line_of_sight(eye, centre(p), &state.map.arena().solids)
@@ -230,20 +290,23 @@ impl EnemyController {
             .and_then(|id| snapshot.players.iter().find(|p| p.id == id).filter(visible))
             .or_else(|| {
                 // A committed attack never snaps to a replacement target.
-                (!matches!(self.phase, EnemyPhase::Windup | EnemyPhase::Firing))
-                    .then(|| {
-                        snapshot
-                            .players
-                            .iter()
-                            .filter(visible)
-                            .filter(noticed)
-                            .min_by(|a, b| {
-                                (a.x - me.x)
-                                    .hypot(a.z - me.z)
-                                    .total_cmp(&(b.x - me.x).hypot(b.z - me.z))
-                            })
-                    })
-                    .flatten()
+                (!matches!(
+                    self.phase,
+                    EnemyPhase::Windup | EnemyPhase::Firing | EnemyPhase::Leaping
+                ))
+                .then(|| {
+                    snapshot
+                        .players
+                        .iter()
+                        .filter(visible)
+                        .filter(noticed)
+                        .min_by(|a, b| {
+                            (a.x - me.x)
+                                .hypot(a.z - me.z)
+                                .total_cmp(&(b.x - me.x).hypot(b.z - me.z))
+                        })
+                })
+                .flatten()
             });
         if let Some(target) = target {
             self.target = Some(target.id);
@@ -282,6 +345,17 @@ impl EnemyController {
         let Some(body) = state.players.iter().find(|p| p.id == self.id) else {
             return BotIntent::default();
         };
+        if self.kind == EnemyKind::Crawler {
+            let support = state
+                .map
+                .arena()
+                .support_height(feet[0], feet[2], feet[1] + 0.01);
+            let grounded = body.vy <= 0.0 && (feet[1] - support).abs() <= 0.02;
+            let exposed = target.is_some_and(|target| {
+                crawler_body_exposed(target, feet, &state.map.arena().solids)
+            });
+            return self.crawler(target, grounded, exposed, feet, tick);
+        }
         // Guards spend the same finite ammunition counts as participants.
         // An empty guard can still defend themselves at melee distance.
         if let Some(loadout) = body.inventory.state(body.id, body.weapon, state.tick) {
@@ -384,6 +458,98 @@ impl EnemyController {
         action.pitch = Some(aim.1);
     }
 
+    fn crawler(
+        &mut self,
+        target: Option<&crate::protocol::PlayerState>,
+        grounded: bool,
+        exposed: bool,
+        feet: [f32; 3],
+        tick: u64,
+    ) -> BotIntent {
+        const LEAP_TICKS: u64 = 16;
+        let mut action = Action::default();
+        if self.phase == EnemyPhase::Windup {
+            action.yaw = Some(self.aim.0);
+            if tick >= self.until {
+                self.enter(EnemyPhase::Leaping, tick, LEAP_TICKS);
+                action.jump = true;
+                action.forward = true;
+            }
+            return BotIntent { action, goal: None };
+        }
+        if self.phase == EnemyPhase::Leaping {
+            if tick >= self.until || (tick > self.started + 1 && grounded) {
+                self.enter(EnemyPhase::Recovery, tick, CRAWLER_RECOVERY_TICKS);
+                return BotIntent::default();
+            }
+            action.yaw = Some(self.aim.0);
+            action.forward = true;
+            return BotIntent { action, goal: None };
+        }
+        let Some(target) = target else {
+            if tick <= self.search_until
+                && (feet[0] - self.last_known[0]).hypot(feet[2] - self.last_known[2]) > 0.6
+            {
+                if self.phase != EnemyPhase::Moving {
+                    self.enter(EnemyPhase::Moving, tick, 0);
+                }
+                action.forward = true;
+                action.yaw =
+                    Some((self.last_known[2] - feet[2]).atan2(self.last_known[0] - feet[0]));
+                return BotIntent {
+                    action,
+                    goal: Some(NavigationGoal {
+                        feet: self.last_known,
+                        combat: false,
+                    }),
+                };
+            }
+            if self.phase != EnemyPhase::Idle {
+                self.enter(EnemyPhase::Idle, tick, 0);
+            }
+            return BotIntent::default();
+        };
+        let distance = (target.x - feet[0]).hypot(target.z - feet[2]);
+        if grounded
+            && exposed
+            && distance <= 4.0
+            && (target.y - PLAYER_FLOOR_Y - feet[1]).abs() <= 1.2
+        {
+            self.aim = (
+                (target.z - feet[2])
+                    .atan2(target.x - feet[0])
+                    .rem_euclid(TAU),
+                0.0,
+            );
+            self.last_known = [target.x, target.y - PLAYER_FLOOR_Y, target.z];
+            self.contact_used = false;
+            self.enter(EnemyPhase::Windup, tick, CRAWLER_WINDUP_TICKS);
+            action.yaw = Some(self.aim.0);
+            return BotIntent { action, goal: None };
+        }
+        if self.phase != EnemyPhase::Moving {
+            self.enter(EnemyPhase::Moving, tick, 0);
+        }
+        action.forward = true;
+        action.yaw = Some((target.z - feet[2]).atan2(target.x - feet[0]));
+        BotIntent {
+            action,
+            goal: Some(NavigationGoal {
+                feet: [target.x, target.y - PLAYER_FLOOR_Y, target.z],
+                combat: true,
+            }),
+        }
+    }
+
+    pub(super) fn claim_crawler_contact(&mut self) -> bool {
+        if self.kind != EnemyKind::Crawler || self.phase != EnemyPhase::Leaping || self.contact_used
+        {
+            return false;
+        }
+        self.contact_used = true;
+        true
+    }
+
     /// Idle sweep, bounded tracking, then a locked spin-up. The turret never
     /// walks, never searches and forgets a target the moment sight breaks.
     fn turret(
@@ -419,5 +585,221 @@ impl EnemyController {
             self.enter(EnemyPhase::Moving, tick, 0);
         }
         BotIntent { action, goal: None }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn union_pursues_the_participant_even_when_latch_is_closer() {
+        use crate::maps::AuthoredSource;
+        use crate::protocol::{MissionId, Role};
+
+        let mut state = GameState::with_authored_map(
+            AuthoredSource::Mission(MissionId::PersonsUnknown)
+                .load()
+                .unwrap(),
+        );
+        let participant_id = Uuid::from_u128(0x02b0);
+        state.add_player(participant_id, "Runner".into(), Role::Human);
+        assert!(state.acknowledge_m02(participant_id, 1));
+        let placement = state.map.encounters()[3]
+            .enemies
+            .iter()
+            .find(|placement| placement.id == "ward_sweeper")
+            .unwrap()
+            .clone();
+        let enemy_id = state.spawn_campaign_enemy(&placement);
+        let companion_id = state.spawn_m02_companion().unwrap();
+        let participant = state
+            .players
+            .iter_mut()
+            .find(|p| p.id == participant_id)
+            .unwrap();
+        [participant.x, participant.y, participant.z] = [7.0, PLAYER_FLOOR_Y, -11.0];
+        let companion = state
+            .players
+            .iter_mut()
+            .find(|p| p.id == companion_id)
+            .unwrap();
+        [companion.x, companion.y, companion.z] = [5.5, PLAYER_FLOOR_Y, -11.0];
+        let snapshot = state.snapshot();
+        let enemy = snapshot.players.iter().find(|p| p.id == enemy_id).unwrap();
+        let eye = [enemy.x, crate::movement::EYE_HEIGHT, enemy.z];
+        for target_id in [companion_id, participant_id] {
+            let target = snapshot.players.iter().find(|p| p.id == target_id).unwrap();
+            assert!(line_of_sight(
+                eye,
+                [
+                    target.x,
+                    crate::combat::target_height(target.campaign) * 0.5,
+                    target.z
+                ],
+                &state.map.arena().solids,
+            ));
+        }
+        let mut controller = EnemyController::new(
+            enemy_id,
+            placement.kind,
+            placement.feet,
+            placement.yaw,
+            state.tick,
+            false,
+        );
+        controller.intent(&state, &snapshot);
+        assert_eq!(controller.target, Some(participant_id));
+
+        state
+            .players
+            .iter_mut()
+            .find(|p| p.id == participant_id)
+            .unwrap()
+            .hp = 0;
+        let mut controller = EnemyController::new(
+            enemy_id,
+            placement.kind,
+            placement.feet,
+            placement.yaw,
+            state.tick,
+            false,
+        );
+        controller.intent(&state, &state.snapshot());
+        assert_eq!(
+            controller.target, None,
+            "an invulnerable ally cannot distract Union fire"
+        );
+    }
+
+    #[test]
+    fn crawler_waits_for_visible_body_width_before_windup() {
+        use crate::maps::AuthoredSource;
+        use crate::protocol::{MissionId, Role};
+
+        let mut state = GameState::with_authored_map(
+            AuthoredSource::Mission(MissionId::PersonsUnknown)
+                .load()
+                .unwrap(),
+        );
+        let player_id = Uuid::from_u128(0x02c2);
+        state.add_player(player_id, "Viewer".into(), Role::Human);
+        let player = state
+            .players
+            .iter_mut()
+            .find(|p| p.id == player_id)
+            .unwrap();
+        player.x = -10.810527;
+        player.y = PLAYER_FLOOR_Y + 1.0;
+        player.z = -29.530794;
+        let snapshot = state.snapshot();
+        let viewer = snapshot.players.iter().find(|p| p.id == player_id).unwrap();
+        let solids = &state.map.arena().solids;
+        let corner_feet = [-11.192674, 0.0, -27.475136];
+        let eye = [viewer.x, 1.0 + crate::movement::EYE_HEIGHT, viewer.z];
+        let centre = [
+            corner_feet[0],
+            crate::combat::CRAWLER_HEIGHT * 0.5,
+            corner_feet[2],
+        ];
+        assert!(
+            line_of_sight(eye, centre, solids),
+            "the center ray clears the pillar edge"
+        );
+        assert!(
+            !crawler_body_exposed(viewer, corner_feet, solids),
+            "a center ray with one hidden flank is not a readable tell"
+        );
+
+        let mut crawler = EnemyController::new(
+            Uuid::from_u128(0x02c3),
+            EnemyKind::Crawler,
+            corner_feet,
+            0.0,
+            0,
+            false,
+        );
+        let hidden = crawler.crawler(Some(viewer), true, false, corner_feet, 20);
+        assert_eq!(crawler.phase, EnemyPhase::Moving);
+        assert!(hidden.action.forward);
+
+        let open_feet = [-10.6, 0.0, -27.475136];
+        assert!(crawler_body_exposed(viewer, open_feet, solids));
+        let exposed = crawler.crawler(Some(viewer), true, true, open_feet, 21);
+        assert_eq!(crawler.phase, EnemyPhase::Windup);
+        assert!(!exposed.action.forward);
+    }
+
+    #[test]
+    fn crawler_leap_lands_on_a_higher_support_and_holds_recovery() {
+        let mut crawler = EnemyController::new(
+            Uuid::nil(),
+            EnemyKind::Crawler,
+            [0.0, 0.0, 0.0],
+            0.0,
+            0,
+            false,
+        );
+        crawler.aim = (0.0, 0.0);
+        crawler.enter(EnemyPhase::Windup, 1, 12);
+        let launch = crawler.crawler(None, true, false, [0.0, 0.0, 0.0], 13);
+        assert!(launch.action.jump && launch.action.forward);
+        assert_eq!(crawler.phase, EnemyPhase::Leaping);
+        crawler.crawler(None, false, false, [0.5, 1.3, 0.0], 14);
+        assert_eq!(crawler.phase, EnemyPhase::Leaping);
+        let landed = crawler.crawler(None, true, false, [1.0, 1.0, 0.0], 15);
+        assert!(!landed.action.forward && !landed.action.jump);
+        assert_eq!(crawler.phase, EnemyPhase::Recovery);
+        assert_eq!(crawler.until, 35);
+        crawler.search_until = 0;
+        let mut state = GameState::new();
+        state.add_player(Uuid::nil(), "Crawler".into(), crate::protocol::Role::Human);
+        state.players[0].campaign = Some(crawler.identity());
+        state.tick = 33;
+        let snapshot = state.snapshot();
+        crawler.intent(&state, &snapshot);
+        assert_eq!(
+            crawler.phase,
+            EnemyPhase::Recovery,
+            "recovery holds through tick 34"
+        );
+        state.tick = 34;
+        let snapshot = state.snapshot();
+        crawler.intent(&state, &snapshot);
+        assert_eq!(
+            crawler.phase,
+            EnemyPhase::Idle,
+            "the next decision may leave recovery"
+        );
+        assert_eq!(
+            attack_timing(EnemyKind::Crawler, CampaignDifficulty::Assisted),
+            (12, 20)
+        );
+        assert_eq!(
+            attack_timing(EnemyKind::Crawler, CampaignDifficulty::Severe),
+            (12, 20)
+        );
+    }
+
+    #[test]
+    fn seated_clerk_stands_on_alarm_or_hit() {
+        let seated = || EnemyController::new(Uuid::nil(), EnemyKind::Clerk, [0.0; 3], 0.0, 0, true);
+        let mut alarmed = seated();
+        assert!(matches!(
+            alarmed.identity(),
+            CampaignActor::Union { seated: true, .. }
+        ));
+        alarmed.alarm([1.0, 0.0, 0.0], 1);
+        assert!(matches!(
+            alarmed.identity(),
+            CampaignActor::Union { seated: false, .. }
+        ));
+
+        let mut struck = seated();
+        struck.hit(1, false);
+        assert!(matches!(
+            struck.identity(),
+            CampaignActor::Union { seated: false, .. }
+        ));
     }
 }

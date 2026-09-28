@@ -542,13 +542,13 @@ async fn solo_run_admission_reserves_one_lifetime_seat_and_spectators_cannot_con
 }
 
 #[tokio::test]
-async fn m02_requires_capability_nine_before_any_role_is_admitted() {
+async fn m02_requires_inspection_glass_capability_before_any_role_is_admitted() {
     let (tx, mut commands) = mpsc::unbounded_channel();
     let server = NetServer::bind_with_requirements(
         "127.0.0.1:0",
         tx,
         2,
-        crate::protocol::M02_GAMEPLAY_VERSION,
+        crate::protocol::INSPECTION_GLASS_GAMEPLAY_VERSION,
     )
     .await
     .unwrap();
@@ -560,7 +560,7 @@ async fn m02_requires_capability_nine_before_any_role_is_admitted() {
             .send(Message::Text(
                 serde_json::json!({
                     "type":"hello", "role":role, "name":"Reader", "geometry_version":2,
-                    "gameplay_version":8
+                    "gameplay_version":21
                 })
                 .to_string(),
             ))
@@ -582,7 +582,7 @@ async fn m02_requires_capability_nine_before_any_role_is_admitted() {
         .send(Message::Text(
             serde_json::json!({
                 "type":"hello", "role":"agent", "name":"Reader", "geometry_version":2,
-                "gameplay_version":9
+                "gameplay_version":22
             })
             .to_string(),
         ))

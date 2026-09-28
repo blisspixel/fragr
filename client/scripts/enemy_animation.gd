@@ -15,6 +15,7 @@ const DEATH_SECONDS: float = 0.7
 const TRAVERSE_SECONDS: float = 0.8
 
 const CLIPS: Array[Dictionary] = [
+	{"action":"seated", "unarmed":false, "count":1},
 	{"action":"idle", "unarmed":false, "count":1},
 	{"action":"walk", "unarmed":false, "count":8},
 	{"action":"raise", "unarmed":false, "count":4},
@@ -68,6 +69,8 @@ static func frame(actor: Dictionary, weapon: String, tick: int, elapsed: float,
 	var unarmed: bool = weapon == "Fists"
 	var action: String = "idle"
 	var progress: float = 0.0
+	if phase == "idle" and actor.get("seated", false):
+		return posmod(facing, DIRECTIONS) * poses() + pose_frame("seated", false, 0.0)
 	match phase:
 		"dead":
 			action = "death"

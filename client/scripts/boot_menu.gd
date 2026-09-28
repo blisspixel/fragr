@@ -26,6 +26,7 @@ var _name_edit: LineEdit = null
 var _local_match: LocalMatch
 var _launch_pending: bool = false
 var _campaign_run_mode: String = "new"
+var _profile_return: String = "main"
 var _opening: CampaignOpening
 var _title: Label
 var _tagline: Label
@@ -155,8 +156,8 @@ func _show(page: String) -> void:
 	if _probe != null:
 		_probe.cancel_request()
 	_page = page
-	_title.add_theme_font_size_override("font_size", 60 if page in ["records", "settings", "profile"] else 154)
-	_tagline.visible = page not in ["records", "settings", "profile"]
+	_title.add_theme_font_size_override("font_size", 96 if page in ["single", "practice"] else (60 if page in ["records", "settings", "profile"] else 154))
+	_tagline.visible = page not in ["records", "settings", "profile", "single", "practice"]
 	_clear()
 	_status.text = tr(_local_match.error_key) if not _local_match.error_key.is_empty() else _nav_hint()
 	match page:
@@ -164,6 +165,8 @@ func _show(page: String) -> void:
 			_page_main()
 		"single":
 			_page_single()
+		"practice":
+			_page_practice()
 		"difficulty":
 			_page_difficulty()
 		"new_confirm":
@@ -211,7 +214,7 @@ func _process(_delta: float) -> void:
 func _page_main() -> void:
 	_button("Single Player", func() -> void: _show("single"))
 	_button("Multiplayer", func() -> void: _show("multi"))
-	_button("Your callsign", func() -> void: _show("profile"))
+	_button("Your callsign", func() -> void: _open_profile("main"))
 	_button(tr("RECORD_TITLE"), func() -> void: _show("records"))
 	_button("Settings", func() -> void: _show("settings"))
 	_button("Quit", func() -> void: get_tree().quit())
@@ -224,17 +227,31 @@ func _page_single() -> void:
 	var can_start: bool = _local_match.state in [LocalMatch.State.IDLE, LocalMatch.State.FAILED]
 	match status:
 		"ready":
+			var saved_mission: String = str(_local_match.run_preview["mission"])
 			var mission: Button = _button(tr("RUN_CONTINUE"), _start_campaign_resume)
-			mission.name = "RecallNotice"
+			mission.name = "PersonsUnknownSaved" if saved_mission == MissionState.M02_ID else "RecallNotice"
 			mission.disabled = not can_start
-			_label(tr("RUN_SAVED_DETAIL").format({"attempt": _local_match.run_preview["attempt"], "continues": _local_match.run_preview["continues"], "difficulty": _local_match.run_preview["difficulty"]}))
+			_label(tr("RUN_SAVED_MISSION").format({"mission": _saved_mission_title(saved_mission)}))
+			_label(tr("RUN_SAVED_DETAIL").format({"attempt": int(_local_match.run_preview["attempt"]), "continues": int(_local_match.run_preview["continues"]), "difficulty": _local_match.run_preview["difficulty"]}))
+			_saved_body_choice(_local_match.run_preview)
 			_button(tr("RUN_NEW"), func() -> void: _show("new_confirm")).disabled = not can_start
 		"missing":
 			var mission: Button = _button(tr("MISSION_M01_TITLE"), func() -> void: _show("difficulty"))
 			mission.name = "RecallNotice"
 			mission.disabled = not can_start
 		"awaiting_mission":
-			_label(tr("RUN_M02_PENDING"))
+			if _local_match.run_preview.get("mission") == MissionState.M02_ID:
+				var next: Button = _button(tr("RUN_CONTINUE"), _start_campaign_resume)
+				next.name = "PersonsUnknownSaved"
+				next.disabled = not can_start
+				_label(tr("RUN_SAVED_MISSION").format({"mission": _saved_mission_title(MissionState.M02_ID)}))
+				_label(tr("RUN_AWAITING_DETAIL").format({"continues": int(_local_match.run_preview["continues"]), "difficulty": _local_match.run_preview["difficulty"]}))
+				_saved_body_choice(_local_match.run_preview)
+			else:
+				_label(tr("RUN_SAVED_MISSION").format({"mission": _saved_mission_title(LocalMatch.NEXT_MISSION)}))
+				_label(tr("RUN_AWAITING_DETAIL").format({"continues": int(_local_match.run_preview["continues"]), "difficulty": _local_match.run_preview["difficulty"]}))
+				_saved_body_choice(_local_match.run_preview, false)
+				_label(tr("RUN_M03_PENDING"))
 			_button(tr("RUN_NEW"), func() -> void: _show("new_confirm")).disabled = not can_start
 		"failed":
 			_label(tr("RUN_FAILED"))
@@ -252,7 +269,13 @@ func _page_single() -> void:
 					_local_match.run_preview.clear()
 					_show("single")
 				)
-	_label(tr("MENU_M01_DESCRIPTION"))
+	if status != "awaiting_mission" or _local_match.run_preview.get("mission") != LocalMatch.NEXT_MISSION:
+		_label(tr("RUN_M02_DESCRIPTION") if status in ["ready", "awaiting_mission"] and _local_match.run_preview.get("mission") == MissionState.M02_ID else tr("MENU_M01_DESCRIPTION"))
+	_button(tr("MENU_PRACTICE_DEVELOPMENT"), func() -> void: _show("practice"))
+	_button("Back", func() -> void: _show("main"))
+
+func _page_practice() -> void:
+	var can_start: bool = _local_match.state in [LocalMatch.State.IDLE, LocalMatch.State.FAILED]
 	_button(tr("STORY_REPLAY"), _replay_opening)
 	_label(tr("MENU_M02_DEVELOPMENT"))
 	var graybox: Button = _button(tr("MISSION_M02_GRAYBOX"), _start_development_m02)
@@ -263,11 +286,30 @@ func _page_single() -> void:
 	_button("Arena against bots", func() -> void: _launch("join", LOOPBACK))
 	_button("Watch the bots", func() -> void: _launch("spectate", LOOPBACK))
 	_label(tr("MENU_PRACTICE_SERVER"))
-	_button("Back", func() -> void: _show("main"))
+	_button("Back", func() -> void: _show("single"))
 
 func _on_run_preview_changed() -> void:
 	if _page == "single" and not _launch_pending:
 		_show("single")
+
+func _saved_mission_title(mission_id: String) -> String:
+	match mission_id:
+		MissionState.M02_ID:
+			return tr("MISSION_M02_TITLE")
+		LocalMatch.NEXT_MISSION:
+			return tr("MISSION_M03_TITLE")
+	return tr("MISSION_M01_TITLE")
+
+func _saved_body_choice(preview: Dictionary, can_choose: bool = true) -> void:
+	if preview["body"] == null:
+		if can_choose:
+			_label(tr("RUN_BODY_UNBOUND").format({"body": PlayerBody.label(_settings.player_body())}))
+			var choose: Button = _button(tr("RUN_CHOOSE_BODY"), func() -> void: _open_profile("single"))
+			choose.name = "ChooseRunBody"
+		else:
+			_label(tr("RUN_BODY_PENDING"))
+	else:
+		_label(tr("RUN_BODY_BOUND").format({"body": PlayerBody.label(str(preview["body"]))}))
 
 func _page_new_confirm() -> void:
 	_label(tr("RUN_NEW_CONFIRM"))
@@ -284,7 +326,7 @@ func _replay_opening() -> void:
 func _finish_replay() -> void:
 	_opening.queue_free()
 	_opening = null
-	_show("single")
+	_show("practice")
 
 func _page_difficulty() -> void:
 	_label(tr("MISSION_M01_TITLE"))
@@ -315,17 +357,21 @@ func _start_development_m02() -> void:
 	_on_local_state_changed()
 
 func _start_campaign_resume() -> void:
-	if _launch_pending or _local_match.run_preview.get("status") != "ready":
+	var preview: Dictionary = _local_match.run_preview
+	if _launch_pending or preview.get("status") not in ["ready", "awaiting_mission"]:
 		return
-	var difficulty: String = str(_local_match.run_preview["difficulty"])
+	var mission_id: String = str(preview.get("mission", ""))
+	if mission_id not in [MissionState.ID, MissionState.M02_ID] or (preview["status"] == "awaiting_mission" and mission_id != MissionState.M02_ID):
+		return
+	var difficulty: String = str(preview["difficulty"])
 	_launch_pending = true
 	_campaign_run_mode = "resume"
 	_show("launch")
-	_local_match.start_mission(difficulty, "resume")
+	_local_match.start_mission(difficulty, "resume", mission_id)
 	_on_local_state_changed()
 
 func _page_launch() -> void:
-	_label(tr("MISSION_M02_GRAYBOX" if _local_match.mission == MissionState.M02_ID else "MISSION_M01_TITLE"))
+	_label(tr("MISSION_M02_GRAYBOX" if _campaign_run_mode.is_empty() else "MISSION_M02_TITLE") if _local_match.mission == MissionState.M02_ID else tr("MISSION_M01_TITLE"))
 	_label(tr("LOCAL_SERVER_STOPPING") if _local_match.state == LocalMatch.State.STOPPING else tr("LOCAL_SERVER_STARTING"))
 	_button(tr("MENU_CANCEL"), _cancel_campaign)
 
@@ -475,7 +521,7 @@ func _page_profile() -> void:
 	body_row.add_child(body)
 	body_row.add_child(preview)
 	_root.add_child(body_row)
-	_label("Your body in every mode. Others see it; it never changes how you fight.")
+	_label(tr("MENU_BODY_PREFERENCE"))
 	var bob: CheckButton = CheckButton.new()
 	bob.name = "WeaponBob"
 	bob.text = "WEAPON BOB"
@@ -486,8 +532,12 @@ func _page_profile() -> void:
 	_button("Save and back", _save_profile)
 	_button("Cancel", func() -> void:
 		_settings.load_from_disk()
-		_show("main")
+		_show(_profile_return)
 	)
+
+func _open_profile(return_page: String) -> void:
+	_profile_return = return_page
+	_show("profile")
 
 ## The standing figure inside the first idle cell of a baked body strip.
 const BODY_PREVIEW: Rect2 = Rect2(40, 22, 80, 114)
@@ -508,7 +558,7 @@ func _save_profile() -> void:
 	if result != OK:
 		_status.text = "Could not save callsign. Check available disk space."
 		return
-	_show("main")
+	_show(_profile_return)
 
 func _page_settings() -> void:
 	var panel: SettingsPanel = SettingsPanel.new()
@@ -530,7 +580,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		if _launch_pending:
 			_cancel_campaign()
 		else:
-			_show("single" if _page in ["difficulty", "new_confirm"] else "main")
+			_show(_profile_return if _page == "profile" else ("single" if _page in ["difficulty", "new_confirm", "practice"] else "main"))
 		get_viewport().set_input_as_handled()
 
 func _launch(mode: String, host: String, run_mode: String = "") -> void:

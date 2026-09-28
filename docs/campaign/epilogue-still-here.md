@@ -15,9 +15,9 @@ exception have done something consequential without stopping the planetary wipe.
 Their exact arrangement with the Inheritance remains unsettling and incomplete.
 
 Use a compact refuge court, an improvised repair space and a view back toward
-Low Water. Reuse recognizable M03 details, including the clinic lamp or workshop
-table where the recorded survivor state supports it. A person who died does not
-return as a convenient spare copy. Missing people are not automatically confirmed
+Low Water. Reuse recognizable level 4 and 5 details, including the clinic lamp
+or workshop table where the recorded survivor state supports it. A person who
+died does not return as a convenient spare copy. Missing people are not automatically confirmed
 dead merely because they were unobserved. No second boss or lethal escort task
 can revoke an already-earned ending.
 
@@ -51,9 +51,9 @@ very brief deep-space anomaly can suggest aliens or other dimensions for a later
 game, including beings far more powerful than anyone met here. It does not explain
 the Inheritance or start another combat act. Both endings carry this brief tease.
 
-Credits follow the playable resolution. An exhausted M10 failure instead gets
-its own short localized ending and credits, with no false claim that the player
-reached this future. That failure ending still establishes surviving free humans
+Credits follow the playable resolution. An exhausted run in levels 18 to 20
+instead gets its own short localized ending and credits, with no false claim
+that the player reached this future. That failure ending still establishes surviving free humans
 and agents, the end of Union rule and a healing Earth through concise framing and
 imagery. It cannot unlock playable aftermath. Both endings use the same original visual
 language and approved attribution policy.
