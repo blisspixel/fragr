@@ -7,4 +7,4 @@ Captured on 2026-09-27 with Godot 4.7.2 on an AMD Radeon 780M, the bundled Perso
 - `crawler-pair.png`: after the final two Crawlers. Their distant pose is visible, but this frame does not establish that their close-range windup and leap read well.
 - `dock-arrival.png`: both optional captives at the dock after its two guards fall.
 
-The full local tour and combat sheets are under `.agents/qa/m02-floor-standard-v5/` in the capture workspace. That directory is diagnostic and is not packaged. The close-range Crawler tell and an unsteered player review remain open in [the roster plan](../../plans/m02-processing-floor-roster.md).
+The full Standard tour and combat sheets are under `.agents/qa/m02-floor-standard-v5/` in the capture workspace. A matching 29-state Severe tour passed under `.agents/qa/m02-floor-severe-v1/`; its contact sheet was inspected. Those directories are diagnostic and are not packaged. The close-range Crawler tell and an unsteered player review remain open in [the roster plan](../../plans/m02-processing-floor-roster.md).

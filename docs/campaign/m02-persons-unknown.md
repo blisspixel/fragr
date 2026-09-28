@@ -8,9 +8,10 @@ drafts. The officer's [upper mezzanine](../plans/m02-floor-gantry.md),
 [maintenance circulation](../plans/m02-maintenance-circulation.md) are also in
 draft review. [Draft #278](https://github.com/blisspixel/fragr/pull/278) moves
 the optional captives from that ward to the dock under server authority. The
-accepted ten-enemy processing-floor roster and fresh-player Crawler and floor
-review remain open. The Jammer first appears in level 3. Earth before the
-wipe. Target 10-12 minutes.
+accepted ten-enemy processing-floor roster is staged in
+[draft #279](https://github.com/blisspixel/fragr/pull/279); fresh-player Crawler
+and floor balance review remain open. The Jammer first appears in level 3.
+Earth before the wipe. Target 10-12 minutes.
 [Treatment](../CAMPAIGN-MISSIONS.md#level-2-persons-unknown).
 
 The current graybox places the Shotgun on the upper gallery and two initially
@@ -51,7 +52,7 @@ side-ward return loops around processing machinery after Latch's release.
 | Service stair | Enclosed switchback, clear landings, no jump requirement | One Crawler gets a captioned scrabble and a readable leap before three Crawlers mix with a Sweeper on the next landing; fresh-player readability review pending |
 | Antechamber | Workroom with cover and a view into the ward | Recover after the stair and read the ward before entering it |
 | Ward | Open ward around the restraint frame | Set-piece fight; the correction stops when the guards fall; free Latch |
-| Processing floor | Two usable levels with broad stairs and machinery islands | The escape draft puts Latch beside the player; the gantry draft raises the Clerk officer. The larger mixed roster and player balance review remain open. |
+| Processing floor | Two usable levels with broad stairs and machinery islands | The escape draft puts Latch beside the player; the gantry draft raises the Clerk officer. The ten-enemy roster is staged in three encounters; unsteered player balance review remains open. |
 | Service loop | A stair bypass and two approaches to the side ward | The early cut offers a learned route around the pack landing; clear the optional guards and the captives free themselves, then move to the dock after the floor is safe |
 | Loading exit | Open dock with the yard in view | Clerk and Sweeper crest, regroup and leave for the rail yard |
 

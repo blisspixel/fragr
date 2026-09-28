@@ -814,7 +814,7 @@ fn side_ward_clear_is_optional() {
 }
 
 #[test]
-fn a_long_shot_can_wake_the_crossfire_without_completing_the_floor() {
+fn early_hits_cannot_complete_the_floor_or_unlock_the_dock() {
     let (mut state, id) = ward_test_state();
     at_frame_facing_control(&mut state, id);
     state.update_encounters();
@@ -823,6 +823,44 @@ fn a_long_shot_can_wake_the_crossfire_without_completing_the_floor() {
     state.update_encounters();
     state.players[0].interaction_requested = true;
     state.advance_m02();
+    [state.players[0].x, state.players[0].y, state.players[0].z] = [23.5, PLAYER_FLOOR_Y, 6.5];
+    state.update_encounters();
+    for player in state.players.iter_mut().filter(|player| {
+        matches!(
+            player.name.as_str(),
+            "side_ward_clerk" | "side_ward_sweeper"
+        )
+    }) {
+        player.hp = 0;
+    }
+    state.update_encounters();
+    assert!(state.m02_side_ward_secured());
+    for _ in 0..400 {
+        state.advance_m02_evacuation(0.05);
+        if state
+            .mission_state()
+            .unwrap()
+            .m02
+            .unwrap()
+            .evacuation
+            .unwrap()
+            .phase
+            == crate::protocol::M02EvacuationPhase::Ready
+        {
+            break;
+        }
+    }
+    assert_eq!(
+        state
+            .mission_state()
+            .unwrap()
+            .m02
+            .unwrap()
+            .evacuation
+            .unwrap()
+            .phase,
+        crate::protocol::M02EvacuationPhase::Ready
+    );
     let enemy = state
         .players
         .iter()
@@ -836,13 +874,92 @@ fn a_long_shot_can_wake_the_crossfire_without_completing_the_floor() {
     assert!(state.encounters.is_active_enemy(enemy_id));
     assert!(!state.m02_encounter_complete("floor_entry"));
     assert!(!state.m02_encounter_complete("floor_crew"));
+    for name in ["floor_crawler_west", "floor_crawler_east"] {
+        let crawler = state
+            .players
+            .iter()
+            .find(|player| player.name == name)
+            .unwrap();
+        let id = crawler.id;
+        let feet = [crawler.x, crawler.y - PLAYER_FLOOR_Y, crawler.z];
+        state.encounters.hit(id, feet, state.tick, true);
+        state
+            .players
+            .iter_mut()
+            .find(|player| player.id == id)
+            .unwrap()
+            .hp = 0;
+    }
+    state.events.clear();
+    [state.players[0].x, state.players[0].y, state.players[0].z] = [0.0, PLAYER_FLOOR_Y, 12.0];
+    state.update_encounters();
+    assert!(!state
+        .events
+        .iter()
+        .any(|event| matches!(event, crate::protocol::GameEvent::CrawlerScrabble { .. })));
+    [state.players[0].x, state.players[0].y, state.players[0].z] = [0.0, PLAYER_FLOOR_Y, 17.0];
+    state.update_encounters();
+    assert!(!state.m02_encounter_complete("floor_crew"));
+    state.advance_m02_evacuation(0.05);
+    assert_eq!(
+        state
+            .mission_state()
+            .unwrap()
+            .m02
+            .unwrap()
+            .evacuation
+            .unwrap()
+            .phase,
+        crate::protocol::M02EvacuationPhase::Ready
+    );
+    assert!(state
+        .players
+        .iter()
+        .find(|player| player.name == "dock_clerk")
+        .is_some_and(|player| !state.encounters.is_active_enemy(player.id)));
+    [state.players[0].x, state.players[0].y, state.players[0].z] = [6.0, PLAYER_FLOOR_Y, -6.0];
+    state.update_encounters();
+    for player in state.players.iter_mut().filter(|player| {
+        matches!(
+            player.name.as_str(),
+            "floor_officer" | "floor_sweeper" | "floor_entry_clerk" | "floor_stair_sweeper"
+        )
+    }) {
+        player.hp = 0;
+    }
+    state.update_encounters();
+    assert!(state.m02_encounter_complete("floor_entry"));
+    assert!(!state.m02_encounter_complete("floor_crew"));
+    for player in state.players.iter_mut().filter(|player| {
+        matches!(
+            player.name.as_str(),
+            "press_clerk" | "conveyor_sweeper" | "floor_lane_clerk" | "side_return_sweeper"
+        )
+    }) {
+        player.hp = 0;
+    }
+    state.update_encounters();
+    assert!(state.m02_encounter_complete("floor_crossfire"));
+    assert!(state.m02_encounter_complete("floor_crew"));
+    state.advance_m02_evacuation(0.05);
+    assert_eq!(
+        state
+            .mission_state()
+            .unwrap()
+            .m02
+            .unwrap()
+            .evacuation
+            .unwrap()
+            .phase,
+        crate::protocol::M02EvacuationPhase::Moving
+    );
     [state.players[0].x, state.players[0].y, state.players[0].z] = [0.0, PLAYER_FLOOR_Y, 17.0];
     state.update_encounters();
     assert!(state
         .players
         .iter()
         .find(|player| player.name == "dock_clerk")
-        .is_some_and(|player| !state.encounters.is_active_enemy(player.id)));
+        .is_some_and(|player| state.encounters.is_active_enemy(player.id)));
 }
 
 #[test]

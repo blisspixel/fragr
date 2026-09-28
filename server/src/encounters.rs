@@ -109,28 +109,39 @@ impl Encounters {
                 }
                 self.groups[index] = Group::Dormant(ids);
             }
-            if let Group::Active { ids, .. } = &self.groups[index] {
-                if ids
+            // A distant shot can wake and kill a later group before its
+            // predecessor clears. Keep it active until the authored chain
+            // clears so downstream encounters and mission facts stay gated.
+            let predecessor_complete = definition.after.as_ref().is_none_or(|id| {
+                definitions
                     .iter()
-                    .all(|id| !state.players.iter().any(|p| p.id == *id && p.hp > 0))
+                    .position(|encounter| encounter.id == *id)
+                    .is_some_and(|at| matches!(self.groups[at], Group::Complete))
+            });
+            if let Group::Active { ids, .. } = &self.groups[index] {
+                if predecessor_complete
+                    && ids
+                        .iter()
+                        .all(|id| !state.players.iter().any(|p| p.id == *id && p.hp > 0))
                 {
                     self.groups[index] = Group::Complete;
                     tracing::info!(encounter = %definition.id, "Campaign encounter cleared");
                 }
             }
-            let ready = matches!(
-                self.groups[index],
+            let active_undispatched_alive = match &self.groups[index] {
                 Group::Active {
+                    ids,
                     dispatched: false,
-                    ..
-                }
-            ) || matches!(self.groups[index], Group::Dormant(_))
-                && definition.after.as_ref().is_none_or(|id| {
-                    definitions
+                } => ids.iter().any(|id| {
+                    state
+                        .players
                         .iter()
-                        .position(|e| e.id == *id)
-                        .is_some_and(|at| matches!(self.groups[at], Group::Complete))
-                });
+                        .any(|player| player.id == *id && player.hp > 0)
+                }),
+                _ => false,
+            };
+            let ready = active_undispatched_alive
+                || matches!(self.groups[index], Group::Dormant(_)) && predecessor_complete;
             let entered = living.iter().find(|&&feet| {
                 definition
                     .regions
