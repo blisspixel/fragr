@@ -22,6 +22,14 @@ owns their body, leap and contact; the client has distinct motion and a
 captioned spatial scrabble cue. Seeded clears and inspected live motion pass;
 fresh-player review still decides whether the introduction is accepted.
 
+The [gallery first-view draft](../plans/m02-gallery-first-view.md) lowers the
+window sill enough for the primary standing entry to see Latch and the
+restraint frame; the other gallery entries can walk to that view. The sill
+stays too high to step through, and the first fight and Crawler descent keep
+their authored route. This is an authored view and rendered frame check, not
+evidence that a new player recognizes Latch at that distance. The distant
+Notary tableau remains unbuilt.
+
 ## Story and cast
 
 Reach Latch before irreversible correction and rescue them early in the campaign.

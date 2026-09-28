@@ -17,6 +17,7 @@ Status words: **proposed** (a design awaiting Nick's decision; directs no work),
 
 | Plan | Status | One-liner |
 |---|---|---|
+| [`m02-gallery-first-view.md`](./m02-gallery-first-view.md) | **implemented** | Open and prove the M02 gallery's first sightline to Latch's restraint frame without bypassing the opening fight or stair route; player recognition remains open. |
 | [`m02-ward-soundscape.md`](./m02-ward-soundscape.md) | **in flight**, [draft #280](https://github.com/blisspixel/fragr/pull/280) | Give M02's correction ward and processing floor four state-driven, lore-aligned mechanical cues with a bounded asset and distribution gate. |
 | [`m02-live-cue-listening-gate.md`](./m02-live-cue-listening-gate.md) | **in flight**, [draft #281](https://github.com/blisspixel/fragr/pull/281) | Record the real first-person M02 cue sequence for a hardware listening review. |
 | [`m02-processing-floor-roster.md`](./m02-processing-floor-roster.md) | **implemented**, [draft #279](https://github.com/blisspixel/fragr/pull/279) | Stage the accepted ten-enemy M02 floor crest, measure ordinary-health Standard and Severe scripted clears, and preserve the optional evacuation trigger. Unsteered player review remains. |

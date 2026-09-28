@@ -132,7 +132,7 @@
     {"id":"guard_chair_east_back","min":[-7.5,3,-31.35],"max":[-7.35,4.05,-30.75],"surface":"service_steel"},
     {"id":"gallery_south","min":[-20,0,-35],"max":[9,7,-34],"surface":"enamel"},
     {"id":"gallery_east","min":[8,0,-35],"max":[9,7,-25],"surface":"enamel"},
-    {"id":"gallery_window_sill","min":[-9,0,-26],"max":[9,4.2,-25],"surface":"enamel"},
+    {"id":"gallery_window_sill","min":[-9,0,-26],"max":[9,3.8,-25],"surface":"enamel"},
     {"id":"gallery_window_header","min":[-9,5.4,-26],"max":[9,7,-25],"surface":"enamel"},
     {"id":"gallery_well_rail","min":[-8.2,3,-31.2],"max":[-7.9,4.2,-26],"surface":"service_steel"},
     {"id":"stair_step_1","min":[-9,0,-34],"max":[-8,2.5,-31.2],"surface":"service_steel"},

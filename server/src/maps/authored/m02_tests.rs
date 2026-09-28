@@ -68,6 +68,90 @@ fn bundled_guard_shells_require_a_step_off_every_gallery_spawn() {
 }
 
 #[test]
+fn gallery_entry_frames_latch_without_exposing_the_ward_guards() {
+    let map = AuthoredMap::read(include_str!("../../../maps/m02-persons-unknown.json").as_bytes())
+        .unwrap();
+    let spawn = map
+        .spawns
+        .iter()
+        .find(|spawn| spawn.id == "gallery_entry")
+        .unwrap();
+    let eye = [
+        spawn.feet[0],
+        spawn.feet[1] + crate::movement::EYE_HEIGHT,
+        spawn.feet[2],
+    ];
+    let solids = &map.arena.solids;
+    assert!(
+        crate::combat::line_of_sight(eye, [7.55, 1.9, -10.0], solids),
+        "the primary standing entry eye must see Latch on the restraint"
+    );
+    assert!(
+        crate::combat::line_of_sight(eye, [7.9, 2.45, -11.0], solids),
+        "the primary entry must see the front of the restraint frame"
+    );
+    let window_eye = [0.0, 3.0 + crate::movement::EYE_HEIGHT, -27.0];
+    assert!(crate::combat::line_of_sight(
+        window_eye,
+        [7.55, 1.9, -10.0],
+        solids
+    ));
+    for spawn in &map.spawns {
+        assert_eq!(
+            map.navigation
+                .route(
+                    spawn.feet,
+                    [0.0, 3.0, -27.0],
+                    crate::navigation::SEARCH_LIMIT
+                )
+                .status,
+            RouteStatus::Complete,
+            "{} must be able to reach the unobstructed window view",
+            spawn.id
+        );
+    }
+    for id in ["ward_clerk", "ward_sweeper", "machine_clerk"] {
+        let guard = map
+            .encounters
+            .iter()
+            .flat_map(|group| &group.enemies)
+            .find(|enemy| enemy.id == id)
+            .unwrap();
+        assert!(
+            !crate::combat::line_of_sight(
+                eye,
+                [guard.feet[0], guard.feet[1] + 1.1, guard.feet[2]],
+                solids
+            ),
+            "{id} must not become an opening-gallery shooting target"
+        );
+    }
+    assert!(
+        !crate::combat::line_of_sight(eye, [7.55, 0.5, -10.0], solids),
+        "the lower wall must still cover the ward floor"
+    );
+    let sill = solids
+        .iter()
+        .find(|solid| solid.min_z == -26.0 && solid.max_z == -25.0 && solid.min_x == -9.0)
+        .unwrap();
+    assert!(
+        sill.top - spawn.feet[1] > crate::movement::STEP_UP + 0.1,
+        "the player must not step onto the window sill and bypass the stairs"
+    );
+    assert_eq!(
+        map.navigation
+            .route(
+                spawn.feet,
+                [-12.5, 0.0, -22.0],
+                crate::navigation::SEARCH_LIMIT
+            )
+            .status,
+        RouteStatus::Complete,
+        "the ordinary service stair and ward route must stay walkable"
+    );
+}
+
+#[test]
 fn floor_officer_uses_the_reachable_upper_mezzanine() {
     let map = AuthoredMap::read(include_str!("../../../maps/m02-persons-unknown.json").as_bytes())
         .unwrap();
