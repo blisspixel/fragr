@@ -4,24 +4,6 @@ The `tour_*.png` files are the arena tour captured by
 `tools/qa_tour.sh --publish` with Godot 4.7.2-stable and a loopback server.
 The `m01_*.png` files are Recall Notice gameplay from
 `FRAGR_QA_BOTS=0 FRAGR_QA_MAP_FILE=server/maps/m01-recall-notice.json FRAGR_QA_MANIFEST=res://qa/m01-rooms.json tools/qa_tour.sh`.
-The [M02 Crawler evidence](m02-crawler/README.md) records its crouch, leap and
-pack cues. The [M02 Latch ward evidence](m02-latch/README.md) shows the stopped
-machine, restraint use, opened second bay and Low Water list. Its live tour
-manifest also records dock departure.
-The [M01 to M02 carry check](m02-run-carry/README.md) shows a saved-run menu
-and the first durable M02 frame from an isolated local child. It does not show
-a completed rescue or a playable level 3.
-The [M02 gantry evidence](m02-floor-gantry/README.md) shows the live officer
-firing above the processing floor and the reachable upper route.
-The [M02 side-ward plan](../plans/m02-side-ward.md) links four inspected
-first-person frames of the release-controlled ward exit and the optional
-captives before and after their guards fall.
-The [M02 maintenance plan](../plans/m02-maintenance-circulation.md) links
-first-person frames of the ground service fork, its antechamber rejoin, and
-the side ward's second return onto the processing floor.
-The [M02 evacuation evidence](m02-evacuation/README.md) shows the optional
-captives leaving the ward, waiting behind the dock wall, and arriving at the
-loading exit through a server-owned route.
 Inspect every frame before it is named anywhere. A nonblank image is not
 proof of good art. The README embeds four files and no more: `tour_menu_16x9.png`,
 `m01_intake_16x9.png`, `tour_multiplayer_16x9.png`, and `tour_combat_follow_16x9.png`.
@@ -42,13 +24,9 @@ Black-and-red Union enemies were checked in the same rooms with
 `client/qa/m01-enemies.json`. These are the development mission, not a
 finished art pass.
 
-The tour stills in this directory were republished on 2026-09-27 during the
-side-ward build. The boot and Single Player menus show the current layout;
-the published tour completed all 32 named states on Windows with Godot
-4.7.2-stable and AMD Radeon 780M OpenGL compatibility. The earlier look pass
-had republished the same arena views: the
+The tour stills in this directory were republished in the same change: the
 arenas sit under a warmer, stronger sodium sun with a slightly lower ambient
-floor and a warmer haze, so cover throws readable shadows. Frame
+floor and a warmer haze, so cover throws readable shadows. The menus are unchanged. Frame
 times and the quality and world-pixel comparison are in
 [`../plans/look-pass-boomer.md`](../plans/look-pass-boomer.md);
 `FRAGR_QA_MANIFEST=res://qa/look-perf.json` and `res://qa/m01-perf.json` (with
@@ -95,13 +73,6 @@ and fresh-player acceptance outstanding. Source manifest: `client/qa/m01-records
 | `m01_stacks_16x9.png` | File stacks, dark steel racks with red warning strips, green tile floor |
 | `m01_dispatch_16x9.png` | Dispatch after the fight, enamel walls with the red pinline |
 | `m01_secret_shiv_16x9.png` | The secret Shiv found in the confiscation alcove and held in hand |
-| `m02_ward_exit_held.png` | Ward exit shutter closed before Latch's release |
-| `m02_ward_exit_open.png` | Ward exit shutter raised after the same release action |
-| `m02_side_ward_held.png` | Optional captives restrained beyond the entry baffle |
-| `m02_side_ward_free.png` | The captives step clear after their guards fall; evacuation is not shown |
-| `m02_maintenance_fork.png` | Choice after the first Crawler between the service cut and the pack landing |
-| `m02_maintenance_rejoin.png` | The grounded service cut rejoins at the antechamber |
-| `m02_side_ward_north_return.png` | The optional room's second opening looks back onto the processing floor |
 | `tour_multiplayer_16x9.png` | App multiplayer page after GET /status. Host example is 127.0.0.1:6767. |
 | `tour_menu_16x9.png` | Retro boot menu |
 | `tour_profile_16x9.png` | Callsign, reticle, body choice with its preview, and weapon bob |
@@ -109,8 +80,8 @@ and fresh-player acceptance outstanding. Source manifest: `client/qa/m01-records
 | `tour_settings_16x9.png` | Saved controls, including sensitivity, inversion, turn speed, and weapon bob |
 | `tour_difficulty_16x9.png` | New-run Assisted, Standard and Severe choices |
 | `tour_first_person_16x9.png` | Human first person |
-| `tour_spectator_16x9.png` | Spectator chase of a live fighter |
-| `tour_combat_follow_16x9.png` | Optional chase view |
+| `tour_spectator_16x9.png` | Spectator through a fighter's eyes |
+| `tour_combat_follow_16x9.png` | Watched Arena Duel fighter in chase view |
 | `tour_body_human_16x9.png` | Close still of a fighter the server says is human, in free colours at hit-volume height |
 | `tour_body_synthetic_16x9.png` | The same framing on a fighter in a synthetic body, an embodied agent |
 | `tour_arena_overview_16x9.png` | Server geometry with industrial surfaces and scenery outside the playable boundary |

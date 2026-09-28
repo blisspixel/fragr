@@ -12,7 +12,7 @@ difficulty. The client starts its own server on loopback. Find Latch's transfer
 record, recover weapons from the Annex, and leave by the custody lift.
 Assisted, Standard and Severe change enemy timing; health, damage and finite
 supplies stay consistent. M01 has an optional Shiv secret. The M02 ward route
-remains a development graybox with an unfinished rescue. This branch adds a
+remains a development graybox with an unfinished rescue. The M02 draft adds a
 durable Continue Run path into M02 alongside its separate practice entry.
 
 **Calibration** is a separate Episode 0 arena challenge. Run

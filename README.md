@@ -19,10 +19,8 @@ build order and the [changelog](CHANGELOG.md) for shipped releases.
 | **Calibration** | Episode 0's arena challenge against named bots, with the Host, objectives and an Auditor. | `./tools/solo_scrap.sh` |
 | **Multiplayer** | Six arenas, free-for-all or team deathmatch, host-selected mutators, spectators, humans and agents in one server-owned match. | Run a server, then choose **Multiplayer**. |
 
-Single Player also offers an M02 ward graybox for development. The stacked
-[M01 to M02 carry draft](docs/plans/m01-m02-run-carry.md) keeps one solo run
-across those levels; it is not part of v0.57.1. Latch's autonomous escape and
-the complete campaign are still being built.
+Single Player also offers an M02 ward graybox for development. Latch's rescue,
+cross-mission save carry, and the complete campaign are still being built.
 The planned story spans twenty shorter levels in five episodes; its current
 contract is in [CAMPAIGN.md](docs/CAMPAIGN.md). Capture the flag and larger
 objective modes are in [draft work and plans](docs/ROADMAP.md), not this release.
