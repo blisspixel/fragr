@@ -6,7 +6,7 @@ The `m01_*.png` files are Recall Notice gameplay from
 `FRAGR_QA_BOTS=0 FRAGR_QA_MAP_FILE=server/maps/m01-recall-notice.json FRAGR_QA_MANIFEST=res://qa/m01-rooms.json tools/qa_tour.sh`.
 Inspect every frame before it is named anywhere. A nonblank image is not
 proof of good art. The README embeds four files and no more: `tour_menu_16x9.png`,
-`m01_intake_16x9.png`, `tour_multiplayer_16x9.png`, and `tour_spectator_16x9.png`.
+`m01_intake_16x9.png`, `tour_multiplayer_16x9.png`, and `tour_combat_follow_16x9.png`.
 A player-visible change refreshes the one of those four that shows the surface,
 in the same change. The other files in this directory stay as tour evidence.
 The Windows taskbar icon is still the Godot mark and is not one of these frames.
@@ -81,7 +81,7 @@ and fresh-player acceptance outstanding. Source manifest: `client/qa/m01-records
 | `tour_difficulty_16x9.png` | New-run Assisted, Standard and Severe choices |
 | `tour_first_person_16x9.png` | Human first person |
 | `tour_spectator_16x9.png` | Spectator through a fighter's eyes |
-| `tour_combat_follow_16x9.png` | Optional chase view |
+| `tour_combat_follow_16x9.png` | Watched Arena Duel fighter in chase view |
 | `tour_body_human_16x9.png` | Close still of a fighter the server says is human, in free colours at hit-volume height |
 | `tour_body_synthetic_16x9.png` | The same framing on a fighter in a synthetic body, an embodied agent |
 | `tour_arena_overview_16x9.png` | Server geometry with industrial surfaces and scenery outside the playable boundary |
