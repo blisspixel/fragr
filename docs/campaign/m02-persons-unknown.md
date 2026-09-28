@@ -164,9 +164,11 @@ Latch's release at the existing restraint control.
 - The processing floor's upper gantry ledge, reached by a readable jump from
   the stair: a medkit and a sightline down onto the crest.
 
-**Brief.** Assisted: free the side ward. Standard adds: clear the processing
-floor's upper gantry. Severe adds: stop the Crawler pack before it reaches the
-stair landing.
+**Optional challenge ideas, not active objectives.** Freeing the side ward,
+clearing the upper gantry and stopping the Crawler pack before the landing may
+become named challenges later. The side ward remains optional on Assisted,
+Standard and Severe. No tier adds a required rescue or changes the ward release
+and dock departure chain.
 
 **Par and the runner's line.** 4:30. The maintenance cut after the lone Crawler
 skips the pack landing and rejoins at the antechamber. The side ward has a
