@@ -1096,9 +1096,11 @@ func _on_snapshot_received(data):
 	
 	_update_followed_weapon()
 	_sync_pickups(data.get("pickups", []))
+	var flag_rows: Variant = data.get("flags")
 	if arena_flags != null:
+		# Hide this view's own grip before the marker is seated.
+		arena_flags.set_first_person_carrier(_first_person_carrier_id())
 		var carriers: Dictionary = {}
-		var flag_rows: Variant = data.get("flags")
 		if flag_rows is Array:
 			for flag_row: Variant in flag_rows:
 				if flag_row is Dictionary and str(flag_row.get("status", "")) == "carried" and players.has(str(flag_row.get("carrier", ""))):
@@ -1113,6 +1115,8 @@ func _on_snapshot_received(data):
 		_refresh_fp_target()
 		_update_local_fp_hud(data.get("players", []))
 		_apply_local_prediction()
+	if hud and hud.has_method("set_fp_carried_flag"):
+		hud.set_fp_carried_flag(_carried_flag_team(_first_person_carrier_id(), flag_rows))
 	_process_shot_results(data.get("shot_results", []), int(data.get("tick", -1)))
 	hud.equipment_hud.tick = int(data.get("tick", 0))
 	_refresh_equipment_visibility()
@@ -1537,6 +1541,10 @@ func _clear_fp_state() -> void:
 		camera.set_fp_mode(false)
 	if hud and hud.has_method("set_fp_juice"):
 		hud.set_fp_juice(false)
+	if hud and hud.has_method("set_fp_carried_flag"):
+		hud.set_fp_carried_flag("")
+	if arena_flags != null:
+		arena_flags.set_first_person_carrier("")
 
 func _refresh_fp_target() -> void:
 	if not is_human_player:
@@ -1682,6 +1690,30 @@ func _local_weapon_name() -> String:
 	if pid != "" and players.has(pid) and is_instance_valid(players[pid]):
 		if players[pid].has_method("get_weapon_name"):
 			return players[pid].get_weapon_name()
+	return ""
+
+## The fighter whose eyes this client is using. Empty in a chase view.
+func _first_person_carrier_id() -> String:
+	if is_human_player:
+		var pid: String = local_fp_pawn_id
+		if pid == "":
+			pid = str(net_client.player_id) if net_client != null and net_client.player_id != null else ""
+		if pid != "" and players.has(pid) and is_instance_valid(players[pid]):
+			return pid
+		return ""
+	if camera != null and camera.has_method("is_observing_first_person") and camera.is_observing_first_person():
+		return _followed_player_id()
+	return ""
+
+func _carried_flag_team(subject: String, flags: Variant) -> String:
+	if subject == "" or not flags is Array:
+		return ""
+	for flag: Variant in flags:
+		if not flag is Dictionary:
+			continue
+		if str(flag.get("status", "")) != "carried" or str(flag.get("carrier", "")) != subject:
+			continue
+		return MatchRules.valid_team(flag.get("team"))
 	return ""
 
 func _followed_player_id() -> String:

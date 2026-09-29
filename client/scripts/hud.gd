@@ -106,6 +106,13 @@ var viewmodel_textures: Dictionary[String, Texture2D] = {
 }
 var followed_player_name = ""
 var fp_juice_enabled = false
+## Side cloth beside the viewmodel while this fighter carries a flag.
+var fp_pennant: Control = null
+var fp_pennant_pole: ColorRect = null
+var fp_pennant_cloth: ColorRect = null
+var fp_pennant_label: Label = null
+var fp_carried_team: String = ""
+const FP_PENNANT_SIZE := Vector2(176, 108)
 var fp_bob_t = 0.0
 var fp_walk_speed: float = 0.0
 var fp_bob_weight: float = 0.0
@@ -1172,6 +1179,7 @@ func _layout_fp_weapon() -> void:
 			barrel_y = 8.0
 		var barrel_x: float = fp_weapon.size.x * 0.5 if current_fp_weapon == "Tack" else 224.0
 		fp_muzzle.position = fp_weapon.position + Vector2(barrel_x, barrel_y * 2.0) - fp_muzzle.size * 0.5
+	_layout_fp_pennant()
 
 ## The thrust grows the sprite from the gauntlet at the bottom edge and slides
 ## it toward the centre, so the blade reaches forward while the forearm stays
@@ -1217,6 +1225,100 @@ func set_fp_juice(enabled: bool) -> void:
 		fp_bob_weight = 0.0
 		current_fp_weapon = ""
 		_clear_floating_damage()
+	_refresh_fp_pennant()
+
+## The carried flag, beside the viewmodel. Empty, or any other side, hides it.
+func set_fp_carried_flag(team: String) -> void:
+	fp_carried_team = team if team == "union" or team == "coalition" else ""
+	_refresh_fp_pennant()
+
+func _ensure_fp_pennant() -> void:
+	if fp_pennant != null:
+		return
+	var root := Control.new()
+	root.name = "FpPennant"
+	root.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	root.visible = false
+	root.size = FP_PENNANT_SIZE
+	var pole := ColorRect.new()
+	pole.name = "Pole"
+	pole.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	pole.position = Vector2(0, 6)
+	pole.size = Vector2(12, 96)
+	var border := ColorRect.new()
+	border.name = "Border"
+	border.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	border.color = MenuTheme.INK
+	border.position = Vector2(12, 0)
+	border.size = Vector2(108, 68)
+	var cloth := ColorRect.new()
+	cloth.name = "Cloth"
+	cloth.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	cloth.position = Vector2(14, 2)
+	cloth.size = Vector2(104, 64)
+	# The floor is pale. Bone words need the same ink they have in the chip.
+	var plate := ColorRect.new()
+	plate.name = "Plate"
+	plate.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	plate.color = MenuTheme.INK
+	plate.position = Vector2(0, 78)
+	plate.size = Vector2(176, 28)
+	var words := Label.new()
+	words.name = "Words"
+	words.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	words.position = Vector2(6, 78)
+	words.size = Vector2(164, 28)
+	words.add_theme_font_override("font", MenuTheme.FONT)
+	words.add_theme_font_size_override("font_size", 16)
+	words.add_theme_color_override("font_color", Color(0.96, 0.9, 0.72, 0.95))
+	words.add_theme_color_override("font_outline_color", Color(0.05, 0.04, 0.03))
+	words.add_theme_constant_override("outline_size", 4)
+	words.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	root.add_child(pole)
+	root.add_child(border)
+	root.add_child(cloth)
+	root.add_child(plate)
+	root.add_child(words)
+	add_child(root)
+	fp_pennant = root
+	fp_pennant_pole = pole
+	fp_pennant_cloth = cloth
+	fp_pennant_label = words
+
+func _refresh_fp_pennant() -> void:
+	_ensure_fp_pennant()
+	var show: bool = fp_juice_enabled and fp_carried_team != ""
+	fp_pennant.visible = show
+	if not show:
+		return
+	fp_pennant_pole.color = MatchRules.team_body_color(fp_carried_team)
+	fp_pennant_cloth.color = MatchRules.team_label_color(fp_carried_team)
+	var key: String = "FLAG_WORLD_UNION" if fp_carried_team == "union" else "FLAG_WORLD_COALITION"
+	fp_pennant_label.text = tr(key)
+	_layout_fp_pennant()
+
+## Left of the viewmodel, above the health numerals, clear of the crosshair.
+func _layout_fp_pennant() -> void:
+	if fp_pennant == null or not fp_pennant.visible or fp_weapon == null:
+		return
+	var view_size: Vector2 = get_viewport().get_visible_rect().size
+	var block: Vector2 = fp_pennant.size
+	var weapon_pos: Vector2 = fp_weapon.position
+	var weapon_size: Vector2 = fp_weapon.size
+	if weapon_size.x < 8.0 or weapon_size.y < 8.0:
+		weapon_pos = Vector2(view_size.x * 0.5 - 240.0, view_size.y - 360.0)
+		weapon_size = Vector2(482.0, 360.0)
+	var x: float = weapon_pos.x - 18.0 - block.x
+	var y: float = weapon_pos.y + weapon_size.y * 0.42
+	var vitals_top: float = view_size.y - 148.0
+	if y + block.y > vitals_top and x < 336.0:
+		y = vitals_top - block.y - 8.0
+	var center_x: float = view_size.x * 0.5
+	if x + block.x > center_x - 28.0:
+		x = center_x - 28.0 - block.x
+	x = clampf(x, 12.0, maxf(12.0, view_size.x - block.x - 12.0))
+	y = clampf(y, 12.0, maxf(12.0, view_size.y - block.y - 12.0))
+	fp_pennant.position = Vector2(x, y).round()
 
 func set_fp_weapon(weapon_name: String) -> void:
 	if not fp_weapon:
