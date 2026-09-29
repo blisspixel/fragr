@@ -908,6 +908,15 @@ pub struct Action {
     pub seq: Option<u32>,
 }
 
+/// One server-owned point still in flight. Absent from the snapshot when none are.
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+pub struct ProjectileState {
+    pub id: u32,
+    pub x: f32,
+    pub y: f32,
+    pub z: f32,
+}
+
 /// Per-tick fire outcome for observe (hit-confirm without vision).
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct ShotResult {
@@ -1003,6 +1012,9 @@ pub struct Snapshot {
     /// Shots resolved on this tick (empty omitted on wire).
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub shot_results: Vec<ShotResult>,
+    /// Points still in flight. Omitted when nothing is traveling.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub projectiles: Vec<ProjectileState>,
     /// Contested Frequency (scrap league that denies it exists).
     #[serde(default = "default_mode_name")]
     pub mode_name: String,
@@ -1409,6 +1421,7 @@ mod protocol_tests {
             round_time_left: None,
             frag_limit: None,
             shot_results: vec![shot.clone()],
+            projectiles: vec![],
             mode_name: default_mode_name(),
             playlist: default_playlist(),
             pressure: None,
@@ -1585,6 +1598,7 @@ mod protocol_tests {
             round_time_left: None,
             frag_limit: None,
             shot_results: vec![],
+            projectiles: vec![],
             mode_name: default_mode_name(),
             playlist: default_playlist(),
             pressure: None,

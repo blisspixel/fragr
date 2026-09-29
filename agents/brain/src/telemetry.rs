@@ -396,6 +396,7 @@ pub(crate) mod fixtures {
             round_time_left: Some(90),
             frag_limit: Some(10),
             shot_results: vec![],
+            projectiles: vec![],
             mode_name: "Contested Frequency".to_string(),
             playlist: "Arena Duel".to_string(),
             pressure: None,
