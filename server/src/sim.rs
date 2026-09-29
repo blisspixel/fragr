@@ -3362,6 +3362,79 @@ impl Default for GameState {
     }
 }
 
+fn face_flag_goal(bot: &Player, feet: [f32; 3]) -> Action {
+    let goal_angle = (feet[2] - bot.z).atan2(feet[0] - bot.x);
+    let diff = (goal_angle - bot.yaw + PI).rem_euclid(2.0 * PI) - PI;
+    let mut action = Action {
+        forward: true,
+        ..Action::default()
+    };
+    if diff > 0.18 {
+        action.turn_right = true;
+    }
+    if diff < -0.18 {
+        action.turn_left = true;
+    }
+    action
+}
+
+fn aim_contact(action: &mut Action, bot: &Player, target: &Player) {
+    let eye = [bot.x, bot.y - PLAYER_FLOOR_Y + EYE_HEIGHT, bot.z];
+    let centre = [
+        target.x,
+        target.y - PLAYER_FLOOR_Y + crate::combat::FIGHTER_HEIGHT * 0.5,
+        target.z,
+    ];
+    action.pitch = crate::combat::aim_at(eye, centre).map(|(_, pitch)| pitch);
+    let aim = (target.z - bot.z).atan2(target.x - bot.x);
+    action.fire = ((aim - bot.yaw + PI).rem_euclid(2.0 * PI) - PI).abs() < 0.25;
+}
+
+fn nearest_contact<'a>(state: &'a GameState, bot: &Player) -> Option<&'a Player> {
+    let mut best: Option<(&Player, f32)> = None;
+    for target in &state.players {
+        if target.id == bot.id || target.hp <= 0 || target.respawn_timer.is_some() {
+            continue;
+        }
+        if !crate::protocol::hostile(bot.campaign, target.campaign)
+            || (bot.team.is_some() && target.team == bot.team)
+        {
+            continue;
+        }
+        let dist = (target.x - bot.x).hypot(target.z - bot.z);
+        if dist < 1.5 && best.is_none_or(|(_, previous)| dist < previous) {
+            best = Some((target, dist));
+        }
+    }
+    best.map(|(target, _)| target)
+}
+
+/// Four metres behind the carrier, on the side away from home. Once the
+/// carrier is inside six metres of home, hold six metres short of the stand
+/// so the escort is outside the flag touch.
+fn trail_behind(carrier: [f32; 3], home: [f32; 3], enemy_stand: [f32; 3]) -> [f32; 3] {
+    let away_x = carrier[0] - home[0];
+    let away_z = carrier[2] - home[2];
+    let away = (away_x * away_x + away_z * away_z).sqrt();
+    if away <= 6.0 {
+        let toward_x = enemy_stand[0] - home[0];
+        let toward_z = enemy_stand[2] - home[2];
+        let toward = (toward_x * toward_x + toward_z * toward_z)
+            .sqrt()
+            .max(0.001);
+        return [
+            home[0] + toward_x / toward * 6.0,
+            carrier[1],
+            home[2] + toward_z / toward * 6.0,
+        ];
+    }
+    [
+        carrier[0] + away_x / away * 4.0,
+        carrier[1],
+        carrier[2] + away_z / away * 4.0,
+    ]
+}
+
 #[derive(Clone)]
 pub struct BotController {
     pub player_id: Uuid,
@@ -3389,6 +3462,106 @@ impl BotController {
         Self {
             player_id,
             behavior,
+        }
+    }
+
+    /// Capture-the-flag goals for a side with at least three rule bots.
+    /// Two-bot sides keep the older branch in `intent`.
+    fn ctf_support_intent(
+        &self,
+        state: &GameState,
+        bot: &Player,
+        team: Team,
+        flags: &[ctf::Flag; 2],
+    ) -> BotIntent {
+        let own = &flags[team.index()];
+        let enemy = &flags[team.other().index()];
+        let living =
+            |player: &Player| player.hp > 0 && player.respawn_timer.is_none() && !player.detached;
+        if !living(bot) {
+            return BotIntent::default();
+        }
+        let feet_of = |player: &Player| [player.x, player.y - PLAYER_FLOOR_Y, player.z];
+        let carrier = enemy.carrier.and_then(|id| {
+            state
+                .players
+                .iter()
+                .find(|player| player.id == id && player.team == Some(team) && living(player))
+        });
+        let mut eligible = Vec::new();
+        for controller in &state.bots {
+            if let Some(player) = state.players.iter().find(|player| {
+                player.id == controller.player_id
+                    && player.team == Some(team)
+                    && living(player)
+                    && enemy.carrier != Some(player.id)
+            }) {
+                eligible.push(player);
+            }
+        }
+        let carrying = carrier.is_some_and(|player| player.id == bot.id);
+        let defending = eligible.first().is_some_and(|player| player.id == bot.id);
+        let escorting =
+            carrier.is_some() && eligible.get(1).is_some_and(|player| player.id == bot.id);
+        let feet = if carrying {
+            if own.dropped_at.is_some() {
+                own.position
+            } else {
+                own.stand
+            }
+        } else if defending {
+            if own.dropped_at.is_some() {
+                own.position
+            } else if let Some(thief) = own
+                .carrier
+                .and_then(|id| state.players.iter().find(|player| player.id == id))
+            {
+                feet_of(thief)
+            } else {
+                own.stand
+            }
+        } else if let Some(runner) = carrier.filter(|_| escorting) {
+            trail_behind(feet_of(runner), own.stand, enemy.stand)
+        } else if carrier.is_some() {
+            enemy.stand
+        } else {
+            enemy.position
+        };
+        let mut action = face_flag_goal(bot, feet);
+        let mut combat = false;
+        if defending && !carrying {
+            if let Some(thief) = own.carrier.and_then(|id| {
+                state.players.iter().find(|player| {
+                    player.id == id && player.hp > 0 && player.respawn_timer.is_none()
+                })
+            }) {
+                if (thief.x - bot.x).hypot(thief.z - bot.z) < 1.5 {
+                    combat = true;
+                    aim_contact(&mut action, bot, thief);
+                }
+            }
+        } else if escorting {
+            if let Some(runner) = carrier {
+                let beside = (runner.x - bot.x).hypot(runner.z - bot.z) <= 6.0;
+                if beside {
+                    if let Some(target) = nearest_contact(state, bot) {
+                        let eye = [bot.x, bot.y - PLAYER_FLOOR_Y + EYE_HEIGHT, bot.z];
+                        let centre = [
+                            target.x,
+                            target.y - PLAYER_FLOOR_Y + crate::combat::FIGHTER_HEIGHT * 0.5,
+                            target.z,
+                        ];
+                        if crate::combat::line_of_sight(eye, centre, &state.map.arena().solids) {
+                            combat = true;
+                            aim_contact(&mut action, bot, target);
+                        }
+                    }
+                }
+            }
+        }
+        BotIntent {
+            action,
+            goal: Some(crate::navigation::NavigationGoal { feet, combat }),
         }
     }
 
@@ -3434,6 +3607,20 @@ impl BotController {
             if let (Some(team), Some(flags)) = (bot.team, state.flags.as_ref()) {
                 let own = &flags[team.index()];
                 let enemy = &flags[team.other().index()];
+                // A side of two keeps the goals the four-bot survey already
+                // passes. A larger side elects one defender and one escort.
+                let side_count = state
+                    .bots
+                    .iter()
+                    .filter(|controller| {
+                        state.players.iter().any(|player| {
+                            player.id == controller.player_id && player.team == Some(team)
+                        })
+                    })
+                    .count();
+                if side_count >= 3 {
+                    return self.ctf_support_intent(state, bot, team, flags);
+                }
                 // Keep one stable defender per side. The other rule bots stay
                 // on the flag route even when the roster grows.
                 let defender = state
