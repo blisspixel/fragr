@@ -3,6 +3,9 @@ extends Node3D
 
 ## Two neutral league markers in side colours. Every position comes from the
 ## authoritative snapshot; this node has no collision or scoring logic.
+const POLE_LABEL := Vector3(0.0, 2.7, 0.0)
+const CLOTH_LABEL := Vector3(0.66, 2.7, 0.0)
+
 var _stands: Array[Node3D] = []
 var _markers: Array[Node3D] = []
 
@@ -24,8 +27,12 @@ static func _box(parent: Node3D, size: Vector3, offset: Vector3, color: Color) -
 	parent.add_child(part)
 
 
-static func _world_label(team: String, dropped: bool) -> String:
-	var key: String = "FLAG_WORLD_" + team.to_upper() + ("_DOWN" if dropped else "")
+static func _world_label(team: String, status: String) -> String:
+	var key: String = "FLAG_WORLD_" + team.to_upper()
+	if status == "dropped":
+		key += "_DOWN"
+	elif status == "carried":
+		key += "_CARRIED"
 	return str(TranslationServer.translate(key))
 
 
@@ -43,10 +50,10 @@ static func _marker(team: String) -> Node3D:
 	root.add_child(drop_mark)
 	var label: Label3D = Label3D.new()
 	label.name = "FlagLabel"
-	label.text = _world_label(team, false)
+	label.text = _world_label(team, "home")
 	label.font_size = 52
 	label.pixel_size = 0.005
-	label.position = Vector3(0.0, 2.7, 0.0)
+	label.position = POLE_LABEL
 	label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	label.layers = ArenaSky.WORLD_LAYERS
 	root.add_child(label)
@@ -80,9 +87,10 @@ func apply(flags: Variant) -> void:
 		var flag: Dictionary = flags[i]
 		var stand: Array = flag["stand"]
 		var position: Array = flag["position"]
-		var dropped: bool = flag["status"] == "dropped"
+		var status: String = str(flag["status"])
 		_stands[i].position = Vector3(float(stand[0]), float(stand[1]), float(stand[2]))
-		_markers[i].position = Vector3(float(position[0]), float(position[1]) + (0.6 if flag["status"] == "carried" else 0.0), float(position[2]))
-		_markers[i].get_node("DropMark").visible = dropped
+		_markers[i].position = Vector3(float(position[0]), float(position[1]) + (0.6 if status == "carried" else 0.0), float(position[2]))
+		_markers[i].get_node("DropMark").visible = status == "dropped"
 		var label: Label3D = _markers[i].get_node("FlagLabel")
-		label.text = _world_label(str(flag["team"]), dropped)
+		label.text = _world_label(str(flag["team"]), status)
+		label.position = CLOTH_LABEL if status == "carried" else POLE_LABEL
