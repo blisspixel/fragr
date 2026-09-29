@@ -26,7 +26,7 @@ The later [held-flag pass](ctf-flag-nameplate.md) moves this carried cloth and i
 
 `test_flag_state.gd` passed on Godot 4.7.2-stable: home, carried, and dropped words, cloth offset `0.66` while carried, pole offset after a drop, and no callsign on the world label.
 
-The outcome-gated tour was `FRAGR_QA_MANIFEST=res://qa/ctf_live.json FRAGR_QA_MODE=ctf FRAGR_QA_MAP=4 FRAGR_QA_BOTS=4 FRAGR_QA_CAPTURE_LIMIT=1 FRAGR_QA_SEED=42 FRAGR_PORT=6831 tools/qa_tour.sh .agents/qa/ctf-carried-label` from Git Bash. The server log recorded Sector 9 and `Capture limit reached`. The carried frame shows `FREE FLAG CARRIED` on the flag. The Godot log has no script error. That frame is [docs/screenshots/ctf_live_carried.png](../screenshots/ctf_live_carried.png). The carrier nameplate still crosses the cloth, and the new words stay readable above it. The result frame is the ended round, so its home words are unchanged and that file stays.
+The outcome-gated tour was `FRAGR_QA_MANIFEST=res://qa/ctf_live.json FRAGR_QA_MODE=ctf FRAGR_QA_MAP=4 FRAGR_QA_BOTS=4 FRAGR_QA_CAPTURE_LIMIT=1 FRAGR_QA_SEED=42 FRAGR_PORT=6831 tools/qa_tour.sh .agents/qa/ctf-carried-label` from Git Bash. The server log recorded Sector 9 and `Capture limit reached`. The v0.59.0 carried frame showed `FREE FLAG CARRIED` on the flag, with the carrier nameplate crossing the cloth and the words still readable. The Godot log had no script error. The later grip pass replaced [docs/screenshots/ctf_live_carried.png](../screenshots/ctf_live_carried.png). The result frame is the ended round, so its home words are unchanged and that file stays.
 
 ## Success
 

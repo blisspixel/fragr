@@ -4,6 +4,12 @@ Shipped tags, newest first. A line here is on `main`. Planned work stays in
 [docs/ROADMAP.md](docs/ROADMAP.md). Older tags are on the
 [releases page](https://github.com/blisspixel/fragr/releases).
 
+## v0.60.0 (2026-09-29)
+
+A carried Sector 9 flag leaves the stand and sits on a short grip in the carrier's hand, in front of the body. The cloth overlaps the arm. Home and dropped flags keep the tall pole, and an empty stand dims. A nameplate yields when it would cover the cloth or the world words.
+
+Fresh-player review of Recall Notice and Persons Unknown stays on the v0.58.0 package. External spend for this build was $0.
+
 ## v0.59.0 (2026-09-29)
 
 On Sector 9, a side of at least three server rule bots keeps one defender and
