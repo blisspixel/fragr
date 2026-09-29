@@ -1,6 +1,6 @@
 # Carried flags read as held
 
-**Status:** in flight, 2026-09-29. A presentation follow-up to the [carried flag label](ctf-carried-label.md).
+**Status:** shipped, [#305](https://github.com/blisspixel/fragr/pull/305), 2026-09-29. A presentation follow-up to the [carried flag label](ctf-carried-label.md). The hand grip is the v0.60.0 still.
 
 ## Goal and why
 
