@@ -9,7 +9,7 @@ Status words: **proposed** (a design awaiting Nick's decision; directs no work),
 ## Standing facts
 
 - Game port is **6767** (TCP today; UDP reserved for the planned low-latency transport).
-- Local play is $0. Public hosting sits under the $50 total cap. Nick authorized up to $20 combined external charges for 2026-09-26 build work, including a bounded GCP test if needed; production deployment still needs a reviewed cost and written approval. The current GCP Terraform remains plan-only.
+- Local play is $0. Public hosting sits under the $50 total cap. Nick authorized up to $20 combined external charges for 2026-09-26 build work, including a bounded GCP test if needed, and up to $20 more for 2026-09-29 build work. Production deployment still needs a reviewed cost and written approval. The current GCP Terraform remains plan-only.
 - Tailscale is private smoke only, never the documented join path.
 - The dedicated server bar is rock solid, secure, and cheap: input validation, rate limits, clean join and leave and reconnect, and a home box or small VM first.
 
@@ -42,6 +42,7 @@ Status words: **proposed** (a design awaiting Nick's decision; directs no work),
 | [`capture-the-flag.md`](./capture-the-flag.md) | **in flight** | First playable objective match on Sector 9, with authoritative flags, capture scoring, client and agent reads, bot routes and measured verification. |
 | [`ctf-six-a-side-pacing.md`](./ctf-six-a-side-pacing.md) | **implemented** | Five fixed-seed default-rule Sector 9 observations with twelve mixed agents; all rounds timed out below the three-capture limit, so external-agent roles need a measured follow-up. |
 | [`ctf-external-agent-roles.md`](./ctf-external-agent-roles.md) | **implemented** | One stable external-agent defender per side, with paired five-seed six-a-side observations; all rounds still reached the clock. |
+| [`ctf-rule-bot-escort.md`](./ctf-rule-bot-escort.md) | **implemented** | One defender and one escort for a Sector 9 side of at least three rule bots. Five replayed twelve-bot seeds stayed on the clock, with 2, 2, 2, 1 and 2 captures. |
 | [`ctf-carry-episodes.md`](./ctf-carry-episodes.md) | **implemented**, [draft #295](https://github.com/blisspixel/fragr/pull/295) | Bounded per-carry progress and outcome evidence from the existing CTF observer; human and spectator acceptance remains open. |
 | [`ctf-socket-smoke.md`](./ctf-socket-smoke.md) | **implemented**, [draft #295](https://github.com/blisspixel/fragr/pull/295) | Controlled real-socket flag capture and asserted contested combat are separate CI gates; exact-head Linux CI passed, human match remains. |
 | [`websocket-delayed-egress.md`](./websocket-delayed-egress.md) | **implemented**, [draft #296](https://github.com/blisspixel/fragr/pull/296) | Nine $0 Windows-to-WSL moving-combat captures at 0, 40 and 80 ms server-egress delay, plus a prediction bootstrap fix; two-machine and human gates remain. |

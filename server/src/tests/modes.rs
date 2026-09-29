@@ -256,6 +256,292 @@ fn ctf_rule_bot_roster_has_one_defender_per_side() {
     assert_eq!(attackers, [5, 5]);
 }
 
+fn ctf_bots(count: usize) -> GameSession {
+    let mut session = GameSession::with_map(MapKind::Sector9, false);
+    let mut match_config = config(rules(GameMode::Ctf, &[]));
+    match_config.frag_limit = None;
+    match_config.capture_limit = Some(3);
+    match_config.time_limit_ticks = Some(20 * 180);
+    session.state.apply_config(match_config);
+    session.spawn_bots(count);
+    session.state.start_round();
+    session
+}
+
+fn ids_on(session: &GameSession, team: Team) -> Vec<Uuid> {
+    session
+        .state
+        .bots
+        .iter()
+        .filter(|bot| player(&session.state, bot.player_id).team == Some(team))
+        .map(|bot| bot.player_id)
+        .collect()
+}
+
+fn bot_intent(session: &GameSession, id: Uuid) -> crate::sim::BotIntent {
+    session
+        .state
+        .bots
+        .iter()
+        .find(|bot| bot.player_id == id)
+        .unwrap()
+        .intent(&session.state)
+}
+
+fn goal_feet(session: &GameSession, id: Uuid) -> [f32; 3] {
+    bot_intent(session, id).goal.unwrap().feet
+}
+
+fn take_flag(session: &mut GameSession, id: Uuid, stand: [f32; 3]) {
+    place(&mut session.state, id, stand[0], stand[2]);
+    session.state.tick(0.05);
+    assert!(
+        session
+            .state
+            .snapshot()
+            .flags
+            .unwrap()
+            .iter()
+            .any(|flag| flag.carrier == Some(id)),
+        "the bot should be carrying"
+    );
+}
+
+#[test]
+fn ctf_support_elects_one_escort_while_a_teammate_carries() {
+    let mut session = ctf_bots(12);
+    let flags = session.state.snapshot().flags.unwrap();
+    let coalition = ids_on(&session, Team::Coalition);
+    let union = ids_on(&session, Team::Union);
+    take_flag(&mut session, coalition[0], flags[Team::Union.index()].stand);
+    place(&mut session.state, coalition[0], 15.0, 0.0);
+
+    assert_eq!(goal_feet(&session, coalition[0])[0], 70.0);
+    assert!((goal_feet(&session, coalition[2])[0] - 11.0).abs() < 0.05);
+    assert_eq!(goal_feet(&session, coalition[1])[0], 70.0);
+    for id in &coalition[3..] {
+        assert_eq!(goal_feet(&session, *id)[0], -70.0);
+    }
+    assert!((goal_feet(&session, union[0])[0] - 15.0).abs() < 0.05);
+    for id in &union[1..] {
+        assert_eq!(goal_feet(&session, *id)[0], 70.0);
+    }
+    assert_eq!(
+        coalition
+            .iter()
+            .filter(|id| (goal_feet(&session, **id)[0] - 11.0).abs() < 0.05)
+            .count(),
+        1
+    );
+}
+
+#[test]
+fn ctf_support_yields_a_dead_or_carrying_defender() {
+    let mut session = ctf_bots(12);
+    let flags = session.state.snapshot().flags.unwrap();
+    let coalition = ids_on(&session, Team::Coalition);
+    {
+        let defender = session
+            .state
+            .players
+            .iter_mut()
+            .find(|p| p.id == coalition[0])
+            .unwrap();
+        defender.respawn_timer = Some(20);
+    }
+    assert_eq!(
+        goal_feet(&session, coalition[1]),
+        flags[Team::Coalition.index()].stand
+    );
+    assert!(bot_intent(&session, coalition[0]).goal.is_none());
+
+    {
+        let defender = session
+            .state
+            .players
+            .iter_mut()
+            .find(|p| p.id == coalition[0])
+            .unwrap();
+        defender.respawn_timer = None;
+        defender.hp = 0;
+    }
+    take_flag(&mut session, coalition[1], flags[Team::Union.index()].stand);
+    place(&mut session.state, coalition[1], 15.0, 0.0);
+    assert!(bot_intent(&session, coalition[0]).goal.is_none());
+    assert_eq!(goal_feet(&session, coalition[2])[0], 70.0);
+    assert!((goal_feet(&session, coalition[3])[0] - 11.0).abs() < 0.05);
+}
+
+#[test]
+fn ctf_support_dropped_flag_does_not_empty_the_attack() {
+    let mut session = ctf_bots(12);
+    let flags = session.state.snapshot().flags.unwrap();
+    let union = ids_on(&session, Team::Union);
+    let coalition = ids_on(&session, Team::Coalition);
+    take_flag(&mut session, union[0], flags[Team::Coalition.index()].stand);
+    place(&mut session.state, union[0], 32.0, 8.0);
+    session.state.drop_flag_from(union[0]);
+    let dropped = session.state.snapshot().flags.unwrap()[Team::Coalition.index()].position;
+    let defender = goal_feet(&session, coalition[0]);
+    assert!((defender[0] - dropped[0]).abs() < 0.05);
+    assert!((defender[2] - dropped[2]).abs() < 0.05);
+    for id in &coalition[1..] {
+        assert_eq!(
+            goal_feet(&session, *id)[0],
+            flags[Team::Union.index()].stand[0]
+        );
+    }
+}
+
+#[test]
+fn ctf_support_carrier_goes_home_instead_of_chasing_the_thief() {
+    let mut session = ctf_bots(12);
+    let flags = session.state.snapshot().flags.unwrap();
+    let coalition = ids_on(&session, Team::Coalition);
+    let union = ids_on(&session, Team::Union);
+    take_flag(&mut session, coalition[0], flags[Team::Union.index()].stand);
+    take_flag(&mut session, union[0], flags[Team::Coalition.index()].stand);
+    place(&mut session.state, coalition[0], 15.0, 0.0);
+    place(&mut session.state, union[0], -15.0, 0.0);
+    assert_eq!(goal_feet(&session, coalition[0])[0], 70.0);
+    assert!((goal_feet(&session, coalition[1])[0] - -15.0).abs() < 0.05);
+    assert!(!bot_intent(&session, coalition[0]).goal.unwrap().combat);
+    assert!(!bot_intent(&session, coalition[0]).action.fire);
+}
+
+#[test]
+fn ctf_support_two_bots_keep_the_shipped_goal() {
+    let mut session = ctf_bots(4);
+    let flags = session.state.snapshot().flags.unwrap();
+    let coalition = ids_on(&session, Team::Coalition);
+    assert_eq!(coalition.len(), 2);
+    take_flag(&mut session, coalition[0], flags[Team::Union.index()].stand);
+    place(&mut session.state, coalition[0], 15.0, 0.0);
+    assert_eq!(
+        goal_feet(&session, coalition[1])[0],
+        flags[Team::Coalition.index()].stand[0]
+    );
+    assert!((goal_feet(&session, coalition[1])[0] - 11.0).abs() > 1.0);
+}
+
+#[test]
+fn ctf_support_escort_contact_does_not_become_a_detour() {
+    let mut session = ctf_bots(12);
+    let flags = session.state.snapshot().flags.unwrap();
+    let coalition = ids_on(&session, Team::Coalition);
+    let union = ids_on(&session, Team::Union);
+    let runner = coalition[0];
+    let escort = coalition[2];
+    let attacker = coalition[3];
+    let enemy = union[1];
+    take_flag(&mut session, runner, flags[Team::Union.index()].stand);
+
+    place(&mut session.state, runner, 10.0, 0.0);
+    place(&mut session.state, escort, 12.0, 0.0);
+    place(&mut session.state, enemy, 12.0, 20.0);
+    let far = bot_intent(&session, escort);
+    assert!((far.goal.unwrap().feet[0] - 6.0).abs() < 0.05);
+    assert!(!far.goal.unwrap().combat);
+    assert!(!far.action.fire);
+
+    place(&mut session.state, runner, 20.0, 0.0);
+    place(&mut session.state, escort, 25.29, 0.0);
+    place(&mut session.state, enemy, 26.71, 0.0);
+    session
+        .state
+        .players
+        .iter_mut()
+        .find(|p| p.id == escort)
+        .unwrap()
+        .yaw = std::f32::consts::PI;
+    let open = bot_intent(&session, escort);
+    assert!(open.goal.unwrap().combat);
+    assert!(!open.action.fire);
+    assert!((open.goal.unwrap().feet[0] - 16.0).abs() < 0.05);
+
+    place(&mut session.state, runner, 20.0, 20.0);
+    place(&mut session.state, escort, 25.29, 20.0);
+    place(&mut session.state, enemy, 26.71, 20.0);
+    let blocked = bot_intent(&session, escort);
+    assert!(!blocked.goal.unwrap().combat);
+    assert!(!blocked.action.fire);
+    assert!((blocked.goal.unwrap().feet[0] - 26.71).abs() > 1.0);
+
+    place(&mut session.state, runner, 10.0, 0.0);
+    place(&mut session.state, enemy, 11.2, 0.0);
+    let carrier = bot_intent(&session, runner);
+    assert!(!carrier.goal.unwrap().combat);
+    assert!(!carrier.action.fire);
+    assert_eq!(carrier.goal.unwrap().feet[0], 70.0);
+
+    place(&mut session.state, attacker, 0.0, 0.0);
+    place(&mut session.state, enemy, 1.2, 0.0);
+    let pressing = bot_intent(&session, attacker);
+    assert!(!pressing.goal.unwrap().combat);
+    assert!(!pressing.action.fire);
+    assert_eq!(pressing.goal.unwrap().feet[0], -70.0);
+}
+
+fn ctf_roster_round(seed: u64) -> (usize, usize, usize, String) {
+    let mut session = GameSession::with_map(MapKind::Sector9, false);
+    // Flag touches sort by id. A random id changes who takes the flag when
+    // several fighters arrive together, so the seed alone would not replay.
+    session.state.use_replay_ids();
+    session.state.seed(seed);
+    let mut match_config = config(rules(GameMode::Ctf, &[]));
+    match_config.frag_limit = None;
+    match_config.capture_limit = Some(3);
+    match_config.time_limit_ticks = Some(20 * 180);
+    session.state.apply_config(match_config);
+    session.spawn_bots(12);
+    let mut captures = 0;
+    let mut frags = 0;
+    let mut drops = 0;
+    let mut reason = String::new();
+    for _ in 0..(20 * 180 + 80) {
+        for message in session.tick_messages(0.05) {
+            match message {
+                ServerMessage::Event(GameEvent::Flag {
+                    kind: crate::protocol::FlagEventKind::Captured,
+                    ..
+                }) => captures += 1,
+                ServerMessage::Event(GameEvent::Flag {
+                    kind: crate::protocol::FlagEventKind::Dropped,
+                    ..
+                }) => drops += 1,
+                ServerMessage::Event(GameEvent::Frag { .. }) => frags += 1,
+                ServerMessage::Event(GameEvent::RoundEnd { reason: end, .. }) => reason = end,
+                _ => {}
+            }
+        }
+        if session.state.round_state == RoundState::Ended {
+            break;
+        }
+    }
+    (captures, frags, drops, reason)
+}
+
+#[test]
+fn ctf_twelve_bot_replay_stays_short_of_the_capture_limit() {
+    // Replay ids, twelve rule bots, capture limit 3, 180 seconds.
+    // Measured 2026-09-29. Columns are seed, captures, drops, frags, reason.
+    // None of these seeds reach the limit.
+    let expected = [
+        (40, 2, 4, 5, "Time limit reached"),
+        (41, 2, 4, 4, "Time limit reached"),
+        (42, 2, 5, 5, "Time limit reached"),
+        (43, 1, 3, 3, "Time limit reached"),
+        (44, 2, 4, 4, "Time limit reached"),
+    ];
+    for (seed, captures, drops, frags, reason) in expected {
+        assert_eq!(
+            ctf_roster_round(seed),
+            (captures, frags, drops, reason.to_string()),
+            "seed {seed}"
+        );
+    }
+}
+
 #[test]
 fn ctf_pickup_capture_and_reset_are_independent_of_frags() {
     let mut state = ctf();
