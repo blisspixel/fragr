@@ -1097,7 +1097,15 @@ func _on_snapshot_received(data):
 	_update_followed_weapon()
 	_sync_pickups(data.get("pickups", []))
 	if arena_flags != null:
-		arena_flags.apply(data.get("flags"))
+		var carriers: Dictionary = {}
+		var flag_rows: Variant = data.get("flags")
+		if flag_rows is Array:
+			for flag_row: Variant in flag_rows:
+				if flag_row is Dictionary and str(flag_row.get("status", "")) == "carried" and players.has(str(flag_row.get("carrier", ""))):
+					var carrier_pawn: Node = players[str(flag_row.get("carrier", ""))]
+					if is_instance_valid(carrier_pawn):
+						carriers[str(flag_row.get("carrier", ""))] = carrier_pawn
+		arena_flags.apply(flag_rows, carriers)
 	if traveling_shots != null:
 		traveling_shots.apply(data.get("projectiles"))
 	_sync_jammer_dish(data.get("jammer_dish", null))
@@ -1109,23 +1117,6 @@ func _on_snapshot_received(data):
 	hud.equipment_hud.tick = int(data.get("tick", 0))
 	_refresh_equipment_visibility()
 	_update_nameplates()
-
-func _nameplate_rect(view: Camera3D, label: Label3D) -> Rect2:
-	var font: Font = label.font if label.font != null else ThemeDB.fallback_font
-	var text_size: Vector2 = Vector2(label.text.length() * label.font_size * 0.6, label.font_size)
-	if font != null:
-		text_size = font.get_string_size(label.text, HORIZONTAL_ALIGNMENT_LEFT, -1, label.font_size)
-	var width: float = (text_size.x + label.outline_size * 2.0 + 12.0) * label.pixel_size * label.scale.x
-	var height: float = (text_size.y + label.outline_size + 8.0) * label.pixel_size * label.scale.y
-	var point: Vector3 = label.global_position
-	var right: Vector3 = view.global_transform.basis.x.normalized()
-	var up: Vector3 = view.global_transform.basis.y.normalized()
-	var left_px: Vector2 = view.unproject_position(point - right * width * 0.5)
-	var right_px: Vector2 = view.unproject_position(point + right * width * 0.5)
-	var top_px: Vector2 = view.unproject_position(point + up * height * 0.5)
-	var bottom_px: Vector2 = view.unproject_position(point - up * height * 0.5)
-	return Rect2(Vector2(minf(left_px.x, right_px.x), minf(top_px.y, bottom_px.y)),
-		Vector2(absf(right_px.x - left_px.x), absf(bottom_px.y - top_px.y))).grow(4.0)
 
 func _update_nameplates() -> void:
 	if camera == null:
@@ -1157,7 +1148,7 @@ func _update_nameplates() -> void:
 		if label == null or view.is_position_behind(label.global_position):
 			pawn.set_nameplate_enabled(false)
 			continue
-		var area: Rect2 = _nameplate_rect(view, label)
+		var area: Rect2 = NameplateLayoutScript.project_label(view, label)
 		if area.position.x < viewport_rect.position.x or area.position.y < viewport_rect.position.y \
 			or area.end.x > viewport_rect.end.x or area.end.y > viewport_rect.end.y:
 			pawn.set_nameplate_enabled(false)
@@ -1165,7 +1156,8 @@ func _update_nameplates() -> void:
 		var priority: int = 0 if carrier_ids.has(str(id)) else (1 if pawn == followed else 2)
 		entries.append({"id": str(id), "rect": area, "priority": priority,
 			"distance": view.global_position.distance_to(label.global_position)})
-	var visible_ids: Array[String] = NameplateLayoutScript.choose(entries)
+	var reserved: Array[Rect2] = arena_flags.blocker_rects(view) if arena_flags != null else []
+	var visible_ids: Array[String] = NameplateLayoutScript.choose(entries, reserved)
 	for id: Variant in players:
 		var pawn: Node = players[id]
 		if is_instance_valid(pawn):

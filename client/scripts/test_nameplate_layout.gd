@@ -37,5 +37,14 @@ func _run() -> void:
 		push_error("test_nameplate_layout: sub-centimeter ties should be stable by id")
 		quit(1)
 		return
-	print("test_nameplate_layout: PASS carrier priority, clear labels, stable ties")
+	var flag_block: Array[Rect2] = [Rect2(150, 90, 160, 40)]
+	var plates: Array[Dictionary] = [
+		{"id": "carrier", "rect": Rect2(170, 100, 130, 22), "priority": 0, "distance": 6.0},
+		{"id": "wing", "rect": Rect2(400, 100, 80, 22), "priority": 2, "distance": 9.0},
+	]
+	if layout.choose(plates, flag_block) != ["wing"]:
+		push_error("test_nameplate_layout: a flag rect should hide the plate that covers it")
+		quit(1)
+		return
+	print("test_nameplate_layout: PASS carrier priority, clear labels, stable ties, flag yield")
 	quit(0)

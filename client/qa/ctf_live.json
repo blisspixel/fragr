@@ -10,8 +10,8 @@
       "camera": "ctf_carried",
       "await_ctf": {"status": "carried"},
       "await_timeout_seconds": 120,
-      "settle_seconds": 0.1,
-      "note": "A live bot carries a flag. The camera is placed from the authoritative flag position."
+      "settle_seconds": 0.0,
+      "note": "A live bot carries a flag. The camera frames that carrier from the front, at the hand."
     },
     {
       "name": "ctf_live_result",

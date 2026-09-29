@@ -41,7 +41,33 @@ func _run() -> void:
 	var carried_label: Label3D = renderer.get_child(1).get_node("FlagLabel")
 	_check(carried_label.text == "UNION FLAG CARRIED", "carried label names the carry")
 	_check(not carried_label.text.contains("fighter-1"), "carried world label omits the callsign")
-	_check(is_equal_approx(carried_label.position.x, 0.66), "carried label uses the cloth offset")
+	_check(is_equal_approx(carried_label.position.x, ArenaFlags.CARRIED_CLOTH_AT.x), "carried words stay on the cloth")
+	_check(is_equal_approx(carried_label.position.z, ArenaFlags.CARRIED_LABEL_AT.z), "carried label sits out on the cloth")
+	_check(carried_label.position.y > ArenaFlags.CARRIED_CLOTH_AT.y, "carried words sit above the cloth")
+	_check(is_equal_approx(ArenaFlags.CARRIED_HAND_Y, EnemyAnimation.CENTRE_HEIGHT - EnemyView.CAMERA.FP_SERVER_REFERENCE_Y), "carried flag uses the weapon hand height")
+	var holder: Node3D = Node3D.new()
+	root.add_child(holder)
+	holder.position = Vector3(4.0, 1.5, 2.0)
+	holder.rotation.y = 0.4
+	renderer.apply(flags, {"fighter-1": holder})
+	var mounted: Node3D = renderer.get_child(1) as Node3D
+	var side: Vector3 = -holder.global_transform.basis.z
+	var front: Vector3 = holder.global_transform.basis.x
+	side.y = 0.0
+	front.y = 0.0
+	side = side.normalized()
+	front = front.normalized()
+	var expected_hand: Vector3 = holder.global_position + Vector3(0.0, ArenaFlags.CARRIED_HAND_Y, 0.0) + side * ArenaFlags.CARRIED_SIDE + front * ArenaFlags.CARRIED_FRONT
+	_check(mounted.global_position.distance_to(expected_hand) < 0.02, "carried flag sits in the carrier's hand")
+	_check(mounted.global_transform.basis.y.dot(Vector3.UP) > 0.98, "carried banner stays upright")
+	_check(mounted.global_transform.basis.x.dot(side) > 0.98, "carried cloth reaches out from the grip")
+	var grip: MeshInstance3D = mounted.get_node("Pole") as MeshInstance3D
+	_check(grip.visible, "a carried flag keeps a short grip")
+	_check(is_equal_approx((grip.mesh as BoxMesh).size.y, ArenaFlags.CARRIED_POLE_SIZE.y), "the carried pole is short enough to stay off the face")
+	_check((mounted.get_node("Cloth") as MeshInstance3D).position.is_equal_approx(ArenaFlags.CARRIED_CLOTH_AT), "carried cloth hangs from the grip")
+	var union_pad: StandardMaterial3D = (renderer.get_child(0).get_node("Pad") as MeshInstance3D).material_override as StandardMaterial3D
+	_check(union_pad.albedo_color.get_luminance() < MatchRules.team_label_color("union").get_luminance() * 0.75, "an empty stand is dimmer than the flag")
+	holder.queue_free()
 	var other_label: Label3D = renderer.get_child(3).get_node("FlagLabel")
 	_check(other_label.text == "FREE FLAG CARRIED", "coalition carried label names the carry")
 	flags[1]["status"] = "home"
@@ -57,6 +83,27 @@ func _run() -> void:
 	var dropped_label: Label3D = dropped_marker.get_node("FlagLabel")
 	_check(dropped_label.text == "UNION FLAG DOWN", "dropped label says it is down")
 	_check(is_equal_approx(dropped_label.position.x, 0.0), "dropped label returns to the pole")
+	var dropped_pole: MeshInstance3D = dropped_marker.get_node("Pole") as MeshInstance3D
+	_check(is_equal_approx((dropped_pole.mesh as BoxMesh).size.y, ArenaFlags.HOME_POLE_SIZE.y), "a dropped flag restores the stand pole")
+	var home_pad_mesh: MeshInstance3D = renderer.get_child(2).get_node("Pad") as MeshInstance3D
+	var home_pad: StandardMaterial3D = home_pad_mesh.material_override as StandardMaterial3D
+	_check(home_pad.albedo_color.is_equal_approx(MatchRules.team_label_color("coalition")), "a flag at home restores the stand")
+	_check(is_equal_approx((home_pad_mesh.mesh as BoxMesh).size.x, ArenaFlags.HOME_PAD_SIZE.x), "a flag at home uses the full stand")
+	var empty_pad: MeshInstance3D = renderer.get_child(0).get_node("Pad") as MeshInstance3D
+	_check(is_equal_approx((empty_pad.mesh as BoxMesh).size.x, ArenaFlags.EMPTY_PAD_SIZE.x), "an empty stand shrinks to a socket")
+	var camera: Camera3D = Camera3D.new()
+	root.add_child(camera)
+	camera.make_current()
+	camera.global_position = Vector3(11.0, 2.4, 10.0)
+	camera.look_at(Vector3(11.0, 1.6, 3.0))
+	var blockers: Array[Rect2] = renderer.blocker_rects(camera)
+	_check(blockers.size() >= 2, "a flag in view reserves its words and cloth")
+	var covered: Array[Dictionary] = [
+		{"id": "carrier", "rect": blockers[0], "priority": 0, "distance": 4.0},
+		{"id": "wing", "rect": Rect2(-4000, -4000, 20, 20), "priority": 2, "distance": 8.0},
+	]
+	_check(NameplateLayout.choose(covered, blockers) == ["wing"], "a plate on the flag yields and a clear plate stays")
+	camera.free()
 	flags[0]["return_ticks"] = 401
 	_check(not FlagState.snapshot_error(snap).is_empty(), "overlong drop clock refuses")
 	flags[0]["return_ticks"] = 399

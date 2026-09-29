@@ -20,6 +20,8 @@ Before this change, a carried flag used the same world words as a flag at home. 
 
 External spend is $0.
 
+The later [held-flag pass](ctf-flag-nameplate.md) moves this carried cloth and its words onto a short grip in the carrier's hand. Home and dropped labels stay on the stand pole. This result records the v0.59.0 label itself.
+
 ## Result
 
 `test_flag_state.gd` passed on Godot 4.7.2-stable: home, carried, and dropped words, cloth offset `0.66` while carried, pole offset after a drop, and no callsign on the world label.
