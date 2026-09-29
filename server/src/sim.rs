@@ -2,6 +2,7 @@ mod ctf;
 #[cfg(test)]
 mod enclosed_tests;
 mod modes;
+pub mod traveling_shot;
 use crate::movement::{EYE_HEIGHT, STEP_UP};
 use crate::protocol::{
     boss_down_host_line, boss_host_line, boss_round_wipe_host_line, compliance_host_line,
@@ -42,7 +43,7 @@ struct ResolvedShot {
     origin: [f32; 3],
     pellets: Vec<ResolvedPellet>,
 }
-const RESPAWN_DELAY_TICKS: u32 = 60;
+pub(crate) const RESPAWN_DELAY_TICKS: u32 = 60;
 /// Ticks after a respawn during which a fighter cannot be hit (one second).
 pub const SPAWN_SHIELD_TICKS: u32 = 20;
 const HITSCAN_RANGE: f32 = 100.0;
@@ -498,6 +499,9 @@ pub struct GameState {
     pub config: MatchConfig,
     /// Cleared each tick; filled when weapons fire this tick.
     pub shot_results: Vec<ShotResult>,
+    /// Points still in flight. Omitted from the snapshot while empty.
+    traveling_shots: Vec<traveling_shot::TravelingShot>,
+    projectile_serial: u32,
     /// Remaining ticks of Continuance compliance slow (0 = none).
     pub compliance_ticks_left: u32,
     /// Whether this Active round already fired its compliance ping.
@@ -887,6 +891,7 @@ impl GameState {
         self.round_state = RoundState::Active;
         self.round_ticks = 0;
         self.scores.clear();
+        self.clear_traveling_shots();
         self.compliance_fired = false;
         self.compliance_ticks_left = 0;
         self.clear_boss();
@@ -1009,6 +1014,7 @@ impl GameState {
     }
 
     fn finish_round(&mut self, reason: String, standing: Option<Standing>) {
+        self.clear_traveling_shots();
         // Dismiss a live drone before podium so Ended mid-join is not soft-prisoned
         // with compliance_drone pressure and MCP gets boss_down (killer null).
         self.wipe_boss_for_round_end();
@@ -1748,7 +1754,7 @@ impl GameState {
                 match target {
                     Some(victim_idx) => {
                         let (hp, armor, died) =
-                            self.resolve_fighter_hit(shooter_idx, victim_idx, damage, trace);
+                            self.resolve_fighter_hit(shooter_idx, victim_idx, damage, Some(trace));
                         hp_total += hp;
                         armor_total += armor;
                         kills += u64::from(died);
@@ -1777,7 +1783,7 @@ impl GameState {
         for (attacker, victim, trace) in crawler_contacts {
             self.players[attacker].statistics.attack(WeaponType::Fists);
             let (hp, armor, died) =
-                self.resolve_fighter_hit(attacker, victim, WeaponType::Fists.damage(), trace);
+                self.resolve_fighter_hit(attacker, victim, WeaponType::Fists.damage(), Some(trace));
             self.players[attacker]
                 .statistics
                 .hit(WeaponType::Fists, hp, armor, u64::from(died));
@@ -1793,6 +1799,7 @@ impl GameState {
         self.reap_dead_boss();
         self.react_to_last_standing();
         self.tick_ctf();
+        self.tick_traveling_shots(dt, arena);
     }
 
     fn crawler_contacts(
@@ -1895,7 +1902,7 @@ impl GameState {
         shooter_idx: usize,
         victim_idx: usize,
         damage: i32,
-        trace: ShotTrace,
+        trace: Option<ShotTrace>,
     ) -> (u64, u64, bool) {
         let shooter_name = self.players[shooter_idx].name.clone();
         let shooter_id = self.players[shooter_idx].id;
@@ -1905,7 +1912,9 @@ impl GameState {
         let teammates = shooter_team.is_some() && shooter_team == victim_team;
         // Licence to Kill, or the golden Railgun: any damaging hit is a kill.
         let lethal = self.config.rules.has(Mutator::LicenceToKill)
-            || (self.players[shooter_idx].golden && trace.weapon == WeaponType::Rail);
+            || trace.as_ref().is_some_and(|trace| {
+                self.players[shooter_idx].golden && trace.weapon == WeaponType::Rail
+            });
         let mut ended_streak = 0;
         let mut lost_golden = false;
         let (
@@ -1979,17 +1988,19 @@ impl GameState {
             }
         }
 
-        self.shot_results.push(ShotResult {
-            shooter_id,
-            shooter: shooter_name.clone(),
-            hit: true,
-            target_id: Some(target_id),
-            target: Some(target_name.clone()),
-            damage,
-            target_hp_after: Some(target_hp_after),
-            trace: Some(trace),
-            killed: died,
-        });
+        if let Some(trace) = trace {
+            self.shot_results.push(ShotResult {
+                shooter_id,
+                shooter: shooter_name.clone(),
+                hit: true,
+                target_id: Some(target_id),
+                target: Some(target_name.clone()),
+                damage,
+                target_hp_after: Some(target_hp_after),
+                trace: Some(trace),
+                killed: died,
+            });
+        }
         if damage > 0 {
             self.events.push(GameEvent::Hit {
                 shooter: shooter_name.clone(),
@@ -2389,6 +2400,7 @@ impl GameState {
             round_time_left,
             frag_limit: self.config.frag_limit,
             shot_results: self.shot_results.clone(),
+            projectiles: self.projectile_states(),
             mode_name: if self.map.is_authored() {
                 "Campaign development"
             } else {
@@ -3338,6 +3350,8 @@ impl Default for GameState {
             round_number: 0,
             config: MatchConfig::default(),
             shot_results: Vec::new(),
+            traveling_shots: Vec::new(),
+            projectile_serial: 0,
             compliance_ticks_left: 0,
             compliance_fired: false,
             boss_id: None,

@@ -39,7 +39,7 @@ earlier opening batch are in the M01 opening ([scene plan](plans/campaign-scenes
 The old radio-only ending cannot be integrated as the new campaign's actual ending. The initial art receipt was $0.69; current remaining provider credit
 must be checked before any new call rather than inferred from that old balance.
 
-**Not built yet (honest list):** low-latency transport (WebSocket JSON only), live client prediction (shared movement vectors exist), a complete protocol migration policy (geometry and gameplay admission exist), unlimited lifetime statistics, progression, DJ bumpers and a voiced Host, a finished single-player campaign or full co-op lifecycle, a complete art pass, public-server load tests, any cloud apply, vehicles, and multiplayer objective modes. `GET /status` on the game port is a host probe in the current line of work, not an in-app server browser and not a web client. M01 has a developing discovery/combat/mission slice; Episode 0 remains a separate arena prototype. A deterministic local benchmark already exists; it does not establish public-server readiness. Frame caps, connection caps, and the inbound message budget shipped in v0.35.0.
+**Not built yet (honest list):** low-latency transport (WebSocket JSON only; local human prediction shipped in v0.58.0), interpolation of other fighters, a complete protocol migration policy (geometry and gameplay admission exist), unlimited lifetime statistics, progression, DJ bumpers and a voiced Host, a finished single-player campaign or full co-op lifecycle, a complete art pass, public-server load tests, any cloud apply, vehicles, and Rescue, Sabotage and combined-arms modes. Sector 9 capture the flag is playable. `GET /status` on the game port is a host probe in the current line of work, not an in-app server browser and not a web client. M01 has a developing discovery/combat/mission slice; Episode 0 remains a separate arena prototype. A deterministic local benchmark already exists; it does not establish public-server readiness. Frame caps, connection caps, and the inbound message budget shipped in v0.35.0.
 
 **Decided 2026-09-25:** the campaign is twenty levels in five episodes, per the
 [expansion plan](plans/campaign-expansion.md), now the contract in
@@ -225,6 +225,8 @@ The phases below are the long shape. The sequence that follows is the build orde
 4. Build level 3 Scheduled Service after M02 player review. Keep the twenty-level campaign's one-new-thing-per-level order in [CAMPAIGN-MISSIONS.md](CAMPAIGN-MISSIONS.md). Freeze Episode I scene wording before any capped narration or key-image batch. Speed up the free local decision model through measured stance-only or cached questions before calling it a real-time fighter.
 
 No cloud apply, paid asset batch, public-server claim or 1.0 controls claim follows from this integration. The $0 local container host is available for friends; public admission, cloud cost and exposed-server testing retain their own gates.
+
+While those four gates wait on a player or a second machine, the next sim primitive is a server-owned traveling shot on a non-mission fixture ([plan](plans/traveling-shot.md)). It is slower than a player, it is not a weapon, and it does not start level 3.
 
 The CTF draft's five corrected six-a-side observations recorded 16 flag takes,
 11 combat drops, four captures and one carry at the clock. Those were external

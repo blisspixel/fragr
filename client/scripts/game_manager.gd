@@ -12,6 +12,7 @@ var players = {}
 var pickups = {}
 var jammer_dish_node = null
 var arena_flags: ArenaFlags = null
+var traveling_shots: TravelingShots = null
 # tip_capture latch: keep forced live dish through nods-phase Snapshot nulls.
 var tip_force_jammer_dish = false
 const JammerDishBuilderScript = preload("res://scripts/jammer_dish.gd")
@@ -170,6 +171,9 @@ func _ready():
 		arena_flags = ArenaFlags.new()
 		arena_flags.name = "ArenaFlags"
 		arena_root.add_child(arena_flags)
+		traveling_shots = TravelingShots.new()
+		traveling_shots.name = "TravelingShots"
+		arena_root.add_child(traveling_shots)
 	else:
 		add_child(arena_cover)
 		m02_ward = M02Ward.new()
@@ -178,6 +182,9 @@ func _ready():
 		arena_flags = ArenaFlags.new()
 		arena_flags.name = "ArenaFlags"
 		add_child(arena_flags)
+		traveling_shots = TravelingShots.new()
+		traveling_shots.name = "TravelingShots"
+		add_child(traveling_shots)
 
 ## Replace whatever the arena scene shipped with the environment in
 ## arena_sky.gd, so both arenas get the same sky from one place.
@@ -922,6 +929,8 @@ func _clear_world() -> void:
 		hud.set_match_rules({})
 	if arena_flags != null:
 		arena_flags.clear_flags()
+	if traveling_shots != null:
+		traveling_shots.clear_shots()
 	pending_jump = false
 	pending_interact = false
 	interact_held = false
@@ -1089,6 +1098,8 @@ func _on_snapshot_received(data):
 	_sync_pickups(data.get("pickups", []))
 	if arena_flags != null:
 		arena_flags.apply(data.get("flags"))
+	if traveling_shots != null:
+		traveling_shots.apply(data.get("projectiles"))
 	_sync_jammer_dish(data.get("jammer_dish", null))
 	if is_human_player:
 		_refresh_fp_target()

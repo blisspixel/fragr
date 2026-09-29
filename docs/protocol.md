@@ -88,7 +88,7 @@ Initial handshake message. Must be sent immediately after connection.
   resume keeps the parked pawn's body even if this hello names another.
   Changing the body means leaving and joining again.
 - `gameplay_version`: maximum understood gameplay contract. Updated Rust readers
-  and the Godot client send `21`; omission means `1`. Discovery-only maps require
+  and the Godot client send `22`; omission means `1`. Discovery-only maps require
   2, maps with authored encounters require 3, and mission sequences require 6
   for shared difficulty.
   Versions 4 and 5 introduced physical controls and party readiness respectively;
@@ -683,7 +683,7 @@ A resumed pawn keeps the claims it still holds. A new hello does not restore a p
 
 #### Ack
 
-Unicast after each server tick to a human whose Action carried a `seq`. The root fields keep their existing shape. The optional `movement` version 1 object carries the final 3D body state and whether that tick produced a replayable movement step. The client still does not predict movement. Clients that never send `seq` (agents, spectators, older clients) do not receive Acks.
+Unicast after each server tick to a human whose Action carried a `seq`. The root fields keep their existing shape. The optional `movement` version 1 object carries the final 3D body state and whether that tick produced a replayable movement step. The Godot client predicts the local human pawn from these Acks. The server snapshot remains authority. Clients that never send `seq` (agents, spectators, older clients) do not receive Acks.
 
 ```json
 {
@@ -895,6 +895,10 @@ Periodic state broadcast containing all visible game entities. Sent at ~20 Hz.
   carry `shooter_id`, `shooter`, `hit`, optional `target_id`/`target`/`target_hp_after`,
   `damage`, `killed`, and `trace`. Do not join only against surviving `players` to
   count shots or infer their weapon.
+- `projectiles`: (optional, omitted when empty) Points still in flight. Each entry
+  is `id`, `x`, `y`, `z` in world metres. The server steps them. A reader that
+  does not know the key ignores it. An empty list is the same as a missing key.
+  This is not a weapon trace and it does not change the gameplay capability.
 - `mode_name`: Contested Frequency (scrap league that denies it exists)
 - `playlist`: Arena Duel under the league lie
 - `pressure`: (optional) Live pressure beat id. `"compliance_drone"` while the Compliance Drone is alive; `"compliance"` during Continuance compliance ping slow.
@@ -1562,7 +1566,7 @@ Recording metadata is not sent on the live socket.
 - **Delta compression**: Send only changed fields
 - **Interest management**: Filter snapshots by visibility/distance
 - **UDP option**: Low-latency channels for actions (alongside WS for reliability)
-- **Prediction**: Client-side movement prediction for smoother human play
+- **Prediction**: Local human movement prediction and Ack reconciliation shipped on the WebSocket client. Interpolation of other fighters remains later work.
 
 ## Participant records
 

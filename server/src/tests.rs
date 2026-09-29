@@ -389,6 +389,7 @@ fn test_protocol_snapshot_serialization() {
         round_time_left: Some(60),
         frag_limit: Some(10),
         shot_results: vec![],
+        projectiles: vec![],
         mode_name: default_mode_name(),
         playlist: default_playlist(),
         pressure: None,
@@ -423,6 +424,7 @@ fn test_protocol_snapshot_empty_players() {
         round_time_left: None,
         frag_limit: None,
         shot_results: vec![],
+        projectiles: vec![],
         mode_name: default_mode_name(),
         playlist: default_playlist(),
         pressure: None,
@@ -2527,6 +2529,7 @@ async fn test_net_ws_action_forwarded_for_agent() {
             round_time_left: Some(100),
             frag_limit: Some(10),
             shot_results: vec![],
+            projectiles: vec![],
             mode_name: default_mode_name(),
             playlist: default_playlist(),
             pressure: None,
@@ -6888,3 +6891,4 @@ mod m01;
 mod modes;
 mod pellets;
 mod shiv;
+mod traveling_shot;
