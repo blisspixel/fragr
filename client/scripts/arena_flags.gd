@@ -4,7 +4,8 @@ extends Node3D
 ## Two neutral league markers in side colours. Every position comes from the
 ## authoritative snapshot; this node has no collision or scoring logic.
 ## A carried flag leaves the stand and sits in the carrier's hand. Home and
-## dropped flags keep the stand pole.
+## dropped flags keep the stand pole. The first-person carrier does not see
+## that grip; the HUD shows the same cloth beside the weapon.
 const HOME_POLE_SIZE := Vector3(0.12, 2.1, 0.12)
 const HOME_POLE_AT := Vector3(0.0, 1.05, 0.0)
 const HOME_CLOTH_SIZE := Vector3(1.28, 0.72, 0.08)
@@ -31,6 +32,8 @@ const EMPTY_STAND := Color(0.07, 0.07, 0.08)
 var _stands: Array[Node3D] = []
 var _markers: Array[Node3D] = []
 var _carriers: Array = []
+## Joined fighter, or a spectator in first person. Their own grip is the HUD pennant.
+var _first_person_carrier: String = ""
 
 
 func _init() -> void:
@@ -210,6 +213,10 @@ func blocker_rects(view: Camera3D) -> Array[Rect2]:
 	return rects
 
 
+func set_first_person_carrier(player_id: String) -> void:
+	_first_person_carrier = player_id
+
+
 func clear_flags() -> void:
 	for node: Node3D in _stands + _markers:
 		if is_instance_valid(node):
@@ -258,7 +265,10 @@ func apply(flags: Variant, carriers: Dictionary = {}) -> void:
 		if status == "carried" and pawn is Node3D and is_instance_valid(pawn):
 			_carriers[i] = pawn
 			_seat(marker, pawn as Node3D)
+			# Below the first-person eye. Keep it seated for the next chase view.
+			marker.visible = carrier_id != _first_person_carrier
 		else:
 			_carriers[i] = null
+			marker.visible = true
 			marker.rotation = Vector3.ZERO
 			marker.position = Vector3(float(position[0]), float(position[1]), float(position[2]))
