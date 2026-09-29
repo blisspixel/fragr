@@ -1,6 +1,6 @@
 # Sector 9 rule-bot escort
 
-**Status:** implemented, [draft #299](https://github.com/blisspixel/fragr/pull/299), 2026-09-29. The measured follow-up to the [external-agent defender roles](ctf-external-agent-roles.md).
+**Status:** shipped, [#299](https://github.com/blisspixel/fragr/pull/299), 2026-09-29. The measured follow-up to the [external-agent defender roles](ctf-external-agent-roles.md).
 
 ## Goal and why
 
@@ -42,4 +42,4 @@ The Linux full suite on the first draft changed seed 40 to 2 captures, 4 frags a
 
 ## Success
 
-The role tests pass, the two-bot survey still passes, and the twelve-bot table is recorded honestly. A bot capture is not a human or spectator verdict. The carried flag's world label still uses the home words. That label is the next presentation change, and it is not part of this policy.
+The role tests pass, the two-bot survey still passes, and the twelve-bot table is recorded honestly. A bot capture is not a human or spectator verdict. The carried world label is the following presentation change ([ctf-carried-label.md](ctf-carried-label.md)).
