@@ -42,4 +42,4 @@ The Linux full suite on the first draft changed seed 40 to 2 captures, 4 frags a
 
 ## Success
 
-The role tests pass, the two-bot survey still passes, and the twelve-bot table is recorded honestly. A bot capture is not a human or spectator verdict. The carried world label is the following presentation change ([ctf-carried-label.md](ctf-carried-label.md)).
+The role tests pass, the two-bot survey still passes, and the twelve-bot table is recorded honestly. A bot capture is not a human or spectator verdict. The carried world label shipped in [#300](https://github.com/blisspixel/fragr/pull/300) ([ctf-carried-label.md](ctf-carried-label.md)).

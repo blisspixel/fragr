@@ -1,6 +1,6 @@
 # Carried flag world label
 
-**Status:** implemented, [draft #300](https://github.com/blisspixel/fragr/pull/300), 2026-09-29. The presentation follow-up to the [rule-bot escort](ctf-rule-bot-escort.md).
+**Status:** shipped, [#300](https://github.com/blisspixel/fragr/pull/300), v0.59.0, 2026-09-29. The presentation follow-up to the [rule-bot escort](ctf-rule-bot-escort.md).
 
 ## Goal and why
 

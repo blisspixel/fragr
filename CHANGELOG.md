@@ -4,6 +4,21 @@ Shipped tags, newest first. A line here is on `main`. Planned work stays in
 [docs/ROADMAP.md](docs/ROADMAP.md). Older tags are on the
 [releases page](https://github.com/blisspixel/fragr/releases).
 
+## v0.59.0 (2026-09-29)
+
+On Sector 9, a side of at least three server rule bots keeps one defender and
+sends one escort with the flag. The carrier runs it home and does not shoot.
+Two-bot rounds keep the goals they already had. Longer bot matches still end
+on the clock, short of the three-capture limit. Frag totals are not a
+cross-platform lock.
+
+A carried flag reads UNION FLAG CARRIED or FREE FLAG CARRIED, and those words
+sit on the cloth. A flag at home or on the ground keeps its pole label. The
+world label does not add the carrier's name.
+
+Fresh-player review of Recall Notice and Persons Unknown stays on the v0.58.0
+package. External spend for this build was $0.
+
 ## v0.58.0 (2026-09-28)
 
 Persons Unknown now follows Recall Notice as one local solo run. The same body,

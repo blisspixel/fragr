@@ -232,8 +232,8 @@ agents. Server rule bots already finish a two-a-side capture. A twelve-bot
 Windows replay, seeds 40 through 44, scored 2, 2, 2, 1 and 2 captures and used
 the full clock on every seed. Linux seed 40 stayed on that clock at 2 captures.
 Frag totals are not a cross-platform lock
-([plan](plans/ctf-rule-bot-escort.md)). The carried world label now says the
-flag is carried, offset onto the cloth
+([plan](plans/ctf-rule-bot-escort.md)). The carried world label says the
+flag is carried, offset onto the cloth, in v0.59.0
 ([plan](plans/ctf-carried-label.md)). Two-bot goals are unchanged. A controlled socket
 gate proves a complete capture, while contested matches test combat and flag
 replication. Neither gate establishes human or spectator clarity. See the
