@@ -1,6 +1,6 @@
 # Traveling shot
 
-**Status:** implemented, 2026-09-29. Local evidence is below. The branch is not on main. It does not start level 3, and it does not cut a release.
+**Status:** implemented, [draft #302](https://github.com/blisspixel/fragr/pull/302), 2026-09-29. Local evidence is below. It does not start level 3, and it does not cut a release.
 
 ## Goal and why
 
