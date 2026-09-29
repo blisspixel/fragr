@@ -1884,8 +1884,22 @@ func _pose_camera(mode: String, state: Dictionary = {}) -> void:
 						cam.set("fp_mode", false)
 						if cam is Node3D:
 							var camera: Node3D = cam
-							camera.global_position = point + Vector3(9.0, 4.5, 11.0)
-							camera.look_at(point + Vector3(0.0, 1.2, 0.0), Vector3.UP)
+							if mode == "ctf_carried":
+								var focus: Vector3 = point + Vector3(0.0, 1.55, 0.0)
+								var forward: Vector3 = Vector3(1.0, 0.0, 0.0)
+								var manager: Node = _game_manager()
+								if manager != null and flag.get("carrier") is String:
+									var pawn: Variant = manager.players.get(str(flag["carrier"]))
+									if pawn is Node3D and is_instance_valid(pawn):
+										focus = (pawn as Node3D).global_position + Vector3(0.0, -0.15, 0.0)
+										forward = (pawn as Node3D).global_transform.basis.x
+								if forward.length_squared() > 0.01:
+									forward = forward.normalized()
+								camera.global_position = focus + forward * 4.6 + Vector3(0.0, 1.35, 0.0)
+								camera.look_at(focus, Vector3.UP)
+							else:
+								camera.global_position = point + Vector3(9.0, 4.5, 11.0)
+								camera.look_at(point + Vector3(0.0, 1.2, 0.0), Vector3.UP)
 						return
 			push_error("qa_tour: no live %s flag to frame" % wanted)
 			_failed = true
