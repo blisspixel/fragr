@@ -1,6 +1,6 @@
 # Sector 9 rule-bot escort
 
-**Status:** implemented, 2026-09-29. The measured follow-up to the [external-agent defender roles](ctf-external-agent-roles.md).
+**Status:** implemented, [draft #299](https://github.com/blisspixel/fragr/pull/299), 2026-09-29. The measured follow-up to the [external-agent defender roles](ctf-external-agent-roles.md).
 
 ## Goal and why
 
