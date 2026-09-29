@@ -1,6 +1,6 @@
 # Traveling shot
 
-**Status:** implemented, [draft #302](https://github.com/blisspixel/fragr/pull/302), 2026-09-29. Local evidence is below. It does not start level 3, and it does not cut a release.
+**Status:** implemented, [#302](https://github.com/blisspixel/fragr/pull/302), 2026-09-29. Merged to main. It does not start level 3, and it does not cut a release.
 
 ## Goal and why
 
@@ -47,7 +47,7 @@ On 2026-09-29, in the `feat/traveling-shot` worktree:
 - `cargo test --workspace --locked` passed. The server library reported 624 passed and 3 ignored. The traveling-shot tests reported 13 passed.
 - `tools/godot_check.sh` passed on Godot 4.7.2.stable.official.ed1daf0bf, including `test_traveling_shot: PASS`.
 
-External spend was $0. No tour still was published. No live weapon calls the launcher.
+External spend was $0. No tour still was published. No live weapon calls the launcher. Merged to main as `59cc010`. v0.59.0 does not include it.
 
 ## Success
 
