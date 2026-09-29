@@ -229,8 +229,9 @@ No cloud apply, paid asset batch, public-server claim or 1.0 controls claim foll
 The CTF draft's five corrected six-a-side observations recorded 16 flag takes,
 11 combat drops, four captures and one carry at the clock. Those were external
 agents. Server rule bots already finish a two-a-side capture. A twelve-bot
-roster with one defender and one escort, replayed on seeds 40 through 44,
-scored 2, 2, 2, 1 and 2 captures and used the full clock on every seed
+Windows replay, seeds 40 through 44, scored 2, 2, 2, 1 and 2 captures and used
+the full clock on every seed. Linux seed 40 stayed on that clock at 2 captures.
+Frag totals are not a cross-platform lock
 ([plan](plans/ctf-rule-bot-escort.md)). Two-bot goals are unchanged. A controlled socket
 gate proves a complete capture, while contested matches test combat and flag
 replication. Neither gate establishes human or spectator clarity. See the

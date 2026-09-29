@@ -20,13 +20,13 @@ Server rule bots already finish a two-a-side, first-capture round. This change g
 
 Focused tests in `server/src/tests/modes.rs` cover home-flag election, one escort during a carry, a dead or carrying defender yielding the seat, a dropped friendly flag that does not pull the attackers, escort contact that does not become a detour, a carrier who goes home instead of chasing the thief, and the frozen two-bot goal. `ctf_four_rule_bots_finish_a_scored_round_on_seed_42` and `ctf_rule_bot_seed_survey` stay as they are.
 
-The twelve-bot measurement runs seeds 40 through 44 in the deterministic tick loop: twelve rule bots, capture limit 3, 180 seconds, replay ids. Flag touches sort by id, so a random id is not a replay. If no seed reaches the limit, the five rows are the result and the intercept stays at 1.5 metres.
+The twelve-bot measurement runs seeds 40 through 44 in the tick loop: twelve rule bots, capture limit 3, 180 seconds, replay ids. Flag touches sort by id, so a random id is not a replay. If no seed reaches the limit, the five rows are the result and the intercept stays at 1.5 metres. Exact frag totals are not a CI assert: one long match can differ by a frag across hosts.
 
 External spend is $0. No cloud resource and no paid asset call. The 2026-09-29 allowance of $20, inside the repository's $50 cap, is not used.
 
 ## Result
 
-`ctf_twelve_bot_replay_stays_short_of_the_capture_limit` on 2026-09-29. Twelve rule bots, capture limit 3, 180 seconds, seeds 40 through 44, replay ids. Two separate runs produced the same rows:
+Windows debug, two matching runs, 2026-09-29. Twelve rule bots, capture limit 3, 180 seconds, seeds 40 through 44, replay ids:
 
 | Seed | Captures | Drops | Frags | Reason |
 |---|---|---|---|---|
@@ -36,7 +36,9 @@ External spend is $0. No cloud resource and no paid asset call. The 2026-09-29 a
 | 43 | 1 | 3 | 3 | Time limit reached |
 | 44 | 2 | 4 | 4 | Time limit reached |
 
-No seed reached the capture limit. Every seed still scored, dropped a flag and recorded a frag. The 1.5 metre intercept stays. An earlier sample without replay ids moved between runs, including one pass through the limit, because overlapping touches follow id order. That sample is not the result. The same tree passed the six role tests, `ctf_rule_bot_roster_has_one_defender_per_side`, `ctf_four_rule_bots_finish_a_scored_round_on_seed_42` and `ctf_rule_bot_seed_survey`.
+No seed reached the capture limit. Every seed still scored, dropped a flag and recorded a frag. The 1.5 metre intercept stays. An earlier sample without replay ids moved between runs, including one pass through the limit, because overlapping touches follow id order. That sample is not the result.
+
+The Linux full suite on the first draft changed seed 40 to 2 captures, 4 frags and 4 drops, still on the time limit. The capture count held and the frag count did not, so the table stays in this plan and is not a cross-platform assert. The same tree passed the six role tests, `ctf_rule_bot_roster_has_one_defender_per_side`, `ctf_four_rule_bots_finish_a_scored_round_on_seed_42` and `ctf_rule_bot_seed_survey`.
 
 ## Success
 

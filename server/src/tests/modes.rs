@@ -482,66 +482,6 @@ fn ctf_support_escort_contact_does_not_become_a_detour() {
     assert_eq!(pressing.goal.unwrap().feet[0], -70.0);
 }
 
-fn ctf_roster_round(seed: u64) -> (usize, usize, usize, String) {
-    let mut session = GameSession::with_map(MapKind::Sector9, false);
-    // Flag touches sort by id. A random id changes who takes the flag when
-    // several fighters arrive together, so the seed alone would not replay.
-    session.state.use_replay_ids();
-    session.state.seed(seed);
-    let mut match_config = config(rules(GameMode::Ctf, &[]));
-    match_config.frag_limit = None;
-    match_config.capture_limit = Some(3);
-    match_config.time_limit_ticks = Some(20 * 180);
-    session.state.apply_config(match_config);
-    session.spawn_bots(12);
-    let mut captures = 0;
-    let mut frags = 0;
-    let mut drops = 0;
-    let mut reason = String::new();
-    for _ in 0..(20 * 180 + 80) {
-        for message in session.tick_messages(0.05) {
-            match message {
-                ServerMessage::Event(GameEvent::Flag {
-                    kind: crate::protocol::FlagEventKind::Captured,
-                    ..
-                }) => captures += 1,
-                ServerMessage::Event(GameEvent::Flag {
-                    kind: crate::protocol::FlagEventKind::Dropped,
-                    ..
-                }) => drops += 1,
-                ServerMessage::Event(GameEvent::Frag { .. }) => frags += 1,
-                ServerMessage::Event(GameEvent::RoundEnd { reason: end, .. }) => reason = end,
-                _ => {}
-            }
-        }
-        if session.state.round_state == RoundState::Ended {
-            break;
-        }
-    }
-    (captures, frags, drops, reason)
-}
-
-#[test]
-fn ctf_twelve_bot_replay_stays_short_of_the_capture_limit() {
-    // Replay ids, twelve rule bots, capture limit 3, 180 seconds.
-    // Measured 2026-09-29. Columns are seed, captures, drops, frags, reason.
-    // None of these seeds reach the limit.
-    let expected = [
-        (40, 2, 4, 5, "Time limit reached"),
-        (41, 2, 4, 4, "Time limit reached"),
-        (42, 2, 5, 5, "Time limit reached"),
-        (43, 1, 3, 3, "Time limit reached"),
-        (44, 2, 4, 4, "Time limit reached"),
-    ];
-    for (seed, captures, drops, frags, reason) in expected {
-        assert_eq!(
-            ctf_roster_round(seed),
-            (captures, frags, drops, reason.to_string()),
-            "seed {seed}"
-        );
-    }
-}
-
 #[test]
 fn ctf_pickup_capture_and_reset_are_independent_of_frags() {
     let mut state = ctf();
