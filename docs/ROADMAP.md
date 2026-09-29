@@ -226,7 +226,7 @@ The phases below are the long shape. The sequence that follows is the build orde
 
 No cloud apply, paid asset batch, public-server claim or 1.0 controls claim follows from this integration. The $0 local container host is available for friends; public admission, cloud cost and exposed-server testing retain their own gates.
 
-While those four gates wait on a player or a second machine, the next sim primitive is a server-owned traveling shot on a non-mission fixture ([plan](plans/traveling-shot.md)). It is slower than a player, it is not a weapon, and it does not start level 3.
+While those four gates wait on a player or a second machine, the server-owned traveling shot is already on main ([plan](plans/traveling-shot.md)). It is slower than a player, it is not a weapon, no live match launches it, and it does not start level 3.
 
 The CTF draft's five corrected six-a-side observations recorded 16 flag takes,
 11 combat drops, four captures and one carry at the clock. Those were external
