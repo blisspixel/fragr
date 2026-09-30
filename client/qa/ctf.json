@@ -1,5 +1,5 @@
 {
-  "comment": "Sector 9 CTF visual review. Timing is a sample, not evidence that a capture occurred.",
+  "comment": "Capture the flag visual review for whichever validated map the server is running. Timing is a sample, not evidence that a capture occurred.",
   "width": 1280,
   "height": 720,
   "states": [
@@ -8,6 +8,7 @@
       "scene": "res://scenes/main.tscn",
       "at_seconds": 4,
       "camera": "first_person",
+      "allow_empty_roster": true,
       "expect_flag_statuses": ["home", "home"],
       "expect_capture_scores": {"union": 0, "coalition": 0},
       "note": "Spectator view of live CTF with capture score and both flag states."
@@ -16,6 +17,7 @@
       "name": "ctf_union_flag",
       "at_seconds": 6,
       "camera": "union_flag",
+      "allow_empty_roster": true,
       "expect_flag_statuses": ["home", "home"],
       "note": "Union stand and flag are visible from a nearby free camera."
     },
@@ -23,6 +25,7 @@
       "name": "ctf_coalition_flag",
       "at_seconds": 8,
       "camera": "coalition_flag",
+      "allow_empty_roster": true,
       "expect_flag_statuses": ["home", "home"],
       "note": "Free Coalition stand and flag are visible from a nearby free camera."
     },
@@ -30,7 +33,8 @@
       "name": "ctf_overview",
       "at_seconds": 10,
       "camera": "overview",
-      "note": "Sector 9 lanes and side colours."
+      "allow_empty_roster": true,
+      "note": "Arena lanes and side colours from the live map."
     },
     {
       "name": "ctf_joined",

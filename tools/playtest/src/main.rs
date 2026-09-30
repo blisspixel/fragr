@@ -63,7 +63,7 @@ struct Cli {
     /// Simulation seed, so a run can be reproduced and two runs compared.
     #[arg(long, default_value_t = 1)]
     seed: u64,
-    /// Match mode: ffa, tdm or ctf (Sector 9).
+    /// Match mode: ffa, tdm, or ctf. Capture the flag runs on a map with stands.
     #[arg(long, value_enum, default_value_t = fragr_server::protocol::GameMode::Ffa)]
     mode: fragr_server::protocol::GameMode,
     /// A host rule twist, repeatable: rail-only, shotgun-only, fists-only,
@@ -186,10 +186,8 @@ fn config_from(cli: &Cli) -> Result<Config, String> {
     }
     let map = fragr_server::sim::MapKind::from_cli(&cli.map)
         .ok_or_else(|| format!("invalid --map {:?}", cli.map))?;
-    if cli.mode == fragr_server::protocol::GameMode::Ctf
-        && map != fragr_server::sim::MapKind::Sector9
-    {
-        return Err("ctf currently requires --map 4 (Sector 9)".into());
+    if cli.mode == fragr_server::protocol::GameMode::Ctf && map.ctf_stands().is_none() {
+        return Err("ctf requires a map with validated flag stands".into());
     }
     Ok(Config {
         agents: cli.agents,
@@ -469,8 +467,23 @@ mod tests {
         ])
         .unwrap();
         assert!(config_from(&clash).is_err());
-        let ctf_without_stands = Cli::try_parse_from(["fragr-playtest", "--mode", "ctf"]).unwrap();
-        assert!(config_from(&ctf_without_stands).is_err());
+        let ctf_without_stands = Cli::try_parse_from([
+            "fragr-playtest",
+            "--mode",
+            "ctf",
+            "--map",
+            "compliance-yard",
+        ])
+        .unwrap();
+        assert!(
+            config_from(&ctf_without_stands).is_err(),
+            "Compliance Yard has no flag stands"
+        );
+        let ctf_default = Cli::try_parse_from(["fragr-playtest", "--mode", "ctf"]).unwrap();
+        assert_eq!(
+            config_from(&ctf_default).unwrap().map,
+            fragr_server::sim::MapKind::ArenaDuel
+        );
         let ctf = Cli::try_parse_from([
             "fragr-playtest",
             "--mode",

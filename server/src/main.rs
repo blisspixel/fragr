@@ -59,7 +59,8 @@ struct Args {
     #[arg(long, conflicts_with_all = ["solo_broadcast", "bench", "bench_verify_trace"])]
     no_round_events: bool,
 
-    /// Match mode: ffa, tdm, or ctf (Sector 9 only).
+    /// Match mode: ffa, tdm, or ctf. Capture the flag runs on Arena Duel,
+    /// Directive 17, or Sector 9.
     #[arg(long, value_enum, default_value_t = fragr_server::protocol::GameMode::Ffa, conflicts_with_all = ["campaign_source", "solo_broadcast", "bench", "bench_verify_trace"])]
     mode: fragr_server::protocol::GameMode,
 
@@ -507,8 +508,11 @@ mod tests {
                 .unwrap();
         let config = match_config(rules, None, false).unwrap();
         for (map, rotate) in [
-            (fragr_server::sim::MapKind::ArenaDuel, false),
+            (fragr_server::sim::MapKind::ComplianceYard, false),
+            (fragr_server::sim::MapKind::ReclamationGulch, false),
+            (fragr_server::sim::MapKind::TripointWorks, false),
             (fragr_server::sim::MapKind::Sector9, true),
+            (fragr_server::sim::MapKind::ArenaDuel, true),
         ] {
             let error = run_server(
                 ServerOptions {
@@ -523,7 +527,10 @@ mod tests {
             )
             .await
             .unwrap_err();
-            assert!(error.to_string().contains("fixed Sector 9"));
+            assert!(
+                error.to_string().contains("validated flag stands"),
+                "{map:?} rotate={rotate}: {error}"
+            );
         }
     }
 

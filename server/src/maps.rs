@@ -84,11 +84,16 @@ pub(crate) fn arena(kind: MapKind) -> &'static crate::movement::Arena {
 }
 
 /// Ground-level flag stands for two-sided league scenarios. A map without
-/// validated stands cannot run capture the flag.
+/// validated stands cannot run capture the flag. Union is the negative X
+/// stand and Coalition the positive X stand, matching the spawn halves.
+/// Compliance Yard is retired. Gulch's compounds face north and south.
+/// Tripoint Works has three compounds.
 pub(crate) fn ctf_stands(kind: MapKind) -> Option<[[f32; 3]; 2]> {
     match kind {
+        MapKind::ArenaDuel => Some([[-63.0, 0.0, 0.0], [63.0, 0.0, 0.0]]),
+        MapKind::Directive17 => Some([[-68.0, 0.0, 0.0], [68.0, 0.0, 0.0]]),
         MapKind::Sector9 => Some([[-70.0, 0.0, 0.0], [70.0, 0.0, 0.0]]),
-        _ => None,
+        MapKind::ComplianceYard | MapKind::ReclamationGulch | MapKind::TripointWorks => None,
     }
 }
 

@@ -1346,8 +1346,11 @@ Rules the server enforces:
   limit. At the clock the higher side wins or the round is a draw. Weapon pads
   respawn after 30 s in team modes. `PlayerState` hostility helpers treat a
   teammate as not hostile.
-- **Capture the flag.** A staged league scenario on fixed Sector 9 while other
-  maps await validated two-base routes. Touch the enemy flag to carry it. A
+- **Capture the flag.** A staged league scenario on Arena Duel, Directive 17,
+  or Sector 9. Each of those maps has a Union stand in the negative X back
+  third and a Coalition stand in the positive X back third. Compliance Yard,
+  Reclamation Gulch and Tripoint Works have no stands, and a rotating playlist
+  is refused. Touch the enemy flag to carry it. A
   living owner-side fighter touching a dropped friendly flag returns it. A
   carrier can shoot. Death, leave, disconnect parking or side reassignment
   drops the flag; an untouched dropped flag returns home after 400 ticks (20 s).

@@ -185,6 +185,12 @@ impl MapKind {
         crate::maps::arena(self).solids.clone()
     }
 
+    /// Flag stands for a league match, or none when this map has no proven
+    /// two-base route. Union is index 0.
+    pub fn ctf_stands(self) -> Option<[[f32; 3]; 2]> {
+        crate::maps::ctf_stands(self)
+    }
+
     /// Half width of the playable square, centred on the origin.
     pub fn half_extent(self) -> f32 {
         crate::maps::def(self).half_extent

@@ -516,6 +516,48 @@ fn ctf_pickup_capture_and_reset_are_independent_of_frags() {
 }
 
 #[test]
+fn ctf_validated_maps_place_stands_and_score_a_carry_home() {
+    for map in [MapKind::ArenaDuel, MapKind::Directive17, MapKind::Sector9] {
+        let stands = map.ctf_stands().expect("validated CTF map");
+        let mut state = arena(map, rules(GameMode::Ctf, &[]));
+        state.config.frag_limit = None;
+        state.config.capture_limit = Some(3);
+        let coalition = join(&mut state, 1, Role::Human);
+        state.start_round();
+        let flags = state.snapshot().flags.expect("flag stands");
+        assert_eq!(flags[0].stand, stands[0], "{map:?} union stand");
+        assert_eq!(flags[1].stand, stands[1], "{map:?} coalition stand");
+        place(&mut state, coalition, stands[0][0], stands[0][2]);
+        state.tick(0.05);
+        assert_eq!(
+            state.snapshot().flags.unwrap()[0].carrier,
+            Some(coalition),
+            "{map:?} pickup"
+        );
+        place(&mut state, coalition, stands[1][0], stands[1][2]);
+        state.tick(0.05);
+        assert_eq!(state.capture_scores.coalition, 1, "{map:?} capture");
+        assert_eq!(
+            state.team_scores.coalition, 0,
+            "{map:?} frags stay separate"
+        );
+        assert_eq!(state.round_state, RoundState::Active);
+    }
+    for map in [
+        MapKind::ComplianceYard,
+        MapKind::ReclamationGulch,
+        MapKind::TripointWorks,
+    ] {
+        let mut state = arena(map, rules(GameMode::Ctf, &[]));
+        state.start_round();
+        assert!(
+            state.snapshot().flags.is_none(),
+            "{map:?} does not invent flag stands"
+        );
+    }
+}
+
+#[test]
 fn ctf_drop_return_and_home_requirement() {
     let mut state = ctf();
     let coalition = join(&mut state, 1, Role::Human);

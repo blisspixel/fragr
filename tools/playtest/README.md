@@ -78,7 +78,7 @@ Keep seed, map, policies, duration, sample counts, and source revision with any
 comparison. Small samples and perfect-aim agents are not a weapon-balance verdict.
 The deeper workflow is in `../../docs/plans/agent-playtest-loop.md`.
 
-Sector 9 CTF has two separate socket gates. The controlled route runs one
+Capture the flag runs on Arena Duel, Directive 17, and Sector 9. The two socket gates below stay on Sector 9. The controlled route runs one
 unopposed joined fighter through ordinary navigation and server-owned flag
 rules. It fails unless that fighter takes and carries the flag, the server
 emits its matching capture event, the final score credits its side and the
