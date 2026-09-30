@@ -241,13 +241,16 @@ func _run() -> void:
 		# walking resumes, or the next live route would send no human input.
 		if state.get("camera", "") == "first_person" and _joined and not bool(_spectator_camera().get("fp_mode")):
 			_pose_camera("first_person", state)
+		var stop_round_state: String = str(state.get("stop_on_round_state", ""))
 		for point: Array in state.get("walk_to", []):
 			await _walk_to(Vector3(float(point[0]), float(point[1]), float(point[2])),
-				state.get("route_look_back", false))
+				state.get("route_look_back", false), stop_round_state)
 			if _failed:
 				await _retire_scene()
 				quit(1)
 				return
+			if not _walk_results.is_empty() and bool(_walk_results.back().get("stopped_for_round", false)):
+				break
 		if state.has("expect_companion_displacement"):
 			await _expect_companion_displacement(float(state["expect_companion_displacement"]), state_name)
 		if state.get("expect_crawler_scrabble", false):
@@ -459,6 +462,13 @@ func _run() -> void:
 			push_error("qa_tour: unexpected capture size for " + state_name)
 			_failed = true
 		var observed: Dictionary = _observed_state().duplicate(true)
+		# The still is grabbed before the pixel compare. That compare resumes
+		# the tree, and a capture result only lasts the round's end delay.
+		var framed: Variant = measured.get("observed")
+		if framed is Dictionary:
+			for key: String in ["flags", "capture_scores", "round_state"]:
+				if (framed as Dictionary).has(key):
+					observed[key] = (framed as Dictionary)[key]
 		if state.get("expect_crawler_scrabble", false) and _game_manager() != null:
 			observed["crawler_cues"] = int(_game_manager().get("crawler_scrabble_count"))
 			var last_crawler_source: Vector3 = _game_manager().get("crawler_last_position")
@@ -772,6 +782,10 @@ static func valid_walks(states: Variant) -> bool:
 			if not state.has("record_audio_seconds") or not reference is String or reference.is_empty() \
 				or not (ratio is float or ratio is int) or not is_finite(float(ratio)) or float(ratio) < 1.0:
 				return false
+		if state.has("stop_on_round_state"):
+			var stop_round: String = str(state["stop_on_round_state"])
+			if stop_round != "Warmup" and stop_round != "Active" and stop_round != "Ended":
+				return false
 		if state.has("ack_probe_seconds"):
 			var seconds: Variant = state["ack_probe_seconds"]
 			if not (seconds is int or seconds is float) or not is_finite(float(seconds)) or \
@@ -982,6 +996,7 @@ func _measure() -> Dictionary:
 	await RenderingServer.frame_post_draw
 	var with_hud: Image = _grab()
 	out["shot"] = with_hud
+	out["observed"] = _observed_state()
 	var hud: Node = _find_hud()
 	if hud == null or with_hud == null:
 		paused = false
@@ -1351,6 +1366,12 @@ func _restore_static_aim_after_respawn(state: Dictionary) -> void:
 	await RenderingServer.frame_post_draw
 	await RenderingServer.frame_post_draw
 
+func _snapshot_round_state() -> String:
+	var gm: Node = _game_manager()
+	if gm == null:
+		return ""
+	return str(gm.get("latest_snapshot").get("round_state", ""))
+
 func _local_feet() -> Vector3:
 	var gm: Node = _game_manager()
 	var snapshot: Dictionary = gm.get("latest_snapshot")
@@ -1667,7 +1688,7 @@ func _jump_probe() -> void:
 		_failed = true
 	print("qa_tour: jump peak %.3f m, eye rise %.3f m" % [peak - start.y, camera_peak - camera_start])
 
-func _walk_to(goal: Vector3, look_back: bool = false) -> void:
+func _walk_to(goal: Vector3, look_back: bool = false, stop_round_state: String = "") -> void:
 	# Keep the original movement bound. Opt-in combat uses a separate bounded
 	# allowance, because the controller intentionally stops walking to fight.
 	var walking_ms: int = 0
@@ -1677,12 +1698,20 @@ func _walk_to(goal: Vector3, look_back: bool = false) -> void:
 	var movement_action: StringName = &"move_back" if look_back else &"move_forward"
 	Input.action_press(movement_action)
 	var arrived: bool = false
+	var stopped_for_round: bool = false
 	var anchor: Vector2 = Vector2(_local_feet().x, _local_feet().z)
 	while walking_ms < 15000 and fighting_ms < 25000:
 		var step_started: int = Time.get_ticks_msec()
 		await _record_companion_route()
 		var feet: Vector3 = _local_feet()
 		if not feet.is_finite() or (_combat_travel and _combat_probe.participant_died):
+			break
+		# A capture freezes the pawn until the next round. A stand waypoint's
+		# arrival disk sits inside the touch radius, so waiting for it
+		# photographs the reset.
+		if stop_round_state != "" and _snapshot_round_state() == stop_round_state:
+			arrived = true
+			stopped_for_round = true
 			break
 		if Vector2(feet.x - goal.x, feet.z - goal.z).length() < 0.3 and absf(feet.y - goal.y) < 0.03:
 			arrived = true
@@ -1700,7 +1729,10 @@ func _walk_to(goal: Vector3, look_back: bool = false) -> void:
 		await create_timer(0.05).timeout
 		walking_ms += Time.get_ticks_msec() - step_started
 	QaCombat.release_inputs()
-	_walk_results.append({"goal": [goal.x, goal.y, goal.z], "arrived": arrived, "walking_ms": walking_ms, "fighting_ms": fighting_ms})
+	var walk_result: Dictionary = {"goal": [goal.x, goal.y, goal.z], "arrived": arrived, "walking_ms": walking_ms, "fighting_ms": fighting_ms}
+	if stopped_for_round:
+		walk_result["stopped_for_round"] = true
+	_walk_results.append(walk_result)
 	await create_timer(0.15).timeout
 	if not arrived:
 		push_error("qa_tour: ordinary walk failed to reach %s, stopped at %s (walking %d ms, fighting %d ms)" % [goal, _local_feet(), walking_ms, fighting_ms])

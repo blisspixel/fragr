@@ -239,7 +239,8 @@ flag is carried, offset onto the cloth, in v0.59.0
 ([plan](plans/ctf-carried-label.md)). A carried flag leaves the stand for a short grip in the carrier's hand, in
 front of the body, and the empty stand dims, so the take reads at a glance
 ([plan](plans/ctf-flag-nameplate.md)). In first person that grip sits below the eye, so the carrier sees the side cloth and the stand words beside the weapon
-([plan](plans/ctf-fp-carry.md)). Two-bot goals are unchanged. A controlled socket
+([plan](plans/ctf-fp-carry.md)). A capture result sits on an opaque card, and the score stays readable in front of the home flag
+([plan](plans/ctf-result-card.md)). Two-bot goals are unchanged. A controlled socket
 gate proves a complete capture, while contested matches test combat and flag
 replication. Neither gate establishes human or spectator clarity. See the
 [carry evidence](plans/ctf-carry-episodes.md) and

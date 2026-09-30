@@ -200,6 +200,13 @@ func _ready():
 		round_message.visible = false
 	if round_backdrop:
 		round_backdrop.visible = false
+		# The shared weapon card is translucent. A capture ends on the stand,
+		# and that pole was showing through the result.
+		var card := StyleBoxFlat.new()
+		card.bg_color = Color(0.039, 0.039, 0.047, 1.0)
+		card.set_border_width_all(2)
+		card.border_color = Color(0.353, 0.333, 0.31, 1.0)
+		round_backdrop.add_theme_stylebox_override("panel", card)
 	if weapon_label:
 		weapon_label.text = ""
 	if weapon_icon:
@@ -1027,6 +1034,22 @@ func _show_round_banner(text: String, seconds: float, backed: bool = false) -> v
 	round_message.visible = true
 	if round_backdrop:
 		round_backdrop.visible = backed
+	_fit_round_message(backed)
+
+
+func _fit_round_message(backed: bool) -> void:
+	if round_message == null:
+		return
+	if backed and round_backdrop != null:
+		round_message.offset_left = round_backdrop.offset_left + 28.0
+		round_message.offset_right = round_backdrop.offset_right - 28.0
+		round_message.offset_top = round_backdrop.offset_top + 18.0
+		round_message.offset_bottom = round_backdrop.offset_bottom - 18.0
+		return
+	round_message.offset_left = -600.0
+	round_message.offset_top = -180.0
+	round_message.offset_right = 600.0
+	round_message.offset_bottom = -40.0
 
 ## A found secret is one quiet corner line, never a banner over the aim.
 func show_secret_found() -> void:
