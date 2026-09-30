@@ -12,6 +12,7 @@
       "walk_to": [[32, 0, -32], [32, 0, 0], [20, 0, 0], [-20, 0, 0], [-32, 0, 0], [-48, 0, 0], [-48, 0, 12], [-70, 0, 12], [-70, 0, 0]],
       "expect_flag_statuses": ["carried", "home"],
       "expect_carried_flag_team": "union",
+      "expect_return_bearing": true,
       "expect_capture_scores": {"union": 0, "coalition": 0},
       "expect_round_state": "Active",
       "note": "The joined Coalition fighter took the Union flag at its stand."
@@ -22,6 +23,7 @@
       "walk_to": [[-70, 0, 12], [-48, 0, 12], [-48, 0, 0], [-32, 0, 0], [-20, 0, 0], [20, 0, 0], [32, 0, 0], [48, 0, 0], [48, 0, 12]],
       "expect_flag_statuses": ["carried", "home"],
       "expect_carried_flag_team": "union",
+      "expect_return_bearing": true,
       "expect_capture_scores": {"union": 0, "coalition": 0},
       "expect_round_state": "Active",
       "note": "The same joined fighter carries the Union flag toward the Coalition stand while its own flag is home."

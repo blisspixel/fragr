@@ -123,6 +123,23 @@ func _check_hud() -> void:
 	var ctf_chip_bounds: Rect2 = chip.get_global_rect()
 	var ctf_panel_bounds: Rect2 = hud.get_node("Panel").get_global_rect()
 	_check(ctf_chip_bounds.end.x <= ctf_panel_bounds.end.x and ctf_chip_bounds.end.y <= ctf_panel_bounds.end.y, "ctf status fits inside the HUD panel")
+	var home_flags: Array = [
+		{"team": "union", "status": "carried", "carrier": "a1", "stand": [-70.0, 0.0, 0.0], "position": [0.0, 0.0, 0.0]},
+		{"team": "coalition", "status": "home", "stand": [70.0, 0.0, 0.0], "position": [70.0, 0.0, 0.0]},
+	]
+	hud.call("set_ctf_state", home_flags, {"union": 1.0, "coalition": 2.0}, 3.0, [
+		{"id": "a1", "name": "Dead Air Dan", "team": "coalition", "x": 0.0, "y": 0.0, "z": 0.0},
+		{"id": "b2", "name": "Nightfall", "team": "union", "x": 0.0, "y": 0.0, "z": -14.0},
+	], "a1")
+	_check(chip.text.contains("UNION FLAG CARRIED BY Dead Air Dan  //  FREE FLAG HOME 70M E"), "carrier return bearing: " + chip.text)
+	hud.call("set_ctf_state", home_flags, {"union": 1.0, "coalition": 2.0}, 3.0, [
+		{"id": "a1", "name": "Dead Air Dan", "team": "coalition", "x": 0.0, "y": 0.0, "z": 0.0},
+		{"id": "b2", "name": "Nightfall", "team": "union", "x": 0.0, "y": 0.0, "z": -14.0},
+	], "b2")
+	_check(chip.text.contains("UNION FLAG CARRIED BY Dead Air Dan, 14M S  //  FREE FLAG HOME"), "chase bearing: " + chip.text)
+	await process_frame
+	var compass_bounds: Rect2 = chip.get_global_rect()
+	_check(compass_bounds.end.x <= ctf_panel_bounds.end.x and compass_bounds.end.y <= ctf_panel_bounds.end.y, "a compass line still fits the HUD panel")
 	hud.call("set_fp_juice", true)
 	hud.call("set_fp_carried_flag", "union")
 	var pennant: Control = hud.get_node("FpPennant")

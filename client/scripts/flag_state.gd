@@ -21,6 +21,41 @@ static func bearing(from_position: Array, to_position: Array) -> String:
 	var direction: String = directions[(roundi(atan2(dx, -dz) / (PI / 4.0)) + 8) % 8]
 	return str(TranslationServer.translate("FLAG_BEARING_" + direction))
 
+
+## Corner phrase for one flag. A carrier is pointed at their own stand.
+## Everyone else is pointed at a carried or dropped flag. Scoring stays on the server.
+static func status_text(flag: Dictionary, viewer_id: String, viewer_team: String, viewer_position: Array, names: Dictionary, carrying: bool) -> String:
+	var status_id: String = str(flag.get("status", ""))
+	if status_id == "carried":
+		var carrier: String = str(flag.get("carrier", ""))
+		var player_name: String = str(names.get(carrier, "?"))
+		if carrier != viewer_id and _position(viewer_position) and _position(flag.get("position")):
+			var away: int = distance_m(viewer_position, flag["position"])
+			if away >= 1:
+				return str(TranslationServer.translate("FLAG_CARRIED_BEARING")).format({
+					"player": player_name,
+					"distance": away,
+					"bearing": bearing(viewer_position, flag["position"]),
+				})
+		return str(TranslationServer.translate("FLAG_CARRIED")).format({"player": player_name})
+	if status_id == "dropped":
+		var seconds: int = ceili(float(flag.get("return_ticks", 0)) / 20.0)
+		if _position(viewer_position) and _position(flag.get("position")):
+			return str(TranslationServer.translate("FLAG_DROPPED_BEARING")).format({
+				"seconds": seconds,
+				"distance": distance_m(viewer_position, flag["position"]),
+				"bearing": bearing(viewer_position, flag["position"]),
+			})
+		return str(TranslationServer.translate("FLAG_DROPPED")).format({"seconds": seconds})
+	if carrying and viewer_team != "" and str(flag.get("team", "")) == viewer_team and _position(viewer_position) and _position(flag.get("stand")):
+		var home_distance: int = distance_m(viewer_position, flag["stand"])
+		if home_distance >= 1:
+			return str(TranslationServer.translate("FLAG_HOME_BEARING")).format({
+				"distance": home_distance,
+				"bearing": bearing(viewer_position, flag["stand"]),
+			})
+	return str(TranslationServer.translate("FLAG_HOME"))
+
 static func _position(value: Variant) -> bool:
 	if not value is Array or value.size() != 3:
 		return false

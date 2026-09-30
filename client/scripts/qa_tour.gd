@@ -503,6 +503,13 @@ func _run() -> void:
 			if not self_carrying:
 				push_error("qa_tour: %s expected the joined fighter to carry the %s flag" % [state_name, carried_team])
 				_failed = true
+		if state.get("expect_return_bearing", false):
+			var return_line: String = str(_game_manager().hud.get("flag_status_text"))
+			var return_mark: RegEx = RegEx.new()
+			return_mark.compile("HOME \\d+M (NE|NW|SE|SW|N|E|S|W)")
+			if return_mark.search(return_line) == null:
+				push_error("qa_tour: %s carrier has no way home in the corner: %s" % [state_name, return_line])
+				_failed = true
 		if state.has("expect_flag_return_ticks"):
 			var timer_expectation: Dictionary = state["expect_flag_return_ticks"]
 			var timer_found: bool = false

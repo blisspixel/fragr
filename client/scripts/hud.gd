@@ -312,31 +312,25 @@ func set_ctf_state(flags: Variant, scores: Variant, limit: Variant, players: Arr
 		return
 	var names: Dictionary = {}
 	var viewer_position: Array = []
+	var viewer_team: String = ""
 	for player: Variant in players:
 		if player is Dictionary:
 			names[str(player.get("id", ""))] = str(player.get("name", ""))
 			if str(player.get("id", "")) == viewer_id:
 				viewer_position = [player.get("x", 0.0), player.get("y", 0.0), player.get("z", 0.0)]
+				viewer_team = MatchRules.valid_team(player.get("team"))
+	var carrying: bool = false
+	if viewer_id != "":
+		for flag: Variant in flags:
+			if flag is Dictionary and str(flag.get("status", "")) == "carried" and str(flag.get("carrier", "")) == viewer_id:
+				carrying = true
+				break
 	var line: String = tr("FLAG_CAPTURE_SCORE_LINE").format({
 		"union": int(scores["union"]), "coalition": int(scores["coalition"]), "limit": int(limit),
 	})
 	var states: Array[String] = []
 	for flag: Variant in flags:
-		var status_id: String = str(flag["status"])
-		var status_text: String = tr("FLAG_HOME")
-		if status_id == "carried":
-			status_text = tr("FLAG_CARRIED").format({"player": str(names.get(str(flag.get("carrier", "")), "?"))})
-		elif status_id == "dropped":
-			var seconds: int = ceili(float(flag.get("return_ticks", 0)) / 20.0)
-			status_text = tr("FLAG_DROPPED").format({"seconds": seconds})
-			if viewer_position.size() == 3:
-				var position: Array = flag["position"]
-				status_text = tr("FLAG_DROPPED_BEARING").format({
-					"seconds": seconds,
-					"distance": FlagState.distance_m(viewer_position, position),
-					"bearing": FlagState.bearing(viewer_position, position),
-				})
-		states.append(status_text)
+		states.append(FlagState.status_text(flag, viewer_id, viewer_team, viewer_position, names, carrying))
 	var status: String = tr("FLAG_STATUS_LINE").format({
 		"union": states[0],
 		"coalition": states[1],
