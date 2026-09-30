@@ -151,6 +151,12 @@ func _check_hud() -> void:
 	hud.call("show_round_end", "Dead Air Dan", "Capture limit reached", 8, "", [], "coalition", {"union": 1.0, "coalition": 3.0})
 	var round_banner: Label = hud.get("round_message")
 	_check(round_banner.text.begins_with("FREE TAKES THE ROUND\nCAPTURES: UNION 1 : 3 FREE"), "ctf winner follows captures instead of mvp frags: " + round_banner.text)
+	var result_card: Panel = hud.get_node("RoundBackdrop")
+	_check(result_card.visible, "a capture result sits on a card")
+	var result_style: StyleBoxFlat = result_card.get_theme_stylebox("panel") as StyleBoxFlat
+	_check(result_style != null and is_equal_approx(result_style.bg_color.a, 1.0), "the result card hides the flag behind the words")
+	await process_frame
+	_check(result_card.get_global_rect().encloses(round_banner.get_global_rect()), "the result words stay on the card")
 	hud.call("show_round_end", "Dead Air Dan", "Clock expired", 8, "", [], null, {"union": 1.0, "coalition": 1.0})
 	_check(round_banner.text.begins_with("ROUND DRAW: FLAGS DEADLOCKED\nCAPTURES: UNION 1 : 1 FREE"), "equal captures announce a draw: " + round_banner.text)
 	hud.call("set_own_lives", 2)

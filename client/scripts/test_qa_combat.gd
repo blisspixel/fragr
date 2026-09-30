@@ -78,6 +78,10 @@ func _initialize() -> void:
 		"moving combat cannot run without a human join")
 	_check(TOUR.valid_walks([{"join": "human", "moving_combat_seconds": 20}]),
 		"moving combat accepts a bounded joined window")
+	_check(TOUR.valid_walks([{"walk_to": [[70, 0, 2]], "stop_on_round_state": "Ended"}]),
+		"a walk may stop when the round ends")
+	_check(not TOUR.valid_walks([{"stop_on_round_state": "ended"}]),
+		"a round stop must name a server round state")
 	_check(not TOUR.valid_walks([{"join": "human", "moving_combat_seconds": 20, "ack_probe_seconds": 20}]),
 		"one state cannot start two Ack probes")
 	var healthy: Dictionary = {"interrupted": false, "failed_sends": 0,

@@ -30,6 +30,7 @@
       "name": "ctf_fighter_capture_result",
       "camera": "first_person",
       "walk_to": [[70, 0, 12], [70, 0, 2]],
+      "stop_on_round_state": "Ended",
       "settle_seconds": 0.25,
       "expect_flag_statuses": ["home", "home"],
       "expect_capture_scores": {"union": 0, "coalition": 1},
