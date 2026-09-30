@@ -467,8 +467,23 @@ mod tests {
         ])
         .unwrap();
         assert!(config_from(&clash).is_err());
-        let ctf_without_stands = Cli::try_parse_from(["fragr-playtest", "--mode", "ctf"]).unwrap();
-        assert!(config_from(&ctf_without_stands).is_err());
+        let ctf_without_stands = Cli::try_parse_from([
+            "fragr-playtest",
+            "--mode",
+            "ctf",
+            "--map",
+            "compliance-yard",
+        ])
+        .unwrap();
+        assert!(
+            config_from(&ctf_without_stands).is_err(),
+            "Compliance Yard has no flag stands"
+        );
+        let ctf_default = Cli::try_parse_from(["fragr-playtest", "--mode", "ctf"]).unwrap();
+        assert_eq!(
+            config_from(&ctf_default).unwrap().map,
+            fragr_server::sim::MapKind::ArenaDuel
+        );
         let ctf = Cli::try_parse_from([
             "fragr-playtest",
             "--mode",
