@@ -134,6 +134,43 @@ func _run() -> void:
 	renderer.clear_flags()
 	_check(renderer.get("_markers").is_empty(), "round cleanup clears markers")
 	renderer.queue_free()
+	_check_return_bearings()
 	if _failures == 0:
 		print("test_flag_state: PASS")
 	quit(0 if _failures == 0 else 1)
+
+
+func _check_return_bearings() -> void:
+	var names: Dictionary = {"a1": "Dead Air Dan", "b2": "Nightfall"}
+	var carried: Dictionary = {
+		"team": "union", "status": "carried", "carrier": "a1",
+		"stand": [-70.0, 0.0, 0.0], "position": [0.0, 0.0, 0.0],
+	}
+	var home: Dictionary = {
+		"team": "coalition", "status": "home",
+		"stand": [70.0, 0.0, 0.0], "position": [70.0, 0.0, 0.0],
+	}
+	_check(FlagState.status_text(home, "a1", "coalition", [0.0, 0.0, 0.0], names, true) == "HOME 70M E",
+		"a carrier is pointed at their own stand")
+	_check(FlagState.status_text(carried, "a1", "coalition", [0.0, 0.0, 0.0], names, true) == "CARRIED BY Dead Air Dan",
+		"a carrier is not given a distance to themselves")
+	_check(FlagState.status_text(carried, "b2", "union", [0.0, 0.0, -14.0], names, false) == "CARRIED BY Dead Air Dan, 14M S",
+		"everyone else is pointed at a stolen flag")
+	_check(FlagState.status_text(home, "b2", "union", [0.0, 0.0, -14.0], names, false) == "HOME",
+		"a flag at home stays home for someone who is not carrying")
+	carried["position"] = [0.2, 0.0, 0.0]
+	_check(FlagState.status_text(carried, "b2", "union", [0.0, 0.0, 0.0], names, false) == "CARRIED BY Dead Air Dan",
+		"under a metre the compass is omitted")
+	carried.erase("position")
+	_check(FlagState.status_text(carried, "b2", "union", [0.0, 0.0, 0.0], names, false) == "CARRIED BY Dead Air Dan",
+		"a carried flag with no position keeps the name")
+	var dropped: Dictionary = {
+		"team": "coalition", "status": "dropped", "return_ticks": 39,
+		"stand": [70.0, 0.0, 0.0], "position": [10.0, 0.0, -10.0],
+	}
+	_check(FlagState.status_text(dropped, "a1", "coalition", [0.0, 0.0, 0.0], names, true) == "DOWN 2S, 14M NE",
+		"a dropped own flag still points at the flag")
+	_check(FlagState.status_text(home, "a1", "", [0.0, 0.0, 0.0], names, true) == "HOME",
+		"a carrier with no side is not pointed at a stand")
+	_check(FlagState.status_text(home, "a1", "coalition", [70.0, 0.0, 0.0], names, true) == "HOME",
+		"standing on the stand does not add a zero-metre compass")

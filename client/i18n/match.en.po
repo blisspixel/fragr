@@ -33,8 +33,14 @@ msgstr "UNION FLAG {union}  //  FREE FLAG {coalition}"
 msgid "FLAG_HOME"
 msgstr "HOME"
 
+msgid "FLAG_HOME_BEARING"
+msgstr "HOME {distance}M {bearing}"
+
 msgid "FLAG_CARRIED"
 msgstr "CARRIED BY {player}"
+
+msgid "FLAG_CARRIED_BEARING"
+msgstr "CARRIED BY {player}, {distance}M {bearing}"
 
 msgid "FLAG_DROPPED"
 msgstr "DROPPED {seconds}S"
