@@ -1,6 +1,6 @@
 # Capture the flag on the maps whose bases match the sides
 
-**Status:** implemented (2026-09-30). A route review after Sector 9 in the [capture the flag plan](capture-the-flag.md). Human balance on the new maps remains open.
+**Status:** shipped, [#313](https://github.com/blisspixel/fragr/pull/313), v0.64.0, 2026-09-30. A route review after Sector 9 in the [capture the flag plan](capture-the-flag.md). Human balance on the new maps remains open.
 
 ## Goal and why
 

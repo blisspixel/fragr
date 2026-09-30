@@ -4,6 +4,12 @@ Shipped tags, newest first. A line here is on `main`. Planned work stays in
 [docs/ROADMAP.md](docs/ROADMAP.md). Older tags are on the
 [releases page](https://github.com/blisspixel/fragr/releases).
 
+## v0.64.0 (2026-09-30)
+
+Capture the flag now runs on Arena Duel and Directive 17, as well as Sector 9. Each side has a stand in its own back third. Compliance Yard, Reclamation Gulch and Tripoint Works stay off the mode.
+
+Fresh-player review of Recall Notice and Persons Unknown stays on the v0.58.0 package. External spend for this build was $0.
+
 ## v0.63.0 (2026-09-29)
 
 A Sector 9 carrier sees how far their own stand is, and which way. Everyone else sees the same metres and compass toward a stolen flag. A flag at home, for someone who is not carrying, still reads HOME.
