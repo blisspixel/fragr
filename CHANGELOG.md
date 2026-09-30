@@ -4,6 +4,12 @@ Shipped tags, newest first. A line here is on `main`. Planned work stays in
 [docs/ROADMAP.md](docs/ROADMAP.md). Older tags are on the
 [releases page](https://github.com/blisspixel/fragr/releases).
 
+## v0.61.0 (2026-09-29)
+
+A first-person carrier on Sector 9 sees the flag's cloth and the stand words beside the weapon. The world grip stays hidden for that carrier, because it sits below the eye. Everyone else still sees the flag in the hand.
+
+Fresh-player review of Recall Notice and Persons Unknown stays on the v0.58.0 package. External spend for this build was $0.
+
 ## v0.60.0 (2026-09-29)
 
 A carried Sector 9 flag leaves the stand and sits on a short grip in the carrier's hand, in front of the body. The cloth overlaps the arm. Home and dropped flags keep the tall pole, and an empty stand dims. A nameplate yields when it would cover the cloth or the world words.

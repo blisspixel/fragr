@@ -1,10 +1,10 @@
 # First-person flag carry
 
-**Status:** in flight, 2026-09-29. A presentation follow-up to the [hand grip](ctf-flag-nameplate.md).
+**Status:** shipped, [#307](https://github.com/blisspixel/fragr/pull/307), 2026-09-29. A presentation follow-up to the [hand grip](ctf-flag-nameplate.md). The pennant is the v0.61.0 still.
 
 ## Goal and why
 
-The third-person still shows the Free flag in Aunt Linda's hand. The joined first-person still does not. `docs/screenshots/ctf_fighter_carried.png` is Meat Proxy with the Railgun, the corner line `UNION FLAG CARRIED BY Meat Proxy`, and no cloth in the view. The server had already recorded the take.
+The third-person still shows the Free flag in Aunt Linda's hand. Before this pass, the joined first-person still was Meat Proxy with the Railgun, the corner line `UNION FLAG CARRIED BY Meat Proxy`, and no cloth in the view. The server had already recorded the take. The current [first-person still](../screenshots/ctf_fighter_carried.png) shows the Union cloth and `UNION FLAG` beside the weapon.
 
 First person hides the body and the world weapon. The grip sits at the weapon hand, about 0.7 m below an eye that is only 0.1 m above the pawn origin, so it is outside the view. The corner chip is the only carry read, and it is easy to miss while aiming.
 
