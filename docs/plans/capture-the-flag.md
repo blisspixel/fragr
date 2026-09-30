@@ -8,7 +8,7 @@ Ship a complete two-side capture the flag match on Sector 9: authoritative picku
 
 ## Boundaries and decisions
 
-- Sector 9 is the first authored route. Its west and east halls match existing team spawn halves. Add stand coordinates as authoritative map data and validate reachable, clear ground. Do not silently enable CTF on maps without proven two-side layouts. Arena Duel and Directive 17 need separate route review; Compliance Yard is being retired; Reclamation Gulch's north-south bases conflict with the current team spawn axis; Tripoint Works has three compounds.
+- Sector 9 is the first authored route. Its west and east halls match existing team spawn halves. Add stand coordinates as authoritative map data and validate reachable, clear ground. Do not silently enable CTF on maps without proven two-side layouts. Arena Duel and Directive 17 now have those stands ([ctf-arena-routes.md](ctf-arena-routes.md)). Compliance Yard stays off. Reclamation Gulch's north-south bases conflict with the current team spawn axis. Tripoint Works has three compounds.
 - A fighter touches the enemy flag to take it. A carrier may shoot. Death, explicit leave, disconnect expiration or side reassignment drops or returns the flag as appropriate. A living owner-side fighter touching a dropped friendly flag returns it. A living enemy fighter may take its dropped enemy flag again. A flag returns home at 20 seconds without a carrier.
 - A capture happens only at the carrier's own stand while the carrier's own flag is home. Captures, not frags, determine the CTF side score. First to three captures wins; at the clock the higher capture count wins, and equal counts draw. Resolve simultaneous touches in deterministic side and player order and record the order in tests.
 - Round start resets flag state. CTF currently refuses map rotation; a future rotating playlist must reset on every new map. Warmup and intermission cannot change flags. Spectators cannot interact. A carrier leaving playable bounds drops at the last valid position or returns home. Two Lives is rejected because elimination would decide the winner without captures. Other mutators preserve the flag invariants. Compliance slow and the Compliance Drone do not run in CTF, so the two-side objective is not disturbed by a third hostile.
@@ -27,7 +27,7 @@ Start with focused deterministic tests for pickup, enemy denial, own-side return
 
 ## Acceptance
 
-One human can join or watch a Sector 9 CTF match and read who holds each flag, where a dropped flag lies, which side has captured, and why the round ended. Rule bots pursue objectives instead of only seeking kills. The same facts reach MCP and the brain agent. CI and coverage gates pass without weakening them. Other maps and human balance evidence remain explicitly open until observed.
+One human can join or watch a Sector 9 CTF match and read who holds each flag, where a dropped flag lies, which side has captured, and why the round ended. Rule bots pursue objectives instead of only seeking kills. The same facts reach MCP and the brain agent. CI and coverage gates pass without weakening them. Human balance on Arena Duel, Directive 17 and Sector 9 remains explicitly open until observed.
 
 ## Joined fighter capture proof
 

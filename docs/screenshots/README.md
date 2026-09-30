@@ -160,6 +160,13 @@ First-person views retain normal fighter scale; optional broadcast views keep
 their distant silhouette boost. These are current playable visuals, not evidence
 of completed campaign environments or final character animation.
 
+`ctf_arena_duel_union.png`, `ctf_arena_duel_free.png`, `ctf_directive17_union.png`
+and `ctf_directive17_free.png` are the 2026-09-30 home-flag frames from
+`client/qa/ctf.json` on Arena Duel and Directive 17, OpenGL, AMD Radeon 780M.
+Both flags are home, the corner reads the capture score, and each stand is in
+that map's back third. They are not a human or spectator verdict, and they are
+not part of the four README stills.
+
 ## Historical captures
 
 Numbered stills (`01_*` through `22_*`) record earlier builds and are retained

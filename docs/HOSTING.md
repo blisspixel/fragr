@@ -37,6 +37,7 @@ cargo run -p fragr-server --locked -- --bind 0.0.0.0:6767 --bots 6 --mode tdm --
 cargo run -p fragr-server --locked -- --bind 0.0.0.0:6767 --bots 4 --mutator golden-rail --mutator two-lives
 
 # Development CTF match on Sector 9, first side to three captures.
+# Arena Duel is `--map 1` and Directive 17 is `--map 3`. The other arenas have no stands.
 cargo run -p fragr-server --locked -- --bind 0.0.0.0:6767 --map 4 --mode ctf --capture-limit 3 --bots 6
 ```
 
@@ -91,7 +92,7 @@ draft review and needs a human match before it can be called accepted.
 | `--run-mode <MODE>` | `new` or `resume` for a local mission run. |
 | `--local-run-preview` | Read-only campaign save compatibility for the menu. |
 | `--solo-broadcast` | Episode 0 Calibration in Arena Duel. |
-| `--mode <MODE>` | `ffa`, `tdm`, or `ctf`; CTF currently requires fixed Sector 9. |
+| `--mode <MODE>` | `ffa`, `tdm`, or `ctf`. CTF runs on Arena Duel, Directive 17, or Sector 9, with no rotation. |
 | `--mutator <ID>` | Repeatable: `rail-only`, `shotgun-only`, `fists-only`, `licence-to-kill`, `golden-rail`, `two-lives`. |
 | `--friendly-fire` | Allow team damage in TDM. |
 | `--frag-limit <N>` | Fighter limit in FFA or side limit in TDM; unavailable in CTF. |

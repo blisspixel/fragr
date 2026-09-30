@@ -17,15 +17,15 @@ See the [roadmap](docs/ROADMAP.md) for the build order and the
 |---|---|---|
 | **Recall Notice** | The first campaign mission in development: enter Annex 67, find Latch's transfer record, fight to the custody lift. Solo runs have three mission-start continues and a local save at mission entry. | **Single Player > Recall Notice** |
 | **Calibration** | Episode 0's arena challenge against named bots, with the Host, objectives and an Auditor. | `./tools/solo_scrap.sh` |
-| **Multiplayer** | Six arenas for free-for-all or team deathmatch, plus Sector 9 capture the flag. Spectators, humans and agents share one server-owned match. | Run a server, then choose **Multiplayer**. |
+| **Multiplayer** | Six arenas for free-for-all or team deathmatch. Arena Duel, Directive 17 and Sector 9 also play capture the flag. Spectators, humans and agents share one server-owned match. | Run a server, then choose **Multiplayer**. |
 
 Single Player also offers the M02 Persons Unknown development route, with
 Latch's rescue and saved run carry from M01. Its fresh-player acceptance and
 the rest of the campaign remain in progress.
 The planned story spans twenty shorter levels in five episodes; its current
-contract is in [CAMPAIGN.md](docs/CAMPAIGN.md). Sector 9 capture the flag is
-playable; its human playtest is still open. Larger objective modes remain in
-the [roadmap](docs/ROADMAP.md).
+contract is in [CAMPAIGN.md](docs/CAMPAIGN.md). Capture the flag is playable on
+Arena Duel, Directive 17 and Sector 9; its human playtest is still open.
+Larger objective modes remain in the [roadmap](docs/ROADMAP.md).
 
 ## Quick start
 

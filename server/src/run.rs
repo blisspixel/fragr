@@ -151,9 +151,11 @@ async fn run_server_impl(
         .match_config
         .as_ref()
         .is_some_and(|config| config.rules.mode() == crate::protocol::GameMode::Ctf)
-        && (map != MapKind::Sector9 || rotate || options.authored.is_some())
+        && (rotate || options.authored.is_some() || map.ctf_stands().is_none())
     {
-        return Err("capture the flag currently requires fixed Sector 9 (--map 4)".into());
+        return Err(
+            "capture the flag requires a map with validated flag stands and no rotation".into(),
+        );
     }
     if (options.difficulty.is_some() || options.campaign_run) && options.authored.is_none() {
         return Err("difficulty requires an authored mission".into());

@@ -714,6 +714,29 @@ pub(crate) mod tests {
     }
 
     #[test]
+    fn ctf_bases_are_walkable_on_the_validated_maps() {
+        use crate::sim::MapKind;
+        for map in [MapKind::ArenaDuel, MapKind::Directive17, MapKind::Sector9] {
+            let stands = map.ctf_stands().expect("validated CTF map");
+            let navigation = Navigation::new(Arena {
+                half: map.half_extent(),
+                solids: map.solids(),
+            })
+            .unwrap();
+            assert_walks(&navigation, stands[0], stands[1]);
+            assert_walks(&navigation, stands[1], stands[0]);
+            assert_server_walks(map, &navigation, stands[0], stands[1]);
+        }
+        for map in [
+            MapKind::ComplianceYard,
+            MapKind::ReclamationGulch,
+            MapKind::TripointWorks,
+        ] {
+            assert!(map.ctf_stands().is_none(), "{map:?} has no two-base route");
+        }
+    }
+
+    #[test]
     fn thin_barrier_clearance_and_directed_drop_are_respected() {
         let navigation =
             Navigation::new(arena(vec![Solid::from_center(0.0, 0.0, 0.001, 3.0)])).unwrap();

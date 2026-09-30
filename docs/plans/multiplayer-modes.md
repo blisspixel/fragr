@@ -56,7 +56,7 @@ picks it at launch:
 fragr-server --mode tdm --mutator rail-only --mutator two-lives
 ```
 
-- `--mode ffa|tdm|ctf` (default `ffa`; CTF currently requires Sector 9).
+- `--mode ffa|tdm|ctf` (default `ffa`). Capture the flag runs on Arena Duel, Directive 17, or Sector 9, with no rotation. Compliance Yard, Reclamation Gulch and Tripoint Works have no stands.
 - `--mutator <id>`, repeatable: `rail-only`, `shotgun-only`, `fists-only`,
   `licence-to-kill`, `golden-rail`, `two-lives`.
 - `--friendly-fire` turns team damage on (off by default).
