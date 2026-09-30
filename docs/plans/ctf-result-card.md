@@ -1,6 +1,6 @@
 # Capture result card
 
-**Status:** implemented, 2026-09-29. A presentation follow-up to the [first-person carry](ctf-fp-carry.md). Local evidence is below.
+**Status:** shipped, [#309](https://github.com/blisspixel/fragr/pull/309), 2026-09-29. A presentation follow-up to the [first-person carry](ctf-fp-carry.md). The card is the v0.62.0 still.
 
 ## Goal and why
 

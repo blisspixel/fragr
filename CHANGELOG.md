@@ -4,6 +4,12 @@ Shipped tags, newest first. A line here is on `main`. Planned work stays in
 [docs/ROADMAP.md](docs/ROADMAP.md). Older tags are on the
 [releases page](https://github.com/blisspixel/fragr/releases).
 
+## v0.62.0 (2026-09-29)
+
+A Sector 9 capture result sits on an opaque card. Who took the round, the capture count, and the reason stay readable in front of the home flag.
+
+Fresh-player review of Recall Notice and Persons Unknown stays on the v0.58.0 package. External spend for this build was $0.
+
 ## v0.61.0 (2026-09-29)
 
 A first-person carrier on Sector 9 sees the flag's cloth and the stand words beside the weapon. The world grip stays hidden for that carrier, because it sits below the eye. Everyone else still sees the flag in the hand.
