@@ -1,6 +1,6 @@
 # Carrier return bearing
 
-**Status:** implemented, 2026-09-29. A Sector 9 readability follow-up to the [result card](ctf-result-card.md). Display only. Local evidence is below.
+**Status:** shipped, [#311](https://github.com/blisspixel/fragr/pull/311), 2026-09-29. A Sector 9 readability follow-up to the [result card](ctf-result-card.md). Display only. The compass is the v0.63.0 still.
 
 ## Goal and why
 
