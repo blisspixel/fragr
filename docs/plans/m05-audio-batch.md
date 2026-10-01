@@ -1,6 +1,7 @@
 # M05 narration and grenade audio
 
-**Status:** in flight, 2026-09-30. Developer-only generation under the already
+**Status:** implemented, 2026-09-30, integration tracked in
+[PR #314](https://github.com/blisspixel/fragr/pull/314). Developer-only generation under the already
 authorized existing ElevenLabs credits and combined $20 development ceiling.
 Reserve an additional conservative $1 equivalent, bringing audio reserves to $3;
 new cash charges remain $0. Never enable top-ups, overages or paid runtime calls.
@@ -51,5 +52,10 @@ overwrites. Quota increased from 694390 to 694608 used: 218 included credits
 consumed, 752588 remaining. This round has now consumed 693 included audio
 credits across twelve jobs, with $0 new cash charges and a conservative $3
 equivalent reserve. The ignored round ledger and preflight/live/final receipts
-are under `.agents/`. Client integration and decoded/caption checks remain in
-flight; file generation alone does not establish playback or listening quality.
+are under `.agents/`. Client integration, decoded windows, exact-caption matching,
+spatial playback, Voice routing and missing-asset fallback pass the final pinned
+checker: 174 scripts and 81 harnesses, including campaign-audio and grenade-effect
+checks. Its clean receipt is
+`.agents/m05-client-buildout-20260930/godot-full-modal-final.log`. Hardware listening,
+final voice performances and subjective mix acceptance remain open; decoded files
+and automated playback do not establish them.

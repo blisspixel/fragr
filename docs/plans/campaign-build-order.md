@@ -14,12 +14,12 @@ an explicit approved cap, and the existing developer pipelines.
 
 | Concern | Present behavior | Campaign gap |
 |---|---|---|
-| Maps | Six arenas and M01/M02 development routes; local M03 freight yard and M04 market/clinic prototypes with prepared worlds and optional rescues | M05 and later missions; complete room kits and mission acceptance |
-| Combat | M01 fists, found Pistol and Rifle, private finite inventory, one ammunition count per type and supplies; arcade full arsenal | Remaining arsenal, projectiles, authored encounter balance and finished sound sets |
-| Movement | Shared gravity, jump, steps, ceilings and overlapping floors with a verified GDScript mirror | New traversal features require explicit geometry support and live tests |
+| Maps | Six arenas and five campaign development prototypes, with prepared gate worlds, optional rescues and departures | M06 and later missions; complete room kits and mission acceptance |
+| Combat | Found weapons, private finite inventory, one ammunition count per type and counted grenade flight/bounce/covered blast; arcade full arsenal | Remaining arsenal, placed explosives, encounter balance and finished sound sets |
+| Movement | Shared gravity, jump, steps, ceilings and overlapping floors with a verified GDScript mirror; actual predicted local movement and bounded tram support | New traversal features require explicit geometry support and live tests; long-lane and remote-network acceptance |
 | Enemies | Rule bots, elite/boss prototype, authored Clerk, Sweeper, Heavy Sweeper, Turret, Crawler, live delayed-pulse Jammer and bounded flying Notary | Later enemy roster, final art, encounters and balance |
 | Episode | Calibration prototype; M01 transfer/gate/departure shipped in v0.26.0 | Full story missions, rescue outcomes and campaign transitions |
-| Runs and persistence | Versioned local M01 through M04 carry, shared continues, per-level retry baseline, retained car/patient/photo outcomes and local service records | M05 and later carry, episode refill, later rescue outcomes, achievements and epilogue unlock |
+| Runs and persistence | Strict v6 local M01 through M05 carry, shared continues, per-level retry, retained car/patient/photo and released-versus-aboard worker outcomes; local records | M06 and later carry, Episode II refill, later rescue outcomes, achievements and epilogue unlock |
 | Co-op | Allied campaign participants, encounter wipe reset; shared mission boarding and four-seat admission shipped with live party evidence | Optional scope undecided; no mandatory duo, revival or all-mission co-op requirement |
 | Presentation | Retro front end, HUD, radio and viewmodels; localized M01 text opening and party readiness shipped in v0.28.0 | Finished scene art/narration, companion scenes, complete character/weapon/effect motion |
 

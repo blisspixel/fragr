@@ -9,14 +9,48 @@ proof of good art. The README embeds four files and no more: `tour_menu_16x9.png
 `m01_intake_16x9.png`, `tour_multiplayer_16x9.png`, and `tour_combat_follow_16x9.png`.
 A player-visible change refreshes the one of those four that shows the surface,
 in the same change. The other files in this directory stay as tour evidence.
-The Windows taskbar icon is still the Godot mark and is not one of these frames.
+The project tour runs the engine binary. Packaged desktop games use the original
+game icon checked by the release workflow; these stills do not prove taskbar icons.
 
 The standard tour was regenerated and inspected on 2026-09-30 after participant
 timeline interpolation, spectator camera smoothing, near-camera shot-effect
-clipping, Scheduled Service and Notice to Vacate integration. All 32 states passed; thirteen
+clipping and all five campaign prototype integrations. All 32 states passed; thirteen
 selected stills were published locally by the wrapper. The capture receipt is
-`.agents/qa/m04-standard-final/manifest.json`. Menus, settings, weapon views,
+`.agents/qa/m05-standard-modal-final/manifest.json`. Menus, settings, weapon views,
 participant bodies, world lighting and watched combat were inspected after capture.
+
+The `m05_*.png` gallery is the No Forwarding Address development prototype,
+captured and inspected on the same pinned Windows/OpenGL/AMD Radeon 780M setup.
+Its final 25-state ordinary-input route cleared all 21 guards without a death,
+visited three secret locations, released three workers and confirmed all three
+physically aboard before departure. Three secret supplies were claimed: tank
+armor, service Shells and a service Grenade refill. The market medkit stayed
+available at full health. The player lost 100 armor and no HP. A normal
+jump boarded the tram; 99 supported samples showed equal 4.800017 m rider and tram
+travel. The Heavy fired four actual rounds before the Rifle clear. The passenger
+dialog was corrected above the HUD and verified with physical cancel/reopen/confirm.
+Receipt: `.agents/qa/m05-rooftops-sixth/manifest.json`;
+[plan](../plans/m05-no-forwarding-address-prototype.md).
+
+| File | Inspected state |
+|---|---|
+| `m05_roof_crossing.png` | Roofs and crane walk after the opening clear, not a live Notary phase |
+| `m05_tank_secret.png` | Actual second-tank supply and readable `/6` clue |
+| `m05_paint_bay.png` | Real chassis cover and ordinary counted-grenade discovery |
+| `m05_grenade_flight_strip.png` | Real launch, tracked flight and descent beyond the chassis; matching explosion is occluded by cover and has no hits |
+| `m05_worker_release.png`, `m05_worker_motion_strip.png` | Three freed workers visibly walking from the opened workshop |
+| `m05_service_secret.png` | Accessible room-facing service clue and actual supply detour |
+| `m05_tram_ride_strip.png` | Real supported ride after trench clearance, with moving background |
+| `m05_heavy_firing.png` | Actual Heavy firing, red lamp and resolved incoming trace |
+| `m05_passenger_review.png` | Three actual aboard statuses and readable F/ESC controls above the HUD |
+| `m05_departure.png` | Server-confirmed carrier departure after fresh physical confirmation |
+
+The named windup frame faced away from the Heavy, so it is not published as a
+visible tell. Required windup is typed server evidence; the firing still visibly
+shows the attacker. M05's other phase probes are post-clear views. Earlier M04
+frames provide separate live Notary presentation evidence. These stills establish
+an accurate-aim authoring route, not final art, fresh-player timing or difficulty
+acceptance, and remain separate from the four README images.
 
 `jammer_windup_16x9.png`, `jammer_launch_16x9.png`,
 `jammer_defeat_16x9.png` and `jammer_pulse_strip.png` were captured and inspected

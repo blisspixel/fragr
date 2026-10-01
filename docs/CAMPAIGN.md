@@ -256,8 +256,8 @@ moral penalty for using the shooter's core mechanics.
   implemented M01 inventory from the remaining arsenal and balance proposals.
   Decided 2026-09-25: the campaign has no carry cap. Every gun found stays
   found, Doom style; nothing hits the floor to make room for the next pickup.
-  [WEAPONS.md](WEAPONS.md)'s two-found-weapon swap rule is an arcade and
-  multiplayer rule; it does not apply to the campaign. [Readable
+  [WEAPONS.md](WEAPONS.md)'s older two-found-weapon swap remains a competitive
+  mode proposal; it is not the current arcade kit or campaign rule. [Readable
   arsenal](plans/readable-arsenal.md) owns the campaign carry rule and the
   order weapons are earned in.
 - Normal play carries inventory between connected missions for the same character.

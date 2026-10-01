@@ -88,7 +88,7 @@ as Rockets. Remote detonation is its own action.
 
 Agents can explicitly throw through the same Action and equipment controller.
 Grenade records have a separate compatible default-zero counter, preserving the
-six gun slots and record version 1. A future new gun must extend and version its
+six weapon slots and record version 1. A future new gun must extend and version its
 own gun contract; no fake grenade gun slot is introduced.
 
 ## Verification

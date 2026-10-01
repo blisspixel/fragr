@@ -33,7 +33,7 @@ sidestep, interrupt or block with cover. Run `cargo run -p fragr-server --locked
 -- --bots 0 --map-file server/maps/test/jammer-range.json`, then connect through
 Multiplayer. This range has no campaign save or mission departure.
 
-In the current source checkout, **Scheduled Service** is the level 3 development prototype under **Single
+**Scheduled Service** is the level 3 development prototype under **Single
 Player > Practice and Development**. Fight through a daylight freight yard,
 free optional recall cars, shoot
 the guarded transmitter pod and deliberately board the train. A completed M02
@@ -41,7 +41,7 @@ run can continue into it with its existing equipment and remaining continues.
 Its authored route and automated evidence remain separate from fresh-player
 acceptance and final mission polish. See the [prototype plan](docs/plans/m03-scheduled-service-prototype.md).
 
-The source checkout's **Notice to Vacate** adds the level 4 prototype in Low Water: defend the market,
+**Notice to Vacate** adds the level 4 prototype in Low Water: defend the market,
 bring down flying Notaries, open the optional clinic shutter and leave through
 the habitation court's roof stair. **Continue Run** carries a completed M03 run
 into M04 with its body, equipment, health, armor, remaining continues and recall

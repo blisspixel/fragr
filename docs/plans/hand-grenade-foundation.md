@@ -1,6 +1,7 @@
 # Counted hand grenade foundation
 
-**Status:** in flight, 2026-09-30. **Spend:** $0. Implements the combat lane of
+**Status:** implemented, 2026-09-30, integration tracked in
+[PR #314](https://github.com/blisspixel/fragr/pull/314). **Spend:** $0. Implements the combat lane of
 [M05](m05-no-forwarding-address-prototype.md), using the existing discrete Action,
 inventory, pickup, combat, controller, record and snapshot seams. No new dependency
 or paid service. Guns retain their selection and six record slots.
@@ -70,7 +71,7 @@ never guessed weapon evidence. IDs share the monotonic projectile serial.
 
 `CombatCounts.grenades` has separate attack/damaging attack/kill/effective HP and
 armor counters. It defaults to zero for retained records and omits when unused.
-Record version 1 and six gun slots retain their meanings. Aggregate totals and
+Record version 1 and six weapon slots retain their meanings. Aggregate totals and
 validation include the separate grenade column, with blast victim bounds rather
 than gun pellet bounds. Victim losses remain actual post-armor damage; outgoing
 credit excludes self damage.
@@ -108,15 +109,16 @@ participant records count launches. No paid call or dependency was added.
 | `cargo check --workspace --all-targets --locked` | PASS |
 | `cargo test -p fragr-server --lib grenade --locked` | PASS, 17 tests including parallel carry/retry tests |
 | `cargo test -p fragr-agent-adapter -p fragr-brain -p fragr-playtest --locked` | PASS, 91 adapter, 114 brain library, 10 brain binary, 74 playtest library and 5 playtest binary tests |
-| Focused four-package Clippy | One test-only useless conversion found and corrected; final serialized gate pending |
+| Final workspace Clippy, warnings denied | PASS after the test-only useless conversion was corrected, `clippy-final.log` |
 
 Logs are `.agents/m05-grenade-check.log`, `m05-grenade-tests.log`,
 `m05-agent-reader-tests.log` and `m05-grenade-clippy.log`. The final self-only
 blast/empty-throw regression and last controller guard are included in the
-parent's upcoming full gate. Standard Heavy blast interruption is seed-tested;
+parent's final full gate: 1206 passing tests, three existing ignored and 94.25
+percent unfiltered workspace lines in `coverage-final.log`. Standard Heavy blast interruption is seed-tested;
 the three historical timing tables are asserted unchanged. This does not claim
-three-tier M05 acceptance. Rendered grenade/tram input evidence and final
-workspace gates belong to the parent plan before mission completion.
+three-tier M05 acceptance. Rendered grenade/tram input evidence belongs to the
+parent plan before mission completion.
 
 Independent M05 review found stale panel visibility against parked tram solids,
 nonfinite captive delta handling and an edge-rider mismatch with ordinary feet

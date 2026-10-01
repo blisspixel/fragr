@@ -15,7 +15,8 @@ The engineering ladder for scale runs through every phase: small squads first (f
 
 ## Where we are (2026-09-30)
 
-The released source is documented through v0.64.0. M01-to-M02 run carry,
+Release history is documented through v0.64.0, with the next build integrated in
+[PR #314](https://github.com/blisspixel/fragr/pull/314). M01-to-M02 run carry,
 retry, rescue and optional evacuation are integrated; CTF is playable on Arena
 Duel, Directive 17 and Sector 9. The local campaign and feel buildout implements
 a playable Jammer range with original poses and launch audio, remote participant
@@ -30,16 +31,19 @@ Its ordinary-input route clears all 28 guards without a death.
 Original repair detail, animated shallow runoff and six narrated transition
 pages improve presentation. The [world/character guides](design/README.md) and
 21 appearance anchors keep later levels and scenes aligned to lore and the
-[art bible](ART_STORY_BIBLE.md). Final Rust checks passed 1167 tests and 94.47
-percent unfiltered line coverage; the client passed 163 scripts and 76 harnesses,
-with inspected campaign/standard tours, multiplayer, benchmark and soak gates.
-The next [M05 increment](plans/m05-no-forwarding-address-prototype.md) is in
-flight, adding counted grenades, workshop rescue, an authoritative moving tram
-and freight departure. Focused tests and actual v5-save launch now pass; full
-client presentation and rendered mission evidence remain in progress.
+[art bible](ART_STORY_BIBLE.md). The
+[M05 increment](plans/m05-no-forwarding-address-prototype.md) adds counted
+grenades, workshop rescue, an authoritative moving tram and freight departure.
+Its actual 25-state route clears all 21 guards without a death, visits three
+secret locations, rides the moving tram and boards after a physical confirmation. All
+three freed workers reach boarding. The recorded grenade clears the chassis
+but hits no enemy; seeded tests separately prove effective covered-side damage.
+Final Rust checks passed 1206 tests and 94.25 percent unfiltered line coverage;
+the client passed 174 scripts and 81 harnesses. Current-source multiplayer,
+six-map roster, deterministic CPU benchmark and 120-second soak gates pass.
 New cash charges are $0, with 693 included audio credits consumed. The build is
-synced in [PR #314](https://github.com/blisspixel/fragr/pull/314), with CI and final
-M05 verification in progress. Release, fresh-player mission acceptance and
+synced in PR #314. The linked plan records current rendered evidence and CI;
+release packages require their own passing workflow. Fresh-player acceptance and
 two-machine network evidence remain separate gates.
 
 **Shipped and proven on the tip:**
@@ -255,17 +259,19 @@ The [campaign and feel buildout](plans/campaign-and-feel-buildout.md) supplies
 the local Jammer foundation, presentation and free-agent increments at $0.
 Its integration and acceptance evidence is recorded in that bounded plan.
 
-1. Build level 5 No Forwarding Address from its accepted
-   [level design](campaign/m03-no-forwarding-address.md#level-5-design-twenty-level-expansion):
-   Low Water roofs, tram workshop and trench, grenade lesson followed by the
-   Heavy Sweeper, optional Splice/captive rescue and deliberate freight departure.
-   This finishes Episode I and gives carried clinic/car choices a later place
-   to matter before lunar travel. Reuse the locally implemented
-   [M04 prototype](plans/m04-notice-to-vacate-prototype.md)'s Notary, rescue,
-   inventory, save, scene and geometry seams. Its
-   [bounded implementation plan](plans/m05-no-forwarding-address-prototype.md)
-   is in flight. Refine M01-M05 pacing, resource pressure,
-   ordinary character motion and listening alongside it. Apply the
+ 1. Build level 6 Port of Entry from its accepted
+    [level design](campaign/m04-port-of-entry.md#level-6-design-twenty-level-expansion):
+    lunar dock, inhabited freight hall, Railgun lesson and flankable Turret,
+    optional service branch and deliberate transit-tunnel departure. This starts
+    Episode II, refills its continues and gives retained Earth rescue choices
+    their first lunar destination. Reuse the locally verified
+    [M05 prototype](plans/m05-no-forwarding-address-prototype.md)'s inventory,
+    save, rescue, scene and geometry seams. Its
+    [bounded implementation plan](plans/m06-port-of-entry-prototype.md) is written
+    before source changes. Keep the existing predicted movement path and
+    measure long-lane combat before introducing the first sixty-metre Rail shot.
+    Refine M01-M05 pacing, grenade-lesson timing, resource pressure,
+    ordinary character motion and listening alongside it. Apply the
    [shared world/character guides](design/README.md) to useful furnishing,
    activity, lighting and water, rather than empty rooms or independent redesigns.
    Fresh-player and difficulty acceptance remain open. Follow the

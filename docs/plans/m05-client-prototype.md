@@ -1,9 +1,9 @@
 # M05 client prototype
 
-**Status:** in flight, 2026-09-30. Child of
+**Status:** implemented, 2026-09-30. Child of
 [M05 No Forwarding Address](m05-no-forwarding-address-prototype.md).
-**Spend:** $0 new charges or asset calls. Preserve the round's existing 475
-included audio credits and separate $2 equivalent reserve. No publishing,
+**Spend:** $0 new charges or asset calls in this lane. The round has consumed 693
+included audio credits with a separate $3 equivalent reserve. No publishing,
 release build or additional generation is part of this lane.
 
 ## Goal and contract
@@ -13,7 +13,7 @@ tram workshop and a usable trench. Reuse strict mission, equipment, input,
 settings, world, scenes, local process and QA seams. Rust remains authoritative
 for objectives, rescue, grenade count/flight/bounce/blast and tram movement,
 collision, rider transport and shot cover. Gameplay capability 26 applies to
-authored missions; campaign rules remain revision 3. Six gun/statistic slots keep
+authored missions; campaign rules remain revision 3. Six weapon/statistic slots keep
 their meanings; grenades are separate counted equipment capped at six.
 
 Do not implement a cosmetic moving tram or choose a passenger outcome from art.
@@ -118,7 +118,7 @@ silently on join; only newer contact counts produce bounce cues. Resolved serial
 own bounded voxel bursts and spatial Effects cues, including after owner death.
 The burst's roughly 1.4 m visual silhouette is separate from the 4 m damage radius.
 A view-depth shader rejects effect geometry within 0.6 m of the actual render eye.
-Grenade records aggregate separately while the six gun slots retain their meaning.
+Grenade records aggregate separately while the six weapon slots retain their meaning.
 
 Low Water reuses repaired surfaces, late-afternoon skyline and three validated
 floor runoff patches: workshop center (-19,-10), size (2.4,3); trench center
@@ -156,7 +156,7 @@ match submitted text and committed byte manifests; decoded assets have positive
 energy. M05 clips measure 13.28, 7.12 and 6.72 seconds; bounce/blast decode at
 0.48/0.88 seconds, within 0.05 seconds of the submitted 0.5/0.9 requests.
 
-Outstanding gates: actual M05 local child isolation/v5 carry and owned cleanup,
+At the initial freeze, outstanding gates were M05 local child isolation/v5 carry and owned cleanup,
 full client checker/verifier, authored gameplay grenade/ride/worker/departure
 capture and final standard published tour. Source stays in flight until these
 converge. Fresh-player, route timing, difficulty acceptance, final character art,
@@ -241,3 +241,93 @@ The final rendered receipt must establish its own result. The current registered
 service-panel face and matching map are tracked by the server authoring plan;
 the client waits for its matching release and exclusive runtime handback before
 rerunning the complete checker and capture sequence.
+
+`godot-full-follow-final.log` passes all 174 scripts and 81 harnesses with exit 0.
+The fourth authored tour passes 25 states and all 21 required enemy deaths,
+ordinary jump boarding, 97 supported ride samples with equal 4.860018 m tram and
+rider displacement, three visibly walking freed workers and their eventual
+boarding. Its Heavy probe records actual windup, firing, recovery and death,
+including four enemy shots. Physical passenger review opens without queuing Use,
+Escape cancels without mission progress, and a fresh reopen/confirmation reaches
+the authoritative departure. The actual grenade spends one stock unit and resolves
+its observed serial beyond the chassis, with no hits in that rendered run.
+Deterministic seeded damage evidence remains separate from this outcome.
+
+The first final standard tour passes 32 states and publishes 13 stills. Independent
+full-size review then catches a passenger-modal layering defect: the underlying
+live Use prompt overlaps its cancel line. The modal now uses the same CanvasLayer
+convention as the match menu, above the HUD. The regression uses a real HUD canvas
+and verifies layer ordering while retaining held-input, release, cancellation and
+stale-prompt checks. `test_m05_mission-modal-layer-final.log` exits 0 with clean
+PASS. The complete checker and both tours are rerun after this visible correction;
+the earlier passenger still is not exported as the final UI receipt.
+
+The corrected modal source passes `godot-full-modal-final.log`, again with 174
+scripts, 81 harnesses and exit 0. The fifth authored capture remains a failure:
+the Heavy is defeated, then the freight group activates and kills the idle player
+during its post-clear capture handoff. The fourth zero-death receipt remains
+historical evidence; it cannot substitute for current modal proof. Authoring
+corrects the ordinary tactical route or scoped defensive handoff, preserving
+actual phase requirements, enemy roster, damage, supply limits and the zero-death
+gate. No current completed passenger still is published until that converges.
+
+## Final verdict
+
+The existing approach tell policy now honors explicit `evade_tells: false`, while
+an absent flag retains its historical approach evasion. Nonboolean values are
+rejected. `test_qa_combat-approach-policy-final.log` passes default, true, false and
+invalid-policy regressions. Authoring holds the ordinary Heavy engagement at
+z=26, before the freight trigger, with the same observer and required phases.
+Its seeded proof discovers equipment normally, survives four shots and leaves
+the freight guards dormant during the post-clear interval. No enemy, supply,
+collision, damage, difficulty or map change is part of this correction.
+
+Final current-source receipts under `.agents/m05-client-buildout-20260930/`:
+
+| Gate | Receipt | Result |
+|---|---|---|
+| Pinned complete client check | `godot-full-approach-final.log` | Exit 0, 174 scripts, 81 harnesses, clean PASS |
+| Checker failure verification | `checker-verifier-modal-final.log` | Exit 0, all ten scenarios |
+| Authored M05 route | `m05-tour-sixth-wrapper.log` | Exit 0, 25 states, all 21 named enemy deaths |
+| Current standard publication | `standard-tour-modal-final-wrapper.log` | Exit 0, 32 states, 13 published stills |
+| Readable motion contact sheets | `motion-tiling-sixth.log` | Exit 0, original frames rearranged without new rendering |
+
+The sixth route confirms ordinary jump boarding and equal 4.800017 m rider/tram
+movement over 99 supported samples. All three workers visibly leave the workshop
+and are actually aboard by departure. The Heavy has four observed shots, with
+windup, firing and death required; the player ends at 100 HP, no armor, zero
+deaths and three secret claims. The corrected physical review visibly shows
+`F: DEPART NOW` and `ESC: KEEP WAITING` without overlapping the world prompt.
+Escape restores that prompt with no departure action; a fresh confirmation
+reaches the authoritative departed state.
+
+All three secret locations are reached, but the three counted supply claims are
+the tank armor plus service-pit Shells and Grenades across two locations. The
+market medkit remains available at full HP. Neither the secret counter nor the
+permanent equipment claim list implies that every location's consumable was
+collected. No artificial damage was introduced to force the market pickup.
+
+The actual grenade receipt records stock 4 to 3, serial 1, 41 live/resolved samples
+and its matching far-side explosion with no hits. The visible flight and real
+contact/fuse/result are established; effective blast damage in this rendered run
+is not. The blast is occluded by actual chassis cover from the player's eye.
+The isolated original burst proof and seeded damage checks remain separate.
+The saved Heavy windup still faces Latch with the Heavy offscreen; only its typed
+phase receipt proves that moment. The firing still visibly frames the Heavy and
+resolved incoming shot, so it is the appropriate gallery selection.
+
+Final read-only review inspected the authored contact sheet, full-size sign,
+worker, Heavy, review, cancellation and departure frames, plus rearranged original
+grenade, worker and tram motion samples. It also inspected the latest standard
+contact sheet, published menus/settings/profile/records, first-person and team
+views, both participant bodies, arena overview and weapon strips. No remaining
+concrete clipping or control-overlap regression was found in those captures.
+The practice selector and narrated arrival have their earlier isolated actual
+renderer receipts; the main standard tour does not establish those scenes.
+
+All owned native, renderer, checker and helper processes closed before the runtime
+lease returned. This is an implemented prototype with inspected Compatibility
+renderer evidence on the recorded AMD device, not fresh-player acceptance,
+difficulty acceptance, full mission fun proof, final Splice art, carrier flight or
+Port of Entry. No additional asset calls or external charges were made in this
+lane. Root owns final gallery selection, documentation convergence and release.

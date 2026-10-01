@@ -17,12 +17,13 @@ Status words: **proposed** (a design awaiting Nick's decision; directs no work),
 
 | Plan | Status | One-liner |
 |---|---|---|
-| [`m05-audio-batch.md`](./m05-audio-batch.md) | **in flight** | Three exact-caption neutral narration clips and two compact grenade cues, capped within verified included credits. |
-| [`m05-server-authoring.md`](./m05-server-authoring.md) | **in flight** | Original 21-guard roof/workshop/trench mission, grounded rescue, two freight worlds and shared ship boarding. |
-| [`m05-bounded-tram.md`](./m05-bounded-tram.md) | **in flight** | One real server-owned tram solid on a validated linear lane, supported riders and live collision geometry. |
-| [`hand-grenade-foundation.md`](./hand-grenade-foundation.md) | **in flight** | Counted server-owned grenade arc, bounce, fuse, covered splash and truthful separate combat records. |
-| [`m05-client-prototype.md`](./m05-client-prototype.md) | **in flight** | Strict M05 state, grenade controls/HUD, bounded Practice UI and consistent Low Water world/scene presentation. |
-| [`m05-no-forwarding-address-prototype.md`](./m05-no-forwarding-address-prototype.md) | **in flight** | Low Water roofs/workshop/trench finale, counted authoritative grenades, optional Splice rescue, bounded real tram support and durable M04 carry. |
+| [`m06-port-of-entry-prototype.md`](./m06-port-of-entry-prototype.md) | **planned** | Lunar dock/customs, found Railgun and isolated Turret, strict M05 carry and one-time Episode II refill; no runtime implementation yet. |
+| [`m05-audio-batch.md`](./m05-audio-batch.md) | **implemented**, integration #314 | Three exact-caption neutral narration clips and two compact grenade cues; final playback/caption/fallback checks pass. |
+| [`m05-server-authoring.md`](./m05-server-authoring.md) | **implemented**, integration #314 | Original 21-guard roof/workshop/trench mission; final ordinary-input clear, grounded rescue and deliberate boarding pass. |
+| [`m05-bounded-tram.md`](./m05-bounded-tram.md) | **implemented**, integration #314 | Real supported ride, live cover and cleanup, with 99 supported samples and equal rider/tram travel. |
+| [`hand-grenade-foundation.md`](./hand-grenade-foundation.md) | **implemented**, integration #314 | Counted server-owned arc, bounce, fuse, covered splash and separate records; actual flight and seeded damage proof. |
+| [`m05-client-prototype.md`](./m05-client-prototype.md) | **implemented**, integration #314 | Strict state, grenade UI and Low Water presentation; 174 scripts, 81 harnesses and inspected final tours pass. |
+| [`m05-no-forwarding-address-prototype.md`](./m05-no-forwarding-address-prototype.md) | **implemented**, integration #314 | Durable M04 carry, grenade/tram/workshop finale; 1206 tests, 94.25 percent local coverage and inspected 25-state route pass. |
 | [`shot-render-camera-clearance.md`](./shot-render-camera-clearance.md) | **implemented** | Actual-camera depth clips resolved shot and close companion geometry; clean rendered regressions and the final M04 aftermath pass. |
 | [`soak-sampling-async.md`](./soak-sampling-async.md) | **implemented** | Existing OS memory probe yields to server/client tasks; real short and rebuilt 120-second release soaks pass unchanged thresholds. |
 | [`environment-water-foundation.md`](./environment-water-foundation.md) | **implemented** | Animated original shallow runoff, wet edges, drains and litter in M04; strict geometry refusal and inspected Compatibility motion/depth proof. |
