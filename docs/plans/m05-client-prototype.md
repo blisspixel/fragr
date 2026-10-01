@@ -222,3 +222,22 @@ source still needs a complete checker and coherent 25-state rendered receipt,
 including actual Heavy phases, passenger cancellation/confirmation and sign fit,
 followed by the standard published tour. Historical partial captures are retained
 as diagnostics rather than exported as current completed evidence.
+
+The scoped-travel boundary also rejects nonboolean global values rather than
+casting them. `test_qa_combat-scoped-boundary-final.log` records clean PASS for
+invalid string and numeric defaults, plus restoration of both declared boolean
+defaults after a stage override. The optional grenade-follow capture is restricted
+to a throw stage and a fresh, locally owned serial already observed launching.
+Existing projectiles, other owners, stale ticks and invalid positions cannot steer
+the capture. Launch aim remains ordinary first-person input; later camera movement
+uses actual projectile and matching resolved explosion positions. It changes no
+movement, trajectory or outcome. `test_qa_combat-grenade-follow-converged.log`
+exits 0 with clean PASS. Its receipt explicitly identifies this camera mode.
+
+Final authoring preflight selects a higher ordinary lob from the same supported
+bench, with actual seeded damage beyond the chassis. This is deterministic
+authoring evidence; the prior rendered throw landed on its roof and had no hits.
+The final rendered receipt must establish its own result. The current registered
+service-panel face and matching map are tracked by the server authoring plan;
+the client waits for its matching release and exclusive runtime handback before
+rerunning the complete checker and capture sequence.

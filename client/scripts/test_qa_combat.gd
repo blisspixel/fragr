@@ -14,6 +14,24 @@ func _initialize() -> void:
 	_check(not TOUR.combat_travel_enabled(declared_true, {"combat_travel": false})
 		and TOUR.combat_travel_enabled(declared_true, {}),
 		"a scoped quiet stage preserves globally enabled defense for later unspecified stages")
+	_check(TOUR.valid_combat_travel({}) and TOUR.valid_combat_travel(declared_false)
+		and TOUR.valid_combat_travel(declared_true), "optional global travel flag accepts only declared booleans")
+	for invalid_flag: Variant in ["false", "true", 0, 1, null, [], {}]:
+		_check(not TOUR.valid_combat_travel({"combat_travel": invalid_flag})
+			and not TOUR.combat_travel_enabled({"combat_travel": invalid_flag}, {}),
+			"global string, number or other nonboolean cannot enable unrestricted travel defense")
+	_check(TOUR.valid_walks([{"trigger": "throw_grenade", "grenade_follow": true}])
+		and TOUR.valid_walks([{"grenade_follow": false}]), "projectile-follow capture is an explicit grenade-only option")
+	for invalid_follow: Variant in ["true", 1, null]:
+		_check(not TOUR.valid_walks([{"trigger": "throw_grenade", "grenade_follow": invalid_follow}]), "nonboolean camera-follow option rejected")
+	_check(not TOUR.valid_walks([{"trigger": "fire", "grenade_follow": true}]), "gun or unrelated camera state cannot request grenade-follow")
+	var live_capture: Dictionary = {"id": 1, "owner_id": "owner", "position": [1, 2, 3]}
+	_check(not TOUR.fresh_grenade_capture("owner", {}, {}, live_capture)
+		and TOUR.fresh_grenade_capture("owner", {}, {1: true}, live_capture), "capture camera waits for actual recorded launch before accepting a point")
+	_check(not TOUR.fresh_grenade_capture("other", {}, {1: true}, live_capture)
+		and not TOUR.fresh_grenade_capture("owner", {1: true}, {1: true}, live_capture), "other-owner and pre-existing grenades cannot steal the capture camera")
+	live_capture["position"] = [1, INF, 3]
+	_check(not TOUR.fresh_grenade_capture("owner", {}, {1: true}, live_capture), "nonfinite projectile or explosion points never drive the camera")
 	_check_jammer_launch()
 	var roof: Array = [{"min_x": -3.0, "max_x": 3.0, "min_z": -3.0, "max_z": 3.0, "bottom": 2.5, "top": 3.0}]
 	var edge: Dictionary = {"x": 0.0, "y": 3.0 + QaCombat.CAMERA.FP_SERVER_REFERENCE_Y, "z": 2.6}

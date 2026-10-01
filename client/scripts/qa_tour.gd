@@ -42,6 +42,8 @@ var _m05_ride_report: Dictionary = {}
 var _grenade_strip_report: Dictionary = {}
 var _grenade_strip_network: Node
 var _grenade_strip_owner: String = ""
+var _grenade_strip_follow: bool = false
+var _grenade_strip_tick: int = -1
 var _grenade_strip_existing: Dictionary = {}
 var _grenade_strip_launches: Dictionary = {}
 var _grenade_strip_explosions: Dictionary = {}
@@ -833,9 +835,11 @@ static func valid_walks(states: Variant) -> bool:
 			if live_audio_open and str(state["scene"]) != scene_path:
 				return false
 			scene_path = str(state["scene"])
-		for key: String in ["record_audio_start", "record_audio_stop", "combat_travel"]:
+		for key: String in ["record_audio_start", "record_audio_stop", "combat_travel", "grenade_follow"]:
 			if state.has(key) and not state[key] is bool:
 				return false
+		if state.get("grenade_follow", false) and state.get("trigger") != "throw_grenade":
+			return false
 		var starts_audio: bool = state.get("record_audio_start", false)
 		var stops_audio: bool = state.get("record_audio_stop", false)
 		if starts_audio and live_audio_open or stops_audio and not (live_audio_open or starts_audio):
@@ -1054,6 +1058,9 @@ func _load_manifest() -> Dictionary:
 	if typeof(parsed) != TYPE_DICTIONARY:
 		push_error("qa_tour: manifest is not an object")
 		return {}
+	if not valid_combat_travel(parsed):
+		push_error("qa_tour: manifest combat_travel must be a boolean")
+		return {}
 	if not valid_walks(parsed.get("states")):
 		push_error("qa_tour: states require finite lists of XYZ walking waypoints")
 		return {}
@@ -1138,7 +1145,7 @@ func _capture_strip(state: Dictionary, frames: int, file_name: String) -> void:
 		if state.get("single_shot", false):
 			Input.action_release("fire")
 	if trigger == "throw_grenade":
-		_begin_grenade_strip()
+		_begin_grenade_strip(state.get("grenade_follow", false))
 		var press: InputEventKey = InputEventKey.new()
 		press.physical_keycode = KEY_G
 		press.pressed = true
@@ -1518,9 +1525,15 @@ func _use_input_device(kind: String, layout: String) -> void:
 
 static func combat_travel_enabled(tour: Dictionary, state: Dictionary) -> bool:
 	# A stage override is scoped to that stage. Targets are reset with it.
-	return bool(state.get("combat_travel", tour.get("combat_travel", false)))
+	var selected: Variant = state.get("combat_travel", tour.get("combat_travel", false))
+	if selected is bool:
+		return selected
+	return false
 
-func _begin_grenade_strip() -> void:
+static func valid_combat_travel(tour: Dictionary) -> bool:
+	return not tour.has("combat_travel") or tour["combat_travel"] is bool
+
+func _begin_grenade_strip(follow_projectile: bool = false) -> void:
 	_disconnect_grenade_strip()
 	_grenade_strip_existing.clear()
 	_grenade_strip_launches.clear()
@@ -1529,13 +1542,18 @@ func _begin_grenade_strip() -> void:
 	var manager: Node = _game_manager()
 	_grenade_strip_network = manager.net_client
 	_grenade_strip_owner = str(_grenade_strip_network.player_id)
+	_grenade_strip_follow = follow_projectile
+	_grenade_strip_tick = int(manager.latest_snapshot.get("tick", -1))
 	for grenade: Dictionary in manager.latest_snapshot.get("grenades", []):
 		if grenade["owner_id"] == _grenade_strip_owner:
 			_grenade_strip_existing[int(grenade["id"])] = true
-	_grenade_strip_report = {"stock_before": int(_equipment().get("grenades", 0)), "passed": false}
+	_grenade_strip_report = {"stock_before": int(_equipment().get("grenades", 0)), "passed": false, "camera_follows_confirmed_projectile": follow_projectile}
 	_grenade_strip_network.snapshot_received.connect(_collect_grenade_strip)
 
 func _collect_grenade_strip(snapshot: Dictionary) -> void:
+	if int(snapshot["tick"]) <= _grenade_strip_tick:
+		return
+	_grenade_strip_tick = int(snapshot["tick"])
 	var live: Array[Dictionary] = []
 	var resolved: Array[Dictionary] = []
 	for grenade: Dictionary in snapshot.get("grenades", []):
@@ -1545,6 +1563,9 @@ func _collect_grenade_strip(snapshot: Dictionary) -> void:
 		if not _grenade_strip_launches.has(serial) and _grenade_strip_launches.size() < 64:
 			_grenade_strip_launches[serial] = grenade.duplicate(true)
 		live.append(grenade.duplicate(true))
+		if _grenade_strip_follow and _grenade_strip_launches.size() == 1 \
+			and fresh_grenade_capture(_grenade_strip_owner, _grenade_strip_existing, _grenade_strip_launches, grenade):
+			_follow_grenade_strip(GrenadeFacts.vector(grenade["position"]))
 	for explosion: Dictionary in snapshot.get("explosions", []):
 		var serial: int = int(explosion["id"])
 		if explosion["owner_id"] != _grenade_strip_owner or _grenade_strip_existing.has(serial):
@@ -1552,6 +1573,9 @@ func _collect_grenade_strip(snapshot: Dictionary) -> void:
 		if _grenade_strip_explosions.size() < 64:
 			_grenade_strip_explosions[serial] = explosion.duplicate(true)
 		resolved.append(explosion.duplicate(true))
+		if _grenade_strip_follow and _grenade_strip_launches.size() == 1 \
+			and fresh_grenade_capture(_grenade_strip_owner, _grenade_strip_existing, _grenade_strip_launches, explosion):
+			_follow_grenade_strip(GrenadeFacts.vector(explosion["position"]))
 	if _grenade_strip_samples.size() < 128 and (not live.is_empty() or not resolved.is_empty()):
 		_grenade_strip_samples.append({"tick": snapshot["tick"], "grenades": live, "explosions": resolved})
 
@@ -1559,6 +1583,26 @@ func _disconnect_grenade_strip() -> void:
 	if is_instance_valid(_grenade_strip_network) and _grenade_strip_network.snapshot_received.is_connected(_collect_grenade_strip):
 		_grenade_strip_network.snapshot_received.disconnect(_collect_grenade_strip)
 	_grenade_strip_network = null
+	_grenade_strip_follow = false
+
+static func fresh_grenade_capture(owner: String, excluded: Dictionary, launched: Dictionary, fact: Dictionary) -> bool:
+	if not EquipmentState.integer(fact.get("id"), 4294967295) or int(fact["id"]) < 1:
+		return false
+	return fact.get("owner_id") == owner and not excluded.has(int(fact["id"])) \
+		and launched.has(int(fact["id"])) and GrenadeFacts.point(fact.get("position"))
+
+func _follow_grenade_strip(position: Vector3) -> void:
+	var manager: Node = _game_manager()
+	if manager == null or not _local_human_alive(manager) or str(manager.net_client.player_id) != _grenade_strip_owner:
+		return
+	var eye: Node3D = _spectator_camera()
+	if eye == null or not eye.get("fp_mode"):
+		return
+	var direction: Vector3 = position - eye.global_position
+	if not direction.is_finite() or direction.length() < 0.7:
+		return
+	eye.set("fp_yaw", atan2(direction.z, direction.x))
+	eye.set("fp_pitch", clampf(atan2(direction.y, Vector2(direction.x, direction.z).length()), -ServerYaw.PITCH_LIMIT, ServerYaw.PITCH_LIMIT))
 
 func _finish_grenade_strip() -> void:
 	_disconnect_grenade_strip()

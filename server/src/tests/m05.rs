@@ -419,6 +419,85 @@ fn m05_workers_walk_to_actual_boarding_without_holding_party_departure() {
     assert!(!s.state.mission_state().unwrap().party[0].aboard);
 }
 #[test]
+fn m05_authored_high_lob_reaches_guarded_side_of_chassis() {
+    let (mut s, id) = fixture();
+    clear(&mut s, 0);
+    let tour: serde_json::Value =
+        serde_json::from_slice(include_bytes!("../../../client/qa/m05-rooftops.json")).unwrap();
+    let states = tour["states"].as_array().unwrap();
+    let discovery = states
+        .iter()
+        .find(|s| s["name"] == "paint_bay_discovery")
+        .unwrap();
+    let feet: [f32; 3] = serde_json::from_value(
+        discovery["walk_to"]
+            .as_array()
+            .unwrap()
+            .last()
+            .unwrap()
+            .clone(),
+    )
+    .unwrap();
+    let aim: [f32; 3] = serde_json::from_value(
+        states
+            .iter()
+            .find(|s| s["name"] == "grenade_lesson_throw")
+            .unwrap()["look_at"]
+            .clone(),
+    )
+    .unwrap();
+    place(&mut s, id, feet);
+    advance(&mut s, 1);
+    assert_eq!(
+        s.state
+            .players
+            .iter()
+            .find(|p| p.id == id)
+            .unwrap()
+            .inventory
+            .grenades(),
+        4
+    );
+    let dx = aim[0] - feet[0];
+    let dz = aim[2] - feet[2];
+    let dy = aim[1] - feet[1] - crate::combat::eye_height(None);
+    s.state.set_action(
+        id,
+        Action {
+            throw_grenade: true,
+            yaw: Some(dz.atan2(dx)),
+            pitch: Some(dy.atan2(dx.hypot(dz))),
+            ..Action::default()
+        },
+    );
+    let mut crossed = false;
+    let mut blast = None;
+    for _ in 0..45 {
+        advance(&mut s, 1);
+        let snapshot = s.state.snapshot();
+        crossed |= snapshot
+            .grenades
+            .iter()
+            .any(|g| g.position[0] < 2.88 && g.position[1] > 0.12);
+        if let Some(explosion) = snapshot.explosions.iter().find(|e| e.owner_id == id) {
+            blast = Some(explosion.clone());
+            break;
+        }
+    }
+    assert!(
+        crossed,
+        "real throw must clear the far side of the authored chassis"
+    );
+    let blast = blast.expect("ordinary throw resolves its fixed fuse");
+    assert!(
+        blast.hits.iter().any(|hit| hit.hp_damage > 0
+            && s.state.players.iter().any(|p| p.id == hit.target_id
+                && matches!(p.name.as_str(), "paint_sweeper_a" | "paint_sweeper_b"))),
+        "high lob must damage an actual guarded Sweeper: {blast:?}"
+    );
+}
+
+#[test]
 fn m05_grenade_bounces_off_live_translated_tram() {
     let (mut s, id) = rescued_tram();
     // Move clear of the half-metre boarding dock before making a ground throw.
