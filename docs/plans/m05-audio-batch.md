@@ -1,6 +1,6 @@
 # M05 narration and grenade audio
 
-**Status:** implemented, 2026-09-30, integration tracked in
+**Status:** shipped, 2026-09-30, merged in
 [PR #314](https://github.com/blisspixel/fragr/pull/314). Developer-only generation under the already
 authorized existing ElevenLabs credits and combined $20 development ceiling.
 Reserve an additional conservative $1 equivalent, bringing audio reserves to $3;

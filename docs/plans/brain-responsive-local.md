@@ -1,7 +1,7 @@
 # Responsive local brain and objective control
 
-**Status:** implemented, 2026-09-30. Package and full workspace verification
-passed locally; no publication is claimed. Integration evidence belongs to the
+**Status:** shipped in [PR #314](https://github.com/blisspixel/fragr/pull/314), 2026-09-30. Package and full workspace verification
+passed locally; package artifact evidence remains separate. Recorded evidence belongs to the
 [current development round](campaign-and-feel-buildout.md).
 **Spend:** $0. Fake model transports and local matches only.
 

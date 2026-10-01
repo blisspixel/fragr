@@ -1,6 +1,6 @@
 # Scheduled Service client prototype
 
-**Status:** implemented, 2026-09-30. Integration belongs to
+**Status:** shipped in [PR #314](https://github.com/blisspixel/fragr/pull/314), 2026-09-30. Integration belongs to
 [m03-scheduled-service-prototype.md](m03-scheduled-service-prototype.md).
 **Spend:** planned and actual $0.
 

@@ -1,6 +1,6 @@
 # M05 server and authoring
 
-**Status:** implemented, 2026-09-30, in PR #314, pending merge and release. Child of [M05 prototype](m05-no-forwarding-address-prototype.md). **Spend:** $0.
+**Status:** shipped in [PR #314](https://github.com/blisspixel/fragr/pull/314), 2026-09-30. Child of [M05 prototype](m05-no-forwarding-address-prototype.md). **Spend:** $0.
 
 Build six ordered encounters and a compact original Low Water roof, workshop and trench map. Required objective IDs are `roof_crossed`, `grenade_lesson_cleared`, `workshop_cleared`, `trench_cleared`, `heavy_cleared`, `freight_secured`, followed by `party_departed`. Future groups are absent until their predecessor clears. The fifth group contains one Heavy Sweeper. Optional grounded Splice and two captive agents release together after workshop clearance and actual active party presence; their walking animation never gates departure.
 

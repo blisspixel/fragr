@@ -1,8 +1,8 @@
 # Scheduled Service prototype
 
-**Status:** implemented, 2026-09-30. Local prototype increment on
+**Status:** shipped in [PR #314](https://github.com/blisspixel/fragr/pull/314), 2026-09-30. Local prototype increment on
 `feat/campaign-and-feel-buildout`, after the verified local Jammer increment.
-M03 mission acceptance, release and the following level remain separate work.
+M03 mission acceptance and package release evidence remain separate work.
 **Spend:** planned and actual $0. Nick's $20 external-charge cap continues to
 apply to this development round, within the repository's $50 total cap.
 

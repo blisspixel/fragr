@@ -1,6 +1,6 @@
 # Low Water environment asset batch
 
-**Status:** implemented, 2026-09-30. **Spend:** $0 actual. The initial image batch
+**Status:** shipped in [PR #314](https://github.com/blisspixel/fragr/pull/314), 2026-09-30. **Spend:** $0 actual. The initial image batch
 has a $2 ceiling within the current $20 combined external development allowance.
 No top-up, overage or uncertain request retry is authorized.
 

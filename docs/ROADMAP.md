@@ -15,7 +15,8 @@ The engineering ladder for scale runs through every phase: small squads first (f
 
 ## Where we are (2026-09-30)
 
-Release history is documented through v0.64.0, with the next build integrated in
+Desktop packages and their release receipts are listed in
+[GitHub releases](https://github.com/blisspixel/fragr/releases). The bounded campaign buildout shipped in
 [PR #314](https://github.com/blisspixel/fragr/pull/314). M01-to-M02 run carry,
 retry, rescue and optional evacuation are integrated; CTF is playable on Arena
 Duel, Directive 17 and Sector 9. The local campaign and feel buildout implements
@@ -41,8 +42,8 @@ but hits no enemy; seeded tests separately prove effective covered-side damage.
 Final Rust checks passed 1206 tests and 94.25 percent unfiltered line coverage;
 the client passed 174 scripts and 81 harnesses. Current-source multiplayer,
 six-map roster, deterministic CPU benchmark and 120-second soak gates pass.
-New cash charges are $0, with 693 included audio credits consumed. The build is
-synced in PR #314. The linked plan records current rendered evidence and CI;
+New cash charges are $0, with 693 included audio credits consumed. The source is
+merged in PR #314. The linked plan records current rendered evidence and CI;
 release packages require their own passing workflow. Fresh-player acceptance and
 two-machine network evidence remain separate gates.
 
@@ -251,7 +252,7 @@ The phases below are the long shape. The sequence that follows is the build orde
 **Next, as of 2026-09-30.** Nick authorized parallel research and development,
 with at most $20 combined external charges this round, and explicitly removed
 human feedback as a prerequisite for development. The integrated campaign and
-CTF systems are already on main through v0.64.0. Their human and remote-network
+CTF systems, including the bounded M03-M05 buildout in PR #314, are on main. Human and remote-network
 acceptance remain open evidence, not reasons to stop local building. Work in
 this order, with disjoint supporting lanes running alongside campaign work:
 
@@ -264,7 +265,7 @@ Its integration and acceptance evidence is recorded in that bounded plan.
     lunar dock, inhabited freight hall, Railgun lesson and flankable Turret,
     optional service branch and deliberate transit-tunnel departure. This starts
     Episode II, refills its continues and gives retained Earth rescue choices
-    their first lunar destination. Reuse the locally verified
+    their first lunar destination. Reuse the shipped
     [M05 prototype](plans/m05-no-forwarding-address-prototype.md)'s inventory,
     save, rescue, scene and geometry seams. Its
     [bounded implementation plan](plans/m06-port-of-entry-prototype.md) is written

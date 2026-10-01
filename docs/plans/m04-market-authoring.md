@@ -1,6 +1,6 @@
 # Notice to Vacate market authoring
 
-**Status:** implemented for bounded authoring, 2026-09-30. Integrated release
+**Status:** shipped in [PR #314](https://github.com/blisspixel/fragr/pull/314) for bounded authoring, 2026-09-30. Integrated release
 checks remain in the parent plan; fresh-player acceptance is separate.
 **Spend:** planned and actual $0.
 

@@ -1,6 +1,6 @@
 # Jammer launch audio
 
-Status: implemented, 2026-09-30. Integration belongs to
+Status: shipped in [PR #314](https://github.com/blisspixel/fragr/pull/314), 2026-09-30. Integration belongs to
 [campaign-and-feel-buildout.md](campaign-and-feel-buildout.md).
 
 ## Goal

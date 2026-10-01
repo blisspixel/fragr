@@ -1,6 +1,6 @@
 # Campaign and feel buildout
 
-**Status:** implemented, 2026-09-30. Verified local work on
+**Status:** shipped in [PR #314](https://github.com/blisspixel/fragr/pull/314), 2026-09-30. Verified local work on
 `feat/campaign-and-feel-buildout`, starting at `5fb985d` (v0.64.0 documentation).
 
 ## Goal and authorization

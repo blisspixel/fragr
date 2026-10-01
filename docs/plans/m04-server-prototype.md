@@ -1,6 +1,6 @@
 # M04 server prototype
 
-**Status:** implemented, 2026-09-30. Implements the server lane of
+**Status:** shipped in [PR #314](https://github.com/blisspixel/fragr/pull/314), 2026-09-30. Implements the server lane of
 [Notice to Vacate](m04-notice-to-vacate-prototype.md). **Spend:** $0.
 
 The later [M05 increment](m05-no-forwarding-address-prototype.md) supersedes

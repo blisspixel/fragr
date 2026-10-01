@@ -1,6 +1,6 @@
 # M04 Notice to Vacate prototype
 
-**Status:** implemented, 2026-09-30. Continues the locally implemented
+**Status:** shipped in [PR #314](https://github.com/blisspixel/fragr/pull/314), 2026-09-30. Continues the
 [M03 prototype](m03-scheduled-service-prototype.md). This is a playable prototype
 gate, not acceptance of the complete eleven-minute mission or campaign.
 **Spend:** $0 new cash charges. The current development round has a $20 combined
