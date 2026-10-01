@@ -122,6 +122,59 @@ fn bundled_no_forwarding_address_routes() {
         assert!(g.boarding.contains(*c.route.last().unwrap()));
     }
 }
+
+#[test]
+fn m05_entry_loadout_changes_only_after_ordinary_supply_approach() {
+    let source: serde_json::Value =
+        serde_json::from_slice(include_bytes!("../../maps/m05_no_forwarding_address.json"))
+            .unwrap();
+    for spawn in source["spawns"].as_array().unwrap() {
+        let feet: [f32; 3] = serde_json::from_value(spawn["feet"].clone()).unwrap();
+        for supply in source["supplies"].as_array().unwrap() {
+            let pickup: [f32; 3] = serde_json::from_value(supply["feet"].clone()).unwrap();
+            assert!(
+                (feet[1] - pickup[1]).abs() > crate::sim::PICKUP_CLAIM_HEIGHT
+                    || (feet[0] - pickup[0]).hypot(feet[2] - pickup[2])
+                        > crate::sim::PICKUP_CLAIM_RADIUS,
+                "entry spawn must not automatically claim {}",
+                supply["id"]
+            );
+        }
+    }
+    let (mut s, id) = fixture();
+    let equipment = |s: &GameSession| {
+        let p = s.state.players.iter().find(|p| p.id == id).unwrap();
+        p.inventory.saved_equipment(p.weapon).unwrap()
+    };
+    let entry = equipment(&s);
+    assert!(!entry
+        .weapons
+        .contains(&crate::protocol::WeaponType::Flechette));
+    assert!(entry.personal_claims.is_empty());
+    advance(&mut s, 20);
+    assert_eq!(
+        equipment(&s),
+        entry,
+        "an idle ready player retains the exact entry inventory"
+    );
+    s.state.set_action(
+        id,
+        Action {
+            forward: true,
+            yaw: Some(0.0),
+            ..Action::default()
+        },
+    );
+    advance(&mut s, 12);
+    let picked = equipment(&s);
+    assert!(picked
+        .weapons
+        .contains(&crate::protocol::WeaponType::Flechette));
+    assert!(
+        picked.personal_claims.iter().any(|id| id == "roof_rifle"),
+        "ordinary movement reaches the relocated unchanged grant"
+    );
+}
 #[test]
 fn m05_ordered_groups_rescue_and_actual_party_departure() {
     let (mut s, id) = fixture();
@@ -368,8 +421,14 @@ fn m05_workers_walk_to_actual_boarding_without_holding_party_departure() {
 #[test]
 fn m05_grenade_bounces_off_live_translated_tram() {
     let (mut s, id) = rescued_tram();
-    advance(&mut s, 65);
+    // Move clear of the half-metre boarding dock before making a ground throw.
+    // Standing at its x/z would raise the launch and hit the tram roof instead.
+    advance(&mut s, 65 + 167);
     let tram = s.state.mission_state().unwrap().m05.unwrap().tram;
+    assert!(
+        tram.feet[2] > 14.0,
+        "the live tram is clear of its parked dock"
+    );
     place(&mut s, id, [3.0, 0.0, tram.feet[2]]);
     s.state
         .players
@@ -388,6 +447,7 @@ fn m05_grenade_bounces_off_live_translated_tram() {
         },
     );
     let mut previous_x = 3.0;
+    let mut approached = false;
     let mut contact = None;
     for _ in 0..8 {
         advance(&mut s, 1);
@@ -399,13 +459,15 @@ fn m05_grenade_bounces_off_live_translated_tram() {
                 grenade.position[0] >= 1.619 && grenade.position[1] > 0.121,
                 "first contact must be the live east face above the floor: {grenade:?}"
             );
-            assert!(
-                previous_x > grenade.position[0],
-                "throw approached the east face"
-            );
+            assert!(approached, "unbounced samples approached the east face");
             contact = Some(grenade);
             break;
         }
+        assert!(
+            grenade.position[0] <= previous_x + 0.001,
+            "the unbounced throw travels toward the face"
+        );
+        approached |= grenade.position[0] < previous_x - 0.001;
         previous_x = grenade.position[0];
     }
     let contact = contact.expect("real tram east face must bounce the sphere");
@@ -512,22 +574,24 @@ fn m05_external_controller_reconstructs_live_tram_cover() {
         .unwrap();
     let aimed_snapshot = |s: &GameSession| {
         let mut snapshot = s.state.snapshot();
-        let target = snapshot
+        let mut target = snapshot
             .players
-            .iter_mut()
-            .find(|p| {
-                matches!(
-                    p.campaign,
-                    Some(crate::protocol::CampaignActor::Union {
-                        kind: crate::protocol::EnemyKind::Clerk,
-                        ..
-                    })
-                )
-            })
-            .unwrap();
+            .iter()
+            .find(|p| p.id == id)
+            .unwrap()
+            .clone();
         // This isolated steering fixture supplies a living hostile at the edge
         // of the lane, without restarting the cleared encounter lifecycle.
         target.hp = 100;
+        target.id = Uuid::from_u128(5051);
+        target.name = "CoverProbe".into();
+        target.campaign = Some(crate::protocol::CampaignActor::Union {
+            kind: crate::protocol::EnemyKind::Clerk,
+            phase: crate::protocol::EnemyPhase::Idle,
+            phase_started: snapshot.tick,
+            phase_ends: snapshot.tick,
+            seated: false,
+        });
         target.x = 2.1;
         target.y = PLAYER_FLOOR_Y;
         target.z = 16.0;
@@ -541,6 +605,7 @@ fn m05_external_controller_reconstructs_live_tram_cover() {
             }),
             ..Action::default()
         };
+        snapshot.players.push(target);
         (snapshot, wanted)
     };
     let (snapshot, wanted) = aimed_snapshot(&s);

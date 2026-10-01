@@ -39,6 +39,13 @@ var _failed: bool = false
 var _movement_samples: Array[Dictionary] = []
 var _walk_results: Array[Dictionary] = []
 var _m05_ride_report: Dictionary = {}
+var _grenade_strip_report: Dictionary = {}
+var _grenade_strip_network: Node
+var _grenade_strip_owner: String = ""
+var _grenade_strip_existing: Dictionary = {}
+var _grenade_strip_launches: Dictionary = {}
+var _grenade_strip_explosions: Dictionary = {}
+var _grenade_strip_samples: Array[Dictionary] = []
 var _combat_probe: QaCombat = QaCombat.new()
 var _combat_travel: bool = false
 var _combat_travel_targets: Array[String] = []
@@ -685,6 +692,7 @@ func _run() -> void:
 	quit(1 if _failed else 0)
 
 func _retire_scene() -> void:
+	_disconnect_grenade_strip()
 	if not _discard_audio():
 		push_error("qa_tour: Master recording effect remained during scene retirement")
 		_failed = true
@@ -1102,6 +1110,7 @@ func _measure() -> Dictionary:
 ## Capture consecutive frames or timed samples through an effect's full lifetime.
 func _capture_strip(state: Dictionary, frames: int, file_name: String) -> void:
 	var trigger: String = state.get("trigger", "")
+	_grenade_strip_report = {}
 	_companion_strip_samples.clear()
 	var interval: float = float(state.get("strip_interval_seconds", 0.0))
 	var walk_action: String = str(state.get("walk_action", "move_forward"))
@@ -1130,6 +1139,7 @@ func _capture_strip(state: Dictionary, frames: int, file_name: String) -> void:
 		if state.get("single_shot", false):
 			Input.action_release("fire")
 	if trigger == "throw_grenade":
+		_begin_grenade_strip()
 		var press: InputEventKey = InputEventKey.new()
 		press.physical_keycode = KEY_G
 		press.pressed = true
@@ -1170,6 +1180,8 @@ func _capture_strip(state: Dictionary, frames: int, file_name: String) -> void:
 			_failed = true
 	if trigger == "fire":
 		Input.action_release("fire")
+	if trigger == "throw_grenade":
+		_finish_grenade_strip()
 	if probe_name != "" and _probe_frames == 0:
 		push_error("qa_tour: shot produced no visible " + probe_name)
 		_failed = true
@@ -1317,6 +1329,7 @@ func _observed_state() -> Dictionary:
 		for captive: Node3D in ward._side_captives:
 			captive_views.append([captive.position.x, captive.position.y, captive.position.z])
 	var report: Dictionary = {
+		"grenade_strip": _grenade_strip_report.duplicate(true),
 		"m05_review": is_instance_valid(gm.get("departure_review")),
 		"m05_ride": _m05_ride_report.duplicate(true),
 		"m05": gm.get("net_client").get("mission").get("state", {}).get("m05", {}),
@@ -1503,6 +1516,64 @@ func _use_input_device(kind: String, layout: String) -> void:
 	if kind != "keyboard" and layout in ["letters", "shapes", "generic"] and InputDevice.is_gamepad():
 		InputDevice.force(InputDevice.Kind.GAMEPAD, InputDevice.look_source, layout)
 	await process_frame
+
+func _begin_grenade_strip() -> void:
+	_disconnect_grenade_strip()
+	_grenade_strip_existing.clear()
+	_grenade_strip_launches.clear()
+	_grenade_strip_explosions.clear()
+	_grenade_strip_samples.clear()
+	var manager: Node = _game_manager()
+	_grenade_strip_network = manager.net_client
+	_grenade_strip_owner = str(_grenade_strip_network.player_id)
+	for grenade: Dictionary in manager.latest_snapshot.get("grenades", []):
+		if grenade["owner_id"] == _grenade_strip_owner:
+			_grenade_strip_existing[int(grenade["id"])] = true
+	_grenade_strip_report = {"stock_before": int(_equipment().get("grenades", 0)), "passed": false}
+	_grenade_strip_network.snapshot_received.connect(_collect_grenade_strip)
+
+func _collect_grenade_strip(snapshot: Dictionary) -> void:
+	var live: Array[Dictionary] = []
+	var resolved: Array[Dictionary] = []
+	for grenade: Dictionary in snapshot.get("grenades", []):
+		var serial: int = int(grenade["id"])
+		if grenade["owner_id"] != _grenade_strip_owner or _grenade_strip_existing.has(serial):
+			continue
+		if not _grenade_strip_launches.has(serial) and _grenade_strip_launches.size() < 64:
+			_grenade_strip_launches[serial] = grenade.duplicate(true)
+		live.append(grenade.duplicate(true))
+	for explosion: Dictionary in snapshot.get("explosions", []):
+		var serial: int = int(explosion["id"])
+		if explosion["owner_id"] != _grenade_strip_owner or _grenade_strip_existing.has(serial):
+			continue
+		if _grenade_strip_explosions.size() < 64:
+			_grenade_strip_explosions[serial] = explosion.duplicate(true)
+		resolved.append(explosion.duplicate(true))
+	if _grenade_strip_samples.size() < 128 and (not live.is_empty() or not resolved.is_empty()):
+		_grenade_strip_samples.append({"tick": snapshot["tick"], "grenades": live, "explosions": resolved})
+
+func _disconnect_grenade_strip() -> void:
+	if is_instance_valid(_grenade_strip_network) and _grenade_strip_network.snapshot_received.is_connected(_collect_grenade_strip):
+		_grenade_strip_network.snapshot_received.disconnect(_collect_grenade_strip)
+	_grenade_strip_network = null
+
+func _finish_grenade_strip() -> void:
+	_disconnect_grenade_strip()
+	_grenade_strip_report["stock_after"] = int(_equipment().get("grenades", 0))
+	_grenade_strip_report["launches"] = _grenade_strip_launches.values().duplicate(true)
+	_grenade_strip_report["explosions"] = _grenade_strip_explosions.values().duplicate(true)
+	_grenade_strip_report["samples"] = _grenade_strip_samples.duplicate(true)
+	var passed: bool = int(_grenade_strip_report["stock_before"]) > 0 \
+		and int(_grenade_strip_report["stock_after"]) == int(_grenade_strip_report["stock_before"]) - 1 \
+		and _grenade_strip_launches.size() == 1 and _grenade_strip_explosions.size() == 1
+	if passed:
+		passed = _grenade_strip_explosions.has(_grenade_strip_launches.keys()[0])
+	_grenade_strip_report["passed"] = passed
+	if not passed:
+		push_error("qa_tour: grenade strip lacked one real stock decrement, launch and matching resolved explosion: " + JSON.stringify(_grenade_strip_report))
+		_failed = true
+	else:
+		print("qa_tour: real grenade stock decrement, launch and matching explosion serial ", _grenade_strip_launches.keys()[0])
 
 func _set_m05_departure_review(open_review: bool) -> void:
 	var manager: Node = _game_manager()

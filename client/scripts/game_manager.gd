@@ -317,7 +317,8 @@ func _on_map_info(info: Dictionary) -> void:
 	if m05_town != null:
 		m05_town.configure_map(info)
 	# Town fixtures are created after the venue preferences were applied.
-	RenderQuality.apply_practicals(self, settings)
+	if settings != null:
+		RenderQuality.apply_practicals(self, settings)
 	NotaryAnimation.configure_map(info)
 	if notary_audio != null:
 		notary_audio.configure_map(info)

@@ -4,6 +4,29 @@ Shipped tags, newest first. A line here is on `main`. Planned work stays in
 [docs/ROADMAP.md](docs/ROADMAP.md). Older tags are on the
 [releases page](https://github.com/blisspixel/fragr/releases).
 
+## v0.65.0 (2026-09-30)
+
+The campaign prototype continues through Scheduled Service, Notice to Vacate and
+No Forwarding Address. The yard mast, optional recall cars, clinic patients,
+workshop rescue and deliberate departures are server-owned. Earlier choices,
+equipment and remaining continues carry into the next mission, with strict
+upgrades and an exact-byte archive for older local saves.
+
+Low Water now has repair detail, shallow animated water, roof tanks, workshop
+props and a real bounded tram. Flying Notaries have original directional poses
+and attack cues. Grenades use a separate carried count, bounce on actual cover
+and explode on a fixed fuse with falloff and self damage. Story transitions have
+captions and committed offline narration. Linked world, character and voice
+guides keep later art and cutscenes consistent with the setting.
+
+Remote participants and spectator cameras move more smoothly. Free agent control
+stays responsive during slower decisions, and attacking capture-the-flag agents
+fight blockers on their route. Local Practice includes the new prototype entries.
+
+These remain development missions. Fresh-player review, full campaign pacing,
+final character performances and later missions remain open. This round used
+693 included audio credits and $0 in new cash charges.
+
 ## v0.64.0 (2026-09-30)
 
 Capture the flag now runs on Arena Duel and Directive 17, as well as Sector 9. Each side has a stand in its own back third. Compliance Yard, Reclamation Gulch and Tripoint Works stay off the mode.

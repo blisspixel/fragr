@@ -47,6 +47,7 @@ func _ready() -> void:
 	grenade_counts.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(grenade_counts)
 	visible = false
+	_refresh()
 
 func apply(state_value: Dictionary) -> void:
 	var dry: int = int(state_value.get("dry_fire_count", 0))
@@ -59,7 +60,8 @@ func apply(state_value: Dictionary) -> void:
 		dry_seconds = 0.0
 		glyph_pool = ""
 		_grenades_known = false
-		grenade_counts.visible = false
+		if grenade_counts != null:
+			grenade_counts.visible = false
 		visible = false
 	else:
 		_grenades_known = _grenades_known or int(state.get("grenades", 0)) > 0

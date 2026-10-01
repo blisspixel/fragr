@@ -131,3 +131,9 @@ external brain target selection, decision observations, scripted adapter targeti
 and playtest policy sight. Cached navigation retains conservative walking geometry;
 no topology is rebuilt per tick. Covered/exposed target regression checks and the
 parent's serialized full gate validate this correction before publication.
+
+Decision epochs now compare mission intent rather than continuous tram, patient
+or captive coordinates. Objective, attempt, rules, participation/readiness,
+world-choice and rescue transitions still discard stale replies. A held fake
+model regression checks acceptance across ordinary tram updates, including
+temporary obstruction, and refusal after an objective or retry transition.

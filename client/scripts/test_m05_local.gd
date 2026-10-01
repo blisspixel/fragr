@@ -183,8 +183,8 @@ func _saved_transition(owned: LocalMatch) -> bool:
 	_check(int(player["hp"]) == 61 and int(player["armor"]) == 7 and game.net_client.accepted_body == "synthetic", "actual HP, armor and body carry exactly")
 	_check(equipment["selected"] == "flechette" and equipment["weapons"] == ["fists", "flechette", "scatter"], "actual carried gun ownership and selection are exact")
 	_check(EquipmentState.ammo(equipment, "bullets") == 29 and EquipmentState.ammo(equipment, "shells") == 8 and EquipmentState.ammo(equipment, "cells") == 0,
-		"held arrival fire never consumes carried ammunition")
-	_check(equipment["personal_claims"].is_empty() and not game.pending_interact, "old map claims retire while arrival leaves no interaction")
+		"held arrival fire never consumes carried ammunition: " + JSON.stringify(equipment))
+	_check(equipment["personal_claims"].is_empty() and not game.pending_interact, "old map claims retire while arrival leaves no interaction: " + JSON.stringify(equipment))
 	owned.stop()
 	if not await _until(func() -> bool: return owned.state == LocalMatch.State.IDLE, "durable owned M05 child stops cleanly before inspecting disk"):
 		return false
@@ -192,7 +192,10 @@ func _saved_transition(owned: LocalMatch) -> bool:
 	_check(saved is Dictionary and saved["version"] == 6 and saved["id"] == RUN_ID and saved["rules"]["revision"] == MissionState.RULES_REVISION,
 		"actual child atomically persists upgraded v6 identity and current rules")
 	if saved is Dictionary:
-		_check(saved["step"]["kind"] == "mission_entry" and saved["step"]["mission"] == MissionState.M05_ID and saved["m03_outcome"] == fixture["m03_outcome"] and saved["m04_outcome"] == fixture["m04_outcome"], "v6 entry retains authored M03 outcome")
+		_check(saved["step"]["kind"] == "mission_entry" and saved["step"]["mission"] == MissionState.M05_ID \
+			and saved["m03_outcome"]["liberated_cars"] == fixture["m03_outcome"]["liberated_cars"] \
+			and saved["m04_outcome"]["rescued_patients"] == fixture["m04_outcome"]["rescued_patients"] \
+			and int(saved["m04_outcome"]["photos_completed"]) == 2, "v6 entry retains authored outcomes: " + JSON.stringify(saved))
 	var archives: Array[String] = []
 	for filename: String in DirAccess.get_files_at(run_directory):
 		if filename.begins_with("run.prior-") and filename.ends_with(".json"):

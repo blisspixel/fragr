@@ -335,6 +335,48 @@ impl DecisionEpoch {
         self.0 == requested
     }
 
+    fn mission_changed(old: Option<&MissionState>, next: &MissionState) -> bool {
+        fn intent_state(state: &MissionState) -> MissionState {
+            let mut state = state.clone();
+            state.changed_at = 0;
+            state.prompts.clear();
+            for member in &mut state.party {
+                member.name.clear();
+                member.aboard = false;
+            }
+            state.party.sort_unstable_by_key(|member| member.id);
+            if let Some(facts) = &mut state.m02 {
+                if let Some(evacuation) = &mut facts.evacuation {
+                    evacuation.captives = [[0.0; 3]; 2];
+                }
+            }
+            if let Some(facts) = &mut state.m03 {
+                facts.mast_hp = i32::from(facts.mast_hp > 0);
+                for car in &mut facts.cars {
+                    car.captives = [[0.0; 3]; 2];
+                }
+            }
+            if let Some(facts) = &mut state.m04 {
+                for patient in &mut facts.patients {
+                    patient.feet = [0.0; 3];
+                }
+            }
+            if let Some(facts) = &mut state.m05 {
+                for captive in &mut facts.captives {
+                    captive.feet = [0.0; 3];
+                }
+                facts.tram.feet = [0.0; 3];
+                facts.tram.tick = 0;
+                // Temporary physical obstruction does not obsolete intent.
+                if facts.tram.phase == fragr_server::protocol::M05TramPhase::Blocked {
+                    facts.tram.phase = fragr_server::protocol::M05TramPhase::Moving;
+                }
+            }
+            state
+        }
+        old.is_none_or(|old| intent_state(old) != intent_state(next))
+    }
+
     fn observe_snapshot(&mut self, id: Option<Uuid>, old: Option<&Snapshot>, next: &Snapshot) {
         if let Some(old) = old {
             let living = |snapshot: &Snapshot| {
@@ -725,7 +767,7 @@ pub async fn run_bot(
             msg = stream.next() => match msg {
                 Some(Ok(Message::Text(text))) => match serde_json::from_str::<ServerMessage>(&text) {
                     Ok(ServerMessage::Mission { tick, state }) => {
-                        let changed = mission_client.state.as_ref() != Some(&state);
+                        let changed = DecisionEpoch::mission_changed(mission_client.state.as_ref(), &state);
                         if let Err(error) = mission_client.observe(tick, state) {
                             session_error = Some(Error::Transport(format!("invalid mission: {error}")));
                             break;
@@ -1658,6 +1700,207 @@ mod tests {
                 body: letter_a().to_string().into_bytes(),
             })
         }
+    }
+
+    #[tokio::test]
+    async fn delayed_model_survives_tram_motion_but_not_objective_or_retry_changes() {
+        use fragr_server::protocol::{
+            M05ObjectiveState, M05TramPhase, M05TramState, M05WorkerState, MissionObjective,
+            MissionObjectiveAction, Region3,
+        };
+        let mut mission = MissionState {
+            id: MissionId::NoForwardingAddress,
+            run: None,
+            rules: CampaignRules::default(),
+            attempt: 1,
+            phase: MissionPhase::InProgress,
+            changed_at: 1,
+            party: vec![MissionMember {
+                id: Uuid::from_u128(1),
+                name: "Brain".into(),
+                ready: true,
+                alive: true,
+                aboard: false,
+            }],
+            prompts: vec![],
+            m02: None,
+            m03: None,
+            m04: None,
+            m05: Some(M05ObjectiveState {
+                completed: vec![],
+                current: Some(MissionObjective {
+                    id: "roof_crossed".into(),
+                    action: MissionObjectiveAction::Arrival {
+                        region: Region3 {
+                            min: [0.0; 3],
+                            max: [1.0; 3],
+                        },
+                        feet: [0.0; 3],
+                    },
+                }),
+                workshop_secured: true,
+                group_released: true,
+                freight_open: false,
+                captives: vec![M05WorkerState {
+                    id: "splice".into(),
+                    feet: [0.0; 3],
+                }],
+                tram: M05TramState {
+                    phase: M05TramPhase::Moving,
+                    feet: [0.0; 3],
+                    tick: 1,
+                },
+                carried_recall_cars: vec![],
+                carried_patients: vec![],
+                carried_photos: 0,
+            }),
+        };
+        let mut epoch = DecisionEpoch::default();
+        if DecisionEpoch::mission_changed(None, &mission) {
+            epoch.advance();
+        }
+        let requested = epoch.0;
+        let held = Arc::new(HeldModel {
+            started: AtomicBool::new(false),
+            release: AtomicBool::new(false),
+            finished: AtomicBool::new(false),
+        });
+        let mut settings = config("ws://127.0.0.1:1", Provider::Ollama, SAFETY_NET_SECONDS);
+        settings.decision_budget = Duration::from_secs(10);
+        let (tx, rx) = oneshot::channel();
+        let handle = spawn_decision(
+            held.clone(),
+            budget(0.0),
+            Arc::new(tactical_questions()),
+            Asker::from_config(&settings),
+            serde_json::json!({}),
+            Plan::default(),
+            Gate::default(),
+            0.0,
+            tx,
+        );
+        assert!(
+            wait_for(
+                || held.started.load(Ordering::SeqCst),
+                Duration::from_secs(10)
+            )
+            .await
+        );
+        for tick in 2..=20 {
+            let before = mission.clone();
+            mission.changed_at = tick;
+            mission.party[0].aboard = tick % 2 == 0;
+            let facts = mission.m05.as_mut().unwrap();
+            facts.tram.tick = tick;
+            facts.tram.feet[2] += 0.06;
+            facts.tram.phase = if tick % 2 == 0 {
+                M05TramPhase::Blocked
+            } else {
+                M05TramPhase::Moving
+            };
+            facts.captives[0].feet[2] += 0.01;
+            if DecisionEpoch::mission_changed(Some(&before), &mission) {
+                epoch.advance();
+            }
+        }
+        held.release.store(true, Ordering::SeqCst);
+        let (outcome, _) = tokio::time::timeout(Duration::from_secs(3), rx)
+            .await
+            .unwrap()
+            .unwrap();
+        handle.await.unwrap();
+        assert!(
+            matches!(outcome, Outcome::Decided(_)),
+            "fake model returns a real parsed plan"
+        );
+        assert!(
+            epoch.accepts(requested),
+            "continuous physical facts preserve the delayed reply"
+        );
+        let before = mission.clone();
+        mission.m05.as_mut().unwrap().current.as_mut().unwrap().id =
+            "grenade_lesson_cleared".into();
+        if DecisionEpoch::mission_changed(Some(&before), &mission) {
+            epoch.advance();
+        }
+        assert!(
+            !epoch.accepts(requested),
+            "a new objective invalidates prior intent"
+        );
+        let retry_request = epoch.0;
+        let before = mission.clone();
+        mission.attempt += 1;
+        if DecisionEpoch::mission_changed(Some(&before), &mission) {
+            epoch.advance();
+        }
+        assert!(
+            !epoch.accepts(retry_request),
+            "retry invalidates even identical objective intent"
+        );
+        let before = mission.clone();
+        mission.party[0].ready = false;
+        assert!(
+            DecisionEpoch::mission_changed(Some(&before), &mission),
+            "readiness remains semantic"
+        );
+        let before = mission.clone();
+        mission.m05.as_mut().unwrap().freight_open = true;
+        assert!(
+            DecisionEpoch::mission_changed(Some(&before), &mission),
+            "world choice remains semantic"
+        );
+        let mut yard = mission.clone();
+        yard.id = MissionId::ScheduledService;
+        yard.m05 = None;
+        yard.m03 = Some(fragr_server::protocol::M03ObjectiveState {
+            mast_hp: 80,
+            mast_secured: false,
+            train_secured: false,
+            current: None,
+            cars: vec![fragr_server::protocol::M03CarState {
+                id: "platform_car".into(),
+                released: true,
+                captives: [[0.0; 3]; 2],
+            }],
+        });
+        let before = yard.clone();
+        yard.m03.as_mut().unwrap().cars[0].captives[0][2] = 0.05;
+        assert!(
+            !DecisionEpoch::mission_changed(Some(&before), &yard),
+            "walking car captives preserve intent"
+        );
+        yard.m03.as_mut().unwrap().cars[0].released = false;
+        assert!(
+            DecisionEpoch::mission_changed(Some(&before), &yard),
+            "car release choice invalidates intent"
+        );
+        let mut town = mission;
+        town.id = MissionId::NoticeToVacate;
+        town.m05 = None;
+        town.m04 = Some(fragr_server::protocol::M04ObjectiveState {
+            completed: vec![],
+            current: None,
+            clinic_secured: true,
+            clinic_open: true,
+            patients_released: true,
+            patients: vec![fragr_server::protocol::M04PatientState {
+                id: "patient_a".into(),
+                feet: [0.0; 3],
+            }],
+            photos_completed: 0,
+            carried_recall_cars: vec![],
+        });
+        let before = town.clone();
+        town.m04.as_mut().unwrap().patients[0].feet[2] = 0.05;
+        assert!(
+            !DecisionEpoch::mission_changed(Some(&before), &town),
+            "walking clinic patients preserve intent"
+        );
+        town.m04.as_mut().unwrap().patients_released = false;
+        assert!(
+            DecisionEpoch::mission_changed(Some(&before), &town),
+            "patient release choice invalidates intent"
+        );
     }
 
     #[tokio::test]

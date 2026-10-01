@@ -172,3 +172,24 @@ and stale-prompt refusal. Authored QA has separate physical review and cancellat
 hooks which retain the visible review for its named screenshot, verify the mission
 prefix remains unchanged with no queued Use, then reopen and confirm normally.
 These hooks still require the actual rendered route receipt.
+
+The first native child run reached both development and historical pending M05
+arrival, retained the input barrier and saved exact v6 entry data. It then caught
+an unintended entry pickup: the roof Rifle was one metre from the spawn, so idle
+entry claimed it and added 60 Bullets before walking. Exact carried-gear assertions
+remain in place while authoring corrects that placement. Historical JSON outcome
+checks compare named fields and integer counts rather than whole dictionaries
+with different parsed numeric representations. Two independent fixture lifecycle
+failures also converged: town light preferences wait for initialized settings, and
+equipment UI safely accepts clear or inventory data before its child labels exist.
+The later ready callback hydrates retained data. Focused clean PASS receipts:
+`test_equipment-lifecycle-final.log`, `test_jammer_audio-lifecycle-final.log`, and
+`test_shot_effects-lifecycle-final.log`. Both native children were stopped before
+handing executable ownership back for the updated embedded map.
+
+Grenade motion QA collects at most 128 real snapshot samples and 64 serials only
+during its strip, disconnecting at finish or scene cleanup. It excludes projectiles
+already live before the tap and requires one actual stock decrement, one observed
+launch and a same-ID resolved explosion. Initial position, fuse, bounce counts and
+resolved hit facts are retained in the receipt. A missed transient fails the gate.
+`test_qa_combat-grenade-receipt-final.log` parses the new receipt seam cleanly.
