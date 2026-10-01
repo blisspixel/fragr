@@ -278,7 +278,11 @@ and all three desktop package checks in
 [run 36821422868](https://github.com/blisspixel/fragr/actions/runs/36821422868).
 Linux CI measured 94.22 percent unfiltered line coverage (48,714 lines,
 2,815 missed); the Windows local 94.25 percent result remains a separate receipt.
-Tag packages require their own release workflow. Full twelve-minute pacing, the five-minute par,
+The tagged [release workflow](https://github.com/blisspixel/fragr/actions/runs/36823111467)
+passed all three package installation smokes at merge `008abd08`.
+[v0.65.0](https://github.com/blisspixel/fragr/releases/tag/v0.65.0) is published
+with Windows, Linux and macOS packages plus `SHA256SUMS.txt`. Its checksum entries
+match GitHub's recorded asset digests. Full twelve-minute pacing, the five-minute par,
 fresh-player and difficulty acceptance, later missions, two-machine feel and
 hardware listening remain separate work after this bounded prototype increment.
 The next development rung is the planned
