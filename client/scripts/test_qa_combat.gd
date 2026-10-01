@@ -33,6 +33,14 @@ func _initialize() -> void:
 	live_capture["position"] = [1, INF, 3]
 	_check(not TOUR.fresh_grenade_capture("owner", {}, {1: true}, live_capture), "nonfinite projectile or explosion points never drive the camera")
 	_check_jammer_launch()
+	_check(QaCombat.approach_evade_enabled({}) and QaCombat.approach_evade_enabled({"evade_tells": true}),
+		"ordinary approach keeps its historical tell evasion unless explicitly disabled")
+	_check(not QaCombat.approach_evade_enabled({"evade_tells": false}),
+		"explicit standing observation does not acquire movement through a committed approach tell")
+	for invalid_evade: Variant in ["false", 0, null, []]:
+		_check(not QaCombat.valid_evade_tells({"evade_tells": invalid_evade})
+			and not QaCombat.approach_evade_enabled({"evade_tells": invalid_evade}),
+			"nonboolean approach policy is rejected instead of enabling unexpected movement")
 	var roof: Array = [{"min_x": -3.0, "max_x": 3.0, "min_z": -3.0, "max_z": 3.0, "bottom": 2.5, "top": 3.0}]
 	var edge: Dictionary = {"x": 0.0, "y": 3.0 + QaCombat.CAMERA.FP_SERVER_REFERENCE_Y, "z": 2.6}
 	_check(not QaCombat.safe_strafe(edge, roof, 20.0, 0.0, false) and QaCombat.safe_strafe(edge, roof, 20.0, 0.0, true),

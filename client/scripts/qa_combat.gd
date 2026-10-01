@@ -355,7 +355,17 @@ static func follow_route(me: Dictionary, camera: Node3D, route: Array, index: in
 			Input.action_press(action)
 	return index
 
+static func valid_evade_tells(spec: Dictionary) -> bool:
+	return not spec.has("evade_tells") or spec["evade_tells"] is bool
+
+static func approach_evade_enabled(spec: Dictionary) -> bool:
+	var selected: Variant = spec.get("evade_tells", true)
+	return selected if selected is bool else false
+
 func run(tree: SceneTree, manager: Node, spec: Dictionary, output: String) -> Dictionary:
+	if not valid_evade_tells(spec):
+		push_error("qa_combat: evade_tells must be a boolean")
+		return {"passed": false}
 	begin(manager)
 	var fire_cadence: Dictionary = {}
 	if spec.has("fire_cadence"):
@@ -464,7 +474,7 @@ func run(tree: SceneTree, manager: Node, spec: Dictionary, output: String) -> Di
 		release_inputs()
 		if alive and not complete and approach_index < approach_route.size():
 			var committed: Dictionary = visible_target(snapshot, _player_id, solids, true)
-			if not committed.is_empty():
+			if not committed.is_empty() and approach_evade_enabled(spec):
 				engage(manager, me, committed, solids, anchor, true, false)
 			else:
 				var previous_index: int = approach_index
