@@ -137,3 +137,10 @@ or captive coordinates. Objective, attempt, rules, participation/readiness,
 world-choice and rescue transitions still discard stale replies. A held fake
 model regression checks acceptance across ordinary tram updates, including
 temporary obstruction, and refusal after an objective or retry transition.
+
+CI exposed an unrelated old brain test assumption that a fake immediate reply
+prevents every local fallback cycle. Its fixture now observes three distinct
+remote stance publications on a stable socket session, then verifies exact
+transport-to-ledger call counts, settled successful charges and billed totals.
+The focused final test passed (one test, 114 filtered) in
+`.agents/m05-buildout-20260930/brain-remote-ledger-fixture-final.log`.

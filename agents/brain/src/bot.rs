@@ -2397,42 +2397,128 @@ mod tests {
 
     #[tokio::test]
     async fn remote_answers_drive_the_plan_and_the_ledger() {
-        let (url, shutdown) = boot_server(2).await;
-        let transport = Arc::new(FakeTransport::ok(push_answers()));
+        let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let url = format!("ws://{}", listener.local_addr().unwrap());
+        // The static healthy far-target fallback is HoldAngle, so every
+        // observed stance below proves model adoption rather than a local cycle.
+        let expected = [
+            Stance::PushEnemy,
+            Stance::KiteDistance,
+            Stance::FallBackHeal,
+        ];
+        let transport = Arc::new(FakeTransport::new(
+            expected
+                .iter()
+                .map(|stance| {
+                    let mut reply = push_answers();
+                    reply["answers"]["stance"]["choice"] = stance.name().into();
+                    reply["answers"]["stance"]["probabilities"] =
+                        serde_json::json!({stance.name(): 0.91});
+                    Ok(HttpResponse {
+                        status: 200,
+                        body: reply.to_string().into_bytes(),
+                    })
+                })
+                .collect(),
+        ));
         let budget = budget(1.0);
         let stop = Arc::new(AtomicBool::new(false));
+        let server = tokio::spawn(async move {
+            let (socket, _) = listener.accept().await.unwrap();
+            let mut socket = tokio_tungstenite::accept_async(socket).await.unwrap();
+            socket.next().await.unwrap().unwrap(); // Hello.
+            socket.next().await.unwrap().unwrap(); // Initial stance before observations.
+            let id = Uuid::from_u128(1);
+            let mut map =
+                serde_json::to_value(fragr_server::sim::GameState::new().map_info()).unwrap();
+            map["solids"] = serde_json::json!([]);
+            map["presentation"] = serde_json::Value::Null;
+            let scene = snapshot(
+                1,
+                vec![
+                    player("Brain-1", id, 0.0, 0.0, 100, "rail"),
+                    player("Foe", Uuid::from_u128(2), 35.0, 0.0, 100, "rail"),
+                ],
+                vec![],
+            );
+            for wire in [
+                serde_json::json!({"type":"welcome", "player_id":id, "role":"agent"}).to_string(),
+                map.to_string(),
+                serde_json::to_string(&ServerMessage::Snapshot(scene)).unwrap(),
+            ] {
+                socket.send(Message::Text(wire)).await.unwrap();
+            }
+            let adopted = tokio::time::timeout(Duration::from_secs(10), async {
+                let mut adopted = Vec::new();
+                while let Some(Ok(Message::Text(wire))) = socket.next().await {
+                    if let Ok(ClientMessage::SetDisplayBehavior(behavior)) =
+                        serde_json::from_str(&wire)
+                    {
+                        let stance = Stance::parse(&behavior.behavior).unwrap();
+                        if stance == expected[adopted.len()] {
+                            adopted.push(stance);
+                            if adopted.len() == expected.len() {
+                                break;
+                            }
+                        }
+                    }
+                }
+                adopted
+            })
+            .await
+            .expect("three remote stances publish after actual readiness");
+            socket.close(None).await.unwrap();
+            adopted
+        });
         let handle = tokio::spawn(run_bot(
             config(&url, Provider::Typesafe, SAFETY_NET_SECONDS),
             transport.clone(),
             budget.clone(),
             stop.clone(),
         ));
-        // Connect and warmup are unbounded relative to the fixed decision
-        // cadence under contention; synchronize on three real calls before
-        // stopping, rather than hoping a short wall-clock window covers both.
-        assert!(
-            wait_for(|| transport.calls() >= 3, Duration::from_secs(10)).await,
-            "fewer than three calls ever reached the transport"
+        assert_eq!(
+            server.await.unwrap(),
+            expected,
+            "every scripted remote plan is adopted on the real action session"
         );
-        tokio::time::sleep(Duration::from_millis(300)).await;
-        stop.store(true, Ordering::Relaxed);
         let summary = handle.await.unwrap().expect("bot runs");
         assert!(summary.decisions_remote >= 3, "{summary:?}");
-        assert_eq!(summary.decisions_local, 0);
         assert_eq!(summary.budget_refusals, 0);
+        assert_eq!(summary.decisions_failed, 0);
+        assert_eq!(summary.decisions_discarded, 0);
+        assert_eq!(summary.decisions_low_confidence, 0);
         assert!(transport.calls() >= 3);
         assert!(summary.run_usd > 0.0);
-        let plan = summary.last_plan.as_ref().unwrap();
-        assert_eq!(plan.source, Source::Remote);
-        assert_eq!(plan.stance, crate::plan::Stance::PushEnemy);
-        assert!(budget.lock().unwrap().run_calls() as usize >= 3);
+        {
+            let ledger = budget.lock().unwrap();
+            assert_eq!(ledger.run_calls() as usize, transport.calls());
+            assert_eq!(ledger.ledger().charges.len(), transport.calls());
+            assert!(ledger
+                .ledger()
+                .charges
+                .iter()
+                .all(|charge| charge.ok && charge.settled));
+            assert_eq!(
+                summary.run_usd,
+                ledger
+                    .ledger()
+                    .charges
+                    .iter()
+                    .map(crate::budget::Charge::billed_usd)
+                    .sum::<f64>()
+            );
+            assert!(summary.decisions_remote <= ledger.run_calls());
+            assert!(
+                ledger.run_calls() - summary.decisions_remote <= 1,
+                "only the single draining flight may settle without adoption"
+            );
+        }
         assert!(summary.decision_latency.samples >= 3);
         assert!(summary.decision_latency.max_ms >= summary.decision_latency.min_ms);
         let sent = transport.last_request.lock().unwrap().clone().unwrap();
         let state = sent.body.unwrap()["state"].clone();
         assert!(state.is_object(), "the brain gets an object: {state}");
         assert!(state["self"]["health"].is_string());
-        let _ = shutdown.send(());
     }
 
     /// What Ollama returns for one scoring call: letter A, far ahead of the rest.

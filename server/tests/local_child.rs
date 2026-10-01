@@ -264,6 +264,12 @@ fn wrong_mission_resume_does_not_migrate_v2_departure() {
         .unwrap()
         .remove("level_start_continues");
     legacy.as_object_mut().unwrap().remove("body");
+    // A historical v2 document has no counted-grenade field. Keep this a valid
+    // legacy save so the first refusal proves the requested mission is wrong.
+    legacy["step"]["entry"]["equipment"]
+        .as_object_mut()
+        .unwrap()
+        .remove("grenades");
     let entry = legacy["step"]["entry"].clone();
     legacy["step"] = serde_json::json!({
         "kind":"awaiting_mission",
