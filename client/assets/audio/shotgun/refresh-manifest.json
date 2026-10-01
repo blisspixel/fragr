@@ -1,0 +1,45 @@
+{
+  "revision": 1,
+  "selected_candidate": "shotgun_heavy_snap",
+  "source": "fire_source.wav",
+  "source_sha256": "dbe0e3a59586e6679aab79a3c1c7f0a2bc32a2fe144f61f3f44bbb0dd68b2e1d",
+  "output": "../fire_scatter.wav",
+  "output_sha256": "172c29686ef016dcdac042a06dab0691373d72e01756c23db58fc900dcb54bc0",
+  "previous_sha256": "4a774322212fd00f01d625e9b23d3fd2adf78e6984b09bfefe54d311d0f26818",
+  "request": {
+    "kind": "sfx",
+    "file": "shotgun_heavy_snap.wav",
+    "prompt": "One heavy shotgun blast, exactly one discharge. Immediate crisp broadband snap over a full wooden low-mid thump, dense gritty body falling away quickly, one faint casing tick in the short tail. Powerful physical firearm, dry close perspective. No explosion rumble, sustained bass drone, pump action, reload, speech, music, environment, long echo or cartoon sound. Compact isolated game weapon cue with clean headroom.",
+    "model": "eleven_text_to_sound_v2",
+    "format": "pcm_24000",
+    "title": "Shotgun heavy snap",
+    "seconds": 0.85,
+    "looping": false,
+    "channels": 2,
+    "bytes": 80684,
+    "generated_unix": 1790897875
+  },
+  "preparation": {
+    "final_filter": "volume=-6dB",
+    "intermediate_format": "pcm_f32le",
+    "channels": 1,
+    "metadata": "bitexact output without encoder metadata",
+    "output_codec": "pcm_s16le",
+    "sample_rate_hz": 24000,
+    "seconds": 0.46,
+    "filter": "aformat=sample_fmts=dbl,pan=mono|c0=0.5*c0+0.5*c1,highpass=f=25,atrim=duration=0.46,afade=t=out:st=0.43:d=0.03"
+  },
+  "measurements": {
+    "full_scale_samples": 0,
+    "rms_dbfs": -19.571914,
+    "dc_offset": -2.5E-05,
+    "peak_dbfs": -1.944697,
+    "sample_frames": 11040
+  },
+  "evaluation": "Technical selection: immediate attack, useful short body and clean prepared headroom. Subjective listening and final spatial mix acceptance remain unverified.",
+  "spend": {
+    "new_cash_charge_usd": 0,
+    "included_credits_consumed": 30,
+    "submitted_jobs": 3
+  }
+}

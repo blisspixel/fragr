@@ -54,6 +54,15 @@ request, asset charge or weapon-gunshot substitution.
 
 Loading paths: `client/scripts/player_pawn.gd` (per-weapon fire and hit), `client/scripts/game_manager.gd` (frag, round and Crawler cues), `client/scripts/m02_ward.gd` (ward and processing-floor cues), `client/scripts/radio.gd` (radio tracks, discovered through the manifest, never by directory listing). Import presets: keep WAV as samples, MP3 as streams, loop flags off unless the manifest marks a file as looping.
 
+The Shotgun discharge was refreshed on 2026-10-01 through the same
+`fire_scatter.wav` cue. Its retained source is `shotgun/fire_source.wav`;
+`shotgun/refresh-manifest.json` records the selected request, source/output
+hashes, mono preparation, fixed gain, short fade and measured levels. The
+committed fallback is a nonlooping mono 24 kHz PCM sample. Regeneration and
+comparison evidence live in [the bounded refresh plan](../../../docs/plans/shotgun-sfx-refresh.md).
+The cue contains one discharge and adds no reload action. Final listening and
+spatial mix acceptance remain separate from decoded playback checks.
+
 Radio controls in the match: C next station, N next track, M radio on or off
 (D-pad up, down, left on a gamepad). Ammunition is one count per type, with no
 magazines or reload action.

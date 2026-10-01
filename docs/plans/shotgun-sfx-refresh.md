@@ -61,5 +61,59 @@ No broad new harness is needed for a reversible asset replacement.
 
 ## Results
 
-Generation, comparison and client integration receipts are pending under
-`.agents/m06-buildout-20261001/shotgun-*` and `.agents/shotgun-sfx-20261001/`.
+Three variants were generated and the heavy-snap candidate replaced the live
+cue on 2026-10-01. The previous file and all raw candidates remain in ignored
+comparison storage. The selected unmodified source is committed at
+`client/assets/audio/shotgun/fire_source.wav`. The existing fire sound path,
+Effects bus, -4 dB player gain and 50-metre attenuation bound did not change.
+No gameplay source or new test harness was added.
+
+| File | Duration / channels | Peak dBFS | RMS dBFS | First 10 ms RMS dBFS | Strongest 10 ms starts |
+|---|---|---:|---:|---:|---:|
+| Previous live cue | 0.80 s / 2 | 0.0003 | -15.14 | -36.22 | 70 ms |
+| Crack/body raw | 0.84 s / 2 | 0.0003 | -10.70 | -2.73 | 60 ms |
+| Heavy snap raw | 0.84 s / 2 | 0.0003 | -15.23 | -3.29 | 10 ms |
+| Gritty punch raw | 0.84 s / 2 | 0.0003 | -18.72 | -7.12 | 20 ms |
+| Prepared live heavy snap | 0.46 s / 1 | -1.945 | -19.572 | See retained window measurements | Immediate attack retained |
+
+Raw sources all reach full scale. The crack/body candidate has a dense loud
+plateau and the longest low-level tail; gritty punch loses its main body by
+about 130 ms. Heavy snap supplies an immediate attack and a compact body,
+with the last 10 ms window above -40 dBFS beginning at 360 ms. These are
+measurement-based selection reasons, not a claim of subjective listening.
+The prepared cue has zero full-scale samples and DC offset -0.000025.
+
+Preparation uses float arithmetic before the mono mix and 25 Hz high-pass,
+retains the first 0.46 seconds and fades the final 30 ms. A float intermediate
+prevents the high-pass overshoot from clipping before the final fixed -6 dB
+gain. The final PCM conversion disables encoder metadata. Exact filters,
+source/output hashes and request details are in `shotgun/refresh-manifest.json`.
+An initial prepared candidate reached full scale after the high-pass; it was
+rejected and regenerated from the preserved raw file through the float path.
+
+```powershell
+ffmpeg -i client/assets/audio/shotgun/fire_source.wav -af 'aformat=sample_fmts=dbl,pan=mono|c0=0.5*c0+0.5*c1,highpass=f=25,atrim=duration=0.46,afade=t=out:st=0.43:d=0.03' -ar 24000 -c:a pcm_f32le keeper_float.wav
+ffmpeg -i keeper_float.wav -af 'volume=-6dB' -ar 24000 -c:a pcm_s16le -fflags +bitexact -flags:a +bitexact -map_metadata -1 fire_scatter.wav
+```
+
+The first API request exceeded its 450-character text limit and returned 400,
+with no file and unchanged quota. All prompts were shortened before submission.
+The final dry run estimated 102 credits, with an explicit 500-credit gate and
+a conservative four-attempt estimate of 408. Successful generation showed no
+retry. Quota briefly lagged, then changed from 697,587 to 697,617: 30 included
+credits for three jobs, 749,579 remaining and $0 new cash. The ongoing round's
+recorded included audio usage becomes 975 credits; unrelated earlier account
+usage remains separate. The $1 equivalent reservation is retained in the shared
+ledger alongside the earlier audio and image records.
+
+Pinned Godot import passes with a clean log. An isolated ignored check loads
+the actual player scene, confirms `fire_streams["Scatter"]` resolves the new
+mono 24 kHz nonlooping 0.46-second sample, calls its existing muzzle-feedback
+path, verifies the existing Effects player and waits for the real finished
+signal. It exits 0 with `shotgun_check: PASS` and no script/runtime errors.
+Receipts are under `.agents/m06-buildout-20261001/shotgun-*` and
+`.agents/shotgun-sfx-20261001/`.
+
+The final broad client and rendered regression gates are integration-owned.
+Subjective listening, repeated live spatial mix comparison and final mix
+acceptance remain unverified; decoded playback alone does not settle them.
