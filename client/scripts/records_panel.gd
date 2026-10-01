@@ -99,7 +99,7 @@ func _select_kind(kind: String) -> void:
 	_selection.disabled = _filtered.is_empty()
 	var counts: Dictionary = records.totals(kind)
 	_summary.text = tr("RECORD_TOTALS").format({
-		"records": _filtered.size(), "kills": PlayerRecord.sum_weapon(counts, "kills"),
+		"records": _filtered.size(), "kills": PlayerRecord.sum_combat(counts, "kills"),
 		"deaths": int(counts["deaths"]), "time": _time(int(counts["alive_ticks"])),
 	})
 	_notice.text = tr("RECORD_RETENTION").format({"count": PlayerRecords.LIMIT}) if records.error == OK else tr("RECORD_SAVE_ERROR")
@@ -120,8 +120,8 @@ func _show_record(index: int) -> void:
 		lines.append(tr("RECORD_LATE_JOIN"))
 	if scope["kind"] == "mission":
 		lines.append(tr("RECORD_MISSION").format({"difficulty": tr("DIFFICULTY_" + String(scope["rules"]["difficulty"]).to_upper()), "attempt": int(scope["attempt"])}))
-	lines.append(tr("RECORD_COMBAT").format({"kills": PlayerRecord.sum_weapon(total, "kills"), "deaths": int(total["deaths"]), "time": _time(int(total["alive_ticks"]))}))
-	lines.append(tr("RECORD_DAMAGE").format({"hp": PlayerRecord.sum_weapon(total, "hp_damage"), "armor": PlayerRecord.sum_weapon(total, "armor_damage"), "lost": int(total["hp_lost"])}))
+	lines.append(tr("RECORD_COMBAT").format({"kills": PlayerRecord.sum_combat(total, "kills"), "deaths": int(total["deaths"]), "time": _time(int(total["alive_ticks"]))}))
+	lines.append(tr("RECORD_DAMAGE").format({"hp": PlayerRecord.sum_combat(total, "hp_damage"), "armor": PlayerRecord.sum_combat(total, "armor_damage"), "lost": int(total["hp_lost"])}))
 	for weapon: int in range(total["weapons"].size()):
 		var counts: Dictionary = total["weapons"][weapon]
 		if int(counts["attacks"]) == 0:
@@ -130,12 +130,14 @@ func _show_record(index: int) -> void:
 			"weapon": EquipmentState.display_name(String(EquipmentState.WEAPONS[weapon])).to_upper(), "hits": int(counts["damaging_attacks"]),
 			"attacks": int(counts["attacks"]), "percent": "%.1f" % (100.0 * float(counts["damaging_attacks"]) / float(counts["attacks"])),
 		}))
-	if PlayerRecord.sum_weapon(total, "attacks") == 0:
+	if PlayerRecord.grenade_count(total, "attacks") > 0:
+		lines.append(tr("RECORD_WEAPON").format({"weapon": tr("RECORD_GRENADES"), "hits": PlayerRecord.grenade_count(total, "damaging_attacks"), "attacks": PlayerRecord.grenade_count(total, "attacks"), "percent": "%.1f" % (100.0 * PlayerRecord.grenade_count(total, "damaging_attacks") / PlayerRecord.grenade_count(total, "attacks"))}))
+	if PlayerRecord.sum_combat(total, "attacks") == 0:
 		lines.append(tr("RECORD_NO_ATTACKS"))
 	if PlayerRecord.secrets(total) > 0:
 		lines.append(tr("RECORD_SECRETS").format({"count": PlayerRecord.secrets(total)}))
 	if scope["kind"] == "mission" and int(scope["attempt"]) > 1:
-		lines.append(tr("RECORD_ATTEMPT").format({"kills": PlayerRecord.sum_weapon(record["attempt"], "kills"), "time": _time(int(record["attempt"]["alive_ticks"]))}))
+		lines.append(tr("RECORD_ATTEMPT").format({"kills": PlayerRecord.sum_combat(record["attempt"], "kills"), "time": _time(int(record["attempt"]["alive_ticks"]))}))
 	_details.text = "\n".join(lines)
 	if preferences.get_value("gameplay", "stat_commentary"):
 		var quip: String = commentary_key(record)
@@ -146,8 +148,8 @@ static func commentary_key(record: Dictionary) -> String:
 	if int(counts["dry_triggers"]) > 0:
 		return "RECORD_QUIP_DRY"
 	var attempt: Dictionary = record["attempt"]
-	if record["status"] == "complete" and PlayerRecord.sum_weapon(attempt, "kills") > 0 \
-		and PlayerRecord.sum_weapon(attempt, "attacks") == int(attempt["weapons"][0]["attacks"]) + PlayerRecord.weapon_count(attempt, 5, "attacks"):
+	if record["status"] == "complete" and PlayerRecord.sum_combat(attempt, "kills") > 0 \
+		and PlayerRecord.sum_combat(attempt, "attacks") == int(attempt["weapons"][0]["attacks"]) + PlayerRecord.weapon_count(attempt, 5, "attacks"):
 		return "RECORD_QUIP_MELEE"
 	return ""
 

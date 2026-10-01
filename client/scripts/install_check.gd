@@ -24,6 +24,19 @@ func _ready() -> void:
 	if not StoryScene.exists(CampaignOpening.SCENE_ID):
 		_finish(false, "the story scene manifests are missing from this build")
 		return
+	for id: String in ["m05_arrival", "l05_l06"]:
+		var scene: Dictionary = StoryScene.load_scene(id)
+		if scene.is_empty():
+			_finish(false, "the M05 story manifests are missing or invalid")
+			return
+		for shot: Dictionary in scene["shots"]:
+			if TranslationServer.translate(shot["caption_key"]) == shot["caption_key"] or StoryScene.narration_path(shot, "en").is_empty():
+				_finish(false, "the M05 story copy or narration is missing")
+				return
+	for path: String in ["res://assets/story/effects/grenade_bounce.wav", "res://assets/story/effects/grenade_blast.wav"]:
+		if not ResourceLoader.exists(path) or not load(path) is AudioStream:
+			_finish(false, "the grenade effects are missing from this build")
+			return
 	var path: String = _local.executable_path()
 	if path.is_empty():
 		_finish(false, "no fragr-server beside %s" % OS.get_executable_path())

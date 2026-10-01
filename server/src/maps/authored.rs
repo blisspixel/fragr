@@ -12,6 +12,9 @@ use std::sync::Arc;
 
 pub(crate) mod encounters;
 pub(crate) mod m02;
+pub(crate) mod m03;
+pub(crate) mod m04;
+pub(crate) mod m05;
 mod mission;
 mod supplies;
 
@@ -31,6 +34,12 @@ pub struct AuthoredMap {
     pub(super) mission: Option<crate::protocol::MissionGeometry>,
     pub(super) opened_route: Option<Arc<Self>>,
     pub(super) m02: Option<Arc<m02::Prepared>>,
+    pub(super) m03: Option<Arc<m03::Prepared>>,
+    pub(super) m04: Option<Arc<m04::Prepared>>,
+    pub(super) m05: Option<Arc<m05::Prepared>>,
+    pub(super) freight_open: bool,
+    pub(super) clinic_open: bool,
+    pub(super) mast_shutdown: bool,
     pub(super) id: u32,
     pub(super) name: String,
     pub(super) arena: Arena,
@@ -50,6 +59,12 @@ struct Document {
     mission: Option<mission::Definition>,
     #[serde(default)]
     m02: Option<m02::Definition>,
+    #[serde(default)]
+    m03: Option<m03::Definition>,
+    #[serde(default)]
+    m04: Option<m04::Definition>,
+    #[serde(default)]
+    m05: Option<m05::Definition>,
     #[serde(default)]
     decorations: Vec<MapDecoration<String>>,
     #[serde(default)]
@@ -218,6 +233,72 @@ impl AuthoredMap {
             solids: surfaces,
             decorations,
         };
+        if doc.m03.is_none()
+            && presentation.decorations.iter().any(|panel| {
+                matches!(
+                    panel.kind,
+                    crate::protocol::MapDecorationKind::M03ScheduleBoard
+                        | crate::protocol::MapDecorationKind::M03ScheduleCancelled
+                        | crate::protocol::MapDecorationKind::M03PlatformCar
+                        | crate::protocol::MapDecorationKind::M03SidingCar
+                        | crate::protocol::MapDecorationKind::M03RoofCar
+                        | crate::protocol::MapDecorationKind::M03MastSign
+                        | crate::protocol::MapDecorationKind::M03BoardTrain
+                )
+            })
+        {
+            return Err(invalid("M03 registered panels require Scheduled Service"));
+        }
+        if doc.m04.is_none()
+            && presentation.decorations.iter().any(|p| {
+                matches!(
+                    p.kind,
+                    crate::protocol::MapDecorationKind::M04ClinicCare
+                        | crate::protocol::MapDecorationKind::M04ClinicSign
+                        | crate::protocol::MapDecorationKind::M04FieldPrinter
+                        | crate::protocol::MapDecorationKind::M04MarketCanvas
+                        | crate::protocol::MapDecorationKind::M04MealSix
+                        | crate::protocol::MapDecorationKind::M04NoodleSix
+                        | crate::protocol::MapDecorationKind::M04NoticeBoard
+                        | crate::protocol::MapDecorationKind::M04PaintLocker
+                        | crate::protocol::MapDecorationKind::M04RepairBench
+                        | crate::protocol::MapDecorationKind::M04TramVote
+                        | crate::protocol::MapDecorationKind::M04WaterTank
+                        | crate::protocol::MapDecorationKind::M04Workshop
+                        | crate::protocol::MapDecorationKind::M04ClinicControl
+                        | crate::protocol::MapDecorationKind::M04RoofDeparture
+                )
+            })
+        {
+            return Err(invalid("M04 registered panels require Notice to Vacate"));
+        }
+        if doc.m05.is_none()
+            && presentation.decorations.iter().any(|p| {
+                matches!(
+                    p.kind,
+                    crate::protocol::MapDecorationKind::M05WaterTank
+                        | crate::protocol::MapDecorationKind::M05PaintBench
+                        | crate::protocol::MapDecorationKind::M05LoadingPen
+                        | crate::protocol::MapDecorationKind::M05TramService
+                        | crate::protocol::MapDecorationKind::M05MarketSix
+                        | crate::protocol::MapDecorationKind::M05FreightSign
+                        | crate::protocol::MapDecorationKind::M05ShipDeparture
+                )
+            })
+        {
+            return Err(invalid(
+                "M05 registered panels require No Forwarding Address",
+            ));
+        }
+        if presentation
+            .decorations
+            .iter()
+            .any(|panel| panel.kind == crate::protocol::MapDecorationKind::M03ScheduleCancelled)
+        {
+            return Err(invalid(
+                "M03 cancellation belongs to the fallen runtime world",
+            ));
+        }
         // The current glass renderer is an M02 presentation contract. Only
         // that map asks for capability 22 before sending its strict surface ID.
         if presentation.ground == MapSurface::InspectionGlass
@@ -237,10 +318,43 @@ impl AuthoredMap {
                 "M02 objectives require map 1002, discovery equipment and no M01 mission",
             ));
         }
+        if doc.m03.is_some()
+            && (doc.mission.is_some()
+                || doc.m02.is_some()
+                || doc.map_id != 1003
+                || doc.equipment != crate::protocol::EquipmentPolicy::Discovery)
+        {
+            return Err(invalid(
+                "M03 requires map 1003, discovered equipment and no other mission",
+            ));
+        }
+        if doc.m04.is_some()
+            && (doc.mission.is_some()
+                || doc.m02.is_some()
+                || doc.m03.is_some()
+                || doc.map_id != 1004
+                || doc.equipment != crate::protocol::EquipmentPolicy::Discovery)
+        {
+            return Err(invalid(
+                "M04 requires map 1004, discovery and no other mission",
+            ));
+        }
         let mission = doc
             .mission
             .map(|definition| definition.prepare(&arena, &solid_ids, &mut presentation))
             .transpose()?;
+        if doc.m05.is_some()
+            && (mission.is_some()
+                || doc.m02.is_some()
+                || doc.m03.is_some()
+                || doc.m04.is_some()
+                || doc.map_id != 1005
+                || doc.equipment != crate::protocol::EquipmentPolicy::Discovery)
+        {
+            return Err(invalid(
+                "M05 requires map1005, discovery and no other mission",
+            ));
+        }
         for spawn in &doc.spawns {
             identity(&spawn.id, &mut seen)?;
             if !standing(&arena, spawn.feet)
@@ -261,6 +375,48 @@ impl AuthoredMap {
             }
         }
         let start = doc.spawns[0].feet;
+        let m05 = doc
+            .m05
+            .map(|definition| {
+                definition.prepare(
+                    &arena,
+                    &solid_ids,
+                    &doc.encounters,
+                    &mut presentation,
+                    start,
+                    &mut seen,
+                )
+            })
+            .transpose()?
+            .map(Arc::new);
+        let m04 = doc
+            .m04
+            .map(|definition| {
+                definition.prepare(
+                    &arena,
+                    &solid_ids,
+                    &doc.encounters,
+                    &mut presentation,
+                    start,
+                    &mut seen,
+                )
+            })
+            .transpose()?
+            .map(Arc::new);
+        let m03 = doc
+            .m03
+            .map(|definition| {
+                definition.prepare(
+                    &arena,
+                    &solid_ids,
+                    &doc.encounters,
+                    &mut presentation,
+                    start,
+                    &mut seen,
+                )
+            })
+            .transpose()?
+            .map(Arc::new);
         let m02 = doc
             .m02
             .map(|definition| {
@@ -277,7 +433,39 @@ impl AuthoredMap {
             .map(Arc::new);
         let supplies = supplies::build(doc.supplies, doc.equipment, &arena, &mut seen)?;
         encounters::validate(&doc.encounters, doc.equipment, &arena, &mut seen)?;
-        let navigation = Navigation::shared(arena.clone()).map_err(invalid)?;
+        let navigation = if let Some(prepared) = &m05 {
+            prepared.initial_navigation.clone()
+        } else if let Some(prepared) = &m04 {
+            prepared.initial_navigation.clone()
+        } else if let Some(prepared) = &m03 {
+            prepared.initial_navigation.clone()
+        } else {
+            Navigation::shared(arena.clone()).map_err(invalid)?
+        };
+        if let Some(prepared) = &m03 {
+            for destination in doc
+                .spawns
+                .iter()
+                .map(|p| p.feet)
+                .chain(doc.landmarks.iter().map(|p| p.feet))
+                .chain(supplies.iter().map(|p| [p.x, p.floor, p.z]))
+                .chain(
+                    doc.encounters
+                        .iter()
+                        .flat_map(|e| e.enemies.iter().map(|p| p.feet)),
+                )
+            {
+                if !standing(&prepared.fallen, destination)
+                    || prepared
+                        .navigation
+                        .route(start, destination, crate::navigation::SEARCH_LIMIT)
+                        .status
+                        != crate::navigation::RouteStatus::Complete
+                {
+                    return Err(invalid("M03 fallen world blocks an authored placement"));
+                }
+            }
+        }
         // The optional M02 room has its own grounded captive route. Check it
         // in the prepared raised-shutter world before admitting a party.
         if doc
@@ -291,10 +479,16 @@ impl AuthoredMap {
                 .ok_or_else(|| invalid("M02 side ward requires a released gate world"))?;
             crate::mission::validate_m02_evacuation_route(released.1).map_err(invalid)?;
         }
-        let opened_navigation = mission
-            .as_ref()
-            .map(|m| Navigation::shared(m.opened.clone()).map_err(invalid))
-            .transpose()?;
+        let opened_navigation = if let Some(prepared) = &m05 {
+            Some(prepared.navigation.clone())
+        } else if let Some(prepared) = &m04 {
+            Some(prepared.navigation.clone())
+        } else {
+            mission
+                .as_ref()
+                .map(|m| Navigation::shared(m.opened.clone()).map_err(invalid))
+                .transpose()?
+        };
         if let (Some(mission), Some(opened)) = (&mission, &opened_navigation) {
             mission.validate_routes(start, &navigation, opened)?;
         }
@@ -316,11 +510,14 @@ impl AuthoredMap {
                     .iter()
                     .map(|p| (p.id.as_str(), [p.x, p.floor, p.z])),
             )
-            .chain(
-                doc.encounters
-                    .iter()
-                    .flat_map(|e| e.enemies.iter().map(|p| (p.id.as_str(), p.feet))),
-            )
+            .chain(doc.encounters.iter().flat_map(|e| {
+                e.enemies.iter().map(|p| {
+                    (
+                        p.id.as_str(),
+                        p.hover.as_ref().map_or(p.feet, |h| h.approach),
+                    )
+                })
+            }))
         {
             if navigation
                 .route(start, destination, crate::navigation::SEARCH_LIMIT)
@@ -350,6 +547,12 @@ impl AuthoredMap {
             mission: mission.as_ref().map(|m| m.geometry.clone()),
             opened_route: None,
             m02,
+            m03,
+            m04,
+            m05,
+            freight_open: false,
+            clinic_open: false,
+            mast_shutdown: false,
             encounters: doc.encounters,
             supplies,
             equipment: doc.equipment,

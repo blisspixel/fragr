@@ -1,6 +1,7 @@
 mod ctf;
 #[cfg(test)]
 mod enclosed_tests;
+pub mod grenade;
 mod modes;
 pub mod traveling_shot;
 use crate::movement::{EYE_HEIGHT, STEP_UP};
@@ -33,6 +34,7 @@ pub const PLAYER_RADIUS: f32 = crate::movement::RADIUS;
 /// One resolved ray. A scatter blast resolves several from the same origin.
 struct ResolvedPellet {
     target: Option<usize>,
+    solid: Option<usize>,
     distance: f32,
     end: [f32; 3],
     impact: ShotImpact,
@@ -390,6 +392,9 @@ enum Standing {
 /// What a mid-map pad grants on claim.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum PickupKind {
+    Grenade {
+        count: u16,
+    },
     Ammo {
         pool: crate::protocol::AmmoPool,
         rounds: u16,
@@ -402,6 +407,7 @@ pub enum PickupKind {
 impl PickupKind {
     pub fn wire_name(self) -> &'static str {
         match self {
+            PickupKind::Grenade { .. } => "grenade",
             PickupKind::Ammo { .. } => "ammo",
             PickupKind::Weapon(_) => "weapon",
             PickupKind::Health => "health",
@@ -446,6 +452,7 @@ impl ArenaPickup {
             .map(|w| w.name().to_string())
             .unwrap_or_default();
         let amount = match self.kind {
+            PickupKind::Grenade { count } => Some(i32::from(count)),
             PickupKind::Weapon(_) => None,
             PickupKind::Health | PickupKind::Armor => Some(self.amount),
             PickupKind::Ammo { rounds, .. } => Some(i32::from(rounds)),
@@ -474,6 +481,7 @@ impl ArenaPickup {
 
     fn respawn_ticks(&self) -> u32 {
         match self.kind {
+            PickupKind::Grenade { .. } => 200,
             PickupKind::Ammo { .. } => 200,
             PickupKind::Weapon(_) => PICKUP_RESPAWN_TICKS,
             PickupKind::Health | PickupKind::Armor => HEALTH_PICKUP_RESPAWN_TICKS,
@@ -507,6 +515,8 @@ pub struct GameState {
     pub shot_results: Vec<ShotResult>,
     /// Points still in flight. Omitted from the snapshot while empty.
     traveling_shots: Vec<traveling_shot::TravelingShot>,
+    grenades: Vec<grenade::Grenade>,
+    explosion_results: Vec<crate::protocol::ExplosionResult>,
     projectile_serial: u32,
     /// Remaining ticks of Continuance compliance slow (0 = none).
     pub compliance_ticks_left: u32,
@@ -567,6 +577,8 @@ pub struct Player {
     /// A press survives newer released input until one simulation tick observes it.
     jump_requested: bool,
     pub(crate) interaction_requested: bool,
+    throw_requested: bool,
+    grenade_cooldown: u32,
     pub fire_cooldown: u32,
     pub respawn_timer: Option<u32>,
     pub just_fired: bool,
@@ -608,6 +620,9 @@ pub struct Player {
 }
 
 impl Player {
+    pub(crate) fn platform_jump_requested(&self) -> bool {
+        self.jump_requested || self.pending_action.jump
+    }
     fn reset_movement_baseline(&mut self) {
         self.movement_epoch = self.movement_epoch.saturating_add(1);
         self.last_movement_tick = None;
@@ -621,6 +636,7 @@ impl Player {
         self.pending_action = Action::default();
         self.jump_requested = false;
         self.interaction_requested = false;
+        self.throw_requested = false;
         self.reset_movement_baseline();
     }
 
@@ -665,6 +681,8 @@ impl Player {
             pending_action: Action::default(),
             jump_requested: false,
             interaction_requested: false,
+            throw_requested: false,
+            grenade_cooldown: 0,
             fire_cooldown: 0,
             respawn_timer: None,
             just_fired: false,
@@ -1200,14 +1218,21 @@ impl GameState {
     }
 
     pub(crate) fn spawn_m02_companion(&mut self) -> Option<Uuid> {
+        self.map.m02_objectives()?;
+        self.spawn_campaign_companion(crate::mission::LATCH_SECOND_FEET, true)
+    }
+
+    pub(crate) fn spawn_campaign_companion(
+        &mut self,
+        feet: [f32; 3],
+        releasing: bool,
+    ) -> Option<Uuid> {
         use crate::protocol::{CampaignActor, CompanionKind, CompanionPhase, EquipmentPolicy};
-        if self.map.m02_objectives().is_none()
-            || self.players.iter().any(Player::is_campaign_companion)
-        {
+        if self.players.iter().any(Player::is_campaign_companion) {
             return None;
         }
         let id = self.new_entity_id();
-        let [x, floor, z] = crate::mission::LATCH_SECOND_FEET;
+        let [x, floor, z] = feet;
         let mut player = Player::at_spawn(
             id,
             "Latch".into(),
@@ -1219,7 +1244,11 @@ impl GameState {
         player.inventory.grant_weapon(WeaponType::Tack);
         player.campaign = Some(CampaignActor::Companion {
             kind: CompanionKind::Latch,
-            phase: CompanionPhase::Releasing,
+            phase: if releasing {
+                CompanionPhase::Releasing
+            } else {
+                CompanionPhase::Following
+            },
             phase_started: self.tick,
         });
         self.players.push(player);
@@ -1255,6 +1284,7 @@ impl GameState {
         }
         self.return_golden_rail_from(id);
         self.players.retain(|p| p.id != id);
+        self.grenades.retain(|grenade| grenade.owner_id != id);
         self.scores.remove(&id);
         self.refresh_mission_readiness();
         self.update_encounters();
@@ -1298,6 +1328,7 @@ impl GameState {
             action.weapon_swap = action.weapon_swap.or(player.pending_action.weapon_swap);
             player.jump_requested |= action.jump;
             player.interaction_requested |= action.interact && !player.pending_action.interact;
+            player.throw_requested |= action.throw_grenade && !player.pending_action.throw_grenade;
             player.pending_action = action;
         }
     }
@@ -1336,6 +1367,9 @@ impl GameState {
     /// The arena's shape as a message.
     pub fn map_info(&self) -> ServerMessage {
         ServerMessage::MapInfo {
+            m04: self.map.m04_geometry(),
+            m05: self.map.m05_geometry(),
+            m03: self.map.m03_geometry(),
             geometry_version: crate::protocol::geometry_version(&self.map.arena().solids),
             presentation: self.map.presentation(),
             mission: self.map.mission().cloned(),
@@ -1411,6 +1445,7 @@ impl GameState {
         self.tick += 1;
         self.update_m02_companion_phase();
         self.shot_results.clear();
+        self.explosion_results.clear();
         self.spawn_shields.retain(|_, ticks| {
             *ticks = ticks.saturating_sub(1);
             *ticks > 0
@@ -1510,8 +1545,14 @@ impl GameState {
             }
             return;
         }
+        self.advance_m05_tram(dt);
         let map = self.map.clone();
-        self.tick_active(dt, map.arena());
+        if map.m05_objectives().is_some() {
+            let arena = self.current_arena().into_owned();
+            self.tick_active(dt, &arena);
+        } else {
+            self.tick_active(dt, map.arena());
+        }
     }
 
     /// Resolve the active frame against one immutable world. Movement and shots
@@ -1547,6 +1588,7 @@ impl GameState {
             if player.fire_cooldown > 0 {
                 player.fire_cooldown -= 1;
             }
+            player.grenade_cooldown = player.grenade_cooldown.saturating_sub(1);
 
             if let Some(timer) = player.respawn_timer.as_mut() {
                 *timer = timer.saturating_sub(1);
@@ -1588,6 +1630,9 @@ impl GameState {
             }
 
             let move_speed = move_speed * crate::encounters::gait(player.campaign);
+            if crate::combat::is_notary(player.campaign) {
+                continue;
+            }
             let jump_input = action.jump || jump_requested;
             let moved = crate::movement::live_step_with_height(
                 crate::movement::MoveState {
@@ -1680,7 +1725,11 @@ impl GameState {
             };
             if let Some(target) = target_point {
                 if let Some(aimer) = self.players.iter_mut().find(|p| p.id == aimer_id) {
-                    let eye = [aimer.x, aimer.y - PLAYER_FLOOR_Y + EYE_HEIGHT, aimer.z];
+                    let eye = [
+                        aimer.x,
+                        aimer.y - PLAYER_FLOOR_Y + crate::combat::eye_height(aimer.campaign),
+                        aimer.z,
+                    ];
                     if let Some((yaw, pitch)) = crate::combat::aim_at(eye, target) {
                         aimer.yaw = yaw;
                         aimer.pitch = pitch;
@@ -1690,8 +1739,12 @@ impl GameState {
         }
 
         self.tick_pickups();
+        self.advance_m04_patients(dt);
+        self.advance_m05_captives(dt);
 
+        let grenade_launches = self.launch_grenades();
         let mut hits = Vec::new();
+        let mut jammer_launches = Vec::new();
         for i in 0..self.players.len() {
             let player = &mut self.players[i];
 
@@ -1702,19 +1755,60 @@ impl GameState {
                 continue;
             }
 
-            if player.pending_action.fire && player.fire_cooldown == 0 {
+            if player.pending_action.fire
+                && player.fire_cooldown == 0
+                && !grenade_launches.contains(&player.id)
+            {
+                if matches!(
+                    player.campaign,
+                    Some(CampaignActor::Union {
+                        kind: crate::protocol::EnemyKind::Jammer,
+                        ..
+                    })
+                ) {
+                    jammer_launches.push(player.id);
+                    continue;
+                }
                 let dry_before = player.inventory.dry_fire_count();
                 if player.inventory.try_fire(player.weapon) {
                     player.statistics.attack(player.weapon);
-                    hits.push((i, self.check_hitscan(i, arena)));
+                    let shooter = player.id;
+                    let photo_target = self.encounters.claim_notary_photo_target(shooter);
+                    hits.push((i, self.check_hitscan(i, arena), photo_target));
                 } else if player.inventory.dry_fire_count() > dry_before {
                     player.statistics.dry_trigger();
                 }
             }
         }
 
-        for (shooter_idx, shot) in hits {
+        for id in jammer_launches {
+            if self.launch_jammer_pulse(id) {
+                if let Some(player) = self.players.iter_mut().find(|player| player.id == id) {
+                    player.just_fired = true;
+                    player.fire_cooldown = 1;
+                }
+            }
+        }
+
+        let mut mast_hits = Vec::new();
+        for (shooter_idx, shot, photo_target) in hits {
             let weapon = shot.weapon;
+            if let Some(original) = photo_target {
+                if shot
+                    .pellets
+                    .first()
+                    .and_then(|p| p.target)
+                    .is_some_and(|index| {
+                        let p = &self.players[index];
+                        p.id == original
+                            && p.hp > 0
+                            && p.is_participant()
+                            && crate::mission::actor_active(self.mission.as_ref(), p.id, p.campaign)
+                    })
+                {
+                    self.note_notary_photograph();
+                }
+            }
             {
                 let shooter = &mut self.players[shooter_idx];
                 shooter.fire_cooldown = weapon.cooldown_ticks();
@@ -1724,6 +1818,16 @@ impl GameState {
             // cover or run out of range share one miss result after them.
             let mut groups: Vec<(Option<usize>, Vec<ResolvedPellet>)> = Vec::new();
             for pellet in shot.pellets {
+                if let (Some(solid), ShotImpact::Solid { normal }) = (pellet.solid, &pellet.impact)
+                {
+                    mast_hits.push((
+                        self.players[shooter_idx].id,
+                        solid,
+                        pellet.end,
+                        *normal,
+                        weapon.damage_at(pellet.distance),
+                    ));
+                }
                 match groups
                     .iter_mut()
                     .find(|(target, _)| *target == pellet.target)
@@ -1786,6 +1890,9 @@ impl GameState {
                 .statistics
                 .hit(weapon, hp_total, armor_total, kills);
         }
+        for (shooter, solid, end, normal, damage) in mast_hits {
+            self.damage_m03_mast(shooter, solid, end, normal, damage);
+        }
         for (attacker, victim, trace) in crawler_contacts {
             self.players[attacker].statistics.attack(WeaponType::Fists);
             let (hp, armor, died) =
@@ -1795,9 +1902,11 @@ impl GameState {
                 .hit(WeaponType::Fists, hp, armor, u64::from(died));
         }
 
+        self.tick_grenades(dt);
         self.update_campaign_run();
         self.advance_mission();
         self.advance_m02_evacuation(dt);
+        self.advance_m03_captives(dt);
         for id in respawn_ids {
             self.do_respawn(id);
         }
@@ -1912,7 +2021,8 @@ impl GameState {
     ) -> (u64, u64, bool) {
         let shooter_name = self.players[shooter_idx].name.clone();
         let shooter_id = self.players[shooter_idx].id;
-        let hostile = self.damage_lands(shooter_idx, victim_idx);
+        let self_hit = shooter_idx == victim_idx && trace.is_none();
+        let hostile = self_hit || self.damage_lands(shooter_idx, victim_idx);
         let shooter_team = self.players[shooter_idx].team;
         let victim_team = self.players[victim_idx].team;
         let teammates = shooter_team.is_some() && shooter_team == victim_team;
@@ -1956,6 +2066,7 @@ impl GameState {
             let victim_was_boss = victim.is_boss;
             if died {
                 victim.inventory.release_trigger();
+                victim.throw_requested = false;
                 // Victim streak dies with them; boss does not respawn.
                 ended_streak = std::mem::take(&mut victim.killstreak);
                 lost_golden = std::mem::take(&mut victim.golden);
@@ -2023,6 +2134,9 @@ impl GameState {
         }
         if died {
             self.drop_flag_from(target_id);
+        }
+        if self_hit {
+            return (hp_damage, armor_damage, died);
         }
         if died {
             // Campaign casualties have no arcade streaks, taunts or
@@ -2152,16 +2266,15 @@ impl GameState {
             shooter.z,
         ];
         let (yaw, pitch, weapon) = (shooter.yaw, shooter.pitch, shooter.weapon);
+        let spread = if crate::combat::is_notary(shooter.campaign) {
+            0.0
+        } else {
+            weapon.spread_radians()
+        };
         let pellets = (0..weapon.pellets())
             .map(|_| {
                 let samples = [self.next_f32(), self.next_f32()];
-                let ray = crate::combat::Ray::dispersed(
-                    origin,
-                    yaw,
-                    pitch,
-                    weapon.spread_radians(),
-                    samples,
-                );
+                let ray = crate::combat::Ray::dispersed(origin, yaw, pitch, spread, samples);
                 self.resolve_pellet(shooter_idx, arena, ray, weapon)
             })
             .collect();
@@ -2181,6 +2294,7 @@ impl GameState {
     ) -> ResolvedPellet {
         let mut closest_dist = weapon.range_units().min(HITSCAN_RANGE);
         let mut cover_distance = f32::INFINITY;
+        let mut cover_solid = None;
         let mut impact = ShotImpact::Range;
         if let Some(distance) = ray.floor(closest_dist) {
             cover_distance = distance;
@@ -2188,10 +2302,11 @@ impl GameState {
                 normal: [0.0, 1.0, 0.0],
             };
         }
-        for solid in &arena.solids {
+        for (index, solid) in arena.solids.iter().enumerate() {
             if let Some(hit) = ray.solid(solid, closest_dist) {
                 if hit.distance < cover_distance {
                     cover_distance = hit.distance;
+                    cover_solid = Some(index);
                     impact = ShotImpact::Solid { normal: hit.normal };
                 }
             }
@@ -2213,12 +2328,7 @@ impl GameState {
                 continue;
             }
             let feet = [target.x, target.y - PLAYER_FLOOR_Y, target.z];
-            if let Some(hit) = ray.fighter_with_height(
-                feet,
-                PLAYER_RADIUS,
-                crate::combat::target_height(target.campaign),
-                closest_dist,
-            ) {
+            if let Some(hit) = ray.actor(feet, target.campaign, closest_dist) {
                 if hit.distance < cover_distance
                     && (closest_idx.is_none() || hit.distance < closest_dist)
                 {
@@ -2231,6 +2341,11 @@ impl GameState {
         let distance = closest_dist.min(cover_distance);
         ResolvedPellet {
             target: closest_idx,
+            solid: if closest_idx.is_none() {
+                cover_solid
+            } else {
+                None
+            },
             distance,
             end: ray.point(distance),
             impact,
@@ -2407,6 +2522,8 @@ impl GameState {
             frag_limit: self.config.frag_limit,
             shot_results: self.shot_results.clone(),
             projectiles: self.projectile_states(),
+            grenades: self.grenade_states(),
+            explosions: self.explosion_results.clone(),
             mode_name: if self.map.is_authored() {
                 "Campaign development"
             } else {
@@ -2805,6 +2922,8 @@ impl GameState {
             jump_requested: false,
             fire_cooldown: 0,
             interaction_requested: false,
+            throw_requested: false,
+            grenade_cooldown: 0,
             respawn_timer: None,
             just_fired: false,
             role: Role::Agent,
@@ -2923,8 +3042,12 @@ impl GameState {
         }
         if self.config.rules.only_weapon().is_some() {
             // One weapon for everybody: nothing on the floor to change it.
-            self.pickups
-                .retain(|pad| !matches!(pad.kind, PickupKind::Weapon(_) | PickupKind::Ammo { .. }));
+            self.pickups.retain(|pad| {
+                !matches!(
+                    pad.kind,
+                    PickupKind::Weapon(_) | PickupKind::Ammo { .. } | PickupKind::Grenade { .. }
+                )
+            });
         }
     }
 
@@ -2973,6 +3096,9 @@ impl GameState {
                                 .is_some_and(|pool| player.inventory.needs_ammo(pool))
                     }
                     PickupKind::Ammo { pool, .. } => player.inventory.needs_ammo(pool),
+                    PickupKind::Grenade { .. } => {
+                        player.inventory.only().is_none() && player.inventory.grenades() < 6
+                    }
                     PickupKind::Health => player.hp < PLAYER_MAX_HP,
                     PickupKind::Armor => player.armor < PLAYER_MAX_ARMOR,
                 };
@@ -2990,7 +3116,7 @@ impl GameState {
                         || crate::combat::line_of_sight(
                             [player.x, player.y - PLAYER_FLOOR_Y + EYE_HEIGHT, player.z],
                             [pad.x, pad.y, pad.z],
-                            &self.map.arena().solids,
+                            &self.current_arena().solids,
                         ))
                 {
                     claims.push((player.id, pi));
@@ -3029,6 +3155,14 @@ impl GameState {
                 player.statistics.secret(&pickup_id);
             }
             let (weapon_wire, amount_wire, label) = match kind {
+                PickupKind::Grenade { count } => {
+                    let gained = player.inventory.grant_grenades(count);
+                    (
+                        String::new(),
+                        Some(i32::from(gained)),
+                        format!("+{gained} grenades"),
+                    )
+                }
                 PickupKind::Weapon(w) => {
                     let discovered = !player.inventory.owns(w);
                     player.inventory.grant_weapon(w);
@@ -3115,6 +3249,8 @@ impl GameState {
             jump_requested: false,
             fire_cooldown: 0,
             interaction_requested: false,
+            throw_requested: false,
+            grenade_cooldown: 0,
             respawn_timer: None,
             just_fired: false,
             role: Role::Agent,
@@ -3357,6 +3493,8 @@ impl Default for GameState {
             config: MatchConfig::default(),
             shot_results: Vec::new(),
             traveling_shots: Vec::new(),
+            grenades: Vec::new(),
+            explosion_results: Vec::new(),
             projectile_serial: 0,
             compliance_ticks_left: 0,
             compliance_fired: false,
@@ -3571,7 +3709,8 @@ impl BotController {
                             target.y - PLAYER_FLOOR_Y + crate::combat::FIGHTER_HEIGHT * 0.5,
                             target.z,
                         ];
-                        if crate::combat::line_of_sight(eye, centre, &state.map.arena().solids) {
+                        if crate::combat::line_of_sight(eye, centre, &state.current_arena().solids)
+                        {
                             combat = true;
                             aim_contact(&mut action, bot, target);
                         }

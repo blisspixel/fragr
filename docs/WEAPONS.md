@@ -1,12 +1,14 @@
 # The weapons
 
-Player-facing names, as of 2026-09-22: Fists, Pistol, Rifle, Shotgun, Railgun.
+Player-facing names, as of 2026-09-30: Fists, Shiv, Pistol, Rifle, Shotgun, Railgun.
 The corner and the pickup read those words. Wire ids stay `fists`, `tack`,
-`flechette`, `scatter`, and `rail`. Ammunition is Doom style (2026-09-24): one
+`flechette`, `scatter`, `rail`, and `shiv`. Ammunition is Doom style (2026-09-24): one
 count per type, no magazines and no reload. Pistol and Rifle share Bullets, the
 Shotgun uses Shells and the Railgun uses Cells. A Sniper Rifle, Rocket
 Launcher, Grenade, Proximity Mine, and Remote Mine are earned on later
-missions. They are not in M01, not in the arcade arsenal, and not implemented.
+missions. Level 5's prototype implements counted grenades through a separate
+throw control, capped at six; they leave gun selection unchanged. The other
+four additions remain unbuilt. They are not in M01 or the default arcade kit.
 The order and the rules are
 [the readable arsenal](plans/readable-arsenal.md). Lobber and proximity tin in
 the proposal table below are that rocket launcher and that proximity mine, not
@@ -17,8 +19,9 @@ implements fists, found Tack and Flechette, owned selection and finite
 ammunition counts. The same inventory supports Scatter and Rail, tested
 through server fixtures but not placed in M01. Six arcade maps retain their
 explicit full-arsenal policy with unlimited Flechette, Rail and Scatter.
-The remaining arsenal, projectiles, carry limits, broken weapons and sidearm
-trickle below are proposals. Implementation and evidence:
+Counted grenade projectiles are implemented in M05. The remaining arsenal,
+breakable weapons, competitive carry-limit proposal and sidearm trickle remain
+proposals. Implementation and evidence:
 [`plans/m01-weapon-discovery.md`](plans/m01-weapon-discovery.md).
 
 Current fists reach 1.8 metres. Tack reaches 30 metres with 0.03-radian spread.
@@ -30,8 +33,9 @@ again when the gun is already carried. Every shot spends one unit, including a
 Scatter blast of seven pellets. Dry fire does not discard a weapon or switch
 automatically, and any pickup of that type makes it live again at once. M01 death
 offers an explicit mission-start continue with entry equipment restored. Three
-continues are implemented for the local run. The stacked M01-to-M02 carry draft
-preserves found guns, ammunition and selection at the next level's entry.
+continues are implemented for the local run. Mission-entry saves carry body,
+found guns, ammunition, grenade counts, selection and remaining continues
+through the five authored development missions.
 
 Balance numbers live here and nowhere else. `plans/gunfeel.md` explains how they were arrived at, `plans/weapon-economy.md` explains the ammunition and the pickup economy, and `docs/lore/guns.md` is what they get called on the radio.
 
@@ -43,7 +47,7 @@ A campaign continue restores the current mission's starting inventory; crossing 
 mission boundary is not another fresh spawn.
 
 Everything else is acquired through play. Competitive respawns reset inventory;
-the proposed normal campaign carries it between connected missions and restores
+the current local campaign carries it between connected missions and restores
 mission-entry inventory on retry. Doom starts you with fists and a pistol; fragr keeps the fists and puts the pistol on the ground, which is further than Doom goes and is the point.
 
 Every authored melee-start location needs a safely reachable sidearm close by.
@@ -64,7 +68,7 @@ There is one number per ammunition type and it is everything you carry. A shot s
 | # | Weapon | Role | Damage | Cooldown | Pickup gives | Ammunition | Where |
 |---|---|---|---|---|---|---|---|
 | 1 | **Fists** (shipped) | Melee, always carried | 20 | 0.40 s | none | none | Always |
-| 2 | **Shiv** | Melee, found | 35 | 0.55 s | 25 hits | breaks | Pad, common |
+| 2 | **Shiv** (shipped) | Melee, found | 35 | 0.30 s | weapon | none | M01 secret |
 | 3 | **Tack** (shipped) | Sidearm, found | 20 | 0.25 s | 50 | Bullets | Pad, beside every spawn |
 | 4 | **Flechette** (shipped) | Mid workhorse | 25 | 0.20 s | 60 | Bullets | Pad |
 | 5 | **Scatter** (shipped) | Close shred | 7 pellets of 10, each falling to 4 | 0.60 s | 12 | Shells | Pad |
@@ -77,6 +81,14 @@ There is one number per ammunition type and it is everything you carry. A shot s
 | 12 | **Denial** | Signature | 250 | 1.25 s | 5, no refill | none | Plinth, centre |
 
 Three melee tiers, six guns and a sidearm, a thrown mine and a signature weapon. Four ammunition types feed the guns: Bullets for the sidearm, the flechette and the repeater, Shells for the scatter, Cells for the rail, the arc and the sniper rifle, Rockets for the lobber (the rocket launcher). The tin, the blade and the signature weapon carry their own counts and sit outside the pools entirely.
+
+The table mixes current weapons with older balance proposals; it does not
+authorize the proposed additions. The accepted campaign introductions in
+[readable arsenal](plans/readable-arsenal.md) own their build order. M05's grenade
+is already separate counted equipment: cap six, forty active ticks to detonation,
+four-metre blast radius and up to 100 damage with falloff and solid occlusion.
+It bounces rather than detonating on contact and can hurt its owner. The
+[grenade foundation](plans/hand-grenade-foundation.md) records its verified seam.
 
 **The Scatter is seven pellets.** Each blast fires seven seeded rays inside a 0.095 radian (5.4 degree) half-angle cone, Doom's pellet count. Every pellet is tested against cover and fighters on its own and falls off by its own distance: full 10 damage to 4 metres, then linearly to 4 at its 12 metre reach. Point blank all seven land for 70, so two blasts kill a bare fighter in 0.60 s and three go through full armour in 1.20 s. At four metres every pellet still lands; at eight about half do; a waist-high sill stops the pellets that hit it. The blast costs one shell however many pellets land.
 
@@ -94,16 +106,26 @@ Later encounters can use an obvious demolition target with a nearby usable charg
 never a hidden bomb hunt or a finicky wiring puzzle. Multiplayer needs visible
 counterplay, bounded active devices and explicit owner/death/round cleanup rules.
 Server authority covers placement, arming, detonation, cover-blocked splash and
-damage. Cosmetics cannot hide the device or its tell. Projectiles and explosives
-are unbuilt and follow the existing inventory and combat seams.
+damage. Cosmetics cannot hide the device or its tell. Mines, remote charges and
+rockets remain unbuilt. Reuse the counted grenade's server-owned projectile,
+covered blast and cleanup seams when their bounded plans reach implementation.
 
-## Weapons are consumable
+## Ammunition economy
 
-The closest thing to how this should feel is a kart racer's item box. You are getting something often. You are also losing it often. Holding a good weapon is a temporary state you enjoy and then lose, not an inventory you build.
+Campaign weapons stay owned; ammunition availability changes what is useful in
+the next fight. A pickup should offer a clear new option or meaningful resupply,
+while a dry count encourages a deliberate switch. Current full-arsenal arcade
+maps keep their explicit unlimited policy rather than silently adopting this
+campaign economy.
 
-So the pads are generous and the counts are thin. You will find a rail several times in a round and you will fire it maybe nine times each time you do. The moment you pick something up is an upgrade moment, the way it is in Halo when you trade up off a dead opponent, and the moment it runs dry is a real event that changes what you are doing.
+Authored supply counts need evidence from ordinary play. The moment a new weapon
+is found should be an upgrade; resupply should reward useful detours. Resource
+pressure and imperfect aim remain campaign tuning gates, not conclusions from
+an accurate-aim automation clear.
 
-**Melee lasts longer and still ends.** The shiv takes twenty-five hits before it breaks. The Article Blade has twelve swings and returns to its plinth. Melee outlasts a gun because you find it less often, and it still runs out, because nothing here is permanent except your fists.
+**Current melee stays available.** Fists and the found Shiv consume no ammunition
+and never break. The older breakable Shiv and twelve-swing Article Blade are
+retired and proposed respectively, not current inventory rules.
 
 **A pickup is a fight and a half, not an afternoon.** The exact numbers are in the table. The caps are Doom's, so you can hoard, but a single pad never fills you.
 
@@ -111,15 +133,22 @@ So the pads are generous and the counts are thin. You will find a rail several t
 
 Same weapons, same numbers, different availability. A map decides which rungs exist in it, and an episode decides the order you meet them in. The best things are late and hidden, and a secret worth finding is usually a weapon you were not supposed to have yet.
 
-## You carry four things and you run out
+## Carrying and running dry
 
 Three rules, and they are the point of the whole design.
 
-**You carry a melee, a sidearm, and two found weapons.** Not twelve. Picking up a third primary means choosing which one hits the floor, and you make that choice under fire with a number in your head about how much ammunition each one has left. A loadout you never have to edit is not a loadout, it is a menu you looked at once.
+**The campaign has no weapon carry cap.** Every found weapon stays owned across
+connected missions and can be selected again after resupply. Nothing is dropped
+to make room. Current arcade full-arsenal maps also retain their explicit kit.
+The older melee/sidearm/two-primary swap is a competitive-mode proposal, not an
+implemented rule or a campaign requirement.
 
 **Nothing reloads.** This used to say every weapon reloads. Playtest said the two numbers in the corner did not add up and the pause did not add a decision, so the magazine went (2026-09-24, [`plans/boomer-ammo-and-pellets.md`](plans/boomer-ammo-and-pellets.md)). The cooldown is the rhythm of firing and the count is the budget; the decision is which gun spends it.
 
-**You run out.** Ammunition is found, it is finite, and a weapon whose count is empty is dead weight you are carrying instead of something better. Running dry drops you to the sidearm; running the sidearm dry drops you to your fists. That descent is a real thing that happens in a long fight, and it is supposed to be frightening rather than merely inconvenient.
+**You run out.** Campaign ammunition is finite. A dry weapon stays owned and
+selected, reports the dry trigger and becomes usable when its ammunition is
+found. Switching to another weapon or melee is the player's choice. No automatic
+sidearm-to-fists descent discards that choice.
 
 The Denial never refills. Five charges, and then it is a very expensive club.
 

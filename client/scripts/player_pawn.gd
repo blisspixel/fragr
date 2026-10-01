@@ -31,6 +31,7 @@ var campaign_actor: Dictionary = {}
 var _has_authoritative_state: bool = false
 var enemy_view: EnemyView = null
 var latch_view: LatchView = null
+var _notary_shadow: MeshInstance3D = null
 
 var target_position: Vector3 = Vector3.ZERO
 var prediction_active: bool = false
@@ -39,6 +40,9 @@ var predicted_speed: float = 0.0
 var presentation_speed: float = 0.0
 var target_yaw: float = 0.0
 var target_pitch: float = 0.0
+var presentation_yaw: float = 0.0
+var presentation_pitch: float = 0.0
+var remote_presentation: RemotePresentation = RemotePresentation.new()
 const INTERP_SPEED: float = 10.0
 
 # Far-cam billboard scale: follow sits ~12m; tip overview ~36m.
@@ -172,17 +176,30 @@ func _load_audio_streams():
 static func smoothing(speed: float, delta: float) -> float:
 	return 1.0 - exp(-speed * delta)
 
-func _process(delta):
+func _process(delta: float) -> void:
 	var t: float = smoothing(INTERP_SPEED, delta)
 	var previous: Vector3 = position
-	position = predicted_position if prediction_active else position.lerp(target_position, t)
+	var rendered: Dictionary = remote_presentation.sample(Time.get_ticks_usec()) \
+		if not prediction_active and not is_campaign_enemy and not is_campaign_companion else {}
+	if prediction_active:
+		position = predicted_position
+		presentation_yaw = target_yaw
+		presentation_pitch = target_pitch
+	elif not rendered.is_empty():
+		position = rendered["position"]
+		presentation_yaw = float(rendered["yaw"])
+		presentation_pitch = float(rendered["pitch"])
+	else:
+		position = position.lerp(target_position, t)
+		presentation_yaw = lerp_angle(-rotation.y, target_yaw, t)
+		presentation_pitch = lerpf(presentation_pitch, target_pitch, t)
 	var travel: float = Vector2(position.x - previous.x, position.z - previous.z).length()
 	# Motion feedback follows the rendered fighter, including observed agents.
 	# Discontinuities and dead bodies are not walking strides.
 	presentation_speed = predicted_speed if prediction_active and hp > 0 else (travel / delta if delta > 0.0 and travel < 2.0 and hp > 0 else 0.0)
 	# The pawn's muzzle and weapon sprites hang off its local +X, so that is
 	# what has to point where the server is sending it.
-	rotation.y = lerp_angle(rotation.y, ServerYaw.pawn_rotation_y(target_yaw), t)
+	rotation.y = ServerYaw.pawn_rotation_y(presentation_yaw)
 	
 	_update_far_cam_scale()
 	
@@ -196,6 +213,7 @@ func _process(delta):
 		var camera: Camera3D = get_viewport().get_camera_3d()
 		var to_camera: Vector3 = camera.global_position - global_position if camera else ServerYaw.forward(target_yaw)
 		enemy_view.render(body, -rotation.y, to_camera)
+		_update_notary_shadow()
 	elif latch_view != null:
 		latch_view.advance(delta, travel, str(campaign_actor.get("phase", "following")))
 	else:
@@ -255,6 +273,18 @@ func update_state(state: Dictionary, snapshot_tick: int = 0):
 			muzzle.position = Vector3(0.88, 0.52, -0.14)
 			muzzle.pixel_size = 0.005
 		enemy_view.update(state, snapshot_tick, body)
+		if campaign_actor.get("kind") == "notary" and _notary_shadow == null:
+			_notary_shadow = MeshInstance3D.new()
+			_notary_shadow.name = "NotaryFloorShadow"
+			var shadow_plane: PlaneMesh = PlaneMesh.new()
+			shadow_plane.size = Vector2(1.6, 1.3)
+			_notary_shadow.mesh = shadow_plane
+			var shadow_material: ShaderMaterial = ShaderMaterial.new()
+			shadow_material.shader = preload("res://assets/shaders/notary_shadow.gdshader")
+			_notary_shadow.material_override = shadow_material
+			_notary_shadow.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+			_notary_shadow.layers = ArenaSky.WORLD_LAYERS
+			add_child(_notary_shadow)
 		weapon_sprite.visible = false
 	elif is_campaign_companion:
 		if latch_view == null:
@@ -265,6 +295,7 @@ func update_state(state: Dictionary, snapshot_tick: int = 0):
 			latch_view.rotation.y = PI / 2.0
 			add_child(latch_view)
 			latch_view.set_render_layers(ArenaSky.ACTOR_LAYERS)
+			latch_view.set_near_camera_clip(true)
 			label.position.y = 0.68
 		body.visible = false
 		weapon_sprite.visible = false
@@ -276,6 +307,14 @@ func update_state(state: Dictionary, snapshot_tick: int = 0):
 	var old_hp = hp
 	hp = state.hp
 	armor = int(state.get("armor", 0))
+	if not is_campaign_enemy and not is_campaign_companion and snapshot_tick > 0:
+		if remote_presentation.accept(snapshot_tick, target_position, target_yaw,
+				target_pitch, hp > 0, Time.get_ticks_usec()) and remote_presentation.discontinuity \
+				and not prediction_active:
+			position = target_position
+			presentation_yaw = target_yaw
+			presentation_pitch = target_pitch
+			rotation.y = ServerYaw.pawn_rotation_y(presentation_yaw)
 	
 	if _has_authoritative_state and old_hp > hp and hp > 0:
 		show_hit_feedback()
@@ -343,12 +382,21 @@ func clear_predicted_position() -> void:
 		prediction_active = false
 		predicted_speed = 0.0
 		position = target_position
+		reset_remote_presentation()
 
 
 func snap_authoritative_position() -> void:
 	prediction_active = false
 	predicted_speed = 0.0
 	position = target_position
+	reset_remote_presentation()
+
+
+## MapInfo can replace geometry while retaining the same participants.
+func reset_remote_presentation() -> void:
+	remote_presentation.reset()
+	presentation_yaw = target_yaw
+	presentation_pitch = target_pitch
 
 ## Swap the legacy callsign strip for the accepted body. The field and feet
 ## registration match the Union bake, so the figure is exactly as tall as the
@@ -417,7 +465,18 @@ func _update_body_color(hit: bool):
 		body.modulate = Color(1.0, 1.0, 1.0).lerp(player_color, 0.18)
 	_apply_body_scale(hit)
 
+func _update_notary_shadow() -> void:
+	if _notary_shadow == null:
+		return
+	var feet: Vector3 = global_position - Vector3.UP * 1.5
+	var floor_y: float = NotaryAnimation.support(feet)
+	_notary_shadow.position.y = floor_y - global_position.y + 0.014
+	_notary_shadow.visible = hp > 0
+
 func show_muzzle_flash(weapon: String):
+	if is_campaign_enemy and campaign_actor.get("kind") == "notary":
+		# Its shutter and optic have their own server-driven presentation.
+		return
 	if is_campaign_companion:
 		if latch_view != null:
 			latch_view.shot()

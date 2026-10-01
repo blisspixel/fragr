@@ -30,7 +30,7 @@ func _run() -> void:
 		invalid_seat["campaign"].merge(patch, true)
 		_check(not ActorState.validation_error({"tick":12, "players":[invalid_seat]}).is_empty(),
 			"reject invalid seated guard: " + str(patch))
-	for kind: String in ["sweeper", "heavy_sweeper", "turret", "crawler"]:
+	for kind: String in ["sweeper", "heavy_sweeper", "turret", "crawler", "jammer"]:
 		var other: Dictionary = _actor()
 		other["campaign"]["kind"] = kind
 		_check(ActorState.validation_error({"tick": 12, "players": [other]}).is_empty(), "accept Union kind " + kind)

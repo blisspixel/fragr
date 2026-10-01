@@ -7,6 +7,39 @@ fn view(inventory: &Inventory, selected: WeaponType, tick: u64) -> LoadoutState 
 }
 
 #[test]
+fn grenades_are_counted_separately_capped_and_restored_without_gun_changes() {
+    let mut inventory = Inventory::new(EquipmentPolicy::Discovery);
+    assert!(!inventory.try_throw());
+    assert_eq!(inventory.grant_grenades(100), 6);
+    assert_eq!(inventory.grant_grenades(1), 0);
+    let saved = inventory.saved_equipment(WeaponType::Fists).unwrap();
+    assert_eq!(saved.grenades, 6);
+    assert!(inventory.try_throw());
+    assert_eq!(inventory.grenades(), 5);
+    assert_eq!(
+        inventory
+            .state(Uuid::nil(), WeaponType::Fists, 1)
+            .unwrap()
+            .weapons,
+        [WeaponType::Fists]
+    );
+    inventory.restore_saved_equipment(&saved).unwrap();
+    assert_eq!(inventory.grenades(), 6);
+    let entry = inventory.clone();
+    assert!(inventory.try_throw());
+    let revision = inventory.revision();
+    inventory.restore_entry(&entry);
+    assert!(inventory.revision() > revision);
+    assert_eq!(inventory.grenades(), 6);
+    let mut bad = saved;
+    bad.grenades = 7;
+    assert!(bad.validate().is_err());
+    let mut restricted = Inventory::restricted(WeaponType::Rail);
+    assert_eq!(restricted.grant_grenades(6), 0);
+    assert!(!restricted.try_throw());
+}
+
+#[test]
 fn saved_equipment_restores_only_durable_discovery_state() {
     let mut inventory = Inventory::new(EquipmentPolicy::Discovery);
     assert!(inventory.grant_weapon(WeaponType::Tack));

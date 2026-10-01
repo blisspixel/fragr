@@ -1,5 +1,10 @@
 # Epilogue: Still Here
 
+**Appearance anchor for the epilogue:** Revisit familiar structures with explicit time and outcome continuity; repairs, memorials, clean water and muted regrowth coexist with absence.
+Shared [world direction](../design/earth.md) and
+[character, voice and scene continuity](../design/characters.md) govern assets
+and staging. This anchor is a production target, not finished-appearance evidence.
+
 Status: approved direction, unbuilt, 2026-09-20. Replaces the two proposed
 aftermath missions, M11 and M12. Initial target: 5-8 minutes, to be playtested.
 Only surviving all three wipe levels (18, 19 and 20, formerly M10) unlocks this

@@ -190,11 +190,37 @@ static func facility() -> Preset:
 ## interiors, so they do not inherit the outdoor scrap fill.
 static func preset_for(map_name: String) -> Preset:
 	var key: String = map_name.strip_edges().to_lower()
+	if key.contains("notice to vacate") or key.contains("low water market") or key.contains("no forwarding address"):
+		return low_water()
+	if key.contains("scheduled service") or key.contains("recall freight yard"):
+		return freight_yard()
 	if key.contains("recall") or key.contains("persons unknown"):
 		return facility()
 	if key.contains("compliance") or key.contains("yard"):
 		return compliance()
 	return scrapyard()
+
+static func low_water() -> Preset:
+	var preset: Preset = Preset.new(Color("778da2"), Color("d6b898"),
+		Color("948779"), Color("c6b298"), 0.0025, Color("e0d2bc"), 0.8)
+	preset.key_color = Color("ffdaa2")
+	preset.key_energy = 1.2
+	preset.scene_fill_energy = 0.12
+	preset.practical_color = Color("ffeac2")
+	preset.practical_energy = 0.9
+	preset.saturation = 0.92
+	return preset
+
+static func freight_yard() -> Preset:
+	var preset: Preset = Preset.new(Color("537e9a"), Color("b8c4bc"),
+		Color("777a68"), Color("adb6a8"), 0.003, Color("d1d4ca"), 0.8)
+	preset.key_color = Color("ffe1b0")
+	preset.key_energy = 1.3
+	preset.scene_fill_energy = 0.15
+	preset.practical_energy = 0.8
+	preset.contrast = 1.04
+	preset.saturation = 0.94
+	return preset
 
 
 ## Built in code rather than as a scene sub-resource on purpose. A sub-resource

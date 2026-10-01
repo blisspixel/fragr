@@ -1,0 +1,228 @@
+{
+  "version": 1,
+  "map_id": 1003,
+  "name": "Scheduled Service",
+  "half_extent": 44,
+  "ground": "concrete",
+  "equipment": "discovery",
+  "solids": [
+    {"id":"west_car_a","min":[-11,2.5,-33],"max":[-5,3,-21],"surface":"service_steel"},
+    {"id":"west_car_b","min":[-15,2.5,-15],"max":[-5,3,-3],"surface":"service_steel"},
+    {"id":"west_car_c","min":[-15,2.5,3],"max":[-5,3,15],"surface":"service_steel"},
+    {"id":"east_car_a","min":[5,0,-27],"max":[11,3,-15],"surface":"service_steel"},
+    {"id":"east_car_b","min":[5,0,-9],"max":[11,3,3],"surface":"service_steel"},
+    {"id":"east_car_c","min":[5,0,9],"max":[11,3,21],"surface":"service_steel"},
+    {"id":"west_roof_link_a","min":[-10,2.5,-21],"max":[-6,3,-15],"surface":"service_steel"},
+    {"id":"west_roof_link_b","min":[-10,2.5,-3],"max":[-6,3,3],"surface":"service_steel"},
+    {"id":"east_roof_link_a","min":[6,2.5,-15],"max":[10,3,-9],"surface":"service_steel"},
+    {"id":"east_roof_link_b","min":[6,2.5,3],"max":[10,3,9],"surface":"service_steel"},
+    {"id":"roof_crossing","min":[-5,2.5,-8],"max":[5,3,-5],"surface":"service_steel"},
+    {"id":"west_roof_step_0","min":[-23,0,-25],"max":[-21,0.5,-22],"surface":"service_steel"},
+    {"id":"east_roof_step_0","min":[21,0,-23],"max":[23,0.5,-20],"surface":"service_steel"},
+    {"id":"west_roof_step_1","min":[-21,0,-25],"max":[-19,1.0,-22],"surface":"service_steel"},
+    {"id":"east_roof_step_1","min":[19,0,-23],"max":[21,1.0,-20],"surface":"service_steel"},
+    {"id":"west_roof_step_2","min":[-19,0,-25],"max":[-17,1.5,-22],"surface":"service_steel"},
+    {"id":"east_roof_step_2","min":[17,0,-23],"max":[19,1.5,-20],"surface":"service_steel"},
+    {"id":"west_roof_step_3","min":[-17,0,-25],"max":[-15,2.0,-22],"surface":"service_steel"},
+    {"id":"east_roof_step_3","min":[15,0,-23],"max":[17,2.0,-20],"surface":"service_steel"},
+    {"id":"west_roof_step_4","min":[-15,0,-25],"max":[-13,2.5,-22],"surface":"service_steel"},
+    {"id":"east_roof_step_4","min":[13,0,-23],"max":[15,2.5,-20],"surface":"service_steel"},
+    {"id":"west_roof_step_5","min":[-13,0,-25],"max":[-11,3.0,-22],"surface":"service_steel"},
+    {"id":"east_roof_step_5","min":[11,0,-23],"max":[13,3.0,-20],"surface":"service_steel"},
+    {"id":"gantry_roof_link","min":[6,2.5,21],"max":[10,3,25],"surface":"service_steel"},
+    {"id":"gantry_platform","min":[5,2.5,25],"max":[11,3,31],"surface":"service_steel"},
+    {"id":"gantry_leg_west","min":[5,0,28],"max":[5.5,2.5,28.5],"surface":"service_steel"},
+    {"id":"gantry_leg_east","min":[10.5,0,28],"max":[11,2.5,28.5],"surface":"service_steel"},
+    {"id":"mast_platform","min":[18,0,11],"max":[27,2.5,23],"surface":"service_steel"},
+    {"id":"mast_step_0","min":[20,0,1],"max":[23,0.5,3],"surface":"service_steel"},
+    {"id":"mast_step_1","min":[20,0,3],"max":[23,1.0,5],"surface":"service_steel"},
+    {"id":"mast_step_2","min":[20,0,5],"max":[23,1.5,7],"surface":"service_steel"},
+    {"id":"mast_step_3","min":[20,0,7],"max":[23,2.0,9],"surface":"service_steel"},
+    {"id":"mast_step_4","min":[20,0,9],"max":[23,2.5,11],"surface":"service_steel"},
+    {"id":"mast_column","min":[21.5,2.5,16.5],"max":[22.5,7,17.5],"surface":"service_steel"},
+    {"id":"mast_pod","min":[21.2,7,16.2],"max":[22.8,8,17.8],"surface":"enamel"},
+    {"id":"signal_box","min":[19,2.5,19],"max":[26,3.5,23],"surface":"enamel"},
+    {"id":"signal_roof_step_a","min":[17,2.5,15],"max":[19.5,3,17],"surface":"service_steel"},
+    {"id":"signal_roof_step_b","min":[17,2.5,17],"max":[19.5,3.5,23],"surface":"service_steel"},
+    {"id":"mast_sign","min":[26.5,2.5,11],"max":[27,4.5,14],"surface":"enamel"},
+    {"id":"engine_body","min":[-11,0,29],"max":[-5,2.2,38],"surface":"service_steel"},
+    {"id":"engine_cab","min":[-11,2.2,34],"max":[-5,4.2,38],"surface":"enamel"},
+    {"id":"engine_nose","min":[-10,0,38],"max":[-6,2,40],"surface":"service_steel"},
+    {"id":"engine_control","min":[-11.5,0,34],"max":[-11,2.5,37],"surface":"enamel"},
+    {"id":"schedule_board","min":[-27,0,-36],"max":[-25,4,-35.5],"surface":"enamel"},
+    {"id":"hut_west","min":[-28,0,0],"max":[-27.5,3,12],"surface":"enamel"},
+    {"id":"hut_north","min":[-28,0,0],"max":[-18,3,0.5],"surface":"enamel"},
+    {"id":"hut_south","min":[-28,0,11.5],"max":[-18,3,12],"surface":"enamel"},
+    {"id":"hut_east_north","min":[-18.5,0,0.5],"max":[-18,3,4],"surface":"enamel"},
+    {"id":"hut_east_south","min":[-18.5,0,7],"max":[-18,3,11.5],"surface":"enamel"},
+    {"id":"hut_table","min":[-25,0,3],"max":[-22,0.8,5],"surface":"service_steel"},
+    {"id":"hut_stove","min":[-26,0,8.5],"max":[-24,1.4,10.5],"surface":"service_steel"},
+    {"id":"yard_office_west","min":[19,0,-34],"max":[19.5,3,-23],"surface":"enamel"},
+    {"id":"yard_office_north","min":[19,0,-34],"max":[28,3,-33.5],"surface":"enamel"},
+    {"id":"yard_office_east","min":[27.5,0,-34],"max":[28,3,-23],"surface":"enamel"},
+    {"id":"yard_office_south","min":[19,0,-23.5],"max":[23,3,-23],"surface":"enamel"},
+    {"id":"office_desk","min":[24,0,-30],"max":[26,0.8,-27],"surface":"service_steel"},
+    {"id":"south_cover","min":[-2,0,-28],"max":[1,1.2,-26],"surface":"service_steel"},
+    {"id":"center_cover","min":[-2,0,4],"max":[1,1.2,6],"surface":"service_steel"},
+    {"id":"north_cover","min":[-1,0,26],"max":[2,1.2,28],"surface":"service_steel"},
+    {"id":"west_track_rail_a","min":[-9.15,0,-39],"max":[-8.95,0.08,41],"surface":"service_steel"},
+    {"id":"west_track_rail_b","min":[-7.05,0,-39],"max":[-6.85,0.08,41],"surface":"service_steel"},
+    {"id":"east_track_rail_a","min":[6.85,0,-39],"max":[7.05,0.08,41],"surface":"service_steel"},
+    {"id":"east_track_rail_b","min":[8.95,0,-39],"max":[9.15,0.08,41],"surface":"service_steel"},
+    {"id":"west_car_a_backwall","min":[-6,0,-33],"max":[-5,2.5,-21],"surface":"service_steel"},
+    {"id":"west_car_a_south_cap","min":[-15,0,-33],"max":[-6,2.5,-32.5],"surface":"service_steel"},
+    {"id":"west_car_a_north_cap","min":[-15,0,-21.5],"max":[-6,2.5,-21],"surface":"service_steel"},
+    {"id":"west_car_b_backwall","min":[-6,0,-15],"max":[-5,2.5,-3],"surface":"service_steel"},
+    {"id":"west_car_b_south_cap","min":[-15,0,-15],"max":[-6,2.5,-14.5],"surface":"service_steel"},
+    {"id":"west_car_b_north_cap","min":[-15,0,-3.5],"max":[-6,2.5,-3],"surface":"service_steel"},
+    {"id":"west_car_c_backwall","min":[-6,0,3],"max":[-5,2.5,15],"surface":"service_steel"},
+    {"id":"west_car_c_south_cap","min":[-15,0,3],"max":[-6,2.5,3.5],"surface":"service_steel"},
+    {"id":"west_car_c_north_cap","min":[-15,0,14.5],"max":[-6,2.5,15],"surface":"service_steel"},
+    {"id":"first_car_bay_roof_south","min":[-15,2.5,-33],"max":[-11,3,-25],"surface":"service_steel"},
+    {"id":"first_car_bay_roof_north","min":[-15,2.5,-22],"max":[-11,3,-21],"surface":"service_steel"}
+  ],
+  "spawns": [
+    {"yaw":1.5707964,"id":"entry","feet":[-19,0,-38]}
+  ],
+  "landmarks": [
+    {"feet":[0,0,-20],"id":"first_crossing"},
+    {"feet":[-24,0,-23.5],"id":"roof_stair_foot"},
+    {"feet":[-8,3,-27],"id":"west_roof_view"},
+    {"feet":[0,3,-6.5],"id":"roof_crosswalk"},
+    {"feet":[8,3,-5],"id":"east_roof_view"},
+    {"feet":[-21,0,6],"id":"brakemen_hut"},
+    {"feet":[24,0,-25],"id":"yard_office"},
+    {"feet":[15,0,9],"id":"mast_lower_approach"},
+    {"feet":[22,2.5,13],"id":"mast_precision_approach"},
+    {"feet":[20,3.5,21],"id":"signal_box_roof"},
+    {"feet":[8,3,27],"id":"gantry_roof"},
+    {"feet":[-13,0,35.5],"id":"train_boarding"}
+  ],
+  "supplies": [
+    {"id":"yard_rifle","feet":[-19,0,-36.5],"grant":{"weapon":"flechette","kind":"weapon"},"claim":"personal"},
+    {"id":"arrival_bullets","feet":[-19,0,-35],"grant":{"amount":60,"kind":"ammo","pool":"bullets"},"claim":"contested"},
+    {"id":"arrival_armor","feet":[-21,0,-35],"grant":{"kind":"armor","amount":50},"claim":"contested"},
+    {"id":"platform_health","feet":[-17,0,-27],"grant":{"kind":"health","amount":50},"claim":"contested"},
+    {"id":"platform_bullets","feet":[-24,0,-27],"grant":{"amount":60,"kind":"ammo","pool":"bullets"},"claim":"contested"},
+    {"id":"office_shotgun","feet":[24,0,-25],"grant":{"weapon":"scatter","kind":"weapon"},"claim":"personal"},
+    {"id":"office_shells","feet":[26,0,-25],"grant":{"amount":20,"kind":"ammo","pool":"shells"},"claim":"contested"},
+    {"id":"west_roof_bullets","feet":[-8,3,-25],"grant":{"amount":60,"kind":"ammo","pool":"bullets"},"claim":"contested"},
+    {"id":"hut_health","feet":[-23,0,6],"grant":{"kind":"health","amount":100},"claim":"contested"},
+    {"id":"hut_bullets","feet":[-21,0,6],"grant":{"amount":60,"kind":"ammo","pool":"bullets"},"claim":"contested"},
+    {"id":"hut_shells","feet":[-25,0,6],"grant":{"amount":20,"kind":"ammo","pool":"shells"},"claim":"contested"},
+    {"id":"car_67_armor","feet":[-14,0,8],"grant":{"kind":"armor","amount":50},"claim":"contested","secret":true},
+    {"id":"signal_roof_bullets","feet":[20,3.5,21],"grant":{"amount":60,"kind":"ammo","pool":"bullets"},"claim":"contested","secret":true},
+    {"id":"north_health","feet":[-15,0,25],"grant":{"kind":"health","amount":100},"claim":"contested"},
+    {"id":"north_bullets","feet":[-15,0,23],"grant":{"amount":60,"kind":"ammo","pool":"bullets"},"claim":"contested"},
+    {"id":"north_shells","feet":[-15,0,21],"grant":{"amount":20,"kind":"ammo","pool":"shells"},"claim":"contested"}
+  ],
+  "decorations": [
+    {"face":"south","solid":"schedule_board","center":[0,0],"size":[1.8,3.6],"kind":"m03_schedule_board"},
+    {"face":"west","solid":"west_car_a_backwall","center":[0,0.2],"size":[7,1.6],"kind":"m03_platform_car"},
+    {"face":"west","solid":"west_car_b_backwall","center":[0,0.2],"size":[7,1.6],"kind":"m03_siding_car"},
+    {"face":"west","solid":"west_car_c_backwall","center":[0,0.2],"size":[7,1.6],"kind":"m03_roof_car"},
+    {"face":"west","solid":"mast_sign","center":[0,0],"size":[2.5,1.5],"kind":"m03_mast_sign"},
+    {"face":"south","solid":"hut_north","center":[0,0],"size":[4,1.5],"kind":"lockers"},
+    {"face":"south","solid":"yard_office_north","center":[0,0],"size":[3,1.5],"kind":"terminal"}
+  ],
+  "encounters": [
+    {"id":"platform_loaders","regions":[{"min":[-44,0,-34],"max":[44,5,-21]}],"enemies":[{"yaw":4.712389,"id":"platform_clerk_a","feet":[-14,0,-31],"kind":"clerk"},{"yaw":4.712389,"id":"platform_clerk_b","feet":[-17,0,-29],"kind":"clerk"},{"yaw":4.712389,"id":"platform_sweeper_a","feet":[0,0,-24],"kind":"sweeper"},{"yaw":4.712389,"id":"platform_sweeper_b","feet":[15,0,-29],"kind":"sweeper"}]},
+    {"id":"first_pulse","regions":[{"min":[-44,0,-22],"max":[44,5,-13]}],"enemies":[{"yaw":4.712389,"id":"solo_jammer","feet":[0,0,-12],"kind":"jammer"}],"after":"platform_loaders"},
+    {"id":"roof_watch","regions":[{"min":[-44,0,-12],"max":[44,6,3]}],"enemies":[{"yaw":4.712389,"id":"roof_jammer","feet":[8,3,-5],"kind":"jammer"},{"yaw":4.712389,"id":"roof_sweeper_a","feet":[-8,3,-9],"kind":"sweeper"},{"yaw":4.712389,"id":"roof_sweeper_b","feet":[15,0,-4],"kind":"sweeper"},{"yaw":4.712389,"id":"roof_sweeper_c","feet":[-14,0,0],"kind":"sweeper"}],"after":"first_pulse"},
+    {"id":"siding_watch","regions":[{"min":[-28,0,-16],"max":[-16,3,-2]}],"enemies":[{"yaw":4.712389,"id":"siding_clerk","feet":[-23,0,-9],"kind":"clerk"},{"yaw":4.712389,"id":"siding_sweeper","feet":[-20,0,-5],"kind":"sweeper"}],"after":"first_pulse"},
+    {"id":"mast_watch","regions":[{"min":[12,0,4],"max":[44,6,24]}],"enemies":[{"yaw":4.712389,"id":"mast_jammer","feet":[22,2.5,14],"kind":"jammer"},{"yaw":4.712389,"id":"mast_sweeper_a","feet":[15,0,20],"kind":"sweeper"},{"yaw":4.712389,"id":"mast_sweeper_b","feet":[29,0,16],"kind":"sweeper"},{"yaw":4.712389,"id":"mast_sweeper_c","feet":[25,2.5,17],"kind":"sweeper"}],"after":"roof_watch"},
+    {"id":"train_watch","regions":[{"min":[-44,0,24],"max":[44,6,43]}],"enemies":[{"yaw":4.712389,"id":"gantry_jammer","feet":[8,3,28],"kind":"jammer"},{"yaw":4.712389,"id":"train_clerk_a","feet":[-15,0,31],"kind":"clerk"},{"yaw":4.712389,"id":"train_clerk_b","feet":[-2,0,35],"kind":"clerk"},{"yaw":4.712389,"id":"train_sweeper_a","feet":[3,0,32],"kind":"sweeper"},{"yaw":4.712389,"id":"train_sweeper_b","feet":[-17,0,37],"kind":"sweeper"},{"yaw":4.712389,"id":"train_sweeper_c","feet":[15,0,33],"kind":"sweeper"},{"yaw":4.712389,"id":"train_sweeper_d","feet":[0,0,39],"kind":"sweeper"}],"after":"mast_watch"}
+  ],
+  "m03": {
+    "mast": {
+      "aim": [22,7.5,17],
+      "solid": "mast_pod",
+      "requires_encounter": "mast_watch",
+      "approach": [22,2.5,13],
+      "fallen": [
+        {
+          "max": [25,4.5,20.25],
+          "solid": "mast_column",
+          "min": [19,3.5,19.25]
+        },
+        {
+          "max": [25.8,5.1,22.8],
+          "solid": "mast_pod",
+          "min": [24.2,3.5,21.2]
+        }
+      ]
+    },
+    "departure": {
+      "approach": [-13,0,35.5],
+      "requires_encounter": "train_watch",
+      "boarding": {
+        "min": [-15,0,32],
+        "max": [-11.75,2,39]
+      },
+      "panel": {
+        "face": "west",
+        "solid": "engine_control",
+        "center": [
+          0,
+          0
+        ],
+        "size": [
+          2,
+          1.5
+        ],
+        "kind": "m03_board_train"
+      }
+    },
+    "companion_start": [-21,0,-38],
+    "cars": [
+      {
+        "release": {
+          "min": [-19,0,-32],
+          "max": [-12,2,-26]
+        },
+        "id": "platform_car",
+        "requires_encounter": "platform_loaders",
+        "safe": [
+          [-18,0,-30],
+          [-18,0,-28]
+        ],
+        "held": [
+          [-13,0,-30],
+          [-13,0,-28]
+        ]
+      },
+      {
+        "release": {
+          "min": [-19,0,-12],
+          "max": [-12,2,-6]
+        },
+        "id": "siding_car",
+        "requires_encounter": "siding_watch",
+        "safe": [
+          [-18,0,-10],
+          [-18,0,-8]
+        ],
+        "held": [
+          [-13,0,-10],
+          [-13,0,-8]
+        ]
+      },
+      {
+        "release": {
+          "min": [-19,0,5],
+          "max": [-12,2,11]
+        },
+        "id": "roof_car",
+        "requires_encounter": "roof_watch",
+        "safe": [
+          [-16.5,0,7],
+          [-16.5,0,9]
+        ],
+        "held": [
+          [-13,0,7],
+          [-13,0,9]
+        ]
+      }
+    ]
+  }
+}

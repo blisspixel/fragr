@@ -18,6 +18,7 @@ pub(crate) struct SavedEquipment {
     pub selected: WeaponType,
     pub weapons: Vec<WeaponType>,
     pub ammo: Vec<AmmoCount>,
+    pub grenades: u16,
     pub personal_claims: Vec<String>,
 }
 
@@ -27,6 +28,7 @@ impl SavedEquipment {
             self.selected,
             &self.weapons,
             &self.ammo,
+            self.grenades,
             &self.personal_claims,
         )
     }
@@ -39,6 +41,7 @@ pub struct Inventory {
     only: Option<WeaponType>,
     owned: [bool; WeaponType::ALL.len()],
     ammo: [u16; 3],
+    grenades: u16,
     claims: BTreeSet<String>,
     revision: u64,
     dry_fire_count: u64,
@@ -52,6 +55,7 @@ impl Inventory {
             selected,
             weapons: state.weapons,
             ammo: state.ammo,
+            grenades: state.grenades,
             personal_claims: state.personal_claims,
         };
         saved.validate().ok()?;
@@ -75,6 +79,7 @@ impl Inventory {
             self.ammo[count.pool.index()] = count.rounds;
         }
         self.claims = saved.personal_claims.iter().cloned().collect();
+        self.grenades = saved.grenades;
         self.dry_latched = false;
         self.revision += 1;
         Ok(())
@@ -88,6 +93,7 @@ impl Inventory {
             only: None,
             owned,
             ammo: [0; 3],
+            grenades: 0,
             claims: BTreeSet::new(),
             revision: 0,
             dry_fire_count: 0,
@@ -125,6 +131,7 @@ impl Inventory {
         self.policy = entry.policy;
         self.owned = entry.owned;
         self.ammo = entry.ammo;
+        self.grenades = entry.grenades;
         self.claims.clone_from(&entry.claims);
         self.dry_latched = false;
         self.revision += 1;
@@ -211,6 +218,32 @@ impl Inventory {
         }
     }
 
+    pub fn grenades(&self) -> u16 {
+        self.grenades
+    }
+
+    pub fn grant_grenades(&mut self, amount: u16) -> u16 {
+        if self.only.is_some() {
+            return 0;
+        }
+        let next = self.grenades.saturating_add(amount).min(6);
+        let gained = next - self.grenades;
+        if gained > 0 {
+            self.grenades = next;
+            self.revision += 1;
+        }
+        gained
+    }
+
+    pub fn try_throw(&mut self) -> bool {
+        if self.grenades == 0 || self.only.is_some() {
+            return false;
+        }
+        self.grenades -= 1;
+        self.revision += 1;
+        true
+    }
+
     /// Called only after alive/cooldown admission, before RNG or ray resolution.
     /// One shot, including one Scatter blast of several pellets, spends one unit.
     pub fn try_fire(&mut self, selected: WeaponType) -> bool {
@@ -258,6 +291,7 @@ impl Inventory {
                 })
                 .collect(),
             personal_claims: self.claims.iter().cloned().collect(),
+            grenades: self.grenades,
             dry_fire_count: self.dry_fire_count,
         })
     }

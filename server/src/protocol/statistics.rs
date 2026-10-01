@@ -33,6 +33,13 @@ pub struct CombatCounts {
     /// Indexed by WeaponType::index(), in WeaponType::ALL order.
     #[serde(with = "weapon_counts")]
     pub weapons: [WeaponCounts; WeaponType::ALL.len()],
+    /// Counted explosives have their own column; gun indices stay stable.
+    #[serde(default, skip_serializing_if = "empty_grenades")]
+    pub grenades: WeaponCounts,
+}
+
+fn empty_grenades(counts: &WeaponCounts) -> bool {
+    *counts == WeaponCounts::default()
 }
 
 fn is_zero(value: &u64) -> bool {
@@ -98,11 +105,15 @@ impl CombatCounts {
     }
 
     pub fn attacks(&self) -> u64 {
-        self.weapons.iter().map(|weapon| weapon.attacks).sum()
+        self.weapons
+            .iter()
+            .map(|weapon| weapon.attacks)
+            .sum::<u64>()
+            + self.grenades.attacks
     }
 
     pub fn kills(&self) -> u64 {
-        self.weapons.iter().map(|weapon| weapon.kills).sum()
+        self.weapons.iter().map(|weapon| weapon.kills).sum::<u64>() + self.grenades.kills
     }
 
     pub fn validate(&self) -> Result<(), &'static str> {
@@ -114,7 +125,7 @@ impl CombatCounts {
             self.dry_triggers,
             self.secrets,
         ];
-        for weapon in &self.weapons {
+        for weapon in self.weapons.iter().chain(std::iter::once(&self.grenades)) {
             counts.extend([
                 weapon.attacks,
                 weapon.damaging_attacks,
@@ -130,6 +141,7 @@ impl CombatCounts {
             let sum: u64 = self
                 .weapons
                 .iter()
+                .chain(std::iter::once(&self.grenades))
                 .map(|weapon| {
                     [
                         weapon.attacks,
@@ -164,6 +176,8 @@ impl CombatCounts {
                         .saturating_mul(weapon.pellets() as u64)
                     || counts.damaging_attacks > counts.attacks
             })
+            || self.grenades.damaging_attacks > self.grenades.attacks
+            || self.grenades.kills > self.grenades.damaging_attacks.saturating_mul(256)
         {
             return Err("inconsistent attack counts");
         }
@@ -177,6 +191,11 @@ impl CombatCounts {
             && self.armor_lost >= other.armor_lost
             && self.dry_triggers >= other.dry_triggers
             && self.secrets >= other.secrets
+            && self.grenades.attacks >= other.grenades.attacks
+            && self.grenades.damaging_attacks >= other.grenades.damaging_attacks
+            && self.grenades.kills >= other.grenades.kills
+            && self.grenades.hp_damage >= other.grenades.hp_damage
+            && self.grenades.armor_damage >= other.grenades.armor_damage
             && self.weapons.iter().zip(&other.weapons).all(|(a, b)| {
                 a.attacks >= b.attacks
                     && a.damaging_attacks >= b.damaging_attacks

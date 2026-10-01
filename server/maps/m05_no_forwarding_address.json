@@ -1,0 +1,2018 @@
+{
+  "version": 1,
+  "map_id": 1005,
+  "name": "No Forwarding Address",
+  "half_extent": 40,
+  "ground": "concrete",
+  "equipment": "discovery",
+  "solids": [
+    {
+      "id": "west_roof",
+      "min": [
+        -30,
+        0,
+        -36
+      ],
+      "max": [
+        -7,
+        4,
+        -20
+      ],
+      "surface": "concrete"
+    },
+    {
+      "id": "east_roof",
+      "min": [
+        7,
+        0,
+        -36
+      ],
+      "max": [
+        30,
+        4,
+        -20
+      ],
+      "surface": "concrete"
+    },
+    {
+      "id": "roof_bridge",
+      "min": [
+        -7,
+        3.75,
+        -29
+      ],
+      "max": [
+        7,
+        4,
+        -26
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "roof_tank_a",
+      "min": [
+        -28,
+        4,
+        -29
+      ],
+      "max": [
+        -25,
+        6.5,
+        -26
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "roof_tank_b",
+      "min": [
+        -16,
+        4,
+        -34
+      ],
+      "max": [
+        -13,
+        6.5,
+        -31
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "roof_notice_host",
+      "min": [
+        -30,
+        4,
+        -24
+      ],
+      "max": [
+        -29,
+        6,
+        -21
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "crane_step_0",
+      "min": [
+        24,
+        0,
+        -20
+      ],
+      "max": [
+        28,
+        3.5,
+        -18
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "crane_step_1",
+      "min": [
+        24,
+        0,
+        -18
+      ],
+      "max": [
+        28,
+        3.0,
+        -16
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "crane_step_2",
+      "min": [
+        24,
+        0,
+        -16
+      ],
+      "max": [
+        28,
+        2.5,
+        -14
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "crane_step_3",
+      "min": [
+        24,
+        0,
+        -14
+      ],
+      "max": [
+        28,
+        2.0,
+        -12
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "crane_step_4",
+      "min": [
+        24,
+        0,
+        -12
+      ],
+      "max": [
+        28,
+        1.5,
+        -10
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "crane_step_5",
+      "min": [
+        24,
+        0,
+        -10
+      ],
+      "max": [
+        28,
+        1.0,
+        -8
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "crane_step_6",
+      "min": [
+        24,
+        0,
+        -8
+      ],
+      "max": [
+        28,
+        0.5,
+        -6
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "crane_post_west",
+      "min": [
+        19,
+        0,
+        -16
+      ],
+      "max": [
+        20,
+        7,
+        -15
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "crane_post_east",
+      "min": [
+        29,
+        0,
+        -16
+      ],
+      "max": [
+        30,
+        7,
+        -15
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "crane_beam",
+      "min": [
+        19,
+        6.5,
+        -16
+      ],
+      "max": [
+        30,
+        7,
+        -15
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "workshop_west",
+      "min": [
+        -23,
+        0,
+        -16
+      ],
+      "max": [
+        -22.5,
+        4,
+        4
+      ],
+      "surface": "concrete"
+    },
+    {
+      "id": "workshop_south",
+      "min": [
+        -23,
+        0,
+        -16
+      ],
+      "max": [
+        18,
+        4,
+        -15.5
+      ],
+      "surface": "concrete"
+    },
+    {
+      "id": "workshop_east_a",
+      "min": [
+        17.5,
+        0,
+        -16
+      ],
+      "max": [
+        18,
+        4,
+        -8
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "workshop_east_b",
+      "min": [
+        17.5,
+        0,
+        -2
+      ],
+      "max": [
+        18,
+        4,
+        4
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "paint_bench",
+      "min": [
+        10,
+        0,
+        -14
+      ],
+      "max": [
+        14,
+        0.9,
+        -11
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "paint_step",
+      "min": [
+        10,
+        0,
+        -11
+      ],
+      "max": [
+        14,
+        0.5,
+        -9
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "lesson_tram_chassis",
+      "min": [
+        3,
+        0,
+        -13
+      ],
+      "max": [
+        7,
+        2.5,
+        -7
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "loading_pen_back",
+      "min": [
+        -21.5,
+        0,
+        -1
+      ],
+      "max": [
+        -21,
+        2.8,
+        4
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "loading_pen_cap_a",
+      "min": [
+        -21.5,
+        0,
+        -1
+      ],
+      "max": [
+        -13,
+        2.8,
+        -0.5
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "loading_pen_cap_b",
+      "min": [
+        -21.5,
+        0,
+        3.5
+      ],
+      "max": [
+        -13,
+        2.8,
+        4
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "loading_pen_roof",
+      "min": [
+        -21.5,
+        2.8,
+        -1
+      ],
+      "max": [
+        -13,
+        3.05,
+        4
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "service_bay_host",
+      "min": [
+        -10,
+        0,
+        -14.5
+      ],
+      "max": [
+        -6,
+        2.5,
+        -13.5
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "service_cover",
+      "min": [
+        -9,
+        0,
+        -10
+      ],
+      "max": [
+        -6,
+        1.2,
+        -8
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "market_awning_host",
+      "min": [
+        -32,
+        0,
+        -18
+      ],
+      "max": [
+        -31,
+        3,
+        -12
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "market_awning",
+      "min": [
+        -32,
+        2.5,
+        -18
+      ],
+      "max": [
+        -25,
+        2.75,
+        -12
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "market_stall_a",
+      "min": [
+        -31,
+        0,
+        -10
+      ],
+      "max": [
+        -28,
+        0.9,
+        -8
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "market_stall_b",
+      "min": [
+        -31,
+        0,
+        -5
+      ],
+      "max": [
+        -28,
+        0.9,
+        -3
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "market_stall_c",
+      "min": [
+        -31,
+        0,
+        0
+      ],
+      "max": [
+        -28,
+        0.9,
+        2
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "tram_body",
+      "min": [
+        -1.5,
+        0,
+        4
+      ],
+      "max": [
+        1.5,
+        1,
+        8
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "tram_dock",
+      "min": [
+        2.6,
+        0,
+        4.5
+      ],
+      "max": [
+        4.6,
+        0.5,
+        7.5
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "trench_cover_west_a",
+      "min": [
+        -10,
+        0,
+        9
+      ],
+      "max": [
+        -7,
+        1.2,
+        12
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "trench_cover_east_a",
+      "min": [
+        7,
+        0,
+        12
+      ],
+      "max": [
+        10,
+        1.2,
+        15
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "trench_cover_west_b",
+      "min": [
+        -10,
+        0,
+        21
+      ],
+      "max": [
+        -7,
+        1.2,
+        24
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "trench_cover_east_b",
+      "min": [
+        7,
+        0,
+        24
+      ],
+      "max": [
+        10,
+        1.2,
+        27
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "trench_bridge",
+      "min": [
+        -13,
+        4.5,
+        18
+      ],
+      "max": [
+        13,
+        4.75,
+        20
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "freight_wall_west",
+      "min": [
+        -40,
+        0,
+        33.5
+      ],
+      "max": [
+        -15,
+        3,
+        34
+      ],
+      "surface": "concrete"
+    },
+    {
+      "id": "freight_wall_east",
+      "min": [
+        15,
+        0,
+        33.5
+      ],
+      "max": [
+        40,
+        3,
+        34
+      ],
+      "surface": "concrete"
+    },
+    {
+      "id": "freight_gate",
+      "min": [
+        -15,
+        0,
+        33.5
+      ],
+      "max": [
+        15,
+        3,
+        34
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "freight_sign_host",
+      "min": [
+        -14,
+        0,
+        30
+      ],
+      "max": [
+        -12,
+        3,
+        31
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "ship_hull",
+      "min": [
+        -12,
+        0.5,
+        36
+      ],
+      "max": [
+        2,
+        3,
+        39.5
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "ship_control",
+      "min": [
+        8,
+        0,
+        37
+      ],
+      "max": [
+        9,
+        2,
+        38
+      ],
+      "surface": "enamel"
+    }
+  ],
+  "spawns": [
+    {
+      "yaw": 0,
+      "feet": [
+        -24,
+        4,
+        -30
+      ],
+      "id": "roof_entry"
+    }
+  ],
+  "landmarks": [
+    {
+      "id": "crane_walk",
+      "feet": [
+        26,
+        4,
+        -21
+      ]
+    },
+    {
+      "id": "workshop_floor",
+      "feet": [
+        15,
+        0,
+        -4
+      ]
+    },
+    {
+      "id": "tram_walkway",
+      "feet": [
+        -5,
+        0,
+        18
+      ]
+    },
+    {
+      "id": "ship_boarding",
+      "feet": [
+        6.5,
+        0,
+        37.5
+      ]
+    }
+  ],
+  "decorations": [
+    {
+      "solid": "roof_tank_b",
+      "face": "south",
+      "center": [
+        0,
+        0
+      ],
+      "size": [
+        1.5,
+        1
+      ],
+      "kind": "m05_water_tank"
+    },
+    {
+      "solid": "paint_bench",
+      "face": "north",
+      "center": [
+        0,
+        0
+      ],
+      "size": [
+        2,
+        0.6
+      ],
+      "kind": "m05_paint_bench"
+    },
+    {
+      "solid": "loading_pen_back",
+      "face": "east",
+      "center": [
+        0,
+        0
+      ],
+      "size": [
+        3,
+        1
+      ],
+      "kind": "m05_loading_pen"
+    },
+    {
+      "solid": "service_bay_host",
+      "face": "south",
+      "center": [
+        0,
+        0
+      ],
+      "size": [
+        3,
+        1
+      ],
+      "kind": "m05_tram_service"
+    },
+    {
+      "solid": "market_awning_host",
+      "face": "east",
+      "center": [
+        0,
+        0
+      ],
+      "size": [
+        3,
+        1
+      ],
+      "kind": "m05_market_six"
+    },
+    {
+      "solid": "freight_sign_host",
+      "face": "north",
+      "center": [
+        0,
+        0
+      ],
+      "size": [
+        1.8,
+        1
+      ],
+      "kind": "m05_freight_sign"
+    }
+  ],
+  "supplies": [
+    {
+      "id": "roof_rifle",
+      "feet": [
+        -22,
+        4,
+        -30
+      ],
+      "grant": {
+        "kind": "weapon",
+        "weapon": "flechette"
+      },
+      "claim": "personal",
+      "secret": false
+    },
+    {
+      "id": "roof_bullets",
+      "feet": [
+        -21,
+        4,
+        -30
+      ],
+      "grant": {
+        "amount": 100,
+        "pool": "bullets",
+        "kind": "ammo"
+      },
+      "claim": "contested",
+      "secret": false
+    },
+    {
+      "id": "roof_armor",
+      "feet": [
+        -19,
+        4,
+        -30
+      ],
+      "grant": {
+        "amount": 50,
+        "kind": "armor"
+      },
+      "claim": "contested",
+      "secret": false
+    },
+    {
+      "id": "tank_armor_secret",
+      "feet": [
+        -14,
+        4,
+        -35
+      ],
+      "grant": {
+        "amount": 50,
+        "kind": "armor"
+      },
+      "claim": "contested",
+      "secret": true
+    },
+    {
+      "id": "paint_bay_grenades",
+      "feet": [
+        12,
+        0.9,
+        -12
+      ],
+      "grant": {
+        "amount": 4,
+        "kind": "grenade"
+      },
+      "claim": "personal",
+      "secret": false
+    },
+    {
+      "id": "paint_bay_shotgun",
+      "feet": [
+        14,
+        0,
+        -5
+      ],
+      "grant": {
+        "kind": "weapon",
+        "weapon": "scatter"
+      },
+      "claim": "personal",
+      "secret": false
+    },
+    {
+      "id": "paint_bay_bullets",
+      "feet": [
+        12,
+        0,
+        -5
+      ],
+      "grant": {
+        "amount": 100,
+        "pool": "bullets",
+        "kind": "ammo"
+      },
+      "claim": "contested",
+      "secret": false
+    },
+    {
+      "id": "workshop_health",
+      "feet": [
+        10,
+        0,
+        -5
+      ],
+      "grant": {
+        "amount": 50,
+        "kind": "health"
+      },
+      "claim": "contested",
+      "secret": false
+    },
+    {
+      "id": "workshop_armor",
+      "feet": [
+        8,
+        0,
+        -5
+      ],
+      "grant": {
+        "amount": 50,
+        "kind": "armor"
+      },
+      "claim": "contested",
+      "secret": false
+    },
+    {
+      "id": "service_shells_secret",
+      "feet": [
+        -8,
+        0,
+        -12
+      ],
+      "grant": {
+        "amount": 12,
+        "pool": "shells",
+        "kind": "ammo"
+      },
+      "claim": "contested",
+      "secret": true
+    },
+    {
+      "id": "service_grenade_secret",
+      "feet": [
+        -6,
+        0,
+        -12
+      ],
+      "grant": {
+        "amount": 2,
+        "kind": "grenade"
+      },
+      "claim": "contested",
+      "secret": true
+    },
+    {
+      "id": "market_health_a",
+      "feet": [
+        -29,
+        0,
+        -11
+      ],
+      "grant": {
+        "amount": 50,
+        "kind": "health"
+      },
+      "claim": "contested",
+      "secret": true
+    },
+    {
+      "id": "market_health_b",
+      "feet": [
+        -29,
+        0,
+        -6
+      ],
+      "grant": {
+        "amount": 50,
+        "kind": "health"
+      },
+      "claim": "contested",
+      "secret": false
+    },
+    {
+      "id": "market_health_c",
+      "feet": [
+        -29,
+        0,
+        -1
+      ],
+      "grant": {
+        "amount": 50,
+        "kind": "health"
+      },
+      "claim": "contested",
+      "secret": false
+    },
+    {
+      "id": "market_bullets",
+      "feet": [
+        -27,
+        0,
+        1
+      ],
+      "grant": {
+        "amount": 100,
+        "pool": "bullets",
+        "kind": "ammo"
+      },
+      "claim": "contested",
+      "secret": false
+    },
+    {
+      "id": "pen_bullets",
+      "feet": [
+        -12,
+        0,
+        1
+      ],
+      "grant": {
+        "amount": 100,
+        "pool": "bullets",
+        "kind": "ammo"
+      },
+      "claim": "contested",
+      "secret": false
+    },
+    {
+      "id": "trench_health",
+      "feet": [
+        -5,
+        0,
+        5
+      ],
+      "grant": {
+        "amount": 50,
+        "kind": "health"
+      },
+      "claim": "contested",
+      "secret": false
+    },
+    {
+      "id": "trench_armor",
+      "feet": [
+        -5,
+        0,
+        7
+      ],
+      "grant": {
+        "amount": 50,
+        "kind": "armor"
+      },
+      "claim": "contested",
+      "secret": false
+    },
+    {
+      "id": "trench_grenades",
+      "feet": [
+        -5,
+        0,
+        9
+      ],
+      "grant": {
+        "amount": 2,
+        "kind": "grenade"
+      },
+      "claim": "contested",
+      "secret": false
+    },
+    {
+      "id": "trench_shells",
+      "feet": [
+        -5,
+        0,
+        11
+      ],
+      "grant": {
+        "amount": 12,
+        "pool": "shells",
+        "kind": "ammo"
+      },
+      "claim": "contested",
+      "secret": false
+    },
+    {
+      "id": "heavy_health",
+      "feet": [
+        -5,
+        0,
+        24
+      ],
+      "grant": {
+        "amount": 50,
+        "kind": "health"
+      },
+      "claim": "contested",
+      "secret": false
+    },
+    {
+      "id": "heavy_bullets",
+      "feet": [
+        -5,
+        0,
+        23
+      ],
+      "grant": {
+        "amount": 100,
+        "pool": "bullets",
+        "kind": "ammo"
+      },
+      "claim": "contested",
+      "secret": false
+    },
+    {
+      "id": "heavy_grenades",
+      "feet": [
+        -5,
+        0,
+        24.5
+      ],
+      "grant": {
+        "amount": 2,
+        "kind": "grenade"
+      },
+      "claim": "contested",
+      "secret": false
+    }
+  ],
+  "encounters": [
+    {
+      "id": "roof_crossing",
+      "regions": [
+        {
+          "max": [
+            30,
+            6,
+            -20
+          ],
+          "min": [
+            -18,
+            4,
+            -36
+          ]
+        }
+      ],
+      "enemies": [
+        {
+          "id": "roof_notary_a",
+          "kind": "notary",
+          "feet": [
+            -4.0,
+            6.0,
+            -23.0
+          ],
+          "yaw": 0,
+          "hover": {
+            "volume": {
+              "max": [
+                -3.0,
+                6.25,
+                -22.0
+              ],
+              "min": [
+                -5.0,
+                5.75,
+                -24.0
+              ]
+            },
+            "band": [
+              5.5,
+              6.5
+            ],
+            "patrol": [
+              [
+                -4.0,
+                6.0,
+                -23.75
+              ],
+              [
+                -4.0,
+                6.0,
+                -22.25
+              ]
+            ],
+            "approach": [
+              -10,
+              4,
+              -24
+            ]
+          }
+        },
+        {
+          "id": "roof_notary_b",
+          "kind": "notary",
+          "feet": [
+            4.0,
+            6.0,
+            -23.0
+          ],
+          "yaw": 0,
+          "hover": {
+            "volume": {
+              "max": [
+                5.0,
+                6.25,
+                -22.0
+              ],
+              "min": [
+                3.0,
+                5.75,
+                -24.0
+              ]
+            },
+            "band": [
+              5.5,
+              6.5
+            ],
+            "patrol": [
+              [
+                4.0,
+                6.0,
+                -23.75
+              ],
+              [
+                4.0,
+                6.0,
+                -22.25
+              ]
+            ],
+            "approach": [
+              10,
+              4,
+              -24
+            ]
+          }
+        },
+        {
+          "id": "roof_clerk_a",
+          "kind": "clerk",
+          "feet": [
+            15,
+            4,
+            -28
+          ],
+          "yaw": 0
+        },
+        {
+          "id": "roof_clerk_b",
+          "kind": "clerk",
+          "feet": [
+            20,
+            4,
+            -25
+          ],
+          "yaw": 0
+        }
+      ]
+    },
+    {
+      "id": "paint_bay",
+      "after": "roof_crossing",
+      "regions": [
+        {
+          "max": [
+            17,
+            2,
+            -3
+          ],
+          "min": [
+            8,
+            0,
+            -14
+          ]
+        }
+      ],
+      "enemies": [
+        {
+          "id": "paint_sweeper_a",
+          "kind": "sweeper",
+          "feet": [
+            0,
+            0,
+            -9
+          ],
+          "yaw": 0
+        },
+        {
+          "id": "paint_sweeper_b",
+          "kind": "sweeper",
+          "feet": [
+            0,
+            0,
+            -12
+          ],
+          "yaw": 0
+        }
+      ]
+    },
+    {
+      "id": "workshop_watch",
+      "after": "paint_bay",
+      "regions": [
+        {
+          "max": [
+            -5,
+            2,
+            4
+          ],
+          "min": [
+            -20,
+            0,
+            -6
+          ]
+        }
+      ],
+      "enemies": [
+        {
+          "id": "workshop_sweeper_a",
+          "kind": "sweeper",
+          "feet": [
+            -12,
+            0,
+            -5
+          ],
+          "yaw": 0
+        },
+        {
+          "id": "workshop_sweeper_b",
+          "kind": "sweeper",
+          "feet": [
+            -8,
+            0,
+            -3
+          ],
+          "yaw": 0
+        },
+        {
+          "id": "workshop_clerk_a",
+          "kind": "clerk",
+          "feet": [
+            -15,
+            0,
+            1
+          ],
+          "yaw": 0
+        },
+        {
+          "id": "workshop_clerk_b",
+          "kind": "clerk",
+          "feet": [
+            -10,
+            0,
+            2
+          ],
+          "yaw": 0
+        }
+      ]
+    },
+    {
+      "id": "trench_watch",
+      "after": "workshop_watch",
+      "regions": [
+        {
+          "max": [
+            14,
+            3,
+            23
+          ],
+          "min": [
+            -14,
+            0,
+            5
+          ]
+        }
+      ],
+      "enemies": [
+        {
+          "id": "trench_notary_a",
+          "kind": "notary",
+          "feet": [
+            -5.0,
+            5.0,
+            16.0
+          ],
+          "yaw": 0,
+          "hover": {
+            "volume": {
+              "max": [
+                -4.0,
+                5.25,
+                17.0
+              ],
+              "min": [
+                -6.0,
+                4.75,
+                15.0
+              ]
+            },
+            "band": [
+              4.5,
+              5.5
+            ],
+            "patrol": [
+              [
+                -5.0,
+                5.0,
+                15.25
+              ],
+              [
+                -5.0,
+                5.0,
+                16.75
+              ]
+            ],
+            "approach": [
+              -5,
+              0,
+              10
+            ]
+          }
+        },
+        {
+          "id": "trench_notary_b",
+          "kind": "notary",
+          "feet": [
+            5.0,
+            5.0,
+            23.0
+          ],
+          "yaw": 0,
+          "hover": {
+            "volume": {
+              "max": [
+                6.0,
+                5.25,
+                24.0
+              ],
+              "min": [
+                4.0,
+                4.75,
+                22.0
+              ]
+            },
+            "band": [
+              4.5,
+              5.5
+            ],
+            "patrol": [
+              [
+                5.0,
+                5.0,
+                22.25
+              ],
+              [
+                5.0,
+                5.0,
+                23.75
+              ]
+            ],
+            "approach": [
+              5,
+              0,
+              17
+            ]
+          }
+        },
+        {
+          "id": "trench_sweeper_a",
+          "kind": "sweeper",
+          "feet": [
+            -5,
+            0,
+            14
+          ],
+          "yaw": 0
+        },
+        {
+          "id": "trench_sweeper_b",
+          "kind": "sweeper",
+          "feet": [
+            5,
+            0,
+            18
+          ],
+          "yaw": 0
+        },
+        {
+          "id": "trench_sweeper_c",
+          "kind": "sweeper",
+          "feet": [
+            -5,
+            0,
+            22
+          ],
+          "yaw": 0
+        }
+      ]
+    },
+    {
+      "id": "heavy_lesson",
+      "after": "trench_watch",
+      "regions": [
+        {
+          "max": [
+            14,
+            3,
+            31
+          ],
+          "min": [
+            -14,
+            0,
+            25
+          ]
+        }
+      ],
+      "enemies": [
+        {
+          "id": "lesson_heavy",
+          "kind": "heavy_sweeper",
+          "feet": [
+            8,
+            0,
+            30
+          ],
+          "yaw": 0
+        }
+      ]
+    },
+    {
+      "id": "freight_watch",
+      "after": "heavy_lesson",
+      "regions": [
+        {
+          "max": [
+            14,
+            3,
+            33
+          ],
+          "min": [
+            -14,
+            0,
+            29
+          ]
+        }
+      ],
+      "enemies": [
+        {
+          "id": "freight_heavy",
+          "kind": "heavy_sweeper",
+          "feet": [
+            0,
+            0,
+            32
+          ],
+          "yaw": 0
+        },
+        {
+          "id": "freight_sweeper_a",
+          "kind": "sweeper",
+          "feet": [
+            -9,
+            0,
+            31
+          ],
+          "yaw": 0
+        },
+        {
+          "id": "freight_sweeper_b",
+          "kind": "sweeper",
+          "feet": [
+            9,
+            0,
+            31
+          ],
+          "yaw": 0
+        },
+        {
+          "id": "freight_notary_a",
+          "kind": "notary",
+          "feet": [
+            -5.0,
+            5.0,
+            29.0
+          ],
+          "yaw": 0,
+          "hover": {
+            "volume": {
+              "max": [
+                -4.0,
+                5.25,
+                30.0
+              ],
+              "min": [
+                -6.0,
+                4.75,
+                28.0
+              ]
+            },
+            "band": [
+              4.5,
+              5.5
+            ],
+            "patrol": [
+              [
+                -5.0,
+                5.0,
+                28.25
+              ],
+              [
+                -5.0,
+                5.0,
+                29.75
+              ]
+            ],
+            "approach": [
+              -5,
+              0,
+              24
+            ]
+          }
+        },
+        {
+          "id": "freight_notary_b",
+          "kind": "notary",
+          "feet": [
+            5.0,
+            5.0,
+            29.0
+          ],
+          "yaw": 0,
+          "hover": {
+            "volume": {
+              "max": [
+                6.0,
+                5.25,
+                30.0
+              ],
+              "min": [
+                4.0,
+                4.75,
+                28.0
+              ]
+            },
+            "band": [
+              4.5,
+              5.5
+            ],
+            "patrol": [
+              [
+                5.0,
+                5.0,
+                28.25
+              ],
+              [
+                5.0,
+                5.0,
+                29.75
+              ]
+            ],
+            "approach": [
+              5,
+              0,
+              24
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "m05": {
+    "freight": {
+      "requires_encounter": "freight_watch",
+      "gate": {
+        "lift": 3.2,
+        "solid": "freight_gate"
+      }
+    },
+    "rescue": {
+      "captives": [
+        {
+          "route": [
+            [
+              -19,
+              0,
+              0.5
+            ],
+            [
+              -11,
+              0,
+              0.5
+            ],
+            [
+              -11,
+              0,
+              4.75
+            ],
+            [
+              -11,
+              0,
+              32
+            ],
+            [
+              -11,
+              0,
+              35
+            ],
+            [
+              6,
+              0,
+              35
+            ],
+            [
+              6,
+              0,
+              37
+            ]
+          ],
+          "held": [
+            -19,
+            0,
+            0.5
+          ],
+          "id": "splice"
+        },
+        {
+          "route": [
+            [
+              -19,
+              0,
+              1.5
+            ],
+            [
+              -11,
+              0,
+              1.5
+            ],
+            [
+              -11,
+              0,
+              4.75
+            ],
+            [
+              -11,
+              0,
+              32
+            ],
+            [
+              -11,
+              0,
+              35
+            ],
+            [
+              6,
+              0,
+              35
+            ],
+            [
+              6,
+              0,
+              37
+            ]
+          ],
+          "held": [
+            -19,
+            0,
+            1.5
+          ],
+          "id": "workshop_agent_a"
+        },
+        {
+          "route": [
+            [
+              -19,
+              0,
+              2.5
+            ],
+            [
+              -11,
+              0,
+              2.5
+            ],
+            [
+              -11,
+              0,
+              4.75
+            ],
+            [
+              -11,
+              0,
+              32
+            ],
+            [
+              -11,
+              0,
+              35
+            ],
+            [
+              6,
+              0,
+              35
+            ],
+            [
+              6,
+              0,
+              37
+            ]
+          ],
+          "held": [
+            -19,
+            0,
+            2.5
+          ],
+          "id": "workshop_agent_b"
+        }
+      ],
+      "requires_encounter": "workshop_watch",
+      "release": {
+        "max": [
+          -11,
+          2,
+          3
+        ],
+        "min": [
+          -20.5,
+          0,
+          0
+        ]
+      }
+    },
+    "objectives": [
+      {
+        "id": "roof_crossed",
+        "arrival": {
+          "max": [
+            22,
+            6,
+            -22
+          ],
+          "min": [
+            20,
+            4,
+            -24
+          ]
+        },
+        "approach": [
+          21,
+          4,
+          -23
+        ],
+        "requires_encounter": "roof_crossing"
+      },
+      {
+        "id": "grenade_lesson_cleared",
+        "arrival": {
+          "max": [
+            13,
+            2,
+            -4
+          ],
+          "min": [
+            11,
+            0,
+            -6
+          ]
+        },
+        "approach": [
+          12,
+          0,
+          -5
+        ],
+        "requires_encounter": "paint_bay"
+      },
+      {
+        "id": "workshop_cleared",
+        "arrival": {
+          "max": [
+            -11,
+            2,
+            -2
+          ],
+          "min": [
+            -13,
+            0,
+            -4
+          ]
+        },
+        "approach": [
+          -12,
+          0,
+          -3
+        ],
+        "requires_encounter": "workshop_watch"
+      },
+      {
+        "id": "trench_cleared",
+        "arrival": {
+          "max": [
+            -4,
+            2,
+            23
+          ],
+          "min": [
+            -6,
+            0,
+            21
+          ]
+        },
+        "approach": [
+          -5,
+          0,
+          22
+        ],
+        "requires_encounter": "trench_watch"
+      },
+      {
+        "id": "heavy_cleared",
+        "arrival": {
+          "max": [
+            -4,
+            2,
+            29
+          ],
+          "min": [
+            -6,
+            0,
+            27
+          ]
+        },
+        "approach": [
+          -5,
+          0,
+          28
+        ],
+        "requires_encounter": "heavy_lesson"
+      },
+      {
+        "id": "freight_secured",
+        "arrival": {
+          "max": [
+            -4,
+            2,
+            33
+          ],
+          "min": [
+            -6,
+            0,
+            31
+          ]
+        },
+        "approach": [
+          -5,
+          0,
+          32
+        ],
+        "requires_encounter": "freight_watch"
+      }
+    ],
+    "departure": {
+      "requires_encounter": "freight_watch",
+      "boarding": {
+        "max": [
+          10,
+          2,
+          39
+        ],
+        "min": [
+          4,
+          0,
+          35
+        ]
+      },
+      "approach": [
+        6.5,
+        0,
+        37.5
+      ],
+      "panel": {
+        "kind": "m05_ship_departure",
+        "solid": "ship_control",
+        "size": [
+          0.8,
+          0.8
+        ],
+        "center": [
+          0,
+          0
+        ],
+        "face": "west"
+      }
+    },
+    "companion_start": [
+      -26,
+      4,
+      -30
+    ],
+    "tram": {
+      "speed": 1.2,
+      "solid": "tram_body",
+      "start": [
+        0,
+        0,
+        6
+      ],
+      "activation": {
+        "max": [
+          5,
+          3,
+          7.5
+        ],
+        "min": [
+          -1.5,
+          0.5,
+          4.5
+        ]
+      },
+      "end": [
+        0,
+        0,
+        28
+      ]
+    }
+  }
+}

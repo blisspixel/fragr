@@ -25,6 +25,7 @@ const LOW_TOP: float = 1.6
 var _built_info: Dictionary = {}
 var _half_extent: float = 0.0
 var _materials: Array[Material] = []
+var _solid_views: Array[MeshInstance3D] = []
 
 func _ready() -> void:
 	name = "ArenaCover"
@@ -43,13 +44,15 @@ func apply_map_info(info: Dictionary) -> void:
 	_built_info = info.duplicate(true)
 	_half_extent = float(info.get("half_extent", 50.0))
 	_materials.clear()
+	_solid_views.clear()
 	for kind: int in range(4):
 		_materials.append(ArenaMaterials.make(map_id, kind))
 	var presentation: Dictionary = info.get("presentation") if info.get("presentation") is Dictionary else {}
+	var venue: String = "low_water" if (info.get("m04") is Dictionary or info.get("m05") is Dictionary) else ""
 	var authored_materials: Dictionary[String, Material] = {}
 	if not presentation.is_empty():
 		for surface: String in MapGeometry.SURFACES:
-			authored_materials[surface] = ArenaMaterials.authored(surface)
+			authored_materials[surface] = ArenaMaterials.authored(surface, venue)
 		_materials[0] = authored_materials[presentation["ground"]]
 	for child in get_children():
 		remove_child(child)
@@ -63,8 +66,14 @@ func apply_map_info(info: Dictionary) -> void:
 		_add_solid(solids[index], material)
 	ArenaDecoration.build(self, solids, presentation.get("decorations", []), ArenaSky.preset_for(str(info.get("map_name", ""))))
 	var backdrop: ArenaBackdrop = ArenaBackdrop.new()
-	backdrop.build(map_id, _half_extent)
+	backdrop.build(map_id, _half_extent, venue)
 	add_child(backdrop)
+	var water: ArenaWater = ArenaWater.new()
+	water.build(info)
+	if water.patches.is_empty():
+		water.free()
+	else:
+		add_child(water)
 	ArenaSky.mark_world(self)
 	_hide_scene_props()
 
@@ -153,7 +162,29 @@ func _add_solid(solid: Dictionary, material: Material = null) -> void:
 	mesh.size = Vector3(size_x, height, size_z)
 
 	var node: MeshInstance3D = MeshInstance3D.new()
+	node.name = "Solid_%d" % _solid_views.size()
+	_solid_views.append(node)
 	node.mesh = mesh
 	node.position = Vector3((min_x + max_x) * 0.5, bottom + height * 0.5, (min_z + max_z) * 0.5)
 	node.material_override = material if material != null else _materials[3 if top <= LOW_TOP else 2]
 	add_child(node)
+
+## Only the registered tram solid and its surface panels move. The baseline
+## MapInfo stays immutable so prepared freight worlds retain their identity.
+func apply_m05(state: Dictionary) -> void:
+	var geometry: Dictionary = MissionState.geometry_for(_built_info)
+	if geometry.get("id") != MissionState.M05_ID:
+		return
+	var index: int = int(geometry["m05"]["tram"]["solid"])
+	if index >= _solid_views.size():
+		return
+	var valid: bool = state.get("id") == MissionState.M05_ID and state.get("m05") is Dictionary
+	var node: MeshInstance3D = _solid_views[index]
+	node.visible = valid
+	var delta: float = float(state["m05"]["tram"]["feet"][2]) - float(geometry["m05"]["tram"]["start"][2]) if valid else 0.0
+	var solid: Dictionary = geometry["tram_solid"]
+	node.position.z = (float(solid["min_z"]) + float(solid["max_z"])) * 0.5 + delta
+	for child: Node in get_children():
+		if child.has_meta("host_solid") and int(child.get_meta("host_solid")) == index:
+			(child as Node3D).visible = valid
+			(child as Node3D).position = child.get_meta("baseline_position") + Vector3(0.0, 0.0, delta)

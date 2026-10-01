@@ -37,8 +37,82 @@ cargo run -p fragr-server --locked -- --local-mission persons_unknown
 That development child prints its loopback readiness line and serves the
 normal wire; it keeps no run file. `--map-file server/maps/m02-persons-unknown.json
 --bots 0` also works for a dedicated development host. Clients need gameplay
-capability 22, including spectators. Capability 21 clients are refused before
-receiving the strict `inspection_glass` surface.
+capability 26, including spectators, under current campaign rules revision 3.
+Earlier campaign readers are refused before receiving mission geometry.
+
+`m03-scheduled-service.json` is the level 3 freight-yard prototype, map 1003.
+Two tracks, ordinary stairs, car-roof bridges and ground flanks support 22
+enemies across six encounters, including four Jammers. Clear the mast guards
+and shoot the registered 40 HP transmitter pod to select the precomputed
+fallen world. Clear the final train watch and deliberately use the locomotive
+control with the living ready party aboard. Three optional recall cars release
+after their local guards and party approach; their captive movement never
+gates departure. Both worlds validate required routes and evacuation segments.
+Clients of every role require capability 26. The original M01/M02 bytes remain
+unchanged. The input-driven route lives in `client/qa/m03-scheduled-service.json`;
+its accurate aim establishes authoring evidence, not fresh-player acceptance.
+
+```bash
+cargo run -p fragr-server --locked -- --local-mission scheduled_service
+```
+
+This practice child has no save. The local menu can also resume a completed M02
+run into M03, preserving its equipment and remaining Episode I allowance.
+
+`m04_notice_to_vacate.json` is the level 4 Low Water prototype, map 1004.
+Six ordered encounters field 28 enemies, including seven flying Notaries.
+Future groups spawn only after their predecessor clears. The first Notary
+lesson has one drone and suppresses companion support fire. Later encounters
+combine ground Sweepers and Clerks with at most two active Notaries per group.
+Clear the market and court, climb the authored service stairs, then deliberately
+use the roof departure panel with the living ready party aboard. A secured
+clinic shutter opens one precomputed world through ordinary Use; approaching
+the clinic releases optional patients along grounded routes. Rescue never
+gates departure. Three secrets are authored; the awning is reached by stairs,
+and the meal medkit is at the table's open edge rather than under its top.
+
+```bash
+cargo run -p fragr-server --locked -- --local-mission notice_to_vacate
+```
+
+This development child has no save. Continue Run promotes a compatible M03
+exit into M04 with exact entry equipment, body, remaining continues and retained
+car choices. All mission roles require capability 26 and rules revision 3.
+Notary `hover` definitions provide a finite volume, height `band`, two to eight
+clear patrol points and a grounded reachable `approach`. Both clinic worlds
+must clear the whole raised body and patrol segments; no general airborne
+navigation graph is implied. Patient routes reject ambiguous self-overlap.
+The ordinary-input QA route is `client/qa/m04-market.json`. Its complete gate
+and visual evidence are recorded in the [prototype plan](../../docs/plans/m04-notice-to-vacate-prototype.md).
+
+`m05_no_forwarding_address.json` is the level 5 Low Water roof, workshop and
+freight prototype, map 1005. Six ordered groups hold 21 guards, including six
+Notaries and two Heavy Sweepers. The Grenade pickup precedes the paint-bay
+fight, and the fifth group introduces one Heavy alone. Complete the six
+physical Arrival objectives and freight watch to open the single gate, then
+aim at and use the ship panel with the living ready party aboard.
+
+```bash
+cargo run -p fragr-server --locked -- --local-mission no_forwarding_address
+```
+
+Every role in all five live authored missions requires capability 26. The
+development child has no save; Continue Run promotes a compatible M04 exit
+while retaining earlier choices. Splice and two named captive agents release
+together only after workshop clearance and actual party approach. Their
+grounded routes reach the ship through the opened gate. Freed and physically
+aboard are separate facts; civilian arrival never gates player departure.
+
+The parked `tram_body` solid is the registered baseline. Its M05 live pose
+translates that same collider along one cleared Z lane, at fixed speed after
+rescue and a three-second boarding pause. Current movement, shots, grenades and
+visibility consume the live body. Supported riders move with it; a blocking
+actor or failed standing clearance stops the whole step. Conservative prepared
+navigation excludes the swept lane, with clear side walking paths in both
+freight worlds. M01-M04 map bytes remain unchanged. Authoring and ride evidence
+belong to the [server plan](../../docs/plans/m05-server-authoring.md) and
+[bounded tram plan](../../docs/plans/m05-bounded-tram.md); full pacing, optional
+jump routes and fresh-player acceptance remain separate gates.
 
 For M01, from the repository root:
 
@@ -52,7 +126,8 @@ Without it, the command above retains four-seat development party behavior.
 Solo death waits for a continue, the fourth death ends the run, and leaving cannot
 refill or reclaim it. Spectators can watch either mode. Retry restores original
 entry equipment, geometry, guards, supplies and objectives together. The owned
-local child writes the disk run and, in this draft, carries it into M02. An
+local child writes the disk run and carries it through the local M02 and M03
+development missions. An
 ordinary dedicated `--campaign-run` process has no disk save. A dropped pawn can
 resume briefly through the existing socket token.
 
@@ -107,7 +182,8 @@ the option. Final multi-tier encounter and resource balance remains unfinished.
   entry regions in total. Each group has a unique `id`, nonempty `regions` and
   `enemies`, and optional `after` naming an earlier group. Each region is an
   inclusive feet-position box with finite ordered `min`/`max` bounds inside the
-  map. Each enemy has a unique `id`, `kind` (`clerk`, `sweeper`, `heavy_sweeper` or `turret`), supported and
+  map. Each enemy has a unique `id`, `kind` (`clerk`, `sweeper`, `heavy_sweeper`,
+  `turret`, `crawler` or `jammer`), supported and
   reachable `feet`, and bounded `yaw`, just like a spawn. Unknown fields are
   rejected. No scripts or arbitrary behavior expressions. These maps require
   gameplay capability 3. See [actor semantics](../../docs/protocol.md#campaign-actor-identity).
@@ -116,6 +192,13 @@ the option. Final multi-tier encounter and resource balance remains unfinished.
   its flank, then a yard with one Heavy Sweeper. It is a test range for
   `client/qa/heavy-turret.json`, not a mission. Place a turret only where cover
   and a flank route exist; never as an unavoidable gauntlet.
+  `test/jammer-range.json` (map 1012) demonstrates the stationary Jammer's
+  committed slow pulse and a mixed Sweeper fight, with freight-car sight breaks,
+  left and right flanks and ordinary discovery supplies. Maps containing a Jammer
+  introduced capability 23; current Discovery ranges require capability 26 for
+  every role, including counted private grenade inventory. Run it with `--bots 0 --map-file
+  server/maps/test/jammer-range.json` and capture with `client/qa/jammer-range.json`.
+  It is a development combat range, not Scheduled Service or a persistent mission.
 - `mission`: optional, discovery only, requires capability 6 for shared difficulty
   and party readiness, or 7 when the host selects solo run rules. The registered
   `id` is `recall_notice`. `record` and `departure` each contain `panel` (the same
@@ -190,8 +273,8 @@ already-validated public record ID, never dump document contents or source paths
 The source path is never sent to clients. `MapInfo` supplies the validated geometry
 and materials. Reloading a map means restarting the host; live content reload has
 no implemented contract yet. M01 has a versioned local mission-entry run file;
-the stacked carry draft promotes a validated M01 exit into an M02 entry under
-the same local run ID. The separate M02 development party has no disk save.
+the local carry path promotes validated exits through M02, M03, M04 and M05 under
+the same local run ID. Separate development parties have no disk save.
 
 ## Verification
 

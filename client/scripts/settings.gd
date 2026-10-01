@@ -51,7 +51,7 @@ const DEFAULTS: Dictionary = {
 		"move_forward": "", "move_back": "", "move_left": "", "move_right": "",
 		"strafe": "", "jump": "", "turn_left": "", "turn_right": "",
 		"look_up": "", "look_down": "", "center_view": "", "fire": "",
-		"interact": "", "weapon_next": "", "weapon_prev": "", "weapon_1": "",
+		"interact": "", "throw_grenade": "", "weapon_next": "", "weapon_prev": "", "weapon_1": "",
 		"weapon_2": "", "weapon_3": "", "weapon_4": "", "weapon_5": "",
 		"scoreboard": "", "speak": "", "pause": "", "leave_match": "",
 		"join_as_human": "", "cycle_cam": "", "toggle_follow": "",
@@ -184,6 +184,8 @@ func load_from_disk() -> void:
 		for key in (DEFAULTS[section] as Dictionary):
 			var fallback: Variant = (DEFAULTS[section] as Dictionary)[key]
 			set_value(section, key, cfg.get_value(section, key, fallback))
+	if not cfg.has_section_key("bindings", "throw_grenade"):
+		InputBindings.adopt_unclaimed_defaults(self, "throw_grenade")
 
 func save_to_disk() -> Error:
 	var cfg: ConfigFile = ConfigFile.new()

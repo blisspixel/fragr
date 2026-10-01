@@ -1,0 +1,2675 @@
+{
+  "version": 1,
+  "map_id": 1004,
+  "name": "Notice to Vacate",
+  "half_extent": 40,
+  "ground": "concrete",
+  "equipment": "discovery",
+  "solids": [
+    {
+      "id": "tram_workshop",
+      "min": [
+        22,
+        0,
+        -32
+      ],
+      "max": [
+        22.5,
+        4,
+        -26
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "workshop_west_north",
+      "min": [
+        22,
+        0,
+        -22
+      ],
+      "max": [
+        22.5,
+        4,
+        -18
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "workshop_north",
+      "min": [
+        22,
+        0,
+        -32
+      ],
+      "max": [
+        34,
+        4,
+        -31.5
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "workshop_south",
+      "min": [
+        22,
+        0,
+        -18.5
+      ],
+      "max": [
+        34,
+        4,
+        -18
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "workshop_east",
+      "min": [
+        33.5,
+        0,
+        -32
+      ],
+      "max": [
+        34,
+        4,
+        -18
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "tram_stop_bench",
+      "min": [
+        -7,
+        0,
+        -35
+      ],
+      "max": [
+        -3,
+        0.8,
+        -33
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "tram_cab",
+      "min": [
+        25,
+        0,
+        -15
+      ],
+      "max": [
+        32,
+        2.5,
+        -9
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "tram_roof",
+      "min": [
+        24.5,
+        2.5,
+        -15.5
+      ],
+      "max": [
+        32.5,
+        3,
+        -8.5
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "notice_board_host",
+      "min": [
+        -3,
+        0,
+        -17
+      ],
+      "max": [
+        3,
+        3,
+        -16.5
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "paint_locker_host",
+      "min": [
+        27.5,
+        0,
+        -25
+      ],
+      "max": [
+        28.5,
+        2,
+        -24.5
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "clinic_west",
+      "min": [
+        -35,
+        0,
+        -8
+      ],
+      "max": [
+        -34.5,
+        4,
+        14
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "clinic_south",
+      "min": [
+        -35,
+        0,
+        -8
+      ],
+      "max": [
+        -22,
+        4,
+        -7.5
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "clinic_north",
+      "min": [
+        -35,
+        0,
+        13.5
+      ],
+      "max": [
+        -22,
+        4,
+        14
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "clinic_east_south",
+      "min": [
+        -22.5,
+        0,
+        -7.5
+      ],
+      "max": [
+        -22,
+        4,
+        0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "clinic_east_north",
+      "min": [
+        -22.5,
+        0,
+        4
+      ],
+      "max": [
+        -22,
+        4,
+        13.5
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "clinic_shutter",
+      "min": [
+        -22.5,
+        0,
+        0
+      ],
+      "max": [
+        -22,
+        2.7,
+        4
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "clinic_switch_host",
+      "min": [
+        -22.5,
+        0,
+        -2.5
+      ],
+      "max": [
+        -22,
+        2.5,
+        -1
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "clinic_sign_host",
+      "min": [
+        -22.5,
+        4,
+        0
+      ],
+      "max": [
+        -22,
+        5.5,
+        4
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "clinic_bed_a",
+      "min": [
+        -33,
+        0,
+        -5
+      ],
+      "max": [
+        -30,
+        0.65,
+        -3
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "clinic_bed_b",
+      "min": [
+        -33,
+        0,
+        7
+      ],
+      "max": [
+        -30,
+        0.65,
+        9
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "clinic_counter",
+      "min": [
+        -32,
+        0,
+        11.5
+      ],
+      "max": [
+        -25,
+        0.9,
+        13
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "clinic_care_board",
+      "min": [
+        -34.5,
+        1,
+        -1
+      ],
+      "max": [
+        -34,
+        3,
+        3
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "stall_sw_bench",
+      "min": [
+        -15,
+        0,
+        -7
+      ],
+      "max": [
+        -9,
+        0.7,
+        -6
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "stall_sw_awning",
+      "min": [
+        -15,
+        2.8,
+        -7
+      ],
+      "max": [
+        -9,
+        3,
+        -2
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "stall_sw_post_a",
+      "min": [
+        -15,
+        0,
+        -7
+      ],
+      "max": [
+        -14.75,
+        2.8,
+        -6.75
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "stall_sw_post_b",
+      "min": [
+        -9.25,
+        0,
+        -2.25
+      ],
+      "max": [
+        -9,
+        2.8,
+        -2
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "stall_nw_bench",
+      "min": [
+        -15,
+        0,
+        2
+      ],
+      "max": [
+        -9,
+        0.7,
+        3
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "stall_nw_awning",
+      "min": [
+        -15,
+        2.8,
+        2
+      ],
+      "max": [
+        -9,
+        3,
+        7
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "stall_nw_post_a",
+      "min": [
+        -15,
+        0,
+        2
+      ],
+      "max": [
+        -14.75,
+        2.8,
+        2.25
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "stall_nw_post_b",
+      "min": [
+        -9.25,
+        0,
+        6.75
+      ],
+      "max": [
+        -9,
+        2.8,
+        7
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "stall_se_bench",
+      "min": [
+        7,
+        0,
+        -7
+      ],
+      "max": [
+        13,
+        0.7,
+        -6
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "stall_se_awning",
+      "min": [
+        7,
+        2.8,
+        -7
+      ],
+      "max": [
+        13,
+        3,
+        -2
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "stall_se_post_a",
+      "min": [
+        7,
+        0,
+        -7
+      ],
+      "max": [
+        7.25,
+        2.8,
+        -6.75
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "stall_se_post_b",
+      "min": [
+        12.75,
+        0,
+        -2.25
+      ],
+      "max": [
+        13,
+        2.8,
+        -2
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "stall_ne_bench",
+      "min": [
+        7,
+        0,
+        2
+      ],
+      "max": [
+        13,
+        0.7,
+        3
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "stall_ne_awning",
+      "min": [
+        7,
+        2.8,
+        2
+      ],
+      "max": [
+        13,
+        3,
+        7
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "stall_ne_post_a",
+      "min": [
+        7,
+        0,
+        2
+      ],
+      "max": [
+        7.25,
+        2.8,
+        2.25
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "stall_ne_post_b",
+      "min": [
+        12.75,
+        0,
+        6.75
+      ],
+      "max": [
+        13,
+        2.8,
+        7
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "repair_bench",
+      "min": [
+        -13,
+        0,
+        10
+      ],
+      "max": [
+        -5,
+        0.8,
+        11.5
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "repair_sign_host",
+      "min": [
+        -5.5,
+        0.8,
+        10
+      ],
+      "max": [
+        -5,
+        3,
+        11.5
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "market_east_cover",
+      "min": [
+        15,
+        0,
+        -1
+      ],
+      "max": [
+        18,
+        1,
+        2
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "market_south_cover",
+      "min": [
+        -2,
+        0,
+        -6
+      ],
+      "max": [
+        1,
+        0.8,
+        -4
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "market_north_cover",
+      "min": [
+        -2,
+        0,
+        8
+      ],
+      "max": [
+        1,
+        0.8,
+        10
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "awning_secret_link",
+      "min": [
+        -13,
+        2.8,
+        -10
+      ],
+      "max": [
+        -9,
+        3,
+        -7
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "awning_service_step_0",
+      "min": [
+        -21,
+        0,
+        -12
+      ],
+      "max": [
+        -19,
+        0.5,
+        -10
+      ],
+      "surface": "concrete"
+    },
+    {
+      "id": "awning_service_step_1",
+      "min": [
+        -19,
+        0,
+        -12
+      ],
+      "max": [
+        -17,
+        1.0,
+        -10
+      ],
+      "surface": "concrete"
+    },
+    {
+      "id": "awning_service_step_2",
+      "min": [
+        -17,
+        0,
+        -12
+      ],
+      "max": [
+        -15,
+        1.5,
+        -10
+      ],
+      "surface": "concrete"
+    },
+    {
+      "id": "awning_service_step_3",
+      "min": [
+        -15,
+        0,
+        -12
+      ],
+      "max": [
+        -13,
+        2.0,
+        -10
+      ],
+      "surface": "concrete"
+    },
+    {
+      "id": "awning_service_step_4",
+      "min": [
+        -13,
+        0,
+        -12
+      ],
+      "max": [
+        -11,
+        2.5,
+        -10
+      ],
+      "surface": "concrete"
+    },
+    {
+      "id": "awning_service_step_5",
+      "min": [
+        -11,
+        0,
+        -12
+      ],
+      "max": [
+        -9,
+        3.0,
+        -10
+      ],
+      "surface": "concrete"
+    },
+    {
+      "id": "awning_jump_bench",
+      "min": [
+        -18,
+        0,
+        -6
+      ],
+      "max": [
+        -16,
+        1,
+        -3
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "awning_jump_low",
+      "min": [
+        -18,
+        1.8,
+        -3
+      ],
+      "max": [
+        -16,
+        2,
+        0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "awning_jump_mid",
+      "min": [
+        -15.5,
+        2.3,
+        -1
+      ],
+      "max": [
+        -13.5,
+        2.5,
+        1
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "awning_secret_sign",
+      "min": [
+        -15,
+        3,
+        -3
+      ],
+      "max": [
+        -14.75,
+        4,
+        -2
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "court_south_left",
+      "min": [
+        -20,
+        0,
+        16
+      ],
+      "max": [
+        -8,
+        4,
+        17
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "court_south_right",
+      "min": [
+        8,
+        0,
+        16
+      ],
+      "max": [
+        20,
+        4,
+        17
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "court_west_back",
+      "min": [
+        -20,
+        0,
+        17
+      ],
+      "max": [
+        -19.5,
+        5,
+        39
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "court_east_back",
+      "min": [
+        19.5,
+        0,
+        17
+      ],
+      "max": [
+        20,
+        5,
+        39
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "court_north_back",
+      "min": [
+        -20,
+        0,
+        39
+      ],
+      "max": [
+        20,
+        5,
+        39.5
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "court_west_balcony",
+      "min": [
+        -19,
+        2.5,
+        18
+      ],
+      "max": [
+        -16,
+        3,
+        34
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "court_east_balcony",
+      "min": [
+        16,
+        2.5,
+        18
+      ],
+      "max": [
+        19,
+        3,
+        34
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "court_north_balcony",
+      "min": [
+        -19,
+        2.5,
+        34
+      ],
+      "max": [
+        11,
+        3,
+        38
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "court_balcony_crossing",
+      "min": [
+        -19,
+        2.5,
+        31
+      ],
+      "max": [
+        19,
+        3,
+        34
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "court_stair_join",
+      "min": [
+        15,
+        2.5,
+        28
+      ],
+      "max": [
+        16,
+        3,
+        30
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "court_roof_step_0",
+      "min": [
+        12,
+        0,
+        18
+      ],
+      "max": [
+        15,
+        0.5,
+        20
+      ],
+      "surface": "concrete"
+    },
+    {
+      "id": "court_roof_step_1",
+      "min": [
+        12,
+        0,
+        20
+      ],
+      "max": [
+        15,
+        1.0,
+        22
+      ],
+      "surface": "concrete"
+    },
+    {
+      "id": "court_roof_step_2",
+      "min": [
+        12,
+        0,
+        22
+      ],
+      "max": [
+        15,
+        1.5,
+        24
+      ],
+      "surface": "concrete"
+    },
+    {
+      "id": "court_roof_step_3",
+      "min": [
+        12,
+        0,
+        24
+      ],
+      "max": [
+        15,
+        2.0,
+        26
+      ],
+      "surface": "concrete"
+    },
+    {
+      "id": "court_roof_step_4",
+      "min": [
+        12,
+        0,
+        26
+      ],
+      "max": [
+        15,
+        2.5,
+        28
+      ],
+      "surface": "concrete"
+    },
+    {
+      "id": "court_roof_step_5",
+      "min": [
+        12,
+        0,
+        28
+      ],
+      "max": [
+        15,
+        3.0,
+        30
+      ],
+      "surface": "concrete"
+    },
+    {
+      "id": "court_roof_step_6",
+      "min": [
+        12,
+        0,
+        30
+      ],
+      "max": [
+        15,
+        3.5,
+        32
+      ],
+      "surface": "concrete"
+    },
+    {
+      "id": "court_roof_step_7",
+      "min": [
+        12,
+        0,
+        32
+      ],
+      "max": [
+        15,
+        4.0,
+        34
+      ],
+      "surface": "concrete"
+    },
+    {
+      "id": "court_roof_exit_deck",
+      "min": [
+        11,
+        3.5,
+        34
+      ],
+      "max": [
+        16,
+        4,
+        39
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "roof_departure_host",
+      "min": [
+        15.5,
+        4,
+        35.5
+      ],
+      "max": [
+        16,
+        6,
+        37.5
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "court_water_tank_host",
+      "min": [
+        -18,
+        3,
+        35
+      ],
+      "max": [
+        -15,
+        4.5,
+        38
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "court_printer_host",
+      "min": [
+        7,
+        0,
+        29
+      ],
+      "max": [
+        9,
+        1.2,
+        31
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "court_meal_table_top",
+      "min": [
+        -3,
+        0.7,
+        27
+      ],
+      "max": [
+        3,
+        0.9,
+        30
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "meal_table_leg_sw",
+      "min": [
+        -3,
+        0,
+        27
+      ],
+      "max": [
+        -2.7,
+        0.7,
+        27.3
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "meal_table_leg_se",
+      "min": [
+        2.7,
+        0,
+        27
+      ],
+      "max": [
+        3,
+        0.7,
+        27.3
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "meal_table_leg_nw",
+      "min": [
+        -3,
+        0,
+        29.7
+      ],
+      "max": [
+        -2.7,
+        0.7,
+        30
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "meal_table_leg_ne",
+      "min": [
+        2.7,
+        0,
+        29.7
+      ],
+      "max": [
+        3,
+        0.7,
+        30
+      ],
+      "surface": "enamel"
+    }
+  ],
+  "spawns": [
+    {
+      "feet": [
+        0,
+        0,
+        -34
+      ],
+      "id": "arrival",
+      "yaw": 1.5707963
+    }
+  ],
+  "landmarks": [
+    {
+      "id": "tram_arrival",
+      "feet": [
+        0,
+        0,
+        -34
+      ]
+    },
+    {
+      "id": "notice_board",
+      "feet": [
+        -5,
+        0,
+        -20
+      ]
+    },
+    {
+      "id": "notary_square",
+      "feet": [
+        0,
+        0,
+        -12
+      ]
+    },
+    {
+      "id": "market_loop",
+      "feet": [
+        0,
+        0,
+        4
+      ]
+    },
+    {
+      "id": "clinic_control",
+      "feet": [
+        -20.5,
+        0,
+        -1.75
+      ]
+    },
+    {
+      "id": "clinic_care",
+      "feet": [
+        -29,
+        0,
+        2
+      ]
+    },
+    {
+      "id": "court_meal_table",
+      "feet": [
+        -2.3,
+        0,
+        26
+      ]
+    },
+    {
+      "id": "court_balcony",
+      "feet": [
+        8,
+        3,
+        36
+      ]
+    },
+    {
+      "id": "roof_departure",
+      "feet": [
+        13.5,
+        4,
+        36.5
+      ]
+    }
+  ],
+  "supplies": [
+    {
+      "id": "arrival_rifle",
+      "feet": [
+        2,
+        0,
+        -32
+      ],
+      "grant": {
+        "kind": "weapon",
+        "weapon": "flechette"
+      },
+      "claim": "personal",
+      "secret": false
+    },
+    {
+      "id": "arrival_bullets",
+      "feet": [
+        4,
+        0,
+        -32
+      ],
+      "grant": {
+        "amount": 60,
+        "kind": "ammo",
+        "pool": "bullets"
+      },
+      "claim": "contested",
+      "secret": false
+    },
+    {
+      "id": "arrival_armor",
+      "feet": [
+        -2,
+        0,
+        -32
+      ],
+      "grant": {
+        "kind": "armor",
+        "amount": 50
+      },
+      "claim": "contested",
+      "secret": false
+    },
+    {
+      "id": "board_bullets",
+      "feet": [
+        -4,
+        0,
+        -14
+      ],
+      "grant": {
+        "amount": 40,
+        "kind": "ammo",
+        "pool": "bullets"
+      },
+      "claim": "contested",
+      "secret": false
+    },
+    {
+      "id": "board_health",
+      "feet": [
+        -6,
+        0,
+        -14
+      ],
+      "grant": {
+        "kind": "health",
+        "amount": 25
+      },
+      "claim": "contested",
+      "secret": false
+    },
+    {
+      "id": "repair_shotgun",
+      "feet": [
+        -10,
+        0,
+        8.5
+      ],
+      "grant": {
+        "kind": "weapon",
+        "weapon": "scatter"
+      },
+      "claim": "personal",
+      "secret": false
+    },
+    {
+      "id": "repair_shells",
+      "feet": [
+        -8,
+        0,
+        8.5
+      ],
+      "grant": {
+        "amount": 20,
+        "kind": "ammo",
+        "pool": "shells"
+      },
+      "claim": "contested",
+      "secret": false
+    },
+    {
+      "id": "repair_bullets",
+      "feet": [
+        -6,
+        0,
+        8.5
+      ],
+      "grant": {
+        "amount": 80,
+        "kind": "ammo",
+        "pool": "bullets"
+      },
+      "claim": "contested",
+      "secret": false
+    },
+    {
+      "id": "repair_health",
+      "feet": [
+        -12,
+        0,
+        8.5
+      ],
+      "grant": {
+        "kind": "health",
+        "amount": 50
+      },
+      "claim": "contested",
+      "secret": false
+    },
+    {
+      "id": "clinic_health",
+      "feet": [
+        -29,
+        0,
+        10.5
+      ],
+      "grant": {
+        "kind": "health",
+        "amount": 100
+      },
+      "claim": "contested",
+      "secret": false
+    },
+    {
+      "id": "clinic_bullets",
+      "feet": [
+        -27,
+        0,
+        10.5
+      ],
+      "grant": {
+        "amount": 60,
+        "kind": "ammo",
+        "pool": "bullets"
+      },
+      "claim": "contested",
+      "secret": false
+    },
+    {
+      "id": "market_recovery_health",
+      "feet": [
+        12,
+        0,
+        10
+      ],
+      "grant": {
+        "kind": "health",
+        "amount": 50
+      },
+      "claim": "contested",
+      "secret": false
+    },
+    {
+      "id": "market_recovery_bullets",
+      "feet": [
+        14,
+        0,
+        10
+      ],
+      "grant": {
+        "amount": 60,
+        "kind": "ammo",
+        "pool": "bullets"
+      },
+      "claim": "contested",
+      "secret": false
+    },
+    {
+      "id": "court_bullets",
+      "feet": [
+        -10,
+        0,
+        20
+      ],
+      "grant": {
+        "amount": 80,
+        "kind": "ammo",
+        "pool": "bullets"
+      },
+      "claim": "contested",
+      "secret": false
+    },
+    {
+      "id": "court_shells",
+      "feet": [
+        -8,
+        0,
+        20
+      ],
+      "grant": {
+        "amount": 20,
+        "kind": "ammo",
+        "pool": "shells"
+      },
+      "claim": "contested",
+      "secret": false
+    },
+    {
+      "id": "court_health",
+      "feet": [
+        -6,
+        0,
+        20
+      ],
+      "grant": {
+        "kind": "health",
+        "amount": 100
+      },
+      "claim": "contested",
+      "secret": false
+    },
+    {
+      "id": "court_armor",
+      "feet": [
+        -12,
+        0,
+        20
+      ],
+      "grant": {
+        "kind": "armor",
+        "amount": 50
+      },
+      "claim": "contested",
+      "secret": false
+    },
+    {
+      "id": "paint_67_shells",
+      "feet": [
+        28,
+        0,
+        -23
+      ],
+      "grant": {
+        "amount": 12,
+        "kind": "ammo",
+        "pool": "shells"
+      },
+      "claim": "contested",
+      "secret": true
+    },
+    {
+      "id": "awning_67_armor",
+      "feet": [
+        -12,
+        3,
+        -4
+      ],
+      "grant": {
+        "kind": "armor",
+        "amount": 50
+      },
+      "claim": "contested",
+      "secret": true
+    },
+    {
+      "id": "meal_67_medkit",
+      "feet": [
+        -2.3,
+        0,
+        26
+      ],
+      "grant": {
+        "kind": "health",
+        "amount": 50
+      },
+      "claim": "contested",
+      "secret": true
+    }
+  ],
+  "decorations": [
+    {
+      "solid": "notice_board_host",
+      "face": "north",
+      "center": [
+        0,
+        0
+      ],
+      "size": [
+        5,
+        2.5
+      ],
+      "kind": "m04_notice_board"
+    },
+    {
+      "solid": "paint_locker_host",
+      "face": "south",
+      "center": [
+        0,
+        0
+      ],
+      "size": [
+        0.8,
+        1.6
+      ],
+      "kind": "m04_paint_locker"
+    },
+    {
+      "solid": "clinic_sign_host",
+      "face": "east",
+      "center": [
+        0,
+        0
+      ],
+      "size": [
+        3.5,
+        1.2
+      ],
+      "kind": "m04_clinic_sign"
+    },
+    {
+      "solid": "clinic_care_board",
+      "face": "east",
+      "center": [
+        0,
+        0
+      ],
+      "size": [
+        3.4,
+        1.5
+      ],
+      "kind": "m04_clinic_care"
+    },
+    {
+      "solid": "repair_sign_host",
+      "face": "east",
+      "center": [
+        0,
+        0
+      ],
+      "size": [
+        1.2,
+        1.8
+      ],
+      "kind": "m04_repair_bench"
+    },
+    {
+      "solid": "awning_secret_sign",
+      "face": "west",
+      "center": [
+        0,
+        0
+      ],
+      "size": [
+        0.8,
+        0.8
+      ],
+      "kind": "m04_noodle_six"
+    },
+    {
+      "solid": "meal_table_leg_sw",
+      "face": "north",
+      "center": [
+        0,
+        0
+      ],
+      "size": [
+        0.24,
+        0.5
+      ],
+      "kind": "m04_meal_six"
+    },
+    {
+      "solid": "court_printer_host",
+      "face": "south",
+      "center": [
+        0,
+        0
+      ],
+      "size": [
+        1.6,
+        0.8
+      ],
+      "kind": "m04_field_printer"
+    },
+    {
+      "solid": "stall_sw_awning",
+      "face": "up",
+      "center": [
+        0,
+        0
+      ],
+      "size": [
+        5.5,
+        4.5
+      ],
+      "kind": "m04_market_canvas"
+    },
+    {
+      "solid": "stall_nw_awning",
+      "face": "up",
+      "center": [
+        0,
+        0
+      ],
+      "size": [
+        5.5,
+        4.5
+      ],
+      "kind": "m04_market_canvas"
+    },
+    {
+      "solid": "stall_se_awning",
+      "face": "up",
+      "center": [
+        0,
+        0
+      ],
+      "size": [
+        5.5,
+        4.5
+      ],
+      "kind": "m04_market_canvas"
+    },
+    {
+      "solid": "stall_ne_awning",
+      "face": "up",
+      "center": [
+        0,
+        0
+      ],
+      "size": [
+        5.5,
+        4.5
+      ],
+      "kind": "m04_market_canvas"
+    },
+    {
+      "solid": "court_water_tank_host",
+      "face": "north",
+      "center": [
+        0,
+        0
+      ],
+      "size": [
+        2.5,
+        1.1
+      ],
+      "kind": "m04_water_tank"
+    },
+    {
+      "solid": "tram_cab",
+      "face": "west",
+      "center": [
+        0,
+        0
+      ],
+      "size": [
+        5,
+        1.8
+      ],
+      "kind": "m04_tram_vote"
+    },
+    {
+      "solid": "tram_workshop",
+      "face": "west",
+      "center": [
+        0,
+        0
+      ],
+      "size": [
+        5.5,
+        3
+      ],
+      "kind": "m04_workshop"
+    }
+  ],
+  "encounters": [
+    {
+      "id": "notice_board_guards",
+      "regions": [
+        {
+          "min": [
+            -8,
+            0,
+            -24
+          ],
+          "max": [
+            8,
+            3,
+            -13
+          ]
+        }
+      ],
+      "enemies": [
+        {
+          "id": "notice_clerk",
+          "kind": "clerk",
+          "feet": [
+            -4,
+            0,
+            -15
+          ],
+          "yaw": 4.712389
+        },
+        {
+          "id": "notice_sweeper_a",
+          "kind": "sweeper",
+          "feet": [
+            -7,
+            0,
+            -12
+          ],
+          "yaw": 4.712389
+        },
+        {
+          "id": "notice_sweeper_b",
+          "kind": "sweeper",
+          "feet": [
+            7,
+            0,
+            -12
+          ],
+          "yaw": 4.712389
+        }
+      ]
+    },
+    {
+      "id": "notary_lesson",
+      "regions": [
+        {
+          "min": [
+            -3,
+            0,
+            -15
+          ],
+          "max": [
+            3,
+            3,
+            -9
+          ]
+        }
+      ],
+      "enemies": [
+        {
+          "id": "lesson_notary",
+          "kind": "notary",
+          "feet": [
+            10,
+            4,
+            -14
+          ],
+          "yaw": 4.712389,
+          "hover": {
+            "volume": {
+              "min": [
+                6,
+                3.5,
+                -19
+              ],
+              "max": [
+                17,
+                4.7,
+                -7
+              ]
+            },
+            "band": [
+              3.5,
+              4.7
+            ],
+            "patrol": [
+              [
+                10,
+                4,
+                -14
+              ],
+              [
+                10,
+                4,
+                -9
+              ],
+              [
+                7,
+                4,
+                -9
+              ]
+            ],
+            "approach": [
+              0,
+              0,
+              -12
+            ]
+          }
+        }
+      ],
+      "after": "notice_board_guards"
+    },
+    {
+      "id": "sweep_advance",
+      "regions": [
+        {
+          "min": [
+            -18,
+            0,
+            -9
+          ],
+          "max": [
+            18,
+            4,
+            5
+          ]
+        }
+      ],
+      "enemies": [
+        {
+          "id": "advance_notary_a",
+          "kind": "notary",
+          "feet": [
+            -10,
+            5.2,
+            -4
+          ],
+          "yaw": 4.712389,
+          "hover": {
+            "volume": {
+              "min": [
+                -18,
+                4.5,
+                -10
+              ],
+              "max": [
+                -4,
+                6.1,
+                14
+              ]
+            },
+            "band": [
+              4.5,
+              6.1
+            ],
+            "patrol": [
+              [
+                -10,
+                5.2,
+                -4
+              ],
+              [
+                -10,
+                5.2,
+                5
+              ],
+              [
+                -6,
+                5.2,
+                7
+              ]
+            ],
+            "approach": [
+              0,
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "id": "advance_notary_b",
+          "kind": "notary",
+          "feet": [
+            10,
+            5.2,
+            -4
+          ],
+          "yaw": 4.712389,
+          "hover": {
+            "volume": {
+              "min": [
+                4,
+                4.5,
+                -10
+              ],
+              "max": [
+                18,
+                6.1,
+                14
+              ]
+            },
+            "band": [
+              4.5,
+              6.1
+            ],
+            "patrol": [
+              [
+                10,
+                5.2,
+                -4
+              ],
+              [
+                10,
+                5.2,
+                5
+              ],
+              [
+                6,
+                5.2,
+                7
+              ]
+            ],
+            "approach": [
+              0,
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "id": "advance_sweeper_a",
+          "kind": "sweeper",
+          "feet": [
+            -18,
+            0,
+            -8
+          ],
+          "yaw": 4.712389
+        },
+        {
+          "id": "advance_sweeper_b",
+          "kind": "sweeper",
+          "feet": [
+            0,
+            0,
+            -1
+          ],
+          "yaw": 4.712389
+        },
+        {
+          "id": "advance_sweeper_c",
+          "kind": "sweeper",
+          "feet": [
+            18,
+            0,
+            -8
+          ],
+          "yaw": 4.712389
+        }
+      ],
+      "after": "notary_lesson"
+    },
+    {
+      "id": "market_wave_a",
+      "regions": [
+        {
+          "min": [
+            -5,
+            0,
+            5
+          ],
+          "max": [
+            5,
+            4,
+            12
+          ]
+        }
+      ],
+      "enemies": [
+        {
+          "id": "hold_a_notary",
+          "kind": "notary",
+          "feet": [
+            -10,
+            5.2,
+            5
+          ],
+          "yaw": 4.712389,
+          "hover": {
+            "volume": {
+              "min": [
+                -18,
+                4.5,
+                -10
+              ],
+              "max": [
+                -4,
+                6.1,
+                14
+              ]
+            },
+            "band": [
+              4.5,
+              6.1
+            ],
+            "patrol": [
+              [
+                -10,
+                5.2,
+                -4
+              ],
+              [
+                -10,
+                5.2,
+                5
+              ],
+              [
+                -6,
+                5.2,
+                7
+              ]
+            ],
+            "approach": [
+              0,
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "id": "hold_a_clerk_a",
+          "kind": "clerk",
+          "feet": [
+            -18,
+            0,
+            8
+          ],
+          "yaw": 4.712389
+        },
+        {
+          "id": "hold_a_clerk_b",
+          "kind": "clerk",
+          "feet": [
+            18,
+            0,
+            8
+          ],
+          "yaw": 4.712389
+        },
+        {
+          "id": "hold_a_sweeper_a",
+          "kind": "sweeper",
+          "feet": [
+            -4,
+            0,
+            12
+          ],
+          "yaw": 4.712389
+        },
+        {
+          "id": "hold_a_sweeper_b",
+          "kind": "sweeper",
+          "feet": [
+            5,
+            0,
+            12
+          ],
+          "yaw": 4.712389
+        },
+        {
+          "id": "hold_a_sweeper_c",
+          "kind": "sweeper",
+          "feet": [
+            19,
+            0,
+            3
+          ],
+          "yaw": 4.712389
+        }
+      ],
+      "after": "sweep_advance"
+    },
+    {
+      "id": "market_wave_b",
+      "regions": [
+        {
+          "min": [
+            -19,
+            0,
+            9
+          ],
+          "max": [
+            -15,
+            4,
+            13
+          ]
+        }
+      ],
+      "enemies": [
+        {
+          "id": "hold_b_notary",
+          "kind": "notary",
+          "feet": [
+            10,
+            5.2,
+            5
+          ],
+          "yaw": 4.712389,
+          "hover": {
+            "volume": {
+              "min": [
+                4,
+                4.5,
+                -10
+              ],
+              "max": [
+                18,
+                6.1,
+                14
+              ]
+            },
+            "band": [
+              4.5,
+              6.1
+            ],
+            "patrol": [
+              [
+                10,
+                5.2,
+                -4
+              ],
+              [
+                10,
+                5.2,
+                5
+              ],
+              [
+                6,
+                5.2,
+                7
+              ]
+            ],
+            "approach": [
+              0,
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "id": "hold_b_clerk",
+          "kind": "clerk",
+          "feet": [
+            0,
+            0,
+            13
+          ],
+          "yaw": 4.712389
+        },
+        {
+          "id": "hold_b_sweeper_a",
+          "kind": "sweeper",
+          "feet": [
+            -18,
+            0,
+            4
+          ],
+          "yaw": 4.712389
+        },
+        {
+          "id": "hold_b_sweeper_b",
+          "kind": "sweeper",
+          "feet": [
+            18,
+            0,
+            4
+          ],
+          "yaw": 4.712389
+        },
+        {
+          "id": "hold_b_sweeper_c",
+          "kind": "sweeper",
+          "feet": [
+            4,
+            0,
+            -11
+          ],
+          "yaw": 4.712389
+        }
+      ],
+      "after": "market_wave_a"
+    },
+    {
+      "id": "court_watch",
+      "regions": [
+        {
+          "min": [
+            -7,
+            0,
+            18
+          ],
+          "max": [
+            7,
+            4,
+            32
+          ]
+        }
+      ],
+      "enemies": [
+        {
+          "id": "court_notary_a",
+          "kind": "notary",
+          "feet": [
+            -10,
+            5.2,
+            23
+          ],
+          "yaw": 4.712389,
+          "hover": {
+            "volume": {
+              "min": [
+                -14,
+                4.5,
+                19
+              ],
+              "max": [
+                -3,
+                6.1,
+                32
+              ]
+            },
+            "band": [
+              4.5,
+              6.1
+            ],
+            "patrol": [
+              [
+                -10,
+                5.2,
+                23
+              ],
+              [
+                -9,
+                5.2,
+                28
+              ],
+              [
+                -5,
+                5.2,
+                29
+              ]
+            ],
+            "approach": [
+              0,
+              0,
+              23
+            ]
+          }
+        },
+        {
+          "id": "court_notary_b",
+          "kind": "notary",
+          "feet": [
+            7,
+            5.2,
+            23
+          ],
+          "yaw": 4.712389,
+          "hover": {
+            "volume": {
+              "min": [
+                3,
+                4.5,
+                19
+              ],
+              "max": [
+                11,
+                6.1,
+                32
+              ]
+            },
+            "band": [
+              4.5,
+              6.1
+            ],
+            "patrol": [
+              [
+                7,
+                5.2,
+                23
+              ],
+              [
+                7,
+                5.2,
+                29
+              ],
+              [
+                5,
+                5.2,
+                29
+              ]
+            ],
+            "approach": [
+              0,
+              0,
+              23
+            ]
+          }
+        },
+        {
+          "id": "court_clerk_a",
+          "kind": "clerk",
+          "feet": [
+            -12,
+            3,
+            36
+          ],
+          "yaw": 4.712389
+        },
+        {
+          "id": "court_clerk_b",
+          "kind": "clerk",
+          "feet": [
+            8,
+            3,
+            36
+          ],
+          "yaw": 4.712389
+        },
+        {
+          "id": "court_sweeper_a",
+          "kind": "sweeper",
+          "feet": [
+            -10,
+            0,
+            24
+          ],
+          "yaw": 4.712389
+        },
+        {
+          "id": "court_sweeper_b",
+          "kind": "sweeper",
+          "feet": [
+            6,
+            0,
+            24
+          ],
+          "yaw": 4.712389
+        },
+        {
+          "id": "court_sweeper_c",
+          "kind": "sweeper",
+          "feet": [
+            -9,
+            0,
+            30
+          ],
+          "yaw": 4.712389
+        },
+        {
+          "id": "court_sweeper_d",
+          "kind": "sweeper",
+          "feet": [
+            10.5,
+            0,
+            30
+          ],
+          "yaw": 4.712389
+        }
+      ],
+      "after": "market_wave_b"
+    }
+  ],
+  "m04": {
+    "clinic": {
+      "panel": {
+        "kind": "m04_clinic_control",
+        "center": [
+          0,
+          0
+        ],
+        "solid": "clinic_switch_host",
+        "face": "east",
+        "size": [
+          1.2,
+          1.2
+        ]
+      },
+      "approach": [
+        -20.5,
+        0,
+        -1.75
+      ],
+      "gate": {
+        "solid": "clinic_shutter",
+        "lift": 3.2
+      },
+      "requires_encounter": "sweep_advance",
+      "release": {
+        "max": [
+          -25,
+          2,
+          8
+        ],
+        "min": [
+          -33,
+          0,
+          -2
+        ]
+      }
+    },
+    "patients": [
+      {
+        "id": "edda_team_a",
+        "held": [
+          -29,
+          0,
+          2
+        ],
+        "route": [
+          [
+            -29,
+            0,
+            2
+          ],
+          [
+            -25,
+            0,
+            2
+          ],
+          [
+            -20.5,
+            0,
+            2
+          ],
+          [
+            -18,
+            0,
+            2
+          ]
+        ]
+      },
+      {
+        "id": "edda_team_b",
+        "held": [
+          -29,
+          0,
+          6
+        ],
+        "route": [
+          [
+            -29,
+            0,
+            6
+          ],
+          [
+            -29,
+            0,
+            2
+          ],
+          [
+            -25,
+            0,
+            2
+          ],
+          [
+            -20.5,
+            0,
+            2
+          ],
+          [
+            -18,
+            0,
+            2
+          ],
+          [
+            -18,
+            0,
+            6
+          ]
+        ]
+      }
+    ],
+    "objectives": [
+      {
+        "requires_encounter": "notice_board_guards",
+        "id": "notice_board_cleared",
+        "arrival": {
+          "max": [
+            8,
+            3,
+            -13
+          ],
+          "min": [
+            -8,
+            0,
+            -24
+          ]
+        },
+        "approach": [
+          -5,
+          0,
+          -20
+        ]
+      },
+      {
+        "requires_encounter": "notary_lesson",
+        "id": "first_notary_cleared",
+        "arrival": {
+          "max": [
+            3,
+            3,
+            -9
+          ],
+          "min": [
+            -3,
+            0,
+            -15
+          ]
+        },
+        "approach": [
+          0,
+          0,
+          -12
+        ]
+      },
+      {
+        "requires_encounter": "sweep_advance",
+        "id": "street_wave_cleared",
+        "arrival": {
+          "max": [
+            18,
+            4,
+            5
+          ],
+          "min": [
+            -18,
+            0,
+            -9
+          ]
+        },
+        "approach": [
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "requires_encounter": "market_wave_a",
+        "id": "market_wave_a_cleared",
+        "arrival": {
+          "max": [
+            5,
+            4,
+            12
+          ],
+          "min": [
+            -5,
+            0,
+            5
+          ]
+        },
+        "approach": [
+          0,
+          0,
+          7
+        ]
+      },
+      {
+        "requires_encounter": "market_wave_b",
+        "id": "market_wave_b_cleared",
+        "arrival": {
+          "max": [
+            -15,
+            4,
+            13
+          ],
+          "min": [
+            -19,
+            0,
+            9
+          ]
+        },
+        "approach": [
+          -18,
+          0,
+          10
+        ]
+      },
+      {
+        "requires_encounter": "court_watch",
+        "id": "court_cleared",
+        "arrival": {
+          "max": [
+            7,
+            4,
+            32
+          ],
+          "min": [
+            -7,
+            0,
+            18
+          ]
+        },
+        "approach": [
+          0,
+          0,
+          23
+        ]
+      }
+    ],
+    "departure": {
+      "boarding": {
+        "max": [
+          15.25,
+          6,
+          38.5
+        ],
+        "min": [
+          11,
+          4,
+          34
+        ]
+      },
+      "requires_encounter": "court_watch",
+      "panel": {
+        "kind": "m04_roof_departure",
+        "center": [
+          0,
+          0
+        ],
+        "solid": "roof_departure_host",
+        "face": "west",
+        "size": [
+          1.6,
+          1.4
+        ]
+      },
+      "approach": [
+        13.5,
+        4,
+        36.5
+      ]
+    },
+    "companion_start": [
+      -2,
+      0,
+      -35
+    ]
+  }
+}

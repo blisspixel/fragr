@@ -61,9 +61,9 @@ func _test_assign_and_conflicts() -> void:
 	_check(InputBindings.conflicts(prefs).is_empty(), "defaults have no conflicts")
 	# F uses while playing and changes fighter while watching: no conflict.
 	_check("key:70" in InputBindings.slots_for(prefs, "cycle_cam") and "key:70" in InputBindings.slots_for(prefs, "interact"), "F is shared across contexts by design")
-	# Binding G to fire leaves every other action alone.
-	var displaced: Array[String] = InputBindings.assign(prefs, "fire", 0, "key:71")
-	_check(displaced.is_empty() and InputBindings.slots_for(prefs, "fire")[0] == "key:71", "a free key binds without displacing anything")
+	# H remains free; G now belongs to the independent grenade action.
+	var displaced: Array[String] = InputBindings.assign(prefs, "fire", 0, "key:72")
+	_check(displaced.is_empty() and InputBindings.slots_for(prefs, "fire")[0] == "key:72", "a free key binds without displacing anything")
 	# Binding F to jump moves it off use, but not off the spectator camera.
 	displaced = InputBindings.assign(prefs, "jump", 0, "key:70")
 	_check(displaced == (["interact"] as Array[String]), "F moves from use to jump: " + str(displaced))

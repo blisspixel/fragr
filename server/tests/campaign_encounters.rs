@@ -60,26 +60,32 @@ async fn encounter_capability_and_identity_reach_every_role_over_the_wire() {
     ));
     let url = format!("ws://{}", ready_rx.await.unwrap());
     for role in [Role::Human, Role::Agent, Role::Spectator] {
-        let (mut old, _) = connect_async(&url).await.unwrap();
-        old.send(Message::Text(
-            serde_json::to_string(&ClientMessage::Hello {
-                body: None,
-                role,
-                name: "Old client".into(),
-                geometry_version: 2,
-                // Encounter capability without the ammunition contract.
-                gameplay_version: fragr_server::protocol::CAMPAIGN_GAMEPLAY_VERSION,
+        for version in [
+            fragr_server::protocol::CAMPAIGN_GAMEPLAY_VERSION,
+            fragr_server::protocol::GAMEPLAY_VERSION - 1,
+        ] {
+            let (mut old, _) = connect_async(&url).await.unwrap();
+            old.send(Message::Text(
+                serde_json::to_string(&ClientMessage::Hello {
+                    body: None,
+                    role,
+                    name: "Old client".into(),
+                    geometry_version: 2,
+                    // Historical encounter readers and the previous mission reader
+                    // lack the mandatory counted Discovery inventory contract.
+                    gameplay_version: version,
 
-                ticket: None,
-                resume: None,
-            })
-            .unwrap(),
-        ))
-        .await
-        .unwrap();
-        assert!(
-            matches!(message(&mut old).await, ServerMessage::Error { code, .. } if code == "unsupported_gameplay")
-        );
+                    ticket: None,
+                    resume: None,
+                })
+                .unwrap(),
+            ))
+            .await
+            .unwrap();
+            assert!(
+                matches!(message(&mut old).await, ServerMessage::Error { code, message } if code == "unsupported_gameplay" && message.contains(&format!("version {}", fragr_server::protocol::GAMEPLAY_VERSION)))
+            );
+        }
     }
     let mut sockets = Vec::new();
     for role in [Role::Human, Role::Agent, Role::Spectator] {
@@ -91,7 +97,7 @@ async fn encounter_capability_and_identity_reach_every_role_over_the_wire() {
                     role,
                     name: format!("{role:?}"),
                     geometry_version: 2,
-                    gameplay_version: fragr_server::protocol::RULES_GAMEPLAY_VERSION,
+                    gameplay_version: fragr_server::protocol::GAMEPLAY_VERSION,
 
                     ticket: None,
                     resume: None,
@@ -118,6 +124,10 @@ async fn encounter_capability_and_identity_reach_every_role_over_the_wire() {
                     seen_map = true;
                 }
                 ServerMessage::Snapshot(snapshot) => {
+                    assert!(
+                        seen_map,
+                        "{role:?} snapshot overtook authoritative geometry"
+                    );
                     if let Some(me) = id.and_then(|id| snapshot.players.iter().find(|p| p.id == id))
                     {
                         assert_eq!(me.campaign, Some(CampaignActor::Participant {}));

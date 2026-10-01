@@ -13,6 +13,10 @@ class Fighter extends Node3D:
 class AuthoritativeFighter extends Fighter:
 	var target_position: Vector3 = Vector3.ZERO
 
+class BufferedFighter extends Fighter:
+	var presentation_yaw: float = 0.0
+	var presentation_pitch: float = 0.0
+
 class InputBlocker extends Node3D:
 	func controls_blocked() -> bool:
 		return true
@@ -20,6 +24,7 @@ class InputBlocker extends Node3D:
 var _failures: int = 0
 
 func _initialize() -> void:
+	set_meta("fragr_automated", true)
 	call_deferred("_run")
 
 func _check(condition: bool, message: String) -> void:
@@ -50,6 +55,22 @@ func _run() -> void:
 		camera.fp_pitch = 0.3
 		camera.set_fp_mode(true, first)
 		_check(is_equal_approx(camera.fp_yaw, 2.1) and is_equal_approx(camera.fp_pitch, 0.3), "snapshot refresh must preserve local aim")
+	camera.set_fp_mode(false)
+	var buffered: BufferedFighter = BufferedFighter.new()
+	root.add_child(buffered)
+	buffered.player_id = "buffered"
+	buffered.position = Vector3(5.0, 1.5, 6.0)
+	buffered.target_yaw = 2.4
+	buffered.target_pitch = 0.6
+	buffered.presentation_yaw = 1.2
+	buffered.presentation_pitch = -0.2
+	camera.set_available_targets([buffered])
+	camera._follow_target()
+	_check((-camera.transform.basis.z).distance_to(ServerYaw.aim_direction(1.2, -0.2)) < 0.00001,
+		"spectator eyes use buffered aim at the same time as rendered position")
+	camera.set_fp_mode(true, buffered)
+	_check(is_equal_approx(camera.fp_yaw, 2.4) and is_equal_approx(camera.fp_pitch, 0.6),
+		"local joining still adopts latest authoritative aim instead of buffered spectator aim")
 	camera.set_fp_mode(false)
 	camera.set_available_targets([first, second])
 	camera._follow_target()
@@ -117,6 +138,7 @@ func _run() -> void:
 	camera.pin_player("")
 	_check(camera.available_targets.size() == 2, "clearing pin restores roster")
 	_check(camera.auto_cycle_interval == 3.0, "clearing pin retains normal camera cycle setting")
+	_check_chase_cadence(first)
 	var blocker: InputBlocker = InputBlocker.new()
 	root.add_child(blocker)
 	camera.reparent(blocker)
@@ -129,7 +151,53 @@ func _run() -> void:
 	blocker.queue_free()
 	first.queue_free()
 	second.queue_free()
+	buffered.queue_free()
 	await process_frame
 	if _failures == 0:
 		print("test_spectator_camera: PASS aim, facing, eye height, view cycle, roster changes")
 	quit(0 if _failures == 0 else 1)
+
+
+func _check_chase_cadence(target: Fighter) -> void:
+	var reference: Vector3 = Vector3.ZERO
+	var reference_basis: Basis = Basis.IDENTITY
+	var frag_reference: Vector3 = Vector3.ZERO
+	for hz: int in [30, 60, 144]:
+		var chase: Node3D = load("res://scripts/spectator_cam.gd").new()
+		root.add_child(chase)
+		chase.set_process(false)
+		chase.spectator_first_person = false
+		chase.set_available_targets([target])
+		for frame: int in range(hz / 2):
+			chase._follow_target(1.0 / float(hz))
+		if hz == 30:
+			reference = chase.position
+		else:
+			_check(chase.position.distance_to(reference) < 0.0001,
+				"chase displacement agrees after equal time at %d Hz" % hz)
+		# Isolate orientation from the changing chase origin.
+		chase.position = target.position + Vector3(0, 5.5, 10.5).rotated(Vector3.UP, target.rotation.y)
+		chase.rotation = Vector3.ZERO
+		for frame: int in range(hz / 2):
+			chase._follow_target(1.0 / float(hz))
+		if hz == 30:
+			reference_basis = chase.basis
+		else:
+			_check(chase.basis.x.distance_to(reference_basis.x) < 0.0001
+				and chase.basis.z.distance_to(reference_basis.z) < 0.0001,
+				"chase orientation agrees after equal time at %d Hz" % hz)
+		chase.position = Vector3.ZERO
+		chase.frag_follow_target_id = target.player_id
+		for frame: int in range(hz / 2):
+			chase._follow_frag_target(1.0 / float(hz))
+		if hz == 30:
+			frag_reference = chase.position
+		else:
+			_check(chase.position.distance_to(frag_reference) < 0.0001,
+				"frag chase displacement agrees after equal time at %d Hz" % hz)
+		chase.camera_shake_intensity = 0.3
+		chase.camera_zoom_offset = -1.5
+		chase._process(10.0)
+		_check(chase.camera_shake_intensity >= 0.0 and chase.camera_zoom_offset <= 0.0,
+			"a long frame does not invert camera decay")
+		chase.queue_free()

@@ -115,6 +115,7 @@ const ACT_ALLOWED_KEYS: &[&str] = &[
     "turn_right",
     "fire",
     "interact",
+    "throw_grenade",
     "weapon_swap",
     "look_at",
 ];
@@ -288,6 +289,12 @@ pub fn validate_act_arguments(arguments: &Value) -> Result<Action, String> {
             Some(value) => value
                 .as_bool()
                 .ok_or("schema error: interact must be a boolean")?,
+        },
+        throw_grenade: match obj.get("throw_grenade") {
+            None => false,
+            Some(value) => value
+                .as_bool()
+                .ok_or("schema error: throw_grenade must be a boolean")?,
         },
         weapon_swap,
         look_at,
@@ -625,7 +632,7 @@ fn tools_list_result() -> Value {
             },
             {
                 "name": "act",
-                "description": "Send ordinary input. Movement and fire are held until changed. Reload and weapon_swap are consumed once; later omitted fields do not erase a pending request. Weapon selection requires ownership. look_at aims in three dimensions.",
+                "description": "Send ordinary input. Movement and fire are held until changed. weapon_swap is consumed once; later omitted fields do not erase a pending selection. interact and throw_grenade latch rising edges, so release before another press. Weapon selection requires ownership. look_at aims in three dimensions.",
                 "inputSchema": {
                     "type": "object",
                     "properties": {
@@ -639,6 +646,7 @@ fn tools_list_result() -> Value {
                         "jump": {"type": "boolean", "default": false, "description": "Jump. A grounded fighter leaves the floor; holding it does not fly"},
                         "weapon_swap": {"type": "string", "enum": ["fists", "shiv", "tack", "flechette", "rail", "scatter"], "description": "Select an owned weapon. The Shiv is found melee and needs no ammunition"},
                         "interact": {"type": "boolean", "description": "Press to use an aimed mission panel when observe supplies your prompt. Release before another press."},
+                        "throw_grenade": {"type": "boolean", "description": "Press to throw one counted hand grenade along current aim. Release before another press. Independent of selected gun, with a fixed two-second fuse."},
                         "look_at": {
                             "type": "object",
                             "description": "Aim at player_id (preferred) or world x/z with optional y. Missing y aims horizontally.",
@@ -706,7 +714,7 @@ fn tools_list_result() -> Value {
                 "inputSchema": {
                     "type": "object",
                     "properties": {
-                        "id": {"type": "string", "enum": ["recall_notice", "persons_unknown"]},
+                        "id": {"type": "string", "enum": ["recall_notice", "persons_unknown", "scheduled_service", "notice_to_vacate"]},
                         "attempt": {"type": "integer", "minimum": 1, "maximum": u32::MAX}
                     },
                     "required": ["id", "attempt"],
@@ -719,7 +727,7 @@ fn tools_list_result() -> Value {
                 "inputSchema": {
                     "type": "object",
                     "properties": {
-                        "id": {"type": "string", "enum": ["recall_notice"]},
+                        "id": {"type": "string", "enum": ["recall_notice", "persons_unknown", "scheduled_service", "notice_to_vacate"]},
                         "run_id": {"type": "string", "format": "uuid"},
                         "attempt": {"type": "integer", "minimum": 1, "maximum": u32::MAX}
                     },
@@ -1079,6 +1087,9 @@ pub fn ingest_server_text(state: &mut ToolState, text: &str) -> Result<(), &'sta
             map_id,
             m02_objectives,
             m02_side_ward,
+            m03,
+            m04,
+            m05,
             map_name,
             half_extent,
             solids,
@@ -1098,6 +1109,18 @@ pub fn ingest_server_text(state: &mut ToolState, text: &str) -> Result<(), &'sta
                 &solids,
                 presentation.as_ref(),
             )?;
+            state.mission.replace_map_with_m03(
+                m03.as_ref(),
+                half_extent,
+                &solids,
+                presentation.as_ref(),
+            )?;
+            state.mission.replace_map_with_m04(
+                m04.as_ref(),
+                half_extent,
+                &solids,
+                presentation.as_ref(),
+            )?;
             let mut map = serde_json::json!({
                 "map_id": map_id,
                 "map_name": map_name,
@@ -1107,11 +1130,26 @@ pub fn ingest_server_text(state: &mut ToolState, text: &str) -> Result<(), &'sta
                 "presentation": presentation,
                 "mission": mission,
             });
+            state.mission.replace_map_with_m05(
+                m05.as_ref(),
+                half_extent,
+                &solids,
+                presentation.as_ref(),
+            )?;
+            if let Some(geometry) = m05 {
+                map["m05"] = serde_json::json!(geometry);
+            }
             if let Some(count) = m02_objectives {
                 map["m02_objectives"] = serde_json::json!(count);
             }
             if m02_side_ward {
                 map["m02_side_ward"] = serde_json::json!(true);
+            }
+            if let Some(m03) = m03 {
+                map["m03"] = serde_json::json!(m03);
+            }
+            if let Some(m04) = m04 {
+                map["m04"] = serde_json::json!(m04);
             }
             if let Some(rules) = rules {
                 map["rules"] = serde_json::json!(rules);
@@ -1170,6 +1208,189 @@ pub fn ingest_server_text(state: &mut ToolState, text: &str) -> Result<(), &'sta
 #[cfg(test)]
 mod mcp_tests {
     use super::*;
+
+    #[test]
+    fn m04_bundled_wire_observe_tools_and_clinic_handoff_share_the_contract() {
+        let map = fragr_server::maps::AuthoredSource::Mission(protocol::MissionId::NoticeToVacate)
+            .load()
+            .unwrap();
+        let mut sim = fragr_server::sim::GameState::with_authored_map(map);
+        sim.enable_campaign_run().unwrap();
+        let id = Uuid::from_u128(104);
+        sim.add_player(id, "Town partner".into(), protocol::Role::Agent);
+        let mut state = ToolState {
+            player_id: Some(id),
+            connected: true,
+            ..Default::default()
+        };
+        let map_wire = serde_json::to_value(sim.map_info()).unwrap();
+        let mission_wire = serde_json::to_value(sim.mission_message().unwrap()).unwrap();
+        for message in [
+            sim.map_info(),
+            sim.mission_message().unwrap(),
+            protocol::ServerMessage::Snapshot(sim.snapshot()),
+        ] {
+            ingest_server_text(&mut state, &serde_json::to_string(&message).unwrap()).unwrap();
+        }
+        let call = |name: &str, arguments: Value| {
+            req(
+                "tools/call",
+                Some(serde_json::json!({"name":name,"arguments":arguments})),
+            )
+        };
+        let observed = handle_mcp_request(call("observe", serde_json::json!({})), &mut state)
+            .response
+            .result
+            .unwrap();
+        assert_eq!(observed["map"]["map_id"], 1004);
+        assert_eq!(observed["map"]["m04"], map_wire["m04"]);
+        assert_eq!(observed["mission"]["m04"], mission_wire["state"]["m04"]);
+        assert_eq!(
+            observed["mission"]["rules"],
+            serde_json::json!({"difficulty":"standard","revision":3})
+        );
+        let tools = handle_mcp_request(req("tools/list", None), &mut state)
+            .response
+            .result
+            .unwrap();
+        for name in ["mission_ready", "mission_continue"] {
+            let schema = tools["tools"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .find(|tool| tool["name"] == name)
+                .unwrap();
+            assert!(schema["inputSchema"]["properties"]["id"]["enum"]
+                .as_array()
+                .unwrap()
+                .contains(&serde_json::json!("notice_to_vacate")));
+        }
+        let ready = handle_mcp_request(
+            call(
+                "mission_ready",
+                serde_json::json!({"id":"notice_to_vacate","attempt":1}),
+            ),
+            &mut state,
+        )
+        .pending_mission_ready
+        .unwrap();
+        assert_eq!(ready.id, protocol::MissionId::NoticeToVacate);
+        assert!(!state.mission.state.as_ref().unwrap().party[0].ready);
+        assert!(sim.acknowledge_mission(id, ready));
+        ingest_server_text(
+            &mut state,
+            &serde_json::to_string(&sim.mission_message().unwrap()).unwrap(),
+        )
+        .unwrap();
+
+        // Use the prepared bundled shutter world and a shared typed state fixture.
+        // The server owns gate completion; this adapter test checks wire ordering.
+        let mut handoff = state.clone();
+        let mut clinic = sim.mission_message().unwrap();
+        let protocol::ServerMessage::Mission { state: facts, .. } = &mut clinic else {
+            panic!("bundled mission message required");
+        };
+        facts.m04.as_mut().unwrap().clinic_secured = true;
+        ingest_server_text(&mut handoff, &serde_json::to_string(&clinic).unwrap()).unwrap();
+        let action = protocol::Action {
+            weapon_swap: Some(protocol::WeaponType::Flechette),
+            ..Default::default()
+        };
+        let mut navigator = fragr_server::navigation::Navigator::default();
+        assert_eq!(
+            handoff
+                .mission
+                .steer(
+                    &mut navigator,
+                    sim.map.navigation(),
+                    id,
+                    &sim.snapshot(),
+                    action.clone()
+                )
+                .weapon_swap,
+            action.weapon_swap
+        );
+        let closed_map = sim.map.clone();
+        sim.map = sim.map.prepared_m04_world().unwrap();
+        let opened_map = sim.map_info();
+        ingest_server_text(&mut handoff, &serde_json::to_string(&opened_map).unwrap()).unwrap();
+        assert!(build_observe_result(&handoff)["map"]["m04"]["clinic_open"]
+            .as_bool()
+            .unwrap());
+        let blocked = handoff.mission.steer(
+            &mut navigator,
+            sim.map.navigation(),
+            id,
+            &sim.snapshot(),
+            action.clone(),
+        );
+        assert_eq!(
+            serde_json::to_value(blocked).unwrap(),
+            serde_json::to_value(protocol::Action::default()).unwrap()
+        );
+        assert!(
+            ingest_server_text(&mut handoff, &serde_json::to_string(&clinic).unwrap()).is_err()
+        );
+        let protocol::ServerMessage::Mission { state: facts, .. } = &mut clinic else {
+            panic!("bundled mission message required");
+        };
+        facts.m04.as_mut().unwrap().clinic_open = true;
+        ingest_server_text(&mut handoff, &serde_json::to_string(&clinic).unwrap()).unwrap();
+        assert_eq!(
+            handoff
+                .mission
+                .steer(
+                    &mut navigator,
+                    sim.map.navigation(),
+                    id,
+                    &sim.snapshot(),
+                    action.clone()
+                )
+                .weapon_swap,
+            action.weapon_swap
+        );
+        assert_eq!(
+            build_observe_result(&handoff)["mission"]["m04"]["clinic_open"],
+            true
+        );
+
+        sim.map = closed_map;
+        sim.players
+            .iter_mut()
+            .find(|player| player.id == id)
+            .unwrap()
+            .hp = 0;
+        sim.tick(0.05);
+        ingest_server_text(
+            &mut state,
+            &serde_json::to_string(&sim.mission_message().unwrap()).unwrap(),
+        )
+        .unwrap();
+        let continued = state.mission.continuation(Some(id)).unwrap();
+        let outcome = handle_mcp_request(
+            call("mission_continue", serde_json::to_value(continued).unwrap()),
+            &mut state,
+        );
+        assert_eq!(
+            outcome.pending_mission_continue.unwrap().id,
+            protocol::MissionId::NoticeToVacate
+        );
+        assert!(sim.continue_mission(id, outcome.pending_mission_continue.unwrap()));
+        assert!(!sim.continue_mission(id, outcome.pending_mission_continue.unwrap()));
+        ingest_server_text(
+            &mut state,
+            &serde_json::to_string(&sim.mission_message().unwrap()).unwrap(),
+        )
+        .unwrap();
+        let observed = build_observe_result(&state);
+        assert_eq!(observed["mission"]["attempt"], 2);
+        assert_eq!(observed["mission"]["run"]["continues"], 2);
+        assert_eq!(observed["mission"]["m04"]["clinic_open"], false);
+        assert_eq!(
+            observed["mission"]["m04"]["completed"],
+            serde_json::json!([])
+        );
+    }
 
     #[test]
     fn m02_observation_readiness_and_panel_validation_share_the_server_contract() {
@@ -1424,7 +1645,7 @@ mod mcp_tests {
         assert_eq!(observed["mission"]["phase"], "briefing");
         assert_eq!(
             observed["mission"]["rules"],
-            serde_json::json!({"difficulty":"assisted","revision":2})
+            serde_json::json!({"difficulty":"assisted","revision":3})
         );
         assert_eq!(observed["mission"]["party"][0]["ready"], false);
         assert_eq!(observed["mission"]["party"][0]["id"], id.to_string());
@@ -1495,7 +1716,18 @@ mod mcp_tests {
             serde_json::Value::Null,
         ] {
             assert!(validate_act_arguments(&serde_json::json!({"interact":value})).is_err());
+            assert!(validate_act_arguments(&serde_json::json!({"throw_grenade":value})).is_err());
         }
+        assert!(
+            validate_act_arguments(&serde_json::json!({"throw_grenade":true}))
+                .unwrap()
+                .throw_grenade
+        );
+        assert!(
+            !validate_act_arguments(&serde_json::json!({"throw_grenade":false}))
+                .unwrap()
+                .throw_grenade
+        );
         assert!(ingest_server_text(&mut state, r#"{"type":"mission","state":[]}"#).is_err());
         let legacy = fragr_server::sim::GameState::new().map_info();
         ingest_server_text(&mut state, &serde_json::to_string(&legacy).unwrap()).unwrap();
@@ -1833,6 +2065,7 @@ mod mcp_tests {
         let act = tools.iter().find(|tool| tool["name"] == "act").unwrap();
         let properties = act["inputSchema"]["properties"].as_object().unwrap();
         assert!(properties.contains_key("fire") && properties.contains_key("weapon_swap"));
+        assert_eq!(properties["throw_grenade"]["type"], "boolean");
         assert!(
             !properties.contains_key("reload"),
             "no magazines, so there is nothing to reload"

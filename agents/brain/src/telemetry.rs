@@ -158,7 +158,10 @@ pub fn observe(me: Uuid, snapshot: &Snapshot, hits: &mut RecentHits) -> Option<T
     let mut top_rival_score = 0;
     let mut fighters = 0;
     for other in &snapshot.players {
-        if other.id != me && fragr_server::protocol::hostile(mine.campaign, other.campaign) {
+        if other.id != me
+            && fragr_server::protocol::hostile(mine.campaign, other.campaign)
+            && (mine.team.is_none() || mine.team != other.team)
+        {
             // A respawning leader is still the leader.
             top_rival_score = top_rival_score.max(other.score);
         }
@@ -397,6 +400,8 @@ pub(crate) mod fixtures {
             frag_limit: Some(10),
             shot_results: vec![],
             projectiles: vec![],
+            grenades: Vec::new(),
+            explosions: Vec::new(),
             mode_name: "Contested Frequency".to_string(),
             playlist: "Arena Duel".to_string(),
             pressure: None,
@@ -502,6 +507,31 @@ mod tests {
         assert_eq!(t.round_state, "active");
         assert_eq!(t.round_time_left, Some(90));
         assert!(observe(Uuid::new_v4(), &snap, &mut hits).is_none());
+    }
+
+    #[test]
+    fn team_telemetry_excludes_allies_from_rival_score_and_targets() {
+        use fragr_server::protocol::Team;
+        let id = Uuid::from_u128(1);
+        let mut mine = player("same", id, 0.0, 0.0, 100, "flechette");
+        mine.team = Some(Team::Union);
+        let mut ally = player("different", Uuid::from_u128(2), 1.0, 0.0, 100, "rail");
+        ally.team = Some(Team::Union);
+        ally.score = 100;
+        let mut foe = player("same", Uuid::from_u128(3), 20.0, 0.0, 100, "rail");
+        foe.team = Some(Team::Coalition);
+        foe.score = 3;
+        let mut dead_rival = foe.clone();
+        dead_rival.id = Uuid::from_u128(4);
+        dead_rival.hp = 0;
+        dead_rival.score = 7;
+        let scene = snapshot(1, vec![mine, ally, foe, dead_rival], vec![]);
+        let observation = observe(id, &scene, &mut RecentHits::default()).unwrap();
+        assert_eq!(
+            observation.top_rival_score, 7,
+            "respawning rival leader still counts"
+        );
+        assert_eq!(observation.enemy.unwrap().id, Uuid::from_u128(3));
     }
 
     #[test]

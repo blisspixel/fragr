@@ -1,0 +1,23 @@
+{
+  "model": "marketing-studio/image",
+  "out_dir": "art/raw/low-water-environment-20260930",
+  "params": {
+    "quality": "low",
+    "resolution": "2k",
+    "aspect_ratio": "1:1",
+    "enhance_prompt": false
+  },
+  "style": "original retro FPS environment texture, deliberate chunky pixel clusters, broad readable material shapes, restrained bone white and warm gunmetal with muted sage and sparse rust accents, flat even lighting, no gradients",
+  "view": "orthographic straight-on seamless square albedo texture tile, continuous edge-to-edge material, no perspective, no object silhouette",
+  "technical": "opaque full square canvas, seamless on all four edges, no shadow, no ambient occlusion, no specular highlights, no rim light, no text, no watermark, no border",
+  "frames": [
+    {
+      "id": "low_water_patched_plaster",
+      "subject": "old civilian repair-market plaster, warm bone painted wall with two broad hand-applied pale repair patches, sparse shallow chipped corners exposing dark grey mortar, restrained irregular waterline stains at random heights, clear quiet midtone areas that keep moving fighters readable, lived-in and maintained rather than abandoned, no vents or panel grid"
+    },
+    {
+      "id": "low_water_repaired_steel",
+      "subject": "civilian workshop steel wall skin repaired by neighbors, desaturated gunmetal and sage enamel, broad asymmetrical replacement plates with a few exposed fasteners, a small bare-metal rectangular scrape where an issued identification plate was removed, restrained dull rust at two joints, practical matte salvage with quiet dark fields, no military insignia or new logo, no vents"
+    }
+  ]
+}

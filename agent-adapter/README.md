@@ -13,21 +13,24 @@ and the map version in observations, and closes its MCP game session if a map
 has unsupported or invalid geometry, or the server sends malformed JSON.
 Ground-filled legacy maps remain readable.
 
-The adapter declares gameplay capability 22. Every discovery map requires at
-least 12 for all roles; M01 solo runs require 18 for the per-level continue
-baseline. M02 development parties and durable M02 runs require 22 for the
-server-owned Latch companion, optional captive evacuation and inspection glass. The six
-full-arsenal arcade maps still admit 1.
+The adapter declares gameplay capability 26. All five authored missions,
+development or durable, require 26 for campaign rules revision 3, including
+M05 No Forwarding Address and counted hand grenades. Earlier live mission
+capabilities are retired. Discovery maps without missions also require 26 for
+counted private grenade inventory; the six full-arsenal arcade maps still admit
+1. The separate Jammer range originally introduced capability 23 and now
+requires 26.
 Older clients are rejected before admission. `observe.loadout` is private to
 this participant: selected and owned weapons (`["fists","tack"]`),
-one `ammo` count per pool (`bullets`, `shells`, `cells`), personal supply
+one `ammo` count per pool (`bullets`, `shells`, `cells`), a separate `grenades`
+count capped at six, personal supply
 claims and dry-trigger count. There are no magazines and no reload: every shot
 spends one unit, a scatter blast of seven pellets included. Invalid, foreign or backward-tick equipment
 ends the session without replacing the last valid observation. Spectators receive
 no private inventory. Arcade servers omit this object.
 
 `observe.mission.rules` reports the host's fixed difficulty (`assisted`, `standard`
-or `severe`) and tuning `revision` (currently 2). Humans, agents and spectators
+or `severe`) and tuning `revision` (currently 3). Humans, agents and spectators
 share these rules. Unknown revisions or changing rules fail validation, including
 across a same-mission geometry update. Difficulty does not alter MCP budgets or
 agent control frequency. Use matching builds when connecting to campaign servers.
@@ -42,6 +45,16 @@ longer lists it; an `act` call that carries it is a schema error. Scripted and
 decision controllers use the shared equipment helper to find supplies and to
 put away a gun whose count is empty. MCP still sends ordinary actions, never
 direct inventory changes.
+
+`act.throw_grenade: true` throws one carried grenade along the current aim;
+release before another press. A short press survives newer released input until
+the next tick. A successful throw takes the tick's attack admission without
+changing the selected gun; an empty throw permits ordinary fire. The fuse is
+two seconds of active simulation, with authoritative wall/floor bounce and blast
+cover. `observe.grenades` reports live position and remaining fuse ticks;
+`observe.explosions` reports resolved per-victim HP, armor and death evidence.
+Grenade record counts have their own column; the six weapon slots retain their
+indices. Self damage never awards a self frag.
 
 `observe.mission` carries the shared phase, attempt, party readiness/boarding and currently
 legal prompts. `observe.map.mission` describes panel indices, approach positions
@@ -72,6 +85,27 @@ into M02. In a durable run, `observe.mission.run` carries the same run ID and
 remaining Episode I allowance plus `level_start_continues`; M02 starts at
 attempt 1 even if M01 used a continue. Agents must use the observed mission ID
 and attempt for readiness and retry.
+For M03, `observe.map.m03` binds the transmitter solid, original aim and
+approach, boarding region, departure panel and optional car definitions.
+`observe.mission.m03` reports `mast_hp`, `mast_secured`, `train_secured`, each
+car's `released` fact and authoritative captive feet, and the current objective.
+`mast_disabled` is a `shoot` objective: aim and fire through the normal action
+channel after its guards are cleared. `interact` cannot damage the mast.
+Shutdown replaces MapInfo before presenting `party_departed` as a `use`
+objective. Cars release automatically after their own guards and local approach;
+they never gate boarding. `mission_ready` and `mission_continue` accept
+`scheduled_service` with the observed attempt and run identity.
+
+For M04, `observe.map.m04` binds the six arrival objectives, clinic shutter,
+patient routes, roof departure and boarding region. `observe.mission.m04`
+reports their ordered completion, clinic and rescue facts, authoritative
+patient feet, first-round photographs and retained M03 car choices. The six
+encounters must clear in order. An ordinary `act.interact` press opens the
+secured clinic or departs from the roof; optional rescue never gates departure.
+Same-map clinic changes clear mission steering until matching fresh state
+arrives. `mission_ready` and `mission_continue` accept `notice_to_vacate` through
+the existing tools. No separate campaign command path is needed.
+
 Development mission parties allow four humans/agents together. `--campaign-run`
 instead permits one lifetime combat seat; spectators do not take seats. Leaving
 ends the solo run, and a callsign cannot reclaim it. Disk persistence belongs
@@ -558,8 +592,12 @@ Authored encounter maps require gameplay capability 3, which the adapter sends.
 an MCP seat or an action target. It appears in `observe` for late observers,
 but does not collect supplies or count toward the party or departure.
 `side: union` identifies Clerk humans, Sweeper and Heavy Sweeper bots, fixed
-Turrets, and low Crawlers (`kind`: `clerk`, `sweeper`, `heavy_sweeper`, `turret`,
-`crawler`). A Turret in `moving` is turning its head, not walking. Read
+Turrets, low Crawlers and stationary Jammers (`kind`: `clerk`, `sweeper`,
+`heavy_sweeper`, `turret`, `crawler`, `jammer`). Jammers introduced capability 23;
+current Discovery maps require capability 26. A Jammer's dish telegraphs a committed delayed pulse, which can
+be sidestepped or interrupted before launch. Its `Fists` wire weapon does not
+mean it performs melee. Read live `projectiles` rather than treating its firing
+phase as an instant gun hit. A Turret in `moving` is turning its head, not walking. Read
 `windup` and `phase_ends` as the tell for
 every kind. A Crawler's `leaping` phase is committed movement after a crouched
 windup; its contact damage is resolved by the server. `crawler_scrabble` events

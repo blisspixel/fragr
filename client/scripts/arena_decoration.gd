@@ -10,6 +10,34 @@ const SIGN_KEYS: Dictionary[String, String] = {
 	"transfer_sign": "WORLD_TRANSFER_CONTROL", "lift_sign": "WORLD_CUSTODY_LIFT",
 	"complaint_notice": "WORLD_PROPERTY_COMPLAINT", "terminal": "WORLD_TRANSFER_QUEUE",
 	"lift_control": "WORLD_LIFT_CONTROL",
+	"m03_schedule_board": "WORLD_M03_SCHEDULE_BOARD",
+	"m03_schedule_cancelled": "WORLD_M03_SCHEDULE_CANCELLED",
+	"m03_platform_car": "WORLD_M03_PLATFORM_CAR",
+	"m03_siding_car": "WORLD_M03_SIDING_CAR",
+	"m03_roof_car": "WORLD_M03_ROOF_CAR",
+	"m03_mast_sign": "WORLD_M03_MAST_SIGN",
+	"m03_board_train": "WORLD_M03_BOARD_TRAIN",
+	"m04_clinic_care": "WORLD_M04_CLINIC_CARE",
+	"m04_clinic_sign": "WORLD_M04_CLINIC_SIGN",
+	"m04_field_printer": "WORLD_M04_FIELD_PRINTER",
+	"m04_market_canvas": "WORLD_M04_MARKET_CANVAS",
+	"m04_meal_six": "WORLD_M04_MEAL_SIX",
+	"m04_noodle_six": "WORLD_M04_NOODLE_SIX",
+	"m04_notice_board": "WORLD_M04_NOTICE_BOARD",
+	"m04_paint_locker": "WORLD_M04_PAINT_LOCKER",
+	"m04_repair_bench": "WORLD_M04_REPAIR_BENCH",
+	"m04_tram_vote": "WORLD_M04_TRAM_VOTE",
+	"m04_water_tank": "WORLD_M04_WATER_TANK",
+	"m04_workshop": "WORLD_M04_WORKSHOP",
+	"m04_clinic_control": "WORLD_M04_CLINIC_CONTROL",
+	"m04_roof_departure": "WORLD_M04_ROOF_DEPARTURE",
+	"m05_water_tank": "WORLD_M05_WATER_TANK",
+	"m05_paint_bench": "WORLD_M05_PAINT_BENCH",
+	"m05_loading_pen": "WORLD_M05_LOADING_PEN",
+	"m05_tram_service": "WORLD_M05_TRAM_SERVICE",
+	"m05_market_six": "WORLD_M05_MARKET_SIX",
+	"m05_freight_sign": "WORLD_M05_FREIGHT_SIGN",
+	"m05_ship_departure": "WORLD_M05_SHIP_DEPARTURE",
 }
 
 ## Cosmetic planes only. The host solid remains the sole collision authority.
@@ -25,6 +53,8 @@ static func build(parent: Node3D, solids: Array, details: Array, venue: ArenaSky
 		mesh.size = size
 		panel.mesh = mesh
 		panel.transform = MapDecoration.placement(solids[int(detail["solid"])], detail)
+		panel.set_meta("host_solid", int(detail["solid"]))
+		panel.set_meta("baseline_position", panel.position)
 		var material: ShaderMaterial = ShaderMaterial.new()
 		material.shader = PANEL_SHADER
 		material.set_shader_parameter("panel_size", size)
@@ -47,9 +77,10 @@ static func _style(kind: String) -> int:
 	match kind:
 		"lockers": return 1
 		"vent": return 2
-		"terminal", "lift_control": return 3
+		"terminal", "lift_control", "m04_clinic_control", "m04_roof_departure": return 3
 		"gate_locked": return 7
 		"gate_open": return 8
+		"m03_schedule_cancelled": return 7
 		"strip_light": return 4
 		"union_seal": return 5
 		"complaint_notice": return 6

@@ -440,9 +440,12 @@ async fn run_scripted_bot(
                             loadout = Some(next);
                         }
                         ServerMessage::Snapshot(snapshot) => last_snapshot = Some(snapshot),
-                        ServerMessage::MapInfo { map_id, m02_objectives, m02_side_ward, half_extent, solids, geometry_version, presentation, mission, .. } => {
+                        ServerMessage::MapInfo { map_id, m02_objectives, m02_side_ward, m03, m04, m05, half_extent, solids, geometry_version, presentation, mission, .. } => {
                             protocol::validate_map_presentation(presentation.as_ref(), &solids)?;
                             mission_client.replace_map_with_id(map_id, m02_objectives, m02_side_ward, mission.as_ref(), half_extent, &solids, presentation.as_ref()).map_err(io::Error::other)?;
+                            mission_client.replace_map_with_m03(m03.as_ref(), half_extent, &solids, presentation.as_ref()).map_err(io::Error::other)?;
+                            mission_client.replace_map_with_m04(m04.as_ref(), half_extent, &solids, presentation.as_ref()).map_err(io::Error::other)?;
+                            mission_client.replace_map_with_m05(m05.as_ref(), half_extent, &solids, presentation.as_ref()).map_err(io::Error::other)?;
                             protocol::validate_map_geometry(half_extent, &solids, geometry_version)
                                 .map_err(io::Error::other)?;
                             let arena = fragr_server::movement::Arena { half: half_extent, solids };
@@ -464,8 +467,12 @@ async fn run_scripted_bot(
 
             _ = action_tick.tick() => {
                 if let (Some(snapshot), Some(world)) = (last_snapshot.as_ref(), navigation.as_ref()) {
-                    let wanted = compute_bot_action(bot_id, snapshot);
-                    let wanted = fragr_server::inventory::control_action_with_objective(bot_id, snapshot, loadout.as_ref(), wanted, mission_client.state.is_some());
+                    let live_solids = mission_client.live_visibility_solids();
+                    let wanted = match live_solids.as_deref() {
+                        Some(solids) => compute_bot_action_filtered(bot_id, snapshot, |mine, other| fighter_visible_in_solids(mine, other, solids)),
+                        None => compute_bot_action(bot_id, snapshot),
+                    };
+                    let wanted = fragr_server::inventory::control_action_with_target_filter(bot_id, snapshot, loadout.as_ref(), wanted, mission_client.state.is_some(), |mine, other| live_solids.as_deref().is_none_or(|solids| fighter_visible_in_solids(mine, other, solids)));
                     let action = mission_client.steer(&mut navigator, world, bot_id, snapshot, wanted);
                     let action_msg = ClientMessage::Action(action);
 
@@ -516,6 +523,35 @@ fn maybe_bot_taunt(tick: u64, bot_id: uuid::Uuid) -> Option<String> {
 }
 
 fn compute_bot_action(bot_id: uuid::Uuid, snapshot: &protocol::Snapshot) -> protocol::Action {
+    compute_bot_action_filtered(bot_id, snapshot, |_, _| true)
+}
+
+fn fighter_visible_in_solids(
+    mine: &protocol::PlayerState,
+    other: &protocol::PlayerState,
+    solids: &[fragr_server::movement::Solid],
+) -> bool {
+    fragr_server::combat::line_of_sight(
+        [
+            mine.x,
+            mine.y - fragr_server::sim::PLAYER_FLOOR_Y + fragr_server::movement::EYE_HEIGHT,
+            mine.z,
+        ],
+        [
+            other.x,
+            other.y - fragr_server::sim::PLAYER_FLOOR_Y
+                + fragr_server::combat::target_height(other.campaign) * 0.5,
+            other.z,
+        ],
+        solids,
+    )
+}
+
+fn compute_bot_action_filtered(
+    bot_id: uuid::Uuid,
+    snapshot: &protocol::Snapshot,
+    visible: impl Fn(&protocol::PlayerState, &protocol::PlayerState) -> bool,
+) -> protocol::Action {
     let bot = snapshot.players.iter().find(|p| p.id == bot_id);
 
     let Some(bot) = bot else {
@@ -526,7 +562,7 @@ fn compute_bot_action(bot_id: uuid::Uuid, snapshot: &protocol::Snapshot) -> prot
     let mut nearest_target = None;
 
     for target in &snapshot.players {
-        if !bot.is_hostile_to(target) {
+        if !bot.is_hostile_to(target) || !visible(bot, target) {
             continue;
         }
 
@@ -1086,6 +1122,8 @@ mod tests {
             frag_limit: Some(10),
             shot_results: vec![],
             projectiles: vec![],
+            grenades: Vec::new(),
+            explosions: Vec::new(),
             mode_name: protocol::default_mode_name(),
             playlist: protocol::default_playlist(),
             pressure: None,
@@ -1131,6 +1169,8 @@ mod tests {
             frag_limit: Some(10),
             shot_results: vec![],
             projectiles: vec![],
+            grenades: Vec::new(),
+            explosions: Vec::new(),
             mode_name: protocol::default_mode_name(),
             playlist: protocol::default_playlist(),
             pressure: None,
@@ -1222,6 +1262,8 @@ mod tests {
             frag_limit: Some(10),
             shot_results: vec![],
             projectiles: vec![],
+            grenades: Vec::new(),
+            explosions: Vec::new(),
             mode_name: protocol::default_mode_name(),
             playlist: protocol::default_playlist(),
             pressure: None,
@@ -1566,6 +1608,8 @@ mod tests {
             frag_limit: Some(10),
             shot_results: vec![],
             projectiles: vec![],
+            grenades: Vec::new(),
+            explosions: Vec::new(),
             mode_name: protocol::default_mode_name(),
             playlist: protocol::default_playlist(),
             pressure: None,
@@ -1588,6 +1632,20 @@ mod tests {
         assert!(action.fire);
         assert!(!action.turn_left);
         assert!(!action.turn_right);
+        let cover = [fragr_server::movement::Solid::from_center(
+            2.5, 0.0, 0.5, 3.0,
+        )];
+        let blocked = compute_bot_action_filtered(bot_id, &snapshot, |mine, other| {
+            fighter_visible_in_solids(mine, other, &cover)
+        });
+        assert!(!blocked.fire && blocked.look_at.is_none());
+        let moved_cover = [fragr_server::movement::Solid::from_center(
+            2.5, 8.0, 0.5, 3.0,
+        )];
+        let exposed = compute_bot_action_filtered(bot_id, &snapshot, |mine, other| {
+            fighter_visible_in_solids(mine, other, &moved_cover)
+        });
+        assert!(exposed.fire && exposed.look_at.unwrap().player_id == Some(target_id));
     }
 
     #[test]
@@ -2041,6 +2099,9 @@ mod tests {
                 mission: None,
                 m02_objectives: None,
                 m02_side_ward: false,
+                m03: None,
+                m04: None,
+                m05: None,
                 presentation: None,
                 map_id: 1,
                 map_name: "Raised fixture".into(),

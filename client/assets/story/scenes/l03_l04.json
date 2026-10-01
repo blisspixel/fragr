@@ -1,0 +1,10 @@
+{
+  "format": 1,
+  "id": "l03_l04",
+  "title_key": "STORY_M03_DEPARTURE_TITLE",
+  "skip_key": "STORY_SKIP_SCENE",
+  "shots": [
+    {"id": "TRAIN", "caption_key": "STORY_M03_DEPARTURE_TRAIN", "narration": "res://assets/story/voice/{locale}/l03_l04/train.mp3", "timing": "narration", "hold": 1.0},
+    {"id": "HOME", "caption_key": "STORY_M03_DEPARTURE_HOME", "narration": "res://assets/story/voice/{locale}/l03_l04/home.mp3", "timing": "narration", "hold": 1.0}
+  ]
+}

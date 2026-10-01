@@ -1,5 +1,10 @@
 # Level 14: Launch Authority
 
+**Appearance anchor for level 14:** Martian launch services connected to settlement logistics; organized departure makes collective action visible.
+Shared [world direction](../design/mars.md) and
+[character, voice and scene continuity](../design/characters.md) govern assets
+and staging. This anchor is a production target, not finished-appearance evidence.
+
 **Status:** planned, accepted 2026-09-25, unbuilt. The second half of
 [M08](m08-weight-of-permission.md) in the
 [twenty-level expansion](../plans/campaign-expansion.md): the exterior launch

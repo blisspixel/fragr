@@ -1,0 +1,15 @@
+{
+  "comment": "Original Jammer development range. Real human input and server phases, no granted equipment or teleports. FRAGR_QA_BOTS=0, FRAGR_QA_MAP_FILE=server/maps/test/jammer-range.json, FRAGR_QA_MANIFEST=res://qa/jammer-range.json. Not a completed M03.",
+  "width": 1280,
+  "height": 720,
+  "states": [
+    {"name":"jammer_range_supplies","scene":"res://scenes/main.tscn","join":"human","camera":"first_person","radio_off":true,"walk_to":[[-1.5,0,-17],[1.5,0,-17],[0,0,-15]],"note":"Claim the Rifle, Shotgun and bullets through the normal supply path."},
+    {"name":"jammer_folded","camera":"first_person","weapon":"Flechette","walk_to":[[0,0,-14]],"look_at":[0,1.2,5],"note":"The folded service transmitter in the first lane before its encounter wakes."},
+    {"name":"jammer_pulse_motion","camera":"first_person","record_audio_start":true,"walk_to":[[2,0,-3]],"look_at":[0,1.2,5],"strip_frames":12,"strip_interval_seconds":0.35,"settle_seconds":0.05,"note":"Approach along the open lane, then observe the committed pulse from a closer lateral view without firing. The bright point advances only on server snapshots."},
+    {"name":"jammer_launch_audio","camera":"first_person","record_audio_stop":true,"settle_seconds":0.05,"note":"The isolated real launch capture has radio muted and no player shots. This records software audio output, not hardware listening acceptance."},
+    {"name":"jammer_first_defeat","camera":"first_person","combat":{"kind":"jammer","required":["lane_jammer"],"target_required_only":true,"observe_first_shot":true,"evade_tells":true},"note":"Sidestep the committed pulses and defeat the first Jammer with the Rifle."},
+    {"name":"jammer_flank","camera":"first_person","walk_to":[[-11,0,-8],[-11,0,4],[-11,0,10]],"look_at":[-7,1.2,19],"note":"The freight-car flank gives sight breaks and a health detour before the mixed fight."},
+    {"name":"jammer_mixed_fight","camera":"first_person","combat":{"kind":"union","required":["yard_jammer","yard_sweeper"],"target_required_only":true,"evade_tells":true},"note":"Defeat both named combatants in the mixed fight. The solo lane already proves a launch; here ordinary return fire can interrupt the Jammer while the Sweeper pressures the flank."},
+    {"name":"jammer_range_exit","camera":"first_person","walk_to":[[-11,0,21],[0,0,21]],"note":"Finish the mixed range and reach its final landmark. This fixture has no campaign departure or save transition."}
+  ]
+}

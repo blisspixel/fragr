@@ -1,5 +1,10 @@
 # Level 9: Passenger Manifest
 
+**Appearance anchor for level 9:** Lunar launch cradle and berth services; recognizable ship access makes reclaimed transport the destination.
+Shared [world direction](../design/moon.md) and
+[character, voice and scene continuity](../design/characters.md) govern assets
+and staging. This anchor is a production target, not finished-appearance evidence.
+
 **Status:** planned, accepted 2026-09-25, unbuilt. A new level in the
 [twenty-level expansion](../plans/campaign-expansion.md), the Episode II
 finale. [Story arc](story-arc.md).

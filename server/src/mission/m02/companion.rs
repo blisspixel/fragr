@@ -27,12 +27,7 @@ fn clear_support_ray(state: &GameState, origin: [f32; 3], target: &Player) -> bo
         return false;
     };
     let ray = Ray::dispersed(origin, yaw, pitch, 0.0, [0.0, 0.0]);
-    let Some(hostile) = ray.fighter_with_height(
-        target_feet,
-        PLAYER_RADIUS,
-        target_height(target.campaign),
-        SUPPORT_RANGE,
-    ) else {
+    let Some(hostile) = ray.actor(target_feet, target.campaign, SUPPORT_RANGE) else {
         return false;
     };
     !state.players.iter().any(|participant| {
@@ -62,7 +57,14 @@ fn clear_support_ray(state: &GameState, origin: [f32; 3], target: &Player) -> bo
 impl GameState {
     pub(crate) fn m02_companion_intent(&mut self) -> Option<(Uuid, BotIntent)> {
         let run = self.mission.as_ref()?;
-        let progress = run.m02.as_ref()?;
+        let (support_shots, last_support_tick) = if let Some(progress) = run.m02.as_ref() {
+            (progress.support_shots, progress.last_support_tick)
+        } else if let Some(progress) = run.m03.as_ref() {
+            (progress.support_shots, progress.last_support_tick)
+        } else {
+            let progress = run.m04.as_ref()?;
+            (progress.support_shots, progress.last_support_tick)
+        };
         if run.phase != MissionPhase::InProgress || self.campaign_run_frozen() {
             return None;
         }
@@ -91,9 +93,8 @@ impl GameState {
             });
         let leader_feet = leader.map(|p| [p.x, p.y - PLAYER_FLOOR_Y, p.z]);
         let can_fire = leader_feet.is_some_and(|p| distance(feet, p) <= PARTY_RANGE)
-            && progress.support_shots < MAX_SUPPORT_SHOTS
-            && progress
-                .last_support_tick
+            && support_shots < MAX_SUPPORT_SHOTS
+            && last_support_tick
                 .is_none_or(|last| self.tick.saturating_sub(last) >= SUPPORT_COOLDOWN);
         let target = can_fire
             .then(|| {
@@ -103,6 +104,8 @@ impl GameState {
                         p.hp > 0
                             && p.respawn_timer.is_none()
                             && p.campaign.is_some_and(CampaignActor::is_enemy)
+                            && !(run.m04.as_ref().is_some_and(|progress| progress.index <= 1)
+                                && crate::combat::is_notary(p.campaign))
                             && self.encounters.is_active_enemy(p.id)
                             && distance(feet, [p.x, p.y - PLAYER_FLOOR_Y, p.z]) <= SUPPORT_RANGE
                             && leader_feet.is_some_and(|leader| {
@@ -142,13 +145,30 @@ impl GameState {
                 progress.support_shots += 1;
                 progress.last_support_tick = Some(self.tick);
             }
+            if let Some(progress) = self.mission.as_mut().and_then(|run| run.m03.as_mut()) {
+                progress.support_shots += 1;
+                progress.last_support_tick = Some(self.tick);
+            }
+            if let Some(progress) = self.mission.as_mut().and_then(|run| run.m04.as_mut()) {
+                progress.support_shots += 1;
+                progress.last_support_tick = Some(self.tick);
+            }
             CompanionPhase::Firing
         } else {
             // The return route crosses the ward opening near the west side of
             // the processing floor. A west-forward slot carries Latch through
             // that opening while leaving the participant's aim lane clear.
-            let formation = leader_feet
-                .map(|leader| [(leader[0] - 2.4).max(-13.0), leader[1], leader[2] + 1.2]);
+            let formation = leader_feet.map(|leader| {
+                if self
+                    .mission
+                    .as_ref()
+                    .is_some_and(|run| run.m03.is_some() || run.m04.is_some())
+                {
+                    leader
+                } else {
+                    [(leader[0] - 2.4).max(-13.0), leader[1], leader[2] + 1.2]
+                }
+            });
             if let Some(leader) = formation.filter(|p| distance(feet, *p) > FORMATION_TOLERANCE) {
                 intent.goal = Some(NavigationGoal {
                     feet: leader,

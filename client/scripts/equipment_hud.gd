@@ -14,6 +14,8 @@ const EMPTY_TINT: Color = Color("ec7048")
 var state: Dictionary = {}
 var tick: int = 0
 var counts: Label
+var grenade_counts: Label
+var _grenades_known: bool = false
 var dry_seconds: float = 0.0
 var _dry_count: int = 0
 ## Pool drawn beside the number: bullets, shells, cells, or empty for fists.
@@ -33,7 +35,19 @@ func _ready() -> void:
 	counts.add_theme_constant_override("outline_size", 6)
 	counts.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(counts)
+	grenade_counts = Label.new()
+	grenade_counts.position = Vector2(0, -20)
+	grenade_counts.size = Vector2(WIDTH - GLYPH.x - 12.0, 36)
+	grenade_counts.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	grenade_counts.add_theme_font_override("font", MenuTheme.FONT)
+	grenade_counts.add_theme_font_size_override("font_size", 28)
+	grenade_counts.add_theme_color_override("font_color", MenuTheme.BONE)
+	grenade_counts.add_theme_color_override("font_outline_color", MenuTheme.INK)
+	grenade_counts.add_theme_constant_override("outline_size", 4)
+	grenade_counts.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(grenade_counts)
 	visible = false
+	_refresh()
 
 func apply(state_value: Dictionary) -> void:
 	var dry: int = int(state_value.get("dry_fire_count", 0))
@@ -45,8 +59,12 @@ func apply(state_value: Dictionary) -> void:
 		tick = 0
 		dry_seconds = 0.0
 		glyph_pool = ""
+		_grenades_known = false
+		if grenade_counts != null:
+			grenade_counts.visible = false
 		visible = false
 	else:
+		_grenades_known = _grenades_known or int(state.get("grenades", 0)) > 0
 		tick = maxi(tick, int(state["tick"]))
 		_refresh()
 
@@ -65,9 +83,14 @@ func _refresh() -> void:
 	counts.text = "" if shots < 0 else str(shots)
 	var empty: bool = shots == 0
 	counts.modulate = EMPTY_TINT if dry_seconds > 0.0 or empty else Color.WHITE
+	grenade_counts.visible = _grenades_known
+	grenade_counts.text = str(state.get("grenades", 0))
+	grenade_counts.modulate = EMPTY_TINT if int(state.get("grenades", 0)) == 0 else Color.WHITE
 	queue_redraw()
 
 func _draw() -> void:
+	if _grenades_known:
+		_grenade(Vector2(WIDTH - GLYPH.x + 3.0, -12.0), 0.45 if int(state.get("grenades", 0)) == 0 else 1.0)
 	if glyph_pool.is_empty():
 		return
 	var origin: Vector2 = Vector2(WIDTH - GLYPH.x, 34)
@@ -99,3 +122,9 @@ func _cell(at: Vector2, dim: float) -> void:
 	_block(Rect2(at + Vector2(9, 0), Vector2(10, 4)), CELL_STEEL, dim)
 	_block(Rect2(at + Vector2(2, 4), Vector2(24, 28)), CELL_STEEL, dim)
 	_block(Rect2(at + Vector2(8, 10), Vector2(12, 16)), CELL_GLOW, dim)
+
+func _grenade(at: Vector2, dim: float) -> void:
+	_block(Rect2(at + Vector2(5, 0), Vector2(11, 5)), BRASS, dim)
+	_block(Rect2(at + Vector2(2, 6), Vector2(18, 20)), Color("6d8067"), dim)
+	_block(Rect2(at + Vector2(0, 10), Vector2(22, 11)), Color("536348"), dim)
+	_block(Rect2(at + Vector2(16, 2), Vector2(4, 13)), CELL_STEEL, dim)

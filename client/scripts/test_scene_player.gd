@@ -119,12 +119,13 @@ func _still_and_narration() -> void:
 		await process_frame
 	_expect(player.page == 1, "narration timing advances when the clip ends")
 	_expect(player._motion == drift, "beats over the same still keep one drift")
+	player.toggle_captions()
+	_expect(not player._speaker.visible and not player._scroll.visible, "hidden captions hide the speaker during narration")
 	player._on_narration_finished()
+	_expect(player._speaker.visible and player._scroll.visible and not player._voiced, "completed speech restores text for the waiting reader even with captions disabled")
 	for frame: int in 60:
 		await process_frame
 	_expect(player.page == 1 and completions == 0, "the last shot waits for the reader")
-	player.toggle_captions()
-	_expect(player._speaker.visible == false and not player._scroll.visible, "hidden captions hide the speaker too")
 	player.toggle_captions()
 	player.previous()
 	_expect(player.page == 0 and player._auto_advance < 0.0, "back cancels a pending advance")

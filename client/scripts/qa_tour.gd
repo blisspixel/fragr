@@ -38,8 +38,19 @@ var _companion_route_file: String = ""
 var _failed: bool = false
 var _movement_samples: Array[Dictionary] = []
 var _walk_results: Array[Dictionary] = []
+var _m05_ride_report: Dictionary = {}
+var _grenade_strip_report: Dictionary = {}
+var _grenade_strip_network: Node
+var _grenade_strip_owner: String = ""
+var _grenade_strip_follow: bool = false
+var _grenade_strip_tick: int = -1
+var _grenade_strip_existing: Dictionary = {}
+var _grenade_strip_launches: Dictionary = {}
+var _grenade_strip_explosions: Dictionary = {}
+var _grenade_strip_samples: Array[Dictionary] = []
 var _combat_probe: QaCombat = QaCombat.new()
 var _combat_travel: bool = false
+var _combat_travel_targets: Array[String] = []
 var _radio_compare_on: bool = false
 var _radio_comparison: Dictionary = {}
 var _retiring_audio: Array[WeakRef] = []
@@ -124,6 +135,8 @@ func _run() -> void:
 	_clock_ms = Time.get_ticks_msec()
 	for entry in states:
 		var state: Dictionary = entry
+		_combat_travel = combat_travel_enabled(tour, state)
+		_combat_travel_targets.assign(state.get("combat_travel_targets", []))
 		var state_name: String = state.get("name", "")
 		if state_name.is_empty():
 			push_error("qa_tour: a state has no name")
@@ -253,6 +266,10 @@ func _run() -> void:
 				break
 		if state.has("expect_companion_displacement"):
 			await _expect_companion_displacement(float(state["expect_companion_displacement"]), state_name)
+		if state.get("m05_board_tram", false):
+			await _board_m05_tram()
+		if state.has("m05_ride_seconds"):
+			await _ride_m05_tram(float(state["m05_ride_seconds"]), float(state.get("expect_m05_ride_metres", 0.8)))
 		if state.get("expect_crawler_scrabble", false):
 			var manager: Node = _game_manager()
 			var caption: Node = manager.hud.get("crawler_caption") if manager != null else null
@@ -285,6 +302,11 @@ func _run() -> void:
 			combat = await _combat_probe.run(self, _game_manager(), state["combat"], _out_dir.path_join(state_name))
 			if not combat.get("passed", false):
 				_failed = true
+				_write_manifest(tour)
+				_write_contact_sheet()
+				await _retire_scene()
+				quit(1)
+				return
 		if state.has("look_at"):
 			var target: Array = state["look_at"]
 			var camera: Node3D = _spectator_camera()
@@ -293,8 +315,19 @@ func _run() -> void:
 			await _set_aim_pitch(atan2(direction.y, Vector2(direction.x, direction.z).length()))
 		if state.get("empty_ammo", false):
 			await _empty_ammo()
+		if state.get("expect_prompt", false):
+			var prompt_deadline: int = Time.get_ticks_msec() + 3000
+			while _game_manager().mission_hud.prompt_text.is_empty() and Time.get_ticks_msec() < prompt_deadline:
+				await create_timer(0.05).timeout
+			if _game_manager().mission_hud.prompt_text.is_empty():
+				push_error("qa_tour: %s expected a live use prompt" % state_name)
+				_failed = true
 		if state.has("interact"):
 			await _use_mission_control(str(state["interact"]))
+		if state.get("m05_review_departure", false):
+			await _set_m05_departure_review(true)
+		if state.get("m05_cancel_review", false):
+			await _set_m05_departure_review(false)
 		if state.has("expect_m02_ward_stage"):
 			await _expect_m02_ward_stage(str(state["expect_m02_ward_stage"]), state_name)
 		if state.has("expect_m02_side_stage"):
@@ -314,13 +347,6 @@ func _run() -> void:
 				_failed = true
 		if state.has("input_device"):
 			await _use_input_device(str(state["input_device"]), str(state.get("pad_layout", "")))
-		if state.get("expect_prompt", false):
-			var prompt_deadline: int = Time.get_ticks_msec() + 3000
-			while _game_manager().mission_hud.prompt_text.is_empty() and Time.get_ticks_msec() < prompt_deadline:
-				await create_timer(0.05).timeout
-			if _game_manager().mission_hud.prompt_text.is_empty():
-				push_error("qa_tour: %s expected a live use prompt" % state_name)
-				_failed = true
 		if state.get("overlay", "") == "match_menu":
 			_game_manager().get_node("PauseMenu").call("open")
 		if state.get("overlay", "") == "match_settings":
@@ -566,6 +592,43 @@ func _run() -> void:
 				push_error("qa_tour: captured pitch disagrees with the server for %s (expected %.3f, camera %.3f, server %.3f)" % [state_name, expected_pitch, camera_pitch, server_pitch])
 				_failed = true
 		var path: String = _out_dir.path_join(file_name)
+		if state.has("expect_m05_review") and observed.get("m05_review") != state["expect_m05_review"]:
+			push_error("qa_tour: physical M05 passenger review disagrees with " + state_name)
+			_failed = true
+		for key: String in ["completed", "group_released", "freight_open"]:
+			if state.has("expect_m05_" + key) and observed.get("m05", {}).get(key) != state["expect_m05_" + key]:
+				push_error("qa_tour: M05 " + key + " disagrees with " + state_name)
+				_failed = true
+		if state.has("expect_m05_tram_phase") and observed.get("m05", {}).get("tram", {}).get("phase") != state["expect_m05_tram_phase"]:
+			push_error("qa_tour: M05 tram phase disagrees with " + state_name)
+			_failed = true
+		if state.has("expect_m05_workers_aboard") and int(observed.get("m05_workers_aboard", 0)) < int(state["expect_m05_workers_aboard"]):
+			push_error("qa_tour: M05 passengers were not physically aboard in " + state_name)
+			_failed = true
+		if state.has("expect_notary_crashes") and int(observed.get("notary_crashes", 0)) < int(state["expect_notary_crashes"]):
+			push_error("qa_tour: no observed Notary support contact for " + state_name)
+			_failed = true
+		if state.has("expect_m04_clinic_open") or state.has("expect_m04_patients_released") or state.has("expect_m04_completed"):
+			var m04: Dictionary = observed.get("m04", {})
+			if m04.is_empty() or (state.has("expect_m04_clinic_open") and m04.get("clinic_open") != state["expect_m04_clinic_open"]) \
+				or (state.has("expect_m04_patients_released") and m04.get("patients_released") != state["expect_m04_patients_released"]) \
+				or (state.has("expect_m04_completed") and m04.get("completed") != state["expect_m04_completed"]):
+				push_error("qa_tour: M04 facts disagree with " + state_name)
+				_failed = true
+		if state.has("expect_m03_mast_disabled") or state.has("expect_m03_cars"):
+			var m03: Dictionary = observed.get("m03", {})
+			if m03.is_empty() or (state.has("expect_m03_mast_disabled") and \
+				(m03.get("mast_hp") == 0) != bool(state["expect_m03_mast_disabled"])):
+				push_error("qa_tour: M03 mast outcome disagrees with " + state_name)
+				_failed = true
+			if state.has("expect_m03_cars"):
+				var actual: Array[String] = []
+				for car: Dictionary in m03.get("cars", []):
+					if car.get("released", false):
+						actual.append(car["id"])
+				if actual != state["expect_m03_cars"]:
+					push_error("qa_tour: M03 car outcomes disagree with " + state_name)
+					_failed = true
 		var err: Error = shot.save_png(path)
 		if err != OK:
 			push_error("qa_tour: could not write %s (%s)" % [path, str(err)])
@@ -630,6 +693,7 @@ func _run() -> void:
 	quit(1 if _failed else 0)
 
 func _retire_scene() -> void:
+	_disconnect_grenade_strip()
 	if not _discard_audio():
 		push_error("qa_tour: Master recording effect remained during scene retirement")
 		_failed = true
@@ -758,13 +822,24 @@ static func valid_walks(states: Variant) -> bool:
 	for state: Variant in states:
 		if not state is Dictionary or not QaCombat.valid_waypoints(state.get("walk_to", [])):
 			return false
+		if state.has("combat_travel_targets"):
+			var targets: Variant = state["combat_travel_targets"]
+			if not targets is Array or targets.is_empty() or targets.size() > 32:
+				return false
+			var seen: Dictionary[String, bool] = {}
+			for target: Variant in targets:
+				if not target is String or target.is_empty() or target.length() > 64 or seen.has(target):
+					return false
+				seen[target] = true
 		if state.has("scene") and not str(state["scene"]).is_empty():
 			if live_audio_open and str(state["scene"]) != scene_path:
 				return false
 			scene_path = str(state["scene"])
-		for key: String in ["record_audio_start", "record_audio_stop"]:
+		for key: String in ["record_audio_start", "record_audio_stop", "combat_travel", "grenade_follow"]:
 			if state.has(key) and not state[key] is bool:
 				return false
+		if state.get("grenade_follow", false) and state.get("trigger") != "throw_grenade":
+			return false
 		var starts_audio: bool = state.get("record_audio_start", false)
 		var stops_audio: bool = state.get("record_audio_stop", false)
 		if starts_audio and live_audio_open or stops_audio and not (live_audio_open or starts_audio):
@@ -983,6 +1058,9 @@ func _load_manifest() -> Dictionary:
 	if typeof(parsed) != TYPE_DICTIONARY:
 		push_error("qa_tour: manifest is not an object")
 		return {}
+	if not valid_combat_travel(parsed):
+		push_error("qa_tour: manifest combat_travel must be a boolean")
+		return {}
 	if not valid_walks(parsed.get("states")):
 		push_error("qa_tour: states require finite lists of XYZ walking waypoints")
 		return {}
@@ -1038,6 +1116,7 @@ func _measure() -> Dictionary:
 ## Capture consecutive frames or timed samples through an effect's full lifetime.
 func _capture_strip(state: Dictionary, frames: int, file_name: String) -> void:
 	var trigger: String = state.get("trigger", "")
+	_grenade_strip_report = {}
 	_companion_strip_samples.clear()
 	var interval: float = float(state.get("strip_interval_seconds", 0.0))
 	var walk_action: String = str(state.get("walk_action", "move_forward"))
@@ -1065,6 +1144,15 @@ func _capture_strip(state: Dictionary, frames: int, file_name: String) -> void:
 				await RenderingServer.frame_post_draw
 		if state.get("single_shot", false):
 			Input.action_release("fire")
+	if trigger == "throw_grenade":
+		_begin_grenade_strip(state.get("grenade_follow", false))
+		var press: InputEventKey = InputEventKey.new()
+		press.physical_keycode = KEY_G
+		press.pressed = true
+		Input.parse_input_event(press)
+		var release: InputEventKey = press.duplicate()
+		release.pressed = false
+		Input.parse_input_event(release)
 	for _i in range(STRIP_LEAD_FRAMES):
 		await RenderingServer.frame_post_draw
 	var shots: Array[Image] = []
@@ -1098,6 +1186,8 @@ func _capture_strip(state: Dictionary, frames: int, file_name: String) -> void:
 			_failed = true
 	if trigger == "fire":
 		Input.action_release("fire")
+	if trigger == "throw_grenade":
+		_finish_grenade_strip()
 	if probe_name != "" and _probe_frames == 0:
 		push_error("qa_tour: shot produced no visible " + probe_name)
 		_failed = true
@@ -1245,6 +1335,14 @@ func _observed_state() -> Dictionary:
 		for captive: Node3D in ward._side_captives:
 			captive_views.append([captive.position.x, captive.position.y, captive.position.z])
 	var report: Dictionary = {
+		"grenade_strip": _grenade_strip_report.duplicate(true),
+		"m05_review": is_instance_valid(gm.get("departure_review")),
+		"m05_ride": _m05_ride_report.duplicate(true),
+		"m05": gm.get("net_client").get("mission").get("state", {}).get("m05", {}),
+		"m05_workers_aboard": MissionHud.workers_aboard(gm.get("net_client").get("mission").get("state", {}), gm.get("net_client").get("mission_geometry").get("m05", {}).get("boarding", {})),
+		"m04": gm.get("net_client").get("mission").get("state", {}).get("m04", {}),
+		"notary_crashes": gm.get("notary_audio").crash_count if gm.get("notary_audio") != null else 0,
+		"m03": gm.get("net_client").get("mission").get("state", {}).get("m03", {}),
 		"m02_evacuation": evacuation,
 		"m02_captive_views": captive_views,
 		"participant_record": gm.get("net_client").get("record"),
@@ -1265,6 +1363,7 @@ func _observed_state() -> Dictionary:
 		"camera_yaw": atan2(camera_forward.z, camera_forward.x),
 		"server_yaw": server_yaw if absf(server_yaw) <= TAU else null,
 		"server_pitch": server_pitch if absf(server_pitch) <= ServerYaw.PITCH_LIMIT else null,
+		"jammer_launches": gm.jammer_audio.launch_count if is_instance_valid(gm.jammer_audio) else 0,
 	}
 	if bool(gm.get("is_human_player")):
 		var predictor: LocalPrediction = gm.get("local_prediction")
@@ -1424,6 +1523,131 @@ func _use_input_device(kind: String, layout: String) -> void:
 		InputDevice.force(InputDevice.Kind.GAMEPAD, InputDevice.look_source, layout)
 	await process_frame
 
+static func combat_travel_enabled(tour: Dictionary, state: Dictionary) -> bool:
+	# A stage override is scoped to that stage. Targets are reset with it.
+	var selected: Variant = state.get("combat_travel", tour.get("combat_travel", false))
+	if selected is bool:
+		return selected
+	return false
+
+static func valid_combat_travel(tour: Dictionary) -> bool:
+	return not tour.has("combat_travel") or tour["combat_travel"] is bool
+
+func _begin_grenade_strip(follow_projectile: bool = false) -> void:
+	_disconnect_grenade_strip()
+	_grenade_strip_existing.clear()
+	_grenade_strip_launches.clear()
+	_grenade_strip_explosions.clear()
+	_grenade_strip_samples.clear()
+	var manager: Node = _game_manager()
+	_grenade_strip_network = manager.net_client
+	_grenade_strip_owner = str(_grenade_strip_network.player_id)
+	_grenade_strip_follow = follow_projectile
+	_grenade_strip_tick = int(manager.latest_snapshot.get("tick", -1))
+	for grenade: Dictionary in manager.latest_snapshot.get("grenades", []):
+		if grenade["owner_id"] == _grenade_strip_owner:
+			_grenade_strip_existing[int(grenade["id"])] = true
+	_grenade_strip_report = {"stock_before": int(_equipment().get("grenades", 0)), "passed": false, "camera_follows_confirmed_projectile": follow_projectile}
+	_grenade_strip_network.snapshot_received.connect(_collect_grenade_strip)
+
+func _collect_grenade_strip(snapshot: Dictionary) -> void:
+	if int(snapshot["tick"]) <= _grenade_strip_tick:
+		return
+	_grenade_strip_tick = int(snapshot["tick"])
+	var live: Array[Dictionary] = []
+	var resolved: Array[Dictionary] = []
+	for grenade: Dictionary in snapshot.get("grenades", []):
+		var serial: int = int(grenade["id"])
+		if grenade["owner_id"] != _grenade_strip_owner or _grenade_strip_existing.has(serial):
+			continue
+		if not _grenade_strip_launches.has(serial) and _grenade_strip_launches.size() < 64:
+			_grenade_strip_launches[serial] = grenade.duplicate(true)
+		live.append(grenade.duplicate(true))
+		if _grenade_strip_follow and _grenade_strip_launches.size() == 1 \
+			and fresh_grenade_capture(_grenade_strip_owner, _grenade_strip_existing, _grenade_strip_launches, grenade):
+			_follow_grenade_strip(GrenadeFacts.vector(grenade["position"]))
+	for explosion: Dictionary in snapshot.get("explosions", []):
+		var serial: int = int(explosion["id"])
+		if explosion["owner_id"] != _grenade_strip_owner or _grenade_strip_existing.has(serial):
+			continue
+		if _grenade_strip_explosions.size() < 64:
+			_grenade_strip_explosions[serial] = explosion.duplicate(true)
+		resolved.append(explosion.duplicate(true))
+		if _grenade_strip_follow and _grenade_strip_launches.size() == 1 \
+			and fresh_grenade_capture(_grenade_strip_owner, _grenade_strip_existing, _grenade_strip_launches, explosion):
+			_follow_grenade_strip(GrenadeFacts.vector(explosion["position"]))
+	if _grenade_strip_samples.size() < 128 and (not live.is_empty() or not resolved.is_empty()):
+		_grenade_strip_samples.append({"tick": snapshot["tick"], "grenades": live, "explosions": resolved})
+
+func _disconnect_grenade_strip() -> void:
+	if is_instance_valid(_grenade_strip_network) and _grenade_strip_network.snapshot_received.is_connected(_collect_grenade_strip):
+		_grenade_strip_network.snapshot_received.disconnect(_collect_grenade_strip)
+	_grenade_strip_network = null
+	_grenade_strip_follow = false
+
+static func fresh_grenade_capture(owner: String, excluded: Dictionary, launched: Dictionary, fact: Dictionary) -> bool:
+	if not EquipmentState.integer(fact.get("id"), 4294967295) or int(fact["id"]) < 1:
+		return false
+	return fact.get("owner_id") == owner and not excluded.has(int(fact["id"])) \
+		and launched.has(int(fact["id"])) and GrenadeFacts.point(fact.get("position"))
+
+func _follow_grenade_strip(position: Vector3) -> void:
+	var manager: Node = _game_manager()
+	if manager == null or not _local_human_alive(manager) or str(manager.net_client.player_id) != _grenade_strip_owner:
+		return
+	var eye: Node3D = _spectator_camera()
+	if eye == null or not eye.get("fp_mode"):
+		return
+	var direction: Vector3 = position - eye.global_position
+	if not direction.is_finite() or direction.length() < 0.7:
+		return
+	eye.set("fp_yaw", atan2(direction.z, direction.x))
+	eye.set("fp_pitch", clampf(atan2(direction.y, Vector2(direction.x, direction.z).length()), -ServerYaw.PITCH_LIMIT, ServerYaw.PITCH_LIMIT))
+
+func _finish_grenade_strip() -> void:
+	_disconnect_grenade_strip()
+	_grenade_strip_report["stock_after"] = int(_equipment().get("grenades", 0))
+	_grenade_strip_report["launches"] = _grenade_strip_launches.values().duplicate(true)
+	_grenade_strip_report["explosions"] = _grenade_strip_explosions.values().duplicate(true)
+	_grenade_strip_report["samples"] = _grenade_strip_samples.duplicate(true)
+	var passed: bool = int(_grenade_strip_report["stock_before"]) > 0 \
+		and int(_grenade_strip_report["stock_after"]) == int(_grenade_strip_report["stock_before"]) - 1 \
+		and _grenade_strip_launches.size() == 1 and _grenade_strip_explosions.size() == 1
+	if passed:
+		passed = _grenade_strip_explosions.has(_grenade_strip_launches.keys()[0])
+	_grenade_strip_report["passed"] = passed
+	if not passed:
+		push_error("qa_tour: grenade strip lacked one real stock decrement, launch and matching resolved explosion: " + JSON.stringify(_grenade_strip_report))
+		_failed = true
+	else:
+		print("qa_tour: real grenade stock decrement, launch and matching explosion serial ", _grenade_strip_launches.keys()[0])
+
+func _set_m05_departure_review(open_review: bool) -> void:
+	var manager: Node = _game_manager()
+	var before: Dictionary = manager.net_client.mission.get("state", {}).duplicate(true)
+	if before.get("id") != MissionState.M05_ID or before.get("phase") != "in_progress" \
+		or is_instance_valid(manager.get("departure_review")) == open_review:
+		push_error("qa_tour: M05 review requires the matching live mission and modal state")
+		_failed = true
+		return
+	var press: InputEventKey = InputEventKey.new()
+	press.physical_keycode = KEY_F if open_review else KEY_ESCAPE
+	press.pressed = true
+	Input.parse_input_event(press)
+	var release: InputEventKey = press.duplicate()
+	release.pressed = false
+	Input.parse_input_event(release)
+	await process_frame
+	await create_timer(0.2).timeout
+	var after: Dictionary = manager.net_client.mission.get("state", {})
+	if is_instance_valid(manager.get("departure_review")) != open_review \
+		or manager.pending_interact or after.get("phase") != "in_progress" \
+		or after.get("m05", {}).get("completed") != before.get("m05", {}).get("completed"):
+		push_error("qa_tour: physical passenger review changed authoritative departure or failed its release barrier")
+		_failed = true
+		return
+	print("qa_tour: physical passenger review ", "opened" if open_review else "cancelled", "; mission remains in_progress and no Use queued")
+
 func _use_mission_control(expected_phase: String) -> void:
 	var network: Node = _game_manager().get("net_client")
 	var deadline: int = Time.get_ticks_msec() + 2000
@@ -1446,6 +1670,13 @@ func _use_mission_control(expected_phase: String) -> void:
 	var release: InputEventKey = press.duplicate()
 	release.pressed = false
 	Input.parse_input_event(release)
+	await process_frame
+	if is_instance_valid(_game_manager().get("departure_review")):
+		# The first physical Use opens the passenger preview. A separate fresh
+		# physical press confirms through the same Action channel.
+		await create_timer(0.15).timeout
+		Input.parse_input_event(press)
+		Input.parse_input_event(release)
 	deadline = Time.get_ticks_msec() + 2000
 	while Time.get_ticks_msec() < deadline:
 		var mission: Dictionary = network.get("mission")
@@ -1453,6 +1684,8 @@ func _use_mission_control(expected_phase: String) -> void:
 		# M02 stays in_progress; its expectation names the completed objective.
 		var progress: Variant = mission_state.get("m02")
 		if mission_state.get("phase") == expected_phase \
+			or (mission_state.get("id") in [MissionState.M03_ID, MissionState.M04_ID, MissionState.M05_ID] and expected_phase == "party_departed" and mission_state.get("phase") == "departed") \
+			or (mission_state.get("id") == MissionState.M04_ID and expected_phase == "clinic_shutter" and mission_state.get("m04", {}).get("clinic_open") == true) \
 			or (progress is Dictionary and expected_phase in progress.get("completed", [])):
 			print("qa_tour: mission reached ", expected_phase)
 			return
@@ -1710,8 +1943,10 @@ func _walk_to(goal: Vector3, look_back: bool = false, stop_round_state: String =
 	while walking_ms < 15000 and fighting_ms < 25000:
 		var step_started: int = Time.get_ticks_msec()
 		await _record_companion_route()
+		if _combat_travel and _combat_probe.participant_died:
+			break
 		var feet: Vector3 = _local_feet()
-		if not feet.is_finite() or (_combat_travel and _combat_probe.participant_died):
+		if not feet.is_finite():
 			break
 		# A capture freezes the pawn until the next round. A stand waypoint's
 		# arrival disk sits inside the touch radius, so waiting for it
@@ -1723,7 +1958,7 @@ func _walk_to(goal: Vector3, look_back: bool = false, stop_round_state: String =
 		if Vector2(feet.x - goal.x, feet.z - goal.z).length() < 0.3 and absf(feet.y - goal.y) < 0.03:
 			arrived = true
 			break
-		if _combat_travel and _combat_probe.travel(_game_manager(), anchor):
+		if _combat_travel and _combat_probe.travel(_game_manager(), anchor, _combat_travel_targets):
 			_record_movement()
 			await create_timer(0.05).timeout
 			fighting_ms += Time.get_ticks_msec() - step_started
@@ -1742,7 +1977,8 @@ func _walk_to(goal: Vector3, look_back: bool = false, stop_round_state: String =
 	_walk_results.append(walk_result)
 	await create_timer(0.15).timeout
 	if not arrived:
-		push_error("qa_tour: ordinary walk failed to reach %s, stopped at %s (walking %d ms, fighting %d ms)" % [goal, _local_feet(), walking_ms, fighting_ms])
+		var stopped: String = "participant died" if _combat_probe.participant_died else str(_local_feet())
+		push_error("qa_tour: ordinary walk failed to reach %s, stopped at %s (walking %d ms, fighting %d ms)" % [goal, stopped, walking_ms, fighting_ms])
 		_failed = true
 
 ## One uninterrupted diagnostic window. Every control goes through the same
@@ -2146,3 +2382,88 @@ func _write_contact_sheet() -> void:
 	var err: Error = sheet.save_png(_out_dir.path_join("contact.png"))
 	if err != OK:
 		push_error("qa_tour: contact sheet failed (%s)" % str(err))
+
+func _m05_local_body() -> Dictionary:
+	var manager: Node = _game_manager()
+	var actor: Dictionary = {}
+	for player: Dictionary in manager.latest_snapshot.get("players", []):
+		if player["id"] == manager.net_client.player_id:
+			actor = player
+	if actor.is_empty() or int(actor["hp"]) <= 0:
+		return {}
+	var feet: Vector3 = _local_feet()
+	return {"x": feet.x, "y": feet.y, "z": feet.z, "vy": float(manager.last_ack.get("movement", {}).get("vy", INF))}
+
+func _board_m05_tram() -> void:
+	var manager: Node = _game_manager()
+	var geometry: Dictionary = manager.net_client.mission_geometry
+	if geometry.get("id") != MissionState.M05_ID:
+		push_error("qa_tour: tram boarding requires M05")
+		_failed = true
+		return
+	var start: Vector3 = _local_feet()
+	var bound: Dictionary = geometry["m05"]["tram"]
+	var target: Vector3 = GrenadeFacts.vector(bound["start"]) + Vector3.UP * (MoveStep.solid_top(geometry["tram_solid"]) - float(bound["start"][1]))
+	if Vector2(start.x - target.x, start.z - target.z).length() > 5.0 or absf(start.y - target.y) > 0.6:
+		push_error("qa_tour: ordinary tram jump must start at its reachable dock")
+		_failed = true
+		return
+	manager.camera.set("fp_yaw", atan2(target.z - start.z, target.x - start.x))
+	Input.action_press("jump")
+	Input.action_press("move_forward")
+	var deadline: int = Time.get_ticks_msec() + 4000
+	var jumped: bool = false
+	var grounded: bool = false
+	while Time.get_ticks_msec() < deadline:
+		var body: Dictionary = _m05_local_body()
+		if body.is_empty():
+			break
+		var feet: Vector3 = _local_feet()
+		if feet.y > start.y + 0.1:
+			jumped = true
+			Input.action_release("jump")
+		var tram: Dictionary = manager.net_client.mission["state"]["m05"]["tram"]
+		var solid: Dictionary = M05Tram.solid_at(geometry, tram["feet"])
+		if absf(feet.x - target.x) < 0.25:
+			Input.action_release("move_forward")
+		if jumped and M05Tram.supported(body, solid, false):
+			grounded = true
+			break
+		await create_timer(0.02).timeout
+	Input.action_release("jump")
+	Input.action_release("move_forward")
+	if not grounded:
+		push_error("qa_tour: ordinary jump never landed on live tram: " + str(_local_feet()))
+		_failed = true
+	else:
+		print("qa_tour: ordinary jump boarded live tram from ", start, " to ", _local_feet())
+
+func _ride_m05_tram(seconds: float, required_metres: float) -> void:
+	var manager: Node = _game_manager()
+	var geometry: Dictionary = manager.net_client.mission_geometry
+	if geometry.get("id") != MissionState.M05_ID or not is_finite(seconds) or seconds < 0.5 or seconds > 15.0 \
+		or not is_finite(required_metres) or required_metres < 0.1 or required_metres > 20.0:
+		push_error("qa_tour: invalid bounded tram ride request")
+		_failed = true
+		return
+	var start: Vector3 = _local_feet()
+	var first: Dictionary = manager.net_client.mission["state"]["m05"]["tram"].duplicate(true)
+	var supported_samples: int = 0
+	var deadline: int = Time.get_ticks_msec() + int(seconds * 1000.0)
+	while Time.get_ticks_msec() < deadline:
+		var body: Dictionary = _m05_local_body()
+		var tram: Dictionary = manager.net_client.mission["state"]["m05"]["tram"]
+		if body.is_empty() or not M05Tram.supported(body, M05Tram.solid_at(geometry, tram["feet"]), false):
+			push_error("qa_tour: rider lost actual support during tram motion")
+			_failed = true
+			return
+		supported_samples += 1
+		await create_timer(0.05).timeout
+	var last: Dictionary = manager.net_client.mission["state"]["m05"]["tram"]
+	var delta: float = float(last["feet"][2]) - float(first["feet"][2])
+	var player_delta: float = _local_feet().z - start.z
+	_m05_ride_report = {"tram_metres": delta, "rider_metres": player_delta, "supported_samples": supported_samples, "start_tick": first["tick"], "end_tick": last["tick"]}
+	if absf(delta) < required_metres or absf(delta - player_delta) > 0.12 or supported_samples < int(seconds * 10.0):
+		push_error("qa_tour: actual tram/rider displacement disagreed: " + JSON.stringify(_m05_ride_report))
+		_failed = true
+	print("qa_tour: actual tram ride ", JSON.stringify(_m05_ride_report))

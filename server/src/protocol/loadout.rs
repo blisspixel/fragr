@@ -119,6 +119,7 @@ pub struct LoadoutState {
     pub weapons: Vec<WeaponType>,
     /// Exactly one count per ammunition type.
     pub ammo: Vec<AmmoCount>,
+    pub grenades: u16,
     pub personal_claims: Vec<String>,
     pub dry_fire_count: u64,
 }
@@ -144,6 +145,7 @@ impl LoadoutState {
             self.selected,
             &self.weapons,
             &self.ammo,
+            self.grenades,
             &self.personal_claims,
         )
     }
@@ -170,9 +172,11 @@ pub(crate) fn validate_equipment(
     selected: WeaponType,
     weapons: &[WeaponType],
     ammo: &[AmmoCount],
+    grenades: u16,
     personal_claims: &[String],
 ) -> Result<(), &'static str> {
-    if weapons.is_empty()
+    if grenades > 6
+        || weapons.is_empty()
         || weapons.len() > WeaponType::ALL.len()
         || ammo.len() != AmmoPool::ALL.len()
         || personal_claims.len() > 128

@@ -90,6 +90,17 @@ func _run() -> void:
 	_expect(loaded >= 2, "the opening and the first interlude are committed")
 	for mission: String in StoryScene.AFTER_MISSION:
 		_expect(StoryScene.exists(StoryScene.AFTER_MISSION[mission]), "departure scene exists for " + mission)
+	for mission: String in StoryScene.BEFORE_MISSION:
+		var arrival: Dictionary = StoryScene.load_scene(StoryScene.BEFORE_MISSION[mission])
+		_expect(not arrival.is_empty(), "arrival scene exists for " + mission)
+		for shot: Dictionary in arrival.get("shots", []):
+			if mission == MissionState.M03_ID:
+				_expect(shot.get("timing") == "reader" and not shot.has("narration"), "M03 arrival retains its reader-paced scene")
+			else:
+				_expect(shot.get("timing") == "narration" and not StoryScene.narration_path(shot).is_empty(), "M04 arrival has its committed narration with text fallback")
+	var departure: Dictionary = StoryScene.load_scene(StoryScene.AFTER_MISSION[MissionState.M03_ID])
+	for shot: Dictionary in departure.get("shots", []):
+		_expect(shot.get("timing") == "narration" and not StoryScene.narration_path(shot).is_empty(), "M03 departure has its committed narration with text fallback")
 
 	# The migrated opening keeps its five keyed beats in order.
 	var opening: Dictionary = StoryScene.load_scene(CampaignOpening.SCENE_ID)

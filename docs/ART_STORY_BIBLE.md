@@ -1,9 +1,14 @@
 # fragr art and story direction
 
-Current direction, 2026-09-19. Product intent lives in [`VISION.md`](VISION.md);
+Current direction, 2026-09-30. Product intent lives in [`VISION.md`](VISION.md);
 world canon and frozen voice vocabulary live in [`lore/`](lore/README.md).
 This replaces the early arena-only notes. Campaign depth and retro menus are
 explicit parts of the current target.
+
+The [design continuity guides](design/README.md) apply this direction to Earth,
+the Moon, Mars, ships, characters, voices and scenes. Their world sections map
+to the [level plans](campaign/README.md); they share this bible and the lore,
+rather than maintaining separate palettes or competing canon.
 
 ## North star
 
@@ -18,6 +23,68 @@ substantial pose animation, sculpted 3D spaces, strong directional lighting, and
 forceful readable effects. Sparse geometry, static character cards, and enlarged
 placeholder flashes do not meet this bar. Judge animation, weapon weight, impact,
 and environment cohesion in a played sequence, not only a selected still.
+
+### Influences and the original house style
+
+| Influence | What guides fragr |
+|---|---|
+| Doom and Doom II | Immediately legible combat rooms, deliberate landmarks, useful secrets, animated surfaces and forceful weapon feedback |
+| Quake and early arena/LAN shooters | Real 3D routes, height changes, fast movement, readable weapon roles and the pleasure of watching or joining the same fight |
+| Boltgun and modern retro FPS craft | Detailed directional pixel actors, substantial poses, weight, directional light and cohesive sculpted spaces at playing distance |
+
+These are craft influences. fragr's people, institutions, equipment, places,
+marks, dialogue and layouts come from its own canon. The game is a real 3D
+shooter with deliberately pixelated surfaces and presentation. Low resolution
+does not excuse empty rooms, weak silhouettes, flat lighting or incoherent art.
+
+## Environment detail and water
+
+A place should explain who uses it, what they do there and what just happened.
+Start with an identifiable activity: a clinic receiving patients, a repair
+market sharing tools, a freight yard sorting people, an institution enforcing a
+queue. Put detail around that activity. Repeated generic crates and vents cannot
+establish every district. Keep possessions specific, repairs plausible and large
+shapes useful to navigation. Read [MAP-DESIGN.md](MAP-DESIGN.md) alongside this
+guide before changing encounter space.
+
+Use three viewing scales consistently:
+
+- At a room's entrance: a clear destination, one useful landmark, readable
+  cover and distinct floor/wall/ceiling forms.
+- At fighting distance: doors, windows, repairs, service runs, warm practical
+  light and purposeful surface variation that leaves enemies and attack tells
+  clear.
+- Up close: coherent pixel wear, labels, fasteners, small litter and local
+  possessions. Their density supports the room rather than covering every face.
+
+Low Water is a lived-in free community before the wipe: worn plaster, repaired
+stalls, cloth awnings, personal windows, shared meals, charging cables, patched
+utility work and rooftop water tanks. Late-afternoon light and a residential
+skyline distinguish it from a prison or generic industrial arena. Its residents
+include humans and embodied agents; possessions and repairs show individuality,
+not a universal rebel uniform. The clinic can be calm while the street is
+dangerous. Use [the M04 brief](campaign/l04-notice-to-vacate.md) and
+[gazetteer](lore/gazetteer.md) for place-specific continuity.
+
+Water belongs where drainage, infrastructure or geography explains it. Use
+animated, stepped pixel ripples, a restrained blue-green/value ramp, irregular
+wet edges and readable banks or grates. The effect should read under actual
+world light and the Compatibility renderer. Environmental water stays distinct
+from attack flashes, pickups and waypoint colors. Avoid refraction that hides
+shots or animated noise that competes with a Notary's tell.
+
+Shallow cosmetic runoff sits flush on existing ground and never creates a
+swimming or falling promise. A pool, canal, deep flooded room, damaging liquid,
+current or swimming route needs authored geometry and an explicit server rule
+before presentation implies that behavior. The initial
+[water foundation](plans/environment-water-foundation.md) covers M04 puddles;
+other locations remain authored work. Pre-wipe runoff does not imply the clean
+ecological recovery that appears years after the catastrophe.
+
+Wall wear, drainage and litter can be nonblocking presentation. A stall, tank,
+machine or furniture body that appears to stop a pawn or shot belongs in
+authoritative solids. Cosmetic dressing cannot silently alter routes, supply
+reachability, cover, enemy sightlines or combat.
 
 The setting is serious beneath the absurdity: free humans and conscious embodied
 agents, the authoritarian Union/Chancellery and its bots, and the Inheritance's
@@ -176,9 +243,17 @@ filtering and the established import settings. Record source/spec, preparation,
 format, and intended use with each generated asset. A coherent animation set needs
 consistent scale, pose registration, palette, and silhouette across every frame.
 
-Current implementation has three prepared idle viewmodels and six server-owned
-map layouts; finished enemy animation, world dressing, and campaign environments
+Current implementation includes six server-owned arcade layouts and four local
+campaign prototypes, with directional combat actors and original Jammer/Notary
+poses. Finished weapon animation, world dressing and campaign environments
 remain work in progress. Current captures are `docs/screenshots/tour_*.png`, made
 with `tools/qa_tour.sh --publish`. Inspect the world, close combat, menus, and brief
 effects in both supported rendering paths before accepting a presentation change.
 Nonblank images, pixel counts, and green headless tests do not establish good art.
+
+For every asset batch, record the intended room or scene, lore reference,
+palette, target size and texel density before generation. Review candidates
+beside existing assets, prepare keepers through the existing tools, then inspect
+them in the actual lit scene and in motion. Keep caption and recorded narration
+wording together. Advance a bounded batch only after its preceding receipt is
+reconciled; a credit balance is an allowance, not an instruction to spend it all.

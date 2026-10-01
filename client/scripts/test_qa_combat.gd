@@ -5,6 +5,51 @@ const TOUR = preload("res://scripts/qa_tour.gd")
 var _failures: int = 0
 
 func _initialize() -> void:
+	var declared_false: Dictionary = {"combat_travel": false}
+	var scoped_true: Dictionary = {"combat_travel": true, "combat_travel_targets": ["lesson_heavy"]}
+	_check(TOUR.combat_travel_enabled(declared_false, scoped_true)
+		and not TOUR.combat_travel_enabled(declared_false, {}),
+		"scoped travel defense cannot leak into an unspecified stage with unrestricted targets")
+	var declared_true: Dictionary = {"combat_travel": true}
+	_check(not TOUR.combat_travel_enabled(declared_true, {"combat_travel": false})
+		and TOUR.combat_travel_enabled(declared_true, {}),
+		"a scoped quiet stage preserves globally enabled defense for later unspecified stages")
+	_check(TOUR.valid_combat_travel({}) and TOUR.valid_combat_travel(declared_false)
+		and TOUR.valid_combat_travel(declared_true), "optional global travel flag accepts only declared booleans")
+	for invalid_flag: Variant in ["false", "true", 0, 1, null, [], {}]:
+		_check(not TOUR.valid_combat_travel({"combat_travel": invalid_flag})
+			and not TOUR.combat_travel_enabled({"combat_travel": invalid_flag}, {}),
+			"global string, number or other nonboolean cannot enable unrestricted travel defense")
+	_check(TOUR.valid_walks([{"trigger": "throw_grenade", "grenade_follow": true}])
+		and TOUR.valid_walks([{"grenade_follow": false}]), "projectile-follow capture is an explicit grenade-only option")
+	for invalid_follow: Variant in ["true", 1, null]:
+		_check(not TOUR.valid_walks([{"trigger": "throw_grenade", "grenade_follow": invalid_follow}]), "nonboolean camera-follow option rejected")
+	_check(not TOUR.valid_walks([{"trigger": "fire", "grenade_follow": true}]), "gun or unrelated camera state cannot request grenade-follow")
+	var live_capture: Dictionary = {"id": 1, "owner_id": "owner", "position": [1, 2, 3]}
+	_check(not TOUR.fresh_grenade_capture("owner", {}, {}, live_capture)
+		and TOUR.fresh_grenade_capture("owner", {}, {1: true}, live_capture), "capture camera waits for actual recorded launch before accepting a point")
+	_check(not TOUR.fresh_grenade_capture("other", {}, {1: true}, live_capture)
+		and not TOUR.fresh_grenade_capture("owner", {1: true}, {1: true}, live_capture), "other-owner and pre-existing grenades cannot steal the capture camera")
+	live_capture["position"] = [1, INF, 3]
+	_check(not TOUR.fresh_grenade_capture("owner", {}, {1: true}, live_capture), "nonfinite projectile or explosion points never drive the camera")
+	_check_jammer_launch()
+	_check(QaCombat.approach_evade_enabled({}) and QaCombat.approach_evade_enabled({"evade_tells": true}),
+		"ordinary approach keeps its historical tell evasion unless explicitly disabled")
+	_check(not QaCombat.approach_evade_enabled({"evade_tells": false}),
+		"explicit standing observation does not acquire movement through a committed approach tell")
+	for invalid_evade: Variant in ["false", 0, null, []]:
+		_check(not QaCombat.valid_evade_tells({"evade_tells": invalid_evade})
+			and not QaCombat.approach_evade_enabled({"evade_tells": invalid_evade}),
+			"nonboolean approach policy is rejected instead of enabling unexpected movement")
+	var roof: Array = [{"min_x": -3.0, "max_x": 3.0, "min_z": -3.0, "max_z": 3.0, "bottom": 2.5, "top": 3.0}]
+	var edge: Dictionary = {"x": 0.0, "y": 3.0 + QaCombat.CAMERA.FP_SERVER_REFERENCE_Y, "z": 2.6}
+	_check(not QaCombat.safe_strafe(edge, roof, 20.0, 0.0, false) and QaCombat.safe_strafe(edge, roof, 20.0, 0.0, true),
+		"a rooftop dodge rejects the exposed edge and keeps its inward alternative")
+	_check(QaCombat.safe_strafe({"x": 0.0, "y": QaCombat.CAMERA.FP_SERVER_REFERENCE_Y, "z": 0.0}, [], 20.0, 0.0, false),
+		"ordinary open-ground evasion remains available")
+	_check(not QaCombat.safe_strafe({"x": 0.0, "y": QaCombat.CAMERA.FP_SERVER_REFERENCE_Y, "z": 0.0},
+		[{"min_x": -3.0, "max_x": 3.0, "min_z": 0.6, "max_z": 3.0, "top": 4.0}], 20.0, 0.0, false),
+		"a blocked dodge does not pretend to escape through cover")
 	var facing_route: Dictionary[String, bool] = QaCombat.route_buttons(Vector2(1, 0), PI * 0.5)
 	_check(facing_route["move_left"] and not facing_route["move_forward"] and not facing_route["move_right"],
 		"turning toward a windup preserves the escape route through a strafe")
@@ -82,6 +127,16 @@ func _initialize() -> void:
 		"a walk may stop when the round ends")
 	_check(not TOUR.valid_walks([{"stop_on_round_state": "ended"}]),
 		"a round stop must name a server round state")
+	_check(TOUR.valid_walks([{"combat_travel": false}, {"combat_travel": true}]),
+		"a later stage can defend through ordinary travel without firing during the earlier lesson")
+	for value: Variant in [null, "true", 1, {}]:
+		_check(not TOUR.valid_walks([{"combat_travel": value}]),
+			"stage travel control requires an explicit boolean")
+	_check(TOUR.valid_walks([{"combat_travel_targets": ["advance_notary_a", "advance_sweeper_a"]}]),
+		"travel can limit fire to the current authored encounter")
+	for value: Variant in [null, "advance", [], [1], [""], ["same", "same"], ["x".repeat(65)]]:
+		_check(not TOUR.valid_walks([{"combat_travel_targets": value}]),
+			"travel target lists reject malformed, duplicate and oversized names")
 	_check(not TOUR.valid_walks([{"join": "human", "moving_combat_seconds": 20, "ack_probe_seconds": 20}]),
 		"one state cannot start two Ack probes")
 	var healthy: Dictionary = {"interrupted": false, "failed_sends": 0,
@@ -134,6 +189,10 @@ func _initialize() -> void:
 		"the nearby companion is never an automated combat target")
 	_check(not QaCombat.visible_target(snapshot, "player", [], true).is_empty(), "visible windup permits evasive input")
 	_check(QaCombat.visible_target(snapshot, "player", [], false, 24.0).get("id") == "guard", "travel engages a nearby threat")
+	_check(QaCombat.visible_target(snapshot, "player", [], false, 24.0, ["market_wave_b"]).is_empty(),
+		"travel leaves unrelated newly eligible guards for their later encounter")
+	_check(QaCombat.visible_target(snapshot, "player", [], false, 24.0, ["ward_clerk"]).get("id") == "guard",
+		"scoped travel still defends against its nearby required guard")
 	guard["z"] = 34.0
 	_check(QaCombat.visible_target(snapshot, "player", [], false, 24.0).is_empty(), "travel continues past a distant sightline")
 	_check(QaCombat.visible_target(snapshot, "player", []).get("id") == "guard", "combat can still resolve a distant required guard")
@@ -153,6 +212,11 @@ func _initialize() -> void:
 		"a waist-high counter hides the whole low Crawler")
 	_check(QaCombat.visible_target(snapshot, "player", [], true).get("id") == "guard",
 		"committed leap drives dodge input")
+	var drone: Dictionary = guard.duplicate(true)
+	drone["y"] = 5.5
+	drone["campaign"]["kind"] = "notary"
+	_check(is_equal_approx(QaCombat.exposed_point(drone, Vector3(0, 1.6, 0), []).y, 4.35),
+		"ordinary tour shots aim inside the real raised drone box")
 	_check(QaCombat.required_phases_proven({"crawler_windup":true, "crawler_leaping":true},
 		{"crawler_windup":true, "crawler_leaping":true}, "crawler", ["windup", "leaping"]),
 		"Crawler phase proof requires both observed and rendered states")
@@ -319,6 +383,29 @@ func _initialize() -> void:
 	if _failures == 0:
 		print("test_qa_combat: PASS")
 	quit(0 if _failures == 0 else 1)
+
+func _check_jammer_launch() -> void:
+	var observer: QaCombat = QaCombat.new()
+	observer._player_id = "self"
+	observer._kind = "jammer"
+	observer._recording = true
+	var launch: Dictionary = {"tick":10, "players":[
+		{"id":"self", "hp":100},
+		{"id":"emitter", "name":"range_jammer", "hp":90, "just_fired":true,
+			"campaign":{"side":"union", "kind":"jammer", "phase":"firing"}}
+	], "shot_results":[]}
+	observer._observe(launch)
+	observer._observe(launch)
+	_check(observer.enemy_shots == 1 and observer.shots == 0,
+		"a server Jammer launch satisfies shot observation once without inventing a gun trace")
+	launch["tick"] = 11
+	launch["players"][1]["just_fired"] = false
+	observer._observe(launch)
+	_check(observer.enemy_shots == 1, "a firing pose without a committed launch does not count")
+	launch["tick"] = 12
+	launch["players"][1]["just_fired"] = true
+	observer._observe(launch)
+	_check(observer.enemy_shots == 2, "a later pulse remains independently observable")
 
 func _check(ok: bool, message: String) -> void:
 	if not ok:

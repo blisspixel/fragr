@@ -1,0 +1,10 @@
+{
+  "format": 1,
+  "id": "l04_l05",
+  "title_key": "STORY_M04_DEPARTURE_TITLE",
+  "skip_key": "STORY_SKIP_SCENE",
+  "shots": [
+    {"id": "STAIRS", "caption_key": "STORY_M04_DEPARTURE_STAIRS", "narration": "res://assets/story/voice/{locale}/l04_l05/stairs.mp3", "timing": "narration", "hold": 1.0},
+    {"id": "ROOFS", "caption_key": "STORY_M04_DEPARTURE_ROOFS", "narration": "res://assets/story/voice/{locale}/l04_l05/roofs.mp3", "timing": "narration", "hold": 1.0}
+  ]
+}

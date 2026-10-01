@@ -1,0 +1,10 @@
+{
+  "format": 1,
+  "id": "m05_arrival",
+  "title_key": "MISSION_M05_TITLE",
+  "skip_key": "STORY_SKIP_SCENE",
+  "ambience": {"path": "res://assets/story/ambience/low_water_runoff.wav", "volume_db": -22.0},
+  "shots": [
+    {"id": "ROOFS", "caption_key": "STORY_M05_ARRIVAL_ROOFS", "narration": "res://assets/story/voice/{locale}/m05_arrival/roofs.mp3", "timing": "narration", "hold": 1.0}
+  ]
+}

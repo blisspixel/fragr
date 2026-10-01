@@ -6,6 +6,14 @@ extends Control
 const STAGE_SECONDS: float = 8.0
 const M02_KNOWN: Array[String] = ["ward_reached", "companion_released", "party_departed"]
 const M02_USES: Array[String] = ["companion_released"]
+signal notice_requested(text: String)
+var _notice_attempt: String = ""
+var _notice_mast_hp: int = -1
+var _notice_mast_fired: bool = false
+var _notice_m04_attempt: String = ""
+var _notice_m04_known: bool = false
+var _notice_m04_market: bool = false
+var _notice_m04_fired: bool = false
 var state: Dictionary = {}
 var player_id: String = ""
 var _stage_phase: String = ""
@@ -92,6 +100,8 @@ func _show_recovery(template: String) -> void:
 		_recovery_copy.clear()
 
 func apply(value: Dictionary, owner_id: String) -> void:
+	_update_mast_notice(value)
+	_update_market_notice(value)
 	var phase: String = _stage_key(value)
 	if phase != _stage_phase:
 		_stage_phase = phase
@@ -100,6 +110,59 @@ func apply(value: Dictionary, owner_id: String) -> void:
 	player_id = owner_id
 	_refresh()
 
+## MapInfo temporarily clears the card before ordered mission facts arrive.
+## Keep notice history through that handoff; session teardown resets it.
+func reset_notices() -> void:
+	_notice_attempt = ""
+	_notice_mast_hp = -1
+	_notice_mast_fired = false
+	_notice_m04_attempt = ""
+	_notice_m04_known = false
+	_notice_m04_market = false
+	_notice_m04_fired = false
+
+func _update_mast_notice(value: Dictionary) -> void:
+	if value.is_empty():
+		return
+	if value.get("id") != MissionState.M03_ID:
+		_notice_attempt = ""
+		_notice_mast_hp = -1
+		_notice_mast_fired = false
+		return
+	var run: Dictionary = value.get("run", {})
+	var identity: String = "%s:%s" % [str(run.get("id", "development")), str(value["attempt"])]
+	if identity != _notice_attempt:
+		reset_notices()
+		_notice_attempt = identity
+	var hp: int = int(value["m03"]["mast_hp"])
+	if hp == 0 and _notice_mast_hp > 0 and not _notice_mast_fired:
+		_notice_mast_fired = true
+		notice_requested.emit(_catalog("WORLD_M03_MARA_WARNING"))
+	_notice_mast_hp = hp
+
+func _update_market_notice(value: Dictionary) -> void:
+	if value.is_empty():
+		return
+	if value.get("id") != MissionState.M04_ID:
+		_notice_m04_attempt = ""
+		_notice_m04_known = false
+		_notice_m04_market = false
+		_notice_m04_fired = false
+		return
+	var run: Dictionary = value.get("run", {})
+	var identity: String = "%s:%s" % [str(run.get("id", "development")), str(value["attempt"])]
+	if identity != _notice_m04_attempt:
+		_notice_m04_attempt = identity
+		_notice_m04_known = false
+		_notice_m04_market = false
+		_notice_m04_fired = false
+	var cleared: bool = "market_wave_b_cleared" in value["m04"]["completed"]
+	if cleared and _notice_m04_known and not _notice_m04_market and not _notice_m04_fired:
+		_notice_m04_fired = true
+		notice_requested.emit(_catalog("WORLD_M04_MARA_EVACUATE"))
+	_notice_m04_market = cleared
+	_notice_m04_known = true
+
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_TRANSLATION_CHANGED:
 		_refresh()
@@ -107,10 +170,9 @@ func _notification(what: int) -> void:
 func _process(delta: float) -> void:
 	if _device_revision != InputDevice.revision:
 		_device_revision = InputDevice.revision
-		if not _prompt_template.is_empty():
-			_show_prompt(_prompt_template)
-		if not _recovery_template.is_empty():
-			_show_recovery(_recovery_template)
+		# Plain objective/departure cards also contain input tokens. Refresh
+		# copy without applying another mission packet or restarting its stage.
+		_refresh()
 	if _stage_left > 0.0:
 		_stage_left = maxf(0.0, _stage_left - delta)
 		if _card != null:
@@ -124,7 +186,10 @@ func _process(delta: float) -> void:
 	_copy.custom_minimum_size.x = width - 32.0
 	_run_badge.position = Vector2(viewport.x - width - 24.0, 45.0)
 	_run_badge.size = Vector2(width, 0.0)
-	_evac_badge.position = Vector2(viewport.x - width - 24.0, 132.0)
+	# Departure copy and translated objectives can wrap beyond two lines.
+	# Field status belongs below the actual card rather than through its text.
+	var field_top: float = maxf(132.0, _card.position.y + _card.size.y + 8.0) if _card.visible else 132.0
+	_evac_badge.position = Vector2(viewport.x - width - 24.0, field_top)
 	_evac_badge.size = Vector2(width, 0.0)
 	_prompt.position = Vector2(viewport.x * 0.2, viewport.y * 0.64)
 	_prompt.size = Vector2(viewport.x * 0.6, 0.0)
@@ -146,6 +211,15 @@ func _refresh() -> void:
 		return
 	if state.get("id") == MissionState.M02_ID:
 		_refresh_m02()
+		return
+	if state.get("id") == MissionState.M03_ID:
+		_refresh_m03()
+		return
+	if state.get("id") == MissionState.M04_ID:
+		_refresh_m04()
+		return
+	if state.get("id") == MissionState.M05_ID:
+		_refresh_m05()
 		return
 	_run_badge.visible = false
 	_evac_badge.visible = false
@@ -184,7 +258,7 @@ func _refresh() -> void:
 
 func _stage_card_visible() -> bool:
 	var phase := str(state.get("phase", ""))
-	if state.get("id") == MissionState.M02_ID:
+	if state.get("id") in [MissionState.M02_ID, MissionState.M03_ID, MissionState.M04_ID, MissionState.M05_ID]:
 		# One line at most: a legal prompt replaces the objective line.
 		if phase == "in_progress":
 			return _stage_left > 0.0 and prompt_text.is_empty()
@@ -201,6 +275,13 @@ static func _stage_key(value: Dictionary) -> String:
 	if value.is_empty():
 		return ""
 	var phase: String = str(value.get("phase", ""))
+	if value.get("id") in [MissionState.M04_ID, MissionState.M05_ID] and value.get("m05" if value.get("id") == MissionState.M05_ID else "m04") is Dictionary:
+		var current: Variant = value["m05" if value.get("id") == MissionState.M05_ID else "m04"].get("current")
+		var objective: String = str(current.get("id", "")) if current is Dictionary else ""
+		return "%s:%s:%s" % [phase, objective, str(value.get("attempt", ""))]
+	if value.get("id") == MissionState.M03_ID and value.get("m03") is Dictionary:
+		var progress: Dictionary = value["m03"]
+		return "%s:%s:%s:%s:%s" % [phase, str(int(progress.get("mast_hp", 40)) == 0), str(progress.get("mast_secured", false)), str(progress.get("train_secured", false)), str(value.get("attempt", ""))]
 	if value.get("id") != MissionState.M02_ID or not value.get("m02") is Dictionary:
 		return phase
 	var current: Variant = value["m02"].get("current")
@@ -243,6 +324,63 @@ func _refresh_m02() -> void:
 	_show_prompt(use)
 	_card.visible = _stage_card_visible()
 
+func _refresh_m03() -> void:
+	_recovery.visible = false
+	_run_badge.visible = state.get("run") is Dictionary
+	if _run_badge.visible:
+		var run: Dictionary = state["run"]
+		_run_badge.text = tr("RUN_LEVEL_BADGE").format({"attempt": int(state["attempt"]), "continues": int(run["continues"])})
+		_refresh_run_recovery(run)
+	var progress: Dictionary = state["m03"]
+	var freed: int = 0
+	for car: Dictionary in progress["cars"]:
+		if car["released"]:
+			freed += 1
+	_evac_badge.visible = freed > 0 or state["phase"] == "departed"
+	_evac_badge.text = _catalog("M03_CARS_FREED").format({"count": freed, "total": progress["cars"].size()})
+	var line: String
+	match state["phase"]:
+		"briefing":
+			line = _catalog("M03_WAITING")
+		"departed":
+			line = InputGlyphs.plain(_catalog("M03_DEPARTED"))
+		_:
+			if int(progress["mast_hp"]) > 0:
+				line = _catalog("M03_OBJECTIVE_SHOOT_MAST" if progress["mast_secured"] else "M03_OBJECTIVE_CLEAR_MAST")
+			else:
+				line = _catalog("M03_OBJECTIVE_BOARD_TRAIN" if progress["train_secured"] else "M03_OBJECTIVE_CLEAR_TRAIN")
+	_copy.text = line
+	var use: String = ""
+	for prompt: Dictionary in state["prompts"]:
+		if prompt["player_id"] == player_id:
+			use = _catalog("M03_USE_TRAIN")
+	_show_prompt(use)
+	_card.visible = _stage_card_visible()
+
+func _refresh_m04() -> void:
+	_recovery.visible = false
+	_run_badge.visible = state.get("run") is Dictionary
+	if _run_badge.visible:
+		var run: Dictionary = state["run"]
+		_run_badge.text = tr("RUN_LEVEL_BADGE").format({"attempt": int(state["attempt"]), "continues": int(run["continues"])})
+		_refresh_run_recovery(run)
+	var progress: Dictionary = state["m04"]
+	_evac_badge.visible = progress["clinic_open"] or int(progress["photos_completed"]) > 0 or state["phase"] == "departed"
+	var clinic: String = _catalog("M04_CLINIC_RELEASED" if progress["patients_released"] else ("M04_CLINIC_OPEN" if progress["clinic_open"] else "M04_CLINIC_UNCONFIRMED"))
+	_evac_badge.text = _catalog("M04_FIELD_STATUS").format({"clinic": clinic, "photos": int(progress["photos_completed"])})
+	var line: String
+	match state["phase"]:
+		"briefing": line = _catalog("M04_WAITING")
+		"departed": line = InputGlyphs.plain(_catalog("M04_DEPARTED"))
+		_: line = _catalog("M04_OBJECTIVE_" + str(progress["current"]["id"]).to_upper())
+	_copy.text = line
+	var use: String = ""
+	for prompt: Dictionary in state["prompts"]:
+		if prompt["player_id"] == player_id:
+			use = _catalog("M04_USE_CLINIC" if prompt["kind"] == "clinic_shutter" else "M04_USE_ROOF")
+	_show_prompt(use)
+	_card.visible = _stage_card_visible()
+
 func _refresh_run_recovery(run: Dictionary) -> void:
 	_recovery.visible = run["status"] in ["continue", "failed", "abandoned"]
 	if not _recovery.visible:
@@ -257,6 +395,41 @@ func _refresh_run_recovery(run: Dictionary) -> void:
 	copy.append("")
 	copy.append(tr("RUN_MENU_INPUT"))
 	_show_recovery("\n".join(copy))
+
+func _refresh_m05() -> void:
+	_recovery.visible = false
+	_run_badge.visible = state.get("run") is Dictionary
+	if _run_badge.visible:
+		var run: Dictionary = state["run"]
+		_run_badge.text = tr("RUN_LEVEL_BADGE").format({"attempt": int(state["attempt"]), "continues": int(run["continues"])})
+		_refresh_run_recovery(run)
+	var progress: Dictionary = state["m05"]
+	_evac_badge.visible = progress["group_released"] or state["phase"] == "departed"
+	var freed: int = progress["captives"].size() if progress["group_released"] else 0
+	# Boarding is supplied separately by the validated geometry, never inferred
+	# from release or route timing.
+	_evac_badge.text = _catalog("M05_WORKERS_STATUS").format({"freed": freed, "aboard": workers_aboard(state, boarding_region)})
+	match state["phase"]:
+		"briefing": _copy.text = _catalog("M05_WAITING")
+		"departed": _copy.text = InputGlyphs.plain(_catalog("M05_DEPARTED"))
+		_: _copy.text = InputGlyphs.plain(_catalog("M05_OBJECTIVE_" + str(progress["current"]["id"]).to_upper()))
+	var use: String = ""
+	for prompt: Dictionary in state["prompts"]:
+		if prompt["player_id"] == player_id:
+			use = _catalog("M05_USE_SHIP")
+	_show_prompt(use)
+	_card.visible = _stage_card_visible()
+
+var boarding_region: Dictionary = {}
+
+static func workers_aboard(value: Dictionary, boarding: Dictionary) -> int:
+	if value.get("id") != MissionState.M05_ID or boarding.is_empty() or not value["m05"]["group_released"]:
+		return 0
+	var count: int = 0
+	for captive: Dictionary in value["m05"]["captives"]:
+		if M03MissionState._inside(captive["feet"], boarding):
+			count += 1
+	return count
 
 ## Catalog copy only. A missing key is an error and shows nothing, never the key.
 func _catalog(key: String) -> String:

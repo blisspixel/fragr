@@ -149,9 +149,11 @@ impl Timeline {
             .m02
             .as_ref()
             .and_then(|m02| m02.current.as_ref())
+            .or_else(|| state.m03.as_ref().and_then(|m03| m03.current.as_ref()))
             .map(|step| match &step.action {
                 fragr_server::protocol::MissionObjectiveAction::Arrival { feet, .. } => *feet,
                 fragr_server::protocol::MissionObjectiveAction::Use { target } => target.approach,
+                fragr_server::protocol::MissionObjectiveAction::Shoot { approach, .. } => *approach,
             })
             .or_else(|| {
                 geometry.map(|map| match state.phase {
@@ -230,6 +232,9 @@ mod tests {
             party: vec![],
             prompts: vec![],
             m02: None,
+            m03: None,
+            m04: None,
+            m05: None,
         }
     }
 

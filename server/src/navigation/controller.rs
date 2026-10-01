@@ -2,7 +2,7 @@
 
 use super::{Navigation, RouteStatus, SEARCH_LIMIT};
 use crate::combat::{line_of_sight, FIGHTER_HEIGHT};
-use crate::movement::{EYE_HEIGHT, STEP_UP};
+use crate::movement::{Solid, EYE_HEIGHT, STEP_UP};
 use crate::protocol::{Action, Snapshot};
 use crate::sim::PLAYER_FLOOR_Y;
 use std::collections::VecDeque;
@@ -48,6 +48,29 @@ impl Navigator {
         action: Action,
         allow_search: bool,
     ) -> Action {
+        self.steer_snapshot_with_visibility(
+            world,
+            id,
+            snapshot,
+            action,
+            allow_search,
+            &world.arena.solids,
+        )
+    }
+
+    /// Keep immutable route topology while checking combat against live cover.
+    // The same steering pass needs its existing search budget and physical LOS
+    // inputs together; a second controller would duplicate route memory.
+    #[allow(clippy::too_many_arguments)]
+    pub fn steer_snapshot_with_visibility(
+        &mut self,
+        world: &Navigation,
+        id: Uuid,
+        snapshot: &Snapshot,
+        action: Action,
+        allow_search: bool,
+        visibility: &[Solid],
+    ) -> Action {
         let Some(me) = snapshot.players.iter().find(|player| player.id == id) else {
             self.clear();
             return action;
@@ -63,8 +86,29 @@ impl Navigator {
                 .iter()
                 .find(|player| player.id == id && me.is_hostile_to(player))
         }) {
+            if crate::combat::is_notary(target.campaign) && !action.forward {
+                let origin = [from[0], from[1] + EYE_HEIGHT, from[2]];
+                let centre = [
+                    target.x,
+                    target.y - PLAYER_FLOOR_Y + crate::combat::target_height(target.campaign) * 0.5,
+                    target.z,
+                ];
+                if line_of_sight(origin, centre, visibility) {
+                    self.clear();
+                    return action;
+                }
+            }
             NavigationGoal {
-                feet: [target.x, target.y - PLAYER_FLOOR_Y, target.z],
+                feet: [
+                    target.x,
+                    target.y - PLAYER_FLOOR_Y
+                        + if crate::combat::is_notary(target.campaign) {
+                            (crate::combat::target_height(target.campaign) - FIGHTER_HEIGHT) * 0.5
+                        } else {
+                            0.0
+                        },
+                    target.z,
+                ],
                 combat: true,
             }
         } else if let (Some(x), Some(z)) = (aim.x, aim.z) {
@@ -80,7 +124,15 @@ impl Navigator {
         } else {
             return action;
         };
-        self.steer(world, from, goal, action, snapshot.tick, allow_search)
+        self.steer_with_visibility(
+            world,
+            from,
+            goal,
+            action,
+            snapshot.tick,
+            allow_search,
+            visibility,
+        )
     }
 
     pub fn steer(
@@ -88,9 +140,33 @@ impl Navigator {
         world: &Navigation,
         from: [f32; 3],
         goal: NavigationGoal,
+        action: Action,
+        tick: u64,
+        allow_search: bool,
+    ) -> Action {
+        self.steer_with_visibility(
+            world,
+            from,
+            goal,
+            action,
+            tick,
+            allow_search,
+            &world.arena.solids,
+        )
+    }
+
+    // Preserve the existing steering inputs while separating physical cover
+    // from cached topology; this is the sole shared movement controller.
+    #[allow(clippy::too_many_arguments)]
+    pub fn steer_with_visibility(
+        &mut self,
+        world: &Navigation,
+        from: [f32; 3],
+        goal: NavigationGoal,
         mut action: Action,
         tick: u64,
         allow_search: bool,
+        visibility: &[Solid],
     ) -> Action {
         if tick < self.last_tick
             || self
@@ -120,7 +196,7 @@ impl Navigator {
                     goal.feet[1] + FIGHTER_HEIGHT * 0.5,
                     goal.feet[2],
                 ],
-                &world.arena.solids,
+                visibility,
             );
         action.fire &= visible;
         if visible && !action.forward {

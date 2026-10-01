@@ -206,10 +206,32 @@ pub fn micro_action(plan: &Plan, me: Uuid, snapshot: &Snapshot) -> Action {
 /// Arena CTF uses local route intent at tick rate. A decision model can still
 /// choose equipment and stance, but cannot override objective ownership.
 pub fn ctf_micro_action(plan: &Plan, me: Uuid, snapshot: &Snapshot) -> Action {
+    ctf_micro_action_with_visibility(plan, me, snapshot, |_, _| true)
+}
+
+/// The live brain uses the validated map when deciding whether combat can
+/// interrupt a flag route. The server remains the authority for shot outcomes.
+pub fn ctf_micro_action_in_world(
+    plan: &Plan,
+    me: Uuid,
+    snapshot: &Snapshot,
+    world: &Navigation,
+) -> Action {
+    ctf_micro_action_with_visibility(plan, me, snapshot, |mine, other| {
+        target_visible(world, mine, other)
+    })
+}
+
+fn ctf_micro_action_with_visibility(
+    plan: &Plan,
+    me: Uuid,
+    snapshot: &Snapshot,
+    visible: impl Fn(&fragr_server::protocol::PlayerState, &fragr_server::protocol::PlayerState) -> bool,
+) -> Action {
     let Some(flags) = snapshot.flags.as_ref() else {
         return micro_action(plan, me, snapshot);
     };
-    let Some(mine) = snapshot.players.iter().find(|p| p.id == me) else {
+    let Some(mine) = snapshot.players.iter().find(|p| p.id == me && p.hp > 0) else {
         return Action::default();
     };
     let Some(team) = mine.team else {
@@ -217,39 +239,147 @@ pub fn ctf_micro_action(plan: &Plan, me: Uuid, snapshot: &Snapshot) -> Action {
     };
     let own = &flags[team.index()];
     let enemy = &flags[team.other().index()];
-    if enemy.carrier != Some(me)
-        && snapshot.players.iter().any(|other| {
-            mine.is_hostile_to(other)
-                && other.hp > 0
-                && (other.x - mine.x).hypot(other.z - mine.z) < 12.0
+    let carrying = enemy.carrier == Some(me);
+    // Side comes from the server, never from a callsign or display chip.
+    // These stance chips are accepted only from external agents; rule bots
+    // have separate chips and humans cannot publish one. They advertise this
+    // controller's coordination contract without assuming every teammate
+    // follows it. Our own identity is known even before its first chip echo.
+    let compatible = |p: &fragr_server::protocol::PlayerState| {
+        p.id == me || p.behavior.as_deref().and_then(Stance::parse).is_some()
+    };
+    let coordinated = snapshot
+        .players
+        .iter()
+        .filter(|p| p.team == Some(team) && compatible(p))
+        .count()
+        >= 3;
+    let mut eligible: Vec<_> = snapshot
+        .players
+        .iter()
+        .filter(|p| {
+            p.team == Some(team) && compatible(p) && p.hp > 0 && enemy.carrier != Some(p.id)
         })
-    {
-        return micro_action(plan, me, snapshot);
-    }
-    let goal = if enemy.carrier == Some(me) {
-        if own.status == fragr_server::protocol::FlagStatus::Dropped {
-            own.position
-        } else if let Some(carrier) = own.carrier {
-            snapshot
-                .players
-                .iter()
-                .find(|p| p.id == carrier)
-                .map(|p| [p.x, p.y - fragr_server::sim::PLAYER_FLOOR_Y, p.z])
-                .unwrap_or(own.stand)
-        } else {
-            own.stand
-        }
-    } else if own.status == fragr_server::protocol::FlagStatus::Dropped {
-        own.position
-    } else if let Some(carrier) = own.carrier {
+        .map(|p| p.id)
+        .collect();
+    eligible.sort_unstable();
+    let defending = coordinated && eligible.first() == Some(&me);
+    let carrier = enemy.carrier.and_then(|id| {
         snapshot
             .players
             .iter()
-            .find(|p| p.id == carrier)
+            .find(|p| p.id == id && p.team == Some(team) && p.hp > 0)
+    });
+    let escorting = coordinated && carrier.is_some() && eligible.get(1) == Some(&me);
+    let recovering = own.status == fragr_server::protocol::FlagStatus::Dropped;
+    if carrying && (!coordinated || eligible.is_empty()) {
+        if let Some(thief) = own.carrier.and_then(|id| {
+            snapshot
+                .players
+                .iter()
+                .find(|p| p.id == id && mine.is_hostile_to(p) && visible(mine, p))
+        }) {
+            let distance = (thief.x - mine.x).hypot(thief.z - mine.z);
+            let weapon = plan
+                .weapon
+                .or_else(|| parse_weapon(&mine.weapon))
+                .unwrap_or_default();
+            return Action {
+                forward: distance > 1.5,
+                fire: distance <= weapon.range_units(),
+                look_at: Some(LookAt {
+                    player_id: Some(thief.id),
+                    ..LookAt::default()
+                }),
+                weapon_swap: plan.weapon,
+                ..Action::default()
+            };
+        }
+    }
+    let nearby_threat = |from: &fragr_server::protocol::PlayerState,
+                         other: &fragr_server::protocol::PlayerState| {
+        !carrying
+            && from.is_hostile_to(other)
+            && (other.x - from.x).hypot(other.z - from.z) < 12.0
+            && visible(from, other)
+            && (!defending || !recovering)
+            && (!defending || own.carrier.is_none_or(|id| other.id == id))
+            && (!escorting
+                || carrier.is_some_and(|ally| {
+                    (ally.x - from.x).hypot(ally.z - from.z) <= 6.0
+                        && (other.x - ally.x).hypot(other.z - ally.z) < 12.0
+                }))
+    };
+    if snapshot
+        .players
+        .iter()
+        .any(|other| nearby_threat(mine, other))
+    {
+        let mut action =
+            micro_action_with_visibility(plan, me, snapshot, nearby_threat, |_, _| true);
+        if escorting
+            && action
+                .look_at
+                .as_ref()
+                .is_some_and(|aim| aim.player_id.is_some())
+        {
+            action.forward = false;
+            action.back = false;
+            action.left = false;
+            action.right = false;
+        }
+        return action;
+    }
+    let goal = if carrying && coordinated && !eligible.is_empty() {
+        // Scoring waits for the home flag. The carrier keeps its safe return
+        // position while the defender handles recovery, rather than chasing.
+        own.stand
+    } else if carrying {
+        if recovering {
+            own.position
+        } else {
+            own.carrier
+                .and_then(|id| snapshot.players.iter().find(|p| p.id == id && p.hp > 0))
+                .map(|p| [p.x, p.y - PLAYER_FLOOR_Y, p.z])
+                .unwrap_or(own.stand)
+        }
+    } else if recovering && (defending || !coordinated) {
+        own.position
+    } else if defending || (!coordinated && own.carrier.is_some()) {
+        own.carrier
+            .and_then(|id| snapshot.players.iter().find(|p| p.id == id && p.hp > 0))
             .map(|p| [p.x, p.y - fragr_server::sim::PLAYER_FLOOR_Y, p.z])
             .unwrap_or(own.stand)
+    } else if escorting {
+        let ally = carrier.expect("escort requires a living teammate carrier");
+        let dx = ally.x - own.stand[0];
+        let dz = ally.z - own.stand[2];
+        let distance = dx.hypot(dz);
+        let (dx, dz) = if distance > 0.001 {
+            (dx / distance, dz / distance)
+        } else {
+            let x = enemy.stand[0] - own.stand[0];
+            let z = enemy.stand[2] - own.stand[2];
+            let length = x.hypot(z).max(0.001);
+            (x / length, z / length)
+        };
+        if distance <= 10.0 {
+            [
+                own.stand[0] + dx * 6.0,
+                own.stand[1],
+                own.stand[2] + dz * 6.0,
+            ]
+        } else {
+            [
+                ally.x + dx * 4.0,
+                ally.y - PLAYER_FLOOR_Y,
+                ally.z + dz * 4.0,
+            ]
+        }
     } else if enemy.carrier.is_none() {
         enemy.position
+    } else if coordinated {
+        enemy.stand
     } else {
         own.stand
     };
@@ -275,11 +405,21 @@ pub fn campaign_micro_action(
     snapshot: &Snapshot,
     world: &Navigation,
 ) -> Action {
+    campaign_micro_action_with_solids(plan, me, snapshot, world, None)
+}
+
+pub fn campaign_micro_action_with_solids(
+    plan: &Plan,
+    me: Uuid,
+    snapshot: &Snapshot,
+    world: &Navigation,
+    solids: Option<&[fragr_server::movement::Solid]>,
+) -> Action {
     micro_action_with_visibility(
         plan,
         me,
         snapshot,
-        |mine, other| campaign_enemy_engageable(world, mine, other),
+        |mine, other| campaign_enemy_engageable_with_solids(world, mine, other, solids),
         |mine, pad| {
             if plan.source != Source::Remote {
                 return true;
@@ -301,11 +441,23 @@ pub fn campaign_target<'a>(
     snapshot: &'a Snapshot,
     world: &Navigation,
 ) -> Option<&'a fragr_server::protocol::PlayerState> {
+    campaign_target_with_solids(me, snapshot, world, None)
+}
+
+pub fn campaign_target_with_solids<'a>(
+    me: Uuid,
+    snapshot: &'a Snapshot,
+    world: &Navigation,
+    solids: Option<&[fragr_server::movement::Solid]>,
+) -> Option<&'a fragr_server::protocol::PlayerState> {
     let mine = snapshot.players.iter().find(|player| player.id == me)?;
     snapshot
         .players
         .iter()
-        .filter(|other| mine.is_hostile_to(other) && campaign_enemy_engageable(world, mine, other))
+        .filter(|other| {
+            mine.is_hostile_to(other)
+                && campaign_enemy_engageable_with_solids(world, mine, other, solids)
+        })
         .min_by(|a, b| {
             (a.x - mine.x)
                 .hypot(a.z - mine.z)
@@ -318,9 +470,36 @@ pub fn campaign_enemy_engageable(
     mine: &fragr_server::protocol::PlayerState,
     other: &fragr_server::protocol::PlayerState,
 ) -> bool {
+    campaign_enemy_engageable_with_solids(world, mine, other, None)
+}
+
+pub fn campaign_enemy_engageable_with_solids(
+    world: &Navigation,
+    mine: &fragr_server::protocol::PlayerState,
+    other: &fragr_server::protocol::PlayerState,
+    solids: Option<&[fragr_server::movement::Solid]>,
+) -> bool {
     if (other.x - mine.x).hypot(other.z - mine.z) > CAMPAIGN_ENGAGE_RANGE {
         return false;
     }
+    target_visible_with_solids(world, mine, other, solids)
+}
+
+/// Actor geometry visibility without a mode's separate engagement radius.
+pub fn target_visible(
+    world: &Navigation,
+    mine: &fragr_server::protocol::PlayerState,
+    other: &fragr_server::protocol::PlayerState,
+) -> bool {
+    target_visible_with_solids(world, mine, other, None)
+}
+
+fn target_visible_with_solids(
+    world: &Navigation,
+    mine: &fragr_server::protocol::PlayerState,
+    other: &fragr_server::protocol::PlayerState,
+    solids: Option<&[fragr_server::movement::Solid]>,
+) -> bool {
     let eye = [
         mine.x,
         mine.y - PLAYER_FLOOR_Y + fragr_server::movement::EYE_HEIGHT,
@@ -331,7 +510,10 @@ pub fn campaign_enemy_engageable(
         other.y - PLAYER_FLOOR_Y + fragr_server::combat::target_height(other.campaign) * 0.5,
         other.z,
     ];
-    world.line_of_sight(eye, center)
+    solids.map_or_else(
+        || world.line_of_sight(eye, center),
+        |solids| fragr_server::combat::line_of_sight(eye, center, solids),
+    )
 }
 
 fn micro_action_with_visibility(
@@ -488,6 +670,23 @@ mod tests {
         let mut snap = snapshot(1, vec![mine, guard.clone()], vec![]);
         let blocked = campaign_micro_action(&plan, me, &snap, &world);
         assert!(blocked.look_at.is_none() && !blocked.fire);
+        let moved_cover = [Solid::from_center(5.0, 8.0, 0.5, 3.0)];
+        let exposed =
+            campaign_micro_action_with_solids(&plan, me, &snap, &world, Some(&moved_cover));
+        assert!(exposed.fire);
+        assert_eq!(exposed.look_at.unwrap().player_id, Some(hidden));
+        assert_eq!(
+            campaign_target_with_solids(me, &snap, &world, Some(&moved_cover))
+                .unwrap()
+                .id,
+            hidden
+        );
+        let returned_cover = [Solid::from_center(5.0, 0.0, 0.5, 3.0)];
+        assert!(campaign_target_with_solids(me, &snap, &world, Some(&returned_cover)).is_none());
+        assert!(
+            !campaign_micro_action_with_solids(&plan, me, &snap, &world, Some(&returned_cover))
+                .fire
+        );
         let loadout = LoadoutState {
             player_id: me,
             tick: 1,
@@ -503,6 +702,7 @@ mod tests {
                 .collect(),
             personal_claims: vec![],
             dry_fire_count: 0,
+            grenades: 0,
         };
         let through_inventory = |snap: &Snapshot| {
             fragr_server::inventory::control_action_with_target_filter(
@@ -976,6 +1176,422 @@ mod tests {
         snap.flags.as_mut().unwrap()[0].status = FlagStatus::Carried;
         let return_home = ctf_micro_action(&plan, me, &snap);
         assert_eq!(return_home.look_at.unwrap().x, Some(70.0));
+    }
+
+    fn ctf_team_scene() -> Snapshot {
+        use fragr_server::protocol::{FlagState, FlagStatus, Team};
+        let mut players = Vec::new();
+        for id in 1..=8 {
+            let team = if id <= 4 {
+                Team::Union
+            } else {
+                Team::Coalition
+            };
+            let mut pawn = player(
+                "same callsign",
+                Uuid::from_u128(id),
+                if team == Team::Union { -50.0 } else { 50.0 },
+                (id % 4) as f32 * 16.0,
+                100,
+                "flechette",
+            );
+            pawn.team = Some(team);
+            pawn.behavior = Some("hold_angle".into());
+            players.push(pawn);
+        }
+        let mut scene = snapshot(1, players, vec![]);
+        scene.flags = Some([
+            FlagState {
+                team: Team::Union,
+                stand: [-70.0, 0.0, 0.0],
+                position: [-70.0, 0.0, 0.0],
+                status: FlagStatus::Home,
+                carrier: None,
+                return_ticks: None,
+            },
+            FlagState {
+                team: Team::Coalition,
+                stand: [70.0, 0.0, 0.0],
+                position: [70.0, 0.0, 0.0],
+                status: FlagStatus::Home,
+                carrier: None,
+                return_ticks: None,
+            },
+        ]);
+        scene
+    }
+
+    fn ctf_goal_x(scene: &Snapshot, id: u128) -> f32 {
+        ctf_micro_action(&Plan::default(), Uuid::from_u128(id), scene)
+            .look_at
+            .unwrap()
+            .x
+            .unwrap()
+    }
+
+    #[test]
+    fn ctf_brain_elects_one_defender_by_team_and_identity() {
+        let mut scene = ctf_team_scene();
+        assert_eq!(ctf_goal_x(&scene, 1), -70.0);
+        assert_eq!(ctf_goal_x(&scene, 5), 70.0);
+        for id in 2..=4 {
+            assert_eq!(ctf_goal_x(&scene, id), 70.0);
+        }
+        for id in 6..=8 {
+            assert_eq!(ctf_goal_x(&scene, id), -70.0);
+        }
+        scene.players.reverse();
+        for pawn in &mut scene.players {
+            pawn.name = "different callsign".into();
+        }
+        assert_eq!(ctf_goal_x(&scene, 1), -70.0);
+        assert_eq!(ctf_goal_x(&scene, 5), 70.0);
+        assert_eq!(ctf_goal_x(&scene, 2), 70.0);
+        scene
+            .players
+            .iter_mut()
+            .find(|p| p.id == Uuid::from_u128(1))
+            .unwrap()
+            .hp = 0;
+        assert_eq!(ctf_goal_x(&scene, 2), -70.0, "dead defender yields");
+        assert_eq!(
+            ctf_goal_x(&scene, 3),
+            70.0,
+            "other attackers remain on attack"
+        );
+        assert!(
+            ctf_micro_action(&Plan::default(), Uuid::from_u128(1), &scene)
+                .look_at
+                .is_none()
+        );
+    }
+
+    #[test]
+    fn ctf_carrier_returns_while_defender_recovers_and_escort_trails() {
+        use fragr_server::protocol::{FlagStatus, Team};
+        let mut scene = ctf_team_scene();
+        let ally = scene
+            .players
+            .iter_mut()
+            .find(|p| p.id == Uuid::from_u128(4))
+            .unwrap();
+        ally.x = -10.0;
+        ally.z = 0.0;
+        let flags = scene.flags.as_mut().unwrap();
+        flags[Team::Coalition.index()].carrier = Some(Uuid::from_u128(4));
+        flags[Team::Coalition.index()].status = FlagStatus::Carried;
+        flags[Team::Coalition.index()].position = [-10.0, 0.0, 0.0];
+        assert_eq!(ctf_goal_x(&scene, 4), -70.0);
+        assert_eq!(ctf_goal_x(&scene, 1), -70.0);
+        assert_eq!(ctf_goal_x(&scene, 2), -6.0, "one escort trails four units");
+        assert_eq!(
+            ctf_goal_x(&scene, 3),
+            70.0,
+            "attacker pressures enemy stand"
+        );
+        scene.flags.as_mut().unwrap()[Team::Union.index()].carrier = Some(Uuid::from_u128(5));
+        scene.flags.as_mut().unwrap()[Team::Union.index()].status = FlagStatus::Carried;
+        assert_eq!(
+            ctf_goal_x(&scene, 4),
+            -70.0,
+            "carrier does not chase a thief"
+        );
+        assert_eq!(ctf_goal_x(&scene, 1), 50.0, "defender follows the thief");
+        let flag = &mut scene.flags.as_mut().unwrap()[Team::Union.index()];
+        flag.carrier = None;
+        flag.status = FlagStatus::Dropped;
+        flag.position = [-25.0, 0.0, 0.0];
+        assert_eq!(ctf_goal_x(&scene, 1), -25.0, "only defender recovers");
+        assert_eq!(ctf_goal_x(&scene, 2), -6.0, "escort remains with carrier");
+        assert_eq!(ctf_goal_x(&scene, 3), 70.0);
+        assert_eq!(ctf_goal_x(&scene, 4), -70.0);
+        let ally = scene
+            .players
+            .iter_mut()
+            .find(|p| p.id == Uuid::from_u128(4))
+            .unwrap();
+        ally.x = -67.0;
+        assert_eq!(
+            ctf_goal_x(&scene, 2),
+            -64.0,
+            "escort leaves scoring touch clear"
+        );
+        scene
+            .players
+            .iter_mut()
+            .find(|p| p.id == Uuid::from_u128(1))
+            .unwrap()
+            .hp = 0;
+        assert_eq!(
+            ctf_goal_x(&scene, 2),
+            -25.0,
+            "defender seat transfers during a carry"
+        );
+        assert_eq!(
+            ctf_goal_x(&scene, 3),
+            -64.0,
+            "escort seat also transfers uniquely"
+        );
+    }
+
+    #[test]
+    fn ctf_two_member_recovery_remains_and_enemy_cannot_be_an_escort() {
+        use fragr_server::protocol::{FlagStatus, Team};
+        let mut scene = ctf_team_scene();
+        scene.players.retain(|p| {
+            p.id == Uuid::from_u128(1)
+                || p.id == Uuid::from_u128(2)
+                || p.team == Some(Team::Coalition)
+        });
+        let flag = &mut scene.flags.as_mut().unwrap()[Team::Union.index()];
+        flag.status = FlagStatus::Dropped;
+        flag.position = [-25.0, 0.0, 0.0];
+        assert_eq!(ctf_goal_x(&scene, 1), -25.0);
+        assert_eq!(ctf_goal_x(&scene, 2), -25.0);
+        let flag = &mut scene.flags.as_mut().unwrap()[Team::Coalition.index()];
+        flag.status = FlagStatus::Carried;
+        flag.carrier = Some(Uuid::from_u128(5));
+        assert_eq!(
+            ctf_goal_x(&scene, 2),
+            -25.0,
+            "enemy identity never elects an allied escort"
+        );
+    }
+
+    #[test]
+    fn ctf_humans_and_rule_bots_do_not_consume_coordination_roles() {
+        use fragr_server::protocol::{FlagStatus, Team};
+        let mut scene = ctf_team_scene();
+        scene.players[0].behavior = None; // Human.
+        scene.players[1].behavior = Some("Balanced".into()); // Server rule bot.
+        let home = &mut scene.flags.as_mut().unwrap()[Team::Union.index()];
+        home.status = FlagStatus::Dropped;
+        home.position = [-25.0, 0.0, 0.0];
+        assert_eq!(
+            ctf_goal_x(&scene, 3),
+            -25.0,
+            "two compatible brains share recovery"
+        );
+        let mut peer = player("unrelated", Uuid::from_u128(9), -45.0, 70.0, 100, "rail");
+        peer.team = Some(Team::Union);
+        peer.behavior = Some("push_enemy".into());
+        scene.players.push(peer);
+        assert_eq!(
+            ctf_goal_x(&scene, 3),
+            -25.0,
+            "lowest compatible brain defends"
+        );
+        assert_eq!(
+            ctf_goal_x(&scene, 4),
+            70.0,
+            "other compatible brain attacks"
+        );
+        assert_eq!(ctf_goal_x(&scene, 9), 70.0);
+    }
+
+    #[test]
+    fn ctf_lone_carrier_recovers_its_home_flag_without_a_compatible_defender() {
+        use fragr_server::protocol::{FlagStatus, Team};
+        let mut scene = ctf_team_scene();
+        scene
+            .players
+            .retain(|p| p.id == Uuid::from_u128(4) || p.team == Some(Team::Coalition));
+        let enemy = &mut scene.flags.as_mut().unwrap()[Team::Coalition.index()];
+        enemy.status = FlagStatus::Carried;
+        enemy.carrier = Some(Uuid::from_u128(4));
+        let own = &mut scene.flags.as_mut().unwrap()[Team::Union.index()];
+        own.status = FlagStatus::Dropped;
+        own.position = [-25.0, 0.0, 0.0];
+        assert_eq!(ctf_goal_x(&scene, 4), -25.0);
+        let own = &mut scene.flags.as_mut().unwrap()[Team::Union.index()];
+        own.status = FlagStatus::Carried;
+        own.carrier = Some(Uuid::from_u128(5));
+        assert_eq!(
+            ctf_micro_action(&Plan::default(), Uuid::from_u128(4), &scene)
+                .look_at
+                .unwrap()
+                .player_id,
+            Some(Uuid::from_u128(5)),
+            "sole carrier intercepts the thief"
+        );
+        for id in 1..=2 {
+            let mut human = player("unrelated", Uuid::from_u128(id), -60.0, 70.0, 100, "rail");
+            human.team = Some(Team::Union);
+            scene.players.push(human);
+        }
+        assert_eq!(
+            ctf_micro_action(&Plan::default(), Uuid::from_u128(4), &scene)
+                .look_at
+                .unwrap()
+                .player_id,
+            Some(Uuid::from_u128(5)),
+            "human roster does not imply a defender"
+        );
+        for pawn in &mut scene.players {
+            if pawn.team == Some(Team::Union) && pawn.id != Uuid::from_u128(4) {
+                pawn.behavior = Some("hold_angle".into());
+                pawn.hp = 0;
+            }
+        }
+        assert_eq!(
+            ctf_micro_action(&Plan::default(), Uuid::from_u128(4), &scene)
+                .look_at
+                .unwrap()
+                .player_id,
+            Some(Uuid::from_u128(5)),
+            "dead compatible defenders cannot recover"
+        );
+    }
+
+    #[test]
+    fn ctf_lone_carrier_shoots_visible_thief_within_weapon_range_while_intercepting() {
+        use fragr_server::protocol::{FlagStatus, Team};
+        let id = Uuid::from_u128(4);
+        let thief = Uuid::from_u128(5);
+        let mut scene = ctf_team_scene();
+        scene.players.retain(|p| p.id == id || p.id == thief);
+        scene.players[0].x = 0.0;
+        scene.players[0].z = 0.0;
+        scene.players[0].weapon = "rail".into();
+        scene.players[1].x = 30.0;
+        scene.players[1].z = 0.0;
+        let own = &mut scene.flags.as_mut().unwrap()[Team::Union.index()];
+        own.status = FlagStatus::Carried;
+        own.carrier = Some(thief);
+        let enemy = &mut scene.flags.as_mut().unwrap()[Team::Coalition.index()];
+        enemy.status = FlagStatus::Carried;
+        enemy.carrier = Some(id);
+        let open = Navigation::new(Arena {
+            half: 100.0,
+            solids: vec![],
+        })
+        .unwrap();
+        let plan = Plan::default();
+        let intercept = ctf_micro_action_in_world(&plan, id, &scene, &open);
+        let mut navigator = fragr_server::navigation::Navigator::default();
+        let routed = navigator.steer_snapshot(&open, id, &scene, intercept);
+        assert_eq!(routed.look_at.unwrap().player_id, Some(thief));
+        assert!(
+            routed.forward && routed.fire,
+            "visible rail target beyond the campaign radius remains a moving shot"
+        );
+        let short_weapon = Plan {
+            weapon: Some(WeaponType::Fists),
+            ..Plan::default()
+        };
+        let distant = ctf_micro_action_in_world(&short_weapon, id, &scene, &open);
+        assert!(
+            distant.forward && !distant.fire,
+            "range refusal preserves interception movement"
+        );
+        assert_eq!(distant.look_at.unwrap().player_id, Some(thief));
+        let wall = Navigation::new(Arena {
+            half: 100.0,
+            solids: vec![Solid::from_center(15.0, 0.0, 0.5, 3.0)],
+        })
+        .unwrap();
+        let occluded = ctf_micro_action_in_world(&plan, id, &scene, &wall);
+        assert!(occluded.forward && !occluded.fire);
+        assert_eq!(
+            occluded.look_at.unwrap().x,
+            Some(30.0),
+            "hidden thief remains a route goal without a shot"
+        );
+        for peer in 1..=2 {
+            let mut ally = player(
+                "compatible",
+                Uuid::from_u128(peer),
+                -60.0,
+                70.0,
+                100,
+                "rail",
+            );
+            ally.team = Some(Team::Union);
+            ally.behavior = Some("hold_angle".into());
+            scene.players.push(ally);
+        }
+        let home = ctf_micro_action_in_world(&plan, id, &scene, &open);
+        assert_eq!(home.look_at.unwrap().x, Some(-70.0));
+        assert!(
+            home.forward && !home.fire,
+            "living compatible defender frees the carrier to return home"
+        );
+    }
+
+    #[test]
+    fn ctf_combat_uses_visible_hostiles_and_escort_does_not_chase() {
+        use fragr_server::protocol::{FlagStatus, Team};
+        let mut scene = ctf_team_scene();
+        let mine = scene
+            .players
+            .iter_mut()
+            .find(|p| p.id == Uuid::from_u128(2))
+            .unwrap();
+        mine.x = 0.0;
+        mine.z = 0.0;
+        let foe = scene
+            .players
+            .iter_mut()
+            .find(|p| p.id == Uuid::from_u128(5))
+            .unwrap();
+        foe.x = 5.0;
+        foe.z = 0.0;
+        let wall = Navigation::new(Arena {
+            half: 100.0,
+            solids: vec![Solid::from_center(2.5, 0.0, 0.5, 3.0)],
+        })
+        .unwrap();
+        let plan = Plan {
+            stance: Stance::PushEnemy,
+            ..Plan::default()
+        };
+        let blocked = ctf_micro_action_in_world(&plan, Uuid::from_u128(2), &scene, &wall);
+        assert_eq!(
+            blocked.look_at.unwrap().x,
+            Some(70.0),
+            "hidden opponent does not replace flag route"
+        );
+        let open = Navigation::new(Arena {
+            half: 100.0,
+            solids: vec![],
+        })
+        .unwrap();
+        let fight = ctf_micro_action_in_world(&plan, Uuid::from_u128(2), &scene, &open);
+        assert_eq!(fight.look_at.unwrap().player_id, Some(Uuid::from_u128(5)));
+        let ally = scene
+            .players
+            .iter_mut()
+            .find(|p| p.id == Uuid::from_u128(4))
+            .unwrap();
+        ally.x = -4.0;
+        ally.z = 0.0;
+        let flag = &mut scene.flags.as_mut().unwrap()[Team::Coalition.index()];
+        flag.status = FlagStatus::Carried;
+        flag.carrier = Some(Uuid::from_u128(4));
+        let escort = ctf_micro_action_in_world(&plan, Uuid::from_u128(2), &scene, &open);
+        assert_eq!(escort.look_at.unwrap().player_id, Some(Uuid::from_u128(5)));
+        assert!(escort.fire);
+        assert!(!escort.forward && !escort.back && !escort.left && !escort.right);
+        scene
+            .players
+            .iter_mut()
+            .find(|p| p.id == Uuid::from_u128(4))
+            .unwrap()
+            .x = -20.0;
+        let resume = ctf_micro_action_in_world(&plan, Uuid::from_u128(2), &scene, &open);
+        assert_eq!(
+            resume.look_at.unwrap().x,
+            Some(-16.0),
+            "carrier leaving support radius resumes escort route"
+        );
+        scene
+            .players
+            .iter_mut()
+            .find(|p| p.id == Uuid::from_u128(5))
+            .unwrap()
+            .team = Some(Team::Union);
+        let allied = ctf_micro_action_in_world(&plan, Uuid::from_u128(2), &scene, &open);
+        assert!(allied.look_at.unwrap().player_id.is_none());
     }
 
     #[test]

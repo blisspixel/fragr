@@ -3,10 +3,12 @@
 **Status:** in flight, 2026-09-25. The scene player, its manifest format, the
 migrated M01 opening and a text-only draft of the scene after Recall Notice are
 implemented and tested. On 2026-09-26 two stills from an earlier paid opening
-batch were wired into the opening ([salvaged opening assets](#salvaged-opening-assets-2026-09-26));
-no new image, narration clip, ambience or music has been generated for any
-scene. **Every generation batch below needs
-Nick's go-ahead for that batch, with an explicit cap.** The
+batch were wired into the opening ([salvaged opening assets](#salvaged-opening-assets-2026-09-26)).
+On 2026-09-30 the authorized [transition audio batch](campaign-transition-audio.md)
+added six exact-caption narration clips and a Low Water runoff bed, using 475
+included credits and no new cash charge. Those prototype pages have no new key
+images or video. Each future generation batch needs an explicit cap and sufficient
+verified allowance; existing authorization covers only its approved scope. The
 [campaign contract](../CAMPAIGN.md#story-presentation-and-localization) owns
 presentation behavior, the [story arc](../campaign/story-arc.md) owns what
 happens, and each [level design](../campaign/README.md) owns its level. This
@@ -37,6 +39,7 @@ text whenever an asset is missing. Video is much later and has its own plan,
 | M01 opening | `client/scripts/campaign_opening.gd`, `scenes/opening.json` | The five keyed beats on the shared player, reader paced until narration exists; HOME, CHOICE and PURSUIT show stills, ADDRESS and RECALL are text pages; unchanged readiness handoff through GameManager |
 | Departure hook | `GameManager.play_departure_scene` | Once the server reports a mission `departed`, the local campaign plays the scene named in `StoryScene.AFTER_MISSION`, once per mission per session. It sends nothing to the server |
 | First interlude draft | `scenes/l01_l02.json`, keys in `story.en.po` | Recall Notice to Persons Unknown, three shots, text only |
+| M03/M04 transitions | `scenes/l03_l04.json`, `m04_arrival.json`, `l04_l05.json` | Six exact-caption neutral narration clips on Voice; M04 arrival has restrained runoff on Effects. Missing audio falls back to readable text; the final page waits for input |
 | Settings | `settings.gd`, `settings_panel.gd`, `default_bus_layout.tres` | Audio page gains VOICE (the new `Voice` bus) and STORY CAPTIONS |
 | Packaging | `export_presets.cfg`, `install_check.gd` | Manifests are in the export filter; the packaged install check fails if the opening manifest is missing |
 

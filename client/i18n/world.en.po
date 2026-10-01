@@ -111,8 +111,65 @@ msgstr "Starting a new run archives the current save. You can recover its file l
 msgid "RUN_ARCHIVE_START"
 msgstr "Archive prior run and choose difficulty"
 
-msgid "RUN_M03_PENDING"
-msgstr "Scheduled Service is in development. This run stays saved."
+msgid "M03_RUN_DESCRIPTION"
+msgstr "The recall freight yard. Silence the mast, free the cars with Latch and take the train home."
+
+msgid "M03_MENU_DEVELOPMENT"
+msgstr "Development route: the freight yard, Jammer and mast. No save. Your campaign run stays separate."
+
+msgid "M03_PROTOTYPE_TITLE"
+msgstr "Scheduled Service: rail yard prototype"
+
+msgid "M03_LOCAL_STARTING"
+msgstr "PREPARING THE FREIGHT YARD"
+
+msgid "WORLD_M03_SCHEDULE_BOARD"
+msgstr "RECALL\nLOW WATER\nON TIME"
+
+msgid "WORLD_M03_SCHEDULE_CANCELLED"
+msgstr "ALL CANCELLED"
+
+msgid "WORLD_M03_PLATFORM_CAR"
+msgstr "PERSONS IN TRANSFER.\nKEEP UPRIGHT."
+
+msgid "WORLD_M03_SIDING_CAR"
+msgstr "PERSONS IN TRANSFER.\nKEEP UPRIGHT."
+
+msgid "WORLD_M03_ROOF_CAR"
+msgstr "PERSONS IN TRANSFER.\nKEEP UPRIGHT."
+
+msgid "WORLD_M03_MAST_SIGN"
+msgstr "SIGNAL MAST\nAUTHORIZED STAFF"
+
+msgid "WORLD_M03_BOARD_TRAIN"
+msgstr "LOW WATER\nBOARDING"
+
+msgid "WORLD_M03_MARA_WARNING"
+msgstr "Mara: Low Water, this is Mara. Go now."
+
+msgid "M03_WAITING"
+msgstr "WAITING FOR THE PARTY"
+
+msgid "M03_OBJECTIVE_CLEAR_MAST"
+msgstr "REACH THE MAST AND CLEAR ITS GUARDS"
+
+msgid "M03_OBJECTIVE_SHOOT_MAST"
+msgstr "SHOOT THE RED TRANSMITTER POD"
+
+msgid "M03_OBJECTIVE_CLEAR_TRAIN"
+msgstr "CLEAR THE LAST PUSH AT THE LOCOMOTIVE"
+
+msgid "M03_OBJECTIVE_BOARD_TRAIN"
+msgstr "GET EVERYONE ABOARD THE LOCOMOTIVE"
+
+msgid "M03_USE_TRAIN"
+msgstr "{use}: TAKE THE TRAIN TO LOW WATER"
+
+msgid "M03_CARS_FREED"
+msgstr "CARS FREED: {count}/{total}"
+
+msgid "M03_DEPARTED"
+msgstr "THE TRAIN IS HEADING HOME\n{pause}: RETURN TO MENU"
 
 msgid "RUN_M02_DESCRIPTION"
 msgstr "The transfer route leads to Latch in the correction ward. Continue the same run."
@@ -313,3 +370,227 @@ msgstr "Balanced and High add shadows, contact shading and lamp glow.\nWorld pix
 
 msgid "SETTINGS_GRAPHICS_NOTE_NO_FSR"
 msgstr "Standard scaling active. FSR needs the Forward+ renderer.\nWorld pixels use exact nearest scaling. Menus and the HUD stay sharp."
+
+msgid "MISSION_M04_TITLE"
+msgstr "NOTICE TO VACATE"
+
+msgid "M04_RUN_DESCRIPTION"
+msgstr "Defend Low Water's market, clear Edda's clinic and get to the roof stair."
+
+msgid "M04_MENU_DEVELOPMENT"
+msgstr "Low Water prototype. No save. Keeps your campaign run."
+
+msgid "M04_PROTOTYPE_TITLE"
+msgstr "NOTICE TO VACATE: DEVELOPMENT"
+
+msgid "M04_LOCAL_STARTING"
+msgstr "Preparing Low Water..."
+
+msgid "M04_NEXT_TITLE"
+msgstr "NEXT: NO FORWARDING ADDRESS"
+
+msgid "M04_NEXT_PENDING"
+msgstr "No Forwarding Address is in development. Your run and equipment are kept for its arrival."
+
+msgid "M04_WAITING"
+msgstr "WAITING FOR THE PARTY"
+
+msgid "M04_DEPARTED"
+msgstr "THE ROOF STAIR IS CLEAR\n{pause}: RETURN TO MENU"
+
+msgid "M04_OBJECTIVE_NOTICE_BOARD_CLEARED"
+msgstr "CLEAR THE NOTICE BOARD"
+
+msgid "M04_OBJECTIVE_FIRST_NOTARY_CLEARED"
+msgstr "BRING DOWN THE NOTARY"
+
+msgid "M04_OBJECTIVE_STREET_WAVE_CLEARED"
+msgstr "CLEAR THE TRAM STREET SWEEP"
+
+msgid "M04_OBJECTIVE_MARKET_WAVE_A_CLEARED"
+msgstr "PUSH THROUGH THE MARKET"
+
+msgid "M04_OBJECTIVE_MARKET_WAVE_B_CLEARED"
+msgstr "BREAK THE SECOND MARKET WAVE"
+
+msgid "M04_OBJECTIVE_COURT_CLEARED"
+msgstr "CLEAR THE HABITATION COURT"
+
+msgid "M04_OBJECTIVE_PARTY_DEPARTED"
+msgstr "GET EVERYONE UP TO THE ROOF STAIR"
+
+msgid "M04_USE_CLINIC"
+msgstr "{use}: OPEN THE CLINIC SHUTTER"
+
+msgid "M04_USE_ROOF"
+msgstr "{use}: LEAVE BY THE ROOF STAIR"
+
+msgid "M04_CLINIC_RELEASED"
+msgstr "PATIENTS RELEASED"
+
+msgid "M04_CLINIC_OPEN"
+msgstr "SHUTTER OPEN"
+
+msgid "M04_CLINIC_UNCONFIRMED"
+msgstr "RESCUE UNCONFIRMED"
+
+msgid "M04_FIELD_STATUS"
+msgstr "CLINIC: {clinic}\nPHOTOGRAPHS: {photos}"
+
+msgid "WORLD_M04_NOTARY_FAN"
+msgstr "DUCTED FANS ABOVE THE AWNINGS"
+
+msgid "WORLD_M04_MARA_EVACUATE"
+msgstr "Mara: They are still arguing over the trucks. Get everyone up."
+
+msgid "WORLD_M04_NOTARY_SHUTTER"
+msgstr "NOTARY SHUTTER CLICKS"
+
+msgid "WORLD_M04_NOTARY_CRASH"
+msgstr "NOTARY WRECK HITS THE GROUND"
+
+msgid "WORLD_M04_NOTICE_BOARD"
+msgstr "VACATE BY 16:00\nBELONGINGS MAY BE DECLARED AT INTAKE."
+
+msgid "WORLD_M04_PAINT_LOCKER"
+msgstr "6\nGREEN / BLUE / RED"
+
+msgid "WORLD_M04_CLINIC_SIGN"
+msgstr "EDDA'S CLINIC\nOPEN"
+
+msgid "WORLD_M04_CLINIC_CARE"
+msgstr "GET PEOPLE MOVING"
+
+msgid "WORLD_M04_REPAIR_BENCH"
+msgstr "REPAIRS\nUSE WHAT YOU NEED"
+
+msgid "WORLD_M04_NOODLE_SIX"
+msgstr "6"
+
+msgid "WORLD_M04_MEAL_SIX"
+msgstr "6"
+
+msgid "WORLD_M04_FIELD_PRINTER"
+msgstr "PHOTOGRAPHS\nFILED"
+
+msgid "WORLD_M04_MARKET_CANVAS"
+msgstr "LOW WATER MARKET"
+
+msgid "WORLD_M04_WATER_TANK"
+msgstr "LOW WATER"
+
+msgid "WORLD_M04_TRAM_VOTE"
+msgstr "MOTION CARRIED\nGREEN"
+
+msgid "WORLD_M04_WORKSHOP"
+msgstr "TRAM WORKSHOP"
+
+msgid "WORLD_M04_CLINIC_CONTROL"
+msgstr "OPEN CLINIC"
+
+msgid "WORLD_M04_ROOF_DEPARTURE"
+msgstr "ROOFS\nTHIS WAY"
+msgid "MISSION_M05_TITLE"
+msgstr "NO FORWARDING ADDRESS"
+
+msgid "M05_PROTOTYPE_TITLE"
+msgstr "No Forwarding Address prototype"
+
+msgid "M05_LOCAL_STARTING"
+msgstr "Preparing roofs, workshop and freight platform..."
+
+msgid "M05_RUN_DESCRIPTION"
+msgstr "Continue the saved run through Low Water's roofs and tram trench."
+
+msgid "M05_NEXT_TITLE"
+msgstr "PORT OF ENTRY"
+
+msgid "M05_NEXT_PENDING"
+msgstr "The run is saved. Port of Entry is still in development."
+
+msgid "M05_WAITING"
+msgstr "NO FORWARDING ADDRESS / WAITING FOR THE PARTY"
+
+msgid "M05_DEPARTED"
+msgstr "COMMON CARRIER / {pause}: RETURN TO MENU"
+
+msgid "M05_USE_SHIP"
+msgstr "{use}: REVIEW DEPARTURE"
+
+msgid "M05_WORKERS_STATUS"
+msgstr "WORKERS: {freed} FREED / {aboard} ABOARD"
+
+msgid "M05_OBJECTIVE_ROOF_CROSSED"
+msgstr "Cross the roofs to the workshop."
+
+msgid "M05_OBJECTIVE_GRENADE_LESSON_CLEARED"
+msgstr "Clear the tram service crew. {grenade}: THROW GRENADE"
+
+msgid "M05_OBJECTIVE_WORKSHOP_CLEARED"
+msgstr "Clear the workshop. Approach the loading pen to free the workers."
+
+msgid "M05_OBJECTIVE_TRENCH_CLEARED"
+msgstr "Follow the tram trench to the freight ramp."
+
+msgid "M05_OBJECTIVE_HEAVY_CLEARED"
+msgstr "Clear the Heavy from the ramp."
+
+msgid "M05_OBJECTIVE_FREIGHT_SECURED"
+msgstr "Clear the freight platform."
+
+msgid "M05_OBJECTIVE_PARTY_DEPARTED"
+msgstr "Board the carrier with the party."
+
+msgid "WORLD_M05_WATER_TANK"
+msgstr "LOW WATER / ROOF SUPPLY / 6"
+
+msgid "WORLD_M05_PAINT_BENCH"
+msgstr "REPAIRS / USE WHAT YOU NEED"
+
+msgid "WORLD_M05_LOADING_PEN"
+msgstr "WORKERS IN TRANSFER / KEEP UPRIGHT"
+
+msgid "WORLD_M05_TRAM_SERVICE"
+msgstr "TRAM WORKSHOP / SERVICE TRENCH / 6"
+
+msgid "WORLD_M05_MARKET_SIX"
+msgstr "6"
+
+msgid "WORLD_M05_FREIGHT_SIGN"
+msgstr "FREIGHT / RECALL TRANSFER"
+
+msgid "WORLD_M05_SHIP_DEPARTURE"
+msgstr "COMMON CARRIER / BOARD HERE"
+msgid "M05_MENU_DEVELOPMENT"
+msgstr "DEVELOPMENT MISSIONS / STANDARD / NO SAVE OVERWRITE"
+
+msgid "M05_LAUNCH_PROTOTYPE"
+msgstr "Launch selected prototype"
+msgid "RECORD_GRENADES"
+msgstr "GRENADES"
+msgid "M05_DEPARTURE_REVIEW"
+msgstr "COMMON CARRIER / PASSENGER CHECK"
+
+msgid "M05_WORKER_SPLICE"
+msgstr "Splice"
+
+msgid "M05_WORKER_WORKSHOP_AGENT_A"
+msgstr "Workshop worker A"
+
+msgid "M05_WORKER_WORKSHOP_AGENT_B"
+msgstr "Workshop worker B"
+
+msgid "M05_PASSENGER_HELD"
+msgstr "Still held in the workshop"
+
+msgid "M05_PASSENGER_RELEASED"
+msgstr "Freed, not aboard"
+
+msgid "M05_PASSENGER_ABOARD"
+msgstr "Aboard"
+
+msgid "M05_DEPARTURE_OPTIONAL"
+msgstr "The carrier can leave now. Only workers physically aboard will travel with you."
+
+msgid "M05_DEPARTURE_CONFIRM"
+msgstr "{use}: DEPART NOW\n{pause}: KEEP WAITING"

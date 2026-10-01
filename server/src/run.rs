@@ -220,29 +220,70 @@ async fn run_server_impl(
                 crate::protocol::MissionId::PersonsUnknown,
             )
         };
-        let store = RunStore::open_with_hashes(&local_run.directory, m01_hash, m02_hash)?;
+        let m03_hash = if session.state.map.campaign_mission_id()
+            == Some(crate::protocol::MissionId::ScheduledService)
+        {
+            content_sha256
+        } else {
+            crate::maps::AuthoredSource::bundled_content_sha256(
+                crate::protocol::MissionId::ScheduledService,
+            )
+        };
+        let m04_hash = if session.state.map.campaign_mission_id()
+            == Some(crate::protocol::MissionId::NoticeToVacate)
+        {
+            content_sha256
+        } else {
+            crate::maps::AuthoredSource::bundled_content_sha256(
+                crate::protocol::MissionId::NoticeToVacate,
+            )
+        };
+        let m05_hash = if session.state.map.campaign_mission_id()
+            == Some(crate::protocol::MissionId::NoForwardingAddress)
+        {
+            content_sha256
+        } else {
+            crate::maps::AuthoredSource::bundled_content_sha256(
+                crate::protocol::MissionId::NoForwardingAddress,
+            )
+        };
+        let store = RunStore::open_with_hashes(
+            &local_run.directory,
+            m01_hash,
+            m02_hash,
+            m03_hash,
+            m04_hash,
+            m05_hash,
+        )?;
         if local_run.resume {
             let mut saved = store.load()?.ok_or("no saved campaign run to resume")?;
             let source = saved.clone();
-            if session.state.map.campaign_mission_id()
-                == Some(crate::protocol::MissionId::PersonsUnknown)
-                && matches!(
-                    saved.step,
-                    crate::mission::run_file::SavedStep::AwaitingMission {
-                        completed_mission: crate::protocol::MissionId::RecallNotice,
-                        ..
+            let target = session
+                .state
+                .map
+                .campaign_mission_id()
+                .ok_or("missing mission identity")?;
+            if matches!(
+                saved.step,
+                crate::mission::run_file::SavedStep::AwaitingMission { .. }
+            ) {
+                saved = match target {
+                    crate::protocol::MissionId::PersonsUnknown => saved.promote_m02(m02_hash)?,
+                    crate::protocol::MissionId::ScheduledService => {
+                        saved.promote_next(target, m03_hash)?
                     }
-                )
-            {
-                saved = saved.promote_m02(m02_hash)?;
+                    crate::protocol::MissionId::NoticeToVacate => {
+                        saved.promote_next(target, m04_hash)?
+                    }
+                    crate::protocol::MissionId::NoForwardingAddress => {
+                        saved.promote_next(target, m05_hash)?
+                    }
+                    crate::protocol::MissionId::RecallNotice => {
+                        return Err("a saved transition cannot return to M01".into())
+                    }
+                };
                 store.archive_and_save(&source, &saved)?;
-            } else if saved.stage_mission()
-                != session
-                    .state
-                    .map
-                    .campaign_mission_id()
-                    .ok_or("missing mission identity")?
-            {
+            } else if saved.stage_mission() != target {
                 return Err("saved campaign run names another mission".into());
             }
             if !matches!(
@@ -319,30 +360,41 @@ async fn run_server_impl(
         .match_config
         .as_ref()
         .is_some_and(|config| !config.rules.is_plain());
-    let required_gameplay = if options
-        .match_config
-        .as_ref()
-        .is_some_and(|config| config.rules.mode() == crate::protocol::GameMode::Ctf)
-    {
-        crate::protocol::CTF_GAMEPLAY_VERSION
-    } else if session.state.map.m02_objectives().is_some() {
-        crate::protocol::INSPECTION_GLASS_GAMEPLAY_VERSION
-    } else if options.campaign_run {
-        crate::protocol::RUN_CARRY_GAMEPLAY_VERSION
-    } else if discovery || twisted {
-        crate::protocol::RULES_GAMEPLAY_VERSION
-    } else if session.state.map.mission().is_some() {
-        crate::protocol::DIFFICULTY_GAMEPLAY_VERSION
-    } else if session.state.map.has_encounters() {
-        crate::protocol::CAMPAIGN_GAMEPLAY_VERSION
-    } else {
-        match session.state.map.equipment_policy() {
-            crate::protocol::EquipmentPolicy::FullArsenal => 1,
-            crate::protocol::EquipmentPolicy::Discovery => {
-                crate::protocol::DISCOVERY_GAMEPLAY_VERSION
+    let has_jammer = session.state.map.encounters().iter().any(|encounter| {
+        encounter
+            .enemies
+            .iter()
+            .any(|enemy| enemy.kind == crate::protocol::EnemyKind::Jammer)
+    });
+    let has_notary = session.state.map.encounters().iter().any(|encounter| {
+        encounter
+            .enemies
+            .iter()
+            .any(|enemy| enemy.kind == crate::protocol::EnemyKind::Notary)
+    });
+    let required_gameplay =
+        if discovery || has_notary || session.state.map.campaign_mission_id().is_some() {
+            crate::protocol::M05_GAMEPLAY_VERSION
+        } else if has_jammer {
+            crate::protocol::JAMMER_GAMEPLAY_VERSION
+        } else if options
+            .match_config
+            .as_ref()
+            .is_some_and(|config| config.rules.mode() == crate::protocol::GameMode::Ctf)
+        {
+            crate::protocol::CTF_GAMEPLAY_VERSION
+        } else if discovery || twisted {
+            crate::protocol::RULES_GAMEPLAY_VERSION
+        } else if session.state.map.has_encounters() {
+            crate::protocol::CAMPAIGN_GAMEPLAY_VERSION
+        } else {
+            match session.state.map.equipment_policy() {
+                crate::protocol::EquipmentPolicy::FullArsenal => 1,
+                crate::protocol::EquipmentPolicy::Discovery => {
+                    crate::protocol::DISCOVERY_GAMEPLAY_VERSION
+                }
             }
-        }
-    };
+        };
     let live = std::sync::Arc::new(tokio::sync::RwLock::new(session.state.live_status(0)));
     let mut net_server = NetServer::bind_with_requirements(
         &options.bind,

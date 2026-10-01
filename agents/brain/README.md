@@ -41,6 +41,26 @@ heightfield navigator as rule bots and playtest agents. It routes around walls a
 up stairs, holds fire through cover, and clears route memory on map or life
 changes. Search work is bounded and stays local; it does not add model calls.
 
+In CTF, a side with at least three compatible controllers elects one living
+noncarrier defender by participant identity. The existing stance chip advertises
+compatibility: the server accepts these chips only from external agents, and
+human players and server rule bots do not consume these roles. Team membership
+still comes solely from the server. During an allied carry the next eligible
+teammate escorts, trailing four units behind the carrier and holding six units
+short of its home stand. Other attackers keep pressing the enemy stand. The
+carrier returns home while a living defender recovers a stolen or dropped home
+flag. Without that defender, the carrier retains its own recovery route.
+When intercepting a visible hostile holding its own flag, that carrier advances
+and fires within its selected weapon's range. Cover suppresses the shot while
+the route continues.
+Dead fighters and carriers yield their role; callsigns and snapshot ordering do
+not change the election. Two-member sides retain shared noncarrier recovery.
+Visible threats can interrupt combat routes, and an escort fights beside the
+carrier without chasing. Usable ranged equipment preserves objective movement
+through optional resupply. Other external agents publishing these stance chips
+advertise the same coordination contract. No claim of human balance or enjoyment
+follows from it.
+
 For a rendered first-person developer watch, run `bash tools/qa_watch.sh` from
 the repository root (Git Bash on Windows). It starts an owned local M01 server,
 one free-rule brain pawn and a passive Godot spectator, then saves eight eye
@@ -64,7 +84,9 @@ cargo run -p fragr-brain -- --provider ollama --timeout-ms 20000 play --name Apu
 
 `play` loads the model before joining and names the pull command if it is missing. If the `hf.co` pull fails (Ollama 0.34.2 refused the Hugging Face CDN redirect on 2026-09-26), download `APUS-OpenJev-v1-4B-Q8_0.gguf` from the model's GGUF repository, check it against the repository's `SHA256SUMS`, create the model with the repository's `Modelfile` (`ollama create apus-openjev-v1-4b:q8_0 -f Modelfile`), and pass `--model apus-openjev-v1-4b:q8_0`. Weights live in Ollama's store, never in this repository.
 
-The brain renders the model's own prompt contract and reads its answer from the probabilities of the candidate letters, one short request per question, all inside one latency budget: `--timeout-ms` bounds the whole decision. On a Ryzen 7 7840U laptop with integrated graphics a decision took about twelve seconds, so the default two second budget times out every time and the fighter plays on local rules. Measurements, hardware and next steps are in [`docs/plans/brain-local-model.md`](../../docs/plans/brain-local-model.md).
+The brain renders the model's own prompt contract and reads its answer from the probabilities of the candidate letters. Ollama `play` asks only the stance question, with weapon selection and danger determined from current local observations. This reduces three scoring requests to one without changing the model contract. `ask` retains all three diagnostic questions. `--timeout-ms` bounds the whole decision.
+
+The original three-question play path took about twelve seconds on a Ryzen 7 7840U laptop with integrated graphics, and timed out at the default two second budget. That historical measurement is in [`docs/plans/brain-local-model.md`](../../docs/plans/brain-local-model.md). The single-question path has fake-transport validation in [`brain-responsive-local.md`](../../docs/plans/brain-responsive-local.md); no new hardware latency or match-quality result is claimed.
 
 `--provider openjev` sends the same `systemone` body as the TypeSafe provider to an [openjev](https://huggingface.co/openjev/openjev) server you run yourself (default `http://127.0.0.1:3000`, no key). **The openjev weights are CC BY-NC 4.0: non-commercial use only.** fragr never bundles, downloads or defaults to them, and this path is tested with fake transports only.
 
@@ -131,12 +153,17 @@ In a campaign mission, the question set describes finite continues and the
 current objective. Its weapon options come from the server-validated carried
 loadout, including fists and the pistol when carried. The state includes mission
 phase, difficulty, attempt, remaining continues, equipment, and whether the
-nearest guard is in view. Arena score and round clock are omitted. A hidden
+nearest guard is in view. Equipment includes a separate `grenades` count capped
+at six. Grenades never appear in the gun selection question; local controllers
+preserve deliberate counted throws through the ordinary action channel.
+Arena score and round clock are omitted. A hidden
 guard does not take over the local controller's objective route; a visible guard
 can still trigger combat. No paid request is sent before a valid mission loadout
 arrives.
 
 **Gating.** A choice is trusted when its top option leads the runner-up by at least `--margin-floor` (default 0.2), or when the provider's own `confidence` statistic reaches `--confidence-floor` (default 0.65). The margin is the primary test: on a four-way stance question the winning option often sits near 0.6 with a clear lead, and TypeSafe's own worked example calls a 0.60 versus 0.38 split "clear enough to act on" while reporting a confidence of 0.39. Rejected answers leave the stance to local rules for that cycle and count as `decisions_low_confidence` in the summary.
+
+**Responsiveness.** Local rules refresh from the latest snapshot on every controller tick while inference is outstanding. A map replacement, death, respawn, round transition or changed mission state invalidates an earlier successful answer. The answer still completes its paid accounting, and `decisions_discarded` reports it without counting it as a provider failure. Low-confidence and failed replies use current local intent. Dead fighters send neutral actions and clear route memory.
 
 **Backoff.** Rate limits (429), overload (529), other server errors, and timeouts are never retried inside a cycle. Each one doubles the decision interval, up to sixteen times the base, and the first success restores it. The fighter plays on local rules in between. TypeSafe's published default limit is 1,200 requests per minute per key, which four to six brain fighters at three to five decisions per second would saturate, so keep the decision rate modest when fielding several.
 
@@ -151,7 +178,7 @@ cargo run -p fragr-brain -- --provider openrouter --max-spend-usd 0.01 ask --sta
 
 ## What it reports
 
-`play` prints a JSON summary when it leaves: provider and model, snapshots seen, actions sent, decisions by source (remote, low confidence, failed, local, budget refusals), timeouts, fallbacks, backoffs, decision round-trip statistics (minimum, mean, p50, p95, maximum), decisions per second, arena frags, server-recorded kills and deaths, the latest server-validated mission receipt when present, dollars this run, dollars in the ledger, the last plan, and the last state string. The summary is for your eyes; keep it out of public write-ups.
+`play` prints a JSON summary when it leaves: provider and model, snapshots seen, actions sent, decisions by source (remote, low confidence, discarded, failed, local, budget refusals), timeouts, fallbacks, backoffs, decision round-trip statistics (minimum, mean, p50, p95, maximum), decisions per second, arena frags, server-recorded kills and deaths, the latest server-validated mission receipt when present, dollars this run, dollars in the ledger, the last plan, and the last state string. The summary is for your eyes; keep it out of public write-ups.
 
 ## Known limits
 

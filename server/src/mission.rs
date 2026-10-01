@@ -11,6 +11,9 @@ use uuid::Uuid;
 
 mod controller;
 mod m02;
+mod m03;
+mod m04;
+mod m05;
 mod recovery;
 pub(crate) mod run_file;
 pub use controller::MissionClient;
@@ -29,6 +32,9 @@ mod wire_tests;
 
 pub(crate) struct MissionRun {
     m02: Option<m02::M02Progress>,
+    m03: Option<m03::M03Progress>,
+    m04: Option<m04::M04Progress>,
+    m05: Option<m05::M05Progress>,
     solo: Option<recovery::SoloRun>,
     rules: CampaignRules,
     initial_map: RuntimeMap,
@@ -41,11 +47,12 @@ pub(crate) struct MissionRun {
 
 impl MissionRun {
     pub fn new(map: &RuntimeMap) -> Option<Self> {
-        if map.mission().is_none() && map.m02_objectives().is_none() {
-            return None;
-        }
+        map.campaign_mission_id()?;
         Some(Self {
             m02: map.m02_objectives().map(|_| m02::M02Progress::default()),
+            m03: map.m03_geometry().map(m03::M03Progress::new),
+            m04: map.m04_geometry().map(m04::M04Progress::new),
+            m05: map.m05_geometry().map(m05::M05Progress::new),
             solo: None,
             rules: CampaignRules::default(),
             initial_map: map.clone(),
@@ -72,9 +79,17 @@ pub(crate) fn actor_active(
 }
 
 fn can_use(player: &Player, target: &UseTarget, map: &RuntimeMap) -> bool {
+    can_use_in_arena(player, target, map, map.arena())
+}
+fn can_use_in_arena(
+    player: &Player,
+    target: &UseTarget,
+    map: &RuntimeMap,
+    arena: &crate::movement::Arena,
+) -> bool {
     let Some(point) = map
         .presentation_ref()
-        .and_then(|presentation| target.point(presentation, &map.arena().solids))
+        .and_then(|presentation| target.point(presentation, &arena.solids))
     else {
         return false;
     };
@@ -95,7 +110,7 @@ fn can_use(player: &Player, target: &UseTarget, map: &RuntimeMap) -> bool {
     distance > 0.0
         && distance <= USE_DISTANCE
         && dot >= distance * 18.0_f32.to_radians().cos()
-        && crate::combat::line_of_sight(eye, point, &map.arena().solids)
+        && crate::combat::line_of_sight(eye, point, &arena.solids)
 }
 
 impl GameState {
@@ -125,7 +140,7 @@ impl GameState {
         if ready.id == MissionId::PersonsUnknown {
             return self.acknowledge_m02(player_id, ready.attempt);
         }
-        if self.map.mission().is_none_or(|map| map.id != ready.id)
+        if self.map.campaign_mission_id() != Some(ready.id)
             || !self
                 .players
                 .iter()
@@ -165,15 +180,20 @@ impl GameState {
             .collect();
         run.ready.retain(|id| party.contains(id));
         if run.phase == MissionPhase::Briefing && !party.is_empty() && party.is_subset(&run.ready) {
-            run.phase = if run.m02.is_some() {
-                MissionPhase::InProgress
-            } else {
-                MissionPhase::FindTransfer
-            };
+            run.phase =
+                if run.m02.is_some() || run.m03.is_some() || run.m04.is_some() || run.m05.is_some()
+                {
+                    MissionPhase::InProgress
+                } else {
+                    MissionPhase::FindTransfer
+                };
             run.changed_at = self.tick;
             run.started = true;
             tracing::info!(members = party.len(), "Campaign party ready");
         }
+        self.ensure_m03_companion();
+        self.ensure_m04_companion();
+        self.ensure_m05_companion();
     }
 
     pub(crate) fn note_mission_started(&mut self) {
@@ -191,10 +211,13 @@ impl GameState {
         if let Some(m02) = run.m02.as_mut() {
             *m02 = m02::M02Progress::default();
         }
+        run.m03 = run.initial_map.m03_geometry().map(m03::M03Progress::new);
+        run.m04 = run.initial_map.m04_geometry().map(m04::M04Progress::new);
+        run.m05 = run.initial_map.m05_geometry().map(m05::M05Progress::new);
         run.phase = if run.ready.is_empty() {
             MissionPhase::Briefing
         } else {
-            if run.m02.is_some() {
+            if run.m02.is_some() || run.m03.is_some() || run.m04.is_some() || run.m05.is_some() {
                 MissionPhase::InProgress
             } else {
                 MissionPhase::FindTransfer
@@ -212,10 +235,22 @@ impl GameState {
             player.interaction_requested = false;
         }
         tracing::info!(attempt = run.attempt, "Mission reset to intake");
+        self.ensure_m03_companion();
+        self.ensure_m04_companion();
+        self.ensure_m05_companion();
     }
 
     pub fn mission_state(&self) -> Option<MissionState> {
         let run = self.mission.as_ref()?;
+        if run.m05.is_some() {
+            return self.m05_mission_state();
+        }
+        if run.m04.is_some() {
+            return self.m04_mission_state();
+        }
+        if run.m03.is_some() {
+            return self.m03_mission_state();
+        }
         if run.m02.is_some() {
             return self.m02_mission_state();
         }
@@ -269,6 +304,9 @@ impl GameState {
             party,
             prompts,
             m02: None,
+            m03: None,
+            m04: None,
+            m05: None,
         })
     }
 
@@ -286,6 +324,18 @@ impl GameState {
     }
 
     pub(crate) fn advance_mission(&mut self) {
+        if self.mission.as_ref().is_some_and(|r| r.m05.is_some()) {
+            self.advance_m05();
+            return;
+        }
+        if self.mission.as_ref().is_some_and(|run| run.m04.is_some()) {
+            self.advance_m04();
+            return;
+        }
+        if self.mission.as_ref().is_some_and(|run| run.m03.is_some()) {
+            self.advance_m03();
+            return;
+        }
         if self.mission.as_ref().is_some_and(|run| run.m02.is_some()) {
             self.advance_m02();
             return;

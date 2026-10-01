@@ -13,7 +13,38 @@ Every item below is in exactly one state: **planned**, **in progress**, **shippe
 
 The engineering ladder for scale runs through every phase: small squads first (four to twelve fighters, the current bar), then full servers (thirty-two to sixty-four), then large agent-heavy arenas (hundreds of fighters where most are agents). Each rung has its own measurements and is not claimed until measured.
 
-## Where we are (2026-09-26)
+## Where we are (2026-09-30)
+
+Release history is documented through v0.64.0, with the next build integrated in
+[PR #314](https://github.com/blisspixel/fragr/pull/314). M01-to-M02 run carry,
+retry, rescue and optional evacuation are integrated; CTF is playable on Arena
+Duel, Directive 17 and Sector 9. The local campaign and feel buildout implements
+a playable Jammer range with original poses and launch audio, remote participant
+interpolation, coherent spectator cameras and responsive free-agent decisions
+with CTF coordination. Continued local work adds the M03 Scheduled Service
+prototype: daylight yard, optional recall cars, guarded shootable mast, deliberate
+train departure and durable M02 carry with compatible saved-run upgrades. Its
+ordinary-input route clears all twenty-two enemies and both secrets. The M04
+Notice to Vacate prototype adds Low Water's market, optional clinic/patients,
+raised Notary combat, roof departure and durable carry into M05.
+Its ordinary-input route clears all 28 guards without a death.
+Original repair detail, animated shallow runoff and six narrated transition
+pages improve presentation. The [world/character guides](design/README.md) and
+21 appearance anchors keep later levels and scenes aligned to lore and the
+[art bible](ART_STORY_BIBLE.md). The
+[M05 increment](plans/m05-no-forwarding-address-prototype.md) adds counted
+grenades, workshop rescue, an authoritative moving tram and freight departure.
+Its actual 25-state route clears all 21 guards without a death, visits three
+secret locations, rides the moving tram and boards after a physical confirmation. All
+three freed workers reach boarding. The recorded grenade clears the chassis
+but hits no enemy; seeded tests separately prove effective covered-side damage.
+Final Rust checks passed 1206 tests and 94.25 percent unfiltered line coverage;
+the client passed 174 scripts and 81 harnesses. Current-source multiplayer,
+six-map roster, deterministic CPU benchmark and 120-second soak gates pass.
+New cash charges are $0, with 693 included audio credits consumed. The build is
+synced in PR #314. The linked plan records current rendered evidence and CI;
+release packages require their own passing workflow. Fresh-player acceptance and
+two-machine network evidence remain separate gates.
 
 **Shipped and proven on the tip:**
 
@@ -39,7 +70,7 @@ earlier opening batch are in the M01 opening ([scene plan](plans/campaign-scenes
 The old radio-only ending cannot be integrated as the new campaign's actual ending. The initial art receipt was $0.69; current remaining provider credit
 must be checked before any new call rather than inferred from that old balance.
 
-**Not built yet (honest list):** low-latency transport (WebSocket JSON only; local human prediction shipped in v0.58.0), interpolation of other fighters, a complete protocol migration policy (geometry and gameplay admission exist), unlimited lifetime statistics, progression, DJ bumpers and a voiced Host, a finished single-player campaign or full co-op lifecycle, a complete art pass, public-server load tests, any cloud apply, vehicles, and Rescue, Sabotage and combined-arms modes. Sector 9 capture the flag is playable. `GET /status` on the game port is a host probe in the current line of work, not an in-app server browser and not a web client. M01 has a developing discovery/combat/mission slice; Episode 0 remains a separate arena prototype. A deterministic local benchmark already exists; it does not establish public-server readiness. Frame caps, connection caps, and the inbound message budget shipped in v0.35.0.
+**Not built yet (honest list):** low-latency transport (WebSocket JSON only; local human prediction shipped in v0.58.0), campaign-actor timeline interpolation and bounded lag compensation, a complete protocol migration policy (geometry and gameplay admission exist), unlimited lifetime statistics, progression, DJ bumpers and a voiced Host, a finished single-player campaign or full co-op lifecycle, a complete art pass, public-server load tests, any cloud apply, vehicles, and Rescue, Sabotage and combined-arms modes. Sector 9 capture the flag is playable. `GET /status` on the game port is a host probe in the current line of work, not an in-app server browser and not a web client. M01 has a developing discovery/combat/mission slice; Episode 0 remains a separate arena prototype. A deterministic local benchmark already exists; it does not establish public-server readiness. Frame caps, connection caps, and the inbound message budget shipped in v0.35.0.
 
 **Decided 2026-09-25:** the campaign is twenty levels in five episodes, per the
 [expansion plan](plans/campaign-expansion.md), now the contract in
@@ -217,16 +248,64 @@ The phases below are the long shape. The sequence that follows is the build orde
 
 **Active goal:** build the agreed game through a proven 1.0. That is Recall Notice as the quality bar, then each later mission on systems the whole campaign reuses, then local prediction before the first long Rail lane, then the wipe and its conditional epilogue, then a LAN proof, then an exposed server. Cloud apply, matchmaking, and conquest-scale vehicles stay behind that server. The story spine in [`CAMPAIGN.md`](CAMPAIGN.md) is settled. Names, rescue tradeoffs, wipe operations, and the reprieve's exact terms stay proposals until the gate that needs them. Mission briefs live in [`CAMPAIGN-MISSIONS.md`](CAMPAIGN-MISSIONS.md) and [one plan per level](campaign/README.md). Geometry comes from the mission, not from an arena layout. The six current layouts stay playable foundations. Boltgun remains the visual bar for a played sequence, not a reason to generate the roster before the first two enemies read. Every rung serves the [easy to pick up, deep to master pillar](VISION.md#easy-to-pick-up-deep-to-master): fights and flow first, at most three doors a level.
 
-**Next, as of 2026-09-28.** The integrated v0.58.0 source combines the M02 development route and durable M01-to-M02 run, Sector 9 capture the flag, predicted WebSocket movement, the local container host and the plan-only cloud host. These systems share one build, but their player and remote-network acceptance gates remain open. Work in this order:
+**Next, as of 2026-09-30.** Nick authorized parallel research and development,
+with at most $20 combined external charges this round, and explicitly removed
+human feedback as a prerequisite for development. The integrated campaign and
+CTF systems are already on main through v0.64.0. Their human and remote-network
+acceptance remain open evidence, not reasons to stop local building. Work in
+this order, with disjoint supporting lanes running alongside campaign work:
 
-1. Run an unsteered packaged M01-to-M02 session with a fresh player, following the [integrated player gate](plans/m02-integrated-player-gate.md). Observe the Shotgun and Crawler lessons, Latch's release, optional captives, retry and departure. Fix observed blockers, then repeat with another fresh player. Keep the Notary a noncombat level 2 glimpse and the Jammer in level 3.
-2. Run a human and spectator CTF round, plus a team deathmatch controls pass. Judge flag readability, carry drops, score, teammate aim assist and match pacing against the [CTF plan](plans/capture-the-flag.md). Refine Sector 9 and the smaller arena routes before adding Rescue or Sabotage maps. The combined-arms mode waits for its own map and vehicle work.
-3. Run a real two-machine LAN session with the predicted WebSocket client, the pellet Shotgun, keyboard and gamepad controls, an agent and a spectator. Record both directions of timing, correction and visual feel per [TRANSPORT.md](TRANSPORT.md). Interpolation and bounded lag compensation follow that evidence; a UDP pilot follows a matched transport comparison.
-4. Build level 3 Scheduled Service after M02 player review. Keep the twenty-level campaign's one-new-thing-per-level order in [CAMPAIGN-MISSIONS.md](CAMPAIGN-MISSIONS.md). Freeze Episode I scene wording before any capped narration or key-image batch. Speed up the free local decision model through measured stance-only or cached questions before calling it a real-time fighter.
+The [campaign and feel buildout](plans/campaign-and-feel-buildout.md) supplies
+the local Jammer foundation, presentation and free-agent increments at $0.
+Its integration and acceptance evidence is recorded in that bounded plan.
 
-No cloud apply, paid asset batch, public-server claim or 1.0 controls claim follows from this integration. The $0 local container host is available for friends; public admission, cloud cost and exposed-server testing retain their own gates.
+ 1. Build level 6 Port of Entry from its accepted
+    [level design](campaign/m04-port-of-entry.md#level-6-design-twenty-level-expansion):
+    lunar dock, inhabited freight hall, Railgun lesson and flankable Turret,
+    optional service branch and deliberate transit-tunnel departure. This starts
+    Episode II, refills its continues and gives retained Earth rescue choices
+    their first lunar destination. Reuse the locally verified
+    [M05 prototype](plans/m05-no-forwarding-address-prototype.md)'s inventory,
+    save, rescue, scene and geometry seams. Its
+    [bounded implementation plan](plans/m06-port-of-entry-prototype.md) is written
+    before source changes. Keep the existing predicted movement path and
+    measure long-lane combat before introducing the first sixty-metre Rail shot.
+    Refine M01-M05 pacing, grenade-lesson timing, resource pressure,
+    ordinary character motion and listening alongside it. Apply the
+   [shared world/character guides](design/README.md) to useful furnishing,
+   activity, lighting and water, rather than empty rooms or independent redesigns.
+   Fresh-player and difficulty acceptance remain open. Follow the
+   one-new-thing-per-level treatment in [CAMPAIGN-MISSIONS.md](CAMPAIGN-MISSIONS.md).
+2. Refine CTF across its three arenas with contested, multi-seed human/agent/
+   spectator automation and inspected captures. Track captures, combat drops,
+   route progress and timeouts together. Continue TDM controls regressions before
+   Rescue, Sabotage or combined-arms map work. The local
+   [attacker blocker correction](plans/ctf-attacker-blockers.md) repairs a
+   harness policy that sent Reflex attackers into armed defenders without
+   firing. Its exact contested sample now records two takes, a drop, a return
+   and one capture. Broader seeds and real sessions remain open.
+3. Continue measured WebSocket presentation and combat work, including bounded
+   lag compensation. Preserve the two-machine session for network and hardware
+   acceptance, per [TRANSPORT.md](TRANSPORT.md); local automation cannot prove it.
+   A UDP pilot still follows a matched transport comparison. Freeze Episode I
+   scene wording before any capped narration or key-image batch, and measure
+   local-model latency before calling the decision provider a real-time fighter.
 
-While those four gates wait on a player or a second machine, the server-owned traveling shot is already on main ([plan](plans/traveling-shot.md)). It is slower than a player, it is not a weapon, no live match launches it, and it does not start level 3.
+The [integrated player review](plans/m02-integrated-player-gate.md) remains
+available on its retained v0.58.0 package. Record its observations when a fresh
+player is available. It does not gate this authorized development round.
+
+No cloud apply, public-server claim or 1.0 controls claim follows from this
+integration. The authorized audio batch used included credits. The prepared
+image API batch remains unsubmitted pending a verified current balance; original
+local textures are implemented. The $0 local container host is documented for
+friends, but this machine's Docker engine is unavailable. Public admission,
+cloud cost and exposed-server testing retain their own gates.
+
+The server-owned traveling-shot foundation is already on main
+([plan](plans/traveling-shot.md)). The current buildout makes it a live Jammer
+attack on a dedicated range and in the local M03 prototype. A range clear
+alone does not satisfy M03's own mission contract or acceptance.
 
 The CTF draft's five corrected six-a-side observations recorded 16 flag takes,
 11 combat drops, four captures and one carry at the clock. Those were external
@@ -262,7 +341,11 @@ a $0 local container host. The cloud image host remains plan-only. Prediction
 and the two-machine session precede a
 measured UDP pilot, as described in [TRANSPORT.md](TRANSPORT.md).
 
-The numbered list that used to sit here is historical. It put the campaign foundation seventh, behind a generation pipeline M01 does not need, and it still treated gunfeel rung 2 as next after that work had shipped. Spend restraint stays: no paid batch to paper over the uncertain art reservation, no cloud deployment in this slice, and no server browser.
+The older rationale below and the phase tables are historical context, not a
+second queue. Their former human-feedback prerequisites do not override the
+2026-09-30 authorization. Spend restraint stays: no paid batch to paper over the
+uncertain art reservation, no cloud deployment in this slice, and no server
+browser.
 
 Story between levels is a short audio cutscene on the scene player that now runs the M01 opening: a narration script voiced over at least one key image per scene, with captions, skippable, falling back to the text page when an asset is missing. Images through `tools/spritegen` and voices through `tools/audiogen` wait for frozen wording and Nick's go per batch with a cap. Video is much later, in [`plans/cutscene-film.md`](plans/cutscene-film.md). [`plans/campaign-scenes.md`](plans/campaign-scenes.md) holds the scene list, costs and gates.
 

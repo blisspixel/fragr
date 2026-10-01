@@ -1,5 +1,5 @@
 //! Bounded local run storage. The lock file is never renamed with the save.
-use super::{RunDocument, RunDocumentV2};
+use super::{RunDocument, RunDocumentV2, RunDocumentV3, RunDocumentV4, RunDocumentV5};
 use crate::protocol::MissionId;
 use sha2::{Digest, Sha256};
 use std::fs::{self, File, OpenOptions};
@@ -15,12 +15,15 @@ pub(crate) struct RunStore {
     directory: PathBuf,
     m01_hash: [u8; 32],
     m02_hash: [u8; 32],
+    m03_hash: [u8; 32],
+    m04_hash: [u8; 32],
+    m05_hash: [u8; 32],
     _lock: File,
 }
 
 pub(crate) enum RunProbe {
     Missing,
-    Compatible(RunDocument),
+    Compatible(Box<RunDocument>),
     Incompatible,
     Corrupt,
 }
@@ -29,13 +32,23 @@ impl RunStore {
     /// Only the local child opens a writable run. Tests supply an isolated dir.
     #[cfg(test)]
     pub fn open(directory: &Path, content_sha256: [u8; 32]) -> io::Result<Self> {
-        Self::open_with_hashes(directory, content_sha256, content_sha256)
+        Self::open_with_hashes(
+            directory,
+            content_sha256,
+            content_sha256,
+            content_sha256,
+            content_sha256,
+            content_sha256,
+        )
     }
 
     pub fn open_with_hashes(
         directory: &Path,
         m01_hash: [u8; 32],
         m02_hash: [u8; 32],
+        m03_hash: [u8; 32],
+        m04_hash: [u8; 32],
+        m05_hash: [u8; 32],
     ) -> io::Result<Self> {
         fs::create_dir_all(directory)?;
         let lock = OpenOptions::new()
@@ -49,29 +62,51 @@ impl RunStore {
             directory: directory.to_owned(),
             m01_hash,
             m02_hash,
+            m03_hash,
+            m04_hash,
+            m05_hash,
             _lock: lock,
         })
     }
 
     pub fn load(&self) -> io::Result<Option<RunDocument>> {
-        Self::preview_with_hashes(&self.directory, self.m01_hash, self.m02_hash)
+        Self::preview_with_hashes(
+            &self.directory,
+            self.m01_hash,
+            self.m02_hash,
+            self.m03_hash,
+            self.m04_hash,
+            self.m05_hash,
+        )
     }
 
     /// A menu may inspect an unlocked snapshot. Launch always reopens under
     /// the writer lock and validates again before advertising readiness.
     #[cfg(test)]
     pub fn preview(directory: &Path, content_sha256: [u8; 32]) -> io::Result<Option<RunDocument>> {
-        Self::preview_with_hashes(directory, content_sha256, content_sha256)
+        Self::preview_with_hashes(
+            directory,
+            content_sha256,
+            content_sha256,
+            content_sha256,
+            content_sha256,
+            content_sha256,
+        )
     }
 
     pub fn preview_with_hashes(
         directory: &Path,
         m01_hash: [u8; 32],
         m02_hash: [u8; 32],
+        m03_hash: [u8; 32],
+        m04_hash: [u8; 32],
+        m05_hash: [u8; 32],
     ) -> io::Result<Option<RunDocument>> {
-        match Self::inspect_with_hashes(directory, m01_hash, m02_hash)? {
+        match Self::inspect_with_hashes(
+            directory, m01_hash, m02_hash, m03_hash, m04_hash, m05_hash,
+        )? {
             RunProbe::Missing => Ok(None),
-            RunProbe::Compatible(document) => Ok(Some(document)),
+            RunProbe::Compatible(document) => Ok(Some(*document)),
             RunProbe::Incompatible => Err(invalid("incompatible campaign run document")),
             RunProbe::Corrupt => Err(invalid("invalid campaign run document")),
         }
@@ -79,13 +114,23 @@ impl RunStore {
 
     #[cfg(test)]
     pub fn inspect(directory: &Path, content_sha256: [u8; 32]) -> io::Result<RunProbe> {
-        Self::inspect_with_hashes(directory, content_sha256, content_sha256)
+        Self::inspect_with_hashes(
+            directory,
+            content_sha256,
+            content_sha256,
+            content_sha256,
+            content_sha256,
+            content_sha256,
+        )
     }
 
     pub fn inspect_with_hashes(
         directory: &Path,
         m01_hash: [u8; 32],
         m02_hash: [u8; 32],
+        m03_hash: [u8; 32],
+        m04_hash: [u8; 32],
+        m05_hash: [u8; 32],
     ) -> io::Result<RunProbe> {
         let file = match File::open(directory.join(RUN_NAME)) {
             Ok(file) => file,
@@ -94,10 +139,19 @@ impl RunStore {
         };
         let mut bytes = Vec::new();
         file.take(MAX_RUN_BYTES + 1).read_to_end(&mut bytes)?;
-        Ok(Self::inspect_bytes(&bytes, m01_hash, m02_hash))
+        Ok(Self::inspect_bytes(
+            &bytes, m01_hash, m02_hash, m03_hash, m04_hash, m05_hash,
+        ))
     }
 
-    fn inspect_bytes(bytes: &[u8], m01_hash: [u8; 32], m02_hash: [u8; 32]) -> RunProbe {
+    fn inspect_bytes(
+        bytes: &[u8],
+        m01_hash: [u8; 32],
+        m02_hash: [u8; 32],
+        m03_hash: [u8; 32],
+        m04_hash: [u8; 32],
+        m05_hash: [u8; 32],
+    ) -> RunProbe {
         if bytes.len() as u64 > MAX_RUN_BYTES {
             return RunProbe::Corrupt;
         }
@@ -118,6 +172,36 @@ impl RunStore {
                     Err(_) => return RunProbe::Incompatible,
                 }
             }
+            Some(3) => {
+                let legacy: RunDocumentV3 = match serde_json::from_value(value) {
+                    Ok(document) => document,
+                    Err(_) => return RunProbe::Corrupt,
+                };
+                match legacy.upgrade(m01_hash, m02_hash) {
+                    Ok(document) => document,
+                    Err(_) => return RunProbe::Incompatible,
+                }
+            }
+            Some(4) => {
+                let legacy: RunDocumentV4 = match serde_json::from_value(value) {
+                    Ok(document) => document,
+                    Err(_) => return RunProbe::Corrupt,
+                };
+                match legacy.upgrade([m01_hash, m02_hash, m03_hash]) {
+                    Ok(document) => document,
+                    Err(_) => return RunProbe::Incompatible,
+                }
+            }
+            Some(5) => {
+                let legacy: RunDocumentV5 = match serde_json::from_value(value) {
+                    Ok(document) => document,
+                    Err(_) => return RunProbe::Corrupt,
+                };
+                match legacy.upgrade([m01_hash, m02_hash, m03_hash, m04_hash]) {
+                    Ok(document) => document,
+                    Err(_) => return RunProbe::Incompatible,
+                }
+            }
             Some(version) if version == u64::from(super::RUN_FILE_VERSION) => {
                 match serde_json::from_value::<RunDocument>(value) {
                     Ok(document) => document,
@@ -130,11 +214,14 @@ impl RunStore {
         let expected = match document.stage_mission() {
             MissionId::RecallNotice => m01_hash,
             MissionId::PersonsUnknown => m02_hash,
+            MissionId::ScheduledService => m03_hash,
+            MissionId::NoticeToVacate => m04_hash,
+            MissionId::NoForwardingAddress => m05_hash,
         };
         if document.validate(expected).is_err() {
             return RunProbe::Incompatible;
         }
-        RunProbe::Compatible(document)
+        RunProbe::Compatible(Box::new(document))
     }
 
     pub fn needs_upgrade(&self) -> io::Result<bool> {
@@ -146,7 +233,10 @@ impl RunStore {
             return Err(invalid("campaign run exceeds size limit"));
         }
         let value: serde_json::Value = serde_json::from_slice(&bytes)?;
-        Ok(value.get("version").and_then(serde_json::Value::as_u64) == Some(2))
+        Ok(matches!(
+            value.get("version").and_then(serde_json::Value::as_u64),
+            Some(2..=5)
+        ))
     }
 
     /// Archive source bytes without removing run.json, then atomically replace
@@ -170,8 +260,8 @@ impl RunStore {
             .map_err(invalid)?;
         let source = read_bounded(&self.directory.join(RUN_NAME))?;
         if !matches!(
-            Self::inspect_bytes(&source, self.m01_hash, self.m02_hash),
-            RunProbe::Compatible(current) if current == *source_document
+            Self::inspect_bytes(&source, self.m01_hash, self.m02_hash, self.m03_hash, self.m04_hash, self.m05_hash),
+            RunProbe::Compatible(current) if *current == *source_document
         ) {
             return Err(invalid("campaign run changed before migration"));
         }
@@ -220,6 +310,9 @@ impl RunStore {
         match document.stage_mission() {
             MissionId::RecallNotice => self.m01_hash,
             MissionId::PersonsUnknown => self.m02_hash,
+            MissionId::ScheduledService => self.m03_hash,
+            MissionId::NoticeToVacate => self.m04_hash,
+            MissionId::NoForwardingAddress => self.m05_hash,
         }
     }
 
@@ -381,6 +474,9 @@ mod tests {
             body: None,
             rules: CampaignRules::new(CampaignDifficulty::Standard),
             content_sha256: [7; 32],
+            m03_outcome: None,
+            m04_outcome: None,
+            m05_outcome: None,
             step: SavedStep::MissionEntry {
                 mission: MissionId::RecallNotice,
                 entry: SavedEntry {
@@ -460,7 +556,9 @@ mod tests {
     #[test]
     fn changed_m02_map_hash_requires_new_run_and_archives_the_prior_bytes() {
         let directory = temp_dir();
-        let store = RunStore::open_with_hashes(&directory, [7; 32], [9; 32]).unwrap();
+        let store =
+            RunStore::open_with_hashes(&directory, [7; 32], [9; 32], [10; 32], [11; 32], [12; 32])
+                .unwrap();
         let mut prior = document();
         prior.step = SavedStep::MissionEntry {
             mission: MissionId::PersonsUnknown,
@@ -476,7 +574,10 @@ mod tests {
         let bytes = serde_json::to_vec(&prior).unwrap();
         fs::write(directory.join(RUN_NAME), &bytes).unwrap();
         assert!(matches!(
-            RunStore::inspect_with_hashes(&directory, [7; 32], [9; 32]).unwrap(),
+            RunStore::inspect_with_hashes(
+                &directory, [7; 32], [9; 32], [10; 32], [11; 32], [12; 32]
+            )
+            .unwrap(),
             RunProbe::Incompatible
         ));
         let mut current = prior;
@@ -600,9 +701,12 @@ mod tests {
     #[test]
     fn v2_m01_departure_is_readable_and_archived_before_m02_promotion() {
         let directory = temp_dir();
-        let store = RunStore::open_with_hashes(&directory, [7; 32], [8; 32]).unwrap();
+        let store =
+            RunStore::open_with_hashes(&directory, [7; 32], [8; 32], [9; 32], [11; 32], [12; 32])
+                .unwrap();
         let mut legacy = serde_json::to_value(document()).unwrap();
         legacy["version"] = 2.into();
+        legacy["rules"]["revision"] = 2.into();
         legacy
             .as_object_mut()
             .unwrap()
@@ -616,6 +720,7 @@ mod tests {
                     .saved_equipment(WeaponType::Fists).unwrap()
             }
         });
+        super::super::remove_historical_grenades(&mut legacy);
         let source = serde_json::to_vec(&legacy).unwrap();
         fs::write(directory.join(RUN_NAME), &source).unwrap();
         let loaded = store.load().unwrap().unwrap();
@@ -638,7 +743,9 @@ mod tests {
     #[test]
     fn promotion_write_failure_keeps_original_run_and_an_exact_archive() {
         let directory = temp_dir();
-        let store = RunStore::open_with_hashes(&directory, [7; 32], [8; 32]).unwrap();
+        let store =
+            RunStore::open_with_hashes(&directory, [7; 32], [8; 32], [9; 32], [11; 32], [12; 32])
+                .unwrap();
         let mut awaiting = document();
         let SavedStep::MissionEntry { entry, .. } = awaiting.step else {
             panic!("expected entry")
@@ -690,6 +797,48 @@ mod tests {
     }
 
     #[test]
+    fn v5_market_promotion_preserves_exact_bytes_and_retries_one_archive() {
+        let directory = temp_dir();
+        let store =
+            RunStore::open_with_hashes(&directory, [5; 32], [7; 32], [9; 32], [11; 32], [12; 32])
+                .unwrap();
+        let mut legacy = super::super::tests::completed_market_document();
+        legacy.version = 5;
+        let bytes = serde_json::to_vec_pretty(&super::super::historical_value(&legacy)).unwrap();
+        fs::write(directory.join(RUN_NAME), &bytes).unwrap();
+        let loaded = store.load().unwrap().unwrap();
+        assert_eq!(loaded.version, 6);
+        assert!(store.needs_upgrade().unwrap());
+        let promoted = loaded
+            .promote_next(MissionId::NoForwardingAddress, [12; 32])
+            .unwrap();
+        assert!(store
+            .archive_and_save_before_replace(&loaded, &promoted, |_| {
+                Err(io::Error::other("injected replacement failure"))
+            })
+            .is_err());
+        assert_eq!(fs::read(directory.join(RUN_NAME)).unwrap(), bytes);
+        assert_eq!(store.load().unwrap(), Some(loaded.clone()));
+        let archive = store.archive_and_save(&loaded, &promoted).unwrap();
+        assert_eq!(fs::read(&archive).unwrap(), bytes);
+        assert_eq!(store.load().unwrap(), Some(promoted));
+        assert!(!store.needs_upgrade().unwrap());
+        assert_eq!(
+            fs::read_dir(&directory)
+                .unwrap()
+                .filter_map(Result::ok)
+                .filter(|entry| entry
+                    .file_name()
+                    .to_string_lossy()
+                    .starts_with("run.prior-"))
+                .count(),
+            1
+        );
+        drop(store);
+        fs::remove_dir_all(directory).unwrap();
+    }
+
+    #[test]
     fn invalid_migration_target_does_not_archive_source() {
         let directory = temp_dir();
         let store = RunStore::open(&directory, [7; 32]).unwrap();
@@ -701,6 +850,122 @@ mod tests {
         assert!(store.archive_and_save(&original, &invalid_target).is_err());
         assert_eq!(fs::read(directory.join(RUN_NAME)).unwrap(), source);
         assert_eq!(fs::read_dir(&directory).unwrap().count(), 2);
+        drop(store);
+        fs::remove_dir_all(directory).unwrap();
+    }
+
+    #[test]
+    fn v3_m02_promotion_archives_exact_bytes_and_retries_safely() {
+        let directory = temp_dir();
+        let store =
+            RunStore::open_with_hashes(&directory, [7; 32], [8; 32], [9; 32], [11; 32], [12; 32])
+                .unwrap();
+        let mut legacy = document();
+        legacy.version = 3;
+        legacy.rules.revision = 2;
+        legacy.content_sha256 = [8; 32];
+        legacy.step = SavedStep::AwaitingMission {
+            completed_mission: MissionId::PersonsUnknown,
+            next_mission: "scheduled_service".into(),
+            exit: super::super::SavedEntry::initial(),
+        };
+        let bytes = serde_json::to_vec(&super::super::historical_value(&legacy)).unwrap();
+        fs::write(directory.join(RUN_NAME), &bytes).unwrap();
+        let loaded = store.load().unwrap().unwrap();
+        assert_eq!(loaded.version, super::super::RUN_FILE_VERSION);
+        assert!(store.needs_upgrade().unwrap());
+        let promoted = loaded
+            .promote_next(MissionId::ScheduledService, [9; 32])
+            .unwrap();
+        assert!(store
+            .archive_and_save_before_replace(&loaded, &promoted, |_| Err(io::Error::other(
+                "injected failure"
+            )))
+            .is_err());
+        assert_eq!(fs::read(directory.join(RUN_NAME)).unwrap(), bytes);
+        assert_eq!(store.load().unwrap(), Some(loaded.clone()));
+        let archive = store.archive_and_save(&loaded, &promoted).unwrap();
+        assert_eq!(fs::read(archive).unwrap(), bytes);
+        assert_eq!(store.load().unwrap(), Some(promoted));
+        assert!(!store.needs_upgrade().unwrap());
+        assert_eq!(
+            fs::read_dir(&directory)
+                .unwrap()
+                .filter_map(Result::ok)
+                .filter(|entry| entry
+                    .file_name()
+                    .to_string_lossy()
+                    .starts_with("run.prior-"))
+                .count(),
+            1
+        );
+        assert!(matches!(
+            RunStore::inspect_with_hashes(
+                &directory, [7; 32], [8; 32], [10; 32], [11; 32], [12; 32]
+            )
+            .unwrap(),
+            RunProbe::Incompatible
+        ));
+        drop(store);
+        fs::remove_dir_all(directory).unwrap();
+    }
+
+    #[test]
+    fn v4_yard_promotion_archives_exact_bytes_and_retains_choices() {
+        let directory = temp_dir();
+        let store =
+            RunStore::open_with_hashes(&directory, [7; 32], [8; 32], [9; 32], [11; 32], [12; 32])
+                .unwrap();
+        let mut legacy = document();
+        legacy.version = 4;
+        legacy.rules.revision = 2;
+        legacy.content_sha256 = [9; 32];
+        legacy.step = SavedStep::AwaitingMission {
+            completed_mission: MissionId::ScheduledService,
+            next_mission: "notice_to_vacate".into(),
+            exit: super::super::SavedEntry::initial(),
+        };
+        legacy.m03_outcome = Some(super::super::M03Outcome {
+            liberated_cars: vec!["platform_car".into()],
+        });
+        let bytes = serde_json::to_vec(&super::super::historical_value(&legacy)).unwrap();
+        fs::write(directory.join(RUN_NAME), &bytes).unwrap();
+        let loaded = store.load().unwrap().unwrap();
+        assert_eq!(loaded.version, super::super::RUN_FILE_VERSION);
+        assert!(store.needs_upgrade().unwrap());
+        let promoted = loaded
+            .promote_next(MissionId::NoticeToVacate, [11; 32])
+            .unwrap();
+        assert_eq!(promoted.m03_outcome, loaded.m03_outcome);
+        assert!(store
+            .archive_and_save_before_replace(&loaded, &promoted, |_| Err(io::Error::other(
+                "injected failure"
+            )))
+            .is_err());
+        assert_eq!(fs::read(directory.join(RUN_NAME)).unwrap(), bytes);
+        assert_eq!(store.load().unwrap(), Some(loaded.clone()));
+        let archive = store.archive_and_save(&loaded, &promoted).unwrap();
+        assert_eq!(fs::read(archive).unwrap(), bytes);
+        assert_eq!(store.load().unwrap(), Some(promoted));
+        assert!(!store.needs_upgrade().unwrap());
+        assert_eq!(
+            fs::read_dir(&directory)
+                .unwrap()
+                .filter_map(Result::ok)
+                .filter(|entry| entry
+                    .file_name()
+                    .to_string_lossy()
+                    .starts_with("run.prior-"))
+                .count(),
+            1
+        );
+        assert!(matches!(
+            RunStore::inspect_with_hashes(
+                &directory, [7; 32], [8; 32], [9; 32], [12; 32], [13; 32]
+            )
+            .unwrap(),
+            RunProbe::Incompatible
+        ));
         drop(store);
         fs::remove_dir_all(directory).unwrap();
     }

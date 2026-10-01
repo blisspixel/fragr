@@ -7,6 +7,8 @@ use crate::protocol::{
 };
 use crate::sim::PLAYER_FLOOR_Y;
 use uuid::Uuid;
+mod m04;
+mod m05;
 
 #[derive(Debug, Clone, Default)]
 pub struct MissionClient {
@@ -14,6 +16,15 @@ pub struct MissionClient {
     points: [[f32; 3]; 2],
     m02_map: Option<M02Map>,
     m02_point: Option<[f32; 3]>,
+    m03_map: Option<crate::protocol::M03MapGeometry>,
+    m04_map: Option<crate::protocol::M04MapGeometry>,
+    m04_points: Option<[[f32; 3]; 2]>,
+    m04_pending: bool,
+    m05_map: Option<crate::protocol::M05MapGeometry>,
+    m05_solids: Vec<Solid>,
+    m05_point: Option<[f32; 3]>,
+    m05_pending: bool,
+    m03_departure: Option<[f32; 3]>,
     pub state: Option<MissionState>,
     last_tick: Option<u64>,
     press_down: bool,
@@ -33,6 +44,187 @@ struct M02Map {
 }
 
 impl MissionClient {
+    fn validate_m03_target(&self, state: &MissionState) -> Result<(), &'static str> {
+        let geometry = self.m03_map.as_ref().ok_or("M03 map is missing")?;
+        let facts = state.m03.as_ref().ok_or("M03 facts are missing")?;
+        if (facts.mast_hp == 0) != geometry.mast_shutdown || facts.cars.len() != geometry.cars.len()
+        {
+            return Err("M03 facts do not match current world");
+        }
+        for (car, definition) in facts.cars.iter().zip(&geometry.cars) {
+            if car.id != definition.id
+                || (!car.released
+                    && car
+                        .captives
+                        .iter()
+                        .zip(definition.held)
+                        .any(|(feet, held)| (0..3).any(|i| (feet[i] - held[i]).abs() > 0.01)))
+            {
+                return Err("M03 captive facts do not match authored car");
+            }
+            for (feet, (held, safe)) in car
+                .captives
+                .iter()
+                .zip(definition.held.iter().zip(definition.safe))
+            {
+                let delta: [f32; 3] = std::array::from_fn(|i| safe[i] - held[i]);
+                let length = delta.iter().map(|value| value * value).sum::<f32>();
+                let fraction = if length > 0.0001 {
+                    ((0..3).map(|i| (feet[i] - held[i]) * delta[i]).sum::<f32>() / length)
+                        .clamp(0.0, 1.0)
+                } else {
+                    0.0
+                };
+                if (0..3)
+                    .map(|i| (feet[i] - held[i] - delta[i] * fraction).powi(2))
+                    .sum::<f32>()
+                    > 0.0025
+                {
+                    return Err("M03 captive left authored evacuation segment");
+                }
+            }
+        }
+        let expected = if facts.mast_hp > 0 {
+            Some(MissionObjectiveAction::Shoot {
+                solid: geometry.mast.solid,
+                approach: geometry.mast.approach,
+                aim: geometry.mast.aim,
+            })
+        } else if state.phase != MissionPhase::Departed {
+            Some(MissionObjectiveAction::Use {
+                target: geometry.departure.clone(),
+            })
+        } else {
+            None
+        };
+        if facts.current.as_ref().map(|goal| &goal.action) != expected.as_ref() {
+            return Err("M03 objective drifted from authored target");
+        }
+        if let Some(old) = self
+            .state
+            .as_ref()
+            .filter(|old| old.attempt == state.attempt)
+            .and_then(|old| old.m03.as_ref())
+        {
+            if facts.mast_hp > old.mast_hp
+                || (old.mast_secured && !facts.mast_secured)
+                || (old.train_secured && !facts.train_secured)
+                || old
+                    .cars
+                    .iter()
+                    .zip(&facts.cars)
+                    .any(|(old, new)| old.released && !new.released)
+            {
+                return Err("M03 facts rewound within attempt");
+            }
+        }
+        Ok(())
+    }
+
+    fn steer_m03(
+        &mut self,
+        navigator: &mut Navigator,
+        world: &Navigation,
+        id: Uuid,
+        snapshot: &Snapshot,
+        action: Action,
+    ) -> Action {
+        if action.look_at.is_some() {
+            self.press_down = false;
+            return navigator.steer_snapshot(world, id, snapshot, action);
+        }
+        let Some(me) = snapshot.players.iter().find(|p| p.id == id && p.hp > 0) else {
+            return Action::default();
+        };
+        let Some(facts) = self.state.as_ref().and_then(|state| state.m03.as_ref()) else {
+            return Action::default();
+        };
+        if self
+            .m03_map
+            .as_ref()
+            .is_none_or(|map| map.mast_shutdown != (facts.mast_hp == 0))
+        {
+            navigator.clear();
+            return Action::default();
+        }
+        let Some(goal) = facts.current.as_ref().map(|goal| goal.action.clone()) else {
+            return Action::default();
+        };
+        let feet = [me.x, me.y - PLAYER_FLOOR_Y, me.z];
+        match goal {
+            MissionObjectiveAction::Shoot { approach, aim, .. } => {
+                let distance = (0..3)
+                    .map(|i| (feet[i] - approach[i]).powi(2))
+                    .sum::<f32>()
+                    .sqrt();
+                let wanted = Action {
+                    weapon_swap: action.weapon_swap,
+                    fire: facts.mast_secured && distance <= 0.45,
+                    look_at: Some(LookAt {
+                        x: Some(aim[0]),
+                        y: Some(aim[1]),
+                        z: Some(aim[2]),
+                        player_id: None,
+                    }),
+                    ..Action::default()
+                };
+                self.press_down = false;
+                if distance <= 0.45 {
+                    navigator.clear();
+                    wanted
+                } else {
+                    navigator.steer(
+                        world,
+                        feet,
+                        NavigationGoal {
+                            feet: approach,
+                            combat: false,
+                        },
+                        wanted,
+                        snapshot.tick,
+                        true,
+                    )
+                }
+            }
+            MissionObjectiveAction::Use { target } => {
+                let Some(point) = self.m03_departure else {
+                    return Action::default();
+                };
+                self.steer_m02_use(navigator, world, id, snapshot, action, feet, &target, point)
+            }
+            MissionObjectiveAction::Arrival { .. } => Action::default(),
+        }
+    }
+    pub fn replace_map_with_m03(
+        &mut self,
+        geometry: Option<&crate::protocol::M03MapGeometry>,
+        half: f32,
+        solids: &[Solid],
+        presentation: Option<&MapPresentation>,
+    ) -> Result<(), &'static str> {
+        let Some(geometry) = geometry else {
+            self.m03_map = None;
+            self.m03_departure = None;
+            return Ok(());
+        };
+        if self.geometry.is_some() || self.m02_map.is_some() {
+            return Err("M03 cannot share another mission map");
+        }
+        geometry.validate(half, solids, presentation)?;
+        if let Some(old) = &self.m03_map {
+            let mut stable = old.clone();
+            stable.mast_shutdown = geometry.mast_shutdown;
+            if stable != *geometry {
+                return Err("M03 static contract changed");
+            }
+        }
+        self.m03_departure = geometry
+            .departure
+            .point(presentation.ok_or("M03 presentation is missing")?, solids);
+        self.m03_map = Some(geometry.clone());
+        self.press_down = false;
+        Ok(())
+    }
     // One validated handoff receives the corresponding MapInfo wire fields.
     #[allow(clippy::too_many_arguments)]
     pub fn replace_map_with_id(
@@ -62,6 +254,38 @@ impl MissionClient {
         }
         let old = self.clone();
         self.replace_map(mission, half_extent, solids, presentation)?;
+        if old.m03_map.is_some() && mission.is_none() && m02_objectives.is_none() && map_id == 1003
+        {
+            self.m03_map = old.m03_map.clone();
+            self.m03_departure = old.m03_departure;
+            self.state = old.state.clone();
+            self.last_tick = old.last_tick;
+            self.rules = old.rules;
+            self.run = old.run;
+            self.observed = old.observed;
+        }
+        if old.m04_map.is_some() && mission.is_none() && m02_objectives.is_none() && map_id == 1004
+        {
+            self.m04_map = old.m04_map.clone();
+            self.m04_points = old.m04_points;
+            self.state = old.state.clone();
+            self.last_tick = old.last_tick;
+            self.rules = old.rules;
+            self.run = old.run;
+            self.observed = old.observed;
+            self.m04_pending = true;
+        }
+        if old.m05_map.is_some() && mission.is_none() && m02_objectives.is_none() && map_id == 1005
+        {
+            self.m05_map = old.m05_map.clone();
+            self.m05_point = old.m05_point;
+            self.state = old.state.clone();
+            self.last_tick = old.last_tick;
+            self.rules = old.rules;
+            self.run = old.run;
+            self.observed = old.observed;
+            self.m05_pending = true;
+        }
         if let Some(count) = m02_objectives {
             let presentation = presentation.ok_or("M02 requires map presentation")?;
             self.m02_map = Some(M02Map {
@@ -129,7 +353,16 @@ impl MissionClient {
         } else {
             None
         };
-        let map_matches = if state.id == MissionId::PersonsUnknown {
+        let map_matches = if state.id == MissionId::NoForwardingAddress {
+            self.validate_m05_target(&state)?;
+            true
+        } else if state.id == MissionId::NoticeToVacate {
+            self.validate_m04_target(&state)?;
+            true
+        } else if state.id == MissionId::ScheduledService {
+            self.validate_m03_target(&state)?;
+            true
+        } else if state.id == MissionId::PersonsUnknown {
             self.m02_map.as_ref().is_some_and(|map| {
                 state.m02.as_ref().is_some_and(|m02| {
                     m02.total == map.total && m02.evacuation.is_some() == map.side_ward
@@ -158,6 +391,8 @@ impl MissionClient {
         self.rules = Some(state.rules);
         self.run = state.run;
         self.observed = true;
+        self.m04_pending = false;
+        self.m05_pending = false;
         self.m02_point = m02_point.flatten();
         self.state = Some(state);
         Ok(())
@@ -223,6 +458,9 @@ impl MissionClient {
                 Ok(Some(point))
             }
             None => Ok(None),
+            Some(MissionObjectiveAction::Shoot { .. }) => {
+                Err("M02 cannot contain a shoot objective")
+            }
         }
     }
 
@@ -244,7 +482,11 @@ impl MissionClient {
 
     /// Public mission facts also gate optional decision work while a party waits.
     pub fn participating(&self, id: Uuid) -> bool {
-        (self.geometry.is_none() && self.m02_map.is_none())
+        (self.geometry.is_none()
+            && self.m02_map.is_none()
+            && self.m03_map.is_none()
+            && self.m04_map.is_none()
+            && self.m05_map.is_none())
             || self.state.as_ref().is_some_and(|state| {
                 state
                     .run
@@ -290,6 +532,31 @@ impl MissionClient {
     ) -> Action {
         if !self.participating(id) {
             return Action::default();
+        }
+        if self.m04_pending || self.m05_pending {
+            navigator.clear();
+            return Action::default();
+        }
+        if self
+            .state
+            .as_ref()
+            .is_some_and(|state| state.id == MissionId::NoForwardingAddress)
+        {
+            return self.steer_m05(navigator, world, id, snapshot, action);
+        }
+        if self
+            .state
+            .as_ref()
+            .is_some_and(|state| state.id == MissionId::NoticeToVacate)
+        {
+            return self.steer_m04(navigator, world, id, snapshot, action);
+        }
+        if self
+            .state
+            .as_ref()
+            .is_some_and(|state| state.id == MissionId::ScheduledService)
+        {
+            return self.steer_m03(navigator, world, id, snapshot, action);
         }
         if self
             .state
@@ -398,6 +665,7 @@ impl MissionClient {
                 };
                 self.steer_m02_use(navigator, world, id, snapshot, action, feet, &target, point)
             }
+            MissionObjectiveAction::Shoot { .. } => Action::default(),
         }
     }
 

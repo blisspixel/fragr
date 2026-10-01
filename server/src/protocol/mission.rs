@@ -52,8 +52,9 @@ pub struct MissionContinue {
 
 /// Revision changes whenever campaign difficulty semantics change. Revision 2
 /// removed magazines and reloading: guards no longer pause to reload and a
-/// scatter blast is seven pellets.
-pub const CAMPAIGN_RULES_REVISION: u32 = 2;
+/// scatter blast is seven pellets. Revision 3 adds Notary photograph timing;
+/// earlier enemy timings remain unchanged.
+pub const CAMPAIGN_RULES_REVISION: u32 = 3;
 
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize, clap::ValueEnum)]
 #[serde(rename_all = "snake_case")]
@@ -91,6 +92,9 @@ impl Default for CampaignRules {
 pub enum MissionId {
     RecallNotice,
     PersonsUnknown,
+    ScheduledService,
+    NoticeToVacate,
+    NoForwardingAddress,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
@@ -110,6 +114,7 @@ pub enum InteractionKind {
     TransferRecord,
     LiftDeparture,
     ObjectiveUse,
+    ClinicShutter,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -228,8 +233,150 @@ pub struct MissionReady {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "kind", rename_all = "snake_case", deny_unknown_fields)]
 pub enum MissionObjectiveAction {
-    Arrival { region: Region3, feet: [f32; 3] },
-    Use { target: UseTarget },
+    Arrival {
+        region: Region3,
+        feet: [f32; 3],
+    },
+    Use {
+        target: UseTarget,
+    },
+    Shoot {
+        solid: usize,
+        approach: [f32; 3],
+        aim: [f32; 3],
+    },
+}
+
+pub const M03_MAST_MAX_HP: i32 = 40;
+pub const M03_MAX_CARS: usize = 4;
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct M03MastGeometry {
+    pub solid: usize,
+    pub approach: [f32; 3],
+    pub aim: [f32; 3],
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct M03CarGeometry {
+    pub id: String,
+    pub release: Region3,
+    pub held: [[f32; 3]; 2],
+    pub safe: [[f32; 3]; 2],
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct M03MapGeometry {
+    pub mast_shutdown: bool,
+    pub mast: M03MastGeometry,
+    pub departure: UseTarget,
+    pub boarding: Region3,
+    pub cars: Vec<M03CarGeometry>,
+    pub companion_start: [f32; 3],
+}
+
+fn mission_identifier(id: &str) -> bool {
+    !id.is_empty()
+        && id.len() <= 64
+        && id
+            .bytes()
+            .all(|c| c.is_ascii_lowercase() || c.is_ascii_digit() || c == b'_')
+}
+
+impl M03MapGeometry {
+    pub fn validate(
+        &self,
+        half: f32,
+        solids: &[Solid],
+        presentation: Option<&MapPresentation>,
+    ) -> Result<(), &'static str> {
+        let presentation = presentation.ok_or("M03 requires presentation")?;
+        let pod = solids
+            .get(self.mast.solid)
+            .ok_or("M03 mast solid is missing")?;
+        let valid_point = |point: [f32; 3]| {
+            point.iter().all(|v| v.is_finite())
+                && point[0].abs() <= half
+                && point[2].abs() <= half
+                && (0.0..=crate::movement::MAX_HALF_EXTENT * 2.0).contains(&point[1])
+        };
+        if !valid_point(self.mast.approach)
+            || !valid_point(self.mast.aim)
+            || !valid_point(self.companion_start)
+            || !self.boarding.valid(half)
+            || !self.boarding.contains(self.departure.approach)
+            || !valid_point(self.departure.approach)
+            || self.cars.is_empty()
+            || self.cars.len() > M03_MAX_CARS
+        {
+            return Err("invalid M03 geometry");
+        }
+        if !self.mast_shutdown
+            && !(self.mast.aim[0] >= pod.min_x
+                && self.mast.aim[0] <= pod.max_x
+                && self.mast.aim[1] >= pod.bottom
+                && self.mast.aim[1] <= pod.top
+                && self.mast.aim[2] >= pod.min_z
+                && self.mast.aim[2] <= pod.max_z)
+        {
+            return Err("M03 mast aim misses registered pod");
+        }
+        if presentation
+            .decorations
+            .get(self.departure.decoration)
+            .is_none_or(|panel| {
+                !matches!(
+                    panel.kind,
+                    MapDecorationKind::LiftControl | MapDecorationKind::M03BoardTrain
+                )
+            })
+            || self.departure.point(presentation, solids).is_none()
+        {
+            return Err("invalid M03 departure control");
+        }
+        let mut ids = std::collections::HashSet::new();
+        for car in &self.cars {
+            if !mission_identifier(&car.id)
+                || !ids.insert(&car.id)
+                || !car.release.valid(half)
+                || car
+                    .held
+                    .iter()
+                    .chain(&car.safe)
+                    .any(|point| !valid_point(*point))
+                || car
+                    .held
+                    .iter()
+                    .zip(car.safe)
+                    .any(|(held, safe)| (held[1] - safe[1]).abs() > 0.01)
+            {
+                return Err("invalid M03 car geometry");
+            }
+        }
+        Ok(())
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct M03CarState {
+    pub id: String,
+    pub released: bool,
+    pub captives: [[f32; 3]; 2],
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct M03ObjectiveState {
+    pub mast_hp: i32,
+    pub mast_secured: bool,
+    pub train_secured: bool,
+    pub cars: Vec<M03CarState>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub current: Option<MissionObjective>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -331,17 +478,40 @@ pub struct MissionState {
     pub prompts: Vec<InteractionPrompt>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub m02: Option<M02ObjectiveState>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub m03: Option<M03ObjectiveState>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub m04: Option<super::M04ObjectiveState>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub m05: Option<super::M05ObjectiveState>,
 }
 
 impl MissionState {
     pub fn validate(&self, tick: u64) -> Result<(), &'static str> {
+        if self.id != MissionId::NoForwardingAddress && self.m05.is_some() {
+            return Err("M05 facts require M05 mission");
+        }
+        if self.id != MissionId::NoticeToVacate && self.m04.is_some() {
+            return Err("M04 facts require M04 mission");
+        }
         match self.id {
             MissionId::RecallNotice => {
-                if self.m02.is_some() || self.phase == MissionPhase::InProgress {
+                if self.m02.is_some()
+                    || self.m03.is_some()
+                    || self.phase == MissionPhase::InProgress
+                {
                     return Err("M01 cannot carry M02 objective state");
                 }
             }
-            MissionId::PersonsUnknown => self.validate_m02()?,
+            MissionId::PersonsUnknown => {
+                if self.m03.is_some() {
+                    return Err("M02 cannot carry M03 state");
+                }
+                self.validate_m02()?;
+            }
+            MissionId::ScheduledService => self.validate_m03()?,
+            MissionId::NoticeToVacate => self.validate_m04()?,
+            MissionId::NoForwardingAddress => self.validate_m05(tick)?,
         }
         if let Some(run) = self.run {
             run.validate_attempt(self.attempt)?;
@@ -386,17 +556,49 @@ impl MissionState {
                         && self.party.iter().all(|p| p.alive && p.aboard)
                 }
                 MissionPhase::InProgress => {
-                    prompt.kind == InteractionKind::ObjectiveUse
-                        && self.id == MissionId::PersonsUnknown
+                    (self.id == MissionId::NoForwardingAddress
+                        && prompt.kind == InteractionKind::ObjectiveUse
                         && self
-                            .m02
+                            .m05
                             .as_ref()
-                            .and_then(|m02| m02.current.as_ref())
-                            .is_some_and(|current| {
-                                matches!(current.action, MissionObjectiveAction::Use { .. })
-                                    && (current.id != "companion_released"
-                                        || self.m02.as_ref().is_some_and(|m02| m02.ward_secured))
-                            })
+                            .is_some_and(|f| f.completed.len() == 6 && f.freight_open)
+                        && !self.party.is_empty()
+                        && self.party.iter().all(|p| p.alive && p.ready && p.aboard))
+                        || (self.id == MissionId::NoticeToVacate
+                            && self.m04.as_ref().is_some_and(|m04| {
+                                (prompt.kind == InteractionKind::ClinicShutter
+                                    && m04.clinic_secured
+                                    && !m04.clinic_open)
+                                    || (prompt.kind == InteractionKind::ObjectiveUse
+                                        && m04.completed.len() == 6
+                                        && !self.party.is_empty()
+                                        && self
+                                            .party
+                                            .iter()
+                                            .all(|p| p.alive && p.ready && p.aboard))
+                            }))
+                        || (self.id == MissionId::ScheduledService
+                            && prompt.kind == InteractionKind::ObjectiveUse
+                            && self
+                                .m03
+                                .as_ref()
+                                .is_some_and(|m03| m03.mast_hp == 0 && m03.train_secured)
+                            && !self.party.is_empty()
+                            && self.party.iter().all(|p| p.alive && p.ready && p.aboard))
+                        || (prompt.kind == InteractionKind::ObjectiveUse
+                            && self.id == MissionId::PersonsUnknown
+                            && self
+                                .m02
+                                .as_ref()
+                                .and_then(|m02| m02.current.as_ref())
+                                .is_some_and(|current| {
+                                    matches!(current.action, MissionObjectiveAction::Use { .. })
+                                        && (current.id != "companion_released"
+                                            || self
+                                                .m02
+                                                .as_ref()
+                                                .is_some_and(|m02| m02.ward_secured))
+                                }))
                 }
                 MissionPhase::Briefing | MissionPhase::Departed => false,
             };
@@ -409,6 +611,71 @@ impl MissionState {
             {
                 return Err("invalid mission interaction prompt");
             }
+        }
+        Ok(())
+    }
+
+    fn validate_m03(&self) -> Result<(), &'static str> {
+        let state = self.m03.as_ref().ok_or("M03 state is missing")?;
+        if self.m02.is_some()
+            || !matches!(
+                self.phase,
+                MissionPhase::Briefing | MissionPhase::InProgress | MissionPhase::Departed
+            )
+            || !(0..=M03_MAST_MAX_HP).contains(&state.mast_hp)
+            || (state.mast_hp < M03_MAST_MAX_HP && !state.mast_secured)
+            || state.cars.is_empty()
+            || state.cars.len() > M03_MAX_CARS
+            || (self.phase == MissionPhase::Briefing
+                && (state.mast_hp != M03_MAST_MAX_HP
+                    || state.mast_secured
+                    || state.train_secured
+                    || state.cars.iter().any(|car| car.released)))
+            || (self.phase == MissionPhase::Departed
+                && (state.mast_hp != 0 || !state.train_secured))
+        {
+            return Err("invalid M03 progression");
+        }
+        let mut ids = std::collections::HashSet::new();
+        for car in &state.cars {
+            if !mission_identifier(&car.id)
+                || !ids.insert(&car.id)
+                || car.captives.iter().any(|point| point[1] < 0.0)
+                || car.captives.iter().flatten().any(|value| {
+                    !value.is_finite() || value.abs() > crate::movement::MAX_HALF_EXTENT * 2.0
+                })
+            {
+                return Err("invalid M03 car state");
+            }
+        }
+        if let Some(current) = &state.current {
+            match &current.action {
+                MissionObjectiveAction::Shoot {
+                    solid,
+                    approach,
+                    aim,
+                } if *solid < crate::movement::MAX_SOLIDS
+                    && approach.iter().chain(aim).all(|value| {
+                        value.is_finite() && value.abs() <= crate::movement::MAX_HALF_EXTENT * 2.0
+                    })
+                    && approach[1] >= 0.0
+                    && aim[1] >= 0.0 => {}
+                MissionObjectiveAction::Use { target }
+                    if target.decoration < super::MAX_MAP_DECORATIONS
+                        && target.approach.iter().all(|value| value.is_finite()) => {}
+                _ => return Err("invalid M03 objective target"),
+            }
+        }
+        match (&state.current, self.phase, state.mast_hp) {
+            (None, MissionPhase::Departed, 0) => {}
+            (Some(current), _, hp)
+                if hp > 0
+                    && current.id == "mast_disabled"
+                    && matches!(current.action, MissionObjectiveAction::Shoot { .. }) => {}
+            (Some(current), _, 0)
+                if current.id == "party_departed"
+                    && matches!(current.action, MissionObjectiveAction::Use { .. }) => {}
+            _ => return Err("invalid M03 current objective"),
         }
         Ok(())
     }
@@ -473,6 +740,9 @@ impl MissionState {
                         return Err("invalid M02 use objective");
                     }
                 }
+                MissionObjectiveAction::Shoot { .. } => {
+                    return Err("M02 cannot contain a shoot objective")
+                }
             }
         }
         if m02
@@ -518,6 +788,9 @@ mod m02_wire_tests {
                 aboard: false,
             }],
             prompts: vec![],
+            m03: None,
+            m04: None,
+            m05: None,
             m02: Some(M02ObjectiveState {
                 completed: vec!["ward_reached".into()],
                 total: 3,

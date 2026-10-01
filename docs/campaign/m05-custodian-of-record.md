@@ -1,5 +1,10 @@
 # M05: Custodian of Record
 
+**Appearance anchor for level 8:** Sheltered custody archive: records machinery and personal remnants; evidence and captivity occupy one recognizable institution.
+Shared [world direction](../design/moon.md) and
+[character, voice and scene continuity](../design/characters.md) govern assets
+and staging. This anchor is a production target, not finished-appearance evidence.
+
 **Status:** proposed, unbuilt. Moon before the wipe. Target 10-14 minutes.
 [Treatment](../CAMPAIGN-MISSIONS.md#level-8-custodian-of-record).
 

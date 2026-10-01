@@ -15,6 +15,12 @@ func _run() -> void:
 	var scrap: ArenaSky.Preset = ArenaSky.preset_for("Arena Duel")
 	var yard: ArenaSky.Preset = ArenaSky.preset_for("Compliance Yard")
 	var ward: ArenaSky.Preset = ArenaSky.preset_for("Persons Unknown: ward graybox")
+	var freight: ArenaSky.Preset = ArenaSky.preset_for("Scheduled Service: recall freight yard")
+	var town: ArenaSky.Preset = ArenaSky.preset_for("Notice to Vacate: Low Water market")
+	_check(not town.interior and town.sky_top != freight.sky_top and town.key_color.r > town.key_color.b,
+		"Low Water needs its own warm afternoon sky and light")
+	_check(not freight.interior and freight.sky_top != scrap.sky_top and freight.fog_density < scrap.fog_density,
+		"M03 lost its explicit open daylight sky")
 	_check(ward.ambient_color == recall.ambient_color and ward.interior, "the M02 ward fell through to an outdoor fill")
 	_check(recall.interior and not scrap.interior and not yard.interior, "venue interiors are not matched explicitly")
 	_check(recall.ambient_color != scrap.ambient_color, "Recall Notice still uses the scrapyard fill")

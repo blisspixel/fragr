@@ -488,3 +488,44 @@ fn shared_shiv_record_fixture_round_trips_its_sixth_slot_and_secret() {
     let expected: serde_json::Value = serde_json::from_str(text).unwrap();
     assert_eq!(serde_json::to_value(&record).unwrap(), expected);
 }
+
+#[test]
+fn grenade_record_column_defaults_zero_and_keeps_legacy_shape_and_aggregate_bounds() {
+    let mut counts = CombatCounts {
+        alive_ticks: 2,
+        ..Default::default()
+    };
+    let old = serde_json::to_value(&counts).unwrap();
+    assert!(old.get("grenades").is_none());
+    assert_eq!(old["weapons"].as_array().unwrap().len(), 5);
+    assert_eq!(
+        serde_json::from_value::<CombatCounts>(old.clone()).unwrap(),
+        counts
+    );
+    counts.grenades = crate::protocol::WeaponCounts {
+        attacks: 1,
+        damaging_attacks: 1,
+        kills: 2,
+        hp_damage: 100,
+        armor_damage: 20,
+    };
+    counts.weapons[WeaponType::Tack.index()].attacks = 1;
+    assert_eq!(counts.attacks(), 2);
+    assert_eq!(counts.kills(), 2);
+    counts.validate().unwrap();
+    let value = serde_json::to_value(&counts).unwrap();
+    assert_eq!(value["grenades"]["kills"], 2);
+    assert_eq!(value["weapons"].as_array().unwrap().len(), 5);
+    assert_eq!(
+        serde_json::from_value::<CombatCounts>(value).unwrap(),
+        counts
+    );
+    let empty = serde_json::from_value::<CombatCounts>(old).unwrap();
+    assert!(counts.contains(&empty));
+    assert!(!empty.contains(&counts));
+    counts.grenades.kills = 257;
+    assert!(counts.validate().is_err());
+    counts.grenades.kills = 2;
+    counts.alive_ticks = 1;
+    assert!(counts.validate().is_err());
+}

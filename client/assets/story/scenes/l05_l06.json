@@ -1,0 +1,10 @@
+{
+  "format": 1,
+  "id": "l05_l06",
+  "title_key": "STORY_M05_DEPARTURE_TITLE",
+  "skip_key": "STORY_SKIP_SCENE",
+  "shots": [
+    {"id": "CARRIER", "caption_key": "STORY_L05_L06_CARRIER", "narration": "res://assets/story/voice/{locale}/l05_l06/carrier.mp3", "timing": "narration", "hold": 1.0},
+    {"id": "RECORDS", "caption_key": "STORY_L05_L06_RECORDS", "narration": "res://assets/story/voice/{locale}/l05_l06/records.mp3", "timing": "narration", "hold": 1.0}
+  ]
+}

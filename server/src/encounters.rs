@@ -51,6 +51,7 @@ impl Encounters {
     }
 
     fn reset(&mut self, state: &mut GameState) {
+        state.clear_traveling_shots();
         state.players.retain(Player::is_participant);
         self.enemies.clear();
         self.groups
@@ -88,8 +89,24 @@ impl Encounters {
             return;
         }
         self.waiting_for_party = false;
+        state.ensure_m03_companion();
+        state.ensure_m04_companion();
+        state.ensure_m05_companion();
         state.note_mission_started();
         for (index, definition) in definitions.iter().enumerate() {
+            // M04 introduces each airborne threat in order. Do not expose a
+            // future group that can be shot awake before its lesson.
+            if (map.m04_objectives().is_some() || map.m05_objectives().is_some())
+                && definition.after.as_ref().is_some_and(|id| {
+                    definitions
+                        .iter()
+                        .position(|e| e.id == *id)
+                        .is_none_or(|previous| !matches!(self.groups[previous], Group::Complete))
+                })
+                && matches!(self.groups[index], Group::Unplaced)
+            {
+                continue;
+            }
             if matches!(self.groups[index], Group::Unplaced) {
                 let mut ids = Vec::with_capacity(definition.enemies.len());
                 for placement in &definition.enemies {
@@ -104,7 +121,8 @@ impl Encounters {
                             placement.yaw,
                             state.tick,
                             placement.seated,
-                        ),
+                        )
+                        .with_hover(placement.hover.clone()),
                     ));
                 }
                 self.groups[index] = Group::Dormant(ids);
@@ -163,8 +181,23 @@ impl Encounters {
             }
         }
         self.sync_identities(&mut state.players);
-        state.players.retain(|player| !matches!(player.campaign,
-            Some(CampaignActor::Union { phase: EnemyPhase::Dead, phase_ends, .. }) if state.tick >= phase_ends));
+        for (_, enemy) in &mut self.enemies {
+            enemy.advance_hover(state);
+        }
+        // A pulse keeps its combat owner until impact, even after the ordinary
+        // corpse presentation ends. Never turn a slow launched attack harmless
+        // merely because its emitter died.
+        let emitters: Vec<Uuid> = state
+            .players
+            .iter()
+            .filter(|player| state.has_traveling_shot(player.id))
+            .map(|player| player.id)
+            .collect();
+        state.players.retain(|player| {
+            !matches!(player.campaign,
+            Some(CampaignActor::Union { phase: EnemyPhase::Dead, phase_ends, .. })
+                if state.tick >= phase_ends && !emitters.contains(&player.id))
+        });
         self.enemies
             .retain(|(_, enemy)| state.players.iter().any(|p| p.id == enemy.id));
     }
@@ -234,6 +267,12 @@ impl Encounters {
             .iter_mut()
             .find(|(_, enemy)| enemy.id == id)
             .is_some_and(|(_, enemy)| enemy.claim_crawler_contact())
+    }
+    pub(crate) fn claim_notary_photo_target(&mut self, id: Uuid) -> Option<Uuid> {
+        self.enemies
+            .iter_mut()
+            .find(|(_, enemy)| enemy.id == id)
+            .and_then(|(_, enemy)| enemy.claim_notary_photo_target())
     }
 }
 

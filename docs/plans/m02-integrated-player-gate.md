@@ -1,6 +1,9 @@
 # M01 to M02 integrated player gate
 
-**Status:** in flight, 2026-09-28. Test the published
+**Status:** in flight, reviewed 2026-09-30. Human acceptance evidence remains
+open. Nick's 2026-09-30 instruction removes this review as a prerequisite for
+further development; retain its target and observations for later acceptance.
+Test the published
 [v0.58.0 Windows package](https://github.com/blisspixel/fragr/releases/tag/v0.58.0)
 from `ea0d2bf7b028aa19db3edbe9b23ff3c7d3d223c3`. Preparation spend $0.
 
@@ -10,8 +13,9 @@ Prove that the integrated M01 and M02 build behaves as one playable solo run and
 learn where a first-time player actually stalls. The scripted route clears,
 headless checks and rendered tours prove authoring and runtime contracts. They
 do not establish that a player understands the Shotgun, Crawler lessons, Latch
-rescue or exit without coaching. Pause new M02 content until that evidence
-exists.
+rescue or exit without coaching. The earlier pause on new content is superseded
+by the 2026-09-30 authorization. Continue automated review and development while
+retaining the uncoached-player evidence requirement for acceptance.
 
 ## Scope
 

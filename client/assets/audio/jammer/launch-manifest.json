@@ -1,0 +1,16 @@
+{
+  "bytes": 23084,
+  "engine": "Godot 4.7.2-stable",
+  "file": "launch.wav",
+  "format": "pcm_s16le_mono_24000",
+  "kind": "original_offline_procedural",
+  "peak_linear": 0.5727,
+  "purpose": "server-confirmed Jammer interference pulse launch",
+  "rms_linear": 0.0951,
+  "samples": 11520,
+  "seconds": 0.48,
+  "seed": 260930,
+  "sha256": "62e23a0419220bdfc547565a262060667da71dfc979de300511bd3b0c88a4197",
+  "source": "res://assets/audio/jammer/bake_launch.gd",
+  "source_sha256": "8acf0211e190eb2243e9773ea96de9a964de5dfa156fd87124a26d8f92ad082e"
+}

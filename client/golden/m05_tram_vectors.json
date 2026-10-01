@@ -1,0 +1,18 @@
+{
+  "body": {"x": 0.0, "y": 1.0, "z": 0.0, "vx": 0.0, "vz": 0.0, "vy": 0.0, "yaw": 0.0},
+  "tram": {"min_x": -1.5, "max_x": 1.5, "min_z": -2.0, "max_z": 2.0, "bottom": 0.0, "top": 1.0},
+  "half": 20.0,
+  "cases": [
+    {"name": "standing", "body": {}, "jump": false, "delta": 0.06, "solids": [], "supported": true, "carried_z": 0.06},
+    {"name": "center_on_edge", "body": {"x": 1.5}, "jump": false, "delta": 0.06, "solids": [], "supported": true, "carried_z": 0.06},
+    {"name": "outside_edge", "body": {"x": 1.5001}, "jump": false, "delta": 0.06, "solids": [], "supported": false, "carried_z": 0.06},
+    {"name": "jump_detaches", "body": {}, "jump": true, "delta": 0.06, "solids": [], "supported": false, "carried_z": 0.06},
+    {"name": "airborne", "body": {"vy": 0.01}, "jump": false, "delta": 0.06, "solids": [], "supported": false, "carried_z": 0.06},
+    {"name": "support_epsilon", "body": {"y": 1.049}, "jump": false, "delta": 0.06, "solids": [], "supported": true, "carried_z": 0.06},
+    {"name": "full_body_ceiling", "body": {}, "jump": false, "delta": 0.06, "solids": [{"min_x": -3.0, "max_x": 3.0, "min_z": -3.0, "max_z": 3.0, "bottom": 2.75, "top": 3.5}], "supported": true, "carried_z": null},
+    {"name": "swept_radius_wall", "body": {}, "jump": false, "delta": 0.06, "solids": [{"min_x": -1.0, "max_x": 1.0, "min_z": 0.55, "max_z": 1.0, "bottom": 0.0, "top": 3.0}], "supported": true, "carried_z": null},
+    {"name": "below_body_clear", "body": {}, "jump": false, "delta": 0.06, "solids": [{"min_x": -3.0, "max_x": 3.0, "min_z": -3.0, "max_z": 3.0, "bottom": 0.0, "top": 1.0}], "supported": true, "carried_z": 0.06},
+    {"name": "tick_range_refused", "body": {}, "jump": false, "delta": 0.2, "solids": [], "supported": true, "carried_z": null},
+    {"name": "bounds_refused", "body": {"z": 19.49}, "jump": false, "delta": 0.06, "solids": [], "supported": false, "carried_z": null}
+  ]
+}

@@ -13,7 +13,7 @@ extends Node
 # 10 one ammunition count per type and scatter pellet traces; 9 M02
 # objective and gate state; 8 private participant records. Older servers
 # remain playable.
-const GAMEPLAY_VERSION: int = 22
+const GAMEPLAY_VERSION: int = 26
 
 signal connected_to_server
 signal disconnected_from_server
@@ -198,6 +198,8 @@ func send_action(action: Dictionary):
 	var swap = action.get("weapon_swap", null)
 	if action.get("interact", false):
 		msg["interact"] = true
+	if action.get("throw_grenade", false):
+		msg["throw_grenade"] = true
 	if swap != null and str(swap) != "":
 		msg["weapon_swap"] = str(swap)
 	# Client-owned facing and the input number the server acknowledges. Both are
@@ -366,6 +368,24 @@ func _handle_message(text: String):
 				server_error.emit(problem)
 				return
 			var geometry: Dictionary = MissionState.geometry_for(data)
+			if geometry.get("id") == MissionState.M05_ID and mission_geometry.get("id") == MissionState.M05_ID \
+				and geometry.get("map_id") == mission_geometry.get("map_id") \
+				and not M05MissionState.same_contract(mission_geometry, geometry):
+				disconnect_from_server()
+				server_error.emit(MissionState.INVALID)
+				return
+			if geometry.get("id") == MissionState.M04_ID and mission_geometry.get("id") == MissionState.M04_ID \
+				and geometry.get("map_id") == mission_geometry.get("map_id") \
+				and not M04MissionState.same_contract(mission_geometry, geometry):
+				disconnect_from_server()
+				server_error.emit(MissionState.INVALID)
+				return
+			if geometry.get("id") == MissionState.M03_ID and mission_geometry.get("id") == MissionState.M03_ID \
+				and geometry.get("map_id") == mission_geometry.get("map_id") \
+				and not M03MissionState.same_contract(mission_geometry, geometry):
+				disconnect_from_server()
+				server_error.emit(MissionState.INVALID)
+				return
 			if geometry.get("id") == MissionState.M02_ID and mission_geometry.get("id") == MissionState.M02_ID \
 				and geometry.get("map_id") == mission_geometry.get("map_id") \
 				and geometry.get("side_ward") != mission_geometry.get("side_ward"):
@@ -373,7 +393,7 @@ func _handle_message(text: String):
 				server_error.emit(MissionState.INVALID)
 				return
 			if geometry.is_empty() or geometry.get("id") != mission_geometry.get("id") \
-				or (geometry.get("id") == MissionState.M02_ID and geometry.get("map_id") != mission_geometry.get("map_id")):
+				or (geometry.get("id") in [MissionState.M02_ID, MissionState.M03_ID, MissionState.M04_ID, MissionState.M05_ID] and geometry.get("map_id") != mission_geometry.get("map_id")):
 				_mission_previous.clear()
 			mission.clear()
 			mission_geometry = geometry
@@ -411,6 +431,8 @@ func _handle_message(text: String):
 
 		"snapshot":
 			var problem: String = ActorState.validation_error(data)
+			if problem.is_empty():
+				problem = GrenadeFacts.validation_error(data)
 			if problem.is_empty():
 				problem = PlayerBody.snapshot_error(data)
 			if problem.is_empty():

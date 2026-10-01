@@ -25,6 +25,7 @@ enum Grant {
     Ammo { pool: AmmoPool, amount: u16 },
     Health { amount: u16 },
     Armor { amount: u16 },
+    Grenade { amount: u16 },
 }
 
 pub(super) fn build(
@@ -63,10 +64,15 @@ pub(super) fn build(
                 Grant::Armor { amount } if amount > 0 && amount <= 100 => {
                     (PickupKind::Armor, amount)
                 }
+                Grant::Grenade { amount } if amount > 0 && amount <= 6 => {
+                    (PickupKind::Grenade { count: amount }, 0)
+                }
                 _ => return Err(invalid("unsupported supply grant or amount")),
             };
-            if supply.claim == SupplyClaim::Personal && !matches!(kind, PickupKind::Weapon(_)) {
-                return Err(invalid("personal supplies must grant a weapon"));
+            if supply.claim == SupplyClaim::Personal
+                && !matches!(kind, PickupKind::Weapon(_) | PickupKind::Grenade { .. })
+            {
+                return Err(invalid("personal supplies must grant a weapon or grenade"));
             }
             Ok(ArenaPickup {
                 id: supply.id,

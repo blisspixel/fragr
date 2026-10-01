@@ -2,8 +2,8 @@
 
 Detailed level plans for twenty campaign levels in five episodes and a
 conditional epilogue, accepted 2026-09-25 as the contract (formerly ten
-missions and a conditional epilogue). Level 1 (M01) has a tested development
-slice; no complete level has reached the design's quality gate. The
+missions and a conditional epilogue). Levels 1-4 have authored development
+prototypes; no complete level has reached the design's quality gate. The
 [campaign contract](../CAMPAIGN.md) distinguishes confirmed story
 from proposals and owns the twenty-level table; the [treatment](../CAMPAIGN-MISSIONS.md)
 gives the complete arc.
@@ -14,8 +14,15 @@ faction and environment rules; [character anchors](../lore/cast.md#visual-contin
 persist through every level and scene. Mission briefs describe local staging,
 not independent redesigns of those assets.
 
-Ten of the twenty levels keep a former mission's name and number (1, 2, 5, 6,
-8, 10, 12, 13, 17, 18); their full design is a section at the end of that
+The [design continuity index](../design/README.md) links practical world guides:
+[Earth](../design/earth.md), [Moon](../design/moon.md),
+[space and ships](../design/space.md), [Mars](../design/mars.md), plus
+[characters, voices and scenes](../design/characters.md). Each brief's appearance
+anchor uses these shared materials, light, activity and continuity rules.
+
+Ten of the twenty levels keep a former mission's name, now at levels 1, 2, 5, 6,
+8, 10, 12, 13, 17 and 18. Their historical `mNN` filenames retain the old numbering;
+their full design is a section at the end of that
 mission's plan. The other ten are new levels with their own `lNN` files. The
 [expansion plan](../plans/campaign-expansion.md#how-the-ten-become-twenty) keeps
 the full mapping from the old ten missions to the new twenty levels, and the
@@ -52,6 +59,12 @@ stopping play. It stays a proposal; nothing in it contradicts the
 [campaign contract](../CAMPAIGN.md).
 
 ## Shared authoring contract
+
+Every active level brief must connect its appearance anchor to the world guide
+and record: room activity, dominant materials, practical light, a useful landmark,
+ordinary possessions/repair history, enemy/tell contrast, and changes from earlier
+visits. Capture a first arrival, a played fight and a movement/feedback sequence
+before accepting the vibe. A graybox or selected still is not the finished style.
 
 Each brief is a design to prove, not a fixed coordinate prescription. Room IDs
 support discussion and later data authoring; proposed state names are not existing

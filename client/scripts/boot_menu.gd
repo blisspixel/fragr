@@ -26,6 +26,7 @@ var _name_edit: LineEdit = null
 var _local_match: LocalMatch
 var _launch_pending: bool = false
 var _campaign_run_mode: String = "new"
+var _campaign_play_arrival: bool = false
 var _profile_return: String = "main"
 var _opening: CampaignOpening
 var _title: Label
@@ -229,7 +230,7 @@ func _page_single() -> void:
 		"ready":
 			var saved_mission: String = str(_local_match.run_preview["mission"])
 			var mission: Button = _button(tr("RUN_CONTINUE"), _start_campaign_resume)
-			mission.name = "PersonsUnknownSaved" if saved_mission == MissionState.M02_ID else "RecallNotice"
+			mission.name = _saved_mission_button(saved_mission)
 			mission.disabled = not can_start
 			_label(tr("RUN_SAVED_MISSION").format({"mission": _saved_mission_title(saved_mission)}))
 			_label(tr("RUN_SAVED_DETAIL").format({"attempt": int(_local_match.run_preview["attempt"]), "continues": int(_local_match.run_preview["continues"]), "difficulty": _local_match.run_preview["difficulty"]}))
@@ -240,18 +241,19 @@ func _page_single() -> void:
 			mission.name = "RecallNotice"
 			mission.disabled = not can_start
 		"awaiting_mission":
-			if _local_match.run_preview.get("mission") == MissionState.M02_ID:
+			var pending_mission: String = str(_local_match.run_preview.get("mission", ""))
+			if pending_mission in [MissionState.M02_ID, MissionState.M03_ID, MissionState.M04_ID, MissionState.M05_ID]:
 				var next: Button = _button(tr("RUN_CONTINUE"), _start_campaign_resume)
-				next.name = "PersonsUnknownSaved"
+				next.name = _saved_mission_button(pending_mission)
 				next.disabled = not can_start
-				_label(tr("RUN_SAVED_MISSION").format({"mission": _saved_mission_title(MissionState.M02_ID)}))
+				_label(tr("RUN_SAVED_MISSION").format({"mission": _saved_mission_title(pending_mission)}))
 				_label(tr("RUN_AWAITING_DETAIL").format({"continues": int(_local_match.run_preview["continues"]), "difficulty": _local_match.run_preview["difficulty"]}))
 				_saved_body_choice(_local_match.run_preview)
 			else:
 				_label(tr("RUN_SAVED_MISSION").format({"mission": _saved_mission_title(LocalMatch.NEXT_MISSION)}))
 				_label(tr("RUN_AWAITING_DETAIL").format({"continues": int(_local_match.run_preview["continues"]), "difficulty": _local_match.run_preview["difficulty"]}))
 				_saved_body_choice(_local_match.run_preview, false)
-				_label(tr("RUN_M03_PENDING"))
+				_label(tr("M05_NEXT_PENDING"))
 			_button(tr("RUN_NEW"), func() -> void: _show("new_confirm")).disabled = not can_start
 		"failed":
 			_label(tr("RUN_FAILED"))
@@ -270,17 +272,36 @@ func _page_single() -> void:
 					_show("single")
 				)
 	if status != "awaiting_mission" or _local_match.run_preview.get("mission") != LocalMatch.NEXT_MISSION:
-		_label(tr("RUN_M02_DESCRIPTION") if status in ["ready", "awaiting_mission"] and _local_match.run_preview.get("mission") == MissionState.M02_ID else tr("MENU_M01_DESCRIPTION"))
+		var description: String = "MENU_M01_DESCRIPTION"
+		if status in ["ready", "awaiting_mission"]:
+			if _local_match.run_preview.get("mission") == MissionState.M02_ID:
+				description = "RUN_M02_DESCRIPTION"
+			elif _local_match.run_preview.get("mission") == MissionState.M03_ID:
+				description = "M03_RUN_DESCRIPTION"
+			elif _local_match.run_preview.get("mission") == MissionState.M04_ID:
+				description = "M04_RUN_DESCRIPTION"
+			elif _local_match.run_preview.get("mission") == MissionState.M05_ID:
+				description = "M05_RUN_DESCRIPTION"
+		_label(tr(description))
 	_button(tr("MENU_PRACTICE_DEVELOPMENT"), func() -> void: _show("practice"))
 	_button("Back", func() -> void: _show("main"))
 
 func _page_practice() -> void:
 	var can_start: bool = _local_match.state in [LocalMatch.State.IDLE, LocalMatch.State.FAILED]
 	_button(tr("STORY_REPLAY"), _replay_opening)
-	_label(tr("MENU_M02_DEVELOPMENT"))
-	var graybox: Button = _button(tr("MISSION_M02_GRAYBOX"), _start_development_m02)
-	graybox.name = "PersonsUnknownGraybox"
-	graybox.disabled = not can_start
+	_label(tr("M05_MENU_DEVELOPMENT"))
+	var selector: OptionButton = OptionButton.new()
+	selector.name = "DevelopmentMission"
+	selector.custom_minimum_size.y = 46.0
+	for key: String in ["MISSION_M02_GRAYBOX", "M03_PROTOTYPE_TITLE", "M04_PROTOTYPE_TITLE", "M05_PROTOTYPE_TITLE"]:
+		selector.add_item(tr(key))
+	selector.select(3)
+	_root.add_child(selector)
+	var launch: Button = _button(tr("M05_LAUNCH_PROTOTYPE"), func() -> void:
+		var ids: Array[String] = [MissionState.M02_ID, MissionState.M03_ID, MissionState.M04_ID, MissionState.M05_ID]
+		_start_development(ids[selector.selected]))
+	launch.name = "LaunchDevelopmentMission"
+	launch.disabled = not can_start
 	_label(tr("MENU_PRACTICE"))
 	_button("Calibration challenge", func() -> void: _launch("solo", LOOPBACK))
 	_button("Arena against bots", func() -> void: _launch("join", LOOPBACK))
@@ -296,9 +317,27 @@ func _saved_mission_title(mission_id: String) -> String:
 	match mission_id:
 		MissionState.M02_ID:
 			return tr("MISSION_M02_TITLE")
-		LocalMatch.NEXT_MISSION:
+		MissionState.M03_ID:
 			return tr("MISSION_M03_TITLE")
+		MissionState.M04_ID:
+			return tr("MISSION_M04_TITLE")
+		MissionState.M05_ID:
+			return tr("MISSION_M05_TITLE")
+		LocalMatch.NEXT_MISSION:
+			return tr("M05_NEXT_TITLE")
 	return tr("MISSION_M01_TITLE")
+
+func _saved_mission_button(mission_id: String) -> String:
+	match mission_id:
+		MissionState.M02_ID:
+			return "PersonsUnknownSaved"
+		MissionState.M03_ID:
+			return "ScheduledServiceSaved"
+		MissionState.M04_ID:
+			return "NoticeToVacateSaved"
+		MissionState.M05_ID:
+			return "NoForwardingAddressSaved"
+	return "RecallNotice"
 
 func _saved_body_choice(preview: Dictionary, can_choose: bool = true) -> void:
 	if preview["body"] == null:
@@ -356,23 +395,58 @@ func _start_development_m02() -> void:
 	_local_match.start_mission("standard", "", MissionState.M02_ID)
 	_on_local_state_changed()
 
+func _start_development_m03() -> void:
+	if _launch_pending:
+		return
+	_launch_pending = true
+	_campaign_run_mode = ""
+	_show("launch")
+	_local_match.start_mission("standard", "", MissionState.M03_ID)
+	_on_local_state_changed()
+
+func _start_development_m04() -> void:
+	if _launch_pending:
+		return
+	_launch_pending = true
+	_campaign_run_mode = ""
+	_show("launch")
+	_local_match.start_mission("standard", "", MissionState.M04_ID)
+	_on_local_state_changed()
+
+func _start_development(mission_id: String) -> void:
+	if _launch_pending or mission_id not in [MissionState.M02_ID, MissionState.M03_ID, MissionState.M04_ID, MissionState.M05_ID]:
+		return
+	_launch_pending = true
+	_campaign_run_mode = ""
+	_show("launch")
+	_local_match.start_mission("standard", "", mission_id)
+	_on_local_state_changed()
+
 func _start_campaign_resume() -> void:
 	var preview: Dictionary = _local_match.run_preview
 	if _launch_pending or preview.get("status") not in ["ready", "awaiting_mission"]:
 		return
 	var mission_id: String = str(preview.get("mission", ""))
-	if mission_id not in [MissionState.ID, MissionState.M02_ID] or (preview["status"] == "awaiting_mission" and mission_id != MissionState.M02_ID):
+	if mission_id not in [MissionState.ID, MissionState.M02_ID, MissionState.M03_ID, MissionState.M04_ID, MissionState.M05_ID] or (preview["status"] == "awaiting_mission" and mission_id not in [MissionState.M02_ID, MissionState.M03_ID, MissionState.M04_ID, MissionState.M05_ID]):
 		return
 	var difficulty: String = str(preview["difficulty"])
 	_launch_pending = true
 	_campaign_run_mode = "resume"
+	_campaign_play_arrival = _arrival_for_preview(preview)
 	_show("launch")
 	_local_match.start_mission(difficulty, "resume", mission_id)
 	_on_local_state_changed()
 
+static func _arrival_for_preview(preview: Dictionary) -> bool:
+	return preview.get("status") == "awaiting_mission" and StoryScene.BEFORE_MISSION.has(str(preview.get("mission", "")))
+
 func _page_launch() -> void:
-	_label(tr("MISSION_M02_GRAYBOX" if _campaign_run_mode.is_empty() else "MISSION_M02_TITLE") if _local_match.mission == MissionState.M02_ID else tr("MISSION_M01_TITLE"))
-	_label(tr("LOCAL_SERVER_STOPPING") if _local_match.state == LocalMatch.State.STOPPING else tr("LOCAL_SERVER_STARTING"))
+	var title: String = _saved_mission_title(_local_match.mission)
+	if _campaign_run_mode.is_empty():
+		title = tr("M05_PROTOTYPE_TITLE") if _local_match.mission == MissionState.M05_ID else tr("M04_PROTOTYPE_TITLE" if _local_match.mission == MissionState.M04_ID else ("M03_PROTOTYPE_TITLE" if _local_match.mission == MissionState.M03_ID else "MISSION_M02_GRAYBOX"))
+	_label(title)
+	var preparing: String = "M05_LOCAL_STARTING" if _local_match.mission == MissionState.M05_ID else "M04_LOCAL_STARTING" if _local_match.mission == MissionState.M04_ID else ("M03_LOCAL_STARTING" if _local_match.mission == MissionState.M03_ID else "LOCAL_SERVER_STARTING")
+	_label(tr("LOCAL_SERVER_STOPPING") if _local_match.state == LocalMatch.State.STOPPING else tr(preparing))
 	_button(tr("MENU_CANCEL"), _cancel_campaign)
 
 func _cancel_campaign() -> void:
@@ -590,6 +664,7 @@ func _launch(mode: String, host: String, run_mode: String = "") -> void:
 	}
 	if mode == "campaign":
 		boot["run_mode"] = run_mode
+		boot["play_arrival"] = run_mode == "resume" and _campaign_play_arrival
 	get_tree().set_meta("fragr_boot", boot)
 	var err: Error = get_tree().change_scene_to_file(ARENA_SCENE)
 	if err != OK:

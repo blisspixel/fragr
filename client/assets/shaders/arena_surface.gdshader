@@ -17,6 +17,9 @@ uniform float base_shade = 0.18;
 // Union warning pinline under the enamel band, and the glow of steel strips.
 uniform vec4 warning_color : source_color = vec4(0.545, 0.118, 0.118, 1.0);
 uniform float trim_glow = 0.55;
+// Optional sparse original repair history, confined to explicit venue materials.
+uniform bool detail_enabled = false;
+uniform sampler2D detail_texture : source_color, filter_nearest, repeat_enable;
 varying vec3 world_position;
 varying vec3 world_normal;
 
@@ -117,6 +120,13 @@ void fragment() {
 		if (surface_kind == 3) {
 			color = mix(color, vec3(0.62, 0.56, 0.41), seam * 0.5);
 		}
+	}
+	if (detail_enabled && n.y < 0.5) {
+		// 128 pixels at the existing 16 texels/metre. Horizontal repeats are quiet;
+		// vertical clamping keeps waterline wear grounded instead of repeating high.
+		vec2 detail_uv = vec2(pixel.x / 128.0, clamp(pixel.y / 128.0, 0.0, 0.999));
+		vec4 detail = texture(detail_texture, detail_uv);
+		color = mix(color, detail.rgb, detail.a);
 	}
 	// Sector level from the solid's own centre, stable for the life of the map.
 	float sector = grain(floor(NODE_POSITION_WORLD.xz / 4.0) + floor(NODE_POSITION_WORLD.y));

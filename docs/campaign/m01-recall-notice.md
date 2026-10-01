@@ -1,5 +1,10 @@
 # M01: Recall Notice
 
+**Appearance anchor for level 1:** Civic intake: bone enamel, green tile and warm service lights; custody equipment interrupts an ordinary public queue.
+Shared [world direction](../design/earth.md) and
+[character, voice and scene continuity](../design/characters.md) govern assets
+and staging. This anchor is a production target, not finished-appearance evidence.
+
 **Status:** connected blockout, discovery and introductory combat shipped in
 v0.28.0. The working [completion draft](../plans/m01-completion.md) expands this
 to twenty Clerks and Sweepers across eight groups, with a records wing, finite
@@ -12,7 +17,8 @@ narration remain unbuilt. The facility pass adds keyed signs,
 locker banks, service vents and practical lights through bounded map metadata.
 The mission sequence shipped in #184 and v0.26.0, connecting the physical transfer
 record to a real lift gate and shared departure. Rendered and party tests pass;
-the result ends the prototype without loading unbuilt M02.
+that historical release ended without loading M02. Current local runs continue
+through authored M02, M03 and M04 prototypes; their full mission acceptance is open.
 Earth before the wipe. Full first-run target 8-10 minutes,
 to be measured. [Treatment](../CAMPAIGN-MISSIONS.md#level-1-recall-notice).
 

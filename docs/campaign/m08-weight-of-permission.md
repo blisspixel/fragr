@@ -1,5 +1,10 @@
 # M08: The Weight of Permission
 
+**Appearance anchor for level 13:** A working Martian foundry: dark frames, material handling and controlled production; fighters and red tells separate from rust terrain.
+Shared [world direction](../design/mars.md) and
+[character, voice and scene continuity](../design/characters.md) govern assets
+and staging. This anchor is a production target, not finished-appearance evidence.
+
 **Status:** proposed, unbuilt. Mars before the wipe. Target 12-16 minutes.
 [Treatment](../CAMPAIGN-MISSIONS.md#level-13-the-weight-of-permission).
 

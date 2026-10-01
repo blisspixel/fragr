@@ -29,6 +29,79 @@ impl PartialEq<MapKind> for RuntimeMap {
 }
 
 impl RuntimeMap {
+    pub(crate) fn m05_objectives(&self) -> Option<&super::authored::m05::Prepared> {
+        match self {
+            Self::BuiltIn(_) => None,
+            Self::Authored(map) => map.m05.as_deref(),
+        }
+    }
+    pub fn m05_geometry(&self) -> Option<crate::protocol::M05MapGeometry> {
+        let mut g = self.m05_objectives()?.geometry.clone();
+        g.freight_open = matches!(self,Self::Authored(map) if map.freight_open);
+        Some(g)
+    }
+    pub fn prepared_m05_world(&self) -> Option<Self> {
+        let Self::Authored(map) = self else {
+            return None;
+        };
+        let p = map.m05.as_ref()?;
+        let mut selected = map.as_ref().clone();
+        selected.arena = p.opened.clone();
+        selected.navigation = p.navigation.clone();
+        selected.freight_open = true;
+        Some(Self::Authored(Arc::new(selected)))
+    }
+    pub(crate) fn m04_objectives(&self) -> Option<&super::authored::m04::Prepared> {
+        match self {
+            Self::BuiltIn(_) => None,
+            Self::Authored(map) => map.m04.as_deref(),
+        }
+    }
+    pub fn m04_geometry(&self) -> Option<crate::protocol::M04MapGeometry> {
+        let mut geometry = self.m04_objectives()?.geometry.clone();
+        geometry.clinic_open = matches!(self,Self::Authored(map) if map.clinic_open);
+        Some(geometry)
+    }
+    pub fn prepared_m04_world(&self) -> Option<Self> {
+        let Self::Authored(map) = self else {
+            return None;
+        };
+        let prepared = map.m04.as_ref()?;
+        let mut selected = map.as_ref().clone();
+        selected.arena = prepared.opened.clone();
+        selected.navigation = prepared.navigation.clone();
+        selected.clinic_open = true;
+        Some(Self::Authored(Arc::new(selected)))
+    }
+    pub(crate) fn m03_objectives(&self) -> Option<&super::authored::m03::Prepared> {
+        match self {
+            Self::BuiltIn(_) => None,
+            Self::Authored(map) => map.m03.as_deref(),
+        }
+    }
+
+    pub fn m03_geometry(&self) -> Option<crate::protocol::M03MapGeometry> {
+        let mut geometry = self.m03_objectives()?.geometry.clone();
+        geometry.mast_shutdown = matches!(self, Self::Authored(map) if map.mast_shutdown);
+        Some(geometry)
+    }
+
+    pub fn prepared_m03_world(&self) -> Option<Self> {
+        let Self::Authored(map) = self else {
+            return None;
+        };
+        let prepared = map.m03.as_ref()?;
+        let mut selected = map.as_ref().clone();
+        selected.arena = prepared.fallen.clone();
+        selected.navigation = prepared.navigation.clone();
+        selected.mast_shutdown = true;
+        for panel in &mut selected.presentation.decorations {
+            if panel.kind == crate::protocol::MapDecorationKind::M03ScheduleBoard {
+                panel.kind = crate::protocol::MapDecorationKind::M03ScheduleCancelled;
+            }
+        }
+        Some(Self::Authored(Arc::new(selected)))
+    }
     /// The authored side-ward encounter controls the matching map and mission wire marker.
     pub(crate) fn has_m02_side_ward(&self) -> bool {
         self.m02_objectives().is_some()
@@ -62,10 +135,24 @@ impl RuntimeMap {
     }
 
     pub(crate) fn campaign_mission_id(&self) -> Option<crate::protocol::MissionId> {
-        self.mission().map(|mission| mission.id).or_else(|| {
-            self.m02_objectives()
-                .map(|_| crate::protocol::MissionId::PersonsUnknown)
-        })
+        self.mission()
+            .map(|mission| mission.id)
+            .or_else(|| {
+                self.m02_objectives()
+                    .map(|_| crate::protocol::MissionId::PersonsUnknown)
+            })
+            .or_else(|| {
+                self.m03_objectives()
+                    .map(|_| crate::protocol::MissionId::ScheduledService)
+            })
+            .or_else(|| {
+                self.m04_objectives()
+                    .map(|_| crate::protocol::MissionId::NoticeToVacate)
+            })
+            .or_else(|| {
+                self.m05_objectives()
+                    .map(|_| crate::protocol::MissionId::NoForwardingAddress)
+            })
     }
 
     pub fn opened_route(&self) -> Option<Self> {
@@ -98,7 +185,7 @@ impl RuntimeMap {
     pub fn is_campaign(&self) -> bool {
         self.has_encounters()
             || self.mission().is_some()
-            || matches!(self, Self::Authored(map) if map.m02.is_some())
+            || matches!(self, Self::Authored(map) if map.m02.is_some() || map.m03.is_some() || map.m04.is_some() || map.m05.is_some())
     }
 
     pub(crate) fn encounters(&self) -> &[super::authored::encounters::EncounterDefinition] {

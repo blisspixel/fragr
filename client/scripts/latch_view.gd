@@ -8,6 +8,10 @@ const STEEL: Color = Color("343d3d")
 const CYAN: Color = Color("4a8a92")
 const DARK: Color = Color("232b2c")
 const RUST: Color = Color("7a3a22")
+const NEAR_CLIP: Shader = preload("res://assets/shaders/latch_near_clip.gdshader")
+const CAMERA_CLEARANCE: float = 0.7
+var near_camera_clip: bool = false
+var _ward_materials: Dictionary[MeshInstance3D, StandardMaterial3D] = {}
 
 var _left_leg: Node3D
 var _right_leg: Node3D
@@ -107,6 +111,30 @@ func set_weapon_visible(enabled: bool) -> void:
 	if not enabled:
 		_flash_left = 0.0
 		_flash.visible = false
+
+## Live pawn only. The ward tableau retains its original lit materials.
+func set_near_camera_clip(enabled: bool) -> void:
+	if enabled == near_camera_clip:
+		return
+	near_camera_clip = enabled
+	for node: Node in find_children("*", "MeshInstance3D", true, false):
+		var part: MeshInstance3D = node as MeshInstance3D
+		if not enabled:
+			if _ward_materials.has(part):
+				part.material_override = _ward_materials[part]
+			continue
+		var original: StandardMaterial3D = part.material_override as StandardMaterial3D
+		if original == null:
+			continue
+		_ward_materials[part] = original
+		var clipped: ShaderMaterial = ShaderMaterial.new()
+		clipped.shader = NEAR_CLIP
+		clipped.set_shader_parameter("chassis_color", original.albedo_color)
+		clipped.set_shader_parameter("chassis_metallic", original.metallic)
+		clipped.set_shader_parameter("chassis_roughness", original.roughness)
+		clipped.set_shader_parameter("chassis_emission", original.emission * original.emission_energy_multiplier if original.emission_enabled else Color.BLACK)
+		clipped.set_shader_parameter("camera_clearance", CAMERA_CLEARANCE)
+		part.material_override = clipped
 
 func set_render_layers(layers: int) -> void:
 	for node: Node in find_children("*", "VisualInstance3D", true, false):

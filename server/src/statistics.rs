@@ -79,6 +79,22 @@ impl CombatLedger {
             counts.deaths += u64::from(died);
         });
     }
+
+    pub fn grenade_attack(&mut self) {
+        self.update(|counts| counts.grenades.attacks += 1);
+    }
+
+    pub fn grenade_hit(&mut self, hp: u64, armor: u64, kills: u64) {
+        if hp + armor == 0 {
+            return;
+        }
+        self.update(|counts| {
+            counts.grenades.damaging_attacks += 1;
+            counts.grenades.hp_damage += hp;
+            counts.grenades.armor_damage += armor;
+            counts.grenades.kills += kills;
+        });
+    }
 }
 
 impl GameState {

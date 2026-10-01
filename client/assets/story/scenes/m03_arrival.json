@@ -1,0 +1,10 @@
+{
+  "format": 1,
+  "id": "m03_arrival",
+  "title_key": "MISSION_M03_TITLE",
+  "skip_key": "STORY_SKIP_SCENE",
+  "shots": [
+    {"id": "YARD", "caption_key": "STORY_M03_ARRIVAL_YARD", "timing": "reader"},
+    {"id": "MAST", "caption_key": "STORY_M03_ARRIVAL_MAST", "speaker_key": "STORY_M03_SPEAKER_LATCH", "timing": "reader"}
+  ]
+}

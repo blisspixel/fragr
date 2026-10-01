@@ -1,0 +1,49 @@
+{
+	"clips": [
+		{
+			"action": "hover",
+			"count": 2
+		},
+		{
+			"action": "windup",
+			"count": 4
+		},
+		{
+			"action": "fire",
+			"count": 2
+		},
+		{
+			"action": "recovery",
+			"count": 2
+		},
+		{
+			"action": "hit",
+			"count": 1
+		},
+		{
+			"action": "tumble",
+			"count": 4
+		},
+		{
+			"action": "wreck",
+			"count": 1
+		}
+	],
+	"columns": 16,
+	"directions": 8,
+	"engine": "4.7.2-stable (official)",
+	"file": "notary.png",
+	"format": "RGBA8 PNG, nearest sampling, no mipmaps",
+	"model": "Original twin-duct Union surveillance drone",
+	"poses": 16,
+	"rows": 8,
+	"schema": 1,
+	"sha256": "023673559ad3f6d36ca3a56820797ca5e7bc8a340a859a0a7bcadd234fa1b634",
+	"sources": {
+		"res://art/characters/geometry.gd": "833318a2c94533aac01abbf7c886b616ec11528624fa406e6cad18dc1a14eec9",
+		"res://art/characters/notary_bake.gd": "e78be2cfa984ad94f336f1b9bc86679cb8236eb35e253c08d60845806580b913",
+		"res://art/characters/notary_rig.gd": "2a36d25952cac95686099762b26777c6f64a15ef9b9c9ee2d4487cbfd1710aa7",
+		"res://scripts/notary_animation.gd": "79e4488632220d1a0eee5fb2f7bd229f198d9f555f75567dc08732f3504721df"
+	},
+	"tile_pixels": 128
+}
