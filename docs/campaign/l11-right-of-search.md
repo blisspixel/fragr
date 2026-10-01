@@ -1,5 +1,10 @@
 # Level 11: Right of Search
 
+**Appearance anchor for level 11:** Union custody tender: related industrial construction with more regular issued fittings, controlled thresholds and restrained seals.
+Shared [world direction](../design/space.md) and
+[character, voice and scene continuity](../design/characters.md) govern assets
+and staging. This anchor is a production target, not finished-appearance evidence.
+
 **Status:** planned, accepted 2026-09-25, unbuilt. A new level in the
 [twenty-level expansion](../plans/campaign-expansion.md), the midpoint
 reversal. The Redactor and the Remote Mine move here from M06.

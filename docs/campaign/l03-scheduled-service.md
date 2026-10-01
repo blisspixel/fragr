@@ -1,5 +1,10 @@
 # Level 3: Scheduled Service
 
+**Appearance anchor for level 3:** Daylight rail logistics: cars, signal box and visible jamming mast; parallel working lanes make rescue and escape readable.
+Shared [world direction](../design/earth.md) and
+[character, voice and scene continuity](../design/characters.md) govern assets
+and staging. This anchor is a production target, not finished-appearance evidence.
+
 **Status:** planned, accepted 2026-09-25, unbuilt. A new level in the
 [twenty-level expansion](../plans/campaign-expansion.md); no ten-mission
 counterpart. [Story arc](story-arc.md).

@@ -142,6 +142,17 @@ pub fn sample_rss(pid: u32) -> Result<Rss, String> {
         .ok_or_else(|| "ps listed no such process".to_string())
 }
 
+async fn collect_rss<F>(probe: F) -> Result<Rss, String>
+where
+    F: FnOnce() -> Result<Rss, String> + Send + 'static,
+{
+    // OS tools can take seconds under load. Keep the in-process server and
+    // its clients advancing while the same runtime waits for the result.
+    tokio::task::spawn_blocking(probe)
+        .await
+        .map_err(|error| format!("memory probe worker failed: {error}"))?
+}
+
 /// One NDJSON sample line.
 #[derive(Debug, Clone, Serialize)]
 pub struct Sample {
@@ -703,7 +714,11 @@ pub async fn run_soak(config: SoakConfig) -> Result<Verdict, Error> {
             Ok(status) => (Some(status), None),
             Err(error) => (None, Some(error.to_string())),
         };
-        let (rss, rss_unavailable) = match server.pid().map(sample_rss) {
+        let measured_rss = match server.pid() {
+            Some(pid) => Some(collect_rss(move || sample_rss(pid)).await),
+            None => None,
+        };
+        let (rss, rss_unavailable) = match measured_rss {
             Some(Ok(rss)) => (Some(rss), None),
             Some(Err(reason)) => (None, Some(reason)),
             None => (None, Some("no process id".to_string())),

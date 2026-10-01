@@ -154,8 +154,8 @@ fn difficulty_is_fixed_before_admission_and_retained_across_party_reset() {
 fn mission_rules_reject_unknown_revisions_missing_fields_and_midrun_changes() {
     let (session, _) = fixture(CampaignDifficulty::Assisted, EnemyKind::Clerk);
     let state = session.state.mission_state().unwrap();
-    // Revision 1 is the magazine era; 3 is not written yet.
-    for revision in [1, 3] {
+    // Live readers accept revision 3; historical rules require save migration.
+    for revision in [1, 2, 4] {
         let mut invalid = state.clone();
         invalid.rules.revision = revision;
         assert!(invalid.validate(0).is_err());

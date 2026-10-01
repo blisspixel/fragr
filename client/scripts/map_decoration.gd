@@ -7,7 +7,12 @@ const MAX_LIGHTS: int = 8
 const KINDS: Array[String] = ["property_sign", "intake_sign", "records_sign",
 	"maintenance_sign", "transfer_sign", "lift_sign", "complaint_notice",
 	"union_seal", "lockers", "vent", "terminal", "lift_control", "strip_light",
-	"gate_locked", "gate_open"]
+	"gate_locked", "gate_open", "m03_schedule_board", "m03_schedule_cancelled",
+	"m03_platform_car", "m03_siding_car", "m03_roof_car", "m03_mast_sign", "m03_board_train",
+	"m04_clinic_care", "m04_clinic_sign", "m04_field_printer", "m04_market_canvas",
+	"m04_meal_six", "m04_noodle_six", "m04_notice_board", "m04_paint_locker",
+	"m04_repair_bench", "m04_tram_vote", "m04_water_tank", "m04_workshop",
+	"m04_clinic_control", "m04_roof_departure", "m05_water_tank", "m05_paint_bench", "m05_loading_pen", "m05_tram_service", "m05_market_six", "m05_freight_sign", "m05_ship_departure"]
 const FACES: Array[String] = ["west", "east", "down", "up", "north", "south"]
 const OFFSET: float = 0.012
 

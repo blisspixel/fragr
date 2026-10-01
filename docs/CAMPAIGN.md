@@ -1,6 +1,10 @@
 # Campaign
 
-**Status, 2026-09-25:** twenty levels in five episodes, plus a survival-gated
+The [art bible](ART_STORY_BIBLE.md) and [design continuity guides](design/README.md)
+keep worlds, characters, voices and future scenes consistent. The
+[level plans](campaign/README.md) apply those rules to individual places.
+
+**Status, 2026-09-30:** twenty levels in five episodes, plus a survival-gated
 playable epilogue, accepted as the contract. This replaces the ten-mission
 structure agreed 2026-09-20, which itself replaced the earlier twelve-mission
 structure. The [campaign expansion plan](plans/campaign-expansion.md) records
@@ -10,18 +14,25 @@ own room and encounter staging for every level. No complete level is finished.
 Level 1 (M01, Recall Notice) has a playable development slice with discovery,
 introductory enemies, a transfer/lift sequence and a reader-paced text opening.
 Solo level 1 now has three explicit mission-start continues and exhaustion;
-M01 entry persistence is implemented. M01-to-M02 carry is in a stacked draft
-with the same saved body, equipment and remaining Episode I allowance. That
-draft does not certify M02 as a finished mission or make level 3 playable.
-Scene art/narration, secrets and final encounter acceptance remain unfinished;
-[M01 completion](plans/m01-completion.md)
-tracks the next build.
+M01 entry persistence and M01-to-M02 carry are integrated. The local M03
+Scheduled Service prototype adds a daylight yard, Jammer encounters, shootable
+mast, optional recall-car releases and deliberate train departure. M02-to-M03
+carry preserves the same saved body, equipment and remaining Episode I
+allowance. The M04 Notice to Vacate prototype adds Low Water's market and
+clinic, the first shootable Notary, optional patient rescue and deliberate
+roof departure. M03-to-M04 carry retains entry equipment and completed car
+choices; compatible historical saves upgrade explicitly to version 5.
+These development routes do not certify a finished mission.
+Scene art, named-character performances and final encounter acceptance remain
+unfinished. Six prototype transition narration clips are implemented with text
+fallback. [M01 completion](plans/m01-completion.md) retains that level's acceptance
+work; the [roadmap](ROADMAP.md#full-build-order-2026-09-27) owns the next build.
 Solo Broadcast:
 Calibration is the shipped Episode 0 arena prototype, not the campaign opening.
 
 This file owns the campaign contract. [World canon](lore/README.md) owns the
 setting; [detailed level plans](campaign/README.md) own room and encounter staging;
-[build order](plans/campaign-build-order.md) owns implementation.
+[roadmap build order](ROADMAP.md#full-build-order-2026-09-27) owns implementation.
 The old 28-level transmitter-chain story is superseded, preserved in git history.
 
 ## Structure
@@ -320,8 +331,8 @@ with its starting equipment and world state restored. No mid-level checkpoint
 retry or teammate revival. With no continues left, the next death ends the run.
 
 Decided 2026-09-25: three continues, refilled to three at the start of each
-episode. M01 enforces the three-continue allowance. The M01-to-M02 draft carries
-what remains without a refill. Later episode refills are a design rule and are
+episode. M01 enforces the three-continue allowance. M01-to-M02 and local
+M02-to-M03 and M03-to-M04 carry preserve what remains without a refill. Later episode refills are a design rule and are
 not implemented. The allowance still needs playtests. A successful run
 targets about four hours, excluding failed attempts. Cutscenes remain skippable
 on retries and mandatory travel must stay purposeful.
@@ -349,8 +360,13 @@ level's attempt. It restores entry inventory, health/armor, enemies, supplies,
 doors, objectives and local ally state coherently. A gameplay retry does not
 establish in-world resurrection. Earned cosmetics are separate from expendable
 run progress. The local M01 run file preserves the remaining allowance without
-silently creating a fresh run. The M01-to-M02 migration is in draft; later
-levels, episode refills and any cloud save policy remain unbuilt.
+silently creating a fresh run. Local M03 carries compatible M02 saves and
+retains completed recall-car choices throughout M04 and its retries. M04 saves
+patient rescue and photograph outcomes through M05 entry and retries. M05's
+development prototype adds counted grenades, workshop rescue, a real translating
+tram and freight departure, preserving released/physically aboard outcomes at
+pending Port of Entry. M06 and later levels, episode refills and any cloud save
+policy remain unbuilt. Complete pacing and fresh-player acceptance stay open.
 
 ## Story presentation and localization
 

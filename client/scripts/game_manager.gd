@@ -13,6 +13,8 @@ var pickups = {}
 var jammer_dish_node = null
 var arena_flags: ArenaFlags = null
 var traveling_shots: TravelingShots = null
+var jammer_audio: JammerAudio = null
+var notary_audio: NotaryAudio = null
 # tip_capture latch: keep forced live dish through nods-phase Snapshot nulls.
 var tip_force_jammer_dish = false
 const JammerDishBuilderScript = preload("res://scripts/jammer_dish.gd")
@@ -41,6 +43,7 @@ var action_state = {
 	"fire": false,
 	"jump": false,
 	"interact": false,
+	"throw_grenade": false,
 	"weapon_swap": null,
 	"yaw": 0.0,
 	"pitch": 0.0,
@@ -58,8 +61,14 @@ var pending_weapon_swap = null
 var pending_jump: bool = false
 var pending_interact: bool = false
 var interact_held: bool = false
+var pending_throw: bool = false
+var throw_armed: bool = true
 var mission_hud: MissionHud
 var m02_ward: M02Ward
+var m03_yard: M03Yard
+var m04_town: M04Town
+var m05_town: M05Town
+var departure_review: DepartureReview
 var _continue_armed: bool = false
 var _continue_attempt_sent: int = -1
 var _presented_attempt: int = 0
@@ -75,11 +84,12 @@ var records: PlayerRecords
 var _record_save_warning: bool = false
 var role_transition: bool = false
 var shot_effects: ShotEffects = null
+var grenade_effects: GrenadeEffects
 var last_shot_tick: int = -1
 var mouse_capture: MouseCapture
 var local_match: LocalMatch
 var _leaving: bool = false
-var opening: CampaignOpening
+var opening: ScenePlayer
 ## The between-level scene played once the server reports a departure.
 var interlude: ScenePlayer
 var _interludes_played: Dictionary[String, bool] = {}
@@ -104,6 +114,8 @@ var crawler_last_ms: int = -1000
 func _ready():
 	mission_hud = MissionHud.new()
 	hud.add_child(mission_hud)
+	mission_hud.notice_requested.connect(func(text: String) -> void:
+		hud.combat_feed.push(text, MenuTheme.BONE))
 	mouse_capture = MouseCapture.new()
 	add_child(mouse_capture)
 	input_device = InputDevice.new()
@@ -112,6 +124,17 @@ func _ready():
 	shot_effects = ShotEffects.new()
 	shot_effects.name = "ShotEffects"
 	add_child(shot_effects)
+	grenade_effects = GrenadeEffects.new()
+	grenade_effects.name = "GrenadeEffects"
+	add_child(grenade_effects)
+	jammer_audio = JammerAudio.new()
+	jammer_audio.name = "JammerAudio"
+	add_child(jammer_audio)
+	notary_audio = NotaryAudio.new()
+	notary_audio.name = "NotaryAudio"
+	notary_audio.notice_requested.connect(func(text: String) -> void:
+		hud.combat_feed.push(text, MenuTheme.BONE))
+	add_child(notary_audio)
 	if settings == null:
 		settings = FragrSettings.for_tree(get_tree())
 	settings.load_from_disk()
@@ -136,7 +159,7 @@ func _ready():
 	var boot = _resolve_boot()
 	if boot.get("mode") == "campaign":
 		local_match = LocalMatch.for_tree(get_tree())
-		_opening_finished = boot.get("run_mode") == "resume"
+		_opening_finished = boot.get("run_mode") == "resume" and not bool(boot.get("play_arrival", false))
 		if local_match.state != LocalMatch.State.RUNNING or local_match.url != boot.get("host"):
 			_on_local_failure("LOCAL_SERVER_STOPPED")
 			return
@@ -162,6 +185,15 @@ func _ready():
 	# Cover is built from what the server sends, never from a second copy in
 	# the scene. See arena_cover.gd for why that matters.
 	arena_cover = ArenaCover.new()
+	m03_yard = M03Yard.new()
+	m03_yard.name = "M03Yard"
+	add_child(m03_yard)
+	m04_town = M04Town.new()
+	m04_town.name = "M04Town"
+	add_child(m04_town)
+	m05_town = M05Town.new()
+	m05_town.name = "M05Town"
+	add_child(m05_town)
 	var arena_root: Node = get_node_or_null("Arena")
 	if arena_root != null:
 		arena_root.add_child(arena_cover)
@@ -216,15 +248,30 @@ static func _find_world_environment(node: Node) -> WorldEnvironment:
 
 
 func _on_map_info(info: Dictionary) -> void:
+	if grenade_effects != null:
+		grenade_effects.reset()
+	pending_throw = false
+	throw_armed = false
 	_reset_crawler_cues()
+	if jammer_audio != null:
+		jammer_audio.reset()
 	local_prediction.configure_map(info)
 	_clear_predicted_pawn()
+	for pawn: Node in players.values():
+		if is_instance_valid(pawn) and pawn.has_method("reset_remote_presentation"):
+			pawn.reset_remote_presentation()
 	_adopt_local_spawn_snapshot = is_human_player
 	var mission: Variant = info.get("mission")
 	var m02: bool = info.get("m02_objectives") != null
+	var m03: bool = info.get("m03") is Dictionary
+	var m04: bool = info.get("m04") is Dictionary
+	var m05: bool = info.get("m05") is Dictionary
 	if local_match != null:
 		var expected_m02: bool = local_match.mission == MissionState.M02_ID
-		if m02 != expected_m02 or (not m02 and (not mission is Dictionary or mission.get("id") != MissionState.ID)):
+		var expected_m03: bool = local_match.mission == MissionState.M03_ID
+		var expected_m04: bool = local_match.mission == MissionState.M04_ID
+		var expected_m05: bool = local_match.mission == MissionState.M05_ID
+		if m02 != expected_m02 or m03 != expected_m03 or m04 != expected_m04 or m05 != expected_m05 or (not m02 and not m03 and not m04 and not m05 and (not mission is Dictionary or mission.get("id") != MissionState.ID)):
 			_on_local_failure("LOCAL_SERVER_INVALID_READY")
 			return
 	last_shot_tick = -1
@@ -242,20 +289,36 @@ func _on_map_info(info: Dictionary) -> void:
 			opening = CampaignOpening.new()
 			opening.completed.connect(_on_opening_completed)
 			add_child(opening)
+	elif m03 or m04 or m05:
+		if is_human_player and not _opening_finished and not is_instance_valid(opening):
+			var scene_id: String = MissionState.M05_ID if m05 else (MissionState.M04_ID if m04 else MissionState.M03_ID)
+			opening = ScenePlayer.new(StoryScene.load_scene(StoryScene.BEFORE_MISSION[scene_id]))
+			opening.completed.connect(_on_opening_completed)
+			add_child(opening)
 	elif m02:
 		# The graybox has no story page yet. Readiness follows the first state.
 		_opening_finished = true
 	elif is_human_player:
 		show_loading_card()
 	if pause_menu != null:
-		pause_menu.development_mission = m02 and local_match != null and not local_match.has_durable_run()
+		pause_menu.development_mission = (m02 or m03 or m04 or m05) and local_match != null and not local_match.has_durable_run()
 	if arena_cover != null:
 		arena_cover.apply_map_info(info)
+		arena_cover.apply_m05({})
 	# The venue decides the sky, and the venue is only known once the server
 	# has said which one this is.
 	_apply_arena_sky(str(info.get("map_name", "")))
 	if m02_ward != null:
 		m02_ward.configure_map(info)
+	if m03_yard != null:
+		m03_yard.configure_map(info)
+	if m04_town != null:
+		m04_town.configure_map(info)
+	if m05_town != null:
+		m05_town.configure_map(info)
+	NotaryAnimation.configure_map(info)
+	if notary_audio != null:
+		notary_audio.configure_map(info)
 
 ## The console, the pause menu and the loading card. Built here rather than in
 ## the scene because they are the same three things whatever the match is.
@@ -284,6 +347,8 @@ func _apply_render_preferences() -> void:
 	RenderQuality.apply_dither(self, get_viewport(), settings)
 
 func controls_blocked() -> bool:
+	if is_instance_valid(departure_review):
+		return true
 	return role_transition or _mission_controls_blocked() or (mission_hud != null and mission_hud.state.get("phase") == "departed") or (mouse_capture != null and not mouse_capture.gameplay_input_allowed()) or (console != null and console.is_open()) or (pause_menu != null and pause_menu.is_open())
 
 func _mission_controls_blocked() -> bool:
@@ -307,7 +372,7 @@ func _mission_controls_blocked() -> bool:
 
 ## Mission maps carry M01 geometry or the M02 objective marker.
 func _mission_map() -> bool:
-	return current_map_info.get("mission") is Dictionary or current_map_info.get("m02_objectives") != null
+	return current_map_info.get("mission") is Dictionary or current_map_info.get("m02_objectives") != null or current_map_info.get("m03") is Dictionary or current_map_info.get("m04") is Dictionary or current_map_info.get("m05") is Dictionary
 
 func _on_opening_completed() -> void:
 	_opening_finished = true
@@ -315,12 +380,14 @@ func _on_opening_completed() -> void:
 	opening.queue_free()
 	opening = null
 	pending_jump = false
+	pending_throw = false
+	throw_armed = false
 	pending_interact = false
 	interact_held = false
 	pending_weapon_swap = null
 
 func _opening_input_released() -> bool:
-	for action: String in ["ui_accept", "ui_cancel", "fire", "jump", "interact", "move_forward", "move_back", "move_left", "move_right"]:
+	for action: String in ["ui_accept", "ui_cancel", "fire", "jump", "interact", "throw_grenade", "move_forward", "move_back", "move_left", "move_right"]:
 		if Input.is_action_pressed(action):
 			return false
 	return true
@@ -416,7 +483,8 @@ func _resolve_boot() -> Dictionary:
 			var host = str(meta.get("host", "127.0.0.1:6767"))
 			if mode == "campaign":
 				var run_mode: String = str(meta.get("run_mode", "new"))
-				return {"role": "human", "name": settings.player_name(), "host": host, "hud_mode": "CAMPAIGN", "mode": mode, "run_mode": run_mode if run_mode in ["new", "resume"] else "new"}
+				var play_arrival: bool = typeof(meta.get("play_arrival")) == TYPE_BOOL and meta["play_arrival"]
+				return {"role": "human", "name": settings.player_name(), "host": host, "hud_mode": "CAMPAIGN", "mode": mode, "run_mode": run_mode if run_mode in ["new", "resume"] else "new", "play_arrival":play_arrival}
 			if mode == "solo":
 				return {"role": "human", "name": settings.player_name(), "host": host, "hud_mode": "SOLO BROADCAST", "mode": mode}
 			if mode == "join":
@@ -518,6 +586,8 @@ func _try_continue(event: InputEvent) -> bool:
 			_opening_release = true
 			pending_jump = false
 			pending_interact = false
+			pending_throw = false
+			throw_armed = false
 			pending_weapon_swap = null
 			interact_held = false
 			return true
@@ -534,11 +604,20 @@ func _input(_event):
 		return
 	if _event.is_action_released("interact"):
 		interact_held = false
+	if _event.is_action_released("throw_grenade"):
+		throw_armed = true
 	if controls_blocked():
+		pending_throw = false
+		throw_armed = false
 		return
+	if is_human_player and throw_armed and _event.is_action_pressed("throw_grenade") and not _event.is_echo():
+		pending_throw = true
 	if is_human_player and _event.is_action_pressed("jump"):
 		pending_jump = true
 	if is_human_player and _event.is_action_pressed("interact"):
+		if _offer_m05_departure():
+			get_viewport().set_input_as_handled()
+			return
 		pending_interact = true
 		interact_held = true
 	# InputMap actions (keyboard + joypad). Same join/leave path.
@@ -562,6 +641,8 @@ func change_role(play: bool) -> void:
 	role_transition = true
 	pending_jump = false
 	pending_interact = false
+	pending_throw = false
+	throw_armed = false
 	interact_held = false
 	net_client.leave_match()
 	is_human_player = play
@@ -648,6 +729,8 @@ func _reset_prediction_for_connection(reason: String) -> void:
 	_adopt_local_spawn_snapshot = is_human_player
 	pending_jump = false
 	pending_interact = false
+	pending_throw = false
+	throw_armed = false
 
 
 func _apply_local_prediction() -> void:
@@ -684,6 +767,9 @@ func _send_local_action(now_usec: int) -> bool:
 	action_state.fire = Input.is_action_pressed("fire")
 	action_state.jump = pending_jump or Input.is_action_pressed("jump")
 	action_state.interact = pending_interact or interact_held
+	if not Input.is_action_pressed("throw_grenade") and not pending_throw:
+		throw_armed = true
+	action_state.throw_grenade = throw_armed and (pending_throw or Input.is_action_pressed("throw_grenade"))
 	# Client-owned yaw: the server takes the absolute facing and never turns
 	# us at a fixed rate, so the look axis does not round-trip. Turn bits stay
 	# zero for humans and remain the path for agents and older clients.
@@ -694,7 +780,9 @@ func _send_local_action(now_usec: int) -> bool:
 		interact_held = false
 		pending_jump = false
 		pending_interact = false
-		for key in ["forward", "back", "left", "right", "fire", "jump", "interact"]:
+		pending_throw = false
+		throw_armed = false
+		for key in ["forward", "back", "left", "right", "fire", "jump", "interact", "throw_grenade"]:
 			action_state[key] = false
 		pending_weapon_swap = null
 	action_state.turn_left = false
@@ -721,11 +809,22 @@ func _send_local_action(now_usec: int) -> bool:
 	if net_client.last_send_ok:
 		pending_jump = false
 		pending_interact = false
+		pending_throw = false
 		pending_weapon_swap = null
 	return true
 
 func _on_mission_received(state: Dictionary) -> void:
 	_continue_armed = false
+	if is_instance_valid(departure_review):
+		if not _m05_departure_available():
+			_close_departure_review()
+		else:
+			departure_review.apply(state, net_client.mission_geometry["m05"]["boarding"])
+	local_prediction.apply_m05(state)
+	if arena_cover != null:
+		arena_cover.apply_m05(state)
+	if camera != null and not local_prediction.arena.is_empty():
+		camera.assist_solids = local_prediction.arena["solids"]
 	if is_human_player and state.get("run") is Dictionary and state["run"]["status"] == "playing":
 		var attempt: int = int(state["attempt"])
 		if attempt > 1 and attempt != _presented_attempt:
@@ -736,12 +835,57 @@ func _on_mission_received(state: Dictionary) -> void:
 			_adopt_local_spawn_snapshot = true
 		_presented_attempt = attempt
 	if mission_hud != null:
+		mission_hud.boarding_region = net_client.mission_geometry.get("m05", {}).get("boarding", {})
 		mission_hud.apply(state, str(net_client.player_id) if is_human_player else "")
 	if m02_ward != null:
 		m02_ward.apply_state(state)
+	if m03_yard != null:
+		m03_yard.apply_state(state)
+	if m04_town != null:
+		m04_town.apply_state(state)
+	if m05_town != null:
+		m05_town.apply_state(state)
 	hud.combat_feed.set_campaign(not state.is_empty())
 	_submit_mission_readiness()
 	play_departure_scene(state)
+
+func _m05_departure_available() -> bool:
+	var value: Dictionary = net_client.mission.get("state", {})
+	if value.get("id") != MissionState.M05_ID or value.get("phase") != "in_progress":
+		return false
+	for prompt: Dictionary in value["prompts"]:
+		if prompt["player_id"] == net_client.player_id and prompt["kind"] == "objective_use":
+			return true
+	return false
+
+func _offer_m05_departure() -> bool:
+	if not _m05_departure_available():
+		return false
+	departure_review = DepartureReview.new()
+	departure_review.name = "DepartureReview"
+	departure_review.apply(net_client.mission["state"], net_client.mission_geometry["m05"]["boarding"])
+	departure_review.confirmed.connect(_confirm_m05_departure)
+	departure_review.cancelled.connect(_close_departure_review)
+	add_child(departure_review)
+	pending_interact = false
+	interact_held = false
+	pending_throw = false
+	throw_armed = false
+	return true
+
+func _close_departure_review() -> void:
+	if is_instance_valid(departure_review):
+		departure_review.queue_free()
+	departure_review = null
+
+func _confirm_m05_departure() -> void:
+	var available: bool = _m05_departure_available()
+	_close_departure_review()
+	# The fresh physical Use press goes through the existing Action channel.
+	# Server readiness, position and current mission still decide departure.
+	if available:
+		pending_interact = true
+		interact_held = false
 
 ## Presentation after the server has already moved the party on. Once per
 ## mission per session; skipping or finishing sends nothing to the server.
@@ -766,6 +910,8 @@ func _on_interlude_completed() -> void:
 	interlude = null
 	pending_jump = false
 	pending_interact = false
+	pending_throw = false
+	throw_armed = false
 	interact_held = false
 	pending_weapon_swap = null
 
@@ -912,7 +1058,15 @@ func _on_server_error(message: String) -> void:
 	hud.set_status(message)
 
 func _clear_world() -> void:
+	_close_departure_review()
+	if grenade_effects != null:
+		grenade_effects.reset()
 	local_prediction.reset("disconnect", true)
+	if jammer_audio != null:
+		jammer_audio.reset()
+	if notary_audio != null:
+		notary_audio.reset()
+	NotaryAnimation.configure_map({})
 	_adopt_local_spawn_snapshot = false
 	if is_instance_valid(opening):
 		opening.queue_free()
@@ -933,11 +1087,20 @@ func _clear_world() -> void:
 		traveling_shots.clear_shots()
 	pending_jump = false
 	pending_interact = false
+	pending_throw = false
+	throw_armed = false
 	interact_held = false
 	if mission_hud != null:
 		mission_hud.apply({}, "")
+		mission_hud.reset_notices()
 	if m02_ward != null:
 		m02_ward.clear_map()
+	if m03_yard != null:
+		m03_yard.clear_map()
+	if m04_town != null:
+		m04_town.clear_map()
+	if m05_town != null:
+		m05_town.clear_map()
 	hud.combat_feed.set_campaign(false)
 	pending_weapon_swap = null
 	latest_snapshot.clear()
@@ -972,6 +1135,8 @@ func _refresh_equipment_visibility() -> void:
 		and is_instance_valid(pawn) and pawn.hp > 0 and hud.fp_juice_enabled
 
 func _on_snapshot_received(data):
+	if grenade_effects != null:
+		grenade_effects.apply(data, camera.global_position if camera != null else Vector3(NAN, NAN, NAN))
 	ack_probe.record_snapshot(data.get("tick"), Time.get_ticks_usec())
 	latest_snapshot = data
 	_apply_map_from_snapshot(data)
@@ -1118,9 +1283,20 @@ func _on_snapshot_received(data):
 	if hud and hud.has_method("set_fp_carried_flag"):
 		hud.set_fp_carried_flag(_carried_flag_team(_first_person_carrier_id(), flag_rows))
 	_process_shot_results(data.get("shot_results", []), int(data.get("tick", -1)))
+	_present_jammer_launches(data)
+	if notary_audio != null:
+		var listener: Camera3D = get_viewport().get_camera_3d()
+		notary_audio.apply(data, listener.global_position if listener != null else Vector3.INF)
 	hud.equipment_hud.tick = int(data.get("tick", 0))
 	_refresh_equipment_visibility()
 	_update_nameplates()
+
+
+func _present_jammer_launches(snapshot: Dictionary) -> void:
+	if jammer_audio == null:
+		return
+	var listener: Camera3D = get_viewport().get_camera_3d()
+	jammer_audio.apply(snapshot, listener.global_position if listener != null else Vector3.INF)
 
 func _update_nameplates() -> void:
 	if camera == null:

@@ -111,14 +111,14 @@ func accept_mouse_motion(event: InputEventMouseMotion, captured: bool) -> void:
 	# Escape belongs to the pause menu now. The mouse is released and recaptured
 	# by whatever opens over the match, so two things no longer fight for it.
 
-func _process(delta):
-	camera_shake_intensity = lerp(camera_shake_intensity, 0.0, delta * 10.0)
-	camera_zoom_offset = lerp(camera_zoom_offset, 0.0, delta * 5.0)
+func _process(delta: float) -> void:
+	camera_shake_intensity *= exp(-10.0 * maxf(delta, 0.0))
+	camera_zoom_offset *= exp(-5.0 * maxf(delta, 0.0))
 	if _controls_blocked():
 		mouse_motion = Vector2.ZERO
 		# A chat draft blocks input, but the watched fight keeps moving.
 		if not fp_mode and follow_mode and not tip_pose_lock:
-			_follow_target()
+			_follow_target(delta)
 		return
 
 	if tip_pose_lock:
@@ -152,7 +152,7 @@ func _process(delta):
 		if frag_follow_timer <= 0:
 			frag_follow_target_id = ""
 		else:
-			_follow_frag_target()
+			_follow_frag_target(delta)
 			return
 
 	if follow_mode and len(available_targets) > 0:
@@ -160,7 +160,7 @@ func _process(delta):
 		if auto_cycle_interval > 0.0 and auto_cycle_timer >= auto_cycle_interval:
 			cycle_next_target()
 			auto_cycle_timer = 0.0
-		_follow_target()
+		_follow_target(delta)
 	else:
 		_set_observed_pawn(null)
 		if can_control:
@@ -256,7 +256,7 @@ func _free_fly(delta):
 		var move_vec = transform.basis * input_dir
 		position += move_vec * move_speed * speed_mult * delta
 
-func _follow_target():
+func _follow_target(delta: float = 1.0 / 60.0) -> void:
 	if len(available_targets) == 0:
 		_set_observed_pawn(null)
 		return
@@ -267,9 +267,9 @@ func _follow_target():
 	if is_instance_valid(target):
 		if spectator_first_person:
 			_set_observed_pawn(target)
-			var yaw: float = _target_server_yaw(target)
+			var yaw: float = _target_presentation_yaw(target)
 			global_position = target.global_position + Vector3(0, FP_EYE_HEIGHT, 0)
-			rotation = Vector3(_target_server_pitch(target), ServerYaw.camera_rotation_y(yaw), 0.0)
+			rotation = Vector3(_target_presentation_pitch(target), ServerYaw.camera_rotation_y(yaw), 0.0)
 			mouse_motion = Vector2.ZERO
 			return
 		_set_observed_pawn(null)
@@ -284,11 +284,11 @@ func _follow_target():
 			)
 
 		var cam_pos = target_pos + offset.rotated(Vector3.UP, target.rotation.y)
-		position = position.lerp(cam_pos, 0.1)
+		position = position.lerp(cam_pos, follow_weight(0.1, delta))
 
 		var look_target = target_pos + Vector3(0, 1.5, 0)
 		var desired_transform = global_transform.looking_at(look_target, Vector3.UP)
-		global_transform = global_transform.interpolate_with(desired_transform, 0.15)
+		global_transform = global_transform.interpolate_with(desired_transform, follow_weight(0.15, delta))
 	else:
 		cycle_next_target()
 
@@ -367,7 +367,7 @@ func lock_on_frag(killer_id: String, duration: float = 1.5):
 	frag_follow_timer = duration
 	auto_cycle_timer = 0.0
 
-func _follow_frag_target():
+func _follow_frag_target(delta: float = 1.0 / 60.0) -> void:
 	if frag_follow_target_id == "":
 		return
 
@@ -376,12 +376,17 @@ func _follow_frag_target():
 			var target_pos = target.global_position
 			var offset = Vector3(0, 5.5, 10.5)
 			var cam_pos = target_pos + offset.rotated(Vector3.UP, target.rotation.y)
-			position = position.lerp(cam_pos, 0.15)
+			position = position.lerp(cam_pos, follow_weight(0.15, delta))
 
 			var look_target = target_pos + Vector3(0, 1.5, 0)
 			var desired_transform = global_transform.looking_at(look_target, Vector3.UP)
-			global_transform = global_transform.interpolate_with(desired_transform, 0.2)
+			global_transform = global_transform.interpolate_with(desired_transform, follow_weight(0.2, delta))
 			return
+
+
+## Preserve the existing 60 Hz chase speed at every rendering cadence.
+static func follow_weight(weight_at_60_hz: float, delta: float) -> float:
+	return 1.0 - pow(1.0 - clampf(weight_at_60_hz, 0.0, 1.0), maxf(delta, 0.0) * 60.0)
 
 func _process_fp(delta):
 	# Local angles are sent as absolute authoritative aim in the next action.
@@ -535,6 +540,14 @@ static func _target_server_yaw(target: Node3D) -> float:
 
 static func _target_server_pitch(target: Node3D) -> float:
 	return clampf(float(target.get("target_pitch")), -ServerYaw.PITCH_LIMIT, ServerYaw.PITCH_LIMIT) if "target_pitch" in target else 0.0
+
+
+static func _target_presentation_yaw(target: Node3D) -> float:
+	return float(target.get("presentation_yaw")) if "presentation_yaw" in target else _target_server_yaw(target)
+
+
+static func _target_presentation_pitch(target: Node3D) -> float:
+	return float(target.get("presentation_pitch")) if "presentation_pitch" in target else _target_server_pitch(target)
 
 func is_observing_first_person() -> bool:
 	return not fp_mode and follow_mode and spectator_first_person and is_instance_valid(get_followed_target())

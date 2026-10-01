@@ -39,6 +39,7 @@ const MAX_RANGE: float = 40.0
 const BODY_RADIUS: float = 0.5
 const BODY_HEIGHT: float = 1.8
 const CRAWLER_HEIGHT: float = 0.8
+const NOTARY_HEIGHT: float = 0.7
 ## Server positions sit this far above the feet.
 const SERVER_REFERENCE_Y: float = 1.5
 
@@ -53,8 +54,16 @@ static func enabled_for(level: Level, look_source: String) -> bool:
 
 ## Body centre of a fighter at a server position.
 static func body_centre(server_position: Vector3, campaign: Dictionary = {}) -> Vector3:
-	var height: float = CRAWLER_HEIGHT if campaign.get("side") == "union" and campaign.get("kind") == "crawler" else BODY_HEIGHT
+	var height: float = target_height(campaign)
 	return server_position + Vector3(0.0, height * 0.5 - SERVER_REFERENCE_Y, 0.0)
+
+static func target_height(campaign: Dictionary) -> float:
+	if campaign.get("side") == "union":
+		if campaign.get("kind") == "crawler":
+			return CRAWLER_HEIGHT
+		if campaign.get("kind") == "notary":
+			return NOTARY_HEIGHT
+	return BODY_HEIGHT
 
 ## Server yaw and pitch from one point to another. Matches combat::aim_at.
 static func aim_at(origin: Vector3, target: Vector3) -> Vector2:

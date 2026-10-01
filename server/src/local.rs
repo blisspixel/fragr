@@ -2,7 +2,7 @@
 use crate::maps::AuthoredSource;
 use crate::mission::run_file::store::{RunProbe, RunStore};
 use crate::mission::run_file::SavedStep;
-use crate::protocol::{BodyKind, CampaignDifficulty, MissionId, RULES_GAMEPLAY_VERSION};
+use crate::protocol::{BodyKind, CampaignDifficulty, MissionId};
 use crate::run::{run_local_server, run_server, LocalRunConfig, ServerOptions};
 use serde::{Deserialize, Serialize};
 use std::io::{self, BufRead, BufReader, Read, Write};
@@ -45,7 +45,17 @@ pub enum RunPreview {
 pub fn preview_run(_mission: MissionId) -> io::Result<RunPreview> {
     let m01_hash = AuthoredSource::bundled_content_sha256(MissionId::RecallNotice);
     let m02_hash = AuthoredSource::bundled_content_sha256(MissionId::PersonsUnknown);
-    match RunStore::inspect_with_hashes(&run_directory()?, m01_hash, m02_hash)? {
+    let m03_hash = AuthoredSource::bundled_content_sha256(MissionId::ScheduledService);
+    let m04_hash = AuthoredSource::bundled_content_sha256(MissionId::NoticeToVacate);
+    let m05_hash = AuthoredSource::bundled_content_sha256(MissionId::NoForwardingAddress);
+    match RunStore::inspect_with_hashes(
+        &run_directory()?,
+        m01_hash,
+        m02_hash,
+        m03_hash,
+        m04_hash,
+        m05_hash,
+    )? {
         RunProbe::Missing => Ok(RunPreview::Missing),
         RunProbe::Incompatible => Ok(RunPreview::Incompatible),
         RunProbe::Corrupt => Ok(RunPreview::Corrupt),
@@ -55,6 +65,9 @@ pub fn preview_run(_mission: MissionId) -> io::Result<RunPreview> {
                     mission: match document.stage_mission() {
                         MissionId::RecallNotice => "recall_notice",
                         MissionId::PersonsUnknown => "persons_unknown",
+                        MissionId::ScheduledService => "scheduled_service",
+                        MissionId::NoticeToVacate => "notice_to_vacate",
+                        MissionId::NoForwardingAddress => "no_forwarding_address",
                     }
                     .into(),
                     difficulty: document.rules.difficulty,
@@ -122,7 +135,7 @@ impl Ready {
         mission: MissionId,
         difficulty: CampaignDifficulty,
         address: SocketAddr,
-        durable: bool,
+        _durable: bool,
     ) -> io::Result<Self> {
         if address.ip() != Ipv4Addr::LOCALHOST || address.port() == 0 {
             return Err(io::Error::other(
@@ -134,15 +147,9 @@ impl Ready {
             mission,
             difficulty,
             url: format!("ws://{address}"),
-            // M01 uses discovery equipment and rule sets. M02 also needs the
-            // seated Clerk, low Crawler and ward release contracts.
-            gameplay_version: if mission == MissionId::PersonsUnknown {
-                crate::protocol::INSPECTION_GLASS_GAMEPLAY_VERSION
-            } else if durable || mission == MissionId::RecallNotice {
-                crate::protocol::RUN_CARRY_GAMEPLAY_VERSION
-            } else {
-                RULES_GAMEPLAY_VERSION
-            },
+            // Every mission serves rules revision 3. Older strict readers
+            // must be refused before any map or mission state is advertised.
+            gameplay_version: crate::protocol::M05_GAMEPLAY_VERSION,
         })
     }
 
@@ -198,9 +205,9 @@ pub async fn serve_with_mode(
     input: impl Read + Send + 'static,
     output: impl Write,
 ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    // M02 without a run mode remains the independent development party.
+    // Later missions without a run mode remain independent development parties.
     let campaign_run = mission == MissionId::RecallNotice || run_mode.is_some();
-    if mission == MissionId::PersonsUnknown && run_mode == Some(LocalRunMode::New) {
+    if mission != MissionId::RecallNotice && run_mode == Some(LocalRunMode::New) {
         return Err(io::Error::other("a new durable run must start at M01").into());
     }
     let (owner_tx, mut owner_rx) = oneshot::channel();
@@ -280,7 +287,11 @@ mod tests {
 
     #[test]
     fn bundled_byte_hash_matches_the_strict_runtime_loader() {
-        for mission in [MissionId::RecallNotice, MissionId::PersonsUnknown] {
+        for mission in [
+            MissionId::RecallNotice,
+            MissionId::PersonsUnknown,
+            MissionId::ScheduledService,
+        ] {
             let map =
                 crate::maps::RuntimeMap::Authored(AuthoredSource::Mission(mission).load().unwrap());
             assert_eq!(
@@ -334,7 +345,7 @@ mod tests {
         assert_eq!(ready.url, "ws://127.0.0.1:6767");
         assert_eq!(
             ready.gameplay_version,
-            crate::protocol::RUN_CARRY_GAMEPLAY_VERSION
+            crate::protocol::M05_GAMEPLAY_VERSION
         );
         let m02 = Ready::new(
             MissionId::PersonsUnknown,
@@ -343,9 +354,24 @@ mod tests {
             false,
         )
         .unwrap();
-        assert_eq!(
-            m02.gameplay_version,
-            crate::protocol::INSPECTION_GLASS_GAMEPLAY_VERSION
-        );
+        assert_eq!(m02.gameplay_version, crate::protocol::M05_GAMEPLAY_VERSION);
+        let m03 = Ready::new(
+            MissionId::ScheduledService,
+            CampaignDifficulty::Severe,
+            "127.0.0.1:6767".parse().unwrap(),
+            false,
+        )
+        .unwrap();
+        assert_eq!(m03.gameplay_version, crate::protocol::M05_GAMEPLAY_VERSION);
+        assert_eq!(m03.mission, MissionId::ScheduledService);
+        let m04 = Ready::new(
+            MissionId::NoticeToVacate,
+            CampaignDifficulty::Standard,
+            "127.0.0.1:6767".parse().unwrap(),
+            false,
+        )
+        .unwrap();
+        assert_eq!(m04.gameplay_version, crate::protocol::M05_GAMEPLAY_VERSION);
+        assert_eq!(m04.mission, MissionId::NoticeToVacate);
     }
 }

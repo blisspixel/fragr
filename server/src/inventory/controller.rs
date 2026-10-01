@@ -116,8 +116,16 @@ pub fn control_action_with_target_filter(
     {
         action.look_at = None;
         action.fire = false;
+        action.throw_grenade = false;
     }
     let held = loadout.selected;
+    // A deliberate throw keeps its aim. Resupply and melee steering must not
+    // silently replace a world-point lob with a different target.
+    if action.throw_grenade {
+        action.weapon_swap = action.weapon_swap.filter(|weapon| loadout.owns(*weapon));
+        action.throw_grenade = loadout.grenades > 0;
+        return action;
+    }
     let selected = action
         .weapon_swap
         .filter(|weapon| usable(loadout, *weapon))

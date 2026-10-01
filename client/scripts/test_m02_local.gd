@@ -48,7 +48,8 @@ func _run() -> void:
 	await process_frame
 	current_scene._show("practice")
 	await process_frame
-	var entry: Button = current_scene._root.get_node_or_null("PersonsUnknownGraybox") as Button
+	(current_scene._root.get_node("DevelopmentMission") as OptionButton).select(0)
+	var entry: Button = current_scene._root.get_node_or_null("LaunchDevelopmentMission") as Button
 	_expect(entry != null and not entry.disabled, "the development entry is selectable")
 	if entry == null:
 		quit(1)

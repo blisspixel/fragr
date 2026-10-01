@@ -1,0 +1,11 @@
+{
+  "format": 1,
+  "id": "m04_arrival",
+  "title_key": "MISSION_M04_TITLE",
+  "skip_key": "STORY_SKIP_SCENE",
+  "ambience": {"path": "res://assets/story/ambience/low_water_runoff.wav", "volume_db": -22.0},
+  "shots": [
+    {"id": "HOME", "caption_key": "STORY_M04_ARRIVAL_HOME", "narration": "res://assets/story/voice/{locale}/m04_arrival/home.mp3", "timing": "narration", "hold": 1.0},
+    {"id": "MARKET", "caption_key": "STORY_M04_ARRIVAL_MARKET", "narration": "res://assets/story/voice/{locale}/m04_arrival/market.mp3", "timing": "narration", "hold": 1.0}
+  ]
+}

@@ -3,6 +3,8 @@ class_name ArenaMaterials
 
 ## One palette and material set per map. Geometry stays owned by MapInfo.
 const SURFACE: Shader = preload("res://assets/shaders/arena_surface.gdshader")
+const PLASTER_DETAIL: Texture2D = preload("res://assets/environment/low_water/plaster_repairs.png")
+const STEEL_DETAIL: Texture2D = preload("res://assets/environment/low_water/steel_repairs.png")
 
 static func accent(map_id: int) -> Color:
 	match map_id:
@@ -10,6 +12,7 @@ static func accent(map_id: int) -> Color:
 		3: return Color("4a8a92")
 		5: return Color("6e7950")
 		6: return Color("8a3a58")
+		1004, 1005: return Color("8b6850")
 		_: return Color("7a3a22")
 
 static func make(map_id: int, kind: int) -> ShaderMaterial:
@@ -20,6 +23,8 @@ static func make(map_id: int, kind: int) -> ShaderMaterial:
 		base = Color("646965") if kind == 0 else Color("879184")
 	elif map_id == 5:
 		base = Color("756e59") if kind == 0 else Color("73796a")
+	elif map_id in [1004, 1005]:
+		base = Color("686f69") if kind == 0 else Color("8c796a")
 	if kind == 2:
 		base = base.darkened(0.15)
 	material.set_shader_parameter("surface_color", base)
@@ -28,7 +33,7 @@ static func make(map_id: int, kind: int) -> ShaderMaterial:
 	material.set_shader_parameter("panel_size", 3.0 if kind == 0 else (4.0 if kind == 1 else 2.0))
 	return material
 
-static func authored(surface: String) -> Material:
+static func authored(surface: String, venue: String = "") -> Material:
 	if surface == "inspection_glass":
 		var glass: StandardMaterial3D = StandardMaterial3D.new()
 		glass.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
@@ -44,8 +49,14 @@ static func authored(surface: String) -> Material:
 	# glowing on_air warning strip, and enamel carries a red pinline.
 	var bases: Array[Color] = [Color("787468"), Color("c5c1a6"), Color("565753"), Color("82917f"), Color("343e40")]
 	var accents: Array[Color] = [Color("686954"), Color("52664d"), Color("8b1e1e"), Color("354d42"), Color("7eaaa0")]
+	if venue == "low_water":
+		bases = [Color("788078"), Color("bd9c80"), Color("537574"), Color("adc0aa"), Color("49534c")]
+		accents = [Color("5a655f"), Color("6f6554"), Color("aa7451"), Color("577165"), Color("b6a579")]
 	material.set_shader_parameter("surface_style", index + 1)
 	material.set_shader_parameter("surface_color", bases[index])
 	material.set_shader_parameter("accent_color", accents[index])
 	material.set_shader_parameter("panel_size", 2.0)
+	if venue == "low_water" and surface in ["concrete", "enamel", "service_steel"]:
+		material.set_shader_parameter("detail_enabled", true)
+		material.set_shader_parameter("detail_texture", STEEL_DETAIL if surface == "service_steel" else PLASTER_DETAIL)
 	return material

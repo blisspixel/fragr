@@ -11,6 +11,82 @@ A player-visible change refreshes the one of those four that shows the surface,
 in the same change. The other files in this directory stay as tour evidence.
 The Windows taskbar icon is still the Godot mark and is not one of these frames.
 
+The standard tour was regenerated and inspected on 2026-09-30 after participant
+timeline interpolation, spectator camera smoothing, near-camera shot-effect
+clipping, Scheduled Service and Notice to Vacate integration. All 32 states passed; thirteen
+selected stills were published locally by the wrapper. The capture receipt is
+`.agents/qa/m04-standard-final/manifest.json`. Menus, settings, weapon views,
+participant bodies, world lighting and watched combat were inspected after capture.
+
+`jammer_windup_16x9.png`, `jammer_launch_16x9.png`,
+`jammer_defeat_16x9.png` and `jammer_pulse_strip.png` were captured and inspected
+on 2026-09-30 with Windows, Godot 4.7.2-stable, OpenGL compatibility and an AMD
+Radeon 780M. They come from the completed eight-state input-driven
+`client/qa/jammer-range.json` tour on `server/maps/test/jammer-range.json`.
+The frames show the committed tell, open transmitter and live pulse, then the
+collapsed emitter. The twelve-frame lateral strip shows the orange point
+advancing and growing as it passes the camera. This is an original development
+combat range. The separate Scheduled Service development route now reuses this
+enemy; these range frames do not show that mission or establish a finished art pass.
+The receipt is `.agents/qa/jammer-buildout-polished/manifest.json`;
+[the buildout plan](../plans/campaign-and-feel-buildout.md) records checks and
+limitations. Earlier distant motion and failed captures remain diagnostic-only.
+
+The `m03_*.png` gallery shows the input-playable Scheduled Service development
+prototype on the same pinned Windows/OpenGL/AMD Radeon 780M setup. Its passed
+twenty-one-state route confirms all twenty-two enemies, three optional car
+releases, mast shutdown, both secret pickups and deliberate locomotive use.
+[The authoring plan](../plans/m03-yard-authoring.md) records the exact manifest,
+failures, corrections and renderer receipt. These images are separate from the
+four README stills and do not establish fresh-player or difficulty acceptance.
+Current receipt: `.agents/qa/m03-yard-eleventh/manifest.json`.
+
+The `m04_*.png` gallery shows the Notice to Vacate development prototype on the
+same pinned Windows/OpenGL/AMD Radeon 780M setup. Its final 23-state route cleared
+all 28 guards without a death, opened the clinic, released both patients and used
+the roof departure. All three secret locations were reached; two pickups were
+claimed and the meal medkit remained available at full health. The player lost
+125 HP and 100 armor over the attempt and finished at 100 HP and 50 armor.
+The receipt is `.agents/qa/m04-market-ninth/manifest.json`;
+[the authoring plan](../plans/m04-market-authoring.md) records failures and limits.
+These frames establish an accurate-aim authoring clear, not fresh-player pacing,
+difficulty acceptance or final art. They are separate from the four README stills.
+
+| File | Inspected state |
+|---|---|
+| `m04_arrival.png` | Actual Low Water first-person arrival and ordered first objective |
+| `m04_notary_windup.png` | Raised Notary's committed tell above the market |
+| `m04_notary_firing.png` | Actual locked attack with the Rifle aimed at the raised body |
+| `m04_notary_motion_strip.png` | Timed actual drone observation frames |
+| `m04_clinic_patients_strip.png` | Grounded released patients on their bounded route |
+| `m04_clinic_care.png` | Open clinic and patient outcome after physical Use |
+| `m04_market_water.png` | Actual shallow runoff, grate and repair detail in the market |
+| `m04_awning_secret.png` | Armor secret reached by the ordinary stair route |
+| `m04_court_balcony.png` | Court height, residential backdrop and cleared combat space |
+| `m04_roof_departure.png` | Actual server-confirmed departure with ESC return-to-menu binding |
+
+The final aftermath was inspected after correcting camera-depth clipping: the
+large near-camera sky fragments are gone. Water motion/depth and repair-texture
+lighting have separate rendered regressions; a still alone cannot prove them.
+
+| File | Inspected state |
+|---|---|
+| `m03_yard_arrival_16x9.png` | Daylight carriage frontage at the actual first-person arrival |
+| `m03_jammer_firing_16x9.png` | Committed emitter launch with its resolved orange pulse |
+| `m03_car_liberated_16x9.png` | Freed captive at the third car and server-confirmed three-car counter |
+| `m03_mast_target_16x9.png` | Registered red pod aimed at from the ordinary precision stairs |
+| `m03_mara_radio_16x9.png` | Mara's immediate corner warning after authoritative shutdown |
+| `m03_mast_fallen_16x9.png` | Fallen mast collision world on the signal-box roof |
+| `m03_signal_secret_16x9.png` | Actual secret pickup reached around the fallen geometry |
+| `m03_train_boarding_16x9.png` | Low Water control with a legal local Use prompt |
+| `m03_train_departure_16x9.png` | Server-confirmed departure with the resolved keyboard menu binding |
+
+The timed solo-Jammer observation strip is context; it does not establish pulse
+motion. Car-release stills show released figures, while validation/gait harnesses
+prove their bounded server-foot presentation. The train views show the stationary
+control and outcome, not moving vehicle physics or a rendered cinematic. Primitive
+locomotive geometry and repeated surfaces remain prototype art.
+
 `m01_intake_16x9.png`, `m01_balcony_16x9.png`, `m01_stacks_16x9.png`, and
 `m01_dispatch_16x9.png` were captured and inspected 2026-09-24 on Windows,
 OpenGL compatibility, AMD Radeon 780M, from the completed 13-state room tour

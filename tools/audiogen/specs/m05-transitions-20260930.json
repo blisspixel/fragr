@@ -1,0 +1,10 @@
+{
+  "out_dir": "client/assets/story",
+  "items": [
+    {"kind":"tts","name":"voice/en/m05_arrival/roofs","text":"The roofs of Low Water, ten minutes later.\n\nThe sweep holds the streets. The only way to the freight platform is over the tanks and down the tram trench, and Splice is still in the workshop.\n\nGet the rest out.","voice":"SAz9YHcvj6GT2YYXdXww","model":"eleven_v3","stability":0.5,"format":"mp3_44100_128","title":"No Forwarding Address: roofs"},
+    {"kind":"tts","name":"voice/en/l05_l06/carrier","text":"Mara found one carrier who would come.\n\nThe freight platform falls behind. Low Water stays below.","voice":"SAz9YHcvj6GT2YYXdXww","model":"eleven_v3","stability":0.5,"format":"mp3_44100_128","title":"Common carrier: departure"},
+    {"kind":"tts","name":"voice/en/l05_l06/records","text":"The transfer records name the lunar custody depot.\n\nThe missing from Low Water are already on their way there.","voice":"SAz9YHcvj6GT2YYXdXww","model":"eleven_v3","stability":0.5,"format":"mp3_44100_128","title":"Common carrier: records"},
+    {"kind":"sfx","name":"effects/grenade_bounce","prompt":"One small heavy steel hand grenade bouncing once against worn concrete, short dry metal thunk and tiny scrape, very compact transient followed by quiet air, close clean recording, no speech, no music, no weapon shot, no ringing tone","seconds":0.5,"influence":0.7,"loop":false,"format":"pcm_24000","title":"Grenade: dry bounce"},
+    {"kind":"sfx","name":"effects/grenade_blast","prompt":"One compact hand grenade explosion, dry sharp crack with low impact and a brief gritty concrete debris tail, game combat sound with clear attack and quick decay, no ringing ears, no voice, no music, no cinematic swell, no long reverb","seconds":0.9,"influence":0.7,"loop":false,"format":"pcm_24000","title":"Grenade: compact blast"}
+  ]
+}

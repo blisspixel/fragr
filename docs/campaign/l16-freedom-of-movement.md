@@ -1,5 +1,10 @@
 # Level 16: Freedom of Movement
 
+**Appearance anchor for level 16:** Ceremonial avenue: civic scale, repeated Union manufacture and useful route landmarks carry the approach toward command.
+Shared [world direction](../design/earth.md) and
+[character, voice and scene continuity](../design/characters.md) govern assets
+and staging. This anchor is a production target, not finished-appearance evidence.
+
 **Status:** planned, accepted 2026-09-25, unbuilt. The first half of
 [M09](m09-peace-without-interruption.md) in the
 [twenty-level expansion](../plans/campaign-expansion.md): the motorcycle run to

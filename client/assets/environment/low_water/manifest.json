@@ -1,0 +1,26 @@
+{
+	"files": [
+		{
+			"path": "plaster_repairs.png",
+			"sha256": "ccdfca85ff966693d7817baa106ddeb59e985053a67a4d4dd3159701f33ecc25",
+			"subject": "broad civilian plaster repairs and low waterline wear"
+		},
+		{
+			"path": "steel_repairs.png",
+			"sha256": "d7237cad6d841ce88c6d1b38ff3749d53ba0b1d83a0c72c9095eb37362f3775f",
+			"subject": "sparse replacement enamel, metal fasteners and removed plate scars"
+		}
+	],
+	"format": 1,
+	"integration": "optional lit Low Water vertical surface detail; no collision or emission",
+	"method": "original deterministic pixel placement",
+	"palette": "docs/palette.json",
+	"recipe": "tools/bake_low_water_details.gd",
+	"size": [
+		128,
+		128
+	],
+	"spend_usd": 0,
+	"texels_per_metre": 16,
+	"uncompressed_bytes": 131072
+}

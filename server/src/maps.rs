@@ -28,7 +28,7 @@ use std::f32::consts::PI;
 use std::sync::OnceLock;
 
 mod authored;
-pub(crate) use authored::encounters::EnemyPlacement;
+pub(crate) use authored::encounters::{EnemyPlacement, Hover};
 mod runtime;
 pub use authored::AuthoredMap;
 pub use runtime::RuntimeMap;
@@ -52,6 +52,15 @@ impl AuthoredSource {
             crate::protocol::MissionId::PersonsUnknown => {
                 include_bytes!("../maps/m02-persons-unknown.json")
             }
+            crate::protocol::MissionId::ScheduledService => {
+                include_bytes!("../maps/m03-scheduled-service.json")
+            }
+            crate::protocol::MissionId::NoticeToVacate => {
+                include_bytes!("../maps/m04_notice_to_vacate.json")
+            }
+            crate::protocol::MissionId::NoForwardingAddress => {
+                include_bytes!("../maps/m05_no_forwarding_address.json")
+            }
         };
         sha2::Sha256::digest(bytes).into()
     }
@@ -65,6 +74,15 @@ impl AuthoredSource {
             Self::Mission(crate::protocol::MissionId::PersonsUnknown) => {
                 AuthoredMap::read(include_bytes!("../maps/m02-persons-unknown.json").as_slice())
             }
+            Self::Mission(crate::protocol::MissionId::ScheduledService) => {
+                AuthoredMap::read(include_bytes!("../maps/m03-scheduled-service.json").as_slice())
+            }
+            Self::Mission(crate::protocol::MissionId::NoticeToVacate) => {
+                AuthoredMap::read(include_bytes!("../maps/m04_notice_to_vacate.json").as_slice())
+            }
+            Self::Mission(crate::protocol::MissionId::NoForwardingAddress) => AuthoredMap::read(
+                include_bytes!("../maps/m05_no_forwarding_address.json").as_slice(),
+            ),
         }
     }
 }

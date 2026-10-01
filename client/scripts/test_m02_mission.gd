@@ -34,7 +34,7 @@ func _state(completed: Array, current: Variant, phase: String = "in_progress", p
 			[[22.6, 0.0, 7.5], [24.5, 0.0, 7.5]] if side_secured else [[22.6, 0.0, 9.0], [24.5, 0.0, 9.0]], "evacuated": false}}
 	if current != null:
 		progress["current"] = current
-	return {"type": "mission", "tick": tick, "state": {"id": "persons_unknown", "rules": {"difficulty": "standard", "revision": 2},
+	return {"type": "mission", "tick": tick, "state": {"id": "persons_unknown", "rules": {"difficulty": "standard", "revision": MissionState.RULES_REVISION},
 		"attempt": attempt, "phase": phase, "changed_at": 0,
 		"party": [{"id": PLAYER, "name": "Walker", "ready": phase != "briefing", "alive": true, "aboard": phase == "departed"}],
 		"prompts": prompts, "m02": progress}}
@@ -227,7 +227,7 @@ func _run() -> void:
 	_evacuation_hud(moving, waiting, arrived, frozen, no_side_ward)
 	_readable(info)
 	if failures == 0:
-		print("test_m02_mission: PASS capability 21 evacuation, strict progress, gate map refresh, HUD and catalog keys")
+		print("test_m02_mission: PASS capability 25 evacuation, strict progress, gate map refresh, HUD and catalog keys")
 	quit(0 if failures == 0 else 1)
 
 func _durable(geometry: Dictionary, first: Dictionary, done: Dictionary) -> void:
@@ -345,6 +345,12 @@ func _hud(first: Dictionary, ward_fight: Dictionary, use: Dictionary, exit: Dict
 	_expect(_lines(hud) == 1 and hud._copy.text == tr("M02_OBJECTIVE_WARD_REACHED"), "ward approach shows one line: " + hud._copy.text)
 	hud._process(MissionHud.STAGE_SECONDS + 0.1)
 	_expect(_lines(hud) == 0, "the objective line leaves after the stage")
+	var quiet_state: Dictionary = hud.state.duplicate(true)
+	InputDevice.force(InputDevice.Kind.GAMEPAD, "gamepad", "letters")
+	hud._process(0.0)
+	_expect(_lines(hud) == 0 and is_zero_approx(hud._stage_left) and hud.state == quiet_state,
+		"M02 device refresh does not restage a timed-out objective or change mission facts")
+	InputDevice.reset()
 	hud.apply(ward_fight["state"], PLAYER)
 	_expect(_lines(hud) == 1 and hud._copy.text == tr("M02_OBJECTIVE_COMPANION_RELEASED") and not hud._prompt.visible,
 		"ward guards block the restraint prompt")
@@ -359,6 +365,16 @@ func _hud(first: Dictionary, ward_fight: Dictionary, use: Dictionary, exit: Dict
 	hud.apply(done["state"], PLAYER)
 	hud._process(MissionHud.STAGE_SECONDS + 0.1)
 	_expect(_lines(hud) == 1 and hud._copy.text == InputGlyphs.plain(tr("M02_DEPARTED")) and hud._copy.text == "OUT. ESC TO LEAVE.", "departure keeps one line")
+	var departed_state: Dictionary = hud.state.duplicate(true)
+	InputDevice.force(InputDevice.Kind.GAMEPAD, "gamepad", "letters")
+	hud._process(0.0)
+	_expect(hud._copy.text == "OUT. MENU TO LEAVE." and _lines(hud) == 1
+		and is_zero_approx(hud._stage_left) and hud.state == departed_state,
+		"M02 departure refreshes gamepad copy without a mission packet or timer reset")
+	InputDevice.reset()
+	hud._process(0.0)
+	_expect(hud._copy.text == "OUT. ESC TO LEAVE." and is_zero_approx(hud._stage_left),
+		"M02 departure refreshes keyboard copy without a mission packet")
 	var unknown: Dictionary = use["state"].duplicate(true)
 	unknown["m02"]["current"]["id"] = "later_objective"
 	unknown["prompts"] = []

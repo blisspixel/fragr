@@ -1,6 +1,9 @@
 # Flying Union drones
 
-**Status:** planned, placement corrected 2026-09-28. Design lives in
+**Status:** in flight, updated 2026-09-30. The bounded Notary pilot is implemented
+under the [M04 prototype](m04-notice-to-vacate-prototype.md); its rendered gate
+remains in progress. Assessor combat, general airborne route fallback and
+fresh-viewer tell recognition remain planned. Design lives in
 [ENEMIES.md](../ENEMIES.md#union-drones); this plan owns the combat build.
 The noncombat level 2 sighting is a separate
 [tableau](m02-notary-tableau.md). The Notary's first fight belongs to level 4

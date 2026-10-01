@@ -23,7 +23,9 @@ choices, not recorded or shipped characters.
 The companion is not replaced by the Host. Add a small survivor cast from the
 clinic, workshops, and custody depot. Each rescue needs a later action or a
 recognizable absence. Avoid disposable mission givers at every destination.
-NPC pathing, gestures and autonomous combat participation remain unbuilt.
+The authored prototypes implement bounded Latch following and combat, rescued
+recall-car passengers and clinic patient release. General civilian behavior,
+the proposed cast's gestures and later autonomous roles remain unbuilt.
 Playable viewpoints and optional allied appearances follow
 [the campaign contract](../CAMPAIGN.md#solo-co-op-agents-and-watching).
 There is no mandatory opening partner, companion seat handoff or revive system.

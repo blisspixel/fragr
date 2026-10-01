@@ -88,7 +88,7 @@ Initial handshake message. Must be sent immediately after connection.
   resume keeps the parked pawn's body even if this hello names another.
   Changing the body means leaving and joining again.
 - `gameplay_version`: maximum understood gameplay contract. Updated Rust readers
-  and the Godot client send `22`; omission means `1`. Discovery-only maps require
+  and the Godot client send `23`; omission means `1`. Discovery-only maps require
   2, maps with authored encounters require 3, and mission sequences require 6
   for shared difficulty.
   Versions 4 and 5 introduced physical controls and party readiness respectively;
@@ -133,8 +133,17 @@ Initial handshake message. Must be sent immediately after connection.
   `map_info.m02_side_ward` marker for maps with an authored side ward. Version 22
   adds M02's ballistic inspection glass, which older strict surface readers
   cannot render. M02 development and durable sessions now require 22; arcade
-  maps keep their
-  earlier requirements. Use matching campaign server/client builds.
+  maps keep their earlier requirements. Version 23 adds the stationary Union
+  Jammer and its live delayed interference pulses. Any authored map containing
+  a Jammer requires 23 for every role. M01 and M02 retain their existing minimum
+  requirements. Version 24 adds Scheduled Service's strict M03 geometry,
+  guarded shoot objective, car liberation and train departure. Version 25 adds
+  Notice to Vacate, the raised Union Notary and campaign rules revision 3.
+  Version 26 adds No Forwarding Address, the authoritative translating tram,
+  counted grenades and resolved explosions. All authored mission and discovery
+  equipment roles now require 26, including M01 through M05.
+  The revision 2 live campaign contract is retired; compatible historical
+  saves and retained service records remain readable. Use matching campaign builds.
   Older clients of every role are rejected before `Welcome`
   with `unsupported_gameplay`. This capability is separate from geometry. The six
   full-arsenal arcade maps still accept 1. There an older reader draws only the
@@ -288,28 +297,34 @@ The authority sends `{"type":"mission","tick":42,"state":{...}}` after map data
 and before the corresponding snapshot whenever shared state changes. `state` is:
 
 - `id`: `recall_notice` for M01, `persons_unknown` for the M02 preparatory
-  graybox; `attempt`: positive retry revision; `changed_at`: tick of
+  graybox, `scheduled_service` for M03, or `notice_to_vacate` for M04;
+  `attempt`: positive retry revision; `changed_at`: tick of
   the last phase change/reset, no later than the message tick.
 - `phase`: M01 uses `briefing`, `find_transfer`, `reach_lift`, or `departed`.
-  M02 uses `briefing`, `in_progress`, or `departed`.
+  M02, M03 and M04 use `briefing`, `in_progress`, or `departed`.
 - `rules`: required `{difficulty,revision}`. Difficulty is `assisted`, `standard`
-  or `severe`; revision is exactly `2`. Unknown fields/revisions are invalid.
+  or `severe`; revision is exactly `3`. Unknown fields/revisions are invalid.
   Revision 2 (2026-09-24) removed reload pauses for guards and players and made
   the scatter a seven-pellet blast; revision 1 was the magazine era.
+  Revision 3 (2026-09-30) adds Notary windup/recovery rows of 24/36, 16/26
+  and 12/20 ticks for Assisted, Standard and Severe. Earlier enemy rows remain
+  unchanged. Revision 2 is accepted only in historical records and explicit
+  versioned save upgrades, never in a live mission state.
   The host chooses once before admission. Geometry changes, death, retries and
   joining participants preserve these rules. Clients cannot change them through
   actions or readiness; agent observations contain the same rules as human UI.
 - `party`: up to four `{id,name,ready,alive,aboard}` members. Names are display labels.
 - `prompts`: `{player_id,kind}` for currently legal interactions. Kinds are
   `transfer_record` and `lift_departure` for M01, or `objective_use` for an M02
-  use objective. These are not localized strings.
+  or M03/M04 use objective, and `clinic_shutter` for M04's optional shutter.
+  These are not localized strings.
 - `run`: present only in durable solo mode:
   `{id,status,continues,level_start_continues}`. `id` is a nonnil UUID;
   `status` is `playing`, `continue`, `failed`, `complete` or `abandoned`. Allowance
   starts at 3 for Episode I and only decreases. A new level records the
   remaining allowance as `level_start_continues`, so its first attempt is 1
   even if a previous level used a continue. During that level, `attempt` equals
-  `level_start_continues - continues + 1`. Starting M02 never refills the pool;
+  `level_start_continues - continues + 1`. Starting M02, M03 or M04 never refills the pool;
   zero remaining continues still permits its first attempt, then exhaustion.
   State has at most one party member. Waiting requires its dead owner; failed
   retains a dead owner until they leave, then an empty party.
@@ -353,6 +368,78 @@ and before the corresponding snapshot whenever shared state changes. `state` is:
   completed `companion_released`; late readers receive both facts in the
   current mission state. Its independent development child has no run; a
   resumed solo run may carry the same identity and Episode I allowance from M01.
+
+M03 carries `m03` exactly for `scheduled_service`, never `m02`. Its strict
+object is `{mast_hp,mast_secured,train_secured,cars,current}`. Mast HP is 0 to
+40; damage is accepted only from resolved ordinary shots striking the registered
+pod after its authored guard encounter completes. `mast_secured` and
+`train_secured` derive from their encounters. `cars` is a bounded stable-order
+list of `{id,released,captives}` with two authoritative world-feet positions
+per car. Held positions match the map definition; released captives walk the
+validated held-to-safe segment at server tick rate. A release requires that
+car's encounter clear and a living ready participant in its approach region.
+It never gates train departure. These facts cannot regress within an attempt.
+
+While the mast is intact, `current` is
+`{"id":"mast_disabled","action":{"kind":"shoot","solid":34,"approach":[22,2.5,13],"aim":[22,7.5,17]}}`.
+The solid index, approach and aim bind exactly to `map_info.m03.mast`.
+Shutdown sends the precomputed fallen MapInfo before mission state, then
+`current` becomes `party_departed` with a `use` action naming the exact
+departure target. A deliberately pressed, in-range, aimed Use requires the
+final guards cleared and all living ready party members aboard. Departure
+omits `current`. Retry restores the intact mast, guards and unreleased cars.
+
+M04 carries `m04` exactly for `notice_to_vacate`, mutually exclusive with
+`m02` and `m03`. Its strict object is
+`{completed,current?,clinic_secured,clinic_open,patients_released,patients,photos_completed,carried_recall_cars}`.
+`completed` is a prefix of `notice_board_cleared`, `first_notary_cleared`,
+`street_wave_cleared`, `market_wave_a_cleared`, `market_wave_b_cleared` and
+`court_cleared`. Only departure appends `party_departed` and omits `current`.
+While fighting, `current` binds to the corresponding registered arrival
+objective; after the sixth encounter it is the registered roof departure Use.
+Future encounter bodies do not appear until the preceding encounter clears.
+
+`clinic_secured` follows the third encounter. A deliberate ordinary Use at the
+registered clinic panel then opens its precomputed world. The replacement
+MapInfo is queued before the changed Mission and Snapshot. Local arrival in
+the release region frees the optional patients; their `{id,feet}` samples
+remain on the registered, unambiguous grounded routes and cannot move backward
+within an attempt. Patient walking never gates roof departure. Departure
+requires all living, ready party members aboard and all six encounters clear.
+Retry closes the clinic, restores guards and patients, and clears photograph
+and rescue attempt facts. Carried M03 liberation IDs remain immutable.
+
+`photos_completed` counts only the first resolved burst round hitting its
+original live, active, ready participant, once per burst. Misses, locked-aim
+dodges, intervening cover, dry fire and prior interruption add nothing; later
+burst rounds never count. A committed shot traded in the same simulation frame
+still has its resolved evidence. The counter is bounded at 1,000,000.
+`carried_recall_cars` contains at most four unique registered-form ASCII IDs.
+
+M05 carries `m05` exactly for `no_forwarding_address`, mutually exclusive with
+`m02`, `m03` and `m04`. Its strict object is
+`{completed,current?,workshop_secured,group_released,captives,freight_open,tram,carried_recall_cars,carried_patients,carried_photos}`.
+`completed` is a prefix of `roof_crossed`, `grenade_lesson_cleared`,
+`workshop_cleared`, `trench_cleared`, `heavy_cleared`, `freight_secured`, then
+`party_departed`. The current objective is the matching arrival, or the final
+registered ship Use. Required encounter bodies appear in order. The workshop
+releases all three captives only after clearance and actual party presence in
+the release region. Stable IDs are `splice`, `workshop_agent_a` and
+`workshop_agent_b`; grounded `{id,feet}` samples follow registered routes.
+Release is distinct from physical arrival inside boarding. Captive arrival
+never gates departure. Car, clinic and photograph carry is immutable per attempt.
+
+`tram` is `{phase,feet,tick}` with `parked`, `boarding`, `moving`, `blocked` or
+`arrived`. Feet name the lower-face centre of the registered solid. After release
+and party presence in its activation region, the tram allows three seconds for
+boarding, then moves along its bounded Z lane. Current collision, projectile and
+cover checks use this translated solid. Supported living riders receive its
+displacement before ordinary movement; jumping or leaving support stops carry.
+Swept obstructions refuse the entire step. Walking access remains available.
+Retry restores the parked tram, closed freight gate, guards and held captives.
+Freight clearance sends the prepared open MapInfo before changed state. Clients
+wait for matching fresh facts before steering. Departure requires all required
+encounters, living ready party members at boarding, and a fresh aimed Use.
 
 Participants finish or skip their opening by sending
 `{"type":"mission_ready","id":"recall_notice","attempt":1}` using the current
@@ -464,6 +551,12 @@ World-point aim:
 - `left` / `right`: Strafe left/right
 - `turn_left` / `turn_right`: Rotate view left/right (incremental)
 - `fire`: Fire weapon
+- `throw_grenade`: Optional held boolean, omitted while false. A rising edge
+  latches one counted throw, including a press and release between ticks.
+  Holding it does not repeat. The launch uses authoritative aim, consumes one
+  of at most six grenades and takes that tick's attack admission while retaining
+  gun selection. An empty or refused throw still permits gun fire. The separate
+  throw cooldown is 15 ticks; fuse is 40 subsequent active ticks.
 - `jump`: Jump while grounded. The held value remains active until released;
   a press followed by release before the next tick is retained for that tick.
   The retained press is consumed once, including while airborne or dead, so it
@@ -595,8 +688,14 @@ also send `map_info` before shared progress, even when the map ID stays the same
   (+Z,+Y), (-Z,+Y), (+X,+Z), (+X,-Z), (-X,+Y), (+X,+Y).
   Kinds are `property_sign`, `intake_sign`, `records_sign`, `maintenance_sign`,
   `transfer_sign`, `lift_sign`, `complaint_notice`, `union_seal`, `lockers`,
-  `vent`, `terminal`, `lift_control`, `strip_light`, `gate_locked` and
-  `gate_open`. Text keys and assets belong to the client;
+  `vent`, `terminal`, `lift_control`, `strip_light`, `gate_locked`,
+  `gate_open`, and the M03 kinds `m03_schedule_board`, `m03_schedule_cancelled`,
+  `m03_platform_car`, `m03_siding_car`, `m03_roof_car`, `m03_mast_sign` and
+  `m03_board_train`, plus `m04_clinic_care`, `m04_clinic_sign`,
+  `m04_field_printer`, `m04_market_canvas`, `m04_meal_six`, `m04_noodle_six`,
+  `m04_notice_board`, `m04_paint_locker`, `m04_repair_bench`, `m04_tram_vote`,
+  `m04_water_tank`, `m04_workshop`, `m04_clinic_control` and
+  `m04_roof_departure`. Text keys and assets belong to the client;
   map data cannot provide scripts, arbitrary text, paths or URLs. These thin
   panels cannot create collision or interactions. Old payloads omit the array;
   older presenters can ignore it without changing geometry or gameplay versions.
@@ -616,6 +715,42 @@ also send `map_info` before shared progress, even when the map ID stays the same
   Omitted means false. This is the presence contract for the two-person
   `mission.state.m02.evacuation` state. A client rejects a mission state whose
   evacuation presence disagrees with the current map marker.
+- `m03`: present only on Scheduled Service, map ID 1003 and geometry version 2.
+  The strict object contains `mast:{solid,approach,aim}`, `mast_shutdown`,
+  `departure:{decoration,approach}`, `boarding:{min,max}`, `companion_start`
+  and one to four `cars:{id,release:{min,max},held,safe}`. Held and safe each
+  contain two stable-order world-feet positions on the same-height validated
+  evacuation segments. The mast solid index binds the real shoot target;
+  original approach and aim remain unchanged after shutdown. The server
+  prepares exactly two mast worlds before readiness. Optional car release
+  changes no collision world. `mast_shutdown` must match subsequent zero
+  mast HP. The fallen world's schedule sign becomes `m03_schedule_cancelled`.
+  Same-map replacements cannot rebind any static M03 contract field. Every
+  role now requires capability 26 under campaign rules revision 3.
+- `m04`: present only on Notice to Vacate, map ID 1004 and geometry version 2.
+  Its strict object contains `clinic_open`, `clinic:{control,release}`,
+  `patients:[{id,held,route}]`, six ordered arrival `objectives`, `departure`,
+  `boarding` and `companion_start`. Controls are registered `UseTarget`
+  objects; regions have finite `min`/`max` feet bounds. There are one to four
+  patients, each with a stable ID and two to sixteen grounded route points
+  starting at `held`. Routes reject loops, reversal and ambiguous overlapping
+  tolerance corridors. The server prepares exactly two clinic worlds before
+  readiness. Same-map replacements cannot rebind the static contract. Clients
+  discard current mission steering until fresh state matching the replacement
+  world arrives. Every role requires capability 26.
+- `m05`: present only on No Forwarding Address, map ID 1005 and geometry version
+  2. Its strict object contains `freight_open`, `rescue:{release,captives}`,
+  six ordered arrival `objectives`, `departure`, `boarding`, `companion_start`
+  and `tram:{solid,start,end,speed,activation}`. Three stable-order captives have
+  registered `id`, `held` and two to sixteen grounded route points, ending at
+  boarding. `tram.solid` binds the real baseline solid; start/end are its
+  lower-face centre with identical X/Y, Z travel from 2 to 24 metres and speed
+  from 0.1 to 1.5 metres per second. The server prepares closed/open freight
+  worlds and conservative navigation excluding the swept tram lane before
+  readiness. Moving the tram does not rebuild topology or replace MapInfo each
+  tick. Same-map replacement cannot rebind its static contract. Current tram
+  state supplies collision for presentation and prediction. Every role requires
+  capability 26, with unchanged campaign rules revision 3.
 
 Geometry bounds: finite half extent from 2 to 256; at most 2048 solids; finite
 coordinates within -512 to 512; strictly increasing X and Z bounds. Navigation
@@ -648,6 +783,7 @@ in `Snapshot.players[].weapon`; ammunition does not.
   "selected": "tack",
   "weapons": ["fists", "tack"],
   "ammo": [{"pool":"bullets","rounds":0},{"pool":"shells","rounds":0},{"pool":"cells","rounds":0}],
+  "grenades": 0,
   "personal_claims": ["bay_tack"],
   "dry_fire_count": 1
 }
@@ -669,6 +805,12 @@ resets with a development life, and drives feedback without generating shots.
 Clients validate ownership, unique entries, bounded counts and nondecreasing
 ticks before replacing their observation. Limits and timings
 come from `protocol/loadout.rs`; the Godot boundary mirrors them.
+
+`grenades` is a required separate integer from zero through six. It is neither
+a weapon slot nor an ammunition pool. A grant with `kind: "grenade"` and bounded
+`amount` uses ordinary personal or contested claims; its pickup carries kind
+`grenade`, actual amount, no weapon and no pool. A throw changes the private
+count, with no magazines or reload. Weapon-only mutators refuse grenades.
 
 Pickup entries additionally support `kind: "ammo"`, `pool` (`bullets`, `shells`,
 `cells`) and a round `amount`. `claim` defaults to `contested` and is omitted in
@@ -865,6 +1007,20 @@ Periodic state broadcast containing all visible game entities. Sent at ~20 Hz.
 
 **Fields:**
 - `tick`: Server tick counter
+- `grenades`: Optional live array, omitted when empty. Each strict entry has
+  `id` (monotonic u32), `owner_id`, finite three-component `position`, remaining
+  `fuse_ticks` (1 through 40), and `bounce_count` (0 through 640). The count
+  advances for actual impacts with at least 1 m/s normal speed; settled support
+  is not a bounce. Initial observations never replay earlier contact cues.
+- `explosions`: Optional resolved array for this tick, omitted when empty.
+  Each strict entry has `id`, `owner_id`, finite `position`, `radius` (4), and
+  up to 256 unique `hits`. A hit has `target_id`, actual `hp_damage`,
+  `armor_damage`, `target_hp_after` and `killed`. Damage uses nearest actual
+  body distance, linear 100-to-zero falloff and current solid occlusion. It
+  respects armor, raised bodies and real tram cover. Self damage has no self
+  frag or outgoing credit. A dead owner retains a launched grenade; explicit
+  leave, retry, map/round replacement or departure clears it. Gun traces are
+  not invented for grenades.
 - `players`: Array of visible player states. A fighter waiting to respawn is not in it. There is no corpse on the wire: the server drops a player from the snapshot the moment it dies and puts it back three seconds later at its spawn point, so absence is how death looks to an agent. Watch for the `frag` and `respawn` events rather than inferring death from a health value, and do not read a missing fighter as one that has left the match.
   - `id`: Player UUID
   - `name`: Display name
@@ -898,7 +1054,10 @@ Periodic state broadcast containing all visible game entities. Sent at ~20 Hz.
 - `projectiles`: (optional, omitted when empty) Points still in flight. Each entry
   is `id`, `x`, `y`, `z` in world metres. The server steps them. A reader that
   does not know the key ignores it. An empty list is the same as a missing key.
-  This is not a weapon trace and it does not change the gameplay capability.
+  This is not a weapon trace. The additive point list does not itself change
+  admission; maps containing a live Jammer require capability 23 for its actor
+  identity and visible delayed attack. The client places bright markers at these
+  server positions without predicting collision or damage.
 - `mode_name`: Contested Frequency (scrap league that denies it exists)
 - `playlist`: Arena Duel under the league lie
 - `pressure`: (optional) Live pressure beat id. `"compliance_drone"` while the Compliance Drone is alive; `"compliance"` during Continuance compliance ping slow.
@@ -991,7 +1150,8 @@ changes presentation only, not the authoritative body or shot geometry.
 `Role` describes the connection's controller, not faction or fictional anatomy.
 Human and external-agent participants are allies. Union `kind` is `clerk` (human
 security), `sweeper` (bot), `heavy_sweeper` (armored bot), `turret` (fixed
-equipment) or `crawler` (low constrained bot). Names are labels, never a
+equipment), `crawler` (low constrained bot), `jammer` (stationary service
+transmitter), or `notary` (flying Office patrol equipment). Names are labels, never a
 targeting rule. Current
 campaign identity describes these introductory encounters; it does not implement
 Inheritance takeover, additional companions or the complete co-op lifecycle.
@@ -1024,12 +1184,44 @@ durations are the same across difficulty tiers and do not change the campaign
 rules revision. A contact resolved during movement can trade with a shot fired
 later in the same tick. Presentation frames do not apply damage.
 
+A `jammer` has 90 HP, no locomotion and no carried gun. Its wire weapon is
+`Fists`, but it does not perform a fists attack. Its dish unfolds during a
+24-tick `windup`, then its `firing` phase launches one traveling pulse along
+the aim committed at windup entry. Broken sight and ordinary hits interrupt the
+tell. It spends 40 ticks in `recovery`, and cannot launch another pulse while
+its previous one is in flight. These timings are identical across difficulties,
+leaving existing difficulty tables and rules revision unchanged. A pulse travels
+at 2.5 metres per second, deals 12 damage through the shared combat resolver,
+and expires after 240 ticks (12 seconds). A solid or the first eligible body
+ends its flight; a sideways dodge can avoid it. Firing poses do not resolve an
+instant hitscan attack and produce no gun `shot_results` trace. Pulse positions
+appear in `projectiles`; resolved damage still emits the existing hit event.
+Campaign retry and party reset clear all in-flight points. Killing the emitter
+does not cancel an already launched pulse.
+
+A `notary` has 50 HP and a raised 1.3 by 1.3 by 0.7 m axis-aligned shot box.
+Snapshot position retains the shared eye-height convention; its underside is
+`position.y - 1.5`, with its target centre 0.35 m above that. Alive bodies hover
+within authored clear volumes and short patrol segments, separately from ground
+navigation. Windup freezes its position and commits aim. The three-round Tack
+burst has five-tick spacing; positive damage interrupts it. It keeps horizontal
+separation at least as large as its elevation above a target, avoiding direct
+overhead attacks. The first resolved round supplies the photograph evidence
+described in M04 state. Firing poses alone never imply a shot or photograph.
+Death applies server gravity onto actual ground or solid support, then leaves
+a short harmless, nonblocking wreck. Retry removes it. The original directional
+client atlas, shadow, fan loop, shutter and supported crash cue follow these
+facts; late-joined corpses do not replay crash cues.
+
 Campaign participants cannot damage one another. Participant and Union allies
 intercept rays with `hit: true`, `damage: 0` and `killed: false`; zero damage must
 not show a hit-confirm or wound. The M02 companion does not intercept bullets or
 collect supplies. Dead enemies remain in snapshots for
-40 ticks with nonpositive HP and phase `dead`, then disappear. They cannot move,
-fire, collect supplies or intercept shots, and never use arcade respawn. Exclude
+40 ticks with nonpositive HP and phase `dead`, then disappear. A dead Jammer is
+retained longer while its launched pulse needs the original combat owner. It
+disappears after that pulse resolves. A dead Notary falls to support before its
+wreck hold expires. Other dead enemies cannot move. None can fire, collect
+supplies or intercept shots, and none use arcade respawn. Exclude
 Union actors from participant counts, scoreboards and spectator-player selection.
 Campaign kills do not emit arcade frags, streaks or Host taunts.
 
@@ -1514,8 +1706,14 @@ prior run bytes under a unique name and saves the initial run before readiness.
 Resume locks and validates the versioned run against the exact authored
 content bytes and campaign rules before readiness. An M01 exit waiting for M02
 is checked against the M01 content it names, then promoted once to an M02 entry
-under the same lock. A supported v2 M01 document is migrated to v3 with its
-original bytes retained; v1 magazine-era saves remain incompatible. A second
+under the same lock. M02 promotes to M03, M03 to M04 and M04 to M05 without
+refilling continues or equipment. Compatible v2 M01, v3 M01/M02 and v4
+M01/M02/M03 documents migrate to v6 after validating their historical revision
+2 rules and exact content hash. The upgrade promotes rules to revision 3 with
+exact original bytes retained. Strict v5 M01 through M04 documents retain revision
+3 and upgrade to v6 with zero historical grenades. Old shapes reject grenade
+fields and forged M05 stages. Exact source bytes are archived before replacement;
+v1 magazine-era saves remain incompatible. A second
 child cannot own the same file. Omitting `--run-mode` retains independent
 development behavior. The read-only `--local-run-preview` identifies the saved
 mission, instead of using the launcher's guessed map. It prints one bounded
@@ -1523,7 +1721,20 @@ JSON status line for the menu: `missing`, `ready` (mission, difficulty, attempt,
 continues, pending_continue, nullable body), `failed`, `abandoned`,
 `awaiting_mission` (mission, difficulty, continues, nullable body),
 `incompatible`, or `corrupt`. `awaiting_mission` identifies M02 after M01 or
-the unsupported `scheduled_service` level after M02. An absent body on a legacy
+M03 `scheduled_service` after M02, M04 `notice_to_vacate` after M03, or the
+M05 `no_forwarding_address` after M04, or unbuilt M06 `port_of_entry` after M05.
+Version 6 retains completed
+M03 optional liberation IDs in `m03_outcome:{liberated_cars:[...]}` at the
+pending M04 edge and throughout M04 entry, retry and terminal states. Completed
+M04 adds `m04_outcome:{rescued_patients:[...],photos_completed}` exactly at
+the pending M05 edge and throughout M05 entry/retry/terminal states. M05 adds
+`m05_outcome:{released_workers:[...],evacuated_workers:[...]}` exactly at the
+pending M06 edge. Release contains either no workers or all three registered
+IDs, and evacuated workers are a unique subset physically inside boarding.
+Every v6 saved equipment object has independent `grenades` from zero to six.
+Episode II continues are not refilled at this still-unbuilt transition.
+Unknown future versions, forged older M04/M05 states and
+changed source hashes are rejected before replacement. An absent body on a legacy
 save is bound by the player's visible body choice on admission; a bound body
 remains the server-owned run identity despite later profile changes.
 The menu treats preview as advisory; launch validates again under the lock.
@@ -1534,21 +1745,47 @@ version 2 requires that field; it is separate from
 the on-wire campaign rules revision. No parent command changes it during a run.
 
 ```json
-{"version":2,"mission":"recall_notice","difficulty":"standard","url":"ws://127.0.0.1:49152","gameplay_version":18}
+{"version":2,"mission":"recall_notice","difficulty":"standard","url":"ws://127.0.0.1:49152","gameplay_version":26}
 ```
 
-The readiness record names the selected mission's client contract, rather than
-the highest version understood by the server. Durable local M01 names 18 for
-run carry. M02 development and durable local sessions name 22 for the
-server-owned optional evacuation state and the strict inspection glass surface.
+The readiness record names the selected mission's current client contract.
+All five authored missions, development or durable, name capability 26 for
+campaign rules revision 3. Their older 18/22/24/25 bootstrap contracts are retired.
 The local launcher checks this value exactly.
 
 `--local-mission persons_unknown` without a run mode starts the bundled M02
 graybox as a development child. It writes the same readiness line with
-`"mission":"persons_unknown"` and `"gameplay_version":22`, carries no
+`"mission":"persons_unknown"` and `"gameplay_version":26`, carries no
 `run`, and keeps development entry respawn and the shared wipe reset. With
 `--run-mode resume`, M02 receives the saved solo run from M01 or resumes its
-own entry; it requires capability 22. A new durable run must start at M01.
+own entry; it requires capability 26. A new durable run must start at M01.
+
+`--local-mission scheduled_service` without a run mode starts the independent
+bundled M03 prototype with capability 26 and no durable save. With
+`--run-mode resume`, it promotes a compatible completed M02 run under the same
+writer lock or reopens an M03 entry. Health, armor, body, weapons, ammunition,
+selected weapon and remaining continues carry unchanged; old-map claims clear.
+Retry restores the M03 entry, mast and car releases. A failed migration keeps
+the prior live file and exact content-addressed archive recoverable.
+
+`--local-mission notice_to_vacate` without a run mode starts the independent
+bundled M04 prototype with capability 26 and no durable save. Resume promotes
+a completed M03 exit once under the writer lock or reopens its M04 entry.
+Run identity, body, difficulty, exact equipment, HP, armor and remaining
+continues carry unchanged; old-map personal claims clear. Completed M03 car
+choices remain available through M04 retries. A pending destination plays its
+arrival scene before readiness; restarting an existing entry skips that scene.
+Dismissal consumes the input and waits for release before acknowledging.
+
+`--local-mission no_forwarding_address` without a run mode starts the independent
+bundled M05 prototype with capability 26 and no durable save. Resume promotes
+a completed M04 exit once under the writer lock or reopens M05. It retains
+body, difficulty, HP, armor, gun ammunition, independent grenades, remaining
+continues and earlier car/clinic/photo choices, clearing only old-map personal
+claims. Explicit Continue restores the M05 entry and all attempt state without
+rewinding ticks, action sequence or inventory revisions. Completion saves the
+pending Port of Entry boundary and separate release/physical boarding outcomes;
+the next mission is not yet playable.
 
 The port is chosen by the OS. Diagnostics use stderr. The parent validates the
 exact version, mission, requested difficulty, gameplay capability and loopback endpoint before using
@@ -1569,7 +1806,7 @@ Recording metadata is not sent on the live socket.
 - **Delta compression**: Send only changed fields
 - **Interest management**: Filter snapshots by visibility/distance
 - **UDP option**: Low-latency channels for actions (alongside WS for reliability)
-- **Prediction**: Local human movement prediction and Ack reconciliation shipped on the WebSocket client. Interpolation of other fighters remains later work.
+- **Prediction**: Local human movement prediction and Ack reconciliation shipped on the WebSocket client. The local presentation increment interpolates remote fighters on a bounded 100 ms timeline, clears discontinuities and keeps shots tied to resolved traces. Campaign-enemy timeline interpolation and bounded lag compensation remain later work.
 
 ## Participant records
 
@@ -1619,6 +1856,15 @@ body killed by an earlier committed ray do not count as damaging attacks.
 Effective damage excludes overkill. Simultaneous trades keep both attacks, and
 one shot receives each death credit. Dry triggers are latched pulls on an empty
 count, separate from accepted attacks; cooldown denials are neither.
+
+An optional `grenades` column has the same five count fields, defaults to zero
+for historical record version 1 and is omitted while unused. It leaves the six
+gun indices unchanged. Aggregate totals include this column. One launch counts
+one attack, one blast that damages any other eligible body counts one damaging
+attack, and at most 256 kills can belong to it. Actual self HP/armor loss counts
+only on the victim side. Successful throws suppress gun fire for that tick, so
+aggregate attacks remain bounded by active ticks. Retained records keep their
+existing byte shape when the grenade column is zero.
 
 Living active ticks exclude intro/readiness, dead respawn waiting, continue
 choice and terminal waiting. The lethal frame counts. This is not wall-clock

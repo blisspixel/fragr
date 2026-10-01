@@ -56,7 +56,94 @@ func _blast(target: String, kind: String, count: int, damage: int) -> Dictionary
 	shot["trace"]["impact"] = pellets[0]["impact"]
 	return shot
 
+func _vertices(effects: ShotEffects) -> PackedVector3Array:
+	var mesh: Mesh = effects.get_node("Surface").mesh
+	if mesh.get_surface_count() == 0:
+		return PackedVector3Array()
+	var arrays: Array = mesh.surface_get_arrays(0)
+	return arrays[Mesh.ARRAY_VERTEX]
+
+func _check_camera_clearance(effects: ShotEffects, camera: Camera3D, message: String) -> void:
+	var transform: Transform3D = camera.get_camera_transform()
+	var forward: Vector3 = -transform.basis.z.normalized()
+	var clearance: float = maxf(ShotEffects.CAMERA_CLEARANCE, camera.near)
+	var vertices: PackedVector3Array = _vertices(effects)
+	_check(not vertices.is_empty(), message + " keeps the distant trace")
+	for vertex: Vector3 in vertices:
+		_check(forward.dot(effects.to_global(vertex) - transform.origin) >= clearance - 0.00001,
+			message + " emits no polygon inside the camera clearance")
+
+func _test_incoming_camera(effects: ShotEffects) -> void:
+	var camera: Camera3D = Camera3D.new()
+	root.add_child(camera)
+	camera.position = Vector3(0.0, 1.6, 0.0)
+	camera.make_current()
+	var incoming: Dictionary = _shot("fighter", "flechette")
+	incoming["shooter_id"] = "hostile"
+	incoming["trace"]["origin"] = [0.0, 1.6, -8.0]
+	incoming["trace"]["end"] = [0.0, 1.6, -0.025]
+	incoming["trace"]["impact"]["normal"] = [0.0, 0.0, 1.0]
+	effects.ingest(100, [incoming])
+	_check_camera_clearance(effects, camera, "incoming first-person hit")
+	_check(effects.active_count() == 1 and effects.has_shot_from("hostile", "fighter"),
+		"camera clipping retains resolved incoming hit evidence")
+	effects._process(0.07)
+	_check(_vertices(effects).is_empty() and not effects.visible and effects.is_processing(),
+		"listener impact creates no empty surface but retains its expiry clock")
+	effects._process(0.18)
+	_check(effects.active_count() == 0 and not effects.is_processing(), "clipped effects still expire")
+	effects.clear()
+	# Prediction can move the eye into an impact after the snapshot is presented.
+	incoming["trace"]["end"] = [0.0, 1.6, -3.0]
+	effects.ingest(101, [incoming])
+	effects._process(0.07)
+	_check(not _vertices(effects).is_empty(), "distant fighter impact remains visible")
+	camera.position.z = -2.95
+	effects._process(0.0)
+	_check(_vertices(effects).is_empty() and effects.active_count() == 1,
+		"moving predicted eye into a live impact clips the rebuilt geometry")
+	camera.position.z = 1.0
+	effects._process(0.0)
+	_check_camera_clearance(effects, camera, "moving eye away from impact")
+	effects.clear()
+	# Use the active camera orientation, including spectator eye changes.
+	camera.position.z = 0.0
+	camera.rotation.y = PI * 0.5
+	incoming["trace"]["origin"] = [-8.0, 1.6, 0.0]
+	incoming["trace"]["end"] = [-0.025, 1.6, 0.0]
+	incoming["trace"]["impact"]["normal"] = [1.0, 0.0, 0.0]
+	effects.ingest(102, [incoming])
+	_check_camera_clearance(effects, camera, "rotated spectator eye")
+	camera.near = 1.0
+	effects._process(0.0)
+	_check_camera_clearance(effects, camera, "larger configured camera near plane")
+	effects.clear()
+	incoming["trace"]["weapon"] = "shiv"
+	incoming["trace"]["origin"] = [-1.0, 1.6, 0.0]
+	effects.ingest(103, [incoming])
+	_check(effects.active_count() == 1 and _vertices(effects).is_empty(),
+		"close incoming melee impacts cannot cover the first-person eye")
+	effects.clear()
+	# A beam through the eye retains its distant section after polygon clipping.
+	incoming["trace"]["weapon"] = "rail"
+	incoming["trace"]["origin"] = [-8.0, 1.6, 0.0]
+	incoming["trace"]["end"] = [8.0, 1.6, 0.0]
+	effects.ingest(104, [incoming])
+	_check_camera_clearance(effects, camera, "beam crossing the eye")
+	effects.clear()
+	camera.free()
+
 func _run() -> void:
+	root.set_meta("fragr_automated", true)
+	if DisplayServer.get_name() != "headless":
+		# Keep raster evidence isolated from the headless match-glue fixtures.
+		await _rendered_camera_change()
+		await RenderingServer.frame_post_draw
+		await RenderingServer.frame_post_draw
+		if _failures == 0:
+			print("test_shot_effects: PASS actual render-camera clearance")
+		quit(0 if _failures == 0 else 1)
+		return
 	var effects: ShotEffects = ShotEffects.new()
 	root.add_child(effects)
 	# One scatter blast: four pellets in one fighter, two in another, one lost.
@@ -82,8 +169,11 @@ func _run() -> void:
 	effects.ingest(1, [_shot(), _shot("fighter", "scatter"), _shot("range", "flechette")])
 	_check(effects.active_count() == 3 and effects.visible, "all impact kinds create bounded presentation")
 	_check(effects.get_node("Surface").mesh.get_surface_count() == 1, "effects share one mesh surface")
-	var material: StandardMaterial3D = effects.get_node("Surface").mesh.surface_get_material(0)
-	_check(not material.no_depth_test, "effects must remain occluded by world geometry")
+	var material: ShaderMaterial = effects.get_node("Surface").mesh.surface_get_material(0)
+	_check(material.shader == ShotEffects.CLEARANCE_SHADER
+		and not material.shader.code.contains("depth_test_disabled")
+		and material.get_shader_parameter("camera_clearance") == ShotEffects.CAMERA_CLEARANCE,
+		"effects retain world depth and bounded actual render-camera clearance")
 	effects.ingest(1, [_shot()])
 	effects.ingest(0, [_shot()])
 	_check(effects.active_count() == 3, "duplicate and reordered snapshots cannot repeat effects")
@@ -128,6 +218,7 @@ func _run() -> void:
 	effects.ingest(5, [cut, long_cut, reaching_punch, _shot("range", "shiv")])
 	_check(effects.active_count() == 1 and effects.has_shot_from("self", "fighter"), "a Shiv cut draws inside its own reach, never as a tracer or at fist reach")
 	effects.clear()
+	_test_incoming_camera(effects)
 	# The real match route must retain the weapon even with no surviving pawn.
 	var game: Node = load("res://scenes/main.tscn").instantiate()
 	game.settings = FragrSettings.new()
@@ -170,5 +261,62 @@ func _run() -> void:
 	effects.queue_free()
 	await process_frame
 	if _failures == 0:
-		print("test_shot_effects: PASS validated traces, bounded geometry, expiry, trades, lifecycle")
+		print("test_shot_effects: PASS validated traces, bounded geometry, camera clearance, expiry, trades, lifecycle")
 	quit(0 if _failures == 0 else 1)
+
+func _rendered_camera_change() -> void:
+	var viewport: SubViewport = SubViewport.new()
+	viewport.size = Vector2i(128, 128)
+	viewport.world_3d = World3D.new()
+	viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS
+	root.add_child(viewport)
+	var camera: Camera3D = Camera3D.new()
+	viewport.add_child(camera)
+	camera.position = Vector3(0, 1.6, 0)
+	camera.current = true
+	var effects: ShotEffects = ShotEffects.new()
+	viewport.add_child(effects)
+	var impact: Dictionary = _shot("fighter", "flechette")
+	impact["trace"]["end"] = [0.0, 1.6, -3.0]
+	impact["trace"]["impact"]["normal"] = [0.0, 0.0, 1.0]
+	effects.ingest(1, [impact])
+	effects._process(0.07)
+	effects.set_process(false)
+	var surface: MeshInstance3D = effects.get_node("Surface")
+	effects.visible = false
+	var empty: Image = await _render_frame(viewport)
+	var background: Color = empty.get_pixel(64, 64)
+	effects.visible = true
+	var distant: Image = await _render_frame(viewport)
+	_check(_pixel_difference(distant.get_pixel(64, 64), background) > 0.1,
+		"render material retains a real distant fighter impact")
+	# Move the camera after the CPU clip, keeping the exact same resolved mesh.
+	camera.position.z = -2.8
+	var original: StandardMaterial3D = StandardMaterial3D.new()
+	original.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	original.vertex_color_use_as_albedo = true
+	original.cull_mode = BaseMaterial3D.CULL_DISABLED
+	surface.material_override = original
+	var stale: Image = await _render_frame(viewport)
+	_check(_pixel_difference(stale.get_pixel(64, 64), background) > 0.1,
+		"the stale CPU-only mesh actually fills the aiming pixel")
+	surface.material_override = null
+	var clipped: Image = await _render_frame(viewport)
+	_check(_pixel_difference(clipped.get_pixel(64, 64), background) < 0.03,
+		"actual render camera clips the stale mesh without rebuilding its evidence")
+	_check(effects.active_count() == 1 and not _vertices(effects).is_empty(),
+		"render clipping never discards or rewrites the authoritative shot evidence")
+	var directory: String = ProjectSettings.globalize_path("res://../.agents/m04-buildout-20260930")
+	stale.save_png(directory.path_join("shot-camera-stale.png"))
+	clipped.save_png(directory.path_join("shot-camera-clipped.png"))
+	distant.save_png(directory.path_join("shot-camera-distant.png"))
+	viewport.free()
+	print("test_shot_effects: rendered PASS stale-camera impact, actual clip and distant retention")
+
+func _render_frame(viewport: SubViewport) -> Image:
+	await RenderingServer.frame_post_draw
+	await RenderingServer.frame_post_draw
+	return viewport.get_texture().get_image()
+
+static func _pixel_difference(first: Color, second: Color) -> float:
+	return Vector3(first.r, first.g, first.b).distance_to(Vector3(second.r, second.g, second.b))

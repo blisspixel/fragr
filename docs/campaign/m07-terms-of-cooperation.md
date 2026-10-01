@@ -1,5 +1,10 @@
 # M07: Terms of Cooperation
 
+**Appearance anchor for level 12:** Martian habitat: pale shielding, contained agriculture and neutral working rooms against dusty amber exteriors; practical needs expose delayed coordination.
+Shared [world direction](../design/mars.md) and
+[character, voice and scene continuity](../design/characters.md) govern assets
+and staging. This anchor is a production target, not finished-appearance evidence.
+
 **Status:** proposed, unbuilt. Mars before the wipe. Target 10-14 minutes.
 [Treatment](../CAMPAIGN-MISSIONS.md#level-12-terms-of-cooperation).
 

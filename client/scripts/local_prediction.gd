@@ -13,6 +13,9 @@ const OFFSET_LIMIT: float = 0.25
 const MAX_CORRECTION_SAMPLES: int = 4096
 
 var arena: Dictionary = {}
+var _tram_geometry: Dictionary = {}
+var _tram_samples: Array[Dictionary] = []
+var _tram_attempt: int = -1
 var baseline: Dictionary = {}
 var state: Dictionary = {}
 var steps: Array[Dictionary] = []
@@ -41,6 +44,8 @@ var fallback_reason: String = "no_ack"
 func configure_map(info: Dictionary) -> void:
 	reset("map", true)
 	arena.clear()
+	_tram_geometry = MissionState.geometry_for(info) if info.get("m05") is Dictionary else {}
+	_tram_samples.clear()
 	if MapGeometry.validation_error(info) == "":
 		arena = {"half": float(info["half_extent"]), "solids": info["solids"].duplicate(true)}
 
@@ -279,7 +284,57 @@ func advance(now_usec: int) -> void:
 
 
 func _step(pose: Dictionary, step: Dictionary) -> Dictionary:
-	return MoveStep.live_step(pose, step["input"], float(step["speed"]), MoveStep.DT_LIVE, arena)
+	if _tram_geometry.is_empty() or _tram_samples.is_empty():
+		return MoveStep.live_step(pose, step["input"], float(step["speed"]), MoveStep.DT_LIVE, arena)
+	var before: Array = _tram_feet(int(step["tick"]) - 1)
+	var after: Array = _tram_feet(int(step["tick"]))
+	var old_solid: Dictionary = M05Tram.solid_at(_tram_geometry, before)
+	var world: Dictionary = arena.duplicate(true)
+	var index: int = int(_tram_geometry["m05"]["tram"]["solid"])
+	world["solids"][index] = M05Tram.solid_at(_tram_geometry, after)
+	var carried_pose: Dictionary = pose
+	if M05Tram.supported(pose, old_solid, bool(step["input"]["jump"])):
+		var other: Dictionary = world.duplicate(true)
+		other["solids"].remove_at(index)
+		var carried: Dictionary = M05Tram.carried(pose, float(after[2]) - float(before[2]), other)
+		if not carried.is_empty():
+			carried_pose = carried
+	return MoveStep.live_step(carried_pose, step["input"], float(step["speed"]), MoveStep.DT_LIVE, world)
+
+func apply_m05(value: Dictionary) -> void:
+	if _tram_geometry.is_empty():
+		return
+	if value.get("id") != MissionState.M05_ID:
+		_tram_samples.clear()
+		reset("tram_handoff")
+		return
+	if int(value["attempt"]) != _tram_attempt:
+		_tram_samples.clear()
+		_tram_attempt = int(value["attempt"])
+	var sample: Dictionary = value["m05"]["tram"].duplicate(true)
+	if not _tram_samples.is_empty() and int(sample["tick"]) < int(_tram_samples.back()["tick"]):
+		_tram_samples.clear()
+	if not _tram_samples.is_empty() and sample == _tram_samples.back():
+		return
+	_tram_samples.append(sample)
+	while _tram_samples.size() > MAX_SAMPLES:
+		_tram_samples.pop_front()
+	arena["solids"][int(_tram_geometry["m05"]["tram"]["solid"])] = M05Tram.solid_at(_tram_geometry, sample["feet"])
+
+func _tram_feet(at_tick: int) -> Array:
+	var chosen: Dictionary = _tram_samples[0]
+	for sample: Dictionary in _tram_samples:
+		if int(sample["tick"]) > at_tick:
+			break
+		chosen = sample
+	var feet: Array = chosen["feet"].duplicate()
+	# Prediction has the same three-tick ceiling as walking. A refusal or block
+	# replaces this sample with server facts; no mission progress is predicted.
+	if chosen["phase"] == "moving":
+		var bound: Dictionary = _tram_geometry["m05"]["tram"]
+		var advance_ticks: int = clampi(at_tick - int(chosen["tick"]), 0, MAX_STEPS)
+		feet[2] = move_toward(float(feet[2]), float(bound["end"][2]), float(bound["speed"]) * MoveStep.DT_LIVE * advance_ticks)
+	return feet
 
 
 func decay_visual(delta: float) -> void:

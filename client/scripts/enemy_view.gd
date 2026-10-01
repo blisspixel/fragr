@@ -12,6 +12,7 @@ var elapsed: float = 0.0
 var travel: float = 0.0
 var shot_age: float = INF
 var _kind: String = ""
+var _landed: bool = false
 
 func update(state: Dictionary, snapshot_tick: int, body: Sprite3D) -> void:
 	actor = state["campaign"]
@@ -21,6 +22,9 @@ func update(state: Dictionary, snapshot_tick: int, body: Sprite3D) -> void:
 		tick = snapshot_tick
 		elapsed = 0.0
 	var kind: String = actor["kind"]
+	if kind == "notary":
+		var feet: Vector3 = Vector3(float(state["x"]), float(state["y"]) - CAMERA.FP_SERVER_REFERENCE_Y, float(state["z"]))
+		_landed = actor["phase"] == "dead" and absf(feet.y - NotaryAnimation.support(feet)) <= 0.04
 	if kind == _kind:
 		return
 	_kind = kind
@@ -28,7 +32,17 @@ func update(state: Dictionary, snapshot_tick: int, body: Sprite3D) -> void:
 		_textures[kind] = load("res://assets/characters/union/%s.png" % kind)
 	body.frame = 0
 	body.texture = _textures[kind]
-	if kind == "crawler":
+	if kind == "notary":
+		body.hframes = NotaryAnimation.COLUMNS
+		body.vframes = NotaryAnimation.rows()
+		body.pixel_size = NotaryAnimation.VIEW_SIZE / NotaryAnimation.TILE
+		body.position.y = NotaryAnimation.CENTRE_HEIGHT - CAMERA.FP_SERVER_REFERENCE_Y
+	elif kind == "jammer":
+		body.hframes = JammerAnimation.COLUMNS
+		body.vframes = JammerAnimation.rows()
+		body.pixel_size = JammerAnimation.VIEW_SIZE / JammerAnimation.TILE
+		body.position.y = JammerAnimation.CENTRE_HEIGHT - CAMERA.FP_SERVER_REFERENCE_Y
+	elif kind == "crawler":
 		body.hframes = CrawlerAnimation.COLUMNS
 		body.vframes = CrawlerAnimation.rows()
 		body.pixel_size = CrawlerAnimation.VIEW_SIZE / CrawlerAnimation.TILE
@@ -64,7 +78,11 @@ func render(body: Sprite3D, yaw: float, to_camera: Vector3) -> void:
 	if actor.is_empty():
 		return
 	var facing: int = EnemyAnimation.direction(yaw, to_camera)
-	if _kind == "crawler":
+	if _kind == "notary":
+		body.frame = NotaryAnimation.frame(actor, tick, elapsed, facing, _landed)
+	elif _kind == "jammer":
+		body.frame = JammerAnimation.frame(actor, tick, elapsed, facing)
+	elif _kind == "crawler":
 		body.frame = CrawlerAnimation.frame(actor, tick, elapsed, travel, facing)
 	else:
 		body.frame = EnemyAnimation.frame(actor, weapon, tick, elapsed, travel,

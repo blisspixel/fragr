@@ -1,10 +1,15 @@
 # Campaign mission treatment
 
+Visual production follows the [art bible](ART_STORY_BIBLE.md),
+[world and character guides](design/README.md) and each level's
+[appearance anchor](campaign/README.md). These are shared design targets;
+played captures establish what an implemented place actually looks like.
+
 **Status:** twenty levels in five episodes, accepted 2026-09-25, replacing the
 ten-mission structure agreed 2026-09-20 (itself replacing twelve missions). A
 short survival-gated epilogue follows. Names, routes, cast details, and
-individual encounters below are the treatment for review. Level 1 (M01) has a
-tested development slice; no complete level meets this treatment yet.
+individual encounters below are the treatment for review. Levels 1-5 have
+authored development prototypes; no complete level meets this treatment yet.
 [M01 completion](plans/m01-completion.md) records its implementation, evidence
 and remaining work. Full per-level design (rooms, doors, secrets, briefs, pars)
 lives in [campaign/README.md](campaign/README.md)'s twenty-level index and each

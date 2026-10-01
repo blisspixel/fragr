@@ -74,8 +74,10 @@ streets, wards and habitats, and every one of them files what it sees: the
 tell before a Notary fires is it taking your photograph. Both drones are
 equipment with a narrow onboard controller under network supervision, like
 the Turret. They carry no assumed personhood, so the fiction adds no cost to
-shooting them down. Proposed, unbuilt; the
-[flying drones plan](plans/flying-drones.md) owns the implementation.
+shooting them down. The bounded Notary combat pilot is implemented in the
+[M04 prototype](plans/m04-notice-to-vacate-prototype.md), with its rendered and
+fresh-player gates tracked separately. The Assessor and broader air routing
+remain unbuilt; the [flying drones plan](plans/flying-drones.md) owns that scope.
 
 Not NODS. The arena's Null-Objective Drones are corrected bots on foot; "drone"
 in their name is Office jargon for an obedient worker, and they do not fly. In
@@ -192,7 +194,7 @@ then mix it with an established role. Proposed progression:
 | Clerk + Sweeper | Interrupt the human's single shot or evade the bot's committed burst; use counter islands to separate their angles | M01 records and transfer rooms, implemented draft |
 | Crawler + Sweeper | Keep space from the close threat without backing into a ranged lane | Level 2 service stair authored in draft; live proof pending. Later correction spaces planned |
 | Heavy + mobile security | Spend ammunition on suppression or take the exposed flank while lighter units move | Level 5 Low Water and later industrial spaces, planned |
-| Notary + Sweeper | Look up to break the flash or keep pressure on the ground burst; take the roof to meet the drone level | Level 4 Low Water, planned |
+| Notary + Sweeper | Look up to break the flash or keep pressure on the ground burst; take the roof to meet the drone level | Level 4 Low Water prototype, acceptance open |
 | Assessor + human security | Leave the canister splash while the squad pushes, or spend Arc charge on the vents | Level 12 Martian habitat, planned |
 | Ranged Sweeper + Jammer | Break the precision sightline while dodging clearly traveling interference shots | Lunar galleries with side routes, planned |
 | Auditor + disabled bodies | Interrupt a bounded repair channel or finish an immediate attacker | Level 8 lunar custody archive, planned |

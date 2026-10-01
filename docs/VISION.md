@@ -4,6 +4,11 @@ fragr is an original retro-styled 3D FPS: authored single-player,
 multiple multiplayer modes, human and agent players, and first-class spectating.
 The current arena slice is a foundation, not the definition of the full game.
 
+The [art and story bible](ART_STORY_BIBLE.md) and
+[design continuity guides](design/README.md) connect that identity to every world,
+character, voice and scene. The [level plans](campaign/README.md) use those shared
+anchors for each mission's local atmosphere and readable combat space.
+
 ## The experience
 
 Fast, satisfying fights; useful movement; weapons found and learned; memorable

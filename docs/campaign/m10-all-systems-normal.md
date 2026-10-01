@@ -1,5 +1,10 @@
 # M10: All Systems Normal
 
+**Appearance anchor for level 18:** Preserve established Earth materials and landmarks; sudden local failures and coordinated infrastructure change begin the wipe.
+Shared [world direction](../design/earth.md) and
+[character, voice and scene continuity](../design/characters.md) govern assets
+and staging. This anchor is a production target, not finished-appearance evidence.
+
 **Status:** agreed survival-finale direction; detailed encounters proposed and
 unbuilt, revised 2026-09-20. Earth at the abrupt onset of the wipe. Initial target:
 about 33 active survival minutes after a short ordinary-life opening.

@@ -4,7 +4,10 @@ use uuid::Uuid;
 mod actors;
 mod body;
 mod decoration;
+mod explosive;
 mod loadout;
+mod m04;
+mod m05;
 mod mission;
 mod rules;
 mod statistics;
@@ -15,14 +18,24 @@ pub use decoration::{
     validate_decorations, MapDecoration, MapDecorationKind, MapFace, MAX_MAP_DECORATIONS,
     MAX_MAP_LIGHTS,
 };
+pub use explosive::{ExplosionHit, ExplosionResult, GrenadeState};
 pub(crate) use loadout::validate_equipment;
 pub use loadout::{AmmoCount, AmmoPool, EquipmentPolicy, LoadoutState, SupplyClaim};
+pub use m04::{
+    M04ClinicGeometry, M04MapGeometry, M04ObjectiveState, M04PatientGeometry, M04PatientState,
+    M04_OBJECTIVE_IDS,
+};
+pub use m05::{
+    M05MapGeometry, M05ObjectiveState, M05RescueGeometry, M05TramGeometry, M05TramPhase,
+    M05TramState, M05WorkerGeometry, M05WorkerState, M05_OBJECTIVE_IDS, M05_WORKER_IDS,
+};
 pub use mission::{
     CampaignDifficulty, CampaignRules, CampaignRunState, CampaignRunStatus, InteractionKind,
-    InteractionPrompt, M02EvacuationPhase, M02EvacuationState, M02ObjectiveState, MissionContinue,
+    InteractionPrompt, M02EvacuationPhase, M02EvacuationState, M02ObjectiveState, M03CarGeometry,
+    M03CarState, M03MapGeometry, M03MastGeometry, M03ObjectiveState, MissionContinue,
     MissionGeometry, MissionId, MissionMember, MissionObjective, MissionObjectiveAction,
     MissionPhase, MissionReady, MissionState, Region3, UseTarget, CAMPAIGN_CONTINUES,
-    CAMPAIGN_RULES_REVISION, MISSION_PARTY_LIMIT, USE_DISTANCE,
+    CAMPAIGN_RULES_REVISION, M03_MAST_MAX_HP, M03_MAX_CARS, MISSION_PARTY_LIMIT, USE_DISTANCE,
 };
 pub use rules::{
     GameMode, HostReactionKind, MatchRules, Mutator, Team, TeamScores, HOST_REACTION_VARIANTS,
@@ -554,7 +567,13 @@ pub const EVACUATION_GAMEPLAY_VERSION: u32 = 21;
 /// M02's ballistic inspection glass, which older strict surface readers cannot render.
 pub const INSPECTION_GLASS_GAMEPLAY_VERSION: u32 = 22;
 /// Highest understood gameplay contract; content requirements use their own minimum.
-pub const GAMEPLAY_VERSION: u32 = INSPECTION_GLASS_GAMEPLAY_VERSION;
+/// Authored Jammer actors and their visible traveling interference attacks.
+pub const JAMMER_GAMEPLAY_VERSION: u32 = 23;
+pub const M03_GAMEPLAY_VERSION: u32 = 24;
+/// M04 clinic, flying Notary, photograph outcomes and roof departure.
+pub const M04_GAMEPLAY_VERSION: u32 = 25;
+pub const M05_GAMEPLAY_VERSION: u32 = 26;
+pub const GAMEPLAY_VERSION: u32 = M05_GAMEPLAY_VERSION;
 pub fn legacy_gameplay_version() -> u32 {
     1
 }
@@ -668,6 +687,9 @@ mod geometry_tests {
             mission: None,
             m02_objectives: None,
             m02_side_ward: false,
+            m03: None,
+            m04: None,
+            m05: None,
             map_id: 67,
             map_name: "Enclosed fixture".into(),
             half_extent: 12.0,
@@ -768,6 +790,13 @@ pub enum ServerMessage {
         /// True only when this M02 map authors the optional side-ward encounter.
         #[serde(default, skip_serializing_if = "is_false")]
         m02_side_ward: bool,
+        /// Static Scheduled Service contract, refreshed with the prepared mast world.
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        m03: Option<M03MapGeometry>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        m04: Option<M04MapGeometry>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        m05: Option<M05MapGeometry>,
         /// The arena's rule set. Omitted on authored campaign maps.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         rules: Option<MatchRules>,
@@ -885,6 +914,9 @@ pub struct Action {
     /// Rising-edge use request. Release before pressing a second time.
     #[serde(default, skip_serializing_if = "is_false")]
     pub interact: bool,
+    /// Rising-edge counted grenade throw, independent of selected weapon.
+    #[serde(default, skip_serializing_if = "is_false")]
+    pub throw_grenade: bool,
     #[serde(default)]
     pub weapon_swap: Option<WeaponType>,
     /// Target aim takes precedence after movement: player body centre or world
@@ -1015,6 +1047,10 @@ pub struct Snapshot {
     /// Points still in flight. Omitted when nothing is traveling.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub projectiles: Vec<ProjectileState>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub grenades: Vec<GrenadeState>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub explosions: Vec<ExplosionResult>,
     /// Contested Frequency (scrap league that denies it exists).
     #[serde(default = "default_mode_name")]
     pub mode_name: String,
@@ -1422,6 +1458,8 @@ mod protocol_tests {
             frag_limit: None,
             shot_results: vec![shot.clone()],
             projectiles: vec![],
+            grenades: Vec::new(),
+            explosions: Vec::new(),
             mode_name: default_mode_name(),
             playlist: default_playlist(),
             pressure: None,
@@ -1599,6 +1637,8 @@ mod protocol_tests {
             frag_limit: None,
             shot_results: vec![],
             projectiles: vec![],
+            grenades: Vec::new(),
+            explosions: Vec::new(),
             mode_name: default_mode_name(),
             playlist: default_playlist(),
             pressure: None,

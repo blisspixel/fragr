@@ -15,7 +15,7 @@ func _check(condition: bool, message: String) -> void:
 
 func _departed_state() -> Dictionary:
 	return {
-		"rules": {"difficulty": "standard", "revision": 2},
+		"rules": {"difficulty": "standard", "revision": 3},
 		"phase": "departed",
 		"party": [],
 		"prompts": [],

@@ -3,15 +3,24 @@ extends RefCounted
 
 ## Mirror of protocol/mission.rs. Validation grants no local mission authority.
 const ID: String = "recall_notice"
+const M03_ID: String = "scheduled_service"
+const M04_ID: String = "notice_to_vacate"
+const M05_ID: String = "no_forwarding_address"
 const DIFFICULTIES: Array[String] = ["assisted", "standard", "severe"]
-## Revision 2 removed magazines and reloading. Records keep the revision
-## they were earned under, so history accepts every earlier revision.
-const RULES_REVISION: int = 2
+## Revision 3 adds Notary timing. Revision 2 removed magazines and reloading.
+## Records keep their earned revision; current live facts require revision 3.
+const RULES_REVISION: int = 3
 const PHASES: Array[String] = ["briefing", "find_transfer", "reach_lift", "departed"]
 const RUN_STATUSES: Array[String] = ["playing", "continue", "failed", "complete", "abandoned"]
 const INVALID: String = "The server sent invalid mission state. Connection closed."
 
 static func map_error(info: Dictionary) -> String:
+	if info.has("m05"):
+		return M05MissionState.map_error(info)
+	if info.has("m04"):
+		return M04MissionState.map_error(info)
+	if info.has("m03"):
+		return M03MissionState.map_error(info)
 	var m02_problem: String = m02_map_error(info)
 	if not m02_problem.is_empty() or info.get("m02_objectives") != null:
 		return m02_problem
@@ -54,6 +63,12 @@ static func map_error(info: Dictionary) -> String:
 
 static func validation_error(message: Dictionary, geometry: Dictionary, previous: Dictionary = {}) -> String:
 	var claimed: Variant = message.get("state")
+	if geometry.get("id") == M05_ID or (claimed is Dictionary and claimed.get("id") == M05_ID):
+		return M05MissionState.validation_error(message, geometry, previous)
+	if geometry.get("id") == M04_ID or (claimed is Dictionary and claimed.get("id") == M04_ID):
+		return M04MissionState.validation_error(message, geometry, previous)
+	if geometry.get("id") == M03_ID or (claimed is Dictionary and claimed.get("id") == M03_ID):
+		return M03MissionState.validation_error(message, geometry, previous)
 	if geometry.get("id") == M02_ID or (claimed is Dictionary and claimed.get("id") == M02_ID):
 		return m02_validation_error(message, geometry, previous)
 	var value: Variant = message.get("state")
@@ -186,6 +201,12 @@ static func m02_map_error(info: Dictionary) -> String:
 
 ## The validated contract a later mission message must match, or empty.
 static func geometry_for(info: Dictionary) -> Dictionary:
+	if info.has("m05"):
+		return M05MissionState.geometry_for(info)
+	if info.get("m04") is Dictionary:
+		return M04MissionState.geometry_for(info)
+	if info.get("m03") is Dictionary:
+		return M03MissionState.geometry_for(info)
 	if info.get("mission") is Dictionary:
 		return info["mission"]
 	if info.get("m02_objectives") == null:

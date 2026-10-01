@@ -3,8 +3,8 @@ extends RefCounted
 ## The shared movement step, mirrored line for line from server/src/movement.rs.
 ## Pure functions over dictionaries: no nodes, no physics server, no randomness.
 ## The headless harness test_move_golden.gd checks both the accelerated 60 Hz
-## vectors and the current immediate-velocity 20 Hz live vectors. Neither
-## mirror is wired to a predicting client yet.
+## vectors and the current immediate-velocity 20 Hz live vectors.
+## LocalPrediction uses live_step; the accelerated mirror retains legacy vectors.
 
 const RADIUS: float = 0.5
 const TOP_SPEED: float = 5.0

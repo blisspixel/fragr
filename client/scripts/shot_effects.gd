@@ -7,6 +7,9 @@ const MAX_RESULTS: int = 512
 const MAX_COORDINATE: float = 8192.0
 const MAX_TRACE_LENGTH: float = 1024.0
 const LIFETIME: float = 0.24
+## Cosmetic geometry close to the eye must not become screen-filling polygons.
+const CAMERA_CLEARANCE: float = 0.6
+const CLEARANCE_SHADER: Shader = preload("res://assets/shaders/shot_clearance.gdshader")
 ## A scatter blast draws at most this many pellets per result, matching the server.
 const MAX_PELLETS: int = 7
 ## Server melee reach in world units. A melee trace can never end farther away.
@@ -24,12 +27,16 @@ class Effect:
 var _effects: Array[Effect] = []
 var _last_tick: int = -1
 var _mesh: ImmediateMesh = ImmediateMesh.new()
-var _material: StandardMaterial3D = StandardMaterial3D.new()
+var _material: ShaderMaterial = ShaderMaterial.new()
+var _clip_to_camera: bool = false
+var _camera_origin: Vector3 = Vector3.ZERO
+var _camera_forward: Vector3 = Vector3.FORWARD
+var _camera_clearance: float = CAMERA_CLEARANCE
+var _building_surface: bool = false
 
 func _ready() -> void:
-	_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	_material.vertex_color_use_as_albedo = true
-	_material.cull_mode = BaseMaterial3D.CULL_DISABLED
+	_material.shader = CLEARANCE_SHADER
+	_material.set_shader_parameter("camera_clearance", CAMERA_CLEARANCE)
 	var surface: MeshInstance3D = MeshInstance3D.new()
 	surface.name = "Surface"
 	surface.mesh = _mesh
@@ -152,10 +159,20 @@ func _rebuild() -> void:
 	set_process(visible)
 	if not visible:
 		return
-	_mesh.surface_begin(Mesh.PRIMITIVE_TRIANGLES, _material)
+	var camera: Camera3D = get_viewport().get_camera_3d()
+	_clip_to_camera = is_instance_valid(camera)
+	if _clip_to_camera:
+		var camera_transform: Transform3D = camera.get_camera_transform()
+		_camera_origin = camera_transform.origin
+		_camera_forward = -camera_transform.basis.z.normalized()
+		_camera_clearance = maxf(CAMERA_CLEARANCE, camera.near)
+	_material.set_shader_parameter("camera_clearance", _camera_clearance)
+	_building_surface = false
 	for effect in _effects:
 		_draw_effect(effect)
-	_mesh.surface_end()
+	if _building_surface:
+		_mesh.surface_end()
+	visible = _building_surface
 
 func _draw_effect(effect: Effect) -> void:
 	if effect.weapon in EquipmentState.MELEE:
@@ -203,6 +220,32 @@ func _segment(start: Vector3, end: Vector3, width: float, colour: Color) -> void
 	_quad(start - up, start + up, end + up, end - up, colour)
 
 func _quad(a: Vector3, b: Vector3, c: Vector3, d: Vector3, colour: Color) -> void:
+	var polygon: Array[Vector3] = [a, b, c, d]
+	if _clip_to_camera:
+		var clipped: Array[Vector3] = []
+		var previous: Vector3 = polygon.back()
+		var previous_depth: float = _camera_depth(previous)
+		for vertex: Vector3 in polygon:
+			var depth: float = _camera_depth(vertex)
+			if (depth >= 0.0) != (previous_depth >= 0.0):
+				clipped.append(previous.lerp(vertex, previous_depth / (previous_depth - depth)))
+			if depth >= 0.0:
+				clipped.append(vertex)
+			previous = vertex
+			previous_depth = depth
+		polygon = clipped
+	if polygon.size() < 3:
+		return
+	# A live effect may be entirely behind the cosmetic clip plane. Begin only
+	# when there is geometry, but keep processing its authoritative expiry.
+	if not _building_surface:
+		_mesh.surface_begin(Mesh.PRIMITIVE_TRIANGLES, _material)
+		_building_surface = true
 	_mesh.surface_set_color(colour)
-	for vertex in [a, b, c, a, c, d]:
-		_mesh.surface_add_vertex(vertex)
+	for index: int in range(1, polygon.size() - 1):
+		_mesh.surface_add_vertex(polygon[0])
+		_mesh.surface_add_vertex(polygon[index])
+		_mesh.surface_add_vertex(polygon[index + 1])
+
+func _camera_depth(vertex: Vector3) -> float:
+	return _camera_forward.dot(to_global(vertex) - _camera_origin) - _camera_clearance

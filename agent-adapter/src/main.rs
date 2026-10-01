@@ -440,9 +440,12 @@ async fn run_scripted_bot(
                             loadout = Some(next);
                         }
                         ServerMessage::Snapshot(snapshot) => last_snapshot = Some(snapshot),
-                        ServerMessage::MapInfo { map_id, m02_objectives, m02_side_ward, half_extent, solids, geometry_version, presentation, mission, .. } => {
+                        ServerMessage::MapInfo { map_id, m02_objectives, m02_side_ward, m03, m04, m05, half_extent, solids, geometry_version, presentation, mission, .. } => {
                             protocol::validate_map_presentation(presentation.as_ref(), &solids)?;
                             mission_client.replace_map_with_id(map_id, m02_objectives, m02_side_ward, mission.as_ref(), half_extent, &solids, presentation.as_ref()).map_err(io::Error::other)?;
+                            mission_client.replace_map_with_m03(m03.as_ref(), half_extent, &solids, presentation.as_ref()).map_err(io::Error::other)?;
+                            mission_client.replace_map_with_m04(m04.as_ref(), half_extent, &solids, presentation.as_ref()).map_err(io::Error::other)?;
+                            mission_client.replace_map_with_m05(m05.as_ref(), half_extent, &solids, presentation.as_ref()).map_err(io::Error::other)?;
                             protocol::validate_map_geometry(half_extent, &solids, geometry_version)
                                 .map_err(io::Error::other)?;
                             let arena = fragr_server::movement::Arena { half: half_extent, solids };
@@ -1086,6 +1089,8 @@ mod tests {
             frag_limit: Some(10),
             shot_results: vec![],
             projectiles: vec![],
+            grenades: Vec::new(),
+            explosions: Vec::new(),
             mode_name: protocol::default_mode_name(),
             playlist: protocol::default_playlist(),
             pressure: None,
@@ -1131,6 +1136,8 @@ mod tests {
             frag_limit: Some(10),
             shot_results: vec![],
             projectiles: vec![],
+            grenades: Vec::new(),
+            explosions: Vec::new(),
             mode_name: protocol::default_mode_name(),
             playlist: protocol::default_playlist(),
             pressure: None,
@@ -1222,6 +1229,8 @@ mod tests {
             frag_limit: Some(10),
             shot_results: vec![],
             projectiles: vec![],
+            grenades: Vec::new(),
+            explosions: Vec::new(),
             mode_name: protocol::default_mode_name(),
             playlist: protocol::default_playlist(),
             pressure: None,
@@ -1566,6 +1575,8 @@ mod tests {
             frag_limit: Some(10),
             shot_results: vec![],
             projectiles: vec![],
+            grenades: Vec::new(),
+            explosions: Vec::new(),
             mode_name: protocol::default_mode_name(),
             playlist: protocol::default_playlist(),
             pressure: None,
@@ -2041,6 +2052,9 @@ mod tests {
                 mission: None,
                 m02_objectives: None,
                 m02_side_ward: false,
+                m03: None,
+                m04: None,
+                m05: None,
                 presentation: None,
                 map_id: 1,
                 map_name: "Raised fixture".into(),

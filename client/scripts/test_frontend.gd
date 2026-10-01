@@ -92,15 +92,33 @@ func _run() -> void:
 	menu._show("single")
 	_check(column.get_node_or_null("PersonsUnknownSaved") != null and _menu_text(column).contains("Run body: HUMAN"), "a bound run body wins over the current profile")
 	_check(_menu_text(column).contains("attempt 1") and _menu_text(column).contains("2 continues left") and not _menu_text(column).contains(".0"), "ready run shows whole-number attempt and allowance")
-	owned.run_preview = {"status": "awaiting_mission", "mission": LocalMatch.NEXT_MISSION, "difficulty": "severe", "continues": 2.0, "body": PlayerBody.HUMAN}
+	owned.run_preview = {"status": "awaiting_mission", "mission": MissionState.M03_ID, "difficulty": "severe", "continues": 2.0, "body": PlayerBody.HUMAN}
 	menu._show("single")
-	_check(column.get_node_or_null("PersonsUnknownSaved") == null and _menu_text(column).contains("Scheduled Service is in development"), "unsupported M03 has no launch button")
-	_check(_menu_text(column).contains("NEXT: SCHEDULED SERVICE") and _menu_text(column).contains("2 continues left") \
-		and _menu_text(column).contains("Run body: HUMAN"), "pending M03 previews mission, shared continues and saved body")
+	_check(column.get_node_or_null("ScheduledServiceSaved") != null and _menu_text(column).contains("SCHEDULED SERVICE"), "M02 completion offers the saved M03 continuation")
+	owned.run_preview["mission"] = MissionState.M04_ID
+	menu._show("single")
+	_check(column.get_node_or_null("NoticeToVacateSaved") != null and _menu_text(column).contains("NOTICE TO VACATE"), "M03 completion offers saved M04 carry through the same menu")
+	_check(menu._arrival_for_preview(owned.run_preview), "pending M03 to M04 entry requests its arrival scene")
+	var existing_entry: Dictionary = owned.run_preview.duplicate(true)
+	existing_entry["status"] = "ready"
+	_check(not menu._arrival_for_preview(existing_entry), "restart of an existing M04 entry never requests the arrival again")
+	_check(menu._arrival_for_preview({"status": "awaiting_mission", "mission": MissionState.M03_ID}) \
+		and not menu._arrival_for_preview({"status": "ready", "mission": MissionState.M03_ID}) \
+		and not menu._arrival_for_preview({"status": "awaiting_mission", "mission": LocalMatch.NEXT_MISSION}),
+		"same arrival selection covers M02 to M03 without replaying existing or unavailable missions")
+	_check(_menu_text(column).contains("2 continues left") and _menu_text(column).contains("Run body: HUMAN"), "M04 carry displays retained allowance and saved body")
+	owned.run_preview["mission"] = LocalMatch.NEXT_MISSION
+	menu._show("single")
+	_check(column.get_node_or_null("NoticeToVacateSaved") == null and _menu_text(column).contains("Port of Entry is still in development"), "unbuilt M05 has no launch button")
+	_check(_menu_text(column).contains("NEXT: PORT OF ENTRY") and _menu_text(column).contains("2 continues left") \
+		and _menu_text(column).contains("Run body: HUMAN"), "pending M05 previews mission, shared continues and saved body")
 	owned.run_preview["body"] = null
 	menu._show("single")
 	_check(_menu_text(column).contains("Run body is not bound yet") and column.get_node_or_null("ChooseRunBody") == null,
-		"pending M03 leaves an unbound body visible without an unavailable selector")
+		"pending M05 leaves an unbound body visible without an unavailable selector")
+	menu._show("practice")
+	_check(column.get_node_or_null("DevelopmentMission") != null and _menu_text(column).contains("NO SAVE OVERWRITE"), "M03 development entry states save isolation")
+	_check(column.get_node_or_null("LaunchDevelopmentMission") != null, "M04 has a separate labeled development entry")
 	await menu._show("multi")
 	menu._apply_status({"schema_version": 2, "kind": "arena", "map": "Arena Duel", "fighters": 4, "connections": 2})
 	_check(menu._match_line.text == "Arena Duel. Arena. 4 fighters. 2 connections.", "a live arena enables the match line")

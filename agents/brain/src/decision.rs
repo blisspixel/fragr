@@ -163,6 +163,13 @@ pub fn tactical_questions() -> BTreeMap<String, Question> {
     questions
 }
 
+/// Ollama play spends its one inference on intent. Equipment and danger remain
+/// local; diagnostic `ask` retains the complete question set.
+pub fn stance_questions(mut questions: BTreeMap<String, Question>) -> BTreeMap<String, Question> {
+    questions.retain(|name, _| name == Q_STANCE);
+    questions
+}
+
 /// Campaign questions use only weapons the server says this participant owns.
 /// Mission progression and finite retries belong in the state, not in an
 /// arena-deathmatch instruction that would reward reckless respawns.
@@ -410,6 +417,26 @@ pub fn constrain_plan_weapon(plan: &mut Plan, questions: &BTreeMap<String, Quest
 mod tests {
     use super::*;
     use fragr_server::protocol::WeaponType;
+
+    #[test]
+    fn stance_only_play_retains_mission_instructions_and_local_equipment() {
+        let arena = stance_questions(tactical_questions());
+        assert_eq!(arena.len(), 1);
+        assert!(arena.contains_key(Q_STANCE));
+        assert_eq!(tactical_questions().len(), 3, "full diagnostics remain");
+        let campaign = stance_questions(campaign_questions(&[WeaponType::Fists, WeaponType::Tack]));
+        assert_eq!(campaign.len(), 1);
+        let Question::Choice { instructions, .. } = &campaign[Q_STANCE] else {
+            panic!("stance is a choice")
+        };
+        assert!(instructions.contains("Authored mission"));
+        let fallback = local();
+        let answers = BTreeMap::from([(Q_STANCE.to_string(), choice("push_enemy", 0.99))]);
+        let decided = plan_from_answers(&answers, &Gate::default(), &fallback, 0.0);
+        assert_eq!(decided.weapon, fallback.weapon);
+        assert_eq!(decided.danger, fallback.danger);
+        assert_eq!(decided.source, Source::Remote);
+    }
 
     fn choice(choice: &str, confidence: f64) -> Answer {
         Answer::Choice {

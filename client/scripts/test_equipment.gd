@@ -20,11 +20,18 @@ func _state() -> Dictionary:
 	return {"type": "loadout", "player_id": "self", "tick": 20, "selected": "tack",
 		"weapons": ["fists", "tack"],
 		"ammo": [{"pool": "bullets", "rounds": 0}, {"pool": "shells", "rounds": 0}, {"pool": "cells", "rounds": 0}],
-		"personal_claims": ["bay_tack"], "dry_fire_count": 1}
+		"personal_claims": ["bay_tack"], "dry_fire_count": 1, "grenades": 0}
 
 func _run() -> void:
 	var state: Dictionary = _state()
 	_check(EquipmentState.validation_error(state, "self").is_empty(), "valid private state is accepted")
+	for value: Variant in [-1, 7, 1.5, NAN, "2"]:
+		var bad_stock: Dictionary = state.duplicate(true)
+		bad_stock["grenades"] = value
+		_check(not EquipmentState.validation_error(bad_stock, "self").is_empty(), "counted grenade stock requires bounded integer: " + str(value))
+	var absent_stock: Dictionary = state.duplicate(true)
+	absent_stock.erase("grenades")
+	_check(not EquipmentState.validation_error(absent_stock, "self").is_empty(), "current private wire requires explicit grenade stock")
 	_check(not EquipmentState.validation_error(state, "other").is_empty(), "another participant's ammunition is rejected")
 	_check(not EquipmentState.validation_error(state, null).is_empty(), "spectators cannot receive private ammunition")
 	_check(EquipmentState.cycle(state, "tack", 1) == "fists" and EquipmentState.cycle(state, "fists", -1) == "tack", "cycling wraps only owned weapons")
@@ -152,7 +159,14 @@ func _run() -> void:
 	display.visible = true
 	display._process(0.0)
 	_check(display.counts.text == "0" and display.glyph_pool == "bullets" and display.counts.modulate != Color.WHITE, "an empty pistol shows a dimmed bullet and a red zero")
-	_check(display.get_child_count() == 1, "one number and a drawn glyph, no caption words")
+	_check(display.get_child_count() == 2 and not display.grenade_counts.visible, "gun number and independent hidden grenade counter, no caption words")
+	var stocked: Dictionary = state.duplicate(true)
+	stocked["grenades"] = 4
+	display.apply(stocked)
+	_check(display.grenade_counts.visible and display.grenade_counts.text == "4" and display.counts.text == "0", "grenade stock appears independently from bullet ammunition")
+	stocked["grenades"] = 0
+	display.apply(stocked)
+	_check(display.grenade_counts.visible and display.grenade_counts.text == "0", "after discovery empty grenade stock stays visible")
 	_check(EquipmentState.display_name("flechette") == "Rifle" and EquipmentState.display_name("Flechette") == "Rifle" and EquipmentState.display_name("tack") == "Pistol" and EquipmentState.display_name("scatter") == "Shotgun" and EquipmentState.display_name("rail") == "Railgun", "guns use familiar names")
 	_check(EquipmentState.pool_name("bullets") == "Bullets" and EquipmentState.pool_name("shells") == "Shells" and EquipmentState.pool_name("cells") == "Cells", "ammo uses familiar names")
 	armed["selected"] = "scatter"

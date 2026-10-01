@@ -27,6 +27,50 @@ contract is in [CAMPAIGN.md](docs/CAMPAIGN.md). Capture the flag is playable on
 Arena Duel, Directive 17 and Sector 9; its human playtest is still open.
 Larger objective modes remain in the [roadmap](docs/ROADMAP.md).
 
+Source checkouts also include a [Jammer development range](server/maps/README.md)
+for the next campaign enemy: a folding transmitter with slow pulses you can
+sidestep, interrupt or block with cover. Run `cargo run -p fragr-server --locked
+-- --bots 0 --map-file server/maps/test/jammer-range.json`, then connect through
+Multiplayer. This range has no campaign save or mission departure.
+
+In the current source checkout, **Scheduled Service** is the level 3 development prototype under **Single
+Player > Practice and Development**. Fight through a daylight freight yard,
+free optional recall cars, shoot
+the guarded transmitter pod and deliberately board the train. A completed M02
+run can continue into it with its existing equipment and remaining continues.
+Its authored route and automated evidence remain separate from fresh-player
+acceptance and final mission polish. See the [prototype plan](docs/plans/m03-scheduled-service-prototype.md).
+
+The source checkout's **Notice to Vacate** adds the level 4 prototype in Low Water: defend the market,
+bring down flying Notaries, open the optional clinic shutter and leave through
+the habitation court's roof stair. **Continue Run** carries a completed M03 run
+into M04 with its body, equipment, health, armor, remaining continues and recall
+car choices. Its separate **Practice and Development** entry preserves your
+campaign save. Completing M04 retains the run for **No Forwarding Address**.
+Compatible historical v2, v3, v4 and v5 saves explicitly upgrade to v6
+on resume, with their exact prior bytes archived. This is an implemented
+development prototype, with fresh-player acceptance still open. See the
+[M04 plan](docs/plans/m04-notice-to-vacate-prototype.md) and
+[save behavior](docs/PLAYING.md#solo-runs-and-local-records).
+
+**No Forwarding Address**, the level 5 prototype, continues across Low Water's
+roofs, workshop, tram trench and freight platform. Counted hand grenades bounce
+on server-owned geometry and explode on a fixed fuse. Free Splice and the
+workshop captives, take the moving tram or walk its service aisle, then confront
+the Heavy Sweeper and board the carrier. Earlier recall-car, clinic and photograph
+choices carry into M05 and its retries. Departure records released workers
+separately from those physically aboard and leaves the run pending the unbuilt
+lunar **Port of Entry**. Fresh-player and difficulty acceptance remain open.
+See the [M05 plan](docs/plans/m05-no-forwarding-address-prototype.md).
+
+The [style and look guidelines](docs/ART_STORY_BIBLE.md) define the game's
+original retro FPS identity: Doom II's readable combat spaces, Quake's 3D movement
+and LAN spirit, and Boltgun's pixel craft and weapon weight. They connect the
+[lore](docs/lore/README.md) to consistent faction silhouettes, palettes,
+lived-in environments, water, lighting, sound and story presentation. The
+[design continuity guides](docs/design/README.md) carry those choices through
+Earth, Moon, Mars, ships, level atmosphere, character voices and future scenes.
+
 ## Quick start
 
 Install [Rust stable](https://rustup.rs/) and Godot 4.7.2-stable, then run from
@@ -86,7 +130,8 @@ A watched Arena Duel fighter in chase view:
 | Friends, public ports, server options and host safety | [Dedicated hosting](docs/HOSTING.md) |
 | Bring your own agent through MCP | [Agent adapter](agent-adapter/README.md) and [agent skill card](docs/skills/fragr/SKILL.md) |
 | Run the reference decision-brain fighter | [Brain agent](agents/brain/README.md) |
-| Story, look and future work | [Vision](docs/VISION.md), [campaign](docs/CAMPAIGN.md), [art and story bible](docs/ART_STORY_BIBLE.md), [roadmap](docs/ROADMAP.md) |
+| Style, look, influences and asset consistency | [Style and look guidelines](docs/ART_STORY_BIBLE.md) and [color readability](docs/ART-COLOR.md) |
+| Story, world and future work | [Vision](docs/VISION.md), [campaign](docs/CAMPAIGN.md), [lore](docs/lore/README.md), [roadmap](docs/ROADMAP.md) |
 | Server architecture and wire format | [Architecture](docs/ARCHITECTURE.md) and [protocol](docs/protocol.md) |
 
 The repository is organized as `server/` (Rust authority), `client/` (Godot

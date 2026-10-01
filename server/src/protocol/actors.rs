@@ -13,6 +13,10 @@ pub enum EnemyKind {
     Crawler,
     /// Fixed equipment with a sweeping head, a spin-up tell and one strong shot.
     Turret,
+    /// Exposed service chassis that launches a slow interference pulse.
+    Jammer,
+    /// Flying Office patrol equipment with a committed photographic flash.
+    Notary,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]

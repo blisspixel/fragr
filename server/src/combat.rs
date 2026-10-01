@@ -7,8 +7,22 @@ pub const PITCH_LIMIT: f32 = 85.0 * std::f32::consts::PI / 180.0;
 pub const FIGHTER_HEIGHT: f32 = crate::movement::BODY_HEIGHT;
 /// The Crawler's physical clearance and finite shot volume.
 pub const CRAWLER_HEIGHT: f32 = 0.8;
+pub const NOTARY_HEIGHT: f32 = 0.7;
+pub const NOTARY_HALF_WIDTH: f32 = 0.65;
+pub fn is_notary(identity: Option<CampaignActor>) -> bool {
+    matches!(
+        identity,
+        Some(CampaignActor::Union {
+            kind: EnemyKind::Notary,
+            ..
+        })
+    )
+}
 
 pub fn target_height(identity: Option<CampaignActor>) -> f32 {
+    if is_notary(identity) {
+        return NOTARY_HEIGHT;
+    }
     if matches!(
         identity,
         Some(CampaignActor::Union {
@@ -23,6 +37,9 @@ pub fn target_height(identity: Option<CampaignActor>) -> f32 {
 }
 
 pub fn eye_height(identity: Option<CampaignActor>) -> f32 {
+    if is_notary(identity) {
+        return NOTARY_HEIGHT * 0.5;
+    }
     if matches!(
         identity,
         Some(CampaignActor::Union {
@@ -97,6 +114,34 @@ pub(crate) struct SurfaceHit {
 }
 
 impl Ray {
+    /// Airborne equipment uses its actual raised box, never a ground capsule.
+    pub fn actor(
+        self,
+        feet: [f32; 3],
+        identity: Option<CampaignActor>,
+        range: f32,
+    ) -> Option<SurfaceHit> {
+        if is_notary(identity) {
+            self.solid(
+                &Solid {
+                    min_x: feet[0] - NOTARY_HALF_WIDTH,
+                    max_x: feet[0] + NOTARY_HALF_WIDTH,
+                    min_z: feet[2] - NOTARY_HALF_WIDTH,
+                    max_z: feet[2] + NOTARY_HALF_WIDTH,
+                    bottom: feet[1],
+                    top: feet[1] + NOTARY_HEIGHT,
+                },
+                range,
+            )
+        } else {
+            self.fighter_with_height(
+                feet,
+                crate::movement::RADIUS,
+                target_height(identity),
+                range,
+            )
+        }
+    }
     pub fn point(self, distance: f32) -> [f32; 3] {
         std::array::from_fn(|i| self.origin[i] + self.direction[i] * distance)
     }

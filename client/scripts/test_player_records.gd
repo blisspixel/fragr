@@ -66,6 +66,18 @@ func _run() -> void:
 	_check(PlayerRecord.validation_error(ward, ward["player_id"]).is_empty(), "M02 durable record accepts a reset level attempt and retained allowance")
 	ward["scope"]["run"] = null
 	_check(PlayerRecord.validation_error(ward, ward["player_id"]).is_empty(), "an M02 development record validates without a run")
+	var yard: Dictionary = ward.duplicate(true)
+	yard["scope"]["mission"] = MissionState.M03_ID
+	_check(PlayerRecord.validation_error(yard, yard["player_id"]).is_empty(), "M03 development records validate on the shared record boundary")
+	yard["scope"]["run"] = {"id": mission["scope"]["run"]["id"], "status": "playing", "continues": 1, "level_start_continues": 1}
+	_check(PlayerRecord.validation_error(yard, yard["player_id"]).is_empty(), "M03 records retain the level allowance without a refill")
+	yard["scope"]["mission"] = MissionState.M04_ID
+	yard["scope"]["rules"]["revision"] = MissionState.RULES_REVISION
+	_check(PlayerRecord.validation_error(yard, yard["player_id"]).is_empty(), "M04 retained allowance and current rules validate")
+	yard["scope"]["rules"]["revision"] = 2
+	_check(PlayerRecord.validation_error(yard, yard["player_id"]).is_empty(), "historical revision 2 records remain readable")
+	yard["scope"]["mission"] = LocalMatch.NEXT_MISSION
+	_check(not PlayerRecord.validation_error(yard, yard["player_id"]).is_empty(), "unimplemented M05 record scope is rejected")
 	var rewritten: Dictionary = mission.duplicate(true)
 	rewritten["scope"]["attempt"] = 2
 	rewritten["scope"]["run"]["continues"] = 2

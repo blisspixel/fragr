@@ -1,5 +1,10 @@
 # M04: Port of Entry
 
+**Appearance anchor for level 6:** Lunar cargo entry: pale dust, dark basalt, worn pressure shells and controlled thresholds; practical interior light balances exposed shade.
+Shared [world direction](../design/moon.md) and
+[character, voice and scene continuity](../design/characters.md) govern assets
+and staging. This anchor is a production target, not finished-appearance evidence.
+
 **Status:** proposed, unbuilt. Moon before the wipe. Target 8-12 minutes.
 [Treatment](../CAMPAIGN-MISSIONS.md#level-6-port-of-entry).
 

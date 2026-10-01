@@ -1,7 +1,7 @@
 # Character source
 
 Original articulated source for the Union's human Clerk, bot Sweeper, Heavy
-Sweeper and Turret, and for the two free participant bodies. The Union sets are
+Sweeper, Turret and Jammer, and for the two free participant bodies. The Union sets are
 directional campaign sets under visual review. They do not establish a completed cast or final character production bar.
 
 `geometry.gd` owns material/mesh primitives and the Union palette; `rig.gd` owns
@@ -91,6 +91,49 @@ windup holds its final pose instead of predicting an attack. Dead actors settle
 and remain down until server cleanup. Armed and exhausted melee poses are distinct.
 Recovery lowers/regrips the weapon; the wire does not yet distinguish reload
 from recovery, so the client must not pretend to know which occurred.
+
+## Jammer transmitter
+
+`jammer_rig.gd` builds an original stationary service transmitter with four
+anchored feet, exposed rear capacitor slats and a four-petal folding dish.
+`jammer_bake.gd` renders 21 poses at eight directions into a 2880 by 1600 RGBA
+atlas, with a source and output hash receipt. At runtime `JammerAnimation`
+selects folded, unfolding, launch, refolding, hit and collapse poses from the
+server phase. A stale windup holds its last pose instead of inventing a launch.
+The atlas uses the same fixed feet, nearest filtering and no mipmaps as the
+other campaign actors. Its uncompressed footprint is approximately 17.6 MiB
+when loaded, and it loads only when the actor appears.
+
+```sh
+godot --path client --rendering-driver opengl3 --windowed --script res://art/characters/jammer_bake.gd
+godot --headless --path client --import
+godot --headless --path client --script res://scripts/test_jammer_animation.gd
+```
+
+Require `jammer_bake: PASS`, `test_jammer_animation: PASS` and clean logs.
+The harness checks source freshness, unclipped directions, a geometric tell,
+settled death and authoritative registration. The playable development range
+and its inspected motion provide separate in-world evidence; this is the next
+campaign combat capability, not a completed Scheduled Service mission.
+
+## Notary flight and photograph
+
+`notary_rig.gd` builds the original twin-duct black box for M04. Its separate
+`notary_bake.gd` atlas has eight directions, sixteen poses and 128 pixel cells.
+The optic grows and brightens throughout the server's windup; firing requires
+the firing phase. Tumble remains airborne until the authoritative underside
+reaches registered support. A floor shadow follows that same world geometry.
+The passive gallery `NotaryView` does not inherit combat or audio behavior.
+
+```sh
+godot --path client --rendering-driver opengl3 --windowed --script res://art/characters/notary_bake.gd
+godot --headless --path client --import
+godot --headless --path client --script res://scripts/test_notary_animation.gd
+```
+
+Require the bake and harness PASS markers with clean logs. Inspect flight,
+locked tells, interrupted shots, falling bodies and settled wrecks in the M04
+tour. Atlas checks alone cannot establish in-world readability or motion quality.
 
 ## Free participant bodies
 

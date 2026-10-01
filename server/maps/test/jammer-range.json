@@ -1,0 +1,36 @@
+{
+  "version": 1,
+  "map_id": 1012,
+  "name": "Jammer interference range",
+  "half_extent": 24,
+  "ground": "concrete",
+  "equipment": "discovery",
+  "solids": [
+    {"id":"west_car","min":[-8,0,-4],"max":[-4,2.5,7],"surface":"service_steel"},
+    {"id":"east_car","min":[4,0,-4],"max":[8,2.5,7],"surface":"service_steel"},
+    {"id":"yard_cover","min":[-2,0,14],"max":[2,2.5,16],"surface":"service_steel"}
+  ],
+  "spawns": [{"id":"entry","feet":[0,0,-18],"yaw":1.5707964}],
+  "landmarks": [
+    {"id":"first_lane","feet":[0,0,-8]},
+    {"id":"west_flank","feet":[-11,0,9]},
+    {"id":"east_flank","feet":[11,0,9]},
+    {"id":"yard_exit","feet":[0,0,21]}
+  ],
+  "supplies": [
+    {"id":"range_rifle","feet":[-1.5,0,-17],"grant":{"kind":"weapon","weapon":"flechette"},"claim":"personal"},
+    {"id":"range_shotgun","feet":[1.5,0,-17],"grant":{"kind":"weapon","weapon":"scatter"},"claim":"personal"},
+    {"id":"range_bullets","feet":[0,0,-15],"grant":{"kind":"ammo","pool":"bullets","amount":60},"claim":"contested"},
+    {"id":"flank_health","feet":[-11,0,4],"grant":{"kind":"health","amount":50},"claim":"contested"},
+    {"id":"yard_bullets","feet":[11,0,12],"grant":{"kind":"ammo","pool":"bullets","amount":40},"claim":"contested"}
+  ],
+  "encounters": [
+    {"id":"first_pulse","regions":[{"min":[-24,0,-13],"max":[24,2,5]}],
+      "enemies":[{"id":"lane_jammer","kind":"jammer","feet":[0,0,5],"yaw":4.712389}]},
+    {"id":"yard_pressure","after":"first_pulse","regions":[{"min":[-24,0,7],"max":[24,2,23]}],
+      "enemies":[
+        {"id":"yard_jammer","kind":"jammer","feet":[-7,0,19],"yaw":4.712389},
+        {"id":"yard_sweeper","kind":"sweeper","feet":[7,0,18],"yaw":4.712389}
+      ]}
+  ]
+}

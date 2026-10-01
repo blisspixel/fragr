@@ -144,7 +144,8 @@ impl GameState {
                             })
                             .collect(),
                     ),
-                    MissionObjectiveAction::Arrival { .. } => None,
+                    MissionObjectiveAction::Arrival { .. }
+                    | MissionObjectiveAction::Shoot { .. } => None,
                 })
                 .unwrap_or_default()
         } else {
@@ -159,6 +160,9 @@ impl GameState {
             changed_at: run.changed_at,
             party,
             prompts,
+            m03: None,
+            m04: None,
+            m05: None,
             m02: Some(M02ObjectiveState {
                 completed,
                 total: u8::try_from(prepared.len()).ok()?,

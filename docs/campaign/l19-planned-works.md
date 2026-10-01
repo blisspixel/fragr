@@ -1,5 +1,10 @@
 # Level 19: Planned Works
 
+**Appearance anchor for level 19:** Changed Low Water: matched landmarks from levels 4-5, interrupted light and altered use reveal loss without instant regrowth.
+Shared [world direction](../design/earth.md) and
+[character, voice and scene continuity](../design/characters.md) govern assets
+and staging. This anchor is a production target, not finished-appearance evidence.
+
 **Status:** planned, accepted 2026-09-25, unbuilt. The middle third of
 [M10](m10-all-systems-normal.md) in the
 [twenty-level expansion](../plans/campaign-expansion.md): survival minutes 10

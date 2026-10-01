@@ -1,5 +1,10 @@
 # M06: Common Carrier
 
+**Appearance anchor for level 10:** An occupied repaired transport: gunmetal ribs, bone pressure doors, warm work light, finite supplies and rescued passengers.
+Shared [world direction](../design/space.md) and
+[character, voice and scene continuity](../design/characters.md) govern assets
+and staging. This anchor is a production target, not finished-appearance evidence.
+
 **Status:** proposed, unbuilt. Interplanetary ship before the wipe. Target
 8-12 minutes. [Treatment](../CAMPAIGN-MISSIONS.md#level-10-common-carrier).
 

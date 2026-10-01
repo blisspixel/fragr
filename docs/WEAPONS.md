@@ -6,7 +6,9 @@ The corner and the pickup read those words. Wire ids stay `fists`, `tack`,
 count per type, no magazines and no reload. Pistol and Rifle share Bullets, the
 Shotgun uses Shells and the Railgun uses Cells. A Sniper Rifle, Rocket
 Launcher, Grenade, Proximity Mine, and Remote Mine are earned on later
-missions. They are not in M01, not in the arcade arsenal, and not implemented.
+missions. Level 5's prototype implements counted grenades through a separate
+throw control, capped at six; they leave gun selection unchanged. The other
+four additions remain unbuilt. They are not in M01 or the default arcade kit.
 The order and the rules are
 [the readable arsenal](plans/readable-arsenal.md). Lobber and proximity tin in
 the proposal table below are that rocket launcher and that proximity mine, not
@@ -30,8 +32,9 @@ again when the gun is already carried. Every shot spends one unit, including a
 Scatter blast of seven pellets. Dry fire does not discard a weapon or switch
 automatically, and any pickup of that type makes it live again at once. M01 death
 offers an explicit mission-start continue with entry equipment restored. Three
-continues are implemented for the local run. The stacked M01-to-M02 carry draft
-preserves found guns, ammunition and selection at the next level's entry.
+continues are implemented for the local run. Mission-entry saves carry body,
+found guns, ammunition, grenade counts, selection and remaining continues
+through the five authored development missions.
 
 Balance numbers live here and nowhere else. `plans/gunfeel.md` explains how they were arrived at, `plans/weapon-economy.md` explains the ammunition and the pickup economy, and `docs/lore/guns.md` is what they get called on the radio.
 

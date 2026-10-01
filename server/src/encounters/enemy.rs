@@ -75,6 +75,8 @@ pub(crate) fn body(kind: EnemyKind) -> (i32, WeaponType) {
         EnemyKind::HeavySweeper => (160, WeaponType::Flechette),
         EnemyKind::Turret => (100, WeaponType::Rail),
         EnemyKind::Crawler => (55, WeaponType::Fists),
+        EnemyKind::Jammer => (90, WeaponType::Fists),
+        EnemyKind::Notary => (50, WeaponType::Tack),
     }
 }
 
@@ -83,7 +85,7 @@ pub(crate) fn gait(kind: EnemyKind) -> f32 {
     match kind {
         EnemyKind::Clerk | EnemyKind::Sweeper => 0.5,
         EnemyKind::HeavySweeper => 0.3,
-        EnemyKind::Turret => 0.0,
+        EnemyKind::Turret | EnemyKind::Jammer | EnemyKind::Notary => 0.0,
         EnemyKind::Crawler => 0.7,
     }
 }
@@ -91,8 +93,8 @@ pub(crate) fn gait(kind: EnemyKind) -> f32 {
 /// Committed shots per attack.
 fn burst(kind: EnemyKind) -> u8 {
     match kind {
-        EnemyKind::Clerk | EnemyKind::Turret | EnemyKind::Crawler => 1,
-        EnemyKind::Sweeper => 3,
+        EnemyKind::Clerk | EnemyKind::Turret | EnemyKind::Crawler | EnemyKind::Jammer => 1,
+        EnemyKind::Sweeper | EnemyKind::Notary => 3,
         EnemyKind::HeavySweeper => 4,
     }
 }
@@ -100,7 +102,11 @@ fn burst(kind: EnemyKind) -> u8 {
 /// Hit stun in ticks. Armored bodies only enter it on a heavy hit.
 fn stun(kind: EnemyKind) -> u64 {
     match kind {
-        EnemyKind::Clerk | EnemyKind::Sweeper | EnemyKind::Crawler => 6,
+        EnemyKind::Clerk
+        | EnemyKind::Sweeper
+        | EnemyKind::Crawler
+        | EnemyKind::Jammer
+        | EnemyKind::Notary => 6,
         EnemyKind::HeavySweeper => 16,
         EnemyKind::Turret => 10,
     }
@@ -146,6 +152,11 @@ pub(super) struct EnemyController {
     seated: bool,
     /// A Crawler can connect once in each committed leap.
     contact_used: bool,
+    hover: Option<crate::maps::Hover>,
+    patrol_point: usize,
+    hover_tick: Option<u64>,
+    landed: bool,
+    photograph_pending: Option<Uuid>,
 }
 
 /// (windup, recovery) ticks. Tiers change tells and openings only; health,
@@ -165,6 +176,10 @@ pub(crate) fn attack_timing(kind: EnemyKind, difficulty: CampaignDifficulty) -> 
         (EnemyKind::Turret, CampaignDifficulty::Standard) => (26, 30),
         (EnemyKind::Turret, CampaignDifficulty::Severe) => (20, 24),
         (EnemyKind::Crawler, _) => (CRAWLER_WINDUP_TICKS, CRAWLER_RECOVERY_TICKS),
+        (EnemyKind::Jammer, _) => (24, 40),
+        (EnemyKind::Notary, CampaignDifficulty::Assisted) => (24, 36),
+        (EnemyKind::Notary, CampaignDifficulty::Standard) => (16, 26),
+        (EnemyKind::Notary, CampaignDifficulty::Severe) => (12, 20),
     }
 }
 
@@ -201,6 +216,11 @@ impl EnemyController {
             strafe_left: false,
             seated,
             contact_used: false,
+            hover: None,
+            patrol_point: 0,
+            hover_tick: None,
+            landed: false,
+            photograph_pending: None,
         }
     }
 
@@ -227,6 +247,7 @@ impl EnemyController {
     }
 
     pub fn hit(&mut self, tick: u64, died: bool) {
+        self.photograph_pending = None;
         self.seated = false;
         self.contact_used = true;
         if self.phase == EnemyPhase::Dead {
@@ -279,7 +300,17 @@ impl EnemyController {
                 && me.is_hostile_to(p)
                 && crate::mission::actor_active(state.mission.as_ref(), p.id, p.campaign)
                 && (p.x - me.x).hypot(p.z - me.z) <= SIGHT_RANGE
-                && line_of_sight(eye, centre(p), &state.map.arena().solids)
+                && line_of_sight(eye, centre(p), &state.current_arena().solids)
+                && (self.kind != EnemyKind::Notary
+                    || line_of_sight(
+                        eye,
+                        [
+                            p.x,
+                            p.y - PLAYER_FLOOR_Y + crate::combat::eye_height(p.campaign),
+                            p.z,
+                        ],
+                        &state.current_arena().solids,
+                    ))
         };
         let head = self.head;
         let noticed = |p: &&crate::protocol::PlayerState| {
@@ -347,20 +378,22 @@ impl EnemyController {
         };
         if self.kind == EnemyKind::Crawler {
             let support = state
-                .map
-                .arena()
+                .current_arena()
                 .support_height(feet[0], feet[2], feet[1] + 0.01);
             let grounded = body.vy <= 0.0 && (feet[1] - support).abs() <= 0.02;
             let exposed = target.is_some_and(|target| {
-                crawler_body_exposed(target, feet, &state.map.arena().solids)
+                crawler_body_exposed(target, feet, &state.current_arena().solids)
             });
             return self.crawler(target, grounded, exposed, feet, tick);
+        }
+        if self.kind == EnemyKind::Jammer {
+            return self.jammer(target, eye, (windup, recovery), tick, state);
         }
         // Guards spend the same finite ammunition counts as participants.
         // An empty guard can still defend themselves at melee distance.
         if let Some(loadout) = body.inventory.state(body.id, body.weapon, state.tick) {
             if loadout.shots(body.weapon) == Some(0) {
-                if turret {
+                if turret || self.kind == EnemyKind::Notary {
                     // A dry turret has no melee. It stays still and harmless.
                     if self.phase != EnemyPhase::Idle {
                         self.enter(EnemyPhase::Idle, tick, 0);
@@ -390,6 +423,9 @@ impl EnemyController {
                     burst(self.kind)
                 };
                 self.next_shot = tick;
+                if self.kind == EnemyKind::Notary {
+                    self.photograph_pending = self.target;
+                }
                 self.enter(
                     EnemyPhase::Firing,
                     tick,
@@ -407,6 +443,22 @@ impl EnemyController {
         }
         if turret {
             return self.turret(target, eye, windup, tick, &centre);
+        }
+        if self.kind == EnemyKind::Notary {
+            if let Some(target) = target {
+                let horizontal = (target.x - me.x).hypot(target.z - me.z);
+                let rise = eye[1] - centre(target)[1];
+                if horizontal >= rise.max(0.0) && horizontal <= 24.0 {
+                    if let Some(aim) = aim_at(eye, centre(target)) {
+                        self.begin_windup(aim, tick, windup, &mut action);
+                        return BotIntent { action, goal: None };
+                    }
+                }
+            }
+            if self.phase != EnemyPhase::Moving {
+                self.enter(EnemyPhase::Moving, tick, 0);
+            }
+            return BotIntent::default();
         }
         if let Some(target) = target {
             let distance = (target.x - me.x).hypot(target.z - me.z);
@@ -450,12 +502,133 @@ impl EnemyController {
     }
 
     fn begin_windup(&mut self, aim: (f32, f32), tick: u64, windup: u64, action: &mut Action) {
+        self.photograph_pending = None;
         self.aim = aim;
         self.head = aim.0;
         self.stagger_ready = true;
         self.enter(EnemyPhase::Windup, tick, windup);
         action.yaw = Some(aim.0);
         action.pitch = Some(aim.1);
+    }
+
+    pub(super) fn with_hover(mut self, hover: Option<crate::maps::Hover>) -> Self {
+        self.hover = hover;
+        self
+    }
+    pub(super) fn claim_notary_photo_target(&mut self) -> Option<Uuid> {
+        self.photograph_pending.take()
+    }
+    pub(super) fn advance_hover(&mut self, state: &mut GameState) {
+        let Some(hover) = self.hover.as_ref() else {
+            return;
+        };
+        if self.hover_tick == Some(state.tick) {
+            return;
+        }
+        self.hover_tick = Some(state.tick);
+        let target = self
+            .target
+            .and_then(|id| state.players.iter().find(|p| p.id == id && p.hp > 0))
+            .map(|p| [p.x, p.y - PLAYER_FLOOR_Y, p.z]);
+        let arena = state.current_arena().into_owned();
+        let Some(player) = state.players.iter_mut().find(|p| p.id == self.id) else {
+            return;
+        };
+        let floor = player.y - PLAYER_FLOOR_Y;
+        if player.hp <= 0 {
+            let support = arena.support_height(player.x, player.z, floor + 0.001);
+            if self.landed && (floor - support).abs() <= 0.02 {
+                return;
+            }
+            self.landed = false;
+            player.vy -= crate::movement::GRAVITY * 0.05;
+            let next = floor + player.vy * 0.05;
+            player.y = PLAYER_FLOOR_Y + next.max(support);
+            player.yaw = crate::movement::normalize_yaw(player.yaw + 0.12);
+            if next <= support {
+                self.landed = true;
+                player.vy = 0.0;
+                self.until = state.tick.saturating_add(20);
+            }
+            player.campaign = Some(self.identity());
+            return;
+        }
+        player.vy = 0.0;
+        if matches!(self.phase, EnemyPhase::Windup | EnemyPhase::Firing) {
+            return;
+        }
+        let mut point = hover.patrol[self.patrol_point];
+        if let Some(target) = target {
+            if (player.x - target[0]).hypot(player.z - target[2]) < (floor - target[1]).max(0.0) {
+                if let Some(candidate) = hover.patrol.iter().max_by(|a, b| {
+                    (a[0] - target[0])
+                        .hypot(a[2] - target[2])
+                        .total_cmp(&(b[0] - target[0]).hypot(b[2] - target[2]))
+                }) {
+                    point = *candidate;
+                }
+            }
+        }
+        let delta = [point[0] - player.x, point[1] - floor, point[2] - player.z];
+        let length = delta.iter().map(|v| v * v).sum::<f32>().sqrt();
+        if length <= 0.02 {
+            self.patrol_point = (self.patrol_point + 1) % hover.patrol.len();
+            return;
+        }
+        let step = 0.8_f32 * 0.05 / length;
+        let scale = step.min(1.0);
+        player.x = (player.x + delta[0] * scale).clamp(hover.volume.min[0], hover.volume.max[0]);
+        player.z = (player.z + delta[2] * scale).clamp(hover.volume.min[2], hover.volume.max[2]);
+        player.y = PLAYER_FLOOR_Y + (floor + delta[1] * scale).clamp(hover.band[0], hover.band[1]);
+    }
+
+    fn jammer(
+        &mut self,
+        target: Option<&crate::protocol::PlayerState>,
+        eye: [f32; 3],
+        timing: (u64, u64),
+        tick: u64,
+        state: &GameState,
+    ) -> BotIntent {
+        let (windup, recovery) = timing;
+        let mut action = Action::default();
+        if self.phase == EnemyPhase::Firing {
+            self.enter(EnemyPhase::Recovery, tick, recovery);
+            return BotIntent::default();
+        }
+        if self.phase == EnemyPhase::Windup {
+            if target.is_none() {
+                self.target = None;
+                self.enter(EnemyPhase::Recovery, tick, recovery);
+                return BotIntent::default();
+            }
+            action.yaw = Some(self.aim.0);
+            action.pitch = Some(self.aim.1);
+            if tick >= self.until {
+                action.fire = true;
+                self.enter(EnemyPhase::Firing, tick, 1);
+            }
+            return BotIntent { action, goal: None };
+        }
+        if !state.has_traveling_shot(self.id) {
+            if let Some(target) =
+                target.filter(|target| (target.x - eye[0]).hypot(target.z - eye[2]) <= ENGAGE_RANGE)
+            {
+                let centre = [
+                    target.x,
+                    target.y - PLAYER_FLOOR_Y + crate::combat::target_height(target.campaign) * 0.5,
+                    target.z,
+                ];
+                if let Some(aim) = aim_at(eye, centre) {
+                    self.begin_windup(aim, tick, windup, &mut action);
+                    return BotIntent { action, goal: None };
+                }
+            }
+        }
+        if self.phase != EnemyPhase::Idle {
+            self.enter(EnemyPhase::Idle, tick, 0);
+        }
+        BotIntent::default()
     }
 
     fn crawler(
@@ -637,7 +810,7 @@ mod tests {
                     crate::combat::target_height(target.campaign) * 0.5,
                     target.z
                 ],
-                &state.map.arena().solids,
+                &state.current_arena().solids,
             ));
         }
         let mut controller = EnemyController::new(
@@ -694,7 +867,7 @@ mod tests {
         player.z = -29.530794;
         let snapshot = state.snapshot();
         let viewer = snapshot.players.iter().find(|p| p.id == player_id).unwrap();
-        let solids = &state.map.arena().solids;
+        let solids = &state.current_arena().solids;
         let corner_feet = [-11.192674, 0.0, -27.475136];
         let eye = [viewer.x, 1.0 + crate::movement::EYE_HEIGHT, viewer.z];
         let centre = [

@@ -502,6 +502,10 @@ pub struct Observation {
     /// Snapshot evidence awaiting its following frag event, never a prior tick.
     #[serde(default)]
     pending_kills: BTreeMap<String, KillEvidence>,
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pending_grenade_kills: BTreeMap<Uuid, Uuid>,
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pending_grenade_names: BTreeMap<String, String>,
     /// Victim spawn point, victim position and killer position for each frag,
     /// in event order, so spawn-death evidence can say where it happened.
     #[serde(default)]
@@ -615,6 +619,8 @@ impl Observation {
 
     pub fn ingest_snapshot(&mut self, snapshot: &Snapshot, bytes: usize) {
         self.pending_kills.clear();
+        self.pending_grenade_kills.clear();
+        self.pending_grenade_names.clear();
         self.snapshots_seen += 1;
         self.snapshot_bytes += bytes as u64;
         if let Some(flags) = snapshot.flags.as_ref() {
@@ -706,6 +712,56 @@ impl Observation {
             }
         }
         self.ingest_shots(snapshot);
+        self.ingest_explosions(snapshot);
+    }
+
+    fn ingest_explosions(&mut self, snapshot: &Snapshot) {
+        for explosion in &snapshot.explosions {
+            let tally = self.weapons.entry("Grenade".into()).or_default();
+            // Explosive tallies count resolved detonations, including misses.
+            // Participant records separately count authoritative launches.
+            tally.shots += 1;
+            let mut landed = false;
+            for hit in &explosion.hits {
+                if hit.target_id == explosion.owner_id {
+                    continue;
+                }
+                let effective = u64::from(hit.hp_damage) + u64::from(hit.armor_damage);
+                if effective == 0 {
+                    continue;
+                }
+                landed = true;
+                tally.damage += effective as i64;
+                if hit.killed {
+                    self.pending_grenade_kills
+                        .insert(hit.target_id, explosion.owner_id);
+                    let owner = snapshot.players.iter().find(|p| p.id == explosion.owner_id);
+                    let victim = snapshot.players.iter().find(|p| p.id == hit.target_id);
+                    if let (Some(owner), Some(victim)) = (owner, victim) {
+                        let position = [
+                            victim.x,
+                            victim.y - fragr_server::sim::PLAYER_FLOOR_Y,
+                            victim.z,
+                        ];
+                        let distance = position
+                            .iter()
+                            .zip(explosion.position)
+                            .map(|(a, b)| (f64::from(*a) - f64::from(b)).powi(2))
+                            .sum::<f64>()
+                            .sqrt();
+                        self.pending_kills.insert(
+                            victim.name.clone(),
+                            KillEvidence {
+                                killer: owner.name.clone(),
+                                weapon: "Grenade".into(),
+                                distance,
+                            },
+                        );
+                    }
+                }
+            }
+            tally.hits += u64::from(landed);
+        }
     }
 
     /// Every shot resolved on this tick, with the distance it travelled. The
@@ -783,7 +839,17 @@ impl Observation {
     pub fn ingest_event(&mut self, event: GameEvent) {
         match &event {
             // The clock on a death starts at the first damage that led to it.
-            GameEvent::Hit { target, .. } => {
+            GameEvent::Hit {
+                shooter,
+                shooter_id,
+                target,
+                target_id,
+                ..
+            } => {
+                if self.pending_grenade_kills.get(target_id) == Some(shooter_id) {
+                    self.pending_grenade_names
+                        .insert(target.clone(), shooter.clone());
+                }
                 self.engagement_start
                     .entry(target.clone())
                     .or_insert(self.last_tick);
@@ -814,6 +880,10 @@ impl Observation {
                 let killer_weapon = evidence
                     .as_ref()
                     .map(|e| e.weapon.clone())
+                    .or_else(|| {
+                        (self.pending_grenade_names.remove(victim).as_ref() == Some(killer))
+                            .then(|| "Grenade".into())
+                    })
                     .or_else(|| killer_track.and_then(|t| t.last_weapon.clone()));
                 let victim_pos = self.tracks.get(victim).and_then(|t| t.last_pos);
                 self.frag_places.push(FragPlace {
@@ -1742,7 +1812,7 @@ pub fn policy_action(policy: Policy, bot_id: Uuid, snapshot: &Snapshot, arena: &
                 })
                 .min_by(|a, b| a.name.cmp(&b.name))
                 .is_some_and(|player| player.id == bot_id);
-        if policy == Policy::Planner
+        if policy != Policy::RouteProbe
             && !carrying
             && snapshot.players.iter().any(|other| {
                 me.is_hostile_to(other)
@@ -1938,6 +2008,9 @@ async fn agent_task(
                 map_id,
                 m02_objectives,
                 m02_side_ward,
+                m03,
+                m04,
+                m05,
                 solids,
                 half_extent,
                 geometry_version,
@@ -1958,6 +2031,15 @@ async fn agent_task(
                         presentation.as_ref(),
                     )
                     .map_err(|error| Error::Server(format!("invalid mission map: {error}")))?;
+                mission_client
+                    .replace_map_with_m03(m03.as_ref(), half_extent, &solids, presentation.as_ref())
+                    .map_err(|error| Error::Server(format!("invalid M03 mission map: {error}")))?;
+                mission_client
+                    .replace_map_with_m04(m04.as_ref(), half_extent, &solids, presentation.as_ref())
+                    .map_err(|error| Error::Server(format!("invalid M04 mission map: {error}")))?;
+                mission_client
+                    .replace_map_with_m05(m05.as_ref(), half_extent, &solids, presentation.as_ref())
+                    .map_err(|error| Error::Server(format!("invalid M05 mission map: {error}")))?;
                 fragr_server::protocol::validate_map_geometry(
                     half_extent,
                     &solids,
@@ -2304,6 +2386,8 @@ mod tests {
             frag_limit: Some(5),
             shot_results: Vec::new(),
             projectiles: Vec::new(),
+            grenades: Vec::new(),
+            explosions: Vec::new(),
             mode_name: "Contested Frequency".to_string(),
             playlist: "Arena Duel".to_string(),
             pressure: None,
@@ -3215,6 +3299,8 @@ mod combat_tests {
             frag_limit: Some(10),
             shot_results: shots,
             projectiles: Vec::new(),
+            grenades: Vec::new(),
+            explosions: Vec::new(),
             mode_name: "Contested Frequency".to_string(),
             playlist: "Arena Duel".to_string(),
             pressure: None,
@@ -3245,6 +3331,76 @@ mod combat_tests {
             damage,
             target_hp_after: hit.then_some(75),
         }
+    }
+
+    #[test]
+    fn resolved_grenade_evidence_never_infers_a_dead_owners_current_gun() {
+        use fragr_server::protocol::{ExplosionHit, ExplosionResult};
+        let owner = Uuid::from_u128(51);
+        let target = Uuid::from_u128(52);
+        let mut observation = Observation::default();
+        observation.ingest_snapshot(
+            &frame(
+                1,
+                vec![
+                    player("Thrower", owner, 0.0, 0.0, "Rail"),
+                    player("Victim", target, 2.0, 0.0, "Scatter"),
+                ],
+                vec![],
+            ),
+            10,
+        );
+        let mut snapshot = frame(2, vec![], vec![]);
+        snapshot.explosions.push(ExplosionResult {
+            id: 7,
+            owner_id: owner,
+            position: [0.0, 0.5, 0.0],
+            radius: 4.0,
+            hits: vec![
+                ExplosionHit {
+                    target_id: owner,
+                    hp_damage: 100,
+                    armor_damage: 0,
+                    target_hp_after: 0,
+                    killed: true,
+                },
+                ExplosionHit {
+                    target_id: target,
+                    hp_damage: 10,
+                    armor_damage: 17,
+                    target_hp_after: -30,
+                    killed: true,
+                },
+            ],
+        });
+        observation.ingest_snapshot(&snapshot, 50);
+        observation.ingest_event(GameEvent::Hit {
+            shooter: "Thrower".into(),
+            shooter_id: owner,
+            target: "Victim".into(),
+            target_id: target,
+            damage: 50,
+            target_hp_after: -30,
+        });
+        observation.ingest_event(GameEvent::Frag {
+            killer: "Thrower".into(),
+            victim: "Victim".into(),
+            killer_score: 1,
+            killer_team: None,
+            victim_team: None,
+        });
+        let tally = &observation.weapons["Grenade"];
+        assert_eq!(
+            (tally.shots, tally.hits, tally.damage, tally.kills),
+            (1, 1, 27, 1)
+        );
+        assert!(!observation.weapons.contains_key("Rail"));
+        assert!(!observation.weapons.contains_key("Scatter"));
+        snapshot.tick = 3;
+        snapshot.explosions.clear();
+        observation.ingest_snapshot(&snapshot, 5);
+        assert!(observation.pending_grenade_kills.is_empty());
+        assert!(observation.pending_grenade_names.is_empty());
     }
 
     #[test]
@@ -3712,6 +3868,8 @@ mod planner_tests {
             frag_limit: Some(10),
             shot_results: Vec::new(),
             projectiles: Vec::new(),
+            grenades: Vec::new(),
+            explosions: Vec::new(),
             mode_name: "Contested Frequency".to_string(),
             playlist: "Arena Duel".to_string(),
             pressure: None,
@@ -3969,15 +4127,31 @@ mod planner_tests {
                 return_ticks: None,
             },
         ]);
-        let rush = policy_action(Policy::Reflex, me, &snap, &Arena::default());
-        assert_eq!(rush.look_at.unwrap().x, Some(-70.0));
-        let fight = policy_action(Policy::Planner, me, &snap, &Arena::default());
-        assert_eq!(fight.look_at.unwrap().player_id, Some(foe));
-        assert!(fight.fire);
+        for policy in [Policy::Reflex, Policy::Planner] {
+            let fight = policy_action(policy, me, &snap, &Arena::default());
+            assert_eq!(fight.look_at.unwrap().player_id, Some(foe));
+            assert!(fight.fire);
+        }
+        let probe = policy_action(Policy::RouteProbe, me, &snap, &Arena::default());
+        assert_eq!(probe.look_at.unwrap().x, Some(-70.0));
+        assert!(!probe.fire);
+        snap.flags.as_mut().unwrap()[Team::Union.index()].carrier = Some(me);
+        snap.flags.as_mut().unwrap()[Team::Union.index()].status = FlagStatus::Carried;
+        snap.flags.as_mut().unwrap()[Team::Union.index()].position = [0.0, 0.0, 0.0];
+        for policy in [Policy::Reflex, Policy::Planner] {
+            let carry = policy_action(policy, me, &snap, &Arena::default());
+            assert_eq!(carry.look_at.unwrap().x, Some(70.0));
+            assert!(!carry.fire);
+        }
+        snap.flags.as_mut().unwrap()[Team::Union.index()].carrier = None;
+        snap.flags.as_mut().unwrap()[Team::Union.index()].status = FlagStatus::Home;
+        snap.flags.as_mut().unwrap()[Team::Union.index()].position = [-70.0, 0.0, 0.0];
         snap.players[1].x = 30.0;
-        let route = policy_action(Policy::Planner, me, &snap, &Arena::default());
-        assert_eq!(route.look_at.unwrap().x, Some(-70.0));
-        assert!(!route.fire);
+        for policy in [Policy::Reflex, Policy::Planner] {
+            let route = policy_action(policy, me, &snap, &Arena::default());
+            assert_eq!(route.look_at.unwrap().x, Some(-70.0));
+            assert!(!route.fire);
+        }
     }
 
     fn ctf_six_a_side() -> Snapshot {
@@ -3992,7 +4166,7 @@ mod planner_tests {
                 let mut fighter = player(
                     &format!("{prefix}-{:02}", seat + 1),
                     Uuid::from_u128(first_id + seat),
-                    0.0,
+                    if team == Team::Union { -40.0 } else { 40.0 },
                     0.0,
                     100,
                     "flechette",
@@ -4104,7 +4278,7 @@ mod planner_tests {
         assert_eq!(ctf_goal_x(&snapshot, coalition_attacker), 15.0);
 
         // A grounded home flag takes objective priority for every noncarrier
-        // and the carrier attempting to score. Reflex has no combat detour.
+        // and the carrier attempting to score, while no close blocker is present.
         let flags = snapshot.flags.as_mut().unwrap();
         flags[Team::Coalition.index()].status = FlagStatus::Dropped;
         flags[Team::Coalition.index()].position = [32.0, 0.0, 0.0];
@@ -4189,6 +4363,8 @@ mod line_of_sight_tests {
             frag_limit: Some(10),
             shot_results: Vec::new(),
             projectiles: Vec::new(),
+            grenades: Vec::new(),
+            explosions: Vec::new(),
             mode_name: "Contested Frequency".to_string(),
             playlist: "Arena Duel".to_string(),
             pressure: None,

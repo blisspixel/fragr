@@ -1,0 +1,43 @@
+{
+  "engine": "Godot 4.7.2-stable",
+  "format": "pcm_s16le_mono_24000",
+  "kind": "original_offline_procedural",
+  "seed": 261004,
+  "sounds": [
+    {
+      "bytes": 96044,
+      "file": "fan.wav",
+      "loop": true,
+      "peak_linear": 0.2793,
+      "purpose": "live Notary ducted fan near the listener",
+      "rms_linear": 0.152,
+      "samples": 48000,
+      "seconds": 2.0,
+      "sha256": "653e92d6330fe2c444ac03024ca105bcb25a7e1b8ad4441554f53afe60318ea1"
+    },
+    {
+      "bytes": 8684,
+      "file": "shutter.wav",
+      "loop": false,
+      "peak_linear": 0.4828,
+      "purpose": "resolved Notary photograph round, mechanical shutter",
+      "rms_linear": 0.0476,
+      "samples": 4320,
+      "seconds": 0.18,
+      "sha256": "dc0a71495a058d10ab1bf19b952e36028c1aa427bcd1ea4b6756a4c0b0deff79"
+    },
+    {
+      "bytes": 31244,
+      "file": "crash.wav",
+      "loop": false,
+      "peak_linear": 0.6832,
+      "purpose": "server-positioned Notary wreck contacting registered support",
+      "rms_linear": 0.0743,
+      "samples": 15600,
+      "seconds": 0.65,
+      "sha256": "9f303ae813484f5778dd213de519ab75fea1634a99f89277b37608d2b27349ca"
+    }
+  ],
+  "source": "res://assets/audio/notary/bake_soundscape.gd",
+  "source_sha256": "dc1bb9a6fe6ba2d48f4dba5ecc73d6a4a4d54c1179a41e98a3a66bbe99435e88"
+}

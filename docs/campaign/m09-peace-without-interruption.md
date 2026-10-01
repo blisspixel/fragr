@@ -1,5 +1,10 @@
 # M09: Peace Without Interruption
 
+**Appearance anchor for level 17:** Earth command institution: visible control machinery, restrained issued marks and occupied rooms make the Union's defeat tangible.
+Shared [world direction](../design/earth.md) and
+[character, voice and scene continuity](../design/characters.md) govern assets
+and staging. This anchor is a production target, not finished-appearance evidence.
+
 **Status:** proposed level, unbuilt. Earth before the wipe. Target 12-16 minutes.
 **Confirmed ending:** Voss is captured alive; the wipe later interrupts the
 promised reckoning. [Treatment](../CAMPAIGN-MISSIONS.md#level-17-peace-without-interruption).

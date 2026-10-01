@@ -18,6 +18,25 @@ The M02 ward and processing-floor machinery set is also original and baked offli
 
 ## Files the client loads
 
+The M04 Notary set is original and baked offline.
+`notary/bake_soundscape.gd` writes a quiet two-second ducted fan loop, a short
+mechanical shutter and a grounded casing impact, with source/output hashes,
+PCM bounds and level measurements in `notary/soundscape-manifest.json`.
+Regenerate with `godot --headless --path client --script
+res://assets/audio/notary/bake_soundscape.gd`, then import on the pinned engine.
+Committed presets preserve mono 24 kHz 16-bit PCM and the fan loop. Fixed
+spatial Effects pools follow nearby typed actors, resolved shots and actual
+registered support contact; late joins do not replay old crashes. Captions
+remain available when muted or when a sample is missing. M02's passive Notary
+has no combat cue. External spend is $0.
+
+The Jammer launch is an original offline cue. `jammer/bake_launch.gd` writes
+the short mono 24 kHz PCM WAV and a source/output hash receipt. Regenerate with
+`godot --headless --path client --script res://assets/audio/jammer/bake_launch.gd`
+on the pinned engine. Confirmed server launches play through a fixed spatial
+Effects pool; the firing pose alone produces no sound. There is no external
+request, asset charge or weapon-gunshot substitution.
+
 | File | Used for |
 |---|---|
 | `fire.wav`, `hit.wav` | Fallback weapon fire and hit confirm |
@@ -26,6 +45,8 @@ The M02 ward and processing-floor machinery set is also original and baked offli
 | `frag.wav` | Elimination stinger |
 | `round_start.wav`, `round_end.wav` | Round cues |
 | `crawler_scrabble.wav` | Spatial M02 Crawler warning cue |
+| `jammer/launch.wav` | Server-confirmed Jammer interference launch |
+| `notary/fan.wav`, `notary/shutter.wav`, `notary/crash.wav` | M04 spatial fan, resolved photograph and grounded wreck |
 | `m02/ward_machine_loop.wav`, `m02/ward_machine_stop.wav` | Correction ward machinery and its shutdown |
 | `m02/restraint_release.wav` | Latch's first restraint, the second bay and the optional side ward |
 | `m02/floor_machinery_loop.wav` | Processing-floor spatial machinery bed |
@@ -34,7 +55,8 @@ The M02 ward and processing-floor machinery set is also original and baked offli
 Loading paths: `client/scripts/player_pawn.gd` (per-weapon fire and hit), `client/scripts/game_manager.gd` (frag, round and Crawler cues), `client/scripts/m02_ward.gd` (ward and processing-floor cues), `client/scripts/radio.gd` (radio tracks, discovered through the manifest, never by directory listing). Import presets: keep WAV as samples, MP3 as streams, loop flags off unless the manifest marks a file as looping.
 
 Radio controls in the match: C next station, N next track, M radio on or off
-(D-pad up, down, left on a gamepad). R and gamepad X reload on discovery maps.
+(D-pad up, down, left on a gamepad). Ammunition is one count per type, with no
+magazines or reload action.
 Every switch shows a station card above the track toast. Radio ducks under Host
 lines and sits lower while playing; LOCK IN never ducks for combat.
 

@@ -97,7 +97,8 @@ enum Command {
         /// Display name; falls back to FRAGR_AGENT_NAME, then "Brain".
         #[arg(long)]
         name: Option<String>,
-        /// Decisions per second (0.1 to 5).
+        /// Decisions per second (0.1 to 5). Ollama play asks only stance;
+        /// weapon selection and danger use current local observations.
         #[arg(long, default_value_t = 3.0)]
         decision_hz: f64,
         /// Accept an answer whose top option leads the runner-up by at least this.
@@ -553,7 +554,7 @@ mod tests {
     }
 
     fn temp(name: &str) -> PathBuf {
-        std::env::temp_dir().join(format!("fragr-brain-main-{name}-{}", std::process::id()))
+        std::env::temp_dir().join(format!("fragr-brain-main-{name}-{}", uuid::Uuid::new_v4()))
     }
 
     fn answers() -> serde_json::Value {

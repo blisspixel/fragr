@@ -1,9 +1,16 @@
 # Level 4: Notice to Vacate
 
-**Status:** planned, accepted 2026-09-25, unbuilt. The first half of
-[M03](m03-no-forwarding-address.md) in the
-[twenty-level expansion](../plans/campaign-expansion.md): the market, clinic
-and court. [Story arc](story-arc.md).
+**Appearance anchor for level 4:** Late-afternoon Low Water: homes, patched repair stalls, a calm clinic, shared table, drainage and tanks; packing and fighting share the same familiar district.
+Shared [world direction](../design/earth.md) and
+[character, voice and scene continuity](../design/characters.md) govern assets
+and staging. This anchor is a production target, not finished-appearance evidence.
+
+**Status:** full mission acceptance in flight, accepted 2026-09-25. The
+[playable prototype](../plans/m04-notice-to-vacate-prototype.md) is implemented
+locally on 2026-09-30 with a verified ordinary-input clear. Fresh-player pacing,
+runner and difficulty acceptance remain open. The market, clinic and court follow Scheduled Service in the
+[twenty-level expansion](../plans/campaign-expansion.md). The old combined
+district brief is historical. [Story arc](story-arc.md).
 
 | Episode | Place | New | First run | Par | Doors |
 |---|---|---|---|---|---|

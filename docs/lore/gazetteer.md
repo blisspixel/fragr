@@ -23,6 +23,11 @@ Earth-Moon-Mars travel takes time. The cast visits lived-in societies, not new
 colonies or empty skyboxes. The coda and aftermath multiplayer revisit familiar
 places years later; those variants need new routes and evidence of change.
 
+Levels 1-4 currently have authored development prototypes, including the yard
+and Low Water market/clinic. Their final pacing and fresh-player acceptance are
+open. Lunar, Martian, ship and later Earth campaign places remain unbuilt.
+The [world guides](../design/README.md) define their shared production direction.
+
 ## Arena myths
 
 The names are short on purpose and carry just enough backstory to make you wonder.

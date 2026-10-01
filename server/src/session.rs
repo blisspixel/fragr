@@ -417,6 +417,13 @@ impl GameSession {
         }
         let map = self.state.map.clone();
         let world = map.navigation();
+        // Reserve the tram lane for routes, but never treat that reservation as
+        // physical cover. Copy its live world once for this controller pass.
+        let live_arena = map
+            .m05_geometry()
+            .is_some()
+            .then(|| self.state.current_arena().into_owned());
+        let visibility = live_arena.as_ref().unwrap_or_else(|| map.arena());
         let mut driven = std::collections::HashSet::new();
         let mut controllers = self.bots.clone();
         for bot in &controllers {
@@ -468,12 +475,13 @@ impl GameSession {
                 self.navigators
                     .entry(bot.player_id)
                     .or_default()
-                    .steer_snapshot_with_budget(
+                    .steer_snapshot_with_visibility(
                         world,
                         bot.player_id,
                         snapshot,
                         wanted,
                         index / 4 == self.state.tick as usize % batches,
+                        &visibility.solids,
                     )
             } else if let (Some(goal), Some(player)) = (
                 intent.goal,
@@ -482,14 +490,18 @@ impl GameSession {
                     .iter()
                     .find(|player| player.id == bot.player_id),
             ) {
-                self.navigators.entry(bot.player_id).or_default().steer(
-                    world,
-                    [player.x, player.y - crate::sim::PLAYER_FLOOR_Y, player.z],
-                    goal,
-                    intent.action,
-                    self.state.tick,
-                    index / 4 == self.state.tick as usize % batches,
-                )
+                self.navigators
+                    .entry(bot.player_id)
+                    .or_default()
+                    .steer_with_visibility(
+                        world,
+                        [player.x, player.y - crate::sim::PLAYER_FLOOR_Y, player.z],
+                        goal,
+                        intent.action,
+                        self.state.tick,
+                        index / 4 == self.state.tick as usize % batches,
+                        &visibility.solids,
+                    )
             } else {
                 self.navigators.remove(&bot.player_id);
                 intent.action
@@ -502,14 +514,18 @@ impl GameSession {
                 intent.goal,
                 self.state.players.iter().find(|p| p.id == id && p.hp > 0),
             ) {
-                self.navigators.entry(id).or_default().steer(
-                    world,
-                    [player.x, player.y - crate::sim::PLAYER_FLOOR_Y, player.z],
-                    goal,
-                    intent.action,
-                    self.state.tick,
-                    (controllers.len() + index) / 4 == self.state.tick as usize % batches,
-                )
+                self.navigators
+                    .entry(id)
+                    .or_default()
+                    .steer_with_visibility(
+                        world,
+                        [player.x, player.y - crate::sim::PLAYER_FLOOR_Y, player.z],
+                        goal,
+                        intent.action,
+                        self.state.tick,
+                        (controllers.len() + index) / 4 == self.state.tick as usize % batches,
+                        &visibility.solids,
+                    )
             } else {
                 self.navigators.remove(&id);
                 intent.action
@@ -521,14 +537,18 @@ impl GameSession {
             let action = if let (Some(goal), Some(player)) =
                 (intent.goal, self.state.players.iter().find(|p| p.id == id))
             {
-                self.navigators.entry(id).or_default().steer(
-                    world,
-                    [player.x, player.y - crate::sim::PLAYER_FLOOR_Y, player.z],
-                    goal,
-                    intent.action,
-                    self.state.tick,
-                    companion_search_index / 4 == self.state.tick as usize % batches,
-                )
+                self.navigators
+                    .entry(id)
+                    .or_default()
+                    .steer_with_visibility(
+                        world,
+                        [player.x, player.y - crate::sim::PLAYER_FLOOR_Y, player.z],
+                        goal,
+                        intent.action,
+                        self.state.tick,
+                        companion_search_index / 4 == self.state.tick as usize % batches,
+                        &visibility.solids,
+                    )
             } else {
                 self.navigators.remove(&id);
                 intent.action

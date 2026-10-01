@@ -1,12 +1,12 @@
 # Plan: cutscene film, and the slideshow that comes first
 
-**Status:** planned, deferred (2026-09-25). This plan directs no spend. It sits
-downstream of the gate in [campaign-scenes.md](campaign-scenes.md), which
-decided the between-mission frame is a full-screen pixel text page first and
-that Higgsfield video waits until the playable campaign is built. This file
-does not reopen that gate; it is the production plan for what happens on each
-side of it: the cheap slideshow that can start once wording is frozen, and the
-staged, capped path to film once the campaign itself is done.
+**Status:** planned, deferred film production (updated 2026-09-30). This plan
+directs no spend. [campaign-scenes.md](campaign-scenes.md) replaced its historical
+text-first gate on 2026-09-25 with narrated stills and captions during campaign
+development. Video remains later work, after playable campaign staging is stable.
+This plan preserves the staged, capped path from those same scripts and references
+to film. The [transition audio batch](campaign-transition-audio.md) records the
+current six narrated prototype pages; that batch does not authorize video.
 **Branch:** `docs/cutscene-film-and-modes` for this plan; one `feat/cutscene-*`
 branch per stage.
 **Spend:** $0 through stage 0. Stage 1 test clips need an explicit hard cap
@@ -26,8 +26,10 @@ shot list for video later rather than re-authoring the scene twice.
 - Any paid video or image submission. That still needs the campaign-scenes.md
   gate to open and a written cap from Nick for each batch.
 - Photoreal or filtered-photoreal frames anywhere, slideshow or film. The
-  house style (`plans/higgsfield-pipeline.md#the-finding-that-decides-the-house-style`)
-  applies to motion the same way it applies to sprites.
+  [art bible](../ART_STORY_BIBLE.md) and
+  [character, voice and scene continuity](../design/characters.md) apply to
+  motion and stills alike. Historical pipeline experiments remain evidence,
+  not a competing style authority.
 - Reopening the spend gate itself. That decision belongs to campaign-scenes.md.
 - Baking essential words into a picture or a clip. `CAMPAIGN.md`'s story
   presentation section already forbids this for the text page; this plan

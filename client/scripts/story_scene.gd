@@ -24,7 +24,11 @@ const MOTION_KEYS: Array[String] = ["kind", "amount"]
 ## only: the server already owns the departure, and a missing entry plays nothing.
 const AFTER_MISSION: Dictionary[String, String] = {
 	"recall_notice": "l01_l02",
+	"scheduled_service": "l03_l04",
+	"notice_to_vacate": "l04_l05",
+"no_forwarding_address": "l05_l06",
 }
+const BEFORE_MISSION: Dictionary[String, String] = {"scheduled_service": "m03_arrival", "notice_to_vacate": "m04_arrival", "no_forwarding_address": "m05_arrival"}
 
 static func path_for(scene_id: String) -> String:
 	return DIRECTORY + scene_id + ".json"

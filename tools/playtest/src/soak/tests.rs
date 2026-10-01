@@ -305,6 +305,32 @@ async fn a_missing_binary_is_a_start_error() {
 }
 
 #[tokio::test]
+async fn memory_probe_yields_to_clients_on_the_same_runtime() {
+    let (release, wait) = std::sync::mpsc::channel();
+    let client = tokio::spawn(async move {
+        tokio::task::yield_now().await;
+        release.send(()).unwrap();
+    });
+    let result = collect_rss(move || {
+        wait.recv_timeout(std::time::Duration::from_secs(2))
+            .map_err(|error| format!("client could not advance: {error}"))?;
+        Ok(Rss {
+            bytes: 4096,
+            source: "test_os_probe",
+        })
+    })
+    .await
+    .unwrap();
+    client.await.unwrap();
+    assert_eq!(result.bytes, 4096);
+    assert_eq!(result.source, "test_os_probe");
+    assert_eq!(
+        collect_rss(|| Err("OS probe unavailable".to_string())).await,
+        Err("OS probe unavailable".to_string())
+    );
+}
+
+#[tokio::test]
 async fn a_short_in_process_soak_samples_and_passes() {
     let dir = std::env::temp_dir().join(format!("fragr-soak-test-{}", std::process::id()));
     let log = dir.join("soak.ndjson");

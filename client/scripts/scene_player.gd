@@ -357,7 +357,11 @@ func toggle_captions() -> void:
 ## Narration timing advances once the clip ends, after a short hold. The last
 ## shot never finishes on its own: leaving the scene is always the reader's call.
 func _on_narration_finished() -> void:
-	if finished or shot().get("timing", "reader") != "narration" or page == shots().size() - 1:
+	if finished:
+		return
+	_voiced = false
+	_refresh()
+	if shot().get("timing", "reader") != "narration" or page == shots().size() - 1:
 		return
 	_auto_advance = float(shot().get("hold", DEFAULT_HOLD))
 

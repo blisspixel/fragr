@@ -1,5 +1,10 @@
 # Level 20: Local Exception
 
+**Appearance anchor for level 20:** Waterworks and waterfront refuge: existing utility materials, deliberate water boundaries and threatened working infrastructure frame survival.
+Shared [world direction](../design/earth.md) and
+[character, voice and scene continuity](../design/characters.md) govern assets
+and staging. This anchor is a production target, not finished-appearance evidence.
+
 **Status:** planned, accepted 2026-09-25, unbuilt. The last third of
 [M10](m10-all-systems-normal.md) in the
 [twenty-level expansion](../plans/campaign-expansion.md): survival minutes 21

@@ -3,9 +3,12 @@
 Status: names and cycling shipped, 2026-09-22. v0.41.0 reads Pistol, Rifle,
 Shotgun, and Railgun, and ammo pads read Bullets, Shells, and Cells. v0.42.0
 walks those guns with the wheel, the bracket keys, and 1 through 5. Wire ids
-for the five current weapons are unchanged. The sniper rifle, rocket launcher,
-grenade, proximity mine, and remote mine are locked as campaign finds. None of
-them is implemented.
+for the original guns are unchanged. The found Shiv is the sixth existing gun
+slot. Counted grenades are implemented locally for level 5 through the
+[grenade foundation](hand-grenade-foundation.md), separately from those gun
+slots. Sniper Rifle, Rocket Launcher, Proximity Mine and Remote Mine remain
+planned campaign finds. The table below follows the accepted twenty-level
+treatment, replacing this plan's historical ten-mission numbering.
 
 Decided 2026-09-25: the campaign has no carry cap. Every gun found on the route
 below stays carried, Doom style, all the way to the credits; nothing hits the
@@ -23,11 +26,11 @@ them, not granted from a menu and not present in the arcade full arsenal:
 
 | Player reads | Wire id, when added | Taught | What it must feel like |
 |---|---|---|---|
-| Sniper Rifle | `sniper` | M04 crater cut, after customs has already taught the Railgun | Slow, tight, high-damage hitscan. A scope is presentation. It is not a renamed rail beam. |
-| Grenade | `grenade` | M03, on the ordinary route | Thrown arc, bounce, fuse, then blast. It does not explode on impact. |
-| Proximity Mine | `proximity_mine` | M05, before the converging fight | Sticks to the first surface, arms after a visible delay, blinks, and detonates when a body enters the radius. |
-| Remote Mine | `remote_mine` | M06, after proximity is already known | Sticks and waits. A separate detonator explodes the ones you own. Firing a gun does not set them off. |
-| Rocket Launcher | `rocket` | M08, before the exterior crest | A flying rocket that explodes on impact. Splash falls off and stops at cover. |
+| Sniper Rifle | `sniper`, planned | Level 7, Declared Goods, after customs teaches the Railgun | Slow, tight, high-damage hitscan. A scope is presentation. |
+| Grenade | `throw_grenade` Action and `grenades` count | Level 5, No Forwarding Address, on the ordinary route | Thrown arc, bounce, forty-tick fuse, then covered falloff blast. |
+| Proximity Mine | `proximity_mine`, planned | Level 8, Custodian of Record | Sticks, arms after a visible delay, blinks, then triggers on a body. |
+| Remote Mine | `remote_mine`, planned | Level 11, Right of Search | Sticks and waits for its separate owner detonator. |
+| Rocket Launcher | `rocket`, planned | Level 13, The Weight of Permission | Flying rocket, impact blast, falloff and solid occlusion. |
 
 GoldenEye is the reference for the grenade and the two mines: place them,
 read the tell, and choose when the blast happens. Doom II is the reference
@@ -48,12 +51,14 @@ is dropped to make room: by the Martian foundry the player is carrying the
 pistol, rifle, shotgun, railgun, sniper rifle and grenades at once, each with
 its own ammunition pool. A continue restores that mission's entry kit, so a
 death before leaving puts the found copy back on the floor until you pick it
-up again. Quitting still ends the local run. Disk saves do not exist yet, so
-there is no permanent account unlock.
+up again. The local mission-entry save carries completed equipment and earlier
+choices through levels 1 to 5; leaving retains that run. It provides no permanent
+account unlock. Version 6 stores the grenade count independently, and strict
+historical upgrades assign zero grenades with exact prior-byte archives.
 
 None of the five is required to finish an earlier mission. The customs lane
-in M04 still teaches the Railgun without a sniper. M03 still has no new
-mandatory gun; the grenade is the new tool. The M08 walker stays defeatable
+in level 6 still teaches the Railgun without a sniper. Level 5 has no new
+mandatory gun; the grenade is the new tool. The proposed later walker stays defeatable
 without the rocket launcher.
 
 ## Scope and architecture
@@ -67,9 +72,11 @@ cone, a slower cooldown, and higher damage than the rifle. Cells feed it, so
 it spends the same scarce pool as the Railgun. The scope never decides a hit
 on the client.
 
-Rockets and grenades share one authoritative projectile: owner, velocity,
-bounce or impact policy, fuse, and cleanup on hit, death, round, or mission
-reset. Mines share one placed-device record with a trigger policy
+Grenades use one bounded authoritative projectile with owner, velocity, contact
+count and fixed fuse. Explicit leave removes owned devices, while a dead owner
+retains committed throws. Round/map/mission resets clear them. Future rockets
+may reuse its geometry helpers, with a separately validated impact policy.
+Planned mines share one placed-device record with a trigger policy
 (proximity or remote), an arming delay, a cap on live devices, and the same
 cleanup. Blast damage is server-side, reduced by distance, and blocked by
 solids. The owner can be hurt. The Godot client sends the throw, the place,
@@ -79,9 +86,10 @@ Grenades, proximity mines, and remote mines carry their own counts. They do
 not draw Bullets, Shells, or Cells. Rockets use a new `rockets` pool, shown
 as Rockets. Remote detonation is its own action.
 
-Bots do not need these weapons in the first implementation. Adding a weapon
-grows the service-record array, which is five slots today, so the record
-version moves in the same change as the new id.
+Agents can explicitly throw through the same Action and equipment controller.
+Grenade records have a separate compatible default-zero counter, preserving the
+six gun slots and record version 1. A future new gun must extend and version its
+own gun contract; no fake grenade gun slot is introduced.
 
 ## Verification
 
@@ -89,8 +97,8 @@ A sniper test proves a tight hit, a miss outside the cone, and that it does
 not reuse Rail damage or the rail beam. Projectile tests cover flight,
 bounce, fuse, impact, and cleanup. Mine tests cover stick, arming, proximity,
 remote detonation, the live-device cap, owner damage, and a wall that stops
-the blast. A death, a round end, and a mission reset remove both projectiles
-and mines. Human and agent controls share the action. Update `docs/protocol.md`
+the blast. Existing grenade checks distinguish dead owners from explicit leave
+and coherent resets. Human and agent controls share the action. Update `docs/protocol.md`
 and the adapter docs with the wire change. Inspect a tour only when a
 playable mission actually contains the weapon.
 
@@ -100,4 +108,5 @@ Local development is free. Viewmodels and blast audio wait until the
 behavior is frozen, and paid generation stays behind the existing cap.
 Success means each earned weapon is found where its mission brief says, plays
 differently from the pistol, rifle, shotgun, and railgun, and is absent from
-M01 and from arcade matches. No explosive or sniper shot is implemented yet.
+M01 and from the default arcade kit. Grenade implementation evidence belongs
+to its bounded foundation and M05 plans; the other four additions remain unbuilt.

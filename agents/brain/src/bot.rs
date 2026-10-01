@@ -5,13 +5,13 @@
 
 use crate::budget::Budget;
 use crate::decision::{
-    campaign_questions, constrain_plan_weapon, plan_from_answers, tactical_questions, Gate,
-    Question,
+    campaign_questions, constrain_plan_weapon, plan_from_answers, stance_questions,
+    tactical_questions, Gate, Question, Q_WEAPON,
 };
 use crate::local_model;
 use crate::plan::{
     campaign_enemy_engageable, campaign_micro_action, campaign_target, fallback_plan, micro_action,
-    Plan, Source, Stance,
+    target_visible, Plan, Source, Stance,
 };
 use crate::provider::{decide, decision_request, Provider, Transport};
 use crate::telemetry::{observe, EnemyView, RecentHits, Telemetry};
@@ -140,6 +140,8 @@ pub struct BotSummary {
     pub actions_sent: u64,
     pub decisions_remote: u64,
     pub decisions_low_confidence: u64,
+    /// Successful replies from an earlier map, life, round or mission state.
+    pub decisions_discarded: u64,
     pub decisions_failed: u64,
     pub decisions_local: u64,
     pub budget_refusals: u64,
@@ -304,6 +306,7 @@ fn decision_state(
         state["equipment"] = serde_json::json!({
             "selected": equipment.selected, "weapons": equipment.weapons,
             "ammo": equipment.ammo,
+            "grenades": equipment.grenades,
         });
     }
     state
@@ -316,7 +319,60 @@ enum Outcome {
 }
 
 /// One decision on its way back: the answer channel and the task behind it.
-type InFlight = (oneshot::Receiver<(Outcome, u64)>, JoinHandle<()>);
+type InFlight = (oneshot::Receiver<(Outcome, u64)>, JoinHandle<()>, u64);
+
+/// The local lifecycle changes independently of a blocking provider request.
+/// Replies still settle their paid accounting, but cannot cross this boundary.
+#[derive(Default)]
+struct DecisionEpoch(u64);
+
+impl DecisionEpoch {
+    fn advance(&mut self) {
+        self.0 = self.0.wrapping_add(1);
+    }
+
+    fn accepts(&self, requested: u64) -> bool {
+        self.0 == requested
+    }
+
+    fn observe_snapshot(&mut self, id: Option<Uuid>, old: Option<&Snapshot>, next: &Snapshot) {
+        if let Some(old) = old {
+            let living = |snapshot: &Snapshot| {
+                snapshot
+                    .players
+                    .iter()
+                    .find(|p| Some(p.id) == id)
+                    .map(|p| p.hp > 0)
+            };
+            let flag_ownership = |snapshot: &Snapshot| {
+                snapshot
+                    .flags
+                    .as_ref()
+                    .map(|flags| flags.each_ref().map(|flag| (flag.status, flag.carrier)))
+            };
+            let cooperating = |snapshot: &Snapshot| {
+                let mut peers: Vec<_> = snapshot
+                    .players
+                    .iter()
+                    .filter(|p| {
+                        Some(p.id) == id || p.behavior.as_deref().and_then(Stance::parse).is_some()
+                    })
+                    .map(|p| (p.id, p.team, p.hp > 0))
+                    .collect();
+                peers.sort_unstable_by_key(|peer| peer.0);
+                peers
+            };
+            if old.map_id != next.map_id
+                || old.round_state != next.round_state
+                || living(old) != living(next)
+                || flag_ownership(old) != flag_ownership(next)
+                || cooperating(old) != cooperating(next)
+            {
+                self.advance();
+            }
+        }
+    }
+}
 
 /// Round-trip time of sent decisions, in milliseconds.
 #[derive(Debug, Clone, Default, PartialEq, Serialize)]
@@ -502,7 +558,9 @@ fn spawn_decision(
             .answers(transport.as_ref(), &budget, &state, &questions)
             .map(|answers| {
                 let mut plan = plan_from_answers(&answers, &gate, &fallback, roll);
-                constrain_plan_weapon(&mut plan, &questions);
+                if questions.contains_key(Q_WEAPON) {
+                    constrain_plan_weapon(&mut plan, &questions);
+                }
                 plan
             });
         let outcome = match result {
@@ -648,6 +706,7 @@ pub async fn run_bot(
         .max_seconds
         .and_then(|s| tokio::time::Instant::now().checked_add(Duration::from_secs(s)));
     let mut inflight: Option<InFlight> = None;
+    let mut decision_epoch = DecisionEpoch::default();
     let mut consecutive_malformed = 0u32;
     let mut session_error = None;
     let mut terminal_state = None;
@@ -665,9 +724,13 @@ pub async fn run_bot(
             msg = stream.next() => match msg {
                 Some(Ok(Message::Text(text))) => match serde_json::from_str::<ServerMessage>(&text) {
                     Ok(ServerMessage::Mission { tick, state }) => {
+                        let changed = mission_client.state.as_ref() != Some(&state);
                         if let Err(error) = mission_client.observe(tick, state) {
                             session_error = Some(Error::Transport(format!("invalid mission: {error}")));
                             break;
+                        }
+                        if changed {
+                            decision_epoch.advance();
                         }
                         summary.mission = mission_client.state.as_ref().map(MissionReceipt::from);
                         if let (Some(trace), Some(state)) = (timeline.as_mut(), mission_client.state.as_ref()) {
@@ -705,6 +768,7 @@ pub async fn run_bot(
                         summary.player_id = player_id;
                     }
                     Ok(ServerMessage::Snapshot(snapshot)) => {
+                        decision_epoch.observe_snapshot(me, last.as_ref(), &snapshot);
                         summary.snapshots += 1;
                         if let Some(id) = me {
                             if let Some(p) = snapshot.players.iter().find(|p| p.id == id) {
@@ -743,7 +807,8 @@ pub async fn run_bot(
                     }
                     // Geometry belongs to the local controller, never a paid
                     // per-frame decision. Reject invalid worlds before driving.
-                    Ok(ServerMessage::MapInfo { map_id, m02_objectives, m02_side_ward, map_name, solids, half_extent, geometry_version, presentation, mission, .. }) => {
+                    Ok(ServerMessage::MapInfo { map_id, m02_objectives, m02_side_ward, m03, m04, m05, map_name, solids, half_extent, geometry_version, presentation, mission, .. }) => {
+                        decision_epoch.advance();
                         if let Err(error) = fragr_server::protocol::validate_map_presentation(presentation.as_ref(), &solids) {
                             session_error = Some(Error::Transport(format!("invalid map presentation: {error}")));
                             break;
@@ -754,7 +819,19 @@ pub async fn run_bot(
                             break;
                         }
                         mission_geometry = mission.clone();
+                        if let Err(error) = mission_client.replace_map_with_m03(m03.as_ref(), half_extent, &solids, presentation.as_ref()) {
+                            session_error = Some(Error::Transport(format!("invalid M03 mission map: {error}")));
+                            break;
+                        }
+                        if let Err(error) = mission_client.replace_map_with_m04(m04.as_ref(), half_extent, &solids, presentation.as_ref()) {
+                            session_error = Some(Error::Transport(format!("invalid M04 mission map: {error}")));
+                            break;
+                        }
                         if let Err(error) = fragr_server::protocol::validate_map_geometry(half_extent, &solids, geometry_version) {
+                            session_error = Some(Error::Transport(format!("invalid navigation map: {error}")));
+                            break;
+                        }
+                        if let Err(error) = mission_client.replace_map_with_m05(m05.as_ref(), half_extent, &solids, presentation.as_ref()) {
                             session_error = Some(Error::Transport(format!("invalid navigation map: {error}")));
                             break;
                         }
@@ -793,16 +870,27 @@ pub async fn run_bot(
             },
             _ = micro.tick() => {
                 if let (Some(id), Some(snapshot)) = (me, last.as_ref()) {
+                    if inflight.is_some() {
+                        if let Some(telemetry) = observe(id, snapshot, &mut hits) {
+                            plan = fallback_plan(&telemetry, Source::Local);
+                        }
+                    }
                     constrain_campaign_equipment(&mut plan, mission_client.state.is_some(), loadout.as_ref());
-                    let action = match (mission_client.state.as_ref(), navigation.as_ref()) {
+                    let alive = snapshot.players.iter().any(|player| player.id == id && player.hp > 0);
+                    let action = if !alive {
+                        navigator.clear();
+                        Action::default()
+                    } else { match (mission_client.state.as_ref(), navigation.as_ref()) {
                         (Some(_), Some(world)) => campaign_micro_action(&plan, id, snapshot, world),
-                        _ if snapshot.flags.is_some() => crate::plan::ctf_micro_action(&plan, id, snapshot),
+                        (_, Some(world)) if snapshot.flags.is_some() => crate::plan::ctf_micro_action_in_world(&plan, id, snapshot, world),
                         _ => micro_action(&plan, id, snapshot),
-                    };
+                    }};
                     let action = if let (Some(_), Some(world)) = (mission_client.state.as_ref(), navigation.as_ref()) {
                         fragr_server::inventory::control_action_with_target_filter(id, snapshot, loadout.as_ref(), action, true, |mine, other| campaign_enemy_engageable(world, mine, other))
+                    } else if let Some(world) = navigation.as_ref().filter(|_| snapshot.flags.is_some()) {
+                        fragr_server::inventory::control_action_with_target_filter(id, snapshot, loadout.as_ref(), action, true, |mine, other| target_visible(world, mine, other))
                     } else {
-                        fragr_server::inventory::control_action_with_objective(id, snapshot, loadout.as_ref(), action, false)
+                        fragr_server::inventory::control_action_with_objective(id, snapshot, loadout.as_ref(), action, snapshot.flags.is_some())
                     };
                     let intent = action.clone();
                     let action = navigation.as_ref().map_or_else(Action::default, |world| {
@@ -819,12 +907,12 @@ pub async fn run_bot(
                     summary.actions_sent += 1;
                 }
             },
-            _ = macro_tick.tick(), if inflight.is_none() => {
+            _ = macro_tick.tick() => {
                 let Some(id) = me else { continue };
                 let Some(snapshot) = last.as_ref() else { continue };
                 let Some(telemetry) = observe(id, snapshot, &mut hits) else { continue };
                 summary.last_state = Some(telemetry.render());
-                if !paid_enabled || !brain_worth_asking(&telemetry) || !mission_client.participating(id) {
+                if inflight.is_some() || !paid_enabled || !brain_worth_asking(&telemetry) || !mission_client.participating(id) {
                     let source = if config.provider.is_paid() && !paid_enabled {
                         Source::Budget
                     } else if config.provider.is_local_model() && !paid_enabled {
@@ -851,6 +939,17 @@ pub async fn run_bot(
                 } else {
                     arena_questions.clone()
                 };
+                let questions = if config.provider == Provider::Ollama {
+                    Arc::new(stance_questions((*questions).clone()))
+                } else {
+                    questions
+                };
+                // The initial request must also have a useful local plan;
+                // do not hold the initial stance while a model loads intent.
+                let fallback = fallback_plan(&telemetry, Source::Failure);
+                if plan.source == Source::Initial {
+                    plan = fallback_plan(&telemetry, Source::Local);
+                }
                 let (tx, rx) = oneshot::channel();
                 let handle = spawn_decision(
                     transport.clone(),
@@ -866,15 +965,15 @@ pub async fn run_bot(
                         let enemy_visible = mission_client.state.as_ref().map(|_| true);
                         decision_state(&with_memory, mission_client.state.as_ref(), loadout.as_ref(), enemy_visible)
                     },
-                    fallback_plan(&telemetry, Source::Failure),
+                    fallback,
                     config.gate,
                     next_roll(&mut roll_state),
                     tx,
                 );
-                inflight = Some((rx, handle));
+                inflight = Some((rx, handle, decision_epoch.0));
             },
             answer = async { (&mut inflight.as_mut().expect("guarded by the branch condition").0).await }, if inflight.is_some() => {
-                inflight = None;
+                let requested_epoch = inflight.take().expect("guarded by the branch condition").2;
                 let outcome = match answer {
                     Ok((outcome, ms)) => {
                         if matches!(outcome, Outcome::Decided(_) | Outcome::Failed(..)) {
@@ -889,8 +988,38 @@ pub async fn run_bot(
                         continue;
                     }
                 };
+                let fresh = me.and_then(|id| last.as_ref().and_then(|snapshot| observe(id, snapshot, &mut hits)));
+                if matches!(outcome, Outcome::Decided(_)) && !decision_epoch.accepts(requested_epoch) {
+                    summary.decisions_discarded += 1;
+                    summary.fallbacks += 1;
+                    if let Some(telemetry) = fresh.as_ref() {
+                        plan = fallback_plan(telemetry, Source::Local);
+                    }
+                    consecutive_malformed = 0;
+                    if backoff_level > 0 {
+                        backoff_level = 0;
+                        macro_tick = tokio::time::interval_at(
+                            tokio::time::Instant::now() + base_interval,
+                            base_interval,
+                        );
+                        macro_tick.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Skip);
+                    }
+                    continue;
+                }
                 match outcome {
-                    Outcome::Decided(decided) => {
+                    Outcome::Decided(mut decided) => {
+                        if decided.source != Source::Remote {
+                            if let Some(telemetry) = fresh.as_ref() {
+                                decided.stance = fallback_plan(telemetry, decided.source).stance;
+                            }
+                        }
+                        if config.provider == Provider::Ollama {
+                            if let Some(telemetry) = fresh.as_ref() {
+                                let local = fallback_plan(telemetry, decided.source);
+                                decided.weapon = local.weapon;
+                                decided.danger = local.danger;
+                            }
+                        }
                         consecutive_malformed = 0;
                         match decided.source {
                             Source::Remote => summary.decisions_remote += 1,
@@ -925,7 +1054,7 @@ pub async fn run_bot(
                             summary.brain_disabled = Some(err.to_string());
                         }
                         paid_enabled = false;
-                        plan = fallback;
+                        plan = fresh.as_ref().map_or(fallback, |telemetry| fallback_plan(telemetry, Source::Budget));
                         if let Some(wire) =
                             display_behavior_wire(&mut published_stance, plan.stance)
                         {
@@ -957,7 +1086,7 @@ pub async fn run_bot(
                         } else {
                             tracing::warn!("brain call failed, local rules this cycle: {err}");
                         }
-                        plan = fallback;
+                        plan = fresh.as_ref().map_or(fallback, |telemetry| fallback_plan(telemetry, Source::Failure));
                         if let Some(wire) =
                             display_behavior_wire(&mut published_stance, plan.stance)
                         {
@@ -982,7 +1111,7 @@ pub async fn run_bot(
     let _ = sink.close().await;
     // Let an in-flight decision finish so its charge is in the ledger before
     // the totals are read; a panic or a hang is bounded, not fatal.
-    if let Some((_, handle)) = inflight.take() {
+    if let Some((_, handle, _)) = inflight.take() {
         let _ = tokio::time::timeout(DRAIN_TIMEOUT, handle).await;
     }
     {
@@ -1061,6 +1190,9 @@ mod tests {
             }],
             prompts: vec![],
             m02: None,
+            m03: None,
+            m04: None,
+            m05: None,
         };
         state.validate(1).unwrap();
         assert!(!terminal_mission(&state));
@@ -1107,6 +1239,9 @@ mod tests {
             }],
             prompts: vec![],
             m02: None,
+            m03: None,
+            m04: None,
+            m05: None,
         };
         state.validate(20).unwrap();
         let mut total = CombatCounts {
@@ -1234,6 +1369,9 @@ mod tests {
             }],
             prompts: vec![],
             m02: None,
+            m03: None,
+            m04: None,
+            m05: None,
         };
         state.validate(1).unwrap();
         let loadout = LoadoutState {
@@ -1251,6 +1389,7 @@ mod tests {
                 .collect(),
             personal_claims: vec![],
             dry_fire_count: 0,
+            grenades: 0,
         };
         loadout.validate_for(Some(id), None).unwrap();
         let mut proposed = Plan {
@@ -1325,6 +1464,9 @@ mod tests {
             party: vec![],
             prompts: vec![],
             m02: None,
+            m03: None,
+            m04: None,
+            m05: None,
         };
         let state = decision_state(&telemetry, Some(&mission), None, Some(true));
         assert_eq!(state["enemy"]["weapon"], "flechette");
@@ -1332,6 +1474,13 @@ mod tests {
     }
 
     async fn boot_server(bots: usize) -> (String, tokio::sync::oneshot::Sender<()>) {
+        boot_server_with_mode(bots, fragr_server::protocol::GameMode::Ffa).await
+    }
+
+    async fn boot_server_with_mode(
+        bots: usize,
+        mode: fragr_server::protocol::GameMode,
+    ) -> (String, tokio::sync::oneshot::Sender<()>) {
         let (shutdown_tx, shutdown_rx) = tokio::sync::oneshot::channel::<()>();
         let (ready_tx, ready_rx) = tokio::sync::oneshot::channel();
         let options = ServerOptions {
@@ -1344,6 +1493,7 @@ mod tests {
             map_rotate: false,
             solo_broadcast: false,
             match_config: Some(MatchConfig {
+                rules: fragr_server::rules::RuleSet::new(mode, &[], false).unwrap(),
                 warmup_ticks: 1,
                 boss_spawn_ticks: None,
                 compliance_ping_ticks: None,
@@ -1411,6 +1561,224 @@ mod tests {
     /// cadence a test asserts on, so this constant is never the thing a
     /// passing run actually waits out; `wait_for` bounds the setup side.
     const SAFETY_NET_SECONDS: u64 = 20;
+
+    #[test]
+    fn decision_epoch_tracks_life_round_and_map_without_rejecting_motion() {
+        let id = Uuid::from_u128(1);
+        let initial = snapshot(1, vec![player("Brain", id, 0.0, 0.0, 100, "rail")], vec![]);
+        let mut epoch = DecisionEpoch::default();
+        epoch.observe_snapshot(Some(id), None, &initial);
+        assert!(epoch.accepts(0));
+        let mut moved = initial.clone();
+        moved.tick = 2;
+        moved.players[0].x = 5.0;
+        epoch.observe_snapshot(Some(id), Some(&initial), &moved);
+        assert!(epoch.accepts(0), "ordinary movement keeps intent usable");
+        let mut dead = moved.clone();
+        dead.players[0].hp = 0;
+        epoch.observe_snapshot(Some(id), Some(&moved), &dead);
+        assert!(!epoch.accepts(0));
+        let death = epoch.0;
+        epoch.observe_snapshot(Some(id), Some(&dead), &moved);
+        assert!(!epoch.accepts(death), "respawn starts a new life");
+        let alive = epoch.0;
+        let mut ended = moved.clone();
+        ended.round_state = Some("Ended".into());
+        epoch.observe_snapshot(Some(id), Some(&moved), &ended);
+        assert!(!epoch.accepts(alive));
+        let round = epoch.0;
+        let mut replaced = ended.clone();
+        replaced.map_id += 1;
+        epoch.observe_snapshot(Some(id), Some(&ended), &replaced);
+        assert!(!epoch.accepts(round));
+        let map = epoch.0;
+        epoch.advance();
+        assert!(
+            !epoch.accepts(map),
+            "explicit mission transitions invalidate intent"
+        );
+        let mut joined = replaced.clone();
+        joined
+            .players
+            .push(player("human", Uuid::from_u128(2), 10.0, 0.0, 100, "rail"));
+        let before_join = epoch.0;
+        epoch.observe_snapshot(Some(id), Some(&replaced), &joined);
+        assert!(
+            epoch.accepts(before_join),
+            "unadvertised peer does not change coordination"
+        );
+        let mut advertised = joined.clone();
+        advertised.players[1].behavior = Some("hold_angle".into());
+        epoch.observe_snapshot(Some(id), Some(&joined), &advertised);
+        assert!(
+            !epoch.accepts(before_join),
+            "compatible peer changes role election"
+        );
+        let before_stance = epoch.0;
+        let mut updated = advertised.clone();
+        updated.players[1].behavior = Some("push_enemy".into());
+        updated.players.reverse();
+        epoch.observe_snapshot(Some(id), Some(&advertised), &updated);
+        assert!(
+            epoch.accepts(before_stance),
+            "stance and snapshot order do not change compatibility"
+        );
+    }
+
+    /// Hold inference until the socket fixture has observed useful fallback.
+    struct HeldModel {
+        started: AtomicBool,
+        release: AtomicBool,
+        finished: AtomicBool,
+    }
+
+    impl Transport for HeldModel {
+        fn send(&self, _request: &crate::provider::HttpRequest) -> Result<HttpResponse, Error> {
+            self.started.store(true, Ordering::SeqCst);
+            let limit = std::time::Instant::now() + Duration::from_secs(10);
+            while !self.release.load(Ordering::SeqCst) {
+                if std::time::Instant::now() >= limit {
+                    return Err(Error::Timeout("fixture never released inference".into()));
+                }
+                std::thread::sleep(Duration::from_millis(5));
+            }
+            self.finished.store(true, Ordering::SeqCst);
+            Ok(HttpResponse {
+                status: 200,
+                body: letter_a().to_string().into_bytes(),
+            })
+        }
+    }
+
+    #[tokio::test]
+    async fn delayed_model_keeps_healing_and_discards_its_answer_after_death() {
+        use crate::telemetry::fixtures::pad;
+        let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let url = format!("ws://{}", listener.local_addr().unwrap());
+        let transport = Arc::new(HeldModel {
+            started: AtomicBool::new(false),
+            release: AtomicBool::new(false),
+            finished: AtomicBool::new(false),
+        });
+        let held = transport.clone();
+        let server = tokio::spawn(async move {
+            let (socket, _) = listener.accept().await.unwrap();
+            let mut ws = tokio_tungstenite::accept_async(socket).await.unwrap();
+            ws.next().await.unwrap().unwrap(); // Hello.
+            ws.next().await.unwrap().unwrap(); // Initial behavior.
+            let id = Uuid::from_u128(1);
+            let welcome = serde_json::json!({"type":"welcome", "player_id":id, "role":"agent"});
+            let mut map =
+                serde_json::to_value(fragr_server::sim::GameState::new().map_info()).unwrap();
+            map["solids"] = serde_json::json!([]);
+            map["presentation"] = serde_json::Value::Null;
+            let mut scene = snapshot(
+                1,
+                vec![
+                    player("Brain-1", id, 0.0, 0.0, 100, "flechette"),
+                    player("Foe", Uuid::from_u128(2), 20.0, 0.0, 100, "rail"),
+                ],
+                vec![pad("health", "", -8.0, 0.0, true)],
+            );
+            for message in [
+                welcome.to_string(),
+                map.to_string(),
+                serde_json::to_string(&ServerMessage::Snapshot(scene.clone())).unwrap(),
+            ] {
+                ws.send(Message::Text(message)).await.unwrap();
+            }
+            assert!(
+                wait_for(
+                    || held.started.load(Ordering::SeqCst),
+                    Duration::from_secs(10)
+                )
+                .await,
+                "wait for actual inference readiness"
+            );
+            scene.tick = 2;
+            scene.players[0].hp = 25;
+            ws.send(Message::Text(
+                serde_json::to_string(&ServerMessage::Snapshot(scene.clone())).unwrap(),
+            ))
+            .await
+            .unwrap();
+            let healed = tokio::time::timeout(Duration::from_secs(3), async {
+                while let Some(Ok(Message::Text(text))) = ws.next().await {
+                    if let Ok(ClientMessage::Action(action)) = serde_json::from_str(&text) {
+                        if action.forward
+                            && action
+                                .look_at
+                                .as_ref()
+                                .is_some_and(|aim| aim.x == Some(-8.0))
+                        {
+                            return true;
+                        }
+                    }
+                }
+                false
+            })
+            .await
+            .unwrap();
+            assert!(
+                healed,
+                "new low health routes to its pad while inference is held"
+            );
+            assert!(!held.finished.load(Ordering::SeqCst));
+            scene.tick = 3;
+            scene.players[0].hp = 0;
+            scene.round_state = Some("Ended".into());
+            ws.send(Message::Text(
+                serde_json::to_string(&ServerMessage::Snapshot(scene)).unwrap(),
+            ))
+            .await
+            .unwrap();
+            // Observe controller output from the dead snapshot before allowing
+            // the old answer to return. This separates setup and action timing.
+            tokio::time::timeout(Duration::from_secs(3), async {
+                while let Some(Ok(Message::Text(text))) = ws.next().await {
+                    if let Ok(ClientMessage::Action(action)) = serde_json::from_str(&text) {
+                        if !action.forward && !action.fire {
+                            break;
+                        }
+                    }
+                }
+            })
+            .await
+            .unwrap();
+            held.release.store(true, Ordering::SeqCst);
+            assert!(
+                wait_for(
+                    || held.finished.load(Ordering::SeqCst),
+                    Duration::from_secs(3)
+                )
+                .await
+            );
+            // Keep the socket open for two macro periods so the returned
+            // result and the subsequent local cycle both run.
+            tokio::time::sleep(Duration::from_millis(450)).await;
+            ws.close(None).await.unwrap();
+        });
+        let mut settings = config(&url, Provider::Ollama, SAFETY_NET_SECONDS);
+        settings.decision_budget = Duration::from_secs(10);
+        let summary = run_bot(
+            settings,
+            transport,
+            budget(0.0),
+            Arc::new(AtomicBool::new(false)),
+        )
+        .await
+        .unwrap();
+        server.await.unwrap();
+        assert_eq!(
+            summary.decisions_remote, 0,
+            "old reply cannot become live intent"
+        );
+        assert_eq!(summary.decisions_discarded, 1);
+        assert_eq!(summary.decisions_failed, 0);
+        assert!(summary.decisions_local >= 1);
+        assert!(summary.actions_sent >= 2);
+        assert_eq!(summary.run_usd, 0.0);
+    }
 
     /// Poll a condition with a bounded, generous wait, sleeping briefly
     /// between checks. Live cadence tests synchronize on actual readiness
@@ -1685,6 +2053,96 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn six_free_brains_play_ctf_on_real_sockets() {
+        use fragr_server::protocol::{GameMode, Team};
+        let (url, shutdown) = boot_server_with_mode(0, GameMode::Ctf).await;
+        let transport = Arc::new(FakeTransport::ok(push_answers()));
+        let stop = Arc::new(AtomicBool::new(false));
+        let (mut observer, _) = connect_async(&url).await.unwrap();
+        let hello = serde_json::json!({"type":"hello", "role":"spectator", "name":"Roster observer",
+            "geometry_version":fragr_server::protocol::GEOMETRY_VERSION,
+            "gameplay_version":fragr_server::protocol::GAMEPLAY_VERSION});
+        observer
+            .send(Message::Text(hello.to_string()))
+            .await
+            .unwrap();
+        let mut handles = Vec::new();
+        for index in 1..=6 {
+            let mut settings = config(&url, Provider::Local, SAFETY_NET_SECONDS);
+            settings.name = format!("Roster-{index}");
+            handles.push(tokio::spawn(run_bot(
+                settings,
+                transport.clone(),
+                budget(0.0),
+                stop.clone(),
+            )));
+        }
+        let first_tick = tokio::time::timeout(Duration::from_secs(10), async {
+            while let Some(Ok(Message::Text(text))) = observer.next().await {
+                if let Ok(ServerMessage::Snapshot(snapshot)) = serde_json::from_str(&text) {
+                    if snapshot.players.len() == 6
+                        && snapshot
+                            .players
+                            .iter()
+                            .all(|p| p.behavior.as_deref().and_then(Stance::parse).is_some())
+                    {
+                        assert!(
+                            snapshot.flags.is_some(),
+                            "authoritative CTF flag state replicated"
+                        );
+                        for team in Team::ALL {
+                            assert_eq!(
+                                snapshot
+                                    .players
+                                    .iter()
+                                    .filter(|p| p.team == Some(team))
+                                    .count(),
+                                3
+                            );
+                        }
+                        return snapshot.tick;
+                    }
+                }
+            }
+            panic!("observer ended before roster readiness")
+        })
+        .await
+        .expect("six compatible controllers become ready");
+        tokio::time::timeout(Duration::from_secs(5), async {
+            while let Some(Ok(Message::Text(text))) = observer.next().await {
+                if let Ok(ServerMessage::Snapshot(snapshot)) = serde_json::from_str(&text) {
+                    if snapshot.tick >= first_tick + 40 {
+                        return;
+                    }
+                }
+            }
+            panic!("observer ended before the action window")
+        })
+        .await
+        .expect("forty actual server ticks elapse after roster readiness");
+        stop.store(true, Ordering::Relaxed);
+        let mut receipts = Vec::new();
+        for handle in handles {
+            let summary = handle.await.unwrap().unwrap();
+            assert!(
+                summary.snapshots >= 10 && summary.actions_sent >= 10,
+                "{summary:?}"
+            );
+            assert_eq!(summary.provider, "local");
+            assert_eq!(summary.run_usd, 0.0);
+            assert_eq!(summary.decisions_remote, 0);
+            receipts.push(summary);
+        }
+        assert_eq!(transport.calls(), 0, "no model provider called");
+        println!(
+            "CTF_SOCKET_SMOKE {}",
+            serde_json::to_string(&receipts).unwrap()
+        );
+        let _ = observer.close(None).await;
+        let _ = shutdown.send(());
+    }
+
+    #[tokio::test]
     async fn remote_answers_drive_the_plan_and_the_ledger() {
         let (url, shutdown) = boot_server(2).await;
         let transport = Arc::new(FakeTransport::ok(push_answers()));
@@ -1774,9 +2232,9 @@ mod tests {
             budget.clone(),
             stop.clone(),
         ));
-        // Three scoring requests make one decision; wait for two decisions.
+        // One stance request makes one play decision; wait for two decisions.
         assert!(
-            wait_for(|| transport.calls() >= 6, Duration::from_secs(10)).await,
+            wait_for(|| transport.calls() >= 2, Duration::from_secs(10)).await,
             "the local model was never asked twice"
         );
         stop.store(true, Ordering::Relaxed);
@@ -1796,6 +2254,10 @@ mod tests {
         assert!(summary.elapsed_seconds > 0.0);
         assert!(summary.decisions_per_second > 0.0);
         let sent = transport.last_request.lock().unwrap().clone().unwrap();
+        let prompt = sent.body.as_ref().unwrap()["prompt"].as_str().unwrap();
+        assert!(prompt.contains("Pick the stance"));
+        assert!(!prompt.contains("Pick the weapon"));
+        assert!(!prompt.contains("How close is this fighter"));
         assert!(sent.url.starts_with("http://127.0.0.1:11434/api/generate"));
         assert!(sent.headers.iter().all(|(name, _)| name != "Authorization"));
         let _ = shutdown.send(());

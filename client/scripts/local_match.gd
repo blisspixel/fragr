@@ -11,11 +11,14 @@ const START_TIMEOUT_MS: int = 15000
 const STOP_TIMEOUT_MS: int = 3000
 const MAX_READY_BYTES: int = 4096
 const PENDING_META: StringName = &"fragr_local_match_pending"
-## Each bundled mission child names its own exact client contract.
-const DURABLE_GAMEPLAY: int = 18
-const M02_GAMEPLAY: int = 22
-const MISSION_GAMEPLAY: Dictionary[String, int] = {"recall_notice": DURABLE_GAMEPLAY, "persons_unknown": M02_GAMEPLAY}
-const NEXT_MISSION: String = "scheduled_service"
+## Rules revision 3 retires older live mission readers on every authored map.
+const DURABLE_GAMEPLAY: int = 26
+const M02_GAMEPLAY: int = 26
+const M03_GAMEPLAY: int = 26
+const M04_GAMEPLAY: int = 26
+const MISSION_GAMEPLAY: Dictionary[String, int] = {"recall_notice": DURABLE_GAMEPLAY, "persons_unknown": M02_GAMEPLAY, "scheduled_service": M03_GAMEPLAY, "notice_to_vacate": M04_GAMEPLAY, "no_forwarding_address": M05_GAMEPLAY}
+const M05_GAMEPLAY: int = 26
+const NEXT_MISSION: String = "port_of_entry"
 
 var state: State = State.IDLE
 var url: String = ""
@@ -85,11 +88,11 @@ func refresh_run_preview() -> void:
 func start_mission(difficulty: String = "standard", run_mode: String = "new", mission_id: String = MissionState.ID) -> bool:
 	if state not in [State.IDLE, State.FAILED]:
 		return false
-	# M02 keeps an independent development child beside the durable resume path.
-	var development: bool = mission_id == MissionState.M02_ID and run_mode.is_empty()
+	# Later missions keep independent development children beside durable resume.
+	var development: bool = mission_id != MissionState.ID and run_mode.is_empty()
 	if difficulty not in MissionState.DIFFICULTIES or not MISSION_GAMEPLAY.has(mission_id) \
 		or (mission_id == MissionState.ID and run_mode not in ["new", "resume"]) \
-		or (mission_id == MissionState.M02_ID and run_mode not in ["", "resume"]):
+		or (mission_id != MissionState.ID and run_mode not in ["", "resume"]):
 		_fail("LOCAL_SERVER_INVALID_DIFFICULTY")
 		return false
 	_preview_process.dispose()
@@ -213,12 +216,12 @@ static func parse_run_preview(bytes: PackedByteArray) -> Dictionary:
 	if status in ["missing", "failed", "abandoned", "incompatible", "corrupt"]:
 		return data if data.size() == 1 else {}
 	if status == "awaiting_mission":
-		return data if data.size() == 5 and data.has("body") and data.get("mission") in [MissionState.M02_ID, NEXT_MISSION] \
+		return data if data.size() == 5 and data.has("body") and data.get("mission") in [MissionState.M02_ID, MissionState.M03_ID, MissionState.M04_ID, MissionState.M05_ID, NEXT_MISSION] \
 			and data.get("difficulty") in MissionState.DIFFICULTIES \
 			and EquipmentState.integer(data.get("continues"), 3) \
 			and (data.get("body") == null or PlayerBody.valid(data["body"])) else {}
 	if status != "ready" or data.size() != 7 or not data.has("body") \
-		or data.get("mission") not in [MissionState.ID, MissionState.M02_ID] \
+		or data.get("mission") not in [MissionState.ID, MissionState.M02_ID, MissionState.M03_ID, MissionState.M04_ID, MissionState.M05_ID] \
 		or not data.get("difficulty") is String or data["difficulty"] not in MissionState.DIFFICULTIES \
 		or not EquipmentState.integer(data.get("continues"), 3) \
 		or not EquipmentState.integer(data.get("attempt"), 4) or int(data["attempt"]) < 1 \
@@ -238,9 +241,9 @@ static func readiness_url(bytes: PackedByteArray, difficulty: String = "standard
 	if parser.parse(bytes.get_string_from_ascii()) != OK:
 		return ""
 	var data: Variant = parser.data
-	var gameplay: int = M02_GAMEPLAY if mission_id == MissionState.M02_ID else DURABLE_GAMEPLAY
+	var gameplay: int = MISSION_GAMEPLAY.get(mission_id, -1)
 	if difficulty not in MissionState.DIFFICULTIES or not MISSION_GAMEPLAY.has(mission_id) \
-		or (mission_id == MissionState.M02_ID and run_mode not in ["", "resume"]) \
+		or (mission_id != MissionState.ID and run_mode not in ["", "resume"]) \
 		or (mission_id == MissionState.ID and run_mode not in ["new", "resume"]) \
 		or not data is Dictionary or data.size() != 5 \
 		or not EquipmentState.integer(data.get("version"), 2) or data["version"] != 2 \

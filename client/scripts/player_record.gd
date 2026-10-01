@@ -61,12 +61,21 @@ static func valid_counts(value: Variant) -> bool:
 		return false
 	# Distinct secrets found; omitted while zero.
 	var secrets: bool = value.has("secrets")
-	if value.size() != (7 if secrets else 6):
+	if value.size() != 6 + int(secrets) + int(value.has("grenades")):
 		return false
 	if secrets and (not EquipmentState.integer(value["secrets"], EquipmentState.MAX_EXACT_INTEGER) 		or int(value["secrets"]) < 1 or int(value["secrets"]) > int(value.get("alive_ticks", 0))):
 		return false
 	for field: String in COUNTS:
 		if not EquipmentState.integer(value.get(field), EquipmentState.MAX_EXACT_INTEGER):
+			return false
+	if value.has("grenades"):
+		var grenade: Variant = value["grenades"]
+		if not grenade is Dictionary or grenade.size() != 5:
+			return false
+		for field: String in WEAPON_COUNTS:
+			if not EquipmentState.integer(grenade.get(field), EquipmentState.MAX_EXACT_INTEGER):
+				return false
+		if int(grenade["damaging_attacks"]) > int(grenade["attacks"]) or int(grenade["kills"]) > int(grenade["damaging_attacks"]) * 256:
 			return false
 	for index: int in range(value["weapons"].size()):
 		var weapon: Variant = value["weapons"][index]
@@ -80,15 +89,18 @@ static func valid_counts(value: Variant) -> bool:
 		if int(weapon["kills"]) > int(weapon["damaging_attacks"]) * pellets or int(weapon["damaging_attacks"]) > int(weapon["attacks"]):
 			return false
 	for field: String in WEAPON_COUNTS:
-		if sum_weapon(value, field) > EquipmentState.MAX_EXACT_INTEGER:
+		if sum_combat(value, field) > EquipmentState.MAX_EXACT_INTEGER:
 			return false
-	if sum_weapon(value, "attacks") > int(value["alive_ticks"]) or int(value["deaths"]) > int(value["alive_ticks"]) or int(value["dry_triggers"]) > int(value["alive_ticks"]):
+	if sum_combat(value, "attacks") > int(value["alive_ticks"]) or int(value["deaths"]) > int(value["alive_ticks"]) or int(value["dry_triggers"]) > int(value["alive_ticks"]):
 		return false
 	return true
 
 static func contains(total: Dictionary, part: Dictionary) -> bool:
 	for field: String in COUNTS:
 		if int(total[field]) < int(part[field]):
+			return false
+	for field: String in WEAPON_COUNTS:
+		if grenade_count(total, field) < grenade_count(part, field):
 			return false
 	if secrets(total) < secrets(part):
 		return false
@@ -112,7 +124,7 @@ static func _valid_scope(data: Dictionary) -> bool:
 		return false
 	if scope.get("kind") in ["arena", "practice"]:
 		return scope.size() == 2 and EquipmentState.integer(scope.get("round"), 4294967295) and scope.get("round") == data["round"] and data["attempt"] == data["total"]
-	if scope.get("kind") != "mission" or scope.size() != 5 or scope.get("mission") not in [MissionState.ID, MissionState.M02_ID] \
+	if scope.get("kind") != "mission" or scope.size() != 5 or scope.get("mission") not in [MissionState.ID, MissionState.M02_ID, MissionState.M03_ID, MissionState.M04_ID, MissionState.M05_ID] \
 		or not EquipmentState.integer(scope.get("attempt"), 4294967295) or int(scope["attempt"]) < 1 \
 		or not MissionState.valid_rules(scope.get("rules"), 1) or not scope.has("run"):
 		return false
@@ -134,6 +146,11 @@ static func _scope_follows(value: Dictionary, old: Dictionary) -> bool:
 		return false
 	return MissionState.run_follows(value["run"], old["run"])
 
+static func grenade_count(counts: Dictionary, field: String) -> int:
+	return int(counts.get("grenades", {}).get(field, 0))
+
+static func sum_combat(counts: Dictionary, field: String) -> int:
+	return sum_weapon(counts, field) + grenade_count(counts, field)
 static func sum_weapon(counts: Dictionary, field: String) -> int:
 	var total: int = 0
 	for weapon: Dictionary in counts["weapons"]:
@@ -152,6 +169,11 @@ static func empty_counts() -> Dictionary:
 	return counts
 
 static func add_counts(total: Dictionary, value: Dictionary) -> void:
+	if total.has("grenades") or value.has("grenades"):
+		var combined: Dictionary = {}
+		for field: String in WEAPON_COUNTS:
+			combined[field] = grenade_count(total, field) + grenade_count(value, field)
+		total["grenades"] = combined
 	for field: String in COUNTS:
 		total[field] = int(total[field]) + int(value[field])
 	if secrets(total) + secrets(value) > 0:

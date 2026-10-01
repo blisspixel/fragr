@@ -9,7 +9,7 @@ Status words: **proposed** (a design awaiting Nick's decision; directs no work),
 ## Standing facts
 
 - Game port is **6767** (TCP today; UDP reserved for the planned low-latency transport).
-- Local play is $0. Public hosting sits under the $50 total cap. Nick authorized up to $20 combined external charges for 2026-09-26 build work, including a bounded GCP test if needed, and up to $20 more for 2026-09-29 build work. Production deployment still needs a reviewed cost and written approval. The current GCP Terraform remains plan-only.
+- Local play is $0. Public hosting sits under the $50 total cap. Nick authorized up to $20 combined external charges for each of the 2026-09-26, 2026-09-29 and 2026-09-30 development rounds, subject to that total cap and reconciled actual usage. The 2026-09-30 buildout has $0 new cash charges, 693 included audio credits consumed and a separate conservative $3 equivalent reserve. Production deployment still needs a reviewed cost and written approval. The current GCP Terraform remains plan-only.
 - Tailscale is private smoke only, never the documented join path.
 - The dedicated server bar is rock solid, secure, and cheap: input validation, rate limits, clean join and leave and reconnect, and a home box or small VM first.
 
@@ -17,10 +17,35 @@ Status words: **proposed** (a design awaiting Nick's decision; directs no work),
 
 | Plan | Status | One-liner |
 |---|---|---|
+| [`m05-audio-batch.md`](./m05-audio-batch.md) | **in flight** | Three exact-caption neutral narration clips and two compact grenade cues, capped within verified included credits. |
+| [`m05-server-authoring.md`](./m05-server-authoring.md) | **in flight** | Original 21-guard roof/workshop/trench mission, grounded rescue, two freight worlds and shared ship boarding. |
+| [`m05-bounded-tram.md`](./m05-bounded-tram.md) | **in flight** | One real server-owned tram solid on a validated linear lane, supported riders and live collision geometry. |
+| [`hand-grenade-foundation.md`](./hand-grenade-foundation.md) | **in flight** | Counted server-owned grenade arc, bounce, fuse, covered splash and truthful separate combat records. |
+| [`m05-client-prototype.md`](./m05-client-prototype.md) | **in flight** | Strict M05 state, grenade controls/HUD, bounded Practice UI and consistent Low Water world/scene presentation. |
+| [`m05-no-forwarding-address-prototype.md`](./m05-no-forwarding-address-prototype.md) | **in flight** | Low Water roofs/workshop/trench finale, counted authoritative grenades, optional Splice rescue, bounded real tram support and durable M04 carry. |
+| [`shot-render-camera-clearance.md`](./shot-render-camera-clearance.md) | **implemented** | Actual-camera depth clips resolved shot and close companion geometry; clean rendered regressions and the final M04 aftermath pass. |
+| [`soak-sampling-async.md`](./soak-sampling-async.md) | **implemented** | Existing OS memory probe yields to server/client tasks; real short and rebuilt 120-second release soaks pass unchanged thresholds. |
+| [`environment-water-foundation.md`](./environment-water-foundation.md) | **implemented** | Animated original shallow runoff, wet edges, drains and litter in M04; strict geometry refusal and inspected Compatibility motion/depth proof. |
+| [`campaign-transition-audio.md`](./campaign-transition-audio.md) | **implemented** | Six exact-caption narration clips and restrained Low Water ambience; real playback/fallback checks pass, 475 included credits, $0 new cash charge. |
+| [`environment-asset-batch.md`](./environment-asset-batch.md) | **implemented** | Original $0 Low Water repair textures with inspected lit/dim/floor comparisons; paid candidates prepared only, pending verified API balance. |
+| [`m04-notice-to-vacate-prototype.md`](./m04-notice-to-vacate-prototype.md) | **implemented** | Original Low Water clear, Notary flight, durable M03 carry, water and narration; 1167 passing tests, 94.47 percent coverage and inspected final tours. |
+| [`m04-server-prototype.md`](./m04-server-prototype.md) | **implemented** | Bounded Notary combat, strict optional clinic, resolved photographs and shared roof departure; full workspace gates and actual 28-enemy clear pass. |
+| [`m04-client-prototype.md`](./m04-client-prototype.md) | **implemented** | Strict M04 boundary, local carry, scenes, HUD and camera polish; 163 scripts, 76 harnesses and final tours pass. |
+| [`m04-market-authoring.md`](./m04-market-authoring.md) | **implemented** | Original market, clinic and court; 28-enemy ordinary-input clear, zero deaths, patient release and actual roof departure; three secret locations, two claims. |
+| [`ctf-attacker-blockers.md`](./ctf-attacker-blockers.md) | **implemented** | Both normal attacking tiers fight blockers; the exact contested regression reaches the capture limit with two flag takes and one capture. |
+| [`m03-scheduled-service-prototype.md`](./m03-scheduled-service-prototype.md) | **implemented** | $0 M03 prototype with durable M02 carry, 22-enemy ordinary-input clear, mast/cars/train, 1141 passing tests, 94.56 percent coverage and inspected final tours; mission acceptance remains open. |
+| [`m03-server-prototype.md`](./m03-server-prototype.md) | **implemented** | Strict M03 authoring, guarded pod damage, two worlds, optional grounded car release and shared departure; 11 focused tests and capability ordering passed. |
+| [`m03-client-prototype.md`](./m03-client-prototype.md) | **implemented** | Validated M03 entry/state/HUD, mast-fall warning, captive gait and text scenes; full pinned Godot checks passed. |
+| [`m03-yard-authoring.md`](./m03-yard-authoring.md) | **implemented** | Original daylight yard; ordinary-input clear of 22 enemies, three optional cars, mast shutdown, both secrets and deliberate boarding. |
+| [`campaign-and-feel-buildout.md`](./campaign-and-feel-buildout.md) | **implemented** | Parallel $0 Jammer, remote presentation and responsive free-agent work; full local checks, 94.62 percent line coverage and inspected tours passed. Continued in the M03 prototype plan. |
+| [`jammer-combat-foundation.md`](./jammer-combat-foundation.md) | **implemented** | Playable original Jammer range, committed delayed pulses, interrupt/dodge/cover checks and reset cleanup; full Scheduled Service remains separate work. |
+| [`jammer-launch-audio.md`](./jammer-launch-audio.md) | **implemented** | Original offline pulse cue with bounded spatial playback, clean full checks and an isolated live launch recording. |
+| [`remote-participant-presentation.md`](./remote-participant-presentation.md) | **implemented** | Bounded remote tick interpolation, coherent spectator facing, frame-independent chase cameras and near-camera shot clipping; full client checks and inspected tours passed. |
+| [`brain-responsive-local.md`](./brain-responsive-local.md) | **implemented** | Stance-only Ollama play, responsive fallback, stale-reply rejection, compatible CTF roles and a six-controller real-socket smoke. |
 | [`m02-latch-restraint-backing.md`](./m02-latch-restraint-backing.md) | **superseded** | A rendered dark backing study did not improve Latch recognition and hurt the close ward view; no candidate runtime change was kept. |
 | [`m02-custody-image.md`](./m02-custody-image.md) | **superseded** | Two local gallery portrait studies failed the in-world identity and destination gate; no candidate runtime change was kept. |
 | [`playable-stack-integration.md`](./playable-stack-integration.md) | **shipped** in v0.58.0 (#297) | M02, CTF, predicted WebSocket, hosting and README share one verified release; their human acceptance gates remain open. |
-| [`m02-integrated-player-gate.md`](./m02-integrated-player-gate.md) | **in flight** | Published v0.58.0 Windows package passed checksum and install checks; observe two fresh, uncoached M01-to-M02 players before more M02 content. |
+| [`m02-integrated-player-gate.md`](./m02-integrated-player-gate.md) | **in flight** | Retained v0.58.0 package for uncoached M01-to-M02 acceptance; no longer a development prerequisite under the 2026-09-30 instruction. |
 | [`m02-notary-tableau.md`](./m02-notary-tableau.md) | **in flight** | Show one unreachable Notary observing captives behind an authoritative glass pane in level 2, without introducing its level 4 fight. |
 | [`m02-natural-entry-composition.md`](./m02-natural-entry-composition.md) | **in flight** | Check the real M02 first-person spawn, then frame Latch by authored facing without skipping the Shotgun and Crawler lessons. |
 | [`m02-gallery-first-view.md`](./m02-gallery-first-view.md) | **implemented** | Open and prove the M02 gallery's first sightline to Latch's restraint frame without bypassing the opening fight or stair route; player recognition remains open. |
@@ -74,7 +99,7 @@ Status words: **proposed** (a design awaiting Nick's decision; directs no work),
 | [`desktop-release.md`](./desktop-release.md) | **shipped** ([#233](https://github.com/blisspixel/fragr/pull/233), v0.47.0) | Tagged Windows, Linux and macOS zips with the bundled server, a packaged install check, and an original game icon. |
 | [`radio-scene-retirement.md`](./radio-scene-retirement.md) | **proven** ([#231](https://github.com/blisspixel/fragr/pull/231), v0.45.0) | Radio decoder retirement across rapid saved-run restarts, with Linux, Windows and macOS checks. |
 | [`m02-objective-gates.md`](./m02-objective-gates.md) | **in flight** | Authored objectives and precomputed gate worlds for the first M02 graybox, with M01 save compatibility. |
-| [`flying-drones.md`](./flying-drones.md) | **planned** | First shootable Notary in level 4 Notice to Vacate, armored Assessor in level 12 Terms of Cooperation: hover, air routing, committed tells, crashes. The level 2 sighting is a separate noncombat tableau. |
+| [`flying-drones.md`](./flying-drones.md) | **in flight** | Bounded Notary pilot under M04; Assessor, broader air routing and fresh-viewer tell recognition remain planned. The level 2 sighting stays separate. |
 | [`multiplayer-maps.md`](./multiplayer-maps.md) | **proposed** | Rule sheet for multiplayer maps, sixteen proposed maps from duel rooms to conquest-lite fronts, a verdict on the six current maps, and the mode order. |
 | [`vehicles.md`](./vehicles.md) | **planned** | Jeep, motorcycle and jetpack, each built only when its mission (M08, M09, M10) is next; multiplayer vehicle map in Phase 4. |
 | [`campaign-encounter-variation.md`](./campaign-encounter-variation.md) | **planned** | Seeded, authored alternate guard positions for campaign replays, validated before readiness and stored in the run file; difficulty composition after that. |
@@ -102,7 +127,7 @@ Status words: **proposed** (a design awaiting Nick's decision; directs no work),
 | [`campaign-spaces.md`](./campaign-spaces.md) | **proven** (#176, v0.22.0) | Real ceilings, accessible balconies, layered routes and matching collision/rendering for M01. |
 | [`authored-campaign-maps.md`](./authored-campaign-maps.md) | **proven** (#177, v0.23.0) | Validated map files, explicit indoor spawns and M01's traversal blockout through the live server. |
 | [`m01-weapon-discovery.md`](./m01-weapon-discovery.md) | **proven** (#179, #181, v0.24.0) | Fists-to-Tack/Flechette discovery, finite ammunition, reload and compatible human/agent presentation. |
-| [`readable-arsenal.md`](./readable-arsenal.md) | **in flight** | v0.41.0 shipped Pistol, Rifle, Shotgun, and Railgun. v0.42.0 shipped the wheel and number keys. Sniper, rocket, grenade, and both mines stay later campaign finds and are not implemented. |
+| [`readable-arsenal.md`](./readable-arsenal.md) | **in flight** | Names and cycling shipped. Counted grenades are implemented locally for level 5 with independent records and save counts; sniper, rocket and both mines remain planned in the accepted twenty-level treatment. |
 | [`m01-intake-encounter.md`](./m01-intake-encounter.md) | **in flight** ([#180](https://github.com/blisspixel/fragr/issues/180)) | Authored human Clerk and Sweeper bot fights, explicit hostility, readable attacks and inspected motion. |
 | [`m01-facility-detail.md`](./m01-facility-detail.md) | **shipped** (#182, v0.25.0) | Bounded surface details, localized signs and practical lights make the intake rooms legible. |
 | [`m01-mission-sequence.md`](./m01-mission-sequence.md) | **shipped** (#184, v0.26.0) | Physical transfer-record interaction, authoritative lift gate and shared departure state. |

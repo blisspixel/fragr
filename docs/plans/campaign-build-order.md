@@ -1,6 +1,9 @@
 # Campaign build order
 
-**Status:** planned, revised 2026-09-28. No full campaign mission is accepted. The current [full build order](../ROADMAP.md#full-build-order-2026-09-27) calls for an unsteered M01-to-M02 player session on the integrated build before another M02 content slice. M01's fresh-player gate remains open.
+**Status:** planned, revised 2026-09-30. No full campaign mission is accepted.
+The current [full build order](../ROADMAP.md#full-build-order-2026-09-27) advances
+campaign capabilities and local polish without waiting for human feedback, as
+authorized on 2026-09-30. Human acceptance remains open evidence.
 **Goal:** deliver twenty levels in five episodes and a conditional epilogue in [CAMPAIGN.md](../CAMPAIGN.md) through
 bounded, verifiable milestones. [Mission briefs](../CAMPAIGN-MISSIONS.md) define
 content; this plan defines dependencies.
@@ -11,12 +14,12 @@ an explicit approved cap, and the existing developer pipelines.
 
 | Concern | Present behavior | Campaign gap |
 |---|---|---|
-| Maps | Six arena layouts, an M01 development mission and an M02 combat graybox; shared finite geometry, keyed signs and bounded details | Complete mission layouts, room kits and transitions |
+| Maps | Six arenas and M01/M02 development routes; local M03 freight yard and M04 market/clinic prototypes with prepared worlds and optional rescues | M05 and later missions; complete room kits and mission acceptance |
 | Combat | M01 fists, found Pistol and Rifle, private finite inventory, one ammunition count per type and supplies; arcade full arsenal | Remaining arsenal, projectiles, authored encounter balance and finished sound sets |
 | Movement | Shared gravity, jump, steps, ceilings and overlapping floors with a verified GDScript mirror | New traversal features require explicit geometry support and live tests |
-| Enemies | Rule bots, elite/boss prototype, authored human Clerk and Sweeper bot with phased attacks and directional animation | Full enemy roster, final art, encounters and balance |
+| Enemies | Rule bots, elite/boss prototype, authored Clerk, Sweeper, Heavy Sweeper, Turret, Crawler, live delayed-pulse Jammer and bounded flying Notary | Later enemy roster, final art, encounters and balance |
 | Episode | Calibration prototype; M01 transfer/gate/departure shipped in v0.26.0 | Full story missions, rescue outcomes and campaign transitions |
-| Runs and persistence | Versioned local M01 run file, three mission-start continues, entry restoration and local service-record history | Cross-mission carry, episode refill, achievements, rescue outcomes and epilogue unlock |
+| Runs and persistence | Versioned local M01 through M04 carry, shared continues, per-level retry baseline, retained car/patient/photo outcomes and local service records | M05 and later carry, episode refill, later rescue outcomes, achievements and epilogue unlock |
 | Co-op | Allied campaign participants, encounter wipe reset; shared mission boarding and four-seat admission shipped with live party evidence | Optional scope undecided; no mandatory duo, revival or all-mission co-op requirement |
 | Presentation | Retro front end, HUD, radio and viewmodels; localized M01 text opening and party readiness shipped in v0.28.0 | Finished scene art/narration, companion scenes, complete character/weapon/effect motion |
 

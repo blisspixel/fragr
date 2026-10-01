@@ -11,6 +11,12 @@ use crate::session::GameSession;
 
 mod body;
 mod discovery;
+mod m03;
+mod m03_qa;
+mod m04;
+mod m04_qa;
+mod m05;
+mod m05_qa;
 mod roster;
 mod spawns;
 
@@ -390,6 +396,8 @@ fn test_protocol_snapshot_serialization() {
         frag_limit: Some(10),
         shot_results: vec![],
         projectiles: vec![],
+        grenades: Vec::new(),
+        explosions: Vec::new(),
         mode_name: default_mode_name(),
         playlist: default_playlist(),
         pressure: None,
@@ -425,6 +433,8 @@ fn test_protocol_snapshot_empty_players() {
         frag_limit: None,
         shot_results: vec![],
         projectiles: vec![],
+        grenades: Vec::new(),
+        explosions: Vec::new(),
         mode_name: default_mode_name(),
         playlist: default_playlist(),
         pressure: None,
@@ -2530,6 +2540,8 @@ async fn test_net_ws_action_forwarded_for_agent() {
             frag_limit: Some(10),
             shot_results: vec![],
             projectiles: vec![],
+            grenades: Vec::new(),
+            explosions: Vec::new(),
             mode_name: default_mode_name(),
             playlist: default_playlist(),
             pressure: None,
@@ -6887,6 +6899,7 @@ mod vertical_aim {
 }
 mod encounters;
 mod heavy_turret;
+mod jammer;
 mod m01;
 mod modes;
 mod pellets;

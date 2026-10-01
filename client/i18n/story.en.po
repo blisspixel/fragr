@@ -271,3 +271,47 @@ msgstr "+{amount} AMMO"
 
 msgid "HUD_SECRET_FOUND"
 msgstr "SECRET FOUND"
+
+msgid "STORY_M03_ARRIVAL_YARD"
+msgstr "The freight yard on the correction complex's spur. Twenty minutes later.\n\nA recall train is loading for Low Water. A red mast jams every free channel. Mara cannot warn anyone.\n\nTake down the mast. The freight line is the road home."
+
+msgid "STORY_M03_SPEAKER_LATCH"
+msgstr "Latch"
+
+msgid "STORY_M03_ARRIVAL_MAST"
+msgstr "\"Mara can't hear us. That mast.\"\n\nLatch looks along the sealed cars.\n\n\"We clear a stretch, I pull the doors. Cover me.\""
+
+msgid "STORY_M03_DEPARTURE_TITLE"
+msgstr "THE FREIGHT LINE"
+
+msgid "STORY_M03_DEPARTURE_TRAIN"
+msgstr "The locomotive pulls through the yard gate.\n\nThe schedule board flips every departure to CANCELLED.\n\n\"All services cancelled. Cancellations are regretted.\""
+
+msgid "STORY_M03_DEPARTURE_HOME"
+msgstr "The recall train is your train home.\n\nLow Water waits beyond the fields."
+
+msgid "STORY_M04_ARRIVAL_HOME"
+msgstr "Low Water. The same afternoon.\n\nMara's warning got through. People are packing. The coalition's trucks are still being voted on.\n\nHome has an hour. Get people moving."
+
+msgid "STORY_M04_ARRIVAL_MARKET"
+msgstr "Edda keeps the clinic open. Someone is counting raised hands by the tram stop. Someone else needs their charging cable back.\n\nBeyond the awnings, a fan starts.\n\nThe notice board is ahead."
+
+msgid "STORY_M04_DEPARTURE_TITLE"
+msgstr "UP TO THE ROOFS"
+
+msgid "STORY_M04_DEPARTURE_STAIRS"
+msgstr "The habitation court falls quiet. The roof stair is clear.\n\nNeighbours carry what they can. There is no vote left to wait for."
+
+msgid "STORY_M04_DEPARTURE_ROOFS"
+msgstr "The water tanks stand above the awnings. The streets belong to the sweep.\n\nThe next road out is over the roofs of Low Water."
+msgid "STORY_M05_ARRIVAL_ROOFS"
+msgstr "The roofs of Low Water, ten minutes later.\n\nThe sweep holds the streets. The only way to the freight platform is over the tanks and down the tram trench, and Splice is still in the workshop.\n\nGet the rest out."
+
+msgid "STORY_M05_DEPARTURE_TITLE"
+msgstr "COMMON CARRIER"
+
+msgid "STORY_L05_L06_CARRIER"
+msgstr "Mara found one carrier who would come.\n\nThe freight platform falls behind. Low Water stays below."
+
+msgid "STORY_L05_L06_RECORDS"
+msgstr "The transfer records name the lunar custody depot.\n\nThe missing from Low Water are already on their way there."

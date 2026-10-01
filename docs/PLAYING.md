@@ -11,9 +11,33 @@ server (`cargo build -p fragr-server --release --locked`), run
 difficulty. The client starts its own server on loopback. Find Latch's transfer
 record, recover weapons from the Annex, and leave by the custody lift.
 Assisted, Standard and Severe change enemy timing; health, damage and finite
-supplies stay consistent. M01 has an optional Shiv secret. The M02 ward route
-remains a development graybox with an unfinished rescue. The M02 draft adds a
-durable Continue Run path into M02 alongside its separate practice entry.
+supplies stay consistent. M01 has an optional Shiv secret. **Persons Unknown**
+continues the run through the M02 ward, with Latch's rescue and optional patient
+evacuation. Its independent practice entry remains available alongside the
+durable **Continue Run** path. These missions still need fresh-player acceptance.
+
+**Scheduled Service** is the level 3 development prototype. Choose **Single
+Player > Practice and Development > Scheduled Service: rail yard prototype**
+to start an independent practice child. Clear the freight-yard crews, use
+the car roofs or ground flanks, shoot the red transmitter pod after its guards,
+then clear and deliberately board the locomotive. Latch releases optional
+recall cars after their guards fall and you approach. Those rescues never block
+departure. Arrival and train departure currently use reader-paced story pages.
+
+**Notice to Vacate** is the level 4 development prototype. Choose **Single
+Player > Practice and Development > Notice to Vacate: Development** for an
+independent practice child, or **Continue Run** after completing Scheduled
+Service. Defend Low Water's notice board, tram street, market and habitation
+court. Flying Notaries commit to an aimed burst: move behind cover or interrupt
+the tell, then watch the harmless wreck fall to its actual support surface.
+The HUD counts photographs confirmed by the server. Clear the clinic approach
+and aim at its control to open the optional shutter with **Use**; approaching
+after the clinic is clear releases the patients. Rescue and patient travel never
+block the main route. Clear the court and gather the living party at the roof
+stair, then aim at its control and **Use** to depart. Arrival and departure use
+reader-paced pages; dismissing an arrival waits for held gameplay input to
+release before combat starts. Fresh-player pacing and mission acceptance remain
+open.
 
 **Calibration** is a separate Episode 0 arena challenge. Run
 `./tools/solo_scrap.sh` from the repository root. It starts the Host-led
@@ -50,6 +74,7 @@ the fighter seat. **Esc** opens the match menu. All actions can be rebound in
 | Look vertically | Page Up and Page Down | Mouse | Right stick |
 | Center view | End | End | Right stick click |
 | Fire | Ctrl | Left mouse | RT |
+| Throw grenade | G | G or middle mouse | LT |
 | Use | Enter | F | B |
 | Jump | Space | Space | A |
 | Campaign continue | Enter | Enter | A after releasing held inputs |
@@ -74,6 +99,12 @@ Bullets; Shotgun uses Shells; Railgun uses Cells. A seven-pellet Shotgun blast
 costs one shell. Arcade maps provide the full basic arsenal. A mission control
 requires you to stand near it and aim at it before pressing Use.
 
+Grenades have a separate count, up to six, and do not replace the selected
+gun. A fresh press throws one device; holding the control does not repeat.
+It bounces on real world cover and explodes after two seconds with distance
+falloff and solid occlusion. Your own blast can hurt you. Arcade loadouts
+start without grenades; authored supply claims provide them where registered.
+
 ## Solo runs and local records
 
 Recall Notice offers three mission-start continues. Death presents an explicit
@@ -83,9 +114,27 @@ save; it does not resume the mid-mission position. After M01 departure, the
 same run starts M02 with its saved body, health, armor, weapons, ammunition and
 remaining Episode I continues. M02 starts at attempt 1 even if M01 used a
 continue. M02 death restarts M02 at its own entry only after you accept the
-retry. Completing M02 saves the next destination, Scheduled Service, as
-pending; level 3 cannot be launched yet. The separate M02 practice entry has
-no durable run. **Start New Run** archives the previous run after confirmation.
+retry. Completing M02 saves Scheduled Service as the next destination;
+Continue Run carries the same body, equipment, health, armor and remaining
+allowance into M03. M03 retry restores its entry and resets mast and rescues.
+Completing M03 saves Notice to Vacate as the next destination. **Continue Run**
+opens M04 with the same body, health, armor, weapons, ammunition and remaining
+allowance, plus the optional recall car outcomes. Its arrival pages play on this
+new mission transition; restarting an existing M04 entry skips the replay.
+M04 begins at attempt 1. An accepted retry restores its own entry and resets
+encounters, the clinic shutter, patient travel and photographs, preserving the
+carried M03 choices. Completing M04 retains its rescued-patient and photograph
+outcomes for **No Forwarding Address**. Continue Run opens M05 with the same
+body, equipment, remaining allowance and prior choices. Its workshop has
+counted hand grenades, and its tram carries supported riders along the trench;
+you can also walk the service aisle. Retry restores the M05 entry, guards,
+held captives, closed freight gate and parked tram. Releasing workers does
+not mean they are physically aboard. Ship departure saves those two outcomes
+separately at the unbuilt **Port of Entry** destination, with no Episode II
+refill yet. The menu shows that destination without offering a mission launch.
+Separate M02, M03, M04 and M05 practice entries have no durable run and preserve an
+existing campaign save.
+**Start New Run** archives the previous run after confirmation.
 The pause menu's **Leave match** returns to the menu and keeps this local
 save for Continue Run.
 
@@ -100,10 +149,21 @@ stays until you choose to archive it. New Run archives are named
 content-addressed `run.prior-<digest>.json` name.
 To recover one, close the game, keep a copy of the current `run.json`, and
 copy the archive back as `run.json`. It still must match the installed mission
-content and rules. v2 M01 saves from the previous release are migrated on a
-valid resume; v1 magazine-era saves remain incompatible. The
+content and rules. Compatible v2 M01, v3 M01/M02 and v4 M01/M02/M03 saves
+explicitly upgrade to v6 on a valid resume. Their known historical rules revision
+2 upgrades to current revision 3; the installed authored content must still
+match. Exact prior bytes remain in the migration archive. A v4 completed-M03
+save can therefore continue into M04 without losing body, entry equipment,
+remaining allowance or recall car choices. Compatible v5 saves keep revision 3
+and all earlier outcomes, assigning zero historical grenades. A completed v5
+M04 exit can enter M05 without losing body, equipment or earlier choices. Old
+save shapes reject invented grenade fields and M05 states. Unknown revisions and v1
+magazine-era saves remain incompatible. Current live authored missions require
+the matching capability 26 client and server. The
 [run file plan](plans/campaign-run-file.md) and
-[carry plan](plans/m01-m02-run-carry.md) record the format and recovery rules.
+[carry plan](plans/m01-m02-run-carry.md) record the original recovery rules;
+the [M05 plan](plans/m05-no-forwarding-address-prototype.md) records the current
+migration and real saved-transition checks.
 
 The **Service Record** stores the latest 256 campaign, arena and practice
 records on this device. It shows kills, deaths, effective damage, time alive,

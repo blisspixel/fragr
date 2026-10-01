@@ -1,5 +1,10 @@
 # M02: Persons Unknown
 
+**Appearance anchor for level 2:** Correction rooms: issued steel, bounded fixture light and recognizable processing routes; Latch's restraint and reunion remain the personal focus.
+Shared [world direction](../design/earth.md) and
+[character, voice and scene continuity](../design/characters.md) govern assets
+and staging. This anchor is a production target, not finished-appearance evidence.
+
 **Status:** development graybox (`server/maps/m02-persons-unknown.json`). The
 two-Clerk Shotgun introduction, single Crawler, later pack, guarded Latch
 release and cross-mission run carry have seeded engineering checks in stacked

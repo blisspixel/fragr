@@ -1,5 +1,10 @@
 # Level 15: Civic Pressure Valve
 
+**Appearance anchor for level 15:** Sanctioned stadium: public spectacle and practical infrastructure share a coherent issued construction family; readable combat takes over staging.
+Shared [world direction](../design/earth.md) and
+[character, voice and scene continuity](../design/characters.md) govern assets
+and staging. This anchor is a production target, not finished-appearance evidence.
+
 **Status:** planned, accepted 2026-09-25, unbuilt. A new level in the
 [twenty-level expansion](../plans/campaign-expansion.md), the one new
 environment kit. The Article Blade moves here from M08.

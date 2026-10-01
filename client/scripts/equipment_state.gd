@@ -21,6 +21,7 @@ const CYCLE: Array[String] = ["fists", "shiv", "tack", "scatter", "flechette", "
 const MELEE: Array[String] = ["fists", "shiv"]
 const ARCADE: Array[String] = ["scatter", "flechette", "rail"]
 const MAX_EXACT_INTEGER: int = 9007199254740991
+const MAX_GRENADES: int = 6
 
 static func display_name(weapon: String) -> String:
 	return str(DISPLAY_NAMES.get(weapon.to_lower(), weapon))
@@ -40,6 +41,8 @@ static func validation_error(data: Dictionary, owner: Variant, previous: Diction
 	if not owner is String or data.get("player_id") != owner:
 		return INVALID
 	if not integer(data.get("tick"), MAX_EXACT_INTEGER) or not integer(data.get("dry_fire_count"), MAX_EXACT_INTEGER):
+		return INVALID
+	if not integer(data.get("grenades"), MAX_GRENADES):
 		return INVALID
 	if not previous.is_empty() and int(data["tick"]) < int(previous["tick"]):
 		return INVALID

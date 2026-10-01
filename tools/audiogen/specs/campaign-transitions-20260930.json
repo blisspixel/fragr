@@ -1,0 +1,12 @@
+{
+  "out_dir": "client/assets/story",
+  "items": [
+    {"kind":"tts","name":"voice/en/l03_l04/train","text":"The locomotive pulls through the yard gate.\n\nThe schedule board flips every departure to CANCELLED.\n\n\"All services cancelled. Cancellations are regretted.\"","voice":"SAz9YHcvj6GT2YYXdXww","model":"eleven_v3","stability":0.5,"format":"mp3_44100_128","title":"The freight line: train"},
+    {"kind":"tts","name":"voice/en/l03_l04/home","text":"The recall train is your train home.\n\nLow Water waits beyond the fields.","voice":"SAz9YHcvj6GT2YYXdXww","model":"eleven_v3","stability":0.5,"format":"mp3_44100_128","title":"The freight line: home"},
+    {"kind":"tts","name":"voice/en/m04_arrival/home","text":"Low Water. The same afternoon.\n\nMara's warning got through. People are packing. The coalition's trucks are still being voted on.\n\nHome has an hour. Get people moving.","voice":"SAz9YHcvj6GT2YYXdXww","model":"eleven_v3","stability":0.5,"format":"mp3_44100_128","title":"Low Water: arrival"},
+    {"kind":"tts","name":"voice/en/m04_arrival/market","text":"Edda keeps the clinic open. Someone is counting raised hands by the tram stop. Someone else needs their charging cable back.\n\nBeyond the awnings, a fan starts.\n\nThe notice board is ahead.","voice":"SAz9YHcvj6GT2YYXdXww","model":"eleven_v3","stability":0.5,"format":"mp3_44100_128","title":"Low Water: market"},
+    {"kind":"tts","name":"voice/en/l04_l05/stairs","text":"The habitation court falls quiet. The roof stair is clear.\n\nNeighbours carry what they can. There is no vote left to wait for.","voice":"SAz9YHcvj6GT2YYXdXww","model":"eleven_v3","stability":0.5,"format":"mp3_44100_128","title":"Up to the roofs: stairs"},
+    {"kind":"tts","name":"voice/en/l04_l05/roofs","text":"The water tanks stand above the awnings. The streets belong to the sweep.\n\nThe next road out is over the roofs of Low Water.","voice":"SAz9YHcvj6GT2YYXdXww","model":"eleven_v3","stability":0.5,"format":"mp3_44100_128","title":"Up to the roofs: road"},
+    {"kind":"sfx","name":"ambience/low_water_runoff","prompt":"Quiet courtyard water runoff, a small steady trickle through an old metal street drain with occasional gentle droplets, natural outdoor air, close dry recording, no music, no speech, no dramatic swell, restrained background for a lived-in repair market","seconds":6.0,"influence":0.7,"loop":true,"format":"pcm_24000","title":"Low Water drainage"}
+  ]
+}

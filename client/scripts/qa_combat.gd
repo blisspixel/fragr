@@ -114,7 +114,7 @@ static func actor_by_id(snapshot: Dictionary, id: String) -> Dictionary:
 static func exposed_point(actor: Dictionary, eye: Vector3, solids: Array) -> Vector3:
 	# Aim at a visible part of the real body. A low counter can hide the centre
 	# while leaving the upper body exposed to an ordinary player shot.
-	var height: float = AimAssist.CRAWLER_HEIGHT if actor.get("campaign", {}).get("kind") == "crawler" else MoveStep.BODY_HEIGHT
+	var height: float = AimAssist.target_height(actor.get("campaign", {}))
 	for fraction: float in [0.5, 0.85, 0.2]:
 		var point: Vector3 = Vector3(actor.x, float(actor.y) - CAMERA.FP_SERVER_REFERENCE_Y + height * fraction, actor.z)
 		var clear: bool = true
@@ -174,6 +174,10 @@ func _observe(snapshot: Dictionary) -> void:
 		if _kind == "union" or campaign["kind"] == _kind:
 			phases[str(campaign["phase"])] = true
 			phases_by_kind[str(campaign["kind"]) + "_" + str(campaign["phase"])] = true
+			# A committed Jammer launch has no gun trace. Count the server's
+			# launch fact once per snapshot tick, never a predicted firing pose.
+			if campaign["kind"] == "jammer" and actor.get("just_fired") == true:
+				enemy_shots += 1
 			if int(actor["hp"]) <= 0 and not _initial_dead.has(str(actor["id"])):
 				defeated[str(actor["id"])] = true
 	if not _recording:
@@ -262,6 +266,8 @@ func engage(manager: Node, me: Dictionary, target: Dictionary, solids: Array, an
 	camera.set("fp_pitch", atan2(aim.y, Vector2(aim.x, aim.z).length()))
 	var tell: Dictionary = visible_target(snapshot, _player_id, solids, true) if evade else {}
 	if not tell.is_empty():
+		var half: float = float(manager.get("current_map_info").get("half_extent", 25.0))
+		var yaw: float = atan2(aim.z, aim.x)
 		var started: int = int(tell["campaign"]["phase_started"])
 		if started != _evade_started:
 			_evade_started = started
@@ -273,12 +279,29 @@ func engage(manager: Node, me: Dictionary, target: Dictionary, solids: Array, an
 			# body. Collision and the input speed remain unmodified.
 			if offset.length_squared() > 1.0 and offset.dot(direction) > 0.0:
 				_evade_left = not _evade_left
-		Input.action_press("move_left" if _evade_left else "move_right")
+			if not safe_strafe(me, solids, half, yaw, _evade_left) and safe_strafe(me, solids, half, yaw, not _evade_left):
+				_evade_left = not _evade_left
+		if safe_strafe(me, solids, half, yaw, _evade_left):
+			Input.action_press("move_left" if _evade_left else "move_right")
 	var loadout: Dictionary = network.get("equipment")
 	if not loadout.is_empty() and EquipmentState.shots(loadout, loadout["selected"]) != 0 and allow_fire:
 		Input.action_press("fire")
 
-func travel(manager: Node, anchor: Vector2) -> bool:
+## Forecast ordinary input against shared collision; never grant movement.
+## Holding at a ledge keeps the next authored roof waypoint reachable.
+static func safe_strafe(me: Dictionary, solids: Array, half: float, yaw: float, left: bool) -> bool:
+	var body: Dictionary = MoveStep.make_state(float(me["x"]), float(me["z"]), yaw)
+	body["y"] = float(me["y"]) - CAMERA.FP_SERVER_REFERENCE_Y
+	var start: Vector3 = Vector3(body["x"], body["y"], body["z"])
+	var arena: Dictionary = {"half": half, "solids": solids}
+	var input: Dictionary = MoveStep.make_input(false, false, left, not left, yaw)
+	for _step: int in range(8):
+		body = MoveStep.live_step(body, input, MoveStep.TOP_SPEED, MoveStep.DT_LIVE, arena)
+		if float(body["y"]) < start.y - 0.2:
+			return false
+	return Vector2(float(body["x"]) - start.x, float(body["z"]) - start.z).length() > 0.1
+
+func travel(manager: Node, anchor: Vector2, allowed_names: Array = []) -> bool:
 	release_inputs()
 	var snapshot: Dictionary = manager.get("latest_snapshot")
 	var me: Dictionary = actor_by_id(snapshot, _player_id)
@@ -286,7 +309,7 @@ func travel(manager: Node, anchor: Vector2) -> bool:
 	# Continue towards the room instead of spending a walking deadline sniping
 	# guards beyond ordinary enemy attack range. Named combat stages still
 	# require every authored guard, including those encountered later.
-	var target: Dictionary = visible_target(snapshot, _player_id, solids, false, 24.0)
+	var target: Dictionary = visible_target(snapshot, _player_id, solids, false, 24.0, allowed_names)
 	if target.is_empty() or participant_died:
 		return false
 	engage(manager, me, target, solids, anchor, true, true)
@@ -429,7 +452,8 @@ func run(tree: SceneTree, manager: Node, spec: Dictionary, output: String) -> Di
 		var complete: bool = confirmed(required).size() == expected if not required.is_empty() else defeated.size() >= expected
 		if complete:
 			if finish_at < 0:
-				finish_at = Time.get_ticks_msec() + 800
+				release_inputs()
+				finish_at = Time.get_ticks_msec() + (1500 if phase_kind == "notary" else 800)
 			elif Time.get_ticks_msec() >= finish_at:
 				break
 		var me: Dictionary = actor_by_id(snapshot, _player_id)
