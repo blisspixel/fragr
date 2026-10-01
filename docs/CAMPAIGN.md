@@ -21,10 +21,14 @@ carry preserves the same saved body, equipment and remaining Episode I
 allowance. The M04 Notice to Vacate prototype adds Low Water's market and
 clinic, the first shootable Notary, optional patient rescue and deliberate
 roof departure. M03-to-M04 carry retains entry equipment and completed car
-choices; compatible historical saves upgrade explicitly to version 5.
+choices. The M05 No Forwarding Address prototype adds roof crossings, counted
+grenades, optional workshop rescue, a bounded authoritative tram and deliberate
+freight departure. M04-to-M05 carry retains earlier car, patient and photograph
+outcomes. Compatible historical saves upgrade explicitly to version 6, and
+completed M05 records the released and actually aboard workers at pending M06.
 These development routes do not certify a finished mission.
 Scene art, named-character performances and final encounter acceptance remain
-unfinished. Six prototype transition narration clips are implemented with text
+unfinished. Nine prototype transition narration clips are implemented with text
 fallback. [M01 completion](plans/m01-completion.md) retains that level's acceptance
 work; the [roadmap](ROADMAP.md#full-build-order-2026-09-27) owns the next build.
 Solo Broadcast:

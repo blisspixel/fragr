@@ -13,7 +13,9 @@ combat, dependency or release changes are needed.
 This lane owns `arena_water.gd`, its spatial shader and focused harness,
 `arena_cover.gd` integration, and this plan. Integration owns the plan index and
 final tours. The water helper is reusable, but automatic venue placement is
-limited to the registered map 1004 Low Water prototype.
+limited to the registered map 1004 Low Water prototype and the validated map
+1005 No Forwarding Address workshop, trench and freight patches. Each venue
+retains its own bounded placement; other maps require explicit authoring.
 
 ## Registration and presentation
 
@@ -82,7 +84,9 @@ floor puddles, stepped moving crest patterns, dark wet edges and small drain
 detail. The isolated camera looks down from 3.5 metres at the street patch;
 this is shader and integrated geometry evidence, not an ordinary first-person
 route or performance measurement. World depth and input geometry stay intact.
-Other venues have no automatic placement. The final full checker passed all
+These earlier receipts cover M04. The M05 increment adds three separately
+registered floor patches through the same helper and collision rejection.
+Other venues have no automatic placement. The earlier full checker passed all
 163 scripts and 76 harnesses in `.agents/m04-buildout-20260930/godot-verified.log`.
 The actual 23-state M04 ninth tour passed; inspected market frames show these
 patches in first-person play. The parent prototype plan records that receipt
