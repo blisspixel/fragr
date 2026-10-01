@@ -5,6 +5,15 @@ const TOUR = preload("res://scripts/qa_tour.gd")
 var _failures: int = 0
 
 func _initialize() -> void:
+	var declared_false: Dictionary = {"combat_travel": false}
+	var scoped_true: Dictionary = {"combat_travel": true, "combat_travel_targets": ["lesson_heavy"]}
+	_check(TOUR.combat_travel_enabled(declared_false, scoped_true)
+		and not TOUR.combat_travel_enabled(declared_false, {}),
+		"scoped travel defense cannot leak into an unspecified stage with unrestricted targets")
+	var declared_true: Dictionary = {"combat_travel": true}
+	_check(not TOUR.combat_travel_enabled(declared_true, {"combat_travel": false})
+		and TOUR.combat_travel_enabled(declared_true, {}),
+		"a scoped quiet stage preserves globally enabled defense for later unspecified stages")
 	_check_jammer_launch()
 	var roof: Array = [{"min_x": -3.0, "max_x": 3.0, "min_z": -3.0, "max_z": 3.0, "bottom": 2.5, "top": 3.0}]
 	var edge: Dictionary = {"x": 0.0, "y": 3.0 + QaCombat.CAMERA.FP_SERVER_REFERENCE_Y, "z": 2.6}

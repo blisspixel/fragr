@@ -752,7 +752,7 @@
     },
     {
       "solid": "service_bay_host",
-      "face": "north",
+      "face": "south",
       "center": [
         0,
         0

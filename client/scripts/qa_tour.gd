@@ -133,8 +133,7 @@ func _run() -> void:
 	_clock_ms = Time.get_ticks_msec()
 	for entry in states:
 		var state: Dictionary = entry
-		if state.has("combat_travel"):
-			_combat_travel = state["combat_travel"]
+		_combat_travel = combat_travel_enabled(tour, state)
 		_combat_travel_targets.assign(state.get("combat_travel_targets", []))
 		var state_name: String = state.get("name", "")
 		if state_name.is_empty():
@@ -1516,6 +1515,10 @@ func _use_input_device(kind: String, layout: String) -> void:
 	if kind != "keyboard" and layout in ["letters", "shapes", "generic"] and InputDevice.is_gamepad():
 		InputDevice.force(InputDevice.Kind.GAMEPAD, InputDevice.look_source, layout)
 	await process_frame
+
+static func combat_travel_enabled(tour: Dictionary, state: Dictionary) -> bool:
+	# A stage override is scoped to that stage. Targets are reset with it.
+	return bool(state.get("combat_travel", tour.get("combat_travel", false)))
 
 func _begin_grenade_strip() -> void:
 	_disconnect_grenade_strip()

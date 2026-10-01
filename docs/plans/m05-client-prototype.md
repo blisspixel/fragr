@@ -193,3 +193,32 @@ already live before the tap and requires one actual stock decrement, one observe
 launch and a same-ID resolved explosion. Initial position, fuse, bounce counts and
 resolved hit facts are retained in the receipt. A missed transient fails the gate.
 `test_qa_combat-grenade-receipt-final.log` parses the new receipt seam cleanly.
+
+`test_m05_local-converged.log` now passes the real development and historical
+v5 transition checks with exact carried values and owned cleanup. The first
+complete client pass, `godot-full-converged.log`, exits 0 with 174 scripts and 81
+harnesses. `checker-verifier-final.log` exits 0 for all ten fault scenarios.
+
+Rendered route iteration remains explicit. The first launch failed before play
+on a project-relative manifest path. The second reached six states and caught an
+incorrect exact claim expectation after ordinary Shotgun discovery. The third
+reached 18 states and proved one real grenade launch, stock decrement and matching
+explosion, plus equal 4.860018 m tram/rider displacement with 98 supported samples.
+Its Heavy phase gate then failed correctly: a prior stage's travel-fire override
+had leaked into quiet stages and killed the Heavy before the observer began.
+The shared helper now resolves each stage against the declared manifest default,
+preserving globally enabled defense. The regression locks scoped enable and
+disable restoration, with `test_qa_combat-scoped-travel-converged.log` clean PASS.
+The subsequent full checker was stopped for serialized map/release work; its
+partial `godot-full-scoped-final.log` is not a passing receipt.
+
+The tank and service signs now carry the accepted 6 motif; catalog import and
+`test_map_decoration-six-copy-final.log` pass localized bounds. The third's former
+service sign faced a narrow gap, so authoring selects its accessible registered
+face for final capture. Freed-worker camera framing follows the actual route;
+the earlier empty-pen strip does not prove visible walking. Earlier roof combat
+strips which began after a clear only prove the post-clear view. Final current
+source still needs a complete checker and coherent 25-state rendered receipt,
+including actual Heavy phases, passenger cancellation/confirmation and sign fit,
+followed by the standard published tour. Historical partial captures are retained
+as diagnostics rather than exported as current completed evidence.

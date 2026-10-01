@@ -43,6 +43,7 @@ fn authored_m05_tour_walks_both_freight_worlds() {
     for state in tour()["states"].as_array().unwrap() {
         for (kind, points) in [
             ("walk", state.get("walk_to")),
+            ("approach", state["combat"].get("approach_route")),
             ("search", state["combat"].get("search_route")),
         ] {
             let Some(points) = points else {
@@ -75,6 +76,21 @@ fn authored_m05_tour_walks_both_freight_worlds() {
         !walk(opened.arena(), [-8.0, 4.0, -25.0], [8.0, 4.0, -25.0]),
         "unsupported roof shortcut cannot replace plank bridge"
     );
+    for world in [&closed, &opened] {
+        let detail = world
+            .presentation_ref()
+            .unwrap()
+            .decorations
+            .iter()
+            .find(|d| d.kind == crate::protocol::MapDecorationKind::M05TramService)
+            .unwrap();
+        let target = detail.point(&world.arena().solids[detail.solid]);
+        assert!(walk(world.arena(), [-6.0, 0.0, -12.0], [-8.0, 0.0, -11.5]));
+        assert!(
+            crate::combat::line_of_sight([-8.0, 1.65, -11.5], target, &world.arena().solids,),
+            "ordinary service-bay approach must see the registered secret clue"
+        );
+    }
 }
 #[test]
 fn authored_m05_tour_requires_all_guards_and_three_secret_locations() {
