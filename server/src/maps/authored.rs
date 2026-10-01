@@ -15,6 +15,7 @@ pub(crate) mod m02;
 pub(crate) mod m03;
 pub(crate) mod m04;
 pub(crate) mod m05;
+pub(crate) mod m06;
 mod mission;
 mod supplies;
 
@@ -37,6 +38,7 @@ pub struct AuthoredMap {
     pub(super) m03: Option<Arc<m03::Prepared>>,
     pub(super) m04: Option<Arc<m04::Prepared>>,
     pub(super) m05: Option<Arc<m05::Prepared>>,
+    pub(super) m06: Option<Arc<m06::Prepared>>,
     pub(super) freight_open: bool,
     pub(super) clinic_open: bool,
     pub(super) mast_shutdown: bool,
@@ -65,6 +67,8 @@ struct Document {
     m04: Option<m04::Definition>,
     #[serde(default)]
     m05: Option<m05::Definition>,
+    #[serde(default)]
+    m06: Option<m06::Definition>,
     #[serde(default)]
     decorations: Vec<MapDecoration<String>>,
     #[serde(default)]
@@ -299,12 +303,32 @@ impl AuthoredMap {
                 "M03 cancellation belongs to the fallen runtime world",
             ));
         }
-        // The current glass renderer is an M02 presentation contract. Only
-        // that map asks for capability 22 before sending its strict surface ID.
+        // Ballistic pressure windows belong to the two registered glass missions.
         if presentation.ground == MapSurface::InspectionGlass
-            || (doc.m02.is_none() && presentation.solids.contains(&MapSurface::InspectionGlass))
+            || (doc.m02.is_none()
+                && doc.m06.is_none()
+                && presentation.solids.contains(&MapSurface::InspectionGlass))
         {
-            return Err(invalid("inspection glass belongs to an M02 solid"));
+            return Err(invalid("inspection glass belongs to an M02 or M06 solid"));
+        }
+        if doc.m06.is_none()
+            && presentation.decorations.iter().any(|p| {
+                matches!(
+                    p.kind,
+                    crate::protocol::MapDecorationKind::M06DustDeclaration
+                        | crate::protocol::MapDecorationKind::M06RailConfiscation
+                        | crate::protocol::MapDecorationKind::M06FreightGantry
+                        | crate::protocol::MapDecorationKind::M06FamilyWindow
+                        | crate::protocol::MapDecorationKind::M06ServiceSix
+                        | crate::protocol::MapDecorationKind::M06CraneOverlook
+                        | crate::protocol::MapDecorationKind::M06DutyFreeSix
+                        | crate::protocol::MapDecorationKind::M06ImpoundObservation
+                        | crate::protocol::MapDecorationKind::M06DepotOverlook
+                        | crate::protocol::MapDecorationKind::M06TransitDeparture
+                )
+            })
+        {
+            return Err(invalid("M06 registered panels require Port of Entry"));
         }
         if doc.mission.is_some() && doc.equipment != crate::protocol::EquipmentPolicy::Discovery {
             return Err(invalid("missions require discovered equipment"));
@@ -355,6 +379,19 @@ impl AuthoredMap {
                 "M05 requires map1005, discovery and no other mission",
             ));
         }
+        if doc.m06.is_some()
+            && (mission.is_some()
+                || doc.m02.is_some()
+                || doc.m03.is_some()
+                || doc.m04.is_some()
+                || doc.m05.is_some()
+                || doc.map_id != 1006
+                || doc.equipment != crate::protocol::EquipmentPolicy::Discovery)
+        {
+            return Err(invalid(
+                "M06 requires map1006, discovery and no other mission",
+            ));
+        }
         for spawn in &doc.spawns {
             identity(&spawn.id, &mut seen)?;
             if !standing(&arena, spawn.feet)
@@ -375,6 +412,20 @@ impl AuthoredMap {
             }
         }
         let start = doc.spawns[0].feet;
+        let m06 = doc
+            .m06
+            .map(|definition| {
+                definition.prepare(
+                    &arena,
+                    &solid_ids,
+                    &doc.encounters,
+                    &mut presentation,
+                    start,
+                    &mut seen,
+                )
+            })
+            .transpose()?
+            .map(Arc::new);
         let m05 = doc
             .m05
             .map(|definition| {
@@ -433,7 +484,9 @@ impl AuthoredMap {
             .map(Arc::new);
         let supplies = supplies::build(doc.supplies, doc.equipment, &arena, &mut seen)?;
         encounters::validate(&doc.encounters, doc.equipment, &arena, &mut seen)?;
-        let navigation = if let Some(prepared) = &m05 {
+        let navigation = if let Some(prepared) = &m06 {
+            prepared.navigation.clone()
+        } else if let Some(prepared) = &m05 {
             prepared.initial_navigation.clone()
         } else if let Some(prepared) = &m04 {
             prepared.initial_navigation.clone()
@@ -550,6 +603,7 @@ impl AuthoredMap {
             m03,
             m04,
             m05,
+            m06,
             freight_open: false,
             clinic_open: false,
             mast_shutdown: false,

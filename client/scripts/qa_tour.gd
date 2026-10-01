@@ -595,6 +595,10 @@ func _run() -> void:
 		if state.has("expect_m05_review") and observed.get("m05_review") != state["expect_m05_review"]:
 			push_error("qa_tour: physical M05 passenger review disagrees with " + state_name)
 			_failed = true
+		for key: String in ["completed", "prisoner_route_marked", "carried_recall_cars", "carried_patients", "carried_photos", "carried_released_workers", "carried_evacuated_workers"]:
+			if state.has("expect_m06_" + key) and observed.get("m06", {}).get(key) != state["expect_m06_" + key]:
+				push_error("qa_tour: M06 " + key + " disagrees with " + state_name)
+				_failed = true
 		for key: String in ["completed", "group_released", "freight_open"]:
 			if state.has("expect_m05_" + key) and observed.get("m05", {}).get(key) != state["expect_m05_" + key]:
 				push_error("qa_tour: M05 " + key + " disagrees with " + state_name)
@@ -820,7 +824,7 @@ static func valid_walks(states: Variant) -> bool:
 	var live_audio_open: bool = false
 	var scene_path: String = ""
 	for state: Variant in states:
-		if not state is Dictionary or not QaCombat.valid_waypoints(state.get("walk_to", [])):
+		if not state is Dictionary or not QaCombat.valid_waypoints(state.get("walk_to", [])) or not valid_m06_expectations(state):
 			return false
 		if state.has("combat_travel_targets"):
 			var targets: Variant = state["combat_travel_targets"]
@@ -880,6 +884,23 @@ static func valid_walks(states: Variant) -> bool:
 				float(combat_seconds) > 120.0 or state.get("join") != "human":
 				return false
 	return not live_audio_open
+
+static func valid_m06_expectations(state: Dictionary) -> bool:
+	if state.has("expect_m06_prisoner_route_marked") and not state["expect_m06_prisoner_route_marked"] is bool:
+		return false
+	if state.has("expect_m06_completed"):
+		var completed: Variant = state["expect_m06_completed"]
+		var order: Array[String] = M06MissionState.OBJECTIVES.duplicate()
+		order.append(M06MissionState.DEPARTURE)
+		if not completed is Array or completed.size() > order.size():
+			return false
+		for index: int in range(completed.size()):
+			if completed[index] != order[index]:
+				return false
+	for key: String in ["carried_recall_cars", "carried_patients", "carried_released_workers", "carried_evacuated_workers"]:
+		if state.has("expect_m06_" + key) and not M06MissionState._ids(state["expect_m06_" + key], 4):
+			return false
+	return not state.has("expect_m06_carried_photos") or EquipmentState.integer(state["expect_m06_carried_photos"], 1000000)
 
 static func valid_radio_comparison(value: String, states: Variant) -> bool:
 	if value.is_empty():
@@ -1339,6 +1360,7 @@ func _observed_state() -> Dictionary:
 		"m05_review": is_instance_valid(gm.get("departure_review")),
 		"m05_ride": _m05_ride_report.duplicate(true),
 		"m05": gm.get("net_client").get("mission").get("state", {}).get("m05", {}),
+		"m06": gm.get("net_client").get("mission").get("state", {}).get("m06", {}),
 		"m05_workers_aboard": MissionHud.workers_aboard(gm.get("net_client").get("mission").get("state", {}), gm.get("net_client").get("mission_geometry").get("m05", {}).get("boarding", {})),
 		"m04": gm.get("net_client").get("mission").get("state", {}).get("m04", {}),
 		"notary_crashes": gm.get("notary_audio").crash_count if gm.get("notary_audio") != null else 0,
@@ -1684,7 +1706,7 @@ func _use_mission_control(expected_phase: String) -> void:
 		# M02 stays in_progress; its expectation names the completed objective.
 		var progress: Variant = mission_state.get("m02")
 		if mission_state.get("phase") == expected_phase \
-			or (mission_state.get("id") in [MissionState.M03_ID, MissionState.M04_ID, MissionState.M05_ID] and expected_phase == "party_departed" and mission_state.get("phase") == "departed") \
+			or (mission_state.get("id") in [MissionState.M03_ID, MissionState.M04_ID, MissionState.M05_ID, MissionState.M06_ID] and expected_phase == "party_departed" and mission_state.get("phase") == "departed") \
 			or (mission_state.get("id") == MissionState.M04_ID and expected_phase == "clinic_shutter" and mission_state.get("m04", {}).get("clinic_open") == true) \
 			or (progress is Dictionary and expected_phase in progress.get("completed", [])):
 			print("qa_tour: mission reached ", expected_phase)

@@ -277,6 +277,7 @@ Anything that costs money is **blocked** for Slice 1 and flagged here:
 
 | Date | Decision | Choice |
 |------|----------|--------|
+| 2026-10-01 | Port of Entry and Episode II carry | M06 reuses the mission channel, static authored collision, ordered encounters and fresh shared departure. Only M06 admission requires capability 27; earlier authored and discovery maps retain 26 and campaign rules stay at revision 3. Local v7 validates strict historical v6 shapes and actual Grenades before exact-byte archival. Atomic completed-M05 promotion refills continues once, preserving body, equipment and separate released/evacuated outcomes through M06 retries. Lunar pressure glass is real ballistic cover; contained civilian water and exterior landmarks are presentation. Final pacing, difficulty briefs and character performances remain separate acceptance gates. |
 | 2026-09-30 | Design continuity | `ART_STORY_BIBLE.md` owns the retro 3D look and palette roles. `design/README.md` links Earth, Moon, Mars, ships and character/voice guides; active level briefs apply them through appearance anchors. Future scenes reuse these identities and references rather than introducing a separate style. Authored and inspected evidence remains separate from production targets. |
 | 2026-09-18 | Paid audio | ElevenLabs approved for developer-only generation through `tools/audiogen`; assets shipped under Apache 2.0 with a manifest |
 | 2026-09-18 | Playtest in CI | `tools/playtest` boots the server in-process and gates every PR on feel thresholds (#95) |

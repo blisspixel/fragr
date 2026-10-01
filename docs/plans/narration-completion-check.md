@@ -1,8 +1,9 @@
 # Narration completion check
 
-**Status:** implemented and locally verified, 2026-09-30. Ships on main when
-[PR #315](https://github.com/blisspixel/fragr/pull/315) passes its protected
-integration gate and merges. That PR records the final platform verdict.
+**Status:** shipped, [PR #315](https://github.com/blisspixel/fragr/pull/315),
+2026-09-30. Its protected head and resulting main `74520b4` pass CI across all
+three platforms. Main's [run](https://github.com/blisspixel/fragr/actions/runs/36830668467)
+records the integration verdict; the final Linux line coverage is 94.23 percent.
 **Spend:** $0.
 
 ## Goal and scope

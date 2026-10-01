@@ -45,7 +45,7 @@ fn spawn() -> (OwnedChild, Ready) {
     assert_eq!(ready.mission, MissionId::RecallNotice);
     assert_eq!(
         ready.gameplay_version,
-        fragr_server::protocol::GAMEPLAY_VERSION
+        fragr_server::protocol::M05_GAMEPLAY_VERSION
     );
     assert!(ready.url.starts_with("ws://127.0.0.1:"));
     (child, ready)
@@ -171,7 +171,7 @@ async fn isolated_m01_departure_fixture_for_m02_client_smoke() {
         );
         assert_eq!(
             ready.gameplay_version,
-            fragr_server::protocol::GAMEPLAY_VERSION
+            fragr_server::protocol::M05_GAMEPLAY_VERSION
         );
         let (mut socket, _) = connect_async(&ready.url).await.unwrap();
         socket
@@ -320,7 +320,7 @@ fn wrong_mission_resume_does_not_migrate_v2_departure() {
     let (child, ready) = spawn_persistent_mission(&directory, "persons_unknown", "resume", None);
     assert_eq!(
         ready.gameplay_version,
-        fragr_server::protocol::GAMEPLAY_VERSION
+        fragr_server::protocol::M05_GAMEPLAY_VERSION
     );
     drop(child);
     assert_eq!(preview(&directory)["mission"], "persons_unknown");
@@ -437,7 +437,7 @@ async fn released_m02_run_promotes_once_and_restarts_at_m03_entry() {
         drop(child);
         let live: serde_json::Value =
             serde_json::from_slice(&std::fs::read(&path).unwrap()).unwrap();
-        assert_eq!(live["version"], 6);
+        assert_eq!(live["version"], 7);
         assert_eq!(live["step"]["mission"], "scheduled_service");
         assert_eq!(
             live["step"]["entry"]["equipment"]["personal_claims"],
@@ -578,7 +578,7 @@ async fn completed_m03_run_promotes_once_and_retains_choices_at_m04_entry() {
         drop(child);
         let live: serde_json::Value =
             serde_json::from_slice(&std::fs::read(&path).unwrap()).unwrap();
-        assert_eq!(live["version"], 6);
+        assert_eq!(live["version"], 7);
         assert_eq!(live["step"]["mission"], "notice_to_vacate");
         assert_eq!(
             live["step"]["entry"]["equipment"]["personal_claims"],
@@ -601,6 +601,173 @@ async fn completed_m03_run_promotes_once_and_retains_choices_at_m04_entry() {
         .collect();
     assert_eq!(archives.len(), 1);
     assert_eq!(std::fs::read(archives[0].path()).unwrap(), bytes);
+    std::fs::remove_dir_all(directory).unwrap();
+}
+
+#[tokio::test]
+async fn completed_v6_m05_run_refills_once_and_retains_actual_counts_at_m06_entry() {
+    let directory = std::env::temp_dir().join(format!("fragr-m06-carry-{}", uuid::Uuid::new_v4()));
+    std::fs::create_dir_all(&directory).unwrap();
+    let source_hash = fragr_server::maps::RuntimeMap::Authored(
+        fragr_server::maps::AuthoredSource::Mission(MissionId::NoForwardingAddress)
+            .load()
+            .unwrap(),
+    )
+    .content_sha256()
+    .unwrap();
+    let run_id = uuid::Uuid::new_v4();
+    let prior = serde_json::json!({
+        "version":6,"id":run_id,"starting_continues":3,"remaining_continues":0,"level_start_continues":1,"body":"synthetic",
+        "rules":{"difficulty":"severe","revision":3},"content_sha256":source_hash,
+        "m03_outcome":{"liberated_cars":["roof_car","platform_car"]},
+        "m04_outcome":{"rescued_patients":["edda_team_a"],"photos_completed":3},
+        "m05_outcome":{"released_workers":["workshop_agent_b","splice","workshop_agent_a"],"evacuated_workers":["workshop_agent_b"]},
+        "step":{"kind":"awaiting_mission","completed_mission":"no_forwarding_address","next_mission":"port_of_entry",
+            "exit":{"hp":61,"armor":7,"equipment":{"selected":"flechette","weapons":["fists","flechette","scatter"],
+                "ammo":[{"pool":"bullets","rounds":29},{"pool":"shells","rounds":8},{"pool":"cells","rounds":0}],
+                "grenades":2,"personal_claims":["workshop_grenade"]}}}
+    });
+    let bytes = serde_json::to_vec_pretty(&prior).unwrap();
+    let path = directory.join("run.json");
+    std::fs::write(&path, &bytes).unwrap();
+    let before = preview(&directory);
+    assert_eq!(before["mission"], "port_of_entry");
+    assert_eq!(before["continues"], 0);
+    assert_eq!(std::fs::read(&path).unwrap(), bytes);
+    for expected_continues in [3, 1] {
+        let (mut child, ready) =
+            spawn_persistent_mission(&directory, "port_of_entry", "resume", None);
+        assert_eq!(ready.mission, MissionId::PortOfEntry);
+        assert_eq!(
+            ready.gameplay_version,
+            fragr_server::protocol::M06_GAMEPLAY_VERSION
+        );
+        assert_eq!(
+            ready.difficulty,
+            fragr_server::protocol::CampaignDifficulty::Severe
+        );
+        let (mut socket, _) = connect_async(&ready.url).await.unwrap();
+        socket
+            .send(Message::Text(
+                serde_json::to_string(&ClientMessage::Hello {
+                    role: Role::Human,
+                    name: "Port runner".into(),
+                    body: Some(BodyKind::Human),
+                    geometry_version: 2,
+                    gameplay_version: fragr_server::protocol::GAMEPLAY_VERSION,
+                    ticket: None,
+                    resume: None,
+                })
+                .unwrap(),
+            ))
+            .await
+            .unwrap();
+        tokio::time::timeout(Duration::from_secs(5), async {
+            let mut owner = None;
+            let mut mapped = false;
+            let mut saw_mission = false;
+            let mut saw_loadout = false;
+            let mut saw_snapshot = false;
+            while let Some(Ok(Message::Text(text))) = socket.next().await {
+                match serde_json::from_str::<ServerMessage>(&text).unwrap() {
+                    ServerMessage::Welcome {
+                        player_id, body, ..
+                    } => {
+                        owner = player_id;
+                        assert_eq!(body, Some(BodyKind::Synthetic));
+                    }
+                    ServerMessage::MapInfo { m06, .. } => {
+                        assert!(m06.is_some());
+                        mapped = true;
+                    }
+                    ServerMessage::Mission { state, .. } => {
+                        assert!(mapped);
+                        let f = state.m06.as_ref().unwrap();
+                        assert_eq!(f.carried_recall_cars, ["roof_car", "platform_car"]);
+                        assert_eq!(f.carried_patients, ["edda_team_a"]);
+                        assert_eq!(f.carried_photos, 3);
+                        assert_eq!(
+                            f.carried_released_workers,
+                            ["workshop_agent_b", "splice", "workshop_agent_a"]
+                        );
+                        assert_eq!(f.carried_evacuated_workers, ["workshop_agent_b"]);
+                        let run = state.run.unwrap();
+                        assert_eq!(
+                            (
+                                run.id,
+                                run.continues,
+                                run.level_start_continues,
+                                state.attempt
+                            ),
+                            (
+                                run_id,
+                                expected_continues,
+                                3,
+                                4 - u32::from(expected_continues)
+                            )
+                        );
+                        saw_mission = true;
+                    }
+                    ServerMessage::Loadout(loadout) => {
+                        assert_eq!(loadout.grenades, 2);
+                        assert_eq!(
+                            loadout.selected,
+                            fragr_server::protocol::WeaponType::Flechette
+                        );
+                        assert!(loadout.personal_claims.is_empty());
+                        assert_eq!(
+                            serde_json::to_value(loadout.ammo).unwrap(),
+                            prior["step"]["exit"]["equipment"]["ammo"]
+                        );
+                        saw_loadout = true;
+                    }
+                    ServerMessage::Snapshot(snapshot) => {
+                        assert!(mapped);
+                        if let Some(p) = snapshot.players.iter().find(|p| Some(p.id) == owner) {
+                            assert_eq!((p.hp, p.armor, p.weapon.as_str()), (61, 7, "Flechette"));
+                            assert_eq!(p.body, Some(BodyKind::Synthetic));
+                            saw_snapshot = true;
+                        }
+                    }
+                    _ => {}
+                }
+                if saw_mission && saw_loadout && saw_snapshot {
+                    return;
+                }
+            }
+            panic!("M06 carried entry facts incomplete");
+        })
+        .await
+        .unwrap();
+        child
+            .0
+            .stdin
+            .as_mut()
+            .unwrap()
+            .write_all(b"{\"type\":\"shutdown\"}\n")
+            .unwrap();
+        exited(&mut child, &ready, true);
+        drop(socket);
+        drop(child);
+        let mut live: serde_json::Value =
+            serde_json::from_slice(&std::fs::read(&path).unwrap()).unwrap();
+        assert_eq!(live["version"], 7);
+        assert_eq!(live["remaining_continues"], expected_continues);
+        assert_eq!(live["level_start_continues"], 3);
+        assert_eq!(live["m05_outcome"], prior["m05_outcome"]);
+        assert_eq!(live["step"]["entry"]["equipment"]["grenades"], 2);
+        assert_eq!(live["step"]["mission"], "port_of_entry");
+        live["remaining_continues"] = 1.into();
+        std::fs::write(&path, serde_json::to_vec(&live).unwrap()).unwrap();
+    }
+    let archives: Vec<_> = std::fs::read_dir(&directory)
+        .unwrap()
+        .filter_map(Result::ok)
+        .filter(|p| p.file_name().to_string_lossy().starts_with("run.prior-"))
+        .collect();
+    assert_eq!(archives.len(), 1);
+    assert_eq!(std::fs::read(archives[0].path()).unwrap(), bytes);
+    assert_eq!(preview(&directory)["continues"], 1);
     std::fs::remove_dir_all(directory).unwrap();
 }
 
@@ -725,7 +892,7 @@ async fn completed_v5_m04_run_promotes_once_and_retains_choices_at_m05_entry() {
         drop(child);
         let live: serde_json::Value =
             serde_json::from_slice(&std::fs::read(&path).unwrap()).unwrap();
-        assert_eq!(live["version"], 6);
+        assert_eq!(live["version"], 7);
         assert_eq!(live["step"]["entry"]["equipment"]["grenades"], 0);
         assert_eq!(live["m04_outcome"], prior["m04_outcome"]);
         assert_eq!(live["step"]["mission"], "no_forwarding_address");
@@ -1109,7 +1276,7 @@ async fn m02_development_child_serves_the_graybox_without_a_durable_run() {
     assert_eq!(ready.mission, MissionId::PersonsUnknown);
     assert_eq!(
         ready.gameplay_version,
-        fragr_server::protocol::GAMEPLAY_VERSION
+        fragr_server::protocol::M05_GAMEPLAY_VERSION
     );
     let (mut old, _) = connect_async(&ready.url).await.unwrap();
     old.send(Message::Text(

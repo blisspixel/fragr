@@ -14,6 +14,8 @@ pub(super) struct SoloRun {
     pub carried_recall_cars: Vec<String>,
     pub carried_patients: Vec<String>,
     pub carried_photos: u32,
+    pub carried_released_workers: Vec<String>,
+    pub carried_evacuated_workers: Vec<String>,
     owner: Option<Uuid>,
     entry: Option<Entry>,
     saved_entry: Option<SavedEntry>,
@@ -115,6 +117,8 @@ impl GameState {
             carried_recall_cars: Vec::new(),
             carried_patients: Vec::new(),
             carried_photos: 0,
+            carried_released_workers: Vec::new(),
+            carried_evacuated_workers: Vec::new(),
             entry: None,
             saved_entry: None,
             exit: None,
@@ -170,6 +174,14 @@ impl GameState {
             .m04_outcome
             .as_ref()
             .map_or(0, |outcome| outcome.photos_completed);
+        solo.carried_released_workers = document
+            .m05_outcome
+            .as_ref()
+            .map_or_else(Vec::new, |outcome| outcome.released_workers.clone());
+        solo.carried_evacuated_workers = document
+            .m05_outcome
+            .as_ref()
+            .map_or_else(Vec::new, |outcome| outcome.evacuated_workers.clone());
         Ok(())
     }
 
@@ -221,13 +233,16 @@ impl GameState {
             player.hp = 0;
             player.respawn_timer = None;
             player.clear_input();
-            run.phase =
-                if run.m02.is_some() || run.m03.is_some() || run.m04.is_some() || run.m05.is_some()
-                {
-                    MissionPhase::InProgress
-                } else {
-                    MissionPhase::FindTransfer
-                };
+            run.phase = if run.m02.is_some()
+                || run.m03.is_some()
+                || run.m04.is_some()
+                || run.m05.is_some()
+                || run.m06.is_some()
+            {
+                MissionPhase::InProgress
+            } else {
+                MissionPhase::FindTransfer
+            };
             run.ready.insert(player.id);
             run.started = true;
         }
@@ -334,6 +349,7 @@ impl GameState {
         self.ensure_m03_companion();
         self.ensure_m04_companion();
         self.ensure_m05_companion();
+        self.ensure_m06_companion();
         self.shot_results.clear();
         tracing::info!(
             attempt = request.attempt + 1,

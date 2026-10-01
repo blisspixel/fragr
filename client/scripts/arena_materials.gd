@@ -5,6 +5,7 @@ class_name ArenaMaterials
 const SURFACE: Shader = preload("res://assets/shaders/arena_surface.gdshader")
 const PLASTER_DETAIL: Texture2D = preload("res://assets/environment/low_water/plaster_repairs.png")
 const STEEL_DETAIL: Texture2D = preload("res://assets/environment/low_water/steel_repairs.png")
+static var _moon_textures: Dictionary[String, Texture2D] = {}
 
 static func accent(map_id: int) -> Color:
 	match map_id:
@@ -13,6 +14,7 @@ static func accent(map_id: int) -> Color:
 		5: return Color("6e7950")
 		6: return Color("8a3a58")
 		1004, 1005: return Color("8b6850")
+		1006: return Color("b7aea0")
 		_: return Color("7a3a22")
 
 static func make(map_id: int, kind: int) -> ShaderMaterial:
@@ -25,6 +27,8 @@ static func make(map_id: int, kind: int) -> ShaderMaterial:
 		base = Color("756e59") if kind == 0 else Color("73796a")
 	elif map_id in [1004, 1005]:
 		base = Color("686f69") if kind == 0 else Color("8c796a")
+	elif map_id == 1006:
+		base = Color("a9a698") if kind == 0 else Color("8b8e87")
 	if kind == 2:
 		base = base.darkened(0.15)
 	material.set_shader_parameter("surface_color", base)
@@ -52,6 +56,9 @@ static func authored(surface: String, venue: String = "") -> Material:
 	if venue == "low_water":
 		bases = [Color("788078"), Color("bd9c80"), Color("537574"), Color("adc0aa"), Color("49534c")]
 		accents = [Color("5a655f"), Color("6f6554"), Color("aa7451"), Color("577165"), Color("b6a579")]
+	elif venue == "moon_port":
+		bases = [Color("a9a698"), Color("d0cbb8"), Color("394144"), Color("9aa397"), Color("505954")]
+		accents = [Color("6c6e64"), Color("7f8278"), Color("9a302a"), Color("4e5c55"), Color("a9ad99")]
 	material.set_shader_parameter("surface_style", index + 1)
 	material.set_shader_parameter("surface_color", bases[index])
 	material.set_shader_parameter("accent_color", accents[index])
@@ -59,4 +66,11 @@ static func authored(surface: String, venue: String = "") -> Material:
 	if venue == "low_water" and surface in ["concrete", "enamel", "service_steel"]:
 		material.set_shader_parameter("detail_enabled", true)
 		material.set_shader_parameter("detail_texture", STEEL_DETAIL if surface == "service_steel" else PLASTER_DETAIL)
+	elif venue == "moon_port" and surface in ["concrete", "enamel", "service_steel"]:
+		var path: String = "res://assets/environment/moon/" + ("dust.png" if surface == "concrete" else "pressure_shell.png")
+		if not _moon_textures.has(path) and ResourceLoader.exists(path):
+			_moon_textures[path] = load(path) as Texture2D
+		if _moon_textures.get(path) != null:
+			material.set_shader_parameter("detail_enabled", true)
+			material.set_shader_parameter("detail_texture", _moon_textures[path])
 	return material

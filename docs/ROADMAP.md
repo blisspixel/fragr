@@ -13,7 +13,7 @@ Every item below is in exactly one state: **planned**, **in progress**, **shippe
 
 The engineering ladder for scale runs through every phase: small squads first (four to twelve fighters, the current bar), then full servers (thirty-two to sixty-four), then large agent-heavy arenas (hundreds of fighters where most are agents). Each rung has its own measurements and is not claimed until measured.
 
-## Where we are (2026-09-30)
+## Where we are (2026-10-01)
 
 Desktop packages and their release receipts are listed in
 [GitHub releases](https://github.com/blisspixel/fragr/releases). The bounded campaign buildout shipped in
@@ -44,7 +44,12 @@ the client passed 174 scripts and 81 harnesses. Current-source multiplayer,
 six-map roster, deterministic CPU benchmark and 120-second soak gates pass.
 New cash charges are $0, with 693 included audio credits consumed. The source is
 merged in PR #314. The linked plan records current rendered evidence and CI;
-release packages require their own passing workflow. Fresh-player acceptance and
+the three desktop packages and install checks passed in
+[v0.65.0](https://github.com/blisspixel/fragr/releases/tag/v0.65.0).
+The narration harness follow-up in [PR #315](https://github.com/blisspixel/fragr/pull/315)
+also passes main CI. M06 implementation is in flight through its
+[bounded plan](plans/m06-port-of-entry-prototype.md); no M06 gate is claimed yet.
+Fresh-player acceptance and
 two-machine network evidence remain separate gates.
 
 **Shipped and proven on the tip:**
@@ -249,7 +254,7 @@ The phases below are the long shape. The sequence that follows is the build orde
 
 **Active goal:** build the agreed game through a proven 1.0. That is Recall Notice as the quality bar, then each later mission on systems the whole campaign reuses, then local prediction before the first long Rail lane, then the wipe and its conditional epilogue, then a LAN proof, then an exposed server. Cloud apply, matchmaking, and conquest-scale vehicles stay behind that server. The story spine in [`CAMPAIGN.md`](CAMPAIGN.md) is settled. Names, rescue tradeoffs, wipe operations, and the reprieve's exact terms stay proposals until the gate that needs them. Mission briefs live in [`CAMPAIGN-MISSIONS.md`](CAMPAIGN-MISSIONS.md) and [one plan per level](campaign/README.md). Geometry comes from the mission, not from an arena layout. The six current layouts stay playable foundations. Boltgun remains the visual bar for a played sequence, not a reason to generate the roster before the first two enemies read. Every rung serves the [easy to pick up, deep to master pillar](VISION.md#easy-to-pick-up-deep-to-master): fights and flow first, at most three doors a level.
 
-**Next, as of 2026-09-30.** Nick authorized parallel research and development,
+**Next, as of 2026-10-01.** Nick authorized parallel research and development,
 with at most $20 combined external charges this round, and explicitly removed
 human feedback as a prerequisite for development. The integrated campaign and
 CTF systems, including the bounded M03-M05 buildout in PR #314, are on main. Human and remote-network
@@ -260,7 +265,7 @@ The [campaign and feel buildout](plans/campaign-and-feel-buildout.md) supplies
 the local Jammer foundation, presentation and free-agent increments at $0.
 Its integration and acceptance evidence is recorded in that bounded plan.
 
- 1. Build level 6 Port of Entry from its accepted
+ 1. Build level 6 Port of Entry, currently in flight, from its accepted
     [level design](campaign/m04-port-of-entry.md#level-6-design-twenty-level-expansion):
     lunar dock, inhabited freight hall, Railgun lesson and flankable Turret,
     optional service branch and deliberate transit-tunnel departure. This starts
@@ -300,7 +305,8 @@ No cloud apply, public-server claim or 1.0 controls claim follows from this
 integration. The authorized audio batch used included credits. The prepared
 image API batch remains unsubmitted pending a verified current balance; original
 local textures are implemented. The $0 local container host is documented for
-friends, but this machine's Docker engine is unavailable. Public admission,
+friends; the 2026-10-01 local build, hardened runtime, legal notices and healthy
+status probe pass, with owned cleanup recorded in the M06 plan. Public admission,
 cloud cost and exposed-server testing retain their own gates.
 
 The server-owned traveling-shot foundation is already on main

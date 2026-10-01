@@ -14,6 +14,7 @@ mod m02;
 mod m03;
 mod m04;
 mod m05;
+mod m06;
 mod recovery;
 pub(crate) mod run_file;
 pub use controller::MissionClient;
@@ -35,6 +36,7 @@ pub(crate) struct MissionRun {
     m03: Option<m03::M03Progress>,
     m04: Option<m04::M04Progress>,
     m05: Option<m05::M05Progress>,
+    m06: Option<m06::M06Progress>,
     solo: Option<recovery::SoloRun>,
     rules: CampaignRules,
     initial_map: RuntimeMap,
@@ -53,6 +55,7 @@ impl MissionRun {
             m03: map.m03_geometry().map(m03::M03Progress::new),
             m04: map.m04_geometry().map(m04::M04Progress::new),
             m05: map.m05_geometry().map(m05::M05Progress::new),
+            m06: map.m06_geometry().map(|_| m06::M06Progress::default()),
             solo: None,
             rules: CampaignRules::default(),
             initial_map: map.clone(),
@@ -180,13 +183,16 @@ impl GameState {
             .collect();
         run.ready.retain(|id| party.contains(id));
         if run.phase == MissionPhase::Briefing && !party.is_empty() && party.is_subset(&run.ready) {
-            run.phase =
-                if run.m02.is_some() || run.m03.is_some() || run.m04.is_some() || run.m05.is_some()
-                {
-                    MissionPhase::InProgress
-                } else {
-                    MissionPhase::FindTransfer
-                };
+            run.phase = if run.m02.is_some()
+                || run.m03.is_some()
+                || run.m04.is_some()
+                || run.m05.is_some()
+                || run.m06.is_some()
+            {
+                MissionPhase::InProgress
+            } else {
+                MissionPhase::FindTransfer
+            };
             run.changed_at = self.tick;
             run.started = true;
             tracing::info!(members = party.len(), "Campaign party ready");
@@ -194,6 +200,7 @@ impl GameState {
         self.ensure_m03_companion();
         self.ensure_m04_companion();
         self.ensure_m05_companion();
+        self.ensure_m06_companion();
     }
 
     pub(crate) fn note_mission_started(&mut self) {
@@ -214,10 +221,19 @@ impl GameState {
         run.m03 = run.initial_map.m03_geometry().map(m03::M03Progress::new);
         run.m04 = run.initial_map.m04_geometry().map(m04::M04Progress::new);
         run.m05 = run.initial_map.m05_geometry().map(m05::M05Progress::new);
+        run.m06 = run
+            .initial_map
+            .m06_geometry()
+            .map(|_| m06::M06Progress::default());
         run.phase = if run.ready.is_empty() {
             MissionPhase::Briefing
         } else {
-            if run.m02.is_some() || run.m03.is_some() || run.m04.is_some() || run.m05.is_some() {
+            if run.m02.is_some()
+                || run.m03.is_some()
+                || run.m04.is_some()
+                || run.m05.is_some()
+                || run.m06.is_some()
+            {
                 MissionPhase::InProgress
             } else {
                 MissionPhase::FindTransfer
@@ -238,10 +254,14 @@ impl GameState {
         self.ensure_m03_companion();
         self.ensure_m04_companion();
         self.ensure_m05_companion();
+        self.ensure_m06_companion();
     }
 
     pub fn mission_state(&self) -> Option<MissionState> {
         let run = self.mission.as_ref()?;
+        if run.m06.is_some() {
+            return self.m06_mission_state();
+        }
         if run.m05.is_some() {
             return self.m05_mission_state();
         }
@@ -307,6 +327,7 @@ impl GameState {
             m03: None,
             m04: None,
             m05: None,
+            m06: None,
         })
     }
 
@@ -324,6 +345,10 @@ impl GameState {
     }
 
     pub(crate) fn advance_mission(&mut self) {
+        if self.mission.as_ref().is_some_and(|r| r.m06.is_some()) {
+            self.advance_m06();
+            return;
+        }
         if self.mission.as_ref().is_some_and(|r| r.m05.is_some()) {
             self.advance_m05();
             return;

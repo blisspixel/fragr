@@ -186,7 +186,6 @@ func _cannon(root: Node3D, at: Vector3, raised: float, spin: float, recoil: floa
 
 func build_turret(action: String, progress: float) -> Node3D:
 	var model: Node3D = Node3D.new()
-	var cycle: float = progress * TAU
 	var destroyed: float = progress if action == "death" else 0.0
 	var pain: float = sin(lerpf(0.2, 1.0, progress) * PI) if action == "hit" else 0.0
 	# Fixed base: plate, three braced feet and a column that breaks on death.
@@ -207,8 +206,8 @@ func build_turret(action: String, progress: float) -> Node3D:
 	model.add_child(head)
 	head.position = Vector3(0, 1.50, 0).lerp(Vector3(0.30, 0.24, 0.30), destroyed)
 	head.rotation_degrees = Vector3(lerpf(0.0, -8.0, destroyed) - pain * 14.0, 0, lerpf(0.0, -10.0, destroyed) + pain * 5.0)
-	if action == "walk":
-		head.rotation_degrees.y = cos(cycle) * 9.0
+	# The server sends the actual sweeping head yaw. Baking another oscillation
+	# here would point the visible barrel away from its authoritative direction.
 	var lamp: Color = RED
 	var lit: int = 0
 	if action == "raise":
@@ -235,8 +234,6 @@ func build_turret(action: String, progress: float) -> Node3D:
 	# Sensor lamp: dim red while searching, lit red optics and coils when charging.
 	part(head, Vector3(0, 0.1, 0.225), Vector3(0.30, 0.09, 0.04), lamp)
 	part(head, Vector3(0, 0.2, 0.0), Vector3(0.05, 0.08, 0.05), STEEL)
-	if action == "walk":
-		part(head, Vector3(cos(cycle) * 0.18, 0.18, 0.2), Vector3(0.08, 0.03, 0.02), GLOW)
 	var barrel: Node3D = Node3D.new()
 	head.add_child(barrel)
 	barrel.position = Vector3(0, -0.03, 0.22 - ((1.0 - progress) * 0.1 if action == "fire" else 0.0))

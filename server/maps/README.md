@@ -114,6 +114,19 @@ belong to the [server plan](../../docs/plans/m05-server-authoring.md) and
 [bounded tram plan](../../docs/plans/m05-bounded-tram.md); full pacing, optional
 jump routes and fresh-player acceptance remain separate gates.
 
+`m06_port_of_entry.json` authors level 6's compact static lunar dock, freight
+hall, customs galleries, optional service branch and transit departure. Six
+ordered encounters contain 18 required guards; the independent service branch
+adds three. The confiscation cage supplies a Railgun and finite Cells before a
+58.25-metre firing stance; ordinary spread and a shorter walking alternative
+remain. Two fixed Turrets have supported flank routes. Real `inspection_glass`
+solids protect inhabited rooms; that surface is restricted to M02/M06 solids,
+never the ground. Three accessible secret detours carry one marked pickup each.
+`m06` binds the six Arrival objectives, optional `service` Arrival, departure
+control, boarding and companion start. No moving collider or gate variant is
+added. The [active plan](../../docs/plans/m06-port-of-entry-prototype.md)
+owns verification, current evidence and unresolved acceptance.
+
 For M01, from the repository root:
 
 ```bash

@@ -13,6 +13,19 @@
       "bytes": 576044,
       "generated_unix": 1790809166
     },
+    "ambience/lunar_port_utility": {
+      "kind": "sfx",
+      "file": "ambience/lunar_port_utility.wav",
+      "prompt": "Quiet interior lunar cargo port utility room, gentle steady ventilation fan and restrained low mechanical hum, a small worn recycling pump ticking softly, seamless six second room tone loop, clean dry game ambience, no exterior wind, no voices, no alarms, no music, no cinematic swell",
+      "model": "eleven_text_to_sound_v2",
+      "format": "pcm_24000",
+      "title": "Port of Entry: interior utility loop",
+      "seconds": 6.0,
+      "looping": true,
+      "channels": 2,
+      "bytes": 576044,
+      "generated_unix": 1790863832
+    },
     "effects/grenade_blast": {
       "kind": "sfx",
       "file": "effects/grenade_blast.wav",
@@ -117,6 +130,19 @@
       "bytes": 108713,
       "generated_unix": 1790822716
     },
+    "voice/en/l06_l07/transit": {
+      "kind": "tts",
+      "file": "voice/en/l06_l07/transit.mp3",
+      "prompt": "The transit tunnel leads toward the lunar town. Tern and the passengers remain with the impounded ship. The custody depot stands across the crater.",
+      "model": "eleven_v3",
+      "format": "mp3_44100_128",
+      "title": "Port of Entry: transit",
+      "voice": "SAz9YHcvj6GT2YYXdXww",
+      "looping": false,
+      "channels": 0,
+      "bytes": 136716,
+      "generated_unix": 1790863830
+    },
     "voice/en/m04_arrival/home": {
       "kind": "tts",
       "file": "voice/en/m04_arrival/home.mp3",
@@ -155,6 +181,32 @@
       "channels": 0,
       "bytes": 213621,
       "generated_unix": 1790822708
+    },
+    "voice/en/m06_arrival/moon": {
+      "kind": "tts",
+      "file": "voice/en/m06_arrival/moon.mp3",
+      "prompt": "The Moon, three days out. The port declared Tern's ship impounded before the engines were cold. Tern put us out through the cargo lock and stayed with the passengers.",
+      "model": "eleven_v3",
+      "format": "mp3_44100_128",
+      "title": "Port of Entry: arrival",
+      "voice": "SAz9YHcvj6GT2YYXdXww",
+      "looping": false,
+      "channels": 0,
+      "bytes": 173915,
+      "generated_unix": 1790863823
+    },
+    "voice/en/m06_arrival/port": {
+      "kind": "tts",
+      "file": "voice/en/m06_arrival/port.mp3",
+      "prompt": "Our neighbours are across the crater. Get through customs.",
+      "model": "eleven_v3",
+      "format": "mp3_44100_128",
+      "title": "Port of Entry: customs",
+      "voice": "SAz9YHcvj6GT2YYXdXww",
+      "looping": false,
+      "channels": 0,
+      "bytes": 52288,
+      "generated_unix": 1790863825
     }
   }
 }

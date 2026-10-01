@@ -1369,6 +1369,7 @@ impl GameState {
         ServerMessage::MapInfo {
             m04: self.map.m04_geometry(),
             m05: self.map.m05_geometry(),
+            m06: self.map.m06_geometry(),
             m03: self.map.m03_geometry(),
             geometry_version: crate::protocol::geometry_version(&self.map.arena().solids),
             presentation: self.map.presentation(),

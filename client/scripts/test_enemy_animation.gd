@@ -156,7 +156,12 @@ func _check_atlases() -> void:
 			kind + " death pixels reach the floor")
 		var step_a: Image = _tile(atlas, EnemyAnimation.pose_frame("walk", false, 0))
 		var step_b: Image = _tile(atlas, EnemyAnimation.pose_frame("walk", false, 0.5))
-		_check(step_a.get_data() != step_b.get_data(), kind + " has distinct gait poses")
+		if kind == "turret":
+			_check(step_a.get_data() == step_b.get_data(), "Turret phase time cannot turn the barrel away from server yaw")
+			var profile: Image = _tile(atlas, EnemyAnimation.poses() * 2 + EnemyAnimation.pose_frame("walk", false, 0))
+			_check(step_a.get_data() != profile.get_data(), "Turret authoritative facing still selects a distinct profile")
+		else:
+			_check(step_a.get_data() != step_b.get_data(), kind + " has distinct gait poses")
 	_check_readable_pair()
 	_check_heavy_and_turret_outlines()
 	_check_crawler_atlas()

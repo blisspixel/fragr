@@ -62,7 +62,7 @@ async fn encounter_capability_and_identity_reach_every_role_over_the_wire() {
     for role in [Role::Human, Role::Agent, Role::Spectator] {
         for version in [
             fragr_server::protocol::CAMPAIGN_GAMEPLAY_VERSION,
-            fragr_server::protocol::GAMEPLAY_VERSION - 1,
+            fragr_server::protocol::M05_GAMEPLAY_VERSION - 1,
         ] {
             let (mut old, _) = connect_async(&url).await.unwrap();
             old.send(Message::Text(
@@ -83,75 +83,81 @@ async fn encounter_capability_and_identity_reach_every_role_over_the_wire() {
             .await
             .unwrap();
             assert!(
-                matches!(message(&mut old).await, ServerMessage::Error { code, message } if code == "unsupported_gameplay" && message.contains(&format!("version {}", fragr_server::protocol::GAMEPLAY_VERSION)))
+                matches!(message(&mut old).await, ServerMessage::Error { code, message } if code == "unsupported_gameplay" && message.contains(&format!("version {}", fragr_server::protocol::M05_GAMEPLAY_VERSION)))
             );
         }
     }
     let mut sockets = Vec::new();
     for role in [Role::Human, Role::Agent, Role::Spectator] {
-        let (mut socket, _) = connect_async(&url).await.unwrap();
-        socket
-            .send(Message::Text(
-                serde_json::to_string(&ClientMessage::Hello {
-                    body: None,
-                    role,
-                    name: format!("{role:?}"),
-                    geometry_version: 2,
-                    gameplay_version: fragr_server::protocol::GAMEPLAY_VERSION,
+        for gameplay_version in [
+            fragr_server::protocol::M05_GAMEPLAY_VERSION,
+            fragr_server::protocol::GAMEPLAY_VERSION,
+        ] {
+            let (mut socket, _) = connect_async(&url).await.unwrap();
+            socket
+                .send(Message::Text(
+                    serde_json::to_string(&ClientMessage::Hello {
+                        body: None,
+                        role,
+                        name: format!("{role:?}"),
+                        geometry_version: 2,
+                        gameplay_version,
 
-                    ticket: None,
-                    resume: None,
-                })
-                .unwrap(),
-            ))
-            .await
-            .unwrap();
-        let id = match message(&mut socket).await {
-            ServerMessage::Welcome { player_id, .. } => player_id,
-            other => panic!("expected admission, got {other:?}"),
-        };
-        let mut seen = false;
-        let mut seen_map = false;
-        for _ in 0..40 {
-            match message(&mut socket).await {
-                ServerMessage::MapInfo {
-                    map_id,
-                    m02_objectives,
-                    ..
-                } => {
-                    assert_eq!(map_id, 1002);
-                    assert_eq!(m02_objectives, None);
-                    seen_map = true;
-                }
-                ServerMessage::Snapshot(snapshot) => {
-                    assert!(
-                        seen_map,
-                        "{role:?} snapshot overtook authoritative geometry"
-                    );
-                    if let Some(me) = id.and_then(|id| snapshot.players.iter().find(|p| p.id == id))
-                    {
-                        assert_eq!(me.campaign, Some(CampaignActor::Participant {}));
+                        ticket: None,
+                        resume: None,
+                    })
+                    .unwrap(),
+                ))
+                .await
+                .unwrap();
+            let id = match message(&mut socket).await {
+                ServerMessage::Welcome { player_id, .. } => player_id,
+                other => panic!("expected admission, got {other:?}"),
+            };
+            let mut seen = false;
+            let mut seen_map = false;
+            for _ in 0..40 {
+                match message(&mut socket).await {
+                    ServerMessage::MapInfo {
+                        map_id,
+                        m02_objectives,
+                        ..
+                    } => {
+                        assert_eq!(map_id, 1002);
+                        assert_eq!(m02_objectives, None);
+                        seen_map = true;
                     }
-                    if snapshot.players.iter().any(|p| {
-                        matches!(
-                            p.campaign,
-                            Some(CampaignActor::Union {
-                                kind: EnemyKind::Clerk,
-                                ..
-                            })
-                        )
-                    }) {
-                        seen = true;
-                        break;
+                    ServerMessage::Snapshot(snapshot) => {
+                        assert!(
+                            seen_map,
+                            "{role:?} snapshot overtook authoritative geometry"
+                        );
+                        if let Some(me) =
+                            id.and_then(|id| snapshot.players.iter().find(|p| p.id == id))
+                        {
+                            assert_eq!(me.campaign, Some(CampaignActor::Participant {}));
+                        }
+                        if snapshot.players.iter().any(|p| {
+                            matches!(
+                                p.campaign,
+                                Some(CampaignActor::Union {
+                                    kind: EnemyKind::Clerk,
+                                    ..
+                                })
+                            )
+                        }) {
+                            seen = true;
+                            break;
+                        }
                     }
+                    ServerMessage::Loadout(_) => assert_ne!(role, Role::Spectator),
+                    _ => {}
                 }
-                ServerMessage::Loadout(_) => assert_ne!(role, Role::Spectator),
-                _ => {}
             }
+            assert!(seen, "{role:?} must receive the authored actor");
+            assert!(seen_map, "{role:?} must receive the legacy map");
+            sockets.push(socket);
         }
-        assert!(seen, "{role:?} must receive the authored actor");
-        assert!(seen_map, "{role:?} must receive the legacy map");
-        sockets.push(socket);
     }
     for socket in &mut sockets {
         socket.close(None).await.unwrap();

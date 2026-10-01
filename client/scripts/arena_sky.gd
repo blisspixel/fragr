@@ -190,6 +190,8 @@ static func facility() -> Preset:
 ## interiors, so they do not inherit the outdoor scrap fill.
 static func preset_for(map_name: String) -> Preset:
 	var key: String = map_name.strip_edges().to_lower()
+	if key.contains("port of entry"):
+		return moon_port()
 	if key.contains("notice to vacate") or key.contains("low water market") or key.contains("no forwarding address"):
 		return low_water()
 	if key.contains("scheduled service") or key.contains("recall freight yard"):
@@ -199,6 +201,24 @@ static func preset_for(map_name: String) -> Preset:
 	if key.contains("compliance") or key.contains("yard"):
 		return compliance()
 	return scrapyard()
+
+static func moon_port() -> Preset:
+	var preset: Preset = Preset.new(Color("090b10"), Color("141a20"),
+		Color("343b3c"), Color("787b73"), 0.0006, Color("b8bdb6"), 0.58)
+	preset.key_color = Color("fff0cf")
+	preset.key_energy = 1.45
+	preset.scene_fill_energy = 0.10
+	preset.practical_color = Color("ffe8bb")
+	preset.practical_energy = 2.2
+	preset.practical_range = 13.0
+	preset.practical_attenuation = 1.2
+	preset.accent_energy = 1.0
+	preset.accent_range = 3.0
+	preset.view_fill_energy = 0.55
+	preset.view_fill_range = 65.0
+	preset.contrast = 1.08
+	preset.saturation = 0.90
+	return preset
 
 static func low_water() -> Preset:
 	var preset: Preset = Preset.new(Color("778da2"), Color("d6b898"),

@@ -9,7 +9,7 @@ Status words: **proposed** (a design awaiting Nick's decision; directs no work),
 ## Standing facts
 
 - Game port is **6767** (TCP today; UDP reserved for the planned low-latency transport).
-- Local play is $0. Public hosting sits under the $50 total cap. Nick authorized up to $20 combined external charges for each of the 2026-09-26, 2026-09-29 and 2026-09-30 development rounds, subject to that total cap and reconciled actual usage. The 2026-09-30 buildout has $0 new cash charges, 693 included audio credits consumed and a separate conservative $3 equivalent reserve. Production deployment still needs a reviewed cost and written approval. The current GCP Terraform remains plan-only.
+- Local play is $0. Public hosting sits under the $50 total cap. Nick authorized up to $20 combined external charges for each of the 2026-09-26, 2026-09-29 and 2026-09-30 development rounds, subject to that total cap and reconciled actual usage. The 2026-09-30 buildout has $0 new cash charges, 945 included audio credits consumed and a separate conservative $4 equivalent reserve. Production deployment still needs a reviewed cost and written approval. The current GCP Terraform remains plan-only.
 - Tailscale is private smoke only, never the documented join path.
 - The dedicated server bar is rock solid, secure, and cheap: input validation, rate limits, clean join and leave and reconnect, and a home box or small VM first.
 
@@ -17,8 +17,14 @@ Status words: **proposed** (a design awaiting Nick's decision; directs no work),
 
 | Plan | Status | One-liner |
 |---|---|---|
-| [`narration-completion-check.md`](./narration-completion-check.md) | **implemented**, ships with #315 | Real completion-signal synchronization, ten clean audio repeats and all 174 scripts/81 harnesses; platform gate recorded in the integration PR. |
-| [`m06-port-of-entry-prototype.md`](./m06-port-of-entry-prototype.md) | **planned** | Lunar dock/customs, found Railgun and isolated Turret, strict M05 carry and one-time Episode II refill; no runtime implementation yet. |
+| [`narration-completion-check.md`](./narration-completion-check.md) | **shipped**, [PR #315](https://github.com/blisspixel/fragr/pull/315) | Real completion-signal synchronization; ten clean repeats, all 174 scripts/81 harnesses and protected main CI pass. |
+| [`m06-port-of-entry-prototype.md`](./m06-port-of-entry-prototype.md) | **in flight** | Lunar dock/customs, found Railgun and isolated Turret, strict M05 carry and one-time Episode II refill; implementation started, acceptance open. |
+| [`m06-core-prototype.md`](./m06-core-prototype.md) | **in flight** | Strict authoritative lunar mission, ordered encounter lifecycle, optional service and deliberate departure. |
+| [`m06-map-prototype.md`](./m06-map-prototype.md) | **in flight** | Original static port, two supported galleries, long firing lane, real glass and three secret detours. |
+| [`m06-client-prototype.md`](./m06-client-prototype.md) | **in flight** | Strict M06 state, local readiness, inhabited Moon presentation and text story handoffs. |
+| [`m06-audio-batch.md`](./m06-audio-batch.md) | **in flight** | Three exact-caption neutral framing clips and a quiet utility loop, with verified included credits and bounded generation. |
+| [`m06-lunar-art-batch.md`](./m06-lunar-art-batch.md) | **in flight** | Bounded lunar civilian and pressure-room art, priced against the owner's current prepaid API balance and inspected after palette reduction. |
+| [`shotgun-sfx-refresh.md`](./shotgun-sfx-refresh.md) | **in flight** | Replace the shotgun blast through a capped included-credit sound batch and the existing weapon audio path. |
 | [`m05-audio-batch.md`](./m05-audio-batch.md) | **shipped**, [PR #314](https://github.com/blisspixel/fragr/pull/314) | Three exact-caption neutral narration clips and two compact grenade cues; final playback/caption/fallback checks pass. |
 | [`m05-server-authoring.md`](./m05-server-authoring.md) | **shipped**, [PR #314](https://github.com/blisspixel/fragr/pull/314) | Original 21-guard roof/workshop/trench mission; final ordinary-input clear, grounded rescue and deliberate boarding pass. |
 | [`m05-bounded-tram.md`](./m05-bounded-tram.md) | **shipped**, [PR #314](https://github.com/blisspixel/fragr/pull/314) | Real supported ride, live cover and cleanup, with 99 supported samples and equal rider/tram travel. |

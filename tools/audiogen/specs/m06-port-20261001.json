@@ -1,0 +1,9 @@
+{
+  "out_dir": "client/assets/story",
+  "items": [
+    {"kind":"tts","name":"voice/en/m06_arrival/moon","text":"The Moon, three days out. The port declared Tern's ship impounded before the engines were cold. Tern put us out through the cargo lock and stayed with the passengers.","voice":"SAz9YHcvj6GT2YYXdXww","model":"eleven_v3","stability":0.5,"format":"mp3_44100_128","title":"Port of Entry: arrival"},
+    {"kind":"tts","name":"voice/en/m06_arrival/port","text":"Our neighbours are across the crater. Get through customs.","voice":"SAz9YHcvj6GT2YYXdXww","model":"eleven_v3","stability":0.5,"format":"mp3_44100_128","title":"Port of Entry: customs"},
+    {"kind":"tts","name":"voice/en/l06_l07/transit","text":"The transit tunnel leads toward the lunar town. Tern and the passengers remain with the impounded ship. The custody depot stands across the crater.","voice":"SAz9YHcvj6GT2YYXdXww","model":"eleven_v3","stability":0.5,"format":"mp3_44100_128","title":"Port of Entry: transit"},
+    {"kind":"sfx","name":"ambience/lunar_port_utility","prompt":"Quiet interior lunar cargo port utility room, gentle steady ventilation fan and restrained low mechanical hum, a small worn recycling pump ticking softly, seamless six second room tone loop, clean dry game ambience, no exterior wind, no voices, no alarms, no music, no cinematic swell","seconds":6,"influence":0.7,"loop":true,"format":"pcm_24000","title":"Port of Entry: interior utility loop"}
+  ]
+}

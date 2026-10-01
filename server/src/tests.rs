@@ -17,6 +17,8 @@ mod m04;
 mod m04_qa;
 mod m05;
 mod m05_qa;
+mod m06;
+mod m06_qa;
 mod roster;
 mod spawns;
 

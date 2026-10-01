@@ -97,7 +97,7 @@ func _run() -> void:
 			if mission == MissionState.M03_ID:
 				_expect(shot.get("timing") == "reader" and not shot.has("narration"), "M03 arrival retains its reader-paced scene")
 			else:
-				_expect(shot.get("timing") == "narration" and not StoryScene.narration_path(shot).is_empty(), "M04 arrival has its committed narration with text fallback")
+				_expect(shot.get("timing") == "narration" and not StoryScene.narration_path(shot).is_empty(), "voiced arrival has its committed narration with text fallback: " + mission)
 	var departure: Dictionary = StoryScene.load_scene(StoryScene.AFTER_MISSION[MissionState.M03_ID])
 	for shot: Dictionary in departure.get("shots", []):
 		_expect(shot.get("timing") == "narration" and not StoryScene.narration_path(shot).is_empty(), "M03 departure has its committed narration with text fallback")

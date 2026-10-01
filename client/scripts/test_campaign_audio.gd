@@ -1,7 +1,7 @@
 extends SceneTree
 
 const DIRECTORY: String = "res://assets/story/"
-const SCENES: Array[String] = ["l03_l04", "m04_arrival", "l04_l05", "m05_arrival", "l05_l06"]
+const SCENES: Array[String] = ["l03_l04", "m04_arrival", "l04_l05", "m05_arrival", "l05_l06", "m06_arrival", "l06_l07"]
 var failures: int = 0
 var settings_path: String = ""
 
@@ -24,15 +24,17 @@ func _run() -> void:
 	root.size = Vector2i(1600, 900)
 	var manifest: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(DIRECTORY + "audiogen-manifest.json"))
 	var spec: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://../tools/audiogen/specs/campaign-transitions-20260930.json"))
-	_check(manifest["entries"].size() == 12 and spec["items"].size() == 7, "exact bounded nine narrations, one ambience and two grenade effects are committed")
+	_check(manifest["entries"].size() == 16 and spec["items"].size() == 7, "exact bounded twelve narrations, two ambiences and two grenade effects are committed")
 	var requests: Dictionary[String, Dictionary] = {}
 	var m05_spec: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://../tools/audiogen/specs/m05-transitions-20260930.json"))
 	spec["items"].append_array(m05_spec["items"])
+	var m06_spec: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://../tools/audiogen/specs/m06-port-20261001.json"))
+	spec["items"].append_array(m06_spec["items"])
 	for item: Dictionary in spec["items"]:
 		requests[item["name"]] = item
 	for scene_id: String in SCENES:
 		var scene: Dictionary = StoryScene.load_scene(scene_id)
-		_check(scene["shots"].size() == (1 if scene_id == "m05_arrival" else 2), "existing two-page scene structure retained: " + scene_id)
+		_check(scene["shots"].size() == (1 if scene_id in ["m05_arrival", "l06_l07"] else 2), "bounded scene structure retained: " + scene_id)
 		for shot: Dictionary in scene["shots"]:
 			var name: String = "voice/en/%s/%s" % [scene_id, str(shot["id"]).to_lower()]
 			var receipt: Dictionary = manifest["entries"][name]
@@ -57,6 +59,15 @@ func _run() -> void:
 	_check(bed["looping"] and bed["prompt"] == requests["ambience/low_water_runoff"]["prompt"] \
 		and FileAccess.get_file_as_bytes(ambience_path).size() == int(bed["bytes"]), "ambience source and byte receipt match committed asset")
 	_measure(ambience, "ambience/low_water_runoff")
+	var lunar_path: String = DIRECTORY + "ambience/lunar_port_utility.wav"
+	var lunar_bed: AudioStreamWAV = load(lunar_path) as AudioStreamWAV
+	_check(lunar_bed != null and lunar_bed.format == AudioStreamWAV.FORMAT_16_BITS and lunar_bed.stereo \
+		and lunar_bed.mix_rate == 24000 and lunar_bed.loop_mode == AudioStreamWAV.LOOP_FORWARD \
+		and absf(lunar_bed.get_length() - 6.0) < 0.01, "lunar utility ambience is a bounded stereo six-second loop")
+	var lunar_receipt: Dictionary = manifest["entries"]["ambience/lunar_port_utility"]
+	_check(lunar_receipt["looping"] and lunar_receipt["prompt"] == requests["ambience/lunar_port_utility"]["prompt"] \
+		and FileAccess.get_file_as_bytes(lunar_path).size() == int(lunar_receipt["bytes"]), "lunar utility source matches exact committed batch")
+	_measure(lunar_bed, "ambience/lunar_port_utility")
 	for name: String in ["effects/grenade_bounce", "effects/grenade_blast"]:
 		var receipt: Dictionary = manifest["entries"][name]
 		var effect: AudioStreamWAV = load(DIRECTORY + receipt["file"]) as AudioStreamWAV
@@ -110,7 +121,7 @@ func _playback() -> void:
 		_check(player._voiced and player._narration.playing and player._narration.bus == &"Voice", "actual scene starts its committed clip on Voice: " + scene_id)
 		_check(player._body.text == tr(scene["shots"][0]["caption_key"]) and player._scroll.visible and player._captions.visible, "actual scene exposes exact caption and caption controls")
 		_check(player._speaker.text.is_empty(), "framing narration has no character speaker")
-		if scene_id == "m04_arrival":
+		if scene_id in ["m04_arrival", "m06_arrival"]:
 			_check(player._ambience != null and player._ambience.playing and player._ambience.bus == &"Effects" and player._ambience.volume_db == -22.0,
 				"arrival bed plays quietly on Effects through existing scene seam")
 		# Audio-thread startup can lag the first scene under a concurrent import.
@@ -157,10 +168,15 @@ func _playback() -> void:
 		player.free()
 
 func _fallback() -> void:
-	var scene: Dictionary = StoryScene.load_scene("m04_arrival").duplicate(true)
+	for id: String in ["m04_arrival", "m06_arrival", "l06_l07"]:
+		await _fallback_scene(id)
+
+func _fallback_scene(id: String) -> void:
+	var scene: Dictionary = StoryScene.load_scene(id).duplicate(true)
 	for shot: Dictionary in scene["shots"]:
 		shot["narration"] = "res://assets/story/voice/{locale}/unavailable.mp3"
-	scene["ambience"]["path"] = "res://assets/story/ambience/unavailable.wav"
+	if scene.has("ambience"):
+		scene["ambience"]["path"] = "res://assets/story/ambience/unavailable.wav"
 	var preferences: FragrSettings = FragrSettings.for_tree(self)
 	preferences.set_value("gameplay", "story_captions", false)
 	_check(preferences.save_to_disk() == OK, "isolated captions-off preference saved")
@@ -169,7 +185,8 @@ func _fallback() -> void:
 		and player._scroll.visible and not player._captions.visible, "missing clips and bed retain readable text even with captions disabled")
 	player._process(60.0)
 	_check(player.page == 0 and not player.finished, "missing narration never invents an automatic completion")
-	player.advance()
-	_check(player.page == 1 and player._scroll.visible, "reader can proceed normally without any asset")
+	if scene["shots"].size() > 1:
+		player.advance()
+		_check(player.page == 1 and player._scroll.visible, "reader can proceed normally without any asset: " + id)
 	player.finish()
 	player.free()

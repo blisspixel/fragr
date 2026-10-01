@@ -1090,6 +1090,7 @@ pub fn ingest_server_text(state: &mut ToolState, text: &str) -> Result<(), &'sta
             m03,
             m04,
             m05,
+            m06,
             map_name,
             half_extent,
             solids,
@@ -1138,6 +1139,15 @@ pub fn ingest_server_text(state: &mut ToolState, text: &str) -> Result<(), &'sta
             )?;
             if let Some(geometry) = m05 {
                 map["m05"] = serde_json::json!(geometry);
+            }
+            state.mission.replace_map_with_m06(
+                m06.as_ref(),
+                half_extent,
+                &solids,
+                presentation.as_ref(),
+            )?;
+            if let Some(geometry) = m06 {
+                map["m06"] = serde_json::json!(geometry);
             }
             if let Some(count) = m02_objectives {
                 map["m02_objectives"] = serde_json::json!(count);
@@ -1522,6 +1532,49 @@ mod mcp_tests {
             ingest_server_text(&mut state, &message).is_err(),
             "spectators cannot receive participant records"
         );
+    }
+
+    #[test]
+    fn m06_observation_retains_geometry_and_rejects_invented_carried_passengers() {
+        let map = fragr_server::maps::AuthoredSource::Mission(protocol::MissionId::PortOfEntry)
+            .load()
+            .unwrap();
+        let mut sim = fragr_server::sim::GameState::with_authored_map(map);
+        let id = Uuid::new_v4();
+        sim.add_player(id, "Port reader".into(), protocol::Role::Agent);
+        let mut state = ToolState {
+            player_id: Some(id),
+            connected: true,
+            ..Default::default()
+        };
+        let map_text = serde_json::to_string(&sim.map_info()).unwrap();
+        ingest_server_text(&mut state, &map_text).unwrap();
+        assert_eq!(state.map.as_ref().unwrap()["map_id"], 1006);
+        assert_eq!(
+            state.map.as_ref().unwrap()["m06"]["objectives"]
+                .as_array()
+                .unwrap()
+                .len(),
+            6
+        );
+        let mission_text = serde_json::to_string(&sim.mission_message().unwrap()).unwrap();
+        ingest_server_text(&mut state, &mission_text).unwrap();
+        assert_eq!(
+            state.mission.readiness(Some(id)).unwrap().id,
+            protocol::MissionId::PortOfEntry
+        );
+        let mut forged: Value = serde_json::from_str(&mission_text).unwrap();
+        forged["state"]["m06"]["carried_evacuated_workers"] = serde_json::json!(["splice"]);
+        assert!(ingest_server_text(&mut state, &forged.to_string()).is_err());
+        ingest_server_text(&mut state, &mission_text).unwrap();
+        let mut unknown: Value = serde_json::from_str(&map_text).unwrap();
+        unknown["m06"]["fake_gate"] = true.into();
+        assert!(ingest_server_text(&mut ToolState::default(), &unknown.to_string()).is_err());
+        let mut absent: Value = serde_json::from_str(&map_text).unwrap();
+        absent.as_object_mut().unwrap().remove("m06");
+        let mut missing = ToolState::default();
+        ingest_server_text(&mut missing, &absent.to_string()).unwrap();
+        assert!(ingest_server_text(&mut missing, &mission_text).is_err());
     }
 
     #[test]

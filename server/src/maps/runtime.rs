@@ -29,6 +29,15 @@ impl PartialEq<MapKind> for RuntimeMap {
 }
 
 impl RuntimeMap {
+    pub(crate) fn m06_objectives(&self) -> Option<&super::authored::m06::Prepared> {
+        match self {
+            Self::BuiltIn(_) => None,
+            Self::Authored(map) => map.m06.as_deref(),
+        }
+    }
+    pub fn m06_geometry(&self) -> Option<crate::protocol::M06MapGeometry> {
+        self.m06_objectives().map(|p| p.geometry.clone())
+    }
     pub(crate) fn m05_objectives(&self) -> Option<&super::authored::m05::Prepared> {
         match self {
             Self::BuiltIn(_) => None,
@@ -153,6 +162,10 @@ impl RuntimeMap {
                 self.m05_objectives()
                     .map(|_| crate::protocol::MissionId::NoForwardingAddress)
             })
+            .or_else(|| {
+                self.m06_objectives()
+                    .map(|_| crate::protocol::MissionId::PortOfEntry)
+            })
     }
 
     pub fn opened_route(&self) -> Option<Self> {
@@ -185,7 +198,7 @@ impl RuntimeMap {
     pub fn is_campaign(&self) -> bool {
         self.has_encounters()
             || self.mission().is_some()
-            || matches!(self, Self::Authored(map) if map.m02.is_some() || map.m03.is_some() || map.m04.is_some() || map.m05.is_some())
+            || matches!(self, Self::Authored(map) if map.m02.is_some() || map.m03.is_some() || map.m04.is_some() || map.m05.is_some() || map.m06.is_some())
     }
 
     pub(crate) fn encounters(&self) -> &[super::authored::encounters::EncounterDefinition] {

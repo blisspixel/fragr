@@ -10,16 +10,23 @@ use uuid::Uuid;
 
 mod legacy;
 pub(crate) mod store;
-use legacy::{RunDocumentV2, RunDocumentV3, RunDocumentV4, RunDocumentV5};
+use legacy::{RunDocumentV2, RunDocumentV3, RunDocumentV4, RunDocumentV5, RunDocumentV6};
 
-/// Version 6 adds counted grenades and retains outcomes through playable M05.
-/// Versions 2 through 5 upgrade explicitly; version 1 remains incompatible.
-pub(super) const RUN_FILE_VERSION: u32 = 6;
+/// Version 7 adds playable M06 and its optional route outcome.
+/// Versions 2 through 6 upgrade explicitly; version 1 remains incompatible.
+pub(super) const RUN_FILE_VERSION: u32 = 7;
 const M02_MISSION: &str = "persons_unknown";
 const M03_MISSION: &str = "scheduled_service";
 const M04_MISSION: &str = "notice_to_vacate";
 const M05_MISSION: &str = "no_forwarding_address";
 const M06_MISSION: &str = "port_of_entry";
+const M07_MISSION: &str = "declared_goods";
+
+#[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+pub(crate) struct M06Outcome {
+    pub prisoner_route_marked: bool,
+}
 
 /// Completed yard choices remain immutable throughout M04.
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
@@ -185,6 +192,8 @@ pub(crate) struct RunDocument {
     pub m04_outcome: Option<M04Outcome>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub m05_outcome: Option<M05Outcome>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub m06_outcome: Option<M06Outcome>,
 }
 
 impl RunDocument {
@@ -214,6 +223,7 @@ impl RunDocument {
             MissionId::ScheduledService => (MissionId::PersonsUnknown, M03_MISSION),
             MissionId::NoticeToVacate => (MissionId::ScheduledService, M04_MISSION),
             MissionId::NoForwardingAddress => (MissionId::NoticeToVacate, M05_MISSION),
+            MissionId::PortOfEntry => (MissionId::NoForwardingAddress, M06_MISSION),
             MissionId::RecallNotice => return Err("a campaign transition cannot return to M01"),
         };
         let SavedStep::AwaitingMission {
@@ -228,7 +238,7 @@ impl RunDocument {
             || next_mission != next
             || (!matches!(
                 mission,
-                MissionId::NoticeToVacate | MissionId::NoForwardingAddress
+                MissionId::NoticeToVacate | MissionId::NoForwardingAddress | MissionId::PortOfEntry
             ) && self.m03_outcome.is_some())
         {
             return Err("unsupported saved campaign transition");
@@ -240,6 +250,12 @@ impl RunDocument {
         let mut promoted = self.clone();
         promoted.content_sha256 = content_hash;
         promoted.level_start_continues = self.remaining_continues;
+        // Only the completed M05 edge enters Episode II. Reopening a promoted
+        // entry or retrying it never passes this edge again.
+        if mission == MissionId::PortOfEntry {
+            promoted.remaining_continues = CAMPAIGN_CONTINUES;
+            promoted.level_start_continues = CAMPAIGN_CONTINUES;
+        }
         promoted.step = SavedStep::MissionEntry { mission, entry };
         promoted.validate(content_hash)?;
         Ok(promoted)
@@ -261,13 +277,14 @@ impl RunDocument {
             m03_outcome: None,
             m04_outcome: None,
             m05_outcome: None,
+            m06_outcome: None,
         }
     }
 
     pub fn validate(&self, content_sha256: [u8; 32]) -> Result<(), &'static str> {
         let completed_m03 = matches!(
             self.stage_mission(),
-            MissionId::NoticeToVacate | MissionId::NoForwardingAddress
+            MissionId::NoticeToVacate | MissionId::NoForwardingAddress | MissionId::PortOfEntry
         ) || matches!(&self.step, SavedStep::AwaitingMission {
             completed_mission: MissionId::ScheduledService, next_mission, ..
         } if next_mission == M04_MISSION);
@@ -277,8 +294,10 @@ impl RunDocument {
         if let Some(outcome) = &self.m03_outcome {
             outcome.validate()?;
         }
-        let completed_m04 = self.stage_mission() == MissionId::NoForwardingAddress
-            || matches!(&self.step, SavedStep::AwaitingMission {
+        let completed_m04 = matches!(
+            self.stage_mission(),
+            MissionId::NoForwardingAddress | MissionId::PortOfEntry
+        ) || matches!(&self.step, SavedStep::AwaitingMission {
             completed_mission: MissionId::NoticeToVacate, next_mission, ..
         } if next_mission == M05_MISSION);
         if completed_m04 != self.m04_outcome.is_some() {
@@ -287,7 +306,8 @@ impl RunDocument {
         if let Some(outcome) = &self.m04_outcome {
             outcome.validate()?;
         }
-        let completed_m05 = matches!(&self.step, SavedStep::AwaitingMission {
+        let completed_m05 = self.stage_mission() == MissionId::PortOfEntry
+            || matches!(&self.step, SavedStep::AwaitingMission {
             completed_mission: MissionId::NoForwardingAddress, next_mission, ..
         } if next_mission == M06_MISSION);
         if completed_m05 != self.m05_outcome.is_some() {
@@ -295,6 +315,12 @@ impl RunDocument {
         }
         if let Some(outcome) = &self.m05_outcome {
             outcome.validate()?;
+        }
+        let completed_m06 = matches!(&self.step, SavedStep::AwaitingMission {
+            completed_mission: MissionId::PortOfEntry, next_mission, ..
+        } if next_mission == M07_MISSION);
+        if completed_m06 != self.m06_outcome.is_some() {
+            return Err("saved prisoner-route outcome does not match completed M06");
         }
         if self.version != RUN_FILE_VERSION
             || self.id.is_nil()
@@ -334,6 +360,7 @@ impl RunDocument {
                         | (MissionId::ScheduledService, M04_MISSION)
                         | (MissionId::NoticeToVacate, M05_MISSION)
                         | (MissionId::NoForwardingAddress, M06_MISSION)
+                        | (MissionId::PortOfEntry, M07_MISSION)
                 ) {
                     return Err("unsupported saved campaign transition");
                 }
@@ -388,6 +415,7 @@ impl GameState {
                     MissionId::ScheduledService => M04_MISSION,
                     MissionId::NoticeToVacate => M05_MISSION,
                     MissionId::NoForwardingAddress => M06_MISSION,
+                    MissionId::PortOfEntry => M07_MISSION,
                 }
                 .into(),
                 exit: solo
@@ -415,7 +443,7 @@ impl GameState {
                 })
             } else if matches!(
                 mission,
-                MissionId::NoticeToVacate | MissionId::NoForwardingAddress
+                MissionId::NoticeToVacate | MissionId::NoForwardingAddress | MissionId::PortOfEntry
             ) {
                 Some(M03Outcome {
                     liberated_cars: solo.carried_recall_cars.clone(),
@@ -430,7 +458,10 @@ impl GameState {
                     rescued_patients: self.m04_rescued_patient_ids(),
                     photos_completed: self.m04_photos_completed(),
                 })
-            } else if mission == MissionId::NoForwardingAddress {
+            } else if matches!(
+                mission,
+                MissionId::NoForwardingAddress | MissionId::PortOfEntry
+            ) {
                 Some(M04Outcome {
                     rescued_patients: solo.carried_patients.clone(),
                     photos_completed: solo.carried_photos,
@@ -445,9 +476,19 @@ impl GameState {
                     released_workers: self.m05_released_worker_ids(),
                     evacuated_workers: self.m05_evacuated_worker_ids(),
                 })
+            } else if mission == MissionId::PortOfEntry {
+                Some(M05Outcome {
+                    released_workers: solo.carried_released_workers.clone(),
+                    evacuated_workers: solo.carried_evacuated_workers.clone(),
+                })
             } else {
                 None
             },
+            m06_outcome: (solo.state.status == CampaignRunStatus::Complete
+                && mission == MissionId::PortOfEntry)
+                .then(|| M06Outcome {
+                    prisoner_route_marked: self.m06_prisoner_route_marked(),
+                }),
         };
         document.validate(content_sha256)?;
         Ok(Some(document))
@@ -487,7 +528,8 @@ mod tests {
     use crate::inventory::Inventory;
     use crate::maps::{AuthoredMap, RuntimeMap};
     use crate::protocol::{
-        AmmoPool, BodyKind, CampaignDifficulty, EquipmentPolicy, MissionContinue, Role, WeaponType,
+        AmmoPool, BodyKind, CampaignDifficulty, EquipmentPolicy, MissionContinue, MissionPhase,
+        Role, WeaponType,
     };
 
     fn state_with_map() -> GameState {
@@ -514,6 +556,7 @@ mod tests {
             m03_outcome: None,
             m04_outcome: None,
             m05_outcome: None,
+            m06_outcome: None,
             step: SavedStep::MissionEntry {
                 mission: MissionId::RecallNotice,
                 entry: SavedEntry {
@@ -1103,7 +1146,7 @@ mod tests {
         let value = historical_value(&saved);
         let old: RunDocumentV5 = serde_json::from_value(value.clone()).unwrap();
         let upgraded = old.upgrade([[5; 32], [7; 32], [9; 32], [11; 32]]).unwrap();
-        assert_eq!(upgraded.version, 6);
+        assert_eq!(upgraded.version, RUN_FILE_VERSION);
         assert_eq!(upgraded.step, saved.step);
         assert_eq!(
             (upgraded.id, upgraded.body, upgraded.remaining_continues),
@@ -1289,6 +1332,146 @@ mod tests {
         assert_eq!(retry.m03_outcome, saved.m03_outcome);
         assert_eq!(retry.m04_outcome, saved.m04_outcome);
         assert!(retry.m05_outcome.is_none());
+    }
+
+    fn completed_workshop_document() -> RunDocument {
+        let mut saved = completed_market_document()
+            .promote_next(MissionId::NoForwardingAddress, [12; 32])
+            .unwrap();
+        let SavedStep::MissionEntry { mut entry, .. } = saved.step.clone() else {
+            panic!("missing workshop entry")
+        };
+        entry.equipment.grenades = 3;
+        saved.step = SavedStep::AwaitingMission {
+            completed_mission: MissionId::NoForwardingAddress,
+            next_mission: M06_MISSION.into(),
+            exit: entry,
+        };
+        saved.remaining_continues = 0;
+        saved.m05_outcome = Some(M05Outcome {
+            released_workers: vec![
+                "workshop_agent_b".into(),
+                "splice".into(),
+                "workshop_agent_a".into(),
+            ],
+            evacuated_workers: vec!["workshop_agent_b".into()],
+        });
+        saved.validate([12; 32]).unwrap();
+        saved
+    }
+
+    #[test]
+    fn m06_retry_restores_exact_entry_carry_and_optional_route_without_rewinding() {
+        let map = crate::maps::AuthoredSource::Mission(MissionId::PortOfEntry)
+            .load()
+            .unwrap();
+        let hash = RuntimeMap::Authored(map.clone()).content_sha256().unwrap();
+        let mut saved = completed_workshop_document()
+            .promote_next(MissionId::PortOfEntry, hash)
+            .unwrap();
+        let SavedStep::MissionEntry { entry, .. } = saved.step.clone() else {
+            panic!("missing port entry")
+        };
+        saved.remaining_continues = 2;
+        saved.step = SavedStep::PendingContinue {
+            mission: MissionId::PortOfEntry,
+            entry,
+        };
+        let mut state = GameState::with_authored_map(map);
+        state.load_campaign_run(&saved).unwrap();
+        let owner = Uuid::from_u128(6066);
+        state.add_player(owner, "Port runner".into(), Role::Human);
+        state.tick = 173;
+        let player = state.players.iter_mut().find(|p| p.id == owner).unwrap();
+        assert_eq!(player.hp, 0);
+        player.last_input_seq = Some(91);
+        let revision = player.inventory.revision();
+        let progress = state.mission.as_mut().unwrap().m06.as_mut().unwrap();
+        progress.index = 3;
+        progress.prisoner_route_marked = true;
+        let request = MissionContinue {
+            id: MissionId::PortOfEntry,
+            run_id: saved.id,
+            attempt: 2,
+        };
+        assert!(state.continue_mission(owner, request));
+        assert!(!state.continue_mission(owner, request));
+        let player = state.players.iter().find(|p| p.id == owner).unwrap();
+        assert_eq!(
+            (player.hp, player.armor, player.inventory.grenades()),
+            (61, 7, 3)
+        );
+        assert_eq!(player.body, saved.body.unwrap());
+        assert_eq!(player.last_input_seq, Some(91));
+        assert!(player.inventory.revision() >= revision);
+        assert_eq!(state.tick, 173);
+        let after = state.mission_state().unwrap();
+        assert_eq!(after.attempt, 3);
+        assert_eq!(after.run.unwrap().continues, 1);
+        let facts = after.m06.unwrap();
+        assert!(facts.completed.is_empty());
+        assert!(!facts.prisoner_route_marked);
+        assert_eq!(facts.carried_recall_cars, ["platform_car", "roof_car"]);
+        assert_eq!(facts.carried_patients, ["patient_a", "patient_b"]);
+        assert_eq!(facts.carried_photos, 3);
+        assert_eq!(
+            facts.carried_released_workers,
+            saved.m05_outcome.as_ref().unwrap().released_workers
+        );
+        assert_eq!(facts.carried_evacuated_workers, ["workshop_agent_b"]);
+        let retry = state.campaign_run_document().unwrap().unwrap();
+        assert_eq!(retry.m03_outcome, saved.m03_outcome);
+        assert_eq!(retry.m04_outcome, saved.m04_outcome);
+        assert_eq!(retry.m05_outcome, saved.m05_outcome);
+        assert!(retry.m06_outcome.is_none());
+        assert_eq!(retry.attempt(), 3);
+    }
+
+    #[test]
+    fn m06_completion_saves_live_exit_optional_route_and_immutable_earth_choices() {
+        let map = crate::maps::AuthoredSource::Mission(MissionId::PortOfEntry)
+            .load()
+            .unwrap();
+        let hash = RuntimeMap::Authored(map.clone()).content_sha256().unwrap();
+        let saved = completed_workshop_document()
+            .promote_next(MissionId::PortOfEntry, hash)
+            .unwrap();
+        let mut state = GameState::with_authored_map(map);
+        state.load_campaign_run(&saved).unwrap();
+        let owner = Uuid::from_u128(6067);
+        state.add_player(owner, "Transit runner".into(), Role::Human);
+        let player = state.players.iter_mut().find(|p| p.id == owner).unwrap();
+        assert!(player.inventory.try_throw());
+        player.hp = 47;
+        let exit = SavedEntry::from_player(player).unwrap();
+        let run = state.mission.as_mut().unwrap();
+        run.m06.as_mut().unwrap().index = 6;
+        run.m06.as_mut().unwrap().prisoner_route_marked = true;
+        run.phase = MissionPhase::Departed;
+        let solo = run.solo.as_mut().unwrap();
+        solo.capture_exit(exit.clone());
+        solo.state.status = CampaignRunStatus::Complete;
+        let complete = state.campaign_run_document().unwrap().unwrap();
+        complete.validate(hash).unwrap();
+        assert_eq!(complete.m03_outcome, saved.m03_outcome);
+        assert_eq!(complete.m04_outcome, saved.m04_outcome);
+        assert_eq!(complete.m05_outcome, saved.m05_outcome);
+        assert_eq!(
+            complete.m06_outcome,
+            Some(M06Outcome {
+                prisoner_route_marked: true
+            })
+        );
+        assert_eq!(
+            complete.step,
+            SavedStep::AwaitingMission {
+                completed_mission: MissionId::PortOfEntry,
+                next_mission: M07_MISSION.into(),
+                exit,
+            }
+        );
+        state.remove_player(owner);
+        assert_eq!(state.campaign_run_document().unwrap(), Some(complete));
     }
 
     #[test]

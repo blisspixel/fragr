@@ -2011,6 +2011,7 @@ async fn agent_task(
                 m03,
                 m04,
                 m05,
+                m06,
                 solids,
                 half_extent,
                 geometry_version,
@@ -2040,6 +2041,9 @@ async fn agent_task(
                 mission_client
                     .replace_map_with_m05(m05.as_ref(), half_extent, &solids, presentation.as_ref())
                     .map_err(|error| Error::Server(format!("invalid M05 mission map: {error}")))?;
+                mission_client
+                    .replace_map_with_m06(m06.as_ref(), half_extent, &solids, presentation.as_ref())
+                    .map_err(|error| Error::Server(format!("invalid M06 mission map: {error}")))?;
                 fragr_server::protocol::validate_map_geometry(
                     half_extent,
                     &solids,

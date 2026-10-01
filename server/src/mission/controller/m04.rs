@@ -15,7 +15,11 @@ impl MissionClient {
             self.m04_pending = false;
             return Ok(());
         };
-        if self.geometry.is_some() || self.m02_map.is_some() || self.m03_map.is_some() {
+        if self.geometry.is_some()
+            || self.m02_map.is_some()
+            || self.m03_map.is_some()
+            || self.m06_map.is_some()
+        {
             return Err("M04 cannot share another mission map");
         }
         g.validate(half, solids, presentation)?;

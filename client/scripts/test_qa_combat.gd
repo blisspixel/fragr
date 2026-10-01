@@ -2,9 +2,56 @@ extends SceneTree
 
 const TOUR = preload("res://scripts/qa_tour.gd")
 
+class TurretObserverProbe extends RefCounted:
+	var calls: int = 0
+	func observe(_snapshot: Dictionary) -> void:
+		calls += 1
+
 var _failures: int = 0
 
 func _initialize() -> void:
+	_check_focused_route()
+	_check_resolved_shots()
+	var caller: QaCombat = QaCombat.new()
+	var observer: TurretObserverProbe = TurretObserverProbe.new()
+	caller._turret_observer = observer
+	caller._recording = true
+	var evidence: Dictionary = {"tick": 1, "players": [], "shot_results": []}
+	caller._observe(evidence)
+	caller._observe(evidence)
+	evidence["tick"] = 0
+	caller._observe(evidence)
+	_check(observer.calls == 1, "cover proof receives only fresh actual snapshots through the combat observer")
+	caller._recording = false
+	evidence["tick"] = 2
+	caller._observe(evidence)
+	caller.finish()
+	_check(observer.calls == 1 and caller._turret_observer == null, "inactive/finished combat stops and releases the bounded cover observer")
+	_check(QaCombat.valid_turret_cancel({}) and QaCombat.valid_turret_cancel({"expect_turret_cover_cancel": false}), "cancellation proof is optional and defaults unchanged")
+	var cancel: Dictionary = {"expect_turret_cover_cancel": true, "kind": "union", "phase_kind": "turret", "required": ["intro_turret"]}
+	_check(QaCombat.valid_turret_cancel(cancel), "real cancellation proof binds to exactly one named Turret")
+	for patch: Dictionary in [{"expect_turret_cover_cancel": "true"}, {"expect_turret_cover_cancel": 1}, {"phase_kind": "clerk"}, {"required": []}, {"required": ["intro_turret", "exit_turret"]}, {"required": [42]}]:
+		var invalid_cancel: Dictionary = cancel.duplicate(true)
+		invalid_cancel.merge(patch, true)
+		_check(not QaCombat.valid_turret_cancel(invalid_cancel), "untyped or ambiguous fight cannot claim named charge cancellation")
+	var focused: Dictionary = {"required": ["intro_turret"], "approach_focus": "intro_turret", "approach_route": [[0, 0, 10]]}
+	_check(QaCombat.valid_approach_focus({}) and QaCombat.valid_approach_focus(focused), "focus is optional and bound to a required actor on a real route")
+	for invalid_focus: Variant in [true, 1, "", "other_turret"]:
+		var invalid_spec: Dictionary = focused.duplicate(true)
+		invalid_spec["approach_focus"] = invalid_focus
+		_check(not QaCombat.valid_approach_focus(invalid_spec), "malformed or unrelated focus refused")
+	var empty_route: Dictionary = focused.duplicate(true)
+	empty_route["approach_route"] = []
+	_check(not QaCombat.valid_approach_focus(empty_route), "focused approach cannot bypass ordinary route validation")
+	var turret: Dictionary = {"name": "intro_turret", "hp": 120, "x": 2.0, "y": 2.65, "z": 18.0,
+		"campaign": {"side": "union", "kind": "turret", "phase": "windup"}}
+	_check(QaCombat.approach_focus_point({"players": [turret]}, "intro_turret") != Vector3.INF, "focus uses an actual living Union body")
+	turret["hp"] = 0
+	_check(QaCombat.approach_focus_point({"players": [turret]}, "intro_turret") == Vector3.INF
+		and QaCombat.approach_focus_point({"players": []}, "intro_turret") == Vector3.INF, "missing or defeated actor cannot invent a capture target")
+	_check(TOUR.valid_walks([{"expect_m06_completed": ["freight_cleared"], "expect_m06_prisoner_route_marked": false}]), "M06 expectations accept an exact prefix and typed marker")
+	for invalid_m06: Dictionary in [{"expect_m06_completed": ["rail_lane_cleared"]}, {"expect_m06_prisoner_route_marked": "false"}, {"expect_m06_carried_photos": -1}, {"expect_m06_carried_patients": ["edda", "edda"]}]:
+		_check(not TOUR.valid_walks([invalid_m06]), "malformed M06 capture requirement cannot become an untested assertion")
 	var declared_false: Dictionary = {"combat_travel": false}
 	var scoped_true: Dictionary = {"combat_travel": true, "combat_travel_targets": ["lesson_heavy"]}
 	_check(TOUR.combat_travel_enabled(declared_false, scoped_true)
@@ -383,6 +430,65 @@ func _initialize() -> void:
 	if _failures == 0:
 		print("test_qa_combat: PASS")
 	quit(0 if _failures == 0 else 1)
+
+func _check_focused_route() -> void:
+	var course: Vector2 = Vector2.from_angle(deg_to_rad(14.0))
+	var buttons: Dictionary = QaCombat.route_buttons(course, 0.0)
+	_check(buttons["move_forward"] and not buttons["move_right"] and not buttons["move_left"],
+		"near-forward focused movement does not oversteer into a diagonal")
+	buttons = QaCombat.route_buttons(Vector2(1, 1), 0.0)
+	_check(buttons["move_forward"] and buttons["move_right"] and not buttons["move_back"],
+		"diagonal and cardinal input retain ordinary eight-direction movement")
+	buttons = QaCombat.route_buttons(Vector2(-1, 0), 0.0)
+	_check(buttons["move_back"] and not buttons["move_left"] and not buttons["move_right"],
+		"opposite course uses the actual backward action")
+	var body: Dictionary = MoveStep.make_state(-19.526575, 7.954943, 0.0)
+	body["y"] = 3.0
+	var arena: Dictionary = {"half": 48.0, "solids": [{"min_x": -21.0, "max_x": -16.0,
+		"min_z": 6.0, "max_z": 36.0, "bottom": 2.5, "top": 3.0}]}
+	var reached: bool = false
+	var grounded: bool = true
+	for _tick: int in range(160):
+		var delta: Vector2 = Vector2(-20.0 - float(body["x"]), 16.0 - float(body["z"]))
+		if delta.length() < 0.5:
+			reached = true
+			break
+		var focus: Vector2 = Vector2(-18.5 - float(body["x"]), 16.0 - float(body["z"]))
+		var yaw: float = atan2(focus.y, focus.x)
+		buttons = QaCombat.route_buttons(delta, yaw)
+		var action: Dictionary = MoveStep.make_input(buttons["move_forward"], buttons["move_back"],
+			buttons["move_left"], buttons["move_right"], yaw)
+		body = MoveStep.live_step(body, action, MoveStep.TOP_SPEED, MoveStep.DT_LIVE, arena)
+		grounded = grounded and absf(float(body["y"]) - 3.0) < 0.01
+	_check(reached and grounded, "ordinary focused inputs reach the rear waypoint without walking off the real gallery footprint")
+
+func _check_resolved_shots() -> void:
+	var observer: QaCombat = QaCombat.new()
+	observer._player_id = "self"
+	observer._recording = true
+	var result: Dictionary = {"shooter_id": "self", "target_id": "removed_target", "hit": true,
+		"damage": 100, "killed": true, "trace": {"weapon": "rail", "origin": [-29, 1.6, -11],
+		"end": [28.75, 1.6, -11], "impact": {"kind": "fighter", "normal": [-1, 0, 0]}}}
+	var snapshot: Dictionary = {"tick": 1, "players": [], "shot_results": [result]}
+	observer._observe(snapshot)
+	observer._observe(snapshot)
+	snapshot["tick"] = 0
+	observer._observe(snapshot)
+	_check(observer.shots == 1 and observer.resolved_shots.size() == 1
+		and observer.resolved_shots[0]["result"] == result,
+		"actual resolved trace survives absent shooter/target roster and duplicate or stale ticks")
+	result["trace"]["origin"][0] = 0
+	_check(observer.resolved_shots[0]["result"]["trace"]["origin"][0] == -29,
+		"retained shot evidence cannot be mutated by a later packet")
+	for tick: int in range(2, 71):
+		snapshot["tick"] = tick
+		observer._observe(snapshot)
+	_check(observer.shots == 70 and observer.resolved_shots.size() == 64
+		and observer.resolved_shots_omitted == 6, "shot retention stays bounded while overflow remains observable")
+	observer._recording = false
+	snapshot["tick"] = 71
+	observer._observe(snapshot)
+	_check(observer.shots == 70, "inactive probe cannot collect unrelated later fire")
 
 func _check_jammer_launch() -> void:
 	var observer: QaCombat = QaCombat.new()

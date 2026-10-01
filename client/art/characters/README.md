@@ -53,8 +53,8 @@ The layout is shared through `EnemyAnimation`: 55 poses at eight angles, 160-pix
 cells, 18 columns, 25 rows. Each atlas is 2880 by 4000, below a 4096 texture limit.
 Four uncompressed RGBA atlases total 175.78 MiB if all are resident; they load
 lazily by archetype, so a room with only Clerks and Sweepers holds two. The
-Turret has no gait: its walk cells are a head traverse that plays on phase time
-while the server turns the head, and its unarmed cells repeat the armed ones. PNG
+Turret has no gait: its walk cells preserve the fixed head pose while authoritative
+snapshot yaw supplies the actual traverse. Its unarmed cells repeat the armed ones. PNG
 disk size is smaller and does not describe texture memory. No mipmaps or automatic
 3D compression; nearest sampling and cutout alpha preserve the pixel edges.
 

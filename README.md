@@ -47,7 +47,7 @@ the habitation court's roof stair. **Continue Run** carries a completed M03 run
 into M04 with its body, equipment, health, armor, remaining continues and recall
 car choices. Its separate **Practice and Development** entry preserves your
 campaign save. Completing M04 retains the run for **No Forwarding Address**.
-Compatible historical v2, v3, v4 and v5 saves explicitly upgrade to v6
+Compatible historical v2, v3, v4, v5 and v6 saves explicitly upgrade to v7
 on resume, with their exact prior bytes archived. This is an implemented
 development prototype, with fresh-player acceptance still open. See the
 [M04 plan](docs/plans/m04-notice-to-vacate-prototype.md) and
@@ -59,9 +59,16 @@ on server-owned geometry and explode on a fixed fuse. Free Splice and the
 workshop captives, take the moving tram or walk its service aisle, then confront
 the Heavy Sweeper and board the carrier. Earlier recall-car, clinic and photograph
 choices carry into M05 and its retries. Departure records released workers
-separately from those physically aboard and leaves the run pending the unbuilt
-lunar **Port of Entry**. Fresh-player and difficulty acceptance remain open.
+separately from those physically aboard and leaves the run pending lunar
+**Port of Entry**. Fresh-player and difficulty acceptance remain open.
 See the [M05 plan](docs/plans/m05-no-forwarding-address-prototype.md).
+
+**Port of Entry** is the level 6 lunar port increment currently in development:
+inhabited pressure rooms, cargo cover, a found Railgun, flankable Turrets and an
+optional prisoner-route marker. Continue Run will carry the completed M05 exit
+and refill Episode II to three continues exactly once; Practice preserves your
+personal run. Its implementation and outstanding acceptance are tracked in the
+[M06 plan](docs/plans/m06-port-of-entry-prototype.md).
 
 The [style and look guidelines](docs/ART_STORY_BIBLE.md) define the game's
 original retro FPS identity: Doom II's readable combat spaces, Quake's 3D movement

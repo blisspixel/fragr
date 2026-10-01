@@ -61,6 +61,8 @@ impl GameState {
             (progress.support_shots, progress.last_support_tick)
         } else if let Some(progress) = run.m03.as_ref() {
             (progress.support_shots, progress.last_support_tick)
+        } else if let Some(progress) = run.m06.as_ref() {
+            (progress.support_shots, progress.last_support_tick)
         } else {
             let progress = run.m04.as_ref()?;
             (progress.support_shots, progress.last_support_tick)
@@ -106,6 +108,11 @@ impl GameState {
                             && p.campaign.is_some_and(CampaignActor::is_enemy)
                             && !(run.m04.as_ref().is_some_and(|progress| progress.index <= 1)
                                 && crate::combat::is_notary(p.campaign))
+                            && !run.initial_map.m06_objectives().is_some_and(|prepared| {
+                                [prepared.encounters[1], prepared.encounters[3]]
+                                    .iter()
+                                    .any(|index| self.encounters.enemy_in_group(p.id, *index))
+                            })
                             && self.encounters.is_active_enemy(p.id)
                             && distance(feet, [p.x, p.y - PLAYER_FLOOR_Y, p.z]) <= SUPPORT_RANGE
                             && leader_feet.is_some_and(|leader| {
@@ -153,22 +160,25 @@ impl GameState {
                 progress.support_shots += 1;
                 progress.last_support_tick = Some(self.tick);
             }
+            if let Some(progress) = self.mission.as_mut().and_then(|run| run.m06.as_mut()) {
+                progress.support_shots += 1;
+                progress.last_support_tick = Some(self.tick);
+            }
             CompanionPhase::Firing
         } else {
             // The return route crosses the ward opening near the west side of
             // the processing floor. A west-forward slot carries Latch through
             // that opening while leaving the participant's aim lane clear.
-            let formation = leader_feet.map(|leader| {
-                if self
-                    .mission
-                    .as_ref()
-                    .is_some_and(|run| run.m03.is_some() || run.m04.is_some())
-                {
-                    leader
-                } else {
-                    [(leader[0] - 2.4).max(-13.0), leader[1], leader[2] + 1.2]
-                }
-            });
+            let formation =
+                leader_feet.map(|leader| {
+                    if self.mission.as_ref().is_some_and(|run| {
+                        run.m03.is_some() || run.m04.is_some() || run.m06.is_some()
+                    }) {
+                        leader
+                    } else {
+                        [(leader[0] - 2.4).max(-13.0), leader[1], leader[2] + 1.2]
+                    }
+                });
             if let Some(leader) = formation.filter(|p| distance(feet, *p) > FORMATION_TOLERANCE) {
                 intent.goal = Some(NavigationGoal {
                     feet: leader,

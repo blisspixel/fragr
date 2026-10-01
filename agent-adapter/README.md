@@ -13,8 +13,9 @@ and the map version in observations, and closes its MCP game session if a map
 has unsupported or invalid geometry, or the server sends malformed JSON.
 Ground-filled legacy maps remain readable.
 
-The adapter declares gameplay capability 26. All five authored missions,
-development or durable, require 26 for campaign rules revision 3, including
+The adapter declares gameplay capability 27. M06 Port of Entry requires 27
+for its strict lunar mission envelope; M01 through M05, development or durable,
+retain 26 for campaign rules revision 3, including
 M05 No Forwarding Address and counted hand grenades. Earlier live mission
 capabilities are retired. Discovery maps without missions also require 26 for
 counted private grenade inventory; the six full-arsenal arcade maps still admit
@@ -584,7 +585,8 @@ Example `test_input.jsonl`:
 
 ## Campaign observations
 
-Authored encounter maps require gameplay capability 3, which the adapter sends.
+The adapter sends current capability 27. M06 requires 27; other current authored
+mission and discovery maps require 26.
 `observe` preserves each actor's typed `campaign` identity and attack phase.
 `side: participant` includes human and external-agent allies. M02 adds one
 `side: companion`, `kind: latch` actor after the guarded release. Its
