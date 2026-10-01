@@ -101,7 +101,7 @@ func _run() -> void:
 	network.name = "NetClient"
 	manager.add_child(network)
 	for label: String in ["HUD", "Arena", "SpectatorCamera", "AudioPlayers"]:
-		var child: Node = Node.new()
+		var child: Node = CanvasLayer.new() if label == "HUD" else Node.new()
 		child.name = label
 		manager.add_child(child)
 	for label: String in ["FragSound", "RoundStartSound", "RoundEndSound"]:
@@ -111,6 +111,8 @@ func _run() -> void:
 	root.add_child(manager)
 	_check(manager._offer_m05_departure() and manager.controls_blocked() and not manager.pending_interact, "first physical Use opens review without sending departure")
 	await process_frame
+	_check(manager.departure_review is CanvasLayer and manager.departure_review.layer > manager.hud.layer,
+		"passenger controls render above the live HUD prompt instead of overlapping its cancel line")
 	_check(manager.departure_review._copy.get_parsed_text().contains("Freed, not aboard") and manager.departure_review._copy.get_parsed_text().contains("Splice"), "actual passenger review names freed versus aboard truthfully")
 	manager._close_departure_review()
 	_check(not manager.pending_interact, "cancel has no authority side effect")

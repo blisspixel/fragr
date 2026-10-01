@@ -1,5 +1,5 @@
 class_name DepartureReview
-extends Control
+extends CanvasLayer
 
 signal confirmed
 signal cancelled
@@ -10,10 +10,10 @@ var _boarding: Dictionary = {}
 var _revision: int = -1
 
 func _ready() -> void:
-	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	mouse_filter = Control.MOUSE_FILTER_STOP
+	layer = 100
 	var center: CenterContainer = CenterContainer.new()
 	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	center.mouse_filter = Control.MOUSE_FILTER_STOP
 	add_child(center)
 	var panel: PanelContainer = PanelContainer.new()
 	panel.add_theme_stylebox_override("panel", MenuTheme.panel(Color("202820"), Color("9c8967")))
