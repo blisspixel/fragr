@@ -1,6 +1,6 @@
 # Jammer combat foundation
 
-**Status:** implemented, 2026-09-30. Local work under
+**Status:** shipped in [PR #314](https://github.com/blisspixel/fragr/pull/314), 2026-09-30. Local work under
 `campaign-and-feel-buildout.md`.
 
 ## Goal

@@ -1,6 +1,6 @@
 # M03 server prototype
 
-**Status:** implemented locally, 2026-09-30, integration tracked under
+**Status:** shipped in [PR #314](https://github.com/blisspixel/fragr/pull/314), 2026-09-30, integration tracked under
 [`m03-scheduled-service-prototype.md`](m03-scheduled-service-prototype.md).
 
 The later [M04 prototype](m04-notice-to-vacate-prototype.md) supersedes this

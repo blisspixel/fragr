@@ -1,6 +1,6 @@
 # M04 client prototype and presentation
 
-**Status:** implemented, 2026-09-30. Child of
+**Status:** shipped in [PR #314](https://github.com/blisspixel/fragr/pull/314), 2026-09-30. Child of
 [Notice to Vacate](m04-notice-to-vacate-prototype.md). External spend: $0.
 
 The later [M05 increment](m05-no-forwarding-address-prototype.md) replaces the

@@ -1,6 +1,6 @@
 # Scheduled Service yard authoring
 
-**Status:** implemented, 2026-09-30. Development mission acceptance and campaign
+**Status:** shipped in [PR #314](https://github.com/blisspixel/fragr/pull/314), 2026-09-30. Development mission acceptance and campaign
 expansion remain governed by the parent plan.
 **Spend:** planned and actual $0.
 

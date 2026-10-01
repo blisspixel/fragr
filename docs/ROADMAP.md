@@ -15,7 +15,8 @@ The engineering ladder for scale runs through every phase: small squads first (f
 
 ## Where we are (2026-09-30)
 
-Release history is documented through v0.64.0, with the next build integrated in
+Desktop packages and their release receipts are listed in
+[GitHub releases](https://github.com/blisspixel/fragr/releases). The bounded campaign buildout shipped in
 [PR #314](https://github.com/blisspixel/fragr/pull/314). M01-to-M02 run carry,
 retry, rescue and optional evacuation are integrated; CTF is playable on Arena
 Duel, Directive 17 and Sector 9. The local campaign and feel buildout implements
@@ -41,8 +42,8 @@ but hits no enemy; seeded tests separately prove effective covered-side damage.
 Final Rust checks passed 1206 tests and 94.25 percent unfiltered line coverage;
 the client passed 174 scripts and 81 harnesses. Current-source multiplayer,
 six-map roster, deterministic CPU benchmark and 120-second soak gates pass.
-New cash charges are $0, with 693 included audio credits consumed. The build is
-synced in PR #314. The linked plan records current rendered evidence and CI;
+New cash charges are $0, with 693 included audio credits consumed. The source is
+merged in PR #314. The linked plan records current rendered evidence and CI;
 release packages require their own passing workflow. Fresh-player acceptance and
 two-machine network evidence remain separate gates.
 
@@ -70,7 +71,7 @@ earlier opening batch are in the M01 opening ([scene plan](plans/campaign-scenes
 The old radio-only ending cannot be integrated as the new campaign's actual ending. The initial art receipt was $0.69; current remaining provider credit
 must be checked before any new call rather than inferred from that old balance.
 
-**Not built yet (honest list):** low-latency transport (WebSocket JSON only; local human prediction shipped in v0.58.0), campaign-actor timeline interpolation and bounded lag compensation, a complete protocol migration policy (geometry and gameplay admission exist), unlimited lifetime statistics, progression, DJ bumpers and a voiced Host, a finished single-player campaign or full co-op lifecycle, a complete art pass, public-server load tests, any cloud apply, vehicles, and Rescue, Sabotage and combined-arms modes. Sector 9 capture the flag is playable. `GET /status` on the game port is a host probe in the current line of work, not an in-app server browser and not a web client. M01 has a developing discovery/combat/mission slice; Episode 0 remains a separate arena prototype. A deterministic local benchmark already exists; it does not establish public-server readiness. Frame caps, connection caps, and the inbound message budget shipped in v0.35.0.
+**Not built yet (honest list):** low-latency transport (WebSocket JSON only; local human prediction shipped in v0.58.0), campaign-actor timeline interpolation and bounded lag compensation, a complete protocol migration policy (geometry and gameplay admission exist), unlimited lifetime statistics, progression, DJ bumpers and a voiced Host, a finished single-player campaign or full co-op lifecycle, a complete art pass, public-server load tests, any cloud apply, general vehicles beyond the bounded authored tram and recall cars, and Rescue, Sabotage and combined-arms modes. Sector 9 capture the flag is playable. `GET /status` on the game port is a host probe in the current line of work, not an in-app server browser and not a web client. M01 has a developing discovery/combat/mission slice; Episode 0 remains a separate arena prototype. A deterministic local benchmark already exists; it does not establish public-server readiness. Frame caps, connection caps, and the inbound message budget shipped in v0.35.0.
 
 **Decided 2026-09-25:** the campaign is twenty levels in five episodes, per the
 [expansion plan](plans/campaign-expansion.md), now the contract in
@@ -209,7 +210,7 @@ passes full rendered OpenGL/Vulkan routes with twenty named defeats and departur
 plus deterministic encounter/sightline checks and the six-map network roster.
 This remains a development mission. Solo M01 now has three explicit mission-start
 continues, entry restoration and exhaustion under the [recovery plan](plans/campaign-continues.md).
-Persistence, final art and fresh-player acceptance remain open. The requested shared level kits, distinct
+Final art, full mission pacing and fresh-player acceptance remain open. The requested shared level kits, distinct
 enemy combinations and difficulty/achievement cosmetics have homes in
 `MAP-DESIGN.md`, `ENEMIES.md` and `plans/difficulty-and-rewards.md`.
 The current campaign contract targets a four-hour successful solo run: twenty
@@ -251,7 +252,7 @@ The phases below are the long shape. The sequence that follows is the build orde
 **Next, as of 2026-09-30.** Nick authorized parallel research and development,
 with at most $20 combined external charges this round, and explicitly removed
 human feedback as a prerequisite for development. The integrated campaign and
-CTF systems are already on main through v0.64.0. Their human and remote-network
+CTF systems, including the bounded M03-M05 buildout in PR #314, are on main. Human and remote-network
 acceptance remain open evidence, not reasons to stop local building. Work in
 this order, with disjoint supporting lanes running alongside campaign work:
 
@@ -264,7 +265,7 @@ Its integration and acceptance evidence is recorded in that bounded plan.
     lunar dock, inhabited freight hall, Railgun lesson and flankable Turret,
     optional service branch and deliberate transit-tunnel departure. This starts
     Episode II, refills its continues and gives retained Earth rescue choices
-    their first lunar destination. Reuse the locally verified
+    their first lunar destination. Reuse the shipped
     [M05 prototype](plans/m05-no-forwarding-address-prototype.md)'s inventory,
     save, rescue, scene and geometry seams. Its
     [bounded implementation plan](plans/m06-port-of-entry-prototype.md) is written

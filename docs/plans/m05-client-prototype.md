@@ -1,6 +1,6 @@
 # M05 client prototype
 
-**Status:** implemented, 2026-09-30. Child of
+**Status:** shipped in [PR #314](https://github.com/blisspixel/fragr/pull/314), 2026-09-30. Child of
 [M05 No Forwarding Address](m05-no-forwarding-address-prototype.md).
 **Spend:** $0 new charges or asset calls in this lane. The round has consumed 693
 included audio credits with a separate $3 equivalent reserve. No publishing,

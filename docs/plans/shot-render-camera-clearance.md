@@ -1,6 +1,6 @@
 # Shot clearance at render time
 
-**Status:** implemented, 2026-09-30. **Spend:** $0.
+**Status:** shipped in [PR #314](https://github.com/blisspixel/fragr/pull/314), 2026-09-30. **Spend:** $0.
 
 The M04 aftermath capture exposed beige near-camera triangles. No Notary debris
 system exists; their exact origin remains under review. The existing CPU shot

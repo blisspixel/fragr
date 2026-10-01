@@ -1,6 +1,6 @@
 # M05 bounded tram
 
-**Status:** implemented, 2026-09-30, in PR #314, pending merge and release. Child of [M05 prototype](m05-no-forwarding-address-prototype.md). **Spend:** $0.
+**Status:** shipped in [PR #314](https://github.com/blisspixel/fragr/pull/314), 2026-09-30. Child of [M05 prototype](m05-no-forwarding-address-prototype.md). **Spend:** $0.
 
 Implement one real authoritative tram collider translating along a cleared straight Z lane. The authored registered solid is the parked baseline. Geometry carries its index, lower-face center `start` and `end`, speed and activation region. Same X/Y, maximum 24 metres travel, maximum 1.5 metres per second. Mission facts carry phase, lower-face center feet and authoritative tick. The client reconstructs that sole collider from the validated baseline and pose.
 

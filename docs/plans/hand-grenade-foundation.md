@@ -1,6 +1,6 @@
 # Counted hand grenade foundation
 
-**Status:** implemented, 2026-09-30, integration tracked in
+**Status:** shipped, 2026-09-30, merged in
 [PR #314](https://github.com/blisspixel/fragr/pull/314). **Spend:** $0. Implements the combat lane of
 [M05](m05-no-forwarding-address-prototype.md), using the existing discrete Action,
 inventory, pickup, combat, controller, record and snapshot seams. No new dependency

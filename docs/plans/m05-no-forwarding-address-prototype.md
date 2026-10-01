@@ -1,7 +1,7 @@
 # M05 No Forwarding Address prototype
 
-**Status:** implemented and locally verified, 2026-09-30. Integration tracked in
-[PR #314](https://github.com/blisspixel/fragr/pull/314). Continues the locally implemented
+**Status:** shipped, 2026-09-30. Merged in
+[PR #314](https://github.com/blisspixel/fragr/pull/314). Continues the
 [M04 prototype](m04-notice-to-vacate-prototype.md). Full twelve-minute pacing,
 the five-minute par and fresh-player/difficulty acceptance remain separate gates.
 **Spend:** $0 planned new charges. This continues the same authorized $20 round
@@ -271,8 +271,18 @@ The standard tour was regenerated after the last visible change, passed all 32
 states and published 13 selected stills. Eleven inspected M05 stills/strips are
 separate from the four README images, with honest captions in
 [the screenshot index](../screenshots/README.md). All owned native children closed.
-The final source is frozen; final-head GitHub checks and protected integration
-establish shipping. Full twelve-minute pacing, the five-minute par,
+The bounded source increment merged in [PR #314](https://github.com/blisspixel/fragr/pull/314).
+The final PR head `a9b284b` passed all checks in
+[CI run 36821422845](https://github.com/blisspixel/fragr/actions/runs/36821422845)
+and all three desktop package checks in
+[run 36821422868](https://github.com/blisspixel/fragr/actions/runs/36821422868).
+Linux CI measured 94.22 percent unfiltered line coverage (48,714 lines,
+2,815 missed); the Windows local 94.25 percent result remains a separate receipt.
+The tagged [release workflow](https://github.com/blisspixel/fragr/actions/runs/36823111467)
+passed all three package installation smokes at merge `008abd08`.
+[v0.65.0](https://github.com/blisspixel/fragr/releases/tag/v0.65.0) is published
+with Windows, Linux and macOS packages plus `SHA256SUMS.txt`. Its checksum entries
+match GitHub's recorded asset digests. Full twelve-minute pacing, the five-minute par,
 fresh-player and difficulty acceptance, later missions, two-machine feel and
 hardware listening remain separate work after this bounded prototype increment.
 The next development rung is the planned
