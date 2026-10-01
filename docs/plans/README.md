@@ -17,6 +17,7 @@ Status words: **proposed** (a design awaiting Nick's decision; directs no work),
 
 | Plan | Status | One-liner |
 |---|---|---|
+| [`narration-completion-check.md`](./narration-completion-check.md) | **implemented**, ships with #315 | Real completion-signal synchronization, ten clean audio repeats and all 174 scripts/81 harnesses; platform gate recorded in the integration PR. |
 | [`m06-port-of-entry-prototype.md`](./m06-port-of-entry-prototype.md) | **planned** | Lunar dock/customs, found Railgun and isolated Turret, strict M05 carry and one-time Episode II refill; no runtime implementation yet. |
 | [`m05-audio-batch.md`](./m05-audio-batch.md) | **shipped**, [PR #314](https://github.com/blisspixel/fragr/pull/314) | Three exact-caption neutral narration clips and two compact grenade cues; final playback/caption/fallback checks pass. |
 | [`m05-server-authoring.md`](./m05-server-authoring.md) | **shipped**, [PR #314](https://github.com/blisspixel/fragr/pull/314) | Original 21-guard roof/workshop/trench mission; final ordinary-input clear, grounded rescue and deliberate boarding pass. |

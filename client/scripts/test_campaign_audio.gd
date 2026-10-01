@@ -136,12 +136,19 @@ func _playback() -> void:
 			_check(player.page == 1 and player._narration.playing, "narration hold advances to the real second clip")
 		player.toggle_captions()
 		_check(not player._scroll.visible, "captions disabled during actual final-page speech")
+		var narration_completions: Array[int] = [0]
+		player._narration.finished.connect(func() -> void: narration_completions[0] += 1)
 		player._narration.seek(maxf(0.0, player._narration.stream.get_length() - 0.03))
 		deadline = Time.get_ticks_msec() + 2000
-		while player._narration.playing and Time.get_ticks_msec() < deadline:
+		# The mixer can report inactive before the main thread emits finished.
+		# Wait for the same real event that refreshes the reader's captions.
+		while narration_completions[0] == 0 and Time.get_ticks_msec() < deadline:
 			await create_timer(0.05).timeout
+		_check(narration_completions[0] == 1,
+			"actual final narration emits exactly one completion: %s (page=%d playing=%s voiced=%s caption_visible=%s)" % [
+				scene_id, player.page, player._narration.playing, player._voiced, player._scroll.visible])
 		_check(not player._narration.playing and player._scroll.visible and not player._voiced,
-			"actual final narration completion reveals captions for the waiting reader even with captions disabled")
+			"actual final narration completion reveals captions for the waiting reader even with captions disabled: " + scene_id)
 		player._process(2.0)
 		_check(player.page == scene["shots"].size() - 1 and not player.finished and completions[0] == 0, "last voiced page still waits for deliberate reader completion")
 		player._skip.pressed.emit()
