@@ -405,11 +405,21 @@ pub fn campaign_micro_action(
     snapshot: &Snapshot,
     world: &Navigation,
 ) -> Action {
+    campaign_micro_action_with_solids(plan, me, snapshot, world, None)
+}
+
+pub fn campaign_micro_action_with_solids(
+    plan: &Plan,
+    me: Uuid,
+    snapshot: &Snapshot,
+    world: &Navigation,
+    solids: Option<&[fragr_server::movement::Solid]>,
+) -> Action {
     micro_action_with_visibility(
         plan,
         me,
         snapshot,
-        |mine, other| campaign_enemy_engageable(world, mine, other),
+        |mine, other| campaign_enemy_engageable_with_solids(world, mine, other, solids),
         |mine, pad| {
             if plan.source != Source::Remote {
                 return true;
@@ -431,11 +441,23 @@ pub fn campaign_target<'a>(
     snapshot: &'a Snapshot,
     world: &Navigation,
 ) -> Option<&'a fragr_server::protocol::PlayerState> {
+    campaign_target_with_solids(me, snapshot, world, None)
+}
+
+pub fn campaign_target_with_solids<'a>(
+    me: Uuid,
+    snapshot: &'a Snapshot,
+    world: &Navigation,
+    solids: Option<&[fragr_server::movement::Solid]>,
+) -> Option<&'a fragr_server::protocol::PlayerState> {
     let mine = snapshot.players.iter().find(|player| player.id == me)?;
     snapshot
         .players
         .iter()
-        .filter(|other| mine.is_hostile_to(other) && campaign_enemy_engageable(world, mine, other))
+        .filter(|other| {
+            mine.is_hostile_to(other)
+                && campaign_enemy_engageable_with_solids(world, mine, other, solids)
+        })
         .min_by(|a, b| {
             (a.x - mine.x)
                 .hypot(a.z - mine.z)
@@ -448,10 +470,19 @@ pub fn campaign_enemy_engageable(
     mine: &fragr_server::protocol::PlayerState,
     other: &fragr_server::protocol::PlayerState,
 ) -> bool {
+    campaign_enemy_engageable_with_solids(world, mine, other, None)
+}
+
+pub fn campaign_enemy_engageable_with_solids(
+    world: &Navigation,
+    mine: &fragr_server::protocol::PlayerState,
+    other: &fragr_server::protocol::PlayerState,
+    solids: Option<&[fragr_server::movement::Solid]>,
+) -> bool {
     if (other.x - mine.x).hypot(other.z - mine.z) > CAMPAIGN_ENGAGE_RANGE {
         return false;
     }
-    target_visible(world, mine, other)
+    target_visible_with_solids(world, mine, other, solids)
 }
 
 /// Actor geometry visibility without a mode's separate engagement radius.
@@ -459,6 +490,15 @@ pub fn target_visible(
     world: &Navigation,
     mine: &fragr_server::protocol::PlayerState,
     other: &fragr_server::protocol::PlayerState,
+) -> bool {
+    target_visible_with_solids(world, mine, other, None)
+}
+
+fn target_visible_with_solids(
+    world: &Navigation,
+    mine: &fragr_server::protocol::PlayerState,
+    other: &fragr_server::protocol::PlayerState,
+    solids: Option<&[fragr_server::movement::Solid]>,
 ) -> bool {
     let eye = [
         mine.x,
@@ -470,7 +510,10 @@ pub fn target_visible(
         other.y - PLAYER_FLOOR_Y + fragr_server::combat::target_height(other.campaign) * 0.5,
         other.z,
     ];
-    world.line_of_sight(eye, center)
+    solids.map_or_else(
+        || world.line_of_sight(eye, center),
+        |solids| fragr_server::combat::line_of_sight(eye, center, solids),
+    )
 }
 
 fn micro_action_with_visibility(
@@ -627,6 +670,23 @@ mod tests {
         let mut snap = snapshot(1, vec![mine, guard.clone()], vec![]);
         let blocked = campaign_micro_action(&plan, me, &snap, &world);
         assert!(blocked.look_at.is_none() && !blocked.fire);
+        let moved_cover = [Solid::from_center(5.0, 8.0, 0.5, 3.0)];
+        let exposed =
+            campaign_micro_action_with_solids(&plan, me, &snap, &world, Some(&moved_cover));
+        assert!(exposed.fire);
+        assert_eq!(exposed.look_at.unwrap().player_id, Some(hidden));
+        assert_eq!(
+            campaign_target_with_solids(me, &snap, &world, Some(&moved_cover))
+                .unwrap()
+                .id,
+            hidden
+        );
+        let returned_cover = [Solid::from_center(5.0, 0.0, 0.5, 3.0)];
+        assert!(campaign_target_with_solids(me, &snap, &world, Some(&returned_cover)).is_none());
+        assert!(
+            !campaign_micro_action_with_solids(&plan, me, &snap, &world, Some(&returned_cover))
+                .fire
+        );
         let loadout = LoadoutState {
             player_id: me,
             tick: 1,

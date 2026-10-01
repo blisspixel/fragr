@@ -37,8 +37,10 @@ The next [M05 increment](plans/m05-no-forwarding-address-prototype.md) is in
 flight, adding counted grenades, workshop rescue, an authoritative moving tram
 and freight departure. Focused tests and actual v5-save launch now pass; full
 client presentation and rendered mission evidence remain in progress.
-New cash charges are $0, with 693 included audio credits consumed. These changes remain local; release, fresh-player
-mission acceptance and two-machine network evidence remain separate work.
+New cash charges are $0, with 693 included audio credits consumed. The build is
+synced in [PR #314](https://github.com/blisspixel/fragr/pull/314), with CI and final
+M05 verification in progress. Release, fresh-player mission acceptance and
+two-machine network evidence remain separate gates.
 
 **Shipped and proven on the tip:**
 

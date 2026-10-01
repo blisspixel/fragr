@@ -88,9 +88,9 @@ Initial handshake message. Must be sent immediately after connection.
   resume keeps the parked pawn's body even if this hello names another.
   Changing the body means leaving and joining again.
 - `gameplay_version`: maximum understood gameplay contract. Updated Rust readers
-  and the Godot client send `23`; omission means `1`. Discovery-only maps require
-  2, maps with authored encounters require 3, and mission sequences require 6
-  for shared difficulty.
+  and the Godot client send `26`; omission means `1`. Discovery-only maps first
+  required 2, authored encounters 3, and mission sequences 6 for shared difficulty.
+  Current discovery and campaign admission requires 26 as described below.
   Versions 4 and 5 introduced physical controls and party readiness respectively;
   they cannot enter current missions. Solo runs require 7 for explicit continues.
   Version 8 adds private participant records. Record delivery is gated by the
@@ -1055,8 +1055,8 @@ Periodic state broadcast containing all visible game entities. Sent at ~20 Hz.
   is `id`, `x`, `y`, `z` in world metres. The server steps them. A reader that
   does not know the key ignores it. An empty list is the same as a missing key.
   This is not a weapon trace. The additive point list does not itself change
-  admission; maps containing a live Jammer require capability 23 for its actor
-  identity and visible delayed attack. The client places bright markers at these
+  admission; capability 23 introduced the Jammer's actor identity and delayed
+  attack. Current discovery and campaign maps require 26. The client places bright markers at these
   server positions without predicting collision or damage.
 - `mode_name`: Contested Frequency (scrap league that denies it exists)
 - `playlist`: Arena Duel under the league lie

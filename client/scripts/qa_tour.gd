@@ -316,6 +316,10 @@ func _run() -> void:
 				_failed = true
 		if state.has("interact"):
 			await _use_mission_control(str(state["interact"]))
+		if state.get("m05_review_departure", false):
+			await _set_m05_departure_review(true)
+		if state.get("m05_cancel_review", false):
+			await _set_m05_departure_review(false)
 		if state.has("expect_m02_ward_stage"):
 			await _expect_m02_ward_stage(str(state["expect_m02_ward_stage"]), state_name)
 		if state.has("expect_m02_side_stage"):
@@ -580,6 +584,9 @@ func _run() -> void:
 				push_error("qa_tour: captured pitch disagrees with the server for %s (expected %.3f, camera %.3f, server %.3f)" % [state_name, expected_pitch, camera_pitch, server_pitch])
 				_failed = true
 		var path: String = _out_dir.path_join(file_name)
+		if state.has("expect_m05_review") and observed.get("m05_review") != state["expect_m05_review"]:
+			push_error("qa_tour: physical M05 passenger review disagrees with " + state_name)
+			_failed = true
 		for key: String in ["completed", "group_released", "freight_open"]:
 			if state.has("expect_m05_" + key) and observed.get("m05", {}).get(key) != state["expect_m05_" + key]:
 				push_error("qa_tour: M05 " + key + " disagrees with " + state_name)
@@ -1310,6 +1317,7 @@ func _observed_state() -> Dictionary:
 		for captive: Node3D in ward._side_captives:
 			captive_views.append([captive.position.x, captive.position.y, captive.position.z])
 	var report: Dictionary = {
+		"m05_review": is_instance_valid(gm.get("departure_review")),
 		"m05_ride": _m05_ride_report.duplicate(true),
 		"m05": gm.get("net_client").get("mission").get("state", {}).get("m05", {}),
 		"m05_workers_aboard": MissionHud.workers_aboard(gm.get("net_client").get("mission").get("state", {}), gm.get("net_client").get("mission_geometry").get("m05", {}).get("boarding", {})),
@@ -1495,6 +1503,32 @@ func _use_input_device(kind: String, layout: String) -> void:
 	if kind != "keyboard" and layout in ["letters", "shapes", "generic"] and InputDevice.is_gamepad():
 		InputDevice.force(InputDevice.Kind.GAMEPAD, InputDevice.look_source, layout)
 	await process_frame
+
+func _set_m05_departure_review(open_review: bool) -> void:
+	var manager: Node = _game_manager()
+	var before: Dictionary = manager.net_client.mission.get("state", {}).duplicate(true)
+	if before.get("id") != MissionState.M05_ID or before.get("phase") != "in_progress" \
+		or is_instance_valid(manager.get("departure_review")) == open_review:
+		push_error("qa_tour: M05 review requires the matching live mission and modal state")
+		_failed = true
+		return
+	var press: InputEventKey = InputEventKey.new()
+	press.physical_keycode = KEY_F if open_review else KEY_ESCAPE
+	press.pressed = true
+	Input.parse_input_event(press)
+	var release: InputEventKey = press.duplicate()
+	release.pressed = false
+	Input.parse_input_event(release)
+	await process_frame
+	await create_timer(0.2).timeout
+	var after: Dictionary = manager.net_client.mission.get("state", {})
+	if is_instance_valid(manager.get("departure_review")) != open_review \
+		or manager.pending_interact or after.get("phase") != "in_progress" \
+		or after.get("m05", {}).get("completed") != before.get("m05", {}).get("completed"):
+		push_error("qa_tour: physical passenger review changed authoritative departure or failed its release barrier")
+		_failed = true
+		return
+	print("qa_tour: physical passenger review ", "opened" if open_review else "cancelled", "; mission remains in_progress and no Use queued")
 
 func _use_mission_control(expected_phase: String) -> void:
 	var network: Node = _game_manager().get("net_client")

@@ -59,6 +59,8 @@ impl Navigator {
     }
 
     /// Keep immutable route topology while checking combat against live cover.
+    // The same steering pass needs its existing search budget and physical LOS
+    // inputs together; a second controller would duplicate route memory.
     #[allow(clippy::too_many_arguments)]
     pub fn steer_snapshot_with_visibility(
         &mut self,
@@ -153,6 +155,8 @@ impl Navigator {
         )
     }
 
+    // Preserve the existing steering inputs while separating physical cover
+    // from cached topology; this is the sole shared movement controller.
     #[allow(clippy::too_many_arguments)]
     pub fn steer_with_visibility(
         &mut self,

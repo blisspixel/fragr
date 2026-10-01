@@ -125,3 +125,9 @@ edge-support regression. Grenades already use `current_arena()` for admission,
 movement and blast sight. Explicit leave cancels owned devices; owner death
 retains them. Existing traveling-shot cleanup now clears all explosive attempt
 state through the round/map/encounter reset seam.
+
+Follow-up combat visibility correction uses validated live M05 solids during
+external brain target selection, decision observations, scripted adapter targeting
+and playtest policy sight. Cached navigation retains conservative walking geometry;
+no topology is rebuilt per tick. Covered/exposed target regression checks and the
+parent's serialized full gate validate this correction before publication.

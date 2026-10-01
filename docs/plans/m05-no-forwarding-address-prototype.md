@@ -145,3 +145,11 @@ the strict `test` check. Existing Linux, Windows and macOS jobs use standard
 hosted runner labels. Their public-repository usage is free under the current
 [official runner contract](https://docs.github.com/en/actions/reference/runners/github-hosted-runners),
 checked 2026-09-30. No larger runner, cloud service or billing setting is enabled.
+
+The first reviewable checkpoint is commit `84cfd21` on
+[PR #314](https://github.com/blisspixel/fragr/pull/314). It contains the accumulated
+campaign, design, asset and presentation work. Main remains protected while local
+M05 verification and the CI/package checks run. No release is claimed by this
+checkpoint. Independent review identified conservative tram routing being reused
+as combat visibility. The correction keeps the cached route reservation but uses
+the tram's actual translated solids for firing, including external controllers.

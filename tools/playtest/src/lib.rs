@@ -2073,13 +2073,23 @@ async fn agent_task(
                 let Some(id) = player_id else {
                     continue;
                 };
-                let wanted = policy_action(policy, id, &snapshot, &arena);
-                let wanted = fragr_server::inventory::control_action_with_objective(
+                let live_arena = mission_client.live_visibility_solids().map(|solids| Arena {
+                    solids,
+                    half_extent: arena.half_extent,
+                });
+                let physical = live_arena.as_ref().unwrap_or(&arena);
+                let wanted = policy_action(policy, id, &snapshot, physical);
+                let wanted = fragr_server::inventory::control_action_with_target_filter(
                     id,
                     &snapshot,
                     loadout.as_ref(),
                     wanted,
                     mission_client.state.is_some(),
+                    |mine, other| {
+                        live_arena
+                            .as_ref()
+                            .is_none_or(|world| world.fighter_visible(mine, other))
+                    },
                 );
                 let driven = navigation.as_ref().map_or_else(Action::default, |world| {
                     mission_client.steer(&mut navigator, world, id, &snapshot, wanted)
@@ -4095,6 +4105,21 @@ mod planner_tests {
             !policy_action(Policy::Planner, me, &close, &Arena::default()).forward,
             "the planner is already where it wants to be"
         );
+        let parked = Arena {
+            solids: vec![Solid::from_center(5.0, 0.0, 0.5, 3.0)],
+            half_extent: 25.0,
+        };
+        let moved = Arena {
+            solids: vec![Solid::from_center(5.0, 8.0, 0.5, 3.0)],
+            half_extent: 25.0,
+        };
+        for tier in [Policy::Reflex, Policy::Planner] {
+            assert!(!policy_action(tier, me, &close, &parked).fire);
+            assert!(
+                policy_action(tier, me, &close, &moved).fire,
+                "physical cover motion exposes the shot without rebuilding routes"
+            );
+        }
     }
 
     #[test]

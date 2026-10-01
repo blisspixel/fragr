@@ -467,8 +467,12 @@ async fn run_scripted_bot(
 
             _ = action_tick.tick() => {
                 if let (Some(snapshot), Some(world)) = (last_snapshot.as_ref(), navigation.as_ref()) {
-                    let wanted = compute_bot_action(bot_id, snapshot);
-                    let wanted = fragr_server::inventory::control_action_with_objective(bot_id, snapshot, loadout.as_ref(), wanted, mission_client.state.is_some());
+                    let live_solids = mission_client.live_visibility_solids();
+                    let wanted = match live_solids.as_deref() {
+                        Some(solids) => compute_bot_action_filtered(bot_id, snapshot, |mine, other| fighter_visible_in_solids(mine, other, solids)),
+                        None => compute_bot_action(bot_id, snapshot),
+                    };
+                    let wanted = fragr_server::inventory::control_action_with_target_filter(bot_id, snapshot, loadout.as_ref(), wanted, mission_client.state.is_some(), |mine, other| live_solids.as_deref().is_none_or(|solids| fighter_visible_in_solids(mine, other, solids)));
                     let action = mission_client.steer(&mut navigator, world, bot_id, snapshot, wanted);
                     let action_msg = ClientMessage::Action(action);
 
@@ -519,6 +523,35 @@ fn maybe_bot_taunt(tick: u64, bot_id: uuid::Uuid) -> Option<String> {
 }
 
 fn compute_bot_action(bot_id: uuid::Uuid, snapshot: &protocol::Snapshot) -> protocol::Action {
+    compute_bot_action_filtered(bot_id, snapshot, |_, _| true)
+}
+
+fn fighter_visible_in_solids(
+    mine: &protocol::PlayerState,
+    other: &protocol::PlayerState,
+    solids: &[fragr_server::movement::Solid],
+) -> bool {
+    fragr_server::combat::line_of_sight(
+        [
+            mine.x,
+            mine.y - fragr_server::sim::PLAYER_FLOOR_Y + fragr_server::movement::EYE_HEIGHT,
+            mine.z,
+        ],
+        [
+            other.x,
+            other.y - fragr_server::sim::PLAYER_FLOOR_Y
+                + fragr_server::combat::target_height(other.campaign) * 0.5,
+            other.z,
+        ],
+        solids,
+    )
+}
+
+fn compute_bot_action_filtered(
+    bot_id: uuid::Uuid,
+    snapshot: &protocol::Snapshot,
+    visible: impl Fn(&protocol::PlayerState, &protocol::PlayerState) -> bool,
+) -> protocol::Action {
     let bot = snapshot.players.iter().find(|p| p.id == bot_id);
 
     let Some(bot) = bot else {
@@ -529,7 +562,7 @@ fn compute_bot_action(bot_id: uuid::Uuid, snapshot: &protocol::Snapshot) -> prot
     let mut nearest_target = None;
 
     for target in &snapshot.players {
-        if !bot.is_hostile_to(target) {
+        if !bot.is_hostile_to(target) || !visible(bot, target) {
             continue;
         }
 
@@ -1599,6 +1632,20 @@ mod tests {
         assert!(action.fire);
         assert!(!action.turn_left);
         assert!(!action.turn_right);
+        let cover = [fragr_server::movement::Solid::from_center(
+            2.5, 0.0, 0.5, 3.0,
+        )];
+        let blocked = compute_bot_action_filtered(bot_id, &snapshot, |mine, other| {
+            fighter_visible_in_solids(mine, other, &cover)
+        });
+        assert!(!blocked.fire && blocked.look_at.is_none());
+        let moved_cover = [fragr_server::movement::Solid::from_center(
+            2.5, 8.0, 0.5, 3.0,
+        )];
+        let exposed = compute_bot_action_filtered(bot_id, &snapshot, |mine, other| {
+            fighter_visible_in_solids(mine, other, &moved_cover)
+        });
+        assert!(exposed.fire && exposed.look_at.unwrap().player_id == Some(target_id));
     }
 
     #[test]

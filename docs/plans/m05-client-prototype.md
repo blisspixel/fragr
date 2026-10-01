@@ -161,3 +161,14 @@ full client checker/verifier, authored gameplay grenade/ride/worker/departure
 capture and final standard published tour. Source stays in flight until these
 converge. Fresh-player, route timing, difficulty acceptance, final character art,
 carrier flight and later Port of Entry remain unproven or unbuilt.
+
+Post-checkpoint review corrections: newly created workshop practical lamps now
+receive the selected graphics shadow policy after town configuration. The real
+registered-wall fixture checks Balanced shadows and Performance light retention.
+`test_m05_mission-practical-final.log` and `test_qa_combat-modal-final.log` both
+exit 0 with clean PASS markers. The mission harness also exercises held Use
+refusal, release, a fresh physical key event through the passenger modal's signal,
+and stale-prompt refusal. Authored QA has separate physical review and cancellation
+hooks which retain the visible review for its named screenshot, verify the mission
+prefix remains unchanged with no queued Use, then reopen and confirm normally.
+These hooks still require the actual rendered route receipt.

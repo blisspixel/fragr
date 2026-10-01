@@ -10,8 +10,8 @@ use crate::decision::{
 };
 use crate::local_model;
 use crate::plan::{
-    campaign_enemy_engageable, campaign_micro_action, campaign_target, fallback_plan, micro_action,
-    target_visible, Plan, Source, Stance,
+    campaign_enemy_engageable_with_solids, campaign_micro_action_with_solids,
+    campaign_target_with_solids, fallback_plan, micro_action, target_visible, Plan, Source, Stance,
 };
 use crate::provider::{decide, decision_request, Provider, Transport};
 use crate::telemetry::{observe, EnemyView, RecentHits, Telemetry};
@@ -595,10 +595,11 @@ fn align_campaign_enemy(
     id: Uuid,
     snapshot: &Snapshot,
     world: &fragr_server::navigation::Navigation,
+    solids: Option<&[fragr_server::movement::Solid]>,
 ) {
     let mine = snapshot.players.iter().find(|player| player.id == id);
     telemetry.enemy = mine.and_then(|mine| {
-        campaign_target(id, snapshot, world).map(|other| EnemyView {
+        campaign_target_with_solids(id, snapshot, world, solids).map(|other| EnemyView {
             id: other.id,
             name: other.name.clone(),
             dist: (other.x - mine.x).hypot(other.z - mine.z),
@@ -876,17 +877,18 @@ pub async fn run_bot(
                         }
                     }
                     constrain_campaign_equipment(&mut plan, mission_client.state.is_some(), loadout.as_ref());
+                    let live_solids = mission_client.live_visibility_solids();
                     let alive = snapshot.players.iter().any(|player| player.id == id && player.hp > 0);
                     let action = if !alive {
                         navigator.clear();
                         Action::default()
                     } else { match (mission_client.state.as_ref(), navigation.as_ref()) {
-                        (Some(_), Some(world)) => campaign_micro_action(&plan, id, snapshot, world),
+                        (Some(_), Some(world)) => campaign_micro_action_with_solids(&plan, id, snapshot, world, live_solids.as_deref()),
                         (_, Some(world)) if snapshot.flags.is_some() => crate::plan::ctf_micro_action_in_world(&plan, id, snapshot, world),
                         _ => micro_action(&plan, id, snapshot),
                     }};
                     let action = if let (Some(_), Some(world)) = (mission_client.state.as_ref(), navigation.as_ref()) {
-                        fragr_server::inventory::control_action_with_target_filter(id, snapshot, loadout.as_ref(), action, true, |mine, other| campaign_enemy_engageable(world, mine, other))
+                        fragr_server::inventory::control_action_with_target_filter(id, snapshot, loadout.as_ref(), action, true, |mine, other| campaign_enemy_engageable_with_solids(world, mine, other, live_solids.as_deref()))
                     } else if let Some(world) = navigation.as_ref().filter(|_| snapshot.flags.is_some()) {
                         fragr_server::inventory::control_action_with_target_filter(id, snapshot, loadout.as_ref(), action, true, |mine, other| target_visible(world, mine, other))
                     } else {
@@ -960,7 +962,8 @@ pub async fn run_bot(
                         let mut with_memory = telemetry.clone();
                         with_memory.recent = memory.clone();
                         if let (Some(_), Some(world)) = (mission_client.state.as_ref(), navigation.as_ref()) {
-                            align_campaign_enemy(&mut with_memory, id, snapshot, world);
+                            let live_solids = mission_client.live_visibility_solids();
+                            align_campaign_enemy(&mut with_memory, id, snapshot, world, live_solids.as_deref());
                         }
                         let enemy_visible = mission_client.state.as_ref().map(|_| true);
                         decision_state(&with_memory, mission_client.state.as_ref(), loadout.as_ref(), enemy_visible)
@@ -1452,7 +1455,7 @@ mod tests {
         .unwrap();
         let mut telemetry = observe(id, &snap, &mut RecentHits::default()).unwrap();
         assert_eq!(telemetry.enemy.as_ref().unwrap().name, "Hidden");
-        align_campaign_enemy(&mut telemetry, id, &snap, &world);
+        align_campaign_enemy(&mut telemetry, id, &snap, &world, None);
         assert_eq!(telemetry.enemy.as_ref().unwrap().name, "Exposed");
         let mission = MissionState {
             id: MissionId::RecallNotice,
@@ -1471,6 +1474,13 @@ mod tests {
         let state = decision_state(&telemetry, Some(&mission), None, Some(true));
         assert_eq!(state["enemy"]["weapon"], "flechette");
         assert_eq!(state["enemy"]["visible"], true);
+        let moved_cover = [Solid::from_center(5.0, 8.0, 0.5, 3.0)];
+        align_campaign_enemy(&mut telemetry, id, &snap, &world, Some(&moved_cover));
+        assert_eq!(
+            telemetry.enemy.as_ref().unwrap().name,
+            "Hidden",
+            "decision state follows physical cover after the parked body moves"
+        );
     }
 
     async fn boot_server(bots: usize) -> (String, tokio::sync::oneshot::Sender<()>) {
