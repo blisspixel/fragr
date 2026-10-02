@@ -1,0 +1,97 @@
+{
+	"clips": [
+		{
+			"action": "seated",
+			"count": 1,
+			"unarmed": false
+		},
+		{
+			"action": "idle",
+			"count": 1,
+			"unarmed": false
+		},
+		{
+			"action": "walk",
+			"count": 8,
+			"unarmed": false
+		},
+		{
+			"action": "raise",
+			"count": 4,
+			"unarmed": false
+		},
+		{
+			"action": "fire",
+			"count": 2,
+			"unarmed": false
+		},
+		{
+			"action": "recover",
+			"count": 3,
+			"unarmed": false
+		},
+		{
+			"action": "hit",
+			"count": 2,
+			"unarmed": false
+		},
+		{
+			"action": "death",
+			"count": 7,
+			"unarmed": false
+		},
+		{
+			"action": "idle",
+			"count": 1,
+			"unarmed": true
+		},
+		{
+			"action": "walk",
+			"count": 8,
+			"unarmed": true
+		},
+		{
+			"action": "raise",
+			"count": 4,
+			"unarmed": true
+		},
+		{
+			"action": "fire",
+			"count": 2,
+			"unarmed": true
+		},
+		{
+			"action": "recover",
+			"count": 3,
+			"unarmed": true
+		},
+		{
+			"action": "hit",
+			"count": 2,
+			"unarmed": true
+		},
+		{
+			"action": "death",
+			"count": 7,
+			"unarmed": true
+		}
+	],
+	"columns": 18,
+	"directions": 8,
+	"engine": "4.7.2-stable (official)",
+	"file": "ranged_sweeper.png",
+	"format": "RGBA8 PNG, nearest sampling, no mipmaps",
+	"model": "Original procedural Sweeper body with mast antenna and scoped precision rifle",
+	"poses": 55,
+	"rows": 25,
+	"schema": 1,
+	"sha256": "99809e74a09bffc650a11bb35da3a49abd1ccffbc572d7a65629e7e4770a8946",
+	"sources": {
+		"res://art/characters/geometry.gd": "833318a2c94533aac01abbf7c886b616ec11528624fa406e6cad18dc1a14eec9",
+		"res://art/characters/ranged_sweeper_bake.gd": "12f23374f998a62b8951e57cbcb44e1f916367d41959eb1862ca3c9d9ef5e681",
+		"res://art/characters/ranged_sweeper_rig.gd": "903d5e34a19069fd64c4c190f5c1f2ee4c1fd9d908f760fb1ca136a97325101b",
+		"res://art/characters/rig.gd": "106d5f720f665cffe9a52a16f9969bd6908b084c61521218aa51ddef9bc20441",
+		"res://scripts/enemy_animation.gd": "f2f1ef38f496d2d5a48c3ca81995788b7108aef81f712a6c67a1de3504b84573"
+	},
+	"tile_pixels": 160
+}

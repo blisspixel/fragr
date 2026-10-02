@@ -1,27 +1,31 @@
 # First-person weapons
 
-Prepared locally from the accepted art slice and weapon bake-off on 2026-09-19.
-The source prompts and provider/model are in `tools/spritegen/specs/slice-01-look.json`
-and `tools/spritegen/specs/weapons-viewmodel-bakeoff.json`. No new generation call.
+One coherent set from the 2026-10-02 art pass
+([plan](../../../../docs/plans/art-pass-20261002.md)). Every hand wears the same
+worn brown leather work glove with a rust-brown jacket cuff, and every gun shows
+a drawn fire frame with its own muzzle flash. `WeaponArt`
+(`client/scripts/weapon_art.gd`) is the only table that names these files.
 
-Sources: `art/sprites/slice-01/wpn_flechette_0.png`,
-`art/sprites/slice-01/wpn_scatter_0.png`, and
-`art/sprites/weapons-paletted/px_rail_issued_0.png`. M01 also uses
-`art/sprites/slice-01/wpn_fists_0.png` and
-`art/sprites/weapons-paletted/px_tack_issued_0.png`, prepared with the same command.
+| Weapon (wire id) | Rest | Shot | After the shot |
+|---|---|---|---|
+| Fists (`Fists`) | `fists_idle.png`, split into two arms by `MeleeView` | | |
+| Shiv (`Shiv`) | `shiv_idle.png`, thrust by the HUD | | |
+| Pistol (`Tack`) | `pistol_idle.png` | `pistol_fire.png` | |
+| Rifle (`Flechette`) | `rifle_idle.png` | `rifle_fire.png` | |
+| Shotgun (`Scatter`) | `shotgun_idle.png` | `shotgun_fire.png` | `shotgun_pump.png`, 0.18 to 0.44 s |
+| Railgun (`Rail`) | `railgun_idle.png` | `railgun_fire.png` | |
+| Sniper Rifle (`Sniper`, Level 7) | `sniper_idle.png` | `sniper_fire.png` | |
+| Grenade throw | `grenade_ready.png`, then `grenade_throw.png` while the gun dips | | |
 
-Preparation: `fragr-spritegen reduce --input <source> --out
-client/assets/weapons/viewmodels --height 180 --no-trim --matte e8e2d6`.
-The explicit matte removes only edge-connected bone pixels, preserving enclosed
-weapon highlights. Outputs are 241 by 180 RGBA PNGs, nearest filtered, no mipmaps.
-Keep the full canvas for a consistent weapon/muzzle registration. Inspect at game
-size after regeneration. The client animates recoil; fists
-use separately posed halves with alternating punches and anchored wrists. These
-are single poses, not completed authored animation sets. Tack's small held/pickup
-icon currently reuses the existing `32/_future/shock_pistol.png` placeholder;
-a matching side profile remains asset work.
+Each idle is an edit of the 2026-09-19 raw idle for that gun, so the camera and
+framing carried over; each fire frame is an edit of its own approved idle. All
+frames are 241 by 180 RGBA on the full 4:3 canvas (`--no-trim`), palette-locked
+to `docs/palette.json`, so a gun's frames register without offsets. The fire
+frame shows for 0.08 s; the HUD's kick translation still applies on top.
 
-`wpn_shiv_0.png` (240 by 180) and its `../48/shiv.png` icon come from
-`client/art/weapons/` through `tools/bake_shiv.gd`; prompts and hashes are in
-that folder's manifest. Its gauntlet enters from the lower right, so the thrust
-scales the sprite from a pivot on the bottom edge instead of lifting it.
+Preparation: `fragr-spritegen reduce --input <raw> --out <dir> --height 180
+--no-trim --palette docs/palette.json --key ff00ff`. Prompts, request IDs,
+estimated costs and hashes are in `../../art-pass-20261002-manifest.json`; the
+specs are `tools/spritegen/specs/art-pass-20261002-*.json`. Nearest filter, no
+mipmaps. The Shiv's 48 pixel icon still comes from `client/art/weapons/` through
+`tools/bake_shiv.gd`.

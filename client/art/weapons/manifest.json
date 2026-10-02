@@ -1,7 +1,7 @@
 {
   "version": 1,
   "created": "2026-09-20",
-  "status": "integrated: M01 secret Shiv viewmodel and pickup icon",
+  "status": "integrated: M01 secret Shiv pickup icon. The viewmodel source is the edit reference for the 2026-10-02 shiv_idle.png (see client/assets/art-pass-20261002-manifest.json); its 240x180 reduction is retired",
   "generation_mode": "built-in image generation",
   "model": "not exposed by the generation tool",
   "format": "png",

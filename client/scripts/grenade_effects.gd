@@ -17,6 +17,10 @@ var blast_cues: int = 0
 var _voice_index: int = 0
 var _resolved: Dictionary[int, bool] = {}
 
+## A grenade newly in flight on a live snapshot, by the participant who threw
+## it. Bodies already present when a snapshot stream starts are not throws.
+signal thrown(owner_id: String)
+
 func reset() -> void:
 	for body: MeshInstance3D in bodies.values():
 		body.queue_free()
@@ -45,6 +49,8 @@ func apply(snapshot: Dictionary, listener: Vector3) -> void:
 			bodies[id] = _mesh(Vector3(0.18, 0.24, 0.18), Color("567c68"))
 			bodies[id].name = "Grenade_%d" % id
 			add_child(bodies[id])
+			if not initial:
+				thrown.emit(str(fact["owner_id"]))
 		bodies[id].position = GrenadeFacts.vector(fact["position"])
 		if bounce_counts.has(id) and int(fact["bounce_count"]) > bounce_counts[id] and listener.is_finite():
 			_sound(BOUNCE, bodies[id].position, listener)

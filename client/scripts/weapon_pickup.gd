@@ -1,7 +1,9 @@
 extends Node3D
 
-## Scrap crate / pad billboard for mid-map pickups. Ammunition is a compact
-## packet so a nearby optional supply does not fill the player's first view.
+## A floor pickup drawn as its object: a pistol, a medkit, a box of shells.
+## The sprite stands on the floor, bobs gently and reads from across a room,
+## so no text floats in the world. The crate and label remain only as the
+## fallback for a kind with no art, plus the one golden Railgun's name.
 ## Palette: bone-white / gunmetal / ember / blood-ember (not neon).
 
 var pickup_id: String = ""
@@ -21,6 +23,10 @@ const AMMO_BODY_Y: float = 0.11
 const AMMO_LABEL_Y: float = 0.59
 const AMMO_FONT_SIZE: int = 20
 const AMMO_OUTLINE_SIZE: int = 5
+## The sprite's lowest pixel rests this far above the pad position.
+const SPRITE_FLOOR_GAP: float = 0.06
+const BOB_METRES: float = 0.05
+const BOB_HZ: float = 0.7
 
 const COLORS = {
 	"Flechette": Color(0.86, 0.82, 0.74),  # bone-white
@@ -35,7 +41,6 @@ const COLORS = {
 	"golden_rail": Color(1.0, 0.8, 0.28),  # the one golden Railgun
 }
 
-var weapon_textures: Dictionary[String, Texture2D] = {}
 var _regular_mesh: Mesh
 var _regular_body_position: Vector3
 var _regular_label_position: Vector3
@@ -43,6 +48,9 @@ var _regular_font_size: int
 var _regular_outline_size: int
 var _ammo_mesh: BoxMesh
 var _body_material: StandardMaterial3D
+var _sprite_rest_y: float = 0.0
+var _bob_phase: float = 0.0
+var _bob_time: float = 0.0
 
 func _ready() -> void:
 	_regular_mesh = body.mesh
@@ -58,11 +66,11 @@ func _ready() -> void:
 	if _body_material == null:
 		_body_material = StandardMaterial3D.new()
 	body.set_surface_override_material(0, _body_material)
-	weapon_textures["Flechette"] = load("res://assets/weapons/32/flechette.png")
-	weapon_textures["Rail"] = load("res://assets/weapons/32/rail.png")
-	weapon_textures["Scatter"] = load("res://assets/weapons/32/scatter.png")
-	weapon_textures["Tack"] = load("res://assets/weapons/32/_future/shock_pistol.png")
-	weapon_textures["Shiv"] = load("res://assets/weapons/48/shiv.png")
+	# Upright on the floor like the fighters, sampled as pixels, and lit the
+	# same everywhere so a supply never sinks into a dark corner.
+	icon.billboard = BaseMaterial3D.BILLBOARD_FIXED_Y
+	icon.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
+	icon.shaded = false
 	_apply_look()
 
 func setup(id: String, weapon: String, pos: Vector3, kind: String = "weapon", pad_amount: int = 0, pool: String = "") -> void:
@@ -72,12 +80,20 @@ func setup(id: String, weapon: String, pos: Vector3, kind: String = "weapon", pa
 	amount = pad_amount
 	ammo_pool = pool
 	position = pos
+	# Neighbouring pickups bob out of step, so a row of them never pulses as one.
+	_bob_phase = float(hash(id) % 997) / 997.0 * TAU
 	_apply_look()
 
 func set_available(is_available: bool) -> void:
 	available = is_available
 	visible = available
 	_apply_look()
+
+func _process(delta: float) -> void:
+	if not visible or icon == null or not icon.visible:
+		return
+	_bob_time += delta
+	icon.position.y = _sprite_rest_y + BOB_METRES * (0.5 + 0.5 * sin(_bob_time * TAU * BOB_HZ + _bob_phase))
 
 func _label_text() -> String:
 	if pickup_kind == "ammo":
@@ -107,21 +123,30 @@ func _tint() -> Color:
 		return COLORS["golden_rail"]
 	return COLORS.get(weapon_name, Color(0.7, 0.68, 0.64))
 
+## The sprite for this pickup, or null when it has no art.
+func sprite_texture() -> Texture2D:
+	return WeaponArt.pickup_texture(pickup_kind, weapon_name, ammo_pool)
+
 func _apply_look() -> void:
+	if body == null:
+		return
+	var texture: Texture2D = sprite_texture()
+	var drawn: bool = texture != null
 	var ammo: bool = pickup_kind == "ammo"
 	var tint: Color = _tint()
-	if body:
-		body.mesh = _ammo_mesh if ammo else _regular_mesh
-		body.position = Vector3(0.0, AMMO_BODY_Y, 0.0) if ammo else _regular_body_position
-	if ammo_band:
-		ammo_band.visible = ammo
-	if label:
-		label.text = _label_text()
-		label.modulate = tint
-		label.outline_modulate = Color(0.12, 0.11, 0.10)
-		label.position = Vector3(0.0, AMMO_LABEL_Y, 0.0) if ammo else _regular_label_position
-		label.font_size = AMMO_FONT_SIZE if ammo else _regular_font_size
-		label.outline_size = AMMO_OUTLINE_SIZE if ammo else _regular_outline_size
+	body.visible = not drawn
+	body.mesh = _ammo_mesh if ammo else _regular_mesh
+	body.position = Vector3(0.0, AMMO_BODY_Y, 0.0) if ammo else _regular_body_position
+	ammo_band.visible = ammo and not drawn
+	# Only the golden Railgun keeps its name in the world; every other pickup
+	# reads by its picture, and the corner feed names what was taken.
+	label.visible = not drawn or pickup_kind == "golden_rail"
+	label.text = _label_text()
+	label.modulate = tint
+	label.outline_modulate = Color(0.12, 0.11, 0.10)
+	label.position = Vector3(0.0, AMMO_LABEL_Y, 0.0) if ammo else _regular_label_position
+	label.font_size = AMMO_FONT_SIZE if ammo else _regular_font_size
+	label.outline_size = AMMO_OUTLINE_SIZE if ammo else _regular_outline_size
 	if _body_material:
 		_body_material.albedo_color = tint.darkened(0.25)
 		_body_material.emission_enabled = true
@@ -130,14 +155,12 @@ func _apply_look() -> void:
 		var glow: float = 0.6 if pickup_kind == "golden_rail" else (0.22 if pickup_kind == "health" else 0.18)
 		_body_material.emission = tint * glow
 		_body_material.emission_energy_multiplier = 0.7 if pickup_kind == "health" else 0.6
-	if icon:
-		if (pickup_kind == "weapon" or pickup_kind == "golden_rail") and weapon_textures.has(weapon_name):
-			var texture: Texture2D = weapon_textures[weapon_name]
-			icon.texture = texture
-			# 1.28 m across whether the icon is authored at 32 or 48 pixels.
-			icon.pixel_size = 1.28 / float(maxi(texture.get_height(), 1))
-			icon.visible = true
-			icon.modulate = Color(1.6, 1.25, 0.45) if pickup_kind == "golden_rail" else Color(1.02, 1.0, 0.96)
-		else:
-			# Medkit / armor: hide weapon icon; label carries the scrap read.
-			icon.visible = false
+	icon.visible = drawn
+	if drawn:
+		icon.texture = texture
+		icon.pixel_size = WeaponArt.PICKUP_TEXEL_METRES
+		_sprite_rest_y = SPRITE_FLOOR_GAP + float(texture.get_height()) * icon.pixel_size * 0.5
+		icon.position = Vector3(0.0, _sprite_rest_y, 0.0)
+		icon.modulate = Color(1.6, 1.25, 0.45) if pickup_kind == "golden_rail" else Color.WHITE
+		if pickup_kind == "golden_rail":
+			label.position = Vector3(0.0, _sprite_rest_y * 2.0 + 0.35, 0.0)

@@ -76,6 +76,7 @@ var muzzle_flash_texture: Texture2D
 var rail_beam_texture: Texture2D
 
 var weapon_textures = {}
+const HELD_PROFILE_SCALE: float = 32.0 / 80.0
 ## The scene's pixel size for a 32 pixel weapon icon.
 var weapon_pixel_size: float = 0.026
 var cyanex_texture: Texture2D
@@ -124,11 +125,8 @@ func _ready():
 	muzzle_flash_texture = load("res://assets/vfx/32/muzzle_flash.png")
 	rail_beam_texture = load("res://assets/vfx/32/rail_beam_tip.png")
 	
-	weapon_textures["Flechette"] = load("res://assets/weapons/32/flechette.png")
-	weapon_textures["Rail"] = load("res://assets/weapons/32/rail.png")
-	weapon_textures["Scatter"] = load("res://assets/weapons/32/scatter.png")
-	weapon_textures["Tack"] = load("res://assets/weapons/32/_future/shock_pistol.png")
-	weapon_textures["Shiv"] = load("res://assets/weapons/48/shiv.png")
+	for weapon: String in WeaponArt.PROFILE:
+		weapon_textures[weapon] = WeaponArt.PROFILE[weapon]
 	if weapon_sprite:
 		weapon_pixel_size = weapon_sprite.pixel_size
 	
@@ -432,8 +430,9 @@ func _update_weapon_sprite():
 	
 	var texture: Texture2D = weapon_textures[current_weapon]
 	weapon_sprite.texture = texture
-	# Icons are authored at 32 or 48 pixels; hold every one at the 32 pixel size.
-	weapon_sprite.pixel_size = weapon_pixel_size * 32.0 / float(maxi(texture.get_height(), 1))
+	# Side profiles share one texel density, so a pistol is visibly smaller
+	# than a railgun. An 80-texel rifle spans what the old 32-pixel icon did.
+	weapon_sprite.pixel_size = weapon_pixel_size * HELD_PROFILE_SCALE
 	weapon_sprite.visible = true
 	# Preserve weapon plate readability; light bone lift, not neon wash.
 	weapon_sprite.modulate = Color(1.05, 1.02, 0.98)

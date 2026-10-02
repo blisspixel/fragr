@@ -12,10 +12,20 @@ All PNG assets are configured with `.import` files for pixel-perfect rendering:
 
 When adding new assets, ensure import settings match existing .import files.
 
-## weapons/32
-- `flechette.png` `rail.png` `scatter.png` - WeaponType v1
-- `weapons_atlas_flechette_rail_scatter.png`
-- `_future/` - rocket_tube, shock_pistol, gravity_baton (do not wire)
+## weapons, pickups and HUD icons (2026-10-02 art pass)
+
+`client/scripts/weapon_art.gd` (`WeaponArt`) is the one table that names these.
+Prompts, request IDs, costs and hashes: `art-pass-20261002-manifest.json`.
+
+- `weapons/viewmodels/` - first-person idle, fire and cycle frames; see its README
+- `weapons/pickups/` - side profiles at one texel density: world pickups and the
+  gun a fighter holds (`pistol`, `rifle`, `shotgun`, `railgun`, `sniper`)
+- `weapons/48/shiv.png` - the Shiv pickup and held icon
+- `weapons/sniper/scope_overlay.png` - 360 px square scope plate with a
+  transparent aperture, from `tools/bake_scope_overlay.gd`
+- `pickups/` - `medkit`, `armor`, `bullets`, `shells`, `cells`, `grenades`
+- `hud/` - `health` and `armor` vitals icons, drawn at twice their size
+- `weapons/32/_future/` - rocket_tube, shock_pistol, gravity_baton (do not wire)
 
 ## characters/64
 - `cyanex_idle.png` `kragge_idle.png` - skin labels

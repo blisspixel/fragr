@@ -4,6 +4,22 @@ Shipped tags, newest first. A line here is on `main`. Planned work stays in
 [docs/ROADMAP.md](docs/ROADMAP.md). Older tags are on the
 [releases page](https://github.com/blisspixel/fragr/releases).
 
+## Unreleased (art pass, 2026-10-02)
+
+Every gun now fires with its own drawn frame and muzzle flash: the Pistol's
+slide snaps back, the Shotgun blasts and then pumps, the Railgun's coils light
+cyan. All hands wear the same brown leather work gloves, the Fists and the Shiv
+included, and a thrown grenade leaves the off hand while the gun dips out of the way.
+Pickups are drawn as their objects, a medkit, an armour vest, boxes of bullets
+and shells, a cell canister, grenades and each gun in profile, instead of
+labelled crates, and fighters hold the same profiles. Health and armour carry
+icons beside their numbers.
+
+Level 7's Sniper Rifle (first-person frames, pickup and scope overlay) and the
+Ranged Sweeper (mast antenna, long scoped rifle and a growing windup glint) are
+ready for that level to wire. Image generation used an estimated $2.76 of
+existing credit.
+
 ## v0.66.0 (2026-10-02)
 
 Port of Entry extends the campaign prototype onto the Moon with an inhabited
