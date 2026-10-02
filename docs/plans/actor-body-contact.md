@@ -1,15 +1,16 @@
 # Solid living character bodies
 
-**Status:** in flight, 2026-10-01. Explicitly requested after first-person
+**Status:** implemented, 2026-10-01. Local gates passed; CI and release pending.
+Explicitly requested after first-person
 play showed walking through other characters. Sequencing remains in the
 [roadmap](../ROADMAP.md#full-build-order-2026-09-27). **Spend:** $0.
 
 ## Problem and ownership
 
-Live movement currently integrates against authoritative map solids and bounds,
-but other living participant and campaign bodies do not block ordinary walking.
-Fix this at server movement ownership and mirror the bounded contact math in
-local presentation prediction. Visual sprite size or a client-only physics
+Previously, live movement integrated against authoritative map solids and bounds,
+but other living participant and campaign bodies did not block ordinary walking.
+Server-owned contact resolution now handles those bodies, with matching bounded
+contact math in local presentation prediction. Visual sprite size or a client-only physics
 body cannot establish a server collision rule.
 
 Client integration and the shared plan accompany a small
@@ -61,8 +62,8 @@ sustained glancing progress, the 32-body queue, stair/wall support, exact civili
 keys, actor heights and malformed snapshot failure paths. The existing movement
 goldens still pass all 37 cases and 1330 states after adding the explicit-height
 integration entry point. These focused receipts are under
-`.agents/m06-buildout-20261001/`; full final checks and first-person inspection
-remain pending.
+`.agents/m06-buildout-20261001/`; these focused checks preceded the final
+integration and first-person evidence below.
 
 The complete client checker now passes all 184 scripts and 86 harnesses, with
 clean logs and each harness's own PASS marker. A subsequent narrow predictor
@@ -77,7 +78,8 @@ endpoints and projected feet outside strict polylines. The original CTF seed
 survey passes again at 15/16 completed rounds and 16/16 visible combat drops,
 retaining its 14/16 and 8/16 floors. Workshop berths remain on their authored
 routes inside actual boarding, with solids intact. Final full Rust and ordinary
-campaign gates remain pending those owning fixes, not waived by the client PASS.
+campaign gates remained pending those owning fixes at this stage; the final
+receipts below close them rather than substituting the earlier client PASS.
 
 An actual first-person integration diagnostic now passes through the ordinary
 server and human GameManager input path. A second living synthetic participant
@@ -101,7 +103,7 @@ settled ticks. Geometry, route tolerances and departure gates remain unchanged.
 ### Current-source workspace and CPU gate
 
 The final frozen source passes formatting, warning-denied workspace Clippy,
-1240 workspace tests with zero failures and three existing ignored tests,
+1240 passing workspace tests with zero failures and three existing ignored tests,
 the full release build, and license, ban and source checks. Receipts are
 `wrap-fmt.log`, `wrap-clippy.log`, `wrap-workspace-tests.log`,
 `wrap-release-build.log` and `wrap-deny.log` in the same diagnostic directory.
@@ -116,8 +118,12 @@ release binary has SHA256
 receipt: `contact-playtest-final/bench16.log`. Congested avoidance can forecast
 eight ordinary intents for six ticks using nearby bodies. This sample proves
 the measured roster and budget, not crowded 64-player scale or GPU performance.
-Final coverage, socket checks and matching-release rendered evidence remain
-pending.
+Final unfiltered workspace line coverage passes at 94.27 percent (51231 lines,
+2933 missed). All 14 matching-release benchmark, mode, CTF, mixed-roster and
+soak checks pass with unchanged binary hashes; the parent mission plan records
+the measurement tables and shared-host limits. Matching-release rendered
+evidence is recorded below. The final clean campaign and published-tour
+receipts are recorded in the closeout below.
 
 The final matching-release first-person check now passes with clean exit and
 logs. Its unchanged release hash is the one recorded above. Held ordinary
@@ -131,6 +137,26 @@ as `docs/screenshots/actor_contact_stopped.png`,
 Receipt: `contact-pov-release-final/`. This is a two-participant static-room
 diagnostic on Windows Compatibility with an AMD Radeon 780M, separate from
 campaign, remote-network and wider hardware acceptance.
+
+### Final local closeout
+
+The final current-source client checker passes all 184 scripts and 86 harnesses
+with clean exit 0 in `client-whole-contact-final.log`. The ordinary-input M06
+tour in `.agents/qa/m06-port-contact-second-final/` passes all 25 states and all
+21 named guards, real marker and departure. Its corrected inner gallery route
+skirts a living dormant Turret instead of entering that body's collision volume;
+the regression reproduces refusal of the former endpoint. No collision rule or
+waypoint tolerance is weakened. The final record retains zero deaths, zero HP
+loss, 45 armor loss and one secret claim across three visited locations.
+The standard tour in `.agents/qa/m06-standard-contact-final/` passes 32 states
+and publishes 13 inspected stills. Both tours exit cleanly without the prior
+shutdown texture errors, and all owned server and renderer processes close.
+
+Container build/runtime, legal notices and `health.status: ok` probes also pass
+with an unprivileged, read-only, no-new-privileges process and completed cleanup.
+These local gates complete this increment; CI and release remain pending.
+Current fault-verifier completion is root-owned. Human feel, fresh-player and
+difficulty acceptance, wider network conditions and broader hardware remain open.
 
 ## Verification and acceptance
 

@@ -1,6 +1,6 @@
 # M06 core prototype
 
-**Status:** in-flight, 2026-10-01. Parent scope:
+**Status:** implemented, 2026-10-01. Local gates passed; CI and release pending. Parent scope:
 [M06 Port of Entry](m06-port-of-entry-prototype.md).
 **Spend:** $0. No paid calls, dependencies or new control channel.
 
@@ -101,8 +101,8 @@ deterministic benchmark, six mixed-map rosters, contested CTF and the
 120-second soak also pass. Exact receipts and measurement scope live in the
 [parent plan](m06-port-of-entry-prototype.md#completed-engineering-gates).
 The subsequent strict map preflight passes all 144 final ordinary route
-segments. These receipts predate the living-body contact increment; its final
-matching-binary checks, coverage and rendered route remain required. No earlier
+segments. These receipts predate the living-body contact increment and are
+historical baselines, superseded by the final local receipts below. No earlier
 failure is removed from the evidence record.
 
 The third rendered mission attempt independently observes the real named
@@ -117,7 +117,34 @@ subsequently passed its focused tests and the fourth tour's gameplay route.
 That fourth tour completed 25 states, all 21 guards and actual departure, with
 a measured 52.8996-metre resolved Rail hit and a distinct causally verified
 Turret cover cancellation. Its wrapper failed on two shutdown texture leaks.
-The focused sky-retention fix passes isolated checks, but the final clean
-ordinary-input tour must follow the contact, art and audio freeze. M06 remains
-in flight; gameplay completion is separate from fresh-player and difficulty
-acceptance or a shipped release.
+The focused sky-retention fix passed isolated checks before the final clean
+ordinary-input tour following the contact, art and audio freeze. This failed
+fourth-run receipt remains separate from the final local verification below.
+
+## Final local verification
+
+The final frozen increment has 1240 passing workspace tests, with zero failures and
+three existing ignored tests, plus unfiltered 94.27 percent line coverage.
+Formatting, warning-denied Clippy, matching release build and dependency
+license/ban/source checks pass. Fourteen matching-release socket, roster, mode,
+benchmark and soak cases also pass with unchanged binary hashes; the parent
+plan records their measurements and host-load limits. The container build and
+unprivileged, read-only, no-new-privileges runtime pass the legal-notice and
+`health.status: ok` probes, followed by cleanup in the `wrap-container` receipts.
+
+The corrected ordinary-input tour in `.agents/qa/m06-port-contact-second-final/`
+passes all 25 states and all 21 named guards, actual optional marker and shared
+departure with clean wrapper and engine exit 0. The record reports zero deaths,
+zero HP loss, 45 armor loss and one actual secret supply claim across three
+visited locations. Its resolved Rail kill measures 52.015735 meters, separate
+from authored initial spacing. Actual blocked Windup 3114 precedes Recovery
+3115; no same-Turret shot occurs through original deadline 3135, verified at 3136.
+
+The matching standard tour in `.agents/qa/m06-standard-contact-final/` passes
+32 states and publishes 13 inspected stills. The final pinned client checker
+passes all 184 scripts and 86 harnesses with clean exit 0 in
+`.agents/m06-buildout-20261001/client-whole-contact-final.log`. All owned native
+and renderer processes closed. All ten injected fault-verifier scenarios also
+pass in `wrap-client-verifier.log`. CI and release remain pending.
+Fresh-player clarity, difficulty acceptance, pacing,
+subjective listening and final character performance remain open.

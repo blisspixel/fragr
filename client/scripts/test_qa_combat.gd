@@ -11,6 +11,7 @@ var _failures: int = 0
 
 func _initialize() -> void:
 	_check_focused_route()
+	_check_m06_gallery_contact()
 	_check_resolved_shots()
 	var caller: QaCombat = QaCombat.new()
 	var observer: TurretObserverProbe = TurretObserverProbe.new()
@@ -461,6 +462,57 @@ func _check_focused_route() -> void:
 		body = MoveStep.live_step(body, action, MoveStep.TOP_SPEED, MoveStep.DT_LIVE, arena)
 		grounded = grounded and absf(float(body["y"]) - 3.0) < 0.01
 	_check(reached and grounded, "ordinary focused inputs reach the rear waypoint without walking off the real gallery footprint")
+
+func _check_m06_gallery_contact() -> void:
+	var authored: Variant = JSON.parse_string(FileAccess.get_file_as_string("res://../server/maps/m06_port_of_entry.json"))
+	var manifest: Variant = JSON.parse_string(FileAccess.get_file_as_string("res://qa/m06_port_of_entry.json"))
+	_check(authored is Dictionary and manifest is Dictionary, "actual M06 map and capture route load")
+	if not authored is Dictionary or not manifest is Dictionary:
+		return
+	var solids: Array[Dictionary] = []
+	for solid: Dictionary in authored["solids"]:
+		solids.append({"min_x": solid["min"][0], "max_x": solid["max"][0], "min_z": solid["min"][2],
+			"max_z": solid["max"][2], "bottom": solid["min"][1], "top": solid["max"][1]})
+	var arena: Dictionary = {"half": authored["half_extent"], "solids": solids}
+	var turret: Dictionary = {}
+	for encounter: Dictionary in authored["encounters"]:
+		for enemy: Dictionary in encounter["enemies"]:
+			if enemy["id"] == "exit_turret":
+				turret = ActorContact.stationary("exit_turret", Vector3(enemy["feet"][0], enemy["feet"][1], enemy["feet"][2]))
+	var route: Array = []
+	for stage: Dictionary in manifest["states"]:
+		if stage["name"] == "impound_and_depot_windows":
+			route = stage["walk_to"]
+	_check(not turret.is_empty() and route.size() >= 15, "gallery regression binds to the actual dormant body and ordinary capture route")
+	if turret.is_empty() or route.size() < 15:
+		return
+	var body: Dictionary = MoveStep.make_state(route[10][0], route[10][2], 0.0)
+	body["y"] = route[10][1]
+	for index: int in range(11, 15):
+		var goal: Vector3 = Vector3(route[index][0], route[index][1], route[index][2])
+		body = _walk_gallery_contact(body, goal, turret, arena)
+		_check(Vector3(body["x"], body["y"], body["z"]).distance_to(goal) < 0.3,
+			"actual supported gallery waypoint remains reachable with the living exit Turret " + str(index))
+	var old_start: Dictionary = MoveStep.make_state(18.5, 28.0, 0.0)
+	old_start["y"] = 3.0
+	var old_end: Dictionary = _walk_gallery_contact(old_start, Vector3(18.5, 3.0, 31.5), turret, arena)
+	_check(absf(float(old_end["z"]) - 31.0) < 0.001,
+		"the former endpoint is refused at the real summed body radius rather than granting overlap")
+
+func _walk_gallery_contact(start: Dictionary, goal: Vector3, turret: Dictionary, arena: Dictionary) -> Dictionary:
+	var body: Dictionary = start.duplicate()
+	for _tick: int in range(300):
+		var delta: Vector2 = Vector2(goal.x - float(body["x"]), goal.z - float(body["z"]))
+		if delta.length() < 0.2:
+			break
+		var action: Dictionary = MoveStep.make_input(true, false, false, false, atan2(delta.y, delta.x))
+		var proposed: Dictionary = MoveStep.live_step(body, action, MoveStep.TOP_SPEED, MoveStep.DT_LIVE, arena)
+		var bodies: Array[Dictionary] = [{"key": "human", "from": body, "proposed": proposed,
+			"height": MoveStep.BODY_HEIGHT, "radius": MoveStep.RADIUS, "jump": false}, turret]
+		body = ActorContact.resolve(bodies, MoveStep.DT_LIVE, arena)[0]
+		_check(absf(float(body["y"]) - 3.0) < 0.01,
+			"ordinary gallery detour preserves actual support with the shared contact solver")
+	return body
 
 func _check_resolved_shots() -> void:
 	var observer: QaCombat = QaCombat.new()

@@ -107,7 +107,7 @@ finished events, final reader hold, skip/stop and combined missing-image/audio
 fallback. The scene-player harness deliberately emits its existing invalid-scene
 warning; that is its tested fallback case, not a suppressed error.
 
-`render-story-1280-final.log` passed actual Compatibility playback at1280x720,
+`render-story-1280-final.log` passed actual Compatibility playback at 1280x720,
 with all three voice clips playing through Voice and actual final completion
 retaining captions and waiting for the reader. Inspected frames are
 `m06_arrival-0.png`, `m06_arrival-1.png` and `l06_l07-0.png` in the same diagnostic

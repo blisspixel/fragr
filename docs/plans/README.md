@@ -15,19 +15,23 @@ Status words: **proposed** (a design awaiting Nick's decision; directs no work),
 
 ## Index
 
+The current M06, asset, radio and body-contact increment is implemented with
+final local gates passed. Its CI and release are pending; fresh-player,
+difficulty, subjective listening and final character acceptance remain open.
+
 | Plan | Status | One-liner |
 |---|---|---|
 | [`narration-completion-check.md`](./narration-completion-check.md) | **shipped**, [PR #315](https://github.com/blisspixel/fragr/pull/315) | Real completion-signal synchronization; ten clean repeats, all 174 scripts/81 harnesses and protected main CI pass. |
-| [`m06-port-of-entry-prototype.md`](./m06-port-of-entry-prototype.md) | **in flight** | Lunar dock/customs, found Railgun and isolated Turret, strict M05 carry and one-time Episode II refill; implementation started, acceptance open. |
-| [`m06-core-prototype.md`](./m06-core-prototype.md) | **in flight** | Strict authoritative lunar mission, ordered encounter lifecycle, optional service and deliberate departure. |
-| [`m06-map-prototype.md`](./m06-map-prototype.md) | **in flight** | Original static port, two supported galleries, long firing lane, real glass and three secret detours. |
-| [`m06-client-prototype.md`](./m06-client-prototype.md) | **in flight** | Strict M06 state, local readiness, inhabited Moon presentation and text story handoffs. |
-| [`m06-audio-batch.md`](./m06-audio-batch.md) | **in flight** | Three exact-caption neutral framing clips and a quiet utility loop, with verified included credits and bounded generation. |
-| [`m06-lunar-art-batch.md`](./m06-lunar-art-batch.md) | **in flight** | Bounded lunar civilian and pressure-room art, priced against the owner's current prepaid API balance and inspected after palette reduction. |
+| [`m06-port-of-entry-prototype.md`](./m06-port-of-entry-prototype.md) | **implemented** | Lunar mission and durable Episode II refill; clean 25-state route and final local gates pass, fresh-player acceptance remains open. |
+| [`m06-core-prototype.md`](./m06-core-prototype.md) | **implemented** | Strict authoritative lunar mission, ordered encounters, optional service and real departure; current-source Rust and rendered gates pass. |
+| [`m06-map-prototype.md`](./m06-map-prototype.md) | **implemented** | Static port, supported galleries and real glass; all 21 guards and three visited secret locations, with one actual secret supply claim. |
+| [`m06-client-prototype.md`](./m06-client-prototype.md) | **implemented** | Strict M06 carry/readiness, inhabited Moon and story handoffs; final 184-script/86-harness and inspected tour gates pass. |
+| [`m06-audio-batch.md`](./m06-audio-batch.md) | **implemented** | Three exact-caption neutral clips and quiet utility loop; actual completion/fallback and integration pass, listening remains open. |
+| [`m06-lunar-art-batch.md`](./m06-lunar-art-batch.md) | **implemented** | Three selected civilian possessions integrated and inspected in the actual pressure room; final character art and billing reconciliation remain open. |
 | [`m06-story-key-images.md`](./m06-story-key-images.md) | **implemented** | Two inspected lunar arrival/transit illustrations share the game palette and existing reader-paced captions, narration and fallback. |
-| [`shotgun-sfx-refresh.md`](./shotgun-sfx-refresh.md) | **in flight** | Replace the shotgun blast through a capped included-credit sound batch and the existing weapon audio path. |
-| [`radio-start-variation.md`](./radio-start-variation.md) | **in flight** | Random populated station and random track on ordinary startup, including visual test runs. |
-| [`actor-body-contact.md`](./actor-body-contact.md) | **in flight** | Server-owned solid living bodies with matching bounded local prediction and ordinary-input evidence. |
+| [`shotgun-sfx-refresh.md`](./shotgun-sfx-refresh.md) | **implemented** | Compact replacement blast on the existing Effects path; actual decoded completion and integration pass, subjective listening remains open. |
+| [`radio-start-variation.md`](./radio-start-variation.md) | **implemented** | Random populated station and random track on ordinary startup, with seeded checks and the final published tour. |
+| [`actor-body-contact.md`](./actor-body-contact.md) | **implemented** | Server-owned living bodies and matching prediction; shared vectors, zero-drift stopped POV, ordinary sidestep and final mission route pass. |
 | [`m05-audio-batch.md`](./m05-audio-batch.md) | **shipped**, [PR #314](https://github.com/blisspixel/fragr/pull/314) | Three exact-caption neutral narration clips and two compact grenade cues; final playback/caption/fallback checks pass. |
 | [`m05-server-authoring.md`](./m05-server-authoring.md) | **shipped**, [PR #314](https://github.com/blisspixel/fragr/pull/314) | Original 21-guard roof/workshop/trench mission; final ordinary-input clear, grounded rescue and deliberate boarding pass. |
 | [`m05-bounded-tram.md`](./m05-bounded-tram.md) | **shipped**, [PR #314](https://github.com/blisspixel/fragr/pull/314) | Real supported ride, live cover and cleanup, with 99 supported samples and equal rider/tram travel. |

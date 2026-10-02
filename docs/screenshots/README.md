@@ -24,12 +24,37 @@ not a campaign or remote-machine playtest. Receipt:
 `.agents/m06-buildout-20261001/contact-pov-release-final/`;
 [contact plan](../plans/actor-body-contact.md).
 
-The standard tour was regenerated and inspected on 2026-09-30 after participant
-timeline interpolation, spectator camera smoothing, near-camera shot-effect
-clipping and all five campaign prototype integrations. All 32 states passed; thirteen
+The standard tour was regenerated and inspected on 2026-10-01 after the lunar
+port, living-body contact, shotgun cue and random radio startup integrations.
+All 32 states passed with clean exit and logs; thirteen
 selected stills were published locally by the wrapper. The capture receipt is
-`.agents/qa/m05-standard-modal-final/manifest.json`. Menus, settings, weapon views,
+`.agents/qa/m06-standard-contact-final/manifest.json`. Menus, settings, weapon views,
 participant bodies, world lighting and watched combat were inspected after capture.
+
+The `m06_*.png` gallery is the Port of Entry development prototype on the same
+pinned Windows/OpenGL Compatibility/AMD Radeon 780M setup. Its final clean
+25-state ordinary-input route clears all 21 guards and confirms actual transit
+departure, with zero deaths, no HP loss and 45 armor lost. All three secret
+locations were visited; one secret supply was claimed. The resolved Rail hit
+measures 52.015735 metres. Earlier failed captures are retained as diagnostics
+in the plan; the gallery uses the clean rerun in
+`.agents/qa/m06-port-contact-second-final/`.
+[Mission evidence](../plans/m06-port-of-entry-prototype.md) separates authored
+spacing, actual shots and fresh-player acceptance.
+
+| File | Inspected state |
+|---|---|
+| `m06_earth_over_gantry.png` | Earth disk over the actual arrival gantry |
+| `m06_inhabited_service_room.png` | Repaired cloth, personal drawing, table and contained recycling water |
+| `m06_turret_windup.png`, `m06_turret_firing.png` | Observed live phases, including the actual resolved white shot trace; separate stills, not a continuous motion capture |
+| `m06_impound_window.png` | Static coarse Common Carrier and custody depot through pressure glass after ordinary gallery movement |
+| `m06_transit_departure.png` | Server-confirmed transit departure |
+| `m06_earth_fixed_view_strip.png`, `m06_earth_fixed_view_tiles.png` | Twenty actual frames of a fixed Earth/gantry view, with the provisional companion crossing some frames |
+
+These images establish observed presentation on this host. They do not establish
+final character casting, fresh-player teaching, difficulty acceptance or remote
+hardware performance. The impounded carrier and depot remain static coarse
+geometry; the fixed-view sequence is not evidence of a moving ship.
 
 The `m05_*.png` gallery is the No Forwarding Address development prototype,
 captured and inspected on the same pinned Windows/OpenGL/AMD Radeon 780M setup.

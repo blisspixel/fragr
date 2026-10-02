@@ -6,7 +6,19 @@
 
 Give the fixed ward figure and moving server-owned companion one consistent identity at the restraint, during release, and across the processing floor, then measure its readability from the upper gallery. The current shared `LatchView` is a provisional stack of boxes. Its color alone carries too much identity in distant and muted play.
 
-The design follows [cast continuity](../lore/cast.md#visual-continuity) and the [art bible](../ART_STORY_BIBLE.md): a practical midweight free-agent chassis from the M01 workshop, a compact faceted plain head, worn bone enamel, dark steel joints, one muted-cyan square on the upper chest, and visibly unequal forearms with an individual rust repair on the right. Hands should convey chosen action at the second restraint. The figure must stay distinct from issued Union black plates, red optics and seals.
+The design follows [cast continuity](../lore/cast.md#visual-continuity), the [character guide](../design/characters.md) and the [art bible](../ART_STORY_BIBLE.md): a practical person-scale free-agent body from the M01 workshop, a compact faceted plain head, worn bone enamel, dark steel joints, one muted-cyan square on the upper chest, and visibly unequal forearms with an individual rust repair on the right. Hands should convey chosen action at the second restraint. The figure must stay distinct from issued Union black plates, red optics and seals.
+
+### Identity clarification, 2026-10-01
+
+Latch is a free agent and their own person, with free will, relationships and
+personal choices. Their intended visual scale is roughly six feet tall (about
+1.8 metres). The scrappy robot body records individual repairs and preferences;
+it is not a warbot or a standardized armored military unit. Weapons and the
+implemented following/combat behavior do not define the character's identity.
+Future references should show ordinary stance, precise hands, chosen utility
+details and asymmetric repairs alongside action poses. The current procedural
+model remains provisional. This clarification changes no rendered asset,
+physics dimensions, restraint pose, gameplay behavior or historical evidence.
 
 ## Boundaries
 

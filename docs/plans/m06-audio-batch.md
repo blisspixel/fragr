@@ -1,8 +1,8 @@
 # M06 audio batch
 
-**Status:** in flight, 2026-10-01. Four exact jobs generated, settled and
-integrated. Decoded playback and caption/fallback checks pass; complete mission
-and release gates remain pending. Parent: [M06](m06-port-of-entry-prototype.md).
+**Status:** implemented, 2026-10-01. Four exact jobs generated, settled and
+integrated. Local playback, caption/fallback and complete mission gates passed;
+CI and release pending. Parent: [M06](m06-port-of-entry-prototype.md).
 
 ## Goal and scope
 
@@ -67,7 +67,8 @@ Receipts are under `.agents/m06-buildout-20261001/`: `audio-quota-before.log`,
 `audio-voices.log`, `audio-dry-run.log`, `audio-batch-live.log` and
 `audio-quota-after.log`. The cumulative local ledger is
 `.agents/spend/development-20260930.json`. The asset manifest records the prompt,
-voice/model and format. No image job, top-up, overage or cloud operation ran.
+voice/model and format. This audio batch submitted no image jobs. No top-up,
+overage or cloud operation ran.
 
 ## Playback receipts
 
@@ -81,3 +82,15 @@ narration uses Voice. Focused receipt:
 The actual owned M06 launch also passes the held-fire release barrier before
 server readiness. No human listening or final character-performance approval
 is claimed. These clips are neutral framing, with final mix/casting review open.
+
+## Final integration receipt
+
+The final pinned client checker passes all 184 scripts and 86 harnesses with
+clean exit 0, including actual completion and missing-asset fallback checks:
+`.agents/m06-buildout-20261001/client-whole-contact-final.log`. The matching
+M06 tour in `.agents/qa/m06-port-contact-second-final/` passes all 25 states
+and exits cleanly; the standard tour in `.agents/qa/m06-standard-contact-final/`
+passes 32 states and publishes 13 inspected stills. All owned processes closed.
+These gates establish integration, not subjective listening, final spatial mix
+or named-character casting. CI and release remain pending; no additional
+generation or cash charge occurred during verification.

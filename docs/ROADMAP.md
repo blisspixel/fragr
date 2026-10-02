@@ -47,14 +47,20 @@ merged in PR #314. The linked plan records current rendered evidence and CI;
 the three desktop packages and install checks passed in
 [v0.65.0](https://github.com/blisspixel/fragr/releases/tag/v0.65.0).
 The narration harness follow-up in [PR #315](https://github.com/blisspixel/fragr/pull/315)
-also passes main CI. M06 implementation is in flight through its
-[bounded plan](plans/m06-port-of-entry-prototype.md). Its pre-contact baseline
-passes 1226 Rust tests and 94.12 percent unfiltered line coverage. The fourth
-ordinary-input tour completed 25 gameplay states and all 21 guards, but its
-wrapper failed on shutdown texture leaks. The focused sky-lifetime correction
-passes; a clean full mission tour and complete current-source checks remain
-pending after living-body contact, art and audio integration. No M06 release
-or fresh-player acceptance is claimed. Current round usage is 975 included
+also passes main CI. The locally implemented M06 increment is recorded in its
+[bounded plan](plans/m06-port-of-entry-prototype.md): inhabited lunar port,
+found Railgun, flankable Turrets, retained M05 outcomes and a once-only Episode
+II refill. Current-source Rust checks pass 1240 tests and 94.27 percent
+unfiltered line coverage. The clean ordinary-input tour completes all 25 states,
+all 21 guards and actual departure, with zero deaths, no HP loss and 45 armor
+lost. It visits three secret locations and claims one secret supply. Its
+resolved Rail hit measures 52.015735 metres; the authored 58.25-metre spacing
+is separate. Living bodies now block walking, with matching bounded prediction,
+crowd navigation and inspected stop-and-sidestep evidence. Two original story
+images, personal room textures, the shotgun cue and randomized radio startup
+are integrated. The standard 32-state tour, 184-script/86-harness client gate
+and current container gates pass; main integration and the new release remain pending.
+Fresh-player and difficulty acceptance remain open. Current round usage is 975 included
 audio credits with a $5 equivalent reserve, plus $0.274 in new image request
 reservations and the retained prior $0.107 uncertainty. Image billing remains
 unconfirmed and new cash charges are $0.
@@ -274,23 +280,20 @@ The [campaign and feel buildout](plans/campaign-and-feel-buildout.md) supplies
 the local Jammer foundation, presentation and free-agent increments at $0.
 Its integration and acceptance evidence is recorded in that bounded plan.
 
- 1. Build level 6 Port of Entry, currently in flight, from its accepted
-    [level design](campaign/m04-port-of-entry.md#level-6-design-twenty-level-expansion):
-    lunar dock, inhabited freight hall, Railgun lesson and flankable Turret,
-    optional service branch and deliberate transit-tunnel departure. This starts
-    Episode II, refills its continues and gives retained Earth rescue choices
-    their first lunar destination. Reuse the shipped
-    [M05 prototype](plans/m05-no-forwarding-address-prototype.md)'s inventory,
-    save, rescue, scene and geometry seams. Its
-    [bounded implementation plan](plans/m06-port-of-entry-prototype.md) is written
-    before source changes. Keep the existing predicted movement path and
-    measure long-lane combat before introducing the first sixty-metre Rail shot.
-    Refine M01-M05 pacing, grenade-lesson timing, resource pressure,
-    ordinary character motion and listening alongside it. Apply the
-   [shared world/character guides](design/README.md) to useful furnishing,
-   activity, lighting and water, rather than empty rooms or independent redesigns.
-   Fresh-player and difficulty acceptance remain open. Follow the
-   one-new-thing-per-level treatment in [CAMPAIGN-MISSIONS.md](CAMPAIGN-MISSIONS.md).
+1. Finish integration and release of the implemented
+   [Port of Entry increment](plans/m06-port-of-entry-prototype.md), then stop
+   this development round as requested. The next campaign build is level 7
+   [Declared Goods](campaign/l07-declared-goods.md), currently unbuilt:
+   the curfew town and crater cut lead toward the custody depot and introduce
+   the Sniper Rifle and Ranged Sweeper. This follows M06's actual transit exit
+   and reuses its Episode II carry, inventory, encounters, contact, story scenes
+   and measured long-lane combat. Write its bounded implementation plan before
+   beginning source or asset work. Continue M01-M06 pacing, resource pressure,
+   character motion, subjective listening and difficulty reviews alongside the
+   next increment without treating fresh-player availability as a development
+   prerequisite. The [shared world/character guides](design/README.md) govern
+   useful furnishing, lighting and water. Follow the one-new-thing-per-level
+   treatment in [CAMPAIGN-MISSIONS.md](CAMPAIGN-MISSIONS.md).
 2. Refine CTF across its three arenas with contested, multi-seed human/agent/
    spectator automation and inspected captures. Track captures, combat drops,
    route progress and timeouts together. Continue TDM controls regressions before

@@ -1,6 +1,6 @@
 # Lunar port art batch
 
-**Status:** in flight, 2026-10-01. Child of [M06 prototype](m06-port-of-entry-prototype.md). Initial generation cap: $1.50 equivalent. Entire batch cap: $3 equivalent from existing credits, with no top-up or overage.
+**Status:** implemented, 2026-10-01. Local integration verified; CI and release pending. Child of [M06 prototype](m06-port-of-entry-prototype.md). Initial generation cap: $1.50 equivalent. Entire batch cap: $3 equivalent from existing credits, with no top-up or overage.
 
 ## Purpose and ownership
 
@@ -42,3 +42,13 @@ The later [story-key-image batch](m06-story-key-images.md) reserves another
 $0.160 for two requests. Combined new image reservations are $0.274 for six
 accepted requests, with provider billing still unconfirmed and $0 new cash
 charges. This plan's four-request $0.114 receipt remains separate.
+
+### Actual integrated room review
+
+The clean 25-state final contact tour in `.agents/qa/m06-port-contact-second-final` shows all three selected possessions in the actual sealed pressure room, alongside its provisional residents and recycled-water tray. Root inspected the fullsize frame and approved `docs/screenshots/m06_inhabited_service_room.png`. This proves integration and visibility, not final named-character casting or resident movement. Wrapper and engine logs exited cleanly. The original drawing remains the missing-asset fallback and no additional generation was requested.
+
+The final pinned client checker passed all 184 scripts and 86 harnesses with
+clean exit 0 in `.agents/m06-buildout-20261001/client-whole-contact-final.log`.
+The standard 32-state tour also passed and published 13 refreshed stills.
+CI, release and the unresolved provider-billing reconciliation remain separate
+root-owned follow-ups.

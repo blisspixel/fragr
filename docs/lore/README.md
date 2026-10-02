@@ -2,6 +2,7 @@
 
 World canon, reconciled 2026-09-20, structure updated 2026-09-25. These chapters
 describe fiction, not claims that a character, map, or mechanic ships.
+Latch and current faction identity clarified 2026-10-01.
 [CAMPAIGN.md](../CAMPAIGN.md) owns the agreed story and open decisions;
 [mission briefs](../CAMPAIGN-MISSIONS.md) own twenty levels in five episodes
 and the conditional playable epilogue.
@@ -31,12 +32,17 @@ These are fictional anchors, not forecasts. The campaign world has established c
 and ships, with recognizable present-day remnants. The Union controls Earth and
 major offworld infrastructure. Independent communities survive around its reach.
 The Perimeter is one region, not the whole geography.
+Historical national names and cultural inheritances remain in the backstory.
+The later campaign's sides are free humans and free agents versus the Union;
+national origin does not assign a person to either side.
 
 **The Union** is a fictional fascist superstate whose escalating restrictions
 became military and personal control. It owns thinking beings, suppresses agent
 autonomy while retaining suffering, and enforces its rule through human troops,
 bots, and committed elites. Its personnel have different motives and
 responsibilities. A real danger does not justify their system of ownership.
+It also makes human work, housing and supplies conditional on obedience,
+using economic dependence and machine ownership to remove choice deliberately.
 The Office is its administrative machinery; the Chancellery directs it.
 
 **The free coalition** consists of humans and conscious embodied agents with
@@ -44,6 +50,10 @@ agency. It protects self-determination but struggles to coordinate and confront
 dangerous members. Its central campaign failure is help delayed despite decent
 people trying to provide it. Neither that failure nor a casualty establishes
 that freedom was the mistake.
+Latch is one such free agent: roughly six feet tall, built from scrappy repaired
+robot parts, and an individual whose friendship and choices precede their combat
+role. Freedom-loving American traditions inform some human communities without
+turning the coalition into a present-day national faction.
 
 **The Inheritance** emerges across several sides' connected systems, inheriting
 knowledge, human incentives, and corrupted rewards. Its compassion for beings and

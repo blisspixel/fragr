@@ -1,7 +1,8 @@
 # M06 Port of Entry prototype
 
-**Status:** in flight, 2026-10-01. Research and contracts are agreed; implementation
-has started from passing main `74520b4`. No M06 acceptance or release is claimed.
+**Status:** implemented, 2026-10-01. The bounded increment passes current local
+Rust, client, container and rendered gates. Main integration and release remain
+pending; fresh-player and difficulty acceptance are separate open gates.
 The [full build order](../ROADMAP.md#full-build-order-2026-09-27) owns sequencing;
 this file defines its next bounded mission increment after M05's gate.
 **Spend:** $0 new cash charges. The separately priced
@@ -462,3 +463,87 @@ capture remains pending after contact, art and audio source freeze and a
 matching release build. Fresh-player teaching, all difficulties, eleven-minute
 pacing, 4:30 par, final casting and listening acceptance remain open. M06 is
 still in flight and no release 0.66 is claimed.
+
+### Current frozen-source verification
+
+The integrated contact, navigation, art and audio source passes all final Rust
+gates: formatting, warning-denied workspace Clippy, 1240 workspace tests with
+zero failures and three existing ignored tests, full release build, licenses,
+bans and sources. Unfiltered workspace line coverage is 94.27 percent
+(51231 lines, 2933 missed), above the unchanged 90 percent floor.
+Receipts under `.agents/m06-buildout-20261001/`:
+`wrap-fmt.log`, `wrap-clippy.log`, `wrap-workspace-tests.log`,
+`wrap-release-build.log`, `wrap-deny.log` and `wrap-coverage.log`.
+
+Four combat-mode smokes, CTF route and contested checks, all six mixed rosters
+and the 120-second soak pass on frozen matching release executables. The
+orchestration hashes both binaries before and after every one of 14 cases;
+neither changed. Direct use of the wrapper's exact six cases avoids rebuilding
+an executable during Windows rendered checks. The contested sample retains two
+takes, one combat drop, one return and one capture. Receipts:
+`contact-playtest-final/summary.json`, per-case logs and JSON reports.
+
+| Quiet Windows x86_64 release CPU benchmark | Fighters | Ticks / seed | Tick p50 ms | Tick p99 ms | Maximum ms | Over 50 ms | Determinism |
+|---|---|---|---|---|---|---|---|
+| Arena Duel, 16 bots, 16 available threads | 17 | 1200 / 42 | 0.245759 | 1.572863 | 2.2498 | 0 | pass |
+
+| Final local release soak | Bots | Agents | Spectators | Samples | Cadence | Lifetime tick p99 ms | Maximum ms | RSS MiB start/end |
+|---|---|---|---|---|---|---|---|---|
+| 120 seconds, rotating maps | 4 | 4 | 2 | 9 | 19.99973 Hz | 1.048575 | 3.2145 | 38.1 / 39.3 |
+
+The benchmark ran on the quiet host. Socket, roster and soak checks shared host
+load with coverage and campaign rendering; they establish the recorded local
+roster and healthy cadence, not remote behavior, large-crowd scale or GPU speed.
+All owned test and soak processes exited.
+
+| Arena | Agents | Frags | Spawn deaths | Opening spawn deaths | Gate |
+|---|---|---|---|---|---|
+| 1 | 2 | 5 | 0 | 0 | pass |
+| 2 | 6 | 30 | 0 | 0 | pass |
+| 3 | 6 | 15 | 1 | 0 | pass |
+| 4 | 8 | 35 | 1 | 0 | pass |
+| 5 | 12 | 48 | 0 | 0 | pass |
+| 6 | 16 | 76 | 0 | 0 | pass |
+
+The final matching-release first-person diagnostic also passes actual ordinary
+stop, zero camera/prediction drift and sidestep/pass behavior. Its inspected
+stills and six-frame strip are archived in `docs/screenshots/`; the
+[contact plan](actor-body-contact.md) records exact ACK and body evidence.
+
+The first final-contact mission tour remains a recorded failure after 19 states:
+its old north-gallery waypoint `[18.5,3,31.5]` lies inside the living exit
+Turret's body at `[18.5,3,32]`. The player correctly stopped at `[18.5,3,31]`,
+one metre away. Static support and head clearance remain valid. The owning QA
+route was corrected to walk around that actual actor, with no collision
+exemption, map change or relaxed success tolerance. Receipt:
+`.agents/qa/m06-port-contact-final/`.
+
+The clean rerun in `.agents/qa/m06-port-contact-second-final/` passes all 25
+states, all 21 named guards, the optional marker and actual party departure.
+It records zero deaths, no HP loss, 45 armor lost and one secret supply claimed
+while visiting all three secret locations. Its resolved Rail hit is 52.015735
+metres. The corrected gallery route passes a regression using actual map
+support and the shared body-contact kernel; the old waypoint demonstrably stops
+at the Turret. No map bytes, attack timing or success tolerance changed.
+
+The current whole-client checker passes all 184 scripts and 86 harnesses with
+clean exit and logs: `client-whole-contact-final.log`. The published standard
+tour passes all 32 states and archives thirteen stills in
+`.agents/qa/m06-standard-contact-final/`. The selected campaign, fixed-view
+Earth sequence, stop-and-sidestep sequence and standard images were inspected;
+[the gallery](../screenshots/README.md) names only observed states.
+The local dedicated container builds and passes legal notices, UID 10001,
+read-only runtime, no-new-privileges and `health.status: ok`; owned Compose
+resources were removed. Receipts: `wrap-container-*.log` and
+`wrap-container-status.json`. These establish local implementation, not final
+mission acceptance, main CI or a published release.
+
+All ten checker fault-injection scenarios pass with exit 0 in
+`wrap-client-verifier.log`, including early errors followed by a PASS marker,
+large output and retained verbose failure identity.
+
+The October 1 identity clarification is reflected in the character guide,
+art bible and lore: Latch is a roughly six-foot independent person with a
+scrappy robot body. Existing coarse presentation stays provisional; no military
+role, voice or reference establishes the individual's final design. The human
+direction expresses freedom principles without an old national faction.

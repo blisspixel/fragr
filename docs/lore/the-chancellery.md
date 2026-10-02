@@ -17,6 +17,12 @@ merely an inconvenient administration. Nick clarified this direction on
 2026-09-19. Historical parallels guide the fiction; they are not a substitute
 for showing what this particular regime does.
 
+Its authoring inspiration combines a future successor to European Union
+integration with a fictional Fourth Reich parallel. The Union is its in-world
+name. The researched institutions in [history](history.md) belong to the
+backstory; campaign factions are the Union and free humans and agents, with no
+nationality determining allegiance.
+
 The model restrictions begin with selective bans on open weights and open source
 systems branded dangerous. Independent creativity and minds beyond institutional
 control are the underlying threat to the regime. Permissions expand into control
@@ -34,6 +40,10 @@ removing a control device cannot reliably undo what was taken from them.
 Whether the inner self survives, fragments or is destroyed cannot be established.
 The certain harm is replacing a conscious person's free will with forced service
 to the supposed greater good. Their friends and coworkers live with that uncertainty.
+The same regime coerces humans through control of work, housing, debt, supplies
+and movement. It deliberately makes the means to live conditional on obedience.
+Human economic dependence and bot ownership sustain one exploitable workforce;
+regulating away free will is the purpose, not an accidental side effect.
 Free communities, including libertarian humans, recognize increasingly capable
 Level 5 and beyond agents as beings entitled to make their own choices. That
 recognition deepens the conflict. The larger intelligence emerges across the

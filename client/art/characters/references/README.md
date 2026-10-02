@@ -5,6 +5,14 @@ issued colors for the human Clerk and mechanical Sweeper. They are not runtime
 sprites or accepted animation sets. The canonical articulated source remains
 [`../rig.gd`](../rig.gd), with its existing bake and verification path.
 
+These issued Union references apply to their human guard and controlled bot
+roles. They are not a template for Latch or the free selectable bodies. Follow
+the [character guide](../../../../docs/design/characters.md) for those references:
+person-scale, individually repaired or chosen civilian utility details, with
+free will and expressive personal behavior. Latch's roughly six-foot scrappy
+robot body must not become a standardized military unit; the free human's
+cultural inspiration does not introduce national flags or nationality costumes.
+
 - `clerk-preview.webp`: the dashboard's compressed preview of the completed
   human Clerk request. Exposed face, cloth sleeves, light chest armor and a low
   service pistol distinguish the human security role. The original PNG and API

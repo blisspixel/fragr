@@ -1,6 +1,6 @@
 # Port of Entry map prototype
 
-**Status:** in flight, 2026-10-01. Child of [M06 prototype](m06-port-of-entry-prototype.md). **Spend:** $0, no asset calls or new dependencies.
+**Status:** implemented, 2026-10-01. Local integration verified; CI and release pending. Child of [M06 prototype](m06-port-of-entry-prototype.md). **Spend:** $0, no asset calls or new dependencies.
 
 ## Goal and boundaries
 
@@ -55,3 +55,15 @@ The corrected Earth view targets its actual scene center `[-124,17,-17]`. Inspec
 The Rail stage made two ordinary shots and killed the lone Sweeper, but its existing capture receipt records actor samples rather than resolved shot origin/impact distance. The Sweeper pursued before the shot: its sampled x moved from 24.28 at tick 1311 to 21.65 at death tick 1332, with z near -13.5 and player feet near `[-29.01,0,-11]`. This actual clear is approximately 51-53 metres, not evidence of a resolved 58.25-metre hit. The seeded core long-shot test and authored clear ray remain separate evidence. Final capture should retain exact shot facts before making a measured range claim.
 
 Map bytes are frozen at SHA-256 `627e9bcecaa231fdc3a5df8297ac872e975b41c31b7ae872d4a4ce1c25e4a9a5`. M01-M05 maps have no working-tree changes. Integration rebuilt the embedded map for these actual local children and captures. The fourth tour completed the 25-state gameplay route, all 21 named guards, the optional marker and actual departure. Its resolved Rail hit measured 52.8996 metres, separate from the authored initial 58.25-metre spacing; its temporal Turret receipt proves actual cover cancellation. The wrapper nevertheless failed on two shutdown texture-leak errors. The focused sky-retention correction passes isolated checks, but the final clean capture must include the subsequent contact, art and audio source. Fresh-player teaching, eleven-minute pacing, 4:30 par and difficulty acceptance remain pending. M06 stays in flight until its own recorded gates converge; no second development queue is created.
+
+### Clean final contact route
+
+The first contact-final capture failed after 19 states at a waypoint inside the living dormant exit Turret. The corrected ordinary route uses x17 on the supported east gallery while retaining the exact Cells visit, static ship/depot window stance and unchanged map bytes. The actual-map shared movement/contact regression passes and rejects the former overlapping endpoint.
+
+The corrected tour in `.agents/qa/m06-port-contact-second-final` passed all 25 states and all 21 named guards with clean exit 0, actual marker and departure. The resolved Rail kill measured 52.015735 meters; authored 58.25-meter starting separation remains separate seeded evidence. Actual blocked Windup tick 3114 precedes Recovery tick 3115, with no same-Turret shot through original deadline 3135, verified at 3136. Three secret locations were reached and one secret supply was claimed. Inspected final stills are archived under `docs/screenshots/m06_*.png`. Fresh-player, par and difficulty acceptance remain open.
+
+Matching final client integration passed with clean exit 0: 184 scripts and
+86 harnesses in `client-whole-contact-final.log` under the buildout receipts.
+The standard tour passed 32 states and published 13 refreshed stills. All owned
+native and renderer processes were closed before returning the runtime lease.
+CI and release remain root-owned follow-up gates.

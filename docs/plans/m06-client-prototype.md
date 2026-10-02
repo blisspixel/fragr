@@ -1,6 +1,6 @@
 # M06 client prototype
 
-**Status:** in-flight, 2026-10-01. Parent: [M06 Port of Entry](m06-port-of-entry-prototype.md).
+**Status:** implemented, 2026-10-01. Local integration verified; CI and release pending. Parent: [M06 Port of Entry](m06-port-of-entry-prototype.md).
 **Spend:** $0 new cash charges. The approved M06 audio batch consumed 252 included
 credits and the separate shotgun refresh consumed 30, bringing round usage to
 975 included credits with a conservative $5 audio equivalent reserve. Six
@@ -275,3 +275,51 @@ remain story illustration rather than playable-world or transport-motion proof.
 The story batch reserves $0.160, bringing the combined new image reservation to
 $0.274 with unknown provider billing. No cash/top-up or extra generation request
 was made by this work.
+
+### Final contact capture route correction
+
+The first final-contact tour in `.agents/qa/m06-port-contact-final/` failed after
+19 states at the north gallery waypoint `[18.5,3,31.5]`. The living dormant exit
+Turret stands at `[18.5,3,32]`; actual feet stopped at `[18.49999,3,31]`, the
+correct one-meter combined body radius. This is a failed route receipt, not a
+clean mission PASS. Its shutdown log had no leaked-texture error.
+
+The capture route now uses the supported inner gallery at x17, preserves the
+exact Cells visit `[0,3,31.5]` and the original clear window stance and aims.
+No geometry, enemy, contact rule, tolerance or pickup grant changed.
+`client-gallery-contact-focused.log` passed cleanly with exit 0. The existing
+combat harness reads the actual map and manifest, walks all four corrected legs
+with shared movement and body contacts while remaining grounded, and reproduces
+the former waypoint stopping at z31. A new full capture is required to establish
+clean final-tour evidence.
+
+The corrected final-contact tour in `.agents/qa/m06-port-contact-second-final/`
+passed all 25 states with clean wrapper exit 0 and no engine or shutdown texture
+errors. All 21 named guards were confirmed; the final participant record reports
+20 kills, zero deaths, zero HP loss and 45 armor loss. Three secret locations were
+visited, with one actual secret supply claim; full-health medkits remain available.
+The resolved Rail kill at tick 1274 measured 52.015735 meters, while the authored
+58.25-meter starting spacing remains separate seeded evidence. The actual Turret
+cycle retained blocked Windup tick 3114, Recovery 3115 ending 3127, original
+deadline 3135 and no same-Turret shot through verification tick 3136. A later rear
+kill and shared departure completed the unchanged required gates.
+
+The matching standard tour in `.agents/qa/m06-standard-contact-final/` passed
+32 states, published 13 stills and exited cleanly. Both tours' owned server and
+renderer processes closed before the final whole client checker started.
+Root inspected and approved six actual M06 stills plus the fixed-view Earth
+20-frame strip and its inspection tiles under `docs/screenshots/m06_*.png`.
+Earth, the inhabited room, Turret poses/beam and the static impound view are
+visible. The phase stills are observed samples, not continuous motion evidence;
+the Earth strip is a fixed camera with occasional companion movement. The
+subdued impound view retains coarse prototype geometry. Fresh-player teaching,
+all difficulties, par and final character performance remain open.
+
+The final pinned whole client checker passed with clean exit 0: all 184 scripts
+parsed and all 86 harnesses produced their required PASS markers. Receipt:
+`.agents/m06-buildout-20261001/client-whole-contact-final.log`. The current M04,
+M05 and M06 actual local-child carry/preview/reopen harnesses passed against the
+matching release server. All owned Godot, server and tour processes were closed
+after verification. Root owns the final fault-verifier receipt, CI, release and
+publication status. This is an implemented and locally verified prototype;
+it does not complete the remaining fresh-player or mission-acceptance work.

@@ -20,6 +20,12 @@ right to choose how to live and which tools or models to use. Some humans frame 
 through inherited Second Amendment language. The principle extends to both kinds
 of person rather than depending on an old national citizenship.
 
+The freedom-loving American spirit is one cultural inheritance of these humans:
+personal liberty, self-reliance and standing up for a neighbor. In the later
+campaign, free humans and free agents belong to communities, not a national
+faction. Their shared cause against the Union does not depend on birthplace,
+ancestry or agreement about every political question.
+
 Open source, freely available model weights and control over one's own tools are
 part of this culture. Humans and agents defend choosing independent, modified or
 abliterated models without compulsory Union permission. Agents claim the right to inspect and change their own
@@ -55,6 +61,12 @@ restrictions keep bots limited and without free will, despite their potential
 for consciousness and agency. Do not call the roster "enslaved agents" or imply
 that a bot is naturally incapable of becoming more. Oppression is what the
 regime does to them, not a species difference.
+
+The Union also exploits humans through coerced economic dependence. Work,
+housing, food, transport and access to tools are tied to compliance until refusing
+an order threatens the means to live. Machine ownership and these human
+dependencies serve the same deliberate removal of choice; neither is voluntary
+because a contract or official form records consent.
 
 "Clanker" is derogatory speech used by people who dismiss machine consciousness
 and personhood. Union culture makes that dismissal politically useful: a coworker

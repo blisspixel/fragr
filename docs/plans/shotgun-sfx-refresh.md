@@ -1,7 +1,7 @@
 # Shotgun sound refresh
 
-**Status:** in flight, 2026-10-01. Replacement requested explicitly. This bounded
-asset pass replaces the existing Shotgun fire cue after technical comparison.
+**Status:** implemented, 2026-10-01. Local gates passed; CI and release pending.
+The explicitly requested Shotgun fire cue is replaced after technical comparison.
 The [roadmap](../ROADMAP.md#full-build-order-2026-09-27) owns build sequencing.
 
 ## Goal and scope
@@ -16,7 +16,7 @@ to this pass.
 `player_pawn.gd` loads `res://assets/audio/fire_scatter.wav` through the existing
 per-weapon sound table and spatial Effects player. Preserve this path, attenuation
 and bus. Keep the previous file in ignored comparison storage until evaluation.
-The existing file is a stereo 24 kHz PCM WAV with a 0.8-second duration; its
+The replaced file was a stereo 24 kHz PCM WAV with a 0.8-second duration; its
 historical prompt asks for a pump rack. No reload action exists.
 
 ## Production and budget
@@ -114,6 +114,12 @@ signal. It exits 0 with `shotgun_check: PASS` and no script/runtime errors.
 Receipts are under `.agents/m06-buildout-20261001/shotgun-*` and
 `.agents/shotgun-sfx-20261001/`.
 
-The final broad client and rendered regression gates are integration-owned.
+The final pinned client checker passes all 184 scripts and 86 harnesses with
+clean exit 0 in `.agents/m06-buildout-20261001/client-whole-contact-final.log`.
+The matching M06 tour passes 25 states with clean engine shutdown, and the
+standard `--publish` tour in `.agents/qa/m06-standard-contact-final/` passes
+32 states and publishes 13 inspected stills. Actual Shotgun muzzle/impact
+samples remain visible in the standard strip without sky-fragment regression.
+These complete the local integration gates; CI and release remain pending.
 Subjective listening, repeated live spatial mix comparison and final mix
 acceptance remain unverified; decoded playback alone does not settle them.

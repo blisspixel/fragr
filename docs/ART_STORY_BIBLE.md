@@ -1,6 +1,6 @@
 # fragr art and story direction
 
-Current direction, 2026-09-30. Product intent lives in [`VISION.md`](VISION.md);
+Current direction, 2026-10-01. Product intent lives in [`VISION.md`](VISION.md);
 world canon and frozen voice vocabulary live in [`lore/`](lore/README.md).
 This replaces the early arena-only notes. Campaign depth and retro menus are
 explicit parts of the current target.
@@ -113,6 +113,19 @@ Free communities repair and repurpose. Union spaces impose repeated forms,
 inspection lanes, serial numbers, and controlled institutional color. The Inheritance
 leaves unsettling order and regrowth among evidence of human and agent loss.
 These are visual tendencies, not a replacement for the detailed faction canon.
+
+Latch is a free embodied person, roughly six feet (about 1.8 metres) tall, with
+scrappy repairs and personally chosen parts. A fighting role does not make Latch
+a war bot. Design the individual before the weapon: recognizable gestures,
+preferences, relationships and a body maintained through its own choices.
+The human direction carries a freedom-loving American spirit through voluntary
+association, speech, self-defense and practical independence. In the campaign,
+people identify as free humans and agents, or by their allegiance to the Union;
+old national citizenship is not a faction, uniform or test of personhood.
+The Union deliberately suppresses both human and machine autonomy through
+licensing, forced dependence and ownership. Its issued bodies and controlled
+spaces make that coercion visible. The [character guide](design/characters.md)
+and [people and agents](lore/people-and-agents.md) own the detailed brief.
 
 The free communities' [rattlesnake banner](../client/assets/factions/free_coalition/README.md)
 is available as inspected flat artwork. Organic scales, repaired mechanical plates

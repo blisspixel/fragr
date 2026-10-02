@@ -1,14 +1,14 @@
 # Radio startup variation
 
-**Status:** in flight, 2026-10-01. Explicitly requested startup variety.
+**Status:** implemented, 2026-10-01. Local gates passed; CI and release pending.
 Sequencing stays in the [roadmap](../ROADMAP.md#full-build-order-2026-09-27).
 **Spend:** $0. Existing committed tracks only.
 
 ## Behavior and owning seam
 
-The ordinary radio currently randomizes tracks but always starts on station
-index zero. Select a random station with tracks during `radio.gd` startup,
-then reuse its existing random track picker and no-repeat history. Empty
+Before this increment the ordinary radio randomized tracks but always started
+on station index zero. Startup now selects a random station with tracks through
+`radio.gd`, then reuses its existing random track picker and no-repeat history. Empty
 stations stay available through manual cycling but should not be the default
 when a populated station exists. An empty catalog stays silent and safe.
 
@@ -29,5 +29,10 @@ normal startup retains the existing randomized generator.
 
 Focused pinned-engine receipt
 `.agents/m06-buildout-20261001/client-radio-startup-final.log` passes with a
-clean exit and `test_radio: PASS`. Final client and published-tour gates remain
-pending alongside the coordinated mission, art, sound and body-contact work.
+clean exit and `test_radio: PASS`. The final whole client checker passes all
+184 scripts and 86 harnesses with clean exit 0 in
+`.agents/m06-buildout-20261001/client-whole-contact-final.log`. The matching
+standard tour in `.agents/qa/m06-standard-contact-final/` uses ordinary startup,
+passes 32 states and publishes 13 inspected stills. No named station or track is
+claimed as a guaranteed random result. CI and release remain pending; subjective
+listening and a campaign-specific song assignment remain outside this increment.
