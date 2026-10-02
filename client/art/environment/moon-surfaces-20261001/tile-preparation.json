@@ -1,0 +1,120 @@
+{
+  "files": [
+    {
+      "id": "moon_pressure_bone",
+      "opposite_edge_mismatches": 0,
+      "palette_colors": 11,
+      "raw_sha256": "c1ed5b0e5af36a3d79c12b23493176dc48a2f8e24ad6fc20f6e835fd439c7505",
+      "raw_size": [
+        2048,
+        2048
+      ],
+      "reduced_sha256": "57452d9000fec14df493441cc623a3f37d4e2e3fd8063d5c248e3b8277ae5ad3",
+      "runtime_sha256": "b8081d5abcf6c34556b2f6148957df2b9f51ba9d390c7f54a950fe14140f4b36",
+      "selected_id": "moon_pressure_bone"
+    },
+    {
+      "id": "moon_worn_deck",
+      "opposite_edge_mismatches": 0,
+      "palette_colors": 5,
+      "raw_sha256": "33426952535f16f45b1485d4535d5d68ed0fa5b5c0a1d24dff1e947c85c89ee0",
+      "raw_size": [
+        2048,
+        2048
+      ],
+      "reduced_sha256": "ad4a1b5f64cedf20e9fff460360ebc7a52cb2aa9795d1742197946a55af0f3e4",
+      "runtime_sha256": "7408e1b8681403a52f8e82eea538b4947fd8d53ad45be833f12540831a021588",
+      "selected_id": "moon_flat_traction_deck"
+    },
+    {
+      "id": "moon_basalt",
+      "opposite_edge_mismatches": 0,
+      "palette_colors": 6,
+      "raw_sha256": "05dc4cfb2c892384cebf6cc4b63ab6d5559d498d6220267eda745faa87ea40b9",
+      "raw_size": [
+        2048,
+        2048
+      ],
+      "reduced_sha256": "2bcc87725b86f74903091c4fa686fda3e0c342979e1dfbeb109095caaf0f4760",
+      "runtime_sha256": "688fbb01575b5f690d1867807de6549e3fe33fc8806f00fe2aaa0dc7daa2d9bf",
+      "selected_id": "moon_basalt"
+    },
+    {
+      "id": "moon_regolith",
+      "opposite_edge_mismatches": 0,
+      "palette_colors": 2,
+      "raw_sha256": "eadf90bf534c74a59ab42bdab43d0207ed53f4934c77fdd45662efbcf9fee6f1",
+      "raw_size": [
+        2048,
+        2048
+      ],
+      "reduced_sha256": "641707921f34c3bac0d0c1d6c7f47fac0e770484a14164d99ea3c37e9f3a08a5",
+      "runtime_sha256": "a53daca79bf5875f5528d2ecc49e50f1327eb473d607ae3a315e6ca2d98fd43e",
+      "selected_id": "moon_quiet_regolith"
+    },
+    {
+      "id": "moon_union_service",
+      "opposite_edge_mismatches": 0,
+      "palette_colors": 9,
+      "raw_sha256": "5fd785d0270b3ae78e12d5eb961a3d8952acad3d031f8799df71df147e95d75f",
+      "raw_size": [
+        2048,
+        2048
+      ],
+      "reduced_sha256": "6ec9d808199d4623744ee84c14447b263e5d934ce52c5cfc3a68d6483a3e8eaa",
+      "runtime_sha256": "a917683fc6bd66292c5912f594375fb528e142beb130bdd4f0181fcd5da15690",
+      "selected_id": "moon_union_service"
+    },
+    {
+      "id": "moon_seal_rubber",
+      "opposite_edge_mismatches": 0,
+      "palette_colors": 5,
+      "raw_sha256": "ae46eaa5d076f4758a11e77a83a9c17767012d954591d411070e88eb4d188304",
+      "raw_size": [
+        2048,
+        2048
+      ],
+      "reduced_sha256": "bb4ed1efd3ccea1bb883832a55117722e8d37b25d602f861938d97daf05bb59a",
+      "runtime_sha256": "ebd598db59045cf890f4c5c3a2285ce6f459888baee104f66856c6ff31fe5ac2",
+      "selected_id": "moon_seal_rubber"
+    },
+    {
+      "id": "moon_civilian_fabric",
+      "opposite_edge_mismatches": 0,
+      "palette_colors": 9,
+      "raw_sha256": "a2bb7109cc7c23a654f0eea987fdc056a1ab9dc8a85ce494688f134ea75c6ed6",
+      "raw_size": [
+        2048,
+        2048
+      ],
+      "reduced_sha256": "bdbfea3034e62b6cb313162746046812f146f748266d4d062fe00b9f60c8d9df",
+      "runtime_sha256": "28e89878e1bcffdc67b1d705cb228e679a6461cc4c8da838a9555133d77cef49",
+      "selected_id": "moon_civilian_fabric"
+    },
+    {
+      "id": "moon_repair_plate",
+      "opposite_edge_mismatches": 0,
+      "palette_colors": 13,
+      "raw_sha256": "cc4262d5c516cd6460fb9ad8574697b0d4b5b8e322152a5f8de3d4ee1c31bbad",
+      "raw_size": [
+        2048,
+        2048
+      ],
+      "reduced_sha256": "3bd373206d8e38b5cb9ad8a7238a595de6e5786bc70e1a56f879ff88474d8ae1",
+      "runtime_sha256": "d1d6b745132ef28f94a034186a2a3a0fff47c9ab6253a50de2f9662c2f79c19d",
+      "selected_id": "moon_repair_plate"
+    }
+  ],
+  "filter": "nearest",
+  "format": 1,
+  "method": "Rust area reduction and Lab palette mapping, paired 8-pixel periodic edge repair, exact palette remap; explicit approved floor keeper aliases",
+  "mipmaps": false,
+  "opaque": true,
+  "palette_sha256": "c97f60cb92a212166e1506ab1cb32f0705227e205b6ecb7fcd83701491f19da5",
+  "size": [
+    128,
+    128
+  ],
+  "source": "tools/prepare_moon_surface_tiles.gd",
+  "source_sha256": "e54f6c2223c540b03aaf6b2e53f8c815d0bd330a756017858cf1d93a82090f43"
+}

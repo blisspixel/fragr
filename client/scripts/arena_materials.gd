@@ -7,6 +7,20 @@ const PLASTER_DETAIL: Texture2D = preload("res://assets/environment/low_water/pl
 const STEEL_DETAIL: Texture2D = preload("res://assets/environment/low_water/steel_repairs.png")
 static var _moon_textures: Dictionary[String, Texture2D] = {}
 
+static func scenery_tile(path: String, base: Color) -> ShaderMaterial:
+	var material: ShaderMaterial = ShaderMaterial.new()
+	material.shader = SURFACE
+	material.set_shader_parameter("surface_color", base)
+	material.set_shader_parameter("markings_enabled", false)
+	material.set_shader_parameter("base_shade", 0.0)
+	var texture: Texture2D = EnvironmentTextures.texture_at(path)
+	if texture != null:
+		material.set_shader_parameter("tile_enabled", true)
+		material.set_shader_parameter("tile_wall", texture)
+		material.set_shader_parameter("tile_floor", texture)
+		material.set_shader_parameter("tile_strength", 0.7)
+	return material
+
 static func accent(map_id: int) -> Color:
 	match map_id:
 		2, 4: return Color("6e1218")
@@ -35,6 +49,8 @@ static func make(map_id: int, kind: int) -> ShaderMaterial:
 	material.set_shader_parameter("accent_color", accent(map_id))
 	material.set_shader_parameter("surface_kind", kind)
 	material.set_shader_parameter("panel_size", 3.0 if kind == 0 else (4.0 if kind == 1 else 2.0))
+	if map_id == 1:
+		EnvironmentTextures.apply(material, "concrete" if kind == 0 else "service_steel", "earth_scrap")
 	return material
 
 static func authored(surface: String, venue: String = "") -> Material:
@@ -63,10 +79,12 @@ static func authored(surface: String, venue: String = "") -> Material:
 	material.set_shader_parameter("surface_color", bases[index])
 	material.set_shader_parameter("accent_color", accents[index])
 	material.set_shader_parameter("panel_size", 2.0)
+	EnvironmentTextures.apply(material, surface, venue)
 	if venue == "low_water" and surface in ["concrete", "enamel", "service_steel"]:
 		material.set_shader_parameter("detail_enabled", true)
 		material.set_shader_parameter("detail_texture", STEEL_DETAIL if surface == "service_steel" else PLASTER_DETAIL)
-	elif venue == "moon_port" and surface in ["concrete", "enamel", "service_steel"]:
+	elif venue == "moon_port" and surface in ["concrete", "enamel", "service_steel"] \
+		and material.get_shader_parameter("tile_enabled") != true:
 		var path: String = "res://assets/environment/moon/" + ("dust.png" if surface == "concrete" else "pressure_shell.png")
 		if not _moon_textures.has(path) and ResourceLoader.exists(path):
 			_moon_textures[path] = load(path) as Texture2D

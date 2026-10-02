@@ -1,0 +1,23 @@
+{
+  "model": "marketing-studio/image",
+  "out_dir": ".agents/earth-surfaces-20261001/raw-explore",
+  "params": {
+    "quality": "low",
+    "resolution": "2k",
+    "aspect_ratio": "1:1",
+    "enhance_prompt": false
+  },
+  "style": "original retro FPS material albedo, deliberate chunky pixel clusters, broad material shapes and quiet combat-readable fields, restrained canonical bone white, sage, warm gunmetal and dull rust palette, flat even lighting, no gradients",
+  "view": "orthographic straight-on seamless square texture, full continuous edge-to-edge flat material, no perspective, no object silhouette",
+  "technical": "opaque square albedo only, match opposing edges on both axes for repeated tiling, no shadow, no ambient occlusion, no specular highlight, no glossy reflection, no rim light, no text, no lettering, no watermark, no signature, no frame or border, no baked lights",
+  "frames": [
+    {
+      "id": "earth_scrapyard_oxidized_plate",
+      "subject": "seamless salvaged flat steel surface from a warm working scrapyard, muted gunmetal-dark base with dull reddish-brown oxidation in two irregular low-contrast islands, broad intact quiet metal fields, a few pale abrasion clusters, no large bolts, no border plates, no holes, no orange glowing marks"
+    },
+    {
+      "id": "earth_clinic_bone_plaster",
+      "subject": "seamless maintained civilian clinic plaster, warm bone white with pale grey broad hand-smoothed repair patches and sparse shallow worn paint scuffs, calm clean working surface, quiet light value, no mildew, no exposed brick, no institutional grid"
+    }
+  ]
+}

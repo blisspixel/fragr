@@ -142,6 +142,15 @@ func _presentation(info: Dictionary, first: Dictionary, marked: Dictionary, end:
 	root.add_child(port)
 	port.configure_map(info)
 	_check(port.residents.size() == 2 and port._root.find_child("EarthDrawing", true, false) != null, "safe glass presents two provisional neighbours and the Earth drawing")
+	for binding: Array in [["PressureSeal", "moon_seal_rubber"], ["PossessionsBench", "moon_civilian_fabric"], ["RecyclingTray", "moon_repair_plate"]]:
+		var view: MeshInstance3D = port._root.find_child(binding[0], true, false) as MeshInstance3D
+		var material: StandardMaterial3D = view.material_override as StandardMaterial3D if view != null else null
+		_check(material != null and material.albedo_texture != null and material.albedo_texture.resource_path == M06Port.SURFACES + binding[1] + ".png",
+			"existing room surface binds its distinct material: " + binding[0])
+	var fallback_box: MeshInstance3D = port._box("MissingSurface", Vector3.ZERO, Vector3.ONE, Color("746e61"))
+	var fallback_material: Material = fallback_box.material_override
+	M06Port._apply_surface(fallback_box, "missing")
+	_check(fallback_box.material_override == fallback_material, "missing surface keeps original material without new geometry")
 	port._process(0.25)
 	_check(port._water_material != null and float(port._water_material.get_shader_parameter("ripple_time")) >= 0.25, "contained labelled recycling water uses actual ripple clock")
 	port.apply_state(marked["state"])

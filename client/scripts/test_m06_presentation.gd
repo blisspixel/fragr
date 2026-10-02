@@ -14,6 +14,7 @@ func _check(ok: bool, message: String) -> void:
 		push_error("test_m06_presentation: " + message)
 
 func _run() -> void:
+	_check_surface_tiles()
 	var directory: String = "res://assets/environment/moon/"
 	var manifest: Variant = JSON.parse_string(FileAccess.get_file_as_string(directory + "manifest.json"))
 	_check(manifest is Dictionary and manifest["source_sha256"] == FileAccess.get_sha256("res://../tools/bake_moon_details.gd"), "local pixel assets bind their exact source")
@@ -78,6 +79,25 @@ func _run() -> void:
 	if failures == 0:
 		print("test_m06_presentation: PASS original asset freshness, authoritative Turret yaw, lunar shell and preserved glass")
 	quit(0 if failures == 0 else 1)
+
+func _check_surface_tiles() -> void:
+	var directory: String = "res://assets/environment/moon/surfaces/"
+	var manifest: Variant = JSON.parse_string(FileAccess.get_file_as_string("res://art/environment/moon-surfaces-20261001/tile-preparation.json"))
+	_check(manifest is Dictionary and manifest.get("source_sha256") == FileAccess.get_sha256("res://../tools/prepare_moon_surface_tiles.gd"), "periodic tile preparation binds its exact source")
+	if not manifest is Dictionary:
+		return
+	_check(manifest.get("files") is Array and manifest["files"].size() == 8, "eight distinct lunar surface assets retain their preparation receipt")
+	_check(manifest.get("palette_sha256") == FileAccess.get_sha256("res://../docs/palette.json"), "prepared surfaces use the current shared palette")
+	for entry: Dictionary in manifest["files"]:
+		var path: String = directory + entry["id"] + ".png"
+		var texture: Texture2D = load(path) as Texture2D
+		var image: Image = texture.get_image() if texture != null else null
+		_check(image != null and image.get_size() == Vector2i(128, 128) and not image.has_mipmaps()
+			and FileAccess.get_sha256(path) == entry["runtime_sha256"], "surface is fresh, nearest-ready and unmipped: " + path)
+		if image == null:
+			continue
+		for index: int in range(128):
+			_check(image.get_pixel(0, index) == image.get_pixel(127, index) and image.get_pixel(index, 0) == image.get_pixel(index, 127), "opposite tile edges match: " + path)
 
 func _check_environment_replacement() -> void:
 	var manager: Node = load("res://scripts/game_manager.gd").new()

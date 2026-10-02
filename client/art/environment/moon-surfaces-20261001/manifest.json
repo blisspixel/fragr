@@ -1,0 +1,204 @@
+{
+  "format": 1,
+  "date": "2026-10-01",
+  "estimated_reservations_usd": 1.25,
+  "billed_total_confirmed": false,
+  "cash_purchase_usd": 0,
+  "spec": "tools/spritegen/specs/moon-surface-textures.json",
+  "spec_sha256": "1A59B159F3AE3A237CA63A1DAB2B0BDCE99EEA9A0CCC4522E0A315CB7F32CE71",
+  "assets": [
+    {
+      "id": "moon_pressure_bone",
+      "request_id": "71cc6982-64aa-4f02-a8c1-2e7e123e3385",
+      "model": "marketing-studio/image",
+      "request": {
+        "aspect_ratio": "1:1",
+        "enhance_prompt": false,
+        "prompt": "original retro pixel art seamless environmental albedo for a 3D PC shooter, deliberate chunky pixel clusters, broad quiet readable material shapes, limited desaturated bone white, warm gunmetal and pale grey dust with restrained muted sage, cyan, rust and institutional black and red, flat even color bands, coherent handmade pixel surface, not a photograph, maintained pressure-rated pale bone enamel shell panels, broad slightly unequal plates with narrow charcoal compressible seals, sparse small flush fasteners, subdued warm grey chips exposing metal, restrained mineral dust caught only near seals, repeated pressure construction rather than bricks or vents, mostly quiet bone surface, orthographic straight-on seamless square material tile, continuous opaque edge-to-edge surface, matching opposite edges in both axes, no centered isolated object, no perspective, no scene, flat diffuse albedo only, no directional lighting, no baked cast shadow, no ambient occlusion, no specular highlights, no gradients, no lettering or numerals, no logo, no watermark, no signature, no border, no vignette, broad detail survives reduction to 128 square pixels, tile pattern leaves quiet regions for readable fighters. Avoid: photorealistic, 3d render, smooth shading, gradient, blur, anti-aliasing, drop shadow, cast shadow, ambient occlusion, specular, glossy, reflection, rim light, lens flare, bloom, depth of field, text, signature, watermark, frame, border, background scenery.",
+        "quality": "medium",
+        "resolution": "2k"
+      },
+      "estimated_usd": 0.125,
+      "raw_sha256": "C1ED5B0E5AF36A3D79C12B23493176DC48A2F8E24AD6FC20F6E835FD439C7505",
+      "raw_storage": "ignored local request archive",
+      "reduced_source": "reduced/moon_pressure_bone_0.png",
+      "processed": "processed/moon_pressure_bone.png",
+      "runtime": "client/assets/environment/moon/surfaces/moon_pressure_bone.png",
+      "decision": "candidate pending actual lit surface review"
+    },
+    {
+      "id": "moon_worn_deck",
+      "request_id": "57cf7458-e4a5-4040-a4c9-844db045d9e8",
+      "model": "marketing-studio/image",
+      "request": {
+        "aspect_ratio": "1:1",
+        "enhance_prompt": false,
+        "prompt": "original retro pixel art seamless environmental albedo for a 3D PC shooter, deliberate chunky pixel clusters, broad quiet readable material shapes, limited desaturated bone white, warm gunmetal and pale grey dust with restrained muted sage, cyan, rust and institutional black and red, flat even color bands, coherent handmade pixel surface, not a photograph, dark gunmetal load-bearing lunar service deck, broad long traction ribs with worn warm grey tops expressed as flat paint color not light, sparse rust repair scuffs and pale dry dust in short broken channels, useful directional deck language with a mostly dark field, no checkerboard, no warning text, orthographic straight-on seamless square material tile, continuous opaque edge-to-edge surface, matching opposite edges in both axes, no centered isolated object, no perspective, no scene, flat diffuse albedo only, no directional lighting, no baked cast shadow, no ambient occlusion, no specular highlights, no gradients, no lettering or numerals, no logo, no watermark, no signature, no border, no vignette, broad detail survives reduction to 128 square pixels, tile pattern leaves quiet regions for readable fighters. Avoid: photorealistic, 3d render, smooth shading, gradient, blur, anti-aliasing, drop shadow, cast shadow, ambient occlusion, specular, glossy, reflection, rim light, lens flare, bloom, depth of field, text, signature, watermark, frame, border, background scenery.",
+        "quality": "medium",
+        "resolution": "2k"
+      },
+      "estimated_usd": 0.125,
+      "raw_sha256": "4499159F496A8C9E9BF75DD56F64E8F024EF9AD50A06A6A4031E6DF96A10F27C",
+      "raw_storage": "ignored local request archive",
+      "reduced_source": "reduced/moon_worn_deck_0.png",
+      "processed": null,
+      "runtime": null,
+      "decision": "rejected for floors: control-panel structure"
+    },
+    {
+      "id": "moon_basalt",
+      "request_id": "7546d291-b43f-45f9-9457-8b522824bfc4",
+      "model": "marketing-studio/image",
+      "request": {
+        "aspect_ratio": "1:1",
+        "enhance_prompt": false,
+        "prompt": "original retro pixel art seamless environmental albedo for a 3D PC shooter, deliberate chunky pixel clusters, broad quiet readable material shapes, limited desaturated bone white, warm gunmetal and pale grey dust with restrained muted sage, cyan, rust and institutional black and red, flat even color bands, coherent handmade pixel surface, not a photograph, dry dark basalt lunar crater rock, irregular broad angular fractured stone clusters, black charcoal and warm dark grey bands, sparse quiet pale mineral chips, organic uneven fissures without repeated oval pebbles or rectangular wall blocks, no directional rock shadows, orthographic straight-on seamless square material tile, continuous opaque edge-to-edge surface, matching opposite edges in both axes, no centered isolated object, no perspective, no scene, flat diffuse albedo only, no directional lighting, no baked cast shadow, no ambient occlusion, no specular highlights, no gradients, no lettering or numerals, no logo, no watermark, no signature, no border, no vignette, broad detail survives reduction to 128 square pixels, tile pattern leaves quiet regions for readable fighters. Avoid: photorealistic, 3d render, smooth shading, gradient, blur, anti-aliasing, drop shadow, cast shadow, ambient occlusion, specular, glossy, reflection, rim light, lens flare, bloom, depth of field, text, signature, watermark, frame, border, background scenery.",
+        "quality": "medium",
+        "resolution": "2k"
+      },
+      "estimated_usd": 0.125,
+      "raw_sha256": "05DC4CFB2C892384CEBF6CC4B63AB6D5559D498D6220267EDA745FAA87EA40B9",
+      "raw_storage": "ignored local request archive",
+      "reduced_source": "reduced/moon_basalt_0.png",
+      "processed": "processed/moon_basalt.png",
+      "runtime": "client/assets/environment/moon/surfaces/moon_basalt.png",
+      "decision": "candidate pending actual lit surface review"
+    },
+    {
+      "id": "moon_regolith",
+      "request_id": "a2f67671-0877-49fc-be70-347a5d4c57b3",
+      "model": "marketing-studio/image",
+      "request": {
+        "aspect_ratio": "1:1",
+        "enhance_prompt": false,
+        "prompt": "original retro pixel art seamless environmental albedo for a 3D PC shooter, deliberate chunky pixel clusters, broad quiet readable material shapes, limited desaturated bone white, warm gunmetal and pale grey dust with restrained muted sage, cyan, rust and institutional black and red, flat even color bands, coherent handmade pixel surface, not a photograph, pale dry compacted lunar regolith and fine mineral grit, broad quiet bone grey field with irregular low-contrast charcoal grit islands and very sparse warm grey fractured flakes, dusty ground rather than shiny gravel or concrete slabs, no footprints, no puddles, no dunes with baked shadows, orthographic straight-on seamless square material tile, continuous opaque edge-to-edge surface, matching opposite edges in both axes, no centered isolated object, no perspective, no scene, flat diffuse albedo only, no directional lighting, no baked cast shadow, no ambient occlusion, no specular highlights, no gradients, no lettering or numerals, no logo, no watermark, no signature, no border, no vignette, broad detail survives reduction to 128 square pixels, tile pattern leaves quiet regions for readable fighters. Avoid: photorealistic, 3d render, smooth shading, gradient, blur, anti-aliasing, drop shadow, cast shadow, ambient occlusion, specular, glossy, reflection, rim light, lens flare, bloom, depth of field, text, signature, watermark, frame, border, background scenery.",
+        "quality": "medium",
+        "resolution": "2k"
+      },
+      "estimated_usd": 0.125,
+      "raw_sha256": "16C48ECE58641FCD42A38A19F28F1B3713ADB5A52CC1EE0A5A2852E663239197",
+      "raw_storage": "ignored local request archive",
+      "reduced_source": "reduced/moon_regolith_0.png",
+      "processed": null,
+      "runtime": null,
+      "decision": "replaced by quieter floor alternative: original grain is too noisy"
+    },
+    {
+      "id": "moon_union_service",
+      "request_id": "0ee9eecb-d03b-4fac-817d-4ba5dd1c5877",
+      "model": "marketing-studio/image",
+      "request": {
+        "aspect_ratio": "1:1",
+        "enhance_prompt": false,
+        "prompt": "original retro pixel art seamless environmental albedo for a 3D PC shooter, deliberate chunky pixel clusters, broad quiet readable material shapes, limited desaturated bone white, warm gunmetal and pale grey dust with restrained muted sage, cyan, rust and institutional black and red, flat even color bands, coherent handmade pixel surface, not a photograph, Union-issued institutional black service steel, repeated broad flat plates with dark gunmetal seam strips, sparse flush rivets and one narrow muted deep red maintenance pinline recurring across tile, disciplined black and restrained red identity, not neon or civilian patchwork, quiet surface no vent grid, orthographic straight-on seamless square material tile, continuous opaque edge-to-edge surface, matching opposite edges in both axes, no centered isolated object, no perspective, no scene, flat diffuse albedo only, no directional lighting, no baked cast shadow, no ambient occlusion, no specular highlights, no gradients, no lettering or numerals, no logo, no watermark, no signature, no border, no vignette, broad detail survives reduction to 128 square pixels, tile pattern leaves quiet regions for readable fighters. Avoid: photorealistic, 3d render, smooth shading, gradient, blur, anti-aliasing, drop shadow, cast shadow, ambient occlusion, specular, glossy, reflection, rim light, lens flare, bloom, depth of field, text, signature, watermark, frame, border, background scenery.",
+        "quality": "medium",
+        "resolution": "2k"
+      },
+      "estimated_usd": 0.125,
+      "raw_sha256": "5FD785D0270B3AE78E12D5EB961A3D8952ACAD3D031F8799DF71DF147E95D75F",
+      "raw_storage": "ignored local request archive",
+      "reduced_source": "reduced/moon_union_service_0.png",
+      "processed": "processed/moon_union_service.png",
+      "runtime": "client/assets/environment/moon/surfaces/moon_union_service.png",
+      "decision": "candidate pending actual lit surface review"
+    },
+    {
+      "id": "moon_seal_rubber",
+      "request_id": "31011a20-79b5-47b1-b293-ce5bd02a59c8",
+      "model": "marketing-studio/image",
+      "request": {
+        "aspect_ratio": "1:1",
+        "enhance_prompt": false,
+        "prompt": "original retro pixel art seamless environmental albedo for a 3D PC shooter, deliberate chunky pixel clusters, broad quiet readable material shapes, limited desaturated bone white, warm gunmetal and pale grey dust with restrained muted sage, cyan, rust and institutional black and red, flat even color bands, coherent handmade pixel surface, not a photograph, matte charcoal pressure gasket rubber with embedded coarse dark reinforcement fabric, two broad parallel understated compressed seal ribs, slight uneven warm grey abrasion color near the ribs, distinctly flexible black material rather than a metal plate, no shiny highlights or bright hazard strip, orthographic straight-on seamless square material tile, continuous opaque edge-to-edge surface, matching opposite edges in both axes, no centered isolated object, no perspective, no scene, flat diffuse albedo only, no directional lighting, no baked cast shadow, no ambient occlusion, no specular highlights, no gradients, no lettering or numerals, no logo, no watermark, no signature, no border, no vignette, broad detail survives reduction to 128 square pixels, tile pattern leaves quiet regions for readable fighters. Avoid: photorealistic, 3d render, smooth shading, gradient, blur, anti-aliasing, drop shadow, cast shadow, ambient occlusion, specular, glossy, reflection, rim light, lens flare, bloom, depth of field, text, signature, watermark, frame, border, background scenery.",
+        "quality": "medium",
+        "resolution": "2k"
+      },
+      "estimated_usd": 0.125,
+      "raw_sha256": "AE46EAA5D076F4758A11E77A83A9C17767012D954591D411070E88EB4D188304",
+      "raw_storage": "ignored local request archive",
+      "reduced_source": "reduced/moon_seal_rubber_0.png",
+      "processed": "processed/moon_seal_rubber.png",
+      "runtime": "client/assets/environment/moon/surfaces/moon_seal_rubber.png",
+      "decision": "candidate pending actual lit surface review"
+    },
+    {
+      "id": "moon_civilian_fabric",
+      "request_id": "321848a1-040d-4d81-9cff-cbdc7f2e8b14",
+      "model": "marketing-studio/image",
+      "request": {
+        "aspect_ratio": "1:1",
+        "enhance_prompt": false,
+        "prompt": "original retro pixel art seamless environmental albedo for a 3D PC shooter, deliberate chunky pixel clusters, broad quiet readable material shapes, limited desaturated bone white, warm gunmetal and pale grey dust with restrained muted sage, cyan, rust and institutional black and red, flat even color bands, coherent handmade pixel surface, not a photograph, personally maintained muted sage and bone utilitarian woven fabric, broad unequal quiet repaired cloth patches with sparse thick warm rust stitches and a small muted cyan replacement strip, individuality and limited means rather than a uniform, flat cloth with no folds or cast shadows, no tartan checkerboard or emblem, orthographic straight-on seamless square material tile, continuous opaque edge-to-edge surface, matching opposite edges in both axes, no centered isolated object, no perspective, no scene, flat diffuse albedo only, no directional lighting, no baked cast shadow, no ambient occlusion, no specular highlights, no gradients, no lettering or numerals, no logo, no watermark, no signature, no border, no vignette, broad detail survives reduction to 128 square pixels, tile pattern leaves quiet regions for readable fighters. Avoid: photorealistic, 3d render, smooth shading, gradient, blur, anti-aliasing, drop shadow, cast shadow, ambient occlusion, specular, glossy, reflection, rim light, lens flare, bloom, depth of field, text, signature, watermark, frame, border, background scenery.",
+        "quality": "medium",
+        "resolution": "2k"
+      },
+      "estimated_usd": 0.125,
+      "raw_sha256": "A2BB7109CC7C23A654F0EEA987FDC056A1AB9DC8A85CE494688F134EA75C6ED6",
+      "raw_storage": "ignored local request archive",
+      "reduced_source": "reduced/moon_civilian_fabric_0.png",
+      "processed": "processed/moon_civilian_fabric.png",
+      "runtime": "client/assets/environment/moon/surfaces/moon_civilian_fabric.png",
+      "decision": "candidate pending actual lit surface review"
+    },
+    {
+      "id": "moon_repair_plate",
+      "request_id": "e5cdff38-0cc9-4f3f-bb08-efed48c4f998",
+      "model": "marketing-studio/image",
+      "request": {
+        "aspect_ratio": "1:1",
+        "enhance_prompt": false,
+        "prompt": "original retro pixel art seamless environmental albedo for a 3D PC shooter, deliberate chunky pixel clusters, broad quiet readable material shapes, limited desaturated bone white, warm gunmetal and pale grey dust with restrained muted sage, cyan, rust and institutional black and red, flat even color bands, coherent handmade pixel surface, not a photograph, practical pressure equipment repair surface made of unequal warm bone enamel replacement plates over dark steel, one subdued rust strip and a few broad flush fastener caps with charcoal outlines, different repair ages expressed in flat paint colors, asymmetrical useful maintenance character, no text, no repeated vent pattern, orthographic straight-on seamless square material tile, continuous opaque edge-to-edge surface, matching opposite edges in both axes, no centered isolated object, no perspective, no scene, flat diffuse albedo only, no directional lighting, no baked cast shadow, no ambient occlusion, no specular highlights, no gradients, no lettering or numerals, no logo, no watermark, no signature, no border, no vignette, broad detail survives reduction to 128 square pixels, tile pattern leaves quiet regions for readable fighters. Avoid: photorealistic, 3d render, smooth shading, gradient, blur, anti-aliasing, drop shadow, cast shadow, ambient occlusion, specular, glossy, reflection, rim light, lens flare, bloom, depth of field, text, signature, watermark, frame, border, background scenery.",
+        "quality": "medium",
+        "resolution": "2k"
+      },
+      "estimated_usd": 0.125,
+      "raw_sha256": "CC4262D5C516CD6460FB9AD8574697B0D4B5B8E322152A5F8DE3D4EE1C31BBAD",
+      "raw_storage": "ignored local request archive",
+      "reduced_source": "reduced/moon_repair_plate_0.png",
+      "processed": "processed/moon_repair_plate.png",
+      "runtime": "client/assets/environment/moon/surfaces/moon_repair_plate.png",
+      "decision": "candidate pending actual lit surface review"
+    },
+    {
+      "id": "moon_flat_traction_deck",
+      "request_id": "13173d0c-cf6a-46b5-abce-4ae102eb17a3",
+      "model": "marketing-studio/image",
+      "request": {
+        "aspect_ratio": "1:1",
+        "enhance_prompt": false,
+        "prompt": "original retro pixel art seamless environmental diffuse albedo, deliberate chunky quiet pixel clusters, broad readable flat ground surface, very limited desaturated pale bone and warm grey or dark steel palette, one consistent texel density, low contrast wear, not a photograph, a plain flat load-bearing dark warm steel walking deck, only five broad long parallel non-slip traction strips painted in a slightly lighter grey, narrow quiet horizontal assembly seams, a few large soft-edged pixel scuffs and an occasional muted rust paint scratch, at least eighty percent quiet dark grey field, a walking floor and never a machine face, orthographic straight down at a flat walking floor, square opaque seamless tile with matching opposite edges, mostly empty continuous ground, no wall or machine or scene, flat albedo only with no directional light or cast shadow or ambient occlusion or specular highlights, no text or numerals or symbols or logos, no border, no gradients, no knobs, no circuitry, no recessed vents, no buttons, no screens, no mechanical control panels, no raised objects, no holes, no perspective, no dense noise or scattered single pixel pepper; broad pattern readable after reduction to 128 square pixels. Avoid: photorealistic, 3d render, smooth shading, gradient, blur, anti-aliasing, drop shadow, cast shadow, ambient occlusion, specular, glossy, reflection, rim light, lens flare, bloom, depth of field, text, signature, watermark, frame, border, background scenery.",
+        "quality": "medium",
+        "resolution": "2k"
+      },
+      "estimated_usd": 0.125,
+      "raw_sha256": "33426952535F16F45B1485D4535D5D68ED0FA5B5C0A1D24DFF1E947C85C89EE0",
+      "raw_storage": "ignored local request archive",
+      "reduced_source": "reduced/moon_flat_traction_deck_0.png",
+      "processed": "processed/moon_worn_deck.png",
+      "runtime": "client/assets/environment/moon/surfaces/moon_worn_deck.png",
+      "decision": "selected floor candidate, native pixel and repeated seam inspection complete; actual lit world review pending"
+    },
+    {
+      "id": "moon_quiet_regolith",
+      "request_id": "2d5632db-7bdd-4a0c-9346-b1be1e1b9100",
+      "model": "marketing-studio/image",
+      "request": {
+        "aspect_ratio": "1:1",
+        "enhance_prompt": false,
+        "prompt": "original retro pixel art seamless environmental diffuse albedo, deliberate chunky quiet pixel clusters, broad readable flat ground surface, very limited desaturated pale bone and warm grey or dark steel palette, one consistent texel density, low contrast wear, not a photograph, a quiet pale dry compacted lunar regolith ground, at least eighty five percent uninterrupted warm bone grey dusty field, only a few separated broad irregular muted grey mineral-grit clusters, low contrast chunky flecks within those sparse clusters, no uniform speckling, no pebbled mosaic, no craters or footprints, no rocks casting shadows, distinctly dry dust rather than snow or sand dunes, orthographic straight down at a flat walking floor, square opaque seamless tile with matching opposite edges, mostly empty continuous ground, no wall or machine or scene, flat albedo only with no directional light or cast shadow or ambient occlusion or specular highlights, no text or numerals or symbols or logos, no border, no gradients, no knobs, no circuitry, no recessed vents, no buttons, no screens, no mechanical control panels, no raised objects, no holes, no perspective, no dense noise or scattered single pixel pepper; broad pattern readable after reduction to 128 square pixels. Avoid: photorealistic, 3d render, smooth shading, gradient, blur, anti-aliasing, drop shadow, cast shadow, ambient occlusion, specular, glossy, reflection, rim light, lens flare, bloom, depth of field, text, signature, watermark, frame, border, background scenery.",
+        "quality": "medium",
+        "resolution": "2k"
+      },
+      "estimated_usd": 0.125,
+      "raw_sha256": "EADF90BF534C74A59AB42BDAB43D0207ED53F4934C77FDD45662EFBCF9FEE6F1",
+      "raw_storage": "ignored local request archive",
+      "reduced_source": "reduced/moon_quiet_regolith_0.png",
+      "processed": "processed/moon_regolith.png",
+      "runtime": "client/assets/environment/moon/surfaces/moon_regolith.png",
+      "decision": "selected floor candidate, native pixel and repeated seam inspection complete; actual lit world review pending"
+    }
+  ],
+  "palette_sha256": "C97F60CB92A212166E1506AB1CB32F0705227E205B6ECB7FCD83701491F19DA5",
+  "floor_spec": "tools/spritegen/specs/moon-floor-alternatives.json",
+  "floor_spec_sha256": "BA59D2444631C15EB7EACA09428DA6D3C18ADB089511C471CB6F4D864F05C35D"
+}

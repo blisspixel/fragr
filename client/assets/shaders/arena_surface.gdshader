@@ -17,6 +17,13 @@ uniform float base_shade = 0.18;
 // Union warning pinline under the enamel band, and the glow of steel strips.
 uniform vec4 warning_color : source_color = vec4(0.545, 0.118, 0.118, 1.0);
 uniform float trim_glow = 0.55;
+// Reviewed venue albedos repeat on the same world pixel grid as the markings.
+uniform bool tile_enabled = false;
+uniform sampler2D tile_wall : source_color, filter_nearest, repeat_enable;
+uniform sampler2D tile_floor : source_color, filter_nearest, repeat_enable;
+uniform float tile_strength : hint_range(0.0, 1.0) = 0.55;
+uniform float tile_repeat_pixels = 128.0;
+uniform bool markings_enabled = true;
 // Optional sparse original repair history, confined to explicit venue materials.
 uniform bool detail_enabled = false;
 uniform sampler2D detail_texture : source_color, filter_nearest, repeat_enable;
@@ -51,8 +58,13 @@ void fragment() {
 	float variation = grain(panel);
 	vec3 color = surface_color.rgb * (0.83 + floor(variation * 4.0) * 0.07);
 	color *= 0.93 + floor(grit * 3.0) * 0.035;
+	if (tile_enabled) {
+		vec2 tile_uv = pixel / max(tile_repeat_pixels, 1.0);
+		vec3 albedo = n.y > 0.5 ? texture(tile_floor, tile_uv).rgb : texture(tile_wall, tile_uv).rgb;
+		color = mix(color, albedo, tile_strength);
+	}
 
-	if (surface_style > 0) {
+	if (markings_enabled && surface_style > 0) {
 		// Restrained institutional surfaces separate public rooms from machinery.
 		float joint = 1.0 - step(0.018, min(edge.x, edge.y));
 		color *= 1.0 - joint * 0.32;
@@ -81,7 +93,7 @@ void fragment() {
 			color = mix(color, accent_color.rgb, marker);
 			EMISSION = accent_color.rgb * marker * 0.25;
 		}
-	} else if (surface_kind == 0) {
+	} else if (markings_enabled && surface_kind == 0) {
 		// Concrete slabs, inset drainage strips, and worn lane paint.
 		float joint = 1.0 - step(0.018, min(edge.x, edge.y));
 		color *= 1.0 - joint * 0.40;
@@ -91,7 +103,7 @@ void fragment() {
 		float lane = step(3.75, abs(world_position.x)) * step(abs(world_position.x), 4.0);
 		float dash = step(0.28, fract(world_position.z / 4.0));
 		color = mix(color, vec3(0.55, 0.43, 0.22), lane * dash * step(0.18, wear));
-	} else {
+	} else if (markings_enabled) {
 		// Framed steel/enamel panels with two-tone bevels and recessed vents.
 		float seam = 1.0 - step(0.035, min(edge.x, edge.y));
 		float highlight = (1.0 - step(0.055, cell.x)) + step(0.945, cell.y);

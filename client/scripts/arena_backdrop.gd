@@ -60,6 +60,11 @@ func _build_town(half: float) -> void:
 		_metal(Color("a97f67")), _metal(Color("c3b38e")),
 	]
 	var roof: StandardMaterial3D = _metal(Color("58625c"))
+	var roof_tile: Texture2D = EnvironmentTextures.texture_at(EnvironmentTextures.EARTH + "earth_roof_tar_patches.png")
+	if roof_tile != null:
+		roof.albedo_texture = roof_tile
+		roof.albedo_color = Color.WHITE
+		roof.uv1_scale = Vector3(1.2, 1.1, 1.0)
 	var frame: StandardMaterial3D = _metal(Color("d1c4a5"))
 	var dark: StandardMaterial3D = _metal(Color("394a48"))
 	var curtains: StandardMaterial3D = _metal(Color("b78d65"))

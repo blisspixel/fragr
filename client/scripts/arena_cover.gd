@@ -49,6 +49,8 @@ func apply_map_info(info: Dictionary) -> void:
 		_materials.append(ArenaMaterials.make(map_id, kind))
 	var presentation: Dictionary = info.get("presentation") if info.get("presentation") is Dictionary else {}
 	var venue: String = "moon_port" if info.get("m06") is Dictionary else ("low_water" if (info.get("m04") is Dictionary or info.get("m05") is Dictionary) else "")
+	if venue.is_empty() and map_id in [1001, 1002, 1003]:
+		venue = "earth_yard" if map_id == 1003 else "earth_union"
 	var authored_materials: Dictionary[String, Material] = {}
 	if not presentation.is_empty():
 		for surface: String in MapGeometry.SURFACES:

@@ -8,6 +8,7 @@ const DRAWING: String = POSSESSIONS + "lunar_child_earth_drawing_0.png"
 const TEXTILE: String = POSSESSIONS + "lunar_civilian_patched_textile_0.png"
 const MEAL_CLOTH: String = POSSESSIONS + "lunar_personal_meal_cloth_0.png"
 const DRAWING_FALLBACK: String = "res://assets/environment/moon/drawing.png"
+const SURFACES: String = "res://assets/environment/moon/surfaces/"
 var _root: Node3D
 var _geometry: Dictionary = {}
 var residents: Array[Sprite3D] = []
@@ -67,9 +68,11 @@ func _window_frame(host: Dictionary) -> void:
 	var high: Vector3 = Vector3(float(host.max_x), MoveStep.solid_top(host), float(host.max_z))
 	var x: float = high.x + 0.018 if low.x < 0 else low.x - 0.018
 	for z: float in [low.z, high.z]:
-		_box("PressureSeal", Vector3(x, (low.y + high.y) * 0.5, z), Vector3(0.045, high.y - low.y, 0.14), Color("79847c"))
+		var seal: MeshInstance3D = _box("PressureSeal", Vector3(x, (low.y + high.y) * 0.5, z), Vector3(0.045, high.y - low.y, 0.14), Color("79847c"))
+		_apply_surface(seal, "moon_seal_rubber")
 	for y: float in [low.y + 0.07, high.y - 0.07]:
-		_box("PressureSeal", Vector3(x, y, (low.z + high.z) * 0.5), Vector3(0.045, 0.14, high.z - low.z), Color("79847c"))
+		var seal: MeshInstance3D = _box("PressureSeal", Vector3(x, y, (low.z + high.z) * 0.5), Vector3(0.045, 0.14, high.z - low.z), Color("79847c"))
+		_apply_surface(seal, "moon_seal_rubber")
 	var sections: int = maxi(1, floori((high.z - low.z) / 5.0))
 	for index: int in range(1, sections):
 		_box("PressureMullion", Vector3(x, (low.y + high.y) * 0.5, lerpf(low.z, high.z, float(index) / sections)),
@@ -79,7 +82,8 @@ func _family_room(host: Dictionary, outward: Vector3) -> void:
 	var centre: Vector3 = Vector3((float(host.min_x) + float(host.max_x)) * 0.5, 0,
 		(float(host.min_z) + float(host.max_z)) * 0.5) - outward * 3.0
 	_box("FamilyFloor", centre + Vector3(0, 0.008, 0), Vector3(5.3, 0.016, 12), Color("867f6d"))
-	_box("PossessionsBench", centre + Vector3(-1, 0.55, -3), Vector3(1.3, 1.1, 3), Color("746e61"))
+	var bench: MeshInstance3D = _box("PossessionsBench", centre + Vector3(-1, 0.55, -3), Vector3(1.3, 1.1, 3), Color("746e61"))
+	_apply_surface(bench, "moon_civilian_fabric")
 	for index: int in range(4):
 		var storage: MeshInstance3D = _box("PersonalStorage", centre + Vector3(-1, 1.25, -4.0 + index * 0.65), Vector3(0.8, 0.3, 0.5),
 			[Color("b09674"), Color("749284"), Color("a27b62"), Color("c6bea0")][index])
@@ -103,11 +107,13 @@ func _family_room(host: Dictionary, outward: Vector3) -> void:
 	light.light_cull_mask = 2
 	light.add_to_group(ArenaSky.PRACTICAL_GROUP)
 	_root.add_child(light)
-	_box("TableSupport", centre + Vector3(0.2, 0.37, 1.8), Vector3(0.35, 0.74, 0.35), Color("707a70"))
+	var support: MeshInstance3D = _box("TableSupport", centre + Vector3(0.2, 0.37, 1.8), Vector3(0.35, 0.74, 0.35), Color("707a70"))
+	_apply_surface(support, "moon_repair_plate")
 	for index: int in range(3):
 		_box("MealBowl", centre + Vector3(-0.4 + index * 0.55, 0.90, 1.8), Vector3(0.23, 0.12, 0.23), Color("d0c6a8"))
 	# A closed recycling tray makes this small indoor water use explicit.
-	_box("RecyclingTray", centre + Vector3(-0.8, 0.92, 4.2), Vector3(1.5, 0.3, 0.65), Color("63796e"))
+	var tray: MeshInstance3D = _box("RecyclingTray", centre + Vector3(-0.8, 0.92, 4.2), Vector3(1.5, 0.3, 0.65), Color("63796e"))
+	_apply_surface(tray, "moon_repair_plate")
 	var water: MeshInstance3D = MeshInstance3D.new()
 	water.name = "ContainedWater"
 	var surface: PlaneMesh = PlaneMesh.new()
@@ -167,6 +173,11 @@ func _process(delta: float) -> void:
 
 func _box(label: String, at: Vector3, size: Vector3, color: Color) -> MeshInstance3D:
 	return MoonBackdrop._piece(_root, label, at, size, MoonBackdrop._material(color))
+
+static func _apply_surface(mesh: MeshInstance3D, id: String) -> void:
+	var path: String = SURFACES + id + ".png"
+	if ResourceLoader.exists(path, "Texture2D"):
+		mesh.material_override = possession_material(path)
 
 static func possession_material(path: String, fallback: String = "") -> StandardMaterial3D:
 	var material: StandardMaterial3D = MoonBackdrop._material(Color.WHITE)

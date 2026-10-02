@@ -50,7 +50,7 @@ The narration harness follow-up in [PR #315](https://github.com/blisspixel/fragr
 also passes main CI. The locally implemented M06 increment is recorded in its
 [bounded plan](plans/m06-port-of-entry-prototype.md): inhabited lunar port,
 found Railgun, flankable Turrets, retained M05 outcomes and a once-only Episode
-II refill. Current-source Rust checks pass 1240 tests and 94.27 percent
+II refill. Current-source Rust checks pass 1243 tests and 94.31 percent
 unfiltered line coverage. The clean ordinary-input tour completes all 25 states,
 all 21 guards and actual departure, with zero deaths, no HP loss and 45 armor
 lost. It visits three secret locations and claims one secret supply. Its
@@ -58,12 +58,16 @@ resolved Rail hit measures 52.015735 metres; the authored 58.25-metre spacing
 is separate. Living bodies now block walking, with matching bounded prediction,
 crowd navigation and inspected stop-and-sidestep evidence. Two original story
 images, personal room textures, the shotgun cue and randomized radio startup
-are integrated. The standard 32-state tour, 184-script/86-harness client gate
+are integrated. The standard 32-state tour, earlier 184-script/86-harness client gate
 and current container gates pass; main integration and the new release remain pending.
 Fresh-player and difficulty acceptance remain open. Current round usage is 975 included
-audio credits with a $5 equivalent reserve, plus $0.274 in new image request
+audio credits with a $5 equivalent reserve, plus $4.085 in new image request
 reservations and the retained prior $0.107 uncertainty. Image billing remains
-unconfirmed and new cash charges are $0.
+unconfirmed and new cash charges are $0. The requested
+[world texture expansion](plans/world-texture-expansion.md) adds twenty-one
+selected Earth, Moon and future offworld tiles from twenty-seven requests at
+$3.811 in bounded new reservations. Palette/seam checks and inspected lit/dim
+material previews pass; current affected gameplay tours and integration are in flight.
 Fresh-player acceptance and
 two-machine network evidence remain separate gates.
 
@@ -281,7 +285,8 @@ the local Jammer foundation, presentation and free-agent increments at $0.
 Its integration and acceptance evidence is recorded in that bounded plan.
 
 1. Finish integration and release of the implemented
-   [Port of Entry increment](plans/m06-port-of-entry-prototype.md), then stop
+   [Port of Entry increment](plans/m06-port-of-entry-prototype.md), including
+   the requested [world texture polish](plans/world-texture-expansion.md), then stop
    this development round as requested. The next campaign build is level 7
    [Declared Goods](campaign/l07-declared-goods.md), currently unbuilt:
    the curfew town and crater cut lead toward the custody depot and introduce

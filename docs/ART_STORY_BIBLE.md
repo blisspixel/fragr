@@ -47,6 +47,13 @@ establish every district. Keep possessions specific, repairs plausible and large
 shapes useful to navigation. Read [MAP-DESIGN.md](MAP-DESIGN.md) alongside this
 guide before changing encounter space.
 
+The [world texture expansion](plans/world-texture-expansion.md) applies these
+rules through separate Earth, Moon and future Mars material families. Albedo
+tiles describe a material's use and maintenance. Keep lighting in the renderer,
+match opposite edges, and inspect repetition from player height. A quiet clinic
+wall, traction deck and dry regolith must read as different things. Palette
+reduction and a larger generation setting alone do not establish quality.
+
 Use three viewing scales consistently:
 
 - At a room's entrance: a clear destination, one useful landmark, readable

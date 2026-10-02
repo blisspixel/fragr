@@ -15,6 +15,12 @@ $0.114 for possessions and $0.160 for two story key images.
 Confirmed image billing remains unreconciled and the prior uncertain $0.107
 reservation stays preserved. No top-up, overage or cloud submission ran.
 
+The later requested [world texture expansion](world-texture-expansion.md)
+completes twenty-seven additional image requests at $3.811 in estimated
+reservations, selecting twenty-one Earth, Moon and future offworld textures.
+The round's new image reservations now total $4.085; confirmed billing remains
+unknown. Included audio and the earlier uncertain reservation are unchanged.
+
 ## Goal and accepted direction
 
 Build a playable lunar cargo port through the existing authoritative mission,

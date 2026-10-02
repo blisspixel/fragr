@@ -5,6 +5,7 @@ extends Node3D
 func build(half: float) -> void:
 	name = "LunarLandmarks"
 	var basalt: Material = _material(Color("343b3c"))
+	var crater: ShaderMaterial = ArenaMaterials.scenery_tile(EnvironmentTextures.MOON + "moon_basalt.png", Color("343b3c"))
 	var shell: Material = _material(Color("b1b1a4"))
 	var steel: Material = _material(Color("515d5d"))
 	var warm: Material = _material(Color("d8c69d"), true)
@@ -13,7 +14,7 @@ func build(half: float) -> void:
 		# A rotated rim's full footprint must remain outside the playable square.
 		var radius: float = half * sqrt(2.0) + 21.0 + float(index % 3) * 5.0
 		var berm: MeshInstance3D = _box("CraterRim", Vector3(cos(angle) * radius, 1.8, sin(angle) * radius),
-			Vector3(21, 3.6, 8), basalt)
+			Vector3(21, 3.6, 8), crater)
 		berm.rotation.y = -angle
 	# Low handling structure leaves the small Earth disc readable through glass.
 	for z: float in [-26.0, -8.0]:
