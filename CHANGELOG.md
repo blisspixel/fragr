@@ -20,6 +20,17 @@ Ranged Sweeper (mast antenna, long scoped rifle and a growing windup glint) are
 ready for that level to wire. Image generation used an estimated $2.76 of
 existing credit.
 
+## Unreleased (custody devices, 2026-10-02)
+
+The Proximity Mine and the campaign Auditor arrive on a new custody
+development range. A mine is thrown from the eye with its own key, sticks to
+the first surface, holds a steady lamp for two seconds, then blinks until a
+body comes within two metres and trips it; it goes dark with its owner. The
+Auditor raises a hand and channels a visible repair into a disabled Sweeper,
+twice at most; a hit or broken sight snaps it, and its shield plate halves
+frontal shots. Agents engage a channeling Auditor first. Mines have their own
+count, records column and Godot presentation. Level 8 itself is not built yet.
+
 ## v0.66.0 (2026-10-02)
 
 Port of Entry extends the campaign prototype onto the Moon with an inhabited

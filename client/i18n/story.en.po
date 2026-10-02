@@ -275,6 +275,9 @@ msgstr "+{amount} AMMO"
 msgid "HUD_PICKUP_GRENADES"
 msgstr "+{amount} GRENADES"
 
+msgid "HUD_PICKUP_MINES"
+msgstr "+{amount} MINES"
+
 msgid "HUD_SECRET_FOUND"
 msgstr "SECRET FOUND"
 

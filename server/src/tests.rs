@@ -401,6 +401,8 @@ fn test_protocol_snapshot_serialization() {
         shot_results: vec![],
         projectiles: vec![],
         grenades: Vec::new(),
+        mines: Vec::new(),
+        auditors: Vec::new(),
         explosions: Vec::new(),
         mode_name: default_mode_name(),
         playlist: default_playlist(),
@@ -439,6 +441,8 @@ fn test_protocol_snapshot_empty_players() {
         shot_results: vec![],
         projectiles: vec![],
         grenades: Vec::new(),
+        mines: Vec::new(),
+        auditors: Vec::new(),
         explosions: Vec::new(),
         mode_name: default_mode_name(),
         playlist: default_playlist(),
@@ -2550,6 +2554,8 @@ async fn test_net_ws_action_forwarded_for_agent() {
             shot_results: vec![],
             projectiles: vec![],
             grenades: Vec::new(),
+            mines: Vec::new(),
+            auditors: Vec::new(),
             explosions: Vec::new(),
             mode_name: default_mode_name(),
             playlist: default_playlist(),
@@ -6913,6 +6919,7 @@ mod vertical_aim {
         );
     }
 }
+mod auditor;
 mod encounters;
 mod heavy_turret;
 mod jammer;

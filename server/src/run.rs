@@ -395,7 +395,9 @@ async fn run_server_impl(
             .iter()
             .any(|enemy| enemy.kind == crate::protocol::EnemyKind::Notary)
     });
-    let required_gameplay = if session.state.map.campaign_mission_id()
+    let required_gameplay = if session.state.map.has_custody_devices() {
+        crate::protocol::CUSTODY_GAMEPLAY_VERSION
+    } else if session.state.map.campaign_mission_id()
         == Some(crate::protocol::MissionId::PortOfEntry)
     {
         crate::protocol::M06_GAMEPLAY_VERSION

@@ -146,6 +146,12 @@ Initial handshake message. Must be sent immediately after connection.
   optional prisoner-route marker and immutable prior rescue context. Only M06
   requires 27; existing authored and discovery maps retain 26. Pressure glass
   remains a real ballistic solid and is now permitted on M02 and M06 only.
+  Version 28 adds the Sabotage round objective ([Sabotage](#sabotage)).
+  Version 29 adds the counted Proximity Mine (`place_mine`, loadout
+  `proximity_mines`, pickup kind `proximity_mine`, snapshot `mines`, record
+  `mines`) and the campaign Auditor (actor kind `auditor`, phase `channeling`,
+  snapshot `auditors`). Only maps that place an Auditor or grant mines require
+  29; every other map keeps its earlier requirement.
   The revision 2 live campaign contract is retired; compatible historical
   saves and retained service records remain readable. Use matching campaign builds.
   Older clients of every role are rejected before `Welcome`
@@ -582,6 +588,14 @@ World-point aim:
   of at most six grenades and takes that tick's attack admission while retaining
   gun selection. An empty or refused throw still permits gun fire. The separate
   throw cooldown is 15 ticks; fuse is 40 subsequent active ticks.
+- `place_mine`: Optional held boolean, omitted while false. A rising edge
+  latches one counted placement, like `throw_grenade`. The mine leaves the eye
+  at 8 m/s along authoritative aim plus 2 m/s upward and sticks to the first
+  solid, floor or bound it touches. It consumes one of at most four mines and
+  that tick's attack admission; a grenade throw on the same tick wins. The
+  placement cooldown is 15 ticks. A placement over the live cap (three per
+  owner, 32 in the world), from a dead, detached or inactive body, or with no
+  mine in hand is refused and spends nothing.
 - `jump`: Jump while grounded. The held value remains active until released;
   a press followed by release before the next tick is retained for that tick.
   The retained press is consumed once, including while airborne or dead, so it
@@ -844,6 +858,14 @@ a weapon slot nor an ammunition pool. A grant with `kind: "grenade"` and bounded
 `grenade`, actual amount, no weapon and no pool. A throw changes the private
 count, with no magazines or reload. Weapon-only mutators refuse grenades.
 
+`proximity_mines` is a separate optional integer from one through four,
+omitted while zero, so earlier readers keep every map without mines. It is
+neither a weapon slot nor a grenade. A grant with `kind: "proximity_mine"` and
+an `amount` from one through four uses ordinary personal or contested claims;
+its pickup carries kind `proximity_mine`, actual amount, no weapon and no pool.
+Weapon-only mutators refuse mines. Saved run equipment does not yet store a mine
+count: mines are found in level 8 and no later mission carries them.
+
 Pickup entries additionally support `kind: "ammo"`, `pool` (`bullets`, `shells`,
 `cells`) and a round `amount`. `claim` defaults to `contested` and is omitted in
 legacy snapshots. A `personal` weapon supply stays publicly available while each
@@ -1053,6 +1075,30 @@ Periodic state broadcast containing all visible game entities. Sent at ~20 Hz.
   frag or outgoing credit. A dead owner retains a launched grenade; explicit
   leave, retry, map/round replacement or departure clears it. Gun traces are
   not invented for grenades.
+- `mines`: Optional live array, omitted when empty. Each strict entry has `id`
+  (from the same monotonic serial as grenades), `owner_id`, finite `position`,
+  unit `normal` of the surface it stuck to (zero while flying), `phase` and the
+  `phase_started` and `phase_ends` ticks. Phases: `flying` (window zero),
+  `arming` (exactly 40 ticks after sticking), `armed` (window zero) and
+  `tripped` (exactly 4 ticks to the blast). An armed mine trips when its owner,
+  or any living active body the owner's damage would land on, is within 2 m of
+  its centre with clear sight. A companion or teammate the owner cannot hurt
+  never trips it. A mine that has not stuck within 100 ticks leaves without a
+  blast. Unlike a thrown grenade, a placed mine is an owned device: the owner's
+  death, explicit leave, retry, reset, map/round replacement and departure
+  clear it. A mine blast appears in `explosions` with `radius` 4.5 and a 130
+  peak with the same linear falloff, occlusion and self-damage rules; the radius
+  names the device.
+- `auditors`: Optional array of living campaign Auditors, omitted when empty.
+  Each strict entry has `id`, `repairs_left` (zero through two) and, only while
+  that Auditor is channeling, `channel_target`: the disabled Sweeper or Heavy
+  Sweeper its repair reaches. The channel window is the Auditor's own
+  `channeling` phase. A channel starts on a disabled bot from its own group
+  within 18 m and clear sight; a damaging hit, broken sight, a missing body or a
+  living body standing on it at the end snaps it without spending a repair. A
+  completed channel stands the bot up at half its spawn health in a 20-tick
+  `recovery`. Clerks and Auditors are never repaired; a third repair never
+  happens. A held disabled body's window never exceeds 100 ticks.
 - `players`: Array of visible player states. A fighter waiting to respawn is not in it. There is no corpse on the wire: the server drops a player from the snapshot the moment it dies and puts it back three seconds later at its spawn point, so absence is how death looks to an agent. Watch for the `frag` and `respawn` events rather than inferring death from a health value, and do not read a missing fighter as one that has left the match.
   - `id`: Player UUID
   - `name`: Display name
@@ -1206,12 +1252,14 @@ changes presentation only, not the authoritative body or shot geometry.
 Human and external-agent participants are allies. Union `kind` is `clerk` (human
 security), `sweeper` (bot), `heavy_sweeper` (armored bot), `turret` (fixed
 equipment), `crawler` (low constrained bot), `jammer` (stationary service
-transmitter), or `notary` (flying Office patrol equipment). Names are labels, never a
+transmitter), `notary` (flying Office patrol equipment), or `auditor` (human custody
+officer with a shield plate). Names are labels, never a
 targeting rule. Current
 campaign identity describes these introductory encounters; it does not implement
 Inheritance takeover, additional companions or the complete co-op lifecycle.
 
-Phases are `idle`, `moving`, `windup`, `leaping`, `firing`, `recovery`, `hit` and `dead`.
+Phases are `idle`, `moving`, `windup`, `leaping`, `firing`, `recovery`, `hit`, `dead`
+and, for an `auditor` only, `channeling`.
 Their start/end are authoritative simulation ticks at 20 Hz. Idle and moving
 have no fixed duration (`phase_ends == phase_started`); other phases may be
 interrupted by hits, lost sight or death. A firing animation never causes damage.
@@ -1267,6 +1315,16 @@ Death applies server gravity onto actual ground or solid support, then leaves
 a short harmless, nonblocking wreck. Retry removes it. The original directional
 client atlas, shadow, fan loop, shutter and supported crash cue follow these
 facts; late-joined corpses do not replay crash cues.
+
+An `auditor` has 120 HP, the Pistol with its own finite Bullets and 0.4 of
+participant top speed. Its one-shot attack uses windup 22, 14 or 12 and recovery
+32, 22 or 18 ticks on Assisted, Standard and Severe, and any damaging hit staggers
+it for 6 ticks. Its shield plate halves traced shot damage (rounded up) arriving
+within 60 degrees of its facing; blasts wrap the plate. Its `channeling` phase
+lasts 60, 44 or 36 ticks and holds still facing the disabled body named by the
+snapshot's `auditors` entry; see that field for start, snap and repair rules. A
+repaired Sweeper returns from `dead` straight to `recovery` with positive HP.
+These rows are part of rules revision 3 from their first build.
 
 Campaign participants cannot damage one another. Participant and Union allies
 intercept rays with `hit: true`, `damage: 0` and `killed: false`; zero damage must
@@ -2084,6 +2142,10 @@ attack, and at most 256 kills can belong to it. Actual self HP/armor loss counts
 only on the victim side. Successful throws suppress gun fire for that tick, so
 aggregate attacks remain bounded by active ticks. Retained records keep their
 existing byte shape when the grenade column is zero.
+
+An optional `mines` column has the same five count fields and rules beside the
+grenade column: one placement is one attack, one blast that damages another
+eligible body is one damaging attack, and it is omitted while unused.
 
 Living active ticks exclude intro/readiness, dead respawn waiting, continue
 choice and terminal waiting. The lethal frame counts. This is not wall-clock

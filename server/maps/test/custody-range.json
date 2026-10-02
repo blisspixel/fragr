@@ -1,0 +1,49 @@
+{
+  "version": 1,
+  "map_id": 1014,
+  "name": "Custody device range",
+  "half_extent": 24,
+  "ground": "concrete",
+  "equipment": "discovery",
+  "solids": [
+    {"id":"alcove_south","min":[-22,0,-6],"max":[-13,3,-5],"surface":"enamel"},
+    {"id":"alcove_west","min":[-22,0,-5],"max":[-21,3,3],"surface":"enamel"},
+    {"id":"alcove_north","min":[-22,0,3],"max":[-13,3,4],"surface":"enamel"},
+    {"id":"alcove_east","min":[-14,0,-5],"max":[-13,3,0],"surface":"service_steel"},
+    {"id":"cage_rack","min":[-21,0,-2],"max":[-20.4,2.4,1],"surface":"service_steel"},
+    {"id":"corridor_west","min":[-14,0,4],"max":[-13,3,16],"surface":"enamel"},
+    {"id":"corridor_east","min":[-10,0,-5],"max":[-9,3,16],"surface":"service_steel"},
+    {"id":"bay_pillar_west","min":[5,0,8],"max":[7,3,10],"surface":"concrete"},
+    {"id":"bay_pillar_east","min":[17,0,8],"max":[19,3,10],"surface":"concrete"},
+    {"id":"bay_desk","min":[10,0,20],"max":[14,1.1,21],"surface":"records_tile"}
+  ],
+  "spawns": [{"id":"entry","feet":[0,0,-18],"yaw":1.5707964}],
+  "landmarks": [
+    {"id":"corridor_mouth","feet":[-11.5,0,1.5]},
+    {"id":"alcove_corner","feet":[-19.5,0,2]},
+    {"id":"post","feet":[-11.5,0,20]},
+    {"id":"bay_flank","feet":[21,0,14]},
+    {"id":"bay_rear","feet":[12,0,22.5]}
+  ],
+  "supplies": [
+    {"id":"range_rifle","feet":[-1.5,0,-16],"grant":{"kind":"weapon","weapon":"flechette"},"claim":"personal"},
+    {"id":"range_shotgun","feet":[1.5,0,-16],"grant":{"kind":"weapon","weapon":"scatter"},"claim":"personal"},
+    {"id":"range_bullets","feet":[0,0,-14],"grant":{"kind":"ammo","pool":"bullets","amount":60},"claim":"contested"},
+    {"id":"cage_mines","feet":[-19.5,0,-0.5],"grant":{"kind":"proximity_mine","amount":4},"claim":"personal"},
+    {"id":"bay_shells","feet":[2,0,0],"grant":{"kind":"ammo","pool":"shells","amount":12},"claim":"contested"},
+    {"id":"bay_health","feet":[22,0,4],"grant":{"kind":"health","amount":50},"claim":"contested"}
+  ],
+  "encounters": [
+    {"id":"mine_lesson","regions":[{"min":[-21,0,-5],"max":[-14,2,3]}],
+      "enemies":[
+        {"id":"post_sweeper_a","kind":"sweeper","feet":[-11.5,0,19],"yaw":4.712389},
+        {"id":"post_sweeper_b","kind":"sweeper","feet":[-11.5,0,21.5],"yaw":4.712389}
+      ]},
+    {"id":"audit_bay","regions":[{"min":[2,0,4],"max":[24,2,24]}],
+      "enemies":[
+        {"id":"bay_auditor","kind":"auditor","feet":[12,0,18],"yaw":4.712389},
+        {"id":"bay_sweeper_a","kind":"sweeper","feet":[8,0,14],"yaw":4.712389},
+        {"id":"bay_sweeper_b","kind":"sweeper","feet":[16,0,14],"yaw":4.712389}
+      ]}
+  ]
+}

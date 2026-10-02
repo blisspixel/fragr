@@ -7,6 +7,16 @@ const LIFETIME: float = 0.32
 const CLEARANCE: Shader = preload("res://assets/shaders/grenade_surface.gdshader")
 const BOUNCE: AudioStream = preload("res://assets/story/effects/grenade_bounce.wav")
 const BLAST: AudioStream = preload("res://assets/story/effects/grenade_blast.wav")
+## Per-device cues, keyed by the device a resolved blast radius names. The
+## proximity mine entries are placeholders from existing audio; each final
+## asset is a one-line swap here.
+const BLASTS: Dictionary = {4.0: BLAST, 4.5: BLAST}
+const MINE_STICK: AudioStream = preload("res://assets/audio/notary/shutter.wav")
+const MINE_BODY: Color = Color("2f3438")
+const MINE_RIM: Color = Color("6b6f72")
+const LAMP_ARMING: Color = Color("efb56e")
+const LAMP_LIVE: Color = Color("ff3020")
+const LAMP_DARK: Color = Color("3a1612")
 var bodies: Dictionary[int, MeshInstance3D] = {}
 var bursts: Array[Dictionary] = []
 var voices: Array[AudioStreamPlayer3D] = []
@@ -16,6 +26,10 @@ var bounce_cues: int = 0
 var blast_cues: int = 0
 var _voice_index: int = 0
 var _resolved: Dictionary[int, bool] = {}
+var mines: Dictionary[int, Node3D] = {}
+var mine_phases: Dictionary[int, String] = {}
+var stick_cues: int = 0
+var lamps_lit: int = 0
 
 ## A grenade newly in flight on a live snapshot, by the participant who threw
 ## it. Bodies already present when a snapshot stream starts are not throws.
@@ -25,6 +39,12 @@ func reset() -> void:
 	for body: MeshInstance3D in bodies.values():
 		body.queue_free()
 	bodies.clear()
+	for mine: Node3D in mines.values():
+		mine.queue_free()
+	mines.clear()
+	mine_phases.clear()
+	stick_cues = 0
+	lamps_lit = 0
 	for burst: Dictionary in bursts:
 		(burst["node"] as Node3D).queue_free()
 	bursts.clear()
@@ -37,10 +57,12 @@ func reset() -> void:
 	blast_cues = 0
 
 func apply(snapshot: Dictionary, listener: Vector3) -> void:
-	if not GrenadeFacts.validation_error(snapshot).is_empty() or int(snapshot["tick"]) <= last_tick:
+	if not GrenadeFacts.validation_error(snapshot).is_empty() or not CustodyFacts.validation_error(snapshot).is_empty() \
+		or int(snapshot["tick"]) <= last_tick:
 		return
 	var initial: bool = last_tick < 0
 	last_tick = int(snapshot["tick"])
+	_apply_mines(snapshot, listener, initial)
 	var current: Dictionary[int, bool] = {}
 	for fact: Dictionary in snapshot.get("grenades", []):
 		var id: int = int(fact["id"])
@@ -87,8 +109,60 @@ func apply(snapshot: Dictionary, listener: Vector3) -> void:
 		add_child(burst)
 		bursts.append({"node": burst, "remaining": LIFETIME})
 		if listener.is_finite():
-			_sound(BLAST, position, listener)
+			_sound(BLASTS.get(float(fact["radius"]), BLAST), position, listener)
 			blast_cues += 1
+
+## Placed mines: a dark puck on its surface and a lamp that is steady while
+## arming, blinks once live and flickers fast once tripped. The lamp follows
+## server ticks, so every viewer sees the same blink.
+func _apply_mines(snapshot: Dictionary, listener: Vector3, initial: bool) -> void:
+	var tick: int = int(snapshot["tick"])
+	var current: Dictionary[int, bool] = {}
+	lamps_lit = 0
+	for fact: Dictionary in snapshot.get("mines", []):
+		var id: int = int(fact["id"])
+		current[id] = true
+		if not mines.has(id):
+			mines[id] = _mine_body()
+			mines[id].name = "Mine_%d" % id
+			add_child(mines[id])
+		var body: Node3D = mines[id]
+		body.position = GrenadeFacts.vector(fact["position"])
+		var normal: Vector3 = GrenadeFacts.vector(fact["normal"])
+		if normal.length_squared() > 0.5:
+			var side: Vector3 = Vector3.RIGHT if absf(normal.dot(Vector3.RIGHT)) < 0.9 else Vector3.FORWARD
+			var forward: Vector3 = side.cross(normal).normalized()
+			body.basis = Basis(normal.cross(forward).normalized(), normal, forward)
+		var phase: String = str(fact["phase"])
+		var lamp: MeshInstance3D = body.get_node("Lamp")
+		var lit: bool = CustodyFacts.lamp_lit(fact, tick)
+		var colour: Color = LAMP_ARMING if phase == "arming" else (LAMP_LIVE if lit else LAMP_DARK)
+		(lamp.material_override as ShaderMaterial).set_shader_parameter("effect_color", colour)
+		lamps_lit += int(lit)
+		if not initial and mine_phases.get(id, "") == "flying" and phase == "arming" and listener.is_finite():
+			_sound(MINE_STICK, body.position, listener)
+			stick_cues += 1
+		mine_phases[id] = phase
+	for id: int in mines.keys():
+		if not current.has(id):
+			mines[id].queue_free()
+			mines.erase(id)
+			mine_phases.erase(id)
+
+func _mine_body() -> Node3D:
+	var body: Node3D = Node3D.new()
+	var puck: MeshInstance3D = _mesh(Vector3(0.30, 0.08, 0.30), MINE_BODY)
+	puck.name = "Puck"
+	body.add_child(puck)
+	var rim: MeshInstance3D = _mesh(Vector3(0.36, 0.04, 0.12), MINE_RIM)
+	rim.name = "Rim"
+	rim.position = Vector3(0, -0.02, 0)
+	body.add_child(rim)
+	var lamp: MeshInstance3D = _mesh(Vector3(0.09, 0.07, 0.09), LAMP_DARK)
+	lamp.name = "Lamp"
+	lamp.position = Vector3(0, 0.07, 0)
+	body.add_child(lamp)
+	return body
 
 func _exit_tree() -> void:
 	for voice: AudioStreamPlayer3D in voices:

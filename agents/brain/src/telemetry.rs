@@ -403,6 +403,8 @@ pub(crate) mod fixtures {
             shot_results: vec![],
             projectiles: vec![],
             grenades: Vec::new(),
+            mines: Vec::new(),
+            auditors: Vec::new(),
             explosions: Vec::new(),
             mode_name: "Contested Frequency".to_string(),
             playlist: "Arena Duel".to_string(),

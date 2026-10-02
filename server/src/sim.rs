@@ -3,6 +3,7 @@ mod ctf;
 #[cfg(test)]
 mod enclosed_tests;
 pub mod grenade;
+pub mod mine;
 mod modes;
 pub mod sabotage;
 pub mod traveling_shot;
@@ -89,6 +90,8 @@ pub const PICKUP_RESPAWN_TICKS: u32 = 20 * 12;
 pub const HEALTH_PICKUP_RESPAWN_TICKS: u32 = 20 * 15;
 /// Max scrap armor (simple absorb-before-HP).
 pub const PLAYER_MAX_ARMOR: i32 = 100;
+/// Half-angle of an Auditor's frontal shield plate: 60 degrees either side.
+pub const AUDITOR_SHIELD_HALF_ARC: f32 = std::f32::consts::FRAC_PI_3;
 /// Health pad heal amount (capped at PLAYER_MAX_HP).
 pub const HEALTH_PAD_AMOUNT: i32 = 40;
 /// Armor scrap grant amount (capped at PLAYER_MAX_ARMOR).
@@ -410,6 +413,9 @@ pub enum PickupKind {
     Grenade {
         count: u16,
     },
+    ProximityMine {
+        count: u16,
+    },
     Ammo {
         pool: crate::protocol::AmmoPool,
         rounds: u16,
@@ -423,6 +429,7 @@ impl PickupKind {
     pub fn wire_name(self) -> &'static str {
         match self {
             PickupKind::Grenade { .. } => "grenade",
+            PickupKind::ProximityMine { .. } => "proximity_mine",
             PickupKind::Ammo { .. } => "ammo",
             PickupKind::Weapon(_) => "weapon",
             PickupKind::Health => "health",
@@ -467,7 +474,9 @@ impl ArenaPickup {
             .map(|w| w.name().to_string())
             .unwrap_or_default();
         let amount = match self.kind {
-            PickupKind::Grenade { count } => Some(i32::from(count)),
+            PickupKind::Grenade { count } | PickupKind::ProximityMine { count } => {
+                Some(i32::from(count))
+            }
             PickupKind::Weapon(_) => None,
             PickupKind::Health | PickupKind::Armor => Some(self.amount),
             PickupKind::Ammo { rounds, .. } => Some(i32::from(rounds)),
@@ -496,7 +505,7 @@ impl ArenaPickup {
 
     fn respawn_ticks(&self) -> u32 {
         match self.kind {
-            PickupKind::Grenade { .. } => 200,
+            PickupKind::Grenade { .. } | PickupKind::ProximityMine { .. } => 200,
             PickupKind::Ammo { .. } => 200,
             PickupKind::Weapon(_) => PICKUP_RESPAWN_TICKS,
             PickupKind::Health | PickupKind::Armor => HEALTH_PICKUP_RESPAWN_TICKS,
@@ -531,6 +540,7 @@ pub struct GameState {
     /// Points still in flight. Omitted from the snapshot while empty.
     traveling_shots: Vec<traveling_shot::TravelingShot>,
     grenades: Vec<grenade::Grenade>,
+    mines: Vec<mine::Mine>,
     explosion_results: Vec<crate::protocol::ExplosionResult>,
     projectile_serial: u32,
     /// Remaining ticks of Continuance compliance slow (0 = none).
@@ -596,6 +606,8 @@ pub struct Player {
     pub(crate) interaction_requested: bool,
     throw_requested: bool,
     grenade_cooldown: u32,
+    place_requested: bool,
+    mine_cooldown: u32,
     pub fire_cooldown: u32,
     pub respawn_timer: Option<u32>,
     pub just_fired: bool,
@@ -654,6 +666,7 @@ impl Player {
         self.jump_requested = false;
         self.interaction_requested = false;
         self.throw_requested = false;
+        self.place_requested = false;
         self.reset_movement_baseline();
     }
 
@@ -700,6 +713,8 @@ impl Player {
             interaction_requested: false,
             throw_requested: false,
             grenade_cooldown: 0,
+            place_requested: false,
+            mine_cooldown: 0,
             fire_cooldown: 0,
             respawn_timer: None,
             just_fired: false,
@@ -1354,6 +1369,7 @@ impl GameState {
         self.return_golden_rail_from(id);
         self.players.retain(|p| p.id != id);
         self.grenades.retain(|grenade| grenade.owner_id != id);
+        self.mines.retain(|mine| mine.owner_id != id);
         self.scores.remove(&id);
         self.refresh_mission_readiness();
         self.update_encounters();
@@ -1398,6 +1414,7 @@ impl GameState {
             player.jump_requested |= action.jump;
             player.interaction_requested |= action.interact && !player.pending_action.interact;
             player.throw_requested |= action.throw_grenade && !player.pending_action.throw_grenade;
+            player.place_requested |= action.place_mine && !player.pending_action.place_mine;
             player.pending_action = action;
         }
     }
@@ -1670,6 +1687,7 @@ impl GameState {
                 player.fire_cooldown -= 1;
             }
             player.grenade_cooldown = player.grenade_cooldown.saturating_sub(1);
+            player.mine_cooldown = player.mine_cooldown.saturating_sub(1);
 
             if let Some(timer) = player.respawn_timer.as_mut() {
                 *timer = timer.saturating_sub(1);
@@ -1832,6 +1850,7 @@ impl GameState {
         self.advance_m05_captives(dt);
 
         let grenade_launches = self.launch_grenades();
+        let mine_placements = self.place_mines(&grenade_launches);
         let mut hits = Vec::new();
         let mut jammer_launches = Vec::new();
         for i in 0..self.players.len() {
@@ -1847,6 +1866,7 @@ impl GameState {
             if player.pending_action.fire
                 && player.fire_cooldown == 0
                 && !grenade_launches.contains(&player.id)
+                && !mine_placements.contains(&player.id)
             {
                 if matches!(
                     player.campaign,
@@ -1992,6 +2012,7 @@ impl GameState {
         }
 
         self.tick_grenades(dt);
+        self.tick_mines(dt);
         self.update_campaign_run();
         self.advance_mission();
         self.advance_m02_evacuation(dt);
@@ -2101,6 +2122,38 @@ impl GameState {
         contacts
     }
 
+    /// An Auditor's shield plate halves traced damage arriving within
+    /// `AUDITOR_SHIELD_HALF_ARC` of its facing. Blasts wrap the plate.
+    fn shielded(&self, victim: usize, damage: i32, trace: Option<&ShotTrace>) -> i32 {
+        let player = &self.players[victim];
+        let Some(trace) = trace else {
+            return damage;
+        };
+        if damage <= 1
+            || !matches!(
+                player.campaign,
+                Some(CampaignActor::Union {
+                    kind: crate::protocol::EnemyKind::Auditor,
+                    ..
+                })
+            )
+        {
+            return damage;
+        }
+        let (dx, dz) = (trace.origin[0] - player.x, trace.origin[2] - player.z);
+        if dx.hypot(dz) <= f32::EPSILON {
+            return damage;
+        }
+        let arrival = dz.atan2(dx);
+        let delta = (arrival - player.yaw).rem_euclid(std::f32::consts::TAU);
+        let off_axis = delta.min(std::f32::consts::TAU - delta);
+        if off_axis <= AUDITOR_SHIELD_HALF_ARC {
+            (damage + 1) / 2
+        } else {
+            damage
+        }
+    }
+
     /// Commit one fighter's share of a shot: every pellet that struck them,
     /// summed, so armour absorbs once and one death awards one frag.
     fn resolve_fighter_hit(
@@ -2110,6 +2163,7 @@ impl GameState {
         damage: i32,
         trace: Option<ShotTrace>,
     ) -> (u64, u64, bool) {
+        let damage = self.shielded(victim_idx, damage, trace.as_ref());
         let shooter_name = self.players[shooter_idx].name.clone();
         let shooter_id = self.players[shooter_idx].id;
         let self_hit = shooter_idx == victim_idx && trace.is_none();
@@ -2158,6 +2212,7 @@ impl GameState {
             if died {
                 victim.inventory.release_trigger();
                 victim.throw_requested = false;
+                victim.place_requested = false;
                 // Victim streak dies with them; boss does not respawn.
                 ended_streak = std::mem::take(&mut victim.killstreak);
                 lost_golden = std::mem::take(&mut victim.golden);
@@ -2624,6 +2679,8 @@ impl GameState {
             shot_results: self.shot_results.clone(),
             projectiles: self.projectile_states(),
             grenades: self.grenade_states(),
+            mines: self.mine_states(),
+            auditors: self.encounters.auditor_states(),
             explosions: self.explosion_results.clone(),
             mode_name: if self.map.is_authored() {
                 "Campaign development"
@@ -3026,6 +3083,8 @@ impl GameState {
             interaction_requested: false,
             throw_requested: false,
             grenade_cooldown: 0,
+            place_requested: false,
+            mine_cooldown: 0,
             respawn_timer: None,
             just_fired: false,
             role: Role::Agent,
@@ -3148,7 +3207,10 @@ impl GameState {
             self.pickups.retain(|pad| {
                 !matches!(
                     pad.kind,
-                    PickupKind::Weapon(_) | PickupKind::Ammo { .. } | PickupKind::Grenade { .. }
+                    PickupKind::Weapon(_)
+                        | PickupKind::Ammo { .. }
+                        | PickupKind::Grenade { .. }
+                        | PickupKind::ProximityMine { .. }
                 )
             });
         }
@@ -3201,6 +3263,10 @@ impl GameState {
                     PickupKind::Ammo { pool, .. } => player.inventory.needs_ammo(pool),
                     PickupKind::Grenade { .. } => {
                         player.inventory.only().is_none() && player.inventory.grenades() < 6
+                    }
+                    PickupKind::ProximityMine { .. } => {
+                        player.inventory.only().is_none()
+                            && player.inventory.mines() < crate::protocol::MINE_CARRY_CAP
                     }
                     PickupKind::Health => player.hp < PLAYER_MAX_HP,
                     PickupKind::Armor => player.armor < PLAYER_MAX_ARMOR,
@@ -3264,6 +3330,14 @@ impl GameState {
                         String::new(),
                         Some(i32::from(gained)),
                         format!("+{gained} grenades"),
+                    )
+                }
+                PickupKind::ProximityMine { count } => {
+                    let gained = player.inventory.grant_mines(count);
+                    (
+                        String::new(),
+                        Some(i32::from(gained)),
+                        format!("+{gained} proximity mines"),
                     )
                 }
                 PickupKind::Weapon(w) => {
@@ -3354,6 +3428,8 @@ impl GameState {
             interaction_requested: false,
             throw_requested: false,
             grenade_cooldown: 0,
+            place_requested: false,
+            mine_cooldown: 0,
             respawn_timer: None,
             just_fired: false,
             role: Role::Agent,
@@ -3597,6 +3673,7 @@ impl Default for GameState {
             shot_results: Vec::new(),
             traveling_shots: Vec::new(),
             grenades: Vec::new(),
+            mines: Vec::new(),
             explosion_results: Vec::new(),
             projectile_serial: 0,
             compliance_ticks_left: 0,

@@ -61,6 +61,12 @@ func _run() -> void:
 	pickup.setup("workshop_grenades", "", Vector3.ZERO, "grenade", 2)
 	_check(label.text == "+2 GRENADES" and not label.visible and icon.visible,
 		"a grenade supply is drawn, and its keyed words name its grenades: " + label.text)
+	# A mine supply keeps its keyed words, and is drawn the moment its art joins
+	# the supply table; until then it is the labelled crate.
+	pickup.setup("cage_mines", "", Vector3.ZERO, "proximity_mine", 3)
+	var mine_drawn: bool = WeaponArt.SUPPLY.has("proximity_mine")
+	_check(label.text == "+3 MINES" and icon.visible == mine_drawn and label.visible == not mine_drawn,
+		"a mine supply names its mines and swaps to art by table: " + label.text)
 	pickup.setup("golden_rail", "Rail", Vector3.ZERO, "golden_rail")
 	_check(icon.visible and label.visible and label.text == TranslationServer.translate("PICKUP_GOLDEN_RAIL"),
 		"the golden Railgun keeps its one name above its sprite")

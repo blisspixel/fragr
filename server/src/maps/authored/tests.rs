@@ -84,11 +84,16 @@ fn supplies_validate_grants_claims_clearance_and_reachability() {
         json!({"kind":"weapon","weapon":"tack"}),
         json!({"kind":"health","amount":25}),
         json!({"kind":"armor","amount":50}),
+        json!({"kind":"proximity_mine","amount":4}),
     ] {
         let mut valid = doc.clone();
         valid["supplies"][0]["grant"] = grant;
         assert!(decode(&valid).is_ok());
     }
+    let mut personal_mines = doc.clone();
+    personal_mines["supplies"][0]["grant"] = json!({"kind":"proximity_mine","amount":2});
+    personal_mines["supplies"][0]["claim"] = json!("personal");
+    assert!(decode(&personal_mines).is_ok());
     let mut invalids = Vec::new();
     for grant in [
         json!({"kind":"weapon","weapon":"fists"}),
@@ -103,6 +108,8 @@ fn supplies_validate_grants_claims_clearance_and_reachability() {
         json!({"kind":"health","amount":101}),
         json!({"kind":"armor","amount":0}),
         json!({"kind":"weapon","weapon":"tack","amount":1}),
+        json!({"kind":"proximity_mine","amount":0}),
+        json!({"kind":"proximity_mine","amount":5}),
     ] {
         let mut bad = doc.clone();
         bad["supplies"][0]["grant"] = grant;

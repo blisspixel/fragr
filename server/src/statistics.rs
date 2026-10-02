@@ -95,6 +95,22 @@ impl CombatLedger {
             counts.grenades.kills += kills;
         });
     }
+
+    pub fn mine_attack(&mut self) {
+        self.update(|counts| counts.mines.attacks += 1);
+    }
+
+    pub fn mine_hit(&mut self, hp: u64, armor: u64, kills: u64) {
+        if hp + armor == 0 {
+            return;
+        }
+        self.update(|counts| {
+            counts.mines.damaging_attacks += 1;
+            counts.mines.hp_damage += hp;
+            counts.mines.armor_damage += armor;
+            counts.mines.kills += kills;
+        });
+    }
 }
 
 impl GameState {

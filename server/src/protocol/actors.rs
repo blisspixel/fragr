@@ -17,6 +17,9 @@ pub enum EnemyKind {
     Jammer,
     /// Flying Office patrol equipment with a committed photographic flash.
     Notary,
+    /// Human custody officer with a shield plate who channels a bounded
+    /// repair into disabled Union bots.
+    Auditor,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -30,6 +33,8 @@ pub enum EnemyPhase {
     Recovery,
     Hit,
     Dead,
+    /// An Auditor holding a repair channel on a disabled body.
+    Channeling,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -69,6 +74,22 @@ pub enum CampaignActor {
 fn not_seated(seated: &bool) -> bool {
     !seated
 }
+
+/// One living Auditor's repair budget and current channel. The channel's
+/// window is the Auditor's own `channeling` phase.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct AuditorState {
+    pub id: uuid::Uuid,
+    /// Completed repairs it may still make, two at most.
+    pub repairs_left: u8,
+    /// The disabled body its channel reaches, only while channeling.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub channel_target: Option<uuid::Uuid>,
+}
+
+/// Completed repairs one Auditor may make. Never a third.
+pub const AUDITOR_REPAIRS: u8 = 2;
 
 impl CampaignActor {
     pub fn is_enemy(self) -> bool {

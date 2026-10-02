@@ -13,7 +13,7 @@ extends Node
 # 10 one ammunition count per type and scatter pellet traces; 9 M02
 # objective and gate state; 8 private participant records. Older servers
 # remain playable.
-const GAMEPLAY_VERSION: int = 27
+const GAMEPLAY_VERSION: int = 29
 
 signal connected_to_server
 signal disconnected_from_server
@@ -200,6 +200,8 @@ func send_action(action: Dictionary):
 		msg["interact"] = true
 	if action.get("throw_grenade", false):
 		msg["throw_grenade"] = true
+	if action.get("place_mine", false):
+		msg["place_mine"] = true
 	if swap != null and str(swap) != "":
 		msg["weapon_swap"] = str(swap)
 	# Client-owned facing and the input number the server acknowledges. Both are
@@ -439,6 +441,8 @@ func _handle_message(text: String):
 			var problem: String = ActorState.validation_error(data)
 			if problem.is_empty():
 				problem = GrenadeFacts.validation_error(data)
+			if problem.is_empty():
+				problem = CustodyFacts.validation_error(data)
 			if problem.is_empty():
 				problem = PlayerBody.snapshot_error(data)
 			if problem.is_empty():

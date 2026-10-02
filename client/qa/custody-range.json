@@ -1,0 +1,17 @@
+{
+  "comment": "Custody device development range. Real human input and server phases, no granted equipment or teleports. FRAGR_QA_BOTS=0, FRAGR_QA_MAP_FILE=server/maps/test/custody-range.json, FRAGR_QA_MANIFEST=res://qa/custody-range.json. Not a completed level 8.",
+  "width": 1280,
+  "height": 720,
+  "states": [
+    {"name":"custody_range_supplies","scene":"res://scenes/main.tscn","join":"human","camera":"first_person","radio_off":true,"walk_to":[[-1.5,0,-16],[1.5,0,-16],[0,0,-14]],"note":"Claim the Rifle, Shotgun and Bullets through the normal supply path."},
+    {"name":"custody_cage_mines","camera":"first_person","weapon":"Flechette","walk_to":[[-6,0,-8],[-11.5,0,-4],[-11.5,0,1.5],[-16,0,1.5],[-19.5,0,-0.5]],"expect_equipment":{"personal_claims":["cage_mines","range_rifle","range_shotgun"]},"look_at":[-13,1.2,1.5],"note":"Walk up the corridor and into the one-entrance alcove. The cage grants four counted mines; entering dispatches the post pair down the bent corridor."},
+    {"name":"custody_mine_arming","camera":"first_person","walk_to":[[-16,0,1.5]],"look_at":[-10,0.4,1.5],"trigger":"place_mine","strip_frames":12,"strip_interval_seconds":0.25,"note":"Press the ordinary mine key at the mouth. The strip records the throw, the stick on the corridor floor and the steady arming lamp."},
+    {"name":"custody_mine_live","camera":"first_person","walk_to":[[-19.5,0,2]],"look_at":[-12.5,0.4,1.5],"strip_frames":24,"strip_interval_seconds":0.3,"note":"Step back into the corner the corridor cannot see and watch the live blink until the post pair walks into the mine."},
+    {"name":"custody_mine_cleanup","camera":"first_person","combat":{"kind":"union","required":["post_sweeper_a","post_sweeper_b"],"target_required_only":true,"evade_tells":true},"note":"Both named post Sweepers remain required, including anyone the actual blast reached."},
+    {"name":"custody_bay_approach","camera":"first_person","weapon":"Flechette","walk_to":[[-11.5,0,-4],[0,0,-4],[3,0,2],[4,0,6]],"look_at":[12,1.2,18],"note":"Enter the audit bay. The Auditor stands behind two Sweepers with its shield plate facing the entry."},
+    {"name":"custody_first_sweeper","camera":"first_person","combat":{"kind":"union","required":["bay_sweeper_a"],"target_required_only":true,"evade_tells":true},"note":"Drop the nearer Sweeper first so the Auditor has a disabled body to reach."},
+    {"name":"custody_channel","camera":"first_person","look_at":[10,0.6,15],"strip_frames":16,"strip_interval_seconds":0.2,"note":"The Auditor raises its hand and a channel reaches the disabled body. The strip records the beam and any stand-up before the repair."},
+    {"name":"custody_auditor_down","camera":"first_person","combat":{"kind":"union","required":["bay_auditor","bay_sweeper_a","bay_sweeper_b"],"target_required_only":true,"evade_tells":true},"note":"Break the channel and clear the bay, flanking the plate where the pillars allow."},
+    {"name":"custody_range_exit","camera":"first_person","walk_to":[[21,0,14],[12,0,22.5]],"note":"Reach the final landmarks. This fixture has no campaign departure or save transition."}
+  ]
+}

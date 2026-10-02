@@ -6,6 +6,8 @@ const VERSION: int = 1
 const STATUSES: Array[String] = ["active", "continue", "complete", "failed", "abandoned"]
 const COUNTS: Array[String] = ["alive_ticks", "deaths", "hp_lost", "armor_lost", "dry_triggers"]
 const WEAPON_COUNTS: Array[String] = ["attacks", "damaging_attacks", "kills", "hp_damage", "armor_damage"]
+## Counted explosive columns, each omitted while unused.
+const EXPLOSIVE_COLUMNS: Array[String] = ["grenades", "mines"]
 ## Five original weapon slots, and a sixth once the Shiv has been used.
 const LEGACY_WEAPONS: int = 5
 const INVALID: String = "Invalid participant record."
@@ -61,21 +63,24 @@ static func valid_counts(value: Variant) -> bool:
 		return false
 	# Distinct secrets found; omitted while zero.
 	var secrets: bool = value.has("secrets")
-	if value.size() != 6 + int(secrets) + int(value.has("grenades")):
+	if value.size() != 6 + int(secrets) + int(value.has("grenades")) + int(value.has("mines")):
 		return false
 	if secrets and (not EquipmentState.integer(value["secrets"], EquipmentState.MAX_EXACT_INTEGER) 		or int(value["secrets"]) < 1 or int(value["secrets"]) > int(value.get("alive_ticks", 0))):
 		return false
 	for field: String in COUNTS:
 		if not EquipmentState.integer(value.get(field), EquipmentState.MAX_EXACT_INTEGER):
 			return false
-	if value.has("grenades"):
-		var grenade: Variant = value["grenades"]
-		if not grenade is Dictionary or grenade.size() != 5:
+	# Counted explosives keep their own columns beside the gun slots.
+	for column: String in EXPLOSIVE_COLUMNS:
+		if not value.has(column):
+			continue
+		var device: Variant = value[column]
+		if not device is Dictionary or device.size() != 5:
 			return false
 		for field: String in WEAPON_COUNTS:
-			if not EquipmentState.integer(grenade.get(field), EquipmentState.MAX_EXACT_INTEGER):
+			if not EquipmentState.integer(device.get(field), EquipmentState.MAX_EXACT_INTEGER):
 				return false
-		if int(grenade["damaging_attacks"]) > int(grenade["attacks"]) or int(grenade["kills"]) > int(grenade["damaging_attacks"]) * 256:
+		if int(device["damaging_attacks"]) > int(device["attacks"]) or int(device["kills"]) > int(device["damaging_attacks"]) * 256:
 			return false
 	for index: int in range(value["weapons"].size()):
 		var weapon: Variant = value["weapons"][index]
@@ -99,9 +104,10 @@ static func contains(total: Dictionary, part: Dictionary) -> bool:
 	for field: String in COUNTS:
 		if int(total[field]) < int(part[field]):
 			return false
-	for field: String in WEAPON_COUNTS:
-		if grenade_count(total, field) < grenade_count(part, field):
-			return false
+	for column: String in EXPLOSIVE_COLUMNS:
+		for field: String in WEAPON_COUNTS:
+			if column_count(total, column, field) < column_count(part, column, field):
+				return false
 	if secrets(total) < secrets(part):
 		return false
 	for index: int in range(EquipmentState.WEAPONS.size()):
@@ -146,11 +152,17 @@ static func _scope_follows(value: Dictionary, old: Dictionary) -> bool:
 		return false
 	return MissionState.run_follows(value["run"], old["run"])
 
+static func column_count(counts: Dictionary, column: String, field: String) -> int:
+	return int(counts.get(column, {}).get(field, 0))
+
 static func grenade_count(counts: Dictionary, field: String) -> int:
-	return int(counts.get("grenades", {}).get(field, 0))
+	return column_count(counts, "grenades", field)
+
+static func mine_count(counts: Dictionary, field: String) -> int:
+	return column_count(counts, "mines", field)
 
 static func sum_combat(counts: Dictionary, field: String) -> int:
-	return sum_weapon(counts, field) + grenade_count(counts, field)
+	return sum_weapon(counts, field) + grenade_count(counts, field) + mine_count(counts, field)
 static func sum_weapon(counts: Dictionary, field: String) -> int:
 	var total: int = 0
 	for weapon: Dictionary in counts["weapons"]:
@@ -169,11 +181,12 @@ static func empty_counts() -> Dictionary:
 	return counts
 
 static func add_counts(total: Dictionary, value: Dictionary) -> void:
-	if total.has("grenades") or value.has("grenades"):
-		var combined: Dictionary = {}
-		for field: String in WEAPON_COUNTS:
-			combined[field] = grenade_count(total, field) + grenade_count(value, field)
-		total["grenades"] = combined
+	for column: String in EXPLOSIVE_COLUMNS:
+		if total.has(column) or value.has(column):
+			var combined: Dictionary = {}
+			for field: String in WEAPON_COUNTS:
+				combined[field] = column_count(total, column, field) + column_count(value, column, field)
+			total[column] = combined
 	for field: String in COUNTS:
 		total[field] = int(total[field]) + int(value[field])
 	if secrets(total) + secrets(value) > 0:

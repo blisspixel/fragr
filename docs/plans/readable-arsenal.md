@@ -6,8 +6,10 @@ walks those guns with the wheel, the bracket keys, and 1 through 5. Wire ids
 for the original guns are unchanged. The found Shiv is the sixth existing gun
 slot. Counted grenades are implemented locally for level 5 through the
 [grenade foundation](hand-grenade-foundation.md), separately from those gun
-slots. Sniper Rifle, Rocket Launcher, Proximity Mine and Remote Mine remain
-planned campaign finds. The table below follows the accepted twenty-level
+slots. The Proximity Mine is a counted device with its own `place_mine` action,
+implemented on the [level 8 custody range](l08-custodian-of-record-prototype.md).
+Sniper Rifle, Rocket Launcher and Remote Mine remain planned campaign finds.
+The table below follows the accepted twenty-level
 treatment, replacing this plan's historical ten-mission numbering.
 
 Decided 2026-09-25: the campaign has no carry cap. Every gun found on the route
@@ -28,7 +30,7 @@ them, not granted from a menu and not present in the arcade full arsenal:
 |---|---|---|---|
 | Sniper Rifle | `sniper`, planned | Level 7, Declared Goods, after customs teaches the Railgun | Slow, tight, high-damage hitscan. A scope is presentation. |
 | Grenade | `throw_grenade` Action and `grenades` count | Level 5, No Forwarding Address, on the ordinary route | Thrown arc, bounce, forty-tick fuse, then covered falloff blast. |
-| Proximity Mine | `proximity_mine`, planned | Level 8, Custodian of Record | Sticks, arms after a visible delay, blinks, then triggers on a body. |
+| Proximity Mine | `place_mine` Action and `proximity_mines` count, development prototype | Level 8, Custodian of Record | Sticks, arms after a visible delay, blinks, then triggers on a body. |
 | Remote Mine | `remote_mine`, planned | Level 11, Right of Search | Sticks and waits for its separate owner detonator. |
 | Rocket Launcher | `rocket`, planned | Level 13, The Weight of Permission | Flying rocket, impact blast, falloff and solid occlusion. |
 

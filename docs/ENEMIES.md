@@ -13,9 +13,11 @@ the Turret's first campaign placement remains planned for level 6
 ([plan](plans/heavy-sweeper-and-turret.md)). All five wear the black, dark
 steel and restrained red Union issue. Full-mission tuning and a fresh-player
 review remain open. The Jammer fights in M03 and the bounded flying Notary in
-M04/M05. The Assessor, reactivation and remaining enemy projectiles are proposed.
-Calibration's NODS and Auditor are separate arcade prototypes, not
-implementations of the proposed roster.
+M04/M05. The campaign Auditor and its bounded repair are a development
+prototype on the [custody range](plans/l08-custodian-of-record-prototype.md).
+The Assessor and remaining enemy projectiles are proposed. Calibration's NODS
+and arcade "AUDITOR" label are separate arcade prototypes, not implementations
+of the proposed roster.
 
 Players are defined by the weapons they find, not permanent combat classes.
 Start a fresh campaign with fists; [WEAPONS.md](WEAPONS.md) owns the pickup economy.
@@ -47,7 +49,7 @@ fragments. Neither needs constant banter.
 | Enforcer | Committed human elite, powered issued armor | Charge and knockback with a clear wind-up | Dodge and punish recovery, use armor counters |
 | Turret | Fixed equipment, no assumed personhood | Idle head sweep, visible tracking, then a red charge (1.3 s Standard) before one Rail shot. Sees new targets only ahead of its head | Break sight to cancel the charge, flank behind the sweep, precision damage. Never an unavoidable gauntlet. Implemented |
 | Redactor | Committed covert elite | Distortion and movement tell before an ambush | Observe, force movement, deny an approach |
-| Auditor | Human command/support officer with shield hardware | Channels limited reactivation of disabled units | Break channel, flank shield, prioritize support |
+| Auditor | Human command/support officer with shield hardware | Channels a repair into a disabled Sweeper or Heavy Sweeper (2.2 s Standard), twice at most; its plate halves frontal shots | Hit it or break its sight to snap the channel, flank the plate, prioritize support. Development prototype |
 | Notary | Flying patrol drone, Office equipment, no assumed personhood | Red optic flares wide with a shutter click, then a short committed burst | Strafe through the flash, shoot it during the flash, punish the drift |
 | Assessor | Heavy armored drone, Office equipment, no assumed personhood | Launcher unfolds and two red optics count down, then a slow splash volley | Dodge the canisters, hit the rear vents in recovery, Arc or splash |
 

@@ -560,6 +560,7 @@ fn compute_bot_action_filtered(
     };
 
     let mut nearest_dist = f32::MAX;
+    let mut nearest_key = (true, f32::MAX);
     let mut nearest_target = None;
 
     for target in &snapshot.players {
@@ -570,9 +571,12 @@ fn compute_bot_action_filtered(
         let dx = target.x - bot.x;
         let dz = target.z - bot.z;
         let dist = (dx * dx + dz * dz).sqrt();
+        // A channeling Auditor comes first: break the repair before it lands.
+        let key = fragr_server::combat::engagement_key(target.campaign, dist);
 
-        if dist < nearest_dist {
+        if nearest_target.is_none() || fragr_server::combat::engagement_before(key, nearest_key) {
             nearest_dist = dist;
+            nearest_key = key;
             nearest_target = Some(target);
         }
     }
@@ -1092,6 +1096,69 @@ mod tests {
     }
 
     #[test]
+    fn scripted_control_breaks_a_repair_channel_before_a_nearer_hostile() {
+        let union = |phase| {
+            Some(protocol::CampaignActor::Union {
+                kind: protocol::EnemyKind::Auditor,
+                phase,
+                phase_started: 0,
+                phase_ends: 44,
+                seated: false,
+            })
+        };
+        let fighter = |id: u128, x: f32, campaign| protocol::PlayerState {
+            collidable: true,
+            body: None,
+            golden: false,
+            lives: None,
+            team: None,
+            campaign,
+            pitch: 0.0,
+            id: uuid::Uuid::from_u128(id),
+            name: format!("F{id}"),
+            x,
+            y: 1.5,
+            z: 0.0,
+            yaw: 0.0,
+            hp: 80,
+            armor: 0,
+            just_fired: false,
+            behavior: None,
+            score: 0,
+            weapon: "Tack".to_string(),
+        };
+        let me = fighter(1, 0.0, Some(protocol::CampaignActor::Participant {}));
+        let near = fighter(
+            2,
+            3.0,
+            Some(protocol::CampaignActor::Union {
+                kind: protocol::EnemyKind::Sweeper,
+                phase: protocol::EnemyPhase::Windup,
+                phase_started: 0,
+                phase_ends: 14,
+                seated: false,
+            }),
+        );
+        let channeling = fighter(3, 12.0, union(protocol::EnemyPhase::Channeling));
+        let mut snapshot: protocol::Snapshot = serde_json::from_value(serde_json::json!({
+            "tick": 10, "players": [], "pickups": []
+        }))
+        .unwrap();
+        snapshot.players = vec![me, near, channeling.clone()];
+        let action = compute_bot_action_filtered(uuid::Uuid::from_u128(1), &snapshot, |_, _| true);
+        assert_eq!(
+            action.look_at.and_then(|aim| aim.player_id),
+            Some(channeling.id)
+        );
+        snapshot.players[2].campaign = union(protocol::EnemyPhase::Idle);
+        let action = compute_bot_action_filtered(uuid::Uuid::from_u128(1), &snapshot, |_, _| true);
+        assert_eq!(
+            action.look_at.and_then(|aim| aim.player_id),
+            Some(uuid::Uuid::from_u128(2))
+        );
+    }
+
+    #[test]
     fn test_snapshot_with_players() {
         let snapshot = protocol::Snapshot {
             team_scores: None,
@@ -1127,6 +1194,8 @@ mod tests {
             shot_results: vec![],
             projectiles: vec![],
             grenades: Vec::new(),
+            mines: Vec::new(),
+            auditors: Vec::new(),
             explosions: Vec::new(),
             mode_name: protocol::default_mode_name(),
             playlist: protocol::default_playlist(),
@@ -1175,6 +1244,8 @@ mod tests {
             shot_results: vec![],
             projectiles: vec![],
             grenades: Vec::new(),
+            mines: Vec::new(),
+            auditors: Vec::new(),
             explosions: Vec::new(),
             mode_name: protocol::default_mode_name(),
             playlist: protocol::default_playlist(),
@@ -1271,6 +1342,8 @@ mod tests {
             shot_results: vec![],
             projectiles: vec![],
             grenades: Vec::new(),
+            mines: Vec::new(),
+            auditors: Vec::new(),
             explosions: Vec::new(),
             mode_name: protocol::default_mode_name(),
             playlist: protocol::default_playlist(),
@@ -1620,6 +1693,8 @@ mod tests {
             shot_results: vec![],
             projectiles: vec![],
             grenades: Vec::new(),
+            mines: Vec::new(),
+            auditors: Vec::new(),
             explosions: Vec::new(),
             mode_name: protocol::default_mode_name(),
             playlist: protocol::default_playlist(),

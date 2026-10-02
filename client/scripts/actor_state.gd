@@ -2,8 +2,8 @@ class_name ActorState
 extends RefCounted
 
 ## Campaign identity comes from the server, never a callsign or control role.
-const KINDS: Array[String] = ["clerk", "sweeper", "heavy_sweeper", "turret", "crawler", "jammer", "notary"]
-const PHASES: Array[String] = ["idle", "moving", "windup", "leaping", "firing", "recovery", "hit", "dead"]
+const KINDS: Array[String] = ["clerk", "sweeper", "heavy_sweeper", "turret", "crawler", "jammer", "notary", "auditor"]
+const PHASES: Array[String] = ["idle", "moving", "windup", "leaping", "firing", "recovery", "hit", "dead", "channeling"]
 const COMPANION_PHASES: Array[String] = ["releasing", "following", "firing"]
 
 static func is_union(actor: Dictionary) -> bool:
@@ -66,6 +66,9 @@ static func validation_error(snapshot: Dictionary) -> String:
 			or not campaign.get("phase") is String or campaign["phase"] not in PHASES:
 			return INVALID
 		if campaign.size() == 6 and not campaign.has("seated"):
+			return INVALID
+		# Only an Auditor holds a repair channel.
+		if campaign["phase"] == "channeling" and campaign["kind"] != "auditor":
 			return INVALID
 		if campaign.has("seated") and (campaign.size() != 6 \
 			or typeof(campaign["seated"]) != TYPE_BOOL or campaign["seated"] != true \

@@ -16,6 +16,8 @@ var tick: int = 0
 var counts: Label
 var grenade_counts: Label
 var _grenades_known: bool = false
+var mine_counts: Label
+var _mines_known: bool = false
 var dry_seconds: float = 0.0
 var _dry_count: int = 0
 ## Pool drawn beside the number: bullets, shells, cells, or empty for fists.
@@ -46,6 +48,17 @@ func _ready() -> void:
 	grenade_counts.add_theme_constant_override("outline_size", 4)
 	grenade_counts.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(grenade_counts)
+	mine_counts = Label.new()
+	mine_counts.position = Vector2(0, -56)
+	mine_counts.size = Vector2(WIDTH - GLYPH.x - 12.0, 36)
+	mine_counts.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	mine_counts.add_theme_font_override("font", MenuTheme.FONT)
+	mine_counts.add_theme_font_size_override("font_size", 28)
+	mine_counts.add_theme_color_override("font_color", MenuTheme.BONE)
+	mine_counts.add_theme_color_override("font_outline_color", MenuTheme.INK)
+	mine_counts.add_theme_constant_override("outline_size", 4)
+	mine_counts.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(mine_counts)
 	visible = false
 	_refresh()
 
@@ -60,11 +73,15 @@ func apply(state_value: Dictionary) -> void:
 		dry_seconds = 0.0
 		glyph_pool = ""
 		_grenades_known = false
+		_mines_known = false
 		if grenade_counts != null:
 			grenade_counts.visible = false
+		if mine_counts != null:
+			mine_counts.visible = false
 		visible = false
 	else:
 		_grenades_known = _grenades_known or int(state.get("grenades", 0)) > 0
+		_mines_known = _mines_known or int(state.get("proximity_mines", 0)) > 0
 		tick = maxi(tick, int(state["tick"]))
 		_refresh()
 
@@ -89,11 +106,17 @@ func _refresh() -> void:
 	var grenades: int = int(state.get("grenades", 0))
 	grenade_counts.text = str(grenades)
 	grenade_counts.modulate = EMPTY_TINT if grenades == 0 else Color.WHITE
+	var mines: int = int(state.get("proximity_mines", 0))
+	mine_counts.visible = _mines_known
+	mine_counts.text = str(mines)
+	mine_counts.modulate = EMPTY_TINT if mines == 0 else Color.WHITE
 	queue_redraw()
 
 func _draw() -> void:
 	if _grenades_known:
 		_grenade(Vector2(WIDTH - GLYPH.x + 3.0, -12.0), 0.45 if int(state.get("grenades", 0)) == 0 else 1.0)
+	if _mines_known:
+		_mine(Vector2(WIDTH - GLYPH.x + 1.0, -46.0), 0.45 if int(state.get("proximity_mines", 0)) == 0 else 1.0)
 	if glyph_pool.is_empty():
 		return
 	var origin: Vector2 = Vector2(WIDTH - GLYPH.x, 34)
@@ -125,6 +148,12 @@ func _cell(at: Vector2, dim: float) -> void:
 	_block(Rect2(at + Vector2(9, 0), Vector2(10, 4)), CELL_STEEL, dim)
 	_block(Rect2(at + Vector2(2, 4), Vector2(24, 28)), CELL_STEEL, dim)
 	_block(Rect2(at + Vector2(8, 10), Vector2(12, 16)), CELL_GLOW, dim)
+
+## A dark puck with its red lamp, the same read as the placed device.
+func _mine(at: Vector2, dim: float) -> void:
+	_block(Rect2(at + Vector2(0, 12), Vector2(26, 9)), Color("2f3438"), dim)
+	_block(Rect2(at + Vector2(3, 8), Vector2(20, 5)), Color("6b6f72"), dim)
+	_block(Rect2(at + Vector2(10, 2), Vector2(6, 6)), Color("ff3020"), dim)
 
 func _grenade(at: Vector2, dim: float) -> void:
 	_block(Rect2(at + Vector2(5, 0), Vector2(11, 5)), BRASS, dim)

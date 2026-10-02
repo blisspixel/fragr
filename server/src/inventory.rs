@@ -42,6 +42,7 @@ pub struct Inventory {
     owned: [bool; WeaponType::ALL.len()],
     ammo: [u16; 3],
     grenades: u16,
+    mines: u16,
     claims: BTreeSet<String>,
     revision: u64,
     dry_fire_count: u64,
@@ -80,6 +81,8 @@ impl Inventory {
         }
         self.claims = saved.personal_claims.iter().cloned().collect();
         self.grenades = saved.grenades;
+        // Saved entries predate any mission that carries mines.
+        self.mines = 0;
         self.dry_latched = false;
         self.revision += 1;
         Ok(())
@@ -94,6 +97,7 @@ impl Inventory {
             owned,
             ammo: [0; 3],
             grenades: 0,
+            mines: 0,
             claims: BTreeSet::new(),
             revision: 0,
             dry_fire_count: 0,
@@ -132,6 +136,7 @@ impl Inventory {
         self.owned = entry.owned;
         self.ammo = entry.ammo;
         self.grenades = entry.grenades;
+        self.mines = entry.mines;
         self.claims.clone_from(&entry.claims);
         self.dry_latched = false;
         self.revision += 1;
@@ -266,6 +271,35 @@ impl Inventory {
         true
     }
 
+    pub fn mines(&self) -> u16 {
+        self.mines
+    }
+
+    pub fn grant_mines(&mut self, amount: u16) -> u16 {
+        if self.only.is_some() {
+            return 0;
+        }
+        let next = self
+            .mines
+            .saturating_add(amount)
+            .min(crate::protocol::MINE_CARRY_CAP);
+        let gained = next - self.mines;
+        if gained > 0 {
+            self.mines = next;
+            self.revision += 1;
+        }
+        gained
+    }
+
+    pub fn try_place_mine(&mut self) -> bool {
+        if self.mines == 0 || self.only.is_some() {
+            return false;
+        }
+        self.mines -= 1;
+        self.revision += 1;
+        true
+    }
+
     /// Called only after alive/cooldown admission, before RNG or ray resolution.
     /// One shot, including one Scatter blast of several pellets, spends one unit.
     pub fn try_fire(&mut self, selected: WeaponType) -> bool {
@@ -314,6 +348,7 @@ impl Inventory {
                 .collect(),
             personal_claims: self.claims.iter().cloned().collect(),
             grenades: self.grenades,
+            proximity_mines: self.mines,
             dry_fire_count: self.dry_fire_count,
         })
     }
