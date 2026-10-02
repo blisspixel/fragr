@@ -184,6 +184,10 @@ OpenGL compatibility, AMD Radeon 780M, from the completed 13-state room tour
 after the Earth material integration. The actual intake still comes from
 `intake_sweepers`, with its counters, lockers and ordinary Pistol visible.
 Receipt: `.agents/qa/m01-textures-final/manifest.json`, clean exit and logs.
+On 2026-10-02 `m01_intake_16x9.png` was recaptured from the same `intake_sweepers`
+state after the [art pass](../plans/art-pass-20261002.md): the gloved Pistol and the
+health and armour icons are the changes. Receipt `.agents/qa/art-m01/manifest.json`,
+13 states, clean exit and logs; the other three M01 stills keep the 2026-10-01 capture.
 Earlier first-look frames remain in git history. Rooms are clearly lit by a warm
 base light with brighter pools under the strip-light fixtures: intake shows the
 counters and lockers with a pistol in hand; the balcony looks toward the custody
