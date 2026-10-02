@@ -9,6 +9,7 @@ use crate::sim::PLAYER_FLOOR_Y;
 use uuid::Uuid;
 mod m04;
 mod m05;
+mod m06;
 
 #[derive(Debug, Clone, Default)]
 pub struct MissionClient {
@@ -24,6 +25,9 @@ pub struct MissionClient {
     m05_solids: Vec<Solid>,
     m05_point: Option<[f32; 3]>,
     m05_pending: bool,
+    m06_map: Option<crate::protocol::M06MapGeometry>,
+    m06_point: Option<[f32; 3]>,
+    m06_pending: bool,
     m03_departure: Option<[f32; 3]>,
     pub state: Option<MissionState>,
     last_tick: Option<u64>,
@@ -131,7 +135,14 @@ impl MissionClient {
     ) -> Action {
         if action.look_at.is_some() {
             self.press_down = false;
-            return navigator.steer_snapshot(world, id, snapshot, action);
+            return navigator.route_snapshot_with_visibility(
+                world,
+                id,
+                snapshot,
+                action,
+                true,
+                &world.planning_arena().solids,
+            );
         }
         let Some(me) = snapshot.players.iter().find(|p| p.id == id && p.hp > 0) else {
             return Action::default();
@@ -207,7 +218,7 @@ impl MissionClient {
             self.m03_departure = None;
             return Ok(());
         };
-        if self.geometry.is_some() || self.m02_map.is_some() {
+        if self.geometry.is_some() || self.m02_map.is_some() || self.m06_map.is_some() {
             return Err("M03 cannot share another mission map");
         }
         geometry.validate(half, solids, presentation)?;
@@ -286,6 +297,17 @@ impl MissionClient {
             self.observed = old.observed;
             self.m05_pending = true;
         }
+        if old.m06_map.is_some() && mission.is_none() && m02_objectives.is_none() && map_id == 1006
+        {
+            self.m06_map = old.m06_map.clone();
+            self.m06_point = old.m06_point;
+            self.state = old.state.clone();
+            self.last_tick = old.last_tick;
+            self.rules = old.rules;
+            self.run = old.run;
+            self.observed = old.observed;
+            self.m06_pending = true;
+        }
         if let Some(count) = m02_objectives {
             let presentation = presentation.ok_or("M02 requires map presentation")?;
             self.m02_map = Some(M02Map {
@@ -353,7 +375,10 @@ impl MissionClient {
         } else {
             None
         };
-        let map_matches = if state.id == MissionId::NoForwardingAddress {
+        let map_matches = if state.id == MissionId::PortOfEntry {
+            self.validate_m06_target(&state)?;
+            true
+        } else if state.id == MissionId::NoForwardingAddress {
             self.validate_m05_target(&state)?;
             true
         } else if state.id == MissionId::NoticeToVacate {
@@ -393,6 +418,7 @@ impl MissionClient {
         self.observed = true;
         self.m04_pending = false;
         self.m05_pending = false;
+        self.m06_pending = false;
         self.m02_point = m02_point.flatten();
         self.state = Some(state);
         Ok(())
@@ -486,7 +512,8 @@ impl MissionClient {
             && self.m02_map.is_none()
             && self.m03_map.is_none()
             && self.m04_map.is_none()
-            && self.m05_map.is_none())
+            && self.m05_map.is_none()
+            && self.m06_map.is_none())
             || self.state.as_ref().is_some_and(|state| {
                 state
                     .run
@@ -530,12 +557,68 @@ impl MissionClient {
         snapshot: &Snapshot,
         action: Action,
     ) -> Action {
+        let wanted = self.steer_route(navigator, world, id, snapshot, action);
+        let mut bodies = Navigator::snapshot_bodies(snapshot);
+        if let Some(state) = self
+            .state
+            .as_ref()
+            .filter(|state| state.phase == MissionPhase::InProgress)
+        {
+            let mut append = |key: String, feet: [f32; 3]| {
+                bodies.push(crate::sim::contact::civilian(key, feet));
+            };
+            if let Some(f) = state.m02.as_ref().and_then(|m| m.evacuation.as_ref()) {
+                for (i, feet) in f.captives.iter().copied().enumerate() {
+                    append(format!("m02/captive/{i}"), feet);
+                }
+            }
+            if let Some(f) = &state.m03 {
+                for car in &f.cars {
+                    for (i, feet) in car.captives.iter().copied().enumerate() {
+                        append(format!("m03/{}/{i}", car.id), feet);
+                    }
+                }
+            }
+            if let Some(f) = &state.m04 {
+                for patient in &f.patients {
+                    append(format!("m04/{}", patient.id), patient.feet);
+                }
+            }
+            if let Some(f) = &state.m05 {
+                for captive in &f.captives {
+                    append(format!("m05/{}", captive.id), captive.feet);
+                }
+            }
+        }
+        let solids = self.live_visibility_solids();
+        let arena = crate::movement::Arena {
+            half: world.planning_arena().half,
+            solids: solids.unwrap_or_else(|| world.planning_arena().solids.clone()),
+        };
+        navigator.avoid_bodies(&arena, id, &bodies, wanted, snapshot.tick)
+    }
+
+    fn steer_route(
+        &mut self,
+        navigator: &mut Navigator,
+        world: &Navigation,
+        id: Uuid,
+        snapshot: &Snapshot,
+        action: Action,
+    ) -> Action {
         if !self.participating(id) {
             return Action::default();
         }
-        if self.m04_pending || self.m05_pending {
+        if self.m04_pending || self.m05_pending || self.m06_pending {
             navigator.clear();
             return Action::default();
+        }
+        if self
+            .state
+            .as_ref()
+            .is_some_and(|state| state.id == MissionId::PortOfEntry)
+        {
+            return self.steer_m06(navigator, world, id, snapshot, action);
         }
         if self
             .state
@@ -566,11 +649,25 @@ impl MissionClient {
             return self.steer_m02(navigator, world, id, snapshot, action);
         }
         let (Some(geometry), Some(state)) = (&self.geometry, &self.state) else {
-            return navigator.steer_snapshot(world, id, snapshot, action);
+            return navigator.route_snapshot_with_visibility(
+                world,
+                id,
+                snapshot,
+                action,
+                true,
+                &world.planning_arena().solids,
+            );
         };
         if action.look_at.is_some() {
             self.press_down = false;
-            return navigator.steer_snapshot(world, id, snapshot, action);
+            return navigator.route_snapshot_with_visibility(
+                world,
+                id,
+                snapshot,
+                action,
+                true,
+                &world.planning_arena().solids,
+            );
         }
         let Some(me) = snapshot.players.iter().find(|p| p.id == id && p.hp > 0) else {
             self.press_down = false;
@@ -626,7 +723,14 @@ impl MissionClient {
     ) -> Action {
         if action.look_at.is_some() {
             self.press_down = false;
-            return navigator.steer_snapshot(world, id, snapshot, action);
+            return navigator.route_snapshot_with_visibility(
+                world,
+                id,
+                snapshot,
+                action,
+                true,
+                &world.planning_arena().solids,
+            );
         }
         let Some(me) = snapshot
             .players

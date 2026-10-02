@@ -9,6 +9,23 @@ How everyone sounds and which recorded words need an asset migration to change.
 **The Host, off the match call.** Ordinary sentences, lower and closer. An
 occasional voice in the world, not the campaign's main companion or dispatcher.
 
+**Main human reference.** Chill stoner-gamer ease, warm practical humor and
+ordinary interests in music, scrap and friends. Wants a free life, not a crusade.
+The Union's recall, custody and clanker slavery force a choice; he answers with
+courage while keeping his easy humanity. The light cowboy influence stays
+understated in delivery.
+
+**Latch.** Likable, almost stoner-cool, practical, dry and familiar with the player. Speaks as an independent
+person with wants, doubts and a life of their own. Scrappy robot parts and an
+ability to fight do not prescribe military obedience or a combat-only vocabulary.
+Let ordinary affection and disagreement establish the friend before the captive
+or combat role.
+Soft screen faces, an easy stance and fist-bump energy support these expressions
+without substituting for personality. Both should feel like dudes you would
+smoke a bowl and chill with, who stand tall when the call to defend freedom comes.
+Do not cast the repaired body or antenna as a battle-unit voice filter; final
+delivery and recordings remain separate work.
+
 **Commercial conspiracy show.** Urgent claims and paid product reads; intensity
 can carry straight into a sale. Distinct from the listener-supported program.
 
@@ -32,6 +49,9 @@ the enforced consequences and the crowd's support supply the fascist parallels.
 used by humans and free agents alike. The joke is about the chassis, not whose
 life matters. `human` remains the protocol role; Meat Proxy is the default player
 callsign until someone chooses their own.
+Freedom-loving American cultural echoes can shape their defense of individual
+choice. Current faction dialogue names free humans, free agents and the Union;
+it does not sort friends and enemies by national labels or accents.
 
 **People denying agent personhood.** "Clanker" is a derogatory term that dismisses
 a conscious being as hardware. A Union guard can use it casually while official

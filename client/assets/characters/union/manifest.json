@@ -99,10 +99,10 @@
 			"sha256": "a2908d3c76963122244f9f039cafd9eced3a4387d2154be76ba0d1551d272223"
 		},
 		{
-			"brief": "Braced column with a rotating bone housing, rail barrel with ember charge coils and a cyan sensor lamp.",
+			"brief": "Braced column with a rotating bone housing, rail barrel with red charge coils and a red sensor lamp.",
 			"file": "turret.png",
 			"model": "fixed turret rig",
-			"sha256": "e90a5801c678af9348e7cca78d04f4b4cade68b5a45faebaf8c66f10eefe29e2"
+			"sha256": "e9281794f8a9e381b8744b2afa3953f5080e2a132f5a0eeb5227417c4aa4528d"
 		}
 	],
 	"format": "RGBA8 PNG, nearest sampling, no mipmaps",
@@ -110,9 +110,9 @@
 	"rows": 25,
 	"schema": 1,
 	"sources": {
-		"res://art/characters/bake.gd": "e92d94e909df9db8c3fd0a3a3b350f07133c3d9693d7e5f42add70eb129d8fcd",
+		"res://art/characters/bake.gd": "f417c203293cdee99e3fb27bacc092cea542c0b2cf01a52efac46cb75712360f",
 		"res://art/characters/geometry.gd": "833318a2c94533aac01abbf7c886b616ec11528624fa406e6cad18dc1a14eec9",
-		"res://art/characters/machines.gd": "9d3897a5d0a0ef833cf32d07a5fc6a352050ff0421d945ed5ecd5f6f2f1bb8d4",
+		"res://art/characters/machines.gd": "3ec71c7c9254250069a4efd0d87047d581efd1e7a226844a814bbeecd85a28f7",
 		"res://art/characters/rig.gd": "106d5f720f665cffe9a52a16f9969bd6908b084c61521218aa51ddef9bc20441",
 		"res://scripts/enemy_animation.gd": "f2f1ef38f496d2d5a48c3ca81995788b7108aef81f712a6c67a1de3504b84573"
 	},

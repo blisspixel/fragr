@@ -42,6 +42,7 @@ func _ready() -> void:
 	load_catalog()
 	if stations.is_empty():
 		return
+	choose_start_station()
 	_apply_volume(0.0, true)
 	play_random()
 	# Signals connected by the parent after add_child would miss an emit here.
@@ -114,6 +115,16 @@ func current_station() -> Dictionary:
 	if stations.is_empty():
 		return {}
 	return stations[station_index]
+
+
+## Normal launches start on a varied populated station, then shuffle its tracks.
+## Manual cycling still exposes stations that currently have no tracks.
+func choose_start_station() -> void:
+	var populated: Array[int] = []
+	for index: int in range(stations.size()):
+		if not stations[index].get("tracks", []).is_empty():
+			populated.append(index)
+	station_index = populated[rng.randi_range(0, populated.size() - 1)] if not populated.is_empty() else 0
 
 
 ## What the HUD shows on a station switch or toggle.

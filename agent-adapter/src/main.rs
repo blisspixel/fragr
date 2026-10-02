@@ -440,12 +440,13 @@ async fn run_scripted_bot(
                             loadout = Some(next);
                         }
                         ServerMessage::Snapshot(snapshot) => last_snapshot = Some(snapshot),
-                        ServerMessage::MapInfo { map_id, m02_objectives, m02_side_ward, m03, m04, m05, half_extent, solids, geometry_version, presentation, mission, .. } => {
+                        ServerMessage::MapInfo { map_id, m02_objectives, m02_side_ward, m03, m04, m05, m06, half_extent, solids, geometry_version, presentation, mission, .. } => {
                             protocol::validate_map_presentation(presentation.as_ref(), &solids)?;
                             mission_client.replace_map_with_id(map_id, m02_objectives, m02_side_ward, mission.as_ref(), half_extent, &solids, presentation.as_ref()).map_err(io::Error::other)?;
                             mission_client.replace_map_with_m03(m03.as_ref(), half_extent, &solids, presentation.as_ref()).map_err(io::Error::other)?;
                             mission_client.replace_map_with_m04(m04.as_ref(), half_extent, &solids, presentation.as_ref()).map_err(io::Error::other)?;
                             mission_client.replace_map_with_m05(m05.as_ref(), half_extent, &solids, presentation.as_ref()).map_err(io::Error::other)?;
+                            mission_client.replace_map_with_m06(m06.as_ref(), half_extent, &solids, presentation.as_ref()).map_err(io::Error::other)?;
                             protocol::validate_map_geometry(half_extent, &solids, geometry_version)
                                 .map_err(io::Error::other)?;
                             let arena = fragr_server::movement::Arena { half: half_extent, solids };
@@ -1098,6 +1099,7 @@ mod tests {
             capture_limit: None,
             tick: 100,
             players: vec![protocol::PlayerState {
+                collidable: true,
                 body: None,
                 golden: false,
                 lives: None,
@@ -1217,6 +1219,7 @@ mod tests {
             tick: 50,
             players: vec![
                 protocol::PlayerState {
+                    collidable: true,
                     body: None,
                     golden: false,
                     lives: None,
@@ -1237,6 +1240,7 @@ mod tests {
                     weapon: "Flechette".to_string(),
                 },
                 protocol::PlayerState {
+                    collidable: true,
                     body: None,
                     golden: false,
                     lives: None,
@@ -1563,6 +1567,7 @@ mod tests {
             tick: 1,
             players: vec![
                 protocol::PlayerState {
+                    collidable: true,
                     body: None,
                     golden: false,
                     lives: None,
@@ -1583,6 +1588,7 @@ mod tests {
                     weapon: "Flechette".into(),
                 },
                 protocol::PlayerState {
+                    collidable: true,
                     body: None,
                     golden: false,
                     lives: None,
@@ -2102,6 +2108,7 @@ mod tests {
                 m03: None,
                 m04: None,
                 m05: None,
+                m06: None,
                 presentation: None,
                 map_id: 1,
                 map_name: "Raised fixture".into(),

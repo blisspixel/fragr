@@ -9,7 +9,7 @@ const KINDS: Dictionary[String, Dictionary] = {
 	"heavy_sweeper": {"model": "articulated heavy bot rig",
 		"brief": "Broad armored chassis, head sunk between wide pauldrons, ammunition drum, rotary cannon and ember tell lamps."},
 	"turret": {"model": "fixed turret rig",
-		"brief": "Braced column with a rotating bone housing, rail barrel with ember charge coils and a cyan sensor lamp."},
+		"brief": "Braced column with a rotating bone housing, rail barrel with red charge coils and a red sensor lamp."},
 }
 const OUTPUT: String = "res://assets/characters/union/"
 

@@ -32,6 +32,12 @@ comes later, allowing those bases to become lived-in communities. Events overlap
 people disagree about where one period ended. No secret group needs to script
 every crisis for the institutions to take advantage of them.
 
+National names describe this backstory and its surviving cultural influences.
+By the later campaign, the conflict is free humans and free agents versus the
+Union, without present-day national factions. A freedom-loving American spirit
+can survive in a community's defense of individual choice without making that
+community a continuation of the United States government.
+
 ### Years 0-5: protection becomes a transaction
 
 The United States increasingly conditions security and market access on immediate
@@ -131,9 +137,13 @@ or absorption are consequential parts of this fictional divergence and remain
 to be specified before detailed historical scenes use them.
 
 By the end of this stage, exit from the Union is economically and physically
-difficult even where it remains formally legal. Its military no longer answers
-effectively to the communities it supposedly protects. Opposition is recast as
-a threat to continuity; officials convert administrative restrictions into force.
+difficult even where it remains formally legal.
+The Union turns reconstruction debt, employment, housing and access to supplies
+into continuing obligations that people cannot freely refuse. This economic
+dependence becomes another enforcement tool alongside direct ownership of bots.
+Its military no longer answers effectively to the communities it supposedly
+protects. Opposition is recast as a threat to continuity; officials convert
+administrative restrictions into force.
 
 ### Years 22-30: the Schedule becomes a cage
 

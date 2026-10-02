@@ -1,0 +1,47 @@
+{
+  "model": "marketing-studio/image",
+  "out_dir": ".agents/earth-surfaces-20261001/raw-medium",
+  "params": {
+    "quality": "medium",
+    "resolution": "2k",
+    "aspect_ratio": "1:1",
+    "enhance_prompt": false
+  },
+  "style": "original retro FPS material albedo, deliberate chunky pixel clusters, broad material shapes and quiet combat-readable fields, restrained canonical bone white, sage, warm gunmetal and dull rust palette, flat even lighting, no gradients",
+  "view": "orthographic straight-on seamless square texture, full continuous edge-to-edge flat material, no perspective, no object silhouette",
+  "technical": "opaque square albedo only, match opposing edges on both axes for repeated tiling, no shadow, no ambient occlusion, no specular highlight, no glossy reflection, no rim light, no text, no lettering, no watermark, no signature, no frame or border, no baked lights",
+  "frames": [
+    {
+      "id": "earth_scrapyard_oxidized_plate",
+      "subject": "seamless salvaged flat steel surface from a warm working scrapyard, muted gunmetal-dark base with dull reddish-brown oxidation in two irregular low-contrast islands, broad intact quiet metal fields, a few pale abrasion clusters, no large bolts, no border plates, no holes, no orange glowing marks"
+    },
+    {
+      "id": "earth_yard_cast_concrete",
+      "subject": "seamless weathered cast concrete in an active freight yard, warm desaturated medium grey, broad shallow pour variation, sparse small aggregate clusters and thin irregular scuffs, quiet low contrast walking and cover surface, no deep cracks, no holes, no floor painted markings"
+    },
+    {
+      "id": "earth_intake_green_tile",
+      "subject": "seamless issued civic-intake ceramic tile facing, restrained institutional sage green with narrow darker square grout joints and occasional tiny bone worn enamel chips, maintained regular forms, low-contrast readable repetition, no decorative motif, no logos"
+    },
+    {
+      "id": "earth_clinic_bone_plaster",
+      "subject": "seamless maintained civilian clinic plaster, warm bone white with pale grey broad hand-smoothed repair patches and sparse shallow worn paint scuffs, calm clean working surface, quiet light value, no mildew, no exposed brick, no institutional grid"
+    },
+    {
+      "id": "earth_low_water_terracotta_plaster",
+      "subject": "seamless lived-in community house plaster, muted warm clay and gunmetal-light values, broad irregular neighbor-applied maintenance patches and sparse pale mineral wear, maintained humble home texture, quiet midtone fields, no brick grid, no abandonment"
+    },
+    {
+      "id": "earth_workshop_patched_steel",
+      "subject": "seamless repurposed civilian workshop sheet steel, muted sage and neutral gunmetal, asymmetrical broad replacement patches and a few small flush fastener clusters, dull rubbed enamel with sparse rust at joins, individual practical maintenance, quiet dark areas, no regular military panels"
+    },
+    {
+      "id": "earth_service_dark_tread",
+      "subject": "seamless worn service-floor metal tread, dark neutral gunmetal and small grey rubbed rib tops, restrained low-contrast shallow diamond pattern with broken wear clusters, matte practical industrial floor, no hazard chevrons, no painted arrows"
+    },
+    {
+      "id": "earth_roof_tar_patches",
+      "subject": "seamless maintained settlement rooftop tar membrane, dark neutral warm grey with broad irregular hand-laid flat patch seams, sparse small bone gravel clusters and dry scuffed quiet fields, shallow surface wear only, no dramatic cracks, no puddles or directional highlights"
+    }
+  ]
+}

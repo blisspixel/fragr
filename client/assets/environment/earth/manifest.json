@@ -1,0 +1,315 @@
+{
+  "format": 1,
+  "date": "2026-10-01",
+  "spec": "tools/spritegen/specs/earth-surfaces-20261001-medium.json",
+  "model": "marketing-studio/image",
+  "params": {
+    "quality": "medium",
+    "resolution": "2k",
+    "aspect_ratio": "1:1",
+    "enhance_prompt": false
+  },
+  "style": "original retro FPS material albedo, deliberate chunky pixel clusters, broad material shapes and quiet combat-readable fields, restrained canonical bone white, sage, warm gunmetal and dull rust palette, flat even lighting, no gradients",
+  "view": "orthographic straight-on seamless square texture, full continuous edge-to-edge flat material, no perspective, no object silhouette",
+  "technical": "opaque square albedo only, match opposing edges on both axes for repeated tiling, no shadow, no ambient occlusion, no specular highlight, no glossy reflection, no rim light, no text, no lettering, no watermark, no signature, no frame or border, no baked lights",
+  "palette": "docs/palette.json",
+  "palette_sha256": "c97f60cb92a212166e1506ab1cb32f0705227e205b6ecb7fcd83701491f19da5",
+  "preparation": [
+    "existing fragr-spritegen reduce, area average to128 without trim",
+    "tools/prepare_earth_tiles.gd eight-pixel symmetric opposite-edge blend",
+    "existing fragr-spritegen reduce, canonical CIE Lab palette and hard alpha",
+    "tools/prepare_earth_tiles.gd --verify unchanged final palette/opacity/edge checks"
+  ],
+  "repeat_metres": 8,
+  "target_texels_per_metre": 16,
+  "backdrop_roof_mapping": "existing standard mesh UVs, not world-projected texel density",
+  "opaque": true,
+  "filter": "nearest",
+  "mipmaps": false,
+  "normal_maps": "not supplied",
+  "spend": {
+    "accepted_requests": 12,
+    "downloaded_requests": 12,
+    "exploration_estimate_usd": 0.057,
+    "medium_estimate_usd": 0.99,
+    "high_comparison_estimate_usd": 0.89,
+    "reserved_estimate_usd": 1.937,
+    "confirmed_billed_usd": null,
+    "new_cash_purchase_usd": 0,
+    "duplicate_generation_posts": 0,
+    "topups_or_overages_enabled": false
+  },
+  "rejected": [
+    {
+      "id": "earth_clinic_bone_plaster",
+      "quality": "low",
+      "reason": "palette reduction collapses detail into almost flat bone"
+    },
+    {
+      "id": "earth_scrapyard_oxidized_plate",
+      "quality": "low",
+      "reason": "medium retains stronger readable abrasion clusters"
+    },
+    {
+      "id": "earth_clinic_bone_plaster",
+      "quality": "high",
+      "reason": "128-square palette output is almost flat bone; no usable improvement over medium"
+    },
+    {
+      "id": "earth_scrapyard_oxidized_plate",
+      "quality": "high",
+      "reason": "large diagonal stains repeat more conspicuously than quieter medium field"
+    }
+  ],
+  "files": [
+    {
+      "id": "earth_scrapyard_oxidized_plate",
+      "source_quality": "medium",
+      "runtime_path": "client/assets/environment/earth/earth_scrapyard_oxidized_plate.png",
+      "source_path": "processed/earth_scrapyard_oxidized_plate.png",
+      "repeat_preview": "review/earth_scrapyard_oxidized_plate_repeat.png",
+      "runtime_sha256": "35fa471c2bb06f334573af95919b0d4e3cab5ab8bcd1b497d6f3446b189a3d12",
+      "raw_sha256": "fe8c9def6fd26457f2414da06c13fa1b87c8f6c867b9c139b72e47d52b722318",
+      "raw_dimensions": [
+        2048,
+        2048
+      ],
+      "dimensions": [
+        128,
+        128
+      ],
+      "reserved_estimate_usd": 0.124,
+      "request_id": "460e43e1-038d-4b78-870b-fd1ef1204b9a",
+      "subject": "seamless salvaged flat steel surface from a warm working scrapyard, muted gunmetal-dark base with dull reddish-brown oxidation in two irregular low-contrast islands, broad intact quiet metal fields, a few pale abrasion clusters, no large bolts, no border plates, no holes, no orange glowing marks",
+      "edge_before_preparation": {
+        "edge_max": 0.0745097994804382,
+        "edge_mean": 0.0132812500232831,
+        "interior_mean": 0.011445989937697
+      },
+      "edge_final": {
+        "edge_max": 0.0,
+        "edge_mean": 0.0,
+        "interior_mean": 0.00894157592576301
+      },
+      "selection": "selected after native-size and repeated palette-tile inspection; actual integrated lighting review pending"
+    },
+    {
+      "id": "earth_yard_cast_concrete",
+      "source_quality": "medium",
+      "runtime_path": "client/assets/environment/earth/earth_yard_cast_concrete.png",
+      "source_path": "processed/earth_yard_cast_concrete.png",
+      "repeat_preview": "review/earth_yard_cast_concrete_repeat.png",
+      "runtime_sha256": "85de8ac9ec68c3d345995bf8b8431d898b24b41b2627f242dc8e03021fe1d640",
+      "raw_sha256": "7e9a7c53e6d2b1aa39cbe58c6a51340d6ed0f408abf1ee2a844f8c58cf03f39c",
+      "raw_dimensions": [
+        2048,
+        2048
+      ],
+      "dimensions": [
+        128,
+        128
+      ],
+      "reserved_estimate_usd": 0.124,
+      "request_id": "cd352d0d-e1d6-40a1-a4f0-ba2c0c83145c",
+      "subject": "seamless weathered cast concrete in an active freight yard, warm desaturated medium grey, broad shallow pour variation, sparse small aggregate clusters and thin irregular scuffs, quiet low contrast walking and cover surface, no deep cracks, no holes, no floor painted markings",
+      "edge_before_preparation": {
+        "edge_max": 0.155555576086044,
+        "edge_mean": 0.0262254934447507,
+        "interior_mean": 0.0177748371844537
+      },
+      "edge_final": {
+        "edge_max": 0.0,
+        "edge_mean": 0.0,
+        "interior_mean": 0.00421041140474591
+      },
+      "selection": "selected after native-size and repeated palette-tile inspection; actual integrated lighting review pending"
+    },
+    {
+      "id": "earth_intake_green_tile",
+      "source_quality": "medium",
+      "runtime_path": "client/assets/environment/earth/earth_intake_green_tile.png",
+      "source_path": "processed/earth_intake_green_tile.png",
+      "repeat_preview": "review/earth_intake_green_tile_repeat.png",
+      "runtime_sha256": "69ab224255ebf100d9a6174af38c7f4032f470233e427b0ee34f39f112a02240",
+      "raw_sha256": "74491b6c7796d2e61331d6cd3861a02ba1ee5474052cea548b293040f8c17b55",
+      "raw_dimensions": [
+        2048,
+        2048
+      ],
+      "dimensions": [
+        128,
+        128
+      ],
+      "reserved_estimate_usd": 0.124,
+      "request_id": "fdac9316-8f29-4189-a78d-0966115270c6",
+      "subject": "seamless issued civic-intake ceramic tile facing, restrained institutional sage green with narrow darker square grout joints and occasional tiny bone worn enamel chips, maintained regular forms, low-contrast readable repetition, no decorative motif, no logos",
+      "edge_before_preparation": {
+        "edge_max": 0.115032692750295,
+        "edge_mean": 0.0203839864116162,
+        "interior_mean": 0.0205726365294808
+      },
+      "edge_final": {
+        "edge_max": 0.0,
+        "edge_mean": 0.0,
+        "interior_mean": 0.027223895764679
+      },
+      "selection": "selected after native-size and repeated palette-tile inspection; actual integrated lighting review pending"
+    },
+    {
+      "id": "earth_clinic_bone_plaster",
+      "source_quality": "medium",
+      "runtime_path": "client/assets/environment/earth/earth_clinic_bone_plaster.png",
+      "source_path": "processed/earth_clinic_bone_plaster.png",
+      "repeat_preview": "review/earth_clinic_bone_plaster_repeat.png",
+      "runtime_sha256": "341c9971d295b648554e79ed0eea667ae8137d8fcf336abc325238501e50c1eb",
+      "raw_sha256": "3ae941bf17b5ae7d7ed4df1ec6f6b3e39d38bebb95b88d26a7669951424dbbdb",
+      "raw_dimensions": [
+        2048,
+        2048
+      ],
+      "dimensions": [
+        128,
+        128
+      ],
+      "reserved_estimate_usd": 0.123,
+      "request_id": "def4e6c4-9a91-4833-bcdc-3577039f1a6d",
+      "subject": "seamless maintained civilian clinic plaster, warm bone white with pale grey broad hand-smoothed repair patches and sparse shallow worn paint scuffs, calm clean working surface, quiet light value, no mildew, no exposed brick, no institutional grid",
+      "edge_before_preparation": {
+        "edge_max": 0.128104567527771,
+        "edge_mean": 0.0200980380177498,
+        "interior_mean": 0.0141698501666817
+      },
+      "edge_final": {
+        "edge_max": 0.0,
+        "edge_mean": 0.0,
+        "interior_mean": 0.00339792073848524
+      },
+      "selection": "selected after native-size and repeated palette-tile inspection; actual integrated lighting review pending"
+    },
+    {
+      "id": "earth_low_water_terracotta_plaster",
+      "source_quality": "medium",
+      "runtime_path": "client/assets/environment/earth/earth_low_water_terracotta_plaster.png",
+      "source_path": "processed/earth_low_water_terracotta_plaster.png",
+      "repeat_preview": "review/earth_low_water_terracotta_plaster_repeat.png",
+      "runtime_sha256": "58480819fee02469abff96e11336d2a07000e5e266e77c6d2419f658fff65e79",
+      "raw_sha256": "889f3019d74e5d0ce6a2506aec7af390593c75558da6d79c9e5a56c7f740d0d0",
+      "raw_dimensions": [
+        2048,
+        2048
+      ],
+      "dimensions": [
+        128,
+        128
+      ],
+      "reserved_estimate_usd": 0.124,
+      "request_id": "1bbd9edc-b1c9-418d-ac2e-0052c6849d38",
+      "subject": "seamless lived-in community house plaster, muted warm clay and gunmetal-light values, broad irregular neighbor-applied maintenance patches and sparse pale mineral wear, maintained humble home texture, quiet midtone fields, no brick grid, no abandonment",
+      "edge_before_preparation": {
+        "edge_max": 0.138562103112539,
+        "edge_mean": 0.0215124600411703,
+        "interior_mean": 0.0201513938919889
+      },
+      "edge_final": {
+        "edge_max": 0.0,
+        "edge_mean": 0.0,
+        "interior_mean": 0.00227190125819168
+      },
+      "selection": "selected after native-size and repeated palette-tile inspection; actual integrated lighting review pending"
+    },
+    {
+      "id": "earth_workshop_patched_steel",
+      "source_quality": "medium",
+      "runtime_path": "client/assets/environment/earth/earth_workshop_patched_steel.png",
+      "source_path": "processed/earth_workshop_patched_steel.png",
+      "repeat_preview": "review/earth_workshop_patched_steel_repeat.png",
+      "runtime_sha256": "4b72fd4f00f802313bec470f7dd7e1dab040048021bfb51ed269e5d6b9a20a25",
+      "raw_sha256": "80d7853d2c29d4b109aa192ef47361b10c60d87605b4932afc6be9e02b203bb3",
+      "raw_dimensions": [
+        2048,
+        2048
+      ],
+      "dimensions": [
+        128,
+        128
+      ],
+      "reserved_estimate_usd": 0.124,
+      "request_id": "d76f6ea2-9fe7-4b64-a051-04a757deb067",
+      "subject": "seamless repurposed civilian workshop sheet steel, muted sage and neutral gunmetal, asymmetrical broad replacement patches and a few small flush fastener clusters, dull rubbed enamel with sparse rust at joins, individual practical maintenance, quiet dark areas, no regular military panels",
+      "edge_before_preparation": {
+        "edge_max": 0.179084976514181,
+        "edge_mean": 0.0139297391093957,
+        "interior_mean": 0.0153811086316612
+      },
+      "edge_final": {
+        "edge_max": 0.0,
+        "edge_mean": 0.0,
+        "interior_mean": 0.0141713795966524
+      },
+      "selection": "selected after native-size and repeated palette-tile inspection; actual integrated lighting review pending"
+    },
+    {
+      "id": "earth_service_dark_tread",
+      "source_quality": "medium",
+      "runtime_path": "client/assets/environment/earth/earth_service_dark_tread.png",
+      "source_path": "processed/earth_service_dark_tread.png",
+      "repeat_preview": "review/earth_service_dark_tread_repeat.png",
+      "runtime_sha256": "551a4de0c9c46488ab3942df8abeae7cb341f7a12d0fb5673de13e49f82d785b",
+      "raw_sha256": "7b6a7f59f24aa5deed079e9f55bd6952e321e840eadeea2af7039dd0797450ad",
+      "raw_dimensions": [
+        2048,
+        2048
+      ],
+      "dimensions": [
+        128,
+        128
+      ],
+      "reserved_estimate_usd": 0.123,
+      "request_id": "e2f49d8c-b0e8-45b9-9c7d-96074fc3e488",
+      "subject": "seamless worn service-floor metal tread, dark neutral gunmetal and small grey rubbed rib tops, restrained low-contrast shallow diamond pattern with broken wear clusters, matte practical industrial floor, no hazard chevrons, no painted arrows",
+      "edge_before_preparation": {
+        "edge_max": 0.0601307153701782,
+        "edge_mean": 0.0136284716233301,
+        "interior_mean": 0.0171554546207104
+      },
+      "edge_final": {
+        "edge_max": 0.0,
+        "edge_mean": 0.0,
+        "interior_mean": 0.0238430231856671
+      },
+      "selection": "selected after native-size and repeated palette-tile inspection; actual integrated lighting review pending"
+    },
+    {
+      "id": "earth_roof_tar_patches",
+      "source_quality": "medium",
+      "runtime_path": "client/assets/environment/earth/earth_roof_tar_patches.png",
+      "source_path": "processed/earth_roof_tar_patches.png",
+      "repeat_preview": "review/earth_roof_tar_patches_repeat.png",
+      "runtime_sha256": "3790795f5e291836544966dd37555efab664e68a130be34ad41c75752ab5df06",
+      "raw_sha256": "5bf4fe82545ccd8f24251d476a5e5769d520c305ac03420657798c759a7052f7",
+      "raw_dimensions": [
+        2048,
+        2048
+      ],
+      "dimensions": [
+        128,
+        128
+      ],
+      "reserved_estimate_usd": 0.124,
+      "request_id": "8db608c0-1e08-4f38-b797-d3346dcbed75",
+      "subject": "seamless maintained settlement rooftop tar membrane, dark neutral warm grey with broad irregular hand-laid flat patch seams, sparse small bone gravel clusters and dry scuffed quiet fields, shallow surface wear only, no dramatic cracks, no puddles or directional highlights",
+      "edge_before_preparation": {
+        "edge_max": 0.0915032674868902,
+        "edge_mean": 0.0103860302673032,
+        "interior_mean": 0.0108574904838152
+      },
+      "edge_final": {
+        "edge_max": 0.0,
+        "edge_mean": 0.0,
+        "interior_mean": 0.0235126876294261
+      },
+      "selection": "selected after native-size and repeated palette-tile inspection; actual integrated lighting review pending"
+    }
+  ],
+  "integration": "root-owned shared tile layer; preserve repair overlays, actual world light and authored collision"
+}

@@ -13,12 +13,22 @@ choices, not recorded or shipped characters.
 
 | Role | Working name | Desire, friction, and arc |
 |---|---|---|
-| Player | Chosen callsign | Human or agent from the same community. Rescue a longtime friend/partner, protect home, then save people through the wipe. |
-| Companion | Latch | Embodied agent, freed early. Wants to free other captives even at personal risk; practical, dry, capable of disagreement, and also wants to live. Shares responsibility without abandoning that conviction. |
+| Player | Chosen callsign | Human or agent from the same community. The main human reference is a chill stoner-gamer who wants music, scrap, friends and a free life; Union recall, custody and clanker slavery force the fight. Rescue a longtime friend/partner, protect home, then save people through the wipe. |
+| Companion | Latch | Free agent robot, roughly six feet tall, with scrappy, repaired parts. Freed early. Wants to free other captives even at personal risk; practical, dry, capable of disagreement, and also wants to live. Shares responsibility without abandoning that conviction. |
 | Coalition organizer | Mara Venn | Human logistics worker who can request help but cannot command independent communities. Delays cost people; later coordinates real joint action and evacuation. |
 | Defecting functionary | Auditor Renn | Human who initially rationalizes custody. Competence earns limited trust; helping captives does not erase responsibility. Proposed introduction on the Moon. |
 | Union leader | Chancellor Annelie Voss | Captured alive after her security apparatus falls. The wipe interrupts the promised reckoning; her later fate is unconfirmed. |
 | Intelligence | The Inheritance | Precise acts and rare personal messages. Understands attachments while undervaluing them; no humanoid spokesperson required. |
+
+Latch is their own being and the player's longtime friend. Their choices,
+relationships and ordinary life define them. A combat support role does not make
+them a warbot or Union military chassis; captivity and issued restraints do not
+change that identity.
+Latch is likable, almost stoner-cool, dry and practical: the same easy warmth in
+metal. Both are dudes you would want to smoke a bowl and chill with. When the
+call to defend freedom comes, they choose to stand tall and make a difference.
+They are freedom fighters by necessity, soft people under hard authority;
+friendship and conviction carry their courage, not a crusader's battle persona.
 
 The companion is not replaced by the Host. Add a small survivor cast from the
 clinic, workshops, and custody depot. Each rescue needs a later action or a
@@ -50,15 +60,22 @@ uses `custodian`. Stable role IDs survive later naming changes.
 
 ## Visual continuity
 
-Working art direction, not approved final designs or completed assets. Shared
-materials and exact swatches come from the [art bible](../ART_STORY_BIBLE.md).
+Latch's free-agent identity, approximate height, scrappy construction and
+CRT-like screen head, taller than wide, and one thin antenna on the anatomical
+left ear are established. Nick's October 1
+[duo reference](../../client/art/characters/references/free-duo-reference.png)
+also establishes the main human's restrained future-cowboy direction.
+Both live with limited means; repairs and choices express independence rather
+than wealth or a shared uniform. The remaining detail is working art direction, not approved final
+designs or completed assets. Shared materials and exact swatches come from the
+[art bible](../ART_STORY_BIBLE.md).
 These anchors persist across Earth, Moon, Mars and ship scenes. Environmental
 gear can cover them but must not silently change the character underneath.
 
 | Actor | Proposed silhouette and palette anchors | Continuity and behavior |
 |---|---|---|
-| Player | Chosen human or agent body, callsign and supported cosmetics | Body-neutral opening; hands and equipment match the selected body in play |
-| Latch (`companion`) | Practical midweight agent chassis, unequal repaired forearm plates, worn bone/dark steel, small muted cyan patch | Precise hands, self-directed gestures, familiar stance; restraints are imposed equipment, not their natural design |
+| Player | Chosen human or agent body, callsign and supported cosmetics; main human reference has a worn leather/rust jacket, dark work pants, boots, optional short-brim hat and red neckerchief, with a scavenged long rifle when needed | Easy visible face and posture, understated future-cowboy influence and personal repairs; body-neutral opening, with equipment matching the actual level loadout |
+| Latch (`companion`) | Roughly six-foot midweight bone/dark-steel robot; taller-than-wide CRT-like screen with soft friendly pixel faces, one thin left-ear antenna, seams, bolts, unequal repaired forearm plates and a small muted cyan patch | Familiar easy stance, precise hands and fist-bump energy; individuality precedes combat equipment, and restraints are imposed equipment |
 | Mara (`organizer`) | Human in a short rust utility coat over dark work gear, folded route case | Work-worn organizer, not an officer redesign after the coalition succeeds |
 | Renn (`custodian`) | Human, upright narrow silhouette, issued black Union coat, dark steel buttons and a registry case | Rank marking is deliberately removed after defection; manner changes gradually, old kit remains recognizable |
 | Tern (`pilot`) | Tall free agent with compact head and flight harness, gunmetal with a small ember shoulder panel | Conserves movement, handles ship equipment with practiced ease; same chassis offworld and on Earth |

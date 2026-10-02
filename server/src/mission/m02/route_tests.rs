@@ -23,6 +23,9 @@ fn session() -> GameSession {
             .load()
             .unwrap(),
     );
+    // Contact ordering is part of a seeded movement replay. Allocate ordinary
+    // encounter/companion IDs in their spawn order instead of random UUIDs.
+    session.state.use_replay_ids();
     session.state.seed(67);
     session
 }
@@ -139,6 +142,10 @@ struct Walker {
     companion_kills: usize,
     crawler_cues: Vec<(u64, [f32; 3], [f32; 3])>,
     first_crawler_clear_tick: Option<u64>,
+    full_health_medkit_opportunity: Option<(u64, [f32; 3], i32, bool, bool)>,
+    walk_goal: Option<[f32; 3]>,
+    teach_crawler_landings: bool,
+    crawler_hits: Vec<(u64, String)>,
 }
 
 impl Walker {
@@ -172,6 +179,10 @@ impl Walker {
             companion_kills: 0,
             crawler_cues: Vec::new(),
             first_crawler_clear_tick: None,
+            full_health_medkit_opportunity: None,
+            walk_goal: None,
+            teach_crawler_landings: false,
+            crawler_hits: Vec::new(),
         }
     }
 
@@ -233,6 +244,36 @@ impl Walker {
             .find(|player| player.id == self.id)
             .map(|player| [player.x, player.y - PLAYER_FLOOR_Y, player.z]);
         let messages = session.tick_messages(0.05);
+        if self.full_health_medkit_opportunity.is_none() {
+            if let (Some(player), Some(pad)) = (
+                session.state.players.iter().find(|p| p.id == self.id),
+                session
+                    .state
+                    .pickups
+                    .iter()
+                    .find(|p| p.id == "side_ward_medkit"),
+            ) {
+                let feet = [player.x, player.y - PLAYER_FLOOR_Y, player.z];
+                if player.hp == crate::sim::PLAYER_MAX_HP
+                    && pad.available
+                    && (feet[0] - pad.x).hypot(feet[2] - pad.z) <= crate::sim::PICKUP_CLAIM_RADIUS
+                    && (feet[1] - pad.floor).abs() <= crate::sim::PICKUP_CLAIM_HEIGHT
+                    && crate::combat::line_of_sight(
+                        [feet[0], feet[1] + crate::movement::EYE_HEIGHT, feet[2]],
+                        [pad.x, pad.y, pad.z],
+                        &session.state.current_arena().solids,
+                    )
+                {
+                    let claimed = session.state.events.iter().any(|e| {
+                        matches!(e,
+                        crate::protocol::GameEvent::Pickup{player_id,pickup_id,..}
+                            if *player_id==self.id && pickup_id=="side_ward_medkit")
+                    });
+                    self.full_health_medkit_opportunity =
+                        Some((session.state.tick, feet, player.hp, pad.available, claimed));
+                }
+            }
+        }
         for message in &messages {
             if let ServerMessage::Event(crate::protocol::GameEvent::CrawlerScrabble { position }) =
                 message
@@ -307,6 +348,12 @@ impl Walker {
         }
         for shot in &session.state.shot_results {
             if shot.shooter_id == self.id {
+                if let Some(name) = shot.target.as_ref().filter(|name| {
+                    shot.hit
+                        && (name.starts_with("stair_crawler_") || *name == "stair_pack_sweeper")
+                }) {
+                    self.crawler_hits.push((session.state.tick, name.clone()));
+                }
                 self.shots += 1;
                 self.scatter_shots += usize::from(
                     shot.trace
@@ -409,6 +456,10 @@ impl Walker {
             .iter()
             .filter(|p| {
                 me.is_hostile_to(p)
+                    && !(self.teach_crawler_landings
+                        && self.crawler_cues.len() < 2
+                        && (p.name.starts_with("stair_crawler_pack_")
+                            || p.name == "stair_pack_sweeper"))
                     // Engagement range, not every pixel down a long sightline.
                     && (p.x - me.x).hypot(p.z - me.z) < 24.0
                     && crate::combat::line_of_sight(
@@ -459,7 +510,13 @@ impl Walker {
             loadout.as_ref(),
             combat,
             true,
-            |_, other| !ward_release_pending || other.z < -7.0,
+            |_, other| {
+                (!ward_release_pending || other.z < -7.0)
+                    && !(self.teach_crawler_landings
+                        && self.crawler_cues.len() < 2
+                        && (other.name.starts_with("stair_crawler_pack_")
+                            || other.name == "stair_pack_sweeper"))
+            },
         );
         if equipped.look_at.is_some()
             && !equipped.fire
@@ -472,9 +529,31 @@ impl Walker {
             // Approach through the same navigator before resuming the route.
             equipped.forward = true;
         }
-        let action = self
-            .client
-            .steer(&mut self.navigator, world, self.id, snapshot, equipped);
+        let action = if let Some(goal) = self.walk_goal {
+            // Named authoring beats visit their actual supported location. The
+            // route still uses ordinary inputs and the shared world/body seams.
+            let routed = self.navigator.steer(
+                world,
+                [me.x, me.y - PLAYER_FLOOR_Y, me.z],
+                crate::navigation::NavigationGoal {
+                    feet: goal,
+                    combat: false,
+                },
+                equipped,
+                snapshot.tick,
+                true,
+            );
+            self.navigator.avoid_bodies(
+                &session.state.current_arena(),
+                self.id,
+                &session.state.contact_bodies(),
+                routed,
+                snapshot.tick,
+            )
+        } else {
+            self.client
+                .steer(&mut self.navigator, world, self.id, snapshot, equipped)
+        };
         session.state.set_action(self.id, action);
     }
 
@@ -505,6 +584,9 @@ impl Walker {
         self.guard_room_weapon_selected = None;
         self.crawler_cues.clear();
         self.first_crawler_clear_tick = None;
+        self.full_health_medkit_opportunity = None;
+        self.walk_goal = None;
+        self.crawler_hits.clear();
     }
 
     fn until(
@@ -521,7 +603,7 @@ impl Walker {
             assert_body_clear(session, self.id);
         }
         panic!(
-            "route stalled at tick {} after {:?} at {:?} with {} defeats and {} living enemies {:?}",
+            "route stalled at tick {} after {:?} at {:?} with {} defeats and {} living enemies {:?}; navigator {:?}; action {:?}",
             session.state.tick,
             self.completed,
             session
@@ -537,7 +619,9 @@ impl Walker {
                 ]),
             self.defeated.len(),
             living_enemies(session),
-            session.state.players.iter().filter(|p| p.is_campaign_enemy() && p.hp > 0).map(|p| (&p.name, p.x, p.z)).collect::<Vec<_>>()
+            session.state.players.iter().filter(|p| p.is_campaign_enemy() && p.hp > 0).map(|p| (&p.name, p.x, p.z)).collect::<Vec<_>>(),
+            self.navigator,
+            session.state.players.iter().find(|p|p.id==self.id).map(|p|&p.pending_action)
         );
     }
 }
@@ -553,8 +637,12 @@ fn assert_body_clear(session: &GameSession, id: Uuid) {
                 && solid.top > feet + CONTACT_EPSILON
                 && solid.bottom < feet + BODY_HEIGHT - CONTACT_EPSILON
         }),
-        "body entered a volume at {:?}",
-        [player.x, feet, player.z]
+        "body entered a volume at {:?}, tick {}, hp {}, map {}: {:?}",
+        [player.x, feet, player.z],
+        session.state.tick,
+        player.hp,
+        session.state.map.name(),
+        session.state.mission_state()
     );
 }
 
@@ -1210,7 +1298,29 @@ fn severe_side_ward_route_survives_with_ordinary_supplies() {
         .state
         .add_player(id, "Severe walker".into(), Role::Human);
     let mut walker = Walker::new(id);
-    let ticks = walker.until(&mut session, 16000, departed);
+    let mut ticks = walker.until(&mut session, 16000, |session, _| {
+        session.state.m02_side_ward_secured()
+    });
+    let armor_feet = session
+        .state
+        .pickups
+        .iter()
+        .find(|p| p.id == "side_ward_armor")
+        .map(|pad| [pad.x, pad.floor, pad.z])
+        .unwrap();
+    // Surviving the optional fight is distinct from visiting its finite stock.
+    // This authoring route deliberately collects armor before returning.
+    walker.walk_goal = Some(armor_feet);
+    ticks += walker.until(&mut session, 600.min(16000 - ticks), |session, _| {
+        session
+            .state
+            .pickups
+            .iter()
+            .any(|pad| pad.id == "side_ward_armor" && !pad.available)
+    });
+    walker.walk_goal = None;
+    walker.navigator.clear();
+    ticks += walker.until(&mut session, 16000 - ticks, departed);
     assert_eq!(walker.defeated.len(), ENEMIES);
     assert_eq!(session.state.mission_state().unwrap().attempt, 1);
     assert!(session
@@ -1220,13 +1330,34 @@ fn severe_side_ward_route_survives_with_ordinary_supplies() {
         .find(|player| player.id == id)
         .is_some_and(|player| player.hp > 0));
     assert!(session.state.m02_side_ward_secured());
-    for supply in ["side_ward_medkit", "side_ward_armor"] {
-        assert!(session
-            .state
-            .pickups
-            .iter()
-            .find(|pickup| pickup.id == supply)
-            .is_some_and(|pickup| !pickup.available));
+    let armor = session
+        .state
+        .pickups
+        .iter()
+        .find(|p| p.id == "side_ward_armor")
+        .unwrap();
+    assert!(!armor.available, "the route uses finite side-ward armor");
+    let medkit = session
+        .state
+        .pickups
+        .iter()
+        .find(|p| p.id == "side_ward_medkit")
+        .unwrap();
+    if medkit.available {
+        // A full-health visit must preserve usable medical stock. Completion
+        // alone, or healing elsewhere later, cannot substitute for this visit.
+        let (tick, feet, hp, available, claimed) = walker
+            .full_health_medkit_opportunity
+            .expect("unused medkit needs an actual full-health pickup opportunity");
+        assert_eq!(hp, crate::sim::PLAYER_MAX_HP);
+        assert!(available);
+        assert!((feet[0] - medkit.x).hypot(feet[2] - medkit.z) <= crate::sim::PICKUP_CLAIM_RADIUS);
+        assert!((feet[1] - medkit.floor).abs() <= crate::sim::PICKUP_CLAIM_HEIGHT);
+        assert!(
+            !claimed,
+            "full-health visit must not consume its medical stock"
+        );
+        eprintln!("M02 Severe full-health medical opportunity: tick {tick}, feet {feet:?}, HP {hp}, stock preserved");
     }
     let player = session
         .state
@@ -2266,10 +2397,45 @@ fn crawler_descent_is_walked_in_order_with_a_hidden_first_cue() {
     let id = Uuid::from_u128(0x02c0);
     session.state.add_player(id, "Walker".into(), Role::Human);
     let mut walker = Walker::new(id);
-    walker.until(&mut session, 12000, departed);
+    // The lesson follows each physical landing. Other route probes retain the
+    // unrestricted ability to wake a later group with an ordinary distant hit.
+    walker.teach_crawler_landings = true;
+    let mut ticks = walker.until(&mut session, 2000, |_, walker| {
+        walker.first_crawler_clear_tick.is_some()
+    });
+    walker.walk_goal = Some([-12.8, 0.0, -25.5]);
+    ticks += walker.until(&mut session, 400.min(12000 - ticks), |_, walker| {
+        walker.crawler_cues.len() == 2
+    });
+    walker.walk_goal = None;
+    walker.navigator.clear();
+    walker.until(&mut session, 12000 - ticks, departed);
     assert_eq!(walker.crawler_cues.len(), 2, "each Crawler group cues once");
     let first = walker.crawler_cues[0];
     let pack = walker.crawler_cues[1];
+    assert_eq!(walker.defeated.len(), ENEMIES);
+    assert_eq!(session.state.mission_state().unwrap().attempt, 1);
+    assert!(
+        walker
+            .crawler_hits
+            .iter()
+            .any(|(tick, name)| { *tick < pack.0 && name == "stair_crawler_first" }),
+        "the isolated lesson resolves normal shots against the lone Crawler"
+    );
+    assert!(
+        walker
+            .crawler_hits
+            .iter()
+            .all(|(tick, name)| { name == "stair_crawler_first" || *tick >= pack.0 }),
+        "no distant shot can bypass the intended second landing in this lesson probe"
+    );
+    assert!(
+        walker
+            .crawler_hits
+            .iter()
+            .any(|(tick, name)| { *tick >= pack.0 && name.starts_with("stair_crawler_pack_") }),
+        "the later pack remains shootable through ordinary combat"
+    );
     assert!(first.0 < pack.0, "the first landing precedes the pack");
     assert!(
         walker

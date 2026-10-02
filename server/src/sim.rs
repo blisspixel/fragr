@@ -1,3 +1,4 @@
+pub(crate) mod contact;
 mod ctf;
 #[cfg(test)]
 mod enclosed_tests;
@@ -1369,6 +1370,7 @@ impl GameState {
         ServerMessage::MapInfo {
             m04: self.map.m04_geometry(),
             m05: self.map.m05_geometry(),
+            m06: self.map.m06_geometry(),
             m03: self.map.m03_geometry(),
             geometry_version: crate::protocol::geometry_version(&self.map.arena().solids),
             presentation: self.map.presentation(),
@@ -1559,6 +1561,7 @@ impl GameState {
     /// must consume the same volumes, including their lower vertical bounds.
     fn tick_active(&mut self, dt: f32, arena: &crate::movement::Arena) {
         let mut respawn_ids = Vec::new();
+        let contact_before = self.contact_bodies();
         let before: Vec<[f32; 3]> = self
             .players
             .iter()
@@ -1689,6 +1692,7 @@ impl GameState {
         // bodies' displacement this tick. Record before gunfire so a Crawler
         // shot on the same frame can still trade its already-landed contact.
         let crawler_contacts = self.crawler_contacts(&before, arena);
+        self.resolve_player_contacts(contact_before, dt, arena);
 
         // Target intent takes precedence after movement, for every controller role.
         // Applied after movement/turn so agents can still strafe while locking aim.
@@ -2496,6 +2500,7 @@ impl GameState {
                         .or_else(|| p.display_behavior.clone());
 
                     PlayerState {
+                        collidable: self.contact_eligible(p),
                         campaign: p.campaign,
                         id: p.id,
                         name: p.name.clone(),
@@ -3766,8 +3771,8 @@ impl BotController {
             if let (Some(team), Some(flags)) = (bot.team, state.flags.as_ref()) {
                 let own = &flags[team.index()];
                 let enemy = &flags[team.other().index()];
-                // A side of two keeps the goals the four-bot survey already
-                // passes. A larger side elects one defender and one escort.
+                // A side of two keeps one defender and one flag runner.
+                // A larger side elects one defender and one escort.
                 let side_count = state
                     .bots
                     .iter()
@@ -3838,10 +3843,9 @@ impl BotController {
                         .iter()
                         .find(|p| p.id == carrier && p.hp > 0 && p.respawn_timer.is_none())
                 });
-                // Contact-range defense can force a drop without turning every
-                // flag run into a map-wide chase.
-                let intercept = defender
-                    && enemy.carrier != Some(bot.id)
+                // A carrier already pursuing its own flag thief can defend at
+                // the same contact range as the side's ordinary defender.
+                let intercept = (defender || enemy.carrier == Some(bot.id))
                     && thief.is_some_and(|target| (target.x - bot.x).hypot(target.z - bot.z) < 1.5);
                 if let Some(target) = thief.filter(|_| intercept) {
                     let eye = [bot.x, bot.y - PLAYER_FLOOR_Y + EYE_HEIGHT, bot.z];

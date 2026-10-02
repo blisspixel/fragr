@@ -107,16 +107,24 @@ func _run() -> void:
 		and not menu._arrival_for_preview({"status": "awaiting_mission", "mission": LocalMatch.NEXT_MISSION}),
 		"same arrival selection covers M02 to M03 without replaying existing or unavailable missions")
 	_check(_menu_text(column).contains("2 continues left") and _menu_text(column).contains("Run body: HUMAN"), "M04 carry displays retained allowance and saved body")
+	owned.run_preview["mission"] = MissionState.M06_ID
+	owned.run_preview["continues"] = 0
+	menu._show("single")
+	_check(column.get_node_or_null("PortOfEntrySaved") != null and _menu_text(column).contains("PORT OF ENTRY"), "completed M05 offers the real lunar continuation with spent old allowance")
+	_check(menu._arrival_for_preview(owned.run_preview) and not menu._arrival_for_preview({"status": "ready", "mission": MissionState.M06_ID}), "new lunar transition plays arrival while an existing lunar entry does not")
+	owned.run_preview["continues"] = 2
 	owned.run_preview["mission"] = LocalMatch.NEXT_MISSION
 	menu._show("single")
-	_check(column.get_node_or_null("NoticeToVacateSaved") == null and _menu_text(column).contains("Port of Entry is still in development"), "unbuilt M05 has no launch button")
-	_check(_menu_text(column).contains("NEXT: PORT OF ENTRY") and _menu_text(column).contains("2 continues left") \
+	_check(column.get_node_or_null("PortOfEntrySaved") == null and _menu_text(column).contains("Declared Goods is still in development"), "unbuilt M07 has no launch button")
+	_check(_menu_text(column).contains("NEXT: DECLARED GOODS") and _menu_text(column).contains("2 continues left") \
 		and _menu_text(column).contains("Run body: HUMAN"), "pending M05 previews mission, shared continues and saved body")
 	owned.run_preview["body"] = null
 	menu._show("single")
 	_check(_menu_text(column).contains("Run body is not bound yet") and column.get_node_or_null("ChooseRunBody") == null,
 		"pending M05 leaves an unbound body visible without an unavailable selector")
 	menu._show("practice")
+	var development: OptionButton = column.get_node("DevelopmentMission") as OptionButton
+	_check(development.item_count == 5 and development.get_item_text(4).contains("PORT OF ENTRY"), "fifth compact practice selector exposes lunar development")
 	_check(column.get_node_or_null("DevelopmentMission") != null and _menu_text(column).contains("NO SAVE OVERWRITE"), "M03 development entry states save isolation")
 	_check(column.get_node_or_null("LaunchDevelopmentMission") != null, "M04 has a separate labeled development entry")
 	await menu._show("multi")

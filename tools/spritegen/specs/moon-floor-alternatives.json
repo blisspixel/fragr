@@ -1,0 +1,12 @@
+{
+  "model": "marketing-studio/image",
+  "out_dir": ".agents/moon-floor-alternatives-20261001/raw",
+  "params": { "quality": "medium", "resolution": "2k", "aspect_ratio": "1:1", "enhance_prompt": false },
+  "style": "original retro pixel art seamless environmental diffuse albedo, deliberate chunky quiet pixel clusters, broad readable flat ground surface, very limited desaturated pale bone and warm grey or dark steel palette, one consistent texel density, low contrast wear, not a photograph",
+  "view": "orthographic straight down at a flat walking floor, square opaque seamless tile with matching opposite edges, mostly empty continuous ground, no wall or machine or scene",
+  "technical": "flat albedo only with no directional light or cast shadow or ambient occlusion or specular highlights, no text or numerals or symbols or logos, no border, no gradients, no knobs, no circuitry, no recessed vents, no buttons, no screens, no mechanical control panels, no raised objects, no holes, no perspective, no dense noise or scattered single pixel pepper; broad pattern readable after reduction to 128 square pixels",
+  "frames": [
+    { "id": "moon_flat_traction_deck", "subject": "a plain flat load-bearing dark warm steel walking deck, only five broad long parallel non-slip traction strips painted in a slightly lighter grey, narrow quiet horizontal assembly seams, a few large soft-edged pixel scuffs and an occasional muted rust paint scratch, at least eighty percent quiet dark grey field, a walking floor and never a machine face" },
+    { "id": "moon_quiet_regolith", "subject": "a quiet pale dry compacted lunar regolith ground, at least eighty five percent uninterrupted warm bone grey dusty field, only a few separated broad irregular muted grey mineral-grit clusters, low contrast chunky flecks within those sparse clusters, no uniform speckling, no pebbled mosaic, no craters or footprints, no rocks casting shadows, distinctly dry dust rather than snow or sand dunes" }
+  ]
+}

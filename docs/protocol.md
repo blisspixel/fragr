@@ -88,7 +88,7 @@ Initial handshake message. Must be sent immediately after connection.
   resume keeps the parked pawn's body even if this hello names another.
   Changing the body means leaving and joining again.
 - `gameplay_version`: maximum understood gameplay contract. Updated Rust readers
-  and the Godot client send `26`; omission means `1`. Discovery-only maps first
+  and the Godot client send `27`; omission means `1`. Discovery-only maps first
   required 2, authored encounters 3, and mission sequences 6 for shared difficulty.
   Current discovery and campaign admission requires 26 as described below.
   Versions 4 and 5 introduced physical controls and party readiness respectively;
@@ -142,6 +142,10 @@ Initial handshake message. Must be sent immediately after connection.
   Version 26 adds No Forwarding Address, the authoritative translating tram,
   counted grenades and resolved explosions. All authored mission and discovery
   equipment roles now require 26, including M01 through M05.
+  Version 27 adds Port of Entry's strict M06 geometry, ordered objectives,
+  optional prisoner-route marker and immutable prior rescue context. Only M06
+  requires 27; existing authored and discovery maps retain 26. Pressure glass
+  remains a real ballistic solid and is now permitted on M02 and M06 only.
   The revision 2 live campaign contract is retired; compatible historical
   saves and retained service records remain readable. Use matching campaign builds.
   Older clients of every role are rejected before `Welcome`
@@ -440,6 +444,27 @@ Retry restores the parked tram, closed freight gate, guards and held captives.
 Freight clearance sends the prepared open MapInfo before changed state. Clients
 wait for matching fresh facts before steering. Departure requires all required
 encounters, living ready party members at boarding, and a fresh aimed Use.
+
+M06 carries `m06` exactly for `port_of_entry`, mutually exclusive with earlier
+mission envelopes. Its strict facts are
+`{completed,current?,prisoner_route_marked,carried_recall_cars,carried_patients,carried_photos,carried_released_workers,carried_evacuated_workers}`.
+The required prefix is `freight_cleared`, `rail_lane_cleared`, `loading_cleared`,
+`turret_cleared`, `customs_cleared`, `exit_cleared`, then `party_departed`.
+Each of the first six objectives requires its corresponding encounter clear
+and active ready party arrival at the registered region. Future required
+guards remain absent until their predecessor clears. The optional service
+encounter becomes available after loading clearance and never gates the next
+required encounter. Its marker requires that optional clear and real party
+arrival. Latch follows and has bounded support ammunition, but does not fire
+into the isolated Rail or Turret lesson groups.
+
+Car and patient carry retains historical unique registered-form IDs and order,
+at most four each; photographs remain bounded at 1,000,000. Released workers
+are empty or all three registered workshop IDs, and evacuated workers are a
+unique subset. These are immutable previous outcomes, not new port actors or
+assumed ship passengers. Departure requires all living ready participants
+aboard and a fresh aimed Use. Retry resets the port, guards, grants, ally and
+optional marker while retaining earlier outcomes and the M06 entry.
 
 Participants finish or skip their opening by sending
 `{"type":"mission_ready","id":"recall_notice","attempt":1}` using the current
@@ -751,6 +776,13 @@ also send `map_info` before shared progress, even when the map ID stays the same
   tick. Same-map replacement cannot rebind its static contract. Current tram
   state supplies collision for presentation and prediction. Every role requires
   capability 26, with unchanged campaign rules revision 3.
+- `m06`: present only on Port of Entry, map ID 1006 and geometry version 2.
+  The strict object contains six ordered Arrival `objectives`, optional-route
+  `service` (the registered `prisoner_route_marked` Arrival objective),
+  `departure`, `boarding` and `companion_start`. It has one static world,
+  supported routes and real pressure-glass solids. Same-map replacement cannot
+  rebind this contract; controllers wait for matching fresh facts. Every M06
+  role requires capability 27, with campaign rules revision 3 unchanged.
 
 Geometry bounds: finite half extent from 2 to 256; at most 2048 solids; finite
 coordinates within -512 to 512; strictly increasing X and Z bounds. Navigation
@@ -1037,6 +1069,10 @@ Periodic state broadcast containing all visible game entities. Sent at ~20 Hz.
   - `team`: (optional) `union` or `coalition` in a team mode, omitted otherwise
   - `lives`: (optional) lives left this round, this one included, when lives are limited
   - `golden`: (optional) true while holding the golden Railgun, omitted otherwise
+  - `collidable`: Boolean server-owned living-body eligibility. New servers
+    always include it. Dead, detached, eliminated, respawning and unready
+    campaign bodies report false. Legacy omission defaults to true, still
+    subject to HP and mission participation; a present nonboolean is invalid.
   - `body`: (optional) `human` or `synthetic`, the participant's accepted body.
     Every human, agent and rule-bot participant carries it; rule bots take
     bodies by roster slot (human, synthetic, synthetic, human, repeating),
@@ -1069,9 +1105,28 @@ Periodic state broadcast containing all visible game entities. Sent at ~20 Hz.
 - `pickups`: (optional, omitted when empty) Scrap layout: `map_id` (1 Arena Duel / 2 Compliance Yard) and `map_name`. Mid-map pads (weapons, health, armor). Each entry: `id`, `kind` (`"weapon"` / `"health"` / `"armor"`, default `"weapon"`), optional `weapon` (weapon pads), optional `amount` (health/armor pads), `x`/`y`/`z`, `available`, optional `respawn_in` (ticks until the pad returns). Health pads heal +40 (cap max HP); armor scrap grants +25 (cap 100). Touch claim is authoritative on the server; clients only render.
 
 **Notes:**
-- Dead players (HP ≤ 0) are omitted from the snapshot
+- Ordinary dead fighters are omitted; campaign corpses remain for their bounded
+  death presentation and report `collidable: false`.
 - Clients must handle players appearing/disappearing
 - No delta compression in v1 (future optimization)
+
+Living eligible characters block ordinary horizontal movement when their
+0.5-metre radii and registered vertical spans intersect. Fighter and civilian
+height is 1.8 metres, Crawler height is 0.8 and Notary height is 0.7. Contact
+preserves sliding, map support and escape from pre-existing overlap; it does
+not make characters standing surfaces. Reachable mission civilians use their
+published feet while the mission is in progress. Combat remains independently
+resolved: an already committed Crawler leap contact can damage on its frame,
+and body blocking does not replace shot geometry. Tram obstruction refuses the
+whole platform step. This additive snapshot fact does not change capability
+27 or campaign rules revision 3.
+
+The local human presenter mirrors contact math using validated, recent static
+snapshot bodies for at most three speculative ticks, with a bounded four-sample
+history. Moving peers are not extrapolated and can require an ACK correction.
+Invalid or stale contact input suspends speculative movement until fresh
+authoritative state arrives. ACKs, never predicted body contacts, decide actual
+positions and velocities.
 - Round fields present when round system is active
 
 **Shot evidence:** current servers always include `trace`; old recordings omit
@@ -1708,10 +1763,12 @@ content bytes and campaign rules before readiness. An M01 exit waiting for M02
 is checked against the M01 content it names, then promoted once to an M02 entry
 under the same lock. M02 promotes to M03, M03 to M04 and M04 to M05 without
 refilling continues or equipment. Compatible v2 M01, v3 M01/M02 and v4
-M01/M02/M03 documents migrate to v6 after validating their historical revision
+M01/M02/M03 documents migrate to v7 after validating their historical revision
 2 rules and exact content hash. The upgrade promotes rules to revision 3 with
 exact original bytes retained. Strict v5 M01 through M04 documents retain revision
-3 and upgrade to v6 with zero historical grenades. Old shapes reject grenade
+3 and upgrade to v7 with zero historical grenades. Strict v6 documents preserve
+their real grenade counts and M05 release/boarding outcomes; they cannot forge
+playable M06 or its future route outcome. Old shapes reject grenade
 fields and forged M05 stages. Exact source bytes are archived before replacement;
 v1 magazine-era saves remain incompatible. A second
 child cannot own the same file. Omitting `--run-mode` retains independent
@@ -1722,18 +1779,20 @@ continues, pending_continue, nullable body), `failed`, `abandoned`,
 `awaiting_mission` (mission, difficulty, continues, nullable body),
 `incompatible`, or `corrupt`. `awaiting_mission` identifies M02 after M01 or
 M03 `scheduled_service` after M02, M04 `notice_to_vacate` after M03, or the
-M05 `no_forwarding_address` after M04, or unbuilt M06 `port_of_entry` after M05.
-Version 6 retains completed
+M05 `no_forwarding_address` after M04, M06 `port_of_entry` after M05, or unbuilt
+M07 `declared_goods` after M06. Version 7 retains completed
 M03 optional liberation IDs in `m03_outcome:{liberated_cars:[...]}` at the
 pending M04 edge and throughout M04 entry, retry and terminal states. Completed
 M04 adds `m04_outcome:{rescued_patients:[...],photos_completed}` exactly at
 the pending M05 edge and throughout M05 entry/retry/terminal states. M05 adds
 `m05_outcome:{released_workers:[...],evacuated_workers:[...]}` exactly at the
-pending M06 edge. Release contains either no workers or all three registered
+pending M06 edge and throughout M06 entry, retry and terminal states. Release contains either no workers or all three registered
 IDs, and evacuated workers are a unique subset physically inside boarding.
-Every v6 saved equipment object has independent `grenades` from zero to six.
-Episode II continues are not refilled at this still-unbuilt transition.
-Unknown future versions, forged older M04/M05 states and
+Every v6 and v7 saved equipment object has independent `grenades` from zero to six.
+M06 adds `m06_outcome:{prisoner_route_marked}` only at its completed pending M07
+edge. Earlier outcomes persist through that edge. Episode II continues refill
+only in the locked completed-M05-to-M06 promotion, never on a format upgrade.
+Unknown future versions, forged older M04/M05/M06 states and
 changed source hashes are rejected before replacement. An absent body on a legacy
 save is bound by the player's visible body choice on admission; a bound body
 remains the server-owned run identity despite later profile changes.
@@ -1749,7 +1808,7 @@ the on-wire campaign rules revision. No parent command changes it during a run.
 ```
 
 The readiness record names the selected mission's current client contract.
-All five authored missions, development or durable, name capability 26 for
+M01 through M05, development or durable, name capability 26 for
 campaign rules revision 3. Their older 18/22/24/25 bootstrap contracts are retired.
 The local launcher checks this value exactly.
 
@@ -1785,7 +1844,18 @@ continues and earlier car/clinic/photo choices, clearing only old-map personal
 claims. Explicit Continue restores the M05 entry and all attempt state without
 rewinding ticks, action sequence or inventory revisions. Completion saves the
 pending Port of Entry boundary and separate release/physical boarding outcomes;
-the next mission is not yet playable.
+the next mission can be entered through the normal local resume path.
+
+`--local-mission port_of_entry` without a run mode starts the independent
+bundled M06 prototype with capability 27 and no personal save. Resume promotes
+a completed M05 exit under the writer lock, preserving exact body, difficulty,
+HP, armor, equipment and Earth outcomes and clearing only old-map claims.
+That one promotion refills Episode II to three continues and a three-continue
+level baseline. Read-only preview, historical-format upgrade, Practice,
+reopening M06, retry, failure and abandonment do not grant another refill.
+The arrival scene precedes readiness only for the pending M05 entry; resuming
+an existing M06 attempt skips it. M06 completion saves `declared_goods` as a
+pending destination; M07 remains unbuilt.
 
 The port is chosen by the OS. Diagnostics use stderr. The parent validates the
 exact version, mission, requested difficulty, gameplay capability and loopback endpoint before using

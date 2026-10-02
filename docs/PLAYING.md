@@ -130,9 +130,13 @@ counted hand grenades, and its tram carries supported riders along the trench;
 you can also walk the service aisle. Retry restores the M05 entry, guards,
 held captives, closed freight gate and parked tram. Releasing workers does
 not mean they are physically aboard. Ship departure saves those two outcomes
-separately at the unbuilt **Port of Entry** destination, with no Episode II
-refill yet. The menu shows that destination without offering a mission launch.
-Separate M02, M03, M04 and M05 practice entries have no durable run and preserve an
+separately at the **Port of Entry** destination. Continue Run enters that lunar
+port with the exact M05 exit and earlier outcomes, refilling Episode II to three
+continues once. Preview and historical-file upgrade do not refill; reopening or
+retrying M06 preserves its existing allowance. Its optional service marker is
+an extra route outcome, never a transit departure requirement. Completion leaves
+the run pending **Declared Goods**, which is not yet playable.
+Separate M02 through M06 practice entries have no durable run and preserve an
 existing campaign save.
 **Start New Run** archives the previous run after confirmation.
 The pause menu's **Leave match** returns to the menu and keeps this local
@@ -150,20 +154,23 @@ content-addressed `run.prior-<digest>.json` name.
 To recover one, close the game, keep a copy of the current `run.json`, and
 copy the archive back as `run.json`. It still must match the installed mission
 content and rules. Compatible v2 M01, v3 M01/M02 and v4 M01/M02/M03 saves
-explicitly upgrade to v6 on a valid resume. Their known historical rules revision
+explicitly upgrade to v7 on a valid resume. Their known historical rules revision
 2 upgrades to current revision 3; the installed authored content must still
 match. Exact prior bytes remain in the migration archive. A v4 completed-M03
 save can therefore continue into M04 without losing body, entry equipment,
 remaining allowance or recall car choices. Compatible v5 saves keep revision 3
 and all earlier outcomes, assigning zero historical grenades. A completed v5
 M04 exit can enter M05 without losing body, equipment or earlier choices. Old
-save shapes reject invented grenade fields and M05 states. Unknown revisions and v1
+save shapes reject invented grenade fields and unsupported later mission states.
+Strict v6 saves retain their actual grenade counts and distinct workshop release
+and boarding outcomes through M06. Unknown revisions and v1
 magazine-era saves remain incompatible. Current live authored missions require
-the matching capability 26 client and server. The
+matching client and server, with capability 27 for M06 and 26 for earlier missions. The
 [run file plan](plans/campaign-run-file.md) and
 [carry plan](plans/m01-m02-run-carry.md) record the original recovery rules;
-the [M05 plan](plans/m05-no-forwarding-address-prototype.md) records the current
-migration and real saved-transition checks.
+the [M05 plan](plans/m05-no-forwarding-address-prototype.md) records the shipped
+previous boundary, and the [M06 plan](plans/m06-port-of-entry-prototype.md)
+tracks the new migration and episode transition acceptance.
 
 The **Service Record** stores the latest 256 campaign, arena and practice
 records on this device. It shows kills, deaths, effective damage, time alive,
@@ -175,7 +182,9 @@ JSON. It is local history, not a public ranking or campaign save.
 The boot menu and in-match menu share Controls, Look, Display, Graphics and
 Audio settings. Choose resolution, quality, frame cap, VSync, field of view,
 supported FSR upscaling, sensitivity, stick response and separate master,
-radio and effects levels. Save applies a draft; Cancel discards it. The
+radio and effects levels. Normal radio startup chooses a random populated
+station and a random track. Station and track controls remain available during
+play. Save applies a draft; Cancel discards it. The
 [display plan](plans/display-quality.md) records renderer behavior.
 
 The current campaign is a development slice. It still needs complete art,

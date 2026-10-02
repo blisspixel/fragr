@@ -96,9 +96,9 @@ static func arena_blocked_at(arena: Dictionary, x: float, z: float, climb: float
 	return arena_blocked_body_at(arena, x, z, climb - STEP_UP, climb)
 
 
-static func arena_blocked_body_at(arena: Dictionary, x: float, z: float, feet: float, climb: float) -> bool:
+static func arena_blocked_body_at(arena: Dictionary, x: float, z: float, feet: float, climb: float, height: float = BODY_HEIGHT) -> bool:
 	for solid: Dictionary in arena["solids"]:
-		if solid_top(solid) > climb and solid_bottom(solid) < feet + BODY_HEIGHT - CONTACT_EPSILON and solid_blocks(solid, x, z, RADIUS):
+		if solid_top(solid) > climb and solid_bottom(solid) < feet + height - CONTACT_EPSILON and solid_blocks(solid, x, z, RADIUS):
 			return true
 	return false
 
@@ -107,13 +107,13 @@ static func arena_blocked_motion(arena: Dictionary, from: Vector2, to: Vector2, 
 	return arena_blocked_body_motion(arena, from, to, climb - STEP_UP, climb, true)
 
 
-static func arena_blocked_body_motion(arena: Dictionary, from: Vector2, to: Vector2, feet: float, climb: float, was_grounded: bool) -> bool:
+static func arena_blocked_body_motion(arena: Dictionary, from: Vector2, to: Vector2, feet: float, climb: float, was_grounded: bool, height: float = BODY_HEIGHT) -> bool:
 	var support: float = arena_support_height(arena, to.x, to.y, climb)
 	var next_feet: float = support if was_grounded and feet - support <= STEP_UP else feet
 	for solid: Dictionary in arena["solids"]:
-		if solid_top(solid) <= climb or solid_bottom(solid) >= next_feet + BODY_HEIGHT - CONTACT_EPSILON:
+		if solid_top(solid) <= climb or solid_bottom(solid) >= next_feet + height - CONTACT_EPSILON:
 			continue
-		if solid_bottom(solid) >= feet + BODY_HEIGHT - CONTACT_EPSILON:
+		if solid_bottom(solid) >= feet + height - CONTACT_EPSILON:
 			# Stepping into a slab is not recovery from an existing overlap.
 			if solid_blocks(solid, to.x, to.y, RADIUS):
 				return true
@@ -122,11 +122,11 @@ static func arena_blocked_body_motion(arena: Dictionary, from: Vector2, to: Vect
 	return false
 
 
-static func arena_ceiling_height(arena: Dictionary, x: float, z: float, feet: float) -> float:
+static func arena_ceiling_height(arena: Dictionary, x: float, z: float, feet: float, height: float = BODY_HEIGHT) -> float:
 	var ceiling: float = INF
 	for solid: Dictionary in arena["solids"]:
 		var bottom: float = solid_bottom(solid)
-		if bottom >= feet + BODY_HEIGHT - CONTACT_EPSILON and solid_blocks(solid, x, z, RADIUS):
+		if bottom >= feet + height - CONTACT_EPSILON and solid_blocks(solid, x, z, RADIUS):
 			ceiling = minf(ceiling, bottom)
 	return ceiling
 
@@ -237,6 +237,11 @@ static func step(state: Dictionary, input: Dictionary, dt: float, arena: Diction
 ## Resolve chosen velocity, jumping and gravity through the same path as the
 ## live server. Acceleration is a caller decision, not a collision rule.
 static func integrate(state: Dictionary, jump: bool, dt: float, arena: Dictionary) -> Dictionary:
+	return integrate_with_height(state, jump, dt, arena, BODY_HEIGHT)
+
+
+## Registered low actor profiles share the server's support and ceiling path.
+static func integrate_with_height(state: Dictionary, jump: bool, dt: float, arena: Dictionary, height: float) -> Dictionary:
 	var vx: float = float(state["vx"])
 	var vz: float = float(state["vz"])
 	var yaw: float = float(state["yaw"])
@@ -257,14 +262,14 @@ static func integrate(state: Dictionary, jump: bool, dt: float, arena: Dictionar
 
 	var x: float
 	var z: float
-	if not arena_blocked_body_motion(arena, Vector2(old_x, old_z), Vector2(nx, nz), state_y, climb, was_grounded):
+	if not arena_blocked_body_motion(arena, Vector2(old_x, old_z), Vector2(nx, nz), state_y, climb, was_grounded, height):
 		x = nx
 		z = nz
-	elif not arena_blocked_body_motion(arena, Vector2(old_x, old_z), Vector2(nx, old_z), state_y, climb, was_grounded):
+	elif not arena_blocked_body_motion(arena, Vector2(old_x, old_z), Vector2(nx, old_z), state_y, climb, was_grounded, height):
 		vz = 0.0
 		x = nx
 		z = old_z
-	elif not arena_blocked_body_motion(arena, Vector2(old_x, old_z), Vector2(old_x, nz), state_y, climb, was_grounded):
+	elif not arena_blocked_body_motion(arena, Vector2(old_x, old_z), Vector2(old_x, nz), state_y, climb, was_grounded, height):
 		vx = 0.0
 		x = old_x
 		z = nz
@@ -288,10 +293,10 @@ static func integrate(state: Dictionary, jump: bool, dt: float, arena: Dictionar
 			vy = JUMP_SPEED
 	else:
 		vy -= GRAVITY * dt
-	var ceiling: float = arena_ceiling_height(arena, x, z, y)
+	var ceiling: float = arena_ceiling_height(arena, x, z, y, height)
 	y += vy * dt
-	if vy > 0.0 and y + BODY_HEIGHT > ceiling:
-		y = ceiling - BODY_HEIGHT
+	if vy > 0.0 and y + height > ceiling:
+		y = ceiling - height
 		vy = 0.0
 	# Swept landing: anything the fall passed through on the way down counts.
 	var landing: float = arena_support_height(arena, x, z, maxf(state_y, y))

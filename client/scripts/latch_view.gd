@@ -9,9 +9,12 @@ const CYAN: Color = Color("4a8a92")
 const DARK: Color = Color("232b2c")
 const RUST: Color = Color("7a3a22")
 const NEAR_CLIP: Shader = preload("res://assets/shaders/latch_near_clip.gdshader")
-const CAMERA_CLEARANCE: float = 0.7
+const NEAR_CENTER_HEIGHT: float = 1.2
+const NEAR_HIDE_DISTANCE: float = 1.1
+const NEAR_FULL_DISTANCE: float = 1.35
 var near_camera_clip: bool = false
 var _ward_materials: Dictionary[MeshInstance3D, StandardMaterial3D] = {}
+var _near_origin: Vector3 = Vector3.INF
 
 var _left_leg: Node3D
 var _right_leg: Node3D
@@ -105,6 +108,22 @@ func _init() -> void:
 		_material(Color("cb894d"), true))
 	_flash.visible = false
 	_gun.visible = false
+	set_process(false)
+
+func _process(_delta: float) -> void:
+	_update_near_origin()
+
+func _update_near_origin() -> void:
+	if not near_camera_clip or not is_inside_tree():
+		return
+	var origin: Vector3 = global_position
+	if origin == _near_origin:
+		return
+	_near_origin = origin
+	for part: MeshInstance3D in _ward_materials:
+		var material: ShaderMaterial = part.material_override as ShaderMaterial
+		if material != null:
+			material.set_shader_parameter("chassis_origin", origin)
 
 func set_weapon_visible(enabled: bool) -> void:
 	_gun.visible = enabled
@@ -117,6 +136,8 @@ func set_near_camera_clip(enabled: bool) -> void:
 	if enabled == near_camera_clip:
 		return
 	near_camera_clip = enabled
+	set_process(enabled)
+	_near_origin = Vector3.INF
 	for node: Node in find_children("*", "MeshInstance3D", true, false):
 		var part: MeshInstance3D = node as MeshInstance3D
 		if not enabled:
@@ -133,8 +154,11 @@ func set_near_camera_clip(enabled: bool) -> void:
 		clipped.set_shader_parameter("chassis_metallic", original.metallic)
 		clipped.set_shader_parameter("chassis_roughness", original.roughness)
 		clipped.set_shader_parameter("chassis_emission", original.emission * original.emission_energy_multiplier if original.emission_enabled else Color.BLACK)
-		clipped.set_shader_parameter("camera_clearance", CAMERA_CLEARANCE)
+		clipped.set_shader_parameter("chassis_center_height", NEAR_CENTER_HEIGHT)
+		clipped.set_shader_parameter("near_hide_distance", NEAR_HIDE_DISTANCE)
+		clipped.set_shader_parameter("near_full_distance", NEAR_FULL_DISTANCE)
 		part.material_override = clipped
+	_update_near_origin()
 
 func set_render_layers(layers: int) -> void:
 	for node: Node in find_children("*", "VisualInstance3D", true, false):

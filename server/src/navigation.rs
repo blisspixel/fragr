@@ -295,17 +295,27 @@ impl Navigation {
     /// node. Swept clearance catches corners and arbitrarily thin barriers;
     /// quarter-metre steps update the supporting tread before the next riser.
     pub fn walkable(&self, from: [f32; 3], to: [f32; 3]) -> bool {
-        if !self.valid_point(from) || !self.valid_point(to) {
+        Self::walkable_in(&self.arena, from, to)
+    }
+
+    pub(crate) fn walkable_in(arena: &Arena, from: [f32; 3], to: [f32; 3]) -> bool {
+        let valid = |point: [f32; 3]| {
+            point.iter().all(|value| value.is_finite())
+                && point[0].abs() <= arena.half - RADIUS
+                && point[2].abs() <= arena.half - RADIUS
+                && (0.0..=MAX_HALF * 2.0).contains(&point[1])
+        };
+        if !valid(from) || !valid(to) {
             return false;
         }
-        let mut floor = self.arena.support_height(from[0], from[2], from[1] + 0.01);
+        let mut floor = arena.support_height(from[0], from[2], from[1] + 0.01);
         if (from[1] - floor).abs() > 0.1 {
             return false;
         }
         // A fallen body can overlap a ledge's inflated edge while its feet are
         // outside the solid. Movement permits outward escape from that state;
         // an actual starting point inside a wall is still invalid.
-        if self.arena.solids.iter().any(|solid| {
+        if arena.solids.iter().any(|solid| {
             solid.top > floor + STEP_UP
                 && solid.bottom < floor + BODY_HEIGHT - CONTACT_EPSILON
                 && solid.covers(from[0], from[2])
@@ -320,10 +330,7 @@ impl Navigation {
             let fraction = step as f32 / steps as f32;
             let x = from[0] + dx * fraction;
             let z = from[2] + dz * fraction;
-            if self
-                .arena
-                .blocked_motion((previous[0], previous[2]), (x, z), floor + STEP_UP)
-            {
+            if arena.blocked_motion((previous[0], previous[2]), (x, z), floor + STEP_UP) {
                 return false;
             }
             let delta = [x - previous[0], 0.0, z - previous[2]];
@@ -333,7 +340,7 @@ impl Navigation {
                     origin: [previous[0], floor + STEP_UP, previous[2]],
                     direction: delta.map(|v| v / length),
                 };
-                if self.arena.solids.iter().any(|solid| {
+                if arena.solids.iter().any(|solid| {
                     solid.top > floor + STEP_UP
                         && solid.bottom < floor + BODY_HEIGHT - CONTACT_EPSILON
                         && !(solid.blocks(previous[0], previous[2], RADIUS)
@@ -358,17 +365,16 @@ impl Navigation {
                     return false;
                 }
             }
-            let support = self.arena.support_height(x, z, floor + STEP_UP);
+            let support = arena.support_height(x, z, floor + STEP_UP);
             // A descending fighter keeps its height while its body clears the
             // ledge. Dropping the probe to ground immediately would collide
             // with the deck it just left and make every large drop unreachable.
-            if support >= floor || to[1] >= floor || !self.arena.blocked_at(x, z, support + STEP_UP)
-            {
+            if support >= floor || to[1] >= floor || !arena.blocked_at(x, z, support + STEP_UP) {
                 floor = support;
             }
             previous = [x, floor, z];
         }
-        (floor - to[1]).abs() <= 0.1 && !self.arena.blocked_at(to[0], to[2], floor + STEP_UP)
+        (floor - to[1]).abs() <= 0.1 && !arena.blocked_at(to[0], to[2], floor + STEP_UP)
     }
 
     pub fn floor_below(&self, point: [f32; 3]) -> Option<f32> {

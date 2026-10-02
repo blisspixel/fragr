@@ -1,0 +1,29 @@
+{
+  "files": [
+    {
+      "file": "dust.png",
+      "sha256": "14b52c7b73a096e93014964ed5fa40709bab4f75e1dcbe06a23a13d539831997"
+    },
+    {
+      "file": "pressure_shell.png",
+      "sha256": "7e9a3e9e04b070030651f178258207af3d4ed1ae20909b155d95c455c7d69e00"
+    },
+    {
+      "file": "earth.png",
+      "sha256": "807dfd8dd6db0082f2513021cbd4cbface1c9c998de0377dea67efcf768b7717"
+    },
+    {
+      "file": "drawing.png",
+      "sha256": "e5c7f94ad44e065c5469527d7591094c93622b040d2b6fc40f4c5b1f437d92a6"
+    }
+  ],
+  "format": 1,
+  "method": "original deterministic pixel placement",
+  "size": [
+    128,
+    128
+  ],
+  "source": "res://../tools/bake_moon_details.gd",
+  "source_sha256": "e0e8c969b5fa701e1d0b46c40af4ee6974ed39ea08c499264ce902e35f7110dd",
+  "spend_usd": 0
+}

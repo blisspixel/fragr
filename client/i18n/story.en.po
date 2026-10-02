@@ -310,6 +310,18 @@ msgstr "The roofs of Low Water, ten minutes later.\n\nThe sweep holds the street
 msgid "STORY_M05_DEPARTURE_TITLE"
 msgstr "COMMON CARRIER"
 
+msgid "STORY_M06_ARRIVAL_MOON"
+msgstr "The Moon, three days out. The port declared Tern's ship impounded before the engines were cold. Tern put us out through the cargo lock and stayed with the passengers."
+
+msgid "STORY_M06_ARRIVAL_PORT"
+msgstr "Our neighbours are across the crater. Get through customs."
+
+msgid "STORY_M06_DEPARTURE_TITLE"
+msgstr "DECLARED GOODS"
+
+msgid "STORY_L06_L07_TRANSIT"
+msgstr "The transit tunnel leads toward the lunar town. Tern and the passengers remain with the impounded ship. The custody depot stands across the crater."
+
 msgid "STORY_L05_L06_CARRIER"
 msgstr "Mara found one carrier who would come.\n\nThe freight platform falls behind. Low Water stays below."
 

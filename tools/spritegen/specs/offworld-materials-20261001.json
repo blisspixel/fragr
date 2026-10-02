@@ -1,0 +1,35 @@
+{
+  "model": "marketing-studio/image",
+  "out_dir": "art/raw/offworld-materials-20261001",
+  "params": {
+    "quality": "medium",
+    "resolution": "2k",
+    "aspect_ratio": "1:1",
+    "enhance_prompt": false
+  },
+  "style": "original retro FPS environment albedo texture, deliberate readable pixel clusters and stepped material edges, restrained desaturated rust orange, bone ivory and warm gunmetal palette, broad quiet value fields, modern carefully authored pixel craft, flat even illumination, no gradients",
+  "view": "orthographic straight-on seamless square texture tile, edge-to-edge continuous material designed to repeat in both directions, no perspective or scene, no object silhouette",
+  "technical": "opaque full square canvas, all four edges seamless and pattern continuous, no vignette, no lighting baked into the material, no shadow, no ambient occlusion, no specular highlights, no rim light, no emission, no text, no signature, no watermark, no border",
+  "frames": [
+    {
+      "id": "mars_basalt",
+      "subject": "dark Martian basalt rock surface, broad irregular flat warm charcoal angular rock masses and shallow broken fractures, sparse muted iron-red dust settling in thin cracks, occasional medium grey freshly broken edges, rock scale varied and readable instead of uniform pebbles, quiet dark natural stone field, no orange glow, no sand dunes, no lava"
+    },
+    {
+      "id": "mars_regolith",
+      "subject": "compacted dry Martian regolith ground, muted iron-oxide rust red and brown clay dust, broad low-contrast wind-worn horizontal grain broken into sparse chunky pixel clusters with a few small darker basalt fragments, quiet earthy middle values, clearly different from dark fractured basalt, no footprints, no dunes or horizon, no regular panel grid, no orange glow"
+    },
+    {
+      "id": "offworld_pressure_habitat",
+      "subject": "civilian offworld pressure habitat cladding, large uneven pale bone enamel skin sections on restrained dark warm gunmetal seams, one broad practical flush replacement patch and a few small matte fasteners, sparse desaturated brown oxidation around exposed seams and fine rust dust at sealed joints, maintained shelter with human repairs, quiet pale midtone fields, no logo, no warning stripe, no vents, no decorative science-fiction lights"
+    },
+    {
+      "id": "offworld_mining_deck",
+      "subject": "used mining and cargo service deck plate, dark warm gunmetal steel, broad worn offset anti-slip tread bars with small quiet bare-metal abrasion along their top surfaces, sparse dull brown mineral dust in recesses, a few flush inset fasteners, strongly readable floor material with restrained contrast rather than a dense checkerboard, no holes or open grate, no warning stripes, no emission"
+    },
+    {
+      "id": "offworld_thermal_ceramic",
+      "subject": "practical offworld thermal ceramic shield surface, broad pale bone and warm ivory ceramic segments with thin dark charcoal sealed joints, a few sparse chipped edges exposing muted grey substrate, subtle desaturated brown heat staining near two joints, asymmetrical replacement tile evidence, quiet pale fields for readable fighters, visibly ceramic rather than metallic plate, no glow, no bolts covering every tile, no text"
+    }
+  ]
+}

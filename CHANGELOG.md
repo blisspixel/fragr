@@ -4,6 +4,51 @@ Shipped tags, newest first. A line here is on `main`. Planned work stays in
 [docs/ROADMAP.md](docs/ROADMAP.md). Older tags are on the
 [releases page](https://github.com/blisspixel/fragr/releases).
 
+## v0.66.0 (2026-10-02)
+
+Port of Entry extends the campaign prototype onto the Moon with an inhabited
+cargo port, finite Railgun discovery, a long firing lane, flankable Turrets,
+three secret detours and an optional prisoner-route marker. Lunar pressure rooms,
+Earth and the impounded passenger ship follow the shared appearance guides.
+Two original pixel story illustrations accompany the existing offline narration
+and reader-paced captions.
+
+Twenty-one selected palette textures give Earth and lunar materials distinct
+repair histories, pressure panels and walking surfaces. Existing civilian
+possessions and shallow-water presentation remain. Five of the textures form an
+inspected future offworld library; Mars missions remain unbuilt. Material scale,
+edge repeats, actual lighting and quiet fighter backgrounds were reviewed.
+
+Continue Run carries completed M05 runs into M06 and refills Episode II to three
+continues exactly once. Strict v7 upgrades retain exact historical bytes, actual
+equipment and separate released and evacuated worker outcomes. Reopening,
+retrying and Practice do not refill the run.
+
+Living characters and reachable civilians now block ordinary walking. The server
+owns body contact; local first-person prediction stops and slides using recent
+validated bodies. Shared controllers account for occupied paths, and workshop
+workers settle at separate actual boarding positions. Dead and detached bodies
+do not trap movement. Crawler damage, hover and tram support retain their own
+authoritative behavior.
+Grounded crowd recovery also prevents occupied gallery waypoints skipping across
+walls and unsticks the actual four-person M01 route without larger mission budgets.
+The nearby live companion fades as one complete figure, preventing detached head
+facets in upward views while retaining the distant body and its world shadow.
+In two-bot CTF sides, a flag carrier can defend against its own flag thief at
+the existing contact range. Four declared identity orders retain the original
+seed survey's completion and visible combat-drop gates.
+
+The shotgun has a new offline blast, and ordinary radio startup chooses a random
+populated station and random track, including visual test runs. Rapid environment
+changes retain their sky resources through the next rendered frame.
+
+These remain development missions. Fresh-player pacing, difficulty acceptance,
+final character performances and later missions remain open. This increment used
+282 included audio credits and $0 new cash charges. The ongoing round totals
+975 included audio credits, a conservative $5 audio reserve and $4.085 of new
+image reservations with billing unconfirmed; the earlier $0.107 reservation
+remains preserved.
+
 ## v0.65.0 (2026-09-30)
 
 The campaign prototype continues through Scheduled Service, Notice to Vacate and

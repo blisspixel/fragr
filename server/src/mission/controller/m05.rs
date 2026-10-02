@@ -33,6 +33,7 @@ impl MissionClient {
             || self.m02_map.is_some()
             || self.m03_map.is_some()
             || self.m04_map.is_some()
+            || self.m06_map.is_some()
         {
             return Err("M05 cannot share another mission map");
         }
@@ -149,7 +150,7 @@ impl MissionClient {
                 return Action::default();
             };
             return navigator
-                .steer_snapshot_with_visibility(world, id, snapshot, action, true, &solids);
+                .route_snapshot_with_visibility(world, id, snapshot, action, true, &solids);
         }
         let Some(me) = snapshot.players.iter().find(|p| p.id == id && p.hp > 0) else {
             return Action::default();

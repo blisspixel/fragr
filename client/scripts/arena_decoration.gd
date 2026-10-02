@@ -38,6 +38,16 @@ const SIGN_KEYS: Dictionary[String, String] = {
 	"m05_market_six": "WORLD_M05_MARKET_SIX",
 	"m05_freight_sign": "WORLD_M05_FREIGHT_SIGN",
 	"m05_ship_departure": "WORLD_M05_SHIP_DEPARTURE",
+	"m06_dust_declaration": "WORLD_M06_DUST_DECLARATION",
+	"m06_rail_confiscation": "WORLD_M06_RAIL_CONFISCATION",
+	"m06_freight_gantry": "WORLD_M06_FREIGHT_GANTRY",
+	"m06_family_window": "WORLD_M06_FAMILY_WINDOW",
+	"m06_service_six": "WORLD_M06_SERVICE_SIX",
+	"m06_crane_overlook": "WORLD_M06_CRANE_OVERLOOK",
+	"m06_duty_free_six": "WORLD_M06_DUTY_FREE_SIX",
+	"m06_impound_observation": "WORLD_M06_IMPOUND_OBSERVATION",
+	"m06_depot_overlook": "WORLD_M06_DEPOT_OVERLOOK",
+	"m06_transit_departure": "WORLD_M06_TRANSIT_DEPARTURE",
 }
 
 ## Cosmetic planes only. The host solid remains the sole collision authority.

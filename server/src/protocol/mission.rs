@@ -95,6 +95,7 @@ pub enum MissionId {
     ScheduledService,
     NoticeToVacate,
     NoForwardingAddress,
+    PortOfEntry,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
@@ -484,10 +485,15 @@ pub struct MissionState {
     pub m04: Option<super::M04ObjectiveState>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub m05: Option<super::M05ObjectiveState>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub m06: Option<super::M06ObjectiveState>,
 }
 
 impl MissionState {
     pub fn validate(&self, tick: u64) -> Result<(), &'static str> {
+        if self.id != MissionId::PortOfEntry && self.m06.is_some() {
+            return Err("M06 facts require M06 mission");
+        }
         if self.id != MissionId::NoForwardingAddress && self.m05.is_some() {
             return Err("M05 facts require M05 mission");
         }
@@ -512,6 +518,7 @@ impl MissionState {
             MissionId::ScheduledService => self.validate_m03()?,
             MissionId::NoticeToVacate => self.validate_m04()?,
             MissionId::NoForwardingAddress => self.validate_m05(tick)?,
+            MissionId::PortOfEntry => self.validate_m06()?,
         }
         if let Some(run) = self.run {
             run.validate_attempt(self.attempt)?;
@@ -556,14 +563,19 @@ impl MissionState {
                         && self.party.iter().all(|p| p.alive && p.aboard)
                 }
                 MissionPhase::InProgress => {
-                    (self.id == MissionId::NoForwardingAddress
+                    (self.id == MissionId::PortOfEntry
                         && prompt.kind == InteractionKind::ObjectiveUse
-                        && self
-                            .m05
-                            .as_ref()
-                            .is_some_and(|f| f.completed.len() == 6 && f.freight_open)
+                        && self.m06.as_ref().is_some_and(|f| f.completed.len() == 6)
                         && !self.party.is_empty()
                         && self.party.iter().all(|p| p.alive && p.ready && p.aboard))
+                        || (self.id == MissionId::NoForwardingAddress
+                            && prompt.kind == InteractionKind::ObjectiveUse
+                            && self
+                                .m05
+                                .as_ref()
+                                .is_some_and(|f| f.completed.len() == 6 && f.freight_open)
+                            && !self.party.is_empty()
+                            && self.party.iter().all(|p| p.alive && p.ready && p.aboard))
                         || (self.id == MissionId::NoticeToVacate
                             && self.m04.as_ref().is_some_and(|m04| {
                                 (prompt.kind == InteractionKind::ClinicShutter
@@ -791,6 +803,7 @@ mod m02_wire_tests {
             m03: None,
             m04: None,
             m05: None,
+            m06: None,
             m02: Some(M02ObjectiveState {
                 completed: vec!["ward_reached".into()],
                 total: 3,

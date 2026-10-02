@@ -68,6 +68,7 @@ var m02_ward: M02Ward
 var m03_yard: M03Yard
 var m04_town: M04Town
 var m05_town: M05Town
+var m06_port: M06Port
 var departure_review: DepartureReview
 var _continue_armed: bool = false
 var _continue_attempt_sent: int = -1
@@ -100,6 +101,7 @@ var _awaiting_map: bool = false
 var input_device: InputDevice
 var local_prediction: LocalPrediction = LocalPrediction.new()
 var _adopt_local_spawn_snapshot: bool = false
+var _retired_environments: Array[Environment] = []
 
 const CRAWLER_SOUND_PATH: String = "res://assets/audio/crawler_scrabble.wav"
 const CRAWLER_SOUND_VOICES: int = 4
@@ -194,6 +196,9 @@ func _ready():
 	m05_town = M05Town.new()
 	m05_town.name = "M05Town"
 	add_child(m05_town)
+	m06_port = M06Port.new()
+	m06_port.name = "M06Port"
+	add_child(m06_port)
 	var arena_root: Node = get_node_or_null("Arena")
 	if arena_root != null:
 		arena_root.add_child(arena_cover)
@@ -230,7 +235,14 @@ func _apply_arena_sky(map_name: String = "") -> void:
 	if world == null:
 		push_warning("game_manager: no WorldEnvironment found; sky left as authored")
 		return
+	var previous: Environment = world.environment
 	world.environment = ArenaSky.build_environment(map_name)
+	# The Compatibility renderer queues newly created skies for its next draw.
+	# Keep replaced skies alive until that queue has been consumed.
+	if previous != null and DisplayServer.get_name() != "headless":
+		_retired_environments.append(previous)
+		if not RenderingServer.frame_post_draw.is_connected(_release_retired_environments):
+			RenderingServer.frame_post_draw.connect(_release_retired_environments, CONNECT_ONE_SHOT)
 	RenderQuality.apply_environment(world.environment, settings)
 	ArenaSky.apply_scene_lights(get_node_or_null("Arena/Layout"), map_name)
 	ArenaSky.apply_view_fill(get_node_or_null("SpectatorCamera/Camera3D") as Camera3D, map_name)
@@ -245,6 +257,9 @@ static func _find_world_environment(node: Node) -> WorldEnvironment:
 		if found != null:
 			return found
 	return null
+
+func _release_retired_environments() -> void:
+	_retired_environments.clear()
 
 
 func _on_map_info(info: Dictionary) -> void:
@@ -266,12 +281,14 @@ func _on_map_info(info: Dictionary) -> void:
 	var m03: bool = info.get("m03") is Dictionary
 	var m04: bool = info.get("m04") is Dictionary
 	var m05: bool = info.get("m05") is Dictionary
+	var m06: bool = info.get("m06") is Dictionary
 	if local_match != null:
 		var expected_m02: bool = local_match.mission == MissionState.M02_ID
 		var expected_m03: bool = local_match.mission == MissionState.M03_ID
 		var expected_m04: bool = local_match.mission == MissionState.M04_ID
 		var expected_m05: bool = local_match.mission == MissionState.M05_ID
-		if m02 != expected_m02 or m03 != expected_m03 or m04 != expected_m04 or m05 != expected_m05 or (not m02 and not m03 and not m04 and not m05 and (not mission is Dictionary or mission.get("id") != MissionState.ID)):
+		var expected_m06: bool = local_match.mission == MissionState.M06_ID
+		if m02 != expected_m02 or m03 != expected_m03 or m04 != expected_m04 or m05 != expected_m05 or m06 != expected_m06 or (not m02 and not m03 and not m04 and not m05 and not m06 and (not mission is Dictionary or mission.get("id") != MissionState.ID)):
 			_on_local_failure("LOCAL_SERVER_INVALID_READY")
 			return
 	last_shot_tick = -1
@@ -289,9 +306,9 @@ func _on_map_info(info: Dictionary) -> void:
 			opening = CampaignOpening.new()
 			opening.completed.connect(_on_opening_completed)
 			add_child(opening)
-	elif m03 or m04 or m05:
+	elif m03 or m04 or m05 or m06:
 		if is_human_player and not _opening_finished and not is_instance_valid(opening):
-			var scene_id: String = MissionState.M05_ID if m05 else (MissionState.M04_ID if m04 else MissionState.M03_ID)
+			var scene_id: String = MissionState.M06_ID if m06 else (MissionState.M05_ID if m05 else (MissionState.M04_ID if m04 else MissionState.M03_ID))
 			opening = ScenePlayer.new(StoryScene.load_scene(StoryScene.BEFORE_MISSION[scene_id]))
 			opening.completed.connect(_on_opening_completed)
 			add_child(opening)
@@ -301,7 +318,7 @@ func _on_map_info(info: Dictionary) -> void:
 	elif is_human_player:
 		show_loading_card()
 	if pause_menu != null:
-		pause_menu.development_mission = (m02 or m03 or m04 or m05) and local_match != null and not local_match.has_durable_run()
+		pause_menu.development_mission = (m02 or m03 or m04 or m05 or m06) and local_match != null and not local_match.has_durable_run()
 	if arena_cover != null:
 		arena_cover.apply_map_info(info)
 		arena_cover.apply_m05({})
@@ -316,6 +333,8 @@ func _on_map_info(info: Dictionary) -> void:
 		m04_town.configure_map(info)
 	if m05_town != null:
 		m05_town.configure_map(info)
+	if m06_port != null:
+		m06_port.configure_map(info)
 	# Town fixtures are created after the venue preferences were applied.
 	if settings != null:
 		RenderQuality.apply_practicals(self, settings)
@@ -375,7 +394,7 @@ func _mission_controls_blocked() -> bool:
 
 ## Mission maps carry M01 geometry or the M02 objective marker.
 func _mission_map() -> bool:
-	return current_map_info.get("mission") is Dictionary or current_map_info.get("m02_objectives") != null or current_map_info.get("m03") is Dictionary or current_map_info.get("m04") is Dictionary or current_map_info.get("m05") is Dictionary
+	return current_map_info.get("mission") is Dictionary or current_map_info.get("m02_objectives") != null or current_map_info.get("m03") is Dictionary or current_map_info.get("m04") is Dictionary or current_map_info.get("m05") is Dictionary or current_map_info.get("m06") is Dictionary
 
 func _on_opening_completed() -> void:
 	_opening_finished = true
@@ -432,6 +451,9 @@ func _on_local_failure(key: String) -> void:
 	_on_leave_requested.call_deferred()
 
 func _exit_tree() -> void:
+	if RenderingServer.frame_post_draw.is_connected(_release_retired_environments):
+		RenderingServer.frame_post_draw.disconnect(_release_retired_environments)
+	_retired_environments.clear()
 	if records != null:
 		_report_record_save(records.save())
 	if is_instance_valid(local_match):
@@ -848,6 +870,8 @@ func _on_mission_received(state: Dictionary) -> void:
 		m04_town.apply_state(state)
 	if m05_town != null:
 		m05_town.apply_state(state)
+	if m06_port != null:
+		m06_port.apply_state(state)
 	hud.combat_feed.set_campaign(not state.is_empty())
 	_submit_mission_readiness()
 	play_departure_scene(state)
@@ -1104,6 +1128,8 @@ func _clear_world() -> void:
 		m04_town.clear_map()
 	if m05_town != null:
 		m05_town.clear_map()
+	if m06_port != null:
+		m06_port.clear_map()
 	hud.combat_feed.set_campaign(false)
 	pending_weapon_swap = null
 	latest_snapshot.clear()
@@ -1143,6 +1169,7 @@ func _on_snapshot_received(data):
 	ack_probe.record_snapshot(data.get("tick"), Time.get_ticks_usec())
 	latest_snapshot = data
 	_apply_map_from_snapshot(data)
+	_update_prediction_contacts(data)
 	var tick = data.get("tick", 0)
 	var player_list = data.get("players", [])
 	var companion_phase: String = ""
@@ -1293,6 +1320,11 @@ func _on_snapshot_received(data):
 	hud.equipment_hud.tick = int(data.get("tick", 0))
 	_refresh_equipment_visibility()
 	_update_nameplates()
+
+
+func _update_prediction_contacts(snapshot: Dictionary) -> void:
+	if is_human_player and net_client != null and net_client.player_id != null:
+		local_prediction.accept_snapshot(snapshot, str(net_client.player_id), net_client.mission.get("state", {}), Time.get_ticks_usec())
 
 
 func _present_jammer_launches(snapshot: Dictionary) -> void:

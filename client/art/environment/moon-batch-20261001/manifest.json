@@ -1,0 +1,132 @@
+{
+  "version": 1,
+  "created": "2026-10-01",
+  "status": "Three selected keepers integrated and inspected in isolated lit preview; final gameplay capture pending",
+  "provider": "Higgsfield",
+  "spec": "../../../../tools/spritegen/specs/m06-lunar-possession-candidates.json",
+  "pricing_checked": "2026-10-01",
+  "estimated_batch_usd": 0.114,
+  "confirmed_billed_batch_usd": null,
+  "new_cash_charge_usd": null,
+  "assets": [
+    {
+      "id": "lunar_child_earth_drawing",
+      "status": "selected keeper, integrated and isolated lit preview inspected",
+      "intended_use": "Runtime family-room EarthDrawing page, original fallback retained",
+      "model": "marketing-studio/image",
+      "request_id": "822f117c-b6bb-425b-8b3f-cb7d74467a84",
+      "parameters": {
+        "aspect_ratio": "1:1",
+        "enhance_prompt": false,
+        "prompt": "original retro pixel art environmental albedo for a 1990s PC shooter, deliberate chunky pixel clusters, broad readable shapes, limited desaturated bone white and warm gunmetal, muted cyan and sage with sparse ember and rust accents, flat even lighting, no gradients, a lunar settlement child's imperfect crayon drawing on worn bone paper, a single blue-green Earth globe with broadly recognizable irregular continent shapes and a few simple hand-drawn orbital stars, deliberately uneven chunky strokes, warm personal possession taped inside a family pressure room, quiet paper margin and tiny tape repair, not a planet photograph, no words, no named person, orthographic straight-on square flat albedo insert, continuous opaque edge-to-edge surface, no perspective, no scene or object silhouette, opaque full square canvas, no shadow, no ambient occlusion, no specular highlights, no rim light, no text, no watermark, no signature, no border. Avoid: photorealistic, 3d render, smooth shading, gradient, blur, anti-aliasing, drop shadow, cast shadow, ambient occlusion, specular, glossy, reflection, rim light, lens flare, bloom, depth of field, text, signature, watermark, frame, border, background scenery.",
+        "quality": "low",
+        "resolution": "2k"
+      },
+      "seed": null,
+      "estimated_usd": 0.029,
+      "billed_usd": null,
+      "raw": "raw/lunar_child_earth_drawing_0.png",
+      "raw_size": [
+        2048,
+        2048
+      ],
+      "raw_sha256": "83531eebf1e6b1fa5954a4b9a1fb90eeede4e1c47e6d8443b784733873442aa5",
+      "original_download_sha256": "b677216d4f0aeb551885d640f121e105fe93e68242b9f136e1e8e022e845f2c1",
+      "processed": "processed/lunar_child_earth_drawing_0.png",
+      "processed_size": [
+        128,
+        128
+      ],
+      "reduction_ratio": 16,
+      "processed_sha256": "041e43cbbbedbe729538202bd2cfb637f653293a411b2b7f72cbbef390aaa68d",
+      "palette": "../../../../docs/palette.json",
+      "palette_sha256": "fc38db371ad818db35603642edf9175eb0260091cf86d1aaf84cd721461c778c",
+      "preparation": "Existing Rust reducer, metadata-free source re-encode; area reduction, CIE Lab palette quantization, hard alpha, no trim",
+      "format": "png",
+      "normal_map": false,
+      "seamless": false
+    },
+    {
+      "id": "lunar_civilian_patched_textile",
+      "status": "selected keeper, integrated and isolated lit preview inspected",
+      "intended_use": "Runtime flush texture on existing sealed-room storage possessions",
+      "model": "marketing-studio/image",
+      "request_id": "2c6bb9cc-84a4-450f-9496-5bb63e576265",
+      "parameters": {
+        "aspect_ratio": "1:1",
+        "enhance_prompt": false,
+        "prompt": "original retro pixel art environmental albedo for a 1990s PC shooter, deliberate chunky pixel clusters, broad readable shapes, limited desaturated bone white and warm gunmetal, muted cyan and sage with sparse ember and rust accents, flat even lighting, no gradients, an individual civilian's well-kept salvaged woven cloth, large muted sage and bone patches with one small rust-orange repair corner, simple thick stitching and sparse practical seams, personally maintained rather than issued uniform, quiet broad shapes, flat cloth texture without folds or cast shadows, no emblem or writing, orthographic straight-on square flat albedo insert, continuous opaque edge-to-edge surface, no perspective, no scene or object silhouette, opaque full square canvas, no shadow, no ambient occlusion, no specular highlights, no rim light, no text, no watermark, no signature, no border. Avoid: photorealistic, 3d render, smooth shading, gradient, blur, anti-aliasing, drop shadow, cast shadow, ambient occlusion, specular, glossy, reflection, rim light, lens flare, bloom, depth of field, text, signature, watermark, frame, border, background scenery.",
+        "quality": "low",
+        "resolution": "2k"
+      },
+      "seed": null,
+      "estimated_usd": 0.028,
+      "billed_usd": null,
+      "raw": "raw/lunar_civilian_patched_textile_0.png",
+      "raw_size": [
+        2048,
+        2048
+      ],
+      "raw_sha256": "da0c84df900f20ae6042c0b990baf22873cc8720ec7e0661d56099ab6aeb2221",
+      "original_download_sha256": "a089258407b53de74eeb6e24c13c0a4d556436af49dc9ac65c938ce326264cad",
+      "processed": "processed/lunar_civilian_patched_textile_0.png",
+      "processed_size": [
+        128,
+        128
+      ],
+      "reduction_ratio": 16,
+      "processed_sha256": "a038f2f75d6118a8451cebcdae5ffa5d8116728d7ae410edc7f7f5144012a969",
+      "palette": "../../../../docs/palette.json",
+      "palette_sha256": "fc38db371ad818db35603642edf9175eb0260091cf86d1aaf84cd721461c778c",
+      "preparation": "Existing Rust reducer, metadata-free source re-encode; area reduction, CIE Lab palette quantization, hard alpha, no trim",
+      "format": "png",
+      "normal_map": false,
+      "seamless": false
+    },
+    {
+      "id": "lunar_personal_meal_cloth",
+      "status": "selected keeper, integrated and isolated lit preview inspected",
+      "intended_use": "Candidate flush tabletop cloth on existing sealed-room MealTable",
+      "model": "marketing-studio/image",
+      "request_id": "4dd53e76-ad35-4bfb-855b-001786c0dded",
+      "parameters": {
+        "aspect_ratio": "1:1",
+        "enhance_prompt": false,
+        "prompt": "original retro pixel art environmental albedo for a 1990s PC shooter, deliberate chunky pixel clusters, broad readable shapes, limited desaturated bone white and warm gunmetal, muted cyan and sage with sparse ember and rust accents, flat even lighting, no gradients, a simple cherished civilian meal-table cloth made from repaired fabric, bone field with one broad muted cyan stripe and an asymmetrical muted rust corner patch, a few thick hand-stitched seams, useful personal possession shared by human and embodied agent residents, clean and maintained despite wear, no generic chessboard pattern, no words or insignia, orthographic straight-on square flat albedo insert, continuous opaque edge-to-edge surface, no perspective, no scene or object silhouette, opaque full square canvas, no shadow, no ambient occlusion, no specular highlights, no rim light, no text, no watermark, no signature, no border. Avoid: photorealistic, 3d render, smooth shading, gradient, blur, anti-aliasing, drop shadow, cast shadow, ambient occlusion, specular, glossy, reflection, rim light, lens flare, bloom, depth of field, text, signature, watermark, frame, border, background scenery.",
+        "quality": "low",
+        "resolution": "2k"
+      },
+      "seed": null,
+      "estimated_usd": 0.029,
+      "billed_usd": null,
+      "raw": "raw/lunar_personal_meal_cloth_0.png",
+      "raw_size": [
+        2048,
+        2048
+      ],
+      "raw_sha256": "ecc7114435b2edeeb51255e8ae82c265fd57bffb9a3e56576129638f55bf7876",
+      "original_download_sha256": "4ea356df325c526236b2fee93f288cf558d32c46f8535c50126ddf0b3b911861",
+      "processed": "processed/lunar_personal_meal_cloth_0.png",
+      "processed_size": [
+        128,
+        128
+      ],
+      "reduction_ratio": 16,
+      "processed_sha256": "99cf882626883a6a022cb13e7b8a8ebdd74cab1ea18440a68c4d1a40ef3ca27c",
+      "palette": "../../../../docs/palette.json",
+      "palette_sha256": "fc38db371ad818db35603642edf9175eb0260091cf86d1aaf84cd721461c778c",
+      "preparation": "Existing Rust reducer, metadata-free source re-encode; area reduction, CIE Lab palette quantization, hard alpha, no trim",
+      "format": "png",
+      "normal_map": false,
+      "seamless": false
+    }
+  ],
+  "rejected": [
+    {
+      "id": "lunar_pressure_shell_insert",
+      "request_id": "e867dfff-5bb1-4df7-a379-0e159249d0a8",
+      "estimated_usd": 0.028,
+      "reason": "Useful quiet panel but redundant with current port hull material; no confirmed slot warrants a broad wall treatment. Raw and reduced candidate retained in ignored diagnostics."
+    }
+  ]
+}

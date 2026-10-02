@@ -8,6 +8,7 @@ mod explosive;
 mod loadout;
 mod m04;
 mod m05;
+mod m06;
 mod mission;
 mod rules;
 mod statistics;
@@ -29,6 +30,7 @@ pub use m05::{
     M05MapGeometry, M05ObjectiveState, M05RescueGeometry, M05TramGeometry, M05TramPhase,
     M05TramState, M05WorkerGeometry, M05WorkerState, M05_OBJECTIVE_IDS, M05_WORKER_IDS,
 };
+pub use m06::{M06MapGeometry, M06ObjectiveState, M06_OBJECTIVE_IDS, M06_SERVICE_ID};
 pub use mission::{
     CampaignDifficulty, CampaignRules, CampaignRunState, CampaignRunStatus, InteractionKind,
     InteractionPrompt, M02EvacuationPhase, M02EvacuationState, M02ObjectiveState, M03CarGeometry,
@@ -573,7 +575,8 @@ pub const M03_GAMEPLAY_VERSION: u32 = 24;
 /// M04 clinic, flying Notary, photograph outcomes and roof departure.
 pub const M04_GAMEPLAY_VERSION: u32 = 25;
 pub const M05_GAMEPLAY_VERSION: u32 = 26;
-pub const GAMEPLAY_VERSION: u32 = M05_GAMEPLAY_VERSION;
+pub const M06_GAMEPLAY_VERSION: u32 = 27;
+pub const GAMEPLAY_VERSION: u32 = M06_GAMEPLAY_VERSION;
 pub fn legacy_gameplay_version() -> u32 {
     1
 }
@@ -690,6 +693,7 @@ mod geometry_tests {
             m03: None,
             m04: None,
             m05: None,
+            m06: None,
             map_id: 67,
             map_name: "Enclosed fixture".into(),
             half_extent: 12.0,
@@ -797,6 +801,8 @@ pub enum ServerMessage {
         m04: Option<M04MapGeometry>,
         #[serde(default, skip_serializing_if = "Option::is_none")]
         m05: Option<M05MapGeometry>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        m06: Option<M06MapGeometry>,
         /// The arena's rule set. Omitted on authored campaign maps.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         rules: Option<MatchRules>,
@@ -1141,6 +1147,10 @@ pub enum FlagEventKind {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PlayerState {
+    /// Additive body-contact eligibility. Historical snapshots default to true;
+    /// current servers explicitly publish inactive, detached and dead bodies false.
+    #[serde(default = "collidable_by_default")]
+    pub collidable: bool,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub campaign: Option<CampaignActor>,
     pub id: Uuid,
@@ -1172,6 +1182,10 @@ pub struct PlayerState {
     /// campaign actors and the arena boss, which keep their own identity.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub body: Option<BodyKind>,
+}
+
+fn collidable_by_default() -> bool {
+    true
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

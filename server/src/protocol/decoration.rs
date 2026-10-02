@@ -78,6 +78,16 @@ pub enum MapDecorationKind {
     M05MarketSix,
     M05FreightSign,
     M05ShipDeparture,
+    M06DustDeclaration,
+    M06RailConfiscation,
+    M06FreightGantry,
+    M06FamilyWindow,
+    M06ServiceSix,
+    M06CraneOverlook,
+    M06DutyFreeSix,
+    M06ImpoundObservation,
+    M06DepotOverlook,
+    M06TransitDeparture,
 }
 
 /// Authoring names a solid; the validated wire form uses its index. The same

@@ -14,6 +14,9 @@ var _notice_m04_attempt: String = ""
 var _notice_m04_known: bool = false
 var _notice_m04_market: bool = false
 var _notice_m04_fired: bool = false
+var _notice_m06_attempt: String = ""
+var _notice_m06_customs: bool = false
+var _notice_m06_known: bool = false
 var state: Dictionary = {}
 var player_id: String = ""
 var _stage_phase: String = ""
@@ -102,6 +105,7 @@ func _show_recovery(template: String) -> void:
 func apply(value: Dictionary, owner_id: String) -> void:
 	_update_mast_notice(value)
 	_update_market_notice(value)
+	_update_port_notice(value)
 	var phase: String = _stage_key(value)
 	if phase != _stage_phase:
 		_stage_phase = phase
@@ -120,6 +124,29 @@ func reset_notices() -> void:
 	_notice_m04_known = false
 	_notice_m04_market = false
 	_notice_m04_fired = false
+	_notice_m06_attempt = ""
+	_notice_m06_customs = false
+	_notice_m06_known = false
+
+func _update_port_notice(value: Dictionary) -> void:
+	if value.is_empty():
+		return
+	if value.get("id") != MissionState.M06_ID:
+		_notice_m06_attempt = ""
+		_notice_m06_known = false
+		_notice_m06_customs = false
+		return
+	var run: Dictionary = value.get("run", {})
+	var identity: String = "%s:%s" % [str(run.get("id", "development")), str(value["attempt"])]
+	if identity != _notice_m06_attempt:
+		_notice_m06_attempt = identity
+		_notice_m06_known = false
+		_notice_m06_customs = false
+	var cleared: bool = "customs_cleared" in value["m06"]["completed"]
+	if cleared and _notice_m06_known and not _notice_m06_customs:
+		notice_requested.emit(_catalog("WORLD_M06_TERN_LINE"))
+	_notice_m06_customs = cleared
+	_notice_m06_known = true
 
 func _update_mast_notice(value: Dictionary) -> void:
 	if value.is_empty():
@@ -221,6 +248,9 @@ func _refresh() -> void:
 	if state.get("id") == MissionState.M05_ID:
 		_refresh_m05()
 		return
+	if state.get("id") == MissionState.M06_ID:
+		_refresh_m06()
+		return
 	_run_badge.visible = false
 	_evac_badge.visible = false
 	var lines: Array[String] = [tr("MISSION_M01_TITLE"), tr("DIFFICULTY_" + String(state["rules"]["difficulty"]).to_upper()), ""]
@@ -258,7 +288,7 @@ func _refresh() -> void:
 
 func _stage_card_visible() -> bool:
 	var phase := str(state.get("phase", ""))
-	if state.get("id") in [MissionState.M02_ID, MissionState.M03_ID, MissionState.M04_ID, MissionState.M05_ID]:
+	if state.get("id") in [MissionState.M02_ID, MissionState.M03_ID, MissionState.M04_ID, MissionState.M05_ID, MissionState.M06_ID]:
 		# One line at most: a legal prompt replaces the objective line.
 		if phase == "in_progress":
 			return _stage_left > 0.0 and prompt_text.is_empty()
@@ -275,8 +305,9 @@ static func _stage_key(value: Dictionary) -> String:
 	if value.is_empty():
 		return ""
 	var phase: String = str(value.get("phase", ""))
-	if value.get("id") in [MissionState.M04_ID, MissionState.M05_ID] and value.get("m05" if value.get("id") == MissionState.M05_ID else "m04") is Dictionary:
-		var current: Variant = value["m05" if value.get("id") == MissionState.M05_ID else "m04"].get("current")
+	var progress_key: String = "m06" if value.get("id") == MissionState.M06_ID else ("m05" if value.get("id") == MissionState.M05_ID else "m04")
+	if value.get("id") in [MissionState.M04_ID, MissionState.M05_ID, MissionState.M06_ID] and value.get(progress_key) is Dictionary:
+		var current: Variant = value[progress_key].get("current")
 		var objective: String = str(current.get("id", "")) if current is Dictionary else ""
 		return "%s:%s:%s" % [phase, objective, str(value.get("attempt", ""))]
 	if value.get("id") == MissionState.M03_ID and value.get("m03") is Dictionary:
@@ -417,6 +448,27 @@ func _refresh_m05() -> void:
 	for prompt: Dictionary in state["prompts"]:
 		if prompt["player_id"] == player_id:
 			use = _catalog("M05_USE_SHIP")
+	_show_prompt(use)
+	_card.visible = _stage_card_visible()
+
+func _refresh_m06() -> void:
+	_recovery.visible = false
+	_run_badge.visible = state.get("run") is Dictionary
+	if _run_badge.visible:
+		var run: Dictionary = state["run"]
+		_run_badge.text = tr("RUN_LEVEL_BADGE").format({"attempt": int(state["attempt"]), "continues": int(run["continues"])})
+		_refresh_run_recovery(run)
+	var progress: Dictionary = state["m06"]
+	_evac_badge.visible = true
+	_evac_badge.text = _catalog("M06_SERVICE_MARKED" if progress["prisoner_route_marked"] else "M06_SERVICE_OPTIONAL")
+	match state["phase"]:
+		"briefing": _copy.text = _catalog("M06_WAITING")
+		"departed": _copy.text = InputGlyphs.plain(_catalog("M06_DEPARTED"))
+		_: _copy.text = _catalog("M06_OBJECTIVE_" + str(progress["current"]["id"]).to_upper())
+	var use: String = ""
+	for prompt: Dictionary in state["prompts"]:
+		if prompt["player_id"] == player_id:
+			use = _catalog("M06_USE_TRANSIT")
 	_show_prompt(use)
 	_card.visible = _stage_card_visible()
 

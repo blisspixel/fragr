@@ -453,6 +453,7 @@ impl GameSession {
         let companion_search_index = controllers.len() + enemies.len();
         let discovery = (map.equipment_policy() == protocol::EquipmentPolicy::Discovery)
             .then(|| self.state.snapshot());
+        let contact_bodies = self.state.contact_bodies();
         for (index, bot) in controllers.iter().enumerate() {
             let intent = bot.intent(&self.state);
             let action = if let Some(snapshot) = discovery.as_ref() {
@@ -475,7 +476,7 @@ impl GameSession {
                 self.navigators
                     .entry(bot.player_id)
                     .or_default()
-                    .steer_snapshot_with_visibility(
+                    .route_snapshot_with_visibility(
                         world,
                         bot.player_id,
                         snapshot,
@@ -506,6 +507,17 @@ impl GameSession {
                 self.navigators.remove(&bot.player_id);
                 intent.action
             };
+            let action = self
+                .navigators
+                .entry(bot.player_id)
+                .or_default()
+                .avoid_bodies(
+                    visibility,
+                    bot.player_id,
+                    &contact_bodies,
+                    action,
+                    self.state.tick,
+                );
             self.state.set_action(bot.player_id, action);
         }
 
@@ -530,6 +542,33 @@ impl GameSession {
                 self.navigators.remove(&id);
                 intent.action
             };
+            let locked = self
+                .state
+                .players
+                .iter()
+                .find(|p| p.id == id)
+                .is_some_and(|p| {
+                    matches!(
+                        p.campaign,
+                        Some(protocol::CampaignActor::Union {
+                            phase: protocol::EnemyPhase::Windup
+                                | protocol::EnemyPhase::Firing
+                                | protocol::EnemyPhase::Leaping,
+                            ..
+                        })
+                    )
+                });
+            let action = if locked {
+                action
+            } else {
+                self.navigators.entry(id).or_default().avoid_bodies(
+                    visibility,
+                    id,
+                    &contact_bodies,
+                    action,
+                    self.state.tick,
+                )
+            };
             self.state.set_action(id, action);
         }
 
@@ -553,6 +592,13 @@ impl GameSession {
                 self.navigators.remove(&id);
                 intent.action
             };
+            let action = self.navigators.entry(id).or_default().avoid_bodies(
+                visibility,
+                id,
+                &contact_bodies,
+                action,
+                self.state.tick,
+            );
             self.state.set_companion_action(id, action);
         }
 

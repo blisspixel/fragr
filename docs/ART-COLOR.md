@@ -12,6 +12,13 @@ The base palette is deliberately desaturated: gunmetal, rust, ember, blood, mute
 cyan and magenta, bone, ink, institutional green, vegetation greens, and the
 Union black, steel, plate and red.
 
+The world texture review on 2026-10-01 adds `dust_rust` and `dust_light` between
+dark rust and bright ember. These muted diffuse swatches preserve dry mineral
+grain and weathered clay without borrowing weapon or warning glow colors. They
+join the shared palette, rather than creating a separate planetary palette.
+Existing committed assets remain valid; new texture reductions use the expanded
+palette and retain their exact palette hash in provenance.
+
 Emission is limited to purposeful indicators, attack tells and brief effects.
 Free agents may choose distinct optics; they must not flood rooms with neon or
 hide their facing, expression or weapon behind bloom.

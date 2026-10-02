@@ -1,0 +1,32 @@
+{
+  "out_dir": ".agents/shotgun-sfx-20261001/raw",
+  "items": [
+    {
+      "kind": "sfx",
+      "name": "shotgun_crack_body",
+      "prompt": "One close shotgun discharge for a chunky retro shooter. Immediate hard sharp crack and powerful tight low-mid chesty punch, short coarse falling noise decay, tiny restrained metal receiver clack. Physical gunshot, not an explosion. No preparatory click, second shot, pump rack, reload, speech, music, background ambience or long echo. Dry isolated one-shot game sound with clean headroom.",
+      "seconds": 0.85,
+      "influence": 0.7,
+      "format": "pcm_24000",
+      "title": "Shotgun crack and body"
+    },
+    {
+      "kind": "sfx",
+      "name": "shotgun_heavy_snap",
+      "prompt": "One heavy shotgun blast, exactly one discharge. Immediate crisp broadband snap over a full wooden low-mid thump, dense gritty body falling away quickly, one faint casing tick in the short tail. Powerful physical firearm, dry close perspective. No explosion rumble, sustained bass drone, pump action, reload, speech, music, environment, long echo or cartoon sound. Compact isolated game weapon cue with clean headroom.",
+      "seconds": 0.85,
+      "influence": 0.7,
+      "format": "pcm_24000",
+      "title": "Shotgun heavy snap"
+    },
+    {
+      "kind": "sfx",
+      "name": "shotgun_gritty_punch",
+      "prompt": "Single forceful mechanical shotgun discharge starting instantly. Hard percussive crack, full tight middle and low-frequency punch, textured coarse report, fast natural decay with a subtle small action clack afterward. Original close dry arcade shooter gunshot, weight without exaggerated sub-bass. One shot only. No charging intro, pump rack, reload, second blast, speech, music, ambience, long reverberation or cartoon effect. Clean headroom.",
+      "seconds": 0.85,
+      "influence": 0.7,
+      "format": "pcm_24000",
+      "title": "Shotgun gritty punch"
+    }
+  ]
+}

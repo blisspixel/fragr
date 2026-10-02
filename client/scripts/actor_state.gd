@@ -34,6 +34,8 @@ static func validation_error(snapshot: Dictionary) -> String:
 	for actor: Variant in actors:
 		if not actor is Dictionary:
 			return INVALID
+		if actor.has("collidable") and typeof(actor["collidable"]) != TYPE_BOOL:
+			return INVALID
 		var campaign: Variant = actor.get("campaign")
 		if campaign == null:
 			continue

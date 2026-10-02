@@ -1,0 +1,257 @@
+{
+  "version": 1,
+  "created": "2026-10-01",
+  "status": "implemented material library, local pixel gates and inspected lit preview passed, full client checks and release pending",
+  "provider": "Higgsfield",
+  "spec": "../../../../tools/spritegen/specs/offworld-materials-20261001.json",
+  "spec_sha256": "9c92a4860e62098257798614859656d0cf0fadd4530a33df6605703dfa0dc9a1",
+  "pricing_checked": "2026-10-01",
+  "estimated_batch_usd": 0.624,
+  "invocation_cap_usd": 0.65,
+  "confirmed_billed_batch_usd": null,
+  "new_cash_charge_usd": 0,
+  "credit_evidence": "Existing included credit allocation authorized by root; no API account-balance response was claimed.",
+  "generation_count": 5,
+  "replacement_generation_count": 0,
+  "original_downloads_and_request_ledger": "Ignored local backup art/raw/offworld-materials-20261001",
+  "palette": "../../../../docs/palette.json",
+  "palette_sha256": "c97f60cb92a212166e1506ab1cb32f0705227e205b6ecb7fcd83701491f19da5",
+  "bake": "../../../../tools/bake_offworld_tiles.gd",
+  "bake_sha256": "808f459bdba433b9746b52c202b5647a0920192f8feec489e721c509e0d0a01c",
+  "preparation": "Existing local area/CIE Lab palette reduction to 128px, eight-pixel opposite-edge blending, existing local palette reduction again, metadata-free PNG re-encoding",
+  "texture_filter": "nearest",
+  "mipmaps": false,
+  "intended_world_texels_per_metre": 16,
+  "uncompressed_rgba_bytes": 327680,
+  "playable_mars_map": false,
+  "assets": [
+    {
+      "id": "mars_basalt",
+      "status": "selected keeper, native and repeated tile previews plus lit renderer inspected",
+      "model": "marketing-studio/image",
+      "request_id": "61a4b52a-9e6b-444a-9a7c-cefe42e18a9d",
+      "parameters": {
+        "aspect_ratio": "1:1",
+        "enhance_prompt": false,
+        "prompt": "original retro FPS environment albedo texture, deliberate readable pixel clusters and stepped material edges, restrained desaturated rust orange, bone ivory and warm gunmetal palette, broad quiet value fields, modern carefully authored pixel craft, flat even illumination, no gradients, dark Martian basalt rock surface, broad irregular flat warm charcoal angular rock masses and shallow broken fractures, sparse muted iron-red dust settling in thin cracks, occasional medium grey freshly broken edges, rock scale varied and readable instead of uniform pebbles, quiet dark natural stone field, no orange glow, no sand dunes, no lava, orthographic straight-on seamless square texture tile, edge-to-edge continuous material designed to repeat in both directions, no perspective or scene, no object silhouette, opaque full square canvas, all four edges seamless and pattern continuous, no vignette, no lighting baked into the material, no shadow, no ambient occlusion, no specular highlights, no rim light, no emission, no text, no signature, no watermark, no border. Avoid: photorealistic, 3d render, smooth shading, gradient, blur, anti-aliasing, drop shadow, cast shadow, ambient occlusion, specular, glossy, reflection, rim light, lens flare, bloom, depth of field, text, signature, watermark, frame, border, background scenery.",
+        "quality": "medium",
+        "resolution": "2k"
+      },
+      "seed": null,
+      "estimated_usd": 0.124,
+      "billed_usd": null,
+      "original_download_size": [
+        2048,
+        2048
+      ],
+      "original_download_sha256": "6f6e2c53a3a49186ffcf2261cb5aec2d2ae71a9b5e1e8a640063ab95d12c62f1",
+      "reduced_source": "../../../art/environment/offworld-batch-20261001/reduced/mars_basalt_0.png",
+      "reduced_source_sha256": "62ebd897fc98283e5680f5cfe9987aef071bcdb2e0337291abeaac4a0d9ae01c",
+      "keeper": "mars_basalt.png",
+      "keeper_sha256": "2fc10f41440f7eb039c6626067f309ab65108db37877e1ae91a4eec0c1d434f9",
+      "keeper_size": [
+        128,
+        128
+      ],
+      "format": "png",
+      "palette_colors": {
+        "1e1e22": 160,
+        "2c2d32": 727,
+        "3a3836": 15088,
+        "5a554f": 408,
+        "7a3a22": 1
+      },
+      "value_mean": 0.220645834716561,
+      "value_min": 0.118779608751833,
+      "value_max": 0.335803147041798,
+      "normal_map": false,
+      "opaque": true,
+      "opposite_boundaries_match": true,
+      "repeated_preview_visually_inspected": true
+    },
+    {
+      "id": "mars_regolith",
+      "status": "selected keeper, native and repeated tile previews plus lit renderer inspected",
+      "model": "marketing-studio/image",
+      "request_id": "4d3bce10-1c19-478d-af43-7a293a950b6f",
+      "parameters": {
+        "aspect_ratio": "1:1",
+        "enhance_prompt": false,
+        "prompt": "original retro FPS environment albedo texture, deliberate readable pixel clusters and stepped material edges, restrained desaturated rust orange, bone ivory and warm gunmetal palette, broad quiet value fields, modern carefully authored pixel craft, flat even illumination, no gradients, compacted dry Martian regolith ground, muted iron-oxide rust red and brown clay dust, broad low-contrast wind-worn horizontal grain broken into sparse chunky pixel clusters with a few small darker basalt fragments, quiet earthy middle values, clearly different from dark fractured basalt, no footprints, no dunes or horizon, no regular panel grid, no orange glow, orthographic straight-on seamless square texture tile, edge-to-edge continuous material designed to repeat in both directions, no perspective or scene, no object silhouette, opaque full square canvas, all four edges seamless and pattern continuous, no vignette, no lighting baked into the material, no shadow, no ambient occlusion, no specular highlights, no rim light, no emission, no text, no signature, no watermark, no border. Avoid: photorealistic, 3d render, smooth shading, gradient, blur, anti-aliasing, drop shadow, cast shadow, ambient occlusion, specular, glossy, reflection, rim light, lens flare, bloom, depth of field, text, signature, watermark, frame, border, background scenery.",
+        "quality": "medium",
+        "resolution": "2k"
+      },
+      "seed": null,
+      "estimated_usd": 0.125,
+      "billed_usd": null,
+      "original_download_size": [
+        2048,
+        2048
+      ],
+      "original_download_sha256": "8eb8606f7385e0feeab90e70645843c7332902288622c36eee79b64a01390207",
+      "reduced_source": "../../../art/environment/offworld-batch-20261001/reduced/mars_regolith_0.png",
+      "reduced_source_sha256": "c4feb8eeddb3971591f983cecdeb0a99a4644dcfb2ce08fd46cc3881671a7912",
+      "keeper": "mars_regolith.png",
+      "keeper_sha256": "95ae0397d69407b3e5db5d04bf03a02e175175c0391af18cdd57154fb2c32c28",
+      "keeper_size": [
+        128,
+        128
+      ],
+      "format": "png",
+      "palette_colors": {
+        "3a3836": 40,
+        "5a554f": 369,
+        "7a3a22": 8305,
+        "8c847a": 4,
+        "9f5b3b": 7662,
+        "b4754e": 4
+      },
+      "value_mean": 0.336411143882382,
+      "value_min": 0.220709021353722,
+      "value_max": 0.521485516566038,
+      "normal_map": false,
+      "opaque": true,
+      "opposite_boundaries_match": true,
+      "repeated_preview_visually_inspected": true
+    },
+    {
+      "id": "offworld_pressure_habitat",
+      "status": "selected keeper, native and repeated tile previews plus lit renderer inspected",
+      "model": "marketing-studio/image",
+      "request_id": "9812bf85-d627-489b-a90f-7312a10b1399",
+      "parameters": {
+        "aspect_ratio": "1:1",
+        "enhance_prompt": false,
+        "prompt": "original retro FPS environment albedo texture, deliberate readable pixel clusters and stepped material edges, restrained desaturated rust orange, bone ivory and warm gunmetal palette, broad quiet value fields, modern carefully authored pixel craft, flat even illumination, no gradients, civilian offworld pressure habitat cladding, large uneven pale bone enamel skin sections on restrained dark warm gunmetal seams, one broad practical flush replacement patch and a few small matte fasteners, sparse desaturated brown oxidation around exposed seams and fine rust dust at sealed joints, maintained shelter with human repairs, quiet pale midtone fields, no logo, no warning stripe, no vents, no decorative science-fiction lights, orthographic straight-on seamless square texture tile, edge-to-edge continuous material designed to repeat in both directions, no perspective or scene, no object silhouette, opaque full square canvas, all four edges seamless and pattern continuous, no vignette, no lighting baked into the material, no shadow, no ambient occlusion, no specular highlights, no rim light, no emission, no text, no signature, no watermark, no border. Avoid: photorealistic, 3d render, smooth shading, gradient, blur, anti-aliasing, drop shadow, cast shadow, ambient occlusion, specular, glossy, reflection, rim light, lens flare, bloom, depth of field, text, signature, watermark, frame, border, background scenery.",
+        "quality": "medium",
+        "resolution": "2k"
+      },
+      "seed": null,
+      "estimated_usd": 0.125,
+      "billed_usd": null,
+      "original_download_size": [
+        2048,
+        2048
+      ],
+      "original_download_sha256": "1d9175de4cd0f5774f4baa5c5481a1715ce3c2d549dccc214d7910cb5772622d",
+      "reduced_source": "../../../art/environment/offworld-batch-20261001/reduced/offworld_pressure_habitat_0.png",
+      "reduced_source_sha256": "912c1f6014c30311ca886460f0029338acf5beb5fddbd3312ed7416010adc2e2",
+      "keeper": "offworld_pressure_habitat.png",
+      "keeper_sha256": "de8df42eaa8d67b746b52e960308e3e766e00d2d8e60a2d4465bc68a45439e26",
+      "keeper_size": [
+        128,
+        128
+      ],
+      "format": "png",
+      "palette_colors": {
+        "5a554f": 2976,
+        "8c847a": 2203,
+        "b4754e": 32,
+        "e8e2d6": 11173
+      },
+      "value_mean": 0.737577337558708,
+      "value_min": 0.335803147041798,
+      "value_max": 0.887879222369194,
+      "normal_map": false,
+      "opaque": true,
+      "opposite_boundaries_match": true,
+      "repeated_preview_visually_inspected": true
+    },
+    {
+      "id": "offworld_mining_deck",
+      "status": "selected keeper, native and repeated tile previews plus lit renderer inspected",
+      "model": "marketing-studio/image",
+      "request_id": "8d4df265-50e9-4cde-82f4-0f9e41542409",
+      "parameters": {
+        "aspect_ratio": "1:1",
+        "enhance_prompt": false,
+        "prompt": "original retro FPS environment albedo texture, deliberate readable pixel clusters and stepped material edges, restrained desaturated rust orange, bone ivory and warm gunmetal palette, broad quiet value fields, modern carefully authored pixel craft, flat even illumination, no gradients, used mining and cargo service deck plate, dark warm gunmetal steel, broad worn offset anti-slip tread bars with small quiet bare-metal abrasion along their top surfaces, sparse dull brown mineral dust in recesses, a few flush inset fasteners, strongly readable floor material with restrained contrast rather than a dense checkerboard, no holes or open grate, no warning stripes, no emission, orthographic straight-on seamless square texture tile, edge-to-edge continuous material designed to repeat in both directions, no perspective or scene, no object silhouette, opaque full square canvas, all four edges seamless and pattern continuous, no vignette, no lighting baked into the material, no shadow, no ambient occlusion, no specular highlights, no rim light, no emission, no text, no signature, no watermark, no border. Avoid: photorealistic, 3d render, smooth shading, gradient, blur, anti-aliasing, drop shadow, cast shadow, ambient occlusion, specular, glossy, reflection, rim light, lens flare, bloom, depth of field, text, signature, watermark, frame, border, background scenery.",
+        "quality": "medium",
+        "resolution": "2k"
+      },
+      "seed": null,
+      "estimated_usd": 0.125,
+      "billed_usd": null,
+      "original_download_size": [
+        2048,
+        2048
+      ],
+      "original_download_sha256": "523fc3f2367eb042f4eec8b33d33beb275380bedde10b5d7d68209d9a8f8ee1a",
+      "reduced_source": "../../../art/environment/offworld-batch-20261001/reduced/offworld_mining_deck_0.png",
+      "reduced_source_sha256": "6cdfe1662bc9e8fc05ac53a4f4aac6740905e36531a02db98336bd0dcbf155e9",
+      "keeper": "offworld_mining_deck.png",
+      "keeper_sha256": "a44b9be669af7d925b807220ff11e6bbda86925ea65da9f8e1dbd3469061d6b1",
+      "keeper_size": [
+        128,
+        128
+      ],
+      "format": "png",
+      "palette_colors": {
+        "1e1e22": 25,
+        "2c2d32": 765,
+        "3a3836": 13799,
+        "5a554f": 1795
+      },
+      "value_mean": 0.231124580575262,
+      "value_min": 0.118779608751833,
+      "value_max": 0.335803147041798,
+      "normal_map": false,
+      "opaque": true,
+      "opposite_boundaries_match": true,
+      "repeated_preview_visually_inspected": true
+    },
+    {
+      "id": "offworld_thermal_ceramic",
+      "status": "selected keeper, native and repeated tile previews plus lit renderer inspected",
+      "model": "marketing-studio/image",
+      "request_id": "c3cd588e-8706-4a5d-a8fd-c581f8ff57b2",
+      "parameters": {
+        "aspect_ratio": "1:1",
+        "enhance_prompt": false,
+        "prompt": "original retro FPS environment albedo texture, deliberate readable pixel clusters and stepped material edges, restrained desaturated rust orange, bone ivory and warm gunmetal palette, broad quiet value fields, modern carefully authored pixel craft, flat even illumination, no gradients, practical offworld thermal ceramic shield surface, broad pale bone and warm ivory ceramic segments with thin dark charcoal sealed joints, a few sparse chipped edges exposing muted grey substrate, subtle desaturated brown heat staining near two joints, asymmetrical replacement tile evidence, quiet pale fields for readable fighters, visibly ceramic rather than metallic plate, no glow, no bolts covering every tile, no text, orthographic straight-on seamless square texture tile, edge-to-edge continuous material designed to repeat in both directions, no perspective or scene, no object silhouette, opaque full square canvas, all four edges seamless and pattern continuous, no vignette, no lighting baked into the material, no shadow, no ambient occlusion, no specular highlights, no rim light, no emission, no text, no signature, no watermark, no border. Avoid: photorealistic, 3d render, smooth shading, gradient, blur, anti-aliasing, drop shadow, cast shadow, ambient occlusion, specular, glossy, reflection, rim light, lens flare, bloom, depth of field, text, signature, watermark, frame, border, background scenery.",
+        "quality": "medium",
+        "resolution": "2k"
+      },
+      "seed": null,
+      "estimated_usd": 0.125,
+      "billed_usd": null,
+      "original_download_size": [
+        2048,
+        2048
+      ],
+      "original_download_sha256": "9dab51fa7961ebe5f4621d941f2cb392405768dfe43a4d39dde4454523a11770",
+      "reduced_source": "../../../art/environment/offworld-batch-20261001/reduced/offworld_thermal_ceramic_0.png",
+      "reduced_source_sha256": "5f1bd06e0cda7cc070b5f66805b7eba6f8e71988667177e5ab85b35d4831e1be",
+      "keeper": "offworld_thermal_ceramic.png",
+      "keeper_sha256": "4c530d8a2bbe5e82d21562c901056cce2ab6b056feaa6386178ff410b7a41bf2",
+      "keeper_size": [
+        128,
+        128
+      ],
+      "format": "png",
+      "palette_colors": {
+        "56575e": 23,
+        "5a554f": 8,
+        "8c847a": 1658,
+        "b4754e": 22,
+        "e8e2d6": 14673
+      },
+      "value_mean": 0.849245693327138,
+      "value_min": 0.335803147041798,
+      "value_max": 0.887879222369194,
+      "normal_map": false,
+      "opaque": true,
+      "opposite_boundaries_match": true,
+      "repeated_preview_visually_inspected": true
+    }
+  ],
+  "rendered_preview": {
+    "file": "../../../art/environment/offworld-batch-20261001/material_preview.png",
+    "sha256": "a88809fa709c56f8fac42c50d99dd956c21488185c3e17ba7e3c9bbbf28d536d",
+    "renderer": "Godot 4.7.2 OpenGL Compatibility",
+    "hardware": "AMD Radeon 780M",
+    "actual_gameplay": false,
+    "inspected": true,
+    "note": "Lit material slabs and floors only; Mars missions remain unbuilt."
+  }
+}

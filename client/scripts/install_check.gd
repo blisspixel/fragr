@@ -37,6 +37,30 @@ func _ready() -> void:
 		if not ResourceLoader.exists(path) or not load(path) is AudioStream:
 			_finish(false, "the grenade effects are missing from this build")
 			return
+	for id: String in ["m06_arrival", "l06_l07"]:
+		var scene: Dictionary = StoryScene.load_scene(id)
+		if scene.is_empty():
+			_finish(false, "the M06 story manifests are missing or invalid")
+			return
+		for key: String in StoryScene.catalog_keys(scene):
+			if TranslationServer.translate(key) == key:
+				_finish(false, "the M06 localized story copy is missing")
+				return
+		for shot: Dictionary in scene["shots"]:
+			if StoryScene.narration_path(shot, "en").is_empty():
+				_finish(false, "the lunar narration is missing")
+				return
+			if not ResourceLoader.exists(str(shot.get("image", "")), "Texture2D"):
+				_finish(false, "the M06 story illustrations are missing")
+				return
+	var lunar_bed: AudioStreamWAV = load("res://assets/story/ambience/lunar_port_utility.wav") as AudioStreamWAV
+	if lunar_bed == null or lunar_bed.loop_mode != AudioStreamWAV.LOOP_FORWARD:
+		_finish(false, "the lunar utility loop is missing or not looping")
+		return
+	for name: String in ["dust", "pressure_shell", "earth", "drawing"]:
+		if not ResourceLoader.exists("res://assets/environment/moon/" + name + ".png"):
+			_finish(false, "the lunar pixel surfaces are missing")
+			return
 	var path: String = _local.executable_path()
 	if path.is_empty():
 		_finish(false, "no fragr-server beside %s" % OS.get_executable_path())

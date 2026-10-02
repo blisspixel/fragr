@@ -9,16 +9,43 @@ Status words: **proposed** (a design awaiting Nick's decision; directs no work),
 ## Standing facts
 
 - Game port is **6767** (TCP today; UDP reserved for the planned low-latency transport).
-- Local play is $0. Public hosting sits under the $50 total cap. Nick authorized up to $20 combined external charges for each of the 2026-09-26, 2026-09-29 and 2026-09-30 development rounds, subject to that total cap and reconciled actual usage. The 2026-09-30 buildout has $0 new cash charges, 693 included audio credits consumed and a separate conservative $3 equivalent reserve. Production deployment still needs a reviewed cost and written approval. The current GCP Terraform remains plan-only.
+- Local play is $0. Public hosting sits under the $50 total cap. Nick authorized up to $20 combined external charges for each of the 2026-09-26, 2026-09-29 and 2026-09-30 development rounds, subject to that total cap and reconciled actual usage. The 2026-09-30 buildout has $0 new cash charges, 975 included audio credits consumed, a separate conservative $5 audio equivalent reserve and $4.085 in new image reservations through 2026-10-01 whose billing remains unreconciled. The prior uncertain $0.107 image reservation stays preserved. Production deployment still needs a reviewed cost and written approval. The current GCP Terraform remains plan-only.
 - Tailscale is private smoke only, never the documented join path.
 - The dedicated server bar is rock solid, secure, and cheap: input validation, rate limits, clean join and leave and reconnect, and a home box or small VM first.
 
 ## Index
 
+The M06, asset, radio and body-contact checkpoint passes full CI and all three
+desktop package checks. All four README captures are refreshed and inspected.
+Final campaign texture tours and the single 188-script/88-harness whole-client
+gate pass. Exact final-source CI and release integration remain in flight. Fresh-player,
+difficulty, subjective listening and final character acceptance remain open.
+
 | Plan | Status | One-liner |
 |---|---|---|
-| [`narration-completion-check.md`](./narration-completion-check.md) | **implemented**, ships with #315 | Real completion-signal synchronization, ten clean audio repeats and all 174 scripts/81 harnesses; platform gate recorded in the integration PR. |
-| [`m06-port-of-entry-prototype.md`](./m06-port-of-entry-prototype.md) | **planned** | Lunar dock/customs, found Railgun and isolated Turret, strict M05 carry and one-time Episode II refill; no runtime implementation yet. |
+| [`m06-freight-capture-route.md`](./m06-freight-capture-route.md) | **implemented** | Actual-map/body regressions and a clean 25-state normal tour pass through the clear freight aisle before combat, preserving every original gate. |
+| [`ctf-seeded-body-order.md`](./ctf-seeded-body-order.md) | **implemented** | Contact-range carrier defense passes all four seeded body-order matrices and identical canonical repeats, preserving completion and combat-drop thresholds. |
+| [`qa-turret-peek-timing.md`](./qa-turret-peek-timing.md) | **implemented** | Ordinary phase-aware peek and retreat proves the original clear-to-covered Turret cancellation gate; all 25 actual lunar states pass. |
+| [`latch-coherent-near-visibility.md`](./latch-coherent-near-visibility.md) | **implemented** | Actual-rig regression and original-shader negative control prove coherent close visibility, distant opacity and retained shadows; whole-client integration pending. |
+| [`qa-approach-arrival.md`](./qa-approach-arrival.md) | **implemented** | Acknowledge actually reached capture waypoints before defensive movement; preserve strict arrival thresholds, unfinished no-fire behavior and phase gates. |
+| [`m04-capture-patient-detour.md`](./m04-capture-patient-detour.md) | **implemented** | All 23 states and 28 guards pass after real patient/supply routes and all-eight court targeting; inspected gallery refreshed, optional patient queue remains. |
+| [`qa-contact-safe-strafe.md`](./qa-contact-safe-strafe.md) | **implemented** | Forecast bounded dodge contact before ledge-adjacent capture movement; actual M06 rerun clears all 25 states. |
+| [`world-texture-expansion.md`](./world-texture-expansion.md) | **implemented** | Twenty-one reviewed Earth, Moon and future Mars tiles; actual affected captures and the full 188-script/88-harness client gate pass. |
+| [`earth-surface-texture-batch.md`](./earth-surface-texture-batch.md) | **implemented** | Eight inspected Earth palette tiles selected from twelve bounded requests; shared rendering and integration tracked in the texture expansion. |
+| [`moon-surface-texture-batch.md`](./moon-surface-texture-batch.md) | **implemented** | Eight lunar materials selected from ten requests, including quieter walking-deck and regolith replacements. |
+| [`offworld-material-batch.md`](./offworld-material-batch.md) | **implemented** | Five inspected offworld tiles and a lit future-only library preview; Mars missions remain unbuilt. |
+| [`m01-crowd-route-recovery.md`](./m01-crowd-route-recovery.md) | **implemented** | Retained four-participant stall regression, eight identity-order clears and full CI pass with unchanged map geometry and completion gates. |
+| [`narration-completion-check.md`](./narration-completion-check.md) | **shipped**, [PR #315](https://github.com/blisspixel/fragr/pull/315) | Real completion-signal synchronization; ten clean repeats, all 174 scripts/81 harnesses and protected main CI pass. |
+| [`m06-port-of-entry-prototype.md`](./m06-port-of-entry-prototype.md) | **implemented** | Lunar mission and durable Episode II refill; clean 25-state route and final local gates pass, fresh-player acceptance remains open. |
+| [`m06-core-prototype.md`](./m06-core-prototype.md) | **implemented** | Strict authoritative lunar mission, ordered encounters, optional service and real departure; current-source Rust and rendered gates pass. |
+| [`m06-map-prototype.md`](./m06-map-prototype.md) | **implemented** | Static port, supported galleries and real glass; all 21 guards and three visited secret locations, with one actual secret supply claim. |
+| [`m06-client-prototype.md`](./m06-client-prototype.md) | **implemented** | Strict M06 carry/readiness, inhabited Moon and story handoffs; final single 188-script/88-harness gate and inspected normal captures pass. |
+| [`m06-audio-batch.md`](./m06-audio-batch.md) | **implemented** | Three exact-caption neutral clips and quiet utility loop; actual completion/fallback and integration pass, listening remains open. |
+| [`m06-lunar-art-batch.md`](./m06-lunar-art-batch.md) | **implemented** | Three selected civilian possessions integrated and inspected in the actual pressure room; final character art and billing reconciliation remain open. |
+| [`m06-story-key-images.md`](./m06-story-key-images.md) | **implemented** | Two inspected lunar arrival/transit illustrations share the game palette and existing reader-paced captions, narration and fallback. |
+| [`shotgun-sfx-refresh.md`](./shotgun-sfx-refresh.md) | **implemented** | Compact replacement blast on the existing Effects path; actual decoded completion and integration pass, subjective listening remains open. |
+| [`radio-start-variation.md`](./radio-start-variation.md) | **implemented** | Random populated station and random track on ordinary startup, with seeded checks and the final published tour. |
+| [`actor-body-contact.md`](./actor-body-contact.md) | **implemented** | Server-owned living bodies and matching prediction; shared vectors, zero-drift stopped POV, ordinary sidestep and final mission route pass. |
 | [`m05-audio-batch.md`](./m05-audio-batch.md) | **shipped**, [PR #314](https://github.com/blisspixel/fragr/pull/314) | Three exact-caption neutral narration clips and two compact grenade cues; final playback/caption/fallback checks pass. |
 | [`m05-server-authoring.md`](./m05-server-authoring.md) | **shipped**, [PR #314](https://github.com/blisspixel/fragr/pull/314) | Original 21-guard roof/workshop/trench mission; final ordinary-input clear, grounded rescue and deliberate boarding pass. |
 | [`m05-bounded-tram.md`](./m05-bounded-tram.md) | **shipped**, [PR #314](https://github.com/blisspixel/fragr/pull/314) | Real supported ride, live cover and cleanup, with 99 supported samples and equal rider/tram travel. |
@@ -129,7 +156,7 @@ Status words: **proposed** (a design awaiting Nick's decision; directs no work),
 | [`campaign-spaces.md`](./campaign-spaces.md) | **proven** (#176, v0.22.0) | Real ceilings, accessible balconies, layered routes and matching collision/rendering for M01. |
 | [`authored-campaign-maps.md`](./authored-campaign-maps.md) | **proven** (#177, v0.23.0) | Validated map files, explicit indoor spawns and M01's traversal blockout through the live server. |
 | [`m01-weapon-discovery.md`](./m01-weapon-discovery.md) | **proven** (#179, #181, v0.24.0) | Fists-to-Tack/Flechette discovery, finite ammunition, reload and compatible human/agent presentation. |
-| [`readable-arsenal.md`](./readable-arsenal.md) | **in flight** | Names and cycling shipped. Counted grenades are implemented locally for level 5 with independent records and save counts; sniper, rocket and both mines remain planned in the accepted twenty-level treatment. |
+| [`readable-arsenal.md`](./readable-arsenal.md) | **in flight** | Names, cycling and counted grenades shipped, with independent grenade records and save counts; sniper, rocket and both mines remain planned in the accepted twenty-level treatment. |
 | [`m01-intake-encounter.md`](./m01-intake-encounter.md) | **in flight** ([#180](https://github.com/blisspixel/fragr/issues/180)) | Authored human Clerk and Sweeper bot fights, explicit hostility, readable attacks and inspected motion. |
 | [`m01-facility-detail.md`](./m01-facility-detail.md) | **shipped** (#182, v0.25.0) | Bounded surface details, localized signs and practical lights make the intake rooms legible. |
 | [`m01-mission-sequence.md`](./m01-mission-sequence.md) | **shipped** (#184, v0.26.0) | Physical transfer-record interaction, authoritative lift gate and shared departure state. |

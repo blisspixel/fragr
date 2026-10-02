@@ -48,6 +48,7 @@ pub fn preview_run(_mission: MissionId) -> io::Result<RunPreview> {
     let m03_hash = AuthoredSource::bundled_content_sha256(MissionId::ScheduledService);
     let m04_hash = AuthoredSource::bundled_content_sha256(MissionId::NoticeToVacate);
     let m05_hash = AuthoredSource::bundled_content_sha256(MissionId::NoForwardingAddress);
+    let m06_hash = AuthoredSource::bundled_content_sha256(MissionId::PortOfEntry);
     match RunStore::inspect_with_hashes(
         &run_directory()?,
         m01_hash,
@@ -55,6 +56,7 @@ pub fn preview_run(_mission: MissionId) -> io::Result<RunPreview> {
         m03_hash,
         m04_hash,
         m05_hash,
+        m06_hash,
     )? {
         RunProbe::Missing => Ok(RunPreview::Missing),
         RunProbe::Incompatible => Ok(RunPreview::Incompatible),
@@ -68,6 +70,7 @@ pub fn preview_run(_mission: MissionId) -> io::Result<RunPreview> {
                         MissionId::ScheduledService => "scheduled_service",
                         MissionId::NoticeToVacate => "notice_to_vacate",
                         MissionId::NoForwardingAddress => "no_forwarding_address",
+                        MissionId::PortOfEntry => "port_of_entry",
                     }
                     .into(),
                     difficulty: document.rules.difficulty,
@@ -147,9 +150,13 @@ impl Ready {
             mission,
             difficulty,
             url: format!("ws://{address}"),
-            // Every mission serves rules revision 3. Older strict readers
-            // must be refused before any map or mission state is advertised.
-            gameplay_version: crate::protocol::M05_GAMEPLAY_VERSION,
+            // M06 adds a distinct envelope; earlier mission readers retain
+            // their existing capability boundary and unchanged rules.
+            gameplay_version: if mission == MissionId::PortOfEntry {
+                crate::protocol::M06_GAMEPLAY_VERSION
+            } else {
+                crate::protocol::M05_GAMEPLAY_VERSION
+            },
         })
     }
 
@@ -373,5 +380,14 @@ mod tests {
         .unwrap();
         assert_eq!(m04.gameplay_version, crate::protocol::M05_GAMEPLAY_VERSION);
         assert_eq!(m04.mission, MissionId::NoticeToVacate);
+        let m06 = Ready::new(
+            MissionId::PortOfEntry,
+            CampaignDifficulty::Standard,
+            "127.0.0.1:6767".parse().unwrap(),
+            false,
+        )
+        .unwrap();
+        assert_eq!(m06.gameplay_version, crate::protocol::M06_GAMEPLAY_VERSION);
+        assert_eq!(m06.mission, MissionId::PortOfEntry);
     }
 }

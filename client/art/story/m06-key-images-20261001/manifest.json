@@ -1,0 +1,95 @@
+{
+  "version": 1,
+  "created": "2026-10-01",
+  "status": "Two selected story images integrated, inspected in actual scene playback and approved in independent final frame review",
+  "provider": "Higgsfield",
+  "spec": "../../../../tools/spritegen/specs/m06-story-key-images.json",
+  "pricing_checked": "2026-10-01",
+  "estimated_batch_usd": 0.16,
+  "confirmed_billed_batch_usd": null,
+  "new_cash_charge_usd": null,
+  "assets": [
+    {
+      "id": "moon_port_arrival",
+      "status": "integrated keeper, inspected prepared art and actual1280x720 scene",
+      "model": "marketing-studio/image",
+      "parameters": {
+        "aspect_ratio": "16:9",
+        "enhance_prompt": false,
+        "prompt": "original retro pixel story illustration for a 1990s 3D PC shooter, sculpted architectural perspective with deliberate chunky pixel clusters, broad readable silhouettes, limited desaturated bone white and warm gunmetal, pale grey lunar dust, dark basalt, muted sage and cyan with sparse rust accents, purposeful hard directional sunlight and warm utility lamps, sharply stepped value bands, arrival at an established inhabited lunar cargo port under custody control, the impounded Common Carrier transport occupies center-right on a low industrial cradle, distinctive broad squat rectangular gunmetal hull roughly twice as wide as deep with worn bone roof shell and ribs, a short squared cockpit projects from its left end, a row of small warm passenger windows along the hull, no wings or rocket nose, stationary shut cargo interfaces and practical repair scars, pale weathered pressure buildings and bounded inhabited windows around organized freight lanes, a handling gantry frames the left side, small recognizable blue-green Earth with irregular continents and bright clouds hangs upper-left in black sky, deep shadow under the cradle with readable warm work lights, quiet maintained civilian possessions behind pressure glass, no visible crew faces and no vehicle movement, wide 16:9 cinematic establishing illustration, balanced asymmetrical composition, key subjects readable in upper three quarters with a quiet dark lower foreground for a separate caption band, opaque complete image, consistent coarse pixel density, stylized illustrated scene rather than a photograph or smooth render, no words, no labels, no HUD, no logo, no watermark, no signature, no final named character portrait, no copied franchise design, no lens flare, no neon, no outdoor water. Avoid: photorealistic, 3d render, smooth shading, gradient, blur, anti-aliasing, drop shadow, cast shadow, ambient occlusion, specular, glossy, reflection, rim light, lens flare, bloom, depth of field, text, signature, watermark, frame, border, background scenery.",
+        "quality": "medium",
+        "resolution": "2k"
+      },
+      "request_id": "f0dc658a-78e1-4206-bf0c-57ec538c5c89",
+      "seed": null,
+      "estimated_usd": 0.08,
+      "billed_usd": null,
+      "raw": "raw/moon_port_arrival_0.png",
+      "raw_size": [
+        2688,
+        1520
+      ],
+      "raw_sha256": "4509b9931229a98d9a16e5473493527323f6f96c58b54c2bc2c51c0637a6cc22",
+      "original_download_sha256": "932b0a1f6cd8b5b69bed9dad99809f9d3e0afe77b3c65328a9862f1b2fc45d4b",
+      "crop": [
+        0,
+        4,
+        2688,
+        1512
+      ],
+      "processed": "processed/moon_port_arrival_0.png",
+      "processed_size": [
+        672,
+        378
+      ],
+      "processed_sha256": "fb773a7665dcdc57c2d8378f677295c6f9ac6d31b174791bf2e824b1d57bd417",
+      "runtime_path": "res://assets/story/images/m06/moon_port_arrival.png",
+      "reduction_ratio": 4,
+      "preparation": "Native metadata-free RGBA re-encode, centered4px top/bottom trim to exact16:9, existing Rust Triangle reducer, CIE Lab shared-palette quantization, no alpha trim, nearest display",
+      "format": "png",
+      "palette": "../../../../docs/palette.json",
+      "palette_sha256": "fc38db371ad818db35603642edf9175eb0260091cf86d1aaf84cd721461c778c"
+    },
+    {
+      "id": "lunar_transit_departure",
+      "status": "integrated keeper, inspected prepared art and actual1280x720 scene",
+      "model": "marketing-studio/image",
+      "parameters": {
+        "aspect_ratio": "16:9",
+        "enhance_prompt": false,
+        "prompt": "original retro pixel story illustration for a 1990s 3D PC shooter, sculpted architectural perspective with deliberate chunky pixel clusters, broad readable silhouettes, limited desaturated bone white and warm gunmetal, pale grey lunar dust, dark basalt, muted sage and cyan with sparse rust accents, purposeful hard directional sunlight and warm utility lamps, sharply stepped value bands, view from inside a maintained enclosed lunar transit passage toward a settled town across a dry pale crater, a purposeful wide bone pressure arch and dark gunmetal ribs frame the upper corners, ordinary floor and service rails lead diagonally into the middle distance, warm utility lamps and restrained muted cyan navigation equipment, beyond a bounded clear pressure window are low occupied habitation blocks with personal warm windows, repaired exterior shells and service paths, on the far right across the crater a recognizable tall square custody depot tower with a flat crown and low radial wings imposes its institutional silhouette, small black sky visible above the crater rim, contrasting hard exterior light and deep readable passage shade, no train in motion, no moving ship, no portraits, no open airlock event, wide 16:9 cinematic establishing illustration, balanced asymmetrical composition, key subjects readable in upper three quarters with a quiet dark lower foreground for a separate caption band, opaque complete image, consistent coarse pixel density, stylized illustrated scene rather than a photograph or smooth render, no words, no labels, no HUD, no logo, no watermark, no signature, no final named character portrait, no copied franchise design, no lens flare, no neon, no outdoor water. Avoid: photorealistic, 3d render, smooth shading, gradient, blur, anti-aliasing, drop shadow, cast shadow, ambient occlusion, specular, glossy, reflection, rim light, lens flare, bloom, depth of field, text, signature, watermark, frame, border, background scenery.",
+        "quality": "medium",
+        "resolution": "2k"
+      },
+      "request_id": "8f636ead-7ff8-4ec7-9f29-0e91d1ff504d",
+      "seed": null,
+      "estimated_usd": 0.08,
+      "billed_usd": null,
+      "raw": "raw/lunar_transit_departure_0.png",
+      "raw_size": [
+        2688,
+        1520
+      ],
+      "raw_sha256": "b1ae44a60307cd745c97c7461d607b83595ee926f2be9d634719fdadac88c7a4",
+      "original_download_sha256": "a0c1e936ff7af26b95d5744a187bebb4fe736e3c2feed2cf7d9f715dd5d54757",
+      "crop": [
+        0,
+        4,
+        2688,
+        1512
+      ],
+      "processed": "processed/lunar_transit_departure_0.png",
+      "processed_size": [
+        672,
+        378
+      ],
+      "processed_sha256": "46577b290bdb51ca42fc3d07e9d02813e96394e29b0d30e40f7c57c12363acb6",
+      "runtime_path": "res://assets/story/images/m06/lunar_transit_departure.png",
+      "reduction_ratio": 4,
+      "preparation": "Native metadata-free RGBA re-encode, centered4px top/bottom trim to exact16:9, existing Rust Triangle reducer, CIE Lab shared-palette quantization, no alpha trim, nearest display",
+      "format": "png",
+      "palette": "../../../../docs/palette.json",
+      "palette_sha256": "fc38db371ad818db35603642edf9175eb0260091cf86d1aaf84cd721461c778c"
+    }
+  ]
+}

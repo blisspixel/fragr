@@ -247,6 +247,15 @@ async fn run_server_impl(
                 crate::protocol::MissionId::NoForwardingAddress,
             )
         };
+        let m06_hash = if session.state.map.campaign_mission_id()
+            == Some(crate::protocol::MissionId::PortOfEntry)
+        {
+            content_sha256
+        } else {
+            crate::maps::AuthoredSource::bundled_content_sha256(
+                crate::protocol::MissionId::PortOfEntry,
+            )
+        };
         let store = RunStore::open_with_hashes(
             &local_run.directory,
             m01_hash,
@@ -254,6 +263,7 @@ async fn run_server_impl(
             m03_hash,
             m04_hash,
             m05_hash,
+            m06_hash,
         )?;
         if local_run.resume {
             let mut saved = store.load()?.ok_or("no saved campaign run to resume")?;
@@ -277,6 +287,9 @@ async fn run_server_impl(
                     }
                     crate::protocol::MissionId::NoForwardingAddress => {
                         saved.promote_next(target, m05_hash)?
+                    }
+                    crate::protocol::MissionId::PortOfEntry => {
+                        saved.promote_next(target, m06_hash)?
                     }
                     crate::protocol::MissionId::RecallNotice => {
                         return Err("a saved transition cannot return to M01".into())
@@ -372,29 +385,32 @@ async fn run_server_impl(
             .iter()
             .any(|enemy| enemy.kind == crate::protocol::EnemyKind::Notary)
     });
-    let required_gameplay =
-        if discovery || has_notary || session.state.map.campaign_mission_id().is_some() {
-            crate::protocol::M05_GAMEPLAY_VERSION
-        } else if has_jammer {
-            crate::protocol::JAMMER_GAMEPLAY_VERSION
-        } else if options
-            .match_config
-            .as_ref()
-            .is_some_and(|config| config.rules.mode() == crate::protocol::GameMode::Ctf)
-        {
-            crate::protocol::CTF_GAMEPLAY_VERSION
-        } else if discovery || twisted {
-            crate::protocol::RULES_GAMEPLAY_VERSION
-        } else if session.state.map.has_encounters() {
-            crate::protocol::CAMPAIGN_GAMEPLAY_VERSION
-        } else {
-            match session.state.map.equipment_policy() {
-                crate::protocol::EquipmentPolicy::FullArsenal => 1,
-                crate::protocol::EquipmentPolicy::Discovery => {
-                    crate::protocol::DISCOVERY_GAMEPLAY_VERSION
-                }
+    let required_gameplay = if session.state.map.campaign_mission_id()
+        == Some(crate::protocol::MissionId::PortOfEntry)
+    {
+        crate::protocol::M06_GAMEPLAY_VERSION
+    } else if discovery || has_notary || session.state.map.campaign_mission_id().is_some() {
+        crate::protocol::M05_GAMEPLAY_VERSION
+    } else if has_jammer {
+        crate::protocol::JAMMER_GAMEPLAY_VERSION
+    } else if options
+        .match_config
+        .as_ref()
+        .is_some_and(|config| config.rules.mode() == crate::protocol::GameMode::Ctf)
+    {
+        crate::protocol::CTF_GAMEPLAY_VERSION
+    } else if discovery || twisted {
+        crate::protocol::RULES_GAMEPLAY_VERSION
+    } else if session.state.map.has_encounters() {
+        crate::protocol::CAMPAIGN_GAMEPLAY_VERSION
+    } else {
+        match session.state.map.equipment_policy() {
+            crate::protocol::EquipmentPolicy::FullArsenal => 1,
+            crate::protocol::EquipmentPolicy::Discovery => {
+                crate::protocol::DISCOVERY_GAMEPLAY_VERSION
             }
-        };
+        }
+    };
     let live = std::sync::Arc::new(tokio::sync::RwLock::new(session.state.live_status(0)));
     let mut net_server = NetServer::bind_with_requirements(
         &options.bind,

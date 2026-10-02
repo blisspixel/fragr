@@ -1,0 +1,9 @@
+{
+  "format": 1,
+  "id": "l06_l07",
+  "title_key": "STORY_M06_DEPARTURE_TITLE",
+  "skip_key": "STORY_SKIP_SCENE",
+  "shots": [
+    {"id": "TRANSIT", "caption_key": "STORY_L06_L07_TRANSIT", "image": "res://assets/story/images/m06/lunar_transit_departure.png", "narration": "res://assets/story/voice/{locale}/l06_l07/transit.mp3", "timing": "narration", "hold": 1.0}
+  ]
+}

@@ -1,0 +1,46 @@
+extends RefCounted
+class_name EnvironmentTextures
+
+## Reviewed local material tiles. Venue selects history, surface selects use.
+const EARTH: String = "res://assets/environment/earth/"
+const MOON: String = "res://assets/environment/moon/surfaces/"
+static var _textures: Dictionary[String, Texture2D] = {}
+
+static func path_for(surface: String, venue: String, horizontal: bool = false) -> String:
+	if venue == "moon_port":
+		match surface:
+			"concrete": return MOON + "moon_regolith.png"
+			"enamel", "records_tile": return MOON + "moon_pressure_bone.png"
+			"service_steel": return MOON + ("moon_worn_deck.png" if horizontal else "moon_union_service.png")
+			"lift_panel": return MOON + ("moon_worn_deck.png" if horizontal else "moon_repair_plate.png")
+	elif venue == "low_water":
+		match surface:
+			"concrete": return EARTH + ("earth_yard_cast_concrete.png" if horizontal else "earth_low_water_terracotta_plaster.png")
+			"enamel": return EARTH + ("earth_yard_cast_concrete.png" if horizontal else "earth_clinic_bone_plaster.png")
+			"service_steel", "lift_panel": return EARTH + ("earth_service_dark_tread.png" if horizontal else "earth_workshop_patched_steel.png")
+	elif venue in ["earth_union", "earth_yard", "earth_scrap"]:
+		match surface:
+			"concrete": return EARTH + "earth_yard_cast_concrete.png"
+			"records_tile": return EARTH + "earth_intake_green_tile.png"
+			"service_steel", "lift_panel": return EARTH + ("earth_service_dark_tread.png" if horizontal else "earth_scrapyard_oxidized_plate.png")
+	return ""
+
+static func texture_at(path: String) -> Texture2D:
+	if path.is_empty():
+		return null
+	if not _textures.has(path) and ResourceLoader.exists(path):
+		var resource: Resource = load(path)
+		if resource is Texture2D:
+			_textures[path] = resource as Texture2D
+	return _textures.get(path) as Texture2D
+
+static func apply(material: ShaderMaterial, surface: String, venue: String) -> void:
+	var wall: Texture2D = texture_at(path_for(surface, venue))
+	var floor: Texture2D = texture_at(path_for(surface, venue, true))
+	if wall == null or floor == null:
+		return
+	material.set_shader_parameter("tile_enabled", true)
+	material.set_shader_parameter("tile_wall", wall)
+	material.set_shader_parameter("tile_floor", floor)
+	material.set_shader_parameter("tile_strength", 0.35 if venue == "low_water" and surface in ["service_steel", "lift_panel"] else 0.55)
+	material.set_shader_parameter("tile_repeat_pixels", 128.0)

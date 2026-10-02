@@ -27,7 +27,7 @@ struct Args {
     /// Run the bundled mission for a desktop parent. Readiness is JSON on stdout;
     /// stdin shutdown or EOF ends this loopback-only child.
     #[arg(group = "campaign_source")]
-    #[arg(long, value_parser = ["recall_notice", "persons_unknown", "scheduled_service", "notice_to_vacate", "no_forwarding_address"], conflicts_with_all = ["bind", "bots", "map", "map_file", "map_rotate", "solo_broadcast", "no_round_events", "bench", "bench_verify_trace", "status_every_s"])]
+    #[arg(long, value_parser = ["recall_notice", "persons_unknown", "scheduled_service", "notice_to_vacate", "no_forwarding_address", "port_of_entry"], conflicts_with_all = ["bind", "bots", "map", "map_file", "map_rotate", "solo_broadcast", "no_round_events", "bench", "bench_verify_trace", "status_every_s"])]
     local_mission: Option<String>,
 
     /// Persist an owned desktop campaign run. Omit for ephemeral development runs.
@@ -166,6 +166,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
             "scheduled_service" => fragr_server::protocol::MissionId::ScheduledService,
             "notice_to_vacate" => fragr_server::protocol::MissionId::NoticeToVacate,
             "no_forwarding_address" => fragr_server::protocol::MissionId::NoForwardingAddress,
+            "port_of_entry" => fragr_server::protocol::MissionId::PortOfEntry,
             _ => fragr_server::protocol::MissionId::RecallNotice,
         };
         return fragr_server::local::serve_with_mode(

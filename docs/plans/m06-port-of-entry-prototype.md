@@ -1,11 +1,28 @@
 # M06 Port of Entry prototype
 
-**Status:** planned, 2026-09-30. No M06 runtime, map or capture is implemented.
+**Status:** implemented, updated 2026-10-02. Final local engineering, serialized
+client and normal rendered gates pass. Earlier checkpoint `054031c` passes full
+CI and PR package/install checks; exact final-source CI, main integration and
+release remain pending. Current captures are indexed in the
+[evidence note](../evidence/2026-10-01-m06-textures.md);
+fresh-player and difficulty acceptance are separate open gates.
 The [full build order](../ROADMAP.md#full-build-order-2026-09-27) owns sequencing;
 this file defines its next bounded mission increment after M05's gate.
-**Spend:** $0 planned new charges, no asset calls or cloud operation. The current
-round has used 693 included audio credits, with $0 new cash charges and a
-separate conservative $3 equivalent reserve. Those receipts grant no new batch.
+**Spend:** $0 new cash charges. The separately priced
+[M06 audio batch](m06-audio-batch.md) generated four jobs using 252 included
+credits. The separate requested shotgun refresh consumes another 30 included
+credits, bringing the ongoing round to 975 credits and a conservative $5 audio
+equivalent reserve. The owner confirmed $14.40 in current image API credits;
+six bounded image requests downloaded at a combined $0.274 reservation:
+$0.114 for possessions and $0.160 for two story key images.
+Confirmed image billing remains unreconciled and the prior uncertain $0.107
+reservation stays preserved. No top-up, overage or cloud submission ran.
+
+The later requested [world texture expansion](world-texture-expansion.md)
+completes twenty-seven additional image requests at $3.811 in estimated
+reservations, selecting twenty-one Earth, Moon and future offworld textures.
+The round's new image reservations now total $4.085; confirmed billing remains
+unknown. Included audio and the earlier uncertain reservation are unchanged.
 
 ## Goal and accepted direction
 
@@ -106,9 +123,9 @@ registration, rendering and M02 preservation. A cosmetic transparent plane must
 not imply ballistic cover. Pressure equipment remains scenery, without secret
 airlock, vacuum, low-gravity or body-specific damage rules.
 
-Current saves know `port_of_entry` only as the unbuilt destination after M05.
-There is no M06 mission enum, map, controller, local child or episode refill.
-The v6 outcome checks currently attach M05 rescue only to that pending edge;
+The baseline saves knew `port_of_entry` only as the unbuilt destination after M05.
+That baseline had no M06 mission enum, map, controller, local child or episode refill.
+Its v6 outcome checks attached M05 rescue only to that pending edge;
 they must expand deliberately to preserve it throughout M06 and later retries.
 Local prediction and remote participant presentation exist, but their existence
 does not establish compensated remote-network sixty-metre fights. This increment
@@ -128,15 +145,17 @@ Recommended wire boundary is capability 27 for the newly introduced mission and
 pressure-window admission, with campaign rules revision 3 unchanged. Determine
 retirement of existing live readers from the final shared shape: reject older
 roles before initial state whenever new mandatory fields require it, and retain
-explicit full-arsenal arcade compatibility. This is a proposed increment, not
-the current capability 26 contract. Update every client, adapter, brain and
-playtest reader together and preserve initial MapInfo-before-state ordering.
+explicit full-arsenal arcade compatibility. The implementation now advertises
+capability 27, requires it only for M06, and retains capability 26 admission for
+earlier authored missions. Every client, adapter, brain and playtest reader is
+updated through the shared shapes; initial MapInfo-before-state ordering remains
+required.
 
 Recommend mutually exclusive `m06` geometry and mission facts, matching current
 strict boundaries. Geometry contains six ordered required Arrival objectives,
 one registered transit departure Use target and boarding region, a supported
 companion start, and an optional service-region marker bound to its encounter.
-Candidate objective IDs are `freight_cleared`, `rail_lane_cleared`,
+Frozen objective IDs are `freight_cleared`, `rail_lane_cleared`,
 `loading_cleared`, `turret_cleared`, `customs_cleared`, `exit_cleared`, then
 `party_departed`. Freeze exact IDs before implementing readers or QA manifests.
 
@@ -148,6 +167,31 @@ passengers from freed bodies or introduce NPC arrival timing as a departure gate
 The marker becomes true only after the optional encounter clear and actual
 active party presence at the registered marker. It records a later route choice,
 not a new required campaign control or invented rescue.
+
+### Implementation ownership and frozen boundary
+
+The parallel lanes are [core](m06-core-prototype.md),
+[map](m06-map-prototype.md) and [client](m06-client-prototype.md). Integration owns
+durable v7 saves, strict v6 upgrades, local Rust launch, admission, shared agent
+readers, documentation, verification and publication. File ownership is separate;
+global builds and native renderer checks are serialized during convergence.
+
+`M06MapGeometry` has `objectives`, `service`, `departure`, `boarding` and
+`companion_start`. `service` is an Arrival `MissionObjective` named
+`prisoner_route_marked`. `M06ObjectiveState` has `completed`, optional `current`,
+`prisoner_route_marked`, `carried_recall_cars`, `carried_patients`,
+`carried_photos`, `carried_released_workers` and `carried_evacuated_workers`.
+These outcome arrays retain legitimate historical order, with strict unique
+registered workers and an evacuated subset. M06 envelopes are mutually exclusive
+with earlier mission envelopes. The new client advertises capability 27; only
+M06 admission requires 27 while existing authored missions retain 26. Rules stay
+at revision 3. No weapon spread, Turret timing or movement math change is planned.
+
+The separate fixed-body Turret sprite oscillation will be reviewed against its
+authoritative head yaw. A centered long Rail shot can still miss due to ordinary
+spread; seeded shot evidence must preserve that behavior and an accessible
+walking alternative. Dormant guards are stationary before activation, so this
+increment will not claim a patrol that the source does not implement.
 
 Shared departure still requires the living ready party at boarding and a fresh
 aimed Use. Retry restores the complete M06 entry, guards, supplies, objective and
@@ -200,7 +244,8 @@ Any Tern wave or impound movement needs its own inspected presentation evidence;
 a static ship must be captioned as a static landmark. Missing named character
 performance remains a visible acceptance gap. Neutral narration is not Tern,
 Mara, Latch or Voss's final casting. No new recorded speech, provider choice,
-character canon or paid generation follows from this plan. Before any future
+character canon or unrestricted generation follows from this plan. The bounded
+[M06 audio batch](m06-audio-batch.md) owns the four approved neutral jobs. Before any future
 asset batch, check actual remaining credits and price the exact bounded operation
 within the authorized cash cap; record credits separately from cash and never
 enable top-ups or overages. No new dependency, engine pin or provider API is needed.
@@ -239,3 +284,455 @@ and once-only episode refill, ordinary route and both teaching beats pass their
 own recorded gates. Record failures and root causes without weakening guards,
 timings, phase requirements, health or coverage. Root owns indexing and the sole
 roadmap sequence; this plan creates no parallel next-work queue.
+
+## Integration receipts (2026-10-01)
+
+The implementation now uses the frozen M06 envelopes and six ordered objectives,
+capability 27 only for M06, strict v7 saves and actual retained M05 equipment.
+The completed historical v6 M05 fixture has zero remaining continues, spent
+Grenades and an evacuated subset of released workers. Store tests prove read-only
+preview, writer contention, failure-safe replacement, one exact-byte archive,
+single episode refill and unchanged already-spent reopening. Actual retry tests
+restore the M06 entry without rewinding tick, input sequence or inventory revisions.
+The real local-process fixture is included in the full workspace gate.
+
+Final static map SHA256 is
+`627e9bcecaa231fdc3a5df8297ac872e975b41c31b7ae872d4a4ce1c25e4a9a5`:
+74 solids, 22 finite supplies and 21 guards. The 25-state authoring manifest has
+144 ordinary walking segments after the landmark framing correction. Focused
+Rust checks pass 18/18 on the initial 142 segments; the final framing preflight
+passes 3/3 on all 144 segments and handoffs. Initial preflight found a locker-cutting route and
+a genuine crane stair access defect. The map now has an open stair entrance and
+a supported ground aisle; the route uses the actual locker aisle and broad stair
+centre. Guard counts, supplies, Rail range, weapon spread and Turret timing did
+not change. M01-M05 map bytes remain unchanged.
+
+The broad Rust gate also exposed an old socket fixture that assumed the newest
+capability applied to every Discovery map. Its corrected test explicitly rejects
+pre-26 readers and admits both 26 and 27 for human, agent and spectator roles on
+the older authored map. This preserves the intended compatibility boundary.
+The pre-contact workspace clippy and dependency licenses/bans/sources pass.
+The completed baseline below predates the subsequent living-body contact
+increment; final matching server, client and visual gates must include that
+source before acceptance.
+Receipts live under `.agents/m06-buildout-20261001/`.
+
+Initial API image-credit research could not verify the balance through the
+available account session. Official billing documentation distinguishes API
+dollars from website credits. That research ran no image generation or account
+change. Nick subsequently reported a current $14.40 balance and explicitly
+requested a [bounded lunar art batch](m06-lunar-art-batch.md); the original
+offline Moon art remains available. The exact neutral audio batch settled at 252
+included credits and zero new cash charges. Actual decoded playback, captions,
+looping, completion and fallback checks pass; listening and final character
+casting remain separate review evidence.
+
+### CPU regression measurement
+
+Windows x86_64 release, 16 available logical processors, Arena Duel, seed 42,
+16 bots (17 simulated fighters), 1200 ticks, no connected clients. Scope is
+session plus snapshot encoding, not rendering or M06 remote-network performance.
+
+| Tick p50 ms | Tick p99 ms | Tick maximum ms | Ticks over 50 ms | Deterministic rerun | Budget gate |
+|---|---|---|---|---|---|
+| 0.086 | 0.721 | 3.585 | 0 | pass | pass |
+
+Command: `cargo run -p fragr-server --release --locked -- --bench 16
+--bench-ticks 1200 --bench-check --bench-assert --seed 42`.
+Full receipt: `.agents/m06-buildout-20261001/benchmark.log`.
+
+### Completed engineering gates
+
+These are the completed pre-contact baseline, not final verification of the
+subsequent [living-body contact increment](actor-body-contact.md), new art or
+shotgun integration. The recorded counts and measurements remain historical
+receipts; final current-source checks and inspected tours are still required.
+
+`workspace-tests-rerun.log`: 1226 passing workspace tests, zero failures and
+three existing ignored tests. `fmt.log` and `clippy-final.log`: clean.
+`coverage.log`: unfiltered workspace line coverage 94.12 percent against the
+unchanged 90 percent floor. `release-build.log`: full workspace release build
+passes. `deny.log`: licenses, bans and sources pass.
+
+Local Docker 29.8.0 checks used a unique owned Compose project after confirming
+no prior containers or listener. Build, UID/GID 10001, read-only root filesystem,
+no-new-privileges, legal notices, healthy Compose state and host `/status`
+(`kind:arena`, `health.status:ok`) pass. A real four-bot match logged two frags.
+Cleanup removed only that project's container and network; its final process
+listing is empty. Receipts: `container-*.log`. No cloud credentials or apply.
+
+The matching binary passes the real client `test_m06_local` gate, including
+Practice isolation, actual historical v6 promotion, held-fire release before
+readiness, exact two Grenades/body/HP/ammo and retained outcomes, one exact-byte
+archive and reopening a spent M06 entry without refill or arrival replay.
+The initial final-reopen fixture failed because Godot's parsed numeric atoms
+reserialized as decimals, correctly rejected by Rust's integer schema. The
+fixture now changes one exact validated allowance field in the actual compact
+writer bytes. Production validation, deadlines and carry assertions are intact.
+Final clean receipt: `client-m06-local-actual-compact-fixture.log`.
+
+| Local release soak | Bots | Agent fighters | Spectators | Samples | Actual cadence | Lifetime tick p99 ms | Max ms | RSS MiB start/end/max |
+|---|---|---|---|---|---|---|---|---|
+| 120 seconds, rotating arena maps | 4 | 4 | 2 | 9 | 20.00 Hz | 0.72 | 6.40 | 38.3 / 38.9 / 39.0 |
+
+The ordinary release binary ran the same soak flags as CI. Receipts are
+`soak.log`, `soak.server.log` and `soak.ndjson`. This proves the measured local
+roster, not large-server scale, remote-machine behavior or GPU performance.
+
+The current release harness binary passes the CI-equivalent FFA, TDM,
+rail-only, TDM licence-to-kill, CTF route and contested CTF flags. The route-only
+CLI deliberately rejects `--assert`; the initial orchestration included it and
+was corrected to the documented route command. No assertion was weakened.
+The corrected route passes its own socket proof. The contested run records two
+takes, one combat drop, one return and one capture at the capture limit.
+Receipts: `playtest-*.log` and `playtest-*.json`.
+
+All six mixed-agent map cases use the roster wrapper's same maps, seeds,
+Reflex/Planner tiers and thresholds, with the already built matching binary
+to serialize Windows executable writes. Reports remain independent of the M06
+authoring tour. The two post-opening spawn deaths remain visible in the data.
+
+| Arena map | Agent fighters | Frags | Spawn deaths | Opening spawn deaths | Gate |
+|---|---|---|---|---|---|
+| 1 | 2 | 5 | 0 | 0 | pass |
+| 2 | 6 | 31 | 0 | 0 | pass |
+| 3 | 6 | 28 | 0 | 0 | pass |
+| 4 | 8 | 31 | 1 | 0 | pass |
+| 5 | 12 | 46 | 0 | 0 | pass |
+| 6 | 16 | 48 | 1 | 0 | pass |
+
+Exact receipts: `roster-map1.json` through `roster-map6.json` and their logs.
+Independent read-only final review found no consequential save, admission,
+staging, controller, optional-service or departure defect. Source tests that
+place participants or clear guards are unit evidence, separate from the pending
+ordinary-input rendered mission tour.
+
+Independent capture review found the impound still's original camera ray hit
+its own opaque signpost. A QA-only supported gallery stance now has audited
+clear rays to the ship and depot through the actual ballistic glass. The tour
+still visits both observation anchors and its next walk starts at that real
+endpoint. Map content is unchanged. `map-window-preflight.log` and
+`map-window-rays.log` retain the final framing evidence.
+
+The same review identified an evidence gap: aggregate enemy shot counts and
+phase files alone cannot distinguish cancelled Turret charge from ordinary
+post-shot recovery. The QA lane now adds a bounded named-actor temporal receipt
+through the original charge deadline: visible windup, early short recovery,
+unchanged enemy HP, living participant within sight range behind real cover,
+and no resolved shot from that Turret in that cycle. Production combat and
+timings stay unchanged. Normal firing, heavy-hit interruption, stale facts and
+unrelated shots must not satisfy this gate. Pure failure-path tests and the
+actual rendered lesson are required before cancellation is claimed.
+
+The corrected observer also requires the previous consecutive Windup snapshot
+to show blocked sight while the participant remains alive and in range. Enemy
+intent consumes that prior movement state; cover appearing only in the Recovery
+snapshot cannot establish why the charge stopped. Focused regressions reject
+that false positive, range-loss cancellation and ambiguous extra participants.
+The third actual tour records a valid cycle: clear Windup at 3103, blocked
+Windup at 3108, twelve-tick Recovery at 3109, unchanged Turret HP, and no named
+resolved shot through original deadline 3129, verified at 3130. An earlier
+ordinary firing cycle is separately observed and deliberately rejected as a
+cancellation candidate.
+
+That tour remains incomplete: the driver climbs all six gallery treads, then
+oversteers sideways off the supported platform while keeping aim on the Turret.
+The old projection threshold selected a diagonal for a course only fourteen
+degrees from forward. The owning QA lane corrected this with nearest-eight
+direction quantization and a focused regression; server movement, map geometry
+and required rear-flank death gates remain unchanged. Receipts and partial
+captures remain under `.agents/qa/m06-port-third/`.
+
+The original Earth disk was inspected as an indistinct repeated-oval texture.
+Its existing local source baker now draws recognizable continents, blue ocean,
+broken curved cloud bands and a terminator. The tour looks at the actual planet
+center rather than an elevated point above it. The inspected frame shows Earth
+through the freight window beneath the gantry crossbeam; it does not claim Earth
+above that beam. The crew-quarters frame shows provisional residents, storage,
+meal bowls, a child's drawing and the labelled recycling tray behind real glass.
+Neither still establishes final character performances or ambient activity.
+
+### Fourth tour, retained shutdown failure
+
+The fourth ordinary-input tour under `.agents/qa/m06-port-fourth/` completed
+all 25 states, all 21 named guards, the optional prisoner marker and actual
+party departure. It recorded zero deaths and HP loss, with 90 armor lost.
+Its actual resolved participant Rail shot measured 52.8996 metres at tick
+1278, distinct from the authored 58.25-metre initial spacing and seeded test.
+The named Turret cancellation retained blocked, living, in-range Windup at
+3074, twelve-tick Recovery at 3075 ending 3087, unchanged Turret HP and no
+named shot through the original deadline 3085, verified at 3086.
+
+The wrapper failed with two shutdown texture-leak errors, so completed gameplay
+is not a clean mission PASS. A focused reproducer established a pending sky
+resource lifetime race when replacing environments before the first rendered
+frame. The bounded one-frame retention fix preserves immediate world changes
+and passes isolated rendered and headless regressions. The subsequent clean
+whole-mission receipts appear below and preserve this failed wrapper result.
+Fresh-player teaching, all difficulties, eleven-minute
+pacing, 4:30 par, final casting and listening acceptance remain open. M06 is
+implemented as a prototype; no release 0.66 is claimed.
+
+### Contact integration verification, before the texture refresh
+
+The integrated contact, navigation, art and audio source at this earlier checkpoint passes its Rust
+gates: formatting, warning-denied workspace Clippy, 1240 workspace tests with
+zero failures and three existing ignored tests, full release build, licenses,
+bans and sources. Unfiltered workspace line coverage is 94.27 percent
+(51231 lines, 2933 missed), above the unchanged 90 percent floor.
+Receipts under `.agents/m06-buildout-20261001/`:
+`wrap-fmt.log`, `wrap-clippy.log`, `wrap-workspace-tests.log`,
+`wrap-release-build.log`, `wrap-deny.log` and `wrap-coverage.log`.
+
+Four combat-mode smokes, CTF route and contested checks, all six mixed rosters
+and the 120-second soak pass on frozen matching release executables. The
+orchestration hashes both binaries before and after every one of 14 cases;
+neither changed. Direct use of the wrapper's exact six cases avoids rebuilding
+an executable during Windows rendered checks. The contested sample retains two
+takes, one combat drop, one return and one capture. Receipts:
+`contact-playtest-final/summary.json`, per-case logs and JSON reports.
+
+| Quiet Windows x86_64 release CPU benchmark | Fighters | Ticks / seed | Tick p50 ms | Tick p99 ms | Maximum ms | Over 50 ms | Determinism |
+|---|---|---|---|---|---|---|---|
+| Arena Duel, 16 bots, 16 available threads | 17 | 1200 / 42 | 0.245759 | 1.572863 | 2.2498 | 0 | pass |
+
+| Final local release soak | Bots | Agents | Spectators | Samples | Cadence | Lifetime tick p99 ms | Maximum ms | RSS MiB start/end |
+|---|---|---|---|---|---|---|---|---|
+| 120 seconds, rotating maps | 4 | 4 | 2 | 9 | 19.99973 Hz | 1.048575 | 3.2145 | 38.1 / 39.3 |
+
+The benchmark ran on the quiet host. Socket, roster and soak checks shared host
+load with coverage and campaign rendering; they establish the recorded local
+roster and healthy cadence, not remote behavior, large-crowd scale or GPU speed.
+All owned test and soak processes exited.
+
+| Arena | Agents | Frags | Spawn deaths | Opening spawn deaths | Gate |
+|---|---|---|---|---|---|
+| 1 | 2 | 5 | 0 | 0 | pass |
+| 2 | 6 | 30 | 0 | 0 | pass |
+| 3 | 6 | 15 | 1 | 0 | pass |
+| 4 | 8 | 35 | 1 | 0 | pass |
+| 5 | 12 | 48 | 0 | 0 | pass |
+| 6 | 16 | 76 | 0 | 0 | pass |
+
+The final matching-release first-person diagnostic also passes actual ordinary
+stop, zero camera/prediction drift and sidestep/pass behavior. Its inspected
+stills and six-frame strip are archived in `docs/screenshots/`; the
+[contact plan](actor-body-contact.md) records exact ACK and body evidence.
+
+The first final-contact mission tour remains a recorded failure after 19 states:
+its old north-gallery waypoint `[18.5,3,31.5]` lies inside the living exit
+Turret's body at `[18.5,3,32]`. The player correctly stopped at `[18.5,3,31]`,
+one metre away. Static support and head clearance remain valid. The owning QA
+route was corrected to walk around that actual actor, with no collision
+exemption, map change or relaxed success tolerance. Receipt:
+`.agents/qa/m06-port-contact-final/`.
+
+The clean rerun in `.agents/qa/m06-port-contact-second-final/` passes all 25
+states, all 21 named guards, the optional marker and actual party departure.
+It records zero deaths, no HP loss, 45 armor lost and one secret supply claimed
+while visiting all three secret locations. Its resolved Rail hit is 52.015735
+metres. The corrected gallery route passes a regression using actual map
+support and the shared body-contact kernel; the old waypoint demonstrably stops
+at the Turret. No map bytes, attack timing or success tolerance changed.
+
+The whole-client checker at that checkpoint passes all 184 scripts and 86 harnesses with
+clean exit and logs: `client-whole-contact-final.log`. The published standard
+tour passes all 32 states and archives thirteen stills in
+`.agents/qa/m06-standard-contact-final/`. The selected campaign, fixed-view
+Earth sequence, stop-and-sidestep sequence and standard images were inspected;
+[the gallery](../screenshots/README.md) names only observed states.
+The local dedicated container builds and passes legal notices, UID 10001,
+read-only runtime, no-new-privileges and `health.status: ok`; owned Compose
+resources were removed. Receipts: `wrap-container-*.log` and
+`wrap-container-status.json`. These establish local implementation, not final
+mission acceptance, main CI or a published release.
+
+All ten checker fault-injection scenarios pass with exit 0 in
+`wrap-client-verifier.log`, including early errors followed by a PASS marker,
+large output and retained verbose failure identity.
+
+The October 1 identity clarification is reflected in the character guide,
+art bible and lore: Latch is a roughly six-foot independent person with a
+scrappy robot body. Existing coarse presentation stays provisional; no military
+role, voice or reference establishes the individual's final design. The human
+direction expresses freedom principles without an old national faction.
+
+### Integration failure and bounded recovery
+
+The first PR #317 Linux CI at `e6f0e78` fails the actual M01 four-participant
+controller completion gate: one participant is aboard while three living
+participants stall at the upper gallery. Local passing runs used different
+ordinary identities. The three desktop packages and install smokes pass at
+this checkpoint, but the failed CI prevents integration. The
+[crowd route recovery](m01-crowd-route-recovery.md) retains the exact failure
+and owns the repair and fresh verification without relaxing mission gates.
+
+### Current texture checkpoint and final publication gates
+
+The navigation repair is included in checkpoint `054031c`, which passes
+[full CI run 36963991060](https://github.com/blisspixel/fragr/actions/runs/36963991060)
+and [PR Release run 36963991146](https://github.com/blisspixel/fragr/actions/runs/36963991146).
+The latter verifies the three desktop packages and install smokes; it is not a
+published release. Current local Rust verification reports 1243 passing tests,
+three existing ignored tests and 94.31 percent unfiltered line coverage, with
+formatting, warning-denied Clippy, release build, deterministic benchmark and
+dependency-policy checks passing. The earlier 1226/94.12 and 1240/94.27 receipts
+remain scoped to their preceding source checkpoints.
+
+The [world texture expansion](world-texture-expansion.md) selects twenty-one
+Earth, Moon and future offworld tiles. Eight lunar tiles are integrated on
+existing pressure surfaces, dry ground, service decks, issued steel, crater
+scenery and room props. Original possessions, geometry, map authority and
+fallbacks remain intact. A rendered contribution regression caught an opaque
+original pressure/dust fallback hiding the new albedo; the corrected path uses
+that fallback only when the tile layer is disabled.
+
+The first material tour `.agents/qa/m06-port-textures-final/` failed after
+18 states when ordinary customs travel ended below the raised crossing. Its
+partial captures and failed wrapper remain historical. A separate actual-map
+regression reproduced world-only dodge prediction accepting a contact-deflected
+fall. The bounded [QA contact-safe strafe correction](qa-contact-safe-strafe.md)
+reuses validated shared bodies and contact resolution in the existing forecast,
+preserving movement rules, route, drop threshold and waypoint tolerance. It
+does not establish the exact peer from the original failed run.
+
+The unchanged route then passes at `.agents/qa/m06-port-textures-second-final/`:
+all 25 states, all 21 named guards, optional prisoner marker and actual
+`party_departed`, wrapper exit 0 and zero engine/script errors. Records report
+zero deaths, 45 HP lost, 100 armor lost and one secret supply claim, with all
+three secret locations visited. Ordinary supplies restore health before exit.
+The resolved Rail kill at tick 1267 measures **52.662686 metres**, distinct from
+initial authored spacing or the earlier runs. Actual Turret cancellation
+retains blocked Windup 3045 before Recovery 3046, twelve-tick recovery, unchanged
+100 HP and no registered shot through original deadline 3069, verified at 3070.
+
+Loaded source and result receipt:
+`.agents/moon-surfaces-20261001/tour-retry-source-receipt.json`.
+Wrapper log: `.agents/moon-surfaces-20261001/tour-retry-wrapper.log`.
+Server SHA256: `81DD76F47EBB00EBC80B92A4562DADD3D821C534E00B5C73DDDEE1D5552AFE3A`.
+Map SHA256 remains `627e9bcecaa231fdc3a5df8297ac872e975b41c31b7ae872d4a4ce1c25e4a9a5`.
+The receipt retains exact loaded script/shader hashes including the bounded QA
+correction, so checkpoint CI and the later capture-source change stay distinct.
+
+Eight inspected M06 gallery files are refreshed from this successful run:
+Earth over the gantry, inhabited service room, Turret windup/firing, actual
+pressure-window ship/depot, transit departure and the fixed-view Earth strip
+and tiles. The twenty-frame view includes a passing provisional ally; it proves
+the observed fixed-camera view, not planet motion or continuous combat. Phase
+stills remain observed phases rather than a continuous sequence. Inspection is
+Godot 4.7.2 Compatibility on one Windows AMD Radeon 780M host at 1280x720, without
+cross-GPU or frame-performance claims. All owned processes closed cleanly.
+
+The current standard/README screenshot refresh and final serialized client gate
+must follow the latest capture-helper and affected-route corrections before
+main CI and a new release are claimed. M07 Declared Goods remains unbuilt.
+Human fresh-player teaching, all difficulties, accepted pacing/par, final body
+art, character casting and subjective listening remain open acceptance work.
+No further paid call follows from these verification corrections.
+
+### Final source corrections and workspace gate
+
+The later phase-aware capture helper retains the original Turret cancellation
+gate. Its ordinary peek waits for a current clear Windup, then retreats behind
+actual cover and proves the same charge was cancelled without damage or a shot
+through its original deadline. The complete existing-byte tour in
+`.agents/qa/m06-port-peek-final/` passes all 25 states and all 21 guards, with
+actual departure, zero deaths, 25 HP lost, 125 armor lost and two secret claims.
+Its actual Rail hit measures 52.804014 metres. This uses the explicitly retained
+`81DD76F` server bytes, before the following CTF-only correction; it is not a
+fresh-build claim. The current Earth strip is twenty fixed-view samples without
+a companion crossing; earlier crossing captions apply to the earlier gallery.
+
+Low Water's affected route now passes all 23 states and 28 guards. Actual
+patient avoidance, sheltered approach and all-eight court targeting repair the
+capture path, preserving map bytes and gameplay. Records retain zero deaths,
+85 HP lost, 150 armor lost, three secret claims and seven Notary crashes. Both
+patients are released, but one queues behind the other at departure, so their
+final endpoint arrival is not claimed. See the
+[capture plan](m04-capture-patient-detour.md).
+
+Windows CI at `d41c2b6` exposes a seeded CTF survey whose random participant
+identities still vary contact order. The retained diagnostic and
+[bounded correction](ctf-seeded-body-order.md) use canonical replay IDs plus
+three declared permutations, preserving every completion and combat-drop
+threshold. A normally aimed flag carrier can now defend against its own flag
+thief at the existing contact range. All four matrices and an identical
+canonical repeat pass; generic navigation, maps and match rules are unchanged.
+
+The frozen source passes 1244 workspace tests with three existing ignored,
+formatting, warning-denied Clippy and dependency license/ban/source checks.
+Unfiltered workspace line coverage is 94.31 percent (51385 lines, 2923 missed),
+above the unchanged 90 percent floor. Receipts are `final-workspace-tests.log`,
+`final-fmt.log`, `final-clippy.log`, `final-deny.log` and `final-coverage.log`
+under `.agents/m06-buildout-20261001/`. The matching release rebuild, normal
+published tour, serialized 188-script/88-harness gate and exact-source CI
+remain final publication gates. No further paid request follows this work.
+
+The full workspace release build also passes. The required standalone server
+benchmark rebuild passes both determinism and budget assertions, retaining trace
+`fb75dd61f87fc2c0c64df3cc58fb86749f501e07359093909eacd97baea20c4e`.
+The benchmark measures CPU session/encoding work, not renderer or network scale.
+
+| Quiet Windows x86_64 release CPU benchmark, Arena Duel, seed 42 | p50 ms | p99 ms | Maximum ms | Ticks over 50 ms |
+|---|---|---|---|---|
+| Final source, 16 bots plus benchmark participant, 1200 ticks | 0.139263 | 0.950271 | 1.4361 | 0 |
+
+Receipts: `final-release-build.log` and `final-bench.log` in the same directory.
+The standalone executable SHA256 after this rebuild is
+`D29AE5E4B0BC3456F370524F87873930A2A8B2C9C8B5DCA09726D7EBAC05BE8A`.
+
+Both matching release CTF wire smokes pass. The ordinary route reaches one
+capture; the contested four-agent sample records nine frags, two takes, one
+combat drop, one return and one capture, reaching the original capture limit
+within the unchanged 180-second round/240-second harness budgets. Neither has
+an opening spawn death. Reports are `.agents/playtest/final-ctf-route.json`
+and `.agents/playtest/final-ctf-contested.json`; logs are `final-ctf-route.log`
+and `final-ctf-contested.log` in the workspace-gate directory. These are local
+wire/controller evidence, separate from real-player and remote-host acceptance.
+
+### Final normal-wrapper captures, October 2
+
+The normal standard tour on the final standalone executable passes all 32
+states, publishes fourteen stills and exits with no engine/import errors.
+All fourteen images and motion strips were inspected. The README's boot,
+multiplayer and watched-match views are refreshed from it; the October 1 intake
+capture retains the same presentation. Receipt:
+`.agents/qa/final-standard-shipping/`, with unchanged source/hash checks and
+all owned processes closed.
+
+The first new-byte M06 tour fails after three states: combat travel beside the
+freight window ends at the straight wall and cannot reach its next waypoint.
+All four freight guards had already died. Final live companion coordinates were
+not retained, so the exact cause is unconfirmed. The separate
+[freight approach correction](m06-freight-capture-route.md) uses a quiet wider
+aisle, avoiding the registered dormant Clerk before actual encounter entry.
+The actual-map/contact regression retains both relative body orders and five
+arrival offsets, original walking/arrival limits and all four required guards.
+No campaign simulation or map bytes change.
+
+The second unmodified normal-wrapper run in
+`.agents/qa/final-m06-shipping-second/` passes all 25 states and all 21 guards,
+actual `party_departed`, clean exit and zero engine/import errors. Records
+report zero deaths, no HP lost, 75 armor lost and one secret supply claim,
+with all three secret locations visited. Actual personal kills are nineteen
+Rifle and two Rail. The resolved Rail kill at tick 1201 measures 51.991994
+metres from the actual trace origin/end, separate from authored initial spacing.
+
+The lesson retains its first actual Turret shot at tick 2959, then proves a
+clear Windup at 3005, blocked Windup at 3007 and twelve-tick Recovery at 3008
+ending 3020. The unchanged Turret remains at 100 HP and registers no shot
+through its original deadline 3031, verified at 3032. Later normal rear-flank
+fire defeats it. No phase, body position, damage or outcome is granted.
+The original failed new-byte tour and earlier existing-byte captures remain
+historical, separately scoped receipts. The normal wrapper performs the locked
+release build; server SHA256 stays `D29AE5E4B0BC3456F370524F87873930A2A8B2C9C8B5DCA09726D7EBAC05BE8A`.
+
+The single final serialized whole-client checker passes all 188 script parses
+and all 88 harnesses, with exit 0, each required marker and no error/failure
+lines. All script hashes and the server hash remain unchanged. Its actual
+local M04/M05/M06 campaign-launch checks pass, and every owned process closes.
+Log: `.agents/m06-buildout-20261001/client-whole-material-final.log`;
+receipt: `client-whole-material-final-receipt.json` in the same directory.
+The earlier concurrent-import parse failure stays a failed historical receipt.
+All ten checker fault-injection scenarios also pass in the unchanged verifier.
+Current-source main CI and release integration remain the final shipping gates.

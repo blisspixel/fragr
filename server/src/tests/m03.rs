@@ -147,6 +147,63 @@ fn m03_optional_car_requires_clear_and_approach_then_walks_without_departure_gat
     assert!(!session.state.map.m03_geometry().unwrap().mast_shutdown);
 }
 #[test]
+fn m03_released_captives_wait_on_registered_segment_then_resume() {
+    let (mut session, id) = fixture();
+    ready(&mut session, id);
+    for group in 0..3 {
+        clear_group(&mut session, group);
+    }
+    place(&mut session, id, [-5.0, 0.0, 0.0]);
+    session.tick_messages(0.05);
+    place(&mut session, id, [-6.5, 0.0, 0.4]);
+    let g = session.state.map.m03_geometry().unwrap();
+    let mut client = crate::mission::MissionClient::default();
+    client
+        .replace_map_with_m03(
+            Some(&g),
+            session.state.map.half_extent(),
+            &session.state.map.arena().solids,
+            session.state.map.presentation_ref(),
+        )
+        .unwrap();
+    for _ in 0..30 {
+        session.tick_messages(0.05);
+        client
+            .observe(session.state.tick, session.state.mission_state().unwrap())
+            .unwrap();
+    }
+    let blocked = session.state.mission_state().unwrap().m03.unwrap().cars[0].captives;
+    assert!(blocked[0][0] > -6.5 && blocked[1][0] > -6.5);
+    session.state.set_action(
+        id,
+        Action {
+            right: true,
+            yaw: Some(0.0),
+            ..Action::default()
+        },
+    );
+    for _ in 0..12 {
+        session.tick_messages(0.05);
+    }
+    session.state.set_action(id, Action::default());
+    assert!(session.state.players.iter().find(|p| p.id == id).unwrap().z > 2.0);
+    for _ in 0..100 {
+        session.tick_messages(0.05);
+        client
+            .observe(session.state.tick, session.state.mission_state().unwrap())
+            .unwrap();
+    }
+    let settled = session.state.mission_state().unwrap().m03.unwrap().cars[0].captives;
+    for (feet, target) in settled.into_iter().zip(g.cars[0].safe) {
+        assert!((feet[0] - target[0]).hypot(feet[2] - target[2]) < 0.01);
+    }
+    assert_ne!(
+        session.state.mission_state().unwrap().phase,
+        MissionPhase::Departed
+    );
+}
+
+#[test]
 fn m03_departure_consumes_early_press_and_requires_final_clear_and_entire_party() {
     let (mut session, id) = fixture();
     ready(&mut session, id);

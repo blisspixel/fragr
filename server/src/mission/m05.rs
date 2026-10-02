@@ -13,16 +13,21 @@ pub(super) struct M05Progress {
     pub(super) group_released: bool,
     pub(super) captives: Vec<M05WorkerState>,
     pub(super) route_points: Vec<usize>,
+    // Prefixes of the registered routes end at distinct physical berths. The
+    // public geometry stays unchanged and clients validate the original paths.
+    settling_routes: Vec<Vec<[f32; 3]>>,
     pub(super) tram: M05TramState,
     boarding_until: u64,
 }
 impl M05Progress {
     pub(super) fn new(g: M05MapGeometry) -> Self {
+        let settling_routes = worker_settling_routes(&g);
         Self {
             index: 0,
             freight_open: false,
             group_released: false,
             route_points: vec![1; g.rescue.captives.len()],
+            settling_routes,
             captives: g
                 .rescue
                 .captives
@@ -40,6 +45,56 @@ impl M05Progress {
             boarding_until: 0,
         }
     }
+}
+
+fn worker_settling_routes(g: &M05MapGeometry) -> Vec<Vec<[f32; 3]>> {
+    let mut routes: Vec<_> = g.rescue.captives.iter().map(|c| c.route.clone()).collect();
+    let length = |route: &[[f32; 3]]| -> f32 {
+        route
+            .windows(2)
+            .map(|p| (p[1][0] - p[0][0]).hypot(p[1][2] - p[0][2]))
+            .sum()
+    };
+    let mut order: Vec<_> = (0..routes.len()).collect();
+    order.sort_by(|&a, &b| {
+        length(&routes[a])
+            .total_cmp(&length(&routes[b]))
+            .then_with(|| g.rescue.captives[a].id.cmp(&g.rescue.captives[b].id))
+    });
+    let mut berths: Vec<[f32; 3]> = Vec::new();
+    for (rank, index) in order.into_iter().enumerate() {
+        // Space along the route by more than the physical diameter, leaving
+        // clearance around its final right-angle turn without lateral detours.
+        let mut remaining = rank as f32 * crate::movement::RADIUS * 3.0;
+        let route = &mut routes[index];
+        for segment in (1..route.len()).rev() {
+            let a = route[segment - 1];
+            let b = route[segment];
+            let distance = (b[0] - a[0]).hypot(b[2] - a[2]);
+            if remaining > distance {
+                remaining -= distance;
+                continue;
+            }
+            let fraction = if distance > 0.0 {
+                remaining / distance
+            } else {
+                0.0
+            };
+            let berth = std::array::from_fn(|i| b[i] + (a[i] - b[i]) * fraction);
+            if g.boarding.contains(berth)
+                && berths.iter().all(|old| {
+                    (old[0] - berth[0]).hypot(old[2] - berth[2])
+                        > crate::movement::RADIUS * 2.0 + crate::movement::contact::EPSILON
+                })
+            {
+                route.truncate(segment + 1);
+                route[segment] = berth;
+                berths.push(berth);
+            }
+            break;
+        }
+    }
+    routes
 }
 impl GameState {
     pub fn current_arena(&self) -> Cow<'_, crate::movement::Arena> {
@@ -179,6 +234,7 @@ impl GameState {
             m02: None,
             m03: None,
             m04: None,
+            m06: None,
             m05: Some(M05ObjectiveState {
                 completed,
                 current,
@@ -225,6 +281,7 @@ impl GameState {
                     && g.rescue.release.contains([p.x, p.y - PLAYER_FLOOR_Y, p.z])
             });
         let arena = self.current_arena().into_owned();
+        let mut contacts = self.contact_bodies();
         let Some(run) = self.mission.as_mut() else {
             return;
         };
@@ -244,33 +301,45 @@ impl GameState {
             .captives
             .iter_mut()
             .zip(&mut p.route_points)
-            .zip(&g.rescue.captives)
+            .zip(&p.settling_routes)
         {
-            let Some(target) = route.route.get(*index) else {
+            let Some(target) = route.get(*index) else {
                 continue;
             };
             let dx = target[0] - c.feet[0];
             let dz = target[2] - c.feet[2];
             let d = dx.hypot(dz);
-            if d <= 0.001 {
+            // Finish the last small grounded step before changing direction.
+            // A broad threshold leaves a route corner just outside boarding.
+            if d <= 0.000001 {
                 *index += 1;
                 continue;
             }
             let speed = 2.0_f32.min(d / dt);
-            let moved = crate::movement::integrate(
-                crate::movement::MoveState {
-                    x: c.feet[0],
-                    y: c.feet[1],
-                    z: c.feet[2],
-                    vx: dx / d * speed,
-                    vz: dz / d * speed,
-                    vy: 0.0,
-                    yaw: 0.0,
-                },
-                false,
+            let body = crate::movement::MoveState {
+                x: c.feet[0],
+                y: c.feet[1],
+                z: c.feet[2],
+                vx: dx / d * speed,
+                vz: dz / d * speed,
+                vy: 0.0,
+                yaw: 0.0,
+            };
+            let proposed = crate::movement::integrate(body, false, dt, &arena);
+            let key = format!("m05/{}", c.id);
+            let moved = super::contact::move_on_route(
+                &key,
+                body,
+                proposed,
+                [dx / d, dz / d],
                 dt,
                 &arena,
+                &contacts,
             );
+            if let Some(c) = contacts.iter_mut().find(|c| c.key == key) {
+                c.from = moved;
+                c.proposed = moved;
+            }
             c.feet = [moved.x, moved.y, moved.z];
             run.changed_at = self.tick;
         }
@@ -332,11 +401,7 @@ impl GameState {
         other.solids.remove(g.solid);
         let mut riders = Vec::new();
         let mut blocked = false;
-        for p in self
-            .players
-            .iter()
-            .filter(|p| p.hp > 0 && p.respawn_timer.is_none())
-        {
+        for p in self.players.iter().filter(|p| self.contact_eligible(p)) {
             let b = crate::movement::MoveState {
                 x: p.x,
                 y: p.y - PLAYER_FLOOR_Y,
@@ -362,6 +427,21 @@ impl GameState {
             {
                 blocked = true;
                 break;
+            }
+        }
+        if !blocked {
+            let mut bodies = self.contact_bodies();
+            for body in &mut bodies {
+                if let Some((_, z)) = riders.iter().find(|(id, _)| id.to_string() == body.key) {
+                    body.proposed.z = *z;
+                }
+            }
+            for (i, a) in bodies.iter().enumerate() {
+                for b in &bodies[i + 1..] {
+                    if crate::movement::contact::sweep_time(a, b).is_some() {
+                        blocked = true;
+                    }
+                }
             }
         }
         if !blocked {

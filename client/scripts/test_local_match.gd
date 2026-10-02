@@ -45,6 +45,11 @@ func _expect(value: bool, message: String) -> void:
 		push_error("test_local_match: " + message)
 
 func _run() -> void:
+	var lunar_ready: Dictionary = {"version": 2, "mission": MissionState.M06_ID, "difficulty": "severe", "url": "ws://127.0.0.1:12345", "gameplay_version": 27}
+	_expect(LocalMatch.readiness_url(JSON.stringify(lunar_ready).to_utf8_buffer(), "severe", MissionState.M06_ID, "") == "ws://127.0.0.1:12345", "lunar child readiness requires capability27")
+	lunar_ready["gameplay_version"] = 26
+	_expect(LocalMatch.readiness_url(JSON.stringify(lunar_ready).to_utf8_buffer(), "severe", MissionState.M06_ID, "").is_empty(), "old-capability executable cannot launch the lunar client")
+	_expect(LocalMatch.parse_run_preview(JSON.stringify({"status": "awaiting_mission", "mission": MissionState.M06_ID, "difficulty": "severe", "continues": 0, "body": "synthetic"}).to_utf8_buffer()).get("continues") == 0, "pending episode preview reports its spent old allowance")
 	var fixture: Fixture = Fixture.new()
 	var child: FakeProcess = FakeProcess.new()
 	fixture.process = child

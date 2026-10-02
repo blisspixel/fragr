@@ -8,6 +8,10 @@ the overall look, [palette](../palette.json) owns swatches,
 own local staging. The [roadmap](../ROADMAP.md#full-build-order-2026-09-27) alone
 owns build order.
 
+Current material work is recorded in the [world texture expansion](../plans/world-texture-expansion.md).
+Its Earth and Moon mappings support existing levels; the Mars library remains
+future authoring material until a Mars mission is built and inspected.
+
 | Guide | Applies to |
 |---|---|
 | [Earth](earth.md) | Levels 1-5 and 15-20, familiar Low Water and its changed return, conditional epilogue |

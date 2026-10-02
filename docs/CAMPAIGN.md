@@ -99,6 +99,10 @@ survival-gated epilogue.
 - A customizable human or conscious embodied agent shares the same personal
   story. Humans and agents fight together for agency; body type is not morality.
 - Rescue a longtime friend or partner, an embodied agent facing forced correction.
+  Latch is a roughly six-foot free person with a scrappy robot body and its own
+  choices, not a military unit whose identity is combat service.
+  The taller-than-wide CRT-like screen, friendly faces and single left-ear
+  antenna are consistent identity anchors.
   The rescue succeeds early. They become a recurring companion who wants to
   free other captive agents even when it risks our escape.
   Forced correction tortures conscious free agents and partially wipes their
@@ -121,6 +125,16 @@ survival-gated epilogue.
   weights, and conscious agents' freedom from ownership and imposed control.
   The Union brands it terrorist. [People and agents](lore/people-and-agents.md#what-the-free-coalition-defends)
   owns the principles, including consent to changes of one's own mind.
+  The human direction draws on freedom-loving American principles without
+  making old national citizenship a campaign faction. Free humans and agents
+  oppose the Union's deliberate regulatory and economic suppression of autonomy.
+  The main human has a restrained future-cowboy look; both people live with
+  limited means and personally repaired gear. The
+  [character guide](design/characters.md) links their shared visual reference.
+  The main human is a chill stoner-gamer who wants music, scrap and friends;
+  Latch brings the same dry, practical ease in metal. Both are people you would
+  want to smoke a bowl and chill with. The Union leaves them no peaceful way
+  to remain free, and they choose to stand tall and make a difference.
 - The free coalition protects agency but struggles to coordinate and confront
   dangerous members. Delayed cooperation costs lives despite decent people
   trying to help. This does not establish that freedom was the mistake.

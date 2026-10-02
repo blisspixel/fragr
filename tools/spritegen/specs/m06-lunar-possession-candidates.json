@@ -1,0 +1,31 @@
+{
+  "model": "marketing-studio/image",
+  "out_dir": ".agents/m06-lunar-art-20261001/raw",
+  "params": {
+    "quality": "low",
+    "resolution": "2k",
+    "aspect_ratio": "1:1",
+    "enhance_prompt": false
+  },
+  "style": "original retro pixel art environmental albedo for a 1990s PC shooter, deliberate chunky pixel clusters, broad readable shapes, limited desaturated bone white and warm gunmetal, muted cyan and sage with sparse ember and rust accents, flat even lighting, no gradients",
+  "view": "orthographic straight-on square flat albedo insert, continuous opaque edge-to-edge surface, no perspective, no scene or object silhouette",
+  "technical": "opaque full square canvas, no shadow, no ambient occlusion, no specular highlights, no rim light, no text, no watermark, no signature, no border",
+  "frames": [
+    {
+      "id": "lunar_child_earth_drawing",
+      "subject": "a lunar settlement child's imperfect crayon drawing on worn bone paper, a single blue-green Earth globe with broadly recognizable irregular continent shapes and a few simple hand-drawn orbital stars, deliberately uneven chunky strokes, warm personal possession taped inside a family pressure room, quiet paper margin and tiny tape repair, not a planet photograph, no words, no named person"
+    },
+    {
+      "id": "lunar_civilian_patched_textile",
+      "subject": "an individual civilian's well-kept salvaged woven cloth, large muted sage and bone patches with one small rust-orange repair corner, simple thick stitching and sparse practical seams, personally maintained rather than issued uniform, quiet broad shapes, flat cloth texture without folds or cast shadows, no emblem or writing"
+    },
+    {
+      "id": "lunar_pressure_shell_insert",
+      "subject": "a quiet square weathered lunar pressure-shell service insert, matte warm grey enamel with a broad bone replacement patch, two small exposed dark fasteners, a shallow worn gasket edge and restrained pale mineral dust caught near a repaired seam, plausible maintained equipment, no vent grid, no icon or writing, no repetitive tiny scratches"
+    },
+    {
+      "id": "lunar_personal_meal_cloth",
+      "subject": "a simple cherished civilian meal-table cloth made from repaired fabric, bone field with one broad muted cyan stripe and an asymmetrical muted rust corner patch, a few thick hand-stitched seams, useful personal possession shared by human and embodied agent residents, clean and maintained despite wear, no generic chessboard pattern, no words or insignia"
+    }
+  ]
+}

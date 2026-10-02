@@ -2011,6 +2011,7 @@ async fn agent_task(
                 m03,
                 m04,
                 m05,
+                m06,
                 solids,
                 half_extent,
                 geometry_version,
@@ -2040,6 +2041,9 @@ async fn agent_task(
                 mission_client
                     .replace_map_with_m05(m05.as_ref(), half_extent, &solids, presentation.as_ref())
                     .map_err(|error| Error::Server(format!("invalid M05 mission map: {error}")))?;
+                mission_client
+                    .replace_map_with_m06(m06.as_ref(), half_extent, &solids, presentation.as_ref())
+                    .map_err(|error| Error::Server(format!("invalid M06 mission map: {error}")))?;
                 fragr_server::protocol::validate_map_geometry(
                     half_extent,
                     &solids,
@@ -2362,6 +2366,7 @@ mod tests {
 
     fn player(name: &str, id: Uuid, x: f32, z: f32, fired: bool) -> PlayerState {
         PlayerState {
+            collidable: true,
             body: None,
             golden: false,
             lives: None,
@@ -3275,6 +3280,7 @@ mod combat_tests {
 
     fn player(name: &str, id: Uuid, x: f32, z: f32, weapon: &str) -> PlayerState {
         PlayerState {
+            collidable: true,
             body: None,
             golden: false,
             lives: None,
@@ -3828,6 +3834,7 @@ mod planner_tests {
 
     fn player(name: &str, id: Uuid, x: f32, z: f32, hp: i32, weapon: &str) -> PlayerState {
         PlayerState {
+            collidable: true,
             body: None,
             golden: false,
             lives: None,
@@ -4407,6 +4414,7 @@ mod line_of_sight_tests {
             jammer_dish: None,
         };
         let mk = |id: Uuid, x: f32| fragr_server::protocol::PlayerState {
+            collidable: true,
             body: None,
             golden: false,
             lives: None,
@@ -4478,6 +4486,7 @@ mod patrol_tests {
 
     fn lone(id: Uuid) -> fragr_server::protocol::PlayerState {
         fragr_server::protocol::PlayerState {
+            collidable: true,
             body: None,
             golden: false,
             lives: None,

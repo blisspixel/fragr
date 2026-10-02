@@ -20,6 +20,12 @@ mod companion;
 mod evacuation;
 pub(crate) use evacuation::validate_route as validate_m02_evacuation_route;
 
+impl M02Progress {
+    pub(super) fn contact_feet(&self) -> [[f32; 3]; 2] {
+        self.evacuation.contact_feet()
+    }
+}
+
 impl GameState {
     fn m02_encounter_complete(&self, id: &str) -> bool {
         self.mission
@@ -163,6 +169,7 @@ impl GameState {
             m03: None,
             m04: None,
             m05: None,
+            m06: None,
             m02: Some(M02ObjectiveState {
                 completed,
                 total: u8::try_from(prepared.len()).ok()?,
@@ -183,6 +190,7 @@ impl GameState {
         let floor_clear = self.m02_encounter_complete("floor_crew");
         let dock_clear = self.m02_encounter_complete("dock_watch");
         let frozen = self.campaign_run_frozen();
+        let contacts = self.contact_bodies();
         let Some(run) = self.mission.as_mut() else {
             return;
         };
@@ -192,6 +200,7 @@ impl GameState {
         let Some(progress) = run.m02.as_mut() else {
             return;
         };
+        progress.evacuation.set_contacts(contacts);
         progress.evacuation.tick(
             self.tick,
             dt,

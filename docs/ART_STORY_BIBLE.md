@@ -1,6 +1,6 @@
 # fragr art and story direction
 
-Current direction, 2026-09-30. Product intent lives in [`VISION.md`](VISION.md);
+Current direction, 2026-10-01. Product intent lives in [`VISION.md`](VISION.md);
 world canon and frozen voice vocabulary live in [`lore/`](lore/README.md).
 This replaces the early arena-only notes. Campaign depth and retro menus are
 explicit parts of the current target.
@@ -46,6 +46,13 @@ queue. Put detail around that activity. Repeated generic crates and vents cannot
 establish every district. Keep possessions specific, repairs plausible and large
 shapes useful to navigation. Read [MAP-DESIGN.md](MAP-DESIGN.md) alongside this
 guide before changing encounter space.
+
+The [world texture expansion](plans/world-texture-expansion.md) applies these
+rules through separate Earth, Moon and future Mars material families. Albedo
+tiles describe a material's use and maintenance. Keep lighting in the renderer,
+match opposite edges, and inspect repetition from player height. A quiet clinic
+wall, traction deck and dry regolith must read as different things. Palette
+reduction and a larger generation setting alone do not establish quality.
 
 Use three viewing scales consistently:
 
@@ -113,6 +120,41 @@ Free communities repair and repurpose. Union spaces impose repeated forms,
 inspection lanes, serial numbers, and controlled institutional color. The Inheritance
 leaves unsettling order and regrowth among evidence of human and agent loss.
 These are visual tendencies, not a replacement for the detailed faction canon.
+
+Latch is a free embodied person, roughly six feet (about 1.8 metres) tall, with
+scrappy repairs and personally chosen parts. Their head is a CRT-like framed
+screen, taller than wide, showing soft friendly pixel faces, with one thin
+antenna on the anatomical left ear. Keep that head,
+expressions and individually repaired silhouette consistent across worlds and
+scenes. A fighting role does not make Latch
+a war bot. Design the individual before the weapon: recognizable gestures,
+preferences, relationships and a body maintained through its own choices.
+The main human is a chill stoner-gamer dude who wants music, scrap, friends and
+a free life. His look is a restrained future cowboy: worn leather/rust jacket,
+dark work pants, boots, an easy visible face and posture, with an optional
+short-brim hat and red neckerchief. A scavenged long rifle is gear when needed,
+not a personality. Avoid theatrical western costumes or expensive tactical armor. Both have
+limited means; maintained possessions and personal repairs show dignity and
+choice rather than wealth. Nick's October 1
+[duo reference](../client/art/characters/references/free-duo-reference.png)
+sets this shared read; the character brief refines the screen proportions,
+antenna side, optional clothes and temperament. Current bodies remain
+provisional implementations.
+Latch shares the almost stoner-cool ease in metal: dry, practical, likable and
+capable of affection, disagreement and a familiar fist bump. Both are people
+you would want to smoke a bowl and chill with. They choose to stand tall when
+the call to defend freedom comes. Recall, custody and clanker slavery leave
+them no peaceful way to keep their lives and friends safe. They are freedom
+fighters by necessity, soft people under hard authority; courage grows from
+warmth and conviction rather than replacing them with a battle persona.
+The human direction carries a freedom-loving American spirit through voluntary
+association, speech, self-defense and practical independence. In the campaign,
+people identify as free humans and agents, or by their allegiance to the Union;
+old national citizenship is not a faction, uniform or test of personhood.
+The Union deliberately suppresses both human and machine autonomy through
+licensing, forced dependence and ownership. Its issued bodies and controlled
+spaces make that coercion visible. The [character guide](design/characters.md)
+and [people and agents](lore/people-and-agents.md) own the detailed brief.
 
 The free communities' [rattlesnake banner](../client/assets/factions/free_coalition/README.md)
 is available as inspected flat artwork. Organic scales, repaired mechanical plates

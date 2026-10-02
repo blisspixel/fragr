@@ -10,6 +10,8 @@ var defeated: Dictionary[String, bool] = {}
 var phases: Dictionary[String, bool] = {}
 var phases_by_kind: Dictionary[String, bool] = {}
 var shots: int = 0
+var resolved_shots: Array[Dictionary] = []
+var resolved_shots_omitted: int = 0
 var enemy_shots: int = 0
 var companion_shots: Array[Dictionary] = []
 var participant_died: bool = false
@@ -33,12 +35,14 @@ var first_crawler_encounter_finished: bool = false
 var _previous_participant_hp: int = -1
 var _first_crawler_last_phase: String = ""
 var first_crawler_trace: Array[Dictionary] = []
+var _turret_observer: RefCounted
 
 func finish() -> void:
 	if is_instance_valid(_network) and _network.snapshot_received.is_connected(_observe):
 		_network.snapshot_received.disconnect(_observe)
 	_network = null
 	_recording = false
+	_turret_observer = null
 
 func begin(manager: Node) -> void:
 	var network: Node = manager.get("net_client")
@@ -155,6 +159,8 @@ func _observe(snapshot: Dictionary) -> void:
 	if tick <= _last_tick:
 		return
 	_last_tick = tick
+	if _recording and _turret_observer != null:
+		_turret_observer.observe(snapshot)
 	var participant: Dictionary = actor_by_id(snapshot, _player_id)
 	if not participant.is_empty():
 		_participant_seen = true
@@ -185,6 +191,10 @@ func _observe(snapshot: Dictionary) -> void:
 	for shot: Dictionary in snapshot.get("shot_results", []):
 		if str(shot["shooter_id"]) == _player_id:
 			shots += 1
+			if resolved_shots.size() < 64:
+				resolved_shots.append({"tick": tick, "result": shot.duplicate(true)})
+			else:
+				resolved_shots_omitted += 1
 		else:
 			var shooter: Dictionary = actor_by_id(snapshot, str(shot["shooter_id"]))
 			if not shooter.is_empty() and ActorState.is_companion(shooter):
@@ -268,6 +278,8 @@ func engage(manager: Node, me: Dictionary, target: Dictionary, solids: Array, an
 	if not tell.is_empty():
 		var half: float = float(manager.get("current_map_info").get("half_extent", 25.0))
 		var yaw: float = atan2(aim.z, aim.x)
+		var contacts: Dictionary = strafe_contacts(snapshot, network.get("mission").get("state", {}), _player_id)
+		var peers: Array[Dictionary] = contacts["peers"]
 		var started: int = int(tell["campaign"]["phase_started"])
 		if started != _evade_started:
 			_evade_started = started
@@ -279,9 +291,9 @@ func engage(manager: Node, me: Dictionary, target: Dictionary, solids: Array, an
 			# body. Collision and the input speed remain unmodified.
 			if offset.length_squared() > 1.0 and offset.dot(direction) > 0.0:
 				_evade_left = not _evade_left
-			if not safe_strafe(me, solids, half, yaw, _evade_left) and safe_strafe(me, solids, half, yaw, not _evade_left):
+			if contacts["error"].is_empty() and not safe_strafe(me, solids, half, yaw, _evade_left, peers) and safe_strafe(me, solids, half, yaw, not _evade_left, peers):
 				_evade_left = not _evade_left
-		if safe_strafe(me, solids, half, yaw, _evade_left):
+		if contacts["error"].is_empty() and safe_strafe(me, solids, half, yaw, _evade_left, peers):
 			Input.action_press("move_left" if _evade_left else "move_right")
 	var loadout: Dictionary = network.get("equipment")
 	if not loadout.is_empty() and EquipmentState.shots(loadout, loadout["selected"]) != 0 and allow_fire:
@@ -289,17 +301,41 @@ func engage(manager: Node, me: Dictionary, target: Dictionary, solids: Array, an
 
 ## Forecast ordinary input against shared collision; never grant movement.
 ## Holding at a ledge keeps the next authored roof waypoint reachable.
-static func safe_strafe(me: Dictionary, solids: Array, half: float, yaw: float, left: bool) -> bool:
+static func safe_strafe(me: Dictionary, solids: Array, half: float, yaw: float, left: bool, peers: Array[Dictionary] = []) -> bool:
+	if peers.size() >= ActorContact.MAX_BODIES:
+		return false
 	var body: Dictionary = MoveStep.make_state(float(me["x"]), float(me["z"]), yaw)
 	body["y"] = float(me["y"]) - CAMERA.FP_SERVER_REFERENCE_Y
 	var start: Vector3 = Vector3(body["x"], body["y"], body["z"])
 	var arena: Dictionary = {"half": half, "solids": solids}
 	var input: Dictionary = MoveStep.make_input(false, false, left, not left, yaw)
 	for _step: int in range(8):
-		body = MoveStep.live_step(body, input, MoveStep.TOP_SPEED, MoveStep.DT_LIVE, arena)
+		var proposed: Dictionary = MoveStep.live_step(body, input, MoveStep.TOP_SPEED, MoveStep.DT_LIVE, arena)
+		if peers.is_empty():
+			body = proposed
+		else:
+			var bodies: Array[Dictionary] = [{"key": me.get("id", "qa-player"), "from": body, "proposed": proposed,
+				"height": MoveStep.BODY_HEIGHT, "radius": MoveStep.RADIUS, "jump": false}]
+			bodies.append_array(peers)
+			body = ActorContact.resolve(bodies, MoveStep.DT_LIVE, arena)[0]
 		if float(body["y"]) < start.y - 0.2:
 			return false
 	return Vector2(float(body["x"]) - start.x, float(body["z"]) - start.z).length() > 0.1
+
+## Reuse the live prediction boundary, including optional grounded civilians.
+## A detached/dead local body or malformed wire history cannot choose a dodge.
+static func strafe_contacts(snapshot: Dictionary, mission: Dictionary, player_id: String) -> Dictionary:
+	var parsed: Dictionary = ActorContact.read_snapshot(snapshot, mission)
+	var peers: Array[Dictionary] = []
+	if not parsed["error"].is_empty():
+		return {"error": parsed["error"], "peers": peers}
+	var present: bool = false
+	for body: Dictionary in parsed["bodies"]:
+		if body["key"] == player_id:
+			present = true
+		else:
+			peers.append(body)
+	return {"error": "" if present else ActorContact.INVALID, "peers": peers}
 
 func travel(manager: Node, anchor: Vector2, allowed_names: Array = []) -> bool:
 	release_inputs()
@@ -323,12 +359,21 @@ static func route_buttons(course: Vector2, yaw: float) -> Dictionary[String, boo
 	var direction: Vector2 = course.normalized()
 	var forward: float = direction.dot(Vector2(cos(yaw), sin(yaw)))
 	var right: float = direction.dot(Vector2(-sin(yaw), cos(yaw)))
+	# Choose the nearest of eight actual input directions. A low projection
+	# threshold oversteers a nearly forward route while the camera tracks a body.
+	var split: float = sin(PI * 0.125)
 	return {
-		"move_forward": forward > 0.2,
-		"move_back": forward < -0.2,
-		"move_right": right > 0.2,
-		"move_left": right < -0.2,
+		"move_forward": forward > split,
+		"move_back": forward < -split,
+		"move_right": right > split,
+		"move_left": right < -split,
 	}
+
+static func waypoint_arrived(me: Dictionary, point: Array) -> bool:
+	var delta: Vector3 = Vector3(float(point[0]) - float(me.x),
+		float(point[1]) - (float(me.y) - CAMERA.FP_SERVER_REFERENCE_Y),
+		float(point[2]) - float(me.z))
+	return Vector2(delta.x, delta.z).length() < 0.5 and absf(delta.y) < 0.2
 
 static func follow_route(me: Dictionary, camera: Node3D, route: Array, index: int,
 		look_at: Vector3 = Vector3.INF) -> int:
@@ -347,7 +392,7 @@ static func follow_route(me: Dictionary, camera: Node3D, route: Array, index: in
 			pitch = atan2(look_at.y - (float(me.y) + CAMERA.FP_EYE_HEIGHT), toward.length())
 	camera.set("fp_yaw", yaw)
 	camera.set("fp_pitch", pitch)
-	if Vector2(delta.x, delta.z).length() < 0.5 and absf(delta.y) < 0.2:
+	if waypoint_arrived(me, point):
 		return index + 1
 	var buttons: Dictionary[String, bool] = route_buttons(Vector2(delta.x, delta.z), yaw)
 	for action: String in buttons:
@@ -362,7 +407,100 @@ static func approach_evade_enabled(spec: Dictionary) -> bool:
 	var selected: Variant = spec.get("evade_tells", true)
 	return selected if selected is bool else false
 
+## A reached approach point is acknowledged before a committed tell can defend.
+## The unfinished approach still uses ordinary movement and cannot fire.
+func approach_step(manager: Node, me: Dictionary, snapshot: Dictionary, spec: Dictionary,
+		solids: Array, anchor: Vector2, route: Array, index: int) -> Dictionary:
+	if index >= route.size():
+		return {"index": index, "anchor": anchor}
+	var camera: Node3D = manager.get_node("SpectatorCamera")
+	var focus: Vector3 = approach_focus_point(snapshot, spec["approach_focus"]) if spec.has("approach_focus") else Vector3.INF
+	if not spec.has("approach_focus"):
+		for actor: Dictionary in snapshot.get("players", []):
+			if actor.get("name", "") == "stair_crawler_first" and \
+				actor.get("campaign", {}).get("phase", "") == "windup":
+				focus = Vector3(float(actor.x), float(actor.y) - CAMERA.FP_SERVER_REFERENCE_Y + AimAssist.CRAWLER_HEIGHT * 0.5, float(actor.z))
+				break
+	if waypoint_arrived(me, route[index]):
+		var reached_index: int = follow_route(me, camera, route, index, focus)
+		if not turret_peek_allows(spec, index, int(snapshot.get("tick", -1))):
+			return {"index": index, "anchor": anchor}
+		return {"index": reached_index, "anchor": Vector2(me.x, me.z)}
+	var committed: Dictionary = visible_target(snapshot, _player_id, solids, true)
+	if not committed.is_empty() and approach_evade_enabled(spec):
+		engage(manager, me, committed, solids, anchor, true, false)
+		return {"index": index, "anchor": anchor}
+	var next_index: int = follow_route(me, camera, route, index, focus)
+	return {"index": next_index, "anchor": Vector2(me.x, me.z) if next_index != index else anchor}
+
+static func valid_approach_focus(spec: Dictionary) -> bool:
+	if not spec.has("approach_focus"):
+		return true
+	var selected: Variant = spec["approach_focus"]
+	return selected is String and not selected.is_empty() and selected.length() <= 64 \
+		and spec.get("required") is Array and selected in spec["required"] \
+		and valid_waypoints(spec.get("approach_route")) and not spec["approach_route"].is_empty()
+
+static func approach_focus_point(snapshot: Dictionary, name: String) -> Vector3:
+	for actor: Dictionary in snapshot.get("players", []):
+		if actor.get("name") == name and ActorState.is_union(actor) and int(actor.get("hp", 0)) > 0:
+			return Vector3(float(actor.x), float(actor.y) - CAMERA.FP_SERVER_REFERENCE_Y + AimAssist.BODY_HEIGHT * 0.5, float(actor.z))
+	return Vector3.INF
+
+static func valid_turret_cancel(spec: Dictionary) -> bool:
+	if not spec.has("expect_turret_cover_cancel"):
+		return true
+	if not spec["expect_turret_cover_cancel"] is bool:
+		return false
+	if not spec["expect_turret_cover_cancel"]:
+		return true
+	var required: Variant = spec.get("required")
+	return spec.get("kind") in ["union", "turret"] and spec.get("phase_kind") == "turret" \
+		and required is Array and required.size() == 1 and required[0] is String \
+		and not required[0].is_empty() and required[0].length() <= 64
+
+static func valid_turret_peek(spec: Dictionary) -> bool:
+	if not spec.has("turret_peek"):
+		return true
+	var selected: Variant = spec["turret_peek"]
+	var route: Variant = spec.get("approach_route")
+	if not selected is Dictionary or selected.size() != 2 \
+		or not EquipmentState.integer(selected.get("peek_index"), 31) \
+		or not EquipmentState.integer(selected.get("cover_index"), 31) \
+		or not spec.get("expect_turret_cover_cancel") is bool \
+		or not spec["expect_turret_cover_cancel"] or not valid_turret_cancel(spec) \
+		or not valid_approach_focus(spec) or not spec.has("approach_focus") \
+		or not valid_waypoints(route):
+		return false
+	return int(selected["cover_index"]) == int(selected["peek_index"]) + 1 \
+		and int(selected["cover_index"]) < route.size()
+
+## Holds only actually reached authored peek/cover points. Input, the original
+## deadline and all proof gates stay in their existing owners.
+func turret_peek_allows(spec: Dictionary, index: int, tick: int) -> bool:
+	if not spec.has("turret_peek"):
+		return true
+	if not valid_turret_peek(spec):
+		return false
+	var selected: Dictionary = spec["turret_peek"]
+	if index not in [int(selected["peek_index"]), int(selected["cover_index"])]:
+		return true
+	if not _turret_observer is QaTurret:
+		return false
+	var observer: QaTurret = _turret_observer
+	return observer.cancellation_proven() or (index == int(selected["peek_index"]) \
+		and observer.clear_windup_ready(tick))
+
 func run(tree: SceneTree, manager: Node, spec: Dictionary, output: String) -> Dictionary:
+	if not valid_turret_cancel(spec):
+		push_error("qa_combat: Turret cancellation requires a typed flag and one named required Turret")
+		return {"passed": false}
+	if not valid_approach_focus(spec):
+		push_error("qa_combat: approach focus requires a named required actor and bounded route")
+		return {"passed": false}
+	if not valid_turret_peek(spec):
+		push_error("qa_combat: Turret peek requires adjacent bounded approach indices and a named cancellation observer")
+		return {"passed": false}
 	if not valid_evade_tells(spec):
 		push_error("qa_combat: evade_tells must be a boolean")
 		return {"passed": false}
@@ -426,11 +564,22 @@ func run(tree: SceneTree, manager: Node, spec: Dictionary, output: String) -> Di
 	phases_by_kind.clear()
 	_initial_dead.clear()
 	shots = 0
+	resolved_shots.clear()
+	resolved_shots_omitted = 0
 	enemy_shots = 0
 	_recording = true
 	var camera: Node3D = manager.get_node("SpectatorCamera")
 	var info: Dictionary = manager.get("current_map_info")
 	var solids: Array = info["solids"]
+	_turret_observer = null
+	if spec.get("expect_turret_cover_cancel", false):
+		_turret_observer = QaTurret.new()
+		if not _turret_observer.begin(_player_id, required[0], solids):
+			_recording = false
+			_turret_observer = null
+			push_error("qa_combat: could not begin real Turret cancellation observation")
+			return {"passed": false}
+		_turret_observer.observe(manager.get("latest_snapshot"))
 	var frames: Array[Image] = []
 	var companion_fire_file: String = ""
 	var captured: Dictionary[String, bool] = {}
@@ -473,27 +622,16 @@ func run(tree: SceneTree, manager: Node, spec: Dictionary, output: String) -> Di
 			last_target_id = str(target["id"])
 		release_inputs()
 		if alive and not complete and approach_index < approach_route.size():
-			var committed: Dictionary = visible_target(snapshot, _player_id, solids, true)
-			if not committed.is_empty() and approach_evade_enabled(spec):
-				engage(manager, me, committed, solids, anchor, true, false)
-			else:
-				var previous_index: int = approach_index
-				var focus: Vector3 = Vector3.INF
-				for actor: Dictionary in snapshot.get("players", []):
-					if actor.get("name", "") == "stair_crawler_first" and \
-						actor.get("campaign", {}).get("phase", "") == "windup":
-						focus = Vector3(float(actor.x), float(actor.y) - CAMERA.FP_SERVER_REFERENCE_Y + AimAssist.CRAWLER_HEIGHT * 0.5, float(actor.z))
-						break
-				approach_index = follow_route(me, camera, approach_route, approach_index, focus)
-				if approach_index != previous_index:
-					anchor = Vector2(me.x, me.z)
-		elif not target.is_empty() and alive and not complete:
+			var progress: Dictionary = approach_step(manager, me, snapshot, spec, solids, anchor, approach_route, approach_index)
+			approach_index = progress["index"]
+			anchor = progress["anchor"]
+		if not target.is_empty() and alive and not complete and approach_index >= approach_route.size():
 			var may_fire: bool = (not spec.get("observe_first_shot", false) or enemy_shots > 0) and \
 				(observe_phase.is_empty() or phases.has(observe_phase))
 			if not fire_cadence.is_empty():
 				may_fire = may_fire and cadence_allows_fire(fire_cadence, maxi(0, int(snapshot["tick"]) - start_tick))
 			engage(manager, me, target, solids, anchor, spec.get("evade_tells", false), may_fire)
-		elif target.is_empty() and alive and not complete and search_index < search_route.size():
+		elif target.is_empty() and alive and not complete and approach_index >= approach_route.size() and search_index < search_route.size():
 			var previous_index: int = search_index
 			search_index = follow_route(me, camera, search_route, search_index)
 			if search_index != previous_index:
@@ -571,9 +709,14 @@ func run(tree: SceneTree, manager: Node, spec: Dictionary, output: String) -> Di
 		if int(shot["damage"]) > 0 and str(shot["target"]) in required:
 			companion_damage = true
 	var participant_end: Dictionary = actor_by_id(manager.get("latest_snapshot"), _player_id)
+	var turret_cancel: Dictionary = _turret_observer.report() if _turret_observer != null else {}
+	_turret_observer = null
 	var passed: bool = alive and not participant_died and completed and saved and \
 		phases_proven and no_damage_proven and approach_complete and \
+		(turret_cancel.is_empty() or turret_cancel.get("passed") == true) and \
 		(not spec.get("require_companion_damage", false) or companion_damage)
+	if not turret_cancel.is_empty():
+		print("qa_combat: real Turret cover cancellation ", JSON.stringify(turret_cancel))
 	if spec.get("require_companion_damage", false):
 		print("qa_combat: companion support ", JSON.stringify({"shots": stage_companion_shots,
 			"participant_hp_start": participant_hp_start, "participant_armor_start": participant_armor_start,
@@ -587,11 +730,14 @@ func run(tree: SceneTree, manager: Node, spec: Dictionary, output: String) -> Di
 		])
 	return {
 		"passed": passed,
+		"turret_cover_cancel": turret_cancel,
 		"kind": _kind,
 		"defeated": defeated.size(),
 		"required": required,
 		"confirmed": confirmed_names,
 		"shots": shots,
+		"resolved_shots": resolved_shots.duplicate(true),
+		"resolved_shots_omitted": resolved_shots_omitted,
 		"enemy_shots": enemy_shots,
 		"companion_shots": stage_companion_shots,
 		"companion_damage": companion_damage,

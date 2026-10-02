@@ -16,6 +16,7 @@ func _check(condition: bool, message: String) -> void:
 
 func _initialize() -> void:
 	_test_build_stations()
+	_test_start_variation()
 	_test_pick_next_no_repeat()
 	_test_station_cycle_and_toggle()
 	_test_volume_table()
@@ -66,6 +67,36 @@ func _test_build_stations() -> void:
 	_check(stations[0]["color"] == "#7A3A22", "color comes from stations.json")
 	_check(stations[1]["badge"] == "LO", "badge defaults to the first two letters of the id")
 	_check(stations[1]["color"] == "#5A554F", "color defaults to gunmetal")
+
+
+func _test_start_variation() -> void:
+	var radio: Node = RadioScript.new()
+	var entries: Dictionary = _fake_entries("a", 4)
+	entries.merge(_fake_entries("b", 4))
+	radio.stations = RadioScript.build_stations(
+		[{"id": "empty"}, {"id": "a"}, {"id": "b"}], entries)
+	var starts: Dictionary = {}
+	for seed_value: int in range(64):
+		radio.rng.seed = seed_value
+		radio.history.clear()
+		radio.choose_start_station()
+		_check(radio.station_index == 1 or radio.station_index == 2,
+			"normal startup chooses a populated station rather than an off-air station")
+		var track: Dictionary = radio.pick_next(radio.current_station())
+		starts[track["name"]] = true
+	_check(starts.size() == 8, "startup varies both stations and their tracks across controlled seeds")
+	radio.stations = [radio.stations[0], radio.stations[2]]
+	radio.choose_start_station()
+	_check(radio.station_index == 1, "a lone populated station is the safe startup choice")
+	radio.stations = [radio.stations[0]]
+	radio.choose_start_station()
+	_check(radio.station_index == 0 and radio.current_station()["tracks"].is_empty(),
+		"an entirely off-air catalog stays silent without an invalid random range")
+	radio.stations.clear()
+	radio.choose_start_station()
+	_check(radio.station_index == 0 and radio.current_station().is_empty(),
+		"an empty catalog remains safe")
+	radio.free()
 
 
 func _test_pick_next_no_repeat() -> void:

@@ -133,6 +133,7 @@ impl GameState {
             m02: None,
             m04: None,
             m05: None,
+            m06: None,
             m03: Some(M03ObjectiveState {
                 mast_hp: progress.mast_hp,
                 mast_secured,
@@ -235,6 +236,7 @@ impl GameState {
             })
             .collect();
         let geometry = prepared.geometry.clone();
+        let mut contacts = self.contact_bodies();
         let Some(run) = self.mission.as_mut() else {
             return;
         };
@@ -251,7 +253,7 @@ impl GameState {
             if !car.released {
                 continue;
             }
-            for (feet, target) in car.captives.iter_mut().zip(definition.safe) {
+            for (i, (feet, target)) in car.captives.iter_mut().zip(definition.safe).enumerate() {
                 let dx = target[0] - feet[0];
                 let dz = target[2] - feet[2];
                 let distance = dx.hypot(dz);
@@ -268,7 +270,21 @@ impl GameState {
                     vy: 0.0,
                     yaw: 0.0,
                 };
-                let moved = crate::movement::integrate(body, false, dt, self.map.arena());
+                let proposed = crate::movement::integrate(body, false, dt, self.map.arena());
+                let key = format!("m03/{}/{i}", car.id);
+                let moved = super::contact::move_on_route(
+                    &key,
+                    body,
+                    proposed,
+                    [dx / distance, dz / distance],
+                    dt,
+                    self.map.arena(),
+                    &contacts,
+                );
+                if let Some(c) = contacts.iter_mut().find(|c| c.key == key) {
+                    c.from = moved;
+                    c.proposed = moved;
+                }
                 *feet = [moved.x, moved.y, moved.z];
             }
         }

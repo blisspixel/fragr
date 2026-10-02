@@ -328,15 +328,15 @@
     "fire_scatter": {
       "kind": "sfx",
       "file": "fire_scatter.wav",
-      "prompt": "chunky pump shotgun blast, deep boom with gritty noise tail and a pump rack, retro arcade shooter, dry",
+      "prompt": "One heavy shotgun blast, exactly one discharge. Immediate crisp broadband snap over a full wooden low-mid thump, dense gritty body falling away quickly, one faint casing tick in the short tail. Powerful physical firearm, dry close perspective. No explosion rumble, sustained bass drone, pump action, reload, speech, music, environment, long echo or cartoon sound. Compact isolated game weapon cue with clean headroom.",
       "model": "eleven_text_to_sound_v2",
       "format": "pcm_24000",
       "title": "Scatter fire",
-      "seconds": 0.8,
+      "seconds": 0.46,
       "looping": false,
-      "channels": 2,
-      "bytes": 76844,
-      "generated_unix": 1789756095
+      "channels": 1,
+      "bytes": 22124,
+      "generated_unix": 1790897875
     },
     "frag": {
       "kind": "sfx",

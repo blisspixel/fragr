@@ -381,6 +381,59 @@ fn m04_future_groups_do_not_exist_before_their_prerequisite() {
     assert!(s.state.players.iter().all(|p| p.name != "guard_2"));
 }
 #[test]
+fn m04_released_patient_waits_on_registered_route_then_resumes() {
+    let (mut s, id) = fixture(CampaignDifficulty::Standard);
+    for group in 0..6 {
+        clear(&mut s, group);
+    }
+    let control = s.state.map.m04_geometry().unwrap().clinic.control.clone();
+    use_control(&mut s, id, &control);
+    place(&mut s, id, [-8.0, 0.0, 0.0]);
+    advance(&mut s, 1);
+    place(&mut s, id, [-7.6, 0.0, 1.1]);
+    let g = s.state.map.m04_geometry().unwrap();
+    let mut client = crate::mission::MissionClient::default();
+    client
+        .replace_map_with_m04(
+            Some(&g),
+            s.state.map.half_extent(),
+            &s.state.map.arena().solids,
+            s.state.map.presentation_ref(),
+        )
+        .unwrap();
+    for _ in 0..30 {
+        advance(&mut s, 1);
+        client
+            .observe(s.state.tick, s.state.mission_state().unwrap())
+            .unwrap();
+    }
+    assert!(s.state.mission_state().unwrap().m04.unwrap().patients[0].feet[2] < 1.1);
+    s.state.set_action(
+        id,
+        Action {
+            back: true,
+            yaw: Some(0.0),
+            ..Action::default()
+        },
+    );
+    advance(&mut s, 8);
+    s.state.set_action(id, Action::default());
+    assert!(body(&s, id).x < -9.0);
+    for _ in 0..60 {
+        advance(&mut s, 1);
+        client
+            .observe(s.state.tick, s.state.mission_state().unwrap())
+            .unwrap();
+    }
+    let feet = s.state.mission_state().unwrap().m04.unwrap().patients[0].feet;
+    assert!((feet[0] + 8.0).hypot(feet[2] - 2.0) < 0.01);
+    assert_eq!(
+        s.state.mission_state().unwrap().phase,
+        MissionPhase::InProgress
+    );
+}
+
+#[test]
 fn m04_optional_clinic_uses_real_prompt_and_routes_reset_on_retry() {
     assert_eq!(
         serde_json::to_value(InteractionKind::ClinicShutter).unwrap(),

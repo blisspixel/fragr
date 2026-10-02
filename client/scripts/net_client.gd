@@ -13,7 +13,7 @@ extends Node
 # 10 one ammunition count per type and scatter pellet traces; 9 M02
 # objective and gate state; 8 private participant records. Older servers
 # remain playable.
-const GAMEPLAY_VERSION: int = 26
+const GAMEPLAY_VERSION: int = 27
 
 signal connected_to_server
 signal disconnected_from_server
@@ -368,6 +368,12 @@ func _handle_message(text: String):
 				server_error.emit(problem)
 				return
 			var geometry: Dictionary = MissionState.geometry_for(data)
+			if geometry.get("id") == MissionState.M06_ID and mission_geometry.get("id") == MissionState.M06_ID \
+				and geometry.get("map_id") == mission_geometry.get("map_id") \
+				and not M06MissionState.same_contract(mission_geometry, geometry):
+				disconnect_from_server()
+				server_error.emit(MissionState.INVALID)
+				return
 			if geometry.get("id") == MissionState.M05_ID and mission_geometry.get("id") == MissionState.M05_ID \
 				and geometry.get("map_id") == mission_geometry.get("map_id") \
 				and not M05MissionState.same_contract(mission_geometry, geometry):
@@ -393,7 +399,7 @@ func _handle_message(text: String):
 				server_error.emit(MissionState.INVALID)
 				return
 			if geometry.is_empty() or geometry.get("id") != mission_geometry.get("id") \
-				or (geometry.get("id") in [MissionState.M02_ID, MissionState.M03_ID, MissionState.M04_ID, MissionState.M05_ID] and geometry.get("map_id") != mission_geometry.get("map_id")):
+				or (geometry.get("id") in [MissionState.M02_ID, MissionState.M03_ID, MissionState.M04_ID, MissionState.M05_ID, MissionState.M06_ID] and geometry.get("map_id") != mission_geometry.get("map_id")):
 				_mission_previous.clear()
 			mission.clear()
 			mission_geometry = geometry

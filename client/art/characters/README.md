@@ -12,8 +12,8 @@ that the next bake will replace. The source directory is excluded from exports.
 The bake writes a manifest with source/output hashes. The headless harness rejects
 stale outputs after source or layout changes; a rebake updates the receipt.
 
-The human has an open helmet, visible face, black cloth and a pistol that
-clears the shoulder when it aims. The bot has wide pauldrons, a box head, a
+The human Clerk has an open helmet, visible face, black cloth and a pistol that
+clears the shoulder when it aims. The bot Sweeper has wide pauldrons, a box head, a
 red visor slit, a battery pack and a rifle that stays inside those shoulders.
 The Heavy Sweeper is broader still, with its head sunk below two large
 pauldrons, an ammunition drum and a rotary cannon; its tell flares both
@@ -53,8 +53,8 @@ The layout is shared through `EnemyAnimation`: 55 poses at eight angles, 160-pix
 cells, 18 columns, 25 rows. Each atlas is 2880 by 4000, below a 4096 texture limit.
 Four uncompressed RGBA atlases total 175.78 MiB if all are resident; they load
 lazily by archetype, so a room with only Clerks and Sweepers holds two. The
-Turret has no gait: its walk cells are a head traverse that plays on phase time
-while the server turns the head, and its unarmed cells repeat the armed ones. PNG
+Turret has no gait: its walk cells preserve the fixed head pose while authoritative
+snapshot yaw supplies the actual traverse. Its unarmed cells repeat the armed ones. PNG
 disk size is smaller and does not describe texture memory. No mipmaps or automatic
 3D compression; nearest sampling and cutout alpha preserve the pixel edges.
 
@@ -137,6 +137,30 @@ tour. Atlas checks alone cannot establish in-world readability or motion quality
 
 ## Free participant bodies
 
+Free humans and free agents are individual people with their own preferences,
+relationships and freedom of choice. Later body references should begin with
+ordinary civilian stance, expressive faces or optics, practical utility gear and
+personal wear or repairs. Weapons are carried equipment, not a military-unit
+identity. The human's freedom-loving American inspiration concerns principles;
+the campaign setting does not name a nation or dress the free side in national flags,
+nationality costumes or standardized coalition uniforms. Named faces and voices
+remain open until approved in the [character guide](../../../docs/design/characters.md).
+
+The supplied [free-duo look reference](references/free-duo-reference.png) anchors
+the later approved text: a chill stoner-gamer human in warm worn leather/rust
+jacket, dark work pants and boots, with easy face and posture. A short-brim hat
+and red neckerchief are optional light cowboy accents. Music, scrap projects
+and friends matter more than a crusade; a scavenged long rifle is carried when
+the actual scene and equipment call for it. Latch is likeable, almost stoner-cool,
+dry and practical, with easy stance and fist-bump energy. Both have limited means
+and chosen belongings, the warmth of people to chill with and the conviction to
+stand tall when called to defend freedom. Union recall, custody and agent
+enslavement leave no easy option. Warm leather, bone and rust contrast with
+issued Union black cloth and restrained red. This refines the original image's
+approximate shapes without editing it. This is a later-art direction, not an
+updated runtime atlas. Body
+customization remains available, and a selected free agent body is not always Latch.
+
 `player_rig.gd` extends the same rig with the two bodies a player can choose: a
 free human and a conscious embodied agent in a synthetic body. They share the
 rig's joints, poses, field and feet registration, and none of the Union issue:
@@ -161,3 +185,29 @@ godot --path client --rendering-driver opengl3 --windowed --script res://art/cha
 Run the main and maintenance M01 tours after changes. Inspect attack and death
 sequences, facing from multiple sides, occlusion, feet, both renderers, and
 spectator eyes. The atlas harness cannot determine whether motion looks good.
+
+## Latch reference and provisional geometry
+
+Latch uses the separate shared `client/scripts/latch_view.gd` procedural figure
+for the ward and moving companion. Their intended reference scale is roughly
+six feet tall (about 1.8 metres), an ordinary person in a scrappy robot body.
+Unequal repaired parts, worn bone/dark steel and a small chosen cyan patch carry
+individual continuity. Latch has their own will and can disagree or refuse;
+combat support is an activity, not a warbot identity. Avoid issued military
+armor, rank marks, standardized unit proportions and weapon-first casting.
+
+The approved look uses a CRT-like head with taller-than-wide screen face,
+dark display and friendly soft pixel optics. One thin antenna sits at the
+anatomical left ear, viewer right from the front. A midweight bone/dark-steel
+body exposes seams and bolts, unequal forearm repairs, rust parts and a small
+muted cyan patch. Preserve screen-expression habits, the single left antenna
+and repair identity across Earth, Moon, Mars
+and story scenes. They are personal traits rather than issued status lights.
+
+The existing [Latch visual implementation](../../../docs/plans/m02-latch-visual-identity.md)
+and model remain provisional against that approved direction. Their historical
+ward and travel captures establish
+implementation evidence, not final body art, exact visual scale approval or a
+named voice. Future art and casting must follow the personhood and personal-choice
+contract in the character guide. No current mesh, atlas or gameplay dimensions
+are changed by this direction.

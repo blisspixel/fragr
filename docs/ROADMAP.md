@@ -13,7 +13,7 @@ Every item below is in exactly one state: **planned**, **in progress**, **shippe
 
 The engineering ladder for scale runs through every phase: small squads first (four to twelve fighters, the current bar), then full servers (thirty-two to sixty-four), then large agent-heavy arenas (hundreds of fighters where most are agents). Each rung has its own measurements and is not claimed until measured.
 
-## Where we are (2026-09-30)
+## Where we are (2026-10-02)
 
 Desktop packages and their release receipts are listed in
 [GitHub releases](https://github.com/blisspixel/fragr/releases). The bounded campaign buildout shipped in
@@ -44,7 +44,49 @@ the client passed 174 scripts and 81 harnesses. Current-source multiplayer,
 six-map roster, deterministic CPU benchmark and 120-second soak gates pass.
 New cash charges are $0, with 693 included audio credits consumed. The source is
 merged in PR #314. The linked plan records current rendered evidence and CI;
-release packages require their own passing workflow. Fresh-player acceptance and
+the three desktop packages and install checks passed in
+[v0.65.0](https://github.com/blisspixel/fragr/releases/tag/v0.65.0).
+The narration harness follow-up in [PR #315](https://github.com/blisspixel/fragr/pull/315)
+also passes main CI. The locally implemented M06 increment is recorded in its
+[bounded plan](plans/m06-port-of-entry-prototype.md): inhabited lunar port,
+found Railgun, flankable Turrets, retained M05 outcomes and a once-only Episode
+II refill. Current-source Rust checks pass 1244 tests and 94.31 percent
+unfiltered line coverage. The current textured ordinary-input tour completes
+all 25 states, all 21 guards and actual departure, with zero deaths, no HP lost
+and 75 armor lost. It visits three secret locations and claims one secret
+supply. Its resolved Rail hit measures 51.991994 metres; the authored 58.25-metre spacing
+is separate. Living bodies now block walking, with matching bounded prediction,
+crowd navigation and inspected stop-and-sidestep evidence. Two original story
+images, personal room textures, the shotgun cue and randomized radio startup
+are integrated. Checkpoint `054031c` passes
+[full CI](https://github.com/blisspixel/fragr/actions/runs/36963991060) and
+[PR package/install checks](https://github.com/blisspixel/fragr/actions/runs/36963991146).
+The current standard tour passes all 32 states and publishes fourteen stills;
+the thirteen-state Recall Notice room tour also passes. All four README stills
+are recaptured and inspected. Low Water's refreshed 23-state route clears all
+28 guards and confirms actual roof departure with zero deaths. The optional
+patients are released; one still queues behind the other, so final endpoint
+arrival is not claimed. The earlier client and local container gates remain
+recorded; final rebuilt-source captures and the single serialized client checker
+pass all 188 scripts and 88 harnesses with clean logs and closed processes.
+Main integration and the new release
+remain pending.
+Fresh-player and difficulty acceptance remain open. Current round usage is 975 included
+audio credits with a $5 equivalent reserve, plus $4.085 in new image request
+reservations and the retained prior $0.107 uncertainty. Image billing remains
+unconfirmed and new cash charges are $0. The requested
+[world texture expansion](plans/world-texture-expansion.md) adds twenty-one
+selected Earth, Moon and future offworld tiles from twenty-seven requests at
+$3.811 in bounded new reservations. Palette/seam checks and inspected lit/dim
+material previews pass. The current M06 material tour passes cleanly at
+`.agents/qa/final-m06-shipping-second/`; the eight inspected M06 gallery
+files are refreshed from it. Earlier incomplete routes and the mechanically
+completed tour with shutdown errors remain failure receipts. Other affected
+captures and final integration remain in flight. A Windows CTF survey failure
+is retained rather than rerun away: the bounded
+[carrier-defense and identity-order correction](plans/ctf-seeded-body-order.md)
+passes four fixed orders and all original completion/combat-drop thresholds.
+Fresh-player acceptance and
 two-machine network evidence remain separate gates.
 
 **Shipped and proven on the tip:**
@@ -249,7 +291,7 @@ The phases below are the long shape. The sequence that follows is the build orde
 
 **Active goal:** build the agreed game through a proven 1.0. That is Recall Notice as the quality bar, then each later mission on systems the whole campaign reuses, then local prediction before the first long Rail lane, then the wipe and its conditional epilogue, then a LAN proof, then an exposed server. Cloud apply, matchmaking, and conquest-scale vehicles stay behind that server. The story spine in [`CAMPAIGN.md`](CAMPAIGN.md) is settled. Names, rescue tradeoffs, wipe operations, and the reprieve's exact terms stay proposals until the gate that needs them. Mission briefs live in [`CAMPAIGN-MISSIONS.md`](CAMPAIGN-MISSIONS.md) and [one plan per level](campaign/README.md). Geometry comes from the mission, not from an arena layout. The six current layouts stay playable foundations. Boltgun remains the visual bar for a played sequence, not a reason to generate the roster before the first two enemies read. Every rung serves the [easy to pick up, deep to master pillar](VISION.md#easy-to-pick-up-deep-to-master): fights and flow first, at most three doors a level.
 
-**Next, as of 2026-09-30.** Nick authorized parallel research and development,
+**Next, as of 2026-10-02.** Nick authorized parallel research and development,
 with at most $20 combined external charges this round, and explicitly removed
 human feedback as a prerequisite for development. The integrated campaign and
 CTF systems, including the bounded M03-M05 buildout in PR #314, are on main. Human and remote-network
@@ -260,23 +302,24 @@ The [campaign and feel buildout](plans/campaign-and-feel-buildout.md) supplies
 the local Jammer foundation, presentation and free-agent increments at $0.
 Its integration and acceptance evidence is recorded in that bounded plan.
 
- 1. Build level 6 Port of Entry from its accepted
-    [level design](campaign/m04-port-of-entry.md#level-6-design-twenty-level-expansion):
-    lunar dock, inhabited freight hall, Railgun lesson and flankable Turret,
-    optional service branch and deliberate transit-tunnel departure. This starts
-    Episode II, refills its continues and gives retained Earth rescue choices
-    their first lunar destination. Reuse the shipped
-    [M05 prototype](plans/m05-no-forwarding-address-prototype.md)'s inventory,
-    save, rescue, scene and geometry seams. Its
-    [bounded implementation plan](plans/m06-port-of-entry-prototype.md) is written
-    before source changes. Keep the existing predicted movement path and
-    measure long-lane combat before introducing the first sixty-metre Rail shot.
-    Refine M01-M05 pacing, grenade-lesson timing, resource pressure,
-    ordinary character motion and listening alongside it. Apply the
-   [shared world/character guides](design/README.md) to useful furnishing,
-   activity, lighting and water, rather than empty rooms or independent redesigns.
-   Fresh-player and difficulty acceptance remain open. Follow the
-   one-new-thing-per-level treatment in [CAMPAIGN-MISSIONS.md](CAMPAIGN-MISSIONS.md).
+1. Finish integration and release of the implemented
+   [Port of Entry increment](plans/m06-port-of-entry-prototype.md), including
+   the requested [world texture polish](plans/world-texture-expansion.md) and
+   current README screenshots. Checkpoint `054031c` passes full CI and PR desktop
+   package/install checks; final current-source publication and serialized
+   verification precede clean main CI and release. Then stop
+   this development round as requested. The next campaign build is level 7
+   [Declared Goods](campaign/l07-declared-goods.md), currently unbuilt:
+   the curfew town and crater cut lead toward the custody depot and introduce
+   the Sniper Rifle and Ranged Sweeper. This follows M06's actual transit exit
+   and reuses its Episode II carry, inventory, encounters, contact, story scenes
+   and measured long-lane combat. Write its bounded implementation plan before
+   beginning source or asset work. Continue M01-M06 pacing, resource pressure,
+   character motion, subjective listening and difficulty reviews alongside the
+   next increment without treating fresh-player availability as a development
+   prerequisite. The [shared world/character guides](design/README.md) govern
+   useful furnishing, lighting and water. Follow the one-new-thing-per-level
+   treatment in [CAMPAIGN-MISSIONS.md](CAMPAIGN-MISSIONS.md).
 2. Refine CTF across its three arenas with contested, multi-seed human/agent/
    spectator automation and inspected captures. Track captures, combat drops,
    route progress and timeouts together. Continue TDM controls regressions before
@@ -297,10 +340,15 @@ available on its retained v0.58.0 package. Record its observations when a fresh
 player is available. It does not gate this authorized development round.
 
 No cloud apply, public-server claim or 1.0 controls claim follows from this
-integration. The authorized audio batch used included credits. The prepared
-image API batch remains unsubmitted pending a verified current balance; original
-local textures are implemented. The $0 local container host is documented for
-friends, but this machine's Docker engine is unavailable. Public admission,
+integration. The authorized audio batch used included credits. Six possession
+and story image requests reserve $0.274; twenty-seven additional texture requests
+reserve $3.811, for $4.085 in new estimated reservations. Provider billing remains
+unconfirmed and the earlier $0.107 uncertainty is retained. Original local
+textures remain available. The round uses
+975 included audio credits with a conservative $5 audio equivalent reserve
+and $0 new cash charges. The $0 local container host is documented for
+friends; the 2026-10-01 local build, hardened runtime, legal notices and healthy
+status probe pass, with owned cleanup recorded in the M06 plan. Public admission,
 cloud cost and exposed-server testing retain their own gates.
 
 The server-owned traveling-shot foundation is already on main
@@ -438,7 +486,12 @@ Status: **in progress**. This phase decides whether the game is fun. Everything 
 
 Exit bar: the fun bar below passes on a LAN session with mixed humans and agents, and a stranger can be handed the repo and reach a fight in under two minutes.
 
-The next weapon work is the gun the next mission teaches, not another rename. The shotgun is already in the sim and belongs in M02. The sniper rifle, grenade, proximity mine, remote mine, and rocket launcher are locked to later missions in [readable-arsenal.md](plans/readable-arsenal.md) and are not implemented. v0.41.0 shipped the display names. v0.42.0 shipped the wheel and the number keys.
+This historical weapon queue is superseded by the active full build order.
+The Shotgun is implemented in M02, counted grenades shipped with M05 in
+v0.65.0, and the Railgun's authored lesson is in the current M06 increment.
+Proximity mines, remote mines and the rocket launcher remain later mission
+work in [readable-arsenal.md](plans/readable-arsenal.md). v0.41.0 shipped display
+names; v0.42.0 shipped the wheel and number keys.
 
 ## Phase 2: Exposed server (public, still cheap)
 
@@ -513,7 +566,7 @@ Every item above maps to a plan or says "plan needed". The order of the next PRs
 | Item | Plan | Next PR order |
 |---|---|---|
 | Phase 0: one protocol crate | **done**: the adapter, the playtest harness, and the brain all read the wire types from `fragr-server`; extracting a separate crate is optional cosmetics | |
-| Phase 1.1: movement and gunfeel | `plans/gunfeel.md` (weapons and aim), `plans/buttery-controls.md` (netcode plumbing) | rungs 1-3 and buttery stage 1 shipped; stages 2-6 before the level 6 Railgun lane |
+| Phase 1.1: movement and gunfeel | `plans/gunfeel.md` (weapons and aim), `plans/buttery-controls.md` (netcode plumbing) | historical stage queue; local prediction shipped, current M06 follows the active full build order and measured long-lane work; remote-network acceptance remains separate |
 | Phase 1.2: look pass | `plans/look-pass-boomer.md`, assets from `plans/art-pipeline.md` | lighting increment and stage 1 (world pixels, palette dither) in flight; stages 2 to 5 next; art rung 1 (the Rust tool) any time, paid rungs after written approval |
 | Phase 1.3: sound and music | `plans/radio-stations.md` (shipped; bumpers and Host voice remain) | |
 | Phase 1.4: bots that read as players | plan needed | after campaign rung 2 |

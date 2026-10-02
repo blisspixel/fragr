@@ -6,7 +6,41 @@
 
 Give the fixed ward figure and moving server-owned companion one consistent identity at the restraint, during release, and across the processing floor, then measure its readability from the upper gallery. The current shared `LatchView` is a provisional stack of boxes. Its color alone carries too much identity in distant and muted play.
 
-The design follows [cast continuity](../lore/cast.md#visual-continuity) and the [art bible](../ART_STORY_BIBLE.md): a practical midweight free-agent chassis from the M01 workshop, a compact faceted plain head, worn bone enamel, dark steel joints, one muted-cyan square on the upper chest, and visibly unequal forearms with an individual rust repair on the right. Hands should convey chosen action at the second restraint. The figure must stay distinct from issued Union black plates, red optics and seals.
+The historical local pass followed [cast continuity](../lore/cast.md#visual-continuity) and the [art bible](../ART_STORY_BIBLE.md): a practical person-scale free-agent body from the M01 workshop, a compact faceted plain head, worn bone enamel, dark steel joints, one muted-cyan square on the upper chest, and visibly unequal forearms with an individual rust repair on the right. Its implementation remains provisional against the approved look direction below. Hands convey chosen action at the second restraint; issued Union plates and red slits remain a separate design family.
+
+### Identity clarification, 2026-10-01
+
+Latch is a free agent and their own person, with free will, relationships and
+personal choices. Their intended visual scale is roughly six feet tall (about
+1.8 metres). The scrappy robot body records individual repairs and preferences;
+it is not a warbot or a standardized armored military unit. Weapons and the
+implemented following/combat behavior do not define the character's identity.
+Future references should show ordinary stance, precise hands, chosen utility
+details and asymmetric repairs alongside action poses. The current procedural
+model remains provisional. This clarification changes no rendered asset,
+physics dimensions, restraint pose, gameplay behavior or historical evidence.
+
+The supplied [free-duo reference](../../client/art/characters/references/free-duo-reference.png)
+anchors the later approved refinement: a CRT-like head with taller-than-wide
+screen face, dark display and friendly soft pixel optics. One thin antenna is
+at the anatomical left ear, viewer right in a front view. Midweight bone/dark
+steel, seams and bolts, unequal forearm repairs, rust parts and a small muted
+cyan patch preserve scrappy individuality. Latch is likeable, almost stoner-cool,
+dry and practical, with an easy stance and fist-bump energy, wanting to live
+freely and free captives. Carry the same expression habits, single left antenna
+and personal repairs across Earth, Moon, Mars, story and future casting.
+
+The human is a chill stoner-gamer dude in warm worn leather/rust jacket, dark
+work pants and boots. The short-brim hat and red neckerchief are optional light
+cowboy accents; the easy face and posture belong to someone who wants music,
+scrap projects and friends. A scavenged long rifle follows actual equipment and
+scene needs. Both are warm people with limited means who choose to stand tall
+when called to defend freedom, not standardized warriors. Union recall, custody
+and agent enslavement leave no chill option. Warm leather, bone and rust contrast
+with issued black cloth and restrained red. The original PNG remains unchanged;
+this text refines its approximate head aspect, antenna and clothes. This approves
+the look direction, not a completed model, voice or animation set. The free
+human remains customizable and a selected agent body is not automatically Latch.
 
 ## Boundaries
 
