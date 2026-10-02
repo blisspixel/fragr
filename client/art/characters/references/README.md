@@ -8,17 +8,30 @@ The archived file is byte-identical to the supplied original, SHA-256
 `CAAE3110EC711F686FA218A1DE0A435F938384109A53C0E67C8625EBF4A65DDB`.
 Preserve the archived image;
 it is reference art, not a runtime sprite sheet or a complete animation set.
-The human at left has a practical brimmed hat, visible face, worn utility clothes,
-rust leather strap and small neckcloth. The subdued future-cowboy influence
-suggests limited means and individual civilian life, not a Western costume,
-wealth display, national identity or required player uniform.
+The later approved text refines the image's approximate shapes and wardrobe:
+the human is a chill stoner-gamer dude with easy face and posture, warm worn
+leather/rust jacket, dark work pants and boots. A short-brim hat and red
+neckerchief are optional light cowboy accents, never glamorous or camp.
+Music, scrap projects and friends come first; a scavenged long rifle appears
+when actual scene equipment calls for it. These are people with limited means,
+not a national uniform or a wealthy warrior costume.
 
-Latch beside them is roughly six feet tall (about 1.8 metres), with a square
-monitor head, dark display, light pixel face, thin antenna and scrappy repaired
-bone/steel/rust parts. Keep those individual choices and screen-expression
+Latch is roughly six feet tall (about 1.8 metres), likeable, almost stoner-cool,
+dry and practical. The approved CRT-like face is taller than wide, with dark
+display and friendly soft pixel optics. One thin antenna is on the anatomical
+left ear, viewer right in a front view. A midweight bone/dark-steel body has
+visible seams and bolts, unequal forearm repairs, rust parts and a small muted
+cyan patch. Easy stance and fist-bump energy carry individuality. Keep these choices and screen-expression
 habits continuous across Earth, Moon, Mars, story and later voice casting.
 Latch is their own person with free will; weapons do not make them a warbot.
-The right-hand Union figures instead repeat issued gray plates and red slits.
+The right-hand Union figures repeat issued plates, black cloth and restrained red.
+Both free people have warm hangout friendship and easy humor, and choose to
+stand tall when the call to defend freedom comes. Union recall, custody and
+agent enslavement make that choice necessary; their conviction is not a battle
+persona. Warm leather, bone and rust carry the free side's softer character.
+
+The archived PNG remains unchanged as the historical reference. The text above
+controls its refined aspect, antenna side and optional wardrobe details.
 
 This reference approves the look direction, not the current provisional models,
 final human face, named voice or every selectable body. Free human customization

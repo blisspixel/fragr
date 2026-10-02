@@ -547,3 +547,13 @@ art bible and lore: Latch is a roughly six-foot independent person with a
 scrappy robot body. Existing coarse presentation stays provisional; no military
 role, voice or reference establishes the individual's final design. The human
 direction expresses freedom principles without an old national faction.
+
+### Integration failure and bounded recovery
+
+The first PR #317 Linux CI at `e6f0e78` fails the actual M01 four-participant
+controller completion gate: one participant is aboard while three living
+participants stall at the upper gallery. Local passing runs used different
+ordinary identities. The three desktop packages and install smokes pass at
+this checkpoint, but the failed CI prevents integration. The
+[crowd route recovery](m01-crowd-route-recovery.md) retains the exact failure
+and owns the repair and fresh verification without relaxing mission gates.

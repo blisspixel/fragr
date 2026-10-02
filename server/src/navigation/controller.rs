@@ -24,6 +24,9 @@ pub struct Navigator {
     stalled_ticks: u32,
     avoidance_side: i8,
     avoidance_until: u64,
+    avoidance_position: Option<[f32; 3]>,
+    avoidance_tick: u64,
+    avoidance_stalled: u32,
 }
 
 impl Navigation {
@@ -230,6 +233,11 @@ impl Navigator {
             if !occupied || (point[0] - me.from.x).hypot(point[2] - me.from.z) > 2.0 {
                 break;
             }
+            if !self.points.get(1).is_some_and(|next| {
+                Navigation::walkable_in(arena, [me.from.x, me.from.y, me.from.z], *next)
+            }) {
+                break;
+            }
             self.points.pop_front();
             advanced = true;
         }
@@ -239,31 +247,30 @@ impl Navigator {
             }
         }
         if !(action.forward || action.back || action.left || action.right) || action.jump {
+            self.avoidance_stalled = 0;
+            self.avoidance_position = None;
             return action;
         }
         let yaw = action.yaw.unwrap_or(me.from.yaw);
+        let input = crate::movement::MoveInput {
+            forward: action.forward,
+            back: action.back,
+            left: action.left,
+            right: action.right,
+            jump: false,
+            yaw,
+            speed_scale: 1.0,
+        };
         let wanted = crate::movement::live_step_with_height(
             me.from,
-            &crate::movement::MoveInput {
-                forward: action.forward,
-                back: action.back,
-                left: action.left,
-                right: action.right,
-                jump: false,
-                yaw,
-                speed_scale: 1.0,
-            },
+            &input,
             crate::movement::TOP_SPEED,
             0.05,
             arena,
             me.height,
         );
-        let dx = wanted.x - me.from.x;
-        let dz = wanted.z - me.from.z;
-        let length = dx.hypot(dz);
-        if length < 0.01 {
-            return action;
-        }
+        let mut dx = wanted.x - me.from.x;
+        let mut dz = wanted.z - me.from.z;
         let neighbours: Vec<_> = bodies
             .iter()
             .filter(|b| {
@@ -275,6 +282,36 @@ impl Navigator {
             .cloned()
             .collect();
         if neighbours.is_empty() {
+            self.avoidance_stalled = 0;
+            self.avoidance_position = None;
+            return action;
+        }
+        if tick != self.avoidance_tick {
+            self.avoidance_stalled = if tick == self.avoidance_tick.saturating_add(1)
+                && self.avoidance_position.is_some_and(|previous| {
+                    distance(previous, [me.from.x, me.from.y, me.from.z]) < 0.02
+                }) {
+                self.avoidance_stalled.saturating_add(1)
+            } else {
+                0
+            };
+            self.avoidance_position = Some([me.from.x, me.from.y, me.from.z]);
+            self.avoidance_tick = tick;
+        }
+        let stalled = self.avoidance_stalled >= 6;
+        if dx.hypot(dz) < 0.01 {
+            if !stalled {
+                return action;
+            }
+            // A repeatedly blocked corner still has an ordinary wished
+            // direction. Use it only after observed immobility for recovery
+            // scoring; every candidate retains map/contact integration.
+            let (wish_x, wish_z) = crate::movement::wish_dir(&input, yaw);
+            dx = wish_x * crate::movement::TOP_SPEED * 0.05;
+            dz = wish_z * crate::movement::TOP_SPEED * 0.05;
+        }
+        let length = dx.hypot(dz);
+        if length < 0.01 {
             return action;
         }
         let grounded = me.from.vy.abs() < 0.001
@@ -326,7 +363,7 @@ impl Navigator {
             return action;
         };
         let progress = (original[0] * dx + original[1] * dz) / length;
-        if progress >= length * 5.0 {
+        if progress >= length * 5.0 && !stalled {
             self.avoidance_until = 0;
             return action;
         }
@@ -338,7 +375,10 @@ impl Navigator {
             1
         };
         let mut best = action.clone();
-        let mut best_score = progress;
+        // A static-neighbour forecast can look clear even when simultaneous
+        // ordinary movers cancel each other. Real consecutive immobility must
+        // permit a supported lateral escape rather than reusing that forecast.
+        let mut best_score = if stalled { 0.0 } else { progress };
         for (forward, back, left, right) in [
             (true, false, false, true),
             (false, false, false, true),
@@ -745,6 +785,133 @@ mod tests {
             radius: crate::movement::RADIUS,
             jump: false,
         }
+    }
+
+    #[test]
+    fn occupied_m01_corner_keeps_required_world_turn() {
+        let map = crate::maps::AuthoredMap::read(
+            include_bytes!("../../maps/m01-recall-notice.json").as_slice(),
+        )
+        .unwrap();
+        let runtime = crate::maps::RuntimeMap::Authored(map)
+            .opened_route()
+            .unwrap();
+        let arena = runtime.arena();
+        let from = [-14.0, 3.0, 33.8];
+        let corner = [-14.0, 3.0, 35.0];
+        let beyond = [-11.0, 3.0, 35.0];
+        assert!(runtime.navigation().walkable(from, corner));
+        assert!(!runtime.navigation().walkable(from, beyond));
+        let bodies = [
+            crowd_body(1, from[0], from[1], from[2], 0.0),
+            crowd_body(2, corner[0], corner[1], corner[2], 0.0),
+        ];
+        let mut nav = Navigator {
+            points: [corner, beyond, [9.5, 3.0, 24.5]].into(),
+            ..Default::default()
+        };
+        nav.avoid_bodies(
+            arena,
+            Uuid::from_u128(1),
+            &bodies,
+            Action {
+                forward: true,
+                yaw: Some(std::f32::consts::FRAC_PI_2),
+                ..Default::default()
+            },
+            1,
+        );
+        assert_eq!(nav.points.front(), Some(&corner));
+    }
+
+    #[test]
+    fn recorded_m01_four_party_gallery_crowd_reaches_open_lift() {
+        let map = crate::maps::AuthoredMap::read(
+            include_bytes!("../../maps/m01-recall-notice.json").as_slice(),
+        )
+        .unwrap();
+        let runtime = crate::maps::RuntimeMap::Authored(map)
+            .opened_route()
+            .unwrap();
+        let arena = runtime.arena();
+        let ids = [
+            "76fb8f45-8cba-4066-8d7e-bbd39ef34f33",
+            "3636996a-d877-4a98-840a-bd19e308aaf1",
+            "e978ebea-c87b-4bf0-b88a-e331fbeb0b67",
+            "b5b3f46a-6b36-4582-be98-f99c29795a22",
+        ]
+        .map(|value| Uuid::parse_str(value).unwrap());
+        let feet = [
+            [-14.331562, 3.0, 33.8146],
+            [-14.033158, 3.0, 34.8321],
+            [-14.7865715, 3.0, 35.499977],
+            [9.495208, 3.0, 24.246563],
+        ];
+        let mut bodies: Vec<_> = ids
+            .iter()
+            .zip(feet)
+            .map(|(id, feet)| crowd_body(id.as_u128(), feet[0], feet[1], feet[2], 0.0))
+            .collect();
+        let mut drivers: Vec<_> = ids.iter().map(|_| Navigator::default()).collect();
+        let mut aboard = [false, false, false, true];
+        for tick in 1..=1000 {
+            let scene = bodies.clone();
+            for index in 0..4 {
+                if index == 3 {
+                    bodies[index].proposed = bodies[index].from;
+                    continue;
+                }
+                let from = bodies[index].from;
+                let routed = drivers[index].steer(
+                    runtime.navigation(),
+                    [from.x, from.y, from.z],
+                    NavigationGoal {
+                        feet: [9.5, 3.0, 24.5],
+                        combat: false,
+                    },
+                    Action::default(),
+                    tick,
+                    true,
+                );
+                let action = drivers[index].avoid_bodies(arena, ids[index], &scene, routed, tick);
+                bodies[index].proposed = crate::movement::live_step_with_height(
+                    from,
+                    &crate::movement::MoveInput {
+                        forward: action.forward,
+                        back: action.back,
+                        left: action.left,
+                        right: action.right,
+                        jump: action.jump,
+                        yaw: action.yaw.unwrap_or(from.yaw),
+                        speed_scale: 1.0,
+                    },
+                    crate::movement::TOP_SPEED,
+                    0.05,
+                    arena,
+                    FIGHTER_HEIGHT,
+                );
+            }
+            let accepted = crate::movement::contact::resolve(&bodies, 0.05, arena);
+            for index in 0..4 {
+                let pose = accepted[index];
+                assert_eq!(pose.y, 3.0, "real upper route must retain support");
+                assert!(!arena.blocked_body_at(pose.x, pose.z, pose.y, pose.y));
+                for peer in &accepted[..index] {
+                    assert!((pose.x - peer.x).hypot(pose.z - peer.z) >= 0.9999);
+                }
+                bodies[index].from = pose;
+                bodies[index].proposed = pose;
+                aboard[index] = runtime
+                    .mission()
+                    .unwrap()
+                    .boarding
+                    .contains([pose.x, pose.y, pose.z]);
+            }
+            if aboard.iter().all(|value| *value) {
+                return;
+            }
+        }
+        panic!("recorded party failed to recover: {bodies:?}; {drivers:?}");
     }
 
     #[test]

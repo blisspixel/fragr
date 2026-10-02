@@ -57,6 +57,8 @@ turning the coalition into a present-day national faction.
 The shared [character guide](../design/characters.md) keeps Latch's screen faces
 and antenna, the main human's restrained future-cowboy look and their modest,
 personally maintained possessions consistent across worlds and story scenes.
+Their shared read is relaxed, likable and warm: music, scrap, friends and a free
+life. They answer the call to defend freedom without losing that humanity.
 
 **The Inheritance** emerges across several sides' connected systems, inheriting
 knowledge, human incentives, and corrupted rewards. Its compassion for beings and

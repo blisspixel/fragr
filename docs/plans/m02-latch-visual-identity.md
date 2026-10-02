@@ -21,12 +21,24 @@ model remains provisional. This clarification changes no rendered asset,
 physics dimensions, restraint pose, gameplay behavior or historical evidence.
 
 The supplied [free-duo reference](../../client/art/characters/references/free-duo-reference.png)
-now approves a square monitor head with dark display, light pixel face and thin
-antenna, alongside individually repaired bone/steel/rust body parts. Carry the
-same screen-expression habits, antenna and personal repairs across Earth,
-Moon, Mars, story scenes and future casting. The adjacent free human's subdued
-future-cowboy hat, worn utility clothes, rust strap and small neckcloth suggest
-two people with limited means, not a standardized warrior pair. This approves
+anchors the later approved refinement: a CRT-like head with taller-than-wide
+screen face, dark display and friendly soft pixel optics. One thin antenna is
+at the anatomical left ear, viewer right in a front view. Midweight bone/dark
+steel, seams and bolts, unequal forearm repairs, rust parts and a small muted
+cyan patch preserve scrappy individuality. Latch is likeable, almost stoner-cool,
+dry and practical, with an easy stance and fist-bump energy, wanting to live
+freely and free captives. Carry the same expression habits, single left antenna
+and personal repairs across Earth, Moon, Mars, story and future casting.
+
+The human is a chill stoner-gamer dude in warm worn leather/rust jacket, dark
+work pants and boots. The short-brim hat and red neckerchief are optional light
+cowboy accents; the easy face and posture belong to someone who wants music,
+scrap projects and friends. A scavenged long rifle follows actual equipment and
+scene needs. Both are warm people with limited means who choose to stand tall
+when called to defend freedom, not standardized warriors. Union recall, custody
+and agent enslavement leave no chill option. Warm leather, bone and rust contrast
+with issued black cloth and restrained red. The original PNG remains unchanged;
+this text refines its approximate head aspect, antenna and clothes. This approves
 the look direction, not a completed model, voice or animation set. The free
 human remains customizable and a selected agent body is not automatically Latch.
 

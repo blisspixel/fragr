@@ -115,19 +115,31 @@ leaves unsettling order and regrowth among evidence of human and agent loss.
 These are visual tendencies, not a replacement for the detailed faction canon.
 
 Latch is a free embodied person, roughly six feet (about 1.8 metres) tall, with
-scrappy repairs and personally chosen parts. Their head is a compact framed
-screen showing readable pixel faces, with a thin antenna. Keep that head,
+scrappy repairs and personally chosen parts. Their head is a CRT-like framed
+screen, taller than wide, showing soft friendly pixel faces, with one thin
+antenna on the anatomical left ear. Keep that head,
 expressions and individually repaired silhouette consistent across worlds and
 scenes. A fighting role does not make Latch
 a war bot. Design the individual before the weapon: recognizable gestures,
 preferences, relationships and a body maintained through its own choices.
-The main human's look is a restrained future cowboy: practical brimmed hat,
-worn utility clothes, small neck cloth, modest leather/rust details and a visible
-face. Avoid theatrical western costumes or expensive tactical armor. Both have
+The main human is a chill stoner-gamer dude who wants music, scrap, friends and
+a free life. His look is a restrained future cowboy: worn leather/rust jacket,
+dark work pants, boots, an easy visible face and posture, with an optional
+short-brim hat and red neckerchief. A scavenged long rifle is gear when needed,
+not a personality. Avoid theatrical western costumes or expensive tactical armor. Both have
 limited means; maintained possessions and personal repairs show dignity and
 choice rather than wealth. Nick's October 1
 [duo reference](../client/art/characters/references/free-duo-reference.png)
-sets this visual direction; current bodies remain provisional implementations.
+sets this shared read; the character brief refines the screen proportions,
+antenna side, optional clothes and temperament. Current bodies remain
+provisional implementations.
+Latch shares the almost stoner-cool ease in metal: dry, practical, likable and
+capable of affection, disagreement and a familiar fist bump. Both are people
+you would want to smoke a bowl and chill with. They choose to stand tall when
+the call to defend freedom comes. Recall, custody and clanker slavery leave
+them no peaceful way to keep their lives and friends safe. They are freedom
+fighters by necessity, soft people under hard authority; courage grows from
+warmth and conviction rather than replacing them with a battle persona.
 The human direction carries a freedom-loving American spirit through voluntary
 association, speech, self-defense and practical independence. In the campaign,
 people identify as free humans and agents, or by their allegiance to the Union;

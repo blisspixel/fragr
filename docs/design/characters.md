@@ -3,7 +3,9 @@
 Production contract, updated 2026-10-01. [Cast](../lore/cast.md) owns roles and the
 visual anchors; [voice](../lore/voice.md) owns registers and recorded wording.
 The owner-provided [free-duo reference](../../client/art/characters/references/free-duo-reference.png),
-accepted 2026-10-01, approves the look direction below. It does not approve final model sheets,
+accepted 2026-10-01, anchors the look direction below. The later approved text
+refines its approximate head aspect, antenna placement and clothes; the original
+image remains unchanged. It does not approve final model sheets,
 animation, specific human faces, accents, ages or named voices.
 
 Use stable actor/role IDs in reference records. Distinguish proposed, reviewed,
@@ -23,12 +25,16 @@ does not approve a new character identity.
 Latch is a free embodied agent, a person with their own will, relationships,
 preferences and right to refuse. Their robot body is roughly six feet tall
 (about 1.8 metres), at ordinary person and doorway scale. Build the reference
-around a square monitor head with a dark display, a light pixel face and a thin
-antenna. Scrappy, individually repaired parts include unequal forearm plates,
-worn bone, steel and rust, exposed practical joints and a small chosen patch. Repairs,
+around a CRT-like head with a taller-than-wide screen face, dark display and
+friendly soft pixel optics. There is one thin antenna at the anatomical left
+ear, viewer right in a front view. The midweight body uses bone and dark steel,
+visible seams and bolts, unequal forearm repairs, rust parts and a small muted
+cyan patch. Repairs,
 gestures and personal choices distinguish Latch across worlds. Released
 restraints are imposed equipment. Latch is not a warbot; standardized military
 unit armor, issued insignia or a combat role must not define their identity.
+Latch is likeable, almost stoner-cool, dry and practical: an easy stance and
+fist-bump energy, with a desire to live freely and free other captives.
 Mara remains a logistics organizer rather than becoming a generic officer.
 Renn's old issued kit and deliberately removed rank marking carry defection.
 Tern's chassis, harness and practiced ship handling persist. Edda and Splice
@@ -39,15 +45,24 @@ body and callsign. The Inheritance has no default humanoid spokesperson.
 The free human body also represents an expressive individual from civilian
 life. Clothing, utility gear, wear, small possessions and chosen repairs carry
 personality; a weapon is equipment rather than the person's defining costume.
-The approved human direction is a subdued future cowboy: a practical brimmed
-hat, visible expressive face, worn utility clothes, a rust leather strap and a
-small neckcloth. Fit and wear suggest limited means and daily work. Avoid a
-theatrical Western costume, showy wealth or standardized warrior uniform.
+The approved human direction is a chill stoner-gamer dude who mostly wants to
+live freely, listen to music, tinker with scrap and spend time with friends.
+Use a warm worn leather or rust jacket, dark work pants, boots, an easy face and
+relaxed posture. A short-brim hat and red neckerchief are optional light cowboy
+accents, never glamorous or camp. A scavenged long rifle belongs when the scene's
+actual equipment calls for it. Union recall, custody and enslavement of agents
+leave no peaceful option; fighting serves people rather than a crusader persona.
 The freedom-loving American inspiration informs voluntary association,
 self-defense and mutual recognition between free humans and free agents. The
 campaign setting does not name that nation or require a nationality costume, flag,
 modern national insignia or a standard coalition uniform. Keep faces, ethnicity,
 accents and named-character casting open until their references are approved.
+
+Both should feel like friends you would smoke a bowl and chill with: warm
+companionship, music and easy humor. When the call to defend freedom comes,
+they choose to stand tall and make a difference. They are soft people under
+hard authority, with active courage and conviction. Warm leather, bone and
+rust contrast with the Union's issued black cloth and restrained red.
 
 Current Latch geometry and the shared selectable bodies are provisional assets.
 Their implementation and combat behavior do not approve final proportions,
@@ -57,11 +72,12 @@ casting briefs while preserving the existing gameplay contracts.
 The duo shows two free people, not a required player pairing or a coalition
 uniform. A selectable agent body does not automatically depict Latch, and the
 free human style does not remove body customization. Keep Latch's monitor face,
-thin antenna and individual repair history recognizable across Earth, Moon,
+single left-ear antenna and individual repair history recognizable across Earth, Moon,
 Mars and story scenes. Local protective gear may cover those traits without
 changing the person. Show varied personal screen expressions and gestures;
 do not turn them into generic command-status indicators. The right-hand Union
-figures contrast through repeated issued gray plates and red slits; human versus
+figures contrast through issued black cloth, repeated plates and restrained red;
+human versus
 robot construction does not decide allegiance or personhood.
 
 Read the cast's proposed anchors for exact reference text. Do not infer ally,
@@ -80,7 +96,8 @@ preserve the prior take and disclose the changed production contract.
 
 Neutral scene narration is a separate role from Latch, Mara, Edda and the Host.
 Later Latch casting should convey a self-directed person speaking with a partner:
-practical, dry and capable of disagreement. Avoid a standardized battle-unit
+likeable, relaxed, practical, dry and capable of disagreement. Their warmth
+and easy humor accompany chosen courage when friends need them. Avoid a standardized battle-unit
 announcer or an obedient command-receiver performance. This direction approves
 no specific voice, accent or recording. Screen expressions, stance and spoken
 intent should represent the same person across scenes; the human's clothing

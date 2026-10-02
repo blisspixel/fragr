@@ -146,12 +146,19 @@ the campaign setting does not name a nation or dress the free side in national f
 nationality costumes or standardized coalition uniforms. Named faces and voices
 remain open until approved in the [character guide](../../../docs/design/characters.md).
 
-The supplied [free-duo look reference](references/free-duo-reference.png) approves
-a subdued future-cowboy human with practical brimmed hat, visible face, worn
-utility clothes, rust leather strap and small neckcloth, alongside Latch's
-scrappy monitor-headed body. Both read as people with limited means and chosen
-belongings. Avoid a theatrical Western costume or wealthy, standardized warrior
-kit. This is a look direction for later art, not an updated runtime atlas. Body
+The supplied [free-duo look reference](references/free-duo-reference.png) anchors
+the later approved text: a chill stoner-gamer human in warm worn leather/rust
+jacket, dark work pants and boots, with easy face and posture. A short-brim hat
+and red neckerchief are optional light cowboy accents. Music, scrap projects
+and friends matter more than a crusade; a scavenged long rifle is carried when
+the actual scene and equipment call for it. Latch is likeable, almost stoner-cool,
+dry and practical, with easy stance and fist-bump energy. Both have limited means
+and chosen belongings, the warmth of people to chill with and the conviction to
+stand tall when called to defend freedom. Union recall, custody and agent
+enslavement leave no easy option. Warm leather, bone and rust contrast with
+issued Union black cloth and restrained red. This refines the original image's
+approximate shapes without editing it. This is a later-art direction, not an
+updated runtime atlas. Body
 customization remains available, and a selected free agent body is not always Latch.
 
 `player_rig.gd` extends the same rig with the two bodies a player can choose: a
@@ -189,9 +196,12 @@ individual continuity. Latch has their own will and can disagree or refuse;
 combat support is an activity, not a warbot identity. Avoid issued military
 armor, rank marks, standardized unit proportions and weapon-first casting.
 
-The approved look uses a square monitor head, dark display with a light pixel
-face, thin antenna and individually repaired bone/steel/rust parts. Preserve
-screen-expression habits, antenna and repair identity across Earth, Moon, Mars
+The approved look uses a CRT-like head with taller-than-wide screen face,
+dark display and friendly soft pixel optics. One thin antenna sits at the
+anatomical left ear, viewer right from the front. A midweight bone/dark-steel
+body exposes seams and bolts, unequal forearm repairs, rust parts and a small
+muted cyan patch. Preserve screen-expression habits, the single left antenna
+and repair identity across Earth, Moon, Mars
 and story scenes. They are personal traits rather than issued status lights.
 
 The existing [Latch visual implementation](../../../docs/plans/m02-latch-visual-identity.md)

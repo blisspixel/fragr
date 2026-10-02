@@ -40,6 +40,10 @@ fn session() -> GameSession {
 
 fn add(state: &mut GameState, role: Role) -> Uuid {
     let id = Uuid::new_v4();
+    add_with_id(state, id, role)
+}
+
+fn add_with_id(state: &mut GameState, id: Uuid, role: Role) -> Uuid {
     state.add_player(id, format!("Player {}", state.players.len()), role);
     let mission = state.mission_state().unwrap();
     assert!(state.acknowledge_mission(
@@ -363,17 +367,55 @@ fn solo_controller_finishes_actual_m01_with_combat_and_open_gate_retries() {
     drive_party(session, 1, true);
 }
 
-fn drive_party(mut session: GameSession, size: usize, retry_after_record: bool) {
+#[test]
+fn actual_m01_party_retained_id_orders_complete_shared_departure() {
+    let map =
+        AuthoredMap::read(include_bytes!("../../maps/m01-recall-notice.json").as_slice()).unwrap();
+    // These are the four participant IDs retained from the failed four-person
+    // run. Rotate and reverse their spawn assignments instead of choosing one
+    // favourable contact order. Enemy identity uses the existing replay policy.
+    let retained = [
+        "76fb8f45-8cba-4066-8d7e-bbd39ef34f33",
+        "3636996a-d877-4a98-840a-bd19e308aaf1",
+        "e978ebea-c87b-4bf0-b88a-e331fbeb0b67",
+        "b5b3f46a-6b36-4582-be98-f99c29795a22",
+    ]
+    .map(|value| Uuid::parse_str(value).unwrap());
+    for reverse in [false, true] {
+        for offset in 0..4 {
+            let ids: [Uuid; 4] = std::array::from_fn(|index| {
+                retained[(offset + if reverse { 3 - index } else { index }) % 4]
+            });
+            let mut session = GameSession::with_authored_map(map.clone());
+            session.state.use_replay_ids();
+            session.state.seed(67);
+            eprintln!("Retained M01 identities: reverse={reverse}, offset={offset}");
+            drive_party_with_ids(session, 4, false, Some(&ids));
+        }
+    }
+}
+
+fn drive_party(session: GameSession, size: usize, retry_after_record: bool) {
+    drive_party_with_ids(session, size, retry_after_record, None);
+}
+
+fn drive_party_with_ids(
+    mut session: GameSession,
+    size: usize,
+    retry_after_record: bool,
+    retained: Option<&[Uuid]>,
+) {
     let ids: Vec<_> = (0..size)
         .map(|index| {
-            add(
-                &mut session.state,
-                if index % 2 == 0 {
-                    Role::Human
-                } else {
-                    Role::Agent
-                },
-            )
+            let role = if index % 2 == 0 {
+                Role::Human
+            } else {
+                Role::Agent
+            };
+            match retained {
+                Some(ids) => add_with_id(&mut session.state, ids[index], role),
+                None => add(&mut session.state, role),
+            }
         })
         .collect();
     let mut clients: Vec<_> = (0..size).map(|_| MissionClient::default()).collect();
@@ -544,7 +586,7 @@ fn drive_party(mut session: GameSession, size: usize, retry_after_record: bool) 
     }
     assert!(
         session.state.mission_departed(),
-        "{:?}; {:?}",
+        "{:?}; {:?}; navigators={navigators:?}",
         session.state.mission_state(),
         session.state.snapshot().players
     );
