@@ -5,7 +5,7 @@
   "skip_key": "STORY_SKIP_SCENE",
   "ambience": {"path": "res://assets/story/ambience/lunar_port_utility.wav", "volume_db": -22.0},
   "shots": [
-    {"id": "MOON", "caption_key": "STORY_M06_ARRIVAL_MOON", "narration": "res://assets/story/voice/{locale}/m06_arrival/moon.mp3", "timing": "narration", "hold": 1.0},
-    {"id": "PORT", "caption_key": "STORY_M06_ARRIVAL_PORT", "narration": "res://assets/story/voice/{locale}/m06_arrival/port.mp3", "timing": "narration", "hold": 1.0}
+    {"id": "MOON", "caption_key": "STORY_M06_ARRIVAL_MOON", "image": "res://assets/story/images/m06/moon_port_arrival.png", "narration": "res://assets/story/voice/{locale}/m06_arrival/moon.mp3", "timing": "narration", "hold": 1.0},
+    {"id": "PORT", "caption_key": "STORY_M06_ARRIVAL_PORT", "image": "res://assets/story/images/m06/moon_port_arrival.png", "narration": "res://assets/story/voice/{locale}/m06_arrival/port.mp3", "timing": "narration", "hold": 1.0}
   ]
 }

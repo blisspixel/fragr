@@ -32,6 +32,7 @@ func _run() -> void:
 	spec["items"].append_array(m06_spec["items"])
 	for item: Dictionary in spec["items"]:
 		requests[item["name"]] = item
+	_check_key_images()
 	for scene_id: String in SCENES:
 		var scene: Dictionary = StoryScene.load_scene(scene_id)
 		_check(scene["shots"].size() == (1 if scene_id in ["m05_arrival", "l06_l07"] else 2), "bounded scene structure retained: " + scene_id)
@@ -82,6 +83,21 @@ func _run() -> void:
 		print("test_campaign_audio: PASS exact captions/spec, decoded energy/duration, Voice/Effects routing, locale, timing, skip and text fallback")
 	quit(0 if failures == 0 else 1)
 
+func _check_key_images() -> void:
+	var source: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://art/story/m06-key-images-20261001/manifest.json"))
+	_check(source["assets"].size() == 2 and float(source["estimated_batch_usd"]) <= 1.5, "two bounded selected lunar story illustrations have source receipts")
+	for entry: Dictionary in source["assets"]:
+		var path: String = entry["runtime_path"]
+		var texture: Texture2D = load(path) as Texture2D
+		_check(texture != null and texture.get_size() == Vector2(672, 378)
+			and FileAccess.get_sha256(path) == entry["processed_sha256"], "lunar story keeper loads and matches inspected prepared source")
+		_check(FileAccess.get_sha256("res://art/story/m06-key-images-20261001/" + str(entry["raw"])) == entry["raw_sha256"], "metadata-free original story source remains exact")
+	var arrival: Dictionary = StoryScene.load_scene("m06_arrival")
+	var departure: Dictionary = StoryScene.load_scene("l06_l07")
+	_check(arrival["shots"][0]["image"] == arrival["shots"][1]["image"], "arrival framing pages keep the same establishing ship image")
+	_check(arrival["shots"][0]["image"] == source["assets"][0]["runtime_path"]
+		and departure["shots"][0]["image"] == source["assets"][1]["runtime_path"], "lunar images bind only to their frozen framing scenes")
+
 func _measure(stream: AudioStream, label: String) -> void:
 	if stream == null:
 		return
@@ -120,6 +136,9 @@ func _playback() -> void:
 		player.completed.connect(func() -> void: completions[0] += 1)
 		_check(player._voiced and player._narration.playing and player._narration.bus == &"Voice", "actual scene starts its committed clip on Voice: " + scene_id)
 		_check(player._body.text == tr(scene["shots"][0]["caption_key"]) and player._scroll.visible and player._captions.visible, "actual scene exposes exact caption and caption controls")
+		if scene_id in ["m06_arrival", "l06_l07"]:
+			_check(player._still_frame.visible and player._still.texture != null
+				and player._still.texture_filter == CanvasItem.TEXTURE_FILTER_NEAREST, "actual lunar scene displays its selected pixel image")
 		_check(player._speaker.text.is_empty(), "framing narration has no character speaker")
 		if scene_id in ["m04_arrival", "m06_arrival"]:
 			_check(player._ambience != null and player._ambience.playing and player._ambience.bus == &"Effects" and player._ambience.volume_db == -22.0,
@@ -175,6 +194,8 @@ func _fallback_scene(id: String) -> void:
 	var scene: Dictionary = StoryScene.load_scene(id).duplicate(true)
 	for shot: Dictionary in scene["shots"]:
 		shot["narration"] = "res://assets/story/voice/{locale}/unavailable.mp3"
+		if id in ["m06_arrival", "l06_l07"]:
+			shot["image"] = "res://assets/story/images/unavailable.png"
 	if scene.has("ambience"):
 		scene["ambience"]["path"] = "res://assets/story/ambience/unavailable.wav"
 	var preferences: FragrSettings = FragrSettings.for_tree(self)
@@ -183,6 +204,8 @@ func _fallback_scene(id: String) -> void:
 	var player: ScenePlayer = await _start(scene)
 	_check(not player._voiced and player._narration.stream == null and player._ambience == null \
 		and player._scroll.visible and not player._captions.visible, "missing clips and bed retain readable text even with captions disabled")
+	if id in ["m06_arrival", "l06_l07"]:
+		_check(not player._still_frame.visible and player._still.texture == null, "missing lunar image keeps the real text-only layout")
 	player._process(60.0)
 	_check(player.page == 0 and not player.finished, "missing narration never invents an automatic completion")
 	if scene["shots"].size() > 1:

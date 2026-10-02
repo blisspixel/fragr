@@ -3,6 +3,11 @@ extends Node3D
 
 ## Registered pressure windows, possessions and flush maintenance detail.
 ## Residents and Tern are provisional static art, never simulated participants.
+const POSSESSIONS: String = "res://assets/environment/moon/possessions/"
+const DRAWING: String = POSSESSIONS + "lunar_child_earth_drawing_0.png"
+const TEXTILE: String = POSSESSIONS + "lunar_civilian_patched_textile_0.png"
+const MEAL_CLOTH: String = POSSESSIONS + "lunar_personal_meal_cloth_0.png"
+const DRAWING_FALLBACK: String = "res://assets/environment/moon/drawing.png"
 var _root: Node3D
 var _geometry: Dictionary = {}
 var residents: Array[Sprite3D] = []
@@ -76,9 +81,18 @@ func _family_room(host: Dictionary, outward: Vector3) -> void:
 	_box("FamilyFloor", centre + Vector3(0, 0.008, 0), Vector3(5.3, 0.016, 12), Color("867f6d"))
 	_box("PossessionsBench", centre + Vector3(-1, 0.55, -3), Vector3(1.3, 1.1, 3), Color("746e61"))
 	for index: int in range(4):
-		_box("PersonalStorage", centre + Vector3(-1, 1.25, -4.0 + index * 0.65), Vector3(0.8, 0.3, 0.5),
+		var storage: MeshInstance3D = _box("PersonalStorage", centre + Vector3(-1, 1.25, -4.0 + index * 0.65), Vector3(0.8, 0.3, 0.5),
 			[Color("b09674"), Color("749284"), Color("a27b62"), Color("c6bea0")][index])
+		storage.material_override = possession_material(TEXTILE)
 	_box("MealTable", centre + Vector3(0.2, 0.78, 1.8), Vector3(2.0, 0.12, 1.4), Color("b8aa87"))
+	var cloth: MeshInstance3D = MeshInstance3D.new()
+	cloth.name = "PersonalMealCloth"
+	var cloth_surface: PlaneMesh = PlaneMesh.new()
+	cloth_surface.size = Vector2(1.70, 1.12)
+	cloth.mesh = cloth_surface
+	cloth.position = centre + Vector3(0.2, 0.842, 1.8)
+	cloth.material_override = possession_material(MEAL_CLOTH)
+	_root.add_child(cloth)
 	_box("FamilyTaskLamp", centre + Vector3(0, 3.3, 1.8), Vector3(1.2, 0.06, 0.28), Color("d8c69d"))
 	var light: OmniLight3D = OmniLight3D.new()
 	light.name = "FamilyWarmLight"
@@ -124,11 +138,7 @@ func _family_room(host: Dictionary, outward: Vector3) -> void:
 	drawing.mesh = page
 	drawing.position = centre + Vector3(-2.0, 2.1, 0)
 	drawing.rotation.y = PI * 0.5
-	var paper: StandardMaterial3D = MoonBackdrop._material(Color.WHITE)
-	var path: String = "res://assets/environment/moon/drawing.png"
-	if ResourceLoader.exists(path):
-		paper.albedo_texture = load(path) as Texture2D
-	drawing.material_override = paper
+	drawing.material_override = possession_material(DRAWING, DRAWING_FALLBACK)
 	_root.add_child(drawing)
 	for index: int in range(2):
 		var resident: Sprite3D = Sprite3D.new()
@@ -157,3 +167,10 @@ func _process(delta: float) -> void:
 
 func _box(label: String, at: Vector3, size: Vector3, color: Color) -> MeshInstance3D:
 	return MoonBackdrop._piece(_root, label, at, size, MoonBackdrop._material(color))
+
+static func possession_material(path: String, fallback: String = "") -> StandardMaterial3D:
+	var material: StandardMaterial3D = MoonBackdrop._material(Color.WHITE)
+	var selected: String = path if ResourceLoader.exists(path, "Texture2D") else fallback
+	if not selected.is_empty() and ResourceLoader.exists(selected, "Texture2D"):
+		material.albedo_texture = load(selected) as Texture2D
+	return material

@@ -50,6 +50,9 @@ func _ready() -> void:
 			if StoryScene.narration_path(shot, "en").is_empty():
 				_finish(false, "the lunar narration is missing")
 				return
+			if not ResourceLoader.exists(str(shot.get("image", "")), "Texture2D"):
+				_finish(false, "the M06 story illustrations are missing")
+				return
 	var lunar_bed: AudioStreamWAV = load("res://assets/story/ambience/lunar_port_utility.wav") as AudioStreamWAV
 	if lunar_bed == null or lunar_bed.loop_mode != AudioStreamWAV.LOOP_FORWARD:
 		_finish(false, "the lunar utility loop is missing or not looping")
