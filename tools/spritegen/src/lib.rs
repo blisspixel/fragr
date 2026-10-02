@@ -29,6 +29,7 @@ pub mod ledger;
 pub mod reduce;
 #[cfg(test)]
 mod test_support;
+pub mod upload;
 mod validation;
 pub use validation::{
     validate_api_url, validate_download_url, validate_frame_id, validate_status_url,
@@ -124,6 +125,12 @@ impl std::error::Error for Error {}
 pub trait Transport {
     fn send(&self, credential: &str, request: &Request) -> Result<Response, Error>;
     fn download(&self, url: &str) -> Result<Vec<u8>, Error>;
+
+    /// PUT bytes to a presigned storage URL with exactly these headers and no
+    /// credential. Returns the HTTP status. Only reference uploads use it.
+    fn put(&self, _url: &str, _headers: &[(String, String)], _body: Vec<u8>) -> Result<u16, Error> {
+        Err(Error::Transport("this transport cannot upload".into()))
+    }
 }
 
 /// One frame to generate.
@@ -428,18 +435,50 @@ impl Submission {
         &self.request_id
     }
 
-    pub fn polling_url(&self) -> Result<&str, Error> {
-        let url = self
+    /// The status URL to poll, always on the official API origin.
+    ///
+    /// Since 2026-10-02 submissions name `platform.higgsfield.ai` in their
+    /// status URL, while the documented status endpoint stays on the API
+    /// origin. A sibling URL with exactly the documented path and this
+    /// request's ID is rewritten to that endpoint, so the credential is still
+    /// sent only to the API origin. Any other host is refused.
+    pub fn polling_url(&self) -> Result<String, Error> {
+        let raw = self
             .status_url
             .as_deref()
             .ok_or_else(|| Error::Transport("submit had no usable status_url".into()))?;
-        if validation::status_request_id(url)? != self.request_id {
+        let rewritten = official_status_url(raw);
+        let url = rewritten.as_deref().unwrap_or(raw);
+        let id = validation::status_request_id(url).map_err(|error| {
+            // Name the origin so a reconciliation can tell a moved endpoint
+            // from a malformed reply. A host is not a secret.
+            let origin = reqwest::Url::parse(url)
+                .ok()
+                .and_then(|parsed| parsed.host_str().map(str::to_owned))
+                .unwrap_or_else(|| "an unparseable URL".into());
+            Error::Transport(format!("{error} (status URL host: {origin})"))
+        })?;
+        if id != self.request_id {
             return Err(Error::Transport(
                 "submit status URL identifies a different request".into(),
             ));
         }
-        Ok(url)
+        Ok(url.to_owned())
     }
+}
+
+/// The documented status URL for a reply on the platform sibling origin, or
+/// `None` when the reply is not on exactly that origin. The caller still
+/// validates the rewritten path and request ID.
+fn official_status_url(raw: &str) -> Option<String> {
+    let parsed = validation::validate_download_url(raw).ok()?;
+    if parsed.host_str() != Some("platform.higgsfield.ai")
+        || parsed.port_or_known_default() != Some(443)
+        || parsed.query().is_some()
+    {
+        return None;
+    }
+    Some(format!("{API_BASE}{}", parsed.path()))
 }
 
 /// Submit once. The caller must persist the ID before calling polling_url.
@@ -907,6 +946,30 @@ mod tests {
             result.polling_url().unwrap(),
             "https://api.higgsfield.ai/requests/r1/status"
         );
+    }
+
+    #[test]
+    fn a_platform_status_url_is_polled_on_the_api_origin() {
+        let transport = FakeTransport::one(
+            200,
+            r#"{"request_id":"r1","status_url":"https://platform.higgsfield.ai/requests/r1/status"}"#,
+        );
+        let result = submit(&transport, "id:secret", "m", &frame("tack")).unwrap();
+        assert_eq!(
+            result.polling_url().unwrap(),
+            "https://api.higgsfield.ai/requests/r1/status"
+        );
+        for refused in [
+            r#"{"request_id":"r1","status_url":"https://platform.higgsfield.ai/requests/r2/status"}"#,
+            r#"{"request_id":"r1","status_url":"https://platform.higgsfield.ai/requests/r1/status?x=1"}"#,
+            r#"{"request_id":"r1","status_url":"https://platform.higgsfield.ai/other/r1/status"}"#,
+            r#"{"request_id":"r1","status_url":"https://platform.higgsfield.ai:8443/requests/r1/status"}"#,
+            r#"{"request_id":"r1","status_url":"https://platform.higgsfield.ai.evil.example/requests/r1/status"}"#,
+        ] {
+            let transport = FakeTransport::one(200, refused);
+            let result = submit(&transport, "id:secret", "m", &frame("tack")).unwrap();
+            assert!(result.polling_url().is_err(), "{refused}");
+        }
     }
 
     #[test]

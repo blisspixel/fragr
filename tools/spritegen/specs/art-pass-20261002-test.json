@@ -1,0 +1,37 @@
+{
+  "_comment": [
+    "Art pass 2026-10-02, test requests before any batch. Plan: docs/plans/art-pass-20261002.md.",
+    "Two questions: does an edit of an existing viewmodel keep its framing so idle and fire",
+    "frames register, and does a painted magenta key come back flat enough to remove?",
+    "image_urls point at temporary uploads recorded in art/raw/art-pass-20261002/references.jsonl.",
+    "Each upload:<file> stood for a temporary provider URL of that local keeper. To rerun, upload the keeper with fragr-spritegen upload and substitute its public URL."
+  ],
+  "model": "marketing-studio/image",
+  "out_dir": "art/raw/art-pass-20261002/test",
+  "params": {
+    "quality": "low",
+    "resolution": "2k",
+    "aspect_ratio": "1:1",
+    "enhance_prompt": false
+  },
+  "technical": "the whole background is one flat solid pure magenta #FF00FF colour with no checkerboard, no pattern, no gradient and no shadow on it, no text, no watermark, no border",
+  "frames": [
+    {
+      "id": "vm_tack_idle_test",
+      "params": {
+        "aspect_ratio": "4:3",
+        "image_urls": [
+          "upload:px_tack_issued_0.png"
+        ]
+      },
+      "style": "redraw this exact first person pixel art pistol sprite from a 1990s PC shooter as the same picture, keeping the identical camera angle, framing, scale, pistol position, silhouette, proportions and chunky stepped pixel clusters, limited palette of desaturated gunmetal grey, rust, bone white and deep shadow, flat even lighting",
+      "subject": "make only two changes: both hands wear dark charcoal full-finger work gloves with worn rust-brown leather jacket cuffs at the wrists, and every round emblem becomes a plain riveted dark steel plate"
+    },
+    {
+      "id": "pk_medkit_test",
+      "style": "retro pixel art item pickup sprite for a 1990s PC shooter, chunky readable silhouette, crisp stepped pixel clusters, limited palette of desaturated bone white, gunmetal grey, rust, blood red and deep shadow, flat even lighting, no gradients",
+      "subject": "a compact hard-shell medical kit case, bone-white enamel shell, dark steel corner guards and a carry handle, one bold blood-red horizontal pulse-line mark across the lid, no cross symbol",
+      "view": "three-quarter view from slightly above, resting on the floor, centred, the whole object visible with even margins"
+    }
+  ]
+}

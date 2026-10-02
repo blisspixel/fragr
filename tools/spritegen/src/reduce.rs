@@ -237,6 +237,24 @@ pub struct Reduction {
     pub harden_alpha: bool,
     /// Explicit flat matte colour to remove only where connected to an edge.
     pub matte: Option<[u8; 3]>,
+    /// A chroma key removed everywhere, with its tolerance and fringe erosion.
+    pub key: Option<ChromaKey>,
+}
+
+/// A background colour asked for in the prompt and absent from the subject.
+///
+/// Generators paint backgrounds rather than returning alpha, and they never
+/// paint one exact colour, so the key matches by distance in L\*a\*b\*. Pixels
+/// next to the key carry a blend of subject and background; `erode` removes
+/// that many source pixels of fringe so the palette step cannot turn the blend
+/// into an outline of the key colour.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct ChromaKey {
+    pub colour: [u8; 3],
+    /// Largest L\*a\*b\* distance still treated as background.
+    pub tolerance: f32,
+    /// Source pixels of fringe removed around keyed areas.
+    pub erode: u32,
 }
 
 impl Default for Reduction {
@@ -247,6 +265,7 @@ impl Default for Reduction {
             palette: None,
             harden_alpha: true,
             matte: None,
+            key: None,
         }
     }
 }
@@ -263,6 +282,9 @@ pub fn reduce(source: &RgbaImage, settings: &Reduction) -> Result<RgbaImage, Err
     let mut working = source.clone();
     if let Some(matte) = settings.matte {
         remove_edge_matte(&mut working, matte);
+    }
+    if let Some(key) = settings.key {
+        remove_chroma_key(&mut working, key)?;
     }
     let working = if settings.trim {
         match alpha_bounds(&working) {
@@ -281,7 +303,14 @@ pub fn reduce(source: &RgbaImage, settings: &Reduction) -> Result<RgbaImage, Err
     let target_w = target_w.max(1);
 
     // Filter before palette reduction; nearest-neighbour is for display upscales.
-    let mut out = imageops::resize(&working, target_w, target_h, imageops::FilterType::Triangle);
+    // Filter premultiplied, so the colour hidden under a removed background
+    // cannot bleed into the edge of the subject.
+    let mut out = unpremultiply_into(&imageops::resize(
+        &premultiply(&working),
+        target_w,
+        target_h,
+        imageops::FilterType::Triangle,
+    ));
 
     if let Some(palette) = &settings.palette {
         for pixel in out.pixels_mut() {
@@ -303,6 +332,29 @@ pub fn reduce(source: &RgbaImage, settings: &Reduction) -> Result<RgbaImage, Err
     }
 
     Ok(out)
+}
+
+/// Colour scaled by alpha in 16-bit, so filtering weights each sample by how
+/// much of it is actually there.
+fn premultiply(image: &RgbaImage) -> ImageBuffer<Rgba<u16>, Vec<u16>> {
+    ImageBuffer::from_fn(image.width(), image.height(), |x, y| {
+        let [r, g, b, a] = image.get_pixel(x, y).0;
+        let scale = |c: u8| (u32::from(c) * u32::from(a) * 257 / 255) as u16;
+        Rgba([scale(r), scale(g), scale(b), u16::from(a) * 257])
+    })
+}
+
+/// Back from premultiplied 16-bit to straight 8-bit colour.
+fn unpremultiply_into(source: &ImageBuffer<Rgba<u16>, Vec<u16>>) -> RgbaImage {
+    ImageBuffer::from_fn(source.width(), source.height(), |x, y| {
+        let [r, g, b, a] = source.get_pixel(x, y).0;
+        if a == 0 {
+            return Rgba([0, 0, 0, 0]);
+        }
+        let straight =
+            |c: u16| ((u32::from(c) * 255 + u32::from(a) / 2) / u32::from(a)).min(255) as u8;
+        Rgba([straight(r), straight(g), straight(b), (a / 257) as u8])
+    })
 }
 
 /// Remove an explicitly selected exact flat matte. Flooding from every edge
@@ -349,6 +401,57 @@ pub fn remove_edge_matte(image: &mut RgbaImage, matte: [u8; 3]) {
             pending.push((x, y + 1));
         }
     }
+}
+
+/// Remove a chroma key everywhere it appears, then erode its fringe.
+///
+/// Unlike the edge matte this also clears enclosed background, such as the
+/// gap between a trigger guard and a grip, which is why it is reserved for a
+/// key colour the prompt kept out of the subject.
+pub fn remove_chroma_key(image: &mut RgbaImage, key: ChromaKey) -> Result<(), Error> {
+    if !key.tolerance.is_finite() || key.tolerance <= 0.0 || key.tolerance > 100.0 {
+        return Err(Error::Spec(format!(
+            "key tolerance {} must be above 0 and at most 100",
+            key.tolerance
+        )));
+    }
+    if key.erode > 16 {
+        return Err(Error::Spec(format!(
+            "key erosion {} is more than 16 source pixels",
+            key.erode
+        )));
+    }
+    let target = to_lab(key.colour[0], key.colour[1], key.colour[2]);
+    let limit = key.tolerance * key.tolerance;
+    let (width, height) = image.dimensions();
+    let mut cleared = vec![false; (width as usize) * (height as usize)];
+    for (x, y, pixel) in image.enumerate_pixels_mut() {
+        let [r, g, b, a] = pixel.0;
+        if a == 0 || lab_distance_squared(to_lab(r, g, b), target) <= limit {
+            pixel.0[3] = 0;
+            cleared[y as usize * width as usize + x as usize] = true;
+        }
+    }
+    for _ in 0..key.erode {
+        let previous = cleared.clone();
+        for y in 0..height {
+            for x in 0..width {
+                let index = y as usize * width as usize + x as usize;
+                if previous[index] {
+                    continue;
+                }
+                let near = (x > 0 && previous[index - 1])
+                    || (x + 1 < width && previous[index + 1])
+                    || (y > 0 && previous[index - width as usize])
+                    || (y + 1 < height && previous[index + width as usize]);
+                if near {
+                    cleared[index] = true;
+                    image.get_pixel_mut(x, y).0[3] = 0;
+                }
+            }
+        }
+    }
+    Ok(())
 }
 
 /// Load, reduce, save.
@@ -576,6 +679,7 @@ mod tests {
                 palette: None,
                 harden_alpha: true,
                 matte: None,
+                key: None,
             },
         )
         .unwrap();
@@ -613,6 +717,7 @@ mod tests {
                 palette: Some(palette.clone()),
                 harden_alpha: true,
                 matte: None,
+                key: None,
             },
         )
         .unwrap();
@@ -635,6 +740,7 @@ mod tests {
                 palette: None,
                 harden_alpha: true,
                 matte: None,
+                key: None,
             },
         )
         .unwrap();
@@ -653,6 +759,7 @@ mod tests {
                 palette: None,
                 harden_alpha: false,
                 matte: None,
+                key: None,
             },
         )
         .unwrap();
@@ -688,9 +795,134 @@ mod tests {
                 palette: Some(palette),
                 harden_alpha: true,
                 matte: None,
+                key: None,
             },
         )
         .unwrap();
         assert!(out.pixels().any(|p| p.0[3] == 0), "transparency survived");
+    }
+}
+
+#[cfg(test)]
+mod key_tests {
+    use super::*;
+
+    const MAGENTA: [u8; 3] = [255, 0, 255];
+
+    fn keyed(tolerance: f32, erode: u32) -> ChromaKey {
+        ChromaKey {
+            colour: MAGENTA,
+            tolerance,
+            erode,
+        }
+    }
+
+    #[test]
+    fn a_painted_key_clears_enclosed_and_near_colours_but_not_the_subject() {
+        // A noisy magenta field, a grey subject, and an enclosed gap.
+        let mut image = ImageBuffer::from_pixel(9, 9, Rgba([250, 8, 246, 255]));
+        for y in 2..7 {
+            for x in 2..7 {
+                image.put_pixel(x, y, Rgba([90, 85, 79, 255]));
+            }
+        }
+        image.put_pixel(4, 4, Rgba([255, 0, 255, 255]));
+        image.put_pixel(0, 8, Rgba([138, 58, 88, 255]));
+        remove_chroma_key(&mut image, keyed(30.0, 0)).unwrap();
+        assert_eq!(image.get_pixel(0, 0).0[3], 0);
+        assert_eq!(image.get_pixel(4, 4).0[3], 0, "enclosed key is cleared");
+        assert_eq!(image.get_pixel(3, 3).0, [90, 85, 79, 255]);
+        assert_eq!(image.get_pixel(0, 8).0[3], 255, "muted magenta survives");
+    }
+
+    #[test]
+    fn erosion_strips_the_fringe_one_pixel_per_pass() {
+        let mut image = ImageBuffer::from_pixel(7, 7, Rgba([255, 0, 255, 255]));
+        for y in 1..6 {
+            for x in 1..6 {
+                image.put_pixel(x, y, Rgba([40, 40, 40, 255]));
+            }
+        }
+        remove_chroma_key(&mut image, keyed(10.0, 1)).unwrap();
+        assert_eq!(alpha_bounds(&image), Some((2, 2, 3, 3)));
+        remove_chroma_key(&mut image, keyed(10.0, 1)).unwrap();
+        assert_eq!(alpha_bounds(&image), Some((3, 3, 1, 1)));
+    }
+
+    #[test]
+    fn reduction_applies_the_key_before_trimming() {
+        let mut source = ImageBuffer::from_pixel(8, 8, Rgba([255, 0, 255, 255]));
+        for y in 2..6 {
+            for x in 2..6 {
+                source.put_pixel(x, y, Rgba([200, 80, 30, 255]));
+            }
+        }
+        let out = reduce(
+            &source,
+            &Reduction {
+                height: 4,
+                key: Some(keyed(20.0, 0)),
+                ..Reduction::default()
+            },
+        )
+        .unwrap();
+        assert_eq!(out.dimensions(), (4, 4));
+        assert!(out.pixels().all(|p| p.0 == [200, 80, 30, 255]));
+    }
+
+    #[test]
+    fn unreasonable_key_settings_are_refused() {
+        let mut image = RgbaImage::new(2, 2);
+        for bad in [
+            keyed(0.0, 0),
+            keyed(f32::NAN, 0),
+            keyed(101.0, 0),
+            keyed(10.0, 17),
+        ] {
+            assert!(remove_chroma_key(&mut image, bad).is_err());
+        }
+    }
+}
+
+#[cfg(test)]
+mod premultiplied_tests {
+    use super::*;
+
+    #[test]
+    fn hidden_background_colour_does_not_bleed_into_edges() {
+        // Left half: opaque grey subject. Right half: removed magenta key.
+        let mut source = ImageBuffer::from_pixel(8, 8, Rgba([255, 0, 255, 0]));
+        for y in 0..8 {
+            for x in 0..4 {
+                source.put_pixel(x, y, Rgba([90, 90, 90, 255]));
+            }
+        }
+        let out = reduce(
+            &source,
+            &Reduction {
+                height: 3,
+                trim: false,
+                harden_alpha: false,
+                ..Reduction::default()
+            },
+        )
+        .unwrap();
+        for pixel in out.pixels().filter(|p| p.0[3] > 0) {
+            let [r, g, b, _] = pixel.0;
+            assert!(
+                r.abs_diff(90) <= 1 && g.abs_diff(90) <= 1 && b.abs_diff(90) <= 1,
+                "{pixel:?}"
+            );
+        }
+    }
+
+    #[test]
+    fn premultiplying_round_trips_opaque_and_clears_empty_pixels() {
+        let mut image = RgbaImage::new(2, 1);
+        image.put_pixel(0, 0, Rgba([12, 200, 255, 255]));
+        image.put_pixel(1, 0, Rgba([255, 0, 255, 0]));
+        let back = unpremultiply_into(&premultiply(&image));
+        assert_eq!(back.get_pixel(0, 0).0, [12, 200, 255, 255]);
+        assert_eq!(back.get_pixel(1, 0).0, [0, 0, 0, 0]);
     }
 }
