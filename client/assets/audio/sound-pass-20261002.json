@@ -1,0 +1,1170 @@
+{
+  "cues": {
+    "clerk/tell": {
+      "bytes": 28844,
+      "channels": 1,
+      "fade_out_seconds": 0.08,
+      "file": "clerk/tell.wav",
+      "final_gain_db": -7.6,
+      "layers": [
+        {
+          "delay_ms": 0.0,
+          "filter": null,
+          "format": "pcm_48000",
+          "gain_db": 0.0,
+          "generated_unix": 1790950654,
+          "request": "tells/clerk_raise_a",
+          "seconds": 0.3,
+          "source_sha256": "1b0078614a1f3f48acdba7cf68b0c36f093cd628038a02e00de15643c5a4e8d7",
+          "spec": "tools/audiogen/specs/sound-pass-20261002-effects.json",
+          "start_seconds": 0.005
+        }
+      ],
+      "master": "one gain to K50 -14.0, capped at -1.05 dBTP",
+      "measured": {
+        "above_8khz_db": -11.3,
+        "first_100ms_rms_dbfs": -19.6,
+        "k50_dbfs": -14.0,
+        "momentary_max_lufs": -23.2,
+        "rms_dbfs": -24.3,
+        "true_peak_dbtp": -3.4
+      },
+      "mix_seconds": 0.3,
+      "sample_rate_hz": 48000,
+      "seconds": 0.3,
+      "sha256": "a77753d0d0cf5dd24079735313d34bd9198907cef499cdad89696bb1fb173968",
+      "target_k50_dbfs": -14.0,
+      "title": "Clerk aim tell"
+    },
+    "down/body": {
+      "bytes": 57644,
+      "channels": 1,
+      "fade_out_seconds": 0.15,
+      "file": "down/body.wav",
+      "final_gain_db": -11.1,
+      "layers": [
+        {
+          "delay_ms": 0.0,
+          "filter": null,
+          "format": "pcm_48000",
+          "gain_db": 0.0,
+          "generated_unix": 1790950674,
+          "request": "death/body_a",
+          "seconds": 0.6,
+          "source_sha256": "7fbe33a7cbc0c8774f5aab8c9d02350bd3d19e47d18a423610a107f1621e3df1",
+          "spec": "tools/audiogen/specs/sound-pass-20261002-effects.json",
+          "start_seconds": 0.0
+        }
+      ],
+      "master": "one gain to K50 -13.0, capped at -1.05 dBTP",
+      "measured": {
+        "above_8khz_db": -20.9,
+        "first_100ms_rms_dbfs": -16.7,
+        "k50_dbfs": -13.0,
+        "momentary_max_lufs": -22.2,
+        "rms_dbfs": -24.1,
+        "true_peak_dbtp": -6.6
+      },
+      "mix_seconds": 0.6,
+      "sample_rate_hz": 48000,
+      "seconds": 0.6,
+      "sha256": "794d4b820552cc02e6723f78c7375e913784a9f6b0bdc6dd4b51f9e5cf8df56c",
+      "target_k50_dbfs": -13.0,
+      "title": "Body down"
+    },
+    "down/robot": {
+      "bytes": 86444,
+      "channels": 1,
+      "fade_out_seconds": 0.2,
+      "file": "down/robot.wav",
+      "final_gain_db": -3.3,
+      "layers": [
+        {
+          "delay_ms": 0.0,
+          "filter": null,
+          "format": "pcm_48000",
+          "gain_db": 0.0,
+          "generated_unix": 1790950673,
+          "request": "death/robot_b",
+          "seconds": 0.9,
+          "source_sha256": "c3716e75cd9df70e98873f6f286dd2033b55ac23aa0af5e184bf0a3c2a30ed78",
+          "spec": "tools/audiogen/specs/sound-pass-20261002-effects.json",
+          "start_seconds": 0.0
+        },
+        {
+          "delay_ms": 120.0,
+          "filter": "lowpass=f=1500",
+          "format": "pcm_48000",
+          "gain_db": -6.0,
+          "generated_unix": 1790950674,
+          "request": "death/body_a",
+          "seconds": 0.6,
+          "source_sha256": "7fbe33a7cbc0c8774f5aab8c9d02350bd3d19e47d18a423610a107f1621e3df1",
+          "spec": "tools/audiogen/specs/sound-pass-20261002-effects.json",
+          "start_seconds": 0.0
+        }
+      ],
+      "master": "one gain to K50 -12.0, capped at -1.05 dBTP",
+      "measured": {
+        "above_8khz_db": -13.3,
+        "first_100ms_rms_dbfs": -18.3,
+        "k50_dbfs": -12.0,
+        "momentary_max_lufs": -16.9,
+        "rms_dbfs": -21.2,
+        "true_peak_dbtp": -2.9
+      },
+      "mix_seconds": 0.9,
+      "sample_rate_hz": 48000,
+      "seconds": 0.9,
+      "sha256": "3bf093936f989626ce2a80c698395637dbe96d164dd0340802bec2cc423f4aca",
+      "target_k50_dbfs": -12.0,
+      "title": "Machine down"
+    },
+    "dry_fire": {
+      "bytes": 23084,
+      "channels": 1,
+      "fade_out_seconds": 0.06,
+      "file": "dry_fire.wav",
+      "final_gain_db": -5.0,
+      "layers": [
+        {
+          "delay_ms": 0.0,
+          "filter": null,
+          "format": "pcm_44100",
+          "gain_db": 0.0,
+          "generated_unix": 1789868417,
+          "request": "pilot/weapon_empty",
+          "seconds": 0.24,
+          "source_sha256": "dbc3a7efe3b213c80e201df3db45d8266a6997dd546bd06bf2362f6721c6d748",
+          "spec": "tools/audiogen/specs/sfx-refresh-pilot.json",
+          "start_seconds": 0.005
+        }
+      ],
+      "master": "one gain to K50 -18.0, capped at -1.05 dBTP",
+      "measured": {
+        "above_8khz_db": -7.1,
+        "first_100ms_rms_dbfs": -23.9,
+        "k50_dbfs": -18.0,
+        "momentary_max_lufs": -27.2,
+        "rms_dbfs": -27.7,
+        "true_peak_dbtp": -3.5
+      },
+      "mix_seconds": 0.24,
+      "sample_rate_hz": 48000,
+      "seconds": 0.24,
+      "sha256": "2419d3a297b5ba2569d0beddf744f869ee926e21c7b4d1cffe1348a7658f417c",
+      "target_k50_dbfs": -18.0,
+      "title": "Dry trigger"
+    },
+    "fire_scatter": {
+      "bytes": 52844,
+      "channels": 1,
+      "fade_out_seconds": 0.15,
+      "file": "fire_scatter.wav",
+      "final_gain_db": null,
+      "layers": [
+        {
+          "delay_ms": 0.0,
+          "filter": null,
+          "format": "pcm_48000",
+          "gain_db": 0.0,
+          "generated_unix": 1790949055,
+          "request": "shotpump_a",
+          "seconds": 0.42,
+          "source_sha256": "20b771531393afb69747059b70ea319ca0dbe904e727847952e2586ef5cc8433",
+          "spec": "tools/audiogen/specs/sound-pass-20261002-shotgun.json",
+          "start_seconds": 0.0
+        },
+        {
+          "delay_ms": 0.0,
+          "filter": null,
+          "format": "pcm_48000",
+          "gain_db": -1.0,
+          "generated_unix": 1790949037,
+          "request": "body_c",
+          "seconds": 0.5,
+          "source_sha256": "476cc9a6beddc9cbcc09b1dc06dc090522166ddfc5355f9aa7f5d625c8d969c9",
+          "spec": "tools/audiogen/specs/sound-pass-20261002-shotgun.json",
+          "start_seconds": 0.0
+        },
+        {
+          "delay_ms": 0.0,
+          "filter": "highpass=f=40",
+          "format": "pcm_48000",
+          "gain_db": -6.0,
+          "generated_unix": 1790950640,
+          "request": "shotgun/full_d",
+          "seconds": 0.55,
+          "source_sha256": "92ef452fd11e2189584bc0119e2a52824d0f9e487b31fa11d77a0cd90cd8731a",
+          "spec": "tools/audiogen/specs/sound-pass-20261002-effects.json",
+          "start_seconds": 0.0
+        },
+        {
+          "delay_ms": 0.0,
+          "filter": null,
+          "format": "pcm_48000",
+          "gain_db": -4.0,
+          "generated_unix": 1790949032,
+          "request": "crack_d",
+          "seconds": 0.14,
+          "source_sha256": "7e9b44e18acd974c6d2654e17138bb3962f15dde8b727463c4c28ffd83ec1bf1",
+          "spec": "tools/audiogen/specs/sound-pass-20261002-shotgun.json",
+          "start_seconds": 0.006
+        },
+        {
+          "delay_ms": 40.0,
+          "filter": null,
+          "format": "pcm_48000",
+          "gain_db": -14.0,
+          "generated_unix": 1790950642,
+          "request": "shotgun/tail_d",
+          "seconds": 0.4,
+          "source_sha256": "4a2b7091c76ac5fe26089095f58b6a0084a802fa0913b41f7e378d021e53bd9e",
+          "spec": "tools/audiogen/specs/sound-pass-20261002-effects.json",
+          "start_seconds": 0.01
+        }
+      ],
+      "master": "peak to -6 dBFS, +9 dB drive (-5.501 dB net) into a tanh soft clip, then -0.150 dB to -1.05 dBTP",
+      "measured": {
+        "above_8khz_db": -16.4,
+        "first_100ms_rms_dbfs": -9.3,
+        "k50_dbfs": -7.3,
+        "momentary_max_lufs": -14.7,
+        "rms_dbfs": -16.1,
+        "true_peak_dbtp": -1.1
+      },
+      "mix_seconds": 0.55,
+      "sample_rate_hz": 48000,
+      "seconds": 0.55,
+      "sha256": "5658ec4b13a38296fcbffe4307bfb4c3daff6cc015c4244ac415c7d26c7a1396",
+      "target_k50_dbfs": null,
+      "title": "Shotgun blast"
+    },
+    "fire_sniper": {
+      "bytes": 86444,
+      "channels": 1,
+      "fade_out_seconds": 0.3,
+      "file": "fire_sniper.wav",
+      "final_gain_db": -5.4,
+      "layers": [
+        {
+          "delay_ms": 0.0,
+          "filter": null,
+          "format": "pcm_48000",
+          "gain_db": 0.0,
+          "generated_unix": 1790950686,
+          "request": "l07/sniper_fire_a",
+          "seconds": 0.9,
+          "source_sha256": "757a3b40818f58367ed6f669d2d5e5eb36f5871eb0e3cf6135decd68cb8cc112",
+          "spec": "tools/audiogen/specs/sound-pass-20261002-effects.json",
+          "start_seconds": 0.0
+        }
+      ],
+      "master": "one gain to K50 -9.0, capped at -1.05 dBTP",
+      "measured": {
+        "above_8khz_db": -13.5,
+        "first_100ms_rms_dbfs": -12.6,
+        "k50_dbfs": -9.0,
+        "momentary_max_lufs": -17.4,
+        "rms_dbfs": -22.1,
+        "true_peak_dbtp": -1.3
+      },
+      "mix_seconds": 0.9,
+      "sample_rate_hz": 48000,
+      "seconds": 0.9,
+      "sha256": "4d72c413dc8ed4c8e996cb3ff30e484e5183f8c9ffa95e60e1bf591461b4fe4a",
+      "target_k50_dbfs": -9.0,
+      "title": "Sniper Rifle fire"
+    },
+    "fire_tack": {
+      "bytes": 40364,
+      "channels": 1,
+      "fade_out_seconds": 0.12,
+      "file": "fire_tack.wav",
+      "final_gain_db": -6.4,
+      "layers": [
+        {
+          "delay_ms": 0.0,
+          "filter": null,
+          "format": "pcm_48000",
+          "gain_db": 0.0,
+          "generated_unix": 1790950646,
+          "request": "tack/fire_a",
+          "seconds": 0.42,
+          "source_sha256": "14eaf040514807acdf7c1c57b953429188f70e91e43be9af081719ce9f33db56",
+          "spec": "tools/audiogen/specs/sound-pass-20261002-effects.json",
+          "start_seconds": 0.0
+        }
+      ],
+      "master": "one gain to K50 -12.0, capped at -1.05 dBTP",
+      "measured": {
+        "above_8khz_db": -14.8,
+        "first_100ms_rms_dbfs": -16.3,
+        "k50_dbfs": -12.0,
+        "momentary_max_lufs": -21.7,
+        "rms_dbfs": -22.5,
+        "true_peak_dbtp": -2.0
+      },
+      "mix_seconds": 0.42,
+      "sample_rate_hz": 48000,
+      "seconds": 0.42,
+      "sha256": "10624694b76f70f1ed1d8f5c6bdfa11cd5617fefd0308bb156c3e7358cf514ee",
+      "target_k50_dbfs": -12.0,
+      "title": "Pistol fire"
+    },
+    "grenade/throw": {
+      "bytes": 33644,
+      "channels": 1,
+      "fade_out_seconds": 0.1,
+      "file": "grenade/throw.wav",
+      "final_gain_db": -6.65,
+      "layers": [
+        {
+          "delay_ms": 0.0,
+          "filter": null,
+          "format": "pcm_48000",
+          "gain_db": 0.0,
+          "generated_unix": 1790950676,
+          "request": "grenade/throw_a",
+          "seconds": 0.35,
+          "source_sha256": "15e026523c771efdeaf2777b337f462fd78cdafa2920eb9dfc2d82ca5ee036d9",
+          "spec": "tools/audiogen/specs/sound-pass-20261002-effects.json",
+          "start_seconds": 0.0
+        }
+      ],
+      "master": "one gain to K50 -14.0, capped at -1.05 dBTP",
+      "measured": {
+        "above_8khz_db": -35.2,
+        "first_100ms_rms_dbfs": -15.4,
+        "k50_dbfs": -14.4,
+        "momentary_max_lufs": -25.3,
+        "rms_dbfs": -20.9,
+        "true_peak_dbtp": -1.1
+      },
+      "mix_seconds": 0.35,
+      "sample_rate_hz": 48000,
+      "seconds": 0.35,
+      "sha256": "8626eb424194d3b0c29866c732c9bc7fa3395cc4fc672c63672abc52caf409cb",
+      "target_k50_dbfs": -14.0,
+      "title": "Grenade throw"
+    },
+    "heavy_sweeper/tell": {
+      "bytes": 110444,
+      "channels": 1,
+      "fade_out_seconds": 0.25,
+      "file": "heavy_sweeper/tell.wav",
+      "final_gain_db": -4.5,
+      "layers": [
+        {
+          "delay_ms": 0.0,
+          "filter": null,
+          "format": "pcm_48000",
+          "gain_db": 0.0,
+          "generated_unix": 1790950660,
+          "request": "tells/heavy_flare_b",
+          "seconds": 1.15,
+          "source_sha256": "1ca774869edb6aff49489f366d8fdbaf65f7e20013976fd98664bcda3ceec871",
+          "spec": "tools/audiogen/specs/sound-pass-20261002-effects.json",
+          "start_seconds": 0.0
+        }
+      ],
+      "master": "one gain to K50 -12.0, capped at -1.05 dBTP",
+      "measured": {
+        "above_8khz_db": -5.0,
+        "first_100ms_rms_dbfs": -15.7,
+        "k50_dbfs": -12.0,
+        "momentary_max_lufs": -13.9,
+        "rms_dbfs": -21.6,
+        "true_peak_dbtp": -3.3
+      },
+      "mix_seconds": 1.15,
+      "sample_rate_hz": 48000,
+      "seconds": 1.15,
+      "sha256": "d5d8ca00e212d3ae60701ec96a92d522de54cf2e58ab465870eb586abe2d54e1",
+      "target_k50_dbfs": -12.0,
+      "title": "Heavy Sweeper flare tell"
+    },
+    "hit_flechette": {
+      "bytes": 34604,
+      "channels": 1,
+      "fade_out_seconds": 0.1,
+      "file": "hit_flechette.wav",
+      "final_gain_db": -4.8,
+      "layers": [
+        {
+          "delay_ms": 0.0,
+          "filter": null,
+          "format": "pcm_48000",
+          "gain_db": 0.0,
+          "generated_unix": 1790950653,
+          "request": "impact/bullet_body_c",
+          "seconds": 0.36,
+          "source_sha256": "80fe6d3d49cd5f93ee8e10a9fb55704e3fe18e38fa39e16fc07afce81400bff1",
+          "spec": "tools/audiogen/specs/sound-pass-20261002-effects.json",
+          "start_seconds": 0.0
+        }
+      ],
+      "master": "one gain to K50 -14.0, capped at -1.05 dBTP",
+      "measured": {
+        "above_8khz_db": -21.5,
+        "first_100ms_rms_dbfs": -15.6,
+        "k50_dbfs": -14.0,
+        "momentary_max_lufs": -24.5,
+        "rms_dbfs": -20.8,
+        "true_peak_dbtp": -4.5
+      },
+      "mix_seconds": 0.36,
+      "sample_rate_hz": 48000,
+      "seconds": 0.36,
+      "sha256": "cf952d17edff91bb0651fa6d8733e4f238499dd391ceee29721e4ec6512cfcbe",
+      "target_k50_dbfs": -14.0,
+      "title": "Rifle impact"
+    },
+    "hit_scatter": {
+      "bytes": 34604,
+      "channels": 1,
+      "fade_out_seconds": 0.1,
+      "file": "hit_scatter.wav",
+      "final_gain_db": -3.75,
+      "layers": [
+        {
+          "delay_ms": 0.0,
+          "filter": null,
+          "format": "pcm_48000",
+          "gain_db": 0.0,
+          "generated_unix": 1790949057,
+          "request": "hit_scatter_a",
+          "seconds": 0.36,
+          "source_sha256": "01ece1bf5c9e5fddd498a458388e0d66b9648d34c9640b3cb3b02069baec72b7",
+          "spec": "tools/audiogen/specs/sound-pass-20261002-shotgun.json",
+          "start_seconds": 0.0
+        }
+      ],
+      "master": "one gain to K50 -11.0, capped at -1.05 dBTP",
+      "measured": {
+        "above_8khz_db": -18.8,
+        "first_100ms_rms_dbfs": -14.7,
+        "k50_dbfs": -11.1,
+        "momentary_max_lufs": -20.7,
+        "rms_dbfs": -20.3,
+        "true_peak_dbtp": -1.0
+      },
+      "mix_seconds": 0.36,
+      "sample_rate_hz": 48000,
+      "seconds": 0.36,
+      "sha256": "f8c30b0690fb035c32c93692c8da57ec5de3202da50e76bd7a813c9291aa55a4",
+      "target_k50_dbfs": -11.0,
+      "title": "Shotgun impact"
+    },
+    "hit_tack": {
+      "bytes": 28844,
+      "channels": 1,
+      "fade_out_seconds": 0.1,
+      "file": "hit_tack.wav",
+      "final_gain_db": -5.2,
+      "layers": [
+        {
+          "delay_ms": 0.0,
+          "filter": null,
+          "format": "pcm_48000",
+          "gain_db": 0.0,
+          "generated_unix": 1790950652,
+          "request": "impact/bullet_body_b",
+          "seconds": 0.3,
+          "source_sha256": "8b7e0ffbf90e1a921caac9916b8f7fa93416538347981c6ad098bb1fdfd53801",
+          "spec": "tools/audiogen/specs/sound-pass-20261002-effects.json",
+          "start_seconds": 0.0
+        }
+      ],
+      "master": "one gain to K50 -14.0, capped at -1.05 dBTP",
+      "measured": {
+        "above_8khz_db": -26.4,
+        "first_100ms_rms_dbfs": -14.1,
+        "k50_dbfs": -14.0,
+        "momentary_max_lufs": -23.7,
+        "rms_dbfs": -18.7,
+        "true_peak_dbtp": -5.6
+      },
+      "mix_seconds": 0.3,
+      "sample_rate_hz": 48000,
+      "seconds": 0.3,
+      "sha256": "e1bb4a4e5907b1690f96a842751d34a9d38dec12881e4fc85b7608b2b2fc1b99",
+      "target_k50_dbfs": -14.0,
+      "title": "Pistol impact"
+    },
+    "l07/curfew_chime": {
+      "bytes": 278444,
+      "channels": 1,
+      "fade_out_seconds": 0.6,
+      "file": "l07/curfew_chime.wav",
+      "final_gain_db": -11.5,
+      "layers": [
+        {
+          "delay_ms": 0.0,
+          "filter": null,
+          "format": "pcm_48000",
+          "gain_db": 0.0,
+          "generated_unix": 1790950712,
+          "request": "l07/curfew_chime_b",
+          "seconds": 2.9,
+          "source_sha256": "849d55714ef38bd467330d9092c810adc2f75167e13cc42d55fa723d16c8ef0f",
+          "spec": "tools/audiogen/specs/sound-pass-20261002-effects.json",
+          "start_seconds": 0.0
+        }
+      ],
+      "master": "one gain to K50 -15.0, capped at -1.05 dBTP",
+      "measured": {
+        "above_8khz_db": -65.9,
+        "first_100ms_rms_dbfs": -19.8,
+        "k50_dbfs": -15.0,
+        "momentary_max_lufs": -17.0,
+        "rms_dbfs": -22.1,
+        "true_peak_dbtp": -8.9
+      },
+      "mix_seconds": 2.9,
+      "sample_rate_hz": 48000,
+      "seconds": 2.9,
+      "sha256": "71d652580dcbccc5762310ec8eda64e3c841db62392ce89dac4a4e7e6738df63",
+      "target_k50_dbfs": -15.0,
+      "title": "Curfew chime"
+    },
+    "melee/fists": {
+      "bytes": 38444,
+      "channels": 1,
+      "fade_out_seconds": 0.1,
+      "file": "melee/fists.wav",
+      "final_gain_db": -8.2,
+      "layers": [
+        {
+          "delay_ms": 0.0,
+          "filter": null,
+          "format": "pcm_44100",
+          "gain_db": 0.0,
+          "generated_unix": 1789868410,
+          "request": "pilot/melee_swing",
+          "seconds": 0.4,
+          "source_sha256": "3d389936fa85ba82eadeac7205cdec1eb59b7bd810be804151eb7110da612fbf",
+          "spec": "tools/audiogen/specs/sfx-refresh-pilot.json",
+          "start_seconds": 0.0
+        }
+      ],
+      "master": "one gain to K50 -16.0, capped at -1.05 dBTP",
+      "measured": {
+        "above_8khz_db": -44.1,
+        "first_100ms_rms_dbfs": -15.4,
+        "k50_dbfs": -16.0,
+        "momentary_max_lufs": -26.1,
+        "rms_dbfs": -21.4,
+        "true_peak_dbtp": -3.1
+      },
+      "mix_seconds": 0.4,
+      "sample_rate_hz": 48000,
+      "seconds": 0.4,
+      "sha256": "0622b8001b5d174b2a6d5ec76acd673ca5fc66394beaa2a0038c0d3f68a66a53",
+      "target_k50_dbfs": -16.0,
+      "title": "Fists swing"
+    },
+    "melee/shiv": {
+      "bytes": 28844,
+      "channels": 1,
+      "fade_out_seconds": 0.08,
+      "file": "melee/shiv.wav",
+      "final_gain_db": -7.5,
+      "layers": [
+        {
+          "delay_ms": 0.0,
+          "filter": null,
+          "format": "pcm_48000",
+          "gain_db": 0.0,
+          "generated_unix": 1790950666,
+          "request": "melee/shiv_swing_b",
+          "seconds": 0.3,
+          "source_sha256": "bdc221efbdafb3393f5bc5923a4c24a7307b15d5a8a37261cb05a319e278f9d6",
+          "spec": "tools/audiogen/specs/sound-pass-20261002-effects.json",
+          "start_seconds": 0.02
+        }
+      ],
+      "master": "one gain to K50 -16.0, capped at -1.05 dBTP",
+      "measured": {
+        "above_8khz_db": -10.9,
+        "first_100ms_rms_dbfs": -20.4,
+        "k50_dbfs": -16.0,
+        "momentary_max_lufs": -24.5,
+        "rms_dbfs": -24.4,
+        "true_peak_dbtp": -5.5
+      },
+      "mix_seconds": 0.3,
+      "sample_rate_hz": 48000,
+      "seconds": 0.3,
+      "sha256": "35db5c3b8a3f0c160b53e833d6be70d0764cb0bd926cdb140339fb18b587e90f",
+      "target_k50_dbfs": -16.0,
+      "title": "Shiv swing"
+    },
+    "pickup/ammo": {
+      "bytes": 43244,
+      "channels": 1,
+      "fade_out_seconds": 0.1,
+      "file": "pickup/ammo.wav",
+      "final_gain_db": -4.7,
+      "layers": [
+        {
+          "delay_ms": 0.0,
+          "filter": null,
+          "format": "pcm_44100",
+          "gain_db": 0.0,
+          "generated_unix": 1789868444,
+          "request": "pilot/pickup_ammo",
+          "seconds": 0.45,
+          "source_sha256": "94b2817c88edc811fcff4c460bda069d986b343431bbccd3999e1eaf9eb20cd8",
+          "spec": "tools/audiogen/specs/sfx-refresh-pilot.json",
+          "start_seconds": 0.0
+        }
+      ],
+      "master": "one gain to K50 -15.0, capped at -1.05 dBTP",
+      "measured": {
+        "above_8khz_db": -8.1,
+        "first_100ms_rms_dbfs": -19.3,
+        "k50_dbfs": -15.0,
+        "momentary_max_lufs": -22.2,
+        "rms_dbfs": -25.1,
+        "true_peak_dbtp": -1.6
+      },
+      "mix_seconds": 0.45,
+      "sample_rate_hz": 48000,
+      "seconds": 0.45,
+      "sha256": "57f490832e31a26c8891202cf946b1119a5e235179d7b90b90712e24c32c78b4",
+      "target_k50_dbfs": -15.0,
+      "title": "Ammunition pickup"
+    },
+    "pickup/armor": {
+      "bytes": 52844,
+      "channels": 1,
+      "fade_out_seconds": 0.12,
+      "file": "pickup/armor.wav",
+      "final_gain_db": -6.0,
+      "layers": [
+        {
+          "delay_ms": 0.0,
+          "filter": null,
+          "format": "pcm_44100",
+          "gain_db": 0.0,
+          "generated_unix": 1789868448,
+          "request": "pilot/pickup_armor",
+          "seconds": 0.55,
+          "source_sha256": "d7ce3f628eee9ea6e4135099a770729ff2e501aa4a4ed591e4dfa217ac05dc0a",
+          "spec": "tools/audiogen/specs/sfx-refresh-pilot.json",
+          "start_seconds": 0.0
+        }
+      ],
+      "master": "one gain to K50 -15.0, capped at -1.05 dBTP",
+      "measured": {
+        "above_8khz_db": -11.8,
+        "first_100ms_rms_dbfs": -17.2,
+        "k50_dbfs": -15.0,
+        "momentary_max_lufs": -20.6,
+        "rms_dbfs": -22.8,
+        "true_peak_dbtp": -6.6
+      },
+      "mix_seconds": 0.55,
+      "sample_rate_hz": 48000,
+      "seconds": 0.55,
+      "sha256": "f93fce98ea1cd131a1edbf75e5eee4ccaab014485352d7c236853f0b94a8335a",
+      "target_k50_dbfs": -15.0,
+      "title": "Armor pickup"
+    },
+    "pickup/cells": {
+      "bytes": 43244,
+      "channels": 1,
+      "fade_out_seconds": 0.08,
+      "file": "pickup/cells.wav",
+      "final_gain_db": -8.5,
+      "layers": [
+        {
+          "delay_ms": 0.0,
+          "filter": null,
+          "format": "pcm_48000",
+          "gain_db": 0.0,
+          "generated_unix": 1790950669,
+          "request": "pickup/cells_b",
+          "seconds": 0.45,
+          "source_sha256": "a8adbcc4845240b08b99524dbef0df1b595b014b7e1d0b1e6dcd4416085b58ee",
+          "spec": "tools/audiogen/specs/sound-pass-20261002-effects.json",
+          "start_seconds": 0.0
+        }
+      ],
+      "master": "one gain to K50 -15.0, capped at -1.05 dBTP",
+      "measured": {
+        "above_8khz_db": -9.5,
+        "first_100ms_rms_dbfs": -19.6,
+        "k50_dbfs": -15.0,
+        "momentary_max_lufs": -22.6,
+        "rms_dbfs": -25.6,
+        "true_peak_dbtp": -5.6
+      },
+      "mix_seconds": 0.45,
+      "sample_rate_hz": 48000,
+      "seconds": 0.45,
+      "sha256": "441e0810b3b1a5a656264033fa11135ab325af9e0109bff31380147f7be96b24",
+      "target_k50_dbfs": -15.0,
+      "title": "Cells pickup"
+    },
+    "pickup/health": {
+      "bytes": 52844,
+      "channels": 1,
+      "fade_out_seconds": 0.12,
+      "file": "pickup/health.wav",
+      "final_gain_db": -10.1,
+      "layers": [
+        {
+          "delay_ms": 0.0,
+          "filter": null,
+          "format": "pcm_44100",
+          "gain_db": 0.0,
+          "generated_unix": 1789868446,
+          "request": "pilot/pickup_health",
+          "seconds": 0.55,
+          "source_sha256": "dbf5b2952937fa68bba04e9352bd9c3b433100913d560b44218ec944dfa01cee",
+          "spec": "tools/audiogen/specs/sfx-refresh-pilot.json",
+          "start_seconds": 0.0
+        }
+      ],
+      "master": "one gain to K50 -15.0, capped at -1.05 dBTP",
+      "measured": {
+        "above_8khz_db": -7.9,
+        "first_100ms_rms_dbfs": -19.4,
+        "k50_dbfs": -15.0,
+        "momentary_max_lufs": -21.7,
+        "rms_dbfs": -26.4,
+        "true_peak_dbtp": -7.1
+      },
+      "mix_seconds": 0.55,
+      "sample_rate_hz": 48000,
+      "seconds": 0.55,
+      "sha256": "57ec78ff1d5e5ea3064995578daf3af512119dc3228bdf8f0575228e91eb7858",
+      "target_k50_dbfs": -15.0,
+      "title": "Health pickup"
+    },
+    "pickup/weapon": {
+      "bytes": 32684,
+      "channels": 1,
+      "fade_out_seconds": 0.1,
+      "file": "pickup/weapon.wav",
+      "final_gain_db": -4.85,
+      "layers": [
+        {
+          "delay_ms": 0.0,
+          "filter": null,
+          "format": "pcm_48000",
+          "gain_db": 0.0,
+          "generated_unix": 1790950670,
+          "request": "pickup/weapon_a",
+          "seconds": 0.34,
+          "source_sha256": "b0b6a69b937746bbd421956669afacd0e04f3edbf07330e344f439646f38479c",
+          "spec": "tools/audiogen/specs/sound-pass-20261002-effects.json",
+          "start_seconds": 0.06
+        }
+      ],
+      "master": "one gain to K50 -14.0, capped at -1.05 dBTP",
+      "measured": {
+        "above_8khz_db": -6.9,
+        "first_100ms_rms_dbfs": -33.7,
+        "k50_dbfs": -14.6,
+        "momentary_max_lufs": -23.2,
+        "rms_dbfs": -25.7,
+        "true_peak_dbtp": -1.1
+      },
+      "mix_seconds": 0.34,
+      "sample_rate_hz": 48000,
+      "seconds": 0.34,
+      "sha256": "f9e1b2fba0f253609dbdcc0e90c449f945de12be15ca949e1c3b03cc0929e596",
+      "target_k50_dbfs": -14.0,
+      "title": "Weapon pickup"
+    },
+    "ranged_sweeper/fire": {
+      "bytes": 67244,
+      "channels": 1,
+      "fade_out_seconds": 0.2,
+      "file": "ranged_sweeper/fire.wav",
+      "final_gain_db": -8.2,
+      "layers": [
+        {
+          "delay_ms": 0.0,
+          "filter": null,
+          "format": "pcm_48000",
+          "gain_db": 0.0,
+          "generated_unix": 1790950707,
+          "request": "l07/ranged_shot_b",
+          "seconds": 0.7,
+          "source_sha256": "cf695e9795ed255e14f7f005896c7dce4630da76a7594a33238958d1debc97e5",
+          "spec": "tools/audiogen/specs/sound-pass-20261002-effects.json",
+          "start_seconds": 0.0
+        }
+      ],
+      "master": "one gain to K50 -10.0, capped at -1.05 dBTP",
+      "measured": {
+        "above_8khz_db": -18.1,
+        "first_100ms_rms_dbfs": -12.5,
+        "k50_dbfs": -10.0,
+        "momentary_max_lufs": -15.8,
+        "rms_dbfs": -20.4,
+        "true_peak_dbtp": -4.6
+      },
+      "mix_seconds": 0.7,
+      "sample_rate_hz": 48000,
+      "seconds": 0.7,
+      "sha256": "97ca3d7cc98998f11bae66b5551e0bc2d48304139d27e438360a054e52ca6a99",
+      "target_k50_dbfs": -10.0,
+      "title": "Ranged Sweeper shot"
+    },
+    "ranged_sweeper/tell": {
+      "bytes": 113324,
+      "channels": 1,
+      "fade_out_seconds": 0.05,
+      "file": "ranged_sweeper/tell.wav",
+      "final_gain_db": -5.1,
+      "layers": [
+        {
+          "delay_ms": 0.0,
+          "filter": null,
+          "format": "pcm_48000",
+          "gain_db": 0.0,
+          "generated_unix": 1790950704,
+          "request": "l07/ranged_tell_d",
+          "seconds": 0.4,
+          "source_sha256": "899cfdd9df359bf28e37dc517292241e2267fae3a4f3c6f415378d94907f928f",
+          "spec": "tools/audiogen/specs/sound-pass-20261002-effects.json",
+          "start_seconds": 0.0
+        },
+        {
+          "delay_ms": 250.0,
+          "filter": "afade=t=in:d=0.15",
+          "format": "pcm_48000",
+          "gain_db": -3.0,
+          "generated_unix": 1790950701,
+          "request": "l07/ranged_tell_b",
+          "seconds": 0.93,
+          "source_sha256": "1a4aa7ddfcd1d2112d3261c47dcbdee4ec49512b67017a9c6f7982543d2e9fb5",
+          "spec": "tools/audiogen/specs/sound-pass-20261002-effects.json",
+          "start_seconds": 0.55
+        }
+      ],
+      "master": "one gain to K50 -13.0, capped at -1.05 dBTP",
+      "measured": {
+        "above_8khz_db": -9.6,
+        "first_100ms_rms_dbfs": -18.4,
+        "k50_dbfs": -13.0,
+        "momentary_max_lufs": -14.2,
+        "rms_dbfs": -19.3,
+        "true_peak_dbtp": -2.1
+      },
+      "mix_seconds": 1.18,
+      "sample_rate_hz": 48000,
+      "seconds": 1.18,
+      "sha256": "30b64aed0ee1101545293c2a292af185bf359804dbf922ee2fc566c9904973ec",
+      "target_k50_dbfs": -13.0,
+      "title": "Ranged Sweeper tell"
+    },
+    "shotgun/cycle": {
+      "bytes": 32684,
+      "channels": 1,
+      "fade_out_seconds": 0.08,
+      "file": "shotgun/cycle.wav",
+      "final_gain_db": -6.1,
+      "layers": [
+        {
+          "delay_ms": 0.0,
+          "filter": null,
+          "format": "pcm_48000",
+          "gain_db": 0.0,
+          "generated_unix": 1790949055,
+          "request": "shotpump_a",
+          "seconds": 0.34,
+          "source_sha256": "20b771531393afb69747059b70ea319ca0dbe904e727847952e2586ef5cc8433",
+          "spec": "tools/audiogen/specs/sound-pass-20261002-shotgun.json",
+          "start_seconds": 0.425
+        }
+      ],
+      "master": "peak to -6 dBFS (-13.346 dB) into a tanh soft clip with no drive, +5.650 dB to -1.05 dBTP, then -6.10 dB to K50 -15.0",
+      "measured": {
+        "above_8khz_db": -15.5,
+        "first_100ms_rms_dbfs": -17.6,
+        "k50_dbfs": -15.0,
+        "momentary_max_lufs": -21.2,
+        "rms_dbfs": -21.1,
+        "true_peak_dbtp": -7.1
+      },
+      "mix_seconds": 0.34,
+      "sample_rate_hz": 48000,
+      "seconds": 0.34,
+      "sha256": "7b267d7cafbaa913b3d2344e4a09d753d767dd922f9fb6b542cc6d56272af813",
+      "target_k50_dbfs": -15.0,
+      "title": "Shotgun pump cycle"
+    },
+    "sniper/scope_in": {
+      "bytes": 19244,
+      "channels": 1,
+      "fade_out_seconds": 0.06,
+      "file": "sniper/scope_in.wav",
+      "final_gain_db": -2.5,
+      "layers": [
+        {
+          "delay_ms": 0.0,
+          "filter": null,
+          "format": "pcm_48000",
+          "gain_db": 0.0,
+          "generated_unix": 1790950692,
+          "request": "l07/scope_in_a",
+          "seconds": 0.2,
+          "source_sha256": "7ed5ab7b859bd6b6f353fde145cb0cf7e1de6f0501dae2bd039a90c2e4f749e3",
+          "spec": "tools/audiogen/specs/sound-pass-20261002-effects.json",
+          "start_seconds": 0.0
+        }
+      ],
+      "master": "one gain to K50 -18.0, capped at -1.05 dBTP",
+      "measured": {
+        "above_8khz_db": -2.9,
+        "first_100ms_rms_dbfs": -22.3,
+        "k50_dbfs": -18.0,
+        "momentary_max_lufs": -25.1,
+        "rms_dbfs": -25.3,
+        "true_peak_dbtp": -3.8
+      },
+      "mix_seconds": 0.2,
+      "sample_rate_hz": 48000,
+      "seconds": 0.2,
+      "sha256": "dfae0bc5ee4ed784208971598ff3190a2634f802edd4daf28db9c723bd5ad3c5",
+      "target_k50_dbfs": -18.0,
+      "title": "Scope in"
+    },
+    "sniper/scope_out": {
+      "bytes": 28844,
+      "channels": 1,
+      "fade_out_seconds": 0.08,
+      "file": "sniper/scope_out.wav",
+      "final_gain_db": -7.7,
+      "layers": [
+        {
+          "delay_ms": 0.0,
+          "filter": null,
+          "format": "pcm_48000",
+          "gain_db": 0.0,
+          "generated_unix": 1790950698,
+          "request": "l07/scope_out_c",
+          "seconds": 0.3,
+          "source_sha256": "4e1ba9d0222c4d89f289b6b73a6b28a9d3be09ad3d660a38124164024cde054b",
+          "spec": "tools/audiogen/specs/sound-pass-20261002-effects.json",
+          "start_seconds": 0.0
+        }
+      ],
+      "master": "one gain to K50 -18.0, capped at -1.05 dBTP",
+      "measured": {
+        "above_8khz_db": -24.7,
+        "first_100ms_rms_dbfs": -16.2,
+        "k50_dbfs": -18.0,
+        "momentary_max_lufs": -26.9,
+        "rms_dbfs": -21.0,
+        "true_peak_dbtp": -5.5
+      },
+      "mix_seconds": 0.3,
+      "sample_rate_hz": 48000,
+      "seconds": 0.3,
+      "sha256": "1208fab3dbf9e3eb3b13d86628f3f62bb803dbe65e4485ba74c9af4a6653a0a4",
+      "target_k50_dbfs": -18.0,
+      "title": "Scope out"
+    },
+    "sweeper/tell": {
+      "bytes": 63404,
+      "channels": 1,
+      "fade_out_seconds": 0.1,
+      "file": "sweeper/tell.wav",
+      "final_gain_db": -6.9,
+      "layers": [
+        {
+          "delay_ms": 0.0,
+          "filter": null,
+          "format": "pcm_48000",
+          "gain_db": 0.0,
+          "generated_unix": 1790950658,
+          "request": "tells/sweeper_cycle_b",
+          "seconds": 0.66,
+          "source_sha256": "24c9d455ad0eb27a7166dea8757eb0a875f1a42473364fcd1fec9ac3b232ef6b",
+          "spec": "tools/audiogen/specs/sound-pass-20261002-effects.json",
+          "start_seconds": 0.0
+        }
+      ],
+      "master": "one gain to K50 -14.0, capped at -1.05 dBTP",
+      "measured": {
+        "above_8khz_db": -11.5,
+        "first_100ms_rms_dbfs": -18.7,
+        "k50_dbfs": -14.0,
+        "momentary_max_lufs": -15.8,
+        "rms_dbfs": -21.0,
+        "true_peak_dbtp": -5.0
+      },
+      "mix_seconds": 0.66,
+      "sample_rate_hz": 48000,
+      "seconds": 0.66,
+      "sha256": "101b15fa65a4e05913d9ebd333c5417335f9afc8df33cb1e1ebfa5e303de93b2",
+      "target_k50_dbfs": -14.0,
+      "title": "Sweeper burst tell"
+    },
+    "turret/tell": {
+      "bytes": 124844,
+      "channels": 1,
+      "fade_out_seconds": 0.03,
+      "file": "turret/tell.wav",
+      "final_gain_db": -11.1,
+      "layers": [
+        {
+          "delay_ms": 0.0,
+          "filter": null,
+          "format": "pcm_48000",
+          "gain_db": 0.0,
+          "generated_unix": 1790950662,
+          "request": "tells/turret_charge_a",
+          "seconds": 1.3,
+          "source_sha256": "a1aaee2d4551ac19a00ade363e930acd85afb535aab1d06e43648f28c0e2aaf0",
+          "spec": "tools/audiogen/specs/sound-pass-20261002-effects.json",
+          "start_seconds": 0.0
+        }
+      ],
+      "master": "one gain to K50 -13.0, capped at -1.05 dBTP",
+      "measured": {
+        "above_8khz_db": -15.1,
+        "first_100ms_rms_dbfs": -16.8,
+        "k50_dbfs": -13.0,
+        "momentary_max_lufs": -14.2,
+        "rms_dbfs": -18.5,
+        "true_peak_dbtp": -8.1
+      },
+      "mix_seconds": 1.3,
+      "sample_rate_hz": 48000,
+      "seconds": 1.3,
+      "sha256": "5fd8d674c96badc1707ea7d747e0b8ba7f2e506cdcb1f53a98e8ac9b86e66c67",
+      "target_k50_dbfs": -13.0,
+      "title": "Turret charge tell"
+    }
+  },
+  "date": "2026-10-02",
+  "finish": "single gain as recorded, pcm_s16le 48 kHz mono, -fflags +bitexact -flags:a +bitexact -map_metadata -1",
+  "k50": "maximum RMS over 50 ms windows of the mono sum after a 38 Hz high-pass and a +4 dB shelf at 1681 Hz",
+  "layer_chain": "aformat=sample_fmts=dbl:channel_layouts=mono,aresample=48000,atrim=start={start}:duration={seconds},asetpts=PTS-STARTPTS,afade=t=in:d=0.001,afade=t=out:st={seconds-0.02}:d=0.02[,{filter}],volume={gain}dB,adelay={delay}:all=1,apad",
+  "mix_chain": "amix=normalize=0, atrim to mix_seconds, highpass=f=28, afade out over fade_out_seconds, float intermediate",
+  "momentary": "EBU R128 momentary maximum (400 ms) after 0.4 s of padding",
+  "plan": "docs/plans/sound-pass-20261002.md",
+  "remastered": {
+    "fire_flechette": {
+      "channels": 2,
+      "file": "fire_flechette.wav",
+      "filter": "volume=-1.2dB, pcm_s16le, original rate and channels, bitexact",
+      "gain_db": -1.2,
+      "measured": {
+        "above_8khz_db": -4.4,
+        "first_100ms_rms_dbfs": -19.9,
+        "k50_dbfs": -12.8,
+        "momentary_max_lufs": -15.6,
+        "rms_dbfs": -22.6,
+        "true_peak_dbtp": -1.2
+      },
+      "previous_sha256": "be6089b81db5e961bf2c510c1132e4a6dec26cdb140d1dcee3095f418a840fea",
+      "reason": "true peak 0.0 dBTP",
+      "sample_rate_hz": 24000,
+      "seconds": 0.48,
+      "sha256": "3cb5ff7cb4fa89d84c49a2dae253ad9bd778465e434ecb572d966098abf6d90f"
+    },
+    "fire_rail": {
+      "channels": 2,
+      "file": "fire_rail.wav",
+      "filter": "volume=-9dB, pcm_s16le, original rate and channels, bitexact",
+      "gain_db": -9.0,
+      "measured": {
+        "above_8khz_db": -18.2,
+        "first_100ms_rms_dbfs": -14.5,
+        "k50_dbfs": -10.6,
+        "momentary_max_lufs": -12.0,
+        "rms_dbfs": -16.2,
+        "true_peak_dbtp": -7.8
+      },
+      "previous_sha256": "1b0498c7eb1ec62bd7906921a8d4f848363f3b8187fa7a5ea0a399698c4f308a",
+      "reason": "true peak +1.2 dBTP and 376 full-scale samples; 8.7 dB louder than the old Shotgun on K50",
+      "sample_rate_hz": 24000,
+      "seconds": 0.88,
+      "sha256": "72e66a213cde5ce0c1d5f44c2e8535f21fdf6bbf2663144ee32e7dcb5b667028"
+    },
+    "hit": {
+      "channels": 2,
+      "file": "hit.wav",
+      "filter": "volume=-5.6dB, pcm_s16le, original rate and channels, bitexact",
+      "gain_db": -5.6,
+      "measured": {
+        "above_8khz_db": -14.7,
+        "first_100ms_rms_dbfs": -18.5,
+        "k50_dbfs": -12.0,
+        "momentary_max_lufs": -20.3,
+        "rms_dbfs": -25.2,
+        "true_peak_dbtp": -5.1
+      },
+      "previous_sha256": "3a10db7d295e7725e2896bdd7023158f2e873cc4945be848bcc6295dced05896",
+      "reason": "true peak +0.5 dBTP; louder than every new gun impact",
+      "sample_rate_hz": 24000,
+      "seconds": 0.48,
+      "sha256": "7b460860fe3dd620808e47e0ed24e09d33a0c2d30e8e0db4bdc9ec60f67fb2be"
+    },
+    "hit_rail": {
+      "channels": 2,
+      "file": "hit_rail.wav",
+      "filter": "volume=-3.7dB, pcm_s16le, original rate and channels, bitexact",
+      "gain_db": -3.7,
+      "measured": {
+        "above_8khz_db": -39.7,
+        "first_100ms_rms_dbfs": -9.5,
+        "k50_dbfs": -11.0,
+        "momentary_max_lufs": -14.4,
+        "rms_dbfs": -14.3,
+        "true_peak_dbtp": -3.4
+      },
+      "previous_sha256": "63328d11746d33cff3fb6e4d11161f98a6e45014214130a21c327549197d9504",
+      "reason": "true peak +0.3 dBTP and 65 full-scale samples",
+      "sample_rate_hz": 24000,
+      "seconds": 0.6,
+      "sha256": "282121ce7276a13dc6e272bbe43b3d9940603310da1aa00e6da6bb5f246d62a4"
+    }
+  },
+  "replaced": {
+    "fire_scatter": {
+      "previous_measured": {
+        "above_8khz_db": -18.4,
+        "first_100ms_rms_dbfs": -13.2,
+        "k50_dbfs": -10.6,
+        "momentary_max_lufs": -19.2,
+        "rms_dbfs": -19.6,
+        "true_peak_dbtp": -1.9
+      },
+      "previous_sha256": "172c29686ef016dcdac042a06dab0691373d72e01756c23db58fc900dcb54bc0"
+    },
+    "hit_flechette": {
+      "previous_measured": {
+        "above_8khz_db": -24.2,
+        "first_100ms_rms_dbfs": -36.9,
+        "k50_dbfs": -32.3,
+        "momentary_max_lufs": -39.2,
+        "rms_dbfs": -43.5,
+        "true_peak_dbtp": -22.8
+      },
+      "previous_sha256": "7baa950858d88d9561c2ecd092d577093a844f91535c5d5f2a159b782bbf97d6"
+    },
+    "hit_scatter": {
+      "previous_measured": {
+        "above_8khz_db": -13.8,
+        "first_100ms_rms_dbfs": -22.7,
+        "k50_dbfs": -14.7,
+        "momentary_max_lufs": -23.8,
+        "rms_dbfs": -30.5,
+        "true_peak_dbtp": -2.4
+      },
+      "previous_sha256": "224bc5eac6518fbdaf37aa724d3d1b829603d2b0d7d9595e3dca7ebaf345445f"
+    }
+  },
+  "revision": 1,
+  "shotgun_sources": "client/art/audio/shotgun/ keeps the five raw layers byte for byte"
+}

@@ -1,6 +1,6 @@
 # Sound pass, 2026-10-02
 
-**Status:** in flight, 2026-10-02.
+**Status:** implemented, 2026-10-02; listening and in-game mix acceptance remain open.
 Supersedes the open candidate work in [audio-effects-refresh.md](audio-effects-refresh.md)
 and follows the [2026-10-01 Shotgun refresh](shotgun-sfx-refresh.md).
 
@@ -61,12 +61,107 @@ integrated pick.
 
 ## Results
 
-To be recorded.
+Two batches ran: `sound-pass-20261002-shotgun.json` (23 requests, 652
+estimated credits, `--max-credits 700`) and `sound-pass-20261002-effects.json`
+(52 requests, 2,088 estimated, `--max-credits 2200`). Both logs show no retry
+and every request wrote a file. Five reviewed 2026-09-19 pilot candidates
+(Fists swing, ammunition, health and armor pickups, dry trigger) were reused at
+no cost. Selection used the measurements above plus spectrograms for single
+versus repeated transients, click spacing, bandwidth and silent or tonal
+failures; four requests came back near silent and were rejected.
 
-## Handoff
+### Shotgun
 
-2026-10-02 19:02Z: both batches generated (75 requests, 2,740 estimated
-credits). Finals are installed under `client/assets/audio/`, the pawn and
-manager seams are wired and `test_combat_audio.gd` passes. Remaining:
-provenance manifest, README and plan results, full Godot check under the
-lock, PR. No further generation is planned.
+The blast mixes five layers: the shot from a shot-and-pump generation (crack
+and presence), a round low thump, the decay of a dense full shot, a separate
+crack and a quiet steel ring at 0.26 s. A tanh soft clip adds density, then one
+gain sets -1.05 dBTP. The pump is cut from the same shot-and-pump generation:
+two clacks 125 ms apart, starting 0.22 s after the blast and ending at 0.56 s,
+inside the 0.60 s cooldown. The first-person Shotgun has one frame and a
+0.10 s kick, so it shows no pump motion yet.
+
+| Cue | Rate | Length | True peak | K50 | Momentary max | First 100 ms RMS | Above 8 kHz |
+|---|---|---:|---:|---:|---:|---:|---:|
+| Old blast (2026-10-01) | 24 kHz mono | 0.46 s | -1.9 dBTP | -10.6 | -19.2 LUFS | -13.2 dBFS | -18.4 dB, none above 12 kHz |
+| New blast | 48 kHz mono | 0.55 s | -1.1 dBTP | -7.3 | -14.7 LUFS | -9.3 dBFS | -16.4 dB, content to 24 kHz |
+| New pump | 48 kHz mono | 0.34 s | -7.1 dBTP | -15.0 | -21.2 LUFS | -17.6 dBFS | -15.5 dB |
+
+In the first 150 ms, against the old cue at a similar peak, the new blast has
+about 8 dB more below 100 Hz, 6 dB more at 1.5 to 6 kHz and 6 dB more above
+8 kHz; 100 Hz to 1.5 kHz is only about 1 dB higher. K50 is the loudest 50 ms of the mono sum after a 38 Hz high-pass and a
++4 dB shelf at 1681 Hz.
+
+### Gun ladder
+
+Every gun plays through the same -4 dB spatial player, so file level is the mix.
+
+| Gun | Before K50 | After K50 | True peak after | Change |
+|---|---:|---:|---:|---|
+| Shotgun | -10.6 | -7.3 | -1.1 dBTP | rebuilt |
+| Sniper Rifle (Level 7) | | -9.0 | -1.3 dBTP | new |
+| Railgun | -1.6, +1.2 dBTP | -10.6 | -7.8 dBTP | -9.0 dB |
+| Pistol | -23.6 (shared fallback) | -12.0 | -2.0 dBTP | new `fire_tack.wav` |
+| Rifle | -11.6 | -12.8 | -1.2 dBTP | -1.2 dB |
+
+### Ranked audit
+
+Frequency of hearing times weakness, highest first. Built rows use existing
+authoritative facts only.
+
+| Effect | Before | Now |
+|---|---|---|
+| Shotgun blast and pump | thin, band-limited, 9 dB under the Railgun | layered blast, pump inside cooldown |
+| Pistol fire (also every Clerk shot) | shared fallback at -34.7 LUFS | own cue, -12.0 K50 |
+| Gun loudness | Railgun clipping and 16 LU over the Shotgun | ladder above |
+| Gun impacts | per-weapon files loaded but never played; Rifle impact near silent | resolved-shot weapon, once per struck body |
+| Union windup tells | silent except the Notary fan pitch | Clerk, Sweeper, Heavy Sweeper, Turret on `windup`, cut when it ends; Turret charge follows the actual windup |
+| Deaths | silent in the campaign | body or machine fall on the drop to zero health |
+| Melee swings | silent | Fists and Shiv, never a Crawler leap |
+| Pickups | silent | weapon, ammunition, Cells, health, armor for the watched fighter |
+| Dry trigger | visual only | owner cue on a growing `dry_fire_count` |
+| Grenade throw | silent | cue when a body first appears after sync |
+| Footsteps, landing, jump | silent | open: needs surface lookup and better candidates (the three sequence requests returned one or two steps) |
+| Player pain voice | generic hit only | open by choice: no voice work this pass |
+| Lifts, tram, gates, objectives, menu | silent except M02 ward | open |
+
+### Level 7 assets (not wired)
+
+| File | Use | Source |
+|---|---|---|
+| `client/assets/audio/fire_sniper.wav` | Sniper Rifle fire, dry supersonic crack | `l07/sniper_fire_a` |
+| `client/assets/audio/sniper/scope_in.wav` | Scope in | `l07/scope_in_a` |
+| `client/assets/audio/sniper/scope_out.wav` | Scope out | `l07/scope_out_c` |
+| `client/assets/audio/ranged_sweeper/tell.wav` | Glint, then a held targeting tone, 1.18 s | `l07/ranged_tell_d` and `l07/ranged_tell_b` |
+| `client/assets/audio/ranged_sweeper/fire.wav` | Ranged Sweeper shot | `l07/ranged_shot_b` |
+| `client/assets/audio/l07/curfew_chime.wav` | Four descending tones, 2.9 s | `l07/curfew_chime_b` |
+
+Wiring: `player_pawn.gd` already loads `<kind>/tell.wav` for every
+`ActorState.KINDS` entry and stretches `ranged_sweeper` like the Turret, so
+adding the kind plays the tell on its windup and cuts it when the windup ends.
+A Sniper weapon named `Sniper` picks up `fire_sniper.wav` once it is added to
+the pawn's weapon list. The Ranged Sweeper shot needs one line choosing
+`ranged_sweeper/fire.wav` for that kind.
+
+### Verification
+
+`test_combat_audio.gd` covers cue formats and lengths, the pump timing against
+12 ticks, cancellation on weapon switch or death, melee routing, per-weapon
+impacts, tells with repeat and cancel, falls, pickups through the real event
+handler and dry-trigger counting. `test_grenade_effects.gd` adds the throw.
+Provenance for every cue is in `client/assets/audio/sound-pass-20261002.json`;
+the audition page is local scratch in `.agents/audition/index.html`.
+
+### Spend
+
+Included credits only, $0 cash. This track submitted 75 requests estimated at
+2,740 credits (40 per second); the conservative four-attempt ceiling was 10,960.
+The shared account moved from 837,582 to 840,976 used across both batches
+(3,394, an upper bound that includes any other use of the account) and to
+860,681 by 19:02Z with no requests from this track.
+
+## Open
+
+Listening and in-game mix acceptance. Viewmodel pump frames. Footsteps and
+landing with surface lookup. Lifts, gates, objective and menu cues. The import
+preset keeps the existing QOA compression for consistency; a listening pass
+should confirm the Shotgun crack survives it.

@@ -97,7 +97,7 @@ Names are lowercase with `_`, `-`, and `/` for folders, no extension. They shoul
 
 ## Formats and tiers
 
-- Sound effects default to `pcm_24000`, available on every paid tier. `pcm_44100` needs a higher tier. MP3 is available everywhere.
+- Sound effects default to `pcm_24000`, available on every paid tier. `pcm_44100` and `pcm_48000` need Pro or higher (checked 2026-10-02); 24 kHz cannot carry anything above 12 kHz, so full-band effects such as gunshots should request `pcm_48000`. MP3 is available everywhere.
 - Music defaults to `mp3_44100_128`. Higher bitrates exist on higher tiers.
 - The API does not document the channel count of PCM output. Measured on 2026-09-18 it is stereo, and the MP3 variant carries a stereo frame header. When you pass `--seconds`, the tool infers mono or stereo from the byte count and records it in the manifest. Without a duration, mono is assumed, so pass `--seconds` for effects.
 - Sound effects run 0.5 to 30 seconds. Music runs 3 seconds to 10 minutes. `--loop` asks for a seamless loop on sound effects.

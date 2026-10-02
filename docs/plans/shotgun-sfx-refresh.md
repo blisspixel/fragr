@@ -1,6 +1,6 @@
 # Shotgun sound refresh
 
-**Status:** shipped in [PR #317](https://github.com/blisspixel/fragr/pull/317), 2026-10-02. The compact existing-path Shotgun cue is integrated; subjective listening remains open.
+**Status:** superseded by [sound-pass-20261002.md](sound-pass-20261002.md), which replaced this cue with a layered 48 kHz blast and a pump cycle. Shipped in [PR #317](https://github.com/blisspixel/fragr/pull/317).
 Parent integration: [M06 Port of Entry](m06-port-of-entry-prototype.md).
 
 Merged in [PR #317](https://github.com/blisspixel/fragr/pull/317), with passing

@@ -1,7 +1,7 @@
 # Sound effects refresh
 
-**Status:** first candidate batch in progress, 2026-09-19. Existing effects remain
-live. This is asset production and evaluation, not a claim of finished game audio.
+**Status:** superseded by [sound-pass-20261002.md](sound-pass-20261002.md), which
+promoted reviewed 2026-09-19 pickup, swing and dry-trigger candidates.
 
 ## Objective and scope
 

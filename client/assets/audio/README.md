@@ -39,9 +39,19 @@ request, asset charge or weapon-gunshot substitution.
 
 | File | Used for |
 |---|---|
-| `fire.wav`, `hit.wav` | Fallback weapon fire and hit confirm |
-| `fire_flechette.wav`, `fire_rail.wav`, `fire_scatter.wav` | Per-weapon fire |
-| `hit_flechette.wav`, `hit_rail.wav`, `hit_scatter.wav` | Per-weapon hit |
+| `fire.wav`, `hit.wav` | Fallback weapon fire and the generic hit (health drops without a resolved shot) |
+| `fire_tack.wav`, `fire_flechette.wav`, `fire_rail.wav`, `fire_scatter.wav` | Per-weapon fire |
+| `shotgun/cycle.wav` | Shotgun pump cycle, 0.22 s after each blast, inside the 0.60 s cooldown |
+| `hit_tack.wav`, `hit_flechette.wav`, `hit_rail.wav`, `hit_scatter.wav` | Impact of the gun a resolved shot names, once per struck body |
+| `melee/fists.wav`, `melee/shiv.wav` | Melee swings (never a Crawler's leap contact) |
+| `clerk/tell.wav`, `sweeper/tell.wav`, `heavy_sweeper/tell.wav`, `turret/tell.wav` | Union windup tells, `<kind>/tell.wav`, cut off when the windup ends |
+| `down/body.wav`, `down/robot.wav` | Authoritative fall to zero health; the Notary keeps its crash |
+| `pickup/weapon.wav`, `ammo.wav`, `cells.wav`, `health.wav`, `armor.wav` | The watched fighter's pickups |
+| `dry_fire.wav` | The owner's dry trigger |
+| `grenade/throw.wav` | A grenade first seen in flight |
+| `fire_sniper.wav`, `sniper/scope_in.wav`, `sniper/scope_out.wav` | Level 7 Sniper Rifle, not wired yet |
+| `ranged_sweeper/tell.wav`, `ranged_sweeper/fire.wav` | Level 7 Ranged Sweeper, not wired yet; the tell loads once the kind exists |
+| `l07/curfew_chime.wav` | Level 7 curfew chime, not wired yet |
 | `frag.wav` | Elimination stinger |
 | `round_start.wav`, `round_end.wav` | Round cues |
 | `crawler_scrabble.wav` | Spatial M02 Crawler warning cue |
@@ -52,16 +62,18 @@ request, asset charge or weapon-gunshot substitution.
 | `m02/floor_machinery_loop.wav` | Processing-floor spatial machinery bed |
 | `radio/<station>/` | Contested Frequency radio tracks, grouped by station id; `radio/stations.json` names the stations |
 
-Loading paths: `client/scripts/player_pawn.gd` (per-weapon fire and hit), `client/scripts/game_manager.gd` (frag, round and Crawler cues), `client/scripts/m02_ward.gd` (ward and processing-floor cues), `client/scripts/radio.gd` (radio tracks, discovered through the manifest, never by directory listing). Import presets: keep WAV as samples, MP3 as streams, loop flags off unless the manifest marks a file as looping.
+Loading paths: `client/scripts/player_pawn.gd` (per-weapon fire and hit, pump, melee, tells and falls), `client/scripts/game_manager.gd` (frag, round, Crawler, pickup and dry-trigger cues, and resolved-shot impacts), `client/scripts/grenade_effects.gd` (throw, bounce and blast), `client/scripts/m02_ward.gd` (ward and processing-floor cues), `client/scripts/radio.gd` (radio tracks, discovered through the manifest, never by directory listing). Import presets: keep WAV as samples, MP3 as streams, loop flags off unless the manifest marks a file as looping.
 
-The Shotgun discharge was refreshed on 2026-10-01 through the same
-`fire_scatter.wav` cue. Its retained source is `shotgun/fire_source.wav`;
-`shotgun/refresh-manifest.json` records the selected request, source/output
-hashes, mono preparation, fixed gain, short fade and measured levels. The
-committed fallback is a nonlooping mono 24 kHz PCM sample. Regeneration and
-comparison evidence live in [the bounded refresh plan](../../../docs/plans/shotgun-sfx-refresh.md).
-The cue contains one discharge and adds no reload action. Final listening and
-spatial mix acceptance remain separate from decoded playback checks.
+The 2026-10-02 [sound pass](../../../docs/plans/sound-pass-20261002.md)
+rebuilt the Shotgun from five full-band 48 kHz layers and added the pump cycle,
+the cues listed above and the Level 7 set. New cues are mono 48 kHz 16-bit PCM
+one-shots at or below -1 dBTP. `sound-pass-20261002.json` records every layer
+(request, spec, source hash, trim, gain, delay, filter), the mix and finish
+chains, the target and measured levels and the output hash. The Railgun, Rifle,
+Railgun impact and generic hit were only turned down; their previous hashes are
+recorded there. The raw Shotgun layers are kept byte for byte, outside the
+import, in `client/art/audio/shotgun/`. Listening and in-game mix acceptance
+remain separate from these measurements.
 
 Radio controls in the match: C next station, N next track, M radio on or off
 (D-pad up, down, left on a gamepad). Ammunition is one count per type, with no
@@ -69,7 +81,5 @@ magazines or reload action.
 Every switch shows a station card above the track toast. Radio ducks under Host
 lines and sits lower while playing; LOCK IN never ducks for combat.
 
-M01 currently uses the existing fallback shot/hit for Tack. Dedicated Tack,
-melee, reload and dry-trigger candidates remain unapproved under
-[`audio-effects-refresh.md`](../../../docs/plans/audio-effects-refresh.md).
-Visual weapon feedback is implemented; dedicated audio is not yet polished.
+Footsteps, landing, lifts, gates, objective and menu cues are not built yet;
+the sound pass plan ranks them.
