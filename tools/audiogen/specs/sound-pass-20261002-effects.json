@@ -1,0 +1,473 @@
+{
+  "out_dir": ".agents/sound-pass-20261002/raw/effects",
+  "items": [
+    {
+      "kind": "sfx",
+      "name": "shotgun/full_c",
+      "prompt": "One heavy compact shotgun blast. Huge tight chesty punch, coarse gritty crack with a bright full-bandwidth edge, short falling debris tail. Exactly one discharge. No pump action, no reload, no explosion rumble. Isolated game sound effect, dry close sound, silence around the event, no music, no background ambience.",
+      "seconds": 0.8,
+      "influence": 0.65,
+      "format": "pcm_48000",
+      "title": "Shotgun full shot C"
+    },
+    {
+      "kind": "sfx",
+      "name": "shotgun/full_d",
+      "prompt": "One loud punchy shotgun shot for a retro arcade shooter: a bright crisp crack on top of a thick saturated midrange boom, very dense and immediate, gone in under half a second. One shot only. No pump action, no reload, no echo, no voice, no music.",
+      "seconds": 0.8,
+      "influence": 0.65,
+      "format": "pcm_48000",
+      "title": "Shotgun full shot D"
+    },
+    {
+      "kind": "sfx",
+      "name": "shotgun/tail_d",
+      "prompt": "Only the brief metallic aftermath inside a heavy steel shotgun receiver right after firing: a tight high steel ring and a tiny rattle of the action, very short, starting immediately and quiet. No gunshot, no pump action, no reload, no voice, no music.",
+      "seconds": 0.5,
+      "influence": 0.7,
+      "format": "pcm_48000",
+      "title": "Shotgun steel tail D"
+    },
+    {
+      "kind": "sfx",
+      "name": "shotgun/pump_f",
+      "prompt": "Pump shotgun action cycled once by a strong hand: the slide slammed back with a hard metallic clack, then a sixth of a second later slammed forward with a deeper locking clack. Exactly two clacks, close and dry, chk-chk. No gunshot, no shell loading, no reload, no voice, no music.",
+      "seconds": 0.5,
+      "influence": 0.8,
+      "format": "pcm_48000",
+      "title": "Shotgun pump cycle F"
+    },
+    {
+      "kind": "sfx",
+      "name": "shotgun/pump_g",
+      "prompt": "Exactly two loud mechanical clacks of a pump shotgun fore-end, back then forward, about 150 milliseconds apart, heavy steel and wood, punchy and readable like a classic arcade shooter. No gunshot, no shells, no reload, no voice, no music.",
+      "seconds": 0.5,
+      "influence": 0.8,
+      "format": "pcm_48000",
+      "title": "Shotgun pump cycle G"
+    },
+    {
+      "kind": "sfx",
+      "name": "tack/fire_a",
+      "prompt": "One compact service pistol shot: a sharp punchy crack with a tight low-mid pop and a tiny slide clack, close and dry, short. One shot only. No reload, no echo tail, no ricochet, no voice, no music.",
+      "seconds": 0.6,
+      "influence": 0.7,
+      "format": "pcm_48000",
+      "title": "Pistol shot A"
+    },
+    {
+      "kind": "sfx",
+      "name": "tack/fire_b",
+      "prompt": "Single semi-automatic pistol shot for a retro shooter, bright snappy report with a little punch, crisp and readable, fast decay, the slide cycling with a small metallic click at the end. One shot. No reload, no voice, no music.",
+      "seconds": 0.6,
+      "influence": 0.6,
+      "format": "pcm_48000",
+      "title": "Pistol shot B"
+    },
+    {
+      "kind": "sfx",
+      "name": "tack/fire_c",
+      "prompt": "One small handgun firing indoors at close range, a hard dry pop and crack with a short tight room slap, light recoil clack. One shot only. No reload, no second shot, no voice, no music.",
+      "seconds": 0.6,
+      "influence": 0.6,
+      "format": "pcm_48000",
+      "title": "Pistol shot C"
+    },
+    {
+      "kind": "sfx",
+      "name": "impact/bullet_body_a",
+      "prompt": "One rifle bullet striking a person in a padded armored vest: a short hard thwack with a dull fabric thud and a tiny grit crackle, very short and readable. No gunshot, no voice, no scream, no gore, no music, dry.",
+      "seconds": 0.5,
+      "influence": 0.7,
+      "format": "pcm_48000",
+      "title": "Bullet impact A"
+    },
+    {
+      "kind": "sfx",
+      "name": "impact/bullet_body_b",
+      "prompt": "A small caliber round hitting a body armor plate: a quick sharp tock with a punchy low thump under it, clean and short game hit sound. No gunshot, no ricochet whine, no voice, no music, dry.",
+      "seconds": 0.5,
+      "influence": 0.7,
+      "format": "pcm_48000",
+      "title": "Bullet impact B"
+    },
+    {
+      "kind": "sfx",
+      "name": "impact/bullet_body_c",
+      "prompt": "Needle rifle round punching into a security robot torso: a sharp metallic tink and a dull sheet-metal thud, tiny spark crackle, very short. No gunshot, no voice, no music, dry.",
+      "seconds": 0.5,
+      "influence": 0.7,
+      "format": "pcm_48000",
+      "title": "Bullet impact C"
+    },
+    {
+      "kind": "sfx",
+      "name": "tells/clerk_raise_a",
+      "prompt": "A security officer snapping a pistol up to aim: a quick leather and gear rustle and one sharp metallic hammer cock click, short and readable warning. No gunshot, no voice, no music.",
+      "seconds": 0.5,
+      "influence": 0.7,
+      "format": "pcm_48000",
+      "title": "Clerk aim raise A"
+    },
+    {
+      "kind": "sfx",
+      "name": "tells/clerk_raise_b",
+      "prompt": "A handgun being raised fast and its safety flicked off, small crisp metal click with a short cloth swish before it, close perspective, clearly a warning that a shot is coming. No gunshot, no voice, no music.",
+      "seconds": 0.5,
+      "influence": 0.7,
+      "format": "pcm_48000",
+      "title": "Clerk aim raise B"
+    },
+    {
+      "kind": "sfx",
+      "name": "tells/sweeper_cycle_a",
+      "prompt": "A bipedal security robot spinning up its rifle for a burst: a short ascending servo whir and a hard mechanical clack-clack as the action cycles, readable machine warning. No gunshot, no voice, no siren, no music.",
+      "seconds": 0.7,
+      "influence": 0.7,
+      "format": "pcm_48000",
+      "title": "Sweeper burst cycle A"
+    },
+    {
+      "kind": "sfx",
+      "name": "tells/sweeper_cycle_b",
+      "prompt": "Industrial robot arm locking a weapon into firing position: a quick whine of electric motors rising in pitch, then a heavy latch clunk, mechanical and threatening. No gunshot, no voice, no siren, no music.",
+      "seconds": 0.7,
+      "influence": 0.7,
+      "format": "pcm_48000",
+      "title": "Sweeper burst cycle B"
+    },
+    {
+      "kind": "sfx",
+      "name": "tells/heavy_flare_a",
+      "prompt": "A heavy armored robot preparing to fire: hydraulic shoulder plates hiss and clank open, a deep warning hum rising underneath, two electric lamps buzzing on, heavy and threatening, about one second. No gunshot, no voice, no siren, no music.",
+      "seconds": 1.2,
+      "influence": 0.7,
+      "format": "pcm_48000",
+      "title": "Heavy Sweeper flare A"
+    },
+    {
+      "kind": "sfx",
+      "name": "tells/heavy_flare_b",
+      "prompt": "Big war machine bracing to shoot: a loud pneumatic hiss, heavy steel plates locking open with a clang, and a low grinding motor building tension. Readable warning, no gunshot, no voice, no siren, no music.",
+      "seconds": 1.2,
+      "influence": 0.65,
+      "format": "pcm_48000",
+      "title": "Heavy Sweeper flare B"
+    },
+    {
+      "kind": "sfx",
+      "name": "tells/turret_charge_a",
+      "prompt": "An automated rail turret charging a shot: an electric capacitor whine rising steadily in pitch for one second with small crackling arcs, tense and clearly building, ending at its peak. No discharge, no gunshot, no voice, no music.",
+      "seconds": 1.4,
+      "influence": 0.75,
+      "format": "pcm_48000",
+      "title": "Turret charge A"
+    },
+    {
+      "kind": "sfx",
+      "name": "tells/turret_charge_b",
+      "prompt": "Mechanical sentry gun powering up its coil weapon: a low hum swelling into a rising electric whine with a pulsing buzz, building tension over a second and stopping abruptly. No shot, no voice, no siren, no music.",
+      "seconds": 1.4,
+      "influence": 0.7,
+      "format": "pcm_48000",
+      "title": "Turret charge B"
+    },
+    {
+      "kind": "sfx",
+      "name": "melee/shiv_swing_a",
+      "prompt": "One fast knife slash through the air close to the microphone: a thin sharp whoosh with a tiny blade whistle, very short. No impact, no voice, no music, dry.",
+      "seconds": 0.5,
+      "influence": 0.7,
+      "format": "pcm_48000",
+      "title": "Shiv swing A"
+    },
+    {
+      "kind": "sfx",
+      "name": "melee/shiv_swing_b",
+      "prompt": "A quick stabbing motion with a short combat knife, sleeve swish and a crisp air cut, tight and fast. No impact, no voice, no music, dry.",
+      "seconds": 0.5,
+      "influence": 0.6,
+      "format": "pcm_48000",
+      "title": "Shiv swing B"
+    },
+    {
+      "kind": "sfx",
+      "name": "pickup/cells_a",
+      "prompt": "A heavy charged power cell snapped into a carrier: a solid plastic and metal clack with a brief soft electric hum swelling and settling, satisfying game pickup. No musical notes, no voice, dry.",
+      "seconds": 0.5,
+      "influence": 0.7,
+      "format": "pcm_48000",
+      "title": "Cells pickup A"
+    },
+    {
+      "kind": "sfx",
+      "name": "pickup/cells_b",
+      "prompt": "Picking up a dense battery pack: a firm metallic click and a quick rising electrical zip, short and bright, satisfying retro game pickup. No melody, no voice, no music.",
+      "seconds": 0.5,
+      "influence": 0.65,
+      "format": "pcm_48000",
+      "title": "Cells pickup B"
+    },
+    {
+      "kind": "sfx",
+      "name": "pickup/weapon_a",
+      "prompt": "Grabbing a heavy firearm off a rack and racking it once ready: a solid metal clatter and a decisive chunky mechanical clack, satisfying game weapon pickup, short. No gunshot, no voice, no music.",
+      "seconds": 0.6,
+      "influence": 0.7,
+      "format": "pcm_48000",
+      "title": "Weapon pickup A"
+    },
+    {
+      "kind": "sfx",
+      "name": "death/robot_a",
+      "prompt": "A security robot destroyed: a short burst of electrical sparks and a servo whine dying, then a heavy metal chassis collapsing onto a concrete floor with a clatter. No explosion, no voice, no music.",
+      "seconds": 1.0,
+      "influence": 0.7,
+      "format": "pcm_48000",
+      "title": "Robot down A"
+    },
+    {
+      "kind": "sfx",
+      "name": "death/robot_b",
+      "prompt": "Mechanical guard machine shutting down after being shot: a sharp electric crackle, a descending power-down whir and a heavy steel thud with loose parts rattling. No explosion, no voice, no music.",
+      "seconds": 1.0,
+      "influence": 0.7,
+      "format": "pcm_48000",
+      "title": "Robot down B"
+    },
+    {
+      "kind": "sfx",
+      "name": "death/body_a",
+      "prompt": "A person in light body armor collapsing onto a concrete floor: a heavy body thud and a clatter of equipment and a dropped pistol, short. No voice, no scream, no gore, no music.",
+      "seconds": 0.8,
+      "influence": 0.7,
+      "format": "pcm_48000",
+      "title": "Body down A"
+    },
+    {
+      "kind": "sfx",
+      "name": "death/body_b",
+      "prompt": "Armored body falling to the ground: knees then torso hitting the floor in a dense double thud, with gear and buckles rattling, close and dry. No voice, no gore, no music.",
+      "seconds": 0.8,
+      "influence": 0.65,
+      "format": "pcm_48000",
+      "title": "Body down B"
+    },
+    {
+      "kind": "sfx",
+      "name": "grenade/throw_a",
+      "prompt": "A small heavy grenade thrown hard overhand: a quick sleeve and air whoosh with a faint metallic spoon ping as it leaves the hand, short. No explosion, no bounce, no voice, no music.",
+      "seconds": 0.5,
+      "influence": 0.7,
+      "format": "pcm_48000",
+      "title": "Grenade throw A"
+    },
+    {
+      "kind": "sfx",
+      "name": "steps/concrete_seq",
+      "prompt": "Four separate single heavy boot footsteps on hard concrete, evenly spaced and well apart, each a compact heel-toe thud with a little grit, steady walking pace, close and dry. No voice, no music, no ambience.",
+      "seconds": 2.0,
+      "influence": 0.7,
+      "format": "pcm_48000",
+      "title": "Concrete footsteps"
+    },
+    {
+      "kind": "sfx",
+      "name": "steps/steel_seq",
+      "prompt": "Four separate single heavy boot footsteps on a steel deck plate and grating, evenly spaced and well apart, each a dull metallic clonk with a short hollow resonance, steady walking pace, close and dry. No voice, no music, no ambience.",
+      "seconds": 2.0,
+      "influence": 0.7,
+      "format": "pcm_48000",
+      "title": "Steel footsteps"
+    },
+    {
+      "kind": "sfx",
+      "name": "steps/tile_seq",
+      "prompt": "Four separate single boot footsteps on hard ceramic floor tiles in an office corridor, evenly spaced and well apart, each a crisp click-thud, steady walking pace, close and dry. No voice, no music, no ambience.",
+      "seconds": 2.0,
+      "influence": 0.7,
+      "format": "pcm_48000",
+      "title": "Tile footsteps"
+    },
+    {
+      "kind": "sfx",
+      "name": "l07/sniper_fire_a",
+      "prompt": "One high-powered bolt-action sniper rifle shot: an extremely sharp supersonic crack that splits the air, a hard tight muzzle report and a dry ballistic snap rolling away. Purely chemical and mechanical, no electric hum, no energy zap, no laser. No bolt cycling, no reload, no voice, no music.",
+      "seconds": 1.2,
+      "influence": 0.7,
+      "format": "pcm_48000",
+      "title": "Sniper Rifle shot A"
+    },
+    {
+      "kind": "sfx",
+      "name": "l07/sniper_fire_b",
+      "prompt": "A large caliber precision rifle fired in a huge enclosed dome hall: a violent supersonic crack, a deep punch under it and a long crisp reflection decaying off hard distant walls. Ballistic powder gunshot, not electric. One shot. No reload, no voice, no music.",
+      "seconds": 1.2,
+      "influence": 0.7,
+      "format": "pcm_48000",
+      "title": "Sniper Rifle shot B"
+    },
+    {
+      "kind": "sfx",
+      "name": "l07/sniper_fire_c",
+      "prompt": "Heavy anti-materiel rifle shot, close: a whip-like supersonic crack, a thunderous punch and a metallic muzzle brake blast, then a short rumbling tail. Gunpowder weapon only, no electrical sound, no laser. One shot, no bolt, no reload, no voice, no music.",
+      "seconds": 1.2,
+      "influence": 0.65,
+      "format": "pcm_48000",
+      "title": "Sniper Rifle shot C"
+    },
+    {
+      "kind": "sfx",
+      "name": "l07/sniper_fire_d",
+      "prompt": "Sniper rifle gunshot, sharp loud supersonic crack and boom, crisp and powerful, short outdoor echo. One shot. No reload, no voice, no music.",
+      "seconds": 1.2,
+      "influence": 0.5,
+      "format": "pcm_48000",
+      "title": "Sniper Rifle shot D"
+    },
+    {
+      "kind": "sfx",
+      "name": "l07/scope_in_a",
+      "prompt": "A rifle scope raised to the eye: a quick soft lens ring rotation click and a light metallic slide, small and precise, then a faint settle. Close and dry. No gunshot, no electronic beep, no voice, no music.",
+      "seconds": 0.5,
+      "influence": 0.7,
+      "format": "pcm_48000",
+      "title": "Scope in A"
+    },
+    {
+      "kind": "sfx",
+      "name": "l07/scope_in_b",
+      "prompt": "Optical sight zooming in: a short smooth mechanical zoom whirr rising slightly and ending with a tiny crisp click, close and quiet. No gunshot, no voice, no music.",
+      "seconds": 0.5,
+      "influence": 0.7,
+      "format": "pcm_48000",
+      "title": "Scope in B"
+    },
+    {
+      "kind": "sfx",
+      "name": "l07/scope_in_c",
+      "prompt": "Shouldering a heavy rifle to look through its scope: a short leather and cloth shift, the stock pressing against a shoulder, a soft metal tick of the optic. Close, quiet and quick. No gunshot, no voice, no music.",
+      "seconds": 0.5,
+      "influence": 0.65,
+      "format": "pcm_48000",
+      "title": "Scope in C"
+    },
+    {
+      "kind": "sfx",
+      "name": "l07/scope_out_a",
+      "prompt": "Lowering a rifle away from its scope: a quick soft cloth and metal shift with one small light click, shorter and lighter than raising it. Close and dry. No gunshot, no voice, no music.",
+      "seconds": 0.5,
+      "influence": 0.7,
+      "format": "pcm_48000",
+      "title": "Scope out A"
+    },
+    {
+      "kind": "sfx",
+      "name": "l07/scope_out_b",
+      "prompt": "Optical sight zooming back out: a short smooth mechanical zoom whirr falling slightly in pitch and ending with a soft click, close and quiet. No gunshot, no voice, no music.",
+      "seconds": 0.5,
+      "influence": 0.7,
+      "format": "pcm_48000",
+      "title": "Scope out B"
+    },
+    {
+      "kind": "sfx",
+      "name": "l07/scope_out_c",
+      "prompt": "Bringing a heavy rifle down from the shoulder: a brief leather and cloth swish and a dull metal tap, quick and quiet. No gunshot, no voice, no music.",
+      "seconds": 0.5,
+      "influence": 0.65,
+      "format": "pcm_48000",
+      "title": "Scope out C"
+    },
+    {
+      "kind": "sfx",
+      "name": "l07/ranged_tell_a",
+      "prompt": "A sentry robot locking its precision rifle onto a target: one bright glassy optical glint ping, then a thin steady electronic targeting tone that holds and slowly tightens, a readable warning, cutting off as if about to fire. No gunshot, no voice, no siren, no music.",
+      "seconds": 1.5,
+      "influence": 0.75,
+      "format": "pcm_48000",
+      "title": "Ranged Sweeper tell A"
+    },
+    {
+      "kind": "sfx",
+      "name": "l07/ranged_tell_b",
+      "prompt": "Robot sniper taking aim: a sharp servo lock clack, a short glittering lens ping, then a high quiet sustained aiming whine with a slow pulse that keeps holding tension. No gunshot, no voice, no siren, no music.",
+      "seconds": 1.5,
+      "influence": 0.7,
+      "format": "pcm_48000",
+      "title": "Ranged Sweeper tell B"
+    },
+    {
+      "kind": "sfx",
+      "name": "l07/ranged_tell_c",
+      "prompt": "Targeting optic glint and lock-on: a crystalline metallic ping followed by a soft rising electronic hum that steadies and holds, clean and readable machine warning that a long-range shot is coming. No shot, no voice, no siren, no music.",
+      "seconds": 1.5,
+      "influence": 0.65,
+      "format": "pcm_48000",
+      "title": "Ranged Sweeper tell C"
+    },
+    {
+      "kind": "sfx",
+      "name": "l07/ranged_tell_d",
+      "prompt": "Precision rifle robot holding aim: a quick bright glint chime, then three slow quiet electronic ticks getting closer together, tense and readable, ending as the shot would fire. No gunshot, no voice, no siren, no music.",
+      "seconds": 1.5,
+      "influence": 0.7,
+      "format": "pcm_48000",
+      "title": "Ranged Sweeper tell D"
+    },
+    {
+      "kind": "sfx",
+      "name": "l07/ranged_shot_a",
+      "prompt": "A robot precision rifle firing one round from far away across a crater: a sharp hard crack with a heavy mechanical recoil clank of a machine body and a cold metallic ring, dry. One shot only. No electric zap, no laser, no voice, no music.",
+      "seconds": 0.9,
+      "influence": 0.7,
+      "format": "pcm_48000",
+      "title": "Ranged Sweeper shot A"
+    },
+    {
+      "kind": "sfx",
+      "name": "l07/ranged_shot_b",
+      "prompt": "A machine-mounted long rifle shot: a tight piercing crack, a hydraulic recoil thump and a servo settling hiss after it, precise and mechanical. One shot. No electricity, no voice, no music.",
+      "seconds": 0.9,
+      "influence": 0.7,
+      "format": "pcm_48000",
+      "title": "Ranged Sweeper shot B"
+    },
+    {
+      "kind": "sfx",
+      "name": "l07/ranged_shot_c",
+      "prompt": "One suppressed heavy rifle shot from a security robot: a dense muffled crack with a sharp metallic snap and a brief clanking action, compact and dangerous. One shot. No voice, no music.",
+      "seconds": 0.9,
+      "influence": 0.6,
+      "format": "pcm_48000",
+      "title": "Ranged Sweeper shot C"
+    },
+    {
+      "kind": "sfx",
+      "name": "l07/curfew_chime_a",
+      "prompt": "A public address curfew chime under a large enclosed pressure dome over a silent town: three descending clean bell tones, institutional and cold, slightly ominous, with a natural hall reverb fading out. No voice, no melody beyond the three tones, no siren, no music.",
+      "seconds": 3.0,
+      "influence": 0.75,
+      "format": "pcm_48000",
+      "title": "Curfew chime A"
+    },
+    {
+      "kind": "sfx",
+      "name": "l07/curfew_chime_b",
+      "prompt": "An official announcement chime from old loudspeakers in a big empty domed hall: two slow descending electronic bell tones, a minor third apart, with a soft loudspeaker click before and after, cold and bureaucratic. No voice, no siren, no music.",
+      "seconds": 3.0,
+      "influence": 0.75,
+      "format": "pcm_48000",
+      "title": "Curfew chime B"
+    },
+    {
+      "kind": "sfx",
+      "name": "l07/curfew_chime_c",
+      "prompt": "Curfew signal over a town at night inside a sealed dome: a deep metallic gong-like tone struck twice, slow and heavy, with a long fading reflection. Cold, authoritarian, restrained. No voice, no siren, no music.",
+      "seconds": 3.0,
+      "influence": 0.7,
+      "format": "pcm_48000",
+      "title": "Curfew chime C"
+    }
+  ]
+}

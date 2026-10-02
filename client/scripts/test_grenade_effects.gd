@@ -31,7 +31,8 @@ func _run() -> void:
 	var presenter: GrenadeEffects = GrenadeEffects.new()
 	root.add_child(presenter)
 	presenter.apply(_live(1, 2), Vector3.ZERO)
-	_check(presenter.bodies.size() == 1 and presenter.bounce_cues == 0, "late-join contacts do not replay")
+	_check(presenter.bodies.size() == 1 and presenter.bounce_cues == 0 and presenter.throw_cues == 0,
+		"late-join contacts and bodies already in flight do not replay")
 	presenter.apply(_live(2, 2), Vector3.ZERO)
 	_check(presenter.bounce_cues == 0, "ordinary authoritative motion never invents a bounce")
 	presenter.apply(_live(3, 3), Vector3.ZERO)
@@ -39,6 +40,14 @@ func _run() -> void:
 	presenter.apply(_live(3, 4), Vector3.ZERO)
 	presenter.apply(_live(2, 4), Vector3.ZERO)
 	_check(presenter.bounce_cues == 1, "duplicate and stale snapshots cannot replay audio")
+	var thrown: Dictionary = _live(4, 4)
+	thrown["grenades"].append({"id": 2, "owner_id": OWNER, "position": [1, 1.4, 0], "fuse_ticks": 40, "bounce_count": 0})
+	presenter.apply(thrown, Vector3.ZERO)
+	presenter.apply(thrown, Vector3.ZERO)
+	_check(presenter.throw_cues == 1 and presenter.bounce_cues == 1,
+		"a body first seen after synchronization cues one throw, and only once")
+	_check(GrenadeEffects.THROW.get_length() > 0.1 and GrenadeEffects.THROW.get_length() < 0.6,
+		"the throw cue is short enough to finish before the first contact")
 	presenter.apply(_blast(20), Vector3.ZERO)
 	_check(presenter.bodies.is_empty() and presenter.bursts.size() == 1 and presenter.blast_cues == 1, "resolved explosion removes live body and shows one actual blast")
 	presenter.apply(_blast(21), Vector3.ZERO)

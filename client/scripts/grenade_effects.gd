@@ -17,6 +17,7 @@ const MINE_RIM: Color = Color("6b6f72")
 const LAMP_ARMING: Color = Color("efb56e")
 const LAMP_LIVE: Color = Color("ff3020")
 const LAMP_DARK: Color = Color("3a1612")
+const THROW: AudioStream = preload("res://assets/audio/grenade/throw.wav")
 var bodies: Dictionary[int, MeshInstance3D] = {}
 var bursts: Array[Dictionary] = []
 var voices: Array[AudioStreamPlayer3D] = []
@@ -24,6 +25,7 @@ var last_tick: int = -1
 var bounce_counts: Dictionary[int, int] = {}
 var bounce_cues: int = 0
 var blast_cues: int = 0
+var throw_cues: int = 0
 var _voice_index: int = 0
 var _resolved: Dictionary[int, bool] = {}
 var mines: Dictionary[int, Node3D] = {}
@@ -55,6 +57,7 @@ func reset() -> void:
 	last_tick = -1
 	bounce_cues = 0
 	blast_cues = 0
+	throw_cues = 0
 
 func apply(snapshot: Dictionary, listener: Vector3) -> void:
 	if not GrenadeFacts.validation_error(snapshot).is_empty() or not CustodyFacts.validation_error(snapshot).is_empty() \
@@ -73,6 +76,10 @@ func apply(snapshot: Dictionary, listener: Vector3) -> void:
 			add_child(bodies[id])
 			if not initial:
 				thrown.emit(str(fact["owner_id"]))
+				# A body first seen after synchronization has just left a hand.
+				if listener.is_finite():
+					_sound(THROW, GrenadeFacts.vector(fact["position"]), listener)
+					throw_cues += 1
 		bodies[id].position = GrenadeFacts.vector(fact["position"])
 		if bounce_counts.has(id) and int(fact["bounce_count"]) > bounce_counts[id] and listener.is_finite():
 			_sound(BOUNCE, bodies[id].position, listener)

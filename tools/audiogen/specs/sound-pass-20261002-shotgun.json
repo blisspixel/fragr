@@ -1,0 +1,212 @@
+{
+  "out_dir": ".agents/sound-pass-20261002/raw/shotgun",
+  "items": [
+    {
+      "kind": "sfx",
+      "name": "crack_a",
+      "prompt": "Only the first instant of a 12-gauge shotgun blast: one extremely sharp, bright, full-bandwidth muzzle crack right at the microphone, instant attack, crisp high-frequency snap with air and bite, gone almost immediately. Dry, no room, no echo, no tail, no bass boom, no pump action, no reload, no voice, no music.",
+      "seconds": 0.5,
+      "influence": 0.75,
+      "format": "pcm_48000",
+      "title": "Shotgun crack layer A"
+    },
+    {
+      "kind": "sfx",
+      "name": "crack_b",
+      "prompt": "Isolated supersonic powder blast transient of a close shotgun shot: a splitting, explosive white-noise pop with a hard metallic edge, very loud and very short. Full high end, instant onset, no low boom, no reverb, no tail, no pump action, no reload, no voice, no music.",
+      "seconds": 0.5,
+      "influence": 0.75,
+      "format": "pcm_48000",
+      "title": "Shotgun crack layer B"
+    },
+    {
+      "kind": "sfx",
+      "name": "crack_c",
+      "prompt": "One violent snapping gunshot crack recorded close: a percussive slap of expanding gas and a bright steel snap, sizzling top end, very fast decay. Transient layer for a game shotgun. No bass, no echo, no tail, no mechanical action, no reload, no voice, no music.",
+      "seconds": 0.5,
+      "influence": 0.65,
+      "format": "pcm_48000",
+      "title": "Shotgun crack layer C"
+    },
+    {
+      "kind": "sfx",
+      "name": "crack_d",
+      "prompt": "Sharp shotgun firing crack, very close, bright and aggressive, a single hard snap with a short crackle of burning powder. Dry studio recording, no environment, no pump, no reload, no voice, no music.",
+      "seconds": 0.5,
+      "influence": 0.5,
+      "format": "pcm_48000",
+      "title": "Shotgun crack layer D"
+    },
+    {
+      "kind": "sfx",
+      "name": "body_a",
+      "prompt": "The low-mid weight of a 12-gauge shotgun blast: one deep, punchy, chesty thump with dense powder roar that falls away within a third of a second. Heavy and physical, close perspective, dry. No sharp click, no echo, no pump action, no reload, no long explosion rumble, no voice, no music.",
+      "seconds": 0.7,
+      "influence": 0.7,
+      "format": "pcm_48000",
+      "title": "Shotgun body layer A"
+    },
+    {
+      "kind": "sfx",
+      "name": "body_b",
+      "prompt": "One huge boomy shotgun report from a classic 1990s first-person shooter: thick, wide, saturated low-mid punch with a coarse gritty roar, short and decisive. One shot only. No pump action, no reload, no long echo, no explosion debris, no voice, no music.",
+      "seconds": 0.7,
+      "influence": 0.7,
+      "format": "pcm_48000",
+      "title": "Shotgun body layer B"
+    },
+    {
+      "kind": "sfx",
+      "name": "body_c",
+      "prompt": "Heavy shotgun blast body: a tight concussive kick of pressure in the chest, round low thump and woody midrange boom, fast natural decay, felt more than heard. Single discharge, dry. No high click, no ringing, no pump action, no reload, no rumble tail, no voice, no music.",
+      "seconds": 0.7,
+      "influence": 0.6,
+      "format": "pcm_48000",
+      "title": "Shotgun body layer C"
+    },
+    {
+      "kind": "sfx",
+      "name": "body_d",
+      "prompt": "A single powerful pump shotgun shot fired indoors in a small concrete room, big punchy boom with dense low-mid body and a brief tight slap off the walls, ending quickly. One shot only. No pump action, no reload, no second shot, no voice, no music.",
+      "seconds": 0.7,
+      "influence": 0.6,
+      "format": "pcm_48000",
+      "title": "Shotgun body layer D"
+    },
+    {
+      "kind": "sfx",
+      "name": "tail_a",
+      "prompt": "Short mechanical aftermath of a shotgun shot without the shot itself: the steel receiver and barrel ring briefly and loose metal parts rattle once, small and tight, fading in under half a second. No gunshot, no pump action, no reload, no shells, no voice, no music.",
+      "seconds": 0.6,
+      "influence": 0.7,
+      "format": "pcm_48000",
+      "title": "Shotgun mechanical tail A"
+    },
+    {
+      "kind": "sfx",
+      "name": "tail_b",
+      "prompt": "The short room tail after a loud gunshot in a concrete corridor: a quick hard slapback reflection and a brief gritty decay, about four tenths of a second, starting already quiet. No gunshot attack, no pump action, no reload, no voice, no music.",
+      "seconds": 0.6,
+      "influence": 0.6,
+      "format": "pcm_48000",
+      "title": "Shotgun room tail B"
+    },
+    {
+      "kind": "sfx",
+      "name": "tail_c",
+      "prompt": "Faint gritty powder hiss and a soft metallic barrel ring after a shotgun has fired, small debris patter, very short and low level. Only the aftermath. No gunshot, no pump action, no reload, no shells, no voice, no music.",
+      "seconds": 0.6,
+      "influence": 0.6,
+      "format": "pcm_48000",
+      "title": "Shotgun mechanical tail C"
+    },
+    {
+      "kind": "sfx",
+      "name": "pump_a",
+      "prompt": "Pump-action shotgun action cycling after a shot: the slide pulled back then pushed forward, two crisp heavy metallic clacks about a fifth of a second apart, chk-chk. Solid steel and wood, close, dry. Only the action cycle. No gunshot, no shell loading, no reload, no shells dropping, no voice, no music.",
+      "seconds": 0.7,
+      "influence": 0.75,
+      "format": "pcm_48000",
+      "title": "Shotgun pump cycle A"
+    },
+    {
+      "kind": "sfx",
+      "name": "pump_b",
+      "prompt": "Fast aggressive shotgun pump rack: one hard metallic clack back and one hard clack forward, very quick, the two clacks about a tenth of a second apart, then silence. Close, punchy, dry foley. No gunshot, no shell insertion, no reload, no voice, no music.",
+      "seconds": 0.7,
+      "influence": 0.75,
+      "format": "pcm_48000",
+      "title": "Shotgun pump cycle B"
+    },
+    {
+      "kind": "sfx",
+      "name": "pump_c",
+      "prompt": "Heavy chunky pump shotgun slide racked back and slammed forward: deep weighty steel-on-steel clunk then a solid locking clack, satisfying and mechanical, close and dry. Just the two motions. No gunshot, no shell loading, no reload, no voice, no music.",
+      "seconds": 0.7,
+      "influence": 0.7,
+      "format": "pcm_48000",
+      "title": "Shotgun pump cycle C"
+    },
+    {
+      "kind": "sfx",
+      "name": "pump_d",
+      "prompt": "Classic 1990s retro first-person shooter shotgun pump cycle, chk-chk, two punchy crunchy mechanical clacks in quick succession, bold and readable game sound. No gunshot, no reload, no shells, no voice, no music.",
+      "seconds": 0.7,
+      "influence": 0.6,
+      "format": "pcm_48000",
+      "title": "Shotgun pump cycle D"
+    },
+    {
+      "kind": "sfx",
+      "name": "pump_e",
+      "prompt": "A pump shotgun being cycled once, slide back and forward with a hollow metallic rattle and a firm lock, quick and natural. Close dry recording. No gunshot, no reload, no voice, no music.",
+      "seconds": 0.7,
+      "influence": 0.45,
+      "format": "pcm_48000",
+      "title": "Shotgun pump cycle E"
+    },
+    {
+      "kind": "sfx",
+      "name": "full_a",
+      "prompt": "One heavy shotgun blast for a chunky retro shooter, recorded close in full bandwidth: an instant bright crack, a huge chesty low-mid boom and a short gritty decay with a faint steel ring. Exactly one discharge. No pump action, no reload, no second shot, no long echo, no voice, no music.",
+      "seconds": 1.0,
+      "influence": 0.7,
+      "format": "pcm_48000",
+      "title": "Shotgun full shot A"
+    },
+    {
+      "kind": "sfx",
+      "name": "full_b",
+      "prompt": "A single devastating 12-gauge shotgun shot at close range, loud and punchy, sharp splitting crack over a deep powerful thump, decays fast with a brief hard room slap. One shot only. No pump action, no reload, no voice, no music.",
+      "seconds": 1.0,
+      "influence": 0.6,
+      "format": "pcm_48000",
+      "title": "Shotgun full shot B"
+    },
+    {
+      "kind": "sfx",
+      "name": "shotpump_a",
+      "prompt": "One pump shotgun shot followed by the action cycling: a heavy sharp blast, then a moment later the slide racked back and forward, chk-chk, ready for the next shot. Close, dry, punchy. One shot only. No reload, no shell loading, no second shot, no voice, no music.",
+      "seconds": 1.2,
+      "influence": 0.7,
+      "format": "pcm_48000",
+      "title": "Shotgun shot and pump A"
+    },
+    {
+      "kind": "sfx",
+      "name": "shotpump_b",
+      "prompt": "Classic 1990s first-person shooter shotgun: one booming crunchy blast and then the quick chk-chk of the pump action, the whole thing over in about a second. Bold, readable game sound. No reload, no second shot, no voice, no music.",
+      "seconds": 1.2,
+      "influence": 0.6,
+      "format": "pcm_48000",
+      "title": "Shotgun shot and pump B"
+    },
+    {
+      "kind": "sfx",
+      "name": "hit_scatter_a",
+      "prompt": "Close-range buckshot pellets slamming into an armored body all at once: a dense heavy thud with a quick spray of small hard impacts on plates and fabric, meaty and short. No gunshot, no voice, no scream, no gore squelch, no music, dry.",
+      "seconds": 0.6,
+      "influence": 0.7,
+      "format": "pcm_48000",
+      "title": "Shotgun impact A"
+    },
+    {
+      "kind": "sfx",
+      "name": "hit_scatter_b",
+      "prompt": "A cluster of shotgun pellets striking a security robot: one hard crunching sheet-metal impact with several sharp pings and rattles packed together, brief and punchy. No gunshot, no voice, no music, dry.",
+      "seconds": 0.6,
+      "influence": 0.7,
+      "format": "pcm_48000",
+      "title": "Shotgun impact B"
+    },
+    {
+      "kind": "sfx",
+      "name": "hit_scatter_c",
+      "prompt": "Heavy impact of a close shotgun blast hitting a padded vest: a deep punchy whump with a crackle of many small pellet hits at once, very short. Game hit-confirm sound. No gunshot, no voice, no music, dry.",
+      "seconds": 0.6,
+      "influence": 0.6,
+      "format": "pcm_48000",
+      "title": "Shotgun impact C"
+    }
+  ]
+}
