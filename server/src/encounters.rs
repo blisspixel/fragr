@@ -44,6 +44,14 @@ impl Encounters {
         matches!(self.groups.get(index), Some(Group::Complete))
     }
 
+    /// A group the party has woken: its fight has begun or is finished.
+    pub(crate) fn is_awake(&self, index: usize) -> bool {
+        matches!(
+            self.groups.get(index),
+            Some(Group::Active { .. } | Group::Complete)
+        )
+    }
+
     pub(crate) fn is_active_enemy(&self, id: Uuid) -> bool {
         self.enemies.iter().any(|(group, enemy)| {
             enemy.id == id && matches!(self.groups.get(*group), Some(Group::Active { .. }))

@@ -887,3 +887,54 @@ async fn m06_capability_refusal_and_map_before_mission_snapshot_hold_for_all_rol
     stop_tx.send(()).unwrap();
     server.await.unwrap().unwrap();
 }
+
+#[test]
+fn m06_turret_shot_from_the_floor_passes_its_gallery_arrival_at_customs() {
+    // The Turret's arrival spot is on the west gallery. A player who destroys
+    // it from the floor and walks on into customs used to leave the objective
+    // line on the Turret, and the transit never offered departure.
+    let (mut s, id) = fixture();
+    for i in 0..3 {
+        clear(&mut s, id, i);
+    }
+    let turret = s.state.map.encounters()[3].clone();
+    let floor = [0.0, 0.0, 10.0];
+    place(&mut s, id, floor);
+    advance(&mut s, 1);
+    for e in &turret.enemies {
+        let p = s
+            .state
+            .players
+            .iter_mut()
+            .find(|p| p.name == e.id)
+            .expect("Turret spawned");
+        p.hp = 0;
+        s.state
+            .encounters
+            .hit(p.id, [p.x, p.y - PLAYER_FLOOR_Y, p.z], s.state.tick, true);
+    }
+    advance(&mut s, 4);
+    let progress = |s: &GameSession| {
+        let state = s.state.mission_state().unwrap();
+        state.validate(s.state.tick).expect("shared reader accepts");
+        state.m06.unwrap().completed.len()
+    };
+    assert!(s.state.encounters.is_complete(3));
+    assert_eq!(
+        progress(&s),
+        3,
+        "the Turret arrival still waits while customs sleeps"
+    );
+    let customs = s.state.map.m06_geometry().unwrap().objectives[4].clone();
+    let MissionObjectiveAction::Arrival { feet, .. } = customs.action else {
+        panic!("arrival");
+    };
+    place(&mut s, id, feet);
+    advance(&mut s, 3);
+    assert!(s.state.encounters.is_awake(4));
+    assert_eq!(
+        progress(&s),
+        4,
+        "entering customs passes the gallery arrival"
+    );
+}

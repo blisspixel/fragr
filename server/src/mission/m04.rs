@@ -302,18 +302,22 @@ impl GameState {
         let Some(p) = run.m04.as_ref() else {
             return;
         };
+        let inside = |region: &crate::protocol::Region3| {
+            self.players.iter().any(|p| {
+                p.is_participant()
+                    && p.hp > 0
+                    && p.respawn_timer.is_none()
+                    && run.ready.contains(&p.id)
+                    && region.contains([p.x, p.y - PLAYER_FLOOR_Y, p.z])
+            })
+        };
         let advance = p.index < 6
             && self.encounters.is_complete(prepared.encounters[p.index])
-            && match &prepared.geometry.objectives[p.index].action {
-                MissionObjectiveAction::Arrival { region, .. } => self.players.iter().any(|p| {
-                    p.is_participant()
-                        && p.hp > 0
-                        && p.respawn_timer.is_none()
-                        && run.ready.contains(&p.id)
-                        && region.contains([p.x, p.y - PLAYER_FLOOR_Y, p.z])
-                }),
-                _ => false,
-            };
+            && (matches!(&prepared.geometry.objectives[p.index].action,
+                MissionObjectiveAction::Arrival { region, .. } if inside(region))
+                || super::arrival_passed(&self.encounters, &prepared.encounters, p.index, || {
+                    inside(&prepared.geometry.boarding)
+                }));
         if advance {
             if let Some(run) = self.mission.as_mut() {
                 if let Some(p) = run.m04.as_mut() {

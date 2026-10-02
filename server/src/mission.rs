@@ -82,6 +82,23 @@ pub(crate) fn actor_active(
     })
 }
 
+/// An ordered arrival whose fight is already won also counts once the party
+/// has clearly moved on: the next ordered fight has woken, or, after the last
+/// fight, someone stands in the departure boarding area. A player who cleared
+/// a room from its doorway and walked on never had to find the arrival spot
+/// again to unblock the objective line and departure. Order is unchanged.
+fn arrival_passed(
+    encounters: &crate::encounters::Encounters,
+    ordered: &[usize],
+    index: usize,
+    boarding: impl FnOnce() -> bool,
+) -> bool {
+    match ordered.get(index + 1) {
+        Some(next) => encounters.is_awake(*next),
+        None => boarding(),
+    }
+}
+
 fn can_use(player: &Player, target: &UseTarget, map: &RuntimeMap) -> bool {
     can_use_in_arena(player, target, map, map.arena())
 }

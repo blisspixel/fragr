@@ -858,3 +858,93 @@ fn m05_external_controller_reconstructs_live_tram_cover() {
         "external steering follows the current collider instead of parked cover"
     );
 }
+
+/// Defeat a spawned group from wherever the participant stands, without
+/// visiting its arrival spot.
+fn defeat(s: &mut GameSession, index: usize) {
+    let group = s.state.map.encounters()[index].clone();
+    for e in &group.enemies {
+        let p = s
+            .state
+            .players
+            .iter_mut()
+            .find(|p| p.name == e.id)
+            .expect("group spawned");
+        p.hp = 0;
+        s.state
+            .encounters
+            .hit(p.id, [p.x, p.y - PLAYER_FLOOR_Y, p.z], s.state.tick, true);
+    }
+    advance(s, 2);
+    assert!(s.state.encounters.is_complete(index));
+}
+
+fn completed(s: &GameSession) -> usize {
+    let state = s.state.mission_state().unwrap();
+    state
+        .validate(s.state.tick)
+        .expect("every published M05 state passes the shared reader");
+    state.m05.unwrap().completed.len()
+}
+
+#[test]
+fn m05_skipped_arrival_spots_catch_up_and_rescue_stays_readable() {
+    // A local-rules agent cleared the paint bay from its doorway, never stood
+    // on the small arrival spot again, then freed the workshop. The server
+    // published released workers with one objective complete, and both the
+    // Godot and Rust readers closed the connection.
+    let (mut s, id) = fixture();
+    clear(&mut s, 0);
+    assert_eq!(completed(&s), 1);
+    defeat(&mut s, 1);
+    advance(&mut s, 4);
+    assert_eq!(
+        completed(&s),
+        1,
+        "a won fight alone does not skip its arrival"
+    );
+
+    // Walking on into the workshop wakes the next fight and the paint bay
+    // lesson counts as passed.
+    let workshop = s.state.map.m05_geometry().unwrap().objectives[2].clone();
+    let crate::protocol::MissionObjectiveAction::Arrival { feet, .. } = workshop.action else {
+        panic!("arrival");
+    };
+    place(&mut s, id, feet);
+    advance(&mut s, 3);
+    assert!(s.state.encounters.is_awake(2));
+    assert_eq!(completed(&s), 2);
+    defeat(&mut s, 2);
+    place(&mut s, id, [-19.0, 0.0, 1.5]);
+    for _ in 0..4 {
+        advance(&mut s, 1);
+        completed(&s);
+    }
+    assert_eq!(s.state.m05_released_worker_ids().len(), 3);
+
+    // The remaining fights are won from afar; the last arrival is passed by
+    // reaching the boarding area behind the opened freight gate.
+    for i in 3..6 {
+        let group = s.state.map.encounters()[i].clone();
+        place(&mut s, id, group.regions[0].min.map(|v| v + 0.5));
+        let advanced = s.state.map.m05_geometry().unwrap().objectives[i].clone();
+        let crate::protocol::MissionObjectiveAction::Arrival { feet, .. } = advanced.action else {
+            panic!("arrival");
+        };
+        // Stand clear of the arrival spot while the group wakes and falls.
+        place(&mut s, id, [feet[0] + 3.0, feet[1], feet[2]]);
+        advance(&mut s, 1);
+        defeat(&mut s, i);
+        completed(&s);
+    }
+    advance(&mut s, 3);
+    assert!(s.state.map.m05_geometry().unwrap().freight_open);
+    assert_eq!(completed(&s), 5);
+    place(&mut s, id, [6.5, 0.0, 37.5]);
+    advance(&mut s, 2);
+    assert_eq!(
+        completed(&s),
+        6,
+        "the boarding area passes the last arrival"
+    );
+}
