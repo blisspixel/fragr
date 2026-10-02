@@ -91,6 +91,6 @@ smokes, the six-map roster and `tools/godot_check.sh` under the render lock.
 - Second PR in progress (findings 8 to 13): local-rules agent engagement,
   straggler guards, the M02 opening medkit, the M05 release that disconnected
   readers, and arrival spots that catch up once the party moves on. Worktree
-  `C:\GitHubrpo2`, branch `feat/polish-agents`, stacked on the first PR.
+  `C:/GitHub/frpo2`, branch `feat/polish-agents`, stacked on the first PR.
 - Scratch tools (not committed): a brain playtest runner and a read-only
   spectator probe that prints living Union actors.
