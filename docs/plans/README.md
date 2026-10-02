@@ -26,7 +26,7 @@ difficulty, subjective listening and final character acceptance remain open.
 
 | Plan | Status | One-liner |
 |---|---|---|
-| [`m06-release-closeout.md`](./m06-release-closeout.md) | **in flight** | Documentation-only shipping record, verified desktop publication and clean passing main before the round ends. |
+| [`m06-release-closeout.md`](./m06-release-closeout.md) | **shipped**, [PR #318](https://github.com/blisspixel/fragr/pull/318) | Documentation-only shipping record, verified desktop publication and clean passing main before the round ends. |
 | [`m06-freight-capture-route.md`](./m06-freight-capture-route.md) | **shipped**, [PR #317](https://github.com/blisspixel/fragr/pull/317) | Actual-map/body regressions and a clean 25-state normal tour pass through the clear freight aisle before combat, preserving every original gate. |
 | [`ctf-seeded-body-order.md`](./ctf-seeded-body-order.md) | **shipped**, [PR #317](https://github.com/blisspixel/fragr/pull/317) | Contact-range carrier defense passes all four seeded body-order matrices and identical canonical repeats, preserving completion and combat-drop thresholds. |
 | [`qa-turret-peek-timing.md`](./qa-turret-peek-timing.md) | **shipped**, [PR #317](https://github.com/blisspixel/fragr/pull/317) | Ordinary phase-aware peek and retreat proves the original clear-to-covered Turret cancellation gate; all 25 actual lunar states pass. |

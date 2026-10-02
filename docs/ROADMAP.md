@@ -298,8 +298,8 @@ The phases below are the long shape. The sequence that follows is the build orde
 with at most $20 combined external charges this round, and explicitly removed
 human feedback as a prerequisite for development. The integrated campaign and
 CTF systems, including M03-M05 in PR #314 and M06 in PR #317, are on main.
-This development round ends after the verified [release closeout](plans/m06-release-closeout.md),
-as requested. Human and remote-network acceptance remain open evidence.
+The [v0.66.0 release closeout](plans/m06-release-closeout.md) ends this
+development round as requested. Human and remote-network acceptance remain open evidence.
 The following sequence is future work, with supporting lanes alongside campaign work:
 
 The [campaign and feel buildout](plans/campaign-and-feel-buildout.md) supplies
