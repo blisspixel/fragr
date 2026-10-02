@@ -1,6 +1,16 @@
 # QA contact-safe strafe
 
-**Status:** implemented, 2026-10-01. Focused regressions and actual M04/M06 routes pass. Final serialized whole-client verification, CI and release remain pending. No gameplay rule changes.
+**Status:** shipped in [PR #317](https://github.com/blisspixel/fragr/pull/317), 2026-10-02. Contact-aware eight-tick dodge forecasts preserve map movement and original refusal bounds.
+Parent integration: [M06 Port of Entry](m06-port-of-entry-prototype.md).
+
+Merged in [PR #317](https://github.com/blisspixel/fragr/pull/317), with passing
+[final-source CI](https://github.com/blisspixel/fragr/actions/runs/36981473008) and
+[package/install checks](https://github.com/blisspixel/fragr/actions/runs/36981473010).
+Local gates pass 1244 workspace tests, 94.31 percent unfiltered line coverage and
+188 scripts/88 harnesses. The [inspected capture evidence](../evidence/2026-10-01-m06-textures.md)
+records the current routes. Source-main CI and desktop publication receipts
+are tracked in [release closeout](m06-release-closeout.md). Fresh-player, difficulty,
+subjective listening and final character acceptance remain open.
 
 ## Observed failure and separate reproducer
 
@@ -49,7 +59,11 @@ the earlier unchanged-route material retry. Records report zero deaths,
 25 HP lost, 125 armor lost and two secret claims, with all three secret
 locations visited. Earlier failures and earlier run statistics remain history.
 
-## Current workspace verification
+## Historical workspace checkpoint (2026-10-02, before final gates)
+
+The following receipt records that checkpoint. Current merged integration and
+completed local gates are recorded above; publication receipts are tracked in
+[release closeout](m06-release-closeout.md).
 
 Root's final serialized `cargo fmt --all -- --check` and workspace Clippy
 with warnings denied pass. `cargo test --workspace --locked` passes 1,244

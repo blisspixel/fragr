@@ -1,8 +1,17 @@
 # M06 core prototype
 
-**Status:** implemented, 2026-10-01. Local gates passed; CI and release pending. Parent scope:
-[M06 Port of Entry](m06-port-of-entry-prototype.md).
+**Status:** shipped in [PR #317](https://github.com/blisspixel/fragr/pull/317), 2026-10-02. Strict lunar mission facts, ordered encounters, optional service and real departure are integrated.
+Parent integration: [M06 Port of Entry](m06-port-of-entry-prototype.md).
 **Spend:** $0. No paid calls, dependencies or new control channel.
+
+Merged in [PR #317](https://github.com/blisspixel/fragr/pull/317), with passing
+[final-source CI](https://github.com/blisspixel/fragr/actions/runs/36981473008) and
+[package/install checks](https://github.com/blisspixel/fragr/actions/runs/36981473010).
+Local gates pass 1244 workspace tests, 94.31 percent unfiltered line coverage and
+188 scripts/88 harnesses. The [inspected capture evidence](../evidence/2026-10-01-m06-textures.md)
+records the current routes. Source-main CI and desktop publication receipts
+are tracked in [release closeout](m06-release-closeout.md). Fresh-player, difficulty,
+subjective listening and final character acceptance remain open.
 
 ## Goal and boundary
 

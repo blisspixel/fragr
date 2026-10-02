@@ -1,7 +1,16 @@
 # QA approach arrival ordering
 
-Status: implemented, focused headless gates and actual M04/M06 routes passed.
-Final full client checks, CI and release pending. Updated 2026-10-01.
+**Status:** shipped in [PR #317](https://github.com/blisspixel/fragr/pull/317), 2026-10-02. Actually reached waypoints are acknowledged before capture defense, with unchanged arrival bounds.
+Parent integration: [M06 Port of Entry](m06-port-of-entry-prototype.md).
+
+Merged in [PR #317](https://github.com/blisspixel/fragr/pull/317), with passing
+[final-source CI](https://github.com/blisspixel/fragr/actions/runs/36981473008) and
+[package/install checks](https://github.com/blisspixel/fragr/actions/runs/36981473010).
+Local gates pass 1244 workspace tests, 94.31 percent unfiltered line coverage and
+188 scripts/88 harnesses. The [inspected capture evidence](../evidence/2026-10-01-m06-textures.md)
+records the current routes. Source-main CI and desktop publication receipts
+are tracked in [release closeout](m06-release-closeout.md). Fresh-player, difficulty,
+subjective listening and final character acceptance remain open.
 
 The combat capture controller checked a committed attack before it called
 `follow_route`. A participant already inside an approach waypoint can therefore
@@ -73,7 +82,11 @@ uses the same strict arrival predicate and retains both unfinished no-fire
 behavior and the recorded Turret cancellation gate. No source or map outcome
 was forced. Earlier incomplete route receipts remain failed history.
 
-## Current workspace verification
+## Historical workspace checkpoint (2026-10-02, before final gates)
+
+The following receipt records that checkpoint. Current merged integration and
+completed local gates are recorded above; publication receipts are tracked in
+[release closeout](m06-release-closeout.md).
 
 Root's final serialized `cargo fmt --all -- --check` and workspace Clippy
 with warnings denied pass. `cargo test --workspace --locked` passes 1,244

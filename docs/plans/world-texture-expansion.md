@@ -1,8 +1,16 @@
 # World texture expansion
 
-**Status:** implemented, updated 2026-10-02. Final local rendered and whole-client
-gates pass; main integration and release remain pending. Supports the M06 integration and
-release in the [full build order](../ROADMAP.md#full-build-order-2026-09-27).
+**Status:** shipped in [PR #317](https://github.com/blisspixel/fragr/pull/317), 2026-10-02. Twenty-one reviewed tiles, inspected affected captures and serialized client gates pass; Mars remains unbuilt.
+Parent integration: [M06 Port of Entry](m06-port-of-entry-prototype.md).
+
+Merged in [PR #317](https://github.com/blisspixel/fragr/pull/317), with passing
+[final-source CI](https://github.com/blisspixel/fragr/actions/runs/36981473008) and
+[package/install checks](https://github.com/blisspixel/fragr/actions/runs/36981473010).
+Local gates pass 1244 workspace tests, 94.31 percent unfiltered line coverage and
+188 scripts/88 harnesses. The [inspected capture evidence](../evidence/2026-10-01-m06-textures.md)
+records the current routes. Source-main CI and desktop publication receipts
+are tracked in [release closeout](m06-release-closeout.md). Fresh-player, difficulty,
+subjective listening and final character acceptance remain open.
 
 ## Goal and scope
 
@@ -103,7 +111,10 @@ Godot 4.7.2-stable, Windows/OpenGL Compatibility/AMD Radeon 780M. These are loca
 material and rendering checks, not fresh-player acceptance or GPU benchmarks.
 Full client checks, actual affected tours and release integration remain pending.
 
-### October 2 capture closeout
+### Historical capture checkpoint (2026-10-02, before main integration)
+
+Current merged integration is recorded above. The following receipts preserve
+the pre-merge checkpoint.
 
 The final normal standard tour passes all 32 states and publishes fourteen
 inspected stills, including the refreshed README arena views. The final normal
@@ -136,5 +147,5 @@ formatting, warning-denied Clippy, release builds, dependency policy and the
 deterministic CPU budget gate. The final single whole-client checker passes all
 188 scripts and 88 harnesses with clean exit, required markers and unchanged
 source/server hashes. Log: `.agents/m06-buildout-20261001/client-whole-material-final.log`.
-Main integration and release remain pending. Estimated credit reservations remain $3.811;
+At this checkpoint, main integration and release were pending. Estimated credit reservations remained $3.811;
 confirmed billing is unknown and new cash charges remain $0.

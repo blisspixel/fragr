@@ -1,11 +1,21 @@
 # M06 story key images
 
-**Status:** implemented, 2026-10-01. Focused import, playback and renderer evidence below; whole-mission acceptance remains in flight.
+**Status:** shipped in [PR #317](https://github.com/blisspixel/fragr/pull/317), 2026-10-02. Two inspected lunar story illustrations are integrated with reader-paced captions, narration and fallback.
+Parent integration: [M06 Port of Entry](m06-port-of-entry-prototype.md).
 **Spend:** two image requests only, new batch cap $1.50 equivalent within the
 existing $3 image allocation. The prior possession batch reserves $0.114 and the
 historical unresolved reservation remains $0.107. Owner-confirmed API credit was
 $14.40; conservative available credit before this batch is $14.179. No cash,
 top-up, overage, subscription or cloud operation is authorized by this plan.
+
+Merged in [PR #317](https://github.com/blisspixel/fragr/pull/317), with passing
+[final-source CI](https://github.com/blisspixel/fragr/actions/runs/36981473008) and
+[package/install checks](https://github.com/blisspixel/fragr/actions/runs/36981473010).
+Local gates pass 1244 workspace tests, 94.31 percent unfiltered line coverage and
+188 scripts/88 harnesses. The [inspected capture evidence](../evidence/2026-10-01-m06-textures.md)
+records the current routes. Source-main CI and desktop publication receipts
+are tracked in [release closeout](m06-release-closeout.md). Fresh-player, difficulty,
+subjective listening and final character acceptance remain open.
 
 ## Purpose and exact ownership
 

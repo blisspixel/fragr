@@ -1,13 +1,6 @@
 # M06 Port of Entry prototype
 
-**Status:** implemented, updated 2026-10-02. Final local engineering, serialized
-client and normal rendered gates pass. Earlier checkpoint `054031c` passes full
-CI and PR package/install checks; exact final-source CI, main integration and
-release remain pending. Current captures are indexed in the
-[evidence note](../evidence/2026-10-01-m06-textures.md);
-fresh-player and difficulty acceptance are separate open gates.
-The [full build order](../ROADMAP.md#full-build-order-2026-09-27) owns sequencing;
-this file defines its next bounded mission increment after M05's gate.
+**Status:** shipped in [PR #317](https://github.com/blisspixel/fragr/pull/317), 2026-10-02. The lunar port development prototype and durable episode carry are integrated; fresh-player and difficulty acceptance remain open.
 **Spend:** $0 new cash charges. The separately priced
 [M06 audio batch](m06-audio-batch.md) generated four jobs using 252 included
 credits. The separate requested shotgun refresh consumes another 30 included
@@ -17,6 +10,15 @@ six bounded image requests downloaded at a combined $0.274 reservation:
 $0.114 for possessions and $0.160 for two story key images.
 Confirmed image billing remains unreconciled and the prior uncertain $0.107
 reservation stays preserved. No top-up, overage or cloud submission ran.
+
+Merged in [PR #317](https://github.com/blisspixel/fragr/pull/317), with passing
+[final-source CI](https://github.com/blisspixel/fragr/actions/runs/36981473008) and
+[package/install checks](https://github.com/blisspixel/fragr/actions/runs/36981473010).
+Local gates pass 1244 workspace tests, 94.31 percent unfiltered line coverage and
+188 scripts/88 harnesses. The [inspected capture evidence](../evidence/2026-10-01-m06-textures.md)
+records the current routes. Source-main CI and desktop publication receipts
+are tracked in [release closeout](m06-release-closeout.md). Fresh-player, difficulty,
+subjective listening and final character acceptance remain open.
 
 The later requested [world texture expansion](world-texture-expansion.md)
 completes twenty-seven additional image requests at $3.811 in estimated

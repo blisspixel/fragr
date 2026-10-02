@@ -1,9 +1,17 @@
 # M01 crowd route recovery
 
-**Status:** implemented, 2026-10-01. Bounded repair within the
-[M06 integration](m06-port-of-entry-prototype.md); sequencing remains in the
-[full build order](../ROADMAP.md#full-build-order-2026-09-27).
+**Status:** shipped in [PR #317](https://github.com/blisspixel/fragr/pull/317), 2026-10-02. Bounded four-party route repair preserves map bytes, ordinary movement and completion gates.
+Parent integration: [M06 Port of Entry](m06-port-of-entry-prototype.md).
 **Spend:** $0. No assets, dependencies, wire changes or external requests.
+
+Merged in [PR #317](https://github.com/blisspixel/fragr/pull/317), with passing
+[final-source CI](https://github.com/blisspixel/fragr/actions/runs/36981473008) and
+[package/install checks](https://github.com/blisspixel/fragr/actions/runs/36981473010).
+Local gates pass 1244 workspace tests, 94.31 percent unfiltered line coverage and
+188 scripts/88 harnesses. The [inspected capture evidence](../evidence/2026-10-01-m06-textures.md)
+records the current routes. Source-main CI and desktop publication receipts
+are tracked in [release closeout](m06-release-closeout.md). Fresh-player, difficulty,
+subjective listening and final character acceptance remain open.
 
 ## Captured failure
 
@@ -41,7 +49,10 @@ and retry gates.
 - Refresh and inspect the published standard tour against the matching server.
   Update the parent plan, merge only passing CI and retain the failed receipt.
 
-## Repair and cross-mission findings
+## Historical repair checkpoint (2026-10-01, before final integration)
+
+Current merged integration and final local gates are recorded above. The
+following receipts preserve the earlier recovery checkpoint.
 
 The occupied-corner regression fails before the geometry guard. The retained
 four-person scene also fails with that guard alone, demonstrating the separate
@@ -105,5 +116,5 @@ bodies, menus and weapon motion show no concrete regression. The deterministic
 Receipts: `nav-final-workspace-tests.log`, `nav-final-clippy.log`,
 `nav-final-coverage.log`, `nav-final-release-build.log`, `nav-final-bench.log`
 and `client-standard-nav-final-source.json` under the same ignored directory.
-Main integration and release remain pending. The additional texture batch does
+At this checkpoint, main integration and release were pending. The additional texture batch does
 not change movement or the benchmark source.
