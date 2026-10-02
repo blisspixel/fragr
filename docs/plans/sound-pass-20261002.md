@@ -150,6 +150,10 @@ impacts, tells with repeat and cancel, falls, pickups through the real event
 handler and dry-trigger counting. `test_grenade_effects.gd` adds the throw.
 Provenance for every cue is in `client/assets/audio/sound-pass-20261002.json`;
 the audition page is local scratch in `.agents/audition/index.html`.
+PR CI [run 37058097350](https://github.com/blisspixel/fragr/actions/runs/37058097350)
+passes every job, including the full headless client check on Linux and the
+macOS and Windows portability checks. The first run caught a fixture error in
+the new grenade throw check (an unintended extra bounce), fixed in the test.
 
 ### Spend
 
@@ -157,7 +161,8 @@ Included credits only, $0 cash. This track submitted 75 requests estimated at
 2,740 credits (40 per second); the conservative four-attempt ceiling was 10,960.
 The shared account moved from 837,582 to 840,976 used across both batches
 (3,394, an upper bound that includes any other use of the account) and to
-860,681 by 19:02Z with no requests from this track.
+860,681 by 19:02Z with no requests from this track. The closing check at
+20:04Z still reads 860,681 used (586,515 remaining).
 
 ## Open
 
@@ -168,6 +173,6 @@ should confirm the Shotgun crack survives it.
 
 ## Handoff
 
-PR #322 is open on `feat/sound-pass`, rebased on main after #319. Remaining:
-the full `tools/godot_check.sh` under the render lock, green CI, squash merge.
+PR #322 is open on `feat/sound-pass` with green CI. Remaining: the local full
+`tools/godot_check.sh` once the shared render lock frees, then squash merge.
 No further generation is planned.
