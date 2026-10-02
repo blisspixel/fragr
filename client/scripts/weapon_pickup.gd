@@ -31,6 +31,7 @@ const COLORS = {
 	"Shiv": Color(0.78, 0.62, 0.36),       # ochre grip
 	"health": Color(0.62, 0.22, 0.20),     # dried blood
 	"armor": Color(0.48, 0.44, 0.38),      # scrap gunmetal
+	"grenade": Color(0.60, 0.56, 0.36),    # olive casing
 	"golden_rail": Color(1.0, 0.8, 0.28),  # the one golden Railgun
 }
 
@@ -80,16 +81,18 @@ func set_available(is_available: bool) -> void:
 
 func _label_text() -> String:
 	if pickup_kind == "ammo":
-		return "+%d %s" % [amount, EquipmentState.pool_name(ammo_pool).to_upper()]
+		return tr("PICKUP_AMMO").format({"amount": amount, "pool": EquipmentState.pool_name(ammo_pool).to_upper()})
 	if pickup_kind == "health":
-		return "MEDKIT" if amount <= 0 else ("+%d HP" % amount)
+		return tr("PICKUP_MEDKIT") if amount <= 0 else tr("PICKUP_HEALTH").format({"amount": amount})
 	if pickup_kind == "armor":
-		return "ARMOR" if amount <= 0 else ("+%d ARM" % amount)
+		return tr("PICKUP_ARMOR") if amount <= 0 else tr("PICKUP_ARMOR_AMOUNT").format({"amount": amount})
+	if pickup_kind == "grenade":
+		return tr("PICKUP_GRENADES").format({"amount": amount})
 	if pickup_kind == "golden_rail":
 		return tr("PICKUP_GOLDEN_RAIL")
 	if weapon_name != "":
 		return EquipmentState.display_name(weapon_name).to_upper()
-	return "PAD"
+	return tr("PICKUP_SUPPLY")
 
 func _tint() -> Color:
 	if pickup_kind == "ammo":
@@ -98,6 +101,8 @@ func _tint() -> Color:
 		return COLORS["health"]
 	if pickup_kind == "armor":
 		return COLORS["armor"]
+	if pickup_kind == "grenade":
+		return COLORS["grenade"]
 	if pickup_kind == "golden_rail":
 		return COLORS["golden_rail"]
 	return COLORS.get(weapon_name, Color(0.7, 0.68, 0.64))

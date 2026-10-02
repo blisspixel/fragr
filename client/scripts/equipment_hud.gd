@@ -84,8 +84,11 @@ func _refresh() -> void:
 	var empty: bool = shots == 0
 	counts.modulate = EMPTY_TINT if dry_seconds > 0.0 or empty else Color.WHITE
 	grenade_counts.visible = _grenades_known
-	grenade_counts.text = str(state.get("grenades", 0))
-	grenade_counts.modulate = EMPTY_TINT if int(state.get("grenades", 0)) == 0 else Color.WHITE
+	# JSON decodes every number as a float, so the validated count arrives as
+	# 4.0. Print the whole count a player carries, never "4.0".
+	var grenades: int = int(state.get("grenades", 0))
+	grenade_counts.text = str(grenades)
+	grenade_counts.modulate = EMPTY_TINT if grenades == 0 else Color.WHITE
 	queue_redraw()
 
 func _draw() -> void:

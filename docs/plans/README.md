@@ -26,6 +26,7 @@ difficulty, subjective listening and final character acceptance remain open.
 
 | Plan | Status | One-liner |
 |---|---|---|
+| [`campaign-polish-20261002.md`](./campaign-polish-20261002.md) | **in flight** | Automated playtest and fix pass over levels 1 to 6 before human play, with a findings table. |
 | [`l08-custodian-of-record-prototype.md`](./l08-custodian-of-record-prototype.md) | **in flight** | Level 8 radial custody archive, the sticking Proximity Mine, the repairing Auditor and M07 to M08 carry after level 7 lands. |
 | [`m06-release-closeout.md`](./m06-release-closeout.md) | **shipped**, [PR #318](https://github.com/blisspixel/fragr/pull/318) | Documentation-only shipping record, verified desktop publication and clean passing main before the round ends. |
 | [`m06-freight-capture-route.md`](./m06-freight-capture-route.md) | **shipped**, [PR #317](https://github.com/blisspixel/fragr/pull/317) | Actual-map/body regressions and a clean 25-state normal tour pass through the clear freight aisle before combat, preserving every original gate. |

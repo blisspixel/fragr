@@ -11,6 +11,8 @@ const START_TIMEOUT_MS: int = 15000
 const STOP_TIMEOUT_MS: int = 3000
 const MAX_READY_BYTES: int = 4096
 const PENDING_META: StringName = &"fragr_local_match_pending"
+## Set by a finished mission that asked to continue the saved run directly.
+const ONWARD_META: StringName = &"fragr_run_onward"
 ## Rules revision 3 retires older live mission readers on every authored map.
 const DURABLE_GAMEPLAY: int = 26
 const M02_GAMEPLAY: int = 26

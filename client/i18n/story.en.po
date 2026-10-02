@@ -143,6 +143,9 @@ msgstr "Restart this mission with the equipment you entered with."
 msgid "RUN_CONTINUE_INPUT"
 msgstr "{accept}: SPEND ONE CONTINUE"
 
+msgid "RUN_NEXT_MISSION_INPUT"
+msgstr "{accept}: CONTINUE THE RUN"
+
 msgid "RUN_WAITING_OWNER"
 msgstr "Waiting for the player to continue."
 
@@ -268,6 +271,9 @@ msgstr "+{amount} ARMOR"
 
 msgid "HUD_PICKUP_AMMO"
 msgstr "+{amount} AMMO"
+
+msgid "HUD_PICKUP_GRENADES"
+msgstr "+{amount} GRENADES"
 
 msgid "HUD_SECRET_FOUND"
 msgstr "SECRET FOUND"

@@ -36,6 +36,11 @@ var recovery_text: String = ""
 var _prompt_template: String = ""
 var _recovery_template: String = ""
 var _device_revision: int = -1
+var _run_wanted: bool = false
+var _evac_wanted: bool = false
+var _evac_seen: String = ""
+var _status_left: float = 0.0
+var _run_onward: bool = false
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -204,6 +209,8 @@ func _process(delta: float) -> void:
 		_stage_left = maxf(0.0, _stage_left - delta)
 		if _card != null:
 			_card.visible = _stage_card_visible()
+	_status_left = maxf(0.0, _status_left - delta)
+	_stage_badges()
 	if not visible:
 		return
 	var viewport: Vector2 = get_viewport_rect().size
@@ -228,6 +235,29 @@ func _process(delta: float) -> void:
 func _refresh() -> void:
 	if _copy == null:
 		return
+	_refresh_content()
+	# A completed local run can go straight on instead of through the menu.
+	if _run_onward and str(state.get("phase", "")) == "departed":
+		_show_prompt(tr("RUN_NEXT_MISSION_INPUT"))
+	# Status badges are wanted by each mission; when they show is shared. A
+	# changed status line gets its own few seconds, then rides with the card.
+	_run_wanted = _run_badge.visible
+	_evac_wanted = _evac_badge.visible
+	if _evac_wanted and _evac_badge.text != _evac_seen:
+		_status_left = STAGE_SECONDS
+	_evac_seen = _evac_badge.text if _evac_wanted else ""
+	_stage_badges()
+
+## The run allowance and optional-route status are facts a player checks, not
+## something to read all mission. They appear with the objective card, on a
+## change and during recovery, and otherwise leave the view.
+func _stage_badges() -> void:
+	if _run_badge == null or _evac_badge == null:
+		return
+	_run_badge.visible = _run_wanted and (_card.visible or _recovery.visible)
+	_evac_badge.visible = _evac_wanted and (_card.visible or _status_left > 0.0)
+
+func _refresh_content() -> void:
 	visible = not state.is_empty()
 	if not visible:
 		_copy.text = ""
@@ -251,16 +281,21 @@ func _refresh() -> void:
 	if state.get("id") == MissionState.M06_ID:
 		_refresh_m06()
 		return
-	_run_badge.visible = false
 	_evac_badge.visible = false
-	var lines: Array[String] = [tr("MISSION_M01_TITLE"), tr("DIFFICULTY_" + String(state["rules"]["difficulty"]).to_upper()), ""]
 	_recovery.visible = false
-	if state.get("run") is Dictionary:
+	# The same quiet card as the later missions: the run allowance is a corner
+	# badge, and play shows the objective rather than the title and tier.
+	_run_badge.visible = state.get("run") is Dictionary
+	if _run_badge.visible:
 		var run: Dictionary = state["run"]
-		lines.insert(2, tr("RUN_CONTINUES").format({"count": int(run["continues"])}))
+		_run_badge.text = tr("RUN_LEVEL_BADGE").format({"attempt": int(state["attempt"]), "continues": int(run["continues"])})
 		_refresh_run_recovery(run)
+	var lines: Array[String] = []
 	match state["phase"]:
 		"briefing":
+			lines.append(tr("MISSION_M01_TITLE"))
+			lines.append(tr("DIFFICULTY_" + String(state["rules"]["difficulty"]).to_upper()))
+			lines.append("")
 			lines.append(tr("STORY_M01_RECAP"))
 			lines.append(tr("STORY_WAITING"))
 			for member: Dictionary in state["party"]:
@@ -270,9 +305,11 @@ func _refresh() -> void:
 		"reach_lift":
 			lines.append(tr("MISSION_REACH_LIFT"))
 			lines.append(tr("MISSION_TRANSFER_RECORD"))
+			# Only other people can keep the lift waiting. Listing the player
+			# who is reading the card tells them they are waiting for themselves.
 			var waiting: Array[String] = []
 			for member: Dictionary in state["party"]:
-				if not member["aboard"]:
+				if not member["aboard"] and str(member["id"]) != player_id:
 					waiting.append(member["name"])
 			if not waiting.is_empty():
 				lines.append(tr("MISSION_WAITING_FOR").format({"names": ", ".join(waiting)}))
@@ -298,6 +335,13 @@ func _stage_card_visible() -> bool:
 	if phase == "find_transfer" or phase == "reach_lift":
 		return _stage_left > 0.0
 	return false
+
+## GameManager owns whether the onward step is legal; the HUD only shows it.
+func set_run_onward(available: bool) -> void:
+	if available == _run_onward:
+		return
+	_run_onward = available
+	_refresh()
 
 ## M01 restages the card on a phase change. M02 stays `in_progress`, so its
 ## card restages on each new objective and on a retry.

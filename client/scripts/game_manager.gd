@@ -72,6 +72,10 @@ var m06_port: M06Port
 var departure_review: DepartureReview
 var _continue_armed: bool = false
 var _continue_attempt_sent: int = -1
+## A completed local run can go straight on to its saved next mission. The
+## boot menu reads LocalMatch.ONWARD_META once and opens Continue Run.
+var _onward_released: bool = false
+var _onward_armed: bool = false
 var _presented_attempt: int = 0
 var _retry_snapshot_tick: int = -1
 
@@ -623,8 +627,42 @@ func _arm_continue() -> void:
 		var run: Variant = net_client.mission["state"].get("run")
 		_continue_armed = run is Dictionary and run.get("status") == "continue"
 
+## A departed mission in this process's own saved run. Development children,
+## joined servers and arena matches never offer it.
+func _onward_available() -> bool:
+	if not is_human_player or local_match == null or not local_match.has_durable_run() or _leaving:
+		return false
+	if is_instance_valid(interlude) or is_instance_valid(departure_review) or is_instance_valid(opening):
+		return false
+	var state: Dictionary = net_client.mission.get("state", {})
+	var run: Variant = state.get("run")
+	return state.get("phase") == "departed" and run is Dictionary and run.get("status") == "complete"
+
+## The prompt appears only after every held control is released, so the key
+## that dismissed the departure scene cannot also leave the mission.
+func _arm_onward() -> void:
+	var available: bool = _onward_available()
+	if not available:
+		_onward_released = false
+	elif not _onward_released and _opening_input_released():
+		_onward_released = true
+	var armed: bool = available and _onward_released
+	if armed != _onward_armed:
+		_onward_armed = armed
+		if mission_hud != null:
+			mission_hud.set_run_onward(armed)
+
+func _try_onward(event: InputEvent) -> bool:
+	if not _onward_armed or not event.is_action_pressed("ui_accept") or event.is_echo() \
+		or (pause_menu != null and pause_menu.is_open()) or (console != null and console.is_open()):
+		return false
+	_onward_armed = false
+	get_tree().set_meta(LocalMatch.ONWARD_META, true)
+	_on_leave_requested()
+	return true
+
 func _input(_event):
-	if _try_continue(_event):
+	if _try_continue(_event) or _try_onward(_event):
 		get_viewport().set_input_as_handled()
 		return
 	if _event.is_action_released("interact"):
@@ -719,6 +757,7 @@ func end_ack_probe() -> Dictionary:
 
 func _process(_delta):
 	_arm_continue()
+	_arm_onward()
 	if _opening_release and _opening_input_released():
 		_opening_release = false
 		_submit_mission_readiness()
