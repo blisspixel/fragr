@@ -1147,6 +1147,10 @@ pub enum FlagEventKind {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PlayerState {
+    /// Additive body-contact eligibility. Historical snapshots default to true;
+    /// current servers explicitly publish inactive, detached and dead bodies false.
+    #[serde(default = "collidable_by_default")]
+    pub collidable: bool,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub campaign: Option<CampaignActor>,
     pub id: Uuid,
@@ -1178,6 +1182,10 @@ pub struct PlayerState {
     /// campaign actors and the arena boss, which keep their own identity.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub body: Option<BodyKind>,
+}
+
+fn collidable_by_default() -> bool {
+    true
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

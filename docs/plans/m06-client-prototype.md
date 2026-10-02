@@ -1,10 +1,14 @@
 # M06 client prototype
 
 **Status:** in-flight, 2026-10-01. Parent: [M06 Port of Entry](m06-port-of-entry-prototype.md).
-**Spend:** $0 new charges. The separately approved M06 batch consumed 252 included
-audio credits, bringing round usage to 945 credits with a conservative $4
-equivalent reserve. This lane makes no service requests. Original lunar textures
-are baked locally at no cost.
+**Spend:** $0 new cash charges. The approved M06 audio batch consumed 252 included
+credits and the separate shotgun refresh consumed 30, bringing round usage to
+975 included credits with a conservative $5 audio equivalent reserve. Six
+approved image requests reserve $0.274 across possessions and story images,
+with provider billing unconfirmed and the prior uncertain $0.107 retained.
+This lane completed the separately capped two-image $0.160 story batch;
+original lunar textures are also baked locally at no cost. No top-up or overage
+was enabled.
 
 ## Goal and boundaries
 
@@ -215,3 +219,59 @@ rosters and later packet mutation cannot rewrite those facts. The next tour can
 measure actual Rail origin-to-impact distance. The authored 58.25-meter spacing
 is separate from an actual clear after the Sweeper pursues the participant.
 No enemy movement, collision, phase, health, shot spread or gameplay changed.
+
+### Fourth gameplay tour, shutdown correction and selected possessions
+
+The fourth tour recorded all 25 states, all 21 named guards, the optional marker
+and actual party departure under `.agents/qa/m06-port-fourth/`. Its participant
+record retained zero deaths, zero HP loss and 90 armor loss. It failed the clean
+log gate on two leaked Compatibility textures at shutdown, so it is not a clean
+mission PASS. The resolved participant Rail shot at tick 1278 measured 52.8996
+meters from actual origin to impact and killed the pursuing named Sweeper. The
+58.25-meter authored starting separation remains separate seeded evidence.
+The actual Turret cancellation receipt retained blocked Windup tick 3074,
+Recovery 3075 ending 3087, original deadline 3085 and no same-Turret shot through
+verification tick 3086.
+
+The shutdown defect reproduced without a server in the real main scene.
+Replacing its first sky before the first completed draw leaked two 256-pixel
+radiance textures; delaying replacement until after that draw exited cleanly.
+Pinned [renderer source](https://github.com/godotengine/godot/blob/4.7.2-stable/drivers/gles3/rasterizer_scene_gles3.cpp)
+allocates the matching radiance and raw-radiance textures from a pending sky
+queue. GameManager now keeps replaced environments alive through one completed
+`frame_post_draw`, while applying the new venue immediately. Headless checks do
+not wait for a draw; exit disconnects the callback and releases retained values.
+`client-main-probe-retained-final.log` reproduces the formerly failing sequence
+with clean exit 0. The existing presentation harness covers immediate rapid
+replacement, one-draw release and the headless branch.
+
+Three inspected 128-pixel personal textures now occupy the existing sealed
+room's EarthDrawing, storage surfaces and a flush meal-table cloth. Runtime
+copies live in `assets/environment/moon/possessions/` and bind the inspected
+source hashes; the original offline drawing remains the missing-asset fallback.
+The original four-texture bake and its manifest remain unchanged. The source
+batch has a $0.114 equivalent reservation with provider billing not reconciled;
+this possession integration made no generation requests. Nearest materials and lossless imports
+without mipmaps preserve the existing pixel surfaces and world lighting.
+`client-possessions-import-final.log`, `client-possessions-presentation-headless.log`
+and `client-possessions-presentation-rendered.log` passed with clean exit 0.
+The isolated room still `moon-possessions-isolated.png` visibly shows the distinct
+paper drawing, repaired storage cloth and tabletop cloth with the provisional
+residents. This is a presentation preview, not an in-play whole-map acceptance.
+
+Six adjacent focused harnesses passed cleanly in
+`client-post-sky-test_m06_mission.log`, `client-post-sky-test_jammer_audio.log`,
+`client-post-sky-test_shot_effects.log`, `client-post-sky-test_render_quality.log`,
+`client-post-sky-test_qa_combat.log` and `client-post-sky-test_qa_turret.log`.
+Final whole-client checks and regenerated inspected tours remain pending until
+the remaining contact, audio and presentation sources are frozen together.
+
+Two selected story key images were added through the separately bounded
+[M06 story image plan](m06-story-key-images.md). Actual arrival/transit scene
+playback, frozen narration, missing-image text fallback, exact resource hashes
+and nearest presentation passed focused checks. The inspected 1280x720 scene
+frames show the impounded transport/Earth and transit view of town/depot; they
+remain story illustration rather than playable-world or transport-motion proof.
+The story batch reserves $0.160, bringing the combined new image reservation to
+$0.274 with unknown provider billing. No cash/top-up or extra generation request
+was made by this work.

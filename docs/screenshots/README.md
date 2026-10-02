@@ -12,6 +12,18 @@ in the same change. The other files in this directory stay as tour evidence.
 The project tour runs the engine binary. Packaged desktop games use the original
 game icon checked by the release workflow; these stills do not prove taskbar icons.
 
+`actor_contact_stopped.png`, `actor_contact_stop_strip.png` and
+`actor_contact_passed.png` were captured and inspected on 2026-10-01 through
+ordinary first-person input in an isolated two-participant development room.
+Held forward input stops at a living character; the six-frame strip shows the
+stationary view, and ordinary sidestepping permits passage. The matching server
+records minimum centre separation 1.0 metre, 19 applied zero-velocity movement
+acknowledgements and zero camera/prediction drift. Both owned processes exited
+cleanly. This is a Windows/OpenGL Compatibility/AMD Radeon 780M diagnostic,
+not a campaign or remote-machine playtest. Receipt:
+`.agents/m06-buildout-20261001/contact-pov-release-final/`;
+[contact plan](../plans/actor-body-contact.md).
+
 The standard tour was regenerated and inspected on 2026-09-30 after participant
 timeline interpolation, spectator camera smoothing, near-camera shot-effect
 clipping and all five campaign prototype integrations. All 32 states passed; thirteen

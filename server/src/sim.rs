@@ -1,3 +1,4 @@
+pub(crate) mod contact;
 mod ctf;
 #[cfg(test)]
 mod enclosed_tests;
@@ -1560,6 +1561,7 @@ impl GameState {
     /// must consume the same volumes, including their lower vertical bounds.
     fn tick_active(&mut self, dt: f32, arena: &crate::movement::Arena) {
         let mut respawn_ids = Vec::new();
+        let contact_before = self.contact_bodies();
         let before: Vec<[f32; 3]> = self
             .players
             .iter()
@@ -1690,6 +1692,7 @@ impl GameState {
         // bodies' displacement this tick. Record before gunfire so a Crawler
         // shot on the same frame can still trade its already-landed contact.
         let crawler_contacts = self.crawler_contacts(&before, arena);
+        self.resolve_player_contacts(contact_before, dt, arena);
 
         // Target intent takes precedence after movement, for every controller role.
         // Applied after movement/turn so agents can still strafe while locking aim.
@@ -2497,6 +2500,7 @@ impl GameState {
                         .or_else(|| p.display_behavior.clone());
 
                     PlayerState {
+                        collidable: self.contact_eligible(p),
                         campaign: p.campaign,
                         id: p.id,
                         name: p.name.clone(),

@@ -1069,6 +1069,10 @@ Periodic state broadcast containing all visible game entities. Sent at ~20 Hz.
   - `team`: (optional) `union` or `coalition` in a team mode, omitted otherwise
   - `lives`: (optional) lives left this round, this one included, when lives are limited
   - `golden`: (optional) true while holding the golden Railgun, omitted otherwise
+  - `collidable`: Boolean server-owned living-body eligibility. New servers
+    always include it. Dead, detached, eliminated, respawning and unready
+    campaign bodies report false. Legacy omission defaults to true, still
+    subject to HP and mission participation; a present nonboolean is invalid.
   - `body`: (optional) `human` or `synthetic`, the participant's accepted body.
     Every human, agent and rule-bot participant carries it; rule bots take
     bodies by roster slot (human, synthetic, synthetic, human, repeating),
@@ -1101,9 +1105,28 @@ Periodic state broadcast containing all visible game entities. Sent at ~20 Hz.
 - `pickups`: (optional, omitted when empty) Scrap layout: `map_id` (1 Arena Duel / 2 Compliance Yard) and `map_name`. Mid-map pads (weapons, health, armor). Each entry: `id`, `kind` (`"weapon"` / `"health"` / `"armor"`, default `"weapon"`), optional `weapon` (weapon pads), optional `amount` (health/armor pads), `x`/`y`/`z`, `available`, optional `respawn_in` (ticks until the pad returns). Health pads heal +40 (cap max HP); armor scrap grants +25 (cap 100). Touch claim is authoritative on the server; clients only render.
 
 **Notes:**
-- Dead players (HP ≤ 0) are omitted from the snapshot
+- Ordinary dead fighters are omitted; campaign corpses remain for their bounded
+  death presentation and report `collidable: false`.
 - Clients must handle players appearing/disappearing
 - No delta compression in v1 (future optimization)
+
+Living eligible characters block ordinary horizontal movement when their
+0.5-metre radii and registered vertical spans intersect. Fighter and civilian
+height is 1.8 metres, Crawler height is 0.8 and Notary height is 0.7. Contact
+preserves sliding, map support and escape from pre-existing overlap; it does
+not make characters standing surfaces. Reachable mission civilians use their
+published feet while the mission is in progress. Combat remains independently
+resolved: an already committed Crawler leap contact can damage on its frame,
+and body blocking does not replace shot geometry. Tram obstruction refuses the
+whole platform step. This additive snapshot fact does not change capability
+27 or campaign rules revision 3.
+
+The local human presenter mirrors contact math using validated, recent static
+snapshot bodies for at most three speculative ticks, with a bounded four-sample
+history. Moving peers are not extrapolated and can require an ACK correction.
+Invalid or stale contact input suspends speculative movement until fresh
+authoritative state arrives. ACKs, never predicted body contacts, decide actual
+positions and velocities.
 - Round fields present when round system is active
 
 **Shot evidence:** current servers always include `trace`; old recordings omit

@@ -79,6 +79,7 @@ pub(crate) fn validate_route(world: &Navigation) -> Result<(), &'static str> {
 }
 
 pub(super) struct Controller {
+    contacts: Vec<crate::movement::contact::ContactBody>,
     pub(super) published: State,
     bodies: [MoveState; 2],
     points: [usize; 2],
@@ -95,6 +96,7 @@ impl Default for State {
 impl Default for Controller {
     fn default() -> Self {
         Self {
+            contacts: Vec::new(),
             published: State::held(),
             bodies: State::HELD_FEET.map(|feet| MoveState {
                 x: feet[0],
@@ -113,6 +115,12 @@ impl Default for Controller {
 }
 
 impl Controller {
+    pub(crate) fn set_contacts(&mut self, contacts: Vec<crate::movement::contact::ContactBody>) {
+        self.contacts = contacts;
+    }
+    pub(crate) fn contact_feet(&self) -> [[f32; 3]; 2] {
+        self.bodies.map(|b| [b.x, b.y, b.z])
+    }
     fn ensure_bodies(&mut self) {
         if self.published.phase == Phase::Held {
             for (body, feet) in self.bodies.iter_mut().zip(State::HELD_FEET) {
@@ -123,14 +131,13 @@ impl Controller {
 
     pub(super) fn tick(
         &mut self,
-        tick: u64,
+        _tick: u64,
         dt: f32,
         arena: &Arena,
         side_clear: bool,
         floor_clear: bool,
         dock_clear: bool,
     ) {
-        let old_phase = self.published.phase;
         match self.published.phase {
             Phase::Held if side_clear => {
                 self.ensure_bodies();
@@ -167,9 +174,9 @@ impl Controller {
             }
             Phase::Held | Phase::Ready | Phase::Waiting | Phase::Evacuated => {}
         }
-        if tick.is_multiple_of(4) || self.published.phase != old_phase {
-            self.published.captives = self.bodies.map(|body| [body.x, body.y, body.z]);
-        }
+        // Contact prediction consumes these same feet, so publish each active
+        // frame rather than leaving a moving visible blocker four ticks behind.
+        self.published.captives = self.bodies.map(|body| [body.x, body.y, body.z]);
     }
 
     fn follow(
@@ -211,7 +218,24 @@ impl Controller {
         let speed = speed.min(distance / dt);
         body.vx = dx / distance * speed;
         body.vz = dz / distance * speed;
-        let next = integrate(*body, false, dt, arena);
+        let proposed = integrate(*body, false, dt, arena);
+        let next = crate::sim::contact::move_body(
+            &format!("m02/captive/{index}"),
+            *body,
+            proposed,
+            crate::movement::BODY_HEIGHT,
+            dt,
+            arena,
+            &self.contacts,
+        );
+        if let Some(contact) = self
+            .contacts
+            .iter_mut()
+            .find(|b| b.key == format!("m02/captive/{index}"))
+        {
+            contact.from = next;
+            contact.proposed = next;
+        }
         let moved = (next.x - body.x).hypot(next.z - body.z);
         if moved < 0.001 {
             self.stalled[index] = self.stalled[index].saturating_add(1);

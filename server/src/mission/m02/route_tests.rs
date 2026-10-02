@@ -23,6 +23,9 @@ fn session() -> GameSession {
             .load()
             .unwrap(),
     );
+    // Contact ordering is part of a seeded movement replay. Allocate ordinary
+    // encounter/companion IDs in their spawn order instead of random UUIDs.
+    session.state.use_replay_ids();
     session.state.seed(67);
     session
 }
@@ -139,6 +142,7 @@ struct Walker {
     companion_kills: usize,
     crawler_cues: Vec<(u64, [f32; 3], [f32; 3])>,
     first_crawler_clear_tick: Option<u64>,
+    full_health_medkit_opportunity: Option<(u64, [f32; 3], i32, bool, bool)>,
 }
 
 impl Walker {
@@ -172,6 +176,7 @@ impl Walker {
             companion_kills: 0,
             crawler_cues: Vec::new(),
             first_crawler_clear_tick: None,
+            full_health_medkit_opportunity: None,
         }
     }
 
@@ -233,6 +238,36 @@ impl Walker {
             .find(|player| player.id == self.id)
             .map(|player| [player.x, player.y - PLAYER_FLOOR_Y, player.z]);
         let messages = session.tick_messages(0.05);
+        if self.full_health_medkit_opportunity.is_none() {
+            if let (Some(player), Some(pad)) = (
+                session.state.players.iter().find(|p| p.id == self.id),
+                session
+                    .state
+                    .pickups
+                    .iter()
+                    .find(|p| p.id == "side_ward_medkit"),
+            ) {
+                let feet = [player.x, player.y - PLAYER_FLOOR_Y, player.z];
+                if player.hp == crate::sim::PLAYER_MAX_HP
+                    && pad.available
+                    && (feet[0] - pad.x).hypot(feet[2] - pad.z) <= crate::sim::PICKUP_CLAIM_RADIUS
+                    && (feet[1] - pad.floor).abs() <= crate::sim::PICKUP_CLAIM_HEIGHT
+                    && crate::combat::line_of_sight(
+                        [feet[0], feet[1] + crate::movement::EYE_HEIGHT, feet[2]],
+                        [pad.x, pad.y, pad.z],
+                        &session.state.current_arena().solids,
+                    )
+                {
+                    let claimed = session.state.events.iter().any(|e| {
+                        matches!(e,
+                        crate::protocol::GameEvent::Pickup{player_id,pickup_id,..}
+                            if *player_id==self.id && pickup_id=="side_ward_medkit")
+                    });
+                    self.full_health_medkit_opportunity =
+                        Some((session.state.tick, feet, player.hp, pad.available, claimed));
+                }
+            }
+        }
         for message in &messages {
             if let ServerMessage::Event(crate::protocol::GameEvent::CrawlerScrabble { position }) =
                 message
@@ -505,6 +540,7 @@ impl Walker {
         self.guard_room_weapon_selected = None;
         self.crawler_cues.clear();
         self.first_crawler_clear_tick = None;
+        self.full_health_medkit_opportunity = None;
     }
 
     fn until(
@@ -521,7 +557,7 @@ impl Walker {
             assert_body_clear(session, self.id);
         }
         panic!(
-            "route stalled at tick {} after {:?} at {:?} with {} defeats and {} living enemies {:?}",
+            "route stalled at tick {} after {:?} at {:?} with {} defeats and {} living enemies {:?}; navigator {:?}; action {:?}",
             session.state.tick,
             self.completed,
             session
@@ -537,7 +573,9 @@ impl Walker {
                 ]),
             self.defeated.len(),
             living_enemies(session),
-            session.state.players.iter().filter(|p| p.is_campaign_enemy() && p.hp > 0).map(|p| (&p.name, p.x, p.z)).collect::<Vec<_>>()
+            session.state.players.iter().filter(|p| p.is_campaign_enemy() && p.hp > 0).map(|p| (&p.name, p.x, p.z)).collect::<Vec<_>>(),
+            self.navigator,
+            session.state.players.iter().find(|p|p.id==self.id).map(|p|&p.pending_action)
         );
     }
 }
@@ -553,8 +591,12 @@ fn assert_body_clear(session: &GameSession, id: Uuid) {
                 && solid.top > feet + CONTACT_EPSILON
                 && solid.bottom < feet + BODY_HEIGHT - CONTACT_EPSILON
         }),
-        "body entered a volume at {:?}",
-        [player.x, feet, player.z]
+        "body entered a volume at {:?}, tick {}, hp {}, map {}: {:?}",
+        [player.x, feet, player.z],
+        session.state.tick,
+        player.hp,
+        session.state.map.name(),
+        session.state.mission_state()
     );
 }
 
@@ -1220,13 +1262,34 @@ fn severe_side_ward_route_survives_with_ordinary_supplies() {
         .find(|player| player.id == id)
         .is_some_and(|player| player.hp > 0));
     assert!(session.state.m02_side_ward_secured());
-    for supply in ["side_ward_medkit", "side_ward_armor"] {
-        assert!(session
-            .state
-            .pickups
-            .iter()
-            .find(|pickup| pickup.id == supply)
-            .is_some_and(|pickup| !pickup.available));
+    let armor = session
+        .state
+        .pickups
+        .iter()
+        .find(|p| p.id == "side_ward_armor")
+        .unwrap();
+    assert!(!armor.available, "the route uses finite side-ward armor");
+    let medkit = session
+        .state
+        .pickups
+        .iter()
+        .find(|p| p.id == "side_ward_medkit")
+        .unwrap();
+    if medkit.available {
+        // A full-health visit must preserve usable medical stock. Completion
+        // alone, or healing elsewhere later, cannot substitute for this visit.
+        let (tick, feet, hp, available, claimed) = walker
+            .full_health_medkit_opportunity
+            .expect("unused medkit needs an actual full-health pickup opportunity");
+        assert_eq!(hp, crate::sim::PLAYER_MAX_HP);
+        assert!(available);
+        assert!((feet[0] - medkit.x).hypot(feet[2] - medkit.z) <= crate::sim::PICKUP_CLAIM_RADIUS);
+        assert!((feet[1] - medkit.floor).abs() <= crate::sim::PICKUP_CLAIM_HEIGHT);
+        assert!(
+            !claimed,
+            "full-health visit must not consume its medical stock"
+        );
+        eprintln!("M02 Severe full-health medical opportunity: tick {tick}, feet {feet:?}, HP {hp}, stock preserved");
     }
     let player = session
         .state

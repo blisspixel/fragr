@@ -57,6 +57,14 @@ cover. `observe.grenades` reports live position and remaining fuse ticks;
 Grenade record counts have their own column; the six weapon slots retain their
 indices. Self damage never awards a self frag.
 
+`observe.players[].collidable` is the server's Boolean living-body eligibility.
+Dead, detached, respawning, eliminated or unready campaign bodies do not block
+walking. Legacy omission means true, still subject to HP and participation;
+nonboolean values are invalid. Eligible characters and reachable mission
+civilians block intersecting horizontal movement, preserving sliding and world
+support. They do not become standing surfaces. Positions and accepted velocities
+remain server facts; MCP sends the same ordinary action channel.
+
 `observe.mission` carries the shared phase, attempt, party readiness/boarding and currently
 legal prompts. `observe.map.mission` describes panel indices, approach positions
 and the boarding area. `act.interact: true` presses Use; release with `false`

@@ -531,6 +531,7 @@ impl EnemyController {
             .and_then(|id| state.players.iter().find(|p| p.id == id && p.hp > 0))
             .map(|p| [p.x, p.y - PLAYER_FLOOR_Y, p.z]);
         let arena = state.current_arena().into_owned();
+        let contacts = state.contact_bodies();
         let Some(player) = state.players.iter_mut().find(|p| p.id == self.id) else {
             return;
         };
@@ -577,9 +578,39 @@ impl EnemyController {
         }
         let step = 0.8_f32 * 0.05 / length;
         let scale = step.min(1.0);
-        player.x = (player.x + delta[0] * scale).clamp(hover.volume.min[0], hover.volume.max[0]);
-        player.z = (player.z + delta[2] * scale).clamp(hover.volume.min[2], hover.volume.max[2]);
-        player.y = PLAYER_FLOOR_Y + (floor + delta[1] * scale).clamp(hover.band[0], hover.band[1]);
+        let from = crate::movement::MoveState {
+            x: player.x,
+            y: floor,
+            z: player.z,
+            vx: 0.0,
+            vz: 0.0,
+            vy: 0.0,
+            yaw: player.yaw,
+        };
+        let mut body = crate::movement::contact::ContactBody {
+            key: player.id.to_string(),
+            from,
+            proposed: crate::movement::MoveState {
+                x: (player.x + delta[0] * scale).clamp(hover.volume.min[0], hover.volume.max[0]),
+                z: (player.z + delta[2] * scale).clamp(hover.volume.min[2], hover.volume.max[2]),
+                y: (floor + delta[1] * scale).clamp(hover.band[0], hover.band[1]),
+                ..from
+            },
+            height: crate::combat::target_height(player.campaign),
+            radius: crate::movement::RADIUS,
+            jump: false,
+        };
+        let fraction = contacts
+            .iter()
+            .filter(|b| b.key != body.key)
+            .filter_map(|b| crate::movement::contact::sweep_time(&body, b))
+            .fold(1.0_f32, f32::min);
+        body.proposed.x = from.x + (body.proposed.x - from.x) * fraction;
+        body.proposed.y = from.y + (body.proposed.y - from.y) * fraction;
+        body.proposed.z = from.z + (body.proposed.z - from.z) * fraction;
+        player.x = body.proposed.x;
+        player.z = body.proposed.z;
+        player.y = PLAYER_FLOOR_Y + body.proposed.y;
     }
 
     fn jammer(

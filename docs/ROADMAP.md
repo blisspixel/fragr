@@ -48,7 +48,16 @@ the three desktop packages and install checks passed in
 [v0.65.0](https://github.com/blisspixel/fragr/releases/tag/v0.65.0).
 The narration harness follow-up in [PR #315](https://github.com/blisspixel/fragr/pull/315)
 also passes main CI. M06 implementation is in flight through its
-[bounded plan](plans/m06-port-of-entry-prototype.md); no M06 gate is claimed yet.
+[bounded plan](plans/m06-port-of-entry-prototype.md). Its pre-contact baseline
+passes 1226 Rust tests and 94.12 percent unfiltered line coverage. The fourth
+ordinary-input tour completed 25 gameplay states and all 21 guards, but its
+wrapper failed on shutdown texture leaks. The focused sky-lifetime correction
+passes; a clean full mission tour and complete current-source checks remain
+pending after living-body contact, art and audio integration. No M06 release
+or fresh-player acceptance is claimed. Current round usage is 975 included
+audio credits with a $5 equivalent reserve, plus $0.274 in new image request
+reservations and the retained prior $0.107 uncertainty. Image billing remains
+unconfirmed and new cash charges are $0.
 Fresh-player acceptance and
 two-machine network evidence remain separate gates.
 
@@ -303,8 +312,11 @@ player is available. It does not gate this authorized development round.
 
 No cloud apply, public-server claim or 1.0 controls claim follows from this
 integration. The authorized audio batch used included credits. The prepared
-image API batch remains unsubmitted pending a verified current balance; original
-local textures are implemented. The $0 local container host is documented for
+image API work now has six accepted requests and inspected integrated keepers,
+reserving $0.274 with provider billing unconfirmed and the earlier $0.107
+uncertainty retained. Original local textures remain available. The round uses
+975 included audio credits with a conservative $5 audio equivalent reserve
+and $0 new cash charges. The $0 local container host is documented for
 friends; the 2026-10-01 local build, hardened runtime, legal notices and healthy
 status probe pass, with owned cleanup recorded in the M06 plan. Public admission,
 cloud cost and exposed-server testing retain their own gates.
@@ -444,7 +456,12 @@ Status: **in progress**. This phase decides whether the game is fun. Everything 
 
 Exit bar: the fun bar below passes on a LAN session with mixed humans and agents, and a stranger can be handed the repo and reach a fight in under two minutes.
 
-The next weapon work is the gun the next mission teaches, not another rename. The shotgun is already in the sim and belongs in M02. The sniper rifle, grenade, proximity mine, remote mine, and rocket launcher are locked to later missions in [readable-arsenal.md](plans/readable-arsenal.md) and are not implemented. v0.41.0 shipped the display names. v0.42.0 shipped the wheel and the number keys.
+This historical weapon queue is superseded by the active full build order.
+The Shotgun is implemented in M02, counted grenades shipped with M05 in
+v0.65.0, and the Railgun's authored lesson is in the current M06 increment.
+Proximity mines, remote mines and the rocket launcher remain later mission
+work in [readable-arsenal.md](plans/readable-arsenal.md). v0.41.0 shipped display
+names; v0.42.0 shipped the wheel and number keys.
 
 ## Phase 2: Exposed server (public, still cheap)
 
@@ -519,7 +536,7 @@ Every item above maps to a plan or says "plan needed". The order of the next PRs
 | Item | Plan | Next PR order |
 |---|---|---|
 | Phase 0: one protocol crate | **done**: the adapter, the playtest harness, and the brain all read the wire types from `fragr-server`; extracting a separate crate is optional cosmetics | |
-| Phase 1.1: movement and gunfeel | `plans/gunfeel.md` (weapons and aim), `plans/buttery-controls.md` (netcode plumbing) | rungs 1-3 and buttery stage 1 shipped; stages 2-6 before the level 6 Railgun lane |
+| Phase 1.1: movement and gunfeel | `plans/gunfeel.md` (weapons and aim), `plans/buttery-controls.md` (netcode plumbing) | historical stage queue; local prediction shipped, current M06 follows the active full build order and measured long-lane work; remote-network acceptance remains separate |
 | Phase 1.2: look pass | `plans/look-pass-boomer.md`, assets from `plans/art-pipeline.md` | lighting increment and stage 1 (world pixels, palette dither) in flight; stages 2 to 5 next; art rung 1 (the Rust tool) any time, paid rungs after written approval |
 | Phase 1.3: sound and music | `plans/radio-stations.md` (shipped; bumpers and Host voice remain) | |
 | Phase 1.4: bots that read as players | plan needed | after campaign rung 2 |

@@ -1099,6 +1099,7 @@ mod tests {
             capture_limit: None,
             tick: 100,
             players: vec![protocol::PlayerState {
+                collidable: true,
                 body: None,
                 golden: false,
                 lives: None,
@@ -1218,6 +1219,7 @@ mod tests {
             tick: 50,
             players: vec![
                 protocol::PlayerState {
+                    collidable: true,
                     body: None,
                     golden: false,
                     lives: None,
@@ -1238,6 +1240,7 @@ mod tests {
                     weapon: "Flechette".to_string(),
                 },
                 protocol::PlayerState {
+                    collidable: true,
                     body: None,
                     golden: false,
                     lives: None,
@@ -1564,6 +1567,7 @@ mod tests {
             tick: 1,
             players: vec![
                 protocol::PlayerState {
+                    collidable: true,
                     body: None,
                     golden: false,
                     lives: None,
@@ -1584,6 +1588,7 @@ mod tests {
                     weapon: "Flechette".into(),
                 },
                 protocol::PlayerState {
+                    collidable: true,
                     body: None,
                     golden: false,
                     lives: None,

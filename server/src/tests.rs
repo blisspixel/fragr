@@ -374,6 +374,7 @@ fn test_protocol_snapshot_serialization() {
         capture_limit: None,
         tick: 123,
         players: vec![PlayerState {
+            collidable: true,
             body: None,
             golden: false,
             lives: None,

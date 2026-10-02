@@ -9,7 +9,7 @@ Status words: **proposed** (a design awaiting Nick's decision; directs no work),
 ## Standing facts
 
 - Game port is **6767** (TCP today; UDP reserved for the planned low-latency transport).
-- Local play is $0. Public hosting sits under the $50 total cap. Nick authorized up to $20 combined external charges for each of the 2026-09-26, 2026-09-29 and 2026-09-30 development rounds, subject to that total cap and reconciled actual usage. The 2026-09-30 buildout has $0 new cash charges, 945 included audio credits consumed and a separate conservative $4 equivalent reserve. Production deployment still needs a reviewed cost and written approval. The current GCP Terraform remains plan-only.
+- Local play is $0. Public hosting sits under the $50 total cap. Nick authorized up to $20 combined external charges for each of the 2026-09-26, 2026-09-29 and 2026-09-30 development rounds, subject to that total cap and reconciled actual usage. The 2026-09-30 buildout has $0 new cash charges, 975 included audio credits consumed, a separate conservative $5 audio equivalent reserve and $0.274 in new image reservations whose billing remains unreconciled. The prior uncertain $0.107 image reservation stays preserved. Production deployment still needs a reviewed cost and written approval. The current GCP Terraform remains plan-only.
 - Tailscale is private smoke only, never the documented join path.
 - The dedicated server bar is rock solid, secure, and cheap: input validation, rate limits, clean join and leave and reconnect, and a home box or small VM first.
 
@@ -24,7 +24,10 @@ Status words: **proposed** (a design awaiting Nick's decision; directs no work),
 | [`m06-client-prototype.md`](./m06-client-prototype.md) | **in flight** | Strict M06 state, local readiness, inhabited Moon presentation and text story handoffs. |
 | [`m06-audio-batch.md`](./m06-audio-batch.md) | **in flight** | Three exact-caption neutral framing clips and a quiet utility loop, with verified included credits and bounded generation. |
 | [`m06-lunar-art-batch.md`](./m06-lunar-art-batch.md) | **in flight** | Bounded lunar civilian and pressure-room art, priced against the owner's current prepaid API balance and inspected after palette reduction. |
+| [`m06-story-key-images.md`](./m06-story-key-images.md) | **implemented** | Two inspected lunar arrival/transit illustrations share the game palette and existing reader-paced captions, narration and fallback. |
 | [`shotgun-sfx-refresh.md`](./shotgun-sfx-refresh.md) | **in flight** | Replace the shotgun blast through a capped included-credit sound batch and the existing weapon audio path. |
+| [`radio-start-variation.md`](./radio-start-variation.md) | **in flight** | Random populated station and random track on ordinary startup, including visual test runs. |
+| [`actor-body-contact.md`](./actor-body-contact.md) | **in flight** | Server-owned solid living bodies with matching bounded local prediction and ordinary-input evidence. |
 | [`m05-audio-batch.md`](./m05-audio-batch.md) | **shipped**, [PR #314](https://github.com/blisspixel/fragr/pull/314) | Three exact-caption neutral narration clips and two compact grenade cues; final playback/caption/fallback checks pass. |
 | [`m05-server-authoring.md`](./m05-server-authoring.md) | **shipped**, [PR #314](https://github.com/blisspixel/fragr/pull/314) | Original 21-guard roof/workshop/trench mission; final ordinary-input clear, grounded rescue and deliberate boarding pass. |
 | [`m05-bounded-tram.md`](./m05-bounded-tram.md) | **shipped**, [PR #314](https://github.com/blisspixel/fragr/pull/314) | Real supported ride, live cover and cleanup, with 99 supported samples and equal rider/tram travel. |

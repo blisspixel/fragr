@@ -6,9 +6,13 @@ The [full build order](../ROADMAP.md#full-build-order-2026-09-27) owns sequencin
 this file defines its next bounded mission increment after M05's gate.
 **Spend:** $0 new cash charges. The separately priced
 [M06 audio batch](m06-audio-batch.md) generated four jobs using 252 included
-credits. The ongoing round totals 945 included credits and a conservative $4
-equivalent reserve within its existing allowance. No image or cloud submission
-is made.
+credits. The separate requested shotgun refresh consumes another 30 included
+credits, bringing the ongoing round to 975 credits and a conservative $5 audio
+equivalent reserve. The owner confirmed $14.40 in current image API credits;
+six bounded image requests downloaded at a combined $0.274 reservation:
+$0.114 for possessions and $0.160 for two story key images.
+Confirmed image billing remains unreconciled and the prior uncertain $0.107
+reservation stays preserved. No top-up, overage or cloud submission ran.
 
 ## Goal and accepted direction
 
@@ -297,14 +301,18 @@ The broad Rust gate also exposed an old socket fixture that assumed the newest
 capability applied to every Discovery map. Its corrected test explicitly rejects
 pre-26 readers and admits both 26 and 27 for human, agent and spectator roles on
 the older authored map. This preserves the intended compatibility boundary.
-Workspace clippy and dependency licenses/bans/sources pass; final full workspace,
-coverage, packaged server, native client and visual gates are still running.
+The pre-contact workspace clippy and dependency licenses/bans/sources pass.
+The completed baseline below predates the subsequent living-body contact
+increment; final matching server, client and visual gates must include that
+source before acceptance.
 Receipts live under `.agents/m06-buildout-20261001/`.
 
-The current API image-credit balance could not be verified through the available
-account session. Official billing documentation distinguishes API dollars from
-website credits. No image generation or account change ran; original offline
-Moon art remains the fallback. The exact neutral audio batch settled at 252
+Initial API image-credit research could not verify the balance through the
+available account session. Official billing documentation distinguishes API
+dollars from website credits. That research ran no image generation or account
+change. Nick subsequently reported a current $14.40 balance and explicitly
+requested a [bounded lunar art batch](m06-lunar-art-batch.md); the original
+offline Moon art remains available. The exact neutral audio batch settled at 252
 included credits and zero new cash charges. Actual decoded playback, captions,
 looping, completion and fallback checks pass; listening and final character
 casting remain separate review evidence.
@@ -324,6 +332,11 @@ Command: `cargo run -p fragr-server --release --locked -- --bench 16
 Full receipt: `.agents/m06-buildout-20261001/benchmark.log`.
 
 ### Completed engineering gates
+
+These are the completed pre-contact baseline, not final verification of the
+subsequent [living-body contact increment](actor-body-contact.md), new art or
+shotgun integration. The recorded counts and measurements remain historical
+receipts; final current-source checks and inspected tours are still required.
 
 `workspace-tests-rerun.log`: 1226 passing workspace tests, zero failures and
 three existing ignored tests. `fmt.log` and `clippy-final.log`: clean.
@@ -414,8 +427,8 @@ cancellation candidate.
 
 That tour remains incomplete: the driver climbs all six gallery treads, then
 oversteers sideways off the supported platform while keeping aim on the Turret.
-The old projection threshold selects a diagonal for a course only fourteen
-degrees from forward. The owning QA lane is replacing this with nearest-eight
+The old projection threshold selected a diagonal for a course only fourteen
+degrees from forward. The owning QA lane corrected this with nearest-eight
 direction quantization and a focused regression; server movement, map geometry
 and required rear-flank death gates remain unchanged. Receipts and partial
 captures remain under `.agents/qa/m06-port-third/`.
@@ -428,3 +441,24 @@ through the freight window beneath the gantry crossbeam; it does not claim Earth
 above that beam. The crew-quarters frame shows provisional residents, storage,
 meal bowls, a child's drawing and the labelled recycling tray behind real glass.
 Neither still establishes final character performances or ambient activity.
+
+### Fourth tour and outstanding clean gate
+
+The fourth ordinary-input tour under `.agents/qa/m06-port-fourth/` completed
+all 25 states, all 21 named guards, the optional prisoner marker and actual
+party departure. It recorded zero deaths and HP loss, with 90 armor lost.
+Its actual resolved participant Rail shot measured 52.8996 metres at tick
+1278, distinct from the authored 58.25-metre initial spacing and seeded test.
+The named Turret cancellation retained blocked, living, in-range Windup at
+3074, twelve-tick Recovery at 3075 ending 3087, unchanged Turret HP and no
+named shot through the original deadline 3085, verified at 3086.
+
+The wrapper failed with two shutdown texture-leak errors, so completed gameplay
+is not a clean mission PASS. A focused reproducer established a pending sky
+resource lifetime race when replacing environments before the first rendered
+frame. The bounded one-frame retention fix preserves immediate world changes
+and passes isolated rendered and headless regressions. Final clean whole-mission
+capture remains pending after contact, art and audio source freeze and a
+matching release build. Fresh-player teaching, all difficulties, eleven-minute
+pacing, 4:30 par, final casting and listening acceptance remain open. M06 is
+still in flight and no release 0.66 is claimed.

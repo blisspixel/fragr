@@ -53,8 +53,12 @@ The exact dry run estimated 611 credits: 166, 58 and 147 for the three speech
 pages and 240 for the six-second loop. The capped batch wrote all four jobs
 without an observed retry. Quota advanced from 694608 to 694860 used credits,
 an actual 252 included credits consumed; 752336 remain. New cash charges are
-$0. The ongoing round now totals 945 included credits and a conservative $4
-equivalent reserve, leaving $16 after reserves within the original allowance.
+$0. Immediately after this batch, the round totaled 945 included credits and a
+conservative $4 equivalent reserve, leaving $16 after those audio reserves.
+The later [shotgun refresh](shotgun-sfx-refresh.md) consumed 30 included credits:
+the current round total is 975 with a $5 audio equivalent reserve and $0 new
+cash charges. Six separately approved image requests reserve $0.274, with
+provider billing unconfirmed and the prior uncertain $0.107 retained.
 The public pay-as-you-go comparison is $0.02968 for 371 speech characters and
 $0.012 for six seconds of SFX, $0.04168 before taxes; it is not a subscription
 cash charge. The four-attempt conservative credit reservation was 2444.

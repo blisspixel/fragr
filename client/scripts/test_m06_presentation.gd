@@ -25,6 +25,21 @@ func _run() -> void:
 			var image: Image = texture.get_image() if texture != null else null
 			_check(image != null and image.get_size() == Vector2i(128, 128)
 				and FileAccess.get_sha256(path) == entry["sha256"], "original lunar asset is loadable and fresh: " + path)
+	var possessions: Variant = JSON.parse_string(FileAccess.get_file_as_string("res://art/environment/moon-batch-20261001/manifest.json"))
+	_check(possessions is Dictionary, "selected personal possessions retain their source receipt")
+	if possessions is Dictionary:
+		for entry: Dictionary in possessions["assets"]:
+			if entry["id"] == "lunar_pressure_habitat_insert":
+				continue
+			var selected: String = M06Port.POSSESSIONS + String(entry["processed"]).get_file()
+			if entry["id"] in ["lunar_child_earth_drawing", "lunar_civilian_patched_textile", "lunar_personal_meal_cloth"]:
+				var texture: Texture2D = load(selected) as Texture2D
+				_check(texture != null and texture.get_size() == Vector2(128, 128)
+					and FileAccess.get_sha256(selected) == entry["processed_sha256"], "selected possession matches inspected original source: " + selected)
+	_check(M06Port.possession_material(M06Port.DRAWING, M06Port.DRAWING_FALLBACK).albedo_texture.resource_path == M06Port.DRAWING,
+		"family page prefers selected personal drawing")
+	_check(M06Port.possession_material("res://missing-m06-drawing.png", M06Port.DRAWING_FALLBACK).albedo_texture.resource_path == M06Port.DRAWING_FALLBACK,
+		"missing personal drawing keeps original offline fallback")
 	var rig: RefCounted = RIG.new()
 	var walk_start: Node3D = rig.build_turret("walk", 0.0)
 	var walk_later: Node3D = rig.build_turret("walk", 0.37)
@@ -59,9 +74,29 @@ func _run() -> void:
 	_check(old_glass.transparency == BaseMaterial3D.TRANSPARENCY_ALPHA, "M02 inspection glass retains its existing transparent presentation")
 	cover.queue_free()
 	await process_frame
+	await _check_environment_replacement()
 	if failures == 0:
 		print("test_m06_presentation: PASS original asset freshness, authoritative Turret yaw, lunar shell and preserved glass")
 	quit(0 if failures == 0 else 1)
+
+func _check_environment_replacement() -> void:
+	var manager: Node = load("res://scripts/game_manager.gd").new()
+	manager.settings = FragrSettings.new()
+	var world: WorldEnvironment = WorldEnvironment.new()
+	manager.add_child(world)
+	manager._apply_arena_sky("Port of Entry")
+	var initial: Environment = world.environment
+	manager._apply_arena_sky("No Forwarding Address")
+	manager._apply_arena_sky("Port of Entry")
+	_check(world.environment != initial and world.environment.sky != null, "rapid venue changes replace visible environment immediately")
+	initial = null
+	if DisplayServer.get_name() == "headless":
+		_check(manager._retired_environments.is_empty(), "headless checks never await a GPU draw")
+	else:
+		_check(manager._retired_environments.size() == 2, "rapid replacements retain pending sky resources through draw")
+		await RenderingServer.frame_post_draw
+		_check(manager._retired_environments.is_empty(), "one completed draw releases both retired skies")
+	manager.free()
 
 static func _transforms(node: Node3D) -> Array[Transform3D]:
 	var result: Array[Transform3D] = [node.transform]

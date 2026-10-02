@@ -2366,6 +2366,7 @@ mod tests {
 
     fn player(name: &str, id: Uuid, x: f32, z: f32, fired: bool) -> PlayerState {
         PlayerState {
+            collidable: true,
             body: None,
             golden: false,
             lives: None,
@@ -3279,6 +3280,7 @@ mod combat_tests {
 
     fn player(name: &str, id: Uuid, x: f32, z: f32, weapon: &str) -> PlayerState {
         PlayerState {
+            collidable: true,
             body: None,
             golden: false,
             lives: None,
@@ -3832,6 +3834,7 @@ mod planner_tests {
 
     fn player(name: &str, id: Uuid, x: f32, z: f32, hp: i32, weapon: &str) -> PlayerState {
         PlayerState {
+            collidable: true,
             body: None,
             golden: false,
             lives: None,
@@ -4411,6 +4414,7 @@ mod line_of_sight_tests {
             jammer_dish: None,
         };
         let mk = |id: Uuid, x: f32| fragr_server::protocol::PlayerState {
+            collidable: true,
             body: None,
             golden: false,
             lives: None,
@@ -4482,6 +4486,7 @@ mod patrol_tests {
 
     fn lone(id: Uuid) -> fragr_server::protocol::PlayerState {
         fragr_server::protocol::PlayerState {
+            collidable: true,
             body: None,
             golden: false,
             lives: None,

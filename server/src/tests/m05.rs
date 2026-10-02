@@ -406,17 +406,150 @@ fn m05_workers_walk_to_actual_boarding_without_holding_party_departure() {
         clear(&mut s, i);
     }
     assert!(s.state.m05_evacuated_worker_ids().is_empty());
-    // Actor motion, including the gate crossing, remains ordinary server integration.
-    advance(&mut s, 900);
+    let geometry = s.state.map.m05_geometry().unwrap().clone();
+    let mut client = crate::mission::MissionClient::default();
+    client
+        .replace_map_with_m05(
+            Some(&geometry),
+            s.state.map.half_extent(),
+            &s.state.map.arena().solids,
+            s.state.map.presentation_ref(),
+        )
+        .unwrap();
+    let mut previous = s.state.mission_state().unwrap().m05.unwrap().captives;
+    // Every actual tick stays on the original strict route and uses physical
+    // motion, including the gate crossing and separate boarding berths.
+    for _ in 0..900 {
+        advance(&mut s, 1);
+        let state = s.state.mission_state().unwrap();
+        client
+            .observe(s.state.tick, state.clone())
+            .unwrap_or_else(|error| {
+                panic!(
+                    "{error} at {}: {:?}",
+                    s.state.tick,
+                    state.m05.as_ref().unwrap().captives
+                )
+            });
+        let current = &state.m05.unwrap().captives;
+        for (before, after) in previous.iter().zip(current) {
+            assert!(
+                (before.feet[0] - after.feet[0]).hypot(before.feet[2] - after.feet[2]) <= 0.1001
+            );
+            assert_eq!(after.feet[1], 0.0, "workers remain grounded");
+        }
+        for (i, worker) in current.iter().enumerate() {
+            for other in &current[i + 1..] {
+                assert!(
+                    (worker.feet[0] - other.feet[0]).hypot(worker.feet[2] - other.feet[2])
+                        >= 0.9999,
+                    "solid workers overlap: {current:?}"
+                );
+            }
+        }
+        previous = current.clone();
+    }
     assert_eq!(
         s.state.m05_evacuated_worker_ids(),
-        crate::protocol::M05_WORKER_IDS
+        crate::protocol::M05_WORKER_IDS,
+        "worker facts: {:?}; living bodies: {:?}",
+        s.state.mission_state().unwrap().m05.unwrap().captives,
+        s.state
+            .players
+            .iter()
+            .filter(|p| p.hp > 0)
+            .map(|p| (&p.name, [p.x, p.y - PLAYER_FLOOR_Y, p.z]))
+            .collect::<Vec<_>>()
     );
     assert_eq!(
         s.state.mission_state().unwrap().phase,
         MissionPhase::InProgress
     );
     assert!(!s.state.mission_state().unwrap().party[0].aboard);
+    assert!(previous.iter().all(|c| geometry.boarding.contains(c.feet)));
+    advance(&mut s, 40);
+    assert_eq!(
+        s.state.mission_state().unwrap().m05.unwrap().captives,
+        previous,
+        "workers settle without overlapping or continuing to push their peers"
+    );
+}
+
+#[test]
+fn m05_workers_wait_for_solid_player_then_resume_registered_route() {
+    let (mut s, id) = fixture();
+    for i in 0..3 {
+        clear(&mut s, i);
+    }
+    place(&mut s, id, [-19.0, 0.0, 1.5]);
+    advance(&mut s, 2);
+    for i in 3..6 {
+        clear(&mut s, i);
+    }
+    place(&mut s, id, [-15.0, 0.0, 0.5]);
+    advance(&mut s, 70);
+    let workers = s.state.mission_state().unwrap().m05.unwrap().captives;
+    assert!(
+        workers[0].feet[0] <= -15.9999,
+        "Splice must wait for the actual living blocker: {workers:?}"
+    );
+    let player = s.state.players.iter().find(|p| p.id == id).unwrap();
+    assert_eq!(
+        [player.x, player.z],
+        [-15.0, 0.5],
+        "a worker cannot push a stationary person"
+    );
+    // The player clears the route with ordinary walking, not an NPC teleport
+    // or solidity exemption. The worker then resumes the registered path.
+    s.state.set_action(
+        id,
+        Action {
+            forward: true,
+            yaw: Some(0.0),
+            ..Action::default()
+        },
+    );
+    advance(&mut s, 24);
+    s.state.set_action(
+        id,
+        Action {
+            left: true,
+            yaw: Some(0.0),
+            ..Action::default()
+        },
+    );
+    advance(&mut s, 8);
+    s.state.set_action(id, Action::default());
+    assert!(
+        s.state
+            .players
+            .iter()
+            .find(|p| p.id == id)
+            .is_some_and(|p| p.x > -13.0 && p.z < -0.5),
+        "ordinary walking must actually clear the worker's lane: {:?}",
+        s.state
+            .players
+            .iter()
+            .find(|p| p.id == id)
+            .map(|p| [p.x, p.y - PLAYER_FLOOR_Y, p.z])
+    );
+    advance(&mut s, 900);
+    assert_eq!(
+        s.state.m05_evacuated_worker_ids(),
+        crate::protocol::M05_WORKER_IDS,
+        "workers {:?}, participant {:?}",
+        s.state.mission_state().unwrap().m05.unwrap().captives,
+        s.state
+            .players
+            .iter()
+            .filter(|p| p.is_participant())
+            .map(|p| [p.x, p.y - PLAYER_FLOOR_Y, p.z])
+            .collect::<Vec<_>>()
+    );
+    assert_eq!(
+        s.state.mission_state().unwrap().phase,
+        MissionPhase::InProgress
+    );
 }
 #[test]
 fn m05_authored_high_lob_reaches_guarded_side_of_chassis() {

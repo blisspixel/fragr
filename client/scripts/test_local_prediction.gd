@@ -1,6 +1,8 @@
 extends SceneTree
 
 var failures: Array[String] = []
+const LOCAL_ID: String = "00000000-0000-0000-0000-000000000001"
+const PEER_ID: String = "00000000-0000-0000-0000-000000000002"
 
 
 func _check(ok: bool, label: String) -> void:
@@ -20,10 +22,151 @@ func _action(seq: int, forward: bool = true, jump: bool = false) -> Dictionary:
 		"right": false, "jump": jump, "yaw": 0.0}
 
 
+func _snapshot(at_tick: int, peer_x: float = 1.1, collidable: bool = true) -> Dictionary:
+	return {"tick": at_tick, "players": [
+		{"id": LOCAL_ID, "x": 0.0, "y": 1.5, "z": 0.0, "hp": 100},
+		{"id": PEER_ID, "x": peer_x, "y": 1.5, "z": 0.0, "hp": 100, "collidable": collidable}]}
+
+
+func _check_contacts(map: Dictionary) -> void:
+	var tangent_pose: Dictionary = MoveStep.make_state(1.0, 0.0, 0.0)
+	var tangent_input: Dictionary = _action(1, false)
+	tangent_input["right"] = true
+	var tangent_obstacles: Dictionary = ActorContact.read_snapshot(_snapshot(100, 2.1), {})
+	var tangent_step: Dictionary = {"input": tangent_input, "speed": 5.0, "body_key": LOCAL_ID,
+		"blockers": [tangent_obstacles["bodies"][1]]}
+	var tangent_arena: Dictionary = {"half": map["half_extent"], "solids": map["solids"].duplicate(true)}
+	var kernel: Dictionary = MoveStep.live_step(tangent_pose, tangent_input, 5.0, MoveStep.DT_LIVE, tangent_arena)
+	var unchanged: Dictionary = LocalPrediction._contact_step(tangent_pose, tangent_step, tangent_arena)
+	_check(unchanged["x"] == kernel["x"] and unchanged["z"] == kernel["z"] and
+		unchanged["vx"] == kernel["vx"] and unchanged["vz"] == kernel["vz"],
+		"nearby untouched body preserves the kernel endpoint and exact selected velocity")
+	var predictor: LocalPrediction = LocalPrediction.new()
+	predictor.configure_map(map)
+	predictor.accept_ack(_ack(0, 100), 1000000)
+	var incoming: Dictionary = _snapshot(100)
+	predictor.accept_snapshot(incoming, LOCAL_ID, {}, 1000000)
+	incoming["players"][1]["x"] = 8.0
+	predictor.record_action(_action(1), 1000001, true)
+	_check(absf(float(predictor.state["x"]) - 0.1) < 0.001 and absf(float(predictor.state["vx"]) - 2.0) < 0.02,
+		"fresh snapshot blocks approach with actual accepted velocity and isolated source")
+	predictor.advance(1050000)
+	_check(absf(float(predictor.state["x"]) - 0.1) < 0.001 and absf(float(predictor.state["vx"])) < 0.001,
+		"held movement remains outside living peer radius")
+	var removed: Dictionary = _snapshot(101)
+	removed["players"].pop_back()
+	predictor.accept_snapshot(removed, LOCAL_ID, {}, 1050000)
+	predictor.accept_ack(_ack(1, 101, 1, 0.1), 1050001)
+	_check(predictor.steps.size() == 1 and absf(float(predictor.state["x"]) - 0.1) < 0.001,
+		"peer removal does not rewrite already captured speculative replay")
+	predictor.advance(1100000)
+	_check(absf(float(predictor.state["x"]) - 0.35) < 0.001,
+		"new step uses authoritative removal and stops retaining the departed peer")
+	var slider: LocalPrediction = LocalPrediction.new()
+	slider.configure_map(map)
+	slider.accept_ack(_ack(0, 200), 2000000)
+	slider.accept_snapshot(_snapshot(200), LOCAL_ID, {}, 2000000)
+	var diagonal: Dictionary = _action(1)
+	diagonal["right"] = true
+	slider.record_action(diagonal, 2000001, true)
+	_check(float(slider.state["z"]) > 0.1 and Vector2(float(slider.state["x"]) - 1.1, float(slider.state["z"])).length() >= 0.9999,
+		"speculative glancing movement keeps positive tangent progress")
+	var inactive: LocalPrediction = LocalPrediction.new()
+	inactive.configure_map(map)
+	inactive.accept_ack(_ack(0, 300), 3000000)
+	inactive.accept_snapshot(_snapshot(300, 1.1, false), LOCAL_ID, {}, 3000000)
+	inactive.record_action(_action(1), 3000001, true)
+	_check(absf(float(inactive.state["x"]) - 0.25) < 0.001,
+		"server noncollidable fact removes a living detached obstacle")
+	var stale: LocalPrediction = LocalPrediction.new()
+	stale.configure_map(map)
+	stale.accept_ack(_ack(0, 400), 4000000)
+	stale.accept_snapshot(_snapshot(400), LOCAL_ID, {}, 4000000)
+	stale.accept_ack(_ack(0, 401), 4250000)
+	stale.record_action(_action(1), 4250001, true)
+	_check(not stale.active() and stale.steps.is_empty() and stale.fallback_reason == "contact_stale",
+		"stale wall-clock obstacles suspend speculation rather than crossing bodies")
+	stale.accept_ack(_ack(0, 402), 4300000)
+	_check(not stale.active(), "fresh Ack alone cannot bypass required fresh collision facts")
+	stale.accept_snapshot(_snapshot(402), LOCAL_ID, {}, 4300001)
+	stale.record_action(_action(1), 4300002, true)
+	_check(stale.active() and absf(float(stale.state["x"]) - 0.1) < 0.001,
+		"fresh Ack then snapshot resumes bounded contact prediction")
+	var old_tick: LocalPrediction = LocalPrediction.new()
+	old_tick.configure_map(map)
+	old_tick.accept_ack(_ack(0, 510), 5100000)
+	old_tick.accept_snapshot(_snapshot(500), LOCAL_ID, {}, 5100000)
+	old_tick.record_action(_action(1), 5100001, true)
+	_check(not old_tick.active() and old_tick.steps.is_empty(),
+		"old server-tick obstacles suspend speculation despite recent arrival")
+	for at_tick: int in range(511, 530):
+		old_tick.accept_snapshot(_snapshot(at_tick), LOCAL_ID, {}, 5100000)
+	_check(old_tick._contact_samples.size() == LocalPrediction.MAX_STEPS + 1,
+		"contact snapshot retention is bounded to the speculative horizon")
+	old_tick.accept_snapshot(_snapshot(515), LOCAL_ID, {}, 5100000)
+	_check(int(old_tick._contact_samples.back()["tick"]) == 529,
+		"out-of-order snapshot cannot restore removed old obstacles")
+	var invalid: Dictionary = _snapshot(530)
+	invalid["players"][1]["collidable"] = "false"
+	old_tick.accept_snapshot(invalid, LOCAL_ID, {}, 5100000)
+	_check(not old_tick.contact_error.is_empty() and old_tick._contact_samples.is_empty(),
+		"invalid collision fact clears guessed blockers and remains observable")
+	old_tick.accept_ack(_ack(0, 530), 5300000)
+	_check(not old_tick.active(), "invalid snapshot keeps collision requirement through Ack recovery")
+	old_tick.accept_snapshot(_snapshot(530), LOCAL_ID, {}, 5300001)
+	_check(old_tick.active(), "valid snapshot after fresh Ack recovers an invalid contact boundary")
+	var horizon: LocalPrediction = LocalPrediction.new()
+	horizon.configure_map(map)
+	horizon.accept_ack(_ack(0, 600), 6000000)
+	horizon.accept_snapshot(_snapshot(600), LOCAL_ID, {}, 6000000)
+	horizon.record_action(_action(1), 6000001, true)
+	horizon.advance(6050000)
+	horizon.accept_ack(_ack(1, 601, 1, 0.1), 6060000)
+	horizon.advance(6100000)
+	horizon.advance(6150000)
+	_check(not horizon.active() and horizon.fallback_reason == "contact_stale" and horizon.steps.is_empty(),
+		"advancing beyond fresh obstacle tick horizon returns to authoritative presentation")
+	horizon.accept_snapshot(_snapshot(602), LOCAL_ID, {}, 6150001)
+	horizon.accept_ack(_ack(1, 602, 1, 0.1), 6150002)
+	_check(horizon.active(), "snapshot-before-Ack packet order also resumes contact prediction")
+	for reason: String in ["death", "role", "disconnect"]:
+		predictor.accept_snapshot(_snapshot(102), LOCAL_ID, {}, 1100000)
+		predictor.reset(reason)
+		_check(predictor._contact_samples.is_empty() and predictor._contact_player_id.is_empty() and predictor.steps.is_empty(),
+			"contact history clears on " + reason)
+	predictor.accept_snapshot(_snapshot(102), LOCAL_ID, {}, 1100000)
+	predictor.configure_map(map)
+	_check(predictor._contact_samples.is_empty(), "new map clears speculative collision roster")
+	var far_bodies: Array[Dictionary] = []
+	for index: int in range(64):
+		far_bodies.append(ActorContact.stationary(str(index), Vector3(8.0, 0.0, 8.0)))
+	far_bodies.append(ActorContact.stationary(PEER_ID, Vector3(1.1, 0.0, 0.0)))
+	_check(LocalPrediction._near_contacts(MoveStep.make_state(0.0, 0.0, 0.0), 0.25, far_bodies).size() == 1,
+		"far roster is pruned before pairwise speculative resolution")
+	var rider: LocalPrediction = LocalPrediction.new()
+	var tram: Dictionary = {"min_x": -1.5, "max_x": 1.5, "min_z": 4.0, "max_z": 8.0, "bottom": 0.0, "top": 1.0}
+	rider.arena = {"half": 40.0, "solids": [tram]}
+	rider._tram_geometry = {"tram_solid": tram, "m05": {"tram": {"solid": 0, "start": [0, 0, 6], "end": [0, 0, 28], "speed": 1.2}}}
+	rider._tram_samples = [{"tick": 40, "phase": "moving", "feet": [0, 0, 6]}]
+	var pose: Dictionary = MoveStep.make_state(0.0, 6.0, 0.0)
+	pose["y"] = 1.0
+	var carry_step: Dictionary = {"tick": 41, "input": _action(1), "speed": 5.0, "body_key": LOCAL_ID,
+		"blockers": [ActorContact.stationary(PEER_ID, Vector3(1.03, 1.0, 6.06))]}
+	var carried_contact: Dictionary = rider._step(pose, carry_step)
+	_check(absf(float(carried_contact["x"]) - 0.03) < 0.001 and absf(float(carried_contact["z"]) - 6.06) < 0.001 and float(carried_contact["y"]) == 1.0,
+		"tram walking contact starts at carried feet and retains actual moving support")
+	carry_step["input"] = _action(1, false)
+	carry_step["blockers"] = [ActorContact.stationary(PEER_ID, Vector3(0.0, 1.0, 7.03))]
+	var blocked_carry: Dictionary = rider._step(pose, carry_step)
+	_check(absf(float(blocked_carry["z"]) - 6.0) < 0.001 and float(blocked_carry["y"]) == 1.0,
+		"blocked speculative carry keeps old tram world rather than crossing a static body")
+
+
 func _initialize() -> void:
 	var predictor: LocalPrediction = LocalPrediction.new()
 	var map: Dictionary = {"map_id": 1, "geometry_version": 2, "half_extent": 10.0,
 		"solids": []}
+	_check_contacts(map)
 	predictor.configure_map(map)
 	predictor.accept_ack(_ack(0, 10), 1000000)
 	_check(predictor.active(), "complete applied Ack enables replay")
@@ -178,10 +321,18 @@ func _initialize() -> void:
 	manager.local_prediction.record_action(_action(1), 8000001, true)
 	manager.pending_jump = true
 	manager.pending_interact = true
+	var contact_net: Node = load("res://scripts/net_client.gd").new()
+	contact_net.player_id = LOCAL_ID
+	manager.net_client = contact_net
+	manager._update_prediction_contacts(_snapshot(80))
+	_check(manager.local_prediction._contact_samples.size() == 1,
+		"manager connects actual snapshot and local identity to contact prediction")
 	manager._reset_prediction_for_connection("connected")
 	_check(not manager.local_prediction.active() and manager.local_prediction.steps.is_empty()
 		and manager._adopt_local_spawn_snapshot and not manager.pending_jump and not manager.pending_interact,
 		"automatic resume discards old input before new connection actions")
+	_check(manager.local_prediction._contact_samples.is_empty(), "manager connection reset clears captured contacts")
+	contact_net.free()
 	manager.free()
 	if failures.is_empty():
 		print("test_local_prediction: PASS")

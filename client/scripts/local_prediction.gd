@@ -16,6 +16,11 @@ var arena: Dictionary = {}
 var _tram_geometry: Dictionary = {}
 var _tram_samples: Array[Dictionary] = []
 var _tram_attempt: int = -1
+var _contact_samples: Array[Dictionary] = []
+var _contact_player_id: String = ""
+var _contacts_required: bool = false
+var _contact_waiting: bool = false
+var contact_error: String = ""
 var baseline: Dictionary = {}
 var state: Dictionary = {}
 var steps: Array[Dictionary] = []
@@ -57,6 +62,12 @@ func reset(reason: String, clear_measurements: bool = false) -> void:
 	steps.clear()
 	samples.clear()
 	held.clear()
+	if reason in ["map", "role", "disconnect", "connected", "connection_lost"]:
+		_contacts_required = false
+	_contact_waiting = _contacts_required
+	_contact_samples.clear()
+	_contact_player_id = ""
+	contact_error = ""
 	pending_jump_latch = false
 	epoch = 0
 	tick = -1
@@ -88,7 +99,7 @@ func clear_measurements() -> void:
 
 
 func active() -> bool:
-	return not baseline.is_empty() and not arena.is_empty() and fallback_reason == ""
+	return not baseline.is_empty() and not arena.is_empty() and fallback_reason == "" and not _contact_waiting
 
 
 static func newer_sequence(seq: int, before: int) -> bool:
@@ -149,6 +160,8 @@ func accept_ack(ack: Dictionary, now_usec: int) -> void:
 		reset("ack_gap")
 		return
 	if discontinuity:
+		if tick >= 0:
+			_contact_samples.clear()
 		steps.clear()
 		samples.clear()
 		first_recorded_seq = -1
@@ -177,6 +190,10 @@ func accept_ack(ack: Dictionary, now_usec: int) -> void:
 	baseline = new_body
 	state = new_body.duplicate()
 	fallback_reason = ""
+	if _contacts_required:
+		_contact_waiting = _contact_sample(tick + 1, now_usec).is_empty()
+		if _contact_waiting:
+			fallback_reason = "contact_stale"
 	var speed: float = float(movement["effective_speed"])
 	last_speed = speed
 	var replay_tick: int = tick
@@ -275,6 +292,11 @@ func advance(now_usec: int) -> void:
 		input["jump"] = bool(held["jump"]) or pending_jump_latch
 		pending_jump_latch = false
 		var step: Dictionary = {"tick": tick + steps.size() + 1, "input": input, "speed": last_speed, "usec": next_step_usec}
+		if _contacts_required and _contact_sample(int(step["tick"]), now_usec).is_empty():
+			reset("contact_stale")
+			return
+		step["blockers"] = _contact_blockers(int(step["tick"]), now_usec)
+		step["body_key"] = _contact_player_id
 		state = _step(state, step)
 		step["state_after"] = state.duplicate()
 		steps.append(step)
@@ -285,7 +307,7 @@ func advance(now_usec: int) -> void:
 
 func _step(pose: Dictionary, step: Dictionary) -> Dictionary:
 	if _tram_geometry.is_empty() or _tram_samples.is_empty():
-		return MoveStep.live_step(pose, step["input"], float(step["speed"]), MoveStep.DT_LIVE, arena)
+		return _contact_step(pose, step, arena)
 	var before: Array = _tram_feet(int(step["tick"]) - 1)
 	var after: Array = _tram_feet(int(step["tick"]))
 	var old_solid: Dictionary = M05Tram.solid_at(_tram_geometry, before)
@@ -298,8 +320,103 @@ func _step(pose: Dictionary, step: Dictionary) -> Dictionary:
 		other["solids"].remove_at(index)
 		var carried: Dictionary = M05Tram.carried(pose, float(after[2]) - float(before[2]), other)
 		if not carried.is_empty():
-			carried_pose = carried
-	return MoveStep.live_step(carried_pose, step["input"], float(step["speed"]), MoveStep.DT_LIVE, world)
+			if _carry_contacts_clear(pose, carried, step):
+				carried_pose = carried
+			else:
+				world["solids"][index] = old_solid
+	return _contact_step(carried_pose, step, world)
+
+
+## Static recent server bodies are presentation obstacles, never outcomes.
+## Keep each step's sample immutable so later snapshots cannot alter its replay.
+func accept_snapshot(snapshot: Dictionary, player_id: String, mission: Dictionary, now_usec: int) -> void:
+	_contacts_required = true
+	if player_id.is_empty():
+		reset("contact_identity")
+		return
+	if _contact_player_id != player_id:
+		if not _contact_player_id.is_empty():
+			reset("contact_identity")
+		else:
+			_contact_samples.clear()
+	_contact_player_id = player_id
+	var parsed: Dictionary = ActorContact.read_snapshot(snapshot, mission)
+	contact_error = str(parsed["error"])
+	if not contact_error.is_empty():
+		var problem: String = contact_error
+		reset("contact_invalid")
+		contact_error = problem
+		return
+	var incoming: int = int(snapshot["tick"])
+	if not _contact_samples.is_empty():
+		if incoming < int(_contact_samples.back()["tick"]):
+			return
+		if incoming == int(_contact_samples.back()["tick"]):
+			_contact_samples.pop_back()
+	_contact_samples.append({"tick": incoming, "usec": now_usec, "bodies": parsed["bodies"].duplicate(true)})
+	while _contact_samples.size() > MAX_STEPS + 1:
+		_contact_samples.pop_front()
+	_contact_waiting = tick >= 0 and _contact_sample(tick + 1, now_usec).is_empty()
+	if _contact_waiting and not baseline.is_empty():
+		fallback_reason = "contact_stale"
+	if not _contact_waiting and fallback_reason == "contact_stale" and not baseline.is_empty():
+		fallback_reason = ""
+
+
+func _contact_sample(at_tick: int, now_usec: int) -> Dictionary:
+	for index: int in range(_contact_samples.size() - 1, -1, -1):
+		var sample: Dictionary = _contact_samples[index]
+		var age: int = at_tick - int(sample["tick"])
+		if age < 0:
+			continue
+		if age > MAX_STEPS or now_usec - int(sample["usec"]) > TICK_USEC * (MAX_STEPS + 1):
+			return {}
+		return sample
+	return {}
+
+
+func _contact_blockers(at_tick: int, now_usec: int) -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
+	var sample: Dictionary = _contact_sample(at_tick, now_usec)
+	if not sample.is_empty():
+		for body: Dictionary in sample["bodies"]:
+			if str(body["key"]) != _contact_player_id:
+				result.append(body.duplicate(true))
+	return result
+
+
+static func _near_contacts(pose: Dictionary, reach: float, blockers: Array) -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
+	for body: Dictionary in blockers:
+		var distance: float = Vector2(float(body["from"]["x"]) - float(pose["x"]), float(body["from"]["z"]) - float(pose["z"])).length()
+		if distance <= reach + MoveStep.RADIUS + float(body["radius"]) + ActorContact.EPSILON:
+			result.append(body)
+	return result
+
+
+static func _carry_contacts_clear(pose: Dictionary, carried: Dictionary, step: Dictionary) -> bool:
+	var reach: float = Vector2(float(carried["x"]) - float(pose["x"]), float(carried["z"]) - float(pose["z"])).length()
+	var mover: Dictionary = {"key": step.get("body_key", ""), "from": pose, "proposed": carried, "height": MoveStep.BODY_HEIGHT, "radius": MoveStep.RADIUS, "jump": false}
+	for body: Dictionary in _near_contacts(pose, reach, step.get("blockers", [])):
+		if ActorContact.sweep_time(mover, body) >= 0.0:
+			return false
+	return true
+
+
+static func _contact_step(pose: Dictionary, step: Dictionary, world: Dictionary) -> Dictionary:
+	var proposed: Dictionary = MoveStep.live_step(pose, step["input"], float(step["speed"]), MoveStep.DT_LIVE, world)
+	var reach: float = float(step["speed"]) * MoveStep.DT_LIVE
+	var bodies: Array[Dictionary] = _near_contacts(pose, reach, step.get("blockers", []))
+	if bodies.is_empty():
+		return proposed
+	var from: Dictionary = pose.duplicate()
+	from["yaw"] = proposed["yaw"]
+	bodies.append({"key": step["body_key"], "from": from, "proposed": proposed, "height": MoveStep.BODY_HEIGHT, "radius": MoveStep.RADIUS, "jump": bool(step["input"]["jump"])})
+	var accepted: Dictionary = ActorContact.resolve(bodies, MoveStep.DT_LIVE, world).back()
+	if accepted["x"] != proposed["x"] or accepted["z"] != proposed["z"]:
+		accepted["vx"] = (float(accepted["x"]) - float(pose["x"])) / MoveStep.DT_LIVE
+		accepted["vz"] = (float(accepted["z"]) - float(pose["z"])) / MoveStep.DT_LIVE
+	return accepted
 
 func apply_m05(value: Dictionary) -> void:
 	if _tram_geometry.is_empty():

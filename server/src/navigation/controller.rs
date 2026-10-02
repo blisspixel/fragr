@@ -22,6 +22,14 @@ pub struct Navigator {
     last_tick: u64,
     next_search_tick: u64,
     stalled_ticks: u32,
+    avoidance_side: i8,
+    avoidance_until: u64,
+}
+
+impl Navigation {
+    pub(crate) fn planning_arena(&self) -> &crate::movement::Arena {
+        &self.arena
+    }
 }
 
 impl Navigator {
@@ -63,6 +71,63 @@ impl Navigator {
     // inputs together; a second controller would duplicate route memory.
     #[allow(clippy::too_many_arguments)]
     pub fn steer_snapshot_with_visibility(
+        &mut self,
+        world: &Navigation,
+        id: Uuid,
+        snapshot: &Snapshot,
+        action: Action,
+        allow_search: bool,
+        visibility: &[Solid],
+    ) -> Action {
+        let steered = self.route_snapshot_with_visibility(
+            world,
+            id,
+            snapshot,
+            action,
+            allow_search,
+            visibility,
+        );
+        let bodies = Self::snapshot_bodies(snapshot);
+        let arena = crate::movement::Arena {
+            half: world.arena.half,
+            solids: visibility.to_vec(),
+        };
+        self.avoid_bodies(&arena, id, &bodies, steered, snapshot.tick)
+    }
+
+    pub(crate) fn snapshot_bodies(
+        snapshot: &Snapshot,
+    ) -> Vec<crate::movement::contact::ContactBody> {
+        snapshot
+            .players
+            .iter()
+            .filter(|p| p.collidable && p.hp > 0)
+            .map(|p| {
+                let from = crate::movement::MoveState {
+                    x: p.x,
+                    y: p.y - PLAYER_FLOOR_Y,
+                    z: p.z,
+                    vx: 0.0,
+                    vz: 0.0,
+                    vy: 0.0,
+                    yaw: p.yaw,
+                };
+                crate::movement::contact::ContactBody {
+                    key: p.id.to_string(),
+                    from,
+                    proposed: from,
+                    height: crate::combat::target_height(p.campaign),
+                    radius: crate::movement::RADIUS,
+                    jump: false,
+                }
+            })
+            .collect()
+    }
+
+    /// Session supplies its one authoritative body scene after resolving routes;
+    /// external readers use the snapshot wrapper for the same local avoidance.
+    #[allow(clippy::too_many_arguments)]
+    pub fn route_snapshot_with_visibility(
         &mut self,
         world: &Navigation,
         id: Uuid,
@@ -133,6 +198,186 @@ impl Navigator {
             allow_search,
             visibility,
         )
+    }
+
+    /// Local ordinary input around occupied routes. Topology/search memory stays
+    /// unchanged; every candidate uses map integration and the shared contact
+    /// solver with immutable current bodies, including stationary civilians.
+    pub fn avoid_bodies(
+        &mut self,
+        arena: &crate::movement::Arena,
+        id: Uuid,
+        bodies: &[crate::movement::contact::ContactBody],
+        mut action: Action,
+        tick: u64,
+    ) -> Action {
+        let key = id.to_string();
+        let Some(me) = bodies.iter().find(|b| b.key == key) else {
+            return action;
+        };
+        // Cached grid waypoints can lie inside an occupied body. Keep the final
+        // goal, but advance intermediate occupied points within this local
+        // neighbourhood so a successful pass does not turn back into its peer.
+        let mut advanced = false;
+        while self.points.len() > 1 {
+            let point = *self.points.front().unwrap();
+            let occupied = bodies.iter().any(|b| {
+                b.key != key
+                    && point[1] + me.height > b.from.y
+                    && b.from.y + b.height > point[1]
+                    && (point[0] - b.from.x).hypot(point[2] - b.from.z) < me.radius + b.radius + 0.2
+            });
+            if !occupied || (point[0] - me.from.x).hypot(point[2] - me.from.z) > 2.0 {
+                break;
+            }
+            self.points.pop_front();
+            advanced = true;
+        }
+        if advanced && action.look_at.is_none() {
+            if let Some(point) = self.points.front() {
+                action.yaw = Some((point[2] - me.from.z).atan2(point[0] - me.from.x));
+            }
+        }
+        if !(action.forward || action.back || action.left || action.right) || action.jump {
+            return action;
+        }
+        let yaw = action.yaw.unwrap_or(me.from.yaw);
+        let wanted = crate::movement::live_step_with_height(
+            me.from,
+            &crate::movement::MoveInput {
+                forward: action.forward,
+                back: action.back,
+                left: action.left,
+                right: action.right,
+                jump: false,
+                yaw,
+                speed_scale: 1.0,
+            },
+            crate::movement::TOP_SPEED,
+            0.05,
+            arena,
+            me.height,
+        );
+        let dx = wanted.x - me.from.x;
+        let dz = wanted.z - me.from.z;
+        let length = dx.hypot(dz);
+        if length < 0.01 {
+            return action;
+        }
+        let neighbours: Vec<_> = bodies
+            .iter()
+            .filter(|b| {
+                b.key != key
+                    && (b.from.x - me.from.x).hypot(b.from.z - me.from.z) < 2.5
+                    && b.from.y + b.height > me.from.y
+                    && me.from.y + me.height > b.from.y
+            })
+            .cloned()
+            .collect();
+        if neighbours.is_empty() {
+            return action;
+        }
+        let grounded = me.from.vy.abs() < 0.001
+            && (me.from.y - arena.support_height(me.from.x, me.from.z, me.from.y)).abs() < 0.001;
+        let forecast = |candidate: &Action| -> Option<[f32; 2]> {
+            let mut pose = me.from;
+            for _ in 0..6 {
+                let proposed = crate::movement::live_step_with_height(
+                    pose,
+                    &crate::movement::MoveInput {
+                        forward: candidate.forward,
+                        back: candidate.back,
+                        left: candidate.left,
+                        right: candidate.right,
+                        jump: false,
+                        yaw,
+                        speed_scale: 1.0,
+                    },
+                    crate::movement::TOP_SPEED,
+                    0.05,
+                    arena,
+                    me.height,
+                );
+                if (proposed.y - pose.y).abs() > STEP_UP + 0.001 {
+                    return None;
+                }
+                let mut scene = neighbours.clone();
+                scene.push(crate::movement::contact::ContactBody {
+                    key: key.clone(),
+                    from: pose,
+                    proposed,
+                    height: me.height,
+                    radius: me.radius,
+                    jump: false,
+                });
+                let moved = crate::movement::contact::resolve(&scene, 0.05, arena)
+                    .pop()
+                    .unwrap_or(pose);
+                if (moved.y - pose.y).abs() > STEP_UP + 0.001 || (grounded && moved.vy < -0.001) {
+                    return None;
+                }
+                pose = moved;
+            }
+            Some([pose.x - me.from.x, pose.z - me.from.z])
+        };
+        let Some(original) = forecast(&action) else {
+            // Preserve a deliberate route drop; alternative crowd passing never
+            // introduces a new unsupported step on a grounded actor's behalf.
+            return action;
+        };
+        let progress = (original[0] * dx + original[1] * dz) / length;
+        if progress >= length * 5.0 {
+            self.avoidance_until = 0;
+            return action;
+        }
+        // Preserve a chosen side across successive contact ticks. Both facing
+        // actors initially prefer their own right, giving a consistent pass.
+        let side = if tick < self.avoidance_until {
+            self.avoidance_side
+        } else {
+            1
+        };
+        let mut best = action.clone();
+        let mut best_score = progress;
+        for (forward, back, left, right) in [
+            (true, false, false, true),
+            (false, false, false, true),
+            (true, false, true, false),
+            (false, false, true, false),
+            (false, true, false, true),
+            (false, true, true, false),
+            (false, true, false, false),
+        ] {
+            let mut candidate = action.clone();
+            candidate.forward = forward;
+            candidate.back = back;
+            candidate.left = left;
+            candidate.right = right;
+            let Some(accepted) = forecast(&candidate) else {
+                continue;
+            };
+            let along = (accepted[0] * dx + accepted[1] * dz) / length;
+            let lateral = (accepted[0] * -dz + accepted[1] * dx) / length;
+            let preferred = if (right && side > 0) || (left && side < 0) {
+                0.025
+            } else {
+                0.0
+            };
+            let score = along + lateral.abs() * 0.35 + preferred;
+            if score > best_score + 0.01 && accepted[0].hypot(accepted[1]) > 0.08 {
+                best_score = score;
+                best = candidate;
+            }
+        }
+        if best.left != action.left
+            || best.right != action.right
+            || best.forward != action.forward
+            || best.back != action.back
+        {
+            self.avoidance_side = if best.right { 1 } else { -1 };
+            self.avoidance_until = tick.saturating_add(12);
+        }
+        best
     }
 
     pub fn steer(
@@ -392,5 +637,330 @@ mod tests {
         snapshot.players.retain(|player| player.id != me);
         driver.steer_snapshot(&world, me, &snapshot, Action::default());
         assert!(driver.points.is_empty() && driver.destination.is_none());
+    }
+
+    #[test]
+    fn occupied_route_uses_ordinary_sidestep_without_crossing_body_or_wall() {
+        for reversed in [false, true] {
+            let document = serde_json::json!({"version":1,"map_id":1911,"name":"Crowd route test","half_extent":12,
+            "ground":"concrete","solids":[{"id":"lane_wall","min":[-10,0,-2],"max":[10,4,-1.6],"surface":"service_steel"}],
+            "spawns":[{"id":"west","feet":[-3,0,0],"yaw":0},{"id":"centre","feet":[0,0,0],"yaw":0}],
+            "landmarks":[{"id":"east","feet":[5,0,0]}]});
+            let map =
+                crate::maps::AuthoredMap::read(serde_json::to_vec(&document).unwrap().as_slice())
+                    .unwrap();
+            let mut session = crate::session::GameSession::with_authored_map(map);
+            let mover = Uuid::from_u128(if reversed { 2 } else { 1 });
+            let blocker = Uuid::from_u128(if reversed { 1 } else { 2 });
+            session
+                .state
+                .add_player(mover, "route mover".into(), Role::Agent);
+            session
+                .state
+                .add_player(blocker, "stationary blocker".into(), Role::Human);
+            for p in &mut session.state.players {
+                p.x = if p.id == mover { -3.0 } else { 0.0 };
+                p.z = 0.0;
+                p.y = PLAYER_FLOOR_Y;
+            }
+            let mut navigator = Navigator::default();
+            let mut lateral = 0.0_f32;
+            let mut reached = false;
+            for _ in 0..180 {
+                let snapshot = session.state.snapshot();
+                let world = session.state.map.navigation();
+                let action = navigator.steer_snapshot(
+                    world,
+                    mover,
+                    &snapshot,
+                    Action {
+                        forward: true,
+                        look_at: Some(LookAt {
+                            player_id: None,
+                            x: Some(5.0),
+                            y: Some(EYE_HEIGHT),
+                            z: Some(0.0),
+                        }),
+                        ..Default::default()
+                    },
+                );
+                session.state.set_action(mover, action);
+                session.tick_messages(0.05);
+                let me = session
+                    .state
+                    .players
+                    .iter()
+                    .find(|p| p.id == mover)
+                    .unwrap();
+                let peer = session
+                    .state
+                    .players
+                    .iter()
+                    .find(|p| p.id == blocker)
+                    .unwrap();
+                assert!((me.x - peer.x).hypot(me.z - peer.z) >= 0.9999);
+                assert!(!session.state.current_arena().blocked_body_at(
+                    me.x,
+                    me.z,
+                    me.y - PLAYER_FLOOR_Y,
+                    me.y - PLAYER_FLOOR_Y
+                ));
+                lateral = lateral.max(me.z.abs());
+                if (me.x - 5.0).hypot(me.z) < 0.5 {
+                    assert!(lateral > 0.8, "passing requires genuine lateral progress");
+                    assert_eq!([peer.x, peer.z], [0.0, 0.0]);
+                    reached = true;
+                    break;
+                }
+            }
+            assert!(
+                reached,
+                "ordinary controller failed to pass occupied route: {:?}",
+                session.state.snapshot().players
+            );
+        }
+    }
+
+    fn crowd_body(
+        id: u128,
+        x: f32,
+        y: f32,
+        z: f32,
+        yaw: f32,
+    ) -> crate::movement::contact::ContactBody {
+        let from = crate::movement::MoveState {
+            x,
+            y,
+            z,
+            yaw,
+            vx: 0.0,
+            vy: 0.0,
+            vz: 0.0,
+        };
+        crate::movement::contact::ContactBody {
+            key: Uuid::from_u128(id).to_string(),
+            from,
+            proposed: from,
+            height: FIGHTER_HEIGHT,
+            radius: crate::movement::RADIUS,
+            jump: false,
+        }
+    }
+
+    #[test]
+    fn crowd_pass_preserves_support_and_intent_on_a_raised_lane() {
+        let arena = Arena {
+            half: 12.0,
+            solids: vec![Solid {
+                min_x: -3.0,
+                max_x: 3.0,
+                min_z: -0.6,
+                max_z: 2.0,
+                bottom: 0.0,
+                top: 3.0,
+            }],
+        };
+        let mut mover = crowd_body(1, -1.2, 3.0, 0.0, 0.0);
+        let peer = crowd_body(2, 0.0, 3.0, 0.0, 0.0);
+        let mut nav = Navigator::default();
+        let intent = Action {
+            forward: true,
+            fire: true,
+            pitch: Some(0.2),
+            look_at: Some(LookAt {
+                player_id: Some(Uuid::from_u128(2)),
+                x: None,
+                y: None,
+                z: None,
+            }),
+            ..Default::default()
+        };
+        let untouched = nav.avoid_bodies(
+            &arena,
+            Uuid::from_u128(1),
+            &[mover.clone()],
+            intent.clone(),
+            0,
+        );
+        assert_eq!(
+            serde_json::to_value(untouched).unwrap(),
+            serde_json::to_value(&intent).unwrap(),
+            "unoccupied intent is unchanged"
+        );
+        let mut lateral = 0.0_f32;
+        for tick in 0..12 {
+            let action = nav.avoid_bodies(
+                &arena,
+                Uuid::from_u128(1),
+                &[mover.clone(), peer.clone()],
+                intent.clone(),
+                tick,
+            );
+            assert_eq!(action.fire, intent.fire);
+            assert_eq!(action.pitch, intent.pitch);
+            assert_eq!(action.look_at, intent.look_at);
+            mover.proposed = crate::movement::live_step_with_height(
+                mover.from,
+                &crate::movement::MoveInput {
+                    forward: action.forward,
+                    back: action.back,
+                    left: action.left,
+                    right: action.right,
+                    yaw: 0.0,
+                    jump: false,
+                    speed_scale: 1.0,
+                },
+                crate::movement::TOP_SPEED,
+                0.05,
+                &arena,
+                mover.height,
+            );
+            let accepted =
+                crate::movement::contact::resolve(&[mover.clone(), peer.clone()], 0.05, &arena)[0];
+            assert_eq!(accepted.y, 3.0, "passing must retain real deck support");
+            assert_eq!(accepted.vy, 0.0);
+            assert!((accepted.x - peer.from.x).hypot(accepted.z - peer.from.z) >= 0.9999);
+            mover.from = accepted;
+            mover.proposed = accepted;
+            lateral = lateral.max(accepted.z);
+        }
+        assert!(
+            lateral > 0.8,
+            "safe supported side must make ordinary progress"
+        );
+    }
+
+    #[test]
+    fn facing_crowd_passes_with_either_stable_body_order() {
+        let arena = Arena {
+            half: 12.0,
+            solids: vec![],
+        };
+        for reverse in [false, true] {
+            let mut bodies = vec![
+                crowd_body(if reverse { 2 } else { 1 }, -2.0, 0.0, 0.0, 0.0),
+                crowd_body(
+                    if reverse { 1 } else { 2 },
+                    2.0,
+                    0.0,
+                    0.0,
+                    std::f32::consts::PI,
+                ),
+            ];
+            let mut drivers = [Navigator::default(), Navigator::default()];
+            for tick in 0..48 {
+                let scene = bodies.clone();
+                for (i, body) in bodies.iter_mut().enumerate() {
+                    let id = Uuid::parse_str(&body.key).unwrap();
+                    let action = drivers[i].avoid_bodies(
+                        &arena,
+                        id,
+                        &scene,
+                        Action {
+                            forward: true,
+                            yaw: Some(body.from.yaw),
+                            ..Default::default()
+                        },
+                        tick,
+                    );
+                    body.proposed = crate::movement::live_step_with_height(
+                        body.from,
+                        &crate::movement::MoveInput {
+                            forward: action.forward,
+                            back: action.back,
+                            left: action.left,
+                            right: action.right,
+                            jump: false,
+                            yaw: body.from.yaw,
+                            speed_scale: 1.0,
+                        },
+                        crate::movement::TOP_SPEED,
+                        0.05,
+                        &arena,
+                        body.height,
+                    );
+                }
+                let moved = crate::movement::contact::resolve(&bodies, 0.05, &arena);
+                assert!((moved[0].x - moved[1].x).hypot(moved[0].z - moved[1].z) >= 0.9999);
+                for (body, pose) in bodies.iter_mut().zip(moved) {
+                    body.from = pose;
+                    body.proposed = pose;
+                }
+            }
+            assert!(
+                bodies[0].from.x > 2.0 && bodies[1].from.x < -2.0,
+                "both ordinary actors must pass instead of queueing: {bodies:?}"
+            );
+        }
+    }
+
+    #[test]
+    fn nearby_bodies_do_not_replace_a_supported_stair_route() {
+        let arena = Arena {
+            half: 12.0,
+            solids: vec![
+                Solid {
+                    min_x: -2.0,
+                    max_x: 0.5,
+                    min_z: -2.0,
+                    max_z: 2.0,
+                    bottom: 0.0,
+                    top: 0.5,
+                },
+                Solid {
+                    min_x: 0.5,
+                    max_x: 1.5,
+                    min_z: -2.0,
+                    max_z: 2.0,
+                    bottom: 0.0,
+                    top: 1.0,
+                },
+                Solid {
+                    min_x: 1.5,
+                    max_x: 3.5,
+                    min_z: -2.0,
+                    max_z: 2.0,
+                    bottom: 0.0,
+                    top: 1.5,
+                },
+            ],
+        };
+        let mut me = crowd_body(1, 0.0, 0.5, 0.0, 0.0);
+        let peer = crowd_body(2, -1.5, 0.5, 0.0, 0.0);
+        let intent = Action {
+            forward: true,
+            yaw: Some(0.0),
+            ..Default::default()
+        };
+        let mut nav = Navigator::default();
+        for tick in 0..10 {
+            let action = nav.avoid_bodies(
+                &arena,
+                Uuid::from_u128(1),
+                &[me.clone(), peer.clone()],
+                intent.clone(),
+                tick,
+            );
+            assert!(action.forward && !action.back && !action.left && !action.right);
+            me.from = crate::movement::live_step_with_height(
+                me.from,
+                &crate::movement::MoveInput {
+                    forward: true,
+                    yaw: 0.0,
+                    speed_scale: 1.0,
+                    ..Default::default()
+                },
+                crate::movement::TOP_SPEED,
+                0.05,
+                &arena,
+                me.height,
+            );
+            me.proposed = me.from;
+            assert_eq!(me.from.vy, 0.0);
+        }
+        assert!(
+            me.from.x >= 2.0 && me.from.y == 1.5,
+            "ordinary stairs remain usable: {me:?}"
+        );
     }
 }

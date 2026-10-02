@@ -135,7 +135,14 @@ impl MissionClient {
     ) -> Action {
         if action.look_at.is_some() {
             self.press_down = false;
-            return navigator.steer_snapshot(world, id, snapshot, action);
+            return navigator.route_snapshot_with_visibility(
+                world,
+                id,
+                snapshot,
+                action,
+                true,
+                &world.planning_arena().solids,
+            );
         }
         let Some(me) = snapshot.players.iter().find(|p| p.id == id && p.hp > 0) else {
             return Action::default();
@@ -550,6 +557,55 @@ impl MissionClient {
         snapshot: &Snapshot,
         action: Action,
     ) -> Action {
+        let wanted = self.steer_route(navigator, world, id, snapshot, action);
+        let mut bodies = Navigator::snapshot_bodies(snapshot);
+        if let Some(state) = self
+            .state
+            .as_ref()
+            .filter(|state| state.phase == MissionPhase::InProgress)
+        {
+            let mut append = |key: String, feet: [f32; 3]| {
+                bodies.push(crate::sim::contact::civilian(key, feet));
+            };
+            if let Some(f) = state.m02.as_ref().and_then(|m| m.evacuation.as_ref()) {
+                for (i, feet) in f.captives.iter().copied().enumerate() {
+                    append(format!("m02/captive/{i}"), feet);
+                }
+            }
+            if let Some(f) = &state.m03 {
+                for car in &f.cars {
+                    for (i, feet) in car.captives.iter().copied().enumerate() {
+                        append(format!("m03/{}/{i}", car.id), feet);
+                    }
+                }
+            }
+            if let Some(f) = &state.m04 {
+                for patient in &f.patients {
+                    append(format!("m04/{}", patient.id), patient.feet);
+                }
+            }
+            if let Some(f) = &state.m05 {
+                for captive in &f.captives {
+                    append(format!("m05/{}", captive.id), captive.feet);
+                }
+            }
+        }
+        let solids = self.live_visibility_solids();
+        let arena = crate::movement::Arena {
+            half: world.planning_arena().half,
+            solids: solids.unwrap_or_else(|| world.planning_arena().solids.clone()),
+        };
+        navigator.avoid_bodies(&arena, id, &bodies, wanted, snapshot.tick)
+    }
+
+    fn steer_route(
+        &mut self,
+        navigator: &mut Navigator,
+        world: &Navigation,
+        id: Uuid,
+        snapshot: &Snapshot,
+        action: Action,
+    ) -> Action {
         if !self.participating(id) {
             return Action::default();
         }
@@ -593,11 +649,25 @@ impl MissionClient {
             return self.steer_m02(navigator, world, id, snapshot, action);
         }
         let (Some(geometry), Some(state)) = (&self.geometry, &self.state) else {
-            return navigator.steer_snapshot(world, id, snapshot, action);
+            return navigator.route_snapshot_with_visibility(
+                world,
+                id,
+                snapshot,
+                action,
+                true,
+                &world.planning_arena().solids,
+            );
         };
         if action.look_at.is_some() {
             self.press_down = false;
-            return navigator.steer_snapshot(world, id, snapshot, action);
+            return navigator.route_snapshot_with_visibility(
+                world,
+                id,
+                snapshot,
+                action,
+                true,
+                &world.planning_arena().solids,
+            );
         }
         let Some(me) = snapshot.players.iter().find(|p| p.id == id && p.hp > 0) else {
             self.press_down = false;
@@ -653,7 +723,14 @@ impl MissionClient {
     ) -> Action {
         if action.look_at.is_some() {
             self.press_down = false;
-            return navigator.steer_snapshot(world, id, snapshot, action);
+            return navigator.route_snapshot_with_visibility(
+                world,
+                id,
+                snapshot,
+                action,
+                true,
+                &world.planning_arena().solids,
+            );
         }
         let Some(me) = snapshot
             .players

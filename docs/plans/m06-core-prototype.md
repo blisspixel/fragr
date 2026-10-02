@@ -94,14 +94,16 @@ child fixture also checks actual carried body, HP, armor, ammunition, grenade
 count, outcomes and a single historical archive across reopening; its execution
 belongs to the parent's matching-binary verification.
 
-The matching-binary verification now passes the native child fixture, all
+The pre-contact matching-binary verification passes the native child fixture, all
 1226 workspace tests and unfiltered 94.12 percent workspace line coverage.
 Formatting, warning-denied clippy, full release build, license checks,
 deterministic benchmark, six mixed-map rosters, contested CTF and the
 120-second soak also pass. Exact receipts and measurement scope live in the
 [parent plan](m06-port-of-entry-prototype.md#completed-engineering-gates).
 The subsequent strict map preflight passes all 144 final ordinary route
-segments. No earlier failure is removed from the evidence record.
+segments. These receipts predate the living-body contact increment; its final
+matching-binary checks, coverage and rendered route remain required. No earlier
+failure is removed from the evidence record.
 
 The third rendered mission attempt independently observes the real named
 Turret firing, then a distinct charge cancelled by actual cover: blocked,
@@ -109,5 +111,13 @@ in-range Windup at tick 3108, early twelve-tick Recovery at 3109, unchanged
 enemy HP and no named resolved shot through the original deadline 3129,
 verified through tick 3130. That attempt later fails the required rear-flank
 death gate after the QA driver steers off a correctly climbed gallery. This
-is partial combat evidence, not a completed mission tour. The driver fix and
-full ordinary-input departure remain pending in the presentation lane.
+is partial combat evidence, not a completed mission tour. The driver correction
+subsequently passed its focused tests and the fourth tour's gameplay route.
+
+That fourth tour completed 25 states, all 21 guards and actual departure, with
+a measured 52.8996-metre resolved Rail hit and a distinct causally verified
+Turret cover cancellation. Its wrapper failed on two shutdown texture leaks.
+The focused sky-retention fix passes isolated checks, but the final clean
+ordinary-input tour must follow the contact, art and audio freeze. M06 remains
+in flight; gameplay completion is separate from fresh-player and difficulty
+acceptance or a shipped release.
