@@ -165,3 +165,9 @@ Listening and in-game mix acceptance. Viewmodel pump frames. Footsteps and
 landing with surface lookup. Lifts, gates, objective and menu cues. The import
 preset keeps the existing QOA compression for consistency; a listening pass
 should confirm the Shotgun crack survives it.
+
+## Handoff
+
+PR #322 is open on `feat/sound-pass`, rebased on main after #319. Remaining:
+the full `tools/godot_check.sh` under the render lock, green CI, squash merge.
+No further generation is planned.
