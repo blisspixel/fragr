@@ -18,6 +18,13 @@ pub const KITE_RANGE: f32 = 8.0;
 pub const PUSH_RANGE: f32 = 25.0;
 /// Only a nearby exposed guard interrupts authored campaign traversal.
 pub const CAMPAIGN_ENGAGE_RANGE: f32 = 20.0;
+/// An awake guard is answered out to the distance a campaign enemy can see a
+/// participant. Sweepers fire from 24 metres; an agent that only answered at
+/// 20 stood in the open until it died.
+pub const CAMPAIGN_THREAT_RANGE: f32 = 32.0;
+/// Stop closing in once a visible target is this share of the held weapon's
+/// reach away, and shoot from there instead of routing past it.
+pub const CAMPAIGN_HOLD_SHARE: f32 = 0.75;
 /// Head for health below this HP when a pad is available.
 pub const LOW_HP: i32 = 40;
 /// Prefer scatter inside this distance.
@@ -415,6 +422,38 @@ pub fn campaign_micro_action_with_solids(
     world: &Navigation,
     solids: Option<&[fragr_server::movement::Solid]>,
 ) -> Action {
+    let mut action = campaign_micro_action_unheld(plan, me, snapshot, world, solids);
+    // A guard already in view and within reach is shot from here. Pushing on
+    // made the shared router walk a long way round to a guard on a roof or a
+    // gallery, with the trigger released for the whole detour.
+    if plan.stance == Stance::PushEnemy && action.fire {
+        let target = action.look_at.as_ref().and_then(|aim| aim.player_id);
+        let mine = snapshot.players.iter().find(|player| player.id == me);
+        let other = target.and_then(|id| snapshot.players.iter().find(|player| player.id == id));
+        if let (Some(mine), Some(other)) = (mine, other) {
+            let held = action
+                .weapon_swap
+                .or_else(|| parse_weapon(&mine.weapon))
+                .unwrap_or_default();
+            let distance = (other.x - mine.x).hypot(other.z - mine.z);
+            if distance <= held.range_units() * CAMPAIGN_HOLD_SHARE {
+                let (left, right) = strafe(snapshot.tick);
+                action.forward = false;
+                action.left = left;
+                action.right = right;
+            }
+        }
+    }
+    action
+}
+
+fn campaign_micro_action_unheld(
+    plan: &Plan,
+    me: Uuid,
+    snapshot: &Snapshot,
+    world: &Navigation,
+    solids: Option<&[fragr_server::movement::Solid]>,
+) -> Action {
     micro_action_with_visibility(
         plan,
         me,
@@ -479,10 +518,27 @@ pub fn campaign_enemy_engageable_with_solids(
     other: &fragr_server::protocol::PlayerState,
     solids: Option<&[fragr_server::movement::Solid]>,
 ) -> bool {
-    if (other.x - mine.x).hypot(other.z - mine.z) > CAMPAIGN_ENGAGE_RANGE {
+    let distance = (other.x - mine.x).hypot(other.z - mine.z);
+    let reach = if campaign_enemy_awake(other) {
+        CAMPAIGN_THREAT_RANGE
+    } else {
+        CAMPAIGN_ENGAGE_RANGE
+    };
+    if distance > reach {
         return false;
     }
     target_visible_with_solids(world, mine, other, solids)
+}
+
+/// A Union body that has started its own fight: walking, aiming, shooting,
+/// recovering or stunned. A quiet idle guard is not yet a threat.
+fn campaign_enemy_awake(other: &fragr_server::protocol::PlayerState) -> bool {
+    use fragr_server::protocol::{CampaignActor, EnemyPhase};
+    matches!(
+        other.campaign,
+        Some(CampaignActor::Union { phase, .. })
+            if !matches!(phase, EnemyPhase::Idle | EnemyPhase::Dead)
+    )
 }
 
 /// Actor geometry visibility without a mode's separate engagement radius.

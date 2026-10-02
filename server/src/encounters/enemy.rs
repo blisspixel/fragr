@@ -14,6 +14,12 @@ pub(crate) const STAGGER_DAMAGE: i32 = 40;
 /// Visual pursuit memory and the engagement bound shared by walking enemies.
 const SIGHT_RANGE: f32 = 32.0;
 const ENGAGE_RANGE: f32 = 24.0;
+/// A walking guard that chased a participant further than this from its
+/// authored post walks back once its pursuit has ended. Shorter chases and
+/// alarm searches keep their authored behaviour.
+const POST_RADIUS: f32 = 8.0;
+/// Bound on one walk home; a blocked guard idles once this lapses.
+const POST_RETURN_TICKS: u64 = 400;
 /// The turret reaches a little further because it cannot close the distance.
 const TURRET_ENGAGE_RANGE: f32 = 28.0;
 /// Idle head sweep either side of the authored facing, and its rate per tick.
@@ -135,6 +141,10 @@ pub(super) struct EnemyController {
     target: Option<Uuid>,
     last_known: [f32; 3],
     search_until: u64,
+    /// Authored post. A walking guard that lost its quarry returns here.
+    home: [f32; 3],
+    /// Set by an actual sighting; one walk home spends it.
+    pursued: bool,
     aim: (f32, f32),
     next_shot: u64,
     shots_left: u8,
@@ -200,6 +210,8 @@ impl EnemyController {
             until: tick,
             target: None,
             last_known: alarm_position,
+            home: alarm_position,
+            pursued: false,
             // Dispatch can require a full stair route to another floor. This
             // is a fixed alarm location, never the unseen participant's live
             // position. Visual pursuit below keeps its shorter memory.
@@ -343,6 +355,7 @@ impl EnemyController {
             self.target = Some(target.id);
             self.last_known = [target.x, target.y - PLAYER_FLOOR_Y, target.z];
             self.search_until = tick.saturating_add(100);
+            self.pursued = true;
         }
 
         // Armor reads the whole tick's damage from the authoritative body, so
@@ -495,6 +508,28 @@ impl EnemyController {
             };
         }
         self.target = None;
+        // A guard that chased a participant far from its post and lost them
+        // walks back instead of idling wherever the trail ended. The last
+        // guard of a required group then waits where the fight was staged, in
+        // view of the objective, not alone in a far corridor nobody revisits.
+        // The post is authored, never the unseen participant's live position.
+        if self.pursued && (feet[0] - self.home[0]).hypot(feet[2] - self.home[2]) > POST_RADIUS {
+            self.pursued = false;
+            self.last_known = self.home;
+            self.search_until = tick.saturating_add(POST_RETURN_TICKS);
+            if self.phase != EnemyPhase::Moving {
+                self.enter(EnemyPhase::Moving, tick, 0);
+            }
+            action.forward = true;
+            action.yaw = Some((self.home[2] - feet[2]).atan2(self.home[0] - feet[0]));
+            return BotIntent {
+                action,
+                goal: Some(NavigationGoal {
+                    feet: self.home,
+                    combat: false,
+                }),
+            };
+        }
         if self.phase != EnemyPhase::Idle {
             self.enter(EnemyPhase::Idle, tick, 0);
         }
@@ -983,6 +1018,80 @@ mod tests {
             attack_timing(EnemyKind::Crawler, CampaignDifficulty::Severe),
             (12, 20)
         );
+    }
+
+    #[test]
+    fn lost_guard_walks_back_to_its_post_once_then_waits() {
+        use crate::maps::AuthoredSource;
+        use crate::protocol::MissionId;
+
+        let mut state = GameState::with_authored_map(
+            AuthoredSource::Mission(MissionId::ScheduledService)
+                .load()
+                .unwrap(),
+        );
+        // The Scheduled Service straggler: a train Clerk that chased the
+        // participant south and lost sight stood idle by the siding while
+        // the party waited at the locomotive for the group to clear.
+        let placement = state
+            .map
+            .encounters()
+            .iter()
+            .flat_map(|group| group.enemies.iter())
+            .find(|placement| placement.id == "train_clerk_a")
+            .unwrap()
+            .clone();
+        let enemy_id = state.spawn_campaign_enemy(&placement);
+        let mut guard = EnemyController::new(
+            enemy_id,
+            placement.kind,
+            placement.feet,
+            placement.yaw,
+            state.tick,
+            false,
+        );
+        let stray = [-11.0, 0.0, 16.7];
+        let move_body = |state: &mut GameState, x: f32, z: f32| {
+            let body = state.players.iter_mut().find(|p| p.id == enemy_id).unwrap();
+            [body.x, body.y, body.z] = [x, PLAYER_FLOOR_Y, z];
+        };
+        move_body(&mut state, stray[0], stray[2]);
+        guard.search_until = 0;
+        state.tick = 700;
+        let unseen = guard.intent(&state, &state.snapshot());
+        assert!(
+            unseen.goal.is_none() && guard.phase == EnemyPhase::Idle,
+            "an alarm search that never saw anyone keeps its authored behaviour"
+        );
+
+        // After an actual chase the far guard is given a route home.
+        guard.pursued = true;
+        state.tick = 701;
+        let walk = guard.intent(&state, &state.snapshot());
+        let goal = walk.goal.expect("the stray guard is given a route home");
+        assert_eq!(goal.feet, placement.feet, "home is the authored post");
+        assert!(!goal.combat && walk.action.forward && !walk.action.fire);
+        assert_eq!(guard.phase, EnemyPhase::Moving);
+
+        // Arriving at the post settles the guard.
+        move_body(&mut state, placement.feet[0] + 0.3, placement.feet[2]);
+        state.tick = 702;
+        let settled = guard.intent(&state, &state.snapshot());
+        assert!(settled.goal.is_none() && !settled.action.forward);
+        assert_eq!(guard.phase, EnemyPhase::Idle);
+
+        // A blocked walk home gives up after its bound instead of retrying.
+        move_body(&mut state, stray[0], stray[2]);
+        guard.search_until = 0;
+        state.tick = 2000;
+        let stuck = guard.intent(&state, &state.snapshot());
+        assert!(stuck.goal.is_none() && guard.phase == EnemyPhase::Idle);
+
+        // A short chase that ends near the post stays where it ended.
+        move_body(&mut state, placement.feet[0] + 4.0, placement.feet[2]);
+        guard.pursued = true;
+        state.tick = 2001;
+        assert!(guard.intent(&state, &state.snapshot()).goal.is_none());
     }
 
     #[test]
