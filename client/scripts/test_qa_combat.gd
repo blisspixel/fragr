@@ -21,6 +21,7 @@ func _initialize() -> void:
 	_check_m06_gallery_contact()
 	_check_m06_contact_dodge()
 	_check_approach_arrival()
+	_check_turret_peek()
 	_check_resolved_shots()
 	var caller: QaCombat = QaCombat.new()
 	var observer: TurretObserverProbe = TurretObserverProbe.new()
@@ -527,6 +528,133 @@ func _check_approach_arrival() -> void:
 	var empty: Dictionary = driver.approach_step(manager, me, snapshot, {}, [], anchor, [], 0)
 	_check(ended["index"] == 1 and empty["index"] == 0 and ended["anchor"] == anchor
 		and empty["anchor"] == anchor and driver.defenses == 1, "route end and empty approach do not create advancement or defense")
+	manager.free()
+
+static func _peek_snapshot(tick: int, feet: Vector3, phase: String = "windup",
+		started: int = 101, ends: int = 127) -> Dictionary:
+	return {"tick": tick, "players": [
+		{"id": "00000000-0000-0000-0000-000000000001", "name": "Viewer", "hp": 100,
+			"x": feet.x, "y": feet.y + QaCombat.CAMERA.FP_SERVER_REFERENCE_Y, "z": feet.z,
+			"campaign": {"side": "participant"}},
+		{"id": "00000000-0000-0000-0000-000000000002", "name": "intro_turret", "hp": 100,
+			"x": -18.5, "y": 4.5, "z": 16.0, "campaign": {"side": "union", "kind": "turret",
+				"phase": phase, "phase_started": started, "phase_ends": ends}}]}
+
+func _check_turret_peek() -> void:
+	var authored: Variant = JSON.parse_string(FileAccess.get_file_as_string("res://../server/maps/m06_port_of_entry.json"))
+	var manifest: Variant = JSON.parse_string(FileAccess.get_file_as_string("res://qa/m06_port_of_entry.json"))
+	_check(authored is Dictionary and manifest is Dictionary, "peek regression loads actual M06 map and capture specimen")
+	if not authored is Dictionary or not manifest is Dictionary:
+		return
+	var spec: Dictionary = {}
+	for stage: Dictionary in manifest["states"]:
+		if stage["name"] == "turret_front_cover_rear_lesson":
+			spec = stage["combat"]
+	_check(not spec.is_empty() and QaCombat.valid_turret_peek(spec), "actual specimen declares a strict bounded peek")
+	if spec.is_empty():
+		return
+	_check(QaCombat.valid_turret_peek({}), "optional peek preserves every ordinary route")
+	for selected: Variant in [null, true, [], {}, {"peek_index": 4},
+		{"peek_index": 4, "cover_index": 5, "deadline": 500},
+		{"peek_index": -1, "cover_index": 0}, {"peek_index": 4.5, "cover_index": 5},
+		{"peek_index": "4", "cover_index": 5}, {"peek_index": true, "cover_index": 5},
+		{"peek_index": 4, "cover_index": 4}, {"peek_index": 5, "cover_index": 4},
+		{"peek_index": 4, "cover_index": 6}, {"peek_index": 31, "cover_index": 32},
+		{"peek_index": 20, "cover_index": 21}]:
+		var invalid: Dictionary = spec.duplicate(true)
+		invalid["turret_peek"] = selected
+		_check(not QaCombat.valid_turret_peek(invalid), "malformed, unbounded or nonadjacent peek refused")
+	for patch: Dictionary in [{"expect_turret_cover_cancel": false}, {"expect_turret_cover_cancel": 1},
+		{"approach_focus": "another_turret"}, {"approach_focus": null},
+		{"approach_route": []}, {"approach_route": [[0, 0, INF]]}, {"phase_kind": "clerk"}]:
+		var invalid: Dictionary = spec.duplicate(true)
+		invalid.merge(patch, true)
+		_check(not QaCombat.valid_turret_peek(invalid), "peek cannot bypass typed observer, named focus or route boundary")
+	var solids: Array[Dictionary] = []
+	for solid: Dictionary in authored["solids"]:
+		solids.append({"min_x": solid["min"][0], "max_x": solid["max"][0], "min_z": solid["min"][2],
+			"max_z": solid["max"][2], "bottom": solid["min"][1], "top": solid["max"][1]})
+	var route: Array = spec["approach_route"]
+	var peek_index: int = int(spec["turret_peek"]["peek_index"])
+	var cover_index: int = int(spec["turret_peek"]["cover_index"])
+	var peek: Vector3 = Vector3(route[peek_index][0], route[peek_index][1], route[peek_index][2])
+	var cover: Vector3 = Vector3(route[cover_index][0], route[cover_index][1], route[cover_index][2])
+	_check(peek == Vector3(0, 0, 12) and cover == Vector3(0, 0, 10),
+		"clear peek follows first-shot sweep and precedes ordinary covered retreat")
+	var first_sweep: Array[Vector3] = [Vector3(0, 0, 10), Vector3(4, 0, 16), Vector3(-4, 0, 16), Vector3(0, 0, 10)]
+	for index: int in range(first_sweep.size()):
+		_check(Vector3(route[index][0], route[index][1], route[index][2]) == first_sweep[index],
+			"original first-shot front sweep waypoint remains unchanged")
+	var observer: QaTurret = QaTurret.new()
+	_check(observer.begin("00000000-0000-0000-0000-000000000001", "intro_turret", solids), "actual registered geometry accepted")
+	var eye: Vector3 = Vector3(-18.5, 3.0 + MoveStep.EYE_HEIGHT, 16.0)
+	_check(observer._cover(eye, peek + Vector3(0, MoveStep.BODY_HEIGHT * 0.5, 0)).is_empty(),
+		"peek is actually clear against every authoritative solid")
+	var blocker: Dictionary = observer._cover(eye, cover + Vector3(0, MoveStep.BODY_HEIGHT * 0.5, 0))
+	_check(not blocker.is_empty() and blocker["solid_index"] == 62,
+		"covered stance is blocked by the actual registered charge cover")
+	var arena: Dictionary = {"half": authored["half_extent"], "solids": solids}
+	var turret: Dictionary = ActorContact.stationary("turret", Vector3(-18.5, 3, 16))
+	for offset: Vector2 in [Vector2.ZERO, Vector2(-0.49, 0), Vector2(0.49, 0), Vector2(0, -0.49), Vector2(0, 0.49)]:
+		var body: Dictionary = MoveStep.make_state(peek.x + offset.x, peek.z + offset.y, 0.0)
+		_check(observer._cover(eye, Vector3(body["x"], MoveStep.BODY_HEIGHT * 0.5, body["z"])).is_empty(),
+			"strict peek arrival offsets all retain actual clear center sight")
+		var ticks: int = 0
+		while ticks < 12 and not QaCombat.waypoint_arrived({"x": body["x"], "y": body["y"] + 1.5, "z": body["z"]}, route[cover_index]):
+			var delta: Vector2 = Vector2(cover.x - float(body["x"]), cover.z - float(body["z"]))
+			var facing: Vector2 = Vector2(-18.5 - float(body["x"]), 16.0 - float(body["z"]))
+			var yaw: float = atan2(facing.y, facing.x)
+			var buttons: Dictionary[String, bool] = QaCombat.route_buttons(delta, yaw)
+			var action: Dictionary = MoveStep.make_input(buttons["move_forward"], buttons["move_back"],
+				buttons["move_left"], buttons["move_right"], yaw)
+			var proposed: Dictionary = MoveStep.live_step(body, action, MoveStep.TOP_SPEED, MoveStep.DT_LIVE, arena)
+			var bodies: Array[Dictionary] = [{"key": "human", "from": body, "proposed": proposed,
+				"height": MoveStep.BODY_HEIGHT, "radius": MoveStep.RADIUS, "jump": false}, turret]
+			body = ActorContact.resolve(bodies, MoveStep.DT_LIVE, arena)[0]
+			ticks += 1
+			_check(absf(float(body["y"])) < 0.01, "focused ordinary retreat remains on actual ground with actor contact")
+		var feet: Vector3 = Vector3(body["x"], body["y"], body["z"])
+		_check(ticks <= 9 and QaCombat.waypoint_arrived({"x": body["x"], "y": body["y"] + 1.5, "z": body["z"]}, route[cover_index])
+			and not observer._cover(eye, feet + Vector3(0, MoveStep.BODY_HEIGHT * 0.5, 0)).is_empty(),
+			"actual strict-arrival starting offsets reach real cover with at least three ticks of retreat margin")
+	var manager: Node = Node.new()
+	var camera: Node3D = QaCombat.CAMERA.new()
+	camera.name = "SpectatorCamera"
+	manager.add_child(camera)
+	var driver: ApproachProbe = ApproachProbe.new()
+	driver._player_id = "00000000-0000-0000-0000-000000000001"
+	driver._turret_observer = observer
+	var anchor: Vector2 = Vector2(0, 10)
+	var snapshot: Dictionary = _peek_snapshot(100, peek, "idle", 100, 100)
+	observer.observe(snapshot)
+	QaCombat.release_inputs()
+	var held: Dictionary = driver.approach_step(manager, snapshot["players"][0], snapshot, spec, solids, anchor, route, peek_index)
+	_check(held["index"] == peek_index and held["anchor"] == anchor and driver.defenses == 0
+		and not Input.is_action_pressed("fire") and not Input.is_action_pressed("move_forward"),
+		"production reached peek holds without a charge, route advance, shot or forced movement")
+	_check(is_equal_approx(float(camera.get("fp_yaw")), atan2(4.0, -18.5)), "held peek still aims at the actual named Turret")
+	snapshot = _peek_snapshot(101, peek)
+	observer.observe(snapshot)
+	var retreat: Dictionary = driver.approach_step(manager, snapshot["players"][0], snapshot, spec, solids, anchor, route, peek_index)
+	_check(retreat["index"] == cover_index and retreat["anchor"] == Vector2(peek.x, peek.z)
+		and not driver.fired, "accepted live clear charge unlocks only the next ordinary retreat waypoint")
+	var not_yet: Dictionary = driver.approach_step(manager, snapshot["players"][0], snapshot, spec, solids, anchor, route, cover_index)
+	_check(not_yet["index"] == cover_index and not driver.fired and Input.is_action_pressed("move_forward") == false
+		and (Input.is_action_pressed("move_right") or Input.is_action_pressed("move_left") or Input.is_action_pressed("move_back")),
+		"unreached covered point keeps ordinary focused walking and no-fire behavior")
+	QaCombat.release_inputs()
+	for tick: int in range(102, 129):
+		snapshot = _peek_snapshot(tick, cover, "windup" if tick == 102 else ("recovery" if tick < 115 else "idle"),
+			101 if tick == 102 else (103 if tick < 115 else 115), 127 if tick == 102 else 115)
+		observer.observe(snapshot)
+		held = driver.approach_step(manager, snapshot["players"][0], snapshot, spec, solids, anchor, route, cover_index)
+		_check(held["index"] == (cover_index + 1 if tick == 128 else cover_index)
+			and not driver.fired and not Input.is_action_pressed("fire"),
+			"production cover holds through original deadline and releases only on genuine proof")
+	_check(observer.cancellation_proven() and driver.turret_peek_allows(spec, peek_index, 128),
+		"already proven cancellation retains normal progression without waiting for another charge")
+	_check(driver.turret_peek_allows(spec, 0, 128) and driver.turret_peek_allows({}, peek_index, 128),
+		"initial front sweep and every unspecified ordinary route keep their existing progression")
 	manager.free()
 
 func _check_m06_contact_dodge() -> void:

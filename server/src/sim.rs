@@ -3771,8 +3771,8 @@ impl BotController {
             if let (Some(team), Some(flags)) = (bot.team, state.flags.as_ref()) {
                 let own = &flags[team.index()];
                 let enemy = &flags[team.other().index()];
-                // A side of two keeps the goals the four-bot survey already
-                // passes. A larger side elects one defender and one escort.
+                // A side of two keeps one defender and one flag runner.
+                // A larger side elects one defender and one escort.
                 let side_count = state
                     .bots
                     .iter()
@@ -3843,10 +3843,9 @@ impl BotController {
                         .iter()
                         .find(|p| p.id == carrier && p.hp > 0 && p.respawn_timer.is_none())
                 });
-                // Contact-range defense can force a drop without turning every
-                // flag run into a map-wide chase.
-                let intercept = defender
-                    && enemy.carrier != Some(bot.id)
+                // A carrier already pursuing its own flag thief can defend at
+                // the same contact range as the side's ordinary defender.
+                let intercept = (defender || enemy.carrier == Some(bot.id))
                     && thief.is_some_and(|target| (target.x - bot.x).hypot(target.z - bot.z) < 1.5);
                 if let Some(target) = thief.filter(|_| intercept) {
                     let eye = [bot.x, bot.y - PLAYER_FLOOR_Y + EYE_HEIGHT, bot.z];

@@ -110,8 +110,9 @@ save behavior and settings are in the [playing guide](docs/PLAYING.md).
 
 ## Screenshots
 
-These four stills were recaptured and inspected on 2026-10-01 from the current
-development build. The
+These four stills were recaptured and inspected on October 1 and 2, 2026.
+The arena views use the final release server build; Recall Notice's intake
+retains its October 1 capture of the same presentation. The
 [visual tour](docs/screenshots/README.md) has more states and capture context.
 
 Boot menu:

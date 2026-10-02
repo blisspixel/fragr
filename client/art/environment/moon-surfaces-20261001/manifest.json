@@ -24,7 +24,7 @@
       "reduced_source": "reduced/moon_pressure_bone_0.png",
       "processed": "processed/moon_pressure_bone.png",
       "runtime": "client/assets/environment/moon/surfaces/moon_pressure_bone.png",
-      "decision": "candidate pending actual lit surface review"
+      "decision": "selected: actual lit lunar pressure walls and ceiling inspected"
     },
     {
       "id": "moon_worn_deck",
@@ -62,7 +62,7 @@
       "reduced_source": "reduced/moon_basalt_0.png",
       "processed": "processed/moon_basalt.png",
       "runtime": "client/assets/environment/moon/surfaces/moon_basalt.png",
-      "decision": "candidate pending actual lit surface review"
+      "decision": "selected: bounded exterior crater meshes inspected in actual gantry view"
     },
     {
       "id": "moon_regolith",
@@ -100,7 +100,7 @@
       "reduced_source": "reduced/moon_union_service_0.png",
       "processed": "processed/moon_union_service.png",
       "runtime": "client/assets/environment/moon/surfaces/moon_union_service.png",
-      "decision": "candidate pending actual lit surface review"
+      "decision": "selected: actual vertical black/red issued steel inspected"
     },
     {
       "id": "moon_seal_rubber",
@@ -119,7 +119,7 @@
       "reduced_source": "reduced/moon_seal_rubber_0.png",
       "processed": "processed/moon_seal_rubber.png",
       "runtime": "client/assets/environment/moon/surfaces/moon_seal_rubber.png",
-      "decision": "candidate pending actual lit surface review"
+      "decision": "selected: existing pressure seal meshes inspected in actual crew room"
     },
     {
       "id": "moon_civilian_fabric",
@@ -138,7 +138,7 @@
       "reduced_source": "reduced/moon_civilian_fabric_0.png",
       "processed": "processed/moon_civilian_fabric.png",
       "runtime": "client/assets/environment/moon/surfaces/moon_civilian_fabric.png",
-      "decision": "candidate pending actual lit surface review"
+      "decision": "selected: existing possessions bench inspected, original possessions preserved"
     },
     {
       "id": "moon_repair_plate",
@@ -157,7 +157,7 @@
       "reduced_source": "reduced/moon_repair_plate_0.png",
       "processed": "processed/moon_repair_plate.png",
       "runtime": "client/assets/environment/moon/surfaces/moon_repair_plate.png",
-      "decision": "candidate pending actual lit surface review"
+      "decision": "selected: existing lift and room support/tray surfaces inspected"
     },
     {
       "id": "moon_flat_traction_deck",
@@ -176,7 +176,7 @@
       "reduced_source": "reduced/moon_flat_traction_deck_0.png",
       "processed": "processed/moon_worn_deck.png",
       "runtime": "client/assets/environment/moon/surfaces/moon_worn_deck.png",
-      "decision": "selected floor candidate, native pixel and repeated seam inspection complete; actual lit world review pending"
+      "decision": "selected floor replacement: actual lit walking surfaces inspected"
     },
     {
       "id": "moon_quiet_regolith",
@@ -195,10 +195,66 @@
       "reduced_source": "reduced/moon_quiet_regolith_0.png",
       "processed": "processed/moon_regolith.png",
       "runtime": "client/assets/environment/moon/surfaces/moon_regolith.png",
-      "decision": "selected floor candidate, native pixel and repeated seam inspection complete; actual lit world review pending"
+      "decision": "selected floor replacement: actual lit quiet lunar ground inspected"
     }
   ],
   "palette_sha256": "C97F60CB92A212166E1506AB1CB32F0705227E205B6ECB7FCD83701491F19DA5",
   "floor_spec": "tools/spritegen/specs/moon-floor-alternatives.json",
-  "floor_spec_sha256": "BA59D2444631C15EB7EACA09428DA6D3C18ADB089511C471CB6F4D864F05C35D"
+  "floor_spec_sha256": "BA59D2444631C15EB7EACA09428DA6D3C18ADB089511C471CB6F4D864F05C35D",
+  "rendering_history": [
+    {
+      "receipt": ".agents/qa/m06-port-textures-second-final/manifest.json",
+      "states": 25,
+      "named_guard_kills": 21,
+      "wrapper_exit": 0,
+      "deaths": 0,
+      "hp_lost": 45,
+      "armor_lost": 100,
+      "actual_secret_claims": 1,
+      "rail_distance_m": 52.662686
+    },
+    {
+      "receipt": ".agents/qa/m06-port-peek-final/source-receipt.json",
+      "states": 25,
+      "named_guard_kills": 21,
+      "wrapper_exit": 0,
+      "deaths": 0,
+      "hp_lost": 25,
+      "armor_lost": 125,
+      "actual_secret_claims": 2,
+      "rail_distance_m": 52.804014,
+      "captured_server_sha256": "81DD76F47EBB00EBC80B92A4562DADD3D821C534E00B5C73DDDEE1D5552AFE3A",
+      "binary_scope": "Existing byte verified before the later CTF repair, not rebuilt-current-CTF"
+    }
+  ],
+  "rendering_review": {
+    "status": "implemented; local rendered route clean; final broad verification and release separate",
+    "receipt": ".agents/qa/final-m06-shipping-second/source-receipt.json",
+    "captured_on": "2026-10-02",
+    "states": 25,
+    "named_guard_kills": 21,
+    "wrapper_exit": 0,
+    "engine_errors": 0,
+    "deaths": 0,
+    "hp_lost": 0,
+    "armor_lost": 75,
+    "actual_secret_claims": 1,
+    "all_three_secret_locations_visited": true,
+    "rail_distance_m": 51.991994,
+    "turret_cover_cancel": {
+      "clear_windup_tick": 3005,
+      "blocked_windup_tick": 3007,
+      "recovery_started": 3008,
+      "recovery_ends": 3020,
+      "original_deadline": 3031,
+      "verified_through_tick": 3032,
+      "unchanged_hp": 100,
+      "no_registered_shot": true
+    },
+    "captured_server_sha256": "D29AE5E4B0BC3456F370524F87873930A2A8B2C9C8B5DCA09726D7EBAC05BE8A",
+    "binary_scope": "Unmodified normal wrapper locked release build, matching current CTF/campaign source; start and end source, map and binary hashes unchanged",
+    "earth_strip": "Twenty fixed-view actual frames, no companion crossing in current sequence",
+    "renderer": "Godot 4.7.2 Compatibility, Windows AMD Radeon 780M, 1280x720",
+    "scope": "Actual material integration inspected; no cross-GPU performance, human fresh-player or subjective audio acceptance claim"
+  }
 }

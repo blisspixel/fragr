@@ -15,22 +15,31 @@ Status words: **proposed** (a design awaiting Nick's decision; directs no work),
 
 ## Index
 
-The current M06, asset, radio and body-contact increment is implemented with
-final local gates passed. Its CI and release are pending; fresh-player,
+The M06, asset, radio and body-contact checkpoint passes full CI and all three
+desktop package checks. All four README captures are refreshed and inspected.
+Final campaign texture tours and the single 188-script/88-harness whole-client
+gate pass. Exact final-source CI and release integration remain in flight. Fresh-player,
 difficulty, subjective listening and final character acceptance remain open.
 
 | Plan | Status | One-liner |
 |---|---|---|
-| [`world-texture-expansion.md`](./world-texture-expansion.md) | **in flight** | Existing-credit Earth and Moon texture polish plus a labelled future Mars library, with inspected palette tiles and explicit material mapping. |
+| [`m06-freight-capture-route.md`](./m06-freight-capture-route.md) | **implemented** | Actual-map/body regressions and a clean 25-state normal tour pass through the clear freight aisle before combat, preserving every original gate. |
+| [`ctf-seeded-body-order.md`](./ctf-seeded-body-order.md) | **implemented** | Contact-range carrier defense passes all four seeded body-order matrices and identical canonical repeats, preserving completion and combat-drop thresholds. |
+| [`qa-turret-peek-timing.md`](./qa-turret-peek-timing.md) | **implemented** | Ordinary phase-aware peek and retreat proves the original clear-to-covered Turret cancellation gate; all 25 actual lunar states pass. |
+| [`latch-coherent-near-visibility.md`](./latch-coherent-near-visibility.md) | **implemented** | Actual-rig regression and original-shader negative control prove coherent close visibility, distant opacity and retained shadows; whole-client integration pending. |
+| [`qa-approach-arrival.md`](./qa-approach-arrival.md) | **implemented** | Acknowledge actually reached capture waypoints before defensive movement; preserve strict arrival thresholds, unfinished no-fire behavior and phase gates. |
+| [`m04-capture-patient-detour.md`](./m04-capture-patient-detour.md) | **implemented** | All 23 states and 28 guards pass after real patient/supply routes and all-eight court targeting; inspected gallery refreshed, optional patient queue remains. |
+| [`qa-contact-safe-strafe.md`](./qa-contact-safe-strafe.md) | **implemented** | Forecast bounded dodge contact before ledge-adjacent capture movement; actual M06 rerun clears all 25 states. |
+| [`world-texture-expansion.md`](./world-texture-expansion.md) | **implemented** | Twenty-one reviewed Earth, Moon and future Mars tiles; actual affected captures and the full 188-script/88-harness client gate pass. |
 | [`earth-surface-texture-batch.md`](./earth-surface-texture-batch.md) | **implemented** | Eight inspected Earth palette tiles selected from twelve bounded requests; shared rendering and integration tracked in the texture expansion. |
 | [`moon-surface-texture-batch.md`](./moon-surface-texture-batch.md) | **implemented** | Eight lunar materials selected from ten requests, including quieter walking-deck and regolith replacements. |
 | [`offworld-material-batch.md`](./offworld-material-batch.md) | **implemented** | Five inspected offworld tiles and a lit future-only library preview; Mars missions remain unbuilt. |
-| [`m01-crowd-route-recovery.md`](./m01-crowd-route-recovery.md) | **in flight** | Repair the actual four-participant upper-gallery stall caught during M06 integration, preserving map geometry and completion gates. |
+| [`m01-crowd-route-recovery.md`](./m01-crowd-route-recovery.md) | **implemented** | Retained four-participant stall regression, eight identity-order clears and full CI pass with unchanged map geometry and completion gates. |
 | [`narration-completion-check.md`](./narration-completion-check.md) | **shipped**, [PR #315](https://github.com/blisspixel/fragr/pull/315) | Real completion-signal synchronization; ten clean repeats, all 174 scripts/81 harnesses and protected main CI pass. |
 | [`m06-port-of-entry-prototype.md`](./m06-port-of-entry-prototype.md) | **implemented** | Lunar mission and durable Episode II refill; clean 25-state route and final local gates pass, fresh-player acceptance remains open. |
 | [`m06-core-prototype.md`](./m06-core-prototype.md) | **implemented** | Strict authoritative lunar mission, ordered encounters, optional service and real departure; current-source Rust and rendered gates pass. |
 | [`m06-map-prototype.md`](./m06-map-prototype.md) | **implemented** | Static port, supported galleries and real glass; all 21 guards and three visited secret locations, with one actual secret supply claim. |
-| [`m06-client-prototype.md`](./m06-client-prototype.md) | **implemented** | Strict M06 carry/readiness, inhabited Moon and story handoffs; final 184-script/86-harness and inspected tour gates pass. |
+| [`m06-client-prototype.md`](./m06-client-prototype.md) | **implemented** | Strict M06 carry/readiness, inhabited Moon and story handoffs; final single 188-script/88-harness gate and inspected normal captures pass. |
 | [`m06-audio-batch.md`](./m06-audio-batch.md) | **implemented** | Three exact-caption neutral clips and quiet utility loop; actual completion/fallback and integration pass, listening remains open. |
 | [`m06-lunar-art-batch.md`](./m06-lunar-art-batch.md) | **implemented** | Three selected civilian possessions integrated and inspected in the actual pressure room; final character art and billing reconciliation remain open. |
 | [`m06-story-key-images.md`](./m06-story-key-images.md) | **implemented** | Two inspected lunar arrival/transit illustrations share the game palette and existing reader-paced captions, narration and fallback. |
@@ -147,7 +156,7 @@ difficulty, subjective listening and final character acceptance remain open.
 | [`campaign-spaces.md`](./campaign-spaces.md) | **proven** (#176, v0.22.0) | Real ceilings, accessible balconies, layered routes and matching collision/rendering for M01. |
 | [`authored-campaign-maps.md`](./authored-campaign-maps.md) | **proven** (#177, v0.23.0) | Validated map files, explicit indoor spawns and M01's traversal blockout through the live server. |
 | [`m01-weapon-discovery.md`](./m01-weapon-discovery.md) | **proven** (#179, #181, v0.24.0) | Fists-to-Tack/Flechette discovery, finite ammunition, reload and compatible human/agent presentation. |
-| [`readable-arsenal.md`](./readable-arsenal.md) | **in flight** | Names and cycling shipped. Counted grenades are implemented locally for level 5 with independent records and save counts; sniper, rocket and both mines remain planned in the accepted twenty-level treatment. |
+| [`readable-arsenal.md`](./readable-arsenal.md) | **in flight** | Names, cycling and counted grenades shipped, with independent grenade records and save counts; sniper, rocket and both mines remain planned in the accepted twenty-level treatment. |
 | [`m01-intake-encounter.md`](./m01-intake-encounter.md) | **in flight** ([#180](https://github.com/blisspixel/fragr/issues/180)) | Authored human Clerk and Sweeper bot fights, explicit hostility, readable attacks and inspected motion. |
 | [`m01-facility-detail.md`](./m01-facility-detail.md) | **shipped** (#182, v0.25.0) | Bounded surface details, localized signs and practical lights make the intake rooms legible. |
 | [`m01-mission-sequence.md`](./m01-mission-sequence.md) | **shipped** (#184, v0.26.0) | Physical transfer-record interaction, authoritative lift gate and shared departure state. |

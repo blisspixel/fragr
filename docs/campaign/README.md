@@ -2,7 +2,7 @@
 
 Detailed level plans for twenty campaign levels in five episodes and a
 conditional epilogue, accepted 2026-09-25 as the contract (formerly ten
-missions and a conditional epilogue). Levels 1-4 have authored development
+missions and a conditional epilogue). Levels 1-6 have authored development
 prototypes; no complete level has reached the design's quality gate. The
 [campaign contract](../CAMPAIGN.md) distinguishes confirmed story
 from proposals and owns the twenty-level table; the [treatment](../CAMPAIGN-MISSIONS.md)

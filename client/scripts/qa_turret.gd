@@ -142,8 +142,25 @@ func observe(snapshot: Dictionary) -> void:
 				"no_registered_shot": true, "turret_hp_unchanged": true})
 		_cycle.clear()
 
+func cancellation_proven() -> bool:
+	return _valid and not _cancellations.is_empty()
+
+## Read-only control hint. A nearly finished or stale charge cannot trigger a
+## two-metre retreat; the existing observer alone owns cancellation proof.
+func clear_windup_ready(tick: int) -> bool:
+	if not _valid or tick != _last_tick or _cycle.is_empty() or _trace.is_empty() \
+		or not _cycle["cancel"].is_empty():
+		return false
+	var latest: Dictionary = _trace.back()
+	return int(latest["tick"]) == tick and latest["turret_id"] == _target_id \
+		and latest["phase"] == "windup" and int(latest["phase_started"]) == int(_cycle["started"]) \
+		and int(latest["phase_ends"]) == int(_cycle["deadline"]) \
+		and int(_cycle["deadline"]) - tick >= CANCEL_TICKS \
+		and latest["player_alive"] and int(latest["turret_hp"]) == int(_cycle["hp"]) \
+		and latest["in_range"] and not latest["cover_blocks_sight"] and latest["shots"].is_empty()
+
 func report() -> Dictionary:
-	return {"passed": _valid and not _cancellations.is_empty(),
+	return {"passed": cancellation_proven(),
 		"cancellations": _cancellations.duplicate(true), "failures": _failures.duplicate(),
 		"trace": _trace.duplicate(true)}
 

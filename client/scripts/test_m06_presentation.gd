@@ -15,6 +15,7 @@ func _check(ok: bool, message: String) -> void:
 
 func _run() -> void:
 	_check_surface_tiles()
+	_check_freight_route()
 	var directory: String = "res://assets/environment/moon/"
 	var manifest: Variant = JSON.parse_string(FileAccess.get_file_as_string(directory + "manifest.json"))
 	_check(manifest is Dictionary and manifest["source_sha256"] == FileAccess.get_sha256("res://../tools/bake_moon_details.gd"), "local pixel assets bind their exact source")
@@ -79,6 +80,96 @@ func _run() -> void:
 	if failures == 0:
 		print("test_m06_presentation: PASS original asset freshness, authoritative Turret yaw, lunar shell and preserved glass")
 	quit(0 if failures == 0 else 1)
+
+func _check_freight_route() -> void:
+	var authored: Variant = JSON.parse_string(FileAccess.get_file_as_string("res://../server/maps/m06_port_of_entry.json"))
+	var capture: Variant = JSON.parse_string(FileAccess.get_file_as_string("res://qa/m06_port_of_entry.json"))
+	_check(authored is Dictionary and capture is Dictionary, "freight route binds to actual map and capture manifest")
+	if not authored is Dictionary or not capture is Dictionary:
+		return
+	var stage: Dictionary = {}
+	var view: Dictionary = {}
+	for candidate: Dictionary in capture["states"]:
+		if candidate["name"] == "freight_ingress_clear":
+			stage = candidate
+		elif candidate["name"] == "earth_over_gantry":
+			view = candidate
+	var encounter: Dictionary = {}
+	for candidate: Dictionary in authored["encounters"]:
+		if candidate["id"] == "freight_ingress":
+			encounter = candidate
+	_check(not stage.is_empty() and not view.is_empty() and not encounter.is_empty(), "registered freight stage, viewpoint and encounter exist")
+	if stage.is_empty() or view.is_empty() or encounter.is_empty():
+		return
+	_check(stage["combat_travel"] == false and not stage.has("combat_travel_targets")
+		and stage["combat"]["required"].size() == 4 and stage["combat"]["evade_tells"] == true,
+		"quiet physical ingress retains all four required guards and ordinary combat evasion")
+	var required: Array = stage["combat"]["required"].duplicate()
+	var registered: Array = []
+	for enemy: Dictionary in encounter["enemies"]:
+		registered.append(enemy["id"])
+	required.sort()
+	registered.sort()
+	_check(required == registered and capture["states"].size() == 25,
+		"quiet route cannot remove a registered freight guard or a required capture state")
+	var solids: Array[Dictionary] = []
+	for solid: Dictionary in authored["solids"]:
+		solids.append({"min_x": solid["min"][0], "max_x": solid["max"][0], "min_z": solid["min"][2],
+			"max_z": solid["max"][2], "bottom": solid["min"][1], "top": solid["max"][1]})
+	var arena: Dictionary = {"half": authored["half_extent"], "solids": solids}
+	var region: Dictionary = encounter["regions"][0]
+	var last_view: Array = view["walk_to"].back()
+	var route: Array = stage["walk_to"]
+	_check(route.size() == 4, "bounded freight walk retains four ordinary legs")
+	for reverse: bool in [false, true]:
+		var guards: Array[Dictionary] = []
+		for index: int in range(encounter["enemies"].size()):
+			var enemy: Dictionary = encounter["enemies"][index]
+			var key: String = "00000000-0000-0000-0000-%012d" % (4 - index if reverse else index + 2)
+			guards.append(ActorContact.stationary(key, Vector3(enemy["feet"][0], enemy["feet"][1], enemy["feet"][2])))
+		var human_key: String = "00000000-0000-0000-0000-%012d" % (5 if reverse else 1)
+		var old: Dictionary = _freight_walk(MoveStep.make_state(-30, -28, 0), Vector3(-30, 0, -22), human_key, guards, arena, region)
+		_check(not old["reached"] and not old["entered"] and absf(float(old["pose"]["z"]) + 25.0) < 0.001,
+			"old quiet leg stops at actual dormant Clerk radius before activation in both body orders")
+		for offset: Vector2 in [Vector2.ZERO, Vector2(-0.2, 0), Vector2(0.2, 0), Vector2(0, -0.2), Vector2(0, 0.2)]:
+			var body: Dictionary = MoveStep.make_state(float(last_view[0]) + offset.x, float(last_view[2]) + offset.y, 0)
+			for index: int in range(route.size()):
+				var point: Array = route[index]
+				var leg: Dictionary = _freight_walk(body, Vector3(point[0], point[1], point[2]), human_key, guards, arena, region)
+				body = leg["pose"]
+				_check(leg["reached"] and leg["ticks"] < 300, "actual quiet freight leg reaches its strict endpoint within original walking bound")
+				_check(bool(leg["entered"]) == (index == route.size() - 1),
+					"first three ordinary legs remain outside activation, final leg physically enters")
+
+static func _freight_inside(body: Dictionary, region: Dictionary) -> bool:
+	return float(body["x"]) >= float(region["min"][0]) and float(body["x"]) <= float(region["max"][0]) \
+		and float(body["y"]) >= float(region["min"][1]) and float(body["y"]) <= float(region["max"][1]) \
+		and float(body["z"]) >= float(region["min"][2]) and float(body["z"]) <= float(region["max"][2])
+
+func _freight_walk(start: Dictionary, goal: Vector3, key: String, guards: Array[Dictionary],
+		arena: Dictionary, region: Dictionary) -> Dictionary:
+	var body: Dictionary = start.duplicate()
+	var entered: bool = _freight_inside(body, region)
+	var ticks: int = 0
+	var reached: bool = false
+	while ticks < 300:
+		var delta: Vector2 = Vector2(goal.x - float(body["x"]), goal.z - float(body["z"]))
+		if delta.length() < 0.3 and absf(float(body["y"]) - goal.y) < 0.03:
+			reached = true
+			break
+		var action: Dictionary = MoveStep.make_input(true, false, false, false, atan2(delta.y, delta.x))
+		var proposed: Dictionary = MoveStep.live_step(body, action, MoveStep.TOP_SPEED, MoveStep.DT_LIVE, arena)
+		var scene: Array[Dictionary] = [{"key": key, "from": body, "proposed": proposed,
+			"height": MoveStep.BODY_HEIGHT, "radius": MoveStep.RADIUS, "jump": false}]
+		scene.append_array(guards)
+		body = ActorContact.resolve(scene, MoveStep.DT_LIVE, arena)[0]
+		ticks += 1
+		entered = entered or _freight_inside(body, region)
+		_check(absf(float(body["y"])) < 0.001, "ordinary freight step retains real ground support")
+		for guard: Dictionary in guards:
+			_check(Vector2(float(body["x"]) - float(guard["from"]["x"]), float(body["z"]) - float(guard["from"]["z"])).length() >= 0.9999,
+				"ordinary freight step preserves actual living guard separation")
+	return {"pose": body, "ticks": ticks, "reached": reached, "entered": entered}
 
 func _check_surface_tiles() -> void:
 	var directory: String = "res://assets/environment/moon/surfaces/"

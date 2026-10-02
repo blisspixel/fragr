@@ -1,8 +1,11 @@
 # M06 Port of Entry prototype
 
-**Status:** implemented, 2026-10-01. The bounded increment passes current local
-Rust, client, container and rendered gates. Main integration and release remain
-pending; fresh-player and difficulty acceptance are separate open gates.
+**Status:** implemented, updated 2026-10-02. Final local engineering, serialized
+client and normal rendered gates pass. Earlier checkpoint `054031c` passes full
+CI and PR package/install checks; exact final-source CI, main integration and
+release remain pending. Current captures are indexed in the
+[evidence note](../evidence/2026-10-01-m06-textures.md);
+fresh-player and difficulty acceptance are separate open gates.
 The [full build order](../ROADMAP.md#full-build-order-2026-09-27) owns sequencing;
 this file defines its next bounded mission increment after M05's gate.
 **Spend:** $0 new cash charges. The separately priced
@@ -449,7 +452,7 @@ above that beam. The crew-quarters frame shows provisional residents, storage,
 meal bowls, a child's drawing and the labelled recycling tray behind real glass.
 Neither still establishes final character performances or ambient activity.
 
-### Fourth tour and outstanding clean gate
+### Fourth tour, retained shutdown failure
 
 The fourth ordinary-input tour under `.agents/qa/m06-port-fourth/` completed
 all 25 states, all 21 named guards, the optional prisoner marker and actual
@@ -464,15 +467,15 @@ The wrapper failed with two shutdown texture-leak errors, so completed gameplay
 is not a clean mission PASS. A focused reproducer established a pending sky
 resource lifetime race when replacing environments before the first rendered
 frame. The bounded one-frame retention fix preserves immediate world changes
-and passes isolated rendered and headless regressions. Final clean whole-mission
-capture remains pending after contact, art and audio source freeze and a
-matching release build. Fresh-player teaching, all difficulties, eleven-minute
+and passes isolated rendered and headless regressions. The subsequent clean
+whole-mission receipts appear below and preserve this failed wrapper result.
+Fresh-player teaching, all difficulties, eleven-minute
 pacing, 4:30 par, final casting and listening acceptance remain open. M06 is
-still in flight and no release 0.66 is claimed.
+implemented as a prototype; no release 0.66 is claimed.
 
-### Current frozen-source verification
+### Contact integration verification, before the texture refresh
 
-The integrated contact, navigation, art and audio source passes all final Rust
+The integrated contact, navigation, art and audio source at this earlier checkpoint passes its Rust
 gates: formatting, warning-denied workspace Clippy, 1240 workspace tests with
 zero failures and three existing ignored tests, full release build, licenses,
 bans and sources. Unfiltered workspace line coverage is 94.27 percent
@@ -532,7 +535,7 @@ metres. The corrected gallery route passes a regression using actual map
 support and the shared body-contact kernel; the old waypoint demonstrably stops
 at the Turret. No map bytes, attack timing or success tolerance changed.
 
-The current whole-client checker passes all 184 scripts and 86 harnesses with
+The whole-client checker at that checkpoint passes all 184 scripts and 86 harnesses with
 clean exit and logs: `client-whole-contact-final.log`. The published standard
 tour passes all 32 states and archives thirteen stills in
 `.agents/qa/m06-standard-contact-final/`. The selected campaign, fixed-view
@@ -563,3 +566,173 @@ ordinary identities. The three desktop packages and install smokes pass at
 this checkpoint, but the failed CI prevents integration. The
 [crowd route recovery](m01-crowd-route-recovery.md) retains the exact failure
 and owns the repair and fresh verification without relaxing mission gates.
+
+### Current texture checkpoint and final publication gates
+
+The navigation repair is included in checkpoint `054031c`, which passes
+[full CI run 36963991060](https://github.com/blisspixel/fragr/actions/runs/36963991060)
+and [PR Release run 36963991146](https://github.com/blisspixel/fragr/actions/runs/36963991146).
+The latter verifies the three desktop packages and install smokes; it is not a
+published release. Current local Rust verification reports 1243 passing tests,
+three existing ignored tests and 94.31 percent unfiltered line coverage, with
+formatting, warning-denied Clippy, release build, deterministic benchmark and
+dependency-policy checks passing. The earlier 1226/94.12 and 1240/94.27 receipts
+remain scoped to their preceding source checkpoints.
+
+The [world texture expansion](world-texture-expansion.md) selects twenty-one
+Earth, Moon and future offworld tiles. Eight lunar tiles are integrated on
+existing pressure surfaces, dry ground, service decks, issued steel, crater
+scenery and room props. Original possessions, geometry, map authority and
+fallbacks remain intact. A rendered contribution regression caught an opaque
+original pressure/dust fallback hiding the new albedo; the corrected path uses
+that fallback only when the tile layer is disabled.
+
+The first material tour `.agents/qa/m06-port-textures-final/` failed after
+18 states when ordinary customs travel ended below the raised crossing. Its
+partial captures and failed wrapper remain historical. A separate actual-map
+regression reproduced world-only dodge prediction accepting a contact-deflected
+fall. The bounded [QA contact-safe strafe correction](qa-contact-safe-strafe.md)
+reuses validated shared bodies and contact resolution in the existing forecast,
+preserving movement rules, route, drop threshold and waypoint tolerance. It
+does not establish the exact peer from the original failed run.
+
+The unchanged route then passes at `.agents/qa/m06-port-textures-second-final/`:
+all 25 states, all 21 named guards, optional prisoner marker and actual
+`party_departed`, wrapper exit 0 and zero engine/script errors. Records report
+zero deaths, 45 HP lost, 100 armor lost and one secret supply claim, with all
+three secret locations visited. Ordinary supplies restore health before exit.
+The resolved Rail kill at tick 1267 measures **52.662686 metres**, distinct from
+initial authored spacing or the earlier runs. Actual Turret cancellation
+retains blocked Windup 3045 before Recovery 3046, twelve-tick recovery, unchanged
+100 HP and no registered shot through original deadline 3069, verified at 3070.
+
+Loaded source and result receipt:
+`.agents/moon-surfaces-20261001/tour-retry-source-receipt.json`.
+Wrapper log: `.agents/moon-surfaces-20261001/tour-retry-wrapper.log`.
+Server SHA256: `81DD76F47EBB00EBC80B92A4562DADD3D821C534E00B5C73DDDEE1D5552AFE3A`.
+Map SHA256 remains `627e9bcecaa231fdc3a5df8297ac872e975b41c31b7ae872d4a4ce1c25e4a9a5`.
+The receipt retains exact loaded script/shader hashes including the bounded QA
+correction, so checkpoint CI and the later capture-source change stay distinct.
+
+Eight inspected M06 gallery files are refreshed from this successful run:
+Earth over the gantry, inhabited service room, Turret windup/firing, actual
+pressure-window ship/depot, transit departure and the fixed-view Earth strip
+and tiles. The twenty-frame view includes a passing provisional ally; it proves
+the observed fixed-camera view, not planet motion or continuous combat. Phase
+stills remain observed phases rather than a continuous sequence. Inspection is
+Godot 4.7.2 Compatibility on one Windows AMD Radeon 780M host at 1280x720, without
+cross-GPU or frame-performance claims. All owned processes closed cleanly.
+
+The current standard/README screenshot refresh and final serialized client gate
+must follow the latest capture-helper and affected-route corrections before
+main CI and a new release are claimed. M07 Declared Goods remains unbuilt.
+Human fresh-player teaching, all difficulties, accepted pacing/par, final body
+art, character casting and subjective listening remain open acceptance work.
+No further paid call follows from these verification corrections.
+
+### Final source corrections and workspace gate
+
+The later phase-aware capture helper retains the original Turret cancellation
+gate. Its ordinary peek waits for a current clear Windup, then retreats behind
+actual cover and proves the same charge was cancelled without damage or a shot
+through its original deadline. The complete existing-byte tour in
+`.agents/qa/m06-port-peek-final/` passes all 25 states and all 21 guards, with
+actual departure, zero deaths, 25 HP lost, 125 armor lost and two secret claims.
+Its actual Rail hit measures 52.804014 metres. This uses the explicitly retained
+`81DD76F` server bytes, before the following CTF-only correction; it is not a
+fresh-build claim. The current Earth strip is twenty fixed-view samples without
+a companion crossing; earlier crossing captions apply to the earlier gallery.
+
+Low Water's affected route now passes all 23 states and 28 guards. Actual
+patient avoidance, sheltered approach and all-eight court targeting repair the
+capture path, preserving map bytes and gameplay. Records retain zero deaths,
+85 HP lost, 150 armor lost, three secret claims and seven Notary crashes. Both
+patients are released, but one queues behind the other at departure, so their
+final endpoint arrival is not claimed. See the
+[capture plan](m04-capture-patient-detour.md).
+
+Windows CI at `d41c2b6` exposes a seeded CTF survey whose random participant
+identities still vary contact order. The retained diagnostic and
+[bounded correction](ctf-seeded-body-order.md) use canonical replay IDs plus
+three declared permutations, preserving every completion and combat-drop
+threshold. A normally aimed flag carrier can now defend against its own flag
+thief at the existing contact range. All four matrices and an identical
+canonical repeat pass; generic navigation, maps and match rules are unchanged.
+
+The frozen source passes 1244 workspace tests with three existing ignored,
+formatting, warning-denied Clippy and dependency license/ban/source checks.
+Unfiltered workspace line coverage is 94.31 percent (51385 lines, 2923 missed),
+above the unchanged 90 percent floor. Receipts are `final-workspace-tests.log`,
+`final-fmt.log`, `final-clippy.log`, `final-deny.log` and `final-coverage.log`
+under `.agents/m06-buildout-20261001/`. The matching release rebuild, normal
+published tour, serialized 188-script/88-harness gate and exact-source CI
+remain final publication gates. No further paid request follows this work.
+
+The full workspace release build also passes. The required standalone server
+benchmark rebuild passes both determinism and budget assertions, retaining trace
+`fb75dd61f87fc2c0c64df3cc58fb86749f501e07359093909eacd97baea20c4e`.
+The benchmark measures CPU session/encoding work, not renderer or network scale.
+
+| Quiet Windows x86_64 release CPU benchmark, Arena Duel, seed 42 | p50 ms | p99 ms | Maximum ms | Ticks over 50 ms |
+|---|---|---|---|---|
+| Final source, 16 bots plus benchmark participant, 1200 ticks | 0.139263 | 0.950271 | 1.4361 | 0 |
+
+Receipts: `final-release-build.log` and `final-bench.log` in the same directory.
+The standalone executable SHA256 after this rebuild is
+`D29AE5E4B0BC3456F370524F87873930A2A8B2C9C8B5DCA09726D7EBAC05BE8A`.
+
+Both matching release CTF wire smokes pass. The ordinary route reaches one
+capture; the contested four-agent sample records nine frags, two takes, one
+combat drop, one return and one capture, reaching the original capture limit
+within the unchanged 180-second round/240-second harness budgets. Neither has
+an opening spawn death. Reports are `.agents/playtest/final-ctf-route.json`
+and `.agents/playtest/final-ctf-contested.json`; logs are `final-ctf-route.log`
+and `final-ctf-contested.log` in the workspace-gate directory. These are local
+wire/controller evidence, separate from real-player and remote-host acceptance.
+
+### Final normal-wrapper captures, October 2
+
+The normal standard tour on the final standalone executable passes all 32
+states, publishes fourteen stills and exits with no engine/import errors.
+All fourteen images and motion strips were inspected. The README's boot,
+multiplayer and watched-match views are refreshed from it; the October 1 intake
+capture retains the same presentation. Receipt:
+`.agents/qa/final-standard-shipping/`, with unchanged source/hash checks and
+all owned processes closed.
+
+The first new-byte M06 tour fails after three states: combat travel beside the
+freight window ends at the straight wall and cannot reach its next waypoint.
+All four freight guards had already died. Final live companion coordinates were
+not retained, so the exact cause is unconfirmed. The separate
+[freight approach correction](m06-freight-capture-route.md) uses a quiet wider
+aisle, avoiding the registered dormant Clerk before actual encounter entry.
+The actual-map/contact regression retains both relative body orders and five
+arrival offsets, original walking/arrival limits and all four required guards.
+No campaign simulation or map bytes change.
+
+The second unmodified normal-wrapper run in
+`.agents/qa/final-m06-shipping-second/` passes all 25 states and all 21 guards,
+actual `party_departed`, clean exit and zero engine/import errors. Records
+report zero deaths, no HP lost, 75 armor lost and one secret supply claim,
+with all three secret locations visited. Actual personal kills are nineteen
+Rifle and two Rail. The resolved Rail kill at tick 1201 measures 51.991994
+metres from the actual trace origin/end, separate from authored initial spacing.
+
+The lesson retains its first actual Turret shot at tick 2959, then proves a
+clear Windup at 3005, blocked Windup at 3007 and twelve-tick Recovery at 3008
+ending 3020. The unchanged Turret remains at 100 HP and registers no shot
+through its original deadline 3031, verified at 3032. Later normal rear-flank
+fire defeats it. No phase, body position, damage or outcome is granted.
+The original failed new-byte tour and earlier existing-byte captures remain
+historical, separately scoped receipts. The normal wrapper performs the locked
+release build; server SHA256 stays `D29AE5E4B0BC3456F370524F87873930A2A8B2C9C8B5DCA09726D7EBAC05BE8A`.
+
+The single final serialized whole-client checker passes all 188 script parses
+and all 88 harnesses, with exit 0, each required marker and no error/failure
+lines. All script hashes and the server hash remain unchanged. Its actual
+local M04/M05/M06 campaign-launch checks pass, and every owned process closes.
+Log: `.agents/m06-buildout-20261001/client-whole-material-final.log`;
+receipt: `client-whole-material-final-receipt.json` in the same directory.
+The earlier concurrent-import parse failure stays a failed historical receipt.
+All ten checker fault-injection scenarios also pass in the unchanged verifier.
+Current-source main CI and release integration remain the final shipping gates.

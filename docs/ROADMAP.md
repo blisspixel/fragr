@@ -13,7 +13,7 @@ Every item below is in exactly one state: **planned**, **in progress**, **shippe
 
 The engineering ladder for scale runs through every phase: small squads first (four to twelve fighters, the current bar), then full servers (thirty-two to sixty-four), then large agent-heavy arenas (hundreds of fighters where most are agents). Each rung has its own measurements and is not claimed until measured.
 
-## Where we are (2026-10-01)
+## Where we are (2026-10-02)
 
 Desktop packages and their release receipts are listed in
 [GitHub releases](https://github.com/blisspixel/fragr/releases). The bounded campaign buildout shipped in
@@ -50,16 +50,27 @@ The narration harness follow-up in [PR #315](https://github.com/blisspixel/fragr
 also passes main CI. The locally implemented M06 increment is recorded in its
 [bounded plan](plans/m06-port-of-entry-prototype.md): inhabited lunar port,
 found Railgun, flankable Turrets, retained M05 outcomes and a once-only Episode
-II refill. Current-source Rust checks pass 1243 tests and 94.31 percent
-unfiltered line coverage. The clean ordinary-input tour completes all 25 states,
-all 21 guards and actual departure, with zero deaths, no HP loss and 45 armor
-lost. It visits three secret locations and claims one secret supply. Its
-resolved Rail hit measures 52.015735 metres; the authored 58.25-metre spacing
+II refill. Current-source Rust checks pass 1244 tests and 94.31 percent
+unfiltered line coverage. The current textured ordinary-input tour completes
+all 25 states, all 21 guards and actual departure, with zero deaths, no HP lost
+and 75 armor lost. It visits three secret locations and claims one secret
+supply. Its resolved Rail hit measures 51.991994 metres; the authored 58.25-metre spacing
 is separate. Living bodies now block walking, with matching bounded prediction,
 crowd navigation and inspected stop-and-sidestep evidence. Two original story
 images, personal room textures, the shotgun cue and randomized radio startup
-are integrated. The standard 32-state tour, earlier 184-script/86-harness client gate
-and current container gates pass; main integration and the new release remain pending.
+are integrated. Checkpoint `054031c` passes
+[full CI](https://github.com/blisspixel/fragr/actions/runs/36963991060) and
+[PR package/install checks](https://github.com/blisspixel/fragr/actions/runs/36963991146).
+The current standard tour passes all 32 states and publishes fourteen stills;
+the thirteen-state Recall Notice room tour also passes. All four README stills
+are recaptured and inspected. Low Water's refreshed 23-state route clears all
+28 guards and confirms actual roof departure with zero deaths. The optional
+patients are released; one still queues behind the other, so final endpoint
+arrival is not claimed. The earlier client and local container gates remain
+recorded; final rebuilt-source captures and the single serialized client checker
+pass all 188 scripts and 88 harnesses with clean logs and closed processes.
+Main integration and the new release
+remain pending.
 Fresh-player and difficulty acceptance remain open. Current round usage is 975 included
 audio credits with a $5 equivalent reserve, plus $4.085 in new image request
 reservations and the retained prior $0.107 uncertainty. Image billing remains
@@ -67,7 +78,14 @@ unconfirmed and new cash charges are $0. The requested
 [world texture expansion](plans/world-texture-expansion.md) adds twenty-one
 selected Earth, Moon and future offworld tiles from twenty-seven requests at
 $3.811 in bounded new reservations. Palette/seam checks and inspected lit/dim
-material previews pass; current affected gameplay tours and integration are in flight.
+material previews pass. The current M06 material tour passes cleanly at
+`.agents/qa/final-m06-shipping-second/`; the eight inspected M06 gallery
+files are refreshed from it. Earlier incomplete routes and the mechanically
+completed tour with shutdown errors remain failure receipts. Other affected
+captures and final integration remain in flight. A Windows CTF survey failure
+is retained rather than rerun away: the bounded
+[carrier-defense and identity-order correction](plans/ctf-seeded-body-order.md)
+passes four fixed orders and all original completion/combat-drop thresholds.
 Fresh-player acceptance and
 two-machine network evidence remain separate gates.
 
@@ -273,7 +291,7 @@ The phases below are the long shape. The sequence that follows is the build orde
 
 **Active goal:** build the agreed game through a proven 1.0. That is Recall Notice as the quality bar, then each later mission on systems the whole campaign reuses, then local prediction before the first long Rail lane, then the wipe and its conditional epilogue, then a LAN proof, then an exposed server. Cloud apply, matchmaking, and conquest-scale vehicles stay behind that server. The story spine in [`CAMPAIGN.md`](CAMPAIGN.md) is settled. Names, rescue tradeoffs, wipe operations, and the reprieve's exact terms stay proposals until the gate that needs them. Mission briefs live in [`CAMPAIGN-MISSIONS.md`](CAMPAIGN-MISSIONS.md) and [one plan per level](campaign/README.md). Geometry comes from the mission, not from an arena layout. The six current layouts stay playable foundations. Boltgun remains the visual bar for a played sequence, not a reason to generate the roster before the first two enemies read. Every rung serves the [easy to pick up, deep to master pillar](VISION.md#easy-to-pick-up-deep-to-master): fights and flow first, at most three doors a level.
 
-**Next, as of 2026-10-01.** Nick authorized parallel research and development,
+**Next, as of 2026-10-02.** Nick authorized parallel research and development,
 with at most $20 combined external charges this round, and explicitly removed
 human feedback as a prerequisite for development. The integrated campaign and
 CTF systems, including the bounded M03-M05 buildout in PR #314, are on main. Human and remote-network
@@ -286,7 +304,10 @@ Its integration and acceptance evidence is recorded in that bounded plan.
 
 1. Finish integration and release of the implemented
    [Port of Entry increment](plans/m06-port-of-entry-prototype.md), including
-   the requested [world texture polish](plans/world-texture-expansion.md), then stop
+   the requested [world texture polish](plans/world-texture-expansion.md) and
+   current README screenshots. Checkpoint `054031c` passes full CI and PR desktop
+   package/install checks; final current-source publication and serialized
+   verification precede clean main CI and release. Then stop
    this development round as requested. The next campaign build is level 7
    [Declared Goods](campaign/l07-declared-goods.md), currently unbuilt:
    the curfew town and crater cut lead toward the custody depot and introduce
@@ -319,10 +340,11 @@ available on its retained v0.58.0 package. Record its observations when a fresh
 player is available. It does not gate this authorized development round.
 
 No cloud apply, public-server claim or 1.0 controls claim follows from this
-integration. The authorized audio batch used included credits. The prepared
-image API work now has six accepted requests and inspected integrated keepers,
-reserving $0.274 with provider billing unconfirmed and the earlier $0.107
-uncertainty retained. Original local textures remain available. The round uses
+integration. The authorized audio batch used included credits. Six possession
+and story image requests reserve $0.274; twenty-seven additional texture requests
+reserve $3.811, for $4.085 in new estimated reservations. Provider billing remains
+unconfirmed and the earlier $0.107 uncertainty is retained. Original local
+textures remain available. The round uses
 975 included audio credits with a conservative $5 audio equivalent reserve
 and $0 new cash charges. The $0 local container host is documented for
 friends; the 2026-10-01 local build, hardened runtime, legal notices and healthy

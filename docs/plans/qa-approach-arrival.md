@@ -1,7 +1,7 @@
 # QA approach arrival ordering
 
-Status: implemented, focused headless gates passed, ordinary rendered routes
-and full client checks pending. Updated 2026-10-01.
+Status: implemented, focused headless gates and actual M04/M06 routes passed.
+Final full client checks, CI and release pending. Updated 2026-10-01.
 
 The combat capture controller checked a committed attack before it called
 `follow_route`. A participant already inside an approach waypoint can therefore
@@ -55,3 +55,32 @@ their PASS markers. `qa_combat.gd` also parses cleanly. Receipts are under
 inventory, collision, deadline, required-phase or tolerance change was made.
 All owned processes closed before returning the serialized lease. The next
 ordinary M04 route and final whole-client checker remain parent-owned gates.
+
+## Current ordinary-input evidence
+
+The M04 eighth run `.agents/qa/m04-textures-eighth-final/` passes all 23 states
+and all 28 named guards through deliberate roof departure, clean exit 0.
+Actual approach completion releases the existing combat gate; no waypoint
+radius, damage, target requirement or deadline changed. The western stair/drop
+and all-eight court capture strategy are separate authored-route corrections
+recorded in `m04-capture-patient-detour.md`, not evidence that ordering alone
+fixes every earlier failure. The final record has zero deaths, 85 HP lost,
+150 armor lost and three ordinary secret claims.
+
+The current `.agents/qa/m06-port-peek-final/` run passes all 25 states and
+21 guards through actual departure. Its phase-aware ordinary peek/retreat
+uses the same strict arrival predicate and retains both unfinished no-fire
+behavior and the recorded Turret cancellation gate. No source or map outcome
+was forced. Earlier incomplete route receipts remain failed history.
+
+## Current workspace verification
+
+Root's final serialized `cargo fmt --all -- --check` and workspace Clippy
+with warnings denied pass. `cargo test --workspace --locked` passes 1,244
+tests with three existing ignored tests and no failures. Exact receipts are
+`.agents/m06-buildout-20261001/final-fmt.log`, `final-clippy.log` and
+`final-workspace-tests.log`. The rendered tour receipts prove their recorded
+helper/assets and server hashes; they do not claim a newly rebuilt release
+binary. Coverage is running, and the final matching release rebuild, broad
+serialized Godot checker, CI and release are still pending. No shipped claim
+or fresh-player acceptance follows from these bounded authoring gates.

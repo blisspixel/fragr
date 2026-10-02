@@ -60,6 +60,7 @@ func _run() -> void:
 	_check_rejections()
 	_check_identity_and_wire()
 	_check_dedup_and_unrelated_facts()
+	_check_control_queries()
 	if failures == 0:
 		print("test_qa_turret: PASS actual cover cycle, deadline, named shots, interrupted and incomplete observations")
 	quit(0 if failures == 0 else 1)
@@ -109,6 +110,8 @@ func _check_rejections() -> void:
 				snapshot["players"].append(peer)
 			observer.observe(snapshot)
 		_check(not observer.report()["passed"], scenario + " cannot stand in for a covered cancellation")
+		_check(not observer.cancellation_proven() and not observer.clear_windup_ready(37),
+			scenario + " cannot unlock a covered hold or expose a stale charge")
 
 func _check_identity_and_wire() -> void:
 	for scenario: String in ["different_actor", "wrong_faction", "duplicate_actor", "bad_coordinate", "bad_tick", "bad_shots", "bad_health"]:
@@ -161,3 +164,54 @@ func _check_dedup_and_unrelated_facts() -> void:
 		observer.observe(_snapshot(10))
 	_check(not observer.report()["passed"] and observer.report()["trace"].size() == 1,
 		"repeated old tick cannot advance the no-shot deadline")
+
+func _check_control_queries() -> void:
+	var observer: QaTurret = _observer()
+	_check(not observer.clear_windup_ready(10) and not observer.cancellation_proven(),
+		"queries alone cannot manufacture a phase or proof")
+	observer.observe(_snapshot(10))
+	var before: Dictionary = observer.report()
+	_check(observer.clear_windup_ready(10) and not observer.clear_windup_ready(9)
+		and not observer.clear_windup_ready(11), "only the exact current accepted clear Windup can start retreat")
+	_check(observer.report() == before, "control queries do not mutate observation evidence")
+	for tick: int in range(11, 25):
+		var snapshot: Dictionary = _snapshot(tick)
+		snapshot["players"][0]["x"] = 0.0
+		snapshot["players"][0]["z"] = 12.0
+		snapshot["players"][1]["campaign"] = {"side": "union", "kind": "turret",
+			"phase": "windup", "phase_started": 10, "phase_ends": 36}
+		observer.observe(snapshot)
+	_check(observer.clear_windup_ready(24), "twelve ticks of original charge time retain bounded retreat margin")
+	var late: Dictionary = _snapshot(25)
+	late["players"][0]["x"] = 0.0
+	late["players"][0]["z"] = 12.0
+	late["players"][1]["campaign"] = {"side": "union", "kind": "turret",
+		"phase": "windup", "phase_started": 10, "phase_ends": 36}
+	observer.observe(late)
+	_check(not observer.clear_windup_ready(25), "eleven remaining ticks cannot start the retreat")
+	for scenario: String in ["blocked_start", "blocked_now", "gap", "shot", "damaged", "dead_player", "changed_cycle", "out_of_range"]:
+		observer = _observer()
+		var first: Dictionary = _snapshot(10)
+		if scenario == "blocked_start":
+			first["players"][0]["x"] = 0.0
+			first["players"][0]["z"] = 10.0
+		observer.observe(first)
+		var current: Dictionary = _snapshot(12 if scenario == "gap" else 11)
+		match scenario:
+			"blocked_now":
+				current["players"][0]["x"] = 0.0
+				current["players"][0]["z"] = 10.0
+			"shot": current["shot_results"] = [_shot(TURRET)]
+			"damaged": current["players"][1]["hp"] = 99
+			"dead_player": current["players"][0]["hp"] = 0
+			"changed_cycle": current["players"][1]["campaign"]["phase_started"] = 9
+			"out_of_range": current["players"][0]["x"] = 40.0
+		observer.observe(current)
+		_check(not observer.clear_windup_ready(int(current["tick"])) and not observer.cancellation_proven(),
+			scenario + " cannot become an accepted active clear control hint")
+	observer = _observer()
+	for tick: int in range(10, 38):
+		observer.observe(_snapshot(tick))
+		_check(observer.cancellation_proven() == (tick == 37),
+			"covered hold releases only after the strict original-deadline proof")
+	_check(not observer.clear_windup_ready(37), "proved Recovery is not a live clear Windup")

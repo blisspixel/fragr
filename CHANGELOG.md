@@ -4,7 +4,7 @@ Shipped tags, newest first. A line here is on `main`. Planned work stays in
 [docs/ROADMAP.md](docs/ROADMAP.md). Older tags are on the
 [releases page](https://github.com/blisspixel/fragr/releases).
 
-## v0.66.0 (2026-10-01)
+## v0.66.0 (2026-10-02)
 
 Port of Entry extends the campaign prototype onto the Moon with an inhabited
 cargo port, finite Railgun discovery, a long firing lane, flankable Turrets,
@@ -34,6 +34,9 @@ Grounded crowd recovery also prevents occupied gallery waypoints skipping across
 walls and unsticks the actual four-person M01 route without larger mission budgets.
 The nearby live companion fades as one complete figure, preventing detached head
 facets in upward views while retaining the distant body and its world shadow.
+In two-bot CTF sides, a flag carrier can defend against its own flag thief at
+the existing contact range. Four declared identity orders retain the original
+seed survey's completion and visible combat-drop gates.
 
 The shotgun has a new offline blast, and ordinary radio startup chooses a random
 populated station and random track, including visual test runs. Rapid environment

@@ -1,6 +1,6 @@
 # QA contact-safe strafe
 
-**Status:** implemented, 2026-10-01. Focused regression, the unchanged full M06 route and refreshed standard publication pass. Final serialized whole-client verification and integration remain root-owned. No gameplay rule changes.
+**Status:** implemented, 2026-10-01. Focused regressions and actual M04/M06 routes pass. Final serialized whole-client verification, CI and release remain pending. No gameplay rule changes.
 
 ## Observed failure and separate reproducer
 
@@ -31,3 +31,32 @@ Pinned focused harness: `.agents/moon-surfaces-20261001/contact-strafe-focused.l
 The material retry `.agents/qa/m06-port-textures-second-final/` passes all 25 states and all 21 named guards, with actual shared departure, wrapper exit 0 and zero engine/script errors. The raised customs crossing remains supported through the previously failing handoff. Actual records report zero deaths, 45 HP lost, 100 armor lost and one secret supply claim, with all three secret locations visited. Health restoration comes from ordinary supplies. This successful route supports the bounded capture correction; it does not identify the exact peer from the earlier failure or establish every possible moving-crowd configuration.
 
 The source receipt records QaCombat SHA256 `94C70D4026E52B40766C259F3311D17FFF032DF059022CCF8832B5EE48EA7076` with the matching unchanged server/map hashes. The first 18-state failure remains historical. All owned runtime processes closed before root's final whole-checker and standard-publication handback. No movement, collision, difficulty, waypoint tolerance or authority changes are introduced.
+
+## Current integrated route receipts
+
+The later `.agents/qa/m04-textures-eighth-final/` run passes all 23 states,
+all 28 named guards and actual roof departure, with exit 0 and no engine errors.
+The contact-aware dodge and corrected ordinary routes retain all requirements.
+Actual records report zero deaths, 85 HP lost, 150 armor lost and three secret
+claims. Patient release and walking are observed; the second patient is still
+waiting behind the first at departure, not proved at its final endpoint.
+
+The current `.agents/qa/m06-port-peek-final/` run also passes all 25 states,
+21 named guards and actual transit departure, with a clean engine log. Its
+explicit ordinary Turret peek adds recorded cancellation timing to the
+contact-safe movement evidence; it is not the identical approach manifest of
+the earlier unchanged-route material retry. Records report zero deaths,
+25 HP lost, 125 armor lost and two secret claims, with all three secret
+locations visited. Earlier failures and earlier run statistics remain history.
+
+## Current workspace verification
+
+Root's final serialized `cargo fmt --all -- --check` and workspace Clippy
+with warnings denied pass. `cargo test --workspace --locked` passes 1,244
+tests with three existing ignored tests and no failures. Exact receipts are
+`.agents/m06-buildout-20261001/final-fmt.log`, `final-clippy.log` and
+`final-workspace-tests.log`. The rendered tour receipts prove their recorded
+helper/assets and server hashes; they do not claim a newly rebuilt release
+binary. Coverage is running, and the final matching release rebuild, broad
+serialized Godot checker, CI and release are still pending. No shipped claim
+or fresh-player acceptance follows from these bounded authoring gates.

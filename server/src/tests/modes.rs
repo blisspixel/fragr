@@ -162,19 +162,69 @@ fn ctf_four_rule_bots_finish_a_scored_round_on_seed_42() {
 }
 
 fn ctf_bot_round(seed: u64) -> (usize, usize, usize, bool, usize) {
+    ctf_bot_round_with_order(seed, None)
+}
+
+fn ctf_bot_round_with_order(
+    seed: u64,
+    order: Option<[u128; 4]>,
+) -> (usize, usize, usize, bool, usize) {
+    let mut session = ctf_bot_session(seed, order);
+    ctf_bot_run(&mut session)
+}
+
+fn ctf_bot_session(seed: u64, order: Option<[u128; 4]>) -> GameSession {
     let mut session = GameSession::with_map(MapKind::Sector9, false);
+    // The gameplay seed alone does not fix UUID-keyed contact projection order.
+    session.state.use_replay_ids();
     session.state.seed(seed);
     let mut match_config = config(rules(GameMode::Ctf, &[]));
     match_config.frag_limit = None;
     match_config.capture_limit = Some(1);
     session.state.apply_config(match_config);
-    session.spawn_bots(4);
+    if let Some(ids) = order {
+        let allocated: [Uuid; 4] = std::array::from_fn(|_| session.state.new_entity_id());
+        // Assign identity before admission, retaining the production roster,
+        // body selection, team assignment and ordinary controller path.
+        let mut names = Vec::new();
+        for (slot, id) in ids.into_iter().enumerate() {
+            let (name, behavior) = GameSession::rule_bot_roster()[slot];
+            let id = allocated[usize::try_from(id).unwrap() - 1];
+            session.state.add_player_with_body(
+                id,
+                name.into(),
+                Role::Agent,
+                crate::protocol::BodyKind::for_roster_slot(slot),
+            );
+            let controller = crate::sim::BotController::new(id, behavior);
+            session.bots.push(controller.clone());
+            session.state.bots.push(controller);
+            names.push(name.to_owned());
+        }
+        session.set_min_bots(4);
+        session.state.set_roster_host_line_from_names(&names);
+    } else {
+        session.spawn_bots(4);
+    }
+    session
+}
+
+fn ctf_bot_run(session: &mut GameSession) -> (usize, usize, usize, bool, usize) {
     let mut captures = 0;
     let mut frags = 0;
     let mut drops = 0;
     let mut visible_drop_ticks = 0;
-    for _ in 0..20 * 120 {
+    let mut history = Vec::new();
+    let mut flag_events = Vec::new();
+    for index in 0..20 * 120 {
         for message in session.tick_messages(0.05) {
+            if matches!(&message, ServerMessage::Event(GameEvent::Flag { .. }))
+                && flag_events.len() < 64
+            {
+                flag_events.push(serde_json::json!({
+                    "tick": session.state.tick, "message": message,
+                }));
+            }
             match message {
                 ServerMessage::Event(GameEvent::Flag {
                     kind: crate::protocol::FlagEventKind::Captured,
@@ -198,6 +248,23 @@ fn ctf_bot_round(seed: u64) -> (usize, usize, usize, bool, usize) {
         if session.state.round_state == RoundState::Ended {
             break;
         }
+        if index % 100 == 0 || (index >= 20 * 120 - 100 && index % 10 == 0) {
+            history.push(serde_json::json!({
+                "tick": session.state.tick,
+                "flags": session.state.snapshot().flags,
+                "players": session.state.players.iter().map(|p| serde_json::json!({
+                    "id": p.id, "name": p.name, "feet": [p.x, p.y - PLAYER_FLOOR_Y, p.z],
+                    "hp": p.hp, "vy": p.vy, "team": p.team, "action": p.pending_action,
+                })).collect::<Vec<_>>(),
+            }));
+        }
+    }
+    if session.state.round_state != RoundState::Ended {
+        eprintln!("CTF timeout samples={}", serde_json::Value::Array(history));
+        eprintln!(
+            "CTF timeout flag events={}",
+            serde_json::Value::Array(flag_events)
+        );
     }
     (
         captures,
@@ -210,25 +277,60 @@ fn ctf_bot_round(seed: u64) -> (usize, usize, usize, bool, usize) {
 
 #[test]
 fn ctf_rule_bot_seed_survey() {
-    let mut completed = 0;
-    let mut visible_combat_drops = 0;
-    for seed in 40..56 {
-        let (captures, frags, drops, ended, visible_drop_ticks) = ctf_bot_round(seed);
-        if captures == 1 && ended {
-            completed += 1;
+    let mut canonical = Vec::new();
+    let mut summaries = Vec::new();
+    for (label, order) in [
+        ("canonical", None),
+        ("reverse", Some([4, 3, 2, 1])),
+        ("within-side", Some([3, 4, 1, 2])),
+        ("side-swap", Some([2, 1, 4, 3])),
+    ] {
+        let mut fixture = ctf_bot_session(42, order);
+        let next = fixture.state.new_entity_id();
+        assert_eq!(next, Uuid::from_u128(5), "order={label}: allocator parity");
+        assert!(
+            fixture.state.players.iter().all(|player| player.id != next),
+            "order={label}: next entity must not alias a participant"
+        );
+        let mut completed = 0;
+        let mut visible_combat_drops = 0;
+        let mut outcomes = Vec::new();
+        for seed in 40..56 {
+            let outcome = ctf_bot_round_with_order(seed, order);
+            eprintln!("CTF order={label}, seed={seed}, outcome={outcome:?}");
+            let (captures, frags, drops, ended, visible_drop_ticks) = outcome;
+            if captures == 1 && ended {
+                completed += 1;
+            }
+            if frags > 0 && drops > 0 && visible_drop_ticks >= 10 {
+                visible_combat_drops += 1;
+            }
+            outcomes.push(outcome);
         }
-        if frags > 0 && drops > 0 && visible_drop_ticks >= 10 {
-            visible_combat_drops += 1;
+        if order.is_none() {
+            canonical = outcomes.clone();
         }
+        eprintln!("CTF order={label}: completed={completed}/16, visible combat drops={visible_combat_drops}/16");
+        summaries.push((label, completed, visible_combat_drops, outcomes));
     }
-    assert!(
-        completed >= 14,
-        "CTF bots completed only {completed}/16 seeded rounds"
-    );
-    assert!(
-        visible_combat_drops >= 8,
-        "only {visible_combat_drops}/16 seeded rounds showed a combat drop"
-    );
+    for (offset, expected) in canonical.into_iter().enumerate() {
+        let seed = 40 + offset as u64;
+        let repeated = ctf_bot_round(seed);
+        assert_eq!(
+            repeated, expected,
+            "identical canonical CTF inputs must replay exactly, seed={seed}"
+        );
+    }
+    for (label, completed, visible_combat_drops, outcomes) in summaries {
+        assert!(
+            completed >= 14,
+            "CTF order={label} completed only {completed}/16 seeded rounds: {outcomes:?}"
+        );
+        assert!(
+            visible_combat_drops >= 8,
+            "CTF order={label}: only {visible_combat_drops}/16 rounds showed a combat drop: {outcomes:?}"
+        );
+    }
 }
 
 #[test]
@@ -422,6 +524,60 @@ fn ctf_support_two_bots_keep_the_shipped_goal() {
         flags[Team::Coalition.index()].stand[0]
     );
     assert!((goal_feet(&session, coalition[1])[0] - 11.0).abs() > 1.0);
+}
+
+#[test]
+fn ctf_carrier_defends_against_its_own_flag_thief_only_at_contact_range() {
+    let mut session = ctf_bot_session(42, None);
+    session.state.start_round();
+    let flags = session.state.snapshot().flags.unwrap();
+    let coalition = ids_on(&session, Team::Coalition);
+    let union = ids_on(&session, Team::Union);
+    let carrier = coalition[1];
+    let thief = union[1];
+    take_flag(&mut session, carrier, flags[Team::Union.index()].stand);
+    take_flag(&mut session, thief, flags[Team::Coalition.index()].stand);
+    for (id, x) in [(coalition[0], -20.0), (union[0], 20.0)] {
+        place(&mut session.state, id, x, 50.0);
+    }
+    place(&mut session.state, carrier, 0.0, 50.0);
+    place(&mut session.state, thief, 1.25, 50.0);
+    session
+        .state
+        .players
+        .iter_mut()
+        .find(|p| p.id == carrier)
+        .unwrap()
+        .yaw = 0.0;
+    let aimed = bot_intent(&session, carrier);
+    assert_eq!(aimed.goal.unwrap().feet, [1.25, 0.0, 50.0]);
+    assert!(aimed.goal.unwrap().combat);
+    assert!(
+        aimed.action.fire,
+        "an aimed carrier can defend against its own flag thief"
+    );
+    session.state.spawn_shields.clear();
+    let before = player(&session.state, thief).hp;
+    session.state.set_action(carrier, aimed.action);
+    session.state.tick(0.05);
+    assert!(
+        player(&session.state, thief).hp < before,
+        "ordinary combat resolves the contact shot"
+    );
+
+    place(&mut session.state, carrier, 0.0, 50.0);
+    for gap in [1.5, 4.0] {
+        place(&mut session.state, thief, gap, 50.0);
+        let distant = bot_intent(&session, carrier);
+        assert!(!distant.goal.unwrap().combat && !distant.action.fire);
+    }
+    place(&mut session.state, coalition[0], 1.25, 50.0);
+    place(&mut session.state, union[0], -1.25, 50.0);
+    let unrelated = bot_intent(&session, carrier);
+    assert!(!unrelated.goal.unwrap().combat && !unrelated.action.fire);
+    session.state.drop_flag_from(thief);
+    let dropped = bot_intent(&session, carrier);
+    assert!(!dropped.goal.unwrap().combat && !dropped.action.fire);
 }
 
 #[test]

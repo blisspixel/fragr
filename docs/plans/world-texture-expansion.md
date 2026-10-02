@@ -1,6 +1,7 @@
 # World texture expansion
 
-**Status:** in flight, 2026-10-01. Supports the current M06 integration and
+**Status:** implemented, updated 2026-10-02. Final local rendered and whole-client
+gates pass; main integration and release remain pending. Supports the M06 integration and
 release in the [full build order](../ROADMAP.md#full-build-order-2026-09-27).
 
 ## Goal and scope
@@ -101,3 +102,39 @@ Receipts: `.agents/world-textures-render-corrected.log`,
 Godot 4.7.2-stable, Windows/OpenGL Compatibility/AMD Radeon 780M. These are local
 material and rendering checks, not fresh-player acceptance or GPU benchmarks.
 Full client checks, actual affected tours and release integration remain pending.
+
+### October 2 capture closeout
+
+The final normal standard tour passes all 32 states and publishes fourteen
+inspected stills, including the refreshed README arena views. The final normal
+M06 route passes all 25 states and all 21 guards on the rebuilt standalone
+server, with actual departure, zero deaths, no HP loss, 75 armor lost and one
+actual secret claim. All three secret locations are visited. The actual Rail
+trace measures 51.991994 metres. The original strict clear-to-covered Turret
+gate passes without damage or a registered shot through its charge deadline.
+Eight inspected lunar gallery files are refreshed from this run.
+
+The October 1 Recall Notice room tour passes all thirteen states. Low Water's
+refreshed route passes all 23 states and 28 guards, with actual roof departure,
+zero deaths, 85 HP lost, 150 armor lost and three secret claims. One released
+patient still queues behind another; final endpoint arrival is not claimed.
+M03/M05 gallery captures retain their earlier documented scope and do not claim
+the new material appearance. Actual lit/dim wall-and-floor regressions cover the
+shared material path; other hardware and fresh-player acceptance remain open.
+
+The first final new-byte lunar capture fails beside the freight wall after
+three states. Its exact live body cause is unconfirmed. The bounded
+[quiet freight approach](m06-freight-capture-route.md) follows the available
+aisle and avoids the dormant Clerk before actual encounter entry. It changes
+only the capture route and its meaningful map/contact regression. The failed
+first run remains separate from the second clean normal-wrapper result.
+
+Current rendered receipts and their source/executable scope are indexed in the
+[evidence note](../evidence/2026-10-01-m06-textures.md). Full Rust gates pass
+1244 tests (three existing ignored), 94.31 percent unfiltered line coverage,
+formatting, warning-denied Clippy, release builds, dependency policy and the
+deterministic CPU budget gate. The final single whole-client checker passes all
+188 scripts and 88 harnesses with clean exit, required markers and unchanged
+source/server hashes. Log: `.agents/m06-buildout-20261001/client-whole-material-final.log`.
+Main integration and release remain pending. Estimated credit reservations remain $3.811;
+confirmed billing is unknown and new cash charges remain $0.

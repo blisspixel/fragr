@@ -422,7 +422,10 @@ func approach_step(manager: Node, me: Dictionary, snapshot: Dictionary, spec: Di
 				focus = Vector3(float(actor.x), float(actor.y) - CAMERA.FP_SERVER_REFERENCE_Y + AimAssist.CRAWLER_HEIGHT * 0.5, float(actor.z))
 				break
 	if waypoint_arrived(me, route[index]):
-		return {"index": follow_route(me, camera, route, index, focus), "anchor": Vector2(me.x, me.z)}
+		var reached_index: int = follow_route(me, camera, route, index, focus)
+		if not turret_peek_allows(spec, index, int(snapshot.get("tick", -1))):
+			return {"index": index, "anchor": anchor}
+		return {"index": reached_index, "anchor": Vector2(me.x, me.z)}
 	var committed: Dictionary = visible_target(snapshot, _player_id, solids, true)
 	if not committed.is_empty() and approach_evade_enabled(spec):
 		engage(manager, me, committed, solids, anchor, true, false)
@@ -456,12 +459,47 @@ static func valid_turret_cancel(spec: Dictionary) -> bool:
 		and required is Array and required.size() == 1 and required[0] is String \
 		and not required[0].is_empty() and required[0].length() <= 64
 
+static func valid_turret_peek(spec: Dictionary) -> bool:
+	if not spec.has("turret_peek"):
+		return true
+	var selected: Variant = spec["turret_peek"]
+	var route: Variant = spec.get("approach_route")
+	if not selected is Dictionary or selected.size() != 2 \
+		or not EquipmentState.integer(selected.get("peek_index"), 31) \
+		or not EquipmentState.integer(selected.get("cover_index"), 31) \
+		or not spec.get("expect_turret_cover_cancel") is bool \
+		or not spec["expect_turret_cover_cancel"] or not valid_turret_cancel(spec) \
+		or not valid_approach_focus(spec) or not spec.has("approach_focus") \
+		or not valid_waypoints(route):
+		return false
+	return int(selected["cover_index"]) == int(selected["peek_index"]) + 1 \
+		and int(selected["cover_index"]) < route.size()
+
+## Holds only actually reached authored peek/cover points. Input, the original
+## deadline and all proof gates stay in their existing owners.
+func turret_peek_allows(spec: Dictionary, index: int, tick: int) -> bool:
+	if not spec.has("turret_peek"):
+		return true
+	if not valid_turret_peek(spec):
+		return false
+	var selected: Dictionary = spec["turret_peek"]
+	if index not in [int(selected["peek_index"]), int(selected["cover_index"])]:
+		return true
+	if not _turret_observer is QaTurret:
+		return false
+	var observer: QaTurret = _turret_observer
+	return observer.cancellation_proven() or (index == int(selected["peek_index"]) \
+		and observer.clear_windup_ready(tick))
+
 func run(tree: SceneTree, manager: Node, spec: Dictionary, output: String) -> Dictionary:
 	if not valid_turret_cancel(spec):
 		push_error("qa_combat: Turret cancellation requires a typed flag and one named required Turret")
 		return {"passed": false}
 	if not valid_approach_focus(spec):
 		push_error("qa_combat: approach focus requires a named required actor and bounded route")
+		return {"passed": false}
+	if not valid_turret_peek(spec):
+		push_error("qa_combat: Turret peek requires adjacent bounded approach indices and a named cancellation observer")
 		return {"passed": false}
 	if not valid_evade_tells(spec):
 		push_error("qa_combat: evade_tells must be a boolean")

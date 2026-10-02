@@ -1,6 +1,6 @@
 # M01 crowd route recovery
 
-**Status:** in flight, 2026-10-01. Bounded repair within the
+**Status:** implemented, 2026-10-01. Bounded repair within the
 [M06 integration](m06-port-of-entry-prototype.md); sequencing remains in the
 [full build order](../ROADMAP.md#full-build-order-2026-09-27).
 **Spend:** $0. No assets, dependencies, wire changes or external requests.

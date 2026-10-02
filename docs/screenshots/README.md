@@ -24,21 +24,32 @@ not a campaign or remote-machine playtest. Receipt:
 `.agents/m06-buildout-20261001/contact-pov-release-final/`;
 [contact plan](../plans/actor-body-contact.md).
 
-The standard tour was regenerated and inspected on 2026-10-01 after the lunar
+The standard tour was regenerated and inspected on 2026-10-02 after the lunar
 port, living-body contact, shotgun cue and random radio startup integrations.
-All 32 states passed with clean exit and logs; thirteen
+All 32 states passed with clean exit and logs; fourteen
 selected stills were published locally by the wrapper. The capture receipt is
-`.agents/qa/m06-standard-contact-final/manifest.json`. Menus, settings, weapon views,
+`.agents/qa/final-standard-shipping/manifest.json`. This refresh includes
+the selected scrapyard materials and all three standard-tour README surfaces.
+The multiplayer page names the live Arena Duel host at the isolated capture
+address `127.0.0.1:6787`. Menus, settings, weapon views,
 participant bodies, world lighting and watched combat were inspected after capture.
 
 The `m06_*.png` gallery is the Port of Entry development prototype on the same
 pinned Windows/OpenGL Compatibility/AMD Radeon 780M setup. Its final clean
 25-state ordinary-input route clears all 21 guards and confirms actual transit
-departure, with zero deaths, no HP loss and 45 armor lost. All three secret
+departure, with zero deaths, zero HP lost and 75 armor lost. All three secret
 locations were visited; one secret supply was claimed. The resolved Rail hit
-measures 52.015735 metres. Earlier failed captures are retained as diagnostics
+measures 51.991994 metres. Earlier captures are retained as history
 in the plan; the gallery uses the clean rerun in
-`.agents/qa/m06-port-contact-second-final/`.
+`.agents/qa/final-m06-shipping-second/`, captured on 2026-10-02. This rerun shows the selected
+lunar wall and floor tiles, quieter regolith and repaired civilian materials.
+The strict Turret receipt retains clear Windup 3005, blocked Windup 3007,
+Recovery starting 3008 and ending 3020, original charge deadline 3031 and no shot verified
+through 3032. The unmodified normal wrapper builds the matching release server;
+its captured SHA256 is
+`D29AE5E4B0BC3456F370524F87873930A2A8B2C9C8B5DCA09726D7EBAC05BE8A`.
+Source, map and binary hashes stayed unchanged during the capture. The earlier
+peek capture and first final freight-route failure remain retained history.
 [Mission evidence](../plans/m06-port-of-entry-prototype.md) separates authored
 spacing, actual shots and fresh-player acceptance.
 
@@ -49,7 +60,7 @@ spacing, actual shots and fresh-player acceptance.
 | `m06_turret_windup.png`, `m06_turret_firing.png` | Observed live phases, including the actual resolved white shot trace; separate stills, not a continuous motion capture |
 | `m06_impound_window.png` | Static coarse Common Carrier and custody depot through pressure glass after ordinary gallery movement |
 | `m06_transit_departure.png` | Server-confirmed transit departure |
-| `m06_earth_fixed_view_strip.png`, `m06_earth_fixed_view_tiles.png` | Twenty actual frames of a fixed Earth/gantry view, with the provisional companion crossing some frames |
+| `m06_earth_fixed_view_strip.png`, `m06_earth_fixed_view_tiles.png` | Twenty actual frames of a fixed Earth/gantry view; the current sequence has no companion crossing |
 
 These images establish observed presentation on this host. They do not establish
 final character casting, fresh-player teaching, difficulty acceptance or remote
@@ -58,6 +69,8 @@ geometry; the fixed-view sequence is not evidence of a moving ship.
 
 The `m05_*.png` gallery is the No Forwarding Address development prototype,
 captured and inspected on the same pinned Windows/OpenGL/AMD Radeon 780M setup.
+These retained captures precede the 2026-10-01 shared texture layer; they prove
+the recorded movement and outcomes, not the current material appearance.
 Its final 25-state ordinary-input route cleared all 21 guards without a death,
 visited three secret locations, released three workers and confirmed all three
 physically aboard before departure. Three secret supplies were claimed: tank
@@ -104,7 +117,9 @@ The receipt is `.agents/qa/jammer-buildout-polished/manifest.json`;
 limitations. Earlier distant motion and failed captures remain diagnostic-only.
 
 The `m03_*.png` gallery shows the input-playable Scheduled Service development
-prototype on the same pinned Windows/OpenGL/AMD Radeon 780M setup. Its passed
+prototype on the same pinned Windows/OpenGL/AMD Radeon 780M setup. These captures
+precede the 2026-10-01 shared texture layer and retain the earlier material
+appearance. The recorded
 twenty-one-state route confirms all twenty-two enemies, three optional car
 releases, mast shutdown, both secret pickups and deliberate locomotive use.
 [The authoring plan](../plans/m03-yard-authoring.md) records the exact manifest,
@@ -112,14 +127,16 @@ failures, corrections and renderer receipt. These images are separate from the
 four README stills and do not establish fresh-player or difficulty acceptance.
 Current receipt: `.agents/qa/m03-yard-eleventh/manifest.json`.
 
-The `m04_*.png` gallery shows the Notice to Vacate development prototype on the
-same pinned Windows/OpenGL/AMD Radeon 780M setup. Its final 23-state route cleared
+The `m04_*.png` gallery was refreshed and inspected on 2026-10-01 with the new
+town textures and coherent close-companion visibility on the same pinned
+Windows/OpenGL/AMD Radeon 780M setup. Its final 23-state route cleared
 all 28 guards without a death, opened the clinic, released both patients and used
-the roof departure. All three secret locations were reached; two pickups were
-claimed and the meal medkit remained available at full health. The player lost
-125 HP and 100 armor over the attempt and finished at 100 HP and 50 armor.
-The receipt is `.agents/qa/m04-market-ninth/manifest.json`;
-[the authoring plan](../plans/m04-market-authoring.md) records failures and limits.
+the roof departure. All three secret locations and their finite pickups were
+claimed. The player lost 85 HP and 150 armor over the attempt and finished at
+100 HP and zero armor. Seven Notary crashes were observed.
+The receipt is `.agents/qa/m04-textures-eighth-final/manifest.json`;
+[the capture repair](../plans/m04-capture-patient-detour.md) records the retained
+failures, real route corrections and full eight-guard court gate.
 These frames establish an accurate-aim authoring clear, not fresh-player pacing,
 difficulty acceptance or final art. They are separate from the four README stills.
 
@@ -128,7 +145,7 @@ difficulty acceptance or final art. They are separate from the four README still
 | `m04_arrival.png` | Actual Low Water first-person arrival and ordered first objective |
 | `m04_notary_windup.png` | Raised Notary's committed tell above the market |
 | `m04_notary_firing.png` | Actual locked attack with the Rifle aimed at the raised body |
-| `m04_notary_motion_strip.png` | Timed actual drone observation frames |
+| `m04_notary_motion_strip.png` | Fifteen actual sampled combat frames in a four-by-four board, including live Windup, Firing, Dead and the fall |
 | `m04_clinic_patients_strip.png` | Grounded released patients on their bounded route |
 | `m04_clinic_care.png` | Open clinic and patient outcome after physical Use |
 | `m04_market_water.png` | Actual shallow runoff, grate and repair detail in the market |
@@ -139,6 +156,9 @@ difficulty acceptance or final art. They are separate from the four README still
 The final aftermath was inspected after correcting camera-depth clipping: the
 large near-camera sky fragments are gone. Water motion/depth and repair-texture
 lighting have separate rendered regressions; a still alone cannot prove them.
+The patient strip proves grounded release and walking. At departure, one patient
+waits one metre behind the other; both final endpoints and evacuation are not
+claimed. That optional route queue remains further polish and never gates exit.
 
 | File | Inspected state |
 |---|---|
@@ -159,9 +179,12 @@ control and outcome, not moving vehicle physics or a rendered cinematic. Primiti
 locomotive geometry and repeated surfaces remain prototype art.
 
 `m01_intake_16x9.png`, `m01_balcony_16x9.png`, `m01_stacks_16x9.png`, and
-`m01_dispatch_16x9.png` were captured and inspected 2026-09-24 on Windows,
+`m01_dispatch_16x9.png` were recaptured and inspected 2026-10-01 on Windows,
 OpenGL compatibility, AMD Radeon 780M, from the completed 13-state room tour
-after the first look-pass lighting increment. Rooms are clearly lit by a warm
+after the Earth material integration. The actual intake still comes from
+`intake_sweepers`, with its counters, lockers and ordinary Pistol visible.
+Receipt: `.agents/qa/m01-textures-final/manifest.json`, clean exit and logs.
+Earlier first-look frames remain in git history. Rooms are clearly lit by a warm
 base light with brighter pools under the strip-light fixtures: intake shows the
 counters and lockers with a pistol in hand; the balcony looks toward the custody
 lift; the file stacks are dark steel racks with red warning strips on green
@@ -220,7 +243,7 @@ and fresh-player acceptance outstanding. Source manifest: `client/qa/m01-records
 | `m01_stacks_16x9.png` | File stacks, dark steel racks with red warning strips, green tile floor |
 | `m01_dispatch_16x9.png` | Dispatch after the fight, enamel walls with the red pinline |
 | `m01_secret_shiv_16x9.png` | The secret Shiv found in the confiscation alcove and held in hand |
-| `tour_multiplayer_16x9.png` | App multiplayer page after GET /status. Host example is 127.0.0.1:6767. |
+| `tour_multiplayer_16x9.png` | App multiplayer page after GET /status. Isolated capture host is 127.0.0.1:6787; normal game port remains 6767. |
 | `tour_menu_16x9.png` | Retro boot menu |
 | `tour_profile_16x9.png` | Callsign, reticle, body choice with its preview, and weapon bob |
 | `tour_records_16x9.png` | Persisted arena observation, exact attack denominator and incomplete-session status |
