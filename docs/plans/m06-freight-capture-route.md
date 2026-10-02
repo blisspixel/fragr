@@ -1,7 +1,16 @@
 # M06 freight capture route
 
-Status: implemented, focused headless and final rendered route gates passed.
-Updated 2026-10-02.
+**Status:** shipped in [PR #317](https://github.com/blisspixel/fragr/pull/317), 2026-10-02. Actual-map/body regressions and the full ordinary-input lunar route pass.
+Parent integration: [M06 Port of Entry](m06-port-of-entry-prototype.md).
+
+Merged in [PR #317](https://github.com/blisspixel/fragr/pull/317), with passing
+[final-source CI](https://github.com/blisspixel/fragr/actions/runs/36981473008) and
+[package/install checks](https://github.com/blisspixel/fragr/actions/runs/36981473010).
+Local gates pass 1244 workspace tests, 94.31 percent unfiltered line coverage and
+188 scripts/88 harnesses. The [inspected capture evidence](../evidence/2026-10-01-m06-textures.md)
+records the current routes. Source-main CI and desktop publication receipts
+are tracked in [release closeout](m06-release-closeout.md). Fresh-player, difficulty,
+subjective listening and final character acceptance remain open.
 
 The first final normal-wrapper M06 capture in
 `.agents/qa/final-m06-shipping/` fails after three captured states. Its freight

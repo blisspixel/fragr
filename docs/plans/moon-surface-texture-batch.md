@@ -1,6 +1,17 @@
 # Moon surface texture batch
 
-**Status:** implemented, 2026-10-01. Eight selected lunar tiles are integrated and the final actual M06 material tour passes cleanly. The shared material integration remains root-owned; final serialized whole-client verification, current publication, CI and release are separate gates. Root recorded the initial eight-request $1.000 estimate before submission with an explicit $1.05 ceiling, then separately authorized two floor alternatives.
+**Status:** shipped in [PR #317](https://github.com/blisspixel/fragr/pull/317), 2026-10-02. Eight selected lunar tiles are integrated and the actual lunar material route passes.
+Parent integration: [M06 Port of Entry](m06-port-of-entry-prototype.md).
+Root recorded the initial eight-request $1.000 estimate before submission with an explicit $1.05 ceiling, then separately authorized two floor alternatives.
+
+Merged in [PR #317](https://github.com/blisspixel/fragr/pull/317), with passing
+[final-source CI](https://github.com/blisspixel/fragr/actions/runs/36981473008) and
+[package/install checks](https://github.com/blisspixel/fragr/actions/runs/36981473010).
+Local gates pass 1244 workspace tests, 94.31 percent unfiltered line coverage and
+188 scripts/88 harnesses. The [inspected capture evidence](../evidence/2026-10-01-m06-textures.md)
+records the current routes. Source-main CI and desktop publication receipts
+are tracked in [release closeout](m06-release-closeout.md). Fresh-player, difficulty,
+subjective listening and final character acceptance remain open.
 
 ## Purpose and ownership
 

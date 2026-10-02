@@ -63,12 +63,13 @@ separately from those physically aboard and leaves the run pending lunar
 **Port of Entry**. Fresh-player and difficulty acceptance remain open.
 See the [M05 plan](docs/plans/m05-no-forwarding-address-prototype.md).
 
-**Port of Entry** is the level 6 lunar port development prototype in the current
-source checkout, pending its desktop release:
+**Port of Entry** is the level 6 lunar port development prototype in
+[v0.66.0](https://github.com/blisspixel/fragr/releases/tag/v0.66.0):
 inhabited pressure rooms, cargo cover, a found Railgun, flankable Turrets and an
 optional prisoner-route marker. Continue Run carries the completed M05 exit
-and refills Episode II to three continues exactly once; Practice preserves your
-personal run. Its implementation and outstanding acceptance are tracked in the
+and refills Episode II to three continues exactly once. Choose **Single Player >
+Practice and Development** to practice while preserving your personal run.
+Its implementation and outstanding acceptance are tracked in the
 [M06 plan](docs/plans/m06-port-of-entry-prototype.md).
 
 The [style and look guidelines](docs/ART_STORY_BIBLE.md) define the game's

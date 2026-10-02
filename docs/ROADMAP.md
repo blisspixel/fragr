@@ -47,7 +47,8 @@ merged in PR #314. The linked plan records current rendered evidence and CI;
 the three desktop packages and install checks passed in
 [v0.65.0](https://github.com/blisspixel/fragr/releases/tag/v0.65.0).
 The narration harness follow-up in [PR #315](https://github.com/blisspixel/fragr/pull/315)
-also passes main CI. The locally implemented M06 increment is recorded in its
+also passes main CI. The M06 increment shipped in
+[PR #317](https://github.com/blisspixel/fragr/pull/317) and is recorded in its
 [bounded plan](plans/m06-port-of-entry-prototype.md): inhabited lunar port,
 found Railgun, flankable Turrets, retained M05 outcomes and a once-only Episode
 II refill. Current-source Rust checks pass 1244 tests and 94.31 percent
@@ -69,8 +70,10 @@ patients are released; one still queues behind the other, so final endpoint
 arrival is not claimed. The earlier client and local container gates remain
 recorded; final rebuilt-source captures and the single serialized client checker
 pass all 188 scripts and 88 harnesses with clean logs and closed processes.
-Main integration and the new release
-remain pending.
+The final source passes [full PR CI](https://github.com/blisspixel/fragr/actions/runs/36981473008)
+and [three desktop package/install checks](https://github.com/blisspixel/fragr/actions/runs/36981473010).
+Source-main CI and tagged desktop publication are tracked in the
+[release closeout](plans/m06-release-closeout.md).
 Fresh-player and difficulty acceptance remain open. Current round usage is 975 included
 audio credits with a $5 equivalent reserve, plus $4.085 in new image request
 reservations and the retained prior $0.107 uncertainty. Image billing remains
@@ -81,8 +84,8 @@ $3.811 in bounded new reservations. Palette/seam checks and inspected lit/dim
 material previews pass. The current M06 material tour passes cleanly at
 `.agents/qa/final-m06-shipping-second/`; the eight inspected M06 gallery
 files are refreshed from it. Earlier incomplete routes and the mechanically
-completed tour with shutdown errors remain failure receipts. Other affected
-captures and final integration remain in flight. A Windows CTF survey failure
+completed tour with shutdown errors remain failure receipts. The affected
+captures and implementation are integrated in PR #317. A Windows CTF survey failure
 is retained rather than rerun away: the bounded
 [carrier-defense and identity-order correction](plans/ctf-seeded-body-order.md)
 passes four fixed orders and all original completion/combat-drop thresholds.
@@ -294,21 +297,16 @@ The phases below are the long shape. The sequence that follows is the build orde
 **Next, as of 2026-10-02.** Nick authorized parallel research and development,
 with at most $20 combined external charges this round, and explicitly removed
 human feedback as a prerequisite for development. The integrated campaign and
-CTF systems, including the bounded M03-M05 buildout in PR #314, are on main. Human and remote-network
-acceptance remain open evidence, not reasons to stop local building. Work in
-this order, with disjoint supporting lanes running alongside campaign work:
+CTF systems, including M03-M05 in PR #314 and M06 in PR #317, are on main.
+The [v0.66.0 release closeout](plans/m06-release-closeout.md) ends this
+development round as requested. Human and remote-network acceptance remain open evidence.
+The following sequence is future work, with supporting lanes alongside campaign work:
 
 The [campaign and feel buildout](plans/campaign-and-feel-buildout.md) supplies
 the local Jammer foundation, presentation and free-agent increments at $0.
 Its integration and acceptance evidence is recorded in that bounded plan.
 
-1. Finish integration and release of the implemented
-   [Port of Entry increment](plans/m06-port-of-entry-prototype.md), including
-   the requested [world texture polish](plans/world-texture-expansion.md) and
-   current README screenshots. Checkpoint `054031c` passes full CI and PR desktop
-   package/install checks; final current-source publication and serialized
-   verification precede clean main CI and release. Then stop
-   this development round as requested. The next campaign build is level 7
+1. The next campaign build is level 7
    [Declared Goods](campaign/l07-declared-goods.md), currently unbuilt:
    the curfew town and crater cut lead toward the custody depot and introduce
    the Sniper Rifle and Ranged Sweeper. This follows M06's actual transit exit

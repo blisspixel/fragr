@@ -1,7 +1,17 @@
 # M04 capture route around released patients
 
-**Status:** implemented, 2026-10-01, source merge pending in [PR #317](https://github.com/blisspixel/fragr/pull/317).
+**Status:** shipped in [PR #317](https://github.com/blisspixel/fragr/pull/317), 2026-10-02. The ordinary-input clinic/court capture passes; optional patient endpoint arrival remains unclaimed.
+Parent integration: [M06 Port of Entry](m06-port-of-entry-prototype.md).
 **Spend:** $0. No provider calls.
+
+Merged in [PR #317](https://github.com/blisspixel/fragr/pull/317), with passing
+[final-source CI](https://github.com/blisspixel/fragr/actions/runs/36981473008) and
+[package/install checks](https://github.com/blisspixel/fragr/actions/runs/36981473010).
+Local gates pass 1244 workspace tests, 94.31 percent unfiltered line coverage and
+188 scripts/88 harnesses. The [inspected capture evidence](../evidence/2026-10-01-m06-textures.md)
+records the current routes. Source-main CI and desktop publication receipts
+are tracked in [release closeout](m06-release-closeout.md). Fresh-player, difficulty,
+subjective listening and final character acceptance remain open.
 
 ## Goal and ownership
 
@@ -299,7 +309,11 @@ the first person. Resolving that optional route queue is further polish; no
 NPC arrival timer gates the roof exit. No map, body exemption, server outcome,
 health grant, encounter timing or movement tolerance changed in this repair.
 
-## Current workspace verification
+## Historical workspace checkpoint (2026-10-02, before final gates)
+
+The following receipt records that checkpoint. Current merged integration and
+completed local gates are recorded above; publication receipts are tracked in
+[release closeout](m06-release-closeout.md).
 
 Root's final serialized `cargo fmt --all -- --check` and workspace Clippy
 with warnings denied pass. `cargo test --workspace --locked` passes 1,244
