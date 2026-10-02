@@ -1283,6 +1283,14 @@ func _probe_active(probe: Node, state: Dictionary) -> bool:
 		var hud: Node = _find_hud()
 		if str(hud.get("current_fp_weapon")) == "Shiv":
 			return probe.visible and float(hud.get("fp_stab_timer")) > 0.0
+	if probe is TextureRect and probe.name == "FpMuzzle":
+		# A gun with a drawn fire frame carries its own flash; the generic star
+		# appears only for a gun without one.
+		var hud_node: Node = _find_hud()
+		var weapon_name: String = str(hud_node.get("current_fp_weapon"))
+		var held: TextureRect = hud_node.get_node_or_null("FpWeapon")
+		if WeaponArt.FIRE.has(weapon_name) and held != null:
+			return held.visible and held.texture == WeaponArt.FIRE[weapon_name]
 	if probe is MeleeView:
 		return probe.visible and probe.remaining > 0.0
 	if probe is EquipmentHud:
