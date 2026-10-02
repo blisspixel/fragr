@@ -32,6 +32,8 @@ do not trap movement. Crawler damage, hover and tram support retain their own
 authoritative behavior.
 Grounded crowd recovery also prevents occupied gallery waypoints skipping across
 walls and unsticks the actual four-person M01 route without larger mission budgets.
+The nearby live companion fades as one complete figure, preventing detached head
+facets in upward views while retaining the distant body and its world shadow.
 
 The shotgun has a new offline blast, and ordinary radio startup chooses a random
 populated station and random track, including visual test runs. Rapid environment

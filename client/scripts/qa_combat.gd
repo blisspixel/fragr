@@ -278,6 +278,8 @@ func engage(manager: Node, me: Dictionary, target: Dictionary, solids: Array, an
 	if not tell.is_empty():
 		var half: float = float(manager.get("current_map_info").get("half_extent", 25.0))
 		var yaw: float = atan2(aim.z, aim.x)
+		var contacts: Dictionary = strafe_contacts(snapshot, network.get("mission").get("state", {}), _player_id)
+		var peers: Array[Dictionary] = contacts["peers"]
 		var started: int = int(tell["campaign"]["phase_started"])
 		if started != _evade_started:
 			_evade_started = started
@@ -289,9 +291,9 @@ func engage(manager: Node, me: Dictionary, target: Dictionary, solids: Array, an
 			# body. Collision and the input speed remain unmodified.
 			if offset.length_squared() > 1.0 and offset.dot(direction) > 0.0:
 				_evade_left = not _evade_left
-			if not safe_strafe(me, solids, half, yaw, _evade_left) and safe_strafe(me, solids, half, yaw, not _evade_left):
+			if contacts["error"].is_empty() and not safe_strafe(me, solids, half, yaw, _evade_left, peers) and safe_strafe(me, solids, half, yaw, not _evade_left, peers):
 				_evade_left = not _evade_left
-		if safe_strafe(me, solids, half, yaw, _evade_left):
+		if contacts["error"].is_empty() and safe_strafe(me, solids, half, yaw, _evade_left, peers):
 			Input.action_press("move_left" if _evade_left else "move_right")
 	var loadout: Dictionary = network.get("equipment")
 	if not loadout.is_empty() and EquipmentState.shots(loadout, loadout["selected"]) != 0 and allow_fire:
@@ -299,17 +301,41 @@ func engage(manager: Node, me: Dictionary, target: Dictionary, solids: Array, an
 
 ## Forecast ordinary input against shared collision; never grant movement.
 ## Holding at a ledge keeps the next authored roof waypoint reachable.
-static func safe_strafe(me: Dictionary, solids: Array, half: float, yaw: float, left: bool) -> bool:
+static func safe_strafe(me: Dictionary, solids: Array, half: float, yaw: float, left: bool, peers: Array[Dictionary] = []) -> bool:
+	if peers.size() >= ActorContact.MAX_BODIES:
+		return false
 	var body: Dictionary = MoveStep.make_state(float(me["x"]), float(me["z"]), yaw)
 	body["y"] = float(me["y"]) - CAMERA.FP_SERVER_REFERENCE_Y
 	var start: Vector3 = Vector3(body["x"], body["y"], body["z"])
 	var arena: Dictionary = {"half": half, "solids": solids}
 	var input: Dictionary = MoveStep.make_input(false, false, left, not left, yaw)
 	for _step: int in range(8):
-		body = MoveStep.live_step(body, input, MoveStep.TOP_SPEED, MoveStep.DT_LIVE, arena)
+		var proposed: Dictionary = MoveStep.live_step(body, input, MoveStep.TOP_SPEED, MoveStep.DT_LIVE, arena)
+		if peers.is_empty():
+			body = proposed
+		else:
+			var bodies: Array[Dictionary] = [{"key": me.get("id", "qa-player"), "from": body, "proposed": proposed,
+				"height": MoveStep.BODY_HEIGHT, "radius": MoveStep.RADIUS, "jump": false}]
+			bodies.append_array(peers)
+			body = ActorContact.resolve(bodies, MoveStep.DT_LIVE, arena)[0]
 		if float(body["y"]) < start.y - 0.2:
 			return false
 	return Vector2(float(body["x"]) - start.x, float(body["z"]) - start.z).length() > 0.1
+
+## Reuse the live prediction boundary, including optional grounded civilians.
+## A detached/dead local body or malformed wire history cannot choose a dodge.
+static func strafe_contacts(snapshot: Dictionary, mission: Dictionary, player_id: String) -> Dictionary:
+	var parsed: Dictionary = ActorContact.read_snapshot(snapshot, mission)
+	var peers: Array[Dictionary] = []
+	if not parsed["error"].is_empty():
+		return {"error": parsed["error"], "peers": peers}
+	var present: bool = false
+	for body: Dictionary in parsed["bodies"]:
+		if body["key"] == player_id:
+			present = true
+		else:
+			peers.append(body)
+	return {"error": "" if present else ActorContact.INVALID, "peers": peers}
 
 func travel(manager: Node, anchor: Vector2, allowed_names: Array = []) -> bool:
 	release_inputs()
@@ -343,6 +369,12 @@ static func route_buttons(course: Vector2, yaw: float) -> Dictionary[String, boo
 		"move_left": right < -split,
 	}
 
+static func waypoint_arrived(me: Dictionary, point: Array) -> bool:
+	var delta: Vector3 = Vector3(float(point[0]) - float(me.x),
+		float(point[1]) - (float(me.y) - CAMERA.FP_SERVER_REFERENCE_Y),
+		float(point[2]) - float(me.z))
+	return Vector2(delta.x, delta.z).length() < 0.5 and absf(delta.y) < 0.2
+
 static func follow_route(me: Dictionary, camera: Node3D, route: Array, index: int,
 		look_at: Vector3 = Vector3.INF) -> int:
 	if index >= route.size():
@@ -360,7 +392,7 @@ static func follow_route(me: Dictionary, camera: Node3D, route: Array, index: in
 			pitch = atan2(look_at.y - (float(me.y) + CAMERA.FP_EYE_HEIGHT), toward.length())
 	camera.set("fp_yaw", yaw)
 	camera.set("fp_pitch", pitch)
-	if Vector2(delta.x, delta.z).length() < 0.5 and absf(delta.y) < 0.2:
+	if waypoint_arrived(me, point):
 		return index + 1
 	var buttons: Dictionary[String, bool] = route_buttons(Vector2(delta.x, delta.z), yaw)
 	for action: String in buttons:
@@ -374,6 +406,29 @@ static func valid_evade_tells(spec: Dictionary) -> bool:
 static func approach_evade_enabled(spec: Dictionary) -> bool:
 	var selected: Variant = spec.get("evade_tells", true)
 	return selected if selected is bool else false
+
+## A reached approach point is acknowledged before a committed tell can defend.
+## The unfinished approach still uses ordinary movement and cannot fire.
+func approach_step(manager: Node, me: Dictionary, snapshot: Dictionary, spec: Dictionary,
+		solids: Array, anchor: Vector2, route: Array, index: int) -> Dictionary:
+	if index >= route.size():
+		return {"index": index, "anchor": anchor}
+	var camera: Node3D = manager.get_node("SpectatorCamera")
+	var focus: Vector3 = approach_focus_point(snapshot, spec["approach_focus"]) if spec.has("approach_focus") else Vector3.INF
+	if not spec.has("approach_focus"):
+		for actor: Dictionary in snapshot.get("players", []):
+			if actor.get("name", "") == "stair_crawler_first" and \
+				actor.get("campaign", {}).get("phase", "") == "windup":
+				focus = Vector3(float(actor.x), float(actor.y) - CAMERA.FP_SERVER_REFERENCE_Y + AimAssist.CRAWLER_HEIGHT * 0.5, float(actor.z))
+				break
+	if waypoint_arrived(me, route[index]):
+		return {"index": follow_route(me, camera, route, index, focus), "anchor": Vector2(me.x, me.z)}
+	var committed: Dictionary = visible_target(snapshot, _player_id, solids, true)
+	if not committed.is_empty() and approach_evade_enabled(spec):
+		engage(manager, me, committed, solids, anchor, true, false)
+		return {"index": index, "anchor": anchor}
+	var next_index: int = follow_route(me, camera, route, index, focus)
+	return {"index": next_index, "anchor": Vector2(me.x, me.z) if next_index != index else anchor}
 
 static func valid_approach_focus(spec: Dictionary) -> bool:
 	if not spec.has("approach_focus"):
@@ -529,28 +584,16 @@ func run(tree: SceneTree, manager: Node, spec: Dictionary, output: String) -> Di
 			last_target_id = str(target["id"])
 		release_inputs()
 		if alive and not complete and approach_index < approach_route.size():
-			var committed: Dictionary = visible_target(snapshot, _player_id, solids, true)
-			if not committed.is_empty() and approach_evade_enabled(spec):
-				engage(manager, me, committed, solids, anchor, true, false)
-			else:
-				var previous_index: int = approach_index
-				var focus: Vector3 = approach_focus_point(snapshot, spec["approach_focus"]) if spec.has("approach_focus") else Vector3.INF
-				if not spec.has("approach_focus"):
-					for actor: Dictionary in snapshot.get("players", []):
-						if actor.get("name", "") == "stair_crawler_first" and \
-							actor.get("campaign", {}).get("phase", "") == "windup":
-							focus = Vector3(float(actor.x), float(actor.y) - CAMERA.FP_SERVER_REFERENCE_Y + AimAssist.CRAWLER_HEIGHT * 0.5, float(actor.z))
-							break
-				approach_index = follow_route(me, camera, approach_route, approach_index, focus)
-				if approach_index != previous_index:
-					anchor = Vector2(me.x, me.z)
-		elif not target.is_empty() and alive and not complete:
+			var progress: Dictionary = approach_step(manager, me, snapshot, spec, solids, anchor, approach_route, approach_index)
+			approach_index = progress["index"]
+			anchor = progress["anchor"]
+		if not target.is_empty() and alive and not complete and approach_index >= approach_route.size():
 			var may_fire: bool = (not spec.get("observe_first_shot", false) or enemy_shots > 0) and \
 				(observe_phase.is_empty() or phases.has(observe_phase))
 			if not fire_cadence.is_empty():
 				may_fire = may_fire and cadence_allows_fire(fire_cadence, maxi(0, int(snapshot["tick"]) - start_tick))
 			engage(manager, me, target, solids, anchor, spec.get("evade_tells", false), may_fire)
-		elif target.is_empty() and alive and not complete and search_index < search_route.size():
+		elif target.is_empty() and alive and not complete and approach_index >= approach_route.size() and search_index < search_route.size():
 			var previous_index: int = search_index
 			search_index = follow_route(me, camera, search_route, search_index)
 			if search_index != previous_index:

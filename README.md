@@ -63,7 +63,8 @@ separately from those physically aboard and leaves the run pending lunar
 **Port of Entry**. Fresh-player and difficulty acceptance remain open.
 See the [M05 plan](docs/plans/m05-no-forwarding-address-prototype.md).
 
-**Port of Entry** is the level 6 lunar port development prototype:
+**Port of Entry** is the level 6 lunar port development prototype in the current
+source checkout, pending its desktop release:
 inhabited pressure rooms, cargo cover, a found Railgun, flankable Turrets and an
 optional prisoner-route marker. Continue Run carries the completed M05 exit
 and refills Episode II to three continues exactly once; Practice preserves your
@@ -109,7 +110,8 @@ save behavior and settings are in the [playing guide](docs/PLAYING.md).
 
 ## Screenshots
 
-These four stills show the current development build. The
+These four stills were recaptured and inspected on 2026-10-01 from the current
+development build. The
 [visual tour](docs/screenshots/README.md) has more states and capture context.
 
 Boot menu:

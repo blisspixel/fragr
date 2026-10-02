@@ -7,11 +7,20 @@ class TurretObserverProbe extends RefCounted:
 	func observe(_snapshot: Dictionary) -> void:
 		calls += 1
 
+class ApproachProbe extends QaCombat:
+	var defenses: int = 0
+	var fired: bool = false
+	func engage(_manager: Node, _me: Dictionary, _target: Dictionary, _solids: Array, _anchor: Vector2, _evade: bool, allow_fire: bool) -> void:
+		defenses += 1
+		fired = fired or allow_fire
+
 var _failures: int = 0
 
 func _initialize() -> void:
 	_check_focused_route()
 	_check_m06_gallery_contact()
+	_check_m06_contact_dodge()
+	_check_approach_arrival()
 	_check_resolved_shots()
 	var caller: QaCombat = QaCombat.new()
 	var observer: TurretObserverProbe = TurretObserverProbe.new()
@@ -462,6 +471,108 @@ func _check_focused_route() -> void:
 		body = MoveStep.live_step(body, action, MoveStep.TOP_SPEED, MoveStep.DT_LIVE, arena)
 		grounded = grounded and absf(float(body["y"]) - 3.0) < 0.01
 	_check(reached and grounded, "ordinary focused inputs reach the rear waypoint without walking off the real gallery footprint")
+
+func _check_approach_arrival() -> void:
+	var at_origin: Dictionary = {"id": "human", "x": 0.0, "y": 1.5, "z": 0.0, "hp": 100}
+	_check(QaCombat.waypoint_arrived(at_origin, [0.49999, 0.19999, 0]), "strictly inside both legacy arrival distances is reached")
+	_check(not QaCombat.waypoint_arrived(at_origin, [0.5, 0, 0])
+		and not QaCombat.waypoint_arrived(at_origin, [0.50001, 0, 0]), "exact horizontal boundary and outside remain unreached")
+	_check(not QaCombat.waypoint_arrived(at_origin, [0, 0.2, 0])
+		and not QaCombat.waypoint_arrived(at_origin, [0, 0.20001, 0])
+		and not QaCombat.waypoint_arrived(at_origin, [0, -0.2, 0]), "exact positive/negative height boundary and outside remain unreached")
+	_check(not QaCombat.waypoint_arrived(at_origin, [0.4, 0, 0.4]), "arrival uses horizontal length rather than independent axis tolerances")
+	var raised: Dictionary = at_origin.duplicate()
+	raised["y"] = 4.5
+	_check(QaCombat.waypoint_arrived(raised, [0, 3, 0])
+		and not QaCombat.waypoint_arrived(raised, [0, 0, 0]), "arrival compares actual feet height instead of pawn reference height")
+	var me: Dictionary = at_origin.duplicate()
+	me["x"] = 0.2
+	me["z"] = 0.1
+	var guard: Dictionary = {"id": "guard", "name": "guard", "hp": 60, "x": 0.0, "y": 1.5, "z": 5.0,
+		"campaign": {"side": "union", "kind": "clerk", "phase": "windup"}}
+	var snapshot: Dictionary = {"tick": 1, "players": [me, guard]}
+	_check(not QaCombat.visible_target(snapshot, "human", [], true).is_empty(), "arrival ordering fixture includes a real visible committed attack")
+	var manager: Node = Node.new()
+	var camera: Node3D = QaCombat.CAMERA.new()
+	camera.name = "SpectatorCamera"
+	manager.add_child(camera)
+	var driver: ApproachProbe = ApproachProbe.new()
+	driver._player_id = "human"
+	var anchor: Vector2 = Vector2(-2, -3)
+	var focus: Dictionary = {"approach_focus": "guard"}
+	QaCombat.release_inputs()
+	var arrived: Dictionary = driver.approach_step(manager, me, snapshot, focus, [], anchor, [[0, 0, 0]], 0)
+	_check(arrived["index"] == 1 and arrived["anchor"] == Vector2(me.x, me.z)
+		and driver.defenses == 0 and not driver.fired, "actually reached final point advances before committed defense and refreshes its anchor")
+	_check(is_equal_approx(float(camera.get("fp_yaw")), atan2(4.9, -0.2))
+		and float(camera.get("fp_pitch")) < 0.0, "reached focused approach preserves actual camera aim without movement")
+	_check(not Input.is_action_pressed("move_forward") and not Input.is_action_pressed("fire"), "arrival acknowledgement grants no movement or premature shot")
+	var queued: Dictionary = driver.approach_step(manager, me, snapshot, {}, [], anchor, [[0, 0, 0], [0, 0, 0]], 0)
+	_check(queued["index"] == 1 and driver.defenses == 0 and not driver.fired, "only one actually reached waypoint advances per frame")
+	var unfinished: Dictionary = driver.approach_step(manager, me, snapshot, {}, [], anchor, [[0, 0, 2]], 0)
+	_check(unfinished["index"] == 0 and unfinished["anchor"] == anchor
+		and driver.defenses == 1 and not driver.fired, "unfinished committed approach retains defense and cannot fire")
+	guard["campaign"]["phase"] = "idle"
+	QaCombat.release_inputs()
+	var walking: Dictionary = driver.approach_step(manager, me, snapshot, focus, [], anchor, [[0, 0, 2]], 0)
+	_check(walking["index"] == 0 and walking["anchor"] == anchor and driver.defenses == 1
+		and Input.is_action_pressed("move_forward") and not Input.is_action_pressed("fire"), "open unfinished approach retains ordinary focused walking and no-fire gate")
+	guard["campaign"]["phase"] = "windup"
+	QaCombat.release_inputs()
+	var standing: Dictionary = driver.approach_step(manager, me, snapshot, {"evade_tells": false}, [], anchor, [[0, 0, 2]], 0)
+	_check(standing["index"] == 0 and driver.defenses == 1 and Input.is_action_pressed("move_forward")
+		and not driver.fired, "explicitly disabled tell evasion preserves unfinished ordinary route behavior")
+	QaCombat.release_inputs()
+	var ended: Dictionary = driver.approach_step(manager, me, snapshot, {}, [], anchor, [[0, 0, 2]], 1)
+	var empty: Dictionary = driver.approach_step(manager, me, snapshot, {}, [], anchor, [], 0)
+	_check(ended["index"] == 1 and empty["index"] == 0 and ended["anchor"] == anchor
+		and empty["anchor"] == anchor and driver.defenses == 1, "route end and empty approach do not create advancement or defense")
+	manager.free()
+
+func _check_m06_contact_dodge() -> void:
+	var authored: Variant = JSON.parse_string(FileAccess.get_file_as_string("res://../server/maps/m06_port_of_entry.json"))
+	_check(authored is Dictionary, "contact dodge loads the actual M06 world")
+	if not authored is Dictionary:
+		return
+	var solids: Array[Dictionary] = []
+	for solid: Dictionary in authored["solids"]:
+		solids.append({"min_x": solid["min"][0], "max_x": solid["max"][0], "min_z": solid["min"][2],
+			"max_z": solid["max"][2], "bottom": solid["min"][1], "top": solid["max"][1]})
+	var arena: Dictionary = {"half": authored["half_extent"], "solids": solids}
+	var me: Dictionary = {"id": "human", "x": -8.0, "y": 4.5, "z": 30.05, "hp": 100}
+	var peer: Dictionary = ActorContact.stationary("peer", Vector3(-8.9, 3.0, 30.65))
+	_check(QaCombat.safe_strafe(me, solids, 48.0, PI * 0.5, false),
+		"without a peer the same ordinary sideways path stays on the real crossing")
+	var body: Dictionary = MoveStep.make_state(-8.0, 30.05, PI * 0.5)
+	body["y"] = 3.0
+	for _tick: int in range(3):
+		var proposed: Dictionary = MoveStep.live_step(body, MoveStep.make_input(false, false, false, true, PI * 0.5),
+			MoveStep.TOP_SPEED, MoveStep.DT_LIVE, arena)
+		body = ActorContact.resolve([{"key": "human", "from": body, "proposed": proposed,
+			"height": MoveStep.BODY_HEIGHT, "radius": MoveStep.RADIUS, "jump": false}, peer], MoveStep.DT_LIVE, arena)[0]
+	_check(float(body["y"]) < 2.8 and float(body["z"]) < 30.0,
+		"shared physical contact redirects the formerly world-safe dodge off the actual crossing")
+	_check(not QaCombat.safe_strafe(me, solids, 48.0, PI * 0.5, false, [peer]),
+		"contact-aware dodge refuses the real gallery fall instead of granting world-only safety")
+	_check(QaCombat.safe_strafe(me, solids, 48.0, PI * 0.5, true, [peer]),
+		"opposite safe gallery direction remains available with the same living peer")
+	var snapshot: Dictionary = {"tick": 1, "players": [me, {"id": "peer", "x": -8.9, "y": 4.5, "z": 30.65, "hp": 100}]}
+	var contacts: Dictionary = QaCombat.strafe_contacts(snapshot, {}, "human")
+	_check(contacts["error"].is_empty() and contacts["peers"].size() == 1
+		and not QaCombat.safe_strafe(me, solids, 48.0, PI * 0.5, false, contacts["peers"]),
+		"actual validated snapshot peers reach the contact-aware forecast")
+	snapshot["players"][1]["hp"] = 0
+	contacts = QaCombat.strafe_contacts(snapshot, {}, "human")
+	_check(contacts["error"].is_empty() and contacts["peers"].is_empty(), "dead peers do not invent a physical obstacle")
+	snapshot["players"] = [me]
+	_check(QaCombat.strafe_contacts(snapshot, {}, "human")["peers"].is_empty(), "absent peers preserve the world-only path")
+	_check(not QaCombat.strafe_contacts(snapshot, {}, "detached")["error"].is_empty(), "detached local body cannot drive evasion")
+	snapshot["players"] = [me.duplicate()]
+	snapshot["players"][0]["hp"] = 0
+	_check(not QaCombat.strafe_contacts(snapshot, {}, "human")["error"].is_empty(), "dead local body cannot drive evasion")
+	snapshot["players"][0]["hp"] = 100
+	snapshot["players"][0]["x"] = INF
+	_check(not QaCombat.strafe_contacts(snapshot, {}, "human")["error"].is_empty(), "invalid snapshot coordinate refuses speculative movement")
 
 func _check_m06_gallery_contact() -> void:
 	var authored: Variant = JSON.parse_string(FileAccess.get_file_as_string("res://../server/maps/m06_port_of_entry.json"))
