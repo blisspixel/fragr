@@ -288,7 +288,7 @@ func _refresh_content() -> void:
 	_run_badge.visible = state.get("run") is Dictionary
 	if _run_badge.visible:
 		var run: Dictionary = state["run"]
-		_run_badge.text = tr("RUN_LEVEL_BADGE").format({"attempt": int(state["attempt"]), "continues": int(run["continues"])})
+		_run_badge.text = tr("RUN_LEVEL_BADGE").format({"attempt": int(state.get("attempt", 1)), "continues": int(run["continues"])})
 		_refresh_run_recovery(run)
 	var lines: Array[String] = []
 	match state["phase"]:
