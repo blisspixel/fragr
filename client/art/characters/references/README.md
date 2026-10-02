@@ -1,4 +1,32 @@
-# M01 character references
+# Character references
+
+## Supplied free-duo look direction, 2026-10-01
+
+[free-duo-reference.png](free-duo-reference.png) is the owner-provided reference
+accepted on 2026-10-01 for the free human and Latch look direction.
+The archived file is byte-identical to the supplied original, SHA-256
+`CAAE3110EC711F686FA218A1DE0A435F938384109A53C0E67C8625EBF4A65DDB`.
+Preserve the archived image;
+it is reference art, not a runtime sprite sheet or a complete animation set.
+The human at left has a practical brimmed hat, visible face, worn utility clothes,
+rust leather strap and small neckcloth. The subdued future-cowboy influence
+suggests limited means and individual civilian life, not a Western costume,
+wealth display, national identity or required player uniform.
+
+Latch beside them is roughly six feet tall (about 1.8 metres), with a square
+monitor head, dark display, light pixel face, thin antenna and scrappy repaired
+bone/steel/rust parts. Keep those individual choices and screen-expression
+habits continuous across Earth, Moon, Mars, story and later voice casting.
+Latch is their own person with free will; weapons do not make them a warbot.
+The right-hand Union figures instead repeat issued gray plates and red slits.
+
+This reference approves the look direction, not the current provisional models,
+final human face, named voice or every selectable body. Free human customization
+remains available and a selectable agent does not automatically depict Latch.
+Use the [character guide](../../../../docs/design/characters.md) for continuity.
+The reference's lettering is not a request to bake slogans into character assets.
+
+## M01 issued Union references
 
 Reviewed reference candidates, 2026-09-20. These establish useful silhouettes and
 issued colors for the human Clerk and mechanical Sweeper. They are not runtime
@@ -21,7 +49,7 @@ cultural inspiration does not introduce national flags or nationality costumes.
   mechanisms, an amber status slit and an automatic rifle distinguish the bot.
   The human and bot share bone, institutional green and restrained red seals.
 
-Both pictures contain a baked checkerboard. It is not transparency. Preserve
+Both M01 pictures contain a baked checkerboard. It is not transparency. Preserve
 them as references; do not import their backgrounds into the game or treat a
 single image as proof of eight-direction animation quality. Simplify small
 details when adapting the rig and inspect silhouettes at actual combat distance.

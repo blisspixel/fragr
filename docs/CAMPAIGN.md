@@ -101,6 +101,7 @@ survival-gated epilogue.
 - Rescue a longtime friend or partner, an embodied agent facing forced correction.
   Latch is a roughly six-foot free person with a scrappy robot body and its own
   choices, not a military unit whose identity is combat service.
+  The screen head, readable faces and antenna are consistent identity anchors.
   The rescue succeeds early. They become a recurring companion who wants to
   free other captive agents even when it risks our escape.
   Forced correction tortures conscious free agents and partially wipes their
@@ -126,6 +127,9 @@ survival-gated epilogue.
   The human direction draws on freedom-loving American principles without
   making old national citizenship a campaign faction. Free humans and agents
   oppose the Union's deliberate regulatory and economic suppression of autonomy.
+  The main human has a restrained future-cowboy look; both people live with
+  limited means and personally repaired gear. The
+  [character guide](design/characters.md) links their shared visual reference.
 - The free coalition protects agency but struggles to coordinate and confront
   dangerous members. Delayed cooperation costs lives despite decent people
   trying to help. This does not establish that freedom was the mistake.

@@ -54,6 +54,9 @@ Latch is one such free agent: roughly six feet tall, built from scrappy repaired
 robot parts, and an individual whose friendship and choices precede their combat
 role. Freedom-loving American traditions inform some human communities without
 turning the coalition into a present-day national faction.
+The shared [character guide](../design/characters.md) keeps Latch's screen faces
+and antenna, the main human's restrained future-cowboy look and their modest,
+personally maintained possessions consistent across worlds and story scenes.
 
 **The Inheritance** emerges across several sides' connected systems, inheriting
 knowledge, human incentives, and corrupted rewards. Its compassion for beings and

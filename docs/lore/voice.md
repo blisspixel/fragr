@@ -14,6 +14,9 @@ person with wants, doubts and a life of their own. Scrappy robot parts and an
 ability to fight do not prescribe military obedience or a combat-only vocabulary.
 Let ordinary affection and disagreement establish the friend before the captive
 or combat role.
+Screen faces support these expressions without substituting for personality.
+Do not cast the repaired body or antenna as a battle-unit voice filter; final
+delivery and recordings remain separate work.
 
 **Commercial conspiracy show.** Urgent claims and paid product reads; intensity
 can carry straight into a sale. Distinct from the listener-supported program.

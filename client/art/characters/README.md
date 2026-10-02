@@ -146,6 +146,14 @@ the campaign setting does not name a nation or dress the free side in national f
 nationality costumes or standardized coalition uniforms. Named faces and voices
 remain open until approved in the [character guide](../../../docs/design/characters.md).
 
+The supplied [free-duo look reference](references/free-duo-reference.png) approves
+a subdued future-cowboy human with practical brimmed hat, visible face, worn
+utility clothes, rust leather strap and small neckcloth, alongside Latch's
+scrappy monitor-headed body. Both read as people with limited means and chosen
+belongings. Avoid a theatrical Western costume or wealthy, standardized warrior
+kit. This is a look direction for later art, not an updated runtime atlas. Body
+customization remains available, and a selected free agent body is not always Latch.
+
 `player_rig.gd` extends the same rig with the two bodies a player can choose: a
 free human and a conscious embodied agent in a synthetic body. They share the
 rig's joints, poses, field and feet registration, and none of the Union issue:
@@ -181,8 +189,14 @@ individual continuity. Latch has their own will and can disagree or refuse;
 combat support is an activity, not a warbot identity. Avoid issued military
 armor, rank marks, standardized unit proportions and weapon-first casting.
 
-The existing [Latch visual reference](../../../docs/plans/m02-latch-visual-identity.md)
-and model remain provisional. Their historical ward and travel captures establish
+The approved look uses a square monitor head, dark display with a light pixel
+face, thin antenna and individually repaired bone/steel/rust parts. Preserve
+screen-expression habits, antenna and repair identity across Earth, Moon, Mars
+and story scenes. They are personal traits rather than issued status lights.
+
+The existing [Latch visual implementation](../../../docs/plans/m02-latch-visual-identity.md)
+and model remain provisional against that approved direction. Their historical
+ward and travel captures establish
 implementation evidence, not final body art, exact visual scale approval or a
 named voice. Future art and casting must follow the personhood and personal-choice
 contract in the character guide. No current mesh, atlas or gameplay dimensions

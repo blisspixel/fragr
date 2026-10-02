@@ -55,8 +55,12 @@ uses `custodian`. Stable role IDs survive later naming changes.
 
 ## Visual continuity
 
-Latch's free-agent identity, approximate height and scrappy construction are
-established. The remaining detail is working art direction, not approved final
+Latch's free-agent identity, approximate height, scrappy construction and
+screen-and-antenna head are established. Nick's October 1
+[duo reference](../../client/art/characters/references/free-duo-reference.png)
+also establishes the main human's restrained future-cowboy direction.
+Both live with limited means; repairs and choices express independence rather
+than wealth or a shared uniform. The remaining detail is working art direction, not approved final
 designs or completed assets. Shared materials and exact swatches come from the
 [art bible](../ART_STORY_BIBLE.md).
 These anchors persist across Earth, Moon, Mars and ship scenes. Environmental
@@ -64,8 +68,8 @@ gear can cover them but must not silently change the character underneath.
 
 | Actor | Proposed silhouette and palette anchors | Continuity and behavior |
 |---|---|---|
-| Player | Chosen human or agent body, callsign and supported cosmetics | Body-neutral opening; hands and equipment match the selected body in play |
-| Latch (`companion`) | Roughly six-foot free agent robot, scrappy repaired parts and unequal forearm plates, worn bone/dark steel, small muted cyan patch | Precise hands, self-directed gestures, familiar stance; individuality precedes combat equipment, and restraints are imposed equipment |
+| Player | Chosen human or agent body, callsign and supported cosmetics; main human reference has a practical brimmed hat, worn utility clothes, small neck cloth and modest leather/rust details | Restrained future cowboy, visible face and personal repairs; body-neutral opening, with hands and equipment matching the selected body in play |
+| Latch (`companion`) | Roughly six-foot free agent robot; compact framed screen with readable pixel faces and thin antenna; scrappy repaired parts, unequal forearm plates, worn bone/dark steel and small chosen accents | Precise hands, self-directed gestures, familiar stance; individuality precedes combat equipment, and restraints are imposed equipment |
 | Mara (`organizer`) | Human in a short rust utility coat over dark work gear, folded route case | Work-worn organizer, not an officer redesign after the coalition succeeds |
 | Renn (`custodian`) | Human, upright narrow silhouette, issued black Union coat, dark steel buttons and a registry case | Rank marking is deliberately removed after defection; manner changes gradually, old kit remains recognizable |
 | Tern (`pilot`) | Tall free agent with compact head and flight harness, gunmetal with a small ember shoulder panel | Conserves movement, handles ship equipment with practiced ease; same chassis offworld and on Earth |

@@ -6,7 +6,7 @@
 
 Give the fixed ward figure and moving server-owned companion one consistent identity at the restraint, during release, and across the processing floor, then measure its readability from the upper gallery. The current shared `LatchView` is a provisional stack of boxes. Its color alone carries too much identity in distant and muted play.
 
-The design follows [cast continuity](../lore/cast.md#visual-continuity), the [character guide](../design/characters.md) and the [art bible](../ART_STORY_BIBLE.md): a practical person-scale free-agent body from the M01 workshop, a compact faceted plain head, worn bone enamel, dark steel joints, one muted-cyan square on the upper chest, and visibly unequal forearms with an individual rust repair on the right. Hands should convey chosen action at the second restraint. The figure must stay distinct from issued Union black plates, red optics and seals.
+The historical local pass followed [cast continuity](../lore/cast.md#visual-continuity) and the [art bible](../ART_STORY_BIBLE.md): a practical person-scale free-agent body from the M01 workshop, a compact faceted plain head, worn bone enamel, dark steel joints, one muted-cyan square on the upper chest, and visibly unequal forearms with an individual rust repair on the right. Its implementation remains provisional against the approved look direction below. Hands convey chosen action at the second restraint; issued Union plates and red slits remain a separate design family.
 
 ### Identity clarification, 2026-10-01
 
@@ -19,6 +19,16 @@ Future references should show ordinary stance, precise hands, chosen utility
 details and asymmetric repairs alongside action poses. The current procedural
 model remains provisional. This clarification changes no rendered asset,
 physics dimensions, restraint pose, gameplay behavior or historical evidence.
+
+The supplied [free-duo reference](../../client/art/characters/references/free-duo-reference.png)
+now approves a square monitor head with dark display, light pixel face and thin
+antenna, alongside individually repaired bone/steel/rust body parts. Carry the
+same screen-expression habits, antenna and personal repairs across Earth,
+Moon, Mars, story scenes and future casting. The adjacent free human's subdued
+future-cowboy hat, worn utility clothes, rust strap and small neckcloth suggest
+two people with limited means, not a standardized warrior pair. This approves
+the look direction, not a completed model, voice or animation set. The free
+human remains customizable and a selected agent body is not automatically Latch.
 
 ## Boundaries
 
