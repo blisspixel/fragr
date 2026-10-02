@@ -793,6 +793,72 @@ mod tests {
     }
 
     #[test]
+    fn campaign_answers_an_awake_guard_out_to_its_sight_and_holds_to_shoot() {
+        use fragr_server::protocol::{CampaignActor, EnemyKind, EnemyPhase};
+        let me = Uuid::from_u128(1);
+        let foe = Uuid::from_u128(2);
+        let mut mine = player("me", me, 0.0, 0.0, 100, "flechette");
+        mine.campaign = Some(CampaignActor::Participant {});
+        let guard_in = |phase: EnemyPhase, x: f32| {
+            let mut guard = player("sweeper", foe, x, 0.0, 80, "flechette");
+            guard.campaign = Some(CampaignActor::Union {
+                kind: EnemyKind::Sweeper,
+                phase,
+                phase_started: 0,
+                phase_ends: 0,
+                seated: false,
+            });
+            guard
+        };
+        let world = Navigation::new(Arena {
+            half: 48.0,
+            solids: vec![],
+        })
+        .unwrap();
+        // The M06 Railgun lane: a Sweeper firing from 24 metres used to
+        // outrange the agent's 20 metre engagement and won every time.
+        let firing = snapshot(
+            1,
+            vec![mine.clone(), guard_in(EnemyPhase::Windup, 24.0)],
+            vec![],
+        );
+        assert_eq!(campaign_target(me, &firing, &world).unwrap().id, foe);
+        let idle = snapshot(
+            1,
+            vec![mine.clone(), guard_in(EnemyPhase::Idle, 24.0)],
+            vec![],
+        );
+        assert!(
+            campaign_target(me, &idle, &world).is_none(),
+            "a quiet distant guard still does not interrupt the route"
+        );
+        let beyond = snapshot(
+            1,
+            vec![mine.clone(), guard_in(EnemyPhase::Firing, 33.0)],
+            vec![],
+        );
+        assert!(campaign_target(me, &beyond, &world).is_none());
+
+        // A visible guard within reach is shot from where the agent stands.
+        let push = Plan {
+            stance: Stance::PushEnemy,
+            ..Plan::default()
+        };
+        let held = campaign_micro_action(&push, me, &firing, &world);
+        assert!(
+            held.fire && !held.forward,
+            "hold and shoot at 24 metres with a Rifle"
+        );
+        assert_eq!(held.look_at.unwrap().player_id, Some(foe));
+        let far = snapshot(1, vec![mine, guard_in(EnemyPhase::Moving, 31.0)], vec![]);
+        let closing = campaign_micro_action(&push, me, &far, &world);
+        assert!(
+            closing.forward,
+            "beyond three quarters of the Rifle's reach the agent still closes"
+        );
+    }
+
+    #[test]
     fn campaign_visibility_uses_the_crawlers_low_hit_volume() {
         use fragr_server::protocol::{CampaignActor, EnemyKind, EnemyPhase};
         let me = Uuid::from_u128(1);

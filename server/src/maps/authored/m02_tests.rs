@@ -68,6 +68,57 @@ fn bundled_guard_shells_require_a_step_off_every_gallery_spawn() {
 }
 
 #[test]
+fn bundled_gallery_offers_healing_before_the_first_guards_wake() {
+    // A run carries its health into M02, and a retry restores that same entry.
+    // Before this medkit the first healing sat after the Crawler pack, so a
+    // player who left M01 hurt restarted every attempt hurt.
+    let map = AuthoredMap::read(include_str!("../../../maps/m02-persons-unknown.json").as_bytes())
+        .unwrap();
+    let medkit = map
+        .supplies
+        .iter()
+        .find(|supply| supply.id == "gallery_medkit")
+        .unwrap();
+    assert!(matches!(medkit.kind, crate::sim::PickupKind::Health) && medkit.amount == 25);
+    assert_eq!(medkit.floor, 3.0);
+    let trigger = &map.encounters[0];
+    assert_eq!(trigger.id, "guard_room");
+    for spawn in &map.spawns {
+        assert!(
+            (spawn.feet[0] - medkit.x).hypot(spawn.feet[2] - medkit.z)
+                > crate::sim::PICKUP_CLAIM_RADIUS + crate::movement::RADIUS,
+            "{} starts inside the medkit's reach",
+            spawn.id
+        );
+        assert_eq!(
+            map.navigation
+                .route(
+                    spawn.feet,
+                    [medkit.x, medkit.floor, medkit.z],
+                    crate::navigation::SEARCH_LIMIT
+                )
+                .status,
+            RouteStatus::Complete,
+            "{} walks to the medkit",
+            spawn.id
+        );
+    }
+    // It sits on the spawn side of the guard room trigger, beside the Shotgun,
+    // so a player reaches it before waking the seated Clerks.
+    let region = &trigger.regions[0];
+    let spawn = map.spawns[0].feet;
+    let centre = [
+        (region.min[0] + region.max[0]) * 0.5,
+        (region.min[2] + region.max[2]) * 0.5,
+    ];
+    assert!(medkit.x > region.max[0]);
+    assert!(
+        (spawn[0] - medkit.x).hypot(spawn[2] - medkit.z)
+            < (spawn[0] - centre[0]).hypot(spawn[2] - centre[1])
+    );
+}
+
+#[test]
 fn gallery_entry_frames_latch_without_exposing_the_ward_guards() {
     let map = AuthoredMap::read(include_str!("../../../maps/m02-persons-unknown.json").as_bytes())
         .unwrap();
