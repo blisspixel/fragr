@@ -40,14 +40,14 @@ func _run() -> void:
 	presenter.apply(_live(3, 4), Vector3.ZERO)
 	presenter.apply(_live(2, 4), Vector3.ZERO)
 	_check(presenter.bounce_cues == 1, "duplicate and stale snapshots cannot replay audio")
-	var thrown: Dictionary = _live(4, 4)
+	var thrown: Dictionary = _live(4, 3)
 	thrown["grenades"].append({"id": 2, "owner_id": OWNER, "position": [1, 1.4, 0], "fuse_ticks": 40, "bounce_count": 0})
 	presenter.apply(thrown, Vector3.ZERO)
 	presenter.apply(thrown, Vector3.ZERO)
 	_check(presenter.throw_cues == 1 and presenter.bounce_cues == 1,
 		"a body first seen after synchronization cues one throw, and only once")
 	_check(GrenadeEffects.THROW.get_length() > 0.1 and GrenadeEffects.THROW.get_length() < 0.6,
-		"the throw cue is short enough to finish before the first contact")
+		"the throw cue is a short one-shot")
 	presenter.apply(_blast(20), Vector3.ZERO)
 	_check(presenter.bodies.is_empty() and presenter.bursts.size() == 1 and presenter.blast_cues == 1, "resolved explosion removes live body and shows one actual blast")
 	presenter.apply(_blast(21), Vector3.ZERO)
