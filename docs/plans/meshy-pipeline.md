@@ -107,6 +107,14 @@ only after inspecting the character model. Record provider-reported consumption
 separately from reserved dollar equivalents. No auto-rigging promise covers a
 mechanical crawler, floating Notary or a malformed humanoid.
 
+For a controlled hard-surface comparison, `ai_model: "meshy-t2"` selects Smart
+Topology, with `geometry_resolution: "standard"` and at most 15,000 faces. A
+textured 2K/4K stage costs 15 credits; Ultra geometry and remesh parameters are
+excluded. Current documentation describes cleaner topology and separated parts,
+but inspect actual output nodes before promising a moving pump or mechanical
+assembly. The pilot may compare a second Shotgun and generator using this path,
+remaining within the same 150-credit allowance (140 including the character rig).
+
 Preserve raw GLBs privately. Before public acceptance, inspect normals, embedded
 PBR maps, silhouette from all sides, actual triangle count, unit scale, foot origin,
 skin weights and motion. Keep authored CRT emission separate because 7.1 does not

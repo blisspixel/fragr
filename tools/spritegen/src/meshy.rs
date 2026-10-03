@@ -185,6 +185,8 @@ pub struct JobSpec {
 #[serde(tag = "kind", rename_all = "snake_case")]
 pub enum JobStage {
     Image {
+        #[serde(default = "standard_model")]
+        ai_model: String,
         image_url: String,
         geometry_resolution: String,
         texture_resolution: String,
@@ -197,11 +199,16 @@ pub enum JobStage {
     },
 }
 
+fn standard_model() -> String {
+    "meshy-7.1".into()
+}
+
 impl JobSpec {
     fn priced(&self) -> Result<(Identity, u64), Error> {
         crate::validate_frame_id(&self.id)?;
         let (model, params, credits) = match &self.stage {
             JobStage::Image {
+                ai_model,
                 image_url,
                 geometry_resolution,
                 texture_resolution,
@@ -218,14 +225,32 @@ impl JobSpec {
                 {
                     return Err(Error::Spec("invalid image model parameters".into()));
                 }
-                (
-                    "meshy/image-to-3d",
-                    json!({"image_url": image_url, "ai_model": "meshy-7.1",
+                if !matches!(ai_model.as_str(), "meshy-7.1" | "meshy-t2")
+                    || (ai_model == "meshy-t2"
+                        && (geometry_resolution != "standard" || *target_polycount > 15000))
+                {
+                    return Err(Error::Spec(
+                        "unsupported model or Smart Topology settings".into(),
+                    ));
+                }
+                let mut params = json!({"image_url": image_url, "ai_model": ai_model,
                     "model_type": "standard", "geometry_resolution": geometry_resolution,
                     "texture_resolution": texture_resolution, "should_texture": true, "enable_pbr": true,
                     "should_remesh": true, "topology": "triangle", "target_polycount": target_polycount,
-                    "pose_mode": pose_mode, "image_enhancement": false, "target_formats": ["glb"]}),
-                    if geometry_resolution == "standard" {
+                    "pose_mode": pose_mode, "image_enhancement": false, "target_formats": ["glb"]});
+                if ai_model == "meshy-t2" {
+                    params["model_type"] = json!("smart-topology");
+                    let fields = params.as_object_mut().expect("constructed parameters");
+                    for key in ["geometry_resolution", "should_remesh", "topology"] {
+                        fields.remove(key);
+                    }
+                }
+                (
+                    "meshy/image-to-3d",
+                    params,
+                    if ai_model == "meshy-t2" {
+                        15
+                    } else if geometry_resolution == "standard" {
                         30
                     } else {
                         35
@@ -284,6 +309,7 @@ pub fn parse_spec(text: &str) -> Result<Spec, Error> {
             JobStage::Image { .. } => &[
                 "id",
                 "kind",
+                "ai_model",
                 "image_url",
                 "geometry_resolution",
                 "texture_resolution",

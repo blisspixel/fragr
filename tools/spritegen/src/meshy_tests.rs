@@ -90,6 +90,7 @@ fn spec(dir: &TestDir, ids: &[&str]) -> Spec {
             .map(|id| JobSpec {
                 id: (*id).into(),
                 stage: JobStage::Image {
+                    ai_model: "meshy-7.1".into(),
                     image_url: "https://example.com/reference.png".into(),
                     geometry_resolution: "2k".into(),
                     texture_resolution: "4k".into(),
@@ -244,6 +245,18 @@ fn exact_pricing_and_unknown_parameters_are_validated_locally() {
             .1,
         30
     );
+    base["jobs"][0]["ai_model"] = json!("meshy-t2");
+    let (identity, credits) = parse_spec(&base.to_string()).unwrap().jobs[0]
+        .priced()
+        .unwrap();
+    assert_eq!(credits, 15);
+    assert_eq!(identity.request["params"]["model_type"], "smart-topology");
+    assert!(identity.request["params"].get("should_remesh").is_none());
+    base["jobs"][0]["geometry_resolution"] = json!("4k");
+    assert!(parse_spec(&base.to_string()).is_err());
+    base["jobs"][0]["geometry_resolution"] = json!("standard");
+    base["jobs"][0]["target_polycount"] = json!(15001);
+    assert!(parse_spec(&base.to_string()).is_err());
     for (field, value) in [
         ("target_polycount", json!(99)),
         ("pose_mode", json!("standing")),
