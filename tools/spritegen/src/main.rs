@@ -22,10 +22,10 @@ use tracing_subscriber::EnvFilter;
 #[derive(Parser, Debug)]
 #[command(
     name = "fragr-spritegen",
-    about = "Developer-only sprite generation for fragr through the Higgsfield API"
+    about = "Developer-only image and model asset production for fragr"
 )]
 struct Cli {
-    /// Dotenv file holding `higgsfield=<id>:<secret>`. Keep it out of git.
+    /// Ignored dotenv file holding image and model service credentials.
     #[arg(long, global = true, default_value = ".env")]
     env_file: PathBuf,
 
@@ -35,6 +35,25 @@ struct Cli {
 
 #[derive(Subcommand, Debug)]
 enum Cmd {
+    /// Check live model API credits without generating or uploading.
+    MeshyCheck {
+        #[arg(long, default_value_t = 0)]
+        required_credits: u64,
+        /// Account's existing model output directory, to include pending holds.
+        #[arg(long)]
+        out: Option<PathBuf>,
+        #[arg(long)]
+        report: Option<PathBuf>,
+    },
+    /// Generate model candidates within explicit credit and dollar ceilings.
+    MeshyGen {
+        #[arg(long)]
+        spec: PathBuf,
+        #[arg(long)]
+        max_credits: u64,
+        #[arg(long)]
+        max_spend_usd: Option<f64>,
+    },
     /// Check API credentials and estimate access. Never generates or uploads.
     ApiCheck {
         /// Raw JSON probes with model API paths and exact params. Defaults to the documented Soul estimate example.
@@ -131,6 +150,7 @@ enum Cmd {
 /// The real network.
 struct HttpTransport {
     client: reqwest::blocking::Client,
+    meshy: bool,
 }
 
 impl HttpTransport {
@@ -139,19 +159,28 @@ impl HttpTransport {
             .timeout(Duration::from_secs(120))
             .redirect(reqwest::redirect::Policy::none())
             .build()
-            .map(|client| HttpTransport { client })
+            .map(|client| HttpTransport {
+                client,
+                meshy: false,
+            })
             .map_err(|e| Error::Transport(e.to_string()))
     }
 }
 
 impl Transport for HttpTransport {
     fn send(&self, credential: &str, request: &Request) -> Result<Response, Error> {
-        fragr_spritegen::validate_api_url(&request.url)?;
+        let authorization = if self.meshy {
+            fragr_spritegen::meshy::validate_api_url(&request.url)?;
+            format!("Bearer {credential}")
+        } else {
+            fragr_spritegen::validate_api_url(&request.url)?;
+            format!("Key {credential}")
+        };
         let mut builder = match request.method {
             Method::Get => self.client.get(&request.url),
             Method::Post => self.client.post(&request.url),
         }
-        .header("Authorization", format!("Key {credential}"));
+        .header("Authorization", authorization);
         if let Some(body) = &request.body {
             builder = builder
                 .header("Content-Type", "application/json")
@@ -179,7 +208,7 @@ impl Transport for HttpTransport {
                 body: format!("downloading {url}"),
             });
         }
-        read_bounded(response, 32 * 1024 * 1024)
+        read_bounded(response, if self.meshy { 64 } else { 32 } * 1024 * 1024)
     }
 
     fn put(&self, url: &str, headers: &[(String, String)], body: Vec<u8>) -> Result<u16, Error> {
@@ -269,6 +298,76 @@ fn run(cli: Cli) -> Result<(), Error> {
     let out_stream = &mut std::io::stdout();
 
     match &cli.command {
+        Cmd::MeshyCheck {
+            required_credits,
+            out,
+            report,
+        } => {
+            let mut receipt = report
+                .as_ref()
+                .map(|path| {
+                    std::fs::OpenOptions::new()
+                        .write(true)
+                        .create_new(true)
+                        .open(path)
+                        .map_err(|_| Error::Io("could not create new model-check report".into()))
+                })
+                .transpose()?;
+            let ledger = out
+                .as_ref()
+                .map(|path| fragr_spritegen::ledger::Ledger::open(path))
+                .transpose()?;
+            let key = fragr_spritegen::meshy::read_credential(&cli.env_file)?;
+            let mut transport = HttpTransport::new()?;
+            transport.meshy = true;
+            let result = fragr_spritegen::meshy::check(
+                &transport,
+                &key,
+                *required_credits,
+                ledger.as_ref(),
+            )?;
+            let json = serde_json::to_string_pretty(&result)
+                .map_err(|_| Error::Io("model report serialization failed".into()))?;
+            if let Some(file) = receipt.as_mut() {
+                writeln!(file, "{json}").map_err(|e| Error::Io(e.to_string()))?;
+                file.sync_all().map_err(|e| Error::Io(e.to_string()))?;
+            }
+            writeln!(out_stream, "{json}").map_err(|e| Error::Io(e.to_string()))?;
+            if !result.sufficient {
+                return Err(Error::Budget("insufficient available model credits".into()));
+            }
+            Ok(())
+        }
+        Cmd::MeshyGen {
+            spec,
+            max_credits,
+            max_spend_usd,
+        } => {
+            check_budget(0.0, *max_spend_usd)?;
+            if *max_credits == 0 || *max_credits > 250 {
+                return Err(Error::Budget("credit cap must be 1 to 250".into()));
+            }
+            let bytes = read_bounded(
+                std::fs::File::open(spec)
+                    .map_err(|_| Error::Io("could not open model spec".into()))?,
+                256 * 1024,
+            )?;
+            let text = String::from_utf8(bytes)
+                .map_err(|_| Error::Spec("model spec must be UTF-8".into()))?;
+            let spec = fragr_spritegen::meshy::parse_spec(&text)?;
+            let key = fragr_spritegen::meshy::read_credential(&cli.env_file)?;
+            let mut transport = HttpTransport::new()?;
+            transport.meshy = true;
+            fragr_spritegen::meshy::generate(
+                &transport,
+                &key,
+                &spec,
+                *max_credits,
+                *max_spend_usd,
+                out_stream,
+                &mut |delay| std::thread::sleep(delay),
+            )
+        }
         Cmd::ApiCheck { spec, report } => {
             let spec = match spec {
                 Some(path) => {
@@ -499,6 +598,71 @@ fn main() {
 mod tests {
     use super::*;
     use clap::Parser;
+
+    #[test]
+    fn model_caps_and_existing_reports_refuse_before_keys_or_network() {
+        for args in [
+            vec!["meshy-gen", "--spec", "missing", "--max-credits", "150"],
+            vec![
+                "meshy-gen",
+                "--spec",
+                "missing",
+                "--max-credits",
+                "0",
+                "--max-spend-usd",
+                "3",
+            ],
+            vec![
+                "meshy-gen",
+                "--spec",
+                "missing",
+                "--max-credits",
+                "251",
+                "--max-spend-usd",
+                "3",
+            ],
+        ] {
+            let mut argv = vec!["fragr-spritegen", "--env-file", "missing-env"];
+            argv.extend(args);
+            assert!(matches!(run(Cli::parse_from(argv)), Err(Error::Budget(_))));
+        }
+        let path = std::env::temp_dir().join(format!("fragr-model-report-{}", std::process::id()));
+        std::fs::write(&path, "preserved").unwrap();
+        let cli = Cli::parse_from([
+            "fragr-spritegen",
+            "--env-file",
+            "missing-env",
+            "meshy-check",
+            "--report",
+            path.to_str().unwrap(),
+        ]);
+        assert!(matches!(run(cli), Err(Error::Io(_))));
+        assert_eq!(std::fs::read_to_string(&path).unwrap(), "preserved");
+        std::fs::remove_file(path).unwrap();
+        let mut transport = HttpTransport::new().unwrap();
+        transport.meshy = true;
+        assert!(transport
+            .send(
+                "private-key",
+                &Request {
+                    method: Method::Get,
+                    url: "https://api.higgsfield.ai/estimate/test".into(),
+                    body: None
+                }
+            )
+            .is_err());
+        transport.meshy = false;
+        assert!(transport
+            .send(
+                "private-key",
+                &Request {
+                    method: Method::Get,
+                    url: "https://api.meshy.ai/openapi/v1/balance".into(),
+                    body: None
+                }
+            )
+            .is_err());
+    }
 
     #[test]
     fn api_check_rejects_bad_spec_and_existing_receipt_before_loading_credentials() {

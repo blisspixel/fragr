@@ -4,7 +4,7 @@ version = "0.1.0"
 edition.workspace = true
 license.workspace = true
 repository.workspace = true
-description = "Developer-only sprite art generation for fragr through the Higgsfield API"
+description = "Developer-only image and model asset production for fragr"
 publish = false
 
 [lib]

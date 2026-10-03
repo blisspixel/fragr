@@ -494,11 +494,20 @@ lists API access on all paid individual tiers. Premium supplies production
 capacity; its subscription tier does not establish model quality. The provider's
 pages disagree on Ultra's allowance, so no Ultra credit count is assumed.
 
-The three-asset pilot remains planned: one enemy, one weapon and one environmental
-prop, within 150 existing credits and the existing $5 run ceiling. Before jobs,
-extend the native developer pipeline with exact credit prices, durable reservations,
-bounded polling/downloads and GLB import validation. Reuse the existing image
-references, budget and receipt seams. Do not enable additional purchases or
-top-ups. API authentication and balance are verified; generation access, usable
-geometry, rig quality and in-game acceptance are not yet proven. Preserve
-required legal notices and verify the paid output terms before packaging models.
+The [native pilot](meshy-pipeline.md) now proves generation, rigging, bounded
+downloads and rendered Godot imports for an enemy, weapon and environmental prop.
+It includes a second Shotgun topology candidate, seven GLBs total and visible
+walking/running motion. [Evidence](../evidence/meshy-pilot-20261003.md) records
+125 net credits consumed, 15 held for a refused request and a final live API balance
+of 2,975. All 140 reserved credits remain within the pilot's 150-credit allowance
+and existing $5 run ceiling. No additional purchases or top-ups were enabled.
+The pipeline reuses the current image references, dotenv, locked request ledger
+and artifact writes, with live credit checks before each paid stage. Full CI and
+merge remain required before calling this developer increment shipped.
+
+The models remain candidates. The Clerk needs armed actions, reactions, seated
+posture and death; the Shotgun needs actual mechanical parts and hand registration;
+the generator needs cleanup and placement at game scale. Runtime selection and
+played art acceptance remain open. Preserve required legal notices and paid-plan
+output rights when preparing public model sources. The existing v0.68.0
+playthrough shows the prior integrated art, not this new pilot.

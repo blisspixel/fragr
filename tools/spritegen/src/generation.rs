@@ -164,12 +164,7 @@ pub fn generate(
             }
             let name = file_name(&frame.id, index, url);
             crate::validation::validate_file_name(&name)?;
-            let temporary = spec.out_dir.join(format!("{name}.part"));
-            let mut file = std::fs::File::create(&temporary).map_err(io_error)?;
-            file.write_all(&bytes).map_err(io_error)?;
-            file.sync_all().map_err(io_error)?;
-            drop(file);
-            std::fs::rename(temporary, spec.out_dir.join(&name)).map_err(io_error)?;
+            write_artifact(&spec.out_dir, &name, &bytes)?;
             files.push(name);
         }
         ledger.record(
@@ -189,6 +184,16 @@ pub fn generate(
 
 fn io_error(error: std::io::Error) -> Error {
     Error::Io(error.to_string())
+}
+
+pub(crate) fn write_artifact(out: &std::path::Path, name: &str, bytes: &[u8]) -> Result<(), Error> {
+    crate::validation::validate_file_name(name)?;
+    let temporary = out.join(format!("{name}.part"));
+    let mut file = std::fs::File::create(&temporary).map_err(io_error)?;
+    file.write_all(bytes).map_err(io_error)?;
+    file.sync_all().map_err(io_error)?;
+    drop(file);
+    std::fs::rename(temporary, out.join(name)).map_err(io_error)
 }
 
 #[cfg(test)]
