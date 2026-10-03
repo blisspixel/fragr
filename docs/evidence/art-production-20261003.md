@@ -1,7 +1,8 @@
 # Art production, 2026-10-03
 
-**Status:** implemented locally in part, with full art quality acceptance still
-in flight. This work is not yet in the downloadable v0.67.0 release.
+**Status:** production increment shipped in [PR #337](https://github.com/blisspixel/fragr/pull/337)
+and [v0.68.0](https://github.com/blisspixel/fragr/releases/tag/v0.68.0), with full art quality acceptance still
+in flight.
 The [art plan](../plans/art-excellence.md) owns acceptance, and the
 [roadmap](../ROADMAP.md#full-build-order-2026-09-27) owns sequencing.
 
@@ -68,7 +69,42 @@ This close-range view comes from the final ordinary-input market route. It
 shows the new body source under actual venue light. It does not establish
 the remaining cast's final appearance.
 
+## Recorded playthrough
+
+Watch the [Low Water playthrough with game audio](https://github.com/blisspixel/fragr/releases/download/v0.68.0/fragr-low-water-playthrough-20261003.mp4).
+The normal real-time client uses the existing ordinary human-role keyboard and
+mouse route. The final log confirms `party_departed`, and the authoritative
+participant record has status `complete`. The initial movie-mode attempt failed
+at the Notary lesson and is retained as diagnostic history, not successful evidence.
+
+| Recorded result | Value |
+|---|---|
+| Duration | 3 minutes 32 seconds |
+| Video | 1280 x 720, H.264, 30 encoded frames per second |
+| Audio | AAC stereo from the game Master bus |
+| Route | `client/qa/m04-market.json`, 23 accepted states |
+| Difficulty | Standard, campaign rules revision 3 |
+| Player kills / deaths / secrets | 27 / 0 / 3 |
+| Clinic | Secured, patients released |
+| Renderer / host | OpenGL Compatibility, Windows, Radeon 780M |
+| Captured source | `f4cf8b3abdaa9620349b1736148d02f77238108e`, identical tree to the v0.68.0 source |
+
+The release also includes [PLAYTHROUGH.json](https://github.com/blisspixel/fragr/releases/download/v0.68.0/PLAYTHROUGH.json)
+and [video checksums](https://github.com/blisspixel/fragr/releases/download/v0.68.0/PLAYTHROUGH-SHA256SUMS.txt).
+The MP4 decoded without errors or sustained black segments. Its encoded frame
+rate does not measure renderer performance. This automated route is separate
+from fresh-player and fun acceptance. Local capture, audio and logs remain under
+`.agents/art-playthrough-20261003/low-water-realtime/`.
+
 ## Regression checks
+
+All [implementation PR checks](https://github.com/blisspixel/fragr/actions/runs/37149465221)
+pass, including Windows and macOS client checks, multiplayer regressions,
+coverage, containers, soak and plan-only infrastructure. The tagged release
+includes Windows, Linux and macOS desktop ZIPs with installation checks and
+`SHA256SUMS.txt`.
+Delivery also requires [source-main CI](https://github.com/blisspixel/fragr/actions/runs/37151264695)
+and [tagged package checks](https://github.com/blisspixel/fragr/actions/runs/37151297637).
 
 Rust format, warning-denied workspace clippy, workspace tests, locked release
 build, licenses/bans/sources, deterministic benchmark and unfiltered 93.80 percent

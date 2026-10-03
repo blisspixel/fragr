@@ -183,7 +183,8 @@ rather than the human role now specified in `ENEMIES.md`.
 
 ## API capability checker (2026-10-03)
 
-**Status:** implemented locally; offline tests and live free probe recorded below.
+**Status:** shipped in [PR #337](https://github.com/blisspixel/fragr/pull/337);
+offline tests and live free probe recorded below.
 **Spend:** $0. Nick asked for an
 API-level checker before model production. Reuse the existing Rust CLI,
 dotenv loader, bounded HTTP transport and fake-transport test convention.

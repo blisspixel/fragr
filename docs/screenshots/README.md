@@ -16,8 +16,10 @@ On 2026-10-03 the [art production pass](../plans/art-excellence.md) refreshed
 and inspected all 32 standard tour states, publishing fourteen selected
 stills from `.agents/art-excellence-research/qa-standard/`. The README intake
 image now comes from the final nine-state M01 room tour at
-`.agents/art-excellence-research/qa-m01-final/`. These images show local
-development changes that are not yet in the downloadable v0.67.0 release.
+`.agents/art-excellence-research/qa-m01-final/`. These images show the art
+increment shipped in [v0.68.0](https://github.com/blisspixel/fragr/releases/tag/v0.68.0).
+The [Low Water playthrough](https://github.com/blisspixel/fragr/releases/download/v0.68.0/fragr-low-water-playthrough-20261003.mp4)
+records the completed ordinary-input market route with game audio.
 Older dated receipts below remain history, not evidence of these new assets.
 
 `art-production-low-water.png` is actual Low Water arrival from an independently

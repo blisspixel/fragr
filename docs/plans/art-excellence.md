@@ -1,6 +1,10 @@
 # Art excellence
 
 **Status:** in flight, 2026-10-03. Nick instructed continued asset production.
+The October 3 production increment shipped in
+[PR #337](https://github.com/blisspixel/fragr/pull/337) and
+[v0.68.0](https://github.com/blisspixel/fragr/releases/tag/v0.68.0). Full roster,
+environmental-kit and played quality acceptance remain open.
 Build and inspect the first complete sample, then apply accepted sources and
 materials across the roster, weapons and environments. Final quality remains
 subject to played and rendered inspection.
@@ -295,8 +299,8 @@ antenna and repairs need explicit local treatment; machines need their own
 joint arrangements.
 
 The upstream [API price table](https://docs.meshy.ai/en/api/pricing) lists
-textured Meshy 6/7 generation at 30 credits, rigging at 5 and animation at 3
-per operation. These are Meshy's own units, not a Higgsfield quote. Its
+textured Meshy 6/7.1 generation at 30 credits, rigging at 5 and animation at 3
+per action. These are Meshy's own units, not a Higgsfield quote. Its
 current image docs name Meshy 7.1 as latest, deprecate Meshy 7 and retire the
 older lowpoly mode on October 30, 2026. The connected catalog still advertises
 Meshy 7. Resolve that version difference before production; do not silently
@@ -409,16 +413,20 @@ without stopping that production path.
 Nick requested a rendered playthrough and ongoing delivery through a temporary
 branch, a passing PR, squash merge to main and desktop releases when player-visible
 changes warrant them. This increment changes visible characters and environments,
-so prepare v0.68.0 after the implementation PR and main CI pass.
+so this production increment ships as v0.68.0 after passing implementation and
+main CI, plus all three tagged desktop package checks.
 
 The existing ordinary-input Low Water tour is the recording subject. A diagnostic
 subclass samples rendered frames from the normal real-time client and retains the
 Master bus audio; encoding produces a shareable MP4 with capture timestamps.
 The initial movie-mode smoke passed, but its full route failed at the Notary
 lesson after capture changed client timing. That failed attempt remains diagnostic
-history and does not count as a completed playthrough. The full real-time recording
-must complete all 23 states, retain a clean log, confirm departure and be inspected
-before publication. Movie output is visual evidence, not a hardware frame-rate
+history and does not count as a completed playthrough. The final real-time recording
+completed all 23 states with a clean log, confirmed departure and was inspected
+before publication. The video, receipt and checksums are attached to
+[v0.68.0](https://github.com/blisspixel/fragr/releases/tag/v0.68.0); the
+[production evidence](../evidence/art-production-20261003.md#recorded-playthrough)
+records outcomes and capture scope. Movie output is visual evidence, not a hardware frame-rate
 measurement or fresh-player acceptance.
 
 Use the existing CI and desktop packaging workflows. No paid generation, cloud
@@ -426,4 +434,71 @@ deployment or simulation changes are needed for this delivery. Preserve the loca
 Rust, client, rendered fixture and package receipts, verify the PR's final commit
 checks before merge, then require main CI and all three tagged desktop packages.
 Keep full art excellence in flight after this production increment ships.
-Implementation delivery is tracked by [PR #337](https://github.com/blisspixel/fragr/pull/337).
+Implementation delivery shipped in [PR #337](https://github.com/blisspixel/fragr/pull/337)
+at `5dbbde8ae91516620d7fa907ce6f8f855eddd887`.
+[Implementation CI](https://github.com/blisspixel/fragr/actions/runs/37149465221)
+passes. Delivery requires [main CI](https://github.com/blisspixel/fragr/actions/runs/37151264695)
+and [tagged packaging](https://github.com/blisspixel/fragr/actions/runs/37151297637)
+to pass before publication.
+An extra blank line was removed from the offline Shotgun source during closeout;
+re-exporting updated its source hash while every GLB and rendered asset remained
+byte-identical. The original local verification receipt remains dated evidence,
+with the delivery receipts under `.agents/art-playthrough-20261003/`.
+
+## Remaining production allowance, 2026-10-03
+
+Nick asked for the approximate cost of good art across the full game and whether
+another service is needed. The following is a planning estimate, not approved
+spend or a provider quote. It assumes reuse across the twelve proposed campaign
+environment kits, shared body variants and local model cleanup. It excludes hired
+artists, development compute and runtime hosting.
+
+| Remaining production work | Estimated additional allowance |
+|---|---|
+| Reusable environment kits, props and materials | $200-$400 |
+| Remaining character and weapon assets, including 3D trials | $150-$300 |
+| Skies, story art, decals and effects | $100-$200 |
+| Rejected attempts and corrections | $50-$100 |
+| Total | $500-$1,000 |
+
+The completed image batch reserved about $0.62 per high-resolution request;
+those requests produced sources, not a finished roster or twelve complete kits.
+The proposed allowances include iteration and remain uncertain until accepted
+assets establish a usable-output rate. A $500 planning target can be reviewed in
+$50-$100 production batches, each composed of tool runs within the existing
+$5 ceiling. No $500-$1,000 allowance has been approved. Existing sources support
+continued local integration without another deposit.
+
+Higgsfield's verified API supplies images and ElevenLabs supplies audio. A
+dedicated Meshy API account is recommended for a small enemy, weapon and prop
+pilot, followed by cleanup and in-game acceptance. It is not required for local
+mesh work. The [official API overview](https://www.meshy.ai/api), checked
+2026-10-03, says Pro or above is required for API access; verify purchased API
+credit and its dollar conversion before submitting anything. The
+[upstream pricing table](https://docs.meshy.ai/en/api/pricing) separates models,
+rigging and animation. Existing Higgsfield credit is not a proven way to fund
+those operations; additional purchases retain their written spend-approval gate.
+More generation alone does not establish visual quality: modeling, motion,
+lighting, populated rooms and played comparison remain the production work.
+
+### Meshy account check
+
+Nick subsequently selected Premium for fragr ($40 per month, $20 for the first
+month) and configured the `meshy` credential entry in the ignored `.env`.
+The [documented balance endpoint](https://docs.meshy.ai/en/api/balance) returned
+HTTP 200 and 3,100 available API credits on 2026-10-03. A one-off read-only check
+accepted his entry; it submitted no generation jobs and recorded no credential.
+Receipt: `.agents/art-playthrough-20261003/meshy-api-check-20261003.json`.
+The [plan guide](https://help.meshy.ai/en/articles/12062933-which-meshy-plan-is-right-for-you-free-vs-pro-vs-premium-vs-ultra)
+lists API access on all paid individual tiers. Premium supplies production
+capacity; its subscription tier does not establish model quality. The provider's
+pages disagree on Ultra's allowance, so no Ultra credit count is assumed.
+
+The three-asset pilot remains planned: one enemy, one weapon and one environmental
+prop, within 150 existing credits and the existing $5 run ceiling. Before jobs,
+extend the native developer pipeline with exact credit prices, durable reservations,
+bounded polling/downloads and GLB import validation. Reuse the existing image
+references, budget and receipt seams. Do not enable additional purchases or
+top-ups. API authentication and balance are verified; generation access, usable
+geometry, rig quality and in-game acceptance are not yet proven. Preserve
+required legal notices and verify the paid output terms before packaging models.
