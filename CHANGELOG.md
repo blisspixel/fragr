@@ -46,6 +46,18 @@ twice at most; a hit or broken sight snaps it, and its shield plate halves
 frontal shots. Agents engage a channeling Auditor first. Mines have their own
 count, records column and Godot presentation. Level 8 itself is not built yet.
 
+## Unreleased (sound pass, 2026-10-02)
+
+The Shotgun has a new full-band blast and works its pump after every shot,
+finishing before the next one can fire. Guns are rebalanced so the Shotgun is
+the loudest and the Railgun no longer clips; the Pistol has its own shot.
+Resolved hits play the impact of the gun that landed. Clerks, Sweepers, Heavy
+Sweepers and Turrets announce their windups, and a Turret's charge stops when
+you break its sight. Falls, Fists and Shiv swings, pickups, an empty trigger
+and grenade throws now make sound. The Sniper Rifle, its scope and the Ranged
+Sweeper use their own cues, the marksman's tell follows its windup, and the
+curfew chime is ready for Level 7. External spend was $0.
+
 ## v0.66.0 (2026-10-02)
 
 Port of Entry extends the campaign prototype onto the Moon with an inhabited

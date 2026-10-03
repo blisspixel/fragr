@@ -186,7 +186,7 @@ The fire sounds that exist already set the register: dry, punchy, no reverb, 199
 - **Shiv** is cloth and a short scrape. It should sound cheap, because it is.
 - **Tack** is flat and unimpressive on purpose. It is the sound of a gun you are trying to replace.
 - **Flechette** is the needle chatter that already ships.
-- **Scatter** is the boom and the pump that already ships, with the pump promoted to its own cycle so you hear it when you are not firing.
+- **Scatter** is a full-band boom with a short steel ring, and its cycle is the pump: two clacks after every blast, finished before the next shot can fire. It is never a reload.
 - **Rail** is the electric crack and the cold ring that already ships, and its cycle is the capacitor winding back up, which is the sound that tells an opponent they have one second.
 - **Repeater** is a spin-up, a sustained rattle and a spin-down, and the spin-down is the important one because it is the sound of somebody letting go of the trigger near you.
 - **Lobber** is a hollow thump, then a break and a clack for the next rocket.

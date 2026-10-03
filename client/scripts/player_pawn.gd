@@ -73,6 +73,35 @@ var broadcast_scale_enabled: bool = false
 @onready var muzzle_glow: OmniLight3D = $Body/Muzzle/MuzzleGlow
 @onready var fire_sound: AudioStreamPlayer3D = $FireSound
 @onready var hit_sound: AudioStreamPlayer3D = $HitSound
+@onready var cycle_sound: AudioStreamPlayer3D = get_node_or_null("CycleSound")
+@onready var tell_sound: AudioStreamPlayer3D = get_node_or_null("TellSound")
+@onready var down_sound: AudioStreamPlayer3D = get_node_or_null("DownSound")
+
+## The Shotgun's pump cycles after each blast. Scatter's server cooldown is
+## 12 ticks at 20 Hz, so the next shot can land 0.60 s after this one; the
+## cue starts at 0.22 s and is shorter than 0.36 s, so the action always
+## closes before the trigger can fire again. Presentation only: it never
+## gates or delays a shot, and it is not a reload.
+const SHOTGUN_CYCLE_PATH: String = "res://assets/audio/shotgun/cycle.wav"
+const SHOTGUN_CYCLE_DELAY: float = 0.22
+const SHOTGUN_COOLDOWN_SECONDS: float = 0.6
+## Melee has its own swing; it must never fall back to a gunshot.
+const MELEE_SWING_PATHS: Dictionary[String, String] = {
+	"Fists": "res://assets/audio/melee/fists.wav",
+	"Shiv": "res://assets/audio/melee/shiv.wav",
+}
+## Union telegraphs: `<kind>/tell.wav`, keyed by the authoritative windup.
+const TELL_PATH: String = "res://assets/audio/%s/tell.wav"
+## Charge-shaped tells are stretched to the actual windup so they peak at the shot.
+const STRETCHED_TELLS: Array[String] = ["turret"]
+## Kinds whose tell has its own long-range presenter (RangedSweeperAudio).
+const DEDICATED_TELLS: Array[String] = ["ranged_sweeper"]
+const TELL_PITCH_MIN: float = 0.8
+const TELL_PITCH_MAX: float = 1.25
+const DOWN_BODY_PATH: String = "res://assets/audio/down/body.wav"
+const DOWN_ROBOT_PATH: String = "res://assets/audio/down/robot.wav"
+## Union machines fall as machines; the Notary keeps its own crash.
+const ROBOT_KINDS: Array[String] = ["sweeper", "heavy_sweeper", "turret", "crawler", "jammer"]
 
 var muzzle_flash_texture: Texture2D
 var rail_beam_texture: Texture2D
@@ -139,6 +168,21 @@ var fire_streams = {}
 var hit_streams = {}
 ## The impact sound used when the shooter's weapon is not known.
 var generic_hit_stream: AudioStream = null
+var melee_streams: Dictionary[String, AudioStream] = {}
+var tell_streams: Dictionary[String, AudioStream] = {}
+var down_body_stream: AudioStream = null
+var down_robot_stream: AudioStream = null
+## The Ranged Sweeper fires its own machine-mounted shot, not the player's rifle.
+var ranged_fire_stream: AudioStream = null
+## One-shot timer owned by the pawn, so a freed fighter never pumps late.
+var _cycle_timer: Timer = null
+## The windup this pawn last announced, as its authoritative start tick.
+var _tell_started: int = -1
+## Cues actually started, for presentation checks.
+var cycle_count: int = 0
+var tell_count: int = 0
+var down_count: int = 0
+var impact_count: int = 0
 
 func _load_audio_streams():
 	var audio_dir = "res://assets/audio/"
@@ -169,6 +213,29 @@ func _load_audio_streams():
 		generic_hit_stream = load(fallback_hit)
 	if hit_sound and ResourceLoader.exists(fallback_hit):
 		hit_sound.stream = load(fallback_hit)
+	if cycle_sound and ResourceLoader.exists(SHOTGUN_CYCLE_PATH):
+		cycle_sound.stream = load(SHOTGUN_CYCLE_PATH)
+	if cycle_sound and _cycle_timer == null:
+		_cycle_timer = Timer.new()
+		_cycle_timer.name = "ShotgunCycle"
+		_cycle_timer.one_shot = true
+		_cycle_timer.timeout.connect(_on_shotgun_cycle)
+		add_child(_cycle_timer)
+	for weapon: String in MELEE_SWING_PATHS:
+		if ResourceLoader.exists(MELEE_SWING_PATHS[weapon]):
+			melee_streams[weapon] = load(MELEE_SWING_PATHS[weapon])
+	for kind: String in ActorState.KINDS:
+		if kind in DEDICATED_TELLS:
+			continue
+		var tell_path: String = TELL_PATH % kind
+		if ResourceLoader.exists(tell_path):
+			tell_streams[kind] = load(tell_path)
+	if ResourceLoader.exists(DOWN_BODY_PATH):
+		down_body_stream = load(DOWN_BODY_PATH)
+	if ResourceLoader.exists(DOWN_ROBOT_PATH):
+		down_robot_stream = load(DOWN_ROBOT_PATH)
+	if ResourceLoader.exists(L07Assets.RANGED_SWEEPER_FIRE_SOUND):
+		ranged_fire_stream = load(L07Assets.RANGED_SWEEPER_FIRE_SOUND)
 
 ## Fraction of the remaining distance to close this frame.
 ##
@@ -329,7 +396,10 @@ func update_state(state: Dictionary, snapshot_tick: int = 0):
 	
 	if _has_authoritative_state and old_hp > hp and hp > 0:
 		show_hit_feedback()
+	elif _has_authoritative_state and old_hp > 0 and hp <= 0:
+		_play_down()
 	_has_authoritative_state = true
+	_update_tell()
 	
 	if not is_campaign_enemy and not is_campaign_companion and PlayerBody.valid(state.get("body")) and state["body"] != body_kind:
 		_wear_body(state["body"])
@@ -503,12 +573,20 @@ func show_muzzle_flash(weapon: String):
 			muzzle.visible = false
 		if muzzle_glow:
 			muzzle_glow.light_energy = 0.0
+		# A Crawler's leap resolves as a Fists contact; it is not a punch.
+		if fire_sound and not is_campaign_enemy and melee_streams.has(weapon):
+			fire_sound.stream = melee_streams[weapon]
+			fire_sound.play()
 		return
 	if fire_sound:
 		if fire_streams.has(weapon):
 			fire_sound.stream = fire_streams[weapon]
+		if is_campaign_enemy and campaign_actor.get("kind") == "ranged_sweeper" and ranged_fire_stream != null:
+			fire_sound.stream = ranged_fire_stream
 		if fire_sound.stream:
 			fire_sound.play()
+	if weapon == "Scatter":
+		_start_shotgun_cycle()
 	
 	if not muzzle:
 		return
@@ -584,6 +662,80 @@ func show_hit_feedback(weapon: String = ""):
 	await get_tree().create_timer(0.12).timeout
 	if is_instance_valid(body):
 		_apply_body_scale(hit_flash_timer > 0)
+
+## The resolved shot names the gun that landed, so the struck body answers
+## with that gun's impact. The health drop in the same snapshot has already
+## started the generic hit on this player, and this replaces it at once.
+func play_impact(weapon: String) -> void:
+	if hit_sound == null:
+		return
+	var stream: AudioStream = hit_streams.get(weapon, generic_hit_stream)
+	if stream == null:
+		return
+	hit_sound.stream = stream
+	hit_sound.play()
+	impact_count += 1
+
+func _start_shotgun_cycle() -> void:
+	if _cycle_timer == null or cycle_sound == null or cycle_sound.stream == null \
+			or not _cycle_timer.is_inside_tree():
+		return
+	_cycle_timer.start(SHOTGUN_CYCLE_DELAY)
+
+func _on_shotgun_cycle() -> void:
+	# A fighter who fell or put the Shotgun away does not work the action.
+	if hp <= 0 or current_weapon != "Scatter" or cycle_sound == null:
+		return
+	cycle_sound.play()
+	cycle_count += 1
+
+## The authoritative drop to zero health. A Union machine falls as a machine;
+## the Notary keeps its own crash where it lands.
+func _play_down() -> void:
+	if down_sound == null:
+		return
+	var kind: String = str(campaign_actor.get("kind", "")) if is_campaign_enemy else ""
+	if kind == "notary":
+		return
+	var stream: AudioStream = down_robot_stream if kind in ROBOT_KINDS else down_body_stream
+	if stream == null:
+		return
+	down_sound.stream = stream
+	down_sound.play()
+	down_count += 1
+
+## A Union windup is announced once, at its authoritative start. Any other
+## phase silences it, so breaking sight also cuts off a Turret's charge.
+func _update_tell() -> void:
+	if tell_sound == null:
+		return
+	if not is_campaign_enemy or campaign_actor.get("phase") != "windup":
+		if tell_sound.playing:
+			tell_sound.stop()
+		return
+	var started: Variant = campaign_actor.get("phase_started")
+	var ends: Variant = campaign_actor.get("phase_ends")
+	if not EquipmentState.integer(started, EquipmentState.MAX_EXACT_INTEGER) \
+			or not EquipmentState.integer(ends, EquipmentState.MAX_EXACT_INTEGER) \
+			or int(started) == _tell_started:
+		return
+	_tell_started = int(started)
+	var kind: String = str(campaign_actor.get("kind", ""))
+	if not tell_streams.has(kind):
+		return
+	var stream: AudioStream = tell_streams[kind]
+	tell_sound.stream = stream
+	tell_sound.pitch_scale = tell_pitch(kind, stream.get_length(),
+		float(int(ends) - int(started)) * MoveStep.DT_LIVE)
+	tell_sound.play()
+	tell_count += 1
+
+## Charge-shaped tells are sped up or slowed to end with the actual windup,
+## within a range that keeps them recognisable. Other tells play as authored.
+static func tell_pitch(kind: String, cue_seconds: float, windup_seconds: float) -> float:
+	if kind not in STRETCHED_TELLS or cue_seconds <= 0.0 or windup_seconds <= 0.0:
+		return 1.0
+	return clampf(cue_seconds / windup_seconds, TELL_PITCH_MIN, TELL_PITCH_MAX)
 
 func get_weapon_name() -> String:
 	return current_weapon

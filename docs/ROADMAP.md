@@ -478,9 +478,9 @@ Status: **in progress**. This phase decides whether the game is fun. Everything 
    This is not a finished sound pass, and it does not gate the campaign or
    multiplayer rungs. [Radio refresh](plans/radio-refresh.md) replaces the old
    arena-heavy editorial direction with four sustained optional talk formats and
-   music from an inhabited world. [Effects refresh](plans/audio-effects-refresh.md)
-   covers weapon identity, movement, surfaces, pickups, machines and mix, which
-   matter far more to the fun bar than any radio segment. Listening, captions,
+   music from an inhabited world. The [2026-10-02 sound pass](plans/sound-pass-20261002.md)
+   rebuilt the Shotgun with a pump cycle and added impacts, tells, falls, pickups
+   and Level 7 cues; footsteps and machines remain open. Listening, captions,
    music distribution rights and in-game acceptance precede promotion. No runtime
    paid API, quota overage, or claim that generation alone proves quality.
 4. **Bots that read as players.** Cover use, pickup seeking, target selection with memory, difficulty tiers, and behavior chips that stay truthful. Personalities you pick per match in the spirit of Perfect Dark's simulants, and hit reactions on the sprites so a fight reads like GoldenEye's did (`DESIGN-REFERENCES.md`, foundational classics). Evidence: deterministic sim tests per behavior plus a recorded spectate.

@@ -112,6 +112,25 @@ var local_prediction: LocalPrediction = LocalPrediction.new()
 var _adopt_local_spawn_snapshot: bool = false
 var _retired_environments: Array[Environment] = []
 
+## Feedback for the fighter this screen belongs to: what they picked up and
+## an empty trigger. Neither is positional; nobody else hears them.
+const PICKUP_SOUND_PATHS: Dictionary[String, String] = {
+	"weapon": "res://assets/audio/pickup/weapon.wav",
+	"ammo": "res://assets/audio/pickup/ammo.wav",
+	"cells": "res://assets/audio/pickup/cells.wav",
+	"health": "res://assets/audio/pickup/health.wav",
+	"armor": "res://assets/audio/pickup/armor.wav",
+}
+const DRY_FIRE_SOUND_PATH: String = "res://assets/audio/dry_fire.wav"
+var pickup_streams: Dictionary[String, AudioStream] = {}
+var pickup_sound: AudioStreamPlayer = null
+var dry_fire_sound: AudioStreamPlayer = null
+var pickup_cue_count: int = 0
+var dry_fire_cue_count: int = 0
+var scope_sound: AudioStreamPlayer = null
+var scope_cue_count: int = 0
+var _dry_fire_seen: int = -1
+
 const CRAWLER_SOUND_PATH: String = "res://assets/audio/crawler_scrabble.wav"
 const CRAWLER_SOUND_VOICES: int = 4
 const CRAWLER_CUE_DISTANCE: float = 24.0
@@ -565,6 +584,78 @@ func _load_audio_streams():
 		round_end_sound.stream = load(audio_dir + "round_end.wav")
 	if ResourceLoader.exists(CRAWLER_SOUND_PATH):
 		crawler_sound_stream = load(CRAWLER_SOUND_PATH)
+	for key: String in PICKUP_SOUND_PATHS:
+		if ResourceLoader.exists(PICKUP_SOUND_PATHS[key]):
+			pickup_streams[key] = load(PICKUP_SOUND_PATHS[key])
+	var audio_parent: Node = get_node_or_null("AudioPlayers")
+	if audio_parent == null:
+		audio_parent = self
+	if pickup_sound == null:
+		pickup_sound = AudioStreamPlayer.new()
+		pickup_sound.name = "PickupSound"
+		pickup_sound.bus = &"Effects"
+		pickup_sound.volume_db = -6.0
+		audio_parent.add_child(pickup_sound)
+	if scope_sound == null:
+		scope_sound = AudioStreamPlayer.new()
+		scope_sound.name = "ScopeSound"
+		scope_sound.bus = &"Effects"
+		scope_sound.volume_db = -6.0
+		audio_parent.add_child(scope_sound)
+	if dry_fire_sound == null and ResourceLoader.exists(DRY_FIRE_SOUND_PATH):
+		dry_fire_sound = AudioStreamPlayer.new()
+		dry_fire_sound.name = "DryFireSound"
+		dry_fire_sound.bus = &"Effects"
+		dry_fire_sound.volume_db = -6.0
+		dry_fire_sound.stream = load(DRY_FIRE_SOUND_PATH)
+		audio_parent.add_child(dry_fire_sound)
+
+## Pickup feedback for the watched fighter. The event carries no ammunition
+## pool, so the pad it came from says whether it was Cells.
+func _play_pickup_cue(kind: String, pickup_id: String) -> void:
+	var key: String = kind
+	match kind:
+		"golden_rail":
+			key = "weapon"
+		"grenade":
+			key = "ammo"
+		"ammo":
+			var pad: Variant = pickups.get(pickup_id)
+			if is_instance_valid(pad) and str(pad.get("ammo_pool")) == "cells":
+				key = "cells"
+	if pickup_sound == null or not pickup_streams.has(key):
+		return
+	pickup_sound.stream = pickup_streams[key]
+	pickup_sound.play()
+	pickup_cue_count += 1
+
+func _scope_engaged() -> bool:
+	return hud != null and hud.get("sniper_scope") != null and hud.sniper_scope.scoped()
+
+## Raising and lowering the Sniper Rifle scope, heard only by its holder.
+func _play_scope_cue(was_scoped: bool, now_scoped: bool) -> void:
+	if was_scoped == now_scoped or scope_sound == null:
+		return
+	var path: String = L07Assets.SCOPE_IN_SOUND if now_scoped else L07Assets.SCOPE_OUT_SOUND
+	if not ResourceLoader.exists(path):
+		return
+	scope_sound.stream = load(path)
+	scope_sound.play()
+	scope_cue_count += 1
+
+## The owner's dry trigger count only grows within one life; a held empty
+## trigger repeats at the weapon's own cadence on the server.
+func _play_dry_fire_cue(loadout: Dictionary) -> void:
+	if loadout.is_empty():
+		_dry_fire_seen = -1
+		return
+	var count: Variant = loadout.get("dry_fire_count")
+	if not EquipmentState.integer(count, EquipmentState.MAX_EXACT_INTEGER):
+		return
+	if _dry_fire_seen >= 0 and int(count) > _dry_fire_seen and dry_fire_sound != null:
+		dry_fire_sound.play()
+		dry_fire_cue_count += 1
+	_dry_fire_seen = int(count)
 
 func _crawler_position(value: Variant) -> Vector3:
 	if not value is Array or value.size() != 3:
@@ -822,7 +913,9 @@ func _update_scope(delta: float) -> void:
 	var alive: bool = is_instance_valid(pawn) and int(pawn.get("hp")) > 0
 	var held: bool = is_human_player and not controls_blocked() and InputMap.has_action("scope") and Input.is_action_pressed("scope")
 	var enabled: bool = is_human_player and alive and bool(camera.get("fp_mode"))
+	var was_scoped: bool = _scope_engaged()
 	camera.zoom_factor = hud.update_scope(delta, _current_weapon_wire(), held, enabled)
+	_play_scope_cue(was_scoped, _scope_engaged())
 	if camera.has_method("apply_zoom"):
 		camera.apply_zoom()
 
@@ -1255,6 +1348,7 @@ func _clear_world() -> void:
 
 func _on_loadout_received(data: Dictionary) -> void:
 	hud.equipment_hud.apply(data)
+	_play_dry_fire_cue(data)
 	_sync_pickups(latest_snapshot.get("pickups", []))
 	_refresh_equipment_visibility()
 
@@ -1604,6 +1698,7 @@ func _on_event_received(data):
 		var weapon = str(data.get("weapon", ""))
 		var amount = int(data.get("amount", 0))
 		hud.show_pickup_toast(who, weapon, kind, amount)
+		_play_pickup_cue(kind, str(data.get("pickup_id", "")))
 		if data.get("secret") == true:
 			hud.show_secret_found()
 	elif event_type == "killstreak":
@@ -1959,6 +2054,7 @@ func _process_shot_results(results, tick: int) -> void:
 		shot_effects.ingest(tick, results)
 	var my_id = str(net_client.player_id) if net_client.player_id != null else ""
 	var followed_id = "" if is_human_player else _followed_player_id()
+	_play_shot_impacts(results)
 	# A scatter blast arrives as one result per struck fighter plus one for its
 	# missed pellets. A fighter fires at most once a tick, so fold each
 	# shooter's results into one shot: one flash, one kick, one summed marker.
@@ -1983,10 +2079,7 @@ func _process_shot_results(results, tick: int) -> void:
 		var is_local = is_human_player and my_id != "" and shooter_id == my_id
 		var is_followed = (not is_human_player) and followed_id != "" and shooter_id == followed_id
 		var shooter: Node = players.get(shooter_id)
-		var wpn: String = shooter.get_weapon_name() if is_instance_valid(shooter) else ""
-		var trace: Variant = shot.get("trace")
-		if trace is Dictionary and trace.get("weapon") is String and trace["weapon"] in EquipmentState.WEAPONS:
-			wpn = str(trace["weapon"]).capitalize()
+		var wpn: String = _shot_weapon(shot)
 		# A pickup can change held equipment after the shot resolves in this tick.
 		if is_instance_valid(shooter):
 			shooter.show_muzzle_flash(wpn)
@@ -2000,6 +2093,33 @@ func _process_shot_results(results, tick: int) -> void:
 		if hit and dmg > 0:
 			if hud and hud.has_method("show_hit_marker"):
 				hud.show_hit_marker(dmg, wpn)
+
+## The gun a resolved shot was fired with: the trace's weapon when present,
+## otherwise what the shooter holds now.
+func _shot_weapon(shot: Dictionary) -> String:
+	var shooter: Node = players.get(str(shot.get("shooter_id", "")))
+	var wpn: String = shooter.get_weapon_name() if is_instance_valid(shooter) else ""
+	var trace: Variant = shot.get("trace")
+	if trace is Dictionary and trace.get("weapon") is String and trace["weapon"] in EquipmentState.WEAPONS:
+		wpn = str(trace["weapon"]).capitalize()
+	return wpn
+
+## Each struck fighter answers once per tick with the impact of the gun that
+## hit it. A Shotgun's pellets on one body are one impact, not seven.
+func _play_shot_impacts(results: Array) -> void:
+	var struck: Dictionary[String, bool] = {}
+	for result: Variant in results:
+		if typeof(result) != TYPE_DICTIONARY or not bool(result.get("hit", false)) \
+				or int(result.get("damage", 0)) <= 0:
+			continue
+		var target_id: String = str(result.get("target_id", ""))
+		if target_id.is_empty() or struck.has(target_id):
+			continue
+		var target: Node = players.get(target_id)
+		if not is_instance_valid(target) or not target.has_method("play_impact"):
+			continue
+		struck[target_id] = true
+		target.play_impact(_shot_weapon(result))
 
 func _local_weapon_name() -> String:
 	var pid = str(net_client.player_id) if net_client.player_id != null else ""
