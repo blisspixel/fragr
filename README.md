@@ -86,9 +86,10 @@ save behavior and settings are in the [playing guide](docs/PLAYING.md).
 
 ## Screenshots
 
-These four stills were recaptured and inspected on October 1 and 2, 2026.
-The arena views use the final release server build; Recall Notice's intake
-retains its October 1 capture of the same presentation. The
+These four stills were inspected for v0.67.0 on October 3, 2026. The release
+tour on the final source republished the boot menu (unchanged), the
+multiplayer page and the watched match. Recall Notice's intake keeps its
+October 2 capture with the current weapon art. The
 [visual tour](docs/screenshots/README.md) has more states and capture context.
 
 Boot menu:
