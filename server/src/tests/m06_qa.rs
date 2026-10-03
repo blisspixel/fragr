@@ -202,15 +202,34 @@ fn authored_m06_port_is_a_closed_pressure_hull() {
     );
     let arena = map.arena();
     for (inside, outside, place) in [
-        ([0.0, 0.0, -20.0], [0.0, 0.0, -36.0], "freight hall south yard"),
+        (
+            [0.0, 0.0, -20.0],
+            [0.0, 0.0, -36.0],
+            "freight hall south yard",
+        ),
         ([-30.0, 0.0, -36.0], [-12.0, 0.0, -36.0], "dock east side"),
-        ([30.0, 0.0, 3.0], [30.0, 0.0, 10.0], "loading bay north corner"),
-        ([-30.0, 0.0, 22.0], [-30.0, 0.0, 32.0], "service corridor north"),
+        (
+            [30.0, 0.0, 3.0],
+            [30.0, 0.0, 10.0],
+            "loading bay north corner",
+        ),
+        (
+            [-30.0, 0.0, 22.0],
+            [-30.0, 0.0, 32.0],
+            "service corridor north",
+        ),
         ([-13.0, 0.0, 39.0], [-30.0, 0.0, 42.0], "customs north west"),
         ([0.0, 0.0, 42.0], [0.0, 0.0, 47.0], "transit vestibule end"),
-        ([5.0, 0.0, 43.0], [20.0, 0.0, 43.0], "transit vestibule side"),
+        (
+            [5.0, 0.0, 43.0],
+            [20.0, 0.0, 43.0],
+            "transit vestibule side",
+        ),
     ] {
-        assert!(!walk(arena, inside, outside), "{place} opens onto the surface");
+        assert!(
+            !walk(arena, inside, outside),
+            "{place} opens onto the surface"
+        );
     }
     // Every point the ordinary route stands on has a roof above it.
     let covered = |p: [f32; 3]| {
@@ -237,7 +256,11 @@ fn authored_m06_port_is_a_closed_pressure_hull() {
                         segment[0][1] + (segment[1][1] - segment[0][1]) * t,
                         segment[0][2] + (segment[1][2] - segment[0][2]) * t,
                     ];
-                    assert!(covered(p), "{} passes under open space at {p:?}", state["name"]);
+                    assert!(
+                        covered(p),
+                        "{} passes under open space at {p:?}",
+                        state["name"]
+                    );
                     checked += 1;
                 }
             }
