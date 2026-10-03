@@ -154,6 +154,8 @@ PR CI [run 37058097350](https://github.com/blisspixel/fragr/actions/runs/3705809
 passes every job, including the full headless client check on Linux and the
 macOS and Windows portability checks. The first run caught a fixture error in
 the new grenade throw check (an unintended extra bounce), fixed in the test.
+The local pinned `tools/godot_check.sh` passes import, all 189 scripts and all
+89 harnesses with a clean log.
 
 ### Spend
 
@@ -173,6 +175,5 @@ should confirm the Shotgun crack survives it.
 
 ## Handoff
 
-PR #322 is open on `feat/sound-pass` with green CI. Remaining: the local full
-`tools/godot_check.sh` once the shared render lock frees, then squash merge.
-No further generation is planned.
+Local and CI gates pass; PR #322 merges by squash. No further generation is
+planned; the open items above are the next sound work.
