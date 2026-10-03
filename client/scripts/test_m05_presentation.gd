@@ -100,11 +100,22 @@ func _run() -> void:
 			tiles[index].resize(320, 180, Image.INTERPOLATE_NEAREST)
 			strip.blit_rect(tiles[index], Rect2i(0, 0, 320, 180), Vector2i(index * 320, 0))
 		_check(strip.save_png(output.path_join("grenade-resolved-burst-strip.png")) == OK, "resolved burst motion strip saved")
+	# A stopped voice keeps its playback in the audio server until the mixer
+	# retires it. Quitting first leaked the blast playback and its stream on a
+	# slow macOS runner, so wait for that actual release, with a bound.
+	var playbacks: Array[WeakRef] = []
+	for voice: AudioStreamPlayer3D in effects.voices:
+		if voice.has_stream_playback():
+			playbacks.append(weakref(voice.get_stream_playback()))
 	effects.reset()
 	world.queue_free()
 	local.queue_free()
 	await process_frame
 	await create_timer(0.15).timeout
+	var deadline: int = Time.get_ticks_msec() + 3000
+	while playbacks.any(func(ref: WeakRef) -> bool: return ref.get_ref() != null) and Time.get_ticks_msec() < deadline:
+		await process_frame
+	_check(playbacks.all(func(ref: WeakRef) -> bool: return ref.get_ref() == null), "stopped grenade voices release their playbacks before exit")
 	if failures == 0:
 		print("test_m05_presentation: PASS compact selector/navigation, exact arrival playback and bounded grenade render fixture")
 	quit(0 if failures == 0 else 1)
