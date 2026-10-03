@@ -34,16 +34,16 @@ The multiplayer page names the live Arena Duel host at the isolated capture
 address `127.0.0.1:6787`. Menus, settings, weapon views,
 participant bodies, world lighting and watched combat were inspected after capture.
 
-After the [art pass](../plans/art-pass-20261002.md) the same 32-state tour was
-captured again on 2026-10-02 (`.agents/qa/art-standard/manifest.json`). Eight
+After the [art pass](../plans/art-pass-20261002.md) the same 32-state tour passed
+again on 2026-10-02 with clean exit and logs (`.agents/qa/art-standard2/manifest.json`). Eight
 stills whose surfaces changed were republished: `tour_first_person`,
 `tour_combat_follow`, `tour_body_human`, `tour_body_synthetic`,
 `tour_arena_overview`, `tour_spectator`, `tour_shot_strip` and
 `tour_rail_impact_strip`. They show the gloved fire frames, floor pickups drawn
 as objects, held side profiles and the vitals icons. The menu, multiplayer,
-profile, settings, difficulty and records stills are unchanged. That run's only
-failure was its first-person muzzle probe, which looked for the generic star a
-drawn fire frame now replaces; the probe accepts the fire frame since.
+profile, settings, difficulty and records stills are unchanged. The first-person
+muzzle probe now accepts a gun's drawn fire frame, which replaces the generic star;
+it saw the Rifle's fire frame in five of the twelve shot-strip frames.
 
 The `m06_*.png` gallery is the Port of Entry development prototype on the same
 pinned Windows/OpenGL Compatibility/AMD Radeon 780M setup. Its final clean
