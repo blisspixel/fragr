@@ -3,12 +3,33 @@ extends RefCounted
 
 ## Placeholder Sabotage sounds synthesized once in code, so the mode is
 ## readable by ear at $0: the charge's timer beep, the hum a carried or loose
-## charge makes up close, the plant and defuse cues and the detonation. A later
-## audio batch replaces these by name.
+## charge makes up close, the plant and defuse cues and the detonation. Final
+## audio replaces any of them by dropping a WAV at
+## `res://assets/audio/sabotage/<name>.wav`: beep, hum (looped here), arm,
+## planted, defused and detonation.
 
 const RATE: int = 22050
 
+const AUDIO_DIR: String = "res://assets/audio/sabotage/"
+
 static var _cache: Dictionary = {}
+
+
+## True when the name is ready in the cache, loading a final recording first
+## if a file for it exists.
+static func _cached(name: String) -> bool:
+	if _cache.has(name):
+		return true
+	var path: String = AUDIO_DIR + name + ".wav"
+	if ResourceLoader.exists(path):
+		var recording: Variant = load(path)
+		if recording is AudioStreamWAV:
+			if name == "hum":
+				recording = (recording as AudioStreamWAV).duplicate()
+				(recording as AudioStreamWAV).loop_mode = AudioStreamWAV.LOOP_FORWARD
+			_cache[name] = recording
+			return true
+	return false
 
 
 static func _stream(samples: PackedFloat32Array, loop: bool = false) -> AudioStreamWAV:
@@ -43,14 +64,14 @@ static func _tone(frequency: float, seconds: float, volume: float, attack: float
 
 ## The charge's timer beep. Pitch rises from the player as time runs out.
 static func beep() -> AudioStreamWAV:
-	if not _cache.has("beep"):
+	if not _cached("beep"):
 		_cache["beep"] = _stream(_tone(1480.0, 0.09, 0.55))
 	return _cache["beep"]
 
 
 ## A low electrical hum, looped: the charge heard within ten metres.
 static func hum() -> AudioStreamWAV:
-	if not _cache.has("hum"):
+	if not _cached("hum"):
 		var count: int = int(0.5 * RATE)
 		var samples: PackedFloat32Array = PackedFloat32Array()
 		samples.resize(count)
@@ -63,7 +84,7 @@ static func hum() -> AudioStreamWAV:
 
 ## Two quick clicks: a plant or defuse has started.
 static func arm() -> AudioStreamWAV:
-	if not _cache.has("arm"):
+	if not _cached("arm"):
 		var samples: PackedFloat32Array = _tone(900.0, 0.05, 0.5)
 		var gap: PackedFloat32Array = PackedFloat32Array()
 		gap.resize(int(0.05 * RATE))
@@ -75,7 +96,7 @@ static func arm() -> AudioStreamWAV:
 
 ## A falling two-tone: the charge is planted and running.
 static func planted() -> AudioStreamWAV:
-	if not _cache.has("planted"):
+	if not _cached("planted"):
 		var samples: PackedFloat32Array = _tone(1200.0, 0.12, 0.6)
 		samples.append_array(_tone(800.0, 0.22, 0.6))
 		_cache["planted"] = _stream(samples)
@@ -84,7 +105,7 @@ static func planted() -> AudioStreamWAV:
 
 ## A rising two-tone: defused.
 static func defused() -> AudioStreamWAV:
-	if not _cache.has("defused"):
+	if not _cached("defused"):
 		var samples: PackedFloat32Array = _tone(700.0, 0.12, 0.55)
 		samples.append_array(_tone(1050.0, 0.2, 0.55))
 		_cache["defused"] = _stream(samples)
@@ -94,7 +115,7 @@ static func defused() -> AudioStreamWAV:
 ## The detonation: a filtered noise crack with a long low tail. The noise is
 ## a fixed sequence, so the sound is the same every time.
 static func detonation() -> AudioStreamWAV:
-	if not _cache.has("detonation"):
+	if not _cached("detonation"):
 		var count: int = int(1.6 * RATE)
 		var samples: PackedFloat32Array = PackedFloat32Array()
 		samples.resize(count)

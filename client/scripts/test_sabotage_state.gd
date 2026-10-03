@@ -127,9 +127,10 @@ func _run() -> void:
 	_check(SabotageState.result_text(end, "").is_empty(), "a malformed result shows no card")
 
 	# Art and sound placeholders.
-	_check(SabotageArt.site_plate("a").get_width() == 32, "a site plate is a 32 pixel sprite")
+	_check(SabotageArt.site_plate("a").get_width() >= 16, "a site plate is a sprite texture")
 	_check(SabotageArt.site_plate("a") == SabotageArt.site_plate("a"), "textures are cached")
-	_check(SabotageArt.site_prop("b").get_height() == 32 and SabotageArt.charge().get_width() == 16, "props and the charge are sprites")
+	_check(SabotageArt.site_prop("b").get_height() > 0 and SabotageArt.charge().get_width() > 0, "props and the charge are sprites")
+	var plate_sprite: Sprite3D = null
 	_check(SabotageAudio.beep().data.size() > 0 and SabotageAudio.hum().loop_mode == AudioStreamWAV.LOOP_FORWARD, "the beep plays and the hum loops")
 	_check(SabotageAudio.detonation().data == SabotageAudio.detonation().data, "the detonation is the same every time")
 	_check(SabotageAudio.next_beep(700) == 600 and SabotageAudio.next_beep(600) == 500, "beeps every five seconds at first")
@@ -142,7 +143,9 @@ func _run() -> void:
 	world.set_layout(_layout())
 	var site_a: Node3D = world.get_node("SiteA") as Node3D
 	_check(site_a != null and site_a.position.is_equal_approx(Vector3(-38.0, 0.0, -27.0)), "site A sits on its plant area")
-	_check((site_a.get_node("Plate") as Sprite3D).texture == SabotageArt.site_plate("a"), "the site marker is a sprite, not text")
+	plate_sprite = site_a.get_node("Plate") as Sprite3D
+	_check(plate_sprite.texture == SabotageArt.site_plate("a"), "the site marker is a sprite, not text")
+	_check(is_equal_approx(plate_sprite.pixel_size * plate_sprite.texture.get_width(), ArenaSabotage.PLATE_WIDTH), "the plate keeps its world size whatever the art's pixels")
 	_check(site_a.get_node_or_null("Label3D") == null, "no world text marks a site")
 	var holder: Node3D = Node3D.new()
 	root.add_child(holder)

@@ -8,10 +8,15 @@ extends Node3D
 ## node decides nothing and has no collision.
 
 const PLATE_HEIGHT: float = 3.6
-const PLATE_PIXEL: float = 0.05
-const PROP_PIXEL: float = 0.07
-const CHARGE_PIXEL: float = 0.032
-const CARRIED_PIXEL: float = 0.022
+## World sizes in metres, so final art of any pixel size keeps them.
+const PLATE_WIDTH: float = 1.6
+const PROP_HEIGHT: float = 2.24
+const CHARGE_WIDTH: float = 0.512
+const CARRIED_WIDTH: float = 0.352
+const LIGHT_WIDTH: float = 0.128
+## The burst grows from this to the end width over its life.
+const BURST_START: float = 3.84
+const BURST_END: float = 19.2
 ## The body sprite centre, where the CTF grip also sits.
 const CARRIED_HAND_Y: float = -0.6
 const CARRIED_SIDE: float = -0.2
@@ -79,24 +84,31 @@ func set_layout(layout: Dictionary) -> void:
 		root.name = "Site" + id.to_upper()
 		root.position = Vector3(float(center[0]), float(center[1]), float(center[2]))
 		add_child(root)
-		var ring: Sprite3D = _sprite(SabotageArt.plant_ring(), float(site.get("radius", 3.0)) * 2.0 / 64.0)
+		var ring_art: Texture2D = SabotageArt.plant_ring()
+		var ring: Sprite3D = _sprite(ring_art, float(site.get("radius", 3.0)) * 2.0 / float(ring_art.get_width()))
 		ring.name = "Ring"
 		ring.billboard = BaseMaterial3D.BILLBOARD_DISABLED
 		ring.rotation = Vector3(-PI / 2.0, 0.0, 0.0)
 		ring.position = Vector3(0.0, 0.03, 0.0)
 		root.add_child(ring)
-		var prop: Sprite3D = _sprite(SabotageArt.site_prop(id), PROP_PIXEL)
+		var prop_art: Texture2D = SabotageArt.site_prop(id)
+		var prop: Sprite3D = _sprite(prop_art, PROP_HEIGHT / float(prop_art.get_height()))
 		prop.name = "Prop"
 		prop.billboard = BaseMaterial3D.BILLBOARD_FIXED_Y
-		prop.position = Vector3(0.0, 32.0 * PROP_PIXEL * 0.5, 0.0)
+		prop.position = Vector3(0.0, PROP_HEIGHT * 0.5, 0.0)
 		root.add_child(prop)
-		var plate: Sprite3D = _sprite(SabotageArt.site_plate(id), PLATE_PIXEL)
+		var plate_art: Texture2D = SabotageArt.site_plate(id)
+		var plate: Sprite3D = _sprite(plate_art, PLATE_WIDTH / float(plate_art.get_width()))
 		plate.name = "Plate"
 		plate.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 		plate.position = Vector3(0.0, PLATE_HEIGHT, 0.0)
 		root.add_child(plate)
 		_sites.append(root)
 	_ensure_charge()
+
+
+static func _charge_pixel(width: float) -> float:
+	return width / float(SabotageArt.charge().get_width())
 
 
 func set_charge_ticks(ticks: int) -> void:
@@ -136,12 +148,12 @@ func _ensure_charge() -> void:
 	_charge.name = "Charge"
 	_charge.visible = false
 	add_child(_charge)
-	_charge_sprite = _sprite(SabotageArt.charge(), CHARGE_PIXEL)
+	_charge_sprite = _sprite(SabotageArt.charge(), _charge_pixel(CHARGE_WIDTH))
 	_charge_sprite.name = "Body"
 	_charge_sprite.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	_charge_sprite.position = Vector3(0.0, 0.2, 0.0)
 	_charge.add_child(_charge_sprite)
-	_charge_light = _sprite(SabotageArt.charge_light(SabotageArt.LIT), CHARGE_PIXEL)
+	_charge_light = _sprite(SabotageArt.charge_light(SabotageArt.LIT), LIGHT_WIDTH / 4.0)
 	_charge_light.name = "Light"
 	_charge_light.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	_charge_light.position = Vector3(0.0, 0.33, 0.01)
@@ -160,7 +172,7 @@ func _ensure_charge() -> void:
 	_charge.add_child(_beep)
 	_cue = _voice("Cue", SabotageAudio.arm(), BEEP_DISTANCE, 0.0)
 	_charge.add_child(_cue)
-	_burst = _sprite(SabotageArt.burst(), 0.25)
+	_burst = _sprite(SabotageArt.burst(), BURST_START / float(SabotageArt.burst().get_width()))
 	_burst.name = "Burst"
 	_burst.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	_burst.visible = false
@@ -197,7 +209,7 @@ func apply(state: Dictionary, carriers: Dictionary, viewer_team: String) -> void
 	var hidden_carry: bool = status == "carried" and (carrier_id == _first_person or _carrier == null)
 	_sprite_hidden = status == "carried" and not SabotageState.shows_carrier(viewer_team)
 	_charge.visible = not hidden_carry and status != "detonated"
-	_charge_sprite.pixel_size = CARRIED_PIXEL if status == "carried" else CHARGE_PIXEL
+	_charge_sprite.pixel_size = _charge_pixel(CARRIED_WIDTH if status == "carried" else CHARGE_WIDTH)
 	_charge_sprite.layers = ArenaSky.ACTOR_LAYERS if status == "carried" else ArenaSky.WORLD_LAYERS
 	_charge_light.layers = _charge_sprite.layers
 	if _carrier == null:
@@ -283,7 +295,7 @@ func _process(delta: float) -> void:
 		_burst_left = maxf(_burst_left - delta, 0.0)
 		var t: float = 1.0 - _burst_left / BURST_SECONDS
 		_burst.visible = _burst_left > 0.0
-		_burst.pixel_size = lerpf(0.12, 0.6, t)
+		_burst.pixel_size = lerpf(BURST_START, BURST_END, t) / float(_burst.texture.get_width())
 		_burst.modulate = Color(1.0, 1.0, 1.0, 1.0 - t * t)
 		_burst_light.light_energy = 14.0 * (1.0 - t)
 		_charge.visible = true

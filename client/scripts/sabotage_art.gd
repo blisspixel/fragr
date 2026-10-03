@@ -4,7 +4,10 @@ extends RefCounted
 ## Placeholder pixel art for Sabotage, drawn once in code from the palette:
 ## the A and B site plates, the correction frame and the registry server, the
 ## charge and its floor ring. Nearest filtered, no mipmaps, like every other
-## pixel asset. A later art batch can replace any of these by path.
+## pixel asset. Final art replaces any of them by dropping a PNG at
+## `res://assets/sabotage/<key>.png`: plate_a, plate_b, prop_a, prop_b,
+## charge, ring and burst. The presenter sizes sprites in metres, so a larger
+## image keeps the same world size.
 
 const UNION_RED := Color("e23430")
 const BONE := Color("e8e2d6")
@@ -25,7 +28,23 @@ const GLYPHS: Dictionary = {
 	"b": ["####.", "#...#", "#...#", "####.", "#...#", "#...#", "####."],
 }
 
+const ART_DIR: String = "res://assets/sabotage/"
+
 static var _cache: Dictionary = {}
+
+
+## True when the key is ready in the cache, loading final art first if a file
+## for it exists.
+static func _cached(key: String) -> bool:
+	if _cache.has(key):
+		return true
+	var path: String = ART_DIR + key + ".png"
+	if ResourceLoader.exists(path):
+		var art: Variant = load(path)
+		if art is Texture2D:
+			_cache[key] = art
+			return true
+	return false
 
 
 static func _texture(key: String, image: Image) -> Texture2D:
@@ -56,7 +75,7 @@ static func _glyph(image: Image, letter: String, x: int, y: int, scale: int, col
 ## The floating site plate: a riveted steel sign with the letter in bone.
 static func site_plate(site: String) -> Texture2D:
 	var key: String = "plate_" + site
-	if _cache.has(key):
+	if _cached(key):
 		return _cache[key]
 	var image: Image = _blank(32, 32)
 	_rect(image, 1, 1, 30, 30, SHADOW)
@@ -72,7 +91,7 @@ static func site_plate(site: String) -> Texture2D:
 ## The objective a site guards: A is a correction frame, B a registry server.
 static func site_prop(site: String) -> Texture2D:
 	var key: String = "prop_" + site
-	if _cache.has(key):
+	if _cached(key):
 		return _cache[key]
 	var image: Image = _blank(24, 32)
 	if site == "a":
@@ -103,7 +122,7 @@ static func site_prop(site: String) -> Texture2D:
 ## The charge: a taped satchel with a timer box. The light is drawn apart so
 ## it can blink without a new texture.
 static func charge() -> Texture2D:
-	if _cache.has("charge"):
+	if _cached("charge"):
 		return _cache["charge"]
 	var image: Image = _blank(16, 12)
 	_rect(image, 1, 3, 14, 8, OLIVE)
@@ -120,7 +139,7 @@ static func charge() -> Texture2D:
 ## The charge's timer light, lit or dark.
 static func charge_light(color: Color) -> Texture2D:
 	var key: String = "light_" + color.to_html()
-	if _cache.has(key):
+	if _cached(key):
 		return _cache[key]
 	var image: Image = _blank(4, 4)
 	_rect(image, 1, 0, 2, 4, color)
@@ -130,7 +149,7 @@ static func charge_light(color: Color) -> Texture2D:
 
 ## A dashed ring for a plant area, laid flat on the floor.
 static func plant_ring() -> Texture2D:
-	if _cache.has("ring"):
+	if _cached("ring"):
 		return _cache["ring"]
 	var size: int = 64
 	var image: Image = _blank(size, size)
@@ -149,7 +168,7 @@ static func plant_ring() -> Texture2D:
 
 ## A blocky burst for the detonation, white hot at the centre.
 static func burst() -> Texture2D:
-	if _cache.has("burst"):
+	if _cached("burst"):
 		return _cache["burst"]
 	var size: int = 32
 	var image: Image = _blank(size, size)
