@@ -272,7 +272,10 @@ impl GameState {
             return;
         };
         let g = prepared.geometry.clone();
+        // The rescue follows its ordered predecessors. Every reader rejects
+        // released workers before the paint bay's lesson is complete.
         let release = self.encounters.is_complete(prepared.rescue_encounter)
+            && run.m05.as_ref().is_some_and(|p| p.index >= 2)
             && self.players.iter().any(|p| {
                 p.is_participant()
                     && p.hp > 0
@@ -505,18 +508,22 @@ impl GameState {
             tracing::info!("Freight platform gate opened");
             return;
         }
+        let inside = |region: &crate::protocol::Region3| {
+            self.players.iter().any(|p| {
+                p.is_participant()
+                    && p.hp > 0
+                    && p.respawn_timer.is_none()
+                    && run.ready.contains(&p.id)
+                    && region.contains([p.x, p.y - PLAYER_FLOOR_Y, p.z])
+            })
+        };
         let advance = p.index < 6
             && self.encounters.is_complete(prepared.encounters[p.index])
-            && match &prepared.geometry.objectives[p.index].action {
-                MissionObjectiveAction::Arrival { region, .. } => self.players.iter().any(|p| {
-                    p.is_participant()
-                        && p.hp > 0
-                        && p.respawn_timer.is_none()
-                        && run.ready.contains(&p.id)
-                        && region.contains([p.x, p.y - PLAYER_FLOOR_Y, p.z])
-                }),
-                _ => false,
-            };
+            && (matches!(&prepared.geometry.objectives[p.index].action,
+                MissionObjectiveAction::Arrival { region, .. } if inside(region))
+                || super::arrival_passed(&self.encounters, &prepared.encounters, p.index, || {
+                    inside(&prepared.geometry.boarding)
+                }));
         if advance {
             if let Some(run) = &mut self.mission {
                 if let Some(p) = &mut run.m05 {

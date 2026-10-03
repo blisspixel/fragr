@@ -726,6 +726,7 @@ pub async fn run_bot(
     let mut record: Option<fragr_server::protocol::PlayerRecord> = None;
     let mut navigation = None;
     let mut navigator = fragr_server::navigation::Navigator::default();
+    let mut stall = crate::plan::StallWatch::default();
     let mut mission_client = fragr_server::mission::MissionClient::default();
     let mut mission_geometry = None;
     let mut timeline = config.timeline_path.as_ref().map(|_| Timeline::default());
@@ -939,6 +940,12 @@ pub async fn run_bot(
                         fragr_server::inventory::control_action_with_target_filter(id, snapshot, loadout.as_ref(), action, true, |mine, other| target_visible(world, mine, other))
                     } else {
                         fragr_server::inventory::control_action_with_objective(id, snapshot, loadout.as_ref(), action, snapshot.flags.is_some())
+                    };
+                    let action = if mission_client.state.as_ref().is_some_and(|state| !matches!(state.phase, MissionPhase::Briefing | MissionPhase::Departed)) {
+                        stall.apply(id, snapshot, action)
+                    } else {
+                        stall = crate::plan::StallWatch::default();
+                        action
                     };
                     let intent = action.clone();
                     let action = navigation.as_ref().map_or_else(Action::default, |world| {

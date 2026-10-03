@@ -10,6 +10,7 @@
     {"id":"landing_bullets","feet":[-17,0.5,-28],"grant":{"kind":"ammo","pool":"bullets","amount":20},"claim":"contested"},
     {"id":"guard_room_scatter","feet":[-2.1,3,-31],"grant":{"kind":"weapon","weapon":"scatter"},"claim":"personal"},
     {"id":"guard_room_shells","feet":[-2.3,3,-27.8],"grant":{"kind":"ammo","pool":"shells","amount":8},"claim":"contested"},
+    {"id":"gallery_medkit","feet":[-2.2,3,-29.4],"grant":{"kind":"health","amount":25},"claim":"contested"},
     {"id":"antechamber_medkit","feet":[-11,0,-20],"grant":{"kind":"health","amount":25},"claim":"contested"},
     {"id":"ward_bullets","feet":[-6,0,-10],"grant":{"kind":"ammo","pool":"bullets","amount":20},"claim":"contested"},
     {"id":"floor_shells","feet":[-4,0,-5],"grant":{"kind":"ammo","pool":"shells","amount":8},"claim":"contested"},

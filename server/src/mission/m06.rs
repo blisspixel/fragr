@@ -174,7 +174,25 @@ impl GameState {
             && self
                 .encounters
                 .is_complete(prepared.encounters[progress.index])
-            && arrived(&prepared.geometry.objectives[progress.index].action);
+            && (arrived(&prepared.geometry.objectives[progress.index].action)
+                || super::arrival_passed(
+                    &self.encounters,
+                    &prepared.encounters,
+                    progress.index,
+                    || {
+                        self.players.iter().any(|p| {
+                            p.is_participant()
+                                && p.hp > 0
+                                && p.respawn_timer.is_none()
+                                && run.ready.contains(&p.id)
+                                && prepared.geometry.boarding.contains([
+                                    p.x,
+                                    p.y - PLAYER_FLOOR_Y,
+                                    p.z,
+                                ])
+                        })
+                    },
+                ));
         if mark || advance {
             if let Some(run) = &mut self.mission {
                 if let Some(progress) = &mut run.m06 {

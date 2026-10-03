@@ -18,6 +18,13 @@ pub const KITE_RANGE: f32 = 8.0;
 pub const PUSH_RANGE: f32 = 25.0;
 /// Only a nearby exposed guard interrupts authored campaign traversal.
 pub const CAMPAIGN_ENGAGE_RANGE: f32 = 20.0;
+/// An awake guard is answered out to the distance a campaign enemy can see a
+/// participant. Sweepers fire from 24 metres; an agent that only answered at
+/// 20 stood in the open until it died.
+pub const CAMPAIGN_THREAT_RANGE: f32 = 32.0;
+/// Stop closing in once a visible target is this share of the held weapon's
+/// reach away, and shoot from there instead of routing past it.
+pub const CAMPAIGN_HOLD_SHARE: f32 = 0.75;
 /// Head for health below this HP when a pad is available.
 pub const LOW_HP: i32 = 40;
 /// Prefer scatter inside this distance.
@@ -415,6 +422,38 @@ pub fn campaign_micro_action_with_solids(
     world: &Navigation,
     solids: Option<&[fragr_server::movement::Solid]>,
 ) -> Action {
+    let mut action = campaign_micro_action_unheld(plan, me, snapshot, world, solids);
+    // A guard already in view and within reach is shot from here. Pushing on
+    // made the shared router walk a long way round to a guard on a roof or a
+    // gallery, with the trigger released for the whole detour.
+    if plan.stance == Stance::PushEnemy && action.fire {
+        let target = action.look_at.as_ref().and_then(|aim| aim.player_id);
+        let mine = snapshot.players.iter().find(|player| player.id == me);
+        let other = target.and_then(|id| snapshot.players.iter().find(|player| player.id == id));
+        if let (Some(mine), Some(other)) = (mine, other) {
+            let held = action
+                .weapon_swap
+                .or_else(|| parse_weapon(&mine.weapon))
+                .unwrap_or_default();
+            let distance = (other.x - mine.x).hypot(other.z - mine.z);
+            if distance <= held.range_units() * CAMPAIGN_HOLD_SHARE {
+                let (left, right) = strafe(snapshot.tick);
+                action.forward = false;
+                action.left = left;
+                action.right = right;
+            }
+        }
+    }
+    action
+}
+
+fn campaign_micro_action_unheld(
+    plan: &Plan,
+    me: Uuid,
+    snapshot: &Snapshot,
+    world: &Navigation,
+    solids: Option<&[fragr_server::movement::Solid]>,
+) -> Action {
     micro_action_with_visibility(
         plan,
         me,
@@ -479,10 +518,111 @@ pub fn campaign_enemy_engageable_with_solids(
     other: &fragr_server::protocol::PlayerState,
     solids: Option<&[fragr_server::movement::Solid]>,
 ) -> bool {
-    if (other.x - mine.x).hypot(other.z - mine.z) > CAMPAIGN_ENGAGE_RANGE {
+    let distance = (other.x - mine.x).hypot(other.z - mine.z);
+    let reach = if campaign_enemy_awake(other) {
+        CAMPAIGN_THREAT_RANGE
+    } else {
+        CAMPAIGN_ENGAGE_RANGE
+    };
+    if distance > reach {
         return false;
     }
     target_visible_with_solids(world, mine, other, solids)
+}
+
+/// A Union body that has started its own fight: walking, aiming, shooting,
+/// recovering or stunned. A quiet idle guard is not yet a threat.
+fn campaign_enemy_awake(other: &fragr_server::protocol::PlayerState) -> bool {
+    use fragr_server::protocol::{CampaignActor, EnemyPhase};
+    matches!(
+        other.campaign,
+        Some(CampaignActor::Union { phase, .. })
+            if !matches!(phase, EnemyPhase::Idle | EnemyPhase::Dead)
+    )
+}
+
+/// Ticks an agent may stand still with no target before it goes looking.
+pub const CAMPAIGN_STALL_TICKS: u64 = 400;
+/// How long one search lasts before the agent rechecks its surroundings.
+pub const CAMPAIGN_HUNT_TICKS: u64 = 600;
+
+/// A campaign stall breaker. A required group can end with a guard standing
+/// out of sight, and the objective then waits for a fight nobody resumes.
+/// After standing still with nothing to shoot, the agent walks toward the
+/// nearest living Union body it was told about; combat takes over once that
+/// guard is in view. Positions come from the ordinary snapshot.
+#[derive(Debug, Default, Clone)]
+pub struct StallWatch {
+    anchor: Option<[f32; 3]>,
+    since: u64,
+    hunt: Option<(Uuid, u64)>,
+}
+
+impl StallWatch {
+    /// Adjust one campaign action after the agent's own targeting.
+    pub fn apply(&mut self, me: Uuid, snapshot: &Snapshot, mut action: Action) -> Action {
+        let Some(mine) = snapshot.players.iter().find(|p| p.id == me && p.hp > 0) else {
+            *self = Self::default();
+            return action;
+        };
+        let here = [mine.x, mine.y, mine.z];
+        let targeted = action
+            .look_at
+            .as_ref()
+            .is_some_and(|aim| aim.player_id.is_some());
+        let moved = self
+            .anchor
+            .is_none_or(|anchor| (anchor[0] - here[0]).hypot(anchor[2] - here[2]) > 1.0);
+        if targeted || moved {
+            self.anchor = Some(here);
+            self.since = snapshot.tick;
+        }
+        if targeted {
+            self.hunt = None;
+            return action;
+        }
+        let living = |id: Uuid| {
+            snapshot
+                .players
+                .iter()
+                .any(|p| p.id == id && p.hp > 0 && mine.is_hostile_to(p))
+        };
+        if self
+            .hunt
+            .is_some_and(|(id, until)| snapshot.tick > until || !living(id))
+        {
+            self.hunt = None;
+            self.anchor = Some(here);
+            self.since = snapshot.tick;
+        }
+        if self.hunt.is_none() && snapshot.tick.saturating_sub(self.since) >= CAMPAIGN_STALL_TICKS {
+            self.hunt = snapshot
+                .players
+                .iter()
+                .filter(|p| p.hp > 0 && mine.is_hostile_to(p))
+                .min_by(|a, b| {
+                    (a.x - mine.x)
+                        .hypot(a.z - mine.z)
+                        .total_cmp(&(b.x - mine.x).hypot(b.z - mine.z))
+                })
+                .map(|p| (p.id, snapshot.tick + CAMPAIGN_HUNT_TICKS));
+        }
+        if let Some((id, _)) = self.hunt {
+            action.look_at = Some(LookAt {
+                player_id: Some(id),
+                x: None,
+                y: None,
+                z: None,
+            });
+            action.forward = true;
+            action.fire = false;
+        }
+        action
+    }
+
+    pub fn hunting(&self) -> Option<Uuid> {
+        self.hunt.map(|(id, _)| id)
+    }
 }
 
 /// Actor geometry visibility without a mode's separate engagement radius.
@@ -734,6 +874,144 @@ mod tests {
         snap.players[2].x = 24.0;
         snap.players[2].z = 20.0;
         assert!(through_inventory(&snap).look_at.is_none());
+    }
+
+    #[test]
+    fn campaign_answers_an_awake_guard_out_to_its_sight_and_holds_to_shoot() {
+        use fragr_server::protocol::{CampaignActor, EnemyKind, EnemyPhase};
+        let me = Uuid::from_u128(1);
+        let foe = Uuid::from_u128(2);
+        let mut mine = player("me", me, 0.0, 0.0, 100, "flechette");
+        mine.campaign = Some(CampaignActor::Participant {});
+        let guard_in = |phase: EnemyPhase, x: f32| {
+            let mut guard = player("sweeper", foe, x, 0.0, 80, "flechette");
+            guard.campaign = Some(CampaignActor::Union {
+                kind: EnemyKind::Sweeper,
+                phase,
+                phase_started: 0,
+                phase_ends: 0,
+                seated: false,
+            });
+            guard
+        };
+        let world = Navigation::new(Arena {
+            half: 48.0,
+            solids: vec![],
+        })
+        .unwrap();
+        // The M06 Railgun lane: a Sweeper firing from 24 metres used to
+        // outrange the agent's 20 metre engagement and won every time.
+        let firing = snapshot(
+            1,
+            vec![mine.clone(), guard_in(EnemyPhase::Windup, 24.0)],
+            vec![],
+        );
+        assert_eq!(campaign_target(me, &firing, &world).unwrap().id, foe);
+        let idle = snapshot(
+            1,
+            vec![mine.clone(), guard_in(EnemyPhase::Idle, 24.0)],
+            vec![],
+        );
+        assert!(
+            campaign_target(me, &idle, &world).is_none(),
+            "a quiet distant guard still does not interrupt the route"
+        );
+        let beyond = snapshot(
+            1,
+            vec![mine.clone(), guard_in(EnemyPhase::Firing, 33.0)],
+            vec![],
+        );
+        assert!(campaign_target(me, &beyond, &world).is_none());
+
+        // A visible guard within reach is shot from where the agent stands.
+        let push = Plan {
+            stance: Stance::PushEnemy,
+            ..Plan::default()
+        };
+        let held = campaign_micro_action(&push, me, &firing, &world);
+        assert!(
+            held.fire && !held.forward,
+            "hold and shoot at 24 metres with a Rifle"
+        );
+        assert_eq!(held.look_at.unwrap().player_id, Some(foe));
+        let far = snapshot(1, vec![mine, guard_in(EnemyPhase::Moving, 31.0)], vec![]);
+        let closing = campaign_micro_action(&push, me, &far, &world);
+        assert!(
+            closing.forward,
+            "beyond three quarters of the Rifle's reach the agent still closes"
+        );
+    }
+
+    #[test]
+    fn stalled_campaign_agent_goes_looking_for_the_nearest_hidden_guard() {
+        use fragr_server::protocol::{CampaignActor, EnemyKind, EnemyPhase};
+        let me = Uuid::from_u128(1);
+        let near = Uuid::from_u128(2);
+        let far = Uuid::from_u128(3);
+        let mut mine = player("me", me, -13.0, 35.5, 100, "flechette");
+        mine.campaign = Some(CampaignActor::Participant {});
+        let guard = |id: Uuid, x: f32, z: f32| {
+            let mut guard = player("guard", id, x, z, 60, "tack");
+            guard.campaign = Some(CampaignActor::Union {
+                kind: EnemyKind::Clerk,
+                phase: EnemyPhase::Idle,
+                phase_started: 0,
+                phase_ends: 0,
+                seated: false,
+            });
+            guard
+        };
+        let at = |tick: u64, players| {
+            let mut snap = snapshot(1, players, vec![]);
+            snap.tick = tick;
+            snap
+        };
+        let players = vec![
+            mine.clone(),
+            guard(near, 10.0, 24.5),
+            guard(far, 30.0, -30.0),
+        ];
+        let mut watch = StallWatch::default();
+        let idle = Action::default();
+        // Waiting at the locomotive while the last train guard idles out of
+        // sight: nothing happens until the stall window passes.
+        let early = watch.apply(me, &at(100, players.clone()), idle.clone());
+        assert!(early.look_at.is_none() && watch.hunting().is_none());
+        let late = watch.apply(
+            me,
+            &at(100 + CAMPAIGN_STALL_TICKS, players.clone()),
+            idle.clone(),
+        );
+        assert_eq!(late.look_at.unwrap().player_id, Some(near));
+        assert!(late.forward && !late.fire);
+
+        // Seeing the guard hands control back to ordinary combat.
+        let seen = Action {
+            look_at: Some(LookAt {
+                player_id: Some(near),
+                ..LookAt::default()
+            }),
+            fire: true,
+            ..Action::default()
+        };
+        let fighting = watch.apply(me, &at(600, players.clone()), seen);
+        assert!(fighting.fire && watch.hunting().is_none());
+
+        // A search ends with its time bound and the window starts again.
+        let mut moving = mine.clone();
+        let mut watch = StallWatch::default();
+        watch.apply(me, &at(0, players.clone()), idle.clone());
+        watch.apply(me, &at(CAMPAIGN_STALL_TICKS, players.clone()), idle.clone());
+        assert_eq!(watch.hunting(), Some(near));
+        moving.x += 5.0;
+        let mut walked = players.clone();
+        walked[0] = moving;
+        let expired = CAMPAIGN_STALL_TICKS + CAMPAIGN_HUNT_TICKS + 1;
+        assert!(watch
+            .apply(me, &at(expired, walked), idle)
+            .look_at
+            .is_none());
+        assert!(watch.hunting().is_none());
     }
 
     #[test]

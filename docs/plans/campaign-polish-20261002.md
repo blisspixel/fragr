@@ -66,6 +66,32 @@ smokes, the six-map roster and `tools/godot_check.sh` under the render lock.
 - Remaining items are ones automation cannot judge, phrased as specific things
   for a human playthrough to watch.
 
+## Measurements
+
+The free local-rules agent (`fragr-brain --provider local`) played each level's
+own map file on a private server with `--campaign-run`, zero bots and a 420 to
+900 second limit. It aims accurately and moves fast, so its clear times are far
+below a person's and say nothing about pacing. Its deaths, stalls and
+disconnects are mechanical findings. Cells read deaths, then seconds to a
+departure; `fail` means all continues spent. M02 here starts from its practice
+entry with fists, not a carried M01 loadout.
+
+| Level | Standard 42, main | Severe 7, main | Assisted 1234, main | Standard 42, fixed | Severe 7, fixed | Assisted 1234, fixed |
+|---|---|---|---|---|---|---|
+| M01 | 0, 46 s | 0, 48 s | 0, 46 s | 0, 52 s | 0, 54 s | 0, 59 s |
+| M02 | fail (ward guards) | fail | 3, last continue | 0, 57 s | 0, 68 s | 0, 76 s |
+| M03 | stalled 900 s at 7 kills | stalled, 2 deaths | stalled at 5 kills | 0, 77 s | 0, 66 s | 0, 105 s |
+| M04 | 1, 146 s | fail | 0, 75 s | 0, 69 s | 0, 68 s | 0, 74 s |
+| M05 | 0, 60 s | disconnected | disconnected | 0, 60 s | 0, 59 s | 0, 81 s |
+| M06 | fail (Railgun lane) | fail | fail | 0, 82 s | 0, 75 s | 0, 98 s |
+
+Three more M03 seeds (Assisted 5, Severe 13, Standard 77) also depart, with
+zero, two and one deaths. Spawn to first kill was under three seconds on every
+level except M01 (five seconds): every level opens with a guard in view. A
+spectator probe found the last M03 stall: alarmed train guards walked to the
+far activation threshold, found nobody and idled there, 25 metres from the
+waiting party.
+
 ## Findings
 
 | # | Finding | Level | Evidence | Fix | Status |
@@ -79,15 +105,19 @@ smokes, the six-map roster and `tools/godot_check.sh` under the render lock.
 | 7 | After every departure the only way on was Esc, Leave, Single Player, Continue Run | 1 to 6 | Source: departed copy says `RETURN TO MENU`; boot menu needs a manual choice | A completed durable run offers `ENTER: CONTINUE THE RUN`; the boot menu starts Continue Run once the old child stops; `test_end_of_run_copy.gd`, `test_frontend.gd`, live `tools/test_m02_carry.sh` | fixed |
 | 8 | The local-rules agent never answered a Sweeper firing from 20 to 24 metres and died at the Railgun lane on every tier | 6 | Standard, Severe and Assisted brain runs: four deaths to `rail_sweeper` and `exit_heavy` | `agents/brain` answers an awake guard out to its 32 metre sight range | in progress, second PR: all three tiers cleared with zero deaths in a local run |
 | 9 | The agent ping-ponged between two idle roof guards for 15 minutes, routing round with the trigger released | 3 | Standard seed 42 brain timeline, 900 seconds at 7 kills | The agent holds and shoots a visible guard inside 75 percent of its weapon reach instead of routing past it | in progress, second PR: Severe cleared with zero deaths in a local run |
-| 10 | A guard that chased the player and lost sight idled where the trail ended, so the last required train guard was never found | 3 | Spectator probe: `train_clerk_a` stopped at `[-11, 16.7]`; Standard and Assisted agents waited at the locomotive for 6 minutes | A walking guard whose search ends walks back once to its authored post; `lost_guard_walks_back_to_its_post_once_then_waits` | in progress: four seeded M02 route tests fail with the first version, under investigation |
-| 11 | M02 started with no health before the guard room and a three-Crawler pack that can land 75 damage at once; a low-health carry and every retry restart there | 2 | Brain timelines: 75 damage in 0.4 seconds at the pack; supply list has the first medkit after it | Planned: one modest medkit beside the found Shotgun | open |
+| 10 | A guard that chased the player, or the last alarmed guard of a group, idled where its trail ended, so the last required train guard was never found | 3 | Spectator probe: `train_clerk_a` idled at `[-11, 16.7]` after a chase in one run and at the far activation threshold `[10.1, 24.5]` in another; agents waited at the locomotive for minutes | A walking guard more than 8 metres from its post walks back once when its chase ends, or when its alarm search ends and it is the last of its group standing; other alarmed guards keep their authored dispatch; `lost_guard_walks_back_to_its_post_once_then_waits` | in progress, second PR: broader versions broke three or four seeded M02 routes; this rule passes them |
+| 11 | M02 started with no health before the guard room and a three-Crawler pack that can land 75 damage at once; a low-health carry and every retry restart there | 2 | Brain timelines: 75 damage in 0.4 seconds at the pack; supply list has the first medkit after it | A 25 HP `gallery_medkit` beside the found Shotgun, on the spawn side of the guard room trigger; `bundled_gallery_offers_healing_before_the_first_guards_wake` | in progress, second PR |
+| 12 | Releasing the M05 workshop workers before the paint bay's arrival spot published a state that both the Godot and the Rust readers reject, closing the connection | 5 | Severe and Assisted agent runs ended `invalid M05 facts` at `Splice and workshop captives rescued`; the run was abandoned | The server gates the release on the paint bay lesson, matching the readers; `m05_skipped_arrival_spots_catch_up_and_rescue_stays_readable` | in progress, second PR |
+| 13 | M04, M05 and M06 advance only when someone stands on each fight's arrival spot after it is won. A room cleared from its doorway left the objective line stale and the departure unavailable until the player found that spot again | 4 to 6 | Agent timelines; M05 spots are 2 by 2 metres; the M06 Turret spot is on the west gallery | An arrival whose fight is won also counts once the next ordered fight wakes, or for the last one once someone reaches the boarding area; order and every reader invariant are unchanged; M05 and M06 regressions | in progress, second PR |
+| 14 | The local-rules agent waited at an objective forever when the group it needed had a guard idling out of sight | 3 | Assisted 1234 agent stood at the locomotive for six minutes with two train guards alive and idle at the far threshold | After 20 seconds standing still with nothing to shoot, the agent walks toward the nearest living Union body from the snapshot for up to 30 seconds; seeing a guard hands back to ordinary combat; `stalled_campaign_agent_goes_looking_for_the_nearest_hidden_guard` | in progress, second PR: all six M03 seeds depart |
 
 ## Handoff
 
 - First PR (findings 1 to 7, client only): HUD readability, pickup labels,
   quiet badges and continuing the run from a departure.
-- Second PR in progress (findings 8 to 11): local-rules agent engagement,
-  straggler guards and the M02 opening medkit. The walk-home rule broke four
-  seeded M02 route tests; investigate before landing.
+- Second PR in progress (findings 8 to 13): local-rules agent engagement,
+  straggler guards, the M02 opening medkit, the M05 release that disconnected
+  readers, and arrival spots that catch up once the party moves on. Worktree
+  `C:/GitHub/frpo2`, branch `feat/polish-agents`, stacked on the first PR.
 - Scratch tools (not committed): a brain playtest runner and a read-only
   spectator probe that prints living Union actors.
