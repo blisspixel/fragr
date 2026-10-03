@@ -2274,6 +2274,12 @@ func _sabotage_matches(expected: Dictionary, observed: Dictionary) -> bool:
 		return false
 	if expected.has("self_fallen") and bool(expected["self_fallen"]) != (observed.get("round_state") == "Active" and not bool(observed.get("self_alive", false))):
 		return false
+	if expected.has("hud_line_contains"):
+		var manager: Node = _game_manager()
+		var hud_node: Node = manager.get("hud") if manager != null else null
+		var line: String = str(hud_node.get("sabotage_line")) if hud_node != null else ""
+		if not line.contains(str(expected["hud_line_contains"])):
+			return false
 	return true
 
 

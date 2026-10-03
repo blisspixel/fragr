@@ -65,6 +65,29 @@
       "note": "Through Mid Doors to A Frame: the site plate, the correction frame and the plant ring."
     },
     {
+      "name": "sabotage_use_prompt",
+      "camera": "first_person",
+      "walk_to": [
+        [
+          -37.0,
+          0.0,
+          -25.5
+        ]
+      ],
+      "look_at": [
+        -38.0,
+        1.0,
+        -27.0
+      ],
+      "settle_seconds": 0.4,
+      "note": "The carrier stands in A's plant area: the line's clock gives way to the hold-Use prompt.",
+      "expect_sabotage": {
+        "phase": "live",
+        "charge_status": "carried",
+        "hud_line_contains": "PLANT"
+      }
+    },
+    {
       "name": "sabotage_planting",
       "camera": "first_person",
       "hold_use": true,
@@ -72,14 +95,7 @@
       "expect_sabotage": {
         "progress_kind": "plant"
       },
-      "note": "Holding Use inside the ring: the plant bar fills under the crosshair.",
-      "walk_to": [
-        [
-          -37.0,
-          0.0,
-          -25.5
-        ]
-      ]
+      "note": "Holding Use inside the ring: the plant bar fills under the crosshair."
     },
     {
       "name": "sabotage_planted",
