@@ -184,6 +184,20 @@ func _initialize() -> void:
 		if float(loaded.get_value(parts[0], parts[1])) != limits.y:
 			push_error("test_settings: missing upper bound for " + path)
 			ok = false
+	# The frame counter is off unless asked for, and only takes its three modes.
+	var counter: RefCounted = script.new(test_path)
+	if int(counter.get_value("video", "show_fps")) != 0:
+		push_error("test_settings: the frame counter must default to off")
+		ok = false
+	counter.set_value("video", "show_fps", 2)
+	if int(counter.get_value("video", "show_fps")) != 2:
+		push_error("test_settings: frame counter mode 2 must be accepted")
+		ok = false
+	for bad: Variant in [3, -1, 1.5, "2", true]:
+		counter.set_value("video", "show_fps", bad)
+		if not counter.get_value("video", "show_fps") is int or int(counter.get_value("video", "show_fps")) != 0:
+			push_error("test_settings: an invalid frame counter mode must fall back to off: " + str(bad))
+			ok = false
 	DirAccess.remove_absolute(test_path)
 	if ok:
 		print("test_settings: PASS defaults, fallback, clamp, reset, a disk round trip, and %d tips" % int(tips.count()))

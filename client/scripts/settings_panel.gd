@@ -102,6 +102,8 @@ func show_page(page: String) -> void:
 			_slider("VERTICAL FOV", "video", "vertical_fov", 60.0, 110.0, 1.0)
 			_frame_cap()
 			_toggle("VERTICAL SYNC", "video", "vsync")
+			_option(tr("SETTINGS_SHOW_FPS"), "video", "show_fps",
+				[tr("SETTINGS_SHOW_FPS_OFF"), tr("SETTINGS_SHOW_FPS_ON"), tr("SETTINGS_SHOW_FPS_DETAIL")], [0, 1, 2])
 			_update_display_note()
 		"GRAPHICS":
 			_option(tr("SETTINGS_QUALITY"), "video", "quality",

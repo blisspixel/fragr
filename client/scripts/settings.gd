@@ -21,6 +21,7 @@ const DEFAULTS: Dictionary = {
 		"vertical_fov": 75.0,   # Preserves the original camera's rendered default.
 		"fps_cap": 0,           # 0 is uncapped
 		"vsync": false,
+		"show_fps": 0,          # 0 off, 1 FPS, 2 FPS with frame time and 1% low.
 		"resolution_height": 0, # Native fullscreen; automatic size when windowed.
 		"quality": 1,           # Performance, Balanced, High.
 		"upscaling": 0,         # Standard, FSR1, FSR2; renderer gates capability.
@@ -143,7 +144,7 @@ func set_value(section: String, key: String, value: Variant) -> void:
 	elif path == "video/resolution_height":
 		if not value is int or value not in RenderQuality.RESOLUTION_HEIGHTS:
 			value = fallback
-	elif path in ["video/quality", "video/upscaling", "controls/aim_assist"]:
+	elif path in ["video/quality", "video/upscaling", "video/show_fps", "controls/aim_assist"]:
 		if not value is int or value not in [0, 1, 2]:
 			value = fallback
 	elif section == "bindings":

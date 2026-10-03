@@ -67,6 +67,10 @@ func _ready() -> void:
 	_console.name = "FragrConsole"
 	_console.preferences = _settings
 	add_child(_console)
+	var frame_counter: PerformanceOverlay = PerformanceOverlay.new()
+	frame_counter.name = "PerformanceOverlay"
+	frame_counter.preferences = _settings
+	add_child(frame_counter)
 	if InstallCheck.requested():
 		add_child(InstallCheck.new(_local_match))
 

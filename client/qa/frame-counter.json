@@ -1,0 +1,10 @@
+{
+  "comment": "The optional frame counter in the top right corner, beside the combat feed and HUD. Fixed 1920x1080 capture window.",
+  "width": 1920,
+  "height": 1080,
+  "states": [
+    {"name":"counter_detail_overview","scene":"res://scenes/main.tscn","at_seconds":6,"camera":"overview","graphics":{"show_fps":2},"note":"Mode 2: frame rate, frame time and 1% low, clear of the combat feed."},
+    {"name":"counter_fps_first_person","camera":"first_person","graphics":{"show_fps":1},"note":"Mode 1: frame rate only, over a first-person view."},
+    {"name":"counter_off","camera":"first_person","graphics":{"show_fps":0},"note":"Off: nothing drawn."}
+  ]
+}

@@ -336,6 +336,15 @@ Its integration and acceptance evidence is recorded in that bounded plan.
    A UDP pilot still follows a matched transport comparison. Freeze Episode I
    scene wording before any capped narration or key-image batch, and measure
    local-model latency before calling the decision provider a real-time fighter.
+4. Graphics and measurement: a Doom-style graphics menu and an Ultra lighting
+   preset per [graphics options and lighting](plans/graphics-options-and-lighting.md),
+   then the player-facing rendered benchmark in the
+   [showcase plan](plans/showcase-benchmark.md), which measures every preset.
+   The optional [frame counter](plans/frame-counter.md) is the first piece.
+   The [console](plans/console.md) grows alongside: practical commands first,
+   then forged-paperwork cheats, joining servers from the console with
+   favourites, and say, team and spectator chat, then host commands and the
+   benchmark's `timedemo`.
 
 The [integrated player review](plans/m02-integrated-player-gate.md) remains
 available on its retained v0.58.0 package. Record its observations when a fresh

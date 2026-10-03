@@ -181,8 +181,10 @@ JSON. It is local history, not a public ranking or campaign save.
 
 The boot menu and in-match menu share Controls, Look, Display, Graphics and
 Audio settings. Choose resolution, quality, frame cap, VSync, field of view,
-supported FSR upscaling, sensitivity, stick response and separate master,
-radio and effects levels. Normal radio startup chooses a random populated
+supported FSR upscaling, an optional frame counter, sensitivity, stick
+response and separate master, radio and effects levels. The tilde key opens a
+console; `help` lists its commands, and `cl_showfps 0|1|2` switches the frame
+counter. Normal radio startup chooses a random populated
 station and a random track. Station and track controls remain available during
 play. Save applies a draft; Cancel discards it. The
 [display plan](plans/display-quality.md) records renderer behavior.

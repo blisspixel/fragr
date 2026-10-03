@@ -365,6 +365,18 @@ msgstr "CHUNKY"
 msgid "SETTINGS_DITHER"
 msgstr "PALETTE DITHER"
 
+msgid "SETTINGS_SHOW_FPS"
+msgstr "SHOW FPS"
+
+msgid "SETTINGS_SHOW_FPS_OFF"
+msgstr "OFF"
+
+msgid "SETTINGS_SHOW_FPS_ON"
+msgstr "FPS"
+
+msgid "SETTINGS_SHOW_FPS_DETAIL"
+msgstr "FPS + FRAME TIME"
+
 msgid "SETTINGS_GRAPHICS_NOTE"
 msgstr "Balanced and High add shadows, contact shading and lamp glow.\nWorld pixels replace FSR. Menus and the HUD stay sharp."
 
