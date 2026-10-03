@@ -279,12 +279,13 @@ plain bars, and Host voice lines for plant, defuse, detonation and the swap
 
 ## Handoff
 
-Two PRs. The first carries the server rules, wire, layout, rule bots, the
-shared controller, the adapter, the harness gates, CI and the protocol docs.
-The second carries the Godot presentation, the rendered tours and the player
-docs; its client work is on `feat/sabotage-mode` in the `frmp` worktree. Next
-there: run `tools/godot_check.sh` and the three Sabotage tours under the render
-lock, inspect the stills, then MODES, README and CHANGELOG.
+Two PRs. The first (#325, merged) carried the server rules, wire, layout,
+rule bots, the shared controller, the adapter, the harness gates, CI and the
+protocol docs. The second carries the Godot presentation, the rendered tours,
+the scripted bot's objective and the player docs, on `feat/sabotage-client`
+in the `frmp` worktree, rebased on #321 and #326. MODES, README and CHANGELOG
+are written. Next there: `tools/godot_check.sh` and the three Sabotage tours
+under the render lock, inspect the stills, then open the PR.
 Fast iteration build: `CARGO_PROFILE_RELEASE_INCREMENTAL=true
 CARGO_PROFILE_RELEASE_CODEGEN_UNITS=256 cargo build -p fragr-playtest --release
 --target-dir target/iter`, then `target/iter/release/fragr-playtest
