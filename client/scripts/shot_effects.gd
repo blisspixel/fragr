@@ -50,6 +50,7 @@ var _camera_up: Vector3 = Vector3.UP
 var _impact_mesh: ImmediateMesh = ImmediateMesh.new()
 var _impact_material: ShaderMaterial = ShaderMaterial.new()
 var _building_impacts: bool = false
+var _impact_quads: int = 0
 var _camera_clearance: float = CAMERA_CLEARANCE
 var _building_surface: bool = false
 
@@ -159,6 +160,7 @@ func clear() -> void:
 	_last_tick = -1
 	_mesh.clear_surfaces()
 	_impact_mesh.clear_surfaces()
+	_impact_quads = 0
 	visible = false
 	set_process(false)
 
@@ -184,6 +186,7 @@ func _process(delta: float) -> void:
 func _rebuild() -> void:
 	_mesh.clear_surfaces()
 	_impact_mesh.clear_surfaces()
+	_impact_quads = 0
 	visible = not _effects.is_empty()
 	set_process(visible)
 	if not visible:
@@ -348,12 +351,12 @@ func _draw_impact_sprite(effect: Effect) -> void:
 	if not _building_impacts:
 		_impact_mesh.surface_begin(Mesh.PRIMITIVE_TRIANGLES, _impact_material)
 		_building_impacts = true
+	_impact_quads += 1
 	_impact_mesh.surface_set_color(Color.WHITE)
 	for index: int in [0, 1, 2, 0, 2, 3]:
 		_impact_mesh.surface_set_uv(uvs[index])
 		_impact_mesh.surface_add_vertex(corners[index])
 
+## Impact sprites drawn by the last rebuild.
 func impact_count() -> int:
-	if _impact_mesh.get_surface_count() == 0:
-		return 0
-	return _impact_mesh.surface_get_array_len(0) / 6
+	return _impact_quads
