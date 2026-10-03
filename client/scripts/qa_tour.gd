@@ -610,8 +610,10 @@ func _run() -> void:
 			_failed = true
 		if _joined and _game_manager() != null:
 			observed["accepted_body"] = _game_manager().net_client.accepted_body
-			var feet: Vector3 = _local_feet()
-			observed["local_feet"] = [feet.x, feet.y, feet.z]
+			# A fallen Sabotage fighter has no body in the snapshot to measure.
+			if _local_human_alive(_game_manager()):
+				var feet: Vector3 = _local_feet()
+				observed["local_feet"] = [feet.x, feet.y, feet.z]
 		if is_instance_valid(_body_pawn):
 			observed["body"] = _body_pawn.get("body_kind")
 			observed["body_team"] = _body_pawn.get("team")
