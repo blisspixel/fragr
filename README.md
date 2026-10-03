@@ -15,64 +15,33 @@ See the [roadmap](docs/ROADMAP.md) for the build order and the
 
 | Choose | What you get | Start here |
 |---|---|---|
-| **Recall Notice** | The first campaign mission in development: enter Annex 67, find Latch's transfer record, fight to the custody lift. Solo runs have three mission-start continues and a local save at mission entry. | **Single Player > Recall Notice** |
-| **Calibration** | Episode 0's arena challenge against named bots, with the Host, objectives and an Auditor. | `./tools/solo_scrap.sh` |
-| **Multiplayer** | Six arenas for free-for-all or team deathmatch. Arena Duel, Directive 17 and Sector 9 also play capture the flag, and Sector 9 plays Sabotage: plant or defuse a charge, one life a round. Spectators, humans and agents share one server-owned match. | Run a server, then choose **Multiplayer**. |
+| **The campaign** | Levels 1 to 6 as one run in development, from the Annex 67 intake to the lunar port. Three continues per episode and a local save at each level's entry. | **Single Player > Recall Notice**, then **Continue Run** after each departure |
+| **Practice and Development** | Any built level on its own, without touching your run, including level 8 | **Single Player > Practice and Development** |
+| **Calibration** | Episode 0's arena challenge against named bots, with the Host, objectives and an Auditor | `./tools/solo_scrap.sh` |
+| **Multiplayer** | Six arenas for free-for-all and team deathmatch. Capture the flag on Arena Duel, Directive 17 and Sector 9. Sabotage on Sector 9: plant or defuse a charge, one life a round. Humans, agents and spectators share one server-owned match. | Run a server, then choose **Multiplayer** |
 
-Single Player also offers the M02 Persons Unknown development route, with
-Latch's rescue and saved run carry from M01. Its fresh-player acceptance and
-the rest of the campaign remain in progress.
-The planned story spans twenty shorter levels in five episodes; its current
-contract is in [CAMPAIGN.md](docs/CAMPAIGN.md). Capture the flag is playable on
-Arena Duel, Directive 17 and Sector 9; its human playtest is still open.
-Sabotage runs with `cargo run -p fragr-server --release --locked -- --mode
-sabotage --map 4 --bots 8`; its human playtest is also still open.
-Larger objective modes remain in the [roadmap](docs/ROADMAP.md).
+The levels so far, all development prototypes with fresh-player and difficulty
+acceptance still open:
 
-Source checkouts also include a [Jammer development range](server/maps/README.md)
-for the next campaign enemy: a folding transmitter with slow pulses you can
-sidestep, interrupt or block with cover. Run `cargo run -p fragr-server --locked
--- --bots 0 --map-file server/maps/test/jammer-range.json`, then connect through
-Multiplayer. This range has no campaign save or mission departure.
+1. **Recall Notice:** find Latch's transfer record and fight to the custody lift.
+2. **Persons Unknown:** the Shotgun, the Crawlers, and Latch's release.
+3. **Scheduled Service:** a daylight freight yard, the Jammer, the recall cars
+   and the train.
+4. **Notice to Vacate:** hold Low Water's market against flying Notaries.
+5. **No Forwarding Address:** grenades, the moving tram, the Heavy Sweeper and
+   the carrier.
+6. **Port of Entry:** the lunar port, the found Railgun and flankable Turrets.
+7. **Declared Goods:** the Sniper Rifle and the Ranged Sweeper play on a
+   development range now; the level itself is next.
+8. **Custodian of Record:** the Proximity Mine and the repairing Auditor, as a
+   standalone level until level 7 joins the run.
 
-**Scheduled Service** is the level 3 development prototype under **Single
-Player > Practice and Development**. Fight through a daylight freight yard,
-free optional recall cars, shoot
-the guarded transmitter pod and deliberately board the train. A completed M02
-run can continue into it with its existing equipment and remaining continues.
-Its authored route and automated evidence remain separate from fresh-player
-acceptance and final mission polish. See the [prototype plan](docs/plans/m03-scheduled-service-prototype.md).
-
-**Notice to Vacate** adds the level 4 prototype in Low Water: defend the market,
-bring down flying Notaries, open the optional clinic shutter and leave through
-the habitation court's roof stair. **Continue Run** carries a completed M03 run
-into M04 with its body, equipment, health, armor, remaining continues and recall
-car choices. Its separate **Practice and Development** entry preserves your
-campaign save. Completing M04 retains the run for **No Forwarding Address**.
-Compatible historical v2, v3, v4, v5 and v6 saves explicitly upgrade to v7
-on resume, with their exact prior bytes archived. This is an implemented
-development prototype, with fresh-player acceptance still open. See the
-[M04 plan](docs/plans/m04-notice-to-vacate-prototype.md) and
-[save behavior](docs/PLAYING.md#solo-runs-and-local-records).
-
-**No Forwarding Address**, the level 5 prototype, continues across Low Water's
-roofs, workshop, tram trench and freight platform. Counted hand grenades bounce
-on server-owned geometry and explode on a fixed fuse. Free Splice and the
-workshop captives, take the moving tram or walk its service aisle, then confront
-the Heavy Sweeper and board the carrier. Earlier recall-car, clinic and photograph
-choices carry into M05 and its retries. Departure records released workers
-separately from those physically aboard and leaves the run pending lunar
-**Port of Entry**. Fresh-player and difficulty acceptance remain open.
-See the [M05 plan](docs/plans/m05-no-forwarding-address-prototype.md).
-
-**Port of Entry** is the level 6 lunar port development prototype in
-[v0.66.0](https://github.com/blisspixel/fragr/releases/tag/v0.66.0):
-inhabited pressure rooms, cargo cover, a found Railgun, flankable Turrets and an
-optional prisoner-route marker. Continue Run carries the completed M05 exit
-and refills Episode II to three continues exactly once. Choose **Single Player >
-Practice and Development** to practice while preserving your personal run.
-Its implementation and outstanding acceptance are tracked in the
-[M06 plan](docs/plans/m06-port-of-entry-prototype.md).
+The twenty-level story in five episodes is in [CAMPAIGN.md](docs/CAMPAIGN.md),
+and the build order is in the [roadmap](docs/ROADMAP.md). Sabotage starts with
+`cargo run -p fragr-server --release --locked -- --mode sabotage --map 4 --bots 8`.
+Source checkouts also include development ranges for the Jammer, the Sniper
+Rifle and the custody devices; [server/maps/README.md](server/maps/README.md)
+lists them and how to run each one.
 
 **Custodian of Record** is the level 8 custody archive development prototype, with the
 Proximity Mine and the repairing Auditor, under **Practice and Development**
@@ -117,9 +86,10 @@ save behavior and settings are in the [playing guide](docs/PLAYING.md).
 
 ## Screenshots
 
-These four stills were recaptured and inspected on October 1 and 2, 2026.
-The arena views use the final release server build; Recall Notice's intake
-retains its October 1 capture of the same presentation. The
+These four stills were inspected for v0.67.0 on October 3, 2026. The release
+tour on the final source republished the boot menu (unchanged), the
+multiplayer page and the watched match. Recall Notice's intake keeps its
+October 2 capture with the current weapon art. The
 [visual tour](docs/screenshots/README.md) has more states and capture context.
 
 Boot menu:

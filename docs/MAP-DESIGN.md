@@ -39,6 +39,35 @@ Checks for every campaign level brief and build:
 
 If a brief reads complicated, simplify it: fewer systems, sharper fights.
 
+## Size follows the crowd
+
+Nick's rule, 2026-10-03: no giant, barren levels. A space is only as big as the
+fighters who fill it.
+
+- **Tight by default.** Campaign levels, duel and small-team maps follow Doom
+  and GoldenEye: rooms, corridors, stairs and courtyards dense enough that
+  fights keep colliding. Most fights happen inside about 40 m, so an enemy
+  stays big on screen. Every space earns its size with a fight, a route choice,
+  a pickup or secret, a landmark view, or one short breath beat.
+- **Big only when it is full.** Open fields, canyons and long fronts belong to
+  modes and levels with the population to fill them: 16 to 32 or more fighters,
+  allies fighting beside the player, and vehicles that cross the space in
+  seconds. That means Battlefield 1942 fronts, Halo's Blood Gulch, and the
+  campaign's combined-arms levels 13 and 14. Agents and bots make that
+  population possible on any server, labelled honestly as agents.
+- **Long lanes are lessons, not travel.** A long sightline exists because a
+  weapon needs it (the Rail, the Sniper Rifle), ends at an answerable position,
+  and has cover within two seconds along it.
+- **Measure emptiness.** The longest stretch without a fight, pickup or reveal
+  is reported for every level and map ([Maximum fun first](#maximum-fun-first)),
+  and the multiplayer [size table](plans/multiplayer-maps.md#1-size-by-player-count)
+  sets crossing time by player count. A small map that takes more than 25
+  seconds to cross is a big map with too few players in it.
+- **Detail where it plays.** As Dust II's designer put it, trim goes "only
+  exactly when needed, and not just as filler". Clutter that blocks movement
+  or hides a fighter is a bug. Lived-in detail sits where it marks a route,
+  names a place, or rewards a look.
+
 ## Start with purpose
 
 Before geometry, write the place's ordinary function, the player's immediate

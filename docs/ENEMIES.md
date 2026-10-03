@@ -161,6 +161,27 @@ implemented. General air routing and the Assessor's projectiles remain planned.
 The arena prototype keeps its behavior
 until a deliberate migration.
 
+## Ideas, not yet accepted
+
+Nick's ideas, recorded so they are not lost. None is designed or scheduled.
+
+- **The Outreach Unit (kamikaze RV), 2026-10-03.** A Union community-outreach
+  RV, unmanned and driven by a narrow onboard controller like the Turret, so it
+  carries no assumed personhood. It is packed with charges and barrels at the
+  player.
+  - **Tell:** headlights snap on, the horn, and a cheerful outreach jingle on
+    its loudspeaker as it accelerates. It commits to a line, the way a Crawler
+    commits to a leap.
+  - **Counterplay:**
+    - Sidestep late.
+    - Shoot the tyres to slow it.
+    - Shoot the charge to set it off early. Like a Doom barrel, that blast
+      catches nearby Union troops.
+  - **Where:** streets and roads in Low Water, the ceremonial avenue in level
+    16, and freight yards. It also suits multiplayer big-map modes.
+  - **Engine work:** bounded authored driving lanes, like the M05 tram's
+    server-owned path, before any general vehicle physics.
+
 ## Proposed Inheritance roles
 
 The wipe also absorbs all bots still under Union control. Free agents, including

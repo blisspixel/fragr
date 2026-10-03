@@ -13,84 +13,51 @@ Every item below is in exactly one state: **planned**, **in progress**, **shippe
 
 The engineering ladder for scale runs through every phase: small squads first (four to twelve fighters, the current bar), then full servers (thirty-two to sixty-four), then large agent-heavy arenas (hundreds of fighters where most are agents). Each rung has its own measurements and is not claimed until measured.
 
-## Where we are (2026-10-02)
+## Where we are (2026-10-03)
 
-Desktop packages and their release receipts are listed in
-[GitHub releases](https://github.com/blisspixel/fragr/releases). The bounded campaign buildout shipped in
-[PR #314](https://github.com/blisspixel/fragr/pull/314). M01-to-M02 run carry,
-retry, rescue and optional evacuation are integrated; CTF is playable on Arena
-Duel, Directive 17 and Sector 9. The local campaign and feel buildout implements
-a playable Jammer range with original poses and launch audio, remote participant
-interpolation, coherent spectator cameras and responsive free-agent decisions
-with CTF coordination. Continued local work adds the M03 Scheduled Service
-prototype: daylight yard, optional recall cars, guarded shootable mast, deliberate
-train departure and durable M02 carry with compatible saved-run upgrades. Its
-ordinary-input route clears all twenty-two enemies and both secrets. The M04
-Notice to Vacate prototype adds Low Water's market, optional clinic/patients,
-raised Notary combat, roof departure and durable carry into M05.
-Its ordinary-input route clears all 28 guards without a death.
-Original repair detail, animated shallow runoff and six narrated transition
-pages improve presentation. The [world/character guides](design/README.md) and
-21 appearance anchors keep later levels and scenes aligned to lore and the
-[art bible](ART_STORY_BIBLE.md). The
-[M05 increment](plans/m05-no-forwarding-address-prototype.md) adds counted
-grenades, workshop rescue, an authoritative moving tram and freight departure.
-Its actual 25-state route clears all 21 guards without a death, visits three
-secret locations, rides the moving tram and boards after a physical confirmation. All
-three freed workers reach boarding. The recorded grenade clears the chassis
-but hits no enemy; seeded tests separately prove effective covered-side damage.
-Final Rust checks passed 1206 tests and 94.25 percent unfiltered line coverage;
-the client passed 174 scripts and 81 harnesses. Current-source multiplayer,
-six-map roster, deterministic CPU benchmark and 120-second soak gates pass.
-New cash charges are $0, with 693 included audio credits consumed. The source is
-merged in PR #314. The linked plan records current rendered evidence and CI;
-the three desktop packages and install checks passed in
-[v0.65.0](https://github.com/blisspixel/fragr/releases/tag/v0.65.0).
-The narration harness follow-up in [PR #315](https://github.com/blisspixel/fragr/pull/315)
-also passes main CI. The M06 increment shipped in
-[PR #317](https://github.com/blisspixel/fragr/pull/317) and is recorded in its
-[bounded plan](plans/m06-port-of-entry-prototype.md): inhabited lunar port,
-found Railgun, flankable Turrets, retained M05 outcomes and a once-only Episode
-II refill. Current-source Rust checks pass 1244 tests and 94.31 percent
-unfiltered line coverage. The current textured ordinary-input tour completes
-all 25 states, all 21 guards and actual departure, with zero deaths, no HP lost
-and 75 armor lost. It visits three secret locations and claims one secret
-supply. Its resolved Rail hit measures 51.991994 metres; the authored 58.25-metre spacing
-is separate. Living bodies now block walking, with matching bounded prediction,
-crowd navigation and inspected stop-and-sidestep evidence. Two original story
-images, personal room textures, the shotgun cue and randomized radio startup
-are integrated. Checkpoint `054031c` passes
-[full CI](https://github.com/blisspixel/fragr/actions/runs/36963991060) and
-[PR package/install checks](https://github.com/blisspixel/fragr/actions/runs/36963991146).
-The current standard tour passes all 32 states and publishes fourteen stills;
-the thirteen-state Recall Notice room tour also passes. All four README stills
-are recaptured and inspected. Low Water's refreshed 23-state route clears all
-28 guards and confirms actual roof departure with zero deaths. The optional
-patients are released; one still queues behind the other, so final endpoint
-arrival is not claimed. The earlier client and local container gates remain
-recorded; final rebuilt-source captures and the single serialized client checker
-pass all 188 scripts and 88 harnesses with clean logs and closed processes.
-The final source passes [full PR CI](https://github.com/blisspixel/fragr/actions/runs/36981473008)
-and [three desktop package/install checks](https://github.com/blisspixel/fragr/actions/runs/36981473010).
-Source-main CI and tagged desktop publication are tracked in the
-[release closeout](plans/m06-release-closeout.md).
-Fresh-player and difficulty acceptance remain open. Current round usage is 975 included
-audio credits with a $5 equivalent reserve, plus $4.085 in new image request
-reservations and the retained prior $0.107 uncertainty. Image billing remains
-unconfirmed and new cash charges are $0. The requested
-[world texture expansion](plans/world-texture-expansion.md) adds twenty-one
-selected Earth, Moon and future offworld tiles from twenty-seven requests at
-$3.811 in bounded new reservations. Palette/seam checks and inspected lit/dim
-material previews pass. The current M06 material tour passes cleanly at
-`.agents/qa/final-m06-shipping-second/`; the eight inspected M06 gallery
-files are refreshed from it. Earlier incomplete routes and the mechanically
-completed tour with shutdown errors remain failure receipts. The affected
-captures and implementation are integrated in PR #317. A Windows CTF survey failure
-is retained rather than rerun away: the bounded
-[carrier-defense and identity-order correction](plans/ctf-seeded-body-order.md)
-passes four fixed orders and all original completion/combat-drop thresholds.
-Fresh-player acceptance and
-two-machine network evidence remain separate gates.
+[v0.67.0](https://github.com/blisspixel/fragr/releases/tag/v0.67.0) is the
+current desktop release. Main is the only branch and its CI passes. The
+[changelog](../CHANGELOG.md) lists every change; the plans linked here hold the
+evidence.
+
+**Campaign.** Levels 1 to 6 are playable development prototypes, with
+durable run carry, retries and continues. An automated
+[polish pass](plans/campaign-polish-20261002.md) sealed level geometry, fixed
+hidden arrival gates and stranded guards, and took the free local agent from 7
+to 18 of 18 level departures across three difficulties.
+
+Level 7's Sniper Rifle and Ranged Sweeper play on a development range. The
+level itself is parked in a backup with a precise handoff in the
+[level 7 plan](plans/l07-declared-goods-prototype.md). Level 8, Custodian of
+Record, is a standalone development prototype with the Proximity Mine and the
+repairing Auditor ([level 8 plan](plans/l08-custodian-of-record-prototype.md)),
+and it joins the run once level 7 lands. Fresh-player and difficulty
+acceptance remain open for every level.
+
+**Multiplayer.** Deathmatch, team deathmatch, GoldenEye-style mutators,
+capture the flag on three arenas, and [Sabotage](plans/sabotage-mode.md) on
+Sector 9. In Sabotage, rule bots and agents play both sides, plant and defuse.
+A recorded human session on two machines remains open.
+
+**Presentation.**
+- Two art passes ([1](plans/art-pass-20261002.md),
+  [2](plans/art-pass-2-20261002.md)): coherent weapon frames with fire and pump
+  frames, drawn pickups, health and armour icons, a redrawn Rifle, and
+  per-weapon muzzle flashes and impacts.
+- A [sound pass](plans/sound-pass-20261002.md): a layered 48 kHz Shotgun with a
+  pump cycle, rebalanced guns, per-weapon impacts and enemy windup tells.
+- An optional [frame counter](plans/frame-counter.md).
+
+Characters are still assembled from primitive shapes, and maps are still
+mostly boxes. [Art excellence](plans/art-excellence.md) proposes the fix and
+waits on Nick's choices.
+
+**Spend, 2026-10-02 round** (Nick authorized $20):
+- Higgsfield: about $5.82 of prepaid credit by estimate, across 58 completed
+  requests in art passes 1 and 2.
+- ElevenLabs: included plan credits only, about 2,740 estimated for the sound
+  pass.
+- No new cash charges.
 
 **Shipped and proven on the tip:**
 
@@ -102,21 +69,22 @@ two-machine network evidence remain separate gates.
 - Live tip screenshots, a one-command Solo Scrap launcher, self-host guides, and plan-only GCP Terraform.
 - v0.34.0 through v0.45.0 are recorded in [the changelog](../CHANGELOG.md). In short: Recall Notice's routes, exit, optional supplies and durable local runs; connection and frame caps; `GET /status`; join tickets; pawn resume; player-facing gun names and cycling; campaign-aware agent control; and bounded spectator delivery. The README stills show current play.
 - v0.46.0 through v0.57.1 (2026-09-24 to 26): host hardening (idle pings, kicks, ban and allow lists, an audit log), localized kick messages, downloadable Windows, Linux and macOS packages on every tag with an original icon, spawn cover on maps 3 to 5, the M02 fight graybox and 120 Hz input pacing, Doom-style ammo with a seven-pellet shotgun, the black and red Union with the Heavy Sweeper and the Turret on a test range, status health metrics with a soak harness, keyboard-only, mouse and gamepad controls with rebinding and aim assist, the first lighting pass, the M01 secret Shiv, a data-driven story scene player, host-chosen rule sets with team deathmatch and GoldenEye-style mutators, the salvaged opening stills, free local decision models for the reference agent, human or embodied agent bodies, and a round opening spawn shield.
+- v0.58.0 through v0.67.0 (2026-09-27 to 2026-10-03): local pawn prediction, capture the flag on three arenas, campaign levels 3 to 6 and the standalone level 8 as development prototypes, counted grenades, the moving tram, living-body contact, the Sniper Rifle, Ranged Sweeper, Proximity Mine and Auditor, Sabotage, two art passes, a sound pass and the frame counter. The changelog has the details.
 - Two developer-only generation pipelines: `tools/audiogen` for audio and `tools/spritegen` for art. Audio uses per-run estimate caps and requires quota reconciliation; art has durable request reservations. Neither replaces asset review. The first art slice produced twenty-four frames for sixty-nine cents, with surfaces rejected.
 - The setting has three sides: the Union/Chancellery, free humans and conscious agents with agency, and the Inheritance. The Inheritance's ecological recovery and mass killing leave conflicting survivor perspectives, not a narrator's declaration that it is right. `docs/lore/` owns the world and voice; bodies do not establish who has freedom or whose suffering matters.
 
-**Generated art and audio:** twenty-four initial sprite frames (ten weapon
-viewmodels, six enemies, four effects, four rejected surfaces), plus a weapon
-bake-off. Three locally prepared idle viewmodels are now integrated. The remaining
-frames need integration. Twelve Chancellery addresses remain under story and
+**Generated art and audio:** art passes 1 and 2 are integrated with manifests
+(58 completed requests). The 2026-09-19 slice was judged unusable and is not
+integrated. The sound pass is integrated, with a listening page in the backups
+for Nick. Twelve Chancellery addresses remain under story and
 language review. The old ten-part epilogue and the news/PSA/ad clips still ship
 on the radio; a developer review tool that would have quarantined them was
 never merged, and radio is now a minor part of the game. Two stills from an
 earlier opening batch are in the M01 opening ([scene plan](plans/campaign-scenes.md#salvaged-opening-assets-2026-09-26)).
-The old radio-only ending cannot be integrated as the new campaign's actual ending. The initial art receipt was $0.69; current remaining provider credit
-must be checked before any new call rather than inferred from that old balance.
+The old radio-only ending cannot be integrated as the new campaign's actual ending. Higgsfield has no balance endpoint, so check the dashboard before any new
+batch; Nick reported $8.08 remaining before art pass 2.
 
-**Not built yet (honest list):** low-latency transport (WebSocket JSON only; local human prediction shipped in v0.58.0), campaign-actor timeline interpolation and bounded lag compensation, a complete protocol migration policy (geometry and gameplay admission exist), unlimited lifetime statistics, progression, DJ bumpers and a voiced Host, a finished single-player campaign or full co-op lifecycle, a complete art pass, public-server load tests, any cloud apply, general vehicles beyond the bounded authored tram and recall cars, and Rescue, Sabotage and combined-arms modes. Sector 9 capture the flag is playable. `GET /status` on the game port is a host probe in the current line of work, not an in-app server browser and not a web client. M01 has a developing discovery/combat/mission slice; Episode 0 remains a separate arena prototype. A deterministic local benchmark already exists; it does not establish public-server readiness. Frame caps, connection caps, and the inbound message budget shipped in v0.35.0.
+**Not built yet (honest list):** low-latency transport (WebSocket JSON only; local human prediction shipped in v0.58.0), campaign-actor timeline interpolation and bounded lag compensation, a complete protocol migration policy (geometry and gameplay admission exist), unlimited lifetime statistics, progression, DJ bumpers and a voiced Host, a finished single-player campaign or full co-op lifecycle, a complete art pass, public-server load tests, any cloud apply, general vehicles beyond the bounded authored tram and recall cars, Rescue and combined-arms modes, level 7 integrated into the run, levels 9 to 20, the end-of-level tally, the planned console, graphics options and rendered benchmark, directional combat audio, and modelled characters and architecture. `GET /status` on the game port is a host probe in the current line of work, not an in-app server browser and not a web client. M01 has a developing discovery/combat/mission slice; Episode 0 remains a separate arena prototype. A deterministic local benchmark already exists; it does not establish public-server readiness. Frame caps, connection caps, and the inbound message budget shipped in v0.35.0.
 
 **Decided 2026-09-25:** the campaign is twenty levels in five episodes, per the
 [expansion plan](plans/campaign-expansion.md), now the contract in
@@ -294,83 +262,66 @@ The phases below are the long shape. The sequence that follows is the build orde
 
 **Active goal:** build the agreed game through a proven 1.0. That is Recall Notice as the quality bar, then each later mission on systems the whole campaign reuses, then local prediction before the first long Rail lane, then the wipe and its conditional epilogue, then a LAN proof, then an exposed server. Cloud apply, matchmaking, and conquest-scale vehicles stay behind that server. The story spine in [`CAMPAIGN.md`](CAMPAIGN.md) is settled. Names, rescue tradeoffs, wipe operations, and the reprieve's exact terms stay proposals until the gate that needs them. Mission briefs live in [`CAMPAIGN-MISSIONS.md`](CAMPAIGN-MISSIONS.md) and [one plan per level](campaign/README.md). Geometry comes from the mission, not from an arena layout. The six current layouts stay playable foundations. Boltgun remains the visual bar for a played sequence, not a reason to generate the roster before the first two enemies read. Every rung serves the [easy to pick up, deep to master pillar](VISION.md#easy-to-pick-up-deep-to-master): fights and flow first, at most three doors a level.
 
-**Next, as of 2026-10-02.** Nick authorized parallel research and development,
-with at most $20 combined external charges this round, and explicitly removed
-human feedback as a prerequisite for development. The integrated campaign and
-CTF systems, including M03-M05 in PR #314 and M06 in PR #317, are on main.
-The [v0.66.0 release closeout](plans/m06-release-closeout.md) ends this
-development round as requested. Human and remote-network acceptance remain open evidence.
-The following sequence is future work, with supporting lanes alongside campaign work:
+**Next, as of 2026-10-03.** The order is set by what most raises fun and
+quality for the work. At most two agents run at once. Every level, built or planned,
+must pass the [maximum-fun checks](MAP-DESIGN.md#maximum-fun-first). Every
+map follows [size follows the crowd](MAP-DESIGN.md#size-follows-the-crowd) and
+the multiplayer [rule sheet](plans/multiplayer-maps.md#rule-sheet). Every
+asset meets the [art bar](ART_STORY_BIBLE.md#north-star).
 
-The [campaign and feel buildout](plans/campaign-and-feel-buildout.md) supplies
-the local Jammer foundation, presentation and free-agent increments at $0.
-Its integration and acceptance evidence is recorded in that bounded plan.
+0. **Nick plays v0.67.0.** About an hour across levels 1 to 6, Sabotage with
+   bots and capture the flag, using the watch list in the
+   [polish plan](plans/campaign-polish-20261002.md).
+   *Why:* automation proved the routes work; only a person can say whether it
+   is fun. Twenty levels built on an unproven loop would multiply its faults.
+1. **Finish what is started.**
+   - Land level 7 from its bundle: fix the patrol that holds its porches,
+     then run the full checks.
+   - Connect the M07 to M08 carry.
+   - Land any parked art.
 
-1. The next campaign build is level 7
-   [Declared Goods](campaign/l07-declared-goods.md), currently unbuilt:
-   the curfew town and crater cut lead toward the custody depot and introduce
-   the Sniper Rifle and Ranged Sweeper, whose art the
-   [2026-10-02 art pass](plans/art-pass-20261002.md) supplies. This follows M06's actual transit exit
-   and reuses its Episode II carry, inventory, encounters, contact, story scenes
-   and measured long-lane combat. Write its bounded implementation plan before
-   beginning source or asset work. Continue M01-M06 pacing, resource pressure,
-   character motion, subjective listening and difficulty reviews alongside the
-   next increment without treating fresh-player availability as a development
-   prerequisite. The [shared world/character guides](design/README.md) govern
-   useful furnishing, lighting and water. Follow the one-new-thing-per-level
-   treatment in [CAMPAIGN-MISSIONS.md](CAMPAIGN-MISSIONS.md).
-   Level 8 [Custodian of Record](plans/l08-custodian-of-record-prototype.md) is a
-   development prototype with the Proximity Mine and the Auditor; its M07 to M08
-   carry waits for level 7, and fresh-player and difficulty acceptance stay open.
-2. Refine CTF across its three arenas with contested, multi-seed human/agent/
-   spectator automation and inspected captures. Track captures, combat drops,
-   route progress and timeouts together. Continue TDM controls regressions before
-   Rescue, Sabotage or combined-arms map work. The local
-   [attacker blocker correction](plans/ctf-attacker-blockers.md) repairs a
-   harness policy that sent Reflex attackers into armed defenders without
-   firing. Its exact contested sample now records two takes, a drop, a return
-   and one capture. Broader seeds and real sessions remain open.
-3. Continue measured WebSocket presentation and combat work, including bounded
-   lag compensation. Preserve the two-machine session for network and hardware
-   acceptance, per [TRANSPORT.md](TRANSPORT.md); local automation cannot prove it.
-   A UDP pilot still follows a matched transport comparison. Freeze Episode I
-   scene wording before any capped narration or key-image batch, and measure
-   local-model latency before calling the decision provider a real-time fighter.
-4. Graphics and measurement: a Doom-style graphics menu and an Ultra lighting
-   preset per [graphics options and lighting](plans/graphics-options-and-lighting.md),
-   then the player-facing rendered benchmark in the
-   [showcase plan](plans/showcase-benchmark.md), which measures every preset.
-   The optional [frame counter](plans/frame-counter.md) is the first piece.
-   The [console](plans/console.md) grows alongside: practical commands first,
-   then forged-paperwork cheats, joining servers from the console with
-   favourites, and say, team and spectator chat, then host commands and the
-   benchmark's `timedemo`.
+   *Why:* two levels are nearly done, and finishing beats starting.
+2. **The feel layer.**
+   - [Directional combat audio](plans/directional-combat-audio.md): near-miss
+     cracks, a damage arc, occlusion.
+   - Then [console](plans/console.md) phase 1: practical commands, voices
+     and jokes, client only.
+
+   *Why:* being shot at must read by ear and eye, which is the fun bar's
+   three-signal rule. The console is cheap, client-only depth.
+3. **[Art excellence](plans/art-excellence.md),** once Nick answers its three
+   questions. Start with the M01 facility kit and lit sprites, judged in game.
+   *Why:* primitive characters and box rooms are the largest visible gap to the
+   modern boomer shooters this game is measured against.
+4. **The fun loop.**
+   - Audit the twenty level briefs against the maximum-fun checks, and
+     simplify what reads complicated.
+   - Build the end-of-level tally: kills, secrets, deaths and time against par.
+
+   *Why:* settle the loop and the briefs before levels 9 to 20 are built.
+5. **[Graphics options and Ultra lighting](plans/graphics-options-and-lighting.md),**
+   then the player-facing [rendered benchmark](plans/showcase-benchmark.md),
+   which measures every preset.
+6. **Multiplayer depth.**
+   - Sabotage maps built to the Dust II lessons, and bots that split up and
+     fake.
+   - Rescue.
+   - The [vehicle](plans/vehicles.md) rungs toward the flagship island,
+     [Holdfast Atoll](plans/multiplayer-maps.md#17-holdfast-atoll-new-the-flagship-island-working-name).
+7. **Network.** Bounded lag compensation and a recorded two-machine session
+   before any UDP decision ([TRANSPORT.md](TRANSPORT.md)).
 
 The [integrated player review](plans/m02-integrated-player-gate.md) remains
-available on its retained v0.58.0 package. Record its observations when a fresh
-player is available. It does not gate this authorized development round.
+available. Recording a fresh player's observations is the human half of item 0.
 
-Every level, built or planned, must pass the
-[maximum-fun checks](MAP-DESIGN.md#maximum-fun-first) Nick set on 2026-10-02:
-fight early, vary encounter shapes, make weapon choice matter, use secrets and
-ambushes, keep story from blocking play, and build to one climax. Next in this
-lane:
-- Audit the twenty level briefs against these checks and simplify any brief
-  that reads complicated.
-- Build the end-of-level tally (kills, secrets, deaths and time against par)
-  that [CAMPAIGN.md](CAMPAIGN.md) lists as planned.
+Ideas recorded for later: the [Outreach Unit](ENEMIES.md#ideas-not-yet-accepted)
+kamikaze RV, and GoldenEye-style earned exemptions
+([console](plans/console.md#a-decision-for-nick)).
 
 No cloud apply, public-server claim or 1.0 controls claim follows from this
-integration. The authorized audio batch used included credits. Six possession
-and story image requests reserve $0.274; twenty-seven additional texture requests
-reserve $3.811, for $4.085 in new estimated reservations. Provider billing remains
-unconfirmed and the earlier $0.107 uncertainty is retained. Original local
-textures remain available. The round uses
-975 included audio credits with a conservative $5 audio equivalent reserve
-and $0 new cash charges. The $0 local container host is documented for
-friends; the 2026-10-01 local build, hardened runtime, legal notices and healthy
-status probe pass, with owned cleanup recorded in the M06 plan. Public admission,
-cloud cost and exposed-server testing retain their own gates.
+round. Spend for the round is in [Where we are](#where-we-are-2026-10-03). The
+$0 local container host is documented for friends; public admission, cloud
+cost and exposed-server testing keep their own gates.
 
 The server-owned traveling-shot foundation is already on main
 ([plan](plans/traveling-shot.md)). The current buildout makes it a live Jammer

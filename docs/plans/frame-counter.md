@@ -1,6 +1,6 @@
 # Frame counter
 
-**Status:** implemented in [PR #330](https://github.com/blisspixel/fragr/pull/330), 2026-10-03, with inspected rendered evidence below.
+**Status:** shipped in [PR #330](https://github.com/blisspixel/fragr/pull/330), 2026-10-03, with inspected rendered evidence below.
 **Spend:** $0.
 
 ## Goal

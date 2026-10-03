@@ -151,3 +151,15 @@ open; none is in progress.
   4.7.2 font importer; the second import succeeded. Engine behaviour, noted only.
 - Scratch tools (not committed): a brain playtest runner and a read-only
   spectator probe that prints living Union actors.
+
+## Release capture, 2026-10-03
+
+The v0.67.0 release tour ran the Port of Entry route
+(`client/qa/m06_port_of_entry.json`, seed 42, zero bots) on the final source:
+all 25 states pass through the transit departure. The stills were inspected:
+the sealed hull renders closed, with no black space through the roof.
+
+The halls read plain. Grey panelled walls repeat the same panel texture across
+the ceiling, and the cover is black boxes. That is an art gap, not a geometry
+fault, and [art excellence](art-excellence.md) owns it. The standard tour
+passes all 32 states and republishes the gallery.
