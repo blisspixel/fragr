@@ -4,14 +4,12 @@ Shipped tags, newest first. A line here is on `main`. Planned work stays in
 [docs/ROADMAP.md](docs/ROADMAP.md). Older tags are on the
 [releases page](https://github.com/blisspixel/fragr/releases).
 
-## Unreleased (frame counter, 2026-10-02)
+## v0.67.0 (2026-10-03)
 
-Display settings gain SHOW FPS: off, the frame rate, or the frame rate with
-average frame time and the 1% low, drawn small in the top right corner on the
-menus, in campaign and in multiplayer. The tilde console takes `cl_showfps 0`,
-`1` or `2` and saves the same setting.
-
-## Unreleased (Sabotage, 2026-10-02)
+Sabotage, a rebuilt Shotgun, two art passes, the Sniper Rifle, the Proximity
+Mine and the Auditor, a standalone level 8, and a polish pass over levels 1
+to 6. Every level remains a development prototype; fresh-player and difficulty
+acceptance stay open.
 
 Sabotage, the first flagship round mode, plays on Sector 9 Transit Hall. The
 free coalition carries a charge to A Frame or B Server and plants it with three
@@ -25,7 +23,29 @@ plates, the charge, its timer, the plant and defuse bars and the round card are
 pictures; the HUD keeps to one line. Start a server with
 `fragr-server --mode sabotage --map 4 --bots 8`.
 
-## Unreleased (art pass 2, 2026-10-02)
+The Shotgun has a new full-band blast and works its pump after every shot,
+finishing before the next one can fire. Guns are rebalanced so the Shotgun is
+the loudest and the Railgun no longer clips; the Pistol has its own shot.
+Resolved hits play the impact of the gun that landed. Clerks, Sweepers, Heavy
+Sweepers and Turrets announce their windups, and a Turret's charge stops when
+you break its sight. Falls, Fists and Shiv swings, pickups, an empty trigger
+and grenade throws now make sound. The Sniper Rifle, its scope and the Ranged
+Sweeper use their own cues, the marksman's tell follows its windup, and the
+curfew chime is ready for Level 7. External spend was $0.
+
+Every gun now fires with its own drawn frame and muzzle flash: the Pistol's
+slide snaps back, the Shotgun blasts and then pumps, the Railgun's coils light
+cyan. All hands wear the same brown leather work gloves, the Fists and the Shiv
+included, and a thrown grenade leaves the off hand while the gun dips out of the way.
+Pickups are drawn as their objects, a medkit, an armour vest, boxes of bullets
+and shells, a cell canister, grenades and each gun in profile, instead of
+labelled crates, and fighters hold the same profiles. Health and armour carry
+icons beside their numbers.
+
+Level 7's Sniper Rifle (first-person frames, pickup and scope overlay) and the
+Ranged Sweeper (mast antenna, long scoped rifle and a growing windup glint) are
+ready for that level to wire. Image generation used an estimated $2.76 of
+existing credit.
 
 The Rifle is repainted in the Pistol's flat grey-green enamel, so it no longer
 breaks into blotches at game scale, and its fire frame shows a bright
@@ -54,24 +74,6 @@ hands planting and defusing it in first person, and plant and defuse icons.
 The pictures used an estimated $0.95 of existing image credit, one rejected
 first draft of the charge included.
 
-## Unreleased (art pass, 2026-10-02)
-
-Every gun now fires with its own drawn frame and muzzle flash: the Pistol's
-slide snaps back, the Shotgun blasts and then pumps, the Railgun's coils light
-cyan. All hands wear the same brown leather work gloves, the Fists and the Shiv
-included, and a thrown grenade leaves the off hand while the gun dips out of the way.
-Pickups are drawn as their objects, a medkit, an armour vest, boxes of bullets
-and shells, a cell canister, grenades and each gun in profile, instead of
-labelled crates, and fighters hold the same profiles. Health and armour carry
-icons beside their numbers.
-
-Level 7's Sniper Rifle (first-person frames, pickup and scope overlay) and the
-Ranged Sweeper (mast antenna, long scoped rifle and a growing windup glint) are
-ready for that level to wire. Image generation used an estimated $2.76 of
-existing credit.
-
-## Unreleased (level 7 weapon and enemy, 2026-10-02)
-
 The Sniper Rifle and the Ranged Sweeper arrive for level 7. The Sniper Rifle is
 a found Cells weapon: 70 damage, a 1.6 second cycle, a cone that stays on a body
 out to 90 metres, and a held scope that only changes the view. The Railgun keeps
@@ -83,8 +85,6 @@ hit interrupts it. Both appear on a development range with a firing step behind
 a sill. Both wear the art pass's first-person frames, pickup, scope plate and
 marksman atlas, with an orange tracer to match the Sniper's flash, and the
 sound pass's report, scope, glint and marksman shot cues.
-
-## Unreleased (custody devices, 2026-10-02)
 
 The Proximity Mine and the campaign Auditor arrive on a new custody
 development range. A mine is thrown from the eye with its own key, sticks to
@@ -106,17 +106,18 @@ bays and Orrin's cold cabinet are optional, three secrets are marked with a
 six, and keyed text pages frame the arrival and departure. Its M07 to M08 run
 carry waits for level 7.
 
-## Unreleased (sound pass, 2026-10-02)
+A polish pass over levels 1 to 6 seals the gaps that led outside the facility
+and the lunar port. Cleared fights now count without stepping on hidden
+arrival spots, so departure is never blocked by a missed square. Guards who
+lose you walk back to their posts, level 2 gains a medkit before the Crawlers,
+and level 5 no longer disconnects when the workers are freed early. Enter
+continues your run after each departure, and the campaign HUD is quieter.
+Free local agents now depart on all 18 level and difficulty runs, up from 7.
 
-The Shotgun has a new full-band blast and works its pump after every shot,
-finishing before the next one can fire. Guns are rebalanced so the Shotgun is
-the loudest and the Railgun no longer clips; the Pistol has its own shot.
-Resolved hits play the impact of the gun that landed. Clerks, Sweepers, Heavy
-Sweepers and Turrets announce their windups, and a Turret's charge stops when
-you break its sight. Falls, Fists and Shiv swings, pickups, an empty trigger
-and grenade throws now make sound. The Sniper Rifle, its scope and the Ranged
-Sweeper use their own cues, the marksman's tell follows its windup, and the
-curfew chime is ready for Level 7. External spend was $0.
+Display settings gain SHOW FPS: off, the frame rate, or the frame rate with
+average frame time and the 1% low, drawn small in the top right corner on the
+menus, in campaign and in multiplayer. The tilde console takes `cl_showfps 0`,
+`1` or `2` and saves the same setting.
 
 ## v0.66.0 (2026-10-02)
 
