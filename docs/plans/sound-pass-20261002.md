@@ -34,8 +34,8 @@ above 12 kHz.
 
 Scatter `cooldown_ticks()` is 12 at the 20 Hz tick (`server/src/protocol.rs`),
 so the earliest next shot is 0.60 s after a blast. The pump cue must end before
-then. The first-person Shotgun has one viewmodel frame and a 0.10 s kick, so
-there is no pump motion yet.
+then. At planning time the first-person Shotgun had no pump motion; the art
+pass (#321) has since added a pump-stroke frame.
 
 ## Budget
 
@@ -77,8 +77,8 @@ and presence), a round low thump, the decay of a dense full shot, a separate
 crack and a quiet steel ring at 0.26 s. A tanh soft clip adds density, then one
 gain sets -1.05 dBTP. The pump is cut from the same shot-and-pump generation:
 two clacks 125 ms apart, starting 0.22 s after the blast and ending at 0.56 s,
-inside the 0.60 s cooldown. The first-person Shotgun has one frame and a
-0.10 s kick, so it shows no pump motion yet.
+inside the 0.60 s cooldown. The clacks land at 0.265 and 0.39 s, inside the art
+pass pump-stroke frame shown from 0.18 to 0.44 s (`weapon_art.gd`).
 
 | Cue | Rate | Length | True peak | K50 | Momentary max | First 100 ms RMS | Above 8 kHz |
 |---|---|---:|---:|---:|---:|---:|---:|
@@ -168,7 +168,8 @@ The shared account moved from 837,582 to 840,976 used across both batches
 
 ## Open
 
-Listening and in-game mix acceptance. Viewmodel pump frames. Footsteps and
+Listening and in-game mix acceptance, including the pump against the drawn
+stroke. Footsteps and
 landing with surface lookup. Lifts, gates, objective and menu cues. The import
 preset keeps the existing QOA compression for consistency; a listening pass
 should confirm the Shotgun crack survives it.
