@@ -329,8 +329,9 @@ asset meets the [art bar](ART_STORY_BIBLE.md#north-star).
    [Clerk presentation](plans/clerk-model-presentation.md) shipped on main in
    [PR #340](https://github.com/blisspixel/fragr/pull/340):
    prepared skin and gait, authored combat poses and paired normals pass local
-   checks, full CI and bounded M01/M02 played routes. Desktop release and broader
-   art acceptance stays open. [Evidence](evidence/clerk-model-20261003.md) records
+   checks, full CI and bounded M01/M02 played routes. Broader art acceptance
+   stays open. Desktop packages use the tag's release workflow.
+   [Evidence](evidence/clerk-model-20261003.md) records
    actual guard-room frames and the limits of the routes.
    The October 3 production pass adds original Sweeper and Shotgun mesh sources, a lean
    screen-faced Latch, paired Sweeper normals, shallow manufactured fixtures,

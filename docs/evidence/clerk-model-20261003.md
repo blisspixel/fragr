@@ -59,8 +59,8 @@ acceptance. Fingers and uniform variants remain candidates for further refinemen
 The Shotgun and generator from the pilot are not selected by this change, and
 the other character sources and environmental kits remain unfinished.
 
-The full local client gate passes 219 scripts and 100 harnesses. Its new source
-check also passes after the final reaction assertion, and the prepared import
+The final local client gate passes 220 scripts and 101 harnesses, including the
+Clerk follow-through and prepared Shotgun source. The prepared import
 keeps textures embedded losslessly without duplicate loose image sources. The
 armed albedo and normal cells match the recorded route's assets byte for byte.
 The subsequent unarmed correction changes its strike cells and bake receipt.

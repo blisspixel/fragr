@@ -3,8 +3,9 @@
 **Status:** shipped on main, 2026-10-03, through
 [PR #340](https://github.com/blisspixel/fragr/pull/340), after
 [full CI](https://github.com/blisspixel/fragr/actions/runs/37158959870) passed.
-Desktop package verification uses the tag's release workflow. This closes the bounded source
-selection within the existing roadmap's art rung, not broader art acceptance.
+Desktop package verification uses the tag's release workflow. This closes the
+bounded source selection within the existing roadmap's art rung, not broader
+art acceptance.
 [Rendered evidence](../evidence/clerk-model-20261003.md) records the scope.
 
 ## Goal
