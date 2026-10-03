@@ -73,13 +73,14 @@ fn authored_m08_tour_walks_every_gallery_stair_and_stage() {
         }
         for (kind, points) in [
             ("walk", state.get("walk_to")),
+            ("approach", state["combat"].get("approach_route")),
             ("search", state["combat"].get("search_route")),
         ] {
             let Some(points) = points else {
                 continue;
             };
             let points: Vec<[f32; 3]> = serde_json::from_value(points.clone()).unwrap();
-            if kind == "walk" {
+            if kind != "search" {
                 if let (Some(from), Some(to)) = (previous_end, points.first()) {
                     assert!(
                         walk(stage.arena(), from, *to),
@@ -96,7 +97,7 @@ fn authored_m08_tour_walks_every_gallery_stair_and_stage() {
                 );
                 count += 1;
             }
-            if kind == "walk" {
+            if kind != "search" {
                 previous_end = points.last().copied().or(previous_end);
             }
         }
@@ -179,6 +180,10 @@ fn m08_pacing_first_contact_and_longest_quiet_walk() {
             if state.get("combat").is_some() {
                 quiet = 0;
             }
+            if let Some(approach) = state["combat"].get("approach_route") {
+                let approach: Vec<[f32; 3]> = serde_json::from_value(approach.clone()).unwrap();
+                previous_end = approach.last().copied().or(previous_end);
+            }
             continue;
         };
         let points: Vec<[f32; 3]> = serde_json::from_value(points.clone()).unwrap();
@@ -219,6 +224,10 @@ fn m08_pacing_first_contact_and_longest_quiet_walk() {
                 .unwrap_or_else(|| panic!("{name} {from:?}->{to:?} blocked"));
         }
         previous_end = points.last().copied().or(previous_end);
+        if let Some(approach) = state["combat"].get("approach_route") {
+            let approach: Vec<[f32; 3]> = serde_json::from_value(approach.clone()).unwrap();
+            previous_end = approach.last().copied().or(previous_end);
+        }
         // A state walks first and then fights; a broken node is an action
         // beat like a fight.
         if state.get("combat").is_some()
