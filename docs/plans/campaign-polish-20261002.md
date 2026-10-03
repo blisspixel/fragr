@@ -80,15 +80,17 @@ entry with fists, not a carried M01 loadout.
 |---|---|---|---|---|---|---|
 | M01 | 0, 46 s | 0, 48 s | 0, 46 s | 0, 52 s | 0, 54 s | 0, 59 s |
 | M02 | fail (ward guards) | fail | 3, last continue | 0, 57 s | 0, 68 s | 0, 76 s |
-| M03 | stalled 900 s at 7 kills | stalled, 2 deaths | stalled at 5 kills | see below | see below | 0, 81 s |
+| M03 | stalled 900 s at 7 kills | stalled, 2 deaths | stalled at 5 kills | 0, 77 s | 0, 66 s | 0, 105 s |
 | M04 | 1, 146 s | fail | 0, 75 s | 0, 69 s | 0, 68 s | 0, 74 s |
 | M05 | 0, 60 s | disconnected | disconnected | 0, 60 s | 0, 59 s | 0, 81 s |
 | M06 | fail (Railgun lane) | fail | fail | 0, 82 s | 0, 75 s | 0, 98 s |
 
-Spawn to first kill was under three seconds on every level except M01 (five
-seconds): every level opens with a guard in view. A spectator probe found the
-remaining M03 stall: an alarmed train Clerk walked to the far activation
-threshold, found nobody and idled there, 25 metres from the waiting party.
+Three more M03 seeds (Assisted 5, Severe 13, Standard 77) also depart, with
+zero, two and one deaths. Spawn to first kill was under three seconds on every
+level except M01 (five seconds): every level opens with a guard in view. A
+spectator probe found the last M03 stall: alarmed train guards walked to the
+far activation threshold, found nobody and idled there, 25 metres from the
+waiting party.
 
 ## Findings
 
@@ -107,6 +109,7 @@ threshold, found nobody and idled there, 25 metres from the waiting party.
 | 11 | M02 started with no health before the guard room and a three-Crawler pack that can land 75 damage at once; a low-health carry and every retry restart there | 2 | Brain timelines: 75 damage in 0.4 seconds at the pack; supply list has the first medkit after it | A 25 HP `gallery_medkit` beside the found Shotgun, on the spawn side of the guard room trigger; `bundled_gallery_offers_healing_before_the_first_guards_wake` | in progress, second PR |
 | 12 | Releasing the M05 workshop workers before the paint bay's arrival spot published a state that both the Godot and the Rust readers reject, closing the connection | 5 | Severe and Assisted agent runs ended `invalid M05 facts` at `Splice and workshop captives rescued`; the run was abandoned | The server gates the release on the paint bay lesson, matching the readers; `m05_skipped_arrival_spots_catch_up_and_rescue_stays_readable` | in progress, second PR |
 | 13 | M04, M05 and M06 advance only when someone stands on each fight's arrival spot after it is won. A room cleared from its doorway left the objective line stale and the departure unavailable until the player found that spot again | 4 to 6 | Agent timelines; M05 spots are 2 by 2 metres; the M06 Turret spot is on the west gallery | An arrival whose fight is won also counts once the next ordered fight wakes, or for the last one once someone reaches the boarding area; order and every reader invariant are unchanged; M05 and M06 regressions | in progress, second PR |
+| 14 | The local-rules agent waited at an objective forever when the group it needed had a guard idling out of sight | 3 | Assisted 1234 agent stood at the locomotive for six minutes with two train guards alive and idle at the far threshold | After 20 seconds standing still with nothing to shoot, the agent walks toward the nearest living Union body from the snapshot for up to 30 seconds; seeing a guard hands back to ordinary combat; `stalled_campaign_agent_goes_looking_for_the_nearest_hidden_guard` | in progress, second PR: all six M03 seeds depart |
 
 ## Handoff
 
