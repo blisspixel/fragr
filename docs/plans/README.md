@@ -26,6 +26,7 @@ difficulty, subjective listening and final character acceptance remain open.
 
 | Plan | Status | One-liner |
 |---|---|---|
+| [`art-excellence.md`](./art-excellence.md) | **proposed** | Retro is the direction, not a quality ceiling: real modelled characters behind the eight-direction bake with lit sprites, modular architecture kits for maps, one-source weapons, judged against Boltgun, Prodeus, Dusk and Cultic. Needs Nick's service decisions. |
 | [`directional-combat-audio.md`](./directional-combat-audio.md) | **planned** | Hear and see where fire comes from: near-miss cracks from resolved shot paths, a damage-direction arc, occlusion behind walls and per-venue space. |
 | [`sabotage-mode.md`](./sabotage-mode.md) | **shipped**, [PR #325](https://github.com/blisspixel/fragr/pull/325), [PR #333](https://github.com/blisspixel/fragr/pull/333), human review open | The first flagship round mode on Sector 9: one life, plant and defuse with a held Use, halves with a side swap, carried equipment, rule bots on both sides and agents through MCP. |
 | [`campaign-polish-20261002.md`](./campaign-polish-20261002.md) | **shipped**, [PR #320](https://github.com/blisspixel/fragr/pull/320), [PR #326](https://github.com/blisspixel/fragr/pull/326) | Automated playtest and fix pass over levels 1 to 6: HUD, run flow, arrivals, agents, sealed M01 and M06 geometry; ranked open items for human play. |

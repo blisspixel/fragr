@@ -18,6 +18,12 @@ modern boomer shooters and the pace, spaces, and social fun of early arena/LAN
 shooters. Real 3D movement and camera, pixel craft on the surfaces. No copied
 characters, weapons, logos, or map layouts.
 
+Retro is the direction, never a quality ceiling. Every asset, model and map is
+judged against the modern boomer shooters that look excellent (Boltgun,
+Prodeus, Dusk, Ultrakill, Cultic), at game scale, in motion and under light.
+Plain boxes, muddy sprites and barren rooms are defects, not style. See
+[art excellence](plans/art-excellence.md).
+
 Boltgun is the production-quality reference: detailed pixel fighters and guns,
 substantial pose animation, sculpted 3D spaces, strong directional lighting, and
 forceful readable effects. Sparse geometry, static character cards, and enlarged
