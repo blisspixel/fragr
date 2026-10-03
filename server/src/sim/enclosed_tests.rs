@@ -229,6 +229,7 @@ fn export_enclosed_capture() {
             half_extent: arena.half,
             geometry_version: crate::protocol::GEOMETRY_VERSION,
             solids: arena.solids,
+            sabotage: None,
         },
         "frames": frames,
     });

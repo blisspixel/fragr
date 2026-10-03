@@ -394,6 +394,7 @@ pub(crate) mod fixtures {
             flags: None,
             capture_scores: None,
             capture_limit: None,
+            sabotage: None,
             tick,
             players,
             round_state: Some("Active".to_string()),

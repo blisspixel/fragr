@@ -17,10 +17,13 @@ pub enum GameMode {
     Tdm,
     /// Two-side capture the flag, scored by captures.
     Ctf,
+    /// Round-based attack and defence: the free coalition plants a charge at
+    /// one of two Union sites, one life per round, sides swap at half.
+    Sabotage,
 }
 
 impl GameMode {
-    pub const ALL: [Self; 3] = [Self::Ffa, Self::Tdm, Self::Ctf];
+    pub const ALL: [Self; 4] = [Self::Ffa, Self::Tdm, Self::Ctf, Self::Sabotage];
 
     /// The wire and command-line id.
     pub const fn id(self) -> &'static str {
@@ -28,6 +31,7 @@ impl GameMode {
             Self::Ffa => "ffa",
             Self::Tdm => "tdm",
             Self::Ctf => "ctf",
+            Self::Sabotage => "sabotage",
         }
     }
 
@@ -37,11 +41,18 @@ impl GameMode {
             Self::Ffa => "Free-for-all",
             Self::Tdm => "Team Deathmatch",
             Self::Ctf => "Capture the Flag",
+            Self::Sabotage => "Sabotage",
         }
     }
 
     pub const fn teams(self) -> bool {
-        matches!(self, Self::Tdm | Self::Ctf)
+        matches!(self, Self::Tdm | Self::Ctf | Self::Sabotage)
+    }
+
+    /// Modes decided by an objective rather than frags, so neither the frag
+    /// limit nor the arena's Continuance pressure applies.
+    pub const fn objective(self) -> bool {
+        matches!(self, Self::Ctf | Self::Sabotage)
     }
 }
 

@@ -75,6 +75,12 @@ jobs:
       - name: Sector 9 contested playtest
         run: cargo run -p fragr-playtest --locked -- --agents 4 --rounds 1 --mode ctf --map 4 --tiers reflex,planner --capture-limit 1 --time-limit-seconds 180 --max-seconds 240 --assert --ctf-contested --report .agents/playtest/ci-ctf.json
 
+      - name: Sector 9 Sabotage socket proof
+        run: cargo run -p fragr-playtest --locked -- --sabotage-route-smoke --report .agents/playtest/ci-sabotage-route.json
+
+      - name: Sector 9 contested Sabotage playtest
+        run: cargo run -p fragr-playtest --locked -- --agents 4 --rounds 1 --mode sabotage --map 4 --tiers reflex,planner --time-limit-seconds 105 --max-seconds 160 --assert --sabotage-contested --report .agents/playtest/ci-sabotage.json
+
       - name: Mixed-client map roster
         run: bash tools/playtest_roster.sh
 

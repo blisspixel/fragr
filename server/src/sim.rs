@@ -4,6 +4,7 @@ mod ctf;
 mod enclosed_tests;
 pub mod grenade;
 mod modes;
+pub mod sabotage;
 pub mod traveling_shot;
 use crate::movement::{EYE_HEIGHT, STEP_UP};
 use crate::protocol::{
@@ -188,6 +189,16 @@ impl MapKind {
         crate::maps::arena(self).solids.clone()
     }
 
+    /// Sabotage sites, spawn zones and callouts, for a map built for the mode.
+    pub(crate) fn sabotage_layout(self) -> Option<&'static crate::maps::SabotageLayout> {
+        crate::maps::sabotage_layout(self)
+    }
+
+    /// The static Sabotage layout readers receive, when this map has one.
+    pub fn sabotage_map(self) -> Option<crate::protocol::SabotageMap> {
+        self.sabotage_layout().map(|layout| layout.wire.clone())
+    }
+
     /// Flag stands for a league match, or none when this map has no proven
     /// two-base route. Union is index 0.
     pub fn ctf_stands(self) -> Option<[[f32; 3]; 2]> {
@@ -339,6 +350,8 @@ pub struct MatchConfig {
     pub boss_spawn_ticks: Option<u32>,
     /// The host's mode and mutators. Plain free-for-all by default.
     pub rules: crate::rules::RuleSet,
+    /// Sabotage format and clocks. Read only when the mode is Sabotage.
+    pub sabotage: crate::rules::SabotageConfig,
 }
 
 impl Default for MatchConfig {
@@ -355,6 +368,7 @@ impl Default for MatchConfig {
             // ~20s into Active: Continuance escalates with a killable drone.
             boss_spawn_ticks: Some(20 * 20),
             rules: crate::rules::RuleSet::default(),
+            sabotage: crate::rules::SabotageConfig::default(),
         }
     }
 }
@@ -552,6 +566,8 @@ pub struct GameState {
     /// Flag captures; frags stay in team_scores.
     pub capture_scores: TeamScores,
     flags: Option<[ctf::Flag; 2]>,
+    /// The Sabotage match on a Sabotage server; None in every other mode.
+    pub(crate) sabotage: Option<sabotage::Sabotage>,
     /// The golden Railgun when the Golden Rail mutator is on.
     pub golden_rail: Option<GoldenRail>,
     reactions: ReactionState,
@@ -911,6 +927,17 @@ impl GameState {
             None
         };
 
+        // A Sabotage match keeps frags across its rounds, and remembers who
+        // fell in the last round: survivors carry their equipment forward.
+        let sabotage_new_match = self.sabotage_new_match();
+        let carried_frags =
+            (self.sabotage.is_some() && !sabotage_new_match).then(|| self.scores.clone());
+        let fallen: std::collections::HashSet<Uuid> = self
+            .players
+            .iter()
+            .filter(|p| p.eliminated || p.hp <= 0 || p.respawn_timer.is_some())
+            .map(|p| p.id)
+            .collect();
         self.round_number += 1;
         self.statistics_round_started = self.tick;
         self.round_state = RoundState::Active;
@@ -944,24 +971,36 @@ impl GameState {
 
         let lives = self.config.rules.lives();
         let mut revive = Vec::new();
+        let sabotage = self.sabotage.is_some();
         for player in &mut self.players {
             player.reset_movement_baseline();
-            self.scores.insert(player.id, 0);
+            let frags = carried_frags
+                .as_ref()
+                .and_then(|scores| scores.get(&player.id).copied())
+                .unwrap_or(0);
+            self.scores.insert(player.id, frags);
             player.killstreak = 0;
             player.statistics.begin(self.tick);
+            // The golden Railgun returns to its pad every round.
             player.golden = false;
             if player.contestant() {
                 player.lives = lives;
             }
-            if std::mem::take(&mut player.eliminated) {
+            if std::mem::take(&mut player.eliminated) && !sabotage {
                 revive.push(player.id);
             }
         }
         for id in revive {
             self.do_respawn(id);
         }
+        if sabotage {
+            self.begin_sabotage_round();
+        }
         if self.config.rules.teams() {
             self.balance_teams();
+        }
+        if sabotage {
+            self.place_sabotage_round(&fallen, sabotage_new_match);
         }
 
         let players: Vec<String> = self.players.iter().map(|p| p.name.clone()).collect();
@@ -1052,7 +1091,7 @@ impl GameState {
         // MVP is top score / frags (same selection as winner).
         let mvp = winner.clone();
         let mvp_frags = winner_score;
-        if self.config.rules.mode() == crate::protocol::GameMode::Ctf {
+        if self.config.rules.mode().objective() {
             winner = None;
             winner_score = None;
         }
@@ -1073,6 +1112,9 @@ impl GameState {
             winner = survivor.clone();
         }
         let host_line = match (&standing, &mvp, mvp_frags) {
+            _ if self.sabotage.is_some() => self
+                .sabotage_host_line(winning_team)
+                .unwrap_or_else(empty_mvp_host_line),
             _ if self.config.rules.mode() == crate::protocol::GameMode::Ctf => format!(
                 "HOST: FLAG ROUND. UNION {} : {} FREE COALITION.",
                 self.capture_scores.union, self.capture_scores.coalition
@@ -1107,6 +1149,7 @@ impl GameState {
                 .then_some(self.team_scores),
             capture_scores: (self.config.rules.mode() == crate::protocol::GameMode::Ctf)
                 .then_some(self.capture_scores),
+            sabotage: self.sabotage.as_ref().and_then(|sab| sab.result.clone()),
         });
 
         tracing::info!(
@@ -1124,6 +1167,24 @@ impl GameState {
                     ", frags union {} coalition {}, winner {:?}",
                     self.team_scores.union, self.team_scores.coalition, winning_team
                 ),
+                crate::protocol::GameMode::Sabotage => self
+                    .sabotage
+                    .as_ref()
+                    .and_then(|sab| sab.result.as_ref())
+                    .map(|result| format!(
+                        ", round {} {:?}, rounds union {} coalition {}, winner {:?}{}",
+                        result.round,
+                        result.reason,
+                        result.score.union,
+                        result.score.coalition,
+                        winning_team,
+                        if result.match_over {
+                            ", match over"
+                        } else {
+                            ""
+                        }
+                    ))
+                    .unwrap_or_default(),
                 crate::protocol::GameMode::Ffa => String::new(),
             }
         );
@@ -1145,8 +1206,13 @@ impl GameState {
         if !self.admit_campaign_owner(id) {
             return;
         }
+        // A Sabotage joiner evens the sides, then joins the side behind on rounds.
+        let standings = self
+            .sabotage
+            .as_ref()
+            .map_or(self.team_scores, |sab| sab.score);
         let team = (self.config.rules.teams() && !self.map.is_campaign())
-            .then(|| crate::rules::choose_team(self.team_counts(), self.team_scores));
+            .then(|| crate::rules::choose_team(self.team_counts(), standings));
         let mut angle = (self.players.len() as f32) * (2.0 * PI / 8.0);
         // Warmup is placement for the opening fight. It needs the same cover
         // and clearance policy as a live join, even before weapons activate.
@@ -1164,7 +1230,7 @@ impl GameState {
             name,
             role,
             self.map.spawn(angle),
-            self.map.equipment_policy(),
+            self.equipment_policy(),
         );
         player.body = body;
         if self.map.is_campaign() {
@@ -1190,6 +1256,7 @@ impl GameState {
         self.players.push(player);
 
         self.scores.entry(id).or_insert(0);
+        self.admit_sabotage_joiner(id);
     }
 
     pub(crate) fn spawn_campaign_enemy(&mut self, placement: &crate::maps::EnemyPlacement) -> Uuid {
@@ -1278,6 +1345,7 @@ impl GameState {
 
     pub fn remove_player(&mut self, id: Uuid) {
         self.drop_flag_from(id);
+        self.drop_charge_from(id);
         if let Some(player) = self.players.iter().find(|p| p.id == id) {
             if player.role == Role::Human {
                 tracing::info!("Human player left, bots keep fighting");
@@ -1385,6 +1453,7 @@ impl GameState {
             half_extent: self.map.half_extent(),
             solids: self.map.solids(),
             rules: self.wire_rules(),
+            sabotage: self.wire_sabotage_map(),
         }
     }
 
@@ -1397,6 +1466,7 @@ impl GameState {
     pub fn apply_config(&mut self, config: MatchConfig) {
         self.config = config;
         self.reset_ctf();
+        self.reset_sabotage();
         self.reset_pickups();
     }
 
@@ -1473,9 +1543,7 @@ impl GameState {
                 if self.compliance_ticks_left > 0 {
                     self.compliance_ticks_left -= 1;
                 }
-                if !self.compliance_fired
-                    && self.config.rules.mode() != crate::protocol::GameMode::Ctf
-                {
+                if !self.compliance_fired && !self.config.rules.mode().objective() {
                     if let Some(at) = self.config.compliance_ping_ticks {
                         if self.round_ticks >= at {
                             self.fire_compliance_ping();
@@ -1485,7 +1553,7 @@ impl GameState {
                 if !self.boss_spawned
                     && !self.solo_broadcast.enabled
                     && self.config.rules.lives().is_none()
-                    && self.config.rules.mode() != crate::protocol::GameMode::Ctf
+                    && !self.config.rules.mode().objective()
                 {
                     if let Some(at) = self.config.boss_spawn_ticks {
                         if self.round_ticks >= at {
@@ -1494,7 +1562,11 @@ impl GameState {
                     }
                 }
 
-                if let Some(time_limit) = self.config.time_limit_ticks {
+                if let Some(time_limit) = self
+                    .config
+                    .time_limit_ticks
+                    .filter(|_| self.sabotage.is_none())
+                {
                     if self.round_ticks >= time_limit {
                         if self.solo_broadcast.enabled {
                             self.fail_episode("Calibration timed out".to_string());
@@ -1508,7 +1580,7 @@ impl GameState {
                 if let Some(frag_limit) = self
                     .config
                     .frag_limit
-                    .filter(|_| self.config.rules.mode() != crate::protocol::GameMode::Ctf)
+                    .filter(|_| !self.config.rules.mode().objective())
                 {
                     let max_score = if self.config.rules.teams() {
                         Some(self.team_scores.max())
@@ -1521,7 +1593,7 @@ impl GameState {
                     }
                 }
 
-                if let Some(standing) = self.elimination() {
+                if let Some(standing) = self.elimination().filter(|_| self.sabotage.is_none()) {
                     let reason = if self.config.rules.teams() {
                         "Last side standing"
                     } else {
@@ -1533,7 +1605,10 @@ impl GameState {
             }
             RoundState::Ended => {
                 self.round_ticks += 1;
-                if self.round_ticks >= self.config.end_delay_ticks {
+                let delay = self
+                    .sabotage_end_delay()
+                    .unwrap_or(self.config.end_delay_ticks);
+                if self.round_ticks >= delay {
                     self.open_round();
                 }
                 return;
@@ -1572,6 +1647,9 @@ impl GameState {
         } else {
             MOVE_SPEED
         };
+        // Sabotage muster: weapons are not live and nobody leaves the zone.
+        self.hold_muster_fire();
+        let muster = self.muster_hold();
         for player in &mut self.players {
             player.just_fired = false;
             if matches!(
@@ -1661,13 +1739,20 @@ impl GameState {
                 arena,
                 crate::combat::target_height(player.campaign),
             );
-            player.x = moved.x;
-            player.z = moved.z;
+            let held = muster.zip(player.team).is_some_and(|(layout, team)| {
+                player.contestant()
+                    && layout.in_muster(team.index(), player.x, player.z)
+                    && !layout.in_muster(team.index(), moved.x, moved.z)
+            });
+            if !held {
+                player.x = moved.x;
+                player.z = moved.z;
+            }
             player.y = PLAYER_FLOOR_Y + moved.y;
             player.vy = moved.vy;
             player.last_movement_tick = Some(self.tick);
-            player.last_move_vx = moved.vx;
-            player.last_move_vz = moved.vz;
+            player.last_move_vx = if held { 0.0 } else { moved.vx };
+            player.last_move_vz = if held { 0.0 } else { moved.vz };
             player.last_move_speed = move_speed;
             player.last_jump_input = jump_input;
 
@@ -1919,6 +2004,8 @@ impl GameState {
         self.react_to_last_standing();
         self.tick_ctf();
         self.tick_traveling_shots(dt, arena);
+        // Last: every death this tick, including traveling shots, counts.
+        self.tick_sabotage();
     }
 
     fn crawler_contacts(
@@ -2138,6 +2225,8 @@ impl GameState {
         }
         if died {
             self.drop_flag_from(target_id);
+            self.drop_charge_from(target_id);
+            self.drop_primary_from(victim_idx);
         }
         if self_hit {
             return (hp_damage, armor_damage, died);
@@ -2474,7 +2563,14 @@ impl GameState {
     }
 
     pub fn snapshot(&self) -> Snapshot {
-        let round_time_left = if self.round_state == RoundState::Active {
+        let sabotage = self.wire_sabotage();
+        let round_time_left = if let Some(state) = sabotage
+            .as_ref()
+            .filter(|_| self.round_state == RoundState::Active)
+        {
+            // Muster, then the live clock, then the charge's own clock.
+            Some(state.clock_ticks.div_ceil(20))
+        } else if self.round_state == RoundState::Active {
             self.config
                 .time_limit_ticks
                 .map(|limit| (limit.saturating_sub(self.round_ticks)) / 20)
@@ -2640,6 +2736,7 @@ impl GameState {
                     .capture_limit
                     .unwrap_or(crate::rules::CTF_CAPTURE_LIMIT),
             ),
+            sabotage,
         }
     }
 
@@ -3025,6 +3122,7 @@ impl GameState {
         if self.map.is_campaign() {
             return;
         }
+        self.add_sabotage_pads();
         if self.config.rules.has(Mutator::GoldenRail) {
             let pad = self
                 .pickups
@@ -3518,6 +3616,7 @@ impl Default for GameState {
             team_scores: TeamScores::default(),
             capture_scores: TeamScores::default(),
             flags: None,
+            sabotage: None,
             golden_rail: None,
             reactions: ReactionState::default(),
             reaction_counts: [0; HostReactionKind::ALL.len()],
@@ -3740,6 +3839,9 @@ impl BotController {
 
         if bot.respawn_timer.is_some() {
             return BotIntent::default();
+        }
+        if state.sabotage.is_some() && bot.contestant() {
+            return self.sabotage_intent(state, bot);
         }
 
         let mut nearest_dist = f32::MAX;
@@ -3991,6 +4093,21 @@ impl BotController {
             }
         }
 
+        self.engage(state, bot, target, nearest_dist, angle_diff, action)
+    }
+
+    /// Fight one target with this controller's personality: hold the weapon's
+    /// lane, strafe, and fire when the aim is inside the weapon's slack. The
+    /// goal is the target, as a combat goal for the shared navigator.
+    pub(crate) fn engage(
+        &self,
+        state: &GameState,
+        bot: &Player,
+        target: &Player,
+        nearest_dist: f32,
+        angle_diff: f32,
+        mut action: Action,
+    ) -> BotIntent {
         // Hold the role lane for the weapon in hand.
         let (prefer_min, prefer_max) = bot.weapon.preferred_range();
         let fire_range = bot.weapon.range_units() * 0.95;

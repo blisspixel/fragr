@@ -3,6 +3,9 @@
 //! shape readers see is `protocol::MatchRules`.
 use crate::protocol::{GameMode, MatchRules, Mutator, Team, TeamScores, WeaponType};
 
+mod sabotage;
+pub use sabotage::{match_outcome, round_slot, MatchOutcome, RoundSlot, SabotageConfig};
+
 /// Lives each fighter has per round under Two Lives.
 pub const TWO_LIVES: u8 = 2;
 /// Default frag limit for a team round: side frags, not fighter frags.
@@ -65,6 +68,11 @@ impl RuleSet {
         if mode == GameMode::Ctf && mutators.contains(&Mutator::TwoLives) {
             return Err("two-lives would let elimination decide a capture the flag round".into());
         }
+        if mode == GameMode::Sabotage && mutators.contains(&Mutator::TwoLives) {
+            return Err(
+                "sabotage already gives one life per round; two-lives contradicts it".into(),
+            );
+        }
         Ok(Self {
             mode,
             mutators,
@@ -103,6 +111,9 @@ impl RuleSet {
 
     /// Lives per fighter per round, None when unlimited.
     pub fn lives(&self) -> Option<u8> {
+        if self.mode == GameMode::Sabotage {
+            return Some(1);
+        }
         self.has(Mutator::TwoLives).then_some(TWO_LIVES)
     }
 
@@ -208,6 +219,16 @@ mod tests {
         }
         assert!(RuleSet::new(GameMode::Ffa, &[], true).is_err());
         assert!(RuleSet::new(GameMode::Ctf, &[Mutator::TwoLives], false).is_err());
+        assert!(RuleSet::new(GameMode::Sabotage, &[Mutator::TwoLives], false).is_err());
+        let sabotage = RuleSet::new(
+            GameMode::Sabotage,
+            &[Mutator::LicenceToKill, Mutator::RailOnly],
+            true,
+        )
+        .unwrap();
+        assert_eq!(sabotage.lives(), Some(1));
+        assert!(sabotage.teams() && sabotage.friendly_fire());
+        assert!(GameMode::Sabotage.objective() && !GameMode::Tdm.objective());
         assert!(RuleSet::new(
             GameMode::Ffa,
             &[Mutator::GoldenRail, Mutator::RailOnly],

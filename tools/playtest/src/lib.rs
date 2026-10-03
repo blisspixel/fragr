@@ -20,6 +20,7 @@ use tokio_tungstenite::{connect_async, tungstenite::Message};
 use uuid::Uuid;
 
 pub mod fanout;
+pub mod sabotage;
 pub mod soak;
 
 /// Ticks per second of the authoritative loop.
@@ -174,6 +175,9 @@ pub struct Config {
     pub tiers: Vec<Policy>,
     /// The host's rule set: mode and mutators. Plain free-for-all by default.
     pub rules: fragr_server::rules::RuleSet,
+    /// Sabotage format and clocks, read only in Sabotage. The live clock comes
+    /// from `time_limit_ticks`.
+    pub sabotage: fragr_server::rules::SabotageConfig,
 }
 
 impl Default for Config {
@@ -189,6 +193,7 @@ impl Default for Config {
             seed: 1,
             tiers: vec![Policy::Reflex],
             rules: fragr_server::rules::RuleSet::default(),
+            sabotage: fragr_server::rules::SabotageConfig::default(),
         }
     }
 }
@@ -1100,6 +1105,12 @@ pub struct Report {
     /// Frags where killer and victim shared a side.
     #[serde(default)]
     pub team_kills: u64,
+    /// Sabotage facts by event kind, such as `planted` or `defused`.
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub sabotage_events: BTreeMap<String, u64>,
+    /// Every decided Sabotage round: its winner and result.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub sabotage_rounds: Vec<(Option<Team>, fragr_server::protocol::SabotageResult)>,
 }
 
 fn seconds(ticks: u64) -> f64 {
@@ -1152,6 +1163,8 @@ pub fn compute_report(obs: &Observation, agents: usize) -> Report {
     let mut captures = 0u64;
     let mut last_round_reason = None;
     let mut last_round_capture_scores = None;
+    let mut sabotage_events: BTreeMap<String, u64> = BTreeMap::new();
+    let mut sabotage_rounds = Vec::new();
     let mut spawn_deaths = 0u64;
     let mut opening_spawn_deaths = 0u64;
     for timed in &obs.events {
@@ -1208,11 +1221,23 @@ pub fn compute_report(obs: &Observation, agents: usize) -> Report {
             GameEvent::RoundEnd {
                 reason,
                 capture_scores,
+                winning_team,
+                sabotage,
                 ..
             } => {
                 host_beats += 1;
                 last_round_reason = Some(reason.clone());
                 last_round_capture_scores = *capture_scores;
+                if let Some(result) = sabotage {
+                    sabotage_rounds.push((*winning_team, result.clone()));
+                }
+            }
+            GameEvent::Sabotage { kind, .. } => {
+                let key = serde_json::to_value(kind)
+                    .ok()
+                    .and_then(|v| v.as_str().map(str::to_string))
+                    .unwrap_or_default();
+                *sabotage_events.entry(key).or_default() += 1;
             }
             GameEvent::Killstreak { .. }
             | GameEvent::CompliancePing { .. }
@@ -1293,6 +1318,8 @@ pub fn compute_report(obs: &Observation, agents: usize) -> Report {
         },
         combat: obs.combat_report(),
         per_agent,
+        sabotage_events,
+        sabotage_rounds,
         rules: obs.rules.clone(),
         sides: obs.sides.values().fold(BTreeMap::new(), |mut sides, side| {
             let key = side.map_or("none", |team| team.id()).to_string();
@@ -1487,6 +1514,71 @@ pub fn check_ctf_route_smoke(report: &Report, observation: &Observation) -> Vec<
     problems
 }
 
+/// The unopposed Sabotage probe: one attacker carries the charge to A and
+/// plants it, one defender walks onto it and defuses, over the real socket.
+pub fn check_sabotage_route_smoke(report: &Report) -> Vec<String> {
+    let mut problems = Vec::new();
+    if report.rules.as_ref().map(|rules| rules.mode)
+        != Some(fragr_server::protocol::GameMode::Sabotage)
+    {
+        problems.push("not a Sabotage round".to_string());
+    }
+    if report.agents != 2 {
+        problems.push("the probe needs one attacker and one defender".to_string());
+    }
+    let count = |kind: &str| report.sabotage_events.get(kind).copied().unwrap_or(0);
+    for kind in [
+        "live",
+        "plant_started",
+        "planted",
+        "defuse_started",
+        "defused",
+    ] {
+        if count(kind) == 0 {
+            problems.push(format!("no {kind} event"));
+        }
+    }
+    match report.sabotage_rounds.first() {
+        Some((winner, result)) => {
+            if *winner != Some(Team::Union)
+                || result.reason != fragr_server::protocol::SabotageReason::Defused
+            {
+                problems.push(format!(
+                    "the first round ended {:?} for {winner:?}, not a Union defuse",
+                    result.reason
+                ));
+            }
+            if result.score.union != 1 || result.score.coalition != 0 {
+                problems.push("the defuse did not score one round to the Union".to_string());
+            }
+        }
+        None => problems.push("no decided Sabotage round".to_string()),
+    }
+    problems
+}
+
+/// A contested Sabotage socket round: every decided round carries a result,
+/// fighters fought, the charge moved and the rule set held.
+pub fn check_contested_sabotage(report: &Report) -> Vec<String> {
+    let mut problems = check_rules(report);
+    if report.sabotage_rounds.is_empty() {
+        problems.push("no decided Sabotage round".to_string());
+    }
+    if report.rounds_completed as usize != report.sabotage_rounds.len() {
+        problems.push("a round ended without a Sabotage result".to_string());
+    }
+    if report.frags == 0 {
+        problems.push("no frags in a contested round".to_string());
+    }
+    if report.sabotage_events.get("live").copied().unwrap_or(0) == 0 {
+        problems.push("muster never ended".to_string());
+    }
+    if report.pickups == 0 {
+        problems.push("nobody picked up a weapon, though every life starts empty".to_string());
+    }
+    problems
+}
+
 /// The advertised rule set held: a team round put every fighter on one of
 /// two sides with no team kills unless friendly fire is on, and a weapon-only
 /// round fired nothing else.
@@ -1619,7 +1711,8 @@ pub enum Policy {
     /// Keep the distance its weapon wants, break off for health when hurt,
     /// and collect a weapon it does not have.
     Planner,
-    /// Controlled, unopposed CTF route probe. Not offered as a normal tier.
+    /// Controlled, unopposed objective probe for CTF and Sabotage. Never
+    /// fights. Not offered as a normal tier.
     RouteProbe,
 }
 
@@ -1787,6 +1880,35 @@ fn walk_to(
         fire,
         ..Action::default()
     }
+}
+
+/// A Sabotage agent: fight what is close and in sight, otherwise play the
+/// shared objective controller, otherwise its ordinary policy.
+pub fn sabotage_policy_action(
+    policy: Policy,
+    bot_id: Uuid,
+    snapshot: &Snapshot,
+    arena: &Arena,
+    map: &fragr_server::protocol::SabotageMap,
+) -> Action {
+    let objective =
+        fragr_server::sim::sabotage::controller::objective_action(bot_id, snapshot, map);
+    if policy == Policy::RouteProbe {
+        return objective.unwrap_or_default();
+    }
+    let Some(me) = snapshot.players.iter().find(|p| p.id == bot_id) else {
+        return Action::default();
+    };
+    let threatened = snapshot.players.iter().any(|other| {
+        me.is_hostile_to(other)
+            && other.hp > 0
+            && (other.x - me.x).hypot(other.z - me.z) < 20.0
+            && arena.fighter_visible(me, other)
+    });
+    if threatened {
+        return policy_action(policy, bot_id, snapshot, arena);
+    }
+    objective.unwrap_or_else(|| policy_action(policy, bot_id, snapshot, arena))
 }
 
 /// The action for one agent under its policy.
@@ -1962,6 +2084,7 @@ async fn agent_task(
     let mut navigation = None;
     let mut navigator = fragr_server::navigation::Navigator::default();
     let mut mission_client = fragr_server::mission::MissionClient::default();
+    let mut sabotage_map: Option<fragr_server::protocol::SabotageMap> = None;
     loop {
         if *stop.borrow() {
             break;
@@ -2017,8 +2140,15 @@ async fn agent_task(
                 geometry_version,
                 presentation,
                 mission,
+                sabotage,
                 ..
             }) => {
+                if let Some(layout) = sabotage.as_ref() {
+                    layout
+                        .validate()
+                        .map_err(|error| Error::Server(format!("invalid sabotage map: {error}")))?;
+                }
+                sabotage_map = sabotage;
                 fragr_server::protocol::validate_map_presentation(presentation.as_ref(), &solids)
                     .map_err(|error| Error::Server(format!("invalid map presentation: {error}")))?;
                 mission_client
@@ -2082,7 +2212,40 @@ async fn agent_task(
                     half_extent: arena.half_extent,
                 });
                 let physical = live_arena.as_ref().unwrap_or(&arena);
-                let wanted = policy_action(policy, id, &snapshot, physical);
+                // A plant or defuse is a held Use standing still: nothing else
+                // may steer or aim this fighter while it lasts.
+                if let Some(map) = sabotage_map
+                    .as_ref()
+                    .filter(|_| snapshot.sabotage.is_some())
+                {
+                    use fragr_server::sim::sabotage::controller::{objective, Objective};
+                    if matches!(
+                        objective(id, &snapshot, map),
+                        Objective::Plant | Objective::Defuse
+                    ) {
+                        let hold = ClientMessage::Action(Action {
+                            interact: true,
+                            ..Action::default()
+                        });
+                        if sink
+                            .send(Message::Text(
+                                serde_json::to_string(&hold).map_err(transport)?,
+                            ))
+                            .await
+                            .is_err()
+                        {
+                            break;
+                        }
+                        continue;
+                    }
+                }
+                let wanted = match sabotage_map
+                    .as_ref()
+                    .filter(|_| snapshot.sabotage.is_some())
+                {
+                    Some(map) => sabotage_policy_action(policy, id, &snapshot, physical, map),
+                    None => policy_action(policy, id, &snapshot, physical),
+                };
                 let wanted = fragr_server::inventory::control_action_with_target_filter(
                     id,
                     &snapshot,
@@ -2132,15 +2295,20 @@ pub async fn run(config: Config) -> Result<(Report, Observation), Error> {
     let (ready_tx, ready_rx) = tokio::sync::oneshot::channel();
     // Controlled rounds: no mid-round boss or compliance beat, so the numbers
     // describe the fighters and nothing else.
+    let sabotage = config.rules.mode() == fragr_server::protocol::GameMode::Sabotage;
     let match_config = MatchConfig {
-        frag_limit: (config.rules.mode() != fragr_server::protocol::GameMode::Ctf)
-            .then_some(config.frag_limit),
+        frag_limit: (!config.rules.mode().objective()).then_some(config.frag_limit),
         capture_limit: (config.rules.mode() == fragr_server::protocol::GameMode::Ctf)
             .then_some(config.capture_limit),
-        time_limit_ticks: Some(config.time_limit_ticks),
+        // Sabotage runs its own muster, live and charge clocks.
+        time_limit_ticks: (!sabotage).then_some(config.time_limit_ticks),
         boss_spawn_ticks: None,
         compliance_ping_ticks: None,
         rules: config.rules.clone(),
+        sabotage: fragr_server::rules::SabotageConfig {
+            live_ticks: config.time_limit_ticks,
+            ..config.sabotage.clone()
+        },
         ..MatchConfig::default()
     };
     let options = ServerOptions {
@@ -2418,6 +2586,7 @@ mod tests {
             episode_progress: None,
             episode_phase: None,
             jammer_dish: None,
+            sabotage: None,
         }
     }
 
@@ -2722,6 +2891,7 @@ mod tests {
             mvp: None,
             mvp_frags: None,
             host_line: String::new(),
+            sabotage: None,
         });
         let report = compute_report(&obs, 2);
         assert_eq!(report.rounds_completed, 1);
@@ -2873,6 +3043,7 @@ mod tests {
             winning_team: Some(Team::Coalition),
             team_scores: None,
             capture_scores: Some(score),
+            sabotage: None,
         });
         let report = compute_report(&obs, 12);
         assert_eq!(report.flag_takes, 2);
@@ -2916,6 +3087,7 @@ mod tests {
             winning_team: Some(Team::Union),
             team_scores: None,
             capture_scores: Some(next_score),
+            sabotage: None,
         });
         let latest = compute_report(&obs, 12);
         assert_eq!(latest.rounds_completed, 2);
@@ -3062,6 +3234,7 @@ mod tests {
             winning_team: None,
             team_scores: None,
             capture_scores: None,
+            sabotage: None,
         });
         let report = compute_report(&obs, 12);
         assert_eq!(report.carry_episodes.len(), 3);
@@ -3166,6 +3339,7 @@ mod tests {
             winning_team: Some(Team::Coalition),
             team_scores: None,
             capture_scores: Some(score),
+            sabotage: None,
         });
         let report = compute_report(&obs, 1);
         assert!(check_ctf_route_smoke(&report, &obs).is_empty());
@@ -3332,6 +3506,7 @@ mod combat_tests {
             episode_progress: None,
             episode_phase: None,
             jammer_dish: None,
+            sabotage: None,
         }
     }
 
@@ -3902,6 +4077,7 @@ mod planner_tests {
             episode_progress: None,
             episode_phase: None,
             jammer_dish: None,
+            sabotage: None,
         }
     }
 
@@ -4412,6 +4588,7 @@ mod line_of_sight_tests {
             episode_progress: None,
             episode_phase: None,
             jammer_dish: None,
+            sabotage: None,
         };
         let mk = |id: Uuid, x: f32| fragr_server::protocol::PlayerState {
             collidable: true,

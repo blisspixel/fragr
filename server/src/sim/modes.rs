@@ -57,6 +57,7 @@ impl GameState {
             };
             let id = self.players[index].id;
             self.drop_flag_from(id);
+            self.drop_charge_from(id);
             let player = &mut self.players[index];
             player.team = Some(small);
             let (id, name, placed) = (
@@ -213,7 +214,9 @@ impl GameState {
             p.contestant()
                 && p.respawn_timer.is_none()
                 && p.hp > 0
-                && p.inventory.owns(WeaponType::Rail)
+                && (p.inventory.owns(WeaponType::Rail)
+                    || (p.inventory.policy() == crate::protocol::EquipmentPolicy::Discovery
+                        && p.inventory.only().is_none()))
                 && (p.y - PLAYER_FLOOR_Y - gold.floor).abs() <= PICKUP_CLAIM_HEIGHT
                 && (p.x - gold.x).hypot(p.z - gold.z) <= PICKUP_CLAIM_RADIUS
         });
@@ -222,6 +225,8 @@ impl GameState {
         };
         let player = &mut self.players[index];
         player.golden = true;
+        // Under discovery equipment the golden pad is also the Railgun.
+        player.inventory.grant_weapon(WeaponType::Rail);
         player.inventory.release_trigger();
         player.weapon = WeaponType::Rail;
         let (id, name, team) = (player.id, player.name.clone(), player.team);
