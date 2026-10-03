@@ -206,6 +206,26 @@ synthesized tones; final assets are listed for a later bounded batch.
 - [ ] CI runs a Sabotage smoke; coverage stays at or above 90 percent.
 - [ ] A human group plays a full match and asks for another. Open until it happens.
 
+## Assets the mode still needs
+
+Every placeholder is drawn or synthesized in code at $0 and swaps for final
+art by path, with no code change. Sprites are sized in metres, so a larger
+image keeps its world size.
+
+| Asset | Path | Placeholder |
+|---|---|---|
+| A and B site plates | `client/assets/sabotage/plate_a.png`, `plate_b.png` | Riveted plate with the letter in bone |
+| Correction frame (A) and registry server (B) | `client/assets/sabotage/prop_a.png`, `prop_b.png` | 24 by 32 pixel gantry and rack |
+| The charge, carried, loose, planted and as the HUD icon | `client/assets/sabotage/charge.png` | 16 by 12 pixel taped satchel |
+| Plant-area floor ring, top-down | `client/assets/sabotage/ring.png` | Dashed Union-red ring |
+| Detonation burst | `client/assets/sabotage/burst.png` | Ragged white-to-red disc |
+| Timer beep, carried hum (looped), plant or defuse start, planted, defused, detonation | `client/assets/audio/sabotage/beep.wav`, `hum.wav`, `arm.wav`, `planted.wav`, `defused.wav`, `detonation.wav` | Synthesized tones and filtered noise |
+
+Wanted later: a first-person charge in the carrier's off hand (today the
+charge icon sits beside the gun), side pips as small fighter heads rather than
+plain bars, and Host voice lines for plant, defuse, detonation and the swap
+(the Host is text first today).
+
 ## Decisions made without Nick
 
 1. The free coalition always attacks and the fighters change uniform at half,
