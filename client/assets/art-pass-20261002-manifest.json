@@ -1,0 +1,775 @@
+{
+  "schema": 1,
+  "created": "2026-10-02",
+  "plan": "docs/plans/art-pass-20261002.md",
+  "provider": "Higgsfield API through tools/spritegen",
+  "palette": "docs/palette.json",
+  "palette_sha256": "c97f60cb92a212166e1506ab1cb32f0705227e205b6ecb7fcd83701491f19da5",
+  "format": "RGBA8 PNG, palette-locked in CIE Lab, hard alpha, nearest sampling, no mipmaps; image chunks only, no embedded metadata",
+  "specs": [
+    "tools/spritegen/specs/art-pass-20261002-test.json",
+    "tools/spritegen/specs/art-pass-20261002-viewmodels.json",
+    "tools/spritegen/specs/art-pass-20261002-pickups.json"
+  ],
+  "note": "Reference uploads were temporary provider URLs; references name the local keeper uploaded. Raw outputs and ledgers stay outside git under art/raw/art-pass-20261002.",
+  "assets": [
+    {
+      "output": "res://assets/weapons/viewmodels/pistol_idle.png",
+      "output_size": [
+        241,
+        180
+      ],
+      "output_sha256": "de4de92b19be89a8db8489d7cce1788866ef1f2e55700407950227a4f64e5e57",
+      "frame_id": "vm_pistol_idle",
+      "request_id": "c109de73-84eb-4159-bf52-6c2ca712cd53",
+      "model": "marketing-studio/image",
+      "params": {
+        "aspect_ratio": "4:3",
+        "enhance_prompt": false,
+        "quality": "medium",
+        "resolution": "2k"
+      },
+      "estimated_usd": 0.092,
+      "references": [
+        "px_tack_issued_0.png"
+      ],
+      "prompt": "redraw this exact first person pixel art weapon sprite from a 1990s PC shooter as the same picture, keeping the identical camera angle, framing, scale, weapon position, silhouette, proportions and chunky stepped pixel clusters, limited palette of desaturated gunmetal grey, rust, bone white and deep shadow with clear value contrast between light steel edge highlights, the mid gunmetal body and dark recesses, flat even lighting, make only these changes: both hands wear worn warm brown leather full-finger work gloves with stitched seams and dark rust-brown jacket cuffs at the wrists, and every round emblem or crest becomes a plain riveted steel plate, the whole background is one flat solid pure magenta #FF00FF colour with no checkerboard, no pattern, no gradient and no shadow on it, no text, no letters, no watermark, no border. Avoid: photorealistic, 3d render, smooth shading, gradient, blur, anti-aliasing, drop shadow, cast shadow, ambient occlusion, specular, glossy, reflection, rim light, lens flare, bloom, depth of field, text, signature, watermark, frame, border, background scenery.",
+      "raw_file": "art/raw/art-pass-20261002/viewmodels/vm_pistol_idle_0.png",
+      "raw_sha256": "99f2bc3901755c58dc4b0eac88eca3992e2884ccdc9be31984e38ecd210cb907",
+      "reduction": "fragr-spritegen reduce --height 180 --no-trim --palette docs/palette.json --key ff00ff (tolerance 45, erode 2)",
+      "human_edited": false
+    },
+    {
+      "output": "res://assets/weapons/viewmodels/pistol_fire.png",
+      "output_size": [
+        241,
+        180
+      ],
+      "output_sha256": "95be1d0b0d63b18bb1be0b4afbabdad43148f09310a9470ad568ff00c6f670fc",
+      "frame_id": "vm_pistol_fire",
+      "request_id": "e336ce26-747a-415e-872f-c44a7b270a0c",
+      "model": "marketing-studio/image",
+      "params": {
+        "aspect_ratio": "4:3",
+        "enhance_prompt": false,
+        "quality": "medium",
+        "resolution": "2k"
+      },
+      "estimated_usd": 0.092,
+      "references": [
+        "vm_pistol_idle_0.png"
+      ],
+      "prompt": "redraw this exact first person pixel art weapon sprite from a 1990s PC shooter as the same picture at the instant of firing, keeping the identical camera angle, framing, scale, weapon design, gloves, colours and chunky stepped pixel clusters, limited palette of desaturated gunmetal grey, rust, bone white and deep shadow, flat even lighting, the slide is snapped back a short way, a compact bright muzzle flash bursts from the muzzle at the top of the pistol in hot ember orange with a pale yellow-white core and hard stepped pixel edges, fully inside the picture, the pistol and both hands are pushed up slightly by the recoil, one small brass casing flies out to the right, the whole background is one flat solid pure magenta #FF00FF colour with no checkerboard, no pattern, no gradient and no shadow on it, no text, no letters, no watermark, no border. Avoid: photorealistic, 3d render, smooth shading, gradient, blur, anti-aliasing, drop shadow, cast shadow, ambient occlusion, specular, glossy, reflection, rim light, lens flare, bloom, depth of field, text, signature, watermark, frame, border, background scenery.",
+      "raw_file": "art/raw/art-pass-20261002/viewmodels/vm_pistol_fire_0.png",
+      "raw_sha256": "033ddcf56172d66b0ebfbbfb5cb2a1c19154eec1202f8e28385ba536d2576221",
+      "reduction": "fragr-spritegen reduce --height 180 --no-trim --palette docs/palette.json --key ff00ff (tolerance 45, erode 2)",
+      "human_edited": false
+    },
+    {
+      "output": "res://assets/weapons/viewmodels/rifle_idle.png",
+      "output_size": [
+        241,
+        180
+      ],
+      "output_sha256": "d7149ebadaa7d3480eee6326c2ca8d51ffead8f7e6acf3de19552250a2083e35",
+      "frame_id": "vm_rifle_idle",
+      "request_id": "6ea7d915-baa9-4873-8c61-e3cb89b8da33",
+      "model": "marketing-studio/image",
+      "params": {
+        "aspect_ratio": "4:3",
+        "enhance_prompt": false,
+        "quality": "medium",
+        "resolution": "2k"
+      },
+      "estimated_usd": 0.103,
+      "references": [
+        "wpn_flechette_0.png",
+        "vm_pistol_idle_0.png"
+      ],
+      "prompt": "redraw this exact first person pixel art weapon sprite from a 1990s PC shooter as the same picture, keeping the identical camera angle, framing, scale, weapon position, silhouette, proportions and chunky stepped pixel clusters, limited palette of desaturated gunmetal grey, rust, bone white and deep shadow with clear value contrast between light steel edge highlights, the mid gunmetal body and dark recesses, flat even lighting, edit the first reference picture and keep its rifle exactly as it is; make only these changes: both hands wear the same worn warm brown leather full-finger work gloves with stitched seams and dark rust-brown jacket cuffs at the wrists as the second reference picture, and any round emblem becomes a plain riveted steel plate, the whole background is one flat solid pure magenta #FF00FF colour with no checkerboard, no pattern, no gradient and no shadow on it, no text, no letters, no watermark, no border. Avoid: photorealistic, 3d render, smooth shading, gradient, blur, anti-aliasing, drop shadow, cast shadow, ambient occlusion, specular, glossy, reflection, rim light, lens flare, bloom, depth of field, text, signature, watermark, frame, border, background scenery.",
+      "raw_file": "art/raw/art-pass-20261002/viewmodels/vm_rifle_idle_0.png",
+      "raw_sha256": "66b9ca06361132d0bb09486789144cdfbb2782f3e4c20a1c6ec1fcd43c72737e",
+      "reduction": "fragr-spritegen reduce --height 180 --no-trim --palette docs/palette.json --key ff00ff (tolerance 45, erode 2)",
+      "human_edited": false
+    },
+    {
+      "output": "res://assets/weapons/viewmodels/rifle_fire.png",
+      "output_size": [
+        241,
+        180
+      ],
+      "output_sha256": "e4fa0886b545405fbececc196c393fc8c88222422adf497d07f2c96dcca6b0f5",
+      "frame_id": "vm_rifle_fire",
+      "request_id": "1407f3b9-9b4b-446f-b7a4-b699f8e6af45",
+      "model": "marketing-studio/image",
+      "params": {
+        "aspect_ratio": "4:3",
+        "enhance_prompt": false,
+        "quality": "medium",
+        "resolution": "2k"
+      },
+      "estimated_usd": 0.092,
+      "references": [
+        "vm_rifle_idle_0.png"
+      ],
+      "prompt": "redraw this exact first person pixel art weapon sprite from a 1990s PC shooter as the same picture at the instant of firing, keeping the identical camera angle, framing, scale, weapon design, gloves, colours and chunky stepped pixel clusters, limited palette of desaturated gunmetal grey, rust, bone white and deep shadow, flat even lighting, a sharp narrow muzzle flash of hot ember orange with a pale yellow-white core and a few thin needle streaks bursts from the muzzle at the top with hard stepped pixel edges, fully inside the picture, the rifle kicks up slightly into the gloves, the whole background is one flat solid pure magenta #FF00FF colour with no checkerboard, no pattern, no gradient and no shadow on it, no text, no letters, no watermark, no border. Avoid: photorealistic, 3d render, smooth shading, gradient, blur, anti-aliasing, drop shadow, cast shadow, ambient occlusion, specular, glossy, reflection, rim light, lens flare, bloom, depth of field, text, signature, watermark, frame, border, background scenery.",
+      "raw_file": "art/raw/art-pass-20261002/viewmodels/vm_rifle_fire_0.png",
+      "raw_sha256": "b3d7196290dfa9865107eafcf3fe8adf9efb56fd78b1e1c02963958e9b236f64",
+      "reduction": "fragr-spritegen reduce --height 180 --no-trim --palette docs/palette.json --key ff00ff (tolerance 45, erode 2)",
+      "human_edited": false
+    },
+    {
+      "output": "res://assets/weapons/viewmodels/shotgun_idle.png",
+      "output_size": [
+        241,
+        180
+      ],
+      "output_sha256": "d66c7e0aa94818adcd3e30f26de18c7e426ec8e5a08c1914fcbe1d3b66756011",
+      "frame_id": "vm_shotgun_idle",
+      "request_id": "538cae59-41f3-4aa5-8f33-ed1e4dc67e77",
+      "model": "marketing-studio/image",
+      "params": {
+        "aspect_ratio": "4:3",
+        "enhance_prompt": false,
+        "quality": "medium",
+        "resolution": "2k"
+      },
+      "estimated_usd": 0.104,
+      "references": [
+        "wpn_scatter_0.png",
+        "vm_pistol_idle_0.png"
+      ],
+      "prompt": "redraw this exact first person pixel art weapon sprite from a 1990s PC shooter as the same picture, keeping the identical camera angle, framing, scale, weapon position, silhouette, proportions and chunky stepped pixel clusters, limited palette of desaturated gunmetal grey, rust, bone white and deep shadow with clear value contrast between light steel edge highlights, the mid gunmetal body and dark recesses, flat even lighting, edit the first reference picture and keep its double barrel pump shotgun exactly as it is; make only these changes: both hands wear the same worn warm brown leather full-finger work gloves with stitched seams and dark rust-brown jacket cuffs at the wrists as the second reference picture, and the winged emblem on the receiver plate becomes plain stamped rows of rivets with no emblem, no skull and no wings, the whole background is one flat solid pure magenta #FF00FF colour with no checkerboard, no pattern, no gradient and no shadow on it, no text, no letters, no watermark, no border. Avoid: photorealistic, 3d render, smooth shading, gradient, blur, anti-aliasing, drop shadow, cast shadow, ambient occlusion, specular, glossy, reflection, rim light, lens flare, bloom, depth of field, text, signature, watermark, frame, border, background scenery.",
+      "raw_file": "art/raw/art-pass-20261002/viewmodels/vm_shotgun_idle_0.png",
+      "raw_sha256": "11cc968a450b9ee9a9db31cbd84f9d4c3b183de51714c09a25b22e2bf3cdcdd9",
+      "reduction": "fragr-spritegen reduce --height 180 --no-trim --palette docs/palette.json --key ff00ff (tolerance 45, erode 2)",
+      "human_edited": false
+    },
+    {
+      "output": "res://assets/weapons/viewmodels/shotgun_fire.png",
+      "output_size": [
+        241,
+        180
+      ],
+      "output_sha256": "d409a04367560eedac09373838acf0435c2c40f31c6fe7270b6534f4ada4e542",
+      "frame_id": "vm_shotgun_fire",
+      "request_id": "f56578c0-24de-46d7-8c60-c348b7625409",
+      "model": "marketing-studio/image",
+      "params": {
+        "aspect_ratio": "4:3",
+        "enhance_prompt": false,
+        "quality": "medium",
+        "resolution": "2k"
+      },
+      "estimated_usd": 0.092,
+      "references": [
+        "vm_shotgun_idle_0.png"
+      ],
+      "prompt": "redraw this exact first person pixel art weapon sprite from a 1990s PC shooter as the same picture at the instant of firing, keeping the identical camera angle, framing, scale, weapon design, gloves, colours and chunky stepped pixel clusters, limited palette of desaturated gunmetal grey, rust, bone white and deep shadow, flat even lighting, a large wide muzzle blast of hot ember orange with a pale yellow-white core and a few small dark smoke puffs bursts from both barrels at the top with hard stepped pixel edges, fully inside the picture, the shotgun and both hands recoil up and back, the whole background is one flat solid pure magenta #FF00FF colour with no checkerboard, no pattern, no gradient and no shadow on it, no text, no letters, no watermark, no border. Avoid: photorealistic, 3d render, smooth shading, gradient, blur, anti-aliasing, drop shadow, cast shadow, ambient occlusion, specular, glossy, reflection, rim light, lens flare, bloom, depth of field, text, signature, watermark, frame, border, background scenery.",
+      "raw_file": "art/raw/art-pass-20261002/viewmodels/vm_shotgun_fire_0.png",
+      "raw_sha256": "01d37802af740c4a0c6d040f136ab5c32fda0c4ea44178e7a7cb49d5b7920100",
+      "reduction": "fragr-spritegen reduce --height 180 --no-trim --palette docs/palette.json --key ff00ff (tolerance 45, erode 2)",
+      "human_edited": false
+    },
+    {
+      "output": "res://assets/weapons/viewmodels/shotgun_pump.png",
+      "output_size": [
+        241,
+        180
+      ],
+      "output_sha256": "e1c6b4c1f96b2c678876a53b523129541cb66415fa83b3fd143a685961159427",
+      "frame_id": "vm_shotgun_pump",
+      "request_id": "f1c161f0-7700-4d35-999a-8e2b981eadb8",
+      "model": "marketing-studio/image",
+      "params": {
+        "aspect_ratio": "4:3",
+        "enhance_prompt": false,
+        "quality": "medium",
+        "resolution": "2k"
+      },
+      "estimated_usd": 0.091,
+      "references": [
+        "vm_shotgun_idle_0.png"
+      ],
+      "prompt": "redraw this exact first person pixel art weapon sprite from a 1990s PC shooter as the same picture a moment after firing, keeping the identical camera angle, framing, scale, weapon design, gloves, colours and chunky stepped pixel clusters, limited palette of desaturated gunmetal grey, rust, bone white and deep shadow, flat even lighting, no flash; the left gloved hand has racked the rust-wrapped pump fore-end back toward the viewer along the barrels, and one spent red shotgun shell with a brass base tumbles out to the right, the whole background is one flat solid pure magenta #FF00FF colour with no checkerboard, no pattern, no gradient and no shadow on it, no text, no letters, no watermark, no border. Avoid: photorealistic, 3d render, smooth shading, gradient, blur, anti-aliasing, drop shadow, cast shadow, ambient occlusion, specular, glossy, reflection, rim light, lens flare, bloom, depth of field, text, signature, watermark, frame, border, background scenery.",
+      "raw_file": "art/raw/art-pass-20261002/viewmodels/vm_shotgun_pump_0.png",
+      "raw_sha256": "e66016214e4d624b13e97090a283e96050fe186a1c17063578dfdcdc3acc2ddd",
+      "reduction": "fragr-spritegen reduce --height 180 --no-trim --palette docs/palette.json --key ff00ff (tolerance 45, erode 2)",
+      "human_edited": false
+    },
+    {
+      "output": "res://assets/weapons/viewmodels/railgun_idle.png",
+      "output_size": [
+        241,
+        180
+      ],
+      "output_sha256": "8392655eebcda1a9eb14f47af62693388cc6faa834118629c545890133e92f3e",
+      "frame_id": "vm_railgun_idle",
+      "request_id": "8c28f326-4266-4080-8a8f-b73cfa34b5db",
+      "model": "marketing-studio/image",
+      "params": {
+        "aspect_ratio": "4:3",
+        "enhance_prompt": false,
+        "quality": "medium",
+        "resolution": "2k"
+      },
+      "estimated_usd": 0.103,
+      "references": [
+        "px_rail_issued_0.png",
+        "vm_pistol_idle_0.png"
+      ],
+      "prompt": "redraw this exact first person pixel art weapon sprite from a 1990s PC shooter as the same picture, keeping the identical camera angle, framing, scale, weapon position, silhouette, proportions and chunky stepped pixel clusters, limited palette of desaturated gunmetal grey, rust, bone white and deep shadow with clear value contrast between light steel edge highlights, the mid gunmetal body and dark recesses, flat even lighting, edit the first reference picture and keep its long coil accelerator railgun exactly as it is; make only these changes: both hands wear the same worn warm brown leather full-finger work gloves with stitched seams and dark rust-brown jacket cuffs at the wrists as the second reference picture, and any round emblem becomes a plain riveted steel plate, the whole background is one flat solid pure magenta #FF00FF colour with no checkerboard, no pattern, no gradient and no shadow on it, no text, no letters, no watermark, no border. Avoid: photorealistic, 3d render, smooth shading, gradient, blur, anti-aliasing, drop shadow, cast shadow, ambient occlusion, specular, glossy, reflection, rim light, lens flare, bloom, depth of field, text, signature, watermark, frame, border, background scenery.",
+      "raw_file": "art/raw/art-pass-20261002/viewmodels/vm_railgun_idle_0.png",
+      "raw_sha256": "652529535358e513158d0325e6638044507aa0915960cfb505c723971115b388",
+      "reduction": "fragr-spritegen reduce --height 180 --no-trim --palette docs/palette.json --key ff00ff (tolerance 45, erode 2)",
+      "human_edited": false
+    },
+    {
+      "output": "res://assets/weapons/viewmodels/railgun_fire.png",
+      "output_size": [
+        241,
+        180
+      ],
+      "output_sha256": "b76f87dc2cf3292dec226ad37a51d4482fc5331ea4398c3e350c5259d3b86526",
+      "frame_id": "vm_railgun_fire",
+      "request_id": "09f9d599-9580-4e3c-be78-b8ed269ecf04",
+      "model": "marketing-studio/image",
+      "params": {
+        "aspect_ratio": "4:3",
+        "enhance_prompt": false,
+        "quality": "medium",
+        "resolution": "2k"
+      },
+      "estimated_usd": 0.092,
+      "references": [
+        "vm_railgun_idle_0.png"
+      ],
+      "prompt": "redraw this exact first person pixel art weapon sprite from a 1990s PC shooter as the same picture at the instant of firing, keeping the identical camera angle, framing, scale, weapon design, gloves, colours and chunky stepped pixel clusters, limited palette of desaturated gunmetal grey, rust, bone white and deep shadow, flat even lighting, a cold pale cyan-white discharge burst flares from the muzzle at the top with hard stepped pixel edges, fully inside the picture, the coil rings along the barrel glow pale cyan, the railgun recoils back slightly into the gloves, no orange fire, the whole background is one flat solid pure magenta #FF00FF colour with no checkerboard, no pattern, no gradient and no shadow on it, no text, no letters, no watermark, no border. Avoid: photorealistic, 3d render, smooth shading, gradient, blur, anti-aliasing, drop shadow, cast shadow, ambient occlusion, specular, glossy, reflection, rim light, lens flare, bloom, depth of field, text, signature, watermark, frame, border, background scenery.",
+      "raw_file": "art/raw/art-pass-20261002/viewmodels/vm_railgun_fire_0.png",
+      "raw_sha256": "96b959606b6bc608d419a99cbe8a9f12b7ae5fc925ad509f8f148baf7cf5c54e",
+      "reduction": "fragr-spritegen reduce --height 180 --no-trim --palette docs/palette.json --key ff00ff (tolerance 45, erode 2)",
+      "human_edited": false
+    },
+    {
+      "output": "res://assets/weapons/viewmodels/sniper_idle.png",
+      "output_size": [
+        241,
+        180
+      ],
+      "output_sha256": "6c3391daa4c01b28341a6cb12947f85becf9beb31991e9984853a9afd947147e",
+      "frame_id": "vm_sniper_idle",
+      "request_id": "41f34e11-8834-45a7-a449-dcbe44333502",
+      "model": "marketing-studio/image",
+      "params": {
+        "aspect_ratio": "4:3",
+        "enhance_prompt": false,
+        "quality": "medium",
+        "resolution": "2k"
+      },
+      "estimated_usd": 0.104,
+      "references": [
+        "vm_railgun_idle_0.png",
+        "vm_pistol_idle_0.png"
+      ],
+      "prompt": "first person pixel art weapon sprite from a 1990s PC shooter in exactly the same style, camera angle, scale, framing, colours and gloves as the reference pictures, chunky stepped pixel clusters, limited palette of desaturated gunmetal grey, black steel, rust, bone white and deep shadow with clear value contrast, flat even lighting, a different weapon, a long precision sniper rifle seen from behind and slightly above, both gloved hands holding it at the bottom edge of the frame, a large round telescopic scope with a bone-white rim on its rear lens sits high on top of the receiver and dominates the centre, a slim fluted barrel runs far forward beyond the scope to a boxy slotted muzzle brake near the top of the frame, a bolt handle on the right side, a small pale cyan energy cell window on the left side of the receiver, dark gunmetal and black steel with one thin restrained red seal stripe, no coil rings, no capacitor box, plainly not the railgun, the whole background is one flat solid pure magenta #FF00FF colour with no checkerboard, no pattern, no gradient and no shadow on it, no text, no letters, no watermark, no border. Avoid: photorealistic, 3d render, smooth shading, gradient, blur, anti-aliasing, drop shadow, cast shadow, ambient occlusion, specular, glossy, reflection, rim light, lens flare, bloom, depth of field, text, signature, watermark, frame, border, background scenery.",
+      "raw_file": "art/raw/art-pass-20261002/viewmodels/vm_sniper_idle_0.png",
+      "raw_sha256": "7426f33e5dd8e6bbc001a0cf439916a056ec8d5b309bac9567a7b6682adb6058",
+      "reduction": "fragr-spritegen reduce --height 180 --no-trim --palette docs/palette.json --key ff00ff (tolerance 45, erode 2)",
+      "human_edited": false
+    },
+    {
+      "output": "res://assets/weapons/viewmodels/sniper_fire.png",
+      "output_size": [
+        241,
+        180
+      ],
+      "output_sha256": "cbdd368f2b4620e9cd4abdfc21051979e0da63187d855a5b93088c3661f7295f",
+      "frame_id": "vm_sniper_fire_b",
+      "request_id": "9ee53f19-084f-4a34-a985-03ada1f27aa6",
+      "model": "marketing-studio/image",
+      "params": {
+        "aspect_ratio": "4:3",
+        "enhance_prompt": false,
+        "quality": "medium",
+        "resolution": "2k"
+      },
+      "estimated_usd": 0.092,
+      "references": [
+        "vm_sniper_idle_0.png"
+      ],
+      "prompt": "redraw this exact first person pixel art weapon sprite from a 1990s PC shooter as the same picture at the instant of firing, keeping the identical camera angle, framing, scale, weapon design, gloves, colours and chunky stepped pixel clusters, limited palette of desaturated gunmetal grey, rust, bone white and deep shadow, flat even lighting, a long sharp muzzle flash of hot ember orange with a pale yellow-white core bursts from the boxy muzzle brake at the top, with two small side jets from its slots, hard stepped pixel edges, fully inside the picture, the rifle recoils up slightly into the gloves; both brown leather gloves and cuffs stay clean and unchanged, with no red marks on them, the whole background is one flat solid pure magenta #FF00FF colour with no checkerboard, no pattern, no gradient and no shadow on it, no text, no letters, no watermark, no border. Avoid: photorealistic, 3d render, smooth shading, gradient, blur, anti-aliasing, drop shadow, cast shadow, ambient occlusion, specular, glossy, reflection, rim light, lens flare, bloom, depth of field, text, signature, watermark, frame, border, background scenery.",
+      "raw_file": "art/raw/art-pass-20261002/viewmodels/vm_sniper_fire_b_0.png",
+      "raw_sha256": "bdb8d828911ab99cc7c1a6f34a2a3089fe04e63fceb17a8fee85847914e35a55",
+      "reduction": "fragr-spritegen reduce --height 180 --no-trim --palette docs/palette.json --key ff00ff (tolerance 45, erode 2)",
+      "human_edited": false
+    },
+    {
+      "output": "res://assets/weapons/viewmodels/fists_idle.png",
+      "output_size": [
+        241,
+        180
+      ],
+      "output_sha256": "f505a178d8f834dafdf834739fe92787bc1a5bed6326262868df93dbc81c102e",
+      "frame_id": "vm_fists_idle",
+      "request_id": "a967eab7-03c5-4ddb-a78d-e41264626f73",
+      "model": "marketing-studio/image",
+      "params": {
+        "aspect_ratio": "4:3",
+        "enhance_prompt": false,
+        "quality": "medium",
+        "resolution": "2k"
+      },
+      "estimated_usd": 0.104,
+      "references": [
+        "wpn_fists_0.png",
+        "vm_pistol_idle_0.png"
+      ],
+      "prompt": "redraw this exact first person pixel art weapon sprite from a 1990s PC shooter as the same picture, keeping the identical camera angle, framing, scale, weapon position, silhouette, proportions and chunky stepped pixel clusters, limited palette of desaturated gunmetal grey, rust, bone white and deep shadow with clear value contrast between light steel edge highlights, the mid gunmetal body and dark recesses, flat even lighting, edit the first reference picture and keep its two raised fists exactly where they are, with the same size, spacing and wrist angles; make only these changes: both hands wear the same worn warm brown leather full-finger work gloves with stitched seams and dark rust-brown jacket cuffs at the wrists as the second reference picture, and remove the placard and any badge from the wrists, the whole background is one flat solid pure magenta #FF00FF colour with no checkerboard, no pattern, no gradient and no shadow on it, no text, no letters, no watermark, no border. Avoid: photorealistic, 3d render, smooth shading, gradient, blur, anti-aliasing, drop shadow, cast shadow, ambient occlusion, specular, glossy, reflection, rim light, lens flare, bloom, depth of field, text, signature, watermark, frame, border, background scenery.",
+      "raw_file": "art/raw/art-pass-20261002/viewmodels/vm_fists_idle_0.png",
+      "raw_sha256": "17874c0ca897764b05ee549630c79cb736d26b2563c6ec382050ea36eb124930",
+      "reduction": "fragr-spritegen reduce --height 180 --no-trim --palette docs/palette.json --key ff00ff (tolerance 45, erode 2)",
+      "human_edited": false
+    },
+    {
+      "output": "res://assets/weapons/viewmodels/shiv_idle.png",
+      "output_size": [
+        241,
+        180
+      ],
+      "output_sha256": "e7a13b4bbc918ace97910ac9f3ec1c44fecdc0e2a6e7a0b8920804ff8d5035c8",
+      "frame_id": "vm_shiv_idle",
+      "request_id": "c6fc658c-3436-4331-bdb0-4b62e2069801",
+      "model": "marketing-studio/image",
+      "params": {
+        "aspect_ratio": "4:3",
+        "enhance_prompt": false,
+        "quality": "medium",
+        "resolution": "2k"
+      },
+      "estimated_usd": 0.104,
+      "references": [
+        "shiv-view-source.png",
+        "vm_pistol_idle_0.png"
+      ],
+      "prompt": "redraw this exact first person pixel art weapon sprite from a 1990s PC shooter as the same picture, keeping the identical camera angle, framing, scale, weapon position, silhouette, proportions and chunky stepped pixel clusters, limited palette of desaturated gunmetal grey, rust, bone white and deep shadow with clear value contrast between light steel edge highlights, the mid gunmetal body and dark recesses, flat even lighting, edit the first reference picture and keep its short salvaged utility blade, its wrapped ochre handle, the hand position and the framing exactly as they are, with the forearm still running off the bottom edge; make only this change: the hand wears the same worn warm brown leather full-finger work glove with stitched seams and a dark rust-brown jacket cuff as the second reference picture, with no badge, the whole background is one flat solid pure magenta #FF00FF colour with no checkerboard, no pattern, no gradient and no shadow on it, no text, no letters, no watermark, no border. Avoid: photorealistic, 3d render, smooth shading, gradient, blur, anti-aliasing, drop shadow, cast shadow, ambient occlusion, specular, glossy, reflection, rim light, lens flare, bloom, depth of field, text, signature, watermark, frame, border, background scenery.",
+      "raw_file": "art/raw/art-pass-20261002/viewmodels/vm_shiv_idle_0.png",
+      "raw_sha256": "9c4365fab734f691bc9d2f9dde0aeffebd203a636ed11abe11993934ad900a77",
+      "reduction": "fragr-spritegen reduce --height 180 --no-trim --palette docs/palette.json --key ff00ff (tolerance 45, erode 2)",
+      "human_edited": false
+    },
+    {
+      "output": "res://assets/weapons/viewmodels/grenade_ready.png",
+      "output_size": [
+        241,
+        180
+      ],
+      "output_sha256": "72d87ef349948598f1a6769f1bdeb84bb72ed6678c3c3bb6d63eeff510b72b5a",
+      "frame_id": "vm_grenade_ready",
+      "request_id": "df50cab5-f723-4b50-85ac-68cb51d05ded",
+      "model": "marketing-studio/image",
+      "params": {
+        "aspect_ratio": "4:3",
+        "enhance_prompt": false,
+        "quality": "medium",
+        "resolution": "2k"
+      },
+      "estimated_usd": 0.092,
+      "references": [
+        "vm_pistol_idle_0.png"
+      ],
+      "prompt": "first person pixel art sprite from a 1990s PC shooter in exactly the same style, camera, scale, colours and leather gloves as the reference picture, chunky stepped pixel clusters, limited palette of desaturated gunmetal grey, sage, rust, bone white and deep shadow, flat even lighting, no weapon; only the left gloved hand and forearm in its rust-brown jacket cuff, raised from the lower left edge of the frame, gripping one squat muted sage-green service hand grenade with a dark steel cap and safety lever, the steel ring pin pulled and hanging from one finger, the rest of the frame empty, the whole background is one flat solid pure magenta #FF00FF colour with no checkerboard, no pattern, no gradient and no shadow on it, no text, no letters, no watermark, no border. Avoid: photorealistic, 3d render, smooth shading, gradient, blur, anti-aliasing, drop shadow, cast shadow, ambient occlusion, specular, glossy, reflection, rim light, lens flare, bloom, depth of field, text, signature, watermark, frame, border, background scenery.",
+      "raw_file": "art/raw/art-pass-20261002/viewmodels/vm_grenade_ready_0.png",
+      "raw_sha256": "3c83e9972f3e671abe7e237ab8570ef0f3ca9fb3d9c83507eb421bdf2be2f843",
+      "reduction": "fragr-spritegen reduce --height 180 --no-trim --palette docs/palette.json --key ff00ff (tolerance 45, erode 2)",
+      "human_edited": false
+    },
+    {
+      "output": "res://assets/weapons/viewmodels/grenade_throw.png",
+      "output_size": [
+        241,
+        180
+      ],
+      "output_sha256": "e0f68719741e73712f4e052dfdee281a96b8f35076c2c0ac14212a06cd4d3ccf",
+      "frame_id": "vm_grenade_throw",
+      "request_id": "552f930a-19f3-4588-980f-0188e81012f5",
+      "model": "marketing-studio/image",
+      "params": {
+        "aspect_ratio": "4:3",
+        "enhance_prompt": false,
+        "quality": "medium",
+        "resolution": "2k"
+      },
+      "estimated_usd": 0.092,
+      "references": [
+        "vm_pistol_idle_0.png"
+      ],
+      "prompt": "first person pixel art sprite from a 1990s PC shooter in exactly the same style, camera, scale, colours and leather gloves as the reference picture, chunky stepped pixel clusters, limited palette of desaturated gunmetal grey, sage, rust, bone white and deep shadow, flat even lighting, no weapon; only the left gloved hand and forearm in its rust-brown jacket cuff, flung forward from the lower left toward the centre of the frame with the fingers opening, one squat muted sage-green service hand grenade just leaving the palm, its safety lever springing free, the rest of the frame empty, the whole background is one flat solid pure magenta #FF00FF colour with no checkerboard, no pattern, no gradient and no shadow on it, no text, no letters, no watermark, no border. Avoid: photorealistic, 3d render, smooth shading, gradient, blur, anti-aliasing, drop shadow, cast shadow, ambient occlusion, specular, glossy, reflection, rim light, lens flare, bloom, depth of field, text, signature, watermark, frame, border, background scenery.",
+      "raw_file": "art/raw/art-pass-20261002/viewmodels/vm_grenade_throw_0.png",
+      "raw_sha256": "325cae803dd0516be3798c83de0201ee9bb4f1c2ef1ead731fd0e69e7c42587f",
+      "reduction": "fragr-spritegen reduce --height 180 --no-trim --palette docs/palette.json --key ff00ff (tolerance 45, erode 2)",
+      "human_edited": false
+    },
+    {
+      "output": "res://assets/pickups/medkit.png",
+      "output_size": [
+        43,
+        32
+      ],
+      "output_sha256": "d916e40926e9cdb63079cef7922c7704e5f494b81bed61b18fb6deff85f1b9d4",
+      "frame_id": "pk_medkit",
+      "request_id": "97b61481-4334-480a-b9d3-031abe9c3118",
+      "model": "marketing-studio/image",
+      "params": {
+        "aspect_ratio": "1:1",
+        "enhance_prompt": false,
+        "quality": "medium",
+        "resolution": "2k"
+      },
+      "estimated_usd": 0.116,
+      "references": [
+        "pk_medkit_test_0.png"
+      ],
+      "prompt": "retro pixel art item pickup sprite for a 1990s PC shooter in the same chunky pixel style as the reference picture, crisp stepped pixel clusters, limited palette of desaturated bone white, gunmetal grey, rust, ember, blood red and deep shadow with clear value contrast, flat even lighting, no gradients, the same compact hard-shell medical kit case as the reference picture, bone-white enamel shell, dark steel corner guards and a carry handle, one bold blood-red horizontal pulse-line mark across the lid, no cross symbol, three-quarter view from slightly above, resting on the floor, centred, the whole object visible with even margins, the whole background is one flat solid pure magenta #FF00FF colour with no checkerboard, no pattern, no gradient and no shadow on it, no text, no letters, no numbers, no watermark, no border. Avoid: photorealistic, 3d render, smooth shading, gradient, blur, anti-aliasing, drop shadow, cast shadow, ambient occlusion, specular, glossy, reflection, rim light, lens flare, bloom, depth of field, text, signature, watermark, frame, border, background scenery.",
+      "raw_file": "art/raw/art-pass-20261002/pickups/pk_medkit_0.png",
+      "raw_sha256": "c9c839d0a015e6ff9deabada608bfb4c15e506bc81dbc6c8b115cbcbbc798181",
+      "reduction": "fragr-spritegen reduce --height 32 --palette docs/palette.json --key ff00ff (tolerance 45, erode 2)",
+      "human_edited": false
+    },
+    {
+      "output": "res://assets/pickups/armor.png",
+      "output_size": [
+        41,
+        32
+      ],
+      "output_sha256": "e96cc016dc9746b82bf4933f5cd1dd6445b6d82c4e3456788a3e06bcca69241e",
+      "frame_id": "pk_armor",
+      "request_id": "2941c83c-9e11-4450-bbb4-c51838f05801",
+      "model": "marketing-studio/image",
+      "params": {
+        "aspect_ratio": "1:1",
+        "enhance_prompt": false,
+        "quality": "medium",
+        "resolution": "2k"
+      },
+      "estimated_usd": 0.116,
+      "references": [
+        "pk_medkit_test_0.png"
+      ],
+      "prompt": "retro pixel art item pickup sprite for a 1990s PC shooter in the same chunky pixel style as the reference picture, crisp stepped pixel clusters, limited palette of desaturated bone white, gunmetal grey, rust, ember, blood red and deep shadow with clear value contrast, flat even lighting, no gradients, a salvaged ballistic chest plate vest lying flat, broad dark gunmetal armour plates with bone-white edge trim, worn warm brown leather straps and steel buckles, rivets and scuffs, three-quarter view from slightly above, resting on the floor, centred, the whole object visible with even margins, the whole background is one flat solid pure magenta #FF00FF colour with no checkerboard, no pattern, no gradient and no shadow on it, no text, no letters, no numbers, no watermark, no border. Avoid: photorealistic, 3d render, smooth shading, gradient, blur, anti-aliasing, drop shadow, cast shadow, ambient occlusion, specular, glossy, reflection, rim light, lens flare, bloom, depth of field, text, signature, watermark, frame, border, background scenery.",
+      "raw_file": "art/raw/art-pass-20261002/pickups/pk_armor_0.png",
+      "raw_sha256": "1440359850d074f19c986e05e10d647e92bf6f6e5db814eb53bc79d5ca830155",
+      "reduction": "fragr-spritegen reduce --height 32 --palette docs/palette.json --key ff00ff (tolerance 45, erode 2)",
+      "human_edited": false
+    },
+    {
+      "output": "res://assets/pickups/bullets.png",
+      "output_size": [
+        29,
+        32
+      ],
+      "output_sha256": "4a37efcded19400cc9ee7b1f16082a637f7cc63c497c6ad2767599e566a40819",
+      "frame_id": "pk_bullets",
+      "request_id": "48c15cc6-3553-4241-997d-b89b069796d2",
+      "model": "marketing-studio/image",
+      "params": {
+        "aspect_ratio": "1:1",
+        "enhance_prompt": false,
+        "quality": "medium",
+        "resolution": "2k"
+      },
+      "estimated_usd": 0.115,
+      "references": [
+        "pk_medkit_test_0.png"
+      ],
+      "prompt": "retro pixel art item pickup sprite for a 1990s PC shooter in the same chunky pixel style as the reference picture, crisp stepped pixel clusters, limited palette of desaturated bone white, gunmetal grey, rust, ember, blood red and deep shadow with clear value contrast, flat even lighting, no gradients, a small open dark steel ammunition box packed with rows of brass pistol and rifle rounds, a few loose brass rounds beside it, three-quarter view from slightly above, resting on the floor, centred, the whole object visible with even margins, the whole background is one flat solid pure magenta #FF00FF colour with no checkerboard, no pattern, no gradient and no shadow on it, no text, no letters, no numbers, no watermark, no border. Avoid: photorealistic, 3d render, smooth shading, gradient, blur, anti-aliasing, drop shadow, cast shadow, ambient occlusion, specular, glossy, reflection, rim light, lens flare, bloom, depth of field, text, signature, watermark, frame, border, background scenery.",
+      "raw_file": "art/raw/art-pass-20261002/pickups/pk_bullets_0.png",
+      "raw_sha256": "2a4972a36e7c4840c6526f6f5a920b9df64f9e8e59bdbca4fd7282b5449fc25c",
+      "reduction": "fragr-spritegen reduce --height 32 --palette docs/palette.json --key ff00ff (tolerance 45, erode 2)",
+      "human_edited": false
+    },
+    {
+      "output": "res://assets/pickups/shells.png",
+      "output_size": [
+        26,
+        32
+      ],
+      "output_sha256": "d5c3aca2a677fdb15b68b1cf4f2cbb5efb60ee51d01abfa1d97bed93e2f8e1aa",
+      "frame_id": "pk_shells",
+      "request_id": "c0444544-661b-4dfd-a178-922db7673407",
+      "model": "marketing-studio/image",
+      "params": {
+        "aspect_ratio": "1:1",
+        "enhance_prompt": false,
+        "quality": "medium",
+        "resolution": "2k"
+      },
+      "estimated_usd": 0.116,
+      "references": [
+        "pk_medkit_test_0.png"
+      ],
+      "prompt": "retro pixel art item pickup sprite for a 1990s PC shooter in the same chunky pixel style as the reference picture, crisp stepped pixel clusters, limited palette of desaturated bone white, gunmetal grey, rust, ember, blood red and deep shadow with clear value contrast, flat even lighting, no gradients, a small worn rust-red cardboard box of shotgun shells with its lid open, red shells with brass bases standing inside and two lying beside it, three-quarter view from slightly above, resting on the floor, centred, the whole object visible with even margins, the whole background is one flat solid pure magenta #FF00FF colour with no checkerboard, no pattern, no gradient and no shadow on it, no text, no letters, no numbers, no watermark, no border. Avoid: photorealistic, 3d render, smooth shading, gradient, blur, anti-aliasing, drop shadow, cast shadow, ambient occlusion, specular, glossy, reflection, rim light, lens flare, bloom, depth of field, text, signature, watermark, frame, border, background scenery.",
+      "raw_file": "art/raw/art-pass-20261002/pickups/pk_shells_0.png",
+      "raw_sha256": "3a26384c445ade63c5b52a287620c471005cec0b7c2869887bc6df3ab31e0e94",
+      "reduction": "fragr-spritegen reduce --height 32 --palette docs/palette.json --key ff00ff (tolerance 45, erode 2)",
+      "human_edited": false
+    },
+    {
+      "output": "res://assets/pickups/cells.png",
+      "output_size": [
+        18,
+        32
+      ],
+      "output_sha256": "96f8bbb2b48db79a6d21e7daf367ba19b3ac9a1ef2b08e0a457183eb1bd8297e",
+      "frame_id": "pk_cells",
+      "request_id": "754aa0c8-41ce-49fa-bc25-dcc5da34efc0",
+      "model": "marketing-studio/image",
+      "params": {
+        "aspect_ratio": "1:1",
+        "enhance_prompt": false,
+        "quality": "medium",
+        "resolution": "2k"
+      },
+      "estimated_usd": 0.116,
+      "references": [
+        "pk_medkit_test_0.png"
+      ],
+      "prompt": "retro pixel art item pickup sprite for a 1990s PC shooter in the same chunky pixel style as the reference picture, crisp stepped pixel clusters, limited palette of desaturated bone white, gunmetal grey, rust, ember, blood red and deep shadow with clear value contrast, flat even lighting, no gradients, a squat heavy energy cell canister standing upright, dark steel casing with bone-white end caps, a glowing pale cyan window band around its middle and a carry loop on top, three-quarter view from slightly above, resting on the floor, centred, the whole object visible with even margins, the whole background is one flat solid pure magenta #FF00FF colour with no checkerboard, no pattern, no gradient and no shadow on it, no text, no letters, no numbers, no watermark, no border. Avoid: photorealistic, 3d render, smooth shading, gradient, blur, anti-aliasing, drop shadow, cast shadow, ambient occlusion, specular, glossy, reflection, rim light, lens flare, bloom, depth of field, text, signature, watermark, frame, border, background scenery.",
+      "raw_file": "art/raw/art-pass-20261002/pickups/pk_cells_0.png",
+      "raw_sha256": "5eda140af10a3e366dd4b79e5f9bd4f57930e217ae1f5a6629e4b268ad0696d1",
+      "reduction": "fragr-spritegen reduce --height 32 --palette docs/palette.json --key ff00ff (tolerance 45, erode 2)",
+      "human_edited": false
+    },
+    {
+      "output": "res://assets/pickups/grenades.png",
+      "output_size": [
+        38,
+        32
+      ],
+      "output_sha256": "b9c6a65882a6f446ef571559679e9d474fbad16434530b22152d9066e279270b",
+      "frame_id": "pk_grenades",
+      "request_id": "37988938-adb5-44b7-ae52-eeb87d727bfe",
+      "model": "marketing-studio/image",
+      "params": {
+        "aspect_ratio": "1:1",
+        "enhance_prompt": false,
+        "quality": "medium",
+        "resolution": "2k"
+      },
+      "estimated_usd": 0.116,
+      "references": [
+        "pk_medkit_test_0.png"
+      ],
+      "prompt": "retro pixel art item pickup sprite for a 1990s PC shooter in the same chunky pixel style as the reference picture, crisp stepped pixel clusters, limited palette of desaturated bone white, gunmetal grey, rust, ember, blood red and deep shadow with clear value contrast, flat even lighting, no gradients, two squat service hand grenades lying together, muted sage-green steel bodies, dark steel caps with safety levers and steel ring pins, three-quarter view from slightly above, resting on the floor, centred, the whole object visible with even margins, the whole background is one flat solid pure magenta #FF00FF colour with no checkerboard, no pattern, no gradient and no shadow on it, no text, no letters, no numbers, no watermark, no border. Avoid: photorealistic, 3d render, smooth shading, gradient, blur, anti-aliasing, drop shadow, cast shadow, ambient occlusion, specular, glossy, reflection, rim light, lens flare, bloom, depth of field, text, signature, watermark, frame, border, background scenery.",
+      "raw_file": "art/raw/art-pass-20261002/pickups/pk_grenades_0.png",
+      "raw_sha256": "5286555c46a570bc1363cdf7ddc77d7b638d85c20aa085c293a6d8742f12e296",
+      "reduction": "fragr-spritegen reduce --height 32 --palette docs/palette.json --key ff00ff (tolerance 45, erode 2)",
+      "human_edited": false
+    },
+    {
+      "output": "res://assets/weapons/pickups/pistol.png",
+      "output_size": [
+        36,
+        26
+      ],
+      "output_sha256": "5510cce03ecd790cc3f787ddc3ce6bbd8b11d201aa79cb7975a69ead469df1e5",
+      "frame_id": "pk_pistol",
+      "request_id": "69c3f3f7-795c-4218-b5f9-affc86a804ea",
+      "model": "marketing-studio/image",
+      "params": {
+        "aspect_ratio": "1:1",
+        "enhance_prompt": false,
+        "quality": "medium",
+        "resolution": "2k"
+      },
+      "estimated_usd": 0.127,
+      "references": [
+        "vm_pistol_idle_0.png",
+        "pk_medkit_test_0.png"
+      ],
+      "prompt": "retro pixel art weapon pickup sprite for a 1990s PC shooter in the same chunky pixel style as the reference pictures, crisp stepped pixel clusters, limited palette of desaturated institutional grey-green, gunmetal grey, rust, bone white and deep shadow with clear value contrast, flat even lighting, no gradients, no hands, the blocky stamped-steel service pistol from the first reference picture, square slide in institutional grey-green enamel, rust-orange front sight, plain riveted steel plates, dark grip, side profile view facing right, the weapon lying level on the floor seen from slightly above, centred, the whole weapon visible with even margins, the whole background is one flat solid pure magenta #FF00FF colour with no checkerboard, no pattern, no gradient and no shadow on it, no text, no letters, no numbers, no watermark, no border. Avoid: photorealistic, 3d render, smooth shading, gradient, blur, anti-aliasing, drop shadow, cast shadow, ambient occlusion, specular, glossy, reflection, rim light, lens flare, bloom, depth of field, text, signature, watermark, frame, border, background scenery.",
+      "raw_file": "art/raw/art-pass-20261002/pickups/pk_pistol_0.png",
+      "raw_sha256": "da849cfdc6e2189064388cd67c9ae366db7db362f9a2a91923e8492a12430f53",
+      "reduction": "fragr-spritegen reduce --height 26 --palette docs/palette.json --key ff00ff (tolerance 45, erode 2)",
+      "human_edited": false
+    },
+    {
+      "output": "res://assets/weapons/pickups/rifle.png",
+      "output_size": [
+        80,
+        19
+      ],
+      "output_sha256": "18a053a4c21edeba0d7916486d182917be6f531e063bca904d5de38f5648b957",
+      "frame_id": "pk_rifle",
+      "request_id": "1adfab9c-5267-4b1d-871f-3faeed182aef",
+      "model": "marketing-studio/image",
+      "params": {
+        "aspect_ratio": "16:9",
+        "enhance_prompt": false,
+        "quality": "medium",
+        "resolution": "2k"
+      },
+      "estimated_usd": 0.086,
+      "references": [
+        "vm_rifle_idle_0.png",
+        "pk_medkit_test_0.png"
+      ],
+      "prompt": "retro pixel art weapon pickup sprite for a 1990s PC shooter in the same chunky pixel style as the reference pictures, crisp stepped pixel clusters, limited palette of desaturated institutional grey-green, gunmetal grey, rust, bone white and deep shadow with clear value contrast, flat even lighting, no gradients, no hands, the flechette rifle from the first reference picture, a long tapered angular institutional grey-green rifle with a triangular upper receiver, short box magazine, plain riveted plates and a small round rust knob, side profile view facing right, the weapon lying level on the floor seen from slightly above, centred, the whole weapon visible with even margins, the whole background is one flat solid pure magenta #FF00FF colour with no checkerboard, no pattern, no gradient and no shadow on it, no text, no letters, no numbers, no watermark, no border. Avoid: photorealistic, 3d render, smooth shading, gradient, blur, anti-aliasing, drop shadow, cast shadow, ambient occlusion, specular, glossy, reflection, rim light, lens flare, bloom, depth of field, text, signature, watermark, frame, border, background scenery.",
+      "raw_file": "art/raw/art-pass-20261002/pickups/pk_rifle_0.png",
+      "raw_sha256": "f666752386e2c69173afb43e772a40d511fccbdfc55d0c1906a3c69a51a28c11",
+      "reduction": "fragr-spritegen reduce --height 19 --palette docs/palette.json --key ff00ff (tolerance 45, erode 2)",
+      "human_edited": false
+    },
+    {
+      "output": "res://assets/weapons/pickups/shotgun.png",
+      "output_size": [
+        85,
+        16
+      ],
+      "output_sha256": "305334fe3b53c3afb693a5d775c630f0da1f197fd8b06bb1d1d59ec0bf755e37",
+      "frame_id": "pk_shotgun",
+      "request_id": "0bd7887b-86eb-4121-bf18-7c145a8ac4d5",
+      "model": "marketing-studio/image",
+      "params": {
+        "aspect_ratio": "16:9",
+        "enhance_prompt": false,
+        "quality": "medium",
+        "resolution": "2k"
+      },
+      "estimated_usd": 0.086,
+      "references": [
+        "vm_shotgun_idle_0.png",
+        "pk_medkit_test_0.png"
+      ],
+      "prompt": "retro pixel art weapon pickup sprite for a 1990s PC shooter in the same chunky pixel style as the reference pictures, crisp stepped pixel clusters, limited palette of desaturated institutional grey-green, gunmetal grey, rust, bone white and deep shadow with clear value contrast, flat even lighting, no gradients, no hands, the double barrel pump shotgun from the first reference picture, two dark steel barrels, rust-wrapped pump fore-end, institutional grey-green receiver with a rust plate, short stock, side profile view facing right, the weapon lying level on the floor seen from slightly above, centred, the whole weapon visible with even margins, the whole background is one flat solid pure magenta #FF00FF colour with no checkerboard, no pattern, no gradient and no shadow on it, no text, no letters, no numbers, no watermark, no border. Avoid: photorealistic, 3d render, smooth shading, gradient, blur, anti-aliasing, drop shadow, cast shadow, ambient occlusion, specular, glossy, reflection, rim light, lens flare, bloom, depth of field, text, signature, watermark, frame, border, background scenery.",
+      "raw_file": "art/raw/art-pass-20261002/pickups/pk_shotgun_0.png",
+      "raw_sha256": "e1cf35e00f850300bf41dfafb9138294db88deb6723e1f637c297e250d2dfe54",
+      "reduction": "fragr-spritegen reduce --height 16 --palette docs/palette.json --key ff00ff (tolerance 45, erode 2)",
+      "human_edited": false
+    },
+    {
+      "output": "res://assets/weapons/pickups/railgun.png",
+      "output_size": [
+        92,
+        17
+      ],
+      "output_sha256": "afa6ac00373b185eee83b5d403288884f5ae25c4f2306de04a3cd891783e1b2a",
+      "frame_id": "pk_railgun",
+      "request_id": "cbc9f823-5625-48a2-91c2-f1e03b951321",
+      "model": "marketing-studio/image",
+      "params": {
+        "aspect_ratio": "16:9",
+        "enhance_prompt": false,
+        "quality": "medium",
+        "resolution": "2k"
+      },
+      "estimated_usd": 0.086,
+      "references": [
+        "vm_railgun_idle_0.png",
+        "pk_medkit_test_0.png"
+      ],
+      "prompt": "retro pixel art weapon pickup sprite for a 1990s PC shooter in the same chunky pixel style as the reference pictures, crisp stepped pixel clusters, limited palette of desaturated institutional grey-green, gunmetal grey, rust, bone white and deep shadow with clear value contrast, flat even lighting, no gradients, no hands, the long coil accelerator railgun from the first reference picture, exposed rust-copper coil rings along the barrel, boxy capacitor housing, institutional grey-green body, side profile view facing right, the weapon lying level on the floor seen from slightly above, centred, the whole weapon visible with even margins, the whole background is one flat solid pure magenta #FF00FF colour with no checkerboard, no pattern, no gradient and no shadow on it, no text, no letters, no numbers, no watermark, no border. Avoid: photorealistic, 3d render, smooth shading, gradient, blur, anti-aliasing, drop shadow, cast shadow, ambient occlusion, specular, glossy, reflection, rim light, lens flare, bloom, depth of field, text, signature, watermark, frame, border, background scenery.",
+      "raw_file": "art/raw/art-pass-20261002/pickups/pk_railgun_0.png",
+      "raw_sha256": "851c37ac401c5c6bced26f04295e33ba47e2b5b530425bf68e39a6eeda477892",
+      "reduction": "fragr-spritegen reduce --height 17 --palette docs/palette.json --key ff00ff (tolerance 45, erode 2)",
+      "human_edited": false
+    },
+    {
+      "output": "res://assets/weapons/pickups/sniper.png",
+      "output_size": [
+        100,
+        20
+      ],
+      "output_sha256": "abf74efa2bbbeefd84f4f591803c6c1addd3f2eb37dfc480a2172dd5a3581718",
+      "frame_id": "pk_sniper",
+      "request_id": "2d2db98d-ce96-444a-8544-f5743d15fd82",
+      "model": "marketing-studio/image",
+      "params": {
+        "aspect_ratio": "16:9",
+        "enhance_prompt": false,
+        "quality": "medium",
+        "resolution": "2k"
+      },
+      "estimated_usd": 0.087,
+      "references": [
+        "vm_sniper_idle_0.png",
+        "pk_medkit_test_0.png"
+      ],
+      "prompt": "retro pixel art weapon pickup sprite for a 1990s PC shooter in the same chunky pixel style as the reference pictures, crisp stepped pixel clusters, limited palette of desaturated institutional grey-green, gunmetal grey, rust, bone white and deep shadow with clear value contrast, flat even lighting, no gradients, no hands, the long precision sniper rifle from the first reference picture, a large round telescopic scope on top, slim fluted barrel ending in a boxy slotted muzzle brake, bolt handle, skeleton stock, dark gunmetal and black steel with one thin restrained red seal stripe and a small pale cyan cell window, side profile view facing right, the weapon lying level on the floor seen from slightly above, centred, the whole weapon visible with even margins, the whole background is one flat solid pure magenta #FF00FF colour with no checkerboard, no pattern, no gradient and no shadow on it, no text, no letters, no numbers, no watermark, no border. Avoid: photorealistic, 3d render, smooth shading, gradient, blur, anti-aliasing, drop shadow, cast shadow, ambient occlusion, specular, glossy, reflection, rim light, lens flare, bloom, depth of field, text, signature, watermark, frame, border, background scenery.",
+      "raw_file": "art/raw/art-pass-20261002/pickups/pk_sniper_0.png",
+      "raw_sha256": "7d74234a0fbb56c8231664332d6c392543f2f9f3cc96ae8c4fa25431449c06e0",
+      "reduction": "fragr-spritegen reduce --height 20 --palette docs/palette.json --key ff00ff (tolerance 45, erode 2)",
+      "human_edited": false
+    },
+    {
+      "output": "res://assets/hud/health.png",
+      "output_size": [
+        27,
+        20
+      ],
+      "output_sha256": "aa7acf0b0f3bc422e7f0143e202e61a4a4fbfcec22963155bc5e89ac2fce8581",
+      "frame_id": "pk_medkit",
+      "request_id": "97b61481-4334-480a-b9d3-031abe9c3118",
+      "model": "marketing-studio/image",
+      "params": {
+        "aspect_ratio": "1:1",
+        "enhance_prompt": false,
+        "quality": "medium",
+        "resolution": "2k"
+      },
+      "estimated_usd": 0.116,
+      "references": [
+        "pk_medkit_test_0.png"
+      ],
+      "prompt": "retro pixel art item pickup sprite for a 1990s PC shooter in the same chunky pixel style as the reference picture, crisp stepped pixel clusters, limited palette of desaturated bone white, gunmetal grey, rust, ember, blood red and deep shadow with clear value contrast, flat even lighting, no gradients, the same compact hard-shell medical kit case as the reference picture, bone-white enamel shell, dark steel corner guards and a carry handle, one bold blood-red horizontal pulse-line mark across the lid, no cross symbol, three-quarter view from slightly above, resting on the floor, centred, the whole object visible with even margins, the whole background is one flat solid pure magenta #FF00FF colour with no checkerboard, no pattern, no gradient and no shadow on it, no text, no letters, no numbers, no watermark, no border. Avoid: photorealistic, 3d render, smooth shading, gradient, blur, anti-aliasing, drop shadow, cast shadow, ambient occlusion, specular, glossy, reflection, rim light, lens flare, bloom, depth of field, text, signature, watermark, frame, border, background scenery.",
+      "raw_file": "art/raw/art-pass-20261002/pickups/pk_medkit_0.png",
+      "raw_sha256": "c9c839d0a015e6ff9deabada608bfb4c15e506bc81dbc6c8b115cbcbbc798181",
+      "reduction": "fragr-spritegen reduce --height 20 --palette docs/palette.json --key ff00ff (tolerance 45, erode 2)",
+      "human_edited": false
+    },
+    {
+      "output": "res://assets/hud/armor.png",
+      "output_size": [
+        26,
+        20
+      ],
+      "output_sha256": "01753901165368390430f001b1c0478e93e876832ce2e82dc886122a489636dd",
+      "frame_id": "pk_armor",
+      "request_id": "2941c83c-9e11-4450-bbb4-c51838f05801",
+      "model": "marketing-studio/image",
+      "params": {
+        "aspect_ratio": "1:1",
+        "enhance_prompt": false,
+        "quality": "medium",
+        "resolution": "2k"
+      },
+      "estimated_usd": 0.116,
+      "references": [
+        "pk_medkit_test_0.png"
+      ],
+      "prompt": "retro pixel art item pickup sprite for a 1990s PC shooter in the same chunky pixel style as the reference picture, crisp stepped pixel clusters, limited palette of desaturated bone white, gunmetal grey, rust, ember, blood red and deep shadow with clear value contrast, flat even lighting, no gradients, a salvaged ballistic chest plate vest lying flat, broad dark gunmetal armour plates with bone-white edge trim, worn warm brown leather straps and steel buckles, rivets and scuffs, three-quarter view from slightly above, resting on the floor, centred, the whole object visible with even margins, the whole background is one flat solid pure magenta #FF00FF colour with no checkerboard, no pattern, no gradient and no shadow on it, no text, no letters, no numbers, no watermark, no border. Avoid: photorealistic, 3d render, smooth shading, gradient, blur, anti-aliasing, drop shadow, cast shadow, ambient occlusion, specular, glossy, reflection, rim light, lens flare, bloom, depth of field, text, signature, watermark, frame, border, background scenery.",
+      "raw_file": "art/raw/art-pass-20261002/pickups/pk_armor_0.png",
+      "raw_sha256": "1440359850d074f19c986e05e10d647e92bf6f6e5db814eb53bc79d5ca830155",
+      "reduction": "fragr-spritegen reduce --height 20 --palette docs/palette.json --key ff00ff (tolerance 45, erode 2)",
+      "human_edited": false
+    }
+  ],
+  "local": [
+    {
+      "output": "res://assets/weapons/sniper/scope_overlay.png",
+      "output_size": [
+        360,
+        360
+      ],
+      "output_sha256": "2bcab5ce0e6a2136c447c24009e40e17cde6afa1f3290e4ac50504891fd7d997",
+      "source": "tools/bake_scope_overlay.gd",
+      "source_sha256": "9980ebe8cbedc4a258ea18221e892477e6e228dfe9b6278ff99105bae5a6fefb",
+      "generation": "none; drawn in code from palette swatches"
+    },
+    {
+      "output": "res://assets/characters/union/ranged_sweeper.png",
+      "receipt": "res://assets/characters/union/ranged_sweeper-manifest.json",
+      "source": "client/art/characters/ranged_sweeper_rig.gd",
+      "generation": "none; local procedural rig baked by ranged_sweeper_bake.gd"
+    }
+  ]
+}

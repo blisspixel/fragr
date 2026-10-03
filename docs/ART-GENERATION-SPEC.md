@@ -5,8 +5,9 @@ The machine-facing half of the art pipeline. [`ART-ASSET-LIST.md`](./ART-ASSET-L
 It is written to be run by a program with an API key, not typed into a web interface.
 
 Status, 2026-09-19: this is the target art contract. The implemented local reducer
-is `fragr-spritegen reduce`: alpha trim, area reduction, optional exact edge-matte
-removal, CIE Lab palette reduction, and hard alpha. `tools/pixelforge`, automatic
+is `fragr-spritegen reduce`: alpha trim, premultiplied area reduction, optional
+exact edge-matte removal or a painted chroma key, CIE Lab palette reduction, and
+hard alpha. `tools/pixelforge`, automatic
 seam/animation checks, and normal generation below are proposed, not implemented.
 Existing runtime assets are an initial slice, not evidence that this entire
 contract has passed. Request recovery and operating commands live in
@@ -75,6 +76,8 @@ Measured against the live API. Full numbers and costs are in [`plans/higgsfield-
 - **Reference parameters pass through.** Put `image_urls` in `params` for a model
   that supports it. Local upload/preparation and consistent animation production
   remain unimplemented; verify current model limits before spending.
+- **Transparency: never returned.** Outputs are RGB with a painted background.
+  Ask for a flat magenta `#FF00FF` field and remove it with `reduce --key ff00ff`.
 - **Seamless tiling: no field for it.** Tiles need edge work or a different approach.
 - **Concurrency about four** was an initial account observation, not a current
   quota guarantee. The tool submits serially and resumes saved requests. An

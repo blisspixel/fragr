@@ -39,7 +39,9 @@ Measured, per image, through the estimate endpoint on 2026-09-19.
 
 The shape of the spend follows from that table: **explore wide at two cents and promote only keepers at ten**. Generating everything at `high` costs twenty times as much and, as the next section shows, does not buy a better sprite.
 
-`marketing-studio/image` is the model for props and weapons. It honours a transparent background, which nothing else here reliably does, and it generates isolated objects rather than scenes.
+`marketing-studio/image` is the model for props and weapons. It generates isolated objects rather than scenes, and it edits: up to sixteen `image_urls` with `enhance_prompt` false keep a supplied picture's camera and framing while the prompt changes details.
+
+**It never returns alpha.** Checked 2026-10-02 across every stored output: all are RGB. Asked for a "transparent background", it paints one, often a checkerboard whose light squares match white-hot effect cores. Ask instead for a flat solid magenta `#FF00FF` field and remove it with `reduce --key ff00ff`, which matches by L*a*b* distance everywhere in the picture and erodes the blended fringe. The reduction filters premultiplied, so a removed background cannot bleed into the subject's edge.
 
 ## The finding that decides the house style
 
@@ -108,6 +110,11 @@ ID. Do not delete receipts to make a run proceed.
 
 Polling rejects replies whose request ID differs from the saved status URL.
 Malformed or missing IDs remain uncertain; no automatic POST retry is allowed.
+Since 2026-10-02 submissions name `platform.higgsfield.ai` in `status_url`
+while the documented status endpoint stays on `api.higgsfield.ai`. A reply on
+exactly that sibling host, with the documented `/requests/<id>/status` path and
+the accepted ID, is polled on the API origin; the credential still goes only
+there, and any other host still stops the run for recovery.
 The [identity repair](asset-request-identity.md) records the contract checked on
 2026-09-20. Older tool versions cannot read Accepted events; do not downgrade a
 generator against an active ledger.
@@ -156,10 +163,13 @@ rather than the human role now specified in `ENEMIES.md`.
 
 ## What is not done yet
 
-- **Reference preparation and consistent animation.** `params.image_urls` already
-  passes through the spec into the request and receipt. Local-file upload,
-  reference ownership/lifetime checks, and a proven multi-frame workflow remain.
-  Verify the chosen model's current field limits before preparing a batch.
+- **Reference lifetime.** `fragr-spritegen upload --file <png> --out <dir>` sends a
+  keeper through `POST /files/generate-upload-url` and the presigned PUT (free,
+  no credential sent to storage) and records the public URL in
+  `<dir>/references.jsonl`. Uploads are tagged temporary, so a spec citing them
+  cannot be rerun later without uploading the keeper again. Idle-then-fire edits
+  proved a two-frame workflow on 2026-10-02 ([art pass](art-pass-20261002.md));
+  longer animation from edits remains untested.
 - **Normal maps.** The contract in `ART-GENERATION-SPEC.md` asks for a normal beside every albedo, derived from a depth pass. Nothing generates one.
 - **Animation.** Per-frame animation is where generated art is weakest. The image-to-video models on this same key are a real route to a sprite sheet: generate a still, animate it, extract frames. Untested.
 - **Concurrency.** The tool submits one frame at a time. The account allows about four, so a large run is currently four times slower than it needs to be.

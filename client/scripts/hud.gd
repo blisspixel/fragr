@@ -96,14 +96,14 @@ const HOST_BUMPERS = [
 ]
 
 var weapon_textures = {}
-var viewmodel_textures: Dictionary[String, Texture2D] = {
-	"Fists": preload("res://assets/weapons/viewmodels/wpn_fists_0.png"),
-	"Tack": preload("res://assets/weapons/viewmodels/px_tack_issued_0.png"),
-	"Flechette": preload("res://assets/weapons/viewmodels/wpn_flechette_0.png"),
-	"Rail": preload("res://assets/weapons/viewmodels/px_rail_issued_0.png"),
-	"Scatter": preload("res://assets/weapons/viewmodels/wpn_scatter_0.png"),
-	"Shiv": preload("res://assets/weapons/viewmodels/wpn_shiv_0.png"),
-}
+var viewmodel_textures: Dictionary[String, Texture2D] = WeaponArt.IDLE
+## Seconds since the held gun last fired; selects its fire and cycle frames.
+var fp_shot_age: float = INF
+## The off hand that throws a grenade, and how far into the throw it is.
+var fp_throw_hand: TextureRect
+var fp_throw_time: float = INF
+var health_icon: TextureRect
+var armor_icon: TextureRect
 var followed_player_name = ""
 var fp_juice_enabled = false
 ## Side cloth beside the viewmodel while this fighter carries a flag.
@@ -179,11 +179,9 @@ func _ready():
 	if fp_muzzle:
 		fp_muzzle.texture = fp_muzzle_texture
 		fp_muzzle.visible = false
-	weapon_textures["Flechette"] = load("res://assets/weapons/32/flechette.png")
-	weapon_textures["Rail"] = load("res://assets/weapons/32/rail.png")
-	weapon_textures["Scatter"] = load("res://assets/weapons/32/scatter.png")
-	weapon_textures["Tack"] = load("res://assets/weapons/32/_future/shock_pistol.png")
-	weapon_textures["Shiv"] = load("res://assets/weapons/48/shiv.png")
+	for weapon: String in WeaponArt.PROFILE:
+		weapon_textures[weapon] = WeaponArt.PROFILE[weapon]
+	_build_fp_extras()
 	crosshair_hbar = get_node_or_null("Crosshair/HBar")
 	crosshair_vbar = get_node_or_null("Crosshair/VBar")
 	crosshair_dot = get_node_or_null("Crosshair/Dot")
@@ -1184,11 +1182,16 @@ func _process(delta):
 		if fp_muzzle_timer <= 0 and fp_muzzle:
 			fp_muzzle.visible = false
 	_update_floating_damage(delta)
+	fp_shot_age += delta
+	fp_throw_time += delta
 	if fp_juice_enabled and fp_weapon and (fp_weapon.visible or melee_view.visible):
 		var walking: float = clampf(fp_walk_speed / MoveStep.TOP_SPEED, 0.0, 1.0)
 		fp_bob_weight = move_toward(fp_bob_weight, walking, delta * 8.0)
 		fp_bob_t += delta * 9.0 * walking
+		_update_fp_frame()
 		_layout_fp_weapon()
+	elif fp_throw_hand != null:
+		fp_throw_hand.visible = false
 
 func set_fp_walk_speed(speed: float) -> void:
 	fp_walk_speed = maxf(speed, 0.0) if is_finite(speed) else 0.0
@@ -1203,7 +1206,8 @@ func _layout_fp_weapon() -> void:
 	var kick: Vector2 = fp_kick_amount * clampf(fp_kick_timer / 0.12, 0.0, 1.0)
 	var viewport_size: Vector2 = get_viewport().get_visible_rect().size
 	var base: Vector2 = (viewport_size - fp_weapon.size) * Vector2(0.5, 1.0)
-	fp_weapon.position = (base + Vector2(0.0, FP_BOTTOM_OVERLAP) + bob + kick).round()
+	fp_weapon.position = (base + Vector2(0.0, FP_BOTTOM_OVERLAP + _throw_dip()) + bob + kick).round()
+	_layout_throw_hand(base + Vector2(0.0, FP_BOTTOM_OVERLAP) + bob)
 	if current_fp_weapon == "Shiv":
 		_pose_stab()
 	if current_fp_weapon == "Fists":
@@ -1225,6 +1229,81 @@ func _pose_stab() -> void:
 	fp_weapon.pivot_offset = Vector2(fp_weapon.size.x * 0.8, fp_weapon.size.y)
 	fp_weapon.scale = Vector2.ONE * FP_SHIV_SCALE * (1.0 + 0.22 * reach)
 	fp_weapon.position.x = roundf(fp_weapon.position.x - fp_weapon.size.x * 0.16 * reach)
+
+## The throw hand and the vitals icons are built here so the scene file keeps
+## its existing layout; both use the same nearest-sampled palette sprites.
+func _build_fp_extras() -> void:
+	if fp_weapon != null and fp_throw_hand == null:
+		fp_throw_hand = TextureRect.new()
+		fp_throw_hand.name = "FpThrowHand"
+		fp_throw_hand.texture = WeaponArt.GRENADE_READY
+		fp_throw_hand.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+		fp_throw_hand.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		fp_throw_hand.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		fp_throw_hand.stretch_mode = TextureRect.STRETCH_SCALE
+		fp_throw_hand.visible = false
+		add_child(fp_throw_hand)
+		move_child(fp_throw_hand, fp_weapon.get_index() + 1)
+	if vitals != null and health_icon == null:
+		# A medkit beside health and a plate beside armour: the numbers keep
+		# their size, the symbols say which is which without a word.
+		health_icon = _vitals_icon("HealthIcon", WeaponArt.HUD_HEALTH, Vector2(0, 17))
+		armor_icon = _vitals_icon("ArmorIcon", WeaponArt.HUD_ARMOR, Vector2(216, 26))
+		if health_value:
+			health_value.position.x = 62.0
+		if armor_value:
+			armor_value.position.x = 272.0
+
+func _vitals_icon(icon_name: String, texture: Texture2D, at: Vector2) -> TextureRect:
+	var icon: TextureRect = TextureRect.new()
+	icon.name = icon_name
+	icon.texture = texture
+	icon.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	icon.position = at
+	icon.size = Vector2(texture.get_width(), texture.get_height()) * 2.0
+	vitals.add_child(icon)
+	return icon
+
+## The held gun's frame for how long ago it fired: fire, then any cycle stroke,
+## then rest. Melee keeps its own posing.
+func _update_fp_frame() -> void:
+	if fp_weapon == null or not WeaponArt.FIRE.has(current_fp_weapon):
+		return
+	var frame: Texture2D = WeaponArt.frame_after_shot(current_fp_weapon, fp_shot_age)
+	if frame != null and fp_weapon.texture != frame:
+		fp_weapon.texture = frame
+
+## Start the off-hand throw. Called when the local fighter's own grenade
+## appears in an authoritative snapshot, never on the key press alone.
+func show_grenade_throw() -> void:
+	if not fp_juice_enabled or fp_throw_hand == null:
+		return
+	fp_throw_time = 0.0
+	_layout_fp_weapon()
+
+## How far the gun dips while the off hand throws.
+func _throw_dip() -> float:
+	if fp_throw_time >= WeaponArt.THROW_SECONDS or fp_weapon == null:
+		return 0.0
+	return fp_weapon.size.y * 0.42 * sin(PI * fp_throw_time / WeaponArt.THROW_SECONDS)
+
+func _layout_throw_hand(at: Vector2) -> void:
+	if fp_throw_hand == null:
+		return
+	var t: float = fp_throw_time
+	fp_throw_hand.visible = t < WeaponArt.THROW_SECONDS and fp_juice_enabled
+	if not fp_throw_hand.visible:
+		return
+	fp_throw_hand.texture = WeaponArt.GRENADE_READY if t < WeaponArt.THROW_READY_SECONDS else WeaponArt.GRENADE_THROW
+	fp_throw_hand.size = fp_weapon.size
+	# Rises in from below, holds through the release, drops back out.
+	var rise: float = clampf(t / 0.08, 0.0, 1.0)
+	var fall: float = clampf((t - (WeaponArt.THROW_SECONDS - 0.08)) / 0.08, 0.0, 1.0)
+	var lower: float = fp_weapon.size.y * 0.4 * ((1.0 - rise) + fall)
+	fp_throw_hand.position = (at + Vector2(0.0, lower)).round()
 
 func set_fp_juice(enabled: bool) -> void:
 	if fp_juice_enabled == enabled:
@@ -1255,6 +1334,10 @@ func set_fp_juice(enabled: bool) -> void:
 		hit_marker_timer = 0.0
 		fp_kick_timer = 0.0
 		fp_stab_timer = 0.0
+		fp_shot_age = INF
+		fp_throw_time = INF
+		if fp_throw_hand != null:
+			fp_throw_hand.visible = false
 		fp_bob_t = 0.0
 		fp_walk_speed = 0.0
 		fp_bob_weight = 0.0
@@ -1368,6 +1451,7 @@ func set_fp_weapon(weapon_name: String) -> void:
 	# Distinct viewmodel pose per role (bone/gunmetal, not neon).
 	if changed:
 		melee_view.reset()
+		fp_shot_age = INF
 		fp_muzzle_timer = 0.0
 		fp_muzzle.visible = false
 		fp_weapon.modulate = Color.WHITE
@@ -1530,7 +1614,13 @@ func _fp_fire_kick(weapon_name: String) -> void:
 		fp_stab_timer = FP_STAB_SECONDS
 		_layout_fp_weapon()
 		return
-	_fp_muzzle_flash(weapon_name)
+	# A gun with a drawn fire frame carries its own flash; the generic star
+	# would sit over it.
+	if WeaponArt.FIRE.has(weapon_name):
+		fp_shot_age = 0.0
+		_update_fp_frame()
+	else:
+		_fp_muzzle_flash(weapon_name)
 	fp_kick_timer = 0.12
 	match weapon_name:
 		"Tack":

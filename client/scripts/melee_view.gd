@@ -2,7 +2,7 @@ class_name MeleeView
 extends Control
 
 ## Alternating arms from the full-canvas pose. Wrist cutoffs stay below screen.
-const TEXTURE: Texture2D = preload("res://assets/weapons/viewmodels/wpn_fists_0.png")
+const TEXTURE: Texture2D = preload("res://assets/weapons/viewmodels/fists_idle.png")
 const DURATION: float = 0.32
 var arms: Array[TextureRect] = []
 var active_arm: int = 0

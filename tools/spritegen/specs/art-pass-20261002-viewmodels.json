@@ -1,0 +1,182 @@
+{
+  "_comment": [
+    "Art pass 2026-10-02, batch V: one coherent first-person set with idle and fire frames.",
+    "Plan: docs/plans/art-pass-20261002.md. Idles are edits of the 2026-09-19 raw idles so the",
+    "camera and framing hold; the first approved idle's gloves are the second reference for the",
+    "rest. Each fire frame is an edit of its own approved idle, the only reference.",
+    "image_urls are temporary uploads recorded in art/raw/art-pass-20261002/references.jsonl.",
+    "Each upload:<file> stood for a temporary provider URL of that local keeper. To rerun, upload the keeper with fragr-spritegen upload and substitute its public URL."
+  ],
+  "model": "marketing-studio/image",
+  "out_dir": "art/raw/art-pass-20261002/viewmodels",
+  "params": {
+    "quality": "medium",
+    "resolution": "2k",
+    "aspect_ratio": "4:3",
+    "enhance_prompt": false
+  },
+  "style": "redraw this exact first person pixel art weapon sprite from a 1990s PC shooter as the same picture, keeping the identical camera angle, framing, scale, weapon position, silhouette, proportions and chunky stepped pixel clusters, limited palette of desaturated gunmetal grey, rust, bone white and deep shadow with clear value contrast between light steel edge highlights, the mid gunmetal body and dark recesses, flat even lighting",
+  "technical": "the whole background is one flat solid pure magenta #FF00FF colour with no checkerboard, no pattern, no gradient and no shadow on it, no text, no letters, no watermark, no border",
+  "frames": [
+    {
+      "id": "vm_pistol_idle",
+      "params": {
+        "image_urls": [
+          "upload:px_tack_issued_0.png"
+        ]
+      },
+      "subject": "make only these changes: both hands wear worn warm brown leather full-finger work gloves with stitched seams and dark rust-brown jacket cuffs at the wrists, and every round emblem or crest becomes a plain riveted steel plate"
+    },
+    {
+      "id": "vm_rifle_idle",
+      "params": {
+        "image_urls": [
+          "upload:wpn_flechette_0.png",
+          "upload:vm_pistol_idle_0.png"
+        ]
+      },
+      "subject": "edit the first reference picture and keep its rifle exactly as it is; make only these changes: both hands wear the same worn warm brown leather full-finger work gloves with stitched seams and dark rust-brown jacket cuffs at the wrists as the second reference picture, and any round emblem becomes a plain riveted steel plate"
+    },
+    {
+      "id": "vm_shotgun_idle",
+      "params": {
+        "image_urls": [
+          "upload:wpn_scatter_0.png",
+          "upload:vm_pistol_idle_0.png"
+        ]
+      },
+      "subject": "edit the first reference picture and keep its double barrel pump shotgun exactly as it is; make only these changes: both hands wear the same worn warm brown leather full-finger work gloves with stitched seams and dark rust-brown jacket cuffs at the wrists as the second reference picture, and the winged emblem on the receiver plate becomes plain stamped rows of rivets with no emblem, no skull and no wings"
+    },
+    {
+      "id": "vm_railgun_idle",
+      "params": {
+        "image_urls": [
+          "upload:px_rail_issued_0.png",
+          "upload:vm_pistol_idle_0.png"
+        ]
+      },
+      "subject": "edit the first reference picture and keep its long coil accelerator railgun exactly as it is; make only these changes: both hands wear the same worn warm brown leather full-finger work gloves with stitched seams and dark rust-brown jacket cuffs at the wrists as the second reference picture, and any round emblem becomes a plain riveted steel plate"
+    },
+    {
+      "id": "vm_pistol_fire",
+      "style": "redraw this exact first person pixel art weapon sprite from a 1990s PC shooter as the same picture at the instant of firing, keeping the identical camera angle, framing, scale, weapon design, gloves, colours and chunky stepped pixel clusters, limited palette of desaturated gunmetal grey, rust, bone white and deep shadow, flat even lighting",
+      "params": {
+        "image_urls": [
+          "upload:vm_pistol_idle_0.png"
+        ]
+      },
+      "subject": "the slide is snapped back a short way, a compact bright muzzle flash bursts from the muzzle at the top of the pistol in hot ember orange with a pale yellow-white core and hard stepped pixel edges, fully inside the picture, the pistol and both hands are pushed up slightly by the recoil, one small brass casing flies out to the right"
+    },
+    {
+      "id": "vm_rifle_fire",
+      "style": "redraw this exact first person pixel art weapon sprite from a 1990s PC shooter as the same picture at the instant of firing, keeping the identical camera angle, framing, scale, weapon design, gloves, colours and chunky stepped pixel clusters, limited palette of desaturated gunmetal grey, rust, bone white and deep shadow, flat even lighting",
+      "params": {
+        "image_urls": [
+          "upload:vm_rifle_idle_0.png"
+        ]
+      },
+      "subject": "a sharp narrow muzzle flash of hot ember orange with a pale yellow-white core and a few thin needle streaks bursts from the muzzle at the top with hard stepped pixel edges, fully inside the picture, the rifle kicks up slightly into the gloves"
+    },
+    {
+      "id": "vm_shotgun_fire",
+      "style": "redraw this exact first person pixel art weapon sprite from a 1990s PC shooter as the same picture at the instant of firing, keeping the identical camera angle, framing, scale, weapon design, gloves, colours and chunky stepped pixel clusters, limited palette of desaturated gunmetal grey, rust, bone white and deep shadow, flat even lighting",
+      "params": {
+        "image_urls": [
+          "upload:vm_shotgun_idle_0.png"
+        ]
+      },
+      "subject": "a large wide muzzle blast of hot ember orange with a pale yellow-white core and a few small dark smoke puffs bursts from both barrels at the top with hard stepped pixel edges, fully inside the picture, the shotgun and both hands recoil up and back"
+    },
+    {
+      "id": "vm_shotgun_pump",
+      "style": "redraw this exact first person pixel art weapon sprite from a 1990s PC shooter as the same picture a moment after firing, keeping the identical camera angle, framing, scale, weapon design, gloves, colours and chunky stepped pixel clusters, limited palette of desaturated gunmetal grey, rust, bone white and deep shadow, flat even lighting",
+      "params": {
+        "image_urls": [
+          "upload:vm_shotgun_idle_0.png"
+        ]
+      },
+      "subject": "no flash; the left gloved hand has racked the rust-wrapped pump fore-end back toward the viewer along the barrels, and one spent red shotgun shell with a brass base tumbles out to the right"
+    },
+    {
+      "id": "vm_railgun_fire",
+      "style": "redraw this exact first person pixel art weapon sprite from a 1990s PC shooter as the same picture at the instant of firing, keeping the identical camera angle, framing, scale, weapon design, gloves, colours and chunky stepped pixel clusters, limited palette of desaturated gunmetal grey, rust, bone white and deep shadow, flat even lighting",
+      "params": {
+        "image_urls": [
+          "upload:vm_railgun_idle_0.png"
+        ]
+      },
+      "subject": "a cold pale cyan-white discharge burst flares from the muzzle at the top with hard stepped pixel edges, fully inside the picture, the coil rings along the barrel glow pale cyan, the railgun recoils back slightly into the gloves, no orange fire"
+    },
+    {
+      "id": "vm_sniper_idle",
+      "style": "first person pixel art weapon sprite from a 1990s PC shooter in exactly the same style, camera angle, scale, framing, colours and gloves as the reference pictures, chunky stepped pixel clusters, limited palette of desaturated gunmetal grey, black steel, rust, bone white and deep shadow with clear value contrast, flat even lighting",
+      "params": {
+        "image_urls": [
+          "upload:vm_railgun_idle_0.png",
+          "upload:vm_pistol_idle_0.png"
+        ]
+      },
+      "subject": "a different weapon, a long precision sniper rifle seen from behind and slightly above, both gloved hands holding it at the bottom edge of the frame, a large round telescopic scope with a bone-white rim on its rear lens sits high on top of the receiver and dominates the centre, a slim fluted barrel runs far forward beyond the scope to a boxy slotted muzzle brake near the top of the frame, a bolt handle on the right side, a small pale cyan energy cell window on the left side of the receiver, dark gunmetal and black steel with one thin restrained red seal stripe, no coil rings, no capacitor box, plainly not the railgun"
+    },
+    {
+      "id": "vm_sniper_fire",
+      "style": "redraw this exact first person pixel art weapon sprite from a 1990s PC shooter as the same picture at the instant of firing, keeping the identical camera angle, framing, scale, weapon design, gloves, colours and chunky stepped pixel clusters, limited palette of desaturated gunmetal grey, rust, bone white and deep shadow, flat even lighting",
+      "params": {
+        "image_urls": [
+          "upload:vm_sniper_idle_0.png"
+        ]
+      },
+      "subject": "a long sharp muzzle flash of hot ember orange with a pale yellow-white core bursts from the boxy muzzle brake at the top, with two small side jets from its slots, hard stepped pixel edges, fully inside the picture, the rifle recoils up slightly into the gloves"
+    },
+    {
+      "id": "vm_grenade_ready",
+      "style": "first person pixel art sprite from a 1990s PC shooter in exactly the same style, camera, scale, colours and leather gloves as the reference picture, chunky stepped pixel clusters, limited palette of desaturated gunmetal grey, sage, rust, bone white and deep shadow, flat even lighting",
+      "params": {
+        "image_urls": [
+          "upload:vm_pistol_idle_0.png"
+        ]
+      },
+      "subject": "no weapon; only the left gloved hand and forearm in its rust-brown jacket cuff, raised from the lower left edge of the frame, gripping one squat muted sage-green service hand grenade with a dark steel cap and safety lever, the steel ring pin pulled and hanging from one finger, the rest of the frame empty"
+    },
+    {
+      "id": "vm_grenade_throw",
+      "style": "first person pixel art sprite from a 1990s PC shooter in exactly the same style, camera, scale, colours and leather gloves as the reference picture, chunky stepped pixel clusters, limited palette of desaturated gunmetal grey, sage, rust, bone white and deep shadow, flat even lighting",
+      "params": {
+        "image_urls": [
+          "upload:vm_pistol_idle_0.png"
+        ]
+      },
+      "subject": "no weapon; only the left gloved hand and forearm in its rust-brown jacket cuff, flung forward from the lower left toward the centre of the frame with the fingers opening, one squat muted sage-green service hand grenade just leaving the palm, its safety lever springing free, the rest of the frame empty"
+    },
+    {
+      "id": "vm_sniper_fire_b",
+      "style": "redraw this exact first person pixel art weapon sprite from a 1990s PC shooter as the same picture at the instant of firing, keeping the identical camera angle, framing, scale, weapon design, gloves, colours and chunky stepped pixel clusters, limited palette of desaturated gunmetal grey, rust, bone white and deep shadow, flat even lighting",
+      "params": {
+        "image_urls": [
+          "upload:vm_sniper_idle_0.png"
+        ]
+      },
+      "subject": "a long sharp muzzle flash of hot ember orange with a pale yellow-white core bursts from the boxy muzzle brake at the top, with two small side jets from its slots, hard stepped pixel edges, fully inside the picture, the rifle recoils up slightly into the gloves; both brown leather gloves and cuffs stay clean and unchanged, with no red marks on them"
+    },
+    {
+      "id": "vm_fists_idle",
+      "params": {
+        "image_urls": [
+          "upload:wpn_fists_0.png",
+          "upload:vm_pistol_idle_0.png"
+        ]
+      },
+      "subject": "edit the first reference picture and keep its two raised fists exactly where they are, with the same size, spacing and wrist angles; make only these changes: both hands wear the same worn warm brown leather full-finger work gloves with stitched seams and dark rust-brown jacket cuffs at the wrists as the second reference picture, and remove the placard and any badge from the wrists"
+    },
+    {
+      "id": "vm_shiv_idle",
+      "params": {
+        "image_urls": [
+          "upload:shiv-view-source.png",
+          "upload:vm_pistol_idle_0.png"
+        ]
+      },
+      "subject": "edit the first reference picture and keep its short salvaged utility blade, its wrapped ochre handle, the hand position and the framing exactly as they are, with the forearm still running off the bottom edge; make only this change: the hand wears the same worn warm brown leather full-finger work glove with stitched seams and a dark rust-brown jacket cuff as the second reference picture, with no badge"
+    }
+  ]
+}

@@ -34,6 +34,17 @@ The multiplayer page names the live Arena Duel host at the isolated capture
 address `127.0.0.1:6787`. Menus, settings, weapon views,
 participant bodies, world lighting and watched combat were inspected after capture.
 
+After the [art pass](../plans/art-pass-20261002.md) the same 32-state tour passed
+again on 2026-10-02 with clean exit and logs (`.agents/qa/art-standard2/manifest.json`). Eight
+stills whose surfaces changed were republished: `tour_first_person`,
+`tour_combat_follow`, `tour_body_human`, `tour_body_synthetic`,
+`tour_arena_overview`, `tour_spectator`, `tour_shot_strip` and
+`tour_rail_impact_strip`. They show the gloved fire frames, floor pickups drawn
+as objects, held side profiles and the vitals icons. The menu, multiplayer,
+profile, settings, difficulty and records stills are unchanged. The first-person
+muzzle probe now accepts a gun's drawn fire frame, which replaces the generic star;
+it saw the Rifle's fire frame in five of the twelve shot-strip frames.
+
 The `m06_*.png` gallery is the Port of Entry development prototype on the same
 pinned Windows/OpenGL Compatibility/AMD Radeon 780M setup. Its final clean
 25-state ordinary-input route clears all 21 guards and confirms actual transit
@@ -184,6 +195,10 @@ OpenGL compatibility, AMD Radeon 780M, from the completed 13-state room tour
 after the Earth material integration. The actual intake still comes from
 `intake_sweepers`, with its counters, lockers and ordinary Pistol visible.
 Receipt: `.agents/qa/m01-textures-final/manifest.json`, clean exit and logs.
+On 2026-10-02 `m01_intake_16x9.png` was recaptured from the same `intake_sweepers`
+state after the [art pass](../plans/art-pass-20261002.md): the gloved Pistol and the
+health and armour icons are the changes. Receipt `.agents/qa/art-m01/manifest.json`,
+13 states, clean exit and logs; the other three M01 stills keep the 2026-10-01 capture.
 Earlier first-look frames remain in git history. Rooms are clearly lit by a warm
 base light with brighter pools under the strip-light fixtures: intake shows the
 counters and lockers with a pistol in hand; the balcony looks toward the custody

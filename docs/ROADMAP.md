@@ -309,7 +309,8 @@ Its integration and acceptance evidence is recorded in that bounded plan.
 1. The next campaign build is level 7
    [Declared Goods](campaign/l07-declared-goods.md), currently unbuilt:
    the curfew town and crater cut lead toward the custody depot and introduce
-   the Sniper Rifle and Ranged Sweeper. This follows M06's actual transit exit
+   the Sniper Rifle and Ranged Sweeper, whose art the
+   [2026-10-02 art pass](plans/art-pass-20261002.md) supplies. This follows M06's actual transit exit
    and reuses its Episode II carry, inventory, encounters, contact, story scenes
    and measured long-lane combat. Write its bounded implementation plan before
    beginning source or asset work. Continue M01-M06 pacing, resource pressure,

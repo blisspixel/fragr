@@ -1,0 +1,114 @@
+{
+  "_comment": [
+    "Art pass 2026-10-02, batch P: world pickups that read as objects instead of labelled boxes.",
+    "Plan: docs/plans/art-pass-20261002.md. The reviewed low-quality medkit test is the style",
+    "reference for every item; weapon pickups also reference their approved first-person idle so",
+    "the same gun reads the same in the world. image_urls are temporary uploads recorded in",
+    "art/raw/art-pass-20261002/references.jsonl.",
+    "Each upload:<file> stood for a temporary provider URL of that local keeper. To rerun, upload the keeper with fragr-spritegen upload and substitute its public URL."
+  ],
+  "model": "marketing-studio/image",
+  "out_dir": "art/raw/art-pass-20261002/pickups",
+  "params": {
+    "quality": "medium",
+    "resolution": "2k",
+    "aspect_ratio": "1:1",
+    "enhance_prompt": false,
+    "image_urls": [
+      "upload:pk_medkit_test_0.png"
+    ]
+  },
+  "style": "retro pixel art item pickup sprite for a 1990s PC shooter in the same chunky pixel style as the reference picture, crisp stepped pixel clusters, limited palette of desaturated bone white, gunmetal grey, rust, ember, blood red and deep shadow with clear value contrast, flat even lighting, no gradients",
+  "view": "three-quarter view from slightly above, resting on the floor, centred, the whole object visible with even margins",
+  "technical": "the whole background is one flat solid pure magenta #FF00FF colour with no checkerboard, no pattern, no gradient and no shadow on it, no text, no letters, no numbers, no watermark, no border",
+  "frames": [
+    {
+      "id": "pk_medkit",
+      "subject": "the same compact hard-shell medical kit case as the reference picture, bone-white enamel shell, dark steel corner guards and a carry handle, one bold blood-red horizontal pulse-line mark across the lid, no cross symbol"
+    },
+    {
+      "id": "pk_armor",
+      "subject": "a salvaged ballistic chest plate vest lying flat, broad dark gunmetal armour plates with bone-white edge trim, worn warm brown leather straps and steel buckles, rivets and scuffs"
+    },
+    {
+      "id": "pk_bullets",
+      "subject": "a small open dark steel ammunition box packed with rows of brass pistol and rifle rounds, a few loose brass rounds beside it"
+    },
+    {
+      "id": "pk_shells",
+      "subject": "a small worn rust-red cardboard box of shotgun shells with its lid open, red shells with brass bases standing inside and two lying beside it"
+    },
+    {
+      "id": "pk_cells",
+      "subject": "a squat heavy energy cell canister standing upright, dark steel casing with bone-white end caps, a glowing pale cyan window band around its middle and a carry loop on top"
+    },
+    {
+      "id": "pk_grenades",
+      "subject": "two squat service hand grenades lying together, muted sage-green steel bodies, dark steel caps with safety levers and steel ring pins"
+    },
+    {
+      "id": "pk_pistol",
+      "style": "retro pixel art weapon pickup sprite for a 1990s PC shooter in the same chunky pixel style as the reference pictures, crisp stepped pixel clusters, limited palette of desaturated institutional grey-green, gunmetal grey, rust, bone white and deep shadow with clear value contrast, flat even lighting, no gradients, no hands",
+      "view": "side profile view facing right, the weapon lying level on the floor seen from slightly above, centred, the whole weapon visible with even margins",
+      "params": {
+        "image_urls": [
+          "upload:vm_pistol_idle_0.png",
+          "upload:pk_medkit_test_0.png"
+        ]
+      },
+      "subject": "the blocky stamped-steel service pistol from the first reference picture, square slide in institutional grey-green enamel, rust-orange front sight, plain riveted steel plates, dark grip"
+    },
+    {
+      "id": "pk_rifle",
+      "style": "retro pixel art weapon pickup sprite for a 1990s PC shooter in the same chunky pixel style as the reference pictures, crisp stepped pixel clusters, limited palette of desaturated institutional grey-green, gunmetal grey, rust, bone white and deep shadow with clear value contrast, flat even lighting, no gradients, no hands",
+      "view": "side profile view facing right, the weapon lying level on the floor seen from slightly above, centred, the whole weapon visible with even margins",
+      "params": {
+        "aspect_ratio": "16:9",
+        "image_urls": [
+          "upload:vm_rifle_idle_0.png",
+          "upload:pk_medkit_test_0.png"
+        ]
+      },
+      "subject": "the flechette rifle from the first reference picture, a long tapered angular institutional grey-green rifle with a triangular upper receiver, short box magazine, plain riveted plates and a small round rust knob"
+    },
+    {
+      "id": "pk_shotgun",
+      "style": "retro pixel art weapon pickup sprite for a 1990s PC shooter in the same chunky pixel style as the reference pictures, crisp stepped pixel clusters, limited palette of desaturated institutional grey-green, gunmetal grey, rust, bone white and deep shadow with clear value contrast, flat even lighting, no gradients, no hands",
+      "view": "side profile view facing right, the weapon lying level on the floor seen from slightly above, centred, the whole weapon visible with even margins",
+      "params": {
+        "aspect_ratio": "16:9",
+        "image_urls": [
+          "upload:vm_shotgun_idle_0.png",
+          "upload:pk_medkit_test_0.png"
+        ]
+      },
+      "subject": "the double barrel pump shotgun from the first reference picture, two dark steel barrels, rust-wrapped pump fore-end, institutional grey-green receiver with a rust plate, short stock"
+    },
+    {
+      "id": "pk_railgun",
+      "style": "retro pixel art weapon pickup sprite for a 1990s PC shooter in the same chunky pixel style as the reference pictures, crisp stepped pixel clusters, limited palette of desaturated institutional grey-green, gunmetal grey, rust, bone white and deep shadow with clear value contrast, flat even lighting, no gradients, no hands",
+      "view": "side profile view facing right, the weapon lying level on the floor seen from slightly above, centred, the whole weapon visible with even margins",
+      "params": {
+        "aspect_ratio": "16:9",
+        "image_urls": [
+          "upload:vm_railgun_idle_0.png",
+          "upload:pk_medkit_test_0.png"
+        ]
+      },
+      "subject": "the long coil accelerator railgun from the first reference picture, exposed rust-copper coil rings along the barrel, boxy capacitor housing, institutional grey-green body"
+    },
+    {
+      "id": "pk_sniper",
+      "style": "retro pixel art weapon pickup sprite for a 1990s PC shooter in the same chunky pixel style as the reference pictures, crisp stepped pixel clusters, limited palette of desaturated institutional grey-green, gunmetal grey, rust, bone white and deep shadow with clear value contrast, flat even lighting, no gradients, no hands",
+      "view": "side profile view facing right, the weapon lying level on the floor seen from slightly above, centred, the whole weapon visible with even margins",
+      "params": {
+        "aspect_ratio": "16:9",
+        "image_urls": [
+          "upload:vm_sniper_idle_0.png",
+          "upload:pk_medkit_test_0.png"
+        ]
+      },
+      "subject": "the long precision sniper rifle from the first reference picture, a large round telescopic scope on top, slim fluted barrel ending in a boxy slotted muzzle brake, bolt handle, skeleton stock, dark gunmetal and black steel with one thin restrained red seal stripe and a small pale cyan cell window"
+    }
+  ]
+}

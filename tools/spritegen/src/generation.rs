@@ -114,7 +114,7 @@ pub fn generate(
             let status_url = submission.polling_url().map_err(|error| Error::Transport(format!(
                 "accepted request {} saved; polling metadata rejected: {error}; verify this ID and use recover",
                 submission.request_id()
-            )))?.to_owned();
+            )))?;
             ledger.record(&frame.id, Event::Submitted { status_url })?;
         }
         let status_url = match ledger.job(&frame.id).map(|job| &job.stage) {

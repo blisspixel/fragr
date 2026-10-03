@@ -132,6 +132,9 @@ func _ready():
 	add_child(shot_effects)
 	grenade_effects = GrenadeEffects.new()
 	grenade_effects.name = "GrenadeEffects"
+	grenade_effects.thrown.connect(func(owner_id: String) -> void:
+		if is_human_player and owner_id == str(net_client.player_id):
+			hud.show_grenade_throw())
 	add_child(grenade_effects)
 	jammer_audio = JammerAudio.new()
 	jammer_audio.name = "JammerAudio"

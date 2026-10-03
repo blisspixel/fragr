@@ -1,7 +1,7 @@
 # Character source
 
 Original articulated source for the Union's human Clerk, bot Sweeper, Heavy
-Sweeper, Turret and Jammer, and for the two free participant bodies. The Union sets are
+Sweeper, Ranged Sweeper, Turret and Jammer, and for the two free participant bodies. The Union sets are
 directional campaign sets under visual review. They do not establish a completed cast or final character production bar.
 
 `geometry.gd` owns material/mesh primitives and the Union palette; `rig.gd` owns
@@ -115,6 +115,35 @@ The harness checks source freshness, unclipped directions, a geometric tell,
 settled death and authoritative registration. The playable development range
 and its inspected motion provide separate in-world evidence; this is the next
 campaign combat capability, not a completed Scheduled Service mission.
+
+## Ranged Sweeper
+
+`ranged_sweeper_rig.gd` extends the shared rig for Level 7's precision
+Sweeper: the same issued body, joints, field and feet, plus a tall mast antenna
+with two cross spars and a red tip lamp on the battery pack, a short second
+whip, and a long scoped rifle with a skeleton stock and slotted brake. The
+rifle is carried low across the body and shouldered on the windup; the windup
+grows a red and bone star glint on the scope lens and holds it at full size,
+and the first fire pose shows a muzzle flash. The corpse lays the rifle across
+the body so the barrel never passes through the floor.
+
+`ranged_sweeper_bake.gd` renders the shared 55-pose standing layout at eight
+directions into `ranged_sweeper.png` (2880 by 4000, about 44 MiB uncompressed
+when loaded) and writes `ranged_sweeper-manifest.json` with source and output
+hashes. It never rewrites the Clerk, Sweeper, Heavy Sweeper or Turret atlases.
+`EnemyView` loads it by kind name once the wire carries `ranged_sweeper`.
+
+```sh
+godot --path client --rendering-driver opengl3 --windowed --script res://art/characters/ranged_sweeper_bake.gd
+godot --headless --path client --import
+godot --headless --path client --script res://scripts/test_ranged_sweeper.gd
+```
+
+Require `ranged_sweeper_bake: PASS`, `test_ranged_sweeper: PASS` and clean
+logs. The harness checks receipt freshness, layout, unclipped poses, feet shared
+with the Sweeper, the mast above the Sweeper's head, the rifle's reach in
+profile and a glint that grows through the windup. Live readability at range
+needs the Level 7 tour.
 
 ## Notary flight and photograph
 

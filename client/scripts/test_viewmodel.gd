@@ -13,7 +13,13 @@ func _check(condition: bool, message: String) -> void:
 ## Texel column that reaches the bottom edge: the gun stocks sit centrally,
 ## the Shiv's gauntlet enters from the lower right.
 func _column(weapon_name: String) -> int:
-	return 190 if weapon_name == "Shiv" else 112
+	match weapon_name:
+		"Shiv":
+			return 190
+		"Tack":
+			# The pistol grip sits right of a gap between it and the support glove.
+			return 150
+	return 112
 
 func _check_bottom(weapon: TextureRect, context: String, column: int = 112) -> void:
 	var bottom: float = root.get_visible_rect().size.y
@@ -23,6 +29,50 @@ func _check_bottom(weapon: TextureRect, context: String, column: int = 112) -> v
 	_check(texel_y >= 0 and texel_y < image.get_height(), context + ": bottom pixel must come from the sprite")
 	if texel_y >= 0 and texel_y < image.get_height():
 		_check(image.get_pixel(column, texel_y).a > 0.99, context + ": weapon stock must cover the bottom pixel")
+
+## Each gun shows its drawn fire frame for the shot, the Shotgun pumps after
+## it, and every gun settles back to its idle pose.
+func _check_fire_frames(hud: CanvasLayer, weapon: TextureRect) -> void:
+	hud.set_fp_walk_speed(0.0)
+	for weapon_name: String in ["Tack", "Flechette", "Scatter", "Rail"]:
+		hud.set_fp_weapon(weapon_name)
+		_check(weapon.texture == WeaponArt.IDLE[weapon_name], weapon_name + " rests on its idle frame")
+		hud.show_fire_juice(weapon_name)
+		_check(weapon.texture == WeaponArt.FIRE[weapon_name], weapon_name + " shows its fire frame on the shot")
+		_check(not hud.fp_muzzle.visible, weapon_name + " fire frame carries its own flash")
+		_check_bottom(weapon, weapon_name + " fire frame", _column(weapon_name))
+		var pumped: bool = false
+		for frame: int in range(48):
+			hud._process(1.0 / 120.0)
+			pumped = pumped or weapon.texture == WeaponArt.CYCLE.get(weapon_name)
+			_check_bottom(weapon, weapon_name + " after the shot", _column(weapon_name))
+		_check(pumped == WeaponArt.CYCLE.has(weapon_name), weapon_name + " cycle frame only where drawn")
+		for frame: int in range(40):
+			hud._process(1.0 / 120.0)
+		_check(weapon.texture == WeaponArt.IDLE[weapon_name], weapon_name + " settles back to idle")
+
+## The off hand rises with the grenade, releases it while the gun dips, then
+## both return.
+func _check_throw(hud: CanvasLayer, weapon: TextureRect) -> void:
+	hud.set_fp_weapon("Rail")
+	for frame: int in range(30):
+		hud._process(1.0 / 60.0)
+	var rest: float = weapon.position.y
+	hud.show_grenade_throw()
+	var hand: TextureRect = hud.fp_throw_hand
+	var readied: bool = false
+	var released: bool = false
+	var deepest: float = rest
+	for frame: int in range(48):
+		hud._process(1.0 / 120.0)
+		readied = readied or (hand.visible and hand.texture == WeaponArt.GRENADE_READY)
+		released = released or (hand.visible and hand.texture == WeaponArt.GRENADE_THROW)
+		deepest = maxf(deepest, weapon.position.y)
+	_check(readied and released, "the throw shows the ready and release frames")
+	_check(deepest > rest + 60.0, "the gun dips out of the way during the throw")
+	for frame: int in range(30):
+		hud._process(1.0 / 120.0)
+	_check(not hand.visible and weapon.position.y == rest, "hand and gun return after the throw")
 
 func _run() -> void:
 	set_meta("fragr_settings_path", "user://test-viewmodel-%d.cfg" % OS.get_process_id())
@@ -82,6 +132,8 @@ func _run() -> void:
 				_check(arm.global_position.y + arm.size.y > root.get_visible_rect().size.y + 2.0, "punch wrists remain below frame")
 		hud.show_fire_juice("Fists")
 		_check(hud.melee_view.active_arm == first_arm, "second punch uses other arm")
+	_check_fire_frames(hud, weapon)
+	_check_throw(hud, weapon)
 	hud.call("set_fp_walk_speed", NAN)
 	_check(float(hud.get("fp_walk_speed")) == 0.0, "invalid speed cannot poison animation")
 	hud.call("set_fp_juice", false)

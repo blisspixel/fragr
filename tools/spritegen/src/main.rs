@@ -10,7 +10,9 @@ use std::path::PathBuf;
 use std::time::Duration;
 
 use clap::{Parser, Subcommand};
-use fragr_spritegen::reduce::{nearest_upscale, parse_hex, reduce_file, Palette, Reduction};
+use fragr_spritegen::reduce::{
+    nearest_upscale, parse_hex, reduce_file, ChromaKey, Palette, Reduction,
+};
 use fragr_spritegen::{
     check_budget, estimate, parse_spec, read_dotenv_credential, Error, Frame, Method, Request,
     Response, Spec, Transport,
@@ -41,6 +43,15 @@ enum Cmd {
         frame_id: String,
         #[arg(long)]
         request_id: String,
+    },
+    /// Upload a local keeper so a spec can pass it in `image_urls`. Free.
+    Upload {
+        /// PNG, JPEG or WebP image to upload.
+        #[arg(long)]
+        file: PathBuf,
+        /// Directory whose `references.jsonl` records the public URL.
+        #[arg(long)]
+        out: PathBuf,
     },
     /// Price a spec and generate nothing.
     Price {
@@ -93,6 +104,15 @@ enum Cmd {
         /// Exact flat background RGB hex to remove from image edges before trim.
         #[arg(long, value_parser = parse_hex)]
         matte: Option<[u8; 3]>,
+        /// Painted chroma-key RGB hex to remove everywhere, matched in L*a*b*.
+        #[arg(long, value_parser = parse_hex)]
+        key: Option<[u8; 3]>,
+        /// Largest L*a*b* distance from the key still treated as background.
+        #[arg(long, default_value_t = 45.0)]
+        key_tolerance: f32,
+        /// Source pixels of blended fringe removed around keyed areas.
+        #[arg(long, default_value_t = 2)]
+        key_erode: u32,
         /// Also write a nearest-neighbour upscale by this factor, for looking at.
         #[arg(long)]
         preview_scale: Option<u32>,
@@ -152,6 +172,19 @@ impl Transport for HttpTransport {
         }
         read_bounded(response, 32 * 1024 * 1024)
     }
+
+    fn put(&self, url: &str, headers: &[(String, String)], body: Vec<u8>) -> Result<u16, Error> {
+        fragr_spritegen::validate_download_url(url)?;
+        let mut builder = self.client.put(url);
+        for (name, value) in headers {
+            builder = builder.header(name.as_str(), value.as_str());
+        }
+        let response = builder
+            .body(body)
+            .send()
+            .map_err(|e| Error::Transport(e.to_string()))?;
+        Ok(response.status().as_u16())
+    }
 }
 
 fn read_bounded(reader: impl IoRead, limit: u32) -> Result<Vec<u8>, Error> {
@@ -200,6 +233,29 @@ fn price_run(
     Ok(total)
 }
 
+/// Append an uploaded reference to `<out>/references.jsonl`, so the URL a
+/// spec cites can be traced to the local keeper it came from.
+fn record_reference(
+    out: &std::path::Path,
+    name: &str,
+    uploaded: &fragr_spritegen::upload::Uploaded,
+) -> Result<(), Error> {
+    std::fs::create_dir_all(out).map_err(|e| Error::Io(e.to_string()))?;
+    let line = serde_json::json!({
+        "file": name,
+        "bytes": uploaded.bytes,
+        "content_type": uploaded.content_type,
+        "public_url": uploaded.public_url,
+    });
+    let mut file = std::fs::OpenOptions::new()
+        .create(true)
+        .append(true)
+        .open(out.join("references.jsonl"))
+        .map_err(|e| Error::Io(e.to_string()))?;
+    writeln!(file, "{line}").map_err(|e| Error::Io(e.to_string()))?;
+    file.sync_all().map_err(|e| Error::Io(e.to_string()))
+}
+
 fn run(cli: Cli) -> Result<(), Error> {
     let out_stream = &mut std::io::stdout();
 
@@ -234,6 +290,9 @@ fn run(cli: Cli) -> Result<(), Error> {
             no_trim,
             soft_alpha,
             matte,
+            key,
+            key_tolerance,
+            key_erode,
             preview_scale,
         } => {
             let palette = match palette {
@@ -251,6 +310,11 @@ fn run(cli: Cli) -> Result<(), Error> {
                 palette,
                 harden_alpha: !soft_alpha,
                 matte: *matte,
+                key: key.map(|colour| ChromaKey {
+                    colour,
+                    tolerance: *key_tolerance,
+                    erode: *key_erode,
+                }),
             };
 
             let inputs: Vec<PathBuf> = if input.is_dir() {
@@ -299,6 +363,28 @@ fn run(cli: Cli) -> Result<(), Error> {
                 }
             }
             Ok(())
+        }
+
+        Cmd::Upload { file, out } => {
+            let name = file
+                .file_name()
+                .and_then(|n| n.to_str())
+                .ok_or_else(|| Error::Spec(format!("{} has no file name", file.display())))?
+                .to_string();
+            let content_type = fragr_spritegen::upload::content_type_for(&name)?;
+            let bytes = std::fs::read(file)
+                .map_err(|e| Error::Io(format!("could not read {}: {e}", file.display())))?;
+            let credential = read_dotenv_credential(&cli.env_file)?;
+            let transport = HttpTransport::new()?;
+            let uploaded = fragr_spritegen::upload::upload_reference(
+                &transport,
+                &credential,
+                content_type,
+                bytes,
+            )?;
+            record_reference(out, &name, &uploaded)?;
+            writeln!(out_stream, "{name} {}", uploaded.public_url)
+                .map_err(|e| Error::Io(e.to_string()))
         }
 
         Cmd::Price { spec, only } => {
@@ -465,6 +551,87 @@ mod tests {
         ));
         drop(ledger);
         std::fs::remove_dir_all(dir).unwrap();
+    }
+
+    #[test]
+    fn upload_records_the_public_url_beside_its_file_name() {
+        let dir = std::env::temp_dir().join(format!("fragr-upload-record-{}", std::process::id()));
+        let uploaded = fragr_spritegen::upload::Uploaded {
+            public_url: "https://cdn.example.com/a.png".into(),
+            content_type: "image/png".into(),
+            bytes: 3,
+        };
+        record_reference(&dir, "keeper.png", &uploaded).unwrap();
+        record_reference(&dir, "second.png", &uploaded).unwrap();
+        let text = std::fs::read_to_string(dir.join("references.jsonl")).unwrap();
+        let lines: Vec<&str> = text.lines().collect();
+        assert_eq!(lines.len(), 2);
+        let first: serde_json::Value = serde_json::from_str(lines[0]).unwrap();
+        assert_eq!(first["file"], "keeper.png");
+        assert_eq!(first["public_url"], "https://cdn.example.com/a.png");
+        std::fs::remove_dir_all(dir).unwrap();
+    }
+
+    #[test]
+    fn upload_refuses_an_unsupported_file_before_reading_a_key() {
+        let cli = Cli::parse_from([
+            "fragr-spritegen",
+            "--env-file",
+            "missing-env",
+            "upload",
+            "--file",
+            "reference.gif",
+            "--out",
+            "unused",
+        ]);
+        assert!(matches!(run(cli), Err(Error::Spec(_))));
+        let cli = Cli::parse_from([
+            "fragr-spritegen",
+            "--env-file",
+            "missing-env",
+            "upload",
+            "--file",
+            "missing-reference.png",
+            "--out",
+            "unused",
+        ]);
+        assert!(matches!(run(cli), Err(Error::Io(_))));
+    }
+
+    #[test]
+    fn reduce_parses_a_chroma_key_with_its_defaults() {
+        let cli = Cli::try_parse_from([
+            "fragr-spritegen",
+            "reduce",
+            "--input",
+            "a.png",
+            "--out",
+            "o",
+            "--key",
+            "ff00ff",
+        ])
+        .unwrap();
+        match cli.command {
+            Cmd::Reduce {
+                key,
+                key_tolerance,
+                key_erode,
+                ..
+            } => {
+                assert_eq!(key, Some([255, 0, 255]));
+                assert_eq!(key_tolerance, 45.0);
+                assert_eq!(key_erode, 2);
+            }
+            other => panic!("expected reduce, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn the_real_transport_refuses_to_upload_over_plain_http() {
+        let transport = HttpTransport::new().unwrap();
+        assert!(transport
+            .put("http://storage.example.com/p", &[], vec![1])
+            .is_err());
     }
 
     #[test]
