@@ -412,9 +412,11 @@ changes warrant them. This increment changes visible characters and environments
 so prepare v0.68.0 after the implementation PR and main CI pass.
 
 The existing ordinary-input Low Water tour is the recording subject. A diagnostic
-subclass paces movie frames against real time so the server keeps its 20 Hz clock.
-The pinned engine records the game framebuffer and mixed game audio; encoding
-produces a shareable MP4. The two-state recording smoke passed. The full recording
+subclass samples rendered frames from the normal real-time client and retains the
+Master bus audio; encoding produces a shareable MP4 with capture timestamps.
+The initial movie-mode smoke passed, but its full route failed at the Notary
+lesson after capture changed client timing. That failed attempt remains diagnostic
+history and does not count as a completed playthrough. The full real-time recording
 must complete all 23 states, retain a clean log, confirm departure and be inspected
 before publication. Movie output is visual evidence, not a hardware frame-rate
 measurement or fresh-player acceptance.
@@ -424,3 +426,4 @@ deployment or simulation changes are needed for this delivery. Preserve the loca
 Rust, client, rendered fixture and package receipts, verify the PR's final commit
 checks before merge, then require main CI and all three tagged desktop packages.
 Keep full art excellence in flight after this production increment ships.
+Implementation delivery is tracked by [PR #337](https://github.com/blisspixel/fragr/pull/337).
