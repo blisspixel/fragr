@@ -43,7 +43,7 @@ func _run() -> void:
 	await process_frame
 	await menu._show("practice")
 	var selector: OptionButton = menu._root.get_node("DevelopmentMission")
-	_check(selector.item_count == 5 and selector.selected == 4, "compact selector includes all five development missions and defaults to M06")
+	_check(selector.item_count == 6 and selector.selected == 4, "compact selector includes all six development missions and defaults to M06")
 	selector.select(3)
 	_check(selector.get_item_text(selector.selected) == tr("M05_PROTOTYPE_TITLE"), "M05 retains its exact selectable entry index")
 	selector.grab_focus()

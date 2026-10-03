@@ -247,7 +247,7 @@
     {"id":"mine_lesson","after":"lower_gallery","regions":[{"min":[-20,2.9,12],"max":[-12,4.5,20]}],
       "enemies":[
         {"id":"post_sweeper_a","kind":"sweeper","feet":[18,3,-10],"yaw":1.5707964},
-        {"id":"post_sweeper_b","kind":"sweeper","feet":[18,3,-11.5],"yaw":1.5707964}
+        {"id":"post_sweeper_b","kind":"sweeper","feet":[17,3,-14],"yaw":1.5707964}
       ]},
     {"id":"upper_auditor","after":"mine_lesson","regions":[{"min":[6,5.9,-6],"max":[20,7.5,6]},{"min":[-6,5.9,-20],"max":[20,7.5,-6]}],
       "enemies":[

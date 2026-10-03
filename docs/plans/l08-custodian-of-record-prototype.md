@@ -271,8 +271,8 @@ $0. No paid image, audio, model or cloud request runs on this track.
 - The optional `service_ring` group of beat 6 is two Clerks among the cooling
   pipes and a Sweeper from the bridge end. It wakes as the party steps through
   the lifted seal, binds no objective and never gates departure.
-- The post pair walks close together, and the cage's four mines cover two
-  placements: one down the corridor, one at the mouth.
+- The cage's four mines cover two placements: one down the corridor the post
+  pair walks up, one at the alcove mouth.
 - Armor on the east tower landing before the Auditor fight, and Bullets by the
   west records desk on the way to the stair.
 
@@ -304,8 +304,22 @@ fight, no supply claimed and no reveal, rescue, secret or broken node.
 | First range tour | exposed a post too close for the mine to arm; moved farther |
 | Second range and archive tours | range stuck leaving the alcove; archive hall fight shot across the open shaft from every side; both fixed |
 | Third archive tour | the lesson mine landed inside the alcove, the post stopped short and the player later walked onto its own live mine; both mines now go into the corridor |
+| Fourth archive tour (2026-10-03) | ordinary input through the hall, lower gallery, registry and both mine throws; the post pair did not reach the corridor within the cleanup window after its spacing was tightened, so the original spacing is restored |
+| Local gates (2026-10-03) | fmt, clippy, workspace tests, bench, coverage 93.77 % lines, release build, deny, the eight playtest smokes, roster and soak all pass |
+| Full Godot check | one stale selector expectation (five development missions) fixed to six; every other harness passes |
 
 ### Handoff
 
-- Next: rerun both tours under the render lock, inspect stills, run the full
-  gates and open the level pull request.
+- What works: the archive plays end to end on the server. The seeded full
+  clear, ordered arrivals with catch-up, seal, nodes, machine drop, departure,
+  retry, the corridor mine trap and the route walk with pacing are all proven
+  with actual `GameState` players and shared movement.
+- What is left: a clean rendered ordinary-input tour of the whole route. The
+  latest run passed every state through both mine throws; the states after the
+  mine cleanup (Auditor, service ring ambush, bridge, nodes, evidence, exit
+  fight, departure) still need a passing rendered run and inspected stills.
+  The custody range tour's audit-bay combat also needs a clean rerun.
+- Next steps: rerun `client/qa/m08_custodian_of_record.json` and
+  `client/qa/custody-range.json` under the render lock, adjust waypoints from
+  the inspected stills, publish an `m08_*` gallery, then M07 to M08 carry once
+  level 7's carry lands. Fresh-player and difficulty acceptance stay open.
