@@ -81,34 +81,40 @@
 	"engine": "4.7.2-stable (official)",
 	"entries": [
 		{
-			"brief": "Visible human face, open helmet, institutional green cloth, issued bone armor and restrained red seal.",
+			"brief": "Visible human face, open helmet, charcoal cloth, issued bone armor and restrained red seal.",
 			"file": "clerk.png",
-			"model": "articulated human security rig",
-			"sha256": "9b2f7e494c50f5785586b2f0122e32e51041d43639a39486b46a2bb9ee794fde"
+			"model": "skinned human security source with authored combat poses and paired view normals",
+			"sha256": "d7d8dad0070eb883da6a7f9f13412688d57dfa4482e776748c5ceb9af5d93f52"
+		},
+		{
+			"brief": "Same eight directions and phase cells as the matching albedo.",
+			"file": "clerk_normals.png",
+			"model": "paired normal atlas",
+			"sha256": "dcf2b24351afce1dbb71ba949e6de3c934d17e272d650c4f5f7212a8ada9ac53"
 		},
 		{
 			"brief": "Manufactured graphite shells, recessed optical slit, service battery louvers, distinct joint caps, finger articulation and restrained red issue strips.",
 			"file": "sweeper.png",
 			"model": "contoured articulated issued bot source with paired view normals",
-			"sha256": "b09c6079d679d6fe9b422ea7b286ef81cf432718878c5960697c01d1eda24abe"
+			"sha256": "b8dc1bfd31b472f53c1db69a2ae7e51f0dc315d94777dda22c52065067662f0d"
 		},
 		{
-			"brief": "Same eight directions and phase cells as the Sweeper albedo.",
+			"brief": "Same eight directions and phase cells as the matching albedo.",
 			"file": "sweeper_normals.png",
 			"model": "paired normal atlas",
-			"sha256": "c0b8107fdcbc1b9ea1dd94fb632460d26d3e8e2b326c74bbff1a96a5b566d470"
+			"sha256": "b602b315696de96ded1e772ec58b1fa6273c1554199aef0d2cf3389e41883004"
 		},
 		{
 			"brief": "Broad armored chassis, head sunk between wide pauldrons, ammunition drum, rotary cannon and ember tell lamps.",
 			"file": "heavy_sweeper.png",
 			"model": "articulated heavy bot rig",
-			"sha256": "a2908d3c76963122244f9f039cafd9eced3a4387d2154be76ba0d1551d272223"
+			"sha256": "24129b2c1d478d5be9210bd603bc78984f820c8c3a90114ad2e9cdd6c8229272"
 		},
 		{
 			"brief": "Braced column with a rotating bone housing, rail barrel with red charge coils and a red sensor lamp.",
 			"file": "turret.png",
 			"model": "fixed turret rig",
-			"sha256": "e9281794f8a9e381b8744b2afa3953f5080e2a132f5a0eeb5227417c4aa4528d"
+			"sha256": "752bfe0a51fdb0934fee7a6e8a4752c6a5ea7157cef0f752c26b914966e957a1"
 		}
 	],
 	"format": "RGBA8 PNG, nearest sampling, no mipmaps",
@@ -116,10 +122,12 @@
 	"rows": 25,
 	"schema": 1,
 	"sources": {
-		"res://art/characters/bake.gd": "ccf663d8848ea9afd7778fd1774e97d526c4d499a53119ee87b2ad83f252c19a",
+		"res://art/characters/bake.gd": "bdcaeff3af59eb7761c80cab40650acacb1e45ea2da3a982ed167406c9d7449a",
 		"res://art/characters/geometry.gd": "833318a2c94533aac01abbf7c886b616ec11528624fa406e6cad18dc1a14eec9",
 		"res://art/characters/machines.gd": "3ec71c7c9254250069a4efd0d87047d581efd1e7a226844a814bbeecd85a28f7",
 		"res://art/characters/rig.gd": "106d5f720f665cffe9a52a16f9969bd6908b084c61521218aa51ddef9bc20441",
+		"res://art/models/candidates/clerk.glb": "056b7cccc103517161376ca2ef506049699c1688eb49061c0f81b2eff4ff8185",
+		"res://art/models/clerk_source.gd": "b3f26fd2e5883f97ad3e1416d03e76aa9c1ea08d6db6d4657c85343d0c0cf82d",
 		"res://art/models/normal_bake.gdshader": "c091a2dfb26f198d8b49122ffa3a2bc596d1f853904475b1ff287ff79fdefc97",
 		"res://art/models/sweeper_source.gd": "3d32bf63894e5193a47b0b3325982dd2ebf729800ebba3ef9d63c3ab2c7c8e38",
 		"res://assets/models/finishes/enamel.png": "0761b8a3d969d03fdd9c4cd55eca4161fef89e979ca3536410d4826c9e6e7ebf",

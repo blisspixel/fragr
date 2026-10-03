@@ -52,6 +52,9 @@ plan](docs/plans/art-excellence.md) tracks the current production pass:
 original articulated mesh sources, directional body normals, venue materials,
 physical fixtures and moving water. The [source library](client/art/production-20261003/README.md)
 separates design references from art actually used in play.
+The [Clerk presentation evidence](docs/evidence/clerk-model-20261003.md) shows
+the prepared skinned human source, combat poses and paired normals in a live
+Persons Unknown guard-room test. The remaining cast still needs refinement.
 
 **Custodian of Record** is the level 8 custody archive development prototype, with the
 Proximity Mine and the repairing Auditor, under **Practice and Development**
