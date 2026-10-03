@@ -34,7 +34,10 @@ one never strands the player.
 ## Non-goals
 
 - Simulation physics: suspension, gears, tire models, damage per part.
-- Aircraft, tanks, boats or a roster beyond these three.
+- Tanks, or a roster beyond these three before conquest-lite proves fun. Boats
+  on deep water and one arcade light aircraft per side are later rungs for the
+  flagship island ([Holdfast Atoll](multiplayer-maps.md#17-holdfast-atoll-new-the-flagship-island-working-name)),
+  added on Nick's direction of 2026-10-03, after the three rungs above.
 - Destructible terrain, vehicle customization or persistent vehicle unlocks.
 - A second action channel for driving. Humans and agents use the same `Action`.
 - Predicting anyone else's vehicle. Other vehicles are interpolated.

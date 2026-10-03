@@ -604,6 +604,65 @@ flavor, the way it already is everywhere else in the game.
 - **From:** Stalingrad (dense ruins, sniper towers, vehicles held back by
   rubble) and Lockout's floors that fight differently, stretched to a district.
 
+#### 17. Holdfast Atoll (new, the flagship island; working name)
+
+Nick, 2026-10-03: "battlefield 1942 had that like island with jeeps and
+planes. we should have something like that one."
+
+- **Place:** the Office's offshore registry on a reclaimed tropical atoll, with
+  seawater-cooled server halls, a runway for courier planes and Notary
+  drones, a harbour and a lighthouse. Wake Island's lesson about look applies:
+  a bright tropical paradise, not grey and grim, with black and red Union
+  installations on white sand and green water. An aftermath variant can return
+  it rewilded.
+- **Players and modes:** 24 to 32, with conquest-lite and an attack-defend
+  variant with asymmetric tickets. The coalition lands from the sea at a
+  mobile staging ship, an uncapturable spawn that can move between rounds. The
+  Union holds the island.
+- **Layout and loop:** a horseshoe atoll of about 500 by 350 m, narrow so it
+  "encourages battles", in the words of BF1942's producer. Five sites: Harbour,
+  Village, Airfield at the centre of the curve, Server Halls, Lighthouse Tip.
+  Each site is a tight infantry cluster (bunkers, sheds, halls) joined by open
+  roads, beaches and a lagoon that vehicles cross in seconds. Fun on foot
+  first: every site has three ways in, and a fighter on foot reaches a fight
+  within 30 seconds of spawning.
+- **The airfield is the prize.** Holding it spawns the side's aircraft, and
+  air superiority swings momentum, as on Wake Island. Taking it back must
+  always be possible from the ground.
+- **Two ways to attack:** head-on along the road, or flanking by sea into the
+  harbour or around the lighthouse tip.
+- **Vehicles,** in rock-paper-scissors balance, as BF1942 did it ("plane beats
+  tank, anti-aircraft gun beats plane, tank beats anti-aircraft gun"):
+
+  | Vehicle | Role |
+  |---|---|
+  | Jeep | Driver plus gunner, Halo's Warthog lesson: a two-seat vehicle makes teamwork and stories |
+  | Motorcycle | Fast solo flank on the beach roads |
+  | Fast boat and landing craft | The sea flank |
+  | One light aircraft per side | The coalition's repaired prop plane and the Union's Notary-class gunship |
+  | Fixed anti-air guns | One at each site |
+  | Infantry counters | The Rail, the Sniper Rifle against pilots, grenades, and proximity mines on the roads |
+
+  The aircraft is arcade and easy to fly; Halo's Banshee became fun only once
+  it handled well. It is fragile, and a pilot who bails out keeps fighting.
+- **Sandbox moments:** the island is built for unscripted stories. Jeep jumps
+  off the dunes. A pilot rail-sniped from the lighthouse. A mined road. The
+  [Outreach Unit](../ENEMIES.md#ideas-not-yet-accepted) kamikaze RV loose on
+  the island road in a Union-defending variant.
+- **The loop to protect:** Halo's "30 seconds of fun, over and over". Spawn,
+  take a vehicle or a path, reach a fight, win or die, and go again. Measure
+  spawn-to-fight time for every vehicle and on foot.
+- **Agents and bots:** they fill the island to its count, labelled honestly.
+  Rule bots drive and gun on authored lanes, and fly bounded patrol routes.
+  An MCP agent pilots through the same action channel as a human.
+- **Engine work:** this waits for the [vehicle](vehicles.md) rungs (jeep,
+  motorcycle, jetpack), then boats on deep water and an arcade aircraft. Those
+  are now later rungs there. It is the last map in this roster because it
+  needs all of them, and it is the one people would ask for by name.
+- **From:** Wake Island (narrow horseshoe, central airfield, sea flank,
+  tropical look, asymmetric tickets), Blood Gulch (two-seat jeep, a map that
+  justified its vehicles), and BF1942's rock-paper-scissors.
+
 ## Modes, in build order
 
 [MODES.md](../MODES.md) defines each mode. This is the order, with what each
@@ -726,3 +785,7 @@ Checked 2026-09-24.
 - GoldenEye rooms: [Facility](https://goldeneye.fandom.com/wiki/Facility),
   [Complex](https://goldeneye.fandom.com/wiki/Complex),
   [Temple](https://goldeneye.fandom.com/wiki/Temple).
+- Combined arms: [Wake Island now and then (EA)](https://www.ea.com/games/battlefield/news/wake-island-now-and-then),
+  [Battlefield 1942](https://en.wikipedia.org/wiki/Battlefield_1942),
+  [Jaime Griesemer on 30 seconds of fun](https://www.engadget.com/2011-07-14-half-minute-halo-an-interview-with-jaime-griesemer.html),
+  [Warthog](https://en.wikipedia.org/wiki/Warthog_(Halo)).
