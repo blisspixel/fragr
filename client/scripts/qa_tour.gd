@@ -2078,8 +2078,12 @@ func _walk_into(goal: Vector3) -> bool:
 	var camera: Node = _spectator_camera()
 	var started: int = Time.get_ticks_msec()
 	while Time.get_ticks_msec() - started < 20000:
+		# A fallen fighter leaves the snapshot, so check life before position.
+		if not bool(_observed_state().get("self_alive", false)):
+			QaCombat.release_inputs()
+			return true
 		var feet: Vector3 = _local_feet()
-		if not bool(_observed_state().get("self_alive", false)) or not feet.is_finite():
+		if not feet.is_finite():
 			QaCombat.release_inputs()
 			return true
 		if Vector2(feet.x - goal.x, feet.z - goal.z).length() < 0.5:
