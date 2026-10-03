@@ -1456,6 +1456,7 @@ impl GameState {
             m04: self.map.m04_geometry(),
             m05: self.map.m05_geometry(),
             m06: self.map.m06_geometry(),
+            m08: self.map.m08_geometry(),
             m03: self.map.m03_geometry(),
             geometry_version: crate::protocol::geometry_version(&self.map.arena().solids),
             presentation: self.map.presentation(),
@@ -2001,6 +2002,7 @@ impl GameState {
         }
         for (shooter, solid, end, normal, damage) in mast_hits {
             self.damage_m03_mast(shooter, solid, end, normal, damage);
+            self.damage_m08_node(shooter, solid, end, normal, damage);
         }
         for (attacker, victim, trace) in crawler_contacts {
             self.players[attacker].statistics.attack(WeaponType::Fists);

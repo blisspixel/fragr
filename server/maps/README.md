@@ -127,6 +127,22 @@ control, boarding and companion start. No moving collider or gate variant is
 added. The [active plan](../../docs/plans/m06-port-of-entry-prototype.md)
 owns verification, current evidence and unresolved acceptance.
 
+`m08_custodian_of_record.json` authors level 8's radial custody archive, map
+1008: a checkpoint, a records hall around a central shaft, lower and upper
+galleries stacked above it, stair towers, the cooling ring, the machinery bridge
+over a well and the freight hall. Six ordered encounters field 25 required
+guards, including two repairing Auditors; an optional seventh, `service_ring`,
+waits among the cooling pipes past the seal and binds no objective. Steel
+screens close the hall's shaft on three sides at floor level. The lower gallery
+cage grants four mines in a one-entrance alcove whose corridor hides its mouth
+from a distant dispatched post pair. `m08` binds six Arrival objectives, the upper gallery `seal`
+and its lifted bounds, four `nodes` and the `machine` with their fallen bounds,
+the optional `bays` and `cabinet` arrivals, departure and companion start. The
+loader precomputes the sealed, lifted and fallen worlds and proves every stage's
+placements, node sight lines and the departure control. Three secret locations
+carry marked supplies. The [active plan](../../docs/plans/l08-custodian-of-record-prototype.md)
+owns verification and open acceptance.
+
 For M01, from the repository root:
 
 ```bash

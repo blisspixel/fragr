@@ -240,6 +240,8 @@ impl RunStore {
             MissionId::NoticeToVacate => m04_hash,
             MissionId::NoForwardingAddress => m05_hash,
             MissionId::PortOfEntry => m06_hash,
+            // No saved run reaches level 8 before its carry exists.
+            MissionId::CustodianOfRecord => return RunProbe::Incompatible,
         };
         if document.validate(expected).is_err() {
             return RunProbe::Incompatible;
@@ -337,6 +339,8 @@ impl RunStore {
             MissionId::NoticeToVacate => self.m04_hash,
             MissionId::NoForwardingAddress => self.m05_hash,
             MissionId::PortOfEntry => self.m06_hash,
+            // No saved run reaches level 8 yet; an impossible digest refuses it.
+            MissionId::CustodianOfRecord => [0; 32],
         }
     }
 

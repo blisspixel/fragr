@@ -1,0 +1,10 @@
+{
+  "format": 1,
+  "id": "m08_arrival",
+  "title_key": "MISSION_M08_TITLE",
+  "skip_key": "STORY_SKIP_SCENE",
+  "shots": [
+    {"id": "DEPOT", "caption_key": "STORY_M08_ARRIVAL_DEPOT", "timing": "reader", "hold": 1.0},
+    {"id": "ORDERS", "caption_key": "STORY_M08_ARRIVAL_ORDERS", "timing": "reader", "hold": 1.0}
+  ]
+}

@@ -16,6 +16,7 @@ pub(crate) mod m03;
 pub(crate) mod m04;
 pub(crate) mod m05;
 pub(crate) mod m06;
+pub(crate) mod m08;
 mod mission;
 mod supplies;
 
@@ -39,6 +40,9 @@ pub struct AuthoredMap {
     pub(super) m04: Option<Arc<m04::Prepared>>,
     pub(super) m05: Option<Arc<m05::Prepared>>,
     pub(super) m06: Option<Arc<m06::Prepared>>,
+    pub(super) m08: Option<Arc<m08::Prepared>>,
+    /// M08 runtime stage: 0 sealed, 1 seal lifted, 2 machine fallen.
+    pub(super) m08_stage: u8,
     pub(super) freight_open: bool,
     pub(super) clinic_open: bool,
     pub(super) mast_shutdown: bool,
@@ -69,6 +73,8 @@ struct Document {
     m05: Option<m05::Definition>,
     #[serde(default)]
     m06: Option<m06::Definition>,
+    #[serde(default)]
+    m08: Option<m08::Definition>,
     #[serde(default)]
     decorations: Vec<MapDecoration<String>>,
     #[serde(default)]
@@ -330,6 +336,38 @@ impl AuthoredMap {
         {
             return Err(invalid("M06 registered panels require Port of Entry"));
         }
+        let m08_kind = |kind: crate::protocol::MapDecorationKind| {
+            use crate::protocol::MapDecorationKind as K;
+            matches!(
+                kind,
+                K::M08CheckpointForm
+                    | K::M08ObservationSix
+                    | K::M08LostPropertySix
+                    | K::M08Registry
+                    | K::M08BayRelease
+                    | K::M08BayForm
+                    | K::M08MineCage
+                    | K::M08SealLocked
+                    | K::M08SealOpen
+                    | K::M08ServiceSix
+                    | K::M08ColdCabinet
+                    | K::M08EvidenceDesk
+                    | K::M08AuthorizedNoise
+                    | K::M08FreightDeparture
+                    | K::M08CustodyShaft
+            )
+        };
+        if doc.m08.is_none() && presentation.decorations.iter().any(|p| m08_kind(p.kind)) {
+            return Err(invalid("M08 registered panels require Custodian of Record"));
+        }
+        // The open seal signal belongs to the lifted runtime stages.
+        if presentation
+            .decorations
+            .iter()
+            .any(|p| p.kind == crate::protocol::MapDecorationKind::M08SealOpen)
+        {
+            return Err(invalid("M08 open seal belongs to a lifted runtime stage"));
+        }
         if doc.mission.is_some() && doc.equipment != crate::protocol::EquipmentPolicy::Discovery {
             return Err(invalid("missions require discovered equipment"));
         }
@@ -392,6 +430,20 @@ impl AuthoredMap {
                 "M06 requires map1006, discovery and no other mission",
             ));
         }
+        if doc.m08.is_some()
+            && (mission.is_some()
+                || doc.m02.is_some()
+                || doc.m03.is_some()
+                || doc.m04.is_some()
+                || doc.m05.is_some()
+                || doc.m06.is_some()
+                || doc.map_id != 1008
+                || doc.equipment != crate::protocol::EquipmentPolicy::Discovery)
+        {
+            return Err(invalid(
+                "M08 requires map1008, discovery and no other mission",
+            ));
+        }
         for spawn in &doc.spawns {
             identity(&spawn.id, &mut seen)?;
             if !standing(&arena, spawn.feet)
@@ -412,6 +464,20 @@ impl AuthoredMap {
             }
         }
         let start = doc.spawns[0].feet;
+        let m08 = doc
+            .m08
+            .map(|definition| {
+                definition.prepare(
+                    &arena,
+                    &solid_ids,
+                    &doc.encounters,
+                    &mut presentation,
+                    start,
+                    &mut seen,
+                )
+            })
+            .transpose()?
+            .map(Arc::new);
         let m06 = doc
             .m06
             .map(|definition| {
@@ -484,7 +550,9 @@ impl AuthoredMap {
             .map(Arc::new);
         let supplies = supplies::build(doc.supplies, doc.equipment, &arena, &mut seen)?;
         encounters::validate(&doc.encounters, doc.equipment, &arena, &mut seen)?;
-        let navigation = if let Some(prepared) = &m06 {
+        let navigation = if let Some(prepared) = &m08 {
+            prepared.navigation.clone()
+        } else if let Some(prepared) = &m06 {
             prepared.navigation.clone()
         } else if let Some(prepared) = &m05 {
             prepared.initial_navigation.clone()
@@ -532,7 +600,9 @@ impl AuthoredMap {
                 .ok_or_else(|| invalid("M02 side ward requires a released gate world"))?;
             crate::mission::validate_m02_evacuation_route(released.1).map_err(invalid)?;
         }
-        let opened_navigation = if let Some(prepared) = &m05 {
+        let opened_navigation = if let Some(prepared) = &m08 {
+            Some(prepared.fallen_navigation.clone())
+        } else if let Some(prepared) = &m05 {
             Some(prepared.navigation.clone())
         } else if let Some(prepared) = &m04 {
             Some(prepared.navigation.clone())
@@ -604,6 +674,8 @@ impl AuthoredMap {
             m04,
             m05,
             m06,
+            m08,
+            m08_stage: 0,
             freight_open: false,
             clinic_open: false,
             mast_shutdown: false,

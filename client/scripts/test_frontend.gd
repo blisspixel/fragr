@@ -137,7 +137,8 @@ func _run() -> void:
 		"pending M05 leaves an unbound body visible without an unavailable selector")
 	menu._show("practice")
 	var development: OptionButton = column.get_node("DevelopmentMission") as OptionButton
-	_check(development.item_count == 5 and development.get_item_text(4).contains("PORT OF ENTRY"), "fifth compact practice selector exposes lunar development")
+	_check(development.item_count == 6 and development.get_item_text(4).contains("PORT OF ENTRY")
+		and development.get_item_text(5).contains("CUSTODIAN OF RECORD"), "compact practice selector exposes the lunar and archive prototypes")
 	_check(column.get_node_or_null("DevelopmentMission") != null and _menu_text(column).contains("NO SAVE OVERWRITE"), "M03 development entry states save isolation")
 	_check(column.get_node_or_null("LaunchDevelopmentMission") != null, "M04 has a separate labeled development entry")
 	await menu._show("multi")

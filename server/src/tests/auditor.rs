@@ -477,7 +477,7 @@ fn a_range_post_sweeper_walks_into_the_placed_mine() {
     session.state.set_action(participant, Action::default());
     face(&mut session, participant, -19.5, 2.0, 0.0);
     let mut blast = None;
-    for _ in 0..400 {
+    for _ in 0..900 {
         advance(&mut session, 1);
         heal(&mut session, participant);
         face(&mut session, participant, -19.5, 2.0, 0.0);

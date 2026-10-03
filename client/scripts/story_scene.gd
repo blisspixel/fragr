@@ -28,8 +28,9 @@ const AFTER_MISSION: Dictionary[String, String] = {
 	"notice_to_vacate": "l04_l05",
 "no_forwarding_address": "l05_l06",
 	"port_of_entry": "l06_l07",
+	"custodian_of_record": "l08_l09",
 }
-const BEFORE_MISSION: Dictionary[String, String] = {"scheduled_service": "m03_arrival", "notice_to_vacate": "m04_arrival", "no_forwarding_address": "m05_arrival", "port_of_entry": "m06_arrival"}
+const BEFORE_MISSION: Dictionary[String, String] = {"scheduled_service": "m03_arrival", "notice_to_vacate": "m04_arrival", "no_forwarding_address": "m05_arrival", "port_of_entry": "m06_arrival", "custodian_of_record": "m08_arrival"}
 
 static func path_for(scene_id: String) -> String:
 	return DIRECTORY + scene_id + ".json"

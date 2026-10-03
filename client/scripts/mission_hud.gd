@@ -278,6 +278,9 @@ func _refresh_content() -> void:
 	if state.get("id") == MissionState.M05_ID:
 		_refresh_m05()
 		return
+	if state.get("id") == MissionState.M08_ID:
+		_refresh_m08()
+		return
 	if state.get("id") == MissionState.M06_ID:
 		_refresh_m06()
 		return
@@ -325,7 +328,7 @@ func _refresh_content() -> void:
 
 func _stage_card_visible() -> bool:
 	var phase := str(state.get("phase", ""))
-	if state.get("id") in [MissionState.M02_ID, MissionState.M03_ID, MissionState.M04_ID, MissionState.M05_ID, MissionState.M06_ID]:
+	if state.get("id") in [MissionState.M02_ID, MissionState.M03_ID, MissionState.M04_ID, MissionState.M05_ID, MissionState.M06_ID, MissionState.M08_ID]:
 		# One line at most: a legal prompt replaces the objective line.
 		if phase == "in_progress":
 			return _stage_left > 0.0 and prompt_text.is_empty()
@@ -349,8 +352,8 @@ static func _stage_key(value: Dictionary) -> String:
 	if value.is_empty():
 		return ""
 	var phase: String = str(value.get("phase", ""))
-	var progress_key: String = "m06" if value.get("id") == MissionState.M06_ID else ("m05" if value.get("id") == MissionState.M05_ID else "m04")
-	if value.get("id") in [MissionState.M04_ID, MissionState.M05_ID, MissionState.M06_ID] and value.get(progress_key) is Dictionary:
+	var progress_key: String = "m08" if value.get("id") == MissionState.M08_ID else ("m06" if value.get("id") == MissionState.M06_ID else ("m05" if value.get("id") == MissionState.M05_ID else "m04"))
+	if value.get("id") in [MissionState.M04_ID, MissionState.M05_ID, MissionState.M06_ID, MissionState.M08_ID] and value.get(progress_key) is Dictionary:
 		var current: Variant = value[progress_key].get("current")
 		var objective: String = str(current.get("id", "")) if current is Dictionary else ""
 		return "%s:%s:%s" % [phase, objective, str(value.get("attempt", ""))]
@@ -513,6 +516,29 @@ func _refresh_m06() -> void:
 	for prompt: Dictionary in state["prompts"]:
 		if prompt["player_id"] == player_id:
 			use = _catalog("M06_USE_TRANSIT")
+	_show_prompt(use)
+	_card.visible = _stage_card_visible()
+
+func _refresh_m08() -> void:
+	_recovery.visible = false
+	_run_badge.visible = state.get("run") is Dictionary
+	if _run_badge.visible:
+		var run: Dictionary = state["run"]
+		_run_badge.text = tr("RUN_LEVEL_BADGE").format({"attempt": int(state["attempt"]), "continues": int(run["continues"])})
+		_refresh_run_recovery(run)
+	var progress: Dictionary = state["m08"]
+	# The optional rescues read only once the seal has lifted.
+	_evac_badge.visible = progress["seal_open"]
+	_evac_badge.text = _catalog("M08_BAYS_RELEASED" if progress["custody_released"] else "M08_BAYS_OPTIONAL") \
+		+ "  " + _catalog("M08_CABINET_SECURED" if progress["recovered_mind_secured"] else "M08_CABINET_OPTIONAL")
+	match state["phase"]:
+		"briefing": _copy.text = _catalog("M08_WAITING")
+		"departed": _copy.text = InputGlyphs.plain(_catalog("M08_DEPARTED"))
+		_: _copy.text = InputGlyphs.plain(_catalog("M08_OBJECTIVE_" + str(progress["current"]["id"]).to_upper()))
+	var use: String = ""
+	for prompt: Dictionary in state["prompts"]:
+		if prompt["player_id"] == player_id:
+			use = _catalog("M08_USE_FREIGHT")
 	_show_prompt(use)
 	_card.visible = _stage_card_visible()
 

@@ -88,6 +88,23 @@ pub enum MapDecorationKind {
     M06ImpoundObservation,
     M06DepotOverlook,
     M06TransitDeparture,
+    M08CheckpointForm,
+    M08ObservationSix,
+    M08LostPropertySix,
+    M08Registry,
+    M08BayRelease,
+    M08BayForm,
+    M08MineCage,
+    /// The custody seal's signal: authored locked, flipped open in every
+    /// world where the Auditor has fallen.
+    M08SealLocked,
+    M08SealOpen,
+    M08ServiceSix,
+    M08ColdCabinet,
+    M08EvidenceDesk,
+    M08AuthorizedNoise,
+    M08FreightDeparture,
+    M08CustodyShaft,
 }
 
 /// Authoring names a solid; the validated wire form uses its index. The same

@@ -138,6 +138,7 @@ impl GameState {
                     .map(|s| s.carried_evacuated_workers.clone())
                     .unwrap_or_default(),
             }),
+            m08: None,
         })
     }
     pub(super) fn advance_m06(&mut self) {

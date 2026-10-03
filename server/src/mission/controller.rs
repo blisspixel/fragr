@@ -10,6 +10,7 @@ use uuid::Uuid;
 mod m04;
 mod m05;
 mod m06;
+mod m08;
 
 #[derive(Debug, Clone, Default)]
 pub struct MissionClient {
@@ -28,6 +29,9 @@ pub struct MissionClient {
     m06_map: Option<crate::protocol::M06MapGeometry>,
     m06_point: Option<[f32; 3]>,
     m06_pending: bool,
+    m08_map: Option<crate::protocol::M08MapGeometry>,
+    m08_point: Option<[f32; 3]>,
+    m08_pending: bool,
     m03_departure: Option<[f32; 3]>,
     pub state: Option<MissionState>,
     last_tick: Option<u64>,
@@ -308,6 +312,17 @@ impl MissionClient {
             self.observed = old.observed;
             self.m06_pending = true;
         }
+        if old.m08_map.is_some() && mission.is_none() && m02_objectives.is_none() && map_id == 1008
+        {
+            self.m08_map = old.m08_map.clone();
+            self.m08_point = old.m08_point;
+            self.state = old.state.clone();
+            self.last_tick = old.last_tick;
+            self.rules = old.rules;
+            self.run = old.run;
+            self.observed = old.observed;
+            self.m08_pending = true;
+        }
         if let Some(count) = m02_objectives {
             let presentation = presentation.ok_or("M02 requires map presentation")?;
             self.m02_map = Some(M02Map {
@@ -375,7 +390,10 @@ impl MissionClient {
         } else {
             None
         };
-        let map_matches = if state.id == MissionId::PortOfEntry {
+        let map_matches = if state.id == MissionId::CustodianOfRecord {
+            self.validate_m08_target(&state)?;
+            true
+        } else if state.id == MissionId::PortOfEntry {
             self.validate_m06_target(&state)?;
             true
         } else if state.id == MissionId::NoForwardingAddress {
@@ -419,6 +437,7 @@ impl MissionClient {
         self.m04_pending = false;
         self.m05_pending = false;
         self.m06_pending = false;
+        self.m08_pending = false;
         self.m02_point = m02_point.flatten();
         self.state = Some(state);
         Ok(())
@@ -513,7 +532,8 @@ impl MissionClient {
             && self.m03_map.is_none()
             && self.m04_map.is_none()
             && self.m05_map.is_none()
-            && self.m06_map.is_none())
+            && self.m06_map.is_none()
+            && self.m08_map.is_none())
             || self.state.as_ref().is_some_and(|state| {
                 state
                     .run
@@ -609,9 +629,16 @@ impl MissionClient {
         if !self.participating(id) {
             return Action::default();
         }
-        if self.m04_pending || self.m05_pending || self.m06_pending {
+        if self.m04_pending || self.m05_pending || self.m06_pending || self.m08_pending {
             navigator.clear();
             return Action::default();
+        }
+        if self
+            .state
+            .as_ref()
+            .is_some_and(|state| state.id == MissionId::CustodianOfRecord)
+        {
+            return self.steer_m08(navigator, world, id, snapshot, action);
         }
         if self
             .state

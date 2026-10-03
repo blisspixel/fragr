@@ -18,9 +18,10 @@ const DURABLE_GAMEPLAY: int = 26
 const M02_GAMEPLAY: int = 26
 const M03_GAMEPLAY: int = 26
 const M04_GAMEPLAY: int = 26
-const MISSION_GAMEPLAY: Dictionary[String, int] = {"recall_notice": DURABLE_GAMEPLAY, "persons_unknown": M02_GAMEPLAY, "scheduled_service": M03_GAMEPLAY, "notice_to_vacate": M04_GAMEPLAY, "no_forwarding_address": M05_GAMEPLAY, "port_of_entry": M06_GAMEPLAY}
+const MISSION_GAMEPLAY: Dictionary[String, int] = {"recall_notice": DURABLE_GAMEPLAY, "persons_unknown": M02_GAMEPLAY, "scheduled_service": M03_GAMEPLAY, "notice_to_vacate": M04_GAMEPLAY, "no_forwarding_address": M05_GAMEPLAY, "port_of_entry": M06_GAMEPLAY, "custodian_of_record": M08_GAMEPLAY}
 const M05_GAMEPLAY: int = 26
 const M06_GAMEPLAY: int = 27
+const M08_GAMEPLAY: int = 31
 const NEXT_MISSION: String = "declared_goods"
 
 var state: State = State.IDLE

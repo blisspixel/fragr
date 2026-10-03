@@ -5,7 +5,7 @@ Shared [world direction](../design/moon.md) and
 [character, voice and scene continuity](../design/characters.md) govern assets
 and staging. This anchor is a production target, not finished-appearance evidence.
 
-**Status:** proposed, unbuilt. Moon before the wipe. Target 10-14 minutes.
+**Status:** development prototype built per the level 8 design below ([plan](../plans/l08-custodian-of-record-prototype.md)); fresh-player and difficulty acceptance open. Moon before the wipe. Target 10-14 minutes.
 [Treatment](../CAMPAIGN-MISSIONS.md#level-8-custodian-of-record).
 
 ## Story and people
@@ -100,7 +100,7 @@ mission-start retry. Inspect all overlapping floors.
 
 ## Level 8 design (twenty-level expansion)
 
-**Status:** planned, accepted 2026-09-25. Level 8 of the
+**Status:** accepted 2026-09-25; built as a development prototype. Level 8 of the
 [twenty-level expansion](../plans/campaign-expansion.md), the same mission.
 [Story arc](story-arc.md).
 

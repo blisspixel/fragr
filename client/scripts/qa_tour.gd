@@ -651,6 +651,10 @@ func _run() -> void:
 			if state.has("expect_m06_" + key) and observed.get("m06", {}).get(key) != state["expect_m06_" + key]:
 				push_error("qa_tour: M06 " + key + " disagrees with " + state_name)
 				_failed = true
+		for key: String in ["completed", "seal_open", "machine_fallen", "custody_released", "recovered_mind_secured", "transfer_evidence"]:
+			if state.has("expect_m08_" + key) and observed.get("m08", {}).get(key) != state["expect_m08_" + key]:
+				push_error("qa_tour: M08 " + key + " disagrees with " + state_name)
+				_failed = true
 		for key: String in ["completed", "group_released", "freight_open"]:
 			if state.has("expect_m05_" + key) and observed.get("m05", {}).get(key) != state["expect_m05_" + key]:
 				push_error("qa_tour: M05 " + key + " disagrees with " + state_name)
@@ -938,6 +942,18 @@ static func valid_walks(states: Variant) -> bool:
 	return not live_audio_open
 
 static func valid_m06_expectations(state: Dictionary) -> bool:
+	for flag: String in ["seal_open", "machine_fallen", "custody_released", "recovered_mind_secured", "transfer_evidence"]:
+		if state.has("expect_m08_" + flag) and not state["expect_m08_" + flag] is bool:
+			return false
+	if state.has("expect_m08_completed"):
+		var done: Variant = state["expect_m08_completed"]
+		var chain: Array[String] = M08MissionState.OBJECTIVES.duplicate()
+		chain.append(M08MissionState.DEPARTURE)
+		if not done is Array or done.size() > chain.size():
+			return false
+		for index: int in range(done.size()):
+			if done[index] != chain[index]:
+				return false
 	if state.has("expect_m06_prisoner_route_marked") and not state["expect_m06_prisoner_route_marked"] is bool:
 		return false
 	if state.has("expect_m06_completed"):
@@ -1430,6 +1446,7 @@ func _observed_state() -> Dictionary:
 		"m05_ride": _m05_ride_report.duplicate(true),
 		"m05": gm.get("net_client").get("mission").get("state", {}).get("m05", {}),
 		"m06": gm.get("net_client").get("mission").get("state", {}).get("m06", {}),
+		"m08": gm.get("net_client").get("mission").get("state", {}).get("m08", {}),
 		"m05_workers_aboard": MissionHud.workers_aboard(gm.get("net_client").get("mission").get("state", {}), gm.get("net_client").get("mission_geometry").get("m05", {}).get("boarding", {})),
 		"m04": gm.get("net_client").get("mission").get("state", {}).get("m04", {}),
 		"notary_crashes": gm.get("notary_audio").crash_count if gm.get("notary_audio") != null else 0,
@@ -1777,7 +1794,7 @@ func _use_mission_control(expected_phase: String) -> void:
 		# M02 stays in_progress; its expectation names the completed objective.
 		var progress: Variant = mission_state.get("m02")
 		if mission_state.get("phase") == expected_phase \
-			or (mission_state.get("id") in [MissionState.M03_ID, MissionState.M04_ID, MissionState.M05_ID, MissionState.M06_ID] and expected_phase == "party_departed" and mission_state.get("phase") == "departed") \
+			or (mission_state.get("id") in [MissionState.M03_ID, MissionState.M04_ID, MissionState.M05_ID, MissionState.M06_ID, MissionState.M08_ID] and expected_phase == "party_departed" and mission_state.get("phase") == "departed") \
 			or (mission_state.get("id") == MissionState.M04_ID and expected_phase == "clinic_shutter" and mission_state.get("m04", {}).get("clinic_open") == true) \
 			or (progress is Dictionary and expected_phase in progress.get("completed", [])):
 			print("qa_tour: mission reached ", expected_phase)

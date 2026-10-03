@@ -51,6 +51,7 @@ impl RunDocumentV6 {
             MissionId::NoticeToVacate => hashes[3],
             MissionId::NoForwardingAddress => hashes[4],
             MissionId::PortOfEntry => return Err("M06 was not supported by version 6"),
+            MissionId::CustodianOfRecord => return Err("M08 was not supported by version 6"),
         };
         document.validate(hash)?;
         Ok(document)
@@ -194,9 +195,9 @@ impl RunDocumentV5 {
             MissionId::PersonsUnknown => hashes[1],
             MissionId::ScheduledService => hashes[2],
             MissionId::NoticeToVacate => hashes[3],
-            MissionId::NoForwardingAddress | MissionId::PortOfEntry => {
-                return Err("M05 was not supported by version 5")
-            }
+            MissionId::NoForwardingAddress
+            | MissionId::PortOfEntry
+            | MissionId::CustodianOfRecord => return Err("M05 was not supported by version 5"),
         };
         document.validate(hash)?;
         Ok(document)
@@ -236,7 +237,10 @@ impl RunDocumentV4 {
                 MissionId::ScheduledService => hashes[2],
                 MissionId::NoticeToVacate
                 | MissionId::NoForwardingAddress
-                | MissionId::PortOfEntry => return Err("mission was not supported by version 4"),
+                | MissionId::PortOfEntry
+                | MissionId::CustodianOfRecord => {
+                    return Err("mission was not supported by version 4")
+                }
             },
             SavedStep::AwaitingMission {
                 completed_mission, ..
@@ -246,7 +250,10 @@ impl RunDocumentV4 {
                 MissionId::ScheduledService => hashes[2],
                 MissionId::NoticeToVacate
                 | MissionId::NoForwardingAddress
-                | MissionId::PortOfEntry => return Err("mission was not supported by version 4"),
+                | MissionId::PortOfEntry
+                | MissionId::CustodianOfRecord => {
+                    return Err("mission was not supported by version 4")
+                }
             },
         };
         let document = RunDocument {
@@ -311,9 +318,9 @@ impl RunDocumentV3 {
             MissionId::PersonsUnknown => m02_hash,
             MissionId::ScheduledService => return Err("M03 was not supported by version 3"),
             MissionId::NoticeToVacate => return Err("M04 was not supported by version 3"),
-            MissionId::NoForwardingAddress | MissionId::PortOfEntry => {
-                return Err("M05 was not supported by version 3")
-            }
+            MissionId::NoForwardingAddress
+            | MissionId::PortOfEntry
+            | MissionId::CustodianOfRecord => return Err("M05 was not supported by version 3"),
         };
         if self.version != 3 || self.rules.revision != 2 {
             return Err("unsupported legacy campaign run");

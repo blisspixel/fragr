@@ -1356,3 +1356,78 @@ async fn m02_development_child_serves_the_graybox_without_a_durable_run() {
     drop(child.0.stdin.take());
     exited(&mut child, &ready, true);
 }
+
+#[tokio::test]
+async fn m08_development_child_serves_the_archive_to_current_readers_only() {
+    let mut child = OwnedChild(
+        Command::new(env!("CARGO_BIN_EXE_fragr-server"))
+            .args(["--local-mission", "custodian_of_record", "--seed", "8"])
+            .current_dir(std::env::temp_dir())
+            .env("RUST_LOG", "warn")
+            .stdin(Stdio::piped())
+            .stdout(Stdio::piped())
+            .stderr(Stdio::inherit())
+            .spawn()
+            .unwrap(),
+    );
+    let output = child.0.stdout.take().unwrap();
+    let (tx, rx) = std::sync::mpsc::channel();
+    std::thread::spawn(move || {
+        let mut line = String::new();
+        let result = BufReader::new(output).take(4096).read_line(&mut line);
+        tx.send((result, line)).unwrap();
+    });
+    let (result, line) = rx
+        .recv_timeout(Duration::from_secs(30))
+        .expect("M08 child readiness deadline");
+    result.unwrap();
+    let ready: Ready = serde_json::from_str(&line).unwrap();
+    assert_eq!(ready.mission, MissionId::CustodianOfRecord);
+    assert_eq!(
+        ready.gameplay_version,
+        fragr_server::protocol::M08_GAMEPLAY_VERSION
+    );
+    for (version, admitted) in [
+        (fragr_server::protocol::CUSTODY_GAMEPLAY_VERSION, false),
+        (fragr_server::protocol::GAMEPLAY_VERSION, true),
+    ] {
+        let (mut socket, _) = connect_async(&ready.url).await.unwrap();
+        socket
+            .send(Message::Text(
+                serde_json::to_string(&ClientMessage::Hello {
+                    body: None,
+                    role: Role::Spectator,
+                    name: "Archive reader".into(),
+                    geometry_version: 2,
+                    gameplay_version: version,
+                    ticket: None,
+                    resume: None,
+                })
+                .unwrap(),
+            ))
+            .await
+            .unwrap();
+        let mut saw_archive = false;
+        let mut refused = false;
+        for _ in 0..6 {
+            let Ok(Some(Ok(Message::Text(text)))) =
+                tokio::time::timeout(Duration::from_secs(5), socket.next()).await
+            else {
+                break;
+            };
+            match serde_json::from_str::<ServerMessage>(&text) {
+                Ok(ServerMessage::MapInfo { map_id, m08, .. }) => {
+                    saw_archive = map_id == 1008 && m08.is_some_and(|g| !g.seal_open);
+                    break;
+                }
+                Ok(ServerMessage::Error { code, .. }) if code == "unsupported_gameplay" => {
+                    refused = true;
+                    break;
+                }
+                _ => {}
+            }
+        }
+        assert_eq!(saw_archive, admitted, "capability {version}");
+        assert_eq!(refused, !admitted, "capability {version}");
+    }
+}

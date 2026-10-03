@@ -71,6 +71,7 @@ pub fn preview_run(_mission: MissionId) -> io::Result<RunPreview> {
                         MissionId::NoticeToVacate => "notice_to_vacate",
                         MissionId::NoForwardingAddress => "no_forwarding_address",
                         MissionId::PortOfEntry => "port_of_entry",
+                        MissionId::CustodianOfRecord => "custodian_of_record",
                     }
                     .into(),
                     difficulty: document.rules.difficulty,
@@ -152,7 +153,9 @@ impl Ready {
             url: format!("ws://{address}"),
             // M06 adds a distinct envelope; earlier mission readers retain
             // their existing capability boundary and unchanged rules.
-            gameplay_version: if mission == MissionId::PortOfEntry {
+            gameplay_version: if mission == MissionId::CustodianOfRecord {
+                crate::protocol::M08_GAMEPLAY_VERSION
+            } else if mission == MissionId::PortOfEntry {
                 crate::protocol::M06_GAMEPLAY_VERSION
             } else {
                 crate::protocol::M05_GAMEPLAY_VERSION
@@ -389,5 +392,14 @@ mod tests {
         .unwrap();
         assert_eq!(m06.gameplay_version, crate::protocol::M06_GAMEPLAY_VERSION);
         assert_eq!(m06.mission, MissionId::PortOfEntry);
+        let m08 = Ready::new(
+            MissionId::CustodianOfRecord,
+            CampaignDifficulty::Standard,
+            "127.0.0.1:6767".parse().unwrap(),
+            false,
+        )
+        .unwrap();
+        assert_eq!(m08.gameplay_version, crate::protocol::M08_GAMEPLAY_VERSION);
+        assert_eq!(m08.mission, MissionId::CustodianOfRecord);
     }
 }

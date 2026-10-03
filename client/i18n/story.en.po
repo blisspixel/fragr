@@ -336,3 +336,15 @@ msgstr "Mara found one carrier who would come.\n\nThe freight platform falls beh
 
 msgid "STORY_L05_L06_RECORDS"
 msgstr "The transfer records name the lunar custody depot.\n\nThe missing from Low Water are already on their way there."
+
+msgid "STORY_M08_ARRIVAL_DEPOT"
+msgstr "The custody depot. An hour later.\n\nThe archive turns people into stock and ships them where the Union needs hands. Some of Low Water is in here."
+
+msgid "STORY_M08_ARRIVAL_ORDERS"
+msgstr "Beat the Auditor. Open the bays."
+
+msgid "STORY_M08_DEPARTURE_TITLE"
+msgstr "PASSENGER MANIFEST"
+
+msgid "STORY_L08_L09_FREIGHT"
+msgstr "Nobody called the car. It ran the freight lane toward the berth anyway.\n\nThe manifests name Mars, and systems several sides built."

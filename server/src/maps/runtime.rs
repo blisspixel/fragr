@@ -29,6 +29,54 @@ impl PartialEq<MapKind> for RuntimeMap {
 }
 
 impl RuntimeMap {
+    pub(crate) fn m08_objectives(&self) -> Option<&super::authored::m08::Prepared> {
+        match self {
+            Self::BuiltIn(_) => None,
+            Self::Authored(map) => map.m08.as_deref(),
+        }
+    }
+    /// Static archive contract with this world's stage flags.
+    pub fn m08_geometry(&self) -> Option<crate::protocol::M08MapGeometry> {
+        let mut geometry = self.m08_objectives()?.geometry.clone();
+        let stage = self.m08_stage();
+        geometry.seal_open = stage >= 1;
+        geometry.machine_fallen = stage >= 2;
+        Some(geometry)
+    }
+    /// 0 sealed, 1 seal lifted, 2 machine fallen.
+    pub fn m08_stage(&self) -> u8 {
+        match self {
+            Self::Authored(map) if map.m08.is_some() => map.m08_stage,
+            _ => 0,
+        }
+    }
+    /// Select a stage precomputed and route-checked at load time. Nothing is
+    /// built on a live transition.
+    pub fn prepared_m08_world(&self, stage: u8) -> Option<Self> {
+        let Self::Authored(map) = self else {
+            return None;
+        };
+        let prepared = map.m08.as_ref()?;
+        let mut selected = map.as_ref().clone();
+        match stage {
+            1 => {
+                selected.arena = prepared.opened.clone();
+                selected.navigation = prepared.opened_navigation.clone();
+            }
+            2 => {
+                selected.arena = prepared.fallen.clone();
+                selected.navigation = prepared.fallen_navigation.clone();
+            }
+            _ => return None,
+        }
+        selected.m08_stage = stage;
+        for panel in &mut selected.presentation.decorations {
+            if panel.kind == crate::protocol::MapDecorationKind::M08SealLocked {
+                panel.kind = crate::protocol::MapDecorationKind::M08SealOpen;
+            }
+        }
+        Some(Self::Authored(Arc::new(selected)))
+    }
     pub(crate) fn m06_objectives(&self) -> Option<&super::authored::m06::Prepared> {
         match self {
             Self::BuiltIn(_) => None,
@@ -166,6 +214,10 @@ impl RuntimeMap {
                 self.m06_objectives()
                     .map(|_| crate::protocol::MissionId::PortOfEntry)
             })
+            .or_else(|| {
+                self.m08_objectives()
+                    .map(|_| crate::protocol::MissionId::CustodianOfRecord)
+            })
     }
 
     pub fn opened_route(&self) -> Option<Self> {
@@ -198,7 +250,7 @@ impl RuntimeMap {
     pub fn is_campaign(&self) -> bool {
         self.has_encounters()
             || self.mission().is_some()
-            || matches!(self, Self::Authored(map) if map.m02.is_some() || map.m03.is_some() || map.m04.is_some() || map.m05.is_some() || map.m06.is_some())
+            || matches!(self, Self::Authored(map) if map.m02.is_some() || map.m03.is_some() || map.m04.is_some() || map.m05.is_some() || map.m06.is_some() || map.m08.is_some())
     }
 
     pub(crate) fn encounters(&self) -> &[super::authored::encounters::EncounterDefinition] {

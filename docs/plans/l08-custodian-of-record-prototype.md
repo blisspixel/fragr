@@ -239,15 +239,73 @@ $0. No paid image, audio, model or cloud request runs on this track.
 
 ## Progress
 
-Plan written before source work.
+- Milestone A: plan merged in [PR #319](https://github.com/blisspixel/fragr/pull/319).
+- Milestone B: the Proximity Mine, the Auditor, the custody range (map 1014),
+  agent priority and client presentation merged in
+  [PR #323](https://github.com/blisspixel/fragr/pull/323). Sabotage took
+  capability 28 first and the Sniper Rifle 30, so the custody devices use 29
+  and M08 uses 31.
+- Milestones C and D: the archive (map 1008) with its three precomputed stages,
+  mission facts, controller steering, local child, client state, presenter,
+  HUD, menu entry, keyed pages and route manifest, in the level pull request.
+- Milestone E: M07 to M08 carry waits for level 7's carry on `main`. Every
+  saved-run reader refuses an M08 stage until then.
 
-### Handoff, 2026-10-02
+### Decisions taken without Nick
 
-- Plan merged in [PR #319](https://github.com/blisspixel/fragr/pull/319).
-- Milestone B in flight on `feat/l08-custodian`: server mine (`sim/mine.rs`),
-  shared blast resolution, mine count, pickup and records column, Auditor
-  channel, hold, repair and plate, range map 1014, agent priority and
-  `place_mine` in the adapter are implemented with focused tests passing.
-  Client readers, mine and channel presentation, HUD count, input and records
-  are written; `test_custody_devices` passes. Next: rerun the touched
-  harnesses, protocol and adapter docs, full gates, then open the PR.
+- The mine is a counted device with its own action and key, not a seventh gun
+  slot, matching the readable arsenal and leaving the Sniper's slot alone.
+- A placed mine goes dark when its owner dies; a thrown grenade does not.
+- Renn, the captives and Orrin's cabinet are presenter figures driven by facts.
+  The seal is the one door and only opens; it gates the onward route rather
+  than closing behind the party.
+- The early Repeater secret grants Bullets, since the Repeater is unbuilt.
+- The arrival and departure pages are reader-paced keyed text, with no
+  generated narration.
+- Steel screens close the records hall's shaft on its north, west and east
+  sides at floor level, so the opening fight arrives around the sides instead
+  of five guards firing across the shaft at once. The south rail stays low for
+  the view up the shaft.
+- Ordered archive arrivals also count once the next fight wakes, the catch-up
+  rule the other campaign levels gained on `main`.
+- The optional `service_ring` group of beat 6 is two Clerks among the cooling
+  pipes and a Sweeper from the bridge end. It wakes as the party steps through
+  the lifted seal, binds no objective and never gates departure.
+- The post pair walks close together, and the cage's four mines cover two
+  placements: one down the corridor, one at the mouth.
+- Armor on the east tower landing before the Auditor fight, and Bullets by the
+  west records desk on the way to the stair.
+
+### Fun check (direction of 2026-10-03)
+
+Measured by `m08_pacing_first_contact_and_longest_quiet_walk` with shared
+movement at full running speed on the tour route. A quiet walk is time with no
+fight, no supply claimed and no reveal, rescue, secret or broken node.
+
+| Rule | State |
+|---|---|
+| Teach by fighting | First contact 3.7 s from spawn past the entry Rifle. Longest main-route quiet walk 9.4 s. The one breath is the 15.9 s walk back to the bridge desk after the machine falls; the optional bays add a 17.0 s return that ends in the pipe ambush. |
+| Different shapes, never two alike in a row | Hall: desk crossfire, then a flank push around the screened shaft. Lower gallery: stair-head ambush. Mine lesson: a trap sprung on a converging pair. Upper gallery: Auditor repair fight. Service ring: close pipe ambush. Bridge: vertical crossfire with the second Auditor in the well. Exit: converging push up both freight stairs. |
+| Weapon choice | Hall distances suit the Rifle; the stair head and the pipes are close enough for the Shotgun; mines for the post and the exit stairs; flanking or blasts beat the Auditor's plate; the Railgun reaches into the well. Fresh-player play has not confirmed the swaps. |
+| Mine lesson as a trap | Picking up the cage dispatches the pair; one mine down the corridor and one at the mouth take both (`m08_post_pair_walks_into_the_corridor_mines`). |
+| Doom surprises, sparingly | The cage pickup springs the post. The pipe ambush waits on the way back from the optional bays. |
+| Secrets | Three, each marked with the six. Their contents follow the campaign brief (Bullets, Shells and a medkit, armor), so the early reward is supply, not new power. |
+| Rescue and evidence never block | Bays and cabinet are optional; the evidence arrival also counts once the counterattack wakes; no rescue can fail. |
+| One climax | Four glowing nodes shot apart until the custody machine drops through every gallery, then the counterattack up both freight stairs to an uncalled car. |
+
+### Evidence
+
+| Check | Result |
+|---|---|
+| Focused server tests: mine, Auditor, range, M08 stages, nodes, full clear, retry, authoring, controller, route walk, pacing, mine trap in the archive | pass |
+| Local M08 child launch with capability admission | pass |
+| Client harnesses `test_custody_devices`, `test_m08_mission` and the touched shared harnesses | pass |
+| Full Godot check on the milestone B tree | `Godot checks: PASS` |
+| First range tour | exposed a post too close for the mine to arm; moved farther |
+| Second range and archive tours | range stuck leaving the alcove; archive hall fight shot across the open shaft from every side; both fixed |
+| Third archive tour | the lesson mine landed inside the alcove, the post stopped short and the player later walked onto its own live mine; both mines now go into the corridor |
+
+### Handoff
+
+- Next: rerun both tours under the render lock, inspect stills, run the full
+  gates and open the level pull request.
