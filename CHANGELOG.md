@@ -37,6 +37,23 @@ spark and a dust puff on walls, a red splash and droplets on fighters, a
 widening cyan ring for the Railgun and a dust smack for melee. Redrawing the
 Rifle used an estimated $0.20 of existing image credit.
 
+Level 8's Proximity Mine is drawn: a grey steel puck with a red lens lies on
+the floor as its pickup, sits in the off hand and leaves it with its clamp
+feet springing open when placed, and once stuck shows its face on the surface
+with an amber arming lamp and a red blink. The Auditor has its own figure: a
+Clerk's issued body under an officer's cap and long coat, a tall shield plate
+on the forearm, a repair spool on its back and a lit emitter raised toward the
+body it repairs; the two repair lamps sit on the drawn plate. The mine art used
+an estimated $0.44 of existing image credit; the Auditor is a local rig.
+
+Sabotage art is ready for its presentation: a leather-strapped demolition
+charge with a timer box, A and B site plates on Union steel, a correction
+frame and a registry server for the two sites, the planted charge armed,
+blinking, in its last seconds and defused, the charge in the off hand, two
+hands planting and defusing it in first person, and plant and defuse icons.
+The pictures used an estimated $0.95 of existing image credit, one rejected
+first draft of the charge included.
+
 ## Unreleased (art pass, 2026-10-02)
 
 Every gun now fires with its own drawn frame and muzzle flash: the Pistol's

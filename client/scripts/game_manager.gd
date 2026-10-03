@@ -171,6 +171,9 @@ func _ready():
 	grenade_effects.thrown.connect(func(owner_id: String) -> void:
 		if is_human_player and owner_id == str(net_client.player_id):
 			hud.show_grenade_throw())
+	grenade_effects.placed.connect(func(owner_id: String) -> void:
+		if is_human_player and owner_id == str(net_client.player_id):
+			hud.show_mine_place())
 	add_child(grenade_effects)
 	auditor_channels = AuditorChannels.new()
 	auditor_channels.name = "AuditorChannels"

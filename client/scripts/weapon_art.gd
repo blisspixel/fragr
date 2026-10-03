@@ -49,6 +49,22 @@ const GRENADE_THROW: Texture2D = preload("res://assets/weapons/viewmodels/grenad
 const THROW_READY_SECONDS: float = 0.12
 const THROW_SECONDS: float = 0.34
 
+## Level 8's Proximity Mine in the off hand, held and then tossed, on the
+## grenade hand's canvas so the same layout shows it.
+const MINE_READY: Texture2D = preload("res://assets/weapons/viewmodels/mine_ready.png")
+const MINE_PLACE: Texture2D = preload("res://assets/weapons/viewmodels/mine_place.png")
+
+## A placed mine seen face-on, for a quad laid on the surface it stuck to. The
+## states share one canvas and differ only at the lamp, so a swap never moves
+## the device.
+const MINE_DEVICE: Dictionary[String, Texture2D] = {
+	"dark": preload("res://assets/weapons/mine/mine_dark.png"),
+	"arming": preload("res://assets/weapons/mine/mine_arming.png"),
+	"live": preload("res://assets/weapons/mine/mine_live.png"),
+}
+## World width of the face-on device.
+const MINE_DEVICE_METRES: float = 0.34
+
 ## Side profiles: the world pickup and the gun a fighter holds.
 const PROFILE: Dictionary[String, Texture2D] = {
 	"Tack": preload("res://assets/weapons/pickups/pistol.png"),
@@ -67,6 +83,7 @@ const SUPPLY: Dictionary[String, Texture2D] = {
 	"bullets": preload("res://assets/pickups/bullets.png"),
 	"shells": preload("res://assets/pickups/shells.png"),
 	"cells": preload("res://assets/pickups/cells.png"),
+	"proximity_mine": preload("res://assets/pickups/proximity_mine.png"),
 }
 
 const HUD_HEALTH: Texture2D = preload("res://assets/hud/health.png")
@@ -97,3 +114,13 @@ static func frame_after_shot(weapon: String, since: float) -> Texture2D:
 	if since >= CYCLE_FROM and since < CYCLE_UNTIL and CYCLE.has(weapon):
 		return CYCLE[weapon]
 	return IDLE.get(weapon)
+
+## The face-on picture of a placed mine for a wire phase and whether its lamp
+## is lit on this server tick: a steady amber lamp while arming, red when a
+## live or tripped mine's blink is on, dark in flight and between blinks.
+static func mine_device(phase: String, lit: bool) -> Texture2D:
+	if phase == "arming":
+		return MINE_DEVICE["arming"]
+	if lit and phase in ["armed", "tripped"]:
+		return MINE_DEVICE["live"]
+	return MINE_DEVICE["dark"]

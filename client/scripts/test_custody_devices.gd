@@ -75,17 +75,28 @@ func _run() -> void:
 	_check(presenter.stick_cues == 1 and presenter.lamps_lit == 1, "sticking cues once and lights the arming lamp")
 	var body: Node3D = presenter.mines[7]
 	_check(body.basis.y.is_equal_approx(Vector3(-1, 0, 0)), "the puck lies flat against the wall it stuck to")
+	var face: Sprite3D = body.get_node("Face")
+	_check(face.axis == Vector3.AXIS_Y and face.texture == WeaponArt.MINE_DEVICE["arming"], "the drawn device faces out of the wall with its amber arming lamp")
 	presenter.apply(_mine(10, "arming", 9), Vector3.ZERO)
 	_check(presenter.stick_cues == 1, "a held phase never replays the stick cue")
 	presenter.apply(_mine(52, "armed", 50), Vector3.ZERO)
 	_check(presenter.lamps_lit == 1, "a live mine blinks on its first tick")
+	_check(face.texture == WeaponArt.MINE_DEVICE["live"], "a lit blink shows the red lamp")
 	presenter.apply(_mine(55, "armed", 50), Vector3.ZERO)
 	_check(presenter.lamps_lit == 0, "and goes dark between blinks")
+	_check(face.texture == WeaponArt.MINE_DEVICE["dark"], "and the dark lamp between blinks")
 	presenter.apply({"tick": 60}, Vector3.ZERO)
 	_check(presenter.mines.is_empty(), "a mine leaving the facts leaves the world")
 	presenter.apply(_mine(61, "armed", 50), Vector3.ZERO)
 	presenter.reset()
 	_check(presenter.mines.is_empty() and presenter.mine_phases.is_empty() and presenter.last_tick == -1, "reset clears placed mines")
+	var placements: Array[String] = []
+	presenter.placed.connect(func(owner: String) -> void: placements.append(owner))
+	presenter.apply({"tick": 70}, Vector3.ZERO)
+	presenter.apply(_mine(71, "flying", 71), Vector3.ZERO)
+	presenter.apply(_mine(72, "flying", 71), Vector3.ZERO)
+	_check(placements.size() == 1 and placements[0] == OWNER, "a newly placed mine raises its owner's hand once")
+	presenter.reset()
 	presenter.queue_free()
 	# Auditor channels.
 	var pawns: Dictionary = {}
@@ -138,7 +149,7 @@ func _run() -> void:
 	sweeper["campaign"]["kind"] = "sweeper"
 	_check(not ActorState.validation_error({"tick": 10, "players": [sweeper]}).is_empty(), "only an Auditor channels")
 	var channel_frame: int = EnemyView.custody_frame(actor["campaign"], "Tack", 10, 0.0, 0, false)
-	_check(channel_frame == EnemyAnimation.pose_frame("raise", false, 1.0), "the channel holds the raised hand")
+	_check(channel_frame == EnemyAnimation.pose_frame("seated", false, 0.0), "the channel holds the Auditor atlas's channel cell")
 	var up: Dictionary = {"kind": "sweeper", "phase": "recovery", "phase_started": 10, "phase_ends": 30}
 	var rising: int = EnemyView.custody_frame(up, "Flechette", 10, 0.0, 0, true)
 	_check(rising == EnemyAnimation.pose_frame("death", false, 1.0), "a repaired bot starts from its fallen pose")

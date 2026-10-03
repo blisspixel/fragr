@@ -1,6 +1,6 @@
 # Character source
 
-Original articulated source for the Union's human Clerk, bot Sweeper, Heavy
+Original articulated source for the Union's human Clerk and Auditor, bot Sweeper, Heavy
 Sweeper, Ranged Sweeper, Turret and Jammer, and for the two free participant bodies. The Union sets are
 directional campaign sets under visual review. They do not establish a completed cast or final character production bar.
 
@@ -144,6 +144,39 @@ logs. The harness checks receipt freshness, layout, unclipped poses, feet shared
 with the Sweeper, the mast above the Sweeper's head, the rifle's reach in
 profile and a glint that grows through the windup. Live readability at range
 needs the Level 7 tour.
+
+## Auditor
+
+`auditor_rig.gd` extends the shared rig for Level 8's custody officer: the
+Clerk's issued human body, joints, field and feet, with a peaked officer's cap
+and red band over the helmet, a long coat whose skirts part with the stride, a
+tall shield plate on the left forearm (red seal stripe, two dark repair-lamp
+sockets) and a repair spool on the back whose cable runs under the plate arm to
+the left glove. The pistol and its draw are the Clerk's. The plate faces where
+the forearm points, so its front is covered and a flank is not.
+
+The layout's seated cell, which an Auditor never uses, holds the repair
+channel: the plate and a lit emitter raised toward the body at 1.35 m (the
+height `AuditorChannels` starts its beam), the pistol lowered and the feet
+braced. Level 8 selects it with `EnemyAnimation.pose_frame("seated", false,
+0.0)` for a channeling Auditor.
+
+`auditor_bake.gd` renders the shared 55-pose standing layout at eight
+directions into `auditor.png` (2880 by 4000, about 44 MiB uncompressed when
+loaded) and writes `auditor-manifest.json` with source and output hashes. It
+never rewrites another atlas.
+
+```sh
+godot --path client --rendering-driver opengl3 --windowed --script res://art/characters/auditor_bake.gd
+godot --headless --path client --import
+godot --headless --path client --script res://scripts/test_auditor.gd
+```
+
+Require `auditor_bake: PASS`, `test_auditor: PASS` and clean logs. The harness
+checks receipt freshness, layout, unclipped poses, feet shared with the Clerk,
+the cap above the Clerk's helmet, a plate that faces front and not back, and a
+lit emitter at the beam's height only in the channel cell. Live readability of
+the channel needs the Level 8 tour.
 
 ## Notary flight and photograph
 

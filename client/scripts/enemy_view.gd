@@ -4,15 +4,15 @@ extends RefCounted
 const CAMERA = preload("res://scripts/spectator_cam.gd")
 const UNION_SPRITE: Shader = preload("res://assets/shaders/union_sprite.gdshader")
 static var _textures: Dictionary[String, Texture2D] = {}
-## Kinds still drawn with another kind's atlas. The Auditor uses the Clerk
-## officer atlas until `res://assets/characters/union/auditor.png` is baked;
-## removing its entry is the whole swap. Its plate and rim keep it distinct.
-const PLACEHOLDER_ATLAS: Dictionary = {"auditor": "clerk"}
-const AUDITOR_SCALE: float = 1.12
+## The Auditor's atlas draws its shield plate; a gold rim keeps the officer
+## distinct at range, and two lamps on the drawn plate count repairs left.
 const AUDITOR_RIM: Color = Color("c9a15a")
-const PLATE_STEEL: Color = Color("3c4248")
-const PLATE_EDGE: Color = Color("8d8f86")
-const PLATE_SHADER: Shader = preload("res://assets/shaders/grenade_surface.gdshader")
+const LAMP_SHADER: Shader = preload("res://assets/shaders/grenade_surface.gdshader")
+## Where the atlas draws the plate's two lamp sockets, in pawn space (facing
+## +X, origin 1.5 m above the feet): at rest, and raised with the plate while
+## the Auditor channels. Measured from `auditor_rig.gd`.
+const PLATE_LAMPS: Array[Vector3] = [Vector3(0.37, -0.24, 0.08), Vector3(0.40, -0.24, 0.27)]
+const CHANNEL_LAMPS: Array[Vector3] = [Vector3(0.55, -0.02, 0.08), Vector3(0.55, -0.02, 0.28)]
 
 var actor: Dictionary = {}
 var weapon: String = ""
@@ -33,6 +33,8 @@ func update(state: Dictionary, snapshot_tick: int, body: Sprite3D) -> void:
 	if phase != _last_phase:
 		_standing = _last_phase == "dead" and phase == "recovery"
 		_last_phase = phase
+		if _kind == "auditor":
+			_place_lamps(body, phase == "channeling")
 	# A repeated snapshot must not restart a windup, gait or corpse animation.
 	if snapshot_tick > tick or _kind == "":
 		tick = snapshot_tick
@@ -80,26 +82,34 @@ func update(state: Dictionary, snapshot_tick: int, body: Sprite3D) -> void:
 		body.material_override = material
 	material.set_shader_parameter("sprite_texture", body.texture)
 	if kind == "auditor":
-		body.pixel_size *= AUDITOR_SCALE
 		material.set_shader_parameter("rim_color", AUDITOR_RIM)
 		_attach_plate(body)
+		_place_lamps(body, phase == "channeling")
 
-## The shield plate faces the server facing, not the camera, so its side and
-## back read as a flank. Two lamps count the repairs left.
+## Two repair lamps for the plate the atlas draws. They live in pawn space, so
+## they turn with the server facing and the body hides them from behind;
+## `AuditorChannels` lights one per repair left.
 func _attach_plate(body: Sprite3D) -> void:
 	var pawn: Node = body.get_parent()
 	if pawn == null or pawn.get_node_or_null("AuditorPlate") != null:
 		return
 	var plate: Node3D = Node3D.new()
 	plate.name = "AuditorPlate"
-	# Pawn origin sits 1.5 m above the feet; local +X is the facing.
-	plate.position = Vector3(0.42, 1.0 - CAMERA.FP_SERVER_REFERENCE_Y, 0.0)
-	plate.add_child(_plate_part("Face", Vector3(0.06, 1.0, 0.72), Vector3.ZERO, PLATE_STEEL))
-	plate.add_child(_plate_part("Edge", Vector3(0.08, 0.06, 0.78), Vector3(0, 0.5, 0), PLATE_EDGE))
-	for index: int in range(2):
-		plate.add_child(_plate_part("Lamp%d" % index, Vector3(0.08, 0.09, 0.09),
-			Vector3(0.02, 0.32, -0.14 + index * 0.28), Color("ff3020")))
+	for index: int in range(PLATE_LAMPS.size()):
+		plate.add_child(_plate_part("Lamp%d" % index, Vector3(0.06, 0.06, 0.06), PLATE_LAMPS[index], Color("ff3020")))
 	pawn.add_child(plate)
+
+## The lamps follow the drawn plate up when the Auditor raises it to channel.
+func _place_lamps(body: Sprite3D, channeling: bool) -> void:
+	var pawn: Node = body.get_parent()
+	var plate: Node = pawn.get_node_or_null("AuditorPlate") if pawn != null else null
+	if plate == null:
+		return
+	var places: Array[Vector3] = CHANNEL_LAMPS if channeling else PLATE_LAMPS
+	for index: int in range(places.size()):
+		var lamp: Node3D = plate.get_node_or_null("Lamp%d" % index)
+		if lamp != null:
+			lamp.position = places[index]
 
 func _plate_part(part_name: String, size: Vector3, offset: Vector3, colour: Color) -> MeshInstance3D:
 	var part: MeshInstance3D = MeshInstance3D.new()
@@ -109,7 +119,7 @@ func _plate_part(part_name: String, size: Vector3, offset: Vector3, colour: Colo
 	part.mesh = mesh
 	part.position = offset
 	var material: ShaderMaterial = ShaderMaterial.new()
-	material.shader = PLATE_SHADER
+	material.shader = LAMP_SHADER
 	material.set_shader_parameter("effect_color", colour)
 	material.set_shader_parameter("camera_clearance", 0.0)
 	part.material_override = material
@@ -119,7 +129,7 @@ func _plate_part(part_name: String, size: Vector3, offset: Vector3, colour: Colo
 static func atlas_path(kind: String) -> String:
 	if kind == "ranged_sweeper":
 		return L07Assets.RANGED_SWEEPER_ATLAS
-	return "res://assets/characters/union/%s.png" % str(PLACEHOLDER_ATLAS.get(kind, kind))
+	return "res://assets/characters/union/%s.png" % kind
 
 func advance(delta: float, distance: float) -> void:
 	elapsed += delta
@@ -146,8 +156,9 @@ func render(body: Sprite3D, yaw: float, to_camera: Vector3) -> void:
 		body.frame = custody if custody >= 0 else EnemyAnimation.frame(actor, weapon, tick, elapsed,
 			travel, shot_age, facing)
 
-## Custody poses over the shared baked layout: the Auditor's channel holds its
-## raised hand, and a repaired bot rises through its death clip in reverse.
+## Custody poses over the shared baked layout: the Auditor's channel is the
+## seated cell of its own atlas, which an Auditor never otherwise uses, and a
+## repaired bot rises through its death clip in reverse.
 ## Returns -1 when the ordinary phase table applies.
 static func custody_frame(state: Dictionary, held: String, snapshot_tick: int, since: float,
 		facing: int, standing: bool) -> int:
@@ -155,7 +166,7 @@ static func custody_frame(state: Dictionary, held: String, snapshot_tick: int, s
 	var base: int = posmod(facing, EnemyAnimation.DIRECTIONS) * EnemyAnimation.poses()
 	var unarmed: bool = held == "Fists"
 	if phase == "channeling":
-		return base + EnemyAnimation.pose_frame("raise", unarmed, 1.0)
+		return base + EnemyAnimation.pose_frame("seated", false, 0.0)
 	if phase != "recovery" or not standing:
 		return -1
 	var started: int = int(state["phase_started"])
