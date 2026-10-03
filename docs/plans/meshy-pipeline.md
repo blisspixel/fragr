@@ -1,8 +1,10 @@
 # Bounded 3D asset production
 
-**Status:** implemented and tested, 2026-10-03. Native tooling and the first model
-pilot are proven; final CI and merge remain required before calling the increment
-shipped. Runtime art acceptance remains in flight under art excellence.
+**Status:** shipped, 2026-10-03, [PR #339](https://github.com/blisspixel/fragr/pull/339).
+The full [implementation CI](https://github.com/blisspixel/fragr/actions/runs/37156405220)
+passes. Native tooling and the first model pilot are proven. Runtime art acceptance
+remains in flight under art excellence; the
+[Clerk presentation](clerk-model-presentation.md) records the next increment.
 
 ## Goal and scope
 

@@ -84,7 +84,11 @@ cover refusal before loading secrets and binding each credential to its own orig
 Workspace tests, warning-denied linting, the locked release build, dependency
 license checks and the deterministic benchmark pass. The full unfiltered
 workspace coverage pass reports 93.72 percent of lines for the initial pipeline;
-final CI remains the merge gate for subsequent corrections.
+the final local pass retains 93.72 percent. The full
+[implementation CI](https://github.com/blisspixel/fragr/actions/runs/37156405220)
+passes, and [PR #339](https://github.com/blisspixel/fragr/pull/339) merged the
+pipeline. The Windows job's first download hit a GitHub service error; the
+same revision passed its rerun without code changes.
 
 The [production plan](../plans/meshy-pipeline.md) owns this pipeline. Continue the
 existing roadmap's art rung with model cleanup, owned combat motion, controlled

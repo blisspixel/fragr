@@ -54,6 +54,11 @@ acceptance. Fingers and uniform variants remain candidates for further refinemen
 The Shotgun and generator from the pilot are not selected by this change, and
 the other character sources and environmental kits remain unfinished.
 
+The full local client gate passes 219 scripts and 100 harnesses. Its new source
+check also passes after the final reaction assertion, and the prepared import
+keeps textures embedded losslessly without duplicate loose image sources. The
+final albedo and normal atlas bytes match the recorded route's assets.
+
 Local checks and the played increment are implemented. Final CI, merge and
 desktop release verification are tracked by the
 [presentation plan](../plans/clerk-model-presentation.md).
