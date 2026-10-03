@@ -321,8 +321,10 @@ asset meets the [art bar](ART_STORY_BIBLE.md#north-star).
 
    *Why:* being shot at must read by ear and eye, which is the fun bar's
    three-signal rule. The console is cheap, client-only depth.
-3. **[Art excellence](plans/art-excellence.md), in flight.** The October 3
-   production pass adds original Sweeper and Shotgun mesh sources, a lean
+3. **[Art excellence](plans/art-excellence.md), in flight.** The
+   [native 3D pilot](plans/meshy-pipeline.md) verifies live credit before paid
+   model stages and tests one enemy, weapon and prop using the existing plan.
+   The October 3 production pass adds original Sweeper and Shotgun mesh sources, a lean
    screen-faced Latch, paired Sweeper normals, shallow manufactured fixtures,
    articulated wall bays, venue materials and lit moving water. The large
    high-resolution source library includes characters, weapons, props, materials

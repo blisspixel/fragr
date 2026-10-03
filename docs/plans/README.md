@@ -29,6 +29,7 @@ remain open.
 
 | Plan | Status | One-liner |
 |---|---|---|
+| [`meshy-pipeline.md`](./meshy-pipeline.md) | **in flight**, native gate and pilot | Verified account balance; credit and dollar caps, durable requests, three candidate models and Godot review. |
 | [`art-excellence.md`](./art-excellence.md) | **in flight**, October 3 increment **shipped**, [PR #337](https://github.com/blisspixel/fragr/pull/337) | Original articulated meshes, Sweeper body normals, fixtures, wall bays, venue materials, water and a completed recorded route. Full roster conversion and played quality acceptance remain open. |
 | [`higgsfield-pipeline.md`](./higgsfield-pipeline.md#api-capability-checker-2026-10-03) | October 3 API checker **shipped**, [PR #337](https://github.com/blisspixel/fragr/pull/337) | Free credential and exact-payload estimate checks with preserved receipts; image prices verified, authoritative 3D route and a programmatic balance endpoint remain unresolved. |
 | [`directional-combat-audio.md`](./directional-combat-audio.md) | **planned** | Hear and see where fire comes from: near-miss cracks from resolved shot paths, a damage-direction arc, occlusion behind walls and per-venue space. |

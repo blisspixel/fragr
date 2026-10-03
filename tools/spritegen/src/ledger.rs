@@ -55,12 +55,17 @@ pub struct Job {
     /// None only for historical completed rows which did not record a request.
     pub identity: Option<Identity>,
     pub estimated_usd: f64,
+    pub consumed_credits: Option<u64>,
     pub stage: Stage,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case", deny_unknown_fields)]
 pub enum Event {
+    /// Provider-reported credit use, distinct from a conservative reservation.
+    Usage {
+        consumed_credits: u64,
+    },
     Reserved {
         identity: Identity,
         estimated_usd: f64,
@@ -136,6 +141,10 @@ impl Ledger {
         self.jobs.get(id)
     }
 
+    pub fn jobs(&self) -> impl Iterator<Item = &Job> {
+        self.jobs.values()
+    }
+
     pub fn record(&mut self, id: &str, event: Event) -> Result<(), Error> {
         validate_distinct_id(&self.jobs, id)?;
         let next = transition(id, self.jobs.get(id), &event)?;
@@ -158,12 +167,13 @@ impl Ledger {
     /// Attach a dashboard-verified request to an uncertain reservation, locally.
     pub fn recover(&mut self, id: &str, request_id: &str) -> Result<(), Error> {
         crate::validation::validate_request_id(request_id)?;
-        self.record(
-            id,
-            Event::Submitted {
-                status_url: format!("{}/requests/{request_id}/status", crate::API_BASE),
-            },
-        )
+        let status_url = match self.job(id).and_then(|job| job.identity.as_ref()) {
+            Some(identity) if identity.model.starts_with("meshy/") => {
+                crate::meshy::status_url(&identity.model, request_id)?
+            }
+            _ => format!("{}/requests/{request_id}/status", crate::API_BASE),
+        };
+        self.record(id, Event::Submitted { status_url })
     }
 }
 
@@ -207,6 +217,7 @@ fn parse(text: &str) -> Result<BTreeMap<String, Job>, Error> {
                 Job {
                     identity: None,
                     estimated_usd: legacy.usd,
+                    consumed_credits: None,
                     stage: Stage::Downloaded {
                         files: legacy.files,
                     },
@@ -237,12 +248,29 @@ fn transition(id: &str, previous: Option<&Job>, event: &Event) -> Result<Job, Er
         return Ok(Job {
             identity: Some(identity.clone()),
             estimated_usd: *estimated_usd,
+            consumed_credits: None,
             stage: Stage::Reserved,
         });
     }
     let mut next = previous
         .cloned()
         .ok_or_else(|| Error::Io(format!("asset {id} has no reservation")))?;
+    if let Event::Usage { consumed_credits } = event {
+        if !next
+            .identity
+            .as_ref()
+            .is_some_and(|identity| identity.model.starts_with("meshy/"))
+            || !matches!(next.stage, Stage::Submitted { .. })
+            || *consumed_credits > 10000
+            || next
+                .consumed_credits
+                .is_some_and(|previous| previous != *consumed_credits)
+        {
+            return Err(Error::Io("invalid provider credit usage receipt".into()));
+        }
+        next.consumed_credits = Some(*consumed_credits);
+        return Ok(next);
+    }
     next.stage = match (&next.stage, event) {
         (Stage::Reserved, Event::Accepted { request_id }) => {
             crate::validation::validate_request_id(request_id)?;
@@ -251,7 +279,12 @@ fn transition(id: &str, previous: Option<&Job>, event: &Event) -> Result<Job, Er
             }
         }
         (Stage::Reserved | Stage::Accepted { .. }, Event::Submitted { status_url }) => {
-            let returned_id = crate::validation::status_request_id(status_url)?;
+            let returned_id = match next.identity.as_ref() {
+                Some(identity) if identity.model.starts_with("meshy/") => {
+                    crate::meshy::status_request_id(&identity.model, status_url)?
+                }
+                _ => crate::validation::status_request_id(status_url)?,
+            };
             if let Stage::Accepted { request_id } = &next.stage {
                 if *request_id != returned_id {
                     return Err(Error::Io(

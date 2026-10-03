@@ -27,6 +27,7 @@
 pub mod api_check;
 pub mod generation;
 pub mod ledger;
+pub mod meshy;
 pub mod reduce;
 #[cfg(test)]
 mod test_support;
@@ -620,33 +621,67 @@ pub fn file_name(id: &str, index: usize, url: &str) -> String {
 /// `Authorization: Key` header wants, and splitting it into two settings would
 /// only create a way to configure half of it.
 pub fn read_dotenv_credential(path: &Path) -> Result<String, Error> {
+    let value = read_dotenv_value(path, &["higgsfield"])?;
+    if !value.contains(':') {
+        return Err(Error::Spec(
+            "higgsfield= in .env should be id:secret".into(),
+        ));
+    }
+    Ok(value)
+}
+
+pub(crate) fn read_dotenv_value(path: &Path, names: &[&str]) -> Result<String, Error> {
+    if std::fs::metadata(path)
+        .map_err(|_| Error::Io("could not read credential file".into()))?
+        .len()
+        > 64 * 1024
+    {
+        return Err(Error::Spec("credential file exceeds 64 KiB".into()));
+    }
     let text = std::fs::read_to_string(path)
         .map_err(|e| Error::Io(format!("could not read {}: {e}", path.display())))?;
+    if text.len() > 64 * 1024 {
+        return Err(Error::Spec("credential file exceeds 64 KiB".into()));
+    }
+    let mut credential: Option<String> = None;
     for line in text.lines() {
         let line = line.trim();
         if line.is_empty() || line.starts_with('#') {
             continue;
         }
-        let Some((key, value)) = line.split_once('=') else {
+        let Some((key, value)) = line.strip_prefix("export ").unwrap_or(line).split_once('=')
+        else {
             continue;
         };
-        if key.trim().eq_ignore_ascii_case("higgsfield") {
+        if names
+            .iter()
+            .any(|name| key.trim().eq_ignore_ascii_case(name))
+        {
             let value = value.trim().trim_matches('"').trim_matches('\'');
             if value.is_empty() {
-                return Err(Error::Spec("higgsfield= in .env is empty".into()));
+                return Err(Error::Spec("credential entry is empty".into()));
             }
-            if !value.contains(':') {
+            if value.len() > 512 || !value.bytes().all(|b| b.is_ascii_graphic()) {
                 return Err(Error::Spec(
-                    "higgsfield= in .env should be id:secret".into(),
+                    "credential must be a bounded ASCII token".into(),
                 ));
             }
-            return Ok(value.to_string());
+            if credential
+                .as_ref()
+                .is_some_and(|previous| previous != value)
+            {
+                return Err(Error::Spec("credential entries conflict".into()));
+            }
+            credential = Some(value.to_owned());
         }
     }
-    Err(Error::Spec(format!(
-        "no higgsfield= line in {}",
-        path.display()
-    )))
+    credential.ok_or_else(|| {
+        Error::Spec(format!(
+            "no {} credential entry in {}",
+            names.join(" or "),
+            path.display()
+        ))
+    })
 }
 
 #[cfg(test)]
