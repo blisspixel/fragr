@@ -1,7 +1,10 @@
 # Plan: multiplayer maps and modes
 
-**Status:** proposed (2026-09-24). Everything below is a proposal: no map, mode,
-item or mutator in this file is built unless a line says so.
+**Status:** the [rule sheet](#rule-sheet) is accepted as the standing bar for
+every new or reworked map, per Nick's 2026-10-03 direction: tight unless a
+crowd fills the space, and "fucking fun" as the measure. The roster, new items
+and modes stay proposals: nothing in this file is built unless a line says so.
+Campaign scale follows [MAP-DESIGN.md](../MAP-DESIGN.md#size-follows-the-crowd).
 **Branch:** `docs/multiplayer-map-roster` for this plan; one `feat/mp-*` branch per map or mode.
 **Spend:** $0. Graybox, playtest harness and tour stills are local.
 
@@ -83,6 +86,32 @@ Researched 2026-09-24. Sources are listed at the end.
   rubble and sniper towers. Omaha is an assault that stops bleeding only when
   the bunkers fall. Lesson: flags are placed to create lanes with different
   jobs, and vehicles are flow control, not decoration.
+- **Counter-Strike, Dust II** (added 2026-10-03). The archetypal three-lane
+  map. Dave Johnston deliberately built one close-combat area (B Tunnels) and
+  one long-range area (Long A), with mid as the information and rotation lane
+  that feeds both sites. He kept it simple, with almost no gimmicks, and used
+  detail "only exactly when needed, and not just as filler". Controlling mid
+  splits the defence; the attacker's job is to claim one lane cheaply and
+  arrive at a site with numbers.
+
+  Lesson for [Sabotage](sabotage-mode.md):
+  - Three lanes with different range jobs.
+  - Mid is where information comes from.
+  - Measure timings so defenders reach a site a few seconds before attackers
+    can contest it.
+  - Give each site at least two entrances.
+- **Call of Duty 4** (added 2026-10-03). Backlot is circular: any point is
+  reachable by several routes, with buildings at both ends overlooking the
+  street. Crash puts one landmark, a downed helicopter, in open ground ringed
+  by buildings for both close and long fights. Shipment, a tiny symmetric
+  container yard, shipped by accident and became a favourite, because a tiny
+  map with a full lobby is pure chaos. Lesson: circular flow, one central
+  landmark, and a deliberately tiny chaos map in rotation.
+- **GoldenEye's rooms** (added 2026-10-03). Facility's vent drops into the
+  bathroom stalls for surprise kills. Complex has two levels and grates for
+  sneaky escapes under a blood-red sky. Temple sets one big open hall against
+  tight corridors and hidden doors. Lesson: give each map one signature
+  surprise route that creates stories, and a strong sky and mood.
 - **General practice.** Good maps overlay two or three big loops with a few
   small ones; too many paths make a guessing map (Jim Brown's GDC talk found
   players love maps with only two or three real routes). Comfortable fights
@@ -689,3 +718,11 @@ Checked 2026-09-24.
   [Level Design Book metrics](https://book.leveldesignbook.com/process/blockout/metrics),
   [multiplayer post-mortem](https://medium.com/@nesterenkodmitry96/level-design-post-mortem-lessons-from-creating-multiplayer-aa-fps-bd8cd378ef8d),
   [the language of arena level design](https://www.plusforward.net/post/21433/The-Language-of-Arena-FPS-Level-Design/).
+- Counter-Strike: [Dust II](https://en.wikipedia.org/wiki/Dust_II),
+  [Dust 2 callouts and positions](https://csdb.gg/maps/dust2/).
+- Call of Duty 4: [Shipment](https://en.wikipedia.org/wiki/Shipment_(Call_of_Duty)),
+  [Backlot](https://callofduty.fandom.com/wiki/Backlot),
+  [map ranking](https://www.gamegrin.com/articles/ranking-all-16-call-of-duty-4-modern-warfare-multiplayer-maps/).
+- GoldenEye rooms: [Facility](https://goldeneye.fandom.com/wiki/Facility),
+  [Complex](https://goldeneye.fandom.com/wiki/Complex),
+  [Temple](https://goldeneye.fandom.com/wiki/Temple).
