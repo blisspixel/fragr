@@ -28,6 +28,7 @@ difficulty, subjective listening and final character acceptance remain open.
 |---|---|---|
 | [`sabotage-mode.md`](./sabotage-mode.md) | **in flight** | The first flagship round mode on Sector 9: one life, plant and defuse with a held Use, halves with a side swap, carried equipment, rule bots on both sides and agents through MCP. |
 | [`campaign-polish-20261002.md`](./campaign-polish-20261002.md) | **in flight** | Automated playtest and fix pass over levels 1 to 6 before human play, with a findings table. |
+| [`l07-declared-goods-prototype.md`](./l07-declared-goods-prototype.md) | **in flight** | Level 7 curfew town and crater cut, the Sniper Rifle beside the Railgun, the glinting Ranged Sweeper and M06 to M07 carry without refill. |
 | [`l08-custodian-of-record-prototype.md`](./l08-custodian-of-record-prototype.md) | **in flight** | Level 8 radial custody archive, the sticking Proximity Mine, the repairing Auditor and M07 to M08 carry after level 7 lands. |
 | [`art-pass-20261002.md`](./art-pass-20261002.md) | **shipped**, [PR #321](https://github.com/blisspixel/fragr/pull/321) | Coherent viewmodel fire frames, object pickups, vitals icons and Level 7 Sniper, scope and Ranged Sweeper art within $10 of existing Higgsfield credit. |
 | [`m06-release-closeout.md`](./m06-release-closeout.md) | **shipped**, [PR #318](https://github.com/blisspixel/fragr/pull/318) | Documentation-only shipping record, verified desktop publication and clean passing main before the round ends. |

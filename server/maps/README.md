@@ -220,6 +220,13 @@ the option. Final multi-tier encounter and resource balance remains unfinished.
   29. Run it with `--bots 0 --map-file server/maps/test/custody-range.json` and
   capture with `client/qa/custody-range.json`. It is a development range, not
   level 8.
+  `test/sniper-range.json` (map 1013) demonstrates the Sniper Rifle and one
+  stationary Ranged Sweeper 70 metres away on a rim platform. A 0.5 metre firing
+  step behind a 1.85 metre sill lets the head clear the sill while the body
+  stays hidden; stepping off hides both. A covered lane to the east reaches the
+  platform outside the marksman's notice cone. Maps that grant `sniper` or place
+  a `ranged_sweeper` require capability 30. Capture it with
+  `client/qa/sniper-range.json`; it is not a mission.
 - `mission`: optional, discovery only, requires capability 6 for shared difficulty
   and party readiness, or 7 when the host selects solo run rules. The registered
   `id` is `recall_notice`. `record` and `departure` each contain `panel` (the same

@@ -1,0 +1,12 @@
+{
+  "comment": "Sniper Rifle and Ranged Sweeper development range. FRAGR_QA_BOTS=0, FRAGR_QA_MAP_FILE=server/maps/test/sniper-range.json, FRAGR_QA_MANIFEST=res://qa/sniper-range.json. Real human input and server phases, no granted equipment or teleports. The scope is held through ordinary input; it is presentation and never decides a hit. Not a mission.",
+  "width": 1280,
+  "height": 720,
+  "states": [
+    {"name":"sniper_range_rack","scene":"res://scenes/main.tscn","join":"human","camera":"first_person","radio_off":true,"walk_to":[[0,0,-42],[2,0,-42],[-2,0,-42],[-4,0,-42],[0,0,-40]],"expect_equipment":{"personal_claims":["range_rail","range_shotgun","range_sniper"]},"note":"Claim the Sniper Rifle, its Cells, the Shotgun and the Railgun through the normal supply path."},
+    {"name":"sniper_open_view","camera":"first_person","weapon":"Sniper","walk_to":[[0,0,-36]],"look_at":[0,4.2,40],"note":"The unscoped Sniper Rifle and the dormant marksman's platform 76 metres away across the field, before its group wakes."},
+    {"name":"sniper_scoped_view","camera":"first_person","weapon":"Sniper","scope":true,"look_at":[0,4.2,40],"note":"The same view through the held scope: the antenna mast and rifle read at range. The overlay is presentation only."},
+    {"name":"marksman_glint_duck_rise","camera":"first_person","weapon":"Sniper","combat":{"kind":"union","required":["rim_ranged_sweeper"],"target_required_only":true,"evade_tells":false,"phase_kind":"ranged_sweeper","required_phases":["windup","dead"],"expect_turret_cover_cancel":true,"approach_focus":"rim_ranged_sweeper","turret_peek":{"peek_index":1,"cover_index":2},"approach_route":[[0,0,-33.5],[0,0.5,-30.6],[0,0,-32.2],[0,0.5,-30.6]],"search_route":[[0,0.5,-30.6]],"scope":true},"note":"Step onto the firing step and hold until a clear glint begins, drop behind the sill until the server cancels that windup without a shot, then rise and take the marksman first with one scoped Sniper shot."},
+    {"name":"sniper_range_after","camera":"first_person","walk_to":[[0,0,-33]],"look_at":[0,3.4,40],"note":"The cleared platform from behind the window wall. The flank lane and the second shotgun answer remain open."}
+  ]
+}

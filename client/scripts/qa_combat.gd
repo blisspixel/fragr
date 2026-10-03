@@ -455,7 +455,7 @@ static func valid_turret_cancel(spec: Dictionary) -> bool:
 	if not spec["expect_turret_cover_cancel"]:
 		return true
 	var required: Variant = spec.get("required")
-	return spec.get("kind") in ["union", "turret"] and spec.get("phase_kind") == "turret" \
+	return spec.get("kind") in ["union", "turret", "ranged_sweeper"] and spec.get("phase_kind") in QaTurret.KINDS \
 		and required is Array and required.size() == 1 and required[0] is String \
 		and not required[0].is_empty() and required[0].length() <= 64
 
@@ -574,7 +574,7 @@ func run(tree: SceneTree, manager: Node, spec: Dictionary, output: String) -> Di
 	_turret_observer = null
 	if spec.get("expect_turret_cover_cancel", false):
 		_turret_observer = QaTurret.new()
-		if not _turret_observer.begin(_player_id, required[0], solids):
+		if not _turret_observer.begin(_player_id, required[0], solids, str(spec["phase_kind"])):
 			_recording = false
 			_turret_observer = null
 			push_error("qa_combat: could not begin real Turret cancellation observation")
@@ -595,6 +595,10 @@ func run(tree: SceneTree, manager: Node, spec: Dictionary, output: String) -> Di
 	var participant_hp_start: int = int(starting_actor.get("hp", 0))
 	var participant_armor_start: int = int(starting_actor.get("armor", 0))
 	var anchor: Vector2 = Vector2(starting_actor.get("x", 0.0), starting_actor.get("z", 0.0))
+	# Held scope is ordinary presentation input; it never changes aim or hits.
+	var scoped: bool = spec.get("scope", false) == true
+	if scoped:
+		Input.action_press("scope")
 	_evade_left = true
 	_evade_started = -1
 	var search_route: Array = spec.get("search_route", [])
@@ -689,6 +693,8 @@ func run(tree: SceneTree, manager: Node, spec: Dictionary, output: String) -> Di
 				sample["body_scale"] = body.scale.x
 			samples.append(sample)
 	release_inputs()
+	if scoped:
+		Input.action_release("scope")
 	_recording = false
 	var saved: bool = false
 	if not frames.is_empty():

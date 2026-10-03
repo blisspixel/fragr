@@ -15,6 +15,7 @@ var arena_flags: ArenaFlags = null
 var traveling_shots: TravelingShots = null
 var jammer_audio: JammerAudio = null
 var notary_audio: NotaryAudio = null
+var marksman_audio: RangedSweeperAudio = null
 # tip_capture latch: keep forced live dish through nods-phase Snapshot nulls.
 var tip_force_jammer_dish = false
 const JammerDishBuilderScript = preload("res://scripts/jammer_dish.gd")
@@ -147,6 +148,9 @@ func _ready():
 	jammer_audio = JammerAudio.new()
 	jammer_audio.name = "JammerAudio"
 	add_child(jammer_audio)
+	marksman_audio = RangedSweeperAudio.new()
+	marksman_audio.name = "MarksmanAudio"
+	add_child(marksman_audio)
 	notary_audio = NotaryAudio.new()
 	notary_audio.name = "NotaryAudio"
 	notary_audio.notice_requested.connect(func(text: String) -> void:
@@ -289,6 +293,8 @@ func _on_map_info(info: Dictionary) -> void:
 	_reset_crawler_cues()
 	if jammer_audio != null:
 		jammer_audio.reset()
+	if marksman_audio != null:
+		marksman_audio.reset()
 	local_prediction.configure_map(info)
 	_clear_predicted_pawn()
 	for pawn: Node in players.values():
@@ -800,6 +806,7 @@ func _process(_delta):
 	if hud and camera:
 		var watched: Node = players.get(local_fp_pawn_id) if is_human_player else camera.get_followed_target()
 		hud.set_fp_walk_speed(float(watched.get("presentation_speed")) if is_instance_valid(watched) else 0.0)
+		_update_scope(_delta)
 	if is_human_player and not role_transition and net_client.connection_state == WebSocketPeer.STATE_OPEN and _has_local_input_target():
 		_send_local_action(Time.get_ticks_usec())
 	if is_human_player:
@@ -807,6 +814,17 @@ func _process(_delta):
 		local_prediction.decay_visual(_delta)
 		_apply_local_prediction()
 
+
+## The Sniper Rifle's scope is presentation: held input narrows the local view
+## and look rate only. The selected weapon and life come from server facts.
+func _update_scope(delta: float) -> void:
+	var pawn: Node = players.get(local_fp_pawn_id)
+	var alive: bool = is_instance_valid(pawn) and int(pawn.get("hp")) > 0
+	var held: bool = is_human_player and not controls_blocked() and InputMap.has_action("scope") and Input.is_action_pressed("scope")
+	var enabled: bool = is_human_player and alive and bool(camera.get("fp_mode"))
+	camera.zoom_factor = hud.update_scope(delta, _current_weapon_wire(), held, enabled)
+	if camera.has_method("apply_zoom"):
+		camera.apply_zoom()
 
 func _clear_predicted_pawn() -> void:
 	var pawn: Node = players.get(local_fp_pawn_id)
@@ -1401,6 +1419,9 @@ func _on_snapshot_received(data):
 	if notary_audio != null:
 		var listener: Camera3D = get_viewport().get_camera_3d()
 		notary_audio.apply(data, listener.global_position if listener != null else Vector3.INF)
+	if marksman_audio != null:
+		var marksman_listener: Camera3D = get_viewport().get_camera_3d()
+		marksman_audio.apply(data, marksman_listener.global_position if marksman_listener != null else Vector3.INF)
 	hud.equipment_hud.tick = int(data.get("tick", 0))
 	_refresh_equipment_visibility()
 	_update_nameplates()

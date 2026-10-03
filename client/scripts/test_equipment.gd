@@ -48,6 +48,18 @@ func _run() -> void:
 	_check(EquipmentState.slot_if_owned(carried, 1, "tack") == "shiv" and EquipmentState.slot_if_owned(carried, 1, "shiv") == "fists", "slot one draws the Shiv, then fists, like Doom's chainsaw")
 	_check(EquipmentState.slot_if_owned(EquipmentState.carried_names(state), 1, "tack") == "fists", "slot one is fists until a Shiv is found")
 	_check(EquipmentState.cycle(found, "fists", 1) == "shiv" and EquipmentState.cycle(found, "shiv", 1) == "tack" and EquipmentState.cycle(found, "tack", 1) == "fists", "the wheel keeps the Shiv beside the fists")
+	var marksman: Dictionary = state.duplicate(true)
+	marksman["weapons"] = ["fists", "tack", "flechette", "scatter", "rail", "sniper"]
+	marksman["selected"] = "sniper"
+	marksman["ammo"] = [{"pool": "bullets", "rounds": 0}, {"pool": "shells", "rounds": 0}, {"pool": "cells", "rounds": 9}]
+	_check(EquipmentState.validation_error(marksman, "self").is_empty(), "a found Sniper Rifle is carried equipment")
+	_check(EquipmentState.shots(marksman, "sniper") == 9 and EquipmentState.shots(marksman, "rail") == 9, "the Sniper Rifle and Railgun share Cells")
+	_check(EquipmentState.display_name("sniper") == "Sniper Rifle" and "sniper" not in EquipmentState.ARCADE, "the Sniper Rifle reads by name and stays out of the arcade arsenal")
+	var marksman_carried: Array[String] = EquipmentState.carried_names(marksman)
+	_check(EquipmentState.slot_if_owned(marksman_carried, 6) == "sniper" and EquipmentState.slot_if_owned(EquipmentState.carried_names(ladder), 6) == "", "key six draws only a carried Sniper Rifle")
+	_check(EquipmentState.cycle(marksman, "rail", 1) == "sniper" and EquipmentState.cycle(marksman, "sniper", 1) == "fists", "the wheel places the Sniper Rifle after the Railgun")
+	_check("sniper" in EquipmentState.SCOPED and "rail" not in EquipmentState.SCOPED, "only the Sniper Rifle offers a scope")
+	_check(SniperScope.active_for("sniper", true, true) and not SniperScope.active_for("rail", true, true) and not SniperScope.active_for("sniper", false, true) and not SniperScope.active_for("sniper", true, false), "the scope opens only when held with the Sniper Rifle in a live view")
 	var unknown: Dictionary = found.duplicate(true)
 	unknown["weapons"] = ["fists", "chainsaw"]
 	unknown["selected"] = "fists"

@@ -188,7 +188,7 @@ pub fn validate_act_arguments(arguments: &Value) -> Result<Action, String> {
             None
         } else {
             let s = v.as_str().ok_or_else(|| {
-                "schema error: weapon_swap must be a string (fists|shiv|tack|flechette|rail|scatter)"
+                "schema error: weapon_swap must be a string (fists|shiv|tack|flechette|rail|scatter|sniper)"
                     .to_string()
             })?;
             match s {
@@ -198,9 +198,10 @@ pub fn validate_act_arguments(arguments: &Value) -> Result<Action, String> {
                 "flechette" => Some(protocol::WeaponType::Flechette),
                 "rail" => Some(protocol::WeaponType::Rail),
                 "scatter" => Some(protocol::WeaponType::Scatter),
+                "sniper" => Some(protocol::WeaponType::Sniper),
                 other => {
                     return Err(format!(
-                    "schema error: weapon_swap must be fists|shiv|tack|flechette|rail|scatter, got '{}'",
+                    "schema error: weapon_swap must be fists|shiv|tack|flechette|rail|scatter|sniper, got '{}'",
                     other
                 ))
                 }
@@ -688,7 +689,7 @@ fn tools_list_result() -> Value {
                         "turn_right": {"type": "boolean", "default": false, "description": "Turn right"},
                         "fire": {"type": "boolean", "default": false, "description": "Fire weapon"},
                         "jump": {"type": "boolean", "default": false, "description": "Jump. A grounded fighter leaves the floor; holding it does not fly"},
-                        "weapon_swap": {"type": "string", "enum": ["fists", "shiv", "tack", "flechette", "rail", "scatter"], "description": "Select an owned weapon. The Shiv is found melee and needs no ammunition"},
+                        "weapon_swap": {"type": "string", "enum": ["fists", "shiv", "tack", "flechette", "rail", "scatter", "sniper"], "description": "Select an owned weapon. The Shiv is found melee and needs no ammunition; the Sniper Rifle is a found Cells weapon"},
                         "interact": {"type": "boolean", "description": "Press to use an aimed mission panel when observe supplies your prompt. Release before another press. In sabotage, hold true while standing still: the charge carrier inside a site plants in 3 s, a defender at the planted charge defuses in 6 s. Any movement, release or damage loses the progress."},
                         "throw_grenade": {"type": "boolean", "description": "Press to throw one counted hand grenade along current aim. Release before another press. Independent of selected gun, with a fixed two-second fuse."},
                         "place_mine": {"type": "boolean", "description": "Press to throw one counted proximity mine along current aim. It sticks to the first surface, arms after two seconds, then trips when a body comes within two metres, including yours. Release before another press. Independent of selected gun."},
@@ -2032,7 +2033,15 @@ mod mcp_tests {
             assert!(ingest_server_text(&mut state, &invalid.to_string()).is_err());
             assert_eq!(state.loadout, Some(loadout.clone()));
         }
-        for weapon in ["fists", "shiv", "tack", "flechette", "scatter", "rail"] {
+        for weapon in [
+            "fists",
+            "shiv",
+            "tack",
+            "flechette",
+            "scatter",
+            "rail",
+            "sniper",
+        ] {
             let action =
                 validate_act_arguments(&serde_json::json!({"weapon_swap":weapon,"fire":true}))
                     .unwrap();

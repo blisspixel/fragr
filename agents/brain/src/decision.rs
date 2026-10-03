@@ -202,6 +202,9 @@ pub fn campaign_questions(owned: &[WeaponType]) -> BTreeMap<String, Question> {
             WeaponType::Rail => {
                 "One heavy slow shot for a distant exposed guard, with finite cells."
             }
+            WeaponType::Sniper => {
+                "Scoped precision for a far guard beyond the Railgun's reach, slow, with finite cells."
+            }
         };
         weapons.insert(weapon_name(*weapon).to_string(), description.to_string());
     }

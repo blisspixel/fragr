@@ -642,6 +642,46 @@ mod tests {
     }
 
     #[test]
+    fn mcp_observation_carries_the_ranged_sweeper_glint_and_sniper() {
+        let me = uuid::Uuid::from_u128(1);
+        let marksman = uuid::Uuid::from_u128(6);
+        let snapshot: protocol::Snapshot = serde_json::from_value(serde_json::json!({
+            "tick":70, "players":[
+                {"id":me, "name":"Visitor", "x":0, "y":1.5, "z":0, "yaw":0, "hp":100,
+                 "just_fired":false, "score":0, "weapon":"Sniper",
+                 "campaign":{"side":"participant"}},
+                {"id":marksman, "name":"Rim", "x":70, "y":4.5, "z":0, "yaw":3.0, "hp":70,
+                 "just_fired":false, "score":0, "weapon":"Sniper",
+                 "campaign":{"side":"union", "kind":"ranged_sweeper", "phase":"windup",
+                     "phase_started":64, "phase_ends":94}}]
+        }))
+        .unwrap();
+        let state = mcp::ToolState {
+            player_id: Some(me),
+            last_snapshot: Some(serde_json::to_value(&snapshot).unwrap()),
+            ..Default::default()
+        };
+        let observation = mcp::build_observe_result(&state);
+        let rim = &observation["players"][1];
+        assert_eq!(rim["campaign"]["kind"], "ranged_sweeper");
+        assert_eq!(rim["campaign"]["phase"], "windup");
+        assert_eq!(
+            rim["campaign"]["phase_ends"].as_u64().unwrap()
+                - rim["campaign"]["phase_started"].as_u64().unwrap(),
+            30,
+            "the glint window is readable from the observation"
+        );
+        assert_eq!(rim["weapon"], "Sniper");
+        let wrong: Result<protocol::Snapshot, _> = serde_json::from_value(serde_json::json!({
+            "tick":1, "players":[{"id":marksman, "name":"Rim", "x":0, "y":1.5, "z":0,
+                "yaw":0, "hp":70, "just_fired":false, "score":0, "weapon":"Sniper",
+                "campaign":{"side":"union", "kind":"marksman", "phase":"idle",
+                    "phase_started":0, "phase_ends":0}}]
+        }));
+        assert!(wrong.is_err(), "unknown kinds stay strict");
+    }
+
+    #[test]
     fn scripted_control_and_mcp_observation_preserve_campaign_identity() {
         let me = uuid::Uuid::from_u128(1);
         let ally = uuid::Uuid::from_u128(2);

@@ -1,0 +1,44 @@
+{
+  "version": 1,
+  "map_id": 1013,
+  "name": "Sniper and marksman range",
+  "half_extent": 56,
+  "ground": "concrete",
+  "equipment": "discovery",
+  "solids": [
+    {"id":"window_wall_west","min":[-10,0,-30],"max":[-2,4,-29],"surface":"enamel"},
+    {"id":"window_wall_east","min":[2,0,-30],"max":[10,4,-29],"surface":"enamel"},
+    {"id":"window_sill","min":[-2,0,-30],"max":[2,1.85,-29],"surface":"service_steel"},
+    {"id":"window_lintel","min":[-2,3.2,-30],"max":[2,4,-29],"surface":"enamel"},
+    {"id":"firing_step","min":[-2,0,-31.2],"max":[2,0.5,-30],"surface":"service_steel"},
+    {"id":"field_berm","min":[-12,0,4],"max":[-4,1.6,6],"surface":"concrete"},
+    {"id":"flank_cover","min":[20,0,-26],"max":[21,3,32],"surface":"concrete"},
+    {"id":"rim_platform","min":[-3,0,38],"max":[4,3,42],"surface":"service_steel"},
+    {"id":"rim_step_1","min":[8,0,38],"max":[9,0.5,42],"surface":"service_steel"},
+    {"id":"rim_step_2","min":[7,0,38],"max":[8,1,42],"surface":"service_steel"},
+    {"id":"rim_step_3","min":[6,0,38],"max":[7,1.5,42],"surface":"service_steel"},
+    {"id":"rim_step_4","min":[5,0,38],"max":[6,2,42],"surface":"service_steel"},
+    {"id":"rim_step_5","min":[4,0,38],"max":[5,2.5,42],"surface":"service_steel"},
+    {"id":"rim_backstop","min":[-6,0,44],"max":[6,4,45],"surface":"enamel"}
+  ],
+  "spawns": [{"id":"entry","feet":[0,0,-50],"yaw":1.5707964}],
+  "landmarks": [
+    {"id":"firing_step_stance","feet":[0,0.5,-30.6]},
+    {"id":"behind_sill","feet":[0,0,-32.2]},
+    {"id":"flank_lane","feet":[24,0,0]},
+    {"id":"flank_corner","feet":[24,0,40]},
+    {"id":"rim_top","feet":[1,3,40]}
+  ],
+  "supplies": [
+    {"id":"range_sniper","feet":[0,0,-42],"grant":{"kind":"weapon","weapon":"sniper"},"claim":"personal"},
+    {"id":"range_cells","feet":[2,0,-42],"grant":{"kind":"ammo","pool":"cells","amount":10},"claim":"contested"},
+    {"id":"range_shotgun","feet":[-2,0,-42],"grant":{"kind":"weapon","weapon":"scatter"},"claim":"personal"},
+    {"id":"range_rail","feet":[-4,0,-42],"grant":{"kind":"weapon","weapon":"rail"},"claim":"personal"},
+    {"id":"range_health","feet":[-6,0,-36],"grant":{"kind":"health","amount":50},"claim":"contested"},
+    {"id":"flank_armor","feet":[24,0,-10],"grant":{"kind":"armor","amount":50},"claim":"contested"}
+  ],
+  "encounters": [
+    {"id":"rim_marksman","regions":[{"min":[-10,0,-34],"max":[10,2,-30]},{"min":[11,0,-34],"max":[30,2,10]}],
+      "enemies":[{"id":"rim_ranged_sweeper","kind":"ranged_sweeper","feet":[0,3,40],"yaw":4.712389}]}
+  ]
+}

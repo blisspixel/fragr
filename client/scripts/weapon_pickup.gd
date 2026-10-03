@@ -35,6 +35,7 @@ const COLORS = {
 	"Rail": Color(0.42, 0.46, 0.50),       # gunmetal
 	"Scatter": Color(0.72, 0.38, 0.22),    # ember
 	"Shiv": Color(0.78, 0.62, 0.36),       # ochre grip
+	"Sniper": Color(0.30, 0.31, 0.33),     # blackened issued steel
 	"health": Color(0.62, 0.22, 0.20),     # dried blood
 	"armor": Color(0.48, 0.44, 0.38),      # scrap gunmetal
 	"grenade": Color(0.60, 0.56, 0.36),    # olive casing

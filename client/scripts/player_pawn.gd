@@ -32,6 +32,8 @@ var _has_authoritative_state: bool = false
 var enemy_view: EnemyView = null
 var latch_view: LatchView = null
 var _notary_shadow: MeshInstance3D = null
+## Scope glint of a Ranged Sweeper, shown only during its server windup.
+var marksman_tell: RangedSweeperTell = null
 
 var target_position: Vector3 = Vector3.ZERO
 var prediction_active: bool = false
@@ -156,6 +158,11 @@ func _load_audio_streams():
 		elif ResourceLoader.exists(fallback_hit):
 			hit_streams[w] = load(fallback_hit)
 	
+	# The Sniper Rifle's sounds come from the level 7 table, not a file name.
+	if ResourceLoader.exists(L07Assets.SNIPER_FIRE_SOUND):
+		fire_streams["Sniper"] = load(L07Assets.SNIPER_FIRE_SOUND)
+	if ResourceLoader.exists(L07Assets.SNIPER_HIT_SOUND):
+		hit_streams["Sniper"] = load(L07Assets.SNIPER_HIT_SOUND)
 	if fire_sound and ResourceLoader.exists(fallback_fire):
 		fire_sound.stream = load(fallback_fire)
 	if ResourceLoader.exists(fallback_hit):
@@ -212,6 +219,8 @@ func _process(delta: float) -> void:
 		var to_camera: Vector3 = camera.global_position - global_position if camera else ServerYaw.forward(target_yaw)
 		enemy_view.render(body, -rotation.y, to_camera)
 		_update_notary_shadow()
+		if marksman_tell != null:
+			marksman_tell.present(campaign_actor, enemy_view.tick, enemy_view.elapsed)
 	elif latch_view != null:
 		latch_view.advance(delta, travel, str(campaign_actor.get("phase", "following")))
 	else:
@@ -271,6 +280,10 @@ func update_state(state: Dictionary, snapshot_tick: int = 0):
 			muzzle.position = Vector3(0.88, 0.52, -0.14)
 			muzzle.pixel_size = 0.005
 		enemy_view.update(state, snapshot_tick, body)
+		if campaign_actor.get("kind") == "ranged_sweeper" and marksman_tell == null:
+			marksman_tell = RangedSweeperTell.new()
+			marksman_tell.name = "MarksmanTell"
+			add_child(marksman_tell)
 		if campaign_actor.get("kind") == "notary" and _notary_shadow == null:
 			_notary_shadow = MeshInstance3D.new()
 			_notary_shadow.name = "NotaryFloorShadow"
@@ -511,6 +524,16 @@ func show_muzzle_flash(weapon: String):
 			muzzle_glow.light_color = Color(0.45, 0.52, 0.55)
 			muzzle_glow.light_energy = 4.2
 			muzzle_glow.omni_range = 5.5
+	elif weapon == "Sniper":
+		# A small orange-white flash with little light: no beam, a hard crack.
+		muzzle.texture = muzzle_flash_texture
+		muzzle.modulate = Color(1.0, 0.82, 0.6)
+		muzzle.scale = Vector3.ONE * 1.4
+		flash_time = 0.05
+		if muzzle_glow:
+			muzzle_glow.light_color = Color(0.62, 0.6, 0.55)
+			muzzle_glow.light_energy = 1.6
+			muzzle_glow.omni_range = 3.0
 	elif weapon == "Scatter":
 		muzzle.texture = muzzle_flash_texture
 		muzzle.modulate = Color(0.95, 0.55, 0.28)

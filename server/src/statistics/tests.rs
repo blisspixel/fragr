@@ -456,7 +456,7 @@ fn records_keep_five_legacy_weapon_slots_until_the_shiv_is_used() {
         serde_json::from_value::<CombatCounts>(current.clone()).unwrap(),
         counts
     );
-    for length in [0, 4, 7] {
+    for length in [0, 4, 8] {
         let mut malformed = current.clone();
         let slots = malformed["weapons"].as_array_mut().unwrap();
         let slot = slots[0].clone();
@@ -478,6 +478,40 @@ fn records_keep_five_legacy_weapon_slots_until_the_shiv_is_used() {
 }
 
 #[test]
+fn records_append_the_sniper_seventh_slot_only_once_it_is_used() {
+    use crate::protocol::CombatCounts;
+    let mut counts = CombatCounts {
+        alive_ticks: 20,
+        ..Default::default()
+    };
+    counts.weapons[WeaponType::Rail.index()].attacks = 2;
+    counts.weapons[WeaponType::Sniper.index()].attacks = 3;
+    counts.weapons[WeaponType::Sniper.index()].damaging_attacks = 2;
+    counts.weapons[WeaponType::Sniper.index()].kills = 1;
+    counts.weapons[WeaponType::Sniper.index()].hp_damage = 140;
+    counts.validate().unwrap();
+    let value = serde_json::to_value(&counts).unwrap();
+    let slots = value["weapons"].as_array().unwrap();
+    assert_eq!(slots.len(), 7);
+    assert_eq!(slots[5]["attacks"], 0, "an unused Shiv keeps its zero slot");
+    assert_eq!(slots[6]["hp_damage"], 140);
+    assert_eq!(slots[4]["attacks"], 2, "Rail keeps its slot");
+    assert_eq!(
+        serde_json::from_value::<CombatCounts>(value.clone()).unwrap(),
+        counts
+    );
+    assert_eq!(counts.weapon(WeaponType::Sniper).kills, 1);
+    assert_eq!(counts.attacks(), 5);
+    let mut extra = value.clone();
+    let first = extra["weapons"][0].clone();
+    extra["weapons"].as_array_mut().unwrap().push(first);
+    assert!(serde_json::from_value::<CombatCounts>(extra).is_err());
+    let mut impossible = counts.clone();
+    impossible.weapons[WeaponType::Sniper.index()].kills = 3;
+    assert!(impossible.validate().is_err(), "one ray, one kill per hit");
+}
+
+#[test]
 fn shared_shiv_record_fixture_round_trips_its_sixth_slot_and_secret() {
     let text = include_str!("../../../client/golden/player_record_shiv.json");
     let record: PlayerRecord = serde_json::from_str(text).unwrap();
@@ -485,6 +519,18 @@ fn shared_shiv_record_fixture_round_trips_its_sixth_slot_and_secret() {
     assert_eq!(record.total.weapon(WeaponType::Shiv).kills, 1);
     assert_eq!(record.total.weapon(WeaponType::Tack).attacks, 2);
     assert_eq!((record.total.secrets, record.attempt.secrets), (1, 1));
+    let expected: serde_json::Value = serde_json::from_str(text).unwrap();
+    assert_eq!(serde_json::to_value(&record).unwrap(), expected);
+}
+
+#[test]
+fn shared_sniper_record_fixture_round_trips_its_seventh_slot() {
+    let text = include_str!("../../../client/golden/player_record_sniper.json");
+    let record: PlayerRecord = serde_json::from_str(text).unwrap();
+    record.validate_for(Some(record.player_id), None).unwrap();
+    assert_eq!(record.total.weapon(WeaponType::Sniper).kills, 1);
+    assert_eq!(record.total.weapon(WeaponType::Sniper).hp_damage, 120);
+    assert_eq!(record.total.weapon(WeaponType::Shiv).attacks, 0);
     let expected: serde_json::Value = serde_json::from_str(text).unwrap();
     assert_eq!(serde_json::to_value(&record).unwrap(), expected);
 }

@@ -377,6 +377,10 @@ func _run() -> void:
 					hidden_copy.append(label as Node3D)
 		if state.get("camera", "") == "body":
 			await _find_body(str(state.get("body", "")), str(state.get("body_team", "")))
+		# A held scope frames the still through the presentation-only overlay.
+		var scoped_still: bool = state.get("scope", false) == true
+		if scoped_still:
+			Input.action_press("scope")
 		_pose_camera(state.get("camera", "none"), state)
 		# A detached live-combat view needs only a few settled frames. Holding
 		# the human still for the menu-still delay would change the fight.
@@ -470,6 +474,13 @@ func _run() -> void:
 			await _restore_static_aim_after_respawn(state)
 
 		var measured: Dictionary = await _measure()
+		if scoped_still:
+			var scope_hud: Node = _find_hud()
+			var scope_view: Variant = scope_hud.get("sniper_scope") if scope_hud != null else null
+			if not scope_view is SniperScope or not (scope_view as SniperScope).scoped():
+				push_error("qa_tour: %s expected the Sniper scope in the still" % state_name)
+				_failed = true
+			Input.action_release("scope")
 		var shot: Image = measured.get("shot")
 		if shot == null:
 			push_error("qa_tour: no frame for state " + state_name)

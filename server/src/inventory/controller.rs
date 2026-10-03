@@ -133,9 +133,8 @@ pub fn control_action_with_target_filter(
         action.place_mine = loadout.proximity_mines > 0;
         return action;
     }
-    let selected = action
-        .weapon_swap
-        .filter(|weapon| usable(loadout, *weapon))
+    let requested = action.weapon_swap.filter(|weapon| usable(loadout, *weapon));
+    let mut selected = requested
         .or_else(|| usable(loadout, held).then_some(held))
         .filter(|weapon| weapon.ammo_pool().is_some())
         .or_else(|| {
@@ -144,11 +143,23 @@ pub fn control_action_with_target_filter(
                 WeaponType::Tack,
                 WeaponType::Scatter,
                 WeaponType::Rail,
+                WeaponType::Sniper,
             ]
             .into_iter()
             .find(|weapon| usable(loadout, *weapon))
         })
         .unwrap_or_else(|| melee(loadout));
+    // A hostile beyond the chosen gun's reach but inside the Sniper's takes
+    // the carried Sniper. An explicit usable request is never overridden.
+    if requested.is_none()
+        && usable(loadout, WeaponType::Sniper)
+        && nearest.is_some_and(|target| {
+            let distance = (target.x - me.x).hypot(target.z - me.z);
+            distance > selected.range_units() && distance <= WeaponType::Sniper.range_units()
+        })
+    {
+        selected = WeaponType::Sniper;
+    }
     action.weapon_swap = (selected != held).then_some(selected);
     let dry = !usable(loadout, selected);
     if dry {

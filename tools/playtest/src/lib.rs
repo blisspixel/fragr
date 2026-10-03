@@ -140,6 +140,7 @@ fn weapon_from_wire(name: &str) -> Option<WeaponType> {
         "tack" => Some(WeaponType::Tack),
         "fists" => Some(WeaponType::Fists),
         "shiv" => Some(WeaponType::Shiv),
+        "sniper" => Some(WeaponType::Sniper),
         _ => None,
     }
 }
@@ -1773,6 +1774,7 @@ fn preferred_band(weapon: WeaponType) -> (f32, f32) {
         WeaponType::Scatter => (1.5, 4.0),
         WeaponType::Flechette => (7.0, 12.0),
         WeaponType::Rail => (18.0, 28.0),
+        WeaponType::Sniper => (40.0, 70.0),
     }
 }
 

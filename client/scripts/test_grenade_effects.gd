@@ -55,7 +55,7 @@ func _run() -> void:
 	var counts: Dictionary = PlayerRecord.empty_counts()
 	counts["alive_ticks"] = 10
 	counts["grenades"] = {"attacks": 1, "damaging_attacks": 1, "kills": 2, "hp_damage": 83, "armor_damage": 10}
-	_check(PlayerRecord.valid_counts(counts) and PlayerRecord.sum_combat(counts, "kills") == 2 and counts["weapons"].size() == 6, "multi-target grenade facts retain independent counters and exactly six guns")
+	_check(PlayerRecord.valid_counts(counts) and PlayerRecord.sum_combat(counts, "kills") == 2 and counts["weapons"].size() == EquipmentState.WEAPONS.size(), "multi-target grenade facts retain independent counters beside one column per gun")
 	var total: Dictionary = PlayerRecord.empty_counts()
 	PlayerRecord.add_counts(total, counts)
 	_check(PlayerRecord.contains(total, counts) and PlayerRecord.grenade_count(total, "kills") == 2, "record aggregation retains actual grenade effort")

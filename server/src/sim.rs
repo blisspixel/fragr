@@ -4192,6 +4192,7 @@ impl BotController {
             WeaponType::Fists | WeaponType::Shiv => 0.55,
             WeaponType::Tack => 0.40,
             WeaponType::Rail => 0.22,
+            WeaponType::Sniper => 0.12,
             WeaponType::Scatter => 0.55,
             WeaponType::Flechette => 0.40,
         };

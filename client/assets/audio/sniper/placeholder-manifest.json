@@ -1,0 +1,17 @@
+{
+  "engine": "Godot 4.7.2-stable",
+  "files": [
+    {
+      "file": "res://assets/audio/sniper/fire_placeholder.wav",
+      "method": "PCM samples of res://assets/audio/fire_rail.wav declared at 18000 Hz instead of 24000 Hz",
+      "sha256": "08c6d1fc54590ab13224726d727ea166301bfc165182af63af0d6bce211ff156",
+      "source_sha256": "1b0498c7eb1ec62bd7906921a8d4f848363f3b8187fa7a5ea0a399698c4f308a"
+    }
+  ],
+  "format": 1,
+  "kind": "original_offline_placeholder",
+  "replaced_by": "client/scripts/l07_assets.gd when delivered art or sound arrives",
+  "source": "res://../tools/bake_sniper_placeholders.gd",
+  "source_sha256": "23da5f69ec6b69180439b491113a73936072055bc5580482e8bc0daae42241d5",
+  "spend_usd": 0
+}

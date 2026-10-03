@@ -223,6 +223,19 @@ impl RuntimeMap {
         }) || matches!(self, Self::Authored(map) if map.supplies.iter().any(|supply| matches!(supply.kind, crate::sim::PickupKind::ProximityMine { .. })))
     }
 
+    /// A found Sniper Rifle or a Ranged Sweeper needs a client that can read
+    /// the `sniper` weapon id and the `ranged_sweeper` actor kind.
+    pub fn requires_sniper_contract(&self) -> bool {
+        self.encounters().iter().any(|encounter| {
+            encounter
+                .enemies
+                .iter()
+                .any(|enemy| enemy.kind == crate::protocol::EnemyKind::RangedSweeper)
+        }) || self.pickups().iter().any(|pickup| {
+            pickup.kind == crate::sim::PickupKind::Weapon(crate::protocol::WeaponType::Sniper)
+        })
+    }
+
     pub fn equipment_policy(&self) -> crate::protocol::EquipmentPolicy {
         match self {
             Self::BuiltIn(_) => crate::protocol::EquipmentPolicy::FullArsenal,

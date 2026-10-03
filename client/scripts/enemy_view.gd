@@ -45,7 +45,7 @@ func update(state: Dictionary, snapshot_tick: int, body: Sprite3D) -> void:
 		return
 	_kind = kind
 	if not _textures.has(kind):
-		_textures[kind] = load("res://assets/characters/union/%s.png" % str(PLACEHOLDER_ATLAS.get(kind, kind)))
+		_textures[kind] = load(atlas_path(kind))
 	body.frame = 0
 	body.texture = _textures[kind]
 	if kind == "notary":
@@ -114,6 +114,12 @@ func _plate_part(part_name: String, size: Vector3, offset: Vector3, colour: Colo
 	material.set_shader_parameter("camera_clearance", 0.0)
 	part.material_override = material
 	return part
+
+## Per-kind atlas source. Delivered art replaces a placeholder in one table.
+static func atlas_path(kind: String) -> String:
+	if kind == "ranged_sweeper":
+		return L07Assets.RANGED_SWEEPER_ATLAS
+	return "res://assets/characters/union/%s.png" % str(PLACEHOLDER_ATLAS.get(kind, kind))
 
 func advance(delta: float, distance: float) -> void:
 	elapsed += delta

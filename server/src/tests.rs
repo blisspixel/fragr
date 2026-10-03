@@ -6928,4 +6928,5 @@ mod modes;
 mod pellets;
 mod sabotage;
 mod shiv;
+mod sniper;
 mod traveling_shot;

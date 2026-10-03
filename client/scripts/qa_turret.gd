@@ -3,8 +3,12 @@ extends RefCounted
 
 ## QA observations only. Consecutive server ticks prove a covered charge ended
 ## early without its committed shot; this class never changes input or outcomes.
+## It observes a fixed Turret or a stationary Ranged Sweeper marksman, each with
+## its own server sight range and cover rule.
 const CAMERA = preload("res://scripts/spectator_cam.gd")
 const SIGHT_RANGE: float = 32.0
+const MARKSMAN_SIGHT_RANGE: float = 90.0
+const KINDS: Array[String] = ["turret", "ranged_sweeper"]
 const CANCEL_TICKS: int = 12
 const MAX_TRACE: int = 512
 
@@ -18,8 +22,10 @@ var _cycle: Dictionary = {}
 var _trace: Array[Dictionary] = []
 var _failures: Array[String] = []
 var _cancellations: Array[Dictionary] = []
+var _kind: String = "turret"
 
-func begin(player_id: String, target_name: String, solids: Array) -> bool:
+func begin(player_id: String, target_name: String, solids: Array, kind: String = "turret") -> bool:
+	_kind = kind
 	_player_id = player_id
 	_target_name = target_name
 	_target_id = ""
@@ -29,7 +35,7 @@ func begin(player_id: String, target_name: String, solids: Array) -> bool:
 	_failures.clear()
 	_cancellations.clear()
 	_solids.clear()
-	_valid = MissionState._uuid(player_id) and not target_name.is_empty() and target_name.length() <= 64 \
+	_valid = kind in KINDS and MissionState._uuid(player_id) and not target_name.is_empty() and target_name.length() <= 64 \
 		and MapGeometry.validation_error({"geometry_version": 2, "map_id": 1, "half_extent": 256, "solids": solids}).is_empty()
 	if _valid:
 		_solids.assign(solids.duplicate(true))
@@ -66,7 +72,7 @@ func observe(snapshot: Dictionary) -> void:
 				return
 			target = actor
 	if player.is_empty() or target.is_empty() or not ActorState.is_participant(player) \
-		or not ActorState.is_union(target) or target["campaign"]["kind"] != "turret":
+		or not ActorState.is_union(target) or target["campaign"]["kind"] != _kind:
 		_fail("registered living participant or Turret absent")
 		return
 	if _target_id.is_empty():
@@ -77,8 +83,13 @@ func observe(snapshot: Dictionary) -> void:
 	var identity: Dictionary = target["campaign"]
 	var feet: Vector3 = _feet(player)
 	var turret_feet: Vector3 = _feet(target)
-	var in_range: bool = Vector2(feet.x - turret_feet.x, feet.z - turret_feet.z).length() <= SIGHT_RANGE
-	var cover: Dictionary = _cover(turret_feet + Vector3(0, MoveStep.EYE_HEIGHT, 0), feet + Vector3(0, MoveStep.BODY_HEIGHT * 0.5, 0))
+	var sight: float = MARKSMAN_SIGHT_RANGE if _kind == "ranged_sweeper" else SIGHT_RANGE
+	var in_range: bool = Vector2(feet.x - turret_feet.x, feet.z - turret_feet.z).length() <= sight
+	var eye: Vector3 = turret_feet + Vector3(0, MoveStep.EYE_HEIGHT, 0)
+	var cover: Dictionary = _cover(eye, feet + Vector3(0, MoveStep.BODY_HEIGHT * 0.5, 0))
+	# A marksman also sees a peeking head: cover must hide both points.
+	if _kind == "ranged_sweeper" and not cover.is_empty() and _cover(eye, feet + Vector3(0, MoveStep.EYE_HEIGHT, 0)).is_empty():
+		cover = {}
 	var blocked: bool = not cover.is_empty()
 	var shots: Array[Dictionary] = []
 	for shot: Dictionary in snapshot.get("shot_results", []):

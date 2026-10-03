@@ -49,8 +49,9 @@ fn is_zero(value: &u64) -> bool {
     *value == 0
 }
 
-/// Five original slots, plus the Shiv's sixth only once it has been used, so
-/// retained history keeps its shape and no index ever changes meaning.
+/// Five original slots, then the Shiv's sixth and the Sniper's seventh only once
+/// they have been used, so retained history keeps its shape and no index ever
+/// changes meaning.
 mod weapon_counts {
     use super::{WeaponCounts, WeaponType};
     use serde::de::{Error, IgnoredAny, SeqAccess, Visitor};
@@ -63,14 +64,11 @@ mod weapon_counts {
         counts: &[WeaponCounts; SLOTS],
         serializer: S,
     ) -> Result<S::Ok, S::Error> {
-        let used = if counts[LEGACY..]
+        // The shortest prefix that still holds every non-zero column.
+        let used = counts
             .iter()
-            .all(|c| *c == WeaponCounts::default())
-        {
-            LEGACY
-        } else {
-            SLOTS
-        };
+            .rposition(|c| *c != WeaponCounts::default())
+            .map_or(LEGACY, |last| (last + 1).max(LEGACY));
         counts[..used].serialize(serializer)
     }
 
@@ -81,14 +79,14 @@ mod weapon_counts {
         impl<'de> Visitor<'de> for Counts {
             type Value = [WeaponCounts; SLOTS];
             fn expecting(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-                f.write_str("five or six weapon counters")
+                f.write_str("five, six or seven weapon counters")
             }
             fn visit_seq<A: SeqAccess<'de>>(self, mut seq: A) -> Result<Self::Value, A::Error> {
                 let mut counts = [WeaponCounts::default(); SLOTS];
                 for (index, count) in counts.iter_mut().enumerate() {
                     match seq.next_element()? {
                         Some(value) => *count = value,
-                        None if index == LEGACY => return Ok(counts),
+                        None if index >= LEGACY => return Ok(counts),
                         None => return Err(A::Error::invalid_length(index, &self)),
                     }
                 }

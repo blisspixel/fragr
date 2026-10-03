@@ -137,6 +137,7 @@ pub fn parse_weapon(name: &str) -> Option<WeaponType> {
         "flechette" => Some(WeaponType::Flechette),
         "rail" => Some(WeaponType::Rail),
         "scatter" => Some(WeaponType::Scatter),
+        "sniper" => Some(WeaponType::Sniper),
         _ => None,
     }
 }
@@ -149,6 +150,7 @@ pub fn weapon_name(weapon: WeaponType) -> &'static str {
         WeaponType::Flechette => "flechette",
         WeaponType::Rail => "rail",
         WeaponType::Scatter => "scatter",
+        WeaponType::Sniper => "sniper",
     }
 }
 
