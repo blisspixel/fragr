@@ -1,6 +1,6 @@
 # Frame counter
 
-**Status:** implemented on `feat/frame-counter`, 2026-10-02. Shipped status follows its PR.
+**Status:** implemented in [PR #330](https://github.com/blisspixel/fragr/pull/330), 2026-10-03, with inspected rendered evidence below.
 **Spend:** $0.
 
 ## Goal
@@ -55,3 +55,16 @@ the combat feed's top edge; in campaign the feed is bottom left.
   `test_settings_panel.gd` covers the Display option and persistence.
 - `client/qa/frame-counter.json` renders modes 2, 1 and off over an arena match
   at 1920 by 1080, for inspection against the combat feed and HUD.
+
+## Evidence
+
+`client/qa/frame-counter.json` ran on 2026-10-03 on Windows with the OpenGL
+renderer, 1920 by 1080, in an Arena Duel match with five bots: three states,
+clean logs, HUD coverage at 2.9 and 3.1 percent. The stills were inspected:
+- Mode 2 reads `244 FPS  4.1 MS  1% LOW 56` in the top right corner, above the
+  combat feed's first line, with no overlap.
+- Mode 1 reads `253 FPS` over a first-person view.
+- Off draws nothing.
+
+The low 1% figure at the start of a capture reflects scene warm-up rather than
+steady play.
