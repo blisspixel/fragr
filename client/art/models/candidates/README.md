@@ -1,4 +1,6 @@
-# Prepared Clerk source
+# Prepared model sources
+
+## Clerk
 
 `clerk.glb` is the selected humanoid production source from the October 3 paid
 model pilot. It retains the reviewed 24-bone skin and one in-place walking clip.
@@ -23,3 +25,22 @@ generation service or the source animation player.
 
 This accepts one human source for further presentation work. It does not finish
 the remaining cast, weapons, environmental kit or campaign.
+
+## Shotgun production candidate
+
+`shotgun.glb` prepares the reviewed controlled-topology weapon, raw SHA-256
+`6f7078f594262c23de7d599868285ac7e62046a100dace5c934a53c0f1a96f22`.
+`tools/prepare_shotgun_source.gd` requires that exact raw GLB and the output path.
+It separates the independently verified 1,496-triangle fore-end from the body,
+retains all 12,853 triangles and existing UVs, embeds 1K maps and preserves legal
+notices. The prepared source is about 4.5 MB and has two mesh pieces.
+
+`../shotgun_imported_source.gd` attaches authored hands and reuses the existing
+recoil and pump cadence. The support glove shares the pump node; the barrel and
+muzzle remain fixed in weapon space. `tools/preview_shotgun_source.gd` renders
+twelve frames into a supplied local output directory with a real framebuffer.
+The mechanical and map-budget harness passes. Framing and hand refinement remain
+in flight under [`shotgun-model-presentation.md`](../../../../docs/plans/shotgun-model-presentation.md).
+
+This source is excluded offline art. It does not replace the selected weapon
+viewmodels, prove final first-person quality or establish a finished weapon set.

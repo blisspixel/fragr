@@ -4,7 +4,8 @@
 The full [implementation CI](https://github.com/blisspixel/fragr/actions/runs/37156405220)
 passes. Native tooling and the first model pilot are proven. Runtime art acceptance
 remains in flight under art excellence; the
-[Clerk presentation](clerk-model-presentation.md) records the next increment.
+[Clerk presentation](clerk-model-presentation.md) records the selected human
+source and its bounded played increment.
 
 ## Goal and scope
 
@@ -19,8 +20,9 @@ Godot; a generated mesh is not a finished asset or final campaign acceptance.
 The [completed pilot evidence](../evidence/meshy-pilot-20261003.md) records four
 model candidates, a character rig with walk/run clips and seven rendered GLBs.
 It consumed 125 net credits with 15 additional credits held conservatively after
-a refused request. The live account reports 2,975 credits; no model is selected
-for runtime yet. The topology generator comparison was not submitted.
+a refused request. The live account reports 2,975 credits. The Clerk subsequently
+supplies the selected directional sprites through PR #340; the weapon and prop
+remain candidates. The topology generator comparison was not submitted.
 
 No new cash purchases, top-ups, runtime API calls or paid CI calls. Server
 simulation, collision and campaign facts remain unchanged. Animation authoring,

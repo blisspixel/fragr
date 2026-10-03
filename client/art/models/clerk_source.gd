@@ -35,7 +35,11 @@ func _apply_pose(_model: Node3D, body: Node3D, action: String, progress: float, 
 		right_target = Vector3(-23, 104, 12).lerp(Vector3(-16, 137, 36), raised)
 		left_target = Vector3(25, 104, 10).lerp(Vector3(17, 130, 29), raised)
 	if action == "fire":
-		right_target.z -= 5.0 * (1.0 - progress)
+		if unarmed:
+			_turn(skeleton, "Spine02", Vector3.RIGHT, 0.30 * (1.0 - progress))
+			right_target.z += 20.0 * (1.0 - progress)
+		else:
+			right_target.z -= 5.0 * (1.0 - progress)
 	if action == "seated":
 		body.position.y = -0.38
 		_seat_leg(skeleton, "Left")

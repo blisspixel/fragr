@@ -58,7 +58,7 @@ Being honest about the gap:
 
 | Area | Today | Gap |
 |---|---|---|
-| Characters | Shaped articulated Sweeper source, six rigid GLB clips, paired view-aligned normal atlas in live play; lean screen-faced Latch live model. Other existing eight-direction bodies retain their earlier sources | Full roster model conversion, texture craft and played quality acceptance remain open |
+| Characters | Articulated Sweeper and skinned Clerk sources supply directional sprites with paired view normals; lean screen-faced Latch live model. Other bodies retain their earlier sources | Full roster model conversion, texture craft and broader played quality acceptance remain open |
 | Weapons | Existing stylised viewmodels remain selected. Original Shotgun GLBs, separate pump/gloves and twelve coherent poses exist as candidates | First-person framing and hand anatomy need refinement before replacing the selected Shotgun; other guns need model conversion |
 | Pickups and HUD | Object sprites and icons, after art pass 1 | Good direction |
 | Maps | Selected venue tiles, recessed wall bays and ceiling coffers, merged fixture housings, lit shallow water and an exterior Low Water river | Rooms still need larger authored landmarks, inhabited prop arrangements and full environmental kit conversion |
@@ -502,12 +502,16 @@ walking/running motion. [Evidence](../evidence/meshy-pilot-20261003.md) records
 of 2,975. All 140 reserved credits remain within the pilot's 150-credit allowance
 and existing $5 run ceiling. No additional purchases or top-ups were enabled.
 The pipeline reuses the current image references, dotenv, locked request ledger
-and artifact writes, with live credit checks before each paid stage. Full CI and
-merge remain required before calling this developer increment shipped.
+and artifact writes, with live credit checks before each paid stage. The native
+pipeline shipped in PR #339 after full CI passed.
 
-The models remain candidates. The Clerk needs armed actions, reactions, seated
-posture and death; the Shotgun needs actual mechanical parts and hand registration;
-the generator needs cleanup and placement at game scale. Runtime selection and
-played art acceptance remain open. Preserve required legal notices and paid-plan
+The [Clerk presentation](clerk-model-presentation.md) shipped on main in PR #340
+after full CI and bounded M01/M02 routes. Its compact skin supplies authored
+combat, reactions, seated posture and death, with canon charcoal cloth and paired
+normals. A subsequent unarmed correction adds physical forward follow-through.
+The [Shotgun preparation](shotgun-model-presentation.md) proves its separate pump
+and attached support glove; first-person selection remains open. The generator
+still needs cleanup and placement at game scale. Broader played art acceptance
+remains open. Preserve required legal notices and paid-plan
 output rights when preparing public model sources. The existing v0.68.0
 playthrough shows the prior integrated art, not this new pilot.

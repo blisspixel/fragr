@@ -4,13 +4,21 @@ Release history, newest first. Planned work stays in
 [docs/ROADMAP.md](docs/ROADMAP.md). Older tags are on the
 [releases page](https://github.com/blisspixel/fragr/releases).
 
-## Unreleased
+## v0.69.0 (2026-10-03)
 
 Clerks use a prepared skinned human source with sampled walking, authored combat
 and seated poses, charcoal issued cloth and paired body normals under venue
 light. Their directional layout and server-owned combat remain unchanged. Live
 Recall Notice and Persons Unknown routes provide bounded presentation evidence.
 The remaining cast, Shotgun candidate and environment kit still need refinement.
+The Clerk's unarmed strike reaches forward with a torso lean. An offline Shotgun
+source retains its reviewed surfaces and separates the actual pump, with a glove
+that travels with it. This candidate does not replace the selected viewmodel.
+
+The native model pipeline verifies live credit before each paid stage, preserves
+uncertain reservations and prepares offline assets. The pilot consumed 125 net
+credits; 15 remain held against an uncertain request, with 2,975 reported on the
+account. These presentation refinements used no additional paid generation.
 
 ## v0.68.0 (2026-10-03)
 

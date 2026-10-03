@@ -34,7 +34,7 @@ Compatibility. This is hardware renderer evidence, not an FPS benchmark or
 cross-platform performance proof. Each output carries embedded 4K albedo, normal,
 metallic and roughness maps. Four cardinal views were rendered for each file.
 
-| Candidate | Triangles | Skin and motion | Current verdict |
+| Candidate | Triangles | Skin and motion | Pilot verdict |
 |---|---:|---|---|
 | Clerk, 7.1 | 12,476 | Static source, followed by a 24-bone rig | Coherent human silhouette, visible face and issued green cloth/bone armor. Worth continued production; fingers, combat poses and final cloth shading need review. |
 | Clerk rig | 12,476 | Rest output, 1.067 s walking clip, 0.667 s running clip | Walking and running visibly deform the mesh. Armed actions, reactions, seated M02 posture and death are still missing. |
@@ -43,7 +43,11 @@ metallic and roughness maps. Four cardinal views were rendered for each file.
 | Yard generator, 7.1 | 11,224 | One mesh, no animation | Recognizable worn industrial machine; dense small features and rear geometry need cleanup and a game-scale check. |
 
 The requested face count was 12,000. Actual counts differ, so budgeting must use
-imported geometry. Models are candidates, not selected runtime replacements.
+imported geometry. The initial pilot accepted models as production candidates.
+The subsequent [Clerk presentation](clerk-model-20261003.md) supplies the selected
+directional sprites through PR #340. The
+[Shotgun preparation](../plans/shotgun-model-presentation.md) subsequently proves
+a separate pump, while weapon selection and the prop remain unfinished.
 Generation success does not prove animation suitability, visual coherence under
 venue lights, a completed first-person weapon or a populated campaign.
 
