@@ -1,0 +1,42 @@
+{
+  "_comment": [
+    "Art pass 2, 2026-10-02, batch W: Sector 9 Transit Hall surfaces. Plan: docs/plans/art-pass-2-20261002.md.",
+    "Sector 9 is the capture-the-flag and Sabotage map and its walls and cover are procedural noise.",
+    "Parked with chunk 5 of the plan: generated and backed up, not yet installed on main.",
+    "Tiles follow the 2026-10-01 Earth batch: 2048 square medium requests reduced to 128, edge bands",
+    "blended by tools/prepare_earth_tiles.gd and a final palette pass."
+  ],
+  "model": "marketing-studio/image",
+  "out_dir": "art/raw/art-pass-2-20261002/sector9",
+  "params": {
+    "quality": "medium",
+    "resolution": "2k",
+    "aspect_ratio": "1:1",
+    "enhance_prompt": false
+  },
+  "style": "original retro FPS material albedo, deliberate chunky pixel clusters, broad material shapes and quiet combat-readable fields, restrained canonical palette of warm gunmetal, dark steel, bone white and a deep severe red, flat even lighting, no gradients",
+  "view": "orthographic straight-on seamless square texture, full continuous edge-to-edge flat material, no perspective, no object silhouette",
+  "technical": "opaque square albedo only, match opposing edges on both axes for repeated tiling, no shadow, no ambient occlusion, no specular highlight, no glossy reflection, no rim light, no text, no lettering, no numbers, no watermark, no signature, no frame or border, no baked lights",
+  "frames": [
+    {
+      "id": "s9_transit_deck",
+      "subject": "seamless authoritarian freight interchange floor of large square cast deck plates, warm medium grey with narrow dark seams on a regular grid, sparse pale trolley scuffs and a few small dark oil marks, quiet low-contrast walking surface, no painted lines, no hazard stripes, no arrows"
+    },
+    {
+      "id": "s9_hall_wall",
+      "subject": "seamless authoritarian freight hall wall of tall dark gunmetal steel panels with bevelled seams, small flush bolts at the panel corners and a thin deep red seal line along each horizontal seam, clean severe maintenance with sparse grey wear, quiet dark field, no vents, no signs, no hazard stripes"
+    },
+    {
+      "id": "s9_freight_crate",
+      "subject": "seamless side of stacked authoritarian freight crates, muted bone and warm grey corrugated steel with vertical ribs, one broad deep red band across each crate and dark steel corner posts, sparse scuffs, orderly and clean, no stencils, no labels, no hazard stripes"
+    },
+    {
+      "id": "s9_freight_crate_dark",
+      "subject": "seamless side of large stacked authoritarian freight crates in dark gunmetal and near-black corrugated steel with broad vertical ribs, dark steel corner posts and one thin deep red seal line along the top edge of each crate, two crates per tile height, sparse bone scuffs, quiet dark field, no stencils, no labels, no hazard stripes"
+    },
+    {
+      "id": "s9_freight_crate_grey",
+      "subject": "seamless side of large stacked authoritarian freight crates in muted warm grey corrugated steel with broad vertical ribs, dark steel corner posts and one thin deep red seal line along the top edge of each crate, two crates per tile height, sparse dark scuffs, quiet mid-grey field, no stencils, no labels, no hazard stripes"
+    }
+  ]
+}
