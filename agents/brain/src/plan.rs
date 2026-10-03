@@ -541,6 +541,90 @@ fn campaign_enemy_awake(other: &fragr_server::protocol::PlayerState) -> bool {
     )
 }
 
+/// Ticks an agent may stand still with no target before it goes looking.
+pub const CAMPAIGN_STALL_TICKS: u64 = 400;
+/// How long one search lasts before the agent rechecks its surroundings.
+pub const CAMPAIGN_HUNT_TICKS: u64 = 600;
+
+/// A campaign stall breaker. A required group can end with a guard standing
+/// out of sight, and the objective then waits for a fight nobody resumes.
+/// After standing still with nothing to shoot, the agent walks toward the
+/// nearest living Union body it was told about; combat takes over once that
+/// guard is in view. Positions come from the ordinary snapshot.
+#[derive(Debug, Default, Clone)]
+pub struct StallWatch {
+    anchor: Option<[f32; 3]>,
+    since: u64,
+    hunt: Option<(Uuid, u64)>,
+}
+
+impl StallWatch {
+    /// Adjust one campaign action after the agent's own targeting.
+    pub fn apply(&mut self, me: Uuid, snapshot: &Snapshot, mut action: Action) -> Action {
+        let Some(mine) = snapshot.players.iter().find(|p| p.id == me && p.hp > 0) else {
+            *self = Self::default();
+            return action;
+        };
+        let here = [mine.x, mine.y, mine.z];
+        let targeted = action
+            .look_at
+            .as_ref()
+            .is_some_and(|aim| aim.player_id.is_some());
+        let moved = self
+            .anchor
+            .is_none_or(|anchor| (anchor[0] - here[0]).hypot(anchor[2] - here[2]) > 1.0);
+        if targeted || moved {
+            self.anchor = Some(here);
+            self.since = snapshot.tick;
+        }
+        if targeted {
+            self.hunt = None;
+            return action;
+        }
+        let living = |id: Uuid| {
+            snapshot
+                .players
+                .iter()
+                .any(|p| p.id == id && p.hp > 0 && mine.is_hostile_to(p))
+        };
+        if self
+            .hunt
+            .is_some_and(|(id, until)| snapshot.tick > until || !living(id))
+        {
+            self.hunt = None;
+            self.anchor = Some(here);
+            self.since = snapshot.tick;
+        }
+        if self.hunt.is_none() && snapshot.tick.saturating_sub(self.since) >= CAMPAIGN_STALL_TICKS {
+            self.hunt = snapshot
+                .players
+                .iter()
+                .filter(|p| p.hp > 0 && mine.is_hostile_to(p))
+                .min_by(|a, b| {
+                    (a.x - mine.x)
+                        .hypot(a.z - mine.z)
+                        .total_cmp(&(b.x - mine.x).hypot(b.z - mine.z))
+                })
+                .map(|p| (p.id, snapshot.tick + CAMPAIGN_HUNT_TICKS));
+        }
+        if let Some((id, _)) = self.hunt {
+            action.look_at = Some(LookAt {
+                player_id: Some(id),
+                x: None,
+                y: None,
+                z: None,
+            });
+            action.forward = true;
+            action.fire = false;
+        }
+        action
+    }
+
+    pub fn hunting(&self) -> Option<Uuid> {
+        self.hunt.map(|(id, _)| id)
+    }
+}
+
 /// Actor geometry visibility without a mode's separate engagement radius.
 pub fn target_visible(
     world: &Navigation,
@@ -856,6 +940,78 @@ mod tests {
             closing.forward,
             "beyond three quarters of the Rifle's reach the agent still closes"
         );
+    }
+
+    #[test]
+    fn stalled_campaign_agent_goes_looking_for_the_nearest_hidden_guard() {
+        use fragr_server::protocol::{CampaignActor, EnemyKind, EnemyPhase};
+        let me = Uuid::from_u128(1);
+        let near = Uuid::from_u128(2);
+        let far = Uuid::from_u128(3);
+        let mut mine = player("me", me, -13.0, 35.5, 100, "flechette");
+        mine.campaign = Some(CampaignActor::Participant {});
+        let guard = |id: Uuid, x: f32, z: f32| {
+            let mut guard = player("guard", id, x, z, 60, "tack");
+            guard.campaign = Some(CampaignActor::Union {
+                kind: EnemyKind::Clerk,
+                phase: EnemyPhase::Idle,
+                phase_started: 0,
+                phase_ends: 0,
+                seated: false,
+            });
+            guard
+        };
+        let at = |tick: u64, players| {
+            let mut snap = snapshot(1, players, vec![]);
+            snap.tick = tick;
+            snap
+        };
+        let players = vec![
+            mine.clone(),
+            guard(near, 10.0, 24.5),
+            guard(far, 30.0, -30.0),
+        ];
+        let mut watch = StallWatch::default();
+        let idle = Action::default();
+        // Waiting at the locomotive while the last train guard idles out of
+        // sight: nothing happens until the stall window passes.
+        let early = watch.apply(me, &at(100, players.clone()), idle.clone());
+        assert!(early.look_at.is_none() && watch.hunting().is_none());
+        let late = watch.apply(
+            me,
+            &at(100 + CAMPAIGN_STALL_TICKS, players.clone()),
+            idle.clone(),
+        );
+        assert_eq!(late.look_at.unwrap().player_id, Some(near));
+        assert!(late.forward && !late.fire);
+
+        // Seeing the guard hands control back to ordinary combat.
+        let seen = Action {
+            look_at: Some(LookAt {
+                player_id: Some(near),
+                ..LookAt::default()
+            }),
+            fire: true,
+            ..Action::default()
+        };
+        let fighting = watch.apply(me, &at(600, players.clone()), seen);
+        assert!(fighting.fire && watch.hunting().is_none());
+
+        // A search ends with its time bound and the window starts again.
+        let mut moving = mine.clone();
+        let mut watch = StallWatch::default();
+        watch.apply(me, &at(0, players.clone()), idle.clone());
+        watch.apply(me, &at(CAMPAIGN_STALL_TICKS, players.clone()), idle.clone());
+        assert_eq!(watch.hunting(), Some(near));
+        moving.x += 5.0;
+        let mut walked = players.clone();
+        walked[0] = moving;
+        let expired = CAMPAIGN_STALL_TICKS + CAMPAIGN_HUNT_TICKS + 1;
+        assert!(watch
+            .apply(me, &at(expired, walked), idle)
+            .look_at
+            .is_none());
+        assert!(watch.hunting().is_none());
     }
 
     #[test]
