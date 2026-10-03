@@ -309,7 +309,7 @@ plain bars, and Host voice lines for plant, defuse, detonation and the swap
 ## Handoff
 
 Shipped in two PRs: #325 (server rules, wire, layout, rule bots, controller,
-adapter, harness gates, CI, protocol docs) and the client PR (Godot
+adapter, harness gates, CI, protocol docs) and #333 (Godot
 presentation, tours, scripted bot objective, player docs). To play:
 `fragr-server --mode sabotage --map 4 --bots 8`, then join from the client.
 Open: human playtest on real hands, final art and audio (see the asset

@@ -26,7 +26,7 @@ difficulty, subjective listening and final character acceptance remain open.
 
 | Plan | Status | One-liner |
 |---|---|---|
-| [`sabotage-mode.md`](./sabotage-mode.md) | **shipped** (#325 and the client PR), human review open | The first flagship round mode on Sector 9: one life, plant and defuse with a held Use, halves with a side swap, carried equipment, rule bots on both sides and agents through MCP. |
+| [`sabotage-mode.md`](./sabotage-mode.md) | **shipped**, [PR #325](https://github.com/blisspixel/fragr/pull/325), [PR #333](https://github.com/blisspixel/fragr/pull/333), human review open | The first flagship round mode on Sector 9: one life, plant and defuse with a held Use, halves with a side swap, carried equipment, rule bots on both sides and agents through MCP. |
 | [`campaign-polish-20261002.md`](./campaign-polish-20261002.md) | **shipped**, [PR #320](https://github.com/blisspixel/fragr/pull/320), [PR #326](https://github.com/blisspixel/fragr/pull/326) | Automated playtest and fix pass over levels 1 to 6: HUD, run flow, arrivals, agents, sealed M01 and M06 geometry; ranked open items for human play. |
 | [`l07-declared-goods-prototype.md`](./l07-declared-goods-prototype.md) | **in flight** | Level 7 curfew town and crater cut, the Sniper Rifle beside the Railgun, the glinting Ranged Sweeper and M06 to M07 carry without refill. |
 | [`l08-custodian-of-record-prototype.md`](./l08-custodian-of-record-prototype.md) | **in flight** | Level 8 radial custody archive, the sticking Proximity Mine, the repairing Auditor and M07 to M08 carry after level 7 lands. |
