@@ -73,13 +73,16 @@ func _run() -> void:
 	_expect(prefs.save_to_disk() == OK, "isolated preferences saved")
 	root.mode = Window.MODE_WINDOWED
 	root.size = Vector2i(1280, 960)
+	# The same request the finished M01 makes when the player continues the run
+	# from the departed lift instead of going through the menu.
+	set_meta(LocalMatch.ONWARD_META, true)
 	_expect(change_scene_to_file("res://scenes/boot_menu.tscn") == OK, "boot menu loads")
 	if failures > 0:
 		quit(1)
 		return
 	await process_frame
 	await process_frame
-	current_scene._show("single")
+	_expect(not has_meta(LocalMatch.ONWARD_META), "the boot menu consumes one onward request")
 	if not await _until(func() -> bool: return LocalMatch.for_tree(self).run_preview.get("status") == "awaiting_mission", "M01 departure previews as M02"):
 		return
 	var owned: LocalMatch = LocalMatch.for_tree(self)
@@ -87,11 +90,7 @@ func _run() -> void:
 	_expect(preview.get("mission") == MissionState.M02_ID and preview.get("difficulty") == "severe" \
 		and preview.get("continues") == 2 and preview.get("body") == PlayerBody.SYNTHETIC,
 		"M02 preview preserves mission, difficulty, shared continues and saved body")
-	await process_frame
-	_expect(current_scene._root.get_node_or_null("PersonsUnknownSaved") != null, "Single Player offers durable M02")
-	await _capture("01-single-player-m02")
-	current_scene._start_campaign_resume()
-	if not await _until(_playing, "Continue Run enters authoritative M02"):
+	if not await _until(_playing, "continuing the run enters authoritative M02 without another menu choice"):
 		return
 	if not await _until(func() -> bool: return not current_scene.net_client.equipment.is_empty(),
 		"M02 join receives its first private loadout"):

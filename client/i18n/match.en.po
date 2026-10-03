@@ -147,6 +147,27 @@ msgstr "OUT OF LIVES. WATCHING UNTIL THE ROUND ENDS."
 msgid "PICKUP_GOLDEN_RAIL"
 msgstr "GOLDEN RAIL"
 
+msgid "PICKUP_AMMO"
+msgstr "+{amount} {pool}"
+
+msgid "PICKUP_MEDKIT"
+msgstr "MEDKIT"
+
+msgid "PICKUP_HEALTH"
+msgstr "+{amount} HP"
+
+msgid "PICKUP_ARMOR"
+msgstr "ARMOR"
+
+msgid "PICKUP_ARMOR_AMOUNT"
+msgstr "+{amount} ARMOR"
+
+msgid "PICKUP_GRENADES"
+msgstr "+{amount} GRENADES"
+
+msgid "PICKUP_SUPPLY"
+msgstr "SUPPLY"
+
 msgid "HOST_REACTION_FIRST_BLOOD_0"
 msgstr "HOST: FIRST BLOOD. {player}. SOMEBODY HAD TO."
 

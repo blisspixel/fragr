@@ -264,8 +264,11 @@ func _input_and_hud(network: CaptureNetwork, state: Dictionary) -> void:
 	var arrival: Dictionary = state.duplicate(true)
 	arrival["phase"] = "reach_lift"
 	arrival["prompts"] = []
+	arrival["party"].append({"id": "second-member", "name": "Second", "ready": true, "alive": true, "aboard": false})
 	display.apply(arrival, PLAYER)
-	_expect(display._copy.text.contains("correction ward") and display._copy.text.contains("Visitor"), "record and awaited party member remain visible")
+	_expect(display._copy.text.contains("correction ward") and display._copy.text.contains("Second"), "record and awaited party member remain visible")
+	_expect(not display._copy.text.contains("Visitor"), "the reader is never listed as the person keeping the lift waiting")
+	_expect(not display._copy.text.contains(tr("MISSION_M01_TITLE")) and not display._copy.text.contains(tr("DIFFICULTY_STANDARD")), "play shows the objective, not the mission title and tier")
 	var translated: Translation = Translation.new()
 	translated.locale = "de"
 	translated.add_message("MISSION_REACH_LIFT", "ERREICHE DEN GEFANGENENTRANSPORT")

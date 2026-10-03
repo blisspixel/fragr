@@ -174,6 +174,11 @@ func _run() -> void:
 	stocked["grenades"] = 4
 	display.apply(stocked)
 	_check(display.grenade_counts.visible and display.grenade_counts.text == "4" and display.counts.text == "0", "grenade stock appears independently from bullet ammunition")
+	var decoded: Variant = JSON.parse_string(JSON.stringify(stocked))
+	_check(decoded is Dictionary and EquipmentState.validation_error(decoded, "self").is_empty(), "a wire round trip keeps the stock valid")
+	if decoded is Dictionary:
+		display.apply(decoded)
+		_check(display.grenade_counts.text == "4", "a JSON-decoded grenade count prints a whole number, got " + display.grenade_counts.text)
 	stocked["grenades"] = 0
 	display.apply(stocked)
 	_check(display.grenade_counts.visible and display.grenade_counts.text == "0", "after discovery empty grenade stock stays visible")

@@ -38,6 +38,13 @@ func _run() -> void:
 	_check(body.mesh == regular_mesh and is_equal_approx(body.position.y, 0.28) and is_equal_approx(label.position.y, 1.55) \
 		and label.font_size == 28 and not band.visible and label.text == "+25 HP",
 		"health restores the existing full-size crate and label: body=%s label=%s" % [body.position, label.position])
+	pickup.setup("vest", "", Vector3.ZERO, "armor", 50)
+	_check(label.text == "+50 ARMOR", "armor names the whole word, not ARM: " + label.text)
+	pickup.setup("vest_unknown", "", Vector3.ZERO, "armor", 0)
+	_check(label.text == "ARMOR", "armor without an amount still reads as armor: " + label.text)
+	pickup.setup("workshop_grenades", "", Vector3.ZERO, "grenade", 2)
+	_check(label.text == "+2 GRENADES" and not icon.visible,
+		"a grenade supply names its grenades instead of a bare PAD: " + label.text)
 	pickup.setup("tack", "Tack", Vector3.ZERO)
 	_check(body.mesh == regular_mesh and icon.visible and label.text == "PISTOL",
 		"weapon icon and full-size crate remain unchanged")

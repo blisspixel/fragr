@@ -116,6 +116,19 @@ func _run() -> void:
 	owned.run_preview["mission"] = LocalMatch.NEXT_MISSION
 	menu._show("single")
 	_check(column.get_node_or_null("PortOfEntrySaved") == null and _menu_text(column).contains("Declared Goods is still in development"), "unbuilt M07 has no launch button")
+	menu._onward_pending = true
+	var saved_preview: Dictionary = owned.run_preview.duplicate(true)
+	owned.run_preview = {"status": "loading"}
+	menu._try_onward()
+	_check(menu._onward_pending and not menu._launch_pending, "an onward request waits for the saved run preview")
+	owned.run_preview = saved_preview
+	owned.state = LocalMatch.State.STOPPING
+	menu._try_onward()
+	_check(menu._onward_pending and not menu._launch_pending, "an onward request waits for the finished child to stop")
+	owned.state = LocalMatch.State.IDLE
+	menu._try_onward()
+	_check(not menu._onward_pending and not menu._launch_pending and menu._page == "single",
+		"an unbuilt next mission settles the onward request on Single Player without launching")
 	_check(_menu_text(column).contains("NEXT: DECLARED GOODS") and _menu_text(column).contains("2 continues left") \
 		and _menu_text(column).contains("Run body: HUMAN"), "pending M05 previews mission, shared continues and saved body")
 	owned.run_preview["body"] = null

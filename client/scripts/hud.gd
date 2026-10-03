@@ -494,7 +494,7 @@ func _refresh_mode_label():
 	var controls = ""
 	_controls_revision = InputDevice.revision
 	if Time.get_ticks_msec() - mode_entered_ms < CONTROLS_HINT_MS:
-		controls = "\n" + InputGlyphs.plain(tr("HUD_CONTROLS_WATCH" if client_mode == "SPECTATING" else "HUD_CONTROLS_PLAY"))
+		controls = "\n" + legend_line(InputGlyphs.plain(tr("HUD_CONTROLS_WATCH" if client_mode == "SPECTATING" else "HUD_CONTROLS_PLAY")))
 	# The Host line already says a drone is on deck, in its own words, directly
 	# above. Saying it again underneath is the same sentence twice.
 	var pressure_chip = ""
@@ -516,6 +516,15 @@ OBJ: " + episode_objective
 			episode_chip += "
 " + episode_progress
 	mode_label.text = league + host_chip + controls + pressure_chip + episode_chip
+
+## The legend is key and word pairs separated by wide gaps. The corner panel
+## is narrow, so let it wrap only between pairs: a lone "]" at the end of one
+## line with "weapon" on the next reads as two broken hints.
+static func legend_line(plain: String) -> String:
+	var pairs: PackedStringArray = plain.split("   ", false)
+	for index: int in range(pairs.size()):
+		pairs[index] = pairs[index].strip_edges().replace(" ", " ")
+	return "   ".join(pairs)
 
 func set_tick(tick: int):
 	if tick_label:
@@ -1055,8 +1064,17 @@ func show_pickup_toast(player_name: String, weapon_name: String, kind: String = 
 		"health": what = tr("HUD_PICKUP_HEALTH").format({"amount": amount})
 		"armor": what = tr("HUD_PICKUP_ARMOR").format({"amount": amount})
 		"ammo": what = tr("HUD_PICKUP_AMMO").format({"amount": amount})
+		"grenade": what = tr("HUD_PICKUP_GRENADES").format({"amount": amount})
 		_: what = EquipmentState.display_name(weapon_name).to_upper()
-	combat_feed.push(tr("HUD_PICKUP").format({"player": player_name, "item": what}))
+	if what.is_empty():
+		return
+	# Pickup notices are participant-only, so a player only ever reads their
+	# own claims. Their callsign in front of every line is noise; a spectator
+	# still needs to know whose pickup it was.
+	if client_mode == "SPECTATING":
+		combat_feed.push(tr("HUD_PICKUP").format({"player": player_name, "item": what}))
+	else:
+		combat_feed.push(what)
 
 func set_followed_weapon(weapon_name: String, player_name: String = "", behavior: String = "", team: String = ""):
 	if not weapon_label or not weapon_icon:

@@ -65,7 +65,19 @@ func _run() -> void:
 	for entry: Node in hud.combat_feed.get_children():
 		lines.append((entry as Label).text)
 	_check(lines.size() == 3 and lines[1].contains("SHIV") and lines[2] == "SECRET FOUND", "a found secret adds one quiet corner line after the pickup")
+	_check(lines[0] == "+25 HP" and lines[1] == "SHIV", "a player's own pickups drop the redundant callsign: " + str(lines))
 	_check(not hud.round_message.visible, "a secret never takes the centre of the screen")
+	game._on_event_received({"event":"pickup", "player":"Same label", "player_id":"self", "kind":"grenade", "amount":2, "pickup_id":"workshop_grenades"})
+	var newest: Label = hud.combat_feed.get_child(hud.combat_feed.get_child_count() - 1) as Label
+	_check(newest.text == "+2 GRENADES", "a grenade claim names the grenades instead of an empty item: " + newest.text)
+	hud.set_mode("SPECTATING")
+	hud.show_pickup_toast("Watched", "", "armor", 50)
+	newest = hud.combat_feed.get_child(hud.combat_feed.get_child_count() - 1) as Label
+	_check(newest.text == "Watched: +50 ARMOR", "a spectator still sees whose pickup it was: " + newest.text)
+	hud.set_mode("PLAYING")
+	var legend: String = hud.legend_line("CTRL fire   F use   ] weapon   ESC menu")
+	_check(legend == "CTRL fire   F use   ] weapon   ESC menu",
+		"the legend only wraps between key and word pairs: " + legend)
 	game.is_human_player = false
 	_check(game._shows_participant_notice("watched") and not game._shows_participant_notice("self"), "spectator notices follow the actual watched identity")
 	camera.target = null

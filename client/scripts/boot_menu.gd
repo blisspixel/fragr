@@ -25,6 +25,9 @@ var _settings: FragrSettings
 var _name_edit: LineEdit = null
 var _local_match: LocalMatch
 var _launch_pending: bool = false
+## A finished mission asked to continue the run; cleared once it starts or the
+## saved run turns out to have nothing playable next.
+var _onward_pending: bool = false
 var _campaign_run_mode: String = "new"
 var _campaign_play_arrival: bool = false
 var _profile_return: String = "main"
@@ -52,7 +55,14 @@ func _ready() -> void:
 	watcher.name = "InputDevice"
 	add_child(watcher)
 	_build_chrome()
-	_show("main")
+	# A finished mission asked to go straight on. Open Single Player and start
+	# Continue Run once the stopped child and the saved run preview allow it.
+	if get_tree().has_meta(LocalMatch.ONWARD_META):
+		get_tree().remove_meta(LocalMatch.ONWARD_META)
+		_onward_pending = true
+		_show("single")
+	else:
+		_show("main")
 	_console = FragrConsole.new()
 	_console.name = "FragrConsole"
 	_console.preferences = _settings
@@ -312,6 +322,7 @@ func _page_practice() -> void:
 	_button("Back", func() -> void: _show("single"))
 
 func _on_run_preview_changed() -> void:
+	_try_onward()
 	if _page == "single" and not _launch_pending:
 		_show("single")
 
@@ -460,7 +471,24 @@ func _cancel_campaign() -> void:
 	_local_match.stop()
 	_show("single")
 
+## Start Continue Run for an onward request as soon as the previous child has
+## stopped and the preview names a playable saved mission. Anything else
+## leaves the player on Single Player, which explains what is next.
+func _try_onward() -> void:
+	if not _onward_pending or _launch_pending:
+		return
+	if _local_match.state not in [LocalMatch.State.IDLE, LocalMatch.State.FAILED]:
+		return
+	var status: String = str(_local_match.run_preview.get("status", "loading"))
+	if status == "loading":
+		return
+	_onward_pending = false
+	# The Continue Run button's own checks decide whether the saved mission is
+	# playable; an unbuilt destination stays on this page.
+	_start_campaign_resume()
+
 func _on_local_state_changed() -> void:
+	_try_onward()
 	if _launch_pending:
 		if _local_match.state in [LocalMatch.State.IDLE, LocalMatch.State.FAILED]:
 			_launch_pending = false

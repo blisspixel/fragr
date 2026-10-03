@@ -3,6 +3,9 @@ extends SceneTree
 class MatchHost extends Node:
 	var local_match: Variant = null
 
+class FakeNet extends RefCounted:
+	var mission: Dictionary = {}
+
 var _failures: int = 0
 
 func _initialize() -> void:
@@ -16,6 +19,7 @@ func _check(condition: bool, message: String) -> void:
 func _departed_state() -> Dictionary:
 	return {
 		"rules": {"difficulty": "standard", "revision": 3},
+		"attempt": 1,
 		"phase": "departed",
 		"party": [],
 		"prompts": [],
@@ -51,6 +55,38 @@ func _run() -> void:
 	var manager: Node = load("res://scripts/game_manager.gd").new()
 	_check(manager.get("local_match") == null, "a match is not a local campaign until that process exists")
 	manager.free()
+
+	# A completed mission in an owned durable run offers to continue the run
+	# straight away; development children and other phases never do.
+	var onward: Node = load("res://scripts/game_manager.gd").new()
+	var wire: FakeNet = FakeNet.new()
+	wire.mission = {"state": _departed_state()}
+	var owner: LocalMatch = LocalMatch.new()
+	owner.set("_run_mode", "resume")
+	var display: MissionHud = MissionHud.new()
+	root.add_child(display)
+	await process_frame
+	display.apply(_departed_state(), "self")
+	onward.set("net_client", wire)
+	onward.set("local_match", owner)
+	onward.set("mission_hud", display)
+	onward.set("is_human_player", true)
+	onward._arm_onward()
+	_check(onward.get("_onward_armed") and display.prompt_text == InputGlyphs.plain(tr("RUN_NEXT_MISSION_INPUT")),
+		"a completed durable run offers to continue: " + display.prompt_text)
+	owner.set("_run_mode", "")
+	onward._arm_onward()
+	_check(not onward.get("_onward_armed") and display.prompt_text.is_empty(), "a development child never offers the saved run")
+	owner.set("_run_mode", "resume")
+	var playing: Dictionary = _departed_state()
+	playing["phase"] = "in_progress"
+	wire.mission = {"state": playing}
+	onward._arm_onward()
+	_check(not onward.get("_onward_armed"), "only a departed mission can continue the run")
+	onward.set("mission_hud", null)
+	onward.free()
+	owner.free()
+	display.free()
 
 	var arena: MatchHost = MatchHost.new()
 	root.add_child(arena)
