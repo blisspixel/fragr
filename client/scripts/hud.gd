@@ -111,6 +111,8 @@ var fp_shot_age: float = INF
 ## The off hand that throws a grenade, and how far into the throw it is.
 var fp_throw_hand: TextureRect
 var fp_throw_time: float = INF
+## The off hand's two frames for the current toss: a grenade or a mine.
+var fp_throw_frames: Array[Texture2D] = [WeaponArt.GRENADE_READY, WeaponArt.GRENADE_THROW]
 var health_icon: TextureRect
 var armor_icon: TextureRect
 var followed_player_name = ""
@@ -1388,6 +1390,16 @@ func _update_fp_frame() -> void:
 func show_grenade_throw() -> void:
 	if not fp_juice_enabled or fp_throw_hand == null:
 		return
+	fp_throw_frames = [WeaponArt.GRENADE_READY, WeaponArt.GRENADE_THROW]
+	fp_throw_time = 0.0
+	_layout_fp_weapon()
+
+## The same off-hand toss with the Proximity Mine. Called when the local
+## fighter's own mine appears in an authoritative snapshot.
+func show_mine_place() -> void:
+	if not fp_juice_enabled or fp_throw_hand == null:
+		return
+	fp_throw_frames = [WeaponArt.MINE_READY, WeaponArt.MINE_PLACE]
 	fp_throw_time = 0.0
 	_layout_fp_weapon()
 
@@ -1404,7 +1416,7 @@ func _layout_throw_hand(at: Vector2) -> void:
 	fp_throw_hand.visible = t < WeaponArt.THROW_SECONDS and fp_juice_enabled
 	if not fp_throw_hand.visible:
 		return
-	fp_throw_hand.texture = WeaponArt.GRENADE_READY if t < WeaponArt.THROW_READY_SECONDS else WeaponArt.GRENADE_THROW
+	fp_throw_hand.texture = fp_throw_frames[0] if t < WeaponArt.THROW_READY_SECONDS else fp_throw_frames[1]
 	fp_throw_hand.size = fp_weapon.size
 	# Rises in from below, holds through the release, drops back out.
 	var rise: float = clampf(t / 0.08, 0.0, 1.0)

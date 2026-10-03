@@ -12,12 +12,10 @@ const BLAST: AudioStream = preload("res://assets/story/effects/grenade_blast.wav
 ## asset is a one-line swap here.
 const BLASTS: Dictionary = {4.0: BLAST, 4.5: BLAST}
 const MINE_STICK: AudioStream = preload("res://assets/audio/notary/shutter.wav")
-const MINE_BODY: Color = Color("2f3438")
-const MINE_RIM: Color = Color("6b6f72")
-const LAMP_ARMING: Color = Color("efb56e")
-const LAMP_LIVE: Color = Color("ff3020")
-const LAMP_DARK: Color = Color("3a1612")
 const THROW: AudioStream = preload("res://assets/audio/grenade/throw.wav")
+## The dark body under the device's face-on picture gives it thickness from
+## low angles; the picture itself, lamp included, comes from `WeaponArt`.
+const MINE_BODY: Color = Color("2c2d32")
 var bodies: Dictionary[int, MeshInstance3D] = {}
 var bursts: Array[Dictionary] = []
 var voices: Array[AudioStreamPlayer3D] = []
@@ -36,6 +34,8 @@ var lamps_lit: int = 0
 ## A grenade newly in flight on a live snapshot, by the participant who threw
 ## it. Bodies already present when a snapshot stream starts are not throws.
 signal thrown(owner_id: String)
+## A mine newly in flight on a live snapshot, by the participant who placed it.
+signal placed(owner_id: String)
 
 func reset() -> void:
 	for body: MeshInstance3D in bodies.values():
@@ -119,9 +119,10 @@ func apply(snapshot: Dictionary, listener: Vector3) -> void:
 			_sound(BLASTS.get(float(fact["radius"]), BLAST), position, listener)
 			blast_cues += 1
 
-## Placed mines: a dark puck on its surface and a lamp that is steady while
-## arming, blinks once live and flickers fast once tripped. The lamp follows
-## server ticks, so every viewer sees the same blink.
+## Placed mines: the face-on device laid on its surface over a dark body, its
+## lamp steady amber while arming, blinking red once live and flickering fast
+## once tripped. The lamp follows server ticks, so every viewer sees the same
+## blink.
 func _apply_mines(snapshot: Dictionary, listener: Vector3, initial: bool) -> void:
 	var tick: int = int(snapshot["tick"])
 	var current: Dictionary[int, bool] = {}
@@ -133,6 +134,8 @@ func _apply_mines(snapshot: Dictionary, listener: Vector3, initial: bool) -> voi
 			mines[id] = _mine_body()
 			mines[id].name = "Mine_%d" % id
 			add_child(mines[id])
+			if not initial:
+				placed.emit(str(fact["owner_id"]))
 		var body: Node3D = mines[id]
 		body.position = GrenadeFacts.vector(fact["position"])
 		var normal: Vector3 = GrenadeFacts.vector(fact["normal"])
@@ -141,10 +144,8 @@ func _apply_mines(snapshot: Dictionary, listener: Vector3, initial: bool) -> voi
 			var forward: Vector3 = side.cross(normal).normalized()
 			body.basis = Basis(normal.cross(forward).normalized(), normal, forward)
 		var phase: String = str(fact["phase"])
-		var lamp: MeshInstance3D = body.get_node("Lamp")
 		var lit: bool = CustodyFacts.lamp_lit(fact, tick)
-		var colour: Color = LAMP_ARMING if phase == "arming" else (LAMP_LIVE if lit else LAMP_DARK)
-		(lamp.material_override as ShaderMaterial).set_shader_parameter("effect_color", colour)
+		(body.get_node("Face") as Sprite3D).texture = WeaponArt.mine_device(phase, lit)
 		lamps_lit += int(lit)
 		if not initial and mine_phases.get(id, "") == "flying" and phase == "arming" and listener.is_finite():
 			_sound(MINE_STICK, body.position, listener)
@@ -158,17 +159,21 @@ func _apply_mines(snapshot: Dictionary, listener: Vector3, initial: bool) -> voi
 
 func _mine_body() -> Node3D:
 	var body: Node3D = Node3D.new()
-	var puck: MeshInstance3D = _mesh(Vector3(0.30, 0.08, 0.30), MINE_BODY)
+	var puck: MeshInstance3D = _mesh(Vector3(0.22, 0.05, 0.22), MINE_BODY)
 	puck.name = "Puck"
+	puck.position = Vector3(0, 0.025, 0)
 	body.add_child(puck)
-	var rim: MeshInstance3D = _mesh(Vector3(0.36, 0.04, 0.12), MINE_RIM)
-	rim.name = "Rim"
-	rim.position = Vector3(0, -0.02, 0)
-	body.add_child(rim)
-	var lamp: MeshInstance3D = _mesh(Vector3(0.09, 0.07, 0.09), LAMP_DARK)
-	lamp.name = "Lamp"
-	lamp.position = Vector3(0, 0.07, 0)
-	body.add_child(lamp)
+	var face: Sprite3D = Sprite3D.new()
+	face.name = "Face"
+	face.texture = WeaponArt.mine_device("flying", false)
+	face.axis = Vector3.AXIS_Y
+	face.pixel_size = WeaponArt.MINE_DEVICE_METRES / float(face.texture.get_width())
+	face.shaded = false
+	face.alpha_cut = SpriteBase3D.ALPHA_CUT_DISCARD
+	face.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
+	face.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	face.position = Vector3(0, 0.052, 0)
+	body.add_child(face)
 	return body
 
 func _exit_tree() -> void:

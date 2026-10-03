@@ -1,0 +1,97 @@
+{
+	"clips": [
+		{
+			"action": "seated",
+			"count": 1,
+			"unarmed": false
+		},
+		{
+			"action": "idle",
+			"count": 1,
+			"unarmed": false
+		},
+		{
+			"action": "walk",
+			"count": 8,
+			"unarmed": false
+		},
+		{
+			"action": "raise",
+			"count": 4,
+			"unarmed": false
+		},
+		{
+			"action": "fire",
+			"count": 2,
+			"unarmed": false
+		},
+		{
+			"action": "recover",
+			"count": 3,
+			"unarmed": false
+		},
+		{
+			"action": "hit",
+			"count": 2,
+			"unarmed": false
+		},
+		{
+			"action": "death",
+			"count": 7,
+			"unarmed": false
+		},
+		{
+			"action": "idle",
+			"count": 1,
+			"unarmed": true
+		},
+		{
+			"action": "walk",
+			"count": 8,
+			"unarmed": true
+		},
+		{
+			"action": "raise",
+			"count": 4,
+			"unarmed": true
+		},
+		{
+			"action": "fire",
+			"count": 2,
+			"unarmed": true
+		},
+		{
+			"action": "recover",
+			"count": 3,
+			"unarmed": true
+		},
+		{
+			"action": "hit",
+			"count": 2,
+			"unarmed": true
+		},
+		{
+			"action": "death",
+			"count": 7,
+			"unarmed": true
+		}
+	],
+	"columns": 18,
+	"directions": 8,
+	"engine": "4.7.2-stable (official)",
+	"file": "auditor.png",
+	"format": "RGBA8 PNG, nearest sampling, no mipmaps",
+	"model": "Original procedural custody officer on the Clerk body with cap, coat, shield plate, repair spool and pistol; seated cell holds the repair channel",
+	"poses": 55,
+	"rows": 25,
+	"schema": 1,
+	"sha256": "f2196dc4d8ba0619517349e509780145d3244e441584266dfb4310e882cc8e52",
+	"sources": {
+		"res://art/characters/auditor_bake.gd": "ae9e5897b11e61af9bd7e0bfa8daa31b61694a150d091e2de0cb2385dd47994e",
+		"res://art/characters/auditor_rig.gd": "41bfeeee7e840c8db8b8efaa94a83836eca8037dd80650b41508c56ca202999c",
+		"res://art/characters/geometry.gd": "833318a2c94533aac01abbf7c886b616ec11528624fa406e6cad18dc1a14eec9",
+		"res://art/characters/rig.gd": "106d5f720f665cffe9a52a16f9969bd6908b084c61521218aa51ddef9bc20441",
+		"res://scripts/enemy_animation.gd": "f2f1ef38f496d2d5a48c3ca81995788b7108aef81f712a6c67a1de3504b84573"
+	},
+	"tile_pixels": 160
+}

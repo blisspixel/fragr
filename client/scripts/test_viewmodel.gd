@@ -73,6 +73,21 @@ func _check_throw(hud: CanvasLayer, weapon: TextureRect) -> void:
 	for frame: int in range(30):
 		hud._process(1.0 / 120.0)
 	_check(not hand.visible and weapon.position.y == rest, "hand and gun return after the throw")
+	hud.show_mine_place()
+	var held: bool = false
+	var tossed: bool = false
+	for frame: int in range(48):
+		hud._process(1.0 / 120.0)
+		held = held or (hand.visible and hand.texture == WeaponArt.MINE_READY)
+		tossed = tossed or (hand.visible and hand.texture == WeaponArt.MINE_PLACE)
+	_check(held and tossed, "placing a mine shows the mine in the same off hand")
+	for frame: int in range(30):
+		hud._process(1.0 / 120.0)
+	hud.show_grenade_throw()
+	hud._process(1.0 / 120.0)
+	_check(hand.texture == WeaponArt.GRENADE_READY, "the next grenade throw shows the grenade again")
+	for frame: int in range(60):
+		hud._process(1.0 / 120.0)
 
 func _run() -> void:
 	set_meta("fragr_settings_path", "user://test-viewmodel-%d.cfg" % OS.get_process_id())
