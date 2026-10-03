@@ -326,10 +326,12 @@ asset meets the [art bar](ART_STORY_BIBLE.md#north-star).
    model stages and proves imports for one enemy, weapon and prop plus a
    topology comparison. [Rendered evidence](evidence/meshy-pilot-20261003.md)
    records skin motion, 125 net credits consumed and 15 held conservatively.
-   [Clerk presentation](plans/clerk-model-presentation.md) is now in flight:
+   [Clerk presentation](plans/clerk-model-presentation.md) shipped on main in
+   [PR #340](https://github.com/blisspixel/fragr/pull/340):
    prepared skin and gait, authored combat poses and paired normals pass local
-   checks and bounded M01/M02 played routes. Final CI and merge remain; broader
-   art acceptance stays open. [Evidence](evidence/clerk-model-20261003.md) records
+   checks, full CI and bounded M01/M02 played routes. Broader art acceptance
+   stays open. Desktop packages use the tag's release workflow.
+   [Evidence](evidence/clerk-model-20261003.md) records
    actual guard-room frames and the limits of the routes.
    The October 3 production pass adds original Sweeper and Shotgun mesh sources, a lean
    screen-faced Latch, paired Sweeper normals, shallow manufactured fixtures,
@@ -338,6 +340,10 @@ asset meets the [art bar](ART_STORY_BIBLE.md#north-star).
    and world references. References are not completed game assets. Finish
    the played quality comparison, refine the Shotgun's first-person presentation,
    and carry accepted model and material work across the remaining roster.
+   [Shotgun source preparation](plans/shotgun-model-presentation.md) now separates
+   an actual pump and attaches its support hand. Its candidate is rendered and
+   mechanically checked; current first-person art remains selected until the
+   framing, grip and played gate pass.
    Price each paid operation within the authorized $105.88 Higgsfield effort
    and $5 run cap; another paid service requires Nick's approval.
    *Why:* primitive characters and box rooms are the largest visible gap to the

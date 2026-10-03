@@ -25,6 +25,9 @@ Preparation and combat posing used no additional paid generation.
 - [Normal lighting](../screenshots/clerk-model-20261003/normal-lit.png) and
   [opposite light](../screenshots/clerk-model-20261003/opposite-light.png):
   same source and sprite, with body shape responding to the moved light.
+- [Unarmed follow-through](../screenshots/clerk-model-20261003/melee.png): ready
+  pose above the extended strike, in all eight directions. The lower torso leans
+  into the forward reach; the weapon stays absent.
 
 Godot 4.7.2-stable, Compatibility/OpenGL on the AMD Radeon 780M captured these
 images. The rendered harness compares actual normal-lit, planar and opposite-light
@@ -37,9 +40,11 @@ The Recall Notice enemy route completed all 13 states and four encounter checks.
 The first five Persons Unknown side-ward states completed pickup, seated guards
 and the two-Clerk fight at 100 HP. The harness retained idle, windup, hit and dead
 phase captures, matched both named kills and sampled the presented body frames.
-A 16.224-second, 1280 by 720 recording retains the latter route and game audio.
+A final 15.201-second, 1280 by 720 recording repeats the latter route after the
+unarmed correction and retains game audio aligned to the real capture timestamps.
 Receipts are under `.agents/art-playthrough-20261003/clerk-m01-route` and
-`clerk-m02-realtime`; the recording is `fragr-clerk-guard-room-20261003.mp4`.
+`clerk-m02-realtime` and `clerk-final-m02-realtime`; the final recording is
+`fragr-clerk-guard-room-20261003.mp4`.
 
 Existing atlas gates pass for every unclipped direction, distinct gait, low
 settled corpse and different human/bot silhouettes. The pistol's raised outline
@@ -54,11 +59,17 @@ acceptance. Fingers and uniform variants remain candidates for further refinemen
 The Shotgun and generator from the pilot are not selected by this change, and
 the other character sources and environmental kits remain unfinished.
 
-The full local client gate passes 219 scripts and 100 harnesses. Its new source
-check also passes after the final reaction assertion, and the prepared import
+The final local client gate passes 220 scripts and 101 harnesses, including the
+Clerk follow-through and prepared Shotgun source. The prepared import
 keeps textures embedded losslessly without duplicate loose image sources. The
-final albedo and normal atlas bytes match the recorded route's assets.
+armed albedo and normal cells match the recorded route's assets byte for byte.
+The subsequent unarmed correction changes its strike cells and bake receipt.
+Its source check proves a forward hand advance greater than 15 cm; the full
+atlas checks retain unclipped directions and distinct human/bot silhouettes.
 
-Local checks and the played increment are implemented. Final CI, merge and
-desktop release verification are tracked by the
+The source selection merged through
+[PR #340](https://github.com/blisspixel/fragr/pull/340) after
+[full CI](https://github.com/blisspixel/fragr/actions/runs/37158959870) passed.
+Desktop package evidence lives in the tag's release workflow and release assets.
+Subsequent refinements are tracked by the
 [presentation plan](../plans/clerk-model-presentation.md).

@@ -84,13 +84,13 @@
 			"brief": "Visible human face, open helmet, charcoal cloth, issued bone armor and restrained red seal.",
 			"file": "clerk.png",
 			"model": "skinned human security source with authored combat poses and paired view normals",
-			"sha256": "d7d8dad0070eb883da6a7f9f13412688d57dfa4482e776748c5ceb9af5d93f52"
+			"sha256": "4edd433aed8afcf2798ca25752dc769a0ed432a9dd5e43df9c5400994d1ffbb6"
 		},
 		{
 			"brief": "Same eight directions and phase cells as the matching albedo.",
 			"file": "clerk_normals.png",
 			"model": "paired normal atlas",
-			"sha256": "dcf2b24351afce1dbb71ba949e6de3c934d17e272d650c4f5f7212a8ada9ac53"
+			"sha256": "a97d6f2a8fa42f060a18cab3fbfb0dd197ab4cb75fbd994671e3b226831f057a"
 		},
 		{
 			"brief": "Manufactured graphite shells, recessed optical slit, service battery louvers, distinct joint caps, finger articulation and restrained red issue strips.",
@@ -127,7 +127,7 @@
 		"res://art/characters/machines.gd": "3ec71c7c9254250069a4efd0d87047d581efd1e7a226844a814bbeecd85a28f7",
 		"res://art/characters/rig.gd": "106d5f720f665cffe9a52a16f9969bd6908b084c61521218aa51ddef9bc20441",
 		"res://art/models/candidates/clerk.glb": "056b7cccc103517161376ca2ef506049699c1688eb49061c0f81b2eff4ff8185",
-		"res://art/models/clerk_source.gd": "b3f26fd2e5883f97ad3e1416d03e76aa9c1ea08d6db6d4657c85343d0c0cf82d",
+		"res://art/models/clerk_source.gd": "fcb420eb304446b2b51736e52853d4a90778899a13319c7a4b110cbe7886427c",
 		"res://art/models/normal_bake.gdshader": "c091a2dfb26f198d8b49122ffa3a2bc596d1f853904475b1ff287ff79fdefc97",
 		"res://art/models/sweeper_source.gd": "3d32bf63894e5193a47b0b3325982dd2ebf729800ebba3ef9d63c3ab2c7c8e38",
 		"res://assets/models/finishes/enamel.png": "0761b8a3d969d03fdd9c4cd55eca4161fef89e979ca3536410d4826c9e6e7ebf",

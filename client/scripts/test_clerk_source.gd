@@ -34,6 +34,10 @@ func _run() -> void:
 	root.add_child(fists)
 	_check(fists.find_children("Pistol", "Node3D", true, false).is_empty(),
 		"exhausted melee never presents a firearm")
+	var fists_ready: Node3D = source.build_pose("raise", 1.0, true)
+	root.add_child(fists_ready)
+	_check(_bone(fists, "RightHand").z > _bone(fists_ready, "RightHand").z + 15.0,
+		"melee follows through toward the target instead of recoiling like a pistol")
 	var seated: Node3D = source.build_pose("seated", 0.0)
 	root.add_child(seated)
 	_check(_bone(seated, "LeftLeg").z > _bone(idle, "LeftLeg").z + 20.0,
@@ -44,7 +48,7 @@ func _run() -> void:
 	_check(not hit_skeleton.get_bone_pose_rotation(hit_skeleton.find_bone("Spine")).is_equal_approx(
 		skeleton.get_bone_pose_rotation(skeleton.find_bone("Spine"))),
 		"the first of the two hit cells contains a physical reaction")
-	for model: Node3D in [idle, raised, recovered, step_a, step_b, fists, seated, hit]:
+	for model: Node3D in [idle, raised, recovered, step_a, step_b, fists, fists_ready, seated, hit]:
 		model.free()
 	var albedo: Image = (load("res://assets/characters/union/clerk.png") as Texture2D).get_image()
 	var normals: Image = (load("res://assets/characters/union/clerk_normals.png") as Texture2D).get_image()

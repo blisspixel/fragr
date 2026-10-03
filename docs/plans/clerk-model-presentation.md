@@ -1,8 +1,12 @@
 # Clerk model presentation
 
-**Status:** implemented, 2026-10-03. Local source, animation, light and played
-checks pass. Final CI and merge remain pending, within the existing roadmap's art
-rung. [Rendered evidence](../evidence/clerk-model-20261003.md) records the scope.
+**Status:** shipped on main, 2026-10-03, through
+[PR #340](https://github.com/blisspixel/fragr/pull/340), after
+[full CI](https://github.com/blisspixel/fragr/actions/runs/37158959870) passed.
+Desktop package verification uses the tag's release workflow. This closes the
+bounded source selection within the existing roadmap's art rung, not broader
+art acceptance.
+[Rendered evidence](../evidence/clerk-model-20261003.md) records the scope.
 
 ## Goal
 
@@ -34,6 +38,11 @@ Prepared source and textures remain excluded offline art. The source, atlas,
 silhouette and rendered-light checks pass; the 13-state M01 route and five-state
 M02 guard-room recording complete. No additional credits were consumed. Broad
 cast acceptance, distant live readability and fresh-player review remain open.
+
+A follow-up corrects the unarmed strike to use a forward reach and lower-torso
+lean. The actual hand advances more than 15 cm from its ready pose. All armed
+albedo and normal cells remain byte-identical to the recorded guard-room assets;
+the unarmed atlas cells and bake receipt are updated together.
 
 ## Verification
 
