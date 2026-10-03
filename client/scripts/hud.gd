@@ -1063,6 +1063,7 @@ func show_pickup_toast(player_name: String, weapon_name: String, kind: String = 
 		"armor": what = tr("HUD_PICKUP_ARMOR").format({"amount": amount})
 		"ammo": what = tr("HUD_PICKUP_AMMO").format({"amount": amount})
 		"grenade": what = tr("HUD_PICKUP_GRENADES").format({"amount": amount})
+		"proximity_mine": what = tr("HUD_PICKUP_MINES").format({"amount": amount})
 		_: what = EquipmentState.display_name(weapon_name).to_upper()
 	if what.is_empty():
 		return

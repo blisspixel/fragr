@@ -95,15 +95,15 @@ pub fn control_action_with_target_filter(
     else {
         return Action::default();
     };
+    // A channeling Auditor comes before any nearer hostile.
+    let key = |p: &crate::protocol::PlayerState| {
+        crate::combat::engagement_key(p.campaign, (p.x - me.x).hypot(p.z - me.z))
+    };
     let nearest = snapshot
         .players
         .iter()
         .filter(|p| me.is_hostile_to(p) && engageable(me, p))
-        .min_by(|a, b| {
-            (a.x - me.x)
-                .hypot(a.z - me.z)
-                .total_cmp(&(b.x - me.x).hypot(b.z - me.z))
-        });
+        .min_by(|a, b| key(a).0.cmp(&key(b).0).then(key(a).1.total_cmp(&key(b).1)));
     if action
         .look_at
         .as_ref()
@@ -124,6 +124,13 @@ pub fn control_action_with_target_filter(
     if action.throw_grenade {
         action.weapon_swap = action.weapon_swap.filter(|weapon| loadout.owns(*weapon));
         action.throw_grenade = loadout.grenades > 0;
+        return action;
+    }
+    // A deliberate placement keeps its aim, like a throw, and never spends a
+    // mine the loadout does not hold.
+    if action.place_mine {
+        action.weapon_swap = action.weapon_swap.filter(|weapon| loadout.owns(*weapon));
+        action.place_mine = loadout.proximity_mines > 0;
         return action;
     }
     let selected = action

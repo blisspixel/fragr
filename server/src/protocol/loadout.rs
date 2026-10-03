@@ -120,9 +120,20 @@ pub struct LoadoutState {
     /// Exactly one count per ammunition type.
     pub ammo: Vec<AmmoCount>,
     pub grenades: u16,
+    /// Carried proximity mines. Omitted while zero so earlier readers keep
+    /// every mission without them.
+    #[serde(default, skip_serializing_if = "is_zero")]
+    pub proximity_mines: u16,
     pub personal_claims: Vec<String>,
     pub dry_fire_count: u64,
 }
+
+fn is_zero(count: &u16) -> bool {
+    *count == 0
+}
+
+/// Proximity mines carried at once, independent of the six grenades.
+pub const MINE_CARRY_CAP: u16 = 4;
 
 impl LoadoutState {
     pub fn validate_for(
@@ -141,6 +152,9 @@ impl LoadoutState {
     }
 
     pub fn validate(&self) -> Result<(), &'static str> {
+        if self.proximity_mines > MINE_CARRY_CAP {
+            return Err("invalid proximity mine count");
+        }
         validate_equipment(
             self.selected,
             &self.weapons,

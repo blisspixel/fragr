@@ -83,6 +83,7 @@ pub(crate) fn body(kind: EnemyKind) -> (i32, WeaponType) {
         EnemyKind::Crawler => (55, WeaponType::Fists),
         EnemyKind::Jammer => (90, WeaponType::Fists),
         EnemyKind::Notary => (50, WeaponType::Tack),
+        EnemyKind::Auditor => (120, WeaponType::Tack),
     }
 }
 
@@ -93,13 +94,18 @@ pub(crate) fn gait(kind: EnemyKind) -> f32 {
         EnemyKind::HeavySweeper => 0.3,
         EnemyKind::Turret | EnemyKind::Jammer | EnemyKind::Notary => 0.0,
         EnemyKind::Crawler => 0.7,
+        EnemyKind::Auditor => 0.4,
     }
 }
 
 /// Committed shots per attack.
 fn burst(kind: EnemyKind) -> u8 {
     match kind {
-        EnemyKind::Clerk | EnemyKind::Turret | EnemyKind::Crawler | EnemyKind::Jammer => 1,
+        EnemyKind::Clerk
+        | EnemyKind::Turret
+        | EnemyKind::Crawler
+        | EnemyKind::Jammer
+        | EnemyKind::Auditor => 1,
         EnemyKind::Sweeper | EnemyKind::Notary => 3,
         EnemyKind::HeavySweeper => 4,
     }
@@ -112,7 +118,8 @@ fn stun(kind: EnemyKind) -> u64 {
         | EnemyKind::Sweeper
         | EnemyKind::Crawler
         | EnemyKind::Jammer
-        | EnemyKind::Notary => 6,
+        | EnemyKind::Notary
+        | EnemyKind::Auditor => 6,
         EnemyKind::HeavySweeper => 16,
         EnemyKind::Turret => 10,
     }
@@ -172,6 +179,12 @@ pub(super) struct EnemyController {
     hover_tick: Option<u64>,
     landed: bool,
     photograph_pending: Option<Uuid>,
+    /// Auditor only: completed repairs it may still make.
+    repairs_left: u8,
+    /// Auditor only: the disabled body its channel reaches.
+    channel_target: Option<Uuid>,
+    /// A disabled body's own end of presentation, before any channel hold.
+    dead_until: u64,
 }
 
 /// (windup, recovery) ticks. Tiers change tells and openings only; health,
@@ -195,10 +208,114 @@ pub(crate) fn attack_timing(kind: EnemyKind, difficulty: CampaignDifficulty) -> 
         (EnemyKind::Notary, CampaignDifficulty::Assisted) => (24, 36),
         (EnemyKind::Notary, CampaignDifficulty::Standard) => (16, 26),
         (EnemyKind::Notary, CampaignDifficulty::Severe) => (12, 20),
+        (EnemyKind::Auditor, CampaignDifficulty::Assisted) => (22, 32),
+        (EnemyKind::Auditor, CampaignDifficulty::Standard) => (14, 22),
+        (EnemyKind::Auditor, CampaignDifficulty::Severe) => (12, 18),
     }
 }
 
+/// Auditor repair channel length per tier: the window to snap it. Health,
+/// damage, the two-repair limit and reach are identical on every tier.
+pub(crate) fn channel_ticks(difficulty: CampaignDifficulty) -> u64 {
+    match difficulty {
+        CampaignDifficulty::Assisted => 60,
+        CampaignDifficulty::Standard => 44,
+        CampaignDifficulty::Severe => 36,
+    }
+}
+
+/// Reach of a repair channel from the Auditor's eye to the disabled body.
+pub(crate) const REPAIR_RANGE: f32 = 18.0;
+/// A disabled body's phase window, hold included, never exceeds this many
+/// ticks: readers bound every actor phase window to it.
+pub(crate) const DISABLED_HOLD_LIMIT: u64 = 100;
+/// A repaired body stands up slowly before it acts again.
+pub(crate) const REPAIR_RECOVERY_TICKS: u64 = 20;
+/// Recovery after a snapped channel, and after a completed one.
+const CHANNEL_SNAP_TICKS: u64 = 12;
+const CHANNEL_DONE_TICKS: u64 = 10;
+
+/// Repair restores a disabled bot body, never a person.
+pub(crate) fn repairable(kind: EnemyKind) -> bool {
+    matches!(kind, EnemyKind::Sweeper | EnemyKind::HeavySweeper)
+}
+
 impl EnemyController {
+    pub(super) fn kind(&self) -> EnemyKind {
+        self.kind
+    }
+
+    pub(super) fn phase(&self) -> EnemyPhase {
+        self.phase
+    }
+
+    pub(super) fn phase_started(&self) -> u64 {
+        self.started
+    }
+
+    pub(super) fn phase_ends(&self) -> u64 {
+        self.until
+    }
+
+    pub(super) fn repairs_left(&self) -> u8 {
+        self.repairs_left
+    }
+
+    pub(super) fn channel_target(&self) -> Option<Uuid> {
+        self.channel_target
+            .filter(|_| self.phase == EnemyPhase::Channeling)
+    }
+
+    /// Free to begin a channel: not mid-attack, stunned or recovering.
+    pub(super) fn can_channel(&self, tick: u64) -> bool {
+        self.kind == EnemyKind::Auditor
+            && self.repairs_left > 0
+            && match self.phase {
+                EnemyPhase::Idle | EnemyPhase::Moving => true,
+                EnemyPhase::Recovery | EnemyPhase::Hit => tick >= self.until,
+                _ => false,
+            }
+    }
+
+    pub(super) fn start_channel(&mut self, body: Uuid, tick: u64, duration: u64) {
+        self.shots_left = 0;
+        self.target = None;
+        self.channel_target = Some(body);
+        self.enter(EnemyPhase::Channeling, tick, duration);
+    }
+
+    /// Broken sight, a missing body or an occupied spot ends the channel
+    /// without spending a repair.
+    pub(super) fn snap_channel(&mut self, tick: u64) {
+        self.channel_target = None;
+        self.enter(EnemyPhase::Recovery, tick, CHANNEL_SNAP_TICKS);
+    }
+
+    pub(super) fn complete_channel(&mut self, tick: u64) {
+        self.channel_target = None;
+        self.repairs_left = self.repairs_left.saturating_sub(1);
+        self.enter(EnemyPhase::Recovery, tick, CHANNEL_DONE_TICKS);
+    }
+
+    /// Keep a disabled body while a channel reaches it; otherwise its own
+    /// presentation window applies.
+    pub(super) fn hold_disabled(&mut self, until: Option<u64>) {
+        if self.phase == EnemyPhase::Dead {
+            self.until = until.map_or(self.dead_until, |held| held.max(self.dead_until));
+        }
+    }
+
+    /// A repaired bot stands up at the given health, ready after a recovery.
+    pub(super) fn repaired(&mut self, tick: u64, hp: i32) {
+        self.last_hp = hp;
+        self.target = None;
+        self.shots_left = 0;
+        self.stagger_ready = true;
+        self.contact_used = false;
+        self.photograph_pending = None;
+        self.enter(EnemyPhase::Recovery, tick, REPAIR_RECOVERY_TICKS);
+    }
+
     pub fn new(
         id: Uuid,
         kind: EnemyKind,
@@ -240,6 +357,13 @@ impl EnemyController {
             hover_tick: None,
             landed: false,
             photograph_pending: None,
+            repairs_left: if kind == EnemyKind::Auditor {
+                crate::protocol::AUDITOR_REPAIRS
+            } else {
+                0
+            },
+            channel_target: None,
+            dead_until: tick,
         }
     }
 
@@ -273,9 +397,12 @@ impl EnemyController {
         if self.phase == EnemyPhase::Dead {
             return;
         }
+        // Any damaging hit snaps a repair channel.
+        self.channel_target = None;
         if died {
             self.shots_left = 0;
             self.enter(EnemyPhase::Dead, tick, 40);
+            self.dead_until = self.until;
         } else if !armored(self.kind) {
             self.shots_left = 0;
             self.enter(EnemyPhase::Hit, tick, stun(self.kind));
@@ -384,6 +511,20 @@ impl EnemyController {
         let mut action = Action::default();
         if matches!(self.phase, EnemyPhase::Hit | EnemyPhase::Recovery) && tick < self.until {
             return BotIntent::default();
+        }
+        if self.phase == EnemyPhase::Channeling {
+            // The Auditor holds still and faces the body, plate away from a flank.
+            if let Some(body) = self
+                .channel_target
+                .and_then(|id| state.players.iter().find(|p| p.id == id))
+            {
+                if let Some(aim) = aim_at(eye, [body.x, body.y - PLAYER_FLOOR_Y + 0.4, body.z]) {
+                    action.yaw = Some(aim.0);
+                    action.pitch = Some(aim.1);
+                    self.head = aim.0;
+                }
+            }
+            return BotIntent { action, goal: None };
         }
         if self.kind == EnemyKind::HeavySweeper
             && self.phase == EnemyPhase::Recovery

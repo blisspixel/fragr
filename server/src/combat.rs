@@ -19,6 +19,29 @@ pub fn is_notary(identity: Option<CampaignActor>) -> bool {
     )
 }
 
+/// An Auditor holding a repair channel on a disabled body.
+pub fn channeling(identity: Option<CampaignActor>) -> bool {
+    matches!(
+        identity,
+        Some(CampaignActor::Union {
+            kind: EnemyKind::Auditor,
+            phase: crate::protocol::EnemyPhase::Channeling,
+            ..
+        })
+    )
+}
+
+/// Engagement order shared by every controller: a channeling Auditor comes
+/// before any nearer hostile, so agents break a repair before it lands.
+/// Otherwise nearer is first. Compare keys with `engagement_before`.
+pub fn engagement_key(identity: Option<CampaignActor>, distance: f32) -> (bool, f32) {
+    (!channeling(identity), distance)
+}
+
+pub fn engagement_before(a: (bool, f32), b: (bool, f32)) -> bool {
+    (!a.0 && b.0) || (a.0 == b.0 && a.1 < b.1)
+}
+
 pub fn target_height(identity: Option<CampaignActor>) -> f32 {
     if is_notary(identity) {
         return NOTARY_HEIGHT;
@@ -292,6 +315,30 @@ mod tests {
 
     fn ray(origin: [f32; 3], direction: [f32; 3]) -> Ray {
         Ray { origin, direction }
+    }
+
+    #[test]
+    fn a_channeling_auditor_is_engaged_before_any_nearer_hostile() {
+        let union = |kind, phase| {
+            Some(CampaignActor::Union {
+                kind,
+                phase,
+                phase_started: 0,
+                phase_ends: 0,
+                seated: false,
+            })
+        };
+        let channel = union(EnemyKind::Auditor, crate::protocol::EnemyPhase::Channeling);
+        let idle = union(EnemyKind::Auditor, crate::protocol::EnemyPhase::Idle);
+        let sweeper = union(EnemyKind::Sweeper, crate::protocol::EnemyPhase::Windup);
+        assert!(channeling(channel));
+        assert!(!channeling(idle) && !channeling(sweeper) && !channeling(None));
+        let far_channel = engagement_key(channel, 15.0);
+        let near_sweeper = engagement_key(sweeper, 3.0);
+        assert!(engagement_before(far_channel, near_sweeper));
+        assert!(!engagement_before(near_sweeper, far_channel));
+        assert!(engagement_before(near_sweeper, engagement_key(idle, 4.0)));
+        assert!(!engagement_before(far_channel, far_channel));
     }
 
     #[test]

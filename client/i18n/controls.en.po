@@ -112,6 +112,9 @@ msgstr "USE"
 msgid "ACTION_THROW_GRENADE"
 msgstr "THROW GRENADE"
 
+msgid "ACTION_PLACE_MINE"
+msgstr "PLACE MINE"
+
 msgid "ACTION_WEAPON_NEXT"
 msgstr "NEXT WEAPON"
 

@@ -245,7 +245,158 @@ impl Encounters {
         }
     }
 
+    /// Living Auditors' repair budgets and current channels, for the snapshot.
+    pub(crate) fn auditor_states(&self) -> Vec<crate::protocol::AuditorState> {
+        self.enemies
+            .iter()
+            .filter(|(_, enemy)| {
+                enemy.kind() == EnemyKind::Auditor && enemy.phase() != EnemyPhase::Dead
+            })
+            .map(|(_, enemy)| crate::protocol::AuditorState {
+                id: enemy.id,
+                repairs_left: enemy.repairs_left(),
+                channel_target: enemy.channel_target(),
+            })
+            .collect()
+    }
+
+    /// Auditor repair channels, before this tick's intents: snap, complete or
+    /// start a channel, then hold every reached disabled body until it ends.
+    fn advance_repairs(&mut self, state: &mut GameState) {
+        if !self
+            .enemies
+            .iter()
+            .any(|(_, enemy)| enemy.kind() == EnemyKind::Auditor)
+        {
+            return;
+        }
+        let tick = state.tick.saturating_add(1);
+        let duration = enemy::channel_ticks(state.campaign_rules().difficulty);
+        let arena = state.current_arena().into_owned();
+        for index in 0..self.enemies.len() {
+            let (group, ref auditor) = self.enemies[index];
+            if auditor.kind() != EnemyKind::Auditor
+                || !matches!(self.groups.get(group), Some(Group::Active { .. }))
+            {
+                continue;
+            }
+            let Some(me) = state
+                .players
+                .iter()
+                .find(|p| p.id == auditor.id && p.hp > 0)
+            else {
+                continue;
+            };
+            let eye = [
+                me.x,
+                me.y - PLAYER_FLOOR_Y + crate::combat::eye_height(me.campaign),
+                me.z,
+            ];
+            let reaches = |body: &Player| {
+                let point = [body.x, body.y - PLAYER_FLOOR_Y + 0.4, body.z];
+                body.hp <= 0
+                    && (point[0] - eye[0]).hypot(point[2] - eye[2]) <= enemy::REPAIR_RANGE
+                    && crate::combat::line_of_sight(eye, point, &arena.solids)
+            };
+            if auditor.phase() == EnemyPhase::Channeling {
+                let body = auditor
+                    .channel_target()
+                    .and_then(|id| state.players.iter().find(|p| p.id == id))
+                    .filter(|body| reaches(body));
+                let Some(body) = body else {
+                    self.enemies[index].1.snap_channel(tick);
+                    continue;
+                };
+                if tick < auditor.phase_ends() {
+                    continue;
+                }
+                // A living body standing on the disabled one blocks the repair.
+                let occupied = state.players.iter().any(|p| {
+                    p.id != body.id
+                        && p.hp > 0
+                        && (p.x - body.x).hypot(p.z - body.z) < crate::movement::RADIUS * 2.0
+                        && (p.y - body.y).abs() < crate::movement::BODY_HEIGHT
+                });
+                let body_id = body.id;
+                let Some(reached) = self
+                    .enemies
+                    .iter()
+                    .position(|(_, enemy)| enemy.id == body_id)
+                else {
+                    self.enemies[index].1.snap_channel(tick);
+                    continue;
+                };
+                if occupied {
+                    self.enemies[index].1.snap_channel(tick);
+                    continue;
+                }
+                let hp = enemy::body(self.enemies[reached].1.kind()).0 / 2;
+                self.enemies[reached].1.repaired(tick, hp);
+                self.enemies[index].1.complete_channel(tick);
+                if let Some(player) = state.players.iter_mut().find(|p| p.id == body_id) {
+                    player.hp = hp;
+                    player.vy = 0.0;
+                    player.respawn_timer = None;
+                    player.clear_input();
+                    player.inventory.release_trigger();
+                }
+                tracing::info!(auditor = %self.enemies[index].1.id, body = %body_id, "Auditor repair completed");
+                continue;
+            }
+            if !auditor.can_channel(tick) {
+                continue;
+            }
+            let taken: Vec<Uuid> = self
+                .enemies
+                .iter()
+                .filter_map(|(_, enemy)| enemy.channel_target())
+                .collect();
+            let candidate = self
+                .enemies
+                .iter()
+                .filter(|(other, enemy)| {
+                    *other == group
+                        && enemy.phase() == EnemyPhase::Dead
+                        && enemy::repairable(enemy.kind())
+                        && !taken.contains(&enemy.id)
+                        // A held body never outlasts its disabled presentation
+                        // bound: the whole channel must finish inside it.
+                        && tick + duration < enemy.phase_started() + enemy::DISABLED_HOLD_LIMIT
+                })
+                .filter_map(|(_, enemy)| state.players.iter().find(|p| p.id == enemy.id))
+                .filter(|body| reaches(body))
+                .min_by(|a, b| {
+                    (a.x - eye[0])
+                        .hypot(a.z - eye[2])
+                        .total_cmp(&(b.x - eye[0]).hypot(b.z - eye[2]))
+                })
+                .map(|body| body.id);
+            if let Some(body) = candidate {
+                self.enemies[index].1.start_channel(body, tick, duration);
+                tracing::info!(auditor = %self.enemies[index].1.id, %body, "Auditor repair channel started");
+            }
+        }
+        let holds: Vec<(Uuid, u64)> = self
+            .enemies
+            .iter()
+            .filter_map(|(_, enemy)| {
+                enemy
+                    .channel_target()
+                    .map(|body| (body, enemy.phase_ends().saturating_add(1)))
+            })
+            .collect();
+        for (_, enemy) in &mut self.enemies {
+            let held = holds
+                .iter()
+                .filter(|(body, _)| *body == enemy.id)
+                .map(|(_, until)| *until)
+                .max();
+            enemy.hold_disabled(held);
+        }
+    }
+
     pub fn intents(&mut self, state: &mut GameState) -> Vec<(Uuid, BotIntent)> {
+        self.advance_repairs(state);
         let snapshot = state.snapshot();
         let mut actions = Vec::with_capacity(self.enemies.len());
         for (group, enemy) in &mut self.enemies {

@@ -44,6 +44,7 @@ var action_state = {
 	"jump": false,
 	"interact": false,
 	"throw_grenade": false,
+	"place_mine": false,
 	"weapon_swap": null,
 	"yaw": 0.0,
 	"pitch": 0.0,
@@ -63,6 +64,8 @@ var pending_interact: bool = false
 var interact_held: bool = false
 var pending_throw: bool = false
 var throw_armed: bool = true
+var pending_place: bool = false
+var place_armed: bool = true
 var mission_hud: MissionHud
 var m02_ward: M02Ward
 var m03_yard: M03Yard
@@ -90,6 +93,7 @@ var _record_save_warning: bool = false
 var role_transition: bool = false
 var shot_effects: ShotEffects = null
 var grenade_effects: GrenadeEffects
+var auditor_channels: AuditorChannels
 var last_shot_tick: int = -1
 var mouse_capture: MouseCapture
 var local_match: LocalMatch
@@ -136,6 +140,10 @@ func _ready():
 		if is_human_player and owner_id == str(net_client.player_id):
 			hud.show_grenade_throw())
 	add_child(grenade_effects)
+	auditor_channels = AuditorChannels.new()
+	auditor_channels.name = "AuditorChannels"
+	auditor_channels.pawns = players
+	add_child(auditor_channels)
 	jammer_audio = JammerAudio.new()
 	jammer_audio.name = "JammerAudio"
 	add_child(jammer_audio)
@@ -272,8 +280,12 @@ func _release_retired_environments() -> void:
 func _on_map_info(info: Dictionary) -> void:
 	if grenade_effects != null:
 		grenade_effects.reset()
+	if auditor_channels != null:
+		auditor_channels.reset()
 	pending_throw = false
 	throw_armed = false
+	pending_place = false
+	place_armed = false
 	_reset_crawler_cues()
 	if jammer_audio != null:
 		jammer_audio.reset()
@@ -411,12 +423,14 @@ func _on_opening_completed() -> void:
 	pending_jump = false
 	pending_throw = false
 	throw_armed = false
+	pending_place = false
+	place_armed = false
 	pending_interact = false
 	interact_held = false
 	pending_weapon_swap = null
 
 func _opening_input_released() -> bool:
-	for action: String in ["ui_accept", "ui_cancel", "fire", "jump", "interact", "throw_grenade", "move_forward", "move_back", "move_left", "move_right"]:
+	for action: String in ["ui_accept", "ui_cancel", "fire", "jump", "interact", "throw_grenade", "place_mine", "move_forward", "move_back", "move_left", "move_right"]:
 		if Input.is_action_pressed(action):
 			return false
 	return true
@@ -620,6 +634,8 @@ func _try_continue(event: InputEvent) -> bool:
 			pending_interact = false
 			pending_throw = false
 			throw_armed = false
+			pending_place = false
+			place_armed = false
 			pending_weapon_swap = null
 			interact_held = false
 			return true
@@ -672,12 +688,18 @@ func _input(_event):
 		interact_held = false
 	if _event.is_action_released("throw_grenade"):
 		throw_armed = true
+	if _event.is_action_released("place_mine"):
+		place_armed = true
 	if controls_blocked():
 		pending_throw = false
 		throw_armed = false
+		pending_place = false
+		place_armed = false
 		return
 	if is_human_player and throw_armed and _event.is_action_pressed("throw_grenade") and not _event.is_echo():
 		pending_throw = true
+	if is_human_player and place_armed and _event.is_action_pressed("place_mine") and not _event.is_echo():
+		pending_place = true
 	if is_human_player and _event.is_action_pressed("jump"):
 		pending_jump = true
 	if is_human_player and _event.is_action_pressed("interact"):
@@ -709,6 +731,8 @@ func change_role(play: bool) -> void:
 	pending_interact = false
 	pending_throw = false
 	throw_armed = false
+	pending_place = false
+	place_armed = false
 	interact_held = false
 	net_client.leave_match()
 	is_human_player = play
@@ -798,6 +822,8 @@ func _reset_prediction_for_connection(reason: String) -> void:
 	pending_interact = false
 	pending_throw = false
 	throw_armed = false
+	pending_place = false
+	place_armed = false
 
 
 func _apply_local_prediction() -> void:
@@ -837,6 +863,9 @@ func _send_local_action(now_usec: int) -> bool:
 	if not Input.is_action_pressed("throw_grenade") and not pending_throw:
 		throw_armed = true
 	action_state.throw_grenade = throw_armed and (pending_throw or Input.is_action_pressed("throw_grenade"))
+	if not Input.is_action_pressed("place_mine") and not pending_place:
+		place_armed = true
+	action_state.place_mine = place_armed and (pending_place or Input.is_action_pressed("place_mine"))
 	# Client-owned yaw: the server takes the absolute facing and never turns
 	# us at a fixed rate, so the look axis does not round-trip. Turn bits stay
 	# zero for humans and remain the path for agents and older clients.
@@ -849,7 +878,9 @@ func _send_local_action(now_usec: int) -> bool:
 		pending_interact = false
 		pending_throw = false
 		throw_armed = false
-		for key in ["forward", "back", "left", "right", "fire", "jump", "interact", "throw_grenade"]:
+		pending_place = false
+		place_armed = false
+		for key in ["forward", "back", "left", "right", "fire", "jump", "interact", "throw_grenade", "place_mine"]:
 			action_state[key] = false
 		pending_weapon_swap = null
 	action_state.turn_left = false
@@ -877,6 +908,7 @@ func _send_local_action(now_usec: int) -> bool:
 		pending_jump = false
 		pending_interact = false
 		pending_throw = false
+		pending_place = false
 		pending_weapon_swap = null
 	return true
 
@@ -940,6 +972,8 @@ func _offer_m05_departure() -> bool:
 	interact_held = false
 	pending_throw = false
 	throw_armed = false
+	pending_place = false
+	place_armed = false
 	return true
 
 func _close_departure_review() -> void:
@@ -981,6 +1015,8 @@ func _on_interlude_completed() -> void:
 	pending_interact = false
 	pending_throw = false
 	throw_armed = false
+	pending_place = false
+	place_armed = false
 	interact_held = false
 	pending_weapon_swap = null
 
@@ -1130,6 +1166,8 @@ func _clear_world() -> void:
 	_close_departure_review()
 	if grenade_effects != null:
 		grenade_effects.reset()
+	if auditor_channels != null:
+		auditor_channels.reset()
 	local_prediction.reset("disconnect", true)
 	if jammer_audio != null:
 		jammer_audio.reset()
@@ -1158,6 +1196,8 @@ func _clear_world() -> void:
 	pending_interact = false
 	pending_throw = false
 	throw_armed = false
+	pending_place = false
+	place_armed = false
 	interact_held = false
 	if mission_hud != null:
 		mission_hud.apply({}, "")
@@ -1208,6 +1248,8 @@ func _refresh_equipment_visibility() -> void:
 func _on_snapshot_received(data):
 	if grenade_effects != null:
 		grenade_effects.apply(data, camera.global_position if camera != null else Vector3(NAN, NAN, NAN))
+	if auditor_channels != null:
+		auditor_channels.apply(data)
 	ack_probe.record_snapshot(data.get("tick"), Time.get_ticks_usec())
 	latest_snapshot = data
 	_apply_map_from_snapshot(data)

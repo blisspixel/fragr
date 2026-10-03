@@ -212,6 +212,17 @@ impl RuntimeMap {
         !self.encounters().is_empty()
     }
 
+    /// Content that needs the custody capability: a placed Auditor or a
+    /// proximity mine supply.
+    pub fn has_custody_devices(&self) -> bool {
+        self.encounters().iter().any(|encounter| {
+            encounter
+                .enemies
+                .iter()
+                .any(|enemy| enemy.kind == crate::protocol::EnemyKind::Auditor)
+        }) || matches!(self, Self::Authored(map) if map.supplies.iter().any(|supply| matches!(supply.kind, crate::sim::PickupKind::ProximityMine { .. })))
+    }
+
     pub fn equipment_policy(&self) -> crate::protocol::EquipmentPolicy {
         match self {
             Self::BuiltIn(_) => crate::protocol::EquipmentPolicy::FullArsenal,

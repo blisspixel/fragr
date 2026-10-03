@@ -116,6 +116,7 @@ const ACT_ALLOWED_KEYS: &[&str] = &[
     "fire",
     "interact",
     "throw_grenade",
+    "place_mine",
     "weapon_swap",
     "look_at",
 ];
@@ -295,6 +296,12 @@ pub fn validate_act_arguments(arguments: &Value) -> Result<Action, String> {
             Some(value) => value
                 .as_bool()
                 .ok_or("schema error: throw_grenade must be a boolean")?,
+        },
+        place_mine: match obj.get("place_mine") {
+            None => false,
+            Some(value) => value
+                .as_bool()
+                .ok_or("schema error: place_mine must be a boolean")?,
         },
         weapon_swap,
         look_at,
@@ -669,7 +676,7 @@ fn tools_list_result() -> Value {
             },
             {
                 "name": "act",
-                "description": "Send ordinary input. Movement and fire are held until changed. weapon_swap is consumed once; later omitted fields do not erase a pending selection. interact and throw_grenade latch rising edges, so release before another press. Weapon selection requires ownership. look_at aims in three dimensions.",
+                "description": "Send ordinary input. Movement and fire are held until changed. weapon_swap is consumed once; later omitted fields do not erase a pending selection. interact, throw_grenade and place_mine latch rising edges, so release before another press. Weapon selection requires ownership. look_at aims in three dimensions.",
                 "inputSchema": {
                     "type": "object",
                     "properties": {
@@ -684,6 +691,7 @@ fn tools_list_result() -> Value {
                         "weapon_swap": {"type": "string", "enum": ["fists", "shiv", "tack", "flechette", "rail", "scatter"], "description": "Select an owned weapon. The Shiv is found melee and needs no ammunition"},
                         "interact": {"type": "boolean", "description": "Press to use an aimed mission panel when observe supplies your prompt. Release before another press. In sabotage, hold true while standing still: the charge carrier inside a site plants in 3 s, a defender at the planted charge defuses in 6 s. Any movement, release or damage loses the progress."},
                         "throw_grenade": {"type": "boolean", "description": "Press to throw one counted hand grenade along current aim. Release before another press. Independent of selected gun, with a fixed two-second fuse."},
+                        "place_mine": {"type": "boolean", "description": "Press to throw one counted proximity mine along current aim. It sticks to the first surface, arms after two seconds, then trips when a body comes within two metres, including yours. Release before another press. Independent of selected gun."},
                         "look_at": {
                             "type": "object",
                             "description": "Aim at player_id (preferred) or world x/z with optional y. Missing y aims horizontally.",
@@ -1114,6 +1122,14 @@ pub fn ingest_server_text(state: &mut ToolState, text: &str) -> Result<(), &'sta
             state.record = Some(record);
         }
         Ok(protocol::ServerMessage::Snapshot(snapshot)) => {
+            // A malformed placed device leaves the last valid observation.
+            if snapshot
+                .mines
+                .iter()
+                .any(|mine| mine.validate(snapshot.tick).is_err())
+            {
+                return Ok(());
+            }
             if let Ok(snapshot_value) = serde_json::to_value(snapshot) {
                 state.last_snapshot = Some(snapshot_value);
             }
@@ -1444,6 +1460,57 @@ mod mcp_tests {
             observed["mission"]["m04"]["completed"],
             serde_json::json!([])
         );
+    }
+
+    #[test]
+    fn custody_range_observation_carries_placed_mines_and_auditor_budgets() {
+        let map = fragr_server::maps::AuthoredMap::load(
+            &std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+                .join("../server/maps/test/custody-range.json"),
+        )
+        .unwrap();
+        let mut sim = fragr_server::sim::GameState::with_authored_map(map);
+        let id = Uuid::from_u128(92);
+        sim.add_player(id, "Free agent".into(), protocol::Role::Agent);
+        let mut state = ToolState {
+            player_id: Some(id),
+            connected: true,
+            ..Default::default()
+        };
+        ingest_server_text(&mut state, &serde_json::to_string(&sim.map_info()).unwrap()).unwrap();
+        // Walk into the audit bay so its Auditor is placed, then press the
+        // ordinary placement through the same validated act arguments.
+        let place = validate_act_arguments(&serde_json::json!({"place_mine": true})).unwrap();
+        assert!(place.place_mine);
+        for _ in 0..3 {
+            sim.tick(0.05);
+        }
+        let snapshot = protocol::ServerMessage::Snapshot(sim.snapshot());
+        ingest_server_text(&mut state, &serde_json::to_string(&snapshot).unwrap()).unwrap();
+        let observed = build_observe_result(&state);
+        let auditors = observed["auditors"].as_array().unwrap();
+        assert_eq!(auditors.len(), 1);
+        assert_eq!(auditors[0]["repairs_left"], 2);
+        assert!(auditors[0].get("channel_target").is_none());
+        assert!(
+            observed.get("mines").is_none(),
+            "omitted while nothing is placed"
+        );
+        let mut forged = serde_json::to_value(&snapshot).unwrap();
+        forged["mines"] = serde_json::json!([{"id":1,"owner_id":id,"position":[0,1,0],
+            "normal":[0,1,0],"phase":"armed","phase_started":0,"phase_ends":0,"extra":true}]);
+        ingest_server_text(&mut state, &forged.to_string()).unwrap();
+        assert!(build_observe_result(&state).get("mines").is_none());
+        forged["mines"][0].as_object_mut().unwrap().remove("extra");
+        forged["mines"][0]["phase"] = serde_json::json!("arming");
+        ingest_server_text(&mut state, &forged.to_string()).unwrap();
+        assert!(
+            build_observe_result(&state).get("mines").is_none(),
+            "an empty arming window is refused"
+        );
+        forged["mines"][0]["phase_ends"] = serde_json::json!(40);
+        ingest_server_text(&mut state, &forged.to_string()).unwrap();
+        assert_eq!(build_observe_result(&state)["mines"][0]["phase"], "arming");
     }
 
     #[test]
@@ -1814,6 +1881,7 @@ mod mcp_tests {
         ] {
             assert!(validate_act_arguments(&serde_json::json!({"interact":value})).is_err());
             assert!(validate_act_arguments(&serde_json::json!({"throw_grenade":value})).is_err());
+            assert!(validate_act_arguments(&serde_json::json!({"place_mine":value})).is_err());
         }
         assert!(
             validate_act_arguments(&serde_json::json!({"throw_grenade":true}))
@@ -1824,6 +1892,13 @@ mod mcp_tests {
             !validate_act_arguments(&serde_json::json!({"throw_grenade":false}))
                 .unwrap()
                 .throw_grenade
+        );
+        let placed = validate_act_arguments(&serde_json::json!({"place_mine":true})).unwrap();
+        assert!(placed.place_mine && !placed.throw_grenade);
+        assert!(
+            !validate_act_arguments(&serde_json::json!({"place_mine":false}))
+                .unwrap()
+                .place_mine
         );
         assert!(ingest_server_text(&mut state, r#"{"type":"mission","state":[]}"#).is_err());
         let legacy = fragr_server::sim::GameState::new().map_info();
@@ -2163,6 +2238,7 @@ mod mcp_tests {
         let properties = act["inputSchema"]["properties"].as_object().unwrap();
         assert!(properties.contains_key("fire") && properties.contains_key("weapon_swap"));
         assert_eq!(properties["throw_grenade"]["type"], "boolean");
+        assert_eq!(properties["place_mine"]["type"], "boolean");
         assert!(
             !properties.contains_key("reload"),
             "no magazines, so there is nothing to reload"

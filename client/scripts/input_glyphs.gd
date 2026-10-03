@@ -27,6 +27,7 @@ const TOKENS: Dictionary = {
 	"pause": "pause",
 	"fire": "fire",
 	"grenade": "throw_grenade",
+	"mine": "place_mine",
 	"jump": "jump",
 	"join": "join_as_human",
 	"leave": "leave_match",

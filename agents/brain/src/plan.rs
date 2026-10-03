@@ -673,13 +673,17 @@ fn micro_action_with_visibility(
     let weapon_swap = plan.weapon.filter(|w| *w != held);
     let fire_range = weapon_swap.unwrap_or(held).range_units();
     let mut nearest: Option<(f32, Uuid, f32, f32)> = None;
+    let mut nearest_key = (true, f32::MAX);
     for other in &snapshot.players {
         if !mine.is_hostile_to(other) || !visible(mine, other) {
             continue;
         }
         let dist = ((other.x - mine.x).powi(2) + (other.z - mine.z).powi(2)).sqrt();
-        if nearest.is_none_or(|(d, _, _, _)| dist < d) {
+        // A channeling Auditor comes first: break the repair before it lands.
+        let key = fragr_server::combat::engagement_key(other.campaign, dist);
+        if nearest.is_none() || fragr_server::combat::engagement_before(key, nearest_key) {
             nearest = Some((dist, other.id, other.x, other.z));
+            nearest_key = key;
         }
     }
     let (left, right) = strafe(snapshot.tick);
@@ -843,6 +847,7 @@ mod tests {
             personal_claims: vec![],
             dry_fire_count: 0,
             grenades: 0,
+            proximity_mines: 0,
         };
         let through_inventory = |snap: &Snapshot| {
             fragr_server::inventory::control_action_with_target_filter(

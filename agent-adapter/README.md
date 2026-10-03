@@ -13,7 +13,8 @@ and the map version in observations, and closes its MCP game session if a map
 has unsupported or invalid geometry, or the server sends malformed JSON.
 Ground-filled legacy maps remain readable.
 
-The adapter declares gameplay capability 27. M06 Port of Entry requires 27
+The adapter declares gameplay capability 29. Maps that place a campaign
+Auditor or grant proximity mines require 29. M06 Port of Entry requires 27
 for its strict lunar mission envelope; M01 through M05, development or durable,
 retain 26 for campaign rules revision 3, including
 M05 No Forwarding Address and counted hand grenades. Earlier live mission
@@ -56,6 +57,20 @@ cover. `observe.grenades` reports live position and remaining fuse ticks;
 `observe.explosions` reports resolved per-victim HP, armor and death evidence.
 Grenade record counts have their own column; the six weapon slots retain their
 indices. Self damage never awards a self frag.
+
+`act.place_mine: true` throws one carried proximity mine along the current aim,
+with the same rising-edge latch as a grenade. It sticks to the first surface,
+arms for two seconds, then trips when a body comes within two metres in clear
+sight, the placer included. `observe.loadout.proximity_mines` counts carried
+mines (omitted while zero, four at most); `observe.mines` reports each placed
+mine's surface normal, phase and phase window; its blast appears in
+`observe.explosions` with radius 4.5. Mines have their own record column. A
+malformed mine fact leaves the last valid observation in place.
+
+`observe.auditors` lists living campaign Auditors with `repairs_left` and, while
+channeling, the `channel_target` disabled body. Hit the Auditor or break its
+sight to snap the channel; the shared controllers engage a channeling Auditor
+before any nearer hostile.
 
 `observe.players[].collidable` is the server's Boolean living-body eligibility.
 Dead, detached, respawning, eliminated or unready campaign bodies do not block

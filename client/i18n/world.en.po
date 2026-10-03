@@ -658,6 +658,9 @@ msgid "M05_LAUNCH_PROTOTYPE"
 msgstr "Launch selected prototype"
 msgid "RECORD_GRENADES"
 msgstr "GRENADES"
+
+msgid "RECORD_MINES"
+msgstr "MINES"
 msgid "M05_DEPARTURE_REVIEW"
 msgstr "COMMON CARRIER / PASSENGER CHECK"
 

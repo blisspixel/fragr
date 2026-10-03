@@ -14,15 +14,23 @@ mod rules;
 mod sabotage;
 mod statistics;
 mod status;
-pub use actors::{hostile, CampaignActor, CompanionKind, CompanionPhase, EnemyKind, EnemyPhase};
+pub use actors::{
+    hostile, AuditorState, CampaignActor, CompanionKind, CompanionPhase, EnemyKind, EnemyPhase,
+    AUDITOR_REPAIRS,
+};
 pub use body::BodyKind;
 pub use decoration::{
     validate_decorations, MapDecoration, MapDecorationKind, MapFace, MAX_MAP_DECORATIONS,
     MAX_MAP_LIGHTS,
 };
-pub use explosive::{ExplosionHit, ExplosionResult, GrenadeState};
+pub use explosive::{
+    ExplosionHit, ExplosionResult, GrenadeState, MinePhase, MineState, MINE_ARMING_TICKS,
+    MINE_TRIP_TICKS,
+};
 pub(crate) use loadout::validate_equipment;
-pub use loadout::{AmmoCount, AmmoPool, EquipmentPolicy, LoadoutState, SupplyClaim};
+pub use loadout::{
+    AmmoCount, AmmoPool, EquipmentPolicy, LoadoutState, SupplyClaim, MINE_CARRY_CAP,
+};
 pub use m04::{
     M04ClinicGeometry, M04MapGeometry, M04ObjectiveState, M04PatientGeometry, M04PatientState,
     M04_OBJECTIVE_IDS,
@@ -622,7 +630,11 @@ pub const M06_GAMEPLAY_VERSION: u32 = 27;
 /// Sabotage sites, charge, round state and results. A Sabotage server requires
 /// it for every role so no reader shows a round without its objective.
 pub const SABOTAGE_GAMEPLAY_VERSION: u32 = 28;
-pub const GAMEPLAY_VERSION: u32 = SABOTAGE_GAMEPLAY_VERSION;
+/// The found Proximity Mine (`place_mine`, `proximity_mines`, snapshot `mines`,
+/// record `mines`) and the repairing `auditor` with its `channeling` phase.
+/// Required only where a map grants mines or places an Auditor.
+pub const CUSTODY_GAMEPLAY_VERSION: u32 = 29;
+pub const GAMEPLAY_VERSION: u32 = CUSTODY_GAMEPLAY_VERSION;
 pub fn legacy_gameplay_version() -> u32 {
     1
 }
@@ -973,6 +985,9 @@ pub struct Action {
     /// Rising-edge counted grenade throw, independent of selected weapon.
     #[serde(default, skip_serializing_if = "is_false")]
     pub throw_grenade: bool,
+    /// Rising-edge proximity mine placement, independent of selected weapon.
+    #[serde(default, skip_serializing_if = "is_false")]
+    pub place_mine: bool,
     #[serde(default)]
     pub weapon_swap: Option<WeaponType>,
     /// Target aim takes precedence after movement: player body centre or world
@@ -1105,6 +1120,11 @@ pub struct Snapshot {
     pub projectiles: Vec<ProjectileState>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub grenades: Vec<GrenadeState>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub mines: Vec<MineState>,
+    /// Living campaign Auditors and their repair channels.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub auditors: Vec<AuditorState>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub explosions: Vec<ExplosionResult>,
     /// Contested Frequency (scrap league that denies it exists).
@@ -1543,6 +1563,8 @@ mod protocol_tests {
             shot_results: vec![shot.clone()],
             projectiles: vec![],
             grenades: Vec::new(),
+            mines: Vec::new(),
+            auditors: Vec::new(),
             explosions: Vec::new(),
             mode_name: default_mode_name(),
             playlist: default_playlist(),
@@ -1723,6 +1745,8 @@ mod protocol_tests {
             shot_results: vec![],
             projectiles: vec![],
             grenades: Vec::new(),
+            mines: Vec::new(),
+            auditors: Vec::new(),
             explosions: Vec::new(),
             mode_name: default_mode_name(),
             playlist: default_playlist(),

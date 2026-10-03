@@ -240,3 +240,14 @@ $0. No paid image, audio, model or cloud request runs on this track.
 ## Progress
 
 Plan written before source work.
+
+### Handoff, 2026-10-02
+
+- Plan merged in [PR #319](https://github.com/blisspixel/fragr/pull/319).
+- Milestone B in flight on `feat/l08-custodian`: server mine (`sim/mine.rs`),
+  shared blast resolution, mine count, pickup and records column, Auditor
+  channel, hold, repair and plate, range map 1014, agent priority and
+  `place_mine` in the adapter are implemented with focused tests passing.
+  Client readers, mine and channel presentation, HUD count, input and records
+  are written; `test_custody_devices` passes. Next: rerun the touched
+  harnesses, protocol and adapter docs, full gates, then open the PR.

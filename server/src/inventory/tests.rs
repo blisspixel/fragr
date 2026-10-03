@@ -335,3 +335,35 @@ fn the_cells_cap_is_one_hundred_rail_shots() {
     );
     assert!(!inventory.grant_weapon(WeaponType::Rail));
 }
+
+#[test]
+fn proximity_mines_have_their_own_capped_count_and_wire_field() {
+    let mut inventory = Inventory::new(EquipmentPolicy::Discovery);
+    assert!(!inventory.try_place_mine());
+    assert_eq!(view(&inventory, WeaponType::Fists, 0).proximity_mines, 0);
+    let quiet = serde_json::to_value(view(&inventory, WeaponType::Fists, 0)).unwrap();
+    assert!(quiet.get("proximity_mines").is_none(), "omitted while zero");
+    assert_eq!(inventory.grant_mines(100), crate::protocol::MINE_CARRY_CAP);
+    assert_eq!(inventory.grant_mines(1), 0);
+    assert_eq!(inventory.grenades(), 0, "grenades stay separate");
+    let state = view(&inventory, WeaponType::Fists, 1);
+    assert_eq!(state.proximity_mines, 4);
+    let json = serde_json::to_value(&state).unwrap();
+    assert_eq!(json["proximity_mines"], 4);
+    let mut bad = state.clone();
+    bad.proximity_mines = 5;
+    assert!(bad.validate().is_err());
+    assert!(serde_json::from_value::<LoadoutState>(json).unwrap() == state);
+    let entry = inventory.clone();
+    assert!(inventory.try_place_mine());
+    assert_eq!(inventory.mines(), 3);
+    inventory.restore_entry(&entry);
+    assert_eq!(inventory.mines(), 4);
+    // Saved entries carry no mines yet, so a disk restore clears them.
+    let saved = inventory.saved_equipment(WeaponType::Fists).unwrap();
+    inventory.restore_saved_equipment(&saved).unwrap();
+    assert_eq!(inventory.mines(), 0);
+    let mut restricted = Inventory::restricted(WeaponType::Rail);
+    assert_eq!(restricted.grant_mines(4), 0);
+    assert!(!restricted.try_place_mine());
+}

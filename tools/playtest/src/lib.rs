@@ -1646,7 +1646,14 @@ pub fn reflex_action(bot_id: Uuid, snapshot: &Snapshot, arena: &Arena) -> Action
             continue;
         }
         let dist = ((other.x - me.x).powi(2) + (other.z - me.z).powi(2)).sqrt();
-        if nearest.is_none_or(|(d, _)| dist < d) {
+        // A channeling Auditor comes first: break the repair before it lands.
+        let key = fragr_server::combat::engagement_key(other.campaign, dist);
+        if nearest.is_none_or(|(d, held)| {
+            fragr_server::combat::engagement_before(
+                key,
+                fragr_server::combat::engagement_key(held.campaign, d),
+            )
+        }) {
             nearest = Some((dist, other));
         }
     }
@@ -2570,6 +2577,8 @@ mod tests {
             shot_results: Vec::new(),
             projectiles: Vec::new(),
             grenades: Vec::new(),
+            mines: Vec::new(),
+            auditors: Vec::new(),
             explosions: Vec::new(),
             mode_name: "Contested Frequency".to_string(),
             playlist: "Arena Duel".to_string(),
@@ -3490,6 +3499,8 @@ mod combat_tests {
             shot_results: shots,
             projectiles: Vec::new(),
             grenades: Vec::new(),
+            mines: Vec::new(),
+            auditors: Vec::new(),
             explosions: Vec::new(),
             mode_name: "Contested Frequency".to_string(),
             playlist: "Arena Duel".to_string(),
@@ -4061,6 +4072,8 @@ mod planner_tests {
             shot_results: Vec::new(),
             projectiles: Vec::new(),
             grenades: Vec::new(),
+            mines: Vec::new(),
+            auditors: Vec::new(),
             explosions: Vec::new(),
             mode_name: "Contested Frequency".to_string(),
             playlist: "Arena Duel".to_string(),
@@ -4572,6 +4585,8 @@ mod line_of_sight_tests {
             shot_results: Vec::new(),
             projectiles: Vec::new(),
             grenades: Vec::new(),
+            mines: Vec::new(),
+            auditors: Vec::new(),
             explosions: Vec::new(),
             mode_name: "Contested Frequency".to_string(),
             playlist: "Arena Duel".to_string(),

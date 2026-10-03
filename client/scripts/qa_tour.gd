@@ -1165,6 +1165,15 @@ func _capture_strip(state: Dictionary, frames: int, file_name: String) -> void:
 				await RenderingServer.frame_post_draw
 		if state.get("single_shot", false):
 			Input.action_release("fire")
+	if trigger == "place_mine":
+		# The ordinary default key; the strip then records stick, arming and blink.
+		var place: InputEventKey = InputEventKey.new()
+		place.physical_keycode = KEY_B
+		place.pressed = true
+		Input.parse_input_event(place)
+		var lift: InputEventKey = place.duplicate()
+		lift.pressed = false
+		Input.parse_input_event(lift)
 	if trigger == "throw_grenade":
 		_begin_grenade_strip(state.get("grenade_follow", false))
 		var press: InputEventKey = InputEventKey.new()

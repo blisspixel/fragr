@@ -165,6 +165,9 @@ msgstr "+{amount} ARMOR"
 msgid "PICKUP_GRENADES"
 msgstr "+{amount} GRENADES"
 
+msgid "PICKUP_MINES"
+msgstr "+{amount} MINES"
+
 msgid "PICKUP_SUPPLY"
 msgstr "SUPPLY"
 

@@ -169,7 +169,7 @@ func _run() -> void:
 	display.visible = true
 	display._process(0.0)
 	_check(display.counts.text == "0" and display.glyph_pool == "bullets" and display.counts.modulate != Color.WHITE, "an empty pistol shows a dimmed bullet and a red zero")
-	_check(display.get_child_count() == 2 and not display.grenade_counts.visible, "gun number and independent hidden grenade counter, no caption words")
+	_check(display.get_child_count() == 3 and not display.grenade_counts.visible and not display.mine_counts.visible, "gun number and independent hidden grenade and mine counters, no caption words")
 	var stocked: Dictionary = state.duplicate(true)
 	stocked["grenades"] = 4
 	display.apply(stocked)

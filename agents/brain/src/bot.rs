@@ -1449,6 +1449,7 @@ mod tests {
             personal_claims: vec![],
             dry_fire_count: 0,
             grenades: 0,
+            proximity_mines: 0,
         };
         loadout.validate_for(Some(id), None).unwrap();
         let mut proposed = Plan {

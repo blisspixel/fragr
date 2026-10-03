@@ -179,12 +179,13 @@ the option. Final multi-tier encounter and resource balance remains unfinished.
   `id`, supported and reachable `feet`, `claim` (`personal` or `contested`) and
   a strict `grant`: `{"kind":"weapon","weapon":"tack"}`,
   `{"kind":"ammo","pool":"bullets","amount":20}` (pools `bullets`, `shells`,
-  `cells`), or `health`/`armor` with
+  `cells`), `{"kind":"grenade","amount":2}` (1 through 6),
+  `{"kind":"proximity_mine","amount":2}` (1 through 4), or `health`/`armor` with
   `amount` from 1 through 100. Ammo amounts cannot exceed pool caps in `WEAPONS.md`.
   Fists cannot be a grant; `"weapon":"shiv"` grants the pool-less Shiv and no
   ammunition. An optional `"secret": true` marks an optional find: its claim
   event carries `secret`, the claimant sees a quiet cue, and the record counts
-  it once per run. Personal claims are only for weapons; each participant
+  it once per run. Personal claims are only for weapons, grenades and mines; each participant
   can claim each once per development life. Contested supplies have one winner.
   Campaign stock (maps with encounters or a mission) stays consumed until the
   authoritative party reset; arcade practice retains timed pickup respawns.
@@ -196,7 +197,7 @@ the option. Final multi-tier encounter and resource balance remains unfinished.
   `enemies`, and optional `after` naming an earlier group. Each region is an
   inclusive feet-position box with finite ordered `min`/`max` bounds inside the
   map. Each enemy has a unique `id`, `kind` (`clerk`, `sweeper`, `heavy_sweeper`,
-  `turret`, `crawler` or `jammer`), supported and
+  `turret`, `crawler`, `jammer`, `notary` or `auditor`), supported and
   reachable `feet`, and bounded `yaw`, just like a spawn. Unknown fields are
   rejected. No scripts or arbitrary behavior expressions. These maps require
   gameplay capability 3. See [actor semantics](../../docs/protocol.md#campaign-actor-identity).
@@ -212,6 +213,13 @@ the option. Final multi-tier encounter and resource balance remains unfinished.
   every role, including counted private grenade inventory. Run it with `--bots 0 --map-file
   server/maps/test/jammer-range.json` and capture with `client/qa/jammer-range.json`.
   It is a development combat range, not Scheduled Service or a persistent mission.
+  `test/custody-range.json` (map 1014) demonstrates the Proximity Mine and the
+  Auditor: a cage of four mines in a one-entrance alcove whose bent corridor
+  hides its mouth from two dispatched post Sweepers, and an audit bay where an
+  Auditor repairs a disabled Sweeper behind pillar cover. It requires capability
+  29. Run it with `--bots 0 --map-file server/maps/test/custody-range.json` and
+  capture with `client/qa/custody-range.json`. It is a development range, not
+  level 8.
 - `mission`: optional, discovery only, requires capability 6 for shared difficulty
   and party readiness, or 7 when the host selects solo run rules. The registered
   `id` is `recall_notice`. `record` and `departure` each contain `panel` (the same

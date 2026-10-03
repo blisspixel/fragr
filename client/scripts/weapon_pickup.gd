@@ -38,6 +38,7 @@ const COLORS = {
 	"health": Color(0.62, 0.22, 0.20),     # dried blood
 	"armor": Color(0.48, 0.44, 0.38),      # scrap gunmetal
 	"grenade": Color(0.60, 0.56, 0.36),    # olive casing
+	"proximity_mine": Color(0.46, 0.50, 0.44), # grey puck, amber lamp
 	"golden_rail": Color(1.0, 0.8, 0.28),  # the one golden Railgun
 }
 
@@ -104,6 +105,8 @@ func _label_text() -> String:
 		return tr("PICKUP_ARMOR") if amount <= 0 else tr("PICKUP_ARMOR_AMOUNT").format({"amount": amount})
 	if pickup_kind == "grenade":
 		return tr("PICKUP_GRENADES").format({"amount": amount})
+	if pickup_kind == "proximity_mine":
+		return tr("PICKUP_MINES").format({"amount": amount})
 	if pickup_kind == "golden_rail":
 		return tr("PICKUP_GOLDEN_RAIL")
 	if weapon_name != "":
@@ -119,6 +122,8 @@ func _tint() -> Color:
 		return COLORS["armor"]
 	if pickup_kind == "grenade":
 		return COLORS["grenade"]
+	if pickup_kind == "proximity_mine":
+		return COLORS["proximity_mine"]
 	if pickup_kind == "golden_rail":
 		return COLORS["golden_rail"]
 	return COLORS.get(weapon_name, Color(0.7, 0.68, 0.64))

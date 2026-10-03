@@ -8,7 +8,24 @@ pub const FUSE_TICKS: u32 = 40;
 pub const THROW_COOLDOWN: u32 = 15;
 pub const RADIUS: f32 = 0.12;
 pub const BLAST_RADIUS: f32 = 4.0;
-const CONTACT_EPSILON: f32 = 0.0002;
+pub(super) const CONTACT_EPSILON: f32 = 0.0002;
+
+/// One resolved detonation, shared by grenades and placed mines.
+pub(super) struct Blast {
+    pub id: u32,
+    pub owner_id: Uuid,
+    pub position: [f32; 3],
+    pub radius: f32,
+    /// Raw damage at the centre, falling linearly to zero at `radius`.
+    pub peak: f32,
+    pub source: BlastSource,
+}
+
+#[derive(Clone, Copy, PartialEq, Eq)]
+pub(super) enum BlastSource {
+    Grenade,
+    Mine,
+}
 
 pub(super) struct Grenade {
     pub id: u32,
@@ -18,6 +35,43 @@ pub(super) struct Grenade {
     fuse_ticks: u32,
     launched_at: u64,
     bounce_count: u32,
+}
+
+impl Grenade {
+    fn blast(&self) -> Blast {
+        Blast {
+            id: self.id,
+            owner_id: self.owner_id,
+            position: self.position,
+            radius: BLAST_RADIUS,
+            peak: 100.0,
+            source: BlastSource::Grenade,
+        }
+    }
+}
+
+#[cfg(test)]
+impl GameState {
+    fn resolve_explosion(&mut self, grenade: &Grenade, arena: &Arena) {
+        self.resolve_blast(&grenade.blast(), arena);
+    }
+
+    /// A grenade-sized blast resolved against the current world, for tests
+    /// outside the simulation module.
+    pub(crate) fn test_blast(&mut self, owner: Uuid, position: [f32; 3], radius: f32, peak: f32) {
+        let arena = self.current_arena().into_owned();
+        self.resolve_blast(
+            &Blast {
+                id: u32::MAX,
+                owner_id: owner,
+                position,
+                radius,
+                peak,
+                source: BlastSource::Grenade,
+            },
+            &arena,
+        );
+    }
 }
 
 impl GameState {
@@ -119,18 +173,18 @@ impl GameState {
             advance(grenade, dt.clamp(0.0, crate::movement::DT_LIVE), &arena);
             grenade.fuse_ticks = grenade.fuse_ticks.saturating_sub(1);
             if grenade.fuse_ticks == 0 {
-                self.resolve_explosion(grenade, &arena);
+                self.resolve_blast(&grenade.blast(), &arena);
             }
         }
         live.retain(|grenade| grenade.fuse_ticks > 0);
         self.grenades = live;
     }
 
-    fn resolve_explosion(&mut self, grenade: &Grenade, arena: &Arena) {
+    pub(super) fn resolve_blast(&mut self, blast: &Blast, arena: &Arena) {
         let Some(owner) = self
             .players
             .iter()
-            .position(|player| player.id == grenade.owner_id)
+            .position(|player| player.id == blast.owner_id)
         else {
             return;
         };
@@ -148,11 +202,10 @@ impl GameState {
                 continue;
             }
             let feet = [player.x, player.y - PLAYER_FLOOR_Y, player.z];
-            let point = closest_body_point(grenade.position, feet, player.campaign);
-            let distance = distance(grenade.position, point);
-            let damage = (100.0 * (1.0 - distance / BLAST_RADIUS)).floor() as i32;
-            if damage <= 0 || !crate::combat::line_of_sight(grenade.position, point, &arena.solids)
-            {
+            let point = closest_body_point(blast.position, feet, player.campaign);
+            let distance = distance(blast.position, point);
+            let damage = (blast.peak * (1.0 - distance / blast.radius)).floor() as i32;
+            if damage <= 0 || !crate::combat::line_of_sight(blast.position, point, &arena.solids) {
                 continue;
             }
             let (hp, armor, died) = self.resolve_fighter_hit(owner, target, damage, None);
@@ -173,20 +226,22 @@ impl GameState {
                 kills += u64::from(died);
             }
         }
-        self.players[owner]
-            .statistics
-            .grenade_hit(hp_total, armor_total, kills);
+        let statistics = &mut self.players[owner].statistics;
+        match blast.source {
+            BlastSource::Grenade => statistics.grenade_hit(hp_total, armor_total, kills),
+            BlastSource::Mine => statistics.mine_hit(hp_total, armor_total, kills),
+        }
         self.explosion_results.push(ExplosionResult {
-            id: grenade.id,
-            owner_id: grenade.owner_id,
-            position: grenade.position,
-            radius: BLAST_RADIUS,
+            id: blast.id,
+            owner_id: blast.owner_id,
+            position: blast.position,
+            radius: blast.radius,
             hits,
         });
     }
 }
 
-fn distance(a: [f32; 3], b: [f32; 3]) -> f32 {
+pub(super) fn distance(a: [f32; 3], b: [f32; 3]) -> f32 {
     a.iter()
         .zip(b)
         .map(|(a, b)| (a - b).powi(2))
@@ -194,7 +249,7 @@ fn distance(a: [f32; 3], b: [f32; 3]) -> f32 {
         .sqrt()
 }
 
-fn closest_body_point(
+pub(super) fn closest_body_point(
     origin: [f32; 3],
     feet: [f32; 3],
     identity: Option<crate::protocol::CampaignActor>,
@@ -225,7 +280,7 @@ fn inflated(solid: &Solid) -> Solid {
     }
 }
 
-fn clear_sphere(position: [f32; 3], arena: &Arena) -> bool {
+pub(super) fn clear_sphere(position: [f32; 3], arena: &Arena) -> bool {
     position.iter().all(|v| v.is_finite())
         && position[1] >= RADIUS
         && position[0].abs() <= arena.half - RADIUS
@@ -243,6 +298,42 @@ fn inside(p: [f32; 3], s: &Solid) -> bool {
         && p[1] <= s.top
         && p[2] >= s.min_z
         && p[2] <= s.max_z
+}
+
+/// Earliest contact of a small sphere along `ray` within `range`: the
+/// radius-expanded solids, the floor and the finite bounds.
+pub(super) fn first_contact(
+    ray: &crate::combat::Ray,
+    range: f32,
+    arena: &Arena,
+) -> Option<crate::combat::SurfaceHit> {
+    let mut contact = arena
+        .solids
+        .iter()
+        .filter_map(|s| ray.solid(&inflated(s), range))
+        .min_by(|a, b| a.distance.total_cmp(&b.distance));
+    // Bounds and floor are finite inward-facing collision planes.
+    for (axis, plane, normal_sign) in [
+        (1, RADIUS, 1.0),
+        (0, arena.half - RADIUS, -1.0),
+        (0, -arena.half + RADIUS, 1.0),
+        (2, arena.half - RADIUS, -1.0),
+        (2, -arena.half + RADIUS, 1.0),
+    ] {
+        if ray.direction[axis] * normal_sign >= 0.0 {
+            continue;
+        }
+        let t = (plane - ray.origin[axis]) / ray.direction[axis];
+        if t >= 0.0 && t <= range && contact.is_none_or(|hit| t < hit.distance) {
+            let mut normal = [0.0; 3];
+            normal[axis] = normal_sign;
+            contact = Some(crate::combat::SurfaceHit {
+                distance: t,
+                normal,
+            });
+        }
+    }
+    contact
 }
 
 fn advance(grenade: &mut Grenade, dt: f32, arena: &Arena) {
@@ -268,33 +359,7 @@ fn advance(grenade: &mut Grenade, dt: f32, arena: &Arena) {
                 origin: grenade.position,
                 direction: grenade.velocity.map(|v| v / length),
             };
-            let mut contact = arena
-                .solids
-                .iter()
-                .filter_map(|s| ray.solid(&inflated(s), range))
-                .min_by(|a, b| a.distance.total_cmp(&b.distance));
-            // Bounds and floor are finite inward-facing collision planes.
-            for (axis, plane, normal_sign) in [
-                (1, RADIUS, 1.0),
-                (0, arena.half - RADIUS, -1.0),
-                (0, -arena.half + RADIUS, 1.0),
-                (2, arena.half - RADIUS, -1.0),
-                (2, -arena.half + RADIUS, 1.0),
-            ] {
-                if ray.direction[axis] * normal_sign >= 0.0 {
-                    continue;
-                }
-                let t = (plane - grenade.position[axis]) / ray.direction[axis];
-                if t >= 0.0 && t <= range && contact.is_none_or(|hit| t < hit.distance) {
-                    let mut normal = [0.0; 3];
-                    normal[axis] = normal_sign;
-                    contact = Some(crate::combat::SurfaceHit {
-                        distance: t,
-                        normal,
-                    });
-                }
-            }
-            let Some(hit) = contact else {
+            let Some(hit) = first_contact(&ray, range, arena) else {
                 grenade.position = ray.point(range);
                 break;
             };

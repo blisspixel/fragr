@@ -529,3 +529,48 @@ fn grenade_record_column_defaults_zero_and_keeps_legacy_shape_and_aggregate_boun
     counts.alive_ticks = 1;
     assert!(counts.validate().is_err());
 }
+
+#[test]
+fn mine_record_column_is_separate_from_grenades_and_omitted_while_empty() {
+    let mut counts = CombatCounts {
+        alive_ticks: 4,
+        ..Default::default()
+    };
+    let old = serde_json::to_value(&counts).unwrap();
+    assert!(old.get("mines").is_none());
+    counts.mines = crate::protocol::WeaponCounts {
+        attacks: 2,
+        damaging_attacks: 1,
+        kills: 2,
+        hp_damage: 160,
+        armor_damage: 0,
+    };
+    counts.grenades.attacks = 1;
+    assert_eq!(counts.attacks(), 3);
+    assert_eq!(counts.kills(), 2);
+    counts.validate().unwrap();
+    let value = serde_json::to_value(&counts).unwrap();
+    assert_eq!(value["mines"]["kills"], 2);
+    assert_eq!(value["grenades"]["attacks"], 1);
+    assert_eq!(
+        serde_json::from_value::<CombatCounts>(value).unwrap(),
+        counts
+    );
+    let empty = serde_json::from_value::<CombatCounts>(old).unwrap();
+    assert!(counts.contains(&empty));
+    assert!(!empty.contains(&counts));
+    counts.mines.damaging_attacks = 3;
+    assert!(
+        counts.validate().is_err(),
+        "more damaging placements than placements"
+    );
+    counts.mines.damaging_attacks = 1;
+    counts.mines.kills = 257;
+    assert!(counts.validate().is_err());
+    counts.mines.kills = 2;
+    counts.alive_ticks = 2;
+    assert!(
+        counts.validate().is_err(),
+        "more attacks than active frames"
+    );
+}
