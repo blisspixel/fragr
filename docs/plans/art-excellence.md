@@ -466,7 +466,7 @@ those requests produced sources, not a finished roster or twelve complete kits.
 The proposed allowances include iteration and remain uncertain until accepted
 assets establish a usable-output rate. A $500 planning target can be reviewed in
 $50-$100 production batches, each composed of tool runs within the existing
-$5 ceiling. No additional allowance has been approved. Existing sources support
+$5 ceiling. No $500-$1,000 allowance has been approved. Existing sources support
 continued local integration without another deposit.
 
 Higgsfield's verified API supplies images and ElevenLabs supplies audio. A
@@ -477,6 +477,28 @@ mesh work. The [official API overview](https://www.meshy.ai/api), checked
 credit and its dollar conversion before submitting anything. The
 [upstream pricing table](https://docs.meshy.ai/en/api/pricing) separates models,
 rigging and animation. Existing Higgsfield credit is not a proven way to fund
-those operations, and the new service retains its written spend-approval gate.
+those operations; additional purchases retain their written spend-approval gate.
 More generation alone does not establish visual quality: modeling, motion,
 lighting, populated rooms and played comparison remain the production work.
+
+### Meshy account check
+
+Nick subsequently selected Premium for fragr ($40 per month, $20 for the first
+month) and configured the `meshy` credential entry in the ignored `.env`.
+The [documented balance endpoint](https://docs.meshy.ai/en/api/balance) returned
+HTTP 200 and 3,100 available API credits on 2026-10-03. A one-off read-only check
+accepted his entry; it submitted no generation jobs and recorded no credential.
+Receipt: `.agents/art-playthrough-20261003/meshy-api-check-20261003.json`.
+The [plan guide](https://help.meshy.ai/en/articles/12062933-which-meshy-plan-is-right-for-you-free-vs-pro-vs-premium-vs-ultra)
+lists API access on all paid individual tiers. Premium supplies production
+capacity; its subscription tier does not establish model quality. The provider's
+pages disagree on Ultra's allowance, so no Ultra credit count is assumed.
+
+The three-asset pilot remains planned: one enemy, one weapon and one environmental
+prop, within 150 existing credits and the existing $5 run ceiling. Before jobs,
+extend the native developer pipeline with exact credit prices, durable reservations,
+bounded polling/downloads and GLB import validation. Reuse the existing image
+references, budget and receipt seams. Do not enable additional purchases or
+top-ups. API authentication and balance are verified; generation access, usable
+geometry, rig quality and in-game acceptance are not yet proven. Preserve
+required legal notices and verify the paid output terms before packaging models.
