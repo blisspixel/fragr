@@ -5,6 +5,10 @@ owns faction palettes, environments and rendering style; [cast](lore/cast.md#vis
 owns recurring-character anchors. `plans/art-pipeline.md` and
 `plans/look-pass-boomer.md` describe intended production, not completed tooling.
 Existing assets and their manifests outrank historical inventory labels below.
+The current [October 3 production library](../client/art/production-20261003/README.md)
+and [mesh sources](../client/art/models/README.md) record actual new files,
+selection and remaining conversion work. The older frame counts below are
+targets, not a current completion report.
 The twelve campaign kits and characters remain unbuilt; see
 [mission kit ownership](CAMPAIGN-MISSIONS.md#art-and-sound-production-by-environment).
 

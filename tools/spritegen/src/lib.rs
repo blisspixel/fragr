@@ -24,6 +24,7 @@
 //! carries a `params` object, the tool adds the prompt, and the provider
 //! validates the rest.
 
+pub mod api_check;
 pub mod generation;
 pub mod ledger;
 pub mod reduce;
@@ -154,6 +155,8 @@ pub struct Frame {
     /// for that and for a transparent background in the same breath is a
     /// contradiction, and the model resolves contradictions by ignoring one.
     pub technical: String,
+    /// Explicit avoidance language for reference/material work; old specs keep NEGATIVE.
+    pub negative: String,
     /// Model parameters, already merged from the spec defaults.
     pub params: Map<String, Value>,
 }
@@ -181,7 +184,11 @@ impl Frame {
             .filter(|part| !part.is_empty())
             .collect::<Vec<_>>()
             .join(", ");
-        format!("{positive}. Avoid: {NEGATIVE}.")
+        if self.negative.trim().is_empty() {
+            format!("{positive}.")
+        } else {
+            format!("{positive}. Avoid: {}.", self.negative.trim())
+        }
     }
 
     /// The request body: the spec's parameters with the prompt added.
@@ -235,6 +242,16 @@ pub fn parse_spec(text: &str) -> Result<Spec, Error> {
         .and_then(Value::as_str)
         .unwrap_or(TECHNICAL)
         .to_string();
+    let negative = |value: Option<&Value>| -> Result<String, Error> {
+        match value {
+            None => Ok(NEGATIVE.to_string()),
+            Some(Value::String(text)) if text.len() <= 16 * 1024 => Ok(text.clone()),
+            _ => Err(Error::Spec(
+                "negative must be a string of at most 16 KiB".into(),
+            )),
+        }
+    };
+    let default_negative = negative(root.get("negative"))?;
 
     let raw_frames = root
         .get("frames")
@@ -284,6 +301,10 @@ pub fn parse_spec(text: &str) -> Result<Spec, Error> {
                 .get("technical")
                 .and_then(Value::as_str)
                 .map_or_else(|| default_technical.clone(), str::to_string),
+            negative: match raw.get("negative") {
+                None => default_negative.clone(),
+                value => negative(value)?,
+            },
             params,
         });
     }
@@ -640,6 +661,7 @@ mod tests {
             view: "side profile".into(),
             style: STYLE.to_string(),
             technical: TECHNICAL.to_string(),
+            negative: NEGATIVE.to_string(),
             params: Map::new(),
         }
     }
@@ -678,6 +700,28 @@ mod tests {
         fn download(&self, _url: &str) -> Result<Vec<u8>, Error> {
             Ok(vec![1, 2, 3])
         }
+    }
+
+    #[test]
+    fn reference_negatives_are_explicit_and_legacy_requests_stay_identical() {
+        let legacy = parse_spec(r#"{"model":"m/v1","out_dir":"out","frames":[{"id":"a","subject":"a rusted pistol","view":"side profile"}]}"#).unwrap();
+        assert_eq!(legacy.frames[0].body(), frame("a").body());
+        let reference = parse_spec(r#"{"model":"m/v1","out_dir":"out","style":"detailed model reference","technical":"neutral studio","negative":"watermark, signature","frames":[{"id":"a","subject":"robot"},{"id":"b","subject":"gun","negative":""}]}"#).unwrap();
+        assert_eq!(
+            reference.frames[0].prompt(),
+            "detailed model reference, robot, neutral studio. Avoid: watermark, signature."
+        );
+        assert!(!reference.frames[0].prompt().contains("3d render"));
+        assert_eq!(
+            reference.frames[1].prompt(),
+            "detailed model reference, gun, neutral studio."
+        );
+        for invalid in ["null", "[]", "23", "true"] {
+            assert!(parse_spec(&format!(r#"{{"model":"m","out_dir":"out","negative":{invalid},"frames":[{{"id":"a","subject":"s"}}]}}"#)).is_err());
+            assert!(parse_spec(&format!(r#"{{"model":"m","out_dir":"out","frames":[{{"id":"a","subject":"s","negative":{invalid}}}]}}"#)).is_err());
+        }
+        let oversized = serde_json::json!({"model":"m","out_dir":"out","negative":"x".repeat(16385),"frames":[{"id":"a","subject":"s"}]});
+        assert!(parse_spec(&oversized.to_string()).is_err());
     }
 
     #[test]

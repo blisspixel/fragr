@@ -1,0 +1,55 @@
+{
+  "model": "marketing-studio/image",
+  "out_dir": "art/raw/production-20261003/batch-14",
+  "params": {
+    "quality": "high",
+    "resolution": "4k",
+    "aspect_ratio": "1:1",
+    "enhance_prompt": false
+  },
+  "style": "Original professional game production art, practical retro futurism circa 2070, exceptional carefully maintained industrial design, restrained tactile materials, sharp details suitable for deliberate pixel reduction, no copied franchise designs",
+  "frames": [
+    {
+      "id": "character_sweeper",
+      "subject": "Union standard security robot, humanoid dark graphite plated steel chassis, narrow rectangular red optical slit, sloped segmented chest, protected neck gimbal, black joint boots, battery backpack, sparse red issue strips and bone mechanical service trim, plausible competent issued equipment",
+      "technical": "One coherent complete original character in relaxed neutral A-pose where anatomically possible, front three-quarter orthographic studio view, plain mid-grey background, generous margin including feet, clear readable silhouette and mechanical articulation, no text",
+      "negative": "watermarks, signatures, logos, historical political insignia, neon cyberpunk, decorative fantasy spikes, illegible writing, blur, oversaturation, cheap toy forms"
+    },
+    {
+      "id": "character_ranged_sweeper",
+      "subject": "Union precision security robot, lean graphite industrial humanoid with one protected antenna, narrow red optical slit, reinforced cheek housing, neck gimbal, small bone service panels, restrained red issue strips, precision rifle separate on floor",
+      "technical": "One coherent complete original character in relaxed neutral A-pose where anatomically possible, front three-quarter orthographic studio view, plain mid-grey background, generous margin including feet, clear readable silhouette and mechanical articulation, no text",
+      "negative": "watermarks, signatures, logos, historical political insignia, neon cyberpunk, decorative fantasy spikes, illegible writing, blur, oversaturation, cheap toy forms"
+    },
+    {
+      "id": "character_heavy_sweeper",
+      "subject": "Union heavy security robot, broad graphite plated chassis, head inset between broad shoulder shells, visible articulated mechanical joints, battery and ammunition backpack, original rotary cannon separate on floor, restrained red and bone issue details",
+      "technical": "One coherent complete original character in relaxed neutral A-pose where anatomically possible, front three-quarter orthographic studio view, plain mid-grey background, generous margin including feet, clear readable silhouette and mechanical articulation, no text",
+      "negative": "watermarks, signatures, logos, historical political insignia, neon cyberpunk, decorative fantasy spikes, illegible writing, blur, oversaturation, cheap toy forms"
+    },
+    {
+      "id": "character_crawler",
+      "subject": "Union low crawling suppression robot, four low articulated legs, charcoal service steel segmented carapace, narrow red optic, compact mechanical abdomen, lean predatory machine silhouette, practical actuators and bolted shell",
+      "technical": "One coherent complete original character in relaxed neutral A-pose where anatomically possible, front three-quarter orthographic studio view, plain mid-grey background, generous margin including feet, clear readable silhouette and mechanical articulation, no text",
+      "negative": "watermarks, signatures, logos, historical political insignia, neon cyberpunk, decorative fantasy spikes, illegible writing, blur, oversaturation, cheap toy forms"
+    },
+    {
+      "id": "character_jammer",
+      "subject": "Union electronic custody robot, practical dark graphite narrow humanoid chassis, protected antenna array on service backpack, red status slit, bone shielded equipment covers and restrained red issue strips, credible electronics not fantasy",
+      "technical": "One coherent complete original character in relaxed neutral A-pose where anatomically possible, front three-quarter orthographic studio view, plain mid-grey background, generous margin including feet, clear readable silhouette and mechanical articulation, no text",
+      "negative": "watermarks, signatures, logos, historical political insignia, neon cyberpunk, decorative fantasy spikes, illegible writing, blur, oversaturation, cheap toy forms"
+    },
+    {
+      "id": "character_auditor",
+      "subject": "Union human command auditor, ordinary competent adult in graphite protective uniform and bone frontal armor, two small red repair channel lamps on issued backpack, visible human face and open helmet, original equipment and restrained insignia",
+      "technical": "One coherent complete original character in relaxed neutral A-pose where anatomically possible, front three-quarter orthographic studio view, plain mid-grey background, generous margin including feet, clear readable silhouette and mechanical articulation, no text",
+      "negative": "watermarks, signatures, logos, historical political insignia, neon cyberpunk, decorative fantasy spikes, illegible writing, blur, oversaturation, cheap toy forms"
+    },
+    {
+      "id": "character_notary",
+      "subject": "Union flying administrative enforcement drone, dark graphite rectangular body, four enclosed ducted lift fans, bone service shells, narrow red optical slit, mechanical front shutter, credible gimbals and wiring, no futuristic floating magic",
+      "technical": "One coherent complete original character in relaxed neutral A-pose where anatomically possible, front three-quarter orthographic studio view, plain mid-grey background, generous margin including feet, clear readable silhouette and mechanical articulation, no text",
+      "negative": "watermarks, signatures, logos, historical political insignia, neon cyberpunk, decorative fantasy spikes, illegible writing, blur, oversaturation, cheap toy forms"
+    }
+  ]
+}

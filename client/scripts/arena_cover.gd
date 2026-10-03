@@ -176,6 +176,10 @@ func _add_solid(solid: Dictionary, material: Material = null) -> void:
 	node.mesh = mesh
 	node.position = Vector3((min_x + max_x) * 0.5, bottom + height * 0.5, (min_z + max_z) * 0.5)
 	node.material_override = material if material != null else _materials[3 if top <= LOW_TOP else 2]
+	if material is ShaderMaterial and height >= 2.6 and minf(size_x, size_z) <= 1.5 and maxf(size_x, size_z) >= 2.4:
+		node.mesh = ArchitectureMesh.wall(Vector3(size_x, height, size_z))
+	elif material is ShaderMaterial and bottom >= 2.5 and height >= 0.25 and height <= 1.0 and minf(size_x, size_z) >= 4.0:
+		node.mesh = ArchitectureMesh.ceiling(Vector3(size_x, height, size_z))
 	add_child(node)
 
 ## Only the registered tram solid and its surface panels move. The baseline

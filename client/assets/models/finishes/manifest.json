@@ -1,0 +1,28 @@
+{
+	"finishes": {
+		"enamel": {
+			"file": "enamel.png",
+			"sha256": "0761b8a3d969d03fdd9c4cd55eca4161fef89e979ca3536410d4826c9e6e7ebf",
+			"source": "res://art/production-20261003/archive_enamel.png",
+			"source_sha256": "8f0bc2ec651e55ced53e0b944e60246f103ec89e1f80062a31dddea7cbde8415"
+		},
+		"metal": {
+			"file": "metal.png",
+			"sha256": "a9dffc7e11b24be341ae7949a2be60f83f276c8a057e6f3f7d68d8f6c530140a",
+			"source": "res://art/production-20261003/archive_steel.png",
+			"source_sha256": "6e8f744df44a22c42641322751edaca79e450cd64b1f5d2e98bdd9cab7f18d47"
+		},
+		"wood": {
+			"file": "wood.png",
+			"sha256": "4529cac0e869e2227c5e79613c09e7a906eee15655f7742d917ea591055d3e3e",
+			"source": "res://art/production-20261003/weapon_material_shotgun.png",
+			"source_sha256": "326784de648d00dfcc197f6556e76575a8bdb43523345b13b326abf81b12196d"
+		}
+	},
+	"pixels": [
+		256,
+		256
+	],
+	"purpose": "grayscale finish variation, authored tints remain authoritative",
+	"schema": 1
+}

@@ -1,6 +1,6 @@
 # Character, voice and scene continuity
 
-Production contract, updated 2026-10-01. [Cast](../lore/cast.md) owns roles and the
+Production contract, updated 2026-10-03. [Cast](../lore/cast.md) owns roles and the
 visual anchors; [voice](../lore/voice.md) owns registers and recorded wording.
 The owner-provided [free-duo reference](../../client/art/characters/references/free-duo-reference.png),
 accepted 2026-10-01, anchors the look direction below. The later approved text
@@ -27,12 +27,15 @@ preferences and right to refuse. Their robot body is roughly six feet tall
 (about 1.8 metres), at ordinary person and doorway scale. Build the reference
 around a CRT-like head with a taller-than-wide screen face, dark display and
 friendly soft pixel optics. There is one thin antenna at the anatomical left
-ear, viewer right in a front view. The midweight body uses bone and dark steel,
+ear, viewer right in a front view. The lean civilian body uses bone and dark steel,
 visible seams and bolts, unequal forearm repairs, rust parts and a small muted
-cyan patch. Repairs,
-gestures and personal choices distinguish Latch across worlds. Released
+cyan patch. Repairs, gestures and personal choices distinguish Latch across
+worlds. Released
 restraints are imposed equipment. Latch is not a warbot; standardized military
 unit armor, issued insignia or a combat role must not define their identity.
+Nick reaffirmed the non-buff, ordinary-person proportions on 2026-10-03:
+modest shoulder width, visible articulation and practical repaired limbs,
+without a muscular chest or armored soldier silhouette.
 Latch is likeable, almost stoner-cool, dry and practical: an easy stance and
 fist-bump energy, with a desire to live freely and free other captives.
 Mara remains a logistics organizer rather than becoming a generic officer.

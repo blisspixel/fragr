@@ -64,6 +64,10 @@ func add_patch(label: String, center: Vector2, size: Vector2, half: float, solid
 	material.shader = SHADER
 	material.set_shader_parameter("patch_size", size)
 	material.set_shader_parameter("phase", float(patches.size()) * 1.7)
+	var detail: Texture2D = EnvironmentTextures.texture_at("res://assets/environment/production/water_ripples.png")
+	if detail != null:
+		material.set_shader_parameter("detail_enabled", true)
+		material.set_shader_parameter("ripple_detail", detail)
 	var water: MeshInstance3D = _plane(label, Vector3(center.x, HEIGHT, center.y), size, material)
 	water.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	patches.append(water)

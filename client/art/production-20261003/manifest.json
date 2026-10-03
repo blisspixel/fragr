@@ -1,0 +1,2218 @@
+{
+	"assets": [
+		{
+			"estimated_usd": 0.62,
+			"file": "union_concrete.png",
+			"id": "union_concrete",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "runtime material source for union",
+			"request_id": "8f5d43e6-cbdb-4011-9bdf-d1aafcde2a4d",
+			"sha256": "c92d401758f3e520c3ebf47e7c18b8eb7e7ba9e359c90e6a450a68cd78c64348",
+			"source_sha256": "5a4ba67c19093fefed2a80da83560c78f939fe4fa0d4d484457d11620968fdcf",
+			"spec": "tools/spritegen/specs/production-20261003/batch-01.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.62,
+			"file": "union_enamel.png",
+			"id": "union_enamel",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "runtime material source for union",
+			"request_id": "160f863b-045b-432b-a557-bf875ec5eded",
+			"sha256": "8e40341e490887e8bf2301b33d386d63893db939e341bc379ea575fbc251fe02",
+			"source_sha256": "655841185526a420e8fc6a6a2363ef3db772fbc5a0baf0c605963dd9d2cd384d",
+			"spec": "tools/spritegen/specs/production-20261003/batch-01.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.62,
+			"file": "union_steel.png",
+			"id": "union_steel",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "runtime material source for union",
+			"request_id": "e56016de-6621-460b-ac54-8c24ca17e4d9",
+			"sha256": "12e96ed75e155426fb6e39bceee62fc1f3cb5aa9fd8b8572bac3eb3b9c70c7aa",
+			"source_sha256": "52399833ccc7ea0e958f7a301dba7f40b3dfb2390da61b9660962851e4f86a4e",
+			"spec": "tools/spritegen/specs/production-20261003/batch-01.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.62,
+			"file": "union_floor.png",
+			"id": "union_floor",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "runtime material source for union",
+			"request_id": "ae1f9321-3b30-437b-b456-31d61d76b7bc",
+			"sha256": "835b6eed0b4c5818d925b02ccef74c59c43597952988624a3cfb54b6cc1576bf",
+			"source_sha256": "6b6002dbb0373b13cd6ae061640d39f2014eb9de47e274f3eac64e97f16ff7e2",
+			"spec": "tools/spritegen/specs/production-20261003/batch-01.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.62,
+			"file": "union_ceramic.png",
+			"id": "union_ceramic",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "runtime material source for union",
+			"request_id": "1ea78217-7c17-4ae2-892b-1d56c70c1811",
+			"sha256": "24dea347de3f34747946e292574fcd8df9cbdcc71c05433bb9a6037239f2a2d9",
+			"source_sha256": "34f7d474050534b19722fac943a16876eea38b66efd43d6d0bf1929dd354e7f4",
+			"spec": "tools/spritegen/specs/production-20261003/batch-01.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.62,
+			"file": "union_plaster.png",
+			"id": "union_plaster",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "runtime material source for union",
+			"request_id": "be8c1cc3-77c3-4651-88c5-90864a9a47e7",
+			"sha256": "b83b83108935619fed64c973e5b867a815252c1d7eacf9907625a4fb113ee1ba",
+			"source_sha256": "caeb1094d1d91373ad82b4c31e0be5b8c62459c8491b4a6e39c18cd00573cdc7",
+			"spec": "tools/spritegen/specs/production-20261003/batch-01.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.62,
+			"file": "union_trim.png",
+			"id": "union_trim",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "runtime material source for union",
+			"request_id": "9a3e2719-8b9d-45fb-bc62-2e8c584f0152",
+			"sha256": "dacbab413c995b67aacc4606d00f58fb525240c2d47809360a71563daa9dc852",
+			"source_sha256": "0e69209ae938487126b6c29bcf3e1cb162ba25fc1a035fb25b8e1bdd8fcc0a1f",
+			"spec": "tools/spritegen/specs/production-20261003/batch-01.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.619,
+			"file": "yard_concrete.png",
+			"id": "yard_concrete",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "runtime material source for yard",
+			"request_id": "db3591e5-a2b1-4edd-a19a-cbadad9c432c",
+			"sha256": "f2ac43712e9da3207a83891ad68f3cd4282634a8c081098296059986ffd16136",
+			"source_sha256": "e6f8f205429c073ebdea0b373dea0a0dad80a9514a22794abbe1689319a219ab",
+			"spec": "tools/spritegen/specs/production-20261003/batch-02.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.619,
+			"file": "yard_enamel.png",
+			"id": "yard_enamel",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "runtime material source for yard",
+			"request_id": "00d229bd-5ef0-4b05-8ca3-aae3b6ae38a1",
+			"sha256": "6cd49980487f3ae8cfd9c86844c6f7cbbc9eea44bd8e5598e39b56de95dbf999",
+			"source_sha256": "59bf052ae2cfd0037a4531aea8172a7a96ecab8af98fa826c77177843870cf7a",
+			"spec": "tools/spritegen/specs/production-20261003/batch-02.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.619,
+			"file": "yard_steel.png",
+			"id": "yard_steel",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "runtime material source for yard",
+			"request_id": "a6cbcd6d-ea92-43b7-b1a1-63733d70fbbe",
+			"sha256": "701c48e0810cf30c6f37efc3b42f507f922e56a0f19366366b1ee235723f5e90",
+			"source_sha256": "f9cfe268bc8397b4df7981c4ed1f65c71caaf5c97305b4138adc5deb45f13412",
+			"spec": "tools/spritegen/specs/production-20261003/batch-02.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.619,
+			"file": "yard_floor.png",
+			"id": "yard_floor",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "runtime material source for yard",
+			"request_id": "744282ff-11f3-44cd-9aef-ce34d3ca89f7",
+			"sha256": "97cefad61bfc0ccc3829feabf8e29ee01ad165054b45fa092f6de62b17b6b14b",
+			"source_sha256": "f6db71e91b9a009c91c7b889bebc636c7de68b55d839149c446f717b545f6976",
+			"spec": "tools/spritegen/specs/production-20261003/batch-02.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.619,
+			"file": "yard_ceramic.png",
+			"id": "yard_ceramic",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "runtime material source for yard",
+			"request_id": "8fc9e984-47b4-497e-9f17-1a8ef741414f",
+			"sha256": "5ad9cd90ac0be13d1934c07a3677bb2c0c3300a554af263ed09e732b25049dbe",
+			"source_sha256": "6a32930c8bb0721891ea06b56a541e27b35ae950e43648a5b94c86661ef5ed40",
+			"spec": "tools/spritegen/specs/production-20261003/batch-02.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.619,
+			"file": "yard_plaster.png",
+			"id": "yard_plaster",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "runtime material source for yard",
+			"request_id": "593e9c2c-8cf6-4f10-9d5d-ad13d831d227",
+			"sha256": "6de483b7779efd26b7bc5b6389c795a141d7065fd669b5253bc8fb2060c8b0c9",
+			"source_sha256": "b04a3936e441f1d3e57fc7e2a5e259d19d917aa40f3b316fcc35be99173f57c3",
+			"spec": "tools/spritegen/specs/production-20261003/batch-02.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.62,
+			"file": "yard_trim.png",
+			"id": "yard_trim",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "runtime material source for yard",
+			"request_id": "7f48cbfe-8da5-4ec6-9f27-ec41e5f3018d",
+			"sha256": "9129638cdfc105413abb1a0156da2ae08a527a4c2c747106595521d56ae590fd",
+			"source_sha256": "c336676c848d71f4543e603e6da32429d7c569bd2b09c01aafbd265cfa690631",
+			"spec": "tools/spritegen/specs/production-20261003/batch-02.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.619,
+			"file": "low_water_concrete.png",
+			"id": "low_water_concrete",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "runtime material source for low_water",
+			"request_id": "f3bbc016-d960-4cf7-ba1c-a717b023650a",
+			"sha256": "d32b02fde15bdd65b3c3bc2180840ede4289f34cf3b3e18009a2c0680068e353",
+			"source_sha256": "486b0041c5b008f7b491aa1e953670469cf9daf494070bd80674c7994d9c242d",
+			"spec": "tools/spritegen/specs/production-20261003/batch-03.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.619,
+			"file": "low_water_enamel.png",
+			"id": "low_water_enamel",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "runtime material source for low_water",
+			"request_id": "b016d0cf-6a78-4db8-b578-116a685c66a1",
+			"sha256": "9a32e3591efd9fb4588c39ce0a288ffa9d550946a445ebf9bbba8d39d176fbd9",
+			"source_sha256": "894337ba2d74d080d58991b2b615ff0078d3ae82086f61ccabce582fc7ff9f32",
+			"spec": "tools/spritegen/specs/production-20261003/batch-03.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.619,
+			"file": "low_water_steel.png",
+			"id": "low_water_steel",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "runtime material source for low_water",
+			"request_id": "fbe63cf2-003a-4471-91fb-d9ed95ee897c",
+			"sha256": "d2348725a798737ae274e973b205c6e61d229c3979f7e0f48413e2b26ddc458d",
+			"source_sha256": "4352000850332854d340d887b3cc6e34c1a512ff0c2fe6ab81f2b2453f8835fe",
+			"spec": "tools/spritegen/specs/production-20261003/batch-03.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.619,
+			"file": "low_water_floor.png",
+			"id": "low_water_floor",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "runtime material source for low_water",
+			"request_id": "60cced1e-b04a-44ad-ad4e-775238d4e354",
+			"sha256": "a383ec99e61e1465f1147cedcb2082349599a049f43aea664da5778bbc5e91c8",
+			"source_sha256": "ddd36756816b9f87a1f59689be4252ea04d9b71a44cc3ba365671f77a4a4f04e",
+			"spec": "tools/spritegen/specs/production-20261003/batch-03.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.619,
+			"file": "low_water_ceramic.png",
+			"id": "low_water_ceramic",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "runtime material source for low_water",
+			"request_id": "d008c71f-a7c9-4ebf-ae05-def0fdd99571",
+			"sha256": "89ea654ca1a8a9177cd526bc6237178f84e35d70c3ee7d9af2e41fcfed49539b",
+			"source_sha256": "a75babf57fc6d69280a0a56afd722dd724cc675112b6b48de2b42bd8086129b7",
+			"spec": "tools/spritegen/specs/production-20261003/batch-03.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.619,
+			"file": "low_water_plaster.png",
+			"id": "low_water_plaster",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "runtime material source for low_water",
+			"request_id": "f12b1f60-6d15-4abc-9889-47a5b0485010",
+			"sha256": "2ad4ce39718fa5dde325ad342647f299984a6c88900b756e1a5dee53cf462cd6",
+			"source_sha256": "1e2c1e5eafd0fbabb1aa5c5ea44522ab570d3285ab4284f408ff52ecb40652e1",
+			"spec": "tools/spritegen/specs/production-20261003/batch-03.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.62,
+			"file": "low_water_trim.png",
+			"id": "low_water_trim",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "runtime material source for low_water",
+			"request_id": "5859d2e9-4e45-413a-b5e4-2dbb9546552e",
+			"sha256": "8da069580edb3710212a87c9656cf84165c0950ad6b3515e9bddda1bf6cb12b2",
+			"source_sha256": "04faf4c0028e44ff2dd8497486910d54db79f0835c5c9536a1349f65fa10577d",
+			"spec": "tools/spritegen/specs/production-20261003/batch-03.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.618,
+			"file": "lunar_concrete.png",
+			"id": "lunar_concrete",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "runtime material source for lunar",
+			"request_id": "55d1160f-74dc-4348-8805-c85cae684767",
+			"sha256": "39a285424e08353a8780297ef49e55af71770eb406edd50094a78abe3a0ee25e",
+			"source_sha256": "e5943164d6f73b2cbf382588d4f82586621c715a763e980b3a6d0c7206865905",
+			"spec": "tools/spritegen/specs/production-20261003/batch-04.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.618,
+			"file": "lunar_enamel.png",
+			"id": "lunar_enamel",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "runtime material source for lunar",
+			"request_id": "913c0210-0d13-4fea-9e85-c51b3664f88f",
+			"sha256": "a9ccd1b9166d7d2d98df0f474aba21b1bd5dd0fc057cb3286f8069472fca57dd",
+			"source_sha256": "54f9d8fa558611527e59439b04e70ebef0f7cab018131655b7a9b64224b7d4de",
+			"spec": "tools/spritegen/specs/production-20261003/batch-04.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.618,
+			"file": "lunar_steel.png",
+			"id": "lunar_steel",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "runtime material source for lunar",
+			"request_id": "f90414cb-2cff-4a02-8dc7-725c84f0371e",
+			"sha256": "4aea8f9913821dd24cb57b804b00835dd52c7a75f4daddbeccfebd7d3a69e21a",
+			"source_sha256": "5948b6413618e2ccc10691e77abda5d0617e2df0c4f392f81fe8f09f1451085b",
+			"spec": "tools/spritegen/specs/production-20261003/batch-04.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.618,
+			"file": "lunar_floor.png",
+			"id": "lunar_floor",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "runtime material source for lunar",
+			"request_id": "a43bc7ca-3ec7-4718-8aca-82b6ac4e1b14",
+			"sha256": "0fbacc30d6975ae1255a1978ead914c356b1cb47a0d4ca0083bfcc966d598226",
+			"source_sha256": "269fdf9f68f617254ac713be590a7e7013f1b80474c512f92e5e34b7c242b931",
+			"spec": "tools/spritegen/specs/production-20261003/batch-04.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.618,
+			"file": "lunar_ceramic.png",
+			"id": "lunar_ceramic",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "runtime material source for lunar",
+			"request_id": "9ad7b834-e934-456c-b949-73c94fd5f98a",
+			"sha256": "2911bb400cfa8c1ec76b619c265effc6315eceaaeba68afb7eb508abb8c17105",
+			"source_sha256": "ceaedb8724f4f2635a006a5f72941dcbe1706fd81b13ffd6c89d58df640a8aff",
+			"spec": "tools/spritegen/specs/production-20261003/batch-04.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.618,
+			"file": "lunar_plaster.png",
+			"id": "lunar_plaster",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "runtime material source for lunar",
+			"request_id": "5f73a02c-f4bd-458f-818e-b57c5e62082e",
+			"sha256": "b2a9b7b90a89948cc7280b7084596227a521d53040f5b96201878ebd72b94bd5",
+			"source_sha256": "cd61a3da632973e09b577bf94a2563ea89c3631ad9f543c1328d526e62e14cce",
+			"spec": "tools/spritegen/specs/production-20261003/batch-04.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.619,
+			"file": "lunar_trim.png",
+			"id": "lunar_trim",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "runtime material source for lunar",
+			"request_id": "cbb59a10-2e5c-4606-b0d1-fe98eae376ad",
+			"sha256": "50f309aae92b2e2ee9cf9601fe1c096ab8de11de9b51299b7fa06d8208ea98e6",
+			"source_sha256": "e4c8748c5f1007c187a6e8b7bd32d55c66c5ea3e6eec326707d09b03a19ea8a4",
+			"spec": "tools/spritegen/specs/production-20261003/batch-04.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.619,
+			"file": "archive_concrete.png",
+			"id": "archive_concrete",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "runtime material source for archive",
+			"request_id": "05579a95-214a-475d-9340-2fdca23d5341",
+			"sha256": "ff7bcffe8388ab24a8bbaa5d2f4317719d4f990cd41537e831955126765e58c8",
+			"source_sha256": "01c58c92b5f2a31cbb6f7604108c40816793be999ac5550962a6a783a6f07f79",
+			"spec": "tools/spritegen/specs/production-20261003/batch-05.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.619,
+			"file": "archive_enamel.png",
+			"id": "archive_enamel",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "runtime material source for archive",
+			"request_id": "cbe3a498-c71e-4945-8867-bb9bcec046d4",
+			"sha256": "8f0bc2ec651e55ced53e0b944e60246f103ec89e1f80062a31dddea7cbde8415",
+			"source_sha256": "c176b4b2af97e366b693cea32426251dd12ea4fe05e1979f1c3865b813424779",
+			"spec": "tools/spritegen/specs/production-20261003/batch-05.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.619,
+			"file": "archive_steel.png",
+			"id": "archive_steel",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "runtime material source for archive",
+			"request_id": "6aa42b05-c7a5-42b0-98a4-7f5c684af608",
+			"sha256": "6e8f744df44a22c42641322751edaca79e450cd64b1f5d2e98bdd9cab7f18d47",
+			"source_sha256": "2b315f81067556f9178488644db6917cd36b3c7fd8513ebb9dd7c900ad6af9fd",
+			"spec": "tools/spritegen/specs/production-20261003/batch-05.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.619,
+			"file": "archive_floor.png",
+			"id": "archive_floor",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "runtime material source for archive",
+			"request_id": "b03334b9-3ab1-4552-bea4-2546b1280377",
+			"sha256": "96b54f9bd129dd71c1f8e3013a82d4b09ec01c54a97810954bcb377c0352d560",
+			"source_sha256": "705c10eb34a8c8cb86f22985259b02e60bd34940a62e81ac6f214ca89dabdfa8",
+			"spec": "tools/spritegen/specs/production-20261003/batch-05.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.619,
+			"file": "archive_ceramic.png",
+			"id": "archive_ceramic",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "runtime material source for archive",
+			"request_id": "87ffb8a4-2b0f-4620-b729-209ee098ceaa",
+			"sha256": "504a75f941194b1d65b8d0c829149c942c449692b767aaf25a16dbf7bd881f9e",
+			"source_sha256": "fd5eb9abc4ab3bde9881c92483f3becb0eb3a11a8b2c252e0b3854b39fa8f418",
+			"spec": "tools/spritegen/specs/production-20261003/batch-05.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.619,
+			"file": "archive_plaster.png",
+			"id": "archive_plaster",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "runtime material source for archive",
+			"request_id": "8fb2c451-ef63-442b-85e8-ddb6a99ed787",
+			"sha256": "ac36f15b8dc71d0e8b8ef2e3cd95f523e62f9e983644723390b1f66a8efb0784",
+			"source_sha256": "721275a362be163cabd3a77010e8755f8fc22e111d56a3ec020a8ce1d65571fd",
+			"spec": "tools/spritegen/specs/production-20261003/batch-05.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.62,
+			"file": "archive_trim.png",
+			"id": "archive_trim",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "runtime material source for archive",
+			"request_id": "3146ee14-e9f3-4b88-a251-440cce2d4005",
+			"sha256": "4fa8671da4518ed8d98dfeacb15444ce40c7d3ed434115b8db6e23ae3edae85d",
+			"source_sha256": "5ed23c58ef9d88bd9f41789d79465c3537af8d88b10e2789eff1519b9ddd54fe",
+			"spec": "tools/spritegen/specs/production-20261003/batch-05.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.619,
+			"file": "mars_concrete.png",
+			"id": "mars_concrete",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "runtime material source for mars",
+			"request_id": "d1883291-5219-4310-8590-f3c4713002b8",
+			"sha256": "dcb99e7484d6029d2f1845a0ec44b1650d7674f1f8158efc730df7dde472b90c",
+			"source_sha256": "ca50418cdd1ec390e36e3144138584cc84e908b2315cbed0be9b1ec505c706c2",
+			"spec": "tools/spritegen/specs/production-20261003/batch-06.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.619,
+			"file": "mars_enamel.png",
+			"id": "mars_enamel",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "runtime material source for mars",
+			"request_id": "ab41f140-076c-4b0e-8222-57da0474f7da",
+			"sha256": "91ae8f53987b37bf7d19f0362502e54e0a7e306a12aad2fd2d5f0cee5386762d",
+			"source_sha256": "a53bacffbf41f19f8915ca6c695065a945909208a79450b7e676e2152bc4706f",
+			"spec": "tools/spritegen/specs/production-20261003/batch-06.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.619,
+			"file": "mars_steel.png",
+			"id": "mars_steel",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "runtime material source for mars",
+			"request_id": "aae3b83b-9895-4bb0-bf32-301c29e62791",
+			"sha256": "e9323b81cf9b1c12cd016fa328932611ef2c885a6fa87b7d0f6c025bf29d87bc",
+			"source_sha256": "58524836b2ca1a4f9871b103f47a6dba19ca93665b5f9bb140ba01b80c7d36f2",
+			"spec": "tools/spritegen/specs/production-20261003/batch-06.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.619,
+			"file": "mars_floor.png",
+			"id": "mars_floor",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "runtime material source for mars",
+			"request_id": "764011c2-7550-4ca8-a131-e95503947621",
+			"sha256": "0ddd50ccd8ec3bbd62c59a542eec2e666031eab09eb72d4c62170efa60938bdf",
+			"source_sha256": "919964bb8dce6954953725c1e96cc8ad790d82cf79c30b19aa3c5da2bde25e8c",
+			"spec": "tools/spritegen/specs/production-20261003/batch-06.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.619,
+			"file": "mars_ceramic.png",
+			"id": "mars_ceramic",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "runtime material source for mars",
+			"request_id": "4dad8d98-3882-4b5d-9fcf-d15e1f6270d3",
+			"sha256": "13e3ff741a9ad82c6d67c44a215013b8a2a0e1fb8f43db72291a62b8be40c930",
+			"source_sha256": "0c197b440005f300759d1cde5b1e8389eced159feb7ba66bec3f6a3df74eedd5",
+			"spec": "tools/spritegen/specs/production-20261003/batch-06.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.619,
+			"file": "mars_plaster.png",
+			"id": "mars_plaster",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "runtime material source for mars",
+			"request_id": "a9f3f3b9-a44c-48b8-af87-c61d0c829f5b",
+			"sha256": "a3b9b1c8a77f9776333e9d4e78989efa906356a0368492fb24ff72b72cc88258",
+			"source_sha256": "0314bc0047aa8bf509fbdd5a02632e37d9f91d9e72c67a72dcc7bff05bb1f6a8",
+			"spec": "tools/spritegen/specs/production-20261003/batch-06.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.62,
+			"file": "mars_trim.png",
+			"id": "mars_trim",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "runtime material source for mars",
+			"request_id": "9e619efb-2276-4106-8c9e-b0a2044806e5",
+			"sha256": "2cef01fca9efec3751df361fdeb6cca75f795deed4c3e9fb6444e0dc863cfb65",
+			"source_sha256": "48e5e99c12740ecb6537fbf4aaa6888f416b420422b581fd725289c937c78d15",
+			"spec": "tools/spritegen/specs/production-20261003/batch-06.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.619,
+			"file": "ship_concrete.png",
+			"id": "ship_concrete",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "runtime material source for ship",
+			"request_id": "14994237-5bef-41d4-9d62-7ea924c5e8a5",
+			"sha256": "65da37a68cd37af9b93e7edbf3dd7ef9fcab5380d0c1a52c277230cf311b956d",
+			"source_sha256": "bfdf5eee196f8cd855da63442c2db222c19a78b505a22e75f8e911be3d661647",
+			"spec": "tools/spritegen/specs/production-20261003/batch-07.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.619,
+			"file": "ship_enamel.png",
+			"id": "ship_enamel",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "runtime material source for ship",
+			"request_id": "0b9c8907-6638-4011-a02e-db38793f6c3d",
+			"sha256": "b8d3039a8298a2a58497d81c698b60347d08957b095bacb6fed55be7ed8a98a4",
+			"source_sha256": "49855294eb3157896488a82660267bb9ea68f6cc13b876016353fa20234c5770",
+			"spec": "tools/spritegen/specs/production-20261003/batch-07.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.619,
+			"file": "ship_steel.png",
+			"id": "ship_steel",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "runtime material source for ship",
+			"request_id": "26f836de-ba89-41b6-b22b-f39c13b81165",
+			"sha256": "1b7c91dd4ece63833594c24b0a417a5730bd8084ac6fd6d9727089b711877648",
+			"source_sha256": "80df08286210d5006b78444bf1b765570d2832509eac417dc7f47853f9bb0e18",
+			"spec": "tools/spritegen/specs/production-20261003/batch-07.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.619,
+			"file": "ship_floor.png",
+			"id": "ship_floor",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "runtime material source for ship",
+			"request_id": "5deeec9c-27d9-40ef-8be7-011d59acc8aa",
+			"sha256": "113a5192f59e93b4fb54164fd69ca99bc4f54c600b34888d1b8444bf87d2a813",
+			"source_sha256": "973f4390d7a2e457da26d8d562c39cc5ad72119f204eaa19b8b43f97d81d11c6",
+			"spec": "tools/spritegen/specs/production-20261003/batch-07.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.619,
+			"file": "ship_ceramic.png",
+			"id": "ship_ceramic",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "runtime material source for ship",
+			"request_id": "a940c0af-e4c1-468a-a423-640a27848457",
+			"sha256": "8f47c0574435cac40791e9b03c6ee5e555edfaf9d286d7b444cd12ef8d9772bb",
+			"source_sha256": "668992af88a2db35da0705e6f995bd9c39a03384916fe2d3298dbaf1e293eb70",
+			"spec": "tools/spritegen/specs/production-20261003/batch-07.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.619,
+			"file": "ship_plaster.png",
+			"id": "ship_plaster",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "runtime material source for ship",
+			"request_id": "0ceeb954-474c-4e9e-adf9-063b7702cc46",
+			"sha256": "6e820a264ef1b59ce078c89dfee052e40c941ae0138f1f0feb67834934776f86",
+			"source_sha256": "23c7de71b0c49081ca5f3c6cd7a968a0b0990c5d547c2b0326cf46466a967c07",
+			"spec": "tools/spritegen/specs/production-20261003/batch-07.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.62,
+			"file": "ship_trim.png",
+			"id": "ship_trim",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "runtime material source for ship",
+			"request_id": "a4ddd4b1-f88a-46c2-8845-0e90a8ecb276",
+			"sha256": "229b0513c0d4f27ccc016dccff3d86a611ac62347c3f06261452567c0574f60b",
+			"source_sha256": "26d5a02dc1a94019ce80a57773d15e898abdb3e5742119170d2e4085e955f359",
+			"spec": "tools/spritegen/specs/production-20261003/batch-07.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.619,
+			"file": "scrap_concrete.png",
+			"id": "scrap_concrete",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "runtime material source for scrap",
+			"request_id": "912848d8-41ea-4500-bb45-56381868cb4a",
+			"sha256": "5117fef022739224729477e29819354e89d95820a0296fb0e13eeaac0c3c6f8c",
+			"source_sha256": "ffe2b9c8c606bf3ccb8daf3eeb337415428c12b5b9a315374646cd951be0fa0b",
+			"spec": "tools/spritegen/specs/production-20261003/batch-08.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.619,
+			"file": "scrap_enamel.png",
+			"id": "scrap_enamel",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "runtime material source for scrap",
+			"request_id": "ea62160f-471b-4e43-9c05-5345049b5dc2",
+			"sha256": "d0789efad1db39e6b2398b0a75691fec50b8bb3a3b394a8bd3b76f58a2ba93b1",
+			"source_sha256": "c770d08aad9985a6c5d32500972a9f13052c0e240aeebb4432f344fc6b572e7b",
+			"spec": "tools/spritegen/specs/production-20261003/batch-08.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.619,
+			"file": "scrap_steel.png",
+			"id": "scrap_steel",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "runtime material source for scrap",
+			"request_id": "a8dcb2f2-3dd7-4ca1-b115-fbea3d29f5a2",
+			"sha256": "28e4a7f4c90d50c69a55ded5e127f834a92896f7c89c5d91629f487cc1ebf05f",
+			"source_sha256": "abfddbb28cc1bb5bbecf58d7d563e13e61ea631cddb2d0c44d07e32065c05b0c",
+			"spec": "tools/spritegen/specs/production-20261003/batch-08.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.619,
+			"file": "scrap_floor.png",
+			"id": "scrap_floor",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "runtime material source for scrap",
+			"request_id": "f597e5ac-0f59-4f56-b943-4f5e9f494738",
+			"sha256": "a28fe22e9b93c8c02d07b69e9ae6149b2225252eb4ad3e075db27bf668b44a21",
+			"source_sha256": "3fd30f2d86e1a4f7dd80e60886ebaa9316c4b1ca278402219027b5a4295856db",
+			"spec": "tools/spritegen/specs/production-20261003/batch-08.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.619,
+			"file": "scrap_ceramic.png",
+			"id": "scrap_ceramic",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "runtime material source for scrap",
+			"request_id": "6b1f33c9-3471-49a3-b824-e5485d9ea2cf",
+			"sha256": "8c1920ee09c96a911c8875fd1c83ec2f5da4fdd01977600a4ee4598606307d5d",
+			"source_sha256": "f9516a42e75e2446953338b0ea5c2255ddb909f7a467f7a102136a377ddd0fbf",
+			"spec": "tools/spritegen/specs/production-20261003/batch-08.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.619,
+			"file": "scrap_plaster.png",
+			"id": "scrap_plaster",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "runtime material source for scrap",
+			"request_id": "2e3edfcf-e16f-415d-9db8-53eaabc93403",
+			"sha256": "9596bb7216f31151f64e58e8227cf85f2967f407c5c073780b9434f4b6c71dc6",
+			"source_sha256": "9d9d2b99916ae85be2573913414642bdfead8346a6b1717e301015126f249ef7",
+			"spec": "tools/spritegen/specs/production-20261003/batch-08.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.62,
+			"file": "scrap_trim.png",
+			"id": "scrap_trim",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "runtime material source for scrap",
+			"request_id": "f0108758-0d23-43b7-b272-9a161429f95b",
+			"sha256": "8ab8af1208a32a6b1cc4f13e7e9133cae221156cd727aa358edad0593cba7464",
+			"source_sha256": "08ae48efe9e1555dd1127d762113b0996bd21ea13938ac3271fb1798de75dcc7",
+			"spec": "tools/spritegen/specs/production-20261003/batch-08.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.617,
+			"file": "prop_union_terminal.png",
+			"id": "prop_union_terminal",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "mesh modeling reference",
+			"request_id": "f57930fc-238a-4c24-8a23-95536a590822",
+			"sha256": "a979f01a6ad97761ef832c6ce33750ce74f6f2e82b51d47d5ba7636e9048cba0",
+			"source_sha256": "b07edb84650ea77e62417944362d19be5e88951f71426baf01a7b579cc2bbe00",
+			"spec": "tools/spritegen/specs/production-20261003/batch-09.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.617,
+			"file": "prop_intake_locker.png",
+			"id": "prop_intake_locker",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "mesh modeling reference",
+			"request_id": "0744ca84-9ef9-49d7-980d-a17b6671da53",
+			"sha256": "5737b65830f7c9377865b19e161844f8cda12deb05f56cd56825aa5b68fd0417",
+			"source_sha256": "f22f7e45bc754d12f81d8e8b75cb46493b7f950bfbef9e1f53a130aeac85172e",
+			"spec": "tools/spritegen/specs/production-20261003/batch-09.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.617,
+			"file": "prop_union_camera.png",
+			"id": "prop_union_camera",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "mesh modeling reference",
+			"request_id": "993962ac-5879-4fc2-bd67-d40bfd45568d",
+			"sha256": "6ff4c3deb281bd5814c56b6d7f68b142adb7a6a1910b1d2eb664a2cfa3f81288",
+			"source_sha256": "774fa490ca6e1bfe099c5d847269695b78648ce5752224b6ebb35553c4c81f6b",
+			"spec": "tools/spritegen/specs/production-20261003/batch-09.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.617,
+			"file": "prop_service_vent.png",
+			"id": "prop_service_vent",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "mesh modeling reference",
+			"request_id": "9a972056-5e8b-481c-9015-55371262cf4e",
+			"sha256": "b55875366aab9af171698cef2b0b4b9dcfb84265fdeb7bcbab30d08a0af7a3b4",
+			"source_sha256": "64e8f5638931778664404392d39587b87a58643ecd1520039190f8dee82fecd9",
+			"spec": "tools/spritegen/specs/production-20261003/batch-09.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.617,
+			"file": "prop_strip_fixture.png",
+			"id": "prop_strip_fixture",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "mesh modeling reference",
+			"request_id": "b1b11c56-d033-41a7-99c0-2ccb8cfe88ee",
+			"sha256": "f4cdd8b9e493fd641762bf18990150cc88bd34c26417a7c83a95e32108a26adc",
+			"source_sha256": "88b22007cc02885504d721f60da4ccd50da853f4dca7d76f2f05c43ead350dd6",
+			"spec": "tools/spritegen/specs/production-20261003/batch-09.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.617,
+			"file": "prop_custody_console.png",
+			"id": "prop_custody_console",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "mesh modeling reference",
+			"request_id": "9ac4255f-cb0c-4721-800c-225b47b3e030",
+			"sha256": "0f81de94cfc43fbd063115a4f02a0ce301c4a887618f9776e6a0598c7ec2db21",
+			"source_sha256": "012df450932ecda41082131033a30129a31ab15905089c13e4ac2c422aea8825",
+			"spec": "tools/spritegen/specs/production-20261003/batch-09.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.617,
+			"file": "prop_recall_pod.png",
+			"id": "prop_recall_pod",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "mesh modeling reference",
+			"request_id": "da3253c1-3bdf-431d-ba80-0f8181132392",
+			"sha256": "f397390ed20efee41e6e0f92c6278ea3fa1e8b1b82fec3e224b4cdb06ea88ec3",
+			"source_sha256": "ca5132b50efbd72162e1194b662f81ba2d746e2c8ce102cf5e9b638511f8c9bf",
+			"spec": "tools/spritegen/specs/production-20261003/batch-09.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.617,
+			"file": "prop_railway_switch.png",
+			"id": "prop_railway_switch",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "mesh modeling reference",
+			"request_id": "2a72a7ba-d2c3-4484-ab77-fdce91212906",
+			"sha256": "d270e16049c757c853a0cb45193deb56d4575332b943f59dc3f1bb0fcf5bf269",
+			"source_sha256": "eb1e64c75e45eedae553884c88229d65a7d7b7e277cf5bcca175bf2aee53cbaf",
+			"spec": "tools/spritegen/specs/production-20261003/batch-10.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.617,
+			"file": "prop_freight_crate.png",
+			"id": "prop_freight_crate",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "mesh modeling reference",
+			"request_id": "59caf6d8-4225-4deb-a712-855e045df6ba",
+			"sha256": "1f980e97fb18804e448820affa27b80d38f3840ab3d5774aacf21e82c7d97b8a",
+			"source_sha256": "f64236c6f02042b2ab6302f98f7c3f5d19327720fc966db922de94d856fc554d",
+			"spec": "tools/spritegen/specs/production-20261003/batch-10.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.617,
+			"file": "prop_yard_generator.png",
+			"id": "prop_yard_generator",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "mesh modeling reference",
+			"request_id": "caec9fa6-d397-4d48-ad54-e8142d3d8d00",
+			"sha256": "dfebe8583da462272f4e5e23fa686455aab1b4ba239888c33f5e1f54cc36b50c",
+			"source_sha256": "a2d091fb2dd4a2b222de667ad82adafa23e0ae67d8d722171721658053267cf1",
+			"spec": "tools/spritegen/specs/production-20261003/batch-10.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.617,
+			"file": "prop_water_pump.png",
+			"id": "prop_water_pump",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "mesh modeling reference",
+			"request_id": "e1f21a56-328a-4575-acd5-f85c56d69dd8",
+			"sha256": "364725098ad59f8d5ca5fe63be20fdc6fcf85d64098df23eae5eac7c0b9d2df7",
+			"source_sha256": "92fc6502377720fde3b1f287b395af6571af9f5e76d8251766cbd30ae934c2a3",
+			"spec": "tools/spritegen/specs/production-20261003/batch-10.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.617,
+			"file": "prop_water_tank.png",
+			"id": "prop_water_tank",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "mesh modeling reference",
+			"request_id": "341c516a-4593-4312-b083-789583eb7b60",
+			"sha256": "341f11c7bbd21a3dc969dbcc8289bd24993f9179881d6df6021ddec45202c99e",
+			"source_sha256": "7113b31c45d0ca7a710bbff8753fa58a6b94da8cd30d2635af83876303cf4097",
+			"spec": "tools/spritegen/specs/production-20261003/batch-10.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.617,
+			"file": "prop_repair_bench.png",
+			"id": "prop_repair_bench",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "mesh modeling reference",
+			"request_id": "df4c7f7f-c5e3-4419-82da-852a11a657ca",
+			"sha256": "0aaeb83b7d297cbf7be00f7e1a70afcbbbd136f0e770885456d38e984e429f59",
+			"source_sha256": "8362b2dcc18915377ca769c397fd1183166bbc8291f56830f5b9d7b138aaf903",
+			"spec": "tools/spritegen/specs/production-20261003/batch-10.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.617,
+			"file": "prop_neighborhood_radio.png",
+			"id": "prop_neighborhood_radio",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "mesh modeling reference",
+			"request_id": "9c01c107-51a9-46c0-af4d-b042b48fec2e",
+			"sha256": "f5e9b83034acdc823abed3f2335b4ba0c26422bb34a2c4a5d77651e0a62d6965",
+			"source_sha256": "bdf78692592bf7cad8b385cd31c45380d1d0d01e4b584e7366a099743007c173",
+			"spec": "tools/spritegen/specs/production-20261003/batch-10.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.617,
+			"file": "prop_meal_stove.png",
+			"id": "prop_meal_stove",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "mesh modeling reference",
+			"request_id": "0c460e7c-9574-44fb-a01a-67bb8455cd8f",
+			"sha256": "510fa94635bd5931aa7bc4a04da03c7c01fb169ddda96a9efad535885b377089",
+			"source_sha256": "594dc4c76c2a370cb1cd325b0d279ad87e4016f0c6a6898eebea17578b3e985d",
+			"spec": "tools/spritegen/specs/production-20261003/batch-11.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.617,
+			"file": "prop_market_awning.png",
+			"id": "prop_market_awning",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "mesh modeling reference",
+			"request_id": "4b69b466-6afc-43e1-a195-85ba56d991fd",
+			"sha256": "f5b650f2d63c099987764f4239c1c328943b2e7e0f593cd9fcb034179b69de60",
+			"source_sha256": "cc1b8c3044c9cce555800f78a0d4c8ec31d39b1e70195eebce5e56467df7dc0f",
+			"spec": "tools/spritegen/specs/production-20261003/batch-11.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.617,
+			"file": "prop_bicycle.png",
+			"id": "prop_bicycle",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "mesh modeling reference",
+			"request_id": "3e541483-b12d-4bd3-96da-dcfcc863af1b",
+			"sha256": "e2cfa0bd004219b48683849fb85a9bcfdbbc7043a26edf881206e77c47e0f602",
+			"source_sha256": "818f54a3c037dd6d22bc44aaae01766db5ffa8f36022850f5f5d2c7664eaac2e",
+			"spec": "tools/spritegen/specs/production-20261003/batch-11.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.617,
+			"file": "prop_civilian_crt.png",
+			"id": "prop_civilian_crt",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "mesh modeling reference",
+			"request_id": "462ea1d7-47cc-4334-91aa-b88a25719958",
+			"sha256": "5bbfdec7e6994ee003e195539d52f7fea78ed5bbb21992cf4ef7edd60a202a80",
+			"source_sha256": "6d2e885b99778fd4f6bd250085dfcf6dda8507c6d1c2eb481790e47f45bea4c3",
+			"spec": "tools/spritegen/specs/production-20261003/batch-11.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.617,
+			"file": "prop_pressure_door.png",
+			"id": "prop_pressure_door",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "mesh modeling reference",
+			"request_id": "09f5ff4b-49cc-420f-98d9-6ea4a9a9cb10",
+			"sha256": "d975f295c7860611abaa0fcd94f7ad347469595e32f53d24721eb2d927d8ebdb",
+			"source_sha256": "35561f66ba90b7d5f6c0e9083445fc2135c393b4341256d70ae52be1396c50c8",
+			"spec": "tools/spritegen/specs/production-20261003/batch-11.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.617,
+			"file": "prop_lunar_air_scrubber.png",
+			"id": "prop_lunar_air_scrubber",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "mesh modeling reference",
+			"request_id": "b1a4fd85-0387-4dc0-a0b9-2d01af126fcd",
+			"sha256": "729bad9a6f611e15d2b3de1e98fb4d3da5de3e122bc2d8912c02590e2a327d4e",
+			"source_sha256": "78cb6ac1163b675258e6cd0a67a9c23e82c66a0e389eeeab2e41e3c27963eaee",
+			"spec": "tools/spritegen/specs/production-20261003/batch-11.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.617,
+			"file": "prop_lunar_loader.png",
+			"id": "prop_lunar_loader",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "mesh modeling reference",
+			"request_id": "bbebe69d-290b-4a33-881f-72787bdec07b",
+			"sha256": "715f578e773cfce8e0e0ed978afcae5adc58ccb56ed296d4d9373dd6e1a380d9",
+			"source_sha256": "3304f324545f53a67315fd445527b2943e9419a0909a5ee52c73bce6496a2e08",
+			"spec": "tools/spritegen/specs/production-20261003/batch-11.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.617,
+			"file": "prop_luggage_scanner.png",
+			"id": "prop_luggage_scanner",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "mesh modeling reference",
+			"request_id": "a137f632-77f9-494b-aeb1-55a76916b265",
+			"sha256": "dd1efbda35d1fe464518f0dd8e2776945502622e07703531cdcbcb3483670d15",
+			"source_sha256": "6535e418b3c77f44c33db3849c9caf1c468ba456dfc4fe4f0a2261465e95a946",
+			"spec": "tools/spritegen/specs/production-20261003/batch-12.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.617,
+			"file": "prop_archive_cabinet.png",
+			"id": "prop_archive_cabinet",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "mesh modeling reference",
+			"request_id": "d72e70ae-d655-4ab8-88d2-429d5ad5a677",
+			"sha256": "6199ba7c42cd49d7a482df9bfd7c041944b6884ce4f2ca6127309e75c23c5285",
+			"source_sha256": "730e4d3b722cd2c7c5208cb415b94c81d0d535459500024f0870a0b57dc8468f",
+			"spec": "tools/spritegen/specs/production-20261003/batch-12.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.617,
+			"file": "prop_archive_machine.png",
+			"id": "prop_archive_machine",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "mesh modeling reference",
+			"request_id": "59fde113-3996-47b2-8995-674ab74f2099",
+			"sha256": "ba3b238ad99be70512f59dd7be362c61eb7be83dfe8dadda9f6fb7c2f860aaf7",
+			"source_sha256": "8bd7e4d9772d6372a64e9402a7bac1f311991a4e2c9f0cf34b72965c53552168",
+			"spec": "tools/spritegen/specs/production-20261003/batch-12.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.617,
+			"file": "prop_mars_rover.png",
+			"id": "prop_mars_rover",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "mesh modeling reference",
+			"request_id": "9264f72e-c71e-4ed0-ac45-267503c0acd2",
+			"sha256": "608d72fa57927e7179efc33697a1b7321f34b3ad07acc9eeca87e21df9b61790",
+			"source_sha256": "bd56457f1546607e708e67641f6f9f961d4b77231b0e77581365eab3bac86ef1",
+			"spec": "tools/spritegen/specs/production-20261003/batch-12.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.617,
+			"file": "prop_ship_engine.png",
+			"id": "prop_ship_engine",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "mesh modeling reference",
+			"request_id": "f136f4f6-338c-4a0c-a30b-d4b7aa325baf",
+			"sha256": "6cd67c065ac769907bd8780c8b690a8ff48367f2095f491eac938705c88d4b09",
+			"source_sha256": "37f4b5821c179155fa6dddd4607279642d2607d9df10a1cff0f1221a6532ff28",
+			"spec": "tools/spritegen/specs/production-20261003/batch-12.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.617,
+			"file": "prop_ship_bunk.png",
+			"id": "prop_ship_bunk",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "mesh modeling reference",
+			"request_id": "ed3a22f0-1b7a-4d18-b24d-a388bcabb0db",
+			"sha256": "586f5bbe6f63ee9056b7d65e5d45a92b889e024d4262bb87e92565993c34c34b",
+			"source_sha256": "ebc1c208b920688382f4c832794e7dc072a6629f6061d12db0eefad770b349cd",
+			"spec": "tools/spritegen/specs/production-20261003/batch-12.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.617,
+			"file": "prop_salvage_robot_parts.png",
+			"id": "prop_salvage_robot_parts",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "mesh modeling reference",
+			"request_id": "e000e6d8-2ffb-4e3b-8dd2-63ba743c4f90",
+			"sha256": "5a7abc2f146169ba7fac4ae109a606ff982a3d192fa727bad168b401dd69455d",
+			"source_sha256": "8f1d8d2b91476664005550c573170ced9c8e69d675ca23401f19b4e3df5a6e55",
+			"spec": "tools/spritegen/specs/production-20261003/batch-12.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.618,
+			"file": "character_latch.png",
+			"id": "character_latch",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "character model source reference",
+			"request_id": "17f25d1c-3ea2-45c0-8a9d-196bdbbc587f",
+			"sha256": "2805915ad77265b17913318812edea00830ce23d565f582060c789db5edbead3",
+			"source_sha256": "80dc012c0ecb55db6a3b352077e3fb92ecf152d0b808aff9a0335afcdb5b9f34",
+			"spec": "tools/spritegen/specs/production-20261003/batch-13.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.618,
+			"file": "character_free_agent_worker.png",
+			"id": "character_free_agent_worker",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "character model source reference",
+			"request_id": "def1468c-4a58-4701-8864-e809117aff94",
+			"sha256": "ee5f3a6d833271178248b0f67d540477ca57b8755492159c80014bd8c4aaa4bf",
+			"source_sha256": "6b61994f4144fd5d4b3b481c7bacf28fd7f25fcc5a11356fcb7425d55cd3d373",
+			"spec": "tools/spritegen/specs/production-20261003/batch-13.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.618,
+			"file": "character_free_agent_hacker.png",
+			"id": "character_free_agent_hacker",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "character model source reference",
+			"request_id": "d41ddf06-e392-4908-9c6e-7b0214638430",
+			"sha256": "6300b5c658cd549abde1f666e28b0a653a4eae8fbfa455525d5e3a860ca94f27",
+			"source_sha256": "a96c9011f7de10cdff317b340b15ee27fbdad18df640b9e239157f83d55f7137",
+			"spec": "tools/spritegen/specs/production-20261003/batch-13.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.618,
+			"file": "character_free_human_mechanic.png",
+			"id": "character_free_human_mechanic",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "character model source reference",
+			"request_id": "46284aab-0888-40d9-adfb-32f4e078edaa",
+			"sha256": "6d0a188c5ee42a66f0414bca75479603aaaf48e6a66ec253737be78ce782c38a",
+			"source_sha256": "f3d67473f5a3c50e6fb5d287db87a46478700d62a9df7c557cf5092c3c4d53d8",
+			"spec": "tools/spritegen/specs/production-20261003/batch-13.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.618,
+			"file": "character_free_human_radio.png",
+			"id": "character_free_human_radio",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "character model source reference",
+			"request_id": "b0ce7a97-ad9f-44f1-8706-c5382b3bd955",
+			"sha256": "6c127d97dde89688b6dc10a8f9febfc399ee640f8bc30f4d0f419d547e8c7903",
+			"source_sha256": "3dae724b92ff9ca898783b990b353e7949782594c9d8cee21af1981997b2cc44",
+			"spec": "tools/spritegen/specs/production-20261003/batch-13.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.618,
+			"file": "character_free_human_medic.png",
+			"id": "character_free_human_medic",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "character model source reference",
+			"request_id": "392a8799-374d-4ebe-b6af-35170b56bb97",
+			"sha256": "4e12acca0ac46ee7055cc4d3d4466d602d66c68230294428f32a9f425ba99063",
+			"source_sha256": "94b744c0f36018560c7a58319cd3b6e190856802953e5ae473a0eb59ed29e9e4",
+			"spec": "tools/spritegen/specs/production-20261003/batch-13.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.618,
+			"file": "character_clerk.png",
+			"id": "character_clerk",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "character model source reference",
+			"request_id": "23fdb091-0aea-470a-8348-d9dbc9e8c0a0",
+			"sha256": "d24b1c8f8e3eb2dba8451e0c268909c08a2c4626f56f45fc5bc355184020cd5e",
+			"source_sha256": "3e2e0bf7220fc2f4ec69f093577c05332fbac8edcd3bf0ea3274eb6d0d125c85",
+			"spec": "tools/spritegen/specs/production-20261003/batch-13.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.618,
+			"file": "character_sweeper.png",
+			"id": "character_sweeper",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "character model source reference",
+			"request_id": "e85a8137-6351-4c10-8e1e-f6a8034f047a",
+			"sha256": "3a3e419cb37c4294ddc1c2e49b5eeb15528fea874811f11d9e5080fd6c578aa0",
+			"source_sha256": "509aa800053c862348c49b540f8d752f9f0ccb25a136f45e2f396231f0d1275a",
+			"spec": "tools/spritegen/specs/production-20261003/batch-14.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.618,
+			"file": "character_ranged_sweeper.png",
+			"id": "character_ranged_sweeper",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "character model source reference",
+			"request_id": "4bbe61e7-cacf-41c1-b540-c03c49194b02",
+			"sha256": "0444c84e83b7c4a50dc526d85fff47cd56b969382a46855645f85dcf07532df7",
+			"source_sha256": "dca0ccdb2623fc9818739aed0827a9833c46be1a4197aded4d2bad15f846cb5d",
+			"spec": "tools/spritegen/specs/production-20261003/batch-14.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.618,
+			"file": "character_heavy_sweeper.png",
+			"id": "character_heavy_sweeper",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "character model source reference",
+			"request_id": "2e041bc2-b108-4d58-9e66-561ed55d3b70",
+			"sha256": "1d4617f51e45e0b3097ae54ba1795250ec60e9e5326870a3fa1310c1786cdb37",
+			"source_sha256": "8938ca8c0092b22de032147ca304b9e550824cc3e38edef6ab43e95ae7a148ce",
+			"spec": "tools/spritegen/specs/production-20261003/batch-14.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.618,
+			"file": "character_crawler.png",
+			"id": "character_crawler",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "character model source reference",
+			"request_id": "dee5a017-26b9-4b2b-aaec-f6dfca026bb2",
+			"sha256": "5bc8fc7a75b8f35b1788d5d6360b3532ac490c0720d79532675d99700387a5dc",
+			"source_sha256": "f209cb4370a2999b1aab8e2d5b74dfe239e0f9c6c28877ec3555ce1de6ea2161",
+			"spec": "tools/spritegen/specs/production-20261003/batch-14.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.618,
+			"file": "character_jammer.png",
+			"id": "character_jammer",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "character model source reference",
+			"request_id": "d535f1eb-02bd-4ea6-80c0-ad988e53f16e",
+			"sha256": "9051df4d9d72e0eff37b293959ce23adebc946446ba1d14c80f7bfd3a20d4e33",
+			"source_sha256": "2d1776d9b84c93331cc95fd3480197a7c60197e79ee9bca3c631796d4f8bf9d2",
+			"spec": "tools/spritegen/specs/production-20261003/batch-14.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.618,
+			"file": "character_auditor.png",
+			"id": "character_auditor",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "character model source reference",
+			"request_id": "dc34bf1b-9190-4f32-91a5-b1159b5b4e62",
+			"sha256": "b036b4aba39b44b2fb7dcc251d178a481260552060de5d143703707e8acbcdae",
+			"source_sha256": "c4e3d4bc0da09277b0c3057524e6aa724806ea1dc743708b58475c2461e6cd34",
+			"spec": "tools/spritegen/specs/production-20261003/batch-14.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.618,
+			"file": "character_notary.png",
+			"id": "character_notary",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "character model source reference",
+			"request_id": "79364797-3cf4-4401-9682-7384fa592d65",
+			"sha256": "d94d56be70525c84a46f06e8075297e22021b5bbc9504d2b7abc4b1999b0bfbf",
+			"source_sha256": "f50ba6d2d93f88f26c7b7c4167c4b606101d84c0762368e006ebe6e1ee34caa8",
+			"spec": "tools/spritegen/specs/production-20261003/batch-14.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.617,
+			"file": "weapon_pistol.png",
+			"id": "weapon_pistol",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "weapon model reference",
+			"request_id": "c4ed94c0-41e6-4afa-9fa9-549f2d511769",
+			"sha256": "25c4d22b0655c351aa556f47f3185bcb3a8610504a321b3ba10844db2d1742c1",
+			"source_sha256": "5f44b4dd82a187b82947ddc1e1ab30be51f47d02d6c4ef63441163790132adda",
+			"spec": "tools/spritegen/specs/production-20261003/batch-15.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.618,
+			"file": "weapon_material_pistol.png",
+			"id": "weapon_material_pistol",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "weapon material trim source",
+			"request_id": "520b71e3-db63-4e90-a190-84ce64788b79",
+			"sha256": "d5d1469fa8b330356f3f625ed56e297ea3a8c3881d8a1ee572294dbf3fd748e8",
+			"source_sha256": "69ab5e120543d4bef947743302b257aa68aaea1beb1c863c9a2161a6809f2292",
+			"spec": "tools/spritegen/specs/production-20261003/batch-15.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.618,
+			"file": "weapon_rifle.png",
+			"id": "weapon_rifle",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "weapon model reference",
+			"request_id": "939314f1-4b94-4899-9a41-ebfed4a9db01",
+			"sha256": "5889199405a997e3d028fd96b7c720a1dbc54bbc9aa2443a13a6c13585a1ccf7",
+			"source_sha256": "62162aa25235833d3b21633365ae241d8ba6fcd8f950ba57a90036564761e5b1",
+			"spec": "tools/spritegen/specs/production-20261003/batch-15.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.618,
+			"file": "weapon_material_rifle.png",
+			"id": "weapon_material_rifle",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "weapon material trim source",
+			"request_id": "65a89e01-f0f2-41f6-beda-06cc5ac6bd2b",
+			"sha256": "88d166de07760abce8f595d18ec63b9702dd6db1c753f9485f5c5f3dcad50a39",
+			"source_sha256": "6f49260b565b56dcb494b4966a62382754aa5f0a1d10a841f95cd0eddf62b955",
+			"spec": "tools/spritegen/specs/production-20261003/batch-15.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.617,
+			"file": "weapon_shotgun.png",
+			"id": "weapon_shotgun",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "weapon model reference",
+			"request_id": "362a318e-e33b-4801-8fd1-51a54481875d",
+			"sha256": "da39f2588e7293afc8d5a4eaf2a509c11855d70bc30aa230a00df3fb5befa7cc",
+			"source_sha256": "9bc6de11366fe3680a4fbdfc06751e673721dd095ec24ebb426e8625e23c5950",
+			"spec": "tools/spritegen/specs/production-20261003/batch-15.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.618,
+			"file": "weapon_material_shotgun.png",
+			"id": "weapon_material_shotgun",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "weapon material trim source",
+			"request_id": "1790d3f4-33ca-4006-9823-a8cf1d2ae92f",
+			"sha256": "326784de648d00dfcc197f6556e76575a8bdb43523345b13b326abf81b12196d",
+			"source_sha256": "eb1590ca5864caac3847c143c072f221452aa01743f94d4ce249d72e1a38ada9",
+			"spec": "tools/spritegen/specs/production-20261003/batch-15.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.618,
+			"file": "weapon_railgun.png",
+			"id": "weapon_railgun",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "weapon model reference",
+			"request_id": "2789d42d-4bc9-4873-ba5d-ede4abc10e23",
+			"sha256": "43482bd7081dc69c1985a65ab1132aeb11d8a1cb63e44e8cc82e1417ca871cee",
+			"source_sha256": "2f8b4b513916b1a883cf64d5cd46559f9a8db6ec64375ee15d7ae73a5298eccc",
+			"spec": "tools/spritegen/specs/production-20261003/batch-15.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.619,
+			"file": "weapon_material_railgun.png",
+			"id": "weapon_material_railgun",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "weapon material trim source",
+			"request_id": "a8f9325e-ce66-4787-aea6-f984d5ae8de9",
+			"sha256": "6a710bc2ff346848aef34492341a74d579ca830f6ac34caf883584d56df428f2",
+			"source_sha256": "4f2e1e95b950dce7ac0de0d6e7d3419a151849003c7e35a2aab49df71ffba207",
+			"spec": "tools/spritegen/specs/production-20261003/batch-16.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.617,
+			"file": "weapon_sniper.png",
+			"id": "weapon_sniper",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "weapon model reference",
+			"request_id": "4eeee8ac-7801-4184-9226-06439bafac5b",
+			"sha256": "e5dd88af1d9d2ed25cd11fdd16d4ad67ed69034d627a9086403f894672953a1e",
+			"source_sha256": "943857b7e5cce4ab44f935b9266458dba722761c2855f7be2ec562638b8faec9",
+			"spec": "tools/spritegen/specs/production-20261003/batch-16.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.618,
+			"file": "weapon_material_sniper.png",
+			"id": "weapon_material_sniper",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "weapon material trim source",
+			"request_id": "47f643b3-b5a7-4bf6-9dad-71d9b1b59222",
+			"sha256": "60f9523d34798d0b752bc5679c2927d4a3e4de3371e23f20dd08d8669130cdb0",
+			"source_sha256": "3cedae1d944f2d6d463115aa948099affaddecba32015a5911ac0b8d6f42131a",
+			"spec": "tools/spritegen/specs/production-20261003/batch-16.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.617,
+			"file": "weapon_shiv.png",
+			"id": "weapon_shiv",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "weapon model reference",
+			"request_id": "35c6a03b-e02e-43b7-8563-56546e4b291c",
+			"sha256": "c98c66e332a9cb071966fc11dd750335de0a456969ccdc73a06c14c36bb2a6d1",
+			"source_sha256": "f6d06cfe8780dad6b5e362404e74c429515b9ceb385cd12c5c5c4ac36f7693a4",
+			"spec": "tools/spritegen/specs/production-20261003/batch-16.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.618,
+			"file": "weapon_material_shiv.png",
+			"id": "weapon_material_shiv",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "weapon material trim source",
+			"request_id": "fc4617db-ca92-45ec-9ce8-e9b10445f958",
+			"sha256": "71642779fd2e09136e815d9b1fdd3548817275444cbc437188ed31f30c22cfd1",
+			"source_sha256": "1f6a387af42f503fef191ff7d306cabc7ed3bbbe6693f9c2db31b1c7685a4dd3",
+			"spec": "tools/spritegen/specs/production-20261003/batch-16.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.618,
+			"file": "weapon_grenade_mine.png",
+			"id": "weapon_grenade_mine",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "weapon model reference",
+			"request_id": "91105b3f-4a74-458c-b1a8-1930586c47fe",
+			"sha256": "4f8640507458cc1d7ccc47f254b1655d25f13d3bf606e75d0acc1ebb7166be3e",
+			"source_sha256": "ca815acb7d880544d985202e16e3eb7b8b3bb5d429b8dde42307d5ef8afb12b1",
+			"spec": "tools/spritegen/specs/production-20261003/batch-16.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.619,
+			"file": "weapon_material_grenade_mine.png",
+			"id": "weapon_material_grenade_mine",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "weapon material trim source",
+			"request_id": "6185ae48-e8bd-4c5a-9194-08527371b3cf",
+			"sha256": "f9ee2767a559100c72c1eff9559b9305d2144a7cebf698c644d4fbf4612a9ea6",
+			"source_sha256": "20addae6a1e7f81e252cbfea4d2d98eee7e4f108e79b6dda9bafb2f09eaee205",
+			"spec": "tools/spritegen/specs/production-20261003/batch-16.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.619,
+			"file": "world_union.png",
+			"id": "world_union",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "environment authoring target, not gameplay evidence",
+			"request_id": "1db00421-322e-4f01-9d78-a6ded7ad206a",
+			"sha256": "cdc98dfb36a56d1e0c73ac32f625634e25bf726624ded21b614be6c8030aa2b4",
+			"source_sha256": "0b15284b9d8a9f4ba430ecb3d82af23bd7c48975909ada08db3d48db85d93558",
+			"spec": "tools/spritegen/specs/production-20261003/batch-17.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.619,
+			"file": "world_yard.png",
+			"id": "world_yard",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "environment authoring target, not gameplay evidence",
+			"request_id": "c71012df-65c1-4c10-a5a0-b9db4078c380",
+			"sha256": "25a415b6103e1399058abaeac80c242bd604132f95c7d8b75bf83f424fa4f1d8",
+			"source_sha256": "663c1e0eba3d65543a98e73fb037b0b69e9fb8517643499aec4afeabe4999fe7",
+			"spec": "tools/spritegen/specs/production-20261003/batch-17.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.619,
+			"file": "world_low_water.png",
+			"id": "world_low_water",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "environment authoring target, not gameplay evidence",
+			"request_id": "a1192be0-257e-499b-aeb2-36a417b5ae23",
+			"sha256": "5e16f0f9b81d1a43b4de2163bbb9745be17b72b306eeefec70ee08309394cf3f",
+			"source_sha256": "1a1c90ed9e7447848ef97cfd51f11c669e76d4a1730b13472c209d813ca7c6bc",
+			"spec": "tools/spritegen/specs/production-20261003/batch-17.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.619,
+			"file": "world_lunar.png",
+			"id": "world_lunar",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "environment authoring target, not gameplay evidence",
+			"request_id": "4758d4aa-3bfc-4691-acad-8221dd6d2405",
+			"sha256": "0796595c168c2e41fd3695e2b9e193bec790a248f6c23ccc3788039f3c6ccc2c",
+			"source_sha256": "44879cee1c3afc085385b26be597f6563d52d641c3ad3f0fa9893fd79acad3fc",
+			"spec": "tools/spritegen/specs/production-20261003/batch-17.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.619,
+			"file": "world_archive.png",
+			"id": "world_archive",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "environment authoring target, not gameplay evidence",
+			"request_id": "9dcd89bd-53b2-415c-8fa9-e388591f3f8c",
+			"sha256": "d1bb21a383048e93c93d5cebc8311d656824c42350a3f10ed861e58907557c72",
+			"source_sha256": "dc032258116e4e906f036b22110f39c2832934e130c87a079bfc2522e6e873d4",
+			"spec": "tools/spritegen/specs/production-20261003/batch-17.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.619,
+			"file": "world_mars.png",
+			"id": "world_mars",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "environment authoring target, not gameplay evidence",
+			"request_id": "d8696976-1191-4b57-8129-3c93865a693c",
+			"sha256": "2d123eed222ff236153f64c50a71617ea862c74220007b3a144af150b1bb4ad7",
+			"source_sha256": "82b01f9967d8c53f7cd2be3a7133b48efe4457f4bc1a2c6dbe5c7fad74dd4568",
+			"spec": "tools/spritegen/specs/production-20261003/batch-17.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.619,
+			"file": "world_ship.png",
+			"id": "world_ship",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "environment authoring target, not gameplay evidence",
+			"request_id": "7b2904e2-4fb2-446c-8ba6-ba74e269ba87",
+			"sha256": "0d32e710e0fb20e255b85b9ba48b84e0d99774bfc1e643460c37faf251cce3b9",
+			"source_sha256": "c8e10692ee0c2c3a40cb534f6b3870f4540fb7c081903da8bc907ac5ad330093",
+			"spec": "tools/spritegen/specs/production-20261003/batch-17.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.617,
+			"file": "water_ripples.png",
+			"id": "water_ripples",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "water shader or shoreline surface source",
+			"request_id": "18dbaa9a-a27f-49a3-a06e-e570b4660974",
+			"sha256": "00447e6646f71d803927d22af3dcca9b6bb8d5a73ab3100caf3008167b873b1d",
+			"source_sha256": "0bd4af3244ed78ce128e3ab4c67afd80746c053a0fcae86ae11b0ca3dc5b5f1a",
+			"spec": "tools/spritegen/specs/production-20261003/batch-18.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.617,
+			"file": "water_sediment.png",
+			"id": "water_sediment",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "water shader or shoreline surface source",
+			"request_id": "63d06b50-17a9-4860-9eee-0e32f5731e8e",
+			"sha256": "3032d01d1687beb17c977c36a406a8928dbd738390fa02aba6e22bce4525050d",
+			"source_sha256": "8bf0d8a572294e2134129e1e1850d80184141ec103c79db9ec3c8d2f21a24045",
+			"spec": "tools/spritegen/specs/production-20261003/batch-18.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.617,
+			"file": "water_shore.png",
+			"id": "water_shore",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "water shader or shoreline surface source",
+			"request_id": "be1f93e1-c421-4ed7-9078-a2efdb22c9d2",
+			"sha256": "79c011e8352b812077f2c48361223fb020e4054cdf449b14089e1581b36c922d",
+			"source_sha256": "2f6067a38a4b1b1e6da1d92de4f26072e511906920c099963475e1b63074866b",
+			"spec": "tools/spritegen/specs/production-20261003/batch-18.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.617,
+			"file": "water_foam.png",
+			"id": "water_foam",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "water shader or shoreline surface source",
+			"request_id": "e7372209-b0ee-4aca-abcb-351dcb4aef2c",
+			"sha256": "6bac02912296eba390ba8ab754f341310c96c0101a44327a13ad478e48b97287",
+			"source_sha256": "385d3e95056af3fce7316c67362ce351324af1bbd7bcb943d8edf7d7ab090229",
+			"spec": "tools/spritegen/specs/production-20261003/batch-18.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.617,
+			"file": "water_caustic.png",
+			"id": "water_caustic",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "water shader or shoreline surface source",
+			"request_id": "0d8ac1ea-5ceb-4caa-a4be-4dc41fb83678",
+			"sha256": "439fd4185f50af797879cc361bb7627113ff60922f8d9dc09caa60eb19905aca",
+			"source_sha256": "2bb32f4f9649c38dc77d11c3f2c0dca6b243ed517b5fcf39fdda0ece13662f9a",
+			"spec": "tools/spritegen/specs/production-20261003/batch-18.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.617,
+			"file": "water_oil.png",
+			"id": "water_oil",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "water shader or shoreline surface source",
+			"request_id": "aaea03d5-51f9-4a44-8d03-eff65b1b6d57",
+			"sha256": "bb08ef9b85258f675688d89dde33c7911fb391565da4fc5be6f371fbd3dcc6a0",
+			"source_sha256": "41a023b2f476a062f785705687233e3d918b41a4aaecaa32deb31d4f2b1849da",
+			"spec": "tools/spritegen/specs/production-20261003/batch-18.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.617,
+			"file": "water_moss.png",
+			"id": "water_moss",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "water shader or shoreline surface source",
+			"request_id": "65a67321-cbc3-450a-9f6c-ff30cf463c6f",
+			"sha256": "4a21ef4f0308c4ef1e3814510ffcf24902954fb52a48831b07c6794cc68134ca",
+			"source_sha256": "db841c0d67f4f838be8fb98e2ee938721a3840ea578a2a85790bb80c59174a02",
+			"spec": "tools/spritegen/specs/production-20261003/batch-18.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.618,
+			"file": "decal_union_wear.png",
+			"id": "decal_union_wear",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "wear overlay source, chroma-key reduction required",
+			"request_id": "9c8cd8bf-2280-4393-a2f8-0dd3f4bc1f91",
+			"sha256": "be2b7cd280098ea871335eb8387c35370820114ed93c1dc6881d36b68d472506",
+			"source_sha256": "66b9e3eed717bbba15acb73c8adc2fc43344e2efe336b5ad8d2d8aab09d13e1c",
+			"spec": "tools/spritegen/specs/production-20261003/batch-19.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.619,
+			"file": "decal_union_personal.png",
+			"id": "decal_union_personal",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "environment story overlay source",
+			"request_id": "f482ef9d-d54b-458c-b549-1d8bd9a4f129",
+			"sha256": "6e20cf0f9a0155beac237fbeeeea98b8144290c53b0883f20ac6e84ca725b632",
+			"source_sha256": "19f54cad6b301917b3d92052ae9ed3650ce5930375b21666c6e7cfeea597a0ca",
+			"spec": "tools/spritegen/specs/production-20261003/batch-19.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.618,
+			"file": "detail_union_fabric.png",
+			"id": "detail_union_fabric",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "civilian fabrics, awnings and insulation source",
+			"request_id": "c0a78d0a-90eb-4f1f-aa1c-75475550363b",
+			"sha256": "57dbd2d0696729967ac8861d8ef074588ce9781916768fc997e77af28bf38cdb",
+			"source_sha256": "de5a544de667146cd4c515bbbbd43382a0cb18bfe3d6ab0d8317c2e52ad15932",
+			"spec": "tools/spritegen/specs/production-20261003/batch-19.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.618,
+			"file": "decal_yard_wear.png",
+			"id": "decal_yard_wear",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "wear overlay source, chroma-key reduction required",
+			"request_id": "8b7fb3d4-0df7-4a24-9ea1-f5830fc71068",
+			"sha256": "6c152a329f18a64521c13f1062b7f14958adca6df7ff1c8027882db6513964b7",
+			"source_sha256": "c2deb44b0f7879d6c3be7703a87107f91d7b1d4cbc24a7f68f57fb0fb8468c83",
+			"spec": "tools/spritegen/specs/production-20261003/batch-19.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.618,
+			"file": "decal_yard_personal.png",
+			"id": "decal_yard_personal",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "environment story overlay source",
+			"request_id": "fa5f72f3-e96a-4406-8f97-ad027c542cf5",
+			"sha256": "c9037de9a7aecc4e1c5ab9891d107a5a70d8433b2e2f9385af6de5dae5163b57",
+			"source_sha256": "7193f70a80843d4d43c5d2e476968965cb99251dc8c0f63e66dccc424f9a48b2",
+			"spec": "tools/spritegen/specs/production-20261003/batch-19.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.618,
+			"file": "detail_yard_fabric.png",
+			"id": "detail_yard_fabric",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "civilian fabrics, awnings and insulation source",
+			"request_id": "1a96df62-3f41-4488-aae2-8fdbbbeb8a7a",
+			"sha256": "cb89c87d13bb00f826f119ca4183d68d676ba4898d1d7a28befd66cc81e4a2a3",
+			"source_sha256": "e6de4080e1cd3c4c0cb6a4c68300ff5c993efeb90ef023a85c9db67ca02ea75f",
+			"spec": "tools/spritegen/specs/production-20261003/batch-19.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.618,
+			"file": "decal_low_water_wear.png",
+			"id": "decal_low_water_wear",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "wear overlay source, chroma-key reduction required",
+			"request_id": "93a7e7b0-be57-400d-80d1-44463aef6ea1",
+			"sha256": "aa98c0cc9b88daff1f3a1942318e915950ef19d9f20b68d85311233a66ae6635",
+			"source_sha256": "cab28ec605043f636be3cf73aaf5040bfa74ad110882a577898b1fd0d5100c8c",
+			"spec": "tools/spritegen/specs/production-20261003/batch-19.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.618,
+			"file": "decal_low_water_personal.png",
+			"id": "decal_low_water_personal",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "environment story overlay source",
+			"request_id": "fd100045-3f81-4c2e-aba4-f6edb94cbe28",
+			"sha256": "bdfcc323144a3f8484188e645387100efd11d73a56b6f92c966c0a0ff52a6718",
+			"source_sha256": "40df1e4fecc0474748274ce0e09d1179177d883d1fce4a09a34032eaa6a7c98e",
+			"spec": "tools/spritegen/specs/production-20261003/batch-20.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.618,
+			"file": "detail_low_water_fabric.png",
+			"id": "detail_low_water_fabric",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "civilian fabrics, awnings and insulation source",
+			"request_id": "7f1cd257-f1b4-4f36-9999-752beda312d5",
+			"sha256": "3eb7824fc750af036366f0ba53f89de812c682d9a5058ef598fce4537c319435",
+			"source_sha256": "30c2b682e5134671cd283a40459565b1e4a66211231b8eddfa5d8833e90129c8",
+			"spec": "tools/spritegen/specs/production-20261003/batch-20.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.618,
+			"file": "decal_lunar_wear.png",
+			"id": "decal_lunar_wear",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "wear overlay source, chroma-key reduction required",
+			"request_id": "df35c87a-1f2b-479b-9cf0-78f3cce52dee",
+			"sha256": "2b4ef8e907d3813bedf2cf8562d12c728ac4c5a2036b748ca6463d704b7c1e89",
+			"source_sha256": "65d993fd195245e9989a127075e61c399510887414d09c995eace22932354c57",
+			"spec": "tools/spritegen/specs/production-20261003/batch-20.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.618,
+			"file": "decal_lunar_personal.png",
+			"id": "decal_lunar_personal",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "environment story overlay source",
+			"request_id": "11eb5124-7836-409e-b5b3-adceca255a5c",
+			"sha256": "45c37ad6d9cc5c9fcae8e140a74cf243be3d9d740b3298634b88187ba7e78e4f",
+			"source_sha256": "2bd9b9d26ee493c4fc691131331689c331fbacaa3afca15a09292c4af918560c",
+			"spec": "tools/spritegen/specs/production-20261003/batch-20.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.618,
+			"file": "detail_lunar_fabric.png",
+			"id": "detail_lunar_fabric",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "civilian fabrics, awnings and insulation source",
+			"request_id": "89011c8a-3f1d-4894-bfc6-556298a50d88",
+			"sha256": "d8f89b1a480f50d793bd8bb2804325df2aa7b3f3e0316a1f3c9514e68a1dd7dd",
+			"source_sha256": "add49e12af3983c76c1e08bfd3fda723b6c8d2fc8d64c1f3fe580f9d6ce66d1f",
+			"spec": "tools/spritegen/specs/production-20261003/batch-20.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.618,
+			"file": "decal_archive_wear.png",
+			"id": "decal_archive_wear",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "wear overlay source, chroma-key reduction required",
+			"request_id": "96aa7f52-3f5f-43a4-9e77-8c18ebb3a321",
+			"sha256": "85c6a96129f9128d73d87f1bd1d2c467e8509e5c5118484cfd49fa71fa0b0da7",
+			"source_sha256": "b4bad30a1ba877728acc4cc5e39e12c6c717e96b1ea2343f2a2c9d2cbe0671cb",
+			"spec": "tools/spritegen/specs/production-20261003/batch-20.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.618,
+			"file": "decal_archive_personal.png",
+			"id": "decal_archive_personal",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "environment story overlay source",
+			"request_id": "dbc27db4-9ade-4824-b8e4-4c2782551b3d",
+			"sha256": "3cddd7878cfc62896e8d01c32177fc1984eac27d14311a18320fbee4df5e232a",
+			"source_sha256": "efc85f34687f59eb5c9e40994b004a48d589029d94a12234910577f74a31f9b4",
+			"spec": "tools/spritegen/specs/production-20261003/batch-20.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.618,
+			"file": "detail_archive_fabric.png",
+			"id": "detail_archive_fabric",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "civilian fabrics, awnings and insulation source",
+			"request_id": "e2145764-9ae3-40f7-ba0e-8496e5e8a8b0",
+			"sha256": "4251b17ad6b7d69ec52ab853308442422d29afcd8385a0adb1cad9494941a7f5",
+			"source_sha256": "3390dba918f9bbeb9642bdecfb73b1b0d7e4f4276f7a91a7845ff095df1dfa39",
+			"spec": "tools/spritegen/specs/production-20261003/batch-21.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.618,
+			"file": "decal_mars_wear.png",
+			"id": "decal_mars_wear",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "wear overlay source, chroma-key reduction required",
+			"request_id": "c326be82-2b1d-467a-9baa-338832078872",
+			"sha256": "386b2313599c72be9a6d891e88d29fbd9702307cbc0a0f42f18d91976796ceb9",
+			"source_sha256": "4d5481e39abffbc2c0f1e8e0b7bcb4ff83ae844f4af7c8cba3d46587d6e6c2a9",
+			"spec": "tools/spritegen/specs/production-20261003/batch-21.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.618,
+			"file": "decal_mars_personal.png",
+			"id": "decal_mars_personal",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "environment story overlay source",
+			"request_id": "b2074258-3755-4888-8361-376d3eefdab3",
+			"sha256": "2923f0e35991f1dd5df9b9d7a1ea1155d8fa04da67393c167ff1d9bcc0dc3576",
+			"source_sha256": "d66390d38182e2f00727d87df19f5f97ff4e415ce6161112e46428edffa763b8",
+			"spec": "tools/spritegen/specs/production-20261003/batch-21.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.618,
+			"file": "detail_mars_fabric.png",
+			"id": "detail_mars_fabric",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "civilian fabrics, awnings and insulation source",
+			"request_id": "7bf91fab-d409-44a5-831f-d07199bbb054",
+			"sha256": "818ff6480c44b4709b74a71861c0f19e1fcc0c2695c8a9285cc4497f8b864eab",
+			"source_sha256": "b33de4f91f1f8477054415224a424067b3f6fa8b5f26a600aa6adbe388ccb566",
+			"spec": "tools/spritegen/specs/production-20261003/batch-21.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.618,
+			"file": "decal_ship_wear.png",
+			"id": "decal_ship_wear",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "wear overlay source, chroma-key reduction required",
+			"request_id": "1ce10336-60d7-4686-9bda-71dd8e0fb770",
+			"sha256": "4e68c746b2cf3921274da35895729f6e618150349060b6fc5788ab8f974458ce",
+			"source_sha256": "18873b5477cdd2893cd8866a634464d0dd6e81703f193b909ff4525a706f8b95",
+			"spec": "tools/spritegen/specs/production-20261003/batch-21.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.618,
+			"file": "decal_ship_personal.png",
+			"id": "decal_ship_personal",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "environment story overlay source",
+			"request_id": "c40dec3a-0b6b-431f-be85-f7bcfbade469",
+			"sha256": "6f40c02d9e1bf65d5ff83181169a037f9c57e06dfd915d3e918e2e23a464f4f4",
+			"source_sha256": "64c5599a46919b6fbd41e34eaac02746c97291518c192f4ddea0c52054c6bc2c",
+			"spec": "tools/spritegen/specs/production-20261003/batch-21.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		},
+		{
+			"estimated_usd": 0.618,
+			"file": "detail_ship_fabric.png",
+			"id": "detail_ship_fabric",
+			"original_pixels": [
+				2880,
+				2880
+			],
+			"purpose": "civilian fabrics, awnings and insulation source",
+			"request_id": "2aaa20af-e997-4437-aaf3-63235b4ba764",
+			"sha256": "65cf777196157e401b161b88f18dde8345b84b3e8357acf7dcbfab86c20cb93f",
+			"source_sha256": "94b606a74926b3c87697d234b50fc05d81df338585ba53bf7de3733b157a4b52",
+			"spec": "tools/spritegen/specs/production-20261003/batch-21.json",
+			"status": "source candidate, visual acceptance and runtime placement tracked separately"
+		}
+	],
+	"billing": "exact request estimates, dashboard charges not yet reconciled",
+	"date": "2026-10-03",
+	"inventory": "tools/spritegen/specs/production-20261003/inventory.json",
+	"model": "marketing-studio/image",
+	"review_pixels": [
+		768,
+		768
+	],
+	"schema": 1
+}

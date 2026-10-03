@@ -14,6 +14,8 @@ render_mode cull_disabled, diffuse_lambert, specular_disabled, depth_draw_opaque
 // (vertex colour) match the Sprite3D settings this replaces.
 
 uniform sampler2D sprite_texture : source_color, filter_nearest;
+uniform sampler2D sprite_normals : filter_nearest;
+uniform bool normals_enabled = false;
 uniform vec3 charcoal : source_color = vec3(0.196, 0.196, 0.216); // a step above union_steel
 uniform float body_lift = 0.5;
 uniform float red_glow = 1.6;
@@ -59,6 +61,10 @@ void fragment() {
 		vec3 body = mix(texel.rgb, max(texel.rgb, charcoal), body_lift * dark);
 		float red = red_mask(texel.rgb);
 		ALBEDO = body * tint;
+		if (normals_enabled) {
+			NORMAL_MAP = texture(sprite_normals, UV).rgb;
+			NORMAL_MAP_DEPTH = 1.0;
+		}
 		EMISSION = texel.rgb * red * red_glow * tint;
 	}
 	ROUGHNESS = 1.0;

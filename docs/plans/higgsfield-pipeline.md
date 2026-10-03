@@ -55,7 +55,14 @@ The reason is value contrast, not resolution. A model asked for a photoreal prop
 
 Boltgun's pipeline works because human artists control the contrast and palette of the render. A prompt cannot control that tightly enough. So fragr asks the generator for the end state and enforces the rest locally.
 
-**Ask for the stylised sprite. Quantise it against `docs/palette.json`. Never ask for a photoreal render and shrink it.**
+**For directly generated final sprite frames, ask for the stylised sprite and
+quantise it against `docs/palette.json`.** This earlier comparison is not a
+ban on detailed model sources, material albedos or controlled offline mesh
+bakes. The [October 3 production pass](art-excellence.md) uses high-resolution
+references and shaped local geometry with inspected lighting and contrast.
+Specs now accept a root or per-frame `negative` override. Omission preserves
+existing prompt bytes; an empty string omits the avoid list. Paid reference
+work keeps the same price gate and durable ledger as sprite work.
 
 The corollary matters too: reduction without palette quantisation produces mush from either arm. The palette step is not a finishing touch, it is what makes the sprite a sprite.
 
@@ -173,6 +180,99 @@ rather than the human role now specified in `ENEMIES.md`.
 - **Normal maps.** The contract in `ART-GENERATION-SPEC.md` asks for a normal beside every albedo, derived from a depth pass. Nothing generates one.
 - **Animation.** Per-frame animation is where generated art is weakest. The image-to-video models on this same key are a real route to a sprite sheet: generate a still, animate it, extract frames. Untested.
 - **Concurrency.** The tool submits one frame at a time. The account allows about four, so a large run is currently four times slower than it needs to be.
+
+## API capability checker (2026-10-03)
+
+**Status:** implemented locally; offline tests and live free probe recorded below.
+**Spend:** $0. Nick asked for an
+API-level checker before model production. Reuse the existing Rust CLI,
+dotenv loader, bounded HTTP transport and fake-transport test convention.
+
+`fragr-spritegen api-check` accepts an optional JSON probe specification and
+JSON report. Its only authenticated operations are
+`POST /estimate/<validated-model-path>`, documented in the official
+[billing guidance](https://docs.higgsfield.ai/docs/concepts/billing-and-retention).
+Use raw model parameters rather than the sprite prompt assembler, so the
+checker can price a prospective model operation without pixel-only negatives.
+It fetches the supplementary OpenAPI specification without credentials and reports
+its documented routes, retaining the official catalog-completeness caveat.
+Do not invent balance or model-list endpoints.
+
+A successful finite dollar estimate verifies the estimate operation for that
+key and payload. It does not prove generation, the remaining API balance,
+output quality, licensing or a complete model catalog. Distinguish invalid
+credentials, forbidden access, missing/unavailable routes, invalid payloads,
+rate limits, server failures and malformed estimates. Never print response
+bodies or credentials. Reject invalid specs before network access. Stop
+authenticated probes after a 401. Tests prove the checker cannot submit a
+generation, upload, cancellation or billing mutation, and cover hostile
+reflected responses. Run the checker on the existing key and keep its report
+under `.agents/`.
+
+Local verification: 110 sprite-tool tests and the workspace suite passed,
+along with formatting, workspace clippy, the release build and license checks.
+Unfiltered workspace line coverage is 93.80 percent. Fake transports verify
+request confinement, estimate validation, response redaction and the 401 stop;
+CLI tests preserve existing receipts and reject bad specs before loading keys.
+Full game verification receipts remain under `.agents/art-excellence-research/`.
+The final Godot rerun passed all 214 scripts and 98 harnesses after an initial
+import exited 139; a direct import retry was also clean. Combat, CTF and
+Sabotage routes and contested matches, all six mixed-client rosters, the
+120-second soak and the local container health/notices checks passed. The
+test container was removed afterward. These establish regression checks,
+not acceptance of new art or a finished campaign.
+All ten verifier fault scenarios passed, including failed exits, missing
+markers, large output and preserved verbose failure evidence.
+
+Nick reported a $100 API top-up and $105.88 available on 2026-10-03, approving
+that total for Higgsfield asset work. It supersedes the historical $50 ceiling
+only for that scope. Keep the $5 per-run tool ceiling, reconcile reservations,
+and leave top-ups and overages disabled. Funding is not consumption.
+
+### Run it
+
+From the repository root, with the existing ignored `.env` credential:
+
+```sh
+cargo run -p fragr-spritegen --locked -- api-check
+cargo run -p fragr-spritegen --locked -- api-check \
+  --spec tools/spritegen/specs/api-capabilities.json \
+  --report .agents/api-check.json
+```
+
+The optional report's parent directory must already exist. Existing reports
+are refused before network access. The JSON goes to stdout as well. Exit 0
+means at least one probe returned a valid price; inspect every probe's status
+for the model you need. An invalid credential stops further authenticated
+probes. A missing price is an error, never a zero-cost estimate.
+
+Custom specifications contain `probes`, each with a `model` API path and
+`params` object. No sprite prompt or negative language is appended. Supply
+the exact payload from the model-specific API docs, including existing
+reference URLs where needed. The checker does not upload references. The
+committed example's two 3D names are connected-catalog identifiers tested as
+candidate API names, with no reference image; they are not documented API
+routes. A payload rejection alone cannot settle model availability.
+
+### Live result
+
+Using the existing local key on 2026-10-03:
+
+| Probe | HTTP | Result |
+|---|---|---|
+| `higgsfield-ai/soul/v2/standard` | 200 | Estimate accepted, $0.004 for the exact example payload |
+| `marketing-studio/image` | 200 | Estimate accepted, $0.020 for the low-quality 2k reference payload |
+| `meshy_v7_image_to_3d` | 404 | Candidate estimate route missing or unavailable |
+| `tripo_h3_1_image_to_3d` | 404 | Candidate estimate route missing or unavailable |
+
+The supplementary documentation downloaded and parsed. Neither missing 3D
+identifier proves that every Higgsfield 3D route is unavailable. The account
+key works for image pricing; an authoritative 3D API path and schema still
+need to be obtained before submitting model production. The API balance
+remains user-reported because no balance endpoint was documented in the
+checked sources. The ignored receipt is
+`.agents/art-excellence-research/api-check-20261003.json`. No generation,
+uploads, refunds or billing mutations occurred.
 
 ## Related
 

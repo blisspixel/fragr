@@ -1,0 +1,55 @@
+{
+  "model": "marketing-studio/image",
+  "out_dir": "art/raw/production-20261003/batch-12",
+  "params": {
+    "quality": "high",
+    "resolution": "4k",
+    "aspect_ratio": "1:1",
+    "enhance_prompt": false
+  },
+  "style": "Original professional game production art, practical retro futurism circa 2070, exceptional carefully maintained industrial design, restrained tactile materials, sharp details suitable for deliberate pixel reduction, no copied franchise designs",
+  "frames": [
+    {
+      "id": "prop_luggage_scanner",
+      "subject": "Union lunar customs luggage scanner, graphite tunnel with bone ceramic entry frame, conveyor rollers, red status lamp and service hatches",
+      "technical": "One coherent original prop, orthographic front three-quarter view, studio mid-grey backdrop, physically plausible construction, all parts visible, no labels, no scene dressing around it",
+      "negative": "watermarks, signatures, logos, historical political insignia, neon cyberpunk, decorative fantasy spikes, illegible writing, blur, oversaturation, cheap toy forms"
+    },
+    {
+      "id": "prop_archive_cabinet",
+      "subject": "tall records archive cabinet with bone ceramic sliding drawers, protected steel runners, blank index tabs, red mechanical lock",
+      "technical": "One coherent original prop, orthographic front three-quarter view, studio mid-grey backdrop, physically plausible construction, all parts visible, no labels, no scene dressing around it",
+      "negative": "watermarks, signatures, logos, historical political insignia, neon cyberpunk, decorative fantasy spikes, illegible writing, blur, oversaturation, cheap toy forms"
+    },
+    {
+      "id": "prop_archive_machine",
+      "subject": "original enormous records processing core module, charcoal stacked cooling housings, bone access shells, coherent ducts, mechanical bracing and restrained red optics",
+      "technical": "One coherent original prop, orthographic front three-quarter view, studio mid-grey backdrop, physically plausible construction, all parts visible, no labels, no scene dressing around it",
+      "negative": "watermarks, signatures, logos, historical political insignia, neon cyberpunk, decorative fantasy spikes, illegible writing, blur, oversaturation, cheap toy forms"
+    },
+    {
+      "id": "prop_mars_rover",
+      "subject": "civilian Mars maintenance rover, six practical wheels, bone cabin with red dust, battered green tool locker, narrow antenna and cargo rack",
+      "technical": "One coherent original prop, orthographic front three-quarter view, studio mid-grey backdrop, physically plausible construction, all parts visible, no labels, no scene dressing around it",
+      "negative": "watermarks, signatures, logos, historical political insignia, neon cyberpunk, decorative fantasy spikes, illegible writing, blur, oversaturation, cheap toy forms"
+    },
+    {
+      "id": "prop_ship_engine",
+      "subject": "working ship auxiliary engine module, dark machined steel cylinder, bone thermal covers, distinct hose runs, bolted access hatches, restrained amber service lamp",
+      "technical": "One coherent original prop, orthographic front three-quarter view, studio mid-grey backdrop, physically plausible construction, all parts visible, no labels, no scene dressing around it",
+      "negative": "watermarks, signatures, logos, historical political insignia, neon cyberpunk, decorative fantasy spikes, illegible writing, blur, oversaturation, cheap toy forms"
+    },
+    {
+      "id": "prop_ship_bunk",
+      "subject": "civilian freighter bunk with steel frame, worn tan mattress and bone folded blanket, small personal shelf and warm reading light",
+      "technical": "One coherent original prop, orthographic front three-quarter view, studio mid-grey backdrop, physically plausible construction, all parts visible, no labels, no scene dressing around it",
+      "negative": "watermarks, signatures, logos, historical political insignia, neon cyberpunk, decorative fantasy spikes, illegible writing, blur, oversaturation, cheap toy forms"
+    },
+    {
+      "id": "prop_salvage_robot_parts",
+      "subject": "neatly arranged civil robot replacement components, narrow bone forearm housing, dark mechanical hand, repaired CRT shell and steel joint cartridges, no complete character",
+      "technical": "One coherent original prop, orthographic front three-quarter view, studio mid-grey backdrop, physically plausible construction, all parts visible, no labels, no scene dressing around it",
+      "negative": "watermarks, signatures, logos, historical political insignia, neon cyberpunk, decorative fantasy spikes, illegible writing, blur, oversaturation, cheap toy forms"
+    }
+  ]
+}

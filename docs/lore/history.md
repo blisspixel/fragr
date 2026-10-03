@@ -1,9 +1,9 @@
 # How the world got here
 
-**Status:** proposed causal backstory, 2026-09-19. Nick confirmed roughly thirty
-years for the Union's rise, formation around 2040, Moon/Mars bases around 2060,
-and a later, undated campaign. The sequence
-below dramatizes real pressures; its future events are fiction, not forecasts.
+**Status:** proposed causal backstory, updated 2026-10-03. Nick confirmed
+roughly thirty years for the Union's rise, formation around 2040, Moon/Mars
+bases around 2060, and a campaign loosely around 2070. The sequence below
+dramatizes real pressures; its future events are fiction, not forecasts.
 It leaves room for established lunar, Martian, and shipboard communities before
 the player story. [CAMPAIGN.md](../CAMPAIGN.md) owns that story's sequence.
 
@@ -28,8 +28,11 @@ government, present-day conscious robots, or an inevitable machine apocalypse.
 Years below are relative stages, not calendar promises. Around 2040 the
 Europe-centered bloc takes recognizable Union form; lunar and Martian bases
 accelerate toward roughly 2060. These are loose fictional anchors. The campaign
-comes later, allowing those bases to become lived-in communities. Events overlap and
-people disagree about where one period ended. No secret group needs to script
+comes loosely around 2070, allowing those bases to become lived-in communities.
+Practical, recognizable machinery and repaired electronics provide the
+retro-futuristic charm; advanced transport does not make every object exotic.
+Events overlap and people disagree about where one period ended.
+No secret group needs to script
 every crisis for the institutions to take advantage of them.
 
 National names describe this backstory and its surviving cultural influences.

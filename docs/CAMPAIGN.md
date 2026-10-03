@@ -93,9 +93,12 @@ survival-gated epilogue.
 ## Confirmed direction
 
 - Union formation around 2040 and Moon/Mars bases around 2060 are loose backstory
-  anchors. Roughly thirty years of the Union's rise precede a later, undated
-  campaign. Established Earth, Moon, Mars, and shipboard communities,
-  recognizable present-day remnants, and industrial pixel art.
+  anchors. Roughly thirty years of the Union's rise precede a campaign around
+  2070, a loose reference confirmed on 2026-10-03 rather than an exact dated
+  chronology. Established Earth, Moon, Mars, and shipboard communities,
+  recognizable present-day remnants, and industrial pixel art. Keep practical
+  retro-futuristic charm: familiar machinery, repaired electronics and a few
+  advanced technologies, without making every possession far-future equipment.
 - A customizable human or conscious embodied agent shares the same personal
   story. Humans and agents fight together for agency; body type is not morality.
 - Rescue a longtime friend or partner, an embodied agent facing forced correction.

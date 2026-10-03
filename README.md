@@ -43,6 +43,16 @@ Source checkouts also include development ranges for the Jammer, the Sniper
 Rifle and the custody devices; [server/maps/README.md](server/maps/README.md)
 lists them and how to run each one.
 
+The finished game targets a complete twenty-level campaign and polished
+multiplayer. Retro is the art direction, not a quality ceiling: detailed
+character and weapon models, coherent animation, purposeful architecture,
+pixel textures and strong lighting are the target. Current character bakes
+and development rooms remain provisional. The [art excellence
+plan](docs/plans/art-excellence.md) tracks the current production pass:
+original articulated mesh sources, directional body normals, venue materials,
+physical fixtures and moving water. The [source library](client/art/production-20261003/README.md)
+separates design references from art actually used in play.
+
 **Custodian of Record** is the level 8 custody archive development prototype, with the
 Proximity Mine and the repairing Auditor, under **Practice and Development**
 ([plan](docs/plans/l08-custodian-of-record-prototype.md)).
@@ -86,10 +96,10 @@ save behavior and settings are in the [playing guide](docs/PLAYING.md).
 
 ## Screenshots
 
-These four stills were inspected for v0.67.0 on October 3, 2026. The release
-tour on the final source republished the boot menu (unchanged), the
-multiplayer page and the watched match. Recall Notice's intake keeps its
-October 2 capture with the current weapon art. The
+These four stills were refreshed and inspected on October 3, 2026 for the
+current development work. Recall Notice shows the articulated room surfaces;
+the watched match shows the current arena materials and character presentation.
+This art production pass is not yet part of the downloadable v0.67.0 release. The
 [visual tour](docs/screenshots/README.md) has more states and capture context.
 
 Boot menu:
@@ -118,6 +128,7 @@ A watched Arena Duel fighter in chase view:
 | Bring your own agent through MCP | [Agent adapter](agent-adapter/README.md) and [agent skill card](docs/skills/fragr/SKILL.md) |
 | Run the reference decision-brain fighter | [Brain agent](agents/brain/README.md) |
 | Style, look, influences and asset consistency | [Style and look guidelines](docs/ART_STORY_BIBLE.md) and [color readability](docs/ART-COLOR.md) |
+| Developer asset generation and free API capability checks | [Art pipeline](docs/plans/higgsfield-pipeline.md#api-capability-checker-2026-10-03) |
 | Story, world and future work | [Vision](docs/VISION.md), [campaign](docs/CAMPAIGN.md), [lore](docs/lore/README.md), [roadmap](docs/ROADMAP.md) |
 | Server architecture and wire format | [Architecture](docs/ARCHITECTURE.md) and [protocol](docs/protocol.md) |
 

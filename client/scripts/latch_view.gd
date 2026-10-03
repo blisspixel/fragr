@@ -9,6 +9,7 @@ const CYAN: Color = Color("4a8a92")
 const DARK: Color = Color("232b2c")
 const RUST: Color = Color("7a3a22")
 const NEAR_CLIP: Shader = preload("res://assets/shaders/latch_near_clip.gdshader")
+const Workshop = preload("res://scripts/model_geometry.gd")
 const NEAR_CENTER_HEIGHT: float = 1.2
 const NEAR_HIDE_DISTANCE: float = 1.1
 const NEAR_FULL_DISTANCE: float = 1.35
@@ -26,6 +27,7 @@ var _right_fingers: Array[Node3D] = []
 var _flash: MeshInstance3D
 var _stride: float = 0.0
 var _flash_left: float = 0.0
+var _workshop: RefCounted = Workshop.new()
 
 func _init() -> void:
 	var bone: StandardMaterial3D = _material(BONE)
@@ -33,50 +35,50 @@ func _init() -> void:
 	var cyan: StandardMaterial3D = _material(CYAN)
 	var dark: StandardMaterial3D = _material(DARK)
 	var rust: StandardMaterial3D = _material(RUST)
-	_box(self, "Waist", Vector3(0.0, 0.76, 0.0), Vector3(0.37, 0.22, 0.25), steel)
-	_box(self, "Torso", Vector3(0.0, 1.22, 0.0), Vector3(0.57, 0.72, 0.31), bone)
-	_box(self, "ChestPlate", Vector3(0.0, 1.4, 0.17), Vector3(0.38, 0.27, 0.045), steel)
-	_box(self, "Patch", Vector3(-0.115, 1.46, 0.204), Vector3(0.14, 0.14, 0.027), cyan)
-	_box(self, "Collar", Vector3(0.0, 1.61, 0.0), Vector3(0.4, 0.1, 0.32), steel)
-	_box(self, "Neck", Vector3(0.0, 1.69, 0.0), Vector3(0.2, 0.16, 0.19), steel)
-	var head: MeshInstance3D = MeshInstance3D.new()
-	head.name = "FacetedHead"
-	var shell: CylinderMesh = CylinderMesh.new()
-	shell.top_radius = 0.23
-	shell.bottom_radius = 0.18
-	shell.height = 0.35
-	shell.radial_segments = 6
-	head.mesh = shell
-	head.position = Vector3(0.0, 1.91, 0.0)
-	head.material_override = bone
-	add_child(head)
-	# The recessed lower face and pale brow echo the workshop still without an optic.
-	_box(self, "FaceRecess", Vector3(0.0, 1.85, 0.192), Vector3(0.21, 0.1, 0.018), dark)
-	_box(self, "Brow", Vector3(0.0, 1.93, 0.193), Vector3(0.25, 0.045, 0.032), bone)
+	_box(self, "Waist", Vector3(0.0, 0.79, 0.0), Vector3(0.29, 0.16, 0.22), steel)
+	_workshop.hull(self, "Torso", PackedVector3Array([
+		Vector3(-0.22, 0.135, 0.1), Vector3(-0.17, 0.16, 0.125),
+		Vector3(0.15, 0.195, 0.13), Vector3(0.22, 0.16, 0.1)]), bone, Vector3(0, 1.12, 0))
+	_box(self, "ChestPlate", Vector3(0.0, 1.19, 0.13), Vector3(0.25, 0.22, 0.027), steel)
+	_box(self, "Patch", Vector3(-0.07, 1.22, 0.15), Vector3(0.06, 0.075, 0.012), cyan)
+	_box(self, "Collar", Vector3(0.0, 1.38, 0.0), Vector3(0.23, 0.06, 0.2), steel)
+	_box(self, "Neck", Vector3(0.0, 1.44, 0.0), Vector3(0.12, 0.12, 0.13), steel)
+	_box(self, "FacetedHead", Vector3(0.0, 1.63, -0.015), Vector3(0.26, 0.32, 0.23), bone)
+	_box(self, "Brow", Vector3(0.0, 1.635, 0.108), Vector3(0.238, 0.29, 0.027), steel)
+	_box(self, "FaceRecess", Vector3(0.0, 1.635, 0.125), Vector3(0.204, 0.252, 0.012), dark)
+	# Two small pixel eyes share one mesh. The screen stays taller than wide.
+	var eyes: SurfaceTool = SurfaceTool.new()
+	eyes.begin(Mesh.PRIMITIVE_TRIANGLES)
+	for x: float in [-0.047, 0.047]:
+		_workshop.quad(eyes, Vector3(x - 0.016, 1.651, 0.133), Vector3(x + 0.016, 1.651, 0.133),
+			Vector3(x + 0.016, 1.681, 0.133), Vector3(x - 0.016, 1.681, 0.133), Vector3.BACK)
+	_workshop.instance(self, "PixelEyes", eyes.commit(), _material(CYAN, true))
+	# Facing +Z puts anatomical left at +X, the viewer's right in a front view.
+	_workshop.rod(self, "LeftAntenna", Vector3(0.105, 1.77, -0.04), Vector3(0.117, 1.91, -0.04), 0.007, steel, 8)
 	for side: float in [-1.0, 1.0]:
 		var leg: Node3D = Node3D.new()
 		leg.name = "RightLeg" if side > 0.0 else "LeftLeg"
-		leg.position = Vector3(side * 0.18, 0.62, 0.0)
+		leg.position = Vector3(side * 0.115, 0.62, 0.0)
 		add_child(leg)
-		_box(leg, "Leg", Vector3(0.0, -0.24, 0.0), Vector3(0.19, 0.68, 0.2), steel)
-		_box(leg, "ShinShell", Vector3(0.0, -0.3, 0.12), Vector3(0.2, 0.34, 0.05), bone)
-		_box(leg, "Foot", Vector3(0.0, -0.53, 0.1), Vector3(0.22, 0.13, 0.35), bone)
+		_box(leg, "Leg", Vector3(0.0, -0.24, 0.0), Vector3(0.105, 0.68, 0.13), steel)
+		_box(leg, "ShinShell", Vector3(0.0, -0.3, 0.078), Vector3(0.115, 0.34, 0.035), bone)
+		_box(leg, "Foot", Vector3(0.0, -0.53, 0.07), Vector3(0.16, 0.13, 0.28), bone)
 		var arm: Node3D = Node3D.new()
 		arm.name = "RightArm" if side > 0.0 else "LeftArm"
-		arm.position = Vector3(side * 0.38, 1.45, 0.0)
+		arm.position = Vector3(side * 0.26, 1.29, 0.0)
 		add_child(arm)
-		_box(arm, "Shoulder", Vector3(0.0, -0.04, 0.0), Vector3(0.27, 0.18, 0.27), bone)
-		_box(arm, "UpperArm", Vector3(0.0, -0.19, 0.0), Vector3(0.16, 0.29, 0.17), steel)
-		_box(arm, "Elbow", Vector3(0.0, -0.34, 0.0), Vector3(0.17, 0.12, 0.18), dark)
+		_box(arm, "Shoulder", Vector3(0.0, -0.04, 0.0), Vector3(0.15, 0.16, 0.16), bone)
+		_box(arm, "UpperArm", Vector3(0.0, -0.19, 0.0), Vector3(0.095, 0.29, 0.115), steel)
+		_box(arm, "Elbow", Vector3(0.0, -0.34, 0.0), Vector3(0.12, 0.1, 0.13), dark)
 		_box(arm, "Forearm", Vector3(0.0, -0.43, 0.0),
-			Vector3(0.26, 0.37, 0.26) if side > 0.0 else Vector3(0.16, 0.34, 0.19),
+			Vector3(0.16, 0.34, 0.16) if side > 0.0 else Vector3(0.105, 0.34, 0.13),
 			bone if side > 0.0 else steel)
 		if side > 0.0:
 			# This repair belongs to Latch's right arm, not issued Union armor.
-			_box(arm, "RustRepair", Vector3(0.0, -0.43, 0.145), Vector3(0.19, 0.29, 0.035), rust)
-			_box(arm, "RustRepairEdge", Vector3(0.145, -0.43, 0.045), Vector3(0.035, 0.23, 0.13), rust)
-			_box(arm, "RepairPinUpper", Vector3(-0.065, -0.34, 0.169), Vector3(0.024, 0.024, 0.01), dark)
-			_box(arm, "RepairPinLower", Vector3(0.065, -0.52, 0.169), Vector3(0.024, 0.024, 0.01), dark)
+			_box(arm, "RustRepair", Vector3(0.0, -0.43, 0.09), Vector3(0.13, 0.27, 0.024), rust)
+			_box(arm, "RustRepairEdge", Vector3(0.086, -0.43, 0.02), Vector3(0.025, 0.23, 0.11), rust)
+			_box(arm, "RepairPinUpper", Vector3(-0.04, -0.34, 0.107), Vector3(0.017, 0.017, 0.01), dark)
+			_box(arm, "RepairPinLower", Vector3(0.04, -0.52, 0.107), Vector3(0.017, 0.017, 0.01), dark)
 		var hand: Node3D = Node3D.new()
 		hand.name = "Hand"
 		hand.position = Vector3(0.0, -0.64, 0.015)
@@ -151,6 +153,9 @@ func set_near_camera_clip(enabled: bool) -> void:
 		var clipped: ShaderMaterial = ShaderMaterial.new()
 		clipped.shader = NEAR_CLIP
 		clipped.set_shader_parameter("chassis_color", original.albedo_color)
+		clipped.set_shader_parameter("finish_enabled", original.albedo_texture != null)
+		if original.albedo_texture != null:
+			clipped.set_shader_parameter("chassis_finish", original.albedo_texture)
 		clipped.set_shader_parameter("chassis_metallic", original.metallic)
 		clipped.set_shader_parameter("chassis_roughness", original.roughness)
 		clipped.set_shader_parameter("chassis_emission", original.emission * original.emission_energy_multiplier if original.emission_enabled else Color.BLACK)
@@ -196,21 +201,16 @@ func shot() -> void:
 
 func _box(parent: Node3D, label: String, offset: Vector3, size: Vector3,
 		material: StandardMaterial3D) -> MeshInstance3D:
-	var part: MeshInstance3D = MeshInstance3D.new()
-	part.name = label
-	var mesh: BoxMesh = BoxMesh.new()
-	mesh.size = size
-	part.mesh = mesh
-	part.position = offset
-	part.material_override = material
-	parent.add_child(part)
-	return part
+	return _workshop.block(parent, label, size, material, offset)
 
 func _material(color: Color, glow: bool = false) -> StandardMaterial3D:
 	var material: StandardMaterial3D = StandardMaterial3D.new()
 	material.albedo_color = color
 	material.metallic = 0.3
 	material.roughness = 0.85
+	material.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
+	if not glow:
+		material.albedo_texture = _workshop.material("bone_latch" if color == BONE else "metal_latch", color).albedo_texture
 	if glow:
 		material.emission_enabled = true
 		material.emission = color

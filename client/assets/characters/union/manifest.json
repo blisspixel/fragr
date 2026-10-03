@@ -87,10 +87,16 @@
 			"sha256": "9b2f7e494c50f5785586b2f0122e32e51041d43639a39486b46a2bb9ee794fde"
 		},
 		{
-			"brief": "Covered mechanical chassis, dark status slit, battery pack, issued bone armor and restrained red seal.",
+			"brief": "Manufactured graphite shells, recessed optical slit, service battery louvers, distinct joint caps, finger articulation and restrained red issue strips.",
 			"file": "sweeper.png",
-			"model": "articulated issued bot rig",
-			"sha256": "efd79308dcfa4c72ebf10b4aa204b9ea746aee1f9f523f1a5bd90de90f3fdc77"
+			"model": "contoured articulated issued bot source with paired view normals",
+			"sha256": "b09c6079d679d6fe9b422ea7b286ef81cf432718878c5960697c01d1eda24abe"
+		},
+		{
+			"brief": "Same eight directions and phase cells as the Sweeper albedo.",
+			"file": "sweeper_normals.png",
+			"model": "paired normal atlas",
+			"sha256": "c0b8107fdcbc1b9ea1dd94fb632460d26d3e8e2b326c74bbff1a96a5b566d470"
 		},
 		{
 			"brief": "Broad armored chassis, head sunk between wide pauldrons, ammunition drum, rotary cannon and ember tell lamps.",
@@ -110,11 +116,17 @@
 	"rows": 25,
 	"schema": 1,
 	"sources": {
-		"res://art/characters/bake.gd": "f417c203293cdee99e3fb27bacc092cea542c0b2cf01a52efac46cb75712360f",
+		"res://art/characters/bake.gd": "ccf663d8848ea9afd7778fd1774e97d526c4d499a53119ee87b2ad83f252c19a",
 		"res://art/characters/geometry.gd": "833318a2c94533aac01abbf7c886b616ec11528624fa406e6cad18dc1a14eec9",
 		"res://art/characters/machines.gd": "3ec71c7c9254250069a4efd0d87047d581efd1e7a226844a814bbeecd85a28f7",
 		"res://art/characters/rig.gd": "106d5f720f665cffe9a52a16f9969bd6908b084c61521218aa51ddef9bc20441",
-		"res://scripts/enemy_animation.gd": "f2f1ef38f496d2d5a48c3ca81995788b7108aef81f712a6c67a1de3504b84573"
+		"res://art/models/normal_bake.gdshader": "c091a2dfb26f198d8b49122ffa3a2bc596d1f853904475b1ff287ff79fdefc97",
+		"res://art/models/sweeper_source.gd": "3d32bf63894e5193a47b0b3325982dd2ebf729800ebba3ef9d63c3ab2c7c8e38",
+		"res://assets/models/finishes/enamel.png": "0761b8a3d969d03fdd9c4cd55eca4161fef89e979ca3536410d4826c9e6e7ebf",
+		"res://assets/models/finishes/metal.png": "a9dffc7e11b24be341ae7949a2be60f83f276c8a057e6f3f7d68d8f6c530140a",
+		"res://assets/models/finishes/wood.png": "4529cac0e869e2227c5e79613c09e7a906eee15655f7742d917ea591055d3e3e",
+		"res://scripts/enemy_animation.gd": "f2f1ef38f496d2d5a48c3ca81995788b7108aef81f712a6c67a1de3504b84573",
+		"res://scripts/model_geometry.gd": "cb98302300cee8086127f505d568583bcdc409f6c2483be200462b1dd9021795"
 	},
 	"tile_pixels": 160
 }

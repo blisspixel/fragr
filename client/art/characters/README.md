@@ -7,7 +7,12 @@ directional campaign sets under visual review. They do not establish a completed
 `geometry.gd` owns material/mesh primitives and the Union palette; `rig.gd` owns
 humanoid anatomy, issued gear and joint poses; `machines.gd` owns the Heavy
 Sweeper and Turret; `bake.gd` renders the committed atlases in
-`client/assets/characters/union/`. Edit source and rebake, never retouch an atlas
+`client/assets/characters/union/`. The Sweeper now comes from
+[`../models/sweeper_source.gd`](../models/sweeper_source.gd), with shaped shells,
+exposed joints and six exported mechanical clips. Its bake also writes
+`sweeper_normals.png` in exactly the same cells. The live presenter pairs
+these view-aligned normals with the albedo under venue lighting.
+Edit source and rebake, never retouch an atlas
 that the next bake will replace. The source directory is excluded from exports.
 The bake writes a manifest with source/output hashes. The headless harness rejects
 stale outputs after source or layout changes; a rebake updates the receipt.
@@ -20,7 +25,9 @@ pauldrons, an ammunition drum and a rotary cannon; its tell flares both
 pauldrons and lights their red lamps. The Turret is a braced column under a
 rotating housing with a rail barrel; its tell lights the optic and four red
 charge coils, and its destroyed pose drops the housing beside the broken column.
-Materials are unshaded so distance reads the shape, not a lighting gradient.
+Albedo captures are unshaded; the live Union shader receives venue lighting.
+The Sweeper's normal atlas describes body shape under that light. Other
+archetypes retain planar sprite lighting until their normal sources are built.
 Union issue is black cloth, dark steel, plates one step lighter, and restrained
 red on visors, optics, armbands and seals (`union_*` in `docs/palette.json`).
 The plates and red accents keep bodies readable in dark rooms. Muzzle flash and
@@ -51,11 +58,14 @@ vary across drivers; tests assert bounds and behavior, not a driver-specific has
 
 The layout is shared through `EnemyAnimation`: 55 poses at eight angles, 160-pixel
 cells, 18 columns, 25 rows. Each atlas is 2880 by 4000, below a 4096 texture limit.
-Four uncompressed RGBA atlases total 175.78 MiB if all are resident; they load
+Four uncompressed RGBA albedo atlases total 175.78 MiB if all are resident; they load
 lazily by archetype, so a room with only Clerks and Sweepers holds two. The
 Turret has no gait: its walk cells preserve the fixed head pose while authoritative
 snapshot yaw supplies the actual traverse. Its unarmed cells repeat the armed ones. PNG
-disk size is smaller and does not describe texture memory. No mipmaps or automatic
+disk size is smaller and does not describe texture memory. The new Sweeper
+normal atlas adds another 43.95 MiB when that archetype is resident. This is
+an explicit memory cost, with no claim that PNG disk size measures GPU use.
+No mipmaps or automatic
 3D compression; nearest sampling and cutout alpha preserve the pixel edges.
 
 M02's Crawler uses a separate original low-chassis rig and atlas. Its source is

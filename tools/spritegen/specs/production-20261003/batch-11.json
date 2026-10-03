@@ -1,0 +1,55 @@
+{
+  "model": "marketing-studio/image",
+  "out_dir": "art/raw/production-20261003/batch-11",
+  "params": {
+    "quality": "high",
+    "resolution": "4k",
+    "aspect_ratio": "1:1",
+    "enhance_prompt": false
+  },
+  "style": "Original professional game production art, practical retro futurism circa 2070, exceptional carefully maintained industrial design, restrained tactile materials, sharp details suitable for deliberate pixel reduction, no copied franchise designs",
+  "frames": [
+    {
+      "id": "prop_meal_stove",
+      "subject": "compact neighbourhood communal meal stove, worn cream enamel and warm iron, two visible burners, simple brass knobs and repaired service hatch",
+      "technical": "One coherent original prop, orthographic front three-quarter view, studio mid-grey backdrop, physically plausible construction, all parts visible, no labels, no scene dressing around it",
+      "negative": "watermarks, signatures, logos, historical political insignia, neon cyberpunk, decorative fantasy spikes, illegible writing, blur, oversaturation, cheap toy forms"
+    },
+    {
+      "id": "prop_market_awning",
+      "subject": "civilian market awning corner construction, repaired faded sea green canvas with sewn bone patches, metal tube support and ties",
+      "technical": "One coherent original prop, orthographic front three-quarter view, studio mid-grey backdrop, physically plausible construction, all parts visible, no labels, no scene dressing around it",
+      "negative": "watermarks, signatures, logos, historical political insignia, neon cyberpunk, decorative fantasy spikes, illegible writing, blur, oversaturation, cheap toy forms"
+    },
+    {
+      "id": "prop_bicycle",
+      "subject": "recognizable everyday civilian bicycle with sea green repaired frame, ordinary thin tyres, luggage rack and warm worn saddle, no military equipment",
+      "technical": "One coherent original prop, orthographic front three-quarter view, studio mid-grey backdrop, physically plausible construction, all parts visible, no labels, no scene dressing around it",
+      "negative": "watermarks, signatures, logos, historical political insignia, neon cyberpunk, decorative fantasy spikes, illegible writing, blur, oversaturation, cheap toy forms"
+    },
+    {
+      "id": "prop_civilian_crt",
+      "subject": "friendly civilian monitor, tall rectangular dark glass CRT face, repaired bone shell, one small cyan power lamp, chunky physical controls",
+      "technical": "One coherent original prop, orthographic front three-quarter view, studio mid-grey backdrop, physically plausible construction, all parts visible, no labels, no scene dressing around it",
+      "negative": "watermarks, signatures, logos, historical political insignia, neon cyberpunk, decorative fantasy spikes, illegible writing, blur, oversaturation, cheap toy forms"
+    },
+    {
+      "id": "prop_pressure_door",
+      "subject": "lunar pressure hatch, bone ceramic inset, charcoal seal frame, three locking dogs, service handwheel, restrained red witness marks",
+      "technical": "One coherent original prop, orthographic front three-quarter view, studio mid-grey backdrop, physically plausible construction, all parts visible, no labels, no scene dressing around it",
+      "negative": "watermarks, signatures, logos, historical political insignia, neon cyberpunk, decorative fantasy spikes, illegible writing, blur, oversaturation, cheap toy forms"
+    },
+    {
+      "id": "prop_lunar_air_scrubber",
+      "subject": "functional offworld air scrubber, pressure-rated bone shell, graphite filter drawer, ventilation slots, gauge and replaceable filter canisters",
+      "technical": "One coherent original prop, orthographic front three-quarter view, studio mid-grey backdrop, physically plausible construction, all parts visible, no labels, no scene dressing around it",
+      "negative": "watermarks, signatures, logos, historical political insignia, neon cyberpunk, decorative fantasy spikes, illegible writing, blur, oversaturation, cheap toy forms"
+    },
+    {
+      "id": "prop_lunar_loader",
+      "subject": "compact cargo handling forklift, narrow practical graphite chassis, bone counterweight, non-humanoid lifting mast, amber status lights",
+      "technical": "One coherent original prop, orthographic front three-quarter view, studio mid-grey backdrop, physically plausible construction, all parts visible, no labels, no scene dressing around it",
+      "negative": "watermarks, signatures, logos, historical political insignia, neon cyberpunk, decorative fantasy spikes, illegible writing, blur, oversaturation, cheap toy forms"
+    }
+  ]
+}

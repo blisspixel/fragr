@@ -32,12 +32,15 @@ func _run() -> void:
 		_check(clipped != null and clipped.shader == LatchView.NEAR_CLIP and part.transform == transforms[path],
 			"near clipping never moves, rescales or adds geometry")
 		_check(clipped.get_shader_parameter("chassis_color") == original.albedo_color
+			and clipped.get_shader_parameter("finish_enabled") == (original.albedo_texture != null)
 			and clipped.get_shader_parameter("chassis_metallic") == original.metallic
 			and clipped.get_shader_parameter("chassis_roughness") == original.roughness
 			and clipped.get_shader_parameter("near_hide_distance") == 1.1
 			and clipped.get_shader_parameter("near_full_distance") == 1.35
 			and clipped.get_shader_parameter("chassis_origin") == live.global_position,
 			"live material retains original surface response and one bounded world-space near transition")
+		if original.albedo_texture != null:
+			_check(clipped.get_shader_parameter("chassis_finish") == original.albedo_texture, "near presentation preserves the actual workshop finish")
 		_check((ward.get_node(path) as MeshInstance3D).material_override is StandardMaterial3D,
 			"each ward part remains unchanged")
 	live.set_near_camera_clip(true)
@@ -144,7 +147,8 @@ func _transition_sweep(viewport: SubViewport, camera: Camera3D, live: LatchView,
 		var previous_coverage: float = 0.0
 		for distance: float in [0.6, 0.75, 0.9, 1.05, 1.15, 1.25, 1.4, 2.5]:
 			camera.position = Vector3(offset, MoveStep.EYE_HEIGHT, distance)
-			camera.rotation = Vector3(0.25 if offset == 0.0 else 0.45, 0.0, 0.0)
+			# Frame the shorter civilian chassis while retaining an upward offset view.
+			camera.rotation = Vector3(0.25 if offset == 0.0 else 0.4, 0.0, 0.0)
 			live.set_near_camera_clip(false)
 			var original: Image = await _frame(viewport)
 			live.set_near_camera_clip(true)

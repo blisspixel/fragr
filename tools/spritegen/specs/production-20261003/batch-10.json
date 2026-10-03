@@ -1,0 +1,55 @@
+{
+  "model": "marketing-studio/image",
+  "out_dir": "art/raw/production-20261003/batch-10",
+  "params": {
+    "quality": "high",
+    "resolution": "4k",
+    "aspect_ratio": "1:1",
+    "enhance_prompt": false
+  },
+  "style": "Original professional game production art, practical retro futurism circa 2070, exceptional carefully maintained industrial design, restrained tactile materials, sharp details suitable for deliberate pixel reduction, no copied franchise designs",
+  "frames": [
+    {
+      "id": "prop_railway_switch",
+      "subject": "heavy freight railway point switch actuator, cast steel housing, yellowed service cover, exposed linkage and battered mounting feet",
+      "technical": "One coherent original prop, orthographic front three-quarter view, studio mid-grey backdrop, physically plausible construction, all parts visible, no labels, no scene dressing around it",
+      "negative": "watermarks, signatures, logos, historical political insignia, neon cyberpunk, decorative fantasy spikes, illegible writing, blur, oversaturation, cheap toy forms"
+    },
+    {
+      "id": "prop_freight_crate",
+      "subject": "original stackable metal freight crate, worn green ribbed panels, reinforced graphite edges, discrete mechanical locks, no writing",
+      "technical": "One coherent original prop, orthographic front three-quarter view, studio mid-grey backdrop, physically plausible construction, all parts visible, no labels, no scene dressing around it",
+      "negative": "watermarks, signatures, logos, historical political insignia, neon cyberpunk, decorative fantasy spikes, illegible writing, blur, oversaturation, cheap toy forms"
+    },
+    {
+      "id": "prop_yard_generator",
+      "subject": "portable battered industrial generator, diesel service block in steel cage, cooling louvers, hose connections and actual circular exhaust",
+      "technical": "One coherent original prop, orthographic front three-quarter view, studio mid-grey backdrop, physically plausible construction, all parts visible, no labels, no scene dressing around it",
+      "negative": "watermarks, signatures, logos, historical political insignia, neon cyberpunk, decorative fantasy spikes, illegible writing, blur, oversaturation, cheap toy forms"
+    },
+    {
+      "id": "prop_water_pump",
+      "subject": "neighbourhood repaired water pump, sea green casing, rusted flange bolts, pressure gauge, thick inlet and outlet plumbing",
+      "technical": "One coherent original prop, orthographic front three-quarter view, studio mid-grey backdrop, physically plausible construction, all parts visible, no labels, no scene dressing around it",
+      "negative": "watermarks, signatures, logos, historical political insignia, neon cyberpunk, decorative fantasy spikes, illegible writing, blur, oversaturation, cheap toy forms"
+    },
+    {
+      "id": "prop_water_tank",
+      "subject": "civilian rooftop water tank with salvaged galvanized barrel, patched green bands, realistic tap and strapped stand, practical repairs",
+      "technical": "One coherent original prop, orthographic front three-quarter view, studio mid-grey backdrop, physically plausible construction, all parts visible, no labels, no scene dressing around it",
+      "negative": "watermarks, signatures, logos, historical political insignia, neon cyberpunk, decorative fantasy spikes, illegible writing, blur, oversaturation, cheap toy forms"
+    },
+    {
+      "id": "prop_repair_bench",
+      "subject": "civilian hacker repair bench, warm wood worktop, salvaged sea green drawer cabinets, multimeter, coiled leads, soldering iron, small unbranded CRT",
+      "technical": "One coherent original prop, orthographic front three-quarter view, studio mid-grey backdrop, physically plausible construction, all parts visible, no labels, no scene dressing around it",
+      "negative": "watermarks, signatures, logos, historical political insignia, neon cyberpunk, decorative fantasy spikes, illegible writing, blur, oversaturation, cheap toy forms"
+    },
+    {
+      "id": "prop_neighborhood_radio",
+      "subject": "home-built independent radio transmitter, bone CRT frequency display with no letters, warm rust steel case, mismatched knobs, wire aerial and hand repairs",
+      "technical": "One coherent original prop, orthographic front three-quarter view, studio mid-grey backdrop, physically plausible construction, all parts visible, no labels, no scene dressing around it",
+      "negative": "watermarks, signatures, logos, historical political insignia, neon cyberpunk, decorative fantasy spikes, illegible writing, blur, oversaturation, cheap toy forms"
+    }
+  ]
+}

@@ -2,6 +2,8 @@ shader_type spatial;
 render_mode diffuse_burley, cull_back, depth_draw_opaque;
 
 uniform vec4 chassis_color : source_color;
+uniform bool finish_enabled = false;
+uniform sampler2D chassis_finish : source_color, filter_nearest, repeat_enable;
 uniform float chassis_metallic = 0.3;
 uniform float chassis_roughness = 0.85;
 uniform vec3 chassis_emission : source_color = vec3(0.0);
@@ -31,7 +33,7 @@ void fragment() {
 			discard;
 		}
 	}
-	ALBEDO = chassis_color.rgb;
+	ALBEDO = chassis_color.rgb * (finish_enabled ? texture(chassis_finish, UV).rgb : vec3(1.0));
 	METALLIC = chassis_metallic;
 	ROUGHNESS = chassis_roughness;
 	EMISSION = chassis_emission;

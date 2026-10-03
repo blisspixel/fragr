@@ -1,0 +1,55 @@
+{
+  "model": "marketing-studio/image",
+  "out_dir": "art/raw/production-20261003/batch-01",
+  "params": {
+    "quality": "high",
+    "resolution": "4k",
+    "aspect_ratio": "1:1",
+    "enhance_prompt": false
+  },
+  "style": "Professional physically based game material albedo source. Only the raw flat material surface exists in this image. Accurate fine coherent material grain and restrained wear. Even unlit illumination. Absolutely no depiction of industrial equipment or assembled architecture.",
+  "frames": [
+    {
+      "id": "union_concrete",
+      "subject": "RAW FLAT MATERIAL SURFACE ONLY. Union civic intake and custody facility, disciplined dark graphite steel, desaturated grey green enamel, warm bone administrative ceramics, small deep red issue markings, maintained coercive institutional order. Material: cast concrete or mineral aggregate appropriate to this venue, fine pores, coherent medium scale wear, sparse cracks, no debris objects",
+      "technical": "Seamless square game albedo texture, orthographic flat surface filling entire image, equal even illumination, no baked highlights or shadows, no perspective, no border, clean matching opposite edges, material only",
+      "negative": "watermarks, signatures, logos, historical political insignia, neon cyberpunk, decorative fantasy spikes, illegible writing, blur, oversaturation, cheap toy forms, industrial equipment, spaceship wall, room, wall panel layout, electronic displays, machinery, decorative red paint blocks, embossed hatches, cooling grilles, vents, handles, buttons, knobs, bolts, architecture, diagonal futurist panel seams, perspective, highlights, shadows"
+    },
+    {
+      "id": "union_enamel",
+      "subject": "RAW FLAT MATERIAL SURFACE ONLY. Union civic intake and custody facility, disciplined dark graphite steel, desaturated grey green enamel, warm bone administrative ceramics, small deep red issue markings, maintained coercive institutional order. Material: painted steel enamel with fine paint grain and sparse small chips, large quiet tonal regions, no seams or bolts",
+      "technical": "Seamless square game albedo texture, orthographic flat surface filling entire image, equal even illumination, no baked highlights or shadows, no perspective, no border, clean matching opposite edges, material only",
+      "negative": "watermarks, signatures, logos, historical political insignia, neon cyberpunk, decorative fantasy spikes, illegible writing, blur, oversaturation, cheap toy forms, industrial equipment, spaceship wall, room, wall panel layout, electronic displays, machinery, decorative red paint blocks, embossed hatches, cooling grilles, vents, handles, buttons, knobs, bolts, architecture, diagonal futurist panel seams, perspective, highlights, shadows"
+    },
+    {
+      "id": "union_steel",
+      "subject": "RAW FLAT MATERIAL SURFACE ONLY. Union civic intake and custody facility, disciplined dark graphite steel, desaturated grey green enamel, warm bone administrative ceramics, small deep red issue markings, maintained coercive institutional order. Material: service steel with fine brushed grain and restrained worn coating, subtle localized wear, no baked panel lines or bolts",
+      "technical": "Seamless square game albedo texture, orthographic flat surface filling entire image, equal even illumination, no baked highlights or shadows, no perspective, no border, clean matching opposite edges, material only",
+      "negative": "watermarks, signatures, logos, historical political insignia, neon cyberpunk, decorative fantasy spikes, illegible writing, blur, oversaturation, cheap toy forms, industrial equipment, spaceship wall, room, wall panel layout, electronic displays, machinery, decorative red paint blocks, embossed hatches, cooling grilles, vents, handles, buttons, knobs, bolts, architecture, diagonal futurist panel seams, perspective, highlights, shadows"
+    },
+    {
+      "id": "union_floor",
+      "subject": "RAW FLAT MATERIAL SURFACE ONLY. Union civic intake and custody facility, disciplined dark graphite steel, desaturated grey green enamel, warm bone administrative ceramics, small deep red issue markings, maintained coercive institutional order. Material: hardwearing flat utility deck with restrained diamond tread, coherent shallow repeating pattern, scuffed paths, no text",
+      "technical": "Seamless square game albedo texture, orthographic flat surface filling entire image, equal even illumination, no baked highlights or shadows, no perspective, no border, clean matching opposite edges, material only",
+      "negative": "watermarks, signatures, logos, historical political insignia, neon cyberpunk, decorative fantasy spikes, illegible writing, blur, oversaturation, cheap toy forms, industrial equipment, spaceship wall, room, wall panel layout, electronic displays, machinery, decorative red paint blocks, embossed hatches, cooling grilles, vents, handles, buttons, knobs, bolts, architecture, diagonal futurist panel seams, perspective, highlights, shadows"
+    },
+    {
+      "id": "union_ceramic",
+      "subject": "RAW FLAT MATERIAL SURFACE ONLY. Union civic intake and custody facility, disciplined dark graphite steel, desaturated grey green enamel, warm bone administrative ceramics, small deep red issue markings, maintained coercive institutional order. Material: small administrative ceramic tiles with narrow coherent grout lines, restrained chipped corners and tonal variation",
+      "technical": "Seamless square game albedo texture, orthographic flat surface filling entire image, equal even illumination, no baked highlights or shadows, no perspective, no border, clean matching opposite edges, material only",
+      "negative": "watermarks, signatures, logos, historical political insignia, neon cyberpunk, decorative fantasy spikes, illegible writing, blur, oversaturation, cheap toy forms, industrial equipment, spaceship wall, room, wall panel layout, electronic displays, machinery, decorative red paint blocks, embossed hatches, cooling grilles, vents, handles, buttons, knobs, bolts, architecture, diagonal futurist panel seams, perspective, highlights, shadows"
+    },
+    {
+      "id": "union_plaster",
+      "subject": "RAW FLAT MATERIAL SURFACE ONLY. Union civic intake and custody facility, disciplined dark graphite steel, desaturated grey green enamel, warm bone administrative ceramics, small deep red issue markings, maintained coercive institutional order. Material: aged painted mineral plaster appropriate to venue, fine subtle uneven texture, gentle wear and discrete repairs, no large decorations",
+      "technical": "Seamless square game albedo texture, orthographic flat surface filling entire image, equal even illumination, no baked highlights or shadows, no perspective, no border, clean matching opposite edges, material only",
+      "negative": "watermarks, signatures, logos, historical political insignia, neon cyberpunk, decorative fantasy spikes, illegible writing, blur, oversaturation, cheap toy forms, industrial equipment, spaceship wall, room, wall panel layout, electronic displays, machinery, decorative red paint blocks, embossed hatches, cooling grilles, vents, handles, buttons, knobs, bolts, architecture, diagonal futurist panel seams, perspective, highlights, shadows"
+    },
+    {
+      "id": "union_trim",
+      "subject": "RAW FLAT MATERIAL SURFACE ONLY. Union civic intake and custody facility, disciplined dark graphite steel, desaturated grey green enamel, warm bone administrative ceramics, small deep red issue markings, maintained coercive institutional order. Material: flat unlit trim-sheet albedo, eight horizontal material strips of equal height: dark rubber seal, worn metal edge, fine brushed metal, institutional paint, bone ceramic, red enamel, screw heads spaced evenly, tiny cooling vent slats; all strips tile horizontally",
+      "technical": "Seamless square game albedo texture, orthographic flat surface filling entire image, equal even illumination, no baked highlights or shadows, no perspective, no border, clean matching opposite edges, material only",
+      "negative": "watermarks, signatures, logos, historical political insignia, neon cyberpunk, decorative fantasy spikes, illegible writing, blur, oversaturation, cheap toy forms, industrial equipment, spaceship wall, room, wall panel layout, electronic displays, machinery, decorative red paint blocks, embossed hatches, cooling grilles, vents, handles, buttons, knobs, bolts, architecture, diagonal futurist panel seams, perspective, highlights, shadows"
+    }
+  ]
+}

@@ -1,0 +1,1039 @@
+{
+  "schema": 1,
+  "date": "2026-10-03",
+  "authorized_allowance_usd": 105.88,
+  "initial_batch_estimated_usd": 1.856,
+  "production_reservation_ceiling_usd": 96.0,
+  "revision_reserve_minimum_usd": 8.024,
+  "assets": [
+    {
+      "id": "union_concrete",
+      "spec": "tools/spritegen/specs/production-20261003/batch-01.json",
+      "batch": "batch-01",
+      "purpose": "runtime material source for union",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "union_enamel",
+      "spec": "tools/spritegen/specs/production-20261003/batch-01.json",
+      "batch": "batch-01",
+      "purpose": "runtime material source for union",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "union_steel",
+      "spec": "tools/spritegen/specs/production-20261003/batch-01.json",
+      "batch": "batch-01",
+      "purpose": "runtime material source for union",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "union_floor",
+      "spec": "tools/spritegen/specs/production-20261003/batch-01.json",
+      "batch": "batch-01",
+      "purpose": "runtime material source for union",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "union_ceramic",
+      "spec": "tools/spritegen/specs/production-20261003/batch-01.json",
+      "batch": "batch-01",
+      "purpose": "runtime material source for union",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "union_plaster",
+      "spec": "tools/spritegen/specs/production-20261003/batch-01.json",
+      "batch": "batch-01",
+      "purpose": "runtime material source for union",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "union_trim",
+      "spec": "tools/spritegen/specs/production-20261003/batch-01.json",
+      "batch": "batch-01",
+      "purpose": "runtime material source for union",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "yard_concrete",
+      "spec": "tools/spritegen/specs/production-20261003/batch-02.json",
+      "batch": "batch-02",
+      "purpose": "runtime material source for yard",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "yard_enamel",
+      "spec": "tools/spritegen/specs/production-20261003/batch-02.json",
+      "batch": "batch-02",
+      "purpose": "runtime material source for yard",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "yard_steel",
+      "spec": "tools/spritegen/specs/production-20261003/batch-02.json",
+      "batch": "batch-02",
+      "purpose": "runtime material source for yard",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "yard_floor",
+      "spec": "tools/spritegen/specs/production-20261003/batch-02.json",
+      "batch": "batch-02",
+      "purpose": "runtime material source for yard",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "yard_ceramic",
+      "spec": "tools/spritegen/specs/production-20261003/batch-02.json",
+      "batch": "batch-02",
+      "purpose": "runtime material source for yard",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "yard_plaster",
+      "spec": "tools/spritegen/specs/production-20261003/batch-02.json",
+      "batch": "batch-02",
+      "purpose": "runtime material source for yard",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "yard_trim",
+      "spec": "tools/spritegen/specs/production-20261003/batch-02.json",
+      "batch": "batch-02",
+      "purpose": "runtime material source for yard",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "low_water_concrete",
+      "spec": "tools/spritegen/specs/production-20261003/batch-03.json",
+      "batch": "batch-03",
+      "purpose": "runtime material source for low_water",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "low_water_enamel",
+      "spec": "tools/spritegen/specs/production-20261003/batch-03.json",
+      "batch": "batch-03",
+      "purpose": "runtime material source for low_water",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "low_water_steel",
+      "spec": "tools/spritegen/specs/production-20261003/batch-03.json",
+      "batch": "batch-03",
+      "purpose": "runtime material source for low_water",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "low_water_floor",
+      "spec": "tools/spritegen/specs/production-20261003/batch-03.json",
+      "batch": "batch-03",
+      "purpose": "runtime material source for low_water",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "low_water_ceramic",
+      "spec": "tools/spritegen/specs/production-20261003/batch-03.json",
+      "batch": "batch-03",
+      "purpose": "runtime material source for low_water",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "low_water_plaster",
+      "spec": "tools/spritegen/specs/production-20261003/batch-03.json",
+      "batch": "batch-03",
+      "purpose": "runtime material source for low_water",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "low_water_trim",
+      "spec": "tools/spritegen/specs/production-20261003/batch-03.json",
+      "batch": "batch-03",
+      "purpose": "runtime material source for low_water",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "lunar_concrete",
+      "spec": "tools/spritegen/specs/production-20261003/batch-04.json",
+      "batch": "batch-04",
+      "purpose": "runtime material source for lunar",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "lunar_enamel",
+      "spec": "tools/spritegen/specs/production-20261003/batch-04.json",
+      "batch": "batch-04",
+      "purpose": "runtime material source for lunar",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "lunar_steel",
+      "spec": "tools/spritegen/specs/production-20261003/batch-04.json",
+      "batch": "batch-04",
+      "purpose": "runtime material source for lunar",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "lunar_floor",
+      "spec": "tools/spritegen/specs/production-20261003/batch-04.json",
+      "batch": "batch-04",
+      "purpose": "runtime material source for lunar",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "lunar_ceramic",
+      "spec": "tools/spritegen/specs/production-20261003/batch-04.json",
+      "batch": "batch-04",
+      "purpose": "runtime material source for lunar",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "lunar_plaster",
+      "spec": "tools/spritegen/specs/production-20261003/batch-04.json",
+      "batch": "batch-04",
+      "purpose": "runtime material source for lunar",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "lunar_trim",
+      "spec": "tools/spritegen/specs/production-20261003/batch-04.json",
+      "batch": "batch-04",
+      "purpose": "runtime material source for lunar",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "archive_concrete",
+      "spec": "tools/spritegen/specs/production-20261003/batch-05.json",
+      "batch": "batch-05",
+      "purpose": "runtime material source for archive",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "archive_enamel",
+      "spec": "tools/spritegen/specs/production-20261003/batch-05.json",
+      "batch": "batch-05",
+      "purpose": "runtime material source for archive",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "archive_steel",
+      "spec": "tools/spritegen/specs/production-20261003/batch-05.json",
+      "batch": "batch-05",
+      "purpose": "runtime material source for archive",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "archive_floor",
+      "spec": "tools/spritegen/specs/production-20261003/batch-05.json",
+      "batch": "batch-05",
+      "purpose": "runtime material source for archive",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "archive_ceramic",
+      "spec": "tools/spritegen/specs/production-20261003/batch-05.json",
+      "batch": "batch-05",
+      "purpose": "runtime material source for archive",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "archive_plaster",
+      "spec": "tools/spritegen/specs/production-20261003/batch-05.json",
+      "batch": "batch-05",
+      "purpose": "runtime material source for archive",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "archive_trim",
+      "spec": "tools/spritegen/specs/production-20261003/batch-05.json",
+      "batch": "batch-05",
+      "purpose": "runtime material source for archive",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "mars_concrete",
+      "spec": "tools/spritegen/specs/production-20261003/batch-06.json",
+      "batch": "batch-06",
+      "purpose": "runtime material source for mars",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "mars_enamel",
+      "spec": "tools/spritegen/specs/production-20261003/batch-06.json",
+      "batch": "batch-06",
+      "purpose": "runtime material source for mars",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "mars_steel",
+      "spec": "tools/spritegen/specs/production-20261003/batch-06.json",
+      "batch": "batch-06",
+      "purpose": "runtime material source for mars",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "mars_floor",
+      "spec": "tools/spritegen/specs/production-20261003/batch-06.json",
+      "batch": "batch-06",
+      "purpose": "runtime material source for mars",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "mars_ceramic",
+      "spec": "tools/spritegen/specs/production-20261003/batch-06.json",
+      "batch": "batch-06",
+      "purpose": "runtime material source for mars",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "mars_plaster",
+      "spec": "tools/spritegen/specs/production-20261003/batch-06.json",
+      "batch": "batch-06",
+      "purpose": "runtime material source for mars",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "mars_trim",
+      "spec": "tools/spritegen/specs/production-20261003/batch-06.json",
+      "batch": "batch-06",
+      "purpose": "runtime material source for mars",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "ship_concrete",
+      "spec": "tools/spritegen/specs/production-20261003/batch-07.json",
+      "batch": "batch-07",
+      "purpose": "runtime material source for ship",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "ship_enamel",
+      "spec": "tools/spritegen/specs/production-20261003/batch-07.json",
+      "batch": "batch-07",
+      "purpose": "runtime material source for ship",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "ship_steel",
+      "spec": "tools/spritegen/specs/production-20261003/batch-07.json",
+      "batch": "batch-07",
+      "purpose": "runtime material source for ship",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "ship_floor",
+      "spec": "tools/spritegen/specs/production-20261003/batch-07.json",
+      "batch": "batch-07",
+      "purpose": "runtime material source for ship",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "ship_ceramic",
+      "spec": "tools/spritegen/specs/production-20261003/batch-07.json",
+      "batch": "batch-07",
+      "purpose": "runtime material source for ship",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "ship_plaster",
+      "spec": "tools/spritegen/specs/production-20261003/batch-07.json",
+      "batch": "batch-07",
+      "purpose": "runtime material source for ship",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "ship_trim",
+      "spec": "tools/spritegen/specs/production-20261003/batch-07.json",
+      "batch": "batch-07",
+      "purpose": "runtime material source for ship",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "scrap_concrete",
+      "spec": "tools/spritegen/specs/production-20261003/batch-08.json",
+      "batch": "batch-08",
+      "purpose": "runtime material source for scrap",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "scrap_enamel",
+      "spec": "tools/spritegen/specs/production-20261003/batch-08.json",
+      "batch": "batch-08",
+      "purpose": "runtime material source for scrap",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "scrap_steel",
+      "spec": "tools/spritegen/specs/production-20261003/batch-08.json",
+      "batch": "batch-08",
+      "purpose": "runtime material source for scrap",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "scrap_floor",
+      "spec": "tools/spritegen/specs/production-20261003/batch-08.json",
+      "batch": "batch-08",
+      "purpose": "runtime material source for scrap",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "scrap_ceramic",
+      "spec": "tools/spritegen/specs/production-20261003/batch-08.json",
+      "batch": "batch-08",
+      "purpose": "runtime material source for scrap",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "scrap_plaster",
+      "spec": "tools/spritegen/specs/production-20261003/batch-08.json",
+      "batch": "batch-08",
+      "purpose": "runtime material source for scrap",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "scrap_trim",
+      "spec": "tools/spritegen/specs/production-20261003/batch-08.json",
+      "batch": "batch-08",
+      "purpose": "runtime material source for scrap",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "prop_union_terminal",
+      "spec": "tools/spritegen/specs/production-20261003/batch-09.json",
+      "batch": "batch-09",
+      "purpose": "mesh modeling reference",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "prop_intake_locker",
+      "spec": "tools/spritegen/specs/production-20261003/batch-09.json",
+      "batch": "batch-09",
+      "purpose": "mesh modeling reference",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "prop_union_camera",
+      "spec": "tools/spritegen/specs/production-20261003/batch-09.json",
+      "batch": "batch-09",
+      "purpose": "mesh modeling reference",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "prop_service_vent",
+      "spec": "tools/spritegen/specs/production-20261003/batch-09.json",
+      "batch": "batch-09",
+      "purpose": "mesh modeling reference",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "prop_strip_fixture",
+      "spec": "tools/spritegen/specs/production-20261003/batch-09.json",
+      "batch": "batch-09",
+      "purpose": "mesh modeling reference",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "prop_custody_console",
+      "spec": "tools/spritegen/specs/production-20261003/batch-09.json",
+      "batch": "batch-09",
+      "purpose": "mesh modeling reference",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "prop_recall_pod",
+      "spec": "tools/spritegen/specs/production-20261003/batch-09.json",
+      "batch": "batch-09",
+      "purpose": "mesh modeling reference",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "prop_railway_switch",
+      "spec": "tools/spritegen/specs/production-20261003/batch-10.json",
+      "batch": "batch-10",
+      "purpose": "mesh modeling reference",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "prop_freight_crate",
+      "spec": "tools/spritegen/specs/production-20261003/batch-10.json",
+      "batch": "batch-10",
+      "purpose": "mesh modeling reference",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "prop_yard_generator",
+      "spec": "tools/spritegen/specs/production-20261003/batch-10.json",
+      "batch": "batch-10",
+      "purpose": "mesh modeling reference",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "prop_water_pump",
+      "spec": "tools/spritegen/specs/production-20261003/batch-10.json",
+      "batch": "batch-10",
+      "purpose": "mesh modeling reference",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "prop_water_tank",
+      "spec": "tools/spritegen/specs/production-20261003/batch-10.json",
+      "batch": "batch-10",
+      "purpose": "mesh modeling reference",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "prop_repair_bench",
+      "spec": "tools/spritegen/specs/production-20261003/batch-10.json",
+      "batch": "batch-10",
+      "purpose": "mesh modeling reference",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "prop_neighborhood_radio",
+      "spec": "tools/spritegen/specs/production-20261003/batch-10.json",
+      "batch": "batch-10",
+      "purpose": "mesh modeling reference",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "prop_meal_stove",
+      "spec": "tools/spritegen/specs/production-20261003/batch-11.json",
+      "batch": "batch-11",
+      "purpose": "mesh modeling reference",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "prop_market_awning",
+      "spec": "tools/spritegen/specs/production-20261003/batch-11.json",
+      "batch": "batch-11",
+      "purpose": "mesh modeling reference",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "prop_bicycle",
+      "spec": "tools/spritegen/specs/production-20261003/batch-11.json",
+      "batch": "batch-11",
+      "purpose": "mesh modeling reference",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "prop_civilian_crt",
+      "spec": "tools/spritegen/specs/production-20261003/batch-11.json",
+      "batch": "batch-11",
+      "purpose": "mesh modeling reference",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "prop_pressure_door",
+      "spec": "tools/spritegen/specs/production-20261003/batch-11.json",
+      "batch": "batch-11",
+      "purpose": "mesh modeling reference",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "prop_lunar_air_scrubber",
+      "spec": "tools/spritegen/specs/production-20261003/batch-11.json",
+      "batch": "batch-11",
+      "purpose": "mesh modeling reference",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "prop_lunar_loader",
+      "spec": "tools/spritegen/specs/production-20261003/batch-11.json",
+      "batch": "batch-11",
+      "purpose": "mesh modeling reference",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "prop_luggage_scanner",
+      "spec": "tools/spritegen/specs/production-20261003/batch-12.json",
+      "batch": "batch-12",
+      "purpose": "mesh modeling reference",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "prop_archive_cabinet",
+      "spec": "tools/spritegen/specs/production-20261003/batch-12.json",
+      "batch": "batch-12",
+      "purpose": "mesh modeling reference",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "prop_archive_machine",
+      "spec": "tools/spritegen/specs/production-20261003/batch-12.json",
+      "batch": "batch-12",
+      "purpose": "mesh modeling reference",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "prop_mars_rover",
+      "spec": "tools/spritegen/specs/production-20261003/batch-12.json",
+      "batch": "batch-12",
+      "purpose": "mesh modeling reference",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "prop_ship_engine",
+      "spec": "tools/spritegen/specs/production-20261003/batch-12.json",
+      "batch": "batch-12",
+      "purpose": "mesh modeling reference",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "prop_ship_bunk",
+      "spec": "tools/spritegen/specs/production-20261003/batch-12.json",
+      "batch": "batch-12",
+      "purpose": "mesh modeling reference",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "prop_salvage_robot_parts",
+      "spec": "tools/spritegen/specs/production-20261003/batch-12.json",
+      "batch": "batch-12",
+      "purpose": "mesh modeling reference",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "character_latch",
+      "spec": "tools/spritegen/specs/production-20261003/batch-13.json",
+      "batch": "batch-13",
+      "purpose": "character model source reference",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "character_free_agent_worker",
+      "spec": "tools/spritegen/specs/production-20261003/batch-13.json",
+      "batch": "batch-13",
+      "purpose": "character model source reference",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "character_free_agent_hacker",
+      "spec": "tools/spritegen/specs/production-20261003/batch-13.json",
+      "batch": "batch-13",
+      "purpose": "character model source reference",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "character_free_human_mechanic",
+      "spec": "tools/spritegen/specs/production-20261003/batch-13.json",
+      "batch": "batch-13",
+      "purpose": "character model source reference",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "character_free_human_radio",
+      "spec": "tools/spritegen/specs/production-20261003/batch-13.json",
+      "batch": "batch-13",
+      "purpose": "character model source reference",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "character_free_human_medic",
+      "spec": "tools/spritegen/specs/production-20261003/batch-13.json",
+      "batch": "batch-13",
+      "purpose": "character model source reference",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "character_clerk",
+      "spec": "tools/spritegen/specs/production-20261003/batch-13.json",
+      "batch": "batch-13",
+      "purpose": "character model source reference",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "character_sweeper",
+      "spec": "tools/spritegen/specs/production-20261003/batch-14.json",
+      "batch": "batch-14",
+      "purpose": "character model source reference",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "character_ranged_sweeper",
+      "spec": "tools/spritegen/specs/production-20261003/batch-14.json",
+      "batch": "batch-14",
+      "purpose": "character model source reference",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "character_heavy_sweeper",
+      "spec": "tools/spritegen/specs/production-20261003/batch-14.json",
+      "batch": "batch-14",
+      "purpose": "character model source reference",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "character_crawler",
+      "spec": "tools/spritegen/specs/production-20261003/batch-14.json",
+      "batch": "batch-14",
+      "purpose": "character model source reference",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "character_jammer",
+      "spec": "tools/spritegen/specs/production-20261003/batch-14.json",
+      "batch": "batch-14",
+      "purpose": "character model source reference",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "character_auditor",
+      "spec": "tools/spritegen/specs/production-20261003/batch-14.json",
+      "batch": "batch-14",
+      "purpose": "character model source reference",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "character_notary",
+      "spec": "tools/spritegen/specs/production-20261003/batch-14.json",
+      "batch": "batch-14",
+      "purpose": "character model source reference",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "weapon_pistol",
+      "spec": "tools/spritegen/specs/production-20261003/batch-15.json",
+      "batch": "batch-15",
+      "purpose": "weapon model reference",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "weapon_material_pistol",
+      "spec": "tools/spritegen/specs/production-20261003/batch-15.json",
+      "batch": "batch-15",
+      "purpose": "weapon material trim source",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "weapon_rifle",
+      "spec": "tools/spritegen/specs/production-20261003/batch-15.json",
+      "batch": "batch-15",
+      "purpose": "weapon model reference",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "weapon_material_rifle",
+      "spec": "tools/spritegen/specs/production-20261003/batch-15.json",
+      "batch": "batch-15",
+      "purpose": "weapon material trim source",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "weapon_shotgun",
+      "spec": "tools/spritegen/specs/production-20261003/batch-15.json",
+      "batch": "batch-15",
+      "purpose": "weapon model reference",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "weapon_material_shotgun",
+      "spec": "tools/spritegen/specs/production-20261003/batch-15.json",
+      "batch": "batch-15",
+      "purpose": "weapon material trim source",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "weapon_railgun",
+      "spec": "tools/spritegen/specs/production-20261003/batch-15.json",
+      "batch": "batch-15",
+      "purpose": "weapon model reference",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "weapon_material_railgun",
+      "spec": "tools/spritegen/specs/production-20261003/batch-16.json",
+      "batch": "batch-16",
+      "purpose": "weapon material trim source",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "weapon_sniper",
+      "spec": "tools/spritegen/specs/production-20261003/batch-16.json",
+      "batch": "batch-16",
+      "purpose": "weapon model reference",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "weapon_material_sniper",
+      "spec": "tools/spritegen/specs/production-20261003/batch-16.json",
+      "batch": "batch-16",
+      "purpose": "weapon material trim source",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "weapon_shiv",
+      "spec": "tools/spritegen/specs/production-20261003/batch-16.json",
+      "batch": "batch-16",
+      "purpose": "weapon model reference",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "weapon_material_shiv",
+      "spec": "tools/spritegen/specs/production-20261003/batch-16.json",
+      "batch": "batch-16",
+      "purpose": "weapon material trim source",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "weapon_grenade_mine",
+      "spec": "tools/spritegen/specs/production-20261003/batch-16.json",
+      "batch": "batch-16",
+      "purpose": "weapon model reference",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "weapon_material_grenade_mine",
+      "spec": "tools/spritegen/specs/production-20261003/batch-16.json",
+      "batch": "batch-16",
+      "purpose": "weapon material trim source",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "world_union",
+      "spec": "tools/spritegen/specs/production-20261003/batch-17.json",
+      "batch": "batch-17",
+      "purpose": "environment authoring target, not gameplay evidence",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "world_yard",
+      "spec": "tools/spritegen/specs/production-20261003/batch-17.json",
+      "batch": "batch-17",
+      "purpose": "environment authoring target, not gameplay evidence",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "world_low_water",
+      "spec": "tools/spritegen/specs/production-20261003/batch-17.json",
+      "batch": "batch-17",
+      "purpose": "environment authoring target, not gameplay evidence",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "world_lunar",
+      "spec": "tools/spritegen/specs/production-20261003/batch-17.json",
+      "batch": "batch-17",
+      "purpose": "environment authoring target, not gameplay evidence",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "world_archive",
+      "spec": "tools/spritegen/specs/production-20261003/batch-17.json",
+      "batch": "batch-17",
+      "purpose": "environment authoring target, not gameplay evidence",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "world_mars",
+      "spec": "tools/spritegen/specs/production-20261003/batch-17.json",
+      "batch": "batch-17",
+      "purpose": "environment authoring target, not gameplay evidence",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "world_ship",
+      "spec": "tools/spritegen/specs/production-20261003/batch-17.json",
+      "batch": "batch-17",
+      "purpose": "environment authoring target, not gameplay evidence",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "water_ripples",
+      "spec": "tools/spritegen/specs/production-20261003/batch-18.json",
+      "batch": "batch-18",
+      "purpose": "water shader or shoreline surface source",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "water_sediment",
+      "spec": "tools/spritegen/specs/production-20261003/batch-18.json",
+      "batch": "batch-18",
+      "purpose": "water shader or shoreline surface source",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "water_shore",
+      "spec": "tools/spritegen/specs/production-20261003/batch-18.json",
+      "batch": "batch-18",
+      "purpose": "water shader or shoreline surface source",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "water_foam",
+      "spec": "tools/spritegen/specs/production-20261003/batch-18.json",
+      "batch": "batch-18",
+      "purpose": "water shader or shoreline surface source",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "water_caustic",
+      "spec": "tools/spritegen/specs/production-20261003/batch-18.json",
+      "batch": "batch-18",
+      "purpose": "water shader or shoreline surface source",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "water_oil",
+      "spec": "tools/spritegen/specs/production-20261003/batch-18.json",
+      "batch": "batch-18",
+      "purpose": "water shader or shoreline surface source",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "water_moss",
+      "spec": "tools/spritegen/specs/production-20261003/batch-18.json",
+      "batch": "batch-18",
+      "purpose": "water shader or shoreline surface source",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "decal_union_wear",
+      "spec": "tools/spritegen/specs/production-20261003/batch-19.json",
+      "batch": "batch-19",
+      "purpose": "wear overlay source, chroma-key reduction required",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "decal_union_personal",
+      "spec": "tools/spritegen/specs/production-20261003/batch-19.json",
+      "batch": "batch-19",
+      "purpose": "environment story overlay source",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "detail_union_fabric",
+      "spec": "tools/spritegen/specs/production-20261003/batch-19.json",
+      "batch": "batch-19",
+      "purpose": "civilian fabrics, awnings and insulation source",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "decal_yard_wear",
+      "spec": "tools/spritegen/specs/production-20261003/batch-19.json",
+      "batch": "batch-19",
+      "purpose": "wear overlay source, chroma-key reduction required",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "decal_yard_personal",
+      "spec": "tools/spritegen/specs/production-20261003/batch-19.json",
+      "batch": "batch-19",
+      "purpose": "environment story overlay source",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "detail_yard_fabric",
+      "spec": "tools/spritegen/specs/production-20261003/batch-19.json",
+      "batch": "batch-19",
+      "purpose": "civilian fabrics, awnings and insulation source",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "decal_low_water_wear",
+      "spec": "tools/spritegen/specs/production-20261003/batch-19.json",
+      "batch": "batch-19",
+      "purpose": "wear overlay source, chroma-key reduction required",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "decal_low_water_personal",
+      "spec": "tools/spritegen/specs/production-20261003/batch-20.json",
+      "batch": "batch-20",
+      "purpose": "environment story overlay source",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "detail_low_water_fabric",
+      "spec": "tools/spritegen/specs/production-20261003/batch-20.json",
+      "batch": "batch-20",
+      "purpose": "civilian fabrics, awnings and insulation source",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "decal_lunar_wear",
+      "spec": "tools/spritegen/specs/production-20261003/batch-20.json",
+      "batch": "batch-20",
+      "purpose": "wear overlay source, chroma-key reduction required",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "decal_lunar_personal",
+      "spec": "tools/spritegen/specs/production-20261003/batch-20.json",
+      "batch": "batch-20",
+      "purpose": "environment story overlay source",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "detail_lunar_fabric",
+      "spec": "tools/spritegen/specs/production-20261003/batch-20.json",
+      "batch": "batch-20",
+      "purpose": "civilian fabrics, awnings and insulation source",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "decal_archive_wear",
+      "spec": "tools/spritegen/specs/production-20261003/batch-20.json",
+      "batch": "batch-20",
+      "purpose": "wear overlay source, chroma-key reduction required",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "decal_archive_personal",
+      "spec": "tools/spritegen/specs/production-20261003/batch-20.json",
+      "batch": "batch-20",
+      "purpose": "environment story overlay source",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "detail_archive_fabric",
+      "spec": "tools/spritegen/specs/production-20261003/batch-21.json",
+      "batch": "batch-21",
+      "purpose": "civilian fabrics, awnings and insulation source",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "decal_mars_wear",
+      "spec": "tools/spritegen/specs/production-20261003/batch-21.json",
+      "batch": "batch-21",
+      "purpose": "wear overlay source, chroma-key reduction required",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "decal_mars_personal",
+      "spec": "tools/spritegen/specs/production-20261003/batch-21.json",
+      "batch": "batch-21",
+      "purpose": "environment story overlay source",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "detail_mars_fabric",
+      "spec": "tools/spritegen/specs/production-20261003/batch-21.json",
+      "batch": "batch-21",
+      "purpose": "civilian fabrics, awnings and insulation source",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "decal_ship_wear",
+      "spec": "tools/spritegen/specs/production-20261003/batch-21.json",
+      "batch": "batch-21",
+      "purpose": "wear overlay source, chroma-key reduction required",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "decal_ship_personal",
+      "spec": "tools/spritegen/specs/production-20261003/batch-21.json",
+      "batch": "batch-21",
+      "purpose": "environment story overlay source",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    },
+    {
+      "id": "detail_ship_fabric",
+      "spec": "tools/spritegen/specs/production-20261003/batch-21.json",
+      "batch": "batch-21",
+      "purpose": "civilian fabrics, awnings and insulation source",
+      "status": "downloaded source, acceptance and runtime binding tracked separately in the production manifests"
+    }
+  ]
+}

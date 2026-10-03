@@ -12,6 +12,23 @@ in the same change. The other files in this directory stay as tour evidence.
 The project tour runs the engine binary. Packaged desktop games use the original
 game icon checked by the release workflow; these stills do not prove taskbar icons.
 
+On 2026-10-03 the [art production pass](../plans/art-excellence.md) refreshed
+and inspected all 32 standard tour states, publishing fourteen selected
+stills from `.agents/art-excellence-research/qa-standard/`. The README intake
+image now comes from the final nine-state M01 room tour at
+`.agents/art-excellence-research/qa-m01-final/`. These images show local
+development changes that are not yet in the downloadable v0.67.0 release.
+Older dated receipts below remain history, not evidence of these new assets.
+
+`art-production-low-water.png` is actual Low Water arrival from an independently
+loaded Windows export pack on the pinned editor binary. It shows the quieter
+horizontal concrete layer. Native release install and graphical boot checks
+are separate evidence; this capture does not prove native release tour automation.
+`art-production-sweeper.png` is a controlled rendered lighting fixture using
+the actual live enemy presenter and paired normals, not a gameplay screenshot
+or a design reference. See the [production evidence](../evidence/art-production-20261003.md)
+for scope and remaining acceptance.
+
 `actor_contact_stopped.png`, `actor_contact_stop_strip.png` and
 `actor_contact_passed.png` were captured and inspected on 2026-10-01 through
 ordinary first-person input in an isolated two-participant development room.

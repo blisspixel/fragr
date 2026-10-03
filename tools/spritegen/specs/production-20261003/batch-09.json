@@ -1,0 +1,55 @@
+{
+  "model": "marketing-studio/image",
+  "out_dir": "art/raw/production-20261003/batch-09",
+  "params": {
+    "quality": "high",
+    "resolution": "4k",
+    "aspect_ratio": "1:1",
+    "enhance_prompt": false
+  },
+  "style": "Original professional game production art, practical retro futurism circa 2070, exceptional carefully maintained industrial design, restrained tactile materials, sharp details suitable for deliberate pixel reduction, no copied franchise designs",
+  "frames": [
+    {
+      "id": "prop_union_terminal",
+      "subject": "floor-mounted custody terminal, angled recessed CRT, physical keyboard, service drawer, dark steel column, bone bezel, restrained red issue lamp",
+      "technical": "One coherent original prop, orthographic front three-quarter view, studio mid-grey backdrop, physically plausible construction, all parts visible, no labels, no scene dressing around it",
+      "negative": "watermarks, signatures, logos, historical political insignia, neon cyberpunk, decorative fantasy spikes, illegible writing, blur, oversaturation, cheap toy forms"
+    },
+    {
+      "id": "prop_intake_locker",
+      "subject": "tall bone enamel personal-property locker with actual recessed door, heavy hinges, mechanical latch, small blank property label, dark vent below",
+      "technical": "One coherent original prop, orthographic front three-quarter view, studio mid-grey backdrop, physically plausible construction, all parts visible, no labels, no scene dressing around it",
+      "negative": "watermarks, signatures, logos, historical political insignia, neon cyberpunk, decorative fantasy spikes, illegible writing, blur, oversaturation, cheap toy forms"
+    },
+    {
+      "id": "prop_union_camera",
+      "subject": "issued wall surveillance camera, original rectangular graphite casing, protected red lens, articulated wall bracket, cooling grooves, restrained bone trim",
+      "technical": "One coherent original prop, orthographic front three-quarter view, studio mid-grey backdrop, physically plausible construction, all parts visible, no labels, no scene dressing around it",
+      "negative": "watermarks, signatures, logos, historical political insignia, neon cyberpunk, decorative fantasy spikes, illegible writing, blur, oversaturation, cheap toy forms"
+    },
+    {
+      "id": "prop_service_vent",
+      "subject": "industrial wall exhaust grille, deep steel frame and twelve overlapping inclined louvers, four recessed corner fasteners and actual dark recess",
+      "technical": "One coherent original prop, orthographic front three-quarter view, studio mid-grey backdrop, physically plausible construction, all parts visible, no labels, no scene dressing around it",
+      "negative": "watermarks, signatures, logos, historical political insignia, neon cyberpunk, decorative fantasy spikes, illegible writing, blur, oversaturation, cheap toy forms"
+    },
+    {
+      "id": "prop_strip_fixture",
+      "subject": "long enclosed fluorescent service light, bone housing, warm white frosted diffuser, metal guards, end clips and conduit inlet",
+      "technical": "One coherent original prop, orthographic front three-quarter view, studio mid-grey backdrop, physically plausible construction, all parts visible, no labels, no scene dressing around it",
+      "negative": "watermarks, signatures, logos, historical political insignia, neon cyberpunk, decorative fantasy spikes, illegible writing, blur, oversaturation, cheap toy forms"
+    },
+    {
+      "id": "prop_custody_console",
+      "subject": "portable Union audit console, squat graphite case with recessed red status lights, protected display, carrying handles and locking service cover",
+      "technical": "One coherent original prop, orthographic front three-quarter view, studio mid-grey backdrop, physically plausible construction, all parts visible, no labels, no scene dressing around it",
+      "negative": "watermarks, signatures, logos, historical political insignia, neon cyberpunk, decorative fantasy spikes, illegible writing, blur, oversaturation, cheap toy forms"
+    },
+    {
+      "id": "prop_recall_pod",
+      "subject": "transport custody capsule, tall bone enamel shell, dark bolted frame, narrow red status window, robust lid seams and mechanical lock",
+      "technical": "One coherent original prop, orthographic front three-quarter view, studio mid-grey backdrop, physically plausible construction, all parts visible, no labels, no scene dressing around it",
+      "negative": "watermarks, signatures, logos, historical political insignia, neon cyberpunk, decorative fantasy spikes, illegible writing, blur, oversaturation, cheap toy forms"
+    }
+  ]
+}

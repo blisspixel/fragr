@@ -1,0 +1,55 @@
+{
+  "model": "marketing-studio/image",
+  "out_dir": "art/raw/production-20261003/batch-21",
+  "params": {
+    "quality": "high",
+    "resolution": "4k",
+    "aspect_ratio": "1:1",
+    "enhance_prompt": false
+  },
+  "style": "Original professional game production art, practical retro futurism circa 2070, exceptional carefully maintained industrial design, restrained tactile materials, sharp details suitable for deliberate pixel reduction, no copied franchise designs",
+  "frames": [
+    {
+      "id": "detail_archive_fabric",
+      "subject": "Union lunar records archive, bone ceramic cabinetry, charcoal filing steel, faded grey green record-room fittings, fine lunar dust, disciplined bureaucratic oppression. Tangible worn woven fabric, repaired seams and small stitched patches, fine coherent weave, restrained venue colours, no objects or writing",
+      "technical": "Seamless square game albedo texture, orthographic flat surface filling entire image, equal even illumination, no baked highlights or shadows, no perspective, no border, clean matching opposite edges, material only",
+      "negative": "watermarks, signatures, logos, historical political insignia, neon cyberpunk, decorative fantasy spikes, illegible writing, blur, oversaturation, cheap toy forms"
+    },
+    {
+      "id": "decal_mars_wear",
+      "subject": "Mars civilian habitat, oxidized reddish mineral dust on bone pressure ceramics, sand green patched metal, warm lived-in workshops, practical frontier engineering. A square material sheet of isolated believable chipped paint marks, fine cracks, scraped edges and small repair patches, carefully separated on perfectly flat pure magenta background, no shadows, no objects",
+      "technical": "Orthographic flat decal source sheet, eight distinct useful wear marks in two rows of four, no text, generous magenta space around each mark, no frame",
+      "negative": "watermarks, signatures, logos, historical political insignia, neon cyberpunk, decorative fantasy spikes, illegible writing, blur, oversaturation, cheap toy forms"
+    },
+    {
+      "id": "decal_mars_personal",
+      "subject": "Mars civilian habitat, oxidized reddish mineral dust on bone pressure ceramics, sand green patched metal, warm lived-in workshops, practical frontier engineering. A square sheet of original worn daily-use surface motifs: tiny mechanical service pictograms, worn cable routing labels without letters, inspection witness marks, stitched material patch, taped repair edge, fingerprints, cup ring and torn blank paper, separated on pure magenta",
+      "technical": "Orthographic flat decal source sheet, eight distinct separated motifs in two rows of four, no text or brands, generous flat magenta space around each, no shadows or frame",
+      "negative": "watermarks, signatures, logos, historical political insignia, neon cyberpunk, decorative fantasy spikes, illegible writing, blur, oversaturation, cheap toy forms"
+    },
+    {
+      "id": "detail_mars_fabric",
+      "subject": "Mars civilian habitat, oxidized reddish mineral dust on bone pressure ceramics, sand green patched metal, warm lived-in workshops, practical frontier engineering. Tangible worn woven fabric, repaired seams and small stitched patches, fine coherent weave, restrained venue colours, no objects or writing",
+      "technical": "Seamless square game albedo texture, orthographic flat surface filling entire image, equal even illumination, no baked highlights or shadows, no perspective, no border, clean matching opposite edges, material only",
+      "negative": "watermarks, signatures, logos, historical political insignia, neon cyberpunk, decorative fantasy spikes, illegible writing, blur, oversaturation, cheap toy forms"
+    },
+    {
+      "id": "decal_ship_wear",
+      "subject": "Working civilian interplanetary freighter, charcoal utility steel, aged bone paneling, worn tan insulation, small muted amber service markers, reused practical fittings. A square material sheet of isolated believable chipped paint marks, fine cracks, scraped edges and small repair patches, carefully separated on perfectly flat pure magenta background, no shadows, no objects",
+      "technical": "Orthographic flat decal source sheet, eight distinct useful wear marks in two rows of four, no text, generous magenta space around each mark, no frame",
+      "negative": "watermarks, signatures, logos, historical political insignia, neon cyberpunk, decorative fantasy spikes, illegible writing, blur, oversaturation, cheap toy forms"
+    },
+    {
+      "id": "decal_ship_personal",
+      "subject": "Working civilian interplanetary freighter, charcoal utility steel, aged bone paneling, worn tan insulation, small muted amber service markers, reused practical fittings. A square sheet of original worn daily-use surface motifs: tiny mechanical service pictograms, worn cable routing labels without letters, inspection witness marks, stitched material patch, taped repair edge, fingerprints, cup ring and torn blank paper, separated on pure magenta",
+      "technical": "Orthographic flat decal source sheet, eight distinct separated motifs in two rows of four, no text or brands, generous flat magenta space around each, no shadows or frame",
+      "negative": "watermarks, signatures, logos, historical political insignia, neon cyberpunk, decorative fantasy spikes, illegible writing, blur, oversaturation, cheap toy forms"
+    },
+    {
+      "id": "detail_ship_fabric",
+      "subject": "Working civilian interplanetary freighter, charcoal utility steel, aged bone paneling, worn tan insulation, small muted amber service markers, reused practical fittings. Tangible worn woven fabric, repaired seams and small stitched patches, fine coherent weave, restrained venue colours, no objects or writing",
+      "technical": "Seamless square game albedo texture, orthographic flat surface filling entire image, equal even illumination, no baked highlights or shadows, no perspective, no border, clean matching opposite edges, material only",
+      "negative": "watermarks, signatures, logos, historical political insignia, neon cyberpunk, decorative fantasy spikes, illegible writing, blur, oversaturation, cheap toy forms"
+    }
+  ]
+}

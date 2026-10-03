@@ -1,0 +1,140 @@
+{
+  "schema": 1,
+  "date": "2026-10-03",
+  "authorized_usd": 105.88,
+  "balance_basis": "Nick reported API prepaid balance",
+  "completed_requests": 151,
+  "unresolved_requests": 0,
+  "estimated_prepaid_usage_usd": 93.365,
+  "estimated_remaining_usd": 12.515,
+  "billing_status": "Aggregate balance reconciled to Nick's dashboard report; individual request charges not independently verified",
+  "balance_reconciliation": {
+    "reported_date": "2026-10-03",
+    "source": "Nick reported Higgsfield API dashboard balance",
+    "starting_reported_balance_usd": 105.88,
+    "remaining_reported_balance_usd": 14.42,
+    "net_balance_decrease_usd": 91.46,
+    "request_estimates_exceed_net_decrease_usd": 1.905,
+    "method": "Difference between reported starting and remaining balances; not an itemized billing receipt",
+    "individual_request_charges_verified": false,
+    "original_reservations_preserved": true
+  },
+  "automatic_topups": false,
+  "batches": [
+    {
+      "batch": "model-quality-20261003",
+      "completed": 3,
+      "estimated_usd": 1.856
+    },
+    {
+      "batch": "model-revisions-20261003",
+      "completed": 1,
+      "estimated_usd": 0.629
+    },
+    {
+      "batch": "batch-01",
+      "completed": 7,
+      "estimated_usd": 4.34
+    },
+    {
+      "batch": "batch-02",
+      "completed": 7,
+      "estimated_usd": 4.334
+    },
+    {
+      "batch": "batch-03",
+      "completed": 7,
+      "estimated_usd": 4.334
+    },
+    {
+      "batch": "batch-04",
+      "completed": 7,
+      "estimated_usd": 4.327
+    },
+    {
+      "batch": "batch-05",
+      "completed": 7,
+      "estimated_usd": 4.334
+    },
+    {
+      "batch": "batch-06",
+      "completed": 7,
+      "estimated_usd": 4.334
+    },
+    {
+      "batch": "batch-07",
+      "completed": 7,
+      "estimated_usd": 4.334
+    },
+    {
+      "batch": "batch-08",
+      "completed": 7,
+      "estimated_usd": 4.334
+    },
+    {
+      "batch": "batch-09",
+      "completed": 7,
+      "estimated_usd": 4.319
+    },
+    {
+      "batch": "batch-10",
+      "completed": 7,
+      "estimated_usd": 4.319
+    },
+    {
+      "batch": "batch-11",
+      "completed": 7,
+      "estimated_usd": 4.319
+    },
+    {
+      "batch": "batch-12",
+      "completed": 7,
+      "estimated_usd": 4.319
+    },
+    {
+      "batch": "batch-13",
+      "completed": 7,
+      "estimated_usd": 4.326
+    },
+    {
+      "batch": "batch-14",
+      "completed": 7,
+      "estimated_usd": 4.326
+    },
+    {
+      "batch": "batch-15",
+      "completed": 7,
+      "estimated_usd": 4.324
+    },
+    {
+      "batch": "batch-16",
+      "completed": 7,
+      "estimated_usd": 4.326
+    },
+    {
+      "batch": "batch-17",
+      "completed": 7,
+      "estimated_usd": 4.333
+    },
+    {
+      "batch": "batch-18",
+      "completed": 7,
+      "estimated_usd": 4.319
+    },
+    {
+      "batch": "batch-19",
+      "completed": 7,
+      "estimated_usd": 4.327
+    },
+    {
+      "batch": "batch-20",
+      "completed": 7,
+      "estimated_usd": 4.326
+    },
+    {
+      "batch": "batch-21",
+      "completed": 7,
+      "estimated_usd": 4.326
+    }
+  ]
+}

@@ -27,7 +27,9 @@ and the conditional playable epilogue.
 ## The world and its three powers
 
 The backstory places Union formation around 2040 and lunar/Martian bases around
-2060, with roughly thirty years of political ascent and a later undated campaign.
+2060, with roughly thirty years of political ascent and a campaign around 2070.
+Nick confirmed this loose campaign reference on 2026-10-03, with practical
+retro-futuristic charm rather than an emphasis on far-future technology.
 These are fictional anchors, not forecasts. The campaign world has established communities on Earth, the Moon, Mars,
 and ships, with recognizable present-day remnants. The Union controls Earth and
 major offworld infrastructure. Independent communities survive around its reach.
