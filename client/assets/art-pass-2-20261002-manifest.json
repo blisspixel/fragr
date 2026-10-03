@@ -49,6 +49,227 @@
       "raw_sha256": "c89535eeb66f1658eca8d678f80a5f46aa7a71142c5fbca3f006b7b32296b765",
       "reduction": "fragr-spritegen reduce --height 180 --no-trim --palette docs/palette.json --key ff00ff (tolerance 45, erode 2)",
       "human_edited": false
+    },
+    {
+      "output": "res://assets/pickups/proximity_mine.png",
+      "output_size": [34, 26],
+      "output_sha256": "5db7f23f5ece4a9b3e6e25581389d516051ad31d690224ea411dea5f8be5384d",
+      "frame_id": "pk_proximity_mine",
+      "request_id": "a5fdd75c-db0f-4ca6-bb66-c6a5d954900f",
+      "model": "marketing-studio/image",
+      "params": {"aspect_ratio": "1:1", "enhance_prompt": false, "quality": "medium", "resolution": "2k"},
+      "estimated_usd": 0.117,
+      "references": [
+        "pk_grenades_0.png"
+      ],
+      "prompt": "retro pixel art item pickup sprite for a 1990s PC shooter in the same chunky pixel style as the reference picture, crisp stepped pixel clusters, dark outline, limited palette of black steel, gunmetal grey, bone white and a restrained deep red with clear value contrast, broad flat areas of colour with hard-edged cel shading, flat even lighting, no gradients, no grain, one squat round issued proximity mine shaped like a thick puck, a black steel casing with a lighter gunmetal bevelled rim, three short folding steel clamp feet spaced around its base, a small domed red glass lamp lens in the centre of its flat top face, one thin red seal stripe around the rim and a ring of small bone-white rivets, clean and severe issued hardware, no symbols, three-quarter view from slightly above, resting on the floor, centred, the whole object visible with even margins, the whole background is one flat solid pure magenta #FF00FF colour with no checkerboard, no pattern, no gradient and no shadow on it, no text, no letters, no numbers, no watermark, no border. Avoid: photorealistic, 3d render, smooth shading, gradient, blur, anti-aliasing, drop shadow, cast shadow, ambient occlusion, specular, glossy, reflection, rim light, lens flare, bloom, depth of field, text, signature, watermark, frame, border, background scenery.",
+      "raw_file": "art/raw/art-pass-2-20261002/mine/pk_proximity_mine_0.png",
+      "raw_sha256": "e52423b72b002f0741c4ffee6a06d5877a43d3cd821c68e25744d1f71d2bd6cd",
+      "reduction": "fragr-spritegen reduce --height 26 --palette tools/spritegen/specs/palettes/union-issue.json --key ff00ff (tolerance 45, erode 2)",
+      "human_edited": false
+    },
+    {
+      "output": "res://assets/weapons/viewmodels/mine_ready.png",
+      "output_size": [241, 180],
+      "output_sha256": "9be8c2676dcf0c4cb62d8faacfebd6cd3a033f8f804acce6b1efe9770f92f8ca",
+      "frame_id": "vm_mine_ready",
+      "request_id": "a2e5aa38-002a-4ebe-a2d5-e6c59e03773c",
+      "model": "marketing-studio/image",
+      "params": {"aspect_ratio": "4:3", "enhance_prompt": false, "quality": "medium", "resolution": "2k"},
+      "estimated_usd": 0.103,
+      "references": [
+        "vm_grenade_ready_0.png",
+        "pk_proximity_mine_0.png"
+      ],
+      "prompt": "first person pixel art sprite from a 1990s PC shooter in exactly the same style, camera, scale, colours and leather glove as the first reference picture, chunky stepped pixel clusters, broad flat areas of colour with hard-edged cel shading, flat even lighting, no grain, edit the first reference picture and keep the left gloved hand, forearm, rust-brown jacket cuff, pose and framing exactly as they are; make only this change: instead of the grenade, the hand holds the round black steel proximity mine from the second reference picture flat on its fingers, tilted toward the viewer so its top face and dark unlit red lamp lens show, the rest of the frame empty, the whole background is one flat solid pure magenta #FF00FF colour with no checkerboard, no pattern, no gradient and no shadow on it, no text, no letters, no numbers, no watermark, no border. Avoid: photorealistic, 3d render, smooth shading, gradient, blur, anti-aliasing, drop shadow, cast shadow, ambient occlusion, specular, glossy, reflection, rim light, lens flare, bloom, depth of field, text, signature, watermark, frame, border, background scenery.",
+      "raw_file": "art/raw/art-pass-2-20261002/mine/vm_mine_ready_0.png",
+      "raw_sha256": "60dd6ec3357506d9fcd242d7a8dfb4164d8c337beb3390b789a8bae83314d304",
+      "reduction": "fragr-spritegen reduce --height 180 --no-trim --palette docs/palette.json --key ff00ff (tolerance 45, erode 2)",
+      "human_edited": false
+    },
+    {
+      "output": "res://assets/weapons/viewmodels/mine_place.png",
+      "output_size": [241, 180],
+      "output_sha256": "0dff940c5efe103566f66f553d7ef792273b06987c230b43ffa7d58be831e1ed",
+      "frame_id": "vm_mine_place",
+      "request_id": "b2a78084-c6dd-4025-ab46-3aab401183cc",
+      "model": "marketing-studio/image",
+      "params": {"aspect_ratio": "4:3", "enhance_prompt": false, "quality": "medium", "resolution": "2k"},
+      "estimated_usd": 0.103,
+      "references": [
+        "vm_grenade_throw_0.png",
+        "pk_proximity_mine_0.png"
+      ],
+      "prompt": "first person pixel art sprite from a 1990s PC shooter in exactly the same style, camera, scale, colours and leather glove as the first reference picture, chunky stepped pixel clusters, broad flat areas of colour with hard-edged cel shading, flat even lighting, no grain, edit the first reference picture and keep the left gloved hand and forearm flung forward with the fingers opening exactly as they are; make only this change: instead of the grenade, the round black steel proximity mine from the second reference picture is just leaving the open palm, tilted forward, its three clamp feet springing open and its small lamp lens glowing amber, the rest of the frame empty, the whole background is one flat solid pure magenta #FF00FF colour with no checkerboard, no pattern, no gradient and no shadow on it, no text, no letters, no numbers, no watermark, no border. Avoid: photorealistic, 3d render, smooth shading, gradient, blur, anti-aliasing, drop shadow, cast shadow, ambient occlusion, specular, glossy, reflection, rim light, lens flare, bloom, depth of field, text, signature, watermark, frame, border, background scenery.",
+      "raw_file": "art/raw/art-pass-2-20261002/mine/vm_mine_place_0.png",
+      "raw_sha256": "171b35cef40218b9d41cf76deaa62d8983bd2c1ef7cabbcf6d24dcccaa4ee28f",
+      "reduction": "fragr-spritegen reduce --height 180 --no-trim --palette docs/palette.json --key ff00ff (tolerance 45, erode 2)",
+      "human_edited": false
+    },
+    {
+      "output": "res://art/custody/mine_face.png",
+      "output_size": [33, 32],
+      "output_sha256": "328bbdf8609ec3d3d90adb00abf315f556e2fd113266abd8d7c30d180a139f27",
+      "frame_id": "mine_face",
+      "request_id": "27e84558-e59d-4051-8436-bc3411f40475",
+      "model": "marketing-studio/image",
+      "params": {"aspect_ratio": "1:1", "enhance_prompt": false, "quality": "medium", "resolution": "2k"},
+      "estimated_usd": 0.117,
+      "references": [
+        "pk_proximity_mine_0.png"
+      ],
+      "prompt": "retro pixel art item pickup sprite for a 1990s PC shooter in the same chunky pixel style as the reference picture, crisp stepped pixel clusters, dark outline, limited palette of black steel, gunmetal grey, bone white and a restrained deep red with clear value contrast, broad flat areas of colour with hard-edged cel shading, flat even lighting, no gradients, no grain, the same proximity mine as the reference picture, its round top face with the small domed lamp lens exactly in the centre, the lens dark and unlit deep red, the ring of bone-white rivets and the red seal stripe around the rim, the three clamp feet showing evenly spaced at the edge, seen from directly above, perfectly face-on and centred like a top-down plan view, the round top face filling most of the frame, no perspective, the whole background is one flat solid pure magenta #FF00FF colour with no checkerboard, no pattern, no gradient and no shadow on it, no text, no letters, no numbers, no watermark, no border. Avoid: photorealistic, 3d render, smooth shading, gradient, blur, anti-aliasing, drop shadow, cast shadow, ambient occlusion, specular, glossy, reflection, rim light, lens flare, bloom, depth of field, text, signature, watermark, frame, border, background scenery.",
+      "raw_file": "art/raw/art-pass-2-20261002/mine/mine_face_0.png",
+      "raw_sha256": "769755b95b85c16b1236d3814b9c0f94da64c66ef1435ab5dcdc8e91a59b41d0",
+      "reduction": "fragr-spritegen reduce --height 32 --palette tools/spritegen/specs/palettes/union-issue.json --key ff00ff (tolerance 45, erode 2); base for tools/bake_custody_art.gd",
+      "human_edited": false
+    },
+    {
+      "output": "res://assets/sabotage/charge.png",
+      "output_size": [41, 40],
+      "output_sha256": "fd8ebc0763726f03bd056705686ca5ded30384ee718b2d89e7d801e84c1b6746",
+      "frame_id": "sb_satchel_b",
+      "request_id": "5ab8ad5d-104d-46a8-8777-89559daab323",
+      "model": "marketing-studio/image",
+      "params": {"aspect_ratio": "1:1", "enhance_prompt": false, "quality": "medium", "resolution": "2k"},
+      "estimated_usd": 0.117,
+      "references": [
+        "pk_grenades_0.png"
+      ],
+      "prompt": "retro pixel art item pickup sprite for a 1990s PC shooter in the same chunky pixel style as the reference picture, crisp stepped pixel clusters, dark outline, limited palette of worn warm brown leather, bone white, ember orange, brass, gunmetal grey and deep shadow with clear value contrast, broad flat areas of colour with hard-edged cel shading, flat even lighting, no gradients, no grain, one hand-made demolition charge drawn as a 40 by 40 pixel sprite scaled up, with very large chunky pixels, simple bold shapes and few details: three bone-white wrapped explosive blocks bundled with two broad worn brown leather straps with dull iron buckles, a small dark steel timer box strapped on top with a dark display window and one small round unlit lamp, two thick ember-orange wires, a leather carry strap loop over the top, no symbols, three-quarter view from slightly above, resting on the floor, centred, the whole object visible with even margins, the whole background is one flat solid pure magenta #FF00FF colour with no checkerboard, no pattern, no gradient and no shadow on it, no text, no letters, no numbers, no watermark, no border. Avoid: photorealistic, 3d render, smooth shading, gradient, blur, anti-aliasing, drop shadow, cast shadow, ambient occlusion, specular, glossy, reflection, rim light, lens flare, bloom, depth of field, text, signature, watermark, frame, border, background scenery.",
+      "raw_file": "art/raw/art-pass-2-20261002/sabotage/sb_satchel_b_0.png",
+      "raw_sha256": "cdea17b26fde10bae62b8fa90d690dd79615caf5b918a558ae54d87d7000128c",
+      "reduction": "fragr-spritegen reduce --height 40 --palette tools/spritegen/specs/palettes/free-side.json --key ff00ff (tolerance 45, erode 2)",
+      "human_edited": false
+    },
+    {
+      "output": "res://art/sabotage/charge_planted.png",
+      "output_size": [43, 35],
+      "output_sha256": "2039521eae17108c67fc166ab1cdb9eb36bc7091142e29f0352c94dfb2e9f0ba",
+      "frame_id": "sb_charge_planted",
+      "request_id": "0a91797b-50b5-4cbb-a157-31d322d3ee22",
+      "model": "marketing-studio/image",
+      "params": {"aspect_ratio": "1:1", "enhance_prompt": false, "quality": "medium", "resolution": "2k"},
+      "estimated_usd": 0.117,
+      "references": [
+        "sb_satchel_b_0.png"
+      ],
+      "prompt": "retro pixel art item pickup sprite for a 1990s PC shooter in the same chunky pixel style as the reference picture, crisp stepped pixel clusters, dark outline, limited palette of worn warm brown leather, bone white, ember orange, brass, gunmetal grey and deep shadow with clear value contrast, broad flat areas of colour with hard-edged cel shading, flat even lighting, no gradients, no grain, the same demolition charge as the reference picture, drawn the same way with very large chunky pixels and simple bold shapes, now planted: lying flat on the floor with its carry strap laid out beside it and two short steel spikes driven through its leather straps into the floor, the dark steel timer box on top facing up toward the viewer, its rectangular display window and round lamp both dark and unlit, three-quarter view from slightly above, resting on the floor, centred, the whole object visible with even margins, the whole background is one flat solid pure magenta #FF00FF colour with no checkerboard, no pattern, no gradient and no shadow on it, no text, no letters, no numbers, no watermark, no border. Avoid: photorealistic, 3d render, smooth shading, gradient, blur, anti-aliasing, drop shadow, cast shadow, ambient occlusion, specular, glossy, reflection, rim light, lens flare, bloom, depth of field, text, signature, watermark, frame, border, background scenery.",
+      "raw_file": "art/raw/art-pass-2-20261002/sabotage/sb_charge_planted_0.png",
+      "raw_sha256": "dd87c511a9c8c17eabe6aab006c765af132477fda4bce83511b2734cdfc5623e",
+      "reduction": "fragr-spritegen reduce --height 35 --palette tools/spritegen/specs/palettes/free-side.json --key ff00ff (tolerance 45, erode 2); base for tools/bake_sabotage_art.gd",
+      "human_edited": false
+    },
+    {
+      "output": "res://art/sabotage/site_plate.png",
+      "output_size": [49, 48],
+      "output_sha256": "8f094a7f2a117c39340c7400f42ca2c1222fb5c0ed7d06de858ca818c2d831ee",
+      "frame_id": "sb_site_plate",
+      "request_id": "faecccb6-745a-4640-8155-ab49e8132282",
+      "model": "marketing-studio/image",
+      "params": {"aspect_ratio": "1:1", "enhance_prompt": false, "quality": "medium", "resolution": "2k"},
+      "estimated_usd": 0.105,
+      "references": [
+
+      ],
+      "prompt": "retro pixel art sign sprite for a 1990s PC shooter, crisp stepped pixel clusters, dark outline, limited palette of near-black steel, dark gunmetal, a deep severe red and bone white with clear value contrast, broad flat areas of colour with hard-edged cel shading, flat even lighting, no gradients, no grain, one square authoritarian site marker sign: a heavy near-black steel plate with a bevelled edge, a broad deep red border band inset from the edge, four bone-white bolts at the corners, and a clean flat dark centre panel left completely blank, clean and severe, no text, no letters, no symbols, no emblem, straight-on front view, perfectly face-on and centred, the whole sign visible with even margins, no perspective, the whole background is one flat solid pure magenta #FF00FF colour with no checkerboard, no pattern, no gradient and no shadow on it, no text, no letters, no numbers, no watermark, no border. Avoid: photorealistic, 3d render, smooth shading, gradient, blur, anti-aliasing, drop shadow, cast shadow, ambient occlusion, specular, glossy, reflection, rim light, lens flare, bloom, depth of field, text, signature, watermark, frame, border, background scenery.",
+      "raw_file": "art/raw/art-pass-2-20261002/sabotage/sb_site_plate_0.png",
+      "raw_sha256": "30ca2308d36e70693aae2dd289129839727ad961cb257ef467b84506eb030dc2",
+      "reduction": "fragr-spritegen reduce --height 48 --palette tools/spritegen/specs/palettes/union-issue.json --key ff00ff (tolerance 45, erode 2); base for tools/bake_sabotage_art.gd",
+      "human_edited": false
+    },
+    {
+      "output": "res://assets/sabotage/prop_a.png",
+      "output_size": [83, 120],
+      "output_sha256": "fb34eacd692925702dfb295176c8a98e859c45cfbcfe1ade6f11496e94aee650",
+      "frame_id": "sb_prop_frame",
+      "request_id": "7f2e2839-0ee4-43c6-8ab4-155ac2e26184",
+      "model": "marketing-studio/image",
+      "params": {"aspect_ratio": "3:4", "enhance_prompt": false, "quality": "medium", "resolution": "2k"},
+      "estimated_usd": 0.093,
+      "references": [
+        "sb_site_plate_0.png"
+      ],
+      "prompt": "retro pixel art sprite for a 1990s PC shooter in the same chunky pixel style and colours as the reference picture, crisp stepped pixel clusters, dark outline, limited palette of near-black steel, dark gunmetal, a deep severe red and bone white with clear value contrast, broad flat areas of colour with hard-edged cel shading, flat even lighting, no gradients, no grain, one authoritarian correction frame standing on the floor: a tall upright near-black steel gantry of two square posts and a heavy crossbeam, a narrow padded black restraint board between the posts with steel wrist and ankle cuffs, a small control screen on the right post glowing deep red, deep red warning bands on the heavy base plate, severe and clean institutional machine, no people, no text, no symbols, straight-on front view, perfectly face-on and centred, the whole object standing upright with even margins, no perspective, the whole background is one flat solid pure magenta #FF00FF colour with no checkerboard, no pattern, no gradient and no shadow on it, no text, no letters, no numbers, no watermark, no border. Avoid: photorealistic, 3d render, smooth shading, gradient, blur, anti-aliasing, drop shadow, cast shadow, ambient occlusion, specular, glossy, reflection, rim light, lens flare, bloom, depth of field, text, signature, watermark, frame, border, background scenery.",
+      "raw_file": "art/raw/art-pass-2-20261002/sabotage/sb_prop_frame_0.png",
+      "raw_sha256": "3ec7f1af27e9de583d64c1ee07b3147a756a6e9986dc51a3c0f4594a1ba6dd0e",
+      "reduction": "fragr-spritegen reduce --height 120 --palette tools/spritegen/specs/palettes/union-issue.json --key ff00ff (tolerance 45, erode 2)",
+      "human_edited": false
+    },
+    {
+      "output": "res://assets/sabotage/prop_b.png",
+      "output_size": [57, 120],
+      "output_sha256": "31e783024696db96feb8d427809b64bfbc8c457fc08b27d59c8d3b6a66719bd8",
+      "frame_id": "sb_prop_registry",
+      "request_id": "30e796dc-eb3a-4bc7-86fa-d86555de1ba2",
+      "model": "marketing-studio/image",
+      "params": {"aspect_ratio": "3:4", "enhance_prompt": false, "quality": "medium", "resolution": "2k"},
+      "estimated_usd": 0.093,
+      "references": [
+        "sb_site_plate_0.png"
+      ],
+      "prompt": "retro pixel art sprite for a 1990s PC shooter in the same chunky pixel style and colours as the reference picture, crisp stepped pixel clusters, dark outline, limited palette of near-black steel, dark gunmetal, a deep severe red and bone white with clear value contrast, broad flat areas of colour with hard-edged cel shading, flat even lighting, no gradients, no grain, one authoritarian registry server cabinet standing on the floor: a tall narrow near-black steel rack with a bevelled frame, six stacked drive bays with dark grey handles, a column of small status lamps glowing deep red, a thin deep red seal stripe down one side, vents near the base, severe and clean, no text, no symbols, straight-on front view, perfectly face-on and centred, the whole object standing upright with even margins, no perspective, the whole background is one flat solid pure magenta #FF00FF colour with no checkerboard, no pattern, no gradient and no shadow on it, no text, no letters, no numbers, no watermark, no border. Avoid: photorealistic, 3d render, smooth shading, gradient, blur, anti-aliasing, drop shadow, cast shadow, ambient occlusion, specular, glossy, reflection, rim light, lens flare, bloom, depth of field, text, signature, watermark, frame, border, background scenery.",
+      "raw_file": "art/raw/art-pass-2-20261002/sabotage/sb_prop_registry_0.png",
+      "raw_sha256": "fbf5038c2e44f01cf5e6c72efa283a133b9808a540f7e3128e6a9f54ffbb2f62",
+      "reduction": "fragr-spritegen reduce --height 120 --palette tools/spritegen/specs/palettes/union-issue.json --key ff00ff (tolerance 45, erode 2)",
+      "human_edited": false
+    },
+    {
+      "output": "res://assets/weapons/viewmodels/charge_carry.png",
+      "output_size": [241, 180],
+      "output_sha256": "a7517cf255fca0f56df18081af7c6bb85e1142397ae2e8e05779f43bcd9b8f19",
+      "frame_id": "vm_charge_carry",
+      "request_id": "6c2c4548-3704-4f0c-bab3-fb9a45d67e05",
+      "model": "marketing-studio/image",
+      "params": {"aspect_ratio": "4:3", "enhance_prompt": false, "quality": "medium", "resolution": "2k"},
+      "estimated_usd": 0.103,
+      "references": [
+        "vm_grenade_ready_0.png",
+        "sb_satchel_b_0.png"
+      ],
+      "prompt": "first person pixel art sprite from a 1990s PC shooter in exactly the same style, camera, scale, colours and leather glove as the first reference picture, chunky stepped pixel clusters, broad flat areas of colour with hard-edged cel shading, flat even lighting, no grain, edit the first reference picture and keep the left gloved hand, forearm, rust-brown jacket cuff and framing exactly as they are; make only this change: instead of the grenade, the fist grips the leather carry strap of the demolition charge from the second reference picture, the bundle hanging just below the fist with its timer box facing the viewer, the rest of the frame empty, the whole background is one flat solid pure magenta #FF00FF colour with no checkerboard, no pattern, no gradient and no shadow on it, no text, no letters, no numbers, no watermark, no border. Avoid: photorealistic, 3d render, smooth shading, gradient, blur, anti-aliasing, drop shadow, cast shadow, ambient occlusion, specular, glossy, reflection, rim light, lens flare, bloom, depth of field, text, signature, watermark, frame, border, background scenery.",
+      "raw_file": "art/raw/art-pass-2-20261002/sabotage/vm_charge_carry_0.png",
+      "raw_sha256": "e4be03edbee633715764740a376e0aa1e3b8ad537ca6e796b778edb0b56cf7ba",
+      "reduction": "fragr-spritegen reduce --height 180 --no-trim --palette tools/spritegen/specs/palettes/free-side.json --key ff00ff (tolerance 45, erode 2)",
+      "human_edited": false
+    },
+    {
+      "output": "res://assets/weapons/viewmodels/charge_plant.png",
+      "output_size": [241, 180],
+      "output_sha256": "a48ac44aa9ba85cefb58414b925e47e211ee157d440fc97a9f4262b3e8143fca",
+      "frame_id": "vm_charge_plant",
+      "request_id": "975ae00b-6095-4667-a2a6-d7a9fc4ee76a",
+      "model": "marketing-studio/image",
+      "params": {"aspect_ratio": "4:3", "enhance_prompt": false, "quality": "medium", "resolution": "2k"},
+      "estimated_usd": 0.103,
+      "references": [
+        "vm_pistol_idle_0.png",
+        "sb_charge_planted_0.png"
+      ],
+      "prompt": "first person pixel art sprite from a 1990s PC shooter in exactly the same style, scale, colours and leather gloves as the first reference picture, chunky stepped pixel clusters, broad flat areas of colour with hard-edged cel shading, flat even lighting, no grain, no weapon; both worn brown leather gloved hands with rust-brown jacket cuffs from the first reference picture reach in from the lower left and lower right edges and press the demolition charge from the second reference picture down, the left hand flat on the leather bundle and the right index finger pressing a key on its dark steel timer box, the timer lamp glowing red, the rest of the frame empty with no floor, first person view looking down, the object low at the bottom centre of the frame, the whole background is one flat solid pure magenta #FF00FF colour with no checkerboard, no pattern, no gradient and no shadow on it, no text, no letters, no numbers, no watermark, no border. Avoid: photorealistic, 3d render, smooth shading, gradient, blur, anti-aliasing, drop shadow, cast shadow, ambient occlusion, specular, glossy, reflection, rim light, lens flare, bloom, depth of field, text, signature, watermark, frame, border, background scenery.",
+      "raw_file": "art/raw/art-pass-2-20261002/sabotage/vm_charge_plant_0.png",
+      "raw_sha256": "0181faf6f97b84d0625effc2b85c0c2c69d2b688745ef477a9b6cece47023a58",
+      "reduction": "fragr-spritegen reduce --height 180 --no-trim --palette docs/palette.json --key ff00ff (tolerance 45, erode 2)",
+      "human_edited": false
+    },
+    {
+      "output": "res://assets/weapons/viewmodels/charge_defuse.png",
+      "output_size": [241, 180],
+      "output_sha256": "948fd1d6c2034f30a1eb3989f8cb41d70b74c96bf2a0308683e57c1f3936915e",
+      "frame_id": "vm_charge_defuse",
+      "request_id": "3d65fa93-8eb9-4851-83ad-34d5acc30945",
+      "model": "marketing-studio/image",
+      "params": {"aspect_ratio": "4:3", "enhance_prompt": false, "quality": "medium", "resolution": "2k"},
+      "estimated_usd": 0.103,
+      "references": [
+        "vm_pistol_idle_0.png",
+        "sb_charge_planted_0.png"
+      ],
+      "prompt": "first person pixel art sprite from a 1990s PC shooter in exactly the same style, scale, colours and leather gloves as the first reference picture, chunky stepped pixel clusters, broad flat areas of colour with hard-edged cel shading, flat even lighting, no grain, no weapon; both worn brown leather gloved hands with rust-brown jacket cuffs from the first reference picture reach in from the lower left and lower right edges over the planted demolition charge from the second reference picture, the left hand holding its timer box steady and the right hand closing small red-handled wire cutters on one ember-orange wire, the timer lamp glowing red, the rest of the frame empty with no floor, first person view looking down, the object low at the bottom centre of the frame, the whole background is one flat solid pure magenta #FF00FF colour with no checkerboard, no pattern, no gradient and no shadow on it, no text, no letters, no numbers, no watermark, no border. Avoid: photorealistic, 3d render, smooth shading, gradient, blur, anti-aliasing, drop shadow, cast shadow, ambient occlusion, specular, glossy, reflection, rim light, lens flare, bloom, depth of field, text, signature, watermark, frame, border, background scenery.",
+      "raw_file": "art/raw/art-pass-2-20261002/sabotage/vm_charge_defuse_0.png",
+      "raw_sha256": "0d0562637a26f7cf0640a7b4ca5716e4422a415dead244f04fd431f2995958f5",
+      "reduction": "fragr-spritegen reduce --height 180 --no-trim --palette docs/palette.json --key ff00ff (tolerance 45, erode 2)",
+      "human_edited": false
     }
   ],
   "local": [
@@ -99,6 +320,102 @@
       "source": "tools/bake_shot_vfx.gd",
       "source_sha256": "a0cd01a51cdc0b2cb4f249bc8bb99bc71e2de48ca4ba74e885a68f669d1b0a3d",
       "generation": "none; drawn in code from palette swatches, fixed seeds"
+    },
+    {
+      "output": "res://assets/weapons/mine/mine_dark.png",
+      "output_size": [33, 32],
+      "output_sha256": "ff9841b230a9277ce22996209e9aa8303490540d615449244c1d12ac453fa131",
+      "source": "tools/bake_custody_art.gd",
+      "source_sha256": "18cdf824b6dd8b756c8007da5f4b5314d5e252c2314295261fa5c983542061e5",
+      "generation": "lamp state composited over res://art/custody/mine_face.png"
+    },
+    {
+      "output": "res://assets/weapons/mine/mine_arming.png",
+      "output_size": [33, 32],
+      "output_sha256": "0bbd03c1a7a72a7c1c9b5ba69e63cb8e94bee31b3e4fe2839b14837418ef74fd",
+      "source": "tools/bake_custody_art.gd",
+      "source_sha256": "18cdf824b6dd8b756c8007da5f4b5314d5e252c2314295261fa5c983542061e5",
+      "generation": "lamp state composited over res://art/custody/mine_face.png"
+    },
+    {
+      "output": "res://assets/weapons/mine/mine_live.png",
+      "output_size": [33, 32],
+      "output_sha256": "5ed3cb59965e3983e2101eacd037d9c9bacf2807769ff36441ce96944103be68",
+      "source": "tools/bake_custody_art.gd",
+      "source_sha256": "18cdf824b6dd8b756c8007da5f4b5314d5e252c2314295261fa5c983542061e5",
+      "generation": "lamp state composited over res://art/custody/mine_face.png"
+    },
+    {
+      "output": "res://assets/characters/union/auditor.png",
+      "output_size": [2880, 4000],
+      "output_sha256": "f2196dc4d8ba0619517349e509780145d3244e441584266dfb4310e882cc8e52",
+      "source": "client/art/characters/auditor_rig.gd",
+      "source_sha256": "41bfeeee7e840c8db8b8efaa94a83836eca8037dd80650b41508c56ca202999c",
+      "generation": "none; local procedural rig baked by auditor_bake.gd, receipt auditor-manifest.json"
+    },
+    {
+      "output": "res://assets/sabotage/plate_a.png",
+      "output_size": [49, 48],
+      "output_sha256": "18f65f94c8dddebd5f8e5b1ab2f44d3b3790181c2f230820b97a95628ca41e3a",
+      "source": "tools/bake_sabotage_art.gd",
+      "source_sha256": "c7fd67a37c4190da9ea1b9d1132d1c0137b3cac54f8fda219310a91bbd0acf0c",
+      "generation": "letter composited over res://art/sabotage/site_plate.png"
+    },
+    {
+      "output": "res://assets/sabotage/plate_b.png",
+      "output_size": [49, 48],
+      "output_sha256": "8a77c66334485a525c028c3f2aac15f303a808989338d91f948138b6009468af",
+      "source": "tools/bake_sabotage_art.gd",
+      "source_sha256": "c7fd67a37c4190da9ea1b9d1132d1c0137b3cac54f8fda219310a91bbd0acf0c",
+      "generation": "letter composited over res://art/sabotage/site_plate.png"
+    },
+    {
+      "output": "res://assets/sabotage/charge_planted.png",
+      "output_size": [43, 35],
+      "output_sha256": "13c4457d43d2a36217b21d9af52f54e9d7df7973200660e1eaea382db96b3518",
+      "source": "tools/bake_sabotage_art.gd",
+      "source_sha256": "c7fd67a37c4190da9ea1b9d1132d1c0137b3cac54f8fda219310a91bbd0acf0c",
+      "generation": "timer state composited over res://art/sabotage/charge_planted.png"
+    },
+    {
+      "output": "res://assets/sabotage/charge_planted_off.png",
+      "output_size": [43, 35],
+      "output_sha256": "3edc2a7def71ab9b79cc3d0171cba8532c1f983b0d13289957725379ecc46e2e",
+      "source": "tools/bake_sabotage_art.gd",
+      "source_sha256": "c7fd67a37c4190da9ea1b9d1132d1c0137b3cac54f8fda219310a91bbd0acf0c",
+      "generation": "timer state composited over res://art/sabotage/charge_planted.png"
+    },
+    {
+      "output": "res://assets/sabotage/charge_planted_late.png",
+      "output_size": [43, 35],
+      "output_sha256": "f45f993a660fce1e0b07e9f9f15d14a3e8798304a934e477661cc82454fe84be",
+      "source": "tools/bake_sabotage_art.gd",
+      "source_sha256": "c7fd67a37c4190da9ea1b9d1132d1c0137b3cac54f8fda219310a91bbd0acf0c",
+      "generation": "timer state composited over res://art/sabotage/charge_planted.png"
+    },
+    {
+      "output": "res://assets/sabotage/charge_planted_defused.png",
+      "output_size": [43, 35],
+      "output_sha256": "f8bfe0d3d2ed7831013ea8f3f6650338e7ae795a96d8c36f4c81a7f19a73a917",
+      "source": "tools/bake_sabotage_art.gd",
+      "source_sha256": "c7fd67a37c4190da9ea1b9d1132d1c0137b3cac54f8fda219310a91bbd0acf0c",
+      "generation": "timer state composited over res://art/sabotage/charge_planted.png"
+    },
+    {
+      "output": "res://assets/sabotage/icon_plant.png",
+      "output_size": [24, 24],
+      "output_sha256": "d09fde08eb0c7e01c17902bd546d35f987aa12d9975576c324911affc07511af",
+      "source": "tools/bake_sabotage_art.gd",
+      "source_sha256": "c7fd67a37c4190da9ea1b9d1132d1c0137b3cac54f8fda219310a91bbd0acf0c",
+      "generation": "none; drawn in code from palette swatches"
+    },
+    {
+      "output": "res://assets/sabotage/icon_defuse.png",
+      "output_size": [24, 24],
+      "output_sha256": "611448eb5b3645e090a8dcbd0ba08b785fd5e9e0f1b2e0d66b5dd51ec76a3e55",
+      "source": "tools/bake_sabotage_art.gd",
+      "source_sha256": "c7fd67a37c4190da9ea1b9d1132d1c0137b3cac54f8fda219310a91bbd0acf0c",
+      "generation": "none; drawn in code from palette swatches"
     }
   ]
 }
