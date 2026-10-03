@@ -1,0 +1,55 @@
+{
+  "model": "marketing-studio/image",
+  "out_dir": "art/raw/production-20261003/batch-19",
+  "params": {
+    "quality": "high",
+    "resolution": "4k",
+    "aspect_ratio": "1:1",
+    "enhance_prompt": false
+  },
+  "style": "Original professional game production art, practical retro futurism circa 2070, exceptional carefully maintained industrial design, restrained tactile materials, sharp details suitable for deliberate pixel reduction, no copied franchise designs",
+  "frames": [
+    {
+      "id": "decal_union_wear",
+      "subject": "Union civic intake and custody facility, disciplined dark graphite steel, desaturated grey green enamel, warm bone administrative ceramics, small deep red issue markings, maintained coercive institutional order. A square material sheet of isolated believable chipped paint marks, fine cracks, scraped edges and small repair patches, carefully separated on perfectly flat pure magenta background, no shadows, no objects",
+      "technical": "Orthographic flat decal source sheet, eight distinct useful wear marks in two rows of four, no text, generous magenta space around each mark, no frame",
+      "negative": "watermarks, signatures, logos, historical political insignia, neon cyberpunk, decorative fantasy spikes, illegible writing, blur, oversaturation, cheap toy forms"
+    },
+    {
+      "id": "decal_union_personal",
+      "subject": "Union civic intake and custody facility, disciplined dark graphite steel, desaturated grey green enamel, warm bone administrative ceramics, small deep red issue markings, maintained coercive institutional order. A square sheet of original worn daily-use surface motifs: tiny mechanical service pictograms, worn cable routing labels without letters, inspection witness marks, stitched material patch, taped repair edge, fingerprints, cup ring and torn blank paper, separated on pure magenta",
+      "technical": "Orthographic flat decal source sheet, eight distinct separated motifs in two rows of four, no text or brands, generous flat magenta space around each, no shadows or frame",
+      "negative": "watermarks, signatures, logos, historical political insignia, neon cyberpunk, decorative fantasy spikes, illegible writing, blur, oversaturation, cheap toy forms"
+    },
+    {
+      "id": "detail_union_fabric",
+      "subject": "Union civic intake and custody facility, disciplined dark graphite steel, desaturated grey green enamel, warm bone administrative ceramics, small deep red issue markings, maintained coercive institutional order. Tangible worn woven fabric, repaired seams and small stitched patches, fine coherent weave, restrained venue colours, no objects or writing",
+      "technical": "Seamless square game albedo texture, orthographic flat surface filling entire image, equal even illumination, no baked highlights or shadows, no perspective, no border, clean matching opposite edges, material only",
+      "negative": "watermarks, signatures, logos, historical political insignia, neon cyberpunk, decorative fantasy spikes, illegible writing, blur, oversaturation, cheap toy forms"
+    },
+    {
+      "id": "decal_yard_wear",
+      "subject": "Earth freight and recall rail yard, aged grey steel, faded green paint, restrained orange iron oxide, practical heavy infrastructure and worn loading aprons. A square material sheet of isolated believable chipped paint marks, fine cracks, scraped edges and small repair patches, carefully separated on perfectly flat pure magenta background, no shadows, no objects",
+      "technical": "Orthographic flat decal source sheet, eight distinct useful wear marks in two rows of four, no text, generous magenta space around each mark, no frame",
+      "negative": "watermarks, signatures, logos, historical political insignia, neon cyberpunk, decorative fantasy spikes, illegible writing, blur, oversaturation, cheap toy forms"
+    },
+    {
+      "id": "decal_yard_personal",
+      "subject": "Earth freight and recall rail yard, aged grey steel, faded green paint, restrained orange iron oxide, practical heavy infrastructure and worn loading aprons. A square sheet of original worn daily-use surface motifs: tiny mechanical service pictograms, worn cable routing labels without letters, inspection witness marks, stitched material patch, taped repair edge, fingerprints, cup ring and torn blank paper, separated on pure magenta",
+      "technical": "Orthographic flat decal source sheet, eight distinct separated motifs in two rows of four, no text or brands, generous flat magenta space around each, no shadows or frame",
+      "negative": "watermarks, signatures, logos, historical political insignia, neon cyberpunk, decorative fantasy spikes, illegible writing, blur, oversaturation, cheap toy forms"
+    },
+    {
+      "id": "detail_yard_fabric",
+      "subject": "Earth freight and recall rail yard, aged grey steel, faded green paint, restrained orange iron oxide, practical heavy infrastructure and worn loading aprons. Tangible worn woven fabric, repaired seams and small stitched patches, fine coherent weave, restrained venue colours, no objects or writing",
+      "technical": "Seamless square game albedo texture, orthographic flat surface filling entire image, equal even illumination, no baked highlights or shadows, no perspective, no border, clean matching opposite edges, material only",
+      "negative": "watermarks, signatures, logos, historical political insignia, neon cyberpunk, decorative fantasy spikes, illegible writing, blur, oversaturation, cheap toy forms"
+    },
+    {
+      "id": "decal_low_water_wear",
+      "subject": "Low Water civilian riverside neighbourhood, warm terracotta and bone plaster, faded sea green doors, patched workshop steel, individually maintained repair culture. A square material sheet of isolated believable chipped paint marks, fine cracks, scraped edges and small repair patches, carefully separated on perfectly flat pure magenta background, no shadows, no objects",
+      "technical": "Orthographic flat decal source sheet, eight distinct useful wear marks in two rows of four, no text, generous magenta space around each mark, no frame",
+      "negative": "watermarks, signatures, logos, historical political insignia, neon cyberpunk, decorative fantasy spikes, illegible writing, blur, oversaturation, cheap toy forms"
+    }
+  ]
+}

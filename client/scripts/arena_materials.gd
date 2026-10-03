@@ -19,6 +19,7 @@ static func scenery_tile(path: String, base: Color) -> ShaderMaterial:
 		material.set_shader_parameter("tile_wall", texture)
 		material.set_shader_parameter("tile_floor", texture)
 		material.set_shader_parameter("tile_strength", 0.7)
+		material.set_shader_parameter("tile_floor_strength", 0.7)
 	return material
 
 static func accent(map_id: int) -> Color:

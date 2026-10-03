@@ -35,6 +35,15 @@ struct Cli {
 
 #[derive(Subcommand, Debug)]
 enum Cmd {
+    /// Check API credentials and estimate access. Never generates or uploads.
+    ApiCheck {
+        /// Raw JSON probes with model API paths and exact params. Defaults to the documented Soul estimate example.
+        #[arg(long)]
+        spec: Option<PathBuf>,
+        /// Optional JSON receipt. Existing files are never overwritten.
+        #[arg(long)]
+        report: Option<PathBuf>,
+    },
     /// Attach a verified status endpoint to a reserved or accepted local request.
     Recover {
         #[arg(long)]
@@ -260,6 +269,49 @@ fn run(cli: Cli) -> Result<(), Error> {
     let out_stream = &mut std::io::stdout();
 
     match &cli.command {
+        Cmd::ApiCheck { spec, report } => {
+            let spec = match spec {
+                Some(path) => {
+                    let file = std::fs::File::open(path)
+                        .map_err(|_| Error::Io("could not open API-check specification".into()))?;
+                    let bytes =
+                        read_bounded(file, fragr_spritegen::api_check::MAX_SPEC_BYTES as u32)?;
+                    let text = String::from_utf8(bytes)
+                        .map_err(|_| Error::Spec("API-check specification must be UTF-8".into()))?;
+                    fragr_spritegen::api_check::parse_spec(&text)?
+                }
+                None => fragr_spritegen::api_check::default_spec(),
+            };
+            // Refuse an existing report before loading credentials or making calls.
+            let mut receipt = match report {
+                Some(path) => Some(
+                    std::fs::OpenOptions::new()
+                        .write(true)
+                        .create_new(true)
+                        .open(path)
+                        .map_err(|_| Error::Io("could not create new API-check report".into()))?,
+                ),
+                None => None,
+            };
+            let credential = read_dotenv_credential(&cli.env_file)?;
+            let result =
+                fragr_spritegen::api_check::check(&HttpTransport::new()?, &credential, &spec)?;
+            let json = serde_json::to_string_pretty(&result)
+                .map_err(|_| Error::Io("could not serialize API-check report".into()))?;
+            if let Some(file) = receipt.as_mut() {
+                writeln!(file, "{json}")
+                    .map_err(|_| Error::Io("could not write API-check report".into()))?;
+                file.sync_all()
+                    .map_err(|_| Error::Io("could not sync API-check report".into()))?;
+            }
+            writeln!(out_stream, "{json}").map_err(|e| Error::Io(e.to_string()))?;
+            if !result.credentials_verified_by_estimate {
+                return Err(Error::Transport(
+                    "no probe returned a valid estimate; see the report".into(),
+                ));
+            }
+            Ok(())
+        }
         Cmd::Recover {
             out,
             frame_id,
@@ -447,6 +499,46 @@ fn main() {
 mod tests {
     use super::*;
     use clap::Parser;
+
+    #[test]
+    fn api_check_rejects_bad_spec_and_existing_receipt_before_loading_credentials() {
+        let dir = std::env::temp_dir().join(format!("fragr-api-check-cli-{}", std::process::id()));
+        std::fs::create_dir(&dir).unwrap();
+        let spec = dir.join("spec.json");
+        let report = dir.join("report.json");
+        std::fs::write(&spec, "bad JSON with secret-value").unwrap();
+        let cli = Cli::parse_from([
+            "fragr-spritegen",
+            "--env-file",
+            "missing-env",
+            "api-check",
+            "--spec",
+            spec.to_str().unwrap(),
+        ]);
+        let error = run(cli).unwrap_err();
+        assert!(matches!(error, Error::Spec(_)));
+        assert!(!error.to_string().contains("secret-value"));
+        std::fs::write(&report, "existing receipt").unwrap();
+        let cli = Cli::parse_from([
+            "fragr-spritegen",
+            "--env-file",
+            "missing-env",
+            "api-check",
+            "--report",
+            report.to_str().unwrap(),
+        ]);
+        assert!(run(cli)
+            .unwrap_err()
+            .to_string()
+            .contains("create new API-check report"));
+        assert_eq!(
+            std::fs::read_to_string(&report).unwrap(),
+            "existing receipt"
+        );
+        std::fs::remove_file(&report).unwrap();
+        std::fs::remove_file(&spec).unwrap();
+        std::fs::remove_dir(&dir).unwrap();
+    }
 
     #[test]
     fn response_limits_reject_oversize_and_propagate_read_failures() {

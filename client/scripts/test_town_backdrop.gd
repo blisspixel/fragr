@@ -16,7 +16,7 @@ func _run() -> void:
 	backdrop.build(1004, 40.0, "low_water")
 	ArenaSky.mark_world(backdrop)
 	await process_frame
-	_check(backdrop.get_child_count() == 20, "town has bounded rows of homes")
+	_check(backdrop.find_children("Home*", "Node3D", false, false).size() == 20, "town has bounded rows of homes")
 	var meshes: Array[Node] = backdrop.find_children("*", "MeshInstance3D", true, false)
 	_check(meshes.size() > 100, "upper windows and household details exist")
 	for item: Node in meshes:
@@ -28,9 +28,16 @@ func _run() -> void:
 			or world_bounds.position.z >= 40.5 or far.z <= -40.5,
 			"scenery remains completely outside playable bounds")
 		_check(node.layers == 2, "town uses authored world lighting")
-		var material: StandardMaterial3D = node.material_override as StandardMaterial3D
-		_check(material != null and material.texture_filter == BaseMaterial3D.TEXTURE_FILTER_NEAREST,
-			"town preserves nearest surfaces")
+		if node.name == "RiverWater":
+			var water: ShaderMaterial = node.material_override as ShaderMaterial
+			_check(water != null and water.shader == ArenaWater.SHADER and water.get_shader_parameter("river_mode") == true, "river has the lit nearest-sampled water material")
+			var before: float = float(water.get_shader_parameter("ripple_time"))
+			backdrop._process(0.25)
+			_check(float(water.get_shader_parameter("ripple_time")) > before, "river ripples advance in the live backdrop")
+		else:
+			var material: StandardMaterial3D = node.material_override as StandardMaterial3D
+			_check(material != null and material.texture_filter == BaseMaterial3D.TEXTURE_FILTER_NEAREST,
+				"town preserves nearest surfaces")
 	_check(backdrop.find_children("*", "CollisionObject3D", true, false).is_empty(), "town has no cosmetic collision")
 	_check(backdrop.find_children("*", "Label3D", true, false).is_empty(), "town omits arena signs")
 	var town: ShaderMaterial = ArenaMaterials.authored("enamel", "low_water") as ShaderMaterial

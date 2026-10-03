@@ -2,7 +2,30 @@
 
 Balance is decided by measurement, in `plans/gunfeel.md` and `plans/weapon-economy.md`. This chapter owns weapon fiction; names also appear outside the radio.
 
-Every one of them came out of a programme with a redacted budget, and the paperwork is funnier than the hardware.
+The older arena hardware includes programmes with redacted budgets, and the
+paperwork is funnier than the hardware. That does not describe every weapon
+in the campaign or every gun owned by a free person.
+
+## Campaign equipment direction
+
+Nick clarified the art direction on 2026-10-03: combine plausible civilian
+firearms and personally maintained self-defense equipment with original
+near-future accelerators and other advanced weapons. American civilian gun
+culture informs practical handling, individual choice and recognizable
+mechanical forms. Use original designs without manufacturer logos or copied
+weapon models. The campaign is loosely around 2070, with retro-futuristic
+charm rather than uniformly exotic technology. Familiar mechanical forms
+remain useful alongside a few advanced designs.
+
+The free side is varied: an old long gun, a repaired handgun or pump shotgun,
+a workshop-built upgrade, and a reclaimed issued weapon can belong in the same
+community. Stocks, grips, sling mounts, finishes and repair histories convey
+ownership without a coalition-wide uniform. Union weapons instead carry
+repeatable issued housings, inspection marks and controlled optics. Preserve
+the established weapon roles, readable silhouettes and muzzle registration;
+new art does not introduce a weapon or change its behavior. [WEAPONS.md](../WEAPONS.md)
+owns current names, equipment and implementation status. The older names below
+remain part of arena slang and weapon fiction.
 
 **Flechette**: Standard issue. Reliable. Boring. Exactly what you want in a firefight when the alternative is some prototype that malfunctions. Classified only because the procurement records list it as "office supplies." Hangar Candy swears by it. Night Watch carries it as backup.
 
@@ -33,7 +56,11 @@ Two of the same gun are not the same gun, and you can tell at a glance which one
 
 An **issued** weapon is covered in writing: a riveted type-approval plate, a stamped directive number, a multilingual warning placard, an intact tamper seal, an asset registration stencil. The Union puts its paperwork on the outside of everything it owns, because a thing that cannot be audited is a thing that should not exist.
 
-A **freed** weapon is the same object with all of that violently removed. The approval plate ground off to bare scarred metal, the seal cut, the serial scratched out with a blade. Nobody replaces the markings with markings of their own, because the free side is not an army and has no insignia to apply. What it has instead is an absence, and every absence is a different shape.
+A **freed** issued weapon is the same object with its imposed registration
+removed: the approval plate ground off to bare scarred metal, the seal cut,
+the serial scratched out with a blade. There is no standard replacement mark.
+Some owners add personal repairs or decoration; others leave the scars bare.
+Civilian and workshop-built weapons need not have begun as Union property.
 
 The arena slang for the second kind is **abliterated**, which came from somewhere else and fits too well to argue with.
 

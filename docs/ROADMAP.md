@@ -48,9 +48,23 @@ A recorded human session on two machines remains open.
   pump cycle, rebalanced guns, per-weapon impacts and enemy windup tells.
 - An optional [frame counter](plans/frame-counter.md).
 
-Characters are still assembled from primitive shapes, and maps are still
-mostly boxes. [Art excellence](plans/art-excellence.md) proposes the fix and
-waits on Nick's choices.
+The [art excellence](plans/art-excellence.md) production pass is in flight.
+The Sweeper now has a shaped articulated mesh source and a paired normal
+atlas used by the live sprite presenter. Latch has a lean screen-faced live
+model. Registered fixtures and recessed wall bays give existing rooms
+physical detail; lit water adds moving surface normals and an exterior
+river. Other bodies and much of the world still need model and art refinement.
+The Shotgun has an original mesh and coherent pump poses, retained as a
+development candidate while its first-person quality is refined.
+The [October 3 model research](plans/art-excellence.md#research-checked-2026-10-03)
+records available 3D catalog entries, laptop limits and the proposed pilot.
+Nick subsequently reported a $100 API top-up and authorized the $105.88
+available for Higgsfield assets. The new [API
+checker](plans/higgsfield-pipeline.md#api-capability-checker-2026-10-03)
+verified image pricing with the existing key; exact 3D API routes and prices
+remain unresolved. The separate production batch uses the verified image
+API for high-resolution references and material sources, with local meshes
+providing actual geometry. The research itself submitted no generation jobs.
 
 **Spend, 2026-10-02 round** (Nick authorized $20):
 - Higgsfield: about $5.82 of prepaid credit by estimate, across 58 completed
@@ -58,6 +72,14 @@ waits on Nick's choices.
 - ElevenLabs: included plan credits only, about 2,740 estimated for the sound
   pass.
 - No new cash charges.
+
+**Spend, 2026-10-03 asset effort** (Nick authorized $105.88 of available API
+credit): 151 completed image requests, $93.365 in preserved request estimates,
+with no unresolved jobs. Nick subsequently reported $14.42 remaining in the
+API dashboard, implying a $91.46 net balance decrease from the reported starting
+balance. Aggregate balance is reconciled to that report; individual request
+charges are not independently verified. The [production spend record](../client/art/production-20261003/spend.json)
+contains each batch; no other paid service or cloud apply ran.
 
 **Shipped and proven on the tip:**
 
@@ -81,10 +103,12 @@ language review. The old ten-part epilogue and the news/PSA/ad clips still ship
 on the radio; a developer review tool that would have quarantined them was
 never merged, and radio is now a minor part of the game. Two stills from an
 earlier opening batch are in the M01 opening ([scene plan](plans/campaign-scenes.md#salvaged-opening-assets-2026-09-26)).
-The old radio-only ending cannot be integrated as the new campaign's actual ending. Higgsfield has no balance endpoint, so check the dashboard before any new
-batch; Nick reported $8.08 remaining before art pass 2.
+The old radio-only ending cannot be integrated as the new campaign's actual ending.
+No balance endpoint was documented in the checked API sources. Nick reported
+$8.08 before art pass 2 and $105.88 after the October 3 top-up; the latest
+allowance is recorded above, with actual usage still requiring reconciliation.
 
-**Not built yet (honest list):** low-latency transport (WebSocket JSON only; local human prediction shipped in v0.58.0), campaign-actor timeline interpolation and bounded lag compensation, a complete protocol migration policy (geometry and gameplay admission exist), unlimited lifetime statistics, progression, DJ bumpers and a voiced Host, a finished single-player campaign or full co-op lifecycle, a complete art pass, public-server load tests, any cloud apply, general vehicles beyond the bounded authored tram and recall cars, Rescue and combined-arms modes, level 7 integrated into the run, levels 9 to 20, the end-of-level tally, the planned console, graphics options and rendered benchmark, directional combat audio, and modelled characters and architecture. `GET /status` on the game port is a host probe in the current line of work, not an in-app server browser and not a web client. M01 has a developing discovery/combat/mission slice; Episode 0 remains a separate arena prototype. A deterministic local benchmark already exists; it does not establish public-server readiness. Frame caps, connection caps, and the inbound message budget shipped in v0.35.0.
+**Not built yet (honest list):** low-latency transport (WebSocket JSON only; local human prediction shipped in v0.58.0), campaign-actor timeline interpolation and bounded lag compensation, a complete protocol migration policy (geometry and gameplay admission exist), unlimited lifetime statistics, progression, DJ bumpers and a voiced Host, a finished single-player campaign or full co-op lifecycle, a complete art pass, public-server load tests, any cloud apply, general vehicles beyond the bounded authored tram and recall cars, Rescue and combined-arms modes, level 7 integrated into the run, levels 9 to 20, the end-of-level tally, the planned console, Ultra graphics and the player-facing rendered benchmark, directional combat audio, a finished modelled cast and complete environmental kits. `GET /status` on the game port is a host probe in the current line of work, not an in-app server browser and not a web client. M01 has a developing discovery/combat/mission slice; Episode 0 remains a separate arena prototype. A deterministic local benchmark and developer rendered tour already exist; neither establishes public-server readiness. Frame caps, connection caps, and the inbound message budget shipped in v0.35.0.
 
 **Decided 2026-09-25:** the campaign is twenty levels in five episodes, per the
 [expansion plan](plans/campaign-expansion.md), now the contract in
@@ -250,9 +274,9 @@ players' frag/streak camera shakes. Round summaries remain separate.
 
 The revised level plans place simple doors, switches and lifts in working spaces,
 and a later combined-arms vehicle showcase in level 14's launch works. General moving
-lifts and vehicles remain unbuilt. The sniper rifle, grenade, proximity mine,
-remote mine, and rocket launcher are campaign finds in
-[the readable arsenal](plans/readable-arsenal.md) and are not implemented. Gold
+lifts and vehicles remain unbuilt. The Sniper Rifle, Grenade and Proximity Mine
+have implemented development roles; the Remote Mine and Rocket Launcher remain
+planned campaign finds in [the readable arsenal](plans/readable-arsenal.md). Gold
 finishes and curated weapon colors are cosmetic-only achievement directions
 under #197.
 
@@ -274,6 +298,9 @@ asset meets the [art bar](ART_STORY_BIBLE.md#north-star).
    [polish plan](plans/campaign-polish-20261002.md).
    *Why:* automation proved the routes work; only a person can say whether it
    is fun. Twenty levels built on an unproven loop would multiply its faults.
+   Feedback informs acceptance and refinement. Authorized local development
+   continues while that feedback is pending; this is not a stop gate for code
+   or art trials.
 1. **Finish what is started.**
    - Land level 7 from its bundle: fix the patrol that holds its porches,
      then run the full checks.
@@ -289,8 +316,16 @@ asset meets the [art bar](ART_STORY_BIBLE.md#north-star).
 
    *Why:* being shot at must read by ear and eye, which is the fun bar's
    three-signal rule. The console is cheap, client-only depth.
-3. **[Art excellence](plans/art-excellence.md),** once Nick answers its three
-   questions. Start with the M01 facility kit and lit sprites, judged in game.
+3. **[Art excellence](plans/art-excellence.md), in flight.** The October 3
+   production pass adds original Sweeper and Shotgun mesh sources, a lean
+   screen-faced Latch, paired Sweeper normals, shallow manufactured fixtures,
+   articulated wall bays, venue materials and lit moving water. The large
+   high-resolution source library includes characters, weapons, props, materials
+   and world references. References are not completed game assets. Finish
+   the played quality comparison, refine the Shotgun's first-person presentation,
+   and carry accepted model and material work across the remaining roster.
+   Price each paid operation within the authorized $105.88 Higgsfield effort
+   and $5 run cap; another paid service requires Nick's approval.
    *Why:* primitive characters and box rooms are the largest visible gap to the
    modern boomer shooters this game is measured against.
 4. **The fun loop.**
@@ -310,6 +345,17 @@ asset meets the [art bar](ART_STORY_BIBLE.md#north-star).
      [Holdfast Atoll](plans/multiplayer-maps.md#17-holdfast-atoll-new-the-flagship-island-working-name).
 7. **Network.** Bounded lag compensation and a recorded two-machine session
    before any UDP decision ([TRANSPORT.md](TRANSPORT.md)).
+8. **Complete the campaign.** Build levels 9 to 20 one mission at a time,
+   following [the mission treatment](CAMPAIGN-MISSIONS.md) and its
+   [dependency plan](plans/campaign-build-order.md), through the wipe and
+   conditional epilogue. Carry the accepted art, combat and results approach
+   through earlier levels too. Verify the whole saved run, episode refills,
+   retries and retained outcomes. Each mission keeps its own acceptance gate.
+9. **Prove the release.** Close fresh-player, difficulty, input and visual
+   acceptance; inspect performance on supported hardware; verify clean
+   desktop installs on Windows, Linux and macOS; complete the twenty-four
+   hour soak and the exposed-server public week. The 1.0 bar below is the
+   final gate. Cloud work retains its separate spend approval.
 
 The [integrated player review](plans/m02-integrated-player-gate.md) remains
 available. Recording a fresh player's observations is the human half of item 0.
@@ -512,6 +558,13 @@ Status: **planned**. Only after Phase 2 is proven, so that new content lands on 
 ## The fun bar
 
 Concrete, checkable, and required before any phase is called done. Evidence is a screenshot, a test, or a recorded session.
+
+Nick's October 3 target is the care and replay appeal of a breakout competitive
+shooter, with the immediate fun of a strong mainstream multiplayer game for
+players who like this style. This is an ambition, not a claim about current
+quality. Art production must serve readable fights, responsive movement,
+distinct routes and a reason to play another round. Keep fresh-player and LAN
+acceptance open until actual people demonstrate those qualities.
 
 - **Ten seconds.** Boot to a live fight in under ten seconds. Something happens on screen in the first five.
 - **Readable.** Any fighter is identifiable at thirty meters. Any weapon is identifiable by silhouette and by sound alone.

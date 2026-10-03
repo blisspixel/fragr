@@ -51,16 +51,16 @@ func _initialize() -> void:
 				var other: int = SIZE - 1 - x
 				var weight: float = 1.0 - float(x) / float(BAND)
 				var average: Color = image.get_pixel(x, y).lerp(image.get_pixel(other, y), 0.5)
-				horizontal.set_pixel(x, y, image.get_pixel(x, y).lerp(average, weight))
-				horizontal.set_pixel(other, y, image.get_pixel(other, y).lerp(average, weight))
+				horizontal.set_pixel(x, y, average if x == 0 else image.get_pixel(x, y).lerp(average, weight))
+				horizontal.set_pixel(other, y, average if x == 0 else image.get_pixel(other, y).lerp(average, weight))
 		var tile: Image = horizontal.duplicate()
 		for x: int in SIZE:
 			for y: int in BAND:
 				var other: int = SIZE - 1 - y
 				var weight: float = 1.0 - float(y) / float(BAND)
 				var average: Color = horizontal.get_pixel(x, y).lerp(horizontal.get_pixel(x, other), 0.5)
-				tile.set_pixel(x, y, horizontal.get_pixel(x, y).lerp(average, weight))
-				tile.set_pixel(x, other, horizontal.get_pixel(x, other).lerp(average, weight))
+				tile.set_pixel(x, y, average if y == 0 else horizontal.get_pixel(x, y).lerp(average, weight))
+				tile.set_pixel(x, other, average if y == 0 else horizontal.get_pixel(x, other).lerp(average, weight))
 		if verify:
 			tile = image
 			var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string("res://../docs/palette.json"))

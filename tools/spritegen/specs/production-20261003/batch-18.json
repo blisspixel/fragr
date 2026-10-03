@@ -1,0 +1,55 @@
+{
+  "model": "marketing-studio/image",
+  "out_dir": "art/raw/production-20261003/batch-18",
+  "params": {
+    "quality": "high",
+    "resolution": "4k",
+    "aspect_ratio": "1:1",
+    "enhance_prompt": false
+  },
+  "style": "Original professional game production art, practical retro futurism circa 2070, exceptional carefully maintained industrial design, restrained tactile materials, sharp details suitable for deliberate pixel reduction, no copied franchise designs",
+  "frames": [
+    {
+      "id": "water_ripples",
+      "subject": "top-down clean shallow water ripples, fine overlapping coherent wavelet loops, grey green monochrome tonal field, equal even illumination, no reflected objects",
+      "technical": "Seamless square game albedo texture, orthographic flat surface filling entire image, equal even illumination, no baked highlights or shadows, no perspective, no border, clean matching opposite edges, material only",
+      "negative": "watermarks, signatures, logos, historical political insignia, neon cyberpunk, decorative fantasy spikes, illegible writing, blur, oversaturation, cheap toy forms"
+    },
+    {
+      "id": "water_sediment",
+      "subject": "flat wet riverside sediment and worn pebbly concrete, subdued grey green silt, darkened wet patches, no standing objects",
+      "technical": "Seamless square game albedo texture, orthographic flat surface filling entire image, equal even illumination, no baked highlights or shadows, no perspective, no border, clean matching opposite edges, material only",
+      "negative": "watermarks, signatures, logos, historical political insignia, neon cyberpunk, decorative fantasy spikes, illegible writing, blur, oversaturation, cheap toy forms"
+    },
+    {
+      "id": "water_shore",
+      "subject": "flat shoreline transition texture, wet dark concrete and small irregular pale mineral rims, dark quiet central surface, no scene or perspective",
+      "technical": "Seamless square game albedo texture, orthographic flat surface filling entire image, equal even illumination, no baked highlights or shadows, no perspective, no border, clean matching opposite edges, material only",
+      "negative": "watermarks, signatures, logos, historical political insignia, neon cyberpunk, decorative fantasy spikes, illegible writing, blur, oversaturation, cheap toy forms"
+    },
+    {
+      "id": "water_foam",
+      "subject": "monochrome white thin broken water foam filaments on pure black background, coherent fine network of rippling edges, sparse coverage, no solid white areas",
+      "technical": "Seamless square game albedo texture, orthographic flat surface filling entire image, equal even illumination, no baked highlights or shadows, no perspective, no border, clean matching opposite edges, material only",
+      "negative": "watermarks, signatures, logos, historical political insignia, neon cyberpunk, decorative fantasy spikes, illegible writing, blur, oversaturation, cheap toy forms"
+    },
+    {
+      "id": "water_caustic",
+      "subject": "monochrome white shallow water caustic ripple network on black background, irregular focused broken curved lines, subtle varied width, no gradients",
+      "technical": "Seamless square game albedo texture, orthographic flat surface filling entire image, equal even illumination, no baked highlights or shadows, no perspective, no border, clean matching opposite edges, material only",
+      "negative": "watermarks, signatures, logos, historical political insignia, neon cyberpunk, decorative fantasy spikes, illegible writing, blur, oversaturation, cheap toy forms"
+    },
+    {
+      "id": "water_oil",
+      "subject": "thin iridescent understated oil film on dark muted shallow water, tiny restrained burgundy teal reflections, coherent organic bands, no bright rainbow",
+      "technical": "Seamless square game albedo texture, orthographic flat surface filling entire image, equal even illumination, no baked highlights or shadows, no perspective, no border, clean matching opposite edges, material only",
+      "negative": "watermarks, signatures, logos, historical political insignia, neon cyberpunk, decorative fantasy spikes, illegible writing, blur, oversaturation, cheap toy forms"
+    },
+    {
+      "id": "water_moss",
+      "subject": "damp riverside concrete with sparse tiny green moss clusters and mineral stains, careful plausible scale, mostly clear worn concrete",
+      "technical": "Seamless square game albedo texture, orthographic flat surface filling entire image, equal even illumination, no baked highlights or shadows, no perspective, no border, clean matching opposite edges, material only",
+      "negative": "watermarks, signatures, logos, historical political insignia, neon cyberpunk, decorative fantasy spikes, illegible writing, blur, oversaturation, cheap toy forms"
+    }
+  ]
+}

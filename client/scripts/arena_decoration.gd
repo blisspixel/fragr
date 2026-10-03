@@ -2,6 +2,7 @@ class_name ArenaDecoration
 extends RefCounted
 
 const PANEL_SHADER: Shader = preload("res://assets/shaders/facility_panel.gdshader")
+const FacilitySource = preload("res://scripts/facility_geometry.gd")
 const BONE: Color = Color("e8e2d6")
 const INK: Color = Color("242c29")
 const SIGN_KEYS: Dictionary[String, String] = {
@@ -86,6 +87,9 @@ static func build(parent: Node3D, solids: Array, details: Array, venue: ArenaSky
 		material.set_shader_parameter("style", _style(kind))
 		panel.material_override = material
 		parent.add_child(panel)
+		if kind in ["vent", "lockers", "terminal", "lift_control", "strip_light", "property_sign", "intake_sign", "records_sign", "maintenance_sign", "transfer_sign", "lift_sign", "m04_clinic_control", "m04_roof_departure", "m08_freight_departure", "m08_bay_release"]:
+			var source: RefCounted = FacilitySource.new()
+			panel.add_child(source.build(kind, size))
 		if SIGN_KEYS.has(kind):
 			var label: WorldSign = WorldSign.new()
 			label.name = "Copy"

@@ -55,6 +55,7 @@ func build(map_id: int, half: float, venue: String = "") -> void:
 	_sign("BAY 03", Vector3(half - 0.54, 5.4, 0.0), -PI * 0.5, 0.04)
 
 func _build_town(half: float) -> void:
+	_riverside(half)
 	var plaster: Array[StandardMaterial3D] = [
 		_metal(Color("b6977a")), _metal(Color("879587")),
 		_metal(Color("a97f67")), _metal(Color("c3b38e")),
@@ -93,6 +94,49 @@ func _build_town(half: float) -> void:
 			_town_piece(home, Vector3(1.6, height + 0.8, 0.4), Vector3(2.7, 0.08, 0.08), frame)
 			_town_piece(home, Vector3(1.0, height + 0.4, 0.4), Vector3(0.55, 0.75, 0.04), curtains)
 			_town_piece(home, Vector3(2.0, height + 0.4, 0.4), Vector3(0.65, 0.75, 0.04), plaster[(index + 1) % plaster.size()])
+
+## The waterway and quay stay beyond every playable boundary. They establish
+## why this neighbourhood has water tanks and flood repairs without adding a
+## swimming area, a platform or apparent cover inside the server's map.
+func _riverside(half: float) -> void:
+	var bank: StandardMaterial3D = _metal(Color("615f50"))
+	var iron: StandardMaterial3D = _metal(Color("424c46"))
+	_box(Vector3(half + 12.0, -0.35, 0), Vector3(4.0, 0.5, half * 2.0 + 32.0), bank)
+	var channel: MeshInstance3D = MeshInstance3D.new()
+	channel.name = "RiverWater"
+	var plane: PlaneMesh = PlaneMesh.new()
+	plane.size = Vector2(18.0, half * 2.0 + 32.0)
+	channel.mesh = plane
+	channel.position = Vector3(half + 23.0, -0.16, 0)
+	channel.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	var material: ShaderMaterial = ShaderMaterial.new()
+	material.shader = ArenaWater.SHADER
+	material.set_shader_parameter("river_mode", true)
+	material.set_shader_parameter("patch_size", plane.size)
+	material.set_shader_parameter("phase", 4.0)
+	material.set_shader_parameter("ripple_time", 0.0)
+	var texture: Texture2D = EnvironmentTextures.texture_at("res://assets/environment/production/water_ripples.png")
+	if texture != null:
+		material.set_shader_parameter("ripple_detail", texture)
+		material.set_shader_parameter("detail_enabled", true)
+	channel.material_override = material
+	add_child(channel)
+	for index: int in range(9):
+		var z: float = (index - 4.0) * half * 0.22
+		_box(Vector3(half + 13.0, 0.2, z), Vector3(0.22, 1.25, 0.22), iron)
+		_box(Vector3(half + 13.0, 0.54, z), Vector3(0.14, 0.12, half * 0.23), iron)
+	channel.set_meta("river_material", material)
+
+func _process(delta: float) -> void:
+	if not is_finite(delta):
+		return
+	var river: Node = get_node_or_null("RiverWater")
+	if river == null:
+		set_process(false)
+		return
+	var material: ShaderMaterial = river.get_meta("river_material")
+	var clock: float = float(material.get_shader_parameter("ripple_time"))
+	material.set_shader_parameter("ripple_time", fmod(clock + maxf(delta, 0.0), 32.0))
 
 func _town_piece(parent: Node3D, at: Vector3, size: Vector3, material: Material) -> void:
 	var node: MeshInstance3D = MeshInstance3D.new()

@@ -1,0 +1,55 @@
+{
+  "model": "marketing-studio/image",
+  "out_dir": "art/raw/production-20261003/batch-04",
+  "params": {
+    "quality": "high",
+    "resolution": "4k",
+    "aspect_ratio": "1:1",
+    "enhance_prompt": false
+  },
+  "style": "Original professional game production art, practical retro futurism circa 2070, exceptional carefully maintained industrial design, restrained tactile materials, sharp details suitable for deliberate pixel reduction, no copied franchise designs",
+  "frames": [
+    {
+      "id": "lunar_concrete",
+      "subject": "Lunar customs port, pale bone pressure ceramics, charcoal pressure steel, grey regolith dust, dark red Union issue accents, mature functional offworld transport. Material: cast concrete or mineral aggregate appropriate to this venue, fine pores, coherent medium scale wear, sparse cracks, no debris objects",
+      "technical": "Seamless square game albedo texture, orthographic flat surface filling entire image, equal even illumination, no baked highlights or shadows, no perspective, no border, clean matching opposite edges, material only",
+      "negative": "watermarks, signatures, logos, historical political insignia, neon cyberpunk, decorative fantasy spikes, illegible writing, blur, oversaturation, cheap toy forms"
+    },
+    {
+      "id": "lunar_enamel",
+      "subject": "Lunar customs port, pale bone pressure ceramics, charcoal pressure steel, grey regolith dust, dark red Union issue accents, mature functional offworld transport. Material: painted steel enamel with fine paint grain and sparse small chips, large quiet tonal regions, no seams or bolts",
+      "technical": "Seamless square game albedo texture, orthographic flat surface filling entire image, equal even illumination, no baked highlights or shadows, no perspective, no border, clean matching opposite edges, material only",
+      "negative": "watermarks, signatures, logos, historical political insignia, neon cyberpunk, decorative fantasy spikes, illegible writing, blur, oversaturation, cheap toy forms"
+    },
+    {
+      "id": "lunar_steel",
+      "subject": "Lunar customs port, pale bone pressure ceramics, charcoal pressure steel, grey regolith dust, dark red Union issue accents, mature functional offworld transport. Material: service steel with fine brushed grain and restrained worn coating, subtle localized wear, no baked panel lines or bolts",
+      "technical": "Seamless square game albedo texture, orthographic flat surface filling entire image, equal even illumination, no baked highlights or shadows, no perspective, no border, clean matching opposite edges, material only",
+      "negative": "watermarks, signatures, logos, historical political insignia, neon cyberpunk, decorative fantasy spikes, illegible writing, blur, oversaturation, cheap toy forms"
+    },
+    {
+      "id": "lunar_floor",
+      "subject": "Lunar customs port, pale bone pressure ceramics, charcoal pressure steel, grey regolith dust, dark red Union issue accents, mature functional offworld transport. Material: hardwearing flat utility deck with restrained diamond tread, coherent shallow repeating pattern, scuffed paths, no text",
+      "technical": "Seamless square game albedo texture, orthographic flat surface filling entire image, equal even illumination, no baked highlights or shadows, no perspective, no border, clean matching opposite edges, material only",
+      "negative": "watermarks, signatures, logos, historical political insignia, neon cyberpunk, decorative fantasy spikes, illegible writing, blur, oversaturation, cheap toy forms"
+    },
+    {
+      "id": "lunar_ceramic",
+      "subject": "Lunar customs port, pale bone pressure ceramics, charcoal pressure steel, grey regolith dust, dark red Union issue accents, mature functional offworld transport. Material: small administrative ceramic tiles with narrow coherent grout lines, restrained chipped corners and tonal variation",
+      "technical": "Seamless square game albedo texture, orthographic flat surface filling entire image, equal even illumination, no baked highlights or shadows, no perspective, no border, clean matching opposite edges, material only",
+      "negative": "watermarks, signatures, logos, historical political insignia, neon cyberpunk, decorative fantasy spikes, illegible writing, blur, oversaturation, cheap toy forms"
+    },
+    {
+      "id": "lunar_plaster",
+      "subject": "Lunar customs port, pale bone pressure ceramics, charcoal pressure steel, grey regolith dust, dark red Union issue accents, mature functional offworld transport. Material: aged painted mineral plaster appropriate to venue, fine subtle uneven texture, gentle wear and discrete repairs, no large decorations",
+      "technical": "Seamless square game albedo texture, orthographic flat surface filling entire image, equal even illumination, no baked highlights or shadows, no perspective, no border, clean matching opposite edges, material only",
+      "negative": "watermarks, signatures, logos, historical political insignia, neon cyberpunk, decorative fantasy spikes, illegible writing, blur, oversaturation, cheap toy forms"
+    },
+    {
+      "id": "lunar_trim",
+      "subject": "Lunar customs port, pale bone pressure ceramics, charcoal pressure steel, grey regolith dust, dark red Union issue accents, mature functional offworld transport. Material: flat unlit trim-sheet albedo, eight horizontal material strips of equal height: dark rubber seal, worn metal edge, fine brushed metal, institutional paint, bone ceramic, red enamel, screw heads spaced evenly, tiny cooling vent slats; all strips tile horizontally",
+      "technical": "Seamless square game albedo texture, orthographic flat surface filling entire image, equal even illumination, no baked highlights or shadows, no perspective, no border, clean matching opposite edges, material only",
+      "negative": "watermarks, signatures, logos, historical political insignia, neon cyberpunk, decorative fantasy spikes, illegible writing, blur, oversaturation, cheap toy forms"
+    }
+  ]
+}

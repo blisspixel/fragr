@@ -1,0 +1,22 @@
+{
+  "model": "marketing-studio/image",
+  "out_dir": "art/raw/model-revisions-20261003",
+  "params": {
+    "quality": "high",
+    "resolution": "4k",
+    "aspect_ratio": "1:1",
+    "enhance_prompt": false,
+    "image_urls": [
+      "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/07586a42-78bb-4d85-b634-34fe39413ddf.png"
+    ]
+  },
+  "style": "Exact identity-preserving original character model reference edit",
+  "technical": "Keep the entire character and plain grey background, high quality studio model reference",
+  "negative": "watermark, signature, logos, added military armor, broad chest, changed repairs, duplicated antenna",
+  "frames": [
+    {
+      "id": "latch_canonical_face",
+      "subject": "Use the provided image as the edit target. Preserve this exact lean friendly civilian robot, all body proportions, the unequal repairs, its materials, hands, posture and camera. Correct only the head: its CRT screen and shell must be a tall rectangular portrait face, slightly taller than wide, with its same two friendly small cyan pixel eyes. Move the single antenna to its anatomical LEFT ear, which is the RIGHT side of its head as seen by the viewer, on the opposite side from where it is now. Remove the old antenna entirely. Do not add a second antenna. All other parts remain the same repaired civilian identity."
+    }
+  ]
+}

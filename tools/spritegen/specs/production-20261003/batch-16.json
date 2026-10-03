@@ -1,0 +1,55 @@
+{
+  "model": "marketing-studio/image",
+  "out_dir": "art/raw/production-20261003/batch-16",
+  "params": {
+    "quality": "high",
+    "resolution": "4k",
+    "aspect_ratio": "1:1",
+    "enhance_prompt": false
+  },
+  "style": "Original professional game production art, practical retro futurism circa 2070, exceptional carefully maintained industrial design, restrained tactile materials, sharp details suitable for deliberate pixel reduction, no copied franchise designs",
+  "frames": [
+    {
+      "id": "weapon_material_railgun",
+      "subject": "original 2070 reclaimed Union compact linear accelerator, long coherent charcoal steel chassis and squared barrel, bone ceramic insulators, physical exposed copper winding recesses, small restrained red charge lamps, believable industrial gun rather than neon toy. Texture sheet only: eight equally sized horizontal strips of its wood grain, worn steel, machined edges, rubber, cloth wrap, bone ceramic, repair paint and brass, without an image of the weapon",
+      "technical": "Seamless square game albedo texture, orthographic flat surface filling entire image, equal even illumination, no baked highlights or shadows, no perspective, no border, clean matching opposite edges, material only",
+      "negative": "watermarks, signatures, logos, historical political insignia, neon cyberpunk, decorative fantasy spikes, illegible writing, blur, oversaturation, cheap toy forms"
+    },
+    {
+      "id": "weapon_sniper",
+      "subject": "original civilian precision long rifle, slender blued steel barrel, warm walnut thumbhole stock, single compact low optical scope, repaired bone bedding plate, practical sling hardware, plausible mechanical proportions",
+      "technical": "Coherent complete original weapon side three-quarter studio orthographic view, mid-grey background, generous margin, all sights and mechanical parts readable, no hands, no text",
+      "negative": "watermarks, signatures, logos, historical political insignia, neon cyberpunk, decorative fantasy spikes, illegible writing, blur, oversaturation, cheap toy forms"
+    },
+    {
+      "id": "weapon_material_sniper",
+      "subject": "original civilian precision long rifle, slender blued steel barrel, warm walnut thumbhole stock, single compact low optical scope, repaired bone bedding plate, practical sling hardware, plausible mechanical proportions. Texture sheet only: eight equally sized horizontal strips of its wood grain, worn steel, machined edges, rubber, cloth wrap, bone ceramic, repair paint and brass, without an image of the weapon",
+      "technical": "Seamless square game albedo texture, orthographic flat surface filling entire image, equal even illumination, no baked highlights or shadows, no perspective, no border, clean matching opposite edges, material only",
+      "negative": "watermarks, signatures, logos, historical political insignia, neon cyberpunk, decorative fantasy spikes, illegible writing, blur, oversaturation, cheap toy forms"
+    },
+    {
+      "id": "weapon_shiv",
+      "subject": "civilian workshop improvised hand knife, carefully sharpened reused tool steel blade, warm brown wrapped handle, small bone repair ferrule, useful credible proportions",
+      "technical": "Coherent complete original weapon side three-quarter studio orthographic view, mid-grey background, generous margin, all sights and mechanical parts readable, no hands, no text",
+      "negative": "watermarks, signatures, logos, historical political insignia, neon cyberpunk, decorative fantasy spikes, illegible writing, blur, oversaturation, cheap toy forms"
+    },
+    {
+      "id": "weapon_material_shiv",
+      "subject": "civilian workshop improvised hand knife, carefully sharpened reused tool steel blade, warm brown wrapped handle, small bone repair ferrule, useful credible proportions. Texture sheet only: eight equally sized horizontal strips of its wood grain, worn steel, machined edges, rubber, cloth wrap, bone ceramic, repair paint and brass, without an image of the weapon",
+      "technical": "Seamless square game albedo texture, orthographic flat surface filling entire image, equal even illumination, no baked highlights or shadows, no perspective, no border, clean matching opposite edges, material only",
+      "negative": "watermarks, signatures, logos, historical political insignia, neon cyberpunk, decorative fantasy spikes, illegible writing, blur, oversaturation, cheap toy forms"
+    },
+    {
+      "id": "weapon_grenade_mine",
+      "subject": "two original distinct devices: civilian salvage hand grenade with worn bone steel casing and dark lever; squat Union proximity mine with graphite casing and one red issue lamp, clear mechanical construction, generous separation",
+      "technical": "Coherent complete original weapon side three-quarter studio orthographic view, mid-grey background, generous margin, all sights and mechanical parts readable, no hands, no text",
+      "negative": "watermarks, signatures, logos, historical political insignia, neon cyberpunk, decorative fantasy spikes, illegible writing, blur, oversaturation, cheap toy forms"
+    },
+    {
+      "id": "weapon_material_grenade_mine",
+      "subject": "two original distinct devices: civilian salvage hand grenade with worn bone steel casing and dark lever; squat Union proximity mine with graphite casing and one red issue lamp, clear mechanical construction, generous separation. Texture sheet only: eight equally sized horizontal strips of its wood grain, worn steel, machined edges, rubber, cloth wrap, bone ceramic, repair paint and brass, without an image of the weapon",
+      "technical": "Seamless square game albedo texture, orthographic flat surface filling entire image, equal even illumination, no baked highlights or shadows, no perspective, no border, clean matching opposite edges, material only",
+      "negative": "watermarks, signatures, logos, historical political insignia, neon cyberpunk, decorative fantasy spikes, illegible writing, blur, oversaturation, cheap toy forms"
+    }
+  ]
+}

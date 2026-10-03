@@ -1,0 +1,26 @@
+{
+  "probes": [
+    {
+      "model": "higgsfield-ai/soul/v2/standard",
+      "params": {"prompt": "Editorial portrait in soft daylight"}
+    },
+    {
+      "model": "marketing-studio/image",
+      "params": {
+        "prompt": "An original articulated robot character reference, neutral A-pose, separated limbs, even lighting",
+        "quality": "low",
+        "resolution": "2k",
+        "aspect_ratio": "1:1",
+        "enhance_prompt": false
+      }
+    },
+    {
+      "model": "meshy_v7_image_to_3d",
+      "params": {"should_texture": true, "enable_pbr": true, "pose_mode": "a-pose"}
+    },
+    {
+      "model": "tripo_h3_1_image_to_3d",
+      "params": {"texture": true, "pbr": true}
+    }
+  ]
+}

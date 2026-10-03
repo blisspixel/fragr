@@ -1,6 +1,6 @@
 # fragr art and story direction
 
-Current direction, 2026-10-01. Product intent lives in [`VISION.md`](VISION.md);
+Current direction, 2026-10-03. Product intent lives in [`VISION.md`](VISION.md);
 world canon and frozen voice vocabulary live in [`lore/`](lore/README.md).
 This replaces the early arena-only notes. Campaign depth and retro menus are
 explicit parts of the current target.
@@ -23,6 +23,12 @@ judged against the modern boomer shooters that look excellent (Boltgun,
 Prodeus, Dusk, Ultrakill, Cultic), at game scale, in motion and under light.
 Plain boxes, muddy sprites and barren rooms are defects, not style. See
 [art excellence](plans/art-excellence.md).
+
+The campaign's loose reference is around 2070, confirmed on 2026-10-03.
+Established Moon and Mars bases coexist with recognizable industrial hardware,
+CRT-like displays, physical controls, civilian firearms and personally repaired
+electronics. A few advanced systems should have clear purposes and mechanical
+weight. Keep the retro-futuristic charm in materials, interfaces and lived use.
 
 Boltgun is the production-quality reference: detailed pixel fighters and guns,
 substantial pose animation, sculpted 3D spaces, strong directional lighting, and
@@ -127,6 +133,23 @@ inspection lanes, serial numbers, and controlled institutional color. The Inheri
 leaves unsettling order and regrowth among evidence of human and agent loss.
 These are visual tendencies, not a replacement for the detailed faction canon.
 
+Nick's 2026-10-03 clarification applies to asset production: the Union is an
+expanding, plausible fascist institution with standardized equipment, compliance
+controls and German official-language presentation. Its violence appears in
+confiscation, forced labor, recalls and identity erasure, carried out by people
+and systems that can look ordinary and competent. Use original institutional
+marks and designs; the [Chancellery rule](lore/the-chancellery.md#felt-never-named)
+owns the historical echo and language treatment.
+
+Free humans and agents have varied civilian clothes, chassis, equipment and
+personal repairs. Hackers, workshop people and neighbors would prefer a quiet
+free life; their chosen resistance does not turn everyone into an armored
+soldier. Conscious agents' personhood is certain. Individual motives, consent,
+mistakes and competing loyalties provide moral complexity without making
+enslavement or deletion an equally valid position. The Inheritance's emerging
+reach belongs in recurring infrastructure anomalies and unreliable radio,
+not an early explanation of the wipe's timing.
+
 Latch is a free embodied person, roughly six feet (about 1.8 metres) tall, with
 scrappy repairs and personally chosen parts. Their head is a CRT-like framed
 screen, taller than wide, showing soft friendly pixel faces, with one thin
@@ -135,6 +158,8 @@ expressions and individually repaired silhouette consistent across worlds and
 scenes. A fighting role does not make Latch
 a war bot. Design the individual before the weapon: recognizable gestures,
 preferences, relationships and a body maintained through its own choices.
+The body is lean, with modest shoulders and articulated civilian proportions.
+Avoid a muscular superhero silhouette or heavy built-in combat armor.
 The main human is a chill stoner-gamer dude who wants music, scrap, friends and
 a free life. His look is a restrained future cowboy: worn leather/rust jacket,
 dark work pants, boots, an easy visible face and posture, with an optional

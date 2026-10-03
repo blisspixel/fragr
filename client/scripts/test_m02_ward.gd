@@ -49,14 +49,19 @@ func _run() -> void:
 	var repair: MeshInstance3D = latch.get_node("RightArm/RustRepair") as MeshInstance3D
 	_check(latch.find_children("*", "VisualInstance3D", true, false).size() <= 40,
 		"the shared local chassis stays within a bounded mesh count")
-	_check(head.mesh is CylinderMesh and (head.mesh as CylinderMesh).radial_segments == 6
+	_check(head.mesh is ArrayMesh and head.mesh.get_aabb().size.y > head.mesh.get_aabb().size.x
+		and latch.get_node_or_null("LeftAntenna") is MeshInstance3D
+		and (latch.get_node("LeftAntenna") as Node3D).position.x > 0.0
+		and latch.get_node_or_null("RightAntenna") == null
+		and latch.get_node_or_null("PixelEyes") is MeshInstance3D
 		and latch.get_node_or_null("LeftArm/RustRepair") == null
 		and latch.get_node_or_null("LeftArm/RustRepairEdge") == null,
-		"the plain faceted head and individual right-forearm repair distinguish Latch")
-	_check(is_equal_approx((patch.mesh as BoxMesh).size.x, (patch.mesh as BoxMesh).size.y)
+		"the tall screen, single anatomical left antenna, pixel eyes and individual forearm repair distinguish Latch")
+	var patch_size: Vector3 = patch.mesh.get_aabb().size
+	_check(patch_size.x > 0.0 and patch_size.y > 0.0 and maxf(patch_size.x, patch_size.y) < 0.08
 		and (patch.material_override as StandardMaterial3D).albedo_color == LatchView.CYAN
 		and (repair.material_override as StandardMaterial3D).albedo_color == LatchView.RUST,
-		"the square chest patch and rust repair retain the workshop palette")
+		"the small chest patch and rust repair retain the workshop palette")
 	_check(latch.get_node("RightArm/Hand/Index") is Node3D
 		and latch.get_node("RightArm/Hand/Opposed") is Node3D,
 		"the right hand has separate fingers for an intentional release gesture")

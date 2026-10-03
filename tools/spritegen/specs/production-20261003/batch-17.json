@@ -1,0 +1,55 @@
+{
+  "model": "marketing-studio/image",
+  "out_dir": "art/raw/production-20261003/batch-17",
+  "params": {
+    "quality": "high",
+    "resolution": "4k",
+    "aspect_ratio": "1:1",
+    "enhance_prompt": false
+  },
+  "style": "Original professional game production art, practical retro futurism circa 2070, exceptional carefully maintained industrial design, restrained tactile materials, sharp details suitable for deliberate pixel reduction, no copied franchise designs",
+  "frames": [
+    {
+      "id": "world_union",
+      "subject": "Union civic intake and custody facility, disciplined dark graphite steel, desaturated grey green enamel, warm bone administrative ceramics, small deep red issue markings, maintained coercive institutional order. One memorable navigable original FPS location with purposeful architecture, clear readable routes, authentic working machines, signs of ordinary daily use, ceiling conduits, wall fixtures and layered depth, excellent modern retro shooter atmosphere, no people, no weapons, no text",
+      "technical": "Professional environment design key art, first-person eye-height 1.65 metre camera, wide composition inside square, meaningful lighting and coherent architecture, crisp material details, moderate restrained atmosphere",
+      "negative": "watermarks, signatures, logos, historical political insignia, neon cyberpunk, decorative fantasy spikes, illegible writing, blur, oversaturation, cheap toy forms"
+    },
+    {
+      "id": "world_yard",
+      "subject": "Earth freight and recall rail yard, aged grey steel, faded green paint, restrained orange iron oxide, practical heavy infrastructure and worn loading aprons. One memorable navigable original FPS location with purposeful architecture, clear readable routes, authentic working machines, signs of ordinary daily use, ceiling conduits, wall fixtures and layered depth, excellent modern retro shooter atmosphere, no people, no weapons, no text",
+      "technical": "Professional environment design key art, first-person eye-height 1.65 metre camera, wide composition inside square, meaningful lighting and coherent architecture, crisp material details, moderate restrained atmosphere",
+      "negative": "watermarks, signatures, logos, historical political insignia, neon cyberpunk, decorative fantasy spikes, illegible writing, blur, oversaturation, cheap toy forms"
+    },
+    {
+      "id": "world_low_water",
+      "subject": "Low Water civilian riverside neighbourhood, warm terracotta and bone plaster, faded sea green doors, patched workshop steel, individually maintained repair culture. One memorable navigable original FPS location with purposeful architecture, clear readable routes, authentic working machines, signs of ordinary daily use, ceiling conduits, wall fixtures and layered depth, excellent modern retro shooter atmosphere, no people, no weapons, no text",
+      "technical": "Professional environment design key art, first-person eye-height 1.65 metre camera, wide composition inside square, meaningful lighting and coherent architecture, crisp material details, moderate restrained atmosphere",
+      "negative": "watermarks, signatures, logos, historical political insignia, neon cyberpunk, decorative fantasy spikes, illegible writing, blur, oversaturation, cheap toy forms"
+    },
+    {
+      "id": "world_lunar",
+      "subject": "Lunar customs port, pale bone pressure ceramics, charcoal pressure steel, grey regolith dust, dark red Union issue accents, mature functional offworld transport. One memorable navigable original FPS location with purposeful architecture, clear readable routes, authentic working machines, signs of ordinary daily use, ceiling conduits, wall fixtures and layered depth, excellent modern retro shooter atmosphere, no people, no weapons, no text",
+      "technical": "Professional environment design key art, first-person eye-height 1.65 metre camera, wide composition inside square, meaningful lighting and coherent architecture, crisp material details, moderate restrained atmosphere",
+      "negative": "watermarks, signatures, logos, historical political insignia, neon cyberpunk, decorative fantasy spikes, illegible writing, blur, oversaturation, cheap toy forms"
+    },
+    {
+      "id": "world_archive",
+      "subject": "Union lunar records archive, bone ceramic cabinetry, charcoal filing steel, faded grey green record-room fittings, fine lunar dust, disciplined bureaucratic oppression. One memorable navigable original FPS location with purposeful architecture, clear readable routes, authentic working machines, signs of ordinary daily use, ceiling conduits, wall fixtures and layered depth, excellent modern retro shooter atmosphere, no people, no weapons, no text",
+      "technical": "Professional environment design key art, first-person eye-height 1.65 metre camera, wide composition inside square, meaningful lighting and coherent architecture, crisp material details, moderate restrained atmosphere",
+      "negative": "watermarks, signatures, logos, historical political insignia, neon cyberpunk, decorative fantasy spikes, illegible writing, blur, oversaturation, cheap toy forms"
+    },
+    {
+      "id": "world_mars",
+      "subject": "Mars civilian habitat, oxidized reddish mineral dust on bone pressure ceramics, sand green patched metal, warm lived-in workshops, practical frontier engineering. One memorable navigable original FPS location with purposeful architecture, clear readable routes, authentic working machines, signs of ordinary daily use, ceiling conduits, wall fixtures and layered depth, excellent modern retro shooter atmosphere, no people, no weapons, no text",
+      "technical": "Professional environment design key art, first-person eye-height 1.65 metre camera, wide composition inside square, meaningful lighting and coherent architecture, crisp material details, moderate restrained atmosphere",
+      "negative": "watermarks, signatures, logos, historical political insignia, neon cyberpunk, decorative fantasy spikes, illegible writing, blur, oversaturation, cheap toy forms"
+    },
+    {
+      "id": "world_ship",
+      "subject": "Working civilian interplanetary freighter, charcoal utility steel, aged bone paneling, worn tan insulation, small muted amber service markers, reused practical fittings. One memorable navigable original FPS location with purposeful architecture, clear readable routes, authentic working machines, signs of ordinary daily use, ceiling conduits, wall fixtures and layered depth, excellent modern retro shooter atmosphere, no people, no weapons, no text",
+      "technical": "Professional environment design key art, first-person eye-height 1.65 metre camera, wide composition inside square, meaningful lighting and coherent architecture, crisp material details, moderate restrained atmosphere",
+      "negative": "watermarks, signatures, logos, historical political insignia, neon cyberpunk, decorative fantasy spikes, illegible writing, blur, oversaturation, cheap toy forms"
+    }
+  ]
+}

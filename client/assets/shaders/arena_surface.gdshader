@@ -22,6 +22,7 @@ uniform bool tile_enabled = false;
 uniform sampler2D tile_wall : source_color, filter_nearest, repeat_enable;
 uniform sampler2D tile_floor : source_color, filter_nearest, repeat_enable;
 uniform float tile_strength : hint_range(0.0, 1.0) = 0.55;
+uniform float tile_floor_strength : hint_range(0.0, 1.0) = 0.55;
 uniform float tile_repeat_pixels = 128.0;
 uniform bool markings_enabled = true;
 // Optional sparse original repair history, confined to explicit venue materials.
@@ -61,7 +62,7 @@ void fragment() {
 	if (tile_enabled) {
 		vec2 tile_uv = pixel / max(tile_repeat_pixels, 1.0);
 		vec3 albedo = n.y > 0.5 ? texture(tile_floor, tile_uv).rgb : texture(tile_wall, tile_uv).rgb;
-		color = mix(color, albedo, tile_strength);
+		color = mix(color, albedo, n.y > 0.5 ? tile_floor_strength : tile_strength);
 	}
 
 	if (markings_enabled && surface_style > 0) {

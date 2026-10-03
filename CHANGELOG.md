@@ -1,8 +1,32 @@
 # Changelog
 
-Shipped tags, newest first. A line here is on `main`. Planned work stays in
+Release history, newest first. Unreleased changes precede the shipped tags. Planned work stays in
 [docs/ROADMAP.md](docs/ROADMAP.md). Older tags are on the
 [releases page](https://github.com/blisspixel/fragr/releases).
+
+## Unreleased
+
+The Sweeper now comes from an original articulated 3D source, with directional
+normal cells that let venue light describe its body. Its carbine keeps a shorter
+profile than the precision rifle. Latch has a lean civilian chassis, a tall screen
+with pixel eyes, one left antenna and visible repairs.
+
+Registered fixtures gain modeled housings. Existing walls have recessed bays,
+ceilings have inset coffers, and 26 selected materials cover the current venue
+families. Shallow water has moving surface normals, highlights and sparse drips;
+Low Water gains an exterior river. Server collision, combat and mission facts
+remain authoritative.
+
+Nine original GLB exports and inspected high-resolution source references support
+continued production. The Shotgun model and coherent pump frames remain candidates
+pending first-person framing and hand refinement; existing viewmodel art stays
+selected. Other character models and full environmental kits remain unfinished.
+The developer API checker verifies credential access through free price estimates;
+reference prompts can set explicit exclusions while old requests keep their identities.
+
+Nick reported $14.42 remaining from a $105.88 starting API balance, a $91.46 net
+decrease. The 151 completed image requests retain $93.365 in estimated reservations;
+individual billed charges remain unverified. No runtime asset API is required.
 
 ## v0.67.0 (2026-10-03)
 
