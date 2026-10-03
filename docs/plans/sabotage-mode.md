@@ -157,8 +157,9 @@ Rendered tours, Godot 4.7.2 under the render lock, seed 42 on Sector 9
   plates and props, a bot carrying the charge, a bot plant at B Server with
   the HUD charge timer, and the round card. Passed.
 - `client/qa/sabotage_fallen.json`, eight rule bots under Licence to Kill: an
-  unarmed joining attacker walks into A Frame's anchors, falls, and the view
-  follows a living teammate with the side pips counting survivors.
+  unarmed joining attacker walks into A Frame's anchors, falls to first
+  blood, and the view follows a living teammate with the side pips counting
+  survivors. Passed.
 - `tools/godot_check.sh` passed with all 90 harnesses, the new
   `test_sabotage_state` among them, and the CTF live tour still passes.
 
