@@ -66,6 +66,30 @@ smokes, the six-map roster and `tools/godot_check.sh` under the render lock.
 - Remaining items are ones automation cannot judge, phrased as specific things
   for a human playthrough to watch.
 
+## Measurements
+
+The free local-rules agent (`fragr-brain --provider local`) played each level's
+own map file on a private server with `--campaign-run`, zero bots and a 420 to
+900 second limit. It aims accurately and moves fast, so its clear times are far
+below a person's and say nothing about pacing. Its deaths, stalls and
+disconnects are mechanical findings. Cells read deaths, then seconds to a
+departure; `fail` means all continues spent. M02 here starts from its practice
+entry with fists, not a carried M01 loadout.
+
+| Level | Standard 42, main | Severe 7, main | Assisted 1234, main | Standard 42, fixed | Severe 7, fixed | Assisted 1234, fixed |
+|---|---|---|---|---|---|---|
+| M01 | 0, 46 s | 0, 48 s | 0, 46 s | 0, 52 s | 0, 54 s | 0, 59 s |
+| M02 | fail (ward guards) | fail | 3, last continue | 0, 57 s | 0, 68 s | 0, 76 s |
+| M03 | stalled 900 s at 7 kills | stalled, 2 deaths | stalled at 5 kills | see below | see below | 0, 81 s |
+| M04 | 1, 146 s | fail | 0, 75 s | 0, 69 s | 0, 68 s | 0, 74 s |
+| M05 | 0, 60 s | disconnected | disconnected | 0, 60 s | 0, 59 s | 0, 81 s |
+| M06 | fail (Railgun lane) | fail | fail | 0, 82 s | 0, 75 s | 0, 98 s |
+
+Spawn to first kill was under three seconds on every level except M01 (five
+seconds): every level opens with a guard in view. A spectator probe found the
+remaining M03 stall: an alarmed train Clerk walked to the far activation
+threshold, found nobody and idled there, 25 metres from the waiting party.
+
 ## Findings
 
 | # | Finding | Level | Evidence | Fix | Status |

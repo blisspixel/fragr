@@ -14,9 +14,8 @@ pub(crate) const STAGGER_DAMAGE: i32 = 40;
 /// Visual pursuit memory and the engagement bound shared by walking enemies.
 const SIGHT_RANGE: f32 = 32.0;
 const ENGAGE_RANGE: f32 = 24.0;
-/// A walking guard that chased a participant further than this from its
-/// authored post walks back once its pursuit has ended. Shorter chases and
-/// alarm searches keep their authored behaviour.
+/// A walking guard whose chase or alarm search ended further than this from
+/// its authored post walks back once. Shorter searches stay where they end.
 const POST_RADIUS: f32 = 8.0;
 /// Bound on one walk home; a blocked guard idles once this lapses.
 const POST_RETURN_TICKS: u64 = 400;
@@ -143,8 +142,8 @@ pub(super) struct EnemyController {
     search_until: u64,
     /// Authored post. A walking guard that lost its quarry returns here.
     home: [f32; 3],
-    /// Set by an actual sighting; one walk home spends it.
-    pursued: bool,
+    /// Set by an alarm or a sighting; one walk home spends it.
+    trail: bool,
     aim: (f32, f32),
     next_shot: u64,
     shots_left: u8,
@@ -211,7 +210,7 @@ impl EnemyController {
             target: None,
             last_known: alarm_position,
             home: alarm_position,
-            pursued: false,
+            trail: false,
             // Dispatch can require a full stair route to another floor. This
             // is a fixed alarm location, never the unseen participant's live
             // position. Visual pursuit below keeps its shorter memory.
@@ -248,6 +247,7 @@ impl EnemyController {
 
     pub fn alarm(&mut self, position: [f32; 3], tick: u64) {
         self.seated = false;
+        self.trail = true;
         self.last_known = position;
         self.search_until = tick.saturating_add(600);
     }
@@ -355,7 +355,7 @@ impl EnemyController {
             self.target = Some(target.id);
             self.last_known = [target.x, target.y - PLAYER_FLOOR_Y, target.z];
             self.search_until = tick.saturating_add(100);
-            self.pursued = true;
+            self.trail = true;
         }
 
         // Armor reads the whole tick's damage from the authoritative body, so
@@ -508,13 +508,13 @@ impl EnemyController {
             };
         }
         self.target = None;
-        // A guard that chased a participant far from its post and lost them
-        // walks back instead of idling wherever the trail ended. The last
-        // guard of a required group then waits where the fight was staged, in
-        // view of the objective, not alone in a far corridor nobody revisits.
-        // The post is authored, never the unseen participant's live position.
-        if self.pursued && (feet[0] - self.home[0]).hypot(feet[2] - self.home[2]) > POST_RADIUS {
-            self.pursued = false;
+        // A guard whose chase or alarm search ended far from its post walks
+        // back instead of idling wherever the trail ran out. The last guard of
+        // a required group then waits where the fight was staged, in view of
+        // the objective, not alone at a far threshold nobody revisits. The
+        // post is authored, never the unseen participant's live position.
+        if self.trail && (feet[0] - self.home[0]).hypot(feet[2] - self.home[2]) > POST_RADIUS {
+            self.trail = false;
             self.last_known = self.home;
             self.search_until = tick.saturating_add(POST_RETURN_TICKS);
             if self.phase != EnemyPhase::Moving {
@@ -1058,14 +1058,16 @@ mod tests {
         move_body(&mut state, stray[0], stray[2]);
         guard.search_until = 0;
         state.tick = 700;
-        let unseen = guard.intent(&state, &state.snapshot());
+        let unalarmed = guard.intent(&state, &state.snapshot());
         assert!(
-            unseen.goal.is_none() && guard.phase == EnemyPhase::Idle,
-            "an alarm search that never saw anyone keeps its authored behaviour"
+            unalarmed.goal.is_none() && guard.phase == EnemyPhase::Idle,
+            "a guard that was never alarmed or chasing stays put"
         );
 
-        // After an actual chase the far guard is given a route home.
-        guard.pursued = true;
+        // After an alarm search or a chase ends far away, the guard is given
+        // a route home.
+        guard.alarm([10.1, 0.0, 24.5], 701);
+        guard.search_until = 0;
         state.tick = 701;
         let walk = guard.intent(&state, &state.snapshot());
         let goal = walk.goal.expect("the stray guard is given a route home");
@@ -1089,7 +1091,7 @@ mod tests {
 
         // A short chase that ends near the post stays where it ended.
         move_body(&mut state, placement.feet[0] + 4.0, placement.feet[2]);
-        guard.pursued = true;
+        guard.trail = true;
         state.tick = 2001;
         assert!(guard.intent(&state, &state.snapshot()).goal.is_none());
     }
