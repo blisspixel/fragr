@@ -263,7 +263,8 @@ Sniper selection and the development range are implemented. After the art
 pass (#321) the Sniper's first-person frames, pickup and scope plate come
 from `WeaponArt`, the marksman atlas and its harness from the art rig, and the
 Sniper tracer turns orange to match its flash. The Sniper report and glint
-tone remain placeholders until the sound pass (#322) lands. Seeded server tests cover the tight hit, the out-of-cone miss,
+tone remained placeholders until the sound pass (#322) wired its delivered
+cues. Seeded server tests cover the tight hit, the out-of-cone miss,
 Rail reach and cone at 55 m, cadence, dry fire, the tell on every tier, sill
 cancellation, head visibility, hit interruption, the notice cone and range
 admission. Local gates pass workspace tests, warning-denied Clippy, 94.32
@@ -279,10 +280,81 @@ that land within three metres of the viewer now draw no streak, with a
 harness check. The first whole-client check failed one stale six-column
 grenade record assertion, since corrected.
 
-### Handoff
+### Milestone B landed
 
-Branch `feat/l07-declared-goods` carries milestone B for its own pull
-request. Level work continues on `feat/l07-level` in the nested worktree
-`.agents/l07/wt-b`, starting from the M06 modules: protocol, authored map,
-mission progress and the map JSON exist; run file version 8, local launch,
-controller, client presenter, tour and story pages remain.
+PR #324 put the Sniper Rifle, the Ranged Sweeper, their range and the art
+pass's delivered frames, pickup, scope plate and marksman atlas on main. The
+capability is 30: Sabotage (#325) took 28 and the level 8 devices (#323) took
+29 before it merged.
+
+### Handoff, 2026-10-03
+
+The session closed before level 7 itself was verified end to end, so the level
+is not on main. Nothing on main is half-wired: main has milestone B only.
+
+**Where the level work is.** Two git bundles hold it:
+
+- `C:\GitHub\_backups\l07-20261003-level.bundle`: branch `feat/l07-level`,
+  six commits on top of `de38e7d` (the #324 merge). Restore with
+  `git fetch <bundle> feat/l07-level:feat/l07-level`, then rebase onto main.
+- `C:\GitHub\_backups\l07-20261003-sound-wiring-reference.bundle`: branch
+  `trial/l07-int`, an earlier reference merge of milestone B with the art and
+  sound branches. The sound pass (#322) has since wired the Sniper report,
+  scope cues, marksman glint and shot and the curfew chime constant on main
+  itself, so this bundle is only a reference; the old placeholder sounds and
+  their bake tool are retired from main with this handoff.
+
+**What works on `feat/l07-level`.** Map 1007 (`server/maps/m07_declared_goods.json`,
+generated from a scratch script not kept; edit the JSON directly) passes
+authored validation: 146 solids, 25 required guards in five ordered groups,
+zero doors, three marked secrets (a Railgun on the vault roof, Bullets in the
+chalk 67 alley, Cells on the berm ledge). M07 protocol (`protocol/m07.rs`,
+capability 31 on that branch, renumber to the next free number at merge),
+mission progress with the shared arrival catch-up, the agent controller, run
+file version 8 (M06 to M07 promotion with no refill, every earlier outcome
+kept, version 7 upgrade with exact bytes archived, `custodian_of_record` saved
+as the unbuilt next mission), local launch, Continue Run and Practice entries,
+the town presenter (`m07_town.gd`: shutters, awnings, the window figure who
+taps and points, the 30 second curfew chime with its PA line, the lamp line
+after the post, the dome, the port behind and a 140 metre depot tower visible
+from the tunnel mouth), the HUD line and prompt, world text, two story pages
+built from existing keyed text, and docs (protocol, adapter README, AGENTS
+seam row, maps README, roadmap, README and changelog). Verified there:
+fmt, warning-denied Clippy and `cargo test --workspace --locked` pass (the
+last map tuning touched only data, and the 12 M07 server tests were rerun
+after it). Those tests cover ordered groups, the arrival gate and catch-up,
+the window sightline and Rail reach, a seeded rack-to-step Sniper clear, cover
+stops seen by no marksman, a crossing never watched by more than two
+marksmen, tour walkability, the departure gate, Latch's restraint, the
+controller and capability admission, plus three version 8 store tests. Client
+harnesses `test_m07_local`, `test_m06_local` and `test_m05_local` pass;
+`test_m07_mission` passed except its curfew chime check, which needed the
+sound pass's `l07/curfew_chime.wav`, now on main.
+
+**What is left.**
+
+1. Rebase `feat/l07-level` on main and renumber the M07 capability. Its
+   `l07_assets.gd` adds `CURFEW_CHIME_SOUND`, which main now defines; keep
+   main's table. `test_m07_mission`'s chime check then passes.
+2. Finish the rendered tour (`client/qa/m07_declared_goods.json`). Its first
+   three stills (tunnel arrival, the depot tower from the tunnel mouth, the
+   ring supplies) render correctly; the patrol fight does not yet complete
+   inside the 25 second combat window after the Shotgun pickup wakes the
+   patrol, because the Clerks hold their porches instead of closing. Tune the
+   patrol's starting positions or the tour's search route, then iterate state
+   by state to the freight departure and inspect every still.
+3. Run `tools/godot_check.sh` and `tools/test_godot_check.sh` on the branch,
+   then open the level pull request.
+
+**Fun checks against the design direction.** Encounter shapes alternate:
+patrol skirmish, plaza crossfire under the Notaries, the post assault with the
+gate Turret, the window sniper duel, then the crater push. Taking the Shotgun
+wakes the patrol a few seconds from the tunnel (pickup ambush); two cut
+Sweepers come in behind from the end bays while the rim marksmen pin the
+participant (revealed behind); the vault roof secret gives early power. From
+route lengths at the 5 m/s top speed, first contact is about 3 seconds after
+leaving the tunnel and the longest quiet stretch is the deliberate window
+breath beat, about 13 seconds, with the overlook climb next at about 11
+seconds. These are estimates from route geometry, not a measured play
+session. Whether the crater climax is the moment people talk about needs
+human play.

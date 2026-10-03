@@ -43,9 +43,8 @@ Union marksman with an antenna mast. It glints, holds its aim for 1.5 seconds on
 Standard, then fires once; dropping fully behind cover cancels the shot and any
 hit interrupts it. Both appear on a development range with a firing step behind
 a sill. Both wear the art pass's first-person frames, pickup, scope plate and
-marksman atlas, with an orange tracer to match the Sniper's flash; the Sniper
-report and the glint tone stay clean placeholders until the sound pass's cues
-land.
+marksman atlas, with an orange tracer to match the Sniper's flash, and the
+sound pass's report, scope, glint and marksman shot cues.
 
 ## Unreleased (custody devices, 2026-10-02)
 
