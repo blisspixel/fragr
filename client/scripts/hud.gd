@@ -12,6 +12,10 @@ signal host_spoke(seconds: float)
 @onready var round_label = $Panel/VBoxContainer/RoundLabel
 ## The server's rule set under the round line, for players and spectators.
 @onready var mode_chip_label: Label = $Panel/VBoxContainer/ModeChipLabel
+## The status panel's right edge in Sabotage, wide enough for the one line
+## with a Use prompt in it.
+const SABOTAGE_PANEL_RIGHT: float = 540.0
+var _panel_right: float = NAN
 @onready var weapon_label = $Panel/VBoxContainer/WeaponLabel
 @onready var combat_feed: CombatFeed = $CombatFeed
 @onready var round_message = $RoundMessage
@@ -301,6 +305,12 @@ func set_match_rules(rules: Dictionary) -> void:
 	if mode_chip_label != null:
 		# Sabotage's one line stays one line; the other chips wrap in the panel.
 		mode_chip_label.autowrap_mode = TextServer.AUTOWRAP_OFF if sabotage() else TextServer.AUTOWRAP_WORD_SMART
+	var hud_panel: Control = get_node_or_null("Panel") as Control
+	if hud_panel != null:
+		# The panel clips; in Sabotage its one line needs the room a prompt takes.
+		if is_nan(_panel_right):
+			_panel_right = hud_panel.offset_right
+		hud_panel.offset_right = maxf(_panel_right, SABOTAGE_PANEL_RIGHT) if sabotage() else _panel_right
 	if int(rules.get("lives", 0)) <= 0:
 		own_lives = -1
 	_refresh_mode_label()
