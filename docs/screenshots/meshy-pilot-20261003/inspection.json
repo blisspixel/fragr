@@ -1,0 +1,266 @@
+{
+	"models": [
+		{
+			"bounds": {
+				"position": [
+					-0.609257996082306,
+					-0.950428009033203,
+					-0.18646003305912
+				],
+				"size": [
+					1.21619296073914,
+					1.89866209030151,
+					0.37508100271225
+				]
+			},
+			"bytes": 32690592,
+			"name": "clerk-model-0",
+			"sha256": "5d5392963ee73a537ef10631305b0dc9aa532d63cbdff011fda579bc18996fad",
+			"stats": {
+				"animations": [],
+				"bones": 0,
+				"materials": [
+					{
+						"albedo_size": [
+							4096,
+							4096
+						],
+						"metallic_map": true,
+						"normal_enabled": true,
+						"roughness_map": true
+					}
+				],
+				"meshes": 1,
+				"triangles": 12476,
+				"vertices": 16332
+			}
+		},
+		{
+			"bounds": {
+				"position": [
+					-0.577598333358765,
+					0.000000183166491751763,
+					-0.176762729883194
+				],
+				"size": [
+					1.15299451351166,
+					1.79997205734253,
+					0.355574011802673
+				]
+			},
+			"bytes": 33358464,
+			"name": "clerk-rig-0",
+			"sha256": "a6c66ca0d976b479f0e8daf14f542e81551fc25736da8c2b9053f19a7fea950c",
+			"stats": {
+				"animations": [
+					{
+						"length": 0.0333333350718021,
+						"name": "Armature|clip0|baselayer"
+					}
+				],
+				"bones": 24,
+				"materials": [
+					{
+						"albedo_size": [
+							4096,
+							4096
+						],
+						"metallic_map": true,
+						"normal_enabled": true,
+						"roughness_map": true
+					}
+				],
+				"meshes": 1,
+				"triangles": 12476,
+				"vertices": 16336
+			}
+		},
+		{
+			"bounds": {
+				"position": [
+					-0.577598333358765,
+					0.000000183166491751763,
+					-0.176762729883194
+				],
+				"size": [
+					1.15299451351166,
+					1.79997205734253,
+					0.355574011802673
+				]
+			},
+			"bytes": 33338760,
+			"name": "clerk-rig-1",
+			"sha256": "9e0f52db0dfff86fab95c8a65fbf8876aa8d32cc68a6bc928a582c47e526ded5",
+			"stats": {
+				"animations": [
+					{
+						"length": 1.06666660308838,
+						"name": "Armature|walking_man|baselayer"
+					}
+				],
+				"bones": 24,
+				"materials": [
+					{
+						"albedo_size": [
+							4096,
+							4096
+						],
+						"metallic_map": true,
+						"normal_enabled": true,
+						"roughness_map": true
+					}
+				],
+				"meshes": 1,
+				"triangles": 12476,
+				"vertices": 16336
+			}
+		},
+		{
+			"bounds": {
+				"position": [
+					-0.577598333358765,
+					0.000000183166491751763,
+					-0.176762729883194
+				],
+				"size": [
+					1.15299451351166,
+					1.79997205734253,
+					0.355574011802673
+				]
+			},
+			"bytes": 33328152,
+			"name": "clerk-rig-2",
+			"sha256": "93f95eb5e347acccfa89e7b73688a2ec4d7cd9b6f3f21c0b1a82f00ad106db98",
+			"stats": {
+				"animations": [
+					{
+						"length": 0.666666686534882,
+						"name": "Armature|running|baselayer"
+					}
+				],
+				"bones": 24,
+				"materials": [
+					{
+						"albedo_size": [
+							4096,
+							4096
+						],
+						"metallic_map": true,
+						"normal_enabled": true,
+						"roughness_map": true
+					}
+				],
+				"meshes": 1,
+				"triangles": 12476,
+				"vertices": 16336
+			}
+		},
+		{
+			"bounds": {
+				"position": [
+					-0.959675073623657,
+					-0.206633016467094,
+					-0.0519590117037296
+				],
+				"size": [
+					1.90979313850403,
+					0.409741014242172,
+					0.10317400842905
+				]
+			},
+			"bytes": 29994108,
+			"name": "shotgun-model-0",
+			"sha256": "f6e4e024ffee8cf36ba8363daa3a31a5dc90dd3ae49914d80692b2050d3d7a42",
+			"stats": {
+				"animations": [],
+				"bones": 0,
+				"materials": [
+					{
+						"albedo_size": [
+							4096,
+							4096
+						],
+						"metallic_map": true,
+						"normal_enabled": true,
+						"roughness_map": true
+					}
+				],
+				"meshes": 1,
+				"triangles": 11727,
+				"vertices": 16555
+			}
+		},
+		{
+			"bounds": {
+				"position": [
+					-0.5,
+					-0.137118995189667,
+					-0.0348789989948273
+				],
+				"size": [
+					1.0,
+					0.27622401714325,
+					0.0685060024261475
+				]
+			},
+			"bytes": 24104632,
+			"name": "shotgun-topology-corrected-0",
+			"sha256": "6f7078f594262c23de7d599868285ac7e62046a100dace5c934a53c0f1a96f22",
+			"stats": {
+				"animations": [],
+				"bones": 0,
+				"materials": [
+					{
+						"albedo_size": [
+							4096,
+							4096
+						],
+						"metallic_map": true,
+						"normal_enabled": true,
+						"roughness_map": true
+					}
+				],
+				"meshes": 1,
+				"triangles": 12853,
+				"vertices": 9930
+			}
+		},
+		{
+			"bounds": {
+				"position": [
+					-0.94168496131897,
+					-0.680954992771149,
+					-0.49756196141243
+				],
+				"size": [
+					1.89145803451538,
+					1.34442901611328,
+					1.02378296852112
+				]
+			},
+			"bytes": 30207232,
+			"name": "yard-generator-model-0",
+			"sha256": "8c2d782b1bdd7e7df829b1203d5fbef61f794724205366e9293a8e654e261562",
+			"stats": {
+				"animations": [],
+				"bones": 0,
+				"materials": [
+					{
+						"albedo_size": [
+							4096,
+							4096
+						],
+						"metallic_map": true,
+						"normal_enabled": true,
+						"roughness_map": true
+					}
+				],
+				"meshes": 1,
+				"triangles": 11224,
+				"vertices": 21788
+			}
+		}
+	],
+	"renderer": "gl_compatibility",
+	"schema": 1
+}

@@ -252,6 +252,9 @@ fn exact_pricing_and_unknown_parameters_are_validated_locally() {
     assert_eq!(credits, 15);
     assert_eq!(identity.request["params"]["model_type"], "smart-topology");
     assert!(identity.request["params"].get("should_remesh").is_none());
+    assert!(identity.request["params"]
+        .get("image_enhancement")
+        .is_none());
     base["jobs"][0]["geometry_resolution"] = json!("4k");
     assert!(parse_spec(&base.to_string()).is_err());
     base["jobs"][0]["geometry_resolution"] = json!("standard");

@@ -1,6 +1,8 @@
 # Bounded 3D asset production
 
-**Status:** in flight, 2026-10-03. Native tooling and the first model pilot.
+**Status:** implemented and tested, 2026-10-03. Native tooling and the first model
+pilot are proven; final CI and merge remain required before calling the increment
+shipped. Runtime art acceptance remains in flight under art excellence.
 
 ## Goal and scope
 
@@ -11,6 +13,12 @@ bounded image-to-3D and humanoid-rigging path within `tools/spritegen`.
 The first pilot targets one enemy, one weapon and one prop within 150 existing
 credits. References and returned models remain candidates until inspected in
 Godot; a generated mesh is not a finished asset or final campaign acceptance.
+
+The [completed pilot evidence](../evidence/meshy-pilot-20261003.md) records four
+model candidates, a character rig with walk/run clips and seven rendered GLBs.
+It consumed 125 net credits with 15 additional credits held conservatively after
+a refused request. The live account reports 2,975 credits; no model is selected
+for runtime yet. The topology generator comparison was not submitted.
 
 No new cash purchases, top-ups, runtime API calls or paid CI calls. Server
 simulation, collision and campaign facts remain unchanged. Animation authoring,

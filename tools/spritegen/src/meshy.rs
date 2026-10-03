@@ -241,7 +241,12 @@ impl JobSpec {
                 if ai_model == "meshy-t2" {
                     params["model_type"] = json!("smart-topology");
                     let fields = params.as_object_mut().expect("constructed parameters");
-                    for key in ["geometry_resolution", "should_remesh", "topology"] {
+                    for key in [
+                        "geometry_resolution",
+                        "should_remesh",
+                        "topology",
+                        "image_enhancement",
+                    ] {
                         fields.remove(key);
                     }
                 }

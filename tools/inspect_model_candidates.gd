@@ -101,6 +101,7 @@ func _inspect(path: String, name: String) -> bool:
 			if clip == &"RESET":
 				continue
 			player.play(clip)
+			player.pause()
 			var animation: Animation = player.get_animation(clip)
 			for sample: int in range(4):
 				player.seek(animation.length * float(sample) / 4.0, true)
@@ -119,7 +120,7 @@ func _scan(node: Node, stats: Dictionary) -> AABB:
 	var has_bounds: bool = false
 	if node is MeshInstance3D and node.mesh != null:
 		stats["meshes"] += 1
-		bounds = node.global_transform * node.mesh.get_aabb()
+		bounds = _skin_bounds(node) if node.skin != null else node.global_transform * node.mesh.get_aabb()
 		has_bounds = true
 		for surface: int in range(node.mesh.get_surface_count()):
 			var arrays: Array = node.mesh.surface_get_arrays(surface)
@@ -147,11 +148,61 @@ func _scan(node: Node, stats: Dictionary) -> AABB:
 			has_bounds = true
 	return bounds
 
+func _skin_bounds(instance: MeshInstance3D) -> AABB:
+	var skeleton: Skeleton3D = instance.get_node_or_null(instance.skeleton) as Skeleton3D
+	if skeleton == null:
+		return instance.global_transform * instance.mesh.get_aabb()
+	var transforms: Array[Transform3D] = []
+	for bind: int in range(instance.skin.get_bind_count()):
+		var bone: int = instance.skin.get_bind_bone(bind)
+		if bone < 0:
+			bone = skeleton.find_bone(instance.skin.get_bind_name(bind))
+		if bone < 0 or bone >= skeleton.get_bone_count():
+			_fail("skin references an absent bone")
+			return AABB()
+		transforms.append(skeleton.global_transform * skeleton.get_bone_global_pose(bone) * instance.skin.get_bind_pose(bind))
+	var bounds: AABB = AABB()
+	var started: bool = false
+	for surface: int in range(instance.mesh.get_surface_count()):
+		var arrays: Array = instance.mesh.surface_get_arrays(surface)
+		var vertices: Variant = arrays[Mesh.ARRAY_VERTEX]
+		var bones: Variant = arrays[Mesh.ARRAY_BONES]
+		var weights: Variant = arrays[Mesh.ARRAY_WEIGHTS]
+		if not vertices is PackedVector3Array or not bones is PackedInt32Array or not weights is PackedFloat32Array:
+			_fail("skin has no vertex weights")
+			return AABB()
+		var influences: int = int(bones.size() / vertices.size())
+		if influences not in [4, 8] or weights.size() != bones.size():
+			_fail("skin weight layout is invalid")
+			return AABB()
+		for vertex: int in range(vertices.size()):
+			var position: Vector3 = Vector3.ZERO
+			for influence: int in range(influences):
+				var index: int = vertex * influences + influence
+				if bones[index] < 0 or bones[index] >= transforms.size():
+					_fail("vertex references an absent skin bind")
+					return AABB()
+				position += (transforms[bones[index]] * vertices[vertex]) * weights[index]
+			bounds = bounds.expand(position) if started else AABB(position, Vector3.ZERO)
+			started = true
+	return bounds
+
 func _capture(name: String) -> bool:
 	await process_frame
 	await RenderingServer.frame_post_draw
 	await RenderingServer.frame_post_draw
-	if _viewport.get_texture().get_image().save_png(_out.path_join(name)) != OK:
+	var picture: Image = _viewport.get_texture().get_image()
+	var background: Color = picture.get_pixel(0, 0)
+	var visible: int = 0
+	for y: int in range(0, picture.get_height(), 12):
+		for x: int in range(0, picture.get_width(), 12):
+			var pixel: Color = picture.get_pixel(x, y)
+			if absf(pixel.r - background.r) + absf(pixel.g - background.g) + absf(pixel.b - background.b) > 0.03:
+				visible += 1
+	if visible < 12:
+		_fail("empty candidate render: " + name)
+		return false
+	if picture.save_png(_out.path_join(name)) != OK:
 		_fail("cannot write candidate render")
 		return false
 	return true
