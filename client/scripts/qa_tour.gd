@@ -205,6 +205,15 @@ func _run() -> void:
 			await _change_role(state["join"] == "human")
 			if _joined:
 				_combat_probe.begin(_game_manager())
+		if state.has("await_alive") and _joined:
+			# A Sabotage joiner after muster sits the round out; wait for the
+			# next one to put the fighter on the floor.
+			var alive_deadline: int = Time.get_ticks_msec() + roundi(float(state["await_alive"]) * 1000.0)
+			while not _local_human_alive(_game_manager()) and Time.get_ticks_msec() < alive_deadline:
+				await create_timer(0.1).timeout
+			if not _local_human_alive(_game_manager()):
+				push_error("qa_tour: %s never had a live joined fighter" % state_name)
+				_failed = true
 		if state.get("radio_off", false):
 			var radio: Node = _game_manager().get("radio") if _game_manager() != null else null
 			if radio == null:

@@ -92,8 +92,10 @@ func hide_all() -> void:
 
 
 func _layout() -> void:
-	var width: float = size.x if size.x > 0.0 else 1280.0
-	var height: float = size.y if size.y > 0.0 else 720.0
+	# The canvas the HUD draws on, whatever this Control's own rect became.
+	var screen: Vector2 = get_viewport_rect().size if is_inside_tree() else Vector2(1280.0, 720.0)
+	var width: float = screen.x if screen.x > 0.0 else 1280.0
+	var height: float = screen.y if screen.y > 0.0 else 720.0
 	var centre: float = width * 0.5
 	var top: float = 14.0
 	for i: int in range(MAX_PIPS):
@@ -115,6 +117,7 @@ func apply(state: Dictionary, charge_ticks: int, progress_owner: bool, carried: 
 	if state.is_empty():
 		hide_all()
 		return
+	_layout()
 	var alive: Dictionary = state.get("alive", {})
 	_fill_pips(_union_pips, int(alive.get("union", 0)))
 	_fill_pips(_coalition_pips, int(alive.get("coalition", 0)))

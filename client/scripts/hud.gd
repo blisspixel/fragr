@@ -298,6 +298,9 @@ func set_match_rules(rules: Dictionary) -> void:
 		sabotage_line = ""
 		if sabotage_hud != null:
 			sabotage_hud.hide_all()
+	if mode_chip_label != null:
+		# Sabotage's one line stays one line; the other chips wrap in the panel.
+		mode_chip_label.autowrap_mode = TextServer.AUTOWRAP_OFF if sabotage() else TextServer.AUTOWRAP_WORD_SMART
 	if int(rules.get("lives", 0)) <= 0:
 		own_lives = -1
 	_refresh_mode_label()

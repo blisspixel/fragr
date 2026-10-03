@@ -10,7 +10,8 @@
       "join": "human",
       "camera": "first_person",
       "settle_seconds": 1.0,
-      "note": "Joining a Sabotage server: the first-person view with the one HUD line."
+      "note": "Joined on a Sabotage server: the first-person view with the one HUD line. A late joiner waits for the next round.",
+      "await_alive": 240
     },
     {
       "name": "sabotage_muster",
