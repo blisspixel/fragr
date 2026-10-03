@@ -1,0 +1,14 @@
+{
+  "_comment": "Subset of docs/palette.json for Union issue (black steel, restrained red, bone fasteners). Quantising to a subset keeps dark steel off the warm and green swatches no part of the object uses.",
+  "ink": [10,10,12,255],
+  "bone": [232,226,214,255],
+  "gunmetal_dark": [58,56,54,255],
+  "gunmetal": [90,85,79,255],
+  "gunmetal_light": [140,132,122,255],
+  "union_black": [30,30,34,255],
+  "union_steel": [44,45,50,255],
+  "union_plate": [86,87,94,255],
+  "union_red": [140,26,30,255],
+  "union_red_glow": [226,52,48,255],
+  "blood": [110,18,24,255]
+}

@@ -26,6 +26,8 @@ frame shows for 0.08 s; the HUD's kick translation still applies on top.
 Preparation: `fragr-spritegen reduce --input <raw> --out <dir> --height 180
 --no-trim --palette docs/palette.json --key ff00ff`. Prompts, request IDs,
 estimated costs and hashes are in `../../art-pass-20261002-manifest.json`; the
-specs are `tools/spritegen/specs/art-pass-20261002-*.json`. Nearest filter, no
-mipmaps. The Shiv's 48 pixel icon still comes from `client/art/weapons/` through
-`tools/bake_shiv.gd`.
+specs are `tools/spritegen/specs/art-pass-20261002-*.json`. The Rifle's two
+frames were redrawn in the second art pass in the Pistol's flat grey-green
+enamel, with the same framing (`../../art-pass-2-20261002-manifest.json`).
+Nearest filter, no mipmaps. The Shiv's 48 pixel icon still comes from
+`client/art/weapons/` through `tools/bake_shiv.gd`.

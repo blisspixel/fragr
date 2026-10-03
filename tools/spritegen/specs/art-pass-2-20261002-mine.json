@@ -1,0 +1,69 @@
+{
+  "_comment": [
+    "Art pass 2, 2026-10-02, batch M: Level 8's Proximity Mine. Plan: docs/plans/art-pass-2-20261002.md.",
+    "The pickup is drawn in the first pass's pickup style (its grenade pickup is the style reference)",
+    "and is then the reference for the face-on device and both first-person frames, which are edits of",
+    "the first pass's grenade hand frames so camera, glove and cuff match. Lamp states are composited",
+    "locally over the unlit device by tools/bake_custody_art.gd so they register exactly.",
+    "Each upload:<file> stood for a temporary provider URL of that local keeper, recorded in",
+    "art/raw/art-pass-2-20261002/references.jsonl. To rerun, upload the keeper with fragr-spritegen upload and substitute its public URL."
+  ],
+  "model": "marketing-studio/image",
+  "out_dir": "art/raw/art-pass-2-20261002/mine",
+  "params": {
+    "quality": "medium",
+    "resolution": "2k",
+    "aspect_ratio": "1:1",
+    "enhance_prompt": false
+  },
+  "style": "retro pixel art item pickup sprite for a 1990s PC shooter in the same chunky pixel style as the reference picture, crisp stepped pixel clusters, dark outline, limited palette of black steel, gunmetal grey, bone white and a restrained deep red with clear value contrast, broad flat areas of colour with hard-edged cel shading, flat even lighting, no gradients, no grain",
+  "view": "three-quarter view from slightly above, resting on the floor, centred, the whole object visible with even margins",
+  "technical": "the whole background is one flat solid pure magenta #FF00FF colour with no checkerboard, no pattern, no gradient and no shadow on it, no text, no letters, no numbers, no watermark, no border",
+  "frames": [
+    {
+      "id": "pk_proximity_mine",
+      "params": {
+        "image_urls": [
+          "upload:pk_grenades_0.png"
+        ]
+      },
+      "subject": "one squat round issued proximity mine shaped like a thick puck, a black steel casing with a lighter gunmetal bevelled rim, three short folding steel clamp feet spaced around its base, a small domed red glass lamp lens in the centre of its flat top face, one thin red seal stripe around the rim and a ring of small bone-white rivets, clean and severe issued hardware, no symbols"
+    },
+    {
+      "id": "mine_face",
+      "view": "seen from directly above, perfectly face-on and centred like a top-down plan view, the round top face filling most of the frame, no perspective",
+      "params": {
+        "image_urls": [
+          "upload:pk_proximity_mine_0.png"
+        ]
+      },
+      "subject": "the same proximity mine as the reference picture, its round top face with the small domed lamp lens exactly in the centre, the lens dark and unlit deep red, the ring of bone-white rivets and the red seal stripe around the rim, the three clamp feet showing evenly spaced at the edge"
+    },
+    {
+      "id": "vm_mine_ready",
+      "style": "first person pixel art sprite from a 1990s PC shooter in exactly the same style, camera, scale, colours and leather glove as the first reference picture, chunky stepped pixel clusters, broad flat areas of colour with hard-edged cel shading, flat even lighting, no grain",
+      "view": "",
+      "params": {
+        "aspect_ratio": "4:3",
+        "image_urls": [
+          "upload:vm_grenade_ready_0.png",
+          "upload:pk_proximity_mine_0.png"
+        ]
+      },
+      "subject": "edit the first reference picture and keep the left gloved hand, forearm, rust-brown jacket cuff, pose and framing exactly as they are; make only this change: instead of the grenade, the hand holds the round black steel proximity mine from the second reference picture flat on its fingers, tilted toward the viewer so its top face and dark unlit red lamp lens show, the rest of the frame empty"
+    },
+    {
+      "id": "vm_mine_place",
+      "style": "first person pixel art sprite from a 1990s PC shooter in exactly the same style, camera, scale, colours and leather glove as the first reference picture, chunky stepped pixel clusters, broad flat areas of colour with hard-edged cel shading, flat even lighting, no grain",
+      "view": "",
+      "params": {
+        "aspect_ratio": "4:3",
+        "image_urls": [
+          "upload:vm_grenade_throw_0.png",
+          "upload:pk_proximity_mine_0.png"
+        ]
+      },
+      "subject": "edit the first reference picture and keep the left gloved hand and forearm flung forward with the fingers opening exactly as they are; make only this change: instead of the grenade, the round black steel proximity mine from the second reference picture is just leaving the open palm, tilted forward, its three clamp feet springing open and its small lamp lens glowing amber, the rest of the frame empty"
+    }
+  ]
+}

@@ -4,6 +4,18 @@ Shipped tags, newest first. A line here is on `main`. Planned work stays in
 [docs/ROADMAP.md](docs/ROADMAP.md). Older tags are on the
 [releases page](https://github.com/blisspixel/fragr/releases).
 
+## Unreleased (art pass 2, 2026-10-02)
+
+The Rifle is repainted in the Pistol's flat grey-green enamel, so it no longer
+breaks into blotches at game scale, and its fire frame shows a bright
+four-point flash. Each gun now has its own third-person muzzle flash: a small
+star for the Pistol, thin needles for the Rifle, a ragged fireball with smoke
+for the Shotgun, a cold cyan ring for the Railgun and a long level jet for the
+Sniper Rifle. Impacts are drawn sprites that play out over a quarter second: a
+spark and a dust puff on walls, a red splash and droplets on fighters, a
+widening cyan ring for the Railgun and a dust smack for melee. Redrawing the
+Rifle used an estimated $0.20 of existing image credit.
+
 ## Unreleased (art pass, 2026-10-02)
 
 Every gun now fires with its own drawn frame and muzzle flash: the Pistol's

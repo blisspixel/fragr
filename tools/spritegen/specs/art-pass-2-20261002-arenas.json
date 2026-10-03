@@ -1,0 +1,57 @@
+{
+  "_comment": [
+    "Art pass 2, 2026-10-02, batch W2: surfaces for the remaining procedural arenas. Plan: docs/plans/art-pass-2-20261002.md.",
+    "Directive 17 Substation, Reclamation Gulch and Tripoint Works, prepared exactly like Sector 9: 2048 square",
+    "medium requests reduced to 128, tools/prepare_earth_tiles.gd edge bands and a final palette pass.",
+    "Parked with chunk 5 of the plan: generated and backed up, not yet installed on main."
+  ],
+  "model": "marketing-studio/image",
+  "out_dir": "art/raw/art-pass-2-20261002/arenas",
+  "params": {
+    "quality": "medium",
+    "resolution": "2k",
+    "aspect_ratio": "1:1",
+    "enhance_prompt": false
+  },
+  "style": "original retro FPS material albedo, deliberate chunky pixel clusters, broad material shapes with bold dark seams several pixels wide and quiet combat-readable fields, restrained canonical palette of warm gunmetal, dark steel, bone white, dull rust, muted sage and a muted cyan, flat even lighting, no gradients",
+  "view": "orthographic straight-on seamless square texture, full continuous edge-to-edge flat material, no perspective, no object silhouette",
+  "technical": "opaque square albedo only, match opposing edges on both axes for repeated tiling, no shadow, no ambient occlusion, no specular highlight, no glossy reflection, no rim light, no text, no lettering, no numbers, no watermark, no signature, no frame or border, no baked lights",
+  "frames": [
+    {
+      "id": "d17_terrace_concrete",
+      "subject": "seamless decommissioned power substation terrace floor, cast concrete in large square slabs with bold dark expansion joints, warm medium grey with faint old cable-trench patches and sparse pale scuffs, quiet walking surface, no painted lines, no hazard stripes"
+    },
+    {
+      "id": "d17_transformer_wall",
+      "subject": "seamless decommissioned transformer housing wall, dark gunmetal steel with broad vertical cooling ribs in bold relief, a muted cyan-grey enamel band of old insulator paint and small flush bolts, sparse dull rust at the joins, quiet dark field, no vents, no signs"
+    },
+    {
+      "id": "d17_cable_drum",
+      "subject": "seamless wall of decommissioned switchgear cabinets, muted sage-grey steel doors with bold dark seams and small recessed handles, one small bone inspection plate per door and sparse dull rust, quiet orderly field, no labels, no stencils, no stripes"
+    },
+    {
+      "id": "gulch_packed_ground",
+      "subject": "seamless materials recovery yard ground, packed dusty earth and crushed rubble in warm grey-brown, broad tyre-flattened fields with sparse small stones and faint rust flakes, quiet low-contrast walking surface, no tyre marks in straight lines, no puddles"
+    },
+    {
+      "id": "gulch_compound_wall",
+      "subject": "seamless salvaged compound wall of welded corrugated steel sheets, mixed dull rust, warm gunmetal and faded sage panels with bold dark overlapping seams and rivet rows, honest patched repairs, quiet fields, no graffiti, no holes"
+    },
+    {
+      "id": "gulch_scrap_bales",
+      "subject": "seamless side of stacked salvage containers, dull rust and warm grey corrugated steel with broad vertical ribs and bold dark seams between containers, sparse pale scuffs, quiet readable blocks, no loose scrap, no glowing parts, no text"
+    },
+    {
+      "id": "tripoint_plant_deck",
+      "subject": "seamless reclamation plant floor of riveted steel deck plates, warm medium gunmetal with bold dark plate seams, worn bone-white walkway edging and sparse oil marks, quiet walking surface, no hazard stripes, no arrows"
+    },
+    {
+      "id": "tripoint_plant_wall",
+      "subject": "seamless reclamation plant wall of large sheet steel panels, muted sage and warm gunmetal with bold dark seams, small flush bolts and a faded bone-white band at mid height, sparse rust at the bottom edge, quiet field, no vents, no signs"
+    },
+    {
+      "id": "tripoint_hopper_crate",
+      "subject": "seamless side of stacked reclamation hopper crates, muted bone-grey painted steel with bold dark frames and corner posts and one thin dull rust band low on each crate, sparse wear, quiet orderly field, no labels, no stencils, no stripes"
+    }
+  ]
+}

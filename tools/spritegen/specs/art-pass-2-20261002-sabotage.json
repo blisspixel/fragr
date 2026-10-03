@@ -1,0 +1,121 @@
+{
+  "_comment": [
+    "Art pass 2, 2026-10-02, batch S: Sabotage's charge, sites and first-person frames. Plan: docs/plans/art-pass-2-20261002.md.",
+    "The charge belongs to the free side (bone, leather, ember); the site plates are Union issue",
+    "(black steel, restrained red). The charge is drawn in the first pass's pickup style and is then",
+    "the reference for the planted charge and the first-person frames, which reuse the first pass's",
+    "glove and camera. Letters A and B and the timer lamp states are composited locally by",
+    "tools/bake_sabotage_art.gd, because generated letters are unreliable and states must register.",
+    "Each upload:<file> stood for a temporary provider URL of that local keeper, recorded in",
+    "art/raw/art-pass-2-20261002/references.jsonl. To rerun, upload the keeper with fragr-spritegen upload and substitute its public URL."
+  ],
+  "model": "marketing-studio/image",
+  "out_dir": "art/raw/art-pass-2-20261002/sabotage",
+  "params": {
+    "quality": "medium",
+    "resolution": "2k",
+    "aspect_ratio": "1:1",
+    "enhance_prompt": false
+  },
+  "style": "retro pixel art item pickup sprite for a 1990s PC shooter in the same chunky pixel style as the reference picture, crisp stepped pixel clusters, dark outline, limited palette of worn warm brown leather, bone white, ember orange, brass, gunmetal grey and deep shadow with clear value contrast, broad flat areas of colour with hard-edged cel shading, flat even lighting, no gradients, no grain",
+  "view": "three-quarter view from slightly above, resting on the floor, centred, the whole object visible with even margins",
+  "technical": "the whole background is one flat solid pure magenta #FF00FF colour with no checkerboard, no pattern, no gradient and no shadow on it, no text, no letters, no numbers, no watermark, no border",
+  "frames": [
+    {
+      "id": "sb_satchel",
+      "params": {
+        "image_urls": [
+          "upload:pk_grenades_0.png"
+        ]
+      },
+      "subject": "one hand-made demolition charge: four bone-white wrapped explosive blocks bundled tight with worn warm brown leather straps and brass buckles, ember-orange wires running into a small dark steel timer box strapped on top, the timer box with a blank dark rectangular display window and one small round unlit lamp, a leather carry strap looped over the bundle, scuffed and practical, no symbols"
+    },
+    {
+      "id": "sb_satchel_b",
+      "params": {
+        "image_urls": [
+          "upload:pk_grenades_0.png"
+        ]
+      },
+      "subject": "one hand-made demolition charge drawn as a 40 by 40 pixel sprite scaled up, with very large chunky pixels, simple bold shapes and few details: three bone-white wrapped explosive blocks bundled with two broad worn brown leather straps with dull iron buckles, a small dark steel timer box strapped on top with a dark display window and one small round unlit lamp, two thick ember-orange wires, a leather carry strap loop over the top, no symbols"
+    },
+    {
+      "id": "sb_charge_planted",
+      "params": {
+        "image_urls": [
+          "upload:sb_satchel_b_0.png"
+        ]
+      },
+      "subject": "the same demolition charge as the reference picture, drawn the same way with very large chunky pixels and simple bold shapes, now planted: lying flat on the floor with its carry strap laid out beside it and two short steel spikes driven through its leather straps into the floor, the dark steel timer box on top facing up toward the viewer, its rectangular display window and round lamp both dark and unlit"
+    },
+    {
+      "id": "sb_site_plate",
+      "style": "retro pixel art sign sprite for a 1990s PC shooter, crisp stepped pixel clusters, dark outline, limited palette of near-black steel, dark gunmetal, a deep severe red and bone white with clear value contrast, broad flat areas of colour with hard-edged cel shading, flat even lighting, no gradients, no grain",
+      "view": "straight-on front view, perfectly face-on and centred, the whole sign visible with even margins, no perspective",
+      "subject": "one square authoritarian site marker sign: a heavy near-black steel plate with a bevelled edge, a broad deep red border band inset from the edge, four bone-white bolts at the corners, and a clean flat dark centre panel left completely blank, clean and severe, no text, no letters, no symbols, no emblem"
+    },
+    {
+      "id": "vm_charge_carry",
+      "style": "first person pixel art sprite from a 1990s PC shooter in exactly the same style, camera, scale, colours and leather glove as the first reference picture, chunky stepped pixel clusters, broad flat areas of colour with hard-edged cel shading, flat even lighting, no grain",
+      "view": "",
+      "params": {
+        "aspect_ratio": "4:3",
+        "image_urls": [
+          "upload:vm_grenade_ready_0.png",
+          "upload:sb_satchel_b_0.png"
+        ]
+      },
+      "subject": "edit the first reference picture and keep the left gloved hand, forearm, rust-brown jacket cuff and framing exactly as they are; make only this change: instead of the grenade, the fist grips the leather carry strap of the demolition charge from the second reference picture, the bundle hanging just below the fist with its timer box facing the viewer, the rest of the frame empty"
+    },
+    {
+      "id": "vm_charge_plant",
+      "style": "first person pixel art sprite from a 1990s PC shooter in exactly the same style, scale, colours and leather gloves as the first reference picture, chunky stepped pixel clusters, broad flat areas of colour with hard-edged cel shading, flat even lighting, no grain",
+      "view": "first person view looking down, the object low at the bottom centre of the frame",
+      "params": {
+        "aspect_ratio": "4:3",
+        "image_urls": [
+          "upload:vm_pistol_idle_0.png",
+          "upload:sb_charge_planted_0.png"
+        ]
+      },
+      "subject": "no weapon; both worn brown leather gloved hands with rust-brown jacket cuffs from the first reference picture reach in from the lower left and lower right edges and press the demolition charge from the second reference picture down, the left hand flat on the leather bundle and the right index finger pressing a key on its dark steel timer box, the timer lamp glowing red, the rest of the frame empty with no floor"
+    },
+    {
+      "id": "vm_charge_defuse",
+      "style": "first person pixel art sprite from a 1990s PC shooter in exactly the same style, scale, colours and leather gloves as the first reference picture, chunky stepped pixel clusters, broad flat areas of colour with hard-edged cel shading, flat even lighting, no grain",
+      "view": "first person view looking down, the object low at the bottom centre of the frame",
+      "params": {
+        "aspect_ratio": "4:3",
+        "image_urls": [
+          "upload:vm_pistol_idle_0.png",
+          "upload:sb_charge_planted_0.png"
+        ]
+      },
+      "subject": "no weapon; both worn brown leather gloved hands with rust-brown jacket cuffs from the first reference picture reach in from the lower left and lower right edges over the planted demolition charge from the second reference picture, the left hand holding its timer box steady and the right hand closing small red-handled wire cutters on one ember-orange wire, the timer lamp glowing red, the rest of the frame empty with no floor"
+    },
+    {
+      "id": "sb_prop_frame",
+      "style": "retro pixel art sprite for a 1990s PC shooter in the same chunky pixel style and colours as the reference picture, crisp stepped pixel clusters, dark outline, limited palette of near-black steel, dark gunmetal, a deep severe red and bone white with clear value contrast, broad flat areas of colour with hard-edged cel shading, flat even lighting, no gradients, no grain",
+      "view": "straight-on front view, perfectly face-on and centred, the whole object standing upright with even margins, no perspective",
+      "params": {
+        "aspect_ratio": "3:4",
+        "image_urls": [
+          "upload:sb_site_plate_0.png"
+        ]
+      },
+      "subject": "one authoritarian correction frame standing on the floor: a tall upright near-black steel gantry of two square posts and a heavy crossbeam, a narrow padded black restraint board between the posts with steel wrist and ankle cuffs, a small control screen on the right post glowing deep red, deep red warning bands on the heavy base plate, severe and clean institutional machine, no people, no text, no symbols"
+    },
+    {
+      "id": "sb_prop_registry",
+      "style": "retro pixel art sprite for a 1990s PC shooter in the same chunky pixel style and colours as the reference picture, crisp stepped pixel clusters, dark outline, limited palette of near-black steel, dark gunmetal, a deep severe red and bone white with clear value contrast, broad flat areas of colour with hard-edged cel shading, flat even lighting, no gradients, no grain",
+      "view": "straight-on front view, perfectly face-on and centred, the whole object standing upright with even margins, no perspective",
+      "params": {
+        "aspect_ratio": "3:4",
+        "image_urls": [
+          "upload:sb_site_plate_0.png"
+        ]
+      },
+      "subject": "one authoritarian registry server cabinet standing on the floor: a tall narrow near-black steel rack with a bevelled frame, six stacked drive bays with dark grey handles, a column of small status lamps glowing deep red, a thin deep red seal stripe down one side, vents near the base, severe and clean, no text, no symbols"
+    }
+  ]
+}
