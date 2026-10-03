@@ -278,9 +278,24 @@ func _run() -> void:
 				return
 			if not _walk_results.is_empty() and bool(_walk_results.back().get("stopped_for_round", false)):
 				break
-		for point: Array in state.get("walk_into", []):
-			if await _walk_into(Vector3(float(point[0]), float(point[1]), float(point[2]))):
+		# `walk_into` is one route, or a route per Sabotage side keyed by
+		# uniform, since a joiner lands on whichever side needs a fighter.
+		var into: Variant = state.get("walk_into", [])
+		if into is Dictionary:
+			var manager: Node = _game_manager()
+			into = (into as Dictionary).get(str(manager.get("_sabotage_team")) if manager != null else "", [])
+		var fell: bool = false
+		for point: Variant in (into as Array if into is Array else []):
+			var at: Array = point if point is Array else []
+			if at.size() < 3:
+				continue
+			if await _walk_into(Vector3(float(at[0]), float(at[1]), float(at[2]))):
+				fell = true
 				break
+		if not fell and state.has("walk_into_wait_seconds"):
+			var wait_until: int = Time.get_ticks_msec() + roundi(float(state["walk_into_wait_seconds"]) * 1000.0)
+			while bool(_observed_state().get("self_alive", false)) and Time.get_ticks_msec() < wait_until:
+				await create_timer(0.1).timeout
 		if state.has("expect_companion_displacement"):
 			await _expect_companion_displacement(float(state["expect_companion_displacement"]), state_name)
 		if state.get("m05_board_tram", false):
