@@ -287,7 +287,7 @@ fight, no supply claimed and no reveal, rescue, secret or broken node.
 | Teach by fighting | First contact 3.7 s from spawn past the entry Rifle. Longest main-route quiet walk 9.4 s. The one breath is the 15.9 s walk back to the bridge desk after the machine falls; the optional bays add a 17.0 s return that ends in the pipe ambush. |
 | Different shapes, never two alike in a row | Hall: desk crossfire, then a flank push around the screened shaft. Lower gallery: stair-head ambush. Mine lesson: a trap sprung on a converging pair. Upper gallery: Auditor repair fight. Service ring: close pipe ambush. Bridge: vertical crossfire with the second Auditor in the well. Exit: converging push up both freight stairs. |
 | Weapon choice | Hall distances suit the Rifle; the stair head and the pipes are close enough for the Shotgun; mines for the post and the exit stairs; flanking or blasts beat the Auditor's plate; the Railgun reaches into the well. Fresh-player play has not confirmed the swaps. |
-| Mine lesson as a trap | Picking up the cage dispatches the pair; one mine down the corridor and one at the mouth take both (`m08_post_pair_walks_into_the_corridor_mines`). |
+| Mine lesson as a trap | Picking up the cage dispatches the pair; one mine down the corridor and one at the mouth take both when the post never sees the player (`m08_post_pair_walks_into_the_corridor_mines`). Partly met: a post that sees the player and loses the alarm walks home instead of pushing on. |
 | Doom surprises, sparingly | The cage pickup springs the post. The pipe ambush waits on the way back from the optional bays. |
 | Secrets | Three, each marked with the six. Their contents follow the campaign brief (Bullets, Shells and a medkit, armor), so the early reward is supply, not new power. |
 | Rescue and evidence never block | Bays and cabinet are optional; the evidence arrival also counts once the counterattack wakes; no rescue can fail. |
@@ -304,7 +304,7 @@ fight, no supply claimed and no reveal, rescue, secret or broken node.
 | First range tour | exposed a post too close for the mine to arm; moved farther |
 | Second range and archive tours | range stuck leaving the alcove; archive hall fight shot across the open shaft from every side; both fixed |
 | Third archive tour | the lesson mine landed inside the alcove, the post stopped short and the player later walked onto its own live mine; both mines now go into the corridor |
-| Fourth archive tour (2026-10-03) | ordinary input through the hall, lower gallery, registry and both mine throws; the post pair did not reach the corridor within the cleanup window after its spacing was tightened, so the original spacing is restored |
+| Fourth to seventh archive tours (2026-10-03) | ordinary input passes the checkpoint, both secrets on the way, the hall, the lower gallery, the registry, the cage and the corridor mine throw. One post Sweeper walks into the mine every time; the other never comes into view of the alcove, and neither the corner, the mouth search nor a hunting approach toward its post confirmed it within the 25 s combat window. The tour now throws one corridor mine and hunts the survivor, then counts the lesson when the upper gallery wakes. |
 | Local gates (2026-10-03) | fmt, clippy, workspace tests, bench, coverage 93.77 % lines, release build, deny, the eight playtest smokes, roster and soak all pass |
 | Full Godot check | one stale selector expectation (five development missions) fixed to six; every other harness passes |
 
@@ -315,10 +315,16 @@ fight, no supply claimed and no reveal, rescue, secret or broken node.
   retry, the corridor mine trap and the route walk with pacing are all proven
   with actual `GameState` players and shared movement.
 - What is left: a clean rendered ordinary-input tour of the whole route. The
-  latest run passed every state through both mine throws; the states after the
-  mine cleanup (Auditor, service ring ambush, bridge, nodes, evidence, exit
-  fight, departure) still need a passing rendered run and inspected stills.
-  The custody range tour's audit-bay combat also needs a clean rerun.
+  latest runs pass every state through the corridor mine throw and its live
+  blink; the mine cleanup fails because the second post Sweeper does not follow
+  its partner into the alcove corridor in rendered play. A server probe shows
+  why: a post that sees the player and then loses the alarm walks home to its
+  post on the lower gallery east side, which is reachable and on the onward
+  route, so the level stays completable, but the trap only catches a post that
+  never saw the player. Decide whether a dispatched post should keep pushing to
+  the alcove, then pass the remaining states (Auditor, service ring ambush,
+  bridge, nodes, evidence, exit fight, departure) and inspect their stills. The
+  custody range tour's audit-bay combat also needs a clean rerun.
 - Next steps: rerun `client/qa/m08_custodian_of_record.json` and
   `client/qa/custody-range.json` under the render lock, adjust waypoints from
   the inspected stills, publish an `m08_*` gallery, then M07 to M08 carry once
