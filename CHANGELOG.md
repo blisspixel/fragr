@@ -19,7 +19,8 @@ Level 7's Sniper Rifle (first-person frames, pickup and scope overlay) and the
 Ranged Sweeper (mast antenna, long scoped rifle and a growing windup glint) are
 ready for that level to wire. Image generation used an estimated $2.76 of
 existing credit.
-## Unreleased
+
+## Unreleased (level 7 weapon and enemy, 2026-10-02)
 
 The Sniper Rifle and the Ranged Sweeper arrive for level 7. The Sniper Rifle is
 a found Cells weapon: 70 damage, a 1.6 second cycle, a cone that stays on a body
