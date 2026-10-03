@@ -1,0 +1,13 @@
+{
+  "_comment": "Subset of docs/palette.json for free-side equipment (bone, leather, ember, steel). Quantising to a subset keeps tan and cream shading off the greens and cyans that no part of the object uses.",
+  "ink": [10,10,12,255],
+  "bone": [232,226,214,255],
+  "gunmetal_dark": [58,56,54,255],
+  "gunmetal": [90,85,79,255],
+  "gunmetal_light": [140,132,122,255],
+  "rust": [122,58,34,255],
+  "dust_rust": [159,91,59,255],
+  "dust_light": [180,117,78,255],
+  "ember": [196,90,32,255],
+  "ember_hot": [220,140,60,255]
+}

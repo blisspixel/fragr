@@ -5,7 +5,8 @@ extends RefCounted
 ## the server sends ("Tack", "Flechette", "Scatter", "Rail", "Fists", "Shiv").
 ## First-person frames, world pickups, the profile a fighter holds and the HUD
 ## vitals icons come from the 2026-10-02 art pass; prompts, requests and hashes
-## are in `res://assets/art-pass-20261002-manifest.json`. All are palette
+## are in `res://assets/art-pass-20261002-manifest.json`, and for the redrawn
+## Rifle in `res://assets/art-pass-2-20261002-manifest.json`. All are palette
 ## sprites drawn with nearest sampling.
 ##
 ## "Sniper" is the Level 7 Sniper Rifle. Its art is ready; the weapon itself

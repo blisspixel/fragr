@@ -90,7 +90,8 @@
       "raw_file": "art/raw/art-pass-20261002/viewmodels/vm_rifle_idle_0.png",
       "raw_sha256": "66b9ca06361132d0bb09486789144cdfbb2782f3e4c20a1c6ec1fcd43c72737e",
       "reduction": "fragr-spritegen reduce --height 180 --no-trim --palette docs/palette.json --key ff00ff (tolerance 45, erode 2)",
-      "human_edited": false
+      "human_edited": false,
+      "superseded_by": "res://assets/art-pass-2-20261002-manifest.json"
     },
     {
       "output": "res://assets/weapons/viewmodels/rifle_fire.png",
@@ -116,7 +117,8 @@
       "raw_file": "art/raw/art-pass-20261002/viewmodels/vm_rifle_fire_0.png",
       "raw_sha256": "b3d7196290dfa9865107eafcf3fe8adf9efb56fd78b1e1c02963958e9b236f64",
       "reduction": "fragr-spritegen reduce --height 180 --no-trim --palette docs/palette.json --key ff00ff (tolerance 45, erode 2)",
-      "human_edited": false
+      "human_edited": false,
+      "superseded_by": "res://assets/art-pass-2-20261002-manifest.json"
     },
     {
       "output": "res://assets/weapons/viewmodels/shotgun_idle.png",

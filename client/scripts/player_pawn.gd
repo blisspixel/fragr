@@ -555,6 +555,9 @@ func _update_notary_shadow() -> void:
 	_notary_shadow.position.y = floor_y - global_position.y + 0.014
 	_notary_shadow.visible = hp > 0
 
+## Alternates the third-person flash left and right from one shot to the next.
+var _flash_mirrored: bool = false
+
 func show_muzzle_flash(weapon: String):
 	if is_campaign_enemy and campaign_actor.get("kind") == "notary":
 		# Its shutter and optic have their own server-driven presentation.
@@ -631,6 +634,14 @@ func show_muzzle_flash(weapon: String):
 			muzzle_glow.light_energy = 2.8
 			muzzle_glow.omni_range = 3.2
 	
+	# Each gun shows its own palette flash; the branches above set its size and
+	# light. Mirroring every other shot keeps a burst from looking stamped.
+	var drawn: Texture2D = ShotVfx.muzzle(weapon)
+	if drawn != null:
+		muzzle.texture = drawn
+		muzzle.modulate = Color.WHITE
+		_flash_mirrored = not _flash_mirrored
+		muzzle.flip_h = _flash_mirrored
 	muzzle.visible = true
 	
 	await get_tree().create_timer(flash_time).timeout

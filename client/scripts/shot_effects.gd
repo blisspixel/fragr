@@ -10,6 +10,12 @@ const LIFETIME: float = 0.24
 ## Cosmetic geometry close to the eye must not become screen-filling polygons.
 const CAMERA_CLEARANCE: float = 0.6
 const CLEARANCE_SHADER: Shader = preload("res://assets/shaders/shot_clearance.gdshader")
+## Impact sprites from `ShotVfx`, on their own surface with the same clearance.
+const SPRITE_SHADER: Shader = preload("res://assets/shaders/shot_sprite.gdshader")
+## Impact sprites stand off the struck surface and lean toward the eye, so a
+## wall does not swallow half of the puff.
+const IMPACT_STANDOFF: float = 0.06
+const IMPACT_TOWARD_EYE: float = 0.08
 ## A scatter blast draws at most this many pellets per result, matching the server.
 const MAX_PELLETS: int = 7
 ## Server melee reach in world units. A melee trace can never end farther away.
@@ -39,6 +45,11 @@ var _material: ShaderMaterial = ShaderMaterial.new()
 var _clip_to_camera: bool = false
 var _camera_origin: Vector3 = Vector3.ZERO
 var _camera_forward: Vector3 = Vector3.FORWARD
+var _camera_right: Vector3 = Vector3.RIGHT
+var _camera_up: Vector3 = Vector3.UP
+var _impact_mesh: ImmediateMesh = ImmediateMesh.new()
+var _impact_material: ShaderMaterial = ShaderMaterial.new()
+var _building_impacts: bool = false
 var _camera_clearance: float = CAMERA_CLEARANCE
 var _building_surface: bool = false
 
@@ -50,6 +61,14 @@ func _ready() -> void:
 	surface.mesh = _mesh
 	surface.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	add_child(surface)
+	_impact_material.shader = SPRITE_SHADER
+	_impact_material.set_shader_parameter("sprite_texture", ShotVfx.IMPACTS)
+	_impact_material.set_shader_parameter("camera_clearance", CAMERA_CLEARANCE)
+	var impacts: MeshInstance3D = MeshInstance3D.new()
+	impacts.name = "Impacts"
+	impacts.mesh = _impact_mesh
+	impacts.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	add_child(impacts)
 	visible = false
 	set_process(false)
 
@@ -139,6 +158,7 @@ func clear() -> void:
 	_effects.clear()
 	_last_tick = -1
 	_mesh.clear_surfaces()
+	_impact_mesh.clear_surfaces()
 	visible = false
 	set_process(false)
 
@@ -163,6 +183,7 @@ func _process(delta: float) -> void:
 
 func _rebuild() -> void:
 	_mesh.clear_surfaces()
+	_impact_mesh.clear_surfaces()
 	visible = not _effects.is_empty()
 	set_process(visible)
 	if not visible:
@@ -173,14 +194,22 @@ func _rebuild() -> void:
 		var camera_transform: Transform3D = camera.get_camera_transform()
 		_camera_origin = camera_transform.origin
 		_camera_forward = -camera_transform.basis.z.normalized()
+		_camera_right = camera_transform.basis.x.normalized()
+		_camera_up = camera_transform.basis.y.normalized()
 		_camera_clearance = maxf(CAMERA_CLEARANCE, camera.near)
 	_material.set_shader_parameter("camera_clearance", _camera_clearance)
+	_impact_material.set_shader_parameter("camera_clearance", _camera_clearance)
 	_building_surface = false
 	for effect in _effects:
 		_draw_effect(effect)
 	if _building_surface:
 		_mesh.surface_end()
-	visible = _building_surface
+	_building_impacts = false
+	for effect in _effects:
+		_draw_impact_sprite(effect)
+	if _building_impacts:
+		_impact_mesh.surface_end()
+	visible = _building_surface or _building_impacts
 
 func _draw_effect(effect: Effect) -> void:
 	if effect.weapon in EquipmentState.MELEE:
@@ -203,10 +232,9 @@ func _draw_effect(effect: Effect) -> void:
 	var normal: Vector3 = effect.normal
 	var tangent: Vector3 = normal.cross(Vector3.UP if absf(normal.y) < 0.9 else Vector3.RIGHT).normalized()
 	var bitangent: Vector3 = normal.cross(tangent)
+	# The flash and puff are the impact sprite; these sparks add the motion.
 	var size: float = (0.12 if effect.kind == "fighter" else 0.07) * (1.0 - effect.age / LIFETIME)
 	var centre: Vector3 = effect.end + normal * 0.025
-	_quad(centre - tangent * size - bitangent * size, centre + tangent * size - bitangent * size,
-		centre + tangent * size + bitangent * size, centre - tangent * size + bitangent * size, Color("fff0bd"))
 	for i in range(4):
 		var angle: float = float(i) * PI * 0.5 + 0.35
 		var velocity: Vector3 = (tangent * cos(angle) + bitangent * sin(angle)) * 1.8 + normal * 1.3
@@ -287,3 +315,45 @@ func _quad(a: Vector3, b: Vector3, c: Vector3, d: Vector3, colour: Color) -> voi
 
 func _camera_depth(vertex: Vector3) -> float:
 	return _camera_forward.dot(to_global(vertex) - _camera_origin) - _camera_clearance
+
+## One camera-facing quad from the impact atlas, its frame chosen by age.
+## The whole quad is skipped when any corner would enter the camera
+## clearance, and the shader discards anything the moving eye later reaches.
+func _draw_impact_sprite(effect: Effect) -> void:
+	if effect.kind == "range" or effect.age >= LIFETIME:
+		return
+	var row: String = ShotVfx.impact_row(effect.weapon, effect.kind)
+	var half: float = ShotVfx.IMPACT_METRES[row] * 0.5
+	var centre: Vector3 = effect.end + effect.normal * IMPACT_STANDOFF
+	var right: Vector3
+	var up: Vector3
+	if _clip_to_camera:
+		var eye: Vector3 = to_local(_camera_origin) - centre
+		if eye.length() > 0.001:
+			centre += eye.normalized() * minf(IMPACT_TOWARD_EYE, eye.length() * 0.5)
+		right = (global_transform.basis.inverse() * _camera_right).normalized()
+		up = (global_transform.basis.inverse() * _camera_up).normalized()
+	else:
+		right = effect.normal.cross(Vector3.UP if absf(effect.normal.y) < 0.9 else Vector3.RIGHT).normalized()
+		up = effect.normal.cross(right)
+	var corners: Array[Vector3] = [centre - right * half - up * half, centre + right * half - up * half,
+		centre + right * half + up * half, centre - right * half + up * half]
+	if _clip_to_camera:
+		for corner: Vector3 in corners:
+			if _camera_depth(corner) < 0.0:
+				return
+	var uv: Rect2 = ShotVfx.impact_uv(row, effect.age, LIFETIME)
+	var uvs: Array[Vector2] = [Vector2(uv.position.x, uv.end.y), uv.end,
+		Vector2(uv.end.x, uv.position.y), uv.position]
+	if not _building_impacts:
+		_impact_mesh.surface_begin(Mesh.PRIMITIVE_TRIANGLES, _impact_material)
+		_building_impacts = true
+	_impact_mesh.surface_set_color(Color.WHITE)
+	for index: int in [0, 1, 2, 0, 2, 3]:
+		_impact_mesh.surface_set_uv(uvs[index])
+		_impact_mesh.surface_add_vertex(corners[index])
+
+func impact_count() -> int:
+	if _impact_mesh.get_surface_count() == 0:
+		return 0
+	return _impact_mesh.surface_get_array_len(0) / 6

@@ -1,0 +1,42 @@
+{
+  "_comment": [
+    "Art pass 2, 2026-10-02, batch R: the Rifle without palette blotches. Plan: docs/plans/art-pass-2-20261002.md.",
+    "The first pass's Rifle receiver is a light olive grey between three palette swatches, so reduction",
+    "flipped neighbouring pixels between them. The idle is an edit of that keeper, recoloured to the",
+    "Pistol's institutional grey-green with flat faces; the fire frame is an edit of the approved idle.",
+    "Each upload:<file> stood for a temporary provider URL of that local keeper, recorded in",
+    "art/raw/art-pass-2-20261002/references.jsonl. To rerun, upload the keeper with fragr-spritegen upload and substitute its public URL."
+  ],
+  "model": "marketing-studio/image",
+  "out_dir": "art/raw/art-pass-2-20261002/rifle",
+  "params": {
+    "quality": "medium",
+    "resolution": "2k",
+    "aspect_ratio": "4:3",
+    "enhance_prompt": false
+  },
+  "style": "redraw this exact first person pixel art weapon sprite from a 1990s PC shooter as the same picture, keeping the identical camera angle, framing, scale, weapon position, silhouette, proportions and chunky stepped pixel clusters, limited palette with broad flat areas of single colours and hard-edged cel shading in at most three tones per material, clear value contrast between light steel edge highlights, the mid body and dark recesses, flat even lighting, no grain, no speckle, no noise texture, no dithering, no weathering marks",
+  "technical": "the whole background is one flat solid pure magenta #FF00FF colour with no checkerboard, no pattern, no gradient and no shadow on it, no text, no letters, no watermark, no border",
+  "frames": [
+    {
+      "id": "vm_rifle_idle_flat",
+      "params": {
+        "image_urls": [
+          "upload:vm_rifle_idle_0.png",
+          "upload:vm_pistol_idle_0.png"
+        ]
+      },
+      "subject": "edit the first reference picture and keep its tall tapered rifle and both gloved hands exactly where they are; make only these changes: repaint all of the rifle's metal in the same dark institutional grey-green enamel and dark gunmetal as the pistol in the second reference picture, with clean flat faces, crisp light steel edge highlights and dark recesses; every riveted plate becomes plain dark steel with no marks, no scratches and no symbols; both brown leather gloves get the same clean smooth leather shading as the second reference picture"
+    },
+    {
+      "id": "vm_rifle_fire_flat",
+      "style": "redraw this exact first person pixel art weapon sprite from a 1990s PC shooter as the same picture at the instant of firing, keeping the identical camera angle, framing, scale, weapon design, gloves, colours and chunky stepped pixel clusters, broad flat areas of single colours with hard-edged cel shading, flat even lighting, no grain, no speckle, no noise texture",
+      "params": {
+        "image_urls": [
+          "upload:vm_rifle_idle_flat_0.png"
+        ]
+      },
+      "subject": "a bright sharp muzzle flash of hot ember orange with a pale yellow-white core and four thin needle streaks bursts from the muzzle at the top with hard stepped pixel edges, clearly visible and about as wide as the rifle's upper receiver, fully inside the picture, the rifle kicks up slightly into the gloves; the rifle's colours and both gloves stay exactly as they are"
+    }
+  ]
+}

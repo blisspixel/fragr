@@ -1,0 +1,104 @@
+{
+  "schema": 1,
+  "created": "2026-10-02",
+  "plan": "docs/plans/art-pass-2-20261002.md",
+  "provider": "Higgsfield API through tools/spritegen",
+  "palette": "docs/palette.json",
+  "palette_sha256": "c97f60cb92a212166e1506ab1cb32f0705227e205b6ecb7fcd83701491f19da5",
+  "format": "RGBA8 PNG, palette-locked in CIE Lab, hard alpha, nearest sampling, no mipmaps; image chunks only, no embedded metadata",
+  "specs": [
+    "tools/spritegen/specs/art-pass-2-20261002-rifle.json",
+    "tools/spritegen/specs/art-pass-2-20261002-mine.json",
+    "tools/spritegen/specs/art-pass-2-20261002-sabotage.json"
+  ],
+  "note": "Reference uploads were temporary provider URLs; references name the local keeper uploaded. Raw outputs and ledgers stay outside git under art/raw/art-pass-2-20261002. Sub-palettes in tools/spritegen/specs/palettes are subsets of docs/palette.json.",
+  "assets": [
+    {
+      "output": "res://assets/weapons/viewmodels/rifle_idle.png",
+      "output_size": [241, 180],
+      "output_sha256": "92b7ef9d7bd8d3216c3967c9ea943aa726b7c04889bb9492ca649f0a6d6cabc0",
+      "frame_id": "vm_rifle_idle_flat",
+      "request_id": "28209da0-9c5c-4737-b650-8eda3ffda998",
+      "model": "marketing-studio/image",
+      "params": {"aspect_ratio": "4:3", "enhance_prompt": false, "quality": "medium", "resolution": "2k"},
+      "estimated_usd": 0.105,
+      "references": [
+        "vm_rifle_idle_0.png",
+        "vm_pistol_idle_0.png"
+      ],
+      "prompt": "redraw this exact first person pixel art weapon sprite from a 1990s PC shooter as the same picture, keeping the identical camera angle, framing, scale, weapon position, silhouette, proportions and chunky stepped pixel clusters, limited palette with broad flat areas of single colours and hard-edged cel shading in at most three tones per material, clear value contrast between light steel edge highlights, the mid body and dark recesses, flat even lighting, no grain, no speckle, no noise texture, no dithering, no weathering marks, edit the first reference picture and keep its tall tapered rifle and both gloved hands exactly where they are; make only these changes: repaint all of the rifle's metal in the same dark institutional grey-green enamel and dark gunmetal as the pistol in the second reference picture, with clean flat faces, crisp light steel edge highlights and dark recesses; every riveted plate becomes plain dark steel with no marks, no scratches and no symbols; both brown leather gloves get the same clean smooth leather shading as the second reference picture, the whole background is one flat solid pure magenta #FF00FF colour with no checkerboard, no pattern, no gradient and no shadow on it, no text, no letters, no watermark, no border. Avoid: photorealistic, 3d render, smooth shading, gradient, blur, anti-aliasing, drop shadow, cast shadow, ambient occlusion, specular, glossy, reflection, rim light, lens flare, bloom, depth of field, text, signature, watermark, frame, border, background scenery.",
+      "raw_file": "art/raw/art-pass-2-20261002/rifle/vm_rifle_idle_flat_0.png",
+      "raw_sha256": "ec164297ce171dec5d091fb1ecda386eff20e68bdee416b1e9d8953a62105c4f",
+      "reduction": "fragr-spritegen reduce --height 180 --no-trim --palette docs/palette.json --key ff00ff (tolerance 45, erode 2)",
+      "human_edited": false
+    },
+    {
+      "output": "res://assets/weapons/viewmodels/rifle_fire.png",
+      "output_size": [241, 180],
+      "output_sha256": "837e6c05025705111b48a234c36a8515b1253925ec772af0b22759ffe9853099",
+      "frame_id": "vm_rifle_fire_flat",
+      "request_id": "69b6a23e-8543-4cc8-8945-ac90dafc7bd0",
+      "model": "marketing-studio/image",
+      "params": {"aspect_ratio": "4:3", "enhance_prompt": false, "quality": "medium", "resolution": "2k"},
+      "estimated_usd": 0.092,
+      "references": [
+        "vm_rifle_idle_flat_0.png"
+      ],
+      "prompt": "redraw this exact first person pixel art weapon sprite from a 1990s PC shooter as the same picture at the instant of firing, keeping the identical camera angle, framing, scale, weapon design, gloves, colours and chunky stepped pixel clusters, broad flat areas of single colours with hard-edged cel shading, flat even lighting, no grain, no speckle, no noise texture, a bright sharp muzzle flash of hot ember orange with a pale yellow-white core and four thin needle streaks bursts from the muzzle at the top with hard stepped pixel edges, clearly visible and about as wide as the rifle's upper receiver, fully inside the picture, the rifle kicks up slightly into the gloves; the rifle's colours and both gloves stay exactly as they are, the whole background is one flat solid pure magenta #FF00FF colour with no checkerboard, no pattern, no gradient and no shadow on it, no text, no letters, no watermark, no border. Avoid: photorealistic, 3d render, smooth shading, gradient, blur, anti-aliasing, drop shadow, cast shadow, ambient occlusion, specular, glossy, reflection, rim light, lens flare, bloom, depth of field, text, signature, watermark, frame, border, background scenery.",
+      "raw_file": "art/raw/art-pass-2-20261002/rifle/vm_rifle_fire_flat_0.png",
+      "raw_sha256": "c89535eeb66f1658eca8d678f80a5f46aa7a71142c5fbca3f006b7b32296b765",
+      "reduction": "fragr-spritegen reduce --height 180 --no-trim --palette docs/palette.json --key ff00ff (tolerance 45, erode 2)",
+      "human_edited": false
+    }
+  ],
+  "local": [
+    {
+      "output": "res://assets/vfx/shots/muzzle_tack.png",
+      "output_size": [32, 32],
+      "output_sha256": "a2822e9a82361cf1594fa24260da437034173a3940c8100d8f1ff50e73f42dc1",
+      "source": "tools/bake_shot_vfx.gd",
+      "source_sha256": "a0cd01a51cdc0b2cb4f249bc8bb99bc71e2de48ca4ba74e885a68f669d1b0a3d",
+      "generation": "none; drawn in code from palette swatches"
+    },
+    {
+      "output": "res://assets/vfx/shots/muzzle_flechette.png",
+      "output_size": [32, 32],
+      "output_sha256": "7b7ba0477c4416fc77541a533978d1057bbf1ecdbd6a3d8607890e96527b5108",
+      "source": "tools/bake_shot_vfx.gd",
+      "source_sha256": "a0cd01a51cdc0b2cb4f249bc8bb99bc71e2de48ca4ba74e885a68f669d1b0a3d",
+      "generation": "none; drawn in code from palette swatches"
+    },
+    {
+      "output": "res://assets/vfx/shots/muzzle_scatter.png",
+      "output_size": [32, 32],
+      "output_sha256": "79b8dcf304a4cf54db4a3ddd70f43b924e0fbbf849a716e67bed8f835beeeffd",
+      "source": "tools/bake_shot_vfx.gd",
+      "source_sha256": "a0cd01a51cdc0b2cb4f249bc8bb99bc71e2de48ca4ba74e885a68f669d1b0a3d",
+      "generation": "none; drawn in code from palette swatches"
+    },
+    {
+      "output": "res://assets/vfx/shots/muzzle_rail.png",
+      "output_size": [32, 32],
+      "output_sha256": "d2286bcc02e2a7301f460d0bf629353889565774ad8add077f0add5f2bfce0ad",
+      "source": "tools/bake_shot_vfx.gd",
+      "source_sha256": "a0cd01a51cdc0b2cb4f249bc8bb99bc71e2de48ca4ba74e885a68f669d1b0a3d",
+      "generation": "none; drawn in code from palette swatches"
+    },
+    {
+      "output": "res://assets/vfx/shots/muzzle_sniper.png",
+      "output_size": [32, 32],
+      "output_sha256": "a08d61728dea6bf1ff13bdb4b165d6b9b25e4d5b641acdf981d38a7967a4fdda",
+      "source": "tools/bake_shot_vfx.gd",
+      "source_sha256": "a0cd01a51cdc0b2cb4f249bc8bb99bc71e2de48ca4ba74e885a68f669d1b0a3d",
+      "generation": "none; drawn in code from palette swatches"
+    },
+    {
+      "output": "res://assets/vfx/shots/impacts.png",
+      "output_size": [128, 128],
+      "output_sha256": "70dc6bd40376cd1de7bb68089af4a0b2758abe88ac28ad568747a723a9e69cd2",
+      "source": "tools/bake_shot_vfx.gd",
+      "source_sha256": "a0cd01a51cdc0b2cb4f249bc8bb99bc71e2de48ca4ba74e885a68f669d1b0a3d",
+      "generation": "none; drawn in code from palette swatches, fixed seeds"
+    }
+  ]
+}

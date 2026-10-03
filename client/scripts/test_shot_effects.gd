@@ -85,12 +85,20 @@ func _vertices(effects: ShotEffects) -> PackedVector3Array:
 	var arrays: Array = mesh.surface_get_arrays(0)
 	return arrays[Mesh.ARRAY_VERTEX]
 
+## Impact sprite corners, on their own surface beside the traces.
+func _impact_vertices(effects: ShotEffects) -> PackedVector3Array:
+	var mesh: Mesh = effects.get_node("Impacts").mesh
+	if mesh.get_surface_count() == 0:
+		return PackedVector3Array()
+	return mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]
+
 func _check_camera_clearance(effects: ShotEffects, camera: Camera3D, message: String) -> void:
 	var transform: Transform3D = camera.get_camera_transform()
 	var forward: Vector3 = -transform.basis.z.normalized()
 	var clearance: float = maxf(ShotEffects.CAMERA_CLEARANCE, camera.near)
 	var vertices: PackedVector3Array = _vertices(effects)
 	_check(not vertices.is_empty(), message + " keeps the distant trace")
+	vertices.append_array(_impact_vertices(effects))
 	for vertex: Vector3 in vertices:
 		_check(forward.dot(effects.to_global(vertex) - transform.origin) >= clearance - 0.00001,
 			message + " emits no polygon inside the camera clearance")
@@ -155,7 +163,7 @@ func _test_incoming_camera(effects: ShotEffects) -> void:
 	incoming["trace"]["weapon"] = "shiv"
 	incoming["trace"]["origin"] = [-1.0, 1.6, 0.0]
 	effects.ingest(103, [incoming])
-	_check(effects.active_count() == 1 and _vertices(effects).is_empty(),
+	_check(effects.active_count() == 1 and _vertices(effects).is_empty() and _impact_vertices(effects).is_empty(),
 		"close incoming melee impacts cannot cover the first-person eye")
 	effects.clear()
 	# A beam through the eye retains its distant section after polygon clipping.
@@ -204,6 +212,21 @@ func _run() -> void:
 	_check(effects.active_count() == 3 and effects.visible, "all impact kinds create bounded presentation")
 	_check_sniper_tracer()
 	_check(effects.get_node("Surface").mesh.get_surface_count() == 1, "effects share one mesh surface")
+	_check(effects.impact_count() == 2, "solid and fighter hits draw one impact sprite each, a miss none")
+	var sprites: ShaderMaterial = effects.get_node("Impacts").mesh.surface_get_material(0)
+	_check(sprites.shader == ShotEffects.SPRITE_SHADER and sprites.shader.code.contains("camera_clearance")
+		and not sprites.shader.code.contains("depth_test_disabled"), "impact sprites keep world depth and the camera clearance")
+	_check(ShotVfx.impact_row("rail", "solid") == "rail" and ShotVfx.impact_row("scatter", "fighter") == "fighter"
+		and ShotVfx.impact_row("tack", "solid") == "solid" and ShotVfx.impact_row("shiv", "fighter") == "melee",
+		"each gun and surface picks its impact row")
+	var first: Rect2 = ShotVfx.impact_uv("fighter", 0.0, ShotEffects.LIFETIME)
+	var last: Rect2 = ShotVfx.impact_uv("fighter", ShotEffects.LIFETIME * 0.99, ShotEffects.LIFETIME)
+	_check(first.position.x == 0.0 and is_equal_approx(last.position.x, 0.75) and first.position.y == last.position.y
+		and is_equal_approx(first.position.y, 0.25), "an impact plays its row's four frames over its lifetime")
+	for weapon: String in ["Tack", "Flechette", "Scatter", "Rail", "Sniper"]:
+		var flash: Texture2D = ShotVfx.muzzle(weapon)
+		_check(flash != null and flash.get_width() == 32 and flash.get_height() == 32, weapon + " has its own third-person flash")
+	_check(ShotVfx.muzzle("Fists") == null, "a punch shows no flash")
 	var material: ShaderMaterial = effects.get_node("Surface").mesh.surface_get_material(0)
 	_check(material.shader == ShotEffects.CLEARANCE_SHADER
 		and not material.shader.code.contains("depth_test_disabled")
@@ -216,6 +239,7 @@ func _run() -> void:
 	_check(effects.active_count() == 2, "range-only tracers expire without emitting an empty surface")
 	effects._process(0.18)
 	_check(effects.active_count() == 0 and not effects.visible, "every effect expires")
+	_check(effects.impact_count() == 0, "expiry releases impact sprites")
 	_check(effects.get_node("Surface").mesh.get_surface_count() == 0, "expiry releases draw geometry")
 	var malformed: Array = [null, {}, {"trace": []}]
 	for endpoint in [[], [0, 0], ["bad", 0, 0], [NAN, 0, 0], [INF, 0, 0], [9000, 0, 0], [2000, 0, 0]]:
@@ -332,14 +356,17 @@ func _rendered_camera_change() -> void:
 	original.vertex_color_use_as_albedo = true
 	original.cull_mode = BaseMaterial3D.CULL_DISABLED
 	surface.material_override = original
+	var impacts: MeshInstance3D = effects.get_node("Impacts")
+	impacts.material_override = original
 	var stale: Image = await _render_frame(viewport)
 	_check(_pixel_difference(stale.get_pixel(64, 64), background) > 0.1,
-		"the stale CPU-only mesh actually fills the aiming pixel")
+		"the stale CPU-only meshes actually fill the aiming pixel")
 	surface.material_override = null
+	impacts.material_override = null
 	var clipped: Image = await _render_frame(viewport)
 	_check(_pixel_difference(clipped.get_pixel(64, 64), background) < 0.03,
 		"actual render camera clips the stale mesh without rebuilding its evidence")
-	_check(effects.active_count() == 1 and not _vertices(effects).is_empty(),
+	_check(effects.active_count() == 1 and not _vertices(effects).is_empty() and effects.impact_count() == 1,
 		"render clipping never discards or rewrites the authoritative shot evidence")
 	var directory: String = ProjectSettings.globalize_path("res://../.agents/m04-buildout-20260930")
 	stale.save_png(directory.path_join("shot-camera-stale.png"))
